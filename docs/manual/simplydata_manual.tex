@@ -6342,15 +6342,18 @@ table.most_common_of("days_absent", for_each="school")
 How strongly columns of numbers go up or down together, from -1 to 1.
 
 \codeline{table.correlation\_between(\textquotedbl{}hours\textquotedbl{}, \textquotedbl{}marks\textquotedbl{})} (with \code{sdata.\allowbreak{}example(\textquotedbl{}marks\textquotedbl{})})\\
-\code{method=\textquotedbl{}pearson\textquotedbl{}} (a straight-line link, the usual one) or \code{\textquotedbl{}spearman\textquotedbl{}} (uses ranks, for any link that keeps going one way). Prints the strength in words and the p-value from SciPy. With two columns it gives back the number r; rows with an empty cell in either column are skipped. With three or more columns it gives back a correlation table (as pandas .corr()), and prints the strongest pairs:\\
+\code{method=\textquotedbl{}pearson\textquotedbl{}} (a straight-line link, the usual one), \code{\textquotedbl{}spearman\textquotedbl{}} (uses ranks, for any link that keeps going one way) or \code{\textquotedbl{}kendall\textquotedbl{}} (Kendall's tau-b, also ranks: the share of pairs of rows that agree in order minus the share that disagree; as R \code{cor.\allowbreak{}test(method = \textquotedbl{}kendall\textquotedbl{})}, SciPy kendalltau). Prints the strength in words and the p-value from SciPy. With two columns it gives back the number r; rows with an empty cell in either column are skipped. With three or more columns it gives back a correlation table (as pandas .corr()), and prints the strongest pairs:\\
 \codeline{table.correlation\_between(\textquotedbl{}hours\textquotedbl{}, \textquotedbl{}marks\textquotedbl{}, \textquotedbl{}height\textquotedbl{})}\\
-Each pair uses the rows where both columns have a number. \code{show=\textquotedbl{}p-value\textquotedbl{}} gives the table of p-values instead, and \code{show=\textquotedbl{}each pair\textquotedbl{}} one row per pair (r, p-value, rows), ready for \code{add\_\allowbreak{}adjusted\_\allowbreak{}p\_\allowbreak{}value\_\allowbreak{}column()}: testing many pairs makes a chance finding more likely. Strength words for the size of r: below 0.2 very weak, from 0.2 weak, from 0.4 medium, from 0.6 strong, from 0.8 very strong (after Evans 1996). p below 0.001: \code{\textquotedbl{}very unlikely to be chance\textquotedbl{}}; below 0.05: \code{\textquotedbl{}unlikely to be chance\textquotedbl{}}; otherwise \code{\textquotedbl{}could easily be chance\textquotedbl{}}. A correlation does not show that one thing causes the other.
+Each pair uses the rows where both columns have a number. \code{show=\textquotedbl{}p-value\textquotedbl{}} gives the table of p-values instead, and \code{show=\textquotedbl{}each pair\textquotedbl{}} one row per pair (r, p-value, rows), ready for \code{add\_\allowbreak{}adjusted\_\allowbreak{}p\_\allowbreak{}value\_\allowbreak{}column()}: testing many pairs makes a chance finding more likely. Strength words for the size of r: below 0.2 very weak, from 0.2 weak, from 0.4 medium, from 0.6 strong, from 0.8 very strong (after Evans 1996). p below 0.001: \code{\textquotedbl{}very unlikely to be chance\textquotedbl{}}; below 0.05: \code{\textquotedbl{}unlikely to be chance\textquotedbl{}}; otherwise \code{\textquotedbl{}could easily be chance\textquotedbl{}}. \code{sides=1}, \code{higher=\textquotedbl{}positive\textquotedbl{}} (or \code{\textquotedbl{}negative\textquotedbl{}}) tests in one direction only, as decided before seeing the data (R \code{cor.\allowbreak{}test(alternative = \textquotedbl{}greater\textquotedbl{})}); two columns only. A correlation does not show that one thing causes the other.
 
 \wordfield{Options}{}\par\nopagebreak
 \begin{optiontable}
 \code{columns.\allowbreak{}.\allowbreak{}.\allowbreak{}} & as many as you like, separated by commas\\
 \code{method=} & normally \code{\textquotedbl{}pearson\textquotedbl{}}\\
 \code{show=} & normally \code{\textquotedbl{}r\textquotedbl{}}\\
+\code{sides=} & normally \code{2}\\
+\code{higher=} & \\
+\code{alternative=} & \\
 \end{optiontable}
 
 \wordfield{Underneath}{SciPy (stats.pearsonr or stats.spearmanr)}
@@ -6365,7 +6368,7 @@ table.correlation_between("hours", "marks")
 Are the averages of the groups really different, or could it be chance?
 
 \codeline{table.compare\_averages(\textquotedbl{}marks\textquotedbl{}, for\_each=\textquotedbl{}class\textquotedbl{})} (with \code{sdata.\allowbreak{}example(\textquotedbl{}marks\textquotedbl{})})\\
-Two groups: Welch's t-test (the R \code{t.\allowbreak{}test()} default). Three or more: Welch's one-way ANOVA (the R \code{oneway.\allowbreak{}test()} default). Neither needs the groups to have the same spread. \code{based\_\allowbreak{}on=\textquotedbl{}ranks\textquotedbl{}} uses ranks instead (Mann-Whitney U or Kruskal-Wallis): safer when groups are small and their values are not bell-shaped. \code{test=} chooses another test: \code{\textquotedbl{}welch\textquotedbl{}}, \code{\textquotedbl{}student\textquotedbl{}}, \code{\textquotedbl{}welch anova\textquotedbl{}}, \code{\textquotedbl{}anova\textquotedbl{}}, \code{\textquotedbl{}mann-whitney\textquotedbl{}} or \code{\textquotedbl{}kruskal-wallis\textquotedbl{}}. Prints the answer in words (with the test used and why) and gives back a one-row table of results. The effect size says how big the difference is: Hedges' g (the difference in standard deviations) for 2 groups, omega-squared (the share of the differences explained by the groups) for 3 or more. Each group is checked for a bell shape (Shapiro-Wilk) and a note says if it does not look like one; with 30 or more values that matters little (the central limit theorem). To see which groups differ, use \code{compare\_\allowbreak{}each\_\allowbreak{}pair()}.
+Two groups: Welch's t-test (the R \code{t.\allowbreak{}test()} default). Three or more: Welch's one-way ANOVA (the R \code{oneway.\allowbreak{}test()} default). Neither needs the groups to have the same spread. \code{based\_\allowbreak{}on=\textquotedbl{}ranks\textquotedbl{}} uses ranks instead (Mann-Whitney U or Kruskal-Wallis): safer when groups are small and their values are not bell-shaped. \code{test=} chooses another test: \code{\textquotedbl{}welch\textquotedbl{}}, \code{\textquotedbl{}student\textquotedbl{}}, \code{\textquotedbl{}welch anova\textquotedbl{}}, \code{\textquotedbl{}anova\textquotedbl{}}, \code{\textquotedbl{}mann-whitney\textquotedbl{}} or \code{\textquotedbl{}kruskal-wallis\textquotedbl{}}. Prints the answer in words (with the test used and why) and gives back a one-row table of results. The effect size says how big the difference is: Hedges' g (the difference in standard deviations) for 2 groups, omega-squared (the share of the differences explained by the groups) for 3 or more. Each group is checked for a bell shape (Shapiro-Wilk) and a note says if it does not look like one; with 30 or more values that matters little (the central limit theorem). To see which groups differ, use \code{compare\_\allowbreak{}each\_\allowbreak{}pair()}. \code{sides=1}, \code{higher=\textquotedbl{}B\textquotedbl{}} tests in one direction only (2 groups): that B is higher, as decided before seeing the data (R \code{t.\allowbreak{}test(alternative = .\allowbreak{}.\allowbreak{}.\allowbreak{})}, \code{wilcox.\allowbreak{}test(alternative = .\allowbreak{}.\allowbreak{}.\allowbreak{})}); the 95 \% interval is then one-sided too. R's and SciPy's \code{alternative=} is accepted.
 
 \wordfield{Options}{}\par\nopagebreak
 \begin{optiontable}
@@ -6373,6 +6376,9 @@ Two groups: Welch's t-test (the R \code{t.\allowbreak{}test()} default). Three o
 \code{for\_\allowbreak{}each=} & \\
 \code{based\_\allowbreak{}on=} & normally \code{\textquotedbl{}averages\textquotedbl{}}\\
 \code{test=} & \\
+\code{sides=} & normally \code{2}\\
+\code{higher=} & \\
+\code{alternative=} & \\
 \end{optiontable}
 
 \wordfield{Underneath}{SciPy (stats.ttest\_ind with \code{equal\_\allowbreak{}var=False}; Welch's ANOVA written out with the F distribution; mannwhitneyu, kruskal)}
@@ -6409,13 +6415,16 @@ table.compare_each_pair("marks", for_each="class")
 Did the values change from one column to the other, row by row, more than chance?
 
 \codeline{table.compare\_before\_after(\textquotedbl{}Maths\textquotedbl{}, \textquotedbl{}Science\textquotedbl{})} (with \code{sdata.\allowbreak{}example(\textquotedbl{}marks\textquotedbl{})})\\
-For two measurements of the same thing, such as each child's mark before and after a course. Uses the change in each row (after minus before): a paired t-test, or the Wilcoxon signed-rank test with \code{based\_\allowbreak{}on=\textquotedbl{}ranks\textquotedbl{}}. Rows with an empty cell in either column are skipped. Effect size: Cohen's \code{d\_\allowbreak{}z}, the average change in standard deviations of the changes. Gives back a one-row table of results.
+For two measurements of the same thing, such as each child's mark before and after a course. Uses the change in each row (after minus before): a paired t-test, or the Wilcoxon signed-rank test with \code{based\_\allowbreak{}on=\textquotedbl{}ranks\textquotedbl{}}. Rows with an empty cell in either column are skipped. Effect size: Cohen's \code{d\_\allowbreak{}z}, the average change in standard deviations of the changes. Gives back a one-row table of results. \code{sides=1}, \code{higher=\textquotedbl{}after\textquotedbl{}} (or \code{\textquotedbl{}before\textquotedbl{}}) tests in one direction only, as decided before seeing the data (R \code{t.\allowbreak{}test(after,\allowbreak{} before,\allowbreak{} paired = TRUE,\allowbreak{} alternative = \textquotedbl{}greater\textquotedbl{})}).
 
 \wordfield{Options}{}\par\nopagebreak
 \begin{optiontable}
 \code{before=} & \\
 \code{after=} & \\
 \code{based\_\allowbreak{}on=} & normally \code{\textquotedbl{}averages\textquotedbl{}}\\
+\code{sides=} & normally \code{2}\\
+\code{higher=} & \\
+\code{alternative=} & \\
 \end{optiontable}
 
 \wordfield{Underneath}{SciPy (stats.ttest\_rel or stats.wilcoxon)}
@@ -6431,13 +6440,17 @@ table.compare_before_after("Maths", "Science")
 Is the average of a column different from a number you choose, or could it be chance?
 
 \codeline{table.compare\_average\_to(\textquotedbl{}marks\textquotedbl{}, 60)} (with \code{sdata.\allowbreak{}example(\textquotedbl{}marks\textquotedbl{})})\\
-A one-sample t-test, or the Wilcoxon signed-rank test (on the median) with \code{based\_\allowbreak{}on=\textquotedbl{}ranks\textquotedbl{}}. Empty cells are skipped. Effect size: Cohen's d, the difference in standard deviations. Gives back a one-row table of results.
+A one-sample t-test, or the Wilcoxon signed-rank test (on the median) with \code{based\_\allowbreak{}on=\textquotedbl{}ranks\textquotedbl{}}. Empty cells are skipped. Effect size: Cohen's d, the difference in standard deviations. Gives back a one-row table of results. \code{sides=1}, \code{higher=\textquotedbl{}average\textquotedbl{}} (the average is higher than the number) or \code{higher=\textquotedbl{}value\textquotedbl{}} (lower) tests in one direction only, as decided before seeing the data (R t.test(x, mu = 60,\\
+\codeline{alternative = \textquotedbl{}greater\textquotedbl{})).}
 
 \wordfield{Options}{}\par\nopagebreak
 \begin{optiontable}
 \code{column=} & \\
 \code{value=} & \\
 \code{based\_\allowbreak{}on=} & normally \code{\textquotedbl{}averages\textquotedbl{}}\\
+\code{sides=} & normally \code{2}\\
+\code{higher=} & \\
+\code{alternative=} & \\
 \end{optiontable}
 
 \wordfield{Underneath}{SciPy (stats.ttest\_1samp or stats.wilcoxon)}
@@ -6559,13 +6572,16 @@ table.compare_counts_to("breakfast", expected={"yes": 0.6, "no": 0.4})
 Is the percent of rows with one value different from a percent you choose, or could it be chance?
 
 \codeline{table.compare\_percent\_to(\textquotedbl{}passed\textquotedbl{}, value=\textquotedbl{}yes\textquotedbl{}, percent=50)} (with \code{sdata.\allowbreak{}example(\textquotedbl{}school\textquotedbl{})})\\
-The exact binomial test (as R \code{binom.\allowbreak{}test(x,\allowbreak{} n,\allowbreak{} p)}), with the exact Clopper-Pearson 95 \% interval of the percent (as \code{percent\_\allowbreak{}of()}). Percents go from 0 to 100. For a yes/no column (yes/no, True/False or 1/0) \code{value=} may be left out: \code{\textquotedbl{}yes\textquotedbl{}} (True, 1) is counted. Empty cells are skipped. Effect size: Cohen's h, the difference between the two shares on the arcsine scale (0.2 small, 0.5 medium, 0.8 large). Gives back a one-row table of results.
+The exact binomial test (as R \code{binom.\allowbreak{}test(x,\allowbreak{} n,\allowbreak{} p)}), with the exact Clopper-Pearson 95 \% interval of the percent (as \code{percent\_\allowbreak{}of()}). Percents go from 0 to 100. For a yes/no column (yes/no, True/False or 1/0) \code{value=} may be left out: \code{\textquotedbl{}yes\textquotedbl{}} (True, 1) is counted. Empty cells are skipped. Effect size: Cohen's h, the difference between the two shares on the arcsine scale (0.2 small, 0.5 medium, 0.8 large). Gives back a one-row table of results. \code{sides=1}, \code{higher=\textquotedbl{}percent\textquotedbl{}} (the data's percent is higher than \code{percent=}) or \code{higher=\textquotedbl{}given\textquotedbl{}} (lower) tests in one direction only (R \code{binom.\allowbreak{}test(alternative = \textquotedbl{}greater\textquotedbl{})}).
 
 \wordfield{Options}{}\par\nopagebreak
 \begin{optiontable}
 \code{column=} & \\
 \code{value=} & \\
 \code{percent=} & \\
+\code{sides=} & normally \code{2}\\
+\code{higher=} & \\
+\code{alternative=} & \\
 \end{optiontable}
 
 \wordfield{Underneath}{SciPy (stats.binomtest, the Clopper-Pearson exact interval)}

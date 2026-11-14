@@ -21,6 +21,19 @@ estimates (R uses the step before), so they agree with R to about 1e-5.
 - `compare_shape_to` calls SciPy `goodness_of_fit` again; most shapes take a few seconds
   with `samples=9999`, Weibull and t longer (a note says so before a long run).
 
+### One-sided tests and Kendall's tau
+
+- `sides=1, higher=...` tests in one direction only, chosen before seeing the data:
+  `compare_averages(..., sides=1, higher="B")` (two groups: Welch, Student, Mann-Whitney),
+  `compare_before_after(..., sides=1, higher="after")`, `compare_average_to(..., sides=1,
+  higher="average")`, `compare_percent_to(..., sides=1, higher="percent")` and
+  `correlation_between("hours", "marks", sides=1, higher="positive")`. The interval is then
+  one-sided too ("at least 1.2"), and the sentence says what the test does and does not look for.
+  R's and SciPy's `alternative="greater"` / `"less"` work as well, with the translation printed.
+  Each is checked against R `t.test`, `wilcox.test`, `binom.test` and `cor.test` with `alternative =`.
+- `correlation_between(..., method="kendall")`: Kendall's tau-b (SciPy `kendalltau`, as R
+  `cor.test(method = "kendall")`).
+
 ### Fitting
 
 - `table.fit_line(x=, y=)` is the main name of the straight-line fit, the same word as

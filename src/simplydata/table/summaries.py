@@ -54,7 +54,8 @@ _SUMMARIES = {
     "standard_deviation_of": ("standard deviation", lambda c: nw.col(c).std(ddof=1)),
 }
 
-CORRELATION_METHODS = ("pearson", "spearman")
+CORRELATION_METHODS = ("pearson", "spearman", "kendall")
+METHOD_NAMES = {"pearson": "Pearson", "spearman": "Spearman", "kendall": "Kendall's tau-b"}
 CORRELATION_SHOW = ("r", "p-value", "each pair")
 STRONGEST_PAIRS = 3  # a correlation table prints this many of its strongest pairs
 
@@ -1267,12 +1268,14 @@ class SummaryWords:
 
     # ------------------------------------------------------------------ correlation
     @friendly
-    def correlation_between(self, *columns, method="pearson", show="r"):
+    def correlation_between(self, *columns, method="pearson", show="r", sides=2, higher=None, alternative=None):
         """How strongly columns of numbers go up or down together, from -1 to 1.
 
         table.correlation_between("hours", "marks")   (with sdata.example("marks"))
-        method="pearson" (a straight-line link, the usual one) or "spearman" (uses ranks,
-        for any link that keeps going one way). Prints the strength in words and the
+        method="pearson" (a straight-line link, the usual one), "spearman" (uses ranks,
+        for any link that keeps going one way) or "kendall" (Kendall's tau-b, also ranks: the
+        share of pairs of rows that agree in order minus the share that disagree; as R
+        cor.test(method = "kendall"), SciPy kendalltau). Prints the strength in words and the
         p-value from SciPy. With two columns it gives back the number r; rows with an
         empty cell in either column are skipped.
         With three or more columns it gives back a correlation table (as pandas .corr()),
@@ -1286,6 +1289,8 @@ class SummaryWords:
         medium, from 0.6 strong, from 0.8 very strong (after Evans 1996).
         p below 0.001: "very unlikely to be chance"; below 0.05: "unlikely to be chance";
         otherwise "could easily be chance".
+        sides=1, higher="positive" (or "negative") tests in one direction only, as decided before
+        seeing the data (R cor.test(alternative = "greater")); two columns only.
         A correlation does not show that one thing causes the other.
         """
         step = "correlation_between"
@@ -1314,13 +1319,20 @@ class SummaryWords:
                 f'show="{show}" is for a correlation table of three or more columns. With two columns you get r, '
                 "and the sentence gives its p-value."
             )
+        from .stat_tests import _direction
+
+        example = f'table.correlation_between("{names[0]}", "{names[1]}", sides=1, higher="positive")'
+        if len(names) > 2 and (sides != 2 or higher is not None or alternative not in (None, "two-sided")):
+            raise SimplydataError("sides=1 and higher= work with two columns; a correlation table tests every pair "
+                                  "both ways.")
+        alt, up = _direction(step, sides, higher, alternative, {"positive": "greater", "negative": "less"}, example)
         frame = self._number_frame(step, names)
         if len(names) == 2:
-            return self._one_correlation(step, frame, names[0], names[1], method)
+            return self._one_correlation(step, frame, names[0], names[1], method, alt, up)
         return self._correlation_table(step, frame, names, method, shown)
 
     @staticmethod
-    def _correlate(step, frame, column_a, column_b, method):
+    def _correlate(step, frame, column_a, column_b, method, alternative="two-sided"):
         """r, p and the number of rows used, for one pair (rows with an empty cell skipped)."""
         pairs = frame.select(column_a, column_b).drop_nulls()
         if len(pairs) < 3:
@@ -1341,13 +1353,18 @@ class SummaryWords:
                 )
         from scipy import stats
 
-        result = stats.pearsonr(a, b) if method == "pearson" else stats.spearmanr(a, b)
+        if method == "pearson":
+            result = stats.pearsonr(a, b, alternative=alternative)
+        elif method == "spearman":
+            result = stats.spearmanr(a, b, alternative=alternative)
+        else:
+            result = stats.kendalltau(a, b, variant="b", alternative=alternative)
         return float(result[0]), float(result[1]), len(pairs)
 
-    def _one_correlation(self, step, frame, column_a, column_b, method):
-        r, p, n = self._correlate(step, frame, column_a, column_b, method)
+    def _one_correlation(self, step, frame, column_a, column_b, method, alternative="two-sided", up=None):
+        r, p, n = self._correlate(step, frame, column_a, column_b, method, alternative)
         skipped = len(frame) - n
-        name = "Pearson" if method == "pearson" else "Spearman"
+        name = METHOD_NAMES[method]
         if skipped:
             rows = "row" if skipped == 1 else "rows"
             verb = "was" if skipped == 1 else "were"
@@ -1356,6 +1373,12 @@ class SummaryWords:
             f'The correlation between "{column_a}" and "{column_b}" is r = {r:.2f} ({name}, {n} rows): '
             f"{_strength(r)}, and {_p_words(p)}."
         )
+        if up is not None:
+            from .stat_tests import _one_sided_sentence
+
+            other = "negative" if up == "positive" else "positive"
+            print(_one_sided_sentence(f"a {up} correlation", f"a {other} one")
+                  + f' As R cor.test(method = "{method}", alternative = "{alternative}").')
         return r
 
     def _correlation_table(self, step, frame, names, method, shown):
@@ -1363,7 +1386,7 @@ class SummaryWords:
         for i, a in enumerate(names):
             for b in names[i + 1:]:
                 found[(a, b)] = self._correlate(step, frame, a, b, method)
-        method_name = "Pearson" if method == "pearson" else "Spearman"
+        method_name = METHOD_NAMES[method]
         if shown == "each pair":
             pairs = list(found.items())
             data = {"column 1": [a for (a, _), _ in pairs], "column 2": [b for (_, b), _ in pairs],
