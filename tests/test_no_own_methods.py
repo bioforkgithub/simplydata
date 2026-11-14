@@ -40,6 +40,8 @@ ALLOWED = {
     "distributions.py::_nbinom_size": "negative binomial size with brentq (statsmodels NegativeBinomial planned)",
     "finding.py": "find/solve words: the user's own equation handed to scipy.optimize (glue by design)",
     "table/columns.py": "digamma offered as a formula function users can type",
+    "power.py::how_many_needed": "brentq on the power curve; replaced in S1 (R pwr / statsmodels power)",
+    "table/stat_tests.py::_hedges_correction": "exact Hedges' g correction (gammaln); replaced in S1 (R effectsize)",
     "table/fitting.py::_not_pinned_down": "rank of the Jacobian from least_squares (thin check, T10)",
     "table/models.py::ModelWords._fit_one": "inverts the fixed-effects block of statsmodels' MixedLM Hessian (lme4 vcov)",
     "table/models.py::ModelWords._fit_model": "matrix_rank: checks the columns before fitting",
@@ -49,19 +51,37 @@ ALLOWED = {
 }
 
 
+def _imported_blocks(tree):
+    """Names brought in with `from scipy.optimize import brentq` (or `... import brentq as b`) that
+    are building blocks: {local name: "optimize.brentq"}."""
+    out = {}
+    for node in ast.walk(tree):
+        if isinstance(node, ast.ImportFrom) and node.module:
+            owner = node.module.split(".")[-1]
+            for alias in node.names:
+                if (owner, alias.name) in BUILDING_BLOCKS:
+                    out[alias.asname or alias.name] = f"{owner}.{alias.name}"
+    return out
+
+
 def _uses(tree):
-    """(function qualname, block) for every building block called inside a function."""
+    """(function qualname, block) for every building block used inside a function, whether
+    written as optimize.brentq(...) or imported by name and called as brentq(...)."""
     found = []
+    imported = _imported_blocks(tree)
 
     def visit(node, names):
         for child in ast.iter_child_nodes(node):
             if isinstance(child, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)):
                 visit(child, names + [child.name])
                 continue
+            where = ".".join(n for n in names if n)
             if isinstance(child, ast.Attribute) and isinstance(child.value, (ast.Attribute, ast.Name)):
                 owner = child.value.attr if isinstance(child.value, ast.Attribute) else child.value.id
                 if (owner, child.attr) in BUILDING_BLOCKS:
-                    found.append((".".join(n for n in names if n), f"{owner}.{child.attr}"))
+                    found.append((where, f"{owner}.{child.attr}"))
+            elif isinstance(child, ast.Name) and child.id in imported and isinstance(child.ctx, ast.Load):
+                found.append((where, imported[child.id]))
             visit(child, names)
 
     visit(tree, [])
