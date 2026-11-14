@@ -1,4 +1,7 @@
-"""Table words for time series: table.check_steady("visitors", sorted_by="month").
+"""Table words for time series: table.autocorrelation_of(...), table.check_steady(...).
+
+autocorrelation_of: statsmodels acf / pacf / acovf and acorr_ljungbox with R's options (see
+simplydata._time_series).
 
 check_steady runs R's own tests through rpy2 (simplydata[r]): the augmented Dickey-Fuller test as R
 tseries::adf.test(x) (a constant and a straight-line trend in the test regression, trunc((n - 1)^(1/3))
@@ -16,6 +19,7 @@ import narwhals as nw
 from .._errors import SimplydataError, choice_error, friendly
 from .._time_axis import need_filled, need_regular, series_of
 from .stat_tests import _p_shown
+from .. import _time_series
 
 EXAMPLE = 'table.check_steady("signal", sorted_by="time")'
 AROUND = {"level": "Level", "straight line": "Trend"}
@@ -43,6 +47,46 @@ def _p_words(p, flag) -> str:
 
 
 class TimeSeriesWords:
+    @friendly
+    def autocorrelation_of(self, column=None, sorted_by=None, rows_back=None, show="correlation",
+                           band="white noise", for_each=None):
+        """How much a column is like itself some rows back (autocorrelation), with a noise band.
+
+        table.autocorrelation_of("signal", sorted_by="time", rows_back=40)   (with sdata.example("sensor"))
+        The correlation of the column with itself 1, 2, ... rows_back= rows back (default as R:
+        10 x log10 of the number of readings). A pattern that repeats every 12 rows shows as a high
+        correlation 12 rows back. show="correlation" (R acf), "partial" (R pacf: each rows back with
+        the shorter ones held fixed) or "covariance". band="white noise" (+/- 1.96 / sqrt(n), the
+        dashed lines of R plot.acf) or "bartlett" (wider further back, R ci.type = "ma"). The
+        Ljung-Box test asks whether all these correlations together could be chance. The readings
+        must be evenly spaced (sorted_by=) and filled in. Numbers come from statsmodels with R's
+        options. Gives back one row per rows back.
+        """
+        step_name = "autocorrelation_of"
+        example = 'table.autocorrelation_of("signal", sorted_by="time")'
+        self._need_name(step_name, "the column", column, example)
+        series = series_of(self, column, sorted_by, for_each, step_name, example)
+        groups = self._group_columns(step_name, for_each, [column]) if for_each is not None else []
+        rows, method = [], None
+        for one in series:
+            need_filled(one, column, step_name, sorted_by)
+            if sorted_by is not None:
+                need_regular(one, step_name, sorted_by)
+            got = _time_series.autocorrelation(one.values, rows_back, show, band, step_name)
+            what = f'"{column}"' + (f" for {one.label}" if one.label else "")
+            print(_time_series.sentence(got, what, show, band))
+            method = _time_series.method_sentence(show, band, got["k"])
+            for j in range(got["k"]):
+                row = {", ".join(groups): one.label} if groups else {}
+                row.update({"rows back": int(got["rows_back"][j]), got["column"]: float(got["values"][j]),
+                            "band low": float(got["low"][j]), "band high": float(got["high"][j]),
+                            "outside band": "yes" if got["outside"][j] else "no",
+                            "Ljung-Box statistic": got["ljung_box"][0], "Ljung-Box p-value": got["ljung_box"][1]})
+                rows.append(row)
+        print(method)
+        data = {key: [r[key] for r in rows] for key in rows[0]}
+        return self._new_table(nw.from_dict(data, backend=self._frame.implementation))
+
     @friendly
     def check_steady(self, column=None, sorted_by=None, around="level", method="both", for_each=None):
         """Does a column stay steady over time, or does it wander? (ADF and KPSS tests, as R tseries)

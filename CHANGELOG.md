@@ -55,6 +55,10 @@ Install once: `pip install "simplydata[r]"`, R from https://cran.r-project.org, 
   The ADF and KPSS tests together, run in R (`tseries::adf.test`, `tseries::kpss.test`), with R's
   table p-values ("below 0.01", "above 0.1" when outside the tables). around="straight line" checks
   steadiness around a trend. Needs `simplydata[r]`.
+- `table.autocorrelation_of("signal", sorted_by="time")` and `nums.autocorrelation_of(rows_back=10)`: how much
+  a column is like itself some rows back, with the noise band of R `plot.acf` (band="white noise", or
+  "bartlett" as R `ci.type = "ma"`), show="correlation" (R `acf`), "partial" (R `pacf`) or "covariance",
+  and the Ljung-Box test of all of them together (R `Box.test(type = "Ljung-Box")`). From statsmodels.
 - New practice table `sensor`: five seconds of a made-up sensor at 200 readings per second.
 
 ### Fitting

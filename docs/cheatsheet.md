@@ -379,6 +379,8 @@ and `a`, `b` in `sdata.side_by_side(a, b)` are charts you made first.
 | `spectrum_of` | `table.spectrum_of("signal", sorted_by="time")` | sensor | Which repeating cycles (frequencies) a column holds over time, and how strong each is. |
 | `spectrum_of` | `nums.spectrum_of(time_step=0.01)` | sensor | Which repeating cycles (frequencies) the numbers hold, and how strong each is. |
 | `check_steady` | `table.check_steady("signal", sorted_by="time")` | sensor | Does a column stay steady over time, or does it wander? (ADF and KPSS tests, as R tseries) |
+| `autocorrelation_of` | `table.autocorrelation_of("signal", sorted_by="time", rows_back=40)` | sensor | How much a column is like itself some rows back (autocorrelation), with a noise band. |
+| `autocorrelation_of` | `nums.autocorrelation_of(rows_back=24)` | sensor | How much the numbers are like themselves some places back (autocorrelation), with a noise band. |
 
 ## Planning a study
 

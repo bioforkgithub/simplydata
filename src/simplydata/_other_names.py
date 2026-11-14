@@ -142,6 +142,8 @@ _TABLE = [
      "periodogram welch psd spec_pgram lombscargle lsp power_spectrum frequencies_of cycles_of"),
     ('table.check_steady("signal", sorted_by="time")',
      "adfuller adf_test kpss kpss_test unit_root stationarity is_stationary compare_to_steady"),
+    ('table.autocorrelation_of("signal", sorted_by="time")',
+     "acf pacf acovf autocorrelation autocorr partial_autocorrelation ljung_box Box.test"),
 ]
 
 # chart.<name>
@@ -198,6 +200,7 @@ _CHART = [
 _NUMBERS = [
     ('nums.fit_distribution("gamma")', "fit fitdistr fitdist"),
     ("nums.spectrum_of(time_step=0.01)", "fft_power spectral_density"),
+    ("nums.autocorrelation_of(rows_back=10)", "acf pacf"),
     ("nums.chart()", "plot hist"),
     ("nums.keep_random_numbers(3, seed=1)", "sample choice"),
     ("nums.count_each()", "value_counts tabulate"),

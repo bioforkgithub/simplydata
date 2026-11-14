@@ -108,3 +108,69 @@ def test_steady_errors(engine):
     short = make(pd.DataFrame({"level": [1.0, 2, 3]}), engine)
     with pytest.raises(SimplydataError, match="at least 10"):
         short.check_steady("level")
+
+
+# ---------------------------------------------------------------------------- autocorrelation_of
+# k <- 0:95; x <- sin(2 * pi * k / 12) + 0.02 * k + lcg(96)
+K96 = np.arange(96)
+SEASONAL = np.sin(2 * np.pi * K96 / 12) + 0.02 * K96 + lcg(96)
+
+
+def acf_rows(result):
+    frame = result._frame
+    return frame.to_pandas() if hasattr(frame, "to_pandas") else frame
+
+
+def test_autocorrelation_matches_r_acf(engine, capsys):
+    frame = pd.DataFrame({"month": K96, "x": SEASONAL})
+    got = acf_rows(make(frame, engine).autocorrelation_of("x", sorted_by="month"))
+    out = capsys.readouterr().out
+    # a <- acf(x): lag.max = floor(10 * log10(96)) = 19
+    assert len(got) == 19 and got["rows back"].tolist() == list(range(1, 20))
+    assert got["correlation"][:3].tolist() == pytest.approx([0.802483779911213, 0.593424437316948,
+                                                             0.276559102571370], rel=1e-10)
+    assert got["correlation"][11] == pytest.approx(0.707571939651603, rel=1e-10)  # a$acf[13], 12 rows back
+    assert got["correlation"][18] == pytest.approx(-0.302428792808212, rel=1e-10)  # a$acf[20]
+    assert got["band high"][0] == pytest.approx(0.200037986514805, rel=1e-10)  # qnorm(0.975) / sqrt(96)
+    # Box.test(x, lag = 19, type = "Ljung-Box"): 362.92338071157
+    assert got["Ljung-Box statistic"][0] == pytest.approx(362.92338071157, rel=1e-10)
+    assert '"x" is most like itself 1 row back' in out and "Ljung-Box test up to 19 rows back" in out
+    assert "acf(x, lag.max = 19)" in out
+
+
+def test_autocorrelation_partial_covariance_and_bartlett():
+    nums = sdata.numbers(SEASONAL.tolist())
+    partial = acf_rows(nums.autocorrelation_of(rows_back=24, show="partial"))
+    # pa <- pacf(x, lag.max = 24)
+    assert partial["partial correlation"][:3].tolist() == pytest.approx(
+        [0.802483779911213, -0.142002726029874, -0.439521824753959], rel=1e-9)
+    assert partial["partial correlation"][11] == pytest.approx(-0.0349121262778547, rel=1e-8)
+    assert partial["partial correlation"][23] == pytest.approx(0.00938365469116159, rel=1e-7)
+    # Box.test(x, lag = 24, type = "Ljung-Box"): 438.003452315306
+    assert partial["Ljung-Box statistic"][0] == pytest.approx(438.003452315306, rel=1e-10)
+    covariance = acf_rows(nums.autocorrelation_of(rows_back=24, show="covariance"))
+    # acf(x, lag.max = 24, type = "covariance")$acf[2:3]
+    assert covariance["covariance"][:2].tolist() == pytest.approx([0.648981989297812, 0.479912219372830], rel=1e-10)
+    bartlett = acf_rows(nums.autocorrelation_of(rows_back=24, band="bartlett"))
+    # qnorm(0.975) * sqrt(cumsum(c(1, 2 * r[-24]^2)) / 96), as R plot.acf(ci.type = "ma")
+    assert bartlett["band high"][:3].tolist() == pytest.approx([0.200037986514805, 0.302577569096385,
+                                                                0.346029034908633], rel=1e-9)
+    assert bartlett["band high"][11] == pytest.approx(0.445197225397543, rel=1e-9)
+
+
+def test_autocorrelation_finds_a_repeating_pattern(capsys):
+    k = np.arange(120)
+    sdata.numbers((np.sin(2 * np.pi * k / 12) + 0.1 * lcg(120)).tolist()).autocorrelation_of(rows_back=24)
+    assert "a pattern that repeats about every 12 rows" in capsys.readouterr().out
+
+
+def test_autocorrelation_errors(engine):
+    t = make(pd.DataFrame({"x": SEASONAL}), engine)
+    with pytest.raises(SimplydataError, match="rows_back="):
+        t.autocorrelation_of("x", rows_back=0)
+    with pytest.raises(SimplydataError, match="show"):
+        t.autocorrelation_of("x", show="spectrum")
+    with pytest.raises(SimplydataError, match="bartlett"):
+        t.autocorrelation_of("x", show="partial", band="bartlett")
+    with pytest.raises(SimplydataError, match="empty"):
+        make(pd.DataFrame({"x": [1.0, None, 3, 4, 5, 6]}), engine).autocorrelation_of("x")

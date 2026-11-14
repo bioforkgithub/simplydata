@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import numpy as np
 
-from .. import _signals
+from .. import _signals, _time_series
 from .._errors import SimplydataError, friendly
 from .._time_axis import read_time_step
 
@@ -59,6 +59,36 @@ class SignalNumberWords:
         print(result["sentence"])
         print(result["method"] + (f" {words[0].upper() + words[1:]}." if name != "lomb-scargle" else ""))
         return _spectrum_table(result, _signals.check_frequency_range(between, step_name))
+
+
+class TimeSeriesNumberWords:
+    @friendly
+    def autocorrelation_of(self, rows_back=None, show="correlation", band="white noise"):
+        """How much the numbers are like themselves some places back (autocorrelation), with a noise band.
+
+        nums.autocorrelation_of(rows_back=24)
+        As table.autocorrelation_of: R acf (show="correlation"), pacf ("partial") or the
+        covariance, the white-noise or Bartlett band, and the Ljung-Box test, from statsmodels with
+        R's options. The numbers are taken in order, evenly spaced, with no empty values.
+        """
+        import pandas as pd
+
+        from ..table import Table
+
+        step_name = "autocorrelation_of"
+        values = np.asarray(self._values, dtype=float).ravel()
+        if np.isnan(values).any():
+            raise SimplydataError(f"autocorrelation_of() needs a value at every place, but {int(np.isnan(values).sum())} "
+                                  'numbers are empty. Fill them first: nums.fill_empty_numbers(with_the="line between '
+                                  'neighbours").')
+        got = _time_series.autocorrelation(values, rows_back, show, band, step_name)
+        print(_time_series.sentence(got, "The numbers", show, band))
+        print(_time_series.method_sentence(show, band, got["k"]))
+        return Table(pd.DataFrame({"rows back": got["rows_back"], got["column"]: got["values"],
+                                   "band low": got["low"], "band high": got["high"],
+                                   "outside band": np.where(got["outside"], "yes", "no"),
+                                   "Ljung-Box statistic": got["ljung_box"][0],
+                                   "Ljung-Box p-value": got["ljung_box"][1]}))
 
 
 def _spectrum_table(result, between, group=None):

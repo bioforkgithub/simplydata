@@ -14,11 +14,12 @@ from ._base import BaseNumbers, amount, check_seed, check_whole, is_number, plai
 from .distribution_words import DistributionNumberWords
 from .maths import MathsWords
 from .picking import PickingWords, ReplacingWords
-from .signal_words import SignalNumberWords
+from .signal_words import SignalNumberWords, TimeSeriesNumberWords
 from .summaries import GridSummaryWords, SummaryWords
 
 
-class Numbers(PickingWords, MathsWords, SummaryWords, DistributionNumberWords, SignalNumberWords, BaseNumbers):
+class Numbers(PickingWords, MathsWords, SummaryWords, DistributionNumberWords, SignalNumberWords,
+              TimeSeriesNumberWords, BaseNumbers):
     """A list of numbers. Make one with sdata.numbers([3, 5, 2, 8]), then add steps: nums.add(5)."""
 
     _is_simplydata_numbers = True

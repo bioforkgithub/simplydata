@@ -7537,6 +7537,49 @@ import simplydata as sdata
 table = sdata.table(sdata.example("sensor"))
 table.check_steady("signal", sorted_by="time")
 \end{lstlisting}
+\wordentry{table.autocorrelation\_of()}{word:table.autocorrelation-of}
+How much a column is like itself some rows back (autocorrelation), with a noise band.
+
+\codeline{table.autocorrelation\_of(\textquotedbl{}signal\textquotedbl{}, sorted\_by=\textquotedbl{}time\textquotedbl{}, rows\_back=40)} (with \code{sdata.\allowbreak{}example(\textquotedbl{}sensor\textquotedbl{})})\\
+The correlation of the column with itself 1, 2, ... \code{rows\_\allowbreak{}back=} rows back (default as R: 10 x log10 of the number of readings). A pattern that repeats every 12 rows shows as a high correlation 12 rows back. \code{show=\textquotedbl{}correlation\textquotedbl{}} (R acf), \code{\textquotedbl{}partial\textquotedbl{}} (R pacf: each rows back with the shorter ones held fixed) or \code{\textquotedbl{}covariance\textquotedbl{}}. \code{band=\textquotedbl{}white noise\textquotedbl{}} (+/- 1.96 / \code{sqrt(n)}, the dashed lines of R plot.acf) or \code{\textquotedbl{}bartlett\textquotedbl{}} (wider further back, R ci.type = \code{\textquotedbl{}ma\textquotedbl{}}). The Ljung-Box test asks whether all these correlations together could be chance. The readings must be evenly spaced (\code{sorted\_\allowbreak{}by=}) and filled in. Numbers come from statsmodels with R's options. Gives back one row per rows back.
+
+\wordfield{Options}{}\par\nopagebreak
+\begin{optiontable}
+\code{column=} & \\
+\code{sorted\_\allowbreak{}by=} & \\
+\code{rows\_\allowbreak{}back=} & \\
+\code{show=} & normally \code{\textquotedbl{}correlation\textquotedbl{}}\\
+\code{band=} & normally \code{\textquotedbl{}white noise\textquotedbl{}}\\
+\code{for\_\allowbreak{}each=} & \\
+\end{optiontable}
+
+\wordfield{Underneath}{statsmodels (tsa.stattools acf, pacf method ywm, acovf, \code{acorr\_\allowbreak{}ljungbox}), as R acf, pacf, Box.test}
+\wordfield{Example you can run}{(it uses the practice table \code{sensor})}\par\nopagebreak
+\begin{lstlisting}[style=py]
+import simplydata as sdata
+table = sdata.table(sdata.example("sensor"))
+table.autocorrelation_of("signal", sorted_by="time", rows_back=10)
+\end{lstlisting}
+\wordentry{nums.autocorrelation\_of()}{word:nums.autocorrelation-of}
+How much the numbers are like themselves some places back (autocorrelation), with a noise band.
+
+\codeline{nums.autocorrelation\_of(rows\_back=24)}\\
+As \code{table.\allowbreak{}autocorrelation\_\allowbreak{}of}: R acf (\code{show=\textquotedbl{}correlation\textquotedbl{}}), pacf (\code{\textquotedbl{}partial\textquotedbl{}}) or the covariance, the white-noise or Bartlett band, and the Ljung-Box test, from statsmodels with R's options. The numbers are taken in order, evenly spaced, with no empty values.
+
+\wordfield{Options}{}\par\nopagebreak
+\begin{optiontable}
+\code{rows\_\allowbreak{}back=} & \\
+\code{show=} & normally \code{\textquotedbl{}correlation\textquotedbl{}}\\
+\code{band=} & normally \code{\textquotedbl{}white noise\textquotedbl{}}\\
+\end{optiontable}
+
+\wordfield{Underneath}{statsmodels (tsa.stattools acf, pacf method ywm, acovf, \code{acorr\_\allowbreak{}ljungbox}), as R acf, pacf, Box.test}
+\wordfield{Example you can run}{(it uses the practice table \code{sensor})}\par\nopagebreak
+\begin{lstlisting}[style=py]
+import simplydata as sdata
+nums = sdata.numbers(sdata.example("sensor")["signal"])
+nums.autocorrelation_of(rows_back=10)
+\end{lstlisting}
 \unsection{Planning a study}{group:Planning-a-study}
 \wordentry{sdata.how\_many\_needed()}{word:sdata.how-many-needed}
 How many values (in each group) does a study need to find a real difference?
@@ -9928,6 +9971,8 @@ Every word and option, A to Z, with the page of its dictionary entry. Other spel
 \indexline{word:nums.as-numpy}{nums.as\_numpy()}
 \indexline{word:table.as-pandas}{table.as\_pandas()}
 \indexline{word:table.as-polars}{table.as\_polars()}
+\indexline{word:nums.autocorrelation-of}{nums.autocorrelation\_of()}
+\indexline{word:table.autocorrelation-of}{table.autocorrelation\_of()}
 \indexline{word:dist.average}{dist.average()}
 \indexline{word:nums.average}{nums.average()}
 \indexline{word:table.average-of}{table.average\_of()}

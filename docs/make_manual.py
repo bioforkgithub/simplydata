@@ -181,6 +181,8 @@ UNDERNEATH = {
     "nums.spectrum_of": "SciPy (signal.periodogram, signal.welch); R lomb::lsp for uneven times (simplydata[r])",
     "table.spectrum_of": "SciPy (signal.periodogram, signal.welch); R lomb::lsp for uneven times (simplydata[r])",
     "table.check_steady": "R (tseries::adf.test and kpss.test, through rpy2: simplydata[r])",
+    "table.autocorrelation_of": "statsmodels (tsa.stattools acf, pacf method ywm, acovf, acorr_ljungbox), as R acf, pacf, Box.test",
+    "nums.autocorrelation_of": "statsmodels (tsa.stattools acf, pacf method ywm, acovf, acorr_ljungbox), as R acf, pacf, Box.test",
     "nums.fit_distribution": "SciPy (scipy.stats and optimize, as table.fit_distribution)",
     # models
     "table.explain": "NumPy (least squares, and iteratively reweighted least squares as R glm); "
