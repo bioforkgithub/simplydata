@@ -274,7 +274,7 @@ def test_mixed_model_not_yet_for_yes_no(school):
 
 
 # ---------------------------------------------------------------- multiple imputation
-def test_multiple_imputation_close_to_r_mice(school, engine, capsys):
+def test_multiple_imputation_close_to_r_mice(school, engine, capsys, needs_r):
     pytest.importorskip("statsmodels")
     t = make(school, engine)
     got = rows(t.explain("marks", using=["hours", "breakfast", "sleep"], empty_cells="multiple imputation"))
@@ -301,7 +301,7 @@ def test_multiple_imputation_close_to_r_mice(school, engine, capsys):
     assert other["sleep"]["effect"] != got["sleep"]["effect"]
 
 
-def test_multiple_imputation_logistic_close_to_r_mice(school):
+def test_multiple_imputation_logistic_close_to_r_mice(school, needs_r):
     pytest.importorskip("statsmodels")
     got = rows(make_table(school).explain("passed", using=["hours", "sleep"], outcome="yes or no",
                                           empty_cells="multiple imputation"))
@@ -314,7 +314,7 @@ def test_multiple_imputation_logistic_close_to_r_mice(school):
         assert got[term]["standard error"] == pytest.approx(se, rel=0.08), term
 
 
-def test_multiple_imputation_needs_no_groups(school):
+def test_multiple_imputation_needs_no_groups(school, needs_r):
     with pytest.raises(SimplydataError, match="cannot be used with grouped_by"):
         make_table(school).explain("marks", using="hours", grouped_by="school", empty_cells="multiple imputation")
 

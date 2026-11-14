@@ -29,12 +29,11 @@ One direction (one column in at=):
 * smoothness="auto" or a number: a smoothing spline that does NOT pass through every
   point. With x rescaled to run from 0 to 1 (as R does), it makes
   sum (y - curve)**2 + smoothness * integral(curve''**2)  as small as possible, with a knot
-  at every distinct x (Reinsch's algorithm, written out here; R smooth.spline(x, y,
-  all.knots = TRUE)); so smoothness=0.001 is R's lambda = 0.001. "auto" chooses it by
-  generalised cross-validation over all the values, as R's default (SciPy's
-  make_smoothing_spline is not used: its search for lambda stops at the number of points
-  and it leaves out the spread of tied values, so it lands elsewhere). Several values at
-  one x are averaged and weighted by how many there were, as R.
+  at every distinct x (SciPy make_smoothing_spline; R smooth.spline(x, y, all.knots =
+  TRUE)); so smoothness=0.001 is R's lambda = 0.001. "auto" lets R smooth.spline itself
+  choose it by generalised cross-validation (through rpy2: simplydata[r] and R), because
+  SciPy's own choice lands elsewhere. Several values at one x are averaged and weighted by
+  how many there were, as R.
 
 Two or more directions (at= with two or more columns):
 
@@ -171,132 +170,39 @@ def unique_mean(x, y):
     return ux, uy, counts
 
 
-def _band_inverse_trace(m_bands, b_bands):
-    """trace(M^-1 B) for symmetric positive pentadiagonal M and B, both given as (3, n) lower bands.
-
-    Only the central five bands of M^-1 are needed; they come from the LDL' factors by the
-    recursion of Hutchinson and de Hoog (1985), in O(n).
-    """
-    from scipy.linalg import cholesky_banded
-
-    n = m_bands.shape[1]
-    c = cholesky_banded(m_bands, lower=True)  # c[0] diagonal, c[1] first below, c[2] second below
-    d = c[0] ** 2
-    low = np.zeros((3, n))
-    low[1, :-1] = c[1, :-1] / c[0, :-1]  # L[i+1, i]
-    low[2, :-2] = c[2, :-2] / c[0, :-2]  # L[i+2, i]
-    inv = np.zeros((3, n))  # inv[k, i] = (M^-1)[i, i + k]
-
-    def get(i, j):
-        i, j = min(i, j), max(i, j)
-        return inv[j - i, i]
-
-    for i in range(n - 1, -1, -1):
-        for j in range(min(i + 2, n - 1), i, -1):
-            total = 0.0
-            for k in range(1, 3):
-                if i + k < n:
-                    total -= low[k, i] * get(i + k, j)
-            inv[j - i, i] = total
-        total = 1.0 / d[i]
-        for k in range(1, 3):
-            if i + k < n:
-                total -= low[k, i] * inv[k, i]
-        inv[0, i] = total
-    trace = float(np.sum(inv[0] * b_bands[0]))
-    trace += 2 * float(np.sum(inv[1, :-1] * b_bands[1, :-1])) + 2 * float(np.sum(inv[2, :-2] * b_bands[2, :-2]))
-    return trace
-
-
 class SmoothingSpline:
     """The natural cubic smoothing spline of R smooth.spline(x, y, all.knots = TRUE).
 
-    x is rescaled to run from 0 to 1, as R does, and the spline g makes
-        sum w (y - g(x))**2 + lambda * integral(g''**2)
-    as small as possible (Reinsch's algorithm, Green and Silverman 1994, chapter 2), so
-    lambda is R's lambda=. Several values at one x are averaged with weight = how many, as
-    R. lambda="auto" chooses it by generalised cross-validation exactly as R does:
-        GCV = (residual sum of squares / n) / (1 - df / n)**2
-    over all n values (ties count their spread around their average), with df the trace of
-    the smoother matrix (R's $df). Beyond the ends the curve goes on in a straight line,
-    as R predict.smooth.spline.
+    The curve is SciPy make_smoothing_spline on x rescaled to run from 0 to 1 (as R does), so
+    its lam is R's lambda: it makes  sum w (y - g(x))**2 + lambda * integral(g''**2)  as small
+    as possible. Several values at one x are averaged with weight = how many, as R.
+    smoothness="auto" asks R itself (smooth.spline, through rpy2) for lambda chosen by
+    generalised cross-validation, with its equivalent degrees of freedom (df); SciPy's own
+    choice of lambda lands elsewhere. A number for smoothness= needs no R (df is then not
+    known). Beyond the ends the curve goes on in a straight line, as R predict.smooth.spline.
     """
 
     def __init__(self, x, y, smoothness="auto"):
+        from scipy.interpolate import make_smoothing_spline
+
         x = np.asarray(x, dtype=float)
         y = np.asarray(y, dtype=float)
         ux, uy, counts = unique_mean(x, y)
         if len(ux) < 4:
             raise SimplydataError(f"A smoothing spline needs at least 4 different x values; there are {len(ux)}.")
-        self.n = len(x)
-        self.within = float(np.sum((y - uy[np.searchsorted(ux, x)]) ** 2))
         self.low, self.size = float(ux[0]), float(ux[-1] - ux[0])
-        self.x = (ux - self.low) / self.size
-        self.y, self.w = uy, counts.astype(float)
-        h = np.diff(self.x)
-        m = len(self.x)
-        # Q (m x m-2) and R (m-2 x m-2) of Green and Silverman, kept as bands
-        q0, q1, q2 = 1 / h[:-1], -1 / h[:-1] - 1 / h[1:], 1 / h[1:]  # rows j, j+1, j+2 of column j
-        self._q = (q0, q1, q2)
-        r_diag = (h[:-1] + h[1:]) / 3
-        r_off = h[1:-1] / 6
-        self._r = (r_diag, r_off)
-        # B = Q' W^-1 Q (pentadiagonal), as lower bands
-        winv = 1 / self.w
-        b = np.zeros((3, m - 2))
-        b[0] = q0 ** 2 * winv[:-2] + q1 ** 2 * winv[1:-1] + q2 ** 2 * winv[2:]
-        b[1, :-1] = q1[:-1] * q0[1:] * winv[1:-2] + q2[:-1] * q1[1:] * winv[2:-1]
-        b[2, :-2] = q2[:-2] * q0[2:] * winv[2:-2]
-        self._b = b
-        self._qty = q0 * self.y[:-2] + q1 * self.y[1:-1] + q2 * self.y[2:]
         if smoothness == "auto":
-            self.lam = self._gcv_choice()
+            from .._r import r_call
+
+            found = r_call("f <- stats::smooth.spline(x, y, all.knots = TRUE); list(lambda = f$lambda, df = f$df)",
+                           what='A smoothing spline with smoothness="auto" (R smooth.spline() chooses it)',
+                           python_note="or give smoothness= a number, such as smoothness=0.001, which needs no R",
+                           x=x, y=y)
+            self.lam, self.df = float(found["lambda"][0]), float(found["df"][0])
         else:
-            self.lam = float(smoothness)
-        self.fitted, self.df = self._fit(self.lam)
-        from scipy.interpolate import CubicSpline
-
-        # the natural interpolating spline through the fitted values is the smoothing spline
-        self._curve = _natural_ends(CubicSpline(self.x, self.fitted, bc_type="natural"), 0.0, 1.0)
-
-    def _system(self, lam):
-        bands = lam * self._b.copy()
-        bands[0] += self._r[0]
-        bands[1, :-1] += self._r[1]
-        return bands
-
-    def _fit(self, lam, want_df=True):
-        from scipy.linalg import solveh_banded
-
-        bands = self._system(lam)
-        gamma = solveh_banded(bands, self._qty, lower=True)
-        q0, q1, q2 = self._q
-        qg = np.zeros(len(self.x))
-        qg[:-2] += q0 * gamma
-        qg[1:-1] += q1 * gamma
-        qg[2:] += q2 * gamma
-        fitted = self.y - lam * qg / self.w
-        df = len(self.x) - lam * _band_inverse_trace(bands, self._b) if want_df else math.nan
-        return fitted, df
-
-    def _gcv(self, log_lam):
-        lam = 10.0 ** log_lam
-        try:
-            fitted, df = self._fit(lam)
-        except (np.linalg.LinAlgError, ValueError):  # so little smoothing that the sums cannot be done
-            return math.inf
-        rss = float(np.sum(self.w * (self.y - fitted) ** 2)) + self.within
-        return (rss / self.n) / (1 - df / self.n) ** 2
-
-    def _gcv_choice(self):
-        from scipy.optimize import minimize_scalar
-
-        grid = np.linspace(-12, 6, 37)
-        scores = [self._gcv(g) for g in grid]
-        best = int(np.nanargmin(scores))
-        left, right = grid[max(best - 1, 0)], grid[min(best + 1, len(grid) - 1)]
-        found = minimize_scalar(self._gcv, bounds=(left, right), method="bounded", options={"xatol": 1e-7})
-        return 10.0 ** float(found.x if found.fun <= scores[best] else grid[best])
+            self.lam, self.df = float(smoothness), math.nan
+        curve = make_smoothing_spline((ux - self.low) / self.size, uy, w=counts.astype(float), lam=self.lam)
+        self._curve = _natural_ends(curve, 0.0, 1.0)
 
     def __call__(self, at):
         return self._curve((np.asarray(at, dtype=float) - self.low) / self.size)
@@ -700,7 +606,7 @@ class BetweenWords:
         if smoothness != 0 and len(directions) == 1:
             splines = facts.get("spline") or []
             size = ""
-            if len(splines) == 1:
+            if len(splines) == 1 and not math.isnan(splines[0].df):
                 size = f", {splines[0].df:.2f} equivalent degrees of freedom"
             if smoothness == "auto":
                 chosen = f"lambda {splines[0].lam:.3g}, " if len(splines) == 1 else "its smoothness "

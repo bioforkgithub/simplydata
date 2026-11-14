@@ -203,7 +203,7 @@ def test_hierarchical_school_ward(school):
     assert sorted(np.bincount(labels)[1:].tolist()) == [22, 23, 116]
 
 
-def test_clusters_leave_out_earlier_pattern_columns(meadow, capsys):
+def test_clusters_leave_out_earlier_pattern_columns(meadow, capsys, needs_r):
     meadow.add_clusters()
     meadow.add_principal_components()
     capsys.readouterr()

@@ -136,7 +136,7 @@ GCV_Y = np.array([0.409197, 0.813935, 0.904061, 0.353915, 1.167040, 0.941010, 0.
                   1.095188, 1.020856, 0.225865, -0.235593, 0.148943, -0.514917])
 
 
-def test_smoothing_spline_gcv_matches_r():
+def test_smoothing_spline_gcv_matches_r(needs_r):
     # set.seed(1); xx <- round(sort(runif(40, 0, 10)), 6); yy <- round(sin(xx) + rnorm(40, sd = 0.3), 6)
     # g <- smooth.spline(xx, yy, all.knots = TRUE): lambda 0.000197841078495, df 8.410149
     # The GCV curve is flat near its lowest point, so the two searches stop a little apart:
@@ -153,7 +153,7 @@ def test_smoothing_spline_gcv_matches_r():
                        atol=1e-3)
 
 
-def test_smoothing_spline_with_ties_matches_r():
+def test_smoothing_spline_with_ties_matches_r(needs_r):
     # m <- read.csv(".../marks.csv"); 54 rows, 40 different hours (ties are averaged, and R's GCV
     # counts their spread): smooth.spline(m$hours, m$marks, all.knots = TRUE)
     # lambda 0.0808156517, df 2.7685814228; predict(f, c(2, 5, 8.5))$y

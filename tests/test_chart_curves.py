@@ -217,7 +217,7 @@ def test_lines_steps_and_errors():
 
 
 # ====================================================================== smooth_line(method="spline")
-def test_smooth_line_spline():
+def test_smooth_line_spline(needs_r):
     marks = sdata.example("marks")
     ax = drawn(Chart(marks).dots(x="hours", y="marks").smooth_line(method="spline"))
     line = long_lines(ax)[0]

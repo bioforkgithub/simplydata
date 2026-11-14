@@ -49,3 +49,19 @@ def needs_r():
         if os.environ.get("SIMPLYDATA_REQUIRE_R") == "1":
             pytest.fail("SIMPLYDATA_REQUIRE_R=1 but R, rpy2 or the R packages survival, vegan, mice are missing")
         pytest.skip("needs R with survival, vegan and mice (pip install 'simplydata[r]')")
+
+
+@pytest.hookimpl(hookwrapper=True)
+def pytest_runtest_call(item):
+    """A test stopped by "R is not ready" (RMissing) is skipped where R is missing, but fails in CI
+    (SIMPLYDATA_REQUIRE_R=1). This covers the lesson and help examples that use R methods."""
+    import os
+
+    outcome = yield
+    error = outcome.excinfo
+    if error is None or os.environ.get("SIMPLYDATA_REQUIRE_R") == "1":
+        return
+    from simplydata._r import RMissing
+
+    if isinstance(error[1], RMissing):
+        outcome.force_exception(pytest.skip.Exception("needs R (pip install 'simplydata[r]' and R)"))

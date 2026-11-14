@@ -744,16 +744,20 @@ class ModelWords:
             estimates.append(model["fit"]["beta"])
             variances.append(np.diag(model["fit"]["cov"]))
         m = IMPUTATIONS
-        q, u = np.array(estimates), np.array(variances)
-        qbar, ubar, b = q.mean(axis=0), u.mean(axis=0), q.var(axis=0, ddof=1)
-        total = ubar + (1 + 1 / m) * b
-        se = np.sqrt(total)
-        lam = (1 + 1 / m) * b / total
-        dfcom = float(model["n"] - model["X"].shape[1])
-        with np.errstate(divide="ignore", invalid="ignore"):
-            df_old = np.where(lam > 0, (m - 1) / lam ** 2, np.inf)
-            df_obs = (dfcom + 1) / (dfcom + 3) * dfcom * (1 - lam)
-            df = np.where(np.isinf(df_old), df_obs, df_old * df_obs / (df_old + df_obs))
+        from .._r import r_call
+
+        # Rubin's rules with Barnard-Rubin degrees of freedom: R mice::pool.scalar() for each coefficient
+        pooled = r_call("res <- lapply(seq_len(ncol(q)), function(j) mice::pool.scalar(q[, j], u[, j], n = n, k = k)); "
+                        "list(qbar = sapply(res, `[[`, 'qbar'), t = sapply(res, `[[`, 't'), "
+                        "df = sapply(res, `[[`, 'df'), "
+                        "lambda = sapply(res, function(r) (1 + 1 / r$m) * r$b / r$t))",
+                        packages=("mice",), what="Pooling the filled-in tables (R mice::pool())",
+                        python_note="statsmodels MICE pools with Rubin's rules but without the Barnard-Rubin "
+                                    "degrees of freedom, so its p-values differ",
+                        q=np.array(estimates), u=np.array(variances), n=float(model["n"]),
+                        k=float(model["X"].shape[1]))
+        qbar, se = np.asarray(pooled["qbar"], dtype=float), np.sqrt(np.asarray(pooled["t"], dtype=float))
+        df, lam = np.asarray(pooled["df"], dtype=float), np.asarray(pooled["lambda"], dtype=float)
         stat = qbar / se
         p = 2 * stats.t.sf(np.abs(stat), df)
         tq = stats.t.ppf(0.975, df)
