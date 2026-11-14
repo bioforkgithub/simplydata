@@ -34,6 +34,18 @@ estimates (R uses the step before), so they agree with R to about 1e-5.
 - `correlation_between(..., method="kendall")`: Kendall's tau-b (SciPy `kendalltau`, as R
   `cor.test(method = "kendall")`).
 
+### More tests to choose with test=
+
+- `compare_averages`: `test="yuen"` (20 % trimmed averages, SciPy, as R `WRS2::yuen`),
+  `"brunner-munzel"` (SciPy, as R `brunnermunzel.test`), `"alexander-govern"` (SciPy, as R
+  `onewaytests::ag.test`) and `"median"` (Mood's median test, SciPy, as R `chisq.test` on the counts
+  above the overall median).
+- `compare_spreads`: `test="ansari"` and `"mood"` (SciPy, as R `ansari.test`, `mood.test`), and
+  `"f"` (R `var.test`, with the interval of the ratio of the variances).
+- `compare_counts`: `test="g"` (G-test, SciPy, as R `DescTools::GTest`), and for 2 x 2 tables
+  `"barnard"` and `"boschloo"` (R `Exact::exact.test`; SciPy's versions use another two-sided rule
+  and give other p-values).
+
 ### Effect sizes with their intervals, from R effectsize
 
 - Every effect size now comes with its 95 % interval: Hedges' g, Cohen's d and d_z, omega-squared,

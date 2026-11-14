@@ -87,12 +87,18 @@ from .effect_sizes import effect_size, interval_only, interval_text
 from .summaries import _key, _order, _p_words, _plain, _say_label
 
 BASED_ON = ("averages", "ranks")
-AVERAGE_TESTS = ("welch", "student", "welch anova", "anova", "mann-whitney", "kruskal-wallis")
+AVERAGE_TESTS = ("welch", "student", "welch anova", "anova", "mann-whitney", "kruskal-wallis", "yuen",
+                 "brunner-munzel", "alexander-govern", "median")
+# test= choices of compare_averages with their own engine (_more_average_test); the first two take 2 groups
+MORE_AVERAGE_TESTS = ("yuen", "brunner-munzel", "alexander-govern", "median")
+RANK_LIKE = ("mann-whitney", "kruskal-wallis", "brunner-munzel", "median")  # allowed with based_on="ranks"
 RANK_TESTS = ("mann-whitney", "kruskal-wallis")
-TWO_GROUP_TESTS = ("welch", "student", "mann-whitney")
-COUNT_TESTS = ("chi-square", "fisher")
+TWO_GROUP_TESTS = ("welch", "student", "mann-whitney", "yuen", "brunner-munzel")
+COUNT_TESTS = ("chi-square", "fisher", "g", "barnard", "boschloo")
+EXACT_METHODS = {"barnard": "z-pooled", "boschloo": "boschloo"}  # R Exact::exact.test(method =)
 PAIR_TESTS = ("welch", "mann-whitney", "tukey")
-SPREAD_TESTS = ("levene", "bartlett", "fligner")
+SPREAD_TESTS = ("levene", "bartlett", "fligner", "ansari", "mood", "f")
+TWO_GROUP_SPREAD_TESTS = ("ansari", "mood", "f")
 SPREAD_ALIASES = {"brown-forsythe": "levene", "brown forsythe": "levene", "fligner-killeen": "fligner",
                   "fligner killeen": "fligner"}
 SPREAD_RATIO = 2  # Tukey note: the biggest standard deviation more than twice the smallest
@@ -545,7 +551,12 @@ class StatTestWords:
         ANOVA (the R oneway.test() default). Neither needs the groups to have the same spread.
         based_on="ranks" uses ranks instead (Mann-Whitney U or Kruskal-Wallis): safer when
         groups are small and their values are not bell-shaped. test= chooses another test:
-        "welch", "student", "welch anova", "anova", "mann-whitney" or "kruskal-wallis".
+        "welch", "student", "welch anova", "anova", "mann-whitney" or "kruskal-wallis"; and
+        "yuen" (Yuen's test of 20 % trimmed averages, R WRS2::yuen, SciPy ttest_ind(trim=0.2)),
+        "brunner-munzel" (R brunnermunzel.test, SciPy brunnermunzel), "alexander-govern" (3 or
+        more groups with different spreads, R onewaytests::ag.test, SciPy alexandergovern) or
+        "median" (Mood's median test, SciPy median_test, as R chisq.test on the counts above and
+        not above the overall median).
         Prints the answer in words (with the test used and why) and gives back a one-row
         table of results. The effect size says how big the difference is: Hedges' g (the
         difference in standard deviations) for 2 groups, omega-squared (the share of the
@@ -562,7 +573,7 @@ class StatTestWords:
         self._check_based_on(step, based_on)
         if test is not None:
             self._check_choice(step, "test", test, AVERAGE_TESTS)
-            if based_on == "ranks" and test not in RANK_TESTS:
+            if based_on == "ranks" and test not in RANK_LIKE:
                 raise SimplydataError(
                     f'test="{test}" compares averages, but based_on="ranks" asks for ranks. '
                     'Use one of them: test="mann-whitney" or test="kruskal-wallis" are the rank tests.'
@@ -596,6 +607,8 @@ class StatTestWords:
                 f'test="{test}" compares exactly 2 groups, but "{for_each}" has {k}.\n'
                 f'Use test="{other}" for all groups at once, or table.compare_each_pair("{column}", for_each="{for_each}").'
             )
+        if test in MORE_AVERAGE_TESTS:
+            return self._more_average_test(column, for_each, groups, test, alt, up, side_words)
         arrays = [g[1] for g in groups]
         what = f'the average of "{column}" in each "{for_each}" ({", ".join(names)})'
         row = {"test": None, "what it compares": what}
@@ -723,6 +736,82 @@ class StatTestWords:
         print(second)
         for note in notes:
             print(note)
+        return self._result_table(row)
+
+    def _more_average_test(self, column, for_each, groups, test, alt, up, side_words):
+        """compare_averages(test="yuen" | "brunner-munzel" | "alexander-govern" | "median"): SciPy, as R."""
+        from scipy import stats
+
+        names = [g[0] for g in groups]
+        arrays = [g[1] for g in groups]
+        if up is not None and test in ("alexander-govern", "median"):
+            raise SimplydataError(f'test="{test}" looks for any difference, so it has no one direction; leave out '
+                                  "sides= and higher=.")
+        row = {"test": None, "what it compares": f'"{column}" in each "{for_each}" ({", ".join(names)})'}
+        if test == "yuen":
+            a, b = arrays
+            result = stats.ttest_ind(a, b, trim=0.2, equal_var=False, alternative=alt)
+            low, high = result.confidence_interval(0.95)
+            t, p, df = float(result.statistic), float(result.pvalue), float(result.df)
+            trimmed = [float(stats.trim_mean(v, 0.2)) for v in arrays]
+            diff = trimmed[0] - trimmed[1]
+            row.update({"test": "Yuen's test (20 % trimmed averages)", "statistic name": "t", "statistic": t,
+                        "degrees of freedom": df, "p-value": p, "difference": diff,
+                        "difference 95 % CI low": float(low), "difference 95 % CI high": float(high)})
+            for n, m in zip(names, trimmed):
+                row[f"trimmed average in {n}"] = m
+            first = (f'The 20 % trimmed average "{column}" is {_num(trimmed[0])} in {names[0]} and {_num(trimmed[1])} in '
+                     f"{names[1]}: {names[0]} is {_num(abs(diff))} {'higher' if diff > 0 else 'lower'} "
+                     f"({'' if up is None else 'one-sided '}95 % CI of the difference {_interval_words(low, high)}). "
+                     f"A difference this big {_chance(p)}.")
+            second = (f"Test: Yuen's test (t = {_num(t)}, df = {_whole(df)}), which leaves out the lowest and highest "
+                      "20 % of each group, so a few extreme values matter less; as R WRS2::yuen(tr = 0.2).")
+        elif test == "brunner-munzel":
+            a, b = arrays
+            result = stats.brunnermunzel(a, b, alternative=alt)
+            w, p = float(result.statistic), float(result.pvalue)
+            medians = [float(np.median(v)) for v in arrays]
+            row.update({"test": "Brunner-Munzel test", "statistic name": "W", "statistic": w, "p-value": p})
+            for n, m in zip(names, medians):
+                row[f"median in {n}"] = m
+            first = (f'The median "{column}" is {_num(medians[0])} in {names[0]} and {_num(medians[1])} in {names[1]}. '
+                     f"A difference this big in how often one group's values beat the other's {_chance(p)}.")
+            second = (f"Test: Brunner-Munzel test (W = {_num(w)}), a rank test that, unlike Mann-Whitney, allows the "
+                      "groups to differ in spread and shape; as R brunnermunzel::brunnermunzel.test().")
+        elif test == "alexander-govern":
+            result = stats.alexandergovern(*arrays)
+            a_stat, p = float(result.statistic), float(result.pvalue)
+            means = [float(v.mean()) for v in arrays]
+            row.update({"test": "Alexander-Govern test", "statistic name": "A", "statistic": a_stat,
+                        "degrees of freedom": float(len(arrays) - 1), "p-value": p})
+            for n, m in zip(names, means):
+                row[f"average in {n}"] = m
+            first = (f'The average "{column}" is {_list_words(f"{_num(m)} in {n}" for n, m in zip(names, means))}. '
+                     f"Differences this big between the groups {_chance(p, plural=True)}.")
+            second = (f"Test: Alexander-Govern test (A = {_num(a_stat)}, df = {len(arrays) - 1}), which, like Welch's "
+                      "ANOVA, does not assume the groups have the same spread; as R onewaytests::ag.test().")
+        else:
+            result = stats.median_test(*arrays)
+            chi, p, grand = float(result.statistic), float(result.pvalue), float(result.median)
+            above = result.table[0]
+            row.update({"test": "Mood's median test", "statistic name": "chi-square", "statistic": chi,
+                        "degrees of freedom": float(len(arrays) - 1), "p-value": p, "overall median": grand})
+            for n, v, a_count in zip(names, arrays, above):
+                row[f"median in {n}"] = float(np.median(v))
+                row[f"above the overall median in {n}"] = int(a_count)
+            shares = _list_words(f"{int(a)} of {len(v)} in {n}" for n, v, a in zip(names, arrays, above))
+            first = (f'Values of "{column}" above the overall median ({_num(grand)}): {shares}. Differences this big '
+                     f"between the groups {_chance(p, plural=True)}.")
+            second = (f"Test: Mood's median test (chi-square = {_num(chi)}, df = {len(arrays) - 1}), the chi-square "
+                      "test on the counts above and not above the overall median; as R chisq.test(table(group, x > "
+                      "median(x))).")
+        for n, v in zip(names, arrays):
+            row[f"count in {n}"] = len(v)
+        if up is not None:
+            row["sides"] = f"one-sided: {up} higher"
+            second += " " + side_words
+        print(first)
+        print(second)
         return self._result_table(row)
 
     # ------------------------------------------------------------------ compare_each_pair
@@ -870,6 +959,10 @@ class StatTestWords:
         test="bartlett": Bartlett's test (R bartlett.test()), a little stronger when the
         values are bell-shaped but easily fooled when they are not. test="fligner": the
         Fligner-Killeen test (R fligner.test()), based on ranks, the safest with outliers.
+        For 2 groups also: test="ansari" (Ansari-Bradley, R ansari.test(), SciPy ansari),
+        test="mood" (Mood's test of scale, R mood.test(), SciPy mood) and test="f" (the F test
+        of the ratio of two variances, R var.test(), run in R through simplydata[r]; it assumes
+        bell-shaped values).
         Empty cells are skipped. Prints the standard deviation of each group and the answer
         in words; gives back a one-row table of results. compare_averages() uses Welch's
         test by default, which does not need equal spreads.
@@ -883,6 +976,9 @@ class StatTestWords:
         groups = self._groups(step, column, for_each, example)
         names = [g[0] for g in groups]
         arrays = [g[1] for g in groups]
+        if chosen in TWO_GROUP_SPREAD_TESTS and len(arrays) != 2:
+            raise SimplydataError(f'test="{chosen}" compares exactly 2 groups, but "{for_each}" has {len(arrays)}. '
+                                  'Use test="levene" (the default) for all groups at once.')
         spreads = [float(v.std(ddof=1)) for v in arrays]
         if all(s == 0 for s in spreads):
             raise SimplydataError(f'Every value is the same within each group of "{for_each}", so there is no '
@@ -919,6 +1015,37 @@ class StatTestWords:
                         "degrees of freedom": df, "p-value": p})
             second = (f"Test: {name} (K-squared = {_num(stat)}, df = {_whole(df)}), as R bartlett.test(); "
                       "it assumes bell-shaped values.")
+        elif chosen == "ansari":
+            result = stats.ansari(*arrays)
+            stat, p = float(result.statistic), float(result.pvalue)
+            name = "Ansari-Bradley test"
+            row.update({"test": name, "statistic name": "AB", "statistic": stat, "p-value": p})
+            second = (f"Test: {name} (AB = {_whole(stat)}), as R ansari.test(); it uses ranks, so it does not need "
+                      "bell-shaped values, but it assumes the groups have the same middle.")
+        elif chosen == "mood":
+            result = stats.mood(*arrays)
+            stat, p = float(result.statistic), float(result.pvalue)
+            name = "Mood's test of scale"
+            row.update({"test": name, "statistic name": "z", "statistic": stat, "p-value": p})
+            second = (f"Test: {name} (z = {_num(stat)}), as R mood.test(); it uses ranks, so it does not need "
+                      "bell-shaped values, but it assumes the groups have the same middle.")
+        elif chosen == "f":
+            from .._r import r_call
+
+            found = r_call("t <- stats::var.test(a, b); list(f = t$statistic, df = t$parameter, p = t$p.value, "
+                           "ci = t$conf.int)", what="The F test of two variances (R var.test())",
+                           python_note="SciPy has no F test of two variances; Levene's test (the default) needs no R",
+                           a=arrays[0], b=arrays[1])
+            stat, p = float(found["f"][0]), float(found["p"][0])
+            df1, df2 = (float(v) for v in found["df"])
+            low, high = (float(v) for v in found["ci"])
+            name = "F test of two variances"
+            row.update({"test": name, "statistic name": "F", "statistic": stat, "degrees of freedom 1": df1,
+                        "degrees of freedom 2": df2, "p-value": p, "ratio of variances": stat,
+                        "ratio 95 % CI low": low, "ratio 95 % CI high": high})
+            second = (f"Test: {name} (F = {_num(stat)}, df = {_whole(df1)} and {_whole(df2)}; 95 % CI of the ratio of "
+                      f"the variances {_num(low)} to {_num(high)}), as R var.test(), run in R; it assumes bell-shaped "
+                      "values and is easily fooled when they are not.")
         else:
             result = stats.fligner(*arrays, center="median")
             stat, p = float(result.statistic), float(result.pvalue)
@@ -1132,7 +1259,11 @@ class StatTestWords:
         each pair of values and uses the chi-square test of independence (as R chisq.test():
         Yates' continuity correction for 2 x 2 tables only).
         If an expected count is below 5 a note says so; for a 2 x 2 table test="fisher" then
-        gives Fisher's exact test. Empty cells are skipped. Effect size: Cramer's V, the
+        gives Fisher's exact test. test="g": the G-test (likelihood ratio, SciPy chi2_contingency(
+        lambda_="log-likelihood"), as R DescTools::GTest()). For 2 x 2 tables also
+        test="barnard" and test="boschloo": unconditional exact tests, often stronger than
+        Fisher's, run in R (Exact::exact.test(method = "z-pooled" / "boschloo"), simplydata[r]).
+        Empty cells are skipped. Effect size: Cramer's V, the
         strength of the link from 0 (none) to 1 (complete). Gives back a one-row table.
         """
         step = "compare_counts"
@@ -1185,6 +1316,28 @@ class StatTestWords:
                         "statistic": float(result.statistic), "p-value": p})
             second = ("Test: Fisher's exact test (chosen with test=), which gives an exact p-value, so it is safe "
                       "with small counts.")
+        elif test == "g":
+            g = stats.chi2_contingency(observed, lambda_="log-likelihood", correction=False)
+            stat, p, df = float(g.statistic), float(g.pvalue), int(g.dof)
+            row.update({"test": "G-test", "statistic name": "G", "statistic": stat, "degrees of freedom": float(df),
+                        "p-value": p})
+            second = (f"Test: G-test, the likelihood-ratio test of independence (G = {_num(stat)}, df = {df}), chosen "
+                      "with test=; as R DescTools::GTest().")
+        elif test in EXACT_METHODS:
+            if not two_by_two:
+                raise SimplydataError(f'test="{test}" works on 2 x 2 tables, but "{column}" and "{for_each}" make a '
+                                      f"{size} table.")
+            from .._r import r_call
+
+            name = "Barnard's exact test" if test == "barnard" else "Boschloo's exact test"
+            found = r_call(f'Exact::exact.test(x, method = "{EXACT_METHODS[test]}", to.plot = FALSE)$p.value',
+                           packages=("Exact",), what=f"{name} (R Exact::exact.test())",
+                           python_note=f"SciPy {test}_exact uses another two-sided rule, so its p-value differs from "
+                                       "R's", x=observed.astype(float))
+            p = float(found[0])
+            row.update({"test": name, "p-value": p})
+            second = (f"Test: {name} (chosen with test=), an unconditional exact test, run in R: Exact::exact.test("
+                      f'method = "{EXACT_METHODS[test]}").')
         else:
             stat, p, df = float(chi.statistic), float(chi.pvalue), int(chi.dof)
             name = "chi-square test of independence"
