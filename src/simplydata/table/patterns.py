@@ -460,10 +460,12 @@ class PatternWords:
         columns = self._pattern_columns(step, columns, example, at_least=2)
         x, keep = self._pattern_matrix(step, columns)
         z = self._scaled(x, columns, same_scale)
-        _, s, vt = np.linalg.svd(z, full_matrices=False)
-        sdev = s / math.sqrt(len(z) - 1)
+        from statsmodels.multivariate.pca import PCA
+
+        found = PCA(z, ncomp=min(z.shape), standardize=False, demean=False, normalize=False, method="svd")
+        sdev = np.sqrt(np.asarray(found.eigenvals, dtype=float) / (len(z) - 1))  # as R prcomp() sdev
         share = sdev ** 2 / (sdev ** 2).sum()
-        rotation = vt.T
+        rotation = np.asarray(found.loadings, dtype=float)
         # the sign of a component is arbitrary and differs between maths libraries (macOS, Linux,
         # Windows): turn each one so its biggest weight is positive, the same on every computer
         biggest = rotation[np.abs(rotation).argmax(axis=0), np.arange(rotation.shape[1])]
@@ -486,7 +488,7 @@ class PatternWords:
         component explains and the 3 columns with the largest weights in each. The sign of a
         component is arbitrary: flipping it changes nothing. Rows with an empty cell get
         empty PC cells. table.principal_components_of() gives all the weights as a table.
-        Method: singular value decomposition, as R prcomp().
+        Method: singular value decomposition (statsmodels PCA), as R prcomp().
         """
         step = "add_principal_components"
         example = 'with sdata.example("meadow"): table.add_principal_components(how_many=2)'

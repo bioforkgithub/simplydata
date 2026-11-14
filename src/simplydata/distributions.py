@@ -1516,25 +1516,13 @@ def _maximise(loglik, start: dict, free: list, kinds: dict):
 
 
 def _hessian(func, point: np.ndarray) -> np.ndarray:
-    """Second derivatives by central differences with one Richardson step (accurate to about 1e-8)."""
-    k = len(point)
+    """Second derivatives of func at point, statsmodels approx_hess3 (central differences), with a
+    step of eps**(1/4) times the size of each value (its default step is far too big for small values)."""
+    from statsmodels.tools.numdiff import approx_hess3
 
-    def at(h):
-        out = np.empty((k, k))
-        steps = h * np.maximum(np.abs(point), 1e-3)
-        for i in range(k):
-            for j in range(i, k):
-                ei = np.zeros(k)
-                ej = np.zeros(k)
-                ei[i] = steps[i]
-                ej[j] = steps[j]
-                value = (func(point + ei + ej) - func(point + ei - ej) - func(point - ei + ej)
-                         + func(point - ei - ej)) / (4 * steps[i] * steps[j])
-                out[i, j] = out[j, i] = value
-        return out
-
-    big, small = at(2e-4), at(1e-4)
-    return (4 * small - big) / 3
+    point = np.asarray(point, dtype=float)
+    step = np.finfo(float).eps ** 0.25 * np.maximum(np.abs(point), 1e-3)
+    return np.asarray(approx_hess3(point, func, epsilon=step), dtype=float)
 
 
 def _standard_errors(family, params, free, x):
@@ -1562,17 +1550,17 @@ def _standard_errors(family, params, free, x):
     return errors
 
 
+def _scipy_fit(dist, x, **held):
+    with np.errstate(all="ignore"), warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        return getattr(_st(), dist).fit(x, **held)
+
+
 def _gamma_shape(x):
-    from scipy import optimize, special
-
-    s = math.log(x.mean()) - np.log(x).mean()
-    if s <= 0:
+    """Gamma shape by maximum likelihood (SciPy gamma.fit with loc = 0, which solves the score equation)."""
+    if math.log(x.mean()) - np.log(x).mean() <= 0:
         raise SimplydataError("Every value is the same, so there is no shape to fit.")
-
-    def score(a):
-        return math.log(a) - special.digamma(a) - s
-
-    return optimize.brentq(score, 1e-8, 1e10, xtol=1e-15, rtol=4 * np.finfo(float).eps, maxiter=500)
+    return float(_scipy_fit("gamma", x, floc=0)[0])
 
 
 def _weibull_shape(x):
@@ -1597,24 +1585,9 @@ def _weibull_shape(x):
 
 
 def _gumbel_scale(x):
-    from scipy import optimize
-
-    centre = x.mean()
-    z = x - centre
-
-    def score(b):
-        w = np.exp(-(z - z.min()) / b)  # at most 1, so it never overflows
-        return float(b - z.mean() + (z * w).sum() / w.sum())
-
-    sd = x.std()
-    low, high = sd * 1e-3, sd * 10
-    while score(low) > 0 and low > 1e-300:
-        low /= 10
-    while score(high) < 0:
-        high *= 10
-    b = optimize.brentq(score, low, high, xtol=1e-15 * sd, rtol=4 * np.finfo(float).eps, maxiter=500)
-    location = centre - b * (math.log(np.mean(np.exp(-(z - z.min()) / b))) - z.min() / b)
-    return location, b
+    """Gumbel location and scale by maximum likelihood (SciPy gumbel_r.fit, which solves the score equations)."""
+    location, scale = _scipy_fit("gumbel_r", x)
+    return float(location), float(scale)
 
 
 def _nbinom_size(x):
@@ -1638,23 +1611,11 @@ def _nbinom_size(x):
 
 
 def _vonmises_fit(x):
-    from scipy import optimize, special
-
-    c, s = np.cos(x).mean(), np.sin(x).mean()
-    mu = math.atan2(s, c)
-    length = math.hypot(c, s)
-    if length >= 1 - 1e-12:
+    """Von Mises mean direction and concentration (SciPy vonmises.fit with scale = 1, exact)."""
+    if math.hypot(np.cos(x).mean(), np.sin(x).mean()) >= 1 - 1e-12:
         raise SimplydataError("Every angle is the same, so there is no spread to fit.")
-
-    def score(k):
-        return float(special.ive(1, k) / special.ive(0, k) - length)
-
-    high = 1.0
-    while score(high) < 0:
-        high *= 2
-    kappa = optimize.brentq(score, 1e-12, high, xtol=1e-14, rtol=4 * np.finfo(float).eps, maxiter=500) \
-        if score(1e-12) < 0 else 1e-12
-    return mu, kappa
+    kappa, mu, _ = _scipy_fit("vonmises", x, fscale=1)
+    return float(mu), float(kappa)
 
 
 def _closed_or_score(family, x):
@@ -2081,18 +2042,21 @@ class _ShapeRun:
         self.x, self.samples, self.seed = x, samples, int(seed)
 
     def pilot(self) -> float:
-        """Expected seconds: one refit of the data, timed, times the number of samples."""
+        """Expected seconds: a refit of the data, timed (the fastest of 3), times the number of samples."""
         import time
 
         fixed = {"f" + k: v for k, v in self.known.items()}  # SciPy fit: floc=, fscale=, fa= ...
-        start = time.perf_counter()
+        fastest = math.inf
         with np.errstate(all="ignore"), warnings.catch_warnings():
             warnings.simplefilter("ignore")
-            try:
-                self.dist.fit(self.x, **fixed)
-            except Exception:  # noqa: BLE001 - only a time estimate
-                return 0.0
-        return (time.perf_counter() - start) * self.samples
+            for _ in range(3):
+                start = time.perf_counter()
+                try:
+                    self.dist.fit(self.x, **fixed)
+                except Exception:  # noqa: BLE001 - only a time estimate
+                    return 0.0
+                fastest = min(fastest, time.perf_counter() - start)
+        return fastest * self.samples
 
     def finish(self) -> tuple[float, float]:
         with np.errstate(all="ignore"), warnings.catch_warnings():

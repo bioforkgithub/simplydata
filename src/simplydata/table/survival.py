@@ -7,7 +7,8 @@ True/False or 1/0, and the printed sentence says which value counts as the event
 
 Methods (the same defaults as R's survival package, so results can be checked there):
 
-* survival_over_time: the Kaplan-Meier estimate (R survfit(Surv(time, event) ~ group)).
+* survival_over_time: the Kaplan-Meier estimate (R survfit(Surv(time, event) ~ group)),
+  from statsmodels SurvfuncRight.
   At each time with events, survival is multiplied by (1 - events / at risk); "at risk"
   counts the rows with a time at or after that moment (events come before censoring at a
   tied time, as in R). 95 % confidence intervals on the log scale (R's default
@@ -20,10 +21,7 @@ Methods (the same defaults as R's survival package, so results can be checked th
   at risk (the expected events); the chi-square compares observed and expected with their
   hypergeometric variance, on (groups - 1) degrees of freedom.
 * explain_survival: the Cox proportional hazards model (R coxph()), with Efron's method for
-  tied event times (R's default). Fitted here with NumPy by Newton-Raphson with
-  step-halving, from all coefficients at 0, as R does (stops when the log partial
-  likelihood changes by less than 1e-9 of itself; at most 20 steps), so statsmodels is not
-  needed. Hazard ratios exp(coefficient) with 95 % Wald intervals, Wald z p-values, and the
+  tied event times (R's default), from statsmodels PHReg(ties="efron"). Hazard ratios exp(coefficient) with 95 % Wald intervals, Wald z p-values, and the
   likelihood-ratio test of the whole model (2 x the gain in log partial likelihood, df =
   number of coefficients). A text (or True/False) column becomes groups compared with the
   first group in sorted order, as R does with a factor.
@@ -38,6 +36,7 @@ Methods (the same defaults as R's survival package, so results can be checked th
 from __future__ import annotations
 
 import math
+import warnings
 
 import narwhals as nw
 import numpy as np
@@ -50,7 +49,6 @@ Z95 = 1.959963984540054  # qnorm(0.975)
 EVENT_WORDS = {"yes": True, "no": False, "true": True, "false": False, "1": True, "0": False}
 EXAMPLE = 'with sdata.example("trial"): table.{word}(time="days", event="died"{more})'
 COX_STEPS = 20  # R coxph.control(iter.max = 20)
-COX_EPS = 1e-9  # R coxph.control(eps = 1e-9)
 
 
 # ---------------------------------------------------------------------------- reading the columns
@@ -125,22 +123,31 @@ def _need(step, option, value, example):
 
 # ---------------------------------------------------------------------------- the calculations
 def kaplan_meier(time, event) -> dict:
-    """Kaplan-Meier estimate as R survfit() (conf.type = "log").
+    """Kaplan-Meier estimate as R survfit() (conf.type = "log"), from statsmodels SurvfuncRight.
 
     At each event time: time, at_risk, events, censored (since the previous event time, up
     to and including this time, as R summary(survfit)), survival, se (of log survival,
     Greenwood), low, high. Also at every distinct time (all_time, all_survival, all_low,
     all_high), the censored times with their survival, and the last time (end)."""
+    from statsmodels.duration.survfunc import SurvfuncRight
+
     time = np.asarray(time, dtype=float)
     event = np.asarray(event, dtype=bool)
     all_time, inverse = np.unique(time, return_inverse=True)
     deaths = np.bincount(inverse, weights=event.astype(float), minlength=len(all_time))
     lost = np.bincount(inverse, weights=(~event).astype(float), minlength=len(all_time))
     at_risk = (deaths + lost)[::-1].cumsum()[::-1]
-    survival = np.cumprod(1 - deaths / at_risk)
-    with np.errstate(divide="ignore", invalid="ignore"):
-        step = np.where(deaths > 0, deaths / (at_risk * (at_risk - deaths)), 0.0)
-        se = np.sqrt(np.cumsum(step))  # infinite once survival reaches 0
+    # survival and its Greenwood standard error at each event time from statsmodels, then
+    # carried to every distinct time (the curve is flat between event times)
+    survival, se = np.ones(len(all_time)), np.zeros(len(all_time))
+    if event.any():
+        fit = SurvfuncRight(time, event.astype(float))
+        place = np.searchsorted(fit.surv_times, all_time, side="right") - 1
+        seen = place >= 0
+        with np.errstate(divide="ignore", invalid="ignore"):
+            log_se = np.where(fit.surv_prob > 0, fit.surv_prob_se / fit.surv_prob, np.inf)
+        survival[seen], se[seen] = fit.surv_prob[place[seen]], log_se[place[seen]]
+    with np.errstate(divide="ignore", invalid="ignore", over="ignore"):
         low = survival * np.exp(-Z95 * se)
         high = np.minimum(1.0, survival * np.exp(Z95 * se))
     gone = (survival == 0) | ~np.isfinite(se)
@@ -250,38 +257,28 @@ def _same_terms_error():
 
 
 def cox_fit(time, event, x) -> dict:
-    """Cox model by Newton-Raphson with step-halving, as R coxph() (Efron ties)."""
+    """Cox model with Efron's ties, statsmodels PHReg (as R coxph())."""
+    from statsmodels.duration.hazard_regression import PHReg
+
     time = np.asarray(time, dtype=float)
     event = np.asarray(event, dtype=bool)
     x = np.asarray(x, dtype=float)
     x = x - x.mean(axis=0)  # as R: centring changes no result, but keeps exp() in range
-    p = x.shape[1]
-    beta = np.zeros(p)
-    loglik0, score, info, _, _ = _efron_sums(time, event, x, beta)
-    loglik = loglik0
-    converged = False
-    for _step in range(COX_STEPS):
+    model = PHReg(time, x, status=event.astype(float), ties="efron")
+    with warnings.catch_warnings(), np.errstate(all="ignore"):
+        warnings.simplefilter("ignore")
         try:
-            change = np.linalg.solve(info, score)
+            result = model.fit(maxiter=COX_STEPS)
+            var = np.asarray(result.cov_params())
         except np.linalg.LinAlgError:
             raise _same_terms_error() from None
-        new = beta + change
-        new_loglik, new_score, new_info, _, _ = _efron_sums(time, event, x, new)
-        halvings = 0
-        while (not np.isfinite(new_loglik) or new_loglik < loglik) and halvings < 30:
-            new = (new + beta) / 2
-            new_loglik, new_score, new_info, _, _ = _efron_sums(time, event, x, new)
-            halvings += 1
-        done = abs(1 - loglik / new_loglik) <= COX_EPS if new_loglik != 0 else abs(new_loglik - loglik) <= COX_EPS
-        beta, loglik, score, info = new, new_loglik, new_score, new_info
-        if done:
-            converged = True
-            break
-    try:
-        var = np.linalg.inv(info)
-    except np.linalg.LinAlgError:
-        raise _same_terms_error() from None
-    return dict(beta=beta, var=var, loglik0=loglik0, loglik=loglik, converged=converged, x=x)
+    beta = np.asarray(result.params)
+    if not np.all(np.isfinite(var)):
+        raise _same_terms_error()
+    # settled: the score is (close to) zero at the answer
+    converged = bool(np.all(np.isfinite(beta)) and np.max(np.abs(model.score(beta))) < 1e-4)
+    return dict(beta=beta, var=var, loglik0=float(model.loglike(np.zeros(x.shape[1]))), loglik=float(result.llf),
+                converged=converged, x=x)
 
 
 def cox_zph(time, event, fit, terms) -> list[tuple[float, int, float]]:
