@@ -3,8 +3,9 @@
 Before a study, two questions: how many values do I need (how_many_needed), and with the
 values I can get, what is the chance to find a real difference of the size I expect
 (chance_to_find, the "power")? test= names the simplydata test the study will use.
-Numbers come from SciPy's noncentral t, F and chi-square distributions; the formulas are
-the ones in R, so results can be checked there:
+Numbers come from statsmodels' power classes (TTestIndPower, TTestPower, FTestAnovaPower,
+GofChisquarePower, with their solve_power for the number needed) and, for correlations, from
+R pwr::pwr.r.test through simplydata[r]; they match R, so results can be checked there:
 
 * compare_averages, 2 groups: two-sample t-test power, R power.t.test() (type = "two.sample").
   Effect size: Cohen's d, the difference in standard deviations (or difference= / spread=).
@@ -25,7 +26,9 @@ the ones in R, so results can be checked there:
 * correlation_between: R pwr::pwr.r.test(), Fisher's arctanh approximation. Effect: r.
 
 As in R power.t.test(), a two-sided t-test counts only the chance of finding the difference
-in the right direction (strict = FALSE); the other direction adds almost nothing. One-sided
+in the right direction (strict = FALSE); the other direction adds almost nothing. With
+statsmodels this is the one-sided power at half the significance level (alternative="larger",
+alpha = significance / 2), which is exactly R's default. One-sided
 tests (sides=1) look in the direction of the expected difference, so the sign of the effect
 does not matter. The needed number is always rounded UP to a whole number; the exact value
 is in the result too.
@@ -89,8 +92,6 @@ def _cohen_words(kind: str, size: float) -> str:
 
 def _plan(step, test, effect_size, difference, spread, significance, groups, sides):
     """Check the inputs and describe the calculation: power(n) for n values per group, and the words."""
-    from scipy import stats
-
     if not isinstance(test, str) or test not in TESTS:
         raise choice_error(step, "test", test, TESTS)
     if isinstance(sides, bool) or sides not in (1, 2):
@@ -160,39 +161,65 @@ def _plan(step, test, effect_size, difference, spread, significance, groups, sid
     if effect == 0:
         raise SimplydataError("A difference of 0 can never be found; give the smallest difference that matters.")
 
-    # ------------------------------------------------ power for n values per group
+    # ------------------------------------------------ power for n values per group (package calls)
     if kind == "d":
-        tsample = 2 if test == "compare_averages" else 1
+        from statsmodels.stats.power import TTestIndPower, TTestPower
+
+        engine = TTestIndPower() if test == "compare_averages" else TTestPower()
+        options = dict(effect_size=effect, alpha=significance / sides, alternative="larger")
+        size = "nobs1" if test == "compare_averages" else "nobs"  # statsmodels' names for the group size
 
         def power(n):
-            nu = (n - 1) * tsample
-            return float(stats.nct.sf(stats.t.isf(significance / sides, nu), nu,
-                                      math.sqrt(n / tsample) * effect))
+            return float(engine.power(**{size: n}, **options))
+
+        def solve(target):
+            return float(engine.solve_power(**{size: None}, power=target, **options))
         lowest = 2.0
         method = {"compare_averages": "two-sample t-test power, as R power.t.test()",
                   "compare_before_after": 'paired t-test power, as R power.t.test(type = "paired")',
                   "compare_average_to": 'one-sample t-test power, as R power.t.test(type = "one.sample")'}[test]
     elif kind == "f":
-        def power(n):
-            d1, d2 = k - 1, (n - 1) * k
-            return float(stats.ncf.sf(stats.f.isf(significance, d1, d2), d1, d2, k * n * effect ** 2))
+        from statsmodels.stats.power import FTestAnovaPower
+
+        def power(n):  # nobs is every value in all groups, as R pwr's k * n
+            return float(FTestAnovaPower().power(effect_size=effect, nobs=n * k, alpha=significance, k_groups=k))
+
+        def solve(target):
+            return float(FTestAnovaPower().solve_power(effect_size=effect, nobs=None, alpha=significance,
+                                                       power=target, k_groups=k)) / k
         lowest = 2.0
         method = "one-way ANOVA power for groups of the same size, as R pwr::pwr.anova.test()"
     elif kind == "w":
+        from statsmodels.stats.power import GofChisquarePower
+
         def power(n):
-            return float(stats.ncx2.sf(stats.chi2.isf(significance, df), df, n * k * effect ** 2))
+            return float(GofChisquarePower().power(effect_size=effect, nobs=n * k, alpha=significance,
+                                                   n_bins=df + 1))
+
+        def solve(target):
+            return float(GofChisquarePower().solve_power(effect_size=effect, nobs=None, alpha=significance,
+                                                         power=target, n_bins=df + 1)) / k
         lowest = 1.0 / k
         method = "chi-square test power, as R pwr::pwr.chisq.test()"
     else:
+        alternative = "two.sided" if sides == 2 else "greater"
+
+        def _pwr(n=None, target=None):
+            from ._r import r_call
+
+            n_text = "NULL" if n is None else repr(float(n))
+            power_text = "NULL" if target is None else repr(float(target))
+            found = r_call(f'pwr::pwr.r.test(n = {n_text}, r = {effect!r}, sig.level = {significance!r}, '
+                           f'power = {power_text}, alternative = "{alternative}")[c("n", "power")]',
+                           packages=("pwr",), what="Power for a correlation (R pwr::pwr.r.test())",
+                           python_note="statsmodels has no power class for correlations")
+            return float(found["n"][0]), float(found["power"][0])
+
         def power(n):
-            ttt = stats.t.isf(significance / sides, n - 2)
-            rc = math.sqrt(ttt ** 2 / (ttt ** 2 + n - 2))
-            zr = math.atanh(effect) + effect / (2 * (n - 1))
-            zrc = math.atanh(rc)
-            p = stats.norm.cdf((zr - zrc) * math.sqrt(n - 3))
-            if sides == 2:
-                p += stats.norm.cdf((-zr - zrc) * math.sqrt(n - 3))
-            return float(p)
+            return _pwr(n=n)[1]
+
+        def solve(target):
+            return _pwr(target=target)[0]
         lowest = 4.0
         method = "correlation power (Fisher's arctanh approximation), as R pwr::pwr.r.test()"
 
@@ -252,7 +279,7 @@ def _plan(step, test, effect_size, difference, spread, significance, groups, sid
     if kind in ("d", "r"):
         row["sides"] = sides
     row["significance"] = significance
-    return {"power": power, "lowest": lowest, "method": method, "effect_words": effect_words,
+    return {"power": power, "solve": solve, "lowest": lowest, "method": method, "effect_words": effect_words,
             "test_words": test_words, "amount": amount, "notes": notes, "row": row, "k": k}
 
 
@@ -279,7 +306,8 @@ def how_many_needed(test="compare_averages", effect_size=None, difference=None, 
     power= is the chance you want to find it (0.8 is usual); significance= is the p-value
     limit (0.05); sides=1 looks only in the direction you expect.
     The t-tests use the usual equal-spread formula (R power.t.test()), very close to Welch's
-    t-test when the groups are the same size; the others match R pwr. The number is rounded
+    t-test when the groups are the same size; the others match R pwr. Numbers come from
+    statsmodels (correlations: R pwr.r.test through simplydata[r]). The number is rounded
     UP to a whole number; the exact value is in the result. Gives back a one-row table.
     """
     step = "how_many_needed"
@@ -290,8 +318,6 @@ def how_many_needed(test="compare_averages", effect_size=None, difference=None, 
     if target <= plan["row"]["significance"]:
         raise SimplydataError("power= must be more than significance=: even with no real difference, a test "
                               "finds one that often by chance.")
-    from scipy.optimize import brentq
-
     chance, lowest, k = plan["power"], plan["lowest"], plan["k"]
     notes = list(plan["notes"])
     if chance(lowest) >= target:
@@ -302,7 +328,7 @@ def how_many_needed(test="compare_averages", effect_size=None, difference=None, 
         if chance(LARGEST) < target:
             raise SimplydataError("The difference is too small to find with any practical study (more than "
                                   f"{LARGEST:,.0f} values in each group). Check the effect size.")
-        exact = brentq(lambda n: chance(n) - target, lowest, LARGEST, xtol=1e-12, rtol=1e-14, maxiter=500)
+        exact = plan["solve"](target)
     needed = max(math.ceil(exact - 1e-9), math.ceil(lowest))
     reached = chance(needed)
     print(f"To find {plan['effect_words']} with {_a(_percent(target))} {_percent(target)} chance, using "

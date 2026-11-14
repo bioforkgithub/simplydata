@@ -34,6 +34,21 @@ estimates (R uses the step before), so they agree with R to about 1e-5.
 - `correlation_between(..., method="kendall")`: Kendall's tau-b (SciPy `kendalltau`, as R
   `cor.test(method = "kendall")`).
 
+### Effect sizes with their intervals, from R effectsize
+
+- Every effect size now comes with its 95 % interval: Hedges' g, Cohen's d and d_z, omega-squared,
+  the rank-biserial correlations (also per pair in `compare_each_pair`), rank epsilon-squared
+  (bootstrap interval, R seed 1), and the intervals of Cramer's V and Cohen's w. They come from R
+  effectsize (`simplydata[r]`); simplydata's own formulas are removed. Cramer's V (SciPy), Cohen's w
+  and Cohen's h (statsmodels) still come from Python.
+- Without R the test runs as before; the effect size from R is left empty and one line says how to
+  add it.
+- `how_many_needed` and `chance_to_find` call statsmodels' power classes (`TTestIndPower`,
+  `TTestPower`, `FTestAnovaPower`, `GofChisquarePower`, and their `solve_power`) instead of
+  simplydata's own formulas, with the same numbers as R `power.t.test()` (strict = FALSE) and pwr;
+  correlations call R `pwr::pwr.r.test` (`simplydata[r]`). The exact number needed now agrees with
+  R to about 1e-4 (R's own search precision); the rounded-up number is unchanged.
+
 ### Fitting
 
 - `table.fit_line(x=, y=)` is the main name of the straight-line fit, the same word as

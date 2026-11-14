@@ -14,6 +14,8 @@ from simplydata import SimplydataError
 from simplydata.power import chance_to_find, how_many_needed
 
 TOL = 1e-6
+SOLVE_TOL = 1e-4  # the exact number needed: statsmodels solve_power and R pwr.r.test stop at about
+# this precision, as R's own uniroot() does; the rounded-up number is always the same
 
 
 def row(result):
@@ -44,7 +46,7 @@ def row(result):
 ])
 def test_how_many_needed_matches_r(kwargs, exact, needed, in_all):
     got = row(how_many_needed(**kwargs))
-    assert got["values per group (exact)"] == pytest.approx(exact, abs=TOL)
+    assert got["values per group (exact)"] == pytest.approx(exact, abs=SOLVE_TOL)
     assert got["values per group"] == needed
     assert got["values in all"] == in_all
 
@@ -59,7 +61,7 @@ def test_how_many_needed_counts_matches_r(w, groups, total, needed, in_all):
     power = 0.9 if groups == (3, 4) else 0.8
     got = row(how_many_needed("compare_counts", effect_size=w, groups=groups, power=power))
     k = 3 if groups == (3, 4) else 2
-    assert got["values per group (exact)"] * k == pytest.approx(total, abs=TOL)
+    assert got["values per group (exact)"] * k == pytest.approx(total, abs=SOLVE_TOL)
     assert got["values per group"] == needed
     assert got["values in all"] == in_all
     assert got["degrees of freedom"] == (6 if k == 3 else 1)
