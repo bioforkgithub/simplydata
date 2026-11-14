@@ -179,102 +179,23 @@ def _design(data: dict, kinds: dict, levels: dict, terms: list[tuple]):
 
 # ---------------------------------------------------------------------------- the fits
 def _least_squares(X, y):
-    q, r = np.linalg.qr(X)
-    beta = np.linalg.solve(r, q.T @ y)
-    fitted = X @ beta
-    rss = float(((y - fitted) ** 2).sum())
-    r_inv = np.linalg.inv(r)
-    return beta, r_inv @ r_inv.T, fitted, rss
+    """Least squares (R lm()) with statsmodels OLS: beta, unscaled covariance, fitted values, RSS."""
+    from statsmodels.regression.linear_model import OLS
+
+    result = OLS(y, X).fit(method="qr")
+    return (np.asarray(result.params), np.asarray(result.normalized_cov_params), np.asarray(result.fittedvalues),
+            float(result.ssr))
 
 
-def _family(kind):
-    """link, inverse link, d mu / d eta, variance, start values, exactly as R binomial() and poisson()."""
-    tiny = np.finfo(float).eps
-    if kind == "binomial":
-        def inverse(eta):  # R C_logit_linkinv: beyond |eta| = 30 the chance is taken as certain
-            with np.errstate(over="ignore"):
-                odds = np.where(eta < -30, tiny, np.where(eta > 30, 1 / tiny, np.exp(np.clip(eta, -30, 30))))
-            return odds / (1 + odds)
+def _glm(X, y, kind, scale=None):
+    """A binomial or Poisson GLM (R glm()) with statsmodels GLM, fitted by IRLS as R glm.fit()."""
+    import statsmodels.api as sm
 
-        def slope(eta):  # R C_logit_mu_eta
-            e = np.exp(np.clip(eta, -30, 30))
-            return np.where(np.abs(eta) > 30, tiny, e / (1 + e) ** 2)
-
-        return (lambda mu: np.log(mu / (1 - mu)), inverse, slope, lambda mu: mu * (1 - mu), lambda y: (y + 0.5) / 2)
-    return (np.log, lambda eta: np.maximum(np.exp(eta), tiny), lambda eta: np.maximum(np.exp(eta), tiny),
-            lambda mu: mu, lambda y: y + 0.1)
-
-
-def _deviance(kind, y, mu) -> float:
-    with np.errstate(divide="ignore", invalid="ignore"):
-        if kind == "binomial":
-            terms = (np.where(y > 0, y * np.log(y / mu), 0.0)
-                     + np.where(y < 1, (1 - y) * np.log((1 - y) / (1 - mu)), 0.0))
-        else:
-            terms = np.where(y > 0, y * np.log(y / mu), 0.0) - (y - mu)
-    return float(2 * terms.sum())
-
-
-def _log_likelihood(kind, y, mu) -> float:
-    from scipy.special import gammaln
-
-    with np.errstate(divide="ignore", invalid="ignore"):
-        if kind == "binomial":
-            return float(np.where(y > 0, y * np.log(mu), 0.0).sum()
-                         + np.where(y < 1, (1 - y) * np.log(1 - mu), 0.0).sum())
-        return float((np.where(y > 0, y * np.log(mu), 0.0) - mu - gammaln(y + 1)).sum())
-
-
-def _irls(X, y, kind):
-    """Maximum likelihood by iteratively reweighted least squares, step for step as R glm.fit():
-    the same start values, the same stopping rule (relative change in deviance below 1e-8, at most
-    25 steps) and the standard errors from the weights of the last step, so the numbers agree with
-    R to many digits."""
-    link, inverse, slope, variance, start = _family(kind)
-    mu = start(y)
-    eta = link(mu)
-    old = _deviance(kind, y, mu)
-    beta = np.zeros(X.shape[1])
-    converged = False
-    for _ in range(25):
-        d = slope(eta)
-        z = eta + (y - mu) / d
-        weights = d ** 2 / variance(mu)
-        w = np.sqrt(weights)
-        q, r = np.linalg.qr(X * w[:, None])
-        beta = np.linalg.solve(r, q.T @ (z * w))
-        eta = X @ beta
-        mu = inverse(eta)
-        deviance = _deviance(kind, y, mu)
-        if abs(deviance - old) / (abs(deviance) + 0.1) < 1e-8:
-            converged = True
-            break
-        old = deviance
-    r_inv = np.linalg.inv(r)
-    return beta, r_inv @ r_inv.T, mu, deviance, converged
-
-
-def _gls(X, y, groups, between, within):
-    """Fixed effects, their covariance and the fitted values (with each group's own level) for
-    given variances, by generalised least squares. This is how lme4 vcov() and fitted() work."""
-    k = X.shape[1]
-    xvx, xvy = np.zeros((k, k)), np.zeros(k)
-    blocks = []
-    for name in dict.fromkeys(groups.tolist()):
-        rows = np.flatnonzero(groups == name)
-        n = len(rows)
-        v = within * np.eye(n) + between * np.ones((n, n))
-        xv = np.linalg.solve(v, X[rows]).T
-        xvx += xv @ X[rows]
-        xvy += xv @ y[rows]
-        blocks.append((rows, n))
-    cov = np.linalg.inv(xvx)
-    beta = cov @ xvy
-    fitted = X @ beta
-    for rows, n in blocks:
-        shrink = between * n / (within + between * n)
-        fitted[rows] += shrink * float((y[rows] - fitted[rows]).mean())
-    return beta, cov, fitted
+    family = sm.families.Binomial() if kind == "binomial" else sm.families.Poisson()
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")  # perfect separation and step warnings: the notes say it in words
+        with np.errstate(all="ignore"):
+            return sm.GLM(y, X, family=family).fit(method="IRLS", tol=1e-10, maxiter=50, scale=scale)
 
 
 # ---------------------------------------------------------------------------- the words
@@ -373,17 +294,23 @@ class ModelWords:
                 result = MixedLM(y, X, groups=groups).fit(reml=True, method=["powell", "lbfgs"])
             trouble = any(issubclass(w.category, ConvergenceWarning) for w in caught) or not result.converged
             between, within = max(float(np.asarray(result.cov_re)[0, 0]), 0.0), float(result.scale)
-            beta, cov, fitted = _gls(X, y, groups, between, within)
-            return {"beta": beta, "cov": cov, "fitted": fitted, "between": between, "within": within,
+            # lme4 vcov(): the fixed-effects block of the information alone (statsmodels' cov_params()
+            # inverts the whole Hessian, variances included, which gives slightly different errors)
+            k = X.shape[1]
+            hessian = result.model.hessian(result.params_object)
+            hessian = hessian[0] if isinstance(hessian, tuple) else hessian
+            return {"beta": np.asarray(result.fe_params), "cov": np.linalg.inv(-np.asarray(hessian)[:k, :k]),
+                    "fitted": np.asarray(result.fittedvalues), "between": between, "within": within,
                     "trouble": trouble}
         family = "binomial" if kind == "binomial" else "poisson"
-        beta, cov, mu, deviance, converged = _irls(X, y, family)
+        result = _glm(X, y, family, scale="X2" if kind == "quasipoisson" else None)
         df = len(y) - X.shape[1]
-        out = {"beta": beta, "cov": cov, "fitted": mu, "deviance": deviance, "df": df, "converged": converged,
-               "loglik": _log_likelihood(family, y, mu)}
+        out = {"beta": np.asarray(result.params), "cov": np.asarray(result.cov_params()),
+               "fitted": np.asarray(result.fittedvalues), "deviance": float(result.deviance),
+               "null_deviance": float(result.null_deviance), "df": df, "converged": bool(result.converged),
+               "loglik": float(result.llf), "aic": float(result.aic)}
         if kind == "quasipoisson":
-            out["dispersion"] = float(((y - mu) ** 2 / mu).sum() / df)
-            out["cov"] = cov * out["dispersion"]
+            out["dispersion"] = float(result.scale)
         return out
 
     def _fit_model(self, step, column, outcome, grouped_by, terms, variables, raw, kinds, keep):
@@ -492,7 +419,7 @@ class ModelWords:
                                 p=float(stats.f.sf(f, k, fit["df"])), test="F test"))
                 continue
             family = "binomial" if kind == "binomial" else "poisson"
-            change = _irls(reduced, y, family)[3] - fit["deviance"]
+            change = float(_glm(reduced, y, family).deviance) - fit["deviance"]
             if kind == "quasipoisson":
                 f = (change / k) / (fit["deviance"] / fit["df"])  # as R drop1(test = "F")
                 out.append(dict(term=label, name="F", stat=f, df=float(k), df2=float(fit["df"]),
@@ -624,15 +551,13 @@ class ModelWords:
                 line += f" The model as a whole (F = {_num(f)}, df = {k} and {fit['df']}): {_p_words(p)}."
             print(line)
         elif kind != "mixed":
-            family = "binomial" if kind == "binomial" else "poisson"
-            y = model["y"]
-            null = _deviance(family, y, np.full(len(y), y.mean()))
+            null = fit["null_deviance"]
             line = (f"Residual deviance {_num(fit['deviance'])} on {fit['df']} df (with no columns: {_num(null)} on "
                     f"{n - 1} df).")
             if kind != "quasipoisson" and k > 0:
                 change = null - fit["deviance"]
                 p = float(stats.chi2.sf(change, k))
-                aic = -2 * fit["loglik"] + 2 * (k + 1)
+                aic = fit["aic"]
                 line += (f" The model as a whole (likelihood-ratio chi-square = {_num(change)}, df = {k}): "
                          f"{_p_words(p)}. AIC = {_num(aic)}.")
             print(line)
@@ -819,16 +744,21 @@ class ModelWords:
             estimates.append(model["fit"]["beta"])
             variances.append(np.diag(model["fit"]["cov"]))
         m = IMPUTATIONS
-        q, u = np.array(estimates), np.array(variances)
-        qbar, ubar, b = q.mean(axis=0), u.mean(axis=0), q.var(axis=0, ddof=1)
-        total = ubar + (1 + 1 / m) * b
-        se = np.sqrt(total)
-        lam = (1 + 1 / m) * b / total
-        dfcom = float(model["n"] - model["X"].shape[1])
-        with np.errstate(divide="ignore", invalid="ignore"):
-            df_old = np.where(lam > 0, (m - 1) / lam ** 2, np.inf)
-            df_obs = (dfcom + 1) / (dfcom + 3) * dfcom * (1 - lam)
-            df = np.where(np.isinf(df_old), df_obs, df_old * df_obs / (df_old + df_obs))
+        from .._r import r_call
+
+        # Rubin's rules with Barnard-Rubin degrees of freedom: R mice::pool.scalar() for each coefficient
+        pooled = r_call("res <- lapply(seq_len(ncol(q)), function(j) mice::pool.scalar(q[, j], u[, j], n = n, k = k)); "
+                        "list(qbar = sapply(res, `[[`, 'qbar'), t = sapply(res, `[[`, 't'), "
+                        "df = sapply(res, `[[`, 'df'), "
+                        "lambda = sapply(res, function(r) (1 + 1 / r$m) * r$b / r$t))",
+                        packages=("mice",), source="mice::pool",
+                        what="Pooling the filled-in tables (R mice::pool())",
+                        python_note="statsmodels MICE pools with Rubin's rules but without the Barnard-Rubin "
+                                    "degrees of freedom, so its p-values differ",
+                        q=np.array(estimates), u=np.array(variances), n=float(model["n"]),
+                        k=float(model["X"].shape[1]))
+        qbar, se = np.asarray(pooled["qbar"], dtype=float), np.sqrt(np.asarray(pooled["t"], dtype=float))
+        df, lam = np.asarray(pooled["df"], dtype=float), np.asarray(pooled["lambda"], dtype=float)
         stat = qbar / se
         p = 2 * stats.t.sf(np.abs(stat), df)
         tq = stats.t.ppf(0.975, df)

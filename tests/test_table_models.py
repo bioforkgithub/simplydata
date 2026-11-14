@@ -48,6 +48,11 @@ def rows(result):
     return {r["term"]: r for r in frame.to_dict("records")}
 
 
+# GLM standard errors (and so z, p and intervals): statsmodels computes them at the converged
+# estimates, R glm() from the weights of its last IRLS step, one step before; they agree to about 1e-5.
+GLM_REL = 1e-5
+
+
 def check(got, expected, rel=1e-6):
     for key, value in expected.items():
         assert got[key] == pytest.approx(value, rel=rel), key
@@ -143,13 +148,17 @@ def test_logistic_regression_matches_r_glm(school, engine, capsys):
     got = rows(make(school, engine).explain("passed", using=["hours", "breakfast"], outcome="yes or no"))
     # R: g1 <- glm(passed ~ hours + breakfast, family = binomial, data = s); summary(g1); exp(confint.default(g1))
     check(got["(intercept)"], {"log odds ratio": -3.092800457622370, "standard error": 0.552342416354540,
-                               "statistic": -5.59942594674306, "p-value": 2.15062777983353e-08,
-                               "95 % CI low": 0.0153694777458107, "95 % CI high": 0.13395796605019})
+                               "statistic": -5.59942594674306,
+                               "95 % CI low": 0.0153694777458107, "95 % CI high": 0.13395796605019}, rel=GLM_REL)
+    # a p-value this small moves about z^2 times as much as z (here 1e-4)
+    assert got["(intercept)"]["p-value"] == pytest.approx(2.15062777983353e-08, rel=1e-3)
     check(got["hours"], {"log odds ratio": 0.509493433436877, "standard error": 0.089727444785042,
-                         "p-value": 1.36092408724107e-08, "odds ratio": math.exp(0.509493433436877),
-                         "95 % CI low": 1.3960277372504717, "95 % CI high": 1.98447817141263})
+                         "odds ratio": math.exp(0.509493433436877),
+                         "95 % CI low": 1.3960277372504717, "95 % CI high": 1.98447817141263}, rel=GLM_REL)
     check(got["breakfast (yes)"], {"log odds ratio": 0.415554886072377, "p-value": 2.49568930524936e-01,
-                                   "95 % CI low": 0.7469008520298389, "95 % CI high": 3.07385539596500})
+                                   "95 % CI low": 0.7469008520298389, "95 % CI high": 3.07385539596500},
+          rel=GLM_REL)
+    assert got["hours"]["p-value"] == pytest.approx(1.36092408724107e-08, rel=1e-3)
     assert got["hours"]["statistic name"] == "z"
     out = capsys.readouterr().out
     assert 'counted as yes: "passed" = "yes"' in out
@@ -160,14 +169,14 @@ def test_logistic_regression_matches_r_glm(school, engine, capsys):
 
 
 def test_yes_no_deviance_and_aic_to_more_digits(school):
-    from simplydata.table.models import _irls, _log_likelihood
+    from simplydata.table.models import _glm
 
     X = np.column_stack([np.ones(len(school)), school.hours, school.breakfast == "yes"]).astype(float)
     y = (school.passed == "yes").to_numpy(float)
-    beta, cov, mu, deviance, converged = _irls(X, y, "binomial")
-    assert converged
-    assert deviance == pytest.approx(198.963040749707, rel=1e-10)
-    assert -2 * _log_likelihood("binomial", y, mu) + 6 == pytest.approx(204.963040749707, rel=1e-10)
+    result = _glm(X, y, "binomial")
+    assert result.converged
+    assert result.deviance == pytest.approx(198.963040749707, rel=1e-10)
+    assert result.aic == pytest.approx(204.963040749707, rel=1e-10)
 
 
 def test_other_two_values_count_the_second_as_yes(school, capsys):
@@ -265,7 +274,7 @@ def test_mixed_model_not_yet_for_yes_no(school):
 
 
 # ---------------------------------------------------------------- multiple imputation
-def test_multiple_imputation_close_to_r_mice(school, engine, capsys):
+def test_multiple_imputation_close_to_r_mice(school, engine, capsys, needs_r):
     pytest.importorskip("statsmodels")
     t = make(school, engine)
     got = rows(t.explain("marks", using=["hours", "breakfast", "sleep"], empty_cells="multiple imputation"))
@@ -292,7 +301,7 @@ def test_multiple_imputation_close_to_r_mice(school, engine, capsys):
     assert other["sleep"]["effect"] != got["sleep"]["effect"]
 
 
-def test_multiple_imputation_logistic_close_to_r_mice(school):
+def test_multiple_imputation_logistic_close_to_r_mice(school, needs_r):
     pytest.importorskip("statsmodels")
     got = rows(make_table(school).explain("passed", using=["hours", "sleep"], outcome="yes or no",
                                           empty_cells="multiple imputation"))
@@ -305,7 +314,7 @@ def test_multiple_imputation_logistic_close_to_r_mice(school):
         assert got[term]["standard error"] == pytest.approx(se, rel=0.08), term
 
 
-def test_multiple_imputation_needs_no_groups(school):
+def test_multiple_imputation_needs_no_groups(school, needs_r):
     with pytest.raises(SimplydataError, match="cannot be used with grouped_by"):
         make_table(school).explain("marks", using="hours", grouped_by="school", empty_cells="multiple imputation")
 

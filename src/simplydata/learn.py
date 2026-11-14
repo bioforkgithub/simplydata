@@ -182,6 +182,15 @@ EXTRA_NOTES = {
 }
 
 
+
+def needs_r_text(what: str) -> str:
+    """The "Needs R" box of a lesson or day: what needs R, and how to get it, in plain words."""
+    return (f"{what} run R's own code, the same code R users run. Install it once: "
+            'pip install "simplydata[r]", then R from https://cran.r-project.org, then in R: '
+            'install.packages(c("vegan", "survival", "mice")). Without R these words print a message '
+            "that says what to install.")
+
+
 def _ex(table: str, body: str, file: str) -> str:
     """A runnable example: load an example table, start a chart, do the steps, save."""
     lines = ["import simplydata as sdata", f'{table} = sdata.example("{table}")',
@@ -3019,6 +3028,7 @@ LESSONS = [
     ),
     dict(
         title="Models: explain one column from several others",
+        needs_r=needs_r_text('explain(..., empty_cells="multiple imputation") pools its results with R (mice); this one option'),
         learn=[
             "how to explain one column from several others at once (multiple regression)",
             "how to explain a yes/no column (logistic regression) and a column of counts (Poisson regression)",
@@ -3081,8 +3091,8 @@ LESSONS = [
             "animal, samples from the same site. Without it, the p-values are too small.",
             "Multiple imputation needs the empty cells to be explainable by the other columns (missing "
             "at random). Say in your report how many cells were empty and how they were handled.",
-            "grouped_by= and multiple imputation need the statsmodels package: "
-            'pip install "simplydata[stats]".',
+            "grouped_by= works out of the box (statsmodels comes with simplydata). Multiple "
+            "imputation pools its results in R, so it needs R (see the box at the start).",
         ],
         task=[
             'Explain "marks" using "hours" and "school" (school as a column of groups). Which schools '
@@ -3116,6 +3126,7 @@ LESSONS = [
     ),
     dict(
         title="Patterns across many columns",
+        needs_r=needs_r_text('add_nmds(), compare_profiles() and add_clusters() with k-means (the default)'),
         learn=[
             "how to sum up many columns in two new ones (principal components)",
             "how to measure how different rows are (Bray-Curtis and other distances)",
@@ -3199,8 +3210,8 @@ LESSONS = [
                 import simplydata as sdata
                 table = sdata.table(sdata.example("meadow"))
                 table.compare_profiles(for_each="field")"""),
-             "The fields explain 12 % of the differences (p = 0.037), much less than grazing, and they "
-             "do not differ in spread (p = 0.54)."),
+             "The fields explain 12 % of the differences, much less than grazing (25 %), and a difference "
+             "this big could be chance (p = 0.053). They do not differ in spread (p = 0.53)."),
             (_sx("""\
                 import simplydata as sdata
                 table = sdata.table(sdata.example("meadow"))
@@ -3213,6 +3224,7 @@ LESSONS = [
     ),
     dict(
         title="Survival, and planning a study",
+        needs_r=needs_r_text('The proportional-hazards check inside explain_survival() (R survival::cox.zph()); the rest of the lesson needs no R. Without R that one check is left out with a note. The check and the other R words'),
         learn=[
             "how to draw survival curves (Kaplan-Meier) and compare them (log-rank test)",
             "how to explain the risk of an event from several columns (a Cox model)",
@@ -3543,6 +3555,9 @@ def lesson(number=None, solutions=False) -> None:
     print("\nIn this lesson you will learn")
     for item in les["learn"]:
         print(f"  - {item}")
+    if les.get("needs_r"):
+        print("\nNeeds R")
+        print(textwrap.fill(les["needs_r"], WIDTH, initial_indent="  ", subsequent_indent="  "))
     for i, (intro, steps) in enumerate(les["parts"], start=1):
         print()
         heading = "Example" if len(les["parts"]) == 1 else f"Example {i}"

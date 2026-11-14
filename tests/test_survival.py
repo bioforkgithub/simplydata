@@ -209,7 +209,7 @@ def test_log_rank_errors(trial, engine):
 
 
 # ---------------------------------------------------------------- explain_survival
-def test_cox_matches_r_trial(trial, engine, capsys):
+def test_cox_matches_r_trial(trial, engine, capsys, needs_r):
     # coxph(Surv(days, ev) ~ treatment + age, data = d); cox.zph(fit)
     out = frame(make(trial, engine).explain_survival(time="days", event="died", using=["treatment", "age"]))
     assert out["term"].tolist() == ["treatment: usual care vs new medicine", "age"]
@@ -229,7 +229,7 @@ def test_cox_matches_r_trial(trial, engine, capsys):
     assert "Efron" in text and "may change over time" not in text
 
 
-def test_cox_with_ties_and_three_groups(engine, capsys):
+def test_cox_with_ties_and_three_groups(engine, capsys, needs_r):
     # coxph(Surv(time, event) ~ group + x) (Efron); cox.zph(fit); breslow would give 0.889 for groupb
     out = frame(make(TIES, engine).explain_survival(time="time", event="event", using=["group", "x"]))
     assert out["coefficient"].tolist() == pytest.approx([0.9503263116621189, -0.9290602922537614, 0.0330996498726311],
@@ -245,7 +245,7 @@ def test_cox_with_ties_and_three_groups(engine, capsys):
     assert "chi-square = 17.3, df = 3" in capsys.readouterr().out
 
 
-def test_cox_proportional_hazards_note(engine, capsys):
+def test_cox_proportional_hazards_note(engine, capsys, needs_r):
     # crossing curves: coxph(Surv(t, e) ~ g): coef -0.346573590279972; cox.zph p = 0.0008110300693533
     data = pd.DataFrame({"t": list(range(1, 9)) + [30] * 8 + list(range(20, 28)) + [30] * 8,
                          "e": (["yes"] * 8 + ["no"] * 8) * 2, "g": ["early"] * 16 + ["late"] * 16})
@@ -342,3 +342,43 @@ def test_survival_curves_transparency_and_thickness():
     assert all(abs(ln.get_alpha() - 0.6) < 1e-12 and ln.get_linewidth() == 3 for ln in lines)
     with pytest.raises(sdata.SimplydataError, match="transparency"):
         sdata.chart(sdata.example("trial")).survival_curves(time="days", event="died", transparency=2)
+
+
+def test_cox_without_r_still_fits_and_says_how_to_add_the_check(trial, capsys, monkeypatch):
+    # no R: the model is fitted by statsmodels as usual; only the cox.zph check is left out, with a note
+    from simplydata import _r
+
+    monkeypatch.setattr(_r, "_STATE", {"error": "no R", "missing": "rpy2"})
+    got = one_row(make(trial, "pandas").explain_survival(time="days", event="died", using="age"))
+    out = capsys.readouterr().out
+    assert got["hazard ratio"] == pytest.approx(math.exp(0.0503037), rel=1e-5)
+    assert math.isnan(got["proportional hazards check p-value"])
+    assert "proportional-hazards check was left out" in out
+    assert 'pip install "simplydata[r]"' in out and 'install.packages(c("survival"))' in out
+    assert "lifelines" in out  # the Python alternative is named, with its different numbers
+
+
+def test_log_rank_leaves_out_a_group_with_no_expected_events(capsys):
+    # group "c" is censored before the first event, so R leaves it out:
+    # t <- c(0.5, 0.6, 2, 3, 4, 5, 6, 7); e <- c(0, 0, 1, 1, 1, 0, 1, 1); g <- c("c","c","a","a","a","b","b","b")
+    # survdiff(Surv(t, e) ~ g): chisq 5.05166051660517, expected 1.15 3.85 0, df 1, p 0.0246023499536417
+    data = pd.DataFrame({"t": [0.5, 0.6, 2, 3, 4, 5, 6, 7], "e": [0, 0, 1, 1, 1, 0, 1, 1],
+                         "g": ["c", "c", "a", "a", "a", "b", "b", "b"]})
+    r = one_row(make(data, "pandas").compare_survival(time="t", event="e", for_each="g"))
+    assert r["statistic"] == pytest.approx(5.05166051660517, rel=1e-9)
+    assert r["degrees of freedom"] == 1
+    assert r["p-value"] == pytest.approx(0.0246023499536417, rel=1e-9)
+    assert r["expected events in c"] == 0
+    assert 'Note: "c" is left out of the test' in capsys.readouterr().out
+
+
+def test_cox_all_events_in_one_group_is_a_note_not_a_crash(capsys):
+    # complete separation: every event is in group "a", so the hazard ratio heads to infinity
+    data = pd.DataFrame({"t": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10], "e": [1, 1, 1, 1, 1, 0, 0, 0, 0, 0],
+                         "g": ["a"] * 5 + ["b"] * 5})
+    make(data, "pandas").explain_survival(time="t", event="e", using="g")
+    out = capsys.readouterr().out
+    assert "extremely large or small" in out or "did not settle" in out
+    assert out.index("The event is") < out.index("Hazard ratios")
+    if "Note from R" in out:  # R's own warning comes with the other notes, after the results
+        assert out.index("Note from R") > out.index("Hazard ratios")

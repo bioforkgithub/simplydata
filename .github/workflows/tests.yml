@@ -12,13 +12,45 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
-        python-version: ["3.10", "3.11", "3.12", "3.13"]
+        python-version: ["3.11", "3.12", "3.13"]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
+      # R for the methods that only R gives (simplydata[r]): cox.zph, k-means, NMDS, betadisper, ...
+      - uses: r-lib/actions/setup-r@v2
+        with:
+          r-version: release
+          use-public-rspm: true
+      - name: Install R packages
+        run: Rscript -e 'install.packages(c("survival", "vegan", "mice"), repos = "https://cloud.r-project.org")'
+      - name: Tell rpy2 where R is
+        shell: bash
+        run: echo "R_HOME=$(Rscript -e 'cat(normalizePath(R.home(), winslash = "/"))')" >> "$GITHUB_ENV"
       - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[test,r]"
+        env:
+          # rpy2 has no Windows wheel for every Python, and its C part does not build with MSVC;
+          # ABI mode needs no compiler (rpy2's documented way on Windows)
+          RPY2_CFFI_MODE: ${{ runner.os == 'Windows' && 'ABI' || 'BOTH' }}
+      - name: Run tests
+        run: python -m pytest -q
+        env:
+          MPLBACKEND: Agg
+          SIMPLYDATA_REQUIRE_R: "1"  # in CI the R tests must run, never be skipped
+
+  # Without R: words that do not need R must work, and only the R words may be skipped
+  test-without-r:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install (no R, no rpy2)
         run: |
           python -m pip install --upgrade pip
           python -m pip install -e ".[test]"
@@ -26,3 +58,4 @@ jobs:
         run: python -m pytest -q
         env:
           MPLBACKEND: Agg
+          SIMPLYDATA_NO_R: "1"  # R may be missing only where a word is meant to run R

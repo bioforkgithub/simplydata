@@ -13,7 +13,7 @@ from scipy.spatial import procrustes
 import simplydata as sdata
 from simplydata import SimplydataError
 from simplydata.table import table as make_table
-from simplydata.table.patterns import _isotonic, _pava, _sum_squares
+from simplydata.table.patterns import _sum_squares
 
 ENGINES = ["pandas", "polars"]
 SPECIES = ["clover", "daisy", "buttercup", "dandelion", "nettle", "thistle", "moss", "fern", "orchid", "yarrow"]
@@ -132,7 +132,7 @@ def test_principal_components_errors(school, meadow):
 
 
 # ---------------------------------------------------------------------------- clusters
-def test_kmeans_matches_r_meadow(meadow, capsys):
+def test_kmeans_matches_r_meadow(meadow, capsys, needs_r):
     # R: set.seed(1); k1 <- kmeans(scale(sp), 3, nstart = 25)
     meadow.add_clusters()
     text = capsys.readouterr().out
@@ -144,7 +144,7 @@ def test_kmeans_matches_r_meadow(meadow, capsys):
     assert within == pytest.approx(188.442099934031, rel=1e-9)  # k1$tot.withinss
     assert 1 - within / total == pytest.approx(0.350199655399892, rel=1e-9)  # betweenss / totss
     assert "sizes 12, 4 and 14" in text and "35.0 % of the spread lies between the clusters" in text
-    assert "Lloyd" in text and "Hartigan" in text
+    assert "Hartigan-Wong" in text and "set.seed(1); kmeans(x, 3, nstart = 25)" in text
     meadow.undo()
     assert "cluster" not in meadow.column_names()
 
@@ -153,7 +153,7 @@ def test_kmeans_matches_r_meadow(meadow, capsys):
     (4, True, 165.206452687565),     # set.seed(1); kmeans(scale(sp), 4, nstart = 25)$tot.withinss
     (3, False, 11056.0952380952),    # set.seed(1); kmeans(sp, 3, nstart = 25)$tot.withinss
 ])
-def test_kmeans_within_sum_of_squares(meadow, k, same_scale, r_within):
+def test_kmeans_within_sum_of_squares(meadow, k, same_scale, r_within, needs_r):
     meadow.add_clusters(how_many=k, same_scale=same_scale)
     x = sdata.example("meadow")[SPECIES].to_numpy(float)
     z = (x - x.mean(0)) / x.std(0, ddof=1) if same_scale else x - x.mean(0)
@@ -161,7 +161,7 @@ def test_kmeans_within_sum_of_squares(meadow, k, same_scale, r_within):
     assert _sum_squares(z, labels)[0] == pytest.approx(r_within, rel=1e-9)
 
 
-def test_kmeans_school_with_empty_cells(school, capsys):
+def test_kmeans_school_with_empty_cells(school, capsys, needs_r):
     # R: sc <- na.omit(...); set.seed(1); k2 <- kmeans(scale(sc), 3, nstart = 25)
     school.add_clusters()
     text = capsys.readouterr().out
@@ -203,7 +203,7 @@ def test_hierarchical_school_ward(school):
     assert sorted(np.bincount(labels)[1:].tolist()) == [22, 23, 116]
 
 
-def test_clusters_leave_out_earlier_pattern_columns(meadow, capsys):
+def test_clusters_leave_out_earlier_pattern_columns(meadow, capsys, needs_r):
     meadow.add_clusters()
     meadow.add_principal_components()
     capsys.readouterr()
@@ -289,11 +289,13 @@ R_NMDS_BRAY = [(-0.078615, -0.049263), (-0.302451, -0.395405), (-0.412042, -0.14
                (0.485613, -0.124929), (0.130103, -0.225676)]
 
 
-def test_nmds_matches_metamds(meadow, capsys):
+def test_nmds_matches_metamds(meadow, capsys, needs_r):
     meadow.add_nmds()
     text = capsys.readouterr().out
     assert "stress = 0.195, usable" in text  # m1$stress = 0.194902988398863
-    assert "Clarke" in text and 'metaMDS(x, distance = "bray", k = 2, autotransform = FALSE)' in text
+    assert "Clarke" in text and 'vegan::metaMDS(vegdist(x, method = "bray"), k = 2' in text
+    assert "autotransform = FALSE" in text
+    assert "try = 20, trymax = 100" in text and "found only once" not in text  # as the R call above
     points = meadow._frame.to_pandas()[["NMDS1", "NMDS2"]].to_numpy()
     _, _, disparity = procrustes(np.array(R_NMDS_BRAY), points)
     assert np.sqrt(1 - disparity) > 0.999  # vegan::procrustes / protest correlation
@@ -307,16 +309,16 @@ def test_nmds_matches_metamds(meadow, capsys):
     ("bray-curtis", 3, 0.126865007532683),  # metaMDS(sp, distance = "bray", k = 3, autotransform = FALSE)
     ("jaccard", 2, 0.0103910876886383),   # metaMDS(sp, distance = "jaccard", binary = TRUE, k = 2, ...)
 ])
-def test_nmds_stress_matches_metamds(measure, dimensions, r_stress):
-    from simplydata.table.patterns import _distances, _nmds
+def test_nmds_stress_matches_metamds(measure, dimensions, r_stress, needs_r):
+    from simplydata.table.patterns import _r_nmds
 
     x = sdata.example("meadow")[SPECIES].to_numpy(float)
-    points, stress, found, starts = _nmds(_distances(x, measure), 30, dimensions, 10, 1)
-    assert stress == pytest.approx(r_stress, abs=0.005)
-    assert points.shape == (30, dimensions) and starts == 11 and found >= 2
+    points, stress, repeated = _r_nmds(x, measure, dimensions, 20, 1)
+    assert stress == pytest.approx(r_stress, abs=0.005)  # the R values were found with trymax = 100
+    assert points.shape == (30, dimensions)
 
 
-def test_nmds_empty_cells_and_errors(engine, capsys):
+def test_nmds_empty_cells_and_errors(engine, capsys, needs_r):
     data = sdata.example("meadow")
     data.loc[0, "clover"] = None
     t = make(data, engine)
@@ -330,16 +332,8 @@ def test_nmds_empty_cells_and_errors(engine, capsys):
         t.add_nmds(tries=-1)
 
 
-def test_pava_matches_scipy():
-    rng = np.random.default_rng(3)
-    for _ in range(20):
-        y = rng.normal(size=rng.integers(1, 60)).cumsum() * rng.choice([-1, 1])
-        assert np.allclose(_pava(y), _isotonic(y))
-    assert _pava([3, 1, 2]).tolist() == [2, 2, 2]
-
-
 # ---------------------------------------------------------------------------- PERMANOVA
-def test_compare_profiles_matches_adonis2(meadow, capsys):
+def test_compare_profiles_matches_adonis2(meadow, capsys, needs_r):
     result = row(meadow.compare_profiles(for_each="grazed"))
     text = capsys.readouterr().out
     # R: set.seed(1); adonis2(vegdist(sp) ~ grazed, data = meadow, permutations = 999)
@@ -347,36 +341,39 @@ def test_compare_profiles_matches_adonis2(meadow, capsys):
     assert result["R squared"] == pytest.approx(0.246173465856223, rel=1e-9)
     assert result["p-value"] == pytest.approx(0.001)  # R: 0.001
     assert (result["degrees of freedom 1"], result["degrees of freedom 2"]) == (1, 28)
-    # R: b <- betadisper(vegdist(sp), meadow$grazed); b$group.distances; anova(b); permutest(b): p = 0.117
-    assert result["distance to centre in no"] == pytest.approx(0.240009218829533, rel=1e-4)
-    assert result["distance to centre in yes"] == pytest.approx(0.278142465135866, rel=1e-4)
-    assert result["spread check F"] == pytest.approx(2.53042696894578, rel=1e-3)
-    assert result["spread check p-value"] == pytest.approx(0.117, abs=0.03)
+    # R, after the adonis2 above: b <- betadisper(vegdist(sp), meadow$grazed); b$group.distances;
+    # permutest(b, permutations = 999): F 2.5304, p 0.124 (the same random stream as simplydata)
+    assert result["distance to centre in no"] == pytest.approx(0.240009218829533, rel=1e-9)
+    assert result["distance to centre in yes"] == pytest.approx(0.278142465135866, rel=1e-9)
+    assert result["spread check F"] == pytest.approx(2.53042696894578, rel=1e-9)
+    assert result["spread check p-value"] == pytest.approx(0.124)
     assert result["count in no"] == 15 and result["permutations"] == 999
     assert "explain 24.6 % of the differences" in text and "pseudo-F = 9.14" in text
     assert "adonis2" in text and "betadisper" in text and "differ in spread" not in text
     assert meadow._history == []
 
 
-@pytest.mark.parametrize("for_each, measure, f, r2, r_p, disp_f", [
-    # adonis2(vegdist(sp, m) ~ field); p from 9999 permutations in R (0.047); anova(betadisper(...))$F
-    ("field", "bray-curtis", 1.80523021588802, 0.1179485829631, 0.047, 0.624609336020348),
-    ("field", "euclidean", 1.8941032091796, 0.123040828260144, 0.046, 0.518698457904506),
-    ("grazed", "jaccard", 1.7290369552548, 0.0581598710330635, 0.244, None),
+@pytest.mark.parametrize("for_each, measure, f, r2, r_p, disp_f, disp_p", [
+    # R: set.seed(1); adonis2(vegdist(sp, m) ~ field, permutations = 999); then
+    # b <- betadisper(vegdist(sp, m), field); anova(b)$F; permutest(b, permutations = 999)
+    ("field", "bray-curtis", 1.80523021588802, 0.1179485829631, 0.053, 0.624609336020348, 0.531),
+    ("field", "euclidean", 1.8941032091796, 0.123040828260144, 0.036, 0.518698457904506, 0.597),
+    ("grazed", "jaccard", 1.7290369552548, 0.0581598710330635, 0.206, None, 0.001),
 ])
-def test_compare_profiles_other_cases(meadow, capsys, for_each, measure, f, r2, r_p, disp_f):
+def test_compare_profiles_other_cases(meadow, capsys, for_each, measure, f, r2, r_p, disp_f, disp_p, needs_r):
     result = row(meadow.compare_profiles(for_each=for_each, measure=measure))
     assert result["statistic"] == pytest.approx(f, rel=1e-9)
     assert result["R squared"] == pytest.approx(r2, rel=1e-9)
-    assert result["p-value"] == pytest.approx(r_p, abs=0.03)
+    assert result["p-value"] == pytest.approx(r_p)  # R's own p for the same seed
+    assert result["spread check p-value"] == pytest.approx(disp_p)
     if disp_f is not None:
-        assert result["spread check F"] == pytest.approx(disp_f, rel=1e-3)
+        assert result["spread check F"] == pytest.approx(disp_f, rel=1e-9)
     if measure == "jaccard":  # grazed plots hold more kinds of plant: the groups differ in spread
         assert result["spread check p-value"] < 0.05
         assert "PERMANOVA can then mistake a difference in spread" in capsys.readouterr().out
 
 
-def test_compare_profiles_skips_empty_cells(engine, capsys):
+def test_compare_profiles_skips_empty_cells(engine, capsys, needs_r):
     data = sdata.example("meadow")
     data.loc[3, "moss"] = None
     data.loc[5, "grazed"] = None
@@ -396,3 +393,27 @@ def test_compare_profiles_errors(meadow):
         meadow.compare_profiles(for_each="grazed", permutations=0)
     with pytest.raises(SimplydataError, match="at least 2 rows in each group"):
         meadow.compare_profiles(for_each="plot")
+
+
+def test_r_warnings_become_plain_notes(meadow, capsys, needs_r):
+    # vegan::betadisper warns for semimetric distances such as Jaccard; simplydata passes it on once
+    meadow.compare_profiles(for_each="grazed", measure="jaccard")
+    out = capsys.readouterr().out
+    assert out.count("some squared distances are negative and changed to zero") == 1
+    assert "Note from R (vegan): some squared distances are negative and changed to zero." in out
+
+
+def test_r_call_passes_warnings_on_and_still_answers(capsys, needs_r):
+    from simplydata._r import r_call
+
+    got = r_call("warning('test warning'); warning('test warning'); 1", source="test")
+    out = capsys.readouterr().out
+    assert float(got[0]) == 1.0
+    assert out.count("Note from R (test): test warning.") == 1  # each distinct warning once
+
+
+def test_seeds_must_fit_r(meadow):
+    # R set.seed() takes whole numbers up to 2**31 - 1; a bigger seed gets a plain message, before R runs
+    for word, extra in (("add_clusters", {}), ("add_nmds", {}), ("compare_profiles", {"for_each": "grazed"})):
+        with pytest.raises(SimplydataError, match="seed= as a whole number from 0 to 2147483647"):
+            getattr(meadow, word)(seed=2 ** 31, **extra)

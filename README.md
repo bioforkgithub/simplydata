@@ -32,7 +32,7 @@ one cleaned table can feed many charts, and charts go side by side with
 ## Install
 
 ```
-pip install simplydata            # needs Python 3.10 or newer
+pip install simplydata            # needs Python 3.11 or newer
 pip install "simplydata[fast]"    # adds Polars, the fast engine for big data
 pip install "simplydata[files]"   # adds reading Word, SPSS and Stata files
 pip install "simplydata[stats]"   # adds statsmodels, for mixed models and multiple imputation

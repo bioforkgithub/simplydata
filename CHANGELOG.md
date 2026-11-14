@@ -7,6 +7,45 @@ working for one release and prints a one-line note with its new name.
 
 More statistics, each checked against R.
 
+### Methods come from established packages
+
+simplydata now calls SciPy and statsmodels for its methods instead of writing them out:
+p-value adjustment, Welch's ANOVA, the log-rank test, Kaplan-Meier, the Cox model, linear,
+logistic and Poisson models, mixed-model errors, polynomial fits, LOWESS, the line band, PCA,
+Cramer's V, the summary measures, and the gamma, Gumbel and von Mises fits. The answers are the
+same as before, except that logistic and Poisson standard errors now come from the converged
+estimates (R uses the step before), so they agree with R to about 3e-5.
+
+- statsmodels is now required (`pip install "simplydata[stats]"` still works).
+- Standard errors of fitted distributions come from statsmodels' numerical Hessian
+  (`approx_hess3`); they may move by up to a few in a million (about 3e-6) from before.
+- A smoothing spline needs at least 5 different x values (SciPy's spline; it was 4).
+- Python 3.11 or newer, and SciPy 1.16 or newer (its quantiles are exact).
+- `compare_shape_to` calls SciPy `goodness_of_fit` again; most shapes take a few seconds
+  with `samples=9999`, Weibull and t longer (a note says so before a long run).
+
+### R itself, for what only R gives: `simplydata[r]`
+
+Where no Python package gives R's answers, simplydata now runs R's own code through rpy2.
+Install once: `pip install "simplydata[r]"`, R from https://cran.r-project.org, and in R
+`install.packages(c("vegan", "survival", "mice"))`. Without R these words print what to install
+(and name the Python alternative, with its different numbers); there is no fallback of our own.
+
+- `add_clusters()` with k-means: R `kmeans(nstart = 25)` after `set.seed(seed)`.
+- `add_nmds()`: R `vegan::metaMDS()`, at least `tries=` starts and up to 100 until the best
+  map repeats.
+- `compare_profiles()`: R `vegan::adonis2()`, `betadisper()` and `permutest()`; the p-values
+  are now exactly R's for the same seed.
+- `explain_survival()`: the proportional-hazards check is R `survival::cox.zph()`; without R
+  the model is still fitted and a note says how to add the check.
+- Smoothing splines with `smoothness="auto"`: R `smooth.spline()` chooses the smoothness (a
+  number for `smoothness=` needs no R).
+- `explain(..., empty_cells="multiple imputation")`: the results are pooled by R
+  `mice::pool()` (Barnard-Rubin degrees of freedom).
+- R's warnings are passed on as plain notes, such as
+  `Note from R (vegan): some squared distances are negative and changed to zero.`
+- Lessons 16, 17 and 18 (and day 17 of the 30-day guide) have a "Needs R" box.
+
 ### Fitting
 
 - `table.fit_line(x=, y=)` is the main name of the straight-line fit, the same word as

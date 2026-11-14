@@ -136,31 +136,35 @@ GCV_Y = np.array([0.409197, 0.813935, 0.904061, 0.353915, 1.167040, 0.941010, 0.
                   1.095188, 1.020856, 0.225865, -0.235593, 0.148943, -0.514917])
 
 
-def test_smoothing_spline_gcv_matches_r():
+def test_smoothing_spline_gcv_matches_r(needs_r):
     # set.seed(1); xx <- round(sort(runif(40, 0, 10)), 6); yy <- round(sin(xx) + rnorm(40, sd = 0.3), 6)
     # g <- smooth.spline(xx, yy, all.knots = TRUE): lambda 0.000197841078495, df 8.410149
-    # The GCV curve is flat near its lowest point, so the two searches stop a little apart:
-    # values within 1e-3, lambda within 1 %.
+    # lambda and df come from R itself; the curve is SciPy's at R's lambda, which agrees with
+    # R predict(smooth.spline) to about 1e-4 (R fits in a B-spline basis)
     spline = smoothing_spline(GCV_X, GCV_Y)
-    assert spline.lam == pytest.approx(0.000197841078495, rel=0.01)
-    assert spline.df == pytest.approx(8.410149217828652, abs=0.01)
+    # this reference came from R on the data as typed in R; R's GCV search lands within 1e-5 of it
+    assert spline.lam == pytest.approx(0.000197841078495, rel=1e-5)
+    assert spline.df == pytest.approx(8.410149217828652, rel=1e-5)
     r = [0.63815878794, 0.794771395298, -0.574718025973, 0.521633177563]  # predict(g, c(0.5, 2, 5.5, 9))$y
-    assert np.allclose(spline([0.5, 2, 5.5, 9]), r, atol=1e-3)
+    assert np.allclose(spline([0.5, 2, 5.5, 9]), r, atol=1e-4)
     # growth, Applia: smooth.spline(x, y, all.knots = TRUE): lambda 0.0029062685462, df 4.0308516
     spline = smoothing_spline(YEARS, APPLIA)
-    assert spline.df == pytest.approx(4.0308516162634, abs=0.01)
+    # R's GCV search lands a few 1e-8 apart on different systems and R builds (Linux, macOS)
+    assert spline.lam == pytest.approx(0.0029062685462, rel=1e-6)
+    assert spline.df == pytest.approx(4.0308516162634, rel=1e-6)
     assert np.allclose(spline([2001, 2003, 2011]), [12.2633508089467, 13.0542882126724, 16.6317113148074],
-                       atol=1e-3)
+                       atol=1e-4)
 
 
-def test_smoothing_spline_with_ties_matches_r():
+def test_smoothing_spline_with_ties_matches_r(needs_r):
     # m <- read.csv(".../marks.csv"); 54 rows, 40 different hours (ties are averaged, and R's GCV
     # counts their spread): smooth.spline(m$hours, m$marks, all.knots = TRUE)
     # lambda 0.0808156517, df 2.7685814228; predict(f, c(2, 5, 8.5))$y
     marks = sdata.example("marks").dropna(subset=["hours", "marks"])
     spline = smoothing_spline(marks["hours"], marks["marks"])
-    assert spline.df == pytest.approx(2.7685814228, abs=0.005)
-    assert np.allclose(spline([2, 5, 8.5]), [46.8065240231, 64.3289340207, 80.4701015264], atol=1e-3)
+    assert spline.lam == pytest.approx(0.0808156517, rel=1e-6)  # differs by ~1e-8 between systems
+    assert spline.df == pytest.approx(2.7685814228, rel=1e-6)
+    assert np.allclose(spline([2, 5, 8.5]), [46.8065240231, 64.3289340207, 80.4701015264], atol=1e-4)
     # smooth.spline(..., lambda = 0.01): predict(f, c(2, 5, 8.5))$y
     fixed = smoothing_spline(marks["hours"], marks["marks"], 0.01)
     assert np.allclose(fixed([2, 5, 8.5]), [46.3672143365, 65.6487989785, 79.9461598679], atol=1e-4)
@@ -376,3 +380,10 @@ def test_fill_empty_cells_with_curves(engine, capsys):
     assert "never overshoots" in capsys.readouterr().out
     # shop b: pracma::pchip(c(1, 3, 4), c(1, 3, 4), 2) = 2
     assert frame(table)["sales"][10] == pytest.approx(2.0)
+
+
+def test_smoothing_spline_needs_5_different_x():
+    # SciPy make_smoothing_spline needs 5 different x values (R smooth.spline would take 4)
+    with pytest.raises(SimplydataError, match="at least 5 different x values; there are 4"):
+        smoothing_spline([1, 2, 3, 4], [1.0, 3.0, 2.0, 5.0], 0.01)
+    assert np.isfinite(smoothing_spline([1, 2, 3, 4, 5], [1.0, 3.0, 2.0, 5.0, 4.0], 0.01)(2.5))
