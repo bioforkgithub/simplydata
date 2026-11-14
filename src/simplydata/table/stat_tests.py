@@ -8,12 +8,19 @@ Choices (the same defaults as R, so results can be checked there):
 
 * compare_averages, 2 groups: Welch's t-test (R t.test() default). It does NOT assume that
   the groups have the same spread, so there is nothing to check about spread. Effect size:
-  Hedges' g, the difference in pooled standard deviations, with the exact small-sample
-  correction.
+  Hedges' g, the difference in pooled standard deviations (R effectsize::hedges_g).
+
+Every effect size and its two-sided 95 % interval comes from R effectsize through
+simplydata[r] (table/effect_sizes.py): hedges_g, omega_squared, rank_biserial,
+rank_epsilon_squared (bootstrap interval, set.seed(1)), cohens_d, and the intervals of
+cohens_w and cramers_v. Cramer's V (SciPy association), Cohen's w (statsmodels
+chisquare_effectsize) and Cohen's h (statsmodels proportion_effectsize = R pwr::ES.h) come
+from Python. Without R the test still runs, the R effect size is left empty, and a one-line
+note says how to add it.
 * compare_averages, 3 or more groups: Welch's one-way ANOVA (R oneway.test() default,
-  var.equal = FALSE; Welch 1951), from statsmodels anova_oneway. Effect size: omega-squared, from the
-  ordinary sums of squares; it is less biased upwards than eta-squared in small samples
-  (Okada 2013). Which pairs differ: compare_each_pair(), pairwise Welch t-tests with Holm's
+  var.equal = FALSE; Welch 1951), from statsmodels anova_oneway. Effect size: omega-squared
+  (R effectsize::omega_squared on the ordinary one-way ANOVA); it is less biased upwards than
+  eta-squared in small samples (Okada 2013). Which pairs differ: compare_each_pair(), pairwise Welch t-tests with Holm's
   correction (R pairwise.t.test(pool.sd = FALSE, p.adjust.method = "holm")); or with
   test="tukey" Tukey's honest significant difference (R TukeyHSD(aov(...)), SciPy
   tukey_hsd, the Tukey-Kramer form for unequal group sizes), with simultaneous 95 %
@@ -35,7 +42,8 @@ Choices (the same defaults as R, so results can be checked there):
 * compare_counts: chi-square test of independence, with Yates' continuity correction for
   2 x 2 tables only (R chisq.test() and SciPy default). If an expected count is below 5 a
   note says so and suggests test="fisher" (2 x 2 tables); simplydata never switches by
-  itself. Effect size: Cramer's V (from the chi-square without correction).
+  itself. Effect size: Cramer's V (SciPy association, without correction), its interval from R
+  effectsize::cramers_v.
 * compare_counts_to: chi-square goodness-of-fit test against expected shares (R
   chisq.test(x, p = ...); equal shares when none are given). Effect size: Cohen's w.
 * compare_percent_to: the exact binomial test of a percent against a chosen percent
@@ -75,6 +83,7 @@ from .._stats import _plain_name
 from .columns import (CONSTANTS, FORMULA_HELP, FUNCTION_SPELLINGS, FUNCTIONS, SPECIAL_FUNCTIONS, _formula_error,
                       _FormulaReader, _is_number, special_function)
 from .summaries import GROUPS_IN_SENTENCE as GROUPS_SHOWN
+from .effect_sizes import effect_size, interval_only, interval_text
 from .summaries import _key, _order, _p_words, _plain, _say_label
 
 BASED_ON = ("averages", "ranks")
@@ -171,13 +180,6 @@ def _skipped_note(skipped: int, names) -> None:
     print(f"Note: {skipped} {rows} with an empty cell in {where} {verb} skipped.")
 
 
-def _hedges_correction(df: float) -> float:
-    """Exact small-sample correction J for Hedges' g (Hedges 1981)."""
-    from scipy.special import gammaln
-
-    return math.exp(gammaln(df / 2) - 0.5 * math.log(df / 2) - gammaln((df - 1) / 2))
-
-
 # simplydata method name -> statsmodels multipletests method (the same numbers as R p.adjust())
 _MULTIPLETESTS = {"holm": "holm", "bonferroni": "bonferroni", "benjamini-hochberg": "fdr_bh",
                   "benjamini-yekutieli": "fdr_by"}
@@ -264,17 +266,6 @@ def _welch_anova(groups):
     return float(result.statistic), float(df1), float(df2), float(result.pvalue)
 
 
-def _omega_squared(groups) -> float:
-    """Omega-squared from the ordinary one-way sums of squares (Hays 1963)."""
-    values = np.concatenate(groups)
-    k, total_n = len(groups), len(values)
-    grand = values.mean()
-    between = sum(len(g) * (g.mean() - grand) ** 2 for g in groups)
-    within = sum(((g - g.mean()) ** 2).sum() for g in groups)
-    mean_square_within = within / (total_n - k)
-    return float((between - (k - 1) * mean_square_within) / (between + within + mean_square_within))
-
-
 def _has_ties(values) -> bool:
     return len(np.unique(values)) < len(values)
 
@@ -288,14 +279,15 @@ def _mann_whitney(a, b, alternative="two-sided"):
     result = stats.mannwhitneyu(a, b, alternative=alternative, method=method, use_continuity=True)
     u = float(result.statistic)  # U of the first group, the same as R's W
     how = "exact p-value" if exact else "normal approximation with continuity correction"
-    return u, float(result.pvalue), 2 * u / (len(a) * len(b)) - 1, how
+    return u, float(result.pvalue), how
 
 
 def _signed_rank(changes, alternative="two-sided"):
     """Wilcoxon signed-rank like R wilcox.test(): zero changes left out; exact below 50 values
     without ties, otherwise the normal approximation with continuity correction.
     Gives V (the sum of the ranks of the positive changes, as R), p, the matched-pairs
-    rank-biserial correlation, how p was found, and how many zero changes were left out."""
+    how p was found, how many zero changes were left out, and whether the changes lean up
+    (V above half of the largest possible V; the size of the lean comes from R effectsize)."""
     from scipy import stats
 
     zeros = int((changes == 0).sum())
@@ -309,7 +301,7 @@ def _signed_rank(changes, alternative="two-sided"):
     method = "exact" if exact else "approx"
     result = stats.wilcoxon(nonzero, zero_method="wilcox", correction=True, method=method, alternative=alternative)
     how = "exact p-value" if exact else "normal approximation with continuity correction"
-    return v, float(result.pvalue), 2 * v / top - 1, how, zeros
+    return v, float(result.pvalue), how, zeros, ("up" if v > top / 2 else "down" if v < top / 2 else "neither way")
 
 
 def _shape_notes(named_values, what="the values") -> list[str]:
@@ -625,9 +617,8 @@ class StatTestWords:
             result = stats.ttest_ind(a, b, equal_var=(test == "student"), alternative=alt)
             low, high = result.confidence_interval(0.95)
             t, p, df = float(result.statistic), float(result.pvalue), float(result.df)
-            n1, n2 = len(a), len(b)
-            pooled = math.sqrt(((n1 - 1) * a.var(ddof=1) + (n2 - 1) * b.var(ddof=1)) / (n1 + n2 - 2))
-            g = (a.mean() - b.mean()) / pooled * _hedges_correction(n1 + n2 - 2) if pooled > 0 else math.nan
+            es = effect_size("hedges_g", a=a, b=b)
+            g = es["value"]
             diff = means[0] - means[1]
             name = "Welch's t-test" if test == "welch" else "Student's t-test"
             why = (
@@ -636,15 +627,18 @@ class StatTestWords:
             )
             row.update({"test": name, "statistic name": "t", "statistic": t, "degrees of freedom": df,
                         "p-value": p, "effect size name": "difference in standard deviations (Hedges' g)",
-                        "effect size": float(g), "difference": diff,
+                        "effect size": float(g), "effect size 95 % CI low": es["low"],
+                        "effect size 95 % CI high": es["high"], "difference": diff,
                         "difference 95 % CI low": float(low), "difference 95 % CI high": float(high)})
             direction = "higher" if diff > 0 else "lower"
             first = (f'The average "{column}" is {_num(means[0])} in {names[0]} and {_num(means[1])} in {names[1]}: '
                      f"{names[0]} is {_num(abs(diff))} {direction} ({'' if up is None else 'one-sided '}95 % CI of "
-                     f"the difference {_interval_words(low, high)}; Hedges' g = {_num(g)}, a difference of "
-                     f"{_num(abs(g))} standard deviations). A difference this big {_chance(p)}.")
+                     f"the difference {_interval_words(low, high)}"
+                     + ("" if es["note"] else f"; Hedges' g = {_num(g)}{interval_text(es['low'], es['high'])}, a "
+                        f"difference of {_num(abs(g))} standard deviations")
+                     + f"). A difference this big {_chance(p)}.")
             second = f"Test: {name} (t = {_num(t)}, df = {_whole(df)}), {why}."
-            notes = _shape_notes([(f'group "{n}"', v) for n, v in groups])
+            notes = ([es["note"]] if es["note"] else []) + _shape_notes([(f'group "{n}"', v) for n, v in groups])
         elif test in ("welch anova", "anova"):
             if test == "welch anova":
                 f, df1, df2, p = _welch_anova(arrays)
@@ -657,47 +651,61 @@ class StatTestWords:
                 df1, df2 = k - 1.0, float(sum(len(v) for v in arrays) - k)
                 name = "one-way ANOVA"
                 why = "chosen with test=; it assumes the groups have the same spread"
-            omega = _omega_squared(arrays)
+            es = effect_size("omega_squared", y=np.concatenate(arrays),
+                             g=np.repeat(np.array(names, dtype=object), [len(v) for v in arrays]))
+            omega = es["value"]
             row.update({"test": name, "statistic name": "F", "statistic": f, "degrees of freedom 1": df1,
                         "degrees of freedom 2": df2, "p-value": p,
                         "effect size name": "share of the differences explained by the groups (omega-squared)",
-                        "effect size": omega})
+                        "effect size": omega, "effect size 95 % CI low": es["low"], "effect size 95 % CI high": es["high"]})
             averages = _list_words(f"{_num(m)} in {n}" for n, m in zip(names, means))
-            share = f"about {_percent(omega)}" if omega > 0 else "about 0 % (omega-squared below 0 is read as 0)"
-            first = (f'The average "{column}" is {averages}. Differences this big between the groups {_chance(p, plural=True)}. '
-                     f'Omega-squared = {_num(omega)}: the groups explain {share} of the differences in "{column}".')
+            first = f'The average "{column}" is {averages}. Differences this big between the groups {_chance(p, plural=True)}.'
+            if not es["note"]:
+                share = f"about {_percent(omega)}" if omega > 0 else "about 0 % (R effectsize reads a value below 0 as 0)"
+                first += (f" Omega-squared = {_num(omega)}{interval_text(es['low'], es['high'])}: the groups explain "
+                          f'{share} of the differences in "{column}".')
             second = f"Test: {name} (F = {_num(f)}, df = {_whole(df1)} and {_whole(df2)}), {why}."
             if k > 2:
                 second += f' To see which groups differ: table.compare_each_pair("{column}", for_each="{for_each}").'
-            notes = _shape_notes([(f'group "{n}"', v) for n, v in groups])
+            notes = ([es["note"]] if es["note"] else []) + _shape_notes([(f'group "{n}"', v) for n, v in groups])
         elif test == "mann-whitney":
             a, b = arrays
-            u, p, r, how = _mann_whitney(a, b, alt)
+            u, p, how = _mann_whitney(a, b, alt)
+            es = effect_size("rank_biserial", a=a, b=b)
+            r = es["value"]
             medians = [float(np.median(v)) for v in arrays]
             row.update({"test": "Mann-Whitney U test", "statistic name": "U", "statistic": u, "p-value": p,
                         "effect size name": "how far one group's values lie above the other's, -1 to 1 "
                                             "(rank-biserial correlation)",
-                        "effect size": r})
-            lean = f"the values in {names[0]} tend to be higher" if r > 0 else (
-                f"the values in {names[0]} tend to be lower" if r < 0 else "neither group tends to be higher")
+                        "effect size": r, "effect size 95 % CI low": es["low"], "effect size 95 % CI high": es["high"]})
+            half = len(a) * len(b) / 2  # U above half of its largest value: the first group tends to be higher
+            lean = f"the values in {names[0]} tend to be higher" if u > half else (
+                f"the values in {names[0]} tend to be lower" if u < half else "neither group tends to be higher")
+            size = "" if es["note"] else f" (rank-biserial correlation = {_num(r)}{interval_text(es['low'], es['high'])})"
             first = (f'The median "{column}" is {_num(medians[0])} in {names[0]} and {_num(medians[1])} in {names[1]}: '
-                     f"{lean} (rank-biserial correlation = {_num(r)}). A difference this big {_chance(p)}.")
+                     f"{lean}{size}. A difference this big {_chance(p)}.")
+            notes = [es["note"]] if es["note"] else []
             second = (f"Test: Mann-Whitney U test (U = {_whole(u)}, {how}), which compares ranks rather than "
                       "averages, so it does not need bell-shaped values.")
         else:
             result = stats.kruskal(*arrays)
             h, p = float(result.statistic), float(result.pvalue)
-            n_all = sum(len(v) for v in arrays)
-            eps = h / (n_all - 1)
+            es = effect_size("rank_epsilon_squared", y=np.concatenate(arrays),
+                             g=np.repeat(np.array(names, dtype=object), [len(v) for v in arrays]))
+            eps = es["value"]
             medians = [float(np.median(v)) for v in arrays]
             row.update({"test": "Kruskal-Wallis test", "statistic name": "H", "statistic": h,
                         "degrees of freedom": float(k - 1), "p-value": p,
                         "effect size name": "share of the rank differences explained by the groups "
                                             "(rank epsilon-squared)",
-                        "effect size": eps})
+                        "effect size": eps, "effect size 95 % CI low": es["low"], "effect size 95 % CI high": es["high"]})
             first = (f'The median "{column}" is {_list_words(f"{_num(m)} in {n}" for n, m in zip(names, medians))}. '
-                     f"Differences this big between the groups {_chance(p, plural=True)}. Epsilon-squared = {_num(eps)}: the "
-                     f"groups explain about {_percent(eps)} of the differences in the ranks.")
+                     f"Differences this big between the groups {_chance(p, plural=True)}.")
+            if not es["note"]:
+                ci = interval_text(es["low"], es["high"]).replace("95 % CI", "95 % bootstrap CI, R seed 1,")
+                first += (f" Epsilon-squared = {_num(eps)}{ci}: the groups explain "
+                          f"about {_percent(eps)} of the differences in the ranks.")
+            notes = [es["note"]] if es["note"] else []
             second = (f"Test: Kruskal-Wallis test (H = {_num(h)}, df = {k - 1}), which compares ranks rather than "
                       "averages, so it does not need bell-shaped values.")
             if k > 2:
@@ -751,7 +759,7 @@ class StatTestWords:
             return self._tukey_pairs(column, for_each, groups)
         from scipy import stats
 
-        rows = []
+        rows, pair_notes = [], set()
         for i in range(len(groups)):
             for j in range(i + 1, len(groups)):
                 (n1, a), (n2, b) = groups[i], groups[j]
@@ -769,11 +777,15 @@ class StatTestWords:
                                 "statistic name": "t", "statistic": float(result.statistic),
                                 "degrees of freedom": float(result.df), "p-value": float(result.pvalue)})
                 else:
-                    u, p, r, _ = _mann_whitney(a, b)
+                    u, p, _ = _mann_whitney(a, b)
+                    es = effect_size("rank_biserial", a=a, b=b)
+                    pair_notes.add(es["note"])
                     row.update({"test": "Mann-Whitney U test",
                                 "difference in medians": float(np.median(a) - np.median(b)),
                                 "statistic name": "U", "statistic": u, "p-value": p,
-                                "rank-biserial correlation": r})
+                                "rank-biserial correlation": es["value"],
+                                "rank-biserial correlation 95 % CI low": es["low"],
+                                "rank-biserial correlation 95 % CI high": es["high"]})
                 row.update({"count in group 1": len(a), "count in group 2": len(b)})
                 rows.append(row)
         adjusted = _holm([r["p-value"] for r in rows])
@@ -792,6 +804,8 @@ class StatTestWords:
             words = _p_words(row["p-value (Holm)"]).replace("(p ", "(Holm-adjusted p ")
             print(f"  {row['group 1']} vs {row['group 2']}: the {word} of {row['group 1']} is {_num(abs(diff))} "
                   f"{direction}; {words}.")
+        for note in sorted(pair_notes - {""}):
+            print(note.replace("rank-biserial correlation and its", "the rank-biserial correlation of each pair and its"))
         frame = nw.from_dict({key: [r[key] for r in rows] for key in rows[0]}, backend=self._frame.implementation)
         return self._new_table(frame)
 
@@ -949,14 +963,19 @@ class StatTestWords:
             result = stats.ttest_1samp(values, against, alternative=alternative)
             low, high = result.confidence_interval(0.95)
             t, p, df = float(result.statistic), float(result.pvalue), float(result.df)
-            d = (values.mean() - against) / values.std(ddof=1)
-            return row, dict(t=t, p=p, df=df, low=float(low), high=float(high), d=float(d),
-                             notes=_shape_notes([(notes_label, values)], what=f"the {label}s"))
+            es = effect_size("cohens_d_one", x=values, mu=float(against))
+            return row, dict(t=t, p=p, df=df, low=float(low), high=float(high), d=es["value"], d_low=es["low"],
+                             d_high=es["high"], d_text=interval_text(es["low"], es["high"]), have_d=not es["note"],
+                             notes=([es["note"]] if es["note"] else [])
+                             + _shape_notes([(notes_label, values)], what=f"the {label}s"))
         found = _signed_rank(values - against, alternative)
         if found is None:
             raise SimplydataError(f"Every {label} is exactly {_num(against)}, so there is nothing to test.")
-        v, p, r, how, zeros = found
-        return row, dict(v=v, p=p, r=r, how=how, zeros=zeros, notes=[])
+        v, p, how, zeros, lean = found
+        es = effect_size("rank_biserial_one", x=values, mu=float(against))
+        return row, dict(v=v, p=p, r=es["value"], r_low=es["low"], r_high=es["high"],
+                         r_text=interval_text(es["low"], es["high"]), have_r=not es["note"], lean=lean, how=how,
+                         zeros=zeros, notes=[es["note"]] if es["note"] else [])
 
     @friendly
     def compare_before_after(self, before=None, after=None, based_on="averages", sides=2, higher=None,
@@ -993,12 +1012,14 @@ class StatTestWords:
             row.update({"test": "paired t-test", "statistic name": "t", "statistic": r["t"],
                         "degrees of freedom": r["df"], "p-value": r["p"],
                         "effect size name": "average change in standard deviations of the changes (Cohen's d_z)",
-                        "effect size": r["d"], "average change": mean_change,
+                        "effect size": r["d"], "effect size 95 % CI low": r["d_low"],
+                        "effect size 95 % CI high": r["d_high"], "average change": mean_change,
                         "average change 95 % CI low": r["low"], "average change 95 % CI high": r["high"]})
             first = (f'On average "{after}" is {_num(abs(mean_change))} {direction} than "{before}" '
                      f"({'' if up is None else 'one-sided '}95 % CI of the average change "
-                     f"{_interval_words(r['low'], r['high'])}; Cohen's d_z = {_num(r['d'])}). "
-                     f"A change this big {_chance(r['p'])}.")
+                     f"{_interval_words(r['low'], r['high'])}"
+                     + (f"; Cohen's d_z = {_num(r['d'])}{r['d_text']}" if r["have_d"] else "")
+                     + f"). A change this big {_chance(r['p'])}.")
             second = (f"Test: paired t-test (t = {_num(r['t'])}, df = {_whole(r['df'])}), the usual test when each row "
                       "is measured twice; it looks at the change in each row.")
         else:
@@ -1007,10 +1028,11 @@ class StatTestWords:
                         "p-value": r["p"],
                         "effect size name": "how far the changes lean up rather than down, -1 to 1 "
                                             "(matched-pairs rank-biserial correlation)",
-                        "effect size": r["r"], "median change": median_change})
-            lean = "up" if r["r"] > 0 else "down" if r["r"] < 0 else "neither way"
+                        "effect size": r["r"], "effect size 95 % CI low": r["r_low"],
+                        "effect size 95 % CI high": r["r_high"], "median change": median_change})
+            size = f" (rank-biserial correlation = {_num(r['r'])}{r['r_text']})" if r["have_r"] else ""
             first = (f'The median change from "{before}" to "{after}" is {_num(median_change)}; the changes lean '
-                     f"{lean} (rank-biserial correlation = {_num(r['r'])}). A change this big {_chance(r['p'])}.")
+                     f"{r['lean']}{size}. A change this big {_chance(r['p'])}.")
             second = (f"Test: Wilcoxon signed-rank test (V = {_whole(r['v'])}, {r['how']}), which uses the ranks of "
                       "the changes, so it does not need bell-shaped values.")
             if r["zeros"]:
@@ -1062,12 +1084,14 @@ class StatTestWords:
             row.update({"test": "one-sample t-test", "statistic name": "t", "statistic": r["t"],
                         "degrees of freedom": r["df"], "p-value": r["p"],
                         "effect size name": "difference in standard deviations (Cohen's d)",
-                        "effect size": r["d"], "average": mean,
+                        "effect size": r["d"], "effect size 95 % CI low": r["d_low"],
+                        "effect size 95 % CI high": r["d_high"], "average": mean,
                         "average 95 % CI low": r["low"], "average 95 % CI high": r["high"]})
             first = (f'The average "{column}" is {_num(mean)}, which is {_num(abs(diff))} {direction} than '
                      f"{shown} ({'' if up is None else 'one-sided '}95 % CI of the average "
-                     f"{_interval_words(r['low'], r['high'])}; Cohen's d = {_num(r['d'])}). "
-                     f"A difference this big {_chance(r['p'])}.")
+                     f"{_interval_words(r['low'], r['high'])}"
+                     + (f"; Cohen's d = {_num(r['d'])}{r['d_text']}" if r["have_d"] else "")
+                     + f"). A difference this big {_chance(r['p'])}.")
             second = (f"Test: one-sample t-test (t = {_num(r['t'])}, df = {_whole(r['df'])}), the usual test for "
                       "one average against a fixed number.")
         else:
@@ -1076,9 +1100,11 @@ class StatTestWords:
                         "p-value": r["p"],
                         "effect size name": "how far the values lean above rather than below the number, -1 to 1 "
                                             "(rank-biserial correlation)",
-                        "effect size": r["r"], "median": median, "average": mean})
-            first = (f'The median "{column}" is {_num(median)}, against {shown} (rank-biserial correlation = '
-                     f"{_num(r['r'])}). A difference this big {_chance(r['p'])}.")
+                        "effect size": r["r"], "effect size 95 % CI low": r["r_low"],
+                        "effect size 95 % CI high": r["r_high"], "median": median, "average": mean})
+            size = f" (rank-biserial correlation = {_num(r['r'])}{r['r_text']})" if r["have_r"] else ""
+            first = (f'The median "{column}" is {_num(median)}, against {shown}{size}. '
+                     f"A difference this big {_chance(r['p'])}.")
             second = (f"Test: Wilcoxon signed-rank test (V = {_whole(r['v'])}, {r['how']}), which uses ranks, so it "
                       "does not need bell-shaped values.")
             if r["zeros"]:
@@ -1142,6 +1168,7 @@ class StatTestWords:
         expected = chi.expected_freq
         n = int(observed.sum())
         v = float(stats.contingency.association(observed, method="cramer", correction=False))
+        v_ci = interval_only("cramers_v", x=observed.astype(float))
         two_by_two = observed.shape == (2, 2)
         what = f'how often each "{column}" turns up in each "{for_each}"'
         row = {"test": None, "what it compares": what}
@@ -1166,11 +1193,16 @@ class StatTestWords:
             yates = " with Yates' continuity correction (as R chisq.test() does for 2 x 2 tables)" if two_by_two else ""
             second = f"Test: {name}{yates} (chi-square = {_num(stat)}, df = {df}), the usual test for counts."
         row.update({"effect size name": "strength of the link, 0 (none) to 1 (complete) (Cramer's V)",
-                    "effect size": v, "rows": n, "smallest expected count": float(expected.min())})
+                    "effect size": v, "effect size 95 % CI low": v_ci["low"], "effect size 95 % CI high": v_ci["high"],
+                    "rows": n, "smallest expected count": float(expected.min())})
         first = (f'Comparing {what} ({size} table, {n} rows): the differences {_chance(p, plural=True)}. '
-                 f"Cramer's V = {_num(v)} (0 means no link, 1 a complete link).")
+                 f"Cramer's V = {_num(v)} ("
+                 + (interval_text(v_ci["low"], v_ci["high"])[2:-1] + "; " if not v_ci["note"] else "")
+                 + "0 means no link, 1 a complete link).")
         print(first)
         print(second)
+        if v_ci["note"]:
+            print(v_ci["note"])
         low = int((expected < 5).sum())
         if low and test != "fisher":
             counts = "count is" if low == 1 else "counts are"
@@ -1231,11 +1263,15 @@ class StatTestWords:
         chi = stats.chisquare(np.asarray(observed, dtype=float), expected_counts)
         stat, p = float(chi.statistic), float(chi.pvalue)
         df = len(labels) - 1
-        w = math.sqrt(stat / n)
+        from statsmodels.stats.gof import chisquare_effectsize
+
+        w = float(chisquare_effectsize(np.asarray(shares, dtype=float), np.asarray(observed, dtype=float) / n))
+        w_ci = interval_only("cohens_w", x=np.asarray(observed, dtype=float), p=np.asarray(shares, dtype=float))
         what = f'how often each "{column}" turns up, against {how}'
         row = {"test": "chi-square goodness-of-fit test", "what it compares": what, "statistic name": "chi-square",
                "statistic": stat, "degrees of freedom": float(df), "p-value": p,
                "effect size name": "distance of the counts from the expected shares (Cohen's w)", "effect size": w,
+               "effect size 95 % CI low": w_ci["low"], "effect size 95 % CI high": w_ci["high"],
                "rows": n, "smallest expected count": float(expected_counts.min())}
         for label, o, e in zip(labels, observed, expected_counts):
             row[f"count of {_say_label(label)}"] = int(o)
@@ -1245,10 +1281,12 @@ class StatTestWords:
         if len(items) > GROUPS_SHOWN:
             shown += f" ... and {len(items) - GROUPS_SHOWN} more (the new table has them all)"
         print(f'Counts of "{column}" ({n} rows): {shown}. Differences this big from the expected counts '
-              f"{_chance(p, plural=True)}. Cohen's w = {_num(w)}.")
+              f"{_chance(p, plural=True)}. Cohen's w = {_num(w)}{interval_text(w_ci['low'], w_ci['high'])}.")
         r_call = "chisq.test(table(x))" if expected is None else "chisq.test(x, p = ...)"
         print(f"Test: chi-square goodness-of-fit test (chi-square = {_num(stat)}, df = {df}), as R {r_call}; "
               "the usual test of counts against expected shares.")
+        if w_ci["note"]:
+            print(w_ci["note"])
         low = int((expected_counts < 5).sum())
         if low:
             counts_word = "count is" if low == 1 else "counts are"
@@ -1349,7 +1387,9 @@ class StatTestWords:
         p = float(result.pvalue)
         low, high = result.proportion_ci(confidence_level=0.95, method="exact")
         share = hits / n
-        h = 2 * math.asin(math.sqrt(share)) - 2 * math.asin(math.sqrt(percent / 100.0))
+        from statsmodels.stats.proportion import proportion_effectsize
+
+        h = float(proportion_effectsize(share, percent / 100.0))  # Cohen's h, as R pwr::ES.h
         label = _say_label(value)
         what = f'the percent of rows where "{column}" is "{label}", against {percent:g} %'
         row = {"test": "exact binomial test", "what it compares": what,

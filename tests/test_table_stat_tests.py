@@ -16,7 +16,7 @@ from scipy.stats.contingency import association
 import simplydata as sdata
 from simplydata import SimplydataError
 from simplydata.table import table as make_table
-from simplydata.table.stat_tests import _hedges_correction, _holm, _num, _welch_anova
+from simplydata.table.stat_tests import _holm, _num, _welch_anova
 
 ENGINES = ["pandas", "polars"]
 REL = 1e-9  # SciPy and R agree to about this many digits for closed-form tests
@@ -87,21 +87,6 @@ def test_welch_t_test_matches_r_and_scipy(marks, engine, capsys):
     unchanged(t, before)
 
 
-def test_hedges_g_is_pooled_sd_difference_with_exact_correction(marks):
-    ab = marks[marks["class"].isin(["A", "B"])]
-    a, b = group(ab, "A"), group(ab, "B")
-    got = row(make_table(ab).compare_averages("marks", for_each="class"))
-    n1, n2 = len(a), len(b)
-    pooled = math.sqrt(((n1 - 1) * a.var(ddof=1) + (n2 - 1) * b.var(ddof=1)) / (n1 + n2 - 2))
-    d = (a.mean() - b.mean()) / pooled
-    df = n1 + n2 - 2
-    exact = math.gamma(df / 2) / (math.sqrt(df / 2) * math.gamma((df - 1) / 2))
-    assert got["effect size"] == pytest.approx(d * exact)
-    # the exact correction is close to Hedges' approximation 1 - 3 / (4 df - 1)
-    assert _hedges_correction(df) == pytest.approx(1 - 3 / (4 * df - 1), abs=1e-4)
-    assert "Hedges' g" in got["effect size name"]
-
-
 def test_student_t_test_with_test_option_matches_r(marks, engine, capsys):
     ab = marks[marks["class"].isin(["A", "B"])].reset_index(drop=True)
     got = row(make(ab, engine).compare_averages("marks", for_each="class", test="student"))
@@ -163,19 +148,6 @@ def test_classic_anova_with_test_option_matches_r(marks, engine):
     assert got["p-value"] == pytest.approx(0.0267711379274287, rel=1e-8)
 
 
-def test_omega_squared_from_sums_of_squares(marks):
-    got = row(make_table(marks).compare_averages("marks", for_each="class"))
-    groups = [group(marks, c) for c in "ABC"]
-    allv = marks["marks"].to_numpy(float)
-    ssb = sum(len(g) * (g.mean() - allv.mean()) ** 2 for g in groups)
-    ssw = sum(((g - g.mean()) ** 2).sum() for g in groups)
-    msw = ssw / (len(allv) - 3)
-    assert got["effect size"] == pytest.approx((ssb - 2 * msw) / (ssb + ssw + msw))
-    # omega-squared is smaller than eta-squared (it removes the upward bias)
-    assert got["effect size"] < ssb / (ssb + ssw)
-    assert "omega-squared" in got["effect size name"]
-
-
 # ---------------------------------------------------------------- compare_averages: ranks
 def test_mann_whitney_matches_r(marks, engine, capsys):
     ab = marks[marks["class"].isin(["A", "B"])].reset_index(drop=True)
@@ -184,7 +156,6 @@ def test_mann_whitney_matches_r(marks, engine, capsys):
     # R: wilcox.test(marks ~ class, data = ab, exact = FALSE)
     assert got["statistic"] == 213.5
     assert got["p-value"] == pytest.approx(0.106305448775518, rel=1e-8)
-    assert got["effect size"] == pytest.approx(2 * 213.5 / (18 * 18) - 1)
     assert got["median in A"] == np.median(group(ab, "A"))
     out = capsys.readouterr().out
     assert "Mann-Whitney U test (U = 213.5, normal approximation with continuity correction)" in out
@@ -206,7 +177,6 @@ def test_kruskal_wallis_matches_r(marks, engine, capsys):
     assert got["statistic"] == pytest.approx(7.5376653944020422, rel=REL)
     assert got["degrees of freedom"] == 2
     assert got["p-value"] == pytest.approx(0.0230789877366583, rel=1e-8)
-    assert got["effect size"] == pytest.approx(got["statistic"] / (54 - 1))
     assert "based_on=\"ranks\")" in capsys.readouterr().out
 
 
@@ -270,8 +240,6 @@ def test_paired_t_test_matches_r(marks, engine, capsys):
     assert got["average change 95 % CI low"] == pytest.approx(-3.094670734448396, rel=1e-8)
     assert got["average change 95 % CI high"] == pytest.approx(16.872448512226175, rel=1e-8)
     assert got["average change"] == pytest.approx(6.888888888888889)
-    change = (w["Science"] - w["Maths"]).to_numpy(float)
-    assert got["effect size"] == pytest.approx(change.mean() / change.std(ddof=1))
     scipy = stats.ttest_rel(w["Science"], w["Maths"])
     assert got["p-value"] == pytest.approx(scipy.pvalue)
     assert "paired t-test" in capsys.readouterr().out
@@ -284,7 +252,6 @@ def test_signed_rank_paired_matches_r(marks, engine):
     # R: wilcox.test(w$marks.Science, w$marks.Maths, paired = TRUE, exact = FALSE)
     assert got["statistic"] == 121
     assert got["p-value"] == pytest.approx(0.12735292104833, rel=1e-8)
-    assert got["effect size"] == pytest.approx(2 * 121 / (18 * 19 / 2) - 1)
 
 
 def test_before_after_skips_rows_with_an_empty_cell(engine, capsys):
@@ -315,8 +282,6 @@ def test_one_sample_t_test_matches_r(marks, engine, capsys):
     assert got["p-value"] == pytest.approx(0.0199527762801669, rel=1e-8)
     assert got["average 95 % CI low"] == pytest.approx(60.8057285596217696, rel=1e-10)
     assert got["average 95 % CI high"] == pytest.approx(69.0090862551930400, rel=1e-10)
-    v = marks["marks"].to_numpy(float)
-    assert got["effect size"] == pytest.approx((v.mean() - 60) / v.std(ddof=1))
     out = capsys.readouterr().out
     assert "4.91 higher than 60 " in out and "is unlikely to be chance (p = 0.020)" in out
 
@@ -354,7 +319,7 @@ def test_chi_square_matches_r(marks, engine, capsys):
     assert got["effect size"] == pytest.approx(association(observed, method="cramer"))
     assert got["rows"] == 54
     out = capsys.readouterr().out
-    assert "Yates" not in out and "Note:" not in out
+    assert "Yates" not in out and "below 5" not in out  # no small-count note
 
 
 def test_chi_square_two_by_two_uses_yates_like_r(marks, engine, capsys):

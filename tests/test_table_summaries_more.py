@@ -97,7 +97,7 @@ def test_between_still_works_with_one_note(engine, marks, capsys, word):
     out = capsys.readouterr().out.splitlines()
     assert out[0] == 'Note: "between=" is now called "for_each=". The old name will stop working in a later version.'
     new = getattr(t, word)("marks", for_each="test")._frame.to_pandas()
-    assert "Note" not in capsys.readouterr().out
+    assert "is now called" not in capsys.readouterr().out
     pd.testing.assert_frame_equal(old, new)
     getattr(t, word)("marks", between="test")
     assert "is now called" not in capsys.readouterr().out  # once per session
