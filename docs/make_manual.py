@@ -138,29 +138,31 @@ UNDERNEATH = {
     "table.split_column": "pandas (str.split) or Polars (str.splitn), whichever holds the table",
     "table.add_rolling_column": "narwhals (rolling_mean, rolling_sum, rolling_std with over(order_by=)); "
                                 "pandas or Polars rolling for median, smallest and biggest",
-    "table.summary_of": "narwhals (group summaries); SciPy (the t distribution) for the confidence interval",
+    "table.summary_of": "narwhals (group summaries); SciPy (stats: gmean, variation, median_abs_deviation, "
+                        "trim_mean, mode, skew, kurtosis, and the t distribution for the confidence interval)",
     "table.percent_of": "narwhals; SciPy (stats.binomtest, the Clopper-Pearson exact interval)",
     "table.compare_spreads": "SciPy (stats.levene with center=\"median\", stats.bartlett, stats.fligner)",
     "table.compare_counts_to": "SciPy (stats.chisquare)",
     "table.compare_percent_to": "SciPy (stats.binomtest, the Clopper-Pearson exact interval)",
     "table.percentile_of": "narwhals (quantile with linear interpolation, as R quantile type 7)",
     "table.most_common_of": "narwhals (value counts per group)",
-    "table.add_adjusted_p_value_column": "NumPy (Holm, Bonferroni, Benjamini-Hochberg and Benjamini-Yekutieli, "
-                                         "written out as in R p.adjust())",
+    "table.add_adjusted_p_value_column": "statsmodels (stats.multitest.multipletests: Holm, Bonferroni, "
+                                         "Benjamini-Hochberg and Benjamini-Yekutieli, as R p.adjust())",
     "table.add_rows_from": "pandas (concat) or Polars (concat), whichever holds the table",
     "table.correlation_between": "SciPy (stats.pearsonr or stats.spearmanr)",
-    "table.compare_averages": "SciPy (stats.ttest_ind with equal_var=False; Welch's ANOVA written out with "
-                              "the F distribution; mannwhitneyu, kruskal)",
-    "table.compare_each_pair": "SciPy (stats.ttest_ind or mannwhitneyu), with Holm's correction",
+    "table.compare_averages": "SciPy (stats.ttest_ind with equal_var=False; mannwhitneyu, kruskal) and "
+                              "statsmodels (stats.oneway.anova_oneway for Welch's ANOVA)",
+    "table.compare_each_pair": "SciPy (stats.ttest_ind or mannwhitneyu, tukey_hsd), with Holm's correction from "
+                               "statsmodels (multipletests)",
     "table.compare_before_after": "SciPy (stats.ttest_rel or stats.wilcoxon)",
     "table.compare_average_to": "SciPy (stats.ttest_1samp or stats.wilcoxon)",
-    "table.compare_counts": "SciPy (stats.chi2_contingency, or fisher_exact with test=\"fisher\")",
-    "table.compare_shape_to": "SciPy (stats.shapiro for normal; for other shapes the method of "
-                              "stats.goodness_of_fit, Anderson-Darling with a Monte Carlo p-value, with the "
-                              "simulated samples refitted all at once in NumPy)",
+    "table.compare_counts": "SciPy (stats.chi2_contingency, or fisher_exact with test=\"fisher\"; "
+                            "contingency.association for Cramer's V)",
+    "table.compare_shape_to": "SciPy (stats.shapiro for normal; for other shapes stats.goodness_of_fit, "
+                              "Anderson-Darling with a Monte Carlo p-value)",
     # fitting
     "table.fit_line": "SciPy (stats.linregress)",
-    "table.fit_curve": "NumPy (least squares by QR on the powers of x)",
+    "table.fit_curve": "statsmodels (WLS by QR on the powers of x, as R lm(y ~ poly(x, raw = TRUE)))",
     "table.fit_formula": "SciPy (optimize.curve_fit; optimize.differential_evolution for search=\"whole range\")",
     "fit_formula": "SciPy (optimize.curve_fit, as table.fit_formula), drawn with matplotlib",
     "fit_distribution": "SciPy (scipy.stats, maximum likelihood as table.fit_distribution), drawn with matplotlib",
@@ -172,33 +174,34 @@ UNDERNEATH = {
     "sdata.solve": "SciPy (optimize.brentq, root_scalar, root) and NumPy (polynomial roots, linalg.solve)",
     # values between points
     "table.values_at": "NumPy (interp) and SciPy (interpolate: CubicSpline, PchipInterpolator, Akima1DInterpolator, "
-                       "make_smoothing_spline, griddata, RegularGridInterpolator, RBFInterpolator)",
+                       "make_smoothing_spline, griddata, RegularGridInterpolator, RBFInterpolator); "
+                       "smoothness=\"auto\" lets R smooth.spline choose the smoothness (needs R)",
     "table.map_of": "SciPy (interpolate: RegularGridInterpolator, griddata, RBFInterpolator)",
     # distributions
     "sdata.distribution": "SciPy (scipy.stats frozen distributions)",
-    "table.fit_distribution": "SciPy (scipy.stats and optimize, maximum likelihood; closed forms where they exist)",
+    "table.fit_distribution": "SciPy (scipy.stats .fit and optimize, maximum likelihood; closed forms where they "
+                              "exist) and statsmodels (numdiff.approx_hess3, for the standard errors)",
     "table.compare_distributions": "SciPy (scipy.stats, maximum likelihood; Anderson-Darling, Kolmogorov-Smirnov and "
                                    "Cramer-von Mises statistics)",
     "nums.fit_distribution": "SciPy (scipy.stats and optimize, as table.fit_distribution)",
     # models
-    "table.explain": "NumPy (least squares, and iteratively reweighted least squares as R glm); "
-                     "statsmodels for grouped_by= (MixedLM) and multiple imputation (MICEData)",
-    "table.add_predicted_column": "NumPy (the same model as table.explain); statsmodels for grouped_by=",
+    "table.explain": "statsmodels (OLS; GLM for yes/no and counts, as R glm; MixedLM for grouped_by=; MICEData "
+                     "to fill in empty cells) and R mice::pool for pooling multiple imputation (needs R)",
+    "table.add_predicted_column": "statsmodels (the same model as table.explain)",
     # patterns across columns
-    "table.add_principal_components": "NumPy (linalg.svd)",
-    "table.principal_components_of": "NumPy (linalg.svd)",
-    "table.add_clusters": "NumPy (k-means: Lloyd and Hartigan steps) or SciPy (cluster.hierarchy, for "
+    "table.add_principal_components": "statsmodels (multivariate.pca.PCA, by singular value decomposition)",
+    "table.principal_components_of": "statsmodels (multivariate.pca.PCA, by singular value decomposition)",
+    "table.add_clusters": "R stats::kmeans (k-means; needs R) or SciPy (cluster.hierarchy, for "
                           "method=\"hierarchical\")",
-    "table.distances_between_rows": "SciPy (spatial.distance.pdist) and NumPy",
-    "table.add_nmds": "NumPy (SMACOF with monotone regression; SciPy optimize.isotonic_regression when "
-                      "available) and SciPy (spatial.distance.pdist)",
-    "table.compare_profiles": "NumPy (PERMANOVA and the spread check, with permutations) and SciPy "
-                              "(spatial.distance.pdist)",
+    "table.distances_between_rows": "SciPy (spatial.distance.pdist)",
+    "table.add_nmds": "R vegan::metaMDS on vegan::vegdist distances (needs R)",
+    "table.compare_profiles": "R vegan::adonis2, betadisper and permutest (needs R)",
     # survival
-    "table.survival_over_time": "NumPy (Kaplan-Meier) and SciPy (stats, for the intervals)",
-    "table.compare_survival": "NumPy (log-rank sums) and SciPy (stats.chi2)",
-    "table.explain_survival": "NumPy (Cox model: Newton-Raphson with Efron ties) and SciPy (stats)",
-    "survival_curves": "NumPy (Kaplan-Meier), drawn with matplotlib",
+    "table.survival_over_time": "statsmodels (duration.SurvfuncRight, Kaplan-Meier with Greenwood errors)",
+    "table.compare_survival": "statsmodels (duration.survdiff, the log-rank test)",
+    "table.explain_survival": "statsmodels (duration.PHReg, the Cox model with Efron ties) and R "
+                              "survival::cox.zph for the proportional-hazards check (needs R)",
+    "survival_curves": "statsmodels (Kaplan-Meier, as table.survival_over_time), drawn with matplotlib",
     # planning a study
     "sdata.how_many_needed": "SciPy (stats.nct, ncf, ncx2 and norm, and optimize.brentq)",
     "sdata.chance_to_find": "SciPy (stats.nct, ncf, ncx2 and norm)",

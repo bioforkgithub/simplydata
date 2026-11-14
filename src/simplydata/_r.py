@@ -142,8 +142,12 @@ def r_ready(packages=()) -> bool:
             key = f"has:{package}"
             if not _STATE.get(key):
                 # isTRUE(): requireNamespace() answers invisibly, and rpy2 gives None for an invisible answer
-                _STATE[key] = bool(ro.r(f'isTRUE(suppressMessages(suppressWarnings(requireNamespace("{package}", '
-                                        "quietly = TRUE))))")[0])
+                # inside R's own output capture too: loading can print notes such as
+                # "Registered S3 method overwritten" (the same fix as on the v0.6 branch)
+                _STATE[key] = bool(ro.r(
+                    f'local({{ ok <- FALSE; invisible(utils::capture.output(utils::capture.output('
+                    f'ok <- isTRUE(suppressMessages(suppressWarnings(requireNamespace("{package}", quietly = TRUE)))), '
+                    f'type = "message"), type = "output")); ok }})')[0])
             if not _STATE[key]:
                 return False
         return True
@@ -251,7 +255,8 @@ def r_call(code: str, packages=(), what="This", python_note=None, source=None, *
             result = ro.r["eval"](ro.r["parse"](text=(
                 "local({ out <- NULL; warns <- character(0); "
                 "utils::capture.output(out <- withCallingHandlers({ "
-                "for (p in simplydata_packages) suppressPackageStartupMessages(library(p, character.only = TRUE)); "
+                "for (p in simplydata_packages) invisible(utils::capture.output(utils::capture.output("
+                "suppressPackageStartupMessages(library(p, character.only = TRUE)), type = 'message'))); "
                 "eval(parse(text = simplydata_code)) }, "
                 "warning = function(w) { warns <<- c(warns, conditionMessage(w)); invokeRestart('muffleWarning') }, "
                 "message = function(m) invokeRestart('muffleMessage'))); "

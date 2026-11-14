@@ -645,7 +645,12 @@ def test_shape_test_gives_the_p_value_of_scipy_goodness_of_fit(name):
     assert 0.01 < ours["p-value"]
 
 
-def test_samples_option_of_compare_shape_to(capsys):
+def test_samples_option_of_compare_shape_to(capsys, monkeypatch):
+    from simplydata import distributions as d
+
+    # a quick run gets no note; the time estimate is fixed here so a busy computer cannot change that
+    # (test_a_long_run_gets_a_note_before_it_starts checks the note itself)
+    monkeypatch.setattr(d._ShapeRun, "pilot", lambda self: 1.0)
     t = make(sdata.example("trial"), "pandas")
     result = row(t.compare_shape_to("days", "weibull", samples=999))
     out = capsys.readouterr().out

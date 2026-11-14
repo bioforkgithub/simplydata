@@ -149,8 +149,9 @@ def test_smoothing_spline_gcv_matches_r(needs_r):
     assert np.allclose(spline([0.5, 2, 5.5, 9]), r, atol=1e-4)
     # growth, Applia: smooth.spline(x, y, all.knots = TRUE): lambda 0.0029062685462, df 4.0308516
     spline = smoothing_spline(YEARS, APPLIA)
-    assert spline.lam == pytest.approx(0.0029062685462, rel=1e-9)
-    assert spline.df == pytest.approx(4.0308516162634, rel=1e-9)
+    # R's GCV search lands a few 1e-8 apart on different systems and R builds (Linux, macOS)
+    assert spline.lam == pytest.approx(0.0029062685462, rel=1e-6)
+    assert spline.df == pytest.approx(4.0308516162634, rel=1e-6)
     assert np.allclose(spline([2001, 2003, 2011]), [12.2633508089467, 13.0542882126724, 16.6317113148074],
                        atol=1e-4)
 
@@ -161,8 +162,8 @@ def test_smoothing_spline_with_ties_matches_r(needs_r):
     # lambda 0.0808156517, df 2.7685814228; predict(f, c(2, 5, 8.5))$y
     marks = sdata.example("marks").dropna(subset=["hours", "marks"])
     spline = smoothing_spline(marks["hours"], marks["marks"])
-    assert spline.lam == pytest.approx(0.0808156517, rel=1e-9)
-    assert spline.df == pytest.approx(2.7685814228, rel=1e-9)
+    assert spline.lam == pytest.approx(0.0808156517, rel=1e-6)  # differs by ~1e-8 between systems
+    assert spline.df == pytest.approx(2.7685814228, rel=1e-6)
     assert np.allclose(spline([2, 5, 8.5]), [46.8065240231, 64.3289340207, 80.4701015264], atol=1e-4)
     # smooth.spline(..., lambda = 0.01): predict(f, c(2, 5, 8.5))$y
     fixed = smoothing_spline(marks["hours"], marks["marks"], 0.01)
