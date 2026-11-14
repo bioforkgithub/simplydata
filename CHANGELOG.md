@@ -21,6 +21,28 @@ estimates (R uses the step before), so they agree with R to about 1e-5.
 - `compare_shape_to` calls SciPy `goodness_of_fit` again; most shapes take a few seconds
   with `samples=9999`, Weibull and t longer (a note says so before a long run).
 
+### R itself, for what only R gives: `simplydata[r]`
+
+Where no Python package gives R's answers, simplydata now runs R's own code through rpy2.
+Install once: `pip install "simplydata[r]"`, R from https://cran.r-project.org, and in R
+`install.packages(c("vegan", "survival", "mice"))`. Without R these words print what to install
+(and name the Python alternative, with its different numbers); there is no fallback of our own.
+
+- `add_clusters()` with k-means: R `kmeans(nstart = 25)` after `set.seed(seed)`.
+- `add_nmds()`: R `vegan::metaMDS()`, at least `tries=` starts and up to 100 until the best
+  map repeats.
+- `compare_profiles()`: R `vegan::adonis2()`, `betadisper()` and `permutest()`; the p-values
+  are now exactly R's for the same seed.
+- `explain_survival()`: the proportional-hazards check is R `survival::cox.zph()`; without R
+  the model is still fitted and a note says how to add the check.
+- Smoothing splines with `smoothness="auto"`: R `smooth.spline()` chooses the smoothness (a
+  number for `smoothness=` needs no R).
+- `explain(..., empty_cells="multiple imputation")`: the results are pooled by R
+  `mice::pool()` (Barnard-Rubin degrees of freedom).
+- R's warnings are passed on as plain notes, such as
+  `Note from R (vegan): some squared distances are negative and changed to zero.`
+- Lessons 16, 17 and 18 (and day 17 of the 30-day guide) have a "Needs R" box.
+
 ### Fitting
 
 - `table.fit_line(x=, y=)` is the main name of the straight-line fit, the same word as
