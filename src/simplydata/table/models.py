@@ -37,8 +37,9 @@ Choices (the same defaults as R, so results can be checked there):
   (R confint(method = "Wald")); R lmerTest gives Satterthwaite
   t-tests instead, which give slightly larger p-values when there are few groups. Group
   columns with 3 or more groups get a Wald chi-square test. The share of the differences
-  that lies between the groups is the intraclass correlation (ICC). Mixed models for yes/no
-  or counts are not available yet.
+  that lies between the groups is the intraclass correlation (ICC). With outcome="yes or no"
+  or "counts", grouped_by= fits a generalised linear mixed model with R lme4::glmer() itself
+  (Laplace approximation; simplydata[r] and R), odds or rate ratios with Wald intervals.
 * empty_cells="multiple imputation": empty cells in number columns are filled in 20 times by
   chained equations with predictive mean matching (statsmodels MICEData, 5 donors as R
   mice()), the model is fitted to each filled-in table, and the results are pooled with
@@ -198,6 +199,30 @@ def _glm(X, y, kind, scale=None):
             return sm.GLM(y, X, family=family).fit(method="IRLS", tol=1e-10, maxiter=50, scale=scale)
 
 
+def _glmer(X, y, groups, family):
+    """A generalised linear mixed model with a random intercept per group: R lme4::glmer() itself
+    (Laplace approximation, R's defaults), on the same model matrix as explain() builds."""
+    from .._r import r_call
+
+    out = r_call(
+        f"m <- lme4::glmer(y ~ 0 + X + (1 | g), family = {family}); "
+        "list(beta = unname(lme4::fixef(m)), cov = unname(as.matrix(stats::vcov(m))), "
+        "between = as.numeric(lme4::VarCorr(m)$g[1]), loglik = as.numeric(stats::logLik(m)), "
+        "aic = stats::AIC(m), fitted = unname(stats::fitted(m)), singular = lme4::isSingular(m), "
+        "trouble = length(m@optinfo$conv$lme4$messages) > 0)",
+        packages=("lme4",), what="A mixed model for yes/no or counts (R lme4::glmer())",
+        python_note="statsmodels has only Bayesian approximations for these (BinomialBayesMixedGLM), which give "
+                    "other numbers",
+        y=np.asarray(y, dtype=float), X=np.asarray(X, dtype=float), g=np.asarray(groups, dtype=object))
+    k = X.shape[1]
+    return {"beta": np.asarray(out["beta"], dtype=float),
+            "cov": np.asarray(out["cov"], dtype=float).reshape(k, k),
+            "fitted": np.asarray(out["fitted"], dtype=float), "between": float(out["between"][0]),
+            "loglik": float(out["loglik"][0]), "aic": float(out["aic"][0]), "family": family,
+            "singular": bool(out["singular"][0]), "trouble": bool(out["trouble"][0]),
+            "converged": not bool(out["trouble"][0])}
+
+
 # ---------------------------------------------------------------------------- the words
 class ModelWords:
     # ------------------------------------------------------------------ gathering the data
@@ -217,10 +242,11 @@ class ModelWords:
             if grouped_by == column or grouped_by in variables:
                 raise SimplydataError(f'"{grouped_by}" cannot be the grouped_by= column and also be explained or '
                                       "be in using=.")
-            if outcome != "numbers":
+            if outcome not in ("numbers", "yes or no", "counts"):
                 raise SimplydataError(
-                    f'grouped_by= with outcome="{outcome}" (a generalised mixed model, as R lme4::glmer()) is not '
-                    'in simplydata yet. grouped_by= works with outcome="numbers".'
+                    f'grouped_by= works with outcome="numbers", "yes or no" or "counts", not "{outcome}". For counts '
+                    'that vary more than Poisson allows, use outcome="counts": the groups take up some of that '
+                    "extra spread."
                 )
             if empty_cells != "leave out":
                 raise SimplydataError(
@@ -279,7 +305,7 @@ class ModelWords:
 
     # ------------------------------------------------------------------ fitting one model
     @staticmethod
-    def _fit_one(kind, X, y, groups=None):
+    def _fit_one(kind, X, y, groups=None, family="binomial"):
         if kind == "lm":
             beta, unscaled, fitted, rss = _least_squares(X, y)
             df = len(y) - X.shape[1]
@@ -302,6 +328,8 @@ class ModelWords:
             return {"beta": np.asarray(result.fe_params), "cov": np.linalg.inv(-np.asarray(hessian)[:k, :k]),
                     "fitted": np.asarray(result.fittedvalues), "between": between, "within": within,
                     "trouble": trouble}
+        if kind == "glmm":
+            return _glmer(X, y, groups, family)
         family = "binomial" if kind == "binomial" else "poisson"
         result = _glm(X, y, family, scale="X2" if kind == "quasipoisson" else None)
         df = len(y) - X.shape[1]
@@ -338,12 +366,12 @@ class ModelWords:
             raise SimplydataError(self._rank_problem(X, labels))
         kind, groups = KINDS[outcome], None
         if grouped_by is not None:
-            kind = "mixed"
+            kind = "mixed" if outcome == "numbers" else "glmm"
             groups = np.array([_label(g) for g in raw[grouped_by][keep]], dtype=object)
             if len(set(groups.tolist())) < 2:
                 raise SimplydataError(f'grouped_by="{grouped_by}" needs at least 2 groups.')
             self._need_statsmodels()
-        fit = self._fit_one(kind, X, y, groups)
+        fit = self._fit_one(kind, X, y, groups, family="binomial" if outcome == "yes or no" else "poisson")
         return dict(kind=kind, X=X, y=y, labels=labels, owner=owner, parts_of=parts_of, terms=terms, levels=levels,
                     kinds=kinds, fit=fit, n=n, yes_words=yes_words, groups=groups, keep=keep, outcome=outcome,
                     variables=variables, column=column)
@@ -405,7 +433,7 @@ class ModelWords:
                 continue  # one column (its own t or z test is the same), or part of an interaction, as R drop1()
             label = " : ".join(term)
             k = len(columns)
-            if kind == "mixed":
+            if kind in ("mixed", "glmm"):
                 b = fit["beta"][columns]
                 chi = float(b @ np.linalg.solve(fit["cov"][np.ix_(columns, columns)], b))
                 out.append(dict(term=label, name="chi-square", stat=chi, df=float(k), p=float(stats.chi2.sf(chi, k)),
@@ -503,7 +531,8 @@ class ModelWords:
 
     def _print_terms(self, model, coef, rows_text):
         what = {"lm": "effect", "mixed": "effect", "binomial": "odds ratio", "poisson": "rate ratio",
-                "quasipoisson": "rate ratio"}[model["kind"]]
+                "quasipoisson": "rate ratio",
+                "glmm": "odds ratio" if model["outcome"] == "yes or no" else "rate ratio"}[model["kind"]]
         variables = _list_words(_quoted(v) for v in model["variables"])
         print(f'Explaining "{model["column"]}" from {variables} ({rows_text}). Each {what} below holds the other '
               "columns fixed:")
@@ -535,6 +564,14 @@ class ModelWords:
             print(f"Method: quasi-Poisson regression, as R glm({formula}, family = quasipoisson): Poisson rate "
                   f"ratios with standard errors widened for counts that vary more than Poisson allows (dispersion "
                   f"{_num(fit['dispersion'])}); t-tests as R summary(), Wald 95 % intervals as R confint.default().")
+        elif kind == "glmm":
+            family = fit["family"]
+            what = "logistic" if family == "binomial" else "Poisson"
+            yes = f"; {model['yes_words']}" if model["yes_words"] else ""
+            print(f'Method: {what} mixed model with a random intercept for each "{grouped_by}" (each group has its '
+                  f"own starting level), run in R: lme4::glmer({formula} + (1 | {_r_name(grouped_by)}), "
+                  f"family = {family}) with the Laplace approximation{yes}. Wald 95 % intervals and z-tests, as R "
+                  "summary().")
         else:
             print(f'Method: linear mixed model with a random intercept for each "{grouped_by}", fitted by REML, as R '
                   f"lme4::lmer({formula} + (1 | {_r_name(grouped_by)})).")
@@ -550,6 +587,18 @@ class ModelWords:
                 p = float(stats.f.sf(f, k, fit["df"]))
                 line += f" The model as a whole (F = {_num(f)}, df = {k} and {fit['df']}): {_p_words(p)}."
             print(line)
+        elif kind == "glmm":
+            groups = len(set(model["groups"].tolist()))
+            scale = "log-odds" if fit["family"] == "binomial" else "log"
+            print(f'{groups} groups in "{grouped_by}". Variance between groups {_num(fit["between"])} (on the {scale} '
+                  f"scale). AIC = {_num(fit['aic'])}.")
+            if fit["singular"]:
+                print(f'Note: the variance between groups is about 0 (R calls this a singular fit): the groups in '
+                      f'"{grouped_by}" differ no more than chance, so the model is the same as without grouped_by=.')
+            if groups < 5:
+                print(f"Note: only {groups} groups; with fewer than 5 the variance between groups is poorly estimated.")
+            if fit["trouble"]:
+                print("Note: R lme4 warned that the fit did not settle fully; check the results or use fewer columns.")
         elif kind != "mixed":
             null = fit["null_deviance"]
             line = (f"Residual deviance {_num(fit['deviance'])} on {fit['df']} df (with no columns: {_num(null)} on "
@@ -833,7 +882,8 @@ class ModelWords:
         what = {"numbers": "the fitted value", "yes or no": "the chance of yes (0 to 1)",
                 "counts": "the expected count", "counts (overdispersed)": "the expected count"}[outcome]
         how = {"lm": "least squares", "binomial": "logistic regression", "poisson": "Poisson regression",
-               "quasipoisson": "quasi-Poisson regression", "mixed": "linear mixed model"}[model["kind"]]
+               "quasipoisson": "quasi-Poisson regression", "mixed": "linear mixed model",
+               "glmm": "generalised linear mixed model"}[model["kind"]]
         empty = len(keep) - model["n"]
         yes = f"; {model['yes_words']}" if model["yes_words"] else ""
         print(f'Added "{name}": {what} of "{column}" from {_list_words(_quoted(v) for v in variables)} '

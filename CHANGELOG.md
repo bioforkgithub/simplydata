@@ -7,6 +7,13 @@ working for one release and prints a one-line note with its new name.
 
 More statistics, each checked against R.
 
+### Mixed models for yes/no and counts
+
+- `table.explain(..., outcome="yes or no", grouped_by="school")` and `outcome="counts"` with
+  `grouped_by=` fit a generalised linear mixed model with R `lme4::glmer()` itself (random intercept
+  per group, Laplace approximation): odds or rate ratios with Wald intervals, the variance between
+  groups and AIC, and the singular-fit and few-groups notes. Needs `simplydata[r]` and R.
+
 ### Methods come from established packages
 
 simplydata now calls SciPy and statsmodels for its methods instead of writing them out:

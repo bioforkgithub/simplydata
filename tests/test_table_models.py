@@ -268,9 +268,35 @@ def test_mixed_model_variances_and_wald_test(class_marks):
     assert fit["within"] == pytest.approx(48.2159169937685, rel=1e-4)
 
 
-def test_mixed_model_not_yet_for_yes_no(school):
-    with pytest.raises(SimplydataError, match="not in simplydata yet"):
-        make_table(school).explain("passed", using="hours", outcome="yes or no", grouped_by="school")
+def test_logistic_mixed_model_matches_glmer(school, capsys, needs_r):
+    got = rows(make_table(school).explain("passed", using=["hours", "breakfast"], outcome="yes or no",
+                                          grouped_by="school"))
+    out = capsys.readouterr().out
+    # R: s$y <- as.numeric(s$passed == "yes")
+    #    m1 <- glmer(y ~ hours + breakfast + (1 | school), data = s, family = binomial)
+    #    fixef(m1); sqrt(diag(vcov(m1))); VarCorr(m1); AIC(m1)
+    check(got["(intercept)"], {"log odds ratio": -4.10121348324649, "standard error": 0.84222325867067}, rel=1e-4)
+    check(got["hours"], {"log odds ratio": 0.664355161440691, "standard error": 0.1158686553705}, rel=1e-4)
+    check(got["breakfast (yes)"], {"log odds ratio": 0.498810984372638, "standard error": 0.429315829080244},
+          rel=1e-4)
+    assert got["hours"]["statistic name"] == "z"
+    assert "lme4::glmer(passed ~ hours + breakfast + (1 | school), family = binomial)" in out
+    assert "12 groups" in out and "Variance between groups 2.19 (on the log-odds scale). AIC = 184." in out
+
+
+def test_poisson_mixed_model_matches_glmer_singular(school, capsys, needs_r):
+    got = rows(make_table(school).explain("days_absent", using="hours", outcome="counts", grouped_by="school"))
+    out = capsys.readouterr().out
+    # R: m2 <- glmer(days_absent ~ hours + (1 | school), data = s, family = poisson): a singular fit
+    check(got["(intercept)"], {"log rate ratio": 1.81555024096691, "standard error": 0.0941202157125703}, rel=1e-4)
+    check(got["hours"], {"log rate ratio": -0.149415341895755, "standard error": 0.0199192119281967}, rel=1e-4)
+    assert "AIC = 694" in out and "singular fit" in out
+
+
+def test_mixed_model_other_outcomes_say_which_work(school):
+    with pytest.raises(SimplydataError, match='grouped_by= works with outcome="numbers", "yes or no" or "counts"'):
+        make_table(school).explain("days_absent", using="hours", outcome="counts (overdispersed)",
+                                   grouped_by="school")
 
 
 # ---------------------------------------------------------------- multiple imputation

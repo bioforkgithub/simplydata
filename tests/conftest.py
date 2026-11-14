@@ -45,9 +45,9 @@ def needs_r():
 
     from simplydata._r import r_ready
 
-    if not r_ready(("survival", "vegan", "mice")):
+    if not r_ready(("survival", "vegan", "mice", "lme4")):
         if os.environ.get("SIMPLYDATA_REQUIRE_R") == "1":
-            pytest.fail("SIMPLYDATA_REQUIRE_R=1 but R, rpy2 or the R packages survival, vegan, mice are missing")
+            pytest.fail("SIMPLYDATA_REQUIRE_R=1 but R, rpy2 or the R packages survival, vegan, mice, lme4 are missing")
         pytest.skip("needs R with survival, vegan and mice (pip install 'simplydata[r]')")
 
 
