@@ -12,15 +12,14 @@ phase, after every chart type. Methods, written so they can be stated in a paper
   sideways together (ggplot2's position_dodge), spread over 15 % of the smallest x gap
   (15 % of 1 for categories); dodge=False keeps the true x.
 * fit_line: ordinary least squares, scipy.stats.linregress; R² = rvalue².
-  confidence_band=True is the 95 % confidence band of the fitted line (of the mean of y at each x):
-  y_hat ± t(0.975, n - 2) · s · sqrt(1/n + (x - x̄)² / Sxx), with s² = SSE / (n - 2).
-* fit_curve: least-squares polynomial, numpy.polyfit; R² = 1 - SSE / SST.
-* smooth_line: LOWESS (Cleveland 1979), the algorithm of R's lowess() and statsmodels'
-  lowess(): local straight-line fits with tricube weights over the nearest 2/3 of the
-  points, then 3 robustness iterations with bisquare weights (6 × median absolute
-  residual). Ported to NumPy here so statsmodels is not needed. Every point is fitted
-  (delta = 0, as in statsmodels); above 1000 points, points within 1 % of the x range
-  are interpolated (delta = 0.01 · range, R's default), to keep it fast.
+  confidence_band=True is the 95 % confidence band of the fitted line (of the mean of y at each x),
+  from statsmodels OLS get_prediction().conf_int(), as R predict(lm, interval = "confidence").
+* fit_curve: least-squares polynomial, the same statsmodels fit as table.fit_curve; R² = 1 - SSE / SST.
+* smooth_line: LOWESS (Cleveland 1979), statsmodels lowess(), the algorithm of R's lowess():
+  local straight-line fits with tricube weights over the nearest 2/3 of the points, then 3
+  robustness iterations with bisquare weights (6 × median absolute residual). Every point
+  is fitted (delta = 0, as in statsmodels); above 1000 points, points within 1 % of the x
+  range are interpolated (delta = 0.01 · range, R's default), to keep it fast.
 * side_histograms: numpy.histogram_bin_edges(bins="auto"), the same bins for all groups.
 * sdata.pairs: seaborn.histplot on the diagonal, or seaborn.kdeplot (Gaussian kernel,
   Scott's bandwidth) when colour= makes groups; seaborn.scatterplot elsewhere.
@@ -95,124 +94,51 @@ def group_errors(table, x, y, group=None, kind="sd") -> pd.DataFrame:
 
 
 def linear_fit(x, y) -> dict:
-    """Straight line by least squares (scipy.stats.linregress) plus what the band needs."""
+    """Straight line by least squares (scipy.stats.linregress); with 3 or more points also the
+    statsmodels OLS fit that the confidence band needs."""
     x = np.asarray(x, dtype=float)
     y = np.asarray(y, dtype=float)
     res = stats.linregress(x, y)
-    n = len(x)
-    fit = dict(slope=res.slope, intercept=res.intercept, r2=res.rvalue ** 2, n=n,
-               x_mean=x.mean(), sxx=float(((x - x.mean()) ** 2).sum()))
-    if n > 2:
-        resid = y - (res.intercept + res.slope * x)
-        fit["s"] = math.sqrt((resid ** 2).sum() / (n - 2))
-        fit["t"] = stats.t.ppf(0.975, n - 2)
+    fit = dict(slope=res.slope, intercept=res.intercept, r2=res.rvalue ** 2, n=len(x))
+    if len(x) > 2:
+        from statsmodels.regression.linear_model import OLS
+
+        fit["ols"] = OLS(y, np.column_stack([np.ones(len(x)), x])).fit()
     return fit
 
 
 def line_band(fit: dict, xs):
-    """95 % confidence band of the fitted line at xs: (low, high). Needs n >= 3."""
+    """95 % confidence band of the fitted line at xs (statsmodels get_prediction): (low, high). Needs n >= 3."""
     xs = np.asarray(xs, dtype=float)
-    centre = fit["intercept"] + fit["slope"] * xs
-    half = fit["t"] * fit["s"] * np.sqrt(1 / fit["n"] + (xs - fit["x_mean"]) ** 2 / fit["sxx"])
-    return centre - half, centre + half
+    band = fit["ols"].get_prediction(np.column_stack([np.ones(len(xs)), xs])).conf_int(alpha=0.05)
+    return band[:, 0], band[:, 1]
 
 
 def poly_fit(x, y, degree: int) -> dict:
-    """Least-squares polynomial (numpy.polyfit). coefs are highest power first."""
-    x = np.asarray(x, dtype=float)
-    y = np.asarray(y, dtype=float)
-    coefs = np.polyfit(x, y, degree)
-    pred = np.polyval(coefs, x)
-    sst = ((y - y.mean()) ** 2).sum()
-    r2 = 1 - ((y - pred) ** 2).sum() / sst if sst > 0 else np.nan
-    return dict(coefs=coefs, r2=r2, n=len(x))
+    """Least-squares polynomial, the same fit as table.fit_curve (statsmodels). coefs are highest power first."""
+    from ..table.fitting import fit_curve_core
+
+    fit = fit_curve_core(x, y, degree)
+    return dict(coefs=fit["beta"][::-1], r2=fit["r2"], n=fit["n"])
 
 
 def lowess(x, y, frac: float = 2 / 3, iterations: int = 3, delta: float = 0.0):
-    """LOWESS smoother (Cleveland 1979), a NumPy port of R's clowess / statsmodels' lowess.
+    """LOWESS smoother (Cleveland 1979) from statsmodels, the algorithm of R lowess().
 
     Returns (x_sorted, fitted) with x sorted ascending. frac is the share of points in
     each local fit, iterations the number of robustness steps, delta the distance within
     which points are interpolated instead of fitted (0 = fit every point).
     """
+    from statsmodels.nonparametric.smoothers_lowess import lowess as sm_lowess
+
     x = np.asarray(x, dtype=float)
     y = np.asarray(y, dtype=float)
     order = np.argsort(x, kind="stable")
     x, y = x[order], y[order]
-    n = len(x)
-    if n < 2:
+    if len(x) < 2:
         return x, y.copy()
-    ns = max(min(int(frac * n + 1e-7), n), 2)
-    xrange = x[-1] - x[0]
-    fitted = np.empty(n)
-    rw = np.ones(n)
-
-    def local(xs, nleft, nright, robust):
-        h = max(xs - x[nleft], x[nright] - xs)
-        h9, h1 = 0.999 * h, 0.001 * h
-        # from nleft up to the last point within h9 on the right (so ties are included)
-        end = max(int(np.searchsorted(x, xs + h9, side="right")), nleft + 1)
-        xj = x[nleft:end]
-        r = np.abs(xj - xs)
-        if h > 0:
-            w = np.where(r <= h9, np.where(r <= h1, 1.0, (1 - (r / h) ** 3) ** 3), 0.0)
-        else:
-            w = (r <= 0).astype(float)
-        if robust:
-            w = w * rw[nleft:end]
-        a = w.sum()
-        if a <= 0:
-            return None
-        w = w / a
-        if h > 0:  # local straight line instead of a local average
-            a = (w * xj).sum()
-            b = xs - a
-            c = (w * (xj - a) ** 2).sum()
-            if math.sqrt(c) > 0.001 * xrange:
-                b /= c
-                w = w * (b * (xj - a) + 1)
-        return float((w * y[nleft:end]).sum())
-
-    for it in range(iterations + 1):
-        nleft, nright = 0, ns - 1
-        last = -1
-        i = 0
-        while True:
-            while nright < n - 1:  # slide the window of ns nearest points
-                if x[i] - x[nleft] <= x[nright + 1] - x[i]:
-                    break
-                nleft += 1
-                nright += 1
-            value = local(x[i], nleft, nright, it > 0)
-            fitted[i] = y[i] if value is None else value
-            if last < i - 1:  # points skipped because of delta: straight-line interpolation
-                denom = x[i] - x[last]
-                for j in range(last + 1, i):
-                    alpha = (x[j] - x[last]) / denom
-                    fitted[j] = alpha * fitted[i] + (1 - alpha) * fitted[last]
-            last = i
-            cut = x[last] + delta
-            i = last + 1
-            while i < n:
-                if x[i] > cut:
-                    break
-                if x[i] == x[last]:
-                    fitted[i] = fitted[last]
-                    last = i
-                i += 1
-            i = max(last + 1, i - 1)
-            if last >= n - 1:
-                break
-        if it == iterations:
-            break
-        res = np.abs(y - fitted)
-        sc = res.sum() / n
-        cmad = 6 * np.median(res)
-        if cmad < 1e-7 * sc:
-            break
-        c9, c1 = 0.999 * cmad, 0.001 * cmad
-        rw = np.where(res <= c1, 1.0, np.where(res <= c9, (1 - (res / cmad) ** 2) ** 2, 0.0))
-    return x, fitted
+    fitted = sm_lowess(y, x, frac=frac, it=iterations, delta=delta, is_sorted=True, return_sorted=False)
+    return x, np.asarray(fitted, dtype=float)
 
 
 # ====================================================================== text helpers
@@ -513,7 +439,7 @@ def _draw_fit(ctx, word, how, colour, show_equation, band=False, degree=1, thick
         if how == "line":
             fit = linear_fit(xv, yv)
             ax.plot(xs, fit["intercept"] + fit["slope"] * xs, color=col, zorder=3, linewidth=thickness)
-            if band and "s" in fit:
+            if band and "ols" in fit:
                 low, high = line_band(fit, xs)
                 ax.fill_between(xs, low, high, color=col, alpha=0.2, linewidth=0, zorder=2.5)
             coefs, r2 = [fit["slope"], fit["intercept"]], fit["r2"]

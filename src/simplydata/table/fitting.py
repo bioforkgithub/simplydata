@@ -6,7 +6,7 @@ Choices (the same defaults as R, so results can be checked there):
 * fit_line(x=, y=): ordinary least squares (R lm(y ~ x)), t-based 95 % intervals. Its old
   name fit_straight_line still works for one release, with a note.
 * fit_curve(x=, y=, degree=2): least squares on the powers of x, as R
-  lm(y ~ poly(x, 2, raw = TRUE)), solved through a QR decomposition of the matrix of powers
+  lm(y ~ poly(x, 2, raw = TRUE)), with statsmodels WLS through a QR decomposition of the powers
   (as lm, and steadier than the normal equations np.polyfit uses). t-based 95 % intervals,
   R squared and adjusted R squared as R summary.lm(). weights= as R lm(weights =).
 * fit_formula("y = a * exp(b * x)"): nonlinear least squares, as R nls().
@@ -479,32 +479,21 @@ def _not_pinned_down(curve, found, weight) -> bool:
 
 # ---------------------------------------------------------------------------- polynomial
 def fit_curve_core(x, y, degree, weights=None) -> dict:
-    """Least squares on 1, x, x**2, ... x**degree (QR), as R lm(y ~ poly(x, degree, raw = TRUE))."""
-    from scipy import stats
-
-    from .models import _least_squares
+    """Least squares on 1, x, x**2, ... x**degree with statsmodels WLS (QR), as R
+    lm(y ~ poly(x, degree, raw = TRUE), weights = w)."""
+    from statsmodels.regression.linear_model import WLS
 
     x = np.asarray(x, dtype=float)
     y = np.asarray(y, dtype=float)
     w = np.ones(len(y)) if weights is None else np.asarray(weights, dtype=float)
-    n, k = len(y), degree + 1
-    X = np.vander(x, k, increasing=True)
-    root = np.sqrt(w)
-    beta, unscaled, _, rss = _least_squares(X * root[:, None], y * root)
-    df = n - k
-    sigma2 = rss / df
-    se = np.sqrt(np.diag(unscaled) * sigma2)
+    X = np.vander(x, degree + 1, increasing=True)
     with np.errstate(divide="ignore", invalid="ignore"):
-        t = beta / se
-    p = 2 * stats.t.sf(np.abs(t), df)
-    q = float(stats.t.ppf(0.975, df))
-    fitted = X @ beta
-    centre = float(np.sum(w * fitted) / np.sum(w))  # R summary.lm with weights: the weighted mean
-    mss = float(np.sum(w * (fitted - centre) ** 2))
-    r2 = mss / (mss + rss) if mss + rss > 0 else math.nan
-    adjusted = 1 - (1 - r2) * (n - 1) / df
-    return {"beta": beta, "se": se, "t": t, "p": p, "low": beta - q * se, "high": beta + q * se, "df": df,
-            "r2": r2, "adjusted": adjusted, "n": n, "sigma": math.sqrt(sigma2), "fitted": fitted}
+        result = WLS(y, X, weights=w).fit(method="qr")
+        low, high = np.asarray(result.conf_int(0.05)).T
+        return {"beta": np.asarray(result.params), "se": np.asarray(result.bse), "t": np.asarray(result.tvalues),
+                "p": np.asarray(result.pvalues), "low": low, "high": high, "df": int(result.df_resid),
+                "r2": float(result.rsquared), "adjusted": float(result.rsquared_adj), "n": len(y),
+                "sigma": math.sqrt(result.scale), "fitted": np.asarray(result.fittedvalues)}
 
 
 def _curve_text(y, x, beta) -> str:
