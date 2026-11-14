@@ -7,6 +7,20 @@ working for one release and prints a one-line note with its new name.
 
 More statistics, each checked against R.
 
+### Methods come from established packages
+
+simplydata now calls SciPy and statsmodels for its methods instead of writing them out:
+p-value adjustment, Welch's ANOVA, the log-rank test, Kaplan-Meier, the Cox model, linear,
+logistic and Poisson models, mixed-model errors, polynomial fits, LOWESS, the line band, PCA,
+Cramer's V, the summary measures, and the gamma, Gumbel and von Mises fits. The answers are the
+same as before, except that logistic and Poisson standard errors now come from the converged
+estimates (R uses the step before), so they agree with R to about 1e-5.
+
+- statsmodels is now required (`pip install "simplydata[stats]"` still works).
+- Python 3.11 or newer, and SciPy 1.16 or newer (its quantiles are exact).
+- `compare_shape_to` calls SciPy `goodness_of_fit` again; most shapes take a few seconds
+  with `samples=9999`, Weibull and t longer (a note says so before a long run).
+
 ### Fitting
 
 - `table.fit_line(x=, y=)` is the main name of the straight-line fit, the same word as
