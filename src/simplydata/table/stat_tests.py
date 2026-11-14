@@ -209,37 +209,59 @@ def _holm(p_values) -> list[float]:
 SCIPY_SIDES = ("two-sided", "greater", "less")
 
 
-def _direction(step, sides, higher, alternative, choices, example):
-    """sides=2 (default) or sides=1 with higher= (what is expected to be higher, chosen before the data).
+def _direction(step, sides, higher, lower, alternative, choices, example, words=None, lower_words=None):
+    """sides=2 (default) or sides=1 with higher= or its mirror lower= (chosen before seeing the data).
 
-    choices maps each accepted higher= word to the SciPy alternative it means (the first group,
-    the after column, the data's average ... minus the other side). R's and SciPy's
+    choices maps each side's word to the SciPy alternative it means when that side is higher (the
+    first group, the after column, the data's average ... minus the other side); a side that is
+    not a word users type (the number in compare_average_to) has a key starting with "_".
+    words: the words higher= accepts (default: every key without "_"); lower_words: the words
+    lower= accepts (default: the same; lower=X means the other side is higher). R's and SciPy's
     alternative="greater" / "less" / "two-sided" is accepted too, with the translation printed.
-    Gives back (SciPy alternative, the higher= word or None)."""
+    Gives back (SciPy alternative, the key of the side that is higher, or None)."""
+    words = list(words if words is not None else [k for k in choices if not k.startswith("_")])
+    lower_words = list(lower_words if lower_words is not None else words)
+
+    def other(key):
+        return next(k for k in choices if k != key)
+
     if alternative is not None:
         if alternative not in SCIPY_SIDES:
             raise choice_error(step, "alternative", alternative, SCIPY_SIDES)
-        if sides != 2 or higher is not None:
-            raise SimplydataError(f'{step}() was given alternative= and sides=/higher=; give only one of them.')
+        if sides != 2 or higher is not None or lower is not None:
+            raise SimplydataError(f'{step}() was given alternative= and sides=/higher=/lower=; give only one of them.')
         if alternative == "two-sided":
             return "two-sided", None
-        word = next(k for k, v in choices.items() if v == alternative)
-        print(f'Note: alternative="{alternative}" is sides=1, higher="{word}" in simplydata.')
-        return alternative, word
+        up = next(k for k, v in choices.items() if v == alternative)
+        said = f'higher="{up}"' if up in words else f'lower="{other(up)}"'
+        print(f'Note: alternative="{alternative}" is sides=1, {said} in simplydata.')
+        return alternative, up
     if isinstance(sides, bool) or sides not in (1, 2):
         raise SimplydataError(f"{step}() needs sides=2 (a difference either way, the usual) or sides=1 (only the "
-                              f"direction you expected before seeing the data, with higher=).\nFor example, {example}")
+                              "direction you expected before seeing the data, with higher= or lower=).\n"
+                              f"For example, {example}")
+    if higher is not None and lower is not None:
+        raise SimplydataError(f'{step}() was given both higher= and lower=; give one of them (lower="{lower}" is the '
+                              f"same as saying the other side is higher).\nFor example, {example}")
     if sides == 2:
-        if higher is not None:
-            raise SimplydataError(f"higher= says which side a one-sided test looks at, so it goes with sides=1.\n"
+        if higher is not None or lower is not None:
+            option = "higher=" if higher is not None else "lower="
+            raise SimplydataError(f"{option} says which side a one-sided test looks at, so it goes with sides=1.\n"
                                   f"For example, {example}")
         return "two-sided", None
-    if higher is None:
-        raise SimplydataError(f"sides=1 looks in one direction only, so it needs higher= to say what you expected "
-                              f"to be higher before seeing the data.\nFor example, {example}")
-    if higher not in choices:
-        raise choice_error(step, "higher", higher, list(choices))
-    return choices[higher], higher
+    if higher is None and lower is None:
+        raise SimplydataError(f"sides=1 looks in one direction only, so it needs higher= (or lower=) to say what "
+                              f"you expected before seeing the data.\nFor example, {example}")
+    if higher is not None:
+        if higher not in words:
+            raise choice_error(step, "higher", higher, words)
+        return choices[higher], higher
+    if not lower_words:
+        raise SimplydataError(f"{step}() takes higher= for a one-sided test, not lower=.\nFor example, {example}")
+    if lower not in lower_words:
+        raise choice_error(step, "lower", lower, lower_words)
+    up = other(lower)
+    return choices[up], up
 
 
 def _one_sided_sentence(looks_for: str, not_counted: str) -> str:
@@ -543,7 +565,7 @@ class StatTestWords:
     # ------------------------------------------------------------------ compare_averages
     @friendly(renamed={"between": "for_each"})
     def compare_averages(self, column=None, for_each=None, based_on="averages", test=None, sides=2, higher=None,
-                         alternative=None):
+                         lower=None, alternative=None):
         """Are the averages of the groups really different, or could it be chance?
 
         table.compare_averages("marks", for_each="class")   (with sdata.example("marks"))
@@ -564,9 +586,10 @@ class StatTestWords:
         bell shape (Shapiro-Wilk) and a note says if it does not look like one; with 30 or
         more values that matters little (the central limit theorem).
         To see which groups differ, use compare_each_pair().
-        sides=1, higher="B" tests in one direction only (2 groups): that B is higher, as decided
-        before seeing the data (R t.test(alternative = ...), wilcox.test(alternative = ...)); the
-        95 % interval is then one-sided too. R's and SciPy's alternative= is accepted.
+        sides=1, higher="B" (or lower="A") tests in one direction only (2 groups): that B is
+        higher, as decided before seeing the data (R t.test(alternative = ...), wilcox.test(
+        alternative = ...)); the 95 % interval is then one-sided too. R's and SciPy's
+        alternative= is accepted.
         """
         step = "compare_averages"
         example = 'with sdata.example("marks"): table.compare_averages("marks", for_each="class")'
@@ -581,13 +604,14 @@ class StatTestWords:
         groups = self._groups(step, column, for_each, example)
         k = len(groups)
         names = [g[0] for g in groups]
-        if (sides != 2 or higher is not None or alternative not in (None, "two-sided")) and k != 2:
+        if (sides != 2 or higher is not None or lower is not None or alternative not in (None, "two-sided")) \
+                and k != 2:
             raise SimplydataError(
                 f"A test of {k} groups looks for any difference between them, so it has no one direction; "
                 f'sides=1 and higher= work with 2 groups.\nUse the usual two-sided test, or compare two groups at a '
                 f'time with table.compare_each_pair("{column}", for_each="{for_each}").')
         side_example = f'table.compare_averages("{column}", for_each="{for_each}", sides=1, higher="{names[-1]}")'
-        alt, up = _direction(step, sides, higher, alternative, {names[0]: "greater", names[1]: "less"}
+        alt, up = _direction(step, sides, higher, lower, alternative, {names[0]: "greater", names[1]: "less"}
                              if k == 2 else {}, side_example)
         side_words = ""
         if up is not None:
@@ -1105,7 +1129,7 @@ class StatTestWords:
                          zeros=zeros, notes=[es["note"]] if es["note"] else [])
 
     @friendly
-    def compare_before_after(self, before=None, after=None, based_on="averages", sides=2, higher=None,
+    def compare_before_after(self, before=None, after=None, based_on="averages", sides=2, higher=None, lower=None,
                              alternative=None):
         """Did the values change from one column to the other, row by row, more than chance?
 
@@ -1115,8 +1139,9 @@ class StatTestWords:
         Wilcoxon signed-rank test with based_on="ranks". Rows with an empty cell in either
         column are skipped. Effect size: Cohen's d_z, the average change in standard
         deviations of the changes. Gives back a one-row table of results.
-        sides=1, higher="after" (or "before") tests in one direction only, as decided before
-        seeing the data (R t.test(after, before, paired = TRUE, alternative = "greater")).
+        sides=1, higher="after" (or "before"; lower= is the mirror: lower="before" is the same as
+        higher="after") tests in one direction only, as decided before seeing the data (R
+        t.test(after, before, paired = TRUE, alternative = "greater")).
         """
         step = "compare_before_after"
         example = 'table.compare_before_after("before", "after")'
@@ -1131,7 +1156,8 @@ class StatTestWords:
         changes = a - b
         what = f'the change from "{before}" to "{after}" in each row'
         side_example = f'table.compare_before_after("{before}", "{after}", sides=1, higher="after")'
-        alt, up = _direction(step, sides, higher, alternative, {"after": "greater", "before": "less"}, side_example)
+        alt, up = _direction(step, sides, higher, lower, alternative, {"after": "greater", "before": "less"},
+                             side_example)
         row, r = self._one_sample(step, changes, "change", 0.0, based_on, what, "the changes", alt)
         mean_change = float(changes.mean())
         if based_on == "averages":
@@ -1177,7 +1203,7 @@ class StatTestWords:
         return self._result_table(row)
 
     @friendly
-    def compare_average_to(self, column=None, value=None, based_on="averages", sides=2, higher=None,
+    def compare_average_to(self, column=None, value=None, based_on="averages", sides=2, higher=None, lower=None,
                            alternative=None):
         """Is the average of a column different from a number you choose, or could it be chance?
 
@@ -1185,7 +1211,7 @@ class StatTestWords:
         A one-sample t-test, or the Wilcoxon signed-rank test (on the median) with
         based_on="ranks". Empty cells are skipped. Effect size: Cohen's d, the difference
         in standard deviations. Gives back a one-row table of results.
-        sides=1, higher="average" (the average is higher than the number) or higher="value" (lower)
+        sides=1, higher="average" (the average is above the number) or lower="average" (below it)
         tests in one direction only, as decided before seeing the data (R t.test(x, mu = 60,
         alternative = "greater")).
         """
@@ -1201,7 +1227,8 @@ class StatTestWords:
         shown = f"{value:g}"
         what = f'the average of "{column}" against {shown}'
         side_example = f'table.compare_average_to("{column}", {shown}, sides=1, higher="average")'
-        alt, up = _direction(step, sides, higher, alternative, {"average": "greater", "value": "less"}, side_example)
+        alt, up = _direction(step, sides, higher, lower, alternative, {"average": "greater", "_value": "less"},
+                             side_example)
         row, r = self._one_sample(step, values, f'value of "{column}"', float(value), based_on, what,
                                   f'"{column}"', alt)
         mean = float(values.mean())
@@ -1505,7 +1532,8 @@ class StatTestWords:
         return labels, observed, [s / top for s in shares]
 
     @friendly
-    def compare_percent_to(self, column=None, value=None, percent=None, sides=2, higher=None, alternative=None):
+    def compare_percent_to(self, column=None, value=None, percent=None, sides=2, higher=None, lower=None,
+                           alternative=None):
         """Is the percent of rows with one value different from a percent you choose, or could it be chance?
 
         table.compare_percent_to("passed", value="yes", percent=50)   (with sdata.example("school"))
@@ -1515,8 +1543,8 @@ class StatTestWords:
         is counted. Empty cells are skipped. Effect size: Cohen's h, the difference between
         the two shares on the arcsine scale (0.2 small, 0.5 medium, 0.8 large).
         Gives back a one-row table of results.
-        sides=1, higher="percent" (the data's percent is higher than percent=) or higher="given"
-        (lower) tests in one direction only (R binom.test(alternative = "greater")).
+        sides=1, higher="percent" (the data's percent is above percent=) or lower="percent"
+        (below it) tests in one direction only (R binom.test(alternative = "greater")).
         """
         step = "compare_percent_to"
         example = ('with sdata.example("school"): table.compare_percent_to("passed", value="yes", percent=50)')
@@ -1535,7 +1563,8 @@ class StatTestWords:
 
         side_example = (f'table.compare_percent_to("{column}", value={value!r}, percent={percent:g}, sides=1, '
                         'higher="percent")')
-        alt, up = _direction(step, sides, higher, alternative, {"percent": "greater", "given": "less"}, side_example)
+        alt, up = _direction(step, sides, higher, lower, alternative, {"percent": "greater", "_given": "less"},
+                             side_example)
         result = stats.binomtest(hits, n, percent / 100.0, alternative=alt)
         p = float(result.pvalue)
         low, high = result.proportion_ci(confidence_level=0.95, method="exact")

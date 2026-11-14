@@ -23,11 +23,13 @@ estimates (R uses the step before), so they agree with R to about 1e-5.
 
 ### One-sided tests and Kendall's tau
 
-- `sides=1, higher=...` tests in one direction only, chosen before seeing the data:
-  `compare_averages(..., sides=1, higher="B")` (two groups: Welch, Student, Mann-Whitney),
-  `compare_before_after(..., sides=1, higher="after")`, `compare_average_to(..., sides=1,
-  higher="average")`, `compare_percent_to(..., sides=1, higher="percent")` and
-  `correlation_between("hours", "marks", sides=1, higher="positive")`. The interval is then
+- `sides=1, higher=...` (or its mirror `lower=...`) tests in one direction only, chosen before
+  seeing the data: `compare_averages(..., sides=1, higher="B")` or `lower="A"` (two groups: Welch,
+  Student, Mann-Whitney, Yuen, Brunner-Munzel), `compare_before_after(..., sides=1, higher="after")`
+  or `lower="before"`, `compare_average_to(..., sides=1, higher="average")` or `lower="average"`,
+  `compare_percent_to(..., sides=1, higher="percent")` or `lower="percent"`, and
+  `correlation_between("hours", "marks", sides=1, higher="positive")` (or `"negative"`). Giving both
+  `higher=` and `lower=`, or a word the test does not know, is a friendly error. The interval is then
   one-sided too ("at least 1.2"), and the sentence says what the test does and does not look for.
   R's and SciPy's `alternative="greater"` / `"less"` work as well, with the translation printed.
   Each is checked against R `t.test`, `wilcox.test`, `binom.test` and `cor.test` with `alternative =`.

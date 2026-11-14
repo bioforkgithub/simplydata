@@ -1268,7 +1268,8 @@ class SummaryWords:
 
     # ------------------------------------------------------------------ correlation
     @friendly
-    def correlation_between(self, *columns, method="pearson", show="r", sides=2, higher=None, alternative=None):
+    def correlation_between(self, *columns, method="pearson", show="r", sides=2, higher=None, lower=None,
+                            alternative=None):
         """How strongly columns of numbers go up or down together, from -1 to 1.
 
         table.correlation_between("hours", "marks")   (with sdata.example("marks"))
@@ -1322,10 +1323,12 @@ class SummaryWords:
         from .stat_tests import _direction
 
         example = f'table.correlation_between("{names[0]}", "{names[1]}", sides=1, higher="positive")'
-        if len(names) > 2 and (sides != 2 or higher is not None or alternative not in (None, "two-sided")):
+        if len(names) > 2 and (sides != 2 or higher is not None or lower is not None
+                               or alternative not in (None, "two-sided")):
             raise SimplydataError("sides=1 and higher= work with two columns; a correlation table tests every pair "
                                   "both ways.")
-        alt, up = _direction(step, sides, higher, alternative, {"positive": "greater", "negative": "less"}, example)
+        alt, up = _direction(step, sides, higher, lower, alternative, {"positive": "greater", "negative": "less"},
+                             example, lower_words=[])
         frame = self._number_frame(step, names)
         if len(names) == 2:
             return self._one_correlation(step, frame, names[0], names[1], method, alt, up)

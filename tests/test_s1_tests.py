@@ -126,7 +126,7 @@ def test_paired_one_sided(paired, capsys):
 # ---------------------------------------------------------------------------- one sample
 def test_average_to_one_sided(school):
     # R: t.test(d$marks, mu = 60, alternative = "less"): p 1.4865222960572e-30, CI high 49.8390112944356
-    r = one_row(school.compare_average_to("marks", 60, sides=1, higher="value"))
+    r = one_row(school.compare_average_to("marks", 60, sides=1, lower="average"))
     assert r["p-value"] == pytest.approx(1.4865222960572e-30, rel=1e-6)
     assert r["average 95 % CI high"] == pytest.approx(49.8390112944356, rel=1e-8)
     # alternative = "greater": t -13.89544397879, p 1, CI low 47.0943220388977
@@ -142,7 +142,7 @@ def test_average_to_one_sided(school):
 
 def test_percent_to_one_sided(school, capsys):
     # R: binom.test(78, 180, 0.5, alternative = "less"): p 0.0430936566643476
-    r = one_row(school.compare_percent_to("passed", value="yes", percent=50, sides=1, higher="given"))
+    r = one_row(school.compare_percent_to("passed", value="yes", percent=50, sides=1, lower="percent"))
     assert r["p-value"] == pytest.approx(0.0430936566643476, rel=1e-9)
     assert 'alternative = "less"' in capsys.readouterr().out
     # alternative = "greater": p 0.968946617073507
@@ -189,3 +189,36 @@ def test_correlation_one_sided_errors(school):
         school.correlation_between("hours", "marks", "sleep", sides=1, higher="positive")
     with pytest.raises(SimplydataError, match="needs higher="):
         school.correlation_between("hours", "marks", sides=1)
+
+
+# ---------------------------------------------------------------------------- lower= (the mirror of higher=)
+def test_lower_is_the_mirror_of_higher(school, paired):
+    # R: t.test(marks ~ breakfast, data = d, alternative = "less"): lower="no" is higher="yes"
+    lower = one_row(school.compare_averages("marks", for_each="breakfast", sides=1, lower="no"))
+    assert lower["p-value"] == pytest.approx(0.0253040147019375, rel=1e-8)
+    assert lower["sides"] == "one-sided: yes higher"
+    # R: t.test(after, before, paired = TRUE, alternative = "greater"): lower="before" is higher="after"
+    r = one_row(paired.compare_before_after("before", "after", sides=1, lower="before"))
+    assert r["p-value"] == pytest.approx(0.000381377570221779, rel=1e-8)
+
+
+def test_r_alternative_names_lower_for_one_sample(school, capsys):
+    # R: t.test(d$marks, mu = 60, alternative = "less")
+    r = one_row(school.compare_average_to("marks", 60, alternative="less"))
+    assert r["p-value"] == pytest.approx(1.4865222960572e-30, rel=1e-6)
+    assert 'alternative="less" is sides=1, lower="average" in simplydata' in capsys.readouterr().out
+
+
+def test_higher_and_lower_errors(school):
+    with pytest.raises(SimplydataError, match="both higher= and lower="):
+        school.compare_averages("marks", for_each="breakfast", sides=1, higher="yes", lower="no")
+    with pytest.raises(SimplydataError, match='Did you mean lower="no"'):
+        school.compare_averages("marks", for_each="breakfast", sides=1, lower="noo")
+    with pytest.raises(SimplydataError, match="goes with sides=1"):
+        school.compare_averages("marks", for_each="breakfast", lower="no")
+    with pytest.raises(SimplydataError, match='does not know higher="value"'):
+        school.compare_average_to("marks", 60, sides=1, higher="value")  # the old word is gone
+    with pytest.raises(SimplydataError, match='does not know lower="given"'):
+        school.compare_percent_to("passed", value="yes", percent=50, sides=1, lower="given")
+    with pytest.raises(SimplydataError, match="takes higher= for a one-sided test, not lower="):
+        school.correlation_between("hours", "marks", sides=1, lower="negative")
