@@ -17,6 +17,16 @@ More statistics, each checked against R.
 - `time="years"` with counts: rates, the count per unit of time (R `offset = log(years)`).
 - `out_of="tries"` with `outcome="yes or no"`: the column holds the number of yes out of that many
   tries (R `glm(cbind(yes, tries - yes) ~ ..., family = binomial)`).
+- `outcome="ordered groups"` with `in_order=["low", "middle", "high"]`: ordered logistic regression
+  (statsmodels OrderedModel, as R `MASS::polr()`), odds ratios of a higher group and the cut-points
+  in a short block of their own.
+- `outcome="groups"`: multinomial logistic regression (statsmodels MNLogit, as R `nnet::multinom()`),
+  one block per group compared with the first.
+- `outcome="shares"`: beta regression for shares between 0 and 1, R `betareg::betareg()` itself.
+- `outcome="counts with many zeros"`: zero-inflated Poisson regression, R `pscl::zeroinfl()` itself;
+  the two parts (how many, and extra zeros) are printed in words, one block each.
+- `link=` for experts: "probit" or "cloglog" for yes or no, "identity" or "sqrt" for counts,
+  "inverse" or "identity" for positive numbers; the effects are then on that scale.
 
 ### Mixed models for yes/no and counts
 

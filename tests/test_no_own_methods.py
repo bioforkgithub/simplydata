@@ -43,6 +43,7 @@ ALLOWED = {
     "table/fitting.py::_not_pinned_down": "rank of the Jacobian from least_squares (thin check, T10)",
     "table/models.py::ModelWords._fit_one": "inverts the fixed-effects block of statsmodels' MixedLM Hessian (lme4 vcov)",
     "table/models.py::ModelWords._fit_model": "matrix_rank: checks the columns before fitting",
+    "table/models.py::ModelWords._explain_more": "matrix_rank: the same column check before fitting",
     "table/models.py::ModelWords._rank_problem": "names the columns that repeat others, for the error message",
     "table/models.py::ModelWords._whole_column_tests": "Wald chi-square b' V^-1 b from the fitted covariance",
     "table/models.py::ModelWords._model_notes": "variance inflation factors from the correlation matrix",

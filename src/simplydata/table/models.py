@@ -73,6 +73,10 @@ from .summaries import _p_words
 
 OUTCOMES = ("numbers", "yes or no", "counts", "counts (overdispersed)", "counts that vary a lot", "positive numbers")
 COUNT_OUTCOMES = ("counts", "counts (overdispersed)", "counts that vary a lot")
+OUTCOMES = OUTCOMES + ("ordered groups", "groups", "shares", "counts with many zeros")
+# link=: the first link of each outcome is the default (R's default for that family)
+LINKS = {"yes or no": ("logit", "probit", "cloglog"), "counts": ("log", "identity", "sqrt"),
+         "positive numbers": ("log", "inverse", "identity")}
 EMPTY_CELLS = ("leave out", "multiple imputation")
 IMPUTATIONS = 20  # filled-in tables for multiple imputation
 PMM_DONORS = 5  # as R mice() predictive mean matching
@@ -197,15 +201,22 @@ def _least_squares(X, y):
             float(result.ssr))
 
 
-def _glm(X, y, kind, scale=None, exposure=None, trials=None, alpha=None):
+def _glm(X, y, kind, scale=None, exposure=None, trials=None, alpha=None, link=None):
     """A GLM with statsmodels GLM, fitted by IRLS as R glm.fit(): binomial (logit), Poisson (log),
     negative binomial with a known alpha = 1 / theta (log), or Gamma (log). exposure= is the
     person-time (R offset = log(time)); trials= the number of tries for successes out of trials
     (R cbind(successes, failures))."""
     import statsmodels.api as sm
 
+    links = sm.families.links
+    chosen = {"probit": links.Probit, "cloglog": links.CLogLog, "identity": links.Identity, "sqrt": links.Sqrt,
+              "inverse": links.InversePower, "log": links.Log, "logit": links.Logit}.get(link)
     if kind == "binomial":
-        family = sm.families.Binomial()
+        family = sm.families.Binomial(link=chosen()) if chosen else sm.families.Binomial()
+    elif kind == "gamma" and chosen:
+        family = sm.families.Gamma(link=chosen())
+    elif kind == "poisson" and chosen:
+        family = sm.families.Poisson(link=chosen())
     elif kind == "negbin":
         family = sm.families.NegativeBinomial(alpha=alpha)
     elif kind == "gamma":
@@ -378,7 +389,7 @@ class ModelWords:
 
     # ------------------------------------------------------------------ fitting one model
     @staticmethod
-    def _fit_one(kind, X, y, groups=None, family="binomial", exposure=None, trials=None):
+    def _fit_one(kind, X, y, groups=None, family="binomial", exposure=None, trials=None, link=None):
         if kind == "lm":
             beta, unscaled, fitted, rss = _least_squares(X, y)
             df = len(y) - X.shape[1]
@@ -408,7 +419,7 @@ class ModelWords:
             alpha, full = _negative_binomial(X, y, exposure)
         family = {"binomial": "binomial", "negbin": "negbin", "gamma": "gamma"}.get(kind, "poisson")
         result = _glm(X, y, family, scale="X2" if kind in ("quasipoisson", "gamma") else None, exposure=exposure,
-                      trials=trials, alpha=alpha)
+                      trials=trials, alpha=alpha, link=link)
         df = len(y) - X.shape[1]
         out = {"beta": np.asarray(result.params), "cov": np.asarray(result.cov_params()),
                "fitted": np.asarray(result.fittedvalues), "deviance": float(result.deviance),
@@ -419,11 +430,11 @@ class ModelWords:
         if kind == "negbin":  # as R glm.nb: the log-likelihood and AIC count theta as one more value
             out.update(alpha=alpha, theta=1 / alpha, loglik=float(full.llf),
                        aic=float(-2 * full.llf + 2 * (X.shape[1] + 1)))
-        out.update(exposure=exposure, trials=trials)
+        out.update(exposure=exposure, trials=trials, link=link)
         return out
 
     def _fit_model(self, step, column, outcome, grouped_by, terms, variables, raw, kinds, keep, time=None,
-                   out_of=None):
+                   out_of=None, link=None):
         """Fit the model on the rows in keep; a dict with everything the printing needs."""
         n = int(keep.sum())
         if n == 0:
@@ -465,10 +476,10 @@ class ModelWords:
                 raise SimplydataError(f'grouped_by="{grouped_by}" needs at least 2 groups.')
             self._need_statsmodels()
         fit = self._fit_one(kind, X, y, groups, family="binomial" if outcome == "yes or no" else "poisson",
-                            exposure=exposure, trials=trials)
+                            exposure=exposure, trials=trials, link=link)
         return dict(kind=kind, X=X, y=y, labels=labels, owner=owner, parts_of=parts_of, terms=terms, levels=levels,
                     kinds=kinds, fit=fit, n=n, yes_words=yes_words, groups=groups, keep=keep, outcome=outcome,
-                    variables=variables, column=column, time=time, out_of=out_of)
+                    variables=variables, column=column, time=time, out_of=out_of, link=link)
 
     @staticmethod
     def _need_statsmodels():
@@ -543,7 +554,7 @@ class ModelWords:
             family = {"binomial": "binomial", "negbin": "negbin", "gamma": "gamma"}.get(kind, "poisson")
             # as R drop1(): the smaller model refitted with the same family (glm.nb: theta held)
             smaller = _glm(reduced, y, family, exposure=fit.get("exposure"), trials=fit.get("trials"),
-                           alpha=fit.get("alpha"))
+                           alpha=fit.get("alpha"), link=fit.get("link"))
             change = float(smaller.deviance) - fit["deviance"]
             if kind in ("quasipoisson", "gamma"):
                 f = (change / k) / (fit["deviance"] / fit["df"])  # as R drop1(test = "F")
@@ -561,7 +572,9 @@ class ModelWords:
     def _term_table(self, model, coef, tests, extra=None):
         """The result table: one row per model column, then one per whole-column test."""
         effect = self._effect_name(model["outcome"])
-        ratio = effect != "effect"
+        if model.get("link"):
+            effect = f"effect ({model['link']} scale)"
+        ratio = effect != "effect" and not model.get("link")
         rows = []
         for j, label in enumerate(model["labels"]):
             b, low, high = (float(coef["beta"][j]), float(coef["low"][j]), float(coef["high"][j]))
@@ -593,6 +606,9 @@ class ModelWords:
         words = _p_words(p)
         has_groups = any(model["kinds"][v] == "group" for v in model["variables"])
         at_base = " and every group column is at its baseline" if has_groups else ""
+        if model["labels"][j] == INTERCEPT and model.get("link"):
+            return (f"  intercept: {_num(beta)}, on the {model['link']} scale, when every number column is "
+                    f"0{at_base}.")
         if model["labels"][j] == INTERCEPT:
             if outcome == "numbers":
                 return f'  intercept: {_num(beta)}, the expected "{column}" when every number column is 0{at_base}.'
@@ -617,6 +633,16 @@ class ModelWords:
                     f"changes with the other; {words}.")
         thing = ("the odds of yes" if outcome == "yes or no" else f'the expected "{column}"' if
                  outcome == "positive numbers" else "the expected count")
+        if model.get("link"):  # another link than the default: effects add on that scale
+            scale = {"probit": "the probit of yes", "cloglog": "the complementary log-log of yes",
+                     "identity": f'the expected "{column}"', "sqrt": "the square root of the expected count",
+                     "inverse": f'1 / the expected "{column}"', "log": f'the log of the expected "{column}"'}[
+                model["link"]]
+            interval = f"95 % CI {_num(low)} to {_num(high)}"
+            if len(parts) == 1 and parts[0][1] is None:
+                return (f'  {parts[0][0]}: each 1 more "{parts[0][0]}" changes {scale} by {_num(beta)} ({interval}); '
+                        f"{words}.")
+            return f"  {model['labels'][j]}: changes {scale} by {_num(beta)} ({interval}); {words}."
         if model.get("time"):
             thing = "the rate (count per time)"
         ratio = math.exp(beta)
@@ -635,6 +661,8 @@ class ModelWords:
         what = {"lm": "effect", "mixed": "effect", "binomial": "odds ratio", "poisson": "rate ratio",
                 "quasipoisson": "rate ratio", "negbin": "rate ratio", "gamma": "ratio of averages",
                 "glmm": "odds ratio" if model["outcome"] == "yes or no" else "rate ratio"}[model["kind"]]
+        if model.get("link"):
+            what = f"effect ({model['link']} scale)"
         variables = _list_words(_quoted(v) for v in model["variables"])
         print(f'Explaining "{model["column"]}" from {variables} ({rows_text}). Each {what} below holds the other '
               "columns fixed:")
@@ -661,10 +689,13 @@ class ModelWords:
         if kind == "lm":
             print(f"Method: linear model by least squares, as R lm({formula}).")
         elif kind == "binomial":
-            print(f"Method: logistic regression, as R glm({formula}, family = binomial); {model['yes_words']}. "
+            family_text = f'binomial(link = "{model["link"]}")' if model.get("link") else "binomial"
+            print(f"Method: {'logistic' if not model.get('link') else model['link']} regression, as R glm({formula}, "
+                  f"family = {family_text}); {model['yes_words']}. "
                   "Wald 95 % intervals and z-tests, as R confint.default() and summary().")
         elif kind == "poisson":
-            print(f"Method: Poisson regression, as R glm({formula}, family = poisson{offset}). Wald 95 % intervals "
+            family_text = f'poisson(link = "{model["link"]}")' if model.get("link") else "poisson"
+            print(f"Method: Poisson regression, as R glm({formula}, family = {family_text}{offset}). Wald 95 % intervals "
                   "and "
                   "z-tests, as R confint.default() and summary().")
         elif kind == "negbin":
@@ -672,8 +703,9 @@ class ModelWords:
                   f"MASS::glm.nb({formula}{offset}) (theta = {_num(fit['theta'])} by maximum likelihood; statsmodels). "
                   "Wald 95 % intervals and z-tests, as R confint.default() and summary().")
         elif kind == "gamma":
-            print(f"Method: Gamma regression with a log link for positive, skewed numbers, as R glm({formula}, "
-                  f'family = Gamma(link = "log")): each effect multiplies the average (dispersion '
+            print(f"Method: Gamma regression with a {model.get('link') or 'log'} link for positive, skewed numbers, "
+                  f'as R glm({formula}, family = Gamma(link = "{model.get("link") or "log"}")): each effect '
+                  f"{'multiplies the average' if not model.get('link') else 'adds on that scale'} (dispersion "
                   f"{_num(fit['dispersion'])}); t-tests as R summary(), Wald 95 % intervals as R confint.default().")
         elif kind == "quasipoisson":
             print(f"Method: quasi-Poisson regression, as R glm({formula}, family = quasipoisson{offset}): Poisson "
@@ -810,7 +842,7 @@ class ModelWords:
     # ------------------------------------------------------------------ explain
     @friendly
     def explain(self, column=None, using=None, outcome="numbers", grouped_by=None, empty_cells="leave out", seed=1,
-                time=None, out_of=None):
+                time=None, out_of=None, in_order=None, link=None):
         """Explain one column from several others with a model, and say how big each effect is.
 
         table.explain("marks", using=["hours", "breakfast"])   (with sdata.example("school"))
@@ -824,6 +856,13 @@ class ModelWords:
         time="years" with counts: rates, the count per unit of time (R offset = log(years)).
         out_of="tries" with outcome="yes or no": the column holds the number of yes out of that many
         tries (R glm(cbind(yes, tries - yes) ~ ..., family = binomial)).
+        outcome="ordered groups": ordered logistic regression (R MASS::polr()); give the order of
+        text groups, lowest first, with in_order=["low", "middle", "high"]. outcome="groups":
+        multinomial logistic regression, each group against the first (R nnet::multinom()).
+        outcome="shares": beta regression for shares between 0 and 1 (R betareg). outcome="counts
+        with many zeros": zero-inflated Poisson regression (R pscl::zeroinfl()). link= (experts):
+        "probit" or "cloglog" for yes or no, "identity" or "sqrt" for counts, "inverse" or
+        "identity" for positive numbers; the effects are then on that scale, not ratios.
         A text column in using= is a group column: each group is compared with the first group
         in sorted order (the baseline). "hours * breakfast" adds both columns and their
         interaction (does the effect of hours depend on breakfast?).
@@ -841,14 +880,64 @@ class ModelWords:
             step, column, using, outcome, grouped_by, empty_cells, time=time, out_of=out_of)
         names = [column] + variables + ([grouped_by] if grouped_by is not None else [])
         names += [v for v in (time, out_of) if v is not None]
+        self._check_link(step, outcome, link, grouped_by, empty_cells)
+        if outcome in ("ordered groups", "groups", "shares", "counts with many zeros"):
+            if grouped_by is not None or empty_cells != "leave out":
+                raise SimplydataError(f'outcome="{outcome}" cannot be used with grouped_by= or multiple imputation '
+                                      "yet.")
+            keep = ~np.any([missing[nm] for nm in names], axis=0)
+            _skipped_note(int((~keep).sum()), names)
+            return self._explain_more(step, column, outcome, terms, pieces, variables, raw, kinds, keep, in_order)
+        if in_order is not None:
+            raise SimplydataError('in_order= gives the order of the groups for outcome="ordered groups".')
         if empty_cells == "multiple imputation":
             return self._explain_imputed(step, column, outcome, terms, pieces, variables, raw, missing, kinds, seed)
         keep = ~np.any([missing[nm] for nm in names], axis=0)
         _skipped_note(int((~keep).sum()), names)
         model = self._fit_model(step, column, outcome, grouped_by, terms, variables, raw, kinds, keep, time=time,
-                                out_of=out_of)
+                                out_of=out_of, link=None if link in (None, LINKS.get(outcome, (None,))[0]) else link)
         coef, tests = self._report(model, pieces, grouped_by)
         return self._term_table(model, coef, tests)
+
+    @staticmethod
+    def _check_link(step, outcome, link, grouped_by, empty_cells):
+        if link is None:
+            return
+        allowed = LINKS.get(outcome)
+        if not allowed:
+            raise SimplydataError(f'link= works with outcome="yes or no", "counts" or "positive numbers", not '
+                                  f'"{outcome}".')
+        if link not in allowed:
+            raise SimplydataError(f'link= for outcome="{outcome}" is one of {_list_words(repr(a) for a in allowed)} '
+                                  f'("{allowed[0]}" is the default), not {link!r}.')
+        if link != allowed[0] and (grouped_by is not None or empty_cells != "leave out"):
+            raise SimplydataError("link= cannot be used with grouped_by= or multiple imputation yet.")
+
+    def _explain_more(self, step, column, outcome, terms, pieces, variables, raw, kinds, keep, in_order):
+        """Ordered groups, groups, shares, counts with many zeros (table/models_more.py)."""
+        from .models_more import explain_more, outcome_codes
+
+        n = int(keep.sum())
+        if n == 0:
+            raise SimplydataError(f"{step}() found no rows with a value in every column it needs.")
+        y, groups = outcome_codes(column, outcome, raw[column][keep], kinds[column], in_order)
+        data = {name: raw[name][keep] for name in variables}
+        levels = {}
+        for name in variables:
+            if kinds[name] == "group":
+                found = sorted(set(data[name].tolist()), key=_sort_key)
+                if len(found) < 2:
+                    raise SimplydataError(f'The group column "{name}" has only one group in the rows used, so it '
+                                          "cannot explain anything. Leave it out of using=.")
+                levels[name] = found
+        X, labels, owner, parts_of = _design(data, kinds, levels, terms)
+        if n <= X.shape[1]:
+            raise SimplydataError(f"{step}() needs more rows ({n}) than values to estimate ({X.shape[1]}).")
+        if np.linalg.matrix_rank(X) < X.shape[1]:
+            raise SimplydataError(self._rank_problem(X, labels))
+        model = dict(X=X, y=y, n=n, labels=labels, owner=owner, parts_of=parts_of, levels=levels, kinds=kinds,
+                     variables=variables, groups_of_outcome=groups)
+        return explain_more(self, step, column, outcome, pieces, model)
 
     # ------------------------------------------------------------------ multiple imputation
     def _explain_imputed(self, step, column, outcome, terms, pieces, variables, raw, missing, kinds, seed):
