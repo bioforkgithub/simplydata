@@ -88,7 +88,7 @@ GROUPS = [
                                  "table.compare_profiles"]),
     ("Survival", ["table.survival_over_time", "table.compare_survival", "table.explain_survival",
                   "survival_curves"]),
-    ("Signals and time series", ["table.spectrum_of", "nums.spectrum", "table.check_steady"]),
+    ("Signals and time series", ["table.spectrum_of", "nums.spectrum_of", "table.check_steady"]),
     ("Planning a study", ["sdata.how_many_needed", "sdata.chance_to_find"]),
     ("Combine and reshape", ["table.join_with", "table.add_rows_from", "table.turn_columns_into_rows",
                              "table.turn_rows_into_columns"]),
@@ -646,7 +646,7 @@ HELP_EXAMPLES = {
     "table.compare_profiles": _tx("meadow", 'table.compare_profiles(for_each="grazed")'),
     # signals and time series
     "table.spectrum_of": _tx("sensor", 'table.spectrum_of("signal", sorted_by="time")'),
-    "nums.spectrum": _nx("nums.spectrum(time_step=0.005)", values='sdata.example("sensor")["signal"]'),
+    "nums.spectrum_of": _nx("nums.spectrum_of(time_step=0.005)", values='sdata.example("sensor")["signal"]'),
     "table.check_steady": _tx("sensor", 'table.check_steady("signal", sorted_by="time")'),
     # survival
     "table.survival_over_time": _tx("trial", 'table.survival_over_time(time="days", event="died", for_each="treatment")'),
@@ -3553,7 +3553,7 @@ LESSONS = [
         ],
         notes=[
             "Frequencies are counted per unit of the sorted_by column: per second here. Without sorted_by= "
-            "they are per reading. For a list of numbers give time_step= (nums.spectrum(time_step=0.005)).",
+            "they are per reading. For a list of numbers give time_step= (nums.spectrum_of(time_step=0.005)).",
             "The powers add up to the variance, so each peak's share of the variance is easy to read. R's "
             "spec.pgram() gives half these powers (it spreads them over negative frequencies too).",
             "The readings must be evenly spaced and filled in. For uneven times use method=\"lomb-scargle\".",
@@ -3564,7 +3564,7 @@ LESSONS = [
         task=[
             'Which cycle is strongest in the "vibration" column? Is it the same as in "signal"?',
             "Look closely at the hum: show only the frequencies between 45 and 55.",
-            "Make Numbers from the signal and find its spectrum with nums.spectrum. Use time_step=0.005.",
+            "Make Numbers from the signal and find its spectrum with nums.spectrum_of. Use time_step=0.005.",
         ],
         solutions=[
             (_sx("""\
@@ -3582,10 +3582,10 @@ LESSONS = [
             (_sx("""\
                 import simplydata as sdata
                 nums = sdata.numbers(sdata.example("sensor")["signal"])
-                nums.spectrum(time_step=0.005)"""),
+                nums.spectrum_of(time_step=0.005)"""),
              "The same peaks as the table word: 5, 20 and 50 per unit of time."),
         ],
-        words=["table.spectrum_of", "nums.spectrum", "table.check_steady", "lines"],
+        words=["table.spectrum_of", "nums.spectrum_of", "table.check_steady", "lines"],
     ),
 ]
 

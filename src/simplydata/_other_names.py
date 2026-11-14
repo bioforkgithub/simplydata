@@ -197,7 +197,7 @@ _CHART = [
 # nums.<name> (numbers). Older ones (mean, sum, min ...) are in numbers/_base.py HINTS.
 _NUMBERS = [
     ('nums.fit_distribution("gamma")', "fit fitdistr fitdist"),
-    ("nums.spectrum(time_step=0.01)", "fft_power spectral_density"),
+    ("nums.spectrum_of(time_step=0.01)", "fft_power spectral_density"),
     ("nums.chart()", "plot hist"),
     ("nums.keep_random_numbers(3, seed=1)", "sample choice"),
     ("nums.count_each()", "value_counts tabulate"),

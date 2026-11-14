@@ -3068,7 +3068,7 @@ table.check_steady("signal", sorted_by="time", around="straight line")
 \printedoutput{output/lesson21_example3.txt}
 \begin{goodtoknow}
 \begin{itemize}
-  \item Frequencies are counted per unit of the \code{sorted\_\allowbreak{}by} column: per second here. Without \code{sorted\_\allowbreak{}by=} they are per reading. For a list of numbers give \code{time\_\allowbreak{}step=} (\code{nums.\allowbreak{}spectrum(time\_\allowbreak{}step=0.\allowbreak{}005)}).
+  \item Frequencies are counted per unit of the \code{sorted\_\allowbreak{}by} column: per second here. Without \code{sorted\_\allowbreak{}by=} they are per reading. For a list of numbers give \code{time\_\allowbreak{}step=} (\code{nums.\allowbreak{}spectrum\_\allowbreak{}of(time\_\allowbreak{}step=0.\allowbreak{}005)}).
   \item The powers add up to the variance, so each peak's share of the variance is easy to read. R's \code{spec.\allowbreak{}pgram()} gives half these powers (it spreads them over negative frequencies too).
   \item The readings must be evenly spaced and filled in. For uneven times use \code{method=\textquotedbl{}lomb-scargle\textquotedbl{}}.
   \item A recording can only show frequencies up to half its readings per second: 100 per second here.
@@ -3079,11 +3079,11 @@ table.check_steady("signal", sorted_by="time", around="straight line")
 \begin{enumerate}
   \item Which cycle is strongest in the \code{\textquotedbl{}vibration\textquotedbl{}} column? Is it the same as in \code{\textquotedbl{}signal\textquotedbl{}}?
   \item Look closely at the hum: show only the frequencies between 45 and 55.
-  \item Make Numbers from the signal and find its spectrum with \code{nums.\allowbreak{}spectrum}. Use \code{time\_\allowbreak{}step=0.\allowbreak{}005}.
+  \item Make Numbers from the signal and find its spectrum with \code{nums.\allowbreak{}spectrum\_\allowbreak{}of}. Use \code{time\_\allowbreak{}step=0.\allowbreak{}005}.
 \end{enumerate}
 Worked solutions: page~\pageref{solutions:21}, or type \code{sdata.\allowbreak{}lesson(21,\allowbreak{} solutions=True)}.
 \end{tryit}
-\par\noindent{\small\sffamily\textbf{Words in this lesson:} \hyperref[word:table.spectrum-of]{\code{table.\allowbreak{}spectrum\_\allowbreak{}of()}}, \hyperref[word:nums.spectrum]{\code{nums.\allowbreak{}spectrum()}}, \hyperref[word:table.check-steady]{\code{table.\allowbreak{}check\_\allowbreak{}steady()}}, \hyperref[word:lines]{\code{chart.\allowbreak{}lines()}}.\par}
+\par\noindent{\small\sffamily\textbf{Words in this lesson:} \hyperref[word:table.spectrum-of]{\code{table.\allowbreak{}spectrum\_\allowbreak{}of()}}, \hyperref[word:nums.spectrum-of]{\code{nums.\allowbreak{}spectrum\_\allowbreak{}of()}}, \hyperref[word:table.check-steady]{\code{table.\allowbreak{}check\_\allowbreak{}steady()}}, \hyperref[word:lines]{\code{chart.\allowbreak{}lines()}}.\par}
 
 \otherchapters
 
@@ -7468,7 +7468,7 @@ chart.save("survival_curves.png")
 Which repeating cycles (frequencies) a column holds over time, and how strong each is.
 
 \codeline{table.spectrum\_of(\textquotedbl{}signal\textquotedbl{}, sorted\_by=\textquotedbl{}time\textquotedbl{})} (with \code{sdata.\allowbreak{}example(\textquotedbl{}sensor\textquotedbl{})})\\
-\code{sorted\_\allowbreak{}by=} is the time column (numbers or dates); it gives the order and the time between readings (dates: per day, or per month, quarter or year for calendar steps). Without it the rows are taken in table order and frequencies are in cycles per reading. The readings must be evenly spaced and filled in, except with \code{method=\textquotedbl{}lomb-scargle\textquotedbl{}}, which is made for uneven times (empty cells are then left out). \code{method=} and \code{show=} as \code{nums.\allowbreak{}spectrum}: \code{\textquotedbl{}periodogram\textquotedbl{}} (SciPy; 2 x R \code{spec.\allowbreak{}pgram(x,\allowbreak{} taper = 0,\allowbreak{} detrend = FALSE,\allowbreak{} fast = FALSE)}\$spec except at the top frequency), \code{\textquotedbl{}welch\textquotedbl{}} (\code{window=} readings per piece) or \code{\textquotedbl{}lomb-scargle\textquotedbl{}} (R lomb::\code{lsp()} itself, needs simplydata[r] and R). \code{for\_\allowbreak{}each=} gives one spectrum per group. Gives back a table: frequency, repeats every (1 / frequency), power, share of the variance (\%). Prints the 3 strongest cycles.
+\code{sorted\_\allowbreak{}by=} is the time column (numbers or dates); it gives the order and the time between readings (dates: per day, or per month, quarter or year for calendar steps). Without it the rows are taken in table order and frequencies are in cycles per reading. The readings must be evenly spaced and filled in, except with \code{method=\textquotedbl{}lomb-scargle\textquotedbl{}}, which is made for uneven times (empty cells are then left out). \code{method=} and \code{show=} as \code{nums.\allowbreak{}spectrum\_\allowbreak{}of}: \code{\textquotedbl{}periodogram\textquotedbl{}} (SciPy; 2 x R \code{spec.\allowbreak{}pgram(x,\allowbreak{} taper = 0,\allowbreak{} detrend = FALSE,\allowbreak{} fast = FALSE)}\$spec except at the top frequency), \code{\textquotedbl{}welch\textquotedbl{}} (\code{window=} readings per piece) or \code{\textquotedbl{}lomb-scargle\textquotedbl{}} (R lomb::\code{lsp()} itself, needs simplydata[r] and R). \code{for\_\allowbreak{}each=} gives one spectrum per group. Gives back a table: frequency, repeats every (1 / frequency), power, share of the variance (\%). Prints the 3 strongest cycles.
 
 \wordfield{Options}{}\par\nopagebreak
 \begin{optiontable}
@@ -7489,10 +7489,10 @@ import simplydata as sdata
 table = sdata.table(sdata.example("sensor"))
 table.spectrum_of("signal", sorted_by="time")
 \end{lstlisting}
-\wordentry{nums.spectrum()}{word:nums.spectrum}
+\wordentry{nums.spectrum\_of()}{word:nums.spectrum-of}
 Which repeating cycles (frequencies) the numbers hold, and how strong each is.
 
-\codeline{nums.spectrum(time\_step=0.01)}\enspace (readings 0.01 seconds apart: frequencies per second)\\
+\codeline{nums.spectrum\_of(time\_step=0.01)}\enspace (readings 0.01 seconds apart: frequencies per second)\\
 \code{time\_\allowbreak{}step=} is the time between readings (\code{sampling\_\allowbreak{}rate=} or \code{fs=}, readings per unit of time, are accepted instead); without it the frequencies are in cycles per reading. \code{method=\textquotedbl{}periodogram\textquotedbl{}} (the default; SciPy periodogram, one-sided, scaled so that the powers times the frequency step add up to the variance: 2 x R \code{spec.\allowbreak{}pgram(x,\allowbreak{} taper = 0,\allowbreak{} detrend = FALSE,\allowbreak{} fast = FALSE)}\$spec, except at the top frequency, which R does not double), \code{\textquotedbl{}welch\textquotedbl{}} (the average periodogram of pieces of \code{window=} readings with half overlap and a \code{window\_\allowbreak{}shape=\textquotedbl{}hann\textquotedbl{}} window; less noisy, coarser) or \code{\textquotedbl{}lomb-scargle\textquotedbl{}} (for readings at uneven \code{times=}; R lomb::\code{lsp()} itself, needs simplydata[r] and R). \code{show=\textquotedbl{}power\textquotedbl{}}, \code{\textquotedbl{}decibels\textquotedbl{}} (10 x log10 of the power) or \code{\textquotedbl{}amplitude\textquotedbl{}} (the size of the cycle in the numbers' own units). \code{between=[low,\allowbreak{} high]} keeps that frequency range in the table. Gives back a table: frequency, repeats every (1 / frequency), the power and the share of the variance (\%) at each frequency. Prints the 3 strongest cycles.
 
 \wordfield{Options}{}\par\nopagebreak
@@ -7513,7 +7513,7 @@ Which repeating cycles (frequencies) the numbers hold, and how strong each is.
 \begin{lstlisting}[style=py]
 import simplydata as sdata
 nums = sdata.numbers(sdata.example("sensor")["signal"])
-nums.spectrum(time_step=0.005)
+nums.spectrum_of(time_step=0.005)
 \end{lstlisting}
 \wordentry{table.check\_steady()}{word:table.check-steady}
 Does a column stay steady over time, or does it wander? (ADF and KPSS tests, as R tseries)
@@ -9889,11 +9889,11 @@ hum.show()
 \end{lstlisting}
 \printedoutput{output/solution21_task2.txt}
 \solutionanswer{The row at 50 stands far above the others: the hum is one sharp frequency.}
-\solutiontask{3}{Make Numbers from the signal and find its spectrum with \code{nums.\allowbreak{}spectrum}. Use \code{time\_\allowbreak{}step=0.\allowbreak{}005}.}
+\solutiontask{3}{Make Numbers from the signal and find its spectrum with \code{nums.\allowbreak{}spectrum\_\allowbreak{}of}. Use \code{time\_\allowbreak{}step=0.\allowbreak{}005}.}
 \begin{lstlisting}[style=py]
 import simplydata as sdata
 nums = sdata.numbers(sdata.example("sensor")["signal"])
-nums.spectrum(time_step=0.005)
+nums.spectrum_of(time_step=0.005)
 \end{lstlisting}
 \printedoutput{output/solution21_task3.txt}
 \solutionanswer{The same peaks as the table word: 5, 20 and 50 per unit of time.}
@@ -10158,7 +10158,7 @@ Every word and option, A to Z, with the page of its dictionary entry. Other spel
 \indexline{word:sdata.solve}{sdata.solve()}
 \indexline{word:nums.sort}{nums.sort()}
 \indexline{word:table.sort-by}{table.sort\_by()}
-\indexline{word:nums.spectrum}{nums.spectrum()}
+\indexline{word:nums.spectrum-of}{nums.spectrum\_of()}
 \indexline{word:table.spectrum-of}{table.spectrum\_of()}
 \indexline{word:table.split-column}{table.split\_column()}
 \indexline{word:nums.square-root}{nums.square\_root()}

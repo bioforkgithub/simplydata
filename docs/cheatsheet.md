@@ -377,7 +377,7 @@ and `a`, `b` in `sdata.side_by_side(a, b)` are charts you made first.
 | Word | Example | Table | What it does |
 |---|---|---|---|
 | `spectrum_of` | `table.spectrum_of("signal", sorted_by="time")` | sensor | Which repeating cycles (frequencies) a column holds over time, and how strong each is. |
-| `spectrum` | `nums.spectrum(time_step=0.01)` | sensor | Which repeating cycles (frequencies) the numbers hold, and how strong each is. |
+| `spectrum_of` | `nums.spectrum_of(time_step=0.01)` | sensor | Which repeating cycles (frequencies) the numbers hold, and how strong each is. |
 | `check_steady` | `table.check_steady("signal", sorted_by="time")` | sensor | Does a column stay steady over time, or does it wander? (ADF and KPSS tests, as R tseries) |
 
 ## Planning a study

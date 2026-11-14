@@ -45,7 +45,7 @@ Install once: `pip install "simplydata[r]"`, R from https://cran.r-project.org, 
 
 ### Signals and time series (first words)
 
-- `table.spectrum_of("signal", sorted_by="time")` and `nums.spectrum(time_step=0.01)`: which repeating
+- `table.spectrum_of("signal", sorted_by="time")` and `nums.spectrum_of(time_step=0.01)`: which repeating
   cycles a column holds and how strong each is. method="periodogram" (SciPy; 2 x R `spec.pgram` with
   taper 0, so the powers add up to the variance), "welch" (window= readings per piece) or
   "lomb-scargle" for uneven times (R `lomb::lsp` itself, needs `simplydata[r]`). show="power",

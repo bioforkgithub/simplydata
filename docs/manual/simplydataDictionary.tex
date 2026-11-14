@@ -3,7 +3,7 @@
 % code and the page numbers of the compiled manual. Do not edit it by hand: run
 %     python docs/make_manual.py --no-run
 % ---------------------------------------------------------------------------------------------
-% Page numbers from simplydata_manual.tex c8da2f441f001481
+% Page numbers from simplydata_manual.tex b7ca5e37b831bbbe
 
 \documentclass[10pt,a4paper]{article}
 % no dates or random IDs in the PDF, so it only changes when the dictionary changes
@@ -493,7 +493,7 @@ A family is learned once and used again and again: the start or the end of a wor
 \eg{\code{table.\allowbreak{}check\_\allowbreak{}steady(\textquotedbl{}signal\textquotedbl{},\allowbreak{} sorted\_\allowbreak{}by=\textquotedbl{}time\textquotedbl{})} \practice{sensor}}
 \field{Options}{\code{column=}, \code{sorted\_\allowbreak{}by=}, \code{around=}, \code{method=}, \code{for\_\allowbreak{}each=}}
 \field{Other tools}{\code{adf\_\allowbreak{}test}, \code{adfuller}, \code{compare\_\allowbreak{}to\_\allowbreak{}steady}, \code{is\_\allowbreak{}stationary}, \code{kpss}, \code{kpss\_\allowbreak{}test}, \code{stationarity}, \code{unit\_\allowbreak{}root}}
-\field{See also}{\hyperref[dict:spectrum]{\code{spectrum}}, \hyperref[dict:spectrum-of]{\code{spectrum\_\allowbreak{}of}}}
+\field{See also}{\hyperref[dict:spectrum-of]{\code{spectrum\_\allowbreak{}of}}}
 \where{Manual \manualpage{word:table.check-steady}{213}{section*.244}; lesson 21 (\manualpage{lesson:21}{109}{chapter.II.21})}
 \seeword{color}{\hyperref[dict:colour]{\code{colour}}}
 \seeword{color\_scale}{\hyperref[dict:colour-scale]{\code{colour\_\allowbreak{}scale}}}
@@ -2021,22 +2021,21 @@ A family is learned once and used again and again: the start or the end of a wor
 \field{Other tools}{\code{arrange}, \code{flip}, \code{flipud}, \code{order}, \code{reverse}, \code{sort}, \code{sort\_\allowbreak{}values}}
 \field{See also}{\hyperref[dict:add-column]{\code{add\_\allowbreak{}column}}, \hyperref[dict:add-group-column]{\code{add\_\allowbreak{}group\_\allowbreak{}column}}, \hyperref[dict:add-rank-column]{\code{add\_\allowbreak{}rank\_\allowbreak{}column}}}
 \where{Manual \manualpage{word:table.sort-by}{173}{section*.157}; lesson 10 (\manualpage{lesson:10}{52}{chapter.II.10})}
-\headword{spectrum}{dict:spectrum}
-\sense{nums}{\code{nums.\allowbreak{}spectrum()}}
-\means{Which repeating cycles (frequencies) the numbers hold, and how strong each is.}
-\eg{\code{nums.\allowbreak{}spectrum(time\_\allowbreak{}step=0.\allowbreak{}01)} \practice{sensor}}
-\field{Options}{\code{time\_\allowbreak{}step=}, \code{method=}, \code{window=}, \code{window\_\allowbreak{}shape=}, \code{show=}, \code{between=}, \code{times=}, \code{sampling\_\allowbreak{}rate=} and 1 more}
-\field{Other tools}{\code{fft\_\allowbreak{}power}, \code{spectral\_\allowbreak{}density}}
-\field{See also}{\hyperref[dict:spectrum-of]{\code{spectrum\_\allowbreak{}of}}, \hyperref[dict:check-steady]{\code{check\_\allowbreak{}steady}}}
-\where{Manual \manualpage{word:nums.spectrum}{212}{section*.243}; lesson 21 (\manualpage{lesson:21}{109}{chapter.II.21})}
 \headword{spectrum\_of}{dict:spectrum-of}
 \sense{table}{\code{table.\allowbreak{}spectrum\_\allowbreak{}of()}}
 \means{Which repeating cycles (frequencies) a column holds over time, and how strong each is.}
 \eg{\code{table.\allowbreak{}spectrum\_\allowbreak{}of(\textquotedbl{}signal\textquotedbl{},\allowbreak{} sorted\_\allowbreak{}by=\textquotedbl{}time\textquotedbl{})} \practice{sensor}}
 \field{Options}{\code{column=}, \code{sorted\_\allowbreak{}by=}, \code{method=}, \code{window=}, \code{window\_\allowbreak{}shape=}, \code{show=}, \code{between=}, \code{for\_\allowbreak{}each=}}
 \field{Other tools}{\code{cycles\_\allowbreak{}of}, \code{frequencies\_\allowbreak{}of}, \code{lombscargle}, \code{lsp}, \code{periodogram}, \code{power\_\allowbreak{}spectrum}, \code{psd}, \code{spec\_\allowbreak{}pgram}, \code{welch}}
-\field{See also}{\hyperref[dict:spectrum]{\code{spectrum}}, \hyperref[dict:check-steady]{\code{check\_\allowbreak{}steady}}}
+\field{See also}{\hyperref[dict:check-steady]{\code{check\_\allowbreak{}steady}}}
 \where{Manual \manualpage{word:table.spectrum-of}{211}{section*.242}; lesson 21 (\manualpage{lesson:21}{109}{chapter.II.21})}
+\sense{nums}{\code{nums.\allowbreak{}spectrum\_\allowbreak{}of()}}
+\means{Which repeating cycles (frequencies) the numbers hold, and how strong each is.}
+\eg{\code{nums.\allowbreak{}spectrum\_\allowbreak{}of(time\_\allowbreak{}step=0.\allowbreak{}01)} \practice{sensor}}
+\field{Options}{\code{time\_\allowbreak{}step=}, \code{method=}, \code{window=}, \code{window\_\allowbreak{}shape=}, \code{show=}, \code{between=}, \code{times=}, \code{sampling\_\allowbreak{}rate=} and 1 more}
+\field{Other tools}{\code{fft\_\allowbreak{}power}, \code{spectral\_\allowbreak{}density}}
+\field{See also}{\hyperref[dict:check-steady]{\code{check\_\allowbreak{}steady}}}
+\where{Manual \manualpage{word:nums.spectrum-of}{212}{section*.243}; lesson 21 (\manualpage{lesson:21}{109}{chapter.II.21})}
 \headword{split\_column}{dict:split-column}
 \sense{table}{\code{table.\allowbreak{}split\_\allowbreak{}column()}}
 \means{Split a text column into several columns at a separator, such as a comma or a space.}
@@ -2420,7 +2419,7 @@ Names from pandas, Polars, R, NumPy, SciPy, matplotlib and seaborn, and everyday
 \othername{facet\_wrap}{\hyperref[dict:one-chart-per]{\code{chart.\allowbreak{}one\_\allowbreak{}chart\_\allowbreak{}per()}}, \manualpage{word:one-chart-per}{152}{section*.103}}
 \othername{FacetGrid}{\hyperref[dict:one-chart-per]{\code{chart.\allowbreak{}one\_\allowbreak{}chart\_\allowbreak{}per()}}, \manualpage{word:one-chart-per}{152}{section*.103}}
 \othername{fdr}{\hyperref[dict:add-adjusted-p-value-column]{\code{table.\allowbreak{}add\_\allowbreak{}adjusted\_\allowbreak{}p\_\allowbreak{}value\_\allowbreak{}column()}}, \manualpage{word:table.add-adjusted-p-value-column}{190}{section*.192}}
-\othername{fft\_power}{\hyperref[dict:spectrum]{\code{nums.\allowbreak{}spectrum()}}, \manualpage{word:nums.spectrum}{212}{section*.243}}
+\othername{fft\_power}{\hyperref[dict:spectrum-of]{\code{nums.\allowbreak{}spectrum\_\allowbreak{}of()}}, \manualpage{word:nums.spectrum-of}{212}{section*.243}}
 \othername{figsize}{\hyperref[dict:size]{\code{chart.\allowbreak{}size()}}, \manualpage{word:size}{146}{section*.87}}
 \othername{figure}{\hyperref[dict:chart]{\code{sdata.\allowbreak{}chart()}}, \manualpage{word:sdata.chart}{115}{section*.15}; \hyperref[dict:lines]{\code{chart.\allowbreak{}lines()}}, \manualpage{word:lines}{117}{section*.21}}
 \othername{fill\_between}{\hyperref[dict:band]{\code{chart.\allowbreak{}band()}}, \manualpage{word:band}{124}{section*.33}}
@@ -2686,7 +2685,7 @@ Names from pandas, Polars, R, NumPy, SciPy, matplotlib and seaborn, and everyday
 \othername{sort\_values}{\hyperref[dict:sort-by]{\code{table.\allowbreak{}sort\_\allowbreak{}by()}}, \manualpage{word:table.sort-by}{173}{section*.157}}
 \othername{spearmanr}{\hyperref[dict:correlation-between]{\code{table.\allowbreak{}correlation\_\allowbreak{}between()}}, \manualpage{word:table.correlation-between}{186}{section*.184}}
 \othername{spec\_pgram}{\hyperref[dict:spectrum-of]{\code{table.\allowbreak{}spectrum\_\allowbreak{}of()}}, \manualpage{word:table.spectrum-of}{211}{section*.242}}
-\othername{spectral\_density}{\hyperref[dict:spectrum]{\code{nums.\allowbreak{}spectrum()}}, \manualpage{word:nums.spectrum}{212}{section*.243}}
+\othername{spectral\_density}{\hyperref[dict:spectrum-of]{\code{nums.\allowbreak{}spectrum\_\allowbreak{}of()}}, \manualpage{word:nums.spectrum-of}{212}{section*.243}}
 \othername{spline}{\hyperref[dict:values-at]{\code{table.\allowbreak{}values\_\allowbreak{}at()}}, \manualpage{word:table.values-at}{196}{section*.205}; \hyperref[dict:fill-empty-cells]{\code{table.\allowbreak{}fill\_\allowbreak{}empty\_\allowbreak{}cells()}}, \manualpage{word:table.fill-empty-cells}{168}{section*.144}}
 \othername{splinefun}{\hyperref[dict:values-at]{\code{table.\allowbreak{}values\_\allowbreak{}at()}}, \manualpage{word:table.values-at}{196}{section*.205}; \hyperref[dict:fill-empty-cells]{\code{table.\allowbreak{}fill\_\allowbreak{}empty\_\allowbreak{}cells()}}, \manualpage{word:table.fill-empty-cells}{168}{section*.144}}
 \othername{spread}{\hyperref[dict:turn-rows-into-columns]{\code{table.\allowbreak{}turn\_\allowbreak{}rows\_\allowbreak{}into\_\allowbreak{}columns()}}, \manualpage{word:table.turn-rows-into-columns}{216}{section*.252}}
