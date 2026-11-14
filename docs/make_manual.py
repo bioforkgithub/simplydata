@@ -178,6 +178,9 @@ UNDERNEATH = {
     "table.fit_distribution": "SciPy (scipy.stats and optimize, maximum likelihood; closed forms where they exist)",
     "table.compare_distributions": "SciPy (scipy.stats, maximum likelihood; Anderson-Darling, Kolmogorov-Smirnov and "
                                    "Cramer-von Mises statistics)",
+    "nums.spectrum": "SciPy (signal.periodogram, signal.welch); R lomb::lsp for uneven times (simplydata[r])",
+    "table.spectrum_of": "SciPy (signal.periodogram, signal.welch); R lomb::lsp for uneven times (simplydata[r])",
+    "table.check_steady": "R (tseries::adf.test and kpss.test, through rpy2: simplydata[r])",
     "nums.fit_distribution": "SciPy (scipy.stats and optimize, as table.fit_distribution)",
     # models
     "table.explain": "NumPy (least squares, and iteratively reweighted least squares as R glm); "

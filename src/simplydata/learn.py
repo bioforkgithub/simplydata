@@ -88,6 +88,7 @@ GROUPS = [
                                  "table.compare_profiles"]),
     ("Survival", ["table.survival_over_time", "table.compare_survival", "table.explain_survival",
                   "survival_curves"]),
+    ("Signals and time series", ["table.spectrum_of", "nums.spectrum", "table.check_steady"]),
     ("Planning a study", ["sdata.how_many_needed", "sdata.chance_to_find"]),
     ("Combine and reshape", ["table.join_with", "table.add_rows_from", "table.turn_columns_into_rows",
                              "table.turn_rows_into_columns"]),
@@ -183,11 +184,12 @@ EXTRA_NOTES = {
 
 
 
-def needs_r_text(what: str) -> str:
+def needs_r_text(what: str, packages=("vegan", "survival", "mice")) -> str:
     """The "Needs R" box of a lesson or day: what needs R, and how to get it, in plain words."""
+    listed = ", ".join(f'"{p}"' for p in packages)
     return (f"{what} run R's own code, the same code R users run. Install it once: "
             'pip install "simplydata[r]", then R from https://cran.r-project.org, then in R: '
-            'install.packages(c("vegan", "survival", "mice")). Without R these words print a message '
+            f"install.packages(c({listed})). Without R these words print a message "
             "that says what to install.")
 
 
@@ -642,6 +644,10 @@ HELP_EXAMPLES = {
         chart.dots(x="NMDS1", y="NMDS2", colour="grazed")
         chart.save("meadow_nmds.png")"""),
     "table.compare_profiles": _tx("meadow", 'table.compare_profiles(for_each="grazed")'),
+    # signals and time series
+    "table.spectrum_of": _tx("sensor", 'table.spectrum_of("signal", sorted_by="time")'),
+    "nums.spectrum": _nx("nums.spectrum(time_step=0.005)", values='sdata.example("sensor")["signal"]'),
+    "table.check_steady": _tx("sensor", 'table.check_steady("signal", sorted_by="time")'),
     # survival
     "table.survival_over_time": _tx("trial", 'table.survival_over_time(time="days", event="died", for_each="treatment")'),
     "table.compare_survival": _tx("trial", 'table.compare_survival(time="days", event="died", for_each="treatment")'),
@@ -3505,6 +3511,82 @@ LESSONS = [
                "table.compare_distributions", "table.fit_distribution", "fit_distribution", "table.values_at",
                "table.map_of", "curve"],
     ),
+    dict(
+        title="Signals and time series: cycles, and steady or not",
+        learn=[
+            "how to find the repeating cycles in a recording, and how strong each is (the spectrum)",
+            "how a smoother spectrum trades detail for less noise (Welch's method)",
+            "how to check whether a series stays steady over time or wanders",
+        ],
+        needs_r=needs_r_text("check_steady() and its two tests", packages=("tseries",)),
+        parts=[
+            ("A sensor gives 200 readings a second for 5 seconds. Which cycles does its signal hold? The "
+             "spectrum splits a recording into its frequencies, like a prism splits light into colours.", [
+                ("import simplydata as sdata", "Load simplydata."),
+                ('table = sdata.table(sdata.example("sensor"))', "Five seconds of a made-up sensor: time in "
+                                                                 "seconds, signal and vibration."),
+                ('spectrum = table.spectrum_of("signal", sorted_by="time")',
+                 "The strongest cycle has frequency 5 per second (it repeats every 0.2 seconds) and holds 68 % "
+                 "of the variance; next come 20 per second (11 %) and a 50-per-second hum (4 %)."),
+                ("chart = spectrum.chart()", "Start a chart of the spectrum table."),
+                ('chart.lines(x="frequency", y="power")', "Power against frequency: three sharp peaks."),
+                ('chart.save("lesson21_spectrum.png")', "Save it."),
+            ]),
+            ("The plain spectrum (the periodogram) is noisy: every frequency is measured once. Welch's method "
+             "cuts the recording into overlapping pieces and averages their spectra.", [
+                ("import simplydata as sdata", "Load simplydata."),
+                ('table = sdata.table(sdata.example("sensor"))', "The sensor table."),
+                ('table.spectrum_of("signal", sorted_by="time", method="welch", window=200)',
+                 "Pieces of 200 readings: a smoother, coarser spectrum. The same three cycles stand out: "
+                 "5, 20 and 50 per second."),
+            ]),
+            ("Many methods for time series assume the series is steady (stationary): the same average and "
+             "spread all the way through. check_steady runs two tests that start from opposite assumptions.", [
+                ("import simplydata as sdata", "Load simplydata."),
+                ('table = sdata.table(sdata.example("sensor"))', "The sensor table."),
+                ('table.check_steady("signal", sorted_by="time")',
+                 "Both tests agree: the signal stays around a steady level (ADF p below 0.01, KPSS p = 0.095)."),
+                ('table.check_steady("signal", sorted_by="time", around="straight line")',
+                 "Around a straight line it is steady too (KPSS p above 0.1): the slow drift is a straight "
+                 "line, and around it the signal is steady."),
+            ]),
+        ],
+        notes=[
+            "Frequencies are counted per unit of the sorted_by column: per second here. Without sorted_by= "
+            "they are per reading. For a list of numbers give time_step= (nums.spectrum(time_step=0.005)).",
+            "The powers add up to the variance, so each peak's share of the variance is easy to read. R's "
+            "spec.pgram() gives half these powers (it spreads them over negative frequencies too).",
+            "The readings must be evenly spaced and filled in. For uneven times use method=\"lomb-scargle\".",
+            "A recording can only show frequencies up to half its readings per second: 100 per second here.",
+            "ADF starts from \"it wanders\" (a small p-value says steady); KPSS starts from \"steady\" (a small "
+            "p-value says it wanders). When they disagree, the series is close to the edge: look at a chart.",
+        ],
+        task=[
+            'Which cycle is strongest in the "vibration" column? Is it the same as in "signal"?',
+            "Look closely at the hum: show only the frequencies between 45 and 55.",
+            "Make Numbers from the signal and find its spectrum with nums.spectrum. Use time_step=0.005.",
+        ],
+        solutions=[
+            (_sx("""\
+                import simplydata as sdata
+                table = sdata.table(sdata.example("sensor"))
+                table.spectrum_of("vibration", sorted_by="time")"""),
+             "The same: 5 per second (65 % of the variance), then 20 per second and the 50-per-second hum. "
+             "The vibration follows the signal, a little later."),
+            (_sx("""\
+                import simplydata as sdata
+                table = sdata.table(sdata.example("sensor"))
+                hum = table.spectrum_of("signal", sorted_by="time", between=[45, 55])
+                hum.show()"""),
+             "The row at 50 stands far above the others: the hum is one sharp frequency."),
+            (_sx("""\
+                import simplydata as sdata
+                nums = sdata.numbers(sdata.example("sensor")["signal"])
+                nums.spectrum(time_step=0.005)"""),
+             "The same peaks as the table word: 5, 20 and 50 per unit of time."),
+        ],
+        words=["table.spectrum_of", "nums.spectrum", "table.check_steady", "lines"],
+    ),
 ]
 
 def _wrap(text: str, indent: str = "", width: int = WIDTH) -> str:
@@ -3520,8 +3602,9 @@ def _list_lessons() -> None:
     print(f"Learn simplydata in one day: {len(LESSONS)} lessons of about 30 minutes.")
     print("Lessons 1 to 8 teach charts, lessons 9 to 12 teach tables, lesson 13 teaches numbers,")
     print("lesson 14 teaches statistical tests and lesson 15 puts it all together, from a question")
-    print("to a figure. Lessons 16 to 20 go further: models, patterns across many columns,")
-    print("survival and planning a study, fitting curves and finding answers, and distributions.\n")
+    print("to a figure. Lessons 16 to 21 go further: models, patterns across many columns,")
+    print("survival and planning a study, fitting curves and finding answers, distributions, and")
+    print("signals and time series.\n")
     for i, les in enumerate(LESSONS, start=1):
         print(f"  sdata.lesson({i}){' ' * (5 - len(str(i)))}{les['title']}")
     print("\nStart with sdata.lesson(1). Each lesson ends with a small task to try yourself.")

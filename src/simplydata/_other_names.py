@@ -138,6 +138,10 @@ _TABLE = [
     ('table.distances_between_rows(measure="bray-curtis")', "pdist vegdist"),
     ('table.add_nmds()', "metaMDS nmds"),
     ('table.compare_profiles(for_each="grazed")', "adonis adonis2 permanova"),
+    ('table.spectrum_of("signal", sorted_by="time")',
+     "periodogram welch psd spec_pgram lombscargle lsp power_spectrum frequencies_of cycles_of"),
+    ('table.check_steady("signal", sorted_by="time")',
+     "adfuller adf_test kpss kpss_test unit_root stationarity is_stationary compare_to_steady"),
 ]
 
 # chart.<name>
@@ -193,6 +197,7 @@ _CHART = [
 # nums.<name> (numbers). Older ones (mean, sum, min ...) are in numbers/_base.py HINTS.
 _NUMBERS = [
     ('nums.fit_distribution("gamma")', "fit fitdistr fitdist"),
+    ("nums.spectrum(time_step=0.01)", "fft_power spectral_density"),
     ("nums.chart()", "plot hist"),
     ("nums.keep_random_numbers(3, seed=1)", "sample choice"),
     ("nums.count_each()", "value_counts tabulate"),

@@ -16,6 +16,10 @@ Example tables you can use (all made up, for practice):
       Population of four made-up countries, every two years from 2000 to 2024.
       Columns: year, country, population, forest
 
+  sdata.example("sensor")
+      Five seconds of a made-up sensor, 200 readings per second: cycles, a hum, a drift, noise and spikes.
+      Columns: time, signal, vibration
+
   sdata.example("shop")
       Daily sales of two made-up shops from January to March 2026. Some cells are empty.
       Columns: date, shop, sales, customers
@@ -32,9 +36,5 @@ Example tables you can use (all made up, for practice):
       120 made-up patients in a trial of a new medicine, followed for up to 3 years.
       Columns: patient, treatment, age, days, died
 
-  sdata.example("island")
-      A map of a made-up island with two hills, on a 15 x 15 grid.
-      Columns: east, north, height
 
-
-... (56 more lines)
+... (60 more lines)

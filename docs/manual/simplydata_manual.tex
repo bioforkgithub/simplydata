@@ -255,7 +255,7 @@ can write it up in a report or a paper.
 
 \section*{How this manual is built}
 \begin{description}[style=nextline,leftmargin=1.2em]
-  \item[{\hyperref[part:lessons]{Part II: Lessons}}] Twenty short lessons that teach the whole
+  \item[{\hyperref[part:lessons]{Part II: Lessons}}] Twenty-one short lessons that teach the whole
     of simplydata in a day. Each lesson shows code you can run, says what every line does, shows
     the real chart and output it makes, and ends with tasks to try yourself.
   \item[{\hyperref[part:dictionary]{Part III: Dictionary of words}}] Every word, with what it does,
@@ -404,6 +404,15 @@ year & 2000, 2002 ... 2024\\
 country & Applia, Bananaland, Cherria or Dateland\\
 population & people, in millions\\
 forest & how much of the land is forest, in \%\\
+\bottomrule\end{tabularx}\end{center}
+\section*{sensor}
+Five seconds of a made-up sensor, 200 readings per second: cycles, a hum, a drift, noise and spikes. \code{sdata.\allowbreak{}example(\textquotedbl{}sensor\textquotedbl{})}
+\begin{center}\small
+\begin{tabularx}{\textwidth}{@{}>{\ttfamily}l>{\raggedright\arraybackslash}X@{}}
+\toprule \textrm{\textbf{Column}} & \textbf{What it holds}\\ \midrule
+time & seconds from 0 to 4.995, one reading every 0.005 s\\
+signal & the reading: a 5-per-second and a 20-per-second cycle, a 50-per-second hum, a slow drift, noise and three spikes\\
+vibration & a second sensor: the signal 0.03 s later at half size, plus its own noise\\
 \bottomrule\end{tabularx}\end{center}
 \section*{shop}
 Daily sales of two made-up shops from January to March 2026. Some cells are empty. \code{sdata.\allowbreak{}example(\textquotedbl{}shop\textquotedbl{})}
@@ -2993,6 +3002,88 @@ chart.save("lesson20_map.png")
 Worked solutions: page~\pageref{solutions:20}, or type \code{sdata.\allowbreak{}lesson(20,\allowbreak{} solutions=True)}.
 \end{tryit}
 \par\noindent{\small\sffamily\textbf{Words in this lesson:} \hyperref[word:sdata.distribution]{\code{sdata.\allowbreak{}distribution()}}, \hyperref[word:dist.chance]{\code{dist.\allowbreak{}chance()}}, \hyperref[word:dist.percentile]{\code{dist.\allowbreak{}percentile()}}, \hyperref[word:dist.cut-off]{\code{dist.\allowbreak{}cut\_\allowbreak{}off()}}, \hyperref[word:dist.chart]{\code{dist.\allowbreak{}chart()}}, \hyperref[word:table.compare-distributions]{\code{table.\allowbreak{}compare\_\allowbreak{}distributions()}}, \hyperref[word:table.fit-distribution]{\code{table.\allowbreak{}fit\_\allowbreak{}distribution()}}, \hyperref[word:fit-distribution]{\code{chart.\allowbreak{}fit\_\allowbreak{}distribution()}}, \hyperref[word:table.values-at]{\code{table.\allowbreak{}values\_\allowbreak{}at()}}, \hyperref[word:table.map-of]{\code{table.\allowbreak{}map\_\allowbreak{}of()}}, \hyperref[word:curve]{\code{chart.\allowbreak{}curve()}}.\par}
+
+\chapter{Signals and time series: cycles, and steady or not}\label{lesson:21}
+\begin{learnbox}
+\begin{itemize}
+  \item how to find the repeating cycles in a recording, and how strong each is (the spectrum)
+  \item how a smoother spectrum trades detail for less noise (Welch's method)
+  \item how to check whether a series stays steady over time or wanders
+\end{itemize}
+\end{learnbox}
+\begin{needsr}\code{check\_\allowbreak{}steady()} and its two tests run R's own code, the same code R users run. Install it once: pip install \code{\textquotedbl{}simplydata[r]\textquotedbl{}}, then R from https://cran.r-project.org, then in R: \code{install.\allowbreak{}packages(c(\textquotedbl{}tseries\textquotedbl{}))}. Without R these words print a message that says what to install.\end{needsr}
+\section*{Example 1}
+A sensor gives 200 readings a second for 5 seconds. Which cycles does its signal hold? The spectrum splits a recording into its frequencies, like a prism splits light into colours.
+\begin{lstlisting}[style=py]
+import simplydata as sdata
+table = sdata.table(sdata.example("sensor"))
+spectrum = table.spectrum_of("signal", sorted_by="time")
+chart = spectrum.chart()
+chart.lines(x="frequency", y="power")
+chart.save("lesson21_spectrum.png")
+\end{lstlisting}
+\whateachline
+\begin{lineexplain}
+  \item[1] Load simplydata.
+  \item[2] Five seconds of a made-up sensor: time in seconds, signal and vibration.
+  \item[3] The strongest cycle has frequency 5 per second (it repeats every 0.2 seconds) and holds 68 \% of the variance; next come 20 per second (11 \%) and a 50-per-second hum (4 \%).
+  \item[4] Start a chart of the spectrum table.
+  \item[5] Power against frequency: three sharp peaks.
+  \item[6] Save it.
+\end{lineexplain}
+\printedoutput{output/lesson21_example1.txt}
+\begin{center}\begin{minipage}{\linewidth}\centering
+\includegraphics[width=0.72\textwidth,height=0.36\textheight,keepaspectratio]{figures/lesson21_example1_lesson21_spectrum.pdf}
+\captionof{figure}{Lesson 21, example 1: \code{lesson21\_\allowbreak{}spectrum.\allowbreak{}png}.}
+\end{minipage}\end{center}
+\section*{Example 2}
+The plain spectrum (the periodogram) is noisy: every frequency is measured once. Welch's method cuts the recording into overlapping pieces and averages their spectra.
+\begin{lstlisting}[style=py]
+import simplydata as sdata
+table = sdata.table(sdata.example("sensor"))
+table.spectrum_of("signal", sorted_by="time", method="welch", window=200)
+\end{lstlisting}
+\whateachline
+\begin{lineexplain}
+  \item[1] Load simplydata.
+  \item[2] The sensor table.
+  \item[3] Pieces of 200 readings: a smoother, coarser spectrum. The same three cycles stand out: 5, 20 and 50 per second.
+\end{lineexplain}
+\printedoutput{output/lesson21_example2.txt}
+\section*{Example 3}
+Many methods for time series assume the series is steady (stationary): the same average and spread all the way through. \code{check\_\allowbreak{}steady} runs two tests that start from opposite assumptions.
+\begin{lstlisting}[style=py]
+import simplydata as sdata
+table = sdata.table(sdata.example("sensor"))
+table.check_steady("signal", sorted_by="time")
+table.check_steady("signal", sorted_by="time", around="straight line")
+\end{lstlisting}
+\whateachline
+\begin{lineexplain}
+  \item[1] Load simplydata.
+  \item[2] The sensor table.
+  \item[3] Both tests agree: the signal stays around a steady level (ADF p below 0.01, KPSS p = 0.095).
+  \item[4] Around a straight line it is steady too (KPSS p above 0.1): the slow drift is a straight line, and around it the signal is steady.
+\end{lineexplain}
+\printedoutput{output/lesson21_example3.txt}
+\begin{goodtoknow}
+\begin{itemize}
+  \item Frequencies are counted per unit of the \code{sorted\_\allowbreak{}by} column: per second here. Without \code{sorted\_\allowbreak{}by=} they are per reading. For a list of numbers give \code{time\_\allowbreak{}step=} (\code{nums.\allowbreak{}spectrum(time\_\allowbreak{}step=0.\allowbreak{}005)}).
+  \item The powers add up to the variance, so each peak's share of the variance is easy to read. R's \code{spec.\allowbreak{}pgram()} gives half these powers (it spreads them over negative frequencies too).
+  \item The readings must be evenly spaced and filled in. For uneven times use \code{method=\textquotedbl{}lomb-scargle\textquotedbl{}}.
+  \item A recording can only show frequencies up to half its readings per second: 100 per second here.
+  \item ADF starts from \code{\textquotedbl{}it wanders\textquotedbl{}} (a small p-value says steady); KPSS starts from \code{\textquotedbl{}steady\textquotedbl{}} (a small p-value says it wanders). When they disagree, the series is close to the edge: look at a chart.
+\end{itemize}
+\end{goodtoknow}
+\begin{tryit}
+\begin{enumerate}
+  \item Which cycle is strongest in the \code{\textquotedbl{}vibration\textquotedbl{}} column? Is it the same as in \code{\textquotedbl{}signal\textquotedbl{}}?
+  \item Look closely at the hum: show only the frequencies between 45 and 55.
+  \item Make Numbers from the signal and find its spectrum with \code{nums.\allowbreak{}spectrum}. Use \code{time\_\allowbreak{}step=0.\allowbreak{}005}.
+\end{enumerate}
+Worked solutions: page~\pageref{solutions:21}, or type \code{sdata.\allowbreak{}lesson(21,\allowbreak{} solutions=True)}.
+\end{tryit}
+\par\noindent{\small\sffamily\textbf{Words in this lesson:} \hyperref[word:table.spectrum-of]{\code{table.\allowbreak{}spectrum\_\allowbreak{}of()}}, \hyperref[word:nums.spectrum]{\code{nums.\allowbreak{}spectrum()}}, \hyperref[word:table.check-steady]{\code{table.\allowbreak{}check\_\allowbreak{}steady()}}, \hyperref[word:lines]{\code{chart.\allowbreak{}lines()}}.\par}
 
 \otherchapters
 
@@ -7372,6 +7463,80 @@ chart = sdata.chart(trial)
 chart.survival_curves(time="days", event="died", colour="treatment", confidence_band=True)
 chart.save("survival_curves.png")
 \end{lstlisting}
+\unsection{Signals and time series}{group:Signals-and-time-series}
+\wordentry{table.spectrum\_of()}{word:table.spectrum-of}
+Which repeating cycles (frequencies) a column holds over time, and how strong each is.
+
+\codeline{table.spectrum\_of(\textquotedbl{}signal\textquotedbl{}, sorted\_by=\textquotedbl{}time\textquotedbl{})} (with \code{sdata.\allowbreak{}example(\textquotedbl{}sensor\textquotedbl{})})\\
+\code{sorted\_\allowbreak{}by=} is the time column (numbers or dates); it gives the order and the time between readings (dates: per day, or per month, quarter or year for calendar steps). Without it the rows are taken in table order and frequencies are in cycles per reading. The readings must be evenly spaced and filled in, except with \code{method=\textquotedbl{}lomb-scargle\textquotedbl{}}, which is made for uneven times (empty cells are then left out). \code{method=} and \code{show=} as \code{nums.\allowbreak{}spectrum}: \code{\textquotedbl{}periodogram\textquotedbl{}} (SciPy; 2 x R \code{spec.\allowbreak{}pgram(x,\allowbreak{} taper = 0,\allowbreak{} detrend = FALSE,\allowbreak{} fast = FALSE)}\$spec except at the top frequency), \code{\textquotedbl{}welch\textquotedbl{}} (\code{window=} readings per piece) or \code{\textquotedbl{}lomb-scargle\textquotedbl{}} (R lomb::\code{lsp()} itself, needs simplydata[r] and R). \code{for\_\allowbreak{}each=} gives one spectrum per group. Gives back a table: frequency, repeats every (1 / frequency), power, share of the variance (\%). Prints the 3 strongest cycles.
+
+\wordfield{Options}{}\par\nopagebreak
+\begin{optiontable}
+\code{column=} & \\
+\code{sorted\_\allowbreak{}by=} & \\
+\code{method=} & normally \code{\textquotedbl{}periodogram\textquotedbl{}}\\
+\code{window=} & \\
+\code{window\_\allowbreak{}shape=} & normally \code{\textquotedbl{}hann\textquotedbl{}}\\
+\code{show=} & normally \code{\textquotedbl{}power\textquotedbl{}}\\
+\code{between=} & \\
+\code{for\_\allowbreak{}each=} & \\
+\end{optiontable}
+
+\wordfield{Underneath}{SciPy (signal.periodogram, signal.welch); R lomb::lsp for uneven times (simplydata[r])}
+\wordfield{Example you can run}{(it uses the practice table \code{sensor})}\par\nopagebreak
+\begin{lstlisting}[style=py]
+import simplydata as sdata
+table = sdata.table(sdata.example("sensor"))
+table.spectrum_of("signal", sorted_by="time")
+\end{lstlisting}
+\wordentry{nums.spectrum()}{word:nums.spectrum}
+Which repeating cycles (frequencies) the numbers hold, and how strong each is.
+
+\codeline{nums.spectrum(time\_step=0.01)}\enspace (readings 0.01 seconds apart: frequencies per second)\\
+\code{time\_\allowbreak{}step=} is the time between readings (\code{sampling\_\allowbreak{}rate=} or \code{fs=}, readings per unit of time, are accepted instead); without it the frequencies are in cycles per reading. \code{method=\textquotedbl{}periodogram\textquotedbl{}} (the default; SciPy periodogram, one-sided, scaled so that the powers times the frequency step add up to the variance: 2 x R \code{spec.\allowbreak{}pgram(x,\allowbreak{} taper = 0,\allowbreak{} detrend = FALSE,\allowbreak{} fast = FALSE)}\$spec, except at the top frequency, which R does not double), \code{\textquotedbl{}welch\textquotedbl{}} (the average periodogram of pieces of \code{window=} readings with half overlap and a \code{window\_\allowbreak{}shape=\textquotedbl{}hann\textquotedbl{}} window; less noisy, coarser) or \code{\textquotedbl{}lomb-scargle\textquotedbl{}} (for readings at uneven \code{times=}; R lomb::\code{lsp()} itself, needs simplydata[r] and R). \code{show=\textquotedbl{}power\textquotedbl{}}, \code{\textquotedbl{}decibels\textquotedbl{}} (10 x log10 of the power) or \code{\textquotedbl{}amplitude\textquotedbl{}} (the size of the cycle in the numbers' own units). \code{between=[low,\allowbreak{} high]} keeps that frequency range in the table. Gives back a table: frequency, repeats every (1 / frequency), the power and the share of the variance (\%) at each frequency. Prints the 3 strongest cycles.
+
+\wordfield{Options}{}\par\nopagebreak
+\begin{optiontable}
+\code{time\_\allowbreak{}step=} & \\
+\code{method=} & normally \code{\textquotedbl{}periodogram\textquotedbl{}}\\
+\code{window=} & \\
+\code{window\_\allowbreak{}shape=} & normally \code{\textquotedbl{}hann\textquotedbl{}}\\
+\code{show=} & normally \code{\textquotedbl{}power\textquotedbl{}}\\
+\code{between=} & \\
+\code{times=} & \\
+\code{sampling\_\allowbreak{}rate=} & \\
+\code{fs=} & \\
+\end{optiontable}
+
+\wordfield{Underneath}{SciPy (signal.periodogram, signal.welch); R lomb::lsp for uneven times (simplydata[r])}
+\wordfield{Example you can run}{(it uses the practice table \code{sensor})}\par\nopagebreak
+\begin{lstlisting}[style=py]
+import simplydata as sdata
+nums = sdata.numbers(sdata.example("sensor")["signal"])
+nums.spectrum(time_step=0.005)
+\end{lstlisting}
+\wordentry{table.check\_steady()}{word:table.check-steady}
+Does a column stay steady over time, or does it wander? (ADF and KPSS tests, as R tseries)
+
+\codeline{table.check\_steady(\textquotedbl{}signal\textquotedbl{}, sorted\_by=\textquotedbl{}time\textquotedbl{})} (with \code{sdata.\allowbreak{}example(\textquotedbl{}sensor\textquotedbl{})})\\
+\code{\textquotedbl{}Steady\textquotedbl{}} (stationary) means the column keeps the same average and spread over time: it goes up and down around one level (\code{around=\textquotedbl{}level\textquotedbl{}}) or around one straight line (\code{around=\textquotedbl{}straight line\textquotedbl{}}). Two tests that start from opposite assumptions run together (\code{method=\textquotedbl{}both\textquotedbl{}}; \code{\textquotedbl{}adf\textquotedbl{}} or \code{\textquotedbl{}kpss\textquotedbl{}} for one): the augmented Dickey-Fuller test starts from \code{\textquotedbl{}it wanders\textquotedbl{}}, so a small p-value says steady; the KPSS test starts from \code{\textquotedbl{}steady\textquotedbl{}}, so a small p-value says it wanders. Both are R's own (tseries::adf.test, tseries::kpss.test), run through rpy2: needs simplydata[r] and R. The readings must be evenly spaced (\code{sorted\_\allowbreak{}by=}) and filled in. Gives back one row per test.
+
+\wordfield{Options}{}\par\nopagebreak
+\begin{optiontable}
+\code{column=} & \\
+\code{sorted\_\allowbreak{}by=} & \\
+\code{around=} & normally \code{\textquotedbl{}level\textquotedbl{}}\\
+\code{method=} & normally \code{\textquotedbl{}both\textquotedbl{}}\\
+\code{for\_\allowbreak{}each=} & \\
+\end{optiontable}
+
+\wordfield{Underneath}{R (tseries::adf.test and kpss.test, through rpy2: simplydata[r])}
+\wordfield{Example you can run}{(it uses the practice table \code{sensor})}\par\nopagebreak
+\begin{lstlisting}[style=py]
+import simplydata as sdata
+table = sdata.table(sdata.example("sensor"))
+table.check_steady("signal", sorted_by="time")
+\end{lstlisting}
 \unsection{Planning a study}{group:Planning-a-study}
 \wordentry{sdata.how\_many\_needed()}{word:sdata.how-many-needed}
 How many values (in each group) does a study need to find a real difference?
@@ -9706,6 +9871,33 @@ estimates.show()
 \printedoutput{output/solution20_task3.txt}
 \solutionanswer{\code{values\_\allowbreak{}at} joins the months with a smooth curve and reads off each city at 6.5.}
 \par\noindent{\small\sffamily\hyperref[lesson:20]{Back to lesson 20}}
+\unsection{Lesson 21: Signals and time series: cycles, and steady or not}{solutions:21}
+\solutiontask{1}{Which cycle is strongest in the \code{\textquotedbl{}vibration\textquotedbl{}} column? Is it the same as in \code{\textquotedbl{}signal\textquotedbl{}}?}
+\begin{lstlisting}[style=py]
+import simplydata as sdata
+table = sdata.table(sdata.example("sensor"))
+table.spectrum_of("vibration", sorted_by="time")
+\end{lstlisting}
+\printedoutput{output/solution21_task1.txt}
+\solutionanswer{The same: 5 per second (65 \% of the variance), then 20 per second and the 50-per-second hum. The vibration follows the signal, a little later.}
+\solutiontask{2}{Look closely at the hum: show only the frequencies between 45 and 55.}
+\begin{lstlisting}[style=py]
+import simplydata as sdata
+table = sdata.table(sdata.example("sensor"))
+hum = table.spectrum_of("signal", sorted_by="time", between=[45, 55])
+hum.show()
+\end{lstlisting}
+\printedoutput{output/solution21_task2.txt}
+\solutionanswer{The row at 50 stands far above the others: the hum is one sharp frequency.}
+\solutiontask{3}{Make Numbers from the signal and find its spectrum with \code{nums.\allowbreak{}spectrum}. Use \code{time\_\allowbreak{}step=0.\allowbreak{}005}.}
+\begin{lstlisting}[style=py]
+import simplydata as sdata
+nums = sdata.numbers(sdata.example("sensor")["signal"])
+nums.spectrum(time_step=0.005)
+\end{lstlisting}
+\printedoutput{output/solution21_task3.txt}
+\solutionanswer{The same peaks as the table word: 5, 20 and 50 per unit of time.}
+\par\noindent{\small\sffamily\hyperref[lesson:21]{Back to lesson 21}}
 
 \backmatter
 
@@ -9755,6 +9947,7 @@ Every word and option, A to Z, with the page of its dictionary entry. Other spel
 \indexline{word:nums.chart}{nums.chart()}
 \indexline{word:sdata.chart}{sdata.chart()}
 \indexline{word:table.chart}{table.chart()}
+\indexline{word:table.check-steady}{table.check\_steady()}
 \indexline{word:colour}{chart.color()}
 \indexline{word:colour-scale}{chart.color\_scale()}
 \indexline{word:colours}{chart.colors()}
@@ -9965,6 +10158,8 @@ Every word and option, A to Z, with the page of its dictionary entry. Other spel
 \indexline{word:sdata.solve}{sdata.solve()}
 \indexline{word:nums.sort}{nums.sort()}
 \indexline{word:table.sort-by}{table.sort\_by()}
+\indexline{word:nums.spectrum}{nums.spectrum()}
+\indexline{word:table.spectrum-of}{table.spectrum\_of()}
 \indexline{word:table.split-column}{table.split\_column()}
 \indexline{word:nums.square-root}{nums.square\_root()}
 \indexline{word:dist.standard-deviation}{dist.standard\_deviation()}

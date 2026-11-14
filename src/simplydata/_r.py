@@ -90,7 +90,10 @@ def r_ready(packages=()) -> bool:
         key = f"has:{package}"
         if key not in _STATE:
             # isTRUE(): requireNamespace() answers invisibly, and rpy2 gives None for an invisible answer
-            _STATE[key] = bool(ro.r(f'isTRUE(suppressWarnings(requireNamespace("{package}", quietly = TRUE)))')[0])
+            _STATE[key] = bool(ro.r(
+                f'local({{ ok <- FALSE; invisible(utils::capture.output(utils::capture.output('
+                f'ok <- isTRUE(suppressWarnings(requireNamespace("{package}", quietly = TRUE))), type = "message"), '
+                f'type = "output")); ok }})')[0])
         if not _STATE[key]:
             return False
     return True
@@ -158,8 +161,9 @@ def r_call(code: str, packages=(), what="This", python_note=None, source=None, *
     env = ro.r["new.env"]()
     for name, value in values.items():
         env[name] = _to_r(ro, value)
-    for package in packages:
-        ro.r(f"suppressPackageStartupMessages(library({package}))")
+    for package in packages:  # quietly: start-up messages and notes such as "S3 method overwritten" stay in R
+        ro.r(f"invisible(utils::capture.output(utils::capture.output(suppressPackageStartupMessages("
+             f"library({package})), type = 'message'), type = 'output'))")
     env["simplydata_code"] = ro.StrVector([code])
     try:
         # R's own printing stays out of the answer; its warnings are collected (and kept from

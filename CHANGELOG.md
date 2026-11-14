@@ -43,6 +43,20 @@ Install once: `pip install "simplydata[r]"`, R from https://cran.r-project.org, 
   `Note from R (vegan): some squared distances are negative and changed to zero.`
 - Lessons 16, 17 and 18 (and day 17 of the 30-day guide) have a "Needs R" box.
 
+### Signals and time series (first words)
+
+- `table.spectrum_of("signal", sorted_by="time")` and `nums.spectrum(time_step=0.01)`: which repeating
+  cycles a column holds and how strong each is. method="periodogram" (SciPy; 2 x R `spec.pgram` with
+  taper 0, so the powers add up to the variance), "welch" (window= readings per piece) or
+  "lomb-scargle" for uneven times (R `lomb::lsp` itself, needs `simplydata[r]`). show="power",
+  "decibels" or "amplitude"; between= keeps a frequency range; for_each= one spectrum per group.
+  `time_step=` is the time between readings (`sampling_rate=` and `fs=` are accepted).
+- `table.check_steady("signal", sorted_by="time")`: does a column stay steady over time, or wander?
+  The ADF and KPSS tests together, run in R (`tseries::adf.test`, `tseries::kpss.test`), with R's
+  table p-values ("below 0.01", "above 0.1" when outside the tables). around="straight line" checks
+  steadiness around a trend. Needs `simplydata[r]`.
+- New practice table `sensor`: five seconds of a made-up sensor at 200 readings per second.
+
 ### Fitting
 
 - `table.fit_line(x=, y=)` is the main name of the straight-line fit, the same word as

@@ -57,6 +57,15 @@ EXAMPLES = {
             "forest": "how much of the land is forest, in %",
         },
     ),
+    "sensor": (
+        "Five seconds of a made-up sensor, 200 readings per second: cycles, a hum, a drift, noise and spikes.",
+        {
+            "time": "seconds from 0 to 4.995, one reading every 0.005 s",
+            "signal": "the reading: a 5-per-second and a 20-per-second cycle, a 50-per-second hum, a slow drift, "
+                      "noise and three spikes",
+            "vibration": "a second sensor: the signal 0.03 s later at half size, plus its own noise",
+        },
+    ),
     "shop": (
         "Daily sales of two made-up shops from January to March 2026. Some cells are empty.",
         {

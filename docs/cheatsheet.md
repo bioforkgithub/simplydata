@@ -372,6 +372,14 @@ and `a`, `b` in `sdata.side_by_side(a, b)` are charts you made first.
 | `explain_survival` | `table.explain_survival(time="days", event="died", using=["treatment", "age"])` | trial | Which columns go with a higher or lower risk of the event? (Cox model, hazard ratios) |
 | `survival_curves` | `chart.survival_curves(time="days", event="died", colour="treatment")` | trial | The share still without the event over time (Kaplan-Meier curves). |
 
+## Signals and time series
+
+| Word | Example | Table | What it does |
+|---|---|---|---|
+| `spectrum_of` | `table.spectrum_of("signal", sorted_by="time")` | sensor | Which repeating cycles (frequencies) a column holds over time, and how strong each is. |
+| `spectrum` | `nums.spectrum(time_step=0.01)` | sensor | Which repeating cycles (frequencies) the numbers hold, and how strong each is. |
+| `check_steady` | `table.check_steady("signal", sorted_by="time")` | sensor | Does a column stay steady over time, or does it wander? (ADF and KPSS tests, as R tseries) |
+
 ## Planning a study
 
 | Word | Example | Table | What it does |

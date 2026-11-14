@@ -1,0 +1,4 @@
+"signal" looks steady: it stays around a steady level (both tests agree: ADF p below 0.01, KPSS p = 0.095).
+Method: augmented Dickey-Fuller test with a constant and a straight-line trend, as R tseries::adf.test(x); KPSS test, as R tseries::kpss.test(x, null = "Level"); p-values from the published tables, as tseries (run in R).
+"signal" looks steady: it stays around a steady straight line (both tests agree: ADF p below 0.01, KPSS p above 0.1).
+Method: augmented Dickey-Fuller test with a constant and a straight-line trend, as R tseries::adf.test(x); KPSS test, as R tseries::kpss.test(x, null = "Trend"); p-values from the published tables, as tseries (run in R).

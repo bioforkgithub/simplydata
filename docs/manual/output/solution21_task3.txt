@@ -1,0 +1,2 @@
+The strongest cycle in the numbers has frequency 5 per unit of time (it repeats every 0.2 units of time) and holds 68 % of the variance; next: 20 per unit of time (11 %) and 50 per unit of time (4 %).
+Method: periodogram (squared size of the Fourier transform, one-sided, scaled so the powers add up to the variance), as 2 x R spec.pgram(x, taper = 0, detrend = FALSE, fast = FALSE)$spec. Time step 0.005 (200 readings per unit of time).

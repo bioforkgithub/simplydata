@@ -757,6 +757,25 @@ UNITS = {
             rain.show()'''),
             "Each estimate lies halfway between the two months around it.")],
     ),
+    "signals": dict(
+        lessons=[21],
+        needs_r="check_steady()",
+        r_packages=("tseries",),
+        words=["table.spectrum_of", "table.check_steady"],
+        do=[_lesson_do(21, "examples 1 and 3")],
+        recall=[
+            ("Which word shows the repeating cycles in a recording and how strong each is?",
+             'table.spectrum_of("signal", sorted_by="time")'),
+            ("Which word checks whether a series stays steady over time or wanders?",
+             'table.check_steady("signal", sorted_by="time")'),
+        ],
+        task=['Sensor table: which cycle is strongest in "vibration"?'],
+        solutions=[(_code('''
+            import simplydata as sdata
+            table = sdata.table(sdata.example("sensor"))
+            table.spectrum_of("vibration", sorted_by="time")'''),
+            "5 per second, as in the signal: the vibration follows the signal.")],
+    ),
     # ------------------------------------------------------------ review days
     "review_p7": dict(
         lessons=[],
@@ -1212,9 +1231,10 @@ _PYTHON = [
     ("Finding, solving and distributions",
      "Find where a formula is smallest or biggest, solve equations, and work out chances from a distribution.",
      ["finding", "distributions"], "learn"),
-    ("Values between points",
-     "Estimate values between the points you measured, and fill an even map for a contour chart.",
-     ["between"], "learn"),
+    ("Values between points, and signals",
+     "Estimate values between the points you measured, then find the cycles in a recording and check "
+     "whether it stays steady.",
+     ["between", "signals"], "learn"),
     ("Review, and the question of your project",
      "Remember the words of the third week, then choose the question and the raw file of your own project.",
      ["review_p21", "proj_question"], "review"),
@@ -1323,9 +1343,10 @@ _BEGINNER = [
     ("Fitting, finding and solving",
      "Fit lines, curves and formulas, find where a formula is biggest, and solve equations.",
      ["fitting", "finding"], "learn"),
-    ("Distributions and values between points",
-     "Work out chances from a distribution, and estimate values between measured points.",
-     ["distributions", "between"], "learn"),
+    ("Distributions, values between points and signals",
+     "Work out chances from a distribution, estimate values between measured points, and find the "
+     "cycles in a recording.",
+     ["distributions", "between", "signals"], "learn"),
     ("Small project: look, clean and sum up",
      "Choose a question and a file, then look at it, clean it and sum it up.",
      ["bproj_a"], "project"),
@@ -1442,7 +1463,7 @@ def plan(track: str, number: int) -> dict:
     title, goal, units, kind = DAYS[track][number - 1]
     found = dict(track=track, number=number, title=title, goal=goal, kind=kind, units=list(units),
                  lessons=[], manual=[], words=[], do=[], examples=[], errors=[], task=[], solutions=[],
-                 needs_r=[], warm_up=warm_up(track, number))
+                 needs_r=[], r_packages=[], warm_up=warm_up(track, number))
     for name in units:
         unit = UNITS[name]
         for n in unit["lessons"]:
@@ -1461,6 +1482,9 @@ def plan(track: str, number: int) -> dict:
         found["solutions"] += unit.get("solutions", [])
         if unit.get("needs_r"):
             found["needs_r"].append(unit["needs_r"])
+            for package in unit.get("r_packages", ("vegan", "survival", "mice")):
+                if package not in found["r_packages"]:
+                    found["r_packages"].append(package)
     return found
 
 
@@ -1470,7 +1494,7 @@ def needs_r_line(p: dict) -> str | None:
         return None
     from .learn import needs_r_text
 
-    return needs_r_text(" and ".join(p["needs_r"]))
+    return needs_r_text(" and ".join(p["needs_r"]), packages=p.get("r_packages") or ("vegan", "survival", "mice"))
 
 
 def all_code() -> list[tuple[str, str]]:
