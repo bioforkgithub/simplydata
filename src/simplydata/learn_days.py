@@ -650,6 +650,7 @@ UNITS = {
     ),
     "lesson17": dict(
         lessons=[17],
+        needs_r="add_clusters() with k-means, add_nmds() and compare_profiles()",
         words=["table.add_principal_components", "table.add_clusters", "table.add_nmds", "table.compare_profiles"],
         recall=[
             ("Which word adds the principal components PC1 and PC2?", "table.add_principal_components(how_many=2)"),
@@ -1441,7 +1442,7 @@ def plan(track: str, number: int) -> dict:
     title, goal, units, kind = DAYS[track][number - 1]
     found = dict(track=track, number=number, title=title, goal=goal, kind=kind, units=list(units),
                  lessons=[], manual=[], words=[], do=[], examples=[], errors=[], task=[], solutions=[],
-                 warm_up=warm_up(track, number))
+                 needs_r=[], warm_up=warm_up(track, number))
     for name in units:
         unit = UNITS[name]
         for n in unit["lessons"]:
@@ -1458,7 +1459,18 @@ def plan(track: str, number: int) -> dict:
         found["errors"] += unit.get("errors", [])
         found["task"] += unit.get("task", [])
         found["solutions"] += unit.get("solutions", [])
+        if unit.get("needs_r"):
+            found["needs_r"].append(unit["needs_r"])
     return found
+
+
+def needs_r_line(p: dict) -> str | None:
+    """The "Needs R" line of a day, or None when the day needs no R."""
+    if not p["needs_r"]:
+        return None
+    from .learn import needs_r_text
+
+    return needs_r_text(" and ".join(p["needs_r"]))
 
 
 def all_code() -> list[tuple[str, str]]:
@@ -1591,6 +1603,8 @@ def _print_day(p: dict, footer: str) -> None:
     if p["words"]:
         print(_wrap("Words to look up: " + ", ".join(f'sdata.help("{help_name(k)}")' for k in p["words"]),
                     "     ", "   "))
+    if needs_r_line(p):
+        print(_wrap("Needs R: " + needs_r_line(p), "     ", "   "))
     for block in p["examples"]:
         print()
         print("   Example (type it yourself)")

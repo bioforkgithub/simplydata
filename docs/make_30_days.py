@@ -284,6 +284,8 @@ def _todo(p: dict, pages) -> str:
         out.append(f"\\field{{In the manual}}{{{'; '.join(refs)}.}}")
     if p["words"]:
         out.append(f"\\field{{Words to look up}}{{{'; '.join(word_ref(k, pages) for k in p['words'])}.}}")
+    if learn_days.needs_r_line(p):
+        out.append(f"\\field{{Needs R}}{{{rich(learn_days.needs_r_line(p))}}}")
     for block in p["examples"]:
         out.append(r"\par\noindent{\sffamily\small\bfseries\color{brand}Example: type it yourself}\par")
         out.append(listing("\n".join(c for c, _ in block)))

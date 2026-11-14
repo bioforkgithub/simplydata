@@ -620,6 +620,8 @@ def _lesson(number: int, aliases_lookup) -> str:
     out += [f"  \\item {rich(item)}" for item in les["learn"]]
     out.append(r"\end{itemize}")
     out.append(r"\end{learnbox}")
+    if les.get("needs_r"):
+        out.append(r"\begin{needsr}" + rich(les["needs_r"]) + r"\end{needsr}")
     parts = les["parts"]
     for i, (intro, steps) in enumerate(parts, start=1):
         heading = "Example" if len(parts) == 1 else f"Example {i}"

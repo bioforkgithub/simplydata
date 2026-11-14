@@ -126,6 +126,8 @@
   title={\color{goodframe}Good to know\par}}
 \newtcolorbox{tryit}{boxbase,colback=trybg,colframe=tryframe,
   title={\color{tryframe}Try it yourself\par}}
+\newtcolorbox{needsr}{boxbase,colback=white,colframe=tryframe,
+  title={\color{tryframe}Needs R\par}}
 \setlist[itemize]{itemsep=0.2em,parsep=0pt,topsep=0.3em}
 \setlist[enumerate]{itemsep=0.2em,parsep=0pt,topsep=0.3em}
 
@@ -2514,6 +2516,7 @@ Worked solutions: page~\pageref{solutions:15}, or type \code{sdata.\allowbreak{}
   \item how to use rows with empty cells without guessing once (multiple imputation)
 \end{itemize}
 \end{learnbox}
+\begin{needsr}\code{explain(.\allowbreak{}.\allowbreak{}.\allowbreak{},\allowbreak{} empty\_\allowbreak{}cells=\textquotedbl{}multiple imputation\textquotedbl{})} pools its results with R (mice); this one option run R's own code, the same code R users run. Install it once: pip install \code{\textquotedbl{}simplydata[r]\textquotedbl{}}, then R from https://cran.r-project.org, then in R: \code{install.\allowbreak{}packages(c(\textquotedbl{}vegan\textquotedbl{},\allowbreak{} \textquotedbl{}survival\textquotedbl{},\allowbreak{} \textquotedbl{}mice\textquotedbl{}))}. Without R these words print a message that says what to install.\end{needsr}
 \section*{Example 1}
 Marks depend on more than one thing. \code{explain()} looks at several columns together, so each effect is the effect with the other columns held fixed.
 \begin{lstlisting}[style=py]
@@ -2596,6 +2599,7 @@ Worked solutions: page~\pageref{solutions:16}, or type \code{sdata.\allowbreak{}
   \item how to find groups of similar rows (clustering)
 \end{itemize}
 \end{learnbox}
+\begin{needsr}\code{add\_\allowbreak{}nmds()}, \code{compare\_\allowbreak{}profiles()} and \code{add\_\allowbreak{}clusters()} with k-means (the default) run R's own code, the same code R users run. Install it once: pip install \code{\textquotedbl{}simplydata[r]\textquotedbl{}}, then R from https://cran.r-project.org, then in R: \code{install.\allowbreak{}packages(c(\textquotedbl{}vegan\textquotedbl{},\allowbreak{} \textquotedbl{}survival\textquotedbl{},\allowbreak{} \textquotedbl{}mice\textquotedbl{}))}. Without R these words print a message that says what to install.\end{needsr}
 \section*{Example 1}
 Ten plant counts per plot are too many to look at one by one. Principal components make a few new columns that hold most of the spread.
 \begin{lstlisting}[style=py]
@@ -2695,6 +2699,7 @@ Worked solutions: page~\pageref{solutions:17}, or type \code{sdata.\allowbreak{}
   \item how many values a study needs, before you collect them (power analysis)
 \end{itemize}
 \end{learnbox}
+\begin{needsr}The proportional-hazards check inside \code{explain\_\allowbreak{}survival()} (R survival::\code{cox.\allowbreak{}zph()}); the rest of the lesson needs no R. Without R that one check is left out with a note. The check and the other R words run R's own code, the same code R users run. Install it once: pip install \code{\textquotedbl{}simplydata[r]\textquotedbl{}}, then R from https://cran.r-project.org, then in R: \code{install.\allowbreak{}packages(c(\textquotedbl{}vegan\textquotedbl{},\allowbreak{} \textquotedbl{}survival\textquotedbl{},\allowbreak{} \textquotedbl{}mice\textquotedbl{}))}. Without R these words print a message that says what to install.\end{needsr}
 \section*{Example 1}
 In a trial, some patients are still alive when the follow-up ends. Survival words use their time too: they count as followed without the event (censored).
 \begin{lstlisting}[style=py]
@@ -9609,7 +9614,7 @@ table = sdata.table(sdata.example("meadow"))
 table.compare_profiles(for_each="field")
 \end{lstlisting}
 \printedoutput{output/solution17_task3.txt}
-\solutionanswer{The fields explain 12 \% of the differences (p = 0.037), much less than grazing, and they do not differ in spread (p = 0.54).}
+\solutionanswer{The fields explain 12 \% of the differences, much less than grazing (25 \%), and a difference this big could be chance (p = 0.053). They do not differ in spread (p = 0.53).}
 \solutiontask{4}{Cluster the meadow plots with \code{method=\textquotedbl{}hierarchical\textquotedbl{}}. Do the clusters match the grazing?}
 \begin{lstlisting}[style=py]
 import simplydata as sdata
