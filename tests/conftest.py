@@ -35,3 +35,17 @@ def marks():
                 rows.append({"name": name, "class": cls, "test": test,
                              "marks": float(rng.integers(30, 100)), "height": float(rng.normal(150, 8))})
     return pd.DataFrame(rows)
+
+
+@pytest.fixture
+def needs_r():
+    """For tests of methods that call R (simplydata[r]): skipped where R, rpy2 or the R
+    packages are missing, except when SIMPLYDATA_REQUIRE_R=1 (CI), where they must run."""
+    import os
+
+    from simplydata._r import r_ready
+
+    if not r_ready(("survival", "vegan", "mice")):
+        if os.environ.get("SIMPLYDATA_REQUIRE_R") == "1":
+            pytest.fail("SIMPLYDATA_REQUIRE_R=1 but R, rpy2 or the R packages survival, vegan, mice are missing")
+        pytest.skip("needs R with survival, vegan and mice (pip install 'simplydata[r]')")

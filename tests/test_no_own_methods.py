@@ -33,10 +33,10 @@ BUILDING_BLOCKS = {
 ALLOWED = {
     # glue: SciPy's optimisers asked to do the search, inputs and outputs translated
     "distributions.py::_maximise": "scipy.optimize.minimize on the log-likelihood (SciPy's own .fit stops short "
-                                   "for t, Cauchy, chi-square; decision pending)",
+                                   "for t, Cauchy, chi-square; kept, decided 2026-11-14)",
     "distributions.py::_standard_errors": "inverts statsmodels' Hessian to get the covariance",
     "distributions.py::_weibull_shape": "Weibull score equation with brentq (SciPy weibull_min.fit stops at 1e-7; "
-                                        "decision pending)",
+                                        "kept, decided 2026-11-14)",
     "distributions.py::_nbinom_size": "negative binomial size with brentq (statsmodels NegativeBinomial planned)",
     "finding.py": "find/solve words: the user's own equation handed to scipy.optimize (glue by design)",
     "table/columns.py": "digamma offered as a formula function users can type",
@@ -49,7 +49,6 @@ ALLOWED = {
     "table/patterns.py::_classical_scaling": "R bridge: cmdscale / betadisper start (O24)",
     "table/patterns.py::_nmds": "R bridge: vegan metaMDS / monoMDS (O14)",
     "table/patterns.py::_dispersion": "R bridge: vegan betadisper (O16)",
-    "table/survival.py::cox_zph": "R bridge: survival::cox.zph (O6)",
 }
 
 

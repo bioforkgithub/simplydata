@@ -25,12 +25,10 @@ Methods (the same defaults as R's survival package, so results can be checked th
   likelihood-ratio test of the whole model (2 x the gain in log partial likelihood, df =
   number of coefficients). A text (or True/False) column becomes groups compared with the
   first group in sorted order, as R does with a factor.
-  Proportional-hazards check: the score test of R cox.zph() (survival 3.x) with its
-  default transform = "km": for each term, does its effect change with 1 - KM(t-) (the
-  left-continuous Kaplan-Meier estimate of all rows, centred on its mean over events)?
-  The test uses the full information matrix of the model with the extra time terms, at
-  the fitted coefficients, with Efron's weights for tied times. A note is printed when a
-  term has p < 0.05.
+  Proportional-hazards check: R survival::cox.zph() itself (transform = "km"), through
+  rpy2 (pip install "simplydata[r]" and R); no Python package gives R's numbers. A note is
+  printed when a term has p < 0.05. Without R the model is still fitted and a note says how
+  to add the check.
 """
 
 from __future__ import annotations
@@ -208,49 +206,6 @@ def log_rank(time, event, codes, k):
     return observed, expected, chi, df
 
 
-def _efron_sums(time, event, x, beta, gtime=None):
-    """Log partial likelihood, score and information of a Cox model with Efron's ties.
-
-    With gtime (one value per row, the transformed time of R cox.zph), it also gives the
-    score of the extra terms x * g(t) and the information of [x, x * g(t)], at beta."""
-    p = x.shape[1]
-    eta = x @ beta
-    r = np.exp(eta)
-    loglik = 0.0
-    score = np.zeros(p)
-    info = np.zeros((p, p))
-    zph_u = np.zeros(p)
-    zph_i = np.zeros((2 * p, 2 * p))
-    for t in np.unique(time[event]):
-        risk = time >= t
-        dead = event & (time == t)
-        d = int(dead.sum())
-        rr, xr = r[risk], x[risk]
-        s0, s1, s2 = rr.sum(), rr @ xr, (xr * rr[:, None]).T @ xr
-        rd, xd = r[dead], x[dead]
-        d0, d1, d2 = rd.sum(), rd @ xd, (xd * rd[:, None]).T @ xd
-        loglik += eta[dead].sum()
-        step_u = xd.sum(axis=0)
-        step_i = np.zeros((p, p))
-        for j in range(d):
-            f = j / d
-            a0, a1, a2 = s0 - f * d0, s1 - f * d1, s2 - f * d2
-            mean = a1 / a0
-            loglik -= math.log(a0)
-            step_u = step_u - mean
-            step_i += a2 / a0 - np.outer(mean, mean)
-        score += step_u
-        info += step_i
-        if gtime is not None:
-            g = float(gtime[dead][0])
-            zph_u += g * step_u
-            zph_i[:p, :p] += step_i
-            zph_i[:p, p:] += g * step_i
-            zph_i[p:, :p] += g * step_i
-            zph_i[p:, p:] += g * g * step_i
-    return loglik, score, info, zph_u, zph_i
-
-
 def _same_terms_error():
     return SimplydataError("The model cannot be fitted: two of the terms say the same thing "
                            "(or a term has the same value in every row with an event).")
@@ -282,28 +237,22 @@ def cox_fit(time, event, x) -> dict:
 
 
 def cox_zph(time, event, fit, terms) -> list[tuple[float, int, float]]:
-    """R cox.zph(fit) (transform = "km"): (chi-square, df, p) for each term, then GLOBAL.
-    terms: a list of column-index lists, one per term."""
-    from scipy import stats
+    """R survival::cox.zph(fit) (transform = "km"), through R: (chi-square, df, p) for each
+    term, then GLOBAL. terms: a list of column-index lists, one per term; each term goes into R
+    as one matrix, so R tests it as one term. Raises RMissing when R is not ready."""
+    from .._r import r_call
 
-    time = np.asarray(time, dtype=float)
-    event = np.asarray(event, dtype=bool)
-    km = kaplan_meier(time, event)
-    before = np.searchsorted(km["all_time"], time, side="left")  # how many times are strictly earlier
-    ttimes = 1 - np.concatenate([[1.0], km["all_survival"]])[before]
-    gtime = ttimes - ttimes[event].mean()
-    _, _, _, u, imat = _efron_sums(time, event, fit["x"], fit["beta"], gtime)
-    p = len(fit["beta"])
-    out = []
-    for cols in list(terms) + [list(range(p))]:
-        kk = list(range(p)) + [p + c for c in cols]
-        vec = np.concatenate([np.zeros(p), u[cols]])
-        try:
-            chi = float(np.linalg.solve(imat[np.ix_(kk, kk)], vec) @ vec)
-        except np.linalg.LinAlgError:
-            chi = math.nan
-        out.append((chi, len(cols), float(stats.chi2.sf(chi, len(cols))) if not math.isnan(chi) else math.nan))
-    return out
+    x = np.asarray(fit["x"], dtype=float)
+    values = {f"m{i}": x[:, cols] for i, cols in enumerate(terms)}
+    formula = " + ".join(values)
+    table = r_call(
+        f"fit <- survival::coxph(survival::Surv(time, event) ~ {formula}, ties = 'efron'); "
+        "survival::cox.zph(fit, transform = 'km')$table",
+        packages=("survival",), what="The proportional-hazards check (R survival::cox.zph())",
+        python_note="lifelines proportional_hazard_test is a similar check but gives different numbers",
+        time=np.asarray(time, dtype=float), event=np.asarray(event, dtype=bool), **values)
+    table = np.asarray(table, dtype=float).reshape(len(terms) + 1, 3, order="F") if table.ndim == 1 else table
+    return [(float(chi), int(round(df)), float(p)) for chi, df, p in table]
 
 
 def _show(value) -> str:
@@ -521,7 +470,12 @@ class SurvivalWords:
         lr = 2 * (fit["loglik"] - fit["loglik0"])
         df = len(beta)
         lr_p = float(stats.chi2.sf(lr, df))
-        zph = cox_zph(times, events, fit, terms)
+        from .._r import RMissing
+
+        try:
+            zph, zph_missing = cox_zph(times, events, fit, terms), None
+        except RMissing as missing:  # the model stands without R; only the check is left out
+            zph, zph_missing = [(math.nan, len(cols), math.nan) for cols in terms + [[]]], str(missing)
         term_of = {c: i for i, cols in enumerate(terms) for c in cols}
         print(self._event_sentence(event, yes, events, time))
         print(f"Hazard ratios from {len(times)} rows with {int(events.sum())} events (above 1: a higher risk of the "
@@ -544,6 +498,8 @@ class SurvivalWords:
         elif np.any(np.abs(beta) * np.std(fit["x"], axis=0) > 10):
             print("Note: a hazard ratio is extremely large or small; perhaps a group has no events or "
                   "all of them. Treat it with care.")
+        if zph_missing:
+            print("Note: the proportional-hazards check was left out. " + zph_missing)
         for i, cols in enumerate(terms):
             if zph[i][2] < 0.05:
                 column = names[cols[0]][0]
