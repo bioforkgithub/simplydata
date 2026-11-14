@@ -195,6 +195,7 @@ class SmoothingSpline:
             from .._r import r_call
 
             found = r_call("f <- stats::smooth.spline(x, y, all.knots = TRUE); list(lambda = f$lambda, df = f$df)",
+                           source="stats::smooth.spline",
                            what='A smoothing spline with smoothness="auto" (R smooth.spline() chooses it)',
                            python_note="or give smoothness= a number, such as smoothness=0.001, which needs no R",
                            x=x, y=y)

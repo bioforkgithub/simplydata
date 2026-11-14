@@ -248,7 +248,8 @@ def cox_zph(time, event, fit, terms) -> list[tuple[float, int, float]]:
     table = r_call(
         f"fit <- survival::coxph(survival::Surv(time, event) ~ {formula}, ties = 'efron'); "
         "survival::cox.zph(fit, transform = 'km')$table",
-        packages=("survival",), what="The proportional-hazards check (R survival::cox.zph())",
+        packages=("survival",), source="survival::cox.zph",
+        what="The proportional-hazards check (R survival::cox.zph())",
         python_note="lifelines proportional_hazard_test is a similar check but gives different numbers",
         time=np.asarray(time, dtype=float), event=np.asarray(event, dtype=bool), **values)
     table = np.asarray(table, dtype=float).reshape(len(terms) + 1, 3, order="F") if table.ndim == 1 else table

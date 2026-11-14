@@ -140,10 +140,19 @@ def _from_r(value):
     return array
 
 
-def r_call(code: str, packages=(), what="This", python_note=None, **values):
+def _say_warnings(messages, source) -> None:
+    """Each distinct R warning once, as a plain note: Note from R (vegan::betadisper): ... ."""
+    for message in dict.fromkeys(" ".join(str(m).split()) for m in messages):
+        if message:
+            print(f"Note from R ({source}): {message if message.endswith('.') else message + '.'}")
+
+
+def r_call(code: str, packages=(), what="This", python_note=None, source=None, **values):
     """Run R code with values put in as R variables; give back the code's result as NumPy/Python.
 
-    The last expression of code is the result; a named R list comes back as a dict."""
+    The last expression of code is the result; a named R list comes back as a dict. R's printing
+    stays silent; each warning R gives is passed on once as a plain note, labelled with
+    source= (such as "vegan::betadisper"), or with what= when no source is given."""
     need_r(packages, what, python_note)
     ro = _STATE["r"]
     env = ro.r["new.env"]()
@@ -153,9 +162,15 @@ def r_call(code: str, packages=(), what="This", python_note=None, **values):
         ro.r(f"suppressPackageStartupMessages(library({package}))")
     env["simplydata_code"] = ro.StrVector([code])
     try:
-        # R's own printing and warnings stay out of the answer; simplydata words the result
-        result = ro.r["eval"](ro.r["parse"](text="local({ out <- NULL; utils::capture.output(out <- suppressWarnings("
-                                                 "eval(parse(text = simplydata_code)))); out })"), envir=env)
+        # R's own printing stays out of the answer; its warnings are collected (and kept from
+        # printing in R) so that simplydata can pass them on in plain words
+        result = ro.r["eval"](ro.r["parse"](text=(
+            "local({ out <- NULL; warns <- character(0); "
+            "utils::capture.output(out <- withCallingHandlers(eval(parse(text = simplydata_code)), "
+            "warning = function(w) { warns <<- c(warns, conditionMessage(w)); invokeRestart('muffleWarning') })); "
+            "list(value = out, warnings = warns) })")), envir=env)
     except Exception as error:  # noqa: BLE001
         raise SimplydataError(f"R stopped with: {str(error).strip()}") from None
-    return _from_r(result)
+    found = _from_r(result)
+    _say_warnings(np.atleast_1d(found.get("warnings", [])).tolist(), source or what)
+    return found.get("value")

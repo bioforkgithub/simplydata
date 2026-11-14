@@ -751,7 +751,8 @@ class ModelWords:
                         "list(qbar = sapply(res, `[[`, 'qbar'), t = sapply(res, `[[`, 't'), "
                         "df = sapply(res, `[[`, 'df'), "
                         "lambda = sapply(res, function(r) (1 + 1 / r$m) * r$b / r$t))",
-                        packages=("mice",), what="Pooling the filled-in tables (R mice::pool())",
+                        packages=("mice",), source="mice::pool",
+                        what="Pooling the filled-in tables (R mice::pool())",
                         python_note="statsmodels MICE pools with Rubin's rules but without the Barnard-Rubin "
                                     "degrees of freedom, so its p-values differ",
                         q=np.array(estimates), u=np.array(variances), n=float(model["n"]),

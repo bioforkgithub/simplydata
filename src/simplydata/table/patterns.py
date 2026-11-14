@@ -109,7 +109,7 @@ def _r_kmeans(z, k, seed):
 
     out = r_call(f"set.seed({int(seed)}); fit <- stats::kmeans(z, centers = {int(k)}, nstart = {KMEANS_STARTS}); "
                  "list(cluster = fit$cluster, between = fit$betweenss, total = fit$totss)",
-                 what="k-means (R stats::kmeans())",
+                 what="k-means (R stats::kmeans())", source="stats::kmeans",
                  python_note="scikit-learn KMeans is similar but finds other clusters; or use "
                              'method="hierarchical", which needs no R', z=z)
     total = float(out["total"][0])
@@ -124,7 +124,7 @@ def _r_nmds(x, measure, dimensions, tries, seed):
                  f"fit <- vegan::metaMDS(d, k = {int(dimensions)}, try = {int(tries)}, trymax = {int(tries)}, "
                  "autotransform = FALSE, trace = 0); "
                  "list(points = unclass(fit$points), stress = fit$stress, converged = isTRUE(fit$converged))",
-                 packages=("vegan",), what="NMDS (R vegan::metaMDS())",
+                 packages=("vegan",), what="NMDS (R vegan::metaMDS())", source="vegan::metaMDS",
                  python_note="scikit-learn MDS(metric=False) is similar but gives a different stress", x=x)
     points = np.asarray(out["points"], dtype=float)
     if points.ndim == 1:
@@ -141,7 +141,8 @@ def _r_permanova(x, measure, groups, permutations, seed):
                  f"b <- vegan::betadisper(d, g); t <- vegan::permutest(b, permutations = {int(permutations)}); "
                  "list(f = a$F[1], r2 = a$R2[1], p = a[['Pr(>F)']][1], spread_f = t$tab$F[1], "
                  "spread_p = t$tab[['Pr(>F)']][1], distances = as.numeric(b$distances))",
-                 packages=("vegan",), what="PERMANOVA (R vegan::adonis2()) and its spread check (vegan::betadisper())",
+                 packages=("vegan",), source="vegan",
+                 what="PERMANOVA (R vegan::adonis2()) and its spread check (vegan::betadisper())",
                  python_note="scikit-bio permanova gives the same F with another random p-value, but its spread "
                              "check (permdisp) gives different numbers", x=x, g=groups)
     return {k: (float(v[0]) if k != "distances" else np.asarray(v, dtype=float)) for k, v in out.items()}
