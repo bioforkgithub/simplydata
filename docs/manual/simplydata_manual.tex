@@ -3542,7 +3542,7 @@ The line is found by least squares: it makes the squared distances from the dots
 \code{thickness=} & \\
 \end{optiontable}
 
-\wordfield{Underneath}{SciPy (stats.linregress), drawn with matplotlib}
+\wordfield{Underneath}{SciPy (stats.linregress); the confidence band from statsmodels OLS, drawn with matplotlib}
 \wordfield{Example you can run}{(it uses the practice table \code{marks})}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -3565,7 +3565,7 @@ A curve that fits the dots best. \code{chart.\allowbreak{}fit\_\allowbreak{}curv
 \code{thickness=} & \\
 \end{optiontable}
 
-\wordfield{Underneath}{NumPy (polyfit), drawn with matplotlib}
+\wordfield{Underneath}{statsmodels (least squares on the powers of x), drawn with matplotlib}
 \wordfield{Example you can run}{(it uses the practice table \code{weather})}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -3659,7 +3659,7 @@ chart.save("curve.png")
 \wordentry{chart.smooth\_line()}{word:smooth-line}
 A smooth line that follows the dots (LOWESS). \code{chart.\allowbreak{}smooth\_\allowbreak{}line()}
 
-Good for seeing a trend that is not straight. Each colour group gets its own line. \code{thickness=3} draws a thicker line (normal is 2). \code{method=\textquotedbl{}spline\textquotedbl{}} draws a smoothing spline instead (as \code{table.\allowbreak{}values\_\allowbreak{}at(.\allowbreak{}.\allowbreak{}.\allowbreak{},\allowbreak{} smoothness=)} and R \code{smooth.\allowbreak{}spline()}): \code{smoothness=\textquotedbl{}auto\textquotedbl{}} chooses how smooth by generalised cross-validation; a number is R's \code{lambda=} (bigger is smoother).
+Good for seeing a trend that is not straight. Each colour group gets its own line. \code{thickness=3} draws a thicker line (normal is 2). \code{method=\textquotedbl{}spline\textquotedbl{}} draws a smoothing spline instead (as \code{table.\allowbreak{}values\_\allowbreak{}at(.\allowbreak{}.\allowbreak{}.\allowbreak{},\allowbreak{} smoothness=)} and R \code{smooth.\allowbreak{}spline()}): \code{smoothness=\textquotedbl{}auto\textquotedbl{}} lets R choose how smooth by generalised cross-validation, which needs R (pip install \code{\textquotedbl{}simplydata[r]\textquotedbl{}}); a number is R's \code{lambda=} (bigger is smoother) and needs no R.
 
 \wordfield{Options}{}\par\nopagebreak
 \begin{optiontable}
@@ -3669,7 +3669,7 @@ Good for seeing a trend that is not straight. Each colour group gets its own lin
 \code{smoothness=} & normally \code{\textquotedbl{}auto\textquotedbl{}}\\
 \end{optiontable}
 
-\wordfield{Underneath}{NumPy (LOWESS, written out in simplydata as in R's \code{lowess()}) or SciPy (\code{make\_\allowbreak{}smoothing\_\allowbreak{}spline}, for \code{method=\textquotedbl{}spline\textquotedbl{}}), drawn with matplotlib}
+\wordfield{Underneath}{statsmodels (lowess, which follows R's \code{lowess()}) or SciPy (\code{make\_\allowbreak{}smoothing\_\allowbreak{}spline}, for \code{method=\textquotedbl{}spline\textquotedbl{}}; \code{smoothness=\textquotedbl{}auto\textquotedbl{}} lets R smooth.spline choose it and needs R), drawn with matplotlib}
 \wordfield{Example you can run}{(it uses the practice table \code{weather})}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -6729,7 +6729,7 @@ Estimate a column at places between the known points, by joining the dots.
 \codeline{table.values\_at(\textquotedbl{}population\textquotedbl{}, at=\{\textquotedbl{}year\textquotedbl{}: [2001, 2003, 2011]\}, for\_each=\textquotedbl{}country\textquotedbl{})} (with \code{sdata.\allowbreak{}example(\textquotedbl{}growth\textquotedbl{})})\\
 \code{at=} names the \code{column(s)} that place the points and the places wanted. One column joins the points along a line; two or more (\code{at=}\{\code{\textquotedbl{}east\textquotedbl{}}: [1.5, 2.5], \code{\textquotedbl{}north\textquotedbl{}}: [3, 4.5]\},\\
 \codeline{sdata.example(\textquotedbl{}island\textquotedbl{})) join them across a surface: the lists are read as pairs,}\\
-(1.5, 3) and (2.5, 4.5); \code{table.\allowbreak{}map\_\allowbreak{}of()} gives every combination. \code{joined\_\allowbreak{}by=} says how the points are joined (one column): \code{\textquotedbl{}straight lines\textquotedbl{}} (default, linear interpolation, R \code{approx()}), \code{\textquotedbl{}smooth curve\textquotedbl{}} (natural cubic spline, R \code{splinefun(method = \textquotedbl{}natural\textquotedbl{})}), \code{\textquotedbl{}curve without overshoot\textquotedbl{}} (PCHIP), \code{\textquotedbl{}steps\textquotedbl{}}, \code{\textquotedbl{}nearest\textquotedbl{}}; experts: \code{\textquotedbl{}akima\textquotedbl{}}, \code{\textquotedbl{}makima\textquotedbl{}}, \code{\textquotedbl{}not-a-knot\textquotedbl{}}, \code{\textquotedbl{}periodic\textquotedbl{}}. Two or more columns: \code{\textquotedbl{}straight lines\textquotedbl{}} (bilinear on a full grid, triangles otherwise), \code{\textquotedbl{}smooth surface\textquotedbl{}} (thin-plate spline), \code{\textquotedbl{}nearest\textquotedbl{}}; on a full grid also \code{\textquotedbl{}cubic\textquotedbl{}}, \code{\textquotedbl{}quintic\textquotedbl{}}, \code{\textquotedbl{}pchip\textquotedbl{}}. \code{smoothness=\textquotedbl{}auto\textquotedbl{}} or a number gives a smoothing spline that passes near, not through, the points (R \code{smooth.\allowbreak{}spline()}; a number is R's \code{lambda=}); 0 passes through every point. \code{outside=} is what happens beyond the known points: \code{\textquotedbl{}empty\textquotedbl{}} (default), \code{\textquotedbl{}nearest end\textquotedbl{}} or \code{\textquotedbl{}extend\textquotedbl{}} (curves only; guesswork). \code{for\_\allowbreak{}each=\textquotedbl{}country\textquotedbl{}} joins each group on its own. Rows with an empty cell are skipped. Gives back a new table: the \code{at=} columns, the \code{for\_\allowbreak{}each=} columns and the estimated column.
+(1.5, 3) and (2.5, 4.5); \code{table.\allowbreak{}map\_\allowbreak{}of()} gives every combination. \code{joined\_\allowbreak{}by=} says how the points are joined (one column): \code{\textquotedbl{}straight lines\textquotedbl{}} (default, linear interpolation, R \code{approx()}), \code{\textquotedbl{}smooth curve\textquotedbl{}} (natural cubic spline, R \code{splinefun(method = \textquotedbl{}natural\textquotedbl{})}), \code{\textquotedbl{}curve without overshoot\textquotedbl{}} (PCHIP), \code{\textquotedbl{}steps\textquotedbl{}}, \code{\textquotedbl{}nearest\textquotedbl{}}; experts: \code{\textquotedbl{}akima\textquotedbl{}}, \code{\textquotedbl{}makima\textquotedbl{}}, \code{\textquotedbl{}not-a-knot\textquotedbl{}}, \code{\textquotedbl{}periodic\textquotedbl{}}. Two or more columns: \code{\textquotedbl{}straight lines\textquotedbl{}} (bilinear on a full grid, triangles otherwise), \code{\textquotedbl{}smooth surface\textquotedbl{}} (thin-plate spline), \code{\textquotedbl{}nearest\textquotedbl{}}; on a full grid also \code{\textquotedbl{}cubic\textquotedbl{}}, \code{\textquotedbl{}quintic\textquotedbl{}}, \code{\textquotedbl{}pchip\textquotedbl{}}. \code{smoothness=\textquotedbl{}auto\textquotedbl{}} or a number gives a smoothing spline that passes near, not through, the points (R \code{smooth.\allowbreak{}spline()}; a number is R's \code{lambda=}); 0 passes through every point. \code{\textquotedbl{}auto\textquotedbl{}} lets R itself choose the smoothness and needs R (pip install \code{\textquotedbl{}simplydata[r]\textquotedbl{}}); a number needs no R. \code{outside=} is what happens beyond the known points: \code{\textquotedbl{}empty\textquotedbl{}} (default), \code{\textquotedbl{}nearest end\textquotedbl{}} or \code{\textquotedbl{}extend\textquotedbl{}} (curves only; guesswork). \code{for\_\allowbreak{}each=\textquotedbl{}country\textquotedbl{}} joins each group on its own. Rows with an empty cell are skipped. Gives back a new table: the \code{at=} columns, the \code{for\_\allowbreak{}each=} columns and the estimated column.
 
 \wordfield{Options}{}\par\nopagebreak
 \begin{optiontable}
@@ -6754,7 +6754,7 @@ table.values_at("population", at={"year": [2001, 2003, 2011]}, joined_by="smooth
 Estimate a column at evenly spaced places across one or more columns (a map), ready for a contour or heatmap.
 
 \codeline{table.map\_of(\textquotedbl{}height\textquotedbl{}, across=[\textquotedbl{}east\textquotedbl{}, \textquotedbl{}north\textquotedbl{}], steps=100)} (with \code{sdata.\allowbreak{}example(\textquotedbl{}island\textquotedbl{})})\\
-The map runs from the smallest to the biggest known value of each \code{across=} column, with \code{steps=} places along each (a number, or one per column). The points are joined as in \code{table.\allowbreak{}values\_\allowbreak{}at()} (same \code{joined\_\allowbreak{}by=} and \code{smoothness=}). Places outside the outline of the known points stay empty, with a note. Gives back a new long table: one row per place, with the \code{across=} columns and the estimated column.
+The map runs from the smallest to the biggest known value of each \code{across=} column, with \code{steps=} places along each (a number, or one per column). The points are joined as in \code{table.\allowbreak{}values\_\allowbreak{}at()} (same \code{joined\_\allowbreak{}by=} and \code{smoothness=}; \code{smoothness=\textquotedbl{}auto\textquotedbl{}} needs R, a number does not). Places outside the outline of the known points stay empty, with a note. Gives back a new long table: one row per place, with the \code{across=} columns and the estimated column.
 
 \wordfield{Options}{}\par\nopagebreak
 \begin{optiontable}
