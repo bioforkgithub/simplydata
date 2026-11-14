@@ -7240,7 +7240,7 @@ distances.show_first_rows(3)
 Draw the rows as points on a map where close points are similar rows (NMDS), in new columns.
 
 \codeline{table.add\_nmds()} (with \code{sdata.\allowbreak{}example(\textquotedbl{}meadow\textquotedbl{})})\\
-Non-metric multidimensional scaling puts each row on a map with \code{dimensions=} axes (NMDS1, NMDS2) so that the order of the distances on the map follows the order of the distances between the rows (\code{measure=\textquotedbl{}bray-curtis\textquotedbl{}}, as R vegan::metaMDS). It tries a classical-scaling start and \code{tries=} random starts (\code{seed=} makes them the same every time) and keeps the map with the lowest stress (Kruskal's stress-1: how badly the map fits). Clarke's (1993) rule of thumb: below 0.05 excellent, below 0.1 good, below 0.2 usable, above 0.2 hard to trust. The axes have no units; their rotation and signs are arbitrary. Rows with an empty cell get empty NMDS cells.
+Non-metric multidimensional scaling puts each row on a map with \code{dimensions=} axes (NMDS1, NMDS2) so that the order of the distances on the map follows the order of the distances between the rows (\code{measure=\textquotedbl{}bray-curtis\textquotedbl{}}, as R vegan::metaMDS). It tries at least \code{tries=} random starts (\code{seed=} makes them the same every time), and more, up to 100, until the best map has been found twice; it keeps the map with the lowest stress (Kruskal's stress-1: how badly the map fits). Clarke's (1993) rule of thumb: below 0.05 excellent, below 0.1 good, below 0.2 usable, above 0.2 hard to trust. The axes have no units; their rotation and signs are arbitrary. Rows with an empty cell get empty NMDS cells.
 
 \wordfield{Options}{}\par\nopagebreak
 \begin{optiontable}

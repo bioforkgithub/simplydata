@@ -22,7 +22,8 @@ statsmodels and SciPy; k-means, NMDS and PERMANOVA from R itself (simplydata[r])
   species present in either row that are present in only one of them (counts above 0 are
   "present").
 * add_nmds: non-metric multidimensional scaling, R vegan::metaMDS() itself on vegdist
-  distances (autotransform = FALSE, try = trymax = tries=), run through rpy2 after
+  distances (autotransform = FALSE, try = tries=, trymax = 100: R stops as soon as its best
+  map repeats), run through rpy2 after
   set.seed(seed). Kruskal stress-1 as metaMDS reports it; the map is centred and turned so
   that NMDS1 holds the most spread (metaMDS default); rotation and signs are arbitrary.
   Clarke's (1993) rule of thumb reads the stress. Needs simplydata[r], R and vegan.
@@ -50,6 +51,7 @@ MEASURES = {"bray-curtis": "Bray-Curtis", "euclidean": "Euclidean", "jaccard": "
 MEASURE_R = {"bray-curtis": 'vegdist(x, "bray")', "euclidean": 'vegdist(x, "euclidean")',
              "jaccard": 'vegdist(x, "jaccard", binary = TRUE)', "manhattan": 'vegdist(x, "manhattan")'}
 KMEANS_STARTS = 25
+NMDS_TRIES_UP_TO = 100  # metaMDS trymax: more starts, until the best map repeats
 MADE_HERE = re.compile(r"^(PC|NMDS)\d+$")  # columns these words add; columns=None leaves them out
 
 
@@ -116,14 +118,22 @@ def _r_kmeans(z, k, seed):
     return out["cluster"].astype(int), (float(out["between"][0]) / total if total > 0 else 0.0)
 
 
+def _nmds_tries(tries):
+    """(try, trymax) for metaMDS: at least tries= random starts, then more up to 100 until the best repeats."""
+    first = max(int(tries), 1)
+    return first, max(first, NMDS_TRIES_UP_TO)
+
+
 def _r_nmds(x, measure, dimensions, tries, seed):
     """R vegan::metaMDS on vegdist distances, set.seed(seed): (points, stress, best repeated?)."""
     from .._r import r_call
 
     out = r_call(f"set.seed({int(seed)}); d <- vegan::vegdist(x, {R_DISTANCE[measure]}); "
-                 f"fit <- vegan::metaMDS(d, k = {int(dimensions)}, try = {int(tries)}, trymax = {int(tries)}, "
+                 f"fit <- vegan::metaMDS(d, k = {int(dimensions)}, try = {_nmds_tries(tries)[0]}, "
+                 f"trymax = {_nmds_tries(tries)[1]}, "
                  "autotransform = FALSE, trace = 0); "
-                 "list(points = unclass(fit$points), stress = fit$stress, converged = isTRUE(fit$converged))",
+                 "list(points = unclass(fit$points), stress = fit$stress, "
+                 "converged = isTRUE(as.numeric(fit$converged) > 0))",
                  packages=("vegan",), what="NMDS (R vegan::metaMDS())", source="vegan::metaMDS",
                  python_note="scikit-learn MDS(metric=False) is similar but gives a different stress", x=x)
     points = np.asarray(out["points"], dtype=float)
@@ -451,10 +461,10 @@ class PatternWords:
         Non-metric multidimensional scaling puts each row on a map with dimensions= axes
         (NMDS1, NMDS2) so that the order of the distances on the map follows the order of
         the distances between the rows (measure="bray-curtis", as R vegan::metaMDS). It tries
-        a classical-scaling start and tries= random starts (seed= makes them the same every
-        time) and keeps the map with the lowest stress (Kruskal's stress-1: how badly the map
-        fits). Clarke's (1993) rule of thumb: below 0.05 excellent, below 0.1 good, below 0.2
-        usable, above 0.2 hard to trust. The axes have no units; their rotation and signs are
+        at least tries= random starts (seed= makes them the same every time), and more, up to
+        100, until the best map has been found twice; it keeps the map with the lowest stress
+        (Kruskal's stress-1: how badly the map fits). Clarke's (1993) rule of thumb: below 0.05
+        excellent, below 0.1 good, below 0.2 usable, above 0.2 hard to trust. The axes have no units; their rotation and signs are
         arbitrary. Rows with an empty cell get empty NMDS cells.
         """
         step = "add_nmds"
@@ -469,7 +479,8 @@ class PatternWords:
         delta = _distances(x, measure)
         if not (delta > 0).any():
             raise SimplydataError("Every row is the same in these columns, so there is nothing to draw.")
-        points, stress, repeated = _r_nmds(x, measure, dimensions, max(tries, 1), seed)
+        points, stress, repeated = _r_nmds(x, measure, dimensions, tries, seed)
+        first, most = _nmds_tries(tries)
         if stress < 0.05:
             reading = "excellent"
         elif stress < 0.1:
@@ -483,12 +494,12 @@ class PatternWords:
               f"dimensions): stress = {stress:.3f}, {reading} (Clarke's rule of thumb: below 0.05 excellent, below 0.1 "
               "good, below 0.2 usable, above 0.2 hard to trust).")
         print(f"Method: non-metric multidimensional scaling, run in R: set.seed({seed}); vegan::metaMDS("
-              f"vegdist(x, {R_DISTANCE[measure]}), k = {dimensions}, try = {max(tries, 1)}, trymax = {max(tries, 1)}, "
+              f"vegdist(x, {R_DISTANCE[measure]}), k = {dimensions}, try = {first}, trymax = {most}, "
               f"autotransform = FALSE) (Kruskal's stress-1). Added {_list_words(names)}; the axes have no units and "
               "their rotation and signs are arbitrary.")
         if not repeated:
             print('Note: the best map was found only once (R: "Best solution was not repeated"), so a better map '
-                  "may exist; try a larger tries=.")
+                  f"may exist even after {most} starts.")
         return self._with_new_columns(f"add NMDS {', '.join(names)} of {', '.join(map(str, columns))} ({measure})",
                                       [(n, points[:, i]) for i, n in enumerate(names)], keep)
 

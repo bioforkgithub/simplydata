@@ -295,6 +295,7 @@ def test_nmds_matches_metamds(meadow, capsys, needs_r):
     assert "stress = 0.195, usable" in text  # m1$stress = 0.194902988398863
     assert "Clarke" in text and 'vegan::metaMDS(vegdist(x, method = "bray"), k = 2' in text
     assert "autotransform = FALSE" in text
+    assert "try = 20, trymax = 100" in text and "found only once" not in text  # as the R call above
     points = meadow._frame.to_pandas()[["NMDS1", "NMDS2"]].to_numpy()
     _, _, disparity = procrustes(np.array(R_NMDS_BRAY), points)
     assert np.sqrt(1 - disparity) > 0.999  # vegan::procrustes / protest correlation
