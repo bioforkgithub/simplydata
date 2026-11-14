@@ -610,7 +610,7 @@ def test_shape_test_other_shapes_and_errors(days):
         shape_test(days, "gamm")
 
 
-# ====================================================================== the shape test's Monte Carlo (fast refits)
+# ====================================================================== the shape test's Monte Carlo (SciPy goodness_of_fit)
 def _scipy_gof(x, name, samples):
     import warnings
 
@@ -634,11 +634,7 @@ SAMPLE_OF = {  # data drawn from each shape, so that the p-values are not all at
 
 @pytest.mark.parametrize("name", list(SAMPLE_OF))
 def test_shape_test_gives_the_p_value_of_scipy_goodness_of_fit(name):
-    # The same simulated samples (seed 1) as SciPy goodness_of_fit, which refits one sample at a time
-    # (Nelder-Mead for weibull, half-normal, gumbel, chi-square, beta and von mises); here they are refitted
-    # all at once to the exact maximum (t and cauchy one by one, as SciPy), and the p-value is the same.
-    from simplydata._shape_monte_carlo import VECTOR_FITS
-
+    # shape_test calls SciPy goodness_of_fit with the same seed, so the p-value is SciPy's.
     x = SAMPLE_OF[name].rvs(size=50, random_state=np.random.default_rng(11))
     samples = 99 if name in ("von mises", "t") else 199  # SciPy takes long on these two
     ours = shape_test(x, name, samples=samples)
@@ -646,64 +642,7 @@ def test_shape_test_gives_the_p_value_of_scipy_goodness_of_fit(name):
     # The data's own A uses simplydata's fit (R's exact maximum); SciPy refits the data its own way.
     assert ours["statistic"] == pytest.approx(float(scipy_result.statistic), rel=1e-6)
     assert ours["p-value"] == pytest.approx(float(scipy_result.pvalue), abs=1e-12)
-    assert 0.01 < ours["p-value"] and ((name in ("cauchy", "t")) == (SAMPLE_OF[name].dist.name not in VECTOR_FITS))
-
-
-def test_all_at_once_refits_reach_the_exact_maximum():
-    from scipy import special
-
-    from simplydata import distributions as d
-    from simplydata._shape_monte_carlo import VECTOR_FITS
-
-    rng = np.random.default_rng(7)
-    samples = {
-        "weibull_min": stats.weibull_min(1.7, scale=500).rvs(size=(40, 60), random_state=rng),
-        "gamma": stats.gamma(2.1, scale=200).rvs(size=(40, 60), random_state=rng),
-        "gumbel_r": stats.gumbel_r(10, 3).rvs(size=(40, 60), random_state=rng),
-        "vonmises": stats.vonmises(2.0, loc=0.5).rvs(size=(40, 60), random_state=rng),
-        "chi2": stats.chi2(4.5).rvs(size=(40, 60), random_state=rng),
-        "logistic": stats.logistic(5, 2).rvs(size=(40, 60), random_state=rng),
-        "beta": stats.beta(2, 5).rvs(size=(40, 60), random_state=rng),
-    }
-    for name, x in samples.items():
-        params, settled = VECTOR_FITS[name][1](x)
-        assert settled is None or settled.all(), name
-        for i in range(0, 40, 7):
-            one = x[i]
-            got = {k: float(v[i]) for k, v in params.items()}
-            if name == "weibull_min":  # simplydata's own solver: brentq on the same score equation (as R uniroot)
-                k, scale = d._weibull_shape(one)
-                assert got["c"] == pytest.approx(k, rel=1e-12) and got["scale"] == pytest.approx(scale, rel=1e-12)
-            elif name == "gamma":
-                a = d._gamma_shape(one)
-                assert got["a"] == pytest.approx(a, rel=1e-12)
-                assert got["scale"] == pytest.approx(one.mean() / a, rel=1e-12)
-            elif name == "gumbel_r":
-                loc, b = d._gumbel_scale(one)
-                assert got["loc"] == pytest.approx(loc, rel=1e-12) and got["scale"] == pytest.approx(b, rel=1e-12)
-            elif name == "vonmises":
-                mu, kappa = d._vonmises_fit(one)
-                assert got["loc"] == pytest.approx(mu, rel=1e-12) and got["kappa"] == pytest.approx(kappa, rel=1e-10)
-            elif name == "chi2":  # the score equation digamma(k/2) = mean(log x) - log 2
-                assert special.digamma(got["df"] / 2) == pytest.approx(np.log(one).mean() - math.log(2), abs=1e-13)
-            else:  # logistic and beta: SciPy's fit agrees, and ours is at least as high a likelihood
-                dist = getattr(stats, name)
-                held = {"floc": 0, "fscale": 1} if name == "beta" else {}
-                scipy_fit = dist.fit(one, **held)
-                ours = [got[k] for k in (("a", "b") if name == "beta" else ("loc", "scale"))]
-                assert ours == pytest.approx(list(scipy_fit[:2]), rel=1e-6)
-                frozen = dist(**got, **({"loc": 0, "scale": 1} if name == "beta" else {}))
-                assert frozen.logpdf(one).sum() >= dist(*scipy_fit).logpdf(one).sum() - 1e-9
-
-
-def test_shape_test_does_not_depend_on_the_batch_size(days, monkeypatch):
-    import simplydata._shape_monte_carlo as mc
-
-    whole = shape_test(days, "weibull", samples=299)
-    monkeypatch.setattr(mc, "BATCH_VALUES", len(days) * 7)  # 7 samples at a time
-    monkeypatch.setattr(mc, "PILOT_ROWS_VECTOR", 3)
-    pieces = shape_test(days, "weibull", samples=299)
-    assert pieces["p-value"] == whole["p-value"] and pieces["statistic"] == whole["statistic"]
+    assert 0.01 < ours["p-value"]
 
 
 def test_samples_option_of_compare_shape_to(capsys):
@@ -727,10 +666,10 @@ def test_samples_option_of_compare_shape_to(capsys):
 
 
 def test_a_long_run_gets_a_note_before_it_starts(capsys, monkeypatch):
-    import simplydata._shape_monte_carlo as mc
+    from simplydata import distributions as d
 
     t = make(sdata.example("trial"), "pandas")
-    monkeypatch.setattr(mc.MonteCarlo, "pilot", lambda self: 75.0)  # as if a minute and a bit were left
+    monkeypatch.setattr(d._ShapeRun, "pilot", lambda self: 75.0)  # as if a minute and a bit were left
     t.compare_shape_to("days", "gamma", samples=99)
     out = capsys.readouterr().out
     assert out.startswith("This takes about a minute: 99 simulated samples are refitted. "
@@ -744,7 +683,7 @@ def test_a_long_run_gets_a_note_before_it_starts(capsys, monkeypatch):
 
 
 def test_time_words():
-    from simplydata._shape_monte_carlo import time_note, time_words
+    from simplydata.distributions import time_note, time_words
 
     assert time_words(12) == "about 10 seconds" and time_words(26) == "about 30 seconds"
     assert time_words(50) == "about a minute" and time_words(200) == "about 3 minutes"

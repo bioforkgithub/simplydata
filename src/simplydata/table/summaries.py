@@ -346,7 +346,7 @@ def _array_measure(name: str, values):
     if name == "geometric mean":
         if (values <= 0).any():
             return None, "needs numbers above 0", None
-        return float(np.exp(np.mean(np.log(values)))), None, None
+        return float(stats.gmean(values)), None, None
     if name in LEAST_VALUES and n < LEAST_VALUES[name]:
         return None, f"needs at least {LEAST_VALUES[name]} values", None
     if name in ("skewness", "kurtosis") and np.ptp(values) == 0:
@@ -361,18 +361,16 @@ def _array_measure(name: str, values):
         mean = float(values.mean())
         if mean == 0:
             return None, "is not defined when the average is 0", None
-        return float(values.std(ddof=1)) / mean, None, None
+        return float(stats.variation(values, ddof=1)), None, None
     if name == "median absolute deviation":
-        return MAD_CONSTANT * float(np.median(np.abs(values - np.median(values)))), None, None
+        return float(stats.median_abs_deviation(values, scale=1 / MAD_CONSTANT)), None, None
     if name == "most common":
-        found, counts = np.unique(values, return_counts=True)
-        top = counts.max()
-        return float(found[counts == top][0]), None, found[counts == top]
+        found, counts = np.unique(values, return_counts=True)  # all tied values, for the note
+        return float(stats.mode(values, keepdims=False).mode), None, found[counts == counts.max()]
     number = float(name.split()[-2] if name.endswith("%") else name.split()[-1])
     if name.startswith("percentile"):
         return float(np.percentile(values, number)), None, None
-    cut = math.floor(n * number / 100)
-    return float(np.sort(values)[cut:n - cut].mean()), None, None
+    return float(stats.trim_mean(values, number / 100)), None, None
 
 
 def _measure_values(names, raw: dict) -> dict:

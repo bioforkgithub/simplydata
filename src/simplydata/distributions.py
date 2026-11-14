@@ -35,9 +35,7 @@ Choices (the same as R, so results can be checked there):
 * compare_distributions ranks by AIC, with the Anderson-Darling, Kolmogorov-Smirnov and
   Cramer-von Mises statistics of each fit, as R fitdistrplus::gofstat().
 * shape_test (compare_shape_to with any shape but normal): Anderson-Darling with a Monte Carlo
-  p-value that allows for the fitting (the method of SciPy goodness_of_fit, seed printed); the
-  simulated samples are refitted all at once where the likelihood equations allow it
-  (simplydata._shape_monte_carlo).
+  p-value that allows for the fitting (SciPy goodness_of_fit, seed printed).
 """
 
 from __future__ import annotations
@@ -1195,7 +1193,6 @@ class Distribution:
             if self.is_discrete:
                 return np.asarray(f.isf(shares) if upper else f.ppf(shares), dtype=float)
             out = np.where(shares > 0.5, f.isf(1 - shares), f.ppf(shares)) if not upper else f.isf(shares)
-            out = _polish_quantile(f, np.asarray(out, dtype=float), np.asarray(shares, dtype=float), upper)
         return np.asarray(out, dtype=float)
 
     @friendly
@@ -1744,28 +1741,6 @@ def _numeric_start(family, x):
 
 
 
-def _polish_quantile(frozen, x, shares, upper):
-    """One Newton step on the smaller tail, kept only where it brings the chance closer.
-
-    SciPy's inverse functions are not always as exact as its chances: before SciPy 1.16, t
-    quantiles were off by about 1e-11 (R qt() is exact to rounding). A Newton step on the cdf
-    (or sf, for the upper half) fixes that; where the quantile is already exact the step is
-    nothing, and a step that does not help is not taken.
-    """
-    use_sf = np.broadcast_to(np.asarray(upper) | (shares > 0.5), x.shape)
-    target = np.where(use_sf, 1 - shares if not upper else shares, shares)
-
-    def miss(at):
-        return np.where(use_sf, frozen.sf(at), frozen.cdf(at)) - target
-
-    with np.errstate(all="ignore"):
-        before = miss(x)
-        slope = np.where(use_sf, -1.0, 1.0) * frozen.pdf(x)
-        stepped = x - before / slope
-        after = miss(stepped)
-        better = np.isfinite(x) & np.isfinite(stepped) & (slope != 0) & (np.abs(after) < np.abs(before))
-    return np.where(better, stepped, x)
-
 @dataclass
 class _Fit:
     params: dict
@@ -2073,10 +2048,63 @@ def check_samples(samples, step="compare_shape_to"):
     return int(samples)
 
 
-def _shape_test_start(values, name, seed, samples, column):
-    """Check, fit the data, and set up the simulation: (family, label, x, fitted Distribution, MonteCarlo)."""
-    from ._shape_monte_carlo import MonteCarlo
+NOTE_SECONDS = 10  # a run expected to take longer than this gets a note before it starts
 
+
+def time_words(seconds) -> str:
+    """'about 20 seconds', 'about a minute', 'about 5 minutes', 'about 2 hours'."""
+    if seconds < 45:
+        return f"about {max(10, int(seconds / 10 + 0.5) * 10)} seconds"
+    minutes = seconds / 60
+    if minutes < 1.5:
+        return "about a minute"
+    if minutes < 90:
+        return f"about {int(minutes + 0.5)} minutes"
+    hours = minutes / 60
+    return f"about {int(hours + 0.5)} hours"
+
+
+def time_note(seconds, samples, groups=1):
+    """The plain note printed before a long run, or None when it is quick."""
+    if seconds <= NOTE_SECONDS:
+        return None
+    each = " for each group" if groups > 1 else ""
+    return (f"This takes {time_words(seconds)}: {samples} simulated samples are refitted{each}. "
+            "Use samples= for a quicker, rougher answer.")
+
+
+class _ShapeRun:
+    """One shape test, ready to run with SciPy goodness_of_fit(statistic="ad")."""
+
+    def __init__(self, scipy_dist, known, fitted, x, samples, seed):
+        self.dist, self.known, self.fitted = scipy_dist, dict(known), dict(fitted)
+        self.x, self.samples, self.seed = x, samples, int(seed)
+
+    def pilot(self) -> float:
+        """Expected seconds: one refit of the data, timed, times the number of samples."""
+        import time
+
+        fixed = {"f" + k: v for k, v in self.known.items()}  # SciPy fit: floc=, fscale=, fa= ...
+        start = time.perf_counter()
+        with np.errstate(all="ignore"), warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            try:
+                self.dist.fit(self.x, **fixed)
+            except Exception:  # noqa: BLE001 - only a time estimate
+                return 0.0
+        return (time.perf_counter() - start) * self.samples
+
+    def finish(self) -> tuple[float, float]:
+        with np.errstate(all="ignore"), warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            result = _st().goodness_of_fit(self.dist, self.x, known_params=self.known or None,
+                                           fit_params=self.fitted, statistic="ad", n_mc_samples=self.samples,
+                                           rng=np.random.default_rng(self.seed))
+        return float(result.statistic), float(result.pvalue)
+
+
+def _shape_test_start(values, name, seed, samples, column):
+    """Check, fit the data, and set up the simulation: (family, x, fitted Distribution, _ShapeRun)."""
     family = _find_family(name, "compare_shape_to")
     label = family.name if isinstance(family, Family) else family
     if isinstance(family, Family) and family.discrete or (
@@ -2096,7 +2124,7 @@ def _shape_test_start(values, name, seed, samples, column):
         scipy_name, known, fitted = family.goodness(dist._params)
     else:
         scipy_name, known, fitted = family, {}, dict(dist._params)
-    run = MonteCarlo(getattr(_st(), scipy_name), known, fitted, x, samples, int(seed))
+    run = _ShapeRun(getattr(_st(), scipy_name), known, fitted, x, samples, int(seed))
     return family, x, dist, run
 
 
@@ -2107,14 +2135,11 @@ def shape_test(values, name, seed=SEED, samples=SHAPE_TEST_SAMPLES, column=None,
     Shapiro-Wilk). The parameters are fitted by maximum likelihood (as fit_distribution); the
     p-value comes from samples= simulated samples (9999) drawn from the fitted distribution
     (seed=), each fitted again by maximum likelihood with the same parameters held (loc = 0 for
-    gamma, as R): the method of SciPy goodness_of_fit(statistic="ad"), with the refits done all
-    at once where the likelihood equations allow it (see simplydata._shape_monte_carlo). When the
-    run is expected to take longer than about 10 s, a short note says so before it starts.
+    gamma, as R): SciPy goodness_of_fit(statistic="ad"). When the run is expected to take
+    longer than about 10 s, a short note says so before it starts.
     Gives back a dict: test, what it compares, statistic name, statistic, p-value, rows,
     Monte Carlo samples, seed, distribution (the fitted Distribution), sentence, method.
     """
-    from ._shape_monte_carlo import time_note
-
     if _started is None:
         _started = _shape_test_start(values, name, seed, samples, column)
         note = time_note(_started[3].pilot(), _started[3].samples)
@@ -2136,7 +2161,7 @@ def shape_test(values, name, seed=SEED, samples=SHAPE_TEST_SAMPLES, column=None,
         sentence = (f"The values of {what} could well follow a {title} distribution (Anderson-Darling A = {a:.3f}, "
                     f"{_p_shown(p)}, {len(x)} values; fitted {fitted_words}). This does not prove that they do.")
     method = (f"Test: Anderson-Darling test of a fitted {title} shape, with a Monte Carlo p-value from "
-              f"{samples} simulated samples that are each fitted again (as SciPy goodness_of_fit, seed={seed}); "
+              f"{samples} simulated samples that are each fitted again (SciPy goodness_of_fit, seed={seed}); "
               + (f"the statistic is R goftest::ad.test(x, \"{family.r_package}p{family.r_prefix}\", ...) with the "
                  "fitted values." if isinstance(family, Family) and family.r_prefix else
                  "the statistic is the usual Anderson-Darling A with the fitted values."))

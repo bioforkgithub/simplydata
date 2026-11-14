@@ -11,7 +11,7 @@ Choices (the same defaults as R, so results can be checked there):
   Hedges' g, the difference in pooled standard deviations, with the exact small-sample
   correction.
 * compare_averages, 3 or more groups: Welch's one-way ANOVA (R oneway.test() default,
-  var.equal = FALSE), written out from Welch (1951). Effect size: omega-squared, from the
+  var.equal = FALSE; Welch 1951), from statsmodels anova_oneway. Effect size: omega-squared, from the
   ordinary sums of squares; it is less biased upwards than eta-squared in small samples
   (Okada 2013). Which pairs differ: compare_each_pair(), pairwise Welch t-tests with Holm's
   correction (R pairwise.t.test(pool.sd = FALSE, p.adjust.method = "holm")); or with
@@ -178,39 +178,24 @@ def _hedges_correction(df: float) -> float:
     return math.exp(gammaln(df / 2) - 0.5 * math.log(df / 2) - gammaln((df - 1) / 2))
 
 
-def _holm(p_values) -> list[float]:
-    """Holm's step-down adjustment (R p.adjust(method = "holm"))."""
-    p = np.asarray(p_values, dtype=float)
-    m = len(p)
-    adjusted = np.empty(m)
-    running = 0.0
-    for rank, i in enumerate(np.argsort(p, kind="stable")):
-        running = max(running, min(1.0, (m - rank) * p[i]))
-        adjusted[i] = running
-    return adjusted.tolist()
+# simplydata method name -> statsmodels multipletests method (the same numbers as R p.adjust())
+_MULTIPLETESTS = {"holm": "holm", "bonferroni": "bonferroni", "benjamini-hochberg": "fdr_bh",
+                  "benjamini-yekutieli": "fdr_by"}
 
 
 def _adjust_p(p_values, method: str) -> np.ndarray:
-    """Adjusted p-values exactly as R p.adjust() (no empty values here).
+    """Adjusted p-values from statsmodels multipletests, the same as R p.adjust() (no empty values here)."""
+    from statsmodels.stats.multitest import multipletests
 
-    bonferroni  pmin(1, m * p)
-    holm        pmin(1, cummax((m - i + 1) * p[o]))[ro],  o = order(p)
-    BH          pmin(1, cummin(m / i * p[o]))[ro],        o = order(p, decreasing = TRUE)
-    BY          the same as BH, times sum(1 / (1:m))
-    """
     p = np.asarray(p_values, dtype=float)
-    m = len(p)
-    if method == "bonferroni":
-        return np.minimum(1.0, m * p)
-    if method == "holm":
-        return np.asarray(_holm(p))
-    factor = 1.0 if method == "benjamini-hochberg" else float(np.sum(1.0 / np.arange(1, m + 1)))
-    order = np.argsort(-p, kind="stable")  # biggest p first
-    ranks = np.arange(m, 0, -1)
-    adjusted = np.minimum.accumulate(factor * m / ranks * p[order])
-    out = np.empty(m)
-    out[order] = np.minimum(1.0, adjusted)
-    return out
+    if len(p) == 0:
+        return p
+    return np.asarray(multipletests(p, method=_MULTIPLETESTS[method])[1], dtype=float)
+
+
+def _holm(p_values) -> list[float]:
+    """Holm's step-down adjustment (R p.adjust(method = "holm"))."""
+    return _adjust_p(p_values, "holm").tolist()
 
 
 def _p_shown(p: float) -> str:
@@ -220,25 +205,13 @@ def _p_shown(p: float) -> str:
 def _welch_anova(groups):
     """Welch's one-way ANOVA (Welch 1951), as R oneway.test(var.equal = FALSE).
 
-    w_i = n_i / s_i^2, weighted mean m' = sum(w_i m_i) / sum(w_i)
-    A = sum(w_i (m_i - m')^2) / (k - 1)
-    L = sum((1 - w_i / W)^2 / (n_i - 1))
-    F = A / (1 + 2 (k - 2) L / (k^2 - 1)),  df1 = k - 1,  df2 = (k^2 - 1) / (3 L)
-    """
-    from scipy import stats
+    statsmodels anova_oneway(use_var="unequal", welch_correction=True). Returns F, df1, df2, p."""
+    from statsmodels.stats.oneway import anova_oneway
 
-    k = len(groups)
-    n = np.array([len(g) for g in groups], dtype=float)
-    means = np.array([g.mean() for g in groups])
-    variances = np.array([g.var(ddof=1) for g in groups])
-    w = n / variances
-    total = w.sum()
-    centre = (w * means).sum() / total
-    a = (w * (means - centre) ** 2).sum() / (k - 1)
-    lam = ((1 - w / total) ** 2 / (n - 1)).sum()
-    f = a / (1 + 2 * (k - 2) * lam / (k ** 2 - 1))
-    df1, df2 = k - 1.0, (k ** 2 - 1) / (3 * lam)
-    return float(f), df1, float(df2), float(stats.f.sf(f, df1, df2))
+    result = anova_oneway([np.asarray(g, dtype=float) for g in groups], use_var="unequal",
+                          welch_correction=True)
+    df1, df2 = result.df
+    return float(result.statistic), float(df1), float(df2), float(result.pvalue)
 
 
 def _omega_squared(groups) -> float:
@@ -1076,8 +1049,7 @@ class StatTestWords:
         chi = stats.chi2_contingency(observed, correction=True)
         expected = chi.expected_freq
         n = int(observed.sum())
-        plain_chi = stats.chi2_contingency(observed, correction=False).statistic
-        v = math.sqrt(plain_chi / (n * (min(observed.shape) - 1)))
+        v = float(stats.contingency.association(observed, method="cramer", correction=False))
         two_by_two = observed.shape == (2, 2)
         what = f'how often each "{column}" turns up in each "{for_each}"'
         row = {"test": None, "what it compares": what}
@@ -1424,8 +1396,7 @@ class StatTestWords:
 
     def _compare_other_shape(self, step, column, shape, for_each, seed, samples):
         """compare_shape_to() for any shape but normal: the engine is distributions.shape_test."""
-        from .._shape_monte_carlo import time_note
-        from ..distributions import _find_family, _shape_test_start, check_samples, shape_test
+        from ..distributions import _find_family, _shape_test_start, check_samples, shape_test, time_note
 
         try:
             _find_family(shape, step)

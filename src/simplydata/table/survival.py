@@ -15,10 +15,10 @@ Methods (the same defaults as R's survival package, so results can be checked th
   sqrt(sum(d / (n (n - d)))), the top end cut at 1. The median time and its 95 % CI are
   read where the curve and the two edges of the band first reach 0.5 or below, with R's
   rule for a curve that sits exactly on 0.5 (the middle of that time and the next drop).
-* compare_survival: the log-rank test (R survdiff(), rho = 0). At each event time the
-  events are shared out over the groups in proportion to the rows at risk (the expected
-  events); the chi-square compares observed and expected with their hypergeometric
-  variance, on (groups - 1) degrees of freedom.
+* compare_survival: the log-rank test (R survdiff(), rho = 0), from statsmodels survdiff.
+  At each event time the events are shared out over the groups in proportion to the rows
+  at risk (the expected events); the chi-square compares observed and expected with their
+  hypergeometric variance, on (groups - 1) degrees of freedom.
 * explain_survival: the Cox proportional hazards model (R coxph()), with Efron's method for
   tied event times (R's default). Fitted here with NumPy by Newton-Raphson with
   step-halving, from all coefficients at 0, as R does (stops when the log partial
@@ -176,25 +176,28 @@ def median_time(km) -> tuple[float, float, float]:
 
 
 def log_rank(time, event, codes, k):
-    """Log-rank test as R survdiff(rho = 0): observed, expected, chi-square, df."""
+    """Log-rank test as R survdiff(rho = 0): observed, expected, chi-square, df.
+
+    The chi-square comes from statsmodels survdiff. The observed and expected events per
+    group are only counted for the printout (expected = sum over event times of
+    events x share of the rows at risk in that group)."""
+    from statsmodels.duration.survfunc import survdiff
+
     time = np.asarray(time, dtype=float)
     event = np.asarray(event, dtype=bool)
+    codes = np.asarray(codes)
     observed = np.array([(event & (codes == j)).sum() for j in range(k)], dtype=float)
     expected = np.zeros(k)
-    variance = np.zeros((k, k))
     for t in np.unique(time[event]):
         risk = time >= t
         n_j = np.array([(risk & (codes == j)).sum() for j in range(k)], dtype=float)
-        n = n_j.sum()
-        d = float((event & (time == t)).sum())
-        share = n_j / n
-        expected += d * share
-        if n > 1:
-            variance += d * (n - d) / (n - 1) * (np.diag(share) - np.outer(share, share))
-    diff = (observed - expected)[:-1]
-    small = variance[:-1, :-1]
-    chi = float(diff @ np.linalg.pinv(small) @ diff)
-    df = int(np.linalg.matrix_rank(small))
+        expected += float((event & (time == t)).sum()) * n_j / n_j.sum()
+    present = sorted(set(codes.tolist()))
+    try:
+        chi, _ = survdiff(time, event.astype(float), codes)
+        chi, df = float(chi), len(present) - 1
+    except np.linalg.LinAlgError:  # e.g. every event in one group at a time when only it is at risk
+        chi, df = math.nan, 0
     return observed, expected, chi, df
 
 
