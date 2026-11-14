@@ -7,6 +7,17 @@ working for one release and prints a one-line note with its new name.
 
 More statistics, each checked against R.
 
+### More kinds of outcome in explain()
+
+- `outcome="counts that vary a lot"`: negative binomial regression, as R `MASS::glm.nb()` (theta by
+  maximum likelihood with statsmodels, then the GLM with theta held, as glm.nb reports it). It sits
+  next to `"counts (overdispersed)"` (quasi-Poisson), and the overdispersion note names both.
+- `outcome="positive numbers"`: Gamma regression with a log link for positive, skewed numbers such as
+  times or amounts (R `glm(family = Gamma(link = "log"))`); each effect multiplies the average.
+- `time="years"` with counts: rates, the count per unit of time (R `offset = log(years)`).
+- `out_of="tries"` with `outcome="yes or no"`: the column holds the number of yes out of that many
+  tries (R `glm(cbind(yes, tries - yes) ~ ..., family = binomial)`).
+
 ### Mixed models for yes/no and counts
 
 - `table.explain(..., outcome="yes or no", grouped_by="school")` and `outcome="counts"` with

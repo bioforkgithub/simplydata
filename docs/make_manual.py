@@ -886,8 +886,13 @@ def make() -> str:
 
 # ---------------------------------------------------------------- running the examples
 def _work_folder() -> Path:
-    """Scratch space for the build: F:\\claude_work if it exists (keeps the project folder
-    small), else the system's temporary folder."""
+    """Scratch space for the build: SIMPLYDATA_WORK_DIR if set (so parallel builds do not share
+    one folder), else F:\\claude_work if it exists (keeps the project folder small), else the
+    system's temporary folder."""
+    if os.environ.get("SIMPLYDATA_WORK_DIR"):
+        base = Path(os.environ["SIMPLYDATA_WORK_DIR"])
+        base.mkdir(parents=True, exist_ok=True)
+        return base
     base = Path(r"F:\claude_work\scratch\simplydata")
     if not base.parent.exists():
         base = Path(tempfile.gettempdir()) / "simplydata_manual"
