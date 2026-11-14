@@ -108,10 +108,11 @@ UNDERNEATH = {
     "show=": "seaborn (the estimator of barplot and lineplot)",
     "error=": "seaborn (errorbar=\"sd\" or \"se\"); the confidence interval from the t distribution (SciPy)",
     "error_bars": "pandas (group averages) and matplotlib (errorbar); SciPy for the t-based confidence interval",
-    "fit_line": "SciPy (stats.linregress), drawn with matplotlib",
-    "fit_curve": "NumPy (polyfit), drawn with matplotlib",
-    "smooth_line": "NumPy (LOWESS, written out in simplydata as in R's lowess()) or SciPy (make_smoothing_spline, for "
-                   "method=\"spline\"), drawn with matplotlib",
+    "fit_line": "SciPy (stats.linregress); the confidence band from statsmodels OLS, drawn with matplotlib",
+    "fit_curve": "statsmodels (least squares on the powers of x), drawn with matplotlib",
+    "smooth_line": "statsmodels (lowess, which follows R's lowess()) or SciPy (make_smoothing_spline, for "
+                   "method=\"spline\"; smoothness=\"auto\" lets R smooth.spline choose it and needs R), drawn "
+                   "with matplotlib",
     "density": "seaborn (kdeplot)",
     "qq_dots": "SciPy (stats.probplot, against a fitted scipy.stats distribution for distribution=) for the points "
                "and the line; matplotlib draws them",

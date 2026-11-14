@@ -15,11 +15,13 @@ phase, after every chart type. Methods, written so they can be stated in a paper
   confidence_band=True is the 95 % confidence band of the fitted line (of the mean of y at each x),
   from statsmodels OLS get_prediction().conf_int(), as R predict(lm, interval = "confidence").
 * fit_curve: least-squares polynomial, the same statsmodels fit as table.fit_curve; R² = 1 - SSE / SST.
-* smooth_line: LOWESS (Cleveland 1979), statsmodels lowess(), the algorithm of R's lowess():
+* smooth_line: LOWESS (Cleveland 1979), statsmodels lowess(), which follows R's lowess():
   local straight-line fits with tricube weights over the nearest 2/3 of the points, then 3
-  robustness iterations with bisquare weights (6 × median absolute residual). Every point
-  is fitted (delta = 0, as in statsmodels); above 1000 points, points within 1 % of the x
-  range are interpolated (delta = 0.01 · range, R's default), to keep it fast.
+  robustness iterations with bisquare weights (6 × median absolute residual). Up to 1000
+  points every point is fitted (delta = 0) and the curve is R's to about 1e-9; above 1000
+  points, points within 1 % of the x range are interpolated (delta = 0.01 · range, R's
+  default), to keep it fast, and statsmodels and R interpolate a little differently, so the
+  curve agrees with R to about 1e-5.
 * side_histograms: numpy.histogram_bin_edges(bins="auto"), the same bins for all groups.
 * sdata.pairs: seaborn.histplot on the diagonal, or seaborn.kdeplot (Gaussian kernel,
   Scott's bandwidth) when colour= makes groups; seaborn.scatterplot elsewhere.
@@ -44,6 +46,7 @@ from .._core import PHASES, BaseChart
 from .._data import is_listlike
 from .._errors import SimplydataError, column_error, friendly
 from .._stats import ERROR_LONG, error_code, say_error, t_interval
+from ..table.between import MIN_SMOOTHING_POINTS
 from ._helpers import check_thickness, colour_role, default_colour, palette_for
 from .look import LookWords
 from .text import TextWords
@@ -430,7 +433,7 @@ def _draw_fit(ctx, word, how, colour, show_equation, band=False, degree=1, thick
     _numeric_xy(word, table, x, y)
     ax = ctx.ax
     drawn = 0
-    need = {"line": 2, "curve": degree + 1, "smooth": 3, "spline": 4}[how]
+    need = {"line": 2, "curve": degree + 1, "smooth": 3, "spline": MIN_SMOOTHING_POINTS}[how]
     for name, part, col in _groups(ctx, table, group, colour):
         xv, yv = _numeric_xy(word, part, x, y)
         if len(np.unique(xv)) < need:
@@ -668,8 +671,9 @@ class StatsWords:
         Good for seeing a trend that is not straight. Each colour group gets its own line.
         thickness=3 draws a thicker line (normal is 2).
         method="spline" draws a smoothing spline instead (as table.values_at(...,
-        smoothness=) and R smooth.spline()): smoothness="auto" chooses how smooth by
-        generalised cross-validation; a number is R's lambda= (bigger is smoother).
+        smoothness=) and R smooth.spline()): smoothness="auto" lets R choose how smooth by
+        generalised cross-validation, which needs R (pip install "simplydata[r]"); a number
+        is R's lambda= (bigger is smoother) and needs no R.
         """
         _fixed_colour("smooth_line", colour)
         thickness = check_thickness("smooth_line", thickness)

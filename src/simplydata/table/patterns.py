@@ -51,6 +51,7 @@ MEASURES = {"bray-curtis": "Bray-Curtis", "euclidean": "Euclidean", "jaccard": "
 MEASURE_R = {"bray-curtis": 'vegdist(x, "bray")', "euclidean": 'vegdist(x, "euclidean")',
              "jaccard": 'vegdist(x, "jaccard", binary = TRUE)', "manhattan": 'vegdist(x, "manhattan")'}
 KMEANS_STARTS = 25
+R_SEED_MAX = 2 ** 31 - 1  # the largest seed R set.seed() takes
 NMDS_TRIES_UP_TO = 100  # metaMDS trymax: more starts, until the best map repeats
 MADE_HERE = re.compile(r"^(PC|NMDS)\d+$")  # columns these words add; columns=None leaves them out
 
@@ -376,7 +377,7 @@ class PatternWords:
         self._check_whole(step, "how_many=", how_many, 2, len(x) - 1, example)
         z = self._scaled(x, columns, same_scale)
         if method == "k-means":
-            self._check_whole(step, "seed=", seed, 0, None, example)
+            self._check_whole(step, "seed=", seed, 0, R_SEED_MAX, example)
             if len(np.unique(z, axis=0)) < how_many:
                 raise SimplydataError(f"There are only {len(np.unique(z, axis=0))} different rows, so they cannot "
                                       f"make {how_many} clusters.")
@@ -472,7 +473,7 @@ class PatternWords:
         self._check_choice(step, "measure", measure, list(MEASURES))
         self._check_whole(step, "dimensions=", dimensions, 1, 10, example)
         self._check_whole(step, "tries=", tries, 0, None, example)
-        self._check_whole(step, "seed=", seed, 0, None, example)
+        self._check_whole(step, "seed=", seed, 0, R_SEED_MAX, example)
         columns = self._pattern_columns(step, columns, example)
         x, keep = self._pattern_matrix(step, columns, least_rows=dimensions + 3)
         self._check_measure(measure, x, columns)
@@ -524,7 +525,7 @@ class PatternWords:
         self._need_name(step, "for_each=", for_each, example)
         self._need_columns(for_each)
         self._check_whole(step, "permutations=", permutations, 1, None, example)
-        self._check_whole(step, "seed=", seed, 0, None, example)
+        self._check_whole(step, "seed=", seed, 0, R_SEED_MAX, example)
         columns = self._pattern_columns(step, columns, example, leave_out=(for_each,))
         if for_each in columns:
             raise SimplydataError(f'"{for_each}" cannot be both a column to compare and the for_each= column.\n'
