@@ -381,6 +381,8 @@ and `a`, `b` in `sdata.side_by_side(a, b)` are charts you made first.
 | `check_steady` | `table.check_steady("signal", sorted_by="time")` | sensor | Does a column stay steady over time, or does it wander? (ADF and KPSS tests, as R tseries) |
 | `autocorrelation_of` | `table.autocorrelation_of("signal", sorted_by="time", rows_back=40)` | sensor | How much a column is like itself some rows back (autocorrelation), with a noise band. |
 | `autocorrelation_of` | `nums.autocorrelation_of(rows_back=24)` | sensor | How much the numbers are like themselves some places back (autocorrelation), with a noise band. |
+| `add_trend_and_season` | `table.add_trend_and_season("visitors", sorted_by="month", repeats_every="year", for_each="museum")` | visitors | Split a column into a trend, a season that repeats, and the rest, as three new columns. |
+| `trend_of` | `table.trend_of("visitors", sorted_by="month", for_each="museum")` | visitors | Does a column keep rising or falling over time, and by how much? (Mann-Kendall test, Sen's slope) |
 
 ## Planning a study
 

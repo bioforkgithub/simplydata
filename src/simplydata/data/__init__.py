@@ -13,7 +13,7 @@ from .._errors import SimplydataError, suggest
 
 # name -> (what it is, what each column means)
 # Columns read as dates (the files keep them as year-month-day text).
-DATE_COLUMNS = {"shop": ["date"]}
+DATE_COLUMNS = {"shop": ["date"], "visitors": ["month"]}
 EXAMPLES = {
     "marks": (
         "Test marks of 18 made-up children in three classes.",
@@ -64,6 +64,14 @@ EXAMPLES = {
             "signal": "the reading: a 5-per-second and a 20-per-second cycle, a 50-per-second hum, a slow drift, "
                       "noise and three spikes",
             "vibration": "a second sensor: the signal 0.03 s later at half size, plus its own noise",
+        },
+    ),
+    "visitors": (
+        "Monthly visitors to two made-up museums, 2014 to 2025: a rising trend, a yearly season and noise.",
+        {
+            "month": "the first day of each month from 2014-01-01 to 2025-12-01 (real dates)",
+            "museum": "Harbour Museum or Hill Gallery",
+            "visitors": "people who came that month",
         },
     ),
     "shop": (

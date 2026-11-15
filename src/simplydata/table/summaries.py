@@ -1267,7 +1267,7 @@ class SummaryWords:
 
     # ------------------------------------------------------------------ correlation
     @friendly
-    def correlation_between(self, *columns, method="pearson", show="r"):
+    def correlation_between(self, *columns, method="pearson", show="r", rows_back=None, sorted_by=None):
         """How strongly columns of numbers go up or down together, from -1 to 1.
 
         table.correlation_between("hours", "marks")   (with sdata.example("marks"))
@@ -1286,6 +1286,9 @@ class SummaryWords:
         medium, from 0.6 strong, from 0.8 very strong (after Evans 1996).
         p below 0.001: "very unlikely to be chance"; below 0.05: "unlikely to be chance";
         otherwise "could easily be chance".
+        With rows_back=12 and two columns (sorted_by= the time column): the correlation for shifts
+        -12 to 12 (cross-correlation, as R ccf with the sign of the lag reversed): shift 2 pairs the
+        first column with the second 2 rows later. It says which column follows the other.
         A correlation does not show that one thing causes the other.
         """
         step = "correlation_between"
@@ -1297,6 +1300,11 @@ class SummaryWords:
                 f"{step}() needs two column names in quotes (or more, for a correlation table).\n"
                 f'For example, with sdata.example("marks"): table.{step}("hours", "marks")'
             )
+        if rows_back is not None or sorted_by is not None:
+            if rows_back is None:
+                raise SimplydataError(f"{step}() uses sorted_by= with rows_back= (the cross-correlation); "
+                                      "give rows_back=, such as rows_back=12.")
+            return self._cross_correlation(step, names, rows_back, sorted_by)
         self._check_choice(step, "method", method, CORRELATION_METHODS)
         shown = _plain_name(show)
         if shown not in CORRELATION_SHOW:

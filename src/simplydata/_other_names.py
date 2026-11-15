@@ -144,6 +144,11 @@ _TABLE = [
      "adfuller adf_test kpss kpss_test unit_root stationarity is_stationary compare_to_steady"),
     ('table.autocorrelation_of("signal", sorted_by="time")',
      "acf pacf acovf autocorrelation autocorr partial_autocorrelation ljung_box Box.test"),
+    ('table.add_trend_and_season("visitors", sorted_by="month", repeats_every="year")',
+     "stl STL decompose seasonal_decompose decomposition split_trend_and_season deseasonalise"),
+    ('table.trend_of("visitors", sorted_by="month")',
+     "mk.test mann_kendall mannkendall sens.slope sen_slope theilslopes smk.test sea.sens.slope"),
+    ('table.correlation_between("a", "b", rows_back=12, sorted_by="date")', "ccf cross_correlation xcorr"),
 ]
 
 # chart.<name>

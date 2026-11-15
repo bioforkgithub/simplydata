@@ -62,6 +62,16 @@ Install once: `pip install "simplydata[r]"`, R from https://cran.r-project.org, 
   a column is like itself some rows back, with the noise band of R `plot.acf` (band="white noise", or
   "bartlett" as R `ci.type = "ma"`), show="correlation" (R `acf`), "partial" (R `pacf`) or "covariance",
   and the Ljung-Box test of all of them together (R `Box.test(type = "Ljung-Box")`). From statsmodels.
+- `table.correlation_between("a", "b", rows_back=12, sorted_by="date")`: the cross-correlation for shifts -12 to
+  12 (statsmodels `ccf`, as R `ccf` with the sign of the lag reversed), and which column follows the other.
+- `table.add_trend_and_season("visitors", sorted_by="month", repeats_every="year")`: adds the trend, the season and
+  the rest as three columns. method="loess" (R `stl`: statsmodels STL with R's settings; season_window="fixed" runs
+  R `stl(s.window = "periodic")` itself), "moving averages" (R `decompose`, season "added" or "multiplied") or
+  "straight line".
+- `table.trend_of("visitors", sorted_by="month")`: Sen's slope with its 95 % interval (SciPy `theilslopes`, as R
+  `trend::sens.slope`) and the Mann-Kendall test (R `trend::mk.test` itself); repeats_every= gives the seasonal test
+  and slope (R `trend::smk.test`, `trend::sea.sens.slope`). Without R the slope is still given.
+- New practice table `visitors`: monthly visitors to two made-up museums, 2014 to 2025.
 - New practice table `sensor`: five seconds of a made-up sensor at 200 readings per second.
 
 ### Fitting

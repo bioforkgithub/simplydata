@@ -414,6 +414,15 @@ time & seconds from 0 to 4.995, one reading every 0.005 s\\
 signal & the reading: a 5-per-second and a 20-per-second cycle, a 50-per-second hum, a slow drift, noise and three spikes\\
 vibration & a second sensor: the signal 0.03 s later at half size, plus its own noise\\
 \bottomrule\end{tabularx}\end{center}
+\section*{visitors}
+Monthly visitors to two made-up museums, 2014 to 2025: a rising trend, a yearly season and noise. \code{sdata.\allowbreak{}example(\textquotedbl{}visitors\textquotedbl{})}
+\begin{center}\small
+\begin{tabularx}{\textwidth}{@{}>{\ttfamily}l>{\raggedright\arraybackslash}X@{}}
+\toprule \textrm{\textbf{Column}} & \textbf{What it holds}\\ \midrule
+month & the first day of each month from 2014-01-01 to 2025-12-01 (real dates)\\
+museum & Harbour Museum or Hill Gallery\\
+visitors & people who came that month\\
+\bottomrule\end{tabularx}\end{center}
 \section*{shop}
 Daily sales of two made-up shops from January to March 2026. Some cells are empty. \code{sdata.\allowbreak{}example(\textquotedbl{}shop\textquotedbl{})}
 \begin{center}\small
@@ -6435,13 +6444,15 @@ How strongly columns of numbers go up or down together, from -1 to 1.
 \codeline{table.correlation\_between(\textquotedbl{}hours\textquotedbl{}, \textquotedbl{}marks\textquotedbl{})} (with \code{sdata.\allowbreak{}example(\textquotedbl{}marks\textquotedbl{})})\\
 \code{method=\textquotedbl{}pearson\textquotedbl{}} (a straight-line link, the usual one) or \code{\textquotedbl{}spearman\textquotedbl{}} (uses ranks, for any link that keeps going one way). Prints the strength in words and the p-value from SciPy. With two columns it gives back the number r; rows with an empty cell in either column are skipped. With three or more columns it gives back a correlation table (as pandas .corr()), and prints the strongest pairs:\\
 \codeline{table.correlation\_between(\textquotedbl{}hours\textquotedbl{}, \textquotedbl{}marks\textquotedbl{}, \textquotedbl{}height\textquotedbl{})}\\
-Each pair uses the rows where both columns have a number. \code{show=\textquotedbl{}p-value\textquotedbl{}} gives the table of p-values instead, and \code{show=\textquotedbl{}each pair\textquotedbl{}} one row per pair (r, p-value, rows), ready for \code{add\_\allowbreak{}adjusted\_\allowbreak{}p\_\allowbreak{}value\_\allowbreak{}column()}: testing many pairs makes a chance finding more likely. Strength words for the size of r: below 0.2 very weak, from 0.2 weak, from 0.4 medium, from 0.6 strong, from 0.8 very strong (after Evans 1996). p below 0.001: \code{\textquotedbl{}very unlikely to be chance\textquotedbl{}}; below 0.05: \code{\textquotedbl{}unlikely to be chance\textquotedbl{}}; otherwise \code{\textquotedbl{}could easily be chance\textquotedbl{}}. A correlation does not show that one thing causes the other.
+Each pair uses the rows where both columns have a number. \code{show=\textquotedbl{}p-value\textquotedbl{}} gives the table of p-values instead, and \code{show=\textquotedbl{}each pair\textquotedbl{}} one row per pair (r, p-value, rows), ready for \code{add\_\allowbreak{}adjusted\_\allowbreak{}p\_\allowbreak{}value\_\allowbreak{}column()}: testing many pairs makes a chance finding more likely. Strength words for the size of r: below 0.2 very weak, from 0.2 weak, from 0.4 medium, from 0.6 strong, from 0.8 very strong (after Evans 1996). p below 0.001: \code{\textquotedbl{}very unlikely to be chance\textquotedbl{}}; below 0.05: \code{\textquotedbl{}unlikely to be chance\textquotedbl{}}; otherwise \code{\textquotedbl{}could easily be chance\textquotedbl{}}. With \code{rows\_\allowbreak{}back=12} and two columns (\code{sorted\_\allowbreak{}by=} the time column): the correlation for shifts -12 to 12 (cross-correlation, as R ccf with the sign of the lag reversed): shift 2 pairs the first column with the second 2 rows later. It says which column follows the other. A correlation does not show that one thing causes the other.
 
 \wordfield{Options}{}\par\nopagebreak
 \begin{optiontable}
 \code{columns.\allowbreak{}.\allowbreak{}.\allowbreak{}} & as many as you like, separated by commas\\
 \code{method=} & normally \code{\textquotedbl{}pearson\textquotedbl{}}\\
 \code{show=} & normally \code{\textquotedbl{}r\textquotedbl{}}\\
+\code{rows\_\allowbreak{}back=} & \\
+\code{sorted\_\allowbreak{}by=} & \\
 \end{optiontable}
 
 \wordfield{Underneath}{SciPy (stats.pearsonr or stats.spearmanr)}
@@ -7579,6 +7590,54 @@ As \code{table.\allowbreak{}autocorrelation\_\allowbreak{}of}: R acf (\code{show
 import simplydata as sdata
 nums = sdata.numbers(sdata.example("sensor")["signal"])
 nums.autocorrelation_of(rows_back=10)
+\end{lstlisting}
+\wordentry{table.add\_trend\_and\_season()}{word:table.add-trend-and-season}
+Split a column into a trend, a season that repeats, and the rest, as three new columns.
+
+\codeline{table.add\_trend\_and\_season(\textquotedbl{}visitors\textquotedbl{}, sorted\_by=\textquotedbl{}month\textquotedbl{}, repeats\_every=\textquotedbl{}year\textquotedbl{}, for\_each=\textquotedbl{}museum\textquotedbl{})}\\
+(with \code{sdata.\allowbreak{}example(\textquotedbl{}visitors\textquotedbl{})}). Adds \code{visitors\_\allowbreak{}trend}, \code{visitors\_\allowbreak{}season} and \code{visitors\_\allowbreak{}rest} (\code{names=} gives three other names); trend + season + rest = the column (season \code{\textquotedbl{}added\textquotedbl{}}). \code{repeats\_\allowbreak{}every=} is the number of readings in one cycle (12, or \code{\textquotedbl{}year\textquotedbl{}} for monthly readings). \code{method=\textquotedbl{}loess\textquotedbl{}} (the default, R \code{stl()}: statsmodels STL with R's settings; \code{season\_\allowbreak{}window=} odd number of cycles, at least 7, or \code{\textquotedbl{}fixed\textquotedbl{}} for the same season every cycle, which runs R \code{stl(s.\allowbreak{}window = \textquotedbl{}periodic\textquotedbl{})} itself and needs simplydata[r]; \code{robust=True} keeps outliers from pulling the trend), \code{\textquotedbl{}moving averages\textquotedbl{}} (R \code{decompose()}: statsmodels \code{seasonal\_\allowbreak{}decompose}; \code{season=\textquotedbl{}multiplied\textquotedbl{}} for a season that grows with the level) or \code{\textquotedbl{}straight line\textquotedbl{}} (a straight-line trend; with \code{repeats\_\allowbreak{}every=} the season is the average left at each place in the cycle). One undo step.
+
+\wordfield{Options}{}\par\nopagebreak
+\begin{optiontable}
+\code{column=} & \\
+\code{sorted\_\allowbreak{}by=} & \\
+\code{repeats\_\allowbreak{}every=} & \\
+\code{method=} & normally \code{\textquotedbl{}loess\textquotedbl{}}\\
+\code{season=} & normally \code{\textquotedbl{}added\textquotedbl{}}\\
+\code{season\_\allowbreak{}window=} & normally \code{7}\\
+\code{robust=} & normally \code{False}\\
+\code{for\_\allowbreak{}each=} & \\
+\code{names=} & \\
+\end{optiontable}
+
+\wordfield{Underneath}{statsmodels (STL with R's settings, \code{seasonal\_\allowbreak{}decompose}, OLS), pandas groupby; R stats::\code{stl(s.\allowbreak{}window = \textquotedbl{}periodic\textquotedbl{})} for a fixed season (simplydata[r])}
+\wordfield{Example you can run}{(it uses the practice table \code{visitors})}\par\nopagebreak
+\begin{lstlisting}[style=py]
+import simplydata as sdata
+table = sdata.table(sdata.example("visitors"))
+table.add_trend_and_season("visitors", sorted_by="month", repeats_every="year", for_each="museum")
+table.show_first_rows(3)
+\end{lstlisting}
+\wordentry{table.trend\_of()}{word:table.trend-of}
+Does a column keep rising or falling over time, and by how much? (Mann-Kendall test, Sen's slope)
+
+\codeline{table.trend\_of(\textquotedbl{}visitors\textquotedbl{}, sorted\_by=\textquotedbl{}month\textquotedbl{}, for\_each=\textquotedbl{}museum\textquotedbl{})} (with \code{sdata.\allowbreak{}example(\textquotedbl{}visitors\textquotedbl{})})\\
+Sen's slope is the middle (median) of the slopes between every pair of readings, so a few odd readings do not move it: the change per reading (per month for monthly dates, also per year), with its 95 \% interval (SciPy theilslopes, as R trend::sens.slope). The Mann-Kendall test asks whether a rise or fall that keeps going one way could be chance; it runs in R itself (trend::mk.test, needs simplydata[r]). With \code{repeats\_\allowbreak{}every=} (12, or \code{\textquotedbl{}year\textquotedbl{}}) the seasonal test and seasonal slope compare each month only with the same month in other years (R trend::smk.test, trend::sea.sens.slope, both in R). Without R the slope (not the seasonal one) is still given and a note says how to add the test.
+
+\wordfield{Options}{}\par\nopagebreak
+\begin{optiontable}
+\code{column=} & \\
+\code{sorted\_\allowbreak{}by=} & \\
+\code{repeats\_\allowbreak{}every=} & \\
+\code{for\_\allowbreak{}each=} & \\
+\end{optiontable}
+
+\wordfield{Underneath}{SciPy (stats.theilslopes); R trend::mk.test, smk.test, sea.sens.slope (simplydata[r])}
+\wordfield{Example you can run}{(it uses the practice table \code{visitors})}\par\nopagebreak
+\begin{lstlisting}[style=py]
+import simplydata as sdata
+table = sdata.table(sdata.example("visitors"))
+table.trend_of("visitors", sorted_by="month", for_each="museum")
 \end{lstlisting}
 \unsection{Planning a study}{group:Planning-a-study}
 \wordentry{sdata.how\_many\_needed()}{word:sdata.how-many-needed}
@@ -9964,6 +10023,7 @@ Every word and option, A to Z, with the page of its dictionary entry. Other spel
 \indexline{word:table.add-rolling-column}{table.add\_rolling\_column()}
 \indexline{word:table.add-rows-from}{table.add\_rows\_from()}
 \indexline{word:table.add-text-part-column}{table.add\_text\_part\_column()}
+\indexline{word:table.add-trend-and-season}{table.add\_trend\_and\_season()}
 \indexline{word:all-dots}{chart.all\_dots()}
 \indexline{word:animate}{chart.animate()}
 \indexline{word:sdata.answers}{sdata.answers()}
@@ -10235,6 +10295,7 @@ Every word and option, A to Z, with the page of its dictionary entry. Other spel
 \indexline{word:sdata.today}{sdata.today()}
 \indexline{word:nums.total}{nums.total()}
 \indexline{word:table.total-of}{table.total\_of()}
+\indexline{word:table.trend-of}{table.trend\_of()}
 \indexline{word:table.turn-columns-into-rows}{table.turn\_columns\_into\_rows()}
 \indexline{word:table.turn-rows-into-columns}{table.turn\_rows\_into\_columns()}
 \indexline{word:nums.undo}{nums.undo()}

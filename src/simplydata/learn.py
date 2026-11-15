@@ -89,7 +89,8 @@ GROUPS = [
     ("Survival", ["table.survival_over_time", "table.compare_survival", "table.explain_survival",
                   "survival_curves"]),
     ("Signals and time series", ["table.spectrum_of", "nums.spectrum_of", "table.check_steady",
-                                 "table.autocorrelation_of", "nums.autocorrelation_of"]),
+                                 "table.autocorrelation_of", "nums.autocorrelation_of",
+                                 "table.add_trend_and_season", "table.trend_of"]),
     ("Planning a study", ["sdata.how_many_needed", "sdata.chance_to_find"]),
     ("Combine and reshape", ["table.join_with", "table.add_rows_from", "table.turn_columns_into_rows",
                              "table.turn_rows_into_columns"]),
@@ -650,6 +651,10 @@ HELP_EXAMPLES = {
     "nums.spectrum_of": _nx("nums.spectrum_of(time_step=0.005)", values='sdata.example("sensor")["signal"]'),
     "table.check_steady": _tx("sensor", 'table.check_steady("signal", sorted_by="time")'),
     "table.autocorrelation_of": _tx("sensor", 'table.autocorrelation_of("signal", sorted_by="time", rows_back=10)'),
+    "table.add_trend_and_season": _tx("visitors", """\
+        table.add_trend_and_season("visitors", sorted_by="month", repeats_every="year", for_each="museum")
+        table.show_first_rows(3)"""),
+    "table.trend_of": _tx("visitors", 'table.trend_of("visitors", sorted_by="month", for_each="museum")'),
     "nums.autocorrelation_of": _nx("nums.autocorrelation_of(rows_back=10)",
                                    values='sdata.example("sensor")["signal"]'),
     # survival

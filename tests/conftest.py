@@ -57,6 +57,7 @@ R_ENTRY_POINTS = {
     ("table/patterns.py", "_r_kmeans"), ("table/patterns.py", "_r_nmds"), ("table/patterns.py", "_r_permanova"),
     ("table/survival.py", "cox_zph"), ("table/between.py", "__init__"), ("table/models.py", "_explain_imputed"),
     ("table/time_series.py", "check_steady"), ("_signals.py", "_lomb_scargle"),
+    ("_trend_season.py", "_r_stl_periodic"), ("_trend_season.py", "_r_mann_kendall"),
 }
 
 

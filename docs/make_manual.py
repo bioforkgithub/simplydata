@@ -187,6 +187,9 @@ UNDERNEATH = {
     "table.spectrum_of": "SciPy (signal.periodogram, signal.welch); R lomb::lsp for uneven times (simplydata[r])",
     "table.check_steady": "R (tseries::adf.test and kpss.test, through rpy2: simplydata[r])",
     "table.autocorrelation_of": "statsmodels (tsa.stattools acf, pacf method ywm, acovf, acorr_ljungbox), as R acf, pacf, Box.test",
+    "table.add_trend_and_season": "statsmodels (STL with R's settings, seasonal_decompose, OLS), pandas groupby; "
+                                  "R stats::stl(s.window = \"periodic\") for a fixed season (simplydata[r])",
+    "table.trend_of": "SciPy (stats.theilslopes); R trend::mk.test, smk.test, sea.sens.slope (simplydata[r])",
     "nums.autocorrelation_of": "statsmodels (tsa.stattools acf, pacf method ywm, acovf, acorr_ljungbox), as R acf, pacf, Box.test",
     "nums.fit_distribution": "SciPy (scipy.stats and optimize, as table.fit_distribution)",
     # models

@@ -32,6 +32,7 @@ class TimeSeries:
     regular: bool
     gaps: list = field(default_factory=list)  # (time before, time after) for each gap
     shown_times: list | None = None  # the sorted_by values as written, for sentences
+    rows: np.ndarray | None = None  # the table rows these values come from, in time order
 
     def describe(self) -> str:
         n = len(self.values)
@@ -96,7 +97,7 @@ def series_of(table, column, sorted_by=None, for_each=None, step_name="this step
         rows = np.asarray(order[key])
         label = " / ".join(str(v) for v in key) if groups else None
         if times is None:
-            out.append(TimeSeries(label, values[rows], None, 1.0, "rows", True))
+            out.append(TimeSeries(label, values[rows], None, 1.0, "rows", True, rows=rows))
             continue
         t = times[rows]
         sort = np.argsort(t, kind="stable")
@@ -112,7 +113,7 @@ def series_of(table, column, sorted_by=None, for_each=None, step_name="this step
             calendar = _calendar_step(gaps_days)
             if calendar:
                 out.append(TimeSeries(label, values[rows], np.arange(len(t), dtype=float), 1.0, calendar + "s", True,
-                                      shown_times=shown))
+                                      shown_times=shown, rows=rows))
                 continue
             unit, scale = ("days", 1.0) if np.min(gaps_days, initial=1) >= 1 else ("seconds", DAY_SECONDS)
             numbers = days * scale
@@ -122,7 +123,7 @@ def series_of(table, column, sorted_by=None, for_each=None, step_name="this step
         step = float(np.median(diffs)) if len(diffs) else 1.0
         regular = bool(len(diffs) == 0 or np.allclose(diffs, step, rtol=1e-6, atol=0))
         gaps = [(shown[i], shown[i + 1]) for i in np.flatnonzero(~np.isclose(diffs, step, rtol=1e-6, atol=0))]
-        out.append(TimeSeries(label, values[rows], numbers, step, unit, regular, gaps, shown))
+        out.append(TimeSeries(label, values[rows], numbers, step, unit, regular, gaps, shown, rows=rows))
     return out
 
 
