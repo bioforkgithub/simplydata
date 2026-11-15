@@ -60,7 +60,7 @@ R_ENTRY_POINTS = {
     ("table/anova_tables.py", "eta_squared"), ("table/anova_tables.py", "anova_glm"),
     ("table/models_r.py", "emmeans_table"), ("table/models_r.py", "lmer_r"), ("table/models_r.py", "geeglm_r"),
     ("table/models_r.py", "repeated_anova"), ("table/models_r.py", "group_influence"), ("table/models_r.py", "robust_cov"),
-    ("table/models_r.py", "vif_r"), ("table/models_r.py", "gam_r"),
+    ("table/models_r.py", "vif_r"), ("table/models_r.py", "gam_r"), ("table/models_r.py", "nakagawa_r"),
 }
 
 

@@ -141,6 +141,21 @@ def nakagawa_code(k, slopes, fitter, options, left="y", offset="", extra=()):
             "error = function(e) c(NA_real_, NA_real_))")
 
 
+def nakagawa_r(model):
+    """R performance::r2_nakagawa() of a random-intercept mixed model, (1 | g) or (1 | g/h), refitted by
+    R lme4::lmer(REML = TRUE) on the same rows: (conditional, marginal), NaN where performance gives none."""
+    from .._r import r_call
+
+    safe = {}
+    values, code = r_data(model, safe)
+    code += r_fit(model, safe)
+    code += ("list(r2 = tryCatch(suppressWarnings(suppressMessages(unname(unlist(performance::r2_nakagawa(m))))), "
+             "error = function(e) c(NA_real_, NA_real_)))")
+    out = r_call(code, packages=("lme4", "performance"), source="performance::r2_nakagawa",
+                 what="R squared for mixed models (R performance::r2_nakagawa())", **values)
+    return np.atleast_1d(out["r2"]).astype(float)
+
+
 def lmer_r(model, slopes=(), satterthwaite=False, tested=()):
     """A linear mixed model fitted by R itself on explain()'s model matrix X: lme4::lmer(REML = TRUE)
     with (1 | g) or own slopes (1 + x | g), slopes= being the columns of X that get them; with

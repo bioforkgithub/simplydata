@@ -32,8 +32,9 @@ More statistics, each checked against R.
   R squared for numbers, McFadden's pseudo R squared for yes or no, counts, ordered groups, groups and
   counts with many zeros (statsmodels, as R `performance::r2_mcfadden()`), betareg's pseudo R squared
   for shares, and Nakagawa's R squared for mixed models (marginal and conditional, as R
-  `performance::r2_nakagawa()`; R performance itself for `glmer` and for own slopes). Quasi-Poisson
-  and GEE have no likelihood, and the line says so.
+  `performance::r2_nakagawa()`, R performance itself for every mixed model, so it needs R; without R
+  the line keeps AIC and BIC and says the R squared is left out). Quasi-Poisson and GEE have no
+  likelihood, and the line says so.
 - `explain(..., smooth_for="hours")`: "hours" may follow a smooth curve instead of a straight line (a
   generalised additive model), R `mgcv::gam(marks ~ s(hours) + ..., method = "REML")` itself, for numbers,
   yes or no and counts: the other effects as usual, and for each curve its effective degrees of freedom
@@ -113,6 +114,9 @@ More statistics, each checked against R.
   is printed with its share. `model_averages_of`, `check_model` (a fifth picture: the inner groups' own
   levels, R `qqnorm(ranef(m)$"class:school")`), `compare_models` (both models refitted by maximum
   likelihood, as R `anova()`) and `show_rows_that_pull` (whole outer groups) take the same list.
+  `sdata.example("school")` has a `class` column (red, blue or green, 5 pupils of each in every school)
+  to practise with, and `sdata.help("table.explain")` shows `grouped_by=["school", "class"]` and
+  `smooth_for="hours"`.
 - Mixed models for yes/no and counts take `time=`, `out_of=` and `link=`, also with `own_slope_for=`
   (R `lme4::glmer(... + offset(log(time)))`, `cbind(yes, tries - yes)`, `binomial(link = "probit")`).
   GEE takes them too: `time=` and `link="probit"` / `"cloglog"` for yes or no with statsmodels `GEE` (the

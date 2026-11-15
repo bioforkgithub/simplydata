@@ -620,7 +620,9 @@ HELP_EXAMPLES = {
         table.explain("marks", using=["hours", "sleep", "breakfast"])
         table.explain("passed", using=["hours", "breakfast"], outcome="yes or no")
         table.explain("marks", using=["hours", "breakfast"], grouped_by="school")
+        table.explain("marks", using=["hours", "breakfast"], grouped_by=["school", "class"])
         table.explain("marks", using=["hours", "breakfast"], grouped_by="school", effects="for the whole population")
+        table.explain("marks", using=["hours", "breakfast"], smooth_for="hours")
         table.explain("marks", using=["hours", "breakfast"], robust=True)"""),
     "table.add_predicted_column": _tx("school", """\
         table.add_predicted_column("marks", using=["hours", "breakfast"], interval=95)

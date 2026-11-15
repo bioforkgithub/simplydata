@@ -895,7 +895,7 @@ UNITS = {
             table.count_rows()
             table.describe_columns()'''),
             "The first line only makes a raw file to practise on; with your own data, start at the second "
-            "line. The school table has 180 rows and 8 columns; sleep has 19 empty cells.")],
+            "line. The school table has 180 rows and 9 columns; sleep has 19 empty cells.")],
     ),
     "proj_clean": dict(
         lessons=[11],

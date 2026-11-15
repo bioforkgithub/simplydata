@@ -54,7 +54,7 @@ Choices (the same defaults as R, so results can be checked there):
 How well it fits (one line at the end): AIC and BIC as R AIC() and BIC(), with R squared for least
 squares, McFadden's pseudo R squared (1 - log-likelihood / that of the model with no columns, as R
 performance::r2_mcfadden()) for yes or no, counts and negative binomial, and Nakagawa's R squared
-(marginal and conditional, as R performance::r2_nakagawa()) for mixed models.
+(marginal and conditional, R performance::r2_nakagawa() itself, needs R) for mixed models.
 
 Notes, never silent switches: residuals not bell-shaped (least squares), strongly linked
 columns (variance inflation factor above 5), too few rows (or too few yes/no events) per
@@ -1125,11 +1125,16 @@ class ModelWords:
                 start = PSEUDO_WORDS["mcfadden"].format(v=f"{1 - llf / fit['llnull']:.3f}")
             aic, bic = float(measures.aic(llf, n, k)), float(measures.bic(llf, n, k))
             nakagawa = fit.get("nakagawa")
-            if kind == "mixed" and nakagawa is None:  # random intercepts: the variances' shares, as performance
-                fixed = float(np.var(model["X"] @ fit["beta"], ddof=1))
-                groups = fit["between"] + (fit.get("inner") or 0.0)
-                total = fixed + groups + fit["within"]
-                nakagawa = np.array([(fixed + groups) / total, fixed / total])
+            if kind == "mixed" and nakagawa is None:  # random intercepts: R performance::r2_nakagawa() itself
+                from .._r import RMissing
+                from .models_r import nakagawa_r
+
+                try:
+                    nakagawa = nakagawa_r(model)
+                except RMissing:
+                    return (fit_line({"aic": aic, "bic": bic}, which=which) + "\nNakagawa's R squared for mixed "
+                            "models comes from R performance::r2_nakagawa() (needs R: pip install "
+                            '"simplydata[r]"); left out here.')
         if kind in ("glmm", "mixed"):
             if nakagawa is not None and len(nakagawa) == 2 and np.all(np.isfinite(nakagawa)):
                 start = (f"R squared for mixed models (Nakagawa) = {nakagawa[1]:.3f} from the columns alone "
@@ -1277,7 +1282,7 @@ class ModelWords:
         fills in empty cells 20 times (R mice()) instead of leaving those rows out; seed= fixes
         the random filling. Prints each effect with its 95 % confidence interval and p-value in
         words, and how well the model fits: R squared (numbers), McFadden's pseudo R squared
-        (yes or no, counts, groups) or Nakagawa's R squared (grouped_by=, as R performance), with
+        (yes or no, counts, groups) or Nakagawa's R squared (grouped_by=, R performance, needs R), with
         AIC and BIC (R AIC(), BIC()). Gives back a table with one row per term.
         A link does not show that one thing causes the other.
         """

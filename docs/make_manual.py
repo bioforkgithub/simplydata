@@ -193,8 +193,7 @@ UNDERNEATH = {
                      "R itself (needs R) for lme4::glmer, lme4::lmer with own_slope_for=, lmerTest for "
                      "p_value_by=\"satterthwaite\", geepack for within_groups=\"in time order\" and GEE with out_of=, car::Anova and "
                      "effectsize for test_type=, sandwich::vcovHC for robust=True with yes/no and counts, and mice::pool for "
-                     "multiple imputation; R performance::r2_nakagawa for the R squared of glmer and of "
-                     "own_slope_for= models",
+                     "multiple imputation; R performance::r2_nakagawa for the R squared of every grouped_by= model",
     "table.add_predicted_column": "statsmodels (the same model as table.explain; get_prediction for interval= and for_new_rows=)",
     "table.model_averages_of": "R emmeans (emmeans::emmeans and pairs, Tukey's adjustment; lme4 and pbkrtest for "
                                "grouped_by=; MASS, nnet, betareg and pscl for the other outcomes), on the model of "

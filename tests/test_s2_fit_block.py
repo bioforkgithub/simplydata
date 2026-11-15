@@ -7,9 +7,6 @@ holds the R value rounded the same way.
 
 import re
 
-import numpy as np
-import pytest
-
 import simplydata as sdata
 from simplydata.table import table as make_table
 
@@ -80,7 +77,7 @@ def test_quasi_poisson_and_gee_say_there_is_no_likelihood(capsys):
     assert "GEE has no likelihood, so there is no AIC, BIC or R squared." in capsys.readouterr().out
 
 
-def test_mixed_model_nakagawa_and_reml_aic(capsys):
+def test_mixed_model_nakagawa_and_reml_aic(capsys, needs_r):
     make_table(sdata.example("school")).explain("marks", using=["hours", "breakfast"], grouped_by="school")
     line = fit_line(capsys)
     # R: m <- lmer(marks ~ hours + breakfast + (1 | school), data = s); performance::r2_nakagawa(m):
@@ -89,29 +86,27 @@ def test_mixed_model_nakagawa_and_reml_aic(capsys):
     assert aic_bic(line) == (1235, 1251) and "of the REML fit" in line
 
 
-def test_mixed_model_nakagawa_exact(capsys):
-    from simplydata.table.models import ModelWords
-
-    seen = {}
-    original = ModelWords._fit_block
-
-    def spy(model):
-        seen["model"] = model
-        return original(model)
-
-    ModelWords._fit_block = staticmethod(spy)
-    try:
-        make_table(school3()).explain("marks", using=["hours", "breakfast"], grouped_by=["school", "class"])
-    finally:
-        ModelWords._fit_block = staticmethod(original)
-    fit = seen["model"]["fit"]
-    fixed = float(np.var(seen["model"]["X"] @ fit["beta"], ddof=1))
-    total = fixed + fit["between"] + fit["inner"] + fit["within"]
+def test_nested_groups_nakagawa_from_r(capsys, needs_r):
+    make_table(school3()).explain("marks", using=["hours", "breakfast"], grouped_by=["school", "class"])
+    line = fit_line(capsys)
     # R: m <- lmer(marks ~ hours + breakfast + (1 | school/class), data = s3); performance::r2_nakagawa(m):
     #    conditional 0.638011803708462, marginal 0.386625831276217; AIC 1236.41678798779; BIC 1255.57452909313
-    assert fixed / total == pytest.approx(0.386625831276217, rel=1e-5)
-    assert (total - fit["within"]) / total == pytest.approx(0.638011803708462, rel=1e-5)
-    assert aic_bic(fit_line(capsys)) == (1236, 1256)
+    assert "(Nakagawa) = 0.387 from the columns alone (marginal) and 0.638 with the groups too" in line
+    assert aic_bic(line) == (1236, 1256)
+
+
+def test_mixed_model_without_r_keeps_aic_and_leaves_nakagawa_out(capsys, monkeypatch):
+    # no R: the mixed model is fitted by statsmodels as usual; Nakagawa's R squared (R performance) is left out
+    from simplydata import _r
+
+    monkeypatch.setattr(_r, "_STATE", {"error": "no R", "missing": "rpy2"})
+    make_table(sdata.example("school")).explain("marks", using=["hours", "breakfast"], grouped_by="school")
+    out = capsys.readouterr().out
+    line = [row for row in out.splitlines() if row.startswith("How well it fits:")]
+    assert len(line) == 1 and "Nakagawa" not in line[0]
+    assert aic_bic(line[0]) == (1235, 1251) and "of the REML fit" in line[0]
+    assert ("Nakagawa's R squared for mixed models comes from R performance::r2_nakagawa() (needs R: "
+            'pip install "simplydata[r]"); left out here.') in out
 
 
 def test_own_slopes_nakagawa_from_r(capsys, needs_r):
