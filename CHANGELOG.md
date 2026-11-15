@@ -46,6 +46,32 @@ More statistics, each checked against R.
 - `table.compare_models("marks", using=["hours"], against=["hours", "breakfast"])`: the F test (or
   likelihood-ratio test for yes/no and counts) of the smaller model against the bigger, as R
   `anova(m0, m1)`, and AIC and BIC for both, as R `AIC()` and `BIC()`, on the same rows.
+- The four words work with every outcome they can: `model_averages_of` with all outcomes of `explain()`
+  (R emmeans on `MASS::glm.nb`, `glm(quasipoisson)`, `glm(Gamma)`, `betareg`, `zeroinfl`; for
+  `"ordered groups"` and `"groups"` the chance of each group, `emmeans(mode = "prob")`, compared pair by
+  pair within each group); `check_model` and `show_rows_that_pull` with the count outcomes and
+  `"positive numbers"` (hat values from the expected information, as R `hatvalues()`); `compare_models`
+  with all outcomes (F tests for quasi-Poisson and Gamma as R `anova(test = "F")`, likelihood-ratio tests
+  for the others, with the degrees of freedom of every value estimated, as R).
+- With `grouped_by=`: `check_model` shows R `plot(lmer)` (residuals against fitted values, Q-Q of the
+  scaled residuals, scale-location) and a Q-Q picture of each group's own starting level, as R
+  `qqnorm(ranef(m))` (statsmodels MixedLM; R `lme4::glmer` for yes/no and counts);
+  `show_rows_that_pull` shows the groups that pull, each left out in turn, R `lme4` `influence()` and
+  `cooks.distance()`; `compare_models` refits both mixed models by maximum likelihood (statsmodels), as R
+  `anova(m0, m1)` does.
+
+### Intervals for predictions and robust standard errors
+
+- `table.add_predicted_column(..., interval=95)` adds the low and high end of the 95 % confidence interval
+  of the predicted average, as R `predict(interval = "confidence")` (for yes/no and counts worked out on
+  the link scale and turned back); `for_new_rows=True` gives the wider prediction interval where one new
+  row would fall, as R `predict(interval = "prediction")` (numbers only). From statsmodels
+  `get_prediction()`.
+- `table.explain(..., robust=True)` (experts): robust standard errors (sandwich, HC3), as R
+  `sandwich::vcovHC(m, type = "HC3")` with `lmtest::coeftest()` and `coefci()`; the whole-column tests and
+  the test of the model as a whole become Wald tests with those errors (as `car::Anova(vcov. = )` and
+  `lmtest::waldtest()`). statsmodels for numbers; R `sandwich` itself for yes/no, counts and positive
+  numbers, since statsmodels' GLM gives HC0 when HC3 is asked for.
 
 ### More choices for grouped rows (grouped_by=)
 
@@ -62,6 +88,14 @@ More statistics, each checked against R.
   `geepack::geeglm()`, with `within_groups="alike"` (exchangeable, the default) or `"independent"`;
   `within_groups="in time order"` (AR-1, rows in table order) runs R `geepack` itself, since statsmodels'
   AR-1 estimate differs. The default `effects="for the average group"` is the mixed model.
+
+- `grouped_by=["school", "class"]`: groups inside groups (classes inside schools), as R
+  `lme4::lmer(... + (1 | school/class))`: statsmodels MixedLM with a variance component for the inner groups
+  (the same REML answer as lme4), and R `lme4::glmer()` for yes/no and counts. The variance at each level
+  is printed with its share.
+- Mixed models for yes/no and counts take `time=`, `out_of=` and `link=`, also with `own_slope_for=`
+  (R `lme4::glmer(... + offset(log(time)))`, `cbind(yes, tries - yes)`, `binomial(link = "probit")`).
+  GEE gives a clear message for these for now.
 
 ### Repeated measures
 

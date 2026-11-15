@@ -188,7 +188,7 @@ def needs_r_text(what: str) -> str:
     """The "Needs R" box of a lesson or day: what needs R, and how to get it, in plain words."""
     return (f"{what} run R's own code, the same code R users run. Install it once: "
             'pip install "simplydata[r]", then R from https://cran.r-project.org, then in R: '
-            'install.packages(c("vegan", "survival", "mice")). Without R these words print a message '
+            'install.packages(c("vegan", "survival", "mice", "emmeans")). Without R these words print a message '
             "that says what to install.")
 
 
@@ -620,21 +620,24 @@ HELP_EXAMPLES = {
         table.explain("marks", using=["hours", "sleep", "breakfast"])
         table.explain("passed", using=["hours", "breakfast"], outcome="yes or no")
         table.explain("marks", using=["hours", "breakfast"], grouped_by="school")
-        table.explain("marks", using=["hours", "breakfast"], grouped_by="school", effects="for the whole population")"""),
+        table.explain("marks", using=["hours", "breakfast"], grouped_by="school", effects="for the whole population")
+        table.explain("marks", using=["hours", "breakfast"], robust=True)"""),
     "table.add_predicted_column": _tx("school", """\
-        table.add_predicted_column("marks", using=["hours", "breakfast"])
+        table.add_predicted_column("marks", using=["hours", "breakfast"], interval=95)
         table.show_first_rows(5)"""),
     "table.model_averages_of": _tx("school", """\
         table.model_averages_of("marks", for_each="breakfast", using=["hours", "school"])
         table.model_averages_of("passed", for_each="breakfast", using=["hours"], outcome="yes or no")"""),
     "table.check_model": _tx("school", """\
         page = table.check_model("marks", using=["hours", "breakfast"])
-        page.save("model_checks.png")"""),
+        page.save("model_checks.png")
+        table.check_model("marks", using=["hours", "breakfast"], grouped_by="school")"""),
     "table.show_rows_that_pull": _tx("school", """\
         table.show_rows_that_pull("marks", using=["hours", "breakfast"])"""),
     "table.compare_models": _tx("school", """\
         table.compare_models("marks", using=["hours"], against=["hours", "breakfast"])
-        table.compare_models("passed", using=["hours"], against=["hours", "breakfast"], outcome="yes or no")"""),
+        table.compare_models("passed", using=["hours"], against=["hours", "breakfast"], outcome="yes or no")
+        table.compare_models("marks", using=["hours"], against=["hours", "breakfast"], grouped_by="school")"""),
     # patterns across columns
     "table.add_principal_components": _tx("meadow", """\
         table.add_principal_components(how_many=2)
@@ -3042,7 +3045,7 @@ LESSONS = [
     ),
     dict(
         title="Models: explain one column from several others",
-        needs_r=needs_r_text('explain(..., empty_cells="multiple imputation") pools its results with R (mice); this one option'),
+        needs_r=needs_r_text('model_averages_of() (R emmeans) and explain(..., empty_cells="multiple imputation"), which pools its results with R (mice),'),
         learn=[
             "how to explain one column from several others at once (multiple regression)",
             "how to explain a yes/no column (logistic regression) and a column of counts (Poisson regression)",
@@ -3114,6 +3117,11 @@ LESSONS = [
             'Explain "passed" using "hours" and "sleep" with outcome="yes or no".',
             'Explain "days_absent" using "hours" and "breakfast" with outcome="counts". Does breakfast '
             "matter?",
+            'Find the model averages of "marks" for each "school", allowing for "hours" '
+            '(model_averages_of with using=["hours"]). Which school has the highest average and which the '
+            "lowest, and how many pairs of schools differ?",
+            'Check the same model ("marks" using "hours" and "school") with check_model, then use '
+            'compare_models to ask whether adding "breakfast" to it helps.',
         ],
         solutions=[
             (_sx("""\
@@ -3135,8 +3143,23 @@ LESSONS = [
                 table.explain("days_absent", using=["hours", "breakfast"], outcome="counts")"""),
              "Breakfast could easily be chance (rate ratio 0.94, p = 0.45); study hours matter (rate "
              "ratio 0.86 for each hour)."),
+            (_sx("""                import simplydata as sdata
+                table = sdata.table(sdata.example("school"))
+                table.model_averages_of("marks", for_each="school", using=["hours"])"""),
+             "With hours held at their average (5.00), School D has the highest average mark (57.7) and School C "
+             "the lowest (36.5). 22 of the 66 pairs of schools differ after Tukey's adjustment (p < 0.05). "
+             "This needs R (emmeans)."),
+            (_sx("""                import simplydata as sdata
+                table = sdata.table(sdata.example("school"))
+                page = table.check_model("marks", using=["hours", "school"])
+                page.save("model_checks.png")
+                table.compare_models("marks", using=["hours", "school"], against=["hours", "school", "breakfast"])"""),
+             "The pictures look fine: an even band around 0, dots close to the Q-Q line, and no row near the "
+             "Cook's distance lines (the largest is 0.046). Adding breakfast helps: F = 7.13, p = 0.008, and "
+             "the AIC drops by 5.57."),
         ],
-        words=["table.explain", "table.add_predicted_column", "table.show_first_rows"],
+        words=["table.explain", "table.add_predicted_column", "table.show_first_rows", "table.model_averages_of",
+               "table.check_model", "table.compare_models"],
     ),
     dict(
         title="Patterns across many columns",

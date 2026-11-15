@@ -4,21 +4,26 @@ and compare_models. They never change the table.
 * model_averages_of("marks", for_each="school", using=["hours", "breakfast"]): the average the
   model gives for each group, with the number columns held at their averages and the other group
   columns counted equally, and every pair of groups compared with Tukey's adjustment. R
-  emmeans::emmeans() and pairs() themselves (no Python package gives emmeans' reference grid).
+  emmeans::emmeans() and pairs() themselves (no Python package gives emmeans' reference grid),
+  for every outcome of explain() (chances of each group for ordered groups and groups).
 * check_model("marks", using=[...]): the four pictures of R plot(lm()), from statsmodels
-  (OLSInfluence / GLMInfluence) and drawn with the chart words.
+  (OLSInfluence / GLMInfluence) and drawn with the chart words; with grouped_by= the pictures
+  of R plot(lmer) and qqnorm(ranef()).
 * show_rows_that_pull("marks", using=[...]): the rows that change the model most, by Cook's
   distance, with their leverage and studentised residual (statsmodels OLSInfluence /
-  GLMInfluence, as R cooks.distance(), hatvalues() and rstudent()).
+  GLMInfluence, as R cooks.distance(), hatvalues() and rstudent()); with grouped_by= the
+  groups, by R lme4 influence().
 * compare_models("marks", using=["hours"], against=["hours", "breakfast"]): an F test (least
-  squares) or a likelihood-ratio test (yes/no, counts) of the smaller model against the bigger
-  one, as R anova(m0, m1), with AIC and BIC for each (statsmodels).
+  squares, quasi-Poisson, Gamma) or a likelihood-ratio test (the other outcomes, and mixed models
+  refitted by maximum likelihood) of the smaller model against the bigger one, as R
+  anova(m0, m1), with AIC and BIC for each.
 """
 
 from __future__ import annotations
 
 import itertools
 import math
+import warnings
 
 import narwhals as nw
 import numpy as np
@@ -28,26 +33,58 @@ from .models import EXAMPLE, _list_words, _quoted, _r_name
 from .stat_tests import _label, _num, _skipped_note, _whole
 from .summaries import _p_words
 
-AVERAGE_OUTCOMES = ("numbers", "yes or no", "counts")
+# every outcome of explain(); emmeans follows each of their models
+AVERAGE_OUTCOMES = ("numbers", "yes or no", "counts", "counts (overdispersed)", "counts that vary a lot",
+                    "positive numbers", "shares", "counts with many zeros", "ordered groups", "groups")
+# outcomes whose model the influence measures and pictures of R plot(glm()) cover (statsmodels GLMInfluence)
+CHECK_OUTCOMES = ("numbers", "yes or no", "counts", "counts (overdispersed)", "counts that vary a lot",
+                  "positive numbers")
+MORE_OUTCOMES = ("ordered groups", "groups", "shares", "counts with many zeros")
 AVERAGES_EXAMPLE = ('with sdata.example("school"): table.model_averages_of("marks", for_each="school", '
                     'using=["hours", "breakfast"])')
+AVERAGE_WORDS = {"numbers": "average", "yes or no": "chance of yes", "counts": "average count",
+                 "counts (overdispersed)": "average count", "counts that vary a lot": "average count",
+                 "positive numbers": "average", "shares": "average share", "counts with many zeros": "average count",
+                 "ordered groups": "chance", "groups": "chance"}
+RATIO_PAIRS = {"yes or no": "odds ratio", "counts": "rate ratio", "counts (overdispersed)": "rate ratio",
+               "counts that vary a lot": "rate ratio", "positive numbers": "ratio of averages"}
+
+
+def model_call(model, pieces, grouped_by=None) -> str:
+    """The R call of the model, for the method sentences."""
+    formula = f"{_r_name(model['column'])} ~ " + " + ".join(pieces)
+    family = "binomial" if model["outcome"] == "yes or no" else "poisson"
+    g = _r_name(str(grouped_by)) if grouped_by is not None else ""
+    return {"lm": f"lm({formula})", "binomial": f"glm({formula}, family = binomial)",
+            "poisson": f"glm({formula}, family = poisson)",
+            "quasipoisson": f"glm({formula}, family = quasipoisson)", "negbin": f"MASS::glm.nb({formula})",
+            "gamma": f'glm({formula}, family = Gamma(link = "log"))', "shares": f"betareg::betareg({formula})",
+            "zeros": f'pscl::zeroinfl({formula}, dist = "poisson")', "ordered": f"MASS::polr({formula})",
+            "multinom": f"nnet::multinom({formula})", "mixed": f"lme4::lmer({formula} + (1 | {g}))",
+            "glmm": f"lme4::glmer({formula} + (1 | {g}), family = {family})"}[model["kind"]]
 
 
 class ModelToolWords:
     # ------------------------------------------------------------------ one checked model
-    def _one_model(self, step, column, using, outcome, grouped_by=None):
-        """Check the inputs as explain() does and fit the model (the rows with every cell given)."""
+    def _one_model(self, step, column, using, outcome, grouped_by=None, in_order=None):
+        """Check the inputs as explain() does and fit the model (the rows with every cell given); the
+        ordered-groups, groups, shares and many-zeros models are only set up (R fits them)."""
         terms, pieces, variables, raw, missing, kinds = self._model_parts(
             step, column, using, outcome, grouped_by, "leave out")
         names = [column] + variables + ([grouped_by] if grouped_by is not None else [])
         keep = ~np.any([missing[nm] for nm in names], axis=0)
         _skipped_note(int((~keep).sum()), names)
+        if outcome in MORE_OUTCOMES:
+            return self._more_model(step, column, outcome, terms, variables, raw, kinds, keep, in_order), pieces
+        if in_order is not None:
+            raise SimplydataError('in_order= gives the order of the groups for outcome="ordered groups".')
         model = self._fit_model(step, column, outcome, grouped_by, terms, variables, raw, kinds, keep)
         return model, pieces
 
     # ------------------------------------------------------------------ model_averages_of
     @friendly
-    def model_averages_of(self, column=None, for_each=None, using=None, outcome="numbers", grouped_by=None):
+    def model_averages_of(self, column=None, for_each=None, using=None, outcome="numbers", grouped_by=None,
+                          in_order=None):
         """The average the model gives for each group, once the other columns are allowed for.
 
         table.model_averages_of("marks", for_each="school", using=["hours", "breakfast"])
@@ -57,10 +94,12 @@ class ModelToolWords:
         counted equally, so the groups are compared on an equal footing (adjusted averages,
         also called estimated marginal means). Then every pair of groups is compared, with
         Tukey's adjustment for making many comparisons. outcome="yes or no" gives the chance
-        of yes in each group and odds ratios for the pairs; outcome="counts" the average count
-        and rate ratios. grouped_by= uses the mixed model. Done by R emmeans::emmeans() and
-        pairs() (needs R: pip install "simplydata[r]"). Gives back a table with one row per
-        group and one per pair. Other name: marginal means (R emmeans).
+        of yes in each group and odds ratios for the pairs; the count outcomes the average count
+        and rate ratios; "positive numbers" the average and ratios; "shares" the average share;
+        "ordered groups" and "groups" the chance of each of the outcome's groups. grouped_by= uses
+        the mixed model. Done by R emmeans::emmeans() and pairs() (needs R: pip install
+        "simplydata[r]"). Gives back a table with one row per group and one per pair. Other name:
+        marginal means (R emmeans).
         """
         step = "model_averages_of"
         self._need_name(step, "the column to explain", column, AVERAGES_EXAMPLE)
@@ -77,7 +116,7 @@ class ModelToolWords:
                         for item in using if isinstance(item, str))
         if added:
             using = using + [for_each]
-        model, pieces = self._one_model(step, column, using, outcome, grouped_by)
+        model, pieces = self._one_model(step, column, using, outcome, grouped_by, in_order)
         if model["kinds"][for_each] != "group":
             raise SimplydataError(f'for_each="{for_each}" holds numbers; model_averages_of() gives an average for '
                                   "each group of a text (group) column. For a number column, explain() gives its "
@@ -85,10 +124,12 @@ class ModelToolWords:
         from .models_r import emmeans_table
 
         out = emmeans_table(model, for_each)
-        levels = [str(v) for v in out["level"]]
-        kind, column_words = model["kind"], _quoted(column)
-        what = {"numbers": "average", "yes or no": "chance of yes", "counts": "average count"}[outcome]
-        pair_what = {"numbers": "difference", "yes or no": "odds ratio", "counts": "rate ratio"}[outcome]
+        column_words = _quoted(column)
+        chances = model["kind"] in ("ordered", "multinom")
+        what = AVERAGE_WORDS[outcome]
+        ratio = bool(np.atleast_1d(out["ratio"])[0])
+        pair_what = RATIO_PAIRS.get(outcome, "ratio") if ratio else (
+            "difference in chance" if chances else "difference")
         held = [v for v in model["variables"] if v != for_each and model["kinds"][v] == "number"]
         others = [v for v in model["variables"] if v != for_each and model["kinds"][v] == "group"]
         how = []
@@ -98,48 +139,69 @@ class ModelToolWords:
         if others:
             how.append(f"the groups of {_list_words(_quoted(v) for v in others)} counted equally")
         how_text = f", with {' and '.join(how)}" if how else ""
-        print(f'Model averages of {column_words} for each "{for_each}" ({model["n"]} rows){how_text}:')
-        for i, level in enumerate(levels):
-            print(f"  {level}: {what} {_num(out['average'][i])} (95 % CI {_num(out['low'][i])} to "
-                  f"{_num(out['high'][i])})")
+        # one block per group of the outcome (ordered groups, groups), otherwise a single block
+        cls = [str(c) for c in out["cls"]] if chances else [None] * len(out["level"])
+        pcls = [str(c) for c in out["pcls"]] if chances else [None] * len(out["contrast"])
+        classes = list(dict.fromkeys(cls))
+        levels = list(dict.fromkeys(str(v) for v in out["level"]))
         pairs = list(itertools.combinations(levels, 2))
-        joiner = "minus" if outcome == "numbers" else "against"
+        joiner = " / " if ratio else " - "
+        if chances:
+            print(f'Model chances of each {column_words} group for each "{for_each}" ({model["n"]} rows){how_text}:')
+        else:
+            print(f'Model averages of {column_words} for each "{for_each}" ({model["n"]} rows){how_text}:')
+        for c in classes:
+            indent = "  "
+            if c is not None:
+                print(f"  {column_words} {c}:")
+                indent = "    "
+            for i in (i for i in range(len(out["level"])) if cls[i] == c):
+                print(f"{indent}{out['level'][i]}: {what} {_num(out['average'][i])} (95 % CI {_num(out['low'][i])} to "
+                      f"{_num(out['high'][i])})")
         adjust = (f"Tukey's adjustment for {len(pairs)} comparisons" if len(pairs) > 1 else
                   "one pair, so nothing to adjust for")
-        print(f"Each pair of groups ({pair_what}, {adjust}):")
-        for i, (a, b) in enumerate(pairs):
-            print(f"  {a} {joiner} {b}: {pair_what} {_num(out['difference'][i])} (95 % CI {_num(out['plow'][i])} to "
-                  f"{_num(out['phigh'][i])}); {_p_words(float(out['p'][i]))}.")
-        formula = f"{_r_name(column)} ~ " + " + ".join(pieces)
-        call = {"lm": f"lm({formula})", "binomial": f"glm({formula}, family = binomial)",
-                "poisson": f"glm({formula}, family = poisson)",
-                "mixed": f"lme4::lmer({formula} + (1 | {_r_name(str(grouped_by))}))",
-                "glmm": f"lme4::glmer({formula} + (1 | {_r_name(str(grouped_by))}), "
-                        f"family = {'binomial' if outcome == 'yes or no' else 'poisson'})"}[kind]
+        within = f" within each {column_words} group" if chances else ""
+        print(f"Each pair of groups ({pair_what}, {adjust}){within}:")
+        word = "against" if ratio else "minus"
+        contrasts = [str(c).split(joiner, 1) for c in out["contrast"]]
+        for i, (a, b) in enumerate(contrasts):
+            where = f"{pcls[i]}: " if chances else ""
+            print(f"  {where}{a} {word} {b}: {pair_what} {_num(out['difference'][i])} (95 % CI {_num(out['plow'][i])} "
+                  f"to {_num(out['phigh'][i])}); {_p_words(float(out['p'][i]))}.")
+        call = model_call(model, pieces, grouped_by)
         yes = f" ({model['yes_words']})" if model.get("yes_words") else ""
-        scale = "" if outcome == "numbers" else ', type = "response"'
+        spec = f"~ {_r_name(for_each)} | {_r_name(column)}" if chances else f"~ {_r_name(for_each)}"
+        scale = ', mode = "prob"' if chances else "" if outcome == "numbers" else ', type = "response"'
         tukey = ", with Tukey's adjustment for the intervals and p-values of the pairs" if len(pairs) > 1 else ""
-        df_words = ", Kenward-Roger degrees of freedom" if kind == "mixed" else ""
-        print(f"Method: the model {call}{yes}, then R emmeans::emmeans(m, ~ {_r_name(for_each)}{scale}) and "
-              f"pairs(){tukey}{df_words}.")
+        df_words = ", Kenward-Roger degrees of freedom" if model["kind"] == "mixed" else ""
+        print(f"Method: the model {call}{yes}, then R emmeans::emmeans(m, {spec}{scale}) and pairs(){tukey}"
+              f"{df_words}.")
         if added:
             print(f'Note: "{for_each}" was not in using=, so it was added to the model.')
         if any(for_each in term and len(term) > 1 for term in model["terms"]):
             print(f'Note: "{for_each}" is part of an interaction, so its averages are averaged over the other '
                   "column in it; look at the interaction itself with explain() too.")
-        if outcome != "numbers":
+        if ratio:
             print(f"The pairs are ratios: 1 means no difference ({pair_what} of the first group to the second).")
         self._closing_words(out["p"])
         rows = []
-        for i, level in enumerate(levels):
-            rows.append({"term": level, "model average": float(out["average"][i]), "95 % CI low": float(out["low"][i]),
-                         "95 % CI high": float(out["high"][i]), "standard error": float(out["se"][i]),
-                         "degrees of freedom": float(out["df"][i])})
-        for i, (a, b) in enumerate(pairs):
-            rows.append({"term": f"{a} {'-' if outcome == 'numbers' else '/'} {b}", pair_what: float(out["difference"][i]),
-                         "95 % CI low": float(out["plow"][i]), "95 % CI high": float(out["phigh"][i]),
-                         "standard error": float(out["pse"][i]), "degrees of freedom": float(out["pdf"][i]),
-                         "statistic": float(out["stat"][i]), "p-value (Tukey)": float(out["p"][i])})
+        for i in range(len(out["level"])):
+            row = {"term": str(out["level"][i])}
+            if chances:
+                row[f"{column} group"] = cls[i]
+            row.update({"model average": float(out["average"][i]), "95 % CI low": float(out["low"][i]),
+                        "95 % CI high": float(out["high"][i]), "standard error": float(out["se"][i]),
+                        "degrees of freedom": float(out["df"][i])})
+            rows.append(row)
+        for i, (a, b) in enumerate(contrasts):
+            row = {"term": f"{a}{joiner}{b}"}
+            if chances:
+                row[f"{column} group"] = pcls[i]
+            row.update({pair_what: float(out["difference"][i]), "95 % CI low": float(out["plow"][i]),
+                        "95 % CI high": float(out["phigh"][i]), "standard error": float(out["pse"][i]),
+                        "degrees of freedom": float(out["pdf"][i]), "statistic": float(out["stat"][i]),
+                        "p-value (Tukey)": float(out["p"][i])})
+            rows.append(row)
         return self._rows_table(rows)
 
     def _rows_table(self, rows):
@@ -259,20 +321,21 @@ class ModelToolWords:
 
         if model["kind"] == "lm":
             return sm.OLS(model["y"], model["X"]).fit(method="qr")
-        return _glm(model["X"], model["y"], model["kind"])
+        family = {"binomial": "binomial", "negbin": "negbin", "gamma": "gamma"}.get(model["kind"], "poisson")
+        return _glm(model["X"], model["y"], family, scale="X2" if model["kind"] in ("quasipoisson", "gamma") else None,
+                    alpha=model["fit"].get("alpha"))
 
-    def _check_kind(self, step, outcome, grouped_by):
-        if outcome not in AVERAGE_OUTCOMES:
-            self._check_choice(step, "outcome", outcome, AVERAGE_OUTCOMES)
-        if grouped_by is not None:
-            raise SimplydataError(f"{step}() works on models without grouped_by= for now; for a mixed model, look "
-                                  "at the rows within each group with a chart.")
+    def _check_kind(self, step, outcome, allowed=CHECK_OUTCOMES):
+        if outcome not in allowed:
+            self._check_choice(step, "outcome", outcome, allowed)
 
     @staticmethod
     def _influence(model, result):
         """Fitted values, residuals and influence measures, each as R gives them for plot(lm) and
         influence.measures(): statsmodels OLSInfluence (least squares) or GLMInfluence (GLMs)."""
-        influence = result.get_influence()
+        # GLMs: the hat values from the expected information (observed=False), as R hatvalues(); the same as
+        # the observed one for the usual links of yes/no and counts, not for Gamma and negative binomial
+        influence = result.get_influence() if model["kind"] == "lm" else result.get_influence(observed=False)
         hat = np.asarray(influence.hat_matrix_diag)
         cooks = np.asarray(influence.cooks_distance[0])
         if model["kind"] == "lm":
@@ -291,9 +354,35 @@ class ModelToolWords:
                     pearson=pearson, studentised=None, hat=hat, cooks=cooks,
                     x_name="predicted value (on the link scale)")
 
+    @staticmethod
+    def _qq(values):
+        """R qqnorm() and qqline(): the normal quantiles of ppoints(n) ((i - a) / (n + 1 - 2a), a = 3/8 up to
+        10 values, else 1/2; statsmodels ProbPlot) and the line through the first and third quartiles
+        (quantile type 7, R's default)."""
+        import statsmodels.api as sm
+        from scipy import stats
+
+        values = np.asarray(values, dtype=float)
+        qq = sm.ProbPlot(values, a=3 / 8 if len(values) <= 10 else 0.5)
+        q_y = np.percentile(values, [25, 75])
+        q_x = stats.norm.ppf([0.25, 0.75])
+        slope = float((q_y[1] - q_y[0]) / (q_x[1] - q_x[0]))
+        return dict(theoretical=np.asarray(qq.theoretical_quantiles), ordered=np.asarray(qq.sorted_data),
+                    slope=slope, intercept=float(q_y[0] - slope * q_x[0]))
+
+    @staticmethod
+    def _qq_chart(qq, y_name, title):
+        import pandas as pd
+
+        from ..chart import chart as make_chart
+
+        frame = pd.DataFrame({"normal quantile": qq["theoretical"], y_name: qq["ordered"]})
+        made = make_chart(frame).dots(x="normal quantile", y=y_name)
+        return made.line_with_slope(qq["slope"], intercept=qq["intercept"]).title_top(title)
+
     # ------------------------------------------------------------------ check_model
     @friendly
-    def check_model(self, column=None, using=None, outcome="numbers"):
+    def check_model(self, column=None, using=None, outcome="numbers", grouped_by=None):
         """Four pictures to check a model from explain(), as R plot(lm(...)).
 
         table.check_model("marks", using=["hours", "breakfast"])   (with sdata.example("school"))
@@ -302,35 +391,30 @@ class ModelToolWords:
         on the line (the residuals follow a bell curve). 3. Scale-location: the line should be
         flat (the spread of the residuals is the same everywhere). 4. Residuals against leverage:
         rows outside the dashed Cook's distance lines pull the model strongly
-        (show_rows_that_pull() lists them). The same options as explain(); outcome="yes or no"
-        and "counts" show the pictures of R plot(glm(...)). The numbers come from statsmodels
-        (OLSInfluence, GLMInfluence), the LOWESS lines from statsmodels lowess (as R
-        panel.smooth). Gives back the page of four charts: .show() or .save("checks.png").
+        (show_rows_that_pull() lists them). The same options as explain(); outcome="yes or no",
+        the count outcomes and "positive numbers" show the pictures of R plot(glm(...)). The
+        numbers come from statsmodels (OLSInfluence, GLMInfluence), the LOWESS lines from
+        statsmodels lowess (as R panel.smooth). With grouped_by= (a mixed model) the fourth
+        picture is a normal Q-Q of the groups' own starting levels, as R qqnorm(ranef(m)).
+        Gives back the page of charts: .show() or .save("checks.png").
         """
         step = "check_model"
-        self._check_kind(step, outcome, None)
-        model, pieces = self._one_model(step, column, using, outcome)
+        self._check_kind(step, outcome)
+        model, pieces = self._one_model(step, column, using, outcome, grouped_by)
+        if grouped_by is not None:
+            return self._check_mixed_pictures(model, pieces, grouped_by)
         numbers = self._influence(model, self._statsmodels_fit(model))
         return self._check_pictures(model, pieces, numbers)
 
     def _check_pictures(self, model, pieces, numbers):
         import pandas as pd
-        import statsmodels.api as sm
-        from scipy import stats
 
         from ..chart import chart as make_chart
         from ..words.layout import grid
 
         n, p = model["n"], model["X"].shape[1]
-        # R qqnorm() of the standardised (deviance) residuals: the normal quantiles of ppoints(n), (i - a) / (n + 1 - 2a) with a = 3/8 up to 10 rows, else 1/2
-        standardised = numbers["standardised"]
-        qq = sm.ProbPlot(standardised, a=3 / 8 if n <= 10 else 0.5)
-        theoretical, ordered = np.asarray(qq.theoretical_quantiles), np.asarray(qq.sorted_data)
-        # R qqline(): the line through the first and third quartiles (quantile type 7, R's default)
-        q_y = np.percentile(standardised, [25, 75])
-        q_x = stats.norm.ppf([0.25, 0.75])
-        slope = float((q_y[1] - q_y[0]) / (q_x[1] - q_x[0]))
-        intercept = float(q_y[0] - slope * q_x[0])
+        # R qqnorm() of the standardised (deviance) residuals, and qqline()
+        qq = self._qq(numbers["standardised"])
         x_name = numbers["x_name"]
         resid_name = "residual" if model["kind"] == "lm" else "Pearson residual"
         frame = pd.DataFrame({x_name: numbers["fitted"], resid_name: numbers["residual"],
@@ -338,9 +422,7 @@ class ModelToolWords:
                               "leverage": numbers["hat"], "standardised residual": numbers["pearson"]})
         a = make_chart(frame).dots(x=x_name, y=resid_name).smooth_line().line_at_y(0)
         a = a.title_top("Residuals against fitted values")
-        b = make_chart(pd.DataFrame({"normal quantile": theoretical, "standardised residual": ordered}))
-        b = b.dots(x="normal quantile", y="standardised residual").line_with_slope(slope, intercept=intercept)
-        b = b.title_top("Normal Q-Q")
+        b = self._qq_chart(qq, "standardised residual", "Normal Q-Q")
         c = make_chart(frame).dots(x=x_name, y="root of |standardised residual|").smooth_line()
         c = c.title_top("Scale-location")
         d = make_chart(frame).dots(x="leverage", y="standardised residual").smooth_line().line_at_y(0)
@@ -356,10 +438,7 @@ class ModelToolWords:
             d = d.range_y(-reach, reach)
         d = d.title_top("Residuals against leverage")
         column = model["column"]
-        formula = f"{_r_name(column)} ~ " + " + ".join(pieces)
-        call = {"lm": f"lm({formula})", "binomial": f"glm({formula}, family = binomial)",
-                "poisson": f"glm({formula}, family = poisson)"}[model["kind"]]
-        print(f'Checking the model of "{column}" ({n} rows) in four pictures, as R plot({call}):')
+        print(f'Checking the model of "{column}" ({n} rows) in four pictures, as R plot({model_call(model, pieces)}):')
         print("  1. residuals against fitted values: an even band around 0, with no curve, means the form fits;")
         print("  2. normal Q-Q: dots on the line mean the residuals follow a bell curve;")
         print("  3. scale-location: a flat line means the spread is the same everywhere;")
@@ -369,19 +448,74 @@ class ModelToolWords:
         if strong:
             print(f"Note: {strong} row{'s have' if strong != 1 else ' has'} a Cook's distance above 0.5; "
                   f'table.show_rows_that_pull("{column}", using=...) lists them.')
-        if model["kind"] != "lm":
+        if model["kind"] in ("binomial", "poisson", "quasipoisson", "negbin"):
             print("For yes/no and counts the first picture always shows bands (one per outcome value); look at the "
                   "smooth line, which should stay near 0.")
         print("Numbers from statsmodels (OLSInfluence or GLMInfluence); the smooth lines are LOWESS, as R "
               "panel.smooth. Pictures help judge a model better than tests of the residuals.")
         page = grid(a, b, c, d, per_row=2)
-        page._check_numbers = dict(numbers, theoretical=theoretical, ordered=ordered, slope=slope,
-                                   intercept=intercept)
+        page._check_numbers = dict(numbers, theoretical=qq["theoretical"], ordered=qq["ordered"], slope=qq["slope"],
+                                   intercept=qq["intercept"])
+        return page
+
+    def _check_mixed_pictures(self, model, pieces, grouped_by):
+        """The pictures for a mixed model: R plot(m) (residuals against fitted values), qqnorm() of the
+        scaled residuals, scale-location, and qqnorm() of each group's own starting level (ranef)."""
+        import pandas as pd
+
+        from ..chart import chart as make_chart
+        from ..words.layout import grid
+
+        fit, column, glmm = model["fit"], model["column"], model["kind"] == "glmm"
+        if glmm:  # R residuals(m, type = "pearson") from lme4::glmer, against fitted(m) (the chance or count)
+            residual = scaled = np.asarray(fit["pearson"], dtype=float)
+            resid_name, scaled_name = "Pearson residual", "root of |Pearson residual|"
+        else:  # R resid(m) and resid(m, scaled = TRUE): divided by the residual standard deviation
+            residual = model["y"] - fit["fitted"]
+            scaled = residual / math.sqrt(fit["within"])
+            resid_name, scaled_name = "residual", "root of |scaled residual|"
+        fitted = np.asarray(fit["fitted"], dtype=float)
+        frame = pd.DataFrame({"fitted value": fitted, resid_name: residual, scaled_name: np.sqrt(np.abs(scaled))})
+        charts = [make_chart(frame).dots(x="fitted value", y=resid_name).smooth_line().line_at_y(0)
+                  .title_top("Residuals against fitted values")]
+        numbers = dict(fitted=fitted, residual=residual, scaled=scaled, ranef=np.asarray(fit["ranef"]),
+                       ranef_groups=list(fit["ranef_groups"]))
+        if not glmm:
+            qq = self._qq(scaled)
+            charts.append(self._qq_chart(qq, "scaled residual", "Normal Q-Q of the residuals"))
+            numbers["residual_qq"] = qq
+        charts.append(make_chart(frame).dots(x="fitted value", y=scaled_name).smooth_line().title_top("Scale-location"))
+        levels = self._qq(numbers["ranef"])
+        numbers["group_qq"] = levels
+        charts.append(self._qq_chart(levels, "group's own level", f'Normal Q-Q of the "{grouped_by}" levels'))
+        groups = len(numbers["ranef_groups"])
+        print(f'Checking the mixed model of "{column}" ({model["n"]} rows, {groups} groups in "{grouped_by}") in '
+              f"{len(charts)} pictures, for m <- {model_call(model, pieces, grouped_by)}:")
+        print("  1. residuals against fitted values (R plot(m)): an even band around 0, with no curve, means the form "
+              "fits;")
+        number = 2
+        if not glmm:
+            print("  2. normal Q-Q of the residuals (R qqnorm(resid(m, scaled = TRUE))): dots on the line mean the "
+                  "residuals follow a bell curve;")
+            number = 3
+        print(f"  {number}. scale-location: a flat line means the spread is the same everywhere;")
+        print(f"  {number + 1}. normal Q-Q of each group's own starting level (R qqnorm(ranef(m)${_r_name(grouped_by)}"
+              "[, 1])): dots on the line mean the groups' levels follow a bell curve, as the model assumes.")
+        if glmm:
+            print("For yes/no and counts a Q-Q picture of the residuals says little, so it is left out; the first "
+                  "picture shows bands (one per outcome value): look at the smooth line, which should stay near 0.")
+        how = ("R lme4::glmer() (residuals(m, type = \"pearson\"), fitted(), ranef())" if glmm else
+               "statsmodels MixedLM (residuals, fitted values with each group's own level, and the levels "
+               "themselves, as R resid(), fitted() and ranef())")
+        print(f"Numbers from {how}; the smooth lines are LOWESS, as R panel.smooth. "
+              f'table.show_rows_that_pull(..., grouped_by="{grouped_by}") shows the groups that pull the model.')
+        page = grid(*charts, per_row=2)
+        page._check_numbers = numbers
         return page
 
     # ------------------------------------------------------------------ show_rows_that_pull
     @friendly
-    def show_rows_that_pull(self, column=None, using=None, outcome="numbers"):
+    def show_rows_that_pull(self, column=None, using=None, outcome="numbers", grouped_by=None):
         """Show the rows that change a model from explain() the most (the table does not change).
 
         table.show_rows_that_pull("marks", using=["hours", "breakfast"])   (with sdata.example("school"))
@@ -389,14 +523,19 @@ class ModelToolWords:
         that row; rows above 4 / (number of rows), the usual rule of thumb, are shown, the
         biggest first, with their leverage (how unusual the row's values in using= are) and
         their studentised residual (how far the row is from the model). Numbers from
-        statsmodels OLSInfluence (GLMInfluence for outcome="yes or no" and "counts"), as R
-        cooks.distance(), hatvalues() and rstudent(). Each row is shown with its number in the
-        whole table, so remove_rows_by_position() can follow, but only remove a row for a reason
-        (a mistake in the data), and say so in the report.
+        statsmodels OLSInfluence (GLMInfluence for outcome="yes or no", the count outcomes and
+        "positive numbers"), as R cooks.distance(), hatvalues() and rstudent(). Each row is shown
+        with its number in the whole table, so remove_rows_by_position() can follow, but only
+        remove a row for a reason (a mistake in the data), and say so in the report.
+        With grouped_by= (a mixed model) whole groups are checked instead: each group is left
+        out in turn and the model refitted, R lme4 influence(m, groups =) and cooks.distance()
+        (needs R).
         """
         step = "show_rows_that_pull"
-        self._check_kind(step, outcome, None)
-        model, _ = self._one_model(step, column, using, outcome)
+        self._check_kind(step, outcome)
+        model, pieces = self._one_model(step, column, using, outcome, grouped_by)
+        if grouped_by is not None:
+            return self._groups_that_pull(model, pieces, grouped_by)
         numbers = self._pull_numbers(model)
         positions = np.flatnonzero(model["keep"])
         n, cooks = model["n"], numbers["cooks"]
@@ -430,6 +569,35 @@ class ModelToolWords:
               "row only for a reason (a mistake in the data), and say so.")
         return None
 
+    def _groups_that_pull(self, model, pieces, grouped_by):
+        """show_rows_that_pull(grouped_by=): Cook's distance of each whole group, R lme4 influence()."""
+        from .models_r import group_influence
+
+        out = group_influence(model)
+        groups = [str(g) for g in np.atleast_1d(out["group"])]
+        cooks = np.atleast_1d(out["cooks"]).astype(float)
+        k = len(groups)
+        limit = 4 / k
+        order = [int(i) for i in np.argsort(-cooks, kind="stable") if cooks[i] > limit]
+        sizes = {g: int(np.sum(model["groups"] == g)) for g in groups}
+        print(f'Found {len(order)} of {k} groups in "{grouped_by}" with a Cook\'s distance above 4 / {k} = '
+              f"{_num(limit)}:")
+        for i in order[:10]:
+            print(f"  {groups[i]} ({sizes[groups[i]]} rows): Cook's distance {_num(cooks[i])}")
+        if len(order) > 10:
+            print(f"  ... and {len(order) - 10} more groups above {_num(limit)}.")
+        big = int(np.sum(cooks > 1))
+        if big:
+            print(f"{big} group{'s pull' if big != 1 else ' pulls'} very strongly (Cook's distance above 1): fit the "
+                  "model with and without them and report both.")
+        elif not order:
+            top = int(np.argmax(cooks))
+            print(f"No group pulls the model much (the largest: {groups[top]}, {_num(cooks[top])}).")
+        print(f"Method: each group left out in turn and the model refitted, R lme4 influence(m, groups = "
+              f'"{grouped_by}") and cooks.distance(), for m <- {model_call(model, pieces, grouped_by)}. With '
+              "grouped_by= whole groups are checked, since the rows of a group belong together.")
+        return None
+
     def _pull_numbers(self, model):
         return self._influence(model, self._statsmodels_fit(model))
 
@@ -440,18 +608,50 @@ class ModelToolWords:
         return f'"{_label(value)}"'
 
     # ------------------------------------------------------------------ compare_models
+    def _likelihood(self, model, fit_more=None):
+        """(log-likelihood, values estimated) as R logLik() gives them, or (None, None) for quasi-Poisson,
+        which has no likelihood. Mixed models are refitted by maximum likelihood, as R anova() does."""
+        import statsmodels.api as sm
+
+        kind, fit, p = model["kind"], model.get("fit"), model["X"].shape[1]
+        if kind == "quasipoisson":
+            return None, None
+        if kind == "lm":
+            return float(self._statsmodels_fit(model).llf), p + 1  # sigma counts, as R logLik()
+        if kind in ("binomial", "poisson", "negbin", "glmm"):
+            return float(fit["loglik"]), p + (1 if kind in ("negbin", "glmm") else 0)
+        if kind == "gamma":
+            # as R logLik() of a Gamma glm: the dispersion taken as deviance / n, plus one value for it
+            mu = np.asarray(fit["fitted"], dtype=float)
+            llf = sm.families.Gamma(link=sm.families.links.Log()).loglike(model["y"], mu,
+                                                                          scale=fit["deviance"] / model["n"])
+            return float(llf), p + 1
+        if kind == "mixed":
+            from statsmodels.regression.mixed_linear_model import MixedLM
+
+            with warnings.catch_warnings():
+                warnings.simplefilter("ignore")
+                result = MixedLM(model["y"], model["X"], groups=model["groups"]).fit(
+                    reml=False, method=["powell", "lbfgs"])
+            return float(result.llf), p + 2  # the two variances count, as R logLik()
+        # ordered groups, groups, shares, many zeros: the package's own log-likelihood and AIC
+        return float(fit_more["loglik"]), int(round((fit_more["aic"] + 2 * fit_more["loglik"]) / 2))
+
     @friendly
-    def compare_models(self, column=None, using=None, against=None, outcome="numbers"):
+    def compare_models(self, column=None, using=None, against=None, outcome="numbers", grouped_by=None,
+                       in_order=None):
         """Does a bigger model explain the column better than a smaller one, or could it be chance?
 
         table.compare_models("marks", using=["hours"], against=["hours", "breakfast"])
         (with sdata.example("school"))
         Fits both models on the same rows (those with a value in every column of either model).
         When one model holds every column of the other (nested models), it tests whether the
-        extra columns help: an F test for outcome="numbers" (statsmodels compare_f_test) and a
-        likelihood-ratio test for outcome="yes or no" and "counts", as R anova(m0, m1). It also
-        prints AIC and BIC for each model (smaller is better; a difference under about 2 means
-        little). Gives back a table with one row per model and one for the test.
+        extra columns help, as R anova(m0, m1): an F test for outcome="numbers" (statsmodels
+        compare_f_test), "counts (overdispersed)" and "positive numbers" (R anova(test = "F")),
+        and a likelihood-ratio test for the other outcomes. With grouped_by= both mixed models are
+        fitted by maximum likelihood for the test, as R anova() refits lme4 models. It also prints
+        AIC and BIC for each model (smaller is better; a difference under about 2 means little).
+        Gives back a table with one row per model and one for the test.
         """
         from scipy import stats
         import statsmodels.tools.eval_measures as measures
@@ -459,64 +659,109 @@ class ModelToolWords:
         step = "compare_models"
         example = ('with sdata.example("school"): table.compare_models("marks", using=["hours"], '
                    'against=["hours", "breakfast"])')
-        self._check_kind(step, outcome, None)
+        self._check_kind(step, outcome, AVERAGE_OUTCOMES)
         if against is None:
             raise SimplydataError(f"{step}() needs against= with the columns of the other model.\nFor example, {example}")
-        first = self._model_parts(step, column, using, outcome, None, "leave out")
-        second = self._model_parts(step, column, against, outcome, None, "leave out")
-        names = list(dict.fromkeys([column] + first[2] + second[2]))
+        first = self._model_parts(step, column, using, outcome, grouped_by, "leave out")
+        second = self._model_parts(step, column, against, outcome, grouped_by, "leave out")
+        names = list(dict.fromkeys([column] + first[2] + second[2] + ([grouped_by] if grouped_by else [])))
         missing, kinds, raw = {**first[4], **second[4]}, {**first[5], **second[5]}, {**first[3], **second[3]}
         keep = ~np.any([missing[nm] for nm in names], axis=0)
         _skipped_note(int((~keep).sum()), names)
-        models = []
-        for terms, pieces, variables in ((first[0], first[1], first[2]), (second[0], second[1], second[2])):
-            model = self._fit_model(step, column, outcome, None, terms, variables, raw, kinds, keep)
-            models.append((model, pieces, self._statsmodels_fit(model)))
-        sets = [{frozenset(t) for t in m[0]["terms"]} for m in models]
-        if sets[0] == sets[1]:
+        if frozenset(frozenset(t) for t in first[0]) == frozenset(frozenset(t) for t in second[0]):
             raise SimplydataError("using= and against= give the same model; give against= the columns of the other "
                                   f"model.\nFor example, {example}")
+        if outcome not in MORE_OUTCOMES and in_order is not None:
+            raise SimplydataError('in_order= gives the order of the groups for outcome="ordered groups".')
+        models = []
+        for terms, pieces, variables in ((first[0], first[1], first[2]), (second[0], second[1], second[2])):
+            fit_more = None
+            if outcome in MORE_OUTCOMES:
+                from . import models_more
+
+                model = self._more_model(step, column, outcome, terms, variables, raw, kinds, keep, in_order)
+                fit_more = {"ordered": models_more.fit_ordered, "multinom": models_more.fit_groups,
+                            "shares": models_more.fit_shares, "zeros": models_more.fit_zeros}[model["kind"]](
+                    model["X"], model["y"])
+            else:
+                model = self._fit_model(step, column, outcome, grouped_by, terms, variables, raw, kinds, keep)
+            llf, k = self._likelihood(model, fit_more)
+            models.append((model, pieces, llf, k))
+        sets = [{frozenset(t) for t in m[0]["terms"]} for m in models]
         nested = sets[0] < sets[1] or sets[1] < sets[0]
         small, big = (models[0], models[1]) if len(sets[0]) <= len(sets[1]) else (models[1], models[0])
+        n = small[0]["n"]
         rows = []
-        print(f'Comparing two models of "{column}" on the same {small[0]["n"]} rows:')
-        for label, (model, pieces, result) in (("using=", models[0]), ("against=", models[1])):
-            k = model["X"].shape[1] + (1 if model["kind"] == "lm" else 0)  # as R logLik(): sigma counts for lm
-            llf = float(result.llf)
-            aic, bic = float(measures.aic(llf, model["n"], k)), float(measures.bic(llf, model["n"], k))
+        where = f' in "{grouped_by}" groups' if grouped_by is not None else ""
+        print(f'Comparing two models of "{column}" on the same {n} rows{where}:')
+        for label, (model, pieces, llf, k) in (("using=", models[0]), ("against=", models[1])):
             formula = f"{_r_name(column)} ~ " + " + ".join(pieces)
+            if llf is None:
+                print(f"  {label} {formula}")
+                rows.append({"term": f"{label} {formula}"})
+                continue
+            aic, bic = float(measures.aic(llf, n, k)), float(measures.bic(llf, n, k))
             print(f"  {label} {formula}: AIC = {_num(aic)}, BIC = {_num(bic)} ({k} values estimated)")
             rows.append({"term": f"{label} {formula}", "AIC": aic, "BIC": bic, "values estimated": float(k),
                          "log-likelihood": llf})
-        better = 0 if rows[0]["AIC"] <= rows[1]["AIC"] else 1
-        gap = abs(rows[0]["AIC"] - rows[1]["AIC"])
-        close = "; a difference under 2 means the two fit about equally well" if gap < 2 else ""
-        print(f"Lower AIC: the {('using=', 'against=')[better]} model (by {_num(gap)}{close}).")
-        if nested:
-            added = [t for t in big[0]["terms"] if frozenset(t) not in {frozenset(s) for s in small[0]["terms"]}]
-            extra = ("Does " if len(added) == 1 else "Do ") + _list_words(_quoted(" : ".join(t)) for t in added)
-            if big[0]["kind"] == "lm":
-                f, p, df = big[2].compare_f_test(small[2])
-                df2 = float(big[2].df_resid)
-                print(f"{extra} help? F test (F = {_num(f)}, df = {_whole(df)} and {_whole(df2)}): {_p_words(p)}.")
-                test = {"statistic name": "F", "statistic": float(f), "degrees of freedom": float(df),
-                        "p-value": float(p)}
-                how = "an F test, as R anova(m0, m1) (statsmodels compare_f_test)"
-            else:
-                chi = float(small[2].deviance - big[2].deviance)
-                df = float(big[0]["X"].shape[1] - small[0]["X"].shape[1])
-                p = float(stats.chi2.sf(chi, df))
-                print(f"{extra} help? Likelihood-ratio test (chi-square = {_num(chi)}, df = {_whole(df)}): "
-                      f"{_p_words(p)}.")
-                test = {"statistic name": "chi-square", "statistic": chi, "degrees of freedom": df, "p-value": p}
-                how = 'a likelihood-ratio test, as R anova(m0, m1, test = "Chisq") (the change in deviance)'
-            rows.append({"term": "test: the bigger model against the smaller", **test})
-            print(f"Method: both models fitted with statsmodels, then {how}; AIC and BIC as R AIC() and BIC().")
-            if p >= 0.05:
-                print("A large p-value does not show that the extra columns do nothing, only that the data cannot "
-                      "tell.")
+        if models[0][2] is not None:
+            better = 0 if rows[0]["AIC"] <= rows[1]["AIC"] else 1
+            gap = abs(rows[0]["AIC"] - rows[1]["AIC"])
+            close = "; a difference under 2 means the two fit about equally well" if gap < 2 else ""
+            print(f"Lower AIC: the {('using=', 'against=')[better]} model (by {_num(gap)}{close}).")
+            if grouped_by is not None:
+                print("AIC and BIC of the mixed models come from maximum-likelihood fits, as R anova() gives them.")
         else:
+            print("Quasi-Poisson has no likelihood, so there is no AIC or BIC (as R); the F test below compares the "
+                  "models.")
+        aic_words = "AIC and BIC as R AIC() and BIC()" if models[0][2] is not None else "no AIC (as R)"
+        if not nested:
             print("Note: neither model holds every column of the other, so there is no test between them; compare "
                   "their AIC (smaller is better).")
-            print("Method: both models fitted with statsmodels; AIC and BIC as R AIC() and BIC().")
+            print(f"Method: both models fitted as {model_call(models[0][0], models[0][1], grouped_by)} and the other; "
+                  f"{aic_words}.")
+            return self._rows_table(rows)
+        added = [t for t in big[0]["terms"] if frozenset(t) not in {frozenset(s) for s in small[0]["terms"]}]
+        extra = ("Does " if len(added) == 1 else "Do ") + _list_words(_quoted(" : ".join(t)) for t in added)
+        kind = big[0]["kind"]
+        df = float(big[0]["X"].shape[1] - small[0]["X"].shape[1])
+        if kind == "lm":
+            f, p, df = self._statsmodels_fit(big[0]).compare_f_test(self._statsmodels_fit(small[0]))
+            df2 = float(big[0]["fit"]["df"])
+            print(f"{extra} help? F test (F = {_num(f)}, df = {_whole(df)} and {_whole(df2)}): {_p_words(p)}.")
+            test = {"statistic name": "F", "statistic": float(f), "degrees of freedom": float(df), "p-value": float(p)}
+            how = "an F test, as R anova(m0, m1) (statsmodels compare_f_test)"
+        elif kind in ("quasipoisson", "gamma"):
+            # as R anova(m0, m1, test = "F"): the change in deviance per extra value over the bigger model's
+            # (Pearson) dispersion
+            change = small[0]["fit"]["deviance"] - big[0]["fit"]["deviance"]
+            df2 = float(big[0]["fit"]["df"])
+            f = change / df / big[0]["fit"]["dispersion"]
+            p = float(stats.f.sf(f, df, df2))
+            print(f"{extra} help? F test (F = {_num(f)}, df = {_whole(df)} and {_whole(df2)}): {_p_words(p)}.")
+            test = {"statistic name": "F", "statistic": float(f), "degrees of freedom": df, "p-value": p}
+            how = 'an F test on the change in deviance, as R anova(m0, m1, test = "F")'
+        else:
+            if kind in ("binomial", "poisson"):
+                chi = float(small[0]["fit"]["deviance"] - big[0]["fit"]["deviance"])
+                how = 'a likelihood-ratio test, as R anova(m0, m1, test = "Chisq") (the change in deviance)'
+            else:
+                chi = float(2 * (big[2] - small[2]))
+                df = float(big[3] - small[3])  # the values estimated (two parts or one per group: more than X)
+                how = {"negbin": "a likelihood-ratio test, as R anova(m0, m1) for MASS::glm.nb models (theta found "
+                                 "again for each)",
+                       "mixed": "a likelihood-ratio test of the two models fitted by maximum likelihood (statsmodels "
+                                "MixedLM), as R anova(m0, m1) refits lme4 models",
+                       "glmm": "a likelihood-ratio test, as R anova(m0, m1) for lme4::glmer models",
+                       "ordered": "a likelihood-ratio test, as R anova(m0, m1) for MASS::polr models",
+                       "multinom": "a likelihood-ratio test, as R anova(m0, m1) for nnet::multinom models",
+                       }.get(kind, "a likelihood-ratio test, as R lmtest::lrtest(m0, m1)")
+            p = float(stats.chi2.sf(chi, df))
+            print(f"{extra} help? Likelihood-ratio test (chi-square = {_num(chi)}, df = {_whole(df)}): {_p_words(p)}.")
+            test = {"statistic name": "chi-square", "statistic": chi, "degrees of freedom": df, "p-value": p}
+        rows.append({"term": "test: the bigger model against the smaller", **test})
+        print(f"Method: both models fitted as {model_call(big[0], big[1], grouped_by)} and the smaller one, then {how}; "
+              f"{aic_words}.")
+        if test["p-value"] >= 0.05:
+            print("A large p-value does not show that the extra columns do nothing, only that the data cannot tell.")
         return self._rows_table(rows)

@@ -80,7 +80,7 @@ def test_model_averages_checks(school):
     with pytest.raises(SimplydataError, match="holds numbers"):
         school.model_averages_of("marks", for_each="hours", using=["breakfast"])
     with pytest.raises(SimplydataError, match="outcome"):
-        school.model_averages_of("marks", for_each="breakfast", outcome="shares")
+        school.model_averages_of("marks", for_each="breakfast", outcome="words")
     with pytest.raises(SimplydataError, match="for_each="):
         school.model_averages_of("marks", using=["hours"])
 

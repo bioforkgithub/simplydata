@@ -21,8 +21,6 @@ from __future__ import annotations
 
 import numpy as np
 
-FAMILIES = {"lm": None, "binomial": "binomial", "poisson": "poisson", "mixed": None, "glmm": None}
-
 
 def r_data(model, names=None):
     """The model's rows for R: the values (as R variables) and the R code that makes the data frame d.
@@ -35,6 +33,9 @@ def r_data(model, names=None):
     safe = {v: f"v{i}" for i, v in enumerate(variables)}
     values = {"y": np.asarray(model["y"], dtype=float)}
     parts = ["y = y"]
+    if model["kind"] in ("ordered", "multinom"):  # the outcome's groups as a factor, lowest (or baseline) first
+        values["y_levels"] = np.array(model["groups_of_outcome"], dtype=object)
+        parts = ["y = factor(y_levels[y + 1], levels = y_levels)"]
     for v in variables:
         key = safe[v]
         if model["kinds"][v] == "group":
@@ -68,9 +69,22 @@ def r_fit(model, safe, slopes=()):
         if kind == "mixed":
             return f"m <- lme4::lmer(y ~ {rhs} + {random}, data = d, REML = TRUE); "
         return f"m <- lme4::glmer(y ~ {rhs} + {random}, data = d, family = {family}); "
-    if kind == "lm":
-        return f"m <- stats::lm(y ~ {rhs}, data = d); "
+    other = {"lm": f"stats::lm(y ~ {rhs}, data = d)",
+             "quasipoisson": f"stats::glm(y ~ {rhs}, data = d, family = quasipoisson)",
+             "negbin": f"MASS::glm.nb(y ~ {rhs}, data = d)",
+             "gamma": f"stats::glm(y ~ {rhs}, data = d, family = Gamma(link = 'log'))",
+             "shares": f"betareg::betareg(y ~ {rhs}, data = d)",
+             "zeros": f"pscl::zeroinfl(y ~ {rhs} | {rhs}, data = d, dist = 'poisson')",
+             "ordered": f"MASS::polr(y ~ {rhs}, data = d, Hess = TRUE)",
+             "multinom": f"nnet::multinom(y ~ {rhs}, data = d, trace = FALSE)"}
+    if kind in other:
+        return f"m <- {other[kind]}; "
     return f"m <- stats::glm(y ~ {rhs}, data = d, family = {family}); "
+
+
+# the R packages each kind of model needs, besides stats
+FIT_PACKAGES = {"mixed": ("lme4",), "glmm": ("lme4",), "negbin": ("MASS",), "shares": ("betareg",),
+                "zeros": ("pscl",), "ordered": ("MASS",), "multinom": ("nnet",)}
 
 
 def emmeans_table(model, for_each):
@@ -80,19 +94,27 @@ def emmeans_table(model, for_each):
 
     safe = {}
     values, code = r_data(model, safe)
-    packages = ("emmeans", "lme4") if model["kind"] in ("mixed", "glmm") else ("emmeans",)
+    packages = ("emmeans",) + FIT_PACKAGES.get(model["kind"], ())
     if model["kind"] == "mixed":
         packages += ("pbkrtest",)
     code += r_fit(model, safe)
-    code += (f"e <- emmeans::emmeans(m, specs = '{safe[for_each]}', type = 'response'); "
-             "a <- as.data.frame(summary(e)); "
+    v = safe[for_each]
+    if model["kind"] in ("ordered", "multinom"):  # the chance of each of the outcome's groups
+        code += f"e <- emmeans::emmeans(m, specs = ~ {v} | y, mode = 'prob'); "
+    else:
+        code += f"e <- emmeans::emmeans(m, specs = '{v}', type = 'response'); "
+    code += ("a <- as.data.frame(summary(e)); "
              "p <- as.data.frame(summary(graphics::pairs(e, adjust = 'tukey'), infer = c(TRUE, TRUE))); "
              "low <- function(t) t[[grep('LCL|lower', names(t))[1]]]; "
              "high <- function(t) t[[grep('UCL|upper', names(t))[1]]]; "
              "stat <- function(t) t[[grep('^(t|z)[.]ratio$', names(t))[1]]]; "
-             "list(level = as.character(a[[1]]), average = a[[2]], se = a$SE, df = a$df, low = low(a), high = high(a), "
-             "contrast = as.character(p$contrast), difference = p[[2]], pse = p$SE, pdf = p$df, plow = low(p), "
-             "phigh = high(p), stat = stat(p), p = p$p.value)")
+             "value <- function(t, skip) t[[setdiff(names(t), skip)[1]]]; "
+             "cls <- function(t) if ('y' %in% names(t)) as.character(t$y) else character(0); "
+             f"list(level = as.character(a${v}), average = value(a, c('{v}', 'y')), se = a$SE, df = a$df, "
+             "low = low(a), high = high(a), cls = cls(a), "
+             "contrast = as.character(p$contrast), difference = value(p, c('contrast', 'y')), pse = p$SE, "
+             "pdf = p$df, plow = low(p), phigh = high(p), stat = stat(p), p = p$p.value, pcls = cls(p), "
+             "ratio = any(grepl(' / ', p$contrast)))")
     out = r_call(code, packages=packages, source="emmeans",
                  what="Model averages and their pairs (R emmeans::emmeans() and pairs())",
                  python_note="no Python package gives emmeans' averages over a reference grid; "
@@ -198,3 +220,49 @@ def repeated_anova(y, ids, within, between):
                  python_note="statsmodels AnovaRM has no Greenhouse-Geisser correction and no between-subject "
                              "columns", **values)
     return out
+
+
+def group_influence(model):
+    """R lme4 influence(m, groups = "g") and cooks.distance(): how much the fixed effects move when
+    each whole group is left out and the model refitted (lmer or glmer), one value per group."""
+    from .._r import r_call
+
+    safe = {}
+    values, code = r_data(model, safe)
+    code += r_fit(model, safe)
+    code += ("inf <- stats::influence(m, groups = 'g'); cd <- stats::cooks.distance(inf); "
+             "list(group = as.character(inf$deleted), cooks = unname(as.numeric(cd)))")
+    return r_call(code, packages=("lme4",), source="lme4::influence",
+                  what="Groups that pull a mixed model (R lme4 influence() and cooks.distance())",
+                  python_note="statsmodels gives no influence measures for mixed models; show_rows_that_pull() "
+                              "without grouped_by= works without R", **values)
+
+
+def robust_cov(model):
+    """R sandwich::vcovHC(m, type = "HC3") of the GLM explain() fitted (refitted in R on the same model
+    matrix, offset and tries); statsmodels' GLM gives HC0 when HC3 is asked for."""
+    from .._r import r_call
+
+    fit, kind = model["fit"], model["kind"]
+    values = {"y": np.asarray(model["y"], dtype=float), "X": np.asarray(model["X"], dtype=float)}
+    left, offset = "y", ""
+    if fit.get("trials") is not None:
+        left, values["n"] = "cbind(y, n - y)", np.asarray(fit["trials"], dtype=float)
+    if fit.get("exposure") is not None:
+        offset, values["t"] = " + offset(log(t))", np.asarray(fit["exposure"], dtype=float)
+    link = fit.get("link")
+    family = {"binomial": f"binomial(link = '{link or 'logit'}')", "poisson": f"poisson(link = '{link or 'log'}')",
+              "quasipoisson": "quasipoisson", "gamma": f"Gamma(link = '{link or 'log'}')"}
+    if kind == "negbin":
+        code = f"m <- MASS::glm.nb({left} ~ 0 + X{offset}); "
+        packages = ("sandwich", "MASS")
+    else:
+        code = f"m <- stats::glm({left} ~ 0 + X{offset}, family = {family[kind]}); "
+        packages = ("sandwich",)
+    code += "unname(as.matrix(sandwich::vcovHC(m, type = 'HC3')))"
+    out = r_call(code, packages=packages, source="sandwich::vcovHC",
+                 what="Robust standard errors for a GLM (R sandwich::vcovHC(type = \"HC3\"))",
+                 python_note="robust=True works without R for outcome=\"numbers\" (statsmodels); statsmodels' GLM "
+                             "gives only HC0, which is smaller with few rows", **values)
+    k = model["X"].shape[1]
+    return np.asarray(out, dtype=float).reshape(k, k)

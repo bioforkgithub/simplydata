@@ -190,16 +190,20 @@ UNDERNEATH = {
                      "effects=\"for the whole population\", as R geepack::geeglm; MICEData to fill in empty cells); "
                      "R itself (needs R) for lme4::glmer, lme4::lmer with own_slope_for=, lmerTest for "
                      "p_value_by=\"satterthwaite\", geepack for within_groups=\"in time order\", car::Anova and "
-                     "effectsize for test_type=, and mice::pool for multiple imputation",
-    "table.add_predicted_column": "statsmodels (the same model as table.explain)",
+                     "effectsize for test_type=, sandwich::vcovHC for robust=True with yes/no and counts, and mice::pool for "
+                     "multiple imputation",
+    "table.add_predicted_column": "statsmodels (the same model as table.explain; get_prediction for interval= and for_new_rows=)",
     "table.model_averages_of": "R emmeans (emmeans::emmeans and pairs, Tukey's adjustment; lme4 and pbkrtest for "
-                               "grouped_by=), on the model of table.explain (needs R)",
-    "table.check_model": "statsmodels (OLSInfluence, GLMInfluence, ProbPlot and lowess), the four pictures of R "
-                         "plot(lm), drawn with matplotlib",
+                               "grouped_by=; MASS, nnet, betareg and pscl for the other outcomes), on the model of "
+                               "table.explain (needs R)",
+    "table.check_model": "statsmodels (OLSInfluence, GLMInfluence, MixedLM, ProbPlot and lowess), the pictures of R "
+                         "plot(lm), plot(glm) and plot(lmer) with qqnorm(ranef), drawn with matplotlib; R lme4::glmer "
+                         "for yes/no and counts with grouped_by=",
     "table.show_rows_that_pull": "statsmodels (OLSInfluence, GLMInfluence), as R cooks.distance, hatvalues and "
-                                 "rstudent",
-    "table.compare_models": "statsmodels (OLS compare_f_test; GLM deviances with SciPy's chi-square; "
-                            "eval_measures aic and bic), as R anova(m0, m1), AIC and BIC",
+                                 "rstudent; R lme4 influence() and cooks.distance() for whole groups with grouped_by=",
+    "table.compare_models": "statsmodels (OLS compare_f_test; GLM deviances and log-likelihoods with SciPy's chi-square "
+                            "and F; MixedLM refitted by maximum likelihood; eval_measures aic and bic), as R anova(m0, "
+                            "m1), lmtest::lrtest, AIC and BIC; R for glmer, betareg and zeroinfl models",
     # patterns across columns
     "table.add_principal_components": "statsmodels (multivariate.pca.PCA, by singular value decomposition)",
     "table.principal_components_of": "statsmodels (multivariate.pca.PCA, by singular value decomposition)",
