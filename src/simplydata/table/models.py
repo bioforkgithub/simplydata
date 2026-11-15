@@ -664,9 +664,31 @@ class ModelWords:
                 grouping["inner_groups"] = np.array([_label(g) for g in raw[grouping["inner"]][keep]], dtype=object)
             grouping.update(model=model, outcome=outcome, tested=self._tested_terms(terms, owner))
             model["grouping"] = {key: value for key, value in grouping.items() if key != "model"}
+        if kind in ("mixed", "glmm"):
+            self._check_group_sizes(grouped_by, groups, grouping.get("inner"), grouping.get("inner_groups"), n)
         model["fit"] = self._fit_one(kind, X, y, groups, family="binomial" if outcome == "yes or no" else "poisson",
                                      exposure=exposure, trials=trials, link=link, grouping=grouping)
         return model
+
+    @staticmethod
+    def _check_group_sizes(grouped_by, groups, inner, inner_groups, n):
+        """A mixed model needs fewer groups than rows, as R lme4 checks before fitting ("number of levels of each
+        grouping factor must be < number of observations"), for the outer groups and for the inner groups within
+        them (R's g:h); statsmodels would otherwise report a group variance that cannot be told apart from the
+        rows' own spread."""
+        found = len(set(groups.tolist()))
+        if found >= n:
+            raise SimplydataError(f'grouped_by="{grouped_by}" has {found} groups for {n} rows, so each group has one '
+                                  "row and a mixed model cannot tell the groups' spread from the rows' own spread (R "
+                                  "lme4 stops here too). Group the rows by a column that some rows share, or leave "
+                                  "out grouped_by= when each row stands on its own.")
+        if inner_groups is not None:
+            pairs = len(set(zip(groups.tolist(), inner_groups.tolist())))
+            if pairs >= n:
+                raise SimplydataError(f'"{inner}" inside "{grouped_by}" has {pairs} groups for {n} rows, so each '
+                                      f'"{inner}" group has one row and a mixed model cannot tell its spread from the '
+                                      f"rows' own spread (R lme4 stops here too). Leave \"{inner}\" out: "
+                                      f'grouped_by="{grouped_by}".')
 
     @staticmethod
     def _need_statsmodels():
@@ -1135,6 +1157,8 @@ class ModelWords:
                     return (fit_line({"aic": aic, "bic": bic}, which=which) + "\nNakagawa's R squared for mixed "
                             "models comes from R performance::r2_nakagawa() (needs R: pip install "
                             '"simplydata[r]"); left out here.')
+                except SimplydataError:  # R itself stopped (the refit or performance): no R squared, said plainly
+                    nakagawa = None
         if kind in ("glmm", "mixed"):
             if nakagawa is not None and len(nakagawa) == 2 and np.all(np.isfinite(nakagawa)):
                 start = (f"R squared for mixed models (Nakagawa) = {nakagawa[1]:.3f} from the columns alone "
@@ -1301,10 +1325,22 @@ class ModelWords:
         grouping = self._check_grouping(step, outcome, grouped_by, own_slope_for, p_value_by, effects, within_groups,
                                         variables, kinds)
         self._check_robust(robust, outcome, grouped_by, empty_cells, test_type)
+        if test_type is not None and smooth_for is None:  # all of test_type='s checks before anything is printed
+            from .anova_tables import read_test_type
+
+            test_type = read_test_type(test_type)
+            if grouped_by is not None:
+                raise SimplydataError("test_type= is not available with grouped_by= yet; the whole-column Wald tests "
+                                      "are printed instead.")
+            if outcome in ("ordered groups", "groups", "shares", "counts with many zeros") or                     empty_cells != "leave out":
+                raise SimplydataError(f'test_type= cannot be used with outcome="{outcome}" or multiple imputation '
+                                      "yet.")
+            if time is not None or out_of is not None or link not in (None, LINKS.get(outcome, (None,))[0]):
+                raise SimplydataError("test_type= cannot be used with time=, out_of= or link= yet.")
         if smooth_for is not None:
-            smooth = self._check_smooth(smooth_for, outcome, terms, kinds, raw, grouped_by, empty_cells, robust,
-                                        test_type, time, out_of, link, in_order)
             keep = ~np.any([missing[nm] for nm in names], axis=0)
+            smooth = self._check_smooth(smooth_for, outcome, terms, kinds, raw, grouped_by, empty_cells, robust,
+                                        test_type, time, out_of, link, in_order, keep)
             _skipped_note(int((~keep).sum()), names)
             model = self._fit_model(step, column, outcome, None, terms, variables, raw, kinds, keep)
             return self._explain_gam(model, pieces, smooth)
@@ -1329,11 +1365,9 @@ class ModelWords:
         if robust:
             self._make_robust(model)
         if test_type is not None:
-            from .anova_tables import read_test_type
+            from .anova_tables import need_r_for
 
-            test_type = read_test_type(test_type)
-            if time is not None or out_of is not None or model.get("link"):
-                raise SimplydataError("test_type= cannot be used with time=, out_of= or link= yet.")
+            need_r_for(model)  # R car::Anova() for yes/no and counts: missing R is said before the printout
         coef, tests = self._report(model, pieces, grouped_by)
         more = []
         if test_type is not None:
@@ -1420,7 +1454,7 @@ class ModelWords:
 
     @staticmethod
     def _check_smooth(smooth_for, outcome, terms, kinds, raw, grouped_by, empty_cells, robust, test_type, time,
-                      out_of, link, in_order):
+                      out_of, link, in_order, keep):
         """smooth_for=: number columns of using= that get a smooth curve (R mgcv s()); gives the list."""
         smooth = [smooth_for] if isinstance(smooth_for, str) else smooth_for
         if not isinstance(smooth, (list, tuple)) or not smooth or not all(isinstance(s, str) for s in smooth):
@@ -1439,10 +1473,10 @@ class ModelWords:
                                       "interaction).")
             if kinds[name] != "number":
                 raise SimplydataError(f'smooth_for="{name}" needs a column of numbers; "{name}" holds groups.')
-            found = len({v for v in raw[name].tolist() if not _missing(v)})
+            found = len(set(raw[name][keep].tolist()))  # on the rows the model uses, as R mgcv counts them
             if found < 10:
                 raise SimplydataError(f'smooth_for="{name}" needs at least 10 different values to draw a smooth '
-                                      f"curve (R mgcv's default); \"{name}\" has {found}.")
+                                      f"curve (R mgcv's default); \"{name}\" has {found} in the rows used.")
         return list(dict.fromkeys(smooth))
 
     def _explain_gam(self, model, pieces, smooth):
@@ -1463,7 +1497,7 @@ class ModelWords:
         df = float(np.atleast_1d(out["df_resid"])[0])
         q = float(stats.t.ppf(0.975, df)) if numbers else Z95  # as R summary.gam(): t for numbers, z otherwise
         coef = dict(beta=beta, se=se, stat=stat, p=p, low=beta - q * se, high=beta + q * se,
-                    name="t" if numbers else "z", df=np.full(len(beta), df if numbers else math.inf))
+                    name="t" if numbers else "z", df=np.full(len(beta), df if numbers else math.nan))
         column = model["column"]
         others = [v for v in model["variables"] if v not in smooth]
         what = {"numbers": "effect", "yes or no": "odds ratio", "counts": "rate ratio"}[model["outcome"]]
@@ -1480,7 +1514,7 @@ class ModelWords:
         sstat, sp = np.atleast_1d(out["sstat"]).astype(float), np.atleast_1d(out["sp"]).astype(float)
         test_name = "F" if numbers else "chi-square"
         rows = []
-        for name, e, s, pv in zip(smooth, edf, sstat, sp):
+        for name, e, s, pv in zip(out["sname"], edf, sstat, sp):
             print(f'  "{name}" as a smooth curve: {_num(e)} effective degrees of freedom (1 would be a straight line); '
                   f"is the curve flat? {test_name} = {_num(s)}: {_p_words(pv)}.")
             rows.append({"term": f"s({name})", "effective degrees of freedom": float(e),

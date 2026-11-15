@@ -217,3 +217,65 @@ def test_matched_by_checks():
         marks.compare_averages("marks", for_each="class", matched_by="name")
     with pytest.raises(SimplydataError, match="leave out based_on="):
         marks.compare_averages("marks", for_each="subject", matched_by="name", based_on="ranks")
+
+
+# ---------------------------------------------------------------- review fixes: group names, df method, afex rows
+def test_model_averages_pairs_keep_group_names_with_signs(school, capsys, needs_r):
+    import numpy as np
+
+    frame = sdata.example("school")
+    frame["school"] = frame["school"].str.replace("School ", "low-")
+    got = by_term(make_table(frame).model_averages_of("marks", for_each="school", using=["hours"]))
+    # R: s$school <- sub("School ", "low-", s$school); e <- emmeans(lm(marks ~ hours + school, s), ~ school)
+    #    summary(pairs(e, adjust = "tukey", parens = NULL), infer = c(TRUE, TRUE)): low-A - low-B -6.84304033357429
+    #    (p 0.240433711161091), low-A - low-C 5.89432193087528, low-A - low-D -15.3309069521327
+    assert got["low-A - low-B"]["difference"] == pytest.approx(-6.84304033357429, rel=1e-6)
+    assert got["low-A - low-B"]["p-value (Tukey)"] == pytest.approx(0.240433711161091, rel=1e-4)
+    assert got["low-A - low-D"]["difference"] == pytest.approx(-15.3309069521327, rel=1e-6)
+    assert "(low-A)" not in capsys.readouterr().out
+    frame = sdata.example("school")
+    frame["breakfast"] = np.where(frame["breakfast"] == "yes", "yes - some", "no - none")
+    make_table(frame).model_averages_of("marks", for_each="breakfast", using=["hours"])
+    # R: emmeans(lm(marks ~ hours + breakfast, s7), ~ breakfast); pairs(): estimate -3.20972276354947,
+    #    lower.CL -5.85876298123696 ("no - none - yes - some")
+    out = capsys.readouterr().out
+    assert "no - none minus yes - some: difference -3.21 (95 % CI -5.86 to" in out
+
+
+def test_model_averages_say_the_degrees_of_freedom_emmeans_used(capsys, needs_r):
+    import numpy as np
+    import pandas as pd
+
+    i = np.arange(3200)
+    frame = pd.DataFrame({"g": [f"g{k % 40:02d}" for k in i], "x": ((i * 7) % 13).astype(float),
+                          "grp": np.where((i // 3) % 2 == 0, "a", "b")})
+    frame["y"] = 5 + 0.3 * frame.x + (frame.grp == "b") + ((i * 17) % 23) / 4 + (i % 40) / 10
+    # R: i <- 0:3199; d8 <- data.frame(g = sprintf("g%02d", i %% 40), x = (i * 7) %% 13,
+    #    grp = c("a", "b")[(i %/% 3) %% 2 + 1]); d8$y <- 5 + 0.3 * d8$x + (d8$grp == "b") + ((i * 17) %% 23) / 4 +
+    #    (i %% 40) / 10; e <- emmeans(lmer(y ~ x + grp + (1 | g), d8), ~ grp): above pbkrtest.limit (3000) emmeans
+    #    says "Degrees-of-freedom method: asymptotic"; emmean 11.4985448933657 12.4997371017639, df Inf Inf
+    got = by_term(make_table(frame).model_averages_of("y", for_each="grp", using=["x"], grouped_by="g"))
+    assert got["a"]["model average"] == pytest.approx(11.4985448933657, rel=1e-6)
+    assert got["b"]["model average"] == pytest.approx(12.4997371017639, rel=1e-6)
+    assert got["a"]["degrees of freedom"] == float("inf")
+    out = capsys.readouterr().out
+    assert "asymptotic (z) degrees of freedom" in out and "Kenward-Roger" not in out
+
+
+def test_repeated_measures_averages_are_of_the_rows_afex_used(capsys, needs_r):
+    import numpy as np
+    import pandas as pd
+
+    frame = pd.DataFrame([{"id": f"s{s}", "cond": c} for s in range(12) for c in "abc"])
+    frame["y"] = 10 + (frame.cond == "b") + np.sin(np.arange(len(frame)))
+    frame = frame.drop(index=[0])  # s0 is not measured in "a"
+    # R: d <- expand.grid(cond = c("a", "b", "c"), id = sprintf("s%d", 0:11))[, 2:1]; k <- seq_len(36) - 1;
+    #    d$y <- 10 + (d$cond == "b") + sin(k); d <- d[-1, ]; a <- aov_ez(id = "id", dv = "y", data = d,
+    #    within = "cond"); tapply(a$data$long$y, a$data$long$cond, mean): a 10.0487167374033, b 10.9902774265512,
+    #    c 9.94077700488995 (all rows: b 11.0612102230725, c 10.0214870400513); nrow(a$data$wide) 11;
+    #    anova(a, correction = "GG", es = "ges")$F 5.7216830269679
+    got = make_table(frame).compare_averages("y", for_each="cond", matched_by="id").as_pandas().iloc[0]
+    assert got["statistic"] == pytest.approx(5.7216830269679, rel=1e-6)
+    out = capsys.readouterr().out
+    assert 'average "y" for each "cond": a 10.0, b 11.0, c 9.94' in out
+    assert '11 "id" each measured' in out and '1 "id" left out by afex' in out

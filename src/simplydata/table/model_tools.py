@@ -48,6 +48,8 @@ AVERAGE_WORDS = {"numbers": "average", "yes or no": "chance of yes", "counts": "
                  "ordered groups": "chance", "groups": "chance"}
 RATIO_PAIRS = {"yes or no": "odds ratio", "counts": "rate ratio", "counts (overdispersed)": "rate ratio",
                "counts that vary a lot": "rate ratio", "positive numbers": "ratio of averages"}
+# emmeans' names for its degrees-of-freedom methods, as printed
+DF_METHODS = {"kenward-roger": "Kenward-Roger", "satterthwaite": "Satterthwaite", "asymptotic": "asymptotic (z)"}
 
 
 def model_call(model, pieces, grouped_by=None) -> str:
@@ -177,7 +179,9 @@ class ModelToolWords:
         within = f" within each {column_words} group" if chances else ""
         print(f"Each pair of groups ({pair_what}, {adjust}){within}:")
         word = "against" if ratio else "minus"
-        contrasts = [str(c).split(joiner, 1) for c in out["contrast"]]
+        # each pair from the groups themselves, in emmeans pairs() order (1-2, 1-3, ..., 2-3, ...) within each block:
+        # emmeans' own labels cannot be split back when a group's name holds " - " or " / "
+        contrasts = [pairs[i % len(pairs)] for i in range(len(out["contrast"]))]
         for i, (a, b) in enumerate(contrasts):
             where = f"{pcls[i]}: " if chances else ""
             print(f"  {where}{a} {word} {b}: {pair_what} {_num(out['difference'][i])} (95 % CI {_num(out['plow'][i])} "
@@ -187,7 +191,10 @@ class ModelToolWords:
         spec = f"~ {_r_name(for_each)} | {_r_name(column)}" if chances else f"~ {_r_name(for_each)}"
         scale = ', mode = "prob"' if chances else "" if outcome == "numbers" else ', type = "response"'
         tukey = ", with Tukey's adjustment for the intervals and p-values of the pairs" if len(pairs) > 1 else ""
-        df_words = ", Kenward-Roger degrees of freedom" if model["kind"] == "mixed" else ""
+        df_words = ""
+        if model["kind"] == "mixed":  # the method emmeans itself used, read from its summary
+            method = DF_METHODS.get(out["df_method"], out["df_method"] or "unknown")
+            df_words = f", {method} degrees of freedom (as emmeans chose them for {model['n']} rows)"
         print(f"Method: the model {call}{yes}, then R emmeans::emmeans(m, {spec}{scale}) and pairs(){tukey}"
               f"{df_words}.")
         if added:
@@ -288,9 +295,14 @@ class ModelToolWords:
         print(f'Comparing the average "{column}" with a {kind}: {subjects} "{matched_by}" each measured in every '
               f"group of {_list_words(_quoted(c) for c in within)}"
               + (f", in groups of {_list_words(_quoted(c) for c in between)}" if between else "") + ".")
-        for c in columns:
+        left_out = len(set(ids)) - subjects
+        if left_out > 0:
+            print(f'  ({left_out} "{matched_by}" left out by afex: not measured in every group; the averages below '
+                  "are of the rest.)")
+        long_y = np.atleast_1d(out["long_y"]).astype(float)
+        for c in columns:  # the averages of the rows afex analysed (a$data$long), so people it left out are not in
             averages = {}
-            for g, v in zip(groups[c], y):
+            for g, v in zip((str(x) for x in np.atleast_1d(out[f"long_{safe[c]}"])), long_y):
                 averages.setdefault(g, []).append(v)
             ordered = sorted(averages)
             print(f'  average "{column}" for each "{c}": '

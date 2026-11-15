@@ -39,7 +39,8 @@ More statistics, each checked against R.
   generalised additive model), R `mgcv::gam(marks ~ s(hours) + ..., method = "REML")` itself, for numbers,
   yes or no and counts: the other effects as usual, and for each curve its effective degrees of freedom
   and the test of whether it is flat (R `summary.gam()`), with adjusted R squared and the deviance
-  explained.
+  explained. Each curve's row is matched to R's smooth table by name, so `smooth_for=` may list the columns
+  in any order; a column needs 10 different values in the rows the model uses.
 - `outcome="counts that vary a lot"` on counts that vary no more than Poisson allows now says so
   (theta grows without limit, R `glm.nb()` warns "iteration limit reached") instead of failing inside
   statsmodels.
@@ -50,8 +51,10 @@ More statistics, each checked against R.
   model gives for each group, with number columns held at their averages and other group columns
   counted equally (adjusted averages, estimated marginal means), and every pair of groups with
   Tukey's adjustment. R `emmeans::emmeans()` and `pairs()` themselves (needs R); chances of yes and
-  odds ratios for `outcome="yes or no"`, average counts and rate ratios for `"counts"`, Kenward-Roger
-  degrees of freedom with `grouped_by=`. `marginal_means_of` and `emmeans` point to it.
+  odds ratios for `outcome="yes or no"`, average counts and rate ratios for `"counts"`; with `grouped_by=`
+  the degrees of freedom emmeans itself used (Kenward-Roger up to 3000 rows, asymptotic above, as
+  `pbkrtest.limit`), named in the Method line. Pairs keep group names that hold "-", "+", "/" or "*"
+  as they are. `marginal_means_of` and `emmeans` point to it.
 - `table.check_model("marks", using=[...])` also prints how strongly each column is linked with the others:
   variance inflation factors as R `car::vif()` (statsmodels `variance_inflation_factor` for least squares;
   R `car::vif()` itself for GLMs and the generalised VIF of group columns with 3 or more groups).
@@ -122,6 +125,10 @@ More statistics, each checked against R.
   GEE takes them too: `time=` and `link="probit"` / `"cloglog"` for yes or no with statsmodels `GEE` (the
   same answer as `geepack::geeglm()`), `out_of=` through R `geepack` itself (statsmodels' weighted GEE
   gives other numbers). Links for counts other than log are not in geepack, and GEE says so.
+- A mixed model needs fewer groups than rows, for `grouped_by=` and for the inner groups of
+  `grouped_by=["school", "class"]`, as R lme4 checks; one row per group is now said plainly before fitting
+  (statsmodels would report a group variance that cannot be estimated). If R cannot refit the model for
+  Nakagawa's R squared, the fit line says there is no R squared instead of stopping after the printout.
 
 ### Repeated measures
 
@@ -129,15 +136,19 @@ More statistics, each checked against R.
   values measured on the same person (plot, animal ...) in every group, R `afex::aov_ez()` itself, with the
   Greenhouse-Geisser correction, Mauchly's test of sphericity and generalised eta-squared printed.
   `for_each=["subject", "class"]` with one column that changes within a person and one that does not gives
-  the mixed ANOVA. simplydata works out which column is which. Needs R.
+  the mixed ANOVA. simplydata works out which column is which. Needs R. The averages printed are of the
+  rows afex analysed: a person not measured in every group is left out by afex, and the printout says so.
 
 ### Tables of tests (ANOVA tables)
 
 - `table.explain(..., test_type="type 2")` adds one test for each column: `"type 2"` (the usual choice,
   as R `car::Anova(type = 2)`), `"type 3"` (sum-to-zero coding done for you, as `car::Anova(type = 3)`)
-  or `"in order"` (as R `anova()`; the order of `using=` matters). For numbers: F tests and sums of
-  squares from statsmodels `anova_lm`, and partial eta-squared from R `effectsize`. For yes/no and
-  counts: likelihood-ratio tests from R `car::Anova` itself.
+  or `"in order"` (as R `anova()`; the order of `using=` matters: each column after the ones before it,
+  main effects before interactions as in R's formula, from nested statsmodels fits). For numbers: F tests
+  and sums of squares from statsmodels `anova_lm`, and partial eta-squared from R `effectsize`, matched to
+  each column by name. For yes/no and counts: likelihood-ratio tests from R `car::Anova` itself. A
+  `test_type=` that cannot be used (with `grouped_by=`, or without R for yes/no and counts) is said
+  before the model is printed; type 3's sum-to-zero coding is put back in R even when R stops.
 - A model with complete separation now prints "infinite" for an odds ratio instead of stopping with an
   error.
 

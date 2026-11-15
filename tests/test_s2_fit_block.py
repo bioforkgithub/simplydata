@@ -165,3 +165,53 @@ def test_glmer_own_slopes_singular_fit_has_no_nakagawa(capsys, needs_r):
     #    zero"); AIC 212.592690298482; BIC 228.557474552933
     assert "no R squared (R performance::r2_nakagawa() cannot give one for this model)" in line
     assert aic_bic(line) == (213, 229)
+
+
+# ---------------------------------------------------------------- review fixes: one row per group, R refusing the refit
+def test_one_row_per_group_is_refused_before_fitting(capsys):
+    import pytest
+
+    from simplydata import SimplydataError
+
+    school = sdata.example("school")
+    # R: s$pid <- s$pupil; lmer(marks ~ hours + (1 | pid), data = s): Error: number of levels of each grouping
+    #    factor must be < number of observations (problems: pid)
+    with pytest.raises(SimplydataError, match='grouped_by="pid" has 180 groups for 180 rows'):
+        make_table(school.assign(pid=school.pupil)).explain("marks", using=["hours"], grouped_by="pid")
+    # R: s$cls <- s$pupil; lmer(marks ~ hours + (1 | school/cls), data = s): Error: number of levels of each
+    #    grouping factor must be < number of observations (problems: cls:school)
+    with pytest.raises(SimplydataError, match='"cls" inside "school" has 180 groups for 180 rows'):
+        make_table(school.assign(cls=school.pupil)).explain("marks", using=["hours"], grouped_by=["school", "cls"])
+    # R: glmer(passed ~ hours + (1 | pid), family = binomial) stops with the same lme4 check
+    with pytest.raises(SimplydataError, match="has 180 groups for 180 rows"):
+        make_table(school.assign(pid=school.pupil)).explain("passed", using=["hours"], outcome="yes or no",
+                                                            grouped_by="pid")
+    assert capsys.readouterr().out == ""
+
+
+def test_r_refusing_the_nakagawa_refit_gives_a_plain_note(capsys, monkeypatch, needs_r):
+    # with the group check set aside, statsmodels fits one row per group quietly; R lme4::lmer() refuses the refit
+    # (R: lmer(marks ~ hours + (1 | pid), data = s): Error: number of levels of each grouping factor must be <
+    # number of observations), which now gives "no R squared" instead of an error after the printout
+    from simplydata.table.models import ModelWords
+
+    monkeypatch.setattr(ModelWords, "_check_group_sizes", staticmethod(lambda *args: None))
+    school = sdata.example("school")
+    make_table(school.assign(pid=school.pupil)).explain("marks", using=["hours"], grouped_by="pid")
+    assert "no R squared (R performance::r2_nakagawa() cannot give one for this model)" in fit_line(capsys)
+
+
+def test_r_stopping_in_nakagawa_is_caught_in_the_fit_block(capsys, monkeypatch):
+    # any stop inside R (SimplydataError "R stopped with: ...") leaves the R squared out with a plain note
+    from simplydata import SimplydataError
+    from simplydata.table import models_r
+
+    def stopped(model):
+        raise SimplydataError("R stopped with: number of levels of each grouping factor must be < number of "
+                              "observations")
+
+    monkeypatch.setattr(models_r, "nakagawa_r", stopped)
+    make_table(sdata.example("school")).explain("marks", using=["hours", "breakfast"], grouped_by="school")
+    line = fit_line(capsys)
+    # R: AIC(lmer(marks ~ hours + breakfast + (1 | school), data = s)) 1234.78852020829; BIC 1250.75330446274
+    assert "no R squared" in line and aic_bic(line) == (1235, 1251)

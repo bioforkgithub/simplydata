@@ -66,3 +66,35 @@ def test_smooth_for_checks(school):
         school.explain("marks", using=["hours"], smooth_for="hours", grouped_by="school")
     with pytest.raises(SimplydataError, match='works with outcome="numbers"'):
         school.explain("marks", using=["hours"], smooth_for="hours", outcome="positive numbers")
+
+
+def test_smooth_labels_follow_r_when_smooth_for_is_in_another_order(school, needs_r):
+    got = by_term(school.explain("marks", using=["hours", "sleep"], smooth_for=["sleep", "hours"]))
+    # R: summary(gam(marks ~ s(hours) + s(sleep), data = s, method = "REML"))$s.table:
+    #    s(hours) edf 1.00026224659592, F 94.4481079172545; s(sleep) edf 1.00051279614689, F 9.7187484026766,
+    #    p 0.00216385258842766
+    assert got["s(hours)"]["statistic"] == pytest.approx(94.4481079172545, rel=1e-5)
+    assert got["s(hours)"]["effective degrees of freedom"] == pytest.approx(1.00026224659592, rel=1e-4)
+    assert got["s(sleep)"]["statistic"] == pytest.approx(9.7187484026766, rel=1e-5)
+    assert got["s(sleep)"]["p-value"] == pytest.approx(0.00216385258842766, rel=1e-4)
+
+
+def test_smooth_for_yes_or_no_has_no_degrees_of_freedom(school, needs_r):
+    # R: summary(gam(y ~ s(hours) + breakfast, family = binomial, method = "REML"))$p.table gives z values, which
+    #    have no degrees of freedom (NaN in the table, as explain() gives for every z-test)
+    got = school.explain("passed", using=["hours", "breakfast"], outcome="yes or no", smooth_for="hours").as_pandas()
+    assert got["degrees of freedom"].isna().all()
+
+
+def test_smooth_for_counts_different_values_on_the_rows_used():
+    import numpy as np
+
+    frame = sdata.example("school")
+    frame["z"] = (np.arange(len(frame)) % 9).astype(float)
+    frame.loc[:4, "z"] = 100.0 + np.arange(5)
+    frame.loc[:4, "marks"] = np.nan
+    # R: s$z <- (seq_len(180) - 1) %% 9; s$z[1:5] <- 100 + 0:4; s$marks[1:5] <- NA  (14 values, 9 in the rows used)
+    #    gam(marks ~ s(z), data = s, method = "REML"): Error in smooth.construct.tp.smooth.spec(...): A term has
+    #    fewer unique covariate combinations than specified maximum degrees of freedom
+    with pytest.raises(SimplydataError, match='"z" has 9 in the rows used'):
+        make_table(frame).explain("marks", using=["z"], smooth_for="z")
