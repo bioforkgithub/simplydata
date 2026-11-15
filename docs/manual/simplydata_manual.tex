@@ -2517,7 +2517,7 @@ Worked solutions: page~\pageref{solutions:15}, or type \code{sdata.\allowbreak{}
   \item how to use rows with empty cells without guessing once (multiple imputation)
 \end{itemize}
 \end{learnbox}
-\begin{needsr}\code{explain(.\allowbreak{}.\allowbreak{}.\allowbreak{},\allowbreak{} empty\_\allowbreak{}cells=\textquotedbl{}multiple imputation\textquotedbl{})} pools its results with R (mice); this one option run R's own code, the same code R users run. Install it once: pip install \code{\textquotedbl{}simplydata[r]\textquotedbl{}}, then R from https://cran.r-project.org, then in R: \code{install.\allowbreak{}packages(c(\textquotedbl{}vegan\textquotedbl{},\allowbreak{} \textquotedbl{}survival\textquotedbl{},\allowbreak{} \textquotedbl{}mice\textquotedbl{},\allowbreak{} \textquotedbl{}emmeans\textquotedbl{}))}. Without R these words print a message that says what to install.\end{needsr}
+\begin{needsr}Only \code{explain(.\allowbreak{}.\allowbreak{}.\allowbreak{},\allowbreak{} empty\_\allowbreak{}cells=\textquotedbl{}multiple imputation\textquotedbl{})} needs R: it pools its results with R (mice). The rest of the lesson needs no R. That option and the other R words run R's own code, the same code R users run. Install it once: pip install \code{\textquotedbl{}simplydata[r]\textquotedbl{}}, then R from https://cran.r-project.org, then in R: \code{install.\allowbreak{}packages(c(\textquotedbl{}vegan\textquotedbl{},\allowbreak{} \textquotedbl{}survival\textquotedbl{},\allowbreak{} \textquotedbl{}mice\textquotedbl{},\allowbreak{} \textquotedbl{}emmeans\textquotedbl{}))}. Without R these words print a message that says what to install.\end{needsr}
 \section*{Example 1}
 Marks depend on more than one thing. \code{explain()} looks at several columns together, so each effect is the effect with the other columns held fixed.
 \begin{lstlisting}[style=py]
@@ -3020,7 +3020,7 @@ page.save("lesson21_checks.png")
   \item[1] Load simplydata.
   \item[2] The pupils of lesson 16.
   \item[3] The model to check: 2.82 more marks for each hour of study and 3.21 more with breakfast. The line under the effects says how well it fits: AIC 1292 and BIC 1305, numbers that only mean something when you compare two models.
-  \item[4] Four pictures of the same model. Here the residuals lie in an even band around 0, the dots follow the Q-Q line, the scale-location line is flat, and no row comes near the dashed Cook's distance lines. The variance inflation factors are 1.00: hours and breakfast are not linked.
+  \item[4] Four pictures of the same model. Here the residuals lie in an even band around 0, the dots follow the Q-Q line, the scale-location line is flat, and the dashed Cook's distance lines lie outside the leverage picture: no row comes near them. The variance inflation factors are 1.00: hours and breakfast are not linked.
   \item[5] Save the page of pictures.
 \end{lineexplain}
 \printedoutput{output/lesson21_example1.txt}
@@ -3061,17 +3061,19 @@ A prediction is never exact. \code{interval=95} says how sure the model is about
 \begin{lstlisting}[style=py]
 import simplydata as sdata
 table = sdata.table(sdata.example("school"))
-table.add_predicted_column("marks", using=["hours", "breakfast"], interval=95)
+table.add_predicted_column("marks", using=["hours", "breakfast"], name="average", interval=95)
 table.add_predicted_column("marks", using=["hours", "breakfast"], name="new pupil", interval=95, for_new_rows=True)
-table.show_first_rows(3)
+table.keep_columns(contains="95 %")
+table.show(rows=3)
 \end{lstlisting}
 \whateachline
 \begin{lineexplain}
   \item[1] Load simplydata.
   \item[2] The school table.
-  \item[3] Adds \code{\textquotedbl{}predicted marks\textquotedbl{}} and the ends of its 95 \% confidence interval, \code{\textquotedbl{}predicted marks 95 \% CI low\textquotedbl{}} and \code{\textquotedbl{}.\allowbreak{}.\allowbreak{}.\allowbreak{} high\textquotedbl{}}. For pupils like pupil 1 the model expects 44.5 marks on average, somewhere between 42.3 and 46.6.
-  \item[4] The 95 \% prediction interval, in \code{\textquotedbl{}new pupil 95 \% prediction low\textquotedbl{}} and \code{\textquotedbl{}.\allowbreak{}.\allowbreak{}.\allowbreak{} high\textquotedbl{}}: one new pupil like pupil 1 could score anything from 27.2 to 61.7.
-  \item[5] Look at the new columns next to the marks.
+  \item[3] Adds \code{\textquotedbl{}average\textquotedbl{}}, the predicted marks, and the ends of its 95 \% confidence interval, \code{\textquotedbl{}average 95 \% CI low\textquotedbl{}} and \code{\textquotedbl{}average 95 \% CI high\textquotedbl{}}. \code{name=} gives the new columns short names.
+  \item[4] The 95 \% prediction interval, in \code{\textquotedbl{}new pupil 95 \% prediction low\textquotedbl{}} and \code{\textquotedbl{}.\allowbreak{}.\allowbreak{}.\allowbreak{} high\textquotedbl{}}.
+  \item[5] Keep only the four ends of the two intervals.
+  \item[6] For pupils like pupil 1 the model expects between 42.3 and 46.6 marks on average (44.5 in the middle), but one new pupil like pupil 1 could score anything from 27.2 to 61.7.
 \end{lineexplain}
 \printedoutput{output/lesson21_example4.txt}
 \section*{Example 5}
@@ -3100,7 +3102,7 @@ table.model_averages_of("marks", for_each="breakfast", using=["hours", "school"]
 \end{goodtoknow}
 \begin{tryit}
 \begin{enumerate}
-  \item Partly done for you: the first two lines are table = \code{sdata.\allowbreak{}table(sdata.\allowbreak{}example(\textquotedbl{}school\textquotedbl{}))} and \code{table.\allowbreak{}check\_\allowbreak{}model(\textquotedbl{}marks\textquotedbl{},\allowbreak{} using=[\textquotedbl{}hours\textquotedbl{},\allowbreak{} \textquotedbl{}breakfast\textquotedbl{}])}. Write the third line yourself: does \code{\textquotedbl{}sleep\textquotedbl{}} help the model of \code{\textquotedbl{}marks\textquotedbl{}} that already has \code{\textquotedbl{}hours\textquotedbl{}} and \code{\textquotedbl{}breakfast\textquotedbl{}}?
+  \item Partly done for you: after import simplydata as sdata, the next two lines are table = \code{sdata.\allowbreak{}table(sdata.\allowbreak{}example(\textquotedbl{}school\textquotedbl{}))} and \code{table.\allowbreak{}check\_\allowbreak{}model(\textquotedbl{}marks\textquotedbl{},\allowbreak{} using=[\textquotedbl{}hours\textquotedbl{},\allowbreak{} \textquotedbl{}breakfast\textquotedbl{}])}. Write the last line yourself: does \code{\textquotedbl{}sleep\textquotedbl{}} help the model of \code{\textquotedbl{}marks\textquotedbl{}} that already has \code{\textquotedbl{}hours\textquotedbl{}} and \code{\textquotedbl{}breakfast\textquotedbl{}}?
   \item Check the model of \code{\textquotedbl{}marks\textquotedbl{}} using \code{\textquotedbl{}hours\textquotedbl{}} and \code{\textquotedbl{}school\textquotedbl{}} with \code{check\_\allowbreak{}model} and \code{show\_\allowbreak{}rows\_\allowbreak{}that\_\allowbreak{}pull}, then use \code{compare\_\allowbreak{}models} to ask whether adding \code{\textquotedbl{}breakfast\textquotedbl{}} to it helps.
   \item Try to remember without looking back: which word adds a prediction with its interval, and which option gives the interval for one new row? Use them to predict \code{\textquotedbl{}marks\textquotedbl{}} from \code{\textquotedbl{}hours\textquotedbl{}} and \code{\textquotedbl{}sleep\textquotedbl{}}, and look at the first 3 rows.
   \item If you have R: find the model averages of \code{\textquotedbl{}marks\textquotedbl{}} for each \code{\textquotedbl{}school\textquotedbl{}}, allowing for \code{\textquotedbl{}hours\textquotedbl{}}. Which school has the highest average and which the lowest, and how many pairs of schools differ?
@@ -9934,7 +9936,7 @@ estimates.show()
 \solutionanswer{\code{values\_\allowbreak{}at} joins the months with a smooth curve and reads off each city at 6.5.}
 \par\noindent{\small\sffamily\hyperref[lesson:20]{Back to lesson 20}}
 \unsection{Lesson 21: Working with a model: check it, compare it, predict with it}{solutions:21}
-\solutiontask{1}{Partly done for you: the first two lines are table = \code{sdata.\allowbreak{}table(sdata.\allowbreak{}example(\textquotedbl{}school\textquotedbl{}))} and \code{table.\allowbreak{}check\_\allowbreak{}model(\textquotedbl{}marks\textquotedbl{},\allowbreak{} using=[\textquotedbl{}hours\textquotedbl{},\allowbreak{} \textquotedbl{}breakfast\textquotedbl{}])}. Write the third line yourself: does \code{\textquotedbl{}sleep\textquotedbl{}} help the model of \code{\textquotedbl{}marks\textquotedbl{}} that already has \code{\textquotedbl{}hours\textquotedbl{}} and \code{\textquotedbl{}breakfast\textquotedbl{}}?}
+\solutiontask{1}{Partly done for you: after import simplydata as sdata, the next two lines are table = \code{sdata.\allowbreak{}table(sdata.\allowbreak{}example(\textquotedbl{}school\textquotedbl{}))} and \code{table.\allowbreak{}check\_\allowbreak{}model(\textquotedbl{}marks\textquotedbl{},\allowbreak{} using=[\textquotedbl{}hours\textquotedbl{},\allowbreak{} \textquotedbl{}breakfast\textquotedbl{}])}. Write the last line yourself: does \code{\textquotedbl{}sleep\textquotedbl{}} help the model of \code{\textquotedbl{}marks\textquotedbl{}} that already has \code{\textquotedbl{}hours\textquotedbl{}} and \code{\textquotedbl{}breakfast\textquotedbl{}}?}
 \begin{lstlisting}[style=py]
 import simplydata as sdata
 table = sdata.table(sdata.example("school"))
@@ -9963,10 +9965,11 @@ table.compare_models("marks", using=["hours", "school"], against=["hours", "scho
 import simplydata as sdata
 table = sdata.table(sdata.example("school"))
 table.add_predicted_column("marks", using=["hours", "sleep"], interval=95, for_new_rows=True)
-table.show_first_rows(3)
+table.keep_columns(contains="predicted")
+table.show(rows=3)
 \end{lstlisting}
 \printedoutput{output/solution21_task3.txt}
-\solutionanswer{\code{add\_\allowbreak{}predicted\_\allowbreak{}column} with \code{interval=95} and \code{for\_\allowbreak{}new\_\allowbreak{}rows=True}: pupil 1 is predicted 46.9, but one pupil like this could score from 29.8 to 64.0. Pupil 2 has no sleep value, so its cells stay empty.}
+\solutionanswer{\code{add\_\allowbreak{}predicted\_\allowbreak{}column} with \code{interval=95} and \code{for\_\allowbreak{}new\_\allowbreak{}rows=True}; \code{keep\_\allowbreak{}columns(contains=\textquotedbl{}predicted\textquotedbl{})} keeps the three new columns, and \code{show(rows=3)} shows the first 3 rows with every column. Pupil 1 is predicted 46.9, but one pupil like this could score from 29.8 to 64.0. Pupil 2 has no sleep value, so its cells stay empty.}
 \solutiontask{4}{If you have R: find the model averages of \code{\textquotedbl{}marks\textquotedbl{}} for each \code{\textquotedbl{}school\textquotedbl{}}, allowing for \code{\textquotedbl{}hours\textquotedbl{}}. Which school has the highest average and which the lowest, and how many pairs of schools differ?}
 \begin{lstlisting}[style=py]
 import simplydata as sdata

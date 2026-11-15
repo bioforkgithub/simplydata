@@ -3047,7 +3047,8 @@ LESSONS = [
     ),
     dict(
         title="Models: explain one column from several others",
-        needs_r=needs_r_text('explain(..., empty_cells="multiple imputation") pools its results with R (mice); this one option'),
+        needs_r=needs_r_text('Only explain(..., empty_cells="multiple imputation") needs R: it pools its results with '
+                             "R (mice). The rest of the lesson needs no R. That option and the other R words"),
         learn=[
             "how to explain one column from several others at once (multiple regression)",
             "how to explain a yes/no column (logistic regression) and a column of counts (Poisson regression)",
@@ -3546,8 +3547,9 @@ LESSONS = [
                  "mean something when you compare two models."),
                 ('page = table.check_model("marks", using=["hours", "breakfast"])',
                  "Four pictures of the same model. Here the residuals lie in an even band around 0, the dots "
-                 "follow the Q-Q line, the scale-location line is flat, and no row comes near the dashed Cook's "
-                 "distance lines. The variance inflation factors are 1.00: hours and breakfast are not linked."),
+                 "follow the Q-Q line, the scale-location line is flat, and the dashed Cook's distance lines lie "
+                 "outside the leverage picture: no row comes near them. The variance inflation factors are "
+                 "1.00: hours and breakfast are not linked."),
                 ('page.save("lesson21_checks.png")', "Save the page of pictures."),
             ]),
             ("Some rows pull a model more than others. show_rows_that_pull lists them, the strongest "
@@ -3571,15 +3573,16 @@ LESSONS = [
              "for_new_rows=True says where one new pupil would fall, which is much wider.", [
                 ("import simplydata as sdata", "Load simplydata."),
                 ('table = sdata.table(sdata.example("school"))', "The school table."),
-                ('table.add_predicted_column("marks", using=["hours", "breakfast"], interval=95)',
-                 'Adds "predicted marks" and the ends of its 95 % confidence interval, "predicted marks 95 % CI '
-                 'low" and "... high". For pupils like pupil 1 the model expects 44.5 marks on average, '
-                 "somewhere between 42.3 and 46.6."),
+                ('table.add_predicted_column("marks", using=["hours", "breakfast"], name="average", interval=95)',
+                 'Adds "average", the predicted marks, and the ends of its 95 % confidence interval, "average '
+                 '95 % CI low" and "average 95 % CI high". name= gives the new columns short names.'),
                 ('table.add_predicted_column("marks", using=["hours", "breakfast"], name="new pupil", '
                  "interval=95, for_new_rows=True)",
-                 'The 95 % prediction interval, in "new pupil 95 % prediction low" and "... high": one new '
-                 "pupil like pupil 1 could score anything from 27.2 to 61.7."),
-                ("table.show_first_rows(3)", "Look at the new columns next to the marks."),
+                 'The 95 % prediction interval, in "new pupil 95 % prediction low" and "... high".'),
+                ('table.keep_columns(contains="95 %")', "Keep only the four ends of the two intervals."),
+                ("table.show(rows=3)",
+                 "For pupils like pupil 1 the model expects between 42.3 and 46.6 marks on average (44.5 in "
+                 "the middle), but one new pupil like pupil 1 could score anything from 27.2 to 61.7."),
             ]),
             ("If you have R (you may leave this example out): model_averages_of gives the average of each "
              "group with the other columns held fixed, and compares every pair.", [
@@ -3603,8 +3606,9 @@ LESSONS = [
             "prediction interval (for_new_rows=True) is about one pupil. The second is always wider.",
         ],
         task=[
-            'Partly done for you: the first two lines are table = sdata.table(sdata.example("school")) and '
-            'table.check_model("marks", using=["hours", "breakfast"]). Write the third line yourself: does '
+            'Partly done for you: after import simplydata as sdata, the next two lines are '
+            'table = sdata.table(sdata.example("school")) and table.check_model("marks", using=["hours", '
+            '"breakfast"]). Write the last line yourself: does '
             '"sleep" help the model of "marks" that already has "hours" and "breakfast"?',
             'Check the model of "marks" using "hours" and "school" with check_model and show_rows_that_pull, '
             'then use compare_models to ask whether adding "breakfast" to it helps.',
@@ -3635,10 +3639,11 @@ LESSONS = [
                 import simplydata as sdata
                 table = sdata.table(sdata.example("school"))
                 table.add_predicted_column("marks", using=["hours", "sleep"], interval=95, for_new_rows=True)
-                table.show_first_rows(3)"""),
-             "add_predicted_column with interval=95 and for_new_rows=True: pupil 1 is predicted 46.9, but one "
-             "pupil like this could score from 29.8 to 64.0. Pupil 2 has no sleep value, so its cells stay "
-             "empty."),
+                table.keep_columns(contains="predicted")
+                table.show(rows=3)"""),
+             "add_predicted_column with interval=95 and for_new_rows=True; keep_columns(contains=\"predicted\") "
+             "keeps the three new columns, and show(rows=3) shows the first 3 rows with every column. Pupil 1 is predicted 46.9, but one pupil "
+             "like this could score from 29.8 to 64.0. Pupil 2 has no sleep value, so its cells stay empty."),
             (_sx("""\
                 import simplydata as sdata
                 table = sdata.table(sdata.example("school"))

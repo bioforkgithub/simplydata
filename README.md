@@ -36,7 +36,6 @@ one cleaned table can feed many charts, and charts go side by side with
 pip install simplydata            # needs Python 3.11 or newer
 pip install "simplydata[fast]"    # adds Polars, the fast engine for big data
 pip install "simplydata[files]"   # adds reading Word, SPSS and Stata files
-pip install "simplydata[stats]"   # adds statsmodels, for mixed models and multiple imputation
 pip install "simplydata[r]"       # adds rpy2, the bridge from Python to R (install R itself from https://cran.r-project.org)
 ```
 
@@ -216,7 +215,7 @@ These are the packages simplydata gives plain words for, and every R package it 
 | Numbers and arrays | NumPy |
 | Charts | matplotlib and seaborn |
 | Statistics | SciPy (`scipy.stats` for tests and distributions; `scipy.special`) and statsmodels (Welch's ANOVA, ANOVA tables, corrections for many tests, lowess smoothing) |
-| Models | statsmodels (regression, logistic, Poisson, negative binomial, ordered and mixed models, Cox models and survival curves, multiple imputation) |
+| Models | statsmodels (regression, logistic, Poisson, negative binomial, Gamma, ordered, multinomial (MNLogit) and mixed models, GEE, Cox models and survival curves, multiple imputation) |
 | Patterns across many columns | SciPy (`scipy.spatial` for distances, `scipy.cluster` for clustering) and statsmodels (PCA) |
 | Fitting, finding and values between points | SciPy (`scipy.optimize` and `scipy.interpolate`) |
 | The bridge to R | rpy2 (`simplydata[r]`) |
@@ -229,7 +228,7 @@ R packages, used where Python has no method of its own:
 | Statistics | car | ANOVA tables for each column of a model; variance inflation factors |
 | Statistics | effectsize | partial eta-squared |
 | Statistics | afex | repeated-measures ANOVA |
-| Models | lme4 | mixed models for yes/no and counts; which groups pull a mixed model |
+| Models | lme4 | mixed models for yes/no and counts; linear mixed models with `own_slope_for=` or `p_value_by="satterthwaite"`; which groups pull a mixed model |
 | Models | lmerTest | Satterthwaite p-values for mixed models |
 | Models | pbkrtest | Kenward-Roger degrees of freedom for model averages from mixed models |
 | Models | emmeans | model averages and their pairs |
@@ -238,12 +237,12 @@ R packages, used where Python has no method of its own:
 | Models | nnet | models for outcomes with several groups, when R needs to refit them |
 | Models | betareg | beta regression for shares |
 | Models | pscl | zero-inflated counts |
-| Models | geepack | effects for the whole population (GEE) |
+| Models | geepack | effects for the whole population (GEE) with `within_groups="in time order"` or `out_of=`; other GEE is statsmodels |
 | Models | mgcv | smooth curves in a model (GAM) |
 | Models | sandwich | robust standard errors |
 | Models | mice | pooling the filled-in tables of multiple imputation |
 | Survival | survival | the proportional-hazards check of a Cox model |
-| Patterns across many columns | vegan | Bray-Curtis and other distances, NMDS, PERMANOVA and its spread check |
+| Patterns across many columns | vegan | NMDS, PERMANOVA and its spread check (the distances are SciPy `pdist`) |
 
 To use the words that need R, install R from https://cran.r-project.org, then
 `pip install "simplydata[r]"`, then in R `install.packages(...)` with the packages above.

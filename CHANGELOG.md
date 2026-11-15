@@ -29,10 +29,10 @@ More statistics, each checked against R.
   "inverse" or "identity" for positive numbers; the effects are then on that scale.
 - Every explain() printout ends its numbers with two lines. "How well it fits:" says it in plain
   words: an R squared when there is one, then AIC and BIC ("smaller is better, but only to compare
-  models of the same rows"), for example `How well it fits: pseudo R squared 0.192 (0 = no better than
-  no columns). AIC 205, BIC 215: ...`. A pseudo R squared is never read as "explains 19 %": it does not
-  mean that. The Method line under it names the calls that give the same numbers: AIC and BIC as R
-  `AIC()`, `BIC()` (for mixed models those of the REML fit, as R gives them for `lmer`), McFadden's
+  models of the same rows"), for example `How well it fits: pseudo R squared 0.233 (0 = no better than
+  no columns). AIC 176, BIC 185: ...` (yes or no from "hours" and "sleep" in the school example). A pseudo
+  R squared is never read as "explains 23 %": it does not mean that. The Method line under it names
+  the calls that give the same numbers: AIC and BIC as R `AIC()`, `BIC()` (for mixed models those of the REML fit, as R gives them for `lmer`), McFadden's
   pseudo R squared for yes or no, counts, ordered groups, groups and counts with many zeros
   (statsmodels, as R `performance::r2_mcfadden()`), betareg's pseudo R squared for shares, and
   Nakagawa's R squared for mixed models (from the columns alone and with the groups too, marginal and
@@ -43,9 +43,11 @@ More statistics, each checked against R.
   generalised additive model with a smooth term), R `mgcv::gam(marks ~ s(hours) + ..., method = "REML")`
   itself, for numbers,
   yes or no and counts: the other effects as usual, and for each curve its effective degrees of freedom
-  and the test of whether it is flat (R `summary.gam()`), with adjusted R squared and the deviance
-  explained. Each curve's row is matched to R's smooth table by name, so `curve_for=` may list the columns
-  in any order; a column needs 10 different values in the rows the model uses.
+  and the test of whether it is flat (R `summary.gam()`). For numbers the fit line gives adjusted R
+  squared and the deviance explained; for yes or no and counts it gives only the deviance explained, as a
+  pseudo R squared, for example `deviance explained 0.192 (a pseudo R squared; 0 = no better than no
+  columns)`, never as a percentage explained. Each curve's row is matched to R's smooth table by
+  name, so `curve_for=` may list the columns in any order; a column needs 10 different values in the rows the model uses.
 - `outcome="counts that vary a lot"` on counts that vary no more than Poisson allows now says so
   (theta grows without limit, R `glm.nb()` warns "iteration limit reached") instead of failing inside
   statsmodels.

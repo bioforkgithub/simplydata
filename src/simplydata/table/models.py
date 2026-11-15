@@ -1535,9 +1535,14 @@ class ModelWords:
               f"{'t' if numbers else 'Wald z'}-tests and 95 % intervals, the curves with the approximate tests of "
               "R summary.gam().")
         rsq, dev = float(np.atleast_1d(out["rsq"])[0]), float(np.atleast_1d(out["dev"])[0])
+        if numbers:
+            start = f"adjusted R squared {rsq:.3f}, and {dev * 100:.1f} % of the deviance explained"
+            how = "adjusted R squared and deviance explained as R summary.gam()"
+        else:  # for yes or no and counts the deviance explained is a pseudo R squared, never "explains X %"
+            start = f"deviance explained {dev:.3f} (a pseudo R squared; 0 = no better than no columns)"
+            how = "deviance explained as R summary.gam()"
         print(fit_line({"aic": float(np.atleast_1d(out["aic"])[0]), "bic": float(np.atleast_1d(out["bic"])[0])},
-                       start=f"adjusted R squared {rsq:.3f}, and {dev * 100:.1f} % of the deviance explained",
-                       method="adjusted R squared and deviance explained as R summary.gam()"))
+                       start=start, method=how))
         print("Note: a curve's shape is best seen in a picture: chart.dots(...) with chart.smooth_line() shows it.")
         self._closing(list(p[1:]) + list(sp))
         return self._term_table(part, coef, [], more_rows=rows)

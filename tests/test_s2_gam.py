@@ -46,7 +46,11 @@ def test_smooth_curve_for_yes_or_no_and_counts(school, capsys, needs_r):
     assert got["breakfast (yes)"]["log odds ratio"] == pytest.approx(0.415554697646004, rel=1e-5)
     assert got["breakfast (yes)"]["p-value"] == pytest.approx(0.2495702939759683, rel=1e-4)
     assert got["s(hours)"]["statistic"] == pytest.approx(32.2422168032856, rel=1e-4)
-    capsys.readouterr()
+    # A pseudo R squared is never read as a percentage explained: R summary(m)$dev.expl 0.192 for this model
+    out = capsys.readouterr().out
+    assert "deviance explained 0.192 (a pseudo R squared; 0 = no better than no columns)" in out
+    assert "Method: deviance explained as R summary.gam(); AIC and BIC as R AIC(), BIC()." in out
+    assert "adjusted R squared" not in out and "% of the deviance" not in out
     got = by_term(school.explain("days_absent", using=["hours", "sleep"], outcome="counts",
                                  curve_for=["hours", "sleep"]))
     # R: gam(days_absent ~ s(hours) + s(sleep), family = poisson, method = "REML"): (Intercept) 1.0119461386039;
@@ -54,7 +58,9 @@ def test_smooth_curve_for_yes_or_no_and_counts(school, capsys, needs_r):
     assert got["(intercept)"]["log rate ratio"] == pytest.approx(1.0119461386039, rel=1e-5)
     assert got["s(sleep)"]["effective degrees of freedom"] == pytest.approx(1.45777356558205, rel=1e-3)
     assert got["s(sleep)"]["p-value"] == pytest.approx(0.0351776063378378, rel=1e-3)
-    assert "AIC 604, BIC" in capsys.readouterr().out
+    out = capsys.readouterr().out
+    assert "AIC 604, BIC" in out and "deviance explained 0.238 (a pseudo R squared;" in out
+    assert "% of the deviance" not in out
 
 
 def test_curve_for_checks(school):
