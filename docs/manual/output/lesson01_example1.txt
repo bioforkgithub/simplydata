@@ -32,9 +32,9 @@ Example tables you can use (all made up, for practice):
       120 made-up patients in a trial of a new medicine, followed for up to 3 years.
       Columns: patient, treatment, age, days, died
 
-  sdata.example("island")
-      A map of a made-up island with two hills, on a 15 x 15 grid.
-      Columns: east, north, height
+  sdata.example("clinic")
+      200 made-up patients in two hospital wards: tests for an infection, ratings, devices and pain.
+      Columns: patient, ward, age_group, infected, rapid_test, crp, procalcitonin, nurse_rating, doctor_rating, device_a, device_b, pain_week_0, pain_week_4, pain_week_8, pain_before, pain_after, infections, patient_days, q1, q2, q3, q4, q5
 
 
-... (56 more lines)
+... (60 more lines)

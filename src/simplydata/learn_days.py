@@ -757,6 +757,27 @@ UNITS = {
             rain.show()'''),
             "Each estimate lies halfway between the two months around it.")],
     ),
+    "lesson21": dict(
+        lessons=[21],
+        needs_r="the likelihood ratios, compare_to_truth() with a score, trade_off_curve(), the ICC and "
+                "limits_of_agreement()",
+        words=["table.compare_risks", "table.compare_to_truth", "table.agreement_between"],
+        recall=[
+            ("Which word compares how often something happens in two groups (risk difference, NNT, ratios)?",
+             'table.compare_risks("died", for_each="treatment", against="usual care")'),
+            ("Which word says how many of 1000 people a test finds, misses and wrongly calls positive?",
+             'table.compare_to_truth("rapid_test", truth="infected")'),
+            ("Which word measures how well two raters agree?", 'table.agreement_between("nurse_rating", "doctor_rating")'),
+        ],
+        task=['Clinic table: how good is the rapid test where only 2 % have the infection? Of the positive '
+              "results, how many really have it?"],
+        solutions=[(_code('''
+            import simplydata as sdata
+            table = sdata.table(sdata.example("clinic"))
+            table.compare_to_truth("rapid_test", truth="infected", prevalence=2)'''),
+            "Of 1000 people, 20 have it; the test finds 16 but 65 test positive by mistake, so only about 1 in 5 "
+            "positives is real.")],
+    ),
     # ------------------------------------------------------------ review days
     "review_p7": dict(
         lessons=[],
@@ -1213,9 +1234,9 @@ _PYTHON = [
     ("Finding, solving and distributions",
      "Find where a formula is smallest or biggest, solve equations, and work out chances from a distribution.",
      ["finding", "distributions"], "learn"),
-    ("Values between points",
-     "Estimate values between the points you measured, and fill an even map for a contour chart.",
-     ["between"], "learn"),
+    ("Values between points; risks and diagnostic tests",
+     "Estimate values between measured points, compare risks, judge a diagnostic test and measure agreement.",
+     ["between", "lesson21"], "learn"),
     ("Review, and the question of your project",
      "Remember the words of the third week, then choose the question and the raw file of your own project.",
      ["review_p21", "proj_question"], "review"),
@@ -1318,9 +1339,9 @@ _BEGINNER = [
     ("Patterns across many columns",
      "Find patterns across many columns with principal components and clusters.",
      ["lesson17"], "learn"),
-    ("Survival, and planning a study",
-     "Draw survival curves, and work out how many values a study needs.",
-     ["lesson18"], "learn"),
+    ("Survival, risks and diagnostic tests",
+     "Draw survival curves, compare risks, and judge a diagnostic test in counts of 1000 people.",
+     ["lesson18", "lesson21"], "learn"),
     ("Fitting, finding and solving",
      "Fit lines, curves and formulas, find where a formula is biggest, and solve equations.",
      ["fitting", "finding"], "learn"),

@@ -107,6 +107,35 @@ EXAMPLES = {
             "died": "yes (died on that day) or no (still alive when the follow-up ended)",
         },
     ),
+    "clinic": (
+        "200 made-up patients in two hospital wards: tests for an infection, ratings, devices and pain.",
+        {
+            "patient": "C001 to C200",
+            "ward": "ward A or ward B",
+            "age_group": "under 50, 50 to 69, or 70 or over",
+            "infected": "yes or no: did the patient have the infection (the truth, from a slow lab test)",
+            "rapid_test": "positive or negative: the result of a quick test for the infection",
+            "crp": "C-reactive protein in the blood (mg/dL); higher with infection",
+            "procalcitonin": "procalcitonin in the blood (ng/mL); also higher with infection",
+            "nurse_rating": "how ill the patient looked to a nurse: mild, moderate or severe",
+            "doctor_rating": "how ill the patient looked to a doctor: mild, moderate or severe",
+            "device_a": "blood pressure (mmHg) measured with device A",
+            "device_b": "blood pressure (mmHg) measured with device B, at the same time",
+            "pain_week_0": "pain score from 0 (none) to 10 at the start",
+            "pain_week_4": "pain score 4 weeks later",
+            "pain_week_8": "pain score 8 weeks later",
+            "pain_before": "yes or no: pain before a treatment",
+            "pain_after": "yes or no: pain after it",
+            "infections": "infections caught in hospital",
+            "patient_days": "days the patient was in hospital",
+            "q1": "answer from 1 (not at all) to 5 (very) to the first of five questions on how satisfied "
+                  "the patient was",
+            "q2": "answer to the second question (1 to 5)",
+            "q3": "answer to the third question (1 to 5)",
+            "q4": "answer to the fourth question (1 to 5)",
+            "q5": "answer to the fifth question (1 to 5)",
+        },
+    ),
     "island": (
         "A map of a made-up island with two hills, on a 15 x 15 grid.",
         {
@@ -132,7 +161,7 @@ def example(name: str | None = None):
     """A small made-up table to practise with. sdata.example("marks")
 
     sdata.example() with no name lists every table and its columns.
-    The tables are: marks, weather, fruit, growth, shop, school, meadow, trial, island.
+    The tables are: marks, weather, fruit, growth, shop, school, meadow, trial, clinic, island.
     "shop" has empty cells and a column of dates to practise with; "school" has empty cells too.
     """
     if name is None:

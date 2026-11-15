@@ -140,6 +140,80 @@ nothing is computed anew.
   average of that width (R `presize::prec_mean`).
 - `based_on="ranks"` says plainly that no package gives rank-test power.
 
+### Risks and rates
+
+- `table.compare_risks("died", for_each="treatment", against="usual care")`: the risk in each group
+  (exact interval), then the risk difference with Newcombe's score interval and what it means out
+  of 100, the number needed to treat (NNTB or NNTH, with its interval through infinity when the
+  difference's interval includes 0), the risk ratio and the odds ratio (Wald intervals on the log
+  scale, with a note when the outcome is common), and the p-value (chi-square with Yates'
+  correction, as R `prop.test()`). statsmodels `proportion_confint`, `confint_proportions_2indep`,
+  `Table2x2`; checked against R `binom.test`, `DescTools::BinomDiffCI`, `epitools::riskratio` /
+  `oddsratio`, `epiR::epi.2by2`. `p_value_by="exact"`: Fisher's exact test and the conditional
+  odds ratio (SciPy, as R `fisher.test()`).
+- `allowing_for="age_group"`: Mantel-Haenszel odds ratio and risk ratio with the Breslow-Day check
+  (statsmodels `StratifiedTable`, as R `mantelhaen.test()`, `DescTools::BreslowDayTest()`; the
+  interval of the pooled risk ratio from R `epiR::epi.2by2()`).
+- `same_within=15` (percentage points): two one-sided tests of two risks (statsmodels
+  `tost_proportions_2indep`, as R `TOSTER::twoprop_test()`); with `sides=1` and `higher=` or
+  `lower=`, non-inferiority. `sides=1` alone gives the one-sided test (R `prop.test(alternative =)`).
+- `table.compare_rates("infections", time="patient_days", for_each="ward")` and
+  `table.rate_of(...)`: rates per 1000 with exact intervals, the rate ratio with the exact
+  conditional test (statsmodels `confint_poisson`, `test_poisson_2indep`) and R's exact interval
+  of the ratio (`poisson.test()`); `same_within=1.25` for a ratio margin (statsmodels
+  `tost_poisson_2indep`, as two one-sided R `poisson.test(r =)`).
+- `sdata.compare_risks(events=[20, 30], out_of=[60, 60])` and `sdata.compare_rates(events=[15, 30],
+  time=[1200, 1100])` from given counts.
+
+### Diagnostic tests
+
+- `table.compare_to_truth("rapid_test", truth="infected")`: of 1000 people like these, how many
+  the test finds and misses, sensitivity, specificity and the predictive values with exact
+  intervals (statsmodels), the likelihood ratios and diagnostic odds ratio from R
+  `epiR::epi.tests()`; `prevalence=1` shows the predictive values where 1 % have it.
+- With a column of numbers (`"crp"`): the ROC analysis from R pROC: the AUC with DeLong's
+  interval, the best cut-off by Youden's index and the answer there; `cut_off=` chooses one.
+  Higher scores count as positive (`positive_when="lower"` turns it round; pROC's automatic
+  direction is not used, because it hides a test that works the wrong way round).
+- `table.compare_accuracy("crp", "procalcitonin", truth="infected")`: DeLong's test of two AUCs
+  on the same people (R `pROC::roc.test()`), with the interval of the difference.
+- `sdata.compare_to_truth(found=45, missed=5, false_alarms=30, correct_negatives=920)`, or
+  `sdata.compare_to_truth(sensitivity=90, specificity=95, prevalence=1)` for the base-rate question.
+- New example table `clinic`: 200 made-up patients with a rapid test, CRP and procalcitonin,
+  ratings by a nurse and a doctor, two blood-pressure devices, pain scores and hospital infections.
+- The counts "of 1000", the number needed to treat and the predictive values at another
+  prevalence are display arithmetic on the packages' results (shares written as counts).
+
+### Agreement and reliability
+
+- `table.agreement_between("nurse_rating", "doctor_rating")`: Cohen's kappa with its interval, z
+  and p, and the raw agreement beside it (statsmodels `cohens_kappa`, as R `irr::kappa2()` and
+  `psych::cohen.kappa()`); `weights="linear"` / `"quadratic"` with `in_order=` for ordered
+  categories. Three or more columns: Fleiss' kappa (statsmodels; z and p from R
+  `irr::kappam.fleiss()`). Columns of numbers: the intraclass correlation from R `irr::icc()`,
+  two-way, absolute agreement, one rater by default (`raters=`, `kind=`, `of=` choose the form,
+  which is always named, with Koo and Li's guide words beside the interval).
+  `method="krippendorff"` (R `irr::kripp.alpha()`) and `method="lin"` (R `DescTools::CCC()`).
+- `table.limits_of_agreement("device_a", "device_b")`: Bland-Altman limits of agreement with the
+  intervals of the average difference and of both limits (R `BlandAltmanLeh::bland.altman.stats()`),
+  and Lin's concordance correlation.
+- `table.reliability_of(["q1", "q2", "q3", "q4", "q5"])`: Cronbach's alpha with Feldt's interval
+  and the alpha without each item (R `psych::alpha()`, `psych::alpha.ci()`).
+- Every agreement word says that agreement is not correlation.
+
+### Charts of tests
+
+- `chart.trade_off_curve(score="crp", truth="infected")`: the ROC curve from R pROC, with the AUC
+  and its DeLong interval in the legend and the best cut-off marked; several scores give one curve
+  each.
+- `chart.difference_dots(x="device_a", y="device_b")`: the Bland-Altman chart: dots and average
+  difference from statsmodels `mean_diff_plot`, the limits and their shaded intervals from R
+  `BlandAltmanLeh` (statsmodels' own limits use the standard deviation with n in the divisor, so
+  they differ a little from R's).
+- `chart.forest_plot(x="estimate", y="measure")`: each row of a result table as a dot with its
+  interval, with a line at no effect (0, or 1 on a log scale for ratios).
+- Their field names (`roc_curve`, `bland_altman`, `interval_dots`, `forestplot`) point to these words.
+
 ### Test titles
 
 The help titles of the tests no longer ask "or could it be chance?" (which invites reading the

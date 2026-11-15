@@ -1,4 +1,4 @@
-"""Learning simplydata: sdata.words(), sdata.help("bars") and sdata.lesson(1) ... sdata.lesson(20).
+"""Learning simplydata: sdata.words(), sdata.help("bars") and sdata.lesson(1) ... sdata.lesson(21).
 
 The word list is built from the real words and their docstrings, so it cannot go out of
 date. Only the grouping (GROUPS) and the runnable examples (HELP_EXAMPLES, LESSONS) are
@@ -30,7 +30,7 @@ GROUPS = [
     ("Statistics", ["show=", "error=", "error_bars", "fit_line", "fit_curve", "fit_formula", "fit_distribution",
                     "curve", "smooth_line",
                     "density", "count_bars", "all_dots", "side_histograms", "qq_dots",
-                    "cumulative_share", "sdata.pairs"]),
+                    "cumulative_share", "forest_plot", "sdata.pairs"]),
     ("Lines and shading", ["line_at_x", "line_at_y", "line_with_slope", "shade_between_x", "shade_between_y"]),
     ("Words on the chart", ["title_top", "caption_bottom", "label_x", "label_y", "note",
                             "numbers_on_bars", "names_on_dots", "font_size", "font_name"]),
@@ -74,6 +74,12 @@ GROUPS = [
                            "table.add_adjusted_p_value_column", "table.compare_spreads", "table.compare_counts_to",
                            "table.compare_percent_to", "table.compare_matched", "table.compare_shapes",
                            "table.compare_to_random_order", "sdata.compare_averages", "sdata.compare_counts"]),
+    ("Risks and rates", ["table.compare_risks", "table.compare_rates", "table.rate_of", "sdata.compare_risks",
+                         "sdata.compare_rates"]),
+    ("Diagnostic tests", ["table.compare_to_truth", "table.compare_accuracy", "sdata.compare_to_truth",
+                          "trade_off_curve"]),
+    ("Agreement and reliability", ["table.agreement_between", "table.limits_of_agreement", "table.reliability_of",
+                                   "difference_dots"]),
     ("Fitting", ["table.fit_line", "table.fit_curve", "table.fit_formula"]),
     ("Finding and solving", ["sdata.find_smallest", "sdata.find_biggest", "sdata.solve"]),
     ("Values between points", ["table.values_at", "table.map_of"]),
@@ -184,11 +190,12 @@ EXTRA_NOTES = {
 
 
 
-def needs_r_text(what: str) -> str:
+def needs_r_text(what: str, packages=("vegan", "survival", "mice")) -> str:
     """The "Needs R" box of a lesson or day: what needs R, and how to get it, in plain words."""
+    listed = ", ".join(f'"{p}"' for p in packages)
     return (f"{what} run R's own code, the same code R users run. Install it once: "
             'pip install "simplydata[r]", then R from https://cran.r-project.org, then in R: '
-            'install.packages(c("vegan", "survival", "mice")). Without R these words print a message '
+            f"install.packages(c({listed})). Without R these words print a message "
             "that says what to install.")
 
 
@@ -603,6 +610,27 @@ HELP_EXAMPLES = {
     "sdata.compare_counts": textwrap.dedent("""\
         import simplydata as sdata
         sdata.compare_counts([[20, 40], [30, 30]])"""),
+    "table.compare_risks": _tx("trial", 'table.compare_risks("died", for_each="treatment", against="usual care")'),
+    "table.compare_rates": _tx("clinic", 'table.compare_rates("infections", time="patient_days", for_each="ward", '
+                                         'against="ward A")'),
+    "table.rate_of": _tx("clinic", 'table.rate_of("infections", time="patient_days", for_each="ward")'),
+    "sdata.compare_risks": textwrap.dedent("""\
+        import simplydata as sdata
+        sdata.compare_risks(events=[20, 30], out_of=[60, 60], groups=["new", "usual"], against="usual")"""),
+    "sdata.compare_rates": textwrap.dedent("""\
+        import simplydata as sdata
+        sdata.compare_rates(events=[15, 30], time=[1200, 1100], groups=["ward A", "ward B"])"""),
+    "table.compare_to_truth": _tx("clinic", 'table.compare_to_truth("rapid_test", truth="infected")\n'
+                                            'table.compare_to_truth("crp", truth="infected")'),
+    "table.agreement_between": _tx("clinic", 'table.agreement_between("nurse_rating", "doctor_rating")\n'
+                                             'table.agreement_between("device_a", "device_b")'),
+    "table.limits_of_agreement": _tx("clinic", 'table.limits_of_agreement("device_a", "device_b")'),
+    "table.reliability_of": _tx("clinic", 'table.reliability_of(["q1", "q2", "q3", "q4", "q5"])'),
+    "table.compare_accuracy": _tx("clinic", 'table.compare_accuracy("crp", "procalcitonin", truth="infected")'),
+    "sdata.compare_to_truth": textwrap.dedent("""\
+        import simplydata as sdata
+        sdata.compare_to_truth(found=45, missed=5, false_alarms=30, correct_negatives=920)
+        sdata.compare_to_truth(sensitivity=90, specificity=95, prevalence=1)"""),
     "table.add_adjusted_p_value_column": _tx("marks", 'table = table.correlation_between("hours", "marks", "height", '
                                                       'show="each pair")\n'
                                                       'table.add_adjusted_p_value_column("q", method="benjamini-hochberg")\n'
@@ -665,6 +693,16 @@ HELP_EXAMPLES = {
                                            'using=["treatment", "age"])'),
     "survival_curves": _ex("trial", 'chart.survival_curves(time="days", event="died", colour="treatment", '
                                     'confidence_band=True)', "survival_curves"),
+    "trade_off_curve": _ex("clinic", 'chart.trade_off_curve(score=["crp", "procalcitonin"], truth="infected")',
+                           "trade_off_curve"),
+    "difference_dots": _ex("clinic", 'chart.difference_dots(x="device_a", y="device_b")', "difference_dots"),
+    "forest_plot": textwrap.dedent("""\
+        import simplydata as sdata
+        table = sdata.table(sdata.example("marks"))
+        pairs = table.compare_each_pair("marks", for_each="class", test="tukey")
+        chart = pairs.chart()
+        chart.forest_plot(x="difference", y="group 1")
+        chart.save("forest_plot.png")"""),
     # planning a study
     "sdata.how_many_needed": textwrap.dedent("""\
         import simplydata as sdata
@@ -3531,6 +3569,102 @@ LESSONS = [
         words=["sdata.distribution", "dist.chance", "dist.percentile", "dist.cut_off", "dist.chart",
                "table.compare_distributions", "table.fit_distribution", "fit_distribution", "table.values_at",
                "table.map_of", "curve"],
+    ),
+    dict(
+        title="Risks, diagnostic tests and agreement",
+        needs_r=needs_r_text("The likelihood ratios, the ROC analysis, the trade-off curve, the ICC and the limits "
+                             "of agreement (R epiR, pROC, irr, BlandAltmanLeh); risks, sensitivity, specificity and "
+                             "kappa need no R. These", packages=("epiR", "pROC", "irr", "BlandAltmanLeh", "DescTools")),
+        learn=[
+            "how to compare risks: in absolute terms first (out of 100), then as ratios",
+            "how good a test is, in counts of 1000 people: what it finds, what it misses, and its false alarms",
+            "why the share of positive results that are real depends on how common the condition is",
+            "how to measure agreement between raters or devices, which is not the same as correlation",
+        ],
+        parts=[
+            ("Did fewer patients die with the new medicine? Absolute risks come first, then the ratios.", [
+                ("import simplydata as sdata", "Load simplydata."),
+                ('table = sdata.table(sdata.example("trial"))', "120 patients, a new medicine or usual care."),
+                ('risks = table.compare_risks("died", for_each="treatment", against="usual care")',
+                 "25 of 60 died with the new medicine and 34 of 60 with usual care: out of 100, about 15 fewer. "
+                 "The number needed to treat is 7, the risk ratio 0.735 and the odds ratio 0.546; the interval "
+                 "of the difference (-31.5 to 2.8 points) includes 0, so the data cannot tell."),
+                ('risks.keep_rows("measure", one_of=["risk ratio", "odds ratio"])', "Keep the two ratios."),
+                ("chart = risks.chart()", "Start a chart of the result table."),
+                ('chart.forest_plot(x="estimate", y="measure")',
+                 "Each ratio as a dot with its 95 % interval, on a log scale, with a line at 1 (no effect)."),
+                ('chart.save("lesson21_ratios.png")', "Save it."),
+            ]),
+            ("How good is a quick test, against the truth from a slow lab test?", [
+                ("import simplydata as sdata", "Load simplydata."),
+                ('table = sdata.table(sdata.example("clinic"))', "200 made-up patients; 50 have the infection."),
+                ('table.compare_to_truth("rapid_test", truth="infected")',
+                 "Of 1000 people like these, 250 have it: the test finds 195 (sensitivity 78 %) and misses 55. "
+                 "Of the 750 without it, 50 test positive by mistake (specificity 93.3 %)."),
+                ('table.compare_to_truth("rapid_test", truth="infected", prevalence=1)',
+                 "Where only 1 % have it, the same test gives 74 positives in 1000 people, and only 8 of them "
+                 "really have it: most positives are false alarms."),
+            ]),
+            ("A score such as CRP has no single cut-off: each cut-off trades found cases against false alarms.", [
+                ("import simplydata as sdata", "Load simplydata."),
+                ('table = sdata.table(sdata.example("clinic"))', "The clinic table."),
+                ('table.compare_to_truth("crp", truth="infected")',
+                 "AUC 0.893: a person who has it scores higher than one who does not in 89 of 100 such pairs. "
+                 "The best cut-off by Youden's index is 2.15."),
+                ("chart = table.chart()", "Start a chart."),
+                ('chart.trade_off_curve(score=["crp", "procalcitonin"], truth="infected")',
+                 "Both trade-off (ROC) curves: CRP climbs faster to the top left than procalcitonin."),
+                ('chart.save("lesson21_trade_off.png")', "Save it."),
+            ]),
+            ("Do a nurse and a doctor agree, and do two blood-pressure devices agree?", [
+                ("import simplydata as sdata", "Load simplydata."),
+                ('table = sdata.table(sdata.example("clinic"))', "The clinic table."),
+                ('table.agreement_between("nurse_rating", "doctor_rating")',
+                 "They agree on 136 of 200 patients (68 %); Cohen's kappa = 0.516: half of the way from chance "
+                 "to perfect."),
+                ('table.limits_of_agreement("device_a", "device_b")',
+                 "Device A reads on average 2.18 lower, and 95 % of the differences lie between -11.7 and 7.33."),
+                ("chart = table.chart()", "Start a chart."),
+                ('chart.difference_dots(x="device_a", y="device_b")',
+                 "The Bland-Altman chart: each difference against its average, with the limits of agreement."),
+                ('chart.save("lesson21_devices.png")', "Save it."),
+            ]),
+        ],
+        notes=[
+            "Give absolute risks first. A risk ratio of 0.5 can mean 2 in 100 instead of 4, or 20 instead of "
+            "40: the same ratio, a very different number of people helped.",
+            "Odds are not risks. When the outcome is common (over 10 %), the odds ratio lies further from 1 than "
+            "the risk ratio, so say which one you report.",
+            "Sensitivity and specificity belong to the test; the share of positives that are real also depends "
+            "on how common the condition is. Counts of 1000 people make this easy to see.",
+            "Agreement is not correlation: two devices can rise and fall together and still differ by 10 every "
+            "time. Whether the limits of agreement are close enough is a question for the field.",
+        ],
+        task=[
+            'Compare the risk of "infected" between the wards, allowing for "age_group".',
+            'Is "procalcitonin" a worse test than "crp"? Compare the two scores on the same patients.',
+            'Do the five questions "q1" to "q5" hang together? Work out their reliability.',
+        ],
+        solutions=[
+            (_sx("""\
+                import simplydata as sdata
+                table = sdata.table(sdata.example("clinic"))
+                table.compare_risks("infected", for_each="ward", allowing_for="age_group")"""),
+             "Mantel-Haenszel odds ratio 1.76 (0.911 to 3.40), about the same as 1.71 without allowing for age."),
+            (_sx("""\
+                import simplydata as sdata
+                table = sdata.table(sdata.example("clinic"))
+                table.compare_accuracy("crp", "procalcitonin", truth="infected")"""),
+             "AUC 0.893 against 0.715, a difference of 0.177 (0.085 to 0.270); DeLong's test p = 0.0002."),
+            (_sx("""\
+                import simplydata as sdata
+                table = sdata.table(sdata.example("clinic"))
+                table.reliability_of(["q1", "q2", "q3", "q4", "q5"])"""),
+             "Cronbach's alpha = 0.865 (0.833 to 0.893); leaving out any one question lowers it."),
+        ],
+        words=["table.compare_risks", "forest_plot", "table.compare_to_truth", "trade_off_curve",
+               "table.agreement_between", "table.limits_of_agreement", "difference_dots",
+               "table.reliability_of", "table.compare_accuracy"],
     ),
 ]
 

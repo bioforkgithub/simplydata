@@ -1,0 +1,6 @@
+"nurse_rating" and "doctor_rating" agree on 136 of 200 rows (68.0 %); by chance alone they would agree on about 33.9 %. Cohen's kappa = 0.516 (95 % CI 0.418 to 0.614): they agree 52 % of the way from chance to perfect.
+If the two agreed only by chance, agreement this far above chance would turn up in fewer than 1 in 1000 studies like this one (p < 0.0001).
+Method: Cohen's kappa (statsmodels cohens_kappa), as R irr::kappa2() and psych::cohen.kappa(). Kappa can be low even when the raw agreement is high, if one category is rare, so both are shown. Agreement is not correlation: two raters can rise and fall together and still disagree.
+"device_a" reads on average 2.18 lower than "device_b" (95 % CI of the difference -2.86 to -1.50). For 95 % of rows the difference lies between -11.7 and 7.33 (limits of agreement; 95 % CI of the lower limit -12.9 to -10.5, of the upper 6.16 to 8.50). Whether that is close enough is a question for the field, not for statistics.
+Agreement is not correlation: two ways of measuring can correlate perfectly and still disagree (Bland and Altman 1986). Lin's concordance correlation = 0.939 (95 % CI 0.920 to 0.953).
+Method: R BlandAltmanLeh::bland.altman.stats() (difference = "device_a" minus "device_b"; limits = average difference plus and minus 1.96 standard deviations, 200 rows), DescTools::CCC().

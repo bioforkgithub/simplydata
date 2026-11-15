@@ -1,0 +1,3 @@
+Cronbach's alpha = 0.865 (95 % CI 0.833 to 0.893, Feldt) for 5 items and 200 rows.
+No single item raises alpha when it is left out (the highest without one item is 0.848, without "q1").
+Alpha rises with the number of items and does not show that the items measure one thing. Method: R psych::alpha() (raw alpha) and psych::alpha.ci() (Feldt's interval).

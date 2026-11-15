@@ -26,6 +26,7 @@ from .power import chance_to_find, how_many_needed
 from .finding import find_biggest, find_smallest, solve
 from .distributions import distribution
 from ._sdata_tests import compare_averages, compare_counts
+from .risks import compare_rates, compare_risks, compare_to_truth
 
 # Last, on purpose: the function sdata.words must win over the subpackage simplydata.words
 # (sdata.table and sdata.numbers win over their subpackages the same way, by being imported after them).
@@ -47,7 +48,7 @@ def __getattr__(name):
 
 __all__ = [
     "Chart", "NumberGrid", "Numbers", "SimplydataError", "Table", "answers", "chance_to_find", "chart",
-    "compare_averages", "compare_counts", "day",
+    "compare_averages", "compare_counts", "compare_rates", "compare_risks", "compare_to_truth", "day",
     "distribution", "example", "find_biggest", "find_smallest", "grid", "help", "how_many_needed",
     "lesson", "next_day", "number_grid", "numbers", "one_above_other", "pairs", "random_numbers", "side_by_side",
     "solve", "start_30_days", "table", "today", "words", "__version__",

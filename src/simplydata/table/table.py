@@ -5,6 +5,8 @@ from __future__ import annotations
 from .._data import reading_options
 from .._errors import SimplydataError, friendly
 from ._base import BaseTable
+from .accuracy_words import AccuracyWords
+from .agreement_words import AgreementWords
 from .between import BetweenWords
 from .columns import ColumnWords
 from .distribution_words import DistributionTableWords
@@ -13,13 +15,14 @@ from .models import ModelWords
 from .more_tests import MoreTestWords
 from .patterns import PatternWords
 from .positions import PositionWords
+from .risk_words import RiskWords
 from .rows import RowWords
 from .stat_tests import StatTestWords
 from .summaries import SummaryWords
 from .survival import SurvivalWords
 
 
-class Table(PositionWords, RowWords, ColumnWords, SummaryWords, StatTestWords, MoreTestWords, FittingWords, ModelWords, PatternWords, SurvivalWords,
+class Table(PositionWords, RowWords, ColumnWords, SummaryWords, StatTestWords, MoreTestWords, RiskWords, AccuracyWords, AgreementWords, FittingWords, ModelWords, PatternWords, SurvivalWords,
             BetweenWords, DistributionTableWords, BaseTable):
     """A table. Make one with sdata.table(...), then add steps: table.keep_rows(...), table.sort_by(...)."""
 

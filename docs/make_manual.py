@@ -114,6 +114,10 @@ UNDERNEATH = {
                    "method=\"spline\"; smoothness=\"auto\" lets R smooth.spline choose it and needs R), drawn "
                    "with matplotlib",
     "density": "seaborn (kdeplot)",
+    "trade_off_curve": "R pROC (roc, coords, ci.auc; simplydata[r]), drawn with matplotlib",
+    "difference_dots": "statsmodels (graphics.agreement.mean_diff_plot) for the dots; R "
+                       "BlandAltmanLeh::bland.altman.stats for the limits and their intervals (simplydata[r])",
+    "forest_plot": "matplotlib (errorbar), from the interval columns of a result table",
     "qq_dots": "SciPy (stats.probplot, against a fitted scipy.stats distribution for distribution=) for the points "
                "and the line; matplotlib draws them",
     "cumulative_share": "seaborn (ecdfplot)",
@@ -181,6 +185,24 @@ UNDERNEATH = {
                               "BSDA::tsum.test for the interval of the difference (simplydata[r])",
     "sdata.compare_counts": "SciPy (stats.chi2_contingency, fisher_exact; contingency.association), as "
                             "table.compare_counts",
+    # risks, rates and diagnostic tests
+    "table.compare_risks": "statsmodels (proportion_confint, confint_proportions_2indep with Newcombe's interval, "
+                           "Table2x2, StratifiedTable for allowing_for=, tost_proportions_2indep for same_within=); "
+                           "SciPy (chi2_contingency, fisher_exact, contingency.odds_ratio); R epiR::epi.2by2 for the "
+                           "interval of the Mantel-Haenszel risk ratio and prop.test for one-sided p-values "
+                           "(simplydata[r])",
+    "table.compare_rates": "statsmodels (stats.rates: confint_poisson, test_poisson_2indep, tost_poisson_2indep); R "
+                           "poisson.test for the exact interval of the rate ratio (simplydata[r])",
+    "table.rate_of": "narwhals (sums per group); statsmodels (stats.rates.confint_poisson, exact)",
+    "sdata.compare_risks": "statsmodels and SciPy, as table.compare_risks",
+    "sdata.compare_rates": "statsmodels and R poisson.test, as table.compare_rates",
+    "table.compare_to_truth": "statsmodels (proportion_confint, exact); R epiR::epi.tests for the likelihood ratios, "
+                              "and pROC (roc, ci.auc, coords) for a score column (simplydata[r])",
+    "table.compare_accuracy": "R pROC::roc.test (DeLong) and ci.auc (simplydata[r])",
+    "sdata.compare_to_truth": "statsmodels (proportion_confint) and R epiR::epi.tests, as table.compare_to_truth",
+    "table.agreement_between": "statsmodels (inter_rater.cohens_kappa, fleiss_kappa); R irr::kappam.fleiss for the p-value of Fleiss' kappa, irr::icc, irr::kripp.alpha and DescTools::CCC (simplydata[r])",
+    "table.limits_of_agreement": "R BlandAltmanLeh::bland.altman.stats and DescTools::CCC (simplydata[r])",
+    "table.reliability_of": "R psych::alpha and psych::alpha.ci (simplydata[r])",
     "table.compare_average_to": "SciPy (stats.ttest_1samp or stats.wilcoxon); statsmodels "
                                 "(DescrStatsW.ttost_mean for same_within=)",
     "table.compare_counts": "SciPy (stats.chi2_contingency, or fisher_exact with test=\"fisher\"; "

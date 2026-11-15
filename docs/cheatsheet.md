@@ -88,6 +88,7 @@ and `a`, `b` in `sdata.side_by_side(a, b)` are charts you made first.
 | `side_histograms` | `chart.side_histograms()` | marks | Small histograms along the top and right edges of a dots chart. |
 | `qq_dots` | `chart.qq_dots("marks")` | marks | Dots that lie on a straight line when the values follow a normal (bell) curve. |
 | `cumulative_share` | `chart.cumulative_share(x="marks", colour="class")` | marks | A line that climbs from 0 to 1: the share of values at or below each x. |
+| `forest_plot` | `chart.forest_plot(x="difference", y="group 1")` | marks | Many results with their intervals, one line each (a forest plot). |
 | `sdata.pairs` | `sdata.pairs(sdata.example("marks"), colour="class")` | marks | Every number column against every other. |
 
 ## Lines and shading
@@ -305,6 +306,34 @@ and `a`, `b` in `sdata.side_by_side(a, b)` are charts you made first.
 | `compare_to_random_order` | `table.compare_to_random_order("marks")` | marks | Do the values come in a random order, or in clumps or waves? |
 | `sdata.compare_averages` | `sdata.compare_averages(averages=[63.2, 68.9], standard_deviations=[8.1, 9.0], counts=[20, 22])` |  | Are the averages of the groups different? From the summary numbers of each group. |
 | `sdata.compare_counts` | `sdata.compare_counts([[20, 40], [30, 30]])` |  | Are the rows and columns of a table of counts linked? From the counts alone. |
+
+## Risks and rates
+
+| Word | Example | Table | What it does |
+|---|---|---|---|
+| `compare_risks` | `table.compare_risks("died", for_each="treatment", against="usual care")` | trial | How much more (or less) often does something happen in one group than in another? |
+| `compare_rates` | `table.compare_rates("infections", time="patient_days", for_each="ward", against="ward A")` | clinic | Do events happen more often per unit of time in one group than in another? |
+| `rate_of` | `table.rate_of("infections", time="patient_days", for_each="ward")` | clinic | How often do events happen per unit of time, such as infections per 1000 patient-days? |
+| `sdata.compare_risks` | `sdata.compare_risks(events=[20, 30], out_of=[60, 60], groups=["new", "usual"], against="usual")` |  | How much more (or less) often does something happen in one group than another? From counts. |
+| `sdata.compare_rates` | `sdata.compare_rates(events=[15, 30], time=[1200, 1100], groups=["ward A", "ward B"])` |  | Do events happen more often per unit of time in one group than another? From counts and times. |
+
+## Diagnostic tests
+
+| Word | Example | Table | What it does |
+|---|---|---|---|
+| `compare_to_truth` | `table.compare_to_truth("rapid_test", truth="infected")` | clinic | How well does a test find what is really there (sensitivity, specificity, predictive values)? |
+| `compare_accuracy` | `table.compare_accuracy("crp", "procalcitonin", truth="infected")` | clinic | Which of two scores tells better who has it? DeLong's test of two AUCs on the same rows. |
+| `sdata.compare_to_truth` | `sdata.compare_to_truth(found=45, missed=5, false_alarms=30, correct_negatives=920)` |  | How well does a test find what is really there? From the four counts, or from percents. |
+| `trade_off_curve` | `chart.trade_off_curve(score="crp", truth="infected")` | clinic | How a score trades found cases against false alarms, cut-off by cut-off (the ROC curve). |
+
+## Agreement and reliability
+
+| Word | Example | Table | What it does |
+|---|---|---|---|
+| `agreement_between` | `table.agreement_between("nurse_rating", "doctor_rating")` | clinic | How well do two or more raters (or devices) agree on the same rows? |
+| `limits_of_agreement` | `table.limits_of_agreement("device_a", "device_b")` | clinic | How far apart are two ways of measuring the same thing (Bland-Altman limits of agreement)? |
+| `reliability_of` | `table.reliability_of(["q1", "q2", "q3", "q4", "q5"])` | clinic | Do the items of a questionnaire hang together (Cronbach's alpha)? |
+| `difference_dots` | `chart.difference_dots(x="device_a", y="device_b")` | clinic | Do two ways of measuring agree? The difference of each pair against its average (Bland-Altman). |
 
 ## Fitting
 

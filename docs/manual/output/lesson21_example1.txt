@@ -1,0 +1,7 @@
+"died" = "yes": 25 of 60 (41.7 %) in new medicine and 34 of 60 (56.7 %) in usual care.
+Out of 100, about 15 fewer in new medicine than in usual care (risk difference -15.0 percentage points, 95 % CI -31.5 to 2.80).
+Risk ratio 0.735 (95 % CI 0.507 to 1.07): the risk in new medicine is 0.735 times the risk in usual care. Odds ratio 0.546 (95 % CI 0.265 to 1.13); odds are not risks: with an outcome this common (over 10 %) the odds ratio lies further from 1 than the risk ratio.
+Number needed to treat for one event fewer (NNTB): 7 (1 / 0.150, rounded up): for every 7 in new medicine instead of usual care, one event fewer; the interval of the difference includes 0, so the interval runs from 3.17 for one event fewer (NNTB) through infinity to 35.8 for one event more (NNTH).
+If the risks were truly the same, a difference this big or bigger would turn up in about 14 of 100 studies like this one (p = 0.144). This does not show that the risks are the same.
+Method: the chi-square test with Yates' correction (SciPy, as R prop.test()) for the p-value; exact intervals for each risk, Newcombe's score interval for the difference (as R DescTools::BinomDiffCI(method = "score")), Wald intervals on the log scale for the ratios (statsmodels Table2x2, as R epitools::riskratio()).
+Kept 2 of 6 rows.

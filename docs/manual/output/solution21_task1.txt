@@ -1,0 +1,10 @@
+Note: compared against "ward A" (the first in sorted order, as R); choose another with against=.
+"infected" = "yes": 30 of 100 (30.0 %) in ward B and 20 of 100 (20.0 %) in ward A.
+Out of 100, about 10 more in ward B than in ward A (risk difference 10.0 percentage points, 95 % CI -2.02 to 21.7).
+Risk ratio 1.50 (95 % CI 0.916 to 2.46): the risk in ward B is 1.50 times the risk in ward A. Odds ratio 1.71 (95 % CI 0.895 to 3.29); odds are not risks: with an outcome this common (over 10 %) the odds ratio lies further from 1 than the risk ratio.
+Number needed for one event more (NNTH): 10 (1 / 0.100, rounded up): for every 10 in ward B instead of ward A, one event more; the interval of the difference includes 0, so the interval runs from 49.4 for one event fewer (NNTB) through infinity to 4.61 for one event more (NNTH).
+If the risks were truly the same, a difference this big or bigger would turn up in about 14 of 100 studies like this one (p = 0.142). This does not show that the risks are the same.
+Method: the chi-square test with Yates' correction (SciPy, as R prop.test()) for the p-value; exact intervals for each risk, Newcombe's score interval for the difference (as R DescTools::BinomDiffCI(method = "score")), Wald intervals on the log scale for the ratios (statsmodels Table2x2, as R epitools::riskratio()).
+Allowing for "age_group" (Mantel-Haenszel, 3 groups): odds ratio 1.76 (95 % CI 0.911 to 3.40; 1.71 without allowing for it), risk ratio 1.52 (95 % CI 0.929 to 2.50; 1.50 without).
+If the risks were truly the same within each "age_group", a difference this big or bigger would turn up in about 13 of 100 studies like this one (p = 0.126). This does not show that the risks are the same.
+The odds ratio is about the same in every "age_group" (Breslow-Day test, p = 0.107). Method: statsmodels StratifiedTable, the test with continuity correction as R mantelhaen.test(), Breslow-Day as R DescTools::BreslowDayTest(), the risk ratio as R epiR::epi.2by2().

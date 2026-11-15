@@ -52,16 +52,16 @@ import simplydata as sdata
 sdata.lesson(1)
 ```
 
-There are twenty short lessons. Lessons 1 to 8 teach charts, from your first chart to
+There are twenty-one short lessons. Lessons 1 to 8 teach charts, from your first chart to
 animations. Lessons 9 to 12 teach tables: looking at your data, choosing rows and columns,
 cleaning it, and summing it up. Lesson 13 teaches numbers (lists and grids of numbers), and
 lesson 14 the statistical tests: is a difference real, and how big is it? Lesson 15 puts it
 all together, from a question and a file to a figure with panels A and B and a saved table.
-Lessons 16 to 20 go further: models (multiple, logistic, Poisson and mixed regression, multiple
+Lessons 16 to 21 go further: models (multiple, logistic, Poisson and mixed regression, multiple
 imputation), patterns across many columns (PCA, clustering, Bray-Curtis distances, NMDS,
 PERMANOVA), survival curves and Cox models, power analysis, fitting curves and formulas,
 finding the smallest or biggest value and solving equations, distributions and chances, and
-values between the points you measured. Each
+values between the points you measured, risks, diagnostic tests and agreement. Each
 lesson has an example you can run, says what every line does, explains the idea behind it
 (average or median, standard deviation or standard error, p-values) and ends with a small task
 to try yourself.
@@ -70,7 +70,7 @@ to try yourself.
 - `sdata.words()` lists every word, with an example (also in [docs/cheatsheet.md](https://github.com/bioforkgithub/simplydata/blob/main/docs/cheatsheet.md))
 - `sdata.help("bars")` explains one word: what it does, its options and an example
   (table and number words too: `sdata.help("keep_rows")`, `sdata.help("average")`)
-- `sdata.example()` lists the made-up tables to practise with (marks, weather, fruit, growth, shop, school, meadow, trial, island; shop has dates and empty cells)
+- `sdata.example()` lists the made-up tables to practise with (marks, weather, fruit, growth, shop, school, meadow, trial, clinic, island; shop has dates and empty cells)
 - `sdata.lesson(3, solutions=True)` adds a worked solution to each "Try it yourself" task
 
 ## Or learn it in 30 days
@@ -98,7 +98,7 @@ the manual for each lesson and word, and the answers at the back.
 ## Manual
 
 **[The simplydata manual (PDF)](https://github.com/bioforkgithub/simplydata/blob/main/docs/manual/simplydata_manual.pdf)** has everything in one book:
-all twenty lessons with the real charts and output they make, every word explained (its options,
+all twenty-one lessons with the real charts and output they make, every word explained (its options,
 an example you can run and the library that does the work underneath), the data science ideas
 behind the numbers (average or median, standard deviation or standard error, confidence intervals,
 p-values, effect sizes, and which statistical test to use when), and a worked solution for every
@@ -174,7 +174,12 @@ meadow.compare_profiles(for_each="grazed")                              # PERMAN
 
 trial = sdata.table(sdata.example("trial"))
 trial.compare_survival(time="days", event="died", for_each="treatment") # log-rank test
+trial.compare_risks("died", for_each="treatment", against="usual care") # risk ratio, NNT
 sdata.how_many_needed(effect_size=0.5)                                  # power analysis
+
+clinic = sdata.table(sdata.example("clinic"))
+clinic.compare_to_truth("rapid_test", truth="infected")                 # sensitivity, specificity
+clinic.compare_to_truth("crp", truth="infected")                        # ROC curve, AUC
 ```
 
 ## Fitting, finding and distributions
