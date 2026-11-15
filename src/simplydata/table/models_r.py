@@ -48,6 +48,10 @@ def r_data(model, names=None):
     if model.get("groups") is not None:
         values["g"] = np.asarray(model["groups"], dtype=object)
         parts.append("g = factor(g)")
+    inner = (model.get("grouping") or {}).get("inner_groups")
+    if inner is not None:  # groups inside groups: h, numbered within g by R itself, (1 | g/h)
+        values["h"] = np.asarray(inner, dtype=object)
+        parts.append("h = factor(h)")
     code = f"d <- data.frame({', '.join(parts)}); "
     if names is not None:
         names.update(safe)
@@ -66,6 +70,8 @@ def r_fit(model, safe, slopes=()):
     family = "binomial" if model["outcome"] == "yes or no" else "poisson"
     if kind in ("mixed", "glmm"):
         random = "(1 | g)" if not slopes else f"(1 + {' + '.join(safe[s] for s in slopes)} | g)"
+        if (model.get("grouping") or {}).get("inner_groups") is not None:
+            random = "(1 | g/h)"
         if kind == "mixed":
             return f"m <- lme4::lmer(y ~ {rhs} + {random}, data = d, REML = TRUE); "
         return f"m <- lme4::glmer(y ~ {rhs} + {random}, data = d, family = {family}); "
@@ -122,6 +128,19 @@ def emmeans_table(model, for_each):
     return {key: (np.atleast_1d(value) if value is not None else value) for key, value in out.items()}
 
 
+def nakagawa_code(k, slopes, fitter, options, left="y", offset="", extra=()):
+    """R code giving performance::r2_nakagawa() (conditional, marginal) for a mixed model with own slopes.
+    performance needs the slope columns by name to find their variance (Johnson's extension), so the same model
+    is fitted once more with the columns of X named x1, x2, ... (X's first column is the intercept)."""
+    xs = [f"x{j}" for j in range(1, k)]
+    columns = "".join(f"d2${name} <- {name}; " for name in extra)
+    formula = f"{left} ~ {' + '.join(xs) or '1'}{offset} + (1 + {' + '.join(f'x{j}' for j in slopes)} | g)"
+    return ("tryCatch({ d2 <- as.data.frame(X[, -1, drop = FALSE]); names(d2) <- paste0('x', seq_len(ncol(X) - 1)); "
+            f"d2$y <- y; d2$g <- g; {columns}m2 <- suppressWarnings(suppressMessages({fitter}({formula}, data = d2"
+            f"{options}))); suppressWarnings(suppressMessages(unname(unlist(performance::r2_nakagawa(m2))))) }}, "
+            "error = function(e) c(NA_real_, NA_real_))")
+
+
 def lmer_r(model, slopes=(), satterthwaite=False, tested=()):
     """A linear mixed model fitted by R itself on explain()'s model matrix X: lme4::lmer(REML = TRUE)
     with (1 | g) or own slopes (1 + x | g), slopes= being the columns of X that get them; with
@@ -141,8 +160,10 @@ def lmer_r(model, slopes=(), satterthwaite=False, tested=()):
     code += ("vc <- as.data.frame(lme4::VarCorr(m)); "
              "out <- list(beta = unname(lme4::fixef(m)), cov = unname(as.matrix(stats::vcov(m))), "
              "fitted = unname(stats::fitted(m)), is_cor = !is.na(vc$var2), vcov = vc$vcov, sdcor = vc$sdcor, "
-             "loglik = as.numeric(stats::logLik(m)), singular = lme4::isSingular(m), "
-             "trouble = length(m@optinfo$conv$lme4$messages) > 0); ")
+             "loglik = as.numeric(stats::logLik(m)), values = attr(stats::logLik(m), 'df'), "
+             "singular = lme4::isSingular(m), trouble = length(m@optinfo$conv$lme4$messages) > 0); ")
+    if slopes:  # R squared for mixed models with own slopes (Nakagawa, Johnson's extension): R performance itself
+        code += "out$nakagawa <- " + nakagawa_code(k, slopes, "lme4::lmer", ", REML = TRUE") + "; "
     if satterthwaite:
         code += ("ci <- t(sapply(seq_len(ncol(L)), function(i) unlist(lmerTest::contest(m, L[i, ], confint = TRUE, "
                  "joint = FALSE)[c('df', 'lower', 'upper', 'Pr(>|t|)')]))); "
@@ -161,6 +182,8 @@ def lmer_r(model, slopes=(), satterthwaite=False, tested=()):
             code = code.replace("for (t in unique(tested_term))", "for (t in integer(0))")
     code += "out"
     packages = ("lme4", "lmerTest") if satterthwaite else ("lme4",)
+    if slopes:
+        packages += ("performance",)
     what = ("Satterthwaite p-values for a mixed model (R lmerTest)" if satterthwaite else
             "A mixed model with its own slope for each group (R lme4::lmer())")
     note = ("explain() without p_value_by= gives Wald z-tests from statsmodels without R" if satterthwaite else
@@ -170,25 +193,40 @@ def lmer_r(model, slopes=(), satterthwaite=False, tested=()):
     return out
 
 
-def geeglm_r(model, corstr):
+def geeglm_r(model, corstr, exposure=None, trials=None, link=None):
     """R geepack::geeglm() itself (the rows in each group in table order), for the working
-    correlation "ar1"; gives back the effects, their robust (sandwich) covariance, the correlation
-    and the scale."""
+    correlation "ar1" and for successes out of tries (cbind(yes, tries - yes)); exposure= adds
+    offset(log(time)), link= another link for yes or no. Gives back the effects, their robust
+    (sandwich) covariance, the correlation and the scale."""
     from .._r import r_call
 
     values = {"y": np.asarray(model["y"], dtype=float), "X": np.asarray(model["X"], dtype=float),
               "g": np.asarray(model["groups"], dtype=object)}
     family = {"numbers": "gaussian", "yes or no": "binomial", "counts": "poisson"}[model["outcome"]]
+    if link:
+        family = f"{family}(link = '{link}')"
+    left, offset, extra = "y", "", ""
+    if trials is not None:
+        left, values["n"], extra = "cbind(y, n - y)", np.asarray(trials, dtype=float), "d$n <- n[o]; "
+    if exposure is not None:
+        offset, values["t"] = " + offset(log(t))", np.asarray(exposure, dtype=float)
+        extra += "d$t <- t[o]; "
     # geeglm needs the rows of each group together; order() keeps each group's rows in table order
     code = ("g <- factor(g, levels = unique(g)); o <- order(g); d <- data.frame(y = y[o], g = g[o]); "
-            "d$X <- X[o, , drop = FALSE]; "
-            f"m <- geepack::geeglm(y ~ 0 + X, id = g, data = d, family = {family}, corstr = '{corstr}'); "
+            f"d$X <- X[o, , drop = FALSE]; {extra}"
+            f"m <- geepack::geeglm({left} ~ 0 + X{offset}, id = g, data = d, family = {family}, "
+            f"corstr = '{corstr}'); "
             "fitted <- numeric(length(o)); fitted[o] <- stats::fitted(m); "
             "list(beta = unname(stats::coef(m)), cov = unname(as.matrix(stats::vcov(m))), fitted = fitted, "
             "alpha = unname(unlist(m$geese$alpha)), scale = unname(unlist(m$geese$gamma)))")
     return r_call(code, packages=("geepack",), source="geepack::geeglm",
-                  what='Effects for the whole population with correlation "in time order" (R geepack::geeglm())',
-                  python_note='within_groups="alike" or "independent" works without R (statsmodels GEE)', **values)
+                  what=('Effects for the whole population with correlation "in time order" (R geepack::geeglm())'
+                        if corstr == "ar1" else
+                        "Effects for the whole population for successes out of tries (R geepack::geeglm())"),
+                  python_note=('within_groups="alike" or "independent" works without R (statsmodels GEE)'
+                               if corstr == "ar1" else
+                               "statsmodels GEE with weights gives other numbers than geepack's cbind(yes, no)"),
+                  **values)
 
 
 def repeated_anova(y, ids, within, between):
@@ -236,6 +274,46 @@ def group_influence(model):
                   what="Groups that pull a mixed model (R lme4 influence() and cooks.distance())",
                   python_note="statsmodels gives no influence measures for mixed models; show_rows_that_pull() "
                               "without grouped_by= works without R", **values)
+
+
+def gam_r(model, smooth):
+    """R mgcv::gam() itself (method = "REML"), the columns of smooth as s(); the rest of the formula as
+    explain() reads using=. Gives back R summary.gam()'s parametric and smooth tables and the fit."""
+    from .._r import r_call
+
+    safe = {}
+    values, code = r_data(model, safe)
+    rhs = " + ".join(f"s({safe[term[0]]})" if len(term) == 1 and term[0] in smooth else ":".join(safe[v] for v in term)
+                     for term in model["terms"])
+    family = {"numbers": "gaussian", "yes or no": "binomial", "counts": "poisson"}[model["outcome"]]
+    code += (f"m <- mgcv::gam(y ~ {rhs}, data = d, family = {family}, method = 'REML'); s <- summary(m); "
+             "list(beta = unname(s$p.table[, 1]), se = unname(s$p.table[, 2]), stat = unname(s$p.table[, 3]), "
+             "p = unname(s$p.table[, 4]), edf = unname(s$s.table[, 1]), sstat = unname(s$s.table[, 3]), "
+             "sp = unname(s$s.table[, 4]), rsq = s$r.sq, dev = s$dev.expl, df_resid = m$df.residual, "
+             "aic = stats::AIC(m), bic = stats::BIC(m))")
+    return r_call(code, packages=("mgcv",), source="mgcv::gam", what="A smooth curve in a model (R mgcv::gam())",
+                  python_note="statsmodels GLMGam chooses the smoothness another way and gives other numbers",
+                  **values)
+
+
+def vif_r(model):
+    """R car::vif() of the model explain() fits (lm or glm, refitted in R on the same rows): one value per
+    column, the generalised VIF with its df and GVIF^(1/(2 df)) when a column has several model columns."""
+    from .._r import r_call
+
+    safe = {}
+    values, code = r_data(model, safe)
+    code += r_fit(model, safe)
+    code += ("v <- car::vif(m); if (is.matrix(v)) list(names = rownames(v), vif = unname(v[, 1]), df = unname(v[, 2]), "
+             "adj = unname(v[, 3])) else list(names = names(v), vif = unname(v), df = rep(1, length(v)), "
+             "adj = rep(NA_real_, length(v)))")
+    out = r_call(code, packages=("car",) + FIT_PACKAGES.get(model["kind"], ()), source="car::vif",
+                 what="Variance inflation factors (R car::vif())",
+                 python_note="statsmodels variance_inflation_factor gives car's numbers only for least squares "
+                             "with one model column per column", **values)
+    back = {s: v for v, s in safe.items()}
+    out["names"] = [back.get(str(n), str(n)) for n in np.atleast_1d(out["names"])]
+    return out
 
 
 def robust_cov(model):

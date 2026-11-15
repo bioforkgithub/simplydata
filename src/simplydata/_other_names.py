@@ -123,7 +123,14 @@ _TABLE = [
     ('table.fit_curve(x="hours", y="marks", degree=2)', "polyfit"),
     ('table.fit_line(x="hours", y="marks") for one column, or table.explain("marks", using=["hours", '
      '"breakfast"]) for several', "linregress lm ols"),
-    ('table.explain("passed", using=["hours"], outcome="yes or no")', "glm logit lmer"),
+    ('table.explain("passed", using=["hours"], outcome="yes or no")', "glm logit lmer glmer"),
+    ('table.explain("marks", using=["hours", "breakfast"]), which prints R squared (or a pseudo R squared), AIC '
+     'and BIC; table.compare_models(...) compares two models', "r2 r_squared rsquared pseudo_r2 r2_nakagawa aic bic"),
+    ('table.explain("marks", using=["hours"], grouped_by="school", effects="for the whole population")',
+     "gee geeglm"),
+    ('table.explain("marks", using=["hours", "breakfast"], smooth_for="hours")', "gam mgcv GLMGam smooth_terms"),
+    ('table.check_model("marks", using=["hours", "breakfast"]), which prints the variance inflation factors',
+     "vif variance_inflation_factor collinearity multicollinearity"),
     ('table.model_averages_of("marks", for_each="school", using=["hours"])',
      "marginal_means_of adjusted_averages_of emmeans lsmeans marginal_means estimated_marginal_means"),
     ('table.check_model("marks", using=["hours", "breakfast"])',

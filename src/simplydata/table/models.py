@@ -51,6 +51,11 @@ Choices (the same defaults as R, so results can be checked there):
   Rubin's rules, with the Barnard-Rubin degrees of freedom (as R mice::pool()). The filling
   is random: seed= fixes it.
 
+How well it fits (one line at the end): AIC and BIC as R AIC() and BIC(), with R squared for least
+squares, McFadden's pseudo R squared (1 - log-likelihood / that of the model with no columns, as R
+performance::r2_mcfadden()) for yes or no, counts and negative binomial, and Nakagawa's R squared
+(marginal and conditional, as R performance::r2_nakagawa()) for mixed models.
+
 Notes, never silent switches: residuals not bell-shaped (least squares), strongly linked
 columns (variance inflation factor above 5), too few rows (or too few yes/no events) per
 effect, complete separation (logistic), overdispersion (Poisson).
@@ -208,12 +213,12 @@ def _design(data: dict, kinds: dict, levels: dict, terms: list[tuple]):
 
 # ---------------------------------------------------------------------------- the fits
 def _least_squares(X, y):
-    """Least squares (R lm()) with statsmodels OLS: beta, unscaled covariance, fitted values, RSS."""
+    """Least squares (R lm()) with statsmodels OLS: beta, unscaled covariance, fitted values, RSS, log-likelihood."""
     from statsmodels.regression.linear_model import OLS
 
     result = OLS(y, X).fit(method="qr")
     return (np.asarray(result.params), np.asarray(result.normalized_cov_params), np.asarray(result.fittedvalues),
-            float(result.ssr))
+            float(result.ssr), float(result.llf))
 
 
 def _glm(X, y, kind, scale=None, exposure=None, trials=None, alpha=None, link=None):
@@ -276,21 +281,32 @@ def _glmer(X, y, groups, family, slopes=(), exposure=None, trials=None, link=Non
     if exposure is not None:
         offset, extra["t"] = " + offset(log(t))", np.asarray(exposure, dtype=float)
     chosen = f"{family}(link = '{link}')" if link else family
+    nakagawa = ("tryCatch(suppressWarnings(suppressMessages(unname(unlist(performance::r2_nakagawa(m))))), "
+                "error = function(e) c(NA_real_, NA_real_))")
+    if slopes:  # performance needs the slope columns by name (see nakagawa_code)
+        from .models_r import nakagawa_code
+
+        nakagawa = nakagawa_code(X.shape[1], slopes, "lme4::glmer", f", family = {chosen}", left,
+                                 " + offset(log(t))" if exposure is not None else "",
+                                 [name for name in ("n", "t") if name in extra])
     inner_code = "inner = NULL, "
     if inner is not None:  # groups inside groups: (1 | g/h), h numbered within g by R itself
         random, extra["h"] = "(1 | g/h)", np.asarray(inner, dtype=object)
-        inner_code = "inner = as.numeric(lme4::VarCorr(m)[['h:g']][1]), "
+        inner_code = ("inner = as.numeric(lme4::VarCorr(m)[['h:g']][1]), "
+                      "inner_ranef = unname(lme4::ranef(m)[['h:g']][, 1]), "
+                      "inner_ranef_groups = rownames(lme4::ranef(m)[['h:g']]), ")
     out = r_call(
         f"m <- lme4::glmer({left} ~ 0 + X{offset} + {random}, family = {chosen}); "
         "vc <- as.data.frame(lme4::VarCorr(m)); "
         "list(beta = unname(lme4::fixef(m)), cov = unname(as.matrix(stats::vcov(m))), "
         f"between = as.numeric(lme4::VarCorr(m)$g[1]), {inner_code}is_cor = !is.na(vc$var2), vcov = vc$vcov, "
         "sdcor = vc$sdcor, loglik = as.numeric(stats::logLik(m)), "
-        "aic = stats::AIC(m), fitted = unname(stats::fitted(m)), singular = lme4::isSingular(m), "
+        "aic = stats::AIC(m), bic = stats::BIC(m), fitted = unname(stats::fitted(m)), singular = lme4::isSingular(m), "
+        f"nakagawa = {nakagawa}, "
         "pearson = unname(stats::residuals(m, type = 'pearson')), ranef = unname(lme4::ranef(m)$g[, 1]), "
         "ranef_groups = rownames(lme4::ranef(m)$g), "
         "trouble = length(m@optinfo$conv$lme4$messages) > 0)",
-        packages=("lme4",), what="A mixed model for yes/no or counts (R lme4::glmer())",
+        packages=("lme4", "performance"), what="A mixed model for yes/no or counts (R lme4::glmer())",
         python_note="statsmodels has only Bayesian approximations for these (BinomialBayesMixedGLM), which give "
                     "other numbers",
         y=np.asarray(y, dtype=float), X=np.asarray(X, dtype=float), g=np.asarray(groups, dtype=object), **extra)
@@ -298,15 +314,19 @@ def _glmer(X, y, groups, family, slopes=(), exposure=None, trials=None, link=Non
     return {"beta": np.asarray(out["beta"], dtype=float),
             "cov": np.asarray(out["cov"], dtype=float).reshape(k, k),
             "fitted": np.asarray(out["fitted"], dtype=float), "between": float(out["between"][0]),
-            "loglik": float(out["loglik"][0]), "aic": float(out["aic"][0]), "family": family,
+            "loglik": float(out["loglik"][0]), "aic": float(out["aic"][0]), "bic": float(out["bic"][0]),
+            "nakagawa": np.atleast_1d(out["nakagawa"]).astype(float), "family": family,
             "singular": bool(out["singular"][0]), "trouble": bool(out["trouble"][0]),
             "converged": not bool(out["trouble"][0]), "parts": _variance_parts(out, len(slopes)),
             "inner": float(np.atleast_1d(out["inner"])[0]) if out.get("inner") is not None else None,
             "pearson": np.asarray(out["pearson"], dtype=float), "ranef": np.atleast_1d(out["ranef"]).astype(float),
-            "ranef_groups": [str(g) for g in np.atleast_1d(out["ranef_groups"])]}
+            "ranef_groups": [str(g) for g in np.atleast_1d(out["ranef_groups"])],
+            "inner_ranef": np.atleast_1d(out["inner_ranef"]).astype(float) if inner is not None else None,
+            "inner_ranef_groups": ([str(g) for g in np.atleast_1d(out["inner_ranef_groups"])] if inner is not None
+                                   else None)}
 
 
-def _nested_mixed(X, y, outer, inner):
+def _nested_mixed(X, y, outer, inner, reml=True):
     """Groups inside groups, R lme4::lmer(y ~ ... + (1 | outer/inner), REML = TRUE): statsmodels MixedLM with a
     random intercept per outer group and a variance component for the inner groups within each (the same REML
     optimum as lme4); fixed effects and their errors from the fixed-effects block, as lme4 vcov()."""
@@ -314,14 +334,16 @@ def _nested_mixed(X, y, outer, inner):
     from statsmodels.regression.mixed_linear_model import MixedLM
     from statsmodels.tools.sm_exceptions import ConvergenceWarning
 
-    exog_vc = {"inner": {}}
+    exog_vc, inner_names = {"inner": {}}, {}
     for g in dict.fromkeys(outer.tolist()):
         here = outer == g
-        exog_vc["inner"][g] = pd.get_dummies(pd.Series(inner[here], dtype=object)).to_numpy(dtype=float)
+        dummies = pd.get_dummies(pd.Series(inner[here], dtype=object))
+        exog_vc["inner"][g] = dummies.to_numpy(dtype=float)
+        inner_names[g] = [f"{h}:{g}" for h in dummies.columns]  # as R names them, inner:outer
     with warnings.catch_warnings(record=True) as caught:
         warnings.simplefilter("always")
         result = MixedLM(y, X, groups=outer, exog_re=np.ones((len(y), 1)), exog_vc=exog_vc).fit(
-            reml=True, method=["powell", "lbfgs"])
+            reml=reml, method=["powell", "lbfgs"])
     trouble = any(issubclass(w.category, ConvergenceWarning) for w in caught) or not result.converged
     k = X.shape[1]
     hessian = result.model.hessian(result.params_object)
@@ -329,7 +351,14 @@ def _nested_mixed(X, y, outer, inner):
     return {"beta": np.asarray(result.fe_params), "cov": np.linalg.inv(-np.asarray(hessian)[:k, :k]),
             "fitted": np.asarray(result.fittedvalues), "between": max(float(np.asarray(result.cov_re)[0, 0]), 0.0),
             "inner": max(float(np.atleast_1d(result.vcomp)[0]), 0.0), "within": float(result.scale),
-            "trouble": trouble}
+            "trouble": trouble, "loglik": float(result.llf),
+            # each group's own level and each inner group's own level (the BLUPs, as lme4 ranef())
+            "ranef_groups": sorted((str(g) for g in result.random_effects), key=str),
+            "ranef": np.array([float(np.asarray(result.random_effects[g])[0])
+                               for g in sorted(result.random_effects, key=str)]),
+            "inner_ranef_groups": [name for g in result.random_effects for name in inner_names[g]],
+            "inner_ranef": np.array([float(v) for g in result.random_effects
+                                     for v in np.asarray(result.random_effects[g])[1:]])}
 
 
 def _variance_parts(out, slopes):
@@ -343,17 +372,20 @@ def _variance_parts(out, slopes):
     return {"variances": [float(v) for v in variances], "correlations": correlations}
 
 
-def _gee(X, y, groups, outcome, corr):
+def _gee(X, y, groups, outcome, corr, exposure=None, link=None):
     """Effects for the whole population: statsmodels GEE with a robust (sandwich) covariance, the
-    scale without a degrees-of-freedom correction (ddof_scale=0), as R geepack::geeglm()."""
+    scale without a degrees-of-freedom correction (ddof_scale=0), as R geepack::geeglm(). exposure= is
+    the time (R offset(log(time))); link= "probit" or "cloglog" for yes or no."""
     import statsmodels.api as sm
 
-    family = {"numbers": sm.families.Gaussian(), "yes or no": sm.families.Binomial(),
+    links = {"probit": sm.families.links.Probit, "cloglog": sm.families.links.CLogLog}
+    family = {"numbers": sm.families.Gaussian(),
+              "yes or no": sm.families.Binomial(links[link]()) if link else sm.families.Binomial(),
               "counts": sm.families.Poisson()}[outcome]
     structure = sm.cov_struct.Exchangeable() if corr == "exchangeable" else sm.cov_struct.Independence()
     with warnings.catch_warnings(record=True) as caught:
         warnings.simplefilter("always")
-        result = sm.GEE(y, X, groups=groups, family=family, cov_struct=structure).fit(
+        result = sm.GEE(y, X, groups=groups, family=family, cov_struct=structure, exposure=exposure).fit(
             maxiter=200, ctol=1e-10, ddof_scale=0)
     alpha = float(np.atleast_1d(structure.dep_params)[0]) if corr == "exchangeable" else 0.0
     return {"beta": np.asarray(result.params), "cov": np.asarray(result.cov_robust),
@@ -485,8 +517,10 @@ class ModelWords:
         if kind == "gee":
             from .models_r import geeglm_r
 
-            if grouping["corr"] == "ar1":  # statsmodels' AR-1 estimator differs from geepack's: R itself
-                out = geeglm_r(grouping["model"], "ar1")
+            # R itself for AR-1 (statsmodels' estimator differs from geepack's) and for successes out of tries
+            # (statsmodels GEE with weights gives other numbers than geepack's cbind(yes, no))
+            if grouping["corr"] == "ar1" or trials is not None:
+                out = geeglm_r(grouping["model"], grouping["corr"], exposure=exposure, trials=trials, link=link)
                 k = X.shape[1]
                 return {"beta": np.asarray(out["beta"], dtype=float),
                         "cov": np.asarray(out["cov"], dtype=float).reshape(k, k),
@@ -494,7 +528,7 @@ class ModelWords:
                         "alpha": float(np.atleast_1d(out["alpha"])[0]),
                         "scale": float(np.atleast_1d(out["scale"])[0]) if grouping["outcome"] == "numbers" else 1.0,
                         "trouble": False}
-            return _gee(X, y, groups, grouping["outcome"], grouping["corr"])
+            return _gee(X, y, groups, grouping["outcome"], grouping["corr"], exposure=exposure, link=link)
         if kind == "mixed" and grouping.get("inner"):
             return _nested_mixed(X, y, groups, grouping["inner_groups"])
         if kind == "mixed" and (grouping.get("slope_cols") or grouping.get("satterthwaite")):
@@ -509,15 +543,17 @@ class ModelWords:
                    "cov": np.asarray(out["cov"], dtype=float).reshape(k, k),
                    "fitted": np.asarray(out["fitted"], dtype=float), "between": parts["variances"][0],
                    "within": float(vcov[-1]), "trouble": bool(np.atleast_1d(out["trouble"])[0]),
-                   "singular": bool(np.atleast_1d(out["singular"])[0]), "parts": parts, "by_r": True}
+                   "singular": bool(np.atleast_1d(out["singular"])[0]), "parts": parts, "by_r": True,
+                   "loglik": float(np.atleast_1d(out["loglik"])[0]), "values": int(np.atleast_1d(out["values"])[0]),
+                   "nakagawa": np.atleast_1d(out["nakagawa"]).astype(float) if "nakagawa" in out else None}
             if grouping.get("satterthwaite"):
                 fit["satt"] = {key: np.atleast_1d(out[key]).astype(float) for key in
                                ("df", "low", "high", "p", "f", "numdf", "dendf", "fp")}
             return fit
         if kind == "lm":
-            beta, unscaled, fitted, rss = _least_squares(X, y)
+            beta, unscaled, fitted, rss, llf = _least_squares(X, y)
             df = len(y) - X.shape[1]
-            return {"beta": beta, "cov": unscaled * (rss / df), "fitted": fitted, "rss": rss, "df": df}
+            return {"beta": beta, "cov": unscaled * (rss / df), "fitted": fitted, "rss": rss, "df": df, "loglik": llf}
         if kind == "mixed":
             from statsmodels.regression.mixed_linear_model import MixedLM
             from statsmodels.tools.sm_exceptions import ConvergenceWarning
@@ -537,7 +573,7 @@ class ModelWords:
             levels = sorted(result.random_effects, key=str)
             return {"beta": np.asarray(result.fe_params), "cov": np.linalg.inv(-np.asarray(hessian)[:k, :k]),
                     "fitted": np.asarray(result.fittedvalues), "between": between, "within": within,
-                    "trouble": trouble, "ranef_groups": [str(g) for g in levels],
+                    "trouble": trouble, "ranef_groups": [str(g) for g in levels], "loglik": float(result.llf),
                     "ranef": np.array([float(np.asarray(result.random_effects[g])[0]) for g in levels])}
         if kind == "glmm":
             return _glmer(X, y, groups, family, grouping.get("slope_cols", ()), exposure=exposure, trials=trials,
@@ -545,6 +581,11 @@ class ModelWords:
         alpha, full = (None, None)
         if kind == "negbin":
             alpha, full = _negative_binomial(X, y, exposure)
+            if not (np.isfinite(alpha) and alpha > 1e-8):
+                raise SimplydataError(
+                    "These counts do not vary more than a Poisson model allows, so the negative binomial theta grows "
+                    'without limit (R MASS::glm.nb() stops with "iteration limit reached"). Use outcome="counts" '
+                    "(Poisson regression) instead.")
         family = {"binomial": "binomial", "negbin": "negbin", "gamma": "gamma"}.get(kind, "poisson")
         result = _glm(X, y, family, scale="X2" if kind in ("quasipoisson", "gamma") else None, exposure=exposure,
                       trials=trials, alpha=alpha, link=link)
@@ -552,11 +593,13 @@ class ModelWords:
         out = {"beta": np.asarray(result.params), "cov": np.asarray(result.cov_params()),
                "fitted": np.asarray(result.fittedvalues), "deviance": float(result.deviance),
                "null_deviance": float(result.null_deviance), "df": df, "converged": bool(result.converged),
-               "loglik": float(result.llf), "aic": float(result.aic)}
+               "loglik": float(result.llf), "aic": float(result.aic), "llnull": float(result.llnull)}
         if kind in ("quasipoisson", "gamma"):
             out["dispersion"] = float(result.scale)
         if kind == "negbin":  # as R glm.nb: the log-likelihood and AIC count theta as one more value
-            out.update(alpha=alpha, theta=1 / alpha, loglik=float(full.llf),
+            # the model with no columns refitted with its own theta, as R glm.nb(y ~ 1) for McFadden's R squared
+            null = _negative_binomial(np.ones((len(y), 1)), y, exposure)[1]
+            out.update(alpha=alpha, theta=1 / alpha, loglik=float(full.llf), llnull=float(null.llf),
                        aic=float(-2 * full.llf + 2 * (X.shape[1] + 1)))
         out.update(exposure=exposure, trials=trials, link=link)
         return out
@@ -609,10 +652,11 @@ class ModelWords:
         grouping = dict(grouping or {})
         if grouped_by is not None and grouping:
             if grouping.get("effects") == "for the whole population":
-                if time is not None or out_of is not None or link is not None:
-                    raise SimplydataError('time=, out_of= and link= cannot be used with effects="for the whole '
-                                          'population" (GEE) yet; the mixed model (the default effects="for the '
-                                          'average group") takes them.')
+                if link is not None and outcome != "yes or no":
+                    raise SimplydataError(f'link="{link}" cannot be used with effects="for the whole population" '
+                                          '(GEE): R geepack has no such link for counts (or does not find a start '
+                                          'for it). The mixed model (the default effects="for the average group") '
+                                          'takes it.')
                 kind = model["kind"] = "gee"
             slopes = grouping.get("slopes") or []
             grouping["slope_cols"] = [labels.index(name) for name in slopes]
@@ -918,13 +962,16 @@ class ModelWords:
             grouping = model["grouping"]
             corr = grouping["corr"]
             family = {"numbers": "gaussian", "yes or no": "binomial", "counts": "poisson"}[model["outcome"]]
+            if model.get("link"):
+                family = f'{family}(link = "{model["link"]}")'
             words = {"exchangeable": 'rows in the same group alike ("exchangeable")',
                      "ar1": 'neighbouring rows in a group more alike than distant ones ("AR-1", rows in table order)',
                      "independence": 'rows treated as independent ("independence")'}[corr]
-            how = "R geepack itself" if corr == "ar1" else "statsmodels GEE"
+            how = "R geepack itself" if corr == "ar1" or model.get("out_of") else "statsmodels GEE"
             yes = f"; {model['yes_words']}" if model["yes_words"] else ""
+            gee_offset = f" + offset(log({_r_name(model['time'])}))" if model.get("time") else ""
             print(f'Method: generalised estimating equations (GEE) for effects for the whole population, with the '
-                  f'rows grouped by "{grouped_by}" and {words}, as R geepack::geeglm({formula}, id = '
+                  f'rows grouped by "{grouped_by}" and {words}, as R geepack::geeglm({formula}{gee_offset}, id = '
                   f"{_r_name(grouped_by)}, family = {family}, corstr = \"{corr}\") ({how}){yes}. Robust "
                   "(sandwich) standard errors, Wald 95 % intervals and z-tests.")
         else:
@@ -969,11 +1016,10 @@ class ModelWords:
             if fit.get("inner") is not None:
                 inner = model["grouping"]["inner"]
                 print(f'{groups} groups in "{grouped_by}". Variance between them {_num(fit["between"])}, and between '
-                      f'the "{inner}" groups inside them {_num(fit["inner"])} (on the {scale} scale). '
-                      f"AIC = {_num(fit['aic'])}.")
+                      f'the "{inner}" groups inside them {_num(fit["inner"])} (on the {scale} scale).')
             else:
                 print(f'{groups} groups in "{grouped_by}". Variance between groups {_num(fit["between"])} (on the '
-                      f"{scale} scale). AIC = {_num(fit['aic'])}.")
+                      f"{scale} scale).")
             self._print_slopes(model, scale)
             fit = dict(fit, singular=fit["singular"] and not (model.get("grouping") or {}).get("slopes"))
             if fit["singular"]:
@@ -991,14 +1037,11 @@ class ModelWords:
                 whole = fit["robust_whole"]
                 line += (f" The model as a whole (Wald chi-square with robust errors = {_num(whole['stat'])}, df = {k}): "
                          f"{_p_words(whole['p'])}.")
-                if kind not in ("quasipoisson", "gamma"):
-                    line += f" AIC = {_num(fit['aic'])}."
             elif kind not in ("quasipoisson", "gamma") and k > 0:
                 change = null - fit["deviance"]
                 p = float(stats.chi2.sf(change, k))
-                aic = fit["aic"]
                 line += (f" The model as a whole (likelihood-ratio chi-square = {_num(change)}, df = {k}): "
-                         f"{_p_words(p)}. AIC = {_num(aic)}.")
+                         f"{_p_words(p)}.")
             print(line)
         else:
             between, within = fit["between"], fit["within"]
@@ -1037,6 +1080,7 @@ class ModelWords:
             if fit["trouble"]:
                 print("Note: the fit did not settle fully (statsmodels warned about convergence); check the results "
                       "or use fewer columns.")
+        print(self._fit_block(model))
         if fit.get("robust"):
             how = "statsmodels OLS(cov_type=\"HC3\")" if kind == "lm" else "R sandwich itself"
             tests_words = "t-tests" if kind == "lm" else "z-tests"
@@ -1047,6 +1091,53 @@ class ModelWords:
             print(note)
         self._closing(coef["p"][1:])
         return coef, tests
+
+    @staticmethod
+    def _fit_block(model) -> str:
+        """How well the model fits: an R squared and AIC and BIC, each as R gives them (R squared, McFadden's
+        pseudo R squared, or Nakagawa's R squared for mixed models)."""
+        import statsmodels.api as sm
+        from statsmodels.tools import eval_measures as measures
+
+        from .models_more import PSEUDO_WORDS, fit_line
+
+        kind, fit, n, p = model["kind"], model["fit"], model["n"], model["X"].shape[1]
+        if kind == "quasipoisson":
+            return "Quasi-Poisson has no likelihood, so there is no AIC, BIC or pseudo R squared (as R)."
+        if kind == "gee":
+            return "GEE has no likelihood, so there is no AIC, BIC or R squared."
+        start, which = "", ""
+        if kind == "glmm":
+            aic, bic, nakagawa = fit["aic"], fit["bic"], fit.get("nakagawa")
+        else:
+            if kind == "lm":
+                llf, k = fit["loglik"], p + 1  # sigma counts, as R logLik()
+            elif kind == "gamma":  # as R logLik() of a Gamma glm: the dispersion taken as deviance / n, one more value
+                llf = float(sm.families.Gamma().loglike(model["y"], np.asarray(fit["fitted"], dtype=float),
+                                                        scale=fit["deviance"] / n))
+                k = p + 1
+            elif kind == "mixed":  # the REML log-likelihood, with the variances counted, as R logLik() of lmer
+                llf = fit["loglik"]
+                k = fit.get("values") or p + (3 if fit.get("inner") is not None else 2)
+                which = " of the REML fit"
+            else:  # yes or no, counts, negative binomial (theta counts)
+                llf, k = fit["loglik"], p + (1 if kind == "negbin" else 0)
+                start = PSEUDO_WORDS["mcfadden"].format(v=f"{1 - llf / fit['llnull']:.3f}")
+            aic, bic = float(measures.aic(llf, n, k)), float(measures.bic(llf, n, k))
+            nakagawa = fit.get("nakagawa")
+            if kind == "mixed" and nakagawa is None:  # random intercepts: the variances' shares, as performance
+                fixed = float(np.var(model["X"] @ fit["beta"], ddof=1))
+                groups = fit["between"] + (fit.get("inner") or 0.0)
+                total = fixed + groups + fit["within"]
+                nakagawa = np.array([(fixed + groups) / total, fixed / total])
+        if kind in ("glmm", "mixed"):
+            if nakagawa is not None and len(nakagawa) == 2 and np.all(np.isfinite(nakagawa)):
+                start = (f"R squared for mixed models (Nakagawa) = {nakagawa[1]:.3f} from the columns alone "
+                         f"(marginal) and {nakagawa[0]:.3f} with the groups too (conditional), as R "
+                         "performance::r2_nakagawa()")
+            else:
+                start = "no R squared (R performance::r2_nakagawa() cannot give one for this model)"
+        return fit_line({"aic": aic, "bic": bic}, start=start, which=which)
 
     @staticmethod
     def _random_words(model, grouped_by):
@@ -1142,7 +1233,7 @@ class ModelWords:
     @friendly
     def explain(self, column=None, using=None, outcome="numbers", grouped_by=None, empty_cells="leave out", seed=1,
                 time=None, out_of=None, in_order=None, link=None, test_type=None, own_slope_for=None, robust=False,
-                p_value_by="wald", effects="for the average group", within_groups="alike"):
+                p_value_by="wald", effects="for the average group", within_groups="alike", smooth_for=None):
         """Explain one column from several others with a model, and say how big each effect is.
 
         table.explain("marks", using=["hours", "breakfast"])   (with sdata.example("school"))
@@ -1178,12 +1269,16 @@ class ModelWords:
         freedom (R lmerTest) instead of Wald z-tests. effects="for the whole population" fits
         GEE instead (statsmodels, as R geepack::geeglm()): effects averaged over all groups, with
         within_groups="alike" (the default), "in time order" (rows in table order, R geepack) or
-        "independent". robust=True (experts) gives robust standard errors (sandwich, HC3, as R
+        "independent"; GEE takes time=, out_of= (R geepack) and link= for yes or no too.
+        smooth_for="hours" lets "hours" follow a smooth curve instead of a straight line (a
+        generalised additive model, R mgcv::gam(marks ~ s(hours) + ..., method = "REML")). robust=True (experts) gives robust standard errors (sandwich, HC3, as R
         sandwich::vcovHC()), which stay right when the spread is not the same everywhere.
         empty_cells="multiple imputation"
         fills in empty cells 20 times (R mice()) instead of leaving those rows out; seed= fixes
         the random filling. Prints each effect with its 95 % confidence interval and p-value in
-        words, and how well the model fits; gives back a table with one row per term.
+        words, and how well the model fits: R squared (numbers), McFadden's pseudo R squared
+        (yes or no, counts, groups) or Nakagawa's R squared (grouped_by=, as R performance), with
+        AIC and BIC (R AIC(), BIC()). Gives back a table with one row per term.
         A link does not show that one thing causes the other.
         """
         step = "explain"
@@ -1201,6 +1296,13 @@ class ModelWords:
         grouping = self._check_grouping(step, outcome, grouped_by, own_slope_for, p_value_by, effects, within_groups,
                                         variables, kinds)
         self._check_robust(robust, outcome, grouped_by, empty_cells, test_type)
+        if smooth_for is not None:
+            smooth = self._check_smooth(smooth_for, outcome, terms, kinds, raw, grouped_by, empty_cells, robust,
+                                        test_type, time, out_of, link, in_order)
+            keep = ~np.any([missing[nm] for nm in names], axis=0)
+            _skipped_note(int((~keep).sum()), names)
+            model = self._fit_model(step, column, outcome, None, terms, variables, raw, kinds, keep)
+            return self._explain_gam(model, pieces, smooth)
         if outcome in ("ordered groups", "groups", "shares", "counts with many zeros"):
             if grouped_by is not None or empty_cells != "leave out":
                 raise SimplydataError(f'outcome="{outcome}" cannot be used with grouped_by= or multiple imputation '
@@ -1310,6 +1412,89 @@ class ModelWords:
         if slopes is None and p_value_by == "wald":
             return {}
         return {"effects": effects, "slopes": list(slopes or []), "satterthwaite": p_value_by == "satterthwaite"}
+
+    @staticmethod
+    def _check_smooth(smooth_for, outcome, terms, kinds, raw, grouped_by, empty_cells, robust, test_type, time,
+                      out_of, link, in_order):
+        """smooth_for=: number columns of using= that get a smooth curve (R mgcv s()); gives the list."""
+        smooth = [smooth_for] if isinstance(smooth_for, str) else smooth_for
+        if not isinstance(smooth, (list, tuple)) or not smooth or not all(isinstance(s, str) for s in smooth):
+            raise SimplydataError('smooth_for= names the number columns of using= that may follow a smooth curve, for '
+                                  'example smooth_for="hours".')
+        if outcome not in ("numbers", "yes or no", "counts"):
+            raise SimplydataError('smooth_for= works with outcome="numbers", "yes or no" and "counts".')
+        if grouped_by is not None or empty_cells != "leave out" or robust or test_type is not None or \
+                time is not None or out_of is not None or link is not None or in_order is not None:
+            raise SimplydataError("smooth_for= cannot be used with grouped_by=, multiple imputation, robust=, "
+                                  "test_type=, time=, out_of= or link= yet.")
+        alone = {term[0] for term in terms if len(term) == 1}
+        for name in smooth:
+            if name not in alone or any(name in term for term in terms if len(term) > 1):
+                raise SimplydataError(f'smooth_for="{name}" must be a column of using= on its own (not in an '
+                                      "interaction).")
+            if kinds[name] != "number":
+                raise SimplydataError(f'smooth_for="{name}" needs a column of numbers; "{name}" holds groups.')
+            found = len({v for v in raw[name].tolist() if not _missing(v)})
+            if found < 10:
+                raise SimplydataError(f'smooth_for="{name}" needs at least 10 different values to draw a smooth '
+                                      f"curve (R mgcv's default); \"{name}\" has {found}.")
+        return list(dict.fromkeys(smooth))
+
+    def _explain_gam(self, model, pieces, smooth):
+        """A generalised additive model, R mgcv::gam() itself: the other columns as in explain(), and a smooth
+        curve (thin plate regression spline, smoothness chosen by REML) for each column of smooth."""
+        from scipy import stats
+
+        from .models_more import fit_line
+        from .models_r import gam_r
+
+        out = gam_r(model, smooth)
+        keep = [j for j, label in enumerate(model["labels"]) if label not in smooth]
+        part = dict(model, X=model["X"][:, keep], labels=[model["labels"][j] for j in keep],
+                    parts_of=[model["parts_of"][j] for j in keep], owner=np.asarray(model["owner"])[keep])
+        beta, se = np.atleast_1d(out["beta"]).astype(float), np.atleast_1d(out["se"]).astype(float)
+        p, stat = np.atleast_1d(out["p"]).astype(float), np.atleast_1d(out["stat"]).astype(float)
+        numbers = model["outcome"] == "numbers"
+        df = float(np.atleast_1d(out["df_resid"])[0])
+        q = float(stats.t.ppf(0.975, df)) if numbers else Z95  # as R summary.gam(): t for numbers, z otherwise
+        coef = dict(beta=beta, se=se, stat=stat, p=p, low=beta - q * se, high=beta + q * se,
+                    name="t" if numbers else "z", df=np.full(len(beta), df if numbers else math.inf))
+        column = model["column"]
+        others = [v for v in model["variables"] if v not in smooth]
+        what = {"numbers": "effect", "yes or no": "odds ratio", "counts": "rate ratio"}[model["outcome"]]
+        print(f'Explaining "{column}" from {_list_words(_quoted(v) for v in model["variables"])} ({model["n"]} rows), '
+              f"with a smooth curve for {_list_words(_quoted(s) for s in smooth)}"
+              + (f". Each {what} below holds the other columns fixed:" if others else ":"))
+        scale = {"numbers": f'"{column}"', "yes or no": "log-odds of yes", "counts": "log of the expected count"}
+        print(f"  intercept: {_num(beta[0])}, the average {scale[model['outcome']]} on the curves (each smooth curve "
+              "averages 0)" + (", with the other number columns at 0 and the group columns at their baseline." if
+                               others else "."))
+        for j in range(1, len(part["labels"])):
+            print(self._term_sentence(part, j, beta[j], coef["low"][j], coef["high"][j], p[j]))
+        edf = np.atleast_1d(out["edf"]).astype(float)
+        sstat, sp = np.atleast_1d(out["sstat"]).astype(float), np.atleast_1d(out["sp"]).astype(float)
+        test_name = "F" if numbers else "chi-square"
+        rows = []
+        for name, e, s, pv in zip(smooth, edf, sstat, sp):
+            print(f'  "{name}" as a smooth curve: {_num(e)} effective degrees of freedom (1 would be a straight line); '
+                  f"is the curve flat? {test_name} = {_num(s)}: {_p_words(pv)}.")
+            rows.append({"term": f"s({name})", "effective degrees of freedom": float(e),
+                         "statistic name": test_name, "statistic": float(s), "p-value": float(pv)})
+        family = {"numbers": "gaussian", "yes or no": "binomial", "counts": "poisson"}[model["outcome"]]
+        right = [f"s({_r_name(x)})" if x in smooth else x for x in pieces]
+        formula = f"{_r_name(column)} ~ " + " + ".join(right)
+        yes = f"; {model['yes_words']}" if model.get("yes_words") else ""
+        print(f'Method: generalised additive model, run in R: mgcv::gam({formula}, family = {family}, method = '
+              f'"REML") (thin plate regression splines, the smoothness chosen by REML){yes}. The other effects with '
+              f"{'t' if numbers else 'Wald z'}-tests and 95 % intervals, the curves with the approximate tests of "
+              "R summary.gam().")
+        rsq, dev = float(np.atleast_1d(out["rsq"])[0]), float(np.atleast_1d(out["dev"])[0])
+        print(fit_line({"aic": float(np.atleast_1d(out["aic"])[0]), "bic": float(np.atleast_1d(out["bic"])[0])},
+                       start=f"adjusted R squared = {rsq:.3f} and {dev * 100:.1f} % of the deviance explained (as R "
+                             "summary.gam())"))
+        print("Note: a curve's shape is best seen in a picture: chart.dots(...) with chart.smooth_line() shows it.")
+        self._closing(list(p[1:]) + list(sp))
+        return self._term_table(part, coef, [], more_rows=rows)
 
     @staticmethod
     def _check_robust(robust, outcome, grouped_by, empty_cells, test_type):
@@ -1497,8 +1682,8 @@ class ModelWords:
               "filled-in tables, and the results were pooled with Rubin's rules (t-based intervals with Barnard-Rubin "
               f"degrees of freedom), as R pool(with(mice(...), {call})).")
         print(f"The filling-in adds uncertainty: up to {round(float(np.max(lam)) * 100)} % of the variance of an "
-              "effect comes from the differences between the filled-in tables. Tests for whole group columns are not "
-              "pooled here.")
+              "effect comes from the differences between the filled-in tables. Tests for whole group columns, R "
+              "squared, AIC and BIC are not pooled here.")
         self._closing(p[1:])
         return self._term_table(model, coef, [], extra={"share of variance from empty cells": lam})
 

@@ -96,7 +96,8 @@ def fit_ordered(X, y):
     params = np.asarray(result.params, dtype=float)
     cuts = np.asarray(model.transform_threshold_params(params), dtype=float)[1:-1]
     return {"beta": params[:k], "cov": np.asarray(result.cov_params(), dtype=float)[:k, :k], "cuts": cuts,
-            "loglik": float(result.llf), "aic": float(result.aic)}
+            "loglik": float(result.llf), "aic": float(result.aic), "bic": float(result.bic),
+            "pseudo": float(result.prsquared)}
 
 
 def fit_groups(X, y):
@@ -106,7 +107,8 @@ def fit_groups(X, y):
     result = _quietly(lambda: MNLogit(y, X).fit(method="newton", disp=0, maxiter=200))
     params = np.asarray(result.params, dtype=float)  # p x (K - 1)
     bse = np.asarray(result.bse, dtype=float)
-    return {"beta": params, "se": bse, "loglik": float(result.llf), "aic": float(result.aic)}
+    return {"beta": params, "se": bse, "loglik": float(result.llf), "aic": float(result.aic), "bic": float(result.bic),
+            "pseudo": float(result.prsquared)}
 
 
 def fit_shares(X, y):
@@ -115,12 +117,14 @@ def fit_shares(X, y):
 
     out = r_call("b <- betareg::betareg(y ~ 0 + X); s <- summary(b)$coefficients; "
                  "list(beta = unname(s$mean[, 1]), se = unname(s$mean[, 2]), phi = unname(s$precision[1, 1]), "
-                 "loglik = as.numeric(stats::logLik(b)), aic = stats::AIC(b))",
+                 "loglik = as.numeric(stats::logLik(b)), aic = stats::AIC(b), bic = stats::BIC(b), "
+                 "pseudo = b$pseudo.r.squared)",
                  packages=("betareg",), what="Beta regression for shares (R betareg::betareg())",
                  python_note="statsmodels BetaModel gives the same estimates but other standard errors",
                  y=np.asarray(y, dtype=float), X=np.asarray(X, dtype=float))
     return {"beta": np.asarray(out["beta"], dtype=float), "se": np.asarray(out["se"], dtype=float),
-            "phi": float(out["phi"][0]), "loglik": float(out["loglik"][0]), "aic": float(out["aic"][0])}
+            "phi": float(out["phi"][0]), "loglik": float(out["loglik"][0]), "aic": float(out["aic"][0]),
+            "bic": float(out["bic"][0]), "pseudo": float(out["pseudo"][0])}
 
 
 def fit_zeros(X, y):
@@ -130,12 +134,14 @@ def fit_zeros(X, y):
     out = r_call("z <- pscl::zeroinfl(y ~ 0 + X | 0 + X, dist = 'poisson'); s <- summary(z)$coefficients; "
                  "list(count = unname(s$count[, 1]), count_se = unname(s$count[, 2]), "
                  "zero = unname(s$zero[, 1]), zero_se = unname(s$zero[, 2]), "
-                 "loglik = as.numeric(stats::logLik(z)), aic = stats::AIC(z))",
+                 "loglik = as.numeric(stats::logLik(z)), aic = stats::AIC(z), bic = stats::BIC(z), "
+                 "null = as.numeric(stats::logLik(pscl::zeroinfl(y ~ 1 | 1, dist = 'poisson'))))",
                  packages=("pscl",), what="Zero-inflated counts (R pscl::zeroinfl())",
                  python_note="statsmodels ZeroInflatedPoisson gives the same estimates but other standard errors",
                  y=np.asarray(y, dtype=float), X=np.asarray(X, dtype=float))
     return {key: np.asarray(out[key], dtype=float) for key in ("count", "count_se", "zero", "zero_se")} | {
-        "loglik": float(out["loglik"][0]), "aic": float(out["aic"][0])}
+        "loglik": float(out["loglik"][0]), "aic": float(out["aic"][0]), "bic": float(out["bic"][0]),
+        "pseudo": 1 - float(out["loglik"][0]) / float(out["null"][0])}  # McFadden, as R performance::r2_mcfadden()
 
 
 # ---------------------------------------------------------------------------- words
@@ -203,7 +209,8 @@ def explain_more(words, step, column, outcome, pieces, model):
         print(f"Cut-points between the groups (log-odds, when every number column is 0): {cuts}.")
         print(f"Method: proportional-odds (ordered logistic) regression, as R MASS::polr({formula}) (statsmodels "
               "OrderedModel): one odds ratio per column for being in a higher group, the same at every cut-point. "
-              f"Wald 95 % intervals and z-tests. AIC = {_num(fit['aic'])}.")
+              "Wald 95 % intervals and z-tests.")
+        print(fit_line(fit, "mcfadden"))
         rows = _rows(model, fit["beta"], se, "odds ratio", 1, {})
         for (a, b), c in zip(zip(groups[:-1], groups[1:]), fit["cuts"]):
             rows.append({"term": f"cut-point {a} | {b}", "log odds ratio": float(c)})
@@ -220,7 +227,8 @@ def explain_more(words, step, column, outcome, pieces, model):
                 print(_sentence(model, j, fit["beta"][j, g], fit["se"][j, g], thing)[0])
             rows += _rows(model, fit["beta"][:, g], fit["se"][:, g], "odds ratio", 0, {"group": name})
         print(f"Method: multinomial logistic regression, as R nnet::multinom({formula}) (statsmodels MNLogit). "
-              f"Wald 95 % intervals and z-tests. AIC = {_num(fit['aic'])}.")
+              "Wald 95 % intervals and z-tests.")
+        print(fit_line(fit, "mcfadden"))
     elif outcome == "shares":
         fit = fit_shares(X, y)
         thing = 'the odds of the share (share / (1 - share))'
@@ -231,7 +239,8 @@ def explain_more(words, step, column, outcome, pieces, model):
         print(f"Precision {_num(fit['phi'])}: how tightly the shares gather around their average (bigger is "
               "tighter).")
         print(f"Method: beta regression for shares between 0 and 1, run in R: betareg::betareg({formula}) (logit "
-              f"link, the same precision for every row). Wald 95 % intervals and z-tests. AIC = {_num(fit['aic'])}.")
+              "link, the same precision for every row). Wald 95 % intervals and z-tests.")
+        print(fit_line(fit, "ferrari"))
         rows = _rows(model, fit["beta"], fit["se"], "odds ratio", 0, {})
     else:
         fit = fit_zeros(X, y)
@@ -246,12 +255,30 @@ def explain_more(words, step, column, outcome, pieces, model):
         for j in range(1, len(model["labels"])):
             print(_sentence(model, j, fit["zero"][j], fit["zero_se"][j], "the odds of an extra zero")[0])
         print(f"Method: zero-inflated Poisson regression, run in R: pscl::zeroinfl({formula}, dist = \"poisson\") "
-              f"(the same columns in both parts). Wald 95 % intervals and z-tests. AIC = {_num(fit['aic'])}.")
+              "(the same columns in both parts). Wald 95 % intervals and z-tests.")
+        print(fit_line(fit, "mcfadden"))
         rows = (_rows(model, fit["count"], fit["count_se"], "ratio", 0, {"part": "count"})
                 + _rows(model, fit["zero"], fit["zero_se"], "ratio", 0, {"part": "extra zeros"}))
     keys = list(dict.fromkeys(k for r in rows for k in r))
     data = {k: [r.get(k, math.nan) if k not in ("term", "group", "part") else r.get(k) for r in rows] for k in keys}
     return words._new_table(nw.from_dict(data, backend=words._frame.implementation))
+
+
+PSEUDO_WORDS = {
+    "mcfadden": "McFadden's pseudo R squared = {v} (1 - log-likelihood / log-likelihood with no columns, as R "
+                "performance::r2_mcfadden())",
+    "ferrari": "pseudo R squared = {v} (the squared correlation of the fitted and the observed shares on the logit "
+               "scale, as R betareg and performance::r2())",
+}
+
+
+def fit_line(fit, pseudo=None, start="", which=""):
+    """The fit block of an explain printout: an R squared (when there is one), AIC and BIC."""
+    if pseudo and fit.get("pseudo") is not None and np.isfinite(fit["pseudo"]):
+        start = PSEUDO_WORDS[pseudo].format(v=f"{fit['pseudo']:.3f}")
+    start = f"{start}; " if start else ""
+    return (f"How well it fits: {start}AIC = {_num(fit['aic'])} and BIC = {_num(fit['bic'])} (as R AIC() and "
+            f"BIC(){which}; smaller is better when models of the same rows are compared, see compare_models).")
 
 
 def check_rows(step, n, p):

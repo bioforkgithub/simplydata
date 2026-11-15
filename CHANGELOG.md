@@ -27,6 +27,21 @@ More statistics, each checked against R.
   the two parts (how many, and extra zeros) are printed in words, one block each.
 - `link=` for experts: "probit" or "cloglog" for yes or no, "identity" or "sqrt" for counts,
   "inverse" or "identity" for positive numbers; the effects are then on that scale.
+- Every explain() printout ends its numbers with one "How well it fits:" line: AIC and BIC (as R
+  `AIC()` and `BIC()`; for mixed models those of the REML fit, as R gives them for `lmer`), with
+  R squared for numbers, McFadden's pseudo R squared for yes or no, counts, ordered groups, groups and
+  counts with many zeros (statsmodels, as R `performance::r2_mcfadden()`), betareg's pseudo R squared
+  for shares, and Nakagawa's R squared for mixed models (marginal and conditional, as R
+  `performance::r2_nakagawa()`; R performance itself for `glmer` and for own slopes). Quasi-Poisson
+  and GEE have no likelihood, and the line says so.
+- `explain(..., smooth_for="hours")`: "hours" may follow a smooth curve instead of a straight line (a
+  generalised additive model), R `mgcv::gam(marks ~ s(hours) + ..., method = "REML")` itself, for numbers,
+  yes or no and counts: the other effects as usual, and for each curve its effective degrees of freedom
+  and the test of whether it is flat (R `summary.gam()`), with adjusted R squared and the deviance
+  explained.
+- `outcome="counts that vary a lot"` on counts that vary no more than Poisson allows now says so
+  (theta grows without limit, R `glm.nb()` warns "iteration limit reached") instead of failing inside
+  statsmodels.
 
 ### Working with a model: averages, checks, rows that pull, comparisons
 
@@ -36,6 +51,9 @@ More statistics, each checked against R.
   Tukey's adjustment. R `emmeans::emmeans()` and `pairs()` themselves (needs R); chances of yes and
   odds ratios for `outcome="yes or no"`, average counts and rate ratios for `"counts"`, Kenward-Roger
   degrees of freedom with `grouped_by=`. `marginal_means_of` and `emmeans` point to it.
+- `table.check_model("marks", using=[...])` also prints how strongly each column is linked with the others:
+  variance inflation factors as R `car::vif()` (statsmodels `variance_inflation_factor` for least squares;
+  R `car::vif()` itself for GLMs and the generalised VIF of group columns with 3 or more groups).
 - `table.check_model("marks", using=[...])`: the four pictures of R `plot(lm())` (residuals against
   fitted values, normal Q-Q, scale-location, residuals against leverage with Cook's distance lines),
   with a plain sentence on what to look for in each. Numbers from statsmodels `OLSInfluence` /
@@ -92,10 +110,14 @@ More statistics, each checked against R.
 - `grouped_by=["school", "class"]`: groups inside groups (classes inside schools), as R
   `lme4::lmer(... + (1 | school/class))`: statsmodels MixedLM with a variance component for the inner groups
   (the same REML answer as lme4), and R `lme4::glmer()` for yes/no and counts. The variance at each level
-  is printed with its share.
+  is printed with its share. `model_averages_of`, `check_model` (a fifth picture: the inner groups' own
+  levels, R `qqnorm(ranef(m)$"class:school")`), `compare_models` (both models refitted by maximum
+  likelihood, as R `anova()`) and `show_rows_that_pull` (whole outer groups) take the same list.
 - Mixed models for yes/no and counts take `time=`, `out_of=` and `link=`, also with `own_slope_for=`
   (R `lme4::glmer(... + offset(log(time)))`, `cbind(yes, tries - yes)`, `binomial(link = "probit")`).
-  GEE gives a clear message for these for now.
+  GEE takes them too: `time=` and `link="probit"` / `"cloglog"` for yes or no with statsmodels `GEE` (the
+  same answer as `geepack::geeglm()`), `out_of=` through R `geepack` itself (statsmodels' weighted GEE
+  gives other numbers). Links for counts other than log are not in geepack, and GEE says so.
 
 ### Repeated measures
 

@@ -55,6 +55,9 @@ def model_call(model, pieces, grouped_by=None) -> str:
     formula = f"{_r_name(model['column'])} ~ " + " + ".join(pieces)
     family = "binomial" if model["outcome"] == "yes or no" else "poisson"
     g = _r_name(str(grouped_by)) if grouped_by is not None else ""
+    inner = (model.get("grouping") or {}).get("inner")
+    if inner:
+        g = f"{g}/{_r_name(inner)}"
     return {"lm": f"lm({formula})", "binomial": f"glm({formula}, family = binomial)",
             "poisson": f"glm({formula}, family = poisson)",
             "quasipoisson": f"glm({formula}, family = quasipoisson)", "negbin": f"MASS::glm.nb({formula})",
@@ -66,19 +69,29 @@ def model_call(model, pieces, grouped_by=None) -> str:
 
 class ModelToolWords:
     # ------------------------------------------------------------------ one checked model
-    def _one_model(self, step, column, using, outcome, grouped_by=None, in_order=None):
+    def _groups_inside(self, step, grouped_by):
+        """grouped_by="school" or ["school", "class"] (classes inside schools): gives (outer, inner or None)."""
+        return self._read_nested(step, grouped_by, None, "wald", "for the average group", False, None)
+
+    def _one_model(self, step, column, using, outcome, grouped_by=None, in_order=None, inner=None):
         """Check the inputs as explain() does and fit the model (the rows with every cell given); the
-        ordered-groups, groups, shares and many-zeros models are only set up (R fits them)."""
+        ordered-groups, groups, shares and many-zeros models are only set up (R fits them). inner= is the
+        inner group column of grouped_by=[outer, inner]."""
         terms, pieces, variables, raw, missing, kinds = self._model_parts(
             step, column, using, outcome, grouped_by, "leave out")
         names = [column] + variables + ([grouped_by] if grouped_by is not None else [])
+        if inner is not None:
+            self._model_parts(step, column, using, outcome, inner, "leave out")  # the same checks for the inner column
+            raw[inner], missing[inner], kinds[inner] = self._inner_column(inner)
+            names.append(inner)
         keep = ~np.any([missing[nm] for nm in names], axis=0)
         _skipped_note(int((~keep).sum()), names)
         if outcome in MORE_OUTCOMES:
             return self._more_model(step, column, outcome, terms, variables, raw, kinds, keep, in_order), pieces
         if in_order is not None:
             raise SimplydataError('in_order= gives the order of the groups for outcome="ordered groups".')
-        model = self._fit_model(step, column, outcome, grouped_by, terms, variables, raw, kinds, keep)
+        model = self._fit_model(step, column, outcome, grouped_by, terms, variables, raw, kinds, keep,
+                                grouping={"inner": inner} if inner is not None else None)
         return model, pieces
 
     # ------------------------------------------------------------------ model_averages_of
@@ -97,11 +110,12 @@ class ModelToolWords:
         of yes in each group and odds ratios for the pairs; the count outcomes the average count
         and rate ratios; "positive numbers" the average and ratios; "shares" the average share;
         "ordered groups" and "groups" the chance of each of the outcome's groups. grouped_by= uses
-        the mixed model. Done by R emmeans::emmeans() and pairs() (needs R: pip install
+        the mixed model (grouped_by=["school", "class"] for classes inside schools). Done by R emmeans::emmeans() and pairs() (needs R: pip install
         "simplydata[r]"). Gives back a table with one row per group and one per pair. Other name:
         marginal means (R emmeans).
         """
         step = "model_averages_of"
+        grouped_by, inner = self._groups_inside(step, grouped_by)
         self._need_name(step, "the column to explain", column, AVERAGES_EXAMPLE)
         self._need_name(step, "for_each=", for_each, AVERAGES_EXAMPLE)
         self._need_columns(column, for_each)
@@ -116,7 +130,7 @@ class ModelToolWords:
                         for item in using if isinstance(item, str))
         if added:
             using = using + [for_each]
-        model, pieces = self._one_model(step, column, using, outcome, grouped_by, in_order)
+        model, pieces = self._one_model(step, column, using, outcome, grouped_by, in_order, inner=inner)
         if model["kinds"][for_each] != "group":
             raise SimplydataError(f'for_each="{for_each}" holds numbers; model_averages_of() gives an average for '
                                   "each group of a text (group) column. For a number column, explain() gives its "
@@ -395,12 +409,16 @@ class ModelToolWords:
         the count outcomes and "positive numbers" show the pictures of R plot(glm(...)). The
         numbers come from statsmodels (OLSInfluence, GLMInfluence), the LOWESS lines from
         statsmodels lowess (as R panel.smooth). With grouped_by= (a mixed model) the fourth
-        picture is a normal Q-Q of the groups' own starting levels, as R qqnorm(ranef(m)).
+        picture is a normal Q-Q of the groups' own starting levels, as R qqnorm(ranef(m));
+        grouped_by=["school", "class"] adds a fifth for the classes inside the schools. Without
+        grouped_by= it also prints each column's variance inflation factor (how strongly it is
+        linked with the others, as R car::vif()).
         Gives back the page of charts: .show() or .save("checks.png").
         """
         step = "check_model"
         self._check_kind(step, outcome)
-        model, pieces = self._one_model(step, column, using, outcome, grouped_by)
+        grouped_by, inner = self._groups_inside(step, grouped_by)
+        model, pieces = self._one_model(step, column, using, outcome, grouped_by, inner=inner)
         if grouped_by is not None:
             return self._check_mixed_pictures(model, pieces, grouped_by)
         numbers = self._influence(model, self._statsmodels_fit(model))
@@ -453,10 +471,53 @@ class ModelToolWords:
                   "smooth line, which should stay near 0.")
         print("Numbers from statsmodels (OLSInfluence or GLMInfluence); the smooth lines are LOWESS, as R "
               "panel.smooth. Pictures help judge a model better than tests of the residuals.")
+        vif = self._vif_table(model)
         page = grid(a, b, c, d, per_row=2)
         page._check_numbers = dict(numbers, theoretical=qq["theoretical"], ordered=qq["ordered"], slope=qq["slope"],
-                                   intercept=qq["intercept"])
+                                   intercept=qq["intercept"], vif=vif)
         return page
+
+    @staticmethod
+    def _vif_table(model):
+        """How strongly each column is linked with the others: variance inflation factors as R car::vif().
+        statsmodels variance_inflation_factor for least squares with one model column per column (the same
+        numbers); R car::vif() itself for group columns with 3 or more groups (generalised VIF) and for GLMs
+        (car uses the model's own covariance there). Gives back {column: (vif, df, vif ** (1 / (2 df)))}."""
+        terms = model["terms"]
+        if len(terms) < 2:
+            return {}
+        if any(len(term) > 1 for term in terms):
+            print("Variance inflation factors are not given for a model with interactions: an interaction is linked "
+                  "with its own columns by design (R car::vif() warns the same).")
+            return {}
+        one_column = all(len(model["parts_of"][j]) == 1 for j in range(1, model["X"].shape[1])) and             model["X"].shape[1] - 1 == len(terms)
+        if model["kind"] == "lm" and one_column:
+            from statsmodels.stats.outliers_influence import variance_inflation_factor
+
+            values = {term[0]: (float(variance_inflation_factor(model["X"], j + 1)), 1.0, None)
+                      for j, term in enumerate(terms)}
+            how = "statsmodels variance_inflation_factor, as R car::vif()"
+        else:
+            from .._r import RMissing
+            from .models_r import vif_r
+
+            try:
+                out = vif_r(model)
+            except RMissing:
+                print("The variance inflation factors of this model come from R car::vif() (needs R: pip install "
+                      '"simplydata[r]"); left out here.')
+                return {}
+            values = {name: (float(v), float(df), float(adj) if df > 1 else None)
+                      for name, v, df, adj in zip(out["names"], np.atleast_1d(out["vif"]), np.atleast_1d(out["df"]),
+                                                  np.atleast_1d(out["adj"]))}
+            how = "R car::vif() itself"
+        parts = []
+        for name, (v, df, adj) in values.items():
+            extra = f" (generalised, {_whole(df)} df; {_num(adj)} on the scale of one column)" if adj is not None else ""
+            parts.append(f'"{name}" {_num(v)}{extra}')
+        print(f"How strongly each column is linked with the others (variance inflation factor, {how}): "
+              f"{_list_words(parts)}. Above 5 a column's effect is hard to tell apart from the others'.")
+        return values
 
     def _check_mixed_pictures(self, model, pieces, grouped_by):
         """The pictures for a mixed model: R plot(m) (residuals against fitted values), qqnorm() of the
@@ -488,6 +549,13 @@ class ModelToolWords:
         levels = self._qq(numbers["ranef"])
         numbers["group_qq"] = levels
         charts.append(self._qq_chart(levels, "group's own level", f'Normal Q-Q of the "{grouped_by}" levels'))
+        inner = (model.get("grouping") or {}).get("inner")
+        if inner:  # groups inside groups: the inner groups' own levels too, R qqnorm(ranef(m)$`inner:outer`)
+            numbers["inner_ranef"] = np.asarray(fit["inner_ranef"], dtype=float)
+            numbers["inner_ranef_groups"] = list(fit["inner_ranef_groups"])
+            numbers["inner_qq"] = self._qq(numbers["inner_ranef"])
+            charts.append(self._qq_chart(numbers["inner_qq"], "group's own level",
+                                         f'Normal Q-Q of the "{inner}" levels inside "{grouped_by}"'))
         groups = len(numbers["ranef_groups"])
         print(f'Checking the mixed model of "{column}" ({model["n"]} rows, {groups} groups in "{grouped_by}") in '
               f"{len(charts)} pictures, for m <- {model_call(model, pieces, grouped_by)}:")
@@ -500,7 +568,11 @@ class ModelToolWords:
             number = 3
         print(f"  {number}. scale-location: a flat line means the spread is the same everywhere;")
         print(f"  {number + 1}. normal Q-Q of each group's own starting level (R qqnorm(ranef(m)${_r_name(grouped_by)}"
-              "[, 1])): dots on the line mean the groups' levels follow a bell curve, as the model assumes.")
+              "[, 1])): dots on the line mean the groups' levels follow a bell curve, as the model assumes" +
+              (";" if inner else "."))
+        if inner:
+            print(f'  {number + 2}. the same for each "{inner}" group inside its "{grouped_by}" (R qqnorm(ranef(m)$'
+                  f"`{_r_name(inner)}:{_r_name(grouped_by)}`[, 1])).")
         if glmm:
             print("For yes/no and counts a Q-Q picture of the residuals says little, so it is left out; the first "
                   "picture shows bands (one per outcome value): look at the smooth line, which should stay near 0.")
@@ -533,7 +605,8 @@ class ModelToolWords:
         """
         step = "show_rows_that_pull"
         self._check_kind(step, outcome)
-        model, pieces = self._one_model(step, column, using, outcome, grouped_by)
+        grouped_by, inner = self._groups_inside(step, grouped_by)
+        model, pieces = self._one_model(step, column, using, outcome, grouped_by, inner=inner)
         if grouped_by is not None:
             return self._groups_that_pull(model, pieces, grouped_by)
         numbers = self._pull_numbers(model)
@@ -618,6 +691,8 @@ class ModelToolWords:
             return None, None
         if kind == "lm":
             return float(self._statsmodels_fit(model).llf), p + 1  # sigma counts, as R logLik()
+        if kind == "glmm" and (model.get("grouping") or {}).get("inner"):
+            return float(fit["loglik"]), p + 2  # two variances, as R logLik() of glmer((1 | g/h))
         if kind in ("binomial", "poisson", "negbin", "glmm"):
             return float(fit["loglik"]), p + (1 if kind in ("negbin", "glmm") else 0)
         if kind == "gamma":
@@ -626,6 +701,12 @@ class ModelToolWords:
             llf = sm.families.Gamma(link=sm.families.links.Log()).loglike(model["y"], mu,
                                                                           scale=fit["deviance"] / model["n"])
             return float(llf), p + 1
+        if kind == "mixed" and (model.get("grouping") or {}).get("inner"):
+            from .models import _nested_mixed
+
+            refit = _nested_mixed(model["X"], model["y"], model["groups"], model["grouping"]["inner_groups"],
+                                  reml=False)
+            return refit["loglik"], p + 3  # the three variances count, as R logLik()
         if kind == "mixed":
             from statsmodels.regression.mixed_linear_model import MixedLM
 
@@ -649,7 +730,8 @@ class ModelToolWords:
         extra columns help, as R anova(m0, m1): an F test for outcome="numbers" (statsmodels
         compare_f_test), "counts (overdispersed)" and "positive numbers" (R anova(test = "F")),
         and a likelihood-ratio test for the other outcomes. With grouped_by= both mixed models are
-        fitted by maximum likelihood for the test, as R anova() refits lme4 models. It also prints
+        fitted by maximum likelihood for the test, as R anova() refits lme4 models (also with
+        grouped_by=["school", "class"], groups inside groups). It also prints
         AIC and BIC for each model (smaller is better; a difference under about 2 means little).
         Gives back a table with one row per model and one for the test.
         """
@@ -662,10 +744,15 @@ class ModelToolWords:
         self._check_kind(step, outcome, AVERAGE_OUTCOMES)
         if against is None:
             raise SimplydataError(f"{step}() needs against= with the columns of the other model.\nFor example, {example}")
+        grouped_by, inner = self._groups_inside(step, grouped_by)
         first = self._model_parts(step, column, using, outcome, grouped_by, "leave out")
         second = self._model_parts(step, column, against, outcome, grouped_by, "leave out")
         names = list(dict.fromkeys([column] + first[2] + second[2] + ([grouped_by] if grouped_by else [])))
         missing, kinds, raw = {**first[4], **second[4]}, {**first[5], **second[5]}, {**first[3], **second[3]}
+        if inner is not None:  # groups inside groups: the inner column, checked as explain() does
+            self._model_parts(step, column, using, outcome, inner, "leave out")
+            raw[inner], missing[inner], kinds[inner] = self._inner_column(inner)
+            names.append(inner)
         keep = ~np.any([missing[nm] for nm in names], axis=0)
         _skipped_note(int((~keep).sum()), names)
         if frozenset(frozenset(t) for t in first[0]) == frozenset(frozenset(t) for t in second[0]):
@@ -684,7 +771,8 @@ class ModelToolWords:
                             "shares": models_more.fit_shares, "zeros": models_more.fit_zeros}[model["kind"]](
                     model["X"], model["y"])
             else:
-                model = self._fit_model(step, column, outcome, grouped_by, terms, variables, raw, kinds, keep)
+                model = self._fit_model(step, column, outcome, grouped_by, terms, variables, raw, kinds, keep,
+                                        grouping={"inner": inner} if inner is not None else None)
             llf, k = self._likelihood(model, fit_more)
             models.append((model, pieces, llf, k))
         sets = [{frozenset(t) for t in m[0]["terms"]} for m in models]
@@ -693,6 +781,8 @@ class ModelToolWords:
         n = small[0]["n"]
         rows = []
         where = f' in "{grouped_by}" groups' if grouped_by is not None else ""
+        if inner is not None:
+            where = f' in "{inner}" groups inside "{grouped_by}" groups'
         print(f'Comparing two models of "{column}" on the same {n} rows{where}:')
         for label, (model, pieces, llf, k) in (("using=", models[0]), ("against=", models[1])):
             formula = f"{_r_name(column)} ~ " + " + ".join(pieces)

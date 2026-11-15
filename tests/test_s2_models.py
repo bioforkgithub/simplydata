@@ -48,7 +48,7 @@ def test_negative_binomial_matches_glm_nb(capsys):
     check(got["field (whole column)"], {"statistic": 7.10655006304397, "p-value": 0.0286307194337032}, rel=1e-5)
     assert "MASS::glm.nb(nettle ~ grazed + field) (theta = 4.94" in out
     # R: deviance 36.2357526498111, null 77.0471910394427, AIC 165.908562845658
-    assert "Residual deviance 36.2 on 26 df (with no columns: 77.0 on 29 df)" in out and "AIC = 166." in out
+    assert "Residual deviance 36.2 on 26 df (with no columns: 77.0 on 29 df)" in out and "AIC = 166 and" in out
     assert got["grazed (yes)"]["statistic name"] == "z"
 
 
@@ -128,3 +128,11 @@ def test_out_of_checks():
     bad = TRIES.assign(yes=TRIES.yes.where(TRIES.index != 0, 25))
     with pytest.raises(SimplydataError, match="cannot be more than the number of tries"):
         make_table(bad).explain("yes", using="dose", outcome="yes or no", out_of="tries")
+
+
+def test_negative_binomial_without_extra_variation_says_so():
+    # R: MASS::glm.nb(days_absent ~ hours + school, data = s) warns "iteration limit reached": theta grows without
+    #    limit (the counts vary no more than Poisson allows); statsmodels finds no theta at all
+    with pytest.raises(SimplydataError, match="theta grows without limit"):
+        make_table(sdata.example("school")).explain("days_absent", using=["hours", "school"],
+                                                    outcome="counts that vary a lot")

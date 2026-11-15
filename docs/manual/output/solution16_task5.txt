@@ -4,6 +4,7 @@ Checking the model of "marks" (180 rows) in four pictures, as R plot(lm(marks ~ 
   3. scale-location: a flat line means the spread is the same everywhere;
   4. residuals against leverage: rows beyond the dashed lines (Cook's distance 0.5 and 1) pull the model strongly.
 Numbers from statsmodels (OLSInfluence or GLMInfluence); the smooth lines are LOWESS, as R panel.smooth. Pictures help judge a model better than tests of the residuals.
+How strongly each column is linked with the others (variance inflation factor, R car::vif() itself): "hours" 1.08 and "school" 1.08 (generalised, 11 df; 1.00 on the scale of one column). Above 5 a column's effect is hard to tell apart from the others'.
 Comparing two models of "marks" on the same 180 rows:
   using= marks ~ hours + school: AIC = 1224, BIC = 1269 (14 values estimated)
   against= marks ~ hours + school + breakfast: AIC = 1219, BIC = 1266 (15 values estimated)

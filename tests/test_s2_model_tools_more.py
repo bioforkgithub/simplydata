@@ -249,8 +249,8 @@ def test_glmer_with_time_out_of_and_link(needs_r):
 
 def test_friendly_errors_for_combinations_without_a_package(school):
     s = make_table(school2())
-    with pytest.raises(SimplydataError, match="GEE"):
-        s.explain("days_absent", using=["hours"], outcome="counts", time="enrolled", grouped_by="school",
+    with pytest.raises(SimplydataError, match="geepack has no such link"):
+        s.explain("days_absent", using=["hours"], outcome="counts", link="sqrt", grouped_by="school",
                   effects="for the whole population")
     with pytest.raises(SimplydataError, match="satterthwaite"):
         s.explain("days_absent", using=["hours"], outcome="counts", time="enrolled", grouped_by="school",
@@ -363,3 +363,169 @@ def test_groups_inside_groups_checks():
         table.explain("marks", using=["hours"], grouped_by=["school", "class", "pupil"])
     with pytest.raises(SimplydataError, match="plain mixed model"):
         table.explain("marks", using=["hours"], grouped_by=["school", "class"], own_slope_for="hours")
+
+
+# ---------------------------------------------------------------- groups inside groups in the model tools
+def test_model_averages_with_groups_inside_groups_match_emmeans(capsys, needs_r):
+    got = make_table(school3()).model_averages_of("marks", for_each="breakfast", using=["hours", "breakfast"],
+                                                  grouped_by=["school", "class"]).as_pandas()
+    # R: m <- lmer(marks ~ hours + breakfast + (1 | school/class), data = s3); e <- emmeans(m, ~ breakfast)
+    #    summary(e): emmean 46.6885080618374 49.4717128346135, SE 1.81102322437145 1.71286609064128,
+    #    df 15.1641161447397 12.244422344008 (Kenward-Roger)
+    #    summary(pairs(e), infer = c(TRUE, TRUE)): -2.78320477277612, SE 1.11589495432077, df 168.377804417041,
+    #    p 0.0135907075236144
+    assert got["model average"][:2].tolist() == pytest.approx([46.6885080618374, 49.4717128346135], rel=1e-5)
+    assert got["standard error"][:2].tolist() == pytest.approx([1.81102322437145, 1.71286609064128], rel=1e-4)
+    assert got["degrees of freedom"][:2].tolist() == pytest.approx([15.1641161447397, 12.244422344008], rel=1e-3)
+    assert got["difference"][2] == pytest.approx(-2.78320477277612, rel=1e-5)
+    assert got["p-value (Tukey)"][2] == pytest.approx(0.0135907075236144, rel=1e-3)
+    assert "(1 | school/class)" in capsys.readouterr().out
+
+
+def test_model_averages_yes_or_no_with_groups_inside_groups(needs_r):
+    got = make_table(school3()).model_averages_of("passed", for_each="breakfast", using=["hours", "breakfast"],
+                                                  outcome="yes or no", grouped_by=["school", "class"]).as_pandas()
+    # R: g1 <- glmer(y ~ hours + breakfast + (1 | school/class), family = binomial, data = s3)
+    #    emmeans(g1, ~ breakfast, type = "response"): prob 0.305062172718965 0.422721124614989;
+    #    pairs(): odds ratio 0.599479202784986, p 0.261728255614999
+    assert got["model average"][:2].tolist() == pytest.approx([0.305062172718965, 0.422721124614989], rel=1e-4)
+    assert got["odds ratio"][2] == pytest.approx(0.599479202784986, rel=1e-4)
+    assert got["p-value (Tukey)"][2] == pytest.approx(0.261728255614999, rel=1e-3)
+
+
+def test_compare_models_with_groups_inside_groups_match_anova(capsys):
+    got = make_table(school3()).compare_models("marks", using=["hours"], against=["hours", "breakfast"],
+                                               grouped_by=["school", "class"]).as_pandas()
+    # R: m0 <- lmer(marks ~ hours + (1 | school/class)); m1 <- lmer(marks ~ hours + breakfast + (1 | school/class))
+    #    anova(m0, m1) (refitted with ML): AIC 1243.99171775392 1240.02079421887; BIC 1259.95650200837
+    #    1259.17853532421; Chisq 5.97092353505059, Pr 0.0145436619568889
+    assert got["AIC"][:2].tolist() == pytest.approx([1243.99171775392, 1240.02079421887], rel=1e-9)
+    assert got["BIC"][:2].tolist() == pytest.approx([1259.95650200837, 1259.17853532421], rel=1e-9)
+    assert got["statistic"][2] == pytest.approx(5.97092353505059, rel=1e-6)
+    assert got["p-value"][2] == pytest.approx(0.0145436619568889, rel=1e-6)
+    assert 'in "class" groups inside "school" groups' in capsys.readouterr().out
+
+
+def test_compare_models_yes_or_no_with_groups_inside_groups(needs_r):
+    got = make_table(school3()).compare_models("passed", using=["hours"], against=["hours", "breakfast"],
+                                               outcome="yes or no", grouped_by=["school", "class"]).as_pandas()
+    # R: anova(g0, g1) for glmer(... + (1 | school/class), family = binomial): AIC 184.50503185845
+    #    185.227145069215; Chisq 1.27788678923488, Pr 0.258292321103151
+    assert got["AIC"][:2].tolist() == pytest.approx([184.50503185845, 185.227145069215], rel=1e-6)
+    assert got["statistic"][2] == pytest.approx(1.27788678923488, rel=1e-4)
+
+
+def test_check_model_with_groups_inside_groups_shows_both_levels(capsys):
+    page = make_table(school3()).check_model("marks", using=["hours", "breakfast"], grouped_by=["school", "class"])
+    numbers = page._check_numbers
+    # R: ranef(m)$school[, 1]: School A -5.80439586418727, School B 0.607824236738937;
+    #    ranef(m)$`class:school`: blue:School A 0.568054116114745, blue:School B -0.2456833465033,
+    #    blue:School C -1.26591728870938
+    assert numbers["ranef"][:2].tolist() == pytest.approx([-5.80439586418727, 0.607824236738937], rel=1e-4)
+    inner = dict(zip(numbers["inner_ranef_groups"], numbers["inner_ranef"]))
+    assert [inner["blue:School A"], inner["blue:School B"], inner["blue:School C"]] == pytest.approx(
+        [0.568054116114745, -0.2456833465033, -1.26591728870938], rel=1e-3)
+    out = capsys.readouterr().out
+    assert "in 5 pictures" in out and "ranef(m)$`class:school`" in out
+
+
+def test_check_model_yes_or_no_with_groups_inside_groups(capsys, needs_r):
+    page = make_table(school3()).check_model("passed", using=["hours"], outcome="yes or no",
+                                             grouped_by=["school", "class"])
+    numbers = page._check_numbers
+    # R: g <- glmer(y ~ hours + (1 | school/class), family = binomial); ranef(g)$school[, 1] -1.58543929640108
+    #    -0.116825979777635; ranef(g)$`class:school`[, 1] 0.0130518090088387 -0.219021743173109 -0.0650283235988507
+    assert numbers["ranef"][:2].tolist() == pytest.approx([-1.58543929640108, -0.116825979777635], rel=1e-3)
+    assert numbers["inner_ranef"][:3].tolist() == pytest.approx(
+        [0.0130518090088387, -0.219021743173109, -0.0650283235988507], rel=1e-2, abs=1e-4)
+    assert "in 4 pictures" in capsys.readouterr().out
+
+
+def test_groups_that_pull_with_groups_inside_groups(capsys, needs_r):
+    make_table(school3()).show_rows_that_pull("marks", using=["hours", "breakfast"], grouped_by=["school", "class"])
+    # R: inf <- influence(m, groups = "school"); max(cooks.distance(inf)) 0.145212595135807
+    out = capsys.readouterr().out
+    assert "the largest: School D, 0.145" in out and "(1 | school/class)" in out
+
+
+# ---------------------------------------------------------------- GEE with time=, out_of=, link=
+# R: s <- read.csv("school2.csv"); s$y <- as.numeric(s$passed == "yes"); s$g <- factor(s$school, levels =
+#    unique(s$school)); s <- s[order(s$g), ]; geepack 1.3.13
+def test_gee_with_time_matches_geeglm(capsys):
+    pop = dict(grouped_by="school", effects="for the whole population")
+    got = by_term(make_table(school2()).explain("days_absent", using=["hours"], outcome="counts", time="enrolled",
+                                                **pop))
+    # R: geeglm(days_absent ~ hours + offset(log(enrolled)), id = g, family = poisson, corstr = "exchangeable"):
+    #    coef -3.42207738107801 -0.138470429340252; se 0.0861259122953703 0.0189024886661671
+    assert got["hours"]["log rate ratio"] == pytest.approx(-0.138470429340252, rel=1e-5)
+    assert got["hours"]["standard error"] == pytest.approx(0.0189024886661671, rel=1e-4)
+    assert got["(intercept)"]["log rate ratio"] == pytest.approx(-3.42207738107801, rel=1e-5)
+    assert "offset(log(enrolled))" in capsys.readouterr().out
+
+
+def test_gee_with_a_link_matches_geeglm():
+    pop = dict(grouped_by="school", effects="for the whole population")
+    got = by_term(make_table(school2()).explain("passed", using=["hours", "breakfast"], outcome="yes or no",
+                                                link="probit", **pop))
+    # R: geeglm(y ~ hours + breakfast, id = g, family = binomial(link = "probit"), corstr = "exchangeable"):
+    #    coef -1.80173799511293 0.297052181163462 0.233197120156732; se 0.284568095276144 0.0448261710007466
+    #    0.125653550297156
+    assert got["hours"]["effect (probit scale)"] == pytest.approx(0.297052181163462, rel=1e-5)
+    assert got["breakfast (yes)"]["standard error"] == pytest.approx(0.125653550297156, rel=1e-4)
+
+
+def test_gee_out_of_and_in_time_order_run_geepack(capsys, needs_r):
+    pop = dict(grouped_by="school", effects="for the whole population")
+    s = make_table(school2())
+    got = by_term(s.explain("right", using=["hours"], outcome="yes or no", out_of="tries", **pop))
+    # R: geeglm(cbind(right, tries - right) ~ hours, id = g, family = binomial, corstr = "exchangeable"):
+    #    coef -0.581266841811507 0.10799352903193; se 0.0777610313424693 0.00892299443472997
+    #    (statsmodels GEE with weights = tries gives -0.5946, so R itself)
+    assert got["hours"]["log odds ratio"] == pytest.approx(0.10799352903193, rel=1e-6)
+    assert got["hours"]["standard error"] == pytest.approx(0.00892299443472997, rel=1e-6)
+    assert "(R geepack itself)" in capsys.readouterr().out
+    got = by_term(s.explain("passed", using=["hours", "breakfast"], outcome="yes or no", link="cloglog",
+                            within_groups="in time order", **pop))
+    # R: geeglm(y ~ hours + breakfast, id = g, family = binomial(link = "cloglog"), corstr = "ar1"):
+    #    coef -2.50648994506536 0.335809523590286 0.267568503533754; se 0.450105964061854 0.0603892808025738
+    assert got["hours"]["effect (cloglog scale)"] == pytest.approx(0.335809523590286, rel=1e-6)
+    assert got["hours"]["standard error"] == pytest.approx(0.0603892808025738, rel=1e-6)
+    got = by_term(s.explain("days_absent", using=["hours"], outcome="counts", time="enrolled",
+                            within_groups="in time order", **pop))
+    # R: geeglm(days_absent ~ hours + offset(log(enrolled)), id = g, family = poisson, corstr = "ar1"):
+    #    coef -3.39915165197502 -0.144406974756399; se 0.0900884756843403 0.0196083912065467
+    assert got["hours"]["log rate ratio"] == pytest.approx(-0.144406974756399, rel=1e-6)
+    assert got["hours"]["standard error"] == pytest.approx(0.0196083912065467, rel=1e-6)
+
+
+# ---------------------------------------------------------------- variance inflation factors in check_model
+# R: s <- na.omit(school[, c("marks", "hours", "sleep", "breakfast", "school", "passed")]); car 3.1
+def test_check_model_vif_least_squares_matches_car(capsys):
+    page = make_table(sdata.example("school")).check_model("marks", using=["hours", "sleep", "breakfast"])
+    vif = page._check_numbers["vif"]
+    # R: car::vif(lm(marks ~ hours + sleep + breakfast, data = s)): 1.00677016088655 1.00659219080555 1.00066265703536
+    assert [vif[c][0] for c in ("hours", "sleep", "breakfast")] == pytest.approx(
+        [1.00677016088655, 1.00659219080555, 1.00066265703536], rel=1e-10)
+    out = capsys.readouterr().out
+    assert "variance inflation factor, statsmodels variance_inflation_factor, as R car::vif()" in out
+
+
+def test_check_model_vif_group_column_and_glm_from_car(capsys, needs_r):
+    table = make_table(sdata.example("school"))
+    vif = table.check_model("marks", using=["hours", "sleep", "school"])._check_numbers["vif"]
+    # R: car::vif(lm(marks ~ hours + sleep + school, data = s)): GVIF 1.09843722228602 1.04708485508232
+    #    1.13475290777979, Df 1 1 11, GVIF^(1/(2*Df)) for school 1.00576267363551
+    assert vif["hours"][0] == pytest.approx(1.09843722228602, rel=1e-10)
+    assert vif["school"] == pytest.approx((1.13475290777979, 11, 1.00576267363551), rel=1e-10)
+    assert "(generalised, 11 df; 1.01 on the scale of one column)" in capsys.readouterr().out
+    vif = table.check_model("passed", using=["hours", "sleep", "breakfast"], outcome="yes or no")._check_numbers["vif"]
+    # R: car::vif(glm(y ~ hours + sleep + breakfast, family = binomial, data = s)): 1.06403521191058
+    #    1.05054939802213 1.02141847706422
+    assert [vif[c][0] for c in ("hours", "sleep", "breakfast")] == pytest.approx(
+        [1.06403521191058, 1.05054939802213, 1.02141847706422], rel=1e-6)
+
+
+def test_check_model_vif_not_for_interactions(capsys):
+    page = make_table(sdata.example("school")).check_model("marks", using=["hours * breakfast"])
+    assert page._check_numbers["vif"] == {}
+    assert "not given for a model with interactions" in capsys.readouterr().out

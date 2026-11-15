@@ -53,7 +53,7 @@ def test_ordered_groups_match_polr(capsys):
     check(got["cut-point low | middle"], {"log odds ratio": 1.5170810109757})
     check(got["cut-point middle | high"], {"log odds ratio": 4.60008359109989})
     assert "(low < middle < high)" in out and "MASS::polr(grade ~ hours + breakfast)" in out
-    assert "Cut-points between the groups" in out and "AIC = 300." in out
+    assert "Cut-points between the groups" in out and "AIC = 300 and" in out
     assert 'the odds of a higher "grade" are 1.77 times as high' in out
 
 

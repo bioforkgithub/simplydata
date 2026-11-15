@@ -6,6 +6,7 @@ Explaining "marks" from "hours", "sleep" and "breakfast" (161 rows). Each effect
   breakfast "yes" against "no": "marks" is 3.24 higher (95 % CI 0.493 to 5.99); unlikely to be chance (p = 0.021).
 Method: linear model by least squares, as R lm(marks ~ hours + sleep + breakfast).
 R squared = 0.430 (adjusted 0.419): the model explains about 43 % of the differences in "marks". The model as a whole (F = 39.4, df = 3 and 157): very unlikely to be chance (p < 0.0001).
+How well it fits: AIC = 1152 and BIC = 1167 (as R AIC() and BIC(); smaller is better when models of the same rows are compared, see compare_models).
 A link does not show that one thing causes the other.
 Explaining "marks" from "hours" and "breakfast" (180 rows). Each effect below holds the other columns fixed:
   intercept: 30.2, the expected "marks" when every number column is 0 and every group column is at its baseline.
@@ -14,4 +15,5 @@ Explaining "marks" from "hours" and "breakfast" (180 rows). Each effect below ho
   hours : breakfast (yes) (interaction): -0.592 (95 % CI -1.75 to 0.564), how much the effect of one changes with the other; could easily be chance (p = 0.313).
 Method: linear model by least squares, as R lm(marks ~ hours * breakfast).
 R squared = 0.407 (adjusted 0.397): the model explains about 41 % of the differences in "marks". The model as a whole (F = 40.2, df = 3 and 176): very unlikely to be chance (p < 0.0001).
+How well it fits: AIC = 1293 and BIC = 1309 (as R AIC() and BIC(); smaller is better when models of the same rows are compared, see compare_models).
 A large p-value does not show that there is no effect, only that the data cannot tell. A link does not show that one thing causes the other.

@@ -3,5 +3,6 @@ Explaining "days_absent" from "hours" and "breakfast" (180 rows). Each rate rati
   hours: each 1 more "hours" multiplies the expected count by 0.861 (95 % CI 0.828 to 0.895); very unlikely to be chance (p < 0.0001).
   breakfast "yes" against "no": the expected count is 0.936 times as high (95 % CI 0.788 to 1.11); could easily be chance (p = 0.448).
 Method: Poisson regression, as R glm(days_absent ~ hours + breakfast, family = poisson). Wald 95 % intervals and z-tests, as R confint.default() and summary().
-Residual deviance 193 on 177 df (with no columns: 255 on 179 df). The model as a whole (likelihood-ratio chi-square = 62.4, df = 2): very unlikely to be chance (p < 0.0001). AIC = 693.
+Residual deviance 193 on 177 df (with no columns: 255 on 179 df). The model as a whole (likelihood-ratio chi-square = 62.4, df = 2): very unlikely to be chance (p < 0.0001).
+How well it fits: McFadden's pseudo R squared = 0.083 (1 - log-likelihood / log-likelihood with no columns, as R performance::r2_mcfadden()); AIC = 693 and BIC = 703 (as R AIC() and BIC(); smaller is better when models of the same rows are compared, see compare_models).
 A large p-value does not show that there is no effect, only that the data cannot tell. A link does not show that one thing causes the other.

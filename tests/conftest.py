@@ -45,10 +45,10 @@ def needs_r():
 
     from simplydata._r import r_ready
 
-    if not r_ready(("survival", "vegan", "mice", "lme4", "betareg", "pscl", "car", "effectsize", "emmeans", "pbkrtest", "lmerTest", "afex", "geepack", "sandwich")):
+    if not r_ready(("survival", "vegan", "mice", "lme4", "betareg", "pscl", "car", "effectsize", "emmeans", "pbkrtest", "lmerTest", "afex", "geepack", "sandwich", "performance", "mgcv")):
         if os.environ.get("SIMPLYDATA_REQUIRE_R") == "1":
-            pytest.fail("SIMPLYDATA_REQUIRE_R=1 but R, rpy2 or the R packages survival, vegan, mice, lme4, betareg, pscl, car, effectsize, emmeans, pbkrtest, lmerTest, afex, geepack, sandwich are missing")
-        pytest.skip("needs R with survival, vegan, mice, lme4, betareg, pscl, car, effectsize, emmeans, pbkrtest, lmerTest, afex, geepack and sandwich (pip install 'simplydata[r]')")
+            pytest.fail("SIMPLYDATA_REQUIRE_R=1 but R, rpy2 or the R packages survival, vegan, mice, lme4, betareg, pscl, car, effectsize, emmeans, pbkrtest, lmerTest, afex, geepack, sandwich, performance, mgcv are missing")
+        pytest.skip("needs R with survival, vegan, mice, lme4, betareg, pscl, car, effectsize, emmeans, pbkrtest, lmerTest, afex, geepack, sandwich, performance and mgcv (pip install 'simplydata[r]')")
 
 
 # The places that are meant to run R (each calls simplydata._r.r_call). Reaching R from anywhere
@@ -60,6 +60,7 @@ R_ENTRY_POINTS = {
     ("table/anova_tables.py", "eta_squared"), ("table/anova_tables.py", "anova_glm"),
     ("table/models_r.py", "emmeans_table"), ("table/models_r.py", "lmer_r"), ("table/models_r.py", "geeglm_r"),
     ("table/models_r.py", "repeated_anova"), ("table/models_r.py", "group_influence"), ("table/models_r.py", "robust_cov"),
+    ("table/models_r.py", "vif_r"), ("table/models_r.py", "gam_r"),
 }
 
 
