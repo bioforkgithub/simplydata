@@ -9,7 +9,7 @@ Python code. The text is read with Python's ast module and only these pieces are
 column names, numbers, + - * / ** // %, brackets, a minus sign in front, the constant pi,
 the functions round, abs, sqrt, log, exp, sin, cos and tan, the special functions erf,
 erfc, gamma, lgamma, digamma, beta and besselJ (named and ordered as in R, worked out by
-SciPy), and the summary words average, median, total, smallest, biggest and count.
+SciPy), sinc (sin(pi x) / (pi x), as NumPy), and the summary words average, median, total, smallest, biggest and count.
 Everything else is refused with a friendly message. Rules in
 add_group_column(rules=) are read by the shared condition reader in conditions.py (the
 same one keep_rows() uses), with comparisons, and / or / not, in [...] and is empty added.
@@ -54,6 +54,7 @@ FORMULA_HELP = (
     "  gamma(x)  lgamma(x)        gamma function, and the log of its size (as R)\n"
     "  digamma(x)  beta(a, b)     digamma function, beta function (as R)\n"
     "  besselJ(x, nu)             Bessel function of the first kind, order nu (as R)\n"
+    "  sinc(x)                    sin(pi x) / (pi x), and 1 at x = 0 (as NumPy sinc)\n"
     "  average(x)  median(x)      summary words: one value for the whole column,\n"
     "  total(x)  count(x)         or for each group with for_each=\n"
     "  smallest(x)  biggest(x)    (count counts the cells that are not empty)\n"
@@ -63,9 +64,9 @@ FORMULA_HELP = (
 
 FUNCTIONS = {"round": (1, 2), "abs": (1, 1), "sqrt": (1, 1), "log": (1, 2), "exp": (1, 1),
              "sin": (1, 1), "cos": (1, 1), "tan": (1, 1), "erf": (1, 1), "erfc": (1, 1), "gamma": (1, 1),
-             "lgamma": (1, 1), "digamma": (1, 1), "beta": (2, 2), "besselJ": (2, 2)}
+             "lgamma": (1, 1), "digamma": (1, 1), "beta": (2, 2), "besselJ": (2, 2), "sinc": (1, 1)}
 # functions worked out with SciPy / NumPy on the numbers themselves (narwhals has no word for them)
-SPECIAL_FUNCTIONS = ("tan", "erf", "erfc", "gamma", "lgamma", "digamma", "beta", "besselJ")
+SPECIAL_FUNCTIONS = ("tan", "erf", "erfc", "gamma", "lgamma", "digamma", "beta", "besselJ", "sinc")
 FUNCTION_SPELLINGS = {"besselj": "besselJ"}  # both spellings work
 CONSTANTS = {"pi": math.pi}
 # summary words inside formulas -> the narwhals method that works them out
@@ -122,6 +123,8 @@ def special_function(name: str, *values):
             return special.beta(values[0], values[1])
         if name == "besselJ":
             return special.jv(values[1], values[0])
+        if name == "sinc":
+            return np.sinc(values[0])
         found = {"erf": special.erf, "erfc": special.erfc, "gamma": special.gamma,
                  "lgamma": special.gammaln, "digamma": special.digamma}[name]
         return found(values[0])

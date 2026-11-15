@@ -13,6 +13,18 @@ KEEPS = {"all": "full", "same": "same", "overlap": "valid"}
 RESAMPLE_METHODS = ("fourier", "polyphase", "filter then keep")
 
 
+def envelope_values(x, show, step):
+    """Envelope, phase (degrees, unwrapped) or frequency (cycles per unit of time; last one empty) from
+    SciPy signal.hilbert (the analytic signal, as R gsignal::hilbert)."""
+    from scipy import signal
+
+    z = signal.hilbert(x)
+    if show == "envelope":
+        return np.abs(z)
+    phase = np.degrees(np.unwrap(np.angle(z)))
+    return phase if show == "phase" else np.append(np.diff(phase) / 360.0 / step, np.nan)
+
+
 class FourierNumberWords:
     @friendly
     def fourier_transform(self, time_step=None, show="half", sampling_rate=None, fs=None):
@@ -58,20 +70,13 @@ class FourierNumberWords:
         (how fast the phase turns, cycles per unit of time; the last value is empty). SciPy
         signal.hilbert, as R gsignal::hilbert. Undo with nums.undo().
         """
-        from scipy import signal
-
         if show not in ENVELOPE_SHOWS:
             raise choice_error("envelope", "show", show, list(ENVELOPE_SHOWS))
         x = np.asarray(self._values, dtype=float).ravel()
         if np.isnan(x).any():
             raise SimplydataError("envelope() needs a value at every step; fill the empty ones first.")
         step, _ = read_time_step(time_step, sampling_rate, fs, getattr(self, "_time_step", None), "envelope")
-        z = signal.hilbert(x)
-        if show == "envelope":
-            out = np.abs(z)
-        else:
-            phase = np.degrees(np.unwrap(np.angle(z)))
-            out = phase if show == "phase" else np.append(np.diff(phase) / 360.0 / step, np.nan)
+        out = envelope_values(x, show, step)
         print(f"The {show} of the numbers, from the analytic signal (SciPy signal.hilbert, as R gsignal::hilbert).")
         return self._change(f"envelope ({show})", out)
 

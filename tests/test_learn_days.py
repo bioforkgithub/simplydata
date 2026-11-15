@@ -64,7 +64,7 @@ def test_the_python_track_follows_its_outline():
     assert {k for n in (6, 8, 9) for k in lessons[n]} == {9, 10, 11, 12, 13}
     assert {k for n in (10, 11, 12, 13) for k in lessons[n]} == {14, 15}
     assert {k for n in (15, 16, 17) for k in lessons[n]} == {16, 17, 18}
-    assert {k for n in (18, 19, 20) for k in lessons[n]} == {19, 20, 21}
+    assert {k for n in (18, 19, 20) for k in lessons[n]} == {19, 20, 21, 22, 23, 24}
     assert [learn_days.plan("python", n)["kind"] for n in range(22, 28)] == ["project"] * 6
     assert learn_days.plan("python", 28)["kind"] == "review"
 

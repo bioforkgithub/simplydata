@@ -60,25 +60,25 @@ def test_simple_methods_match_r_forecast(engine, method, needs_r, capsys):
     result = harbour(engine).forecast("visitors", sorted_by="month", steps_ahead=3, method=method, repeats_every=12)
     mean, low, high = SIMPLE[method]
     assert col(result, "forecast") == pytest.approx(mean, rel=1e-12)
-    assert col(result, "low") == pytest.approx(low, rel=1e-12)
-    assert col(result, "high") == pytest.approx(high, rel=1e-12)
+    assert col(result, "forecast 95 % prediction low") == pytest.approx(low, rel=1e-12)
+    assert col(result, "forecast 95 % prediction high") == pytest.approx(high, rel=1e-12)
     assert col(result, "steps ahead").tolist() == [1, 2, 3]
     out = capsys.readouterr().out
-    assert "for the next 3 months" in out and "95 % interval" in out
+    assert "for the next 3 months" in out and "95 % prediction interval" in out
 
 
 def test_holt_winters_matches_r(engine, needs_r, capsys):
     result = harbour(engine).forecast("visitors", sorted_by="month", steps_ahead=3, repeats_every="year")
     # R: hw <- HoltWinters(x); predict(hw, 3, prediction.interval = TRUE, level = 0.95)
     assert col(result, "forecast") == pytest.approx([2016.40937479054, 2012.63214414585, 2024.03137321536], rel=1e-9)
-    assert col(result, "low") == pytest.approx([1886.85026764329, 1882.84434188055, 1894.00328815581], rel=1e-9)
-    assert col(result, "high") == pytest.approx([2145.96848193778, 2142.41994641114, 2154.0594582749], rel=1e-9)
+    assert col(result, "forecast 95 % prediction low") == pytest.approx([1886.85026764329, 1882.84434188055, 1894.00328815581], rel=1e-9)
+    assert col(result, "forecast 95 % prediction high") == pytest.approx([2145.96848193778, 2142.41994641114, 2154.0594582749], rel=1e-9)
     out = capsys.readouterr().out
     # hw$alpha, hw$beta, hw$gamma = 0.0579006360951824, 0.0266388719662365, 0.285394236048636
     assert "weight on the newest level 0.0579, on the newest trend 0.0266, on the newest season 0.285" in out
     # Box.test(residuals(hw), lag = 24, type = "Ljung-Box"): 27.5022088230553, p 0.281593672667988
     assert "look like noise (Ljung-Box up to 24 rows back, p = 0.282)" in out
-    assert "Next month: 2016 (95 % interval 1887 to 2146); in 3 months: 2024" in out
+    assert "Next month: 2016 (95 % prediction interval 1887 to 2146); in 3 months: 2024" in out
     assert "as R HoltWinters(x)" in out
     dates = result._frame["month"].to_list()
     assert [d.date() if isinstance(d, datetime.datetime) else d for d in dates] == [
@@ -98,7 +98,7 @@ def test_holt_winters_options_match_r(needs_r):
     # R: forecast(HoltWinters(x, seasonal = "multiplicative"), h = 2, level = 95)$mean and $lower
     result = h.forecast("visitors", sorted_by="month", steps_ahead=2, repeats_every=12, season="multiplied")
     assert col(result, "forecast") == pytest.approx([1980.58674771702, 1973.67989975173], rel=1e-9)
-    assert col(result, "low") == pytest.approx([1910.78276783023, 1903.86262108701], rel=1e-9)
+    assert col(result, "forecast 95 % prediction low") == pytest.approx([1910.78276783023, 1903.86262108701], rel=1e-9)
     # R: hn <- HoltWinters(x, gamma = FALSE); predict(hn, 1)
     result = h.forecast("visitors", sorted_by="month", steps_ahead=1)
     assert col(result, "forecast") == pytest.approx([2075.28978383523], rel=1e-9)
@@ -113,8 +113,8 @@ def test_arima_matches_r(engine, needs_r, capsys):
     # R: a <- arima(x, order = c(0, 1, 1), seasonal = list(order = c(0, 1, 1), period = 12), method = "ML")
     #    f <- forecast(a, h = 3, level = 95); f$mean; f$lower; f$upper
     assert col(result, "forecast") == pytest.approx([1995.58049209294, 2018.97410069196, 1995.9609580597], rel=1e-7)
-    assert col(result, "low") == pytest.approx([1880.48193325173, 1903.87554185072, 1880.86239921841], rel=1e-7)
-    assert col(result, "high") == pytest.approx([2110.67905093415, 2134.07265953319, 2111.05951690099], rel=1e-7)
+    assert col(result, "forecast 95 % prediction low") == pytest.approx([1880.48193325173, 1903.87554185072, 1880.86239921841], rel=1e-7)
+    assert col(result, "forecast 95 % prediction high") == pytest.approx([2110.67905093415, 2134.07265953319, 2111.05951690099], rel=1e-7)
     out = capsys.readouterr().out
     assert ("ARIMA(0,1,1)(0,1,1)[12] (1 difference and 1 past error; for the season, 1 difference 12 rows back and "
             "1 past error 12 rows back)") in out
@@ -136,7 +136,7 @@ def test_arima_with_an_average_matches_r(needs_r, capsys):
     result = harbour("pandas").forecast("visitors", steps_ahead=2, method="arima", order=(1, 0, 0), interval=80)
     # R: a1 <- arima(x, order = c(1, 0, 0), method = "ML"); f1 <- forecast(a1, h = 2, level = 80)
     assert col(result, "forecast") == pytest.approx([2037.767447691, 2006.55675905573], rel=1e-7)
-    assert col(result, "low") == pytest.approx([1829.12155420741, 1724.20996420578], rel=1e-7)
+    assert col(result, "forecast 80 % prediction low") == pytest.approx([1829.12155420741, 1724.20996420578], rel=1e-7)
     assert "with an average" in capsys.readouterr().out
 
 
@@ -269,3 +269,10 @@ def test_change_point_errors(engine):
         river.find_change_points("nitrate", penalty="big")
     with pytest.raises(SimplydataError, match="empty cell"):
         river.find_change_points("level", sorted_by="date", for_each="station")
+
+
+def test_straight_on_other_spellings(needs_r):
+    from simplydata import _forecast
+
+    assert _forecast.read_method("drift", "forecast") == "straight on"
+    assert _forecast.read_method("line from first to last", "forecast") == "straight on"

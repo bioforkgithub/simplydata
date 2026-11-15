@@ -77,6 +77,8 @@ GROUP_UNDERNEATH = {
     "Numbers: summaries": "NumPy (functions that skip empty values, such as nanmean)",
     "Grids of numbers": "NumPy (a two-dimensional array)",
     "Numbers: undo and finish": "simplydata itself: it keeps every version of the numbers",
+    "Waves and systems": "SciPy (signal.lti / dlti, step, impulse, lsim, freqresp, freqz, cont2discrete, tf2ss, tf2zpk); "
+               "the formula read with Python's ast and NumPy polynomials",
     "Help": "plain Python: simplydata reads its own word list and docstrings",
     "30 days of simplydata": "plain Python: the days are in simplydata/learn_days.py, and the progress is a small "
                              "JSON file on your computer (json, pathlib)",
@@ -111,8 +113,8 @@ UNDERNEATH = {
     "fit_line": "SciPy (stats.linregress); the confidence band from statsmodels OLS, drawn with matplotlib",
     "fit_curve": "statsmodels (least squares on the powers of x), drawn with matplotlib",
     "smooth_line": "statsmodels (lowess, which follows R's lowess()) or SciPy (make_smoothing_spline, for "
-                   "method=\"spline\"; smoothness=\"auto\" lets R smooth.spline choose it and needs R), drawn "
-                   "with matplotlib",
+                   "method=\"spline\"; smoothness=\"auto\" lets R smooth.spline choose it and needs R); the other "
+                   "methods as nums.smooth (SciPy, pandas; \"median\" R runmed); drawn with matplotlib",
     "density": "seaborn (kdeplot)",
     "qq_dots": "SciPy (stats.probplot, against a fitted scipy.stats distribution for distribution=) for the points "
                "and the line; matplotlib draws them",
@@ -212,6 +214,17 @@ UNDERNEATH = {
     "nums.change_time_step": "SciPy (signal.resample, resample_poly, decimate)",
     "sdata.wave": "SciPy (signal.square, sawtooth, chirp, gausspulse, unit_impulse) and NumPy sin",
     "sdata.window_shape": "SciPy (signal.get_window)",
+    "table.add_envelope_column": "SciPy (signal.hilbert)",
+    "sdata.frequency_filter": "SciPy (the designs of nums.keep_frequencies; sosfreqz, sos2zpk, sosfilt)",
+    "sticks": "matplotlib (vlines and plot)",
+    "autocorrelation_bars": "statsmodels (as table.autocorrelation_of), drawn with matplotlib",
+    "cross_correlation_bars": "statsmodels (as table.correlation_between with rows_back=), drawn with matplotlib",
+    "lag_dots": "pandas (shift), drawn with matplotlib",
+    "trend_and_season": "statsmodels (as table.add_trend_and_season), drawn with matplotlib",
+    "forecast": "R (as table.forecast, through rpy2: simplydata[r]), drawn with matplotlib",
+    "spectrum": "SciPy (as table.spectrum_of; lomb-scargle from R lomb), drawn with matplotlib",
+    "spectrum_over_time": "SciPy (signal.spectrogram), drawn with matplotlib (pcolormesh)",
+    "peak_dots": "SciPy (as table.find_peaks), drawn with matplotlib",
     "table.forecast": "R (forecast::naive, snaive, meanf, rwf; stats::HoltWinters, stats::arima; forecast::forecast "
                       "and accuracy, through rpy2: simplydata[r])",
     "nums.forecast": "R (as table.forecast, through rpy2: simplydata[r])",
@@ -404,7 +417,8 @@ FAMILY_TITLES = {
                              "called on simplydata itself, and words that start with \\code{dist.} are steps on "
                              "a distribution: \\code{dist = sdata.distribution(\"normal\")}."),
     "numbers": ("Number words", "Steps on numbers, \\code{nums = sdata.numbers([12, 15, 9, 20, 14])}, "
-                                "and on grids of numbers, \\code{grid = sdata.number\\_grid([[3, 5, 2], [8, 6, 4]])}."),
+                                "on grids of numbers, \\code{grid = sdata.number\\_grid([[3, 5, 2], [8, 6, 4]])}, "
+                                "and on systems, \\code{system = sdata.system(\"1 / (s**2 + 2*s + 5)\")}."),
     "help": ("Help words", "Words that teach simplydata."),
 }
 

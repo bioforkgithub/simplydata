@@ -30,6 +30,7 @@ METHODS = ("last value", "same season last time", "average", "straight on", "exp
 METHOD_ALIASES = {
     "naive": "last value", "seasonal naive": "same season last time", "snaive": "same season last time",
     "mean": "average", "meanf": "average", "drift": "straight on", "rwf": "straight on",
+    "line from first to last": "straight on",
     "holt-winters": "exponential smoothing", "holt winters": "exponential smoothing",
     "holtwinters": "exponential smoothing", "hw": "exponential smoothing", "sarima": "arima",
 }

@@ -45,24 +45,50 @@ def filter_numbers(values, keep, condition, value, step, method, steepness, both
     sentence = f"{verb} the frequencies {what} in {len(out)} readings ({step:g} apart): {made['words']}, {ways}."
     call = (f"signal::filtfilt({made['r_call']}, x) in the middle (SciPy's ends: odd reflection and a steady start, as "
             "MATLAB)" if both_ways else f"signal::filter({made['r_call']}, x)")
-    return out, sentence, f"Method: SciPy, as R {call}."
+    return out, sentence, f"Method: SciPy, as R {call}.", made
+
+
+def show_filter_chart(made, step, show_filter, sentence):
+    """show_filter=True shows the filter's Bode chart (gain and phase against frequency); a file name saves it."""
+    if show_filter is False or show_filter is None:
+        return
+    if not (show_filter is True or isinstance(show_filter, str)):
+        raise SimplydataError('show_filter= should be True (show the chart) or a file name such as "filter.png".')
+    import contextlib
+    import io
+
+    from .. import _filters
+    from ..systems import System
+
+    b, a = _filters.coefficients(made)
+    with contextlib.redirect_stdout(io.StringIO()):
+        chart = System.from_coefficients(b, a, time_step=step, sos=made.get("sos"), label="the filter").chart()
+    chart.title_top("The filter: gain and phase (one direction)")
+    if show_filter is True:
+        chart.show()
+    else:
+        chart.save(show_filter)
+        print(f'Saved the chart of the filter to "{show_filter}".')
 
 
 class FilterNumberWords:
     def _filter_word(self, keep, below, above, between, equal_to, time_step, method, steepness, both_ways, ripple,
-                     removed_by, window, window_shape, width, and_multiples, sampling_rate, fs, step_name):
+                     removed_by, window, window_shape, width, and_multiples, sampling_rate, fs, step_name,
+                     show_filter=False):
         condition, value = _one_condition(below, above, between, equal_to, step_name)
         step, words = read_time_step(time_step, sampling_rate, fs, getattr(self, "_time_step", None), step_name)
-        out, sentence, method_line = filter_numbers(
+        out, sentence, method_line, made = filter_numbers(
             np.asarray(self._values, dtype=float).ravel(), keep, condition, value, step, method, steepness,
             both_ways, ripple, removed_by, window, window_shape, width, and_multiples, step_name)
         print(sentence)
         print(method_line)
+        show_filter_chart(made, step, show_filter, sentence)
         return self._change(f"{'keep' if keep else 'remove'} frequencies {condition}", out)
 
     @friendly
     def keep_frequencies(self, below=None, above=None, between=None, equal_to=None, time_step=None,
-                         method="butterworth", steepness=4, both_ways=True, ripple=0.5, removed_by=40, width=1, sampling_rate=None, fs=None):
+                         method="butterworth", steepness=4, both_ways=True, ripple=0.5, removed_by=40, width=1,
+                         show_filter=False, sampling_rate=None, fs=None):
         """Keep only some frequencies of the numbers (a low-pass, high-pass, band-pass or peak filter).
 
         nums.keep_frequencies(below=5, time_step=0.01)
@@ -73,22 +99,25 @@ class FilterNumberWords:
         (removed_by= dB), "elliptic" or "bessel" (keeps the shape of pulses). steepness= is the filter order (4). both_ways=True
         runs the filter forwards and backwards so nothing moves in time (SciPy sosfiltfilt; the ends as
         MATLAB filtfilt, which differs from R signal::filtfilt near the ends); both_ways=False runs it
-        forwards only, as R signal::filter. Undo with nums.undo().
+        forwards only, as R signal::filter. show_filter=True also shows the filter's chart (gain and phase
+        against frequency, sdata.frequency_filter(...).chart()); show_filter="filter.png" saves it.
+        Undo with nums.undo().
         """
         return self._filter_word(True, below, above, between, equal_to, time_step, method, steepness, both_ways,
                                  ripple, removed_by, 101, "hamming", width, False, sampling_rate, fs,
-                                 "keep_frequencies")
+                                 "keep_frequencies", show_filter)
 
     @friendly
     def remove_frequencies(self, below=None, above=None, between=None, equal_to=None, time_step=None,
-                           method="butterworth", steepness=4, both_ways=True, ripple=0.5, removed_by=40, width=1, and_multiples=False, sampling_rate=None, fs=None):
+                           method="butterworth", steepness=4, both_ways=True, ripple=0.5, removed_by=40, width=1,
+                           and_multiples=False, show_filter=False, sampling_rate=None, fs=None):
         """Remove some frequencies from the numbers, such as a 50-per-second hum (band-stop or notch filter).
 
         nums.remove_frequencies(equal_to=50, time_step=0.005)
         between=[49, 51] removes a band; equal_to=50 one frequency (a notch, width= how wide; and_multiples
         =True also removes 100, 150 ...: a comb); below= and above= remove the slow or the fast cycles.
-        The options are those of keep_frequencies. Undo with nums.undo().
+        The options are those of keep_frequencies (show_filter= too). Undo with nums.undo().
         """
         return self._filter_word(False, below, above, between, equal_to, time_step, method, steepness, both_ways,
                                  ripple, removed_by, 101, "hamming", width, and_multiples, sampling_rate, fs,
-                                 "remove_frequencies")
+                                 "remove_frequencies", show_filter)

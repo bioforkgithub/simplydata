@@ -311,6 +311,7 @@ FIT_HELP = (
     "  gamma(x)  lgamma(x)        gamma function, and the log of its size (as R)\n"
     "  digamma(x)  beta(a, b)     digamma function, beta function (as R)\n"
     "  besselJ(x, nu)             Bessel function of the first kind, order nu (as R)\n"
+    "  sinc(x)                    sin(pi x) / (pi x), and 1 at x = 0 (as NumPy sinc)\n"
     'Example: table.fit_formula("marks = a * hours + b")   (with sdata.example("marks"))'
 )
 

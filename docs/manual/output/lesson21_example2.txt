@@ -1,2 +1,3 @@
-The strongest cycle in "signal" has frequency 5 per unit of "time" (it repeats every 0.2 units of "time") and holds 46 % of the variance; next: 20 per unit of "time" (8 %) and 50 per unit of "time" (3 %).
-Method: Welch's method (the average periodogram of pieces of 200 readings with half overlap and a hann window), as SciPy signal.welch (the same steps written in R give the same numbers). Readings: one reading every 0.005 in "time" (1000 readings).
+Added 15 missing days to "date" (6 for Station A, 9 for Station B); the new rows have empty cells. Fill them next: table.fill_empty_cells("<column>", with_the="line between neighbours", sorted_by="date", for_each="station").
+Filled 15 cells in nitrate on the line between neighbours in order of date, for each station on its own.
+Filled 23 cells in level on the line between neighbours in order of date, for each station on its own.

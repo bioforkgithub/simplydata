@@ -758,23 +758,37 @@ UNITS = {
             "Each estimate lies halfway between the two months around it.")],
     ),
     "signals": dict(
-        lessons=[21],
-        needs_r="check_steady()",
-        r_packages=("tseries",),
-        words=["table.spectrum_of", "table.check_steady"],
-        do=[_lesson_do(21, "examples 1 and 3")],
+        lessons=[21, 22, 23, 24],
+        needs_r="trend_of() and forecast()",
+        r_packages=("trend", "forecast"),
+        words=["table.add_missing_dates", "table.add_smoothed_column", "table.trend_of", "table.forecast",
+               "table.find_peaks"],
+        do=[_lesson_do(21, "examples 2 to 4"), _lesson_do(22, "examples 3 to 5"), _lesson_do(23, "example 3"),
+            "Lesson 24 (systems) and the rest of lesson 23 (spectra, filters) go further: do them when you need "
+            "them."],
         recall=[
-            ("Which word shows the repeating cycles in a recording and how strong each is?",
-             'table.spectrum_of("signal", sorted_by="time")'),
-            ("Which word checks whether a series stays steady over time or wanders?",
-             'table.check_steady("signal", sorted_by="time")'),
+            ("Which word adds the days that are missing from a daily table?",
+             'table.add_missing_dates("date", every="day", for_each="station")'),
+            ("Which option of add_rolling_column averages over the last 7 days of time, not 7 rows?",
+             'window="7 days"'),
+            ("Which word smooths a column with a moving average over its neighbours in time?",
+             'table.add_smoothed_column("nitrate_smooth", from_column="nitrate", window=31, sorted_by="date")'),
+            ("Which word tests whether a series has a real trend (Mann-Kendall) and gives its slope?",
+             'table.trend_of("nitrate", sorted_by="date")'),
+            ("Which word forecasts the next months, and which option checks it on months it has not seen?",
+             'table.forecast("visitors", sorted_by="month", steps_ahead=12, check_on_last=12)'),
+            ("Which word finds the readings higher than both neighbours?",
+             'table.find_peaks("signal", sorted_by="time", at_least=1)'),
         ],
-        task=['Sensor table: which cycle is strongest in "vibration"?'],
+        task=['River table: add the missing days, fill the empty "level" cells, and test whether the level of '
+              "each station has a trend."],
         solutions=[(_code('''
             import simplydata as sdata
-            table = sdata.table(sdata.example("sensor"))
-            table.spectrum_of("vibration", sorted_by="time")'''),
-            "5 per second, as in the signal: the vibration follows the signal.")],
+            table = sdata.table(sdata.example("river"))
+            table.add_missing_dates("date", every="day", for_each="station")
+            table.fill_empty_cells("level", with_the="line between neighbours", sorted_by="date", for_each="station")
+            table.trend_of("level", sorted_by="date", for_each="station")'''),
+            "trend_of prints Sen's slope (per day and per year) and the Mann-Kendall p-value for each station.")],
     ),
     # ------------------------------------------------------------ review days
     "review_p7": dict(
@@ -1231,9 +1245,9 @@ _PYTHON = [
     ("Finding, solving and distributions",
      "Find where a formula is smallest or biggest, solve equations, and work out chances from a distribution.",
      ["finding", "distributions"], "learn"),
-    ("Values between points, and signals",
-     "Estimate values between the points you measured, then find the cycles in a recording and check "
-     "whether it stays steady.",
+    ("Values between points, and time series",
+     "Estimate values between the points you measured, then add missing days, smooth a series, test its "
+     "trend, forecast it and find its peaks.",
      ["between", "signals"], "learn"),
     ("Review, and the question of your project",
      "Remember the words of the third week, then choose the question and the raw file of your own project.",
@@ -1343,10 +1357,10 @@ _BEGINNER = [
     ("Fitting, finding and solving",
      "Fit lines, curves and formulas, find where a formula is biggest, and solve equations.",
      ["fitting", "finding"], "learn"),
-    ("Distributions, values between points and signals",
-     "Work out chances from a distribution, estimate values between measured points, and find the "
-     "cycles in a recording.",
-     ["distributions", "between", "signals"], "learn"),
+    ("Distributions, values between points and time series",
+     "Work out chances from a distribution, estimate values between measured points, and smooth, test "
+     "and forecast a series.",
+     ["signals", "distributions", "between"], "learn"),
     ("Small project: look, clean and sum up",
      "Choose a question and a file, then look at it, clean it and sum it up.",
      ["bproj_a"], "project"),

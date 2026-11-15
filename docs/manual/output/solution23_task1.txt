@@ -1,0 +1,2 @@
+The strongest cycle in "vibration" has frequency 5 per unit of "time" (it repeats every 0.2 units of "time") and holds 65 % of the variance; next: 20 per unit of "time" (11 %) and 50 per unit of "time" (3 %).
+Method: periodogram (squared size of the Fourier transform, one-sided, scaled so the powers add up to the variance), as 2 x R spec.pgram(x, taper = 0, detrend = FALSE, fast = FALSE)$spec. Readings: one reading every 0.005 in "time" (1000 readings).

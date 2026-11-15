@@ -170,7 +170,7 @@ class ForecastWords:
                 times = future_times(self, one, sorted_by, ahead) if sorted_by is not None else None
                 first, last = _ahead_words(one, 1, True), _ahead_words(one, ahead, False)
                 text = (f"Forecast of {what} for {_next_words(one, ahead)} by {name} ({words})"
-                        f"{_model_words(chosen, got)}. {first}: {_num(mean[0])} ({level:g} % interval "
+                        f"{_model_words(chosen, got)}. {first}: {_num(mean[0])} ({level:g} % prediction interval "
                         f"{_num(low[0])} to {_num(high[0])})")
                 if ahead > 1:
                     text += f"; {last}: {_num(mean[-1])} ({_num(low[-1])} to {_num(high[-1])})"
@@ -185,8 +185,9 @@ class ForecastWords:
                 row = dict(label)
                 if times is not None:
                     row[sorted_by] = times[j]
-                row.update({"steps ahead": j + 1, "forecast": float(mean[j]), "low": float(low[j]),
-                            "high": float(high[j])})
+                row.update({"steps ahead": j + 1, "forecast": float(mean[j]),
+                            f"forecast {level:g} % prediction low": float(low[j]),
+                            f"forecast {level:g} % prediction high": float(high[j])})
                 if held is not None:
                     actual = float(one.values[n - held + j])
                     row.update({"actual": actual, "error": actual - float(mean[j])})
@@ -276,8 +277,8 @@ class ForecastWords:
         """Find the points where the average of a column jumps to a new level (R changepoint, PELT).
 
         table.find_change_points("nitrate", sorted_by="date", for_each="station")   (with sdata.example("river"))
-        Splits the readings, in the order of sorted_by=, into stretches with their own average, and gives
-        back one row per stretch: where it starts and ends, how many readings, its average (and its
+        Splits the readings, in the order of sorted_by=, into pieces with their own average, and gives
+        back one row per piece: where it starts and ends, how many readings, its average (and its
         standard deviation). change="average" (R changepoint::cpt.mean, after dividing the readings by
         mad(diff(x)) / sqrt(2), the noise size that cpt.mean assumes to be 1) or "average and spread"
         (R cpt.meanvar: the spread may jump too). The search is PELT; penalty= "mbic" (the default, as
@@ -319,7 +320,7 @@ class ForecastWords:
                 print(f"{what} changes {times}: the average is " + ", then ".join(pieces) + ".")
             for j in range(len(starts)):
                 row = {", ".join(groups): one.label} if groups else {}
-                row.update({"stretch": j + 1, "from": first[j], "to": last[j],
+                row.update({"piece": j + 1, "from": first[j], "to": last[j],
                             "readings": int(ends[j] - starts[j] + 1), "average": float(got["average"][j]),
                             "standard deviation": float(got["spread"][j])})
                 rows.append(row)

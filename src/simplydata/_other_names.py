@@ -18,6 +18,9 @@ _SDATA = [
     ('sdata.window_shape("hann", how_many=64)', "hann hanning hamming blackman get_window"),
     ("sdata.inverse_fourier_transform(table)", "ifft irfft"),
     ('sdata.numbers("call.wav")', "readWave wavread read_wav"),
+    ('sdata.system("1 / (s**2 + 2*s + 5)")',
+     "lti dlti tf ss zpk TransferFunction StateSpace ZerosPolesGain transfer_function state_space"),
+    ("sdata.frequency_filter(keep_below=10, time_step=0.005)", "freqz sosfreqz iirfilter iirdesign"),
     ('sdata.find_smallest("x**2 - 4*x + 1", between=[0, 5])',
      "minimize minimise optimize optimise optim minimize_scalar fmin fminbound argmin nlm "
      "nlminb fminsearch"),
@@ -214,6 +217,15 @@ _CHART = [
     ('chart.count_bars(x="fruit")', "countplot"),
     ('chart.colour_scale("magma")', "cmap colormap scale_fill_viridis_c"),
     ('chart.size(width=17, height=8, unit="cm")', "figsize set_size_inches"),
+    ('chart.sticks(x="rows back", y="correlation")', "stem stems stemplot lollipop"),
+    ('chart.autocorrelation_bars(x="month", y="visitors")', "plot_acf plot_pacf acorr"),
+    ('chart.cross_correlation_bars(x="time", y="signal", against="vibration")', "plot_ccf xcorr"),
+    ('chart.lag_dots(x="month", y="visitors", rows_back=1)', "lag_plot lagplot"),
+    ('chart.trend_and_season(x="month", y="visitors", repeats_every="year")', "plot_stl plot_decompose"),
+    ("chart.forecast(steps_ahead=12)", "plot_predict plot_forecast autoplot"),
+    ('chart.spectrum(x="time", y="signal")', "psd magnitude_spectrum plot_spectrum periodogram"),
+    ('chart.spectrum_over_time(x="time", y="signal")', "spectrogram specgram stft"),
+    ("chart.peak_dots(at_least=1)", "mark_peaks plot_peaks"),
 ]
 
 # nums.<name> (numbers). Older ones (mean, sum, min ...) are in numbers/_base.py HINTS.

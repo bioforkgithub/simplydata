@@ -1,2 +1,4 @@
-The strongest cycle in the numbers has frequency 5 per unit of time (it repeats every 0.2 units of time) and holds 68 % of the variance; next: 20 per unit of time (11 %) and 50 per unit of time (4 %).
-Method: periodogram (squared size of the Fourier transform, one-sided, scaled so the powers add up to the variance), as 2 x R spec.pgram(x, taper = 0, detrend = FALSE, fast = FALSE)$spec. Time step 0.005 (200 readings per unit of time).
+Kept 725 of 1447 rows.
+Filled 0 cells in nitrate on the line between neighbours in order of date.
+Smoothed the numbers with exponential smoothing (newest_weight=0.2): each value is newest_weight x the reading + (1 - newest_weight) x the value before, starting at the first reading.
+Method: as R stats::filter(0.2 * x, 0.8, method = "recursive", init = x[1]).

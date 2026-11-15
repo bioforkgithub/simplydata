@@ -1,0 +1,4 @@
+Found 1 peak in "signal" at least 2.5 high; the highest is 3.48 at time 3.885.
+Method: local tops (SciPy signal.find_peaks, with peak_prominences and peak_widths), as R pracma::findpeaks(x, minpeakheight = 2.5).
+Found 1 peak in "signal" at least 2.5 high; the highest is 3.48 at time 3.885.
+Method: local tops (SciPy signal.find_peaks, with peak_prominences and peak_widths), as R pracma::findpeaks(x, minpeakheight = 2.5).

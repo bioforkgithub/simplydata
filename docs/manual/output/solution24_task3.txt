@@ -1,0 +1,8 @@
+A continuous system: output / input = 1 / (s**2 + 0.8*s + 4). Poles -0.4 +/- 1.96i: stable (every pole has a negative real part). Steady gain 0.25: a constant input of 1 settles at 0.25.
+Method: SciPy signal.lti, as R control::tf(num, den).
+A continuous system: output / input = (2*s + 2) / (s). Poles 0: not stable (a pole lies on the imaginary axis, so the output never settles).
+Method: SciPy signal.lti, as R control::tf(num, den).
+In series: output / input = (2*s + 2) / (s**3 + 0.8*s**2 + 4*s).
+Method: polynomial arithmetic (numpy.polynomial), as R control::series(sys1, sys2).
+With negative feedback: output / input = (2*s + 2) / (s**3 + 0.8*s**2 + 6*s + 2).
+Method: polynomial arithmetic (numpy.polynomial), as R control::feedback(sys1, sys2).

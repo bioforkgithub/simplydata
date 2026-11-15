@@ -72,9 +72,10 @@ Install once: `pip install "simplydata[r]"`, R from https://cran.r-project.org, 
   `trend::sens.slope`) and the Mann-Kendall test (R `trend::mk.test` itself); repeats_every= gives the seasonal test
   and slope (R `trend::smk.test`, `trend::sea.sens.slope`). Without R the slope is still given.
 - `table.forecast("visitors", sorted_by="month", steps_ahead=12, repeats_every="year")` and `nums.forecast(...)`:
-  the next values with a 95 % interval (interval=), the time column carried on. method="exponential smoothing"
+  the next values with a 95 % prediction interval (interval=; columns "forecast 95 % prediction low" / "high"),
+  the time column carried on. method="exponential smoothing"
   (R `HoltWinters`, with trend= and season "added" or "multiplied"), "last value", "same season last time",
-  "average", "straight on" (R `forecast::naive`, `snaive`, `meanf`, `rwf(drift = TRUE)`) or "arima" with order=
+  "average", "straight on" ("drift" and "line from first to last" accepted) (R `forecast::naive`, `snaive`, `meanf`, `rwf(drift = TRUE)`) or "arima" with order=
   and seasonal_order= (R `arima(method = "ML")`). check_on_last=12 holds back the last rows and measures the
   error (R `forecast::accuracy`: MAE, RMSE, MAPE, MASE); show="model" gives the fitted weights or estimates. A
   Ljung-Box test says whether the leftover errors look like noise. All in R itself (statsmodels' exponential
@@ -83,7 +84,7 @@ Install once: `pip install "simplydata[r]"`, R from https://cran.r-project.org, 
   the last rows and ranked by MASE on them (R `forecast::accuracy`). Needs `simplydata[r]`.
 - `table.find_change_points("nitrate", sorted_by="date", for_each="station")`: where the average (or, with
   change="average and spread", also the spread) jumps, by R `changepoint::cpt.mean` / `cpt.meanvar` (PELT,
-  penalty="mbic" as R); one row per stretch with its average. Needs `simplydata[r]`.
+  penalty="mbic" as R); one row per piece with its average. Needs `simplydata[r]`.
 - `sdata.dates("2026-01-01", to="2026-12-31", every="day")` (or how_many=; every="month", "15 minutes", "2 weeks"
   ...): a one-column table of regular dates. Month steps count from the first date, so a run from the 31st stays
   on the month's last day (pandas DateOffset; R's seq(by = "month") overflows instead).
@@ -111,6 +112,21 @@ Install once: `pip install "simplydata[r]"`, R from https://cran.r-project.org, 
   `sdata.window_shape(...)` (SciPy; as R gsignal).
 - `.wav` sound files: `sdata.numbers("call.wav", channel=1)` reads the readings (as R tuneR::readWave) and the numbers
   remember their time step; `nums.save("tone.wav", bits=16)` writes one (SciPy io.wavfile).
+- `table.add_envelope_column(...)` (show="envelope", "phase" or "frequency"; SciPy hilbert, as R gsignal::hilbert),
+  `sinc(x)` in formulas (as NumPy), and `show_filter=True` on the filter words (the filter's Bode chart; a file
+  name saves it).
+- Linear systems: `sdata.system("1 / (s**2 + 2*s + 5)")` (or numerator= / denominator=, poles= / zeros= / gain=,
+  the matrices a=, b=, c=, d=; z and time_step= for a system in steps) with `step_response` (rise time, settling
+  time, overshoot), `impulse_response`, `response_to(inputs)`, `frequency_response` (gain and phase margins),
+  `poles`, `zeros`, `is_stable`, `steady_gain`, `in_steps(time_step=, method=)`, `then`, `add`, `with_feedback`,
+  `table(form=)` and `chart(show="bode" | "step" | "impulse" | "pole-zero" | "nyquist")`. SciPy signal (lti,
+  dlti, step, lsim, freqresp, freqz, cont2discrete, tf2ss), checked against R control, signal and by hand.
+- `sdata.frequency_filter(keep_below=10, time_step=0.005)`: the filter of add_filtered_column as a system in steps.
+- Chart words: `sticks` (a stem chart), `autocorrelation_bars`, `cross_correlation_bars`, `lag_dots`,
+  `trend_and_season` (four panels), `forecast` (dashed line and interval band after the lines), `spectrum`,
+  `spectrum_over_time` (SciPy spectrogram) and `peak_dots`. They draw the numbers of the table words.
+- `chart.smooth_line(method=...)` takes the methods of `nums.smooth` ("moving average", "median",
+  "savitzky-golay", "exponential", "gaussian", "whittaker", "wiener") for evenly spaced x.
 - New practice table `visitors`: monthly visitors to two made-up museums, 2014 to 2025.
 - New practice table `river`: daily water level and nitrate at two made-up stations, 2024 to 2025, with
   missing days and a few empty cells.

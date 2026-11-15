@@ -1,2 +1,33 @@
-The strongest cycle in "vibration" has frequency 5 per unit of "time" (it repeats every 0.2 units of "time") and holds 65 % of the variance; next: 20 per unit of "time" (11 %) and 50 per unit of "time" (3 %).
-Method: periodogram (squared size of the Fourier transform, one-sided, scaled so the powers add up to the variance), as 2 x R spec.pgram(x, taper = 0, detrend = FALSE, fast = FALSE)$spec. Readings: one reading every 0.005 in "time" (1000 readings).
+31 dates from 2026-03-01 to 2026-03-31, one every day.
+         date
+1  2026-03-01
+2  2026-03-02
+3  2026-03-03
+4  2026-03-04
+5  2026-03-05
+6  2026-03-06
+7  2026-03-07
+8  2026-03-08
+9  2026-03-09
+10 2026-03-10
+11 2026-03-11
+12 2026-03-12
+13 2026-03-13
+14 2026-03-14
+15 2026-03-15
+16 2026-03-16
+17 2026-03-17
+18 2026-03-18
+19 2026-03-19
+20 2026-03-20
+21 2026-03-21
+22 2026-03-22
+23 2026-03-23
+24 2026-03-24
+25 2026-03-25
+26 2026-03-26
+27 2026-03-27
+28 2026-03-28
+29 2026-03-29
+30 2026-03-30
+31 2026-03-31

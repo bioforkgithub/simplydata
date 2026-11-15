@@ -201,3 +201,75 @@ def test_wav_round_trip(tmp_path, capsys):
     assert values(back) / 32767 == pytest.approx(values(nums), abs=1e-4)
     with pytest.raises(SimplydataError, match="time_step="):
         sdata.numbers([0.1, 0.2]).save(str(tmp_path / "x.wav"))
+
+
+@pytest.mark.parametrize("engine", ["pandas", "polars"])
+def test_add_envelope_column_matches_r(engine, capsys):
+    from simplydata.table import table as make_table
+
+    data = sdata.example("sensor")
+    t = make_table(data) if engine == "pandas" else make_table(pytest.importorskip("polars").from_pandas(data))
+    t.add_envelope_column("size", from_column="signal", sorted_by="time")
+    t.add_envelope_column("turn", from_column="signal", show="frequency", sorted_by="time")
+    t.add_envelope_column(from_column="signal", show="phase")
+    got = t._frame.to_pandas() if hasattr(t._frame, "to_pandas") else t._frame
+    # R: h <- gsignal::hilbert(x); Mod(h)[c(1, 500, 1000)]
+    assert got["size"].to_numpy()[[0, 499, 999]] == pytest.approx(
+        [0.954709332626447, 0.453261712062559, 0.122856561154862], rel=1e-10)
+    # R: ph <- unwrap(Arg(h)) * 180 / pi; ph[c(1, 500)]; (diff(ph) / 360 / 0.005)[c(1, 500, 999)]
+    assert got["signal_phase"].to_numpy()[[0, 499]] == pytest.approx([-104.429336719275, 6864.45442085428], rel=1e-10)
+    assert got["turn"].to_numpy()[[0, 499, 998]] == pytest.approx(
+        [40.0246074443493, -3.48555707784928, -55.8621502064792], rel=1e-8)
+    assert np.isnan(float(got["turn"].to_numpy()[999]))
+    out = capsys.readouterr().out
+    assert 'The frequency of "signal" (cycles per unit of "time") in order of "time"' in out
+    assert "gsignal::hilbert" in out
+    t.undo()
+    assert "signal_phase" not in t._frame.columns
+    with pytest.raises(SimplydataError, match="already a column"):
+        t.add_envelope_column("size", from_column="signal")
+
+
+def test_add_envelope_column_for_each():
+    import pandas as pd
+
+    data = sdata.example("sensor").assign(half=["first"] * 500 + ["second"] * 500)
+    t = sdata.table(data)
+    t.add_envelope_column("size", from_column="signal", sorted_by="time", for_each="half")
+    size = t._frame["size"].to_numpy()
+    # R: Mod(gsignal::hilbert(x[1:500]))[c(1, 500)], Mod(gsignal::hilbert(x[501:1000]))[c(1, 500)]
+    assert size[[0, 499, 500, 999]] == pytest.approx(
+        [0.339299130140183, 0.76920013401219, 0.954272677944954, 0.441922202475026], rel=1e-10)
+
+
+@pytest.mark.parametrize("engine", ["pandas", "polars"])
+def test_sinc_in_formulas_matches_r(engine):
+    import pandas as pd
+
+    from simplydata.table import table as make_table
+
+    data = pd.DataFrame({"x": [0, 0.5, 1.5, -0.25, 3]})
+    t = make_table(data) if engine == "pandas" else make_table(pytest.importorskip("polars").from_pandas(data))
+    t.add_column("s", "sinc(x)")
+    got = t._frame["s"].to_list()
+    # R: ifelse(x == 0, 1, sin(pi * x) / (pi * x))
+    assert got == pytest.approx([1, 0.636619772367581, -0.212206590789194, 0.900316316157106, 0], rel=1e-12,
+                                abs=1e-15)
+    from simplydata._maths_formula import read_formula
+
+    assert float(read_formula("sinc(x / 2)")({"x": 1.0})) == pytest.approx(0.636619772367581, rel=1e-12)
+
+
+def test_show_filter_saves_the_filter_chart(tmp_path, capsys):
+    nums = sensor()
+    nums.keep_frequencies(below=10, time_step=0.005, show_filter=str(tmp_path / "filter.png"))
+    assert (tmp_path / "filter.png").exists()
+    assert "Saved the chart of the filter" in capsys.readouterr().out
+    # the filtered numbers are the same as without the chart (R: signal::filtfilt(signal::butter(4, 0.1), x)[500])
+    assert values(nums)[499] == pytest.approx(0.360961693964092, rel=1e-8)
+    t = sdata.table(sdata.example("sensor"))
+    t.add_filtered_column("hum", from_column="signal", remove_at=50, sorted_by="time",
+                          show_filter=str(tmp_path / "notch.png"))
+    assert (tmp_path / "notch.png").exists()
+    with pytest.raises(SimplydataError, match="show_filter="):
+        sensor().keep_frequencies(below=10, time_step=0.005, show_filter=3)

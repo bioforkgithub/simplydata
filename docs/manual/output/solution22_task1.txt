@@ -1,0 +1,3 @@
+Kept 144 of 288 rows.
+Forecast of "visitors" for the next 12 months by the same season last time (each future step is the reading one cycle (12 readings) earlier). Next month: 1871 (95 % prediction interval 1642 to 2100); in 12 months: 2072 (1843 to 2301). The leftover one-step errors still hold a pattern (Ljung-Box up to 24 rows back, p < 0.0001): another method may do better.
+Method: the same season last time (each future step is the reading one cycle (12 readings) earlier), as R forecast::snaive(x, h); 95 % intervals (run in R).

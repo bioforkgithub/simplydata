@@ -47,7 +47,7 @@ import simplydata as sdata
 sdata.lesson(1)
 ```
 
-There are twenty-one short lessons. Lessons 1 to 8 teach charts, from your first chart to
+There are twenty-four short lessons. Lessons 1 to 8 teach charts, from your first chart to
 animations. Lessons 9 to 12 teach tables: looking at your data, choosing rows and columns,
 cleaning it, and summing it up. Lesson 13 teaches numbers (lists and grids of numbers), and
 lesson 14 the statistical tests: is a difference real, or could it be chance? Lesson 15 puts it
@@ -56,8 +56,10 @@ Lessons 16 to 20 go further: models (multiple, logistic, Poisson and mixed regre
 imputation), patterns across many columns (PCA, clustering, Bray-Curtis distances, NMDS,
 PERMANOVA), survival curves and Cox models, power analysis, fitting curves and formulas,
 finding the smallest or biggest value and solving equations, distributions and chances, and
-values between the points you measured. Lesson 21 starts on signals and time series: the
-repeating cycles in a recording (its spectrum) and whether a series stays steady. Each
+values between the points you measured. Lessons 21 to 24 cover time series (dates, missing days,
+time windows, smoothing and trend), forecasts checked on held-back months, cycles in a recording
+(spectra, filters, peaks, and whether a series stays steady) and linear systems (step and
+frequency responses, feedback). Each
 lesson has an example you can run, says what every line does, explains the idea behind it
 (average or median, standard deviation or standard error, p-values) and ends with a small task
 to try yourself.
@@ -94,7 +96,7 @@ the manual for each lesson and word, and the answers at the back.
 ## Manual
 
 **[The simplydata manual (PDF)](https://github.com/bioforkgithub/simplydata/blob/main/docs/manual/simplydata_manual.pdf)** has everything in one book:
-all twenty-one lessons with the real charts and output they make, every word explained (its options,
+all twenty-four lessons with the real charts and output they make, every word explained (its options,
 an example you can run and the library that does the work underneath), the data science ideas
 behind the numbers (average or median, standard deviation or standard error, confidence intervals,
 p-values, effect sizes, and which statistical test to use when), and a worked solution for every

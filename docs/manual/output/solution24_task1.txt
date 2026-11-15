@@ -1,0 +1,4 @@
+A continuous system: output / input = 1 / (s**2 + 2*s + 4). Poles -1 +/- 1.732i: stable (every pole has a negative real part). Steady gain 0.25: a constant input of 1 settles at 0.25.
+Method: SciPy signal.lti, as R control::tf(num, den).
+Step response: the output settles at 0.25, peaks at 0.2908 at time 1.809 (overshoot 16.3 %), rise time 0.8205 (10 % to 90 %), settling time 4.037 (within 2 %).
+Method: SciPy signal.step, as R control::step(sys, t); rise and settling times read from the response.

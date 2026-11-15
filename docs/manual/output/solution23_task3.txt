@@ -1,0 +1,2 @@
+Found 1 dip in "signal" at most -2; the lowest is -2.36 at time 0.94.
+Method: local bottoms (SciPy signal.find_peaks, with peak_prominences and peak_widths), as R pracma::findpeaks(-x, minpeakheight = 2).

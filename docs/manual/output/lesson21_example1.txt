@@ -1,2 +1,14 @@
-The strongest cycle in "signal" has frequency 5 per unit of "time" (it repeats every 0.2 units of "time") and holds 68 % of the variance; next: 20 per unit of "time" (11 %) and 50 per unit of "time" (4 %).
-Method: periodogram (squared size of the Fourier transform, one-sided, scaled so the powers add up to the variance), as 2 x R spec.pgram(x, taper = 0, detrend = FALSE, fast = FALSE)$spec. Readings: one reading every 0.005 in "time" (1000 readings).
+12 dates from 2026-01-01 to 2026-12-01, one every month.
+         date
+1  2026-01-01
+2  2026-02-01
+3  2026-03-01
+4  2026-04-01
+5  2026-05-01
+6  2026-06-01
+7  2026-07-01
+8  2026-08-01
+9  2026-09-01
+10 2026-10-01
+11 2026-11-01
+12 2026-12-01
