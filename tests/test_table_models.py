@@ -164,7 +164,7 @@ def test_logistic_regression_matches_r_glm(school, engine, capsys):
     assert 'counted as yes: "passed" = "yes"' in out
     # R: deviance(g1), g1$null.deviance, AIC(g1): 198.963 246.323 204.963
     assert "Residual deviance 199 on 177 df (with no columns: 246 on 179 df)" in out
-    assert "likelihood-ratio chi-square = 47.4, df = 2" in out and "AIC = 205 and" in out
+    assert "likelihood-ratio chi-square = 47.4, df = 2" in out and "AIC 205, BIC" in out
     assert "multiplies the odds of yes by 1.66 (95 % CI 1.40 to 1.98)" in out
 
 
@@ -200,7 +200,7 @@ def test_poisson_regression_matches_r_glm(school, engine, capsys):
     check(got["school (whole column)"], {"statistic": 6.06666875815, "p-value": 0.86888}, rel=1e-5)
     out = capsys.readouterr().out
     # R: deviance(p1) 187.406, null 255.330, AIC 707.449
-    assert "Residual deviance 187 on 167 df (with no columns: 255 on 179 df)" in out and "AIC = 707 and" in out
+    assert "Residual deviance 187 on 167 df (with no columns: 255 on 179 df)" in out and "AIC 707, BIC" in out
     assert "vary more than a Poisson" not in out  # R: deviance / df.residual = 1.12
 
 
@@ -281,7 +281,7 @@ def test_logistic_mixed_model_matches_glmer(school, capsys, needs_r):
           rel=1e-4)
     assert got["hours"]["statistic name"] == "z"
     assert "lme4::glmer(passed ~ hours + breakfast + (1 | school), family = binomial)" in out
-    assert "12 groups" in out and "Variance between groups 2.19 (on the log-odds scale)." in out and "AIC = 184 and" in out
+    assert "12 groups" in out and "Variance between groups 2.19 (on the log-odds scale)." in out and "AIC 184, BIC" in out
 
 
 def test_poisson_mixed_model_matches_glmer_singular(school, capsys, needs_r):
@@ -290,7 +290,7 @@ def test_poisson_mixed_model_matches_glmer_singular(school, capsys, needs_r):
     # R: m2 <- glmer(days_absent ~ hours + (1 | school), data = s, family = poisson): a singular fit
     check(got["(intercept)"], {"log rate ratio": 1.81555024096691, "standard error": 0.0941202157125703}, rel=1e-4)
     check(got["hours"], {"log rate ratio": -0.149415341895755, "standard error": 0.0199192119281967}, rel=1e-4)
-    assert "AIC = 694" in out and "singular fit" in out
+    assert "AIC 694, BIC" in out and "singular fit" in out
 
 
 def test_mixed_model_other_outcomes_say_which_work(school):

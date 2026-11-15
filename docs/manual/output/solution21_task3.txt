@@ -1,0 +1,8 @@
+Added "predicted marks": the fitted value of "marks" from "hours" and "sleep" (least squares, 161 rows). 19 rows with an empty cell stay empty.
+Added "predicted marks 95 % prediction low" and "predicted marks 95 % prediction high": the 95 % prediction interval, where one new row with these values would fall (wider than the interval of the average, as R predict(interval = "prediction"); statsmodels get_prediction()).
+     school  ...  predicted marks 95 % prediction high
+1  School A  ...                             63.960978
+2  School A  ...                                   NaN
+3  School A  ...                             67.890419
+
+[3 rows x 12 columns]

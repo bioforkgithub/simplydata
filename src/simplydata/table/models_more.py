@@ -264,21 +264,31 @@ def explain_more(words, step, column, outcome, pieces, model):
     return words._new_table(nw.from_dict(data, backend=words._frame.implementation))
 
 
+# a measure of fit: (its words on the "How well it fits:" line, its method on the Method line)
 PSEUDO_WORDS = {
-    "mcfadden": "McFadden's pseudo R squared = {v} (1 - log-likelihood / log-likelihood with no columns, as R "
-                "performance::r2_mcfadden())",
-    "ferrari": "pseudo R squared = {v} (the squared correlation of the fitted and the observed shares on the logit "
-               "scale, as R betareg and performance::r2())",
+    "mcfadden": ("pseudo R squared {v} (0 = no better than no columns)",
+                 "McFadden's pseudo R squared (1 - log-likelihood / log-likelihood with no columns) as R "
+                 "performance::r2_mcfadden()"),
+    "ferrari": ("pseudo R squared {v} (how closely the fitted shares follow the real ones)",
+                "the pseudo R squared of beta regression (the squared correlation of the fitted and the observed "
+                "shares on the logit scale) as R betareg and performance::r2()"),
 }
 
 
-def fit_line(fit, pseudo=None, start="", which=""):
-    """The fit block of an explain printout: an R squared (when there is one), AIC and BIC."""
+def fit_line(fit, pseudo=None, start="", which="", method=""):
+    """The fit block of an explain printout, two lines: in plain words how well it fits (an R squared when
+    there is one, AIC and BIC), then the Method line with the R calls that give the same numbers.
+
+    start and method are the words and the method of the R squared, when the caller has one; pseudo names one of
+    PSEUDO_WORDS instead. A pseudo R squared is never read as "explains X %": it does not mean that."""
     if pseudo and fit.get("pseudo") is not None and np.isfinite(fit["pseudo"]):
-        start = PSEUDO_WORDS[pseudo].format(v=f"{fit['pseudo']:.3f}")
-    start = f"{start}; " if start else ""
-    return (f"How well it fits: {start}AIC = {_num(fit['aic'])} and BIC = {_num(fit['bic'])} (as R AIC() and "
-            f"BIC(){which}; smaller is better when models of the same rows are compared, see compare_models).")
+        words, how = PSEUDO_WORDS[pseudo]
+        start, method = words.format(v=f"{fit['pseudo']:.3f}"), how
+    start = f"{start}. " if start else ""
+    method = f"{method}; " if method else ""
+    return (f"How well it fits: {start}AIC {_num(fit['aic'])}, BIC {_num(fit['bic'])}: smaller is better, but only "
+            f"to compare models of the same rows (compare_models).\n"
+            f"Method: {method}AIC and BIC{which} as R AIC(), BIC().")
 
 
 def check_rows(step, n, p):

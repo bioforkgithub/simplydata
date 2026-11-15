@@ -111,7 +111,8 @@ class ModelToolWords:
         Tukey's adjustment for making many comparisons. outcome="yes or no" gives the chance
         of yes in each group and odds ratios for the pairs; the count outcomes the average count
         and rate ratios; "positive numbers" the average and ratios; "shares" the average share;
-        "ordered groups" and "groups" the chance of each of the outcome's groups. grouped_by= uses
+        "ordered groups" and "groups" the chance of each of the outcome's groups (column "model chance"
+        instead of "model average"). grouped_by= uses
         the mixed model (grouped_by=["school", "class"] for classes inside schools). Done by R emmeans::emmeans() and pairs() (needs R: pip install
         "simplydata[r]"). Gives back a table with one row per group and one per pair. Other name:
         marginal means (R emmeans).
@@ -210,8 +211,8 @@ class ModelToolWords:
             row = {"term": str(out["level"][i])}
             if chances:
                 row[f"{column} group"] = cls[i]
-            row.update({"model average": float(out["average"][i]), "95 % CI low": float(out["low"][i]),
-                        "95 % CI high": float(out["high"][i]), "standard error": float(out["se"][i]),
+            row.update({"model chance" if chances else "model average": float(out["average"][i]),
+                        "95 % CI low": float(out["low"][i]), "95 % CI high": float(out["high"][i]), "standard error": float(out["se"][i]),
                         "degrees of freedom": float(out["df"][i])})
             rows.append(row)
         for i, (a, b) in enumerate(contrasts):

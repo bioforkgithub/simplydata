@@ -213,7 +213,7 @@ def test_model_averages_for_ordered_groups_and_groups_are_chances(capsys, needs_
     got = by_term(make_table(graded_school()).model_averages_of(
         "grade", for_each="breakfast", using=["hours", "breakfast"], outcome="ordered groups",
         in_order=["low", "middle", "high"]), key=("term", "grade group"))
-    assert got[("no", "low")]["model average"] == pytest.approx(0.164241312668601, rel=1e-4)
+    assert got[("no", "low")]["model chance"] == pytest.approx(0.164241312668601, rel=1e-4)
     assert got[("yes", "high")]["95 % CI high"] == pytest.approx(0.384045508990566, rel=1e-4)
     assert got[("no - yes", "high")]["difference in chance"] == pytest.approx(-0.1031396876882832, rel=1e-4)
     out = capsys.readouterr().out
@@ -221,7 +221,7 @@ def test_model_averages_for_ordered_groups_and_groups_are_chances(capsys, needs_
     # R: emmeans(nnet::multinom(field ~ clover + grazed), ~ grazed | field, mode = "prob"): df 6
     got = by_term(make_table(sdata.example("meadow")).model_averages_of(
         "field", for_each="grazed", using=["clover", "grazed"], outcome="groups"), key=("term", "field group"))
-    assert got[("no", "North field")]["model average"] == pytest.approx(0.348158013128585, rel=1e-4)
+    assert got[("no", "North field")]["model chance"] == pytest.approx(0.348158013128585, rel=1e-4)
     assert got[("no - yes", "South field")]["p-value (Tukey)"] == pytest.approx(0.5382, abs=5e-4)
 
 
@@ -266,21 +266,21 @@ def test_prediction_intervals_match_predict(school, capsys):
     # R: l <- lm(marks ~ hours + breakfast, s); predict(l, interval = "confidence")[1:2, ]
     school.add_predicted_column("marks", using=["hours", "breakfast"], interval=95)
     got = school.as_pandas()
-    assert got["predicted marks low"][:2].tolist() == pytest.approx([42.3066608832910, 43.3235488908063], rel=1e-10)
-    assert got["predicted marks high"][:2].tolist() == pytest.approx([46.595751594717, 46.929865113441], rel=1e-10)
+    assert got["predicted marks 95 % CI low"][:2].tolist() == pytest.approx([42.3066608832910, 43.3235488908063], rel=1e-10)
+    assert got["predicted marks 95 % CI high"][:2].tolist() == pytest.approx([46.595751594717, 46.929865113441], rel=1e-10)
     school.undo()
     # R: predict(l, interval = "prediction", level = 0.9)[1:2, ]
     school.add_predicted_column("marks", using=["hours", "breakfast"], interval=90, for_new_rows=True)
     got = school.as_pandas()
-    assert got["predicted marks low"][:2].tolist() == pytest.approx([30.0367782261514, 30.7451351510011], rel=1e-10)
-    assert got["predicted marks high"][:2].tolist() == pytest.approx([58.8656342518566, 59.5082788532462], rel=1e-10)
+    assert got["predicted marks 90 % prediction low"][:2].tolist() == pytest.approx([30.0367782261514, 30.7451351510011], rel=1e-10)
+    assert got["predicted marks 90 % prediction high"][:2].tolist() == pytest.approx([58.8656342518566, 59.5082788532462], rel=1e-10)
     assert "90 % prediction interval" in capsys.readouterr().out
     school.undo()
     # R: g <- glm(y ~ hours + breakfast, binomial); p <- predict(g, se.fit = TRUE); plogis(p$fit +- qnorm(0.975) * p$se.fit) (R glm stops at epsilon 1e-8)
     school.add_predicted_column("passed", using=["hours", "breakfast"], outcome="yes or no", interval=95)
     got = school.as_pandas()
-    assert got["predicted passed low"][:2].tolist() == pytest.approx([0.184428388984262, 0.192292479315084], rel=1e-6)
-    assert got["predicted passed high"][:2].tolist() == pytest.approx([0.421326728708436, 0.388231216653463], rel=1e-6)
+    assert got["predicted passed 95 % CI low"][:2].tolist() == pytest.approx([0.184428388984262, 0.192292479315084], rel=1e-6)
+    assert got["predicted passed 95 % CI high"][:2].tolist() == pytest.approx([0.421326728708436, 0.388231216653463], rel=1e-6)
 
 
 def test_prediction_interval_checks(school):
@@ -292,30 +292,30 @@ def test_prediction_interval_checks(school):
         school.add_predicted_column("marks", using=["hours"], interval=150)
 
 
-# ---------------------------------------------------------------- explain(robust=True)
+# ---------------------------------------------------------------- explain(robust_errors=True)
 def test_robust_errors_for_least_squares_match_sandwich(school, capsys):
     # R: l <- lm(marks ~ hours + breakfast, s); v <- sandwich::vcovHC(l, type = "HC3"); lmtest::coeftest(l, v); coefci()
-    got = by_term(school.explain("marks", using=["hours", "breakfast"], robust=True))
+    got = by_term(school.explain("marks", using=["hours", "breakfast"], robust_errors=True))
     assert got["hours"]["standard error"] == pytest.approx(0.2643265988481, rel=1e-9)
     assert got["breakfast (yes)"]["p-value"] == pytest.approx(0.019341, rel=1e-4)
     assert got["breakfast (yes)"]["95 % CI low"] == pytest.approx(0.52623524050107, rel=1e-9)
     out = capsys.readouterr().out
     assert "Wald F with robust errors = 57.8" in out  # lmtest::waldtest(l, vcov = v): F 57.78372
     # R: l2 <- lm(marks ~ hours + school, s); car::Anova(l2, vcov. = vcovHC(l2, type = "HC3")): school F 9.30990
-    got = by_term(school.explain("marks", using=["hours", "school"], robust=True))
+    got = by_term(school.explain("marks", using=["hours", "school"], robust_errors=True))
     assert got["school (whole column)"]["statistic"] == pytest.approx(9.30990, rel=1e-5)
     assert got["school (whole column)"]["p-value"] == pytest.approx(6.2737e-13, rel=1e-4)
 
 
 def test_robust_errors_for_glms_match_sandwich(school, needs_r):
     # R: g <- glm(y ~ hours + breakfast, binomial); lmtest::coeftest(g, vcov. = sandwich::vcovHC(g, type = "HC3"))
-    got = by_term(school.explain("passed", using=["hours", "breakfast"], outcome="yes or no", robust=True))
+    got = by_term(school.explain("passed", using=["hours", "breakfast"], outcome="yes or no", robust_errors=True))
     assert got["hours"]["standard error"] == pytest.approx(0.09450506237416, rel=1e-6)
     assert got["breakfast (yes)"]["p-value"] == pytest.approx(0.25542, rel=1e-4)
     assert got["(intercept)"]["95 % CI low"] == pytest.approx(np.exp(-4.244554061363768), rel=1e-6)
     # R: ga <- glm(days ~ treatment + age, Gamma(link = "log"), tr); coeftest(ga, vcov. = vcovHC(ga, type = "HC3")): z
     got = by_term(make_table(sdata.example("trial")).explain("days", using=["treatment", "age"],
-                                                            outcome="positive numbers", robust=True))
+                                                            outcome="positive numbers", robust_errors=True))
     assert got["age"]["standard error"] == pytest.approx(0.003625833265235, rel=1e-4)
     assert got["treatment (usual care)"]["p-value"] == pytest.approx(0.93169233, rel=1e-4)
     assert got["age"]["statistic name"] == "z"
@@ -323,9 +323,18 @@ def test_robust_errors_for_glms_match_sandwich(school, needs_r):
 
 def test_robust_checks(school):
     with pytest.raises(SimplydataError, match="GEE"):
-        school.explain("marks", using=["hours"], grouped_by="school", robust=True)
+        school.explain("marks", using=["hours"], grouped_by="school", robust_errors=True)
     with pytest.raises(SimplydataError, match="True or False"):
-        school.explain("marks", using=["hours"], robust="yes")
+        school.explain("marks", using=["hours"], robust_errors="yes")
+
+
+def test_old_name_robust_still_works_with_a_note(school, capsys):
+    new = by_term(school.explain("marks", using=["hours", "breakfast"], robust_errors=True))
+    capsys.readouterr()
+    old = by_term(school.explain("marks", using=["hours", "breakfast"], robust=True))
+    out = capsys.readouterr().out
+    assert 'Note: "robust=" is now called "robust_errors=".' in out
+    assert old["hours"]["standard error"] == new["hours"]["standard error"]
 
 
 # ---------------------------------------------------------------- grouped_by=[outer, inner] (groups inside groups)

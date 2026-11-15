@@ -322,7 +322,7 @@ def gam_r(model, smooth):
                  python_note="statsmodels GLMGam chooses the smoothness another way and gives other numbers",
                  **values)
     # each row of R's smooth table by its own name, s(v1), back to the column it belongs to (R's rows follow the
-    # formula, not smooth_for=)
+    # formula, not curve_for=)
     back = {f"s({key})": v for v, key in safe.items()}
     out["sname"] = [back[str(name)] for name in np.atleast_1d(out["sname"])]
     return out
@@ -372,7 +372,7 @@ def robust_cov(model):
     code += "unname(as.matrix(sandwich::vcovHC(m, type = 'HC3')))"
     out = r_call(code, packages=packages, source="sandwich::vcovHC",
                  what="Robust standard errors for a GLM (R sandwich::vcovHC(type = \"HC3\"))",
-                 python_note="robust=True works without R for outcome=\"numbers\" (statsmodels); statsmodels' GLM "
+                 python_note="robust_errors=True works without R for outcome=\"numbers\" (statsmodels); statsmodels' GLM "
                              "gives only HC0, which is smaller with few rows", **values)
     k = model["X"].shape[1]
     return np.asarray(out, dtype=float).reshape(k, k)

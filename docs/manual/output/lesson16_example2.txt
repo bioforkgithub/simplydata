@@ -4,7 +4,8 @@ Explaining "passed" from "hours" and "breakfast" (180 rows). Each odds ratio bel
   breakfast "yes" against "no": the odds of yes is 1.52 times as high (95 % CI 0.747 to 3.07); could easily be chance (p = 0.250).
 Method: logistic regression, as R glm(passed ~ hours + breakfast, family = binomial); counted as yes: "passed" = "yes". Wald 95 % intervals and z-tests, as R confint.default() and summary().
 Residual deviance 199 on 177 df (with no columns: 246 on 179 df). The model as a whole (likelihood-ratio chi-square = 47.4, df = 2): very unlikely to be chance (p < 0.0001).
-How well it fits: McFadden's pseudo R squared = 0.192 (1 - log-likelihood / log-likelihood with no columns, as R performance::r2_mcfadden()); AIC = 205 and BIC = 215 (as R AIC() and BIC(); smaller is better when models of the same rows are compared, see compare_models).
+How well it fits: pseudo R squared 0.192 (0 = no better than no columns). AIC 205, BIC 215: smaller is better, but only to compare models of the same rows (compare_models).
+Method: McFadden's pseudo R squared (1 - log-likelihood / log-likelihood with no columns) as R performance::r2_mcfadden(); AIC and BIC as R AIC(), BIC().
 A large p-value does not show that there is no effect, only that the data cannot tell. A link does not show that one thing causes the other.
 Note: 19 rows with an empty cell in "days_absent" or "hours" or "sleep" were skipped.
 Explaining "days_absent" from "hours" and "sleep" (161 rows). Each rate ratio below holds the other columns fixed:
@@ -13,7 +14,8 @@ Explaining "days_absent" from "hours" and "sleep" (161 rows). Each rate ratio be
   sleep: each 1 more "sleep" multiplies the expected count by 0.886 (95 % CI 0.803 to 0.977); unlikely to be chance (p = 0.015).
 Method: Poisson regression, as R glm(days_absent ~ hours + sleep, family = poisson). Wald 95 % intervals and z-tests, as R confint.default() and summary().
 Residual deviance 165 on 158 df (with no columns: 215 on 160 df). The model as a whole (likelihood-ratio chi-square = 49.9, df = 2): very unlikely to be chance (p < 0.0001).
-How well it fits: McFadden's pseudo R squared = 0.077 (1 - log-likelihood / log-likelihood with no columns, as R performance::r2_mcfadden()); AIC = 603 and BIC = 612 (as R AIC() and BIC(); smaller is better when models of the same rows are compared, see compare_models).
+How well it fits: pseudo R squared 0.077 (0 = no better than no columns). AIC 603, BIC 612: smaller is better, but only to compare models of the same rows (compare_models).
+Method: McFadden's pseudo R squared (1 - log-likelihood / log-likelihood with no columns) as R performance::r2_mcfadden(); AIC and BIC as R AIC(), BIC().
 A link does not show that one thing causes the other.
 Added "predicted marks": the fitted value of "marks" from "hours" and "breakfast" (least squares, 180 rows).
      school pupil  class  ... passed  days_absent  predicted marks

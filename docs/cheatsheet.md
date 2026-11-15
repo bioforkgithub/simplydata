@@ -27,8 +27,9 @@ grid = sdata.number_grid([[3, 5, 2], [8, 6, 4]])
 
 In Python, `sdata.help("bars")` explains any word, `sdata.words()` prints this list and
 `sdata.lesson(1)` starts the one-day course (lessons 9 to 12 are about tables, lesson 13
-about numbers, lesson 14 about statistical tests, lesson 15 puts it all together, and lessons 16 to 20
-go further: models, patterns, survival, fitting curves, finding and solving, and distributions).
+about numbers, lesson 14 about statistical tests, lesson 15 puts it all together, and lessons 16 to 21
+go further: models, patterns, survival, fitting curves, finding and solving, distributions, and
+checking a model).
 
 Every example runs as written on the practice table in the *Table* column:
 for example `weather = sdata.example("weather")` then `chart = sdata.chart(weather)`,

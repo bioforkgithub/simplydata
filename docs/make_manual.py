@@ -189,10 +189,10 @@ UNDERNEATH = {
     "table.explain": "statsmodels (OLS; GLM for yes/no and counts, as R glm; MixedLM for grouped_by=; GEE for "
                      "effects=\"for the whole population\", as R geepack::geeglm; MICEData to fill in empty cells; "
                      "eval_measures aic and bic and McFadden's pseudo R squared, as R AIC, BIC and "
-                     "performance::r2_mcfadden); R mgcv::gam for smooth_for= (needs R); "
+                     "performance::r2_mcfadden); R mgcv::gam for curve_for= (needs R); "
                      "R itself (needs R) for lme4::glmer, lme4::lmer with own_slope_for=, lmerTest for "
                      "p_value_by=\"satterthwaite\", geepack for within_groups=\"in time order\" and GEE with out_of=, car::Anova and "
-                     "effectsize for test_type=, sandwich::vcovHC for robust=True with yes/no and counts, and mice::pool for "
+                     "effectsize for test_type=, sandwich::vcovHC for robust_errors=True with yes/no and counts, and mice::pool for "
                      "multiple imputation; R performance::r2_nakagawa for the R squared of every grouped_by= model",
     "table.add_predicted_column": "statsmodels (the same model as table.explain; get_prediction for interval= and for_new_rows=)",
     "table.model_averages_of": "R emmeans (emmeans::emmeans and pairs, Tukey's adjustment; lme4 and pbkrtest for "

@@ -53,7 +53,7 @@ def test_ordered_groups_match_polr(capsys):
     check(got["cut-point low | middle"], {"log odds ratio": 1.5170810109757})
     check(got["cut-point middle | high"], {"log odds ratio": 4.60008359109989})
     assert "(low < middle < high)" in out and "MASS::polr(grade ~ hours + breakfast)" in out
-    assert "Cut-points between the groups" in out and "AIC = 300 and" in out
+    assert "Cut-points between the groups" in out and "AIC 300, BIC" in out
     assert 'the odds of a higher "grade" are 1.77 times as high' in out
 
 
@@ -81,7 +81,7 @@ def test_groups_match_multinom(capsys):
     check(got[("South field", "clover")], {"log odds ratio": -0.0222104124408451,
                                             "standard error": 0.0404653363238205}, rel=1e-5)
     assert 'Being "River field" rather than "North field":' in out and "nnet::multinom" in out
-    assert "AIC = 70.8" in out
+    assert "AIC 70.8, BIC" in out
 
 
 # ---------------------------------------------------------------- shares
@@ -130,7 +130,7 @@ def test_probit_link_matches_r(capsys):
     check(got["(intercept)"], {"effect (probit scale)": -1.83120076540911, "standard error": 0.30768829939729},
           rel=1e-5)
     assert 'binomial(link = "probit")' in out and "changes the probit of yes by 0.302" in out
-    assert "Each effect (probit scale) below" in out and "AIC = 205" in out
+    assert "Each effect (probit scale) below" in out and "AIC 205, BIC" in out
 
 
 def test_link_checks():

@@ -51,7 +51,8 @@ Choices (the same defaults as R, so results can be checked there):
   Rubin's rules, with the Barnard-Rubin degrees of freedom (as R mice::pool()). The filling
   is random: seed= fixes it.
 
-How well it fits (one line at the end): AIC and BIC as R AIC() and BIC(), with R squared for least
+How well it fits (two lines at the end: the numbers in plain words, then a Method line with the R
+calls): AIC and BIC as R AIC() and BIC(), with R squared for least
 squares, McFadden's pseudo R squared (1 - log-likelihood / that of the model with no columns, as R
 performance::r2_mcfadden()) for yes or no, counts and negative binomial, and Nakagawa's R squared
 (marginal and conditional, R performance::r2_nakagawa() itself, needs R) for mixed models.
@@ -1128,7 +1129,7 @@ class ModelWords:
             return "Quasi-Poisson has no likelihood, so there is no AIC, BIC or pseudo R squared (as R)."
         if kind == "gee":
             return "GEE has no likelihood, so there is no AIC, BIC or R squared."
-        start, which = "", ""
+        start, which, method = "", "", ""
         if kind == "glmm":
             aic, bic, nakagawa = fit["aic"], fit["bic"], fit.get("nakagawa")
         else:
@@ -1144,7 +1145,8 @@ class ModelWords:
                 which = " of the REML fit"
             else:  # yes or no, counts, negative binomial (theta counts)
                 llf, k = fit["loglik"], p + (1 if kind == "negbin" else 0)
-                start = PSEUDO_WORDS["mcfadden"].format(v=f"{1 - llf / fit['llnull']:.3f}")
+                start, method = PSEUDO_WORDS["mcfadden"]
+                start = start.format(v=f"{1 - llf / fit['llnull']:.3f}")
             aic, bic = float(measures.aic(llf, n, k)), float(measures.bic(llf, n, k))
             nakagawa = fit.get("nakagawa")
             if kind == "mixed" and nakagawa is None:  # random intercepts: R performance::r2_nakagawa() itself
@@ -1154,19 +1156,20 @@ class ModelWords:
                 try:
                     nakagawa = nakagawa_r(model)
                 except RMissing:
-                    return (fit_line({"aic": aic, "bic": bic}, which=which) + "\nNakagawa's R squared for mixed "
-                            "models comes from R performance::r2_nakagawa() (needs R: pip install "
-                            '"simplydata[r]"); left out here.')
+                    return (fit_line({"aic": aic, "bic": bic}, which=which) + "\nThe R squared is left out: for "
+                            'mixed models it comes from R performance (needs R: pip install "simplydata[r]").')
                 except SimplydataError:  # R itself stopped (the refit or performance): no R squared, said plainly
                     nakagawa = None
         if kind in ("glmm", "mixed"):
             if nakagawa is not None and len(nakagawa) == 2 and np.all(np.isfinite(nakagawa)):
-                start = (f"R squared for mixed models (Nakagawa) = {nakagawa[1]:.3f} from the columns alone "
-                         f"(marginal) and {nakagawa[0]:.3f} with the groups too (conditional), as R "
-                         "performance::r2_nakagawa()")
+                start = (f"R squared {nakagawa[1]:.3f} from the columns alone and {nakagawa[0]:.3f} with the groups "
+                         "too")
+                method = ("Nakagawa's R squared for mixed models (marginal: the columns alone; conditional: with the "
+                          "groups) as R performance::r2_nakagawa()")
             else:
-                start = "no R squared (R performance::r2_nakagawa() cannot give one for this model)"
-        return fit_line({"aic": aic, "bic": bic}, start=start, which=which)
+                start = "no R squared for this model"
+                method = "R performance::r2_nakagawa() cannot give one for it"
+        return fit_line({"aic": aic, "bic": bic}, start=start, which=which, method=method)
 
     @staticmethod
     def _random_words(model, grouped_by):
@@ -1259,10 +1262,11 @@ class ModelWords:
         return notes
 
     # ------------------------------------------------------------------ explain
-    @friendly
+    @friendly(renamed={"smooth_for": "curve_for", "robust": "robust_errors"})
     def explain(self, column=None, using=None, outcome="numbers", grouped_by=None, empty_cells="leave out", seed=1,
-                time=None, out_of=None, in_order=None, link=None, test_type=None, own_slope_for=None, robust=False,
-                p_value_by="wald", effects="for the average group", within_groups="alike", smooth_for=None):
+                time=None, out_of=None, in_order=None, link=None, test_type=None, own_slope_for=None,
+                robust_errors=False, p_value_by="wald", effects="for the average group", within_groups="alike",
+                curve_for=None):
         """Explain one column from several others with a model, and say how big each effect is.
 
         table.explain("marks", using=["hours", "breakfast"])   (with sdata.example("school"))
@@ -1299,9 +1303,11 @@ class ModelWords:
         GEE instead (statsmodels, as R geepack::geeglm()): effects averaged over all groups, with
         within_groups="alike" (the default), "in time order" (rows in table order, R geepack) or
         "independent"; GEE takes time=, out_of= (R geepack) and link= for yes or no too.
-        smooth_for="hours" lets "hours" follow a smooth curve instead of a straight line (a
-        generalised additive model, R mgcv::gam(marks ~ s(hours) + ..., method = "REML")). robust=True (experts) gives robust standard errors (sandwich, HC3, as R
-        sandwich::vcovHC()), which stay right when the spread is not the same everywhere.
+        curve_for="hours" lets "hours" follow a curve instead of a straight line (a generalised
+        additive model with a smooth term s(hours), R mgcv::gam(marks ~ s(hours) + ..., method =
+        "REML")). robust_errors=True (experts) gives robust standard errors (sandwich, HC3, as R
+        sandwich::vcovHC()), which stay right when the spread is not the same everywhere; it does
+        not make the model resistant to outliers.
         empty_cells="multiple imputation"
         fills in empty cells 20 times (R mice()) instead of leaving those rows out; seed= fixes
         the random filling. Prints each effect with its 95 % confidence interval and p-value in
@@ -1311,6 +1317,7 @@ class ModelWords:
         A link does not show that one thing causes the other.
         """
         step = "explain"
+        robust, smooth_for = robust_errors, curve_for
         if isinstance(seed, bool) or not isinstance(seed, int):
             raise SimplydataError("seed= is a whole number that fixes the random filling-in, for example seed=1.")
         grouped_by, inner = self._read_nested(step, grouped_by, own_slope_for, p_value_by, effects, robust, test_type)
@@ -1390,7 +1397,7 @@ class ModelWords:
                 str(effects).lower() not in ("for the average group", "average group", "mixed") or robust or \
                 test_type is not None:
             raise SimplydataError("Groups inside groups (a list in grouped_by=) work with the plain mixed model for "
-                                  "now: leave out own_slope_for=, p_value_by=, effects=, robust= and test_type=.")
+                                  "now: leave out own_slope_for=, p_value_by=, effects=, robust_errors= and test_type=.")
         return grouped_by[0], grouped_by[1]
 
     def _inner_column(self, inner):
@@ -1455,27 +1462,27 @@ class ModelWords:
     @staticmethod
     def _check_smooth(smooth_for, outcome, terms, kinds, raw, grouped_by, empty_cells, robust, test_type, time,
                       out_of, link, in_order, keep):
-        """smooth_for=: number columns of using= that get a smooth curve (R mgcv s()); gives the list."""
+        """curve_for=: number columns of using= that get a smooth curve (R mgcv s()); gives the list."""
         smooth = [smooth_for] if isinstance(smooth_for, str) else smooth_for
         if not isinstance(smooth, (list, tuple)) or not smooth or not all(isinstance(s, str) for s in smooth):
-            raise SimplydataError('smooth_for= names the number columns of using= that may follow a smooth curve, for '
-                                  'example smooth_for="hours".')
+            raise SimplydataError('curve_for= names the number columns of using= that may follow a curve, for '
+                                  'example curve_for="hours".')
         if outcome not in ("numbers", "yes or no", "counts"):
-            raise SimplydataError('smooth_for= works with outcome="numbers", "yes or no" and "counts".')
+            raise SimplydataError('curve_for= works with outcome="numbers", "yes or no" and "counts".')
         if grouped_by is not None or empty_cells != "leave out" or robust or test_type is not None or \
                 time is not None or out_of is not None or link is not None or in_order is not None:
-            raise SimplydataError("smooth_for= cannot be used with grouped_by=, multiple imputation, robust=, "
+            raise SimplydataError("curve_for= cannot be used with grouped_by=, multiple imputation, robust_errors=, "
                                   "test_type=, time=, out_of= or link= yet.")
         alone = {term[0] for term in terms if len(term) == 1}
         for name in smooth:
             if name not in alone or any(name in term for term in terms if len(term) > 1):
-                raise SimplydataError(f'smooth_for="{name}" must be a column of using= on its own (not in an '
+                raise SimplydataError(f'curve_for="{name}" must be a column of using= on its own (not in an '
                                       "interaction).")
             if kinds[name] != "number":
-                raise SimplydataError(f'smooth_for="{name}" needs a column of numbers; "{name}" holds groups.')
+                raise SimplydataError(f'curve_for="{name}" needs a column of numbers; "{name}" holds groups.')
             found = len(set(raw[name][keep].tolist()))  # on the rows the model uses, as R mgcv counts them
             if found < 10:
-                raise SimplydataError(f'smooth_for="{name}" needs at least 10 different values to draw a smooth '
+                raise SimplydataError(f'curve_for="{name}" needs at least 10 different values to draw a smooth '
                                       f"curve (R mgcv's default); \"{name}\" has {found} in the rows used.")
         return list(dict.fromkeys(smooth))
 
@@ -1529,8 +1536,8 @@ class ModelWords:
               "R summary.gam().")
         rsq, dev = float(np.atleast_1d(out["rsq"])[0]), float(np.atleast_1d(out["dev"])[0])
         print(fit_line({"aic": float(np.atleast_1d(out["aic"])[0]), "bic": float(np.atleast_1d(out["bic"])[0])},
-                       start=f"adjusted R squared = {rsq:.3f} and {dev * 100:.1f} % of the deviance explained (as R "
-                             "summary.gam())"))
+                       start=f"adjusted R squared {rsq:.3f}, and {dev * 100:.1f} % of the deviance explained",
+                       method="adjusted R squared and deviance explained as R summary.gam()"))
         print("Note: a curve's shape is best seen in a picture: chart.dots(...) with chart.smooth_line() shows it.")
         self._closing(list(p[1:]) + list(sp))
         return self._term_table(part, coef, [], more_rows=rows)
@@ -1538,18 +1545,18 @@ class ModelWords:
     @staticmethod
     def _check_robust(robust, outcome, grouped_by, empty_cells, test_type):
         if not isinstance(robust, bool):
-            raise SimplydataError(f"robust= is True or False, not {robust!r}.")
+            raise SimplydataError(f"robust_errors= is True or False, not {robust!r}.")
         if not robust:
             return
         if grouped_by is not None:
-            raise SimplydataError('robust=True is for models without grouped_by=. For rows in groups, '
+            raise SimplydataError('robust_errors=True is for models without grouped_by=. For rows in groups, '
                                   'effects="for the whole population" (GEE) gives robust standard errors that allow '
                                   'for the groups.')
         if outcome in ("ordered groups", "groups", "shares", "counts with many zeros"):
-            raise SimplydataError(f'robust=True works with outcome="numbers", "yes or no", the count outcomes and '
+            raise SimplydataError(f'robust_errors=True works with outcome="numbers", "yes or no", the count outcomes and '
                                   f'"positive numbers", not "{outcome}".')
         if empty_cells != "leave out" or test_type is not None:
-            raise SimplydataError("robust=True cannot be used with multiple imputation or test_type= yet.")
+            raise SimplydataError("robust_errors=True cannot be used with multiple imputation or test_type= yet.")
 
     def _make_robust(self, model):
         """Robust (sandwich, HC3) standard errors in place of the usual ones: statsmodels OLS(cov_type="HC3")
@@ -1738,10 +1745,11 @@ class ModelWords:
         outcome="counts" the expected count (R fitted(glm(...))). With grouped_by= the
         prediction includes each group's own level (R fitted(lmer(...))). Rows with an empty
         cell in a column used stay empty. Undo with table.undo().
-        interval=95 adds two more columns, the low and high end of the 95 % confidence interval
-        of the predicted average (R predict(interval = "confidence"); for yes/no and counts the
+        interval=95 adds two more columns, "predicted marks 95 % CI low" and "... high", the ends
+        of the 95 % confidence interval of the predicted average (R predict(interval = "confidence"); for yes/no and counts the
         interval on the link scale, turned back, as R predict(se.fit = TRUE)). for_new_rows=True
-        gives instead the wider prediction interval, where one new row would fall (R
+        gives instead the wider prediction interval, where one new row would fall ("predicted
+        marks 95 % prediction low" and "... high") (R
         predict(interval = "prediction"); outcome="numbers" only). From statsmodels
         get_prediction().
 
@@ -1779,7 +1787,9 @@ class ModelWords:
         if name in self._columns:
             raise SimplydataError(f'There is already a column called "{name}". Choose another name with name=.')
         level = self._interval_level(interval, for_new_rows, outcome, grouped_by)
-        ends = [f"{name} low", f"{name} high"] if level else []
+        # "predicted marks 95 % CI low", or "... 95 % prediction low" for one new row: the house pattern "<thing> 95 % CI low"
+        kind = "prediction" if for_new_rows else "CI"
+        ends = [f"{name} {level * 100:g} % {kind} {end}" for end in ("low", "high")] if level else []
         for end in ends:
             if end in self._columns:
                 raise SimplydataError(f'There is already a column called "{end}". Choose another name with name=.')

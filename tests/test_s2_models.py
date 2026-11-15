@@ -48,7 +48,7 @@ def test_negative_binomial_matches_glm_nb(capsys):
     check(got["field (whole column)"], {"statistic": 7.10655006304397, "p-value": 0.0286307194337032}, rel=1e-5)
     assert "MASS::glm.nb(nettle ~ grazed + field) (theta = 4.94" in out
     # R: deviance 36.2357526498111, null 77.0471910394427, AIC 165.908562845658
-    assert "Residual deviance 36.2 on 26 df (with no columns: 77.0 on 29 df)" in out and "AIC = 166 and" in out
+    assert "Residual deviance 36.2 on 26 df (with no columns: 77.0 on 29 df)" in out and "AIC 166, BIC" in out
     assert got["grazed (yes)"]["statistic name"] == "z"
 
 
@@ -98,7 +98,7 @@ def test_rates_with_time_match_r_offset(capsys):
     check(got["smokers"], {"log rate ratio": 2.13499127776612, "standard error": 1.61321371851483})
     # R: drop1(m, test = "Chisq"): area LRT 0.945135700836481; AIC 59.9329053470574
     check(got["area (whole column)"], {"statistic": 0.945135700836481})
-    assert "offset = log(years)" in out and "AIC = 59.9" in out and 'per 1 of "years"' in out
+    assert "offset = log(years)" in out and "AIC 59.9, BIC" in out and 'per 1 of "years"' in out
     assert "the rate (count per time)" in out
 
 
@@ -118,7 +118,7 @@ def test_successes_out_of_tries_match_r_cbind(capsys):
     check(got["(intercept)"], {"log odds ratio": -2.84072811898695, "standard error": 0.431987557049358})
     check(got["dose"], {"log odds ratio": 0.743995997325895, "standard error": 0.109265474305808,
                         "odds ratio": math.exp(0.743995997325895)})
-    assert "cbind(yes, tries - yes) ~ dose" in out and "AIC = 40.7" in out  # R: 40.6696039348049
+    assert "cbind(yes, tries - yes) ~ dose" in out and "AIC 40.7, BIC" in out  # R: 40.6696039348049
     assert "Residual deviance 1.25 on 10 df (with no columns: 63.6 on 11 df)" in out
 
 

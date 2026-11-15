@@ -27,23 +27,33 @@ More statistics, each checked against R.
   the two parts (how many, and extra zeros) are printed in words, one block each.
 - `link=` for experts: "probit" or "cloglog" for yes or no, "identity" or "sqrt" for counts,
   "inverse" or "identity" for positive numbers; the effects are then on that scale.
-- Every explain() printout ends its numbers with one "How well it fits:" line: AIC and BIC (as R
-  `AIC()` and `BIC()`; for mixed models those of the REML fit, as R gives them for `lmer`), with
-  R squared for numbers, McFadden's pseudo R squared for yes or no, counts, ordered groups, groups and
-  counts with many zeros (statsmodels, as R `performance::r2_mcfadden()`), betareg's pseudo R squared
-  for shares, and Nakagawa's R squared for mixed models (marginal and conditional, as R
-  `performance::r2_nakagawa()`, R performance itself for every mixed model, so it needs R; without R
-  the line keeps AIC and BIC and says the R squared is left out). Quasi-Poisson and GEE have no
-  likelihood, and the line says so.
-- `explain(..., smooth_for="hours")`: "hours" may follow a smooth curve instead of a straight line (a
-  generalised additive model), R `mgcv::gam(marks ~ s(hours) + ..., method = "REML")` itself, for numbers,
+- Every explain() printout ends its numbers with two lines. "How well it fits:" says it in plain
+  words: an R squared when there is one, then AIC and BIC ("smaller is better, but only to compare
+  models of the same rows"), for example `How well it fits: pseudo R squared 0.192 (0 = no better than
+  no columns). AIC 205, BIC 215: ...`. A pseudo R squared is never read as "explains 19 %": it does not
+  mean that. The Method line under it names the calls that give the same numbers: AIC and BIC as R
+  `AIC()`, `BIC()` (for mixed models those of the REML fit, as R gives them for `lmer`), McFadden's
+  pseudo R squared for yes or no, counts, ordered groups, groups and counts with many zeros
+  (statsmodels, as R `performance::r2_mcfadden()`), betareg's pseudo R squared for shares, and
+  Nakagawa's R squared for mixed models (from the columns alone and with the groups too, marginal and
+  conditional, R `performance::r2_nakagawa()` itself, so it needs R; without R the AIC and BIC stay and
+  one line says the R squared is left out and how to get R). Quasi-Poisson and GEE have no likelihood,
+  and the line says so.
+- `explain(..., curve_for="hours")`: "hours" may follow a curve instead of a straight line (a
+  generalised additive model with a smooth term), R `mgcv::gam(marks ~ s(hours) + ..., method = "REML")`
+  itself, for numbers,
   yes or no and counts: the other effects as usual, and for each curve its effective degrees of freedom
   and the test of whether it is flat (R `summary.gam()`), with adjusted R squared and the deviance
-  explained. Each curve's row is matched to R's smooth table by name, so `smooth_for=` may list the columns
+  explained. Each curve's row is matched to R's smooth table by name, so `curve_for=` may list the columns
   in any order; a column needs 10 different values in the rows the model uses.
 - `outcome="counts that vary a lot"` on counts that vary no more than Poisson allows now says so
   (theta grows without limit, R `glm.nb()` warns "iteration limit reached") instead of failing inside
   statsmodels.
+- Renamed before release, after a review of the names (the old names still work, with a one-line note):
+  `smooth_for=` is now `curve_for=` ("smooth" means taking the noise out of readings elsewhere, and the
+  pair `own_slope_for=` / `curve_for=` reads as one family); `robust=True` on explain is now
+  `robust_errors=True` (robust standard errors, HC3; "robust" alone suggests resistant to outliers,
+  which these errors are not).
 
 ### Working with a model: averages, checks, rows that pull, comparisons
 
@@ -54,7 +64,9 @@ More statistics, each checked against R.
   odds ratios for `outcome="yes or no"`, average counts and rate ratios for `"counts"`; with `grouped_by=`
   the degrees of freedom emmeans itself used (Kenward-Roger up to 3000 rows, asymptotic above, as
   `pbkrtest.limit`), named in the Method line. Pairs keep group names that hold "-", "+", "/" or "*"
-  as they are. `marginal_means_of` and `emmeans` point to it.
+  as they are. `marginal_means_of` and `emmeans` point to it. For `outcome="ordered groups"` and
+  `"groups"` the column of each group's value is called "model chance" (it holds a chance), for the
+  other outcomes "model average".
 - `table.check_model("marks", using=[...])` also prints how strongly each column is linked with the others:
   variance inflation factors as R `car::vif()` (statsmodels `variance_inflation_factor` for least squares;
   R `car::vif()` itself for GLMs and the generalised VIF of group columns with 3 or more groups).
@@ -85,11 +97,13 @@ More statistics, each checked against R.
 ### Intervals for predictions and robust standard errors
 
 - `table.add_predicted_column(..., interval=95)` adds the low and high end of the 95 % confidence interval
-  of the predicted average, as R `predict(interval = "confidence")` (for yes/no and counts worked out on
+  of the predicted average, in the columns "predicted marks 95 % CI low" and "predicted marks 95 % CI
+  high" (the house pattern "<thing> 95 % CI low"; another level gives "90 % CI"), as R `predict(interval = "confidence")` (for yes/no and counts worked out on
   the link scale and turned back); `for_new_rows=True` gives the wider prediction interval where one new
-  row would fall, as R `predict(interval = "prediction")` (numbers only). From statsmodels
+  row would fall, as R `predict(interval = "prediction")` (numbers only), in "predicted marks 95 %
+  prediction low" and "... high", so the two kinds of interval keep different names. From statsmodels
   `get_prediction()`.
-- `table.explain(..., robust=True)` (experts): robust standard errors (sandwich, HC3), as R
+- `table.explain(..., robust_errors=True)` (experts): robust standard errors (sandwich, HC3), as R
   `sandwich::vcovHC(m, type = "HC3")` with `lmtest::coeftest()` and `coefci()`; the whole-column tests and
   the test of the model as a whole become Wald tests with those errors (as `car::Anova(vcov. = )` and
   `lmtest::waldtest()`). statsmodels for numbers; R `sandwich` itself for yes/no, counts and positive
@@ -119,7 +133,7 @@ More statistics, each checked against R.
   likelihood, as R `anova()`) and `show_rows_that_pull` (whole outer groups) take the same list.
   `sdata.example("school")` has a `class` column (red, blue or green, 5 pupils of each in every school)
   to practise with, and `sdata.help("table.explain")` shows `grouped_by=["school", "class"]` and
-  `smooth_for="hours"`.
+  `curve_for="hours"`.
 - Mixed models for yes/no and counts take `time=`, `out_of=` and `link=`, also with `own_slope_for=`
   (R `lme4::glmer(... + offset(log(time)))`, `cbind(yes, tries - yes)`, `binomial(link = "probit")`).
   GEE takes them too: `time=` and `link="probit"` / `"cloglog"` for yes or no with statsmodels `GEE` (the
@@ -278,13 +292,26 @@ Install once: `pip install "simplydata[r]"`, R from https://cran.r-project.org, 
   manual (`python docs/make_manual.py`) builds the dictionary too, with the manual's page numbers,
   and a test fails if a word has no page or the pages come from an older manual.
 
+### Lesson 21: working with a model
+
+- `sdata.lesson(21)` "Working with a model: check it, compare it, predict with it": worked examples for
+  `check_model`, `show_rows_that_pull`, `compare_models` and `add_predicted_column(interval=95,
+  for_new_rows=True)`, then a partly worked task (the learner writes the last line), a task, a task to do
+  from memory, and `model_averages_of` last, in an example and a task that need R and may be left out.
+  The two tasks on these words that lesson 16 had move here, so lesson 16 keeps its own words.
+- The 30 days teach it the day after the models day (day 16 of the Python track, day 23 of the beginner
+  track); its words come back in the warm-ups about 3 and 7 days later, and the final test asks for
+  `check_model` and `compare_models` from memory. In the Python track lessons 17 and 18 move one day on,
+  and fitting with finding (day 19) and distributions with values between points (day 20) share days,
+  as in the beginner track.
+
 ### 30 days of simplydata
 
 - `sdata.start_30_days(track="python")` starts a course of 30 days of about an hour each:
   `track="python"` for people who already write some Python (about two lessons a day, review days
   on days 7, 14, 21 and 28, then an eight-day project of their own), `track="beginner"` for people
   who have never programmed (three days of just enough Python first, then about one lesson a day
-  and a small project). Both cover all 20 lessons and end with a final test from memory.
+  and a small project). Both cover all 21 lessons and end with a final test from memory.
 - `sdata.today()` shows the day to do next: a 5-minute warm-up of questions on earlier days
   (yesterday, about three days ago, about a week ago; review days mix the whole course), what to do
   (the lesson, the manual's sections and the words to look up) and a task to do without looking

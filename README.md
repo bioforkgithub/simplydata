@@ -47,16 +47,17 @@ import simplydata as sdata
 sdata.lesson(1)
 ```
 
-There are twenty short lessons. Lessons 1 to 8 teach charts, from your first chart to
+There are twenty-one short lessons. Lessons 1 to 8 teach charts, from your first chart to
 animations. Lessons 9 to 12 teach tables: looking at your data, choosing rows and columns,
 cleaning it, and summing it up. Lesson 13 teaches numbers (lists and grids of numbers), and
 lesson 14 the statistical tests: is a difference real, or could it be chance? Lesson 15 puts it
 all together, from a question and a file to a figure with panels A and B and a saved table.
-Lessons 16 to 20 go further: models (multiple, logistic, Poisson and mixed regression, multiple
+Lessons 16 to 21 go further: models (multiple, logistic, Poisson and mixed regression, multiple
 imputation), patterns across many columns (PCA, clustering, Bray-Curtis distances, NMDS,
 PERMANOVA), survival curves and Cox models, power analysis, fitting curves and formulas,
-finding the smallest or biggest value and solving equations, distributions and chances, and
-values between the points you measured. Each
+finding the smallest or biggest value and solving equations, distributions and chances,
+values between the points you measured, and working with a model: checking it, comparing two
+models and predicting with an interval. Each
 lesson has an example you can run, says what every line does, explains the idea behind it
 (average or median, standard deviation or standard error, p-values) and ends with a small task
 to try yourself.

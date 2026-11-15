@@ -255,7 +255,7 @@ can write it up in a report or a paper.
 
 \section*{How this manual is built}
 \begin{description}[style=nextline,leftmargin=1.2em]
-  \item[{\hyperref[part:lessons]{Part II: Lessons}}] Twenty short lessons that teach the whole
+  \item[{\hyperref[part:lessons]{Part II: Lessons}}] Twenty-one short lessons that teach the whole
     of simplydata in a day. Each lesson shows code you can run, says what every line does, shows
     the real chart and output it makes, and ends with tasks to try yourself.
   \item[{\hyperref[part:dictionary]{Part III: Dictionary of words}}] Every word, with what it does,
@@ -2517,7 +2517,7 @@ Worked solutions: page~\pageref{solutions:15}, or type \code{sdata.\allowbreak{}
   \item how to use rows with empty cells without guessing once (multiple imputation)
 \end{itemize}
 \end{learnbox}
-\begin{needsr}\code{model\_\allowbreak{}averages\_\allowbreak{}of()} (R emmeans) and \code{explain(.\allowbreak{}.\allowbreak{}.\allowbreak{},\allowbreak{} empty\_\allowbreak{}cells=\textquotedbl{}multiple imputation\textquotedbl{})}, which pools its results with R (mice), run R's own code, the same code R users run. Install it once: pip install \code{\textquotedbl{}simplydata[r]\textquotedbl{}}, then R from https://cran.r-project.org, then in R: \code{install.\allowbreak{}packages(c(\textquotedbl{}vegan\textquotedbl{},\allowbreak{} \textquotedbl{}survival\textquotedbl{},\allowbreak{} \textquotedbl{}mice\textquotedbl{},\allowbreak{} \textquotedbl{}emmeans\textquotedbl{}))}. Without R these words print a message that says what to install.\end{needsr}
+\begin{needsr}\code{explain(.\allowbreak{}.\allowbreak{}.\allowbreak{},\allowbreak{} empty\_\allowbreak{}cells=\textquotedbl{}multiple imputation\textquotedbl{})} pools its results with R (mice); this one option run R's own code, the same code R users run. Install it once: pip install \code{\textquotedbl{}simplydata[r]\textquotedbl{}}, then R from https://cran.r-project.org, then in R: \code{install.\allowbreak{}packages(c(\textquotedbl{}vegan\textquotedbl{},\allowbreak{} \textquotedbl{}survival\textquotedbl{},\allowbreak{} \textquotedbl{}mice\textquotedbl{},\allowbreak{} \textquotedbl{}emmeans\textquotedbl{}))}. Without R these words print a message that says what to install.\end{needsr}
 \section*{Example 1}
 Marks depend on more than one thing. \code{explain()} looks at several columns together, so each effect is the effect with the other columns held fixed.
 \begin{lstlisting}[style=py]
@@ -2586,12 +2586,10 @@ table.explain("marks", using=["hours", "sleep", "breakfast"], empty_cells="multi
   \item Explain \code{\textquotedbl{}marks\textquotedbl{}} using \code{\textquotedbl{}hours\textquotedbl{}} and \code{\textquotedbl{}school\textquotedbl{}} (school as a column of groups). Which schools differ from School A, and is school as a whole important?
   \item Explain \code{\textquotedbl{}passed\textquotedbl{}} using \code{\textquotedbl{}hours\textquotedbl{}} and \code{\textquotedbl{}sleep\textquotedbl{}} with \code{outcome=\textquotedbl{}yes or no\textquotedbl{}}.
   \item Explain \code{\textquotedbl{}days\_\allowbreak{}absent\textquotedbl{}} using \code{\textquotedbl{}hours\textquotedbl{}} and \code{\textquotedbl{}breakfast\textquotedbl{}} with \code{outcome=\textquotedbl{}counts\textquotedbl{}}. Does breakfast matter?
-  \item Find the model averages of \code{\textquotedbl{}marks\textquotedbl{}} for each \code{\textquotedbl{}school\textquotedbl{}}, allowing for \code{\textquotedbl{}hours\textquotedbl{}} (\code{model\_\allowbreak{}averages\_\allowbreak{}of} with \code{using=[\textquotedbl{}hours\textquotedbl{}]}). Which school has the highest average and which the lowest, and how many pairs of schools differ?
-  \item Check the same model (\code{\textquotedbl{}marks\textquotedbl{}} using \code{\textquotedbl{}hours\textquotedbl{}} and \code{\textquotedbl{}school\textquotedbl{}}) with \code{check\_\allowbreak{}model}, then use \code{compare\_\allowbreak{}models} to ask whether adding \code{\textquotedbl{}breakfast\textquotedbl{}} to it helps.
 \end{enumerate}
 Worked solutions: page~\pageref{solutions:16}, or type \code{sdata.\allowbreak{}lesson(16,\allowbreak{} solutions=True)}.
 \end{tryit}
-\par\noindent{\small\sffamily\textbf{Words in this lesson:} \hyperref[word:table.explain]{\code{table.\allowbreak{}explain()}}, \hyperref[word:table.add-predicted-column]{\code{table.\allowbreak{}add\_\allowbreak{}predicted\_\allowbreak{}column()}}, \hyperref[word:table.show-first-rows]{\code{table.\allowbreak{}show\_\allowbreak{}first\_\allowbreak{}rows()}}, \hyperref[word:table.model-averages-of]{\code{table.\allowbreak{}model\_\allowbreak{}averages\_\allowbreak{}of()}}, \hyperref[word:table.check-model]{\code{table.\allowbreak{}check\_\allowbreak{}model()}}, \hyperref[word:table.compare-models]{\code{table.\allowbreak{}compare\_\allowbreak{}models()}}.\par}
+\par\noindent{\small\sffamily\textbf{Words in this lesson:} \hyperref[word:table.explain]{\code{table.\allowbreak{}explain()}}, \hyperref[word:table.add-predicted-column]{\code{table.\allowbreak{}add\_\allowbreak{}predicted\_\allowbreak{}column()}}, \hyperref[word:table.show-first-rows]{\code{table.\allowbreak{}show\_\allowbreak{}first\_\allowbreak{}rows()}}.\par}
 
 \chapter{Patterns across many columns}\label{lesson:17}
 \begin{learnbox}
@@ -2996,6 +2994,120 @@ chart.save("lesson20_map.png")
 Worked solutions: page~\pageref{solutions:20}, or type \code{sdata.\allowbreak{}lesson(20,\allowbreak{} solutions=True)}.
 \end{tryit}
 \par\noindent{\small\sffamily\textbf{Words in this lesson:} \hyperref[word:sdata.distribution]{\code{sdata.\allowbreak{}distribution()}}, \hyperref[word:dist.chance]{\code{dist.\allowbreak{}chance()}}, \hyperref[word:dist.percentile]{\code{dist.\allowbreak{}percentile()}}, \hyperref[word:dist.cut-off]{\code{dist.\allowbreak{}cut\_\allowbreak{}off()}}, \hyperref[word:dist.chart]{\code{dist.\allowbreak{}chart()}}, \hyperref[word:table.compare-distributions]{\code{table.\allowbreak{}compare\_\allowbreak{}distributions()}}, \hyperref[word:table.fit-distribution]{\code{table.\allowbreak{}fit\_\allowbreak{}distribution()}}, \hyperref[word:fit-distribution]{\code{chart.\allowbreak{}fit\_\allowbreak{}distribution()}}, \hyperref[word:table.values-at]{\code{table.\allowbreak{}values\_\allowbreak{}at()}}, \hyperref[word:table.map-of]{\code{table.\allowbreak{}map\_\allowbreak{}of()}}, \hyperref[word:curve]{\code{chart.\allowbreak{}curve()}}.\par}
+
+\chapter{Working with a model: check it, compare it, predict with it}\label{lesson:21}
+\begin{learnbox}
+\begin{itemize}
+  \item how to check a model from \code{explain()} with four pictures (\code{check\_\allowbreak{}model})
+  \item how to find the rows that pull a model the most (\code{show\_\allowbreak{}rows\_\allowbreak{}that\_\allowbreak{}pull})
+  \item how to ask whether a column helps a model (\code{compare\_\allowbreak{}models})
+  \item how sure a prediction is, for the average and for one new row (\code{add\_\allowbreak{}predicted\_\allowbreak{}column} with \code{interval=95})
+  \item if you have R: the average of each group once the other columns are allowed for (\code{model\_\allowbreak{}averages\_\allowbreak{}of})
+\end{itemize}
+\end{learnbox}
+\begin{needsr}Only example 5, which you may leave out, needs R: \code{model\_\allowbreak{}averages\_\allowbreak{}of()} (R emmeans). The rest of the lesson needs no R. \code{model\_\allowbreak{}averages\_\allowbreak{}of()} and the other R words run R's own code, the same code R users run. Install it once: pip install \code{\textquotedbl{}simplydata[r]\textquotedbl{}}, then R from https://cran.r-project.org, then in R: \code{install.\allowbreak{}packages(c(\textquotedbl{}vegan\textquotedbl{},\allowbreak{} \textquotedbl{}survival\textquotedbl{},\allowbreak{} \textquotedbl{}mice\textquotedbl{},\allowbreak{} \textquotedbl{}emmeans\textquotedbl{}))}. Without R these words print a message that says what to install.\end{needsr}
+\section*{Example 1}
+\code{explain()} gives the effects, but they can only be trusted if the model suits the data. \code{check\_\allowbreak{}model} draws the four pictures R users look at first.
+\begin{lstlisting}[style=py]
+import simplydata as sdata
+table = sdata.table(sdata.example("school"))
+table.explain("marks", using=["hours", "breakfast"])
+page = table.check_model("marks", using=["hours", "breakfast"])
+page.save("lesson21_checks.png")
+\end{lstlisting}
+\whateachline
+\begin{lineexplain}
+  \item[1] Load simplydata.
+  \item[2] The pupils of lesson 16.
+  \item[3] The model to check: 2.82 more marks for each hour of study and 3.21 more with breakfast. The line under the effects says how well it fits: AIC 1292 and BIC 1305, numbers that only mean something when you compare two models.
+  \item[4] Four pictures of the same model. Here the residuals lie in an even band around 0, the dots follow the Q-Q line, the scale-location line is flat, and no row comes near the dashed Cook's distance lines. The variance inflation factors are 1.00: hours and breakfast are not linked.
+  \item[5] Save the page of pictures.
+\end{lineexplain}
+\printedoutput{output/lesson21_example1.txt}
+\begin{center}\begin{minipage}{\linewidth}\centering
+\includegraphics[width=0.72\textwidth,height=0.36\textheight,keepaspectratio]{figures/lesson21_example1_lesson21_checks.pdf}
+\captionof{figure}{Lesson 21, example 1: \code{lesson21\_\allowbreak{}checks.\allowbreak{}png}.}
+\end{minipage}\end{center}
+\section*{Example 2}
+Some rows pull a model more than others. \code{show\_\allowbreak{}rows\_\allowbreak{}that\_\allowbreak{}pull} lists them, the strongest first, so you can look at them before you trust the model.
+\begin{lstlisting}[style=py]
+import simplydata as sdata
+table = sdata.table(sdata.example("school"))
+table.show_rows_that_pull("marks", using=["hours", "breakfast"])
+\end{lstlisting}
+\whateachline
+\begin{lineexplain}
+  \item[1] Load simplydata.
+  \item[2] The school table.
+  \item[3] 12 of the 180 rows have a Cook's distance above the rule of thumb 4 / 180 = 0.0222. The biggest, row 48 (0.0459), is far below 0.5, where the pictures draw the first dashed line: no row pulls strongly. The table itself does not change.
+\end{lineexplain}
+\printedoutput{output/lesson21_example2.txt}
+\section*{Example 3}
+Does a column help? \code{compare\_\allowbreak{}models} fits the model with and without it, on the same rows, and tests the difference.
+\begin{lstlisting}[style=py]
+import simplydata as sdata
+table = sdata.table(sdata.example("school"))
+table.compare_models("marks", using=["hours"], against=["hours", "breakfast"])
+\end{lstlisting}
+\whateachline
+\begin{lineexplain}
+  \item[1] Load simplydata.
+  \item[2] The school table.
+  \item[3] Does breakfast help a model that already has hours? The F test says it is unlikely to be chance (p = 0.018), and the AIC is 3.72 lower with breakfast: keep it.
+\end{lineexplain}
+\printedoutput{output/lesson21_example3.txt}
+\section*{Example 4}
+A prediction is never exact. \code{interval=95} says how sure the model is about the average; \code{for\_\allowbreak{}new\_\allowbreak{}rows=True} says where one new pupil would fall, which is much wider.
+\begin{lstlisting}[style=py]
+import simplydata as sdata
+table = sdata.table(sdata.example("school"))
+table.add_predicted_column("marks", using=["hours", "breakfast"], interval=95)
+table.add_predicted_column("marks", using=["hours", "breakfast"], name="new pupil", interval=95, for_new_rows=True)
+table.show_first_rows(3)
+\end{lstlisting}
+\whateachline
+\begin{lineexplain}
+  \item[1] Load simplydata.
+  \item[2] The school table.
+  \item[3] Adds \code{\textquotedbl{}predicted marks\textquotedbl{}} and the ends of its 95 \% confidence interval, \code{\textquotedbl{}predicted marks 95 \% CI low\textquotedbl{}} and \code{\textquotedbl{}.\allowbreak{}.\allowbreak{}.\allowbreak{} high\textquotedbl{}}. For pupils like pupil 1 the model expects 44.5 marks on average, somewhere between 42.3 and 46.6.
+  \item[4] The 95 \% prediction interval, in \code{\textquotedbl{}new pupil 95 \% prediction low\textquotedbl{}} and \code{\textquotedbl{}.\allowbreak{}.\allowbreak{}.\allowbreak{} high\textquotedbl{}}: one new pupil like pupil 1 could score anything from 27.2 to 61.7.
+  \item[5] Look at the new columns next to the marks.
+\end{lineexplain}
+\printedoutput{output/lesson21_example4.txt}
+\section*{Example 5}
+If you have R (you may leave this example out): \code{model\_\allowbreak{}averages\_\allowbreak{}of} gives the average of each group with the other columns held fixed, and compares every pair.
+\begin{lstlisting}[style=py]
+import simplydata as sdata
+table = sdata.table(sdata.example("school"))
+table.model_averages_of("marks", for_each="breakfast", using=["hours", "school"])
+\end{lstlisting}
+\whateachline
+\begin{lineexplain}
+  \item[1] Load simplydata.
+  \item[2] The school table.
+  \item[3] With hours held at their average (5.00) and the 12 schools counted equally, pupils without breakfast average 46.6 marks and pupils with breakfast 49.5. The difference, -2.95, is unlikely to be chance (p = 0.008). This is R emmeans.
+\end{lineexplain}
+\printedoutput{output/lesson21_example5.txt}
+\begin{goodtoknow}
+\begin{itemize}
+  \item Check before you trust: look at \code{check\_\allowbreak{}model}'s pictures before you read the p-values of \code{explain()}.
+  \item For a yes/no or count model the first picture always shows bands of dots, one for each value; look at the smooth line, which should stay near 0.
+  \item AIC and BIC compare models of the same rows only. sleep has 19 empty cells, so a model with sleep uses fewer rows; \code{compare\_\allowbreak{}models} fits both models on the rows they share.
+  \item A pseudo R squared (yes/no, counts) is not a share explained: 0 means no better than no columns.
+  \item Remove a row that pulls only for a reason, such as a typing mistake, and say so in your report.
+  \item The confidence interval (\code{interval=95}) is about the average of many pupils like this one; the prediction interval (\code{for\_\allowbreak{}new\_\allowbreak{}rows=True}) is about one pupil. The second is always wider.
+\end{itemize}
+\end{goodtoknow}
+\begin{tryit}
+\begin{enumerate}
+  \item Partly done for you: the first two lines are table = \code{sdata.\allowbreak{}table(sdata.\allowbreak{}example(\textquotedbl{}school\textquotedbl{}))} and \code{table.\allowbreak{}check\_\allowbreak{}model(\textquotedbl{}marks\textquotedbl{},\allowbreak{} using=[\textquotedbl{}hours\textquotedbl{},\allowbreak{} \textquotedbl{}breakfast\textquotedbl{}])}. Write the third line yourself: does \code{\textquotedbl{}sleep\textquotedbl{}} help the model of \code{\textquotedbl{}marks\textquotedbl{}} that already has \code{\textquotedbl{}hours\textquotedbl{}} and \code{\textquotedbl{}breakfast\textquotedbl{}}?
+  \item Check the model of \code{\textquotedbl{}marks\textquotedbl{}} using \code{\textquotedbl{}hours\textquotedbl{}} and \code{\textquotedbl{}school\textquotedbl{}} with \code{check\_\allowbreak{}model} and \code{show\_\allowbreak{}rows\_\allowbreak{}that\_\allowbreak{}pull}, then use \code{compare\_\allowbreak{}models} to ask whether adding \code{\textquotedbl{}breakfast\textquotedbl{}} to it helps.
+  \item Try to remember without looking back: which word adds a prediction with its interval, and which option gives the interval for one new row? Use them to predict \code{\textquotedbl{}marks\textquotedbl{}} from \code{\textquotedbl{}hours\textquotedbl{}} and \code{\textquotedbl{}sleep\textquotedbl{}}, and look at the first 3 rows.
+  \item If you have R: find the model averages of \code{\textquotedbl{}marks\textquotedbl{}} for each \code{\textquotedbl{}school\textquotedbl{}}, allowing for \code{\textquotedbl{}hours\textquotedbl{}}. Which school has the highest average and which the lowest, and how many pairs of schools differ?
+\end{enumerate}
+Worked solutions: page~\pageref{solutions:21}, or type \code{sdata.\allowbreak{}lesson(21,\allowbreak{} solutions=True)}.
+\end{tryit}
+\par\noindent{\small\sffamily\textbf{Words in this lesson:} \hyperref[word:table.check-model]{\code{table.\allowbreak{}check\_\allowbreak{}model()}}, \hyperref[word:table.show-rows-that-pull]{\code{table.\allowbreak{}show\_\allowbreak{}rows\_\allowbreak{}that\_\allowbreak{}pull()}}, \hyperref[word:table.compare-models]{\code{table.\allowbreak{}compare\_\allowbreak{}models()}}, \hyperref[word:table.add-predicted-column]{\code{table.\allowbreak{}add\_\allowbreak{}predicted\_\allowbreak{}column()}}, \hyperref[word:table.model-averages-of]{\code{table.\allowbreak{}model\_\allowbreak{}averages\_\allowbreak{}of()}}, \hyperref[word:table.explain]{\code{table.\allowbreak{}explain()}}.\par}
 
 \otherchapters
 
@@ -7099,7 +7211,7 @@ print(dist.parameters())
 Explain one column from several others with a model, and say how big each effect is.
 
 \codeline{table.explain(\textquotedbl{}marks\textquotedbl{}, using=[\textquotedbl{}hours\textquotedbl{}, \textquotedbl{}breakfast\textquotedbl{}])} (with \code{sdata.\allowbreak{}example(\textquotedbl{}school\textquotedbl{})})\\
-\code{outcome=\textquotedbl{}numbers\textquotedbl{}} (the default): linear model by least squares (R \code{lm()}). \code{outcome=\textquotedbl{}yes or no\textquotedbl{}}: logistic regression, odds ratios (R \code{glm(family = binomial)}). \code{outcome=\textquotedbl{}counts\textquotedbl{}}: Poisson regression, rate ratios (R \code{glm(family = poisson)}); \code{outcome=\textquotedbl{}counts (overdispersed)\textquotedbl{}}: quasi-Poisson (R \code{glm(family = quasipoisson)}); \code{outcome=\textquotedbl{}counts that vary a lot\textquotedbl{}}: negative binomial (R MASS::\code{glm.\allowbreak{}nb()}). \code{outcome=\textquotedbl{}positive numbers\textquotedbl{}}: Gamma regression with a log link, for positive, skewed numbers such as times or amounts (R \code{glm(family = Gamma(link = \textquotedbl{}log\textquotedbl{}))}); effects multiply the average. \code{time=\textquotedbl{}years\textquotedbl{}} with counts: rates, the count per unit of time (R offset = \code{log(years)}). \code{out\_\allowbreak{}of=\textquotedbl{}tries\textquotedbl{}} with \code{outcome=\textquotedbl{}yes or no\textquotedbl{}}: the column holds the number of yes out of that many tries (R \code{glm(cbind(yes,\allowbreak{} tries - yes) \textasciitilde{} .\allowbreak{}.\allowbreak{}.\allowbreak{},\allowbreak{} family = binomial)}). \code{outcome=\textquotedbl{}ordered groups\textquotedbl{}}: ordered logistic regression (R MASS::\code{polr()}); give the order of text groups, lowest first, with \code{in\_\allowbreak{}order=[\textquotedbl{}low\textquotedbl{},\allowbreak{} \textquotedbl{}middle\textquotedbl{},\allowbreak{} \textquotedbl{}high\textquotedbl{}]}. \code{outcome=\textquotedbl{}groups\textquotedbl{}}: multinomial logistic regression, each group against the first (R nnet::\code{multinom()}). \code{outcome=\textquotedbl{}shares\textquotedbl{}}: beta regression for shares between 0 and 1 (R betareg). \code{outcome=\textquotedbl{}counts with many zeros\textquotedbl{}}: zero-inflated Poisson regression (R pscl::\code{zeroinfl()}). \code{link=} (experts): \code{\textquotedbl{}probit\textquotedbl{}} or \code{\textquotedbl{}cloglog\textquotedbl{}} for yes or no, \code{\textquotedbl{}identity\textquotedbl{}} or \code{\textquotedbl{}sqrt\textquotedbl{}} for counts, \code{\textquotedbl{}inverse\textquotedbl{}} or \code{\textquotedbl{}identity\textquotedbl{}} for positive numbers; the effects are then on that scale, not ratios. \code{test\_\allowbreak{}type=\textquotedbl{}type 2\textquotedbl{}} adds a table with one test for each column (an ANOVA table): \code{\textquotedbl{}type 2\textquotedbl{}} (the usual choice, R car::\code{Anova(type = 2)}), \code{\textquotedbl{}type 3\textquotedbl{}} (sum-to-zero coding, R car::\code{Anova(type = 3)}) or \code{\textquotedbl{}in order\textquotedbl{}} (R \code{anova()}; the order of \code{using=} matters), with partial eta-squared for numbers (R effectsize). A text column in \code{using=} is a group column: each group is compared with the first group in sorted order (the baseline). \code{\textquotedbl{}hours * breakfast\textquotedbl{}} adds both columns and their interaction (does the effect of hours depend on breakfast?). \code{grouped\_\allowbreak{}by=\textquotedbl{}school\textquotedbl{}}: a mixed model with its own starting level for each school (R lme4::\code{lmer()}), for rows that belong together; \code{grouped\_\allowbreak{}by=[\textquotedbl{}school\textquotedbl{},\allowbreak{} \textquotedbl{}class\textquotedbl{}]} for classes inside schools ((1 \textbar{} school/class)). \code{own\_\allowbreak{}slope\_\allowbreak{}for=\textquotedbl{}hours\textquotedbl{}} gives each school its own slope for hours too (R lme4::\code{lmer()} itself, (1 + hours \textbar{} school)). \code{p\_\allowbreak{}value\_\allowbreak{}by=\textquotedbl{}satterthwaite\textquotedbl{}} (or \code{\textquotedbl{}few groups\textquotedbl{}}) gives t-tests with Satterthwaite degrees of freedom (R lmerTest) instead of Wald z-tests. \code{effects=\textquotedbl{}for the whole population\textquotedbl{}} fits GEE instead (statsmodels, as R geepack::\code{geeglm()}): effects averaged over all groups, with \code{within\_\allowbreak{}groups=\textquotedbl{}alike\textquotedbl{}} (the default), \code{\textquotedbl{}in time order\textquotedbl{}} (rows in table order, R geepack) or \code{\textquotedbl{}independent\textquotedbl{}}; GEE takes \code{time=}, \code{out\_\allowbreak{}of=} (R geepack) and \code{link=} for yes or no too. \code{smooth\_\allowbreak{}for=\textquotedbl{}hours\textquotedbl{}} lets \code{\textquotedbl{}hours\textquotedbl{}} follow a smooth curve instead of a straight line (a generalised additive model, R mgcv::\code{gam(marks \textasciitilde{} s(hours) + .\allowbreak{}.\allowbreak{}.\allowbreak{},\allowbreak{} method = \textquotedbl{}REML\textquotedbl{})}). \code{robust=True} (experts) gives robust standard errors (sandwich, HC3, as R sandwich::\code{vcovHC()}), which stay right when the spread is not the same everywhere. \code{empty\_\allowbreak{}cells=\textquotedbl{}multiple imputation\textquotedbl{}} fills in empty cells 20 times (R \code{mice()}) instead of leaving those rows out; \code{seed=} fixes the random filling. Prints each effect with its 95 \% confidence interval and p-value in words, and how well the model fits: R squared (numbers), McFadden's pseudo R squared (yes or no, counts, groups) or Nakagawa's R squared (\code{grouped\_\allowbreak{}by=}, R performance, needs R), with AIC and BIC (R \code{AIC()}, \code{BIC()}). Gives back a table with one row per term. A link does not show that one thing causes the other.
+\code{outcome=\textquotedbl{}numbers\textquotedbl{}} (the default): linear model by least squares (R \code{lm()}). \code{outcome=\textquotedbl{}yes or no\textquotedbl{}}: logistic regression, odds ratios (R \code{glm(family = binomial)}). \code{outcome=\textquotedbl{}counts\textquotedbl{}}: Poisson regression, rate ratios (R \code{glm(family = poisson)}); \code{outcome=\textquotedbl{}counts (overdispersed)\textquotedbl{}}: quasi-Poisson (R \code{glm(family = quasipoisson)}); \code{outcome=\textquotedbl{}counts that vary a lot\textquotedbl{}}: negative binomial (R MASS::\code{glm.\allowbreak{}nb()}). \code{outcome=\textquotedbl{}positive numbers\textquotedbl{}}: Gamma regression with a log link, for positive, skewed numbers such as times or amounts (R \code{glm(family = Gamma(link = \textquotedbl{}log\textquotedbl{}))}); effects multiply the average. \code{time=\textquotedbl{}years\textquotedbl{}} with counts: rates, the count per unit of time (R offset = \code{log(years)}). \code{out\_\allowbreak{}of=\textquotedbl{}tries\textquotedbl{}} with \code{outcome=\textquotedbl{}yes or no\textquotedbl{}}: the column holds the number of yes out of that many tries (R \code{glm(cbind(yes,\allowbreak{} tries - yes) \textasciitilde{} .\allowbreak{}.\allowbreak{}.\allowbreak{},\allowbreak{} family = binomial)}). \code{outcome=\textquotedbl{}ordered groups\textquotedbl{}}: ordered logistic regression (R MASS::\code{polr()}); give the order of text groups, lowest first, with \code{in\_\allowbreak{}order=[\textquotedbl{}low\textquotedbl{},\allowbreak{} \textquotedbl{}middle\textquotedbl{},\allowbreak{} \textquotedbl{}high\textquotedbl{}]}. \code{outcome=\textquotedbl{}groups\textquotedbl{}}: multinomial logistic regression, each group against the first (R nnet::\code{multinom()}). \code{outcome=\textquotedbl{}shares\textquotedbl{}}: beta regression for shares between 0 and 1 (R betareg). \code{outcome=\textquotedbl{}counts with many zeros\textquotedbl{}}: zero-inflated Poisson regression (R pscl::\code{zeroinfl()}). \code{link=} (experts): \code{\textquotedbl{}probit\textquotedbl{}} or \code{\textquotedbl{}cloglog\textquotedbl{}} for yes or no, \code{\textquotedbl{}identity\textquotedbl{}} or \code{\textquotedbl{}sqrt\textquotedbl{}} for counts, \code{\textquotedbl{}inverse\textquotedbl{}} or \code{\textquotedbl{}identity\textquotedbl{}} for positive numbers; the effects are then on that scale, not ratios. \code{test\_\allowbreak{}type=\textquotedbl{}type 2\textquotedbl{}} adds a table with one test for each column (an ANOVA table): \code{\textquotedbl{}type 2\textquotedbl{}} (the usual choice, R car::\code{Anova(type = 2)}), \code{\textquotedbl{}type 3\textquotedbl{}} (sum-to-zero coding, R car::\code{Anova(type = 3)}) or \code{\textquotedbl{}in order\textquotedbl{}} (R \code{anova()}; the order of \code{using=} matters), with partial eta-squared for numbers (R effectsize). A text column in \code{using=} is a group column: each group is compared with the first group in sorted order (the baseline). \code{\textquotedbl{}hours * breakfast\textquotedbl{}} adds both columns and their interaction (does the effect of hours depend on breakfast?). \code{grouped\_\allowbreak{}by=\textquotedbl{}school\textquotedbl{}}: a mixed model with its own starting level for each school (R lme4::\code{lmer()}), for rows that belong together; \code{grouped\_\allowbreak{}by=[\textquotedbl{}school\textquotedbl{},\allowbreak{} \textquotedbl{}class\textquotedbl{}]} for classes inside schools ((1 \textbar{} school/class)). \code{own\_\allowbreak{}slope\_\allowbreak{}for=\textquotedbl{}hours\textquotedbl{}} gives each school its own slope for hours too (R lme4::\code{lmer()} itself, (1 + hours \textbar{} school)). \code{p\_\allowbreak{}value\_\allowbreak{}by=\textquotedbl{}satterthwaite\textquotedbl{}} (or \code{\textquotedbl{}few groups\textquotedbl{}}) gives t-tests with Satterthwaite degrees of freedom (R lmerTest) instead of Wald z-tests. \code{effects=\textquotedbl{}for the whole population\textquotedbl{}} fits GEE instead (statsmodels, as R geepack::\code{geeglm()}): effects averaged over all groups, with \code{within\_\allowbreak{}groups=\textquotedbl{}alike\textquotedbl{}} (the default), \code{\textquotedbl{}in time order\textquotedbl{}} (rows in table order, R geepack) or \code{\textquotedbl{}independent\textquotedbl{}}; GEE takes \code{time=}, \code{out\_\allowbreak{}of=} (R geepack) and \code{link=} for yes or no too. \code{curve\_\allowbreak{}for=\textquotedbl{}hours\textquotedbl{}} lets \code{\textquotedbl{}hours\textquotedbl{}} follow a curve instead of a straight line (a generalised additive model with a smooth term \code{s(hours)}, R mgcv::\code{gam(marks \textasciitilde{} s(hours) + .\allowbreak{}.\allowbreak{}.\allowbreak{},\allowbreak{} method = \textquotedbl{}REML\textquotedbl{})}). \code{robust\_\allowbreak{}errors=True} (experts) gives robust standard errors (sandwich, HC3, as R sandwich::\code{vcovHC()}), which stay right when the spread is not the same everywhere; it does not make the model resistant to outliers. \code{empty\_\allowbreak{}cells=\textquotedbl{}multiple imputation\textquotedbl{}} fills in empty cells 20 times (R \code{mice()}) instead of leaving those rows out; \code{seed=} fixes the random filling. Prints each effect with its 95 \% confidence interval and p-value in words, and how well the model fits: R squared (numbers), McFadden's pseudo R squared (yes or no, counts, groups) or Nakagawa's R squared (\code{grouped\_\allowbreak{}by=}, R performance, needs R), with AIC and BIC (R \code{AIC()}, \code{BIC()}). Gives back a table with one row per term. A link does not show that one thing causes the other.
 
 \wordfield{Options}{}\par\nopagebreak
 \begin{optiontable}
@@ -7115,14 +7227,14 @@ Explain one column from several others with a model, and say how big each effect
 \code{link=} & \\
 \code{test\_\allowbreak{}type=} & \\
 \code{own\_\allowbreak{}slope\_\allowbreak{}for=} & \\
-\code{robust=} & normally \code{False}\\
+\code{robust\_\allowbreak{}errors=} & normally \code{False}\\
 \code{p\_\allowbreak{}value\_\allowbreak{}by=} & normally \code{\textquotedbl{}wald\textquotedbl{}}\\
 \code{effects=} & normally \code{\textquotedbl{}for the average group\textquotedbl{}}\\
 \code{within\_\allowbreak{}groups=} & normally \code{\textquotedbl{}alike\textquotedbl{}}\\
-\code{smooth\_\allowbreak{}for=} & \\
+\code{curve\_\allowbreak{}for=} & \\
 \end{optiontable}
 
-\wordfield{Underneath}{statsmodels (OLS; GLM for yes/no and counts, as R glm; MixedLM for \code{grouped\_\allowbreak{}by=}; GEE for \code{effects=\textquotedbl{}for the whole population\textquotedbl{}}, as R geepack::geeglm; MICEData to fill in empty cells; \code{eval\_\allowbreak{}measures} aic and bic and McFadden's pseudo R squared, as R AIC, BIC and performance::\code{r2\_\allowbreak{}mcfadden}); R mgcv::gam for \code{smooth\_\allowbreak{}for=} (needs R); R itself (needs R) for lme4::glmer, lme4::lmer with \code{own\_\allowbreak{}slope\_\allowbreak{}for=}, lmerTest for \code{p\_\allowbreak{}value\_\allowbreak{}by=\textquotedbl{}satterthwaite\textquotedbl{}}, geepack for \code{within\_\allowbreak{}groups=\textquotedbl{}in time order\textquotedbl{}} and GEE with \code{out\_\allowbreak{}of=}, car::Anova and effectsize for \code{test\_\allowbreak{}type=}, sandwich::vcovHC for \code{robust=True} with yes/no and counts, and mice::pool for multiple imputation; R performance::\code{r2\_\allowbreak{}nakagawa} for the R squared of every \code{grouped\_\allowbreak{}by=} model}
+\wordfield{Underneath}{statsmodels (OLS; GLM for yes/no and counts, as R glm; MixedLM for \code{grouped\_\allowbreak{}by=}; GEE for \code{effects=\textquotedbl{}for the whole population\textquotedbl{}}, as R geepack::geeglm; MICEData to fill in empty cells; \code{eval\_\allowbreak{}measures} aic and bic and McFadden's pseudo R squared, as R AIC, BIC and performance::\code{r2\_\allowbreak{}mcfadden}); R mgcv::gam for \code{curve\_\allowbreak{}for=} (needs R); R itself (needs R) for lme4::glmer, lme4::lmer with \code{own\_\allowbreak{}slope\_\allowbreak{}for=}, lmerTest for \code{p\_\allowbreak{}value\_\allowbreak{}by=\textquotedbl{}satterthwaite\textquotedbl{}}, geepack for \code{within\_\allowbreak{}groups=\textquotedbl{}in time order\textquotedbl{}} and GEE with \code{out\_\allowbreak{}of=}, car::Anova and effectsize for \code{test\_\allowbreak{}type=}, sandwich::vcovHC for \code{robust\_\allowbreak{}errors=True} with yes/no and counts, and mice::pool for multiple imputation; R performance::\code{r2\_\allowbreak{}nakagawa} for the R squared of every \code{grouped\_\allowbreak{}by=} model}
 \wordfield{Example you can run}{(it uses the practice table \code{school})}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -7132,14 +7244,14 @@ table.explain("passed", using=["hours", "breakfast"], outcome="yes or no")
 table.explain("marks", using=["hours", "breakfast"], grouped_by="school")
 table.explain("marks", using=["hours", "breakfast"], grouped_by=["school", "class"])
 table.explain("marks", using=["hours", "breakfast"], grouped_by="school", effects="for the whole population")
-table.explain("marks", using=["hours", "breakfast"], smooth_for="hours")
-table.explain("marks", using=["hours", "breakfast"], robust=True)
+table.explain("marks", using=["hours", "breakfast"], curve_for="hours")
+table.explain("marks", using=["hours", "breakfast"], robust_errors=True)
 \end{lstlisting}
 \wordentry{table.add\_predicted\_column()}{word:table.add-predicted-column}
 Add a column with the value the model predicts for each row.
 
 \codeline{table.add\_predicted\_column(\textquotedbl{}marks\textquotedbl{}, using=[\textquotedbl{}hours\textquotedbl{}, \textquotedbl{}breakfast\textquotedbl{}])} (with \code{sdata.\allowbreak{}example(\textquotedbl{}school\textquotedbl{})})\\
-The same model as \code{explain()} with the same options: \code{outcome=\textquotedbl{}numbers\textquotedbl{}} gives the fitted value (R \code{fitted(lm(.\allowbreak{}.\allowbreak{}.\allowbreak{}))}), \code{outcome=\textquotedbl{}yes or no\textquotedbl{}} the chance of yes from 0 to 1 and \code{outcome=\textquotedbl{}counts\textquotedbl{}} the expected count (R \code{fitted(glm(.\allowbreak{}.\allowbreak{}.\allowbreak{}))}). With \code{grouped\_\allowbreak{}by=} the prediction includes each group's own level (R \code{fitted(lmer(.\allowbreak{}.\allowbreak{}.\allowbreak{}))}). Rows with an empty cell in a column used stay empty. Undo with \code{table.\allowbreak{}undo()}. \code{interval=95} adds two more columns, the low and high end of the 95 \% confidence interval of the predicted average (R \code{predict(interval = \textquotedbl{}confidence\textquotedbl{})}; for yes/no and counts the interval on the link scale, turned back, as R \code{predict(se.\allowbreak{}fit = TRUE)}). \code{for\_\allowbreak{}new\_\allowbreak{}rows=True} gives instead the wider prediction interval, where one new row would fall (R \code{predict(interval = \textquotedbl{}prediction\textquotedbl{})}; \code{outcome=\textquotedbl{}numbers\textquotedbl{}} only). From statsmodels \code{get\_\allowbreak{}prediction()}.
+The same model as \code{explain()} with the same options: \code{outcome=\textquotedbl{}numbers\textquotedbl{}} gives the fitted value (R \code{fitted(lm(.\allowbreak{}.\allowbreak{}.\allowbreak{}))}), \code{outcome=\textquotedbl{}yes or no\textquotedbl{}} the chance of yes from 0 to 1 and \code{outcome=\textquotedbl{}counts\textquotedbl{}} the expected count (R \code{fitted(glm(.\allowbreak{}.\allowbreak{}.\allowbreak{}))}). With \code{grouped\_\allowbreak{}by=} the prediction includes each group's own level (R \code{fitted(lmer(.\allowbreak{}.\allowbreak{}.\allowbreak{}))}). Rows with an empty cell in a column used stay empty. Undo with \code{table.\allowbreak{}undo()}. \code{interval=95} adds two more columns, \code{\textquotedbl{}predicted marks 95 \% CI low\textquotedbl{}} and \code{\textquotedbl{}.\allowbreak{}.\allowbreak{}.\allowbreak{} high\textquotedbl{}}, the ends of the 95 \% confidence interval of the predicted average (R \code{predict(interval = \textquotedbl{}confidence\textquotedbl{})}; for yes/no and counts the interval on the link scale, turned back, as R \code{predict(se.\allowbreak{}fit = TRUE)}). \code{for\_\allowbreak{}new\_\allowbreak{}rows=True} gives instead the wider prediction interval, where one new row would fall (\code{\textquotedbl{}predicted marks 95 \% prediction low\textquotedbl{}} and \code{\textquotedbl{}.\allowbreak{}.\allowbreak{}.\allowbreak{} high\textquotedbl{}}) (R \code{predict(interval = \textquotedbl{}prediction\textquotedbl{})}; \code{outcome=\textquotedbl{}numbers\textquotedbl{}} only). From statsmodels \code{get\_\allowbreak{}prediction()}.
 
 A formula with one = sign is fitted as \code{table.\allowbreak{}fit\_\allowbreak{}formula()} (with its options \code{start=}, \code{between=}, \code{weights=} and \code{for\_\allowbreak{}each=}) and its value is added for every row, also rows whose left-hand column is empty (as R \code{predict(nls(.\allowbreak{}.\allowbreak{}.\allowbreak{}),\allowbreak{} newdata)}):\\
 \codeline{table.add\_predicted\_column(\textquotedbl{}population = a * exp(b * (year - 2000))\textquotedbl{}, for\_each=\textquotedbl{}country\textquotedbl{})}\\
@@ -7172,7 +7284,7 @@ table.show_first_rows(5)
 The average the model gives for each group, once the other columns are allowed for.
 
 \codeline{table.model\_averages\_of(\textquotedbl{}marks\textquotedbl{}, for\_each=\textquotedbl{}school\textquotedbl{}, using=[\textquotedbl{}hours\textquotedbl{}, \textquotedbl{}breakfast\textquotedbl{}])}\\
-(with \code{sdata.\allowbreak{}example(\textquotedbl{}school\textquotedbl{})}) The model is the one \code{explain()} fits from \code{using=} (\code{for\_\allowbreak{}each=} is added if it is not in \code{using=}). Number columns are held at their averages and the other group columns are counted equally, so the groups are compared on an equal footing (adjusted averages, also called estimated marginal means). Then every pair of groups is compared, with Tukey's adjustment for making many comparisons. \code{outcome=\textquotedbl{}yes or no\textquotedbl{}} gives the chance of yes in each group and odds ratios for the pairs; the count outcomes the average count and rate ratios; \code{\textquotedbl{}positive numbers\textquotedbl{}} the average and ratios; \code{\textquotedbl{}shares\textquotedbl{}} the average share; \code{\textquotedbl{}ordered groups\textquotedbl{}} and \code{\textquotedbl{}groups\textquotedbl{}} the chance of each of the outcome's groups. \code{grouped\_\allowbreak{}by=} uses the mixed model (\code{grouped\_\allowbreak{}by=[\textquotedbl{}school\textquotedbl{},\allowbreak{} \textquotedbl{}class\textquotedbl{}]} for classes inside schools). Done by R emmeans::\code{emmeans()} and \code{pairs()} (needs R: pip install \code{\textquotedbl{}simplydata[r]\textquotedbl{}}). Gives back a table with one row per group and one per pair. Other name: marginal means (R emmeans).
+(with \code{sdata.\allowbreak{}example(\textquotedbl{}school\textquotedbl{})}) The model is the one \code{explain()} fits from \code{using=} (\code{for\_\allowbreak{}each=} is added if it is not in \code{using=}). Number columns are held at their averages and the other group columns are counted equally, so the groups are compared on an equal footing (adjusted averages, also called estimated marginal means). Then every pair of groups is compared, with Tukey's adjustment for making many comparisons. \code{outcome=\textquotedbl{}yes or no\textquotedbl{}} gives the chance of yes in each group and odds ratios for the pairs; the count outcomes the average count and rate ratios; \code{\textquotedbl{}positive numbers\textquotedbl{}} the average and ratios; \code{\textquotedbl{}shares\textquotedbl{}} the average share; \code{\textquotedbl{}ordered groups\textquotedbl{}} and \code{\textquotedbl{}groups\textquotedbl{}} the chance of each of the outcome's groups (column \code{\textquotedbl{}model chance\textquotedbl{}} instead of \code{\textquotedbl{}model average\textquotedbl{}}). \code{grouped\_\allowbreak{}by=} uses the mixed model (\code{grouped\_\allowbreak{}by=[\textquotedbl{}school\textquotedbl{},\allowbreak{} \textquotedbl{}class\textquotedbl{}]} for classes inside schools). Done by R emmeans::\code{emmeans()} and \code{pairs()} (needs R: pip install \code{\textquotedbl{}simplydata[r]\textquotedbl{}}). Gives back a table with one row per group and one per pair. Other name: marginal means (R emmeans).
 
 \wordfield{Options}{}\par\nopagebreak
 \begin{optiontable}
@@ -9704,28 +9816,6 @@ table.explain("days_absent", using=["hours", "breakfast"], outcome="counts")
 \end{lstlisting}
 \printedoutput{output/solution16_task3.txt}
 \solutionanswer{Breakfast could easily be chance (rate ratio 0.94, p = 0.45); study hours matter (rate ratio 0.86 for each hour).}
-\solutiontask{4}{Find the model averages of \code{\textquotedbl{}marks\textquotedbl{}} for each \code{\textquotedbl{}school\textquotedbl{}}, allowing for \code{\textquotedbl{}hours\textquotedbl{}} (\code{model\_\allowbreak{}averages\_\allowbreak{}of} with \code{using=[\textquotedbl{}hours\textquotedbl{}]}). Which school has the highest average and which the lowest, and how many pairs of schools differ?}
-\begin{lstlisting}[style=py]
-import simplydata as sdata
-table = sdata.table(sdata.example("school"))
-table.model_averages_of("marks", for_each="school", using=["hours"])
-\end{lstlisting}
-\printedoutput{output/solution16_task4.txt}
-\solutionanswer{With hours held at their average (5.00), School D has the highest average mark (57.7) and School C the lowest (36.5). 22 of the 66 pairs of schools differ after Tukey's adjustment (p \textless{} 0.05). This needs R (emmeans).}
-\solutiontask{5}{Check the same model (\code{\textquotedbl{}marks\textquotedbl{}} using \code{\textquotedbl{}hours\textquotedbl{}} and \code{\textquotedbl{}school\textquotedbl{}}) with \code{check\_\allowbreak{}model}, then use \code{compare\_\allowbreak{}models} to ask whether adding \code{\textquotedbl{}breakfast\textquotedbl{}} to it helps.}
-\begin{lstlisting}[style=py]
-import simplydata as sdata
-table = sdata.table(sdata.example("school"))
-page = table.check_model("marks", using=["hours", "school"])
-page.save("model_checks.png")
-table.compare_models("marks", using=["hours", "school"], against=["hours", "school", "breakfast"])
-\end{lstlisting}
-\printedoutput{output/solution16_task5.txt}
-\begin{center}\begin{minipage}{\linewidth}\centering
-\includegraphics[width=0.52\textwidth,height=0.30\textheight,keepaspectratio]{figures/solution16_task5_model_checks.pdf}
-\captionof*{figure}{Lesson 16, task 5: \code{model\_\allowbreak{}checks.\allowbreak{}png}.}
-\end{minipage}\end{center}
-\solutionanswer{The pictures look fine: an even band around 0, dots close to the Q-Q line, and no row near the Cook's distance lines (the largest is 0.046). Adding breakfast helps: F = 7.13, p = 0.008, and the AIC drops by 5.57.}
 \par\noindent{\small\sffamily\hyperref[lesson:16]{Back to lesson 16}}
 \unsection{Lesson 17: Patterns across many columns}{solutions:17}
 \solutiontask{1}{Add principal components of \code{\textquotedbl{}hours\textquotedbl{}}, \code{\textquotedbl{}sleep\textquotedbl{}}, \code{\textquotedbl{}marks\textquotedbl{}} and \code{\textquotedbl{}days\_\allowbreak{}absent\textquotedbl{}} in \code{sdata.\allowbreak{}example(\textquotedbl{}school\textquotedbl{})}. Which columns weigh most in PC1?}
@@ -9843,6 +9933,49 @@ estimates.show()
 \printedoutput{output/solution20_task3.txt}
 \solutionanswer{\code{values\_\allowbreak{}at} joins the months with a smooth curve and reads off each city at 6.5.}
 \par\noindent{\small\sffamily\hyperref[lesson:20]{Back to lesson 20}}
+\unsection{Lesson 21: Working with a model: check it, compare it, predict with it}{solutions:21}
+\solutiontask{1}{Partly done for you: the first two lines are table = \code{sdata.\allowbreak{}table(sdata.\allowbreak{}example(\textquotedbl{}school\textquotedbl{}))} and \code{table.\allowbreak{}check\_\allowbreak{}model(\textquotedbl{}marks\textquotedbl{},\allowbreak{} using=[\textquotedbl{}hours\textquotedbl{},\allowbreak{} \textquotedbl{}breakfast\textquotedbl{}])}. Write the third line yourself: does \code{\textquotedbl{}sleep\textquotedbl{}} help the model of \code{\textquotedbl{}marks\textquotedbl{}} that already has \code{\textquotedbl{}hours\textquotedbl{}} and \code{\textquotedbl{}breakfast\textquotedbl{}}?}
+\begin{lstlisting}[style=py]
+import simplydata as sdata
+table = sdata.table(sdata.example("school"))
+table.check_model("marks", using=["hours", "breakfast"])
+table.compare_models("marks", using=["hours", "breakfast"], against=["hours", "breakfast", "sleep"])
+\end{lstlisting}
+\printedoutput{output/solution21_task1.txt}
+\solutionanswer{Yes: on the 161 rows with every value, sleep helps (F = 10.2, p = 0.002) and the AIC drops by 8.17.}
+\solutiontask{2}{Check the model of \code{\textquotedbl{}marks\textquotedbl{}} using \code{\textquotedbl{}hours\textquotedbl{}} and \code{\textquotedbl{}school\textquotedbl{}} with \code{check\_\allowbreak{}model} and \code{show\_\allowbreak{}rows\_\allowbreak{}that\_\allowbreak{}pull}, then use \code{compare\_\allowbreak{}models} to ask whether adding \code{\textquotedbl{}breakfast\textquotedbl{}} to it helps.}
+\begin{lstlisting}[style=py]
+import simplydata as sdata
+table = sdata.table(sdata.example("school"))
+page = table.check_model("marks", using=["hours", "school"])
+page.save("model_checks.png")
+table.show_rows_that_pull("marks", using=["hours", "school"])
+table.compare_models("marks", using=["hours", "school"], against=["hours", "school", "breakfast"])
+\end{lstlisting}
+\printedoutput{output/solution21_task2.txt}
+\begin{center}\begin{minipage}{\linewidth}\centering
+\includegraphics[width=0.52\textwidth,height=0.30\textheight,keepaspectratio]{figures/solution21_task2_model_checks.pdf}
+\captionof*{figure}{Lesson 21, task 2: \code{model\_\allowbreak{}checks.\allowbreak{}png}.}
+\end{minipage}\end{center}
+\solutionanswer{The pictures look fine, and no row comes near the Cook's distance lines (the largest is 0.0457, row 97). Adding breakfast helps: F = 7.13, p = 0.008, and the AIC drops by 5.57.}
+\solutiontask{3}{Try to remember without looking back: which word adds a prediction with its interval, and which option gives the interval for one new row? Use them to predict \code{\textquotedbl{}marks\textquotedbl{}} from \code{\textquotedbl{}hours\textquotedbl{}} and \code{\textquotedbl{}sleep\textquotedbl{}}, and look at the first 3 rows.}
+\begin{lstlisting}[style=py]
+import simplydata as sdata
+table = sdata.table(sdata.example("school"))
+table.add_predicted_column("marks", using=["hours", "sleep"], interval=95, for_new_rows=True)
+table.show_first_rows(3)
+\end{lstlisting}
+\printedoutput{output/solution21_task3.txt}
+\solutionanswer{\code{add\_\allowbreak{}predicted\_\allowbreak{}column} with \code{interval=95} and \code{for\_\allowbreak{}new\_\allowbreak{}rows=True}: pupil 1 is predicted 46.9, but one pupil like this could score from 29.8 to 64.0. Pupil 2 has no sleep value, so its cells stay empty.}
+\solutiontask{4}{If you have R: find the model averages of \code{\textquotedbl{}marks\textquotedbl{}} for each \code{\textquotedbl{}school\textquotedbl{}}, allowing for \code{\textquotedbl{}hours\textquotedbl{}}. Which school has the highest average and which the lowest, and how many pairs of schools differ?}
+\begin{lstlisting}[style=py]
+import simplydata as sdata
+table = sdata.table(sdata.example("school"))
+table.model_averages_of("marks", for_each="school", using=["hours"])
+\end{lstlisting}
+\printedoutput{output/solution21_task4.txt}
+\solutionanswer{With hours held at their average (5.00), School D has the highest average mark (57.7) and School C the lowest (36.5). 22 of the 66 pairs of schools differ after Tukey's adjustment (p \textless{} 0.05). This needs R (emmeans).}
+\par\noindent{\small\sffamily\hyperref[lesson:21]{Back to lesson 21}}
 
 \backmatter
 
