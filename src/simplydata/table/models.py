@@ -94,6 +94,11 @@ RATIO_WORDS = {"yes or no": "odds ratio", "counts": "rate ratio", "counts (overd
                "counts that vary a lot": "rate ratio", "positive numbers": "ratio of averages"}
 
 
+def _exp(x) -> float:
+    """exp() that gives infinity instead of an error for a huge value (complete separation)."""
+    return math.exp(x) if x < 709 else math.inf
+
+
 def _missing(value) -> bool:
     return value is None or (isinstance(value, float) and math.isnan(value))
 
@@ -479,7 +484,7 @@ class ModelWords:
                             exposure=exposure, trials=trials, link=link)
         return dict(kind=kind, X=X, y=y, labels=labels, owner=owner, parts_of=parts_of, terms=terms, levels=levels,
                     kinds=kinds, fit=fit, n=n, yes_words=yes_words, groups=groups, keep=keep, outcome=outcome,
-                    variables=variables, column=column, time=time, out_of=out_of, link=link)
+                    variables=variables, column=column, time=time, out_of=out_of, link=link, data=data)
 
     @staticmethod
     def _need_statsmodels():
@@ -569,7 +574,7 @@ class ModelWords:
     def _effect_name(outcome):
         return RATIO_WORDS.get(outcome, "effect")
 
-    def _term_table(self, model, coef, tests, extra=None):
+    def _term_table(self, model, coef, tests, extra=None, more_rows=()):
         """The result table: one row per model column, then one per whole-column test."""
         effect = self._effect_name(model["outcome"])
         if model.get("link"):
@@ -580,7 +585,7 @@ class ModelWords:
             b, low, high = (float(coef["beta"][j]), float(coef["low"][j]), float(coef["high"][j]))
             row = {"term": label}
             if ratio:
-                row.update({effect: math.exp(b), "95 % CI low": math.exp(low), "95 % CI high": math.exp(high),
+                row.update({effect: _exp(b), "95 % CI low": _exp(low), "95 % CI high": _exp(high),
                             f"log {effect}": b})
             else:
                 row.update({effect: b, "95 % CI low": low, "95 % CI high": high})
@@ -595,7 +600,12 @@ class ModelWords:
             row.update({"term": f"{test['term']} (whole column)", "statistic name": test["name"],
                         "statistic": test["stat"], "degrees of freedom": test["df"], "p-value": test["p"]})
             rows.append(row)
-        data = {key: [r[key] for r in rows] for key in rows[0]}
+        for more in more_rows:
+            row = {key: math.nan for key in rows[0]}
+            row.update(more)
+            rows.append(row)
+        keys = list(dict.fromkeys(k for r in rows for k in r))
+        data = {key: [r.get(key, math.nan) for r in rows] for key in keys}
         return self._new_table(nw.from_dict(data, backend=self._frame.implementation))
 
     # ------------------------------------------------------------------ sentences
@@ -616,7 +626,7 @@ class ModelWords:
                     outcome == "positive numbers" else "expected count")
             if model.get("time"):
                 what += f' per 1 of "{model["time"]}"'
-            return f"  intercept: {_num(math.exp(beta))}, the {what} when every number column is 0{at_base}."
+            return f"  intercept: {_num(_exp(beta))}, the {what} when every number column is 0{at_base}."
         if outcome == "numbers":
             interval = f"95 % CI {_num(low)} to {_num(high)}"
             if len(parts) == 1 and parts[0][1] is None:
@@ -645,8 +655,8 @@ class ModelWords:
             return f"  {model['labels'][j]}: changes {scale} by {_num(beta)} ({interval}); {words}."
         if model.get("time"):
             thing = "the rate (count per time)"
-        ratio = math.exp(beta)
-        interval = f"95 % CI {_num(math.exp(low))} to {_num(math.exp(high))}"
+        ratio = _exp(beta)
+        interval = f"95 % CI {_num(_exp(low))} to {_num(_exp(high))}"
         if len(parts) == 1 and parts[0][1] is None:
             name = parts[0][0]
             return f'  {name}: each 1 more "{name}" multiplies {thing} by {_num(ratio)} ({interval}); {words}.'
@@ -842,7 +852,7 @@ class ModelWords:
     # ------------------------------------------------------------------ explain
     @friendly
     def explain(self, column=None, using=None, outcome="numbers", grouped_by=None, empty_cells="leave out", seed=1,
-                time=None, out_of=None, in_order=None, link=None):
+                time=None, out_of=None, in_order=None, link=None, test_type=None):
         """Explain one column from several others with a model, and say how big each effect is.
 
         table.explain("marks", using=["hours", "breakfast"])   (with sdata.example("school"))
@@ -863,6 +873,10 @@ class ModelWords:
         with many zeros": zero-inflated Poisson regression (R pscl::zeroinfl()). link= (experts):
         "probit" or "cloglog" for yes or no, "identity" or "sqrt" for counts, "inverse" or
         "identity" for positive numbers; the effects are then on that scale, not ratios.
+        test_type="type 2" adds a table with one test for each column (an ANOVA table): "type 2"
+        (the usual choice, R car::Anova(type = 2)), "type 3" (sum-to-zero coding, R
+        car::Anova(type = 3)) or "in order" (R anova(); the order of using= matters), with partial
+        eta-squared for numbers (R effectsize).
         A text column in using= is a group column: each group is compared with the first group
         in sorted order (the baseline). "hours * breakfast" adds both columns and their
         interaction (does the effect of hours depend on breakfast?).
@@ -896,8 +910,19 @@ class ModelWords:
         _skipped_note(int((~keep).sum()), names)
         model = self._fit_model(step, column, outcome, grouped_by, terms, variables, raw, kinds, keep, time=time,
                                 out_of=out_of, link=None if link in (None, LINKS.get(outcome, (None,))[0]) else link)
+        if test_type is not None:
+            from .anova_tables import read_test_type
+
+            test_type = read_test_type(test_type)
+            if time is not None or out_of is not None or model.get("link"):
+                raise SimplydataError("test_type= cannot be used with time=, out_of= or link= yet.")
         coef, tests = self._report(model, pieces, grouped_by)
-        return self._term_table(model, coef, tests)
+        more = []
+        if test_type is not None:
+            from .anova_tables import report
+
+            more = report(model, test_type)
+        return self._term_table(model, coef, tests, more_rows=more)
 
     @staticmethod
     def _check_link(step, outcome, link, grouped_by, empty_cells):

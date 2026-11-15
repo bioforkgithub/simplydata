@@ -3,7 +3,7 @@
 % code and the page numbers of the compiled manual. Do not edit it by hand: run
 %     python docs/make_manual.py --no-run
 % ---------------------------------------------------------------------------------------------
-% Page numbers from simplydata_manual.tex 732c80a32a2a70e1
+% Page numbers from simplydata_manual.tex 9fcc206734f8e091
 
 \documentclass[10pt,a4paper]{article}
 % no dates or random IDs in the PDF, so it only changes when the dictionary changes
@@ -211,7 +211,7 @@ A family is learned once and used again and again: the start or the end of a wor
 \field{Options}{\code{columns=}, \code{how\_\allowbreak{}many=}, \code{method=}, \code{same\_\allowbreak{}scale=}, \code{seed=}, \code{name=}, \code{linkage=}}
 \field{Other tools}{\code{hclust}, \code{kmeans}}
 \field{See also}{\hyperref[dict:add-principal-components]{\code{add\_\allowbreak{}principal\_\allowbreak{}components}}, \hyperref[dict:add-nmds]{\code{add\_\allowbreak{}nmds}}, \hyperref[dict:principal-components-of]{\code{principal\_\allowbreak{}components\_\allowbreak{}of}}, \hyperref[dict:distances-between-rows]{\code{distances\_\allowbreak{}between\_\allowbreak{}rows}}, \hyperref[dict:compare-profiles]{\code{compare\_\allowbreak{}profiles}}}
-\where{Manual \manualpage{word:table.add-clusters}{203}{section*.232}; lesson 17 (\manualpage{lesson:17}{90}{chapter.II.17})}
+\where{Manual \manualpage{word:table.add-clusters}{204}{section*.232}; lesson 17 (\manualpage{lesson:17}{90}{chapter.II.17})}
 \headword{add\_column}{dict:add-column}
 \sense{table}{\code{table.\allowbreak{}add\_\allowbreak{}column()}}
 \means{Add a new column, worked out from other columns in plain words or with a formula.}
@@ -273,7 +273,7 @@ A family is learned once and used again and again: the start or the end of a wor
 \eg{\code{table.\allowbreak{}add\_\allowbreak{}principal\_\allowbreak{}components(how\_\allowbreak{}many=2)} \practice{meadow}}
 \field{Options}{\code{columns=}, \code{how\_\allowbreak{}many=}, \code{same\_\allowbreak{}scale=}}
 \field{See also}{\hyperref[dict:add-clusters]{\code{add\_\allowbreak{}clusters}}, \hyperref[dict:add-nmds]{\code{add\_\allowbreak{}nmds}}, \hyperref[dict:principal-components-of]{\code{principal\_\allowbreak{}components\_\allowbreak{}of}}, \hyperref[dict:distances-between-rows]{\code{distances\_\allowbreak{}between\_\allowbreak{}rows}}, \hyperref[dict:compare-profiles]{\code{compare\_\allowbreak{}profiles}}}
-\where{Manual \manualpage{word:table.add-principal-components}{202}{section*.230}; lesson 17 (\manualpage{lesson:17}{90}{chapter.II.17})}
+\where{Manual \manualpage{word:table.add-principal-components}{203}{section*.230}; lesson 17 (\manualpage{lesson:17}{90}{chapter.II.17})}
 \headword{add\_rank\_column}{dict:add-rank-column}
 \sense{table}{\code{table.\allowbreak{}add\_\allowbreak{}rank\_\allowbreak{}column()}}
 \means{Add a column with each row's place, where 1 is the best.}
@@ -625,7 +625,7 @@ A family is learned once and used again and again: the start or the end of a wor
 \field{Options}{\code{time=}, \code{event=}, \code{for\_\allowbreak{}each=}}
 \field{Other tools}{\code{logrank\_\allowbreak{}test}, \code{survdiff}}
 \field{See also}{\hyperref[dict:survival-over-time]{\code{survival\_\allowbreak{}over\_\allowbreak{}time}}, \hyperref[dict:explain-survival]{\code{explain\_\allowbreak{}survival}}, \hyperref[dict:survival-curves]{\code{survival\_\allowbreak{}curves}}}
-\where{Manual \manualpage{word:table.compare-survival}{206}{section*.238}; lesson 18 (\manualpage{lesson:18}{95}{chapter.II.18})}
+\where{Manual \manualpage{word:table.compare-survival}{207}{section*.238}; lesson 18 (\manualpage{lesson:18}{95}{chapter.II.18})}
 \headword{contour}{dict:contour}
 \sense{chart}{\code{chart.\allowbreak{}contour()}}
 \means{A map where each colour band joins places with the same height.}
@@ -849,7 +849,7 @@ A family is learned once and used again and again: the start or the end of a wor
 \sense{table}{\code{table.\allowbreak{}explain()}}
 \means{Explain one column from several others with a model, and say how big each effect is.}
 \eg{\code{table.\allowbreak{}explain(\textquotedbl{}marks\textquotedbl{},\allowbreak{} using=[\textquotedbl{}hours\textquotedbl{},\allowbreak{} \textquotedbl{}breakfast\textquotedbl{}])} \practice{school}}
-\field{Options}{\code{column=}, \code{using=}, \code{outcome=}, \code{grouped\_\allowbreak{}by=}, \code{empty\_\allowbreak{}cells=}, \code{seed=}, \code{time=}, \code{out\_\allowbreak{}of=} and 2 more}
+\field{Options}{\code{column=}, \code{using=}, \code{outcome=}, \code{grouped\_\allowbreak{}by=}, \code{empty\_\allowbreak{}cells=}, \code{seed=}, \code{time=}, \code{out\_\allowbreak{}of=} and 3 more}
 \field{Other tools}{\code{glm}, \code{linregress}, \code{lm}, \code{lmer}, \code{logit}, \code{ols}}
 \field{See also}{\hyperref[dict:add-predicted-column]{\code{add\_\allowbreak{}predicted\_\allowbreak{}column}}}
 \where{Manual \manualpage{word:table.explain}{201}{section*.227}; lesson 16 (\manualpage{lesson:16}{86}{chapter.II.16})}
@@ -2444,7 +2444,7 @@ Names from pandas, Polars, R, NumPy, SciPy, matplotlib and seaborn, and everyday
 \othername{group\_by}{\hyperref[dict:average-of]{\code{table.\allowbreak{}average\_\allowbreak{}of()}}, \manualpage{word:table.average-of}{177}{section*.173}}
 \othername{groupby}{\hyperref[dict:average-of]{\code{table.\allowbreak{}average\_\allowbreak{}of()}}, \manualpage{word:table.average-of}{177}{section*.173}}
 \letterhead{H}
-\othername{hclust}{\hyperref[dict:add-clusters]{\code{table.\allowbreak{}add\_\allowbreak{}clusters()}}, \manualpage{word:table.add-clusters}{203}{section*.232}}
+\othername{hclust}{\hyperref[dict:add-clusters]{\code{table.\allowbreak{}add\_\allowbreak{}clusters()}}, \manualpage{word:table.add-clusters}{204}{section*.232}}
 \othername{head}{\hyperref[dict:show-first-rows]{\code{table.\allowbreak{}show\_\allowbreak{}first\_\allowbreak{}rows()}}, \manualpage{word:table.show-first-rows}{152}{section*.113}}
 \othername{height}{\hyperref[dict:count-rows]{\code{table.\allowbreak{}count\_\allowbreak{}rows()}}, \manualpage{word:table.count-rows}{176}{section*.171}}
 \othername{hist}{\hyperref[dict:histogram]{\code{chart.\allowbreak{}histogram()}}, \manualpage{word:histogram}{115}{section*.24}; \hyperref[dict:chart]{\code{nums.\allowbreak{}chart()}}, \manualpage{word:nums.chart}{237}{section*.326}}
@@ -2474,7 +2474,7 @@ Names from pandas, Polars, R, NumPy, SciPy, matplotlib and seaborn, and everyday
 \othername{kde}{\hyperref[dict:density]{\code{chart.\allowbreak{}density()}}, \manualpage{word:density}{126}{section*.45}}
 \othername{kdeplot}{\hyperref[dict:density]{\code{chart.\allowbreak{}density()}}, \manualpage{word:density}{126}{section*.45}}
 \othername{kendalltau}{\hyperref[dict:correlation-between]{\code{table.\allowbreak{}correlation\_\allowbreak{}between()}}, \manualpage{word:table.correlation-between}{182}{section*.184}}
-\othername{kmeans}{\hyperref[dict:add-clusters]{\code{table.\allowbreak{}add\_\allowbreak{}clusters()}}, \manualpage{word:table.add-clusters}{203}{section*.232}}
+\othername{kmeans}{\hyperref[dict:add-clusters]{\code{table.\allowbreak{}add\_\allowbreak{}clusters()}}, \manualpage{word:table.add-clusters}{204}{section*.232}}
 \othername{kruskal}{\hyperref[dict:compare-averages]{\code{table.\allowbreak{}compare\_\allowbreak{}averages()}}, \manualpage{word:table.compare-averages}{183}{section*.186}}
 \othername{kruskal\_test}{\hyperref[dict:compare-averages]{\code{table.\allowbreak{}compare\_\allowbreak{}averages()}}, \manualpage{word:table.compare-averages}{183}{section*.186}}
 \letterhead{L}
@@ -2494,7 +2494,7 @@ Names from pandas, Polars, R, NumPy, SciPy, matplotlib and seaborn, and everyday
 \othername{loc}{\hyperref[dict:keep-rows]{\code{table.\allowbreak{}keep\_\allowbreak{}rows()}}, \manualpage{word:table.keep-rows}{157}{section*.128}}
 \othername{loess}{\hyperref[dict:smooth-line]{\code{chart.\allowbreak{}smooth\_\allowbreak{}line()}}, \manualpage{word:smooth-line}{125}{section*.44}}
 \othername{logit}{\hyperref[dict:explain]{\code{table.\allowbreak{}explain()}}, \manualpage{word:table.explain}{201}{section*.227}}
-\othername{logrank\_test}{\hyperref[dict:compare-survival]{\code{table.\allowbreak{}compare\_\allowbreak{}survival()}}, \manualpage{word:table.compare-survival}{206}{section*.238}}
+\othername{logrank\_test}{\hyperref[dict:compare-survival]{\code{table.\allowbreak{}compare\_\allowbreak{}survival()}}, \manualpage{word:table.compare-survival}{207}{section*.238}}
 \othername{lower}{\hyperref[dict:make-lowercase]{\code{table.\allowbreak{}make\_\allowbreak{}lowercase()}}, \manualpage{word:table.make-lowercase}{166}{section*.150}}
 \othername{lowess}{\hyperref[dict:smooth-line]{\code{chart.\allowbreak{}smooth\_\allowbreak{}line()}}, \manualpage{word:smooth-line}{125}{section*.44}}
 \othername{lp}{\hyperref[dict:find-smallest]{\code{sdata.\allowbreak{}find\_\allowbreak{}smallest()}}, \manualpage{word:sdata.find-smallest}{190}{section*.201}}
@@ -2665,7 +2665,7 @@ Names from pandas, Polars, R, NumPy, SciPy, matplotlib and seaborn, and everyday
 \othername{summarize}{\hyperref[dict:summary-of]{\code{table.\allowbreak{}summary\_\allowbreak{}of()}}, \manualpage{word:table.summary-of}{179}{section*.179}}
 \othername{table.summary}{\hyperref[dict:summary-of]{\code{table.\allowbreak{}summary\_\allowbreak{}of()}}, \manualpage{word:table.summary-of}{179}{section*.179}}
 \othername{suptitle}{\hyperref[dict:title-top]{\code{chart.\allowbreak{}title\_\allowbreak{}top()}}, \manualpage{word:title-top}{131}{section*.59}}
-\othername{survdiff}{\hyperref[dict:compare-survival]{\code{table.\allowbreak{}compare\_\allowbreak{}survival()}}, \manualpage{word:table.compare-survival}{206}{section*.238}}
+\othername{survdiff}{\hyperref[dict:compare-survival]{\code{table.\allowbreak{}compare\_\allowbreak{}survival()}}, \manualpage{word:table.compare-survival}{207}{section*.238}}
 \othername{survfit}{\hyperref[dict:survival-over-time]{\code{table.\allowbreak{}survival\_\allowbreak{}over\_\allowbreak{}time()}}, \manualpage{word:table.survival-over-time}{206}{section*.237}}
 \othername{swarmplot}{\hyperref[dict:all-dots]{\code{chart.\allowbreak{}all\_\allowbreak{}dots()}}, \manualpage{word:all-dots}{127}{section*.47}}
 \letterhead{T}

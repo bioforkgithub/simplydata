@@ -28,6 +28,16 @@ More statistics, each checked against R.
 - `link=` for experts: "probit" or "cloglog" for yes or no, "identity" or "sqrt" for counts,
   "inverse" or "identity" for positive numbers; the effects are then on that scale.
 
+### Tables of tests (ANOVA tables)
+
+- `table.explain(..., test_type="type 2")` adds one test for each column: `"type 2"` (the usual choice,
+  as R `car::Anova(type = 2)`), `"type 3"` (sum-to-zero coding done for you, as `car::Anova(type = 3)`)
+  or `"in order"` (as R `anova()`; the order of `using=` matters). For numbers: F tests and sums of
+  squares from statsmodels `anova_lm`, and partial eta-squared from R `effectsize`. For yes/no and
+  counts: likelihood-ratio tests from R `car::Anova` itself.
+- A model with complete separation now prints "infinite" for an odds ratio instead of stopping with an
+  error.
+
 ### Mixed models for yes/no and counts
 
 - `table.explain(..., outcome="yes or no", grouped_by="school")` and `outcome="counts"` with
