@@ -13,6 +13,7 @@ from __future__ import annotations
 
 # sdata.<name>: top-level words, and words people expect on sdata that live on a table or a chart.
 _SDATA = [
+    ('sdata.dates("2026-01-01", to="2026-12-31", every="day")', "date_range seq.Date datetime_range daterange"),
     ('sdata.find_smallest("x**2 - 4*x + 1", between=[0, 5])',
      "minimize minimise optimize optimise optim minimize_scalar fmin fminbound argmin nlm "
      "nlminb fminsearch"),
@@ -149,6 +150,9 @@ _TABLE = [
     ('table.trend_of("visitors", sorted_by="month")',
      "mk.test mann_kendall mannkendall sens.slope sen_slope theilslopes smk.test sea.sens.slope"),
     ('table.correlation_between("a", "b", rows_back=12, sorted_by="date")', "ccf cross_correlation xcorr"),
+    ('table.add_missing_dates("date", every="day")', "asfreq upsample complete fill_missing_dates"),
+    ('table.add_smoothed_column("signal_smooth", from_column="signal", window=11, sorted_by="time")',
+     "rolling_smooth savgol smooth_column add_smooth_column"),
     ('table.forecast("visitors", sorted_by="month", repeats_every="year")',
      "predict_future naive snaive meanf rwf HoltWinters holt_winters ExponentialSmoothing exponential_smoothing "
      "arima ARIMA SARIMAX auto_arima"),
@@ -213,6 +217,10 @@ _NUMBERS = [
     ('nums.fit_distribution("gamma")', "fit fitdistr fitdist"),
     ("nums.spectrum_of(time_step=0.01)", "fft_power spectral_density"),
     ("nums.autocorrelation_of(rows_back=10)", "acf pacf"),
+    ('nums.smooth(method="median", window=5)',
+     "runmed medfilt median_filter savgol_filter sgolayfilt ewm ewma gaussian_filter1d whittaker_henderson wiener "
+     "moving_average convolve1d"),
+    ("nums.remove_trend()", "detrend"),
     ("nums.chart()", "plot hist"),
     ("nums.keep_random_numbers(3, seed=1)", "sample choice"),
     ("nums.count_each()", "value_counts tabulate"),

@@ -62,7 +62,7 @@ R_ENTRY_POINTS = {
     ("table/survival.py", "cox_zph"), ("table/between.py", "__init__"), ("table/models.py", "_explain_imputed"),
     ("table/time_series.py", "check_steady"), ("_signals.py", "_lomb_scargle"),
     ("_trend_season.py", "_r_stl_periodic"), ("_trend_season.py", "_r_mann_kendall"),
-    ("_forecast.py", "r_forecast"), ("_forecast.py", "r_change_points"),
+    ("_forecast.py", "r_forecast"), ("_forecast.py", "r_change_points"), ("_smoothing.py", "smooth"),
 }
 
 

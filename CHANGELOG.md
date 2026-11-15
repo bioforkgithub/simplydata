@@ -84,6 +84,20 @@ Install once: `pip install "simplydata[r]"`, R from https://cran.r-project.org, 
 - `table.find_change_points("nitrate", sorted_by="date", for_each="station")`: where the average (or, with
   change="average and spread", also the spread) jumps, by R `changepoint::cpt.mean` / `cpt.meanvar` (PELT,
   penalty="mbic" as R); one row per stretch with its average. Needs `simplydata[r]`.
+- `sdata.dates("2026-01-01", to="2026-12-31", every="day")` (or how_many=; every="month", "15 minutes", "2 weeks"
+  ...): a one-column table of regular dates. Month steps count from the first date, so a run from the 31st stays
+  on the month's last day (pandas DateOffset; R's seq(by = "month") overflows instead).
+- `table.add_missing_dates("date", every="day", for_each="station")`: a row for every missing date (empty cells),
+  between= to extend the run; every= found from the most common step when not given.
+- `table.add_rolling_column` gains window="7 days" (a window of time, pandas rolling("7D")), window="all"
+  (from the first row, pandas expanding), centre=True (R stats::filter(sides = 2)), and show= "variance",
+  "skewness", "kurtosis", "percentile" (percent=), "count", "correlation" and "covariance" (two columns).
+- `nums.smooth(method=..., window=...)` and `table.add_smoothed_column(...)`: "moving average" (weights=, ends=
+  "empty"/"shorter windows"/"mirror"; R stats::filter), "median" (R runmed itself, Tukey's end rule; needs
+  simplydata[r]), "savitzky-golay" (R signal::sgolayfilt), "exponential" (newest_weight=, alpha=, span=,
+  half_life=, com=), "gaussian" (width=), "lowess", "spline", "whittaker" and "wiener", from SciPy, pandas and
+  statsmodels.
+- `nums.remove_trend()` (breaks= for a separate line per piece; SciPy detrend, as R residuals(lm(x ~ t))).
 - New practice table `visitors`: monthly visitors to two made-up museums, 2014 to 2025.
 - New practice table `river`: daily water level and nitrate at two made-up stations, 2024 to 2025, with
   missing days and a few empty cells.

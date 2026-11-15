@@ -387,6 +387,11 @@ and `a`, `b` in `sdata.side_by_side(a, b)` are charts you made first.
 | `forecast` | `nums.forecast(steps_ahead=12, repeats_every=12)` | visitors | Forecast the next numbers, with an interval for each (R forecast and stats, run in R). |
 | `compare_forecasts` | `table.compare_forecasts("visitors", sorted_by="month", repeats_every="year", for_each="museum")` | visitors | Which forecast method would have done best on the last rows? (R forecast::accuracy) |
 | `find_change_points` | `table.find_change_points("nitrate", sorted_by="date", for_each="station")` | river | Find the points where the average of a column jumps to a new level (R changepoint, PELT). |
+| `sdata.dates` | `sdata.dates("2026-01-01", to="2026-12-31", every="day")` |  | A table with one column, "date": regular dates from start, every day (or week, month ...). |
+| `add_missing_dates` | `table.add_missing_dates("date", every="day", for_each="station")` | river | Add a row for every date that is missing from a regular run of dates (other cells empty). |
+| `add_smoothed_column` | `table.add_smoothed_column("signal_smooth", from_column="signal", method="savitzky-golay", window=11, sorted_by="time")` | sensor | Add a smoothed copy of a column: each value becomes a summary of its neighbours in time. |
+| `smooth` | `nums.smooth(method="median", window=5)` | sensor | Smooth the numbers: each one becomes a summary of its neighbours, so noise and spikes shrink. |
+| `remove_trend` | `nums.remove_trend()` | sensor | Take away the trend: the best straight line (or only the average) is taken from the numbers. |
 
 ## Planning a study
 

@@ -19,10 +19,11 @@ from .stat_tests import StatTestWords
 from .summaries import SummaryWords
 from .survival import SurvivalWords
 from .time_series import TimeSeriesWords
+from .time_steps import TimeStepWords
 
 
 class Table(PositionWords, RowWords, ColumnWords, SummaryWords, StatTestWords, FittingWords, ModelWords, PatternWords, SurvivalWords,
-            TimeSeriesWords, ForecastWords, SignalTableWords, BetweenWords, DistributionTableWords, BaseTable):
+            TimeSeriesWords, TimeStepWords, ForecastWords, SignalTableWords, BetweenWords, DistributionTableWords, BaseTable):
     """A table. Make one with sdata.table(...), then add steps: table.keep_rows(...), table.sort_by(...)."""
 
 

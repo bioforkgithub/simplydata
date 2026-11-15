@@ -91,7 +91,9 @@ GROUPS = [
     ("Signals and time series", ["table.spectrum_of", "nums.spectrum_of", "table.check_steady",
                                  "table.autocorrelation_of", "nums.autocorrelation_of",
                                  "table.add_trend_and_season", "table.trend_of", "table.forecast",
-                                 "nums.forecast", "table.compare_forecasts", "table.find_change_points"]),
+                                 "nums.forecast", "table.compare_forecasts", "table.find_change_points",
+                                 "sdata.dates", "table.add_missing_dates", "table.add_smoothed_column", "nums.smooth",
+                                 "nums.remove_trend"]),
     ("Planning a study", ["sdata.how_many_needed", "sdata.chance_to_find"]),
     ("Combine and reshape", ["table.join_with", "table.add_rows_from", "table.turn_columns_into_rows",
                              "table.turn_rows_into_columns"]),
@@ -656,6 +658,14 @@ HELP_EXAMPLES = {
         table.add_trend_and_season("visitors", sorted_by="month", repeats_every="year", for_each="museum")
         table.show_first_rows(3)"""),
     "table.trend_of": _tx("visitors", 'table.trend_of("visitors", sorted_by="month", for_each="museum")'),
+    "sdata.dates": 'import simplydata as sdata\ntable = sdata.dates("2026-01-01", to="2026-12-31", every="day")',
+    "table.add_missing_dates": _tx("river", """\
+        table.add_missing_dates("date", every="day", for_each="station")
+        table.fill_empty_cells("nitrate", with_the="line between neighbours", sorted_by="date", for_each="station")"""),
+    "table.add_smoothed_column": _tx("sensor", 'table.add_smoothed_column("signal_smooth", from_column="signal", '
+                                               'method="savitzky-golay", window=11, sorted_by="time")'),
+    "nums.smooth": _nx('nums.smooth(method="median", window=5)', values='sdata.example("sensor")["signal"]'),
+    "nums.remove_trend": _nx("nums.remove_trend()", values='sdata.example("sensor")["signal"]'),
     "table.forecast": _tx("visitors", 'table.forecast("visitors", sorted_by="month", steps_ahead=12, '
                                       'repeats_every="year", for_each="museum")'),
     "nums.forecast": _nx("nums.forecast(steps_ahead=12, repeats_every=12)",

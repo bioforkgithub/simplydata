@@ -567,7 +567,7 @@ def test_rolling_without_groups_and_order(engine):
 
 
 def test_rolling_errors(table):
-    with pytest.raises(SimplydataError, match="not ready yet"):
+    with pytest.raises(SimplydataError, match="sorted_by= one column of dates"):
         table.add_rolling_column("r", from_column="marks", window="7 days")
     with pytest.raises(SimplydataError, match="whole number of rows"):
         table.add_rolling_column("r", from_column="marks", window=0)
@@ -575,7 +575,7 @@ def test_rolling_errors(table):
         table.add_rolling_column("r", from_column="marks", show="medain")
     with pytest.raises(SimplydataError, match="cannot do sums"):
         table.add_rolling_column("r", from_column="name")
-    with pytest.raises(SimplydataError, match="at least two values"):
+    with pytest.raises(SimplydataError, match="at least 2 values"):
         table.add_rolling_column("r", from_column="marks", window=1, show="standard deviation")
     with pytest.raises(SimplydataError, match='Did you mean "test"'):
         table.add_rolling_column("r", from_column="marks", sorted_by="tst")

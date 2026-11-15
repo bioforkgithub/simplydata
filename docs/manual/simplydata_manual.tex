@@ -6082,9 +6082,9 @@ table.count_each("shop")
 \wordentry{table.add\_rolling\_column()}{word:table.add-rolling-column}
 Add a rolling (moving) summary: for each row, the average of this row and the rows just before it.
 
-\code{window=} is how many rows go into each summary (this row and the window - 1 rows before it). The first rows of each group are empty until there are enough rows, and a window with an empty cell in it gives an empty cell. \code{show=} can be \code{\textquotedbl{}average\textquotedbl{}}, \code{\textquotedbl{}total\textquotedbl{}}, \code{\textquotedbl{}median\textquotedbl{}}, \code{\textquotedbl{}smallest\textquotedbl{}}, \code{\textquotedbl{}biggest\textquotedbl{}} or \code{\textquotedbl{}standard deviation\textquotedbl{}}. \code{sorted\_\allowbreak{}by=} works it out in the order of a column such as a date (the rows themselves keep their place).\\
+\code{window=} is how many rows go into each summary (this row and the window - 1 rows before it). The first rows of each group are empty until there are enough rows, and a window with an empty cell in it gives an empty cell. \code{show=} can be \code{\textquotedbl{}average\textquotedbl{}}, \code{\textquotedbl{}total\textquotedbl{}}, \code{\textquotedbl{}median\textquotedbl{}}, \code{\textquotedbl{}smallest\textquotedbl{}}, \code{\textquotedbl{}biggest\textquotedbl{}}, \code{\textquotedbl{}standard deviation\textquotedbl{}}, \code{\textquotedbl{}variance\textquotedbl{}}, \code{\textquotedbl{}skewness\textquotedbl{}}, \code{\textquotedbl{}kurtosis\textquotedbl{}} (excess, both adjusted for small windows as pandas skew and kurt), \code{\textquotedbl{}percentile\textquotedbl{}} (with \code{percent=90}; as R quantile type 7), \code{\textquotedbl{}count\textquotedbl{}} (readings in the window), or \code{\textquotedbl{}correlation\textquotedbl{}} and \code{\textquotedbl{}covariance\textquotedbl{}} (\code{from\_\allowbreak{}column=} two columns). \code{sorted\_\allowbreak{}by=} works it out in the order of a column such as a date (the rows themselves keep their place).\\
 \codeline{table.add\_rolling\_column(\textquotedbl{}rain\_3\_months\textquotedbl{}, from\_column=\textquotedbl{}rain\textquotedbl{}, window=3, show=\textquotedbl{}total\textquotedbl{},}\\
-\code{for\_\allowbreak{}each=\textquotedbl{}city\textquotedbl{}}, \code{sorted\_\allowbreak{}by=\textquotedbl{}month\_\allowbreak{}number\textquotedbl{}})   (with \code{sdata.\allowbreak{}example(\textquotedbl{}weather\textquotedbl{})})
+\code{for\_\allowbreak{}each=\textquotedbl{}city\textquotedbl{}}, \code{sorted\_\allowbreak{}by=\textquotedbl{}month\_\allowbreak{}number\textquotedbl{}})   (with \code{sdata.\allowbreak{}example(\textquotedbl{}weather\textquotedbl{})}) \code{window=\textquotedbl{}7 days\textquotedbl{}} (or \code{\textquotedbl{}12 hours\textquotedbl{}}, \code{\textquotedbl{}2 weeks\textquotedbl{}}) is a window of time ending at this row's date: this day and the 6 days before, with whatever readings fall in it (\code{sorted\_\allowbreak{}by=} a date column; empty cells are left out), as pandas \code{rolling(\textquotedbl{}7D\textquotedbl{})}. \code{window=\textquotedbl{}all\textquotedbl{}} runs from the first row of the group to this row (a running average, running biggest ...; empty cells left out), as pandas \code{expanding()}. \code{centre=True} puts the window's middle on the row (an odd window such as 7), as R stats::\code{filter(x,\allowbreak{} rep(1/7,\allowbreak{} 7),\allowbreak{} sides = 2)}.
 
 \wordfield{Options}{}\par\nopagebreak
 \begin{optiontable}
@@ -6094,6 +6094,9 @@ Add a rolling (moving) summary: for each row, the average of this row and the ro
 \code{show=} & normally \code{\textquotedbl{}average\textquotedbl{}}\\
 \code{for\_\allowbreak{}each=} & \\
 \code{sorted\_\allowbreak{}by=} & \\
+\code{centre=} & normally \code{False}\\
+\code{percent=} & \\
+\code{center=} & \\
 \end{optiontable}
 
 \wordfield{Underneath}{narwhals (\code{rolling\_\allowbreak{}mean}, \code{rolling\_\allowbreak{}sum}, \code{rolling\_\allowbreak{}std} with \code{over(order\_\allowbreak{}by=)}); pandas or Polars rolling for median, smallest and biggest}
@@ -7752,6 +7755,134 @@ Splits the readings, in the order of \code{sorted\_\allowbreak{}by=}, into stret
 import simplydata as sdata
 table = sdata.table(sdata.example("river"))
 table.find_change_points("nitrate", sorted_by="date", for_each="station")
+\end{lstlisting}
+\wordentry{sdata.dates()}{word:sdata.dates}
+A table with one column, \code{\textquotedbl{}date\textquotedbl{}}: regular dates from start, every day (or week, month ...).
+
+\codeline{sdata.dates(\textquotedbl{}2026-01-01\textquotedbl{}, to=\textquotedbl{}2026-12-31\textquotedbl{}, every=\textquotedbl{}day\textquotedbl{})}\\
+Give \code{to=} (the last date, included when a step lands on it) or \code{how\_\allowbreak{}many=} (how many dates):\\
+\codeline{sdata.dates(\textquotedbl{}2026-01\textquotedbl{}, how\_many=24, every=\textquotedbl{}month\textquotedbl{}). every= is \textquotedbl{}second\textquotedbl{}, \textquotedbl{}minute\textquotedbl{}, \textquotedbl{}hour\textquotedbl{}, \textquotedbl{}day\textquotedbl{},}\\
+\code{\textquotedbl{}week\textquotedbl{}}, \code{\textquotedbl{}month\textquotedbl{}}, \code{\textquotedbl{}quarter\textquotedbl{}} or \code{\textquotedbl{}year\textquotedbl{}}, or a count and a unit such as \code{\textquotedbl{}15 minutes\textquotedbl{}} or \code{\textquotedbl{}2 weeks\textquotedbl{}}. Month steps are counted from the first date: from the 31st the dates stay on the 31st, or on the month's last day when the month is shorter (2026-01-31, 2026-02-28, 2026-03-31), as pandas DateOffset and Polars \code{\textquotedbl{}1mo\textquotedbl{}}; R's \code{seq(by = \textquotedbl{}month\textquotedbl{})} overflows into the next month instead. For other steps the dates are those of R \code{seq(as.\allowbreak{}Date(start),\allowbreak{} as.\allowbreak{}Date(to),\allowbreak{} by = \textquotedbl{}day\textquotedbl{})}. \code{fast=True} gives a Polars table. The table joins with others (\code{join\_\allowbreak{}with}) and charts like any table.
+
+\wordfield{Options}{}\par\nopagebreak
+\begin{optiontable}
+\code{start=} & \\
+\code{to=} & \\
+\code{every=} & normally \code{\textquotedbl{}day\textquotedbl{}}\\
+\code{how\_\allowbreak{}many=} & \\
+\code{fast=} & normally \code{False}\\
+\end{optiontable}
+
+\wordfield{Underneath}{pandas (Timestamp, DateOffset)}
+\wordfield{Example you can run}{}\par\nopagebreak
+\begin{lstlisting}[style=py]
+import simplydata as sdata
+table = sdata.dates("2026-01-01", to="2026-12-31", every="day")
+\end{lstlisting}
+\wordentry{table.add\_missing\_dates()}{word:table.add-missing-dates}
+Add a row for every date that is missing from a regular run of dates (other cells empty).
+
+\codeline{table.add\_missing\_dates(\textquotedbl{}date\textquotedbl{}, every=\textquotedbl{}day\textquotedbl{}, for\_each=\textquotedbl{}station\textquotedbl{})} (with \code{sdata.\allowbreak{}example(\textquotedbl{}river\textquotedbl{})})\\
+\code{every=} is the step (\code{\textquotedbl{}day\textquotedbl{}}, \code{\textquotedbl{}week\textquotedbl{}}, \code{\textquotedbl{}month\textquotedbl{}}, \code{\textquotedbl{}hour\textquotedbl{}}, \code{\textquotedbl{}15 minutes\textquotedbl{}} ...); without it, the most common step between the dates, printed. \code{for\_\allowbreak{}each=} fills each group's own run (the group's value is copied into the new rows). \code{between=[\textquotedbl{}2024-01-01\textquotedbl{},\allowbreak{} \textquotedbl{}2025-12-31\textquotedbl{}]} also adds rows before the first and after the last date. The new rows have empty cells: fill them next with\\
+\codeline{table.fill\_empty\_cells(..., with\_the=\textquotedbl{}line between neighbours\textquotedbl{}, sorted\_by=..., for\_each=...).}\\
+The table comes back sorted by the groups and the dates. As pandas reindex / Polars upsample; R \code{merge(data.\allowbreak{}frame(date = seq(.\allowbreak{}.\allowbreak{}.\allowbreak{})),\allowbreak{} x,\allowbreak{} all.\allowbreak{}x = TRUE)}. Undo with \code{table.\allowbreak{}undo()}.
+
+\wordfield{Options}{}\par\nopagebreak
+\begin{optiontable}
+\code{column=} & \\
+\code{every=} & \\
+\code{for\_\allowbreak{}each=} & \\
+\code{between=} & \\
+\end{optiontable}
+
+\wordfield{Underneath}{pandas (dates by DateOffset; concat), as reindex / Polars upsample}
+\wordfield{Example you can run}{(it uses the practice table \code{river})}\par\nopagebreak
+\begin{lstlisting}[style=py]
+import simplydata as sdata
+table = sdata.table(sdata.example("river"))
+table.add_missing_dates("date", every="day", for_each="station")
+table.fill_empty_cells("nitrate", with_the="line between neighbours", sorted_by="date", for_each="station")
+\end{lstlisting}
+\wordentry{table.add\_smoothed\_column()}{word:table.add-smoothed-column}
+Add a smoothed copy of a column: each value becomes a summary of its neighbours in time.
+
+\codeline{table.add\_smoothed\_column(\textquotedbl{}signal\_smooth\textquotedbl{}, from\_column=\textquotedbl{}signal\textquotedbl{}, method=\textquotedbl{}savitzky-golay\textquotedbl{}, window=11, sorted\_by=\textquotedbl{}time\textquotedbl{})}\\
+(with \code{sdata.\allowbreak{}example(\textquotedbl{}sensor\textquotedbl{})}). The methods and their options are those of \code{nums.\allowbreak{}smooth}: \code{\textquotedbl{}moving average\textquotedbl{}} (\code{weights=}, \code{ends=}), \code{\textquotedbl{}median\textquotedbl{}} (R runmed, needs simplydata[r]), \code{\textquotedbl{}savitzky-golay\textquotedbl{}} (\code{degree=}), \code{\textquotedbl{}exponential\textquotedbl{}} (\code{newest\_\allowbreak{}weight=}), \code{\textquotedbl{}gaussian\textquotedbl{}} (\code{width=}), \code{\textquotedbl{}lowess\textquotedbl{}} and \code{\textquotedbl{}spline\textquotedbl{}} (\code{smoothness=}; these two use the \code{sorted\_\allowbreak{}by} values as x and allow uneven steps and empty cells), \code{\textquotedbl{}whittaker\textquotedbl{}} (\code{smoothness=}) or \code{\textquotedbl{}wiener\textquotedbl{}}. The other methods need evenly spaced readings (\code{sorted\_\allowbreak{}by=}) and no empty cells. \code{for\_\allowbreak{}each=} smooths each group on its own. Undo with \code{table.\allowbreak{}undo()}.
+
+\wordfield{Options}{}\par\nopagebreak
+\begin{optiontable}
+\code{name=} & \\
+\code{from\_\allowbreak{}column=} & \\
+\code{method=} & normally \code{\textquotedbl{}moving average\textquotedbl{}}\\
+\code{window=} & normally \code{5}\\
+\code{sorted\_\allowbreak{}by=} & \\
+\code{for\_\allowbreak{}each=} & \\
+\code{ends=} & \\
+\code{weights=} & \\
+\code{degree=} & \\
+\code{newest\_\allowbreak{}weight=} & \\
+\code{width=} & \\
+\code{smoothness=} & \\
+\code{alpha=} & \\
+\code{span=} & \\
+\code{half\_\allowbreak{}life=} & \\
+\code{com=} & \\
+\end{optiontable}
+
+\wordfield{Underneath}{SciPy (ndimage.convolve1d, \code{gaussian\_\allowbreak{}filter1d}, signal.savgol\_filter, \code{whittaker\_\allowbreak{}henderson}, wiener), pandas (rolling, ewm), statsmodels (lowess); R stats::runmed for the median (simplydata[r])}
+\wordfield{Example you can run}{(it uses the practice table \code{sensor})}\par\nopagebreak
+\begin{lstlisting}[style=py]
+import simplydata as sdata
+table = sdata.table(sdata.example("sensor"))
+table.add_smoothed_column("signal_smooth", from_column="signal", method="savitzky-golay", window=11, sorted_by="time")
+\end{lstlisting}
+\wordentry{nums.smooth()}{word:nums.smooth}
+Smooth the numbers: each one becomes a summary of its neighbours, so noise and spikes shrink.
+
+\codeline{nums.smooth(method=\textquotedbl{}median\textquotedbl{}, window=5)}\\
+The numbers are taken in order, one step apart. \code{method=} \code{\textquotedbl{}moving average\textquotedbl{}} (the average of the \code{window=} readings centred on each; \code{weights=[1,\allowbreak{} 2,\allowbreak{} 1]} for a weighted average; \code{ends=} \code{\textquotedbl{}empty\textquotedbl{}} (as R stats::filter), \code{\textquotedbl{}shorter windows\textquotedbl{}} or \code{\textquotedbl{}mirror\textquotedbl{}}), \code{\textquotedbl{}median\textquotedbl{}} (removes single spikes; R \code{runmed()} itself, \code{ends=} \code{\textquotedbl{}tukey\textquotedbl{}} (R's default), \code{\textquotedbl{}keep\textquotedbl{}} or \code{\textquotedbl{}constant\textquotedbl{}}; needs simplydata[r]), \code{\textquotedbl{}savitzky-golay\textquotedbl{}} (a \code{degree=2} curve fitted in each window; keeps peak heights; R signal::sgolayfilt), \code{\textquotedbl{}exponential\textquotedbl{}} (\code{newest\_\allowbreak{}weight=0.\allowbreak{}3}: each value = 0.3 x the reading + 0.7 x the value before; \code{alpha=}, \code{span=}, \code{half\_\allowbreak{}life=} or \code{com=} instead), \code{\textquotedbl{}gaussian\textquotedbl{}} (weights from a bell curve with a standard deviation of \code{width=2} readings), \code{\textquotedbl{}lowess\textquotedbl{}} (\code{smoothness=} the share of readings in each local fit, 2/3), \code{\textquotedbl{}spline\textquotedbl{}} (\code{smoothness=\textquotedbl{}auto\textquotedbl{}} or R's \code{lambda=}), \code{\textquotedbl{}whittaker\textquotedbl{}} (\code{smoothness=100}; bigger is smoother) or \code{\textquotedbl{}wiener\textquotedbl{}}. Undo with \code{nums.\allowbreak{}undo()}.
+
+\wordfield{Options}{}\par\nopagebreak
+\begin{optiontable}
+\code{method=} & normally \code{\textquotedbl{}moving average\textquotedbl{}}\\
+\code{window=} & normally \code{5}\\
+\code{ends=} & \\
+\code{weights=} & \\
+\code{degree=} & \\
+\code{newest\_\allowbreak{}weight=} & \\
+\code{width=} & \\
+\code{smoothness=} & \\
+\code{alpha=} & \\
+\code{span=} & \\
+\code{half\_\allowbreak{}life=} & \\
+\code{com=} & \\
+\end{optiontable}
+
+\wordfield{Underneath}{as \code{table.\allowbreak{}add\_\allowbreak{}smoothed\_\allowbreak{}column}}
+\wordfield{Example you can run}{(it uses the practice table \code{sensor})}\par\nopagebreak
+\begin{lstlisting}[style=py]
+import simplydata as sdata
+nums = sdata.numbers(sdata.example("sensor")["signal"])
+nums.smooth(method="median", window=5)
+\end{lstlisting}
+\wordentry{nums.remove\_trend()}{word:nums.remove-trend}
+Take away the trend: the best straight line (or only the average) is taken from the numbers.
+
+\codeline{nums.remove\_trend()}\\
+\code{method=\textquotedbl{}straight line\textquotedbl{}} (least squares, as R \code{residuals(lm(x \textasciitilde{} seq\_\allowbreak{}along(x)))}) or \code{\textquotedbl{}average\textquotedbl{}} (takes away the average only). \code{breaks=[200,\allowbreak{} 500]} fits a separate straight line to each piece: a new line starts after readings 200 and 500 (counting from 1). The pieces are fitted separately, so the lines may jump at a break, as SciPy detrend (MATLAB and R pracma::detrend join them into one line). Undo with \code{nums.\allowbreak{}undo()}.
+
+\wordfield{Options}{}\par\nopagebreak
+\begin{optiontable}
+\code{method=} & normally \code{\textquotedbl{}straight line\textquotedbl{}}\\
+\code{breaks=} & \\
+\end{optiontable}
+
+\wordfield{Underneath}{SciPy (signal.detrend)}
+\wordfield{Example you can run}{(it uses the practice table \code{sensor})}\par\nopagebreak
+\begin{lstlisting}[style=py]
+import simplydata as sdata
+nums = sdata.numbers(sdata.example("sensor")["signal"])
+nums.remove_trend()
 \end{lstlisting}
 \unsection{Planning a study}{group:Planning-a-study}
 \wordentry{sdata.how\_many\_needed()}{word:sdata.how-many-needed}
@@ -10129,6 +10260,7 @@ Every word and option, A to Z, with the page of its dictionary entry. Other spel
 \indexline{word:table.add-date-part-column}{table.add\_date\_part\_column()}
 \indexline{word:table.add-group-column}{table.add\_group\_column()}
 \indexline{word:table.add-is-empty-column}{table.add\_is\_empty\_column()}
+\indexline{word:table.add-missing-dates}{table.add\_missing\_dates()}
 \indexline{word:table.add-nmds}{table.add\_nmds()}
 \indexline{word:table.add-predicted-column}{table.add\_predicted\_column()}
 \indexline{word:table.add-previous-value-column}{table.add\_previous\_value\_column()}
@@ -10136,6 +10268,7 @@ Every word and option, A to Z, with the page of its dictionary entry. Other spel
 \indexline{word:table.add-rank-column}{table.add\_rank\_column()}
 \indexline{word:table.add-rolling-column}{table.add\_rolling\_column()}
 \indexline{word:table.add-rows-from}{table.add\_rows\_from()}
+\indexline{word:table.add-smoothed-column}{table.add\_smoothed\_column()}
 \indexline{word:table.add-text-part-column}{table.add\_text\_part\_column()}
 \indexline{word:table.add-trend-and-season}{table.add\_trend\_and\_season()}
 \indexline{word:all-dots}{chart.all\_dots()}
@@ -10204,6 +10337,7 @@ Every word and option, A to Z, with the page of its dictionary entry. Other spel
 \indexline{word:cumulative-share}{chart.cumulative\_share()}
 \indexline{word:curve}{chart.curve()}
 \indexline{word:dist.cut-off}{dist.cut\_off()}
+\indexline{word:sdata.dates}{sdata.dates()}
 \indexline{word:sdata.day}{sdata.day()}
 \indexline{word:density}{chart.density()}
 \indexline{word:dist.density-at}{dist.density\_at()}
@@ -10337,6 +10471,7 @@ Every word and option, A to Z, with the page of its dictionary entry. Other spel
 \indexline{word:table.remove-rows-by-position}{table.remove\_rows\_by\_position()}
 \indexline{word:table.remove-rows-with-empty-cells}{table.remove\_rows\_with\_empty\_cells()}
 \indexline{word:table.remove-rows-with-outliers}{table.remove\_rows\_with\_outliers()}
+\indexline{word:nums.remove-trend}{nums.remove\_trend()}
 \indexline{word:table.rename-column}{table.rename\_column()}
 \indexline{word:grid.replace-numbers}{grid.replace\_numbers()}
 \indexline{word:nums.replace-numbers}{nums.replace\_numbers()}
@@ -10377,6 +10512,7 @@ Every word and option, A to Z, with the page of its dictionary entry. Other spel
 \indexline{word:size}{chart.size()}
 \indexline{word:nums.smallest}{nums.smallest()}
 \indexline{word:table.smallest-of}{table.smallest\_of()}
+\indexline{word:nums.smooth}{nums.smooth()}
 \indexline{word:smooth-line}{chart.smooth\_line()}
 \indexline{word:sdata.solve}{sdata.solve()}
 \indexline{word:nums.sort}{nums.sort()}

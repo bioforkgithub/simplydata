@@ -190,6 +190,13 @@ UNDERNEATH = {
     "table.add_trend_and_season": "statsmodels (STL with R's settings, seasonal_decompose, OLS with season effects); "
                                   "R stats::stl(s.window = \"periodic\") for a fixed season (simplydata[r])",
     "table.trend_of": "SciPy (stats.theilslopes); R trend::mk.test, smk.test, sea.sens.slope (simplydata[r])",
+    "sdata.dates": "pandas (Timestamp, DateOffset)",
+    "table.add_missing_dates": "pandas (dates by DateOffset; concat), as reindex / Polars upsample",
+    "table.add_smoothed_column": "SciPy (ndimage.convolve1d, gaussian_filter1d, signal.savgol_filter, whittaker_henderson, "
+                                 "wiener), pandas (rolling, ewm), statsmodels (lowess); R stats::runmed for the median "
+                                 "(simplydata[r])",
+    "nums.smooth": "as table.add_smoothed_column",
+    "nums.remove_trend": "SciPy (signal.detrend)",
     "table.forecast": "R (forecast::naive, snaive, meanf, rwf; stats::HoltWinters, stats::arima; forecast::forecast "
                       "and accuracy, through rpy2: simplydata[r])",
     "nums.forecast": "R (as table.forecast, through rpy2: simplydata[r])",
