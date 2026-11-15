@@ -79,7 +79,7 @@ def test_linear_model_matches_r_lm(school, engine, capsys):
     out = capsys.readouterr().out
     # R: summary(f1)$r.squared, $adj.r.squared, $fstatistic  0.4296 0.4187 39.41 on 3 and 157 df
     assert "R squared = 0.430 (adjusted 0.419)" in out
-    assert "F = 39.4, df = 3 and 157" in out and "very unlikely to be chance (p < 0.0001)" in out
+    assert "F = 39.4, df = 3 and 157" in out and "fewer than 1 in 1000 studies would show this much if none of the columns truly mattered (p < 0.0001)" in out
     assert "Note: 19 rows with an empty cell" in out and "(161 rows)" in out
     assert "Method: linear model by least squares, as R lm(marks ~ hours + breakfast + sleep)." in out
     assert 'breakfast "yes" against "no": "marks" is 3.24 higher (95 % CI 0.493 to 5.99)' in out

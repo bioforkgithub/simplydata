@@ -598,8 +598,9 @@ class FittingWords:
         direction = "up" if slope >= 0 else "down"
         num = st._num
         print(f'"{y}" goes {direction} by {num(abs(slope))} for each 1 more "{x}" (95 % CI '
-              f'{num(row["slope 95 % CI low"])} to {num(row["slope 95 % CI high"])}); this slope {st._chance(p)}. '
+              f'{num(row["slope 95 % CI low"])} to {num(row["slope 95 % CI high"])}). '
               f'R squared = {r2:.2f}: "{x}" explains about {round(r2 * 100)} % of the differences in "{y}".')
+        print(st._p_sentence(p, "there were truly no slope", "a slope this steep or steeper", "that there is no slope"))
         print(f"Line: {y} = {num(slope)} * {x} + {num(intercept)}, by least squares over {n} rows. "
               "A link does not show that one thing causes the other.")
         residuals = ys - (intercept + slope * xs)

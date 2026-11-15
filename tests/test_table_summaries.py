@@ -1,4 +1,4 @@
-"""Tests for the summary words: numbers checked against plain pandas, NumPy and SciPy."""
+﻿"""Tests for the summary words: numbers checked against plain pandas, NumPy and SciPy."""
 
 import math
 
@@ -10,7 +10,7 @@ from scipy import stats
 import simplydata as sdata
 from simplydata import SimplydataError
 from simplydata.table import table as make_table
-from simplydata.table.summaries import GROUPS_IN_SENTENCE, _p_words, _say_number, _strength
+from simplydata.table.summaries import GROUPS_IN_SENTENCE, _p_clause, _p_sentence, _say_number, _strength
 
 ENGINES = ["pandas", "polars"]
 
@@ -244,8 +244,10 @@ def test_correlation_matches_scipy(engine, marks, method, capsys):
     assert isinstance(r, float)
     assert r == pytest.approx(want_r)
     out = capsys.readouterr().out
-    assert out.count("\n") == 1
-    assert f"r = {want_r:.2f}" in out and _strength(want_r) in out and _p_words(want_p) in out
+    assert out.count("\n") == 2  # the r sentence and the p-value sentence
+    assert f"r = {want_r:.2f}" in out and _strength(want_r) in out
+    assert _p_sentence(want_p, "there were truly no link", "a link this strong or stronger",
+                       "that there is no link") in out
     unchanged(t, before)
 
 
@@ -274,10 +276,21 @@ def test_strength_and_p_words():
     assert _strength(-0.25) == "weak, going down"
     assert _strength(0.1) == "very weak, going up"
     assert _strength(0.0) == "no link at all"
-    assert _p_words(0.0003) == "very unlikely to be chance (p = 0.0003)"
-    assert _p_words(0.00001) == "very unlikely to be chance (p < 0.0001)"
-    assert _p_words(0.02) == "unlikely to be chance (p = 0.020)"
-    assert _p_words(0.3) == "could easily be chance (p = 0.300)"
+    # the p-value sentence (W2, owner decision O7); the count of studies is the p-value rounded
+    assert _p_sentence(0.031) == ("If there were truly no difference, a difference this big or bigger would turn up "
+                                  "in about 3 of 100 studies like this one (p = 0.031).")
+    assert _p_sentence(0.0003).endswith("in fewer than 1 in 1000 studies like this one (p = 0.0003).")
+    assert _p_sentence(0.00001).endswith("in fewer than 1 in 1000 studies like this one (p < 0.0001).")
+    assert _p_sentence(0.0026).endswith("in about 3 of 1000 studies like this one (p = 0.003).")
+    assert _p_sentence(0.0049).endswith("in about 5 of 1000 studies like this one (p = 0.005).")
+    assert _p_sentence(0.005).endswith("in about 1 of 100 studies like this one (p = 0.005).")
+    assert _p_sentence(0.3) == ("If there were truly no difference, a difference this big or bigger would turn up "
+                                "in about 30 of 100 studies like this one (p = 0.300). This does not show that there "
+                                "is no difference.")
+    assert _p_sentence(0.999, not_shown=None).endswith("in almost all of 100 studies like this one (p = 0.999).")
+    assert _p_sentence(0.02, "there were truly no link", "a link this strong or stronger").startswith(
+        "If there were truly no link, a link this strong or stronger would turn up in about 2 of 100")
+    assert _p_clause(0.031) == "about 3 of 100 studies would show this much if there were truly none (p = 0.031)"
 
 
 # ---------------------------------------------------------------- friendly errors

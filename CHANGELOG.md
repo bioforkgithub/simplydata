@@ -24,6 +24,21 @@ estimates (R uses the step before), so they agree with R to about 3e-5.
 - `compare_shape_to` calls SciPy `goodness_of_fit` again; most shapes take a few seconds
   with `samples=9999`, Weibull and t longer (a note says so before a long run).
 
+### One sentence for every p-value
+
+Every test now says its p-value in the same sentence, as a count of studies: "If there were truly
+no difference, a difference this big or bigger would turn up in about 3 of 100 studies like this
+one (p = 0.031)." Below 0.001 it says "fewer than 1 in 1000 studies"; from 0.05 it adds "This does
+not show that there is no difference." Each test words its own "nothing there" ("If the groups were
+truly alike", "If B were truly not higher than A", "If there were truly no link", "If the values truly
+came from a bell shape" ...). This replaces "unlikely to be chance" / "could easily be chance", which
+reads as the chance that chance did it, a common misreading of p-values. The words that list many
+p-values (model terms, the strongest correlations, Cox hazard ratios) use a short form: "about 3 of
+100 studies would show this much if there were truly none (p = 0.031)"; adjusted p-values in
+`compare_each_pair` are printed as "Holm-adjusted p = 0.023". The effect and its interval now come
+first, the p-value sentence on its own line after it. The count of studies is the p-value rounded;
+nothing is computed anew.
+
 ### One-sided tests and Kendall's tau
 
 - `sides=1, higher=...` (or its mirror `lower=...`) tests in one direction only, chosen before

@@ -27,8 +27,9 @@ Correlation strength words (size of r, whichever direction), after Evans (1996):
     0.6 - 0.8   strong
     0.8 - 1     very strong
 
-The p-value words: below 0.001 "very unlikely to be chance", below 0.05 "unlikely to be
-chance", otherwise "could easily be chance".
+The p-value sentence (the same in every word, _p_sentence): "If there were truly no link, a
+link this strong or stronger would turn up in about 3 of 100 studies like this one (p = 0.031)."
+Below p = 0.001 it says "fewer than 1 in 1000 studies".
 """
 
 from __future__ import annotations
@@ -242,18 +243,51 @@ def _strength(r: float) -> str:
     return "no link at all"
 
 
-def _p_words(p: float) -> str:
+def _p_shown(p: float) -> str:
+    """"p = 0.031", "p = 0.0026" or "p < 0.0001"."""
     if p < 0.0001:
-        shown = "p < 0.0001"
-    elif p < 0.001:
-        shown = f"p = {p:.4f}"
-    else:
-        shown = f"p = {p:.3f}"
+        return "p < 0.0001"
+    return f"p = {p:.4f}" if p < 0.001 else f"p = {p:.3f}"
+
+
+def _studies(p: float) -> str:
+    """How often a result this big or bigger turns up when there is truly nothing, as a count of
+    studies: "about 3 of 100", "about 3 of 1000", "fewer than 1 in 1000", "almost all of 100".
+    Display only [D]: the p-value written as a count (rounded), not a statistic."""
     if p < 0.001:
-        return f"very unlikely to be chance ({shown})"
-    if p < 0.05:
-        return f"unlikely to be chance ({shown})"
-    return f"could easily be chance ({shown})"
+        return "fewer than 1 in 1000"
+    per_100 = int(p * 100 + 0.5)
+    if per_100 == 0:
+        return f"about {int(p * 1000 + 0.5)} of 1000"
+    if per_100 >= 100:
+        return "almost all of 100"
+    return f"about {per_100} of 100"
+
+
+def _p_sentence(p: float, if_none: str = "there were truly no difference",
+                this: str = "a difference this big or bigger", not_shown: str | None = "that there is no difference",
+                shown: str | None = None) -> str:
+    """The one p-value sentence of every word (owner decision O7, wording rule W2):
+
+    "If there were truly no difference, a difference this big or bigger would turn up in about 3
+    of 100 studies like this one (p = 0.031)."
+
+    if_none: what "nothing there" means for this test ("the groups were truly alike", "B were
+    truly not higher", ...); this: what would turn up. From p = 0.05 a second sentence says that a
+    large p-value does not show there is nothing ("This does not show that there is no
+    difference."; not_shown=None leaves it out). shown: the p-value as printed, when not "p = ..."
+    (e.g. "Holm-adjusted p = 0.010")."""
+    shown = shown or _p_shown(p)
+    sentence = f"If {if_none}, {this} would turn up in {_studies(p)} studies like this one ({shown})."
+    if p >= 0.05 and not_shown:
+        sentence += f" This does not show {not_shown}."
+    return sentence
+
+
+def _p_clause(p: float, if_none: str = "there were truly none", shown: str | None = None) -> str:
+    """The short form of the p-value sentence for one line of a list (model terms, pairs):
+    "about 3 of 100 studies would show this much if there were truly none (p = 0.031)"."""
+    return f"{_studies(p)} studies would show this much if {if_none} ({shown or _p_shown(p)})"
 
 
 def _share(hits: int, rows: int):
@@ -1288,8 +1322,8 @@ class SummaryWords:
         finding more likely.
         Strength words for the size of r: below 0.2 very weak, from 0.2 weak, from 0.4
         medium, from 0.6 strong, from 0.8 very strong (after Evans 1996).
-        p below 0.001: "very unlikely to be chance"; below 0.05: "unlikely to be chance";
-        otherwise "could easily be chance".
+        The p-value is said as how often a link this strong or stronger would turn up in studies
+        like this one if there were truly no link ("about 3 of 100 studies", p = 0.031).
         sides=1, higher="positive" (or "negative") tests in one direction only, as decided before
         seeing the data (R cor.test(alternative = "greater")); two columns only.
         A correlation does not show that one thing causes the other.
@@ -1374,8 +1408,14 @@ class SummaryWords:
             print(f'Note: {skipped} {rows} with an empty cell in "{column_a}" or "{column_b}" {verb} skipped.')
         print(
             f'The correlation between "{column_a}" and "{column_b}" is r = {r:.2f} ({name}, {n} rows): '
-            f"{_strength(r)}, and {_p_words(p)}."
+            f"{_strength(r)}."
         )
+        if up is None:
+            print(_p_sentence(p, "there were truly no link", "a link this strong or stronger",
+                              "that there is no link"))
+        else:
+            print(_p_sentence(p, f"there were truly no {up} link", f"a {up} link this strong or stronger",
+                              f"that there is no {up} link"))
         if up is not None:
             from .stat_tests import _one_sided_sentence
 
@@ -1408,7 +1448,7 @@ class SummaryWords:
         print(f"Correlations between {len(names)} columns ({method_name}, {n_pairs} pairs; each pair uses the rows "
               "where both columns have a number). The strongest:")
         for (a, b), (r, p, n) in strongest[:STRONGEST_PAIRS]:
-            print(f'  "{a}" and "{b}": r = {r:.2f} ({n} rows), {_strength(r)}, and {_p_words(p)}.')
+            print(f'  "{a}" and "{b}": r = {r:.2f} ({n} rows), {_strength(r)}; {_p_clause(p, "there were truly no link")}.')
         if n_pairs > STRONGEST_PAIRS:
             print(f"  ... and {n_pairs - STRONGEST_PAIRS} more pairs (the new table has them all).")
         gaps = len(frame) - len(frame.select(*names).drop_nulls())

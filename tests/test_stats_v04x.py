@@ -78,7 +78,8 @@ def test_levene_brown_forsythe_matches_r(marks, engine, capsys):
     assert got["standard deviation in C"] == pytest.approx(14.1800974396755)
     assert got["count in A"] == 18
     out = capsys.readouterr().out
-    assert "could easily be chance (p = 0.911)" in out
+    assert ("If the groups truly had the same spread, differences in spread this big or bigger would turn up in about "
+            "91 of 100 studies like this one (p = 0.911). This does not show that the groups have the same spread.") in out
     assert "car::leveneTest()" in out and "Brown-Forsythe" in out
     unchanged(t, before)
     assert t.compare_spreads("marks", for_each="class", test="Brown-Forsythe")._frame.to_pandas()["statistic"][0] \
@@ -213,7 +214,8 @@ def test_counts_to_shares_matches_r(engine, capsys):
     assert got["effect size"] == pytest.approx(0.0290751934124272, rel=1e-9)
     assert got["rows"] == 556
     out = capsys.readouterr().out
-    assert "chisq.test(x, p = ...)" in out and "could easily be chance (p = 0.925)" in out
+    assert "chisq.test(x, p = ...)" in out and "in about 93 of 100 studies like this one (p = 0.925)" in out
+    assert "If the expected shares were true, differences this big or bigger from the expected counts" in out
     unchanged(t, before)
     as_percent = row(t.compare_counts_to("pea", expected={k: v * 100 for k, v in expected.items()}))
     assert as_percent["statistic"] == pytest.approx(got["statistic"])
@@ -286,7 +288,9 @@ def test_percent_to_trial_and_other_kinds(engine, capsys):
     assert got["p-value"] == pytest.approx(0.0499034630935699, rel=1e-9)
     assert got["percent 95 % CI low"] == pytest.approx(39.9258582538410, rel=1e-9)
     assert got["effect size"] == pytest.approx(0.184690482422259, rel=1e-9)
-    assert "unlikely to be chance (p = 0.050)" in capsys.readouterr().out
+    shown = capsys.readouterr().out
+    assert ("If the percent were truly 40 %, a difference this big or bigger would turn up in about 5 of 100 studies "
+            "like this one (p = 0.050).") in shown and "This does not show" not in shown
     flags = make(pd.DataFrame({"ok": [True] * 59 + [False] * 61, "n": [1] * 59 + [0] * 61}), engine)
     assert row(flags.compare_percent_to("ok", percent=40))["p-value"] == pytest.approx(got["p-value"])
     assert row(flags.compare_percent_to("n", percent=40))["p-value"] == pytest.approx(got["p-value"])

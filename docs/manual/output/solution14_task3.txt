@@ -1,3 +1,4 @@
 Kept 13 of 52 rows.
-"forest" goes down by 0.574 for each 1 more "year" (95 % CI -0.672 to -0.477); this slope is very unlikely to be chance (p < 0.0001). R squared = 0.94: "year" explains about 94 % of the differences in "forest".
+"forest" goes down by 0.574 for each 1 more "year" (95 % CI -0.672 to -0.477). R squared = 0.94: "year" explains about 94 % of the differences in "forest".
+If there were truly no slope, a slope this steep or steeper would turn up in fewer than 1 in 1000 studies like this one (p < 0.0001).
 Line: forest = -0.574 * year + 1209, by least squares over 13 rows. A link does not show that one thing causes the other.

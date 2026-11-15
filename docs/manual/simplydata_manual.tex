@@ -2250,7 +2250,7 @@ table.compare_averages("marks", for_each="subject", based_on="ranks")
 \begin{lineexplain}
   \item[1] Load simplydata.
   \item[2] Make a table of the marks.
-  \item[3] Do the three classes really differ in their average mark? The answer comes in words. The p-value is the chance of a difference this big if the classes were really the same: below 0.05 we call it unlikely to be chance. With three or more groups this test is also called Welch's ANOVA; with two groups, a t-test.
+  \item[3] Do the three classes really differ in their average mark? The answer comes in words. The p-value says how often differences this big or bigger would turn up in studies like this one if the classes were truly the same: here in about 3 of 100 (p = 0.028). It is not the chance that the classes are the same. With three or more groups this test is also called Welch's ANOVA; with two groups, a t-test.
   \item[4] Which classes differ? Each pair gets its own t-test (Welch's). Testing many pairs makes a false alarm more likely, so the p-values are adjusted (Holm's method).
   \item[5] \code{based\_\allowbreak{}on=\textquotedbl{}ranks\textquotedbl{}} puts the marks in order and compares the places instead (a Kruskal-Wallis test, or Mann-Whitney for two groups). It is safer when groups are small and the values are not bell-shaped.
 \end{lineexplain}
@@ -2328,16 +2328,16 @@ school.compare_percent_to("passed", value="yes", percent=50)
 \begin{lineexplain}
   \item[1] Load simplydata.
   \item[2] Make a table of the marks.
-  \item[3] Are the marks of one class more spread out? Levene's test says this could easily be chance (p = 0.91).
+  \item[3] Are the marks of one class more spread out? The data cannot tell: differences in spread this big would turn up in about 91 of 100 studies even if the spreads were the same (p = 0.91).
   \item[4] Tukey's test compares every pair at once: only A and C differ (p = 0.020).
   \item[5] A table of pupils.
   \item[6] Did 60 \% eat breakfast, as a survey said? 115 of 180 is close enough (p = 0.29).
-  \item[7] Did half the pupils pass? 43.3 \% did; that could easily be chance (p = 0.086).
+  \item[7] Did half the pupils pass? 43.3 \% did; if truly half passed, a difference this big would turn up in about 9 of 100 studies (p = 0.086), so the data cannot tell.
 \end{lineexplain}
 \printedoutput{output/lesson14_example5.txt}
 \begin{goodtoknow}
 \begin{itemize}
-  \item The idea behind every test: imagine there is no real difference (this is called the null hypothesis). The p-value says how surprising your data would be then. A small p-value means: hard to explain by chance alone.
+  \item The idea behind every test: imagine there is no real difference (this is called the null hypothesis). The p-value says how often a difference this big or bigger would turn up then, in studies like yours: p = 0.03 is \code{\textquotedbl{}about 3 of 100 studies\textquotedbl{}}. It is not the chance that there is no difference, and every test says it in that one sentence.
   \item A p-value does not say how big or important the difference is: the effect size does that (omega-squared, Cohen's d, Cramer's V ...). And a large p-value does not show that there is no difference. It only means these data cannot tell.
   \item A 95 \% confidence interval is the range the true value is very likely in. A narrow one means the data pin the value down well; a wide one means you need more data.
   \item Each test gives back a one-row table with all its numbers, so you can save it: result = \code{table.\allowbreak{}compare\_\allowbreak{}averages(.\allowbreak{}.\allowbreak{}.\allowbreak{})}, then \code{result.\allowbreak{}save(\textquotedbl{}test.\allowbreak{}csv\textquotedbl{})}.
@@ -2530,7 +2530,7 @@ table.explain("marks", using=["hours * breakfast"])
   \item[1] Load simplydata.
   \item[2] Pupils in 12 schools: study, sleep, breakfast and marks.
   \item[3] Explain the marks from hours of study, hours of sleep and breakfast. Each extra hour of study goes with about 2.7 more marks, each extra hour of sleep with 2.3 more, and breakfast with 3.2 more, each with its 95 \% confidence interval and p-value. This is a linear model (multiple regression) by least squares.
-  \item[4] hours * breakfast also asks: does the effect of study depend on breakfast? That is an interaction. Here it could easily be chance (p = 0.31).
+  \item[4] hours * breakfast also asks: does the effect of study depend on breakfast? That is an interaction. Here the data cannot tell: about 31 of 100 studies would show this much if there were truly none (p = 0.31).
 \end{lineexplain}
 \printedoutput{output/lesson16_example1.txt}
 \section*{Example 2}
@@ -2736,7 +2736,7 @@ table.explain_survival(time="days", event="died", using=["treatment", "age"])
 \begin{lineexplain}
   \item[1] Load simplydata.
   \item[2] The trial table.
-  \item[3] The log-rank test compares the whole curves: here the difference could easily be chance (p = 0.22).
+  \item[3] The log-rank test compares the whole curves: here the data cannot tell (p = 0.22; differences this big would turn up in about 22 of 100 studies with truly alike groups).
   \item[4] A Cox model: each year of age raises the risk of dying at any moment by about 5 \% (hazard ratio 1.05), with the treatment held fixed.
 \end{lineexplain}
 \printedoutput{output/lesson18_example2.txt}
@@ -6344,7 +6344,7 @@ How strongly columns of numbers go up or down together, from -1 to 1.
 \codeline{table.correlation\_between(\textquotedbl{}hours\textquotedbl{}, \textquotedbl{}marks\textquotedbl{})} (with \code{sdata.\allowbreak{}example(\textquotedbl{}marks\textquotedbl{})})\\
 \code{method=\textquotedbl{}pearson\textquotedbl{}} (a straight-line link, the usual one), \code{\textquotedbl{}spearman\textquotedbl{}} (uses ranks, for any link that keeps going one way) or \code{\textquotedbl{}kendall\textquotedbl{}} (Kendall's tau-b, also ranks: the share of pairs of rows that agree in order minus the share that disagree; as R \code{cor.\allowbreak{}test(method = \textquotedbl{}kendall\textquotedbl{})}, SciPy kendalltau). Prints the strength in words and the p-value from SciPy. With two columns it gives back the number r; rows with an empty cell in either column are skipped. With three or more columns it gives back a correlation table (as pandas .corr()), and prints the strongest pairs:\\
 \codeline{table.correlation\_between(\textquotedbl{}hours\textquotedbl{}, \textquotedbl{}marks\textquotedbl{}, \textquotedbl{}height\textquotedbl{})}\\
-Each pair uses the rows where both columns have a number. \code{show=\textquotedbl{}p-value\textquotedbl{}} gives the table of p-values instead, and \code{show=\textquotedbl{}each pair\textquotedbl{}} one row per pair (r, p-value, rows), ready for \code{add\_\allowbreak{}adjusted\_\allowbreak{}p\_\allowbreak{}value\_\allowbreak{}column()}: testing many pairs makes a chance finding more likely. Strength words for the size of r: below 0.2 very weak, from 0.2 weak, from 0.4 medium, from 0.6 strong, from 0.8 very strong (after Evans 1996). p below 0.001: \code{\textquotedbl{}very unlikely to be chance\textquotedbl{}}; below 0.05: \code{\textquotedbl{}unlikely to be chance\textquotedbl{}}; otherwise \code{\textquotedbl{}could easily be chance\textquotedbl{}}. \code{sides=1}, \code{higher=\textquotedbl{}positive\textquotedbl{}} (or \code{\textquotedbl{}negative\textquotedbl{}}) tests in one direction only, as decided before seeing the data (R \code{cor.\allowbreak{}test(alternative = \textquotedbl{}greater\textquotedbl{})}); two columns only. A correlation does not show that one thing causes the other.
+Each pair uses the rows where both columns have a number. \code{show=\textquotedbl{}p-value\textquotedbl{}} gives the table of p-values instead, and \code{show=\textquotedbl{}each pair\textquotedbl{}} one row per pair (r, p-value, rows), ready for \code{add\_\allowbreak{}adjusted\_\allowbreak{}p\_\allowbreak{}value\_\allowbreak{}column()}: testing many pairs makes a chance finding more likely. Strength words for the size of r: below 0.2 very weak, from 0.2 weak, from 0.4 medium, from 0.6 strong, from 0.8 very strong (after Evans 1996). The p-value is said as how often a link this strong or stronger would turn up in studies like this one if there were truly no link (\code{\textquotedbl{}about 3 of 100 studies\textquotedbl{}}, p = 0.031). \code{sides=1}, \code{higher=\textquotedbl{}positive\textquotedbl{}} (or \code{\textquotedbl{}negative\textquotedbl{}}) tests in one direction only, as decided before seeing the data (R \code{cor.\allowbreak{}test(alternative = \textquotedbl{}greater\textquotedbl{})}); two columns only. A correlation does not show that one thing causes the other.
 
 \wordfield{Options}{}\par\nopagebreak
 \begin{optiontable}
@@ -9457,7 +9457,7 @@ table = sdata.table(sdata.example("marks"))
 table.correlation_between("height", "marks")
 \end{lstlisting}
 \printedoutput{output/solution12_task3.txt}
-\solutionanswer{No: r = 0.03, very close to 0, and p = 0.83 says it could easily be chance.}
+\solutionanswer{No: r = 0.03, very close to 0. Even with truly no link, a link this strong would turn up in about 83 of 100 studies (p = 0.83).}
 \solutiontask{4}{Make a cross table of the average mark \code{for\_\allowbreak{}each=\textquotedbl{}subject\textquotedbl{}} \code{across=\textquotedbl{}class\textquotedbl{}}. Which class is best in Science?}
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -9514,7 +9514,7 @@ table.compare_averages("temperature", for_each="city")
 table.compare_each_pair("temperature", for_each="city")
 \end{lstlisting}
 \printedoutput{output/solution14_task2.txt}
-\solutionanswer{Yes: p = 0.0002, very unlikely to be chance. \code{compare\_\allowbreak{}each\_\allowbreak{}pair} then shows which cities differ from each other.}
+\solutionanswer{Yes: if the cities truly had the same average, differences this big would turn up in fewer than 1 in 1000 studies (p = 0.0002). \code{compare\_\allowbreak{}each\_\allowbreak{}pair} then shows which cities differ from each other.}
 \solutiontask{3}{Fit a straight line of \code{\textquotedbl{}forest\textquotedbl{}} against \code{\textquotedbl{}year\textquotedbl{}} in \code{sdata.\allowbreak{}example(\textquotedbl{}growth\textquotedbl{})} for one country.}
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -9555,7 +9555,7 @@ table.save("lesson15_weather.xlsx")
 \includegraphics[width=0.52\textwidth,height=0.30\textheight,keepaspectratio]{figures/solution15_task1_lesson15_rain_boxes.pdf}
 \captionof*{figure}{Lesson 15, task 1: \code{lesson15\_\allowbreak{}rain\_\allowbreak{}boxes.\allowbreak{}png}.}
 \end{minipage}\end{center}
-\solutionanswer{Rainbridge is much wetter (109 mm a month on average) than Frostby (42) and Sunnyvale (26); p \textless{} 0.0001, so this is very unlikely to be chance.}
+\solutionanswer{Rainbridge is much wetter (109 mm a month on average) than Frostby (42) and Sunnyvale (26); if the cities truly had the same rain, differences this big would turn up in fewer than 1 in 1000 studies (p \textless{} 0.0001).}
 \solutiontask{2}{Make a second chart of the temperature, then put the two charts together with \code{sdata.\allowbreak{}side\_\allowbreak{}by\_\allowbreak{}side(.\allowbreak{}.\allowbreak{}.\allowbreak{},\allowbreak{} letters=True)}.}
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -9603,7 +9603,7 @@ table = sdata.table(sdata.example("school"))
 table.explain("passed", using=["hours", "sleep"], outcome="yes or no")
 \end{lstlisting}
 \printedoutput{output/solution16_task2.txt}
-\solutionanswer{Each extra hour of study multiplies the odds of passing by 1.69 and each extra hour of sleep by 1.98; both are unlikely to be chance.}
+\solutionanswer{Each extra hour of study multiplies the odds of passing by 1.69 and each extra hour of sleep by 1.98; with truly no effect, fewer than 1 in 1000 studies (hours) and about 2 of 1000 (sleep) would show this much.}
 \solutiontask{3}{Explain \code{\textquotedbl{}days\_\allowbreak{}absent\textquotedbl{}} using \code{\textquotedbl{}hours\textquotedbl{}} and \code{\textquotedbl{}breakfast\textquotedbl{}} with \code{outcome=\textquotedbl{}counts\textquotedbl{}}. Does breakfast matter?}
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -9611,7 +9611,7 @@ table = sdata.table(sdata.example("school"))
 table.explain("days_absent", using=["hours", "breakfast"], outcome="counts")
 \end{lstlisting}
 \printedoutput{output/solution16_task3.txt}
-\solutionanswer{Breakfast could easily be chance (rate ratio 0.94, p = 0.45); study hours matter (rate ratio 0.86 for each hour).}
+\solutionanswer{For breakfast the data cannot tell (rate ratio 0.94, p = 0.45: about 45 of 100 studies would show this much with truly no effect); study hours matter (rate ratio 0.86 for each hour).}
 \par\noindent{\small\sffamily\hyperref[lesson:16]{Back to lesson 16}}
 \unsection{Lesson 17: Patterns across many columns}{solutions:17}
 \solutiontask{1}{Add principal components of \code{\textquotedbl{}hours\textquotedbl{}}, \code{\textquotedbl{}sleep\textquotedbl{}}, \code{\textquotedbl{}marks\textquotedbl{}} and \code{\textquotedbl{}days\_\allowbreak{}absent\textquotedbl{}} in \code{sdata.\allowbreak{}example(\textquotedbl{}school\textquotedbl{})}. Which columns weigh most in PC1?}
@@ -9637,7 +9637,7 @@ table = sdata.table(sdata.example("meadow"))
 table.compare_profiles(for_each="field")
 \end{lstlisting}
 \printedoutput{output/solution17_task3.txt}
-\solutionanswer{The fields explain 12 \% of the differences, much less than grazing (25 \%), and a difference this big could be chance (p = 0.053). They do not differ in spread (p = 0.53).}
+\solutionanswer{The fields explain 12 \% of the differences, much less than grazing (25 \%); a difference this big would turn up in about 5 of 100 studies even if the fields had the same make-up (p = 0.053). The spread check finds no sign of a difference in spread (p = 0.53).}
 \solutiontask{4}{Cluster the meadow plots with \code{method=\textquotedbl{}hierarchical\textquotedbl{}}. Do the clusters match the grazing?}
 \begin{lstlisting}[style=py]
 import simplydata as sdata

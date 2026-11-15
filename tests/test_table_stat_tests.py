@@ -82,7 +82,8 @@ def test_welch_t_test_matches_r_and_scipy(marks, engine, capsys):
     assert got["test"] == "Welch's t-test"
     out = capsys.readouterr().out
     assert "Welch's t-test" in out and "does not assume both groups have the same spread" in out
-    assert "could easily be chance (p = 0.123)" in out
+    assert ("If there were truly no difference, a difference this big or bigger would turn up in about 12 of 100 "
+            "studies like this one (p = 0.123). This does not show that there is no difference.") in out
     assert "significant" not in out and "prove" not in out
     unchanged(t, before)
 
@@ -110,7 +111,8 @@ def test_welch_anova_matches_r_oneway_test(marks, engine, capsys):
     out = capsys.readouterr().out
     assert "Welch's one-way ANOVA (F = 3.99, df = 2 and 34.0)" in out
     assert 'table.compare_each_pair("marks", for_each="class")' in out
-    assert "are unlikely to be chance (p = 0.028)" in out
+    assert ("If the groups were truly alike, differences this big or bigger between them would turn up in about 3 of "
+            "100 studies like this one (p = 0.028).") in out
 
 
 def test_welch_anova_formula_on_unequal_groups_matches_r_and_scipy():
@@ -283,7 +285,7 @@ def test_one_sample_t_test_matches_r(marks, engine, capsys):
     assert got["average 95 % CI low"] == pytest.approx(60.8057285596217696, rel=1e-10)
     assert got["average 95 % CI high"] == pytest.approx(69.0090862551930400, rel=1e-10)
     out = capsys.readouterr().out
-    assert "4.91 higher than 60 " in out and "is unlikely to be chance (p = 0.020)" in out
+    assert "4.91 higher than 60 " in out and "If the average were truly 60, a difference this big or bigger would turn up in about 2 of 100 studies" in out
 
 
 def test_one_sample_signed_rank_matches_r(marks, engine):
@@ -376,7 +378,8 @@ def test_straight_line_matches_r_lm(marks, engine, capsys):
     assert got["rows"] == 54
     out = capsys.readouterr().out
     assert '"marks" goes up by 5.20 for each 1 more "hours" (95 % CI 4.24 to 6.17)' in out
-    assert "very unlikely to be chance (p < 0.0001)" in out and "about 69 %" in out
+    assert ("If there were truly no slope, a slope this steep or steeper would turn up in fewer than 1 in 1000 studies "
+            "like this one (p < 0.0001).") in out and "about 69 %" in out
 
 
 # ---------------------------------------------------------------- fit_formula

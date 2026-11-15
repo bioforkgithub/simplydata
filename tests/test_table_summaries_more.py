@@ -443,7 +443,7 @@ def test_correlation_table_prints_strongest(marks, capsys):
 def test_correlation_two_columns_unchanged(engine, marks, capsys):
     r = make(marks, engine).correlation_between(["marks", "height"])
     assert r == pytest.approx(stats.pearsonr(marks["marks"], marks["height"])[0])
-    assert capsys.readouterr().out.count("\n") == 1
+    assert capsys.readouterr().out.count("\n") == 2  # the r sentence and the p-value sentence
 
 
 def test_correlation_table_errors(engine, marks):

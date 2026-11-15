@@ -154,8 +154,12 @@ guilty:
     \textbf{significance level} $\alpha$.
 \end{enumerate}
 
-simplydata says the p-value in words: below 0.001 ``very unlikely to be chance'', below 0.05
-``unlikely to be chance'', otherwise ``could easily be chance''.
+simplydata says every p-value in one sentence, as a count of studies: ``If there were truly no
+difference, a difference this big or bigger would turn up in about 3 of 100 studies like this one
+(p = 0.031).'' Below 0.001 it says ``fewer than 1 in 1000 studies''. From 0.05 it adds ``This does
+not show that there is no difference.'' The sentence never says ``significant'' and never calls the
+result ``chance'', because ``unlikely to be chance'' is easily read as the probability that chance
+did it, which a p-value is not.
 
 \begin{goodtoknow}
 What a p-value is \textbf{not}:

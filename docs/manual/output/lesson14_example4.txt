@@ -1,4 +1,4 @@
-Do the values of "marks" look bell-shaped (normal) in each "class"? Shapiro-Wilk test (as R shapiro.test()); a small p-value means too far from normal to be chance:
+Do the values of "marks" look bell-shaped (normal) in each "class"? Shapiro-Wilk test (as R shapiro.test()); each p-value says how often a shape this far from normal would turn up if the values truly came from a bell shape:
   A: could well be bell-shaped (W = 0.965, p = 0.700, 18 values)
   B: could well be bell-shaped (W = 0.954, p = 0.491, 18 values)
   C: could well be bell-shaped (W = 0.985, p = 0.985, 18 values)
@@ -14,9 +14,9 @@ Found 1 row with an outlier, of 54 rows.
 25  Ivan     B   Maths    0.5     33     147
 The numbers on the left are the rows' places in the whole table, so table.remove_rows_by_position(25) would remove them.
 Correlations between 3 columns (Pearson, 3 pairs; each pair uses the rows where both columns have a number). The strongest:
-  "hours" and "marks": r = 0.83 (54 rows), very strong, going up, and very unlikely to be chance (p < 0.0001).
-  "hours" and "height": r = 0.06 (54 rows), very weak, going up, and could easily be chance (p = 0.667).
-  "marks" and "height": r = 0.03 (54 rows), very weak, going up, and could easily be chance (p = 0.826).
+  "hours" and "marks": r = 0.83 (54 rows), very strong, going up; fewer than 1 in 1000 studies would show this much if there were truly no link (p < 0.0001).
+  "hours" and "height": r = 0.06 (54 rows), very weak, going up; about 67 of 100 studies would show this much if there were truly no link (p = 0.667).
+  "marks" and "height": r = 0.03 (54 rows), very weak, going up; about 83 of 100 studies would show this much if there were truly no link (p = 0.826).
 Note: these p-values are not adjusted for testing 3 pairs. To adjust them: results = table.correlation_between("hours", "marks", "height", show="each pair"), then results.add_adjusted_p_value_column(from_column="p-value").
 Added "p-value (Holm)": 3 p-values from "p-value" adjusted with Holm's method (as R p.adjust(method = "holm")): the chance of even one false alarm among all the tests stays at 5 %. Below 0.05: 1 of 3 after adjusting (1 before).
   column 1 column 2   method         r       p-value  rows               strength  p-value (Holm)

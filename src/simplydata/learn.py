@@ -2635,7 +2635,8 @@ LESSONS = [
                 import simplydata as sdata
                 table = sdata.table(sdata.example("marks"))
                 table.correlation_between("height", "marks")"""),
-             "No: r = 0.03, very close to 0, and p = 0.83 says it could easily be chance."),
+             "No: r = 0.03, very close to 0. Even with truly no link, a link this strong would turn up in "
+             "about 83 of 100 studies (p = 0.83)."),
             (_sx("""\
                 import simplydata as sdata
                 table = sdata.table(sdata.example("marks"))
@@ -2763,8 +2764,9 @@ LESSONS = [
                 ('table = sdata.table(sdata.example("marks"))', "Make a table of the marks."),
                 ('table.compare_averages("marks", for_each="class")',
                  "Do the three classes really differ in their average mark? The answer comes in "
-                 "words. The p-value is the chance of a difference this big if the classes were "
-                 "really the same: below 0.05 we call it unlikely to be chance. With three or more "
+                 "words. The p-value says how often differences this big or bigger would turn up in "
+                 "studies like this one if the classes were truly the same: here in about 3 of 100 "
+                 "(p = 0.028). It is not the chance that the classes are the same. With three or more "
                  "groups this test is also called Welch's ANOVA; with two groups, a t-test."),
                 ('table.compare_each_pair("marks", for_each="class")',
                  "Which classes differ? Each pair gets its own t-test (Welch's). Testing many pairs makes a "
@@ -2820,21 +2822,24 @@ LESSONS = [
                 ("import simplydata as sdata", "Load simplydata."),
                 ('table = sdata.table(sdata.example("marks"))', "Make a table of the marks."),
                 ('table.compare_spreads("marks", for_each="class")',
-                 "Are the marks of one class more spread out? Levene's test says this could easily be "
-                 "chance (p = 0.91)."),
+                 "Are the marks of one class more spread out? The data cannot tell: differences in "
+                 "spread this big would turn up in about 91 of 100 studies even if the spreads were the "
+                 "same (p = 0.91)."),
                 ('table.compare_each_pair("marks", for_each="class", test="tukey")',
                  "Tukey's test compares every pair at once: only A and C differ (p = 0.020)."),
                 ('school = sdata.table(sdata.example("school"))', "A table of pupils."),
                 ('school.compare_counts_to("breakfast", expected={"yes": 0.6, "no": 0.4})',
                  "Did 60 % eat breakfast, as a survey said? 115 of 180 is close enough (p = 0.29)."),
                 ('school.compare_percent_to("passed", value="yes", percent=50)',
-                 "Did half the pupils pass? 43.3 % did; that could easily be chance (p = 0.086)."),
+                 "Did half the pupils pass? 43.3 % did; if truly half passed, a difference this big would "
+                 "turn up in about 9 of 100 studies (p = 0.086), so the data cannot tell."),
             ]),
         ],
         notes=[
             "The idea behind every test: imagine there is no real difference (this is called the "
-            "null hypothesis). The p-value says how surprising your data would be then. A small "
-            "p-value means: hard to explain by chance alone.",
+            "null hypothesis). The p-value says how often a difference this big or bigger would turn "
+            "up then, in studies like yours: p = 0.03 is \"about 3 of 100 studies\". It is not the "
+            "chance that there is no difference, and every test says it in that one sentence.",
             "A p-value does not say how big or important the difference is: the effect size does "
             "that (omega-squared, Cohen's d, Cramer's V ...). And a large p-value does not show that "
             "there is no difference. It only means these data cannot tell.",
@@ -2868,7 +2873,8 @@ LESSONS = [
                 table = sdata.table(sdata.example("weather"))
                 table.compare_averages("temperature", for_each="city")
                 table.compare_each_pair("temperature", for_each="city")"""),
-             "Yes: p = 0.0002, very unlikely to be chance. compare_each_pair then shows which "
+             "Yes: if the cities truly had the same average, differences this big would turn up in "
+             "fewer than 1 in 1000 studies (p = 0.0002). compare_each_pair then shows which "
              "cities differ from each other."),
             (_sx("""\
                 import simplydata as sdata
@@ -2999,7 +3005,8 @@ LESSONS = [
                 chart.save("lesson15_rain_boxes.png")
                 table.save("lesson15_weather.xlsx")"""),
              "Rainbridge is much wetter (109 mm a month on average) than Frostby (42) and Sunnyvale "
-             "(26); p < 0.0001, so this is very unlikely to be chance."),
+             "(26); if the cities truly had the same rain, differences this big would turn up in fewer "
+             "than 1 in 1000 studies (p < 0.0001)."),
             (_sx("""\
                 import simplydata as sdata
                 table = sdata.table(sdata.example("weather"))
@@ -3048,7 +3055,8 @@ LESSONS = [
                  "a linear model (multiple regression) by least squares."),
                 ('table.explain("marks", using=["hours * breakfast"])',
                  "hours * breakfast also asks: does the effect of study depend on breakfast? That is an "
-                 "interaction. Here it could easily be chance (p = 0.31)."),
+                 "interaction. Here the data cannot tell: about 31 of 100 studies would show this much "
+                 "if there were truly none (p = 0.31)."),
             ]),
             ("Not every column is a number to explain. A yes/no column needs the chance of yes, and a "
              "count needs a model for counts.", [
@@ -3114,12 +3122,14 @@ LESSONS = [
                 table = sdata.table(sdata.example("school"))
                 table.explain("passed", using=["hours", "sleep"], outcome="yes or no")"""),
              "Each extra hour of study multiplies the odds of passing by 1.69 and each extra hour of "
-             "sleep by 1.98; both are unlikely to be chance."),
+             "sleep by 1.98; with truly no effect, fewer than 1 in 1000 studies (hours) and about 2 "
+             "of 1000 (sleep) would show this much."),
             (_sx("""\
                 import simplydata as sdata
                 table = sdata.table(sdata.example("school"))
                 table.explain("days_absent", using=["hours", "breakfast"], outcome="counts")"""),
-             "Breakfast could easily be chance (rate ratio 0.94, p = 0.45); study hours matter (rate "
+             "For breakfast the data cannot tell (rate ratio 0.94, p = 0.45: about 45 of 100 studies "
+             "would show this much with truly no effect); study hours matter (rate "
              "ratio 0.86 for each hour)."),
         ],
         words=["table.explain", "table.add_predicted_column", "table.show_first_rows"],
@@ -3210,8 +3220,9 @@ LESSONS = [
                 import simplydata as sdata
                 table = sdata.table(sdata.example("meadow"))
                 table.compare_profiles(for_each="field")"""),
-             "The fields explain 12 % of the differences, much less than grazing (25 %), and a difference "
-             "this big could be chance (p = 0.053). They do not differ in spread (p = 0.53)."),
+             "The fields explain 12 % of the differences, much less than grazing (25 %); a difference "
+             "this big would turn up in about 5 of 100 studies even if the fields had the same make-up "
+             "(p = 0.053). The spread check finds no sign of a difference in spread (p = 0.53)."),
             (_sx("""\
                 import simplydata as sdata
                 table = sdata.table(sdata.example("meadow"))
@@ -3250,8 +3261,8 @@ LESSONS = [
                 ("import simplydata as sdata", "Load simplydata."),
                 ('table = sdata.table(sdata.example("trial"))', "The trial table."),
                 ('table.compare_survival(time="days", event="died", for_each="treatment")',
-                 "The log-rank test compares the whole curves: here the difference could easily be "
-                 "chance (p = 0.22)."),
+                 "The log-rank test compares the whole curves: here the data cannot tell (p = 0.22; "
+                 "differences this big would turn up in about 22 of 100 studies with truly alike groups)."),
                 ('table.explain_survival(time="days", event="died", using=["treatment", "age"])',
                  "A Cox model: each year of age raises the risk of dying at any moment by about 5 % "
                  "(hazard ratio 1.05), with the treatment held fixed."),

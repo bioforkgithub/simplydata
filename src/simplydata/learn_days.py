@@ -1006,11 +1006,12 @@ UNITS = {
             "Write the caption of your figure: what each panel shows, what the bars or bands are, and n."],
         task=["Write a results paragraph, a methods paragraph and a figure caption for your project."],
         solutions=[("", 'For example: "Pupils who had breakfast scored on average 3.4 marks more than pupils '
-                        "who did not (49.7 against 46.3; n = 115 and 65), but a difference this big could be "
-                        "chance (Welch's t-test, p = 0.051; Hedges' g = 0.31). Sleep was not recorded for 19 "
-                        'pupils; they were left out of the tests that use sleep." Use your own numbers, '
-                        "exactly as printed, and report a result that could be chance as plainly as one that "
-                        "could not.")],
+                        "who did not (49.7 against 46.3; n = 115 and 65; 95 % CI of the difference -0.01 to "
+                        "6.8). With truly no difference, a difference this big would turn up in about 5 of 100 "
+                        "studies like this one (Welch's t-test, p = 0.051; Hedges' g = 0.31), so the data cannot "
+                        "tell. Sleep was not recorded for 19 pupils; they were left out of the tests that use "
+                        'sleep." Use your own numbers, exactly as printed, and report a result the data cannot '
+                        "settle as plainly as one they can.")],
     ),
     "proj_finish": dict(
         lessons=[],

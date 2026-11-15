@@ -63,7 +63,7 @@ import numpy as np
 
 from .._errors import SimplydataError, column_error, friendly
 from .stat_tests import _label, _list_words, _num, _shape_notes, _skipped_note, _whole
-from .summaries import _p_words
+from .summaries import _p_clause
 
 OUTCOMES = ("numbers", "yes or no", "counts", "counts (overdispersed)")
 EMPTY_CELLS = ("leave out", "multiple imputation")
@@ -466,7 +466,7 @@ class ModelWords:
     def _term_sentence(model, j, beta, low, high, p) -> str:
         column, outcome = model["column"], model["outcome"]
         parts = model["parts_of"][j]
-        words = _p_words(p)
+        words = _p_clause(p)
         has_groups = any(model["kinds"][v] == "group" for v in model["variables"])
         at_base = " and every group column is at its baseline" if has_groups else ""
         if model["labels"][j] == INTERCEPT:
@@ -522,7 +522,7 @@ class ModelWords:
         for test in tests:
             extra = f" and {_whole(test['df2'])}" if "df2" in test else ""
             print(f'  {test["term"]}, all groups together: {test["test"]} ({test["name"]} = {_num(test["stat"])}, '
-                  f"df = {_whole(test['df'])}{extra}); {_p_words(test['p'])}.")
+                  f"df = {_whole(test['df'])}{extra}); {_p_clause(test['p'], 'the groups truly did not differ')}.")
         if kind == "lm":
             print(f"Method: linear model by least squares, as R lm({formula}).")
         elif kind == "binomial":
@@ -548,7 +548,7 @@ class ModelWords:
             if k > 0:
                 f = (r2 / k) / ((1 - r2) / fit["df"])
                 p = float(stats.f.sf(f, k, fit["df"]))
-                line += f" The model as a whole (F = {_num(f)}, df = {k} and {fit['df']}): {_p_words(p)}."
+                line += f" The model as a whole (F = {_num(f)}, df = {k} and {fit['df']}): {_p_clause(p, 'none of the columns truly mattered')}."
             print(line)
         elif kind != "mixed":
             null = fit["null_deviance"]
@@ -559,7 +559,7 @@ class ModelWords:
                 p = float(stats.chi2.sf(change, k))
                 aic = fit["aic"]
                 line += (f" The model as a whole (likelihood-ratio chi-square = {_num(change)}, df = {k}): "
-                         f"{_p_words(p)}. AIC = {_num(aic)}.")
+                         f"{_p_clause(p, 'none of the columns truly mattered')}. AIC = {_num(aic)}.")
             print(line)
         else:
             between, within = fit["between"], fit["within"]

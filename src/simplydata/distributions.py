@@ -2113,18 +2113,16 @@ def shape_test(values, name, seed=SEED, samples=SHAPE_TEST_SAMPLES, column=None,
     family, x, dist, run = _started
     a, p = run.finish()
     samples, seed = run.samples, int(seed)
-    from .table.stat_tests import _chance, _p_shown
+    from .table.summaries import _p_sentence
 
     what = f'"{column}"' if column else "the numbers"
     title = family.title if isinstance(family, Family) else f"SciPy {family}"
     fitted_words = _param_short(dist)
-    if p < 0.05:
-        verdict = _chance(p)[:-1]  # "is unlikely to be chance (p = 0.030"
-        sentence = (f"The values of {what} do not look like a {title} distribution: a shape this far from {title} "
-                    f"{verdict}; Anderson-Darling A = {a:.3f}, {len(x)} values; fitted {fitted_words}).")
-    else:
-        sentence = (f"The values of {what} could well follow a {title} distribution (Anderson-Darling A = {a:.3f}, "
-                    f"{_p_shown(p)}, {len(x)} values; fitted {fitted_words}). This does not prove that they do.")
+    looks = "do not look like" if p < 0.05 else "could well follow"
+    sentence = (f"The values of {what} {looks} a {title} distribution (Anderson-Darling A = {a:.3f}, {len(x)} values; "
+                f"fitted {fitted_words}). "
+                + _p_sentence(p, f"the values truly came from a {title} distribution",
+                              f"a shape this far from {title} or further", f"that they follow a {title} distribution"))
     method = (f"Test: Anderson-Darling test of a fitted {title} shape, with a Monte Carlo p-value from "
               f"{samples} simulated samples that are each fitted again (SciPy goodness_of_fit, seed={seed}); "
               + (f"the statistic is R goftest::ad.test(x, \"{family.r_package}p{family.r_prefix}\", ...) with the "

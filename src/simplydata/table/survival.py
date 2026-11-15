@@ -40,8 +40,8 @@ import narwhals as nw
 import numpy as np
 
 from .._errors import SimplydataError, friendly
-from .stat_tests import _chance, _label, _list_words, _num, _p_shown, _skipped_note, _whole
-from .summaries import _p_words
+from .stat_tests import _label, _list_words, _num, _p_shown, _skipped_note, _whole
+from .summaries import _p_clause, _p_sentence
 
 Z95 = 1.959963984540054  # qnorm(0.975)
 EVENT_WORDS = {"yes": True, "no": False, "true": True, "false": False, "1": True, "0": False}
@@ -406,7 +406,8 @@ class SurvivalWords:
         print(self._event_sentence(event, yes, events, time))
         counts = _list_words(f"{n} {_whole(o)} vs {_num(e)}" for n, o, e in zip(names, observed, expected))
         print(f'Events in each "{for_each}" group, observed vs expected if all groups were alike: {counts}.')
-        print(f"Differences this big in the time until the event {_chance(p, plural=True)}.")
+        print(_p_sentence(p, "the groups truly had the same time until the event", "differences this big or bigger",
+                          "that the groups are alike"))
         print(f"Test: log-rank test (chi-square = {_num(chi)}, df = {df}), as R survdiff({_surv(time, event, yes)} ~ "
               f"{for_each}); it compares the whole curves, giving every event time the same weight.")
         left_out = [n for n, e in zip(names, expected) if not e > 0]
@@ -513,12 +514,13 @@ class SurvivalWords:
         for i, (column, level, base) in enumerate(names):
             hr, low, high = _ratio(beta[i]), _ratio(beta[i] - Z95 * se[i]), _ratio(beta[i] + Z95 * se[i])
             what = f'each 1 more "{column}"' if level is None else f'"{column}" {level} vs {base}'
-            print(f"  {what}: hazard ratio {_num(hr)} (95 % CI {_num(low)} to {_num(high)}); {_p_words(float(p[i]))}.")
+            print(f"  {what}: hazard ratio {_num(hr)} (95 % CI {_num(low)} to {_num(high)}); {_p_clause(float(p[i]))}.")
             rows.append({"term": column if level is None else f"{column}: {level} vs {base}",
                          "hazard ratio": hr, "95 % CI low": low, "95 % CI high": high,
                          "coefficient": float(beta[i]), "standard error": float(se[i]), "z": float(z[i]),
                          "p-value": float(p[i]), "proportional hazards check p-value": zph[term_of[i]][2]})
-        print(f"The model as a whole (likelihood-ratio test, chi-square = {_num(lr)}, df = {df}) {_chance(lr_p)}.")
+        print(f"The model as a whole (likelihood-ratio test, chi-square = {_num(lr)}, df = {df}): "
+              f"{_p_clause(lr_p, 'none of the columns truly mattered')}.")
         print(f"Method: Cox proportional hazards model, Efron's method for tied times, as R "
               f"coxph({_surv(time, event, yes)} ~ {' + '.join(using)}).")
         if not fit["converged"]:

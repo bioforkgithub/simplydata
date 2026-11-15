@@ -65,8 +65,10 @@ note says the test is usually still fine: the average of many values is close to
 bell-shaped even when the values are not (the central limit theorem), and with many values
 Shapiro-Wilk flags even tiny, harmless departures.
 
-The p-value words are the same as for correlation_between: below 0.001 "very unlikely to be
-chance", below 0.05 "unlikely to be chance", otherwise "could easily be chance".
+Every p-value is said in one sentence (the same in every word, summaries._p_sentence):
+"If there were truly no difference, a difference this big or bigger would turn up in about 3
+of 100 studies like this one (p = 0.031)." Below p = 0.001 it says "fewer than 1 in 1000
+studies". From p = 0.05 a second sentence says that this does not show there is no difference.
 """
 
 from __future__ import annotations
@@ -84,7 +86,7 @@ from .columns import (CONSTANTS, FORMULA_HELP, FUNCTION_SPELLINGS, FUNCTIONS, SP
                       _FormulaReader, _is_number, special_function)
 from .summaries import GROUPS_IN_SENTENCE as GROUPS_SHOWN
 from .effect_sizes import effect_size, interval_only, interval_text
-from .summaries import _key, _order, _p_words, _plain, _say_label
+from .summaries import _key, _order, _p_clause, _p_sentence, _p_shown, _plain, _say_label
 
 BASED_ON = ("averages", "ranks")
 AVERAGE_TESTS = ("welch", "student", "welch anova", "anova", "mann-whitney", "kruskal-wallis", "yuen",
@@ -143,15 +145,8 @@ def _num(x) -> str:
     return "0" if float(text) == 0 else text
 
 
-def _chance(p: float, plural: bool = False) -> str:
-    """'is unlikely to be chance (p = 0.01)' or 'could easily be chance (p = 0.4)'.
-
-    A large p-value only means the data cannot tell; it never shows that there is no
-    difference, so the words say that too."""
-    words = _p_words(p)
-    if words.startswith("could"):
-        return words + "; this does not show that there is no difference"
-    return ("are " if plural else "is ") + words
+# _p_sentence(p, *ALIKE): the p-value sentence of a test of 3 or more groups
+ALIKE = ("the groups were truly alike", "differences this big or bigger between them", "that the groups are alike")
 
 
 def _whole(x) -> str:
@@ -276,10 +271,6 @@ def _interval_words(low: float, high: float) -> str:
     if math.isinf(low) and low < 0:
         return f"at most {_num(high)}"
     return f"{_num(low)} to {_num(high)}"
-
-
-def _p_shown(p: float) -> str:
-    return "p < 0.0001" if p < 0.0001 else f"p = {p:.4f}" if p < 0.001 else f"p = {p:.3f}"
 
 
 def _welch_anova(groups):
@@ -614,9 +605,11 @@ class StatTestWords:
         alt, up = _direction(step, sides, higher, lower, alternative, {names[0]: "greater", names[1]: "less"}
                              if k == 2 else {}, side_example)
         side_words = ""
+        if_none = "there were truly no difference"
         if up is not None:
             down = names[1] if up == names[0] else names[0]
             side_words = _one_sided_sentence(f"{up} higher than {down}", f"{up} lower")
+            if_none = f"{up} were truly not higher than {down}"
         if test is None:
             if based_on == "ranks":
                 test = "mann-whitney" if k == 2 else "kruskal-wallis"
@@ -632,7 +625,7 @@ class StatTestWords:
                 f'Use test="{other}" for all groups at once, or table.compare_each_pair("{column}", for_each="{for_each}").'
             )
         if test in MORE_AVERAGE_TESTS:
-            return self._more_average_test(column, for_each, groups, test, alt, up, side_words)
+            return self._more_average_test(column, for_each, groups, test, alt, up, side_words, if_none)
         arrays = [g[1] for g in groups]
         what = f'the average of "{column}" in each "{for_each}" ({", ".join(names)})'
         row = {"test": None, "what it compares": what}
@@ -673,7 +666,8 @@ class StatTestWords:
                      f"the difference {_interval_words(low, high)}"
                      + ("" if es["note"] else f"; Hedges' g = {_num(g)}{interval_text(es['low'], es['high'])}, a "
                         f"difference of {_num(abs(g))} standard deviations")
-                     + f"). A difference this big {_chance(p)}.")
+                     + ").")
+            p_line = _p_sentence(p, if_none)
             second = f"Test: {name} (t = {_num(t)}, df = {_whole(df)}), {why}."
             notes = ([es["note"]] if es["note"] else []) + _shape_notes([(f'group "{n}"', v) for n, v in groups])
         elif test in ("welch anova", "anova"):
@@ -696,7 +690,8 @@ class StatTestWords:
                         "effect size name": "share of the differences explained by the groups (omega-squared)",
                         "effect size": omega, "effect size 95 % CI low": es["low"], "effect size 95 % CI high": es["high"]})
             averages = _list_words(f"{_num(m)} in {n}" for n, m in zip(names, means))
-            first = f'The average "{column}" is {averages}. Differences this big between the groups {_chance(p, plural=True)}.'
+            first = f'The average "{column}" is {averages}.'
+            p_line = _p_sentence(p, *ALIKE)
             if not es["note"]:
                 share = f"about {_percent(omega)}" if omega > 0 else "about 0 % (R effectsize reads a value below 0 as 0)"
                 first += (f" Omega-squared = {_num(omega)}{interval_text(es['low'], es['high'])}: the groups explain "
@@ -720,7 +715,8 @@ class StatTestWords:
                 f"the values in {names[0]} tend to be lower" if u < half else "neither group tends to be higher")
             size = "" if es["note"] else f" (rank-biserial correlation = {_num(r)}{interval_text(es['low'], es['high'])})"
             first = (f'The median "{column}" is {_num(medians[0])} in {names[0]} and {_num(medians[1])} in {names[1]}: '
-                     f"{lean}{size}. A difference this big {_chance(p)}.")
+                     f"{lean}{size}.")
+            p_line = _p_sentence(p, if_none)
             notes = [es["note"]] if es["note"] else []
             second = (f"Test: Mann-Whitney U test (U = {_whole(u)}, {how}), which compares ranks rather than "
                       "averages, so it does not need bell-shaped values.")
@@ -736,8 +732,8 @@ class StatTestWords:
                         "effect size name": "share of the rank differences explained by the groups "
                                             "(rank epsilon-squared)",
                         "effect size": eps, "effect size 95 % CI low": es["low"], "effect size 95 % CI high": es["high"]})
-            first = (f'The median "{column}" is {_list_words(f"{_num(m)} in {n}" for n, m in zip(names, medians))}. '
-                     f"Differences this big between the groups {_chance(p, plural=True)}.")
+            first = f'The median "{column}" is {_list_words(f"{_num(m)} in {n}" for n, m in zip(names, medians))}.'
+            p_line = _p_sentence(p, *ALIKE)
             if not es["note"]:
                 ci = interval_text(es["low"], es["high"]).replace("95 % CI", "95 % bootstrap CI, R seed 1,")
                 first += (f" Epsilon-squared = {_num(eps)}{ci}: the groups explain "
@@ -757,12 +753,13 @@ class StatTestWords:
             row["sides"] = f"one-sided: {up} higher"
             second += " " + side_words
         print(first)
+        print(p_line)
         print(second)
         for note in notes:
             print(note)
         return self._result_table(row)
 
-    def _more_average_test(self, column, for_each, groups, test, alt, up, side_words):
+    def _more_average_test(self, column, for_each, groups, test, alt, up, side_words, if_none):
         """compare_averages(test="yuen" | "brunner-munzel" | "alexander-govern" | "median"): SciPy, as R."""
         from scipy import stats
 
@@ -786,8 +783,8 @@ class StatTestWords:
                 row[f"trimmed average in {n}"] = m
             first = (f'The 20 % trimmed average "{column}" is {_num(trimmed[0])} in {names[0]} and {_num(trimmed[1])} in '
                      f"{names[1]}: {names[0]} is {_num(abs(diff))} {'higher' if diff > 0 else 'lower'} "
-                     f"({'' if up is None else 'one-sided '}95 % CI of the difference {_interval_words(low, high)}). "
-                     f"A difference this big {_chance(p)}.")
+                     f"({'' if up is None else 'one-sided '}95 % CI of the difference {_interval_words(low, high)}).")
+            p_line = _p_sentence(p, if_none)
             second = (f"Test: Yuen's test (t = {_num(t)}, df = {_whole(df)}), which leaves out the lowest and highest "
                       "20 % of each group, so a few extreme values matter less; as R WRS2::yuen(tr = 0.2).")
         elif test == "brunner-munzel":
@@ -798,8 +795,9 @@ class StatTestWords:
             row.update({"test": "Brunner-Munzel test", "statistic name": "W", "statistic": w, "p-value": p})
             for n, m in zip(names, medians):
                 row[f"median in {n}"] = m
-            first = (f'The median "{column}" is {_num(medians[0])} in {names[0]} and {_num(medians[1])} in {names[1]}. '
-                     f"A difference this big in how often one group's values beat the other's {_chance(p)}.")
+            first = f'The median "{column}" is {_num(medians[0])} in {names[0]} and {_num(medians[1])} in {names[1]}.'
+            p_line = _p_sentence(p, if_none, "a difference this big or bigger in how often one group's values beat "
+                                 "the other's")
             second = (f"Test: Brunner-Munzel test (W = {_num(w)}), a rank test that, unlike Mann-Whitney, allows the "
                       "groups to differ in spread and shape; as R brunnermunzel::brunnermunzel.test().")
         elif test == "alexander-govern":
@@ -810,8 +808,8 @@ class StatTestWords:
                         "degrees of freedom": float(len(arrays) - 1), "p-value": p})
             for n, m in zip(names, means):
                 row[f"average in {n}"] = m
-            first = (f'The average "{column}" is {_list_words(f"{_num(m)} in {n}" for n, m in zip(names, means))}. '
-                     f"Differences this big between the groups {_chance(p, plural=True)}.")
+            first = f'The average "{column}" is {_list_words(f"{_num(m)} in {n}" for n, m in zip(names, means))}.'
+            p_line = _p_sentence(p, *ALIKE)
             second = (f"Test: Alexander-Govern test (A = {_num(a_stat)}, df = {len(arrays) - 1}), which, like Welch's "
                       "ANOVA, does not assume the groups have the same spread; as R onewaytests::ag.test().")
         else:
@@ -824,8 +822,8 @@ class StatTestWords:
                 row[f"median in {n}"] = float(np.median(v))
                 row[f"above the overall median in {n}"] = int(a_count)
             shares = _list_words(f"{int(a)} of {len(v)} in {n}" for n, v, a in zip(names, arrays, above))
-            first = (f'Values of "{column}" above the overall median ({_num(grand)}): {shares}. Differences this big '
-                     f"between the groups {_chance(p, plural=True)}.")
+            first = f'Values of "{column}" above the overall median ({_num(grand)}): {shares}.'
+            p_line = _p_sentence(p, *ALIKE)
             second = (f"Test: Mood's median test (chi-square = {_num(chi)}, df = {len(arrays) - 1}), the chi-square "
                       "test on the counts above and not above the overall median; as R chisq.test(table(group, x > "
                       "median(x))).")
@@ -835,6 +833,7 @@ class StatTestWords:
             row["sides"] = f"one-sided: {up} higher"
             second += " " + side_words
         print(first)
+        print(p_line)
         print(second)
         return self._result_table(row)
 
@@ -914,7 +913,7 @@ class StatTestWords:
             else:
                 diff, word = row["difference in medians"], "median"
             direction = "higher" if diff > 0 else "lower"
-            words = _p_words(row["p-value (Holm)"]).replace("(p ", "(Holm-adjusted p ")
+            words = "Holm-adjusted " + _p_shown(row["p-value (Holm)"])
             print(f"  {row['group 1']} vs {row['group 2']}: the {word} of {row['group 1']} is {_num(abs(diff))} "
                   f"{direction}; {words}.")
         for note in sorted(pair_notes - {""}):
@@ -955,7 +954,7 @@ class StatTestWords:
         for row in rows:
             diff = row["difference"]
             direction = "higher" if diff > 0 else "lower"
-            words = _p_words(row["p-value (Tukey)"]).replace("(p ", "(Tukey-adjusted p ")
+            words = "Tukey-adjusted " + _p_shown(row["p-value (Tukey)"])
             print(f"  {row['group 1']} vs {row['group 2']}: the average of {row['group 1']} is {_num(abs(diff))} "
                   f"{direction} (95 % CI {_num(row['difference 95 % CI low'])} to "
                   f"{_num(row['difference 95 % CI high'])}); {words}.")
@@ -1083,8 +1082,9 @@ class StatTestWords:
             row[f"count in {n}"] = len(v)
             row[f"standard deviation in {n}"] = s
         listed = _list_words(f"{_num(s)} in {n}" for n, s in zip(names, spreads))
-        print(f'The standard deviation of "{column}" is {listed}. Differences in spread this big between the groups '
-              f"{_chance(p, plural=True)}.")
+        print(f'The standard deviation of "{column}" is {listed}.')
+        print(_p_sentence(p, "the groups truly had the same spread", "differences in spread this big or bigger",
+                          "that the groups have the same spread"))
         print(second)
         if chosen == "bartlett":
             for n, v in groups:
@@ -1172,7 +1172,7 @@ class StatTestWords:
                      f"({'' if up is None else 'one-sided '}95 % CI of the average change "
                      f"{_interval_words(r['low'], r['high'])}"
                      + (f"; Cohen's d_z = {_num(r['d'])}{r['d_text']}" if r["have_d"] else "")
-                     + f"). A change this big {_chance(r['p'])}.")
+                     + ").")
             second = (f"Test: paired t-test (t = {_num(r['t'])}, df = {_whole(r['df'])}), the usual test when each row "
                       "is measured twice; it looks at the change in each row.")
         else:
@@ -1185,18 +1185,21 @@ class StatTestWords:
                         "effect size 95 % CI high": r["r_high"], "median change": median_change})
             size = f" (rank-biserial correlation = {_num(r['r'])}{r['r_text']})" if r["have_r"] else ""
             first = (f'The median change from "{before}" to "{after}" is {_num(median_change)}; the changes lean '
-                     f"{r['lean']}{size}. A change this big {_chance(r['p'])}.")
+                     f"{r['lean']}{size}.")
             second = (f"Test: Wilcoxon signed-rank test (V = {_whole(r['v'])}, {r['how']}), which uses the ranks of "
                       "the changes, so it does not need bell-shaped values.")
             if r["zeros"]:
                 second += f" {r['zeros']} rows with no change were left out, as R does."
         row.update({"rows": len(changes), f"average of {before}": float(b.mean()), f"average of {after}": float(a.mean())})
+        if_none = "there were truly no change"
         if up is not None:
             row["sides"] = f'one-sided: "{after if up == "after" else before}" higher'
             names = {"after": f'"{after}"', "before": f'"{before}"'}
             other = "before" if up == "after" else "after"
             second += " " + _one_sided_sentence(f"{names[up]} higher than {names[other]}", f"a change the other way")
+            if_none = f"{names[up]} were truly not higher than {names[other]}"
         print(first)
+        print(_p_sentence(r["p"], if_none, "a change this big or bigger", "that there is no change"))
         print(second)
         for note in r["notes"]:
             print(note)
@@ -1245,7 +1248,7 @@ class StatTestWords:
                      f"{shown} ({'' if up is None else 'one-sided '}95 % CI of the average "
                      f"{_interval_words(r['low'], r['high'])}"
                      + (f"; Cohen's d = {_num(r['d'])}{r['d_text']}" if r["have_d"] else "")
-                     + f"). A difference this big {_chance(r['p'])}.")
+                     + ").")
             second = (f"Test: one-sample t-test (t = {_num(r['t'])}, df = {_whole(r['df'])}), the usual test for "
                       "one average against a fixed number.")
         else:
@@ -1257,19 +1260,22 @@ class StatTestWords:
                         "effect size": r["r"], "effect size 95 % CI low": r["r_low"],
                         "effect size 95 % CI high": r["r_high"], "median": median, "average": mean})
             size = f" (rank-biserial correlation = {_num(r['r'])}{r['r_text']})" if r["have_r"] else ""
-            first = (f'The median "{column}" is {_num(median)}, against {shown}{size}. '
-                     f"A difference this big {_chance(r['p'])}.")
+            first = f'The median "{column}" is {_num(median)}, against {shown}{size}.'
             second = (f"Test: Wilcoxon signed-rank test (V = {_whole(r['v'])}, {r['how']}), which uses ranks, so it "
                       "does not need bell-shaped values.")
             if r["zeros"]:
                 second += f" {r['zeros']} values exactly equal to {shown} were left out, as R does."
         row["rows"] = len(values)
+        centre = "average" if based_on == "averages" else "median"
+        if_none = f"the {centre} were truly {shown}"
         if up is not None:
             row["sides"] = f"one-sided: {'average' if up == 'average' else shown} higher"
             looks = f'an average of "{column}" above {shown}' if up == "average" else f'an average below {shown}'
             other = "an average below it" if up == "average" else "an average above it"
             second += " " + _one_sided_sentence(looks, other)
+            if_none = f"the {centre} were truly not {'above' if up == 'average' else 'below'} {shown}"
         print(first)
+        print(_p_sentence(r["p"], if_none, "a difference this big or bigger", f"that the {centre} is {shown}"))
         print(second)
         for note in r["notes"]:
             print(note)
@@ -1375,11 +1381,12 @@ class StatTestWords:
         row.update({"effect size name": "strength of the link, 0 (none) to 1 (complete) (Cramer's V)",
                     "effect size": v, "effect size 95 % CI low": v_ci["low"], "effect size 95 % CI high": v_ci["high"],
                     "rows": n, "smallest expected count": float(expected.min())})
-        first = (f'Comparing {what} ({size} table, {n} rows): the differences {_chance(p, plural=True)}. '
-                 f"Cramer's V = {_num(v)} ("
+        first = (f"Comparing {what} ({size} table, {n} rows): Cramer's V = {_num(v)} ("
                  + (interval_text(v_ci["low"], v_ci["high"])[2:-1] + "; " if not v_ci["note"] else "")
                  + "0 means no link, 1 a complete link).")
         print(first)
+        print(_p_sentence(p, f'"{column}" and "{for_each}" were truly unrelated', "differences this big or bigger",
+                          "that they are unrelated"))
         print(second)
         if v_ci["note"]:
             print(v_ci["note"])
@@ -1460,8 +1467,10 @@ class StatTestWords:
         shown = ", ".join(items[:GROUPS_SHOWN])
         if len(items) > GROUPS_SHOWN:
             shown += f" ... and {len(items) - GROUPS_SHOWN} more (the new table has them all)"
-        print(f'Counts of "{column}" ({n} rows): {shown}. Differences this big from the expected counts '
-              f"{_chance(p, plural=True)}. Cohen's w = {_num(w)}{interval_text(w_ci['low'], w_ci['high'])}.")
+        print(f'Counts of "{column}" ({n} rows): {shown}. Cohen\'s w = {_num(w)}'
+              f"{interval_text(w_ci['low'], w_ci['high'])}.")
+        print(_p_sentence(p, "the expected shares were true", "differences this big or bigger from the expected counts",
+                          "that the expected shares are right"))
         r_call = "chisq.test(table(x))" if expected is None else "chisq.test(x, p = ...)"
         print(f"Test: chi-square goodness-of-fit test (chi-square = {_num(stat)}, df = {df}), as R {r_call}; "
               "the usual test of counts against expected shares.")
@@ -1580,14 +1589,16 @@ class StatTestWords:
                "effect size": h, "percent": share * 100, "percent 95 % CI low": float(low) * 100,
                "percent 95 % CI high": float(high) * 100, "matching rows": hits, "rows": n}
         print(f'"{column}" is "{label}" in {share * 100:.1f} % of the rows ({hits} of {n}; 95 % CI {low * 100:.1f} % '
-              f"to {high * 100:.1f} %), against {percent:g} %. A difference this big {_chance(p)}. "
-              f"Cohen's h = {_num(h)}.")
+              f"to {high * 100:.1f} %), against {percent:g} %. Cohen's h = {_num(h)}.")
         side_words = ""
+        if_none = f"the percent were truly {percent:g} %"
         if up is not None:
+            if_none = f"the percent were truly not {'above' if up == 'percent' else 'below'} {percent:g} %"
             row["sides"] = f"one-sided: {'the percent' if up == 'percent' else f'{percent:g} %'} higher"
             side_words = " " + _one_sided_sentence(
                 f"a percent above {percent:g} %" if up == "percent" else f"a percent below {percent:g} %",
                 "a percent on the other side")
+        print(_p_sentence(p, if_none, "a difference this big or bigger", f"that the percent is {percent:g} %"))
         print(f"Test: exact binomial test, as R binom.test({hits}, {n}, p = {percent / 100:g}"
               + ("" if up is None else f', alternative = "{alt}"') + "); the 95 % CI is the "
               f"exact Clopper-Pearson interval.{chosen_by}{side_words}")
@@ -1695,19 +1706,17 @@ class StatTestWords:
                 continue
             looks = "do not look bell-shaped" if p < 0.05 else "could well be bell-shaped"
             if not groups:
-                if p < 0.05:
-                    lines.append(f'The values of "{column}" do not look bell-shaped (normal): a shape this far from '
-                                 f"normal {_chance(p)} (Shapiro-Wilk W = {w:.3f}, {n} values).")
-                else:
-                    lines.append(f'The values of "{column}" could well be bell-shaped (normal) (Shapiro-Wilk '
-                                 f"W = {w:.3f}, {_p_shown(p)}, {n} values). This does not prove that they are.")
+                lines.append(f'The values of "{column}" {looks} (normal) (Shapiro-Wilk W = {w:.3f}, {n} values).')
+                lines.append(_p_sentence(p, "the values truly came from a bell shape",
+                                         "a shape this far from normal or further", "that they are bell-shaped"))
             else:
                 lines.append(f"  {label}: {looks} (W = {w:.3f}, {_p_shown(p)}, {n} values)")
             any_large_flag = any_large_flag or (p < 0.05 and n >= CLT_SIZE)
         if groups:
             names = " and ".join(f'"{g}"' for g in groups)
             print(f'Do the values of "{column}" look bell-shaped (normal) in each {names}? '
-                  "Shapiro-Wilk test (as R shapiro.test()); a small p-value means too far from normal to be chance:")
+                  "Shapiro-Wilk test (as R shapiro.test()); each p-value says how often a shape this far from normal "
+                  "would turn up if the values truly came from a bell shape:")
         for line in lines:
             print(line)
         if not groups:
