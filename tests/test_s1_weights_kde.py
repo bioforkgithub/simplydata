@@ -43,7 +43,8 @@ def test_weighted_average(weighted, capsys):
     assert weighted.average_of("x", weights="w") == pytest.approx(13.185, rel=1e-12)
     out = capsys.readouterr().out
     assert '1 row with an empty cell in "x" or "w" was skipped' in out
-    assert 'The average of "x", weighted by "w", is 13.19' in out and "R weighted.mean(x, w)" in out
+    # 13.185 sits on a rounding edge, so the last printed figure can be 8 or 9 depending on the platform's floats
+    assert ('weighted by "w", is 13.19' in out or 'weighted by "w", is 13.18' in out) and "R weighted.mean(x, w)" in out
     got = weighted.average_of("x", weights="w", for_each="g")._frame.to_pandas()
     # R: sapply(split(data.frame(x, w), g), function(d) weighted.mean(d$x, d$w))
     assert dict(zip(got["g"], got["weighted average of x"])) == pytest.approx(

@@ -427,6 +427,13 @@ def rate_rows(counts, level, per, unit):
     return rows, listed
 
 
+
+def _whole_events(counts):
+    """Event counts as whole numbers where they are whole: older SciPy's binomtest (under statsmodels'
+    exact conditional Poisson test) refuses 12.0 and asks for 12."""
+    return {g: (int(e) if float(e).is_integer() else e, t) for g, (e, t) in counts.items()}
+
+
 def rate_engine(counts, against, level, per, unit, what, same_within=None, up=None, alternative="two-sided",
                 claim=None, unit_words=None):
     """compare_rates on counts = {group: (events, time)}; prints the sentences, gives back the rows. unit is the
@@ -435,6 +442,7 @@ def rate_engine(counts, against, level, per, unit, what, same_within=None, up=No
 
     from .._r import RMissing, r_call
 
+    counts = _whole_events(counts)
     ci = _ci(level)
     rows, listed = rate_rows(counts, level, per, unit)
     for r in rows:
@@ -509,6 +517,7 @@ def _rate_equivalence(group, against, counts, same_within, up, claim=None):
         print(f"Note: a ratio margin of {float(same_within):g} means {round(1 / same_within, 4):g} to "
               f"{float(same_within):g}, a very wide margin. compare_rates works on the ratio of the rates; for 20 % "
               "either way give same_within=[0.8, 1.25].")
+    counts = _whole_events(counts)
     (e1, t1), (e0, t0) = counts[group], counts[against]
     ratio = float(test_poisson_2indep(e1, t1, e0, t0, method="exact-cond").ratio)
     span = f"{_num(low)} to {_num(high)}"
