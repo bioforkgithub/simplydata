@@ -183,10 +183,13 @@ def test_wav_reading_matches_r_tuner(capsys):
     file = pathlib.Path(__file__).parent / "data" / "tone_r.wav"
     # R: w <- tuneR::Wave(left = c(0L, 1000L, -2000L, 32767L, -32768L), right = 5:9, samp.rate = 8000, bit = 16)
     #    tuneR::writeWave(w, "tone_r.wav"); tuneR::readWave("tone_r.wav")@left, @right
+    # sdata.numbers scales whole numbers to -1 to 1: in R, readWave(...)@left / 2^(16 - 1)
     left = sdata.numbers(str(file))
-    assert values(left).tolist() == [0, 1000, -2000, 32767, -32768] and left._time_step == 1 / 8000
-    assert "8,000 readings per second" in capsys.readouterr().out
-    assert values(sdata.numbers(str(file), channel=2)).tolist() == [5, 6, 7, 8, 9]
+    assert values(left).tolist() == [v / 32768 for v in (0, 1000, -2000, 32767, -32768)]
+    assert left._time_step == 1 / 8000
+    out = capsys.readouterr().out
+    assert "8,000 readings per second" in out and "16-bit whole numbers, scaled to -1 to 1 (divided by 2^15)" in out
+    assert values(sdata.numbers(str(file), channel=2)).tolist() == [v / 32768 for v in (5, 6, 7, 8, 9)]
     with pytest.raises(SimplydataError, match="channel="):
         sdata.numbers(str(file), channel=3)
 
@@ -198,7 +201,7 @@ def test_wav_round_trip(tmp_path, capsys):
     assert values(back) == pytest.approx(values(nums), abs=1e-7) and back._time_step == 1 / 8000
     nums.save(str(tmp_path / "tone16.wav"), bits=16)
     back = sdata.numbers(str(tmp_path / "tone16.wav"))
-    assert values(back) / 32767 == pytest.approx(values(nums), abs=1e-4)
+    assert values(back) == pytest.approx(values(nums), abs=1 / 32768)
     with pytest.raises(SimplydataError, match="time_step="):
         sdata.numbers([0.1, 0.2]).save(str(tmp_path / "x.wav"))
 
@@ -296,3 +299,110 @@ def test_show_filter_shows_the_chart_and_the_line_that_saves_it(monkeypatch, tmp
         sensor().keep_frequencies(below=10, time_step=0.005, show_filter="filter.png")
     with pytest.raises(SimplydataError, match="show_filter="):
         sensor().keep_frequencies(below=10, time_step=0.005, show_filter=3)
+
+
+def _write_pcm(path, width, whole_numbers):
+    """A one-channel whole-number .wav file written with Python's wave module (8-bit is stored from 0 to 255)."""
+    import wave
+
+    if width == 1:
+        raw = bytes(int(v) for v in whole_numbers)
+    else:
+        raw = b"".join(int(v).to_bytes(4, "little", signed=True)[:width] for v in whole_numbers)
+    with wave.open(str(path), "wb") as w:
+        w.setnchannels(1)
+        w.setsampwidth(width)
+        w.setframerate(8000)
+        w.writeframes(raw)
+
+
+@pytest.mark.parametrize("bits, stored, expected", [
+    # R: w <- tuneR::readWave(file); (w@left - (w@bit == 8) * 128) / 2^(w@bit - 1)
+    (8, [128, 0, 255, 192, 64], [0, -1, 0.9921875, 0.5, -0.5]),
+    (16, [0, 1000, -2000, 32767, -32768], [0, 0.030517578125, -0.06103515625, 0.999969482421875, -1]),
+    (24, [0, 1000, -2000, 8388607, -8388608], [0, 0.000119209289550781, -0.000238418579101562, 0.99999988079071, -1]),
+    (32, [0, 1000, -2000, 2147483647, -2147483647], [0, 4.65661287307739e-07, -9.31322574615479e-07,
+                                                    0.999999999534339, -0.999999999534339]),
+])
+def test_wav_files_of_every_size_read_to_one_scale_and_round_trip(tmp_path, capsys, bits, stored, expected):
+    file = tmp_path / f"w{bits}.wav"
+    _write_pcm(file, bits // 8, stored)
+    nums = sdata.numbers(str(file))
+    assert values(nums) == pytest.approx(expected, rel=1e-12, abs=1e-15)
+    assert f"{bits}-bit whole numbers, scaled to -1 to 1" in capsys.readouterr().out
+    nums.save(str(tmp_path / "again.wav"))  # 32-bit floating point keeps them
+    assert values(sdata.numbers(str(tmp_path / "again.wav"))) == pytest.approx(expected, abs=1e-7)
+    if bits == 16:  # saving 16-bit gives back the same whole numbers, none clipped
+        from scipy.io import wavfile
+
+        nums.save(str(tmp_path / "again16.wav"), bits=16)
+        assert wavfile.read(str(tmp_path / "again16.wav"))[1].tolist() == stored
+        assert "clipped" not in capsys.readouterr().out
+
+
+def test_wav_16_bit_round_trip_keeps_every_value(tmp_path, capsys):
+    from scipy.io import wavfile
+
+    x = (np.sin(np.arange(800) / 10) * 20000).astype(np.int16)
+    wavfile.write(str(tmp_path / "a16.wav"), 8000, x)
+    sdata.numbers(str(tmp_path / "a16.wav")).save(str(tmp_path / "b16.wav"), bits=16)
+    assert np.array_equal(wavfile.read(str(tmp_path / "b16.wav"))[1], x)
+    assert "clipped" not in capsys.readouterr().out
+
+
+def test_undo_after_change_time_step_brings_the_time_step_back(capsys):
+    nums = sdata.wave("sine", frequency=5, time_step=0.01, how_many=100)
+    nums.change_time_step(to=0.02)
+    assert nums._time_step == 0.02 and len(values(nums)) == 50
+    nums.undo()
+    assert nums._time_step == 0.01 and len(values(nums)) == 100
+    nums.change_time_step(to=0.02)
+    nums.add(1)
+    nums.start_again()
+    assert nums._time_step == 0.01 and len(values(nums)) == 100
+
+
+def test_change_time_step_remembers_the_step_it_gives(capsys):
+    nums = sdata.wave("sine", frequency=5, time_step=0.01, how_many=101)
+    capsys.readouterr()
+    nums.change_time_step(to=0.03)  # 101 readings cannot become exactly 0.03 apart: 34 fill the same time
+    assert len(values(nums)) == 34 and nums._time_step == pytest.approx(0.01 * 101 / 34, rel=1e-12)
+    assert "The time step is 0.0297059, not exactly 0.03" in capsys.readouterr().out
+    nums = sdata.wave("sine", frequency=5, time_step=0.01, how_many=100)
+    nums.change_time_step(to=0.02)
+    assert nums._time_step == 0.02 and "not exactly" not in capsys.readouterr().out
+
+
+def test_bessel_matches_r_gsignal_with_the_prewarped_cutoff(capsys):
+    from scipy import signal
+
+    nums = sensor()
+    nums.keep_frequencies(below=10, time_step=0.005, method="bessel")
+    # R: z <- gsignal::as.Arma(gsignal::bilinear(gsignal::besself(4, 2 * 200 * tan(pi * 10 / 200)), T = 1 / 200))
+    #    signal::filtfilt(z, x)[c(300, 500)]
+    assert values(nums)[[299, 499]] == pytest.approx([0.365463543645377, 0.330800987305200], rel=1e-10)
+    out = capsys.readouterr().out
+    assert "gsignal::besself(4, 2 * 200 * tan(pi * 10 / 200))" in out
+    b, a = signal.sos2tf(signal.bessel(4, 30, "high", norm="phase", fs=200, output="sos"))
+    # R: gsignal::as.Arma(gsignal::bilinear(gsignal::besself(4, 2 * 200 * tan(pi * 30 / 200), "high"), T = 1 / 200))
+    assert b == pytest.approx([0.235195010278628, -0.940780041114512, 1.411170061671768, -0.940780041114512,
+                               0.235195010278628], rel=1e-10)
+    assert a == pytest.approx([1, -1.4502103303751783, 0.9699838065630142, -0.3045315433134006, 0.0383944842064527],
+                              rel=1e-10)
+    nums = sensor()
+    nums.keep_frequencies(between=[10, 30], time_step=0.005, method="bessel", steepness=2)
+    # R: signal::filtfilt(gsignal::as.Arma(gsignal::bilinear(gsignal::besself(2, 2 * 200 * tan(pi * c(10, 30) / 200),
+    #    type = "pass"), T = 1 / 200)), x)[c(300, 500)]
+    assert values(nums)[[299, 499]] == pytest.approx([-0.263351352212425, 0.114621142699148], rel=1e-10)
+
+
+def test_peaks_wide_at_least_needs_even_times():
+    import pandas as pd
+
+    from simplydata.table import table as make_table
+
+    t = make_table(pd.DataFrame({"t": [0, 1, 2, 3, 5, 6, 7, 8.0], "x": [0, 1, 0, 2, 0, 3, 0, 1.0]}))
+    with pytest.raises(SimplydataError, match="evenly spaced"):
+        t.find_peaks("x", sorted_by="t", wide_at_least=1)
+    with pytest.raises(SimplydataError, match="evenly spaced"):
+        t.find_dips("x", sorted_by="t", wide_at_least=1)

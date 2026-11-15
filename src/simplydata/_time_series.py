@@ -58,6 +58,8 @@ def autocorrelation(values, rows_back=None, show="correlation", band="white nois
     if np.ptp(x) == 0:
         raise SimplydataError(f"{step_name}() needs readings that change; every value is the same.")
     k = read_rows_back(rows_back, n, step_name)
+    if show == "partial" and rows_back is None:
+        k = min(k, n // 2 - 1)  # statsmodels pacf needs fewer than half the readings (R pacf works there too)
     if show == "partial" and k >= n // 2:
         raise SimplydataError(f'show="partial" needs rows_back= below half the readings ({n // 2}).')
     lags = np.arange(1, k + 1)

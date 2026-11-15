@@ -55,6 +55,20 @@ def needs_r():
         pytest.skip("needs R with " + ", ".join(R_PACKAGES) + " (pip install 'simplydata[r]')")
 
 
+@pytest.fixture
+def needs_control():
+    """For tests of the measures that come from python-control (simplydata[systems]): skipped where it is
+    not installed, except when SIMPLYDATA_REQUIRE_CONTROL=1 (CI), where they must run."""
+    import os
+
+    try:
+        import control  # noqa: F401
+    except ImportError:
+        if os.environ.get("SIMPLYDATA_REQUIRE_CONTROL") == "1":
+            pytest.fail("SIMPLYDATA_REQUIRE_CONTROL=1 but python-control is missing (pip install 'simplydata[systems]')")
+        pytest.skip("needs python-control (pip install 'simplydata[systems]')")
+
+
 # The places that are meant to run R (each calls simplydata._r.r_call). Reaching R from anywhere
 # else is a mistake: a word that should work without R.
 R_ENTRY_POINTS = {

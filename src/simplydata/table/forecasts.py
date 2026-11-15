@@ -280,7 +280,8 @@ class ForecastWords:
         Splits the readings, in the order of sorted_by=, into pieces with their own average, and gives
         back one row per piece: where it starts and ends, how many readings, its average (and its
         standard deviation). change="average" (R changepoint::cpt.mean, after dividing the readings by
-        mad(diff(x)) / sqrt(2), the noise size that cpt.mean assumes to be 1) or "average and spread"
+        mad(diff(x)) / sqrt(2): simplydata's choice of noise size, because cpt.mean assumes noise with
+        standard deviation 1 and changepoint itself does not scale) or "average and spread"
         (R cpt.meanvar: the spread may jump too). The search is PELT; penalty= "mbic" (the default, as
         R), "bic", "aic" or "hannan-quinn" sets how big a jump must be to count (a smaller penalty, such
         as "aic", finds more points). The readings are taken in order; they need no empty cells. Runs
@@ -324,8 +325,10 @@ class ForecastWords:
                             "readings": int(ends[j] - starts[j] + 1), "average": float(got["average"][j]),
                             "standard deviation": float(got["spread"][j])})
                 rows.append(row)
-        call = ('changepoint::cpt.mean(x / s, method = "PELT", penalty = "{p}"), where s = mad(diff(x)) / sqrt(2) '
-                "puts the noise on the scale cpt.mean assumes" if kind == "average" else
+        call = ('changepoint::cpt.mean(x / s, method = "PELT", penalty = "{p}"), where s = mad(diff(x)) / sqrt(2). '
+                "Dividing by s is simplydata's choice, not part of changepoint: cpt.mean assumes noise with "
+                "standard deviation 1, and s is the noise size read from the differences between neighbours, "
+                "so the jumps themselves do not inflate it" if kind == "average" else
                 'changepoint::cpt.meanvar(x, method = "PELT", penalty = "{p}")').format(p=fc.PENALTIES[chosen_penalty])
         print(f"Method: PELT search for changes in the {kind} with the {fc.PENALTIES[chosen_penalty]} penalty, as R "
               f"{call} (run in R).")

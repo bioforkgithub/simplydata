@@ -73,13 +73,19 @@ def series_of(table, column, sorted_by=None, for_each=None, step_name="this step
             raise SimplydataError(f'"{sorted_by}" cannot be both sorted_by= and the column or for_each=.')
     values = frame[column].cast(nw.Float64).to_numpy().astype(float)
     keys = [tuple(r) for r in frame.select(groups).rows()] if groups else [()] * len(values)
-    times, kind = None, None
+    times, kind, wall = None, None, None
     if sorted_by is not None:
         dtype = frame.schema[sorted_by]
         raw = frame[sorted_by].to_numpy()
         if dtype.is_temporal():
             kind = "dates"
             times = np.asarray(raw, dtype="datetime64[ns]")
+            if getattr(dtype, "time_zone", None):
+                # dates with a time zone: order by the moment, but show and step by the clock in that zone
+                # (a daily series over a summer-time change has steps of 23 or 25 hours, yet one per day)
+                times = np.asarray(frame[sorted_by].dt.convert_time_zone("UTC").dt.replace_time_zone(None)
+                                   .to_numpy(), dtype="datetime64[ns]")
+                wall = np.asarray(frame[sorted_by].dt.replace_time_zone(None).to_numpy(), dtype="datetime64[ns]")
         elif dtype.is_numeric():
             kind = "numbers"
             times = np.asarray(raw, dtype=float)
@@ -102,12 +108,18 @@ def series_of(table, column, sorted_by=None, for_each=None, step_name="this step
         t = times[rows]
         sort = np.argsort(t, kind="stable")
         rows, t = rows[sort], t[sort]
-        shown = [str(v)[:10] if kind == "dates" else _num(v) for v in t]
+        if wall is not None:
+            clock = wall[rows]
+            shown = [str(v)[:10] for v in clock]
+        else:
+            shown = [str(v)[:10] if kind == "dates" else _num(v) for v in t]
         if (np.diff(t.astype("int64") if kind == "dates" else t) == 0).any():
             where = f" for {label}" if label else ""
             raise SimplydataError(f'Some rows have the same "{sorted_by}"{where}, so the order is not clear. '
                                   "Summarise them first, for example with table.average_of(..., for_each=...).")
         if kind == "dates":
+            if wall is not None and np.all(np.diff(t).astype("timedelta64[ns]").astype(np.int64) >= 23 * 3600e9):
+                t = clock  # a day or more apart: steps on the clock (shorter steps keep the true time apart)
             days = (t - t[0]).astype("timedelta64[ns]").astype(np.int64) / (DAY_SECONDS * 1e9)
             gaps_days = np.diff(days)
             calendar = _calendar_step(gaps_days)
@@ -178,14 +190,23 @@ def future_times(table, series: TimeSeries, sorted_by, steps: int, start_after: 
     import pandas as pd
 
     position = len(series.values) - 1 if start_after is None else start_after - 1
-    raw = table._frame[sorted_by].to_numpy()[series.rows[position]]
+    column = table._frame[sorted_by]
+    if series.unit in ("months", "quarters", "years", "days", "seconds"):
+        raw = column.to_list()[series.rows[position]]  # keeps its time zone, if it has one
+    else:
+        raw = column.to_numpy()[series.rows[position]]
     ahead = range(1, steps + 1)
     if series.unit in ("months", "quarters", "years"):
         months = {"months": 1, "quarters": 3, "years": 12}[series.unit]
         last = pd.Timestamp(raw)
+        every = column.to_list()
+        if all(pd.Timestamp(every[i]).is_month_end for i in series.rows):  # month ends stay month ends
+            return [(last + pd.offsets.MonthEnd(months * k)).to_pydatetime() for k in ahead]
         return [(last + pd.DateOffset(months=months * k)).to_pydatetime() for k in ahead]
     if series.unit in ("days", "seconds"):
         last = pd.Timestamp(raw)
+        if series.unit == "days" and float(series.step).is_integer():  # whole days: on the calendar (clock time kept)
+            return [(last + pd.DateOffset(days=int(series.step) * k)).to_pydatetime() for k in ahead]
         size = pd.Timedelta(days=series.step) if series.unit == "days" else pd.Timedelta(seconds=series.step)
         return [(last + size * k).to_pydatetime() for k in ahead]
     return [float(raw) + series.step * k for k in ahead]

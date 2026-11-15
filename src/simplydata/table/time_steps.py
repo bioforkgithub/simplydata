@@ -70,6 +70,9 @@ class TimeStepWords:
                 raise SimplydataError('between= needs the first and last date, such as between=["2024-01-01", '
                                       '"2025-12-31"].')
             low, high = (_dates.read_date(v, "between", step_name) for v in between)
+            zone = getattr(native[column].dtype, "tz", None)
+            if zone is not None:  # between= dates are clock times in the column's own time zone
+                low, high = (v.tz_convert(zone) if v.tzinfo is not None else v.tz_localize(zone) for v in (low, high))
             if high < low:
                 raise SimplydataError("between= needs the earlier date first.")
         parts = native.groupby(groups, sort=True, dropna=False) if groups else [((), native)]
@@ -86,14 +89,16 @@ class TimeStepWords:
                                       "summarise them first.")
             count, unit = given or _common_every(np.asarray((when[1:] - when[:-1]).total_seconds(), dtype=float) / 86400)
             shown_every = (count, unit)
+            # a run of month ends (2023-04-30, 2023-05-31, ...) stays on month ends
+            ends = unit in ("month", "quarter", "year") and _dates.all_month_ends(when)
             first, last = (when[0], when[-1]) if between is None else (min(low, when[0]), max(high, when[-1]))
             if between is not None and low < when[0]:
                 # step back from the first reading so the run keeps its rhythm
                 k = 0
-                while _dates.step_after(when[0], count, unit, k - 1) >= low:
+                while _dates.step_after(when[0], count, unit, k - 1, ends) >= low:
                     k -= 1
-                first = _dates.step_after(when[0], count, unit, k)
-            run = pd.DatetimeIndex(_dates.date_steps(first, count, unit, to=last))
+                first = _dates.step_after(when[0], count, unit, k, ends)
+            run = pd.DatetimeIndex(_dates.date_steps(first, count, unit, to=last, month_end=ends))
             if between is not None:
                 run = run[(run >= low) & (run <= high)].union(when)
             off_step = when.difference(run)

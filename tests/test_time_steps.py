@@ -287,3 +287,61 @@ def test_remove_trend_matches_r(capsys):
     assert "readings 1 to 200, 201 to 1000" in capsys.readouterr().out
     with pytest.raises(SimplydataError, match="breaks="):
         nums.remove_trend(breaks=[1])
+
+
+# ---------------------------------------------------------------- month ends and time zones
+def test_add_missing_dates_keeps_month_ends(engine, capsys):
+    import pandas as pd
+
+    # R: seq(as.Date("2023-03-01"), by = "month", length.out = 5) - 1:
+    #    "2023-02-28" "2023-03-31" "2023-04-30" "2023-05-31" "2023-06-30"
+    data = pd.DataFrame({"date": pd.to_datetime(["2023-02-28", "2023-03-31", "2023-05-31", "2023-06-30"]),
+                         "x": [1.0, 2, 3, 4]})
+    t = make(data, engine).add_missing_dates("date", every="month")
+    got = [str(v)[:10] for v in t._frame["date"].to_list()]
+    assert got == ["2023-02-28", "2023-03-31", "2023-04-30", "2023-05-31", "2023-06-30"]
+    # a full run of month ends from the 30th: nothing missing; one dropped: one added back
+    dates = pd.date_range("2023-04-30", periods=12, freq="ME")
+    full = pd.DataFrame({"date": dates, "x": np.arange(12.0)})
+    assert len(make(full, engine).add_missing_dates("date")._frame) == 12
+    assert len(make(full, engine).add_missing_dates("date", every="month")._frame) == 12
+    t = make(full.drop(index=4).reset_index(drop=True), engine).add_missing_dates("date", every="month")
+    assert [str(v)[:10] for v in t._frame["date"].to_list()][3:6] == ["2023-07-31", "2023-08-31", "2023-09-30"]
+    assert "Added 1 missing month" in capsys.readouterr().out
+
+
+def test_future_months_stay_month_ends():
+    import pandas as pd
+
+    from simplydata._time_axis import future_times, series_of
+
+    data = pd.DataFrame({"date": pd.date_range("2023-04-30", periods=11, freq="ME"), "x": np.arange(11.0)})
+    t = make_table(data)  # the last date is 2024-02-29
+    s = series_of(t, "x", "date")[0]
+    # R: seq(as.Date("2024-03-01"), by = "month", length.out = 3) - 1: "2024-02-29" "2024-03-31" "2024-04-30"
+    assert s.unit == "months"
+    assert [str(v)[:10] for v in future_times(t, s, "date", 3)] == ["2024-03-31", "2024-04-30", "2024-05-31"]
+
+
+def test_dates_with_a_time_zone_keep_their_clock(engine, capsys):
+    import pandas as pd
+
+    from simplydata._time_axis import series_of
+
+    # daily at midnight in Oslo, across the summer-time change of 2023-03-26 (one day of 23 hours)
+    # R: seq(as.POSIXct("2023-03-20", tz = "Europe/Oslo"), by = "DSTday", length.out = 15)
+    days = pd.date_range("2023-03-20", periods=15, freq="D", tz="Europe/Oslo")
+    data = pd.DataFrame({"date": days, "x": np.sin(np.arange(15.0))})
+    s = series_of(make(data, engine), "x", "date")[0]
+    assert (s.unit, s.step, s.regular, s.gaps) == ("days", 1.0, True, [])
+    assert s.shown_times[:2] == ["2023-03-20", "2023-03-21"]
+    make(data, engine).autocorrelation_of("x", sorted_by="date", rows_back=3)  # evenly spaced: no error
+    gappy = data.drop(index=3).reset_index(drop=True)
+    t = make(gappy, engine).add_missing_dates("date", every="day")
+    assert len(t._frame) == 15
+    t = make(gappy, engine).add_missing_dates("date", between=["2023-03-01", "2023-04-10"])
+    assert len(t._frame) == 41  # 1 March to 10 April, Oslo time
+    shown = [str(v) for v in t._frame["date"].to_list()]
+    assert shown[0].startswith("2023-03-01 00:00:00") and shown[-1].startswith("2023-04-10 00:00:00")
+    with pytest.raises(SimplydataError, match="evenly spaced"):
+        make(gappy, engine).autocorrelation_of("x", sorted_by="date", rows_back=3)

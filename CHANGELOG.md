@@ -24,6 +24,13 @@ estimates (R uses the step before), so they agree with R to about 3e-5.
 - `compare_shape_to` calls SciPy `goodness_of_fit` again; most shapes take a few seconds
   with `samples=9999`, Weibull and t longer (a note says so before a long run).
 
+### python-control for systems: `simplydata[systems]`
+
+The rise time, settling time and overshoot of a step response and the gain and phase margins come from
+python-control (`step_info`, `stability_margins`), the established Python package for control systems; R
+control has neither. Install it with `pip install "simplydata[systems]"`; without it the responses still
+come, with a note.
+
 ### R itself, for what only R gives: `simplydata[r]`
 
 Where no Python package gives R's answers, simplydata now runs R's own code through rpy2.
@@ -70,7 +77,9 @@ Install once: `pip install "simplydata[r]"`, R from https://cran.r-project.org, 
   "straight line" (one statsmodels least-squares fit of the line and the season effects, as R `lm`).
 - `table.trend_of("visitors", sorted_by="month")`: Sen's slope with its 95 % interval (SciPy `theilslopes`, as R
   `trend::sens.slope`) and the Mann-Kendall test (R `trend::mk.test` itself); repeats_every= gives the seasonal test
-  and slope (R `trend::smk.test`, `trend::sea.sens.slope`). Without R the slope is still given.
+  and slope (R `trend::smk.test`, `trend::sea.sens.slope`; per cycle, per year for months). Without R the slope
+  is still given. Dates one calendar step apart give the slope per month (quarter, year); other dates per day
+  from the dates themselves, so weekly readings and gaps count right.
 - `table.forecast("visitors", sorted_by="month", steps_ahead=12, repeats_every="year")` and `nums.forecast(...)`:
   the next values with a 95 % prediction interval (interval=; columns "forecast 95 % prediction low" / "high"),
   the time column carried on. method="exponential smoothing"
@@ -89,7 +98,9 @@ Install once: `pip install "simplydata[r]"`, R from https://cran.r-project.org, 
   ...): a one-column table of regular dates. Month steps count from the first date, so a run from the 31st stays
   on the month's last day (pandas DateOffset; R's seq(by = "month") overflows instead).
 - `table.add_missing_dates("date", every="day", for_each="station")`: a row for every missing date (empty cells),
-  between= to extend the run; every= found from the most common step when not given.
+  between= to extend the run; every= found from the most common step when not given. Month-end dates stay month
+  ends (2023-04-30, 2023-05-31, ...; also in forecasts), and dates with a time zone step by the clock of that zone
+  (between= is read in it), so a summer-time change does not break every="day".
 - `table.add_rolling_column` gains window="7 days" (a window of time, pandas rolling("7D")), centre=True (R stats::filter(sides = 2)), and show= "variance",
   "skewness", "kurtosis", "percentile" (percent=), "count", "correlation" and "covariance" (two columns). window="all"
   (from the first row, pandas expanding) is accepted with a note: running values are planned as their own word,
@@ -111,7 +122,7 @@ Install once: `pip install "simplydata[r]"`, R from https://cran.r-project.org, 
   (SciPy hilbert, as R gsignal::hilbert), `nums.convolve_with` / `deconvolve_by` (as R convolve, pracma::deconv),
   `nums.change_time_step(to=)` (SciPy resample, resample_poly, decimate), `sdata.wave(...)` and
   `sdata.window_shape(...)` (SciPy; as R gsignal).
-- `.wav` sound files: `sdata.numbers("call.wav", channel=1)` reads the readings (as R tuneR::readWave) and the numbers
+- `.wav` sound files: `sdata.numbers("call.wav", channel=1)` reads the readings scaled to -1 to 1 (whole-number files divided by 2^(bits - 1), as MATLAB audioread; R tuneR::readWave keeps the whole numbers) and the numbers
   remember their time step; `nums.save("tone.wav", bits=16)` writes one (SciPy io.wavfile).
 - `table.add_envelope_column("signal_envelope", from_column="signal", ...)` (show="envelope", "phase" or
   "frequency"; SciPy hilbert, as R gsignal::hilbert; the new column's name is needed, as on every
@@ -121,9 +132,10 @@ Install once: `pip install "simplydata[r]"`, R from https://cran.r-project.org, 
 - Linear systems: `sdata.system("1 / (s**2 + 2*s + 5)")` (or numerator= / denominator=, poles= / zeros= / gain=,
   the matrices a=, b=, c=, d=; z and time_step= for a system in steps; R's num= / den= and A= to D= are
   accepted, but not together with the main spelling) with `step_response(until=, how_many=, time_points=)`
-  (rise time, settling time, overshoot), `impulse_response`, `response_to(inputs, time_points=)`,
+  (rise time, settling time, overshoot from python-control `step_info`; time_points= start at 0),
+  `impulse_response`, `response_to(inputs, time_points=)` (inputs in other steps than the system are refused),
   `frequency_response(between=, how_many=, unit=)` (columns gain, "gain (decibels)", "phase (degrees)"; the gain
-  and phase margins; unit="radians per second" or "cycles per second", "hertz" accepted), `poles` (real part,
+  and phase margins from python-control `stability_margins`; unit="radians per second" or "cycles per second", "hertz" accepted), `poles` (real part,
   imaginary part, distance from 0, damping ratio, natural frequency), `zeros`, `is_stable`, `steady_gain`,
   `in_steps(time_step=, method=)`, `then`, `add` (side by side, outputs added), `with_feedback(through=, sign=)`,
   `table(form=)` ("power of s" or "power of z", numerator, denominator; "real part" and "imaginary part" for

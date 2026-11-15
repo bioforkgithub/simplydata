@@ -247,6 +247,7 @@ def test_change_points_match_r(needs_r, capsys):
     out = capsys.readouterr().out
     assert '"y" changes twice: the average is 10.1 up to reading 40, then 13.9 from 41 to 80, then 9.00 from ' \
            "reading 81 on." in out
+    assert "Dividing by s is simplydata's choice, not part of changepoint" in out
     # R: cpts(cpt.meanvar(y, method = "PELT", penalty = "MBIC")) = 40, 80
     result = make_table({"y": y}).find_change_points("y", change="average and spread")
     assert result._frame["to"].to_list() == [40, 80, 120]

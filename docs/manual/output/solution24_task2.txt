@@ -6,5 +6,5 @@ In series: output / input = 10 / (s**2 + 0.8*s + 4).
 Method: polynomial arithmetic (numpy.polynomial), as R control::series(sys1, sys2).
 With negative feedback: output / input = 10 / (s**2 + 0.8*s + 14).
 Method: polynomial arithmetic (numpy.polynomial), as R control::feedback(sys1, sys2).
-Step response: the output settles at 0.7143, peaks at 1.211 at time 0.9045 (overshoot 69.6 %), rise time 0.318 (10 % to 90 %), settling time 9.44 (within 2 %).
-Method: SciPy signal.step, as R control::step(sys, t); rise and settling times read from the response.
+Step response: the output settles at 0.7143, peaks at 1.211 at time 0.9045 (overshoot 69.6 %), rise time 0.3015 (10 % to 90 %), settling time 9.497 (within 2 %).
+Method: SciPy signal.step, as R control::step(sys, t); rise time, settling time and overshoot from python-control step_info(y, T, yfinal) on that response.

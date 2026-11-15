@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import math
+
 import numpy as np
 
 from .._errors import SimplydataError, choice_error, friendly
@@ -149,16 +151,25 @@ class FourierNumberWords:
         ratio = Fraction(step / to).limit_denominator(1000)  # new readings per old reading
         if method == "fourier":
             n_new = int(round(len(x) * step / to))
+            if n_new < 1:
+                raise SimplydataError(f"change_time_step() would leave no readings: to= is more than {len(x)} time steps.")
             out = signal.resample(x, n_new)
+            actual = step * len(x) / n_new  # the same total time over a whole number of readings
         elif method == "polyphase":
             out = signal.resample_poly(x, ratio.numerator, ratio.denominator)
+            actual = step * ratio.denominator / ratio.numerator  # the ratio as a fraction (denominator at most 1000)
         else:
             factor = to / step
             if abs(factor - round(factor)) > 1e-9 or round(factor) < 2:
                 raise SimplydataError('method="filter then keep" needs to= a whole number (2 or more) of time steps.')
             out = signal.decimate(x, int(round(factor)), ftype="iir", zero_phase=True)
-        print(f"Changed the time step from {step:g} to {to:g}: {len(x)} readings became {len(out)} (method "
-              f"\"{method}\", SciPy).")
+            actual = step * int(round(factor))
+        exact = math.isclose(actual, to, rel_tol=1e-9)
+        note = "" if exact else (f" The time step is {actual:.6g}, not exactly {to:g}: {len(out)} readings must fill "
+                                 f"the same time as {len(x)}" + (" (the ratio is a fraction with a denominator of at "
+                                                                  "most 1000)" if method == "polyphase" else "") + ".")
+        print(f"Changed the time step from {step:g} to {actual:.6g}: {len(x)} readings became {len(out)} (method "
+              f"\"{method}\", SciPy).{note}")
         changed = self._change("change time step", out)
-        self._time_step = float(to)
+        self._time_step = float(to) if exact else float(actual)
         return changed

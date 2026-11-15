@@ -48,7 +48,15 @@ ALLOWED = {
     "table/models.py::ModelWords._rank_problem": "names the columns that repeat others, for the error message",
     "table/models.py::ModelWords._whole_column_tests": "Wald chi-square b' V^-1 b from the fitted covariance",
     "table/models.py::ModelWords._model_notes": "variance inflation factors from the correlation matrix",
+    # our own choices of preprocessing, written in R code (no building block to find; listed so they stay visible)
+    "_forecast.py::r_change_points": "find_change_points divides the readings by mad(diff(x)) / sqrt(2) before "
+                                     "changepoint::cpt.mean, which assumes noise with standard deviation 1. "
+                                     "Our choice: neither the changepoint help nor Killick & Eckley (2014, JSS "
+                                     "58(3)) prescribes a scaling; the MAD of the differences is a robust noise "
+                                     "size that the jumps do not inflate. Said in the printed method sentence.",
 }
+# ALLOWED places whose choice lives in R code: the text that must still be in the file
+IN_R_CODE = {"_forecast.py::r_change_points": "mad(diff(x)) / sqrt(2)"}
 
 
 def _imported_blocks(tree):
@@ -117,6 +125,10 @@ def test_no_new_own_methods():
 def test_each_allowed_place_still_exists(key):
     # remove an entry once its code is gone, so the list only names real exceptions
     relative, _, where = key.partition("::")
+    if key in IN_R_CODE:
+        text = (SOURCE / relative).read_text(encoding="utf-8")
+        assert IN_R_CODE[key] in text and f"def {where}(" in text, f"{key} has changed; update ALLOWED"
+        return
     uses = [(r, w) for r, w, _ in _all_uses() if r == relative]
     assert uses, f"{relative} no longer uses any building block; remove it from ALLOWED"
     if where:

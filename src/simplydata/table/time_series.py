@@ -246,12 +246,15 @@ class TimeSeriesWords:
 
         table.trend_of("visitors", sorted_by="month", for_each="museum")   (with sdata.example("visitors"))
         Sen's slope is the middle (median) of the slopes between every pair of readings, so a few odd
-        readings do not move it: the change per reading (per month for monthly dates, also per year),
-        with its 95 % interval (SciPy theilslopes, as R trend::sens.slope). The Mann-Kendall test asks
+        readings do not move it, with its 95 % interval (SciPy theilslopes, as R trend::sens.slope): the
+        change per reading in table order, per month (quarter, year) for dates one calendar step apart,
+        and per day (or second, or unit of sorted_by) otherwise, worked out on the times themselves so
+        weekly readings and gaps count right; also per year. The Mann-Kendall test asks
         whether a rise or fall that keeps going one way could be chance; it runs in R itself
         (trend::mk.test, needs simplydata[r]). With repeats_every= (12, or "year") the seasonal test and
         seasonal slope compare each month only with the same month in other years (R trend::smk.test,
-        trend::sea.sens.slope, both in R). Without R the slope (not the seasonal one) is still given and
+        trend::sea.sens.slope, both in R; the slope is per cycle, per year for 12 months; the readings
+        must be evenly spaced). Without R the slope (not the seasonal one) is still given and
         a note says how to add the test.
         """
         from scipy import stats
@@ -270,32 +273,46 @@ class TimeSeriesWords:
             if len(one.values) < 4:
                 raise SimplydataError(f"{step_name}() needs at least 4 readings; there are {len(one.values)}.")
             period = ts.read_repeats_every(repeats_every, one, step_name, needed=False)
+            if period is not None and sorted_by is not None:
+                need_regular(one, step_name, sorted_by)  # the seasonal test compares readings a cycle apart
             test, missing = ts.mann_kendall(one.values, period)
             missing_note = missing_note or missing
+            calendar = one.unit in ("months", "quarters", "years")  # one reading every calendar step, no gaps
             if one.times is None:
                 unit = "reading"
-            elif one.unit in per_year or one.unit == "years":
+            elif calendar or one.unit in ("days", "seconds"):
                 unit = one.unit[:-1]
             else:
                 unit = f'1 in "{one.unit}"'
             what = f'"{column}"' + (f" for {one.label}" if one.label else "")
             if period is None:
-                if one.times is None or one.unit in per_year or one.unit == "years":
+                if one.times is None or calendar:  # per reading = per row, or per calendar step
                     slope, low, high = ts.sen_slope(one.values)
-                else:  # Sen's slope per unit of sorted_by, on (time, value) pairs
+                else:  # Sen's slope per unit of time (days, seconds, sorted_by), on the (time, value) pairs
                     fit = stats.theilslopes(one.values, one.times, alpha=0.95)
                     slope, low, high = float(fit.slope), float(fit.low_slope), float(fit.high_slope)
             else:
                 slope = test["slope"] if test else math.nan
                 low = high = math.nan
+            # the change per year: Sen's slope is per unit (per reading for calendar steps); the seasonal slope
+            # (R trend::sea.sens.slope) compares readings one cycle apart, so it is per cycle of `period` readings
+            step = one.step if one.times is not None and not calendar else 1.0  # time units per reading
+            per_unit = slope if period is None else slope / (period * step)
+            yearly_value = per_unit * per_year[one.unit] if one.unit in per_year else math.nan
+            if period is not None and per_year.get(one.unit) == period:
+                cycle_words = "year"  # 12 months or 4 quarters: the cycle is a year
+            elif period is not None:
+                cycle_words = f"cycle of {period} readings"
             if math.isnan(slope):
                 slope_words = "has its seasonal slope only with R"
             else:
                 way = "rises" if slope > 0 else "falls" if slope < 0 else "stays level"
                 interval = f"; 95 % CI {_num(low)} to {_num(high)}" if not math.isnan(low) else ""
-                yearly = f" ({_num(abs(slope) * per_year[one.unit])} a year)" if one.unit in per_year else ""
-                kind = "seasonal Sen's slope" if period else "Sen's slope"
-                slope_words = f"{way} by {_num(abs(slope))} per {unit}{yearly} ({kind}{interval})"
+                if period is None:
+                    yearly = f" ({_num(abs(yearly_value))} a year)" if not math.isnan(yearly_value) else ""
+                    slope_words = f"{way} by {_num(abs(slope))} per {unit}{yearly} (Sen's slope{interval})"
+                else:
+                    slope_words = f"{way} by {_num(abs(slope))} per {cycle_words} (seasonal Sen's slope{interval})"
             if test:
                 test_name = "seasonal Mann-Kendall" if period else "Mann-Kendall"
                 print(f"{what} {slope_words}; a trend this steady {_chance_words(test['p'])} "
@@ -305,7 +322,7 @@ class TimeSeriesWords:
             row = {", ".join(groups): one.label} if groups else {}
             row.update({"slope": slope, "95 % CI low": low, "95 % CI high": high})
             if one.unit in per_year:
-                row["slope per year"] = slope * per_year[one.unit]
+                row["slope per year"] = yearly_value
             row.update({"z": test["z"] if test else math.nan, "p-value": test["p"] if test else math.nan})
             if period is None:
                 row.update({"S": test["S"] if test else math.nan, "Kendall's tau": test["tau"] if test else math.nan})

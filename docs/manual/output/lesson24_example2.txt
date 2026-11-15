@@ -2,5 +2,5 @@ A continuous system: output / input = 1 / (s**2 + 0.8*s + 4). Poles -0.4 +/- 1.9
 Method: SciPy signal.lti, as R control::tf(num, den).
 2 poles: -0.4 +/- 1.96i.
 Method: SciPy (signal.lti / dlti poles), as R control::pole / zero and damp(sys).
-Step response: the output settles at 0.25, peaks at 0.3815 at time 1.583 (overshoot 52.6 %), rise time 0.6025 (10 % to 90 %), settling time 9.801 (within 2 %).
-Method: SciPy signal.step, as R control::step(sys, t); rise and settling times read from the response.
+Step response: the output settles at 0.25, peaks at 0.3815 at time 1.583 (overshoot 52.6 %), rise time 0.603 (10 % to 90 %), settling time 9.874 (within 2 %).
+Method: SciPy signal.step, as R control::step(sys, t); rise time, settling time and overshoot from python-control step_info(y, T, yfinal) on that response.

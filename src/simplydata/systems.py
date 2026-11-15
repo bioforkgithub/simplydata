@@ -9,9 +9,12 @@
 Own code is glue only: reading the formula (ast, never run; polynomial arithmetic with numpy.polynomial),
 joining systems (series = product, parallel = sum, feedback = G / (1 + G H), as R control), and display
 arithmetic on SciPy's output: gain in dB, unwrapped phase, damping ratio and natural frequency of each
-pole (as R control::damp), rise time, settling time and overshoot read from the step response, and the
-gain and phase margins read from the frequency response (linear interpolation between frequencies; R
-control has no stepinfo or margin, so the R checks compute the same from R's responses).
+pole (as R control::damp).
+
+Rise time, settling time and overshoot (python-control step_info, on SciPy's step response) and the
+gain and phase margins (python-control stability_margins) come from python-control, the established
+Python package for control systems (R control has no stepinfo or margin). It is an optional extra:
+pip install "simplydata[systems]"; without it the responses still come, with a note.
 """
 
 from __future__ import annotations
@@ -314,7 +317,7 @@ class System:
         return Table(pd.DataFrame(data))
 
     # ------------------------------------------------------------------ responses
-    def _times(self, until, how_many, time_points, step_name):
+    def _times(self, until, how_many, time_points, step_name, from_zero=False):
         if time_points is not None:
             t = np.asarray(getattr(time_points, "_values", time_points), dtype=float).ravel()
             if len(t) < 2 or np.any(np.diff(t) <= 0):
@@ -323,6 +326,15 @@ class System:
             if not np.allclose(np.diff(t), t[1] - t[0], rtol=1e-6, atol=1e-12):
                 raise SimplydataError(f"{step_name}() needs evenly spaced time_points= (SciPy works out the response "
                                       "in equal steps).")
+            if from_zero and not np.isclose(t[0], 0, rtol=0, atol=1e-12 * max(1.0, abs(t[-1]))):
+                raise SimplydataError(f"{step_name}() needs time_points= that start at 0, the moment the input "
+                                      f"arrives (here they start at {_g(t[0])}). For a later part of the response, "
+                                      f"use until= and keep the rows you want.")
+            if from_zero and self._time_step is not None and not np.isclose(t[1] - t[0], self._time_step,
+                                                                             rtol=1e-6, atol=0):
+                raise SimplydataError(f"{step_name}() needs time_points= {_g(self._time_step)} apart, the system's "
+                                      f"time step (here they are {_g(t[1] - t[0])} apart), such as time_points="
+                                      f"sdata.numbers(0, to=5, step={_g(self._time_step)}).")
             return t
         if isinstance(how_many, bool) or not isinstance(how_many, (int, np.integer)) or how_many < 2:
             raise SimplydataError(f"{step_name}() needs how_many= as a whole number of 2 or more.")
@@ -337,7 +349,7 @@ class System:
     def _response(self, kind, until, how_many, time_points, step_name):
         from scipy import signal
 
-        t = self._times(until, how_many, time_points, step_name)
+        t = self._times(until, how_many, time_points, step_name, from_zero=True)
         if self._time_step is None:
             sys = self._lti()
             out = (signal.step if kind == "step" else signal.impulse)(sys, T=t, N=int(how_many))
@@ -356,33 +368,43 @@ class System:
         system.step_response(until=10)
         Gives back a table: time, output. until= is the last time (SciPy picks it from the poles when left
         out); how_many= how many time points (200; systems in steps use their own time step); time_points=
-        your own evenly spaced times. Prints the final value, peak, overshoot, rise time (10 % to 90 % of the final value)
-        and settling time (staying within 2 % of it), read from the response between the times shown.
-        SciPy signal.step (dstep in steps), as R control::step(sys, t).
+        your own evenly spaced times, starting at 0 (for a system in steps, its time step apart). Prints the
+        final value, peak, overshoot, rise time (from the first time the output reaches 10 % of the final
+        value to the first time it reaches 90 %) and settling time (the first time shown after which the
+        output stays within 2 % of the final value), from python-control step_info on the times shown
+        (no interpolation between them; needs simplydata[systems]). SciPy signal.step (dstep in steps),
+        as R control::step(sys, t).
         """
         t, y = self._response("step", until, how_many, time_points, "step_response")
-        print(self._step_sentence(t, y))
+        sentence, measured = self._step_sentence(t, y)
+        print(sentence)
         print("Method: SciPy signal." + ("step" if self._time_step is None else "dstep") +
-              ", as R control::step(sys, t); rise and settling times read from the response.")
+              ", as R control::step(sys, t)" + ("; rise time, settling time and overshoot from python-control "
+                                                "step_info(y, T, yfinal) on that response." if measured else "."))
         return self._result({"time": t, "output": y})
 
     def _step_sentence(self, t, y):
+        """(sentence, whether python-control measured the response)."""
         final = self._steady()
         if not (self._stable() and np.isfinite(final)) or final == 0:
             return (f"Step response over {len(t)} times up to {_g(t[-1], 4)}: the output does not settle at a "
-                    f"steady value (it reaches {_g(y[-1], 4)} at the last time).")
-        info = step_info(t, y, final)
+                    f"steady value (it reaches {_g(y[-1], 4)} at the last time)."), False
         parts = [f"Step response: the output settles at {_g(final, 4)}"]
+        if _control() is None:
+            return ", ".join(parts) + ". " + _control_note("Rise time, settling time and overshoot"), False
+        info = step_info(t, y, final)
         if info["overshoot"] > 0:
             parts.append(f"peaks at {_g(info['peak'], 4)} at time {_g(info['peak time'], 4)} "
                          f"(overshoot {info['overshoot']:.1f} %)")
         if np.isfinite(info["rise time"]):
             parts.append(f"rise time {_g(info['rise time'], 4)} (10 % to 90 %)")
+        else:
+            parts.append("it has not reached 90 % of that by the last time shown (use a larger until=)")
         if np.isfinite(info["settling time"]):
             parts.append(f"settling time {_g(info['settling time'], 4)} (within 2 %)")
         else:
             parts.append("it has not settled within 2 % by the last time shown (use a larger until=)")
-        return ", ".join(parts) + "."
+        return ", ".join(parts) + ".", True
 
     @friendly(renamed={"steps": "how_many", "times": "time_points"})
     def impulse_response(self, until=None, how_many=200, time_points=None):
@@ -419,7 +441,14 @@ class System:
         u = np.asarray(getattr(inputs, "_values", inputs), dtype=float).ravel()
         if len(u) < 2 or np.isnan(u).any():
             raise SimplydataError("response_to() needs at least 2 input values and no empty ones.")
-        step = self._time_step if self._time_step is not None else getattr(inputs, "_time_step", None)
+        remembered = getattr(inputs, "_time_step", None)
+        if time_points is None and self._time_step is not None and remembered is not None and                 not np.isclose(remembered, self._time_step, rtol=1e-6, atol=0):
+            raise SimplydataError(f"The inputs remember a time step of {_g(remembered)}, but the system works in steps "
+                                  f"of {_g(self._time_step)}. Change the inputs' time step first "
+                                  f"(inputs.change_time_step(to={_g(self._time_step)})), or make the system for "
+                                  f"steps of {_g(remembered)} (system.in_steps(time_step={_g(remembered)}) from the "
+                                  "continuous system).")
+        step = self._time_step if self._time_step is not None else remembered
         if time_points is None:
             if step is None:
                 raise SimplydataError("response_to() needs time_points= (or inputs that remember their time step, "
@@ -522,17 +551,21 @@ class System:
 
     def _margins(self):
         """(gain margin in dB, frequency, phase margin in degrees, frequency) in radians per unit of time;
-        inf where the curve never crosses. Read from the response on 20,000 log-spaced frequencies."""
-        w = self._default_w(200)
+        inf where the curve never crosses: python-control stability_margins (None without python-control)."""
+        control = _control()
+        if control is None:
+            return None
         if self._time_step is None:
-            w = np.logspace(np.log10(w[0]) - 2, np.log10(w[-1]) + 2, 20000)
+            sys = control.tf(self._num, self._den)
         else:
-            nyquist = np.pi / self._time_step
-            w = np.logspace(np.log10(nyquist) - 5, np.log10(nyquist), 20000)
-        return read_margins(w, self._complex_response(w))
+            sys = control.tf(self._num, self._den, self._time_step)
+        return read_margins(control, sys)
 
     def _margin_sentence(self, units, scale):
-        gm, wg, pm, wp = self._margins()
+        margins = self._margins()
+        if margins is None:
+            return _control_note("The gain and phase margins")
+        gm, wg, pm, wp = margins
         if not np.isfinite(gm) and not np.isfinite(pm):
             return ("Margins: the phase never reaches -180 degrees and the gain never crosses 1 (0 decibels), so "
                     "both margins are without limit.")
@@ -541,7 +574,7 @@ class System:
                      "gain margin without limit (the phase never reaches -180 degrees)")
         parts.append(f"phase margin {pm:.2f} degrees at {_g(wp / scale, 4)} {units}" if np.isfinite(pm) else
                      "phase margin without limit (the gain never crosses 1)")
-        return "Margins: " + "; ".join(parts) + "."
+        return "Margins: " + "; ".join(parts) + " (python-control stability_margins)."
 
     # ------------------------------------------------------------------ poles, stability
     def _pole_table(self, values, what):
@@ -825,67 +858,54 @@ def _draw_nyquist(ctx, h):
     ax.legend()
 
 
-# ---------------------------------------------------------------------------------------- display arithmetic
+# ---------------------------------------------------------------------------------------- python-control
+def _control():
+    """The python-control package (simplydata[systems]), or None when it is not installed."""
+    try:
+        import control
+    except ImportError:
+        return None
+    return control
+
+
+def _control_note(what) -> str:
+    return (f"Note: {what} come from python-control (the established Python package for control systems), "
+            'which is not installed here: pip install "simplydata[systems]" (or pip install control), then '
+            "restart Python.")
+
+
 def step_info(t, y, final):
-    """Rise time (10 % to 90 % of final), settling time (last time outside 2 % of final, to where it comes
-    inside), peak, peak time and overshoot (%), read from the response with linear interpolation."""
+    """Rise time (10 % to 90 % of final), settling time (within 2 %), peak, peak time and overshoot (%):
+    python-control step_info on the response as given (its rules: the first sample at or past each level,
+    no interpolation). Needs python-control."""
+    import warnings
+
+    control = _control()
     t, y = np.asarray(t, dtype=float), np.asarray(y, dtype=float)
     sign = 1.0 if final > 0 else -1.0
-    rel = sign * y / (sign * final)  # the response as a share of the final value
-
-    def first_reach(level):
-        above = np.nonzero(rel >= level)[0]
-        if not len(above):
-            return np.inf
-        i = above[0]
-        if i == 0:
-            return t[0]
-        return t[i - 1] + (level - rel[i - 1]) * (t[i] - t[i - 1]) / (rel[i] - rel[i - 1])
-
-    rise = first_reach(0.9) - first_reach(0.1)
-    outside = np.nonzero(np.abs(rel - 1) > 0.02)[0]
-    if not len(outside):
-        settling = t[0]
-    elif outside[-1] == len(t) - 1:
-        settling = np.inf
-    else:
-        i = outside[-1]
-        edge = 1.02 if rel[i] > 1 else 0.98
-        settling = t[i] + (edge - rel[i]) * (t[i + 1] - t[i]) / (rel[i + 1] - rel[i])
-    top = int(np.argmax(sign * y))
-    peak = y[top]
-    overshoot = max(0.0, (sign * peak - sign * final) / abs(final) * 100)
-    return {"rise time": rise, "settling time": settling, "peak": peak, "peak time": t[top], "overshoot": overshoot}
+    if not np.any(sign * y >= 0.9 * abs(final)):
+        # python-control step_info needs the response to reach 90 % of the final value
+        top = int(np.argmax(sign * y))
+        return {"rise time": np.nan, "settling time": np.nan, "peak": y[top], "peak time": t[top], "overshoot": 0.0}
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        info = control.step_info(y, T=t, yfinal=final, SettlingTimeThreshold=0.02, RiseTimeLimits=(0.1, 0.9))
+    at = int(np.argmin(np.abs(t - info["PeakTime"])))
+    return {"rise time": info["RiseTime"], "settling time": info["SettlingTime"], "peak": y[at],
+            "peak time": info["PeakTime"], "overshoot": info["Overshoot"]}
 
 
-def read_margins(w, h):
-    """Gain margin (dB) where the phase crosses -180 degrees (+/- 360 k) and phase margin (degrees) where the
-    gain crosses 1, by linear interpolation in log frequency; the smallest of each; inf when none."""
-    lw = np.log10(w)
-    with np.errstate(divide="ignore"):
-        decibels = 20 * np.log10(np.abs(h))
-    phase = np.degrees(np.unwrap(np.angle(h)))
-    gm, wg, pm, wp = np.inf, np.nan, np.inf, np.nan
-    finite = np.isfinite(decibels)
-    for i in np.nonzero((np.sign(decibels[:-1]) * np.sign(decibels[1:]) < 0) & finite[:-1] & finite[1:])[0]:
-        f = decibels[i] / (decibels[i] - decibels[i + 1])
-        at = 10 ** (lw[i] + f * (lw[i + 1] - lw[i]))
-        p = phase[i] + f * (phase[i + 1] - phase[i])
-        margin = (p + 180) % 360
-        margin = margin - 360 if margin > 180 else margin
-        if abs(margin) < abs(pm):
-            pm, wp = margin, at
-    shifted = (phase + 180) / 360  # crossings of -180 + 360 k are where this passes a whole number
-    for i in range(len(w) - 1):
-        a, b = shifted[i], shifted[i + 1]
-        k = np.floor(max(a, b))
-        if min(a, b) < k <= max(a, b) and a != b and finite[i] and finite[i + 1]:
-            f = (k - a) / (b - a)
-            at = 10 ** (lw[i] + f * (lw[i + 1] - lw[i]))
-            margin = -(decibels[i] + f * (decibels[i + 1] - decibels[i]))
-            if abs(margin) < abs(gm):
-                gm, wg = margin, at
-    return gm, wg, pm, wp
+def read_margins(control, sys):
+    """(gain margin in dB, its frequency, phase margin in degrees, its frequency) from python-control
+    stability_margins: the smallest of each, inf (and nan frequency) where the curve never crosses."""
+    import warnings
+
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        gm, pm, _, wpc, wgc, _ = control.stability_margins(sys)
+    gm, pm = float(gm), float(pm)
+    decibels = 20 * np.log10(gm) if np.isfinite(gm) else np.inf
+    return decibels, float(wpc), pm, float(wgc)
 
 
 # ---------------------------------------------------------------------------------------- sdata words

@@ -78,7 +78,8 @@ GROUP_UNDERNEATH = {
     "Grids of numbers": "NumPy (a two-dimensional array)",
     "Numbers: undo and finish": "simplydata itself: it keeps every version of the numbers",
     "Waves and systems": "SciPy (signal.lti / dlti, step, impulse, lsim, freqresp, freqz, cont2discrete, tf2ss, tf2zpk); "
-               "the formula read with Python's ast and NumPy polynomials",
+               "the formula read with Python's ast and NumPy polynomials; rise time, settling time, overshoot and "
+               "margins from python-control (step_info, stability_margins: simplydata[systems])",
     "Help": "plain Python: simplydata reads its own word list and docstrings",
     "30 days of simplydata": "plain Python: the days are in simplydata/learn_days.py, and the progress is a small "
                              "JSON file on your computer (json, pathlib)",
@@ -216,6 +217,10 @@ UNDERNEATH = {
     "sdata.window_shape": "SciPy (signal.get_window)",
     "table.add_envelope_column": "SciPy (signal.hilbert)",
     "sdata.frequency_filter": "SciPy (the designs of nums.keep_frequencies; sosfreqz, sos2zpk, sosfilt)",
+    "system.step_response": "SciPy (signal.step, dstep); python-control (step_info) for the rise time, settling time "
+                            "and overshoot (simplydata[systems])",
+    "system.frequency_response": "SciPy (signal.freqresp, freqz); python-control (stability_margins) for the gain and "
+                                 "phase margins (simplydata[systems])",
     "sticks": "matplotlib (vlines and plot)",
     "autocorrelation_bars": "statsmodels (as table.autocorrelation_of), drawn with matplotlib",
     "cross_correlation_bars": "statsmodels (as table.correlation_between with rows_back=), drawn with matplotlib",

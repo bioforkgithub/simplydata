@@ -261,12 +261,12 @@ class BaseNumbers:
     def __init__(self, values):
         object.__setattr__(self, "_values", values)
         object.__setattr__(self, "_original", values)
-        object.__setattr__(self, "_history", [])  # list of (what was done, values before)
+        object.__setattr__(self, "_history", [])  # list of (what was done, values before, time step before)
 
     # ------------------------------------------------------------------ helpers for words
     def _change(self, what: str, values):
-        """Replace the numbers with changed ones and remember the old ones for undo()."""
-        self._history.append((what, self._values))
+        """Replace the numbers with changed ones and remember the old ones (and their time step) for undo()."""
+        self._history.append((what, self._values, getattr(self, "_time_step", None)))
         if len(self._history) > HISTORY_LIMIT:
             self._history.pop(0)
         object.__setattr__(self, "_values", np.asarray(values))
@@ -356,8 +356,10 @@ class BaseNumbers:
         if not self._history:
             print(f"Nothing to undo: these {self._noun} have no steps yet.")
             return self
-        what, before = self._history.pop()
+        what, before, time_step = self._history.pop()
         object.__setattr__(self, "_values", before)
+        if time_step is not None or getattr(self, "_time_step", None) is not None:
+            object.__setattr__(self, "_time_step", time_step)  # change_time_step changes it
         print(f"Undone: {what}")
         return self
 
@@ -367,14 +369,18 @@ class BaseNumbers:
         if not self._history:
             print("No steps yet.")
         else:
-            for i, (what, _) in enumerate(self._history, 1):
+            for i, (what, *_) in enumerate(self._history, 1):
                 print(f"{i}. {what}")
         return self
 
     @friendly
     def start_again(self):
         """Go back to the numbers as they were at the start. nums.start_again()"""
-        return self._change("start again", self._original)
+        first_step = self._history[0][2] if self._history else getattr(self, "_time_step", None)
+        self._change("start again", self._original)
+        if first_step is not None:
+            object.__setattr__(self, "_time_step", first_step)
+        return self
 
     # ------------------------------------------------------------------ looking words
     @friendly
@@ -419,7 +425,9 @@ class BaseNumbers:
 
         File types: .csv, .tsv, .xlsx (Excel), .parquet and .json, the same as tables, and .wav (sound:
         time_step= the time between readings, or the one the numbers remember; bits=32 writes the numbers
-        as they are, bits=16 scales -1 to 1 onto 16-bit whole numbers and clips beyond; SciPy io.wavfile).
+        as they are (32-bit floating point), bits=16 writes 16-bit whole numbers: -1 to 1 times 32768,
+        rounded, clipped to -32768 to 32767, so a 16-bit file read with sdata.numbers comes back the same;
+        SciPy io.wavfile).
         """
         if isinstance(file_name, str) and file_name.lower().endswith(".wav"):
             self._save_wav(file_name, time_step, bits)
@@ -446,7 +454,8 @@ class BaseNumbers:
             clipped = int((np.abs(x) > 1).sum())
             if clipped:
                 print(f"Note: {clipped} values were beyond -1 to 1 and were clipped.")
-            data = np.round(np.clip(x, -1, 1) * 32767).astype(np.int16)
+            # the scale sdata.numbers("file.wav") reads with: divided by 2^15
+            data = np.clip(np.round(x * 32768), -32768, 32767).astype(np.int16)
         else:
             raise SimplydataError("bits= is 32 (the numbers as they are) or 16.")
         wavfile.write(file_name, rate, data)

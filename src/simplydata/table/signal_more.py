@@ -120,8 +120,8 @@ class SignalMoreTableWords:
         parts = []
         apart_readings = None
         for one in series_of(self, column, sorted_by, for_each, step_name, example):
-            if sorted_by is not None and apart is not None:
-                need_regular(one, step_name, sorted_by)
+            if sorted_by is not None and (apart is not None or wide_at_least is not None):
+                need_regular(one, step_name, sorted_by)  # both are turned into a number of readings
             step = one.step if sorted_by is not None else 1.0
             got, columns = peak_columns(one.values, step, dips, at_least, at_most, apart, stands_out_by,
                                         wide_at_least, _experts(experts), step_name)

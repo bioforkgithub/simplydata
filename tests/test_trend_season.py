@@ -200,3 +200,43 @@ def test_trend_of_without_r_still_gives_the_slope(capsys, monkeypatch):
     assert math.isnan(got["p-value"].iloc[0])
     out = capsys.readouterr().out
     assert "Mann-Kendall test was left out" in out and 'pip install "simplydata[r]"' in out
+
+
+# ---------------------------------------------------------------------------- trend_of on the real times
+def test_trend_of_weekly_and_gappy_dates_are_per_day(engine, capsys):
+    import pandas as pd
+
+    # weekly readings: Sen's slope per day, from the dates themselves
+    x = np.arange(40.0) + np.sin(np.arange(40)) * 0.1
+    weekly = pd.DataFrame({"date": pd.date_range("2020-01-01", periods=40, freq="7D"), "x": x})
+    got = frame(make(weekly, engine).trend_of("x", sorted_by="date"))
+    # R: s <- trend::sens.slope(x); s$estimates / 7 (readings 7 days apart): 0.142841912115012;
+    #    s$conf.int / 7: 0.142508586766307, 0.143104050105662
+    assert got["slope"].iloc[0] == pytest.approx(0.142841912115012, rel=1e-12)
+    assert (got["95 % CI low"].iloc[0], got["95 % CI high"].iloc[0]) == pytest.approx(
+        (0.142508586766307, 0.143104050105662), rel=1e-12)
+    assert got["slope per year"].iloc[0] == pytest.approx(0.142841912115012 * 365.25, rel=1e-12)
+    assert '"x" rises by 0.143 per day (52.2 a year)' in capsys.readouterr().out
+    # month ends with one month missing: the slope comes from the days between the dates
+    monthly = pd.DataFrame({"date": pd.date_range("2020-01-31", periods=40, freq="ME"), "x": np.arange(40.0)})
+    monthly = monthly.drop(index=5).reset_index(drop=True)
+    got = frame(make(monthly, engine).trend_of("x", sorted_by="date"))
+    # R (Sen's slope by hand on the dates, as SciPy theilslopes(x, t)):
+    #    d <- seq(as.Date("2020-02-01"), by = "month", length.out = 40) - 1; x <- 0:39; d <- d[-6]; x <- x[-6]
+    #    t <- as.numeric(d - d[1]); i <- combn(length(x), 2)
+    #    median((x[i[2, ]] - x[i[1, ]]) / (t[i[2, ]] - t[i[1, ]])): 0.0328697850821745
+    assert got["slope"].iloc[0] == pytest.approx(0.0328697850821745, rel=1e-12)
+    assert "per day (12.0 a year)" in capsys.readouterr().out
+
+
+def test_seasonal_trend_is_per_year_and_needs_even_steps(capsys, needs_r):
+    import pandas as pd
+
+    got = frame(visitors("pandas", "Harbour Museum").trend_of("visitors", sorted_by="month", repeats_every="year"))
+    # R: sea.sens.slope(ts(h, frequency = 12)) = 83.6090909090909, the change from one year to the next
+    assert got["slope per year"].iloc[0] == pytest.approx(83.6090909090909, rel=1e-12)
+    assert '"visitors" rises by 83.6 per year (seasonal Sen\'s slope)' in capsys.readouterr().out
+    gappy = pd.DataFrame({"date": pd.date_range("2020-01-31", periods=40, freq="ME"), "x": np.arange(40.0)})
+    gappy = gappy.drop(index=5).reset_index(drop=True)
+    with pytest.raises(SimplydataError, match="evenly spaced"):
+        make(gappy, "pandas").trend_of("x", sorted_by="date", repeats_every=12)

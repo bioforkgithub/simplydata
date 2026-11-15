@@ -3446,7 +3446,7 @@ chart.save("spring_step.png")
   \item[3] The table of poles: damping ratio 0.2 (lightly damped), natural frequency 2.
   \item[4] The poles as x on the plane of real and imaginary parts: both lie left of the line, so the spring is stable.
   \item[5] Save it.
-  \item[6] It overshoots by 52.6 \% (peak 0.3815 at time 1.58), rises in 0.60 and settles within 2 \% after 9.8. R's control::\code{step()} gives the same response.
+  \item[6] It overshoots by 52.6 \% (peak 0.3815 at time 1.58), rises in 0.60 and settles within 2 \% after 9.9. R's control::\code{step()} gives the same response.
   \item[7] The step response as a chart.
   \item[8] Save it.
 \end{lineexplain}
@@ -3515,7 +3515,7 @@ chart.save("spring_in_steps.png")
   \item[1] Load simplydata.
   \item[2] The spring.
   \item[3] (0.00485317*z + 0.0047253) / (z**2 - 1.8848*z + 0.923116), as R control::\code{c2d(sys,\allowbreak{} 0.\allowbreak{}1)}.
-  \item[4] Almost the same answer as before: overshoot 52.7 \%, settling time 9.8.
+  \item[4] Almost the same answer as before: overshoot 52.7 \%, settling time 9.9.
   \item[5] The response is a table, so it can be drawn like any other.
   \item[6] Each value holds until the next step, as the computer sees it.
   \item[7] Save it.
@@ -3530,7 +3530,7 @@ chart.save("spring_in_steps.png")
   \item This lesson is optional: no other lesson needs it.
   \item A system can be written as a formula, as \code{numerator=} and \code{denominator=} (highest power first), as \code{poles=} and \code{zeros=}, or as matrices \code{a=}, \code{b=}, \code{c=}, \code{d=}.
   \item Frequencies of systems are in radians per second, as R control and SciPy; \code{unit=\textquotedbl{}cycles per second\textquotedbl{}} gives cycles per second. A filter from \code{sdata.\allowbreak{}frequency\_\allowbreak{}filter} is in cycles per second.
-  \item R's control package has no \code{stepinfo()} or \code{margin()}: simplydata reads the rise time, settling time and margins from the response, and the R checks do the same from R's response.
+  \item R's control package has no \code{stepinfo()} or \code{margin()}: the rise time, settling time, overshoot and margins come from python-control (\code{step\_\allowbreak{}info}, \code{stability\_\allowbreak{}margins}), the Python package for control systems. Install it with pip install \code{\textquotedbl{}simplydata[systems]\textquotedbl{}}; without it the responses still come.
 \end{itemize}
 \end{goodtoknow}
 \begin{tryit}
@@ -8070,7 +8070,7 @@ nums.smooth(method="median", window=5)
 Does a column keep rising or falling over time, and by how much? (Mann-Kendall test, Sen's slope)
 
 \codeline{table.trend\_of(\textquotedbl{}visitors\textquotedbl{}, sorted\_by=\textquotedbl{}month\textquotedbl{}, for\_each=\textquotedbl{}museum\textquotedbl{})} (with \code{sdata.\allowbreak{}example(\textquotedbl{}visitors\textquotedbl{})})\\
-Sen's slope is the middle (median) of the slopes between every pair of readings, so a few odd readings do not move it: the change per reading (per month for monthly dates, also per year), with its 95 \% interval (SciPy theilslopes, as R trend::sens.slope). The Mann-Kendall test asks whether a rise or fall that keeps going one way could be chance; it runs in R itself (trend::mk.test, needs simplydata[r]). With \code{repeats\_\allowbreak{}every=} (12, or \code{\textquotedbl{}year\textquotedbl{}}) the seasonal test and seasonal slope compare each month only with the same month in other years (R trend::smk.test, trend::sea.sens.slope, both in R). Without R the slope (not the seasonal one) is still given and a note says how to add the test.
+Sen's slope is the middle (median) of the slopes between every pair of readings, so a few odd readings do not move it, with its 95 \% interval (SciPy theilslopes, as R trend::sens.slope): the change per reading in table order, per month (quarter, year) for dates one calendar step apart, and per day (or second, or unit of \code{sorted\_\allowbreak{}by}) otherwise, worked out on the times themselves so weekly readings and gaps count right; also per year. The Mann-Kendall test asks whether a rise or fall that keeps going one way could be chance; it runs in R itself (trend::mk.test, needs simplydata[r]). With \code{repeats\_\allowbreak{}every=} (12, or \code{\textquotedbl{}year\textquotedbl{}}) the seasonal test and seasonal slope compare each month only with the same month in other years (R trend::smk.test, trend::sea.sens.slope, both in R; the slope is per cycle, per year for 12 months; the readings must be evenly spaced). Without R the slope (not the seasonal one) is still given and a note says how to add the test.
 
 \wordfield{Options}{}\par\nopagebreak
 \begin{optiontable}
@@ -8202,7 +8202,7 @@ table.check_steady("signal", sorted_by="time")
 Find the points where the average of a column jumps to a new level (R changepoint, PELT).
 
 \codeline{table.find\_change\_points(\textquotedbl{}nitrate\textquotedbl{}, sorted\_by=\textquotedbl{}date\textquotedbl{}, for\_each=\textquotedbl{}station\textquotedbl{})} (with \code{sdata.\allowbreak{}example(\textquotedbl{}river\textquotedbl{})})\\
-Splits the readings, in the order of \code{sorted\_\allowbreak{}by=}, into pieces with their own average, and gives back one row per piece: where it starts and ends, how many readings, its average (and its standard deviation). \code{change=\textquotedbl{}average\textquotedbl{}} (R changepoint::cpt.mean, after dividing the readings by \code{mad(diff(x))} / \code{sqrt(2)}, the noise size that cpt.mean assumes to be 1) or \code{\textquotedbl{}average and spread\textquotedbl{}} (R cpt.meanvar: the spread may jump too). The search is PELT; \code{penalty=} \code{\textquotedbl{}mbic\textquotedbl{}} (the default, as R), \code{\textquotedbl{}bic\textquotedbl{}}, \code{\textquotedbl{}aic\textquotedbl{}} or \code{\textquotedbl{}hannan-quinn\textquotedbl{}} sets how big a jump must be to count (a smaller penalty, such as \code{\textquotedbl{}aic\textquotedbl{}}, finds more points). The readings are taken in order; they need no empty cells. Runs in R itself (simplydata[r]).
+Splits the readings, in the order of \code{sorted\_\allowbreak{}by=}, into pieces with their own average, and gives back one row per piece: where it starts and ends, how many readings, its average (and its standard deviation). \code{change=\textquotedbl{}average\textquotedbl{}} (R changepoint::cpt.mean, after dividing the readings by \code{mad(diff(x))} / \code{sqrt(2)}: simplydata's choice of noise size, because cpt.mean assumes noise with standard deviation 1 and changepoint itself does not scale) or \code{\textquotedbl{}average and spread\textquotedbl{}} (R cpt.meanvar: the spread may jump too). The search is PELT; \code{penalty=} \code{\textquotedbl{}mbic\textquotedbl{}} (the default, as R), \code{\textquotedbl{}bic\textquotedbl{}}, \code{\textquotedbl{}aic\textquotedbl{}} or \code{\textquotedbl{}hannan-quinn\textquotedbl{}} sets how big a jump must be to count (a smaller penalty, such as \code{\textquotedbl{}aic\textquotedbl{}}, finds more points). The readings are taken in order; they need no empty cells. Runs in R itself (simplydata[r]).
 
 \wordfield{Options}{}\par\nopagebreak
 \begin{optiontable}
@@ -9114,7 +9114,7 @@ Make a list of numbers.
 \codeline{sdata.numbers(0, to=100, step=25)}\enspace 0, 25, 50, 75, 100\\
 \codeline{sdata.numbers(0, to=1, how\_many=5)}\enspace 5 numbers evenly spaced: 0, 0.25, 0.5, 0.75, 1\\
 \codeline{sdata.numbers(10, to=1)}\enspace counting down: 10, 9 ... 1\\
-\codeline{sdata.numbers(\textquotedbl{}call.wav\textquotedbl{}, channel=1)}\enspace the readings of a sound file (they remember their time step)\\
+\codeline{sdata.numbers(\textquotedbl{}call.wav\textquotedbl{}, channel=1)}\enspace the readings of a sound file, scaled to -1 to 1 (they remember their time step)\\
 None or NaN in a list is an empty (missing) value.
 
 \wordfield{Options}{}\par\nopagebreak
@@ -10192,7 +10192,7 @@ chart.save("nums.png")
 \wordentry{nums.save()}{word:nums.save}
 Save the numbers; the end of the file name decides the type. \code{nums.\allowbreak{}save(\textquotedbl{}nums.\allowbreak{}csv\textquotedbl{})}
 
-File types: \code{.\allowbreak{}csv}, \code{.\allowbreak{}tsv}, \code{.\allowbreak{}xlsx} (Excel), \code{.\allowbreak{}parquet} and \code{.\allowbreak{}json}, the same as tables, and .wav (sound: \code{time\_\allowbreak{}step=} the time between readings, or the one the numbers remember; \code{bits=32} writes the numbers as they are, \code{bits=16} scales -1 to 1 onto 16-bit whole numbers and clips beyond; SciPy io.wavfile).
+File types: \code{.\allowbreak{}csv}, \code{.\allowbreak{}tsv}, \code{.\allowbreak{}xlsx} (Excel), \code{.\allowbreak{}parquet} and \code{.\allowbreak{}json}, the same as tables, and .wav (sound: \code{time\_\allowbreak{}step=} the time between readings, or the one the numbers remember; \code{bits=32} writes the numbers as they are (32-bit floating point), \code{bits=16} writes 16-bit whole numbers: -1 to 1 times 32768, rounded, clipped to -32768 to 32767, so a 16-bit file read with \code{sdata.\allowbreak{}numbers} comes back the same; SciPy io.wavfile).
 
 \wordfield{Options}{}\par\nopagebreak
 \begin{optiontable}
@@ -10354,7 +10354,7 @@ as R control::tf and SciPy; \code{num=} and \code{den=}, as in R and MATLAB, are
 \code{den=} & \\
 \end{optiontable}
 
-\wordfield{Underneath}{SciPy (signal.lti / dlti, step, impulse, lsim, freqresp, freqz, cont2discrete, tf2ss, tf2zpk); the formula read with Python's ast and NumPy polynomials}
+\wordfield{Underneath}{SciPy (signal.lti / dlti, step, impulse, lsim, freqresp, freqz, cont2discrete, tf2ss, tf2zpk); the formula read with Python's ast and NumPy polynomials; rise time, settling time, overshoot and margins from python-control (\code{step\_\allowbreak{}info}, \code{stability\_\allowbreak{}margins}: simplydata[systems])}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -10363,7 +10363,7 @@ system = sdata.system("1 / (s**2 + 2*s + 5)")
 \wordentry{system.step\_response()}{word:system.step-response}
 How the output answers an input that jumps from 0 to 1 and stays there.
 
-\code{system.\allowbreak{}step\_\allowbreak{}response(until=10)} Gives back a table: time, output. \code{until=} is the last time (SciPy picks it from the poles when left out); \code{how\_\allowbreak{}many=} how many time points (200; systems in steps use their own time step); \code{time\_\allowbreak{}points=} your own evenly spaced times. Prints the final value, peak, overshoot, rise time (10 \% to 90 \% of the final value) and settling time (staying within 2 \% of it), read from the response between the times shown. SciPy signal.step (dstep in steps), as R control::\code{step(sys,\allowbreak{} t)}.
+\code{system.\allowbreak{}step\_\allowbreak{}response(until=10)} Gives back a table: time, output. \code{until=} is the last time (SciPy picks it from the poles when left out); \code{how\_\allowbreak{}many=} how many time points (200; systems in steps use their own time step); \code{time\_\allowbreak{}points=} your own evenly spaced times, starting at 0 (for a system in steps, its time step apart). Prints the final value, peak, overshoot, rise time (from the first time the output reaches 10 \% of the final value to the first time it reaches 90 \%) and settling time (the first time shown after which the output stays within 2 \% of the final value), from python-control \code{step\_\allowbreak{}info} on the times shown (no interpolation between them; needs simplydata[systems]). SciPy signal.step (dstep in steps), as R control::\code{step(sys,\allowbreak{} t)}.
 
 \wordfield{Options}{}\par\nopagebreak
 \begin{optiontable}
@@ -10372,7 +10372,7 @@ How the output answers an input that jumps from 0 to 1 and stays there.
 \code{time\_\allowbreak{}points=} & \\
 \end{optiontable}
 
-\wordfield{Underneath}{SciPy (signal.lti / dlti, step, impulse, lsim, freqresp, freqz, cont2discrete, tf2ss, tf2zpk); the formula read with Python's ast and NumPy polynomials}
+\wordfield{Underneath}{SciPy (signal.step, dstep); python-control (\code{step\_\allowbreak{}info}) for the rise time, settling time and overshoot (simplydata[systems])}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -10391,7 +10391,7 @@ How the output answers a short kick at time 0 (an impulse of size 1).
 \code{time\_\allowbreak{}points=} & \\
 \end{optiontable}
 
-\wordfield{Underneath}{SciPy (signal.lti / dlti, step, impulse, lsim, freqresp, freqz, cont2discrete, tf2ss, tf2zpk); the formula read with Python's ast and NumPy polynomials}
+\wordfield{Underneath}{SciPy (signal.lti / dlti, step, impulse, lsim, freqresp, freqz, cont2discrete, tf2ss, tf2zpk); the formula read with Python's ast and NumPy polynomials; rise time, settling time, overshoot and margins from python-control (\code{step\_\allowbreak{}info}, \code{stability\_\allowbreak{}margins}: simplydata[systems])}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -10409,7 +10409,7 @@ How the output answers any input you give: a simulation.
 \code{time\_\allowbreak{}points=} & \\
 \end{optiontable}
 
-\wordfield{Underneath}{SciPy (signal.lti / dlti, step, impulse, lsim, freqresp, freqz, cont2discrete, tf2ss, tf2zpk); the formula read with Python's ast and NumPy polynomials}
+\wordfield{Underneath}{SciPy (signal.lti / dlti, step, impulse, lsim, freqresp, freqz, cont2discrete, tf2ss, tf2zpk); the formula read with Python's ast and NumPy polynomials; rise time, settling time, overshoot and margins from python-control (\code{step\_\allowbreak{}info}, \code{stability\_\allowbreak{}margins}: simplydata[systems])}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -10428,7 +10428,7 @@ How much the system passes each frequency (gain) and how much it delays it (phas
 \code{unit=} & \\
 \end{optiontable}
 
-\wordfield{Underneath}{SciPy (signal.lti / dlti, step, impulse, lsim, freqresp, freqz, cont2discrete, tf2ss, tf2zpk); the formula read with Python's ast and NumPy polynomials}
+\wordfield{Underneath}{SciPy (signal.freqresp, freqz); python-control (\code{stability\_\allowbreak{}margins}) for the gain and phase margins (simplydata[systems])}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -10442,7 +10442,7 @@ The poles: the values of s (or z) where the bottom of the formula is 0. They set
 
 \wordfield{Options}{none: just write the empty brackets.}
 
-\wordfield{Underneath}{SciPy (signal.lti / dlti, step, impulse, lsim, freqresp, freqz, cont2discrete, tf2ss, tf2zpk); the formula read with Python's ast and NumPy polynomials}
+\wordfield{Underneath}{SciPy (signal.lti / dlti, step, impulse, lsim, freqresp, freqz, cont2discrete, tf2ss, tf2zpk); the formula read with Python's ast and NumPy polynomials; rise time, settling time, overshoot and margins from python-control (\code{step\_\allowbreak{}info}, \code{stability\_\allowbreak{}margins}: simplydata[systems])}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -10456,7 +10456,7 @@ The zeros: the values of s (or z) where the top of the formula is 0 (inputs that
 
 \wordfield{Options}{none: just write the empty brackets.}
 
-\wordfield{Underneath}{SciPy (signal.lti / dlti, step, impulse, lsim, freqresp, freqz, cont2discrete, tf2ss, tf2zpk); the formula read with Python's ast and NumPy polynomials}
+\wordfield{Underneath}{SciPy (signal.lti / dlti, step, impulse, lsim, freqresp, freqz, cont2discrete, tf2ss, tf2zpk); the formula read with Python's ast and NumPy polynomials; rise time, settling time, overshoot and margins from python-control (\code{step\_\allowbreak{}info}, \code{stability\_\allowbreak{}margins}: simplydata[systems])}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -10470,7 +10470,7 @@ Continuous: every pole has a negative real part. In steps: every pole lies insid
 
 \wordfield{Options}{none: just write the empty brackets.}
 
-\wordfield{Underneath}{SciPy (signal.lti / dlti, step, impulse, lsim, freqresp, freqz, cont2discrete, tf2ss, tf2zpk); the formula read with Python's ast and NumPy polynomials}
+\wordfield{Underneath}{SciPy (signal.lti / dlti, step, impulse, lsim, freqresp, freqz, cont2discrete, tf2ss, tf2zpk); the formula read with Python's ast and NumPy polynomials; rise time, settling time, overshoot and margins from python-control (\code{step\_\allowbreak{}info}, \code{stability\_\allowbreak{}margins}: simplydata[systems])}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -10484,7 +10484,7 @@ The formula at s = 0 (z = 1 in steps), as R control::\code{dcgain(sys)}.
 
 \wordfield{Options}{none: just write the empty brackets.}
 
-\wordfield{Underneath}{SciPy (signal.lti / dlti, step, impulse, lsim, freqresp, freqz, cont2discrete, tf2ss, tf2zpk); the formula read with Python's ast and NumPy polynomials}
+\wordfield{Underneath}{SciPy (signal.lti / dlti, step, impulse, lsim, freqresp, freqz, cont2discrete, tf2ss, tf2zpk); the formula read with Python's ast and NumPy polynomials; rise time, settling time, overshoot and margins from python-control (\code{step\_\allowbreak{}info}, \code{stability\_\allowbreak{}margins}: simplydata[systems])}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -10502,7 +10502,7 @@ The same system in steps of \code{time\_\allowbreak{}step} (discrete time), for 
 \code{method=} & normally \code{\textquotedbl{}zero order hold\textquotedbl{}}\\
 \end{optiontable}
 
-\wordfield{Underneath}{SciPy (signal.lti / dlti, step, impulse, lsim, freqresp, freqz, cont2discrete, tf2ss, tf2zpk); the formula read with Python's ast and NumPy polynomials}
+\wordfield{Underneath}{SciPy (signal.lti / dlti, step, impulse, lsim, freqresp, freqz, cont2discrete, tf2ss, tf2zpk); the formula read with Python's ast and NumPy polynomials; rise time, settling time, overshoot and margins from python-control (\code{step\_\allowbreak{}info}, \code{stability\_\allowbreak{}margins}: simplydata[systems])}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -10519,7 +10519,7 @@ This system, then another one after it (in series): the output of this one feeds
 \code{other} & needed\\
 \end{optiontable}
 
-\wordfield{Underneath}{SciPy (signal.lti / dlti, step, impulse, lsim, freqresp, freqz, cont2discrete, tf2ss, tf2zpk); the formula read with Python's ast and NumPy polynomials}
+\wordfield{Underneath}{SciPy (signal.lti / dlti, step, impulse, lsim, freqresp, freqz, cont2discrete, tf2ss, tf2zpk); the formula read with Python's ast and NumPy polynomials; rise time, settling time, overshoot and margins from python-control (\code{step\_\allowbreak{}info}, \code{stability\_\allowbreak{}margins}: simplydata[systems])}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -10536,7 +10536,7 @@ This system and another side by side, their outputs added (in parallel): both ge
 \code{other} & needed\\
 \end{optiontable}
 
-\wordfield{Underneath}{SciPy (signal.lti / dlti, step, impulse, lsim, freqresp, freqz, cont2discrete, tf2ss, tf2zpk); the formula read with Python's ast and NumPy polynomials}
+\wordfield{Underneath}{SciPy (signal.lti / dlti, step, impulse, lsim, freqresp, freqz, cont2discrete, tf2ss, tf2zpk); the formula read with Python's ast and NumPy polynomials; rise time, settling time, overshoot and margins from python-control (\code{step\_\allowbreak{}info}, \code{stability\_\allowbreak{}margins}: simplydata[systems])}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -10555,7 +10555,7 @@ The closed loop: the output is fed back (through a sensor, say) and taken from t
 \code{sign=} & normally \code{\textquotedbl{}negative\textquotedbl{}}\\
 \end{optiontable}
 
-\wordfield{Underneath}{SciPy (signal.lti / dlti, step, impulse, lsim, freqresp, freqz, cont2discrete, tf2ss, tf2zpk); the formula read with Python's ast and NumPy polynomials}
+\wordfield{Underneath}{SciPy (signal.lti / dlti, step, impulse, lsim, freqresp, freqz, cont2discrete, tf2ss, tf2zpk); the formula read with Python's ast and NumPy polynomials; rise time, settling time, overshoot and margins from python-control (\code{step\_\allowbreak{}info}, \code{stability\_\allowbreak{}margins}: simplydata[systems])}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -10570,7 +10570,7 @@ The system as numbers: \code{form=\textquotedbl{}transfer function\textquotedbl{
 \code{form=} & normally \code{\textquotedbl{}transfer function\textquotedbl{}}\\
 \end{optiontable}
 
-\wordfield{Underneath}{SciPy (signal.lti / dlti, step, impulse, lsim, freqresp, freqz, cont2discrete, tf2ss, tf2zpk); the formula read with Python's ast and NumPy polynomials}
+\wordfield{Underneath}{SciPy (signal.lti / dlti, step, impulse, lsim, freqresp, freqz, cont2discrete, tf2ss, tf2zpk); the formula read with Python's ast and NumPy polynomials; rise time, settling time, overshoot and margins from python-control (\code{step\_\allowbreak{}info}, \code{stability\_\allowbreak{}margins}: simplydata[systems])}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -10591,7 +10591,7 @@ A chart of the system: \code{show=\textquotedbl{}bode\textquotedbl{}} (gain in d
 \code{unit=} & \\
 \end{optiontable}
 
-\wordfield{Underneath}{SciPy (signal.lti / dlti, step, impulse, lsim, freqresp, freqz, cont2discrete, tf2ss, tf2zpk); the formula read with Python's ast and NumPy polynomials}
+\wordfield{Underneath}{SciPy (signal.lti / dlti, step, impulse, lsim, freqresp, freqz, cont2discrete, tf2ss, tf2zpk); the formula read with Python's ast and NumPy polynomials; rise time, settling time, overshoot and margins from python-control (\code{step\_\allowbreak{}info}, \code{stability\_\allowbreak{}margins}: simplydata[systems])}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata

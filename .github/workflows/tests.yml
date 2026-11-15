@@ -39,7 +39,7 @@ jobs:
       - name: Install
         run: |
           python -m pip install --upgrade pip
-          python -m pip install -e ".[test,r]"
+          python -m pip install -e ".[test,r,systems]"
         env:
           # rpy2 has no Windows wheel for every Python, and its C part does not build with MSVC;
           # ABI mode needs no compiler (rpy2's documented way on Windows)
@@ -49,6 +49,7 @@ jobs:
         env:
           MPLBACKEND: Agg
           SIMPLYDATA_REQUIRE_R: "1"  # in CI the R tests must run, never be skipped
+          SIMPLYDATA_REQUIRE_CONTROL: "1"  # and the python-control tests (simplydata[systems])
 
   # Without R: words that do not need R must work, and only the R words may be skipped
   test-without-r:
@@ -61,9 +62,10 @@ jobs:
       - name: Install (no R, no rpy2)
         run: |
           python -m pip install --upgrade pip
-          python -m pip install -e ".[test]"
+          python -m pip install -e ".[test,systems]"
       - name: Run tests
         run: python -m pytest -q
         env:
           MPLBACKEND: Agg
           SIMPLYDATA_NO_R: "1"  # R may be missing only where a word is meant to run R
+          SIMPLYDATA_REQUIRE_CONTROL: "1"  # python-control (simplydata[systems]) is installed here

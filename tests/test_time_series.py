@@ -174,3 +174,25 @@ def test_autocorrelation_errors(engine):
         t.autocorrelation_of("x", show="partial", band="bartlett")
     with pytest.raises(SimplydataError, match="empty"):
         make(pd.DataFrame({"x": [1.0, None, 3, 4, 5, 6]}), engine).autocorrelation_of("x")
+
+
+def test_partial_autocorrelation_of_few_readings_by_default(capsys):
+    x = np.sin(np.arange(25.0)) + np.arange(25) * 0.01
+    got = acf_rows(sdata.numbers(list(x)).autocorrelation_of(show="partial"))
+    # R: pacf(x, lag.max = 11)$acf[1:3] (statsmodels needs fewer rows back than half the readings, so 11)
+    assert len(got) == 11
+    assert got["partial correlation"].to_numpy()[:3] == pytest.approx(
+        [0.531820840817996, -0.915925292375954, -0.101062055524772], rel=1e-10)
+    assert "lag.max = 11" in capsys.readouterr().out
+
+
+def test_time_words_with_r_on_sixty_readings(needs_r, capsys):
+    # the reviewer's run of the R-backed words on a plain numbered series: each gives its answer
+    frame = pd.DataFrame({"t": np.arange(60.0), "x": np.sin(np.arange(60.0)) + np.arange(60) * 0.01})
+    t = sdata.table(frame)
+    t.check_steady("x", sorted_by="t")
+    t.add_smoothed_column("m", from_column="x", method="median", sorted_by="t")
+    t.forecast("x", sorted_by="t", steps_ahead=3)
+    t.find_change_points("x", sorted_by="t")
+    sdata.numbers(list(frame.x)).spectrum_of(method="lomb", time_points=list(frame.t))
+    assert "Method" in capsys.readouterr().out

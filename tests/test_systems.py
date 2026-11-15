@@ -2,8 +2,10 @@
 
 Reference values: R 4.6.2 with control 0.2.5, signal 1.8.1, gsignal 0.3.7 and pracma 2.4.6
 (ref_systems.R in the v0.6 scratch folder, partD). s1 <- control::tf(1, c(1, 2, 5)).
-R control has no stepinfo and no margin: rise time, settling time, overshoot and the margins are worked
-out in R from R's own responses (uniroot for the margins), by the same rules simplydata states.
+R control has no stepinfo and no margin: rise time, settling time, overshoot and the margins come from
+python-control (step_info, stability_margins; simplydata[systems]). Their references are python-control's own
+results, the examples on MATLAB's stepinfo and margin pages, and margins worked out by hand where the
+formula allows.
 """
 
 import numpy as np
@@ -69,23 +71,63 @@ def test_formula_errors():
         sdata.system("1 / (s**0.5 + 1)")
 
 
-def test_step_response_matches_r(s1, capsys):
+def test_step_response_matches_r(s1, capsys, needs_control):
     got = frame(s1.step_response(time_points=np.arange(0, 6.0001, 0.03)))
     # R: control::step(s1, t = seq(0, 6, by = 0.03))$y[1, c(2, 18, 201)]
     assert got["output"].to_numpy()[[1, 17, 200]] == pytest.approx(
         [0.000440968660669288, 0.0859755020493958, 0.199714662161444], rel=1e-8)
     out = capsys.readouterr().out
-    # R: from the same response: rise 0.689562487797941, settling 3.73521350733359, peak 0.241563712898874 at
-    #    1.56, overshoot 20.7818564494371 %
+    # python-control: control.step_info(control.tf([1], [1, 2, 5]), T=np.arange(0, 6.0001, 0.03)):
+    #    RiseTime 0.69, SettlingTime 3.75, Peak 0.24156371289887466, PeakTime 1.56, Overshoot 20.78185644943732
+    #    (R control has no stepinfo; R's response above is the same, so the measures are too)
     assert "settles at 0.2, peaks at 0.2416 at time 1.56 (overshoot 20.8 %)" in out
-    assert "rise time 0.6896 (10 % to 90 %), settling time 3.735 (within 2 %)" in out
+    assert "rise time 0.69 (10 % to 90 %), settling time 3.75 (within 2 %)" in out
+    assert "python-control step_info" in out
     from simplydata.systems import step_info
 
     info = step_info(got["time"].to_numpy(), got["output"].to_numpy(), 0.2)
-    assert info["rise time"] == pytest.approx(0.689562487797941, rel=1e-6)
-    assert info["settling time"] == pytest.approx(3.73521350733359, rel=1e-6)
-    assert info["overshoot"] == pytest.approx(20.7818564494371, rel=1e-6)
+    assert info["rise time"] == pytest.approx(0.69, rel=1e-12)
+    assert info["settling time"] == pytest.approx(3.75, rel=1e-12)
+    assert info["overshoot"] == pytest.approx(20.78185644943732, rel=1e-10)
     assert len(frame(s1.step_response(until=10))) == 200
+
+
+def test_step_measures_match_matlab_stepinfo(capsys, needs_control):
+    # MATLAB documentation, stepinfo, first example: sys = tf([1 5 5], [1 1.65 5 6.5 2]); S = stepinfo(sys):
+    #    RiseTime 3.8456, SettlingTime 27.9762, Overshoot 7.4915, Peak 2.6873, PeakTime 8.0530
+    # MATLAB interpolates on its own time grid; python-control takes the first time shown, here 0.001 apart
+    h = sdata.system("(s**2 + 5*s + 5) / (s**4 + 1.65*s**3 + 5*s**2 + 6.5*s + 2)")
+    got = frame(h.step_response(until=40, how_many=40001))
+    from simplydata.systems import step_info
+
+    info = step_info(got["time"].to_numpy(), got["output"].to_numpy(), 2.5)
+    assert info["rise time"] == pytest.approx(3.8456, abs=0.005)
+    assert info["settling time"] == pytest.approx(27.9762, abs=0.01)
+    assert info["overshoot"] == pytest.approx(7.4915, abs=0.03)
+    assert info["peak"] == pytest.approx(2.6873, abs=0.001)
+    assert info["peak time"] == pytest.approx(8.0530, abs=0.05)
+
+
+def test_step_response_time_points_start_at_zero_and_keep_the_step(capsys):
+    in_steps = sdata.system("0.1 / (z - 0.9)", time_step=0.1)
+    with pytest.raises(SimplydataError, match="0.1 apart, the system's time step"):
+        in_steps.step_response(time_points=[0, 0.5, 1.0, 1.5])
+    with pytest.raises(SimplydataError, match="start at 0"):
+        in_steps.impulse_response(time_points=[0.5, 0.6, 0.7])
+    got = frame(in_steps.step_response(time_points=[0, 0.1, 0.2, 0.3]))
+    # R: control::step(control::tf(0.1, c(1, -0.9), 0.1), t = c(0, 0.1, 0.2, 0.3))$y: 0, 0.1, 0.19, 0.271
+    assert got["output"].tolist() == pytest.approx([0, 0.1, 0.19, 0.271], rel=1e-12)
+    with pytest.raises(SimplydataError, match="start at 0"):
+        sdata.system("1 / (s + 1)").step_response(time_points=[5, 6, 7, 8])
+
+
+def test_response_to_refuses_inputs_in_other_steps(capsys):
+    in_steps = sdata.system("0.1 / (z - 0.9)", time_step=0.1)
+    inputs = sdata.wave("sine", frequency=1, time_step=0.01, how_many=50)
+    with pytest.raises(SimplydataError, match="remember a time step of 0.01, but the system works in steps of 0.1"):
+        in_steps.response_to(inputs)
+    inputs.change_time_step(to=0.1)
+    assert len(frame(in_steps.response_to(inputs))) == 5
 
 
 def test_impulse_and_response_to_match_r(s1, capsys):
@@ -106,7 +148,7 @@ def test_impulse_and_response_to_match_r(s1, capsys):
     assert old["output"].to_numpy()[1] == pytest.approx(0.0290959011308254, rel=1e-8)
 
 
-def test_frequency_response_matches_r(s1, capsys):
+def test_frequency_response_matches_r(s1, capsys, needs_control):
     got = frame(s1.frequency_response(between=[0.1, 10], how_many=3))
     # R: control::bode(s1, w = c(0.1, 1, 10))$mag, $phase
     assert got["gain (decibels)"].tolist() == pytest.approx([-13.9689819049622, -13.0102999566398, -39.7428135887783],
@@ -123,13 +165,14 @@ def test_frequency_response_matches_r(s1, capsys):
     assert hertz["gain (decibels)"].tolist() == pytest.approx(got["gain (decibels)"].tolist(), rel=1e-10)
 
 
-def test_margins_match_r(capsys):
+def test_margins_match_r(capsys, needs_control):
     loop = sdata.system("4 / (s * (s + 1) * (s + 2))")
     gm, wg, pm, wp = loop._margins()
-    # R: uniroot on control::freqresp(L, w): phase margin 11.4249818449277 degrees at 1.14320304396094;
-    #    gain margin 3.52182518111363 dB at 1.4142135623731
-    assert pm == pytest.approx(11.4249818449277, abs=1e-3) and wp == pytest.approx(1.14320304396094, rel=1e-5)
-    assert gm == pytest.approx(3.52182518111363, abs=1e-5) and wg == pytest.approx(1.4142135623731, rel=1e-5)
+    # by hand: the phase is -180 degrees at w = sqrt(2), where |L| = 4 / (sqrt(2) sqrt(3) sqrt(6)) = 2/3, so the
+    #    gain margin is 20 log10(3/2) = 3.52182518111363 dB; python-control stability_margins(L): phase margin
+    #    11.424981844921433 degrees at 1.1432030439610739 (R: uniroot on control::freqresp(L, w) gives the same)
+    assert gm == pytest.approx(20 * np.log10(1.5), rel=1e-10) and wg == pytest.approx(np.sqrt(2), rel=1e-10)
+    assert pm == pytest.approx(11.424981844921433, rel=1e-8) and wp == pytest.approx(1.1432030439610739, rel=1e-8)
     loop.frequency_response()
     out = capsys.readouterr().out
     assert "gain margin 3.52 decibels at 1.414 radians per second; phase margin 11.42 degrees at 1.143" in out
@@ -301,3 +344,32 @@ def test_gain_is_explained(capsys):
     sdata.system(poles=[-1, -2], gain=2)
     # R: control::dcgain(control::zpk(NULL, c(-1, -2), 2)) is 1
     assert "gain=2 is the number in front of the formula; the steady gain is 1." in capsys.readouterr().out
+
+
+def test_margins_match_matlab_margin(capsys, needs_control):
+    # MATLAB documentation, margin: sys = tf(1, [1 2 1 0]) has Gm 6.02 dB, Pm 21.4 deg; by hand the phase is
+    #    -180 degrees at w = 1, where |L| = 1/2, so Gm = 2 (6.0206 dB) at 1
+    gm, wg, pm, wp = sdata.system("1 / (s**3 + 2*s**2 + s)")._margins()
+    assert gm == pytest.approx(20 * np.log10(2), rel=1e-10) and wg == pytest.approx(1, rel=1e-10)
+    assert pm == pytest.approx(21.4, abs=0.05)
+    # MATLAB documentation, margin, a system in steps: tf([0.04798 0.0464], [1 -1.81 0.9048], 0.1):
+    #    Gm 2.0519 (6.2427 dB), Pm 13.5711, Wcg 5.4376, Wcp 4.3544
+    d = sdata.system(numerator=[0.04798, 0.0464], denominator=[1, -1.81, 0.9048], time_step=0.1)
+    gm, wg, pm, wp = d._margins()
+    # (python-control: Gm 2.05172 at 5.43741; MATLAB shows 2.0519 at 5.4376, within 1e-4 of their size)
+    assert 10 ** (gm / 20) == pytest.approx(2.0519, rel=2e-4) and wg == pytest.approx(5.4376, rel=1e-4)
+    assert pm == pytest.approx(13.5711, abs=1e-4) and wp == pytest.approx(4.3544, abs=1e-4)
+
+
+def test_without_python_control_the_responses_still_come(s1, capsys, monkeypatch):
+    import sys
+
+    monkeypatch.setitem(sys.modules, "control", None)  # import control now fails, as when it is not installed
+    got = frame(s1.step_response(until=6))
+    assert len(got) == 200
+    out = capsys.readouterr().out
+    assert "Step response: the output settles at 0.2." in out
+    assert 'Rise time, settling time and overshoot come from python-control' in out
+    assert 'pip install "simplydata[systems]"' in out
+    sdata.system("4 / (s * (s + 1) * (s + 2))").frequency_response()
+    assert "The gain and phase margins come from python-control" in capsys.readouterr().out

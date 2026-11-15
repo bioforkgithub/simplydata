@@ -3964,7 +3964,7 @@ LESSONS = [
                 ('chart.save("spring_poles.png")', "Save it."),
                 ("spring.step_response(until=15)",
                  "It overshoots by 52.6 % (peak 0.3815 at time 1.58), rises in 0.60 and settles within 2 % "
-                 "after 9.8. R's control::step() gives the same response."),
+                 "after 9.9. R's control::step() gives the same response."),
                 ('chart = spring.chart(show="step", until=15)', "The step response as a chart."),
                 ('chart.save("spring_step.png")', "Save it."),
             ]),
@@ -4002,7 +4002,7 @@ LESSONS = [
                 ("digital = spring.in_steps(time_step=0.1)",
                  "(0.00485317*z + 0.0047253) / (z**2 - 1.8848*z + 0.923116), as R control::c2d(sys, 0.1)."),
                 ("response = digital.step_response(until=15)",
-                 "Almost the same answer as before: overshoot 52.7 %, settling time 9.8."),
+                 "Almost the same answer as before: overshoot 52.7 %, settling time 9.9."),
                 ("chart = response.chart()", "The response is a table, so it can be drawn like any other."),
                 ('chart.lines(x="time", y="output", joined_by="steps")',
                  "Each value holds until the next step, as the computer sees it."),
@@ -4015,8 +4015,9 @@ LESSONS = [
             "poles= and zeros=, or as matrices a=, b=, c=, d=.",
             "Frequencies of systems are in radians per second, as R control and SciPy; unit=\"cycles per "
             "second\" gives cycles per second. A filter from sdata.frequency_filter is in cycles per second.",
-            "R's control package has no stepinfo() or margin(): simplydata reads the rise time, settling time and "
-            "margins from the response, and the R checks do the same from R's response.",
+            "R's control package has no stepinfo() or margin(): the rise time, settling time, overshoot and "
+            "margins come from python-control (step_info, stability_margins), the Python package for control "
+            'systems. Install it with pip install "simplydata[systems]"; without it the responses still come.',
         ],
         task=[
             "Make the damper stronger: 1 / (s**2 + 2*s + 4). What happens to the overshoot?",

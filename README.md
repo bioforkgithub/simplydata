@@ -36,6 +36,7 @@ pip install simplydata            # needs Python 3.11 or newer
 pip install "simplydata[fast]"    # adds Polars, the fast engine for big data
 pip install "simplydata[files]"   # adds reading Word, SPSS and Stata files
 pip install "simplydata[stats]"   # adds statsmodels, for mixed models and multiple imputation
+pip install "simplydata[systems]" # adds python-control: rise time, settling time and margins of systems
 ```
 
 ## Learn it in a day

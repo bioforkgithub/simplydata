@@ -36,25 +36,38 @@ def every_words(count, unit) -> str:
     return unit if count == 1 else f"{count} {UNITS[unit]}"
 
 
-def step_after(start, count, unit, k):
-    """The k-th date after start (k = 0 gives start), counting calendar months from start."""
+def step_after(start, count, unit, k, month_end=False):
+    """The k-th date after start (k = 0 gives start), counting calendar months from start. month_end=True
+    keeps to the last day of each month (pandas MonthEnd: 2023-04-30, 2023-05-31, 2023-06-30), for runs of
+    month-end dates; days and weeks are steps on the calendar (pandas DateOffset), so a date with a time
+    zone keeps its clock time across a summer-time change."""
     import pandas as pd
 
     if unit in ("month", "quarter", "year"):
         months = count * k * {"month": 1, "quarter": 3, "year": 12}[unit]
+        if month_end and months:
+            return start + pd.offsets.MonthEnd(months)
         return start + pd.DateOffset(months=months)
-    size = {"second": pd.Timedelta(seconds=1), "minute": pd.Timedelta(minutes=1), "hour": pd.Timedelta(hours=1),
-            "day": pd.Timedelta(days=1), "week": pd.Timedelta(days=7)}[unit]
+    if unit in ("day", "week"):
+        return start + pd.DateOffset(days=count * k * (7 if unit == "week" else 1))
+    size = {"second": pd.Timedelta(seconds=1), "minute": pd.Timedelta(minutes=1), "hour": pd.Timedelta(hours=1)}[unit]
     return start + size * (count * k)
 
 
-def date_steps(start, count, unit, how_many=None, to=None):
+def all_month_ends(stamps) -> bool:
+    """True when every date is the last day of its month (2023-02-28, 2023-03-31, ...)."""
+    import pandas as pd
+
+    return bool(len(stamps)) and bool(pd.DatetimeIndex(stamps).is_month_end.all())
+
+
+def date_steps(start, count, unit, how_many=None, to=None, month_end=False):
     """A list of pandas Timestamps from start, every `count unit`, how_many of them or up to `to`."""
     if how_many is not None:
-        return [step_after(start, count, unit, k) for k in range(how_many)]
+        return [step_after(start, count, unit, k, month_end) for k in range(how_many)]
     out, k = [], 0
     while True:
-        value = step_after(start, count, unit, k)
+        value = step_after(start, count, unit, k, month_end)
         if value > to:
             return out
         out.append(value)

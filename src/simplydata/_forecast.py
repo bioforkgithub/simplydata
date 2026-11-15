@@ -15,7 +15,9 @@ simplydata._r.r_call:
 * the leftover errors: R Box.test(residuals, lag, type = "Ljung-Box", fitdf = number of ARIMA
   estimates), lag as forecast::checkresiduals (2 cycles, or 10, at most a fifth of the readings);
 * find_change_points: R changepoint::cpt.mean (PELT) on the readings divided by
-  mad(diff(x)) / sqrt(2) (cpt.mean assumes noise with standard deviation 1), or cpt.meanvar.
+  mad(diff(x)) / sqrt(2) (cpt.mean assumes noise with standard deviation 1), or cpt.meanvar. The
+  scaling is simplydata's own choice of preprocessing (listed in tests/test_no_own_methods.py): the
+  changepoint help and Killick and Eckley (2014, J. Stat. Softw. 58(3)) do not prescribe one.
 """
 
 from __future__ import annotations

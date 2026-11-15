@@ -3,7 +3,9 @@
 * designs: scipy.signal.butter, cheby1, cheby2, ellip, bessel (norm="phase") as second-order sections
   (output="sos": stable at high steepness), iirnotch / iircomb / iirpeak for one frequency; coefficients
   for printing come from sos2tf. butter, cheby1 and cheby2 match R signal to 1e-9; ellip to about 2e-6
-  (R signal solves the elliptic degree equation less precisely);
+  (R signal solves the elliptic degree equation less precisely); bessel matches R gsignal::besself (an
+  analog design) turned digital by gsignal::bilinear, with the cutoff pre-warped as SciPy does:
+  w = 2 * fs * tan(pi * f / fs) radians per unit of time (to 1e-12);
 * both_ways=True: sosfiltfilt (filtfilt for FIR): forwards then backwards, so nothing moves in time.
   SciPy's ends rule: the series is extended at each end by an odd reflection of 3 x (filter length)
   readings and the filter starts in its steady state (as MATLAB filtfilt). R signal::filtfilt pads only
@@ -24,7 +26,9 @@ ALIASES = {"butter": "butterworth", "cheby1": "chebyshev", "chebyshev 1": "cheby
            "ellip": "elliptic", "besself": "bessel", "firwin": "fir", "fir1": "fir"}
 R_DESIGN = {"butterworth": "signal::butter({n}, {w}{t})", "chebyshev": "signal::cheby1({n}, {rp}, {w}{t})",
             "chebyshev 2": "signal::cheby2({n}, {rs}, {w}{t})", "elliptic": "signal::ellip({n}, {rp}, {rs}, {w}{t})",
-            "bessel": "gsignal::besself({n}, ...) + bilinear", "fir": "signal::fir1({m}, {w}{t})"}
+            "bessel": "gsignal::as.Arma(gsignal::bilinear(gsignal::besself({n}, 2 * {fs} * tan(pi * {f} / {fs}){t}), "
+                      "T = 1 / {fs}))",
+            "fir": "signal::fir1({m}, {w}{t})"}
 SCIPY_TYPE = {"low": "lowpass", "high": "highpass", "pass": "bandpass", "stop": "bandstop"}
 R_TYPE = {"low": "", "high": ', type = "high"', "pass": ', type = "pass"', "stop": ', type = "stop"'}
 NAMES = {"butterworth": "Butterworth", "chebyshev": "Chebyshev (type 1)", "chebyshev 2": "Chebyshev (type 2)",
@@ -78,9 +82,10 @@ def design(kind, cutoffs, step, method="butterworth", steepness=4, ripple=0.5, r
         sos = signal.ellip(rp=float(ripple), rs=float(removed_by), **args)
     else:
         sos = signal.bessel(norm="phase", **args)
+    f_r = _g(cut[0]) if len(cut) == 1 else f"c({_g(cut[0])}, {_g(cut[1])})"  # cutoffs in cycles per unit of time
     return dict(sos=sos, words=f"{NAMES[method]} filter, steepness {int(steepness)}",
                 r_call=R_DESIGN[method].format(n=int(steepness), w=w_r, t=R_TYPE[kind], rp=_g(ripple),
-                                               rs=_g(removed_by)))
+                                               rs=_g(removed_by), fs=_g(1 / step), f=f_r))
 
 
 def design_single(keep, frequency, step, width=1.0, and_multiples=False, step_name="remove_frequencies"):
