@@ -14,6 +14,10 @@ from __future__ import annotations
 # sdata.<name>: top-level words, and words people expect on sdata that live on a table or a chart.
 _SDATA = [
     ('sdata.dates("2026-01-01", to="2026-12-31", every="day")', "date_range seq.Date datetime_range daterange"),
+    ('sdata.wave("sine", frequency=5, time_step=0.01, how_many=100)', "chirp square sawtooth gausspulse unit_impulse"),
+    ('sdata.window_shape("hann", how_many=64)', "hann hanning hamming blackman get_window"),
+    ("sdata.inverse_fourier_transform(table)", "ifft irfft"),
+    ('sdata.numbers("call.wav")', "readWave wavread read_wav"),
     ('sdata.find_smallest("x**2 - 4*x + 1", between=[0, 5])',
      "minimize minimise optimize optimise optim minimize_scalar fmin fminbound argmin nlm "
      "nlminb fminsearch"),
@@ -221,6 +225,17 @@ _NUMBERS = [
      "runmed medfilt median_filter savgol_filter sgolayfilt ewm ewma gaussian_filter1d whittaker_henderson wiener "
      "moving_average convolve1d"),
     ("nums.remove_trend()", "detrend"),
+    ("nums.keep_frequencies(below=5, time_step=0.01)",
+     "butter cheby1 cheby2 ellip bessel lowpass low_pass highpass high_pass bandpass band_pass filtfilt sosfiltfilt "
+     "sosfilt lfilter iirpeak"),
+    ("nums.remove_frequencies(equal_to=50, time_step=0.005)", "notch iirnotch iircomb bandstop band_stop"),
+    ("nums.find_peaks(at_least=1)", "findpeaks argrelmax peak_prominences peak_widths"),
+    ("nums.find_dips(at_most=-1)", "argrelmin find_valleys find_troughs"),
+    ("nums.fourier_transform()", "fft rfft dft fft2"),
+    ("nums.envelope()", "hilbert analytic_signal"),
+    ("nums.convolve_with([1, 2, 1])", "convolve correlate"),
+    ("nums.deconvolve_by([1, 2, 3])", "deconvolve deconv"),
+    ("nums.change_time_step(to=0.01, time_step=0.005)", "resample resample_poly decimate downsample"),
     ("nums.chart()", "plot hist"),
     ("nums.keep_random_numbers(3, seed=1)", "sample choice"),
     ("nums.count_each()", "value_counts tabulate"),

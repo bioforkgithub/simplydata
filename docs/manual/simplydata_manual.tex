@@ -7884,6 +7884,352 @@ import simplydata as sdata
 nums = sdata.numbers(sdata.example("sensor")["signal"])
 nums.remove_trend()
 \end{lstlisting}
+\wordentry{nums.keep\_frequencies()}{word:nums.keep-frequencies}
+Keep only some frequencies of the numbers (a low-pass, high-pass, band-pass or peak filter).
+
+\codeline{nums.keep\_frequencies(below=5, time\_step=0.01)}\\
+One condition: \code{below=5} keeps the slow cycles (low-pass), \code{above=1} the fast ones (high-pass), \code{between=[1,\allowbreak{} 5]} a band, \code{equal\_\allowbreak{}to=10} one frequency (\code{width=} how wide). Frequencies are cycles per unit of time: \code{time\_\allowbreak{}step=} is the time between readings (\code{sampling\_\allowbreak{}rate=} or \code{fs=} instead). \code{method=} \code{\textquotedbl{}butterworth\textquotedbl{}} (flat where it keeps; R signal::butter), \code{\textquotedbl{}chebyshev\textquotedbl{}} (\code{ripple=} dB), \code{\textquotedbl{}chebyshev 2\textquotedbl{}} (\code{removed\_\allowbreak{}by=} dB), \code{\textquotedbl{}elliptic\textquotedbl{}} or \code{\textquotedbl{}bessel\textquotedbl{}} (keeps the shape of pulses). \code{steepness=} is the filter order (4). \code{both\_\allowbreak{}ways=True} runs the filter forwards and backwards so nothing moves in time (SciPy sosfiltfilt; the ends as MATLAB filtfilt, which differs from R signal::filtfilt near the ends); \code{both\_\allowbreak{}ways=False} runs it forwards only, as R signal::filter. Undo with \code{nums.\allowbreak{}undo()}.
+
+\wordfield{Options}{}\par\nopagebreak
+\begin{optiontable}
+\code{below=} & \\
+\code{above=} & \\
+\code{between=} & \\
+\code{equal\_\allowbreak{}to=} & \\
+\code{time\_\allowbreak{}step=} & \\
+\code{method=} & normally \code{\textquotedbl{}butterworth\textquotedbl{}}\\
+\code{steepness=} & normally \code{4}\\
+\code{both\_\allowbreak{}ways=} & normally \code{True}\\
+\code{ripple=} & normally \code{0.\allowbreak{}5}\\
+\code{removed\_\allowbreak{}by=} & normally \code{40}\\
+\code{width=} & normally \code{1}\\
+\code{sampling\_\allowbreak{}rate=} & \\
+\code{fs=} & \\
+\end{optiontable}
+
+\wordfield{Underneath}{SciPy (signal.butter, cheby1, cheby2, ellip, bessel as sos; iirpeak; sosfiltfilt, sosfilt)}
+\wordfield{Example you can run}{(it uses the practice table \code{sensor})}\par\nopagebreak
+\begin{lstlisting}[style=py]
+import simplydata as sdata
+nums = sdata.numbers(sdata.example("sensor")["signal"])
+nums.keep_frequencies(below=10, time_step=0.005)
+\end{lstlisting}
+\wordentry{nums.remove\_frequencies()}{word:nums.remove-frequencies}
+Remove some frequencies from the numbers, such as a 50-per-second hum (band-stop or notch filter).
+
+\codeline{nums.remove\_frequencies(equal\_to=50, time\_step=0.005)}\\
+\code{between=[49,\allowbreak{} 51]} removes a band; \code{equal\_\allowbreak{}to=50} one frequency (a notch, \code{width=} how wide; \code{and\_\allowbreak{}multiples} =True also removes 100, 150 ...: a comb); \code{below=} and \code{above=} remove the slow or the fast cycles. The options are those of \code{keep\_\allowbreak{}frequencies}. Undo with \code{nums.\allowbreak{}undo()}.
+
+\wordfield{Options}{}\par\nopagebreak
+\begin{optiontable}
+\code{below=} & \\
+\code{above=} & \\
+\code{between=} & \\
+\code{equal\_\allowbreak{}to=} & \\
+\code{time\_\allowbreak{}step=} & \\
+\code{method=} & normally \code{\textquotedbl{}butterworth\textquotedbl{}}\\
+\code{steepness=} & normally \code{4}\\
+\code{both\_\allowbreak{}ways=} & normally \code{True}\\
+\code{ripple=} & normally \code{0.\allowbreak{}5}\\
+\code{removed\_\allowbreak{}by=} & normally \code{40}\\
+\code{width=} & normally \code{1}\\
+\code{and\_\allowbreak{}multiples=} & normally \code{False}\\
+\code{sampling\_\allowbreak{}rate=} & \\
+\code{fs=} & \\
+\end{optiontable}
+
+\wordfield{Underneath}{SciPy (as \code{keep\_\allowbreak{}frequencies}; iirnotch, iircomb)}
+\wordfield{Example you can run}{(it uses the practice table \code{sensor})}\par\nopagebreak
+\begin{lstlisting}[style=py]
+import simplydata as sdata
+nums = sdata.numbers(sdata.example("sensor")["signal"])
+nums.remove_frequencies(equal_to=50, time_step=0.005)
+\end{lstlisting}
+\wordentry{table.add\_filtered\_column()}{word:table.add-filtered-column}
+Add a filtered copy of a column: some frequencies kept or removed (low-pass, high-pass, band, notch).
+
+\codeline{table.add\_filtered\_column(\textquotedbl{}slow\textquotedbl{}, from\_column=\textquotedbl{}signal\textquotedbl{}, keep\_below=10, sorted\_by=\textquotedbl{}time\textquotedbl{})} (with \code{sdata.\allowbreak{}example(\textquotedbl{}sensor\textquotedbl{})})\\
+One condition: \code{keep\_\allowbreak{}below=}, \code{keep\_\allowbreak{}above=}, \code{keep\_\allowbreak{}between=[low,\allowbreak{} high]}, \code{remove\_\allowbreak{}between=[low,\allowbreak{} high]} or \code{remove\_\allowbreak{}at=} one frequency (a notch, \code{width=} how wide). Frequencies are cycles per unit of the \code{sorted\_\allowbreak{}by} column (per second for seconds, per day for dates). The options are those of \code{nums.\allowbreak{}keep\_\allowbreak{}frequencies} (\code{method=}, \code{steepness=}, \code{both\_\allowbreak{}ways=} ...). The readings must be evenly spaced and filled in. \code{for\_\allowbreak{}each=} filters each group on its own. Undo with \code{table.\allowbreak{}undo()}.
+
+\wordfield{Options}{}\par\nopagebreak
+\begin{optiontable}
+\code{name=} & \\
+\code{from\_\allowbreak{}column=} & \\
+\code{keep\_\allowbreak{}below=} & \\
+\code{keep\_\allowbreak{}above=} & \\
+\code{keep\_\allowbreak{}between=} & \\
+\code{remove\_\allowbreak{}between=} & \\
+\code{remove\_\allowbreak{}at=} & \\
+\code{sorted\_\allowbreak{}by=} & \\
+\code{for\_\allowbreak{}each=} & \\
+\code{method=} & normally \code{\textquotedbl{}butterworth\textquotedbl{}}\\
+\code{steepness=} & normally \code{4}\\
+\code{both\_\allowbreak{}ways=} & normally \code{True}\\
+\code{ripple=} & normally \code{0.\allowbreak{}5}\\
+\code{removed\_\allowbreak{}by=} & normally \code{40}\\
+\code{width=} & normally \code{1}\\
+\end{optiontable}
+
+\wordfield{Underneath}{SciPy (as \code{nums.\allowbreak{}keep\_\allowbreak{}frequencies})}
+\wordfield{Example you can run}{(it uses the practice table \code{sensor})}\par\nopagebreak
+\begin{lstlisting}[style=py]
+import simplydata as sdata
+table = sdata.table(sdata.example("sensor"))
+table.add_filtered_column("slow", from_column="signal", keep_below=10, sorted_by="time")
+\end{lstlisting}
+\wordentry{nums.find\_peaks()}{word:nums.find-peaks}
+Find the peaks: numbers higher than both neighbours, with conditions. \code{nums.\allowbreak{}find\_\allowbreak{}peaks(at\_\allowbreak{}least=1,\allowbreak{} apart=10)}
+
+\code{at\_\allowbreak{}least=} the lowest height that counts; \code{apart=} the smallest distance between peaks (in readings, or in units of time with \code{time\_\allowbreak{}step=}); \code{stands\_\allowbreak{}out\_\allowbreak{}by=} how far a peak rises above the higher of the two lowest points that part it from higher ground (prominence); \code{wide\_\allowbreak{}at\_\allowbreak{}least=} its width at half that height. Gives back one row per peak: position (from 1), value, stands out by, width, left and right base. SciPy signal.find\_peaks (SciPy's \code{height=}, \code{distance=}, \code{prominence=} ... work too); the positions are those of R pracma::findpeaks. A flat top counts once, at its middle.
+
+\wordfield{Options}{}\par\nopagebreak
+\begin{optiontable}
+\code{at\_\allowbreak{}least=} & \\
+\code{apart=} & \\
+\code{stands\_\allowbreak{}out\_\allowbreak{}by=} & \\
+\code{wide\_\allowbreak{}at\_\allowbreak{}least=} & \\
+\code{time\_\allowbreak{}step=} & \\
+\end{optiontable}
+
+\wordfield{Underneath}{SciPy (signal.find\_peaks, \code{peak\_\allowbreak{}prominences}, \code{peak\_\allowbreak{}widths})}
+\wordfield{Example you can run}{(it uses the practice table \code{sensor})}\par\nopagebreak
+\begin{lstlisting}[style=py]
+import simplydata as sdata
+nums = sdata.numbers(sdata.example("sensor")["signal"])
+nums.find_peaks(at_least=1, apart=10)
+\end{lstlisting}
+\wordentry{nums.find\_dips()}{word:nums.find-dips}
+Find the dips: numbers lower than both neighbours. \code{nums.\allowbreak{}find\_\allowbreak{}dips(at\_\allowbreak{}most=-1,\allowbreak{} apart=10)}
+
+As \code{find\_\allowbreak{}peaks}, turned upside down: \code{at\_\allowbreak{}most=} the highest value a dip may have. SciPy signal.find\_peaks on minus the numbers, as R pracma::\code{findpeaks(-x)}.
+
+\wordfield{Options}{}\par\nopagebreak
+\begin{optiontable}
+\code{at\_\allowbreak{}most=} & \\
+\code{apart=} & \\
+\code{stands\_\allowbreak{}out\_\allowbreak{}by=} & \\
+\code{wide\_\allowbreak{}at\_\allowbreak{}least=} & \\
+\code{time\_\allowbreak{}step=} & \\
+\end{optiontable}
+
+\wordfield{Underneath}{SciPy (signal.find\_peaks on minus the numbers)}
+\wordfield{Example you can run}{(it uses the practice table \code{sensor})}\par\nopagebreak
+\begin{lstlisting}[style=py]
+import simplydata as sdata
+nums = sdata.numbers(sdata.example("sensor")["signal"])
+nums.find_dips(at_most=-1, apart=10)
+\end{lstlisting}
+\wordentry{table.find\_peaks()}{word:table.find-peaks}
+Find the peaks of a column: readings higher than both neighbours, with conditions.
+
+\codeline{table.find\_peaks(\textquotedbl{}signal\textquotedbl{}, sorted\_by=\textquotedbl{}time\textquotedbl{}, at\_least=1, apart=0.05)} (with \code{sdata.\allowbreak{}example(\textquotedbl{}sensor\textquotedbl{})})\\
+\code{apart=} and \code{wide\_\allowbreak{}at\_\allowbreak{}least=} are in units of the \code{sorted\_\allowbreak{}by} column (readings without it). The other options and the result are those of \code{nums.\allowbreak{}find\_\allowbreak{}peaks}, with the \code{sorted\_\allowbreak{}by} value of each peak. Empty cells are never peaks. SciPy signal.find\_peaks, as R pracma::findpeaks.
+
+\wordfield{Options}{}\par\nopagebreak
+\begin{optiontable}
+\code{column=} & \\
+\code{sorted\_\allowbreak{}by=} & \\
+\code{at\_\allowbreak{}least=} & \\
+\code{apart=} & \\
+\code{stands\_\allowbreak{}out\_\allowbreak{}by=} & \\
+\code{wide\_\allowbreak{}at\_\allowbreak{}least=} & \\
+\code{for\_\allowbreak{}each=} & \\
+\end{optiontable}
+
+\wordfield{Underneath}{SciPy (signal.find\_peaks, \code{peak\_\allowbreak{}prominences}, \code{peak\_\allowbreak{}widths})}
+\wordfield{Example you can run}{(it uses the practice table \code{sensor})}\par\nopagebreak
+\begin{lstlisting}[style=py]
+import simplydata as sdata
+table = sdata.table(sdata.example("sensor"))
+table.find_peaks("signal", sorted_by="time", at_least=1, apart=0.05)
+\end{lstlisting}
+\wordentry{table.find\_dips()}{word:table.find-dips}
+Find the dips of a column: readings lower than both neighbours (\code{find\_\allowbreak{}peaks} upside down).
+
+\codeline{table.find\_dips(\textquotedbl{}signal\textquotedbl{}, sorted\_by=\textquotedbl{}time\textquotedbl{}, at\_most=-1, apart=0.05)} (with \code{sdata.\allowbreak{}example(\textquotedbl{}sensor\textquotedbl{})})
+
+\wordfield{Options}{}\par\nopagebreak
+\begin{optiontable}
+\code{column=} & \\
+\code{sorted\_\allowbreak{}by=} & \\
+\code{at\_\allowbreak{}most=} & \\
+\code{apart=} & \\
+\code{stands\_\allowbreak{}out\_\allowbreak{}by=} & \\
+\code{wide\_\allowbreak{}at\_\allowbreak{}least=} & \\
+\code{for\_\allowbreak{}each=} & \\
+\end{optiontable}
+
+\wordfield{Underneath}{SciPy (signal.find\_peaks on minus the column)}
+\wordfield{Example you can run}{(it uses the practice table \code{sensor})}\par\nopagebreak
+\begin{lstlisting}[style=py]
+import simplydata as sdata
+table = sdata.table(sdata.example("sensor"))
+table.find_dips("signal", sorted_by="time", at_most=-1, apart=0.05)
+\end{lstlisting}
+\wordentry{nums.fourier\_transform()}{word:nums.fourier-transform}
+The numbers as a sum of waves: the size and phase of each frequency (the Fourier transform).
+
+\codeline{nums.fourier\_transform(time\_step=0.005)}\\
+Gives back a table: frequency, size, phase (degrees), real part, imaginary part. \code{show=\textquotedbl{}half\textquotedbl{}} (0 up to the highest frequency the readings can show, SciPy rfft) or \code{\textquotedbl{}all\textquotedbl{}} (every frequency, negative ones too, SciPy fft). The sizes are R's \code{Mod(fft(x))} and the phases \code{Arg(fft(x))} in degrees.\\
+\codeline{sdata.inverse\_fourier\_transform(table) turns the table back into the numbers.}
+
+\wordfield{Options}{}\par\nopagebreak
+\begin{optiontable}
+\code{time\_\allowbreak{}step=} & \\
+\code{show=} & normally \code{\textquotedbl{}half\textquotedbl{}}\\
+\code{sampling\_\allowbreak{}rate=} & \\
+\code{fs=} & \\
+\end{optiontable}
+
+\wordfield{Underneath}{SciPy (fft.rfft, fft.fft)}
+\wordfield{Example you can run}{(it uses the practice table \code{sensor})}\par\nopagebreak
+\begin{lstlisting}[style=py]
+import simplydata as sdata
+nums = sdata.numbers(sdata.example("sensor")["signal"])
+nums.fourier_transform(time_step=0.005)
+\end{lstlisting}
+\wordentry{sdata.inverse\_fourier\_transform()}{word:sdata.inverse-fourier-transform}
+Numbers back from a Fourier transform table (its real and imaginary parts). \code{sdata.\allowbreak{}inverse\_\allowbreak{}fourier\_\allowbreak{}transform(table)}
+
+table is what \code{nums.\allowbreak{}fourier\_\allowbreak{}transform()} gave back (\code{show=\textquotedbl{}half\textquotedbl{}} or \code{\textquotedbl{}all\textquotedbl{}}). SciPy irfft / ifft, as R \code{Re(fft(z,\allowbreak{} inverse = TRUE))} / n. A round trip gives the numbers back (to about 1e-12).
+
+\wordfield{Options}{}\par\nopagebreak
+\begin{optiontable}
+\code{table=} & \\
+\end{optiontable}
+
+\wordfield{Underneath}{SciPy (fft.irfft, fft.ifft)}
+\wordfield{Example you can run}{}\par\nopagebreak
+\begin{lstlisting}[style=py]
+import simplydata as sdata
+nums = sdata.numbers([1, 2, 3, 4])
+table = nums.fourier_transform()
+back = sdata.inverse_fourier_transform(table)
+\end{lstlisting}
+\wordentry{nums.envelope()}{word:nums.envelope}
+The envelope of the numbers: how big the wave is at each moment (from the Hilbert transform).
+
+\codeline{nums.envelope()}\\
+\code{show=\textquotedbl{}envelope\textquotedbl{}} (the size of the analytic signal), \code{\textquotedbl{}phase\textquotedbl{}} (in degrees, unwrapped) or \code{\textquotedbl{}frequency\textquotedbl{}} (how fast the phase turns, cycles per unit of time; the last value is empty). SciPy signal.hilbert, as R gsignal::hilbert. Undo with \code{nums.\allowbreak{}undo()}.
+
+\wordfield{Options}{}\par\nopagebreak
+\begin{optiontable}
+\code{show=} & normally \code{\textquotedbl{}envelope\textquotedbl{}}\\
+\code{time\_\allowbreak{}step=} & \\
+\code{sampling\_\allowbreak{}rate=} & \\
+\code{fs=} & \\
+\end{optiontable}
+
+\wordfield{Underneath}{SciPy (signal.hilbert)}
+\wordfield{Example you can run}{(it uses the practice table \code{sensor})}\par\nopagebreak
+\begin{lstlisting}[style=py]
+import simplydata as sdata
+nums = sdata.numbers(sdata.example("sensor")["signal"])
+nums.envelope()
+\end{lstlisting}
+\wordentry{nums.convolve\_with()}{word:nums.convolve-with}
+Convolve the numbers with other numbers: each result is a sum of products as one list slides along.
+
+\codeline{nums.convolve\_with([1, 2, 1])}\\
+\code{keep=\textquotedbl{}all\textquotedbl{}} (every overlap, n + m - 1 numbers; R \code{convolve(x,\allowbreak{} rev(y),\allowbreak{} type = \textquotedbl{}open\textquotedbl{})}), \code{\textquotedbl{}same\textquotedbl{}} (the middle n) or \code{\textquotedbl{}overlap\textquotedbl{}} (only where they overlap fully; R type = \code{\textquotedbl{}filter\textquotedbl{}}). SciPy signal.convolve. Sliding sums without the flip: \code{nums.\allowbreak{}convolve\_\allowbreak{}with(other.\allowbreak{}reverse())}. Undo with \code{nums.\allowbreak{}undo()}.
+
+\wordfield{Options}{}\par\nopagebreak
+\begin{optiontable}
+\code{other} & needed\\
+\code{keep=} & normally \code{\textquotedbl{}all\textquotedbl{}}\\
+\end{optiontable}
+
+\wordfield{Underneath}{SciPy (signal.convolve)}
+\wordfield{Example you can run}{}\par\nopagebreak
+\begin{lstlisting}[style=py]
+import simplydata as sdata
+nums = sdata.numbers([1, 2, 3])
+nums.convolve_with([1, 2, 1])
+\end{lstlisting}
+\wordentry{nums.deconvolve\_by()}{word:nums.deconvolve-by}
+Undo a convolution: the numbers divided by other numbers (polynomial division).
+
+\codeline{nums.deconvolve\_by([1, 2, 3])}\\
+Gives the quotient as the new numbers and prints the size of what is left over (the remainder). SciPy signal.deconvolve, as R pracma::deconv. Undo with \code{nums.\allowbreak{}undo()}.
+
+\wordfield{Options}{}\par\nopagebreak
+\begin{optiontable}
+\code{other} & needed\\
+\end{optiontable}
+
+\wordfield{Underneath}{SciPy (signal.deconvolve)}
+\wordfield{Example you can run}{}\par\nopagebreak
+\begin{lstlisting}[style=py]
+import simplydata as sdata
+nums = sdata.numbers([0, 1, 2.5, 4, 1.5])
+nums.deconvolve_by([1, 2, 3])
+\end{lstlisting}
+\wordentry{nums.change\_time\_step()}{word:nums.change-time-step}
+Change the time between readings (resample): fewer readings (with a filter first) or more.
+
+\codeline{nums.change\_time\_step(to=0.01, time\_step=0.001)}\\
+\code{to=} is the new time between readings; \code{time\_\allowbreak{}step=} the present one (or remembered). \code{method=\textquotedbl{}fourier\textquotedbl{}} (SciPy signal.resample: treats the recording as repeating), \code{\textquotedbl{}polyphase\textquotedbl{}} (SciPy \code{resample\_\allowbreak{}poly} with the ratio as a fraction, Kaiser window 5) or \code{\textquotedbl{}filter then keep\textquotedbl{}} (SciPy decimate: a Chebyshev filter run both ways, then every n-th reading; \code{to=} must be a whole number of steps). Keeping every n-th reading without a filter is \code{keep\_\allowbreak{}numbers\_\allowbreak{}by\_\allowbreak{}position(1,\allowbreak{} step=n)}, which can fold fast cycles into slow ones (aliasing). The numbers remember the new time step. Undo with \code{nums.\allowbreak{}undo()}.
+
+\wordfield{Options}{}\par\nopagebreak
+\begin{optiontable}
+\code{to=} & \\
+\code{time\_\allowbreak{}step=} & \\
+\code{method=} & normally \code{\textquotedbl{}fourier\textquotedbl{}}\\
+\code{sampling\_\allowbreak{}rate=} & \\
+\code{fs=} & \\
+\end{optiontable}
+
+\wordfield{Underneath}{SciPy (signal.resample, \code{resample\_\allowbreak{}poly}, decimate)}
+\wordfield{Example you can run}{(it uses the practice table \code{sensor})}\par\nopagebreak
+\begin{lstlisting}[style=py]
+import simplydata as sdata
+nums = sdata.numbers(sdata.example("sensor")["signal"])
+nums.change_time_step(to=0.01, time_step=0.005)
+\end{lstlisting}
+\wordentry{sdata.wave()}{word:sdata.wave}
+Numbers that make a wave: a sine, square, sawtooth, chirp, pulse or impulse. \code{sdata.\allowbreak{}wave(\textquotedbl{}sine\textquotedbl{},\allowbreak{} frequency=5,\allowbreak{} time\_\allowbreak{}step=0.\allowbreak{}01,\allowbreak{} how\_\allowbreak{}many=100)}
+
+\code{frequency=} is cycles per unit of time (for \code{\textquotedbl{}chirp\textquotedbl{}}, [start, end] with \code{sweep=} \code{\textquotedbl{}linear\textquotedbl{}}, \code{\textquotedbl{}quadratic\textquotedbl{}}, \code{\textquotedbl{}logarithmic\textquotedbl{}} or \code{\textquotedbl{}hyperbolic\textquotedbl{}}); \code{time\_\allowbreak{}step=} the time between readings (\code{sampling\_\allowbreak{}rate=} or \code{fs=} instead); \code{how\_\allowbreak{}many=} the number of readings. \code{\textquotedbl{}square\textquotedbl{}} is high for \code{high\_\allowbreak{}share=} of each cycle; \code{\textquotedbl{}sawtooth\textquotedbl{}} rises for \code{rising\_\allowbreak{}share=} of each cycle (1: rises then drops); \code{\textquotedbl{}pulse\textquotedbl{}} is a Gaussian pulse with \code{bandwidth=} (centred in the middle); \code{\textquotedbl{}impulse\textquotedbl{}} is 1 at position \code{at=} (from 1) and 0 elsewhere. SciPy signal.square, sawtooth, chirp, gausspulse, \code{unit\_\allowbreak{}impulse}; R gsignal gives the same. The numbers remember their time step.
+
+\wordfield{Options}{}\par\nopagebreak
+\begin{optiontable}
+\code{shape=} & normally \code{\textquotedbl{}sine\textquotedbl{}}\\
+\code{frequency=} & normally \code{1}\\
+\code{time\_\allowbreak{}step=} & \\
+\code{how\_\allowbreak{}many=} & \\
+\code{high\_\allowbreak{}share=} & normally \code{0.\allowbreak{}5}\\
+\code{rising\_\allowbreak{}share=} & normally \code{1.\allowbreak{}0}\\
+\code{sweep=} & normally \code{\textquotedbl{}linear\textquotedbl{}}\\
+\code{bandwidth=} & normally \code{0.\allowbreak{}5}\\
+\code{at=} & normally \code{1}\\
+\code{sampling\_\allowbreak{}rate=} & \\
+\code{fs=} & \\
+\end{optiontable}
+
+\wordfield{Underneath}{SciPy (signal.square, sawtooth, chirp, gausspulse, \code{unit\_\allowbreak{}impulse}) and NumPy sin}
+\wordfield{Example you can run}{}\par\nopagebreak
+\begin{lstlisting}[style=py]
+import simplydata as sdata
+nums = sdata.wave("sine", frequency=5, time_step=0.01, how_many=100)
+\end{lstlisting}
+\wordentry{sdata.window\_shape()}{word:sdata.window-shape}
+The weights of a window (taper), such as \code{\textquotedbl{}hann\textquotedbl{}}: high in the middle, low at the ends. \code{sdata.\allowbreak{}window\_\allowbreak{}shape(\textquotedbl{}hann\textquotedbl{},\allowbreak{} how\_\allowbreak{}many=64)}
+
+Any SciPy window name: \code{\textquotedbl{}hann\textquotedbl{}}, \code{\textquotedbl{}hamming\textquotedbl{}}, \code{\textquotedbl{}blackman\textquotedbl{}}, \code{\textquotedbl{}bartlett\textquotedbl{}}, \code{\textquotedbl{}kaiser\textquotedbl{}} (give (\code{\textquotedbl{}kaiser\textquotedbl{}}, 5)), \code{\textquotedbl{}tukey\textquotedbl{}} ... Symmetric by default, as R gsignal::hann and NumPy hanning; \code{periodic=True} gives the version used inside spectra (SciPy \code{get\_\allowbreak{}window}'s default).
+
+\wordfield{Options}{}\par\nopagebreak
+\begin{optiontable}
+\code{name=} & normally \code{\textquotedbl{}hann\textquotedbl{}}\\
+\code{how\_\allowbreak{}many=} & normally \code{64}\\
+\code{periodic=} & normally \code{False}\\
+\end{optiontable}
+
+\wordfield{Underneath}{SciPy (signal.get\_window)}
+\wordfield{Example you can run}{}\par\nopagebreak
+\begin{lstlisting}[style=py]
+import simplydata as sdata
+nums = sdata.window_shape("hann", how_many=64)
+\end{lstlisting}
 \unsection{Planning a study}{group:Planning-a-study}
 \wordentry{sdata.how\_many\_needed()}{word:sdata.how-many-needed}
 How many values (in each group) does a study need to find a real difference?
@@ -8144,6 +8490,7 @@ Make a list of numbers.
 \codeline{sdata.numbers(0, to=100, step=25)}\enspace 0, 25, 50, 75, 100\\
 \codeline{sdata.numbers(0, to=1, how\_many=5)}\enspace 5 numbers evenly spaced: 0, 0.25, 0.5, 0.75, 1\\
 \codeline{sdata.numbers(10, to=1)}\enspace counting down: 10, 9 ... 1\\
+\codeline{sdata.numbers(\textquotedbl{}call.wav\textquotedbl{}, channel=1)}\enspace the readings of a sound file (they remember their time step)\\
 None or NaN in a list is an empty (missing) value.
 
 \wordfield{Options}{}\par\nopagebreak
@@ -8152,6 +8499,7 @@ None or NaN in a list is an empty (missing) value.
 \code{to=} & \\
 \code{step=} & \\
 \code{how\_\allowbreak{}many=} & \\
+\code{channel=} & \\
 \end{optiontable}
 
 \wordfield{Underneath}{NumPy}
@@ -9220,11 +9568,13 @@ chart.save("nums.png")
 \wordentry{nums.save()}{word:nums.save}
 Save the numbers; the end of the file name decides the type. \code{nums.\allowbreak{}save(\textquotedbl{}nums.\allowbreak{}csv\textquotedbl{})}
 
-File types: \code{.\allowbreak{}csv}, \code{.\allowbreak{}tsv}, \code{.\allowbreak{}xlsx} (Excel), \code{.\allowbreak{}parquet} and \code{.\allowbreak{}json}, the same as tables.
+File types: \code{.\allowbreak{}csv}, \code{.\allowbreak{}tsv}, \code{.\allowbreak{}xlsx} (Excel), \code{.\allowbreak{}parquet} and \code{.\allowbreak{}json}, the same as tables, and .wav (sound: \code{time\_\allowbreak{}step=} the time between readings, or the one the numbers remember; \code{bits=32} writes the numbers as they are, \code{bits=16} scales -1 to 1 onto 16-bit whole numbers and clips beyond; SciPy io.wavfile).
 
 \wordfield{Options}{}\par\nopagebreak
 \begin{optiontable}
 \code{file\_\allowbreak{}name} & needed\\
+\code{time\_\allowbreak{}step=} & \\
+\code{bits=} & normally \code{32}\\
 \end{optiontable}
 
 \wordfield{Underneath}{pandas (\code{to\_\allowbreak{}csv}, \code{to\_\allowbreak{}excel} ...)}
@@ -10258,6 +10608,7 @@ Every word and option, A to Z, with the page of its dictionary entry. Other spel
 \indexline{word:table.add-clusters}{table.add\_clusters()}
 \indexline{word:table.add-column}{table.add\_column()}
 \indexline{word:table.add-date-part-column}{table.add\_date\_part\_column()}
+\indexline{word:table.add-filtered-column}{table.add\_filtered\_column()}
 \indexline{word:table.add-group-column}{table.add\_group\_column()}
 \indexline{word:table.add-is-empty-column}{table.add\_is\_empty\_column()}
 \indexline{word:table.add-missing-dates}{table.add\_missing\_dates()}
@@ -10295,6 +10646,7 @@ Every word and option, A to Z, with the page of its dictionary entry. Other spel
 \indexline{word:dist.chance}{dist.chance()}
 \indexline{word:sdata.chance-to-find}{sdata.chance\_to\_find()}
 \indexline{word:table.change-column}{table.change\_column()}
+\indexline{word:nums.change-time-step}{nums.change\_time\_step()}
 \indexline{word:dist.chart}{dist.chart()}
 \indexline{word:nums.chart}{nums.chart()}
 \indexline{word:sdata.chart}{sdata.chart()}
@@ -10323,6 +10675,7 @@ Every word and option, A to Z, with the page of its dictionary entry. Other spel
 \indexline{word:table.compare-spreads}{table.compare\_spreads()}
 \indexline{word:table.compare-survival}{table.compare\_survival()}
 \indexline{word:contour}{chart.contour()}
+\indexline{word:nums.convolve-with}{nums.convolve\_with()}
 \indexline{word:table.correlation-between}{table.correlation\_between()}
 \indexline{word:nums.count}{nums.count()}
 \indexline{word:count-bars}{chart.count\_bars()}
@@ -10339,6 +10692,7 @@ Every word and option, A to Z, with the page of its dictionary entry. Other spel
 \indexline{word:dist.cut-off}{dist.cut\_off()}
 \indexline{word:sdata.dates}{sdata.dates()}
 \indexline{word:sdata.day}{sdata.day()}
+\indexline{word:nums.deconvolve-by}{nums.deconvolve\_by()}
 \indexline{word:density}{chart.density()}
 \indexline{word:dist.density-at}{dist.density\_at()}
 \indexline{word:table.describe-columns}{table.describe\_columns()}
@@ -10348,6 +10702,7 @@ Every word and option, A to Z, with the page of its dictionary entry. Other spel
 \indexline{word:dots}{chart.dots()}
 \indexline{word:dots-3d}{chart.dots\_3d()}
 \indexline{word:empty-cells}{chart.empty\_cells()}
+\indexline{word:nums.envelope}{nums.envelope()}
 \indexline{word:error-eq}{error=}
 \indexline{word:error-bars}{chart.error\_bars()}
 \indexline{word:sdata.example}{sdata.example()}
@@ -10358,6 +10713,10 @@ Every word and option, A to Z, with the page of its dictionary entry. Other spel
 \indexline{word:nums.fill-empty-numbers}{nums.fill\_empty\_numbers()}
 \indexline{word:sdata.find-biggest}{sdata.find\_biggest()}
 \indexline{word:table.find-change-points}{table.find\_change\_points()}
+\indexline{word:nums.find-dips}{nums.find\_dips()}
+\indexline{word:table.find-dips}{table.find\_dips()}
+\indexline{word:nums.find-peaks}{nums.find\_peaks()}
+\indexline{word:table.find-peaks}{table.find\_peaks()}
 \indexline{word:sdata.find-smallest}{sdata.find\_smallest()}
 \indexline{word:fit-curve}{chart.fit\_curve()}
 \indexline{word:table.fit-curve}{table.fit\_curve()}
@@ -10374,6 +10733,7 @@ Every word and option, A to Z, with the page of its dictionary entry. Other spel
 \indexline{word:font-size}{chart.font\_size()}
 \indexline{word:nums.forecast}{nums.forecast()}
 \indexline{word:table.forecast}{table.forecast()}
+\indexline{word:nums.fourier-transform}{nums.fourier\_transform()}
 \indexline{word:sdata.grid}{sdata.grid()}
 \indexline{word:heatmap}{chart.heatmap()}
 \indexline{word:sdata.help}{sdata.help()}
@@ -10381,6 +10741,7 @@ Every word and option, A to Z, with the page of its dictionary entry. Other spel
 \indexline{word:hide-legend}{chart.hide\_legend()}
 \indexline{word:histogram}{chart.histogram()}
 \indexline{word:sdata.how-many-needed}{sdata.how\_many\_needed()}
+\indexline{word:sdata.inverse-fourier-transform}{sdata.inverse\_fourier\_transform()}
 \indexline{word:table.join-with}{table.join\_with()}
 \indexline{word:table.keep-biggest-rows}{table.keep\_biggest\_rows()}
 \indexline{word:table.keep-columns}{table.keep\_columns()}
@@ -10388,6 +10749,7 @@ Every word and option, A to Z, with the page of its dictionary entry. Other spel
 \indexline{word:table.keep-columns-by-position}{table.keep\_columns\_by\_position()}
 \indexline{word:nums.keep-first-numbers}{nums.keep\_first\_numbers()}
 \indexline{word:table.keep-first-rows}{table.keep\_first\_rows()}
+\indexline{word:nums.keep-frequencies}{nums.keep\_frequencies()}
 \indexline{word:nums.keep-last-numbers}{nums.keep\_last\_numbers()}
 \indexline{word:table.keep-last-rows}{table.keep\_last\_rows()}
 \indexline{word:nums.keep-numbers}{nums.keep\_numbers()}
@@ -10464,6 +10826,7 @@ Every word and option, A to Z, with the page of its dictionary entry. Other spel
 \indexline{word:table.remove-duplicate-rows}{table.remove\_duplicate\_rows()}
 \indexline{word:nums.remove-empty-numbers}{nums.remove\_empty\_numbers()}
 \indexline{word:table.remove-extra-spaces}{table.remove\_extra\_spaces()}
+\indexline{word:nums.remove-frequencies}{nums.remove\_frequencies()}
 \indexline{word:nums.remove-numbers}{nums.remove\_numbers()}
 \indexline{word:nums.remove-numbers-by-position}{nums.remove\_numbers\_by\_position()}
 \indexline{word:table.remove-rows}{table.remove\_rows()}
@@ -10558,6 +10921,8 @@ Every word and option, A to Z, with the page of its dictionary entry. Other spel
 \indexline{word:dist.variance}{dist.variance()}
 \indexline{word:violins}{chart.violin()}
 \indexline{word:violins}{chart.violins()}
+\indexline{word:sdata.wave}{sdata.wave()}
+\indexline{word:sdata.window-shape}{sdata.window\_shape()}
 \indexline{word:sdata.words}{sdata.words()}
 \indexline{word:zoom-box}{chart.zoom\_box()}
 \end{multicols}

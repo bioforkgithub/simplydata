@@ -16,11 +16,15 @@ from .maths import MathsWords
 from .picking import PickingWords, ReplacingWords
 from .signal_words import SignalNumberWords, TimeSeriesNumberWords
 from .smoothing_words import SmoothingNumberWords
+from .filter_words import FilterNumberWords
+from .fourier_words import FourierNumberWords
+from .peak_words import PeakNumberWords
 from .summaries import GridSummaryWords, SummaryWords
 
 
 class Numbers(PickingWords, MathsWords, SummaryWords, DistributionNumberWords, SignalNumberWords,
-              TimeSeriesNumberWords, SmoothingNumberWords, BaseNumbers):
+              TimeSeriesNumberWords, SmoothingNumberWords, FilterNumberWords, PeakNumberWords,
+              FourierNumberWords, BaseNumbers):
     """A list of numbers. Make one with sdata.numbers([3, 5, 2, 8]), then add steps: nums.add(5)."""
 
     _is_simplydata_numbers = True
@@ -305,7 +309,7 @@ _NUMBERS_EXAMPLE = "sdata.numbers([3, 5, 2, 8])   or   sdata.numbers(1, to=10)"
 
 
 @friendly
-def numbers(*values, to=None, step=None, how_many=None) -> Numbers:
+def numbers(*values, to=None, step=None, how_many=None, channel=None) -> Numbers:
     """Make a list of numbers.
 
     sdata.numbers([3, 5, 2, 8])              these numbers (or sdata.numbers(3, 5, 2, 8))
@@ -313,8 +317,13 @@ def numbers(*values, to=None, step=None, how_many=None) -> Numbers:
     sdata.numbers(0, to=100, step=25)        0, 25, 50, 75, 100
     sdata.numbers(0, to=1, how_many=5)       5 numbers evenly spaced: 0, 0.25, 0.5, 0.75, 1
     sdata.numbers(10, to=1)                  counting down: 10, 9 ... 1
+    sdata.numbers("call.wav", channel=1)      the readings of a sound file (they remember their time step)
     None or NaN in a list is an empty (missing) value.
     """
+    if len(values) == 1 and isinstance(values[0], str) and values[0].lower().endswith(".wav"):
+        return _read_wav(values[0], channel)
+    if channel is not None:
+        raise SimplydataError('channel= goes with a .wav file, such as sdata.numbers("call.wav", channel=1).')
     if len(values) == 1 and not is_number(values[0]):
         if to is not None or step is not None or how_many is not None:
             raise SimplydataError(
@@ -343,6 +352,29 @@ def numbers(*values, to=None, step=None, how_many=None) -> Numbers:
             f"to count up to it write sdata.numbers(1, to={n})."
         )
     return Numbers(to_array(list(values), "sdata.numbers()", _NUMBERS_EXAMPLE))
+
+
+def _read_wav(file_name, channel=None):
+    """A .wav file as Numbers (SciPy io.wavfile; the values R tuneR::readWave gives), remembering its time step."""
+    from scipy.io import wavfile
+
+    try:
+        rate, data = wavfile.read(file_name)
+    except FileNotFoundError:
+        raise SimplydataError(f'There is no file called "{file_name}".') from None
+    except ValueError as error:
+        raise SimplydataError(f'"{file_name}" could not be read as a .wav file ({error}).') from None
+    channels = 1 if data.ndim == 1 else data.shape[1]
+    chosen = 1 if channel is None else channel
+    if isinstance(chosen, bool) or not isinstance(chosen, int) or not 1 <= chosen <= channels:
+        raise SimplydataError(f"channel= needs a whole number from 1 to {channels} (the file has {channels}).")
+    values = data if data.ndim == 1 else data[:, chosen - 1]
+    bits = data.dtype.itemsize * 8
+    nums = Numbers(np.asarray(values, dtype=float))
+    nums._time_step = 1.0 / rate
+    print(f"{rate:,} readings per second (time step {1 / rate:.3g} s), {len(values) / rate:.3g} seconds, "
+          f"{bits}-bit, channel {chosen} of {channels}.")
+    return nums
 
 
 def say_number(value) -> str:

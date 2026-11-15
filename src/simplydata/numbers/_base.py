@@ -414,13 +414,43 @@ class BaseNumbers:
         return chart(self)
 
     @friendly
-    def save(self, file_name):
+    def save(self, file_name, time_step=None, bits=32):
         """Save the numbers; the end of the file name decides the type. nums.save("nums.csv")
 
-        File types: .csv, .tsv, .xlsx (Excel), .parquet and .json, the same as tables.
+        File types: .csv, .tsv, .xlsx (Excel), .parquet and .json, the same as tables, and .wav (sound:
+        time_step= the time between readings, or the one the numbers remember; bits=32 writes the numbers
+        as they are, bits=16 scales -1 to 1 onto 16-bit whole numbers and clips beyond; SciPy io.wavfile).
         """
+        if isinstance(file_name, str) and file_name.lower().endswith(".wav"):
+            self._save_wav(file_name, time_step, bits)
+            return self
+        if time_step is not None or bits != 32:
+            raise SimplydataError("time_step= and bits= go with a .wav file, such as nums.save(\"tone.wav\", time_step=1/44100).")
         self.table().save(file_name)
         return self
+
+    def _save_wav(self, file_name, time_step, bits):
+        from scipy.io import wavfile
+
+        step = time_step if time_step is not None else getattr(self, "_time_step", None)
+        if step is None or isinstance(step, bool) or not isinstance(step, (int, float)) or step <= 0:
+            raise SimplydataError('Saving a .wav file needs time_step= (the time between readings), such as '
+                                  'nums.save("tone.wav", time_step=1/44100).')
+        rate = int(round(1 / step))
+        x = np.asarray(self._values, dtype=float).ravel()
+        if np.isnan(x).any():
+            raise SimplydataError("A .wav file cannot hold empty values; fill them first.")
+        if bits == 32:
+            data = x.astype(np.float32)
+        elif bits == 16:
+            clipped = int((np.abs(x) > 1).sum())
+            if clipped:
+                print(f"Note: {clipped} values were beyond -1 to 1 and were clipped.")
+            data = np.round(np.clip(x, -1, 1) * 32767).astype(np.int16)
+        else:
+            raise SimplydataError("bits= is 32 (the numbers as they are) or 16.")
+        wavfile.write(file_name, rate, data)
+        print(f"Saved {len(x)} readings to {file_name}: {rate:,} readings per second, {bits}-bit.")
 
     # ------------------------------------------------------------------ symbols (new numbers)
     def __add__(self, other):

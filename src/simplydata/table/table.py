@@ -14,6 +14,7 @@ from .models import ModelWords
 from .patterns import PatternWords
 from .positions import PositionWords
 from .rows import RowWords
+from .signal_more import SignalMoreTableWords
 from .signal_words import SignalTableWords
 from .stat_tests import StatTestWords
 from .summaries import SummaryWords
@@ -23,7 +24,7 @@ from .time_steps import TimeStepWords
 
 
 class Table(PositionWords, RowWords, ColumnWords, SummaryWords, StatTestWords, FittingWords, ModelWords, PatternWords, SurvivalWords,
-            TimeSeriesWords, TimeStepWords, ForecastWords, SignalTableWords, BetweenWords, DistributionTableWords, BaseTable):
+            TimeSeriesWords, TimeStepWords, ForecastWords, SignalTableWords, SignalMoreTableWords, BetweenWords, DistributionTableWords, BaseTable):
     """A table. Make one with sdata.table(...), then add steps: table.keep_rows(...), table.sort_by(...)."""
 
 

@@ -98,6 +98,19 @@ Install once: `pip install "simplydata[r]"`, R from https://cran.r-project.org, 
   half_life=, com=), "gaussian" (width=), "lowess", "spline", "whittaker" and "wiener", from SciPy, pandas and
   statsmodels.
 - `nums.remove_trend()` (breaks= for a separate line per piece; SciPy detrend, as R residuals(lm(x ~ t))).
+- `nums.keep_frequencies(below=10, time_step=0.005)` / `remove_frequencies(...)` and `table.add_filtered_column(...)`:
+  low-pass, high-pass, band, band-stop, notch (equal_to=, width=; and_multiples= for a comb) and peak filters.
+  method= "butterworth", "chebyshev", "chebyshev 2", "elliptic" or "bessel"; steepness= the order; both_ways=True
+  runs forwards and backwards (SciPy sosfiltfilt; MATLAB's ends rule), both_ways=False forwards only (as R
+  signal::filter).
+- `find_peaks` / `find_dips` on numbers and tables (at_least= / at_most=, apart=, stands_out_by=, wide_at_least=;
+  SciPy find_peaks, positions as R pracma::findpeaks).
+- `nums.fourier_transform()` and `sdata.inverse_fourier_transform(table)` (SciPy fft, as R fft), `nums.envelope()`
+  (SciPy hilbert, as R gsignal::hilbert), `nums.convolve_with` / `deconvolve_by` (as R convolve, pracma::deconv),
+  `nums.change_time_step(to=)` (SciPy resample, resample_poly, decimate), `sdata.wave(...)` and
+  `sdata.window_shape(...)` (SciPy; as R gsignal).
+- `.wav` sound files: `sdata.numbers("call.wav", channel=1)` reads the readings (as R tuneR::readWave) and the numbers
+  remember their time step; `nums.save("tone.wav", bits=16)` writes one (SciPy io.wavfile).
 - New practice table `visitors`: monthly visitors to two made-up museums, 2014 to 2025.
 - New practice table `river`: daily water level and nitrate at two made-up stations, 2024 to 2025, with
   missing days and a few empty cells.

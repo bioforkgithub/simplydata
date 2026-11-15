@@ -392,6 +392,21 @@ and `a`, `b` in `sdata.side_by_side(a, b)` are charts you made first.
 | `add_smoothed_column` | `table.add_smoothed_column("signal_smooth", from_column="signal", method="savitzky-golay", window=11, sorted_by="time")` | sensor | Add a smoothed copy of a column: each value becomes a summary of its neighbours in time. |
 | `smooth` | `nums.smooth(method="median", window=5)` | sensor | Smooth the numbers: each one becomes a summary of its neighbours, so noise and spikes shrink. |
 | `remove_trend` | `nums.remove_trend()` | sensor | Take away the trend: the best straight line (or only the average) is taken from the numbers. |
+| `keep_frequencies` | `nums.keep_frequencies(below=5, time_step=0.01)` | sensor | Keep only some frequencies of the numbers (a low-pass, high-pass, band-pass or peak filter). |
+| `remove_frequencies` | `nums.remove_frequencies(equal_to=50, time_step=0.005)` | sensor | Remove some frequencies from the numbers, such as a 50-per-second hum (band-stop or notch filter). |
+| `add_filtered_column` | `table.add_filtered_column("slow", from_column="signal", keep_below=10, sorted_by="time")` | sensor | Add a filtered copy of a column: some frequencies kept or removed (low-pass, high-pass, band, notch). |
+| `find_peaks` | `nums.find_peaks(at_least=1, apart=10)` | sensor | Find the peaks: numbers higher than both neighbours, with conditions. |
+| `find_dips` | `nums.find_dips(at_most=-1, apart=10)` | sensor | Find the dips: numbers lower than both neighbours. |
+| `find_peaks` | `table.find_peaks("signal", sorted_by="time", at_least=1, apart=0.05)` | sensor | Find the peaks of a column: readings higher than both neighbours, with conditions. |
+| `find_dips` | `table.find_dips("signal", sorted_by="time", at_most=-1, apart=0.05)` | sensor | Find the dips of a column: readings lower than both neighbours (find_peaks upside down). |
+| `fourier_transform` | `nums.fourier_transform(time_step=0.005)` | sensor | The numbers as a sum of waves: the size and phase of each frequency (the Fourier transform). |
+| `sdata.inverse_fourier_transform` | `sdata.inverse_fourier_transform(table)` |  | Numbers back from a Fourier transform table (its real and imaginary parts). |
+| `envelope` | `nums.envelope()` | sensor | The envelope of the numbers: how big the wave is at each moment (from the Hilbert transform). |
+| `convolve_with` | `nums.convolve_with([1, 2, 1])` |  | Convolve the numbers with other numbers: each result is a sum of products as one list slides along. |
+| `deconvolve_by` | `nums.deconvolve_by([1, 2, 3])` |  | Undo a convolution: the numbers divided by other numbers (polynomial division). |
+| `change_time_step` | `nums.change_time_step(to=0.01, time_step=0.001)` | sensor | Change the time between readings (resample): fewer readings (with a filter first) or more. |
+| `sdata.wave` | `sdata.wave("sine", frequency=5, time_step=0.01, how_many=100)` |  | Numbers that make a wave: a sine, square, sawtooth, chirp, pulse or impulse. |
+| `sdata.window_shape` | `sdata.window_shape("hann", how_many=64)` |  | The weights of a window (taper), such as "hann": high in the middle, low at the ends. |
 
 ## Planning a study
 
