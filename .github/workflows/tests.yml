@@ -24,7 +24,7 @@ jobs:
           r-version: release
           use-public-rspm: true
       - name: Install R packages
-        run: Rscript -e 'install.packages(c("survival", "vegan", "mice", "effectsize", "pwr", "Exact", "exact2x2", "nortest", "BSDA", "rstatix", "DescTools", "FSA", "PMCMRplus"), repos = "https://cloud.r-project.org")'
+        run: Rscript -e 'install.packages(c("survival", "vegan", "mice", "effectsize", "pwr", "Exact", "exact2x2", "nortest", "BSDA", "rstatix", "DescTools", "FSA", "PMCMRplus", "multcompView", "TOSTER", "presize"), repos = "https://cloud.r-project.org")'
       - name: Tell rpy2 where R is
         shell: bash
         run: echo "R_HOME=$(Rscript -e 'cat(normalizePath(R.home(), winslash = "/"))')" >> "$GITHUB_ENV"

@@ -379,7 +379,7 @@ class SurvivalWords:
     # ------------------------------------------------------------------ compare_survival
     @friendly
     def compare_survival(self, time=None, event=None, for_each=None):
-        """Do the groups differ in the time until the event, or could it be chance? (log-rank test)
+        """Do the groups really differ in the time until the event? (log-rank test)
 
         table.compare_survival(time="days", event="died", for_each="treatment")   (with sdata.example("trial"))
         The log-rank test, as R survdiff(Surv(days, died == "yes") ~ treatment): at each event

@@ -89,6 +89,62 @@ nothing is computed anew.
   so simplydata seeds SciPy's, `seed=1`, printed).
 - `add_adjusted_p_value_column(method=)` gains `"hochberg"` and `"hommel"` (statsmodels
   `multipletests`, as R `p.adjust`).
+- `compare_each_pair(..., show="letters")`: a compact letter display, one row per group; groups
+  that share a letter have an adjusted p-value of 0.05 or more between them (R
+  `multcompView::multcompLetters`). Works with every `test=`.
+
+### Shuffling and the bootstrap
+
+- `p_value_by="shuffling"` on `compare_averages` (2 groups), `compare_before_after` (numbers) and
+  `correlation_between` (2 columns): the p-value from shuffling the group labels, swapping the two
+  values within rows, or shuffling one column against the other, `shuffles=9999` times with
+  `seed=1` (SciPy `permutation_test`, as R `perm::permTS`). When there are no more arrangements
+  than shuffles, every one is counted and the p-value is exact; the sentence says which.
+- `correlation_between(..., interval_by="bootstrap")`: a 95 % BCa bootstrap interval of r
+  (SciPy `bootstrap`, `resamples=9999`, `seed=1`, as R `boot::boot.ci`), with a note below 20
+  values that bootstrap intervals are often too narrow.
+
+### Intervals for summaries
+
+- `interval=95` on `average_of` (t interval, as R `t.test`), `median_of` and `percentile_of`
+  (exact interval from the order of the values, SciPy `quantile_test`, as R
+  `DescTools::MedianCI(method = "exact")`) and `standard_deviation_of` (R `DescTools::VarCI`,
+  square-rooted). They then give back a table with the value, the interval and the count.
+- `table.interval_of("marks", "median", for_each="class")`: a bootstrap interval for any summary
+  (any one-number `summary_of` measure, or a function of your own); `method="bootstrap"` (BCa),
+  `"percentile bootstrap"` or `"basic bootstrap"`.
+- `summary_of(show=[...])` gains `"harmonic mean"` (SciPy `hmean`, as R `psych::harmonic.mean`)
+  and `"winsorized average"` (20 % at each end, SciPy `mstats.winsorize`, as R `WRS2::winmean`).
+- `percentile_of(..., method=)`: R's nine rules, by R's number or NumPy's name (NumPy
+  `percentile`, as R `quantile(type =)`).
+- `table.add_z_score_column("marks_z", from_column="marks", for_each="subject")`: SciPy
+  `zscore(ddof=1)`, as R `scale()`.
+
+### Equivalence and non-inferiority
+
+- `same_within=5` (or `[-3, 5]`) on `compare_averages` (2 groups, Welch), `compare_before_after`
+  and `compare_average_to`: two one-sided tests (statsmodels `ttost_ind`, `ttost_paired`,
+  `DescrStatsW.ttost_mean`, as R `TOSTER::t_TOST`), with the 90 % interval. The answer is one of
+  three: the same within the margin, different, or the data cannot tell.
+- With `sides=1, higher="B"` it is a non-inferiority test: is B lower than the other side by no
+  more than the margin? (statsmodels `CompareMeans`, as R `t.test(mu = ..., alternative = ...)`).
+
+### Power
+
+- `how_many_needed` / `chance_to_find(test="compare_counts", percents=[30, 15])`: two percents
+  (statsmodels `power_proportions_2indep` for the power; R `power.prop.test` for the number
+  needed).
+- `same_within=5, spread=10`: power and numbers for two one-sided tests (R
+  `TOSTER::power_t_TOST`).
+- `how_many_needed(interval_width=4, spread=10)`: the number needed for a 95 % interval of an
+  average of that width (R `presize::prec_mean`).
+- `based_on="ranks"` says plainly that no package gives rank-test power.
+
+### Test titles
+
+The help titles of the tests no longer ask "or could it be chance?" (which invites reading the
+p-value as the chance that chance did it); they ask "really different?", in line with the
+p-value sentence.
 
 ### Yes/no and category columns before and after
 

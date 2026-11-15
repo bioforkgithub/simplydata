@@ -55,7 +55,7 @@ sdata.lesson(1)
 There are twenty short lessons. Lessons 1 to 8 teach charts, from your first chart to
 animations. Lessons 9 to 12 teach tables: looking at your data, choosing rows and columns,
 cleaning it, and summing it up. Lesson 13 teaches numbers (lists and grids of numbers), and
-lesson 14 the statistical tests: is a difference real, or could it be chance? Lesson 15 puts it
+lesson 14 the statistical tests: is a difference real, and how big is it? Lesson 15 puts it
 all together, from a question and a file to a figure with panels A and B and a saved table.
 Lessons 16 to 20 go further: models (multiple, logistic, Poisson and mixed regression, multiple
 imputation), patterns across many columns (PCA, clustering, Bray-Curtis distances, NMDS,

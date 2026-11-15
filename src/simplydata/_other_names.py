@@ -96,6 +96,8 @@ _TABLE = [
     ('table.standard_deviation_of("marks")', "std sd"),
     ('table.median_of("marks")', "median"),
     ('table.percentile_of("marks", 90)', "quantile percentile"),
+    ('table.add_z_score_column("marks_z", from_column="marks")', "zscore z_score standardize standardise"),
+    ('table.interval_of("marks", "median")', "bootstrap boot"),
     ('table.count_each("class")', "value_counts table tabulate"),
     ('table.count_different_values("name")', "nunique n_distinct n_unique"),
     ('table.most_common_of("marks")', "mode"),

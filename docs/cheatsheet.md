@@ -244,6 +244,7 @@ and `a`, `b` in `sdata.side_by_side(a, b)` are charts you made first.
 | `add_column` | `table.add_column("study_and_marks", by_adding=["hours", "marks"])` | marks | Add a new column, worked out from other columns in plain words or with a formula. |
 | `add_group_column` | `table.add_group_column("grade", from_column="marks", cut_at=[40, 60, 80], names=["D", "C", "B", "A"])` | marks | Add a column that puts each row into a group, like turning marks into grades. |
 | `add_rank_column` | `table.add_rank_column("place", from_column="marks")` | marks | Add a column with each row's place, where 1 is the best. |
+| `add_z_score_column` | `table.add_z_score_column("marks_z", from_column="marks", for_each="subject")` | marks | Add a column with each value's z-score: how many standard deviations it lies above the average. |
 
 ## Dates and text
 
@@ -282,22 +283,23 @@ and `a`, `b` in `sdata.side_by_side(a, b)` are charts you made first.
 | `count_different_values` | `table.count_different_values("name", for_each="class")` | marks | How many different values a column has, or how many in each group. |
 | `percentile_of` | `table.percentile_of("marks", 90, for_each="class")` | marks | The value below which a given percent of the numbers lie; empty cells are skipped. |
 | `most_common_of` | `table.most_common_of("days_absent", for_each="school")` | school | The value that turns up most often (the mode), for numbers or text; empty cells are skipped. |
+| `interval_of` | `table.interval_of("marks", "median", for_each="class")` | marks | A confidence interval for any summary, from the bootstrap. |
 | `correlation_between` | `table.correlation_between("hours", "marks")` | marks | How strongly columns of numbers go up or down together, from -1 to 1. |
 
 ## Statistical tests
 
 | Word | Example | Table | What it does |
 |---|---|---|---|
-| `compare_averages` | `table.compare_averages("marks", for_each="class")` | marks | Are the averages of the groups really different, or could it be chance? |
+| `compare_averages` | `table.compare_averages("marks", for_each="class")` | marks | Are the averages of the groups really different? |
 | `compare_each_pair` | `table.compare_each_pair("marks", for_each="class")` | marks | Which pairs of groups differ? Every pair is compared, with Holm's correction. |
-| `compare_before_after` | `table.compare_before_after("Maths", "Science")` | marks | Did the values change from one column to the other, row by row, more than chance? |
-| `compare_average_to` | `table.compare_average_to("marks", 60)` | marks | Is the average of a column different from a number you choose, or could it be chance? |
-| `compare_counts` | `table.compare_counts("result", for_each="class")` | marks | Does how often each value turns up differ between groups, more than chance? |
+| `compare_before_after` | `table.compare_before_after("Maths", "Science")` | marks | Did the values really change from one column to the other, row by row? |
+| `compare_average_to` | `table.compare_average_to("marks", 60)` | marks | Is the average of a column really different from a number you choose? |
+| `compare_counts` | `table.compare_counts("result", for_each="class")` | marks | Does how often each value turns up really differ between groups? |
 | `compare_shape_to` | `table.compare_shape_to("marks", "normal", for_each="class")` | marks | Do the values look bell-shaped (normal), or are they too far from it? |
 | `add_adjusted_p_value_column` | `table.add_adjusted_p_value_column("q", method="benjamini-hochberg")` | marks | Adjust p-values for testing many things at once, in a new column. |
-| `compare_spreads` | `table.compare_spreads("marks", for_each="class")` | marks | Do the groups differ in how spread out their values are, more than chance? |
-| `compare_counts_to` | `table.compare_counts_to("breakfast", expected={"yes": 0.6, "no": 0.4})` | school | Does how often each value turns up match the shares you expect, more than chance? |
-| `compare_percent_to` | `table.compare_percent_to("passed", value="yes", percent=50)` | school | Is the percent of rows with one value different from a percent you choose, or could it be chance? |
+| `compare_spreads` | `table.compare_spreads("marks", for_each="class")` | marks | Do the groups really differ in how spread out their values are? |
+| `compare_counts_to` | `table.compare_counts_to("breakfast", expected={"yes": 0.6, "no": 0.4})` | school | Does how often each value turns up really differ from the shares you expect? |
+| `compare_percent_to` | `table.compare_percent_to("passed", value="yes", percent=50)` | school | Is the percent of rows with one value really different from a percent you choose? |
 | `compare_matched` | `table.compare_matched("Maths", "Science", "English")` | marks | Do three or more measurements of the same rows differ, such as pain at week 0, 4 and 8? |
 | `compare_shapes` | `table.compare_shapes("marks", for_each="class")` | marks | Do the groups differ in the whole shape of their values, not only in the average? |
 | `compare_to_random_order` | `table.compare_to_random_order("marks")` | marks | Do the values come in a random order, or in clumps or waves? |
@@ -366,14 +368,14 @@ and `a`, `b` in `sdata.side_by_side(a, b)` are charts you made first.
 | `add_clusters` | `table.add_clusters(how_many=3)` | meadow | Sort the rows into groups of similar rows (clusters), in a new column. |
 | `distances_between_rows` | `table.distances_between_rows(names="plot")` | meadow | How different each row is from every other row: a square table of distances. |
 | `add_nmds` | `table.add_nmds()` | meadow | Draw the rows as points on a map where close points are similar rows (NMDS), in new columns. |
-| `compare_profiles` | `table.compare_profiles(for_each="grazed")` | meadow | Do the groups differ in their make-up across many columns (PERMANOVA), or could it be chance? |
+| `compare_profiles` | `table.compare_profiles(for_each="grazed")` | meadow | Do the groups really differ in their make-up across many columns (PERMANOVA)? |
 
 ## Survival
 
 | Word | Example | Table | What it does |
 |---|---|---|---|
 | `survival_over_time` | `table.survival_over_time(time="days", event="died", for_each="treatment")` | trial | The share still without the event over time (Kaplan-Meier), with the median time. |
-| `compare_survival` | `table.compare_survival(time="days", event="died", for_each="treatment")` | trial | Do the groups differ in the time until the event, or could it be chance? (log-rank test) |
+| `compare_survival` | `table.compare_survival(time="days", event="died", for_each="treatment")` | trial | Do the groups really differ in the time until the event? (log-rank test) |
 | `explain_survival` | `table.explain_survival(time="days", event="died", using=["treatment", "age"])` | trial | Which columns go with a higher or lower risk of the event? (Cox model, hazard ratios) |
 | `survival_curves` | `chart.survival_curves(time="days", event="died", colour="treatment")` | trial | The share still without the event over time (Kaplan-Meier curves). |
 

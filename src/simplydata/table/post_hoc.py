@@ -118,3 +118,27 @@ def dunnett_pairs(groups, against, seed):
     if not rows:
         raise SimplydataError("against= needs at least one other group to compare with.")
     return rows
+
+
+P_COLUMNS = ("p-value (Holm)", "p-value (Tukey)", "p-value (adjusted)", "p-value")  # the one the letters use
+
+
+def pair_letters(names, rows):
+    """{group: letters} from the pairs' (adjusted) p-values: R multcompView::multcompLetters(), threshold 0.05.
+
+    Groups that share a letter have a p-value of 0.05 or more between them. Gives back (letters, the
+    p-value column used)."""
+    from .._r import r_call
+
+    p_name = next(c for c in P_COLUMNS if c in rows[0])
+    k = len(names)
+    index = {n: i for i, n in enumerate(names)}
+    matrix = np.ones((k, k))
+    for row in rows:
+        i, j = index[row["group 1"]], index[row["group 2"]]
+        matrix[i, j] = matrix[j, i] = row[p_name]
+    found = r_call("dimnames(p) <- list(lv, lv); unname(multcompView::multcompLetters(p, threshold = 0.05)$Letters"
+                   "[lv])", packages=("multcompView",), what="the letters (R multcompView::multcompLetters())",
+                   python_note="without R, leave out show= to see each pair with its p-value",
+                   p=matrix, lv=np.array(names, dtype=object))
+    return dict(zip(names, (str(v) for v in np.atleast_1d(found)))), p_name

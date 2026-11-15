@@ -507,7 +507,7 @@ class PatternWords:
     # ------------------------------------------------------------------ PERMANOVA
     @friendly
     def compare_profiles(self, columns=None, for_each=None, measure="bray-curtis", permutations=999, seed=1):
-        """Do the groups differ in their make-up across many columns (PERMANOVA), or could it be chance?
+        """Do the groups really differ in their make-up across many columns (PERMANOVA)?
 
         table.compare_profiles(for_each="grazed")   (with sdata.example("meadow"))
         Compares whole profiles, such as the counts of all plant species in a plot, between

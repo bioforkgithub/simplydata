@@ -139,26 +139,39 @@ UNDERNEATH = {
     "table.add_rolling_column": "narwhals (rolling_mean, rolling_sum, rolling_std with over(order_by=)); "
                                 "pandas or Polars rolling for median, smallest and biggest",
     "table.summary_of": "narwhals (group summaries); SciPy (stats: gmean, variation, median_abs_deviation, "
-                        "trim_mean, mode, skew, kurtosis, and the t distribution for the confidence interval)",
+                        "trim_mean, mode, skew, kurtosis, hmean, mstats.winsorize, and the t distribution for the "
+                        "confidence interval)",
+    "table.interval_of": "SciPy (stats.bootstrap, BCa, percentile or basic)",
+    "table.add_z_score_column": "SciPy (stats.zscore with ddof=1, as R scale())",
+    "table.average_of": "narwhals (group means); SciPy (stats.ttest_1samp confidence_interval for interval=)",
+    "table.median_of": "narwhals (group medians); SciPy (stats.quantile_test confidence_interval for interval=)",
+    "table.standard_deviation_of": "narwhals (group standard deviations); R DescTools::VarCI for interval= "
+                                   "(simplydata[r])",
     "table.percent_of": "narwhals; SciPy (stats.binomtest, the Clopper-Pearson exact interval)",
     "table.compare_spreads": "SciPy (stats.levene with center=\"median\", stats.bartlett, stats.fligner)",
     "table.compare_counts_to": "SciPy (stats.chisquare)",
     "table.compare_percent_to": "SciPy (stats.binomtest, the Clopper-Pearson exact interval)",
-    "table.percentile_of": "narwhals (quantile with linear interpolation, as R quantile type 7)",
+    "table.percentile_of": "narwhals (quantile with linear interpolation, as R quantile type 7); NumPy (percentile "
+                           "with method=, R's nine types); SciPy (stats.quantile_test for interval=)",
     "table.most_common_of": "narwhals (value counts per group)",
     "table.add_adjusted_p_value_column": "statsmodels (stats.multitest.multipletests: Holm, Bonferroni, "
                                          "Benjamini-Hochberg, Benjamini-Yekutieli, Hochberg and Hommel, as R p.adjust())",
     "table.add_rows_from": "pandas (concat) or Polars (concat), whichever holds the table",
-    "table.correlation_between": "SciPy (stats.pearsonr or stats.spearmanr)",
+    "table.correlation_between": "SciPy (stats.pearsonr, spearmanr or kendalltau; permutation_test and bootstrap "
+                                 "for p_value_by=\"shuffling\" and interval_by=\"bootstrap\")",
     "table.compare_averages": "SciPy (stats.ttest_ind with equal_var=False; mannwhitneyu, kruskal) and "
-                              "statsmodels (stats.oneway.anova_oneway for Welch's ANOVA)",
+                              "statsmodels (stats.oneway.anova_oneway for Welch's ANOVA; weightstats.ttost_ind "
+                              "and CompareMeans for same_within=); SciPy permutation_test for p_value_by=\"shuffling\"",
     "table.compare_each_pair": "SciPy (stats.ttest_ind or mannwhitneyu, tukey_hsd, dunnett), with Holm's correction "
                                "from statsmodels (multipletests); R rstatix::games_howell_test, "
                                "DescTools::ScheffeTest and PostHocTest, FSA::dunnTest, "
-                               "PMCMRplus::kwAllPairsConoverTest (simplydata[r])",
+                               "PMCMRplus::kwAllPairsConoverTest and multcompView::multcompLetters for "
+                               "show=\"letters\" (simplydata[r])",
     "table.compare_before_after": "SciPy (stats.ttest_rel or stats.wilcoxon); statsmodels (contingency_tables.mcnemar "
                                   "for yes/no columns, SquareTable.symmetry for categories, sign_test); R "
-                                  "exact2x2::mcnemarExactDP for the change in percent (simplydata[r])",
+                                  "exact2x2::mcnemarExactDP for the change in percent (simplydata[r]); "
+                                  "statsmodels ttost_paired for same_within=; SciPy permutation_test for "
+                                  "p_value_by=\"shuffling\"",
     "table.compare_matched": "SciPy (stats.friedmanchisquare); statsmodels (contingency_tables.cochrans_q for yes/no "
                              "columns); R stats::quade.test and effectsize::kendalls_w (simplydata[r])",
     "table.compare_shapes": "SciPy (stats.ks_2samp; stats.anderson_ksamp with a PermutationMethod); R ks.test for "
@@ -168,7 +181,8 @@ UNDERNEATH = {
                               "BSDA::tsum.test for the interval of the difference (simplydata[r])",
     "sdata.compare_counts": "SciPy (stats.chi2_contingency, fisher_exact; contingency.association), as "
                             "table.compare_counts",
-    "table.compare_average_to": "SciPy (stats.ttest_1samp or stats.wilcoxon)",
+    "table.compare_average_to": "SciPy (stats.ttest_1samp or stats.wilcoxon); statsmodels "
+                                "(DescrStatsW.ttost_mean for same_within=)",
     "table.compare_counts": "SciPy (stats.chi2_contingency, or fisher_exact with test=\"fisher\"; "
                             "contingency.association for Cramer's V)",
     "table.compare_shape_to": "SciPy (stats.shapiro for normal, normaltest, jarque_bera, ks_1samp, cramervonmises; "
@@ -217,8 +231,11 @@ UNDERNEATH = {
                               "survival::cox.zph for the proportional-hazards check (needs R)",
     "survival_curves": "statsmodels (Kaplan-Meier, as table.survival_over_time), drawn with matplotlib",
     # planning a study
-    "sdata.how_many_needed": "SciPy (stats.nct, ncf, ncx2 and norm, and optimize.brentq)",
-    "sdata.chance_to_find": "SciPy (stats.nct, ncf, ncx2 and norm)",
+    "sdata.how_many_needed": "statsmodels (stats.power: TTestIndPower, TTestPower, FTestAnovaPower, "
+                             "GofChisquarePower, solve_power); R pwr::pwr.r.test, power.prop.test, "
+                             "TOSTER::power_t_TOST and presize::prec_mean (simplydata[r])",
+    "sdata.chance_to_find": "statsmodels (stats.power classes; proportion.power_proportions_2indep for percents=); "
+                            "R pwr::pwr.r.test and TOSTER::power_t_TOST (simplydata[r])",
     "table.save": "pandas (to_excel, to_csv ...) or Polars, whichever holds the table",
     "table.chart": "matplotlib and seaborn (the chart is drawn from a pandas copy of the table)",
     "table.as_pandas": "pandas",

@@ -38,7 +38,7 @@ def marks():
 
 
 # The R packages simplydata calls (also installed in CI, .github/workflows/tests.yml)
-R_PACKAGES = ("survival", "vegan", "mice", "effectsize", "pwr", "Exact", "exact2x2", "nortest", "BSDA", "rstatix", "DescTools", "FSA", "PMCMRplus")
+R_PACKAGES = ("survival", "vegan", "mice", "effectsize", "pwr", "Exact", "exact2x2", "nortest", "BSDA", "rstatix", "DescTools", "FSA", "PMCMRplus", "multcompView", "TOSTER", "presize")
 
 
 @pytest.fixture
@@ -62,6 +62,8 @@ R_ENTRY_POINTS = {
     ("power.py", "_pwr"),
     ("table/patterns.py", "_r_kmeans"), ("table/patterns.py", "_r_nmds"), ("table/patterns.py", "_r_permanova"),
     ("table/survival.py", "cox_zph"), ("table/between.py", "__init__"), ("table/models.py", "_explain_imputed"),
+    ("table/post_hoc.py", "pair_letters"), ("table/summaries.py", "_summary_interval"),
+    ("power.py", "how_many_needed"), ("power.py", "_interval_width_needed"), ("power.py", "call"),
 }
 
 

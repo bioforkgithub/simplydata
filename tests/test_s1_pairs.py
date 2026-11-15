@@ -106,3 +106,33 @@ def test_hochberg_hommel(engine, method, want):
     t = make(pd.DataFrame({"p": [0.01, 0.04, 0.03, 0.2]}), engine)
     t.add_adjusted_p_value_column("q", from_column="p", method=method)
     assert t._frame.to_pandas()["q"].tolist() == pytest.approx(want, rel=1e-12)
+
+
+# ---------------------------------------------------------------------------- show="letters"
+def test_letters_marks(marks, capsys, needs_r):
+    got = frame(marks.compare_each_pair("marks", for_each="class", show="letters"))
+    # R: r <- pairwise.t.test(m$marks, m$class, pool.sd = FALSE, p.adjust.method = "holm");
+    #    multcompView::multcompLetters(<symmetric matrix of r$p.value>, threshold = 0.05)$Letters: a ab b
+    assert got["letters"].tolist() == ["a", "ab", "b"]
+    assert got["average of marks"].tolist() == pytest.approx([71.8333333333, 64.2777777778, 58.6111111111], rel=1e-9)
+    assert "Letters: A a, B ab and C b" in capsys.readouterr().out
+    # R: TukeyHSD(aov(marks ~ class, m)) p adj 0.2598, 0.0204, 0.4637 -> a ab b
+    assert frame(marks.compare_each_pair("marks", for_each="class", test="tukey", show="letters"))[
+        "letters"].tolist() == ["a", "ab", "b"]
+
+
+def test_letters_four_groups(engine, needs_r):
+    data = pd.DataFrame({"y": [10, 11, 12, 13, 14, 11, 12, 13, 14, 15, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24.5],
+                         "g": ["w"] * 5 + ["x"] * 5 + ["y"] * 5 + ["z"] * 5})
+    got = frame(make(data, engine).compare_each_pair("y", for_each="g", show="letters"))
+    # R: pairwise.t.test(y, g, pool.sd = FALSE, p.adjust.method = "holm"), then
+    #    multcompView::multcompLetters(<symmetric p matrix>, threshold = 0.05)$Letters: w a, x a, y b, z c
+    assert got["letters"].tolist() == ["a", "a", "b", "c"]
+    assert got["count"].tolist() == [5, 5, 5, 5]
+
+
+def test_letters_errors(marks):
+    with pytest.raises(SimplydataError, match='Did you mean show="letters"'):
+        marks.compare_each_pair("marks", for_each="class", show="letter")
+    with pytest.raises(SimplydataError, match="against="):
+        marks.compare_each_pair("marks", for_each="class", against="A", show="letters")

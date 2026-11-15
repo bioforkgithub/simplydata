@@ -86,7 +86,7 @@ from .columns import (CONSTANTS, FORMULA_HELP, FUNCTION_SPELLINGS, FUNCTIONS, SP
                       _FormulaReader, _is_number, special_function)
 from .summaries import GROUPS_IN_SENTENCE as GROUPS_SHOWN
 from .effect_sizes import effect_size, interval_only, interval_text
-from .post_hoc import R_PAIR_TESTS, dunnett_pairs, r_pairs
+from .post_hoc import R_PAIR_TESTS, dunnett_pairs, pair_letters, r_pairs
 from .summaries import _key, _order, _p_clause, _p_sentence, _p_shown, _plain, _say_label
 
 BASED_ON = ("averages", "ranks")
@@ -581,8 +581,9 @@ class StatTestWords:
     # ------------------------------------------------------------------ compare_averages
     @friendly(renamed={"between": "for_each"})
     def compare_averages(self, column=None, for_each=None, based_on="averages", test=None, sides=2, higher=None,
-                         lower=None, alternative=None):
-        """Are the averages of the groups really different, or could it be chance?
+                         lower=None, alternative=None, p_value_by="formula", shuffles=9999, seed=1,
+                         same_within=None):
+        """Are the averages of the groups really different?
 
         table.compare_averages("marks", for_each="class")   (with sdata.example("marks"))
         Two groups: Welch's t-test (the R t.test() default). Three or more: Welch's one-way
@@ -606,10 +607,20 @@ class StatTestWords:
         higher, as decided before seeing the data (R t.test(alternative = ...), wilcox.test(
         alternative = ...)); the 95 % interval is then one-sided too. R's and SciPy's
         alternative= is accepted.
+        p_value_by="shuffling" (2 groups, averages): the p-value comes from shuffling the group
+        labels shuffles=9999 times (seed=1) and counting how often the difference in averages is
+        as big as the one in the data (SciPy permutation_test, as R perm::permTS()). When there
+        are no more arrangements than shuffles, every one is counted and the p-value is exact.
+        same_within=5 (2 groups) asks whether the averages are the same within 5 (or within
+        [-3, 5]): two one-sided tests (TOST, Welch; statsmodels ttost_ind, as R TOSTER::t_TOST()),
+        with the 90 % interval. The answer is one of three: the same within the margin,
+        different, or the data cannot tell. With sides=1, higher="B" it is a non-inferiority test:
+        is B lower than A by no more than 5?
         """
         step = "compare_averages"
         example = 'with sdata.example("marks"): table.compare_averages("marks", for_each="class")'
         self._check_based_on(step, based_on)
+        self._check_choice(step, "p_value_by", p_value_by, ("formula", "shuffling"))
         if test is not None:
             self._check_choice(step, "test", test, AVERAGE_TESTS)
             if based_on == "ranks" and test not in RANK_LIKE:
@@ -649,6 +660,18 @@ class StatTestWords:
                 f'test="{test}" compares exactly 2 groups, but "{for_each}" has {k}.\n'
                 f'Use test="{other}" for all groups at once, or table.compare_each_pair("{column}", for_each="{for_each}").'
             )
+        if same_within is not None:
+            if k != 2 or test not in ("welch",) or p_value_by != "formula":
+                raise SimplydataError("same_within= compares the averages of 2 groups (Welch); leave out test=, "
+                                      "based_on= and p_value_by=.")
+            (n1, a), (n2, b) = groups
+            return self._same_within(step, "two groups", (a, b), same_within, up, n1, n2, "Welch",
+                                     "TOSTER::t_TOST()", {f"count in {n1}": len(a), f"count in {n2}": len(b),
+                                                          f"average in {n1}": float(a.mean()),
+                                                          f"average in {n2}": float(b.mean())})
+        if p_value_by == "shuffling" and (k != 2 or test not in ("welch", "student")):
+            raise SimplydataError('p_value_by="shuffling" works for the difference between the averages of 2 groups '
+                                  "(Welch's or Student's t-test); leave it out here.")
         if test in MORE_AVERAGE_TESTS:
             return self._more_average_test(column, for_each, groups, test, alt, up, side_words, if_none)
         arrays = [g[1] for g in groups]
@@ -692,8 +715,16 @@ class StatTestWords:
                      + ("" if es["note"] else f"; Hedges' g = {_num(g)}{interval_text(es['low'], es['high'])}, a "
                         f"difference of {_num(abs(g))} standard deviations")
                      + ").")
-            p_line = _p_sentence(p, if_none)
             second = f"Test: {name} (t = {_num(t)}, df = {_whole(df)}), {why}."
+            if p_value_by == "shuffling":
+                from .resampling import difference_in_averages, resample_p
+
+                found = resample_p((a, b), difference_in_averages, "independent", alt, shuffles, seed)
+                p = found["p"]
+                row.update({"p-value": p, "p-value method": found["method"]})
+                second += (f" The p-value comes from shuffling, not from the t distribution: {found['words']} "
+                           "(SciPy permutation_test, as R perm::permTS()).")
+            p_line = _p_sentence(p, if_none)
             notes = ([es["note"]] if es["note"] else []) + _shape_notes([(f'group "{n}"', v) for n, v in groups])
         elif test in ("welch anova", "anova"):
             if test == "welch anova":
@@ -864,7 +895,8 @@ class StatTestWords:
 
     # ------------------------------------------------------------------ compare_each_pair
     @friendly(renamed={"between": "for_each"})
-    def compare_each_pair(self, column=None, for_each=None, based_on="averages", test=None, against=None, seed=1):
+    def compare_each_pair(self, column=None, for_each=None, based_on="averages", test=None, against=None, seed=1,
+                          show="pairs"):
         """Which pairs of groups differ? Every pair is compared, with Holm's correction.
 
         table.compare_each_pair("marks", for_each="class")   (with sdata.example("marks"))
@@ -888,8 +920,42 @@ class StatTestWords:
         stats.dunnett, as R multcomp::glht(mcp(group = "Dunnett"))), with intervals that hold for
         all the comparisons at once. SciPy works it out with random numbers, so seed=1 is used
         (printed); the last digit can differ from R's.
+        show="letters" gives each group letters instead (a compact letter display, R
+        multcompView::multcompLetters()): groups that share a letter have an adjusted p-value of
+        0.05 or more between them. It works with every test= above, and gives back one row per
+        group.
         """
         step = "compare_each_pair"
+        self._check_choice(step, "show", show, ("pairs", "letters"))
+        if show == "letters" and against is not None:
+            raise SimplydataError("show=\"letters\" compares every pair; against= compares each group with one "
+                                  "control only. Leave out one of them.")
+        pairs = self._each_pair(step, column, for_each, based_on, test, against, seed)
+        if show == "pairs":
+            return pairs
+        return self._pair_letters(column, for_each, pairs)
+
+    def _pair_letters(self, column, for_each, pairs):
+        """compare_each_pair(show="letters"): R multcompView::multcompLetters() on the pairs' p-values."""
+        rows = pairs._frame.to_pandas().to_dict("records")
+        import contextlib
+        import io
+
+        with contextlib.redirect_stdout(io.StringIO()):  # the note on skipped rows was printed already
+            groups = self._groups("compare_each_pair", column, for_each, "")
+        names = [g[0] for g in groups]
+        letters, p_name = pair_letters(names, rows)
+        medians = "difference in medians" in rows[0]
+        word = "median" if medians else "average"
+        table = {"group": names, "letters": [letters[n] for n in names],
+                 f"{word} of {column}": [float(np.median(v) if medians else v.mean()) for _, v in groups],
+                 "count": [len(v) for _, v in groups]}
+        shown = _list_words(f"{n} {letters[n]}" for n in names)
+        print(f"Letters: {shown}. Groups that share a letter could not be told apart: the {p_name} between them is "
+              "0.05 or more. Letters from R multcompView::multcompLetters().")
+        return self._new_table(nw.from_dict(table, backend=self._frame.implementation))
+
+    def _each_pair(self, step, column, for_each, based_on, test, against, seed):
         example = 'with sdata.example("marks"): table.compare_each_pair("marks", for_each="class")'
         self._check_based_on(step, based_on)
         if isinstance(test, str):
@@ -1062,7 +1128,7 @@ class StatTestWords:
     # ------------------------------------------------------------------ compare_spreads
     @friendly
     def compare_spreads(self, column=None, for_each=None, test="levene"):
-        """Do the groups differ in how spread out their values are, more than chance?
+        """Do the groups really differ in how spread out their values are?
 
         table.compare_spreads("marks", for_each="class")   (with sdata.example("marks"))
         test="levene" (the default): Levene's test centred on each group's median, also
@@ -1186,6 +1252,60 @@ class StatTestWords:
         if p < 0.05:
             print("Note: compare_averages() uses Welch's test by default, which does not need equal spreads; "
                   'test="student", test="anova" and compare_each_pair(test="tukey") do need them.')
+        return self._result_table(row)
+
+    # ------------------------------------------------------------------ same_within= (equivalence)
+    def _same_within(self, step, kind, data, same_within, up, first, second, method, r_call, extra=None):
+        """Equivalence (TOST) or, with sides=1 and higher=, non-inferiority. first and second name the two
+        sides of the difference (first minus second); up is the side the test looks toward (or None)."""
+        from .equivalence import margin, non_inferior, say, tost
+
+        low, high = margin(step, same_within)
+        row = {"what it compares": f"{first} minus {second}, against the margin {low:g} to {high:g}"}
+        if up is None:
+            result = tost(kind, data, low, high)
+            lines, verdict = say(result, low, high, "", f"{first} and {second}", method,
+                                 f"the difference were truly outside {low:g} to {high:g}")
+            lines[-1] += f" As R {r_call}."
+            row.update({"test": f"two one-sided tests (TOST, {method})", "difference": result["difference"],
+                        "difference 90 % CI low": result["ci90"][0], "difference 90 % CI high": result["ci90"][1],
+                        "p-value against the low margin": result["p_low"],
+                        "p-value against the high margin": result["p_high"], "p-value": result["p"],
+                        "margin low": low, "margin high": high, "answer": verdict})
+        else:
+            looks_up = up == first
+            edge = low if looks_up else high
+            other = second if looks_up else first
+            worse = "lower"  # higher="B": B is not lower than the other side by more than the margin
+            amount = f"{abs(edge):g}"
+            result = non_inferior(kind, data, edge, "higher" if looks_up else "lower")
+            ci_low, ci_high = result["ci"]
+            if looks_up:
+                ends, clear = f"at least {_num(ci_low)}", ci_low > edge
+            else:
+                ends, clear = f"at most {_num(ci_high)}", ci_high < edge
+            if result["p"] < 0.05:
+                verdict = "not worse than the margin"
+                answer = f"so {up} is not {worse} than {other} by more than {amount}"
+            else:
+                verdict = "the data cannot tell"
+                answer = (f"so the data cannot show that {up} is not {worse} than {other} by more than {amount}; "
+                          "more data would narrow the interval")
+            where = "lies above" if looks_up else "lies below"
+            lines = [f"The difference ({first} minus {second}) is {_num(result['difference'])}; the one-sided 95 % "
+                     f"interval, {ends}, {where if clear else 'does not lie ' + where.split()[1]} {edge:g}, "
+                     f"{answer}.",
+                     _p_sentence(result["p"], f"{up} were truly {worse} than {other} by {amount} or more",
+                                 "a difference this far from that", f"that {up} is {worse} by more than {amount}"),
+                     f"Method: one one-sided test against the margin (non-inferiority, {method}), as R "
+                     f'TOSTER::t_TOST(hypothesis = "MET"); one-sided, as you asked before seeing the data.']
+            row.update({"test": f"non-inferiority test ({method})", "difference": result["difference"],
+                        "difference one-sided 95 % CI low": ci_low, "difference one-sided 95 % CI high": ci_high,
+                        "p-value": result["p"], "margin": edge, "answer": verdict,
+                        "sides": f"one-sided: {up} not {worse} by more than {amount}"})
+        row.update(extra or {})
+        for line in lines:
+            print(line)
         return self._result_table(row)
 
     # ------------------------------------------------------------------ paired and one-sample
@@ -1363,8 +1483,9 @@ class StatTestWords:
 
     @friendly
     def compare_before_after(self, before=None, after=None, based_on="averages", sides=2, higher=None, lower=None,
-                             alternative=None, test=None, p_value_by="formula"):
-        """Did the values change from one column to the other, row by row, more than chance?
+                             alternative=None, test=None, p_value_by="formula", shuffles=9999, seed=1,
+                             same_within=None):
+        """Did the values really change from one column to the other, row by row?
 
         table.compare_before_after("Maths", "Science")   (with sdata.example("marks"))
         For two measurements of the same thing, such as each child's mark before and after
@@ -1384,6 +1505,13 @@ class StatTestWords:
         the exact binomial test on the rows that changed (as R exact2x2::exact2x2(paired = TRUE)).
         columns of 3 or more categories (such as mild / moderate / severe): Bowker's test of
         symmetry (statsmodels SquareTable.symmetry(), as R mcnemar.test() on the k x k table).
+        p_value_by="shuffling" (numbers, averages): the p-value comes from swapping the two values
+        within rows at random shuffles=9999 times (seed=1), which flips the sign of each change,
+        and counting how often the average change is as big as the one in the data (SciPy
+        permutation_test). With few rows every arrangement is counted, and the p-value is exact.
+        same_within=5 (numbers) asks whether the average change is within -5 to 5 (or [-3, 5]):
+        two one-sided tests on the changes (statsmodels ttost_paired, as R TOSTER::t_TOST(paired =
+        TRUE)); with sides=1, higher="after" a non-inferiority test.
         """
         step = "compare_before_after"
         example = 'table.compare_before_after("before", "after")'
@@ -1393,8 +1521,11 @@ class StatTestWords:
         if before == after:
             raise SimplydataError(f"{step}() needs two different columns, for example {example}.")
         self._need_columns(before, after)
-        self._check_choice(step, "p_value_by", p_value_by, ("formula", "exact"))
+        self._check_choice(step, "p_value_by", p_value_by, ("formula", "exact", "shuffling"))
         kind, kept = self._paired_kind(before, after)
+        if p_value_by == "shuffling" and (kind != "numbers" or based_on != "averages" or test is not None):
+            raise SimplydataError('p_value_by="shuffling" works for the average change between two columns of '
+                                  "numbers (the paired t-test); leave it out here.")
         if kind != "numbers":
             if test is not None:
                 raise SimplydataError(f'test="{test}" is for columns of numbers; "{before}" and "{after}" are {kind} '
@@ -1415,6 +1546,13 @@ class StatTestWords:
         side_example = f'table.compare_before_after("{before}", "{after}", sides=1, higher="after")'
         alt, up = _direction(step, sides, higher, lower, alternative, {"after": "greater", "before": "less"},
                              side_example)
+        if same_within is not None:
+            if based_on != "averages" or p_value_by != "formula":
+                raise SimplydataError("same_within= works on the average change; leave out based_on= and p_value_by=.")
+            names = {"after": f'"{after}"', "before": f'"{before}"'}
+            return self._same_within(step, "paired", (a, b), same_within, None if up is None else names[up],
+                                     names["after"], names["before"], "paired", "TOSTER::t_TOST(paired = TRUE)",
+                                     {"rows": len(changes)})
         row, r = self._one_sample(step, changes, "change", 0.0, based_on, what, "the changes", alt)
         mean_change = float(changes.mean())
         if based_on == "averages":
@@ -1432,6 +1570,14 @@ class StatTestWords:
                      + ").")
             second = (f"Test: paired t-test (t = {_num(r['t'])}, df = {_whole(r['df'])}), the usual test when each row "
                       "is measured twice; it looks at the change in each row.")
+            if p_value_by == "shuffling":
+                from .resampling import average, resample_p
+
+                found = resample_p((changes,), average, "paired", alt, shuffles, seed)
+                r["p"] = found["p"]
+                row.update({"p-value": found["p"], "p-value method": found["method"]})
+                second += (f" The p-value comes from shuffling, not from the t distribution: {found['words']} "
+                           "(SciPy permutation_test).")
         else:
             median_change = float(np.median(changes))
             row.update({"test": "Wilcoxon signed-rank test", "statistic name": "V", "statistic": r["v"],
@@ -1464,8 +1610,8 @@ class StatTestWords:
 
     @friendly
     def compare_average_to(self, column=None, value=None, based_on="averages", sides=2, higher=None, lower=None,
-                           alternative=None):
-        """Is the average of a column different from a number you choose, or could it be chance?
+                           alternative=None, same_within=None):
+        """Is the average of a column really different from a number you choose?
 
         table.compare_average_to("marks", 60)   (with sdata.example("marks"))
         A one-sample t-test, or the Wilcoxon signed-rank test (on the median) with
@@ -1474,6 +1620,9 @@ class StatTestWords:
         sides=1, higher="average" (the average is above the number) or lower="average" (below it)
         tests in one direction only, as decided before seeing the data (R t.test(x, mu = 60,
         alternative = "greater")).
+        same_within=5 asks whether the average is within 5 of the number: two one-sided tests
+        (statsmodels DescrStatsW.ttost_mean, as R TOSTER::t_TOST(x - 60, eqb = 5)); with sides=1,
+        higher="average" a non-inferiority test (the average no more than 5 below the number).
         """
         step = "compare_average_to"
         example = 'with sdata.example("marks"): table.compare_average_to("marks", 60)'
@@ -1489,6 +1638,14 @@ class StatTestWords:
         side_example = f'table.compare_average_to("{column}", {shown}, sides=1, higher="average")'
         alt, up = _direction(step, sides, higher, lower, alternative, {"average": "greater", "_value": "less"},
                              side_example)
+        if same_within is not None:
+            if based_on != "averages":
+                raise SimplydataError("same_within= works on the average; leave out based_on=.")
+            words = {"average": f'the average of "{column}"', "_value": shown}
+            return self._same_within(step, "one sample", (values - float(value),), same_within,
+                                     None if up is None else words[up], words["average"], shown, "one-sample t",
+                                     "TOSTER::t_TOST(x - value, eqb = ...)", {"average": float(values.mean()),
+                                                                  "count": len(values)})
         row, r = self._one_sample(step, values, f'value of "{column}"', float(value), based_on, what,
                                   f'"{column}"', alt)
         mean = float(values.mean())
@@ -1541,7 +1698,7 @@ class StatTestWords:
     # ------------------------------------------------------------------ compare_counts
     @friendly(renamed={"between": "for_each"})
     def compare_counts(self, column=None, for_each=None, test=None):
-        """Does how often each value turns up differ between groups, more than chance?
+        """Does how often each value turns up really differ between groups?
 
         table.add_group_column("result", from_column="marks", cut_at=[60], names=["below 60", "60 or more"])
         table.compare_counts("result", for_each="class")   (with sdata.example("marks"))
@@ -1672,7 +1829,7 @@ class StatTestWords:
 
     @friendly
     def compare_counts_to(self, column=None, expected=None):
-        """Does how often each value turns up match the shares you expect, more than chance?
+        """Does how often each value turns up really differ from the shares you expect?
 
         table.compare_counts_to("breakfast", expected={"yes": 0.6, "no": 0.4})   (with sdata.example("school"))
         The chi-square goodness-of-fit test (as R chisq.test(x, p = ...)). expected= gives
@@ -1804,7 +1961,7 @@ class StatTestWords:
     @friendly
     def compare_percent_to(self, column=None, value=None, percent=None, sides=2, higher=None, lower=None,
                            alternative=None, method="exact"):
-        """Is the percent of rows with one value different from a percent you choose, or could it be chance?
+        """Is the percent of rows with one value really different from a percent you choose?
 
         table.compare_percent_to("passed", value="yes", percent=50)   (with sdata.example("school"))
         The exact binomial test (as R binom.test(x, n, p)), with the exact Clopper-Pearson

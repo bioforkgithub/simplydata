@@ -60,7 +60,7 @@ GROUPS = [
                      "table.make_lowercase", "table.make_uppercase", "table.remove_extra_spaces",
                      "table.replace_values", "table.round_to", "table.change_column"]),
     ("Sort and new columns", ["table.sort_by", "table.add_column", "table.add_group_column",
-                              "table.add_rank_column"]),
+                              "table.add_rank_column", "table.add_z_score_column"]),
     ("Dates and text", ["table.add_date_part_column", "table.add_text_part_column", "table.split_column",
                         "table.replace_text"]),
     ("Row after row", ["table.add_rolling_column", "table.add_previous_value_column", "table.add_change_column"]),
@@ -68,7 +68,7 @@ GROUPS = [
                    "table.total_of", "table.smallest_of", "table.biggest_of",
                    "table.standard_deviation_of", "table.summary_of", "table.percent_of",
                    "table.count_different_values", "table.percentile_of", "table.most_common_of",
-                   "table.correlation_between"]),
+                   "table.interval_of", "table.correlation_between"]),
     ("Statistical tests", ["table.compare_averages", "table.compare_each_pair", "table.compare_before_after",
                            "table.compare_average_to", "table.compare_counts", "table.compare_shape_to",
                            "table.add_adjusted_p_value_column", "table.compare_spreads", "table.compare_counts_to",
@@ -477,6 +477,9 @@ HELP_EXAMPLES = {
     "table.add_group_column": _tx("marks", 'table.add_group_column("grade", from_column="marks", '
                                            'cut_at=[40, 60, 80], names=["D", "C", "B", "A"])\n'
                                            'table.count_each("grade")'),
+    "table.add_z_score_column": _tx("marks", 'table.add_z_score_column("marks_z", from_column="marks", '
+                                             'for_each="subject")\ntable.show_first_rows()'),
+    "table.interval_of": _tx("marks", 'table.interval_of("marks", "median", for_each="class")'),
     "table.add_rank_column": _tx("marks", 'table.add_rank_column("place", from_column="marks")\n'
                                           'table.sort_by("place")\ntable.show_first_rows()'),
     # dates and text
@@ -2616,7 +2619,7 @@ LESSONS = [
             "table.add_rows_from(other) puts the rows of another table under this one. "
             "turn_rows_into_columns does the opposite of turn_columns_into_rows.",
             "Lesson 13 teaches numbers, and lesson 14 the statistical tests: is a difference "
-            "real, or could it be chance?",
+            "real, and how big is it?",
             "Every summary skips empty cells and says how many it skipped. summary_of can also show "
             '"variance", "standard error", "confidence interval", "range" and "interquartile range".',
         ],

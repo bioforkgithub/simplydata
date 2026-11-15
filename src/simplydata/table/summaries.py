@@ -70,16 +70,19 @@ EVERY_EXAMPLE = ('table.make_dates("year")\n'
 MEASURES = ("count", "average", "median", "total", "smallest", "biggest", "standard deviation", "variance",
             "standard error", "confidence interval", "range", "interquartile range", "empty cells",
             "geometric mean", "skewness", "kurtosis", "coefficient of variation", "median absolute deviation",
-            "trimmed average", "most common", "percentile")
+            "trimmed average", "most common", "percentile", "harmonic mean", "winsorized average")
 MEASURE_ALIASES = {"mean": "average", "sum": "total", "sd": "standard deviation", "se": "standard error",
                    "ci": "confidence interval", "iqr": "interquartile range", "geometric average": "geometric mean",
                    "gmean": "geometric mean", "skew": "skewness", "cv": "coefficient of variation",
                    "mad": "median absolute deviation", "trimmed mean": "trimmed average", "mode": "most common",
-                   "quantile": "percentile"}
+                   "quantile": "percentile", "harmonic average": "harmonic mean", "hmean": "harmonic mean",
+                   "winsorised average": "winsorized average", "winsorized mean": "winsorized average",
+                   "winsorised mean": "winsorized average"}
 # measures worked out with NumPy / SciPy on each group's numbers (the others come from narwhals)
 ARRAY_MEASURES = ("geometric mean", "skewness", "kurtosis", "coefficient of variation", "median absolute deviation",
-                  "trimmed average", "most common", "percentile")
+                  "trimmed average", "most common", "percentile", "harmonic mean", "winsorized average")
 TRIM_PERCENT = 10  # "trimmed average": 10 % cut from each end, unless another percent is given
+WINSOR_PERCENT = 20  # "winsorized average": 20 % pulled in at each end (R WRS2::winmean(tr = 0.2))
 MAD_CONSTANT = 1.4826  # R mad(): makes the median absolute deviation match the sd for bell-shaped values
 LEAST_VALUES = {"skewness": 3, "kurtosis": 4}  # fewer values than this give an empty cell
 DEFAULT_MEASURES = ("count", "average", "standard deviation", "smallest", "median", "biggest")
@@ -344,6 +347,37 @@ def _ordinal(number: float) -> str:
     return text + {1: "st", 2: "nd", 3: "rd"}.get(whole % 10, "th")
 
 
+BOOTSTRAP_KINDS = {"bootstrap": "bca", "percentile bootstrap": "percentile", "basic bootstrap": "basic"}
+
+
+def _one_number(step, name):
+    """interval_of(summary=): the summary_of measure as a function of one group's numbers (NumPy / SciPy)."""
+    from scipy import stats
+
+    plain = {"average": np.mean, "median": np.median, "total": np.sum, "smallest": np.min, "biggest": np.max,
+             "standard deviation": lambda x: np.std(x, ddof=1), "variance": lambda x: np.var(x, ddof=1),
+             "standard error": stats.sem, "range": np.ptp, "interquartile range": stats.iqr}
+    if name in plain:
+        return plain[name]
+    if _is_array_measure(name) and name != "most common":
+        return lambda x: _array_measure(name, np.asarray(x, dtype=float))[0]
+    raise SimplydataError(f'interval_of() needs a summary that gives one number from the values; "{name}" does not. '
+                          'Try "average", "median" or "standard deviation".')
+
+
+PERCENTILE_RULES = ("inverted_cdf", "averaged_inverted_cdf", "closest_observation", "interpolated_inverted_cdf",
+                    "hazen", "weibull", "linear", "median_unbiased", "normal_unbiased")  # R quantile types 1-9
+
+
+def _percentile_rule(step, method):
+    """percentile_of(method=): R's type number (1 to 9) or NumPy's name, as the NumPy name."""
+    if isinstance(method, (int, np.integer)) and not isinstance(method, bool) and 1 <= method <= 9:
+        return PERCENTILE_RULES[int(method) - 1]
+    if isinstance(method, str) and method.strip().lower().replace(" ", "_") in PERCENTILE_RULES:
+        return method.strip().lower().replace(" ", "_")
+    raise choice_error(step, "method", method, list(PERCENTILE_RULES) + [str(n) for n in range(1, 10)])
+
+
 def _check_percent(step: str, percent, option="percent", example=None) -> float:
     example = example or f'table.{step}("marks", 90, for_each="class")   (with sdata.example("marks"))'
     if not isinstance(percent, (int, float)) or isinstance(percent, bool) or not math.isfinite(percent):
@@ -379,6 +413,15 @@ def _measure_name(step: str, item):
                 f"For example:  {example}"
             )
         return f"trimmed average {number:g} %"
+    found = re.fullmatch(r"winsori[sz]ed (?:average|mean)\s*(\d+(?:\.\d+)?)?\s*%?", name)
+    if found:
+        number = float(found.group(1)) if found.group(1) else float(WINSOR_PERCENT)
+        if number >= 50:
+            raise SimplydataError(
+                f"A winsorized average pulls in a percent at each end, so it must be below 50 (it is {number:g}).\n"
+                f"For example:  {example}"
+            )
+        return f"winsorized average {number:g} %"
     name = MEASURE_ALIASES.get(name, name)
     if name == "percentile":
         raise SimplydataError(f'show="percentile" needs the percent, for example "percentile 90".\nFor example:  {example}')
@@ -388,7 +431,7 @@ def _measure_name(step: str, item):
 
 
 def _is_array_measure(name) -> bool:
-    return isinstance(name, str) and (name in ARRAY_MEASURES or name.startswith(("percentile ", "trimmed average ")))
+    return isinstance(name, str) and (name in ARRAY_MEASURES or name.startswith(("percentile ", "trimmed average ", "winsorized average ")))
 
 
 def _array_measure(name: str, values):
@@ -405,6 +448,11 @@ def _array_measure(name: str, values):
       trimmed average p %       floor(n * p / 100) values cut from each end, as R mean(trim =)
       most common               the value that turns up most often; the smallest when tied
       percentile p              the usual linear rule (R quantile type 7, NumPy default)
+      harmonic mean             n / sum(1 / x); only for numbers above 0 (SciPy hmean, as R
+                                psych::harmonic.mean)
+      winsorized average p %    floor(n * p / 100) values at each end set to the nearest value
+                                kept, then the average (SciPy mstats.winsorize, as R
+                                WRS2::winmean(tr = p / 100))
     """
     from scipy import stats
 
@@ -415,6 +463,13 @@ def _array_measure(name: str, values):
         if (values <= 0).any():
             return None, "needs numbers above 0", None
         return float(stats.gmean(values)), None, None
+    if name == "harmonic mean":
+        if (values <= 0).any():
+            return None, "needs numbers above 0", None
+        return float(stats.hmean(values)), None, None
+    if name.startswith("winsorized average "):
+        share = float(name.split()[-2]) / 100
+        return float(np.mean(stats.mstats.winsorize(values, limits=(share, share)))), None, None
     if name in LEAST_VALUES and n < LEAST_VALUES[name]:
         return None, f"needs at least {LEAST_VALUES[name]} values", None
     if name in ("skewness", "kurtosis") and np.ptp(values) == 0:
@@ -679,9 +734,151 @@ class SummaryWords:
         _period_note(periods)
         return result
 
+    def _summary_interval(self, step, column, for_each, every, across, interval, share=None):
+        """average_of / median_of / percentile_of / standard_deviation_of with interval=: one row per group with
+        the value, its interval and the count. Each interval comes from a package (SciPy, or R DescTools)."""
+        from scipy import stats
+
+        level = _check_percent(step, interval, "interval", f'table.{step}("marks", for_each="class", interval=95)')
+        if not 50 <= level < 100:
+            raise SimplydataError(f"interval= is the level of the interval in percent, such as interval=95 or 90 "
+                                  f"(it is {level:g}).")
+        if every is not None or across is not None or not isinstance(column, str):
+            raise SimplydataError(f"interval= works with one column and for_each=; leave out every= and across=.")
+        groups = self._group_columns(step, for_each, [column]) if for_each is not None else []
+        frame = self._number_frame(step, [column])
+        self._note_empty(frame, [column])
+        arrays = self._group_arrays(frame, groups, column)
+        kind = {"average_of": "average", "median_of": "median", "standard_deviation_of": "standard deviation",
+                "percentile_of": f"percentile {share * 100:g}" if share is not None else None}[step]
+        start = kind
+        how = {"average": "t interval, as R t.test()",
+               "standard deviation": "chi-square interval, from R DescTools::VarCI() (the interval of the variance, "
+                                     "square-rooted)"}.get(kind, "exact interval from the order of the values (SciPy "
+                                                                 "quantile_test"
+                                                                 + (', as R DescTools::MedianCI(method = "exact"))'
+                                                                    if kind == "median" else ")"))
+        rows = []
+        for key, x in arrays.items():
+            n = len(x)
+            if kind == "average":
+                value = float(x.mean()) if n else math.nan
+                low, high = (stats.ttest_1samp(x, 0).confidence_interval(level / 100) if n >= 2
+                             else (math.nan, math.nan))
+            elif kind == "standard deviation":
+                value = float(x.std(ddof=1)) if n >= 2 else math.nan
+                low = high = math.nan
+                if n >= 2:
+                    from .._r import r_call
+
+                    found = r_call("unname(DescTools::VarCI(x, method = 'classic', conf.level = level)[2:3])",
+                                   packages=("DescTools",), what="the interval of a standard deviation (R "
+                                   "DescTools::VarCI())", python_note="Python has no function for it",
+                                   x=x, level=level / 100)
+                    low, high = (math.sqrt(float(v)) for v in np.asarray(found))  # display: variance -> sd
+            else:
+                p = 0.5 if kind == "median" else share
+                value = float(np.percentile(x, p * 100)) if n else math.nan
+                low = high = math.nan
+                if n:
+                    found = stats.quantile_test(x, q=value, p=p).confidence_interval(level / 100)
+                    low, high = found.low, found.high
+            rows.append(list(key) + [value, float(low), float(high), n])
+        names = [f"{start} of {column}", f"{start} of {column} {level:g} % CI low",
+                 f"{start} of {column} {level:g} % CI high", "count"]
+        data = {name: [r[i] for r in rows] for i, name in enumerate(list(groups) + names)}
+        table = self._new_table(nw.from_dict(data, backend=self._frame.implementation))
+        parts = []
+        for r in rows[:GROUPS_IN_SENTENCE]:
+            label = " / ".join(_say_label(v) for v in r[:len(groups)])
+            low, high = r[-3], r[-2]
+            if not (math.isnan(low) or math.isnan(high)):
+                ends = f"{_say_number(low)} to {_say_number(high)}"
+            elif math.isnan(low) and math.isnan(high):
+                ends = "too few values for an interval"
+            elif math.isnan(high):
+                ends = f"at least {_say_number(low)}; too few values for an upper end"
+            else:
+                ends = f"at most {_say_number(high)}; too few values for a lower end"
+            parts.append((f"{label}: " if groups else "") + f"{_say_number(r[-4])} ({ends})")
+        where = f' for each {_each(groups)}' if groups else ""
+        said = kind if share is None else f"{_ordinal(share * 100)} percentile"
+        print(f'The {said} of "{column}"{where}, with the values that fit the data ({level:g} % confidence '
+              f"interval): {'; '.join(parts)}{' ...' if len(rows) > GROUPS_IN_SENTENCE else ''}.")
+        print(f"Interval: {how}.")
+        if any(math.isnan(r[-3]) or math.isnan(r[-2]) for r in rows):
+            print("Note: an end of the interval is empty where there are too few values to reach that level.")
+        return table
+
+    @friendly
+    def interval_of(self, column=None, summary="average", for_each=None, interval=95, method="bootstrap",
+                    resamples=9999, seed=1):
+        """A confidence interval for any summary, from the bootstrap.
+
+        table.interval_of("marks", "median", for_each="class")   (with sdata.example("marks"))
+        summary= is any one-number measure of summary_of() ("average", "median", "standard
+        deviation", "trimmed average 20", "percentile 90", "coefficient of variation", ...) or a
+        function of your own that gets the numbers (a NumPy array) and gives back one number.
+        The bootstrap draws the rows again at random, with replacement, resamples=9999 times
+        (seed=1, printed; the same seed gives the same interval) and works out the summary each
+        time; SciPy stats.bootstrap, as R boot::boot.ci(). method="bootstrap" is the
+        bias-corrected and accelerated (BCa) interval, the usual choice; "percentile bootstrap"
+        and "basic bootstrap" are the other two. With fewer than 20 values a note says the
+        interval is often too narrow. Gives back one row per group: the summary, the interval
+        and the count.
+        """
+        from .resampling import bootstrap_interval
+
+        step = "interval_of"
+        example = 'table.interval_of("marks", "median", for_each="class")   (with sdata.example("marks"))'
+        if not isinstance(column, str):
+            raise SimplydataError(f"{step}() needs one column name in quotes, then the summary.\nFor example:  {example}")
+        level = _check_percent(step, interval, "interval", example)
+        if not 50 <= level < 100:
+            raise SimplydataError(f"interval= is the level in percent, such as interval=95 (it is {level:g}).")
+        if method == "jackknife":
+            raise SimplydataError("A jackknife interval is not offered: no established package gives one (R "
+                                  "bootstrap::jackknife() gives only the standard error and the bias). Use "
+                                  'method="bootstrap".')
+        self._check_choice(step, "method", method, tuple(BOOTSTRAP_KINDS))
+        if callable(summary):
+            label, function = getattr(summary, "__name__", "your summary"), summary
+        else:
+            label = _measure_name(step, summary)
+            function = _one_number(step, label)
+        groups = self._group_columns(step, for_each, [column]) if for_each is not None else []
+        frame = self._number_frame(step, [column])
+        self._note_empty(frame, [column])
+        rows, notes, words = [], set(), ""
+        for key, x in self._group_arrays(frame, groups, column).items():
+            if len(x) < 2:
+                raise SimplydataError(f"{step}() needs at least 2 numbers in each group.")
+            value = float(function(x))
+            low, high, words, note = bootstrap_interval((x,), lambda v: float(function(v)), level,
+                                                        BOOTSTRAP_KINDS[method], resamples, seed, vectorized=False)
+            notes.add(note)
+            if math.isnan(low) or math.isnan(high):
+                notes.add(f'Note: the {method} interval could not be worked out for '
+                          f'{" / ".join(_say_label(v) for v in key) or "the column"} (SciPy says the resampled '
+                          'summaries take too few different values); try method="percentile bootstrap".')
+            rows.append(list(key) + [value, low, high, len(x)])
+        names = [f"{label} of {column}", f"{label} of {column} {level:g} % CI low",
+                 f"{label} of {column} {level:g} % CI high", "count"]
+        data = {name: [r[i] for r in rows] for i, name in enumerate(list(groups) + names)}
+        parts = [(" / ".join(_say_label(v) for v in r[:len(groups)]) + ": " if groups else "")
+                 + f"{_say_number(r[-4])} ({_say_number(r[-3])} to {_say_number(r[-2])})".replace("(empty to empty)", "(no interval)")
+                 for r in rows[:GROUPS_IN_SENTENCE]]
+        where = f" for each {_each(groups)}" if groups else ""
+        print(f'The {label} of "{column}"{where}, with the values that fit the data ({level:g} % bootstrap '
+              f"interval): {'; '.join(parts)}{' ...' if len(rows) > GROUPS_IN_SENTENCE else ''}.")
+        print(f"Interval: {words}; SciPy stats.bootstrap.")
+        for note in sorted(notes - {""}):
+            print(note)
+        return self._new_table(nw.from_dict(data, backend=self._frame.implementation))
+
     # ------------------------------------------------------------------ number words
     @friendly
-    def average_of(self, column, for_each=None, every=None, across=None):
+    def average_of(self, column, for_each=None, every=None, across=None, interval=None):
         """The average (mean) of a column; empty cells are skipped.
 
         table.average_of("marks", for_each="class")   (with sdata.example("marks"))
@@ -691,16 +888,25 @@ class SummaryWords:
         "quarter" or "year" periods:
         table.make_dates("year")
         table.average_of("population", for_each="year", every="year")   (with sdata.example("growth"))
+        interval=95 adds the 95 % confidence interval of each average (the t interval, as R
+        t.test()) and gives back a table with the average, the interval and the count.
         """
+        if interval is not None:
+            return self._summary_interval("average_of", column, for_each, every, across, interval)
         return self._summary("average_of", column, for_each, every, across)
 
     @friendly
-    def median_of(self, column, for_each=None, every=None, across=None):
+    def median_of(self, column, for_each=None, every=None, across=None, interval=None):
         """The middle number of a column once it is sorted; empty cells are skipped.
 
         table.median_of("marks", for_each="class")   (with sdata.example("marks"))
         across= and every= work as in average_of.
+        interval=95 adds the 95 % confidence interval of each median: the exact interval from
+        the order of the values (SciPy quantile_test, as R DescTools::MedianCI(method =
+        "exact")); it gives back a table with the median, the interval and the count.
         """
+        if interval is not None:
+            return self._summary_interval("median_of", column, for_each, every, across, interval)
         return self._summary("median_of", column, for_each, every, across)
 
     @friendly
@@ -732,23 +938,38 @@ class SummaryWords:
         return self._summary("biggest_of", column, for_each, every, across)
 
     @friendly
-    def standard_deviation_of(self, column, for_each=None, every=None, across=None):
+    def standard_deviation_of(self, column, for_each=None, every=None, across=None, interval=None):
         """How spread out the numbers are: the sample standard deviation (divide by n - 1).
 
         It is the same as pandas .std() and R sd(). Empty cells are skipped.
         table.standard_deviation_of("marks", for_each="class")   (with sdata.example("marks"))
         across= and every= work as in average_of.
+        interval=95 adds the 95 % confidence interval of each standard deviation (the chi-square
+        interval of the variance from R DescTools::VarCI(), square-rooted; needs simplydata[r],
+        as Python has no function for it). It assumes bell-shaped values.
         """
+        if interval is not None:
+            return self._summary_interval("standard_deviation_of", column, for_each, every, across, interval)
         return self._summary("standard_deviation_of", column, for_each, every, across)
 
     @friendly
-    def percentile_of(self, column=None, percent=None, for_each=None, every=None, across=None):
+    def percentile_of(self, column=None, percent=None, for_each=None, every=None, across=None, method="linear",
+                      interval=None):
         """The value below which a given percent of the numbers lie; empty cells are skipped.
 
         table.percentile_of("marks", 90, for_each="class")   (with sdata.example("marks"))
         percentile_of("marks", 50) is the median, 25 and 75 the quartiles. Between two
         numbers it uses the usual linear rule (R quantile(type = 7), NumPy and pandas
         default). across= and every= work as in average_of.
+        method= picks one of R's nine rules, by R's number or NumPy's name: 1 "inverted_cdf",
+        2 "averaged_inverted_cdf", 3 "closest_observation", 4 "interpolated_inverted_cdf",
+        5 "hazen", 6 "weibull" (as SPSS and Minitab), 7 "linear" (the default), 8
+        "median_unbiased" (recommended by Hyndman and Fan), 9 "normal_unbiased"; NumPy
+        percentile(method=), as R quantile(type =).
+        interval=95 adds the 95 % confidence interval of each percentile: the exact interval
+        from the order of the values (SciPy quantile_test; for the median and the quartiles the
+        same as R DescTools::QuantileCI(method = "exact"), which picks other values for other
+        percents); with few values an end can be empty.
         """
         step = "percentile_of"
         if column is None:
@@ -756,9 +977,41 @@ class SummaryWords:
                                   f'For example:  table.{step}("marks", 90, for_each="class")   (with sdata.example("marks"))')
         number = _check_percent(step, percent)
         share = number / 100
-        measure = (f"percentile {number:g}", lambda c: nw.col(c).quantile(share, interpolation="linear"),
-                   f"{_ordinal(number)} percentile")
-        return self._summary(step, column, for_each, every, across, measure=measure)
+        rule = _percentile_rule(step, method)
+        if interval is not None:
+            if rule != "linear":
+                raise SimplydataError("interval= gives the interval of the percentile itself, the same for every "
+                                      "method=; leave out method=.")
+            return self._summary_interval(step, column, for_each, every, across, interval, share=share)
+        if rule == "linear":
+            measure = (f"percentile {number:g}", lambda c: nw.col(c).quantile(share, interpolation="linear"),
+                       f"{_ordinal(number)} percentile")
+            return self._summary(step, column, for_each, every, across, measure=measure)
+        return self._percentile_by_rule(step, column, number, for_each, every, across, rule)
+
+    def _percentile_by_rule(self, step, column, number, for_each, every, across, rule):
+        """percentile_of(method=) other than the linear rule: NumPy percentile(method=), as R quantile(type =)."""
+        if every is not None or across is not None or not isinstance(column, str):
+            raise SimplydataError("method= works with one column and for_each=; leave out every= and across=.")
+        groups = self._group_columns(step, for_each, [column]) if for_each is not None else []
+        frame = self._number_frame(step, [column])
+        self._note_empty(frame, [column])
+        arrays = self._group_arrays(frame, groups, column)
+        name = f"percentile {number:g}"
+        values = {key: (float(np.percentile(x, number, method=rule)) if len(x) else math.nan)
+                  for key, x in arrays.items()}
+        r_type = PERCENTILE_RULES.index(rule) + 1
+        how = f'NumPy percentile(method="{rule}"), as R quantile(type = {r_type})'
+        if not groups:
+            value = values[()]
+            print(f'The {_ordinal(number)} percentile of "{column}" is {_say_number(value)} ({how}).')
+            return value
+        data = {g: [key[i] for key in values] for i, g in enumerate(groups)}
+        data[f"{name} of {column}"] = list(values.values())
+        table = self._new_table(nw.from_dict(data, backend=self._frame.implementation))
+        shown = _say_groups(table._frame, groups, f"{name} of {column}")
+        print(f'The {_ordinal(number)} percentile of "{column}" for each {_each(groups)}: {shown} ({how}).')
+        return table
 
     @friendly
     def most_common_of(self, column=None, for_each=None, every=None):
@@ -1137,8 +1390,11 @@ class SummaryWords:
         Excel; kurtosis is excess kurtosis, 0 for a bell shape), "coefficient of variation"
         (standard deviation / average, a ratio), "median absolute deviation" (as R mad(),
         times 1.4826), "trimmed average" (10 % cut from each end, as R mean(trim = 0.1);
-        "trimmed average 20" cuts 20 %), "most common" (the smallest if tied) and
-        "percentile 90" (any percent, R quantile type 7).
+        "trimmed average 20" cuts 20 %), "most common" (the smallest if tied),
+        "percentile 90" (any percent, R quantile type 7), "harmonic mean" (numbers above 0,
+        SciPy hmean, as R psych::harmonic.mean) and "winsorized average" (the lowest and
+        highest 20 % set to the nearest value kept, then the average; SciPy, as R
+        WRS2::winmean(tr = 0.2); "winsorized average 10" pulls in 10 %).
         Without show=: count, average, standard deviation, smallest, median,
         biggest. A measure of your own also works: a function that gets one group's
         numbers (a NumPy array) and gives back one number, show=["average", my_measure].
@@ -1232,6 +1488,11 @@ class SummaryWords:
                 place = " in each group" if groups else ""
                 print(f"Note: {name} leaves out the lowest and highest {share:g} % of the values{place}, "
                       f"as R mean(x, trim = {share / 100:g}).")
+            if name.startswith("winsorized average "):
+                share = float(name.split()[-2])
+                place = " in each group" if groups else ""
+                print(f"Note: {name} sets the lowest and highest {share:g} % of the values{place} to the nearest value "
+                      f"kept, then takes the average, as R WRS2::winmean(x, tr = {share / 100:g}).")
         _period_note(periods)
         return table
 
@@ -1340,7 +1601,8 @@ class SummaryWords:
     # ------------------------------------------------------------------ correlation
     @friendly
     def correlation_between(self, *columns, method="pearson", show="r", sides=2, higher=None, lower=None,
-                            alternative=None):
+                            alternative=None, p_value_by="formula", interval_by=None, shuffles=9999, resamples=9999,
+                            seed=1):
         """How strongly columns of numbers go up or down together, from -1 to 1.
 
         table.correlation_between("hours", "marks")   (with sdata.example("marks"))
@@ -1363,6 +1625,10 @@ class SummaryWords:
         like this one if there were truly no link ("about 3 of 100 studies", p = 0.031).
         sides=1, higher="positive" (or "negative") tests in one direction only, as decided before
         seeing the data (R cor.test(alternative = "greater")); two columns only.
+        Two columns only: p_value_by="shuffling" gives the p-value from shuffling one column
+        against the other shuffles=9999 times (seed=1; SciPy permutation_test), and
+        interval_by="bootstrap" adds a 95 % interval of r from drawing the rows again with
+        replacement resamples=9999 times (seed=1; SciPy bootstrap, BCa, as R boot::boot.ci()).
         A correlation does not show that one thing causes the other.
         """
         step = "correlation_between"
@@ -1400,9 +1666,16 @@ class SummaryWords:
                                   "both ways.")
         alt, up = _direction(step, sides, higher, lower, alternative, {"positive": "greater", "negative": "less"},
                              example, lower_words=[])
+        self._check_choice(step, "p_value_by", p_value_by, ("formula", "shuffling"))
+        if interval_by is not None:
+            self._check_choice(step, "interval_by", interval_by, ("bootstrap",))
+        if len(names) > 2 and (p_value_by != "formula" or interval_by is not None):
+            raise SimplydataError("p_value_by= and interval_by= work with two columns; give two column names.")
         frame = self._number_frame(step, names)
         if len(names) == 2:
-            return self._one_correlation(step, frame, names[0], names[1], method, alt, up)
+            return self._one_correlation(step, frame, names[0], names[1], method, alt, up,
+                                         p_value_by=p_value_by, interval_by=interval_by, shuffles=shuffles,
+                                         resamples=resamples, seed=seed)
         return self._correlation_table(step, frame, names, method, shown)
 
     @staticmethod
@@ -1435,7 +1708,8 @@ class SummaryWords:
             result = stats.kendalltau(a, b, variant="b", alternative=alternative)
         return float(result[0]), float(result[1]), len(pairs)
 
-    def _one_correlation(self, step, frame, column_a, column_b, method, alternative="two-sided", up=None):
+    def _one_correlation(self, step, frame, column_a, column_b, method, alternative="two-sided", up=None,
+                         p_value_by="formula", interval_by=None, shuffles=9999, resamples=9999, seed=1):
         r, p, n = self._correlate(step, frame, column_a, column_b, method, alternative)
         skipped = len(frame) - n
         name = METHOD_NAMES[method]
@@ -1443,9 +1717,29 @@ class SummaryWords:
             rows = "row" if skipped == 1 else "rows"
             verb = "was" if skipped == 1 else "were"
             print(f'Note: {skipped} {rows} with an empty cell in "{column_a}" or "{column_b}" {verb} skipped.')
+        extra, interval = [], ""
+        if p_value_by == "shuffling" or interval_by is not None:
+            from .resampling import bootstrap_interval, correlation, resample_p
+            from .stat_tests import _num
+
+            pairs = frame.select(column_a, column_b).drop_nulls()
+            x, y = (pairs[c].to_numpy().astype(float) for c in (column_a, column_b))
+            statistic = correlation(method)
+            vectorized = method == "pearson"
+            if p_value_by == "shuffling":
+                found = resample_p((x, y), statistic, "pairings", alternative, shuffles, seed, vectorized=vectorized)
+                p = found["p"]
+                extra.append(f"The p-value comes from shuffling: {found['words']} (SciPy permutation_test).")
+            if interval_by == "bootstrap":
+                low, high, words, note = bootstrap_interval((x, y), statistic, 95, "bca", resamples, seed,
+                                                            paired=True, vectorized=vectorized)
+                interval = f"; values from {_num(low)} to {_num(high)} fit the data (95 % bootstrap CI)"
+                extra.append(f"The interval is a {words}.")
+                if note:
+                    extra.append(note)
         print(
             f'The correlation between "{column_a}" and "{column_b}" is r = {r:.2f} ({name}, {n} rows): '
-            f"{_strength(r)}."
+            f"{_strength(r)}{interval}."
         )
         if up is None:
             print(_p_sentence(p, "there were truly no link", "a link this strong or stronger",
@@ -1459,6 +1753,8 @@ class SummaryWords:
             other = "negative" if up == "positive" else "positive"
             print(_one_sided_sentence(f"a {up} correlation", f"a {other} one")
                   + f' As R cor.test(method = "{method}", alternative = "{alternative}").')
+        for line in extra:
+            print(line)
         return r
 
     def _correlation_table(self, step, frame, names, method, shown):
