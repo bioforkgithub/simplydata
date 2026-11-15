@@ -3,8 +3,9 @@
 [![PyPI](https://img.shields.io/pypi/v/simplydata)](https://pypi.org/project/simplydata/) [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.24210045.svg)](https://doi.org/10.5281/zenodo.24210045)
 
 **Simple words for data science in Python.** One small vocabulary you can learn in a day,
-built on matplotlib, seaborn, pandas, Polars, NumPy and SciPy (with narwhals linking pandas and
-Polars), so you don't have to learn them first.
+built on matplotlib, seaborn, pandas, Polars, NumPy, SciPy and statsmodels (with narwhals linking
+pandas and Polars), and on R through rpy2 for the methods only R has, so you don't have to learn
+them first.
 
 > Status: early development (charts, tables, numbers, statistical tests, fitting and distributions ready). The word list may still change: an old word keeps working for one release and prints a one-line note with its new name.
 
@@ -36,6 +37,7 @@ pip install simplydata            # needs Python 3.11 or newer
 pip install "simplydata[fast]"    # adds Polars, the fast engine for big data
 pip install "simplydata[files]"   # adds reading Word, SPSS and Stata files
 pip install "simplydata[stats]"   # adds statsmodels, for mixed models and multiple imputation
+pip install "simplydata[r]"       # adds rpy2, the bridge from Python to R (install R itself from https://cran.r-project.org)
 ```
 
 ## Learn it in a day
@@ -203,6 +205,50 @@ established, peer-reviewed packages: Python packages (SciPy, statsmodels, pandas
 others), and R packages through rpy2 where Python has none. simplydata translates simple words
 into those calls, with the right settings, and says in the result which method was used. What we
 test is that translation: each answer is checked against the package underneath and against R.
+
+## What simplydata covers
+
+These are the packages simplydata gives plain words for, and every R package it calls.
+
+| Area | Python packages |
+|---|---|
+| Tables | pandas; Polars (`simplydata[fast]`, with pyarrow); narwhals, so the same words work on both; openpyxl for Excel files; python-docx and pyreadstat for Word, SPSS and Stata files (`simplydata[files]`) |
+| Numbers and arrays | NumPy |
+| Charts | matplotlib and seaborn |
+| Statistics | SciPy (`scipy.stats` for tests and distributions; `scipy.special`) and statsmodels (Welch's ANOVA, ANOVA tables, corrections for many tests, lowess smoothing) |
+| Models | statsmodels (regression, logistic, Poisson, negative binomial, ordered and mixed models, Cox models and survival curves, multiple imputation) |
+| Patterns across many columns | SciPy (`scipy.spatial` for distances, `scipy.cluster` for clustering) and statsmodels (PCA) |
+| Fitting, finding and values between points | SciPy (`scipy.optimize` and `scipy.interpolate`) |
+| The bridge to R | rpy2 (`simplydata[r]`) |
+
+R packages, used where Python has no method of its own:
+
+| Area | R package | What simplydata uses it for |
+|---|---|---|
+| Statistics | stats (comes with R) | k-means clustering, smoothing splines, and the linear models behind ANOVA tables |
+| Statistics | car | ANOVA tables for each column of a model; variance inflation factors |
+| Statistics | effectsize | partial eta-squared |
+| Statistics | afex | repeated-measures ANOVA |
+| Models | lme4 | mixed models for yes/no and counts; which groups pull a mixed model |
+| Models | lmerTest | Satterthwaite p-values for mixed models |
+| Models | pbkrtest | Kenward-Roger degrees of freedom for model averages from mixed models |
+| Models | emmeans | model averages and their pairs |
+| Models | performance | R squared for mixed models |
+| Models | MASS | negative binomial and ordered models, when R needs to refit them |
+| Models | nnet | models for outcomes with several groups, when R needs to refit them |
+| Models | betareg | beta regression for shares |
+| Models | pscl | zero-inflated counts |
+| Models | geepack | effects for the whole population (GEE) |
+| Models | mgcv | smooth curves in a model (GAM) |
+| Models | sandwich | robust standard errors |
+| Models | mice | pooling the filled-in tables of multiple imputation |
+| Survival | survival | the proportional-hazards check of a Cox model |
+| Patterns across many columns | vegan | Bray-Curtis and other distances, NMDS, PERMANOVA and its spread check |
+
+To use the words that need R, install R from https://cran.r-project.org, then
+`pip install "simplydata[r]"`, then in R `install.packages(...)` with the packages above.
+Every other word works without R. A word that needs R and cannot find it, or a package, stops with
+a friendly message that says what to install.
 
 ## Ideas behind it
 
