@@ -1,12 +1,2 @@
-A continuous system: output / input = 1 / (s**2 + 0.8*s + 4). Poles -0.4 +/- 1.96i: stable (every pole has a negative real part). Steady gain 0.25: a constant input of 1 settles at 0.25.
-Method: SciPy signal.lti, as R control::tf(num, den).
-Frequency response at 200 frequencies from 0.1 to 10 radians per second: the gain is 0.2506 (-12.02 decibels, dB) at the lowest and 0.01038 (-39.68 dB) at the highest.
-Margins: the phase never reaches -180 degrees and the gain never crosses 1 (0 decibels), so both margins are without limit.
-Method: SciPy signal.freqresp, as R control::bode(sys, w) (gain in decibels, phase in degrees).
-A continuous system: output / input = (2*s + 2) / (s). Poles 0: not stable (a pole lies on the imaginary axis, so the output never settles).
-Method: SciPy signal.lti, as R control::tf(num, den).
-In series: output / input = (2*s + 2) / (s**3 + 0.8*s**2 + 4*s).
-Method: polynomial arithmetic (numpy.polynomial), as R control::series(sys1, sys2).
-Frequency response at 200 frequencies from 0.01 to 10 radians per second: the gain is 50 (33.98 decibels, dB) at the lowest and 0.02086 (-33.61 dB) at the highest.
-Margins: gain margin 18.06 decibels at 4.472 radians per second; phase margin 32.98 degrees at 2.28 radians per second (python-control stability_margins).
-Method: SciPy signal.freqresp, as R control::bode(sys, w) (gain in decibels, phase in degrees).
+The strongest cycle in "signal" has frequency 5 per unit of "time" (it repeats every 0.2 units of "time") and holds 46 % of the variance; next: 20 per unit of "time" (8 %) and 50 per unit of "time" (3 %).
+Method: Welch's method (the average periodogram of pieces of 200 readings with half overlap and a hann window), as SciPy signal.welch (the same steps written in R give the same numbers). Readings: one reading every 0.005 in "time" (1000 readings).

@@ -22,7 +22,7 @@ import numpy as np
 
 from .._errors import SimplydataError, choice_error, friendly
 from .._time_axis import need_filled, need_regular, series_of
-from .stat_tests import _p_shown
+from .stat_tests import _p_sentence, _p_shown
 from .. import _time_series
 
 EXAMPLE = 'table.check_steady("signal", sorted_by="time")'
@@ -42,7 +42,8 @@ list(adf_stat = unname(a$statistic), adf_lag = unname(a$parameter), adf_p = a$p.
 """
 
 
-def _p_words(p, flag) -> str:
+def _p_bounded(p, flag) -> str:
+    """The p-value of a table-based test: "p below 0.01" when it lies past the end of the table."""
     if flag == "below":
         return f"p below {p:g}"
     if flag == "above":
@@ -131,8 +132,8 @@ class TimeSeriesWords:
             kpss_wanders = got["kpss_p"] < 0.05
             what = f'"{column}"' + (f" for {one.label}" if one.label else "")
             shape = "a steady level" if around == "level" else "a steady straight line"
-            adf_text = f"ADF {_p_words(got['adf_p'], got['adf_flag'])}"
-            kpss_text = f"KPSS {_p_words(got['kpss_p'], got['kpss_flag'])}"
+            adf_text = f"ADF {_p_bounded(got['adf_p'], got['adf_flag'])}"
+            kpss_text = f"KPSS {_p_bounded(got['kpss_p'], got['kpss_flag'])}"
             if test == "both":
                 if adf_steady and not kpss_wanders:
                     reading = "steady"
@@ -315,8 +316,9 @@ class TimeSeriesWords:
                     slope_words = f"{way} by {_num(abs(slope))} per {cycle_words} (seasonal Sen's slope{interval})"
             if test:
                 test_name = "seasonal Mann-Kendall" if period else "Mann-Kendall"
-                print(f"{what} {slope_words}; a trend this steady {_chance_words(test['p'])} "
-                      f"({test_name}, {_p_shown(test['p'])}).")
+                print(f"{what} {slope_words}. " + _p_sentence(
+                    test["p"], "there were truly no trend", "a trend this steady or steadier",
+                    "that there is no trend", shown=f"{test_name}, {_p_shown(test['p'])}"))
             else:
                 print(f"{what} {slope_words}.")
             row = {", ".join(groups): one.label} if groups else {}
@@ -386,9 +388,3 @@ def _num(x) -> str:
 
     return num(x)
 
-
-def _chance_words(p) -> str:
-    from .summaries import _p_words
-
-    words = _p_words(p)
-    return words if words.startswith("could") else "is " + words

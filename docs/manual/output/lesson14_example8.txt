@@ -1,0 +1,4 @@
+Note from R (Kendall's W with its 95 % interval (R effectsize)): 102 block(s) contain ties, some containing only 1 unique ranking.
+The median is 6.00 in "pain_week_0", 5.00 in "pain_week_4" and 4.00 in "pain_week_8" (200 rows, each measured 3 times). Kendall's W = 0.564 (95 % bootstrap CI, R seed 1, 0.501 to 0.646): how alike the rows rank the columns, from 0 (no common order) to 1 (every row the same).
+If the columns truly did not differ, differences this big or bigger between them would turn up in fewer than 1 in 1000 studies like this one (p < 0.0001).
+Test: Friedman test (chi-square = 226, df = 2), because the columns hold numbers measured in the same rows; it compares the ranks within each row, so it does not need bell-shaped values. As R friedman.test().

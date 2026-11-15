@@ -31,7 +31,9 @@ import numpy as np
 from .._errors import SimplydataError, friendly
 from .models import EXAMPLE, _list_words, _quoted, _r_name
 from .stat_tests import _label, _num, _skipped_note, _whole
-from .summaries import _p_words
+from .summaries import _p_clause, _p_shown
+
+HELP_NONE = "the extra columns truly did not help"  # compare_models: the p-value sentence (W2)
 
 # every outcome of explain(); emmeans follows each of their models
 AVERAGE_OUTCOMES = ("numbers", "yes or no", "counts", "counts (overdispersed)", "counts that vary a lot",
@@ -178,6 +180,12 @@ class ModelToolWords:
         adjust = (f"Tukey's adjustment for {len(pairs)} comparisons" if len(pairs) > 1 else
                   "one pair, so nothing to adjust for")
         within = f" within each {column_words} group" if chances else ""
+        if len(pairs) > 1:  # adjusted p-values are said plainly (W2)
+            def pair_p(p):
+                return "Tukey-adjusted " + _p_shown(p)
+        else:
+            def pair_p(p):
+                return _p_clause(p, "the two groups truly did not differ")
         print(f"Each pair of groups ({pair_what}, {adjust}){within}:")
         word = "against" if ratio else "minus"
         # each pair from the groups themselves, in emmeans pairs() order (1-2, 1-3, ..., 2-3, ...) within each block:
@@ -186,7 +194,7 @@ class ModelToolWords:
         for i, (a, b) in enumerate(contrasts):
             where = f"{pcls[i]}: " if chances else ""
             print(f"  {where}{a} {word} {b}: {pair_what} {_num(out['difference'][i])} (95 % CI {_num(out['plow'][i])} "
-                  f"to {_num(out['phigh'][i])}); {_p_words(float(out['p'][i]))}.")
+                  f"to {_num(out['phigh'][i])}); {pair_p(float(out['p'][i]))}.")
         call = model_call(model, pieces, grouped_by)
         yes = f" ({model['yes_words']})" if model.get("yes_words") else ""
         spec = f"~ {_r_name(for_each)} | {_r_name(column)}" if chances else f"~ {_r_name(for_each)}"
@@ -312,10 +320,13 @@ class ModelToolWords:
         for i, term in enumerate(terms):
             f, df1, df2 = float(out["f"][i]), float(out["numdf"][i]), float(out["dendf"][i])
             p, ges = float(out["p"][i]), float(out["ges"][i])
-            what = "the interaction " + term if " : " in term else f'"{term}"'
+            interaction = " : " in term
+            what = "the interaction " + term if interaction else f'"{term}"'
+            null = ("the differences were truly the same in every group" if interaction
+                    else "the averages truly did not differ")
             corrected = " (Greenhouse-Geisser corrected)" if term in gg else ""
             print(f"  {what}: F = {_num(f)}, df = {_num(df1)} and {_num(df2)}{corrected}, generalised eta-squared "
-                  f"{_num(ges)}; {_p_words(p)}.")
+                  f"{_num(ges)}; {_p_clause(p, null)}.")
             row = {"term": term, "statistic name": "F", "statistic": f, "degrees of freedom 1": df1,
                    "degrees of freedom 2": df2, "p-value": p, "generalised eta-squared": ges,
                    "Greenhouse-Geisser epsilon": gg.get(term, math.nan)}
@@ -323,7 +334,8 @@ class ModelToolWords:
                 row.update({"Mauchly W": sph[term][0], "Mauchly p-value": sph[term][1]})
             rows.append(row)
         for term, (w, p) in sph.items():
-            print(f"  Sphericity of {term} (Mauchly's test, W = {_num(w)}): {_p_words(p)}; Greenhouse-Geisser epsilon "
+            print(f"  Sphericity of {term} (Mauchly's test, W = {_num(w)}): {_p_clause(p, 'the spread of the differences was truly the same')}; "
+                  "Greenhouse-Geisser epsilon "
                   f"{_num(gg.get(term, math.nan))}.")
         b = f", between = {_list_words(_quoted(c) for c in between)}" if between else ""
         print(f'Method: R afex::aov_ez(id = "{matched_by}", dv = "{column}", within = '
@@ -734,7 +746,7 @@ class ModelToolWords:
     @friendly
     def compare_models(self, column=None, using=None, against=None, outcome="numbers", grouped_by=None,
                        in_order=None):
-        """Does a bigger model explain the column better than a smaller one, or could it be chance?
+        """Does a bigger model explain the column better than a smaller one?
 
         table.compare_models("marks", using=["hours"], against=["hours", "breakfast"])
         (with sdata.example("school"))
@@ -831,7 +843,8 @@ class ModelToolWords:
         if kind == "lm":
             f, p, df = self._statsmodels_fit(big[0]).compare_f_test(self._statsmodels_fit(small[0]))
             df2 = float(big[0]["fit"]["df"])
-            print(f"{extra} help? F test (F = {_num(f)}, df = {_whole(df)} and {_whole(df2)}): {_p_words(p)}.")
+            print(f"{extra} help? F test (F = {_num(f)}, df = {_whole(df)} and {_whole(df2)}): "
+                  f"{_p_clause(p, HELP_NONE)}.")
             test = {"statistic name": "F", "statistic": float(f), "degrees of freedom": float(df), "p-value": float(p)}
             how = "an F test, as R anova(m0, m1) (statsmodels compare_f_test)"
         elif kind in ("quasipoisson", "gamma"):
@@ -841,7 +854,8 @@ class ModelToolWords:
             df2 = float(big[0]["fit"]["df"])
             f = change / df / big[0]["fit"]["dispersion"]
             p = float(stats.f.sf(f, df, df2))
-            print(f"{extra} help? F test (F = {_num(f)}, df = {_whole(df)} and {_whole(df2)}): {_p_words(p)}.")
+            print(f"{extra} help? F test (F = {_num(f)}, df = {_whole(df)} and {_whole(df2)}): "
+                  f"{_p_clause(p, HELP_NONE)}.")
             test = {"statistic name": "F", "statistic": float(f), "degrees of freedom": df, "p-value": p}
             how = 'an F test on the change in deviance, as R anova(m0, m1, test = "F")'
         else:
@@ -860,7 +874,8 @@ class ModelToolWords:
                        "multinom": "a likelihood-ratio test, as R anova(m0, m1) for nnet::multinom models",
                        }.get(kind, "a likelihood-ratio test, as R lmtest::lrtest(m0, m1)")
             p = float(stats.chi2.sf(chi, df))
-            print(f"{extra} help? Likelihood-ratio test (chi-square = {_num(chi)}, df = {_whole(df)}): {_p_words(p)}.")
+            print(f"{extra} help? Likelihood-ratio test (chi-square = {_num(chi)}, df = {_whole(df)}): "
+                  f"{_p_clause(p, HELP_NONE)}.")
             test = {"statistic name": "chi-square", "statistic": chi, "degrees of freedom": df, "p-value": p}
         rows.append({"term": "test: the bigger model against the smaller", **test})
         print(f"Method: both models fitted as {model_call(big[0], big[1], grouped_by)} and the smaller one, then {how}; "

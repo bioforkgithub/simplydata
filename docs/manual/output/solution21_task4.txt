@@ -12,29 +12,29 @@ Model averages of "marks" for each "school" (180 rows), with "hours" held at its
   School K: average 53.3 (95 % CI 49.8 to 56.9)
   School L: average 52.6 (95 % CI 49.1 to 56.2)
 Each pair of groups (difference, Tukey's adjustment for 66 comparisons):
-  School A minus School B: difference -6.84 (95 % CI -15.3 to 1.59); could easily be chance (p = 0.240).
-  School A minus School C: difference 5.89 (95 % CI -2.60 to 14.4); could easily be chance (p = 0.480).
-  School A minus School D: difference -15.3 (95 % CI -23.8 to -6.86); very unlikely to be chance (p < 0.0001).
-  School A minus School E: difference -12.5 (95 % CI -20.9 to -4.04); very unlikely to be chance (p = 0.0001).
-  School A minus School F: difference -3.80 (95 % CI -12.2 to 4.63); could easily be chance (p = 0.940).
-  School A minus School G: difference -4.58 (95 % CI -13.1 to 3.91); could easily be chance (p = 0.822).
-  School A minus School H: difference -7.63 (95 % CI -16.1 to 0.853); could easily be chance (p = 0.123).
-  School A minus School I: difference -3.83 (95 % CI -12.4 to 4.70); could easily be chance (p = 0.942).
-  School A minus School J: difference -3.39 (95 % CI -11.8 to 5.04); could easily be chance (p = 0.974).
-  School A minus School K: difference -11.0 (95 % CI -19.4 to -2.52); unlikely to be chance (p = 0.002).
-  School A minus School L: difference -10.3 (95 % CI -18.8 to -1.81); unlikely to be chance (p = 0.005).
-  School B minus School C: difference 12.7 (95 % CI 4.26 to 21.2); very unlikely to be chance (p < 0.0001).
-  School B minus School D: difference -8.49 (95 % CI -17.0 to -0.0217); unlikely to be chance (p = 0.049).
-  School B minus School E: difference -5.63 (95 % CI -14.1 to 2.80); could easily be chance (p = 0.542).
-  School B minus School F: difference 3.04 (95 % CI -5.40 to 11.5); could easily be chance (p = 0.989).
-  School B minus School G: difference 2.27 (95 % CI -6.20 to 10.7); could easily be chance (p = 0.999).
-  School B minus School H: difference -0.782 (95 % CI -9.25 to 7.69); could easily be chance (p = 1.000).
-  School B minus School I: difference 3.01 (95 % CI -5.51 to 11.5); could easily be chance (p = 0.990).
-  School B minus School J: difference 3.45 (95 % CI -4.98 to 11.9); could easily be chance (p = 0.970).
-  School B minus School K: difference -4.13 (95 % CI -12.6 to 4.32); could easily be chance (p = 0.899).
-  School B minus School L: difference -3.44 (95 % CI -11.9 to 5.02); could easily be chance (p = 0.971).
-  School C minus School D: difference -21.2 (95 % CI -29.7 to -12.8); very unlikely to be chance (p < 0.0001).
-  School C minus School E: difference -18.4 (95 % CI -26.9 to -9.88); very unlikely to be chance (p < 0.0001).
-  School C minus School F: difference -9.70 (95 % CI -18.2 to -1.24); unlikely to be chance (p = 0.011).
+  School A minus School B: difference -6.84 (95 % CI -15.3 to 1.59); Tukey-adjusted p = 0.240.
+  School A minus School C: difference 5.89 (95 % CI -2.60 to 14.4); Tukey-adjusted p = 0.480.
+  School A minus School D: difference -15.3 (95 % CI -23.8 to -6.86); Tukey-adjusted p < 0.0001.
+  School A minus School E: difference -12.5 (95 % CI -20.9 to -4.04); Tukey-adjusted p = 0.0001.
+  School A minus School F: difference -3.80 (95 % CI -12.2 to 4.63); Tukey-adjusted p = 0.940.
+  School A minus School G: difference -4.58 (95 % CI -13.1 to 3.91); Tukey-adjusted p = 0.822.
+  School A minus School H: difference -7.63 (95 % CI -16.1 to 0.853); Tukey-adjusted p = 0.123.
+  School A minus School I: difference -3.83 (95 % CI -12.4 to 4.70); Tukey-adjusted p = 0.942.
+  School A minus School J: difference -3.39 (95 % CI -11.8 to 5.04); Tukey-adjusted p = 0.974.
+  School A minus School K: difference -11.0 (95 % CI -19.4 to -2.52); Tukey-adjusted p = 0.002.
+  School A minus School L: difference -10.3 (95 % CI -18.8 to -1.81); Tukey-adjusted p = 0.005.
+  School B minus School C: difference 12.7 (95 % CI 4.26 to 21.2); Tukey-adjusted p < 0.0001.
+  School B minus School D: difference -8.49 (95 % CI -17.0 to -0.0217); Tukey-adjusted p = 0.049.
+  School B minus School E: difference -5.63 (95 % CI -14.1 to 2.80); Tukey-adjusted p = 0.542.
+  School B minus School F: difference 3.04 (95 % CI -5.40 to 11.5); Tukey-adjusted p = 0.989.
+  School B minus School G: difference 2.27 (95 % CI -6.20 to 10.7); Tukey-adjusted p = 0.999.
+  School B minus School H: difference -0.782 (95 % CI -9.25 to 7.69); Tukey-adjusted p = 1.000.
+  School B minus School I: difference 3.01 (95 % CI -5.51 to 11.5); Tukey-adjusted p = 0.990.
+  School B minus School J: difference 3.45 (95 % CI -4.98 to 11.9); Tukey-adjusted p = 0.970.
+  School B minus School K: difference -4.13 (95 % CI -12.6 to 4.32); Tukey-adjusted p = 0.899.
+  School B minus School L: difference -3.44 (95 % CI -11.9 to 5.02); Tukey-adjusted p = 0.971.
+  School C minus School D: difference -21.2 (95 % CI -29.7 to -12.8); Tukey-adjusted p < 0.0001.
+  School C minus School E: difference -18.4 (95 % CI -26.9 to -9.88); Tukey-adjusted p < 0.0001.
+  School C minus School F: difference -9.70 (95 % CI -18.2 to -1.24); Tukey-adjusted p = 0.011.
 
 ... (45 more lines)

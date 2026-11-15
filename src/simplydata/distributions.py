@@ -1823,12 +1823,129 @@ def _read_fixed(family, fixed):
     return out
 
 
+# ====================================================================== kernel density
+KERNEL_NAMES = ("kernel density", "kde", "gaussian kde", "gaussian_kde")
+
+
+def _is_kernel(name) -> bool:
+    return isinstance(name, str) and name.strip().lower().replace("-", " ") in KERNEL_NAMES
+
+
+def _kernel_scipy(kde):
+    """A frozen SciPy distribution whose density is the kernel density: SciPy gaussian_kde gives the density,
+    the chance below (integrate_box_1d) and random numbers (resample); SciPy rv_continuous does the rest
+    (percentiles by root finding, moments by integration)."""
+    stats = _st()
+
+    class _KernelDensity(stats.rv_continuous):
+        def _pdf(self, x):
+            return kde.pdf(np.asarray(x, dtype=float).ravel()).reshape(np.shape(x))
+
+        def _cdf(self, x):
+            flat = np.asarray(x, dtype=float).ravel()
+            return np.asarray([kde.integrate_box_1d(-np.inf, v) for v in flat]).reshape(np.shape(x))
+
+        def _rvs(self, size=None, random_state=None):
+            n = int(np.prod(size)) if size is not None else 1
+            return kde.resample(n, seed=random_state)[0].reshape(size if size is not None else ())
+
+    return _KernelDensity(name="kernel density")()
+
+
+class KernelDensity(Distribution):
+    """The kernel density of some numbers: a smooth curve made of a small bell curve (a Gaussian kernel) on
+    each value, as R density(x). table.fit_distribution("marks", "kernel density")"""
+
+    def __init__(self, values, column=None, backend=None):
+        from statsmodels.nonparametric.bandwidths import bw_silverman
+
+        x = np.asarray(values, dtype=float)
+        bandwidth = float(bw_silverman(x))
+        kde = _st().gaussian_kde(x, bw_method=bandwidth / float(np.std(x, ddof=1)))
+        object.__setattr__(self, "_family", "kernel density")
+        object.__setattr__(self, "_params", {"bandwidth": bandwidth})
+        object.__setattr__(self, "_fit_info", None)
+        object.__setattr__(self, "_backend", backend)
+        object.__setattr__(self, "_kde_info", {"rows": len(x), "column": column})
+        object.__setattr__(self, "_frozen", _kernel_scipy(kde))
+
+    @property
+    def is_discrete(self) -> bool:
+        return False
+
+    @property
+    def name(self) -> str:
+        return "kernel density"
+
+    @property
+    def label(self) -> str:
+        return f"kernel density, bandwidth {_say(self._params['bandwidth'])}"
+
+    @property
+    def r_call(self) -> str:
+        return f"density(x, bw = {_r(self._params['bandwidth'])})"
+
+    def _describe(self) -> str:
+        info = self._kde_info
+        what = f'"{info["column"]}"' if info.get("column") else "the numbers"
+        return (f"kernel density of {what} ({info['rows']} values; Gaussian kernel, bandwidth "
+                f"{_say(self._params['bandwidth'])})")
+
+    def _r(self, kind, x, upper=False):
+        return None
+
+    def __repr__(self):
+        text = self._describe()
+        return f"{text[0].upper()}{text[1:]} (R: {self.r_call})."
+
+    def _param_text(self) -> str:
+        return f"bandwidth {_say(self._params['bandwidth'])}"
+
+    def _shown(self, name):
+        return name
+
+    def table(self):
+        """A one-row table: kernel density, the column, the bandwidth and the number of values. dist.table()"""
+        info = self._kde_info
+        row = {"distribution": self.name}
+        if info.get("column"):
+            row["column"] = info["column"]
+        row.update({"bandwidth": self._params["bandwidth"], "rows": info["rows"]})
+        return self._table(row)
+
+
+def _fit_kernel(values, say=False, column=None, backend=None):
+    x = np.asarray(values, dtype=float).ravel()
+    x = x[~np.isnan(x)]
+    what = f'"{column}"' if column else "the numbers"
+    if len(x) < 2:
+        raise SimplydataError(f"A kernel density needs at least 2 values; {what} has {len(x)}.")
+    if not np.all(np.isfinite(x)):
+        raise SimplydataError(f"{what[0].upper()}{what[1:]} has infinite values, which no density can follow.")
+    if np.ptp(x) == 0:
+        raise SimplydataError(f"Every value of {what} is the same, so there is no spread to follow.")
+    dist = KernelDensity(x, column=column, backend=backend)
+    if say:
+        bandwidth = _say(dist._params["bandwidth"])
+        print(f"The kernel density of {what} ({len(x)} values): a smooth curve with a small bell curve on each value "
+              f"(Gaussian kernel), bandwidth {bandwidth}. Ask it chances and percentiles like any distribution.")
+        print(f"Method: SciPy gaussian_kde with Silverman's rule of thumb for the bandwidth (statsmodels "
+              f"bw_silverman: 0.9 x the smaller of the standard deviation and the IQR / 1.349, x n^(-1/5)), as R "
+              f"density(x), whose bw.nrd0 divides the IQR by 1.34; R: density(x, bw = {bandwidth}).")
+    return dist
+
+
 def fit(values, name="normal", fixed=None, say=False, column=None, backend=None) -> Distribution:
     """Fit a distribution to numbers by maximum likelihood; gives back the fitted Distribution.
 
     For other parts of simplydata (chart.fit_distribution) and for the table and numbers
     words. say=True prints the two sentences that table.fit_distribution prints.
+    name="kernel density" gives the kernel density instead (no fit by maximum likelihood).
     """
+    if _is_kernel(name):
+        if fixed is not None:
+            raise SimplydataError("fixed= holds a parameter of a fitted distribution; a kernel density has none.")
+        return _fit_kernel(values, say=say, column=column, backend=backend)
     family = _find_family(name, "fit_distribution")
     if isinstance(family, Distribution):
         family = family._family
@@ -2113,18 +2230,16 @@ def shape_test(values, name, seed=SEED, samples=SHAPE_TEST_SAMPLES, column=None,
     family, x, dist, run = _started
     a, p = run.finish()
     samples, seed = run.samples, int(seed)
-    from .table.stat_tests import _chance, _p_shown
+    from .table.summaries import _p_sentence
 
     what = f'"{column}"' if column else "the numbers"
     title = family.title if isinstance(family, Family) else f"SciPy {family}"
     fitted_words = _param_short(dist)
-    if p < 0.05:
-        verdict = _chance(p)[:-1]  # "is unlikely to be chance (p = 0.030"
-        sentence = (f"The values of {what} do not look like a {title} distribution: a shape this far from {title} "
-                    f"{verdict}; Anderson-Darling A = {a:.3f}, {len(x)} values; fitted {fitted_words}).")
-    else:
-        sentence = (f"The values of {what} could well follow a {title} distribution (Anderson-Darling A = {a:.3f}, "
-                    f"{_p_shown(p)}, {len(x)} values; fitted {fitted_words}). This does not prove that they do.")
+    looks = "do not look like" if p < 0.05 else "could well follow"
+    sentence = (f"The values of {what} {looks} a {title} distribution (Anderson-Darling A = {a:.3f}, {len(x)} values; "
+                f"fitted {fitted_words}). "
+                + _p_sentence(p, f"the values truly came from a {title} distribution",
+                              f"a shape this far from {title} or further", f"that they follow a {title} distribution"))
     method = (f"Test: Anderson-Darling test of a fitted {title} shape, with a Monte Carlo p-value from "
               f"{samples} simulated samples that are each fitted again (SciPy goodness_of_fit, seed={seed}); "
               + (f"the statistic is R goftest::ad.test(x, \"{family.r_package}p{family.r_prefix}\", ...) with the "

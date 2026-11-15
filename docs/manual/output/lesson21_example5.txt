@@ -2,6 +2,6 @@ Model averages of "marks" for each "breakfast" (180 rows), with "hours" held at 
   no: average 46.6 (95 % CI 44.9 to 48.3)
   yes: average 49.5 (95 % CI 48.3 to 50.8)
 Each pair of groups (difference, one pair, so nothing to adjust for):
-  no minus yes: difference -2.95 (95 % CI -5.13 to -0.768); unlikely to be chance (p = 0.008).
+  no minus yes: difference -2.95 (95 % CI -5.13 to -0.768); about 1 of 100 studies would show this much if the two groups truly did not differ (p = 0.008).
 Method: the model lm(marks ~ hours + school + breakfast), then R emmeans::emmeans(m, ~ breakfast) and pairs().
 Note: "breakfast" was not in using=, so it was added to the model.

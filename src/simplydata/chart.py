@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from ._core import BaseChart
 from ._errors import SimplydataError, friendly
+from .words.agreement_charts import AgreementChartWords
 from .words.axes import AxesWords
 from .words.charts import ChartWords
 from .words.curves import CurveWords
@@ -15,8 +16,8 @@ from .words.text import TextWords
 from .words.time_charts import TimeChartWords
 
 
-class Chart(ChartWords, StatsWords, CurveWords, SurvivalChartWords, TimeChartWords, TextWords, AxesWords, LookWords,
-            LayoutWords, BaseChart):
+class Chart(ChartWords, StatsWords, CurveWords, SurvivalChartWords, AgreementChartWords, TimeChartWords, TextWords,
+            AxesWords, LookWords, LayoutWords, BaseChart):
     """A chart. Make one with sdata.chart(...), then add steps: chart.bars(...), chart.title_top(...)."""
 
 

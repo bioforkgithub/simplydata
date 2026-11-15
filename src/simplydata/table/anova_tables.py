@@ -21,7 +21,7 @@ import numpy as np
 
 from .._errors import SimplydataError
 from .stat_tests import _num, _whole
-from .summaries import _p_words
+from .summaries import _p_clause
 
 TEST_TYPES = ("type 2", "type 3", "in order")
 TEST_TYPE_SPELLINGS = {"type ii": "type 2", "ii": "type 2", "2": "type 2", "type iii": "type 3", "iii": "type 3",
@@ -232,7 +232,7 @@ def report(model, test_type):
             value = math.nan if etas is None else etas.get(r["term"], math.nan)
             eta = "" if math.isnan(value) else f", partial eta-squared {_num(value)}"
             print(f"  {r['term']}: F = {_num(r['stat'])}, df = {_whole(r['df'])} and {_whole(residual['df'])}"
-                  f"{eta}; {_p_words(r['p'])}.")
+                  f"{eta}; {_p_clause(r['p'], 'this column truly did not matter')}.")
             out_rows.append({"term": f"{r['term']} (test, {test_type})", "statistic name": "F",
                              "statistic": r["stat"], "degrees of freedom": r["df"], "p-value": r["p"],
                              "sum of squares": r["ss"],
@@ -247,7 +247,8 @@ def report(model, test_type):
     rows, name = anova_glm(model, test_type)
     print(f"Tests for each column ({WHAT[test_type]}, likelihood-ratio tests run in R):")
     for r in rows:
-        print(f"  {r['term']}: {name} = {_num(r['stat'])}, df = {_whole(r['df'])}; {_p_words(r['p'])}.")
+        print(f"  {r['term']}: {name} = {_num(r['stat'])}, df = {_whole(r['df'])}; "
+              f"{_p_clause(r['p'], 'this column truly did not matter')}.")
         out_rows.append({"term": f"{r['term']} (test, {test_type})", "statistic name": name,
                          "statistic": r["stat"], "degrees of freedom": r["df"], "p-value": r["p"]})
     return out_rows

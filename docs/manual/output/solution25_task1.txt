@@ -1,4 +1,2 @@
-A continuous system: output / input = 1 / (s**2 + 2*s + 4). Poles -1 +/- 1.732i: stable (every pole has a negative real part). Steady gain 0.25: a constant input of 1 settles at 0.25.
-Method: SciPy signal.lti, as R control::tf(num, den).
-Step response: the output settles at 0.25, peaks at 0.2908 at time 1.809 (overshoot 16.3 %), rise time 0.8291 (10 % to 90 %), settling time 4.07 (within 2 %).
-Method: SciPy signal.step, as R control::step(sys, t); rise time, settling time and overshoot from python-control step_info(y, T, yfinal) on that response.
+The strongest cycle in "vibration" has frequency 5 per unit of "time" (it repeats every 0.2 units of "time") and holds 65 % of the variance; next: 20 per unit of "time" (11 %) and 50 per unit of "time" (3 %).
+Method: periodogram (squared size of the Fourier transform, one-sided, scaled so the powers add up to the variance), as 2 x R spec.pgram(x, taper = 0, detrend = FALSE, fast = FALSE)$spec. Readings: one reading every 0.005 in "time" (1000 readings).

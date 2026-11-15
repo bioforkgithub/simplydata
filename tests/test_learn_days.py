@@ -63,10 +63,12 @@ def test_the_python_track_follows_its_outline():
     assert {k for n in (3, 4, 5) for k in lessons[n]} == {4, 5, 6, 7, 8}
     assert {k for n in (6, 8, 9) for k in lessons[n]} == {9, 10, 11, 12, 13}
     assert {k for n in (10, 11, 12, 13) for k in lessons[n]} == {14, 15}
-    assert {k for n in (15, 16, 17, 18) for k in lessons[n]} == {16, 17, 18, 21}
+    risks = learn.lesson_number(learn.RISKS_LESSON)
+    assert {k for n in (15, 16, 17, 18) for k in lessons[n]} == {16, 17, 18, 20, 21, risks}
     v06 = {learn.lesson_number(t) for t in (learn.TIME_SERIES_LESSON, learn.FORECASTS_LESSON, learn.CYCLES_LESSON,
                                             learn.SYSTEMS_LESSON)}
     assert {k for n in (19, 20) for k in lessons[n]} == {19, 20} | v06
+    assert set(lessons[20]) == v06, "the time series lessons have a day of their own"
     assert [learn_days.plan("python", n)["kind"] for n in range(22, 28)] == ["project"] * 6
     assert learn_days.plan("python", 28)["kind"] == "review"
 
@@ -113,6 +115,21 @@ def test_warm_ups_ask_about_earlier_days(track, number):
         sources = [s for _, _, s in warm]
         assert number - 1 in sources or not learn_days._has_recall(track, number - 1)
         assert min(sources) <= number - 7, "spaced: something from about a week ago"
+
+
+@pytest.mark.parametrize("track", TRACKS)
+def test_core_words_come_back_after_3_and_7_days_and_in_the_final_test(track):
+    final = next(n for n in DAYS if learn_days.plan(track, n)["kind"] == "final")
+    final_questions = {q for q, _, _ in learn_days.warm_up(track, final)}
+    taught = 0
+    for n in DAYS:
+        for q, _ in learn_days._spaced_of(track, n):
+            taught += 1
+            for later in (n + 3, n + 7):
+                if later <= len(DAYS):
+                    assert q in {w for w, _, _ in learn_days.warm_up(track, later)}, (track, n, later, q)
+            assert q in final_questions, (track, n, q)
+    assert taught >= 4  # interval=95, shuffling, compare_matched, compare_risks
 
 
 @pytest.mark.parametrize("track", TRACKS)
@@ -400,3 +417,12 @@ def test_the_model_words_of_lesson_21_come_back_spaced_and_in_the_final_test(tra
     assert any(6 <= n - taught <= 8 for n in asked), asked
     final = learn_days.plan(track, 29)
     assert final["kind"] == "final" and any("compare_models" in code for code, _ in final["solutions"])
+
+
+def test_lesson_tasks_are_asked_on_the_day_they_are_taught():
+    # lesson 20's tasks are about distributions: the "between" unit (lesson 20 example 3, python day 17)
+    # does not ask for them; the distributions unit (python day 19) does.
+    from simplydata import learn_days
+
+    assert "lesson's tasks" not in learn_days.UNITS["between"]["do"][0]
+    assert "sdata.lesson(20, solutions=True)" in learn_days.UNITS["distributions"]["do"][0]

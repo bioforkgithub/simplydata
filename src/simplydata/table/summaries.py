@@ -27,8 +27,9 @@ Correlation strength words (size of r, whichever direction), after Evans (1996):
     0.6 - 0.8   strong
     0.8 - 1     very strong
 
-The p-value words: below 0.001 "very unlikely to be chance", below 0.05 "unlikely to be
-chance", otherwise "could easily be chance".
+The p-value sentence (the same in every word, _p_sentence): "If there were truly no link, a
+link this strong or stronger would turn up in about 3 of 100 studies like this one (p = 0.031)."
+Below p = 0.001 it says "fewer than 1 in 1000 studies".
 """
 
 from __future__ import annotations
@@ -54,7 +55,10 @@ _SUMMARIES = {
     "standard_deviation_of": ("standard deviation", lambda c: nw.col(c).std(ddof=1)),
 }
 
-CORRELATION_METHODS = ("pearson", "spearman")
+CORRELATION_METHODS = ("pearson", "spearman", "kendall", "somers", "gamma")
+ORDINAL_METHODS = ("somers", "gamma")  # two columns, the measure with its interval from R DescTools
+METHOD_NAMES = {"pearson": "Pearson", "spearman": "Spearman", "kendall": "Kendall's tau-b", "somers": "Somers' d",
+                "gamma": "Goodman and Kruskal's gamma"}
 CORRELATION_SHOW = ("r", "p-value", "each pair")
 STRONGEST_PAIRS = 3  # a correlation table prints this many of its strongest pairs
 
@@ -68,16 +72,19 @@ EVERY_EXAMPLE = ('table.make_dates("year")\n'
 MEASURES = ("count", "average", "median", "total", "smallest", "biggest", "standard deviation", "variance",
             "standard error", "confidence interval", "range", "interquartile range", "empty cells",
             "geometric mean", "skewness", "kurtosis", "coefficient of variation", "median absolute deviation",
-            "trimmed average", "most common", "percentile")
+            "trimmed average", "most common", "percentile", "harmonic mean", "winsorised average")
 MEASURE_ALIASES = {"mean": "average", "sum": "total", "sd": "standard deviation", "se": "standard error",
                    "ci": "confidence interval", "iqr": "interquartile range", "geometric average": "geometric mean",
                    "gmean": "geometric mean", "skew": "skewness", "cv": "coefficient of variation",
                    "mad": "median absolute deviation", "trimmed mean": "trimmed average", "mode": "most common",
-                   "quantile": "percentile"}
+                   "quantile": "percentile", "harmonic average": "harmonic mean", "hmean": "harmonic mean",
+                   "winsorized average": "winsorised average", "winsorized mean": "winsorised average",
+                   "winsorised mean": "winsorised average"}
 # measures worked out with NumPy / SciPy on each group's numbers (the others come from narwhals)
 ARRAY_MEASURES = ("geometric mean", "skewness", "kurtosis", "coefficient of variation", "median absolute deviation",
-                  "trimmed average", "most common", "percentile")
+                  "trimmed average", "most common", "percentile", "harmonic mean", "winsorised average")
 TRIM_PERCENT = 10  # "trimmed average": 10 % cut from each end, unless another percent is given
+WINSOR_PERCENT = 20  # "winsorised average": 20 % pulled in at each end (R WRS2::winmean(tr = 0.2))
 MAD_CONSTANT = 1.4826  # R mad(): makes the median absolute deviation match the sd for bell-shaped values
 LEAST_VALUES = {"skewness": 3, "kurtosis": 4}  # fewer values than this give an empty cell
 DEFAULT_MEASURES = ("count", "average", "standard deviation", "smallest", "median", "biggest")
@@ -241,27 +248,99 @@ def _strength(r: float) -> str:
     return "no link at all"
 
 
-def _p_words(p: float) -> str:
+def _p_shown(p: float) -> str:
+    """"p = 0.031", "p = 0.0026" or "p < 0.0001"."""
+    if p is None or math.isnan(p):
+        return "p cannot be worked out"
     if p < 0.0001:
-        shown = "p < 0.0001"
-    elif p < 0.001:
-        shown = f"p = {p:.4f}"
-    else:
-        shown = f"p = {p:.3f}"
+        return "p < 0.0001"
+    return f"p = {p:.4f}" if p < 0.001 else f"p = {p:.3f}"
+
+
+def _studies(p: float) -> str:
+    """How often a result this big or bigger turns up when there is truly nothing, as a count of
+    studies: "about 3 of 100", "about 3 of 1000", "fewer than 1 in 1000", "almost all of 100".
+    Display only [D]: the p-value written as a count (rounded), not a statistic."""
+    if p is None or math.isnan(p):
+        return "an unknown number of"
     if p < 0.001:
-        return f"very unlikely to be chance ({shown})"
-    if p < 0.05:
-        return f"unlikely to be chance ({shown})"
-    return f"could easily be chance ({shown})"
+        return "fewer than 1 in 1000"
+    per_100 = int(p * 100 + 0.5)
+    if per_100 == 0:
+        return f"about {int(p * 1000 + 0.5)} of 1000"
+    if per_100 >= 100:
+        return "almost all of 100"
+    return f"about {per_100} of 100"
 
 
-def _share(hits: int, rows: int):
-    """Percent and its 95 % Clopper-Pearson exact interval (R binom.test), all from 0 to 100."""
+def _p_sentence(p: float, if_none: str = "there were truly no difference",
+                this: str = "a difference this big or bigger", not_shown: str | None = "that there is no difference",
+                shown: str | None = None) -> str:
+    """The one p-value sentence of every word (owner decision O7, wording rule W2):
+
+    "If there were truly no difference, a difference this big or bigger would turn up in about 3
+    of 100 studies like this one (p = 0.031)."
+
+    if_none: what "nothing there" means for this test ("the groups were truly alike", "B were
+    truly not higher", ...); this: what would turn up. From p = 0.05 a second sentence says that a
+    large p-value does not show there is nothing ("This does not show that there is no
+    difference."; not_shown=None leaves it out). shown: the p-value as printed, when not "p = ..."
+    (e.g. "Holm-adjusted p = 0.010")."""
+    if p is None or math.isnan(p):
+        return "The p-value cannot be worked out with these numbers (it is NaN), so this test gives no answer."
+    shown = shown or _p_shown(p)
+    sentence = f"If {if_none}, {this} would turn up in {_studies(p)} studies like this one ({shown})."
+    if p >= 0.05 and not_shown:
+        sentence += f" This does not show {not_shown}."
+    return sentence
+
+
+def _p_clause(p: float, if_none: str = "there were truly none", shown: str | None = None) -> str:
+    """The short form of the p-value sentence for one line of a list (model terms, pairs):
+    "about 3 of 100 studies would show this much if there were truly none (p = 0.031)"."""
+    return f"{_studies(p)} studies would show this much if {if_none} ({shown or _p_shown(p)})"
+
+
+# interval_by= of percent_of and compare_percent_to: the 95 % interval of a percent (method= is its old name)
+# name -> (name in sentences, statsmodels proportion_confint method); each as R DescTools::BinomCI()
+PERCENT_METHODS = {
+    "exact": ("exact Clopper-Pearson interval", "beta"),
+    "wilson": ("Wilson score interval", "wilson"),
+    "agresti-coull": ("Agresti-Coull interval", "agresti_coull"),
+}
+PERCENT_METHOD_ALIASES = {"clopper-pearson": "exact", "clopper pearson": "exact", "beta": "exact",
+                          "agresti coull": "agresti-coull", "agresti_coull": "agresti-coull", "score": "wilson"}
+
+
+def _percent_method(step: str, method):
+    """The interval_by= of a percent interval, checked ("exact", "wilson" or "agresti-coull")."""
+    from .._errors import choice_error
+
+    name = PERCENT_METHOD_ALIASES.get(method.strip().lower(), method.strip().lower()) if isinstance(method, str) \
+        else method
+    if name not in PERCENT_METHODS:
+        raise choice_error(step, "interval_by", method, list(PERCENT_METHODS))
+    return name
+
+
+def _interval_words(method: str) -> str:
+    """"exact 95 % confidence intervals" (the words used before interval_by= existed) or "95 % Wilson score intervals"."""
+    return "exact 95 % confidence intervals" if method == "exact" else f"95 % {PERCENT_METHODS[method][0]}s"
+
+
+def _share(hits: int, rows: int, method: str = "exact"):
+    """Percent and its 95 % interval, all from 0 to 100: Clopper-Pearson exact (R binom.test), or
+    Wilson / Agresti-Coull (statsmodels proportion_confint, as R DescTools::BinomCI())."""
     if rows == 0:
         return (None, None, None)
-    from scipy import stats
+    if method == "exact":
+        from scipy import stats
 
-    low, high = stats.binomtest(hits, rows).proportion_ci(confidence_level=0.95, method="exact")
+        low, high = stats.binomtest(hits, rows).proportion_ci(confidence_level=0.95, method="exact")
+    else:
+        from statsmodels.stats.proportion import proportion_confint
+
+        low, high = proportion_confint(hits, rows, alpha=0.05, method=PERCENT_METHODS[method][1])
     return (hits * 100.0 / rows, float(low) * 100.0, float(high) * 100.0)
 
 
@@ -274,6 +353,39 @@ def _ordinal(number: float) -> str:
     if 10 <= whole % 100 <= 20:
         return text + "th"
     return text + {1: "st", 2: "nd", 3: "rd"}.get(whole % 10, "th")
+
+
+BOOTSTRAP_KINDS = {"bootstrap": "bca", "percentile bootstrap": "percentile", "reverse percentile bootstrap": "basic"}
+# old values of interval_of(method=), still accepted with a note ("basic" read as "simple, the usual one")
+OLD_BOOTSTRAP_KINDS = {"basic bootstrap": "reverse percentile bootstrap", "basic": "reverse percentile bootstrap"}
+
+
+def _one_number(step, name):
+    """interval_of(summary=): the summary_of measure as a function of one group's numbers (NumPy / SciPy)."""
+    from scipy import stats
+
+    plain = {"average": np.mean, "median": np.median, "total": np.sum, "smallest": np.min, "biggest": np.max,
+             "standard deviation": lambda x: np.std(x, ddof=1), "variance": lambda x: np.var(x, ddof=1),
+             "standard error": stats.sem, "range": np.ptp, "interquartile range": stats.iqr}
+    if name in plain:
+        return plain[name]
+    if _is_array_measure(name) and name != "most common":
+        return lambda x: _array_measure(name, np.asarray(x, dtype=float))[0]
+    raise SimplydataError(f'interval_of() needs a summary that gives one number from the values; "{name}" does not. '
+                          'Try "average", "median" or "standard deviation".')
+
+
+PERCENTILE_RULES = ("inverted_cdf", "averaged_inverted_cdf", "closest_observation", "interpolated_inverted_cdf",
+                    "hazen", "weibull", "linear", "median_unbiased", "normal_unbiased")  # R quantile types 1-9
+
+
+def _percentile_rule(step, method):
+    """percentile_of(method=): R's type number (1 to 9) or NumPy's name, as the NumPy name."""
+    if isinstance(method, (int, np.integer)) and not isinstance(method, bool) and 1 <= method <= 9:
+        return PERCENTILE_RULES[int(method) - 1]
+    if isinstance(method, str) and method.strip().lower().replace(" ", "_") in PERCENTILE_RULES:
+        return method.strip().lower().replace(" ", "_")
+    raise choice_error(step, "method", method, list(PERCENTILE_RULES) + [str(n) for n in range(1, 10)])
 
 
 def _check_percent(step: str, percent, option="percent", example=None) -> float:
@@ -311,6 +423,15 @@ def _measure_name(step: str, item):
                 f"For example:  {example}"
             )
         return f"trimmed average {number:g} %"
+    found = re.fullmatch(r"winsori[sz]ed (?:average|mean)\s*(\d+(?:\.\d+)?)?\s*%?", name)
+    if found:
+        number = float(found.group(1)) if found.group(1) else float(WINSOR_PERCENT)
+        if number >= 50:
+            raise SimplydataError(
+                f"A winsorised average pulls in a percent at each end, so it must be below 50 (it is {number:g}).\n"
+                f"For example:  {example}"
+            )
+        return f"winsorised average {number:g} %"
     name = MEASURE_ALIASES.get(name, name)
     if name == "percentile":
         raise SimplydataError(f'show="percentile" needs the percent, for example "percentile 90".\nFor example:  {example}')
@@ -320,7 +441,7 @@ def _measure_name(step: str, item):
 
 
 def _is_array_measure(name) -> bool:
-    return isinstance(name, str) and (name in ARRAY_MEASURES or name.startswith(("percentile ", "trimmed average ")))
+    return isinstance(name, str) and (name in ARRAY_MEASURES or name.startswith(("percentile ", "trimmed average ", "winsorised average ")))
 
 
 def _array_measure(name: str, values):
@@ -337,6 +458,11 @@ def _array_measure(name: str, values):
       trimmed average p %       floor(n * p / 100) values cut from each end, as R mean(trim =)
       most common               the value that turns up most often; the smallest when tied
       percentile p              the usual linear rule (R quantile type 7, NumPy default)
+      harmonic mean             n / sum(1 / x); only for numbers above 0 (SciPy hmean, as R
+                                psych::harmonic.mean)
+      winsorised average p %    floor(n * p / 100) values at each end set to the nearest value
+                                kept, then the average (SciPy mstats.winsorize, as R
+                                WRS2::winmean(tr = p / 100))
     """
     from scipy import stats
 
@@ -347,6 +473,13 @@ def _array_measure(name: str, values):
         if (values <= 0).any():
             return None, "needs numbers above 0", None
         return float(stats.gmean(values)), None, None
+    if name == "harmonic mean":
+        if (values <= 0).any():
+            return None, "needs numbers above 0", None
+        return float(stats.hmean(values)), None, None
+    if name.startswith("winsorised average "):
+        share = float(name.split()[-2]) / 100
+        return float(np.mean(stats.mstats.winsorize(values, limits=(share, share)))), None, None
     if name in LEAST_VALUES and n < LEAST_VALUES[name]:
         return None, f"needs at least {LEAST_VALUES[name]} values", None
     if name in ("skewness", "kurtosis") and np.ptp(values) == 0:
@@ -611,9 +744,219 @@ class SummaryWords:
         _period_note(periods)
         return result
 
+    def _weighted(self, step, column, weights, for_each, every, across, interval, kind="frequency"):
+        """average_of / standard_deviation_of with weights=: statsmodels DescrStatsW (frequency weights) or
+        NumPy cov(aweights=) (analytic weights), as R weighted.mean() and Hmisc::wtd.var()."""
+        import numpy as np
+        from statsmodels.stats.weightstats import DescrStatsW
+
+        example = f'table.{step}("marks", for_each="class", weights="people")'
+        if interval is not None:
+            raise SimplydataError("weights= and interval= do not go together here yet; leave out one of them.")
+        if every is not None or across is not None or not isinstance(column, str):
+            raise SimplydataError(f"weights= works with one column and for_each=; leave out every= and across=.\n"
+                                  f"For example:  {example}")
+        if not isinstance(weights, str):
+            raise SimplydataError(f"weights= is the name of a column of weights, in quotes.\nFor example:  {example}")
+        if weights == column:
+            raise SimplydataError(f'weights= needs a column other than "{column}".')
+        if step == "standard_deviation_of":
+            self._check_choice(step, "weight_kind", kind, ("frequency", "analytic"))
+        groups = self._group_columns(step, for_each, [column, weights]) if for_each is not None else []
+        frame = self._number_frame(step, [column, weights])
+        both = frame.filter(~nw.col(column).is_null() & ~nw.col(weights).is_null())
+        left_out = len(frame) - len(both)
+        if left_out:
+            print(f'Note: {left_out} row{"" if left_out == 1 else "s"} with an empty cell in "{column}" or '
+                  f'"{weights}" {"was" if left_out == 1 else "were"} skipped.')
+        values = self._group_arrays(both, groups, column)
+        weight_values = self._group_arrays(both, groups, weights)
+        found = {}
+        for key, x in values.items():
+            w = weight_values[key]
+            if np.any(w < 0):
+                raise SimplydataError(f'weights= cannot be below 0, but "{weights}" has {int(np.sum(w < 0))} '
+                                      "negative values.")
+            if len(x) == 0 or w.sum() == 0:
+                found[key] = math.nan
+            elif step == "average_of":
+                found[key] = float(DescrStatsW(x, weights=w).mean)
+            elif kind == "frequency":
+                found[key] = float(DescrStatsW(x, weights=w, ddof=1).std) if w.sum() > 1 else math.nan
+            else:
+                found[key] = float(np.sqrt(np.cov(x, aweights=w, ddof=1))) if np.sum(w > 0) > 1 else math.nan
+        if step == "average_of":
+            said, how = "weighted average", "statsmodels DescrStatsW, as R weighted.mean(x, w)"
+        elif kind == "frequency":
+            said = "weighted standard deviation"
+            how = ("frequency weights: each row counts as often as its weight; statsmodels DescrStatsW(ddof=1), as "
+                   "R sqrt(Hmisc::wtd.var(x, w))")
+        else:
+            said = "weighted standard deviation"
+            how = ("analytic weights: how precise each row is; NumPy cov(aweights=), as R sqrt(Hmisc::wtd.var(x, "
+                   "w, normwt = TRUE))")
+        name = f"{said} of {column}"
+        if not groups:
+            value = found.get((), math.nan)
+            print(f'The {said.replace("weighted ", "")} of "{column}", weighted by "{weights}", is {_say_number(value)} ({how}).')
+            return value
+        data = {g: [key[i] for key in found] for i, g in enumerate(groups)}
+        data[name] = list(found.values())
+        table = self._new_table(nw.from_dict(data, backend=self._frame.implementation))
+        shown = _say_groups(table._frame, groups, name)
+        print(f'The {said.replace("weighted ", "")} of "{column}", weighted by "{weights}", for each {_each(groups)}: {shown} ({how}).')
+        return table
+
+    def _summary_interval(self, step, column, for_each, every, across, interval, share=None):
+        """average_of / median_of / percentile_of / standard_deviation_of with interval=: one row per group with
+        the value, its interval and the count. Each interval comes from a package (SciPy, or R DescTools)."""
+        from scipy import stats
+
+        level = _check_percent(step, interval, "interval", f'table.{step}("marks", for_each="class", interval=95)')
+        if not 50 <= level < 100:
+            raise SimplydataError(f"interval= is the level of the interval in percent, such as interval=95 or 90 "
+                                  f"(it is {level:g}).")
+        if every is not None or across is not None or not isinstance(column, str):
+            raise SimplydataError(f"interval= works with one column and for_each=; leave out every= and across=.")
+        groups = self._group_columns(step, for_each, [column]) if for_each is not None else []
+        frame = self._number_frame(step, [column])
+        self._note_empty(frame, [column])
+        arrays = self._group_arrays(frame, groups, column)
+        kind = {"average_of": "average", "median_of": "median", "standard_deviation_of": "standard deviation",
+                "percentile_of": f"percentile {share * 100:g}" if share is not None else None}[step]
+        start = kind
+        how = {"average": "t interval, as R t.test()",
+               "standard deviation": "chi-square interval, from R DescTools::VarCI() (the interval of the variance, "
+                                     "square-rooted)"}.get(kind, "exact interval from the order of the values (SciPy "
+                                                                 "quantile_test"
+                                                                 + (', as R DescTools::MedianCI(method = "exact"))'
+                                                                    if kind == "median" else ")"))
+        rows = []
+        for key, x in arrays.items():
+            n = len(x)
+            if kind == "average":
+                value = float(x.mean()) if n else math.nan
+                low, high = (stats.ttest_1samp(x, 0).confidence_interval(level / 100) if n >= 2
+                             else (math.nan, math.nan))
+            elif kind == "standard deviation":
+                value = float(x.std(ddof=1)) if n >= 2 else math.nan
+                low = high = math.nan
+                if n >= 2:
+                    from .._r import r_call
+
+                    found = r_call("unname(DescTools::VarCI(x, method = 'classic', conf.level = level)[2:3])",
+                                   packages=("DescTools",), what="the interval of a standard deviation (R "
+                                   "DescTools::VarCI())", python_note="Python has no function for it",
+                                   x=x, level=level / 100)
+                    low, high = (math.sqrt(float(v)) for v in np.asarray(found))  # display: variance -> sd
+            else:
+                p = 0.5 if kind == "median" else share
+                value = float(np.percentile(x, p * 100)) if n else math.nan
+                low = high = math.nan
+                if n:
+                    found = stats.quantile_test(x, q=value, p=p).confidence_interval(level / 100)
+                    low, high = found.low, found.high
+            rows.append(list(key) + [value, float(low), float(high), n])
+        names = [f"{start} of {column}", f"{start} of {column} {level:g} % CI low",
+                 f"{start} of {column} {level:g} % CI high", "count"]
+        data = {name: [r[i] for r in rows] for i, name in enumerate(list(groups) + names)}
+        table = self._new_table(nw.from_dict(data, backend=self._frame.implementation))
+        parts = []
+        for r in rows[:GROUPS_IN_SENTENCE]:
+            label = " / ".join(_say_label(v) for v in r[:len(groups)])
+            low, high = r[-3], r[-2]
+            if not (math.isnan(low) or math.isnan(high)):
+                ends = f"{_say_number(low)} to {_say_number(high)}"
+            elif math.isnan(low) and math.isnan(high):
+                ends = "too few values for an interval"
+            elif math.isnan(high):
+                ends = f"at least {_say_number(low)}; too few values for an upper end"
+            else:
+                ends = f"at most {_say_number(high)}; too few values for a lower end"
+            parts.append((f"{label}: " if groups else "") + f"{_say_number(r[-4])} ({ends})")
+        where = f' for each {_each(groups)}' if groups else ""
+        said = kind if share is None else f"{_ordinal(share * 100)} percentile"
+        print(f'The {said} of "{column}"{where}, with the values that fit the data ({level:g} % confidence '
+              f"interval): {'; '.join(parts)}{' ...' if len(rows) > GROUPS_IN_SENTENCE else ''}.")
+        print(f"Interval: {how}.")
+        if any(math.isnan(r[-3]) or math.isnan(r[-2]) for r in rows):
+            print("Note: an end of the interval is empty where there are too few values to reach that level.")
+        return table
+
+    @friendly
+    def interval_of(self, column=None, summary="average", for_each=None, interval=95, method="bootstrap",
+                    resamples=9999, seed=1):
+        """A confidence interval for any summary, from the bootstrap.
+
+        table.interval_of("marks", "median", for_each="class")   (with sdata.example("marks"))
+        summary= is any one-number measure of summary_of() ("average", "median", "standard
+        deviation", "trimmed average 20", "percentile 90", "coefficient of variation", ...) or a
+        function of your own that gets the numbers (a NumPy array) and gives back one number.
+        The bootstrap draws the rows again at random, with replacement, resamples=9999 times
+        (seed=1, printed; the same seed gives the same interval) and works out the summary each
+        time; SciPy stats.bootstrap, as R boot::boot.ci(). method="bootstrap" is the
+        bias-corrected and accelerated (BCa) interval, the usual choice; "percentile bootstrap"
+        and "reverse percentile bootstrap" (R's "basic") are the other two. With fewer than 20
+        values a note says the interval is often too narrow. Gives back one row per group: the
+        summary, the interval and the count.
+        """
+        from .resampling import bootstrap_interval
+
+        step = "interval_of"
+        example = 'table.interval_of("marks", "median", for_each="class")   (with sdata.example("marks"))'
+        if not isinstance(column, str):
+            raise SimplydataError(f"{step}() needs one column name in quotes, then the summary.\nFor example:  {example}")
+        level = _check_percent(step, interval, "interval", example)
+        if not 50 <= level < 100:
+            raise SimplydataError(f"interval= is the level in percent, such as interval=95 (it is {level:g}).")
+        if method == "jackknife":
+            raise SimplydataError("A jackknife interval is not offered: no established package gives one (R "
+                                  "bootstrap::jackknife() gives only the standard error and the bias). Use "
+                                  'method="bootstrap".')
+        if method in OLD_BOOTSTRAP_KINDS:
+            from .._errors import renamed_note
+
+            renamed_note(f'method="{method}"', f'method="{OLD_BOOTSTRAP_KINDS[method]}"')
+            method = OLD_BOOTSTRAP_KINDS[method]
+        self._check_choice(step, "method", method, tuple(BOOTSTRAP_KINDS))
+        if callable(summary):
+            label, function = getattr(summary, "__name__", "your summary"), summary
+        else:
+            label = _measure_name(step, summary)
+            function = _one_number(step, label)
+        groups = self._group_columns(step, for_each, [column]) if for_each is not None else []
+        frame = self._number_frame(step, [column])
+        self._note_empty(frame, [column])
+        rows, notes, words = [], set(), ""
+        for key, x in self._group_arrays(frame, groups, column).items():
+            if len(x) < 2:
+                raise SimplydataError(f"{step}() needs at least 2 numbers in each group.")
+            value = float(function(x))
+            low, high, words, note = bootstrap_interval((x,), lambda v: float(function(v)), level,
+                                                        BOOTSTRAP_KINDS[method], resamples, seed, vectorized=False)
+            notes.add(note)
+            if math.isnan(low) or math.isnan(high):
+                notes.add(f'Note: the {method} interval could not be worked out for '
+                          f'{" / ".join(_say_label(v) for v in key) or "the column"} (SciPy says the resampled '
+                          'summaries take too few different values); try method="percentile bootstrap".')
+            rows.append(list(key) + [value, low, high, len(x)])
+        names = [f"{label} of {column}", f"{label} of {column} {level:g} % CI low",
+                 f"{label} of {column} {level:g} % CI high", "count"]
+        data = {name: [r[i] for r in rows] for i, name in enumerate(list(groups) + names)}
+        parts = [(" / ".join(_say_label(v) for v in r[:len(groups)]) + ": " if groups else "")
+                 + f"{_say_number(r[-4])} ({_say_number(r[-3])} to {_say_number(r[-2])})".replace("(empty to empty)", "(no interval)")
+                 for r in rows[:GROUPS_IN_SENTENCE]]
+        where = f" for each {_each(groups)}" if groups else ""
+        print(f'The {label} of "{column}"{where}, with the values that fit the data ({level:g} % bootstrap '
+              f"interval): {'; '.join(parts)}{' ...' if len(rows) > GROUPS_IN_SENTENCE else ''}.")
+        print(f"Interval: {words}; SciPy stats.bootstrap.")
+        for note in sorted(notes - {""}):
+            print(note)
+        return self._new_table(nw.from_dict(data, backend=self._frame.implementation))
+
     # ------------------------------------------------------------------ number words
     @friendly
-    def average_of(self, column, for_each=None, every=None, across=None):
+    def average_of(self, column, for_each=None, every=None, across=None, interval=None, weights=None):
         """The average (mean) of a column; empty cells are skipped.
 
         table.average_of("marks", for_each="class")   (with sdata.example("marks"))
@@ -623,16 +966,29 @@ class SummaryWords:
         "quarter" or "year" periods:
         table.make_dates("year")
         table.average_of("population", for_each="year", every="year")   (with sdata.example("growth"))
+        interval=95 adds the 95 % confidence interval of each average (the t interval, as R
+        t.test()) and gives back a table with the average, the interval and the count.
+        weights="people" gives the weighted average: each row counts as much as its number in the
+        column of weights (statsmodels DescrStatsW, as R weighted.mean()).
         """
+        if weights is not None:
+            return self._weighted("average_of", column, weights, for_each, every, across, interval)
+        if interval is not None:
+            return self._summary_interval("average_of", column, for_each, every, across, interval)
         return self._summary("average_of", column, for_each, every, across)
 
     @friendly
-    def median_of(self, column, for_each=None, every=None, across=None):
+    def median_of(self, column, for_each=None, every=None, across=None, interval=None):
         """The middle number of a column once it is sorted; empty cells are skipped.
 
         table.median_of("marks", for_each="class")   (with sdata.example("marks"))
         across= and every= work as in average_of.
+        interval=95 adds the 95 % confidence interval of each median: the exact interval from
+        the order of the values (SciPy quantile_test, as R DescTools::MedianCI(method =
+        "exact")); it gives back a table with the median, the interval and the count.
         """
+        if interval is not None:
+            return self._summary_interval("median_of", column, for_each, every, across, interval)
         return self._summary("median_of", column, for_each, every, across)
 
     @friendly
@@ -664,23 +1020,51 @@ class SummaryWords:
         return self._summary("biggest_of", column, for_each, every, across)
 
     @friendly
-    def standard_deviation_of(self, column, for_each=None, every=None, across=None):
+    def standard_deviation_of(self, column, for_each=None, every=None, across=None, interval=None, weights=None,
+                              weight_kind="frequency"):
         """How spread out the numbers are: the sample standard deviation (divide by n - 1).
 
         It is the same as pandas .std() and R sd(). Empty cells are skipped.
         table.standard_deviation_of("marks", for_each="class")   (with sdata.example("marks"))
         across= and every= work as in average_of.
+        interval=95 adds the 95 % confidence interval of each standard deviation (the chi-square
+        interval of the variance from R DescTools::VarCI(), square-rooted; needs simplydata[r],
+        as Python has no function for it). It assumes bell-shaped values.
+        weights="people" gives the weighted standard deviation. weight_kind="frequency" (the
+        default) reads each weight as how many times the row counts (statsmodels DescrStatsW,
+        divide by the total weight minus 1, as R sqrt(Hmisc::wtd.var(x, w))); "analytic" reads
+        it as how precise the row is, such as the number of values behind an average (NumPy
+        cov(aweights=), as R sqrt(Hmisc::wtd.var(x, w, normwt = TRUE))).
         """
+        if weights is not None:
+            return self._weighted("standard_deviation_of", column, weights, for_each, every, across, interval,
+                                  weight_kind)
+        if weight_kind != "frequency":
+            raise SimplydataError("weight_kind= says how to read weights=, so it goes with weights=.\n"
+                                  'For example:  table.standard_deviation_of("marks", weights="people", '
+                                  'weight_kind="analytic")')
+        if interval is not None:
+            return self._summary_interval("standard_deviation_of", column, for_each, every, across, interval)
         return self._summary("standard_deviation_of", column, for_each, every, across)
 
     @friendly
-    def percentile_of(self, column=None, percent=None, for_each=None, every=None, across=None):
+    def percentile_of(self, column=None, percent=None, for_each=None, every=None, across=None, method="linear",
+                      interval=None):
         """The value below which a given percent of the numbers lie; empty cells are skipped.
 
         table.percentile_of("marks", 90, for_each="class")   (with sdata.example("marks"))
         percentile_of("marks", 50) is the median, 25 and 75 the quartiles. Between two
         numbers it uses the usual linear rule (R quantile(type = 7), NumPy and pandas
         default). across= and every= work as in average_of.
+        method= picks one of R's nine rules, by R's number or NumPy's name: 1 "inverted_cdf",
+        2 "averaged_inverted_cdf", 3 "closest_observation", 4 "interpolated_inverted_cdf",
+        5 "hazen", 6 "weibull" (as SPSS and Minitab), 7 "linear" (the default), 8
+        "median_unbiased" (recommended by Hyndman and Fan), 9 "normal_unbiased"; NumPy
+        percentile(method=), as R quantile(type =).
+        interval=95 adds the 95 % confidence interval of each percentile: the exact interval
+        from the order of the values (SciPy quantile_test; for the median and the quartiles the
+        same as R DescTools::QuantileCI(method = "exact"), which picks other values for other
+        percents); with few values an end can be empty.
         """
         step = "percentile_of"
         if column is None:
@@ -688,9 +1072,41 @@ class SummaryWords:
                                   f'For example:  table.{step}("marks", 90, for_each="class")   (with sdata.example("marks"))')
         number = _check_percent(step, percent)
         share = number / 100
-        measure = (f"percentile {number:g}", lambda c: nw.col(c).quantile(share, interpolation="linear"),
-                   f"{_ordinal(number)} percentile")
-        return self._summary(step, column, for_each, every, across, measure=measure)
+        rule = _percentile_rule(step, method)
+        if interval is not None:
+            if rule != "linear":
+                raise SimplydataError("interval= gives the interval of the percentile itself, the same for every "
+                                      "method=; leave out method=.")
+            return self._summary_interval(step, column, for_each, every, across, interval, share=share)
+        if rule == "linear":
+            measure = (f"percentile {number:g}", lambda c: nw.col(c).quantile(share, interpolation="linear"),
+                       f"{_ordinal(number)} percentile")
+            return self._summary(step, column, for_each, every, across, measure=measure)
+        return self._percentile_by_rule(step, column, number, for_each, every, across, rule)
+
+    def _percentile_by_rule(self, step, column, number, for_each, every, across, rule):
+        """percentile_of(method=) other than the linear rule: NumPy percentile(method=), as R quantile(type =)."""
+        if every is not None or across is not None or not isinstance(column, str):
+            raise SimplydataError("method= works with one column and for_each=; leave out every= and across=.")
+        groups = self._group_columns(step, for_each, [column]) if for_each is not None else []
+        frame = self._number_frame(step, [column])
+        self._note_empty(frame, [column])
+        arrays = self._group_arrays(frame, groups, column)
+        name = f"percentile {number:g}"
+        values = {key: (float(np.percentile(x, number, method=rule)) if len(x) else math.nan)
+                  for key, x in arrays.items()}
+        r_type = PERCENTILE_RULES.index(rule) + 1
+        how = f'NumPy percentile(method="{rule}"), as R quantile(type = {r_type})'
+        if not groups:
+            value = values[()]
+            print(f'The {_ordinal(number)} percentile of "{column}" is {_say_number(value)} ({how}).')
+            return value
+        data = {g: [key[i] for key in values] for i, g in enumerate(groups)}
+        data[f"{name} of {column}"] = list(values.values())
+        table = self._new_table(nw.from_dict(data, backend=self._frame.implementation))
+        shown = _say_groups(table._frame, groups, f"{name} of {column}")
+        print(f'The {_ordinal(number)} percentile of "{column}" for each {_each(groups)}: {shown} ({how}).')
+        return table
 
     @friendly
     def most_common_of(self, column=None, for_each=None, every=None):
@@ -828,12 +1244,15 @@ class SummaryWords:
         return result
 
     @friendly
-    def count_each(self, column):
+    def count_each(self, column, interval=None):
         """Each different value in a column, how many times it appears, and its percent.
 
         Biggest count first. Empty cells count as a value of their own, so the percents
         are out of all rows. Percents are rounded to 1 decimal place.
         table.count_each("fruit")   (with sdata.example("fruit"))
+        interval=95 adds a 95 % interval to each percent that holds for all of them at once
+        (Sison and Glaz, statsmodels multinomial_proportions_confint, as R
+        DescTools::MultinomCI()).
         """
         if not isinstance(column, str):
             raise SimplydataError(
@@ -857,6 +1276,21 @@ class SummaryWords:
         kinds = len(result)
         print(f'How many rows have each "{column}" ({kinds} different value{"" if kinds == 1 else "s"}): '
               f"{_say_groups(result, [column], 'count')}.")
+        if interval is not None:
+            from statsmodels.stats.proportion import multinomial_proportions_confint
+
+            level = _check_percent("count_each", interval, "interval", 'table.count_each("fruit", interval=95)')
+            if not 50 <= level < 100 or kinds < 2:
+                raise SimplydataError("interval= is the level in percent, such as interval=95, and needs at least two "
+                                      "different values.")
+            counts = result["count"].to_numpy()
+            ci = multinomial_proportions_confint(counts, alpha=1 - level / 100, method="sison-glaz")
+            result = result.with_columns(
+                nw.new_series(f"percent {level:g} % CI low", ci[:, 0] * 100, nw.Float64, backend=self._frame.implementation),
+                nw.new_series(f"percent {level:g} % CI high", ci[:, 1] * 100, nw.Float64,
+                              backend=self._frame.implementation))
+            print(f"The {level:g} % intervals hold for all {kinds} percents at once (Sison and Glaz; statsmodels "
+                  "multinomial_proportions_confint, as R DescTools::MultinomCI()).")
         return self._new_table(nw.maybe_reset_index(result))
 
     @friendly
@@ -900,11 +1334,11 @@ class SummaryWords:
         return result
 
     # ------------------------------------------------------------------ percents
-    @friendly
+    @friendly(renamed={"method": "interval_by"})
     def percent_of(self, column=None, *extra, for_each=None, every=None, above=_NOT_GIVEN, below=_NOT_GIVEN,
                    at_least=_NOT_GIVEN, at_most=_NOT_GIVEN, equal_to=_NOT_GIVEN, not_equal_to=_NOT_GIVEN,
                    between=_NOT_GIVEN, one_of=_NOT_GIVEN, contains=_NOT_GIVEN, starts_with=_NOT_GIVEN,
-                   ends_with=_NOT_GIVEN, is_empty=_NOT_GIVEN):
+                   ends_with=_NOT_GIVEN, is_empty=_NOT_GIVEN, interval_by="exact"):
         """What percent of the rows meet a condition, or each group's share.
 
         table.percent_of("marks", above=60, for_each="class")   (with sdata.example("marks"))
@@ -917,8 +1351,12 @@ class SummaryWords:
         table.percent_of("count", for_each="shop")   each group's share of the total of a
         column   (with sdata.example("fruit"))
         Percents go from 0 to 100. Without for_each= you get one number; with it a new table.
+        interval_by= chooses the 95 % interval of a percent: "exact" (Clopper-Pearson, the default, as R
+        binom.test()), "wilson" (Wilson score) or "agresti-coull"; the last two from statsmodels
+        proportion_confint, as R DescTools::BinomCI().
         """
         step = "percent_of"
+        method = _percent_method(step, interval_by)
         options = dict(above=above, below=below, at_least=at_least, at_most=at_most, equal_to=equal_to,
                        not_equal_to=not_equal_to, between=between, one_of=one_of, contains=contains,
                        starts_with=starts_with, ends_with=ends_with, is_empty=is_empty)
@@ -938,7 +1376,7 @@ class SummaryWords:
                     f"For example:  {example}\n"
                     'or:           table.percent_of(for_each="class")'
                 )
-            return self._percent_of_rows(step, for_each, every)
+            return self._percent_of_rows(step, for_each, every, method)
         if not isinstance(column, str):
             raise SimplydataError(f"{step}() needs one column name in quotes.\nFor example:  {example}")
         self._need_columns(column)
@@ -963,12 +1401,12 @@ class SummaryWords:
                   f'{"was" if left_out == 1 else "were"} left out of the percent.')
         if groups is None:
             hits, rows = (int(v) for v in frame.select(*sums).row(0))
-            share, low, high = _share(hits, rows)
+            share, low, high = _share(hits, rows, method)
             print(f'"{column}" {words} in {_say_percent(share)} of the rows ({hits} of {rows}; 95 % CI '
-                  f"{_say_percent(low)} to {_say_percent(high)}, exact Clopper-Pearson interval).")
+                  f"{_say_percent(low)} to {_say_percent(high)}, {PERCENT_METHODS[method][0]}).")
             return share
         summary = self._grouped(frame, groups, sums)._frame
-        result = self._with_shares(summary, "matching rows", "rows")
+        result = self._with_shares(summary, "matching rows", "rows", method)
         items = []
         for row in result._frame.select(*groups, "matching rows", "rows", "percent").rows():
             name = " / ".join(_say_label(v, periods.get(g)) for g, v in zip(groups, row))
@@ -977,29 +1415,29 @@ class SummaryWords:
         if len(items) > GROUPS_IN_SENTENCE:
             text += f" ... and {len(items) - GROUPS_IN_SENTENCE} more (the new table has them all)"
         print(f'Percent of rows where "{column}" {words}, for each {_each(groups, periods)}: {text}. '
-              "(The new table has exact 95 % confidence intervals.)")
+              f"(The new table has {_interval_words(method)}.)")
         _period_note(periods)
         return result
 
-    def _with_shares(self, summary, hits: str, rows: str):
-        """Add percent and its Clopper-Pearson 95 % interval to a small table of counts."""
+    def _with_shares(self, summary, hits: str, rows: str, method: str = "exact"):
+        """Add percent and its 95 % interval (Clopper-Pearson unless interval_by= says otherwise) to a small table of counts."""
         summary = nw.maybe_reset_index(summary.with_columns(nw.col(hits).cast(nw.Int64), nw.col(rows).cast(nw.Int64)))
-        found = [_share(int(h), int(n)) for h, n in summary.select(hits, rows).rows()]
+        found = [_share(int(h), int(n), method) for h, n in summary.select(hits, rows).rows()]
         backend = summary.implementation
         columns = [nw.new_series(name, [f[i] for f in found], nw.Float64, backend=backend)
                    for i, name in enumerate(("percent", "percent 95 % CI low", "percent 95 % CI high"))]
         return self._new_table(summary.with_columns(*columns))
 
-    def _percent_of_rows(self, step, for_each, every):
+    def _percent_of_rows(self, step, for_each, every, method="exact"):
         groups = self._group_columns(step, for_each)
         frame, periods = self._periods(step, self._frame, groups, every)
         summary = self._grouped(frame, groups, [nw.len().alias("count")])._frame
         summary = summary.with_columns(nw.lit(len(frame)).alias("__all"))
-        result = self._with_shares(summary, "count", "__all")
+        result = self._with_shares(summary, "count", "__all", method)
         result = self._new_table(result._frame.drop("__all"))
         print(f"Percent of all {len(frame)} rows in each {_each(groups, periods)}: "
               f"{_say_groups(result._frame, groups, 'percent', periods, _say_percent)}. "
-              "(The new table has exact 95 % confidence intervals.)")
+              f"(The new table has {_interval_words(method)}.)")
         _period_note(periods)
         return result
 
@@ -1065,8 +1503,11 @@ class SummaryWords:
         Excel; kurtosis is excess kurtosis, 0 for a bell shape), "coefficient of variation"
         (standard deviation / average, a ratio), "median absolute deviation" (as R mad(),
         times 1.4826), "trimmed average" (10 % cut from each end, as R mean(trim = 0.1);
-        "trimmed average 20" cuts 20 %), "most common" (the smallest if tied) and
-        "percentile 90" (any percent, R quantile type 7).
+        "trimmed average 20" cuts 20 %), "most common" (the smallest if tied),
+        "percentile 90" (any percent, R quantile type 7), "harmonic mean" (numbers above 0,
+        SciPy hmean, as R psych::harmonic.mean) and "winsorised average" (the lowest and
+        highest 20 % set to the nearest value kept, then the average; SciPy, as R
+        WRS2::winmean(tr = 0.2); "winsorised average 10" pulls in 10 %).
         Without show=: count, average, standard deviation, smallest, median,
         biggest. A measure of your own also works: a function that gets one group's
         numbers (a NumPy array) and gives back one number, show=["average", my_measure].
@@ -1160,6 +1601,11 @@ class SummaryWords:
                 place = " in each group" if groups else ""
                 print(f"Note: {name} leaves out the lowest and highest {share:g} % of the values{place}, "
                       f"as R mean(x, trim = {share / 100:g}).")
+            if name.startswith("winsorised average "):
+                share = float(name.split()[-2])
+                place = " in each group" if groups else ""
+                print(f"Note: {name} sets the lowest and highest {share:g} % of the values{place} to the nearest value "
+                      f"kept, then takes the average, as R WRS2::winmean(x, tr = {share / 100:g}).")
         _period_note(periods)
         return table
 
@@ -1267,12 +1713,16 @@ class SummaryWords:
 
     # ------------------------------------------------------------------ correlation
     @friendly
-    def correlation_between(self, *columns, method="pearson", show="r", rows_back=None, sorted_by=None):
+    def correlation_between(self, *columns, method="pearson", show="r", sides=2, higher=None, lower=None,
+                            alternative=None, p_value_by="formula", interval_by=None, shuffles=9999, resamples=9999,
+                            seed=1, allowing_for=None, rows_back=None, sorted_by=None):
         """How strongly columns of numbers go up or down together, from -1 to 1.
 
         table.correlation_between("hours", "marks")   (with sdata.example("marks"))
-        method="pearson" (a straight-line link, the usual one) or "spearman" (uses ranks,
-        for any link that keeps going one way). Prints the strength in words and the
+        method="pearson" (a straight-line link, the usual one), "spearman" (uses ranks,
+        for any link that keeps going one way) or "kendall" (Kendall's tau-b, also ranks: the
+        share of pairs of rows that agree in order minus the share that disagree; as R
+        cor.test(method = "kendall"), SciPy kendalltau). Prints the strength in words and the
         p-value from SciPy. With two columns it gives back the number r; rows with an
         empty cell in either column are skipped.
         With three or more columns it gives back a correlation table (as pandas .corr()),
@@ -1284,8 +1734,14 @@ class SummaryWords:
         finding more likely.
         Strength words for the size of r: below 0.2 very weak, from 0.2 weak, from 0.4
         medium, from 0.6 strong, from 0.8 very strong (after Evans 1996).
-        p below 0.001: "very unlikely to be chance"; below 0.05: "unlikely to be chance";
-        otherwise "could easily be chance".
+        The p-value is said as how often a link this strong or stronger would turn up in studies
+        like this one if there were truly no link ("about 3 of 100 studies", p = 0.031).
+        sides=1, higher="positive" (or "negative") tests in one direction only, as decided before
+        seeing the data (R cor.test(alternative = "greater")); two columns only.
+        Two columns only: p_value_by="shuffling" gives the p-value from shuffling one column
+        against the other shuffles=9999 times (seed=1; SciPy permutation_test), and
+        interval_by="bootstrap" adds a 95 % interval of r from drawing the rows again with
+        replacement resamples=9999 times (seed=1; SciPy bootstrap, BCa, as R boot::boot.ci()).
         With rows_back=12 and two columns (sorted_by= the time column): the correlation for shifts
         -12 to 12 (cross-correlation, as R ccf with the sign of the lag reversed): shift 2 pairs the
         first column with the second 2 rows later. It says which column follows the other.
@@ -1304,6 +1760,13 @@ class SummaryWords:
             if rows_back is None:
                 raise SimplydataError(f"{step}() uses sorted_by= with rows_back= (the cross-correlation); "
                                       "give rows_back=, such as rows_back=12.")
+            if (sides != 2 or higher is not None or lower is not None or alternative not in (None, "two-sided")
+                    or p_value_by != "formula" or interval_by is not None or allowing_for is not None):
+                raise SimplydataError(f"{step}() with rows_back= gives the cross-correlation; leave out sides=, "
+                                      "higher=, lower=, p_value_by=, interval_by= and allowing_for=.")
+            if _plain_name(method) != "pearson" or _plain_name(show) != "r":
+                raise SimplydataError(f"{step}() with rows_back= gives the cross-correlation, which is "
+                                      'Pearson\'s r (as R ccf()); leave out method= and show=.')
             return self._cross_correlation(step, names, rows_back, sorted_by)
         self._check_choice(step, "method", method, CORRELATION_METHODS)
         shown = _plain_name(show)
@@ -1322,13 +1785,46 @@ class SummaryWords:
                 f'show="{show}" is for a correlation table of three or more columns. With two columns you get r, '
                 "and the sentence gives its p-value."
             )
+        from .stat_tests import _direction
+
+        example = f'table.correlation_between("{names[0]}", "{names[1]}", sides=1, higher="positive")'
+        if len(names) > 2 and (sides != 2 or higher is not None or lower is not None
+                               or alternative not in (None, "two-sided")):
+            raise SimplydataError("sides=1 and higher= work with two columns; a correlation table tests every pair "
+                                  "both ways.")
+        alt, up = _direction(step, sides, higher, lower, alternative, {"positive": "greater", "negative": "less"},
+                             example, lower_words=[])
+        self._check_choice(step, "p_value_by", p_value_by, ("formula", "shuffling"))
+        if interval_by is not None:
+            self._check_choice(step, "interval_by", interval_by, ("bootstrap",))
+        if len(names) > 2 and (p_value_by != "formula" or interval_by is not None):
+            raise SimplydataError("p_value_by= and interval_by= work with two columns; give two column names.")
+        if (method in ORDINAL_METHODS or allowing_for is not None) and len(names) != 2:
+            raise SimplydataError(f'method="{method}" and allowing_for= work with two columns.' if allowing_for is None
+                                  else "allowing_for= works with two columns (and the one to allow for).")
+        if method in ORDINAL_METHODS and (alt != "two-sided" or p_value_by != "formula" or interval_by is not None
+                                          or allowing_for is not None):
+            raise SimplydataError(f'method="{method}" gives the measure with its 95 % interval; leave out sides=, '
+                                  "p_value_by=, interval_by= and allowing_for=.")
+        if allowing_for is not None:
+            if not isinstance(allowing_for, str) or allowing_for in names:
+                raise SimplydataError('allowing_for= needs a third column name, such as allowing_for="height".')
+            if alt != "two-sided" or p_value_by != "formula" or interval_by is not None:
+                raise SimplydataError("allowing_for= gives the two-sided partial correlation; leave out sides=, "
+                                      "p_value_by= and interval_by=.")
+            return self._partial_correlation(step, self._number_frame(step, names + [allowing_for]), names[0],
+                                             names[1], allowing_for, method)
         frame = self._number_frame(step, names)
+        if method in ORDINAL_METHODS:
+            return self._ordinal_association(step, frame, names[0], names[1], method)
         if len(names) == 2:
-            return self._one_correlation(step, frame, names[0], names[1], method)
+            return self._one_correlation(step, frame, names[0], names[1], method, alt, up,
+                                         p_value_by=p_value_by, interval_by=interval_by, shuffles=shuffles,
+                                         resamples=resamples, seed=seed)
         return self._correlation_table(step, frame, names, method, shown)
 
     @staticmethod
-    def _correlate(step, frame, column_a, column_b, method):
+    def _correlate(step, frame, column_a, column_b, method, alternative="two-sided"):
         """r, p and the number of rows used, for one pair (rows with an empty cell skipped)."""
         pairs = frame.select(column_a, column_b).drop_nulls()
         if len(pairs) < 3:
@@ -1349,21 +1845,159 @@ class SummaryWords:
                 )
         from scipy import stats
 
-        result = stats.pearsonr(a, b) if method == "pearson" else stats.spearmanr(a, b)
+        if method == "pearson":
+            result = stats.pearsonr(a, b, alternative=alternative)
+        elif method == "spearman":
+            result = stats.spearmanr(a, b, alternative=alternative)
+        else:
+            result = stats.kendalltau(a, b, variant="b", alternative=alternative)
         return float(result[0]), float(result[1]), len(pairs)
 
-    def _one_correlation(self, step, frame, column_a, column_b, method):
-        r, p, n = self._correlate(step, frame, column_a, column_b, method)
+    def _one_correlation(self, step, frame, column_a, column_b, method, alternative="two-sided", up=None,
+                         p_value_by="formula", interval_by=None, shuffles=9999, resamples=9999, seed=1):
+        r, p, n = self._correlate(step, frame, column_a, column_b, method, alternative)
         skipped = len(frame) - n
-        name = "Pearson" if method == "pearson" else "Spearman"
+        name = METHOD_NAMES[method]
         if skipped:
             rows = "row" if skipped == 1 else "rows"
             verb = "was" if skipped == 1 else "were"
             print(f'Note: {skipped} {rows} with an empty cell in "{column_a}" or "{column_b}" {verb} skipped.')
+        extra, interval = [], ""
+        if interval_by is None:
+            interval, note = self._correlation_interval(frame, column_a, column_b, method, alternative)
+            if note:
+                extra.append(note)
+        if p_value_by == "shuffling" or interval_by is not None:
+            from .resampling import bootstrap_interval, correlation, resample_p
+            from .stat_tests import _num
+
+            pairs = frame.select(column_a, column_b).drop_nulls()
+            x, y = (pairs[c].to_numpy().astype(float) for c in (column_a, column_b))
+            statistic = correlation(method)
+            vectorized = method == "pearson"
+            if p_value_by == "shuffling":
+                found = resample_p((x, y), statistic, "pairings", alternative, shuffles, seed, vectorized=vectorized)
+                p = found["p"]
+                extra.append(f"The p-value comes from shuffling: {found['words']} (SciPy permutation_test).")
+            if interval_by == "bootstrap":
+                low, high, words, note = bootstrap_interval((x, y), statistic, 95, "bca", resamples, seed,
+                                                            paired=True, vectorized=vectorized)
+                interval = f"; values from {_num(low)} to {_num(high)} fit the data (95 % bootstrap CI)"
+                extra.append(f"The interval is a {words}.")
+                if note:
+                    extra.append(note)
         print(
             f'The correlation between "{column_a}" and "{column_b}" is r = {r:.2f} ({name}, {n} rows): '
-            f"{_strength(r)}, and {_p_words(p)}."
+            f"{_strength(r)}{interval}."
         )
+        if up is None:
+            print(_p_sentence(p, "there were truly no link", "a link this strong or stronger",
+                              "that there is no link"))
+        else:
+            print(_p_sentence(p, f"there were truly no {up} link", f"a {up} link this strong or stronger",
+                              f"that there is no {up} link"))
+        if up is not None:
+            from .stat_tests import _one_sided_sentence
+
+            other = "negative" if up == "positive" else "positive"
+            print(_one_sided_sentence(f"a {up} correlation", f"a {other} one")
+                  + f' As R cor.test(method = "{method}", alternative = "{alternative}").')
+        for line in extra:
+            print(line)
+        return r
+
+    @staticmethod
+    def _correlation_interval(frame, column_a, column_b, method, alternative):
+        """("; values from A to B fit the data (95 % CI)", note): Pearson from SciPy pearsonr; Spearman and Kendall
+        from R DescTools (SpearmanRho: Fisher's z; KendallTauB: its asymptotic standard error); Somers' d and gamma
+        from R DescTools (asymptotic)."""
+        from scipy import stats
+
+        from .._r import RMissing, r_call
+        from .stat_tests import _interval_words, _num
+
+        pairs = frame.select(column_a, column_b).drop_nulls()
+        x, y = (pairs[c].to_numpy().astype(float) for c in (column_a, column_b))
+        if method == "pearson":
+            ci = stats.pearsonr(x, y, alternative=alternative).confidence_interval(0.95)
+            kind = "" if alternative == "two-sided" else "one-sided "
+            return f"; values from {_interval_words(ci.low, ci.high)} fit the data ({kind}95 % CI)", ""
+        if alternative != "two-sided":
+            return "", ""
+        code = {"spearman": "DescTools::SpearmanRho(x, y, conf.level = 0.95)",
+                "kendall": "DescTools::KendallTauB(x, y, conf.level = 0.95)",
+                "somers": 'DescTools::SomersDelta(x, y, direction = "column", conf.level = 0.95)',
+                "gamma": "DescTools::GoodmanKruskalGamma(x, y, conf.level = 0.95)"}[method]
+        try:
+            found = np.asarray(r_call(f"as.numeric({code})", packages=("DescTools",),
+                                      what=f"the 95 % interval of {METHOD_NAMES[method]} (R DescTools)", x=x, y=y),
+                               dtype=float)
+        except RMissing:
+            if method in ("somers", "gamma"):
+                raise
+            return "", (f"Note: the 95 % interval of {METHOD_NAMES[method]} comes from the R package DescTools, which "
+                        'is not ready here; interval_by="bootstrap" gives a bootstrap interval in Python, or: pip install '
+                        '"simplydata[r]", install R, then in R install.packages("DescTools").')
+        how = "Fisher's z" if method == "spearman" else "asymptotic standard error"
+        return f"; values from {_num(found[1])} to {_num(found[2])} fit the data (95 % CI, {how}, R DescTools)", ""
+
+    def _ordinal_association(self, step, frame, column_a, column_b, method):
+        """Somers' d (of the second column given the first) or Goodman and Kruskal's gamma, with the 95 % interval
+        from R DescTools (SciPy somersd gives the same d, but no interval; gamma has no Python function)."""
+        pairs = frame.select(column_a, column_b).drop_nulls()
+        skipped = len(frame) - len(pairs)
+        if skipped:
+            print(f"Note: {skipped} row{'' if skipped == 1 else 's'} with an empty cell in \"{column_a}\" or "
+                  f"\"{column_b}\" {'was' if skipped == 1 else 'were'} skipped.")
+        from .._r import r_call
+        from .stat_tests import _num
+
+        x, y = (pairs[c].to_numpy().astype(float) for c in (column_a, column_b))
+        code = ('DescTools::SomersDelta(x, y, direction = "column", conf.level = 0.95)' if method == "somers" else
+                "DescTools::GoodmanKruskalGamma(x, y, conf.level = 0.95)")
+        found = np.asarray(r_call(f"as.numeric({code})", packages=("DescTools",),
+                                  what=f"{METHOD_NAMES[method]} with its 95 % interval (R DescTools)",
+                                  python_note="SciPy somersd gives Somers' d without an interval; Python has no gamma"
+                                  if method == "somers" else "Python has no Goodman-Kruskal gamma", x=x, y=y),
+                           dtype=float)
+        value, low, high = (float(v) for v in found[:3])
+        meaning = (f'of all pairs of rows that differ in "{column_a}", the share where "{column_b}" goes the same way '
+                   "minus the share where it goes the other way" if method == "somers" else
+                   "of all pairs of rows that differ in both columns, the share in the same order minus the share in "
+                   "the opposite order (tied pairs left out)")
+        verdict = ("the interval leaves out 0, so the data show a link" if low > 0 or high < 0 else
+                   "the interval includes 0, so the data cannot tell whether there is a link")
+        print(f'{METHOD_NAMES[method]} between "{column_a}" and "{column_b}" = {_num(value)} ({len(x)} rows; values '
+              f"from {_num(low)} to {_num(high)} fit the data, 95 % CI): {verdict}.")
+        r_name = 'SomersDelta(direction = "column")' if method == "somers" else "GoodmanKruskalGamma()"
+        print(f"It is {meaning}. Method: R DescTools::{r_name}.")
+        return value
+
+    def _partial_correlation(self, step, frame, column_a, column_b, allowing_for, method):
+        """The partial correlation of two columns allowing for a third, from R ppcor::pcor.test() (Python has none)."""
+        from .._r import r_call
+
+        names = [column_a, column_b, allowing_for]
+        rows = frame.select(*names).drop_nulls()
+        skipped = len(frame) - len(rows)
+        if skipped:
+            print(f"Note: {skipped} row{'' if skipped == 1 else 's'} with an empty cell in "
+                  + " or ".join(f'"{n}"' for n in names) + f" {'was' if skipped == 1 else 'were'} skipped.")
+        x, y, z = (rows[c].to_numpy().astype(float) for c in names)
+        found = r_call("p <- ppcor::pcor.test(x, y, z, method = m); list(r = p$estimate, p = p$p.value, "
+                       "stat = p$statistic)", packages=("ppcor",),
+                       what="the partial correlation (R ppcor::pcor.test())",
+                       python_note="SciPy and statsmodels have no partial correlation test", x=x, y=y, z=z, m=method)
+        r, p = float(np.asarray(found["r"])[0]), float(np.asarray(found["p"])[0])
+        # the correlation without allowing for it, on the same rows as the partial correlation
+        whole = float(self._correlate(step, rows.select(column_a, column_b), column_a, column_b, method)[0])
+        print(f'The correlation between "{column_a}" and "{column_b}", allowing for "{allowing_for}", is r = {r:.2f} '
+              f"({METHOD_NAMES[method]}, {len(x)} rows): {_strength(r)}; without allowing for it, r = {whole:.2f}.")
+        print(_p_sentence(p, f'there were truly no link once "{allowing_for}" is allowed for',
+                          "a link this strong or stronger", "that there is no link"))
+        print(f'Method: partial correlation, as R ppcor::pcor.test(method = "{method}"): the link that is left after '
+              f'taking out what both columns share with "{allowing_for}". A correlation does not show that one thing '
+              "causes the other.")
         return r
 
     def _correlation_table(self, step, frame, names, method, shown):
@@ -1371,7 +2005,7 @@ class SummaryWords:
         for i, a in enumerate(names):
             for b in names[i + 1:]:
                 found[(a, b)] = self._correlate(step, frame, a, b, method)
-        method_name = "Pearson" if method == "pearson" else "Spearman"
+        method_name = METHOD_NAMES[method]
         if shown == "each pair":
             pairs = list(found.items())
             data = {"column 1": [a for (a, _), _ in pairs], "column 2": [b for (_, b), _ in pairs],
@@ -1390,7 +2024,7 @@ class SummaryWords:
         print(f"Correlations between {len(names)} columns ({method_name}, {n_pairs} pairs; each pair uses the rows "
               "where both columns have a number). The strongest:")
         for (a, b), (r, p, n) in strongest[:STRONGEST_PAIRS]:
-            print(f'  "{a}" and "{b}": r = {r:.2f} ({n} rows), {_strength(r)}, and {_p_words(p)}.')
+            print(f'  "{a}" and "{b}": r = {r:.2f} ({n} rows), {_strength(r)}; {_p_clause(p, "there were truly no link")}.')
         if n_pairs > STRONGEST_PAIRS:
             print(f"  ... and {n_pairs - STRONGEST_PAIRS} more pairs (the new table has them all).")
         gaps = len(frame) - len(frame.select(*names).drop_nulls())

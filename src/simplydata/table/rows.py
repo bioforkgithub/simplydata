@@ -21,6 +21,7 @@ import numbers
 import re
 
 import narwhals as nw
+import numpy as np
 
 from .._errors import SimplydataError, choice_error, friendly
 from ._base import numbered, numbered_at
@@ -189,6 +190,9 @@ def _parse_dates(native, formats=DATE_FORMATS):
 
 
 
+TEST_RULES = ("grubbs", "dixon", "rosner")  # outlier tests, run in R (simplydata[r])
+
+
 def _rule_of(step: str, rule, example: str):
     """Read rule= for the outlier words: (how many, "IQR" or "standard deviations")."""
     text = str(rule).strip().lower().replace("×", "x") if isinstance(rule, str) else ""
@@ -200,7 +204,8 @@ def _rule_of(step: str, rule, example: str):
             f'.{step}() does not know rule={_say(rule)}. You can use:\n'
             '  rule="1.5 IQR"                 Tukey\'s rule, the usual one (the default)\n'
             '  rule="3 IQR"                   only values very far out\n'
-            '  rule="3 standard deviations"   further than 3 standard deviations from the average'
+            '  rule="3 standard deviations"   further than 3 standard deviations from the average\n'
+            '  rule="grubbs", "dixon" or "rosner"   outlier tests (R outliers, EnvStats)'
             + _example(example)
         )
     how = "IQR" if found.group(2).startswith(("iqr", "inter")) else "standard deviations"
@@ -1367,6 +1372,8 @@ class RowWords:
             raise SimplydataError(
                 f'.{step}() looks for outliers among numbers, but "{column}" is a {kind} column.' + _example(example)
             )
+        if isinstance(rule, str) and rule.strip().lower() in TEST_RULES:
+            return self._test_outliers(step, column, for_each, rule.strip().lower(), example)
         k, how = _rule_of(step, rule, example)
         groups = self._for_each(step, for_each, column, example)
         value, mid, spread, low, high = (_NEW + p for p in ("value", "mid", "spread", "low", "high"))
@@ -1434,13 +1441,73 @@ class RowWords:
             words += f", for each {', '.join(groups)}"
         return frame, frame.columns[len(self._columns):], words
 
+    def _test_outliers(self, step, column, for_each, rule, example):
+        """rule="grubbs" / "dixon" / "rosner": outlier tests from R (outliers::grubbs.test, outliers::dixon.test,
+        EnvStats::rosnerTest), group by group; the value tested is the one R outliers::outlier() names."""
+        from .._r import r_call
+        from .stat_tests import _num
+
+        groups = self._for_each(step, for_each, column, example)
+        place = _NEW + "place"
+        frame = self._frame.with_row_index(place)
+        values = frame.filter(~_empty_in(frame, column))
+        keys = [tuple(r) for r in values.select(*groups).rows()] if groups else [()] * len(values)
+        numbers = values[column].to_numpy().astype(float)
+        places = np.asarray(values[place].to_list())
+        flagged, lines = [], []
+        r_name = {"grubbs": "outliers::grubbs.test()", "dixon": "outliers::dixon.test()",
+                  "rosner": "EnvStats::rosnerTest(k = 3)"}[rule]
+        for key in sorted(set(keys), key=lambda k: tuple((str(type(v)), v) for v in k)):
+            rows = np.array([k == key for k in keys])
+            x = numbers[rows]
+            label = (", ".join(_nice(v) for v in key) + ": ") if groups else ""
+            if len(x) < 3 or (rule == "dixon" and len(x) > 30) or np.ptp(x) == 0:
+                lines.append(f"{label}not tested ({len(x)} values; {rule.capitalize()}'s test needs "
+                             + ("3 to 30" if rule == "dixon" else "at least 3") + " values that differ)")
+                continue
+            if rule == "rosner":
+                found = r_call("r <- EnvStats::rosnerTest(x, k = min(3, length(x) - 2))$all.stats; "
+                               "list(at = r$Obs.Num[r$Outlier])", packages=("EnvStats",),
+                               what="Rosner's outlier test (R EnvStats::rosnerTest())", source="EnvStats::rosnerTest",
+                               python_note="Python's stack has no Rosner test", x=x)
+                at = [int(i) - 1 for i in np.atleast_1d(np.asarray(found["at"], dtype=float))] if found["at"] is not None \
+                    else []
+                lines.append(f"{label}{len(at)} outlier{'' if len(at) == 1 else 's'} found among up to 3 tested")
+            else:
+                test = "grubbs.test" if rule == "grubbs" else "dixon.test"
+                found = r_call(f"t <- outliers::{test}(x); v <- outliers::outlier(x); "
+                               "list(p = t$p.value, at = which(x == v))", packages=("outliers",),
+                               what=f"{rule.capitalize()}'s outlier test (R outliers::{test}())",
+                               python_note=f"Python's stack has no {rule.capitalize()} test", x=x)
+                p = float(np.asarray(found["p"], dtype=float)[0])
+                at = [int(i) - 1 for i in np.atleast_1d(np.asarray(found["at"], dtype=float))] if p < 0.05 else []
+                lines.append(f"{label}the value farthest from the average, {_nice(float(x[int(np.atleast_1d(found['at'])[0]) - 1]))}, "
+                             f"{'is an outlier' if at else 'is not shown to be an outlier'} "
+                             f"({'p < 0.0001' if p < 1e-4 else 'p = ' + _num(p)})")
+            flagged.extend(int(places[rows][i]) for i in at)
+        print(f'Outliers in "{column}" by {rule.capitalize()}\'s test (R {r_name}, at the 5 % level), '
+              + ("for each " + ", ".join(groups) + ":" if groups else "here:"))
+        for line in lines[:20]:
+            print(f"  {line}")
+        if len(lines) > 20:
+            print(f"  ... and {len(lines) - 20} more groups")
+        print("Note: these tests assume the other values are roughly bell-shaped; a value that is an outlier is not "
+              "automatically wrong, so check it before you remove it.")
+        frame = frame.with_columns(nw.col(place).is_in(flagged).alias(_NEW))
+        frame = frame.drop(place)
+        words = f"{rule.capitalize()}'s test" + (f", for each {', '.join(groups)}" if groups else "")
+        return frame, [_NEW], words
+
     @friendly
     def show_rows_with_outliers(self, column=None, for_each=None, rule="1.5 IQR"):
         """Show the rows whose value in a column is an outlier, and say why (the table does not change).
 
         table.show_rows_with_outliers("marks", for_each="subject")   (with sdata.example("marks"))
         rule="1.5 IQR" (the default) is Tukey's rule, the one box plots use: below Q1 - 1.5 x IQR
-        or above Q3 + 1.5 x IQR. Also rule="3 IQR" or rule="3 standard deviations".
+        or above Q3 + 1.5 x IQR. Also rule="3 IQR" or rule="3 standard deviations", or an
+        outlier test run in R (simplydata[r]): rule="grubbs" (outliers::grubbs.test(), the value
+        farthest from the average), "dixon" (outliers::dixon.test(), 3 to 30 values) or "rosner"
+        (EnvStats::rosnerTest(), up to 3 outliers), each at the 5 % level, group by group.
         Empty cells are never outliers. Each row is shown with its number in the whole table
         (counting from 1), so remove_rows_by_position() can follow.
         """
@@ -1462,7 +1529,10 @@ class RowWords:
 
         table.remove_rows_with_outliers("marks", for_each="subject")   (with sdata.example("marks"))
         rule="1.5 IQR" (the default) is Tukey's rule, the one box plots use: below Q1 - 1.5 x IQR
-        or above Q3 + 1.5 x IQR. Also rule="3 IQR" or rule="3 standard deviations".
+        or above Q3 + 1.5 x IQR. Also rule="3 IQR" or rule="3 standard deviations", or an
+        outlier test run in R (simplydata[r]): rule="grubbs" (outliers::grubbs.test(), the value
+        farthest from the average), "dixon" (outliers::dixon.test(), 3 to 30 values) or "rosner"
+        (EnvStats::rosnerTest(), up to 3 outliers), each at the 5 % level, group by group.
         Rows with an empty cell stay. Look first with show_rows_with_outliers(), and say in your
         report which rule removed how many rows.
         """

@@ -40,8 +40,6 @@ ALLOWED = {
     "distributions.py::_nbinom_size": "negative binomial size with brentq (statsmodels NegativeBinomial planned)",
     "finding.py": "find/solve words: the user's own equation handed to scipy.optimize (glue by design)",
     "table/columns.py": "digamma offered as a formula function users can type",
-    "power.py::how_many_needed": "brentq on the power curve; replaced in S1 (R pwr / statsmodels power)",
-    "table/stat_tests.py::_hedges_correction": "exact Hedges' g correction (gammaln); replaced in S1 (R effectsize)",
     "table/fitting.py::_not_pinned_down": "rank of the Jacobian from least_squares (thin check, T10)",
     "table/models.py::ModelWords._fit_one": "inverts the fixed-effects block of statsmodels' MixedLM Hessian (lme4 vcov)",
     "table/models.py::_nested_mixed": "inverts the fixed-effects block of statsmodels' MixedLM Hessian (lme4 vcov), groups inside groups",
@@ -59,6 +57,53 @@ ALLOWED = {
 }
 # ALLOWED places whose choice lives in R code: the text that must still be in the file
 IN_R_CODE = {"_forecast.py::r_change_points": "mad(diff(x)) / sqrt(2)"}
+
+
+
+# Display arithmetic on package output: plain arithmetic, so the building-block search above cannot see
+# it; listed here so each place is named, has its reason, and is marked [D] in the code. Bayes' rule at a
+# stated prevalence: no Python package gives it, and R epiR::epi.tests() has no prevalence argument (R bdpv
+# BDtest(pr =) does, from counts only, and is not a simplydata dependency). Each entry approved by Manish
+# 2026-11-15.
+ALLOWED_ARITHMETIC = {
+    "table/risk_words.py::_nnt": "definitional conversion of package output: NNT = 1 / risk difference (Altman "
+                                 "1998), its interval ends 1 / the ends of statsmodels' Newcombe interval",
+    "table/risk_words.py::risk_engine": "\"out of 100\": the risk difference (statsmodels) times 100",
+    "table/risk_words.py::rate_rows": "rates per 1000: events / time and statsmodels confint_poisson's interval, "
+                                      "times per=",
+    "table/accuracy_words.py::at_prevalence": "Bayes' rule on sensitivity, specificity and prevalence (PPV and NPV "
+                                              "at a stated prevalence)",
+    "table/accuracy_words.py::_per_1000": "natural frequencies: each share times 1000, rounded",
+    "table/agreement_words.py::AgreementWords._cohen": "the chance agreement read back from statsmodels' unweighted "
+                                                       "kappa: (raw - kappa) / (1 - kappa)",
+}
+
+
+def _functions(tree):
+    """Qualified names of every function and method in a module."""
+    out = set()
+
+    def visit(node, names):
+        for child in ast.iter_child_nodes(node):
+            if isinstance(child, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)):
+                if not isinstance(child, ast.ClassDef):
+                    out.add(".".join(names + [child.name]))
+                visit(child, names + [child.name])
+
+    visit(tree, [])
+    return out
+
+
+@pytest.mark.parametrize("key", sorted(ALLOWED_ARITHMETIC))
+def test_each_arithmetic_place_exists_and_is_marked(key):
+    relative, _, where = key.partition("::")
+    path = SOURCE / relative
+    text = path.read_text(encoding="utf-8")
+    tree = ast.parse(text)
+    assert where in _functions(tree), f"{key} is gone; remove it from ALLOWED_ARITHMETIC"
+    node = next(n for n in ast.walk(tree) if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef))
+                and n.name == where.split(".")[-1])
+    assert "[D]" in ast.get_source_segment(text, node), f"{key}: mark the display arithmetic with [D]"
 
 
 def _imported_blocks(tree):

@@ -1,7 +1,7 @@
-Each "month_level" is the average of level in the 30 days up to and including this row's date (empty cells left out) (separately for each station), in order of date.
-        date    station  level  nitrate  month_level
-1 2024-01-01  Station A  2.480     3.15     2.480000
-2 2024-01-02  Station A  2.385     3.24     2.432500
-3 2024-01-03  Station A  2.580     3.23     2.481667
-4 2024-01-04  Station A  2.534     3.06     2.494750
-5 2024-01-05  Station A  2.492     3.29     2.494200
+Counted as positive: "rapid_test" = "positive"; as having it: "infected" = "yes".
+Of 1000 people like these (25.0 % have it in this table), 250 have it: the test finds 195 (sensitivity 78.0 %, 95 % CI 64.0 to 88.5 %) and misses 55. Of the 750 without it, 700 test negative (specificity 93.3 %, 95 % CI 88.1 to 96.8 %) and 50 test positive by mistake.
+So of the 245 positive results, 195 (79.6 %, 95 % CI 65.7 to 89.8 %) really have it; of the 755 negative results, 700 (92.7 %, 95 % CI 87.3 to 96.3 %) really do not.
+A positive result is 11.7 times more common in people who have it than in people who do not (positive likelihood ratio, 95 % CI 6.32 to 21.7); a negative result is 0.236 times as common (negative likelihood ratio, 0.140 to 0.398).
+Of 1000 people like these (2.00 % have it), 20 have it: the test finds 16 (sensitivity 78.0 %) and misses 4. Of the 980 without it, 915 test negative (specificity 93.3 %) and 65 test positive by mistake.
+So of the 81 positive results, 16 (19.8 %) really have it; of the 919 negative results, 915 (99.6 %) really do not.
+Method: exact Clopper-Pearson intervals (statsmodels proportion_confint), likelihood ratios from R epiR::epi.tests(method = "exact"); "rapid_test" against "infected" = "yes". The counts of 1000 are the shares written as numbers of people.

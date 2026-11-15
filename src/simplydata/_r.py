@@ -38,6 +38,10 @@ def _install_text(packages, what, python_note=None) -> str:
     missing = _STATE.get("missing", "package")
     lines = [f"{what} is done by R (the same code R users run), and R is not ready here."]
     if missing == "rpy2":
+        import sys
+
+        if sys.platform == "win32":  # rpy2 has no ready-made wheel for every Windows Python (3.13: none)
+            lines.append('  - on Windows, first: set RPY2_CFFI_MODE=ABI   (PowerShell: $env:RPY2_CFFI_MODE = "ABI")')
         lines.append('  - pip install "simplydata[r]"   (rpy2, the bridge from Python to R), then restart Python')
         lines.append("  - install R from https://cran.r-project.org")
     elif missing == "R":
@@ -82,6 +86,9 @@ def _quiet_fds():
     """Silence everything written to the process's stdout and stderr, including programs that
     rpy2 starts (on Windows it asks a shell for R's settings and the shell complains)."""
     saved = []
+    for stream in (sys.stdout, sys.stderr):  # what was printed before goes out first, not into the null device
+        with contextlib.suppress(Exception):
+            stream.flush()
     try:
         for fd in (1, 2):
             saved.append((fd, os.dup(fd)))
@@ -255,8 +262,10 @@ def r_call(code: str, packages=(), what="This", python_note=None, source=None, *
             result = ro.r["eval"](ro.r["parse"](text=(
                 "local({ out <- NULL; warns <- character(0); "
                 "utils::capture.output(out <- withCallingHandlers({ "
-                "for (p in simplydata_packages) invisible(utils::capture.output(utils::capture.output("
-                "suppressPackageStartupMessages(library(p, character.only = TRUE)), type = 'message'))); "
+                # the loop variable has a simplydata_ name so it cannot overwrite a value called p
+                "for (simplydata_package in simplydata_packages) invisible(utils::capture.output("
+                "utils::capture.output(suppressPackageStartupMessages(library(simplydata_package, "
+                "character.only = TRUE)), type = 'message'))); "
                 "eval(parse(text = simplydata_code)) }, "
                 "warning = function(w) { warns <<- c(warns, conditionMessage(w)); invokeRestart('muffleWarning') }, "
                 "message = function(m) invokeRestart('muffleMessage'))); "

@@ -184,7 +184,8 @@ def test_log_rank_matches_r_trial(trial, engine, capsys):
     assert r["expected events in usual care"] == pytest.approx(29.2542830535, rel=1e-10)
     text = capsys.readouterr().out
     assert "new medicine 25 vs 29.7 and usual care 34 vs 29.3" in text
-    assert "could easily be chance (p = 0.216)" in text
+    assert ("If the groups truly had the same time until the event, differences this big or bigger would turn up in "
+            "about 22 of 100 studies like this one (p = 0.216). This does not show that the groups are alike.") in text
     assert "chi-square = 1.53, df = 1" in text
 
 
@@ -223,7 +224,8 @@ def test_cox_matches_r_trial(trial, engine, capsys, needs_r):
                                                                                rel=1e-7)
     text = capsys.readouterr().out
     # likelihood-ratio test 21.643, df 2, p = 1.9965e-05
-    assert "chi-square = 21.6, df = 2) is very unlikely to be chance (p < 0.0001)" in text
+    assert ("chi-square = 21.6, df = 2): fewer than 1 in 1000 studies would show this much if none of the columns "
+            "truly mattered (p < 0.0001)") in text
     assert '"treatment" usual care vs new medicine: hazard ratio 1.33 (95 % CI 0.795 to 2.24)' in text
     assert 'each 1 more "age": hazard ratio 1.05 (95 % CI 1.03 to 1.08)' in text
     assert "Efron" in text and "may change over time" not in text

@@ -1146,6 +1146,42 @@ class ColumnWords:
         return self._put_column(name, expr, f'add rank column "{name}" from {from_column} ({order})')
 
     @friendly
+    def add_z_score_column(self, name=None, from_column=None, for_each=None):
+        """Add a column with each value's z-score: how many standard deviations it lies above the average.
+
+        A z-score of 2 is two standard deviations above the average, -1 one below. It puts
+        columns measured in different units on one scale. SciPy stats.zscore(ddof=1), as R
+        scale(). for_each= works it out within each group. Empty cells stay empty.
+        table.add_z_score_column("marks_z", from_column="marks", for_each="subject")   (with sdata.example("marks"))
+        """
+        import numpy as np
+        from scipy import stats
+
+        step = "add_z_score_column"
+        example = 'table.add_z_score_column("marks_z", from_column="marks")   (with sdata.example("marks"))'
+        self._check_new_name(name, step)
+        if not isinstance(from_column, str):
+            raise SimplydataError(f"{step}() needs from_column= with one column name, for example\n{example}")
+        self._need_columns(from_column)
+        if not self._frame.schema[from_column].is_numeric():
+            raise SimplydataError(f'{step}() needs a column of numbers; "{from_column}" is not one.')
+        keys = [for_each] if isinstance(for_each, str) else list(for_each or [])
+        self._need_columns(*keys)
+        values = self._frame[from_column].cast(nw.Float64).to_numpy().astype(float)
+        groups = [tuple(r) for r in self._frame.select(keys).rows()] if keys else [()] * len(values)
+        z = np.full(len(values), np.nan)
+        for key in dict.fromkeys(groups):
+            where = np.array([g == key for g in groups])
+            kept = where & ~np.isnan(values)
+            if kept.sum() >= 2:
+                z[kept] = stats.zscore(values[kept], ddof=1)
+        frame = self._frame.with_columns(nw.new_series(name, z, nw.Float64, backend=self._frame.implementation))
+        where = " within each " + " and ".join(f'"{k}"' for k in keys) if keys else ""
+        print(f'"{name}" is how many standard deviations each "{from_column}" lies above (or, below 0, under) the '
+              f"average{where}: SciPy zscore(ddof=1), as R scale().")
+        return self._finish(name, frame, f'add z-score column "{name}" from {from_column}')
+
+    @friendly
     def add_is_empty_column(self, name=None, from_column=None):
         """Add a true/false column: True where a cell of from_column is empty.
 

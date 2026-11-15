@@ -10,5 +10,5 @@ Comparing two models of "marks" on the same 161 rows:
   using= marks ~ hours + breakfast: AIC = 1160, BIC = 1172 (4 values estimated)
   against= marks ~ hours + breakfast + sleep: AIC = 1152, BIC = 1167 (5 values estimated)
 Lower AIC: the against= model (by 8.17).
-Does "sleep" help? F test (F = 10.2, df = 1 and 157): unlikely to be chance (p = 0.002).
+Does "sleep" help? F test (F = 10.2, df = 1 and 157): about 2 of 1000 studies would show this much if the extra columns truly did not help (p = 0.002).
 Method: both models fitted as lm(marks ~ hours + breakfast + sleep) and the smaller one, then an F test, as R anova(m0, m1) (statsmodels compare_f_test); AIC and BIC as R AIC() and BIC().

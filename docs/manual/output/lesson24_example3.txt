@@ -1,6 +1,3 @@
-Found 1 peak in "signal" at least 2.5 high; the highest is 3.48 at time 3.885.
-Method: local tops (SciPy signal.find_peaks, with peak_prominences and peak_widths), as R pracma::findpeaks(x, minpeakheight = 2.5).
-Found 1 dip in "signal" at most -2; the lowest is -2.36 at time 0.94.
-Method: local bottoms (SciPy signal.find_peaks, with peak_prominences and peak_widths), as R pracma::findpeaks(-x, minpeakheight = 2).
-Found 1 peak in "signal" at least 2.5 high; the highest is 3.48 at time 3.885.
-Method: local tops (SciPy signal.find_peaks, with peak_prominences and peak_widths), as R pracma::findpeaks(x, minpeakheight = 2.5).
+Forecast of "visitors" for Harbour Museum for the next 12 months by the last value (every future step is the last reading). Next month: 2072 (95 % prediction interval 1746 to 2398); in 12 months: 2072 (944 to 3200). The leftover one-step errors still hold a pattern (Ljung-Box up to 10 rows back, p < 0.0001): another method may do better.
+Forecast of "visitors" for Hill Gallery for the next 12 months by the last value (every future step is the last reading). Next month: 938 (95 % prediction interval 789 to 1087); in 12 months: 938 (422 to 1454). The leftover one-step errors still hold a pattern (Ljung-Box up to 10 rows back, p < 0.0001): another method may do better.
+Method: the last value (every future step is the last reading), as R forecast::naive(x, h); 95 % intervals (run in R).

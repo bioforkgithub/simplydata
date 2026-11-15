@@ -42,7 +42,7 @@ import narwhals as nw
 import numpy as np
 
 from .._errors import SimplydataError, friendly
-from .stat_tests import _chance, _list_words, _num, _p_shown, _skipped_note
+from .stat_tests import _list_words, _num, _p_sentence, _p_shown, _skipped_note
 
 CLUSTER_METHODS = ("k-means", "hierarchical")
 LINKAGES = {"ward": "ward.D2", "average": "average", "complete": "complete", "single": "single"}
@@ -507,7 +507,7 @@ class PatternWords:
     # ------------------------------------------------------------------ PERMANOVA
     @friendly
     def compare_profiles(self, columns=None, for_each=None, measure="bray-curtis", permutations=999, seed=1):
-        """Do the groups differ in their make-up across many columns (PERMANOVA), or could it be chance?
+        """Do the groups really differ in their make-up across many columns (PERMANOVA)?
 
         table.compare_profiles(for_each="grazed")   (with sdata.example("meadow"))
         Compares whole profiles, such as the counts of all plant species in a plot, between
@@ -556,8 +556,10 @@ class PatternWords:
         what = (f'the make-up of {len(columns)} columns ({", ".join(map(str, columns))}) in each "{for_each}" '
                 f"({groups_text})")
         print(f'The groups of "{for_each}" ({groups_text}) explain {_pct(r2)} of the differences between the rows '
-              f"(R squared = {_num(r2)}; {MEASURES[measure]} distances over {len(columns)} columns). A difference in "
-              f"make-up this big {_chance(p)}; pseudo-F = {_num(f)}, from {permutations} permutations.")
+              f"(R squared = {_num(r2)}; {MEASURES[measure]} distances over {len(columns)} columns; pseudo-F = "
+              f"{_num(f)}, from {permutations} permutations).")
+        print(_p_sentence(p, "the groups truly had the same make-up", "a difference in make-up this big or bigger",
+                          "that the groups have the same make-up"))
         print(f"Test: PERMANOVA (permutational analysis of variance on distances), run in R: set.seed({seed}); "
               f"vegan::adonis2(distances ~ {for_each}, permutations = {permutations}) with distances = "
               f"vegan::{MEASURE_R[measure]}.")

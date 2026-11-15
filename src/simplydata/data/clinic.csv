@@ -1,0 +1,201 @@
+patient,ward,age_group,infected,rapid_test,crp,procalcitonin,nurse_rating,doctor_rating,device_a,device_b,pain_week_0,pain_week_4,pain_week_8,in_pain_before,in_pain_after,infections,caught_infection,patient_days,item_1,item_2,item_3,item_4,item_5
+C001,ward A,70 or over,yes,positive,4.0,0.32,severe,severe,146,146,7,4,4,yes,yes,0,no,4,2,3,3,2,3
+C002,ward B,50 to 69,yes,positive,12.7,0.31,severe,severe,141,147,7,7,4,no,no,0,no,16,1,2,1,1,1
+C003,ward A,under 50,no,negative,1.9,0.05,moderate,moderate,133,129,9,9,8,yes,no,0,no,21,2,4,3,3,4
+C004,ward A,70 or over,yes,positive,1.4,0.38,severe,severe,119,125,6,4,4,no,no,0,no,21,2,3,4,3,5
+C005,ward A,70 or over,yes,positive,2.7,0.28,severe,mild,97,99,5,5,5,no,no,0,no,28,3,3,4,3,3
+C006,ward B,70 or over,no,negative,0.3,0.63,mild,mild,112,112,2,4,2,no,no,0,no,24,4,2,3,4,3
+C007,ward B,under 50,no,negative,2.0,0.23,mild,moderate,127,121,6,5,5,yes,no,0,no,13,5,5,5,5,5
+C008,ward A,under 50,no,negative,1.0,0.24,severe,severe,136,136,4,5,2,yes,no,0,no,14,3,3,1,2,4
+C009,ward B,70 or over,yes,positive,11.4,1.64,severe,severe,129,133,6,6,5,yes,no,0,no,9,4,5,4,3,5
+C010,ward A,70 or over,no,negative,3.1,0.27,mild,severe,144,147,7,6,6,no,no,0,no,5,3,3,3,3,2
+C011,ward B,under 50,no,negative,2.0,0.27,mild,moderate,113,109,6,6,6,yes,no,0,no,17,3,3,3,4,4
+C012,ward B,50 to 69,no,negative,2.8,0.58,severe,severe,105,100,5,5,5,no,no,1,yes,26,4,5,4,3,5
+C013,ward B,under 50,no,negative,1.8,0.12,mild,mild,133,135,5,5,4,yes,no,0,no,26,3,3,4,4,3
+C014,ward B,50 to 69,no,negative,1.8,0.38,moderate,moderate,156,157,6,4,4,no,yes,0,no,27,4,3,4,3,3
+C015,ward B,under 50,no,positive,1.1,0.31,moderate,moderate,130,134,8,6,7,yes,no,0,no,2,1,1,1,1,1
+C016,ward B,under 50,yes,positive,6.5,0.69,moderate,moderate,118,123,6,4,4,yes,no,0,no,10,2,3,3,2,3
+C017,ward A,under 50,no,negative,1.3,0.6,moderate,moderate,142,145,4,4,6,yes,yes,0,no,5,4,3,4,4,3
+C018,ward A,70 or over,no,negative,0.9,0.46,mild,moderate,154,149,8,7,4,yes,no,0,no,14,5,1,4,3,3
+C019,ward A,50 to 69,yes,positive,1.8,0.38,mild,mild,111,116,9,8,8,no,no,0,no,22,2,1,2,2,2
+C020,ward A,under 50,no,negative,0.6,0.17,moderate,moderate,121,121,7,8,6,yes,yes,0,no,19,4,4,4,4,4
+C021,ward B,50 to 69,yes,positive,4.3,0.17,moderate,mild,141,146,4,2,0,yes,yes,0,no,20,3,3,3,3,2
+C022,ward A,50 to 69,no,negative,1.9,2.86,severe,moderate,133,132,4,4,2,no,no,0,no,3,3,3,5,3,4
+C023,ward B,50 to 69,no,negative,1.5,0.11,severe,moderate,116,114,6,8,5,yes,no,1,yes,14,1,3,2,2,2
+C024,ward A,50 to 69,no,negative,2.1,0.13,mild,moderate,126,123,7,6,4,yes,no,0,no,11,4,3,3,4,4
+C025,ward A,50 to 69,no,positive,1.1,0.38,mild,moderate,118,118,6,6,4,yes,no,0,no,8,2,1,1,1,2
+C026,ward A,50 to 69,no,negative,1.5,0.17,moderate,severe,106,111,8,6,4,yes,yes,1,yes,26,4,4,3,4,4
+C027,ward A,50 to 69,no,negative,1.4,0.34,severe,severe,134,135,8,10,8,yes,no,0,no,29,3,2,3,1,3
+C028,ward B,70 or over,yes,positive,2.9,0.39,mild,severe,113,101,6,5,4,no,no,0,no,14,3,2,2,2,1
+C029,ward A,50 to 69,no,negative,0.6,0.06,moderate,severe,130,130,8,6,4,no,no,0,no,14,4,5,4,5,5
+C030,ward A,70 or over,no,negative,5.8,0.16,mild,mild,111,109,7,7,7,no,no,0,no,22,3,3,3,4,2
+C031,ward A,under 50,no,negative,0.9,0.42,mild,mild,130,142,8,5,5,no,no,0,no,19,3,3,4,3,4
+C032,ward B,under 50,yes,positive,6.4,0.19,severe,severe,118,125,4,4,1,yes,no,0,no,8,2,2,3,3,4
+C033,ward B,70 or over,yes,negative,6.6,0.31,severe,moderate,118,126,4,3,0,no,yes,0,no,4,4,3,4,4,4
+C034,ward B,50 to 69,no,negative,2.1,0.2,moderate,moderate,105,109,1,3,2,no,no,1,yes,30,2,4,2,3,3
+C035,ward A,50 to 69,yes,negative,1.4,0.2,moderate,severe,127,132,7,4,5,yes,yes,0,no,11,4,5,4,4,5
+C036,ward B,50 to 69,yes,negative,6.2,0.18,severe,severe,123,122,4,1,3,no,no,1,yes,26,3,2,1,2,2
+C037,ward B,under 50,no,negative,3.7,0.08,moderate,moderate,113,116,4,4,1,yes,no,0,no,5,2,2,1,4,2
+C038,ward A,50 to 69,no,positive,8.7,0.09,severe,severe,136,136,3,2,2,no,no,0,no,19,4,3,3,3,2
+C039,ward B,50 to 69,no,negative,1.9,0.13,moderate,moderate,143,143,6,5,4,no,no,1,yes,22,5,5,5,4,5
+C040,ward A,50 to 69,no,negative,2.3,1.18,severe,severe,153,155,3,1,2,no,no,0,no,28,2,3,3,2,3
+C041,ward B,70 or over,no,negative,1.3,0.09,moderate,moderate,131,122,5,2,1,no,no,1,yes,9,3,4,3,4,4
+C042,ward A,70 or over,no,negative,4.5,0.12,mild,moderate,127,132,6,4,1,no,no,0,no,28,2,4,2,3,3
+C043,ward A,70 or over,no,positive,1.3,0.74,mild,mild,106,110,9,5,4,yes,no,0,no,15,2,2,2,3,3
+C044,ward B,50 to 69,no,negative,2.0,0.14,moderate,mild,115,127,5,5,5,yes,no,0,no,20,4,4,3,3,3
+C045,ward A,under 50,no,negative,0.7,0.39,moderate,moderate,146,149,6,6,6,yes,no,0,no,29,4,5,4,5,3
+C046,ward A,under 50,no,negative,0.2,0.04,moderate,moderate,117,125,7,4,3,yes,yes,0,no,24,3,2,1,1,1
+C047,ward B,50 to 69,no,negative,6.9,0.11,moderate,moderate,156,158,4,3,3,no,no,1,yes,18,3,2,4,3,4
+C048,ward A,under 50,no,negative,3.0,0.37,moderate,moderate,111,113,6,4,1,no,no,0,no,27,4,3,3,4,4
+C049,ward B,under 50,no,negative,2.7,0.06,mild,mild,125,124,4,5,4,yes,no,0,no,3,3,4,4,2,2
+C050,ward B,under 50,no,positive,0.7,0.28,mild,mild,125,129,6,5,4,yes,no,0,no,24,3,3,2,2,4
+C051,ward B,70 or over,no,negative,0.5,0.25,moderate,mild,117,122,7,6,5,no,no,1,yes,22,2,4,2,3,2
+C052,ward A,under 50,yes,negative,1.8,1.04,severe,severe,123,126,7,6,4,yes,no,0,no,23,3,2,3,4,3
+C053,ward A,under 50,no,negative,1.5,0.2,mild,mild,121,129,9,7,5,yes,no,0,no,27,2,4,2,2,2
+C054,ward A,70 or over,no,negative,2.4,0.43,moderate,moderate,133,135,7,5,5,yes,yes,0,no,16,5,4,3,4,5
+C055,ward A,50 to 69,no,negative,1.4,0.24,mild,mild,127,128,8,6,4,no,no,0,no,7,1,2,2,2,3
+C056,ward B,70 or over,yes,positive,6.4,1.21,mild,severe,145,142,6,6,6,yes,no,0,no,20,3,3,4,4,3
+C057,ward B,50 to 69,no,negative,1.8,0.46,mild,mild,163,169,4,4,3,no,no,0,no,7,4,4,4,5,4
+C058,ward A,70 or over,no,negative,1.8,0.84,severe,severe,134,145,5,3,3,yes,yes,0,no,15,3,1,2,2,3
+C059,ward A,70 or over,yes,negative,4.0,0.95,severe,severe,137,132,5,2,4,yes,no,0,no,17,3,2,2,2,2
+C060,ward B,50 to 69,yes,negative,9.0,2.77,moderate,moderate,108,119,7,6,4,no,no,0,no,13,2,1,4,4,2
+C061,ward B,70 or over,no,negative,1.9,0.11,moderate,moderate,119,122,5,3,3,no,no,0,no,17,3,3,2,3,2
+C062,ward A,50 to 69,no,negative,1.0,0.4,moderate,severe,102,106,8,7,6,yes,yes,0,no,15,3,4,4,5,4
+C063,ward A,50 to 69,no,negative,0.9,0.14,severe,severe,136,140,4,4,3,yes,yes,0,no,4,5,3,5,5,4
+C064,ward A,70 or over,no,negative,4.1,0.4,severe,severe,107,105,4,4,3,yes,no,0,no,8,3,3,3,3,2
+C065,ward B,50 to 69,yes,negative,8.9,0.44,mild,mild,138,141,4,4,1,yes,yes,0,no,6,4,5,5,5,5
+C066,ward B,under 50,yes,positive,2.5,0.43,moderate,moderate,112,122,6,6,3,yes,no,0,no,2,3,2,2,4,2
+C067,ward A,50 to 69,no,negative,3.5,0.3,mild,moderate,132,140,8,8,8,no,no,0,no,29,3,4,3,3,2
+C068,ward A,under 50,no,negative,1.9,0.14,mild,mild,135,140,5,4,2,yes,yes,0,no,17,4,5,4,5,3
+C069,ward B,70 or over,yes,negative,8.3,0.25,severe,severe,101,99,7,5,4,no,no,1,yes,29,5,5,5,5,5
+C070,ward A,50 to 69,no,negative,0.8,0.15,moderate,moderate,117,119,4,3,3,yes,yes,0,no,19,2,3,2,4,2
+C071,ward B,under 50,no,negative,1.3,0.16,moderate,moderate,137,135,7,5,5,yes,no,0,no,23,3,3,3,3,3
+C072,ward A,70 or over,no,negative,1.9,0.4,severe,severe,138,137,10,9,6,yes,no,0,no,25,4,4,4,4,4
+C073,ward B,70 or over,yes,positive,2.6,0.2,mild,moderate,136,145,5,3,4,yes,yes,0,no,10,3,4,4,3,3
+C074,ward B,70 or over,no,negative,0.9,0.15,moderate,severe,123,121,8,6,4,yes,yes,0,no,23,2,1,2,1,2
+C075,ward B,50 to 69,no,negative,0.6,0.47,severe,moderate,128,130,6,6,3,yes,no,0,no,11,3,5,4,4,3
+C076,ward B,50 to 69,no,negative,2.3,0.42,mild,mild,153,158,6,4,1,yes,no,0,no,11,2,4,3,3,3
+C077,ward A,under 50,no,positive,1.0,0.22,moderate,moderate,135,130,6,4,3,no,no,0,no,21,4,3,3,3,3
+C078,ward B,under 50,no,negative,1.7,1.75,severe,severe,139,146,9,6,7,no,no,0,no,19,3,5,5,4,4
+C079,ward A,50 to 69,no,negative,2.1,0.11,mild,moderate,120,124,6,6,4,no,no,0,no,7,3,3,2,2,3
+C080,ward A,50 to 69,no,negative,1.3,0.88,severe,moderate,100,108,7,4,4,yes,yes,0,no,8,2,2,2,1,4
+C081,ward A,70 or over,yes,positive,3.0,0.3,moderate,moderate,133,129,6,5,5,yes,yes,0,no,9,3,2,2,2,2
+C082,ward B,under 50,no,negative,1.6,0.54,moderate,moderate,135,142,4,4,5,yes,no,0,no,7,4,3,5,4,4
+C083,ward A,under 50,no,negative,1.9,0.19,severe,severe,141,143,8,6,6,yes,no,0,no,30,4,3,4,4,3
+C084,ward A,50 to 69,no,negative,3.6,0.62,mild,mild,108,116,10,9,7,yes,no,0,no,16,1,1,1,1,1
+C085,ward A,70 or over,yes,positive,3.3,0.84,severe,severe,117,124,6,5,2,yes,no,0,no,27,3,4,5,5,4
+C086,ward B,70 or over,no,negative,1.5,0.46,mild,moderate,99,92,5,1,0,yes,no,1,yes,27,3,5,4,4,3
+C087,ward A,70 or over,yes,positive,2.3,0.09,mild,moderate,134,141,6,4,4,yes,yes,0,no,27,1,1,1,1,1
+C088,ward B,70 or over,no,negative,3.9,0.5,severe,severe,142,145,6,6,5,no,no,1,yes,17,5,5,4,4,4
+C089,ward B,50 to 69,no,negative,0.4,0.17,moderate,moderate,116,114,8,6,5,yes,no,1,yes,15,5,4,4,5,4
+C090,ward B,70 or over,yes,negative,5.5,1.22,moderate,moderate,119,124,3,4,4,no,no,0,no,2,3,4,3,3,3
+C091,ward B,50 to 69,no,negative,1.1,0.13,mild,mild,129,126,6,7,3,no,no,0,no,13,5,3,4,5,3
+C092,ward A,50 to 69,no,negative,1.0,0.18,moderate,moderate,154,151,6,5,2,yes,no,0,no,27,2,3,3,2,2
+C093,ward B,70 or over,no,negative,2.4,0.2,severe,severe,144,140,7,8,4,yes,yes,0,no,30,2,3,3,3,2
+C094,ward B,50 to 69,no,negative,2.1,0.15,moderate,moderate,152,149,8,6,7,yes,no,0,no,12,3,4,4,4,4
+C095,ward B,70 or over,no,negative,0.7,0.16,mild,mild,126,131,6,6,3,no,no,0,no,4,3,3,4,3,2
+C096,ward B,50 to 69,no,negative,2.0,0.09,moderate,moderate,121,120,4,2,0,yes,no,0,no,10,2,2,3,3,2
+C097,ward B,under 50,no,negative,1.8,0.22,moderate,moderate,145,144,9,8,7,yes,no,0,no,21,4,3,3,4,3
+C098,ward B,under 50,no,negative,0.9,0.78,mild,mild,107,108,6,4,5,no,no,0,no,25,2,3,1,1,2
+C099,ward A,50 to 69,yes,positive,6.5,0.22,severe,severe,139,145,7,6,8,no,no,0,no,26,3,4,2,1,2
+C100,ward B,70 or over,yes,positive,6.9,0.39,moderate,severe,106,106,4,1,1,no,no,0,no,23,4,4,4,3,4
+C101,ward B,70 or over,no,negative,2.3,0.13,mild,moderate,137,137,6,5,5,yes,yes,0,no,24,1,2,1,2,1
+C102,ward A,50 to 69,no,negative,2.1,0.32,mild,mild,137,134,8,5,5,no,yes,0,no,5,4,3,4,4,3
+C103,ward B,under 50,no,negative,1.0,0.36,moderate,mild,116,113,2,0,0,no,no,0,no,8,4,1,2,2,1
+C104,ward A,50 to 69,no,negative,3.3,0.09,severe,moderate,133,137,7,6,4,yes,no,0,no,19,3,2,3,2,2
+C105,ward B,under 50,yes,positive,5.6,0.79,moderate,moderate,113,110,9,7,8,yes,no,0,no,10,2,2,2,1,2
+C106,ward A,50 to 69,no,negative,1.6,0.3,severe,moderate,112,121,3,3,1,yes,no,0,no,21,3,1,3,2,3
+C107,ward B,50 to 69,no,negative,2.1,0.71,moderate,moderate,124,125,7,4,2,no,no,0,no,6,2,2,2,3,2
+C108,ward B,50 to 69,yes,positive,4.5,0.1,moderate,mild,118,122,8,5,2,yes,no,0,no,28,2,3,2,2,1
+C109,ward B,50 to 69,no,negative,0.8,0.24,severe,severe,140,147,6,3,2,yes,no,0,no,22,2,3,4,3,3
+C110,ward A,under 50,no,negative,4.8,0.74,severe,severe,155,158,4,3,3,no,no,0,no,18,3,2,3,3,4
+C111,ward B,under 50,no,negative,6.9,0.21,mild,mild,129,126,4,2,2,no,no,1,yes,6,2,2,1,3,2
+C112,ward A,70 or over,no,negative,1.2,0.08,moderate,severe,127,133,3,5,3,no,no,0,no,11,4,3,4,5,3
+C113,ward B,50 to 69,no,negative,0.9,0.22,mild,mild,135,145,5,4,4,yes,no,0,no,3,2,3,2,5,3
+C114,ward A,70 or over,yes,negative,8.0,1.11,moderate,moderate,125,126,8,6,4,no,no,0,no,12,2,2,2,1,2
+C115,ward A,70 or over,no,negative,0.9,0.27,moderate,mild,136,137,5,1,3,no,no,0,no,11,5,3,4,2,5
+C116,ward A,under 50,no,negative,1.5,0.16,moderate,mild,104,102,4,3,2,yes,no,0,no,11,2,4,5,3,4
+C117,ward A,50 to 69,no,negative,0.6,0.26,severe,severe,117,120,5,6,3,yes,no,0,no,8,4,4,4,3,4
+C118,ward B,50 to 69,no,negative,0.9,0.32,moderate,severe,105,103,7,7,7,no,no,0,no,4,3,2,2,3,3
+C119,ward A,under 50,no,negative,2.7,0.27,severe,severe,95,101,9,7,6,no,no,0,no,25,2,2,2,2,2
+C120,ward B,under 50,yes,positive,7.8,0.97,severe,severe,146,144,6,4,1,yes,yes,0,no,10,2,4,3,3,3
+C121,ward B,70 or over,no,negative,0.8,0.33,moderate,moderate,125,120,7,6,4,yes,yes,0,no,14,2,2,2,2,2
+C122,ward B,70 or over,no,negative,0.6,0.58,mild,mild,154,145,3,2,2,yes,yes,0,no,9,4,4,4,5,3
+C123,ward A,50 to 69,no,negative,3.0,0.27,mild,mild,150,152,6,5,6,yes,yes,0,no,14,5,4,5,5,3
+C124,ward A,70 or over,no,negative,0.7,0.22,mild,moderate,127,123,2,1,2,no,no,0,no,23,4,2,4,4,4
+C125,ward A,50 to 69,no,negative,1.3,0.33,moderate,mild,123,116,5,6,4,yes,yes,0,no,27,3,4,2,2,3
+C126,ward A,70 or over,no,negative,2.8,0.39,severe,severe,114,113,4,3,3,yes,yes,0,no,27,4,3,2,2,2
+C127,ward B,50 to 69,no,positive,2.0,0.06,moderate,mild,89,94,5,5,4,no,no,0,no,24,2,2,2,3,2
+C128,ward B,50 to 69,no,negative,1.7,0.61,severe,severe,126,122,7,5,5,yes,yes,1,yes,28,3,4,3,3,3
+C129,ward A,70 or over,yes,positive,6.2,0.48,severe,severe,125,126,6,4,3,yes,no,0,no,17,3,2,1,2,2
+C130,ward B,70 or over,no,negative,0.7,0.25,severe,moderate,116,125,8,5,6,yes,no,1,yes,11,1,3,3,3,2
+C131,ward B,50 to 69,no,negative,0.9,0.4,mild,moderate,109,117,6,5,3,yes,yes,0,no,17,5,3,4,4,5
+C132,ward B,70 or over,no,negative,1.0,0.14,severe,mild,123,133,6,5,4,yes,yes,0,no,14,3,3,3,2,2
+C133,ward B,50 to 69,yes,positive,2.5,0.57,severe,severe,123,125,8,6,4,no,no,0,no,17,5,4,4,5,4
+C134,ward B,50 to 69,no,negative,1.1,0.12,mild,mild,127,135,5,1,0,yes,yes,0,no,7,3,5,4,3,4
+C135,ward A,70 or over,no,negative,1.3,0.28,moderate,moderate,110,120,9,7,9,yes,no,0,no,12,2,3,4,4,3
+C136,ward B,50 to 69,yes,positive,5.7,0.49,mild,mild,155,164,3,1,0,yes,no,0,no,30,4,5,4,3,3
+C137,ward B,70 or over,no,negative,1.3,0.13,moderate,moderate,137,137,6,6,5,yes,yes,0,no,20,2,1,3,3,3
+C138,ward B,50 to 69,yes,positive,7.4,0.2,severe,severe,129,124,6,6,5,yes,no,0,no,21,2,3,3,2,2
+C139,ward A,70 or over,no,negative,1.7,0.19,severe,severe,113,118,5,4,3,no,no,0,no,20,3,2,2,3,2
+C140,ward B,70 or over,no,negative,4.4,0.16,mild,severe,111,119,4,5,4,yes,no,1,yes,26,3,4,3,5,3
+C141,ward B,70 or over,no,negative,1.6,0.19,severe,severe,141,146,4,3,2,no,no,0,no,12,2,2,2,1,2
+C142,ward A,70 or over,no,negative,2.6,0.1,severe,severe,120,124,6,4,3,yes,yes,0,no,28,3,2,1,3,4
+C143,ward A,under 50,no,negative,0.9,0.58,moderate,moderate,131,132,6,6,6,yes,no,1,yes,27,3,3,3,3,4
+C144,ward A,50 to 69,yes,positive,5.3,2.0,moderate,moderate,132,141,5,3,3,yes,no,0,no,15,3,3,3,4,2
+C145,ward B,70 or over,no,positive,1.7,0.35,moderate,mild,116,122,7,6,4,yes,yes,0,no,3,4,4,4,3,4
+C146,ward A,50 to 69,no,negative,1.2,0.07,severe,severe,129,136,8,6,6,no,no,0,no,17,3,2,4,2,3
+C147,ward A,50 to 69,yes,positive,2.2,0.45,moderate,moderate,95,105,5,3,3,yes,no,0,no,13,4,4,4,3,3
+C148,ward A,under 50,no,negative,0.6,0.88,mild,moderate,112,115,8,5,5,no,no,0,no,14,4,3,2,3,3
+C149,ward A,under 50,no,negative,1.9,0.12,moderate,moderate,100,98,7,6,4,yes,no,0,no,20,3,4,3,3,4
+C150,ward A,70 or over,no,negative,1.4,0.31,moderate,severe,122,131,6,5,4,no,no,0,no,29,3,3,3,4,3
+C151,ward B,under 50,no,negative,1.2,1.3,moderate,severe,121,121,7,7,4,no,yes,0,no,17,5,4,3,2,3
+C152,ward A,70 or over,yes,positive,2.1,0.52,moderate,moderate,150,153,7,5,5,yes,no,0,no,21,2,3,3,2,2
+C153,ward B,under 50,no,negative,1.5,0.82,severe,severe,114,117,4,5,2,yes,no,0,no,23,5,4,3,5,4
+C154,ward A,50 to 69,no,negative,2.1,0.12,moderate,moderate,129,132,5,4,3,no,no,0,no,5,3,5,4,4,4
+C155,ward B,under 50,no,negative,5.2,0.17,mild,moderate,134,137,6,4,5,yes,no,0,no,24,3,3,5,2,2
+C156,ward A,50 to 69,no,negative,1.4,0.23,mild,mild,156,149,8,6,5,no,no,0,no,19,1,1,1,1,1
+C157,ward B,under 50,no,negative,1.3,0.16,mild,mild,132,138,6,5,5,no,no,0,no,16,2,1,2,1,1
+C158,ward A,50 to 69,no,negative,1.7,0.32,mild,mild,141,146,5,4,3,no,no,0,no,4,4,4,4,4,4
+C159,ward A,under 50,no,negative,3.2,0.06,mild,mild,151,155,5,4,4,no,no,0,no,4,3,2,2,2,1
+C160,ward B,50 to 69,no,negative,7.2,0.1,moderate,moderate,99,105,6,1,3,yes,no,0,no,9,3,3,4,3,3
+C161,ward B,50 to 69,no,negative,2.1,0.7,moderate,moderate,113,125,8,6,4,yes,yes,0,no,10,1,2,4,2,4
+C162,ward A,under 50,no,negative,0.5,0.27,moderate,mild,119,121,9,7,6,yes,yes,0,no,26,4,4,4,3,4
+C163,ward A,70 or over,yes,positive,3.6,0.53,severe,severe,129,125,10,8,7,no,no,0,no,18,4,4,5,3,4
+C164,ward B,70 or over,no,positive,0.7,0.94,severe,severe,118,118,8,6,5,yes,no,0,no,21,3,4,3,3,4
+C165,ward A,70 or over,no,negative,0.7,0.06,mild,moderate,147,145,5,3,3,no,yes,0,no,27,4,3,1,2,3
+C166,ward A,50 to 69,no,negative,5.1,0.02,mild,mild,117,123,6,5,5,yes,no,0,no,27,3,2,4,3,4
+C167,ward B,70 or over,no,negative,1.1,1.01,mild,mild,121,115,7,4,3,yes,no,0,no,26,1,2,2,2,2
+C168,ward A,under 50,no,negative,0.9,0.08,mild,moderate,133,134,7,6,5,no,no,0,no,5,3,3,2,3,3
+C169,ward A,70 or over,no,negative,3.8,0.26,mild,mild,119,115,7,6,7,no,no,0,no,13,3,3,2,2,4
+C170,ward A,under 50,no,negative,1.5,0.07,moderate,moderate,116,109,1,0,1,no,no,0,no,29,4,4,4,5,5
+C171,ward A,50 to 69,no,negative,0.7,0.03,moderate,moderate,107,106,8,5,5,yes,yes,0,no,22,1,1,1,1,1
+C172,ward A,under 50,no,negative,1.5,0.23,severe,moderate,121,130,6,6,6,no,no,0,no,14,4,3,3,3,3
+C173,ward B,70 or over,no,negative,0.5,0.35,moderate,moderate,148,145,7,5,6,no,no,0,no,21,2,2,2,2,3
+C174,ward B,50 to 69,no,positive,0.8,0.13,mild,mild,136,142,7,5,4,yes,no,0,no,10,3,3,5,5,3
+C175,ward B,70 or over,yes,positive,7.0,1.21,severe,severe,132,138,5,4,3,yes,yes,0,no,26,3,5,5,4,5
+C176,ward A,under 50,no,negative,0.2,0.31,severe,moderate,128,132,7,6,6,yes,no,0,no,30,2,1,2,2,2
+C177,ward B,70 or over,no,negative,2.4,1.1,severe,severe,122,122,7,4,5,yes,yes,0,no,15,4,3,4,4,4
+C178,ward A,50 to 69,yes,positive,6.7,0.24,severe,severe,128,134,4,3,1,no,no,0,no,4,3,3,4,2,2
+C179,ward B,under 50,yes,positive,2.2,1.34,moderate,moderate,111,113,6,6,6,yes,no,0,no,26,3,3,3,3,3
+C180,ward A,50 to 69,no,negative,1.1,0.3,mild,mild,129,123,4,6,4,yes,no,0,no,3,3,4,1,3,2
+C181,ward B,under 50,no,negative,2.0,0.05,mild,moderate,142,146,6,4,4,yes,yes,0,no,8,2,1,1,2,1
+C182,ward B,50 to 69,yes,positive,3.2,1.17,severe,severe,105,108,7,5,5,yes,no,0,no,8,2,3,3,2,2
+C183,ward B,50 to 69,yes,positive,3.0,1.61,moderate,severe,152,151,4,3,1,no,no,0,no,4,3,2,2,2,1
+C184,ward B,under 50,no,negative,1.6,0.22,moderate,mild,91,95,6,3,3,yes,no,0,no,25,2,1,2,2,1
+C185,ward A,50 to 69,no,negative,1.5,0.67,mild,moderate,119,114,4,4,3,yes,no,0,no,20,4,4,4,4,3
+C186,ward B,50 to 69,no,negative,1.5,0.25,severe,severe,114,113,5,5,3,yes,no,0,no,20,4,5,3,5,3
+C187,ward B,under 50,yes,positive,4.5,0.29,severe,severe,118,121,5,4,4,yes,no,0,no,17,3,4,4,5,4
+C188,ward A,70 or over,no,negative,1.2,1.97,mild,mild,120,127,3,2,2,no,no,0,no,27,2,2,1,3,2
+C189,ward B,50 to 69,yes,positive,7.5,0.39,moderate,moderate,146,142,7,5,6,yes,no,0,no,10,4,4,4,3,3
+C190,ward A,under 50,no,negative,1.9,0.35,moderate,moderate,113,115,7,8,6,yes,no,0,no,22,4,2,3,3,2
+C191,ward A,70 or over,no,negative,1.6,0.15,moderate,moderate,111,119,6,3,3,yes,no,1,yes,18,4,2,2,3,3
+C192,ward B,50 to 69,no,negative,2.0,0.83,moderate,moderate,120,120,6,5,5,no,no,0,no,30,3,2,2,2,3
+C193,ward A,50 to 69,no,negative,0.4,0.09,mild,moderate,117,129,6,5,4,no,no,0,no,21,4,4,2,2,4
+C194,ward B,50 to 69,yes,positive,2.8,1.0,moderate,moderate,122,117,7,5,5,yes,no,0,no,27,3,3,2,3,2
+C195,ward B,50 to 69,yes,negative,5.3,0.7,severe,severe,103,105,7,7,3,no,no,0,no,10,3,4,2,4,1
+C196,ward A,50 to 69,yes,positive,3.3,0.19,mild,moderate,127,136,8,7,6,yes,yes,0,no,17,2,2,2,4,1
+C197,ward B,under 50,no,negative,2.4,0.14,mild,mild,119,132,5,5,3,yes,no,0,no,17,3,3,4,4,4
+C198,ward A,70 or over,no,negative,2.0,0.5,mild,moderate,144,141,7,6,7,yes,yes,0,no,25,3,4,4,4,3
+C199,ward A,50 to 69,no,negative,0.2,0.19,mild,moderate,143,148,6,3,4,no,no,1,yes,27,5,4,4,4,5
+C200,ward A,50 to 69,yes,positive,3.6,0.17,mild,moderate,101,106,5,5,4,no,no,0,no,25,1,4,2,3,3

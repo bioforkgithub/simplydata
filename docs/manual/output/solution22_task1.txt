@@ -1,33 +1,6 @@
-31 dates from 2026-03-01 to 2026-03-31, one every day.
-         date
-1  2026-03-01
-2  2026-03-02
-3  2026-03-03
-4  2026-03-04
-5  2026-03-05
-6  2026-03-06
-7  2026-03-07
-8  2026-03-08
-9  2026-03-09
-10 2026-03-10
-11 2026-03-11
-12 2026-03-12
-13 2026-03-13
-14 2026-03-14
-15 2026-03-15
-16 2026-03-16
-17 2026-03-17
-18 2026-03-18
-19 2026-03-19
-20 2026-03-20
-21 2026-03-21
-22 2026-03-22
-23 2026-03-23
-24 2026-03-24
-25 2026-03-25
-26 2026-03-26
-27 2026-03-27
-28 2026-03-28
-29 2026-03-29
-30 2026-03-30
-31 2026-03-31
+"infected" = "yes": 30 of 100 (30.0 %) in ward B and 20 of 100 (20.0 %) in ward A.
+Out of 100, about 10 more in ward B than in ward A (risk difference 10.0 percentage points, 95 % CI -2.02 to 21.7).
+Risk ratio 1.50 (95 % CI 0.916 to 2.46): the risk in ward B is 1.50 times the risk in ward A. Odds ratio 1.71 (95 % CI 0.895 to 3.29); odds are not risks: with an outcome this common (over 10 %) the odds ratio lies further from 1 than the risk ratio.
+Number needed for one event more: 10 (1 / 0.100, rounded up): for every 10 in ward B instead of ward A, one event more (the NNTH, if the event is harmful, such as death). The interval of the difference includes 0, so the interval runs from 49.4 for one event fewer through infinity to 4.61 for one event more.
+If the risks were truly the same, a difference this big or bigger would turn up in about 14 of 100 studies like this one (p = 0.142). This does not show that the risks are the same.
+Method: the chi-square test with Yates' correction (SciPy, as R prop.test()) for the p-value; exact intervals for each risk, Newcombe's score interval for the difference (as R DescTools::BinomDiffCI(method = "score")), Wald intervals on the log scale for the ratios (statsmodels Table2x2, as R epitools::riskratio()).

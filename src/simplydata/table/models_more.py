@@ -29,7 +29,7 @@ import numpy as np
 
 from .._errors import SimplydataError
 from .stat_tests import _label, _list_words, _num, _skipped_note
-from .summaries import _p_words
+from .summaries import _p_clause
 
 Z95 = 1.959963984540054
 MORE_OUTCOMES = ("ordered groups", "groups", "shares", "counts with many zeros")
@@ -156,6 +156,9 @@ def _who(model, j):
     return f"{model['labels'][j]} (interaction)", None
 
 
+NONE = "it truly made no difference"  # the p-value clause of each term (W2)
+
+
 def _sentence(model, j, b, se, thing):
     from scipy import stats
 
@@ -164,13 +167,13 @@ def _sentence(model, j, b, se, thing):
     who, numeric = _who(model, j)
     interval = f"95 % CI {_num(low)} to {_num(high)}"
     if numeric:
-        text = f"  {who} multiplies {thing} by {_num(ratio)} ({interval}); {_p_words(p)}."
+        text = f"  {who} multiplies {thing} by {_num(ratio)} ({interval}); {_p_clause(p, NONE)}."
     elif numeric is False:
         verb = "are" if thing.startswith("the odds") else "is"
-        text = f"  {who}: {thing} {verb} {_num(ratio)} times as high ({interval}); {_p_words(p)}."
+        text = f"  {who}: {thing} {verb} {_num(ratio)} times as high ({interval}); {_p_clause(p, NONE)}."
     else:
         text = (f"  {who}: {_num(ratio)} ({interval}), how many times the effect of one is multiplied by the "
-                f"other; {_p_words(p)}.")
+                f"other; {_p_clause(p, NONE)}.")
     return text, p, ratio, low, high
 
 

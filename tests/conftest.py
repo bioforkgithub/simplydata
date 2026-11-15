@@ -40,7 +40,10 @@ def marks():
 # The R packages simplydata's words call (CI installs the same list: .github/workflows/tests.yml)
 R_PACKAGES = ("survival", "vegan", "mice", "lme4", "betareg", "pscl", "car", "effectsize", "emmeans", "pbkrtest",
               "lmerTest", "afex", "geepack", "sandwich", "performance", "mgcv", "MASS", "nnet",
-              "tseries", "lomb", "trend", "forecast", "changepoint")
+              "tseries", "lomb", "trend", "forecast", "changepoint",
+              "pwr", "Exact", "exact2x2", "nortest", "BSDA", "rstatix", "DescTools", "FSA", "PMCMRplus",
+              "multcompView", "TOSTER", "presize", "epiR", "pROC", "irr", "psych", "BlandAltmanLeh", "ppcor", "cocor",
+              "outliers", "EnvStats")
 
 
 @pytest.fixture
@@ -52,9 +55,10 @@ def needs_r():
     from simplydata._r import r_ready
 
     if not r_ready(R_PACKAGES):
+        listed = ", ".join(R_PACKAGES)
         if os.environ.get("SIMPLYDATA_REQUIRE_R") == "1":
-            pytest.fail("SIMPLYDATA_REQUIRE_R=1 but R, rpy2 or one of the R packages is missing: " + ", ".join(R_PACKAGES))
-        pytest.skip("needs R with " + ", ".join(R_PACKAGES) + " (pip install 'simplydata[r]')")
+            pytest.fail(f"SIMPLYDATA_REQUIRE_R=1 but R, rpy2 or one of the R packages {listed} is missing")
+        pytest.skip(f"needs R with {listed} (pip install 'simplydata[r]')")
 
 
 @pytest.fixture
@@ -74,8 +78,20 @@ def needs_control():
 # The places that are meant to run R (each calls simplydata._r.r_call). Reaching R from anywhere
 # else is a mistake: a word that should work without R.
 R_ENTRY_POINTS = {
+    ("power.py", "_pwr"),
     ("table/patterns.py", "_r_kmeans"), ("table/patterns.py", "_r_nmds"), ("table/patterns.py", "_r_permanova"),
     ("table/survival.py", "cox_zph"), ("table/between.py", "__init__"), ("table/models.py", "_explain_imputed"),
+    ("table/post_hoc.py", "pair_letters"), ("table/summaries.py", "_summary_interval"),
+    ("power.py", "how_many_needed"), ("power.py", "_interval_width_needed"), ("power.py", "call"),
+    ("table/accuracy_words.py", "roc_engine"), ("table/accuracy_words.py", "compare_accuracy"),
+    ("table/risk_words.py", "_prop_test_one_sided"), ("table/agreement_words.py", "_icc"),
+    ("table/agreement_words.py", "_krippendorff"), ("table/agreement_words.py", "_ccc"),
+    ("table/agreement_words.py", "limits_of_agreement"), ("table/agreement_words.py", "reliability_of"),
+    ("words/agreement_charts.py", "_roc_points"), ("words/agreement_charts.py", "trade_off_curve"),
+    ("words/agreement_charts.py", "_draw_difference_dots"), ("words/agreement_charts.py", "difference_dots"),
+    ("table/stat_tests.py", "_z_test"), ("table/stat_tests.py", "_trend_test"), ("table/stat_tests.py", "_counts_engine"),
+    ("table/summaries.py", "_ordinal_association"), ("table/summaries.py", "_partial_correlation"),
+    ("table/correlation_words.py", "compare_correlations"), ("table/rows.py", "_test_outliers"),
     ("table/models.py", "_glmer"), ("table/models_more.py", "fit_shares"), ("table/models_more.py", "fit_zeros"),
     ("table/anova_tables.py", "eta_squared"), ("table/anova_tables.py", "anova_glm"),
     ("table/anova_tables.py", "need_r_for"),

@@ -37,4 +37,4 @@ Example tables you can use (all made up, for practice):
       Columns: school, pupil, class, hours, sleep, breakfast, marks, passed, days_absent
 
 
-... (68 more lines)
+... (72 more lines)

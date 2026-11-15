@@ -75,7 +75,7 @@ import numpy as np
 
 from .._errors import SimplydataError, column_error, friendly
 from .stat_tests import _label, _list_words, _num, _shape_notes, _skipped_note, _whole
-from .summaries import _p_words
+from .summaries import _p_clause
 
 OUTCOMES = ("numbers", "yes or no", "counts", "counts (overdispersed)", "counts that vary a lot", "positive numbers")
 COUNT_OUTCOMES = ("counts", "counts (overdispersed)", "counts that vary a lot")
@@ -859,7 +859,7 @@ class ModelWords:
     def _term_sentence(model, j, beta, low, high, p) -> str:
         column, outcome = model["column"], model["outcome"]
         parts = model["parts_of"][j]
-        words = _p_words(p)
+        words = _p_clause(p)
         has_groups = any(model["kinds"][v] == "group" for v in model["variables"])
         at_base = " and every group column is at its baseline" if has_groups else ""
         if model["labels"][j] == INTERCEPT and model.get("link"):
@@ -942,7 +942,7 @@ class ModelWords:
         for test in tests:
             extra = f" and {_whole(test['df2'])}" if "df2" in test else ""
             print(f'  {test["term"]}, all groups together: {test["test"]} ({test["name"]} = {_num(test["stat"])}, '
-                  f"df = {_whole(test['df'])}{extra}); {_p_words(test['p'])}.")
+                  f"df = {_whole(test['df'])}{extra}); {_p_clause(test['p'], 'the groups truly did not differ')}.")
         if kind == "lm":
             print(f"Method: linear model by least squares, as R lm({formula}).")
         elif kind == "binomial":
@@ -1013,11 +1013,11 @@ class ModelWords:
             if k > 0 and fit.get("robust_whole"):
                 whole = fit["robust_whole"]
                 line += (f" The model as a whole (Wald F with robust errors = {_num(whole['stat'])}, df = {k} and "
-                         f"{fit['df']}): {_p_words(whole['p'])}.")
+                         f"{fit['df']}): {_p_clause(whole['p'], 'none of the columns truly mattered')}.")
             elif k > 0:
                 f = (r2 / k) / ((1 - r2) / fit["df"])
                 p = float(stats.f.sf(f, k, fit["df"]))
-                line += f" The model as a whole (F = {_num(f)}, df = {k} and {fit['df']}): {_p_words(p)}."
+                line += f" The model as a whole (F = {_num(f)}, df = {k} and {fit['df']}): {_p_clause(p, 'none of the columns truly mattered')}."
             print(line)
         elif kind == "gee":
             groups = len(set(model["groups"].tolist()))
@@ -1059,12 +1059,12 @@ class ModelWords:
             if k > 0 and fit.get("robust_whole"):
                 whole = fit["robust_whole"]
                 line += (f" The model as a whole (Wald chi-square with robust errors = {_num(whole['stat'])}, df = {k}): "
-                         f"{_p_words(whole['p'])}.")
+                         f"{_p_clause(whole['p'], 'none of the columns truly mattered')}.")
             elif kind not in ("quasipoisson", "gamma") and k > 0:
                 change = null - fit["deviance"]
                 p = float(stats.chi2.sf(change, k))
                 line += (f" The model as a whole (likelihood-ratio chi-square = {_num(change)}, df = {k}): "
-                         f"{_p_words(p)}.")
+                         f"{_p_clause(p, 'none of the columns truly mattered')}.")
             print(line)
         else:
             between, within = fit["between"], fit["within"]
@@ -1523,7 +1523,8 @@ class ModelWords:
         rows = []
         for name, e, s, pv in zip(out["sname"], edf, sstat, sp):
             print(f'  "{name}" as a smooth curve: {_num(e)} effective degrees of freedom (1 would be a straight line); '
-                  f"is the curve flat? {test_name} = {_num(s)}: {_p_words(pv)}.")
+                  f"is the curve flat? {test_name} = {_num(s)}: "
+                  f"{_p_clause(pv, 'the curve were truly flat')}.")
             rows.append({"term": f"s({name})", "effective degrees of freedom": float(e),
                          "statistic name": test_name, "statistic": float(s), "p-value": float(pv)})
         family = {"numbers": "gaussian", "yes or no": "binomial", "counts": "poisson"}[model["outcome"]]
@@ -1677,6 +1678,17 @@ class ModelWords:
                 levels = sorted(set(work[nm].tolist()), key=_sort_key)
                 for j, level in enumerate(levels[1:]):
                     frame[f"{key}_{j}"] = np.array([v == level for v in work[nm]], dtype=float)
+        from .._r import need_r
+
+        # Pooling needs R (mice), so R is started before the filling-in, not after. Starting R changes
+        # the state of the process in some way that moves the filled-in values a little (not the
+        # floating-point control word: that was checked and stays the same), and predictive mean
+        # matching picks donors by the smallest distance, so the filled-in tables would otherwise
+        # depend on whether an earlier word had already started R. It also says R is missing before
+        # 20 fits, not after.
+        need_r(("mice",), "Pooling the filled-in tables (R mice::pool())",
+               "statsmodels MICE pools with Rubin's rules but without the Barnard-Rubin degrees of freedom, "
+               "so its p-values differ")
         imputer = MICEData(pd.DataFrame(frame), k_pmm=PMM_DONORS, rng=seed)
         filled = []
         with warnings.catch_warnings():

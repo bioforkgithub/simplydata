@@ -88,16 +88,19 @@ def autocorrelation(values, rows_back=None, show="correlation", band="white nois
                 outside=outside, ljung_box=(stat, p), k=k, n=n, half=half)
 
 
+NOISE = "the readings were truly not linked to the readings before them"  # the Ljung-Box p-value clause (W2)
+
+
 def sentence(result, what, show, band):
     """The plain sentence about one series' autocorrelation."""
     from .table.stat_tests import _num
-    from .table.summaries import _p_words
+    from .table.summaries import _p_clause
 
     values, lags, k = result["values"], result["rows_back"], result["k"]
     stat, p = result["ljung_box"]
     if show == "covariance":
         return (f"{what}: covariance with itself 1 to {k} rows back; Ljung-Box test up to {k} rows back: "
-                f"{_p_words(p)}.")
+                f"{_p_clause(p, NOISE)}.")
     best = int(np.argmax(values))
     word = "correlation" if show == "correlation" else "partial correlation"
     text = f"{what} is most like itself {lags[best]} row{'s' if lags[best] != 1 else ''} back ({word} {_num(values[best])})"
@@ -106,7 +109,7 @@ def sentence(result, what, show, band):
     count = int(result["outside"].sum())
     band_words = (f"+/- {_num(result['half'][0])}" if band == "white noise" else "Bartlett's band, wider further back")
     text += (f". {count} of the {k} {word}s are outside the band expected from random noise ({band_words}). "
-             f"Ljung-Box test up to {k} rows back: {_p_words(p)}.")
+             f"Ljung-Box test up to {k} rows back: {_p_clause(p, NOISE)}.")
     return text
 
 

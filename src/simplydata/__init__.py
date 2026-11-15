@@ -25,6 +25,8 @@ from .words.stats import pairs
 from .power import chance_to_find, how_many_needed
 from .finding import find_biggest, find_smallest, solve
 from .distributions import distribution
+from ._sdata_tests import compare_averages, compare_counts
+from .risks import compare_rates, compare_risks, compare_to_truth
 from ._dates import dates
 from ._waves import inverse_fourier_transform, wave, window_shape
 from .systems import System, frequency_filter, system
@@ -48,8 +50,10 @@ def __getattr__(name):
 
 
 __all__ = [
-    "Chart", "NumberGrid", "Numbers", "SimplydataError", "System", "Table", "answers", "chance_to_find", "chart", "dates", "day",
-    "distribution", "example", "find_biggest", "find_smallest", "frequency_filter", "grid", "help", "how_many_needed", "inverse_fourier_transform",
+    "Chart", "NumberGrid", "Numbers", "SimplydataError", "System", "Table", "answers", "chance_to_find", "chart",
+    "compare_averages", "compare_counts", "compare_rates", "compare_risks", "compare_to_truth", "dates", "day",
+    "distribution", "example", "find_biggest", "find_smallest", "frequency_filter", "grid", "help",
+    "how_many_needed", "inverse_fourier_transform",
     "lesson", "next_day", "number_grid", "numbers", "one_above_other", "pairs", "random_numbers", "side_by_side",
     "solve", "start_30_days", "system", "table", "today", "wave", "window_shape", "words", "__version__",
 ]

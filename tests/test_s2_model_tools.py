@@ -217,6 +217,10 @@ def test_matched_by_checks():
         marks.compare_averages("marks", for_each="class", matched_by="name")
     with pytest.raises(SimplydataError, match="leave out based_on="):
         marks.compare_averages("marks", for_each="subject", matched_by="name", based_on="ranks")
+    with pytest.raises(SimplydataError, match="leave out sides="):
+        marks.compare_averages("marks", for_each="subject", matched_by="name", sides=1)
+    with pytest.raises(SimplydataError, match="leave out sides="):
+        marks.compare_averages("marks", for_each="subject", matched_by="name", in_order=["a", "b"])
 
 
 # ---------------------------------------------------------------- review fixes: group names, df method, afex rows

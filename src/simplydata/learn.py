@@ -30,7 +30,7 @@ GROUPS = [
     ("Statistics", ["show=", "error=", "error_bars", "fit_line", "fit_curve", "fit_formula", "fit_distribution",
                     "curve", "smooth_line",
                     "density", "count_bars", "all_dots", "side_histograms", "qq_dots",
-                    "cumulative_share", "sdata.pairs"]),
+                    "cumulative_share", "forest_plot", "sdata.pairs"]),
     ("Lines and shading", ["line_at_x", "line_at_y", "line_with_slope", "shade_between_x", "shade_between_y"]),
     ("Words on the chart", ["title_top", "caption_bottom", "label_x", "label_y", "note",
                             "numbers_on_bars", "names_on_dots", "font_size", "font_name"]),
@@ -60,7 +60,7 @@ GROUPS = [
                      "table.make_lowercase", "table.make_uppercase", "table.remove_extra_spaces",
                      "table.replace_values", "table.round_to", "table.change_column"]),
     ("Sort and new columns", ["table.sort_by", "table.add_column", "table.add_group_column",
-                              "table.add_rank_column"]),
+                              "table.add_rank_column", "table.add_z_score_column"]),
     ("Dates and text", ["table.add_date_part_column", "table.add_text_part_column", "table.split_column",
                         "table.replace_text"]),
     ("Row after row", ["table.add_rolling_column", "table.add_previous_value_column", "table.add_change_column"]),
@@ -68,11 +68,19 @@ GROUPS = [
                    "table.total_of", "table.smallest_of", "table.biggest_of",
                    "table.standard_deviation_of", "table.summary_of", "table.percent_of",
                    "table.count_different_values", "table.percentile_of", "table.most_common_of",
-                   "table.correlation_between"]),
+                   "table.interval_of", "table.correlation_between"]),
     ("Statistical tests", ["table.compare_averages", "table.compare_each_pair", "table.compare_before_after",
                            "table.compare_average_to", "table.compare_counts", "table.compare_shape_to",
                            "table.add_adjusted_p_value_column", "table.compare_spreads", "table.compare_counts_to",
-                           "table.compare_percent_to"]),
+                           "table.compare_percent_to", "table.compare_matched", "table.compare_shapes",
+                           "table.check_random_order", "table.compare_correlations", "sdata.compare_averages",
+                           "sdata.compare_counts"]),
+    ("Risks and rates", ["table.compare_risks", "table.compare_rates", "table.rate_of", "sdata.compare_risks",
+                         "sdata.compare_rates"]),
+    ("Diagnostic tests", ["table.compare_to_truth", "table.compare_accuracy", "sdata.compare_to_truth",
+                          "trade_off_curve"]),
+    ("Agreement and reliability", ["table.agreement_between", "table.limits_of_agreement", "table.reliability_of",
+                                   "difference_dots"]),
     ("Fitting", ["table.fit_line", "table.fit_curve", "table.fit_formula"]),
     ("Finding and solving", ["sdata.find_smallest", "sdata.find_biggest", "sdata.solve"]),
     ("Values between points", ["table.values_at", "table.map_of"]),
@@ -504,6 +512,9 @@ HELP_EXAMPLES = {
     "table.add_group_column": _tx("marks", 'table.add_group_column("grade", from_column="marks", '
                                            'cut_at=[40, 60, 80], names=["D", "C", "B", "A"])\n'
                                            'table.count_each("grade")'),
+    "table.add_z_score_column": _tx("marks", 'table.add_z_score_column("marks_z", from_column="marks", '
+                                             'for_each="subject")\ntable.show_first_rows()'),
+    "table.interval_of": _tx("marks", 'table.interval_of("marks", "median", for_each="class")'),
     "table.add_rank_column": _tx("marks", 'table.add_rank_column("place", from_column="marks")\n'
                                           'table.sort_by("place")\ntable.show_first_rows()'),
     # dates and text
@@ -615,7 +626,42 @@ HELP_EXAMPLES = {
     "table.compare_spreads": _tx("marks", 'table.compare_spreads("marks", for_each="class")'),
     "table.compare_counts_to": _tx("school", 'table.compare_counts_to("breakfast", expected={"yes": 0.6, "no": 0.4})'),
     "table.compare_percent_to": _tx("school", 'table.compare_percent_to("passed", value="yes", percent=50)'),
-    "table.compare_shape_to": _tx("marks", 'table.compare_shape_to("marks", "normal", for_each="class")'),
+    "table.compare_shape_to": _tx("marks", 'table.compare_shape_to("marks", "normal", for_each="class")\n'
+                                           'table.compare_shape_to("marks", "normal", test="jarque-bera")'),
+    "table.compare_matched": _tx("marks", 'table.keep_columns("name", "subject", "marks")\n'
+                                          'table.turn_rows_into_columns(names_from="subject", values_from="marks")\n'
+                                          'table.compare_matched("Maths", "Science", "English")'),
+    "table.compare_shapes": _tx("marks", 'table.compare_shapes("marks", for_each="class")'),
+    "table.check_random_order": _tx("marks", 'table.check_random_order("marks")'),
+    "sdata.compare_averages": textwrap.dedent("""\
+        import simplydata as sdata
+        sdata.compare_averages(averages=[63.2, 68.9], standard_deviations=[8.1, 9.0], counts=[20, 22])"""),
+    "sdata.compare_counts": textwrap.dedent("""\
+        import simplydata as sdata
+        sdata.compare_counts([[20, 40], [30, 30]])"""),
+    "table.compare_correlations": _tx("marks", 'table.keep_rows("class", one_of=["A", "B"])\n'
+                                               'table.compare_correlations("hours", "marks", for_each="class")'),
+    "table.compare_risks": _tx("trial", 'table.compare_risks("died", for_each="treatment", against="usual care")'),
+    "table.compare_rates": _tx("clinic", 'table.compare_rates("infections", time="patient_days", for_each="ward", '
+                                         'against="ward A")'),
+    "table.rate_of": _tx("clinic", 'table.rate_of("infections", time="patient_days", for_each="ward")'),
+    "sdata.compare_risks": textwrap.dedent("""\
+        import simplydata as sdata
+        sdata.compare_risks(events=[20, 30], out_of=[60, 60], names=["new", "usual"], against="usual")"""),
+    "sdata.compare_rates": textwrap.dedent("""\
+        import simplydata as sdata
+        sdata.compare_rates(events=[15, 30], time=[1200, 1100], names=["ward A", "ward B"])"""),
+    "table.compare_to_truth": _tx("clinic", 'table.compare_to_truth("rapid_test", truth="infected")\n'
+                                            'table.compare_to_truth("crp", truth="infected")'),
+    "table.agreement_between": _tx("clinic", 'table.agreement_between("nurse_rating", "doctor_rating")\n'
+                                             'table.agreement_between("device_a", "device_b")'),
+    "table.limits_of_agreement": _tx("clinic", 'table.limits_of_agreement("device_a", "device_b")'),
+    "table.reliability_of": _tx("clinic", 'table.reliability_of(["item_1", "item_2", "item_3", "item_4", "item_5"])'),
+    "table.compare_accuracy": _tx("clinic", 'table.compare_accuracy("crp", "procalcitonin", truth="infected")'),
+    "sdata.compare_to_truth": textwrap.dedent("""\
+        import simplydata as sdata
+        sdata.compare_to_truth(found=45, missed=5, false_alarms=30, correct_negatives=920)
+        sdata.compare_to_truth(sensitivity=90, specificity=95, prevalence=1)"""),
     "table.add_adjusted_p_value_column": _tx("marks", 'table = table.correlation_between("hours", "marks", "height", '
                                                       'show="each pair")\n'
                                                       'table.add_adjusted_p_value_column("q", method="benjamini-hochberg")\n'
@@ -769,6 +815,16 @@ HELP_EXAMPLES = {
                                            'using=["treatment", "age"])'),
     "survival_curves": _ex("trial", 'chart.survival_curves(time="days", event="died", colour="treatment", '
                                     'confidence_band=True)', "survival_curves"),
+    "trade_off_curve": _ex("clinic", 'chart.trade_off_curve(score=["crp", "procalcitonin"], truth="infected")',
+                           "trade_off_curve"),
+    "difference_dots": _ex("clinic", 'chart.difference_dots(first="device_a", second="device_b")', "difference_dots"),
+    "forest_plot": textwrap.dedent("""\
+        import simplydata as sdata
+        table = sdata.table(sdata.example("marks"))
+        pairs = table.compare_each_pair("marks", for_each="class", test="tukey")
+        chart = pairs.chart()
+        chart.forest_plot(x="difference", y="group 1")
+        chart.save("forest_plot.png")"""),
     # planning a study
     "sdata.how_many_needed": textwrap.dedent("""\
         import simplydata as sdata
@@ -2727,6 +2783,17 @@ LESSONS = [
                 ('school = sdata.table(sdata.example("school"))', "A table of pupils."),
                 ('school.most_common_of("days_absent")', "The most common number of days absent (the mode): 2."),
             ]),
+            ("A z-score puts marks from different subjects on one scale: how many standard deviations a "
+             "value lies above or below the average of its group.", [
+                ("import simplydata as sdata", "Load simplydata."),
+                ('table = sdata.table(sdata.example("marks"))', "A table of the marks."),
+                ('table.add_z_score_column("marks_z", from_column="marks", for_each="subject")',
+                 'A new column "marks_z": 0 is the average of that subject, 1 one standard deviation above it '
+                 "(SciPy zscore, as R scale())."),
+                ("table.show_first_rows(3)", "Asha's 77 in English is 1.09 standard deviations above the "
+                                             "English average; her 66 in Science is a little below the "
+                                             "Science average (-0.25)."),
+            ]),
         ],
         notes=[
             "Correlation is not cause. Children who study more might also sleep more, or like the "
@@ -2739,7 +2806,7 @@ LESSONS = [
             "table.add_rows_from(other) puts the rows of another table under this one. "
             "turn_rows_into_columns does the opposite of turn_columns_into_rows.",
             "Lesson 13 teaches numbers, and lesson 14 the statistical tests: is a difference "
-            "real, or could it be chance?",
+            "real, and how big is it?",
             "Every summary skips empty cells and says how many it skipped. summary_of can also show "
             '"variance", "standard error", "confidence interval", "range" and "interquartile range".',
         ],
@@ -2771,7 +2838,8 @@ LESSONS = [
                 import simplydata as sdata
                 table = sdata.table(sdata.example("marks"))
                 table.correlation_between("height", "marks")"""),
-             "No: r = 0.03, very close to 0, and p = 0.83 says it could easily be chance."),
+             "No: r = 0.03, very close to 0. Even with truly no link, a link this strong would turn up in "
+             "about 83 of 100 studies (p = 0.83)."),
             (_sx("""\
                 import simplydata as sdata
                 table = sdata.table(sdata.example("marks"))
@@ -2888,19 +2956,44 @@ LESSONS = [
     dict(
         title="Statistical tests: real difference, or chance?",
         learn=[
-            "what a statistical test asks, and what a p-value means",
+            "how big a difference is, and how sure the data are: the effect and its interval first",
+            "what a p-value means: first by shuffling the labels, then from the usual formula",
             "how to compare the averages of groups, and which groups differ",
-            "how to compare counts, and how to fit a line or a formula",
+            "how to compare counts and measurements of the same people, and how to fit a line or a formula",
         ],
         parts=[
+            ("Start with the question \"how big?\": the difference between two groups, and how sure the "
+             "data are about it.", [
+                ("import simplydata as sdata", "Load simplydata."),
+                ('school = sdata.table(sdata.example("school"))', "A table of pupils."),
+                ('school.average_of("sleep", for_each="passed", interval=95)',
+                 "The average hours of sleep of the pupils who passed and of those who did not, each with its "
+                 "95 % confidence interval: the range the true average is very likely in."),
+                ('school.compare_averages("sleep", for_each="passed")',
+                 "Read the first sentence first: the pupils who did not pass slept about half an hour less "
+                 "(0.485 hours), and the 95 % interval of the difference goes from 0.196 to 0.774 hours. That "
+                 "is the effect, and how sure the data are about it. The p-value comes after it."),
+            ]),
+            ("Where does a p-value come from? Shuffle the labels, and count.", [
+                ("import simplydata as sdata", "Load simplydata."),
+                ('school = sdata.table(sdata.example("school"))', "A table of pupils."),
+                ('school.compare_averages("sleep", for_each="passed", p_value_by="shuffling")',
+                 "Imagine that passing had nothing to do with sleep. Then the labels \"yes\" and \"no\" "
+                 "could be shuffled among the pupils and nothing would change. simplydata shuffles them 9999 "
+                 "times and counts how often the shuffled difference is as big as the real one: about 1 time "
+                 "in 1000 (p = 0.001). That count is the p-value. The p-value in the part before came from a "
+                 "formula (the t distribution), a shortcut for the same count: here it is the same, "
+                 "p = 0.001."),
+            ]),
             ("Groups almost never have exactly the same average. A test asks: is the difference "
              "bigger than chance alone would often give?", [
                 ("import simplydata as sdata", "Load simplydata."),
                 ('table = sdata.table(sdata.example("marks"))', "Make a table of the marks."),
                 ('table.compare_averages("marks", for_each="class")',
                  "Do the three classes really differ in their average mark? The answer comes in "
-                 "words. The p-value is the chance of a difference this big if the classes were "
-                 "really the same: below 0.05 we call it unlikely to be chance. With three or more "
+                 "words. The p-value says how often differences this big or bigger would turn up in "
+                 "studies like this one if the classes were truly the same: here in about 3 of 100 "
+                 "(p = 0.028). It is not the chance that the classes are the same. With three or more "
                  "groups this test is also called Welch's ANOVA; with two groups, a t-test."),
                 ('table.compare_each_pair("marks", for_each="class")',
                  "Which classes differ? Each pair gets its own t-test (Welch's). Testing many pairs makes a "
@@ -2956,21 +3049,33 @@ LESSONS = [
                 ("import simplydata as sdata", "Load simplydata."),
                 ('table = sdata.table(sdata.example("marks"))', "Make a table of the marks."),
                 ('table.compare_spreads("marks", for_each="class")',
-                 "Are the marks of one class more spread out? Levene's test says this could easily be "
-                 "chance (p = 0.91)."),
+                 "Are the marks of one class more spread out? The data cannot tell: differences in "
+                 "spread this big would turn up in about 91 of 100 studies even if the spreads were the "
+                 "same (p = 0.91)."),
                 ('table.compare_each_pair("marks", for_each="class", test="tukey")',
                  "Tukey's test compares every pair at once: only A and C differ (p = 0.020)."),
                 ('school = sdata.table(sdata.example("school"))', "A table of pupils."),
                 ('school.compare_counts_to("breakfast", expected={"yes": 0.6, "no": 0.4})',
                  "Did 60 % eat breakfast, as a survey said? 115 of 180 is close enough (p = 0.29)."),
                 ('school.compare_percent_to("passed", value="yes", percent=50)',
-                 "Did half the pupils pass? 43.3 % did; that could easily be chance (p = 0.086)."),
+                 "Did half the pupils pass? 43.3 % did; if truly half passed, a difference this big would "
+                 "turn up in about 9 of 100 studies (p = 0.086), so the data cannot tell."),
+            ]),
+            ("When the same people are measured three times, compare the measurements within each person.", [
+                ("import simplydata as sdata", "Load simplydata."),
+                ('clinic = sdata.table(sdata.example("clinic"))', "A table of patients."),
+                ('clinic.compare_matched("pain_week_0", "pain_week_4", "pain_week_8")',
+                 "Each patient scored the pain at week 0, 4 and 8, one column each. compare_matched compares "
+                 "the three columns within each patient (the Friedman test, on ranks): the median pain falls "
+                 "from 6 to 5 to 4, far more than chance would give (p < 0.0001). For two columns, "
+                 "compare_before_after does the same."),
             ]),
         ],
         notes=[
             "The idea behind every test: imagine there is no real difference (this is called the "
-            "null hypothesis). The p-value says how surprising your data would be then. A small "
-            "p-value means: hard to explain by chance alone.",
+            "null hypothesis). The p-value says how often a difference this big or bigger would turn "
+            "up then, in studies like yours: p = 0.03 is \"about 3 of 100 studies\". It is not the "
+            "chance that there is no difference, and every test says it in that one sentence.",
             "A p-value does not say how big or important the difference is: the effect size does "
             "that (omega-squared, Cohen's d, Cramer's V ...). And a large p-value does not show that "
             "there is no difference. It only means these data cannot tell.",
@@ -3004,7 +3109,8 @@ LESSONS = [
                 table = sdata.table(sdata.example("weather"))
                 table.compare_averages("temperature", for_each="city")
                 table.compare_each_pair("temperature", for_each="city")"""),
-             "Yes: p = 0.0002, very unlikely to be chance. compare_each_pair then shows which "
+             "Yes: if the cities truly had the same average, differences this big would turn up in "
+             "fewer than 1 in 1000 studies (p = 0.0002). compare_each_pair then shows which "
              "cities differ from each other."),
             (_sx("""\
                 import simplydata as sdata
@@ -3025,7 +3131,7 @@ LESSONS = [
                "table.fit_line", "table.fit_formula", "table.add_group_column",
                "table.compare_shape_to", "table.show_rows_with_outliers", "table.add_adjusted_p_value_column",
                "table.remove_rows_with_outliers", "table.compare_spreads", "table.compare_counts_to",
-               "table.compare_percent_to"],
+               "table.compare_percent_to", "table.compare_matched"],
     ),
     dict(
         title="A whole analysis: from a question to a figure",
@@ -3135,7 +3241,8 @@ LESSONS = [
                 chart.save("lesson15_rain_boxes.png")
                 table.save("lesson15_weather.xlsx")"""),
              "Rainbridge is much wetter (109 mm a month on average) than Frostby (42) and Sunnyvale "
-             "(26); p < 0.0001, so this is very unlikely to be chance."),
+             "(26); if the cities truly had the same rain, differences this big would turn up in fewer "
+             "than 1 in 1000 studies (p < 0.0001)."),
             (_sx("""\
                 import simplydata as sdata
                 table = sdata.table(sdata.example("weather"))
@@ -3185,7 +3292,8 @@ LESSONS = [
                  "a linear model (multiple regression) by least squares."),
                 ('table.explain("marks", using=["hours * breakfast"])',
                  "hours * breakfast also asks: does the effect of study depend on breakfast? That is an "
-                 "interaction. Here it could easily be chance (p = 0.31)."),
+                 "interaction. Here the data cannot tell: about 31 of 100 studies would show this much "
+                 "if there were truly none (p = 0.31)."),
             ]),
             ("Not every column is a number to explain. A yes/no column needs the chance of yes, and a "
              "count needs a model for counts.", [
@@ -3251,12 +3359,14 @@ LESSONS = [
                 table = sdata.table(sdata.example("school"))
                 table.explain("passed", using=["hours", "sleep"], outcome="yes or no")"""),
              "Each extra hour of study multiplies the odds of passing by 1.69 and each extra hour of "
-             "sleep by 1.98; both are unlikely to be chance."),
+             "sleep by 1.98; with truly no effect, fewer than 1 in 1000 studies (hours) and about 2 "
+             "of 1000 (sleep) would show this much."),
             (_sx("""\
                 import simplydata as sdata
                 table = sdata.table(sdata.example("school"))
                 table.explain("days_absent", using=["hours", "breakfast"], outcome="counts")"""),
-             "Breakfast could easily be chance (rate ratio 0.94, p = 0.45); study hours matter (rate "
+             "For breakfast the data cannot tell (rate ratio 0.94, p = 0.45: about 45 of 100 studies "
+             "would show this much with truly no effect); study hours matter (rate "
              "ratio 0.86 for each hour)."),
         ],
         words=["table.explain", "table.add_predicted_column", "table.show_first_rows"],
@@ -3347,8 +3457,9 @@ LESSONS = [
                 import simplydata as sdata
                 table = sdata.table(sdata.example("meadow"))
                 table.compare_profiles(for_each="field")"""),
-             "The fields explain 12 % of the differences, much less than grazing (25 %), and a difference "
-             "this big could be chance (p = 0.053). They do not differ in spread (p = 0.53)."),
+             "The fields explain 12 % of the differences, much less than grazing (25 %); a difference "
+             "this big would turn up in about 5 of 100 studies even if the fields had the same make-up "
+             "(p = 0.053). The spread check finds no sign of a difference in spread (p = 0.53)."),
             (_sx("""\
                 import simplydata as sdata
                 table = sdata.table(sdata.example("meadow"))
@@ -3387,8 +3498,8 @@ LESSONS = [
                 ("import simplydata as sdata", "Load simplydata."),
                 ('table = sdata.table(sdata.example("trial"))', "The trial table."),
                 ('table.compare_survival(time="days", event="died", for_each="treatment")',
-                 "The log-rank test compares the whole curves: here the difference could easily be "
-                 "chance (p = 0.22)."),
+                 "The log-rank test compares the whole curves: here the data cannot tell (p = 0.22; "
+                 "differences this big would turn up in about 22 of 100 studies with truly alike groups)."),
                 ('table.explain_survival(time="days", event="died", using=["treatment", "age"])',
                  "A Cox model: each year of age raises the risk of dying at any moment by about 5 % "
                  "(hazard ratio 1.05), with the treatment held fixed."),
@@ -3683,8 +3794,9 @@ LESSONS = [
                 ("import simplydata as sdata", "Load simplydata."),
                 ('table = sdata.table(sdata.example("school"))', "The school table."),
                 ('table.compare_models("marks", using=["hours"], against=["hours", "breakfast"])',
-                 "Does breakfast help a model that already has hours? The F test says it is unlikely to be "
-                 "chance (p = 0.018), and the AIC is 3.72 lower with breakfast: keep it."),
+                 "Does breakfast help a model that already has hours? The F test: about 2 of 100 studies would "
+                 "show this much if breakfast truly did not help (p = 0.018), and the AIC is 3.72 lower "
+                 "with breakfast: keep it."),
             ]),
             ("A prediction is never exact. interval=95 says how sure the model is about the average; "
              "for_new_rows=True says where one new pupil would fall, which is much wider.", [
@@ -3707,8 +3819,9 @@ LESSONS = [
                 ('table = sdata.table(sdata.example("school"))', "The school table."),
                 ('table.model_averages_of("marks", for_each="breakfast", using=["hours", "school"])',
                  "With hours held at their average (5.00) and the 12 schools counted equally, pupils without "
-                 "breakfast average 46.6 marks and pupils with breakfast 49.5. The difference, -2.95, is "
-                 "unlikely to be chance (p = 0.008). This is R emmeans."),
+                 "breakfast average 46.6 marks and pupils with breakfast 49.5. If the two groups truly did not "
+                 "differ, a difference of -2.95 or bigger would turn up in about 1 of 100 studies like this one "
+                 "(p = 0.008). This is R emmeans."),
             ]),
         ],
         notes=[
@@ -3773,6 +3886,154 @@ LESSONS = [
                "table.add_predicted_column", "table.model_averages_of", "table.explain"],
     ),
     dict(
+        title="Risks, diagnostic tests and agreement",
+        needs_r=needs_r_text("Examples 1 to 4 and the tasks need no R. The optional examples 5 to 8 (a score and "
+                             "its trade-off curve, two devices, a questionnaire, risks allowing for age)",
+                             packages=("pROC", "BlandAltmanLeh", "DescTools", "psych", "epiR")),
+        learn=[
+            "how to compare risks: in absolute terms first (out of 100), then as ratios, and how to draw them",
+            "how good a test is, in counts of 1000 people: what it finds, what it misses, and its false alarms",
+            "why the share of positive results that are real depends on how common the condition is",
+            "how to measure agreement between two raters, which is not the same as correlation",
+            "optional, for later: scores and their trade-off curves, devices, questionnaires and rates",
+        ],
+        parts=[
+            ("Did patients catch an infection in hospital more often in one ward? Absolute risks come first, then "
+             "the ratios.", [
+                ("import simplydata as sdata", "Load simplydata."),
+                ('table = sdata.table(sdata.example("clinic"))', "200 made-up patients in two hospital wards."),
+                ('table.compare_risks("caught_infection", for_each="ward", against="ward A")',
+                 "4 of 100 caught an infection in ward A and 16 of 100 in ward B: out of 100, about 12 more in "
+                 "ward B, and the interval of the difference (3.70 to 20.8 points) leaves out 0. For every 9 "
+                 "patients in ward B instead of ward A, one infection more. Then the risk ratio (4.00) and the "
+                 "odds ratio (4.57), and p = 0.010."),
+            ]),
+            ("The answer is also a table, one row per measure, so the ratios can be drawn: each as a dot with its "
+             "interval (a forest plot).", [
+                ("import simplydata as sdata", "Load simplydata."),
+                ('table = sdata.table(sdata.example("clinic"))', "The clinic table."),
+                ('risks = table.compare_risks("caught_infection", for_each="ward", against="ward A")',
+                 "The same comparison as in example 1, kept as a table named risks."),
+                ('risks.keep_rows("measure", one_of=["risk ratio", "odds ratio"])', "Keep the two ratios."),
+                ("chart = risks.chart()", "Start a chart of the result table."),
+                ('chart.forest_plot(x="estimate", y="measure")',
+                 "Each ratio as a dot with its 95 % interval, on a log scale, with a line at 1 (no effect). Both "
+                 "intervals lie above the line."),
+                ('chart.save("risk_ratios.png")', "Save it."),
+            ]),
+            ("How good is a quick test, against the truth from a slow lab test?", [
+                ("import simplydata as sdata", "Load simplydata."),
+                ('table = sdata.table(sdata.example("clinic"))', "50 of the 200 patients have the infection."),
+                ('table.compare_to_truth("rapid_test", truth="infected")',
+                 "Of 1000 people like these, 250 have it: the test finds 195 (sensitivity 78 %) and misses 55. "
+                 "Of the 750 without it, 50 test positive by mistake (specificity 93.3 %)."),
+                ('table.compare_to_truth("rapid_test", truth="infected", prevalence=1)',
+                 "Where only 1 % have it, the same test gives 74 positives in 1000 people, and only 8 of them "
+                 "really have it: most positives are false alarms."),
+            ]),
+            ("Do a nurse and a doctor agree on how ill each patient looks?", [
+                ("import simplydata as sdata", "Load simplydata."),
+                ('table = sdata.table(sdata.example("clinic"))', "The clinic table."),
+                ('table.agreement_between("nurse_rating", "doctor_rating")',
+                 "They agree on 136 of 200 patients (68 %); by chance alone they would agree on about 34 %. "
+                 "Cohen's kappa = 0.516: they agree about half of the way from chance to perfect."),
+            ]),
+            ("More, optional (needs R): a score such as CRP has no single cut-off; each cut-off trades found "
+             "cases against false alarms.", [
+                ("import simplydata as sdata", "Load simplydata."),
+                ('table = sdata.table(sdata.example("clinic"))', "The clinic table."),
+                ('table.compare_to_truth("crp", truth="infected")',
+                 "AUC 0.893: a person who has it scores higher than one who does not in 89 of 100 such pairs. "
+                 "The best cut-off by Youden's index is 2.15."),
+                ('table.compare_accuracy("crp", "procalcitonin", truth="infected")',
+                 "AUC 0.893 against 0.715, a difference of 0.177 (0.085 to 0.270), on the same patients: CRP "
+                 "tells better who has it (DeLong's test, p = 0.0002)."),
+                ("chart = table.chart()", "Start a chart."),
+                ('chart.trade_off_curve(score=["crp", "procalcitonin"], truth="infected")',
+                 "Both trade-off (ROC) curves: CRP climbs faster to the top left than procalcitonin."),
+                ('chart.save("trade_off.png")', "Save it."),
+            ]),
+            ("More, optional (needs R): do two blood-pressure devices agree?", [
+                ("import simplydata as sdata", "Load simplydata."),
+                ('table = sdata.table(sdata.example("clinic"))', "The clinic table."),
+                ('table.limits_of_agreement("device_a", "device_b")',
+                 "Device A reads on average 2.18 lower, and 95 % of the differences lie between -11.7 and 7.33."),
+                ("chart = table.chart()", "Start a chart."),
+                ('chart.difference_dots(first="device_a", second="device_b")',
+                 "The Bland-Altman chart: each difference (first minus second) against the average of the two, "
+                 "with the limits of agreement."),
+                ('chart.save("devices.png")', "Save it."),
+            ]),
+            ("More, optional (needs R): do five questions on satisfaction with care (item_1 to item_5) hang "
+             "together?", [
+                ("import simplydata as sdata", "Load simplydata."),
+                ('table = sdata.table(sdata.example("clinic"))', "The clinic table."),
+                ('table.reliability_of(["item_1", "item_2", "item_3", "item_4", "item_5"])',
+                 "Cronbach's alpha = 0.865 (0.833 to 0.893); leaving out any one item lowers it."),
+            ]),
+            ("More, optional: risks allowing for a third column, and rates per patient-day.", [
+                ("import simplydata as sdata", "Load simplydata."),
+                ('table = sdata.table(sdata.example("clinic"))', "The clinic table."),
+                ('table.compare_risks("infected", for_each="ward", allowing_for="age_group")',
+                 "Mantel-Haenszel odds ratio 1.76 (0.911 to 3.40), about the same as 1.71 without allowing for "
+                 "age (the interval of its risk ratio needs R epiR)."),
+                ('table.rate_of("infections", time="patient_days", for_each="ward")',
+                 "2.22 infections per 1000 patient-days in ward A and 10.0 in ward B, each with its exact "
+                 "interval; compare_rates compares them."),
+            ]),
+        ],
+        notes=[
+            "This lesson is optional, for the life sciences (medicine, biology, ecology); no other lesson "
+            "needs it. Examples 1 to 4 are the core; examples 5 to 8 are more, for when you need them.",
+            "Give absolute risks first. A risk ratio of 0.5 can mean 2 in 100 instead of 4, or 20 instead of "
+            "40: the same ratio, a very different number of people helped.",
+            "When the interval of the difference includes 0, the number needed for one event fewer (or more) "
+            "has an interval that runs through infinity: the data fit fewer events, no change and more. Task 1 "
+            "shows one.",
+            "Odds are not risks. When the outcome is common (over 10 %), the odds ratio lies further from 1 than "
+            "the risk ratio, so say which one you report.",
+            "Sensitivity and specificity belong to the test; the share of positives that are real also depends "
+            "on how common the condition is. Counts of 1000 people make this easy to see.",
+            "Agreement is not correlation: two raters (or devices) can rise and fall together and still differ "
+            "every time.",
+        ],
+        task=[
+            'Compare the risk of "infected" between the wards, against "ward A". Does the interval of the '
+            "difference leave out 0?",
+            "How good is the rapid test where only 2 % have the infection? Of the positive results, how many "
+            "really have it?",
+            'Complete the started lines to draw the two ratios of task 1: risks = table.compare_risks("infected", '
+            'for_each="ward", against="ward A"), then risks.keep_rows("measure", one_of=[...]), then '
+            "chart = risks.chart() and chart.forest_plot(...).",
+        ],
+        solutions=[
+            (_sx("""\
+                import simplydata as sdata
+                table = sdata.table(sdata.example("clinic"))
+                table.compare_risks("infected", for_each="ward", against="ward A")"""),
+             "About 10 more in 100 in ward B, but the interval of the difference, -2.02 to 21.7 points, includes "
+             "0, so the data cannot tell (p = 0.142); the number needed runs through infinity."),
+            (_sx("""\
+                import simplydata as sdata
+                table = sdata.table(sdata.example("clinic"))
+                table.compare_to_truth("rapid_test", truth="infected", prevalence=2)"""),
+             "Of 1000 people, 20 have it; the test finds 16 but 65 test positive by mistake, so only 16 of the 81 "
+             "positives (about 1 in 5) are real."),
+            (_sx("""\
+                import simplydata as sdata
+                table = sdata.table(sdata.example("clinic"))
+                risks = table.compare_risks("infected", for_each="ward", against="ward A")
+                risks.keep_rows("measure", one_of=["risk ratio", "odds ratio"])
+                chart = risks.chart()
+                chart.forest_plot(x="estimate", y="measure")
+                chart.save("infected_ratios.png")"""),
+             "Both intervals cross the line at 1, as the interval of the difference includes 0."),
+        ],
+        words=["table.compare_risks", "forest_plot", "table.compare_to_truth", "table.agreement_between",
+               "trade_off_curve", "table.compare_accuracy", "table.limits_of_agreement", "difference_dots",
+               "table.reliability_of", "table.rate_of"],
+    ),
+    dict(
         title=TIME_SERIES_LESSON,
         learn=[
             "how to make a run of dates, and add the days that are missing from a daily table",
@@ -3821,12 +4082,12 @@ LESSONS = [
                  "The smoothed nitrate, one line per station: Station A creeps up, Station B goes down."),
                 ('chart.save("nitrate.png")', "Save it."),
             ]),
-            ("Is the trend real, or could it be chance? trend_of gives the slope (Sen's slope, the middle of the "
+            ("Is there a steady trend? trend_of gives the slope (Sen's slope, the middle of the "
              "slopes between all pairs of days) and the Mann-Kendall test.", [
                 ("import simplydata as sdata", "Load simplydata."),
                 ('table = sdata.table(sdata.example("river"))', "The river table."),
                 ('table.trend_of("nitrate", sorted_by="date", for_each="station")',
-                 "Station A rises by 0.0712 a year (p = 0.003); Station B falls by 0.935 a year (p < 0.0001). "
+                 "Station A rises by 0.0708 a year (p = 0.003); Station B falls by 0.927 a year (p < 0.0001). "
                  "R's trend::sens.slope() and trend::mk.test() give the same numbers."),
             ]),
         ],
@@ -4202,17 +4463,22 @@ LESSONS = [
 ]
 
 
+def _wrap(text: str, indent: str = "", width: int = WIDTH) -> str:
+    return textwrap.fill(text, width, initial_indent=indent, subsequent_indent=indent)
+
+
 def lesson_number(title: str) -> int:
-    """The number of the lesson with this title. The 30-day guide and the tests find a lesson by its
-    title, so its number can change when lessons are added before it."""
+    """The number of the lesson with this title (sdata.lesson(n)). The 30-day guide and the tests find a
+    lesson by its title, so its number can change when lessons are added before it."""
     for number, les in enumerate(LESSONS, start=1):
         if les["title"] == title:
             return number
     raise KeyError(title)
 
 
-def _wrap(text: str, indent: str = "", width: int = WIDTH) -> str:
-    return textwrap.fill(text, width, initial_indent=indent, subsequent_indent=indent)
+# The optional life-science lesson. Agreed order across branches: S2's "Working with a model" is lesson 21,
+# this one 22, v0.6's lessons 23 to 26.
+RISKS_LESSON = "Risks, diagnostic tests and agreement"
 
 
 def lesson_code(number: int) -> list[str]:
@@ -4226,7 +4492,8 @@ def _list_lessons() -> None:
     print("lesson 14 teaches statistical tests and lesson 15 puts it all together, from a question")
     print(f"to a figure. Lessons 16 to {len(LESSONS)} go further: models, patterns across many columns,")
     print("survival and planning a study, fitting curves and finding answers, distributions, working")
-    print("with a model, time series, forecasts, cycles and (optional) systems.\n")
+    print("with a model, risks, diagnostic tests and agreement, time series, forecasts, cycles and")
+    print("(optional) systems.\n")
     for i, les in enumerate(LESSONS, start=1):
         print(f"  sdata.lesson({i}){' ' * (5 - len(str(i)))}{les['title']}")
     print("\nStart with sdata.lesson(1). Each lesson ends with a small task to try yourself.")

@@ -27,7 +27,7 @@ import textwrap
 from pathlib import Path
 
 from ._errors import SimplydataError, suggest
-from .learn import CYCLES_LESSON, FORECASTS_LESSON, SYSTEMS_LESSON, TIME_SERIES_LESSON, lesson_number
+from .learn import CYCLES_LESSON, FORECASTS_LESSON, RISKS_LESSON, SYSTEMS_LESSON, TIME_SERIES_LESSON, lesson_number
 
 TRACK_NAMES = ("python", "beginner")
 DAYS_IN_A_TRACK = 30
@@ -54,19 +54,25 @@ def _code(text: str) -> str:
     return textwrap.dedent(text).strip()
 
 
-def _lesson_do(number: int, which: str = "") -> str:
+def _lesson_do(number: int, which: str = "", tasks: bool = True) -> str:
+    """tasks=False leaves out the lesson's tasks, for a unit whose lesson tasks are set on another day."""
     part = f", {which}" if which else ""
-    return (f"Work through sdata.lesson({number}){part}: type each example yourself (do not copy and paste), "
-            f"run it and read what each line does. Then do the lesson's tasks and check them with "
-            f"sdata.lesson({number}, solutions=True).")
+    text = (f"Work through sdata.lesson({number}){part}: type each example yourself (do not copy and paste), "
+            f"run it and read what each line does.")
+    if tasks:
+        text += (f" Then do the lesson's tasks and check them with "
+                 f"sdata.lesson({number}, solutions=True).")
+    return text
 
 
 # ---------------------------------------------------------------- the units
 # Each unit: lessons (sdata.lesson numbers), manual (extra sections: (label in the manual, title)),
 # words (keys of learn.GROUPS to look up with sdata.help), do (what to do), examples (blocks of
 # (code, what it does) that run on their own), errors ((code that fails on purpose, what the error
-# says, what it means)), recall ((question, answer)), task and solutions (one (code, explanation)
-# per task; the code runs on its own, or is "" for a task that is written, not run).
+# says, what it means)), recall ((question, answer)), spaced ((question, answer) about a core word:
+# asked in the warm-up exactly 3 and 7 days after the day that teaches it, and in the final test),
+# task and solutions (one (code, explanation) per task; the code runs on its own, or is "" for a task
+# that is written, not run).
 UNITS = {
     # ------------------------------------------------------------ Python first steps (beginner)
     "py_values": dict(
@@ -485,13 +491,18 @@ UNITS = {
     "lesson12": dict(
         lessons=[12],
         words=["table.average_of", "table.summary_of", "table.correlation_between", "table.join_with",
-               "table.total_of"],
+               "table.total_of", "table.add_z_score_column"],
         recall=[
             ("Which word gives the average of a column for each group?", 'table.average_of("marks", for_each="class")'),
             ("Which word tells whether two columns go up and down together?", 'table.correlation_between("hours", "marks")'),
             ("Which word joins two tables on a column they share?", 'table.join_with(ages, using="name")'),
             ("Which word gives several summaries at once?",
              'table.summary_of("sales", for_each="shop", show=["average", "median", "count"])'),
+        ],
+        spaced=[
+            ("Which word adds a column that says how many standard deviations each value lies above or below "
+             "the average of its group?",
+             'table.add_z_score_column("marks_z", from_column="marks", for_each="subject")'),
         ],
         task=['Fruit table: the total "count" of each fruit, drawn as bars with the numbers on the bars.'],
         solutions=[(_code('''
@@ -530,20 +541,28 @@ UNITS = {
         lessons=[14],
         manual=[("ideas:p-value", "The null hypothesis and the p-value"),
                 ("ideas:effect-size", "Effect sizes: how big is the difference?")],
-        words=["table.compare_averages", "table.compare_each_pair", "table.fit_line"],
-        do=[_lesson_do(14, "examples 1 and 3"),
+        words=["table.compare_averages", "table.compare_each_pair", "table.fit_line", "table.average_of"],
+        do=[_lesson_do(14, "examples 1, 2, 3 and 5"),
             'Read "The null hypothesis and the p-value" and "Effect sizes" in the manual.'],
         recall=[
             ("Which word tests whether the average marks differ between the classes?",
              'table.compare_averages("marks", for_each="class")'),
             ("Which word says which pairs of groups differ?", 'table.compare_each_pair("marks", for_each="class")'),
-            ('A p-value answers "could it be chance?". What answers "how big is it?"',
+            ('A p-value says how often a difference this big would turn up if there were truly none. '
+             'What says "how big is it?"',
              "The effect size: the difference in averages, Cohen's d or Hedges' g, omega-squared."),
             ("Which option gives the rank-based test, for small groups that are not bell-shaped?",
              'based_on="ranks"'),
         ],
+        spaced=[
+            ("Which option adds a 95 % confidence interval to average_of or median_of?",
+             'interval=95, as in table.average_of("sleep", for_each="passed", interval=95)'),
+            ("Which option gets the p-value by shuffling the group labels, and what does that p-value count?",
+             'p_value_by="shuffling", as in table.compare_averages("sleep", for_each="passed", '
+             'p_value_by="shuffling"): how often shuffled labels give a difference as big as the real one.'),
+        ],
         task=['School table: do the average marks differ between pupils who had breakfast and pupils who did '
-              "not? Write down the difference, the effect size and the p-value."],
+              "not? Write down the difference with its interval first, then the effect size and the p-value."],
         solutions=[(_code('''
             import simplydata as sdata
             table = sdata.table(sdata.example("school"))
@@ -554,9 +573,9 @@ UNITS = {
     "tests_b": dict(
         lessons=[14],
         manual=[("ideas:multiple", "Many tests at once")],
-        words=["table.compare_counts", "table.show_rows_with_outliers", "table.compare_shape_to",
-               "table.add_adjusted_p_value_column", "table.compare_spreads"],
-        do=[_lesson_do(14, "examples 2, 4 and 5"),
+        words=["table.compare_counts", "table.show_rows_with_outliers", "table.compare_matched",
+               "table.compare_shape_to", "table.add_adjusted_p_value_column", "table.compare_spreads"],
+        do=[_lesson_do(14, "examples 4, 6, 7 and 8"),
             'Read "Many tests at once" in the manual.'],
         recall=[
             ("Which word tests whether the counts of categories differ between groups?",
@@ -565,6 +584,10 @@ UNITS = {
             ("Which word checks whether values are bell-shaped (normal)?", 'table.compare_shape_to("marks", "normal")'),
             ("You did many tests at once. Which word corrects the p-values?",
              'add_adjusted_p_value_column(method="holm"), on the table of results'),
+        ],
+        spaced=[
+            ("Each patient was measured at week 0, 4 and 8. Which word compares the three measurements?",
+             'table.compare_matched("pain_week_0", "pain_week_4", "pain_week_8")'),
         ],
         task=['School table: is the share of pupils who "passed" different with and without breakfast?'],
         solutions=[(_code('''
@@ -769,7 +792,7 @@ UNITS = {
     "between": dict(
         lessons=[20],
         words=["table.values_at", "table.map_of"],
-        do=[_lesson_do(20, "example 3")],
+        do=[_lesson_do(20, "example 3", tasks=False)],
         recall=[
             ("Which word estimates a column between the points you measured?",
              'table.values_at("population", at={"year": [2001, 2011]})'),
@@ -784,6 +807,37 @@ UNITS = {
             rain = table.values_at("rain", at={"month_number": [2.5, 7.5]}, joined_by="straight lines", for_each="city")
             rain.show()'''),
             "Each estimate lies halfway between the two months around it.")],
+    ),
+    "risks": dict(
+        lessons=[lesson_number(RISKS_LESSON)],
+        do=[_lesson_do(lesson_number(RISKS_LESSON), "examples 1 to 4 (examples 5 to 8 are optional, for later)")],
+        needs_r="only the optional examples 5 to 8 of the lesson (compare_to_truth() with a score, "
+                "trade_off_curve(), limits_of_agreement(), reliability_of())",
+        r_packages=("pROC", "BlandAltmanLeh", "DescTools", "psych", "epiR"),
+        words=["table.compare_risks", "table.compare_to_truth", "table.agreement_between"],
+        recall=[
+            ("Which word compares how often something happens in two groups (risk difference, NNT, ratios)?",
+             'table.compare_risks("died", for_each="treatment", against="usual care")'),
+            ("Which word says how many of 1000 people a test finds, misses and wrongly calls positive?",
+             'table.compare_to_truth("rapid_test", truth="infected")'),
+            ("Which word measures how well two raters agree?", 'table.agreement_between("nurse_rating", "doctor_rating")'),
+        ],
+        spaced=[
+            ("Which word compares the risk of an outcome in two groups, out of 100 first and then as ratios?",
+             'table.compare_risks("died", for_each="treatment", against="usual care")'),
+            ("Where only 1 % have it, why are most positive results of a good test false alarms?",
+             "Because the 990 people in 1000 without it are so many that even a small share of false alarms "
+             "among them outnumbers the few real positives among the 10 who have it: "
+             'table.compare_to_truth("rapid_test", truth="infected", prevalence=1).'),
+        ],
+        task=['Trial table: compare the risk of "died" between the treatments, against "usual care". Does the '
+              "interval of the difference leave out 0, and what does that mean for the number needed?"],
+        solutions=[(_code('''
+            import simplydata as sdata
+            table = sdata.table(sdata.example("trial"))
+            table.compare_risks("died", for_each="treatment", against="usual care")'''),
+            "About 15 fewer in 100 with the new medicine, but the interval (-31.5 to 2.8 points) includes 0, so "
+            "the data cannot tell, and the number needed for one event fewer runs through infinity.")],
     ),
     "signals": dict(
         lessons=[lesson_number(t) for t in (TIME_SERIES_LESSON, FORECASTS_LESSON, CYCLES_LESSON, SYSTEMS_LESSON)],
@@ -1077,11 +1131,12 @@ UNITS = {
             "Write the caption of your figure: what each panel shows, what the bars or bands are, and n."],
         task=["Write a results paragraph, a methods paragraph and a figure caption for your project."],
         solutions=[("", 'For example: "Pupils who had breakfast scored on average 3.4 marks more than pupils '
-                        "who did not (49.7 against 46.3; n = 115 and 65), but a difference this big could be "
-                        "chance (Welch's t-test, p = 0.051; Hedges' g = 0.31). Sleep was not recorded for 19 "
-                        'pupils; they were left out of the tests that use sleep." Use your own numbers, '
-                        "exactly as printed, and report a result that could be chance as plainly as one that "
-                        "could not.")],
+                        "who did not (49.7 against 46.3; n = 115 and 65; 95 % CI of the difference -0.01 to "
+                        "6.8). With truly no difference, a difference this big would turn up in about 5 of 100 "
+                        "studies like this one (Welch's t-test, p = 0.051; Hedges' g = 0.31), so the data cannot "
+                        "tell. Sleep was not recorded for 19 pupils; they were left out of the tests that use "
+                        'sleep." Use your own numbers, exactly as printed, and report a result the data cannot '
+                        "settle as plainly as one they can.")],
     ),
     "proj_finish": dict(
         lessons=[],
@@ -1283,20 +1338,21 @@ _PYTHON = [
     ("Working with a model",
      "Check a model with its pictures, ask whether a column helps, and say how sure a prediction is.",
      ["lesson21"], "learn"),
-    ("Patterns across many columns",
-     "Find patterns across many columns with principal components, clusters, NMDS and PERMANOVA.",
-     ["lesson17"], "learn"),
-    ("Survival, and planning a study",
-     "Draw and test survival curves, and work out how many values a study needs.",
-     ["lesson18"], "learn"),
+    ("Patterns across many columns, and values between points",
+     "Find patterns across many columns with principal components, clusters, NMDS and PERMANOVA, and estimate "
+     "values between the points you measured.",
+     ["lesson17", "between"], "learn"),
+    ("Survival, risks and planning a study",
+     "Draw and test survival curves, compare risks and judge a diagnostic test, and work out how many values a "
+     "study needs.",
+     ["lesson18", "risks"], "learn"),
     ("Fitting, finding, solving and distributions",
      "Fit lines, curves and formulas of your own, find where a formula is smallest or biggest, solve "
      "equations, and work out chances from a distribution.",
      ["fitting", "finding", "distributions"], "learn"),
-    ("Values between points, and time series",
-     "Estimate values between the points you measured, then add missing days, smooth a series, test its "
-     "trend, forecast it and find its peaks.",
-     ["between", "signals"], "learn"),
+    ("Time series: dates, smoothing, trend and forecasts",
+     "Add the missing days of a series, smooth it, test its trend, forecast it and find its peaks.",
+     ["signals"], "learn"),
     ("Review, and the question of your project",
      "Remember the words of the third week, then choose the question and the raw file of your own project.",
      ["review_p21", "proj_question"], "review"),
@@ -1403,12 +1459,13 @@ _BEGINNER = [
     ("Survival, and planning a study",
      "Draw survival curves, and work out how many values a study needs.",
      ["lesson18"], "learn"),
-    ("Fitting, finding and solving",
-     "Fit lines, curves and formulas, find where a formula is biggest, and solve equations.",
-     ["fitting", "finding"], "learn"),
-    ("Distributions and values between points",
-     "Work out chances from a distribution, and estimate values between the points you measured.",
-     ["distributions", "between"], "learn"),
+    ("Risks, diagnostic tests and agreement (life sciences)",
+     "Compare risks out of 100, judge a diagnostic test in counts of 1000 people, and measure agreement.",
+     ["risks"], "learn"),
+    ("Fitting, solving, distributions and values between points",
+     "Fit lines, curves and formulas, find where a formula is biggest, solve equations, work out chances "
+     "from a distribution and estimate values between the points you measured.",
+     ["fitting", "finding", "distributions", "between"], "learn"),
     ("Time series: dates, smoothing, trend and forecasts",
      "Add the missing days of a series, smooth it, test its trend, forecast it and find its peaks.",
      ["signals"], "learn"),
@@ -1489,9 +1546,27 @@ def _warm_up_sources(track: str, number: int, last_asked: dict[int, int], used: 
     return sources
 
 
+SPACED_GAPS = (3, 7)  # a core word comes back 3 and 7 days after it is taught, and in the final test
+
+
+def _spaced_of(track: str, number: int) -> list[tuple[str, str]]:
+    return [qa for u in DAYS[track][number - 1][2] for qa in UNITS[u].get("spaced", [])]
+
+
+def _spaced_for(track: str, number: int) -> list[tuple[str, str, int]]:
+    """The core-word questions due on a day: those taught SPACED_GAPS days before, or every one on the
+    final day (spacing and retrieval: Cepeda et al. 2006; Roediger & Karpicke 2006)."""
+    if DAYS[track][number - 1][3] == "final":
+        days = range(1, number)
+    else:
+        days = [number - gap for gap in SPACED_GAPS if number - gap >= 1]
+    return [(q, a, day) for day in days for q, a in _spaced_of(track, day)]
+
+
 def _warm_up_table(track: str) -> list[list[tuple[str, str, int]]]:
     """The warm-up of every day: [(question, answer, from day)]. Each time a day is asked about, the
-    next of its questions is used, so the questions change."""
+    next of its questions is used, so the questions change. Then the core-word questions that are due
+    (spaced=)."""
     used: dict[int, int] = {}
     last_asked: dict[int, int] = {}
     out = []
@@ -1503,6 +1578,8 @@ def _warm_up_table(track: str) -> list[list[tuple[str, str, int]]]:
             q, a = questions[used.get(source, 0) % len(questions)]
             used[source] = used.get(source, 0) + 1
             found.append((q, a, source))
+        asked = {q for q, _, _ in found}
+        found += [item for item in _spaced_for(track, number) if item[0] not in asked]
         out.append(found)
     return out
 

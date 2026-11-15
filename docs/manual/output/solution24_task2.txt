@@ -1,4 +1,3 @@
-Kept the frequencies between 15 and 25 in "signal": 1000 readings (0.005 apart): Butterworth filter, steepness 4, run forwards and backwards so nothing moves in time (steepness 8 in effect).
-Method: SciPy, as R signal::filtfilt(signal::butter(4, c(0.15, 0.25), type = "pass"), x) in the middle (SciPy's ends: odd reflection and a steady start, as MATLAB). Added "middle".
-The strongest cycle in "middle" has frequency 20 per unit of "time" (it repeats every 0.05 units of "time") and holds 89 % of the variance; next: 20.4 per unit of "time" (1 %) and 19.4 per unit of "time" (1 %).
-Method: periodogram (squared size of the Fourier transform, one-sided, scaled so the powers add up to the variance), as 2 x R spec.pgram(x, taper = 0, detrend = FALSE, fast = FALSE)$spec. Readings: one reading every 0.005 in "time" (1000 readings).
+Kept 144 of 288 rows.
+Checked on the last 12 readings of "visitors": straight on (the straight line from the first to the last reading, carried on), fitted on the readings before, was off by 128 on average (MAE; RMSE 168, MAPE 11.9 %, MASE 2.08: below 1 means better than the last value).
+Method: straight on (the straight line from the first to the last reading, carried on), as R forecast::rwf(x, h, drift = TRUE); 95 % intervals; accuracy as R forecast::accuracy(f, held-back readings) (run in R).
