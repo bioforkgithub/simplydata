@@ -154,7 +154,8 @@ UNDERNEATH = {
     "table.add_rows_from": "pandas (concat) or Polars (concat), whichever holds the table",
     "table.correlation_between": "SciPy (stats.pearsonr or stats.spearmanr)",
     "table.compare_averages": "SciPy (stats.ttest_ind with equal_var=False; mannwhitneyu, kruskal) and "
-                              "statsmodels (stats.oneway.anova_oneway for Welch's ANOVA)",
+                              "statsmodels (stats.oneway.anova_oneway for Welch's ANOVA); R afex::aov_ez for "
+                              "matched_by= (repeated measures, Greenhouse-Geisser; needs R)",
     "table.compare_each_pair": "SciPy (stats.ttest_ind or mannwhitneyu, tukey_hsd), with Holm's correction from "
                                "statsmodels (multipletests)",
     "table.compare_before_after": "SciPy (stats.ttest_rel or stats.wilcoxon)",
@@ -238,9 +239,27 @@ UNDERNEATH = {
     "nums.autocorrelation_of": "statsmodels (tsa.stattools acf, pacf method ywm, acovf, acorr_ljungbox), as R acf, pacf, Box.test",
     "nums.fit_distribution": "SciPy (scipy.stats and optimize, as table.fit_distribution)",
     # models
-    "table.explain": "statsmodels (OLS; GLM for yes/no and counts, as R glm; MixedLM for grouped_by=; MICEData "
-                     "to fill in empty cells) and R mice::pool for pooling multiple imputation (needs R)",
-    "table.add_predicted_column": "statsmodels (the same model as table.explain)",
+    "table.explain": "statsmodels (OLS; GLM for yes/no and counts, as R glm; MixedLM for grouped_by=; GEE for "
+                     "effects=\"for the whole population\", as R geepack::geeglm; MICEData to fill in empty cells; "
+                     "eval_measures aic and bic and McFadden's pseudo R squared, as R AIC, BIC and "
+                     "performance::r2_mcfadden); R mgcv::gam for curve_for= (needs R); "
+                     "R itself (needs R) for lme4::glmer, lme4::lmer with own_slope_for=, lmerTest for "
+                     "p_value_by=\"satterthwaite\", geepack for within_groups=\"in time order\" and GEE with out_of=, car::Anova and "
+                     "effectsize for test_type=, sandwich::vcovHC for robust_errors=True with yes/no and counts, and mice::pool for "
+                     "multiple imputation; R performance::r2_nakagawa for the R squared of every grouped_by= model",
+    "table.add_predicted_column": "statsmodels (the same model as table.explain; get_prediction for interval= and for_new_rows=)",
+    "table.model_averages_of": "R emmeans (emmeans::emmeans and pairs, Tukey's adjustment; lme4 and pbkrtest for "
+                               "grouped_by=; MASS, nnet, betareg and pscl for the other outcomes), on the model of "
+                               "table.explain (needs R)",
+    "table.check_model": "statsmodels (OLSInfluence, GLMInfluence, MixedLM, ProbPlot and lowess), the pictures of R "
+                         "plot(lm), plot(glm) and plot(lmer) with qqnorm(ranef), drawn with matplotlib; R lme4::glmer "
+                         "for yes/no and counts with grouped_by=; statsmodels variance_inflation_factor (least "
+                         "squares) or R car::vif (GLMs, group columns) for the variance inflation factors",
+    "table.show_rows_that_pull": "statsmodels (OLSInfluence, GLMInfluence), as R cooks.distance, hatvalues and "
+                                 "rstudent; R lme4 influence() and cooks.distance() for whole groups with grouped_by=",
+    "table.compare_models": "statsmodels (OLS compare_f_test; GLM deviances and log-likelihoods with SciPy's chi-square "
+                            "and F; MixedLM refitted by maximum likelihood; eval_measures aic and bic), as R anova(m0, "
+                            "m1), lmtest::lrtest, AIC and BIC; R for glmer, betareg and zeroinfl models",
     # patterns across columns
     "table.add_principal_components": "statsmodels (multivariate.pca.PCA, by singular value decomposition)",
     "table.principal_components_of": "statsmodels (multivariate.pca.PCA, by singular value decomposition)",
@@ -944,8 +963,13 @@ def make() -> str:
 
 # ---------------------------------------------------------------- running the examples
 def _work_folder() -> Path:
-    """Scratch space for the build: F:\\claude_work if it exists (keeps the project folder
-    small), else the system's temporary folder."""
+    """Scratch space for the build: SIMPLYDATA_WORK_DIR if set (so parallel builds do not share
+    one folder), else F:\\claude_work if it exists (keeps the project folder small), else the
+    system's temporary folder."""
+    if os.environ.get("SIMPLYDATA_WORK_DIR"):
+        base = Path(os.environ["SIMPLYDATA_WORK_DIR"])
+        base.mkdir(parents=True, exist_ok=True)
+        return base
     base = Path(r"F:\claude_work\scratch\simplydata")
     if not base.parent.exists():
         base = Path(tempfile.gettempdir()) / "simplydata_manual"

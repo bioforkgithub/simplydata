@@ -1,4 +1,4 @@
-The filter that keeps the frequencies below 10 (Butterworth filter, steepness 4) as a system in steps of 0.005: output / input = (0.000416599*z**4 + 0.0016664*z**3 + 0.0024996*z**2 + 0.0016664*z + 0.000416599) / (z**4 - 3.18064*z**3 + 3.86119*z**2 - 2.11216*z + 0.438265). Poles 0.7398 +/- 0.09199i, 0.8505 +/- 0.2553i: stable (every pole lies inside the unit circle: its distance from 0 is below 1). Steady gain 1: a constant input of 1 settles at 1.
-Method: SciPy, as R signal::butter(4, 0.1).
-Frequency response at 200 frequencies from 1 to 50 cycles per second: the gain is 1 (-0.00 decibels, dB) at the lowest and 0.0006293 (-64.02 dB) at the highest.
-Method: SciPy signal.sosfreqz, as R control::bode(sys, w) (gain in decibels, phase in degrees).
+The strongest cycle in "signal" has frequency 5 per unit of "time" (it repeats every 0.2 units of "time") and holds 68 % of the variance; next: 20 per unit of "time" (11 %) and 50 per unit of "time" (4 %).
+Method: periodogram (squared size of the Fourier transform, one-sided, scaled so the powers add up to the variance), as 2 x R spec.pgram(x, taper = 0, detrend = FALSE, fast = FALSE)$spec. Readings: one reading every 0.005 in "time" (1000 readings).
+The strongest cycle in "signal" has frequency 5 per unit of "time" (it repeats every 0.2 units of "time") and holds 68 % of the variance; next: 20 per unit of "time" (11 %) and 50 per unit of "time" (4 %).
+Method: periodogram (squared size of the Fourier transform, one-sided, scaled so the powers add up to the variance), as 2 x R spec.pgram(x, taper = 0, detrend = FALSE, fast = FALSE)$spec. Readings: one reading every 0.005 in "time" (1000 readings).

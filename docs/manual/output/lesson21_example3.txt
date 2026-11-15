@@ -1,6 +1,6 @@
-Added 15 missing days to "date" (6 for Station A, 9 for Station B); the new rows have empty cells. Fill them next: table.fill_empty_cells("<column>", with_the="line between neighbours", sorted_by="date", for_each="station").
-Filled 15 cells in nitrate on the line between neighbours in order of date, for each station on its own.
-Each "week_average" is the average of nitrate in the 7 days up to and including this row's date (empty cells left out) (separately for each station), in order of date.
-Smoothed "nitrate" with a moving average over 31 readings centred on each one; the first and last 15 readings have no full window, so they are empty, for each station in order of "date". Added "nitrate_smoothed".
-Method: as R stats::filter(x, rep(1 / 31, 31), sides = 2).
-Note: 60 rows with empty "nitrate_smoothed" were left out of this chart.
+Comparing two models of "marks" on the same 180 rows:
+  using= marks ~ hours: AIC = 1296, BIC = 1306 (3 values estimated)
+  against= marks ~ hours + breakfast: AIC = 1292, BIC = 1305 (4 values estimated)
+Lower AIC: the against= model (by 3.72).
+Does "breakfast" help? F test (F = 5.72, df = 1 and 177): unlikely to be chance (p = 0.018).
+Method: both models fitted as lm(marks ~ hours + breakfast) and the smaller one, then an F test, as R anova(m0, m1) (statsmodels compare_f_test); AIC and BIC as R AIC() and BIC().

@@ -1,3 +1,10 @@
-"nitrate" for Station A rises by 0.000194 per day (0.0708 a year) (Sen's slope; 95 % CI 6.54e-05 to 0.000319); a trend this steady is unlikely to be chance (p = 0.003) (Mann-Kendall, p = 0.003).
-"nitrate" for Station B falls by 0.00254 per day (0.927 a year) (Sen's slope; 95 % CI -0.00274 to -0.00233); a trend this steady is very unlikely to be chance (p < 0.0001) (Mann-Kendall, p < 0.0001).
-Method: Sen's slope with its 95 % interval, as R trend::sens.slope() (SciPy theilslopes); Mann-Kendall test with continuity correction, as R trend::mk.test() (run in R).
+Added "average": the fitted value of "marks" from "hours" and "breakfast" (least squares, 180 rows).
+Added "average 95 % CI low" and "average 95 % CI high": the 95 % confidence interval of the predicted average, as R predict(interval = "confidence") (statsmodels get_prediction()). One new row varies more: for_new_rows=True gives the prediction interval.
+Added "new pupil": the fitted value of "marks" from "hours" and "breakfast" (least squares, 180 rows).
+Added "new pupil 95 % prediction low" and "new pupil 95 % prediction high": the 95 % prediction interval, where one new row with these values would fall (wider than the interval of the average, as R predict(interval = "prediction"); statsmodels get_prediction()).
+Kept 4 columns: average 95 % CI low, average 95 % CI high, new pupil 95 % prediction low, new pupil 95 % prediction high.
+   average 95 % CI low  average 95 % CI high  new pupil 95 % prediction low  new pupil 95 % prediction high
+1            42.306661             46.595752                      27.247626                       61.654786
+2            43.323549             46.929865                      27.962341                       62.291073
+3            47.472863             50.664797                      31.924992                       66.212668
+(the first 3 rows of 180; table.show(rows=180) shows them all)

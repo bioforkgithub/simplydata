@@ -1,4 +1,4 @@
-"""Learning simplydata: sdata.words(), sdata.help("bars") and sdata.lesson(1) ... sdata.lesson(20).
+"""Learning simplydata: sdata.words(), sdata.help("bars") and sdata.lesson(1) ... sdata.lesson(21).
 
 The word list is built from the real words and their docstrings, so it cannot go out of
 date. Only the grouping (GROUPS) and the runnable examples (HELP_EXAMPLES, LESSONS) are
@@ -82,7 +82,8 @@ GROUPS = [
                        "dist.middle_range", "dist.average", "dist.median", "dist.standard_deviation",
                        "dist.variance", "dist.summary", "dist.random_numbers", "dist.chart", "dist.table",
                        "dist.parameters"]),
-    ("Models", ["table.explain", "table.add_predicted_column"]),
+    ("Models", ["table.explain", "table.add_predicted_column", "table.model_averages_of", "table.check_model",
+                "table.show_rows_that_pull", "table.compare_models"]),
     ("Patterns across columns", ["table.add_principal_components", "table.principal_components_of",
                                  "table.add_clusters", "table.distances_between_rows", "table.add_nmds",
                                  "table.compare_profiles"]),
@@ -202,7 +203,7 @@ EXTRA_NOTES = {
 
 
 
-def needs_r_text(what: str, packages=("vegan", "survival", "mice")) -> str:
+def needs_r_text(what: str, packages=("vegan", "survival", "mice", "emmeans")) -> str:
     """The "Needs R" box of a lesson or day: what needs R, and how to get it, in plain words."""
     listed = ", ".join(f'"{p}"' for p in packages)
     return (f"{what} run R's own code, the same code R users run. Install it once: "
@@ -544,6 +545,7 @@ HELP_EXAMPLES = {
     # statistical tests
     "table.compare_averages": _tx("marks", 'result = table.compare_averages("marks", for_each="class")\n'
                                            'table.compare_averages("marks", for_each="class", based_on="ranks")\n'
+                                           'table.compare_averages("marks", for_each="subject", matched_by="name")\n'
                                            'result.save("marks_test.csv")'),
     "table.compare_each_pair": _tx("marks", 'table.compare_each_pair("marks", for_each="class")'),
     "table.compare_before_after": _tx("marks", 'table.keep_columns("name", "subject", "marks")\n'
@@ -644,10 +646,27 @@ HELP_EXAMPLES = {
     "table.explain": _tx("school", """\
         table.explain("marks", using=["hours", "sleep", "breakfast"])
         table.explain("passed", using=["hours", "breakfast"], outcome="yes or no")
-        table.explain("marks", using=["hours", "breakfast"], grouped_by="school")"""),
+        table.explain("marks", using=["hours", "breakfast"], grouped_by="school")
+        table.explain("marks", using=["hours", "breakfast"], grouped_by=["school", "class"])
+        table.explain("marks", using=["hours", "breakfast"], grouped_by="school", effects="for the whole population")
+        table.explain("marks", using=["hours", "breakfast"], curve_for="hours")
+        table.explain("marks", using=["hours", "breakfast"], robust_errors=True)"""),
     "table.add_predicted_column": _tx("school", """\
-        table.add_predicted_column("marks", using=["hours", "breakfast"])
+        table.add_predicted_column("marks", using=["hours", "breakfast"], interval=95)
         table.show_first_rows(5)"""),
+    "table.model_averages_of": _tx("school", """\
+        table.model_averages_of("marks", for_each="breakfast", using=["hours", "school"])
+        table.model_averages_of("passed", for_each="breakfast", using=["hours"], outcome="yes or no")"""),
+    "table.check_model": _tx("school", """\
+        page = table.check_model("marks", using=["hours", "breakfast"])
+        page.save("model_checks.png")
+        table.check_model("marks", using=["hours", "breakfast"], grouped_by="school")"""),
+    "table.show_rows_that_pull": _tx("school", """\
+        table.show_rows_that_pull("marks", using=["hours", "breakfast"])"""),
+    "table.compare_models": _tx("school", """\
+        table.compare_models("marks", using=["hours"], against=["hours", "breakfast"])
+        table.compare_models("passed", using=["hours"], against=["hours", "breakfast"], outcome="yes or no")
+        table.compare_models("marks", using=["hours"], against=["hours", "breakfast"], grouped_by="school")"""),
     # patterns across columns
     "table.add_principal_components": _tx("meadow", """\
         table.add_principal_components(how_many=2)
@@ -3145,7 +3164,8 @@ LESSONS = [
     ),
     dict(
         title="Models: explain one column from several others",
-        needs_r=needs_r_text('explain(..., empty_cells="multiple imputation") pools its results with R (mice); this one option'),
+        needs_r=needs_r_text('Only explain(..., empty_cells="multiple imputation") needs R: it pools its results with '
+                             "R (mice). The rest of the lesson needs no R. That option and the other R words"),
         learn=[
             "how to explain one column from several others at once (multiple regression)",
             "how to explain a yes/no column (logistic regression) and a column of counts (Poisson regression)",
@@ -3623,6 +3643,136 @@ LESSONS = [
                "table.map_of", "curve"],
     ),
     dict(
+        title="Working with a model: check it, compare it, predict with it",
+        needs_r=needs_r_text("Only example 5, which you may leave out, needs R: model_averages_of() (R emmeans). The "
+                             "rest of the lesson needs no R. model_averages_of() and the other R words"),
+        learn=[
+            "how to check a model from explain() with four pictures (check_model)",
+            "how to find the rows that pull a model the most (show_rows_that_pull)",
+            "how to ask whether a column helps a model (compare_models)",
+            "how sure a prediction is, for the average and for one new row (add_predicted_column with interval=95)",
+            "if you have R: the average of each group once the other columns are allowed for (model_averages_of)",
+        ],
+        parts=[
+            ("explain() gives the effects, but they can only be trusted if the model suits the data. "
+             "check_model draws the four pictures R users look at first.", [
+                ("import simplydata as sdata", "Load simplydata."),
+                ('table = sdata.table(sdata.example("school"))', "The pupils of lesson 16."),
+                ('table.explain("marks", using=["hours", "breakfast"])',
+                 "The model to check: 2.82 more marks for each hour of study and 3.21 more with breakfast. "
+                 "The line under the effects says how well it fits: AIC 1292 and BIC 1305, numbers that only "
+                 "mean something when you compare two models."),
+                ('page = table.check_model("marks", using=["hours", "breakfast"])',
+                 "Four pictures of the same model. Here the residuals lie in an even band around 0, the dots "
+                 "follow the Q-Q line, the scale-location line is flat, and the dashed Cook's distance lines lie "
+                 "outside the leverage picture: no row comes near them. The variance inflation factors are "
+                 "1.00: hours and breakfast are not linked."),
+                ('page.save("lesson21_checks.png")', "Save the page of pictures."),
+            ]),
+            ("Some rows pull a model more than others. show_rows_that_pull lists them, the strongest "
+             "first, so you can look at them before you trust the model.", [
+                ("import simplydata as sdata", "Load simplydata."),
+                ('table = sdata.table(sdata.example("school"))', "The school table."),
+                ('table.show_rows_that_pull("marks", using=["hours", "breakfast"])',
+                 "12 of the 180 rows have a Cook's distance above the rule of thumb 4 / 180 = 0.0222. The "
+                 "biggest, row 48 (0.0459), is far below 0.5, where the pictures draw the first dashed line: no "
+                 "row pulls strongly. The table itself does not change."),
+            ]),
+            ("Does a column help? compare_models fits the model with and without it, on the same rows, "
+             "and tests the difference.", [
+                ("import simplydata as sdata", "Load simplydata."),
+                ('table = sdata.table(sdata.example("school"))', "The school table."),
+                ('table.compare_models("marks", using=["hours"], against=["hours", "breakfast"])',
+                 "Does breakfast help a model that already has hours? The F test says it is unlikely to be "
+                 "chance (p = 0.018), and the AIC is 3.72 lower with breakfast: keep it."),
+            ]),
+            ("A prediction is never exact. interval=95 says how sure the model is about the average; "
+             "for_new_rows=True says where one new pupil would fall, which is much wider.", [
+                ("import simplydata as sdata", "Load simplydata."),
+                ('table = sdata.table(sdata.example("school"))', "The school table."),
+                ('table.add_predicted_column("marks", using=["hours", "breakfast"], name="average", interval=95)',
+                 'Adds "average", the predicted marks, and the ends of its 95 % confidence interval, "average '
+                 '95 % CI low" and "average 95 % CI high". name= gives the new columns short names.'),
+                ('table.add_predicted_column("marks", using=["hours", "breakfast"], name="new pupil", '
+                 "interval=95, for_new_rows=True)",
+                 'The 95 % prediction interval, in "new pupil 95 % prediction low" and "... high".'),
+                ('table.keep_columns(contains="95 %")', "Keep only the four ends of the two intervals."),
+                ("table.show(rows=3)",
+                 "For pupils like pupil 1 the model expects between 42.3 and 46.6 marks on average (44.5 in "
+                 "the middle), but one new pupil like pupil 1 could score anything from 27.2 to 61.7."),
+            ]),
+            ("If you have R (you may leave this example out): model_averages_of gives the average of each "
+             "group with the other columns held fixed, and compares every pair.", [
+                ("import simplydata as sdata", "Load simplydata."),
+                ('table = sdata.table(sdata.example("school"))', "The school table."),
+                ('table.model_averages_of("marks", for_each="breakfast", using=["hours", "school"])',
+                 "With hours held at their average (5.00) and the 12 schools counted equally, pupils without "
+                 "breakfast average 46.6 marks and pupils with breakfast 49.5. The difference, -2.95, is "
+                 "unlikely to be chance (p = 0.008). This is R emmeans."),
+            ]),
+        ],
+        notes=[
+            "Check before you trust: look at check_model's pictures before you read the p-values of explain().",
+            "For a yes/no or count model the first picture always shows bands of dots, one for each value; look "
+            "at the smooth line, which should stay near 0.",
+            "AIC and BIC compare models of the same rows only. sleep has 19 empty cells, so a model with sleep "
+            "uses fewer rows; compare_models fits both models on the rows they share.",
+            "A pseudo R squared (yes/no, counts) is not a share explained: 0 means no better than no columns.",
+            "Remove a row that pulls only for a reason, such as a typing mistake, and say so in your report.",
+            "The confidence interval (interval=95) is about the average of many pupils like this one; the "
+            "prediction interval (for_new_rows=True) is about one pupil. The second is always wider.",
+        ],
+        task=[
+            'Partly done for you: after import simplydata as sdata, the next two lines are '
+            'table = sdata.table(sdata.example("school")) and table.check_model("marks", using=["hours", '
+            '"breakfast"]). Write the last line yourself: does '
+            '"sleep" help the model of "marks" that already has "hours" and "breakfast"?',
+            'Check the model of "marks" using "hours" and "school" with check_model and show_rows_that_pull, '
+            'then use compare_models to ask whether adding "breakfast" to it helps.',
+            "Try to remember without looking back: which word adds a prediction with its interval, and which "
+            'option gives the interval for one new row? Use them to predict "marks" from "hours" and "sleep", '
+            "and look at the first 3 rows.",
+            'If you have R: find the model averages of "marks" for each "school", allowing for "hours". Which '
+            "school has the highest average and which the lowest, and how many pairs of schools differ?",
+        ],
+        solutions=[
+            (_sx("""\
+                import simplydata as sdata
+                table = sdata.table(sdata.example("school"))
+                table.check_model("marks", using=["hours", "breakfast"])
+                table.compare_models("marks", using=["hours", "breakfast"], against=["hours", "breakfast", "sleep"])"""),
+             "Yes: on the 161 rows with every value, sleep helps (F = 10.2, p = 0.002) and the AIC drops by "
+             "8.17."),
+            (_sx("""\
+                import simplydata as sdata
+                table = sdata.table(sdata.example("school"))
+                page = table.check_model("marks", using=["hours", "school"])
+                page.save("model_checks.png")
+                table.show_rows_that_pull("marks", using=["hours", "school"])
+                table.compare_models("marks", using=["hours", "school"], against=["hours", "school", "breakfast"])"""),
+             "The pictures look fine, and no row comes near the Cook's distance lines (the largest is 0.0457, "
+             "row 97). Adding breakfast helps: F = 7.13, p = 0.008, and the AIC drops by 5.57."),
+            (_sx("""\
+                import simplydata as sdata
+                table = sdata.table(sdata.example("school"))
+                table.add_predicted_column("marks", using=["hours", "sleep"], interval=95, for_new_rows=True)
+                table.keep_columns(contains="predicted")
+                table.show(rows=3)"""),
+             "add_predicted_column with interval=95 and for_new_rows=True; keep_columns(contains=\"predicted\") "
+             "keeps the three new columns, and show(rows=3) shows the first 3 rows with every column. Pupil 1 is predicted 46.9, but one pupil "
+             "like this could score from 29.8 to 64.0. Pupil 2 has no sleep value, so its cells stay empty."),
+            (_sx("""\
+                import simplydata as sdata
+                table = sdata.table(sdata.example("school"))
+                table.model_averages_of("marks", for_each="school", using=["hours"])"""),
+             "With hours held at their average (5.00), School D has the highest average mark (57.7) and School C "
+             "the lowest (36.5). 22 of the 66 pairs of schools differ after Tukey's adjustment (p < 0.05). "
+             "This needs R (emmeans)."),
+        ],
+        words=["table.check_model", "table.show_rows_that_pull", "table.compare_models",
+               "table.add_predicted_column", "table.model_averages_of", "table.explain"],
+    ),
+    dict(
         title=TIME_SERIES_LESSON,
         learn=[
             "how to make a run of dates, and add the days that are missing from a daily table",
@@ -4075,8 +4225,8 @@ def _list_lessons() -> None:
     print("Lessons 1 to 8 teach charts, lessons 9 to 12 teach tables, lesson 13 teaches numbers,")
     print("lesson 14 teaches statistical tests and lesson 15 puts it all together, from a question")
     print(f"to a figure. Lessons 16 to {len(LESSONS)} go further: models, patterns across many columns,")
-    print("survival and planning a study, fitting curves and finding answers, distributions, time")
-    print("series, forecasts, cycles and (optional) systems.\n")
+    print("survival and planning a study, fitting curves and finding answers, distributions, working")
+    print("with a model, time series, forecasts, cycles and (optional) systems.\n")
     for i, les in enumerate(LESSONS, start=1):
         print(f"  sdata.lesson({i}){' ' * (5 - len(str(i)))}{les['title']}")
     print("\nStart with sdata.lesson(1). Each lesson ends with a small task to try yourself.")

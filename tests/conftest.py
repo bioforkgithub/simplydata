@@ -38,7 +38,9 @@ def marks():
 
 
 # The R packages simplydata's words call (CI installs the same list: .github/workflows/tests.yml)
-R_PACKAGES = ("survival", "vegan", "mice", "tseries", "lomb", "trend", "forecast", "changepoint")
+R_PACKAGES = ("survival", "vegan", "mice", "lme4", "betareg", "pscl", "car", "effectsize", "emmeans", "pbkrtest",
+              "lmerTest", "afex", "geepack", "sandwich", "performance", "mgcv", "MASS", "nnet",
+              "tseries", "lomb", "trend", "forecast", "changepoint")
 
 
 @pytest.fixture
@@ -74,6 +76,12 @@ def needs_control():
 R_ENTRY_POINTS = {
     ("table/patterns.py", "_r_kmeans"), ("table/patterns.py", "_r_nmds"), ("table/patterns.py", "_r_permanova"),
     ("table/survival.py", "cox_zph"), ("table/between.py", "__init__"), ("table/models.py", "_explain_imputed"),
+    ("table/models.py", "_glmer"), ("table/models_more.py", "fit_shares"), ("table/models_more.py", "fit_zeros"),
+    ("table/anova_tables.py", "eta_squared"), ("table/anova_tables.py", "anova_glm"),
+    ("table/anova_tables.py", "need_r_for"),
+    ("table/models_r.py", "emmeans_table"), ("table/models_r.py", "lmer_r"), ("table/models_r.py", "geeglm_r"),
+    ("table/models_r.py", "repeated_anova"), ("table/models_r.py", "group_influence"), ("table/models_r.py", "robust_cov"),
+    ("table/models_r.py", "vif_r"), ("table/models_r.py", "gam_r"), ("table/models_r.py", "nakagawa_r"),
     ("table/time_series.py", "check_steady"), ("_signals.py", "_lomb_scargle"),
     ("_trend_season.py", "_r_stl_periodic"), ("_trend_season.py", "_r_mann_kendall"),
     ("_forecast.py", "r_forecast"), ("_forecast.py", "r_change_points"), ("_smoothing.py", "smooth"),

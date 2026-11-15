@@ -31,7 +31,9 @@ jobs:
       # the step fails when any package does not load, not later in the tests
       - name: Install R packages
         run: >-
-          Rscript -e 'pkgs <- c("survival", "vegan", "mice", "tseries", "lomb", "trend", "forecast", "changepoint");
+          Rscript -e 'pkgs <- c("survival", "vegan", "mice", "lme4", "betareg", "pscl", "car", "effectsize",
+          "emmeans", "pbkrtest", "lmerTest", "afex", "geepack", "sandwich", "performance", "mgcv", "MASS", "nnet",
+          "tseries", "lomb", "trend", "forecast", "changepoint");
           install.packages(pkgs); for (p in pkgs) library(p, character.only = TRUE)'
       - name: Tell rpy2 where R is
         shell: bash

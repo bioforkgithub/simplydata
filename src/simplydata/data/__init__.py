@@ -93,10 +93,11 @@ EXAMPLES = {
         },
     ),
     "school": (
-        "Made-up pupils in 12 schools: study, sleep and test marks. Some sleep cells are empty.",
+        "Made-up pupils in 12 schools, three classes in each: study, sleep and test marks. Some sleep cells are empty.",
         {
             "school": "School A to School L (15 pupils in each)",
             "pupil": "P001 to P180",
+            "class": "red, blue or green: the pupil's class inside the school (5 pupils in each)",
             "hours": "hours spent studying for the test",
             "sleep": "hours of sleep the night before; empty when the pupil did not say",
             "breakfast": "yes or no: did the pupil eat breakfast that morning",

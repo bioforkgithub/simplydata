@@ -63,10 +63,10 @@ def test_the_python_track_follows_its_outline():
     assert {k for n in (3, 4, 5) for k in lessons[n]} == {4, 5, 6, 7, 8}
     assert {k for n in (6, 8, 9) for k in lessons[n]} == {9, 10, 11, 12, 13}
     assert {k for n in (10, 11, 12, 13) for k in lessons[n]} == {14, 15}
-    assert {k for n in (15, 16, 17) for k in lessons[n]} == {16, 17, 18}
+    assert {k for n in (15, 16, 17, 18) for k in lessons[n]} == {16, 17, 18, 21}
     v06 = {learn.lesson_number(t) for t in (learn.TIME_SERIES_LESSON, learn.FORECASTS_LESSON, learn.CYCLES_LESSON,
                                             learn.SYSTEMS_LESSON)}
-    assert {k for n in (18, 19, 20) for k in lessons[n]} == {19, 20} | v06
+    assert {k for n in (19, 20) for k in lessons[n]} == {19, 20} | v06
     assert [learn_days.plan("python", n)["kind"] for n in range(22, 28)] == ["project"] * 6
     assert learn_days.plan("python", 28)["kind"] == "review"
 
@@ -387,3 +387,16 @@ def test_guide_has_every_day_with_its_answers_and_manual_pages():
     pages = pages_in(written)
     assert pages and all(page.isdigit() and anchor for page, anchor in pages.values())
     assert written.count(r"\daystart{") == 60
+
+
+@pytest.mark.parametrize("track", TRACKS)
+def test_the_model_words_of_lesson_21_come_back_spaced_and_in_the_final_test(track):
+    """Each core word of a release gets recall questions about 3 and 7 days after it is taught, and the
+    final test asks for it from memory (retrieval practice and spacing)."""
+    taught = next(n for n in DAYS if 21 in learn_days.plan(track, n)["lessons"])
+    questions = {q for q, _ in learn_days.UNITS["lesson21"]["recall"]}
+    asked = sorted(n for n in DAYS for q, _, _ in learn_days.warm_up(track, n) if q in questions)
+    assert any(2 <= n - taught <= 4 for n in asked), asked
+    assert any(6 <= n - taught <= 8 for n in asked), asked
+    final = learn_days.plan(track, 29)
+    assert final["kind"] == "final" and any("compare_models" in code for code, _ in final["solutions"])

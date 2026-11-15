@@ -1,33 +1,14 @@
-31 dates from 2026-03-01 to 2026-03-31, one every day.
-         date
-1  2026-03-01
-2  2026-03-02
-3  2026-03-03
-4  2026-03-04
-5  2026-03-05
-6  2026-03-06
-7  2026-03-07
-8  2026-03-08
-9  2026-03-09
-10 2026-03-10
-11 2026-03-11
-12 2026-03-12
-13 2026-03-13
-14 2026-03-14
-15 2026-03-15
-16 2026-03-16
-17 2026-03-17
-18 2026-03-18
-19 2026-03-19
-20 2026-03-20
-21 2026-03-21
-22 2026-03-22
-23 2026-03-23
-24 2026-03-24
-25 2026-03-25
-26 2026-03-26
-27 2026-03-27
-28 2026-03-28
-29 2026-03-29
-30 2026-03-30
-31 2026-03-31
+Checking the model of "marks" (180 rows) in four pictures, as R plot(lm(marks ~ hours + breakfast)):
+  1. residuals against fitted values: an even band around 0, with no curve, means the form fits;
+  2. normal Q-Q: dots on the line mean the residuals follow a bell curve;
+  3. scale-location: a flat line means the spread is the same everywhere;
+  4. residuals against leverage: rows beyond the dashed lines (Cook's distance 0.5 and 1) pull the model strongly.
+Numbers from statsmodels (OLSInfluence or GLMInfluence); the smooth lines are LOWESS, as R panel.smooth. Pictures help judge a model better than tests of the residuals.
+How strongly each column is linked with the others (variance inflation factor, statsmodels variance_inflation_factor, as R car::vif()): "hours" 1.00 and "breakfast" 1.00. Above 5 a column's effect is hard to tell apart from the others'.
+Note: 19 rows with an empty cell in "marks" or "hours" or "breakfast" or "sleep" were skipped.
+Comparing two models of "marks" on the same 161 rows:
+  using= marks ~ hours + breakfast: AIC = 1160, BIC = 1172 (4 values estimated)
+  against= marks ~ hours + breakfast + sleep: AIC = 1152, BIC = 1167 (5 values estimated)
+Lower AIC: the against= model (by 8.17).
+Does "sleep" help? F test (F = 10.2, df = 1 and 157): unlikely to be chance (p = 0.002).
+Method: both models fitted as lm(marks ~ hours + breakfast + sleep) and the smaller one, then an F test, as R anova(m0, m1) (statsmodels compare_f_test); AIC and BIC as R AIC() and BIC().

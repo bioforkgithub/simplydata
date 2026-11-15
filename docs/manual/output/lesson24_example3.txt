@@ -1,10 +1,6 @@
-A continuous system: output / input = 1 / (s**2 + 0.8*s + 4). Poles -0.4 +/- 1.96i: stable (every pole has a negative real part). Steady gain 0.25: a constant input of 1 settles at 0.25.
-Method: SciPy signal.lti, as R control::tf(num, den).
-A continuous system: output / input = (2*s + 2) / (s). Poles 0: not stable (a pole lies on the imaginary axis, so the output never settles).
-Method: SciPy signal.lti, as R control::tf(num, den).
-In series: output / input = (2*s + 2) / (s**3 + 0.8*s**2 + 4*s).
-Method: polynomial arithmetic (numpy.polynomial), as R control::series(sys1, sys2).
-With negative feedback: output / input = (2*s + 2) / (s**3 + 0.8*s**2 + 6*s + 2).
-Method: polynomial arithmetic (numpy.polynomial), as R control::feedback(sys1, sys2).
-Step response: the output settles at 1, peaks at 1.015 at time 9.347 (overshoot 1.5 %), rise time 3.317 (10 % to 90 %), settling time 13.57 (within 2 %).
-Method: SciPy signal.step, as R control::step(sys, t); rise time, settling time and overshoot from python-control step_info(y, T, yfinal) on that response.
+Found 1 peak in "signal" at least 2.5 high; the highest is 3.48 at time 3.885.
+Method: local tops (SciPy signal.find_peaks, with peak_prominences and peak_widths), as R pracma::findpeaks(x, minpeakheight = 2.5).
+Found 1 dip in "signal" at most -2; the lowest is -2.36 at time 0.94.
+Method: local bottoms (SciPy signal.find_peaks, with peak_prominences and peak_widths), as R pracma::findpeaks(-x, minpeakheight = 2).
+Found 1 peak in "signal" at least 2.5 high; the highest is 3.48 at time 3.885.
+Method: local tops (SciPy signal.find_peaks, with peak_prominences and peak_widths), as R pracma::findpeaks(x, minpeakheight = 2.5).

@@ -15,5 +15,7 @@ Explaining "marks" from "hours" and "school" (180 rows). Each effect below holds
   school, all groups together: F test (F = 10.4, df = 11 and 167); very unlikely to be chance (p < 0.0001).
 Method: linear model by least squares, as R lm(marks ~ hours + school).
 R squared = 0.635 (adjusted 0.609): the model explains about 63 % of the differences in "marks". The model as a whole (F = 24.2, df = 12 and 167): very unlikely to be chance (p < 0.0001).
+How well it fits: AIC 1224, BIC 1269: smaller is better, but only to compare models of the same rows (compare_models).
+Method: AIC and BIC as R AIC(), BIC().
 Note: the residuals (distances from the model) in this model don't look bell-shaped (Shapiro-Wilk p = 0.040), but with 180 values the average is close to bell-shaped anyway (the central limit theorem), so this test is usually still fine.
 A large p-value does not show that there is no effect, only that the data cannot tell. A link does not show that one thing causes the other.

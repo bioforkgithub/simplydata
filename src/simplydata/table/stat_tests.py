@@ -495,7 +495,7 @@ class StatTestWords:
 
     # ------------------------------------------------------------------ compare_averages
     @friendly(renamed={"between": "for_each"})
-    def compare_averages(self, column=None, for_each=None, based_on="averages", test=None):
+    def compare_averages(self, column=None, for_each=None, based_on="averages", test=None, matched_by=None):
         """Are the averages of the groups really different, or could it be chance?
 
         table.compare_averages("marks", for_each="class")   (with sdata.example("marks"))
@@ -511,8 +511,19 @@ class StatTestWords:
         bell shape (Shapiro-Wilk) and a note says if it does not look like one; with 30 or
         more values that matters little (the central limit theorem).
         To see which groups differ, use compare_each_pair().
+        matched_by="name" is for repeated measures: the same person (or plot, animal ...) in every
+        group of for_each=, for example compare_averages("marks", for_each="subject",
+        matched_by="name"). It runs a repeated-measures ANOVA with the Greenhouse-Geisser
+        correction, R afex::aov_ez() (needs R). for_each=["subject", "class"] with one column that
+        changes within a person and one that does not gives the mixed ANOVA.
         """
         step = "compare_averages"
+        if matched_by is not None:
+            if based_on != "averages" or test is not None:
+                raise SimplydataError('matched_by= runs a repeated-measures ANOVA on averages; leave out based_on= '
+                                      "and test= (for two matched columns side by side, compare_before_after() "
+                                      "has a rank test).")
+            return self._repeated_averages(column, for_each, matched_by)
         example = 'with sdata.example("marks"): table.compare_averages("marks", for_each="class")'
         self._check_based_on(step, based_on)
         if test is not None:
