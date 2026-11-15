@@ -7,6 +7,25 @@ working for one release and prints a one-line note with its new name.
 
 More statistics, each checked against R.
 
+### 30 days: everyday work only
+
+- The 30-day guide now teaches only the work people do with data most days; the manual stays the
+  complete reference. Left to the manual (the lessons are unchanged): lesson 22 (risks, diagnostic
+  tests and agreement), lesson 24 (forecasts), lesson 26 (systems), the spectra, filters and
+  steady-or-not parts of lesson 25, finding and solving (lesson 19, example 3) and values between
+  points (lesson 20, example 3). Their recall questions go with them, and the days that come near
+  them end with one line, "More in the manual: sdata.lesson(n) ...".
+- The freed time relieves the fullest days. Python track: 15 models, 16 working with a model,
+  17 patterns across many columns, 18 survival and planning a study, 19 fitting and distributions,
+  20 time series (lesson 23, with peaks and dips from lesson 25). Beginner track: 22 models,
+  23 working with a model, 24 patterns, 25 survival, 26 fitting and distributions, 27 time series.
+  Reviews, project days and the final test stay where they were.
+- The time-series day sets all of lesson 23 (with a question on `sdata.dates`), and
+  `add_rolling_column(window="7 days")` and `trend_of` come back 3 and 7 days later and in the final
+  test. Lessons 19 and 20 set only their tasks 1 and 2 (task 3 is about the part left to the manual).
+- The final test also asks every question of a day that has not come up yet, so the words of the
+  last learning days of the beginner track are asked from memory too.
+
 ### More kinds of outcome in explain()
 
 - `outcome="counts that vary a lot"`: negative binomial regression, as R `MASS::glm.nb()` (theta by

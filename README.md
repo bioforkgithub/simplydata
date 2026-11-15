@@ -94,7 +94,10 @@ sdata.today()                            # every day: the day to do next
 Each day starts with a 5-minute warm-up of questions on earlier days (answered from memory, which
 fixes words better than reading them again), then the lesson to work through, and ends with a task
 to do without looking back. Review days mix the whole course, the last week is a project of your
-own, and day 29 is a final test from memory. Missed a day? `sdata.today()` carries on where you
+own, and day 29 is a final test from memory. The 30 days teach the everyday work (tables, charts,
+summaries, tests, models, fitted curves and everyday time series); the manual is the complete
+reference, and a day points to it for the rest (forecasts, spectra and filters, systems, risks and
+diagnostic tests). Missed a day? `sdata.today()` carries on where you
 stopped. `sdata.answers()` gives the answers, `sdata.day()` the whole calendar, and `sdata.next_day()`
 goes on now. Your progress is kept only on your computer, in `~/.simplydata/progress.json`.
 

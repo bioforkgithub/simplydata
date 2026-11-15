@@ -45,11 +45,15 @@ def test_errors_made_on_purpose_say_what_the_day_says(unit, code, shows):
 
 
 # ---------------------------------------------------------------- the shape of the 30 days
+MANUAL_ONLY = {learn.lesson_number(title) for title in learn_days.MANUAL_ONLY_LESSONS}
+
+
 @pytest.mark.parametrize("track", TRACKS)
-def test_each_track_has_thirty_days_and_every_lesson(track):
+def test_each_track_has_thirty_days_and_every_everyday_lesson(track):
     assert len(learn_days.DAYS[track]) == 30
     taught = {n for n in DAYS for n in learn_days.plan(track, n)["lessons"]}
-    assert set(range(1, len(learn.LESSONS) + 1)) <= taught, f"{track} misses lessons"
+    assert set(range(1, len(learn.LESSONS) + 1)) - MANUAL_ONLY <= taught, f"{track} misses lessons"
+    assert not taught & MANUAL_ONLY, "the manual-only lessons are not days of their own"
     kinds = {n: learn_days.plan(track, n)["kind"] for n in DAYS}
     for review in (7, 14, 21):
         assert kinds[review] == "review", (track, review)
@@ -63,12 +67,9 @@ def test_the_python_track_follows_its_outline():
     assert {k for n in (3, 4, 5) for k in lessons[n]} == {4, 5, 6, 7, 8}
     assert {k for n in (6, 8, 9) for k in lessons[n]} == {9, 10, 11, 12, 13}
     assert {k for n in (10, 11, 12, 13) for k in lessons[n]} == {14, 15}
-    risks = learn.lesson_number(learn.RISKS_LESSON)
-    assert {k for n in (15, 16, 17, 18) for k in lessons[n]} == {16, 17, 18, 20, 21, risks}
-    v06 = {learn.lesson_number(t) for t in (learn.TIME_SERIES_LESSON, learn.FORECASTS_LESSON, learn.CYCLES_LESSON,
-                                            learn.SYSTEMS_LESSON)}
-    assert {k for n in (19, 20) for k in lessons[n]} == {19, 20} | v06
-    assert set(lessons[20]) == v06, "the time series lessons have a day of their own"
+    assert [lessons[n] for n in (15, 16, 17, 18, 19)] == [[16], [21], [17], [18], [19, 20]]
+    time_series = {learn.lesson_number(t) for t in (learn.TIME_SERIES_LESSON, learn.CYCLES_LESSON)}
+    assert set(lessons[20]) == time_series, "the time series lessons have a day of their own"
     assert [learn_days.plan("python", n)["kind"] for n in range(22, 28)] == ["project"] * 6
     assert learn_days.plan("python", 28)["kind"] == "review"
 
@@ -129,17 +130,52 @@ def test_core_words_come_back_after_3_and_7_days_and_in_the_final_test(track):
                 if later <= len(DAYS):
                     assert q in {w for w, _, _ in learn_days.warm_up(track, later)}, (track, n, later, q)
             assert q in final_questions, (track, n, q)
-    assert taught >= 4  # interval=95, shuffling, compare_matched, compare_risks
+    assert taught >= 6  # z-scores, interval=95, shuffling, compare_matched, time windows, trend
 
 
 @pytest.mark.parametrize("track", TRACKS)
 def test_every_question_comes_up(track):
-    """Every recall question of a learning day is asked at least once later in the track."""
+    """Every recall question of every day is asked at least once later in the track: the final test asks
+    the questions that have not come up yet."""
     asked = {q for n in DAYS for q, _, _ in learn_days.warm_up(track, n)}
-    for n in range(1, 21):
+    final = next(n for n in DAYS if learn_days.plan(track, n)["kind"] == "final")
+    for n in range(1, final):
         for q, _ in learn_days._recall_of(track, n):
-            if n < 20:
-                assert q in asked, (track, n, q)
+            assert q in asked, (track, n, q)
+
+
+@pytest.mark.parametrize("track, number", ALL_DAYS)
+def test_no_day_holds_more_than_about_two_lessons(track, number):
+    p = learn_days.plan(track, number)
+    if p["kind"] == "learn":
+        assert len(p["lessons"]) <= 2, (track, number, p["lessons"])
+        assert len(p["units"]) <= 3, (track, number, p["units"])
+
+
+# Words of the parts left to the manual: the 30 days neither teach them nor ask about them.
+MANUAL_ONLY_WORDS = ("find_smallest", "find_biggest", "sdata.solve", "values_at", "map_of", "compare_risks",
+                     "compare_to_truth", "agreement_between", "forecast", "spectrum", "add_filtered_column",
+                     "check_steady", "sdata.system", "step_response", "with_feedback")
+
+
+def test_recall_and_tasks_leave_out_the_manual_only_parts():
+    for name, unit in learn_days.UNITS.items():
+        texts = [q + a for q, a in unit.get("recall", []) + unit.get("spaced", [])]
+        texts += unit.get("task", []) + [code for code, _ in unit.get("solutions", [])] + unit.get("words", [])
+        for text in texts:
+            for word in MANUAL_ONLY_WORDS:
+                assert word not in text, (name, word)
+
+
+def test_days_point_to_the_rest_in_the_manual():
+    """Each manual-only lesson (and the parts of lessons 19, 20 and 25 left out) is named on a day, in one
+    "More in the manual" line."""
+    for track in TRACKS:
+        more = [line for n in DAYS for line in learn_days.plan(track, n)["do"] if line.startswith("More in the manual")]
+        text = " ".join(more)
+        for n in sorted(MANUAL_ONLY) + [19, 20, learn.lesson_number(learn.CYCLES_LESSON)]:
+            assert f"sdata.lesson({n})" in text, (track, n)
+        assert len(more) == 3, track
 
 
 def test_manual_sections_named_by_the_days_exist():
@@ -420,9 +456,16 @@ def test_the_model_words_of_lesson_21_come_back_spaced_and_in_the_final_test(tra
 
 
 def test_lesson_tasks_are_asked_on_the_day_they_are_taught():
-    # lesson 20's tasks are about distributions: the "between" unit (lesson 20 example 3, python day 17)
-    # does not ask for them; the distributions unit (python day 19) does.
+    # Lessons 19 and 20 are taught in part (examples 1 and 2): only their tasks 1 and 2 are set, as task 3 is
+    # about example 3 (manual only). Of lesson 25 only example 3 (peaks and dips) is taught, with its task 3.
     from simplydata import learn_days
 
-    assert "lesson's tasks" not in learn_days.UNITS["between"]["do"][0]
-    assert "sdata.lesson(20, solutions=True)" in learn_days.UNITS["distributions"]["do"][0]
+    for unit, n in (("fitting", 19), ("distributions", 20)):
+        do = learn_days.UNITS[unit]["do"][0]
+        assert "examples 1 and 2" in do and "tasks 1 and 2" in do and f"sdata.lesson({n}, solutions=True)" in do
+        assert "lesson's tasks" not in do
+        assert len(learn.LESSONS[n - 1]["task"]) == 3
+    cycles = learn.lesson_number(learn.CYCLES_LESSON)
+    do = " ".join(learn_days.UNITS["time_series"]["do"])
+    assert f"sdata.lesson({cycles}), example 3 only" in do and "task 3" in do
+    assert "find_dips" in learn.LESSONS[cycles - 1]["task"][2] or "dips" in learn.LESSONS[cycles - 1]["task"][2]

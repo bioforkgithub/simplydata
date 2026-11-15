@@ -4497,8 +4497,8 @@ def _list_lessons() -> None:
     for i, les in enumerate(LESSONS, start=1):
         print(f"  sdata.lesson({i}){' ' * (5 - len(str(i)))}{les['title']}")
     print("\nStart with sdata.lesson(1). Each lesson ends with a small task to try yourself.")
-    print("Rather learn an hour a day? sdata.start_30_days() spreads the lessons over 30 days, with warm-up")
-    print("questions and a project of your own; then type sdata.today() each day.")
+    print("Rather learn an hour a day? sdata.start_30_days() spreads the everyday lessons over 30 days, with")
+    print("warm-up questions and a project of your own; then type sdata.today() each day.")
 
 
 def lesson_solutions(number: int) -> list[tuple[str, str]]:

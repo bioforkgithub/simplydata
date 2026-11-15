@@ -72,6 +72,13 @@ an hour:
     answers the question, it is right; the worked answers are at the back.
 \end{enumerate}
 Tick the boxes at the top of the page as you go, and the day on the calendar of your track.
+
+\textbf{Everyday work first.} The 30 days teach what people do with data most days: tables, charts,
+summaries, tests, models and their checks, fitted lines and curves, and everyday time series (dates,
+time windows, smoothing and trend). The manual is the complete reference: some lessons and parts are
+only there (risks and diagnostic tests, forecasts, spectra and filters, systems, finding and solving,
+values between points). The days that come near them end with a line ``More in the manual'' that
+names the lesson, for when your own work needs it.
 \textbf{Missed a day, or a week?} That is fine. Carry on where you stopped: the days build on each
 other, and nothing is lost by taking a break. In Python, \code{sdata.today()} does the same.
 
