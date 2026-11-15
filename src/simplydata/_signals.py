@@ -120,7 +120,7 @@ def _lomb_scargle(y, times):
     from ._r import r_call
 
     if times is None:
-        raise SimplydataError('method="lomb-scargle" needs the times of the readings (sorted_by= or times=).')
+        raise SimplydataError('method="lomb-scargle" needs the times of the readings (sorted_by= or time_points=).')
     out = r_call("l <- lomb::lsp(y, times = t, type = 'frequency', normalize = 'standard', ofac = 1, plot = FALSE); "
                  "list(f = l$scanned, p = l$power)", packages=("lomb",), what="A Lomb-Scargle spectrum",
                  python_note="SciPy lombscargle is similar but scaled differently, so its numbers differ",

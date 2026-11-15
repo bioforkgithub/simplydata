@@ -1,5 +1,6 @@
 A continuous system: output / input = 1 / (s**2 + 0.8*s + 4). Poles -0.4 +/- 1.96i: stable (every pole has a negative real part). Steady gain 0.25: a constant input of 1 settles at 0.25.
 Method: SciPy signal.lti, as R control::tf(num, den).
-Frequency response at 200 frequencies from 0.1 to 10 radians per second: the gain is 0.2506 (-12.02 dB) at the lowest and 0.01038 (-39.68 dB) at the highest.
-Margins: the phase never reaches -180 degrees and the gain never crosses 1 (0 dB), so both margins are without limit.
-Method: SciPy signal.freqresp, as R control::bode(sys, w) (gain in dB, phase in degrees).
+2 poles: -0.4 +/- 1.96i.
+Method: SciPy (signal.lti / dlti poles), as R control::pole / zero and damp(sys).
+Step response: the output settles at 0.25, peaks at 0.3815 at time 1.583 (overshoot 52.6 %), rise time 0.6025 (10 % to 90 %), settling time 9.801 (within 2 %).
+Method: SciPy signal.step, as R control::step(sys, t); rise and settling times read from the response.

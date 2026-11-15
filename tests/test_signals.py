@@ -95,7 +95,7 @@ def test_welch_matches_scipys_formula_written_in_r(capsys):
 # ---------------------------------------------------------------------------- lomb-scargle (R)
 def test_lomb_scargle_is_r_lsp(capsys, needs_r):
     # l <- lomb::lsp(yy, times = tt, type = "frequency", normalize = "standard", ofac = 1)
-    got = sdata.numbers(YY.tolist()).spectrum_of(method="lomb-scargle", times=TT.tolist())
+    got = sdata.numbers(YY.tolist()).spectrum_of(method="lomb-scargle", time_points=TT.tolist())
     freq, power = column(got, "frequency"), column(got, "power")
     assert len(freq) == 40
     assert freq[:3] == pytest.approx([0.126796120620927, 0.253592241241854, 0.380388361862780], rel=1e-12)

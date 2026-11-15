@@ -125,9 +125,10 @@ def test_rolling_time_window_matches_r(engine, capsys):
     assert col(t, "count7")[[0, 9, 99]].tolist() == [1, 7, 7]
 
 
-def test_rolling_all_and_centre_match_r(engine):
+def test_rolling_all_and_centre_match_r(engine, capsys):
     t = station_a(engine)
     t.add_rolling_column("mean_so_far", from_column="nitrate", window="all", sorted_by="date")
+    assert "planned as its own word, add_running_column" in capsys.readouterr().out
     # R: (cumsum(y) / seq_along(y))[c(1, 10, 100)]
     assert col(t, "mean_so_far")[[0, 9, 99]] == pytest.approx([3.15, 3.188, 3.2654], rel=1e-12)
     t.add_rolling_column("max_so_far", from_column="nitrate", window="all", show="biggest", sorted_by="date")
@@ -137,6 +138,19 @@ def test_rolling_all_and_centre_match_r(engine):
     values = col(t, "centred")
     assert np.isnan(values[:3]).all()
     assert values[[3, 99]] == pytest.approx([3.23714285714286, 3.22285714285714], rel=1e-12)
+
+
+# method="whittaker" is SciPy signal.whittaker_henderson, new in SciPy 1.17 (Python 3.12 or newer)
+NEEDS_SCIPY_117 = pytest.mark.skipif(not hasattr(__import__("scipy.signal").signal, "whittaker_henderson"),
+                                     reason="SciPy 1.17 or newer (Python 3.12 or newer)")
+
+
+def test_whittaker_without_scipy_117_says_what_to_do(monkeypatch):
+    from scipy import signal
+
+    monkeypatch.delattr(signal, "whittaker_henderson", raising=False)
+    with pytest.raises(SimplydataError, match="needs SciPy 1.17 or newer"):
+        sdata.numbers([1.0, 2, 3, 2, 1]).smooth(method="whittaker")
 
 
 @pytest.mark.parametrize("show, kwargs, expected", [
@@ -200,7 +214,8 @@ def test_rolling_errors(engine):
     # R: lowess(seq_along(x), x, f = 2/3)$y[1:3]
     ({"method": "lowess"}, [0, 1, 2], [0.986347115509803, 0.947468957834992, 0.907301858393227]),
     # R: solve(diag(60) + 100 * crossprod(diff(diag(60), differences = 2)), x)[1:3]
-    ({"method": "whittaker"}, [0, 1, 2], [0.261451335511031, 0.370107044628152, 0.473769240390163]),
+    pytest.param({"method": "whittaker"}, [0, 1, 2], [0.261451335511031, 0.370107044628152, 0.473769240390163],
+                 marks=NEEDS_SCIPY_117),
     # R: SciPy's Wiener formula written out (local mean and variance with zero padding; ref_partA.R)
     ({"method": "wiener"}, [0, 1, 2], [0.10956, 0.419959808355179, 0.368448620722244]),
 ])
@@ -239,6 +254,8 @@ def test_add_smoothed_column(engine, capsys):
     assert 'Added "smooth"' in capsys.readouterr().out
     t.undo()
     assert "smooth" not in t._frame.columns
+    t.add_smoothed_column(from_column="signal", method="savitzky-golay", window=11, sorted_by="time")
+    assert 'Added "signal_smoothed"' in capsys.readouterr().out  # the past participle, as "_filtered"
 
 
 def test_smoothing_errors():

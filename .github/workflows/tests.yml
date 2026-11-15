@@ -23,8 +23,16 @@ jobs:
         with:
           r-version: release
           use-public-rspm: true
+      # System libraries some R packages build against on Linux (tseries -> quantmod -> curl; forecast -> fs)
+      - name: Install system libraries for R (Linux)
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y libcurl4-openssl-dev libuv1-dev libssl-dev libxml2-dev
+      # setup-r sets the repositories (binary packages from Posit's public repository where it has them);
+      # the step fails when any package does not load, not later in the tests
       - name: Install R packages
-        run: Rscript -e 'install.packages(c("survival", "vegan", "mice", "tseries", "lomb", "trend", "forecast", "changepoint"), repos = "https://cloud.r-project.org")'
+        run: >-
+          Rscript -e 'pkgs <- c("survival", "vegan", "mice", "tseries", "lomb", "trend", "forecast", "changepoint");
+          install.packages(pkgs); for (p in pkgs) library(p, character.only = TRUE)'
       - name: Tell rpy2 where R is
         shell: bash
         run: echo "R_HOME=$(Rscript -e 'cat(normalizePath(R.home(), winslash = "/"))')" >> "$GITHUB_ENV"

@@ -385,7 +385,7 @@ and `a`, `b` in `sdata.side_by_side(a, b)` are charts you made first.
 
 | Word | Example | Table | What it does |
 |---|---|---|---|
-| `add_smoothed_column` | `table.add_smoothed_column("signal_smooth", from_column="signal", method="savitzky-golay", window=11, sorted_by="time")` | sensor | Add a smoothed copy of a column: each value becomes a summary of its neighbours in time. |
+| `add_smoothed_column` | `table.add_smoothed_column("signal_smoothed", from_column="signal", method="savitzky-golay", window=11, sorted_by="time")` | sensor | Add a smoothed copy of a column: each value becomes a summary of its neighbours in time. |
 | `smooth` | `nums.smooth(method="median", window=5)` | sensor | Smooth the numbers: each one becomes a summary of its neighbours, so noise and spikes shrink. |
 | `trend_of` | `table.trend_of("visitors", sorted_by="month", for_each="museum")` | visitors | Does a column keep rising or falling over time, and by how much? (Mann-Kendall test, Sen's slope) |
 | `remove_trend` | `nums.remove_trend()` | sensor | Take away the trend: the best straight line (or only the average) is taken from the numbers. |
@@ -394,10 +394,10 @@ and `a`, `b` in `sdata.side_by_side(a, b)` are charts you made first.
 | `autocorrelation_of` | `nums.autocorrelation_of(rows_back=24)` | sensor | How much the numbers are like themselves some places back (autocorrelation), with a noise band. |
 | `check_steady` | `table.check_steady("signal", sorted_by="time")` | sensor | Does a column stay steady over time, or does it wander? (ADF and KPSS tests, as R tseries) |
 | `find_change_points` | `table.find_change_points("nitrate", sorted_by="date", for_each="station")` | river | Find the points where the average of a column jumps to a new level (R changepoint, PELT). |
-| `trend_and_season` | `chart.trend_and_season(x="month", y="visitors", repeats_every="year")` | visitors | Four panels sharing x: the data, its trend, its season and the rest (as R plot(stl(...))). |
-| `autocorrelation_bars` | `chart.autocorrelation_bars(x="month", y="visitors")` | visitors | Sticks for the correlation of a column with itself 1, 2, ... rows back, with the noise band. |
-| `cross_correlation_bars` | `chart.cross_correlation_bars(x="time", y="signal", against="vibration", rows_back=20)` | sensor | Sticks for the correlation of two columns when one is shifted by -k to k rows. |
-| `lag_dots` | `chart.lag_dots(x="month", y="visitors", rows_back=[1, 12])` | visitors | Dots of each value against the value some rows back, with the 1:1 line (as R lag.plot). |
+| `trend_and_season` | `chart.trend_and_season(x="month", y="visitors", repeats_every="year")` | visitors | Four panels sharing x: the column itself, its trend, its season and the rest (as R plot(stl(...)), which labels the first panel "data"). |
+| `autocorrelation_bars` | `chart.autocorrelation_bars("visitors", sorted_by="month")` | visitors | Sticks for the correlation of a column with itself 1, 2, ... rows back, with the noise band. |
+| `cross_correlation_bars` | `chart.cross_correlation_bars("signal", "vibration", sorted_by="time", rows_back=20)` | sensor | Sticks for the correlation of two columns when the second is shifted by -k to k rows. |
+| `lag_dots` | `chart.lag_dots("visitors", sorted_by="month", rows_back=[1, 12])` | visitors | Dots of each value against the value some rows back, with the 1:1 line (as R lag.plot). |
 
 ## Forecasts
 
@@ -419,14 +419,14 @@ and `a`, `b` in `sdata.side_by_side(a, b)` are charts you made first.
 | `find_dips` | `nums.find_dips(at_most=-1, apart=10)` | sensor | Find the dips: numbers lower than both neighbours. |
 | `spectrum_of` | `table.spectrum_of("signal", sorted_by="time")` | sensor | Which repeating cycles (frequencies) a column holds over time, and how strong each is. |
 | `spectrum_of` | `nums.spectrum_of(time_step=0.01)` | sensor | Which repeating cycles (frequencies) the numbers hold, and how strong each is. |
-| `spectrum` | `chart.spectrum(x="time", y="signal")` | sensor | Power against frequency: which cycles a column holds, the 3 strongest labelled with their period. |
-| `spectrum_over_time` | `chart.spectrum_over_time(x="time", y="signal", window=100)` | sensor | How the cycles in a column change over time: a heat map of time, frequency and power (decibels). |
+| `spectrum` | `chart.spectrum("signal", sorted_by="time")` | sensor | Power against frequency: which cycles a column holds, the 3 strongest labelled with their period. |
+| `spectrum_over_time` | `chart.spectrum_over_time("signal", sorted_by="time", window=100)` | sensor | How the cycles in a column change over time: a heat map of time, frequency and power (decibels). |
 | `keep_frequencies` | `nums.keep_frequencies(below=5, time_step=0.01)` | sensor | Keep only some frequencies of the numbers (a low-pass, high-pass, band-pass or peak filter). |
 | `remove_frequencies` | `nums.remove_frequencies(equal_to=50, time_step=0.005)` | sensor | Remove some frequencies from the numbers, such as a 50-per-second hum (band-stop or notch filter). |
 | `add_filtered_column` | `table.add_filtered_column("slow", from_column="signal", keep_below=10, sorted_by="time")` | sensor | Add a filtered copy of a column: some frequencies kept or removed (low-pass, high-pass, band, notch). |
 | `sdata.frequency_filter` | `sdata.frequency_filter(keep_below=10, time_step=0.005)` |  | The filter of add_filtered_column as a system in steps, to look at before using it. |
 | `envelope` | `nums.envelope()` | sensor | The envelope of the numbers: how big the wave is at each moment (from the Hilbert transform). |
-| `add_envelope_column` | `table.add_envelope_column("size", from_column="signal", sorted_by="time")` | sensor | Add the envelope of a column: how big its wave is at each moment (from the Hilbert transform). |
+| `add_envelope_column` | `table.add_envelope_column("signal_envelope", from_column="signal", sorted_by="time")` | sensor | Add the envelope of a column: how big its wave is at each moment (from the Hilbert transform). |
 | `fourier_transform` | `nums.fourier_transform(time_step=0.005)` | sensor | The numbers as a sum of waves: the size and phase of each frequency (the Fourier transform). |
 | `sdata.inverse_fourier_transform` | `sdata.inverse_fourier_transform(table)` |  | Numbers back from a Fourier transform table (its real and imaginary parts). |
 
@@ -572,10 +572,10 @@ and `a`, `b` in `sdata.side_by_side(a, b)` are charts you made first.
 | `steady_gain` | `system.steady_gain()` |  | Where the output settles for a constant input of 1 (the DC gain). |
 | `in_steps` | `system.in_steps(time_step=0.1)` |  | The same system in steps of time_step (discrete time), for a computer that reads and acts in steps. |
 | `then` | `system.then(sdata.system("1 / s"))` |  | This system, then another one after it (in series): the output of this one feeds the other. |
-| `add` | `system.add(sdata.system("1 / (s + 3)"))` |  | This system and another side by side, their outputs added (in parallel). |
-| `with_feedback` | `system.with_feedback()` |  | The closed loop: the output is fed back through other and taken from the input. |
-| `table` | `system.table()` |  | The system as numbers: form="transfer function" (the coefficients of the top and the bottom, highest power first), "state space" (the matrices A, B, C, D in controller form, SciPy tf2ss, as R control::tf2ss) or "poles and zeros" (with the gain). |
-| `chart` | `system.chart()` |  | A chart of the system: show="bode" (gain in dB and phase against frequency on a log scale, two panels), "step", "impulse", "pole-zero" (x for poles, o for zeros; the unit circle for a system in steps) or "nyquist" (the frequency response as a curve, with the point -1). |
+| `add` | `system.add(sdata.system("1 / (s + 3)"))` |  | This system and another side by side, their outputs added (in parallel): both get the same input. |
+| `with_feedback` | `system.with_feedback()` |  | The closed loop: the output is fed back (through a sensor, say) and taken from the input. |
+| `table` | `system.table()` |  | The system as numbers: form="transfer function" (the coefficients of the top and the bottom, highest power first: power of s (power of z in steps), numerator, denominator), "state space" (the matrices A, B, C, D in controller form: matrix, row, column, value; SciPy tf2ss, as R control::tf2ss) or "poles and zeros" (kind, real part, imaginary part; the last row is the gain). |
+| `chart` | `system.chart()` |  | A chart of the system: show="bode" (gain in decibels and phase against frequency on a log scale, two panels; "gain and phase" is accepted), "step", "impulse", "poles and zeros" (x for poles, o for zeros; the unit circle for a system in steps; "pole-zero" is accepted) or "nyquist" (the frequency response as one curve; a feedback loop is stable when it stays clear of -1). |
 
 ## Help
 

@@ -28,10 +28,12 @@ DISCRETE_METHODS = {"zero order hold": "zoh", "bilinear": "bilinear", "forward d
 METHOD_SPELLINGS = {"zoh": "zero order hold", "tustin": "bilinear", "euler": "forward difference",
                     "backward_diff": "backward difference", "forward euler": "forward difference",
                     "backward euler": "backward difference"}
-UNITS = ("radians per second", "hertz")
-UNIT_SPELLINGS = {"rad/s": "radians per second", "radians": "radians per second", "hz": "hertz",
-                  "cycles per second": "hertz", "cycles per unit of time": "hertz"}
-CHARTS = ("bode", "step", "impulse", "pole-zero", "nyquist")
+UNITS = ("radians per second", "cycles per second")
+UNIT_SPELLINGS = {"rad/s": "radians per second", "radians": "radians per second", "hz": "cycles per second",
+                  "hertz": "cycles per second", "cycles per unit of time": "cycles per second"}
+CHARTS = ("bode", "step", "impulse", "poles and zeros", "nyquist")
+CHART_SPELLINGS = {"pole-zero": "poles and zeros", "pole zero": "poles and zeros", "pzmap": "poles and zeros",
+                   "gain and phase": "bode"}
 FORMS = ("transfer function", "state space", "poles and zeros")
 WORDS = ("step_response", "impulse_response", "response_to", "frequency_response", "poles", "zeros", "is_stable",
          "steady_gain", "in_steps", "then", "add", "with_feedback", "table", "chart")
@@ -40,13 +42,13 @@ HINTS = {"step": "step_response()", "stepinfo": "step_response()", "impulse": "i
          "lsim": "response_to(inputs)", "simulate": "response_to(inputs)", "bode": "frequency_response() or .chart()",
          "freqresp": "frequency_response()", "freqs": "frequency_response()", "freqz": "frequency_response()",
          "margin": "frequency_response() (it prints the margins)", "nyquist": 'chart(show="nyquist")',
-         "pzmap": 'chart(show="pole-zero")', "pole": "poles()", "zero": "zeros()", "damp": "poles()",
+         "pzmap": 'chart(show="poles and zeros")', "pole": "poles()", "zero": "zeros()", "damp": "poles()",
          "isstable": "is_stable()", "dcgain": "steady_gain()", "c2d": "in_steps(time_step=0.1)",
          "cont2discrete": "in_steps(time_step=0.1)", "to_discrete": "in_steps(time_step=0.1)",
          "series": "then(other)", "parallel": "add(other)", "feedback": "with_feedback()",
          "tf2ss": 'table(form="state space")', "to_ss": 'table(form="state space")',
          "tf2zpk": 'table(form="poles and zeros")', "to_zpk": 'table(form="poles and zeros")',
-         "tfdata": "table()", "num": "table()", "den": "table()"}
+         "tfdata": "table()", "num": "table()", "den": "table()", "units": "chart(unit=...)"}
 
 
 def _g(x, digits=6) -> str:
@@ -206,7 +208,7 @@ class System:
     def from_coefficients(cls, numerator, denominator, time_step=None, sos=None, label=None):
         """A System from its coefficients (highest power first); used by sdata.frequency_filter."""
         return cls(numerator, denominator, time_step, sos, label,
-                   units="hertz" if sos is not None or label else "radians per second")
+                   units="cycles per second" if sos is not None or label else "radians per second")
 
     @property
     def _variable(self):
@@ -260,7 +262,7 @@ class System:
         poles = self._poles()
         if len(poles):
             rule = ("every pole has a negative real part" if self._time_step is None else
-                    "every pole has a size below 1: inside the unit circle")
+                    "every pole lies inside the unit circle: its distance from 0 is below 1")
             stable = self._stable()
             lines.append(f"Poles {_pole_text(poles)}: " + (f"stable ({rule})." if stable else
                                                           "not stable (" + self._unstable_reason() + ")."))
@@ -294,14 +296,14 @@ class System:
 
         if name.startswith("_"):
             raise AttributeError(name)
-        lines = [f"A system has no step called .{name}()."]
+        lines = [f"A system has no word called .{name}()."]
         if name in HINTS:
             lines.append(f"In simplydata this is system.{HINTS[name]}.")
         else:
             guesses = suggest(name, list(WORDS))
             if guesses:
                 lines.append("Did you mean " + " or ".join(f".{g}()" for g in guesses) + "?")
-        lines.append("Every step for a system: " + ", ".join(WORDS))
+        lines.append("Every word for a system: " + ", ".join(WORDS))
         raise MissingWordError("\n".join(lines))
 
     def _result(self, data):
@@ -312,53 +314,53 @@ class System:
         return Table(pd.DataFrame(data))
 
     # ------------------------------------------------------------------ responses
-    def _times(self, until, steps, times, step_name):
-        if times is not None:
-            t = np.asarray(getattr(times, "_values", times), dtype=float).ravel()
+    def _times(self, until, how_many, time_points, step_name):
+        if time_points is not None:
+            t = np.asarray(getattr(time_points, "_values", time_points), dtype=float).ravel()
             if len(t) < 2 or np.any(np.diff(t) <= 0):
-                raise SimplydataError(f"{step_name}() needs times= as increasing times, such as times=sdata.numbers(0, "
-                                      "to=5, step=0.01).")
+                raise SimplydataError(f"{step_name}() needs time_points= as increasing times, such as "
+                                      "time_points=sdata.numbers(0, to=5, step=0.01).")
             if not np.allclose(np.diff(t), t[1] - t[0], rtol=1e-6, atol=1e-12):
-                raise SimplydataError(f"{step_name}() needs evenly spaced times= (SciPy works out the response in "
-                                      "equal steps).")
+                raise SimplydataError(f"{step_name}() needs evenly spaced time_points= (SciPy works out the response "
+                                      "in equal steps).")
             return t
-        if isinstance(steps, bool) or not isinstance(steps, (int, np.integer)) or steps < 2:
-            raise SimplydataError(f"{step_name}() needs steps= as a whole number of 2 or more.")
+        if isinstance(how_many, bool) or not isinstance(how_many, (int, np.integer)) or how_many < 2:
+            raise SimplydataError(f"{step_name}() needs how_many= as a whole number of 2 or more.")
         if until is None:
             return None
         if isinstance(until, bool) or not isinstance(until, (int, float)) or until <= 0:
             raise SimplydataError(f"{step_name}() needs until= as the last time, such as until=10.")
         if self._time_step is not None:
             return np.arange(int(np.floor(until / self._time_step + 1e-9)) + 1) * self._time_step
-        return np.linspace(0, float(until), int(steps))
+        return np.linspace(0, float(until), int(how_many))
 
-    def _response(self, kind, until, steps, times, step_name):
+    def _response(self, kind, until, how_many, time_points, step_name):
         from scipy import signal
 
-        t = self._times(until, steps, times, step_name)
+        t = self._times(until, how_many, time_points, step_name)
         if self._time_step is None:
             sys = self._lti()
-            out = (signal.step if kind == "step" else signal.impulse)(sys, T=t, N=int(steps))
+            out = (signal.step if kind == "step" else signal.impulse)(sys, T=t, N=int(how_many))
             return np.asarray(out[0], dtype=float), np.asarray(out[1], dtype=float).ravel()
-        n = int(steps) if t is None else len(t)
+        n = int(how_many) if t is None else len(t)
         if self._sos is not None:
             u = np.ones(n) if kind == "step" else signal.unit_impulse(n)
             return np.arange(n) * self._time_step, signal.sosfilt(self._sos, u)
         out = (signal.dstep if kind == "step" else signal.dimpulse)(self._lti(), n=n)
         return np.asarray(out[0], dtype=float), np.asarray(out[1][0], dtype=float).ravel()
 
-    @friendly
-    def step_response(self, until=None, steps=200, times=None):
+    @friendly(renamed={"steps": "how_many", "times": "time_points"})
+    def step_response(self, until=None, how_many=200, time_points=None):
         """How the output answers an input that jumps from 0 to 1 and stays there.
 
         system.step_response(until=10)
         Gives back a table: time, output. until= is the last time (SciPy picks it from the poles when left
-        out); steps= how many times (200; systems in steps use their own time step); times= your own evenly
-        spaced times. Prints the final value, peak, overshoot, rise time (10 % to 90 % of the final value)
+        out); how_many= how many time points (200; systems in steps use their own time step); time_points=
+        your own evenly spaced times. Prints the final value, peak, overshoot, rise time (10 % to 90 % of the final value)
         and settling time (staying within 2 % of it), read from the response between the times shown.
         SciPy signal.step (dstep in steps), as R control::step(sys, t).
         """
-        t, y = self._response("step", until, steps, times, "step_response")
+        t, y = self._response("step", until, how_many, time_points, "step_response")
         print(self._step_sentence(t, y))
         print("Method: SciPy signal." + ("step" if self._time_step is None else "dstep") +
               ", as R control::step(sys, t); rise and settling times read from the response.")
@@ -382,15 +384,15 @@ class System:
             parts.append("it has not settled within 2 % by the last time shown (use a larger until=)")
         return ", ".join(parts) + "."
 
-    @friendly
-    def impulse_response(self, until=None, steps=200, times=None):
+    @friendly(renamed={"steps": "how_many", "times": "time_points"})
+    def impulse_response(self, until=None, how_many=200, time_points=None):
         """How the output answers a short kick at time 0 (an impulse of size 1).
 
         system.impulse_response(until=10)
         Gives back a table: time, output. Options as step_response. SciPy signal.impulse (dimpulse in
         steps: a 1 at the first step), as R control::impulse(sys, t).
         """
-        t, y = self._response("impulse", until, steps, times, "impulse_response")
+        t, y = self._response("impulse", until, how_many, time_points, "impulse_response")
         biggest = int(np.argmax(np.abs(y)))
         print(f"Impulse response over {len(t)} times up to {_g(t[-1], 4)}: the biggest output is {_g(y[biggest], 4)} "
               f"at time {_g(t[biggest], 4)}; at the last time it is {_g(y[-1], 4)}.")
@@ -398,12 +400,12 @@ class System:
               ", as R control::impulse(sys, t).")
         return self._result({"time": t, "output": y})
 
-    @friendly
-    def response_to(self, inputs=None, times=None):
+    @friendly(renamed={"times": "time_points"})
+    def response_to(self, inputs=None, time_points=None):
         """How the output answers any input you give: a simulation.
 
         system.response_to(sdata.wave("square", frequency=0.2, time_step=0.05, how_many=400))
-        inputs= are the input values (Numbers or a list), one per time. times= are the times (evenly
+        inputs= are the input values (Numbers or a list), one per time. time_points= are the times (evenly
         spaced); left out, they come from the time step the numbers remember (or the system's own
         time step). The system starts at rest and each input value holds until the next time (zero order
         hold). Gives back a table: time, input, output. SciPy signal.lsim(interp=False) (dlsim in steps;
@@ -418,17 +420,18 @@ class System:
         if len(u) < 2 or np.isnan(u).any():
             raise SimplydataError("response_to() needs at least 2 input values and no empty ones.")
         step = self._time_step if self._time_step is not None else getattr(inputs, "_time_step", None)
-        if times is None:
+        if time_points is None:
             if step is None:
-                raise SimplydataError("response_to() needs times= (or inputs that remember their time step, such as "
-                                      "sdata.wave(...)).")
+                raise SimplydataError("response_to() needs time_points= (or inputs that remember their time step, "
+                                      "such as sdata.wave(...)).")
             t = np.arange(len(u)) * step
         else:
-            t = self._times(None, 2, times, "response_to")
+            t = self._times(None, 2, time_points, "response_to")
             if len(t) != len(u):
-                raise SimplydataError(f"response_to() needs one time per input: {len(u)} inputs, {len(t)} times.")
+                raise SimplydataError(f"response_to() needs one time point per input: {len(u)} inputs, {len(t)} time "
+                                      "points.")
             if self._time_step is not None and not np.isclose(t[1] - t[0], self._time_step):
-                raise SimplydataError(f"The times must be {_g(self._time_step)} apart, the system's time step.")
+                raise SimplydataError(f"The time points must be {_g(self._time_step)} apart, the system's time step.")
         if self._time_step is None:
             y = signal.lsim(self._lti(), u, t, interp=False)[1]
             name = "lsim"
@@ -444,12 +447,12 @@ class System:
         return self._result({"time": t, "input": u, "output": y})
 
     # ------------------------------------------------------------------ frequencies
-    def _read_units(self, units):
-        if units is None:
+    def _read_units(self, unit, step_name="frequency_response"):
+        if unit is None:
             return self._units
-        chosen = UNIT_SPELLINGS.get(str(units).strip().lower(), str(units).strip().lower())
+        chosen = UNIT_SPELLINGS.get(str(unit).strip().lower(), str(unit).strip().lower())
         if chosen not in UNITS:
-            raise choice_error("frequency_response", "units", units, list(UNITS))
+            raise choice_error(step_name, "unit", unit, list(UNITS))
         return chosen
 
     def _complex_response(self, w):
@@ -466,38 +469,39 @@ class System:
         top = np.concatenate([np.zeros(len(self._den) - len(self._num)), self._num])
         return signal.freqz(top, self._den, worN=f, fs=fs)[1]
 
-    def _default_w(self, steps):
+    def _default_w(self, how_many):
         from scipy import signal
 
         if self._time_step is None:
-            return signal.findfreqs(self._num, self._den, int(steps))
+            return signal.findfreqs(self._num, self._den, int(how_many))
         nyquist = np.pi / self._time_step
-        return np.logspace(np.log10(nyquist) - 3, np.log10(nyquist), int(steps), endpoint=False)
+        return np.logspace(np.log10(nyquist) - 3, np.log10(nyquist), int(how_many), endpoint=False)
 
-    @friendly
-    def frequency_response(self, between=None, steps=200, units=None):
+    @friendly(renamed={"steps": "how_many", "units": "unit"})
+    def frequency_response(self, between=None, how_many=200, unit=None):
         """How much the system passes each frequency (gain) and how much it delays it (phase): the Bode data.
 
         system.frequency_response(between=[0.1, 100])
-        Gives back a table: frequency, gain, gain (dB), phase (degrees, unwrapped). between=[low, high] is
-        the range (spaced evenly on a log scale; SciPy picks it from the poles and zeros when left out);
-        steps= how many frequencies (200). units="radians per second" (the default for sdata.system, as R
-        control and SciPy) or "hertz" (cycles per unit of time; the default for sdata.frequency_filter).
+        Gives back a table: frequency, gain, gain (decibels), phase (degrees, unwrapped). between=[low, high]
+        is the range (spaced evenly on a log scale; SciPy picks it from the poles and zeros when left out);
+        how_many= how many frequencies (200). unit="radians per second" (the default for sdata.system, as R
+        control and SciPy; 2 radians per second is 0.32 cycles per second) or "cycles per second" ("hertz"
+        is accepted; cycles per unit of time, the default for sdata.frequency_filter).
         Prints the gain and phase margins (how far the system is from becoming unstable when a feedback
         loop is closed around it), read from the response. SciPy signal.freqresp (freqz / sosfreqz in
         steps), as R control::bode(sys, w).
         """
-        units = self._read_units(units)
+        units = self._read_units(unit)
         scale = 1.0 if units == "radians per second" else 2 * np.pi
-        if isinstance(steps, bool) or not isinstance(steps, (int, np.integer)) or steps < 2:
-            raise SimplydataError("frequency_response() needs steps= as a whole number of 2 or more.")
+        if isinstance(how_many, bool) or not isinstance(how_many, (int, np.integer)) or how_many < 2:
+            raise SimplydataError("frequency_response() needs how_many= as a whole number of 2 or more.")
         if between is None:
-            w = self._default_w(steps)
+            w = self._default_w(how_many)
         else:
             if not (isinstance(between, (list, tuple)) and len(between) == 2 and 0 < between[0] < between[1]):
                 raise SimplydataError("between= needs two frequencies above 0, the lower first, such as "
                                       "between=[0.1, 100].")
-            w = np.logspace(np.log10(between[0] * scale), np.log10(between[1] * scale), int(steps))
+            w = np.logspace(np.log10(between[0] * scale), np.log10(between[1] * scale), int(how_many))
         if self._time_step is not None and w.max() > np.pi / self._time_step * (1 + 1e-9):
             raise SimplydataError(f"The highest frequency a system in steps of {_g(self._time_step)} can show is "
                                   f"{_g(np.pi / self._time_step / scale)} {units} (half the steps per unit of time).")
@@ -507,13 +511,14 @@ class System:
             decibels = 20 * np.log10(gain)
         phase = np.degrees(np.unwrap(np.angle(h)))
         print(f"Frequency response at {len(w)} frequencies from {_g(w[0] / scale, 4)} to {_g(w[-1] / scale, 4)} "
-              f"{units}: the gain is {_g(gain[0], 4)} ({decibels[0]:.2f} dB) at the lowest and {_g(gain[-1], 4)} "
-              f"({decibels[-1]:.2f} dB) at the highest.")
+              f"{units}: the gain is {_g(gain[0], 4)} ({decibels[0]:.2f} decibels, dB) at the lowest and "
+              f"{_g(gain[-1], 4)} ({decibels[-1]:.2f} dB) at the highest.")
         if not self._label:  # margins are about closing a feedback loop: not shown for a filter
             print(self._margin_sentence(units, scale))
         fn = "freqresp" if self._time_step is None else ("sosfreqz" if self._sos is not None else "freqz")
-        print(f"Method: SciPy signal.{fn}, as R control::bode(sys, w) (gain in dB, phase in degrees).")
-        return self._result({"frequency": w / scale, "gain": gain, "gain (dB)": decibels, "phase (degrees)": phase})
+        print(f"Method: SciPy signal.{fn}, as R control::bode(sys, w) (gain in decibels, phase in degrees).")
+        return self._result({"frequency": w / scale, "gain": gain, "gain (decibels)": decibels,
+                             "phase (degrees)": phase})
 
     def _margins(self):
         """(gain margin in dB, frequency, phase margin in degrees, frequency) in radians per unit of time;
@@ -529,10 +534,10 @@ class System:
     def _margin_sentence(self, units, scale):
         gm, wg, pm, wp = self._margins()
         if not np.isfinite(gm) and not np.isfinite(pm):
-            return ("Margins: the phase never reaches -180 degrees and the gain never crosses 1 (0 dB), so both "
-                    "margins are without limit.")
+            return ("Margins: the phase never reaches -180 degrees and the gain never crosses 1 (0 decibels), so "
+                    "both margins are without limit.")
         parts = []
-        parts.append(f"gain margin {gm:.2f} dB at {_g(wg / scale, 4)} {units}" if np.isfinite(gm) else
+        parts.append(f"gain margin {gm:.2f} decibels at {_g(wg / scale, 4)} {units}" if np.isfinite(gm) else
                      "gain margin without limit (the phase never reaches -180 degrees)")
         parts.append(f"phase margin {pm:.2f} degrees at {_g(wp / scale, 4)} {units}" if np.isfinite(pm) else
                      "phase margin without limit (the gain never crosses 1)")
@@ -545,11 +550,11 @@ class System:
         else:
             with np.errstate(divide="ignore", invalid="ignore"):
                 s = np.log(values.astype(complex)) / self._time_step  # as R control::damp for discrete
-        size = np.abs(s)
+        speed = np.abs(s)
         with np.errstate(divide="ignore", invalid="ignore"):
-            damping = np.where(size > 0, -s.real / size, np.nan)
-        data = {"real": values.real, "imaginary": values.imag, "size": np.abs(values),
-                "damping ratio": damping, "natural frequency": size}
+            damping = np.where(speed > 0, -s.real / speed, np.nan)
+        data = {"real part": values.real, "imaginary part": values.imag, "distance from 0": np.abs(values),
+                "damping ratio": damping, "natural frequency": speed}
         print(f"{len(values)} {what}" + (f": {_pole_text(values)}." if len(values) else "."))
         print("Method: SciPy (signal.lti / dlti " + what + "), as R control::pole / zero and damp(sys).")
         return self._result(data)
@@ -559,8 +564,9 @@ class System:
         """The poles: the values of s (or z) where the bottom of the formula is 0. They set how it moves.
 
         system.poles()
-        Gives back a table: real, imaginary, size, damping ratio, natural frequency (radians per unit of
-        time; for a system in steps worked out from log(pole) / time step, as R control::damp).
+        Gives back a table: real part, imaginary part, distance from 0 (the size of the pole, also called its
+        magnitude), damping ratio, natural frequency (radians per unit of time; for a system in steps worked
+        out from log(pole) / time step, as R control::damp).
         """
         return self._pole_table(self._poles(), "poles")
 
@@ -577,12 +583,13 @@ class System:
     def is_stable(self):
         """True when every response to a bounded input stays bounded (and settles). system.is_stable()
 
-        Continuous: every pole has a negative real part. In steps: every pole has a size below 1. A pole on
-        the edge (real part 0, or size 1) is not stable: the output never settles.
+        Continuous: every pole has a negative real part. In steps: every pole lies inside the unit circle
+        (distance from 0 below 1). A pole on the edge (real part 0, or distance 1) is not stable: the output
+        never settles.
         """
         stable = self._stable()
         rule = ("every pole has a negative real part" if self._time_step is None else
-                "every pole lies inside the unit circle")
+                "every pole lies inside the unit circle: its distance from 0 is below 1")
         print(f"Stable: {rule}." if stable else f"Not stable: {self._unstable_reason()}.")
         return stable
 
@@ -660,26 +667,27 @@ class System:
 
     @friendly
     def add(self, other):
-        """This system and another side by side, their outputs added (in parallel).
+        """This system and another side by side, their outputs added (in parallel): both get the same input.
 
         system.add(sdata.system("1 / (s + 3)"))
-        The formulas add, as R control::parallel(sys1, sys2).
+        The formulas add, as R control::parallel(sys1, sys2). (To put one after the other, use then.)
         """
         other = self._other(other, "add")
         num = np.polyadd(np.polymul(self._num, other._den), np.polymul(other._num, self._den))
-        return self._joined(num, np.polymul(self._den, other._den), "In parallel", "control::parallel(sys1, sys2)")
+        return self._joined(num, np.polymul(self._den, other._den),
+                            "Side by side, outputs added (in parallel)", "control::parallel(sys1, sys2)")
 
-    @friendly
-    def with_feedback(self, other=1, sign="negative"):
-        """The closed loop: the output is fed back through other and taken from the input.
+    @friendly(renamed={"other": "through"})
+    def with_feedback(self, through=1, sign="negative"):
+        """The closed loop: the output is fed back (through a sensor, say) and taken from the input.
 
-        system.with_feedback()   system.with_feedback(sdata.system("1 / (0.1*s + 1)"))
-        other= is the system in the feedback path (1: the output itself). sign="negative" (the usual
+        system.with_feedback()   system.with_feedback(through=sdata.system("1 / (0.1*s + 1)"))
+        through= is the system in the feedback path (1: the output itself). sign="negative" (the usual
         loop, G / (1 + G H)) or "positive" (G / (1 - G H)). As R control::feedback(sys1, sys2).
         """
         if sign not in ("negative", "positive"):
             raise choice_error("with_feedback", "sign", sign, ["negative", "positive"])
-        other = self._other(other, "with_feedback")
+        other = self._other(through, "with_feedback")
         num = np.polymul(self._num, other._den)
         loop = np.polymul(self._num, other._num)
         den = np.polyadd(np.polymul(self._den, other._den), loop if sign == "negative" else -loop)
@@ -690,8 +698,9 @@ class System:
     @friendly
     def table(self, form="transfer function"):
         """The system as numbers: form="transfer function" (the coefficients of the top and the bottom,
-        highest power first), "state space" (the matrices A, B, C, D in controller form, SciPy tf2ss, as R
-        control::tf2ss) or "poles and zeros" (with the gain). system.table()
+        highest power first: power of s (power of z in steps), numerator, denominator), "state space" (the
+        matrices A, B, C, D in controller form: matrix, row, column, value; SciPy tf2ss, as R control::tf2ss)
+        or "poles and zeros" (kind, real part, imaginary part; the last row is the gain). system.table()
         """
         from scipy import signal
 
@@ -700,7 +709,8 @@ class System:
         if form == "transfer function":
             n = len(self._den)
             top = np.concatenate([np.zeros(n - len(self._num)), self._num])
-            return self._result({"power": list(range(n - 1, -1, -1)), "numerator": top, "denominator": self._den})
+            return self._result({f"power of {self._variable}": list(range(n - 1, -1, -1)), "numerator": top,
+                                 "denominator": self._den})
         if form == "state space":
             a, b, c, d = signal.tf2ss(self._num, self._den)
             rows = []
@@ -716,16 +726,20 @@ class System:
             z, p, k = signal.tf2zpk(self._num, self._den)
         kinds = ["zero"] * len(z) + ["pole"] * len(p) + ["gain"]
         values = list(z) + list(p) + [complex(k)]
-        return self._result({"kind": kinds, "real": [v.real for v in values], "imaginary": [v.imag for v in values]})
+        print("The last row is the gain, the number in front of the formula.")
+        return self._result({"kind": kinds, "real part": [v.real for v in values],
+                             "imaginary part": [v.imag for v in values]})
 
-    @friendly
-    def chart(self, show="bode", between=None, until=None, units=None):
-        """A chart of the system: show="bode" (gain in dB and phase against frequency on a log scale, two
-        panels), "step", "impulse", "pole-zero" (x for poles, o for zeros; the unit circle for a system in
-        steps) or "nyquist" (the frequency response as a curve, with the point -1). system.chart()
+    @friendly(renamed={"units": "unit"})
+    def chart(self, show="bode", between=None, until=None, unit=None):
+        """A chart of the system: show="bode" (gain in decibels and phase against frequency on a log scale,
+        two panels; "gain and phase" is accepted), "step", "impulse", "poles and zeros" (x for poles, o for
+        zeros; the unit circle for a system in steps; "pole-zero" is accepted) or "nyquist" (the frequency
+        response as one curve; a feedback loop is stable when it stays clear of -1). system.chart()
 
-        between= (frequencies) and until= (times) as in frequency_response and step_response. Gives back a
-        chart (or a page of two charts for "bode"): .save("bode.png") or .show().
+        between= (frequencies, with "bode") and unit= as in frequency_response; until= (the last time, with
+        "step" and "impulse") as in step_response. Gives back a chart (or a page of two charts for "bode"):
+        .save("bode.png") or .show().
         """
         import contextlib
         import io
@@ -735,8 +749,14 @@ class System:
         from .chart import Chart
         from .words.layout import one_above_other
 
+        show = CHART_SPELLINGS.get(str(show).strip().lower(), show) if isinstance(show, str) else show
         if show not in CHARTS:
             raise choice_error("chart", "show", show, list(CHARTS))
+        for option, value, fits in (("between", between, ("bode",)), ("unit", unit, ("bode",)),
+                                    ("until", until, ("step", "impulse"))):
+            if value is not None and show not in fits:
+                raise SimplydataError(f'{option}= goes with show=' + " or ".join(f'"{f}"' for f in fits) +
+                                      f'; the chart show="{show}" does not use it.')
         quiet = io.StringIO()
         if show in ("step", "impulse"):
             with contextlib.redirect_stdout(quiet):
@@ -747,18 +767,19 @@ class System:
                 made.line_at_y(self._steady(), label="settles at")
             return made.title_top("Step response" if show == "step" else "Impulse response")
         if show == "bode":
+            shown = self._read_units(unit, "chart")
             with contextlib.redirect_stdout(quiet):
-                got = self.frequency_response(between=between, units=units)
+                got = self.frequency_response(between=between, unit=shown)
             frame = got._frame.to_pandas() if hasattr(got._frame, "to_pandas") else got._frame
-            unit = self._read_units(units)
-            top = Chart(frame).lines(x="frequency", y="gain (dB)").log_scale_x().label_x(f"frequency ({unit})")
+            top = Chart(frame).lines(x="frequency", y="gain (decibels)").log_scale_x().label_x(
+                f"frequency ({shown})")
             bottom = Chart(frame).lines(x="frequency", y="phase (degrees)").log_scale_x().label_x(
-                f"frequency ({unit})")
+                f"frequency ({shown})")
             return one_above_other(top, bottom, same_x=True)
-        if show == "pole-zero":
+        if show == "poles and zeros":
             poles, zeros = self._poles(), self._zeros()
-            frame = pd.DataFrame({"real": np.concatenate([poles.real, zeros.real]),
-                                  "imaginary": np.concatenate([poles.imag, zeros.imag])})
+            frame = pd.DataFrame({"real part": np.concatenate([poles.real, zeros.real]),
+                                  "imaginary part": np.concatenate([poles.imag, zeros.imag])})
             made = Chart(frame)
             made._need_axes("pole_zero")
             return made._add("pole_zero", "draw", _draw_pole_zero, poles=poles, zeros=zeros,
@@ -786,8 +807,8 @@ def _draw_pole_zero(ctx, poles, zeros, circle):
     if len(zeros):
         ax.scatter(zeros.real, zeros.imag, marker="o", s=80, facecolors="none", edgecolors=colour[1], label="zeros",
                    zorder=3)
-    ax.set_xlabel("real")
-    ax.set_ylabel("imaginary")
+    ax.set_xlabel("real part")
+    ax.set_ylabel("imaginary part")
     ax.legend()
 
 
@@ -876,13 +897,19 @@ def system(formula=None, numerator=None, denominator=None, poles=None, zeros=Non
     sdata.system("1 / (s**2 + 2*s + 5)")
     The formula is a ratio of polynomials in s (continuous time) or z (in steps of time_step=):
     sdata.system("0.1 / (z - 0.9)", time_step=0.1). Or numerator= and denominator= (highest power first,
-    as R control::tf and SciPy), poles= and zeros= with gain=, or the state-space matrices a=, b=, c=, d=.
-    Prints the formula, the poles and whether it is stable. Words on it: step_response,
+    as R control::tf and SciPy; num= and den=, as in R and MATLAB, are accepted), poles= and zeros= with
+    gain= (the number in front of the formula, not the steady gain), or the state-space matrices a=, b=,
+    c=, d= (A= to D= are accepted). Prints the formula, the poles and whether it is stable. Words on it: step_response,
     impulse_response, response_to, frequency_response, poles, zeros, is_stable, steady_gain, in_steps,
     then, add, with_feedback, table, chart. SciPy signal.lti / dlti, as R control::tf.
     """
     from scipy import signal
 
+    spellings = (("numerator", numerator, "num", num), ("denominator", denominator, "den", den), ("a", a, "A", A),
+                 ("b", b, "B", B), ("c", c, "C", C), ("d", d, "D", D))
+    for main, value, other, other_value in spellings:
+        if value is not None and other_value is not None:
+            raise SimplydataError(f"Give {main}= or {other}= (two spellings of the same option), not both.")
     numerator = numerator if numerator is not None else num
     denominator = denominator if denominator is not None else den
     a, b, c, d = (x if x is not None else y for x, y in ((a, A), (b, B), (c, C), (d, D)))
@@ -928,6 +955,12 @@ def system(formula=None, numerator=None, denominator=None, poles=None, zeros=Non
         num_ = num_.ravel()
     made = System(num_, den_, time_step=time_step)
     print(made._describe())
+    if ways[2]:
+        steady = made._steady()
+        line = f"gain={_g(gain, 6)} is the number in front of the formula"
+        if np.isfinite(steady) and made._stable() and not np.isclose(steady, float(gain)):
+            line += f"; the steady gain is {_g(steady, 4)}"
+        print(line + ".")
     print("Method: SciPy signal." + ("lti" if time_step is None else "dlti") + ", as R control::tf(num, den" +
           ("" if time_step is None else f", {_g(time_step)}") + ").")
     return made

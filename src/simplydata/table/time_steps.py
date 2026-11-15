@@ -141,7 +141,7 @@ class TimeStepWords:
                             smoothness=None, alpha=None, span=None, half_life=None, com=None):
         """Add a smoothed copy of a column: each value becomes a summary of its neighbours in time.
 
-        table.add_smoothed_column("signal_smooth", from_column="signal", method="savitzky-golay", window=11, sorted_by="time")
+        table.add_smoothed_column("signal_smoothed", from_column="signal", method="savitzky-golay", window=11, sorted_by="time")
         (with sdata.example("sensor")). The methods and their options are those of
         nums.smooth: "moving average" (weights=, ends=), "median" (R runmed, needs simplydata[r]),
         "savitzky-golay" (degree=), "exponential" (newest_weight=), "gaussian" (width=), "lowess" and
@@ -153,11 +153,11 @@ class TimeStepWords:
         from .._time_axis import need_filled, need_regular, series_of
 
         step_name = "add_smoothed_column"
-        example = 'table.add_smoothed_column("signal_smooth", from_column="signal", window=11, sorted_by="time")'
+        example = 'table.add_smoothed_column("signal_smoothed", from_column="signal", window=11, sorted_by="time")'
         self._need_name(step_name, "the column to smooth (from_column=)", from_column, example)
         chosen = _smoothing.read_method(method, step_name)
         if name is None:
-            name = f"{from_column}_smooth"
+            name = f"{from_column}_smoothed"
         if not isinstance(name, str) or not name.strip():
             raise SimplydataError(f"{step_name}() needs name= as the new column's name.\nFor example, {example}")
         if name in self._columns:

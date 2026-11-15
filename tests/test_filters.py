@@ -211,7 +211,7 @@ def test_add_envelope_column_matches_r(engine, capsys):
     t = make_table(data) if engine == "pandas" else make_table(pytest.importorskip("polars").from_pandas(data))
     t.add_envelope_column("size", from_column="signal", sorted_by="time")
     t.add_envelope_column("turn", from_column="signal", show="frequency", sorted_by="time")
-    t.add_envelope_column(from_column="signal", show="phase")
+    t.add_envelope_column("signal_phase", from_column="signal", show="phase")
     got = t._frame.to_pandas() if hasattr(t._frame, "to_pandas") else t._frame
     # R: h <- gsignal::hilbert(x); Mod(h)[c(1, 500, 1000)]
     assert got["size"].to_numpy()[[0, 499, 999]] == pytest.approx(
@@ -228,6 +228,8 @@ def test_add_envelope_column_matches_r(engine, capsys):
     assert "signal_phase" not in t._frame.columns
     with pytest.raises(SimplydataError, match="already a column"):
         t.add_envelope_column("size", from_column="signal")
+    with pytest.raises(SimplydataError, match="needs a name for the new column"):
+        t.add_envelope_column(from_column="signal")  # every add_..._column word asks for the name
 
 
 def test_add_envelope_column_for_each():
@@ -260,16 +262,37 @@ def test_sinc_in_formulas_matches_r(engine):
     assert float(read_formula("sinc(x / 2)")({"x": 1.0})) == pytest.approx(0.636619772367581, rel=1e-12)
 
 
-def test_show_filter_saves_the_filter_chart(tmp_path, capsys):
+def test_show_filter_shows_the_chart_and_the_line_that_saves_it(monkeypatch, tmp_path, capsys):
+    import warnings
+
+    import matplotlib.pyplot as plt
+
+    shown = []
+    monkeypatch.setattr(plt, "show", lambda *a, **k: shown.append(1))
     nums = sensor()
-    nums.keep_frequencies(below=10, time_step=0.005, show_filter=str(tmp_path / "filter.png"))
-    assert (tmp_path / "filter.png").exists()
-    assert "Saved the chart of the filter" in capsys.readouterr().out
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        nums.keep_frequencies(below=10, time_step=0.005, show_filter=True)
+    out = capsys.readouterr().out
+    line = 'To save this chart: sdata.frequency_filter(keep_below=10, time_step=0.005).chart().save("filter.png")'
+    assert line in out and shown
     # the filtered numbers are the same as without the chart (R: signal::filtfilt(signal::butter(4, 0.1), x)[500])
     assert values(nums)[499] == pytest.approx(0.360961693964092, rel=1e-8)
+    # the printed line works as it stands
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        sdata.frequency_filter(keep_below=10, time_step=0.005).chart().save(str(tmp_path / "filter.png"))
+    assert (tmp_path / "filter.png").exists()
     t = sdata.table(sdata.example("sensor"))
-    t.add_filtered_column("hum", from_column="signal", remove_at=50, sorted_by="time",
-                          show_filter=str(tmp_path / "notch.png"))
-    assert (tmp_path / "notch.png").exists()
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        t.add_filtered_column("hum", from_column="signal", remove_at=50, sorted_by="time", show_filter=True)
+        sensor().remove_frequencies(below=2, time_step=0.005, method="chebyshev", show_filter=True)
+    out = capsys.readouterr().out
+    assert "sdata.frequency_filter(remove_at=50, time_step=0.005).chart()" in out
+    assert 'sdata.frequency_filter(keep_above=2, time_step=0.005, method="chebyshev").chart()' in out
+    with pytest.raises(SimplydataError, match=r"show_filter= is True .* or False\. To save the chart: "
+                                              r"sdata\.frequency_filter\(keep_below=10"):
+        sensor().keep_frequencies(below=10, time_step=0.005, show_filter="filter.png")
     with pytest.raises(SimplydataError, match="show_filter="):
         sensor().keep_frequencies(below=10, time_step=0.005, show_filter=3)

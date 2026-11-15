@@ -1479,9 +1479,7 @@ class ColumnWords:
                                    for_each="city", sorted_by="month_number")   (with sdata.example("weather"))
         window="7 days" (or "12 hours", "2 weeks") is a window of time ending at this row's date: this
         day and the 6 days before, with whatever readings fall in it (sorted_by= a date column; empty
-        cells are left out), as pandas rolling("7D"). window="all" runs from the first row of the group
-        to this row (a running average, running biggest ...; empty cells left out), as pandas
-        expanding(). centre=True puts the window's middle on the row (an odd window such as 7), as R
+        cells are left out), as pandas rolling("7D"). centre=True puts the window's middle on the row (an odd window such as 7), as R
         stats::filter(x, rep(1/7, 7), sides = 2).
         """
         step = "add_rolling_column"
@@ -1514,7 +1512,10 @@ class ColumnWords:
         if isinstance(window, str):
             text = window.strip().lower()
             if text == "all":
+                # accepted, not taught: running values get their own word (add_running_column) later
                 kind = "all"
+                print('Note: window="all" (from the first row up to each row, as pandas expanding()) works for now, '
+                      "but it is planned as its own word, add_running_column, in a later version.")
             else:
                 from .. import _dates
 

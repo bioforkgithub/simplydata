@@ -27,6 +27,7 @@ import textwrap
 from pathlib import Path
 
 from ._errors import SimplydataError, suggest
+from .learn import CYCLES_LESSON, FORECASTS_LESSON, SYSTEMS_LESSON, TIME_SERIES_LESSON, lesson_number
 
 TRACK_NAMES = ("python", "beginner")
 DAYS_IN_A_TRACK = 30
@@ -43,8 +44,8 @@ TRACKS = {
         title="Beginner track",
         who="for people who have never programmed",
         about="Three days of just enough Python first, then about one lesson a day, with review days on "
-              "days 7, 14 and 21, a small project of your own (days 27 and 28), a final test from memory "
-              "and a look back.",
+              "days 7, 14 and 21, a small project of your own (days 28 and 30), a final test from memory "
+              "(day 29) and a look back.",
     ),
 }
 
@@ -758,25 +759,35 @@ UNITS = {
             "Each estimate lies halfway between the two months around it.")],
     ),
     "signals": dict(
-        lessons=[21, 22, 23, 24],
+        lessons=[lesson_number(t) for t in (TIME_SERIES_LESSON, FORECASTS_LESSON, CYCLES_LESSON, SYSTEMS_LESSON)],
         needs_r="trend_of() and forecast()",
         r_packages=("trend", "forecast"),
         words=["table.add_missing_dates", "table.add_smoothed_column", "table.trend_of", "table.forecast",
                "table.find_peaks"],
-        do=[_lesson_do(21, "examples 2 to 4"), _lesson_do(22, "examples 3 to 5"), _lesson_do(23, "example 3"),
-            "Lesson 24 (systems) and the rest of lesson 23 (spectra, filters) go further: do them when you need "
-            "them."],
+        do=[_lesson_do(lesson_number(TIME_SERIES_LESSON), "examples 2 to 4"),
+            _lesson_do(lesson_number(FORECASTS_LESSON), "examples 3 to 5"),
+            _lesson_do(lesson_number(CYCLES_LESSON), "example 3"),
+            f"The systems lesson (sdata.lesson({lesson_number(SYSTEMS_LESSON)}), optional) and the rest of the "
+            f"cycles lesson (sdata.lesson({lesson_number(CYCLES_LESSON)}): spectra, filters) go further: do them "
+            "when you need them."],
         recall=[
             ("Which word adds the days that are missing from a daily table?",
              'table.add_missing_dates("date", every="day", for_each="station")'),
             ("Which option of add_rolling_column averages over the last 7 days of time, not 7 rows?",
              'window="7 days"'),
             ("Which word smooths a column with a moving average over its neighbours in time?",
-             'table.add_smoothed_column("nitrate_smooth", from_column="nitrate", window=31, sorted_by="date")'),
+             'table.add_smoothed_column("nitrate_smoothed", from_column="nitrate", window=31, sorted_by="date")'),
             ("Which word tests whether a series has a real trend (Mann-Kendall) and gives its slope?",
              'table.trend_of("nitrate", sorted_by="date")'),
-            ("Which word forecasts the next months, and which option checks it on months it has not seen?",
-             'table.forecast("visitors", sorted_by="month", steps_ahead=12, check_on_last=12)'),
+            ("Which word forecasts the next 12 months?",
+             'table.forecast("visitors", sorted_by="month", steps_ahead=12)'),
+            ("Which option of forecast checks it on the last 12 months, which it has not seen?",
+             "check_on_last=12"),
+            ("Why hold back the last months before trusting a forecast?",
+             "A forecast is only as good as its check on data it has not seen: held-back months show how far "
+             "off it really is."),
+            ('Why does window="7 days" still work when days are missing?',
+             "It counts days of time, not rows: a window holds whatever readings fall in those 7 days."),
             ("Which word finds the readings higher than both neighbours?",
              'table.find_peaks("signal", sorted_by="time", at_least=1)'),
         ],
@@ -1357,22 +1368,21 @@ _BEGINNER = [
     ("Fitting, finding and solving",
      "Fit lines, curves and formulas, find where a formula is biggest, and solve equations.",
      ["fitting", "finding"], "learn"),
-    ("Distributions, values between points and time series",
-     "Work out chances from a distribution, estimate values between measured points, and smooth, test "
-     "and forecast a series.",
-     ["signals", "distributions", "between"], "learn"),
+    ("Distributions and values between points",
+     "Work out chances from a distribution, and estimate values between the points you measured.",
+     ["distributions", "between"], "learn"),
+    ("Time series: dates, smoothing, trend and forecasts",
+     "Add the missing days of a series, smooth it, test its trend, forecast it and find its peaks.",
+     ["signals"], "learn"),
     ("Small project: look, clean and sum up",
      "Choose a question and a file, then look at it, clean it and sum it up.",
      ["bproj_a"], "project"),
-    ("Small project: test, figure and results",
-     "Answer your question with a test, a figure and two sentences of results.",
-     ["bproj_b"], "project"),
     ("Final test from memory",
      "Answer questions on the whole course and write a whole analysis from memory.",
      ["final_test"], "final"),
-    ("Look back, and what comes next",
-     "Do your hardest day again, and take a first look at pandas underneath simplydata.",
-     ["look_back"], "learn"),
+    ("Small project: test, figure and results, and a look back",
+     "Finish your project with a test, a figure and two sentences of results, then look back over the course.",
+     ["bproj_b", "look_back"], "project"),
 ]
 
 DAYS = {"python": _PYTHON, "beginner": _BEGINNER}

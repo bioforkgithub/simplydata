@@ -93,18 +93,26 @@ def test_holt_winters_model_table_matches_r(engine, needs_r):
                                                      574940.572420543], rel=1e-7)
 
 
+# HoltWinters finds its weights with optim(method = "L-BFGS-B") at its default factr = 1e7: it stops when the sum of
+# squared errors falls by less than factr * .Machine$double.eps = 2.2e-9 of itself in one step. The weights, and
+# so the forecasts, are fixed only to about that: R on macOS (another BLAS and maths library) lands 1.0e-9 from
+# the reference made with R on Windows. rel=1e-8 is that stopping rule with a margin; it is R against R.
+HW_OPTIM = 1e-8
+
+
 def test_holt_winters_options_match_r(needs_r):
     h = harbour("pandas")
     # R: forecast(HoltWinters(x, seasonal = "multiplicative"), h = 2, level = 95)$mean and $lower
     result = h.forecast("visitors", sorted_by="month", steps_ahead=2, repeats_every=12, season="multiplied")
-    assert col(result, "forecast") == pytest.approx([1980.58674771702, 1973.67989975173], rel=1e-9)
-    assert col(result, "forecast 95 % prediction low") == pytest.approx([1910.78276783023, 1903.86262108701], rel=1e-9)
+    assert col(result, "forecast") == pytest.approx([1980.58674771702, 1973.67989975173], rel=HW_OPTIM)
+    assert col(result, "forecast 95 % prediction low") == pytest.approx([1910.78276783023, 1903.86262108701],
+                                                                        rel=HW_OPTIM)
     # R: hn <- HoltWinters(x, gamma = FALSE); predict(hn, 1)
     result = h.forecast("visitors", sorted_by="month", steps_ahead=1)
-    assert col(result, "forecast") == pytest.approx([2075.28978383523], rel=1e-9)
+    assert col(result, "forecast") == pytest.approx([2075.28978383523], rel=HW_OPTIM)
     # R: hb <- HoltWinters(x, beta = FALSE); predict(hb, 1)
     result = h.forecast("visitors", sorted_by="month", steps_ahead=1, repeats_every=12, trend=False)
-    assert col(result, "forecast") == pytest.approx([2024.30931513405], rel=1e-9)
+    assert col(result, "forecast") == pytest.approx([2024.30931513405], rel=HW_OPTIM)
 
 
 def test_arima_matches_r(engine, needs_r, capsys):

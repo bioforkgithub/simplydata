@@ -10,9 +10,9 @@ from .._time_axis import read_time_step
 
 
 class SignalNumberWords:
-    @friendly
+    @friendly(renamed={"times": "time_points"})
     def spectrum_of(self, time_step=None, method="periodogram", window=None, window_shape="hann", show="power",
-                 between=None, times=None, sampling_rate=None, fs=None):
+                 between=None, time_points=None, sampling_rate=None, fs=None):
         """Which repeating cycles (frequencies) the numbers hold, and how strong each is.
 
         nums.spectrum_of(time_step=0.01)   (readings 0.01 seconds apart: frequencies per second)
@@ -22,7 +22,7 @@ class SignalNumberWords:
         add up to the variance: 2 x R spec.pgram(x, taper = 0, detrend = FALSE, fast = FALSE)$spec,
         except at the top frequency, which R does not double), "welch" (the average periodogram of
         pieces of window= readings with half overlap and a window_shape="hann" window; less noisy,
-        coarser) or "lomb-scargle" (for readings at uneven times=; R lomb::lsp() itself, needs
+        coarser) or "lomb-scargle" (for readings at uneven time_points=; R lomb::lsp() itself, needs
         simplydata[r] and R). show="power", "decibels" (10 x log10 of the power) or "amplitude" (the
         size of the cycle in the numbers' own units). between=[low, high] keeps that frequency range in
         the table. Gives back a table: frequency, repeats every (1 / frequency), the power and the share
@@ -32,20 +32,20 @@ class SignalNumberWords:
         name = _signals.read_method(method, step_name)
         values = np.asarray(self._values, dtype=float).ravel()
         if name == "lomb-scargle":
-            if times is None:
-                raise SimplydataError('method="lomb-scargle" needs times= (the time of each reading), as many as '
-                                      "the numbers.")
-            t = np.asarray(times, dtype=float).ravel()
+            if time_points is None:
+                raise SimplydataError('method="lomb-scargle" needs time_points= (the time of each reading), as '
+                                      "many as the numbers.")
+            t = np.asarray(time_points, dtype=float).ravel()
             if len(t) != len(values):
-                raise SimplydataError(f"times= has {len(t)} values but there are {len(values)} numbers.")
+                raise SimplydataError(f"time_points= has {len(t)} values but there are {len(values)} numbers.")
             keep = ~np.isnan(values)
             if not keep.all():
                 print(f"Note: {int((~keep).sum())} empty values were left out (Lomb-Scargle needs no even steps).")
             values, t, step, words, unit = values[keep], t[keep], 1.0, "times as given", "time units"
         else:
-            if times is not None:
-                raise SimplydataError('times= is for method="lomb-scargle"; other methods need evenly spaced '
-                                      "readings and take time_step=.")
+            if time_points is not None:
+                raise SimplydataError('time_points= is for method="lomb-scargle"; other methods need evenly '
+                                      "spaced readings and take time_step=.")
             if np.isnan(values).any():
                 raise SimplydataError(f"spectrum_of() needs a value at every step, but {int(np.isnan(values).sum())} "
                                       "numbers are empty. Fill them first, for example "

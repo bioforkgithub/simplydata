@@ -70,7 +70,7 @@ def test_formula_errors():
 
 
 def test_step_response_matches_r(s1, capsys):
-    got = frame(s1.step_response(times=np.arange(0, 6.0001, 0.03)))
+    got = frame(s1.step_response(time_points=np.arange(0, 6.0001, 0.03)))
     # R: control::step(s1, t = seq(0, 6, by = 0.03))$y[1, c(2, 18, 201)]
     assert got["output"].to_numpy()[[1, 17, 200]] == pytest.approx(
         [0.000440968660669288, 0.0859755020493958, 0.199714662161444], rel=1e-8)
@@ -89,7 +89,7 @@ def test_step_response_matches_r(s1, capsys):
 
 
 def test_impulse_and_response_to_match_r(s1, capsys):
-    got = frame(s1.impulse_response(times=np.arange(0, 6.0001, 0.03)))
+    got = frame(s1.impulse_response(time_points=np.arange(0, 6.0001, 0.03)))
     # R: control::impulse(s1, t)$y[1, c(2, 18)]
     assert got["output"].to_numpy()[[1, 17]] == pytest.approx([0.0290959011308254, 0.255843549925528], rel=1e-8)
     square = sdata.wave("square", frequency=0.2, time_step=0.05, how_many=400)
@@ -97,23 +97,30 @@ def test_impulse_and_response_to_match_r(s1, capsys):
     # R: tt <- (0:399) * 0.05; u <- gsignal::square(2 * pi * 0.2 * tt); control::lsim(s1, u, tt)$y[c(100, 400)]
     assert got["output"].to_numpy()[[99, 399]] == pytest.approx([-0.208934151094657, -0.20744338441064], rel=1e-8)
     assert list(got.columns) == ["time", "input", "output"]
-    with pytest.raises(SimplydataError, match="times="):
+    with pytest.raises(SimplydataError, match="time_points="):
         s1.response_to([1, 2, 3])
-    with pytest.raises(SimplydataError, match="one time per input"):
-        s1.response_to([1, 2, 3], times=[0, 1])
+    with pytest.raises(SimplydataError, match="one time point per input"):
+        s1.response_to([1, 2, 3], time_points=[0, 1])
+    # the spelling before the name review still works, with a note
+    old = frame(s1.impulse_response(times=np.arange(0, 6.0001, 0.03)))
+    assert old["output"].to_numpy()[1] == pytest.approx(0.0290959011308254, rel=1e-8)
 
 
 def test_frequency_response_matches_r(s1, capsys):
-    got = frame(s1.frequency_response(between=[0.1, 10], steps=3))
+    got = frame(s1.frequency_response(between=[0.1, 10], how_many=3))
     # R: control::bode(s1, w = c(0.1, 1, 10))$mag, $phase
-    assert got["gain (dB)"].tolist() == pytest.approx([-13.9689819049622, -13.0102999566398, -39.7428135887783],
+    assert got["gain (decibels)"].tolist() == pytest.approx([-13.9689819049622, -13.0102999566398, -39.7428135887783],
                                                       rel=1e-10)
     assert got["phase (degrees)"].tolist() == pytest.approx([-2.29519553918841, -26.565051177078, -168.111341960372],
                                                             rel=1e-10)
     assert got["gain"].iloc[0] == pytest.approx(10 ** (-13.9689819049622 / 20), rel=1e-10)
     assert "both margins are without limit" in capsys.readouterr().out
+    cycles = frame(s1.frequency_response(between=[0.1 / (2 * np.pi), 10 / (2 * np.pi)], how_many=3,
+                                         unit="cycles per second"))
+    assert cycles["gain (decibels)"].tolist() == pytest.approx(got["gain (decibels)"].tolist(), rel=1e-10)
+    # the spellings before the name review (steps=, units=, "hertz") still work
     hertz = frame(s1.frequency_response(between=[0.1 / (2 * np.pi), 10 / (2 * np.pi)], steps=3, units="hertz"))
-    assert hertz["gain (dB)"].tolist() == pytest.approx(got["gain (dB)"].tolist(), rel=1e-10)
+    assert hertz["gain (decibels)"].tolist() == pytest.approx(got["gain (decibels)"].tolist(), rel=1e-10)
 
 
 def test_margins_match_r(capsys):
@@ -125,14 +132,16 @@ def test_margins_match_r(capsys):
     assert gm == pytest.approx(3.52182518111363, abs=1e-5) and wg == pytest.approx(1.4142135623731, rel=1e-5)
     loop.frequency_response()
     out = capsys.readouterr().out
-    assert "gain margin 3.52 dB at 1.414 radians per second; phase margin 11.42 degrees at 1.143" in out
+    assert "gain margin 3.52 decibels at 1.414 radians per second; phase margin 11.42 degrees at 1.143" in out
     assert "not stable (a pole lies on the imaginary axis" in out
 
 
 def test_poles_zeros_stability_gain(s1, capsys):
     got = frame(s1.poles())
     # R: control::pole(s1); control::damp(s1)$zeta, $omegan
-    assert sorted(got["imaginary"]) == pytest.approx([-2, 2]) and got["real"].tolist() == pytest.approx([-1, -1])
+    assert sorted(got["imaginary part"]) == pytest.approx([-2, 2])
+    assert got["real part"].tolist() == pytest.approx([-1, -1])
+    assert got["distance from 0"].tolist() == pytest.approx([5 ** 0.5] * 2, rel=1e-12)  # R: Mod(control::pole(s1))
     assert got["damping ratio"].tolist() == pytest.approx([0.447213595499958] * 2, rel=1e-12)
     assert got["natural frequency"].tolist() == pytest.approx([5 ** 0.5] * 2, rel=1e-12)
     assert len(frame(s1.zeros())) == 0
@@ -176,13 +185,16 @@ def test_joining_systems_matches_r(s1, capsys):
     assert both._num == pytest.approx([1, 4, 10, 7]) and both._den == pytest.approx([1, 5, 13, 19, 10])
     assert s1.with_feedback(sign="positive")._den == pytest.approx([1, 2, 4])
     assert s1.with_feedback(2)._den == pytest.approx([1, 2, 7])
+    assert s1.with_feedback(through=2)._den == pytest.approx([1, 2, 7])
+    assert s1.with_feedback(other=2)._den == pytest.approx([1, 2, 7])  # the spelling before the name review
+    assert "Side by side, outputs added (in parallel)" in capsys.readouterr().out
     with pytest.raises(SimplydataError, match="same kind"):
         s1.then(s1.in_steps(time_step=0.1))
 
 
 def test_tables_of_a_system(s1):
     tf = frame(s1.table())
-    assert tf["power"].tolist() == [2, 1, 0] and tf["denominator"].tolist() == [1, 2, 5]
+    assert tf["power of s"].tolist() == [2, 1, 0] and tf["denominator"].tolist() == [1, 2, 5]
     assert tf["numerator"].tolist() == [0, 0, 1]
     ss = frame(s1.table(form="state space"))
     # R: control::tf2ss(s1): A = [-2 -5; 1 0], B = [1; 0], C = [0 1]
@@ -191,16 +203,19 @@ def test_tables_of_a_system(s1):
     assert ss[ss["matrix"] == "C"]["value"].tolist() == pytest.approx([0, 1])
     pz = frame(s1.table(form="poles and zeros"))
     assert pz["kind"].tolist() == ["pole", "pole", "gain"]
+    assert pz["real part"].tolist() == pytest.approx([-1, -1, 1])
+    assert sorted(pz["imaginary part"]) == pytest.approx([-2, 0, 2])
+    assert frame(s1.in_steps(time_step=0.1).table()).columns[0] == "power of z"
 
 
 def test_system_in_steps_matches_r(capsys):
     d = sdata.system("0.1 / (z - 0.9)", time_step=0.1)
-    assert "every pole has a size below 1" in capsys.readouterr().out
+    assert "every pole lies inside the unit circle: its distance from 0 is below 1" in capsys.readouterr().out
     # R: signal::filter(c(0, 0.1), c(1, -0.9), rep(1, 5))
-    assert frame(d.step_response(steps=5))["output"].tolist() == pytest.approx([0, 0.1, 0.19, 0.271, 0.3439])
-    got = frame(d.frequency_response(between=[0.1, 10], steps=3))
+    assert frame(d.step_response(how_many=5))["output"].tolist() == pytest.approx([0, 0.1, 0.19, 0.271, 0.3439])
+    got = frame(d.frequency_response(between=[0.1, 10], how_many=3))
     # R: H(exp(1i * w * 0.1)) with pracma::polyval: 20 * log10(Mod(h)), Arg(h) * 180 / pi
-    assert got["gain (dB)"].tolist() == pytest.approx([-0.038911339554644, -2.78582192232688, -19.2296192036422],
+    assert got["gain (decibels)"].tolist() == pytest.approx([-0.038911339554644, -2.78582192232688, -19.2296192036422],
                                                       rel=1e-10)
     assert got["phase (degrees)"].tolist() == pytest.approx([-5.71333635003828, -46.4198445563431,
                                                              -113.144914437539], rel=1e-10)
@@ -215,15 +230,15 @@ def test_frequency_filter_matches_r(capsys):
     out = capsys.readouterr().out
     assert "The filter that keeps the frequencies below 10 (Butterworth filter, steepness 4)" in out
     assert "signal::butter(4, 0.1)" in out
-    got = frame(f.frequency_response(between=[1, 50], steps=3))
+    got = frame(f.frequency_response(between=[1, 50], how_many=3))
     # R: bw <- signal::butter(4, 0.1); Mod(H(c(1, 10, 50))) with H from pracma::polyval at exp(2i pi f 0.005)
     assert got["frequency"].tolist() == pytest.approx([1, 50 ** 0.5, 50])
-    one = frame(f.frequency_response(between=[1, 10], steps=2))
+    one = frame(f.frequency_response(between=[1, 10], how_many=2))
     assert one["gain"].tolist() == pytest.approx([0.999999995317016, 0.707106781186491], rel=1e-9)
     assert one["phase (degrees)"].iloc[0] == pytest.approx(-14.8702778963188, rel=1e-9)
     assert "Margins" not in capsys.readouterr().out
     # R: signal::filter(bw, rep(1, 30))[c(10, 30)]
-    assert frame(f.step_response(steps=30))["output"].to_numpy()[[9, 29]] == pytest.approx(
+    assert frame(f.step_response(how_many=30))["output"].to_numpy()[[9, 29]] == pytest.approx(
         [0.566482373425294, 0.970650951681188], rel=1e-9)
     assert len(frame(f.poles())) == 4 and f.is_stable()
     notch = sdata.frequency_filter(remove_at=50, time_step=0.005)
@@ -244,15 +259,23 @@ def test_system_charts(s1, tmp_path):
     line = step._render().axes[0].get_lines()[0]
     assert line.get_xdata()[-1] == pytest.approx(6)
     assert line.get_ydata()[-1] == pytest.approx(frame(s1.step_response(until=6))["output"].iloc[-1])
-    pz = s1.chart(show="pole-zero")._render().axes[0]
+    pz = s1.chart(show="poles and zeros")._render().axes[0]
     offsets = pz.collections[0].get_offsets()
     assert sorted(offsets[:, 1]) == pytest.approx([-2, 2])
+    assert pz.get_xlabel() == "real part" and pz.get_ylabel() == "imaginary part"
     nyquist = s1.chart(show="nyquist")._render().axes[0]
     assert nyquist.get_lines()[0].get_xdata()[0] == pytest.approx(0.2, rel=1e-3)
     s1.chart(show="impulse").save(str(tmp_path / "impulse.png"))
-    s1.in_steps(time_step=0.1).chart(show="pole-zero").save(str(tmp_path / "pz.png"))
+    s1.in_steps(time_step=0.1).chart(show="pole-zero").save(str(tmp_path / "pz.png"))  # accepted spelling
+    s1.chart(unit="cycles per second")._render()
     with pytest.raises(SimplydataError, match="show"):
         s1.chart(show="sideways")
+    with pytest.raises(SimplydataError, match='between= goes with show="bode"'):
+        s1.chart(show="step", between=[0.1, 10])
+    with pytest.raises(SimplydataError, match="until= goes with"):
+        s1.chart(show="nyquist", until=5)
+    with pytest.raises(SimplydataError, match="unit= goes with"):
+        s1.chart(show="poles and zeros", unit="hertz")
 
 
 def test_other_names_on_a_system(s1):
@@ -262,3 +285,19 @@ def test_other_names_on_a_system(s1):
         s1.feedback()
     with pytest.raises(AttributeError, match="Did you mean .poles()"):
         s1.polls()
+    with pytest.raises(AttributeError, match="A system has no word called .stepinfo"):
+        s1.stepinfo()
+
+
+def test_two_spellings_of_one_option_are_refused():
+    with pytest.raises(SimplydataError, match="numerator= or num="):
+        sdata.system(numerator=[1], num=[1], denominator=[1, 2, 5])
+    with pytest.raises(SimplydataError, match="a= or A="):
+        sdata.system(a=[[0, 1], [-5, -2]], A=[[0, 1], [-5, -2]], b=[[0], [1]], c=[[1, 0]])
+    assert sdata.system(num=[1], den=[1, 2, 5])._den == pytest.approx([1, 2, 5])
+
+
+def test_gain_is_explained(capsys):
+    sdata.system(poles=[-1, -2], gain=2)
+    # R: control::dcgain(control::zpk(NULL, c(-1, -2), 2)) is 1
+    assert "gain=2 is the number in front of the formula; the steady gain is 1." in capsys.readouterr().out

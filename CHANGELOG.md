@@ -90,13 +90,14 @@ Install once: `pip install "simplydata[r]"`, R from https://cran.r-project.org, 
   on the month's last day (pandas DateOffset; R's seq(by = "month") overflows instead).
 - `table.add_missing_dates("date", every="day", for_each="station")`: a row for every missing date (empty cells),
   between= to extend the run; every= found from the most common step when not given.
-- `table.add_rolling_column` gains window="7 days" (a window of time, pandas rolling("7D")), window="all"
-  (from the first row, pandas expanding), centre=True (R stats::filter(sides = 2)), and show= "variance",
-  "skewness", "kurtosis", "percentile" (percent=), "count", "correlation" and "covariance" (two columns).
+- `table.add_rolling_column` gains window="7 days" (a window of time, pandas rolling("7D")), centre=True (R stats::filter(sides = 2)), and show= "variance",
+  "skewness", "kurtosis", "percentile" (percent=), "count", "correlation" and "covariance" (two columns). window="all"
+  (from the first row, pandas expanding) is accepted with a note: running values are planned as their own word,
+  add_running_column.
 - `nums.smooth(method=..., window=...)` and `table.add_smoothed_column(...)`: "moving average" (weights=, ends=
   "empty"/"shorter windows"/"mirror"; R stats::filter), "median" (R runmed itself, Tukey's end rule; needs
   simplydata[r]), "savitzky-golay" (R signal::sgolayfilt), "exponential" (newest_weight=, alpha=, span=,
-  half_life=, com=), "gaussian" (width=), "lowess", "spline", "whittaker" and "wiener", from SciPy, pandas and
+  half_life=, com=), "gaussian" (width=), "lowess", "spline", "whittaker" (SciPy 1.17 or newer, so Python 3.12 or newer) and "wiener", from SciPy, pandas and
   statsmodels.
 - `nums.remove_trend()` (breaks= for a separate line per piece; SciPy detrend, as R residuals(lm(x ~ t))).
 - `nums.keep_frequencies(below=10, time_step=0.005)` / `remove_frequencies(...)` and `table.add_filtered_column(...)`:
@@ -112,19 +113,38 @@ Install once: `pip install "simplydata[r]"`, R from https://cran.r-project.org, 
   `sdata.window_shape(...)` (SciPy; as R gsignal).
 - `.wav` sound files: `sdata.numbers("call.wav", channel=1)` reads the readings (as R tuneR::readWave) and the numbers
   remember their time step; `nums.save("tone.wav", bits=16)` writes one (SciPy io.wavfile).
-- `table.add_envelope_column(...)` (show="envelope", "phase" or "frequency"; SciPy hilbert, as R gsignal::hilbert),
-  `sinc(x)` in formulas (as NumPy), and `show_filter=True` on the filter words (the filter's Bode chart; a file
-  name saves it).
+- `table.add_envelope_column("signal_envelope", from_column="signal", ...)` (show="envelope", "phase" or
+  "frequency"; SciPy hilbert, as R gsignal::hilbert; the new column's name is needed, as on every
+  add_..._column word), `sinc(x)` in formulas (as NumPy), and `show_filter=True` on the filter words (the
+  filter's Bode chart, titled "run forwards once", and the line that saves it:
+  `sdata.frequency_filter(keep_below=10, time_step=0.005).chart().save("filter.png")`).
 - Linear systems: `sdata.system("1 / (s**2 + 2*s + 5)")` (or numerator= / denominator=, poles= / zeros= / gain=,
-  the matrices a=, b=, c=, d=; z and time_step= for a system in steps) with `step_response` (rise time, settling
-  time, overshoot), `impulse_response`, `response_to(inputs)`, `frequency_response` (gain and phase margins),
-  `poles`, `zeros`, `is_stable`, `steady_gain`, `in_steps(time_step=, method=)`, `then`, `add`, `with_feedback`,
-  `table(form=)` and `chart(show="bode" | "step" | "impulse" | "pole-zero" | "nyquist")`. SciPy signal (lti,
-  dlti, step, lsim, freqresp, freqz, cont2discrete, tf2ss), checked against R control, signal and by hand.
+  the matrices a=, b=, c=, d=; z and time_step= for a system in steps; R's num= / den= and A= to D= are
+  accepted, but not together with the main spelling) with `step_response(until=, how_many=, time_points=)`
+  (rise time, settling time, overshoot), `impulse_response`, `response_to(inputs, time_points=)`,
+  `frequency_response(between=, how_many=, unit=)` (columns gain, "gain (decibels)", "phase (degrees)"; the gain
+  and phase margins; unit="radians per second" or "cycles per second", "hertz" accepted), `poles` (real part,
+  imaginary part, distance from 0, damping ratio, natural frequency), `zeros`, `is_stable`, `steady_gain`,
+  `in_steps(time_step=, method=)`, `then`, `add` (side by side, outputs added), `with_feedback(through=, sign=)`,
+  `table(form=)` ("power of s" or "power of z", numerator, denominator; "real part" and "imaginary part" for
+  poles and zeros) and `chart(show="bode" | "step" | "impulse" | "poles and zeros" | "nyquist", between=, until=,
+  unit=)` (an option a chart does not use is refused). sdata.system(poles=, gain=) says that gain= is the number
+  in front of the formula, not the steady gain. SciPy signal (lti, dlti, step, lsim, freqresp, freqz,
+  cont2discrete, tf2ss), checked against R control, signal and by hand.
 - `sdata.frequency_filter(keep_below=10, time_step=0.005)`: the filter of add_filtered_column as a system in steps.
 - Chart words: `sticks` (a stem chart), `autocorrelation_bars`, `cross_correlation_bars`, `lag_dots`,
-  `trend_and_season` (four panels), `forecast` (dashed line and interval band after the lines), `spectrum`,
-  `spectrum_over_time` (SciPy spectrogram) and `peak_dots`. They draw the numbers of the table words.
+  `trend_and_season` (four panels: the column, its trend, season and rest), `forecast` (dashed line and interval
+  band after the lines), `spectrum`, `spectrum_over_time` (SciPy spectrogram) and `peak_dots`. They draw the
+  numbers of the table words. The five that draw something other than the column against time take the column
+  first and `sorted_by=`, as their table words do: `chart.spectrum("signal", sorted_by="time")`,
+  `chart.cross_correlation_bars("signal", "vibration", sorted_by="time")`; x= and y= still work, with a note.
+- `add_smoothed_column` without a name adds "<column>_smoothed" (as "_filtered"); `nums.spectrum_of(method=
+  "lomb-scargle")` takes the times as `time_points=`.
+- Lessons on time series (dates, missing days, time windows, smoothing and trend), forecasts checked on held-back
+  months, cycles (spectra, filters, peaks and dips; Welch and check_steady as "more" parts) and, optional, linear
+  systems (starting from the filter of the cycles lesson; the Bode chart, margins and systems in steps as "more"
+  parts). They come after the lessons of S1 and S2, found by title, so they become lessons 23 to 26. The 30-day
+  beginner track gives them a day of their own.
 - `chart.smooth_line(method=...)` takes the methods of `nums.smooth` ("moving average", "median",
   "savitzky-golay", "exponential", "gaussian", "whittaker", "wiener") for evenly spaced x.
 - New practice table `visitors`: monthly visitors to two made-up museums, 2014 to 2025.

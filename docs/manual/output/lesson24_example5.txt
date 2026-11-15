@@ -1,0 +1,6 @@
+A continuous system: output / input = 1 / (s**2 + 0.8*s + 4). Poles -0.4 +/- 1.96i: stable (every pole has a negative real part). Steady gain 0.25: a constant input of 1 settles at 0.25.
+Method: SciPy signal.lti, as R control::tf(num, den).
+In steps of 0.1 (zero order hold): output / input = (0.00485317*z + 0.0047253) / (z**2 - 1.8848*z + 0.923116).
+Method: SciPy signal.cont2discrete(method="zoh"), as R control::c2d(sys, 0.1).
+Step response: the output settles at 0.25, peaks at 0.3817 at time 1.6 (overshoot 52.7 %), rise time 0.606 (10 % to 90 %), settling time 9.801 (within 2 %).
+Method: SciPy signal.dstep, as R control::step(sys, t); rise and settling times read from the response.

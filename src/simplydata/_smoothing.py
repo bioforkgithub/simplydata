@@ -232,7 +232,13 @@ def smooth(values, method="moving average", window=5, ends=None, times=None, ste
         lam = _opt(options, "smoothness", 100)
         if isinstance(lam, bool) or not isinstance(lam, (int, float, np.integer, np.floating)) or lam <= 0:
             raise SimplydataError('method="whittaker" needs smoothness= as a number above 0 (bigger is smoother).')
-        out = np.asarray(signal.whittaker_henderson(x, lamb=float(lam), order=2).x, dtype=float)
+        if not hasattr(signal, "whittaker_henderson"):
+            import scipy
+
+            raise SimplydataError(f'method="whittaker" needs SciPy 1.17 or newer (this computer has SciPy '
+                                  f"{scipy.__version__}): pip install --upgrade scipy. SciPy 1.17 needs Python 3.12 or "
+                                  'newer. The other methods work, such as method="savitzky-golay".')
+        out =np.asarray(signal.whittaker_henderson(x, lamb=float(lam), order=2).x, dtype=float)
         return SmoothResult(out, f"a Whittaker-Henderson smoother (smoothness {_g(lam)}: closeness to the readings "
                                  "against the size of the second differences)",
                             f"solve(diag(n) + {_g(lam)} * crossprod(diff(diag(n), differences = 2)), x)")

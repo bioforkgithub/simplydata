@@ -48,12 +48,34 @@ def filter_numbers(values, keep, condition, value, step, method, steepness, both
     return out, sentence, f"Method: SciPy, as R {call}.", made
 
 
-def show_filter_chart(made, step, show_filter, sentence):
-    """show_filter=True shows the filter's Bode chart (gain and phase against frequency); a file name saves it."""
+def filter_call(option, value, step, method="butterworth", steepness=4, ripple=0.5, removed_by=40, width=1,
+                and_multiples=False):
+    """The sdata.frequency_filter(...) call that makes the same filter, as text (None when it has none)."""
+    if option is None:
+        return None
+    shown = f"[{value[0]:g}, {value[1]:g}]" if isinstance(value, (list, tuple)) else f"{value:g}"
+    parts = [f"{option}={shown}", f"time_step={step:g}"]
+    if option == "remove_at":
+        parts += [f"width={width:g}"] if width != 1 else []
+        parts += ["and_multiples=True"] if and_multiples else []
+    else:
+        method_name = str(method).strip().lower()
+        parts += [f'method="{method}"'] if method_name != "butterworth" else []
+        parts += [f"steepness={steepness}"] if steepness != 4 else []
+        parts += [f"ripple={ripple:g}"] if ripple != 0.5 else []
+        parts += [f"removed_by={removed_by:g}"] if removed_by != 40 else []
+    return "sdata.frequency_filter(" + ", ".join(parts) + ")"
+
+
+def show_filter_chart(made, step, show_filter, call):
+    """show_filter=True shows the filter's Bode chart (gain and phase against frequency) and prints the line that
+    saves it (call: the sdata.frequency_filter(...) that makes the same filter)."""
     if show_filter is False or show_filter is None:
         return
-    if not (show_filter is True or isinstance(show_filter, str)):
-        raise SimplydataError('show_filter= should be True (show the chart) or a file name such as "filter.png".')
+    if show_filter is not True:
+        how = (f'To save the chart: {call}.chart().save("filter.png")' if call else
+               "Save it from the chart window.")
+        raise SimplydataError(f"show_filter= is True (show the filter's chart) or False. {how}")
     import contextlib
     import io
 
@@ -63,12 +85,10 @@ def show_filter_chart(made, step, show_filter, sentence):
     b, a = _filters.coefficients(made)
     with contextlib.redirect_stdout(io.StringIO()):
         chart = System.from_coefficients(b, a, time_step=step, sos=made.get("sos"), label="the filter").chart()
-    chart.title_top("The filter: gain and phase (one direction)")
-    if show_filter is True:
-        chart.show()
-    else:
-        chart.save(show_filter)
-        print(f'Saved the chart of the filter to "{show_filter}".')
+    chart.title_top("The filter: gain and phase (run forwards once)")
+    if call:
+        print(f'To save this chart: {call}.chart().save("filter.png")')
+    chart.show()
 
 
 class FilterNumberWords:
@@ -82,7 +102,12 @@ class FilterNumberWords:
             both_ways, ripple, removed_by, window, window_shape, width, and_multiples, step_name)
         print(sentence)
         print(method_line)
-        show_filter_chart(made, step, show_filter, sentence)
+        if show_filter:
+            option = {("below", True): "keep_below", ("above", True): "keep_above", ("between", True): "keep_between",
+                      ("below", False): "keep_above", ("above", False): "keep_below",
+                      ("between", False): "remove_between", ("equal_to", False): "remove_at"}.get((condition, keep))
+            show_filter_chart(made, step, show_filter, filter_call(option, value, step, method, steepness, ripple,
+                                                                   removed_by, width, and_multiples))
         return self._change(f"{'keep' if keep else 'remove'} frequencies {condition}", out)
 
     @friendly
@@ -100,7 +125,7 @@ class FilterNumberWords:
         runs the filter forwards and backwards so nothing moves in time (SciPy sosfiltfilt; the ends as
         MATLAB filtfilt, which differs from R signal::filtfilt near the ends); both_ways=False runs it
         forwards only, as R signal::filter. show_filter=True also shows the filter's chart (gain and phase
-        against frequency, sdata.frequency_filter(...).chart()); show_filter="filter.png" saves it.
+        against frequency) and prints the line that saves it, sdata.frequency_filter(...).chart().save(...).
         Undo with nums.undo().
         """
         return self._filter_word(True, below, above, between, equal_to, time_step, method, steepness, both_ways,

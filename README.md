@@ -56,10 +56,10 @@ Lessons 16 to 20 go further: models (multiple, logistic, Poisson and mixed regre
 imputation), patterns across many columns (PCA, clustering, Bray-Curtis distances, NMDS,
 PERMANOVA), survival curves and Cox models, power analysis, fitting curves and formulas,
 finding the smallest or biggest value and solving equations, distributions and chances, and
-values between the points you measured. Lessons 21 to 24 cover time series (dates, missing days,
-time windows, smoothing and trend), forecasts checked on held-back months, cycles in a recording
-(spectra, filters, peaks, and whether a series stays steady) and linear systems (step and
-frequency responses, feedback). Each
+values between the points you measured. The last four lessons cover time series (dates, missing
+days, time windows, smoothing and trend), forecasts checked on held-back months, cycles in a
+recording (spectra, filters, peaks, and whether a series stays steady) and, optional, linear
+systems (step and frequency responses, feedback). Each
 lesson has an example you can run, says what every line does, explains the idea behind it
 (average or median, standard deviation or standard error, p-values) and ends with a small task
 to try yourself.

@@ -682,7 +682,7 @@ HELP_EXAMPLES = {
     "table.add_missing_dates": _tx("river", """\
         table.add_missing_dates("date", every="day", for_each="station")
         table.fill_empty_cells("nitrate", with_the="line between neighbours", sorted_by="date", for_each="station")"""),
-    "table.add_smoothed_column": _tx("sensor", 'table.add_smoothed_column("signal_smooth", from_column="signal", '
+    "table.add_smoothed_column": _tx("sensor", 'table.add_smoothed_column("signal_smoothed", from_column="signal", '
                                                'method="savitzky-golay", window=11, sorted_by="time")'),
     "nums.smooth": _nx('nums.smooth(method="median", window=5)', values='sdata.example("sensor")["signal"]'),
     "nums.remove_trend": _nx("nums.remove_trend()", values='sdata.example("sensor")["signal"]'),
@@ -707,16 +707,16 @@ HELP_EXAMPLES = {
     "sdata.wave": "\n".join(["import simplydata as sdata",
                               'nums = sdata.wave("sine", frequency=5, time_step=0.01, how_many=100)']),
     "sdata.window_shape": "\n".join(["import simplydata as sdata", 'nums = sdata.window_shape("hann", how_many=64)']),
-    "table.add_envelope_column": _tx("sensor", 'table.add_envelope_column("size", from_column="signal", sorted_by="time")'),
+    "table.add_envelope_column": _tx("sensor", 'table.add_envelope_column("signal_envelope", from_column="signal", sorted_by="time")'),
     "sdata.frequency_filter": "\n".join(['import simplydata as sdata', 'system = sdata.frequency_filter(keep_below=10, time_step=0.005)', 'system.frequency_response(between=[1, 90])']),
     "sticks": _ex("weather", 'chart.sticks(x="month_number", y="rain", colour="city")', "sticks"),
-    "autocorrelation_bars": "\n".join(['import simplydata as sdata', 'table = sdata.table(sdata.example("visitors"))', 'table.keep_rows("museum", equal_to="Harbour Museum")', 'chart = table.chart()', 'chart.autocorrelation_bars(x="month", y="visitors")', 'chart.save("autocorrelation_bars.png")']),
-    "cross_correlation_bars": _ex("sensor", 'chart.cross_correlation_bars(x="time", y="signal", against="vibration", rows_back=20)', "cross_correlation_bars"),
-    "lag_dots": "\n".join(['import simplydata as sdata', 'table = sdata.table(sdata.example("visitors"))', 'table.keep_rows("museum", equal_to="Harbour Museum")', 'chart = table.chart()', 'chart.lag_dots(x="month", y="visitors", rows_back=[1, 12])', 'chart.save("lag_dots.png")']),
+    "autocorrelation_bars": "\n".join(['import simplydata as sdata', 'table = sdata.table(sdata.example("visitors"))', 'table.keep_rows("museum", equal_to="Harbour Museum")', 'chart = table.chart()', 'chart.autocorrelation_bars("visitors", sorted_by="month")', 'chart.save("autocorrelation_bars.png")']),
+    "cross_correlation_bars": _ex("sensor", 'chart.cross_correlation_bars("signal", "vibration", sorted_by="time", rows_back=20)', "cross_correlation_bars"),
+    "lag_dots": "\n".join(['import simplydata as sdata', 'table = sdata.table(sdata.example("visitors"))', 'table.keep_rows("museum", equal_to="Harbour Museum")', 'chart = table.chart()', 'chart.lag_dots("visitors", sorted_by="month", rows_back=[1, 12])', 'chart.save("lag_dots.png")']),
     "trend_and_season": "\n".join(['import simplydata as sdata', 'table = sdata.table(sdata.example("visitors"))', 'table.keep_rows("museum", equal_to="Harbour Museum")', 'chart = table.chart()', 'chart.trend_and_season(x="month", y="visitors", repeats_every="year")', 'chart.save("trend_and_season.png")']),
     "forecast": _ex("visitors", 'chart.lines(x="month", y="visitors", colour="museum")\nchart.forecast(steps_ahead=12, repeats_every="year")', "forecast"),
-    "spectrum": _ex("sensor", 'chart.spectrum(x="time", y="signal")', "spectrum"),
-    "spectrum_over_time": _ex("sensor", 'chart.spectrum_over_time(x="time", y="signal", window=100)', "spectrum_over_time"),
+    "spectrum": _ex("sensor", 'chart.spectrum("signal", sorted_by="time")', "spectrum"),
+    "spectrum_over_time": _ex("sensor", 'chart.spectrum_over_time("signal", sorted_by="time", window=100)', "spectrum_over_time"),
     "peak_dots": _ex("sensor", 'chart.lines(x="time", y="signal")\nchart.peak_dots(at_least=1, apart=0.05)', "peak_dots"),
     "sdata.system": "\n".join(['import simplydata as sdata', 'system = sdata.system("1 / (s**2 + 2*s + 5)")']),
     "system.step_response": _system_x("system.step_response(until=10)"),
@@ -1344,6 +1344,14 @@ def _sx(code: str) -> str:
 # The code of each part runs on its own (the tests run every part).
 # solutions: one (code, one-line explanation) for each task, in the same order. Each runs on
 # its own (the tests run every one), and sdata.lesson(3, solutions=True) prints them.
+# The lessons of v0.6, found by title (learn_days.py and the tests use lesson_number), so their numbers can
+# change when lessons are added before them. Agreed order across branches: S2's "Working with a model" is
+# lesson 21, S1's "Risks, diagnostic tests and agreement" 22, these four 23 to 26.
+TIME_SERIES_LESSON = "Time series: dates, missing days, time windows and trend"
+FORECASTS_LESSON = "Forecasts: the next months, checked first"
+CYCLES_LESSON = "Cycles: spectra, filters, peaks, and steady or not"
+SYSTEMS_LESSON = "Systems: a spring and damper, its response and a feedback loop"
+
 LESSONS = [
     dict(
         title="Your first chart",
@@ -3615,7 +3623,7 @@ LESSONS = [
                "table.map_of", "curve"],
     ),
     dict(
-        title="Time series: dates, missing days, time windows and trend",
+        title=TIME_SERIES_LESSON,
         learn=[
             "how to make a run of dates, and add the days that are missing from a daily table",
             "how to average over a window of time, such as the last 7 days",
@@ -3654,14 +3662,14 @@ LESSONS = [
                 ('table.add_rolling_column("week_average", from_column="nitrate", window="7 days", '
                  'sorted_by="date", for_each="station")',
                  "Each week_average is the average nitrate of the 7 days up to that day, for each station."),
-                ('table.add_smoothed_column("nitrate_smooth", from_column="nitrate", method="moving average", '
+                ('table.add_smoothed_column("nitrate_smoothed", from_column="nitrate", method="moving average", '
                  'window=31, sorted_by="date", for_each="station")',
                  "A moving average over 31 days centred on each day; the first and last 15 days have no full "
                  "window, so they are empty (as R stats::filter(x, rep(1 / 31, 31), sides = 2))."),
                 ("chart = table.chart()", "Start a chart."),
-                ('chart.lines(x="date", y="nitrate_smooth", colour="station")',
+                ('chart.lines(x="date", y="nitrate_smoothed", colour="station")',
                  "The smoothed nitrate, one line per station: Station A creeps up, Station B goes down."),
-                ('chart.save("lesson21_nitrate.png")', "Save it."),
+                ('chart.save("nitrate.png")', "Save it."),
             ]),
             ("Is the trend real, or could it be chance? trend_of gives the slope (Sen's slope, the middle of the "
              "slopes between all pairs of days) and the Mann-Kendall test.", [
@@ -3681,8 +3689,8 @@ LESSONS = [
         task=[
             "Make a run of dates for every day of March 2026.",
             "Add a column with the average level of the last 30 days at each station.",
-            "Take the nitrate of the river table as numbers with table.column(\"nitrate\") and smooth them "
-            "with an exponential smoother.",
+            "Smooth the level of each station with a moving average over 61 days instead of 31, and draw it. "
+            "What does the wider window do?",
         ],
         solutions=[
             (_sx("""\
@@ -3699,17 +3707,20 @@ LESSONS = [
             (_sx("""\
                 import simplydata as sdata
                 table = sdata.table(sdata.example("river"))
-                table.keep_rows("station", equal_to="Station A")
-                table.fill_empty_cells("nitrate", with_the="line between neighbours", sorted_by="date")
-                nitrate = table.column("nitrate")
-                nitrate.smooth(method="exponential", newest_weight=0.2)"""),
-             "Each value is 0.2 x the reading + 0.8 x the value before (a recursive filter in R)."),
+                table.add_missing_dates("date", every="day", for_each="station")
+                table.fill_empty_cells("level", with_the="line between neighbours", sorted_by="date", for_each="station")
+                table.add_smoothed_column("level_smoothed", from_column="level", window=61, sorted_by="date", for_each="station")
+                chart = table.chart()
+                chart.lines(x="date", y="level_smoothed", colour="station")
+                chart.save("level_smoothed.png")"""),
+             "The wider window gives a calmer line that hides the shorter ups and downs, and now the first and "
+             "last 30 days of each station are empty."),
         ],
         words=["sdata.dates", "table.add_missing_dates", "table.fill_empty_cells", "table.add_rolling_column",
                "table.add_smoothed_column", "table.trend_of", "lines"],
     ),
     dict(
-        title="Forecasts: the next months, checked first",
+        title=FORECASTS_LESSON,
         learn=[
             "how to draw a series over time, and each year on top of the others (a seasonal chart)",
             "how to forecast the next months, starting from the simplest forecast",
@@ -3725,7 +3736,7 @@ LESSONS = [
                 ("chart = table.chart()", "Start a chart of the table."),
                 ('chart.lines(x="month", y="visitors", colour="museum")',
                  "One line per museum: both rise year after year, with a peak every summer."),
-                ('chart.save("lesson22_lines.png")', "Save it."),
+                ('chart.save("visitor_lines.png")', "Save it."),
             ]),
             ("A seasonal chart puts each year on top of the others, January to December. It needs no new word: "
              "take the month and the year out of the date, then draw one line per year.", [
@@ -3738,7 +3749,7 @@ LESSONS = [
                 ("chart = table.chart()", "Start a chart."),
                 ('chart.lines(x="month_name", y="visitors", colour="year")',
                  "Twelve lines, one per year, all with the same summer peak; later years lie higher."),
-                ('chart.save("lesson22_seasons.png")', "Save it."),
+                ('chart.save("visitor_seasons.png")', "Save it."),
             ]),
             ("Start with the simplest forecast: every future month is the last value. Any better method must "
              "beat it.", [
@@ -3773,7 +3784,7 @@ LESSONS = [
                 ('chart.lines(x="month", y="visitors", colour="museum")', "The data, one line per museum."),
                 ('chart.forecast(steps_ahead=12, repeats_every="year")',
                  "The forecast as a dashed line after the data, with its interval band."),
-                ('chart.save("lesson22_forecast.png")', "Save it."),
+                ('chart.save("visitor_forecast.png")', "Save it."),
             ]),
         ],
         notes=[
@@ -3808,14 +3819,14 @@ LESSONS = [
         words=["lines", "table.add_date_part_column", "table.forecast", "table.compare_forecasts", "forecast"],
     ),
     dict(
-        title="Cycles: spectra, filters, peaks, and steady or not",
+        title=CYCLES_LESSON,
         learn=[
             "how to find the repeating cycles in a recording, and how strong each is (the spectrum)",
             "how to take out a hum, or keep only the slow cycles (filters)",
-            "how to find the peaks of a signal",
-            "how to check whether a series stays steady, a check before some forecasts",
+            "how to find the peaks and the dips of a signal",
+            "more, if you want it: a smoother spectrum (Welch), and whether a series stays steady",
         ],
-        needs_r=needs_r_text("check_steady() and its two tests", packages=("tseries",)),
+        needs_r=needs_r_text("Only the last part, check_steady() and its two tests,", packages=("tseries",)),
         parts=[
             ("A sensor gives 200 readings a second for 5 seconds. Which cycles does its signal hold? The "
              "spectrum splits a recording into its frequencies, like a prism splits light into colours.", [
@@ -3825,14 +3836,11 @@ LESSONS = [
                 ('table.spectrum_of("signal", sorted_by="time")',
                  "The strongest cycle has frequency 5 per second (it repeats every 0.2 seconds) and holds 68 % "
                  "of the variance; next come 20 per second (11 %) and a 50-per-second hum (4 %)."),
-                ('table.spectrum_of("signal", sorted_by="time", method="welch", window=200)',
-                 "Welch's method averages the spectra of overlapping pieces of 200 readings: smoother and "
-                 "coarser. The same three cycles stand out."),
                 ("chart = table.chart()", "Start a chart."),
-                ('chart.spectrum(x="time", y="signal")',
-                 "Power against frequency on a log scale, the three strongest cycles labelled with how often "
-                 "they repeat."),
-                ('chart.save("lesson23_spectrum.png")', "Save it."),
+                ('chart.spectrum("signal", sorted_by="time")',
+                 "The same numbers as a chart: power against frequency on a log scale, the three strongest "
+                 "cycles labelled with how often they repeat."),
+                ('chart.save("spectrum.png")', "Save it."),
             ]),
             ("A filter keeps some frequencies and removes others. remove_at=50 takes out the hum; keep_below=10 "
              "keeps only the slow cycles.", [
@@ -3848,22 +3856,33 @@ LESSONS = [
                 ('chart.lines(x="time", y="signal")', "The raw signal."),
                 ('chart.lines(x="time", y="slow")', "The slow part only: a clean 5-per-second wave."),
                 ("chart.range_x(0, 1)", "Show the first second."),
-                ('chart.save("lesson23_filter.png")', "Save it."),
+                ('chart.save("filter.png")', "Save it."),
             ]),
-            ("Peaks are readings higher than both neighbours. Conditions keep only the ones that matter.", [
+            ("Peaks are readings higher than both neighbours; dips are readings lower than both. Conditions "
+             "keep only the ones that matter.", [
                 ("import simplydata as sdata", "Load simplydata."),
                 ('table = sdata.table(sdata.example("sensor"))', "The sensor table."),
                 ('table.find_peaks("signal", sorted_by="time", at_least=2.5)',
                  "One peak is at least 2.5 high: 3.48 at time 3.885, a spike. R's pracma::findpeaks() finds the "
                  "same."),
+                ('table.find_dips("signal", sorted_by="time", at_most=-2)',
+                 "find_dips is find_peaks upside down: one dip goes down to -2 or lower, -2.36 at time 0.94."),
                 ("chart = table.chart()", "Start a chart."),
                 ('chart.lines(x="time", y="signal")', "The signal."),
                 ("chart.peak_dots(at_least=2.5)", "A mark on the peak."),
-                ('chart.save("lesson23_peaks.png")', "Save it."),
+                ('chart.save("peaks.png")', "Save it."),
             ]),
-            ("Some forecasts (ARIMA) assume the series is steady: the same average and spread all the way "
-             "through. check_steady runs two tests that start from opposite assumptions and gives one answer: "
-             "steady, wanders, or close to the edge.", [
+            ("More (if you want it): Welch's method averages the spectra of overlapping pieces of the "
+             "recording. The spectrum is smoother but coarser.", [
+                ("import simplydata as sdata", "Load simplydata."),
+                ('table = sdata.table(sdata.example("sensor"))', "The sensor table."),
+                ('table.spectrum_of("signal", sorted_by="time", method="welch", window=200)',
+                 "Pieces of 200 readings with half overlap: the same three cycles stand out (5, 20 and 50 per "
+                 "second)."),
+            ]),
+            ("More (if you want it; needs R): some forecasts (ARIMA) assume the series is steady: the same "
+             "average and spread all the way through. check_steady runs two tests that start from opposite "
+             "assumptions and gives one answer: steady, wanders, or close to the edge.", [
                 ("import simplydata as sdata", "Load simplydata."),
                 ('table = sdata.table(sdata.example("sensor"))', "The sensor table."),
                 ('table.check_steady("signal", sorted_by="time")',
@@ -3886,7 +3905,7 @@ LESSONS = [
         task=[
             'Which cycle is strongest in the "vibration" column? Is it the same as in "signal"?',
             "Keep only the frequencies between 15 and 25 in the signal. Which cycle is left?",
-            "Find the dips of the signal that go below -2.",
+            "Find the dips of the signal that go down to -1.5 or lower. Is the lowest one still the same?",
         ],
         solutions=[
             (_sx("""\
@@ -3904,77 +3923,98 @@ LESSONS = [
             (_sx("""\
                 import simplydata as sdata
                 table = sdata.table(sdata.example("sensor"))
-                table.find_dips("signal", sorted_by="time", at_most=-2)"""),
-             "find_dips is find_peaks upside down: it lists each dip with its time and value."),
+                table.find_dips("signal", sorted_by="time", at_most=-1.5)"""),
+             "Many more dips now, each with its time and value; the lowest is still -2.36 at time 0.94."),
         ],
-        words=["table.spectrum_of", "spectrum", "table.add_filtered_column", "table.find_peaks", "peak_dots",
-               "table.check_steady"],
+        words=["table.spectrum_of", "spectrum", "table.add_filtered_column", "table.find_peaks", "table.find_dips",
+               "peak_dots", "table.check_steady"],
     ),
     dict(
-        title="Systems: a spring and damper, its response and a feedback loop",
+        title=SYSTEMS_LESSON,
         learn=[
-            "how to write down a linear system and see whether it is stable",
-            "how it answers a step (rise time, overshoot, settling time) and each frequency (Bode chart)",
+            "that a filter is a system, and how to write down a system of your own (a spring and damper)",
+            "whether a system is stable, from its poles, and how it answers a step (overshoot, settling time)",
             "how a feedback loop with a controller changes the answer",
-            "how to turn a system into steps for a computer",
+            "more, if you want it: the Bode chart and the margins, and a system in steps for a computer",
         ],
         parts=[
+            ("This lesson is optional, for engineering. It starts from the filter of the cycles lesson: a "
+             "filter is a system, something that turns an input (the raw signal) into an output.", [
+                ("import simplydata as sdata", "Load simplydata."),
+                ("low_pass = sdata.frequency_filter(keep_below=10, time_step=0.005)",
+                 "The filter of add_filtered_column(keep_below=10) as a system: it prints its formula and its "
+                 "poles. All poles lie inside the unit circle, so it is stable: its output settles."),
+                ("low_pass.frequency_response(between=[1, 50])",
+                 "How much of each frequency gets through: all of 1 per second (gain 1), almost nothing of 50 "
+                 "per second (gain 0.0006)."),
+                ("chart = low_pass.chart()", "The gain and the phase against frequency (a Bode chart)."),
+                ('chart.save("low_pass.png")', "Save it."),
+            ]),
             ("A weight on a spring with a damper: push it with a force and it moves. Its output (the position) "
-             "over its input (the force) is 1 / (s**2 + 0.8*s + 4), where s stands for change over time.", [
+             "over its input (the force) is 1 / (s**2 + 0.8*s + 4). s stands for \"how fast it changes\": s "
+             "times the position is its speed.", [
                 ("import simplydata as sdata", "Load simplydata."),
                 ('spring = sdata.system("1 / (s**2 + 0.8*s + 4)")',
                  "Poles -0.4 +/- 1.96i: stable, because every pole has a negative real part. A constant force "
                  "of 1 settles at 0.25. R: control::tf(1, c(1, 0.8, 4))."),
                 ("spring.poles()", "The table of poles: damping ratio 0.2 (lightly damped), natural frequency 2."),
+                ('chart = spring.chart(show="poles and zeros")',
+                 "The poles as x on the plane of real and imaginary parts: both lie left of the line, so the "
+                 "spring is stable."),
+                ('chart.save("spring_poles.png")', "Save it."),
                 ("spring.step_response(until=15)",
                  "It overshoots by 52.6 % (peak 0.3815 at time 1.58), rises in 0.60 and settles within 2 % "
                  "after 9.8. R's control::step() gives the same response."),
                 ('chart = spring.chart(show="step", until=15)', "The step response as a chart."),
-                ('chart.save("lesson24_step.png")', "Save it."),
-            ]),
-            ("The frequency response says how much of each frequency gets through (the gain) and how late "
-             "(the phase). The Bode chart shows both against frequency on a log scale.", [
-                ("import simplydata as sdata", "Load simplydata."),
-                ('spring = sdata.system("1 / (s**2 + 0.8*s + 4)")', "The spring."),
-                ("spring.frequency_response(between=[0.1, 10])",
-                 "-12.02 dB at 0.1 radians per second, -39.68 dB at 10; R's control::bode() gives the same."),
-                ("chart = spring.chart(between=[0.1, 10])",
-                 "The Bode chart: a peak near 2 radians per second, where the spring rings."),
-                ('chart.save("lesson24_bode.png")', "Save it."),
+                ('chart.save("spring_step.png")', "Save it."),
             ]),
             ("A controller measures the position, compares it with the target and pushes. This one pushes by 2 "
              "x the error plus 2 x the error added up over time: 2 * (s + 1) / s.", [
                 ("import simplydata as sdata", "Load simplydata."),
                 ('spring = sdata.system("1 / (s**2 + 0.8*s + 4)")', "The spring."),
                 ('controller = sdata.system("2 * (s + 1) / s")', "The controller."),
-                ("controller.then(spring).frequency_response()",
-                 "Before closing the loop: gain margin 18.06 dB and phase margin 32.98 degrees, so the loop "
-                 "will be stable with room to spare."),
                 ("loop = controller.then(spring).with_feedback()",
-                 "The closed loop: (2*s + 2) / (s**3 + 0.8*s**2 + 6*s + 2), as R control::feedback()."),
+                 "The controller, then the spring, with the position fed back: (2*s + 2) / (s**3 + 0.8*s**2 + "
+                 "6*s + 2), as R control::feedback()."),
                 ("loop.step_response(until=30)",
                  "Now the position settles at the target, 1 (without the controller it settled at 0.25), with "
                  "only 1.5 % overshoot."),
             ]),
-            ("A computer reads and acts in steps. in_steps turns the system into one that works every 0.1 "
-             "seconds.", [
+            ("More (if you want it): the frequency response says how much of each frequency gets through (the "
+             "gain) and how late (the phase). The frequencies of systems are in radians per second, as R "
+             "control and SciPy: 2 radians per second is 0.32 cycles per second.", [
+                ("import simplydata as sdata", "Load simplydata."),
+                ('spring = sdata.system("1 / (s**2 + 0.8*s + 4)")', "The spring."),
+                ("spring.frequency_response(between=[0.1, 10])",
+                 "-12.02 decibels at 0.1 radians per second, -39.68 at 10; R's control::bode() gives the same."),
+                ("chart = spring.chart(between=[0.1, 10])",
+                 "The Bode chart: a peak near 2 radians per second, where the spring rings."),
+                ('chart.save("spring_bode.png")', "Save it."),
+                ('controller = sdata.system("2 * (s + 1) / s")', "The controller."),
+                ("controller.then(spring).frequency_response()",
+                 "Before closing the loop: gain margin 18.06 decibels and phase margin 32.98 degrees. The loop "
+                 "could take about 8 times the gain, or 33 degrees more delay, before it stopped settling."),
+            ]),
+            ("More (if you want it): a computer reads and acts in steps. in_steps turns the system into one "
+             "that works every 0.1 seconds.", [
                 ("import simplydata as sdata", "Load simplydata."),
                 ('spring = sdata.system("1 / (s**2 + 0.8*s + 4)")', "The spring."),
                 ("digital = spring.in_steps(time_step=0.1)",
                  "(0.00485317*z + 0.0047253) / (z**2 - 1.8848*z + 0.923116), as R control::c2d(sys, 0.1)."),
-                ("steps = digital.step_response(until=15)",
+                ("response = digital.step_response(until=15)",
                  "Almost the same answer as before: overshoot 52.7 %, settling time 9.8."),
-                ("chart = steps.chart()", "The response is a table, so it can be drawn like any other."),
+                ("chart = response.chart()", "The response is a table, so it can be drawn like any other."),
                 ('chart.lines(x="time", y="output", joined_by="steps")',
                  "Each value holds until the next step, as the computer sees it."),
-                ('chart.save("lesson24_in_steps.png")', "Save it."),
+                ('chart.save("spring_in_steps.png")', "Save it."),
             ]),
         ],
         notes=[
+            "This lesson is optional: no other lesson needs it.",
             "A system can be written as a formula, as numerator= and denominator= (highest power first), as "
             "poles= and zeros=, or as matrices a=, b=, c=, d=.",
-            "Frequencies of systems are in radians per second, as R control and SciPy; units=\"hertz\" gives "
-            "cycles per second.",
+            "Frequencies of systems are in radians per second, as R control and SciPy; unit=\"cycles per "
+            "second\" gives cycles per second. A filter from sdata.frequency_filter is in cycles per second.",
             "R's control package has no stepinfo() or margin(): simplydata reads the rise time, settling time and "
             "margins from the response, and the R checks do the same from R's response.",
         ],
@@ -4001,14 +4041,24 @@ LESSONS = [
                 import simplydata as sdata
                 spring = sdata.system("1 / (s**2 + 0.8*s + 4)")
                 loop = sdata.system("2 * (s + 1) / s").then(spring).with_feedback()
-                chart = loop.chart(show="pole-zero")
+                chart = loop.chart(show="poles and zeros")
                 chart.save("loop_poles.png")"""),
              "Three poles, all left of the imaginary axis (stable), and one zero at -1."),
         ],
-        words=["sdata.system", "system.poles", "system.step_response", "system.frequency_response",
-               "system.chart", "system.then", "system.with_feedback", "system.in_steps"],
+        words=["sdata.frequency_filter", "sdata.system", "system.poles", "system.chart", "system.step_response",
+               "system.then", "system.with_feedback", "system.frequency_response", "system.in_steps"],
     ),
 ]
+
+
+def lesson_number(title: str) -> int:
+    """The number of the lesson with this title. The 30-day guide and the tests find a lesson by its
+    title, so its number can change when lessons are added before it."""
+    for number, les in enumerate(LESSONS, start=1):
+        if les["title"] == title:
+            return number
+    raise KeyError(title)
+
 
 def _wrap(text: str, indent: str = "", width: int = WIDTH) -> str:
     return textwrap.fill(text, width, initial_indent=indent, subsequent_indent=indent)
@@ -4023,9 +4073,9 @@ def _list_lessons() -> None:
     print(f"Learn simplydata in one day: {len(LESSONS)} lessons of about 30 minutes.")
     print("Lessons 1 to 8 teach charts, lessons 9 to 12 teach tables, lesson 13 teaches numbers,")
     print("lesson 14 teaches statistical tests and lesson 15 puts it all together, from a question")
-    print("to a figure. Lessons 16 to 24 go further: models, patterns across many columns,")
+    print(f"to a figure. Lessons 16 to {len(LESSONS)} go further: models, patterns across many columns,")
     print("survival and planning a study, fitting curves and finding answers, distributions, time")
-    print("series, forecasts, cycles and systems.\n")
+    print("series, forecasts, cycles and (optional) systems.\n")
     for i, les in enumerate(LESSONS, start=1):
         print(f"  sdata.lesson({i}){' ' * (5 - len(str(i)))}{les['title']}")
     print("\nStart with sdata.lesson(1). Each lesson ends with a small task to try yourself.")

@@ -158,7 +158,7 @@ _TABLE = [
      "mk.test mann_kendall mannkendall sens.slope sen_slope theilslopes smk.test sea.sens.slope"),
     ('table.correlation_between("a", "b", rows_back=12, sorted_by="date")', "ccf cross_correlation xcorr"),
     ('table.add_missing_dates("date", every="day")', "asfreq upsample complete fill_missing_dates"),
-    ('table.add_smoothed_column("signal_smooth", from_column="signal", window=11, sorted_by="time")',
+    ('table.add_smoothed_column("signal_smoothed", from_column="signal", window=11, sorted_by="time")',
      "rolling_smooth savgol smooth_column add_smooth_column"),
     ('table.forecast("visitors", sorted_by="month", repeats_every="year")',
      "predict_future naive snaive meanf rwf HoltWinters holt_winters ExponentialSmoothing exponential_smoothing "
@@ -218,13 +218,13 @@ _CHART = [
     ('chart.colour_scale("magma")', "cmap colormap scale_fill_viridis_c"),
     ('chart.size(width=17, height=8, unit="cm")', "figsize set_size_inches"),
     ('chart.sticks(x="rows back", y="correlation")', "stem stems stemplot lollipop"),
-    ('chart.autocorrelation_bars(x="month", y="visitors")', "plot_acf plot_pacf acorr"),
-    ('chart.cross_correlation_bars(x="time", y="signal", against="vibration")', "plot_ccf xcorr"),
-    ('chart.lag_dots(x="month", y="visitors", rows_back=1)', "lag_plot lagplot"),
+    ('chart.autocorrelation_bars("visitors", sorted_by="month")', "plot_acf plot_pacf acorr"),
+    ('chart.cross_correlation_bars("signal", "vibration", sorted_by="time")', "plot_ccf xcorr"),
+    ('chart.lag_dots("visitors", sorted_by="month", rows_back=1)', "lag_plot lagplot"),
     ('chart.trend_and_season(x="month", y="visitors", repeats_every="year")', "plot_stl plot_decompose"),
     ("chart.forecast(steps_ahead=12)", "plot_predict plot_forecast autoplot"),
-    ('chart.spectrum(x="time", y="signal")', "psd magnitude_spectrum plot_spectrum periodogram"),
-    ('chart.spectrum_over_time(x="time", y="signal")', "spectrogram specgram stft"),
+    ('chart.spectrum("signal", sorted_by="time")', "psd magnitude_spectrum plot_spectrum periodogram"),
+    ('chart.spectrum_over_time("signal", sorted_by="time")', "spectrogram specgram stft"),
     ("chart.peak_dots(at_least=1)", "mark_peaks plot_peaks"),
 ]
 

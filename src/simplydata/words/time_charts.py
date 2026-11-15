@@ -11,8 +11,8 @@ from __future__ import annotations
 import numpy as np
 from matplotlib import rcParams
 
-from .._errors import SimplydataError, friendly
-from ._helpers import check, check_thickness, colour_role, default_colour, palette_for, single_list
+from .._errors import SimplydataError, friendly, option_error, renamed_note
+from ._helpers import check, check_thickness, check_transparency, colour_role, default_colour, palette_for, single_list
 
 
 def _table_of(chart, columns=None):
@@ -116,12 +116,12 @@ def _draw_trend_and_season(ctx, frame, x, y):
     ax = ctx.ax
     ax.set_axis_off()
     colour = default_colour(ctx.settings)
-    names = [(y, "data"), (f"{y}_trend", "trend"), (f"{y}_season", "season"), (f"{y}_rest", "rest")]
+    names = [(y, y), (f"{y}_trend", "trend"), (f"{y}_season", "season"), (f"{y}_rest", "rest")]
     panels = []
     for i, (column, title) in enumerate(names):
         inner = ax.inset_axes([0, 1 - (i + 1) * 0.25 + 0.02, 1, 0.21], sharex=panels[0] if panels else None)
         xs = frame[x] if x is not None else np.arange(1, len(frame) + 1)
-        if title == "rest":
+        if i == 3:
             inner.vlines(xs, 0, frame[column].to_numpy(dtype=float), color=colour, linewidth=1)
             inner.axhline(0, color="grey", linewidth=0.8)
         else:
@@ -202,6 +202,17 @@ class TimeChartWords:
         check(self._data, x=x, y=y)
         return x, y, last.get("colour")
 
+    def _column_first(self, word, column, sorted_by, example):
+        """(column, sorted_by) of a chart word that takes the column first, as its table word does; a lines
+        layer before it gives them when left out."""
+        last = self._last_layer(word)
+        column = last.get("y") if column is None else column
+        sorted_by = last.get("x") if sorted_by is None else sorted_by
+        if column is None:
+            raise SimplydataError(f".{word}() needs the column first, for example {example}.")
+        check(self._data, x=sorted_by, y=column)
+        return column, sorted_by
+
     @friendly
     def sticks(self, x=None, y=None, colour=None, thickness=None):
         """A thin line from 0 up (or down) to each value, with a dot on top (a stem chart).
@@ -219,17 +230,18 @@ class TimeChartWords:
         self._need_axes("sticks")
         return self._add("sticks", "draw", _draw_sticks, x=x, y=y, colour=colour, thickness=thickness)
 
-    @friendly
-    def autocorrelation_bars(self, x=None, y=None, rows_back=None, show="correlation", band="white noise"):
+    @friendly(renamed={"y": "column", "x": "sorted_by"})
+    def autocorrelation_bars(self, column=None, sorted_by=None, rows_back=None, show="correlation",
+                             band="white noise"):
         """Sticks for the correlation of a column with itself 1, 2, ... rows back, with the noise band.
 
-        chart.autocorrelation_bars(x="month", y="visitors")   (with one museum of sdata.example("visitors"))
-        x= is the time column (the order), y= the column. The heights are those of
-        table.autocorrelation_of (rows_back=, show="correlation" or "partial", band="white noise" or
-        "bartlett"); the dashed lines are the band, as R plot(acf(x)). colour= groups are not used:
-        keep one series first.
+        chart.autocorrelation_bars("visitors", sorted_by="month")   (with one museum of sdata.example("visitors"))
+        The column first, sorted_by= the time column (the order), as table.autocorrelation_of: the heights
+        are its numbers (rows_back=, show="correlation" or "partial", band="white noise" or "bartlett"); the
+        dashed lines are the band, as R plot(acf(x)). colour= groups are not used: keep one series first.
         """
-        x, y, colour = self._xy("autocorrelation_bars", x, y, 'chart.autocorrelation_bars(x="month", y="visitors")')
+        y, x = self._column_first("autocorrelation_bars", column, sorted_by,
+                                  'chart.autocorrelation_bars("visitors", sorted_by="month")')
         got = _frame(_table_of(self).autocorrelation_of(y, sorted_by=x, rows_back=rows_back, show=show, band=band))
         value = [c for c in got.columns if c not in ("rows back", "band low", "band high", "outside band",
                                                      "Ljung-Box statistic", "Ljung-Box p-value")][-1]
@@ -237,19 +249,31 @@ class TimeChartWords:
         return self._add("autocorrelation_bars", "draw", _draw_result_sticks, frame=got, x="rows back", y=value,
                          group=None, low="band low", high="band high", word="autocorrelation_bars")
 
-    @friendly
-    def cross_correlation_bars(self, x=None, y=None, against=None, rows_back=None):
-        """Sticks for the correlation of two columns when one is shifted by -k to k rows.
+    @friendly(renamed={"x": "sorted_by"})
+    def cross_correlation_bars(self, *columns, sorted_by=None, rows_back=None, **other_names):
+        """Sticks for the correlation of two columns when the second is shifted by -k to k rows.
 
-        chart.cross_correlation_bars(x="time", y="signal", against="vibration", rows_back=20)   (with sdata.example("sensor"))
-        The heights are those of table.correlation_between(y, against, rows_back=, sorted_by=x): a high
-        stick at shift 6 means "against" follows y 6 rows later.
+        chart.cross_correlation_bars("signal", "vibration", sorted_by="time", rows_back=20)   (with sdata.example("sensor"))
+        The two columns first, sorted_by= the time column, as table.correlation_between: the heights are
+        its numbers. A high stick at shift 6 means the second column follows the first 6 rows later.
         """
-        if against is None:
-            raise SimplydataError('.cross_correlation_bars() needs against= (the second column), for example '
-                                  'chart.cross_correlation_bars(x="time", y="signal", against="vibration").')
-        x, y, _ = self._xy("cross_correlation_bars", x, y, 'chart.cross_correlation_bars(x="time", y="signal", '
-                                                           'against="vibration")')
+        example = 'chart.cross_correlation_bars("signal", "vibration", sorted_by="time")'
+        columns = list(columns)
+        for old, place in (("y", 0), ("against", 1)):  # the spellings before 0.6 was released
+            if old in other_names:
+                renamed_note(f"{old}=", "the first column" if place == 0 else "the second column")
+                value = other_names.pop(old)
+                if len(columns) > place:
+                    raise SimplydataError(f"Give the {'first' if place == 0 else 'second'} column once ({old}= is "
+                                          f"its old name). For example, {example}.")
+                columns.insert(place, value)
+        if other_names:
+            raise option_error("cross_correlation_bars", next(iter(other_names)), ["sorted_by", "rows_back"])
+        if len(columns) != 2:
+            raise SimplydataError(f".cross_correlation_bars() needs two columns, for example {example}.")
+        y, against = columns
+        x = sorted_by if sorted_by is not None else self._last_layer("cross_correlation_bars").get("x")
+        check(self._data, x=x, y=y)
         check(self._data, y=against)
         rows_back = 10 if rows_back is None else rows_back
         got = _frame(_table_of(self).correlation_between(y, against, rows_back=rows_back, sorted_by=x))
@@ -262,17 +286,21 @@ class TimeChartWords:
         return self._add("cross_correlation_bars", "draw", _draw_result_sticks, frame=got, x=shift, y=value,
                          group=None, low=low, high=high, word="cross_correlation_bars")
 
-    @friendly
-    def lag_dots(self, y=None, x=None, rows_back=1, transparency=None):
+    @friendly(renamed={"y": "column", "x": "sorted_by"})
+    def lag_dots(self, column=None, sorted_by=None, rows_back=1, transparency=None):
         """Dots of each value against the value some rows back, with the 1:1 line (as R lag.plot).
 
-        chart.lag_dots(x="month", y="visitors", rows_back=[1, 12])   (with one museum of sdata.example("visitors"))
-        x= is the time column (the order; table order without it). rows_back= one number or a list: each
-        gets its own colour. Dots near the dashed 1:1 line mean the value is like the one rows_back earlier.
+        chart.lag_dots("visitors", sorted_by="month", rows_back=[1, 12])   (with one museum of sdata.example("visitors"))
+        The column first, sorted_by= the time column (the order; table order without it). rows_back= one
+        number or a list: each gets its own colour. Dots near the dashed 1:1 line mean the value is like
+        the one rows_back earlier. transparency=0.5 makes the dots half see-through where many overlap.
         """
-        if y is None:
-            raise SimplydataError('.lag_dots() needs y=, for example chart.lag_dots(x="month", y="visitors").')
+        if column is None:
+            raise SimplydataError('.lag_dots() needs the column first, for example chart.lag_dots("visitors", '
+                                  'sorted_by="month").')
+        y, x = column, sorted_by
         check(self._data, x=x, y=y)
+        transparency = check_transparency("lag_dots", transparency)
         ks = rows_back if isinstance(rows_back, (list, tuple)) else [rows_back]
         if not ks or any(isinstance(k, bool) or not isinstance(k, int) or k < 1 for k in ks):
             raise SimplydataError("rows_back= needs whole numbers of 1 or more, such as rows_back=[1, 12].")
@@ -281,11 +309,12 @@ class TimeChartWords:
 
     @friendly
     def trend_and_season(self, x=None, y=None, repeats_every=None, method="loess"):
-        """Four panels sharing x: the data, its trend, its season and the rest (as R plot(stl(...))).
+        """Four panels sharing x: the column itself, its trend, its season and the rest (as R plot(stl(...)),
+        which labels the first panel "data").
 
         chart.trend_and_season(x="month", y="visitors", repeats_every="year")   (with one museum of sdata.example("visitors"))
         The parts are those of table.add_trend_and_season (repeats_every=, method="loess", "moving
-        averages" or "straight line").
+        averages" or "straight line"); the first panel is named after the column.
         """
         if y is None:
             raise SimplydataError('.trend_and_season() needs y=, for example chart.trend_and_season(x="month", '
@@ -316,17 +345,19 @@ class TimeChartWords:
                                                seasonal_order=seasonal_order, interval=interval, for_each=group))
         return self._add("forecast", "extra", _draw_forecast, frame=got, x=x, group=group, interval=interval)
 
-    @friendly
-    def spectrum(self, x=None, y=None, method="periodogram", show="power", window=None, log_scale=True):
+    @friendly(renamed={"y": "column", "x": "sorted_by"})
+    def spectrum(self, column=None, sorted_by=None, method="periodogram", show="power", window=None, log_scale=True):
         """Power against frequency: which cycles a column holds, the 3 strongest labelled with their period.
 
-        chart.spectrum(x="time", y="signal")   (with sdata.example("sensor"))
-        x= is the time column, y= the column. The numbers are those of table.spectrum_of (method=
-        "periodogram", "welch" or "lomb-scargle"; show="power", "decibels" or "amplitude"). log_scale=True
-        puts the power on a log scale (not for decibels). colour= groups each get a line.
+        chart.spectrum("signal", sorted_by="time")   (with sdata.example("sensor"))
+        The column first, sorted_by= the time column, as table.spectrum_of: the numbers are its numbers
+        (method="periodogram", "welch" or "lomb-scargle"; show="power", "decibels" or "amplitude").
+        log_scale=True puts the power on a log scale (not for decibels). colour= groups each get a line.
         """
-        if y is None:
-            raise SimplydataError('.spectrum() needs y=, for example chart.spectrum(x="time", y="signal").')
+        if column is None:
+            raise SimplydataError('.spectrum() needs the column first, for example chart.spectrum("signal", '
+                                  'sorted_by="time").')
+        y, x = column, sorted_by
         check(self._data, x=x, y=y)
         last = self._last_layer("spectrum")
         colour = last.get("colour") if last.get("y") == y else None
@@ -346,23 +377,24 @@ class TimeChartWords:
         return self._add("spectrum", "draw", _draw_spectrum, frame=got, column=column, group=group,
                          log_scale=bool(log_scale) and show != "decibels", peaks=peaks)
 
-    @friendly
-    def spectrum_over_time(self, x=None, y=None, window=256, window_shape="hann"):
+    @friendly(renamed={"y": "column", "x": "sorted_by"})
+    def spectrum_over_time(self, column=None, sorted_by=None, window=256, window_shape="hann"):
         """How the cycles in a column change over time: a heat map of time, frequency and power (decibels).
 
-        chart.spectrum_over_time(x="time", y="signal", window=100)   (with sdata.example("sensor"))
-        The column is cut into pieces of window= readings that overlap by half; each piece gets its
-        periodogram (window_shape= weights, the mean of each piece removed), as SciPy signal.spectrogram;
-        the time of each piece is its middle. The readings must be evenly spaced (x=) and filled in.
+        chart.spectrum_over_time("signal", sorted_by="time", window=100)   (with sdata.example("sensor"))
+        The column first, sorted_by= the time column. The column is cut into pieces of window= readings
+        that overlap by half; each piece gets its periodogram (window_shape= weights, the mean of each piece
+        removed), as SciPy signal.spectrogram; the time of each piece is its middle. The readings must be
+        evenly spaced (sorted_by=) and filled in.
         """
         from .._time_axis import need_filled, need_regular, series_of
 
-        if y is None:
-            raise SimplydataError('.spectrum_over_time() needs y=, for example chart.spectrum_over_time(x="time", '
-                                  'y="signal").')
+        example = 'chart.spectrum_over_time("signal", sorted_by="time")'
+        if column is None:
+            raise SimplydataError(f".spectrum_over_time() needs the column first, for example {example}.")
+        y, x = column, sorted_by
         check(self._data, x=x, y=y)
         table = _table_of(self)
-        example = 'chart.spectrum_over_time(x="time", y="signal")'
         one = series_of(table, y, x, None, "spectrum_over_time", example)[0]
         need_filled(one, y, "spectrum_over_time", x)
         if x is not None:

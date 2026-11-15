@@ -40,44 +40,56 @@ def test_sticks_draws_a_line_from_zero_to_each_value():
 
 def test_autocorrelation_bars_equal_autocorrelation_of(capsys):
     data = harbour()
-    chart = sdata.chart(data).autocorrelation_bars(x="month", y="visitors", rows_back=24)
+    chart = sdata.chart(data).autocorrelation_bars("visitors", sorted_by="month", rows_back=24)
     ax = chart._render().axes[0]
     heights = [s[1, 1] for s in ax.collections[0].get_segments()]
     table = native(sdata.table(data).autocorrelation_of("visitors", sorted_by="month", rows_back=24))
     assert heights == pytest.approx(table["correlation"].tolist(), rel=1e-12)
     assert len(heights) == 24
     assert "Ljung-Box" in capsys.readouterr().out
+    # the spellings before the name review (x=, y=) still work
+    old = sdata.chart(data).autocorrelation_bars(x="month", y="visitors", rows_back=24)._render().axes[0]
+    assert [s[1, 1] for s in old.collections[0].get_segments()] == pytest.approx(heights, rel=1e-12)
 
 
 def test_cross_correlation_bars_equal_correlation_between():
     data = sdata.example("sensor")
-    ax = sdata.chart(data).cross_correlation_bars(x="time", y="signal", against="vibration",
+    ax = sdata.chart(data).cross_correlation_bars("signal", "vibration", sorted_by="time",
                                                   rows_back=10)._render().axes[0]
     heights = [s[1, 1] for s in ax.collections[0].get_segments()]
     table = native(sdata.table(data).correlation_between("signal", "vibration", rows_back=10, sorted_by="time"))
     value = [c for c in table.columns if table[c].dtype.kind == "f" and not c.startswith("shift")
              and "band" not in c][0]
     assert heights == pytest.approx(table[value].tolist(), rel=1e-12)
-    with pytest.raises(SimplydataError, match="against="):
-        sdata.chart(data).cross_correlation_bars(x="time", y="signal")
+    old = sdata.chart(data).cross_correlation_bars(x="time", y="signal", against="vibration",
+                                                   rows_back=10)._render().axes[0]
+    assert [s[1, 1] for s in old.collections[0].get_segments()] == pytest.approx(heights, rel=1e-12)
+    with pytest.raises(SimplydataError, match="needs two columns"):
+        sdata.chart(data).cross_correlation_bars("signal", sorted_by="time")
+    with pytest.raises(SimplydataError, match="no option called"):
+        sdata.chart(data).cross_correlation_bars("signal", "vibration", shift=3)
 
 
 def test_lag_dots():
     data = harbour()
-    ax = sdata.chart(data).lag_dots(x="month", y="visitors", rows_back=[1, 12])._render().axes[0]
+    ax = sdata.chart(data).lag_dots("visitors", sorted_by="month", rows_back=[1, 12],
+                                    transparency=0.5)._render().axes[0]
     first = ax.collections[0].get_offsets()
     v = data.sort_values("month")["visitors"].to_numpy(dtype=float)
     assert pytest.approx(v[:-1]) == first[:, 0] and pytest.approx(v[1:]) == first[:, 1]
     assert len(ax.collections[1].get_offsets()) == len(v) - 12
+    assert ax.collections[0].get_alpha() == pytest.approx(0.5)
     with pytest.raises(SimplydataError, match="whole numbers"):
         sdata.chart(data).lag_dots(y="visitors", rows_back=0)
+    with pytest.raises(SimplydataError, match="transparency=1"):
+        sdata.chart(data).lag_dots("visitors", transparency=1)
 
 
 def test_trend_and_season_panels_equal_the_table_word():
     data = harbour()
     fig = sdata.chart(data).trend_and_season(x="month", y="visitors", repeats_every="year")._render()
     panels = fig.axes[0].child_axes
-    assert [p.get_ylabel() for p in panels] == ["data", "trend", "season", "rest"]
+    assert [p.get_ylabel() for p in panels] == ["visitors", "trend", "season", "rest"]
     table = sdata.table(data)
     table.add_trend_and_season("visitors", sorted_by="month", repeats_every="year")
     trend = native(table).sort_values("month")["visitors_trend"].to_numpy()
@@ -96,7 +108,7 @@ def test_chart_forecast_equals_table_forecast():
 
 def test_spectrum_chart_equals_spectrum_of():
     data = sdata.example("sensor")
-    ax = sdata.chart(data).spectrum(x="time", y="signal")._render().axes[0]
+    ax = sdata.chart(data).spectrum("signal", sorted_by="time")._render().axes[0]
     table = native(sdata.table(data).spectrum_of("signal", sorted_by="time"))
     table = table[table["frequency"] > 0]
     assert ax.get_lines()[0].get_ydata() == pytest.approx(table["power"].to_numpy(), rel=1e-12)
@@ -115,9 +127,9 @@ def test_spectrum_over_time_matches_r():
                                                 rel=1e-10)
     assert power[2, 4] == pytest.approx(0.127424736887222, rel=1e-10)
     assert t[[0, 4]] == pytest.approx([0.25, 1.25]) and f[2] == pytest.approx(4)
-    sdata.chart(sdata.example("sensor")).spectrum_over_time(x="time", y="signal", window=100)._render()
+    sdata.chart(sdata.example("sensor")).spectrum_over_time("signal", sorted_by="time", window=100)._render()
     with pytest.raises(SimplydataError, match="window="):
-        sdata.chart(sdata.example("sensor")).spectrum_over_time(x="time", y="signal", window=2)
+        sdata.chart(sdata.example("sensor")).spectrum_over_time("signal", sorted_by="time", window=2)
 
 
 def test_peak_dots_equal_find_peaks():
@@ -132,7 +144,10 @@ def test_peak_dots_equal_find_peaks():
 
 @pytest.mark.parametrize("method, options", [("moving average", {"window": 5}), ("savitzky-golay", {"window": 11}),
                                              ("exponential", {"newest_weight": 0.3}), ("gaussian", {"width": 2}),
-                                             ("whittaker", {"smoothness": 50}), ("wiener", {"window": 7})])
+                                             pytest.param("whittaker", {"smoothness": 50}, marks=pytest.mark.skipif(
+                                                 not hasattr(__import__("scipy.signal").signal, "whittaker_henderson"),
+                                                 reason="SciPy 1.17 or newer (Python 3.12 or newer)")),
+                                             ("wiener", {"window": 7})])
 def test_smooth_line_methods_equal_nums_smooth(method, options):
     data = sdata.example("sensor")
     ax = sdata.chart(data).dots(x="time", y="signal").smooth_line(method=method, **options)._render().axes[0]

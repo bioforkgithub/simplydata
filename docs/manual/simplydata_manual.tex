@@ -3071,10 +3071,10 @@ table = sdata.table(sdata.example("river"))
 table.add_missing_dates("date", every="day", for_each="station")
 table.fill_empty_cells("nitrate", with_the="line between neighbours", sorted_by="date", for_each="station")
 table.add_rolling_column("week_average", from_column="nitrate", window="7 days", sorted_by="date", for_each="station")
-table.add_smoothed_column("nitrate_smooth", from_column="nitrate", method="moving average", window=31, sorted_by="date", for_each="station")
+table.add_smoothed_column("nitrate_smoothed", from_column="nitrate", method="moving average", window=31, sorted_by="date", for_each="station")
 chart = table.chart()
-chart.lines(x="date", y="nitrate_smooth", colour="station")
-chart.save("lesson21_nitrate.png")
+chart.lines(x="date", y="nitrate_smoothed", colour="station")
+chart.save("nitrate.png")
 \end{lstlisting}
 \whateachline
 \begin{lineexplain}
@@ -3090,8 +3090,8 @@ chart.save("lesson21_nitrate.png")
 \end{lineexplain}
 \printedoutput{output/lesson21_example3.txt}
 \begin{center}\begin{minipage}{\linewidth}\centering
-\includegraphics[width=0.72\textwidth,height=0.36\textheight,keepaspectratio]{figures/lesson21_example3_lesson21_nitrate.pdf}
-\captionof{figure}{Lesson 21, example 3: \code{lesson21\_\allowbreak{}nitrate.\allowbreak{}png}.}
+\includegraphics[width=0.72\textwidth,height=0.36\textheight,keepaspectratio]{figures/lesson21_example3_nitrate.pdf}
+\captionof{figure}{Lesson 21, example 3: \code{nitrate.\allowbreak{}png}.}
 \end{minipage}\end{center}
 \section*{Example 4}
 Is the trend real, or could it be chance? \code{trend\_\allowbreak{}of} gives the slope (Sen's slope, the middle of the slopes between all pairs of days) and the Mann-Kendall test.
@@ -3118,7 +3118,7 @@ table.trend_of("nitrate", sorted_by="date", for_each="station")
 \begin{enumerate}
   \item Make a run of dates for every day of March 2026.
   \item Add a column with the average level of the last 30 days at each station.
-  \item Take the nitrate of the river table as numbers with \code{table.\allowbreak{}column(\textquotedbl{}nitrate\textquotedbl{})} and smooth them with an exponential smoother.
+  \item Smooth the level of each station with a moving average over 61 days instead of 31, and draw it. What does the wider window do?
 \end{enumerate}
 Worked solutions: page~\pageref{solutions:21}, or type \code{sdata.\allowbreak{}lesson(21,\allowbreak{} solutions=True)}.
 \end{tryit}
@@ -3140,7 +3140,7 @@ import simplydata as sdata
 table = sdata.table(sdata.example("visitors"))
 chart = table.chart()
 chart.lines(x="month", y="visitors", colour="museum")
-chart.save("lesson22_lines.png")
+chart.save("visitor_lines.png")
 \end{lstlisting}
 \whateachline
 \begin{lineexplain}
@@ -3152,8 +3152,8 @@ chart.save("lesson22_lines.png")
 \end{lineexplain}
 \printedoutput{output/lesson22_example1.txt}
 \begin{center}\begin{minipage}{\linewidth}\centering
-\includegraphics[width=0.72\textwidth,height=0.36\textheight,keepaspectratio]{figures/lesson22_example1_lesson22_lines.pdf}
-\captionof{figure}{Lesson 22, example 1: \code{lesson22\_\allowbreak{}lines.\allowbreak{}png}.}
+\includegraphics[width=0.72\textwidth,height=0.36\textheight,keepaspectratio]{figures/lesson22_example1_visitor_lines.pdf}
+\captionof{figure}{Lesson 22, example 1: \code{visitor\_\allowbreak{}lines.\allowbreak{}png}.}
 \end{minipage}\end{center}
 \section*{Example 2}
 A seasonal chart puts each year on top of the others, January to December. It needs no new word: take the month and the year out of the date, then draw one line per year.
@@ -3165,7 +3165,7 @@ table.add_date_part_column("month_name", from_column="month", part="month")
 table.add_date_part_column("year", from_column="month", part="year")
 chart = table.chart()
 chart.lines(x="month_name", y="visitors", colour="year")
-chart.save("lesson22_seasons.png")
+chart.save("visitor_seasons.png")
 \end{lstlisting}
 \whateachline
 \begin{lineexplain}
@@ -3180,8 +3180,8 @@ chart.save("lesson22_seasons.png")
 \end{lineexplain}
 \printedoutput{output/lesson22_example2.txt}
 \begin{center}\begin{minipage}{\linewidth}\centering
-\includegraphics[width=0.72\textwidth,height=0.36\textheight,keepaspectratio]{figures/lesson22_example2_lesson22_seasons.pdf}
-\captionof{figure}{Lesson 22, example 2: \code{lesson22\_\allowbreak{}seasons.\allowbreak{}png}.}
+\includegraphics[width=0.72\textwidth,height=0.36\textheight,keepaspectratio]{figures/lesson22_example2_visitor_seasons.pdf}
+\captionof{figure}{Lesson 22, example 2: \code{visitor\_\allowbreak{}seasons.\allowbreak{}png}.}
 \end{minipage}\end{center}
 \section*{Example 3}
 Start with the simplest forecast: every future month is the last value. Any better method must beat it.
@@ -3222,7 +3222,7 @@ table.forecast("visitors", sorted_by="month", steps_ahead=12, repeats_every="yea
 chart = table.chart()
 chart.lines(x="month", y="visitors", colour="museum")
 chart.forecast(steps_ahead=12, repeats_every="year")
-chart.save("lesson22_forecast.png")
+chart.save("visitor_forecast.png")
 \end{lstlisting}
 \whateachline
 \begin{lineexplain}
@@ -3236,8 +3236,8 @@ chart.save("lesson22_forecast.png")
 \end{lineexplain}
 \printedoutput{output/lesson22_example5.txt}
 \begin{center}\begin{minipage}{\linewidth}\centering
-\includegraphics[width=0.72\textwidth,height=0.36\textheight,keepaspectratio]{figures/lesson22_example5_lesson22_forecast.pdf}
-\captionof{figure}{Lesson 22, example 5: \code{lesson22\_\allowbreak{}forecast.\allowbreak{}png}.}
+\includegraphics[width=0.72\textwidth,height=0.36\textheight,keepaspectratio]{figures/lesson22_example5_visitor_forecast.pdf}
+\captionof{figure}{Lesson 22, example 5: \code{visitor\_\allowbreak{}forecast.\allowbreak{}png}.}
 \end{minipage}\end{center}
 \begin{goodtoknow}
 \begin{itemize}
@@ -3260,36 +3260,34 @@ Worked solutions: page~\pageref{solutions:22}, or type \code{sdata.\allowbreak{}
 \begin{itemize}
   \item how to find the repeating cycles in a recording, and how strong each is (the spectrum)
   \item how to take out a hum, or keep only the slow cycles (filters)
-  \item how to find the peaks of a signal
-  \item how to check whether a series stays steady, a check before some forecasts
+  \item how to find the peaks and the dips of a signal
+  \item more, if you want it: a smoother spectrum (Welch), and whether a series stays steady
 \end{itemize}
 \end{learnbox}
-\begin{needsr}\code{check\_\allowbreak{}steady()} and its two tests run R's own code, the same code R users run. Install it once: pip install \code{\textquotedbl{}simplydata[r]\textquotedbl{}}, then R from https://cran.r-project.org, then in R: \code{install.\allowbreak{}packages(c(\textquotedbl{}tseries\textquotedbl{}))}. Without R these words print a message that says what to install.\end{needsr}
+\begin{needsr}Only the last part, \code{check\_\allowbreak{}steady()} and its two tests, run R's own code, the same code R users run. Install it once: pip install \code{\textquotedbl{}simplydata[r]\textquotedbl{}}, then R from https://cran.r-project.org, then in R: \code{install.\allowbreak{}packages(c(\textquotedbl{}tseries\textquotedbl{}))}. Without R these words print a message that says what to install.\end{needsr}
 \section*{Example 1}
 A sensor gives 200 readings a second for 5 seconds. Which cycles does its signal hold? The spectrum splits a recording into its frequencies, like a prism splits light into colours.
 \begin{lstlisting}[style=py]
 import simplydata as sdata
 table = sdata.table(sdata.example("sensor"))
 table.spectrum_of("signal", sorted_by="time")
-table.spectrum_of("signal", sorted_by="time", method="welch", window=200)
 chart = table.chart()
-chart.spectrum(x="time", y="signal")
-chart.save("lesson23_spectrum.png")
+chart.spectrum("signal", sorted_by="time")
+chart.save("spectrum.png")
 \end{lstlisting}
 \whateachline
 \begin{lineexplain}
   \item[1] Load simplydata.
   \item[2] Five seconds of a made-up sensor: time in seconds, signal and vibration.
   \item[3] The strongest cycle has frequency 5 per second (it repeats every 0.2 seconds) and holds 68 \% of the variance; next come 20 per second (11 \%) and a 50-per-second hum (4 \%).
-  \item[4] Welch's method averages the spectra of overlapping pieces of 200 readings: smoother and coarser. The same three cycles stand out.
-  \item[5] Start a chart.
-  \item[6] Power against frequency on a log scale, the three strongest cycles labelled with how often they repeat.
-  \item[7] Save it.
+  \item[4] Start a chart.
+  \item[5] The same numbers as a chart: power against frequency on a log scale, the three strongest cycles labelled with how often they repeat.
+  \item[6] Save it.
 \end{lineexplain}
 \printedoutput{output/lesson23_example1.txt}
 \begin{center}\begin{minipage}{\linewidth}\centering
-\includegraphics[width=0.72\textwidth,height=0.36\textheight,keepaspectratio]{figures/lesson23_example1_lesson23_spectrum.pdf}
-\captionof{figure}{Lesson 23, example 1: \code{lesson23\_\allowbreak{}spectrum.\allowbreak{}png}.}
+\includegraphics[width=0.72\textwidth,height=0.36\textheight,keepaspectratio]{figures/lesson23_example1_spectrum.pdf}
+\captionof{figure}{Lesson 23, example 1: \code{spectrum.\allowbreak{}png}.}
 \end{minipage}\end{center}
 \section*{Example 2}
 A filter keeps some frequencies and removes others. \code{remove\_\allowbreak{}at=50} takes out the hum; \code{keep\_\allowbreak{}below=10} keeps only the slow cycles.
@@ -3303,7 +3301,7 @@ chart = table.chart()
 chart.lines(x="time", y="signal")
 chart.lines(x="time", y="slow")
 chart.range_x(0, 1)
-chart.save("lesson23_filter.png")
+chart.save("filter.png")
 \end{lstlisting}
 \whateachline
 \begin{lineexplain}
@@ -3320,37 +3318,53 @@ chart.save("lesson23_filter.png")
 \end{lineexplain}
 \printedoutput{output/lesson23_example2.txt}
 \begin{center}\begin{minipage}{\linewidth}\centering
-\includegraphics[width=0.72\textwidth,height=0.36\textheight,keepaspectratio]{figures/lesson23_example2_lesson23_filter.pdf}
-\captionof{figure}{Lesson 23, example 2: \code{lesson23\_\allowbreak{}filter.\allowbreak{}png}.}
+\includegraphics[width=0.72\textwidth,height=0.36\textheight,keepaspectratio]{figures/lesson23_example2_filter.pdf}
+\captionof{figure}{Lesson 23, example 2: \code{filter.\allowbreak{}png}.}
 \end{minipage}\end{center}
 \section*{Example 3}
-Peaks are readings higher than both neighbours. Conditions keep only the ones that matter.
+Peaks are readings higher than both neighbours; dips are readings lower than both. Conditions keep only the ones that matter.
 \begin{lstlisting}[style=py]
 import simplydata as sdata
 table = sdata.table(sdata.example("sensor"))
 table.find_peaks("signal", sorted_by="time", at_least=2.5)
+table.find_dips("signal", sorted_by="time", at_most=-2)
 chart = table.chart()
 chart.lines(x="time", y="signal")
 chart.peak_dots(at_least=2.5)
-chart.save("lesson23_peaks.png")
+chart.save("peaks.png")
 \end{lstlisting}
 \whateachline
 \begin{lineexplain}
   \item[1] Load simplydata.
   \item[2] The sensor table.
   \item[3] One peak is at least 2.5 high: 3.48 at time 3.885, a spike. R's pracma::\code{findpeaks()} finds the same.
-  \item[4] Start a chart.
-  \item[5] The signal.
-  \item[6] A mark on the peak.
-  \item[7] Save it.
+  \item[4] \code{find\_\allowbreak{}dips} is \code{find\_\allowbreak{}peaks} upside down: one dip goes down to -2 or lower, -2.36 at time 0.94.
+  \item[5] Start a chart.
+  \item[6] The signal.
+  \item[7] A mark on the peak.
+  \item[8] Save it.
 \end{lineexplain}
 \printedoutput{output/lesson23_example3.txt}
 \begin{center}\begin{minipage}{\linewidth}\centering
-\includegraphics[width=0.72\textwidth,height=0.36\textheight,keepaspectratio]{figures/lesson23_example3_lesson23_peaks.pdf}
-\captionof{figure}{Lesson 23, example 3: \code{lesson23\_\allowbreak{}peaks.\allowbreak{}png}.}
+\includegraphics[width=0.72\textwidth,height=0.36\textheight,keepaspectratio]{figures/lesson23_example3_peaks.pdf}
+\captionof{figure}{Lesson 23, example 3: \code{peaks.\allowbreak{}png}.}
 \end{minipage}\end{center}
 \section*{Example 4}
-Some forecasts (ARIMA) assume the series is steady: the same average and spread all the way through. \code{check\_\allowbreak{}steady} runs two tests that start from opposite assumptions and gives one answer: steady, wanders, or close to the edge.
+More (if you want it): Welch's method averages the spectra of overlapping pieces of the recording. The spectrum is smoother but coarser.
+\begin{lstlisting}[style=py]
+import simplydata as sdata
+table = sdata.table(sdata.example("sensor"))
+table.spectrum_of("signal", sorted_by="time", method="welch", window=200)
+\end{lstlisting}
+\whateachline
+\begin{lineexplain}
+  \item[1] Load simplydata.
+  \item[2] The sensor table.
+  \item[3] Pieces of 200 readings with half overlap: the same three cycles stand out (5, 20 and 50 per second).
+\end{lineexplain}
+\printedoutput{output/lesson23_example4.txt}
+\section*{Example 5}
+More (if you want it; needs R): some forecasts (ARIMA) assume the series is steady: the same average and spread all the way through. \code{check\_\allowbreak{}steady} runs two tests that start from opposite assumptions and gives one answer: steady, wanders, or close to the edge.
 \begin{lstlisting}[style=py]
 import simplydata as sdata
 table = sdata.table(sdata.example("sensor"))
@@ -3362,7 +3376,7 @@ table.check_steady("signal", sorted_by="time")
   \item[2] The sensor table.
   \item[3] The signal looks steady: it stays around a steady level (both tests agree: ADF p below 0.01, KPSS p = 0.095), as R tseries::\code{adf.\allowbreak{}test()} and \code{kpss.\allowbreak{}test()}.
 \end{lineexplain}
-\printedoutput{output/lesson23_example4.txt}
+\printedoutput{output/lesson23_example5.txt}
 \begin{goodtoknow}
 \begin{itemize}
   \item Frequencies are counted per unit of the \code{sorted\_\allowbreak{}by} column: per second here. For a list of numbers give \code{time\_\allowbreak{}step=} (\code{nums.\allowbreak{}spectrum\_\allowbreak{}of(time\_\allowbreak{}step=0.\allowbreak{}005)}).
@@ -3376,66 +3390,70 @@ table.check_steady("signal", sorted_by="time")
 \begin{enumerate}
   \item Which cycle is strongest in the \code{\textquotedbl{}vibration\textquotedbl{}} column? Is it the same as in \code{\textquotedbl{}signal\textquotedbl{}}?
   \item Keep only the frequencies between 15 and 25 in the signal. Which cycle is left?
-  \item Find the dips of the signal that go below -2.
+  \item Find the dips of the signal that go down to -1.5 or lower. Is the lowest one still the same?
 \end{enumerate}
 Worked solutions: page~\pageref{solutions:23}, or type \code{sdata.\allowbreak{}lesson(23,\allowbreak{} solutions=True)}.
 \end{tryit}
-\par\noindent{\small\sffamily\textbf{Words in this lesson:} \hyperref[word:table.spectrum-of]{\code{table.\allowbreak{}spectrum\_\allowbreak{}of()}}, \hyperref[word:spectrum]{\code{chart.\allowbreak{}spectrum()}}, \hyperref[word:table.add-filtered-column]{\code{table.\allowbreak{}add\_\allowbreak{}filtered\_\allowbreak{}column()}}, \hyperref[word:table.find-peaks]{\code{table.\allowbreak{}find\_\allowbreak{}peaks()}}, \hyperref[word:peak-dots]{\code{chart.\allowbreak{}peak\_\allowbreak{}dots()}}, \hyperref[word:table.check-steady]{\code{table.\allowbreak{}check\_\allowbreak{}steady()}}.\par}
+\par\noindent{\small\sffamily\textbf{Words in this lesson:} \hyperref[word:table.spectrum-of]{\code{table.\allowbreak{}spectrum\_\allowbreak{}of()}}, \hyperref[word:spectrum]{\code{chart.\allowbreak{}spectrum()}}, \hyperref[word:table.add-filtered-column]{\code{table.\allowbreak{}add\_\allowbreak{}filtered\_\allowbreak{}column()}}, \hyperref[word:table.find-peaks]{\code{table.\allowbreak{}find\_\allowbreak{}peaks()}}, \hyperref[word:table.find-dips]{\code{table.\allowbreak{}find\_\allowbreak{}dips()}}, \hyperref[word:peak-dots]{\code{chart.\allowbreak{}peak\_\allowbreak{}dots()}}, \hyperref[word:table.check-steady]{\code{table.\allowbreak{}check\_\allowbreak{}steady()}}.\par}
 
 \chapter{Systems: a spring and damper, its response and a feedback loop}\label{lesson:24}
 \begin{learnbox}
 \begin{itemize}
-  \item how to write down a linear system and see whether it is stable
-  \item how it answers a step (rise time, overshoot, settling time) and each frequency (Bode chart)
+  \item that a filter is a system, and how to write down a system of your own (a spring and damper)
+  \item whether a system is stable, from its poles, and how it answers a step (overshoot, settling time)
   \item how a feedback loop with a controller changes the answer
-  \item how to turn a system into steps for a computer
+  \item more, if you want it: the Bode chart and the margins, and a system in steps for a computer
 \end{itemize}
 \end{learnbox}
 \section*{Example 1}
-A weight on a spring with a damper: push it with a force and it moves. Its output (the position) over its input (the force) is 1 / (s**2 + 0.8*s + 4), where s stands for change over time.
+This lesson is optional, for engineering. It starts from the filter of the cycles lesson: a filter is a system, something that turns an input (the raw signal) into an output.
+\begin{lstlisting}[style=py]
+import simplydata as sdata
+low_pass = sdata.frequency_filter(keep_below=10, time_step=0.005)
+low_pass.frequency_response(between=[1, 50])
+chart = low_pass.chart()
+chart.save("low_pass.png")
+\end{lstlisting}
+\whateachline
+\begin{lineexplain}
+  \item[1] Load simplydata.
+  \item[2] The filter of \code{add\_\allowbreak{}filtered\_\allowbreak{}column(keep\_\allowbreak{}below=10)} as a system: it prints its formula and its poles. All poles lie inside the unit circle, so it is stable: its output settles.
+  \item[3] How much of each frequency gets through: all of 1 per second (gain 1), almost nothing of 50 per second (gain 0.0006).
+  \item[4] The gain and the phase against frequency (a Bode chart).
+  \item[5] Save it.
+\end{lineexplain}
+\printedoutput{output/lesson24_example1.txt}
+\begin{center}\begin{minipage}{\linewidth}\centering
+\includegraphics[width=0.72\textwidth,height=0.36\textheight,keepaspectratio]{figures/lesson24_example1_low_pass.pdf}
+\captionof{figure}{Lesson 24, example 1: \code{low\_\allowbreak{}pass.\allowbreak{}png}.}
+\end{minipage}\end{center}
+\section*{Example 2}
+A weight on a spring with a damper: push it with a force and it moves. Its output (the position) over its input (the force) is 1 / (s**2 + 0.8*s + 4). s stands for \code{\textquotedbl{}how fast it changes\textquotedbl{}}: s times the position is its speed.
 \begin{lstlisting}[style=py]
 import simplydata as sdata
 spring = sdata.system("1 / (s**2 + 0.8*s + 4)")
 spring.poles()
+chart = spring.chart(show="poles and zeros")
+chart.save("spring_poles.png")
 spring.step_response(until=15)
 chart = spring.chart(show="step", until=15)
-chart.save("lesson24_step.png")
+chart.save("spring_step.png")
 \end{lstlisting}
 \whateachline
 \begin{lineexplain}
   \item[1] Load simplydata.
   \item[2] Poles -0.4 +/- 1.96i: stable, because every pole has a negative real part. A constant force of 1 settles at 0.25. R: control::\code{tf(1,\allowbreak{} c(1,\allowbreak{} 0.\allowbreak{}8,\allowbreak{} 4))}.
   \item[3] The table of poles: damping ratio 0.2 (lightly damped), natural frequency 2.
-  \item[4] It overshoots by 52.6 \% (peak 0.3815 at time 1.58), rises in 0.60 and settles within 2 \% after 9.8. R's control::\code{step()} gives the same response.
-  \item[5] The step response as a chart.
-  \item[6] Save it.
-\end{lineexplain}
-\printedoutput{output/lesson24_example1.txt}
-\begin{center}\begin{minipage}{\linewidth}\centering
-\includegraphics[width=0.72\textwidth,height=0.36\textheight,keepaspectratio]{figures/lesson24_example1_lesson24_step.pdf}
-\captionof{figure}{Lesson 24, example 1: \code{lesson24\_\allowbreak{}step.\allowbreak{}png}.}
-\end{minipage}\end{center}
-\section*{Example 2}
-The frequency response says how much of each frequency gets through (the gain) and how late (the phase). The Bode chart shows both against frequency on a log scale.
-\begin{lstlisting}[style=py]
-import simplydata as sdata
-spring = sdata.system("1 / (s**2 + 0.8*s + 4)")
-spring.frequency_response(between=[0.1, 10])
-chart = spring.chart(between=[0.1, 10])
-chart.save("lesson24_bode.png")
-\end{lstlisting}
-\whateachline
-\begin{lineexplain}
-  \item[1] Load simplydata.
-  \item[2] The spring.
-  \item[3] -12.02 dB at 0.1 radians per second, -39.68 dB at 10; R's control::\code{bode()} gives the same.
-  \item[4] The Bode chart: a peak near 2 radians per second, where the spring rings.
+  \item[4] The poles as x on the plane of real and imaginary parts: both lie left of the line, so the spring is stable.
   \item[5] Save it.
+  \item[6] It overshoots by 52.6 \% (peak 0.3815 at time 1.58), rises in 0.60 and settles within 2 \% after 9.8. R's control::\code{step()} gives the same response.
+  \item[7] The step response as a chart.
+  \item[8] Save it.
 \end{lineexplain}
 \printedoutput{output/lesson24_example2.txt}
 \begin{center}\begin{minipage}{\linewidth}\centering
-\includegraphics[width=0.72\textwidth,height=0.36\textheight,keepaspectratio]{figures/lesson24_example2_lesson24_bode.pdf}
-\captionof{figure}{Lesson 24, example 2: \code{lesson24\_\allowbreak{}bode.\allowbreak{}png}.}
+\includegraphics[width=0.48\textwidth,height=0.36\textheight,keepaspectratio]{figures/lesson24_example2_spring_poles.pdf}\hfill\includegraphics[width=0.48\textwidth,height=0.36\textheight,keepaspectratio]{figures/lesson24_example2_spring_step.pdf}
+\captionof{figure}{Lesson 24, example 2: \code{spring\_\allowbreak{}poles.\allowbreak{}png} and \code{spring\_\allowbreak{}step.\allowbreak{}png}.}
 \end{minipage}\end{center}
 \section*{Example 3}
 A controller measures the position, compares it with the target and pushes. This one pushes by 2 x the error plus 2 x the error added up over time: 2 * (s + 1) / s.
@@ -3443,7 +3461,6 @@ A controller measures the position, compares it with the target and pushes. This
 import simplydata as sdata
 spring = sdata.system("1 / (s**2 + 0.8*s + 4)")
 controller = sdata.system("2 * (s + 1) / s")
-controller.then(spring).frequency_response()
 loop = controller.then(spring).with_feedback()
 loop.step_response(until=30)
 \end{lstlisting}
@@ -3452,21 +3469,46 @@ loop.step_response(until=30)
   \item[1] Load simplydata.
   \item[2] The spring.
   \item[3] The controller.
-  \item[4] Before closing the loop: gain margin 18.06 dB and phase margin 32.98 degrees, so the loop will be stable with room to spare.
-  \item[5] The closed loop: (2*s + 2) / (s**3 + 0.8*s**2 + 6*s + 2), as R control::\code{feedback()}.
-  \item[6] Now the position settles at the target, 1 (without the controller it settled at 0.25), with only 1.5 \% overshoot.
+  \item[4] The controller, then the spring, with the position fed back: (2*s + 2) / (s**3 + 0.8*s**2 + 6*s + 2), as R control::\code{feedback()}.
+  \item[5] Now the position settles at the target, 1 (without the controller it settled at 0.25), with only 1.5 \% overshoot.
 \end{lineexplain}
 \printedoutput{output/lesson24_example3.txt}
 \section*{Example 4}
-A computer reads and acts in steps. \code{in\_\allowbreak{}steps} turns the system into one that works every 0.1 seconds.
+More (if you want it): the frequency response says how much of each frequency gets through (the gain) and how late (the phase). The frequencies of systems are in radians per second, as R control and SciPy: 2 radians per second is 0.32 cycles per second.
+\begin{lstlisting}[style=py]
+import simplydata as sdata
+spring = sdata.system("1 / (s**2 + 0.8*s + 4)")
+spring.frequency_response(between=[0.1, 10])
+chart = spring.chart(between=[0.1, 10])
+chart.save("spring_bode.png")
+controller = sdata.system("2 * (s + 1) / s")
+controller.then(spring).frequency_response()
+\end{lstlisting}
+\whateachline
+\begin{lineexplain}
+  \item[1] Load simplydata.
+  \item[2] The spring.
+  \item[3] -12.02 decibels at 0.1 radians per second, -39.68 at 10; R's control::\code{bode()} gives the same.
+  \item[4] The Bode chart: a peak near 2 radians per second, where the spring rings.
+  \item[5] Save it.
+  \item[6] The controller.
+  \item[7] Before closing the loop: gain margin 18.06 decibels and phase margin 32.98 degrees. The loop could take about 8 times the gain, or 33 degrees more delay, before it stopped settling.
+\end{lineexplain}
+\printedoutput{output/lesson24_example4.txt}
+\begin{center}\begin{minipage}{\linewidth}\centering
+\includegraphics[width=0.72\textwidth,height=0.36\textheight,keepaspectratio]{figures/lesson24_example4_spring_bode.pdf}
+\captionof{figure}{Lesson 24, example 4: \code{spring\_\allowbreak{}bode.\allowbreak{}png}.}
+\end{minipage}\end{center}
+\section*{Example 5}
+More (if you want it): a computer reads and acts in steps. \code{in\_\allowbreak{}steps} turns the system into one that works every 0.1 seconds.
 \begin{lstlisting}[style=py]
 import simplydata as sdata
 spring = sdata.system("1 / (s**2 + 0.8*s + 4)")
 digital = spring.in_steps(time_step=0.1)
-steps = digital.step_response(until=15)
-chart = steps.chart()
+response = digital.step_response(until=15)
+chart = response.chart()
 chart.lines(x="time", y="output", joined_by="steps")
-chart.save("lesson24_in_steps.png")
+chart.save("spring_in_steps.png")
 \end{lstlisting}
 \whateachline
 \begin{lineexplain}
@@ -3478,15 +3520,16 @@ chart.save("lesson24_in_steps.png")
   \item[6] Each value holds until the next step, as the computer sees it.
   \item[7] Save it.
 \end{lineexplain}
-\printedoutput{output/lesson24_example4.txt}
+\printedoutput{output/lesson24_example5.txt}
 \begin{center}\begin{minipage}{\linewidth}\centering
-\includegraphics[width=0.72\textwidth,height=0.36\textheight,keepaspectratio]{figures/lesson24_example4_lesson24_in_steps.pdf}
-\captionof{figure}{Lesson 24, example 4: \code{lesson24\_\allowbreak{}in\_\allowbreak{}steps.\allowbreak{}png}.}
+\includegraphics[width=0.72\textwidth,height=0.36\textheight,keepaspectratio]{figures/lesson24_example5_spring_in_steps.pdf}
+\captionof{figure}{Lesson 24, example 5: \code{spring\_\allowbreak{}in\_\allowbreak{}steps.\allowbreak{}png}.}
 \end{minipage}\end{center}
 \begin{goodtoknow}
 \begin{itemize}
+  \item This lesson is optional: no other lesson needs it.
   \item A system can be written as a formula, as \code{numerator=} and \code{denominator=} (highest power first), as \code{poles=} and \code{zeros=}, or as matrices \code{a=}, \code{b=}, \code{c=}, \code{d=}.
-  \item Frequencies of systems are in radians per second, as R control and SciPy; \code{units=\textquotedbl{}hertz\textquotedbl{}} gives cycles per second.
+  \item Frequencies of systems are in radians per second, as R control and SciPy; \code{unit=\textquotedbl{}cycles per second\textquotedbl{}} gives cycles per second. A filter from \code{sdata.\allowbreak{}frequency\_\allowbreak{}filter} is in cycles per second.
   \item R's control package has no \code{stepinfo()} or \code{margin()}: simplydata reads the rise time, settling time and margins from the response, and the R checks do the same from R's response.
 \end{itemize}
 \end{goodtoknow}
@@ -3498,7 +3541,7 @@ chart.save("lesson24_in_steps.png")
 \end{enumerate}
 Worked solutions: page~\pageref{solutions:24}, or type \code{sdata.\allowbreak{}lesson(24,\allowbreak{} solutions=True)}.
 \end{tryit}
-\par\noindent{\small\sffamily\textbf{Words in this lesson:} \hyperref[word:sdata.system]{\code{sdata.\allowbreak{}system()}}, \hyperref[word:system.poles]{\code{system.\allowbreak{}poles()}}, \hyperref[word:system.step-response]{\code{system.\allowbreak{}step\_\allowbreak{}response()}}, \hyperref[word:system.frequency-response]{\code{system.\allowbreak{}frequency\_\allowbreak{}response()}}, \hyperref[word:system.chart]{\code{system.\allowbreak{}chart()}}, \hyperref[word:system.then]{\code{system.\allowbreak{}then()}}, \hyperref[word:system.with-feedback]{\code{system.\allowbreak{}with\_\allowbreak{}feedback()}}, \hyperref[word:system.in-steps]{\code{system.\allowbreak{}in\_\allowbreak{}steps()}}.\par}
+\par\noindent{\small\sffamily\textbf{Words in this lesson:} \hyperref[word:sdata.frequency-filter]{\code{sdata.\allowbreak{}frequency\_\allowbreak{}filter()}}, \hyperref[word:sdata.system]{\code{sdata.\allowbreak{}system()}}, \hyperref[word:system.poles]{\code{system.\allowbreak{}poles()}}, \hyperref[word:system.chart]{\code{system.\allowbreak{}chart()}}, \hyperref[word:system.step-response]{\code{system.\allowbreak{}step\_\allowbreak{}response()}}, \hyperref[word:system.then]{\code{system.\allowbreak{}then()}}, \hyperref[word:system.with-feedback]{\code{system.\allowbreak{}with\_\allowbreak{}feedback()}}, \hyperref[word:system.frequency-response]{\code{system.\allowbreak{}frequency\_\allowbreak{}response()}}, \hyperref[word:system.in-steps]{\code{system.\allowbreak{}in\_\allowbreak{}steps()}}.\par}
 
 \otherchapters
 
@@ -6509,7 +6552,7 @@ Add a rolling (moving) summary: for each row, the average of this row and the ro
 
 \code{window=} is how many rows go into each summary (this row and the window - 1 rows before it). The first rows of each group are empty until there are enough rows, and a window with an empty cell in it gives an empty cell. \code{show=} can be \code{\textquotedbl{}average\textquotedbl{}}, \code{\textquotedbl{}total\textquotedbl{}}, \code{\textquotedbl{}median\textquotedbl{}}, \code{\textquotedbl{}smallest\textquotedbl{}}, \code{\textquotedbl{}biggest\textquotedbl{}}, \code{\textquotedbl{}standard deviation\textquotedbl{}}, \code{\textquotedbl{}variance\textquotedbl{}}, \code{\textquotedbl{}skewness\textquotedbl{}}, \code{\textquotedbl{}kurtosis\textquotedbl{}} (excess, both adjusted for small windows as pandas skew and kurt), \code{\textquotedbl{}percentile\textquotedbl{}} (with \code{percent=90}; as R quantile type 7), \code{\textquotedbl{}count\textquotedbl{}} (readings in the window), or \code{\textquotedbl{}correlation\textquotedbl{}} and \code{\textquotedbl{}covariance\textquotedbl{}} (\code{from\_\allowbreak{}column=} two columns). \code{sorted\_\allowbreak{}by=} works it out in the order of a column such as a date (the rows themselves keep their place).\\
 \codeline{table.add\_rolling\_column(\textquotedbl{}rain\_3\_months\textquotedbl{}, from\_column=\textquotedbl{}rain\textquotedbl{}, window=3, show=\textquotedbl{}total\textquotedbl{},}\\
-\code{for\_\allowbreak{}each=\textquotedbl{}city\textquotedbl{}}, \code{sorted\_\allowbreak{}by=\textquotedbl{}month\_\allowbreak{}number\textquotedbl{}})   (with \code{sdata.\allowbreak{}example(\textquotedbl{}weather\textquotedbl{})}) \code{window=\textquotedbl{}7 days\textquotedbl{}} (or \code{\textquotedbl{}12 hours\textquotedbl{}}, \code{\textquotedbl{}2 weeks\textquotedbl{}}) is a window of time ending at this row's date: this day and the 6 days before, with whatever readings fall in it (\code{sorted\_\allowbreak{}by=} a date column; empty cells are left out), as pandas \code{rolling(\textquotedbl{}7D\textquotedbl{})}. \code{window=\textquotedbl{}all\textquotedbl{}} runs from the first row of the group to this row (a running average, running biggest ...; empty cells left out), as pandas \code{expanding()}. \code{centre=True} puts the window's middle on the row (an odd window such as 7), as R stats::\code{filter(x,\allowbreak{} rep(1/7,\allowbreak{} 7),\allowbreak{} sides = 2)}.
+\code{for\_\allowbreak{}each=\textquotedbl{}city\textquotedbl{}}, \code{sorted\_\allowbreak{}by=\textquotedbl{}month\_\allowbreak{}number\textquotedbl{}})   (with \code{sdata.\allowbreak{}example(\textquotedbl{}weather\textquotedbl{})}) \code{window=\textquotedbl{}7 days\textquotedbl{}} (or \code{\textquotedbl{}12 hours\textquotedbl{}}, \code{\textquotedbl{}2 weeks\textquotedbl{}}) is a window of time ending at this row's date: this day and the 6 days before, with whatever readings fall in it (\code{sorted\_\allowbreak{}by=} a date column; empty cells are left out), as pandas \code{rolling(\textquotedbl{}7D\textquotedbl{})}. \code{centre=True} puts the window's middle on the row (an odd window such as 7), as R stats::\code{filter(x,\allowbreak{} rep(1/7,\allowbreak{} 7),\allowbreak{} sides = 2)}.
 
 \wordfield{Options}{}\par\nopagebreak
 \begin{optiontable}
@@ -7964,7 +8007,7 @@ table.fill_empty_cells("nitrate", with_the="line between neighbours", sorted_by=
 \wordentry{table.add\_smoothed\_column()}{word:table.add-smoothed-column}
 Add a smoothed copy of a column: each value becomes a summary of its neighbours in time.
 
-\codeline{table.add\_smoothed\_column(\textquotedbl{}signal\_smooth\textquotedbl{}, from\_column=\textquotedbl{}signal\textquotedbl{}, method=\textquotedbl{}savitzky-golay\textquotedbl{}, window=11, sorted\_by=\textquotedbl{}time\textquotedbl{})}\\
+\codeline{table.add\_smoothed\_column(\textquotedbl{}signal\_smoothed\textquotedbl{}, from\_column=\textquotedbl{}signal\textquotedbl{}, method=\textquotedbl{}savitzky-golay\textquotedbl{}, window=11, sorted\_by=\textquotedbl{}time\textquotedbl{})}\\
 (with \code{sdata.\allowbreak{}example(\textquotedbl{}sensor\textquotedbl{})}). The methods and their options are those of \code{nums.\allowbreak{}smooth}: \code{\textquotedbl{}moving average\textquotedbl{}} (\code{weights=}, \code{ends=}), \code{\textquotedbl{}median\textquotedbl{}} (R runmed, needs simplydata[r]), \code{\textquotedbl{}savitzky-golay\textquotedbl{}} (\code{degree=}), \code{\textquotedbl{}exponential\textquotedbl{}} (\code{newest\_\allowbreak{}weight=}), \code{\textquotedbl{}gaussian\textquotedbl{}} (\code{width=}), \code{\textquotedbl{}lowess\textquotedbl{}} and \code{\textquotedbl{}spline\textquotedbl{}} (\code{smoothness=}; these two use the \code{sorted\_\allowbreak{}by} values as x and allow uneven steps and empty cells), \code{\textquotedbl{}whittaker\textquotedbl{}} (\code{smoothness=}) or \code{\textquotedbl{}wiener\textquotedbl{}}. The other methods need evenly spaced readings (\code{sorted\_\allowbreak{}by=}) and no empty cells. \code{for\_\allowbreak{}each=} smooths each group on its own. Undo with \code{table.\allowbreak{}undo()}.
 
 \wordfield{Options}{}\par\nopagebreak
@@ -7992,7 +8035,7 @@ Add a smoothed copy of a column: each value becomes a summary of its neighbours 
 \begin{lstlisting}[style=py]
 import simplydata as sdata
 table = sdata.table(sdata.example("sensor"))
-table.add_smoothed_column("signal_smooth", from_column="signal", method="savitzky-golay", window=11, sorted_by="time")
+table.add_smoothed_column("signal_smoothed", from_column="signal", method="savitzky-golay", window=11, sorted_by="time")
 \end{lstlisting}
 \wordentry{nums.smooth()}{word:nums.smooth}
 Smooth the numbers: each one becomes a summary of its neighbours, so noise and spikes shrink.
@@ -8178,10 +8221,10 @@ table = sdata.table(sdata.example("river"))
 table.find_change_points("nitrate", sorted_by="date", for_each="station")
 \end{lstlisting}
 \wordentry{chart.trend\_and\_season()}{word:trend-and-season}
-Four panels sharing x: the data, its trend, its season and the rest (as R \code{plot(stl(.\allowbreak{}.\allowbreak{}.\allowbreak{}))}).
+Four panels sharing x: the column itself, its trend, its season and the rest (as R \code{plot(stl(.\allowbreak{}.\allowbreak{}.\allowbreak{}))}, which labels the first panel \code{\textquotedbl{}data\textquotedbl{}}).
 
 \codeline{chart.trend\_and\_season(x=\textquotedbl{}month\textquotedbl{}, y=\textquotedbl{}visitors\textquotedbl{}, repeats\_every=\textquotedbl{}year\textquotedbl{})}\enspace (with one museum of \code{sdata.\allowbreak{}example(\textquotedbl{}visitors\textquotedbl{})})\\
-The parts are those of \code{table.\allowbreak{}add\_\allowbreak{}trend\_\allowbreak{}and\_\allowbreak{}season} (\code{repeats\_\allowbreak{}every=}, \code{method=\textquotedbl{}loess\textquotedbl{}}, \code{\textquotedbl{}moving averages\textquotedbl{}} or \code{\textquotedbl{}straight line\textquotedbl{}}).
+The parts are those of \code{table.\allowbreak{}add\_\allowbreak{}trend\_\allowbreak{}and\_\allowbreak{}season} (\code{repeats\_\allowbreak{}every=}, \code{method=\textquotedbl{}loess\textquotedbl{}}, \code{\textquotedbl{}moving averages\textquotedbl{}} or \code{\textquotedbl{}straight line\textquotedbl{}}); the first panel is named after the column.
 
 \wordfield{Options}{}\par\nopagebreak
 \begin{optiontable}
@@ -8204,13 +8247,13 @@ chart.save("trend_and_season.png")
 \wordentry{chart.autocorrelation\_bars()}{word:autocorrelation-bars}
 Sticks for the correlation of a column with itself 1, 2, ... rows back, with the noise band.
 
-\codeline{chart.autocorrelation\_bars(x=\textquotedbl{}month\textquotedbl{}, y=\textquotedbl{}visitors\textquotedbl{})}\enspace (with one museum of \code{sdata.\allowbreak{}example(\textquotedbl{}visitors\textquotedbl{})})\\
-\code{x=} is the time column (the order), \code{y=} the column. The heights are those of \code{table.\allowbreak{}autocorrelation\_\allowbreak{}of} (\code{rows\_\allowbreak{}back=}, \code{show=\textquotedbl{}correlation\textquotedbl{}} or \code{\textquotedbl{}partial\textquotedbl{}}, \code{band=\textquotedbl{}white noise\textquotedbl{}} or \code{\textquotedbl{}bartlett\textquotedbl{}}); the dashed lines are the band, as R \code{plot(acf(x))}. \code{colour=} groups are not used: keep one series first.
+\codeline{chart.autocorrelation\_bars(\textquotedbl{}visitors\textquotedbl{}, sorted\_by=\textquotedbl{}month\textquotedbl{})}\enspace (with one museum of \code{sdata.\allowbreak{}example(\textquotedbl{}visitors\textquotedbl{})})\\
+The column first, \code{sorted\_\allowbreak{}by=} the time column (the order), as \code{table.\allowbreak{}autocorrelation\_\allowbreak{}of}: the heights are its numbers (\code{rows\_\allowbreak{}back=}, \code{show=\textquotedbl{}correlation\textquotedbl{}} or \code{\textquotedbl{}partial\textquotedbl{}}, \code{band=\textquotedbl{}white noise\textquotedbl{}} or \code{\textquotedbl{}bartlett\textquotedbl{}}); the dashed lines are the band, as R \code{plot(acf(x))}. \code{colour=} groups are not used: keep one series first.
 
 \wordfield{Options}{}\par\nopagebreak
 \begin{optiontable}
-\code{x=} & \\
-\code{y=} & \\
+\code{column=} & \\
+\code{sorted\_\allowbreak{}by=} & \\
 \code{rows\_\allowbreak{}back=} & \\
 \code{show=} & normally \code{\textquotedbl{}correlation\textquotedbl{}}\\
 \code{band=} & normally \code{\textquotedbl{}white noise\textquotedbl{}}\\
@@ -8223,20 +8266,19 @@ import simplydata as sdata
 table = sdata.table(sdata.example("visitors"))
 table.keep_rows("museum", equal_to="Harbour Museum")
 chart = table.chart()
-chart.autocorrelation_bars(x="month", y="visitors")
+chart.autocorrelation_bars("visitors", sorted_by="month")
 chart.save("autocorrelation_bars.png")
 \end{lstlisting}
 \wordentry{chart.cross\_correlation\_bars()}{word:cross-correlation-bars}
-Sticks for the correlation of two columns when one is shifted by -k to k rows.
+Sticks for the correlation of two columns when the second is shifted by -k to k rows.
 
-\codeline{chart.cross\_correlation\_bars(x=\textquotedbl{}time\textquotedbl{}, y=\textquotedbl{}signal\textquotedbl{}, against=\textquotedbl{}vibration\textquotedbl{}, rows\_back=20)} (with \code{sdata.\allowbreak{}example(\textquotedbl{}sensor\textquotedbl{})})\\
-The heights are those of \code{table.\allowbreak{}correlation\_\allowbreak{}between(y,\allowbreak{} against,\allowbreak{} rows\_\allowbreak{}back=,\allowbreak{} sorted\_\allowbreak{}by=x)}: a high stick at shift 6 means \code{\textquotedbl{}against\textquotedbl{}} follows y 6 rows later.
+\codeline{chart.cross\_correlation\_bars(\textquotedbl{}signal\textquotedbl{}, \textquotedbl{}vibration\textquotedbl{}, sorted\_by=\textquotedbl{}time\textquotedbl{}, rows\_back=20)} (with \code{sdata.\allowbreak{}example(\textquotedbl{}sensor\textquotedbl{})})\\
+The two columns first, \code{sorted\_\allowbreak{}by=} the time column, as \code{table.\allowbreak{}correlation\_\allowbreak{}between}: the heights are its numbers. A high stick at shift 6 means the second column follows the first 6 rows later.
 
 \wordfield{Options}{}\par\nopagebreak
 \begin{optiontable}
-\code{x=} & \\
-\code{y=} & \\
-\code{against=} & \\
+\code{columns.\allowbreak{}.\allowbreak{}.\allowbreak{}} & as many as you like, separated by commas\\
+\code{sorted\_\allowbreak{}by=} & \\
 \code{rows\_\allowbreak{}back=} & \\
 \end{optiontable}
 
@@ -8246,19 +8288,19 @@ The heights are those of \code{table.\allowbreak{}correlation\_\allowbreak{}betw
 import simplydata as sdata
 sensor = sdata.example("sensor")
 chart = sdata.chart(sensor)
-chart.cross_correlation_bars(x="time", y="signal", against="vibration", rows_back=20)
+chart.cross_correlation_bars("signal", "vibration", sorted_by="time", rows_back=20)
 chart.save("cross_correlation_bars.png")
 \end{lstlisting}
 \wordentry{chart.lag\_dots()}{word:lag-dots}
 Dots of each value against the value some rows back, with the 1:1 line (as R lag.plot).
 
-\codeline{chart.lag\_dots(x=\textquotedbl{}month\textquotedbl{}, y=\textquotedbl{}visitors\textquotedbl{}, rows\_back=[1, 12])}\enspace (with one museum of \code{sdata.\allowbreak{}example(\textquotedbl{}visitors\textquotedbl{})})\\
-\code{x=} is the time column (the order; table order without it). \code{rows\_\allowbreak{}back=} one number or a list: each gets its own colour. Dots near the dashed 1:1 line mean the value is like the one \code{rows\_\allowbreak{}back} earlier.
+\codeline{chart.lag\_dots(\textquotedbl{}visitors\textquotedbl{}, sorted\_by=\textquotedbl{}month\textquotedbl{}, rows\_back=[1, 12])}\enspace (with one museum of \code{sdata.\allowbreak{}example(\textquotedbl{}visitors\textquotedbl{})})\\
+The column first, \code{sorted\_\allowbreak{}by=} the time column (the order; table order without it). \code{rows\_\allowbreak{}back=} one number or a list: each gets its own colour. Dots near the dashed 1:1 line mean the value is like the one \code{rows\_\allowbreak{}back} earlier. \code{transparency=0.\allowbreak{}5} makes the dots half see-through where many overlap.
 
 \wordfield{Options}{}\par\nopagebreak
 \begin{optiontable}
-\code{y=} & \\
-\code{x=} & \\
+\code{column=} & \\
+\code{sorted\_\allowbreak{}by=} & \\
 \code{rows\_\allowbreak{}back=} & normally \code{1}\\
 \code{transparency=} & \\
 \end{optiontable}
@@ -8270,7 +8312,7 @@ import simplydata as sdata
 table = sdata.table(sdata.example("visitors"))
 table.keep_rows("museum", equal_to="Harbour Museum")
 chart = table.chart()
-chart.lag_dots(x="month", y="visitors", rows_back=[1, 12])
+chart.lag_dots("visitors", sorted_by="month", rows_back=[1, 12])
 chart.save("lag_dots.png")
 \end{lstlisting}
 \unsection{Forecasts}{group:Forecasts}
@@ -8532,7 +8574,7 @@ table.spectrum_of("signal", sorted_by="time")
 Which repeating cycles (frequencies) the numbers hold, and how strong each is.
 
 \codeline{nums.spectrum\_of(time\_step=0.01)}\enspace (readings 0.01 seconds apart: frequencies per second)\\
-\code{time\_\allowbreak{}step=} is the time between readings (\code{sampling\_\allowbreak{}rate=} or \code{fs=}, readings per unit of time, are accepted instead); without it the frequencies are in cycles per reading. \code{method=\textquotedbl{}periodogram\textquotedbl{}} (the default; SciPy periodogram, one-sided, scaled so that the powers times the frequency step add up to the variance: 2 x R \code{spec.\allowbreak{}pgram(x,\allowbreak{} taper = 0,\allowbreak{} detrend = FALSE,\allowbreak{} fast = FALSE)}\$spec, except at the top frequency, which R does not double), \code{\textquotedbl{}welch\textquotedbl{}} (the average periodogram of pieces of \code{window=} readings with half overlap and a \code{window\_\allowbreak{}shape=\textquotedbl{}hann\textquotedbl{}} window; less noisy, coarser) or \code{\textquotedbl{}lomb-scargle\textquotedbl{}} (for readings at uneven \code{times=}; R lomb::\code{lsp()} itself, needs simplydata[r] and R). \code{show=\textquotedbl{}power\textquotedbl{}}, \code{\textquotedbl{}decibels\textquotedbl{}} (10 x log10 of the power) or \code{\textquotedbl{}amplitude\textquotedbl{}} (the size of the cycle in the numbers' own units). \code{between=[low,\allowbreak{} high]} keeps that frequency range in the table. Gives back a table: frequency, repeats every (1 / frequency), the power and the share of the variance (\%) at each frequency. Prints the 3 strongest cycles.
+\code{time\_\allowbreak{}step=} is the time between readings (\code{sampling\_\allowbreak{}rate=} or \code{fs=}, readings per unit of time, are accepted instead); without it the frequencies are in cycles per reading. \code{method=\textquotedbl{}periodogram\textquotedbl{}} (the default; SciPy periodogram, one-sided, scaled so that the powers times the frequency step add up to the variance: 2 x R \code{spec.\allowbreak{}pgram(x,\allowbreak{} taper = 0,\allowbreak{} detrend = FALSE,\allowbreak{} fast = FALSE)}\$spec, except at the top frequency, which R does not double), \code{\textquotedbl{}welch\textquotedbl{}} (the average periodogram of pieces of \code{window=} readings with half overlap and a \code{window\_\allowbreak{}shape=\textquotedbl{}hann\textquotedbl{}} window; less noisy, coarser) or \code{\textquotedbl{}lomb-scargle\textquotedbl{}} (for readings at uneven \code{time\_\allowbreak{}points=}; R lomb::\code{lsp()} itself, needs simplydata[r] and R). \code{show=\textquotedbl{}power\textquotedbl{}}, \code{\textquotedbl{}decibels\textquotedbl{}} (10 x log10 of the power) or \code{\textquotedbl{}amplitude\textquotedbl{}} (the size of the cycle in the numbers' own units). \code{between=[low,\allowbreak{} high]} keeps that frequency range in the table. Gives back a table: frequency, repeats every (1 / frequency), the power and the share of the variance (\%) at each frequency. Prints the 3 strongest cycles.
 
 \wordfield{Options}{}\par\nopagebreak
 \begin{optiontable}
@@ -8542,7 +8584,7 @@ Which repeating cycles (frequencies) the numbers hold, and how strong each is.
 \code{window\_\allowbreak{}shape=} & normally \code{\textquotedbl{}hann\textquotedbl{}}\\
 \code{show=} & normally \code{\textquotedbl{}power\textquotedbl{}}\\
 \code{between=} & \\
-\code{times=} & \\
+\code{time\_\allowbreak{}points=} & \\
 \code{sampling\_\allowbreak{}rate=} & \\
 \code{fs=} & \\
 \end{optiontable}
@@ -8557,13 +8599,13 @@ nums.spectrum_of(time_step=0.005)
 \wordentry{chart.spectrum()}{word:spectrum}
 Power against frequency: which cycles a column holds, the 3 strongest labelled with their period.
 
-\codeline{chart.spectrum(x=\textquotedbl{}time\textquotedbl{}, y=\textquotedbl{}signal\textquotedbl{})} (with \code{sdata.\allowbreak{}example(\textquotedbl{}sensor\textquotedbl{})})\\
-\code{x=} is the time column, \code{y=} the column. The numbers are those of \code{table.\allowbreak{}spectrum\_\allowbreak{}of} (\code{method=} \code{\textquotedbl{}periodogram\textquotedbl{}}, \code{\textquotedbl{}welch\textquotedbl{}} or \code{\textquotedbl{}lomb-scargle\textquotedbl{}}; \code{show=\textquotedbl{}power\textquotedbl{}}, \code{\textquotedbl{}decibels\textquotedbl{}} or \code{\textquotedbl{}amplitude\textquotedbl{}}). \code{log\_\allowbreak{}scale=True} puts the power on a log scale (not for decibels). \code{colour=} groups each get a line.
+\codeline{chart.spectrum(\textquotedbl{}signal\textquotedbl{}, sorted\_by=\textquotedbl{}time\textquotedbl{})} (with \code{sdata.\allowbreak{}example(\textquotedbl{}sensor\textquotedbl{})})\\
+The column first, \code{sorted\_\allowbreak{}by=} the time column, as \code{table.\allowbreak{}spectrum\_\allowbreak{}of}: the numbers are its numbers (\code{method=\textquotedbl{}periodogram\textquotedbl{}}, \code{\textquotedbl{}welch\textquotedbl{}} or \code{\textquotedbl{}lomb-scargle\textquotedbl{}}; \code{show=\textquotedbl{}power\textquotedbl{}}, \code{\textquotedbl{}decibels\textquotedbl{}} or \code{\textquotedbl{}amplitude\textquotedbl{}}). \code{log\_\allowbreak{}scale=True} puts the power on a log scale (not for decibels). \code{colour=} groups each get a line.
 
 \wordfield{Options}{}\par\nopagebreak
 \begin{optiontable}
-\code{x=} & \\
-\code{y=} & \\
+\code{column=} & \\
+\code{sorted\_\allowbreak{}by=} & \\
 \code{method=} & normally \code{\textquotedbl{}periodogram\textquotedbl{}}\\
 \code{show=} & normally \code{\textquotedbl{}power\textquotedbl{}}\\
 \code{window=} & \\
@@ -8576,19 +8618,19 @@ Power against frequency: which cycles a column holds, the 3 strongest labelled w
 import simplydata as sdata
 sensor = sdata.example("sensor")
 chart = sdata.chart(sensor)
-chart.spectrum(x="time", y="signal")
+chart.spectrum("signal", sorted_by="time")
 chart.save("spectrum.png")
 \end{lstlisting}
 \wordentry{chart.spectrum\_over\_time()}{word:spectrum-over-time}
 How the cycles in a column change over time: a heat map of time, frequency and power (decibels).
 
-\codeline{chart.spectrum\_over\_time(x=\textquotedbl{}time\textquotedbl{}, y=\textquotedbl{}signal\textquotedbl{}, window=100)} (with \code{sdata.\allowbreak{}example(\textquotedbl{}sensor\textquotedbl{})})\\
-The column is cut into pieces of \code{window=} readings that overlap by half; each piece gets its periodogram (\code{window\_\allowbreak{}shape=} weights, the mean of each piece removed), as SciPy signal.spectrogram; the time of each piece is its middle. The readings must be evenly spaced (\code{x=}) and filled in.
+\codeline{chart.spectrum\_over\_time(\textquotedbl{}signal\textquotedbl{}, sorted\_by=\textquotedbl{}time\textquotedbl{}, window=100)} (with \code{sdata.\allowbreak{}example(\textquotedbl{}sensor\textquotedbl{})})\\
+The column first, \code{sorted\_\allowbreak{}by=} the time column. The column is cut into pieces of \code{window=} readings that overlap by half; each piece gets its periodogram (\code{window\_\allowbreak{}shape=} weights, the mean of each piece removed), as SciPy signal.spectrogram; the time of each piece is its middle. The readings must be evenly spaced (\code{sorted\_\allowbreak{}by=}) and filled in.
 
 \wordfield{Options}{}\par\nopagebreak
 \begin{optiontable}
-\code{x=} & \\
-\code{y=} & \\
+\code{column=} & \\
+\code{sorted\_\allowbreak{}by=} & \\
 \code{window=} & normally \code{256}\\
 \code{window\_\allowbreak{}shape=} & normally \code{\textquotedbl{}hann\textquotedbl{}}\\
 \end{optiontable}
@@ -8599,14 +8641,14 @@ The column is cut into pieces of \code{window=} readings that overlap by half; e
 import simplydata as sdata
 sensor = sdata.example("sensor")
 chart = sdata.chart(sensor)
-chart.spectrum_over_time(x="time", y="signal", window=100)
+chart.spectrum_over_time("signal", sorted_by="time", window=100)
 chart.save("spectrum_over_time.png")
 \end{lstlisting}
 \wordentry{nums.keep\_frequencies()}{word:nums.keep-frequencies}
 Keep only some frequencies of the numbers (a low-pass, high-pass, band-pass or peak filter).
 
 \codeline{nums.keep\_frequencies(below=5, time\_step=0.01)}\\
-One condition: \code{below=5} keeps the slow cycles (low-pass), \code{above=1} the fast ones (high-pass), \code{between=[1,\allowbreak{} 5]} a band, \code{equal\_\allowbreak{}to=10} one frequency (\code{width=} how wide). Frequencies are cycles per unit of time: \code{time\_\allowbreak{}step=} is the time between readings (\code{sampling\_\allowbreak{}rate=} or \code{fs=} instead). \code{method=} \code{\textquotedbl{}butterworth\textquotedbl{}} (flat where it keeps; R signal::butter), \code{\textquotedbl{}chebyshev\textquotedbl{}} (\code{ripple=} dB), \code{\textquotedbl{}chebyshev 2\textquotedbl{}} (\code{removed\_\allowbreak{}by=} dB), \code{\textquotedbl{}elliptic\textquotedbl{}} or \code{\textquotedbl{}bessel\textquotedbl{}} (keeps the shape of pulses). \code{steepness=} is the filter order (4). \code{both\_\allowbreak{}ways=True} runs the filter forwards and backwards so nothing moves in time (SciPy sosfiltfilt; the ends as MATLAB filtfilt, which differs from R signal::filtfilt near the ends); \code{both\_\allowbreak{}ways=False} runs it forwards only, as R signal::filter. \code{show\_\allowbreak{}filter=True} also shows the filter's chart (gain and phase against frequency, \code{sdata.\allowbreak{}frequency\_\allowbreak{}filter(.\allowbreak{}.\allowbreak{}.\allowbreak{})}.chart()); \code{show\_\allowbreak{}filter=\textquotedbl{}filter.\allowbreak{}png\textquotedbl{}} saves it. Undo with \code{nums.\allowbreak{}undo()}.
+One condition: \code{below=5} keeps the slow cycles (low-pass), \code{above=1} the fast ones (high-pass), \code{between=[1,\allowbreak{} 5]} a band, \code{equal\_\allowbreak{}to=10} one frequency (\code{width=} how wide). Frequencies are cycles per unit of time: \code{time\_\allowbreak{}step=} is the time between readings (\code{sampling\_\allowbreak{}rate=} or \code{fs=} instead). \code{method=} \code{\textquotedbl{}butterworth\textquotedbl{}} (flat where it keeps; R signal::butter), \code{\textquotedbl{}chebyshev\textquotedbl{}} (\code{ripple=} dB), \code{\textquotedbl{}chebyshev 2\textquotedbl{}} (\code{removed\_\allowbreak{}by=} dB), \code{\textquotedbl{}elliptic\textquotedbl{}} or \code{\textquotedbl{}bessel\textquotedbl{}} (keeps the shape of pulses). \code{steepness=} is the filter order (4). \code{both\_\allowbreak{}ways=True} runs the filter forwards and backwards so nothing moves in time (SciPy sosfiltfilt; the ends as MATLAB filtfilt, which differs from R signal::filtfilt near the ends); \code{both\_\allowbreak{}ways=False} runs it forwards only, as R signal::filter. \code{show\_\allowbreak{}filter=True} also shows the filter's chart (gain and phase against frequency) and prints the line that saves it, \code{sdata.\allowbreak{}frequency\_\allowbreak{}filter(.\allowbreak{}.\allowbreak{}.\allowbreak{})}.chart().save(...). Undo with \code{nums.\allowbreak{}undo()}.
 
 \wordfield{Options}{}\par\nopagebreak
 \begin{optiontable}
@@ -8669,7 +8711,7 @@ nums.remove_frequencies(equal_to=50, time_step=0.005)
 Add a filtered copy of a column: some frequencies kept or removed (low-pass, high-pass, band, notch).
 
 \codeline{table.add\_filtered\_column(\textquotedbl{}slow\textquotedbl{}, from\_column=\textquotedbl{}signal\textquotedbl{}, keep\_below=10, sorted\_by=\textquotedbl{}time\textquotedbl{})} (with \code{sdata.\allowbreak{}example(\textquotedbl{}sensor\textquotedbl{})})\\
-One condition: \code{keep\_\allowbreak{}below=}, \code{keep\_\allowbreak{}above=}, \code{keep\_\allowbreak{}between=[low,\allowbreak{} high]}, \code{remove\_\allowbreak{}between=[low,\allowbreak{} high]} or \code{remove\_\allowbreak{}at=} one frequency (a notch, \code{width=} how wide). Frequencies are cycles per unit of the \code{sorted\_\allowbreak{}by} column (per second for seconds, per day for dates). The options are those of \code{nums.\allowbreak{}keep\_\allowbreak{}frequencies} (\code{method=}, \code{steepness=}, \code{both\_\allowbreak{}ways=}, \code{show\_\allowbreak{}filter=} ...). The readings must be evenly spaced and filled in. \code{for\_\allowbreak{}each=} filters each group on its own. Undo with \code{table.\allowbreak{}undo()}.
+One condition: \code{keep\_\allowbreak{}below=}, \code{keep\_\allowbreak{}above=}, \code{keep\_\allowbreak{}between=[low,\allowbreak{} high]}, \code{remove\_\allowbreak{}between=[low,\allowbreak{} high]} or \code{remove\_\allowbreak{}at=} one frequency (a notch, \code{width=} how wide). Frequencies are cycles per unit of the \code{sorted\_\allowbreak{}by} column (per second for seconds, per day for dates). The options are those of \code{nums.\allowbreak{}keep\_\allowbreak{}frequencies} (\code{method=}, \code{steepness=}, \code{both\_\allowbreak{}ways=}, \code{show\_\allowbreak{}filter=True} ...). The readings must be evenly spaced and filled in. \code{for\_\allowbreak{}each=} filters each group on its own. Undo with \code{table.\allowbreak{}undo()}.
 
 \wordfield{Options}{}\par\nopagebreak
 \begin{optiontable}
@@ -8753,7 +8795,7 @@ nums.envelope()
 \wordentry{table.add\_envelope\_column()}{word:table.add-envelope-column}
 Add the envelope of a column: how big its wave is at each moment (from the Hilbert transform).
 
-\codeline{table.add\_envelope\_column(\textquotedbl{}size\textquotedbl{}, from\_column=\textquotedbl{}signal\textquotedbl{}, sorted\_by=\textquotedbl{}time\textquotedbl{})} (with \code{sdata.\allowbreak{}example(\textquotedbl{}sensor\textquotedbl{})})\\
+\codeline{table.add\_envelope\_column(\textquotedbl{}signal\_envelope\textquotedbl{}, from\_column=\textquotedbl{}signal\textquotedbl{}, sorted\_by=\textquotedbl{}time\textquotedbl{})} (with \code{sdata.\allowbreak{}example(\textquotedbl{}sensor\textquotedbl{})})\\
 \code{show=\textquotedbl{}envelope\textquotedbl{}} (the size of the analytic signal), \code{\textquotedbl{}phase\textquotedbl{}} (in degrees, unwrapped) or \code{\textquotedbl{}frequency\textquotedbl{}} (how fast the phase turns, in cycles per unit of the \code{sorted\_\allowbreak{}by} column; the last value of each series is empty). The readings must be evenly spaced and filled in. \code{for\_\allowbreak{}each=} works on each group on its own. SciPy signal.hilbert, as R gsignal::hilbert. Undo with \code{table.\allowbreak{}undo()}.
 
 \wordfield{Options}{}\par\nopagebreak
@@ -8770,7 +8812,7 @@ Add the envelope of a column: how big its wave is at each moment (from the Hilbe
 \begin{lstlisting}[style=py]
 import simplydata as sdata
 table = sdata.table(sdata.example("sensor"))
-table.add_envelope_column("size", from_column="signal", sorted_by="time")
+table.add_envelope_column("signal_envelope", from_column="signal", sorted_by="time")
 \end{lstlisting}
 \wordentry{nums.fourier\_transform()}{word:nums.fourier-transform}
 The numbers as a sum of waves: the size and phase of each frequency (the Fourier transform).
@@ -10289,7 +10331,7 @@ A linear system (one input, one output) from its formula, coefficients, poles or
 \codeline{sdata.system(\textquotedbl{}1 / (s**2 + 2*s + 5)\textquotedbl{})}\\
 The formula is a ratio of polynomials in s (continuous time) or z (in steps of \code{time\_\allowbreak{}step=}):\\
 \codeline{sdata.system(\textquotedbl{}0.1 / (z - 0.9)\textquotedbl{}, time\_step=0.1). Or numerator= and denominator= (highest power first,}\\
-as R control::tf and SciPy), \code{poles=} and \code{zeros=} with \code{gain=}, or the state-space matrices \code{a=}, \code{b=}, \code{c=}, \code{d=}. Prints the formula, the poles and whether it is stable. Words on it: \code{step\_\allowbreak{}response}, \code{impulse\_\allowbreak{}response}, \code{response\_\allowbreak{}to}, \code{frequency\_\allowbreak{}response}, poles, zeros, \code{is\_\allowbreak{}stable}, \code{steady\_\allowbreak{}gain}, \code{in\_\allowbreak{}steps}, then, add, \code{with\_\allowbreak{}feedback}, table, chart. SciPy signal.lti / dlti, as R control::tf.
+as R control::tf and SciPy; \code{num=} and \code{den=}, as in R and MATLAB, are accepted), \code{poles=} and \code{zeros=} with \code{gain=} (the number in front of the formula, not the steady gain), or the state-space matrices \code{a=}, \code{b=}, \code{c=}, \code{d=} (A= to D= are accepted). Prints the formula, the poles and whether it is stable. Words on it: \code{step\_\allowbreak{}response}, \code{impulse\_\allowbreak{}response}, \code{response\_\allowbreak{}to}, \code{frequency\_\allowbreak{}response}, poles, zeros, \code{is\_\allowbreak{}stable}, \code{steady\_\allowbreak{}gain}, \code{in\_\allowbreak{}steps}, then, add, \code{with\_\allowbreak{}feedback}, table, chart. SciPy signal.lti / dlti, as R control::tf.
 
 \wordfield{Options}{}\par\nopagebreak
 \begin{optiontable}
@@ -10321,13 +10363,13 @@ system = sdata.system("1 / (s**2 + 2*s + 5)")
 \wordentry{system.step\_response()}{word:system.step-response}
 How the output answers an input that jumps from 0 to 1 and stays there.
 
-\code{system.\allowbreak{}step\_\allowbreak{}response(until=10)} Gives back a table: time, output. \code{until=} is the last time (SciPy picks it from the poles when left out); \code{steps=} how many times (200; systems in steps use their own time step); \code{times=} your own evenly spaced times. Prints the final value, peak, overshoot, rise time (10 \% to 90 \% of the final value) and settling time (staying within 2 \% of it), read from the response between the times shown. SciPy signal.step (dstep in steps), as R control::\code{step(sys,\allowbreak{} t)}.
+\code{system.\allowbreak{}step\_\allowbreak{}response(until=10)} Gives back a table: time, output. \code{until=} is the last time (SciPy picks it from the poles when left out); \code{how\_\allowbreak{}many=} how many time points (200; systems in steps use their own time step); \code{time\_\allowbreak{}points=} your own evenly spaced times. Prints the final value, peak, overshoot, rise time (10 \% to 90 \% of the final value) and settling time (staying within 2 \% of it), read from the response between the times shown. SciPy signal.step (dstep in steps), as R control::\code{step(sys,\allowbreak{} t)}.
 
 \wordfield{Options}{}\par\nopagebreak
 \begin{optiontable}
 \code{until=} & \\
-\code{steps=} & normally \code{200}\\
-\code{times=} & \\
+\code{how\_\allowbreak{}many=} & normally \code{200}\\
+\code{time\_\allowbreak{}points=} & \\
 \end{optiontable}
 
 \wordfield{Underneath}{SciPy (signal.lti / dlti, step, impulse, lsim, freqresp, freqz, cont2discrete, tf2ss, tf2zpk); the formula read with Python's ast and NumPy polynomials}
@@ -10345,8 +10387,8 @@ How the output answers a short kick at time 0 (an impulse of size 1).
 \wordfield{Options}{}\par\nopagebreak
 \begin{optiontable}
 \code{until=} & \\
-\code{steps=} & normally \code{200}\\
-\code{times=} & \\
+\code{how\_\allowbreak{}many=} & normally \code{200}\\
+\code{time\_\allowbreak{}points=} & \\
 \end{optiontable}
 
 \wordfield{Underneath}{SciPy (signal.lti / dlti, step, impulse, lsim, freqresp, freqz, cont2discrete, tf2ss, tf2zpk); the formula read with Python's ast and NumPy polynomials}
@@ -10359,12 +10401,12 @@ system.impulse_response(until=10)
 \wordentry{system.response\_to()}{word:system.response-to}
 How the output answers any input you give: a simulation.
 
-\code{system.\allowbreak{}response\_\allowbreak{}to(sdata.\allowbreak{}wave(\textquotedbl{}square\textquotedbl{},\allowbreak{} frequency=0.\allowbreak{}2,\allowbreak{} time\_\allowbreak{}step=0.\allowbreak{}05,\allowbreak{} how\_\allowbreak{}many=400))} \code{inputs=} are the input values (Numbers or a list), one per time. \code{times=} are the times (evenly spaced); left out, they come from the time step the numbers remember (or the system's own time step). The system starts at rest and each input value holds until the next time (zero order hold). Gives back a table: time, input, output. SciPy \code{signal.\allowbreak{}lsim(interp=False)} (dlsim in steps; sosfilt for a \code{frequency\_\allowbreak{}filter}), as R control::\code{lsim(sys,\allowbreak{} u,\allowbreak{} t)}.
+\code{system.\allowbreak{}response\_\allowbreak{}to(sdata.\allowbreak{}wave(\textquotedbl{}square\textquotedbl{},\allowbreak{} frequency=0.\allowbreak{}2,\allowbreak{} time\_\allowbreak{}step=0.\allowbreak{}05,\allowbreak{} how\_\allowbreak{}many=400))} \code{inputs=} are the input values (Numbers or a list), one per time. \code{time\_\allowbreak{}points=} are the times (evenly spaced); left out, they come from the time step the numbers remember (or the system's own time step). The system starts at rest and each input value holds until the next time (zero order hold). Gives back a table: time, input, output. SciPy \code{signal.\allowbreak{}lsim(interp=False)} (dlsim in steps; sosfilt for a \code{frequency\_\allowbreak{}filter}), as R control::\code{lsim(sys,\allowbreak{} u,\allowbreak{} t)}.
 
 \wordfield{Options}{}\par\nopagebreak
 \begin{optiontable}
 \code{inputs=} & \\
-\code{times=} & \\
+\code{time\_\allowbreak{}points=} & \\
 \end{optiontable}
 
 \wordfield{Underneath}{SciPy (signal.lti / dlti, step, impulse, lsim, freqresp, freqz, cont2discrete, tf2ss, tf2zpk); the formula read with Python's ast and NumPy polynomials}
@@ -10377,13 +10419,13 @@ system.response_to(sdata.wave("square", frequency=0.2, time_step=0.05, how_many=
 \wordentry{system.frequency\_response()}{word:system.frequency-response}
 How much the system passes each frequency (gain) and how much it delays it (phase): the Bode data.
 
-\code{system.\allowbreak{}frequency\_\allowbreak{}response(between=[0.\allowbreak{}1,\allowbreak{} 100])} Gives back a table: frequency, gain, gain (dB), phase (degrees, unwrapped). \code{between=[low,\allowbreak{} high]} is the range (spaced evenly on a log scale; SciPy picks it from the poles and zeros when left out); \code{steps=} how many frequencies (200). \code{units=\textquotedbl{}radians per second\textquotedbl{}} (the default for \code{sdata.\allowbreak{}system}, as R control and SciPy) or \code{\textquotedbl{}hertz\textquotedbl{}} (cycles per unit of time; the default for \code{sdata.\allowbreak{}frequency\_\allowbreak{}filter}). Prints the gain and phase margins (how far the system is from becoming unstable when a feedback loop is closed around it), read from the response. SciPy signal.freqresp (freqz / sosfreqz in steps), as R control::\code{bode(sys,\allowbreak{} w)}.
+\code{system.\allowbreak{}frequency\_\allowbreak{}response(between=[0.\allowbreak{}1,\allowbreak{} 100])} Gives back a table: frequency, gain, gain (decibels), phase (degrees, unwrapped). \code{between=[low,\allowbreak{} high]} is the range (spaced evenly on a log scale; SciPy picks it from the poles and zeros when left out); \code{how\_\allowbreak{}many=} how many frequencies (200). \code{unit=\textquotedbl{}radians per second\textquotedbl{}} (the default for \code{sdata.\allowbreak{}system}, as R control and SciPy; 2 radians per second is 0.32 cycles per second) or \code{\textquotedbl{}cycles per second\textquotedbl{}} (\code{\textquotedbl{}hertz\textquotedbl{}} is accepted; cycles per unit of time, the default for \code{sdata.\allowbreak{}frequency\_\allowbreak{}filter}). Prints the gain and phase margins (how far the system is from becoming unstable when a feedback loop is closed around it), read from the response. SciPy signal.freqresp (freqz / sosfreqz in steps), as R control::\code{bode(sys,\allowbreak{} w)}.
 
 \wordfield{Options}{}\par\nopagebreak
 \begin{optiontable}
 \code{between=} & \\
-\code{steps=} & normally \code{200}\\
-\code{units=} & \\
+\code{how\_\allowbreak{}many=} & normally \code{200}\\
+\code{unit=} & \\
 \end{optiontable}
 
 \wordfield{Underneath}{SciPy (signal.lti / dlti, step, impulse, lsim, freqresp, freqz, cont2discrete, tf2ss, tf2zpk); the formula read with Python's ast and NumPy polynomials}
@@ -10396,7 +10438,7 @@ system.frequency_response(between=[0.1, 100])
 \wordentry{system.poles()}{word:system.poles}
 The poles: the values of s (or z) where the bottom of the formula is 0. They set how it moves.
 
-\code{system.\allowbreak{}poles()} Gives back a table: real, imaginary, size, damping ratio, natural frequency (radians per unit of time; for a system in steps worked out from \code{log(pole)} / time step, as R control::damp).
+\code{system.\allowbreak{}poles()} Gives back a table: real part, imaginary part, distance from 0 (the size of the pole, also called its magnitude), damping ratio, natural frequency (radians per unit of time; for a system in steps worked out from \code{log(pole)} / time step, as R control::damp).
 
 \wordfield{Options}{none: just write the empty brackets.}
 
@@ -10424,7 +10466,7 @@ system.zeros()
 \wordentry{system.is\_stable()}{word:system.is-stable}
 True when every response to a bounded input stays bounded (and settles). \code{system.\allowbreak{}is\_\allowbreak{}stable()}
 
-Continuous: every pole has a negative real part. In steps: every pole has a size below 1. A pole on the edge (real part 0, or size 1) is not stable: the output never settles.
+Continuous: every pole has a negative real part. In steps: every pole lies inside the unit circle (distance from 0 below 1). A pole on the edge (real part 0, or distance 1) is not stable: the output never settles.
 
 \wordfield{Options}{none: just write the empty brackets.}
 
@@ -10485,9 +10527,9 @@ system = sdata.system("1 / (s**2 + 2*s + 5)")
 system.then(sdata.system("1 / s"))
 \end{lstlisting}
 \wordentry{system.add()}{word:system.add}
-This system and another side by side, their outputs added (in parallel).
+This system and another side by side, their outputs added (in parallel): both get the same input.
 
-\code{system.\allowbreak{}add(sdata.\allowbreak{}system(\textquotedbl{}1 / (s + 3)\textquotedbl{}))} The formulas add, as R control::\code{parallel(sys1,\allowbreak{} sys2)}.
+\code{system.\allowbreak{}add(sdata.\allowbreak{}system(\textquotedbl{}1 / (s + 3)\textquotedbl{}))} The formulas add, as R control::\code{parallel(sys1,\allowbreak{} sys2)}. (To put one after the other, use then.)
 
 \wordfield{Options}{}\par\nopagebreak
 \begin{optiontable}
@@ -10502,14 +10544,14 @@ system = sdata.system("1 / (s**2 + 2*s + 5)")
 system.add(sdata.system("1 / (s + 3)"))
 \end{lstlisting}
 \wordentry{system.with\_feedback()}{word:system.with-feedback}
-The closed loop: the output is fed back through other and taken from the input.
+The closed loop: the output is fed back (through a sensor, say) and taken from the input.
 
-\codeline{system.with\_feedback()}\enspace \code{system.\allowbreak{}with\_\allowbreak{}feedback(sdata.\allowbreak{}system(\textquotedbl{}1 / (0.\allowbreak{}1*s + 1)\textquotedbl{}))}\\
-\code{other=} is the system in the feedback path (1: the output itself). \code{sign=\textquotedbl{}negative\textquotedbl{}} (the usual loop, G / (1 + G H)) or \code{\textquotedbl{}positive\textquotedbl{}} (G / (1 - G H)). As R control::\code{feedback(sys1,\allowbreak{} sys2)}.
+\codeline{system.with\_feedback()}\enspace \code{system.\allowbreak{}with\_\allowbreak{}feedback(through=sdata.\allowbreak{}system(\textquotedbl{}1 / (0.\allowbreak{}1*s + 1)\textquotedbl{}))}\\
+\code{through=} is the system in the feedback path (1: the output itself). \code{sign=\textquotedbl{}negative\textquotedbl{}} (the usual loop, G / (1 + G H)) or \code{\textquotedbl{}positive\textquotedbl{}} (G / (1 - G H)). As R control::\code{feedback(sys1,\allowbreak{} sys2)}.
 
 \wordfield{Options}{}\par\nopagebreak
 \begin{optiontable}
-\code{other=} & normally \code{1}\\
+\code{through=} & normally \code{1}\\
 \code{sign=} & normally \code{\textquotedbl{}negative\textquotedbl{}}\\
 \end{optiontable}
 
@@ -10521,7 +10563,7 @@ system = sdata.system("1 / (s**2 + 2*s + 5)")
 system.with_feedback()
 \end{lstlisting}
 \wordentry{system.table()}{word:system.table}
-The system as numbers: \code{form=\textquotedbl{}transfer function\textquotedbl{}} (the coefficients of the top and the bottom, highest power first), \code{\textquotedbl{}state space\textquotedbl{}} (the matrices A, B, C, D in controller form, SciPy tf2ss, as R control::tf2ss) or \code{\textquotedbl{}poles and zeros\textquotedbl{}} (with the gain). \code{system.\allowbreak{}table()}
+The system as numbers: \code{form=\textquotedbl{}transfer function\textquotedbl{}} (the coefficients of the top and the bottom, highest power first: power of s (power of z in steps), numerator, denominator), \code{\textquotedbl{}state space\textquotedbl{}} (the matrices A, B, C, D in controller form: matrix, row, column, value; SciPy tf2ss, as R control::tf2ss) or \code{\textquotedbl{}poles and zeros\textquotedbl{}} (kind, real part, imaginary part; the last row is the gain). \code{system.\allowbreak{}table()}
 
 \wordfield{Options}{}\par\nopagebreak
 \begin{optiontable}
@@ -10537,16 +10579,16 @@ system.table()
 system.table(form="state space")
 \end{lstlisting}
 \wordentry{system.chart()}{word:system.chart}
-A chart of the system: \code{show=\textquotedbl{}bode\textquotedbl{}} (gain in dB and phase against frequency on a log scale, two panels), \code{\textquotedbl{}step\textquotedbl{}}, \code{\textquotedbl{}impulse\textquotedbl{}}, \code{\textquotedbl{}pole-zero\textquotedbl{}} (x for poles, o for zeros; the unit circle for a system in steps) or \code{\textquotedbl{}nyquist\textquotedbl{}} (the frequency response as a curve, with the point -1). \code{system.\allowbreak{}chart()}
+A chart of the system: \code{show=\textquotedbl{}bode\textquotedbl{}} (gain in decibels and phase against frequency on a log scale, two panels; \code{\textquotedbl{}gain and phase\textquotedbl{}} is accepted), \code{\textquotedbl{}step\textquotedbl{}}, \code{\textquotedbl{}impulse\textquotedbl{}}, \code{\textquotedbl{}poles and zeros\textquotedbl{}} (x for poles, o for zeros; the unit circle for a system in steps; \code{\textquotedbl{}pole-zero\textquotedbl{}} is accepted) or \code{\textquotedbl{}nyquist\textquotedbl{}} (the frequency response as one curve; a feedback loop is stable when it stays clear of -1). \code{system.\allowbreak{}chart()}
 
-\code{between=} (frequencies) and \code{until=} (times) as in \code{frequency\_\allowbreak{}response} and \code{step\_\allowbreak{}response}. Gives back a chart (or a page of two charts for \code{\textquotedbl{}bode\textquotedbl{}}): .save(\code{\textquotedbl{}bode.\allowbreak{}png\textquotedbl{}}) or .show().
+\code{between=} (frequencies, with \code{\textquotedbl{}bode\textquotedbl{}}) and \code{unit=} as in \code{frequency\_\allowbreak{}response}; \code{until=} (the last time, with \code{\textquotedbl{}step\textquotedbl{}} and \code{\textquotedbl{}impulse\textquotedbl{}}) as in \code{step\_\allowbreak{}response}. Gives back a chart (or a page of two charts for \code{\textquotedbl{}bode\textquotedbl{}}): .save(\code{\textquotedbl{}bode.\allowbreak{}png\textquotedbl{}}) or .show().
 
 \wordfield{Options}{}\par\nopagebreak
 \begin{optiontable}
 \code{show=} & normally \code{\textquotedbl{}bode\textquotedbl{}}\\
 \code{between=} & \\
 \code{until=} & \\
-\code{units=} & \\
+\code{unit=} & \\
 \end{optiontable}
 
 \wordfield{Underneath}{SciPy (signal.lti / dlti, step, impulse, lsim, freqresp, freqz, cont2discrete, tf2ss, tf2zpk); the formula read with Python's ast and NumPy polynomials}
@@ -11546,17 +11588,23 @@ table.show_first_rows()
 \end{lstlisting}
 \printedoutput{output/solution21_task2.txt}
 \solutionanswer{A time window works even with missing days: it counts days, not rows.}
-\solutiontask{3}{Take the nitrate of the river table as numbers with \code{table.\allowbreak{}column(\textquotedbl{}nitrate\textquotedbl{})} and smooth them with an exponential smoother.}
+\solutiontask{3}{Smooth the level of each station with a moving average over 61 days instead of 31, and draw it. What does the wider window do?}
 \begin{lstlisting}[style=py]
 import simplydata as sdata
 table = sdata.table(sdata.example("river"))
-table.keep_rows("station", equal_to="Station A")
-table.fill_empty_cells("nitrate", with_the="line between neighbours", sorted_by="date")
-nitrate = table.column("nitrate")
-nitrate.smooth(method="exponential", newest_weight=0.2)
+table.add_missing_dates("date", every="day", for_each="station")
+table.fill_empty_cells("level", with_the="line between neighbours", sorted_by="date", for_each="station")
+table.add_smoothed_column("level_smoothed", from_column="level", window=61, sorted_by="date", for_each="station")
+chart = table.chart()
+chart.lines(x="date", y="level_smoothed", colour="station")
+chart.save("level_smoothed.png")
 \end{lstlisting}
 \printedoutput{output/solution21_task3.txt}
-\solutionanswer{Each value is 0.2 x the reading + 0.8 x the value before (a recursive filter in R).}
+\begin{center}\begin{minipage}{\linewidth}\centering
+\includegraphics[width=0.52\textwidth,height=0.30\textheight,keepaspectratio]{figures/solution21_task3_level_smoothed.pdf}
+\captionof*{figure}{Lesson 21, task 3: \code{level\_\allowbreak{}smoothed.\allowbreak{}png}.}
+\end{minipage}\end{center}
+\solutionanswer{The wider window gives a calmer line that hides the shorter ups and downs, and now the first and last 30 days of each station are empty.}
 \par\noindent{\small\sffamily\hyperref[lesson:21]{Back to lesson 21}}
 \unsection{Lesson 22: Forecasts: the next months, checked first}{solutions:22}
 \solutiontask{1}{Forecast the Harbour Museum with \code{method=\textquotedbl{}same season last time\textquotedbl{}}. How does it compare with exponential smoothing?}
@@ -11596,14 +11644,14 @@ table.spectrum_of("middle", sorted_by="time")
 \end{lstlisting}
 \printedoutput{output/solution23_task2.txt}
 \solutionanswer{Only the 20-per-second cycle is left: it holds 89 \% of the variance of the new column.}
-\solutiontask{3}{Find the dips of the signal that go below -2.}
+\solutiontask{3}{Find the dips of the signal that go down to -1.5 or lower. Is the lowest one still the same?}
 \begin{lstlisting}[style=py]
 import simplydata as sdata
 table = sdata.table(sdata.example("sensor"))
-table.find_dips("signal", sorted_by="time", at_most=-2)
+table.find_dips("signal", sorted_by="time", at_most=-1.5)
 \end{lstlisting}
 \printedoutput{output/solution23_task3.txt}
-\solutionanswer{\code{find\_\allowbreak{}dips} is \code{find\_\allowbreak{}peaks} upside down: it lists each dip with its time and value.}
+\solutionanswer{Many more dips now, each with its time and value; the lowest is still -2.36 at time 0.94.}
 \par\noindent{\small\sffamily\hyperref[lesson:23]{Back to lesson 23}}
 \unsection{Lesson 24: Systems: a spring and damper, its response and a feedback loop}{solutions:24}
 \solutiontask{1}{Make the damper stronger: 1 / (s**2 + 2*s + 4). What happens to the overshoot?}
@@ -11628,7 +11676,7 @@ loop.step_response(until=30)
 import simplydata as sdata
 spring = sdata.system("1 / (s**2 + 0.8*s + 4)")
 loop = sdata.system("2 * (s + 1) / s").then(spring).with_feedback()
-chart = loop.chart(show="pole-zero")
+chart = loop.chart(show="poles and zeros")
 chart.save("loop_poles.png")
 \end{lstlisting}
 \printedoutput{output/solution24_task3.txt}

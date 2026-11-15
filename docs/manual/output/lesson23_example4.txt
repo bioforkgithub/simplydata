@@ -1,2 +1,2 @@
-"signal" looks steady: it stays around a steady level (both tests agree: ADF p below 0.01, KPSS p = 0.095).
-Method: augmented Dickey-Fuller test with a constant and a straight-line trend, as R tseries::adf.test(x); KPSS test, as R tseries::kpss.test(x, null = "Level"); p-values from the published tables, as tseries (run in R).
+The strongest cycle in "signal" has frequency 5 per unit of "time" (it repeats every 0.2 units of "time") and holds 46 % of the variance; next: 20 per unit of "time" (8 %) and 50 per unit of "time" (3 %).
+Method: Welch's method (the average periodogram of pieces of 200 readings with half overlap and a hann window), as SciPy signal.welch (the same steps written in R give the same numbers). Readings: one reading every 0.005 in "time" (1000 readings).

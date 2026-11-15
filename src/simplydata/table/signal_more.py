@@ -20,10 +20,10 @@ class SignalMoreTableWords:
         One condition: keep_below=, keep_above=, keep_between=[low, high], remove_between=[low, high] or
         remove_at= one frequency (a notch, width= how wide). Frequencies are cycles per unit of the
         sorted_by column (per second for seconds, per day for dates). The options are those of
-        nums.keep_frequencies (method=, steepness=, both_ways=, show_filter= ...). The readings must be evenly spaced
-        and filled in. for_each= filters each group on its own. Undo with table.undo().
+        nums.keep_frequencies (method=, steepness=, both_ways=, show_filter=True ...). The readings must be evenly
+        spaced and filled in. for_each= filters each group on its own. Undo with table.undo().
         """
-        from ..numbers.filter_words import filter_numbers, show_filter_chart
+        from ..numbers.filter_words import filter_call, filter_numbers, show_filter_chart
 
         step_name = "add_filtered_column"
         example = 'table.add_filtered_column("slow", from_column="signal", keep_below=10, sorted_by="time")'
@@ -57,7 +57,10 @@ class SignalMoreTableWords:
             filled[one.rows] = out
         print(sentence.replace("in ", f'in "{from_column}": ', 1) if len(series) == 1 else sentence)
         print(method_line + f' Added "{name}".')
-        show_filter_chart(made, series[-1].step, show_filter, sentence)
+        if show_filter:
+            step = series[-1].step
+            show_filter_chart(made, step, show_filter, filter_call(option, value, step, method, steepness, ripple,
+                                                                   removed_by, width))
         base = nw.maybe_reset_index(self._frame)
         new = nw.new_series(name, [float(v) for v in filled], nw.Float64, backend=base.implementation)
         return self._change(f'add filtered column "{name}"', base.with_columns(new))
@@ -66,7 +69,7 @@ class SignalMoreTableWords:
     def add_envelope_column(self, name=None, from_column=None, show="envelope", sorted_by=None, for_each=None):
         """Add the envelope of a column: how big its wave is at each moment (from the Hilbert transform).
 
-        table.add_envelope_column("size", from_column="signal", sorted_by="time")   (with sdata.example("sensor"))
+        table.add_envelope_column("signal_envelope", from_column="signal", sorted_by="time")   (with sdata.example("sensor"))
         show="envelope" (the size of the analytic signal), "phase" (in degrees, unwrapped) or "frequency"
         (how fast the phase turns, in cycles per unit of the sorted_by column; the last value of each
         series is empty). The readings must be evenly spaced and filled in. for_each= works on each group
@@ -75,14 +78,12 @@ class SignalMoreTableWords:
         from ..numbers.fourier_words import ENVELOPE_SHOWS, envelope_values
 
         step_name = "add_envelope_column"
-        example = 'table.add_envelope_column("size", from_column="signal", sorted_by="time")'
+        example = 'table.add_envelope_column("signal_envelope", from_column="signal", sorted_by="time")'
+        if not isinstance(name, str) or not name.strip():
+            raise SimplydataError(f"{step_name}() needs a name for the new column first.\nFor example, {example}")
         self._need_name(step_name, "the column (from_column=)", from_column, example)
         if show not in ENVELOPE_SHOWS:
             raise choice_error(step_name, "show", show, list(ENVELOPE_SHOWS))
-        if name is None:
-            name = f"{from_column}_{show}"
-        if not isinstance(name, str) or not name.strip():
-            raise SimplydataError(f"{step_name}() needs name= as the new column's name.\nFor example, {example}")
         if name in self._columns:
             raise SimplydataError(f'"{name}" is already a column; give another name.')
         series = series_of(self, from_column, sorted_by, for_each, step_name, example)
