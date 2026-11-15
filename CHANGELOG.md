@@ -7,6 +7,174 @@ working for one release and prints a one-line note with its new name.
 
 More statistics, each checked against R.
 
+### More kinds of outcome in explain()
+
+- `outcome="counts that vary a lot"`: negative binomial regression, as R `MASS::glm.nb()` (theta by
+  maximum likelihood with statsmodels, then the GLM with theta held, as glm.nb reports it). It sits
+  next to `"counts (overdispersed)"` (quasi-Poisson), and the overdispersion note names both.
+- `outcome="positive numbers"`: Gamma regression with a log link for positive, skewed numbers such as
+  times or amounts (R `glm(family = Gamma(link = "log"))`); each effect multiplies the average.
+- `time="years"` with counts: rates, the count per unit of time (R `offset = log(years)`).
+- `out_of="tries"` with `outcome="yes or no"`: the column holds the number of yes out of that many
+  tries (R `glm(cbind(yes, tries - yes) ~ ..., family = binomial)`).
+- `outcome="ordered groups"` with `in_order=["low", "middle", "high"]`: ordered logistic regression
+  (statsmodels OrderedModel, as R `MASS::polr()`), odds ratios of a higher group and the cut-points
+  in a short block of their own.
+- `outcome="groups"`: multinomial logistic regression (statsmodels MNLogit, as R `nnet::multinom()`),
+  one block per group compared with the first.
+- `outcome="shares"`: beta regression for shares between 0 and 1, R `betareg::betareg()` itself.
+- `outcome="counts with many zeros"`: zero-inflated Poisson regression, R `pscl::zeroinfl()` itself;
+  the two parts (how many, and extra zeros) are printed in words, one block each.
+- `link=` for experts: "probit" or "cloglog" for yes or no, "identity" or "sqrt" for counts,
+  "inverse" or "identity" for positive numbers; the effects are then on that scale.
+- Every explain() printout ends its numbers with two lines. "How well it fits:" says it in plain
+  words: an R squared when there is one, then AIC and BIC ("smaller is better, but only to compare
+  models of the same rows"), for example `How well it fits: pseudo R squared 0.233 (0 = no better than
+  no columns). AIC 176, BIC 185: ...` (yes or no from "hours" and "sleep" in the school example). A pseudo
+  R squared is never read as "explains 23 %": it does not mean that. The Method line under it names
+  the calls that give the same numbers: AIC and BIC as R `AIC()`, `BIC()` (for mixed models those of the REML fit, as R gives them for `lmer`), McFadden's
+  pseudo R squared for yes or no, counts, ordered groups, groups and counts with many zeros
+  (statsmodels, as R `performance::r2_mcfadden()`), betareg's pseudo R squared for shares, and
+  Nakagawa's R squared for mixed models (from the columns alone and with the groups too, marginal and
+  conditional, R `performance::r2_nakagawa()` itself, so it needs R; without R the AIC and BIC stay and
+  one line says the R squared is left out and how to get R). Quasi-Poisson and GEE have no likelihood,
+  and the line says so.
+- `explain(..., curve_for="hours")`: "hours" may follow a curve instead of a straight line (a
+  generalised additive model with a smooth term), R `mgcv::gam(marks ~ s(hours) + ..., method = "REML")`
+  itself, for numbers,
+  yes or no and counts: the other effects as usual, and for each curve its effective degrees of freedom
+  and the test of whether it is flat (R `summary.gam()`). For numbers the fit line gives adjusted R
+  squared and the deviance explained; for yes or no and counts it gives only the deviance explained, as a
+  pseudo R squared, for example `deviance explained 0.192 (a pseudo R squared; 0 = no better than no
+  columns)`, never as a percentage explained. Each curve's row is matched to R's smooth table by
+  name, so `curve_for=` may list the columns in any order; a column needs 10 different values in the rows the model uses.
+- `outcome="counts that vary a lot"` on counts that vary no more than Poisson allows now says so
+  (theta grows without limit, R `glm.nb()` warns "iteration limit reached") instead of failing inside
+  statsmodels.
+- Renamed before release, after a review of the names (the old names still work, with a one-line note):
+  `smooth_for=` is now `curve_for=` ("smooth" means taking the noise out of readings elsewhere, and the
+  pair `own_slope_for=` / `curve_for=` reads as one family); `robust=True` on explain is now
+  `robust_errors=True` (robust standard errors, HC3; "robust" alone suggests resistant to outliers,
+  which these errors are not).
+
+### Working with a model: averages, checks, rows that pull, comparisons
+
+- `table.model_averages_of("marks", for_each="school", using=["hours", "breakfast"])`: the average the
+  model gives for each group, with number columns held at their averages and other group columns
+  counted equally (adjusted averages, estimated marginal means), and every pair of groups with
+  Tukey's adjustment. R `emmeans::emmeans()` and `pairs()` themselves (needs R); chances of yes and
+  odds ratios for `outcome="yes or no"`, average counts and rate ratios for `"counts"`; with `grouped_by=`
+  the degrees of freedom emmeans itself used (Kenward-Roger up to 3000 rows, asymptotic above, as
+  `pbkrtest.limit`), named in the Method line. Pairs keep group names that hold "-", "+", "/" or "*"
+  as they are. `marginal_means_of` and `emmeans` point to it. For `outcome="ordered groups"` and
+  `"groups"` the column of each group's value is called "model chance" (it holds a chance), for the
+  other outcomes "model average".
+- `table.check_model("marks", using=[...])` also prints how strongly each column is linked with the others:
+  variance inflation factors as R `car::vif()` (statsmodels `variance_inflation_factor` for least squares;
+  R `car::vif()` itself for GLMs and the generalised VIF of group columns with 3 or more groups).
+- `table.check_model("marks", using=[...])`: the four pictures of R `plot(lm())` (residuals against
+  fitted values, normal Q-Q, scale-location, residuals against leverage with Cook's distance lines),
+  with a plain sentence on what to look for in each. Numbers from statsmodels `OLSInfluence` /
+  `GLMInfluence`; for yes/no and counts the pictures of R 4.6 `plot(glm())`.
+- `table.show_rows_that_pull("marks", using=[...])`: the rows with a Cook's distance above 4 / n,
+  biggest first, with leverage and studentised residual (statsmodels, as R `cooks.distance()`,
+  `hatvalues()`, `rstudent()`), numbered as in the whole table.
+- `table.compare_models("marks", using=["hours"], against=["hours", "breakfast"])`: the F test (or
+  likelihood-ratio test for yes/no and counts) of the smaller model against the bigger, as R
+  `anova(m0, m1)`, and AIC and BIC for both, as R `AIC()` and `BIC()`, on the same rows.
+- The four words work with every outcome they can: `model_averages_of` with all outcomes of `explain()`
+  (R emmeans on `MASS::glm.nb`, `glm(quasipoisson)`, `glm(Gamma)`, `betareg`, `zeroinfl`; for
+  `"ordered groups"` and `"groups"` the chance of each group, `emmeans(mode = "prob")`, compared pair by
+  pair within each group); `check_model` and `show_rows_that_pull` with the count outcomes and
+  `"positive numbers"` (hat values from the expected information, as R `hatvalues()`); `compare_models`
+  with all outcomes (F tests for quasi-Poisson and Gamma as R `anova(test = "F")`, likelihood-ratio tests
+  for the others, with the degrees of freedom of every value estimated, as R).
+- With `grouped_by=`: `check_model` shows R `plot(lmer)` (residuals against fitted values, Q-Q of the
+  scaled residuals, scale-location) and a Q-Q picture of each group's own starting level, as R
+  `qqnorm(ranef(m))` (statsmodels MixedLM; R `lme4::glmer` for yes/no and counts);
+  `show_rows_that_pull` shows the groups that pull, each left out in turn, R `lme4` `influence()` and
+  `cooks.distance()`; `compare_models` refits both mixed models by maximum likelihood (statsmodels), as R
+  `anova(m0, m1)` does.
+
+### Intervals for predictions and robust standard errors
+
+- `table.add_predicted_column(..., interval=95)` adds the low and high end of the 95 % confidence interval
+  of the predicted average, in the columns "predicted marks 95 % CI low" and "predicted marks 95 % CI
+  high" (the house pattern "<thing> 95 % CI low"; another level gives "90 % CI"), as R `predict(interval = "confidence")` (for yes/no and counts worked out on
+  the link scale and turned back); `for_new_rows=True` gives the wider prediction interval where one new
+  row would fall, as R `predict(interval = "prediction")` (numbers only), in "predicted marks 95 %
+  prediction low" and "... high", so the two kinds of interval keep different names. From statsmodels
+  `get_prediction()`.
+- `table.explain(..., robust_errors=True)` (experts): robust standard errors (sandwich, HC3), as R
+  `sandwich::vcovHC(m, type = "HC3")` with `lmtest::coeftest()` and `coefci()`; the whole-column tests and
+  the test of the model as a whole become Wald tests with those errors (as `car::Anova(vcov. = )` and
+  `lmtest::waldtest()`). statsmodels for numbers; R `sandwich` itself for yes/no, counts and positive
+  numbers, since statsmodels' GLM gives HC0 when HC3 is asked for.
+
+### More choices for grouped rows (grouped_by=)
+
+- `own_slope_for="hours"`: each group gets its own slope for hours as well as its own starting level,
+  R `lme4::lmer(... + (1 + hours | school))` itself (and `lme4::glmer()` for yes/no and counts). The
+  variance of the slopes and their correlation with the starting levels are printed, with a note on a
+  singular fit. R is used because statsmodels' `MixedLM(re_formula=)` does not reliably reach lme4's
+  answer.
+- `p_value_by="satterthwaite"` (also `"few groups"`): t-tests with Satterthwaite degrees of freedom, their
+  intervals and the whole-column F tests from R `lmerTest` itself, instead of the Wald z-tests (still
+  the default, without R).
+- `effects="for the whole population"`: generalised estimating equations (GEE) instead of a mixed model:
+  effects averaged over all groups, with robust standard errors. statsmodels `GEE`, as R
+  `geepack::geeglm()`, with `within_groups="alike"` (exchangeable, the default) or `"independent"`;
+  `within_groups="in time order"` (AR-1, rows in table order) runs R `geepack` itself, since statsmodels'
+  AR-1 estimate differs. The default `effects="for the average group"` is the mixed model.
+
+- `grouped_by=["school", "class"]`: groups inside groups (classes inside schools), as R
+  `lme4::lmer(... + (1 | school/class))`: statsmodels MixedLM with a variance component for the inner groups
+  (the same REML answer as lme4), and R `lme4::glmer()` for yes/no and counts. The variance at each level
+  is printed with its share. `model_averages_of`, `check_model` (a fifth picture: the inner groups' own
+  levels, R `qqnorm(ranef(m)$"class:school")`), `compare_models` (both models refitted by maximum
+  likelihood, as R `anova()`) and `show_rows_that_pull` (whole outer groups) take the same list.
+  `sdata.example("school")` has a `class` column (red, blue or green, 5 pupils of each in every school)
+  to practise with, and `sdata.help("table.explain")` shows `grouped_by=["school", "class"]` and
+  `curve_for="hours"`.
+- Mixed models for yes/no and counts take `time=`, `out_of=` and `link=`, also with `own_slope_for=`
+  (R `lme4::glmer(... + offset(log(time)))`, `cbind(yes, tries - yes)`, `binomial(link = "probit")`).
+  GEE takes them too: `time=` and `link="probit"` / `"cloglog"` for yes or no with statsmodels `GEE` (the
+  same answer as `geepack::geeglm()`), `out_of=` through R `geepack` itself (statsmodels' weighted GEE
+  gives other numbers). Links for counts other than log are not in geepack, and GEE says so.
+- A mixed model needs fewer groups than rows, for `grouped_by=` and for the inner groups of
+  `grouped_by=["school", "class"]`, as R lme4 checks; one row per group is now said plainly before fitting
+  (statsmodels would report a group variance that cannot be estimated). If R cannot refit the model for
+  Nakagawa's R squared, the fit line says there is no R squared instead of stopping after the printout.
+
+### Repeated measures
+
+- `table.compare_averages("marks", for_each="subject", matched_by="name")`: a repeated-measures ANOVA for
+  values measured on the same person (plot, animal ...) in every group, R `afex::aov_ez()` itself, with the
+  Greenhouse-Geisser correction, Mauchly's test of sphericity and generalised eta-squared printed.
+  `for_each=["subject", "class"]` with one column that changes within a person and one that does not gives
+  the mixed ANOVA. simplydata works out which column is which. Needs R. The averages printed are of the
+  rows afex analysed: a person not measured in every group is left out by afex, and the printout says so.
+
+### Tables of tests (ANOVA tables)
+
+- `table.explain(..., test_type="type 2")` adds one test for each column: `"type 2"` (the usual choice,
+  as R `car::Anova(type = 2)`), `"type 3"` (sum-to-zero coding done for you, as `car::Anova(type = 3)`)
+  or `"in order"` (as R `anova()`; the order of `using=` matters: each column after the ones before it,
+  main effects before interactions as in R's formula, from nested statsmodels fits). For numbers: F tests
+  and sums of squares from statsmodels `anova_lm`, and partial eta-squared from R `effectsize`, matched to
+  each column by name. For yes/no and counts: likelihood-ratio tests from R `car::Anova` itself. A
+  `test_type=` that cannot be used (with `grouped_by=`, or without R for yes/no and counts) is said
+  before the model is printed; type 3's sum-to-zero coding is put back in R even when R stops.
+- A model with complete separation now prints "infinite" for an odds ratio instead of stopping with an
+  error.
+
+### Mixed models for yes/no and counts
+
+- `table.explain(..., outcome="yes or no", grouped_by="school")` and `outcome="counts"` with
+  `grouped_by=` fit a generalised linear mixed model with R `lme4::glmer()` itself (random intercept
+  per group, Laplace approximation): odds or rate ratios with Wald intervals, the variance between
+  groups and AIC, and the singular-fit and few-groups notes. Needs `simplydata[r]` and R.
+
 ### Methods come from established packages
 
 simplydata now calls SciPy and statsmodels for its methods instead of writing them out:
@@ -126,13 +294,26 @@ Install once: `pip install "simplydata[r]"`, R from https://cran.r-project.org, 
   manual (`python docs/make_manual.py`) builds the dictionary too, with the manual's page numbers,
   and a test fails if a word has no page or the pages come from an older manual.
 
+### Lesson 21: working with a model
+
+- `sdata.lesson(21)` "Working with a model: check it, compare it, predict with it": worked examples for
+  `check_model`, `show_rows_that_pull`, `compare_models` and `add_predicted_column(interval=95,
+  for_new_rows=True)`, then a partly worked task (the learner writes the last line), a task, a task to do
+  from memory, and `model_averages_of` last, in an example and a task that need R and may be left out.
+  The two tasks on these words that lesson 16 had move here, so lesson 16 keeps its own words.
+- The 30 days teach it the day after the models day (day 16 of the Python track, day 23 of the beginner
+  track); its words come back in the warm-ups about 3 and 7 days later, and the final test asks for
+  `check_model` and `compare_models` from memory. In the Python track lessons 17 and 18 move one day on,
+  and fitting with finding (day 19) and distributions with values between points (day 20) share days,
+  as in the beginner track.
+
 ### 30 days of simplydata
 
 - `sdata.start_30_days(track="python")` starts a course of 30 days of about an hour each:
   `track="python"` for people who already write some Python (about two lessons a day, review days
   on days 7, 14, 21 and 28, then an eight-day project of their own), `track="beginner"` for people
   who have never programmed (three days of just enough Python first, then about one lesson a day
-  and a small project). Both cover all 20 lessons and end with a final test from memory.
+  and a small project). Both cover all 21 lessons and end with a final test from memory.
 - `sdata.today()` shows the day to do next: a 5-minute warm-up of questions on earlier days
   (yesterday, about three days ago, about a week ago; review days mix the whole course), what to do
   (the lesson, the manual's sections and the words to look up) and a task to do without looking

@@ -21,8 +21,8 @@ Example tables you can use (all made up, for practice):
       Columns: date, shop, sales, customers
 
   sdata.example("school")
-      Made-up pupils in 12 schools: study, sleep and test marks. Some sleep cells are empty.
-      Columns: school, pupil, hours, sleep, breakfast, marks, passed, days_absent
+      Made-up pupils in 12 schools, three classes in each: study, sleep and test marks. Some sleep cells are empty.
+      Columns: school, pupil, class, hours, sleep, breakfast, marks, passed, days_absent
 
   sdata.example("meadow")
       Plants counted in 30 made-up plots of three fields, half of them grazed by sheep.

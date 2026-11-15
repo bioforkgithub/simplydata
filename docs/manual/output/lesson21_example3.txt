@@ -1,0 +1,6 @@
+Comparing two models of "marks" on the same 180 rows:
+  using= marks ~ hours: AIC = 1296, BIC = 1306 (3 values estimated)
+  against= marks ~ hours + breakfast: AIC = 1292, BIC = 1305 (4 values estimated)
+Lower AIC: the against= model (by 3.72).
+Does "breakfast" help? F test (F = 5.72, df = 1 and 177): unlikely to be chance (p = 0.018).
+Method: both models fitted as lm(marks ~ hours + breakfast) and the smaller one, then an F test, as R anova(m0, m1) (statsmodels compare_f_test); AIC and BIC as R AIC() and BIC().

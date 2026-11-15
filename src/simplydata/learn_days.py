@@ -629,7 +629,7 @@ UNITS = {
             table.save("weather.xlsx")'''),
             "Question, test, figure, saved table: the whole analysis in eight lines.")],
     ),
-    # ------------------------------------------------------------ going further (lessons 16 to 20)
+    # ------------------------------------------------------------ going further (lessons 16 to 21)
     "lesson16": dict(
         lessons=[16],
         words=["table.explain", "table.add_predicted_column"],
@@ -647,6 +647,33 @@ UNITS = {
             table = sdata.table(sdata.example("school"))
             table.explain("days_absent", using=["sleep", "breakfast"], outcome="counts")'''),
             "Counts of days call for Poisson regression; read the line for breakfast and its p-value.")],
+    ),
+    "lesson21": dict(
+        lessons=[21],
+        words=["table.check_model", "table.compare_models", "table.add_predicted_column", "table.show_rows_that_pull"],
+        do=[_lesson_do(21, "examples 1 to 4"),
+            "Example 5 (model_averages_of) needs R: do it only if you have R, or come back to it later."],
+        recall=[
+            ("Which word draws four pictures to check a model from explain()?",
+             'table.check_model("marks", using=["hours", "breakfast"])'),
+            ("Which word asks whether adding a column helps a model?",
+             'table.compare_models("marks", using=["hours"], against=["hours", "breakfast"])'),
+            ("Which options of add_predicted_column add a 95 % interval, and make it the interval for one new row?",
+             'interval=95, and for_new_rows=True: '
+             'table.add_predicted_column("marks", using=["hours"], interval=95, for_new_rows=True)'),
+            ("Which word lists the rows that pull a model the most?",
+             'table.show_rows_that_pull("marks", using=["hours", "breakfast"])'),
+        ],
+        task=['School table: does "sleep" help a yes-or-no model of "passed" that already has "hours"? Check the '
+              "model with its pictures first."],
+        solutions=[(_code('''
+            import simplydata as sdata
+            table = sdata.table(sdata.example("school"))
+            page = table.check_model("passed", using=["hours", "sleep"], outcome="yes or no")
+            page.save("passed_checks.png")
+            table.compare_models("passed", using=["hours"], against=["hours", "sleep"], outcome="yes or no")'''),
+            "The first picture shows two bands, as every yes/no model does, and its smooth line stays close to 0. "
+            "Sleep helps: chi-square = 11.0, p = 0.0009, and the AIC drops by 9.04.")],
     ),
     "lesson17": dict(
         lessons=[17],
@@ -895,7 +922,7 @@ UNITS = {
             table.count_rows()
             table.describe_columns()'''),
             "The first line only makes a raw file to practise on; with your own data, start at the second "
-            "line. The school table has 180 rows and 8 columns; sleep has 19 empty cells.")],
+            "line. The school table has 180 rows and 9 columns; sleep has 19 empty cells.")],
     ),
     "proj_clean": dict(
         lessons=[11],
@@ -1079,7 +1106,9 @@ UNITS = {
             "when it is finished, check it with sdata.help."],
         task=['From memory, in an empty file: open the "marks" table, remove the rows with empty cells, give '
               'the average marks for each class, test the difference, and save a two-panel figure (boxes, '
-              "and dots of hours against marks with a fitted line) as a PDF."],
+              "and dots of hours against marks with a fitted line) as a PDF.",
+              'From memory: school table, check the model of "marks" from "hours" and "breakfast" with its '
+              'pictures, then ask whether "sleep" helps it.'],
         solutions=[(_code('''
             import simplydata as sdata
             table = sdata.table(sdata.example("marks"))
@@ -1094,7 +1123,14 @@ UNITS = {
             figure = sdata.grid(a, b, per_row=2, letters=True)
             figure.save("final.pdf")'''),
             "If you wrote this from memory, you know the core of simplydata. Words you missed: run their "
-            "sdata.help again tomorrow.")],
+            "sdata.help again tomorrow."),
+            (_code('''
+            import simplydata as sdata
+            table = sdata.table(sdata.example("school"))
+            page = table.check_model("marks", using=["hours", "breakfast"])
+            page.save("marks_checks.png")
+            table.compare_models("marks", using=["hours", "breakfast"], against=["hours", "breakfast", "sleep"])'''),
+            "check_model, then compare_models: on the 161 rows with every value, sleep helps (p = 0.002).")],
     ),
     "compare_pandas": dict(
         lessons=[15],
@@ -1200,21 +1236,22 @@ _PYTHON = [
     ("Models: explain one column from several",
      "Explain one column from several others: multiple, logistic, Poisson and mixed regression.",
      ["lesson16"], "learn"),
+    ("Working with a model",
+     "Check a model with its pictures, ask whether a column helps, and say how sure a prediction is.",
+     ["lesson21"], "learn"),
     ("Patterns across many columns",
      "Find patterns across many columns with principal components, clusters, NMDS and PERMANOVA.",
      ["lesson17"], "learn"),
     ("Survival, and planning a study",
      "Draw and test survival curves, and work out how many values a study needs.",
      ["lesson18"], "learn"),
-    ("Fitting lines, curves and formulas",
-     "Fit straight lines, curves and formulas of your own to a table, and draw them on a chart.",
-     ["fitting"], "learn"),
-    ("Finding, solving and distributions",
-     "Find where a formula is smallest or biggest, solve equations, and work out chances from a distribution.",
-     ["finding", "distributions"], "learn"),
-    ("Values between points",
-     "Estimate values between the points you measured, and fill an even map for a contour chart.",
-     ["between"], "learn"),
+    ("Fitting, finding and solving",
+     "Fit lines, curves and formulas of your own, find where a formula is smallest or biggest, and solve "
+     "equations.",
+     ["fitting", "finding"], "learn"),
+    ("Distributions and values between points",
+     "Work out chances from a distribution, and estimate values between the points you measured.",
+     ["distributions", "between"], "learn"),
     ("Review, and the question of your project",
      "Remember the words of the third week, then choose the question and the raw file of your own project.",
      ["review_p21", "proj_question"], "review"),
@@ -1314,9 +1351,10 @@ _BEGINNER = [
     ("Models: explain one column from several",
      "Explain one column from several others with a model.",
      ["lesson16"], "learn"),
-    ("Patterns across many columns",
-     "Find patterns across many columns with principal components and clusters.",
-     ["lesson17"], "learn"),
+    ("Check a model, and patterns across many columns",
+     "Check a model and ask whether a column helps, then find patterns across many columns with principal "
+     "components and clusters.",
+     ["lesson21", "lesson17"], "learn"),
     ("Survival, and planning a study",
      "Draw survival curves, and work out how many values a study needs.",
      ["lesson18"], "learn"),
