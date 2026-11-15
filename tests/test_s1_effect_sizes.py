@@ -144,3 +144,11 @@ def test_without_r_the_test_runs_and_a_note_says_how_to_add_the_effect_size(mark
     assert got["effect size"] == pytest.approx(0.279145263119541, rel=REL)
     assert math.isnan(got["effect size 95 % CI low"])
     assert "the 95 % CI of Cramer's V comes from the R package effectsize" in capsys.readouterr().out
+
+
+def test_r_call_values_are_not_overwritten_by_package_loading(needs_r):
+    # r_call loads packages in a loop; a value called p (as cohens_w's expected shares) must stay p
+    from simplydata._r import r_call
+
+    got = r_call("sum(p)", packages=("stats",), p=[0.25, 0.75])
+    assert float(got[0]) == 1.0

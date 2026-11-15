@@ -721,6 +721,17 @@ class ModelWords:
                 levels = sorted(set(work[nm].tolist()), key=_sort_key)
                 for j, level in enumerate(levels[1:]):
                     frame[f"{key}_{j}"] = np.array([v == level for v in work[nm]], dtype=float)
+        from .._r import need_r
+
+        # Pooling needs R (mice), so R is started before the filling-in, not after. Starting R changes
+        # the state of the process in some way that moves the filled-in values a little (not the
+        # floating-point control word: that was checked and stays the same), and predictive mean
+        # matching picks donors by the smallest distance, so the filled-in tables would otherwise
+        # depend on whether an earlier word had already started R. It also says R is missing before
+        # 20 fits, not after.
+        need_r(("mice",), "Pooling the filled-in tables (R mice::pool())",
+               "statsmodels MICE pools with Rubin's rules but without the Barnard-Rubin degrees of freedom, "
+               "so its p-values differ")
         imputer = MICEData(pd.DataFrame(frame), k_pmm=PMM_DONORS, rng=seed)
         filled = []
         with warnings.catch_warnings():

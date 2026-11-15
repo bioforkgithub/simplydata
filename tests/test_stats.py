@@ -469,3 +469,18 @@ def test_no_dodge_when_off_single_group_or_no_shared_x():
     apart = pd.DataFrame({"x": [1, 1, 2, 2], "y": [1.0, 2.0, 3.0, 4.0], "g": ["a", "a", "b", "b"]})
     ax = sdata.chart(apart).dots(x="x", y="y", colour="g").error_bars()._render().axes[0]
     assert np.allclose(np.concatenate([_bar_x(c) for c in ax.containers]), [1, 2])
+
+
+def test_lowess_against_r(needs_r):
+    # up to 1000 points (delta = 0) the curve is R lowess() to about 1e-9; above 1000, R's default
+    # delta = 1 % of the x range interpolates a little differently in statsmodels: about 1e-5
+    from simplydata._r import r_call
+
+    rng = np.random.default_rng(5)
+    for n, tolerance in ((300, 1e-8), (1500, 1e-4)):
+        x = np.sort(rng.uniform(0, 10, n))
+        y = np.sin(x) + rng.normal(0, 0.3, n)
+        delta = 0.01 * np.ptp(x) if n > 1000 else 0.0
+        _, fitted = lowess(x, y, delta=delta)
+        r = r_call("lowess(x, y, f = 2/3, iter = 3, delta = d)$y", x=x, y=y, d=delta)
+        assert np.max(np.abs(fitted - r)) < tolerance, n

@@ -185,7 +185,8 @@ def log_rank(time, event, codes, k):
 
     The chi-square comes from statsmodels survdiff. The observed and expected events per
     group are only counted for the printout (expected = sum over event times of
-    events x share of the rows at risk in that group)."""
+    events x share of the rows at risk in that group). Groups with no expected events are left
+    out of the test, as R does, and df counts only the groups that are left."""
     from statsmodels.duration.survfunc import survdiff
 
     time = np.asarray(time, dtype=float)
@@ -197,10 +198,16 @@ def log_rank(time, event, codes, k):
         risk = time >= t
         n_j = np.array([(risk & (codes == j)).sum() for j in range(k)], dtype=float)
         expected += float((event & (time == t)).sum()) * n_j / n_j.sum()
-    present = sorted(set(codes.tolist()))
+    # as R survdiff: a group with no expected events (no row at risk at any event time) is left
+    # out; its rows are in no risk set, so leaving them out changes nothing else
+    used = expected > 0
+    keep = used[codes]
+    df = int(used.sum()) - 1
+    if df < 1:
+        return observed, expected, math.nan, 0
     try:
-        chi, _ = survdiff(time, event.astype(float), codes)
-        chi, df = float(chi), len(present) - 1
+        chi, _ = survdiff(time[keep], event[keep].astype(float), codes[keep])
+        chi = float(chi)
     except np.linalg.LinAlgError:  # e.g. every event in one group at a time when only it is at risk
         chi, df = math.nan, 0
     return observed, expected, chi, df
@@ -254,6 +261,15 @@ def cox_zph(time, event, fit, terms) -> list[tuple[float, int, float]]:
         time=np.asarray(time, dtype=float), event=np.asarray(event, dtype=bool), **values)
     table = np.asarray(table, dtype=float).reshape(len(terms) + 1, 3, order="F") if table.ndim == 1 else table
     return [(float(chi), int(round(df)), float(p)) for chi, df, p in table]
+
+
+def _ratio(log_value) -> float:
+    """exp() that gives infinity instead of an error for a coefficient heading to infinity
+    (all events in one group: complete separation)."""
+    try:
+        return math.exp(log_value)
+    except OverflowError:
+        return math.inf
 
 
 def _show(value) -> str:
@@ -393,6 +409,12 @@ class SurvivalWords:
         print(f"Differences this big in the time until the event {_chance(p, plural=True)}.")
         print(f"Test: log-rank test (chi-square = {_num(chi)}, df = {df}), as R survdiff({_surv(time, event, yes)} ~ "
               f"{for_each}); it compares the whole curves, giving every event time the same weight.")
+        left_out = [n for n, e in zip(names, expected) if not e > 0]
+        if left_out:
+            verb, them = ("is", "it has") if len(left_out) == 1 else ("are", "they have")
+            quoted = _list_words('"' + n + '"' for n in left_out)
+            print(f"Note: {quoted} {verb} left out of the test: {them} no rows still followed "
+                  "at any event time, so no expected events (R survdiff leaves such groups out too).")
         row = {"test": "log-rank test",
                "what it compares": f'the time until "{event}" = {yes} in each "{for_each}" ({", ".join(names)})',
                "statistic name": "chi-square", "statistic": chi, "degrees of freedom": float(df), "p-value": p}
@@ -473,8 +495,14 @@ class SurvivalWords:
         lr_p = float(stats.chi2.sf(lr, df))
         from .._r import RMissing
 
+        import contextlib
+        import io
+
+        r_notes = io.StringIO()  # R's notes go with the other notes, after the results
         try:
-            zph, zph_missing = cox_zph(times, events, fit, terms), None
+            with contextlib.redirect_stdout(r_notes):
+                zph = cox_zph(times, events, fit, terms)
+            zph_missing = None
         except RMissing as missing:  # the model stands without R; only the check is left out
             zph, zph_missing = [(math.nan, len(cols), math.nan) for cols in terms + [[]]], str(missing)
         term_of = {c: i for i, cols in enumerate(terms) for c in cols}
@@ -483,7 +511,7 @@ class SurvivalWords:
               "event at any moment; below 1: a lower risk):")
         rows = []
         for i, (column, level, base) in enumerate(names):
-            hr, low, high = math.exp(beta[i]), math.exp(beta[i] - Z95 * se[i]), math.exp(beta[i] + Z95 * se[i])
+            hr, low, high = _ratio(beta[i]), _ratio(beta[i] - Z95 * se[i]), _ratio(beta[i] + Z95 * se[i])
             what = f'each 1 more "{column}"' if level is None else f'"{column}" {level} vs {base}'
             print(f"  {what}: hazard ratio {_num(hr)} (95 % CI {_num(low)} to {_num(high)}); {_p_words(float(p[i]))}.")
             rows.append({"term": column if level is None else f"{column}: {level} vs {base}",
@@ -501,6 +529,8 @@ class SurvivalWords:
                   "all of them. Treat it with care.")
         if zph_missing:
             print("Note: the proportional-hazards check was left out. " + zph_missing)
+        if r_notes.getvalue():
+            print(r_notes.getvalue(), end="")
         for i, cols in enumerate(terms):
             if zph[i][2] < 0.05:
                 column = names[cols[0]][0]

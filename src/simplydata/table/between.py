@@ -99,7 +99,7 @@ SAID = {
     "not-a-knot": "a cubic spline with not-a-knot ends (as MATLAB spline())",
     "periodic": 'a periodic cubic spline (as R splinefun(method = "periodic"))',
 }
-MIN_SMOOTHING_POINTS = 4  # as R smooth.spline()
+MIN_SMOOTHING_POINTS = 5  # SciPy make_smoothing_spline needs 5 (R smooth.spline needs 4)
 MAP_LIMIT = 1_000_000  # map_of: places at most
 
 
@@ -178,7 +178,9 @@ class SmoothingSpline:
     as possible. Several values at one x are averaged with weight = how many, as R.
     smoothness="auto" asks R itself (smooth.spline, through rpy2) for lambda chosen by
     generalised cross-validation, with its equivalent degrees of freedom (df); SciPy's own
-    choice of lambda lands elsewhere. A number for smoothness= needs no R (df is then not
+    choice of lambda lands elsewhere. The curve is SciPy's at R's lambda and agrees with R
+    predict(smooth.spline) to about 1e-4 (R fits in a B-spline basis). A number for
+    smoothness= needs no R (df is then not
     known). Beyond the ends the curve goes on in a straight line, as R predict.smooth.spline.
     """
 
@@ -188,8 +190,9 @@ class SmoothingSpline:
         x = np.asarray(x, dtype=float)
         y = np.asarray(y, dtype=float)
         ux, uy, counts = unique_mean(x, y)
-        if len(ux) < 4:
-            raise SimplydataError(f"A smoothing spline needs at least 4 different x values; there are {len(ux)}.")
+        if len(ux) < MIN_SMOOTHING_POINTS:
+            raise SimplydataError(f"A smoothing spline needs at least {MIN_SMOOTHING_POINTS} different x values; "
+                                  f"there are {len(ux)}.")
         self.low, self.size = float(ux[0]), float(ux[-1] - ux[0])
         if smoothness == "auto":
             from .._r import r_call
@@ -719,6 +722,8 @@ class BetweenWords:
         spline), "nearest"; on a full grid also "cubic", "quintic", "pchip".
         smoothness="auto" or a number gives a smoothing spline that passes near, not through,
         the points (R smooth.spline(); a number is R's lambda=); 0 passes through every point.
+        "auto" lets R itself choose the smoothness and needs R (pip install "simplydata[r]");
+        a number needs no R.
         outside= is what happens beyond the known points: "empty" (default), "nearest end" or
         "extend" (curves only; guesswork). for_each="country" joins each group on its own.
         Rows with an empty cell are skipped. Gives back a new table: the at= columns, the
@@ -790,7 +795,8 @@ class BetweenWords:
         table.map_of("height", across=["east", "north"], steps=100)   (with sdata.example("island"))
         The map runs from the smallest to the biggest known value of each across= column,
         with steps= places along each (a number, or one per column). The points are joined
-        as in table.values_at() (same joined_by= and smoothness=). Places outside the outline
+        as in table.values_at() (same joined_by= and smoothness=; smoothness="auto" needs R,
+        a number does not). Places outside the outline
         of the known points stay empty, with a note. Gives back a new long table: one row per
         place, with the across= columns and the estimated column.
         """

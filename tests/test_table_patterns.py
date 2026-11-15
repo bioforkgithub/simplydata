@@ -295,6 +295,7 @@ def test_nmds_matches_metamds(meadow, capsys, needs_r):
     assert "stress = 0.195, usable" in text  # m1$stress = 0.194902988398863
     assert "Clarke" in text and 'vegan::metaMDS(vegdist(x, method = "bray"), k = 2' in text
     assert "autotransform = FALSE" in text
+    assert "try = 20, trymax = 100" in text and "found only once" not in text  # as the R call above
     points = meadow._frame.to_pandas()[["NMDS1", "NMDS2"]].to_numpy()
     _, _, disparity = procrustes(np.array(R_NMDS_BRAY), points)
     assert np.sqrt(1 - disparity) > 0.999  # vegan::procrustes / protest correlation
@@ -409,3 +410,10 @@ def test_r_call_passes_warnings_on_and_still_answers(capsys, needs_r):
     out = capsys.readouterr().out
     assert float(got[0]) == 1.0
     assert out.count("Note from R (test): test warning.") == 1  # each distinct warning once
+
+
+def test_seeds_must_fit_r(meadow):
+    # R set.seed() takes whole numbers up to 2**31 - 1; a bigger seed gets a plain message, before R runs
+    for word, extra in (("add_clusters", {}), ("add_nmds", {}), ("compare_profiles", {"for_each": "grazed"})):
+        with pytest.raises(SimplydataError, match="seed= as a whole number from 0 to 2147483647"):
+            getattr(meadow, word)(seed=2 ** 31, **extra)

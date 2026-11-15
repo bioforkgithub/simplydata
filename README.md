@@ -35,8 +35,13 @@ one cleaned table can feed many charts, and charts go side by side with
 pip install simplydata            # needs Python 3.11 or newer
 pip install "simplydata[fast]"    # adds Polars, the fast engine for big data
 pip install "simplydata[files]"   # adds reading Word, SPSS and Stata files
-pip install "simplydata[stats]"   # adds statsmodels, for mixed models and multiple imputation
+pip install "simplydata[r]"       # adds rpy2, for the methods that run R's own code
 ```
+
+The `[r]` extra also needs R (https://cran.r-project.org) and, in R,
+`install.packages(c("vegan", "survival", "mice", "effectsize", "pwr", "Exact"))`. On Windows with
+Python 3.13, rpy2 has no ready-made wheel; set `RPY2_CFFI_MODE=ABI` first (in PowerShell:
+`$env:RPY2_CFFI_MODE = "ABI"`, in cmd: `set RPY2_CFFI_MODE=ABI`), then run the pip line.
 
 ## Learn it in a day
 

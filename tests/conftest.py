@@ -51,10 +51,32 @@ def needs_r():
         pytest.skip("needs R with survival, vegan and mice (pip install 'simplydata[r]')")
 
 
+# The places that are meant to run R (each calls simplydata._r.r_call). Reaching R from anywhere
+# else is a mistake: a word that should work without R.
+R_ENTRY_POINTS = {
+    ("table/patterns.py", "_r_kmeans"), ("table/patterns.py", "_r_nmds"), ("table/patterns.py", "_r_permanova"),
+    ("table/survival.py", "cox_zph"), ("table/between.py", "__init__"), ("table/models.py", "_explain_imputed"),
+}
+
+
+def _through_r_entry_point(tb) -> bool:
+    import traceback
+
+    for frame in traceback.extract_tb(tb):
+        path = frame.filename.replace("\\", "/")
+        if any(path.endswith("simplydata/" + file) and frame.name == name for file, name in R_ENTRY_POINTS):
+            return True
+    return False
+
+
 @pytest.hookimpl(hookwrapper=True)
 def pytest_runtest_call(item):
-    """A test stopped by "R is not ready" (RMissing) is skipped where R is missing, but fails in CI
-    (SIMPLYDATA_REQUIRE_R=1). This covers the lesson and help examples that use R methods."""
+    """A test stopped by "R is not ready" (RMissing):
+    - SIMPLYDATA_REQUIRE_R=1 (CI with R): fails, the R tests must run;
+    - SIMPLYDATA_NO_R=1 (CI without R): skipped only when R was reached through one of
+      R_ENTRY_POINTS (or the test asks for needs_r); otherwise it fails, so a word that should
+      not need R is caught;
+    - otherwise (a computer without R): skipped."""
     import os
 
     outcome = yield
@@ -63,5 +85,8 @@ def pytest_runtest_call(item):
         return
     from simplydata._r import RMissing
 
-    if isinstance(error[1], RMissing):
-        outcome.force_exception(pytest.skip.Exception("needs R (pip install 'simplydata[r]' and R)"))
+    if not isinstance(error[1], RMissing):
+        return
+    if os.environ.get("SIMPLYDATA_NO_R") == "1" and not _through_r_entry_point(error[2]):
+        return  # keep the failure: this code was not meant to need R
+    outcome.force_exception(pytest.skip.Exception("needs R (pip install 'simplydata[r]' and R)"))
