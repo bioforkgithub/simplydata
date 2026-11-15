@@ -27,6 +27,7 @@ import textwrap
 from pathlib import Path
 
 from ._errors import SimplydataError, suggest
+from .learn import CYCLES_LESSON, FORECASTS_LESSON, SYSTEMS_LESSON, TIME_SERIES_LESSON, lesson_number
 
 TRACK_NAMES = ("python", "beginner")
 DAYS_IN_A_TRACK = 30
@@ -43,8 +44,8 @@ TRACKS = {
         title="Beginner track",
         who="for people who have never programmed",
         about="Three days of just enough Python first, then about one lesson a day, with review days on "
-              "days 7, 14 and 21, a small project of your own (days 27 and 28), a final test from memory "
-              "and a look back.",
+              "days 7, 14 and 21, a small project of your own (days 28 and 30), a final test from memory "
+              "(day 29) and a look back.",
     ),
 }
 
@@ -784,6 +785,49 @@ UNITS = {
             rain.show()'''),
             "Each estimate lies halfway between the two months around it.")],
     ),
+    "signals": dict(
+        lessons=[lesson_number(t) for t in (TIME_SERIES_LESSON, FORECASTS_LESSON, CYCLES_LESSON, SYSTEMS_LESSON)],
+        needs_r="trend_of() and forecast()",
+        r_packages=("trend", "forecast"),
+        words=["table.add_missing_dates", "table.add_smoothed_column", "table.trend_of", "table.forecast",
+               "table.find_peaks"],
+        do=[_lesson_do(lesson_number(TIME_SERIES_LESSON), "examples 2 to 4"),
+            _lesson_do(lesson_number(FORECASTS_LESSON), "examples 3 to 5"),
+            _lesson_do(lesson_number(CYCLES_LESSON), "example 3"),
+            f"The systems lesson (sdata.lesson({lesson_number(SYSTEMS_LESSON)}), optional) and the rest of the "
+            f"cycles lesson (sdata.lesson({lesson_number(CYCLES_LESSON)}): spectra, filters) go further: do them "
+            "when you need them."],
+        recall=[
+            ("Which word adds the days that are missing from a daily table?",
+             'table.add_missing_dates("date", every="day", for_each="station")'),
+            ("Which option of add_rolling_column averages over the last 7 days of time, not 7 rows?",
+             'window="7 days"'),
+            ("Which word smooths a column with a moving average over its neighbours in time?",
+             'table.add_smoothed_column("nitrate_smoothed", from_column="nitrate", window=31, sorted_by="date")'),
+            ("Which word tests whether a series has a real trend (Mann-Kendall) and gives its slope?",
+             'table.trend_of("nitrate", sorted_by="date")'),
+            ("Which word forecasts the next 12 months?",
+             'table.forecast("visitors", sorted_by="month", steps_ahead=12)'),
+            ("Which option of forecast checks it on the last 12 months, which it has not seen?",
+             "check_on_last=12"),
+            ("Why hold back the last months before trusting a forecast?",
+             "A forecast is only as good as its check on data it has not seen: held-back months show how far "
+             "off it really is."),
+            ('Why does window="7 days" still work when days are missing?',
+             "It counts days of time, not rows: a window holds whatever readings fall in those 7 days."),
+            ("Which word finds the readings higher than both neighbours?",
+             'table.find_peaks("signal", sorted_by="time", at_least=1)'),
+        ],
+        task=['River table: add the missing days, fill the empty "level" cells, and test whether the level of '
+              "each station has a trend."],
+        solutions=[(_code('''
+            import simplydata as sdata
+            table = sdata.table(sdata.example("river"))
+            table.add_missing_dates("date", every="day", for_each="station")
+            table.fill_empty_cells("level", with_the="line between neighbours", sorted_by="date", for_each="station")
+            table.trend_of("level", sorted_by="date", for_each="station")'''),
+            "trend_of prints Sen's slope (per day and per year) and the Mann-Kendall p-value for each station.")],
+    ),
     # ------------------------------------------------------------ review days
     "review_p7": dict(
         lessons=[],
@@ -1245,13 +1289,14 @@ _PYTHON = [
     ("Survival, and planning a study",
      "Draw and test survival curves, and work out how many values a study needs.",
      ["lesson18"], "learn"),
-    ("Fitting, finding and solving",
-     "Fit lines, curves and formulas of your own, find where a formula is smallest or biggest, and solve "
-     "equations.",
-     ["fitting", "finding"], "learn"),
-    ("Distributions and values between points",
-     "Work out chances from a distribution, and estimate values between the points you measured.",
-     ["distributions", "between"], "learn"),
+    ("Fitting, finding, solving and distributions",
+     "Fit lines, curves and formulas of your own, find where a formula is smallest or biggest, solve "
+     "equations, and work out chances from a distribution.",
+     ["fitting", "finding", "distributions"], "learn"),
+    ("Values between points, and time series",
+     "Estimate values between the points you measured, then add missing days, smooth a series, test its "
+     "trend, forecast it and find its peaks.",
+     ["between", "signals"], "learn"),
     ("Review, and the question of your project",
      "Remember the words of the third week, then choose the question and the raw file of your own project.",
      ["review_p21", "proj_question"], "review"),
@@ -1362,20 +1407,20 @@ _BEGINNER = [
      "Fit lines, curves and formulas, find where a formula is biggest, and solve equations.",
      ["fitting", "finding"], "learn"),
     ("Distributions and values between points",
-     "Work out chances from a distribution, and estimate values between measured points.",
+     "Work out chances from a distribution, and estimate values between the points you measured.",
      ["distributions", "between"], "learn"),
+    ("Time series: dates, smoothing, trend and forecasts",
+     "Add the missing days of a series, smooth it, test its trend, forecast it and find its peaks.",
+     ["signals"], "learn"),
     ("Small project: look, clean and sum up",
      "Choose a question and a file, then look at it, clean it and sum it up.",
      ["bproj_a"], "project"),
-    ("Small project: test, figure and results",
-     "Answer your question with a test, a figure and two sentences of results.",
-     ["bproj_b"], "project"),
     ("Final test from memory",
      "Answer questions on the whole course and write a whole analysis from memory.",
      ["final_test"], "final"),
-    ("Look back, and what comes next",
-     "Do your hardest day again, and take a first look at pandas underneath simplydata.",
-     ["look_back"], "learn"),
+    ("Small project: test, figure and results, and a look back",
+     "Finish your project with a test, a figure and two sentences of results, then look back over the course.",
+     ["bproj_b", "look_back"], "project"),
 ]
 
 DAYS = {"python": _PYTHON, "beginner": _BEGINNER}
@@ -1428,12 +1473,13 @@ def _warm_up_sources(track: str, number: int, last_asked: dict[int, int], used: 
     Learning days follow the gaps: yesterday, about three days ago, about a week ago. Early on, when
     there are fewer earlier days than questions, the most recent days are asked about twice (with a
     different question). Review, project and final days mix the whole course: first the days with
-    questions not asked yet, then the days asked about longest ago."""
+    questions not asked yet, then the days asked about longest ago; on a tie, the earlier day first,
+    so the newest days do not crowd out an old question that has not come up yet."""
     sources = _source_days(track, number)
     if DAYS[track][number - 1][3] != "learn":
         earlier = [d for d in range(1, number) if _has_recall(track, d)]
         unasked = {d: used.get(d, 0) < len(_recall_of(track, d)) for d in earlier}
-        earlier.sort(key=lambda d: (not unasked[d], last_asked.get(d, 0), -d))
+        earlier.sort(key=lambda d: (not unasked[d], last_asked.get(d, 0), d))
         return earlier[:max(len(sources), MIN_WARM_UP)]
     earlier = [d for d in range(number - 1, 0, -1) if _has_recall(track, d)]
     i = 0
@@ -1480,7 +1526,7 @@ def plan(track: str, number: int) -> dict:
     title, goal, units, kind = DAYS[track][number - 1]
     found = dict(track=track, number=number, title=title, goal=goal, kind=kind, units=list(units),
                  lessons=[], manual=[], words=[], do=[], examples=[], errors=[], task=[], solutions=[],
-                 needs_r=[], warm_up=warm_up(track, number))
+                 needs_r=[], r_packages=[], warm_up=warm_up(track, number))
     for name in units:
         unit = UNITS[name]
         for n in unit["lessons"]:
@@ -1499,6 +1545,9 @@ def plan(track: str, number: int) -> dict:
         found["solutions"] += unit.get("solutions", [])
         if unit.get("needs_r"):
             found["needs_r"].append(unit["needs_r"])
+            for package in unit.get("r_packages", ("vegan", "survival", "mice")):
+                if package not in found["r_packages"]:
+                    found["r_packages"].append(package)
     return found
 
 
@@ -1508,7 +1557,7 @@ def needs_r_line(p: dict) -> str | None:
         return None
     from .learn import needs_r_text
 
-    return needs_r_text(" and ".join(p["needs_r"]))
+    return needs_r_text(" and ".join(p["needs_r"]), packages=p.get("r_packages") or ("vegan", "survival", "mice"))
 
 
 def all_code() -> list[tuple[str, str]]:

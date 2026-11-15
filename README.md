@@ -36,6 +36,8 @@ one cleaned table can feed many charts, and charts go side by side with
 pip install simplydata            # needs Python 3.11 or newer
 pip install "simplydata[fast]"    # adds Polars, the fast engine for big data
 pip install "simplydata[files]"   # adds reading Word, SPSS and Stata files
+pip install "simplydata[stats]"   # adds statsmodels, for mixed models and multiple imputation
+pip install "simplydata[systems]" # adds python-control: rise time, settling time and margins of systems
 pip install "simplydata[r]"       # adds rpy2, the bridge from Python to R (install R itself from https://cran.r-project.org)
 ```
 
@@ -48,7 +50,7 @@ import simplydata as sdata
 sdata.lesson(1)
 ```
 
-There are twenty-one short lessons. Lessons 1 to 8 teach charts, from your first chart to
+There are twenty-five short lessons. Lessons 1 to 8 teach charts, from your first chart to
 animations. Lessons 9 to 12 teach tables: looking at your data, choosing rows and columns,
 cleaning it, and summing it up. Lesson 13 teaches numbers (lists and grids of numbers), and
 lesson 14 the statistical tests: is a difference real, or could it be chance? Lesson 15 puts it
@@ -58,7 +60,10 @@ imputation), patterns across many columns (PCA, clustering, Bray-Curtis distance
 PERMANOVA), survival curves and Cox models, power analysis, fitting curves and formulas,
 finding the smallest or biggest value and solving equations, distributions and chances,
 values between the points you measured, and working with a model: checking it, comparing two
-models and predicting with an interval. Each
+models and predicting with an interval. The last four lessons cover time series (dates, missing
+days, time windows, smoothing and trend), forecasts checked on held-back months, cycles in a
+recording (spectra, filters, peaks, and whether a series stays steady) and, optional, linear
+systems (step and frequency responses, feedback). Each
 lesson has an example you can run, says what every line does, explains the idea behind it
 (average or median, standard deviation or standard error, p-values) and ends with a small task
 to try yourself.
@@ -95,7 +100,7 @@ the manual for each lesson and word, and the answers at the back.
 ## Manual
 
 **[The simplydata manual (PDF)](https://github.com/bioforkgithub/simplydata/blob/main/docs/manual/simplydata_manual.pdf)** has everything in one book:
-all twenty-one lessons with the real charts and output they make, every word explained (its options,
+all twenty-five lessons with the real charts and output they make, every word explained (its options,
 an example you can run and the library that does the work underneath), the data science ideas
 behind the numbers (average or median, standard deviation or standard error, confidence intervals,
 p-values, effect sizes, and which statistical test to use when), and a worked solution for every
@@ -218,6 +223,8 @@ These are the packages simplydata gives plain words for, and every R package it 
 | Models | statsmodels (regression, logistic, Poisson, negative binomial, Gamma, ordered, multinomial (MNLogit) and mixed models, GEE, Cox models and survival curves, multiple imputation) |
 | Patterns across many columns | SciPy (`scipy.spatial` for distances, `scipy.cluster` for clustering) and statsmodels (PCA) |
 | Fitting, finding and values between points | SciPy (`scipy.optimize` and `scipy.interpolate`) |
+| Time series, cycles and filters | SciPy (`scipy.signal` for spectra, filters, peaks and the analytic signal; `scipy.fft` for the Fourier transform) |
+| Systems | python-control (`simplydata[systems]`): rise time, settling time, overshoot and stability margins of a system |
 | The bridge to R | rpy2 (`simplydata[r]`) |
 
 R packages, used where Python has no method of its own:
@@ -243,6 +250,12 @@ R packages, used where Python has no method of its own:
 | Models | mice | pooling the filled-in tables of multiple imputation |
 | Survival | survival | the proportional-hazards check of a Cox model |
 | Patterns across many columns | vegan | NMDS, PERMANOVA and its spread check (the distances are SciPy `pdist`) |
+| Time series | stats (comes with R) | the seasonal split of a series (STL) and the running median |
+| Time series | trend | the Mann-Kendall trend test and Sen's slope |
+| Time series | tseries | whether a series stays steady (ADF and KPSS tests) |
+| Time series | forecast | forecasts and how far off they were on held-back readings |
+| Time series | changepoint | the points where the average of a series jumps to a new level |
+| Cycles | lomb | the Lomb-Scargle spectrum of readings at uneven times |
 
 To use the words that need R, install R from https://cran.r-project.org, then
 `pip install "simplydata[r]"`, then in R `install.packages(...)` with the packages above.

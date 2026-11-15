@@ -13,6 +13,14 @@ from __future__ import annotations
 
 # sdata.<name>: top-level words, and words people expect on sdata that live on a table or a chart.
 _SDATA = [
+    ('sdata.dates("2026-01-01", to="2026-12-31", every="day")', "date_range seq.Date datetime_range daterange"),
+    ('sdata.wave("sine", frequency=5, time_step=0.01, how_many=100)', "chirp square sawtooth gausspulse unit_impulse"),
+    ('sdata.window_shape("hann", how_many=64)', "hann hanning hamming blackman get_window"),
+    ("sdata.inverse_fourier_transform(table)", "ifft irfft"),
+    ('sdata.numbers("call.wav")', "readWave wavread read_wav"),
+    ('sdata.system("1 / (s**2 + 2*s + 5)")',
+     "lti dlti tf ss zpk TransferFunction StateSpace ZerosPolesGain transfer_function state_space"),
+    ("sdata.frequency_filter(keep_below=10, time_step=0.005)", "freqz sosfreqz iirfilter iirdesign"),
     ('sdata.find_smallest("x**2 - 4*x + 1", between=[0, 5])',
      "minimize minimise optimize optimise optim minimize_scalar fmin fminbound argmin nlm "
      "nlminb fminsearch"),
@@ -158,6 +166,27 @@ _TABLE = [
     ('table.distances_between_rows(measure="bray-curtis")', "pdist vegdist"),
     ('table.add_nmds()', "metaMDS nmds"),
     ('table.compare_profiles(for_each="grazed")', "adonis adonis2 permanova"),
+    ('table.spectrum_of("signal", sorted_by="time")',
+     "periodogram welch psd spec_pgram lombscargle lsp power_spectrum frequencies_of cycles_of"),
+    ('table.check_steady("signal", sorted_by="time")',
+     "adfuller adf_test kpss kpss_test unit_root stationarity is_stationary compare_to_steady"),
+    ('table.autocorrelation_of("signal", sorted_by="time")',
+     "acf pacf acovf autocorrelation autocorr partial_autocorrelation ljung_box Box.test"),
+    ('table.add_trend_and_season("visitors", sorted_by="month", repeats_every="year")',
+     "stl STL decompose seasonal_decompose decomposition split_trend_and_season deseasonalise"),
+    ('table.trend_of("visitors", sorted_by="month")',
+     "mk.test mann_kendall mannkendall sens.slope sen_slope theilslopes smk.test sea.sens.slope"),
+    ('table.correlation_between("a", "b", rows_back=12, sorted_by="date")', "ccf cross_correlation xcorr"),
+    ('table.add_missing_dates("date", every="day")', "asfreq upsample complete fill_missing_dates"),
+    ('table.add_smoothed_column("signal_smoothed", from_column="signal", window=11, sorted_by="time")',
+     "rolling_smooth savgol smooth_column add_smooth_column"),
+    ('table.forecast("visitors", sorted_by="month", repeats_every="year")',
+     "predict_future naive snaive meanf rwf HoltWinters holt_winters ExponentialSmoothing exponential_smoothing "
+     "arima ARIMA SARIMAX auto_arima"),
+    ('table.compare_forecasts("visitors", sorted_by="month", repeats_every="year")',
+     "accuracy forecast_accuracy mase backtest"),
+    ('table.find_change_points("nitrate", sorted_by="date")',
+     "cpt.mean cpt.meanvar changepoint change_points changepoints pelt breakpoints detect_changes"),
 ]
 
 # chart.<name>
@@ -208,11 +237,37 @@ _CHART = [
     ('chart.count_bars(x="fruit")', "countplot"),
     ('chart.colour_scale("magma")', "cmap colormap scale_fill_viridis_c"),
     ('chart.size(width=17, height=8, unit="cm")', "figsize set_size_inches"),
+    ('chart.sticks(x="rows back", y="correlation")', "stem stems stemplot lollipop"),
+    ('chart.autocorrelation_bars("visitors", sorted_by="month")', "plot_acf plot_pacf acorr"),
+    ('chart.cross_correlation_bars("signal", "vibration", sorted_by="time")', "plot_ccf xcorr"),
+    ('chart.lag_dots("visitors", sorted_by="month", rows_back=1)', "lag_plot lagplot"),
+    ('chart.trend_and_season(x="month", y="visitors", repeats_every="year")', "plot_stl plot_decompose"),
+    ("chart.forecast(steps_ahead=12)", "plot_predict plot_forecast autoplot"),
+    ('chart.spectrum("signal", sorted_by="time")', "psd magnitude_spectrum plot_spectrum periodogram"),
+    ('chart.spectrum_over_time("signal", sorted_by="time")', "spectrogram specgram stft"),
+    ("chart.peak_dots(at_least=1)", "mark_peaks plot_peaks"),
 ]
 
 # nums.<name> (numbers). Older ones (mean, sum, min ...) are in numbers/_base.py HINTS.
 _NUMBERS = [
     ('nums.fit_distribution("gamma")', "fit fitdistr fitdist"),
+    ("nums.spectrum_of(time_step=0.01)", "fft_power spectral_density"),
+    ("nums.autocorrelation_of(rows_back=10)", "acf pacf"),
+    ('nums.smooth(method="median", window=5)',
+     "runmed medfilt median_filter savgol_filter sgolayfilt ewm ewma gaussian_filter1d whittaker_henderson wiener "
+     "moving_average convolve1d"),
+    ("nums.remove_trend()", "detrend"),
+    ("nums.keep_frequencies(below=5, time_step=0.01)",
+     "butter cheby1 cheby2 ellip bessel lowpass low_pass highpass high_pass bandpass band_pass filtfilt sosfiltfilt "
+     "sosfilt lfilter iirpeak"),
+    ("nums.remove_frequencies(equal_to=50, time_step=0.005)", "notch iirnotch iircomb bandstop band_stop"),
+    ("nums.find_peaks(at_least=1)", "findpeaks argrelmax peak_prominences peak_widths"),
+    ("nums.find_dips(at_most=-1)", "argrelmin find_valleys find_troughs"),
+    ("nums.fourier_transform()", "fft rfft dft fft2"),
+    ("nums.envelope()", "hilbert analytic_signal"),
+    ("nums.convolve_with([1, 2, 1])", "convolve correlate"),
+    ("nums.deconvolve_by([1, 2, 3])", "deconvolve deconv"),
+    ("nums.change_time_step(to=0.01, time_step=0.005)", "resample resample_poly decimate downsample"),
     ("nums.chart()", "plot hist"),
     ("nums.keep_random_numbers(3, seed=1)", "sample choice"),
     ("nums.count_each()", "value_counts tabulate"),

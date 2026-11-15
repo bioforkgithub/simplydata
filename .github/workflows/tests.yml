@@ -23,15 +23,25 @@ jobs:
         with:
           r-version: release
           use-public-rspm: true
+      # System libraries some R packages build against on Linux (tseries -> quantmod -> curl; forecast -> fs)
+      - name: Install system libraries for R (Linux)
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y libcurl4-openssl-dev libuv1-dev libssl-dev libxml2-dev
+      # setup-r sets the repositories (binary packages from Posit's public repository where it has them);
+      # the step fails when any package does not load, not later in the tests
       - name: Install R packages
-        run: Rscript -e 'install.packages(c("survival", "vegan", "mice", "lme4", "betareg", "pscl", "car", "effectsize", "emmeans", "pbkrtest", "lmerTest", "afex", "geepack", "sandwich", "performance", "mgcv", "MASS", "nnet"), repos = "https://cloud.r-project.org")'
+        run: >-
+          Rscript -e 'pkgs <- c("survival", "vegan", "mice", "lme4", "betareg", "pscl", "car", "effectsize",
+          "emmeans", "pbkrtest", "lmerTest", "afex", "geepack", "sandwich", "performance", "mgcv", "MASS", "nnet",
+          "tseries", "lomb", "trend", "forecast", "changepoint");
+          install.packages(pkgs); for (p in pkgs) library(p, character.only = TRUE)'
       - name: Tell rpy2 where R is
         shell: bash
         run: echo "R_HOME=$(Rscript -e 'cat(normalizePath(R.home(), winslash = "/"))')" >> "$GITHUB_ENV"
       - name: Install
         run: |
           python -m pip install --upgrade pip
-          python -m pip install -e ".[test,r]"
+          python -m pip install -e ".[test,r,systems]"
         env:
           # rpy2 has no Windows wheel for every Python, and its C part does not build with MSVC;
           # ABI mode needs no compiler (rpy2's documented way on Windows)
@@ -41,6 +51,7 @@ jobs:
         env:
           MPLBACKEND: Agg
           SIMPLYDATA_REQUIRE_R: "1"  # in CI the R tests must run, never be skipped
+          SIMPLYDATA_REQUIRE_CONTROL: "1"  # and the python-control tests (simplydata[systems])
 
   # Without R: words that do not need R must work, and only the R words may be skipped
   test-without-r:
@@ -53,9 +64,10 @@ jobs:
       - name: Install (no R, no rpy2)
         run: |
           python -m pip install --upgrade pip
-          python -m pip install -e ".[test]"
+          python -m pip install -e ".[test,systems]"
       - name: Run tests
         run: python -m pytest -q
         env:
           MPLBACKEND: Agg
           SIMPLYDATA_NO_R: "1"  # R may be missing only where a word is meant to run R
+          SIMPLYDATA_REQUIRE_CONTROL: "1"  # python-control (simplydata[systems]) is installed here

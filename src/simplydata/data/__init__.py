@@ -13,7 +13,7 @@ from .._errors import SimplydataError, suggest
 
 # name -> (what it is, what each column means)
 # Columns read as dates (the files keep them as year-month-day text).
-DATE_COLUMNS = {"shop": ["date"]}
+DATE_COLUMNS = {"shop": ["date"], "visitors": ["month"], "river": ["date"]}
 EXAMPLES = {
     "marks": (
         "Test marks of 18 made-up children in three classes.",
@@ -55,6 +55,32 @@ EXAMPLES = {
             "country": "Applia, Bananaland, Cherria or Dateland",
             "population": "people, in millions",
             "forest": "how much of the land is forest, in %",
+        },
+    ),
+    "sensor": (
+        "Five seconds of a made-up sensor, 200 readings per second: cycles, a hum, a drift, noise and spikes.",
+        {
+            "time": "seconds from 0 to 4.995, one reading every 0.005 s",
+            "signal": "the reading: a 5-per-second and a 20-per-second cycle, a 50-per-second hum, a slow drift, "
+                      "noise and three spikes",
+            "vibration": "a second sensor: the signal 0.03 s later at half size, plus its own noise",
+        },
+    ),
+    "visitors": (
+        "Monthly visitors to two made-up museums, 2014 to 2025: a rising trend, a yearly season and noise.",
+        {
+            "month": "the first day of each month from 2014-01-01 to 2025-12-01 (real dates)",
+            "museum": "Harbour Museum or Hill Gallery",
+            "visitors": "people who came that month",
+        },
+    ),
+    "river": (
+        "Daily water level and nitrate at two made-up river stations, 2024 to 2025. Some days and cells are missing.",
+        {
+            "date": "a day from 2024-01-01 to 2025-12-31 (real dates); 15 days have no row",
+            "station": "Station A or Station B",
+            "level": "water level in m: high in winter, low in summer; a few cells are empty",
+            "nitrate": "nitrate in mg/L, rising slowly; at Station B it drops from 2025-04-01 (a new treatment works)",
         },
     ),
     "shop": (
@@ -133,7 +159,7 @@ def example(name: str | None = None):
     """A small made-up table to practise with. sdata.example("marks")
 
     sdata.example() with no name lists every table and its columns.
-    The tables are: marks, weather, fruit, growth, shop, school, meadow, trial, island.
+    The tables are: marks, weather, fruit, growth, sensor, visitors, river, shop, school, meadow, trial, island.
     "shop" has empty cells and a column of dates to practise with; "school" has empty cells too.
     """
     if name is None:

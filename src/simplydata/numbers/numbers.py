@@ -14,10 +14,17 @@ from ._base import BaseNumbers, amount, check_seed, check_whole, is_number, plai
 from .distribution_words import DistributionNumberWords
 from .maths import MathsWords
 from .picking import PickingWords, ReplacingWords
+from .signal_words import SignalNumberWords, TimeSeriesNumberWords
+from .smoothing_words import SmoothingNumberWords
+from .filter_words import FilterNumberWords
+from .fourier_words import FourierNumberWords
+from .peak_words import PeakNumberWords
 from .summaries import GridSummaryWords, SummaryWords
 
 
-class Numbers(PickingWords, MathsWords, SummaryWords, DistributionNumberWords, BaseNumbers):
+class Numbers(PickingWords, MathsWords, SummaryWords, DistributionNumberWords, SignalNumberWords,
+              TimeSeriesNumberWords, SmoothingNumberWords, FilterNumberWords, PeakNumberWords,
+              FourierNumberWords, BaseNumbers):
     """A list of numbers. Make one with sdata.numbers([3, 5, 2, 8]), then add steps: nums.add(5)."""
 
     _is_simplydata_numbers = True
@@ -302,7 +309,7 @@ _NUMBERS_EXAMPLE = "sdata.numbers([3, 5, 2, 8])   or   sdata.numbers(1, to=10)"
 
 
 @friendly
-def numbers(*values, to=None, step=None, how_many=None) -> Numbers:
+def numbers(*values, to=None, step=None, how_many=None, channel=None) -> Numbers:
     """Make a list of numbers.
 
     sdata.numbers([3, 5, 2, 8])              these numbers (or sdata.numbers(3, 5, 2, 8))
@@ -310,8 +317,13 @@ def numbers(*values, to=None, step=None, how_many=None) -> Numbers:
     sdata.numbers(0, to=100, step=25)        0, 25, 50, 75, 100
     sdata.numbers(0, to=1, how_many=5)       5 numbers evenly spaced: 0, 0.25, 0.5, 0.75, 1
     sdata.numbers(10, to=1)                  counting down: 10, 9 ... 1
+    sdata.numbers("call.wav", channel=1)      the readings of a sound file, scaled to -1 to 1 (they remember their time step)
     None or NaN in a list is an empty (missing) value.
     """
+    if len(values) == 1 and isinstance(values[0], str) and values[0].lower().endswith(".wav"):
+        return _read_wav(values[0], channel)
+    if channel is not None:
+        raise SimplydataError('channel= goes with a .wav file, such as sdata.numbers("call.wav", channel=1).')
     if len(values) == 1 and not is_number(values[0]):
         if to is not None or step is not None or how_many is not None:
             raise SimplydataError(
@@ -340,6 +352,60 @@ def numbers(*values, to=None, step=None, how_many=None) -> Numbers:
             f"to count up to it write sdata.numbers(1, to={n})."
         )
     return Numbers(to_array(list(values), "sdata.numbers()", _NUMBERS_EXAMPLE))
+
+
+def _wav_header(file_name):
+    """(bits per sample, kind) from the file's header: Python's wave module reads whole-number (PCM) files;
+    a file it cannot read is taken as floating point (SciPy reads those)."""
+    import wave
+
+    try:
+        with wave.open(file_name, "rb") as w:
+            return w.getsampwidth() * 8, "whole"
+    except (wave.Error, EOFError):
+        return None, "float"
+
+
+def _read_wav(file_name, channel=None):
+    """A .wav file as Numbers scaled to -1 to 1 (SciPy io.wavfile), remembering its time step.
+
+    Whole-number (PCM) files are divided by 2^(bits - 1) (8-bit files, stored from 0 to 255, have 128
+    taken off first), so every file comes back on the same -1 to 1 scale, as MATLAB audioread and
+    Python soundfile give. R tuneR::readWave keeps the whole numbers; the same values in R:
+    w <- tuneR::readWave(file); (w@left - (w@bit == 8) * 128) / 2^(w@bit - 1).
+    Floating-point files are kept as they are. SciPy reads 24-bit files into 32-bit whole numbers
+    (shifted up by 8 bits), so the header (Python's wave module) tells 24-bit from 32-bit.
+    """
+    from scipy.io import wavfile
+
+    try:
+        rate, data = wavfile.read(file_name)
+    except FileNotFoundError:
+        raise SimplydataError(f'There is no file called "{file_name}".') from None
+    except ValueError as error:
+        raise SimplydataError(f'"{file_name}" could not be read as a .wav file ({error}).') from None
+    channels = 1 if data.ndim == 1 else data.shape[1]
+    chosen = 1 if channel is None else channel
+    if isinstance(chosen, bool) or not isinstance(chosen, int) or not 1 <= chosen <= channels:
+        raise SimplydataError(f"channel= needs a whole number from 1 to {channels} (the file has {channels}).")
+    values = data if data.ndim == 1 else data[:, chosen - 1]
+    bits, kind = _wav_header(file_name)
+    x = np.asarray(values, dtype=float)
+    if data.dtype.kind == "f":
+        bits, scaling = data.dtype.itemsize * 8, "floating point, kept as they are"
+    else:
+        bits = bits or data.dtype.itemsize * 8
+        stored = data.dtype.itemsize * 8  # SciPy's container: 24-bit samples sit in the top of 32 bits
+        if data.dtype.kind == "u":
+            x = x - 2.0 ** (stored - 1)
+        x = x / 2.0 ** (stored - 1)
+        scaling = (f"whole numbers, scaled to -1 to 1 (divided by 2^{bits - 1}"
+                   + (", after taking off 128" if data.dtype.kind == "u" else "") + ")")
+    nums = Numbers(x)
+    nums._time_step = 1.0 / rate
+    print(f"{rate:,} readings per second (time step {1 / rate:.3g} s), {len(values) / rate:.3g} seconds, "
+          f"{bits}-bit {scaling}, channel {chosen} of {channels}.")
+    return nums
 
 
 def say_number(value) -> str:

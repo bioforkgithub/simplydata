@@ -192,6 +192,13 @@ estimates (R uses the step before), so they agree with R to about 3e-5.
 - `compare_shape_to` calls SciPy `goodness_of_fit` again; most shapes take a few seconds
   with `samples=9999`, Weibull and t longer (a note says so before a long run).
 
+### python-control for systems: `simplydata[systems]`
+
+The rise time, settling time and overshoot of a step response and the gain and phase margins come from
+python-control (`step_info`, `stability_margins`), the established Python package for control systems; R
+control has neither. Install it with `pip install "simplydata[systems]"`; without it the responses still
+come, with a note.
+
 ### R itself, for what only R gives: `simplydata[r]`
 
 Where no Python package gives R's answers, simplydata now runs R's own code through rpy2.
@@ -213,6 +220,118 @@ Install once: `pip install "simplydata[r]"`, R from https://cran.r-project.org, 
 - R's warnings are passed on as plain notes, such as
   `Note from R (vegan): some squared distances are negative and changed to zero.`
 - Lessons 16, 17 and 18 (and day 17 of the 30-day guide) have a "Needs R" box.
+
+### Signals and time series (first words)
+
+- `table.spectrum_of("signal", sorted_by="time")` and `nums.spectrum_of(time_step=0.01)`: which repeating
+  cycles a column holds and how strong each is. method="periodogram" (SciPy; 2 x R `spec.pgram` with
+  taper 0, so the powers add up to the variance), "welch" (window= readings per piece) or
+  "lomb-scargle" for uneven times (R `lomb::lsp` itself, needs `simplydata[r]`). show="power",
+  "decibels" or "amplitude"; between= keeps a frequency range; for_each= one spectrum per group.
+  `time_step=` is the time between readings (`sampling_rate=` and `fs=` are accepted).
+- `table.check_steady("signal", sorted_by="time")`: does a column stay steady over time, or wander?
+  The ADF and KPSS tests together, run in R (`tseries::adf.test`, `tseries::kpss.test`), with R's
+  table p-values ("below 0.01", "above 0.1" when outside the tables). around="straight line" checks
+  steadiness around a trend. Needs `simplydata[r]`.
+- `table.autocorrelation_of("signal", sorted_by="time")` and `nums.autocorrelation_of(rows_back=10)`: how much
+  a column is like itself some rows back, with the noise band of R `plot.acf` (band="white noise", or
+  "bartlett" as R `ci.type = "ma"`), show="correlation" (R `acf`), "partial" (R `pacf`) or "covariance",
+  and the Ljung-Box test of all of them together (R `Box.test(type = "Ljung-Box")`). From statsmodels.
+- `table.correlation_between("a", "b", rows_back=12, sorted_by="date")`: the cross-correlation for shifts -12 to
+  12 (statsmodels `ccf`, as R `ccf` with the sign of the lag reversed), and which column follows the other.
+- `table.add_trend_and_season("visitors", sorted_by="month", repeats_every="year")`: adds the trend, the season and
+  the rest as three columns. method="loess" (R `stl`: statsmodels STL with R's settings; season_window="fixed" runs
+  R `stl(s.window = "periodic")` itself), "moving averages" (R `decompose`, season "added" or "multiplied") or
+  "straight line" (one statsmodels least-squares fit of the line and the season effects, as R `lm`).
+- `table.trend_of("visitors", sorted_by="month")`: Sen's slope with its 95 % interval (SciPy `theilslopes`, as R
+  `trend::sens.slope`) and the Mann-Kendall test (R `trend::mk.test` itself); repeats_every= gives the seasonal test
+  and slope (R `trend::smk.test`, `trend::sea.sens.slope`; per cycle, per year for months). Without R the slope
+  is still given. Dates one calendar step apart give the slope per month (quarter, year); other dates per day
+  from the dates themselves, so weekly readings and gaps count right.
+- `table.forecast("visitors", sorted_by="month", steps_ahead=12, repeats_every="year")` and `nums.forecast(...)`:
+  the next values with a 95 % prediction interval (interval=; columns "forecast 95 % prediction low" / "high"),
+  the time column carried on. method="exponential smoothing"
+  (R `HoltWinters`, with trend= and season "added" or "multiplied"), "last value", "same season last time",
+  "average", "straight on" ("drift" and "line from first to last" accepted) (R `forecast::naive`, `snaive`, `meanf`, `rwf(drift = TRUE)`) or "arima" with order=
+  and seasonal_order= (R `arima(method = "ML")`). check_on_last=12 holds back the last rows and measures the
+  error (R `forecast::accuracy`: MAE, RMSE, MAPE, MASE); show="model" gives the fitted weights or estimates. A
+  Ljung-Box test says whether the leftover errors look like noise. All in R itself (statsmodels' exponential
+  smoothing and SARIMAX give other numbers). Needs `simplydata[r]`.
+- `table.compare_forecasts("visitors", sorted_by="month", repeats_every="year")`: each method fitted on all but
+  the last rows and ranked by MASE on them (R `forecast::accuracy`). Needs `simplydata[r]`.
+- `table.find_change_points("nitrate", sorted_by="date", for_each="station")`: where the average (or, with
+  change="average and spread", also the spread) jumps, by R `changepoint::cpt.mean` / `cpt.meanvar` (PELT,
+  penalty="mbic" as R); one row per piece with its average. Needs `simplydata[r]`.
+- `sdata.dates("2026-01-01", to="2026-12-31", every="day")` (or how_many=; every="month", "15 minutes", "2 weeks"
+  ...): a one-column table of regular dates. Month steps count from the first date, so a run from the 31st stays
+  on the month's last day (pandas DateOffset; R's seq(by = "month") overflows instead).
+- `table.add_missing_dates("date", every="day", for_each="station")`: a row for every missing date (empty cells),
+  between= to extend the run; every= found from the most common step when not given. Month-end dates stay month
+  ends (2023-04-30, 2023-05-31, ...; also in forecasts), and dates with a time zone step by the clock of that zone
+  (between= is read in it), so a summer-time change does not break every="day".
+- `table.add_rolling_column` gains window="7 days" (a window of time, pandas rolling("7D")), centre=True (R stats::filter(sides = 2)), and show= "variance",
+  "skewness", "kurtosis", "percentile" (percent=), "count", "correlation" and "covariance" (two columns). window="all"
+  (from the first row, pandas expanding) is accepted with a note: running values are planned as their own word,
+  add_running_column.
+- `nums.smooth(method=..., window=...)` and `table.add_smoothed_column(...)`: "moving average" (weights=, ends=
+  "empty"/"shorter windows"/"mirror"; R stats::filter), "median" (R runmed itself, Tukey's end rule; needs
+  simplydata[r]), "savitzky-golay" (R signal::sgolayfilt), "exponential" (newest_weight=, alpha=, span=,
+  half_life=, com=), "gaussian" (width=), "lowess", "spline", "whittaker" (SciPy 1.17 or newer, so Python 3.12 or newer) and "wiener", from SciPy, pandas and
+  statsmodels.
+- `nums.remove_trend()` (breaks= for a separate line per piece; SciPy detrend, as R residuals(lm(x ~ t))).
+- `nums.keep_frequencies(below=10, time_step=0.005)` / `remove_frequencies(...)` and `table.add_filtered_column(...)`:
+  low-pass, high-pass, band, band-stop, notch (equal_to=, width=; and_multiples= for a comb) and peak filters.
+  method= "butterworth", "chebyshev", "chebyshev 2", "elliptic" or "bessel"; steepness= the order; both_ways=True
+  runs forwards and backwards (SciPy sosfiltfilt; MATLAB's ends rule), both_ways=False forwards only (as R
+  signal::filter).
+- `find_peaks` / `find_dips` on numbers and tables (at_least= / at_most=, apart=, stands_out_by=, wide_at_least=;
+  SciPy find_peaks, positions as R pracma::findpeaks).
+- `nums.fourier_transform()` and `sdata.inverse_fourier_transform(table)` (SciPy fft, as R fft), `nums.envelope()`
+  (SciPy hilbert, as R gsignal::hilbert), `nums.convolve_with` / `deconvolve_by` (as R convolve, pracma::deconv),
+  `nums.change_time_step(to=)` (SciPy resample, resample_poly, decimate), `sdata.wave(...)` and
+  `sdata.window_shape(...)` (SciPy; as R gsignal).
+- `.wav` sound files: `sdata.numbers("call.wav", channel=1)` reads the readings scaled to -1 to 1 (whole-number files divided by 2^(bits - 1), as MATLAB audioread; R tuneR::readWave keeps the whole numbers) and the numbers
+  remember their time step; `nums.save("tone.wav", bits=16)` writes one (SciPy io.wavfile).
+- `table.add_envelope_column("signal_envelope", from_column="signal", ...)` (show="envelope", "phase" or
+  "frequency"; SciPy hilbert, as R gsignal::hilbert; the new column's name is needed, as on every
+  add_..._column word), `sinc(x)` in formulas (as NumPy), and `show_filter=True` on the filter words (the
+  filter's Bode chart, titled "run forwards once", and the line that saves it:
+  `sdata.frequency_filter(keep_below=10, time_step=0.005).chart().save("filter.png")`).
+- Linear systems: `sdata.system("1 / (s**2 + 2*s + 5)")` (or numerator= / denominator=, poles= / zeros= / gain=,
+  the matrices a=, b=, c=, d=; z and time_step= for a system in steps; R's num= / den= and A= to D= are
+  accepted, but not together with the main spelling) with `step_response(until=, how_many=, time_points=)`
+  (rise time, settling time, overshoot from python-control `step_info`; time_points= start at 0),
+  `impulse_response`, `response_to(inputs, time_points=)` (inputs in other steps than the system are refused),
+  `frequency_response(between=, how_many=, unit=)` (columns gain, "gain (decibels)", "phase (degrees)"; the gain
+  and phase margins from python-control `stability_margins`; unit="radians per second" or "cycles per second", "hertz" accepted), `poles` (real part,
+  imaginary part, distance from 0, damping ratio, natural frequency), `zeros`, `is_stable`, `steady_gain`,
+  `in_steps(time_step=, method=)`, `then`, `add` (side by side, outputs added), `with_feedback(through=, sign=)`,
+  `table(form=)` ("power of s" or "power of z", numerator, denominator; "real part" and "imaginary part" for
+  poles and zeros) and `chart(show="bode" | "step" | "impulse" | "poles and zeros" | "nyquist", between=, until=,
+  unit=)` (an option a chart does not use is refused). sdata.system(poles=, gain=) says that gain= is the number
+  in front of the formula, not the steady gain. SciPy signal (lti, dlti, step, lsim, freqresp, freqz,
+  cont2discrete, tf2ss), checked against R control, signal and by hand.
+- `sdata.frequency_filter(keep_below=10, time_step=0.005)`: the filter of add_filtered_column as a system in steps.
+- Chart words: `sticks` (a stem chart), `autocorrelation_bars`, `cross_correlation_bars`, `lag_dots`,
+  `trend_and_season` (four panels: the column, its trend, season and rest), `forecast` (dashed line and interval
+  band after the lines), `spectrum`, `spectrum_over_time` (SciPy spectrogram) and `peak_dots`. They draw the
+  numbers of the table words. The five that draw something other than the column against time take the column
+  first and `sorted_by=`, as their table words do: `chart.spectrum("signal", sorted_by="time")`,
+  `chart.cross_correlation_bars("signal", "vibration", sorted_by="time")`; x= and y= still work, with a note.
+- `add_smoothed_column` without a name adds "<column>_smoothed" (as "_filtered"); `nums.spectrum_of(method=
+  "lomb-scargle")` takes the times as `time_points=`.
+- Lessons on time series (dates, missing days, time windows, smoothing and trend), forecasts checked on held-back
+  months, cycles (spectra, filters, peaks and dips; Welch and check_steady as "more" parts) and, optional, linear
+  systems (starting from the filter of the cycles lesson; the Bode chart, margins and systems in steps as "more"
+  parts). They come after the lessons of S1 and S2, found by title, so they become lessons 23 to 26. The 30-day
+  beginner track gives them a day of their own (day 27); the Python track teaches them on day 20, with values
+  between points.
+- `chart.smooth_line(method=...)` takes the methods of `nums.smooth` ("moving average", "median",
+  "savitzky-golay", "exponential", "gaussian", "whittaker", "wiener") for evenly spaced x.
+- New practice table `visitors`: monthly visitors to two made-up museums, 2014 to 2025.
+- New practice table `river`: daily water level and nitrate at two made-up stations, 2024 to 2025, with
+  missing days and a few empty cells.
+- New practice table `sensor`: five seconds of a made-up sensor at 200 readings per second.
 
 ### Fitting
 
@@ -304,8 +423,8 @@ Install once: `pip install "simplydata[r]"`, R from https://cran.r-project.org, 
 - The 30 days teach it the day after the models day (day 16 of the Python track, day 23 of the beginner
   track); its words come back in the warm-ups about 3 and 7 days later, and the final test asks for
   `check_model` and `compare_models` from memory. In the Python track lessons 17 and 18 move one day on,
-  and fitting with finding (day 19) and distributions with values between points (day 20) share days,
-  as in the beginner track.
+  fitting, finding and distributions share day 19, and values between points shares day 20 with the
+  time-series lessons of v0.6.
 
 ### 30 days of simplydata
 
@@ -313,7 +432,7 @@ Install once: `pip install "simplydata[r]"`, R from https://cran.r-project.org, 
   `track="python"` for people who already write some Python (about two lessons a day, review days
   on days 7, 14, 21 and 28, then an eight-day project of their own), `track="beginner"` for people
   who have never programmed (three days of just enough Python first, then about one lesson a day
-  and a small project). Both cover all 21 lessons and end with a final test from memory.
+  and a small project). Both cover all the lessons and end with a final test from memory.
 - `sdata.today()` shows the day to do next: a 5-minute warm-up of questions on earlier days
   (yesterday, about three days ago, about a week ago; review days mix the whole course), what to do
   (the lesson, the manual's sections and the words to look up) and a task to do without looking

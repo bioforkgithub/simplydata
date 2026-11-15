@@ -51,3 +51,22 @@ def test_values_come_back_from_r(needs_r):
 def test_too_big_whole_numbers_are_refused(needs_r):
     with pytest.raises(SimplydataError, match="too big to pass to R exactly"):
         r_call("x", x=np.array([2 ** 60], dtype=np.int64))
+
+
+def test_every_r_package_is_listed_and_installed_in_ci():
+    """Each R package a word asks for (r_call(packages=...)) is in conftest.R_PACKAGES, which the needs_r
+    fixture checks, and in the CI step that installs R packages."""
+    import pathlib
+    import re
+
+    from conftest import R_PACKAGES
+
+    root = pathlib.Path(__file__).resolve().parents[1]
+    used = set()
+    for path in (root / "src" / "simplydata").rglob("*.py"):
+        for group in re.findall(r"packages=\(([^)]*)\)", path.read_text(encoding="utf-8")):
+            used.update(re.findall(r'"([A-Za-z0-9.]+)"', group))
+    assert used <= set(R_PACKAGES), f"add to R_PACKAGES in tests/conftest.py: {sorted(used - set(R_PACKAGES))}"
+    workflow = (root / ".github" / "workflows" / "tests.yml").read_text(encoding="utf-8")
+    missing = [p for p in R_PACKAGES if f'"{p}"' not in workflow]
+    assert not missing, f"install these R packages in .github/workflows/tests.yml: {missing}"

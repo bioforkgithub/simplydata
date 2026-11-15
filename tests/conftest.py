@@ -37,6 +37,12 @@ def marks():
     return pd.DataFrame(rows)
 
 
+# The R packages simplydata's words call (CI installs the same list: .github/workflows/tests.yml)
+R_PACKAGES = ("survival", "vegan", "mice", "lme4", "betareg", "pscl", "car", "effectsize", "emmeans", "pbkrtest",
+              "lmerTest", "afex", "geepack", "sandwich", "performance", "mgcv", "MASS", "nnet",
+              "tseries", "lomb", "trend", "forecast", "changepoint")
+
+
 @pytest.fixture
 def needs_r():
     """For tests of methods that call R (simplydata[r]): skipped where R, rpy2 or the R
@@ -45,10 +51,24 @@ def needs_r():
 
     from simplydata._r import r_ready
 
-    if not r_ready(("survival", "vegan", "mice", "lme4", "betareg", "pscl", "car", "effectsize", "emmeans", "pbkrtest", "lmerTest", "afex", "geepack", "sandwich", "performance", "mgcv", "MASS", "nnet")):
+    if not r_ready(R_PACKAGES):
         if os.environ.get("SIMPLYDATA_REQUIRE_R") == "1":
-            pytest.fail("SIMPLYDATA_REQUIRE_R=1 but R, rpy2 or the R packages survival, vegan, mice, lme4, betareg, pscl, car, effectsize, emmeans, pbkrtest, lmerTest, afex, geepack, sandwich, performance, mgcv, MASS, nnet are missing")
-        pytest.skip("needs R with survival, vegan, mice, lme4, betareg, pscl, car, effectsize, emmeans, pbkrtest, lmerTest, afex, geepack, sandwich, performance, mgcv, MASS and nnet (pip install 'simplydata[r]')")
+            pytest.fail("SIMPLYDATA_REQUIRE_R=1 but R, rpy2 or one of the R packages is missing: " + ", ".join(R_PACKAGES))
+        pytest.skip("needs R with " + ", ".join(R_PACKAGES) + " (pip install 'simplydata[r]')")
+
+
+@pytest.fixture
+def needs_control():
+    """For tests of the measures that come from python-control (simplydata[systems]): skipped where it is
+    not installed, except when SIMPLYDATA_REQUIRE_CONTROL=1 (CI), where they must run."""
+    import os
+
+    try:
+        import control  # noqa: F401
+    except ImportError:
+        if os.environ.get("SIMPLYDATA_REQUIRE_CONTROL") == "1":
+            pytest.fail("SIMPLYDATA_REQUIRE_CONTROL=1 but python-control is missing (pip install 'simplydata[systems]')")
+        pytest.skip("needs python-control (pip install 'simplydata[systems]')")
 
 
 # The places that are meant to run R (each calls simplydata._r.r_call). Reaching R from anywhere
@@ -62,6 +82,9 @@ R_ENTRY_POINTS = {
     ("table/models_r.py", "emmeans_table"), ("table/models_r.py", "lmer_r"), ("table/models_r.py", "geeglm_r"),
     ("table/models_r.py", "repeated_anova"), ("table/models_r.py", "group_influence"), ("table/models_r.py", "robust_cov"),
     ("table/models_r.py", "vif_r"), ("table/models_r.py", "gam_r"), ("table/models_r.py", "nakagawa_r"),
+    ("table/time_series.py", "check_steady"), ("_signals.py", "_lomb_scargle"),
+    ("_trend_season.py", "_r_stl_periodic"), ("_trend_season.py", "_r_mann_kendall"),
+    ("_forecast.py", "r_forecast"), ("_forecast.py", "r_change_points"), ("_smoothing.py", "smooth"),
 }
 
 

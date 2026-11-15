@@ -1,0 +1,7 @@
+Each "month_level" is the average of level in the 30 days up to and including this row's date (empty cells left out) (separately for each station), in order of date.
+        date    station  level  nitrate  month_level
+1 2024-01-01  Station A  2.480     3.15     2.480000
+2 2024-01-02  Station A  2.385     3.24     2.432500
+3 2024-01-03  Station A  2.580     3.23     2.481667
+4 2024-01-04  Station A  2.534     3.06     2.494750
+5 2024-01-05  Station A  2.492     3.29     2.494200

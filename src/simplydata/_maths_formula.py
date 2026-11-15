@@ -7,7 +7,7 @@ gives the formula "left minus right" and the sign between the two sides.
 The text is read with Python's ast module and never run, by the same reader as
 table.fit_formula: names that are columns are data, pi is the constant 3.14159..., and any
 other name (x, y, a, rate) is a value to find. The functions are those of fit_formula:
-exp log sqrt abs sin cos tan erf erfc gamma lgamma digamma beta besselJ.
+exp log sqrt abs sin cos tan erf erfc gamma lgamma digamma beta besselJ sinc.
 
 Used by sdata.find_smallest, find_biggest and solve, and by the fitting, distribution and
 curve words.
@@ -37,6 +37,7 @@ MATHS_HELP = (
     "  gamma(x)  lgamma(x)        gamma function, and the log of its size (as R)\n"
     "  digamma(x)  beta(a, b)     digamma function, beta function (as R)\n"
     "  besselJ(x, nu)             Bessel function of the first kind, order nu (as R)\n"
+    "  sinc(x)                    sin(pi x) / (pi x), and 1 at x = 0 (as NumPy sinc)\n"
     'Example: sdata.find_smallest("x**2 - 4*x + 1", between=[0, 5])'
 )
 # signs between the two sides of an equation or rule; the first spelling is the one used
