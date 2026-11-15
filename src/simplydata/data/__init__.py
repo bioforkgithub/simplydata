@@ -13,7 +13,7 @@ from .._errors import SimplydataError, suggest
 
 # name -> (what it is, what each column means)
 # Columns read as dates (the files keep them as year-month-day text).
-DATE_COLUMNS = {"shop": ["date"], "visitors": ["month"]}
+DATE_COLUMNS = {"shop": ["date"], "visitors": ["month"], "river": ["date"]}
 EXAMPLES = {
     "marks": (
         "Test marks of 18 made-up children in three classes.",
@@ -72,6 +72,15 @@ EXAMPLES = {
             "month": "the first day of each month from 2014-01-01 to 2025-12-01 (real dates)",
             "museum": "Harbour Museum or Hill Gallery",
             "visitors": "people who came that month",
+        },
+    ),
+    "river": (
+        "Daily water level and nitrate at two made-up river stations, 2024 to 2025. Some days and cells are missing.",
+        {
+            "date": "a day from 2024-01-01 to 2025-12-31 (real dates); 15 days have no row",
+            "station": "Station A or Station B",
+            "level": "water level in m: high in winter, low in summer; a few cells are empty",
+            "nitrate": "nitrate in mg/L, rising slowly; at Station B it drops from 2025-04-01 (a new treatment works)",
         },
     ),
     "shop": (
@@ -149,7 +158,7 @@ def example(name: str | None = None):
     """A small made-up table to practise with. sdata.example("marks")
 
     sdata.example() with no name lists every table and its columns.
-    The tables are: marks, weather, fruit, growth, shop, school, meadow, trial, island.
+    The tables are: marks, weather, fruit, growth, sensor, visitors, river, shop, school, meadow, trial, island.
     "shop" has empty cells and a column of dates to practise with; "school" has empty cells too.
     """
     if name is None:

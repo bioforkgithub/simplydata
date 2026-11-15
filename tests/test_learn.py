@@ -42,6 +42,9 @@ def test_example_tables_load_with_the_columns_described(name):
         assert table.isna().any().any() and pd.api.types.is_datetime64_any_dtype(table["date"])
     elif name == "school":  # empty sleep cells, for multiple imputation
         assert table["sleep"].isna().any() and not table.drop(columns="sleep").isna().any().any()
+    elif name == "river":  # missing days and a few empty level cells, for add_missing_dates and filling
+        assert table["level"].isna().any() and not table.drop(columns="level").isna().any().any()
+        assert pd.api.types.is_datetime64_any_dtype(table["date"]) and len(table) < 2 * 731
     else:
         assert not table.isna().any().any()
 

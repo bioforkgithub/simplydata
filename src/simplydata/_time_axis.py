@@ -169,3 +169,23 @@ def read_time_step(time_step=None, sampling_rate=None, fs=None, remembered=None,
         raise SimplydataError(f"{step_name}() needs {name}= as a number above 0, such as time_step=0.01.")
     step = float(value) if name == "time_step" else 1.0 / float(value)
     return step, f"time step {_num(step)} ({_num(1 / step)} readings per unit of time)"
+
+
+def future_times(table, series: TimeSeries, sorted_by, steps: int, start_after: int | None = None) -> list:
+    """The sorted_by column carried on for `steps` readings after the last one (or after reading number
+    start_after): months stay months (the same day of the month, or the month's last day), days and
+    numbers go on by the step. Plain glue on pandas dates."""
+    import pandas as pd
+
+    position = len(series.values) - 1 if start_after is None else start_after - 1
+    raw = table._frame[sorted_by].to_numpy()[series.rows[position]]
+    ahead = range(1, steps + 1)
+    if series.unit in ("months", "quarters", "years"):
+        months = {"months": 1, "quarters": 3, "years": 12}[series.unit]
+        last = pd.Timestamp(raw)
+        return [(last + pd.DateOffset(months=months * k)).to_pydatetime() for k in ahead]
+    if series.unit in ("days", "seconds"):
+        last = pd.Timestamp(raw)
+        size = pd.Timedelta(days=series.step) if series.unit == "days" else pd.Timedelta(seconds=series.step)
+        return [(last + size * k).to_pydatetime() for k in ahead]
+    return [float(raw) + series.step * k for k in ahead]

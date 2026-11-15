@@ -149,6 +149,13 @@ _TABLE = [
     ('table.trend_of("visitors", sorted_by="month")',
      "mk.test mann_kendall mannkendall sens.slope sen_slope theilslopes smk.test sea.sens.slope"),
     ('table.correlation_between("a", "b", rows_back=12, sorted_by="date")', "ccf cross_correlation xcorr"),
+    ('table.forecast("visitors", sorted_by="month", repeats_every="year")',
+     "predict_future naive snaive meanf rwf HoltWinters holt_winters ExponentialSmoothing exponential_smoothing "
+     "arima ARIMA SARIMAX auto_arima"),
+    ('table.compare_forecasts("visitors", sorted_by="month", repeats_every="year")',
+     "accuracy forecast_accuracy mase backtest"),
+    ('table.find_change_points("nitrate", sorted_by="date")',
+     "cpt.mean cpt.meanvar changepoint change_points changepoints pelt breakpoints detect_changes"),
 ]
 
 # chart.<name>

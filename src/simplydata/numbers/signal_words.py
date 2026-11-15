@@ -91,6 +91,27 @@ class TimeSeriesNumberWords:
                                    "Ljung-Box p-value": got["ljung_box"][1]}))
 
 
+    @friendly
+    def forecast(self, steps_ahead=12, method="exponential smoothing", repeats_every=None, trend=True,
+                 season="added", order=None, seasonal_order=None, interval=95, check_on_last=None, show="forecast"):
+        """Forecast the next numbers, with an interval for each (R forecast and stats, run in R).
+
+        nums.forecast(steps_ahead=12, repeats_every=12)
+        As table.forecast: the numbers are taken in order, one step apart, and called "numbers" in the
+        sentences. method= "exponential smoothing" (R HoltWinters), "last value", "same season last
+        time", "average", "straight on" or "arima" (with order=); repeats_every= is a whole number of
+        readings here. Needs simplydata[r] and R with the forecast package. Gives back a table.
+        """
+        import pandas as pd
+
+        from ..table import Table
+
+        values = np.asarray(self._values, dtype=float).ravel()
+        return Table(pd.DataFrame({"numbers": values})).forecast(
+            "numbers", steps_ahead=steps_ahead, method=method, repeats_every=repeats_every, trend=trend,
+            season=season, order=order, seasonal_order=seasonal_order, interval=interval,
+            check_on_last=check_on_last, show=show)
+
 def _spectrum_table(result, between, group=None):
     """The spectrum as a pandas Table (Numbers words)."""
     import pandas as pd

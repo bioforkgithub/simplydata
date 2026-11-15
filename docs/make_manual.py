@@ -190,6 +190,11 @@ UNDERNEATH = {
     "table.add_trend_and_season": "statsmodels (STL with R's settings, seasonal_decompose, OLS with season effects); "
                                   "R stats::stl(s.window = \"periodic\") for a fixed season (simplydata[r])",
     "table.trend_of": "SciPy (stats.theilslopes); R trend::mk.test, smk.test, sea.sens.slope (simplydata[r])",
+    "table.forecast": "R (forecast::naive, snaive, meanf, rwf; stats::HoltWinters, stats::arima; forecast::forecast "
+                      "and accuracy, through rpy2: simplydata[r])",
+    "nums.forecast": "R (as table.forecast, through rpy2: simplydata[r])",
+    "table.compare_forecasts": "R (forecast::accuracy on each method's forecast, through rpy2: simplydata[r])",
+    "table.find_change_points": "R (changepoint::cpt.mean and cpt.meanvar, PELT; stats::mad; through rpy2: simplydata[r])",
     "nums.autocorrelation_of": "statsmodels (tsa.stattools acf, pacf method ywm, acovf, acorr_ljungbox), as R acf, pacf, Box.test",
     "nums.fit_distribution": "SciPy (scipy.stats and optimize, as table.fit_distribution)",
     # models

@@ -71,7 +71,22 @@ Install once: `pip install "simplydata[r]"`, R from https://cran.r-project.org, 
 - `table.trend_of("visitors", sorted_by="month")`: Sen's slope with its 95 % interval (SciPy `theilslopes`, as R
   `trend::sens.slope`) and the Mann-Kendall test (R `trend::mk.test` itself); repeats_every= gives the seasonal test
   and slope (R `trend::smk.test`, `trend::sea.sens.slope`). Without R the slope is still given.
+- `table.forecast("visitors", sorted_by="month", steps_ahead=12, repeats_every="year")` and `nums.forecast(...)`:
+  the next values with a 95 % interval (interval=), the time column carried on. method="exponential smoothing"
+  (R `HoltWinters`, with trend= and season "added" or "multiplied"), "last value", "same season last time",
+  "average", "straight on" (R `forecast::naive`, `snaive`, `meanf`, `rwf(drift = TRUE)`) or "arima" with order=
+  and seasonal_order= (R `arima(method = "ML")`). check_on_last=12 holds back the last rows and measures the
+  error (R `forecast::accuracy`: MAE, RMSE, MAPE, MASE); show="model" gives the fitted weights or estimates. A
+  Ljung-Box test says whether the leftover errors look like noise. All in R itself (statsmodels' exponential
+  smoothing and SARIMAX give other numbers). Needs `simplydata[r]`.
+- `table.compare_forecasts("visitors", sorted_by="month", repeats_every="year")`: each method fitted on all but
+  the last rows and ranked by MASE on them (R `forecast::accuracy`). Needs `simplydata[r]`.
+- `table.find_change_points("nitrate", sorted_by="date", for_each="station")`: where the average (or, with
+  change="average and spread", also the spread) jumps, by R `changepoint::cpt.mean` / `cpt.meanvar` (PELT,
+  penalty="mbic" as R); one row per stretch with its average. Needs `simplydata[r]`.
 - New practice table `visitors`: monthly visitors to two made-up museums, 2014 to 2025.
+- New practice table `river`: daily water level and nitrate at two made-up stations, 2024 to 2025, with
+  missing days and a few empty cells.
 - New practice table `sensor`: five seconds of a made-up sensor at 200 readings per second.
 
 ### Fitting

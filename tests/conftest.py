@@ -37,6 +37,10 @@ def marks():
     return pd.DataFrame(rows)
 
 
+# The R packages simplydata's words call (CI installs the same list: .github/workflows/tests.yml)
+R_PACKAGES = ("survival", "vegan", "mice", "tseries", "lomb", "trend", "forecast", "changepoint")
+
+
 @pytest.fixture
 def needs_r():
     """For tests of methods that call R (simplydata[r]): skipped where R, rpy2 or the R
@@ -45,10 +49,10 @@ def needs_r():
 
     from simplydata._r import r_ready
 
-    if not r_ready(("survival", "vegan", "mice")):
+    if not r_ready(R_PACKAGES):
         if os.environ.get("SIMPLYDATA_REQUIRE_R") == "1":
-            pytest.fail("SIMPLYDATA_REQUIRE_R=1 but R, rpy2 or the R packages survival, vegan, mice are missing")
-        pytest.skip("needs R with survival, vegan and mice (pip install 'simplydata[r]')")
+            pytest.fail("SIMPLYDATA_REQUIRE_R=1 but R, rpy2 or one of the R packages is missing: " + ", ".join(R_PACKAGES))
+        pytest.skip("needs R with " + ", ".join(R_PACKAGES) + " (pip install 'simplydata[r]')")
 
 
 # The places that are meant to run R (each calls simplydata._r.r_call). Reaching R from anywhere
@@ -58,6 +62,7 @@ R_ENTRY_POINTS = {
     ("table/survival.py", "cox_zph"), ("table/between.py", "__init__"), ("table/models.py", "_explain_imputed"),
     ("table/time_series.py", "check_steady"), ("_signals.py", "_lomb_scargle"),
     ("_trend_season.py", "_r_stl_periodic"), ("_trend_season.py", "_r_mann_kendall"),
+    ("_forecast.py", "r_forecast"), ("_forecast.py", "r_change_points"),
 }
 
 

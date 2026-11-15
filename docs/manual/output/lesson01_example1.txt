@@ -24,6 +24,10 @@ Example tables you can use (all made up, for practice):
       Monthly visitors to two made-up museums, 2014 to 2025: a rising trend, a yearly season and noise.
       Columns: month, museum, visitors
 
+  sdata.example("river")
+      Daily water level and nitrate at two made-up river stations, 2024 to 2025. Some days and cells are missing.
+      Columns: date, station, level, nitrate
+
   sdata.example("shop")
       Daily sales of two made-up shops from January to March 2026. Some cells are empty.
       Columns: date, shop, sales, customers
@@ -32,9 +36,5 @@ Example tables you can use (all made up, for practice):
       Made-up pupils in 12 schools: study, sleep and test marks. Some sleep cells are empty.
       Columns: school, pupil, hours, sleep, breakfast, marks, passed, days_absent
 
-  sdata.example("meadow")
-      Plants counted in 30 made-up plots of three fields, half of them grazed by sheep.
-      Columns: plot, field, grazed, clover, daisy, buttercup, dandelion, nettle, thistle, moss, fern, orchid, yarrow
 
-
-... (64 more lines)
+... (68 more lines)

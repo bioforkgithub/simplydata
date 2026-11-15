@@ -9,6 +9,7 @@ from .between import BetweenWords
 from .columns import ColumnWords
 from .distribution_words import DistributionTableWords
 from .fitting import FittingWords
+from .forecasts import ForecastWords
 from .models import ModelWords
 from .patterns import PatternWords
 from .positions import PositionWords
@@ -21,7 +22,7 @@ from .time_series import TimeSeriesWords
 
 
 class Table(PositionWords, RowWords, ColumnWords, SummaryWords, StatTestWords, FittingWords, ModelWords, PatternWords, SurvivalWords,
-            TimeSeriesWords, SignalTableWords, BetweenWords, DistributionTableWords, BaseTable):
+            TimeSeriesWords, ForecastWords, SignalTableWords, BetweenWords, DistributionTableWords, BaseTable):
     """A table. Make one with sdata.table(...), then add steps: table.keep_rows(...), table.sort_by(...)."""
 
 

@@ -423,6 +423,16 @@ month & the first day of each month from 2014-01-01 to 2025-12-01 (real dates)\\
 museum & Harbour Museum or Hill Gallery\\
 visitors & people who came that month\\
 \bottomrule\end{tabularx}\end{center}
+\section*{river}
+Daily water level and nitrate at two made-up river stations, 2024 to 2025. Some days and cells are missing. \code{sdata.\allowbreak{}example(\textquotedbl{}river\textquotedbl{})}
+\begin{center}\small
+\begin{tabularx}{\textwidth}{@{}>{\ttfamily}l>{\raggedright\arraybackslash}X@{}}
+\toprule \textrm{\textbf{Column}} & \textbf{What it holds}\\ \midrule
+date & a day from 2024-01-01 to 2025-12-31 (real dates); 15 days have no row\\
+station & Station A or Station B\\
+level & water level in m: high in winter, low in summer; a few cells are empty\\
+nitrate & nitrate in mg/L, rising slowly; at Station B it drops from 2025-04-01 (a new treatment works)\\
+\bottomrule\end{tabularx}\end{center}
 \section*{shop}
 Daily sales of two made-up shops from January to March 2026. Some cells are empty. \code{sdata.\allowbreak{}example(\textquotedbl{}shop\textquotedbl{})}
 \begin{center}\small
@@ -3134,7 +3144,7 @@ chart.save("my_chart.png")
 A small made-up table to practise with. \code{sdata.\allowbreak{}example(\textquotedbl{}marks\textquotedbl{})}
 
 \codeline{sdata.example() with no name lists every table and its columns.}\\
-The tables are: marks, weather, fruit, growth, shop, school, meadow, trial, island. \code{\textquotedbl{}shop\textquotedbl{}} has empty cells and a column of dates to practise with; \code{\textquotedbl{}school\textquotedbl{}} has empty cells too.
+The tables are: marks, weather, fruit, growth, sensor, visitors, river, shop, school, meadow, trial, island. \code{\textquotedbl{}shop\textquotedbl{}} has empty cells and a column of dates to practise with; \code{\textquotedbl{}school\textquotedbl{}} has empty cells too.
 
 \wordfield{Options}{}\par\nopagebreak
 \begin{optiontable}
@@ -7595,7 +7605,7 @@ nums.autocorrelation_of(rows_back=10)
 Split a column into a trend, a season that repeats, and the rest, as three new columns.
 
 \codeline{table.add\_trend\_and\_season(\textquotedbl{}visitors\textquotedbl{}, sorted\_by=\textquotedbl{}month\textquotedbl{}, repeats\_every=\textquotedbl{}year\textquotedbl{}, for\_each=\textquotedbl{}museum\textquotedbl{})}\\
-(with \code{sdata.\allowbreak{}example(\textquotedbl{}visitors\textquotedbl{})}). Adds \code{visitors\_\allowbreak{}trend}, \code{visitors\_\allowbreak{}season} and \code{visitors\_\allowbreak{}rest} (\code{names=} gives three other names); trend + season + rest = the column (season \code{\textquotedbl{}added\textquotedbl{}}). \code{repeats\_\allowbreak{}every=} is the number of readings in one cycle (12, or \code{\textquotedbl{}year\textquotedbl{}} for monthly readings). \code{method=\textquotedbl{}loess\textquotedbl{}} (the default, R \code{stl()}: statsmodels STL with R's settings; \code{season\_\allowbreak{}window=} odd number of cycles, at least 7, or \code{\textquotedbl{}fixed\textquotedbl{}} for the same season every cycle, which runs R \code{stl(s.\allowbreak{}window = \textquotedbl{}periodic\textquotedbl{})} itself and needs simplydata[r]; \code{robust=True} keeps outliers from pulling the trend), \code{\textquotedbl{}moving averages\textquotedbl{}} (R \code{decompose()}: statsmodels \code{seasonal\_\allowbreak{}decompose}; \code{season=\textquotedbl{}multiplied\textquotedbl{}} for a season that grows with the level) or \code{\textquotedbl{}straight line\textquotedbl{}} (a straight-line trend; with \code{repeats\_\allowbreak{}every=} the season is the average left at each place in the cycle). One undo step.
+(with \code{sdata.\allowbreak{}example(\textquotedbl{}visitors\textquotedbl{})}). Adds \code{visitors\_\allowbreak{}trend}, \code{visitors\_\allowbreak{}season} and \code{visitors\_\allowbreak{}rest} (\code{names=} gives three other names); trend + season + rest = the column (season \code{\textquotedbl{}added\textquotedbl{}}). \code{repeats\_\allowbreak{}every=} is the number of readings in one cycle (12, or \code{\textquotedbl{}year\textquotedbl{}} for monthly readings). \code{method=\textquotedbl{}loess\textquotedbl{}} (the default, R \code{stl()}: statsmodels STL with R's settings; \code{season\_\allowbreak{}window=} odd number of cycles, at least 7, or \code{\textquotedbl{}fixed\textquotedbl{}} for the same season every cycle, which runs R \code{stl(s.\allowbreak{}window = \textquotedbl{}periodic\textquotedbl{})} itself and needs simplydata[r]; \code{robust=True} keeps outliers from pulling the trend), \code{\textquotedbl{}moving averages\textquotedbl{}} (R \code{decompose()}: statsmodels \code{seasonal\_\allowbreak{}decompose}; \code{season=\textquotedbl{}multiplied\textquotedbl{}} for a season that grows with the level) or \code{\textquotedbl{}straight line\textquotedbl{}} (R \code{lm()}: one statsmodels least-squares fit of a straight line over time and, with \code{repeats\_\allowbreak{}every=}, an effect for each place in the cycle, the effects adding up to 0). One undo step.
 
 \wordfield{Options}{}\par\nopagebreak
 \begin{optiontable}
@@ -7610,7 +7620,7 @@ Split a column into a trend, a season that repeats, and the rest, as three new c
 \code{names=} & \\
 \end{optiontable}
 
-\wordfield{Underneath}{statsmodels (STL with R's settings, \code{seasonal\_\allowbreak{}decompose}, OLS), pandas groupby; R stats::\code{stl(s.\allowbreak{}window = \textquotedbl{}periodic\textquotedbl{})} for a fixed season (simplydata[r])}
+\wordfield{Underneath}{statsmodels (STL with R's settings, \code{seasonal\_\allowbreak{}decompose}, OLS with season effects); R stats::\code{stl(s.\allowbreak{}window = \textquotedbl{}periodic\textquotedbl{})} for a fixed season (simplydata[r])}
 \wordfield{Example you can run}{(it uses the practice table \code{visitors})}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -7638,6 +7648,110 @@ Sen's slope is the middle (median) of the slopes between every pair of readings,
 import simplydata as sdata
 table = sdata.table(sdata.example("visitors"))
 table.trend_of("visitors", sorted_by="month", for_each="museum")
+\end{lstlisting}
+\wordentry{table.forecast()}{word:table.forecast}
+Forecast the next values of a column, with an interval for each.
+
+\codeline{table.forecast(\textquotedbl{}visitors\textquotedbl{}, sorted\_by=\textquotedbl{}month\textquotedbl{}, steps\_ahead=12, repeats\_every=\textquotedbl{}year\textquotedbl{}, for\_each=\textquotedbl{}museum\textquotedbl{})}\\
+(with \code{sdata.\allowbreak{}example(\textquotedbl{}visitors\textquotedbl{})}). Gives back one row per future step: the \code{sorted\_\allowbreak{}by} column carried on (months stay months), the forecast and its \code{interval=} (95 \%) low and high. \code{method=} \code{\textquotedbl{}exponential smoothing\textquotedbl{}} (the default: Holt-Winters, a level, a trend unless \code{trend=False}, and a season with \code{repeats\_\allowbreak{}every=}, season \code{\textquotedbl{}added\textquotedbl{}} or \code{\textquotedbl{}multiplied\textquotedbl{}}; R HoltWinters), \code{\textquotedbl{}last value\textquotedbl{}} (R forecast::naive), \code{\textquotedbl{}same season last time\textquotedbl{}} (R snaive), \code{\textquotedbl{}average\textquotedbl{}} (R meanf), \code{\textquotedbl{}straight on\textquotedbl{}} (the line from the first to the last reading carried on: R \code{rwf(drift = TRUE)}) or \code{\textquotedbl{}arima\textquotedbl{}} (R arima with \code{order=}(p, d, q): past values, differences, past errors; \code{seasonal\_\allowbreak{}order=} the same for the season; empty cells allowed). \code{check\_\allowbreak{}on\_\allowbreak{}last=12} fits on all but the last 12 rows, forecasts them and says how far off it was (R forecast::accuracy: MAE, RMSE, MAPE, MASE); the table gains the actual values and the errors. \code{show=\textquotedbl{}model\textquotedbl{}} gives the fitted weights or estimates instead. All in R itself: needs simplydata[r] and R with the forecast package.
+
+\wordfield{Options}{}\par\nopagebreak
+\begin{optiontable}
+\code{column=} & \\
+\code{sorted\_\allowbreak{}by=} & \\
+\code{steps\_\allowbreak{}ahead=} & normally \code{12}\\
+\code{method=} & normally \code{\textquotedbl{}exponential smoothing\textquotedbl{}}\\
+\code{repeats\_\allowbreak{}every=} & \\
+\code{trend=} & normally \code{True}\\
+\code{season=} & normally \code{\textquotedbl{}added\textquotedbl{}}\\
+\code{order=} & \\
+\code{seasonal\_\allowbreak{}order=} & \\
+\code{interval=} & normally \code{95}\\
+\code{check\_\allowbreak{}on\_\allowbreak{}last=} & \\
+\code{show=} & normally \code{\textquotedbl{}forecast\textquotedbl{}}\\
+\code{for\_\allowbreak{}each=} & \\
+\end{optiontable}
+
+\wordfield{Underneath}{R (forecast::naive, snaive, meanf, rwf; stats::HoltWinters, stats::arima; forecast::forecast and accuracy, through rpy2: simplydata[r])}
+\wordfield{Example you can run}{(it uses the practice table \code{visitors})}\par\nopagebreak
+\begin{lstlisting}[style=py]
+import simplydata as sdata
+table = sdata.table(sdata.example("visitors"))
+table.forecast("visitors", sorted_by="month", steps_ahead=12, repeats_every="year", for_each="museum")
+\end{lstlisting}
+\wordentry{nums.forecast()}{word:nums.forecast}
+Forecast the next numbers, with an interval for each (R forecast and stats, run in R).
+
+\codeline{nums.forecast(steps\_ahead=12, repeats\_every=12)}\\
+As \code{table.\allowbreak{}forecast}: the numbers are taken in order, one step apart, and called \code{\textquotedbl{}numbers\textquotedbl{}} in the sentences. \code{method=} \code{\textquotedbl{}exponential smoothing\textquotedbl{}} (R HoltWinters), \code{\textquotedbl{}last value\textquotedbl{}}, \code{\textquotedbl{}same season last time\textquotedbl{}}, \code{\textquotedbl{}average\textquotedbl{}}, \code{\textquotedbl{}straight on\textquotedbl{}} or \code{\textquotedbl{}arima\textquotedbl{}} (with \code{order=}); \code{repeats\_\allowbreak{}every=} is a whole number of readings here. Needs simplydata[r] and R with the forecast package. Gives back a table.
+
+\wordfield{Options}{}\par\nopagebreak
+\begin{optiontable}
+\code{steps\_\allowbreak{}ahead=} & normally \code{12}\\
+\code{method=} & normally \code{\textquotedbl{}exponential smoothing\textquotedbl{}}\\
+\code{repeats\_\allowbreak{}every=} & \\
+\code{trend=} & normally \code{True}\\
+\code{season=} & normally \code{\textquotedbl{}added\textquotedbl{}}\\
+\code{order=} & \\
+\code{seasonal\_\allowbreak{}order=} & \\
+\code{interval=} & normally \code{95}\\
+\code{check\_\allowbreak{}on\_\allowbreak{}last=} & \\
+\code{show=} & normally \code{\textquotedbl{}forecast\textquotedbl{}}\\
+\end{optiontable}
+
+\wordfield{Underneath}{R (as \code{table.\allowbreak{}forecast}, through rpy2: simplydata[r])}
+\wordfield{Example you can run}{(it uses the practice table \code{visitors})}\par\nopagebreak
+\begin{lstlisting}[style=py]
+import simplydata as sdata
+nums = sdata.numbers(sdata.example("visitors")["visitors"][:144])
+nums.forecast(steps_ahead=12, repeats_every=12)
+\end{lstlisting}
+\wordentry{table.compare\_forecasts()}{word:table.compare-forecasts}
+Which forecast method would have done best on the last rows? (R forecast::accuracy)
+
+\codeline{table.compare\_forecasts(\textquotedbl{}visitors\textquotedbl{}, sorted\_by=\textquotedbl{}month\textquotedbl{}, repeats\_every=\textquotedbl{}year\textquotedbl{}, for\_each=\textquotedbl{}museum\textquotedbl{})}\\
+(with \code{sdata.\allowbreak{}example(\textquotedbl{}visitors\textquotedbl{})}). Each method in \code{methods=} is fitted on all but the last \code{check\_\allowbreak{}on\_\allowbreak{}last=} rows (12) and forecasts them; the methods are ranked by MASE, the average error divided by the average error of the simplest forecast inside the fitted rows (the same season last time with \code{repeats\_\allowbreak{}every=}, otherwise the last value): below 1 is better than that. Also MAE (the average size of the errors), RMSE and MAPE (the average error in \% of the actual values). \code{methods=} defaults to \code{\textquotedbl{}last value\textquotedbl{}}, \code{\textquotedbl{}same season last time\textquotedbl{}} (with \code{repeats\_\allowbreak{}every=}; else \code{\textquotedbl{}average\textquotedbl{}}), \code{\textquotedbl{}straight on\textquotedbl{}} and \code{\textquotedbl{}exponential smoothing\textquotedbl{}}; \code{\textquotedbl{}arima\textquotedbl{}} needs \code{order=}. Runs in R itself (simplydata[r]). Gives back one row per method.
+
+\wordfield{Options}{}\par\nopagebreak
+\begin{optiontable}
+\code{column=} & \\
+\code{sorted\_\allowbreak{}by=} & \\
+\code{methods=} & \\
+\code{check\_\allowbreak{}on\_\allowbreak{}last=} & normally \code{12}\\
+\code{repeats\_\allowbreak{}every=} & \\
+\code{order=} & \\
+\code{seasonal\_\allowbreak{}order=} & \\
+\code{for\_\allowbreak{}each=} & \\
+\end{optiontable}
+
+\wordfield{Underneath}{R (forecast::accuracy on each method's forecast, through rpy2: simplydata[r])}
+\wordfield{Example you can run}{(it uses the practice table \code{visitors})}\par\nopagebreak
+\begin{lstlisting}[style=py]
+import simplydata as sdata
+table = sdata.table(sdata.example("visitors"))
+table.compare_forecasts("visitors", sorted_by="month", repeats_every="year", for_each="museum")
+\end{lstlisting}
+\wordentry{table.find\_change\_points()}{word:table.find-change-points}
+Find the points where the average of a column jumps to a new level (R changepoint, PELT).
+
+\codeline{table.find\_change\_points(\textquotedbl{}nitrate\textquotedbl{}, sorted\_by=\textquotedbl{}date\textquotedbl{}, for\_each=\textquotedbl{}station\textquotedbl{})} (with \code{sdata.\allowbreak{}example(\textquotedbl{}river\textquotedbl{})})\\
+Splits the readings, in the order of \code{sorted\_\allowbreak{}by=}, into stretches with their own average, and gives back one row per stretch: where it starts and ends, how many readings, its average (and its standard deviation). \code{change=\textquotedbl{}average\textquotedbl{}} (R changepoint::cpt.mean, after dividing the readings by \code{mad(diff(x))} / \code{sqrt(2)}, the noise size that cpt.mean assumes to be 1) or \code{\textquotedbl{}average and spread\textquotedbl{}} (R cpt.meanvar: the spread may jump too). The search is PELT; \code{penalty=} \code{\textquotedbl{}mbic\textquotedbl{}} (the default, as R), \code{\textquotedbl{}bic\textquotedbl{}}, \code{\textquotedbl{}aic\textquotedbl{}} or \code{\textquotedbl{}hannan-quinn\textquotedbl{}} sets how big a jump must be to count (a smaller penalty, such as \code{\textquotedbl{}aic\textquotedbl{}}, finds more points). The readings are taken in order; they need no empty cells. Runs in R itself (simplydata[r]).
+
+\wordfield{Options}{}\par\nopagebreak
+\begin{optiontable}
+\code{column=} & \\
+\code{sorted\_\allowbreak{}by=} & \\
+\code{change=} & normally \code{\textquotedbl{}average\textquotedbl{}}\\
+\code{penalty=} & normally \code{\textquotedbl{}mbic\textquotedbl{}}\\
+\code{for\_\allowbreak{}each=} & \\
+\end{optiontable}
+
+\wordfield{Underneath}{R (changepoint::cpt.mean and cpt.meanvar, PELT; stats::mad; through rpy2: simplydata[r])}
+\wordfield{Example you can run}{(it uses the practice table \code{river})}\par\nopagebreak
+\begin{lstlisting}[style=py]
+import simplydata as sdata
+table = sdata.table(sdata.example("river"))
+table.find_change_points("nitrate", sorted_by="date", for_each="station")
 \end{lstlisting}
 \unsection{Planning a study}{group:Planning-a-study}
 \wordentry{sdata.how\_many\_needed()}{word:sdata.how-many-needed}
@@ -10069,6 +10183,7 @@ Every word and option, A to Z, with the page of its dictionary entry. Other spel
 \indexline{word:table.compare-counts-to}{table.compare\_counts\_to()}
 \indexline{word:table.compare-distributions}{table.compare\_distributions()}
 \indexline{word:table.compare-each-pair}{table.compare\_each\_pair()}
+\indexline{word:table.compare-forecasts}{table.compare\_forecasts()}
 \indexline{word:table.compare-percent-to}{table.compare\_percent\_to()}
 \indexline{word:table.compare-profiles}{table.compare\_profiles()}
 \indexline{word:table.compare-shape-to}{table.compare\_shape\_to()}
@@ -10108,6 +10223,7 @@ Every word and option, A to Z, with the page of its dictionary entry. Other spel
 \indexline{word:table.fill-empty-cells}{table.fill\_empty\_cells()}
 \indexline{word:nums.fill-empty-numbers}{nums.fill\_empty\_numbers()}
 \indexline{word:sdata.find-biggest}{sdata.find\_biggest()}
+\indexline{word:table.find-change-points}{table.find\_change\_points()}
 \indexline{word:sdata.find-smallest}{sdata.find\_smallest()}
 \indexline{word:fit-curve}{chart.fit\_curve()}
 \indexline{word:table.fit-curve}{table.fit\_curve()}
@@ -10122,6 +10238,8 @@ Every word and option, A to Z, with the page of its dictionary entry. Other spel
 \indexline{word:flip-y}{chart.flip\_y()}
 \indexline{word:font-name}{chart.font\_name()}
 \indexline{word:font-size}{chart.font\_size()}
+\indexline{word:nums.forecast}{nums.forecast()}
+\indexline{word:table.forecast}{table.forecast()}
 \indexline{word:sdata.grid}{sdata.grid()}
 \indexline{word:heatmap}{chart.heatmap()}
 \indexline{word:sdata.help}{sdata.help()}

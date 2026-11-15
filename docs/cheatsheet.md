@@ -383,6 +383,10 @@ and `a`, `b` in `sdata.side_by_side(a, b)` are charts you made first.
 | `autocorrelation_of` | `nums.autocorrelation_of(rows_back=24)` | sensor | How much the numbers are like themselves some places back (autocorrelation), with a noise band. |
 | `add_trend_and_season` | `table.add_trend_and_season("visitors", sorted_by="month", repeats_every="year", for_each="museum")` | visitors | Split a column into a trend, a season that repeats, and the rest, as three new columns. |
 | `trend_of` | `table.trend_of("visitors", sorted_by="month", for_each="museum")` | visitors | Does a column keep rising or falling over time, and by how much? (Mann-Kendall test, Sen's slope) |
+| `forecast` | `table.forecast("visitors", sorted_by="month", steps_ahead=12, repeats_every="year", for_each="museum")` | visitors | Forecast the next values of a column, with an interval for each. |
+| `forecast` | `nums.forecast(steps_ahead=12, repeats_every=12)` | visitors | Forecast the next numbers, with an interval for each (R forecast and stats, run in R). |
+| `compare_forecasts` | `table.compare_forecasts("visitors", sorted_by="month", repeats_every="year", for_each="museum")` | visitors | Which forecast method would have done best on the last rows? (R forecast::accuracy) |
+| `find_change_points` | `table.find_change_points("nitrate", sorted_by="date", for_each="station")` | river | Find the points where the average of a column jumps to a new level (R changepoint, PELT). |
 
 ## Planning a study
 

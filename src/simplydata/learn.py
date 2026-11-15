@@ -90,7 +90,8 @@ GROUPS = [
                   "survival_curves"]),
     ("Signals and time series", ["table.spectrum_of", "nums.spectrum_of", "table.check_steady",
                                  "table.autocorrelation_of", "nums.autocorrelation_of",
-                                 "table.add_trend_and_season", "table.trend_of"]),
+                                 "table.add_trend_and_season", "table.trend_of", "table.forecast",
+                                 "nums.forecast", "table.compare_forecasts", "table.find_change_points"]),
     ("Planning a study", ["sdata.how_many_needed", "sdata.chance_to_find"]),
     ("Combine and reshape", ["table.join_with", "table.add_rows_from", "table.turn_columns_into_rows",
                              "table.turn_rows_into_columns"]),
@@ -655,6 +656,14 @@ HELP_EXAMPLES = {
         table.add_trend_and_season("visitors", sorted_by="month", repeats_every="year", for_each="museum")
         table.show_first_rows(3)"""),
     "table.trend_of": _tx("visitors", 'table.trend_of("visitors", sorted_by="month", for_each="museum")'),
+    "table.forecast": _tx("visitors", 'table.forecast("visitors", sorted_by="month", steps_ahead=12, '
+                                      'repeats_every="year", for_each="museum")'),
+    "nums.forecast": _nx("nums.forecast(steps_ahead=12, repeats_every=12)",
+                         values='sdata.example("visitors")["visitors"][:144]'),
+    "table.compare_forecasts": _tx("visitors", 'table.compare_forecasts("visitors", sorted_by="month", '
+                                               'repeats_every="year", for_each="museum")'),
+    "table.find_change_points": _tx("river", 'table.find_change_points("nitrate", sorted_by="date", '
+                                             'for_each="station")'),
     "nums.autocorrelation_of": _nx("nums.autocorrelation_of(rows_back=10)",
                                    values='sdata.example("sensor")["signal"]'),
     # survival
