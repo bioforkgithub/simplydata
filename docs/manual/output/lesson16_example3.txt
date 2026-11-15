@@ -11,7 +11,7 @@ Explaining "marks" from "hours", "sleep" and "breakfast" (180 rows, 19 of them w
   intercept: 14.7, the expected "marks" when every number column is 0 and every group column is at its baseline.
   hours: each 1 more "hours" goes with 2.74 more "marks" (95 % CI 2.23 to 3.25); very unlikely to be chance (p < 0.0001).
   sleep: each 1 more "sleep" goes with 2.27 more "marks" (95 % CI 0.901 to 3.64); unlikely to be chance (p = 0.001).
-  breakfast "yes" against "no": "marks" is 3.28 higher (95 % CI 0.698 to 5.87); unlikely to be chance (p = 0.013).
+  breakfast "yes" against "no": "marks" is 3.28 higher (95 % CI 0.699 to 5.87); unlikely to be chance (p = 0.013).
 Method: multiple imputation by chained equations (predictive mean matching with 5 donors, seed=1): the empty cells were filled in 20 times, the model was fitted to each of the 20 filled-in tables, and the results were pooled with Rubin's rules (t-based intervals with Barnard-Rubin degrees of freedom), as R pool(with(mice(...), lm(marks ~ hours + sleep + breakfast))).
 The filling-in adds uncertainty: up to 6 % of the variance of an effect comes from the differences between the filled-in tables. Tests for whole group columns, R squared, AIC and BIC are not pooled here.
 A link does not show that one thing causes the other.
