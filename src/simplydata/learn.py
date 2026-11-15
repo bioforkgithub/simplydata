@@ -2810,11 +2810,35 @@ LESSONS = [
     dict(
         title="Statistical tests: real difference, or chance?",
         learn=[
-            "what a statistical test asks, and what a p-value means",
+            "how big a difference is, and how sure the data are: the effect and its interval first",
+            "what a p-value means: first by shuffling the labels, then from the usual formula",
             "how to compare the averages of groups, and which groups differ",
-            "how to compare counts, and how to fit a line or a formula",
+            "how to compare counts and measurements of the same people, and how to fit a line or a formula",
         ],
         parts=[
+            ("Start with the question \"how big?\": the difference between two groups, and how sure the "
+             "data are about it.", [
+                ("import simplydata as sdata", "Load simplydata."),
+                ('school = sdata.table(sdata.example("school"))', "A table of pupils."),
+                ('school.average_of("sleep", for_each="passed", interval=95)',
+                 "The average hours of sleep of the pupils who passed and of those who did not, each with its "
+                 "95 % confidence interval: the range the true average is very likely in."),
+                ('school.compare_averages("sleep", for_each="passed")',
+                 "Read the first sentence first: the pupils who did not pass slept about half an hour less "
+                 "(0.485 hours), and the 95 % interval of the difference goes from 0.196 to 0.774 hours. That "
+                 "is the effect, and how sure the data are about it. The p-value comes after it."),
+            ]),
+            ("Where does a p-value come from? Shuffle the labels, and count.", [
+                ("import simplydata as sdata", "Load simplydata."),
+                ('school = sdata.table(sdata.example("school"))', "A table of pupils."),
+                ('school.compare_averages("sleep", for_each="passed", p_value_by="shuffling")',
+                 "Imagine that passing had nothing to do with sleep. Then the labels \"yes\" and \"no\" "
+                 "could be shuffled among the pupils and nothing would change. simplydata shuffles them 9999 "
+                 "times and counts how often the shuffled difference is as big as the real one: about 1 time "
+                 "in 1000 (p = 0.001). That count is the p-value. The p-value in the part before came from a "
+                 "formula (the t distribution), a shortcut for the same count: here it is the same, "
+                 "p = 0.001."),
+            ]),
             ("Groups almost never have exactly the same average. A test asks: is the difference "
              "bigger than chance alone would often give?", [
                 ("import simplydata as sdata", "Load simplydata."),
@@ -2891,6 +2915,15 @@ LESSONS = [
                  "Did half the pupils pass? 43.3 % did; if truly half passed, a difference this big would "
                  "turn up in about 9 of 100 studies (p = 0.086), so the data cannot tell."),
             ]),
+            ("When the same people are measured three times, compare the measurements within each person.", [
+                ("import simplydata as sdata", "Load simplydata."),
+                ('clinic = sdata.table(sdata.example("clinic"))', "A table of patients."),
+                ('clinic.compare_matched("pain_week_0", "pain_week_4", "pain_week_8")',
+                 "Each patient scored the pain at week 0, 4 and 8, one column each. compare_matched compares "
+                 "the three columns within each patient (the Friedman test, on ranks): the median pain falls "
+                 "from 6 to 5 to 4, far more than chance would give (p < 0.0001). For two columns, "
+                 "compare_before_after does the same."),
+            ]),
         ],
         notes=[
             "The idea behind every test: imagine there is no real difference (this is called the "
@@ -2952,7 +2985,7 @@ LESSONS = [
                "table.fit_line", "table.fit_formula", "table.add_group_column",
                "table.compare_shape_to", "table.show_rows_with_outliers", "table.add_adjusted_p_value_column",
                "table.remove_rows_with_outliers", "table.compare_spreads", "table.compare_counts_to",
-               "table.compare_percent_to"],
+               "table.compare_percent_to", "table.compare_matched"],
     ),
     dict(
         title="A whole analysis: from a question to a figure",
@@ -3596,7 +3629,7 @@ LESSONS = [
                 ("chart = risks.chart()", "Start a chart of the result table."),
                 ('chart.forest_plot(x="estimate", y="measure")',
                  "Each ratio as a dot with its 95 % interval, on a log scale, with a line at 1 (no effect)."),
-                ('chart.save("lesson21_ratios.png")', "Save it."),
+                ('chart.save("risk_ratios.png")', "Save it."),
             ]),
             ("How good is a quick test, against the truth from a slow lab test?", [
                 ("import simplydata as sdata", "Load simplydata."),
@@ -3617,7 +3650,7 @@ LESSONS = [
                 ("chart = table.chart()", "Start a chart."),
                 ('chart.trade_off_curve(score=["crp", "procalcitonin"], truth="infected")',
                  "Both trade-off (ROC) curves: CRP climbs faster to the top left than procalcitonin."),
-                ('chart.save("lesson21_trade_off.png")', "Save it."),
+                ('chart.save("trade_off.png")', "Save it."),
             ]),
             ("Do a nurse and a doctor agree, and do two blood-pressure devices agree?", [
                 ("import simplydata as sdata", "Load simplydata."),
@@ -3630,10 +3663,12 @@ LESSONS = [
                 ("chart = table.chart()", "Start a chart."),
                 ('chart.difference_dots(x="device_a", y="device_b")',
                  "The Bland-Altman chart: each difference against its average, with the limits of agreement."),
-                ('chart.save("lesson21_devices.png")', "Save it."),
+                ('chart.save("devices.png")', "Save it."),
             ]),
         ],
         notes=[
+            "This lesson is optional, for the life sciences (medicine, biology, ecology); no other lesson "
+            "needs it.",
             "Give absolute risks first. A risk ratio of 0.5 can mean 2 in 100 instead of 4, or 20 instead of "
             "40: the same ratio, a very different number of people helped.",
             "Odds are not risks. When the outcome is common (over 10 %), the odds ratio lies further from 1 than "
@@ -3673,6 +3708,20 @@ LESSONS = [
 
 def _wrap(text: str, indent: str = "", width: int = WIDTH) -> str:
     return textwrap.fill(text, width, initial_indent=indent, subsequent_indent=indent)
+
+
+def lesson_number(title: str) -> int:
+    """The number of the lesson with this title (sdata.lesson(n)). The 30-day guide and the tests find a
+    lesson by its title, so its number can change when lessons are added before it."""
+    for number, les in enumerate(LESSONS, start=1):
+        if les["title"] == title:
+            return number
+    raise KeyError(title)
+
+
+# The optional life-science lesson. Agreed order across branches: S2's "Working with a model" is lesson 21,
+# this one 22, v0.6's lessons 23 to 26.
+RISKS_LESSON = "Risks, diagnostic tests and agreement"
 
 
 def lesson_code(number: int) -> list[str]:

@@ -27,6 +27,7 @@ import textwrap
 from pathlib import Path
 
 from ._errors import SimplydataError, suggest
+from .learn import RISKS_LESSON, lesson_number
 
 TRACK_NAMES = ("python", "beginner")
 DAYS_IN_A_TRACK = 30
@@ -64,8 +65,10 @@ def _lesson_do(number: int, which: str = "") -> str:
 # Each unit: lessons (sdata.lesson numbers), manual (extra sections: (label in the manual, title)),
 # words (keys of learn.GROUPS to look up with sdata.help), do (what to do), examples (blocks of
 # (code, what it does) that run on their own), errors ((code that fails on purpose, what the error
-# says, what it means)), recall ((question, answer)), task and solutions (one (code, explanation)
-# per task; the code runs on its own, or is "" for a task that is written, not run).
+# says, what it means)), recall ((question, answer)), spaced ((question, answer) about a core word:
+# asked in the warm-up exactly 3 and 7 days after the day that teaches it, and in the final test),
+# task and solutions (one (code, explanation) per task; the code runs on its own, or is "" for a task
+# that is written, not run).
 UNITS = {
     # ------------------------------------------------------------ Python first steps (beginner)
     "py_values": dict(
@@ -529,8 +532,8 @@ UNITS = {
         lessons=[14],
         manual=[("ideas:p-value", "The null hypothesis and the p-value"),
                 ("ideas:effect-size", "Effect sizes: how big is the difference?")],
-        words=["table.compare_averages", "table.compare_each_pair", "table.fit_line"],
-        do=[_lesson_do(14, "examples 1 and 3"),
+        words=["table.compare_averages", "table.compare_each_pair", "table.fit_line", "table.average_of"],
+        do=[_lesson_do(14, "examples 1, 2, 3 and 5"),
             'Read "The null hypothesis and the p-value" and "Effect sizes" in the manual.'],
         recall=[
             ("Which word tests whether the average marks differ between the classes?",
@@ -541,8 +544,15 @@ UNITS = {
             ("Which option gives the rank-based test, for small groups that are not bell-shaped?",
              'based_on="ranks"'),
         ],
+        spaced=[
+            ("Which option adds a 95 % confidence interval to average_of or median_of?",
+             'interval=95, as in table.average_of("sleep", for_each="passed", interval=95)'),
+            ("Which option gets the p-value by shuffling the group labels, and what does that p-value count?",
+             'p_value_by="shuffling", as in table.compare_averages("sleep", for_each="passed", '
+             'p_value_by="shuffling"): how often shuffled labels give a difference as big as the real one.'),
+        ],
         task=['School table: do the average marks differ between pupils who had breakfast and pupils who did '
-              "not? Write down the difference, the effect size and the p-value."],
+              "not? Write down the difference with its interval first, then the effect size and the p-value."],
         solutions=[(_code('''
             import simplydata as sdata
             table = sdata.table(sdata.example("school"))
@@ -553,9 +563,9 @@ UNITS = {
     "tests_b": dict(
         lessons=[14],
         manual=[("ideas:multiple", "Many tests at once")],
-        words=["table.compare_counts", "table.show_rows_with_outliers", "table.compare_shape_to",
-               "table.add_adjusted_p_value_column", "table.compare_spreads"],
-        do=[_lesson_do(14, "examples 2, 4 and 5"),
+        words=["table.compare_counts", "table.show_rows_with_outliers", "table.compare_matched",
+               "table.compare_shape_to", "table.add_adjusted_p_value_column", "table.compare_spreads"],
+        do=[_lesson_do(14, "examples 4, 6, 7 and 8"),
             'Read "Many tests at once" in the manual.'],
         recall=[
             ("Which word tests whether the counts of categories differ between groups?",
@@ -564,6 +574,10 @@ UNITS = {
             ("Which word checks whether values are bell-shaped (normal)?", 'table.compare_shape_to("marks", "normal")'),
             ("You did many tests at once. Which word corrects the p-values?",
              'add_adjusted_p_value_column(method="holm"), on the table of results'),
+        ],
+        spaced=[
+            ("Each patient was measured at week 0, 4 and 8. Which word compares the three measurements?",
+             'table.compare_matched("pain_week_0", "pain_week_4", "pain_week_8")'),
         ],
         task=['School table: is the share of pupils who "passed" different with and without breakfast?'],
         solutions=[(_code('''
@@ -757,8 +771,8 @@ UNITS = {
             rain.show()'''),
             "Each estimate lies halfway between the two months around it.")],
     ),
-    "lesson21": dict(
-        lessons=[21],
+    "risks": dict(
+        lessons=[lesson_number(RISKS_LESSON)],
         needs_r="the likelihood ratios, compare_to_truth() with a score, trade_off_curve(), the ICC and "
                 "limits_of_agreement()",
         words=["table.compare_risks", "table.compare_to_truth", "table.agreement_between"],
@@ -768,6 +782,10 @@ UNITS = {
             ("Which word says how many of 1000 people a test finds, misses and wrongly calls positive?",
              'table.compare_to_truth("rapid_test", truth="infected")'),
             ("Which word measures how well two raters agree?", 'table.agreement_between("nurse_rating", "doctor_rating")'),
+        ],
+        spaced=[
+            ("Which word compares the risk of an outcome in two groups, out of 100 first and then as ratios?",
+             'table.compare_risks("died", for_each="treatment", against="usual care")'),
         ],
         task=['Clinic table: how good is the rapid test where only 2 % have the infection? Of the positive '
               "results, how many really have it?"],
@@ -1236,7 +1254,7 @@ _PYTHON = [
      ["finding", "distributions"], "learn"),
     ("Values between points; risks and diagnostic tests",
      "Estimate values between measured points, compare risks, judge a diagnostic test and measure agreement.",
-     ["between", "lesson21"], "learn"),
+     ["between", "risks"], "learn"),
     ("Review, and the question of your project",
      "Remember the words of the third week, then choose the question and the raw file of your own project.",
      ["review_p21", "proj_question"], "review"),
@@ -1341,7 +1359,7 @@ _BEGINNER = [
      ["lesson17"], "learn"),
     ("Survival, risks and diagnostic tests",
      "Draw survival curves, compare risks, and judge a diagnostic test in counts of 1000 people.",
-     ["lesson18", "lesson21"], "learn"),
+     ["lesson18", "risks"], "learn"),
     ("Fitting, finding and solving",
      "Fit lines, curves and formulas, find where a formula is biggest, and solve equations.",
      ["fitting", "finding"], "learn"),
@@ -1427,9 +1445,27 @@ def _warm_up_sources(track: str, number: int, last_asked: dict[int, int], used: 
     return sources
 
 
+SPACED_GAPS = (3, 7)  # a core word comes back 3 and 7 days after it is taught, and in the final test
+
+
+def _spaced_of(track: str, number: int) -> list[tuple[str, str]]:
+    return [qa for u in DAYS[track][number - 1][2] for qa in UNITS[u].get("spaced", [])]
+
+
+def _spaced_for(track: str, number: int) -> list[tuple[str, str, int]]:
+    """The core-word questions due on a day: those taught SPACED_GAPS days before, or every one on the
+    final day (spacing and retrieval: Cepeda et al. 2006; Roediger & Karpicke 2006)."""
+    if DAYS[track][number - 1][3] == "final":
+        days = range(1, number)
+    else:
+        days = [number - gap for gap in SPACED_GAPS if number - gap >= 1]
+    return [(q, a, day) for day in days for q, a in _spaced_of(track, day)]
+
+
 def _warm_up_table(track: str) -> list[list[tuple[str, str, int]]]:
     """The warm-up of every day: [(question, answer, from day)]. Each time a day is asked about, the
-    next of its questions is used, so the questions change."""
+    next of its questions is used, so the questions change. Then the core-word questions that are due
+    (spaced=)."""
     used: dict[int, int] = {}
     last_asked: dict[int, int] = {}
     out = []
@@ -1441,6 +1477,8 @@ def _warm_up_table(track: str) -> list[list[tuple[str, str, int]]]:
             q, a = questions[used.get(source, 0) % len(questions)]
             used[source] = used.get(source, 0) + 1
             found.append((q, a, source))
+        asked = {q for q, _, _ in found}
+        found += [item for item in _spaced_for(track, number) if item[0] not in asked]
         out.append(found)
     return out
 

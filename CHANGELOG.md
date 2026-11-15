@@ -145,6 +145,18 @@ nothing is computed anew.
   average of that width (R `presize::prec_mean`).
 - `based_on="ranks"` says plainly that no package gives rank-test power.
 
+### Lessons and the 30 days
+
+- Lesson 14 starts with the effect and its 95 % interval (`average_of(..., interval=95)`, then the
+  first sentence of `compare_averages`), then shows where a p-value comes from by shuffling the
+  labels (`p_value_by="shuffling"`) before the formula p-value, and ends with `compare_matched` on
+  three measurements of the same patients.
+- The lesson "Risks, diagnostic tests and agreement" is the optional life-science lesson. The
+  30-day guide finds it by its title, so its number follows the lessons before it (22 once the
+  lesson "Working with a model" is in).
+- The core words of this release come back in the 30-day warm-ups exactly 3 and 7 days after the
+  day that teaches them, and in the final test from memory (`spaced=` questions in the guide).
+
 ### More from Part A: shifts, trends, bigger tables, correlations
 
 - `compare_averages(..., based_on="ranks")` with two groups also prints the Hodges-Lehmann shift

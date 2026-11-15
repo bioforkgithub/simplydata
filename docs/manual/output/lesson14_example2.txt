@@ -1,3 +1,4 @@
-Comparing how often each "result" turns up in each "class" (2 x 3 table, 54 rows): Cramer's V = 0.279 (95 % CI 0 to 0.521; 0 means no link, 1 a complete link).
-If "result" and "class" were truly unrelated, differences this big or bigger would turn up in about 12 of 100 studies like this one (p = 0.122). This does not show that they are unrelated.
-Test: chi-square test of independence (chi-square = 4.21, df = 2), the usual test for counts.
+Note: 19 rows with an empty cell in "sleep" or "passed" were skipped.
+The average "sleep" is 7.72 in no and 8.20 in yes: no is 0.485 lower (95 % CI of the difference -0.774 to -0.196; Hedges' g = -0.528 (95 % CI -0.842 to -0.213), a difference of 0.528 standard deviations).
+If there were truly no difference, a difference this big or bigger would turn up in about 1 of 1000 studies like this one (p = 0.001).
+Test: Welch's t-test (t = -3.32, df = 145.821), the usual test for two averages; it does not assume both groups have the same spread. The p-value comes from shuffling, not from the t distribution: the group labels were shuffled 9999 times (seed 1); the same seed gives the same p-value (SciPy permutation_test, as R perm::permTS()).

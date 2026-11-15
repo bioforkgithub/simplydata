@@ -2261,12 +2261,43 @@ Worked solutions: page~\pageref{solutions:13}, or type \code{sdata.\allowbreak{}
 \chapter{Statistical tests: real difference, or chance?}\label{lesson:14}
 \begin{learnbox}
 \begin{itemize}
-  \item what a statistical test asks, and what a p-value means
+  \item how big a difference is, and how sure the data are: the effect and its interval first
+  \item what a p-value means: first by shuffling the labels, then from the usual formula
   \item how to compare the averages of groups, and which groups differ
-  \item how to compare counts, and how to fit a line or a formula
+  \item how to compare counts and measurements of the same people, and how to fit a line or a formula
 \end{itemize}
 \end{learnbox}
 \section*{Example 1}
+Start with the question \code{\textquotedbl{}how big?\textquotedbl{}}: the difference between two groups, and how sure the data are about it.
+\begin{lstlisting}[style=py]
+import simplydata as sdata
+school = sdata.table(sdata.example("school"))
+school.average_of("sleep", for_each="passed", interval=95)
+school.compare_averages("sleep", for_each="passed")
+\end{lstlisting}
+\whateachline
+\begin{lineexplain}
+  \item[1] Load simplydata.
+  \item[2] A table of pupils.
+  \item[3] The average hours of sleep of the pupils who passed and of those who did not, each with its 95 \% confidence interval: the range the true average is very likely in.
+  \item[4] Read the first sentence first: the pupils who did not pass slept about half an hour less (0.485 hours), and the 95 \% interval of the difference goes from 0.196 to 0.774 hours. That is the effect, and how sure the data are about it. The p-value comes after it.
+\end{lineexplain}
+\printedoutput{output/lesson14_example1.txt}
+\section*{Example 2}
+Where does a p-value come from? Shuffle the labels, and count.
+\begin{lstlisting}[style=py]
+import simplydata as sdata
+school = sdata.table(sdata.example("school"))
+school.compare_averages("sleep", for_each="passed", p_value_by="shuffling")
+\end{lstlisting}
+\whateachline
+\begin{lineexplain}
+  \item[1] Load simplydata.
+  \item[2] A table of pupils.
+  \item[3] Imagine that passing had nothing to do with sleep. Then the labels \code{\textquotedbl{}yes\textquotedbl{}} and \code{\textquotedbl{}no\textquotedbl{}} could be shuffled among the pupils and nothing would change. simplydata shuffles them 9999 times and counts how often the shuffled difference is as big as the real one: about 1 time in 1000 (p = 0.001). That count is the p-value. The p-value in the part before came from a formula (the t distribution), a shortcut for the same count: here it is the same, p = 0.001.
+\end{lineexplain}
+\printedoutput{output/lesson14_example2.txt}
+\section*{Example 3}
 Groups almost never have exactly the same average. A test asks: is the difference bigger than chance alone would often give?
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -2283,8 +2314,8 @@ table.compare_averages("marks", for_each="subject", based_on="ranks")
   \item[4] Which classes differ? Each pair gets its own t-test (Welch's). Testing many pairs makes a false alarm more likely, so the p-values are adjusted (Holm's method).
   \item[5] \code{based\_\allowbreak{}on=\textquotedbl{}ranks\textquotedbl{}} puts the marks in order and compares the places instead (a Kruskal-Wallis test, or Mann-Whitney for two groups). It is safer when groups are small and the values are not bell-shaped.
 \end{lineexplain}
-\printedoutput{output/lesson14_example1.txt}
-\section*{Example 2}
+\printedoutput{output/lesson14_example3.txt}
+\section*{Example 4}
 Counts can be compared too: does how often something happens differ between groups?
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -2299,8 +2330,8 @@ table.compare_counts("result", for_each="class")
   \item[3] A new column that says if each mark is below 60 or not.
   \item[4] Do the classes differ in how many marks are 60 or more? This counts the rows for each class and result and uses the chi-square test. Cramer's V says how strong the link is, from 0 (none) to 1.
 \end{lineexplain}
-\printedoutput{output/lesson14_example2.txt}
-\section*{Example 3}
+\printedoutput{output/lesson14_example4.txt}
+\section*{Example 5}
 A fit finds the line or formula that follows the data best, and says how sure it is.
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -2319,8 +2350,8 @@ growth.fit_formula("population = a * exp(b * (year - 2000))")
   \item[5] Keep one country.
   \item[6] Fit a formula you write yourself. Names that are columns (population, year) are data; the others (a and b) are found by simplydata. Here b is the growth rate each year. This is nonlinear least squares.
 \end{lineexplain}
-\printedoutput{output/lesson14_example3.txt}
-\section*{Example 4}
+\printedoutput{output/lesson14_example5.txt}
+\section*{Example 6}
 Before a test, look at the shape of the values and at values far from the rest. After many tests, adjust the p-values.
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -2341,8 +2372,8 @@ pairs.show()
   \item[6] With many tests, one of them looks real by chance more often. Holm's adjustment keeps the chance of even one false alarm at 5 \%.
   \item[7] The p-values and the adjusted ones, side by side.
 \end{lineexplain}
-\printedoutput{output/lesson14_example4.txt}
-\section*{Example 5}
+\printedoutput{output/lesson14_example6.txt}
+\section*{Example 7}
 Some questions are about spread, or about counts compared with what you expect.
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -2363,7 +2394,21 @@ school.compare_percent_to("passed", value="yes", percent=50)
   \item[6] Did 60 \% eat breakfast, as a survey said? 115 of 180 is close enough (p = 0.29).
   \item[7] Did half the pupils pass? 43.3 \% did; if truly half passed, a difference this big would turn up in about 9 of 100 studies (p = 0.086), so the data cannot tell.
 \end{lineexplain}
-\printedoutput{output/lesson14_example5.txt}
+\printedoutput{output/lesson14_example7.txt}
+\section*{Example 8}
+When the same people are measured three times, compare the measurements within each person.
+\begin{lstlisting}[style=py]
+import simplydata as sdata
+clinic = sdata.table(sdata.example("clinic"))
+clinic.compare_matched("pain_week_0", "pain_week_4", "pain_week_8")
+\end{lstlisting}
+\whateachline
+\begin{lineexplain}
+  \item[1] Load simplydata.
+  \item[2] A table of patients.
+  \item[3] Each patient scored the pain at week 0, 4 and 8, one column each. \code{compare\_\allowbreak{}matched} compares the three columns within each patient (the Friedman test, on ranks): the median pain falls from 6 to 5 to 4, far more than chance would give (p \textless{} 0.0001). For two columns, \code{compare\_\allowbreak{}before\_\allowbreak{}after} does the same.
+\end{lineexplain}
+\printedoutput{output/lesson14_example8.txt}
 \begin{goodtoknow}
 \begin{itemize}
   \item The idea behind every test: imagine there is no real difference (this is called the null hypothesis). The p-value says how often a difference this big or bigger would turn up then, in studies like yours: p = 0.03 is \code{\textquotedbl{}about 3 of 100 studies\textquotedbl{}}. It is not the chance that there is no difference, and every test says it in that one sentence.
@@ -2384,7 +2429,7 @@ school.compare_percent_to("passed", value="yes", percent=50)
 \end{enumerate}
 Worked solutions: page~\pageref{solutions:14}, or type \code{sdata.\allowbreak{}lesson(14,\allowbreak{} solutions=True)}.
 \end{tryit}
-\par\noindent{\small\sffamily\textbf{Words in this lesson:} \hyperref[word:table.compare-averages]{\code{table.\allowbreak{}compare\_\allowbreak{}averages()}}, \hyperref[word:table.compare-each-pair]{\code{table.\allowbreak{}compare\_\allowbreak{}each\_\allowbreak{}pair()}}, \hyperref[word:table.compare-counts]{\code{table.\allowbreak{}compare\_\allowbreak{}counts()}}, \hyperref[word:table.fit-line]{\code{table.\allowbreak{}fit\_\allowbreak{}line()}}, \hyperref[word:table.fit-formula]{\code{table.\allowbreak{}fit\_\allowbreak{}formula()}}, \hyperref[word:table.add-group-column]{\code{table.\allowbreak{}add\_\allowbreak{}group\_\allowbreak{}column()}}, \hyperref[word:table.compare-shape-to]{\code{table.\allowbreak{}compare\_\allowbreak{}shape\_\allowbreak{}to()}}, \hyperref[word:table.show-rows-with-outliers]{\code{table.\allowbreak{}show\_\allowbreak{}rows\_\allowbreak{}with\_\allowbreak{}outliers()}}, \hyperref[word:table.add-adjusted-p-value-column]{\code{table.\allowbreak{}add\_\allowbreak{}adjusted\_\allowbreak{}p\_\allowbreak{}value\_\allowbreak{}column()}}, \hyperref[word:table.remove-rows-with-outliers]{\code{table.\allowbreak{}remove\_\allowbreak{}rows\_\allowbreak{}with\_\allowbreak{}outliers()}}, \hyperref[word:table.compare-spreads]{\code{table.\allowbreak{}compare\_\allowbreak{}spreads()}}, \hyperref[word:table.compare-counts-to]{\code{table.\allowbreak{}compare\_\allowbreak{}counts\_\allowbreak{}to()}}, \hyperref[word:table.compare-percent-to]{\code{table.\allowbreak{}compare\_\allowbreak{}percent\_\allowbreak{}to()}}.\par}
+\par\noindent{\small\sffamily\textbf{Words in this lesson:} \hyperref[word:table.compare-averages]{\code{table.\allowbreak{}compare\_\allowbreak{}averages()}}, \hyperref[word:table.compare-each-pair]{\code{table.\allowbreak{}compare\_\allowbreak{}each\_\allowbreak{}pair()}}, \hyperref[word:table.compare-counts]{\code{table.\allowbreak{}compare\_\allowbreak{}counts()}}, \hyperref[word:table.fit-line]{\code{table.\allowbreak{}fit\_\allowbreak{}line()}}, \hyperref[word:table.fit-formula]{\code{table.\allowbreak{}fit\_\allowbreak{}formula()}}, \hyperref[word:table.add-group-column]{\code{table.\allowbreak{}add\_\allowbreak{}group\_\allowbreak{}column()}}, \hyperref[word:table.compare-shape-to]{\code{table.\allowbreak{}compare\_\allowbreak{}shape\_\allowbreak{}to()}}, \hyperref[word:table.show-rows-with-outliers]{\code{table.\allowbreak{}show\_\allowbreak{}rows\_\allowbreak{}with\_\allowbreak{}outliers()}}, \hyperref[word:table.add-adjusted-p-value-column]{\code{table.\allowbreak{}add\_\allowbreak{}adjusted\_\allowbreak{}p\_\allowbreak{}value\_\allowbreak{}column()}}, \hyperref[word:table.remove-rows-with-outliers]{\code{table.\allowbreak{}remove\_\allowbreak{}rows\_\allowbreak{}with\_\allowbreak{}outliers()}}, \hyperref[word:table.compare-spreads]{\code{table.\allowbreak{}compare\_\allowbreak{}spreads()}}, \hyperref[word:table.compare-counts-to]{\code{table.\allowbreak{}compare\_\allowbreak{}counts\_\allowbreak{}to()}}, \hyperref[word:table.compare-percent-to]{\code{table.\allowbreak{}compare\_\allowbreak{}percent\_\allowbreak{}to()}}, \hyperref[word:table.compare-matched]{\code{table.\allowbreak{}compare\_\allowbreak{}matched()}}.\par}
 
 \chapter{A whole analysis: from a question to a figure}\label{lesson:15}
 \begin{learnbox}
@@ -3042,7 +3087,7 @@ risks = table.compare_risks("died", for_each="treatment", against="usual care")
 risks.keep_rows("measure", one_of=["risk ratio", "odds ratio"])
 chart = risks.chart()
 chart.forest_plot(x="estimate", y="measure")
-chart.save("lesson21_ratios.png")
+chart.save("risk_ratios.png")
 \end{lstlisting}
 \whateachline
 \begin{lineexplain}
@@ -3056,8 +3101,8 @@ chart.save("lesson21_ratios.png")
 \end{lineexplain}
 \printedoutput{output/lesson21_example1.txt}
 \begin{center}\begin{minipage}{\linewidth}\centering
-\includegraphics[width=0.72\textwidth,height=0.36\textheight,keepaspectratio]{figures/lesson21_example1_lesson21_ratios.pdf}
-\captionof{figure}{Lesson 21, example 1: \code{lesson21\_\allowbreak{}ratios.\allowbreak{}png}.}
+\includegraphics[width=0.72\textwidth,height=0.36\textheight,keepaspectratio]{figures/lesson21_example1_risk_ratios.pdf}
+\captionof{figure}{Lesson 21, example 1: \code{risk\_\allowbreak{}ratios.\allowbreak{}png}.}
 \end{minipage}\end{center}
 \section*{Example 2}
 How good is a quick test, against the truth from a slow lab test?
@@ -3083,7 +3128,7 @@ table = sdata.table(sdata.example("clinic"))
 table.compare_to_truth("crp", truth="infected")
 chart = table.chart()
 chart.trade_off_curve(score=["crp", "procalcitonin"], truth="infected")
-chart.save("lesson21_trade_off.png")
+chart.save("trade_off.png")
 \end{lstlisting}
 \whateachline
 \begin{lineexplain}
@@ -3096,8 +3141,8 @@ chart.save("lesson21_trade_off.png")
 \end{lineexplain}
 \printedoutput{output/lesson21_example3.txt}
 \begin{center}\begin{minipage}{\linewidth}\centering
-\includegraphics[width=0.72\textwidth,height=0.36\textheight,keepaspectratio]{figures/lesson21_example3_lesson21_trade_off.pdf}
-\captionof{figure}{Lesson 21, example 3: \code{lesson21\_\allowbreak{}trade\_\allowbreak{}off.\allowbreak{}png}.}
+\includegraphics[width=0.72\textwidth,height=0.36\textheight,keepaspectratio]{figures/lesson21_example3_trade_off.pdf}
+\captionof{figure}{Lesson 21, example 3: \code{trade\_\allowbreak{}off.\allowbreak{}png}.}
 \end{minipage}\end{center}
 \section*{Example 4}
 Do a nurse and a doctor agree, and do two blood-pressure devices agree?
@@ -3108,7 +3153,7 @@ table.agreement_between("nurse_rating", "doctor_rating")
 table.limits_of_agreement("device_a", "device_b")
 chart = table.chart()
 chart.difference_dots(x="device_a", y="device_b")
-chart.save("lesson21_devices.png")
+chart.save("devices.png")
 \end{lstlisting}
 \whateachline
 \begin{lineexplain}
@@ -3122,11 +3167,12 @@ chart.save("lesson21_devices.png")
 \end{lineexplain}
 \printedoutput{output/lesson21_example4.txt}
 \begin{center}\begin{minipage}{\linewidth}\centering
-\includegraphics[width=0.72\textwidth,height=0.36\textheight,keepaspectratio]{figures/lesson21_example4_lesson21_devices.pdf}
-\captionof{figure}{Lesson 21, example 4: \code{lesson21\_\allowbreak{}devices.\allowbreak{}png}.}
+\includegraphics[width=0.72\textwidth,height=0.36\textheight,keepaspectratio]{figures/lesson21_example4_devices.pdf}
+\captionof{figure}{Lesson 21, example 4: \code{devices.\allowbreak{}png}.}
 \end{minipage}\end{center}
 \begin{goodtoknow}
 \begin{itemize}
+  \item This lesson is optional, for the life sciences (medicine, biology, ecology); no other lesson needs it.
   \item Give absolute risks first. A risk ratio of 0.5 can mean 2 in 100 instead of 4, or 20 instead of 40: the same ratio, a very different number of people helped.
   \item Odds are not risks. When the outcome is common (over 10 \%), the odds ratio lies further from 1 than the risk ratio, so say which one you report.
   \item Sensitivity and specificity belong to the test; the share of positives that are real also depends on how common the condition is. Counts of 1000 people make this easy to see.

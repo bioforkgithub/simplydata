@@ -64,7 +64,7 @@ def test_the_python_track_follows_its_outline():
     assert {k for n in (6, 8, 9) for k in lessons[n]} == {9, 10, 11, 12, 13}
     assert {k for n in (10, 11, 12, 13) for k in lessons[n]} == {14, 15}
     assert {k for n in (15, 16, 17) for k in lessons[n]} == {16, 17, 18}
-    assert {k for n in (18, 19, 20) for k in lessons[n]} == {19, 20, 21}
+    assert {k for n in (18, 19, 20) for k in lessons[n]} == {19, 20, learn.lesson_number(learn.RISKS_LESSON)}
     assert [learn_days.plan("python", n)["kind"] for n in range(22, 28)] == ["project"] * 6
     assert learn_days.plan("python", 28)["kind"] == "review"
 
@@ -111,6 +111,21 @@ def test_warm_ups_ask_about_earlier_days(track, number):
         sources = [s for _, _, s in warm]
         assert number - 1 in sources or not learn_days._has_recall(track, number - 1)
         assert min(sources) <= number - 7, "spaced: something from about a week ago"
+
+
+@pytest.mark.parametrize("track", TRACKS)
+def test_core_words_come_back_after_3_and_7_days_and_in_the_final_test(track):
+    final = next(n for n in DAYS if learn_days.plan(track, n)["kind"] == "final")
+    final_questions = {q for q, _, _ in learn_days.warm_up(track, final)}
+    taught = 0
+    for n in DAYS:
+        for q, _ in learn_days._spaced_of(track, n):
+            taught += 1
+            for later in (n + 3, n + 7):
+                if later <= len(DAYS):
+                    assert q in {w for w, _, _ in learn_days.warm_up(track, later)}, (track, n, later, q)
+            assert q in final_questions, (track, n, q)
+    assert taught >= 4  # interval=95, shuffling, compare_matched, compare_risks
 
 
 @pytest.mark.parametrize("track", TRACKS)

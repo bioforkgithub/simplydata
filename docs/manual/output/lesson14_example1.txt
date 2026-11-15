@@ -1,10 +1,7 @@
-The average "marks" is 71.8 in A, 64.3 in B and 58.6 in C. Omega-squared = 0.0967 (95 % CI 0 to 0.255): the groups explain about 10 % of the differences in "marks".
-If the groups were truly alike, differences this big or bigger between them would turn up in about 3 of 100 studies like this one (p = 0.028).
-Test: Welch's one-way ANOVA (F = 3.99, df = 2 and 34.0), the usual test for three or more averages; it does not assume the groups have the same spread. To see which groups differ: table.compare_each_pair("marks", for_each="class").
-Each pair of "class" groups compared on "marks" with Welch's t-test; the p-values are adjusted for 3 pairs with Holm's method, so the chance of any false alarm stays at 5 %.
-  A vs B: the average of A is 7.56 higher; Holm-adjusted p = 0.245.
-  A vs C: the average of A is 13.2 higher; Holm-adjusted p = 0.023.
-  B vs C: the average of B is 5.67 higher; Holm-adjusted p = 0.250.
-The median "marks" is 62.0 in English, 64.5 in Maths and 70.0 in Science. Epsilon-squared = 0.0348 (95 % bootstrap CI, R seed 1, 0.00208 to 0.257): the groups explain about 3 % of the differences in the ranks.
-If the groups were truly alike, differences this big or bigger between them would turn up in about 40 of 100 studies like this one (p = 0.398). This does not show that the groups are alike.
-Test: Kruskal-Wallis test (H = 1.84, df = 2), which compares ranks rather than averages, so it does not need bell-shaped values. To see which groups differ: table.compare_each_pair("marks", for_each="subject", based_on="ranks").
+Note: 19 empty cells in "sleep" were skipped.
+The average of "sleep" for each "passed", with the values that fit the data (95 % confidence interval): no: 7.72 (7.53 to 7.9); yes: 8.2 (7.98 to 8.43).
+Interval: t interval, as R t.test().
+Note: 19 rows with an empty cell in "sleep" or "passed" were skipped.
+The average "sleep" is 7.72 in no and 8.20 in yes: no is 0.485 lower (95 % CI of the difference -0.774 to -0.196; Hedges' g = -0.528 (95 % CI -0.842 to -0.213), a difference of 0.528 standard deviations).
+If there were truly no difference, a difference this big or bigger would turn up in about 1 of 1000 studies like this one (p = 0.001).
+Test: Welch's t-test (t = -3.32, df = 145.821), the usual test for two averages; it does not assume both groups have the same spread.
