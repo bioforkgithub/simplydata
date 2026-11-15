@@ -147,10 +147,11 @@ UNDERNEATH = {
                         "confidence interval)",
     "table.interval_of": "SciPy (stats.bootstrap, BCa, percentile or basic)",
     "table.add_z_score_column": "SciPy (stats.zscore with ddof=1, as R scale())",
-    "table.average_of": "narwhals (group means); SciPy (stats.ttest_1samp confidence_interval for interval=)",
+    "table.average_of": "narwhals (group means); SciPy (stats.ttest_1samp confidence_interval for interval=); "
+                        "statsmodels (DescrStatsW for weights=)",
     "table.median_of": "narwhals (group medians); SciPy (stats.quantile_test confidence_interval for interval=)",
     "table.standard_deviation_of": "narwhals (group standard deviations); R DescTools::VarCI for interval= "
-                                   "(simplydata[r])",
+                                   "(simplydata[r]); statsmodels DescrStatsW and NumPy cov(aweights=) for weights=",
     "table.percent_of": "narwhals; SciPy (stats.binomtest, the Clopper-Pearson exact interval)",
     "table.compare_spreads": "SciPy (stats.levene with center=\"median\", stats.bartlett, stats.fligner)",
     "table.compare_counts_to": "SciPy (stats.chisquare)",
@@ -246,7 +247,8 @@ UNDERNEATH = {
     # distributions
     "sdata.distribution": "SciPy (scipy.stats frozen distributions)",
     "table.fit_distribution": "SciPy (scipy.stats .fit and optimize, maximum likelihood; closed forms where they "
-                              "exist) and statsmodels (numdiff.approx_hess3, for the standard errors)",
+                              "exist) and statsmodels (numdiff.approx_hess3, for the standard errors); for \"kernel density\" SciPy "
+                              "gaussian_kde with statsmodels bw_silverman",
     "table.compare_distributions": "SciPy (scipy.stats, maximum likelihood; Anderson-Darling, Kolmogorov-Smirnov and "
                                    "Cramer-von Mises statistics)",
     "nums.fit_distribution": "SciPy (scipy.stats and optimize, as table.fit_distribution)",

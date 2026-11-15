@@ -65,9 +65,14 @@ class DistributionTableWords:
         weibull, lognormal, exponential, beta) keep it at 0, as R. fixed={"shape": 2} holds a
         parameter. With for_each= it gives back a result table, one row per group.
         Empty cells are skipped.
+        "kernel density" gives a smooth curve that follows the values, with no family chosen:
+        SciPy gaussian_kde with Silverman's bandwidth (statsmodels bw_silverman), as R density(x).
         """
         step = "fit_distribution"
         example = 'with sdata.example("trial"): table.fit_distribution("days", "gamma")'
+        if for_each is not None and _d._is_kernel(distribution):
+            raise SimplydataError('A kernel density is made for one group at a time: keep its rows first, then '
+                                  'table.fit_distribution("marks", "kernel density").')
         groups, parts = self._distribution_groups(step, column, for_each, example)
         backend = self._frame.implementation
         if not groups:

@@ -121,6 +121,14 @@ nothing is computed anew.
   `percentile`, as R `quantile(type =)`).
 - `table.add_z_score_column("marks_z", from_column="marks", for_each="subject")`: SciPy
   `zscore(ddof=1)`, as R `scale()`.
+- `weights="people"` on `average_of` (statsmodels `DescrStatsW`, as R `weighted.mean`) and
+  `standard_deviation_of`: frequency weights by default (as R `Hmisc::wtd.var`) or
+  `weight_kind="analytic"` (NumPy `cov(aweights=)`, as R `Hmisc::wtd.var(normwt = TRUE)`).
+- `table.fit_distribution("marks", "kernel density")`: a distribution that follows the values
+  (SciPy `gaussian_kde` with Silverman's bandwidth from statsmodels `bw_silverman`, the same curve
+  as R `density(x)`), with chance, percentile, random_numbers and the rest. R's `bw.nrd0` divides
+  the IQR by 1.34 and statsmodels by 1.349, so the bandwidths differ slightly when the IQR is the
+  smaller spread; this is printed.
 
 ### Equivalence and non-inferiority
 

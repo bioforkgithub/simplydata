@@ -738,6 +738,69 @@ class SummaryWords:
         _period_note(periods)
         return result
 
+    def _weighted(self, step, column, weights, for_each, every, across, interval, kind="frequency"):
+        """average_of / standard_deviation_of with weights=: statsmodels DescrStatsW (frequency weights) or
+        NumPy cov(aweights=) (analytic weights), as R weighted.mean() and Hmisc::wtd.var()."""
+        import numpy as np
+        from statsmodels.stats.weightstats import DescrStatsW
+
+        example = f'table.{step}("marks", for_each="class", weights="people")'
+        if interval is not None:
+            raise SimplydataError("weights= and interval= do not go together here yet; leave out one of them.")
+        if every is not None or across is not None or not isinstance(column, str):
+            raise SimplydataError(f"weights= works with one column and for_each=; leave out every= and across=.\n"
+                                  f"For example:  {example}")
+        if not isinstance(weights, str):
+            raise SimplydataError(f"weights= is the name of a column of weights, in quotes.\nFor example:  {example}")
+        if weights == column:
+            raise SimplydataError(f'weights= needs a column other than "{column}".')
+        if step == "standard_deviation_of":
+            self._check_choice(step, "weight_kind", kind, ("frequency", "analytic"))
+        groups = self._group_columns(step, for_each, [column, weights]) if for_each is not None else []
+        frame = self._number_frame(step, [column, weights])
+        both = frame.filter(~nw.col(column).is_null() & ~nw.col(weights).is_null())
+        left_out = len(frame) - len(both)
+        if left_out:
+            print(f'Note: {left_out} row{"" if left_out == 1 else "s"} with an empty cell in "{column}" or '
+                  f'"{weights}" {"was" if left_out == 1 else "were"} skipped.')
+        values = self._group_arrays(both, groups, column)
+        weight_values = self._group_arrays(both, groups, weights)
+        found = {}
+        for key, x in values.items():
+            w = weight_values[key]
+            if np.any(w < 0):
+                raise SimplydataError(f'weights= cannot be below 0, but "{weights}" has {int(np.sum(w < 0))} '
+                                      "negative values.")
+            if len(x) == 0 or w.sum() == 0:
+                found[key] = math.nan
+            elif step == "average_of":
+                found[key] = float(DescrStatsW(x, weights=w).mean)
+            elif kind == "frequency":
+                found[key] = float(DescrStatsW(x, weights=w, ddof=1).std) if w.sum() > 1 else math.nan
+            else:
+                found[key] = float(np.sqrt(np.cov(x, aweights=w, ddof=1))) if np.sum(w > 0) > 1 else math.nan
+        if step == "average_of":
+            said, how = "weighted average", "statsmodels DescrStatsW, as R weighted.mean(x, w)"
+        elif kind == "frequency":
+            said = "weighted standard deviation"
+            how = ("frequency weights: each row counts as often as its weight; statsmodels DescrStatsW(ddof=1), as "
+                   "R sqrt(Hmisc::wtd.var(x, w))")
+        else:
+            said = "weighted standard deviation"
+            how = ("analytic weights: how precise each row is; NumPy cov(aweights=), as R sqrt(Hmisc::wtd.var(x, "
+                   "w, normwt = TRUE))")
+        name = f"{said} of {column}"
+        if not groups:
+            value = found.get((), math.nan)
+            print(f'The {said.replace("weighted ", "")} of "{column}", weighted by "{weights}", is {_say_number(value)} ({how}).')
+            return value
+        data = {g: [key[i] for key in found] for i, g in enumerate(groups)}
+        data[name] = list(found.values())
+        table = self._new_table(nw.from_dict(data, backend=self._frame.implementation))
+        shown = _say_groups(table._frame, groups, name)
+        print(f'The {said.replace("weighted ", "")} of "{column}", weighted by "{weights}", for each {_each(groups)}: {shown} ({how}).')
+        return table
+
     def _summary_interval(self, step, column, for_each, every, across, interval, share=None):
         """average_of / median_of / percentile_of / standard_deviation_of with interval=: one row per group with
         the value, its interval and the count. Each interval comes from a package (SciPy, or R DescTools)."""
@@ -887,7 +950,7 @@ class SummaryWords:
 
     # ------------------------------------------------------------------ number words
     @friendly
-    def average_of(self, column, for_each=None, every=None, across=None, interval=None):
+    def average_of(self, column, for_each=None, every=None, across=None, interval=None, weights=None):
         """The average (mean) of a column; empty cells are skipped.
 
         table.average_of("marks", for_each="class")   (with sdata.example("marks"))
@@ -899,7 +962,11 @@ class SummaryWords:
         table.average_of("population", for_each="year", every="year")   (with sdata.example("growth"))
         interval=95 adds the 95 % confidence interval of each average (the t interval, as R
         t.test()) and gives back a table with the average, the interval and the count.
+        weights="people" gives the weighted average: each row counts as much as its number in the
+        column of weights (statsmodels DescrStatsW, as R weighted.mean()).
         """
+        if weights is not None:
+            return self._weighted("average_of", column, weights, for_each, every, across, interval)
         if interval is not None:
             return self._summary_interval("average_of", column, for_each, every, across, interval)
         return self._summary("average_of", column, for_each, every, across)
@@ -947,7 +1014,8 @@ class SummaryWords:
         return self._summary("biggest_of", column, for_each, every, across)
 
     @friendly
-    def standard_deviation_of(self, column, for_each=None, every=None, across=None, interval=None):
+    def standard_deviation_of(self, column, for_each=None, every=None, across=None, interval=None, weights=None,
+                              weight_kind="frequency"):
         """How spread out the numbers are: the sample standard deviation (divide by n - 1).
 
         It is the same as pandas .std() and R sd(). Empty cells are skipped.
@@ -956,7 +1024,19 @@ class SummaryWords:
         interval=95 adds the 95 % confidence interval of each standard deviation (the chi-square
         interval of the variance from R DescTools::VarCI(), square-rooted; needs simplydata[r],
         as Python has no function for it). It assumes bell-shaped values.
+        weights="people" gives the weighted standard deviation. weight_kind="frequency" (the
+        default) reads each weight as how many times the row counts (statsmodels DescrStatsW,
+        divide by the total weight minus 1, as R sqrt(Hmisc::wtd.var(x, w))); "analytic" reads
+        it as how precise the row is, such as the number of values behind an average (NumPy
+        cov(aweights=), as R sqrt(Hmisc::wtd.var(x, w, normwt = TRUE))).
         """
+        if weights is not None:
+            return self._weighted("standard_deviation_of", column, weights, for_each, every, across, interval,
+                                  weight_kind)
+        if weight_kind != "frequency":
+            raise SimplydataError("weight_kind= says how to read weights=, so it goes with weights=.\n"
+                                  'For example:  table.standard_deviation_of("marks", weights="people", '
+                                  'weight_kind="analytic")')
         if interval is not None:
             return self._summary_interval("standard_deviation_of", column, for_each, every, across, interval)
         return self._summary("standard_deviation_of", column, for_each, every, across)

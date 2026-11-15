@@ -3,7 +3,7 @@
 % code and the page numbers of the compiled manual. Do not edit it by hand: run
 %     python docs/make_manual.py --no-run
 % ---------------------------------------------------------------------------------------------
-% Page numbers from simplydata_manual.tex 97aef5efd7958650
+% Page numbers from simplydata_manual.tex 855ba56d267da2ee
 
 \documentclass[10pt,a4paper]{article}
 % no dates or random IDs in the PDF, so it only changes when the dictionary changes
@@ -94,7 +94,7 @@
 \vspace{0.4em}
 {\large\sffamily Every word, A to Z, with the page of the manual that explains it\par}
 \vspace{0.3em}
-{\sffamily\small\color{inkgrey} Version 0.1.0 \textbullet{} 306 words \textbullet{} 496 names from other tools
+{\sffamily\small\color{inkgrey} Version 0.1.0 \textbullet{} 306 words \textbullet{} 502 names from other tools
 \textbullet{} made from the code by \code{docs/make\_dictionary.py}\par}
 \end{titleblock}
 
@@ -257,7 +257,7 @@ A family is learned once and used again and again: the start or the end of a wor
 \eg{\code{table.\allowbreak{}add\_\allowbreak{}predicted\_\allowbreak{}column(\textquotedbl{}marks\textquotedbl{},\allowbreak{} using=[\textquotedbl{}hours\textquotedbl{},\allowbreak{} \textquotedbl{}breakfast\textquotedbl{}])} \practice{school}}
 \field{Options}{\code{column=}, \code{using=}, \code{outcome=}, \code{name=}, \code{grouped\_\allowbreak{}by=}, \code{start=}, \code{between=}, \code{weights=} and 1 more}
 \field{See also}{\hyperref[dict:explain]{\code{explain}}}
-\where{Manual \manualpage{word:table.add-predicted-column}{226}{section*.253}; lesson 16 (\manualpage{lesson:16}{88}{chapter.II.16})}
+\where{Manual \manualpage{word:table.add-predicted-column}{227}{section*.253}; lesson 16 (\manualpage{lesson:16}{88}{chapter.II.16})}
 \headword{add\_previous\_value\_column}{dict:add-previous-value-column}
 \sense{table}{\code{table.\allowbreak{}add\_\allowbreak{}previous\_\allowbreak{}value\_\allowbreak{}column()}}
 \means{Add a column with the value from the row before (or \code{rows\_\allowbreak{}back=} rows before).}
@@ -273,7 +273,7 @@ A family is learned once and used again and again: the start or the end of a wor
 \eg{\code{table.\allowbreak{}add\_\allowbreak{}principal\_\allowbreak{}components(how\_\allowbreak{}many=2)} \practice{meadow}}
 \field{Options}{\code{columns=}, \code{how\_\allowbreak{}many=}, \code{same\_\allowbreak{}scale=}}
 \field{See also}{\hyperref[dict:add-clusters]{\code{add\_\allowbreak{}clusters}}, \hyperref[dict:add-nmds]{\code{add\_\allowbreak{}nmds}}, \hyperref[dict:principal-components-of]{\code{principal\_\allowbreak{}components\_\allowbreak{}of}}, \hyperref[dict:distances-between-rows]{\code{distances\_\allowbreak{}between\_\allowbreak{}rows}}, \hyperref[dict:compare-profiles]{\code{compare\_\allowbreak{}profiles}}}
-\where{Manual \manualpage{word:table.add-principal-components}{227}{section*.255}; lesson 17 (\manualpage{lesson:17}{93}{chapter.II.17})}
+\where{Manual \manualpage{word:table.add-principal-components}{228}{section*.255}; lesson 17 (\manualpage{lesson:17}{93}{chapter.II.17})}
 \headword{add\_rank\_column}{dict:add-rank-column}
 \sense{table}{\code{table.\allowbreak{}add\_\allowbreak{}rank\_\allowbreak{}column()}}
 \means{Add a column with each row's place, where 1 is the best.}
@@ -384,13 +384,13 @@ A family is learned once and used again and again: the start or the end of a wor
 \eg{\code{dist.\allowbreak{}average()}}
 \field{Options}{none}
 \field{See also}{\hyperref[dict:middle-range]{\code{middle\_\allowbreak{}range}}, \hyperref[dict:median]{\code{median}}, \hyperref[dict:cut-off]{\code{cut\_\allowbreak{}off}}, \hyperref[dict:standard-deviation]{\code{standard\_\allowbreak{}deviation}}, \hyperref[dict:percentile]{\code{percentile}}}
-\where{Manual \manualpage{word:dist.average}{223}{section*.242}}
+\where{Manual \manualpage{word:dist.average}{224}{section*.242}}
 \headword{average\_of}{dict:average-of}
 \sense{table}{\code{table.\allowbreak{}average\_\allowbreak{}of()}}
 \means{The average (mean) of a column; empty cells are skipped.}
 \eg{\code{table.\allowbreak{}average\_\allowbreak{}of(\textquotedbl{}marks\textquotedbl{},\allowbreak{} for\_\allowbreak{}each=\textquotedbl{}class\textquotedbl{})} \practice{marks}}
-\field{Options}{\code{column}, \code{for\_\allowbreak{}each=}, \code{every=}, \code{across=}, \code{interval=}}
-\field{Other tools}{\code{agg}, \code{aggregate}, \code{group\_\allowbreak{}by}, \code{groupby}, \code{mean}}
+\field{Options}{\code{column}, \code{for\_\allowbreak{}each=}, \code{every=}, \code{across=}, \code{interval=}, \code{weights=}}
+\field{Other tools}{\code{agg}, \code{aggregate}, \code{DescrStatsW}, \code{group\_\allowbreak{}by}, \code{groupby}, \code{mean}, \code{weighted\_\allowbreak{}mean}, \code{wtd\_\allowbreak{}mean}, \code{wtd\_\allowbreak{}var}}
 \field{See also}{\hyperref[dict:count-each]{\code{count\_\allowbreak{}each}}, \hyperref[dict:median-of]{\code{median\_\allowbreak{}of}}, \hyperref[dict:count-rows]{\code{count\_\allowbreak{}rows}}, \hyperref[dict:total-of]{\code{total\_\allowbreak{}of}}, \hyperref[dict:smallest-of]{\code{smallest\_\allowbreak{}of}}}
 \where{Manual \manualpage{word:table.average-of}{187}{section*.175}; lesson 12 (\manualpage{lesson:12}{64}{chapter.II.12})}
 \letterhead{B}
@@ -460,7 +460,7 @@ A family is learned once and used again and again: the start or the end of a wor
 \field{Options}{\code{value=}, \code{above=}, \code{below=}, \code{at\_\allowbreak{}most=}, \code{at\_\allowbreak{}least=}, \code{between=}}
 \field{Other tools}{\code{cdf}, \code{pbinom}, \code{pnorm}, \code{sf}}
 \field{See also}{\hyperref[dict:fit-distribution]{\code{fit\_\allowbreak{}distribution}}, \hyperref[dict:density-at]{\code{density\_\allowbreak{}at}}, \hyperref[dict:compare-distributions]{\code{compare\_\allowbreak{}distributions}}, \hyperref[dict:percentile]{\code{percentile}}, \hyperref[dict:cut-off]{\code{cut\_\allowbreak{}off}}}
-\where{Manual \manualpage{word:dist.chance}{221}{section*.237}; lesson 20 (\manualpage{lesson:20}{107}{chapter.II.20})}
+\where{Manual \manualpage{word:dist.chance}{222}{section*.237}; lesson 20 (\manualpage{lesson:20}{107}{chapter.II.20})}
 \headword{chance\_to\_find}{dict:chance-to-find}
 \sense{sdata}{\code{sdata.\allowbreak{}chance\_\allowbreak{}to\_\allowbreak{}find()}}
 \means{What chance does a study have to find a real difference of a given size (its power)?}
@@ -502,7 +502,7 @@ A family is learned once and used again and again: the start or the end of a wor
 \eg{\code{dist.\allowbreak{}chart()}}
 \field{Options}{\code{show=}, \code{between=}}
 \field{See also}{\hyperref[dict:random-numbers]{\code{random\_\allowbreak{}numbers}}, \hyperref[dict:table]{\code{table}}, \hyperref[dict:summary]{\code{summary}}, \hyperref[dict:parameters]{\code{parameters}}, \hyperref[dict:variance]{\code{variance}}}
-\where{Manual \manualpage{word:dist.chart}{225}{section*.248}; lesson 20 (\manualpage{lesson:20}{107}{chapter.II.20})}
+\where{Manual \manualpage{word:dist.chart}{226}{section*.248}; lesson 20 (\manualpage{lesson:20}{107}{chapter.II.20})}
 \headword{check\_random\_order}{dict:check-random-order}
 \sense{table}{\code{table.\allowbreak{}check\_\allowbreak{}random\_\allowbreak{}order()}}
 \means{Do the values come in a random order, or in clumps or waves?}
@@ -634,7 +634,7 @@ A family is learned once and used again and again: the start or the end of a wor
 \eg{\code{table.\allowbreak{}compare\_\allowbreak{}distributions(\textquotedbl{}sales\textquotedbl{})} \practice{shop}}
 \field{Options}{\code{column=}, \code{distributions=}, \code{for\_\allowbreak{}each=}}
 \field{See also}{\hyperref[dict:fit-distribution]{\code{fit\_\allowbreak{}distribution}}, \hyperref[dict:distribution]{\code{distribution}}, \hyperref[dict:chance]{\code{chance}}, \hyperref[dict:density-at]{\code{density\_\allowbreak{}at}}, \hyperref[dict:percentile]{\code{percentile}}}
-\where{Manual \manualpage{word:table.compare-distributions}{220}{section*.235}; lesson 20 (\manualpage{lesson:20}{107}{chapter.II.20})}
+\where{Manual \manualpage{word:table.compare-distributions}{221}{section*.235}; lesson 20 (\manualpage{lesson:20}{107}{chapter.II.20})}
 \headword{compare\_each\_pair}{dict:compare-each-pair}
 \sense{table}{\code{table.\allowbreak{}compare\_\allowbreak{}each\_\allowbreak{}pair()}}
 \means{Which pairs of groups differ? Every pair is compared, with Holm's correction.}
@@ -850,7 +850,7 @@ A family is learned once and used again and again: the start or the end of a wor
 \eg{\code{dist.\allowbreak{}cut\_\allowbreak{}off(above=0.\allowbreak{}025)}}
 \field{Options}{\code{above=}, \code{below=}}
 \field{See also}{\hyperref[dict:percentile]{\code{percentile}}, \hyperref[dict:middle-range]{\code{middle\_\allowbreak{}range}}, \hyperref[dict:density-at]{\code{density\_\allowbreak{}at}}, \hyperref[dict:average]{\code{average}}, \hyperref[dict:chance]{\code{chance}}}
-\where{Manual \manualpage{word:dist.cut-off}{222}{section*.240}; lesson 20 (\manualpage{lesson:20}{107}{chapter.II.20})}
+\where{Manual \manualpage{word:dist.cut-off}{223}{section*.240}; lesson 20 (\manualpage{lesson:20}{107}{chapter.II.20})}
 \letterhead{D}
 \headword{day}{dict:day}
 \sense{sdata}{\code{sdata.\allowbreak{}day()}}
@@ -898,7 +898,7 @@ A family is learned once and used again and again: the start or the end of a wor
 \field{Options}{\code{columns=}, \code{measure=}, \code{names=}}
 \field{Other tools}{\code{pdist}, \code{vegdist}}
 \field{See also}{\hyperref[dict:add-clusters]{\code{add\_\allowbreak{}clusters}}, \hyperref[dict:add-nmds]{\code{add\_\allowbreak{}nmds}}, \hyperref[dict:principal-components-of]{\code{principal\_\allowbreak{}components\_\allowbreak{}of}}, \hyperref[dict:compare-profiles]{\code{compare\_\allowbreak{}profiles}}, \hyperref[dict:add-principal-components]{\code{add\_\allowbreak{}principal\_\allowbreak{}components}}}
-\where{Manual \manualpage{word:table.distances-between-rows}{229}{section*.258}; lesson 17 (\manualpage{lesson:17}{93}{chapter.II.17})}
+\where{Manual \manualpage{word:table.distances-between-rows}{230}{section*.258}; lesson 17 (\manualpage{lesson:17}{93}{chapter.II.17})}
 \headword{distribution}{dict:distribution}
 \sense{sdata}{\code{sdata.\allowbreak{}distribution()}}
 \means{Make a distribution to ask chances, percentiles and random numbers of.}
@@ -973,7 +973,7 @@ A family is learned once and used again and again: the start or the end of a wor
 \field{Options}{\code{column=}, \code{using=}, \code{outcome=}, \code{grouped\_\allowbreak{}by=}, \code{empty\_\allowbreak{}cells=}, \code{seed=}}
 \field{Other tools}{\code{glm}, \code{linregress}, \code{lm}, \code{lmer}, \code{logit}, \code{ols}}
 \field{See also}{\hyperref[dict:add-predicted-column]{\code{add\_\allowbreak{}predicted\_\allowbreak{}column}}}
-\where{Manual \manualpage{word:table.explain}{226}{section*.252}; lesson 16 (\manualpage{lesson:16}{88}{chapter.II.16})}
+\where{Manual \manualpage{word:table.explain}{227}{section*.252}; lesson 16 (\manualpage{lesson:16}{88}{chapter.II.16})}
 \headword{explain\_survival}{dict:explain-survival}
 \sense{table}{\code{table.\allowbreak{}explain\_\allowbreak{}survival()}}
 \means{Which columns go with a higher or lower risk of the event? (Cox model, hazard ratios)}
@@ -1034,7 +1034,7 @@ A family is learned once and used again and again: the start or the end of a wor
 \means{Fit a distribution to a column by maximum likelihood; gives back the fitted distribution.}
 \eg{\code{table.\allowbreak{}fit\_\allowbreak{}distribution(\textquotedbl{}sales\textquotedbl{},\allowbreak{} \textquotedbl{}lognormal\textquotedbl{})} \practice{shop}}
 \field{Options}{\code{column=}, \code{distribution=}, \code{for\_\allowbreak{}each=}, \code{fixed=}}
-\field{Other tools}{\code{fit}, \code{fit\_\allowbreak{}distribution}, \code{fitdist}, \code{fitdistr}}
+\field{Other tools}{\code{fit}, \code{fit\_\allowbreak{}distribution}, \code{fitdist}, \code{fitdistr}, \code{gaussian\_\allowbreak{}kde}, \code{KDEUnivariate}}
 \field{See also}{\hyperref[dict:distribution]{\code{distribution}}, \hyperref[dict:compare-distributions]{\code{compare\_\allowbreak{}distributions}}, \hyperref[dict:chance]{\code{chance}}, \hyperref[dict:density-at]{\code{density\_\allowbreak{}at}}, \hyperref[dict:percentile]{\code{percentile}}}
 \where{Manual \manualpage{word:table.fit-distribution}{220}{section*.234}; lesson 20 (\manualpage{lesson:20}{107}{chapter.II.20})}
 \sense{chart}{\code{chart.\allowbreak{}fit\_\allowbreak{}distribution()}}
@@ -1170,7 +1170,7 @@ A family is learned once and used again and again: the start or the end of a wor
 \field{Options}{\code{test=}, \code{effect\_\allowbreak{}size=}, \code{difference=}, \code{spread=}, \code{power=}, \code{significance=}, \code{groups=}, \code{sides=} and 4 more}
 \field{Other tools}{\code{power\_\allowbreak{}t\_\allowbreak{}test}, \code{pwr}, \code{solve\_\allowbreak{}power}}
 \field{See also}{\hyperref[dict:chance-to-find]{\code{chance\_\allowbreak{}to\_\allowbreak{}find}}}
-\where{Manual \manualpage{word:sdata.how-many-needed}{233}{section*.267}; lesson 18 (\manualpage{lesson:18}{98}{chapter.II.18})}
+\where{Manual \manualpage{word:sdata.how-many-needed}{234}{section*.267}; lesson 18 (\manualpage{lesson:18}{98}{chapter.II.18})}
 \letterhead{I}
 \headword{interval\_of}{dict:interval-of}
 \sense{table}{\code{table.\allowbreak{}interval\_\allowbreak{}of()}}
@@ -1501,7 +1501,7 @@ A family is learned once and used again and again: the start or the end of a wor
 \eg{\code{dist.\allowbreak{}median()}}
 \field{Options}{none}
 \field{See also}{\hyperref[dict:average]{\code{average}}, \hyperref[dict:standard-deviation]{\code{standard\_\allowbreak{}deviation}}, \hyperref[dict:middle-range]{\code{middle\_\allowbreak{}range}}, \hyperref[dict:variance]{\code{variance}}, \hyperref[dict:cut-off]{\code{cut\_\allowbreak{}off}}}
-\where{Manual \manualpage{word:dist.median}{223}{section*.243}}
+\where{Manual \manualpage{word:dist.median}{224}{section*.243}}
 \headword{median\_of}{dict:median-of}
 \sense{table}{\code{table.\allowbreak{}median\_\allowbreak{}of()}}
 \means{The middle number of a column once it is sorted; empty cells are skipped.}
@@ -1647,7 +1647,7 @@ A family is learned once and used again and again: the start or the end of a wor
 \eg{\code{dist.\allowbreak{}parameters()}}
 \field{Options}{none}
 \field{See also}{\hyperref[dict:table]{\code{table}}, \hyperref[dict:chart]{\code{chart}}, \hyperref[dict:random-numbers]{\code{random\_\allowbreak{}numbers}}, \hyperref[dict:summary]{\code{summary}}, \hyperref[dict:variance]{\code{variance}}}
-\where{Manual \manualpage{word:dist.parameters}{225}{section*.250}}
+\where{Manual \manualpage{word:dist.parameters}{226}{section*.250}}
 \headword{percent\_of}{dict:percent-of}
 \sense{table}{\code{table.\allowbreak{}percent\_\allowbreak{}of()}}
 \means{What percent of the rows meet a condition, or each group's share.}
@@ -1669,7 +1669,7 @@ A family is learned once and used again and again: the start or the end of a wor
 \field{Options}{\code{percent=}}
 \field{Other tools}{\code{isf}, \code{percentile}, \code{ppf}, \code{qnorm}, \code{quantile}}
 \field{See also}{\hyperref[dict:density-at]{\code{density\_\allowbreak{}at}}, \hyperref[dict:cut-off]{\code{cut\_\allowbreak{}off}}, \hyperref[dict:chance]{\code{chance}}, \hyperref[dict:middle-range]{\code{middle\_\allowbreak{}range}}, \hyperref[dict:fit-distribution]{\code{fit\_\allowbreak{}distribution}}}
-\where{Manual \manualpage{word:dist.percentile}{222}{section*.239}; lesson 20 (\manualpage{lesson:20}{107}{chapter.II.20})}
+\where{Manual \manualpage{word:dist.percentile}{223}{section*.239}; lesson 20 (\manualpage{lesson:20}{107}{chapter.II.20})}
 \headword{percentile\_of}{dict:percentile-of}
 \sense{table}{\code{table.\allowbreak{}percentile\_\allowbreak{}of()}}
 \means{The value below which a given percent of the numbers lie; empty cells are skipped.}
@@ -1706,7 +1706,7 @@ A family is learned once and used again and again: the start or the end of a wor
 \field{Options}{\code{columns=}, \code{same\_\allowbreak{}scale=}}
 \field{Other tools}{\code{pca}, \code{prcomp}}
 \field{See also}{\hyperref[dict:add-principal-components]{\code{add\_\allowbreak{}principal\_\allowbreak{}components}}, \hyperref[dict:add-clusters]{\code{add\_\allowbreak{}clusters}}, \hyperref[dict:distances-between-rows]{\code{distances\_\allowbreak{}between\_\allowbreak{}rows}}, \hyperref[dict:add-nmds]{\code{add\_\allowbreak{}nmds}}, \hyperref[dict:compare-profiles]{\code{compare\_\allowbreak{}profiles}}}
-\where{Manual \manualpage{word:table.principal-components-of}{228}{section*.256}; lesson 17 (\manualpage{lesson:17}{93}{chapter.II.17})}
+\where{Manual \manualpage{word:table.principal-components-of}{229}{section*.256}; lesson 17 (\manualpage{lesson:17}{93}{chapter.II.17})}
 \letterhead{Q}
 \headword{qq\_dots}{dict:qq-dots}
 \sense{chart}{\code{chart.\allowbreak{}qq\_\allowbreak{}dots()}}
@@ -1731,7 +1731,7 @@ A family is learned once and used again and again: the start or the end of a wor
 \field{Options}{\code{how\_\allowbreak{}many=}, \code{seed=}, \code{rows=}, \code{columns=}}
 \field{Other tools}{\code{rand}, \code{randn}, \code{random}, \code{rnorm}, \code{runif}, \code{rvs}}
 \field{See also}{\hyperref[dict:summary]{\code{summary}}, \hyperref[dict:chart]{\code{chart}}, \hyperref[dict:variance]{\code{variance}}, \hyperref[dict:table]{\code{table}}, \hyperref[dict:standard-deviation]{\code{standard\_\allowbreak{}deviation}}}
-\where{Manual \manualpage{word:dist.random-numbers}{224}{section*.247}}
+\where{Manual \manualpage{word:dist.random-numbers}{225}{section*.247}}
 \headword{range\_x}{dict:range-x}
 \sense{chart}{\code{chart.\allowbreak{}range\_\allowbreak{}x()}}
 \means{From where to where the x-axis goes.}
@@ -2207,7 +2207,7 @@ A family is learned once and used again and again: the start or the end of a wor
 \sense{table}{\code{table.\allowbreak{}standard\_\allowbreak{}deviation\_\allowbreak{}of()}}
 \means{How spread out the numbers are: the sample standard deviation (divide by n - 1).}
 \eg{\code{table.\allowbreak{}standard\_\allowbreak{}deviation\_\allowbreak{}of(\textquotedbl{}marks\textquotedbl{},\allowbreak{} for\_\allowbreak{}each=\textquotedbl{}class\textquotedbl{})} \practice{marks}}
-\field{Options}{\code{column}, \code{for\_\allowbreak{}each=}, \code{every=}, \code{across=}, \code{interval=}}
+\field{Options}{\code{column}, \code{for\_\allowbreak{}each=}, \code{every=}, \code{across=}, \code{interval=}, \code{weights=}, \code{weight\_\allowbreak{}kind=}}
 \field{Other tools}{\code{sd}, \code{std}}
 \field{See also}{\hyperref[dict:biggest-of]{\code{biggest\_\allowbreak{}of}}, \hyperref[dict:summary-of]{\code{summary\_\allowbreak{}of}}, \hyperref[dict:smallest-of]{\code{smallest\_\allowbreak{}of}}, \hyperref[dict:percent-of]{\code{percent\_\allowbreak{}of}}, \hyperref[dict:total-of]{\code{total\_\allowbreak{}of}}}
 \where{Manual \manualpage{word:table.standard-deviation-of}{190}{section*.180}}
@@ -2265,7 +2265,7 @@ A family is learned once and used again and again: the start or the end of a wor
 \eg{\code{dist.\allowbreak{}summary()}}
 \field{Options}{none}
 \field{See also}{\hyperref[dict:variance]{\code{variance}}, \hyperref[dict:random-numbers]{\code{random\_\allowbreak{}numbers}}, \hyperref[dict:standard-deviation]{\code{standard\_\allowbreak{}deviation}}, \hyperref[dict:chart]{\code{chart}}, \hyperref[dict:median]{\code{median}}}
-\where{Manual \manualpage{word:dist.summary}{224}{section*.246}}
+\where{Manual \manualpage{word:dist.summary}{225}{section*.246}}
 \headword{summary\_of}{dict:summary-of}
 \sense{table}{\code{table.\allowbreak{}summary\_\allowbreak{}of()}}
 \means{Several measures of one or more columns at once, in one tidy table.}
@@ -2324,7 +2324,7 @@ A family is learned once and used again and again: the start or the end of a wor
 \eg{\code{dist.\allowbreak{}table()}}
 \field{Options}{none}
 \field{See also}{\hyperref[dict:chart]{\code{chart}}, \hyperref[dict:parameters]{\code{parameters}}, \hyperref[dict:random-numbers]{\code{random\_\allowbreak{}numbers}}, \hyperref[dict:summary]{\code{summary}}, \hyperref[dict:variance]{\code{variance}}}
-\where{Manual \manualpage{word:dist.table}{225}{section*.249}}
+\where{Manual \manualpage{word:dist.table}{226}{section*.249}}
 \headword{tick\_format\_x}{dict:tick-format-x}
 \sense{chart}{\code{chart.\allowbreak{}tick\_\allowbreak{}format\_\allowbreak{}x()}}
 \means{How the numbers or dates under the x-axis are written.}
@@ -2446,7 +2446,7 @@ A family is learned once and used again and again: the start or the end of a wor
 \eg{\code{dist.\allowbreak{}variance()}}
 \field{Options}{none}
 \field{See also}{\hyperref[dict:standard-deviation]{\code{standard\_\allowbreak{}deviation}}, \hyperref[dict:summary]{\code{summary}}, \hyperref[dict:median]{\code{median}}, \hyperref[dict:random-numbers]{\code{random\_\allowbreak{}numbers}}, \hyperref[dict:average]{\code{average}}}
-\where{Manual \manualpage{word:dist.variance}{224}{section*.245}}
+\where{Manual \manualpage{word:dist.variance}{225}{section*.245}}
 \seeword{violin}{\hyperref[dict:violins]{\code{violins}}}
 \headword{violins}{dict:violins}
 \sense{chart}{\code{chart.\allowbreak{}violins()}}
@@ -2525,7 +2525,7 @@ Names from pandas, Polars, R, NumPy, SciPy, matplotlib and seaborn, and everyday
 \letterhead{C}
 \othername{cast}{\hyperref[dict:make-numbers]{\code{table.\allowbreak{}make\_\allowbreak{}numbers()}}, \manualpage{word:table.make-numbers}{175}{section*.148}}
 \othername{ccc}{\hyperref[dict:agreement-between]{\code{table.\allowbreak{}agreement\_\allowbreak{}between()}}, \manualpage{word:table.agreement-between}{212}{section*.217}}
-\othername{cdf}{\hyperref[dict:chance]{\code{dist.\allowbreak{}chance()}}, \manualpage{word:dist.chance}{221}{section*.237}}
+\othername{cdf}{\hyperref[dict:chance]{\code{dist.\allowbreak{}chance()}}, \manualpage{word:dist.chance}{222}{section*.237}}
 \othername{chi2\_contingency}{\hyperref[dict:compare-counts]{\code{table.\allowbreak{}compare\_\allowbreak{}counts()}}, \manualpage{word:table.compare-counts}{199}{section*.193}}
 \othername{chisq\_test}{\hyperref[dict:compare-counts]{\code{table.\allowbreak{}compare\_\allowbreak{}counts()}}, \manualpage{word:table.compare-counts}{199}{section*.193}}
 \othername{choice}{\hyperref[dict:keep-random-numbers]{\code{nums.\allowbreak{}keep\_\allowbreak{}random\_\allowbreak{}numbers()}}, \manualpage{word:nums.keep-random-numbers}{249}{section*.310}}
@@ -2565,6 +2565,7 @@ Names from pandas, Polars, R, NumPy, SciPy, matplotlib and seaborn, and everyday
 \othername{dbinom}{\hyperref[dict:density-at]{\code{dist.\allowbreak{}density\_\allowbreak{}at()}}, \manualpage{word:dist.density-at}{222}{section*.238}}
 \othername{delong}{\hyperref[dict:compare-accuracy]{\code{table.\allowbreak{}compare\_\allowbreak{}accuracy()}}, \manualpage{word:table.compare-accuracy}{210}{section*.213}}
 \othername{describe}{\hyperref[dict:describe-columns]{\code{table.\allowbreak{}describe\_\allowbreak{}columns()}}, \manualpage{word:table.describe-columns}{163}{section*.118}}
+\othername{DescrStatsW}{\hyperref[dict:average-of]{\code{table.\allowbreak{}average\_\allowbreak{}of()}}, \manualpage{word:table.average-of}{187}{section*.175}}
 \othername{diagnostic}{\hyperref[dict:compare-to-truth]{\code{table.\allowbreak{}compare\_\allowbreak{}to\_\allowbreak{}truth()}}, \manualpage{word:table.compare-to-truth}{210}{section*.212}}
 \othername{diff}{\hyperref[dict:add-change-column]{\code{table.\allowbreak{}add\_\allowbreak{}change\_\allowbreak{}column()}}, \manualpage{word:table.add-change-column}{186}{section*.171}}
 \othername{distinct}{\hyperref[dict:remove-duplicate-rows]{\code{table.\allowbreak{}remove\_\allowbreak{}duplicate\_\allowbreak{}rows()}}, \manualpage{word:table.remove-duplicate-rows}{171}{section*.137}}
@@ -2618,6 +2619,7 @@ Names from pandas, Polars, R, NumPy, SciPy, matplotlib and seaborn, and everyday
 \letterhead{G}
 \othername{gather}{\hyperref[dict:turn-columns-into-rows]{\code{table.\allowbreak{}turn\_\allowbreak{}columns\_\allowbreak{}into\_\allowbreak{}rows()}}, \manualpage{word:table.turn-columns-into-rows}{237}{section*.272}}
 \othername{gather\_every}{\hyperref[dict:keep-rows-by-position]{\code{table.\allowbreak{}keep\_\allowbreak{}rows\_\allowbreak{}by\_\allowbreak{}position()}}, \manualpage{word:table.keep-rows-by-position}{169}{section*.133}}
+\othername{gaussian\_kde}{\hyperref[dict:fit-distribution]{\code{table.\allowbreak{}fit\_\allowbreak{}distribution()}}, \manualpage{word:table.fit-distribution}{220}{section*.234}}
 \othername{geom\_bar}{\hyperref[dict:bars]{\code{chart.\allowbreak{}bars()}}, \manualpage{word:bars}{122}{section*.20}}
 \othername{geom\_boxplot}{\hyperref[dict:boxes]{\code{chart.\allowbreak{}boxes()}}, \manualpage{word:boxes}{125}{section*.25}}
 \othername{geom\_col}{\hyperref[dict:bars]{\code{chart.\allowbreak{}bars()}}, \manualpage{word:bars}{122}{section*.20}}
@@ -2640,7 +2642,7 @@ Names from pandas, Polars, R, NumPy, SciPy, matplotlib and seaborn, and everyday
 \othername{ggsave}{\hyperref[dict:save]{\code{chart.\allowbreak{}save()}}, \manualpage{word:save}{121}{section*.18}}
 \othername{ggtitle}{\hyperref[dict:title-top]{\code{chart.\allowbreak{}title\_\allowbreak{}top()}}, \manualpage{word:title-top}{141}{section*.60}}
 \othername{glimpse}{\hyperref[dict:describe-columns]{\code{table.\allowbreak{}describe\_\allowbreak{}columns()}}, \manualpage{word:table.describe-columns}{163}{section*.118}}
-\othername{glm}{\hyperref[dict:explain]{\code{table.\allowbreak{}explain()}}, \manualpage{word:table.explain}{226}{section*.252}}
+\othername{glm}{\hyperref[dict:explain]{\code{table.\allowbreak{}explain()}}, \manualpage{word:table.explain}{227}{section*.252}}
 \othername{goodman\_kruskal\_gamma}{\hyperref[dict:correlation-between]{\code{table.\allowbreak{}correlation\_\allowbreak{}between()}}, \manualpage{word:table.correlation-between}{194}{section*.187}}
 \othername{GoodmanKruskalGamma}{\hyperref[dict:correlation-between]{\code{table.\allowbreak{}correlation\_\allowbreak{}between()}}, \manualpage{word:table.correlation-between}{194}{section*.187}}
 \othername{chart.grid}{\hyperref[dict:show-grid]{\code{chart.\allowbreak{}show\_\allowbreak{}grid()}}, \manualpage{word:show-grid}{152}{section*.89}}
@@ -2672,7 +2674,7 @@ Names from pandas, Polars, R, NumPy, SciPy, matplotlib and seaborn, and everyday
 \othername{intraclass}{\hyperref[dict:agreement-between]{\code{table.\allowbreak{}agreement\_\allowbreak{}between()}}, \manualpage{word:table.agreement-between}{212}{section*.217}}
 \othername{is\_na}{\hyperref[dict:add-is-empty-column]{\code{table.\allowbreak{}add\_\allowbreak{}is\_\allowbreak{}empty\_\allowbreak{}column()}}, \manualpage{word:table.add-is-empty-column}{175}{section*.146}}
 \othername{is\_null}{\hyperref[dict:add-is-empty-column]{\code{table.\allowbreak{}add\_\allowbreak{}is\_\allowbreak{}empty\_\allowbreak{}column()}}, \manualpage{word:table.add-is-empty-column}{175}{section*.146}}
-\othername{isf}{\hyperref[dict:percentile]{\code{dist.\allowbreak{}percentile()}}, \manualpage{word:dist.percentile}{222}{section*.239}}
+\othername{isf}{\hyperref[dict:percentile]{\code{dist.\allowbreak{}percentile()}}, \manualpage{word:dist.percentile}{223}{section*.239}}
 \othername{isna}{\hyperref[dict:add-is-empty-column]{\code{table.\allowbreak{}add\_\allowbreak{}is\_\allowbreak{}empty\_\allowbreak{}column()}}, \manualpage{word:table.add-is-empty-column}{175}{section*.146}}
 \othername{isnull}{\hyperref[dict:add-is-empty-column]{\code{table.\allowbreak{}add\_\allowbreak{}is\_\allowbreak{}empty\_\allowbreak{}column()}}, \manualpage{word:table.add-is-empty-column}{175}{section*.146}}
 \othername{item}{\hyperref[dict:cell-at]{\code{table.\allowbreak{}cell\_\allowbreak{}at()}}, \manualpage{word:table.cell-at}{164}{section*.121}}
@@ -2688,6 +2690,7 @@ Names from pandas, Polars, R, NumPy, SciPy, matplotlib and seaborn, and everyday
 \othername{kappam\_fleiss}{\hyperref[dict:agreement-between]{\code{table.\allowbreak{}agreement\_\allowbreak{}between()}}, \manualpage{word:table.agreement-between}{212}{section*.217}}
 \othername{kde}{\hyperref[dict:density]{\code{chart.\allowbreak{}density()}}, \manualpage{word:density}{135}{section*.45}}
 \othername{kdeplot}{\hyperref[dict:density]{\code{chart.\allowbreak{}density()}}, \manualpage{word:density}{135}{section*.45}}
+\othername{KDEUnivariate}{\hyperref[dict:fit-distribution]{\code{table.\allowbreak{}fit\_\allowbreak{}distribution()}}, \manualpage{word:table.fit-distribution}{220}{section*.234}}
 \othername{kendalltau}{\hyperref[dict:correlation-between]{\code{table.\allowbreak{}correlation\_\allowbreak{}between()}}, \manualpage{word:table.correlation-between}{194}{section*.187}}
 \othername{kmeans}{\hyperref[dict:add-clusters]{\code{table.\allowbreak{}add\_\allowbreak{}clusters()}}, \manualpage{word:table.add-clusters}{229}{section*.257}}
 \othername{kripp\_alpha}{\hyperref[dict:agreement-between]{\code{table.\allowbreak{}agreement\_\allowbreak{}between()}}, \manualpage{word:table.agreement-between}{212}{section*.217}}
@@ -2706,14 +2709,14 @@ Names from pandas, Polars, R, NumPy, SciPy, matplotlib and seaborn, and everyday
 \othername{limits\_agreement}{\hyperref[dict:limits-of-agreement]{\code{table.\allowbreak{}limits\_\allowbreak{}of\_\allowbreak{}agreement()}}, \manualpage{word:table.limits-of-agreement}{213}{section*.218}}
 \othername{linear\_programming}{\hyperref[dict:find-smallest]{\code{sdata.\allowbreak{}find\_\allowbreak{}smallest()}}, \manualpage{word:sdata.find-smallest}{216}{section*.226}}
 \othername{linprog}{\hyperref[dict:find-smallest]{\code{sdata.\allowbreak{}find\_\allowbreak{}smallest()}}, \manualpage{word:sdata.find-smallest}{216}{section*.226}}
-\othername{linregress}{\hyperref[dict:fit-line]{\code{table.\allowbreak{}fit\_\allowbreak{}line()}}, \manualpage{word:table.fit-line}{214}{section*.222}; \hyperref[dict:explain]{\code{table.\allowbreak{}explain()}}, \manualpage{word:table.explain}{226}{section*.252}}
+\othername{linregress}{\hyperref[dict:fit-line]{\code{table.\allowbreak{}fit\_\allowbreak{}line()}}, \manualpage{word:table.fit-line}{214}{section*.222}; \hyperref[dict:explain]{\code{table.\allowbreak{}explain()}}, \manualpage{word:table.explain}{227}{section*.252}}
 \othername{linspace}{\hyperref[dict:numbers]{\code{sdata.\allowbreak{}numbers()}}, \manualpage{word:sdata.numbers}{241}{section*.285}}
-\othername{lm}{\hyperref[dict:fit-line]{\code{table.\allowbreak{}fit\_\allowbreak{}line()}}, \manualpage{word:table.fit-line}{214}{section*.222}; \hyperref[dict:explain]{\code{table.\allowbreak{}explain()}}, \manualpage{word:table.explain}{226}{section*.252}}
-\othername{lmer}{\hyperref[dict:explain]{\code{table.\allowbreak{}explain()}}, \manualpage{word:table.explain}{226}{section*.252}}
+\othername{lm}{\hyperref[dict:fit-line]{\code{table.\allowbreak{}fit\_\allowbreak{}line()}}, \manualpage{word:table.fit-line}{214}{section*.222}; \hyperref[dict:explain]{\code{table.\allowbreak{}explain()}}, \manualpage{word:table.explain}{227}{section*.252}}
+\othername{lmer}{\hyperref[dict:explain]{\code{table.\allowbreak{}explain()}}, \manualpage{word:table.explain}{227}{section*.252}}
 \othername{lmplot}{\hyperref[dict:fit-line]{\code{chart.\allowbreak{}fit\_\allowbreak{}line()}}, \manualpage{word:fit-line}{131}{section*.39}}
 \othername{loc}{\hyperref[dict:keep-rows]{\code{table.\allowbreak{}keep\_\allowbreak{}rows()}}, \manualpage{word:table.keep-rows}{167}{section*.129}}
 \othername{loess}{\hyperref[dict:smooth-line]{\code{chart.\allowbreak{}smooth\_\allowbreak{}line()}}, \manualpage{word:smooth-line}{134}{section*.44}}
-\othername{logit}{\hyperref[dict:explain]{\code{table.\allowbreak{}explain()}}, \manualpage{word:table.explain}{226}{section*.252}}
+\othername{logit}{\hyperref[dict:explain]{\code{table.\allowbreak{}explain()}}, \manualpage{word:table.explain}{227}{section*.252}}
 \othername{logrank\_test}{\hyperref[dict:compare-survival]{\code{table.\allowbreak{}compare\_\allowbreak{}survival()}}, \manualpage{word:table.compare-survival}{232}{section*.263}}
 \othername{lower}{\hyperref[dict:make-lowercase]{\code{table.\allowbreak{}make\_\allowbreak{}lowercase()}}, \manualpage{word:table.make-lowercase}{176}{section*.151}}
 \othername{lowess}{\hyperref[dict:smooth-line]{\code{chart.\allowbreak{}smooth\_\allowbreak{}line()}}, \manualpage{word:smooth-line}{134}{section*.44}}
@@ -2772,7 +2775,7 @@ Names from pandas, Polars, R, NumPy, SciPy, matplotlib and seaborn, and everyday
 \letterhead{O}
 \othername{odds\_ratio}{\hyperref[dict:compare-risks]{\code{table.\allowbreak{}compare\_\allowbreak{}risks()}}, \manualpage{word:table.compare-risks}{207}{section*.206}}
 \othername{oddsratio}{\hyperref[dict:compare-risks]{\code{table.\allowbreak{}compare\_\allowbreak{}risks()}}, \manualpage{word:table.compare-risks}{207}{section*.206}}
-\othername{ols}{\hyperref[dict:fit-line]{\code{table.\allowbreak{}fit\_\allowbreak{}line()}}, \manualpage{word:table.fit-line}{214}{section*.222}; \hyperref[dict:explain]{\code{table.\allowbreak{}explain()}}, \manualpage{word:table.explain}{226}{section*.252}}
+\othername{ols}{\hyperref[dict:fit-line]{\code{table.\allowbreak{}fit\_\allowbreak{}line()}}, \manualpage{word:table.fit-line}{214}{section*.222}; \hyperref[dict:explain]{\code{table.\allowbreak{}explain()}}, \manualpage{word:table.explain}{227}{section*.252}}
 \othername{ones}{\hyperref[dict:number-grid]{\code{sdata.\allowbreak{}number\_\allowbreak{}grid()}}, \manualpage{word:sdata.number-grid}{255}{section*.329}}
 \othername{optim}{\hyperref[dict:find-smallest]{\code{sdata.\allowbreak{}find\_\allowbreak{}smallest()}}, \manualpage{word:sdata.find-smallest}{216}{section*.226}}
 \othername{optimise}{\hyperref[dict:find-smallest]{\code{sdata.\allowbreak{}find\_\allowbreak{}smallest()}}, \manualpage{word:sdata.find-smallest}{216}{section*.226}}
@@ -2787,8 +2790,8 @@ Names from pandas, Polars, R, NumPy, SciPy, matplotlib and seaborn, and everyday
 \othername{pairwise\_wilcox\_test}{\hyperref[dict:compare-each-pair]{\code{table.\allowbreak{}compare\_\allowbreak{}each\_\allowbreak{}pair()}}, \manualpage{word:table.compare-each-pair}{196}{section*.190}}
 \othername{partial\_cor}{\hyperref[dict:correlation-between]{\code{table.\allowbreak{}correlation\_\allowbreak{}between()}}, \manualpage{word:table.correlation-between}{194}{section*.187}}
 \othername{partial\_corr}{\hyperref[dict:correlation-between]{\code{table.\allowbreak{}correlation\_\allowbreak{}between()}}, \manualpage{word:table.correlation-between}{194}{section*.187}}
-\othername{pbinom}{\hyperref[dict:chance]{\code{dist.\allowbreak{}chance()}}, \manualpage{word:dist.chance}{221}{section*.237}}
-\othername{pca}{\hyperref[dict:principal-components-of]{\code{table.\allowbreak{}principal\_\allowbreak{}components\_\allowbreak{}of()}}, \manualpage{word:table.principal-components-of}{228}{section*.256}}
+\othername{pbinom}{\hyperref[dict:chance]{\code{dist.\allowbreak{}chance()}}, \manualpage{word:dist.chance}{222}{section*.237}}
+\othername{pca}{\hyperref[dict:principal-components-of]{\code{table.\allowbreak{}principal\_\allowbreak{}components\_\allowbreak{}of()}}, \manualpage{word:table.principal-components-of}{229}{section*.256}}
 \othername{pchip}{\hyperref[dict:values-at]{\code{table.\allowbreak{}values\_\allowbreak{}at()}}, \manualpage{word:table.values-at}{218}{section*.230}; \hyperref[dict:fill-empty-cells]{\code{table.\allowbreak{}fill\_\allowbreak{}empty\_\allowbreak{}cells()}}, \manualpage{word:table.fill-empty-cells}{174}{section*.145}}
 \othername{PchipInterpolator}{\hyperref[dict:values-at]{\code{table.\allowbreak{}values\_\allowbreak{}at()}}, \manualpage{word:table.values-at}{218}{section*.230}}
 \othername{pcolormesh}{\hyperref[dict:heatmap]{\code{chart.\allowbreak{}heatmap()}}, \manualpage{word:heatmap}{126}{section*.27}}
@@ -2796,9 +2799,9 @@ Names from pandas, Polars, R, NumPy, SciPy, matplotlib and seaborn, and everyday
 \othername{pcor\_test}{\hyperref[dict:correlation-between]{\code{table.\allowbreak{}correlation\_\allowbreak{}between()}}, \manualpage{word:table.correlation-between}{194}{section*.187}}
 \othername{pct\_change}{\hyperref[dict:add-change-column]{\code{table.\allowbreak{}add\_\allowbreak{}change\_\allowbreak{}column()}}, \manualpage{word:table.add-change-column}{186}{section*.171}}
 \othername{pdf}{\hyperref[dict:density-at]{\code{dist.\allowbreak{}density\_\allowbreak{}at()}}, \manualpage{word:dist.density-at}{222}{section*.238}}
-\othername{pdist}{\hyperref[dict:distances-between-rows]{\code{table.\allowbreak{}distances\_\allowbreak{}between\_\allowbreak{}rows()}}, \manualpage{word:table.distances-between-rows}{229}{section*.258}}
+\othername{pdist}{\hyperref[dict:distances-between-rows]{\code{table.\allowbreak{}distances\_\allowbreak{}between\_\allowbreak{}rows()}}, \manualpage{word:table.distances-between-rows}{230}{section*.258}}
 \othername{pearsonr}{\hyperref[dict:correlation-between]{\code{table.\allowbreak{}correlation\_\allowbreak{}between()}}, \manualpage{word:table.correlation-between}{194}{section*.187}}
-\othername{sdata.percentile}{\hyperref[dict:percentile]{\code{nums.\allowbreak{}percentile()}}, \manualpage{word:nums.percentile}{255}{section*.326}; \hyperref[dict:percentile-of]{\code{table.\allowbreak{}percentile\_\allowbreak{}of()}}, \manualpage{word:table.percentile-of}{192}{section*.184}; \hyperref[dict:percentile]{\code{dist.\allowbreak{}percentile()}}, \manualpage{word:dist.percentile}{222}{section*.239}}
+\othername{sdata.percentile}{\hyperref[dict:percentile]{\code{nums.\allowbreak{}percentile()}}, \manualpage{word:nums.percentile}{255}{section*.326}; \hyperref[dict:percentile-of]{\code{table.\allowbreak{}percentile\_\allowbreak{}of()}}, \manualpage{word:table.percentile-of}{192}{section*.184}; \hyperref[dict:percentile]{\code{dist.\allowbreak{}percentile()}}, \manualpage{word:dist.percentile}{223}{section*.239}}
 \othername{table.percentile}{\hyperref[dict:percentile-of]{\code{table.\allowbreak{}percentile\_\allowbreak{}of()}}, \manualpage{word:table.percentile-of}{192}{section*.184}}
 \othername{permanova}{\hyperref[dict:compare-profiles]{\code{table.\allowbreak{}compare\_\allowbreak{}profiles()}}, \manualpage{word:table.compare-profiles}{231}{section*.260}}
 \othername{person\_time}{\hyperref[dict:rate-of]{\code{table.\allowbreak{}rate\_\allowbreak{}of()}}, \manualpage{word:table.rate-of}{208}{section*.208}}
@@ -2810,30 +2813,30 @@ Names from pandas, Polars, R, NumPy, SciPy, matplotlib and seaborn, and everyday
 \othername{plot\_roc}{\hyperref[dict:trade-off-curve]{\code{chart.\allowbreak{}trade\_\allowbreak{}off\_\allowbreak{}curve()}}, \manualpage{word:trade-off-curve}{211}{section*.215}}
 \othername{plot\_surface}{\hyperref[dict:surface]{\code{chart.\allowbreak{}surface()}}, \manualpage{word:surface}{128}{section*.31}}
 \othername{pmf}{\hyperref[dict:density-at]{\code{dist.\allowbreak{}density\_\allowbreak{}at()}}, \manualpage{word:dist.density-at}{222}{section*.238}}
-\othername{pnorm}{\hyperref[dict:chance]{\code{dist.\allowbreak{}chance()}}, \manualpage{word:dist.chance}{221}{section*.237}}
+\othername{pnorm}{\hyperref[dict:chance]{\code{dist.\allowbreak{}chance()}}, \manualpage{word:dist.chance}{222}{section*.237}}
 \othername{poisson\_test}{\hyperref[dict:compare-rates]{\code{table.\allowbreak{}compare\_\allowbreak{}rates()}}, \manualpage{word:table.compare-rates}{208}{section*.207}}
 \othername{polyfit}{\hyperref[dict:fit-curve]{\code{table.\allowbreak{}fit\_\allowbreak{}curve()}}, \manualpage{word:table.fit-curve}{215}{section*.223}; \hyperref[dict:fit-curve]{\code{chart.\allowbreak{}fit\_\allowbreak{}curve()}}, \manualpage{word:fit-curve}{132}{section*.40}}
 \othername{polyroot}{\hyperref[dict:solve]{\code{sdata.\allowbreak{}solve()}}, \manualpage{word:sdata.solve}{217}{section*.228}}
-\othername{power\_t\_test}{\hyperref[dict:how-many-needed]{\code{sdata.\allowbreak{}how\_\allowbreak{}many\_\allowbreak{}needed()}}, \manualpage{word:sdata.how-many-needed}{233}{section*.267}}
-\othername{ppf}{\hyperref[dict:percentile]{\code{dist.\allowbreak{}percentile()}}, \manualpage{word:dist.percentile}{222}{section*.239}}
+\othername{power\_t\_test}{\hyperref[dict:how-many-needed]{\code{sdata.\allowbreak{}how\_\allowbreak{}many\_\allowbreak{}needed()}}, \manualpage{word:sdata.how-many-needed}{234}{section*.267}}
+\othername{ppf}{\hyperref[dict:percentile]{\code{dist.\allowbreak{}percentile()}}, \manualpage{word:dist.percentile}{223}{section*.239}}
 \othername{ppv}{\hyperref[dict:compare-to-truth]{\code{table.\allowbreak{}compare\_\allowbreak{}to\_\allowbreak{}truth()}}, \manualpage{word:table.compare-to-truth}{210}{section*.212}}
-\othername{prcomp}{\hyperref[dict:principal-components-of]{\code{table.\allowbreak{}principal\_\allowbreak{}components\_\allowbreak{}of()}}, \manualpage{word:table.principal-components-of}{228}{section*.256}}
+\othername{prcomp}{\hyperref[dict:principal-components-of]{\code{table.\allowbreak{}principal\_\allowbreak{}components\_\allowbreak{}of()}}, \manualpage{word:table.principal-components-of}{229}{section*.256}}
 \othername{probplot}{\hyperref[dict:qq-dots]{\code{chart.\allowbreak{}qq\_\allowbreak{}dots()}}, \manualpage{word:qq-dots}{136}{section*.49}}
 \othername{prop\_test}{\hyperref[dict:compare-risks]{\code{table.\allowbreak{}compare\_\allowbreak{}risks()}}, \manualpage{word:table.compare-risks}{207}{section*.206}}
 \othername{prop\_trend\_test}{\hyperref[dict:compare-counts]{\code{table.\allowbreak{}compare\_\allowbreak{}counts()}}, \manualpage{word:table.compare-counts}{199}{section*.193}}
-\othername{pwr}{\hyperref[dict:how-many-needed]{\code{sdata.\allowbreak{}how\_\allowbreak{}many\_\allowbreak{}needed()}}, \manualpage{word:sdata.how-many-needed}{233}{section*.267}}
+\othername{pwr}{\hyperref[dict:how-many-needed]{\code{sdata.\allowbreak{}how\_\allowbreak{}many\_\allowbreak{}needed()}}, \manualpage{word:sdata.how-many-needed}{234}{section*.267}}
 \letterhead{Q}
 \othername{qcut}{\hyperref[dict:add-group-column]{\code{table.\allowbreak{}add\_\allowbreak{}group\_\allowbreak{}column()}}, \manualpage{word:table.add-group-column}{181}{section*.160}}
-\othername{qnorm}{\hyperref[dict:percentile]{\code{dist.\allowbreak{}percentile()}}, \manualpage{word:dist.percentile}{222}{section*.239}}
+\othername{qnorm}{\hyperref[dict:percentile]{\code{dist.\allowbreak{}percentile()}}, \manualpage{word:dist.percentile}{223}{section*.239}}
 \othername{qqnorm}{\hyperref[dict:qq-dots]{\code{chart.\allowbreak{}qq\_\allowbreak{}dots()}}, \manualpage{word:qq-dots}{136}{section*.49}}
 \othername{qqplot}{\hyperref[dict:qq-dots]{\code{chart.\allowbreak{}qq\_\allowbreak{}dots()}}, \manualpage{word:qq-dots}{136}{section*.49}}
 \othername{quade\_test}{\hyperref[dict:compare-matched]{\code{table.\allowbreak{}compare\_\allowbreak{}matched()}}, \manualpage{word:table.compare-matched}{203}{section*.199}}
-\othername{quantile}{\hyperref[dict:percentile]{\code{nums.\allowbreak{}percentile()}}, \manualpage{word:nums.percentile}{255}{section*.326}; \hyperref[dict:percentile-of]{\code{table.\allowbreak{}percentile\_\allowbreak{}of()}}, \manualpage{word:table.percentile-of}{192}{section*.184}; \hyperref[dict:percentile]{\code{dist.\allowbreak{}percentile()}}, \manualpage{word:dist.percentile}{222}{section*.239}}
+\othername{quantile}{\hyperref[dict:percentile]{\code{nums.\allowbreak{}percentile()}}, \manualpage{word:nums.percentile}{255}{section*.326}; \hyperref[dict:percentile-of]{\code{table.\allowbreak{}percentile\_\allowbreak{}of()}}, \manualpage{word:table.percentile-of}{192}{section*.184}; \hyperref[dict:percentile]{\code{dist.\allowbreak{}percentile()}}, \manualpage{word:dist.percentile}{223}{section*.239}}
 \othername{query}{\hyperref[dict:keep-rows]{\code{table.\allowbreak{}keep\_\allowbreak{}rows()}}, \manualpage{word:table.keep-rows}{167}{section*.129}}
 \letterhead{R}
-\othername{rand}{\hyperref[dict:random-numbers]{\code{sdata.\allowbreak{}random\_\allowbreak{}numbers()}}, \manualpage{word:sdata.random-numbers}{241}{section*.286}; \hyperref[dict:random-numbers]{\code{dist.\allowbreak{}random\_\allowbreak{}numbers()}}, \manualpage{word:dist.random-numbers}{224}{section*.247}}
-\othername{randn}{\hyperref[dict:random-numbers]{\code{sdata.\allowbreak{}random\_\allowbreak{}numbers()}}, \manualpage{word:sdata.random-numbers}{241}{section*.286}; \hyperref[dict:random-numbers]{\code{dist.\allowbreak{}random\_\allowbreak{}numbers()}}, \manualpage{word:dist.random-numbers}{224}{section*.247}}
-\othername{random}{\hyperref[dict:random-numbers]{\code{sdata.\allowbreak{}random\_\allowbreak{}numbers()}}, \manualpage{word:sdata.random-numbers}{241}{section*.286}; \hyperref[dict:random-numbers]{\code{dist.\allowbreak{}random\_\allowbreak{}numbers()}}, \manualpage{word:dist.random-numbers}{224}{section*.247}}
+\othername{rand}{\hyperref[dict:random-numbers]{\code{sdata.\allowbreak{}random\_\allowbreak{}numbers()}}, \manualpage{word:sdata.random-numbers}{241}{section*.286}; \hyperref[dict:random-numbers]{\code{dist.\allowbreak{}random\_\allowbreak{}numbers()}}, \manualpage{word:dist.random-numbers}{225}{section*.247}}
+\othername{randn}{\hyperref[dict:random-numbers]{\code{sdata.\allowbreak{}random\_\allowbreak{}numbers()}}, \manualpage{word:sdata.random-numbers}{241}{section*.286}; \hyperref[dict:random-numbers]{\code{dist.\allowbreak{}random\_\allowbreak{}numbers()}}, \manualpage{word:dist.random-numbers}{225}{section*.247}}
+\othername{random}{\hyperref[dict:random-numbers]{\code{sdata.\allowbreak{}random\_\allowbreak{}numbers()}}, \manualpage{word:sdata.random-numbers}{241}{section*.286}; \hyperref[dict:random-numbers]{\code{dist.\allowbreak{}random\_\allowbreak{}numbers()}}, \manualpage{word:dist.random-numbers}{225}{section*.247}}
 \othername{rank}{\hyperref[dict:add-rank-column]{\code{table.\allowbreak{}add\_\allowbreak{}rank\_\allowbreak{}column()}}, \manualpage{word:table.add-rank-column}{181}{section*.161}}
 \othername{rate\_ratio}{\hyperref[dict:compare-rates]{\code{table.\allowbreak{}compare\_\allowbreak{}rates()}}, \manualpage{word:table.compare-rates}{208}{section*.207}}
 \othername{rateratio}{\hyperref[dict:compare-rates]{\code{table.\allowbreak{}compare\_\allowbreak{}rates()}}, \manualpage{word:table.compare-rates}{208}{section*.207}}
@@ -2854,7 +2857,7 @@ Names from pandas, Polars, R, NumPy, SciPy, matplotlib and seaborn, and everyday
 \othername{table.reverse}{\hyperref[dict:reverse-rows]{\code{table.\allowbreak{}reverse\_\allowbreak{}rows()}}, \manualpage{word:table.reverse-rows}{170}{section*.135}; \hyperref[dict:sort-by]{\code{table.\allowbreak{}sort\_\allowbreak{}by()}}, \manualpage{word:table.sort-by}{179}{section*.158}}
 \othername{risk\_ratio}{\hyperref[dict:compare-risks]{\code{table.\allowbreak{}compare\_\allowbreak{}risks()}}, \manualpage{word:table.compare-risks}{207}{section*.206}}
 \othername{riskratio}{\hyperref[dict:compare-risks]{\code{table.\allowbreak{}compare\_\allowbreak{}risks()}}, \manualpage{word:table.compare-risks}{207}{section*.206}}
-\othername{rnorm}{\hyperref[dict:random-numbers]{\code{sdata.\allowbreak{}random\_\allowbreak{}numbers()}}, \manualpage{word:sdata.random-numbers}{241}{section*.286}; \hyperref[dict:random-numbers]{\code{dist.\allowbreak{}random\_\allowbreak{}numbers()}}, \manualpage{word:dist.random-numbers}{224}{section*.247}}
+\othername{rnorm}{\hyperref[dict:random-numbers]{\code{sdata.\allowbreak{}random\_\allowbreak{}numbers()}}, \manualpage{word:sdata.random-numbers}{241}{section*.286}; \hyperref[dict:random-numbers]{\code{dist.\allowbreak{}random\_\allowbreak{}numbers()}}, \manualpage{word:dist.random-numbers}{225}{section*.247}}
 \othername{roc}{\hyperref[dict:compare-to-truth]{\code{table.\allowbreak{}compare\_\allowbreak{}to\_\allowbreak{}truth()}}, \manualpage{word:table.compare-to-truth}{210}{section*.212}; \hyperref[dict:trade-off-curve]{\code{chart.\allowbreak{}trade\_\allowbreak{}off\_\allowbreak{}curve()}}, \manualpage{word:trade-off-curve}{211}{section*.215}}
 \othername{roc\_auc\_score}{\hyperref[dict:compare-to-truth]{\code{table.\allowbreak{}compare\_\allowbreak{}to\_\allowbreak{}truth()}}, \manualpage{word:table.compare-to-truth}{210}{section*.212}}
 \othername{roc\_curve}{\hyperref[dict:trade-off-curve]{\code{chart.\allowbreak{}trade\_\allowbreak{}off\_\allowbreak{}curve()}}, \manualpage{word:trade-off-curve}{211}{section*.215}}
@@ -2868,11 +2871,11 @@ Names from pandas, Polars, R, NumPy, SciPy, matplotlib and seaborn, and everyday
 \othername{rosner\_test}{\hyperref[dict:show-rows-with-outliers]{\code{table.\allowbreak{}show\_\allowbreak{}rows\_\allowbreak{}with\_\allowbreak{}outliers()}}, \manualpage{word:table.show-rows-with-outliers}{172}{section*.140}}
 \othername{rosnerTest}{\hyperref[dict:show-rows-with-outliers]{\code{table.\allowbreak{}show\_\allowbreak{}rows\_\allowbreak{}with\_\allowbreak{}outliers()}}, \manualpage{word:table.show-rows-with-outliers}{172}{section*.140}}
 \othername{round}{\hyperref[dict:round-to]{\code{table.\allowbreak{}round\_\allowbreak{}to()}}, \manualpage{word:table.round-to}{178}{section*.155}}
-\othername{runif}{\hyperref[dict:random-numbers]{\code{sdata.\allowbreak{}random\_\allowbreak{}numbers()}}, \manualpage{word:sdata.random-numbers}{241}{section*.286}; \hyperref[dict:random-numbers]{\code{dist.\allowbreak{}random\_\allowbreak{}numbers()}}, \manualpage{word:dist.random-numbers}{224}{section*.247}}
+\othername{runif}{\hyperref[dict:random-numbers]{\code{sdata.\allowbreak{}random\_\allowbreak{}numbers()}}, \manualpage{word:sdata.random-numbers}{241}{section*.286}; \hyperref[dict:random-numbers]{\code{dist.\allowbreak{}random\_\allowbreak{}numbers()}}, \manualpage{word:dist.random-numbers}{225}{section*.247}}
 \othername{runs\_test}{\hyperref[dict:check-random-order]{\code{table.\allowbreak{}check\_\allowbreak{}random\_\allowbreak{}order()}}, \manualpage{word:table.check-random-order}{205}{section*.201}}
 \othername{runstest\_1samp}{\hyperref[dict:check-random-order]{\code{table.\allowbreak{}check\_\allowbreak{}random\_\allowbreak{}order()}}, \manualpage{word:table.check-random-order}{205}{section*.201}}
 \othername{rv\_continuous}{\hyperref[dict:distribution]{\code{sdata.\allowbreak{}distribution()}}, \manualpage{word:sdata.distribution}{219}{section*.233}}
-\othername{rvs}{\hyperref[dict:random-numbers]{\code{sdata.\allowbreak{}random\_\allowbreak{}numbers()}}, \manualpage{word:sdata.random-numbers}{241}{section*.286}; \hyperref[dict:random-numbers]{\code{dist.\allowbreak{}random\_\allowbreak{}numbers()}}, \manualpage{word:dist.random-numbers}{224}{section*.247}}
+\othername{rvs}{\hyperref[dict:random-numbers]{\code{sdata.\allowbreak{}random\_\allowbreak{}numbers()}}, \manualpage{word:sdata.random-numbers}{241}{section*.286}; \hyperref[dict:random-numbers]{\code{dist.\allowbreak{}random\_\allowbreak{}numbers()}}, \manualpage{word:dist.random-numbers}{225}{section*.247}}
 \letterhead{S}
 \othername{sample}{\hyperref[dict:keep-random-rows]{\code{table.\allowbreak{}keep\_\allowbreak{}random\_\allowbreak{}rows()}}, \manualpage{word:table.keep-random-rows}{170}{section*.136}; \hyperref[dict:keep-random-numbers]{\code{nums.\allowbreak{}keep\_\allowbreak{}random\_\allowbreak{}numbers()}}, \manualpage{word:nums.keep-random-numbers}{249}{section*.310}}
 \othername{sample\_n}{\hyperref[dict:keep-random-rows]{\code{table.\allowbreak{}keep\_\allowbreak{}random\_\allowbreak{}rows()}}, \manualpage{word:table.keep-random-rows}{170}{section*.136}}
@@ -2895,7 +2898,7 @@ Names from pandas, Polars, R, NumPy, SciPy, matplotlib and seaborn, and everyday
 \othername{set\_ylabel}{\hyperref[dict:label-y]{\code{chart.\allowbreak{}label\_\allowbreak{}y()}}, \manualpage{word:label-y}{142}{section*.63}}
 \othername{set\_ylim}{\hyperref[dict:range-y]{\code{chart.\allowbreak{}range\_\allowbreak{}y()}}, \manualpage{word:range-y}{145}{section*.71}}
 \othername{set\_yticks}{\hyperref[dict:ticks-y]{\code{chart.\allowbreak{}ticks\_\allowbreak{}y()}}, \manualpage{word:ticks-y}{147}{section*.75}}
-\othername{sf}{\hyperref[dict:chance]{\code{dist.\allowbreak{}chance()}}, \manualpage{word:dist.chance}{221}{section*.237}}
+\othername{sf}{\hyperref[dict:chance]{\code{dist.\allowbreak{}chance()}}, \manualpage{word:dist.chance}{222}{section*.237}}
 \othername{table.shape}{\hyperref[dict:count-rows]{\code{table.\allowbreak{}count\_\allowbreak{}rows()}}, \manualpage{word:table.count-rows}{186}{section*.173}}
 \othername{shapiro}{\hyperref[dict:compare-shape-to]{\code{table.\allowbreak{}compare\_\allowbreak{}shape\_\allowbreak{}to()}}, \manualpage{word:table.compare-shape-to}{200}{section*.194}}
 \othername{shapiro\_test}{\hyperref[dict:compare-shape-to]{\code{table.\allowbreak{}compare\_\allowbreak{}shape\_\allowbreak{}to()}}, \manualpage{word:table.compare-shape-to}{200}{section*.194}}
@@ -2905,7 +2908,7 @@ Names from pandas, Polars, R, NumPy, SciPy, matplotlib and seaborn, and everyday
 \othername{slice\_max}{\hyperref[dict:keep-biggest-rows]{\code{table.\allowbreak{}keep\_\allowbreak{}biggest\_\allowbreak{}rows()}}, \manualpage{word:table.keep-biggest-rows}{171}{section*.138}}
 \othername{slice\_min}{\hyperref[dict:keep-smallest-rows]{\code{table.\allowbreak{}keep\_\allowbreak{}smallest\_\allowbreak{}rows()}}, \manualpage{word:table.keep-smallest-rows}{172}{section*.139}}
 \othername{slice\_sample}{\hyperref[dict:keep-random-rows]{\code{table.\allowbreak{}keep\_\allowbreak{}random\_\allowbreak{}rows()}}, \manualpage{word:table.keep-random-rows}{170}{section*.136}}
-\othername{solve\_power}{\hyperref[dict:how-many-needed]{\code{sdata.\allowbreak{}how\_\allowbreak{}many\_\allowbreak{}needed()}}, \manualpage{word:sdata.how-many-needed}{233}{section*.267}}
+\othername{solve\_power}{\hyperref[dict:how-many-needed]{\code{sdata.\allowbreak{}how\_\allowbreak{}many\_\allowbreak{}needed()}}, \manualpage{word:sdata.how-many-needed}{234}{section*.267}}
 \othername{somersd}{\hyperref[dict:correlation-between]{\code{table.\allowbreak{}correlation\_\allowbreak{}between()}}, \manualpage{word:table.correlation-between}{194}{section*.187}}
 \othername{SomersDelta}{\hyperref[dict:correlation-between]{\code{table.\allowbreak{}correlation\_\allowbreak{}between()}}, \manualpage{word:table.correlation-between}{194}{section*.187}}
 \othername{table.sort}{\hyperref[dict:sort-by]{\code{table.\allowbreak{}sort\_\allowbreak{}by()}}, \manualpage{word:table.sort-by}{179}{section*.158}}
@@ -2970,11 +2973,12 @@ Names from pandas, Polars, R, NumPy, SciPy, matplotlib and seaborn, and everyday
 \othername{upper}{\hyperref[dict:make-uppercase]{\code{table.\allowbreak{}make\_\allowbreak{}uppercase()}}, \manualpage{word:table.make-uppercase}{177}{section*.152}}
 \letterhead{V}
 \othername{value\_counts}{\hyperref[dict:count-each]{\code{table.\allowbreak{}count\_\allowbreak{}each()}}, \manualpage{word:table.count-each}{187}{section*.174}; \hyperref[dict:count-each]{\code{nums.\allowbreak{}count\_\allowbreak{}each()}}, \manualpage{word:nums.count-each}{255}{section*.327}}
-\othername{vegdist}{\hyperref[dict:distances-between-rows]{\code{table.\allowbreak{}distances\_\allowbreak{}between\_\allowbreak{}rows()}}, \manualpage{word:table.distances-between-rows}{229}{section*.258}}
+\othername{vegdist}{\hyperref[dict:distances-between-rows]{\code{table.\allowbreak{}distances\_\allowbreak{}between\_\allowbreak{}rows()}}, \manualpage{word:table.distances-between-rows}{230}{section*.258}}
 \othername{violinplot}{\hyperref[dict:violins]{\code{chart.\allowbreak{}violins()}}, \manualpage{word:violins}{125}{section*.26}}
 \othername{vline}{\hyperref[dict:line-at-x]{\code{chart.\allowbreak{}line\_\allowbreak{}at\_\allowbreak{}x()}}, \manualpage{word:line-at-x}{139}{section*.54}}
 \othername{vstack}{\hyperref[dict:add-rows-from]{\code{table.\allowbreak{}add\_\allowbreak{}rows\_\allowbreak{}from()}}, \manualpage{word:table.add-rows-from}{236}{section*.271}}
 \letterhead{W}
+\othername{weighted\_mean}{\hyperref[dict:average-of]{\code{table.\allowbreak{}average\_\allowbreak{}of()}}, \manualpage{word:table.average-of}{187}{section*.175}}
 \othername{where}{\hyperref[dict:keep-rows]{\code{table.\allowbreak{}keep\_\allowbreak{}rows()}}, \manualpage{word:table.keep-rows}{167}{section*.129}}
 \othername{wilcox\_test}{\hyperref[dict:compare-averages]{\code{table.\allowbreak{}compare\_\allowbreak{}averages()}}, \manualpage{word:table.compare-averages}{195}{section*.189}}
 \othername{wilcoxon}{\hyperref[dict:compare-before-after]{\code{table.\allowbreak{}compare\_\allowbreak{}before\_\allowbreak{}after()}}, \manualpage{word:table.compare-before-after}{197}{section*.191}}
@@ -2982,6 +2986,8 @@ Names from pandas, Polars, R, NumPy, SciPy, matplotlib and seaborn, and everyday
 \othername{write\_csv}{\hyperref[dict:save]{\code{table.\allowbreak{}save()}}, \manualpage{word:table.save}{239}{section*.278}}
 \othername{write\_parquet}{\hyperref[dict:save]{\code{table.\allowbreak{}save()}}, \manualpage{word:table.save}{239}{section*.278}}
 \othername{write\_xlsx}{\hyperref[dict:save]{\code{table.\allowbreak{}save()}}, \manualpage{word:table.save}{239}{section*.278}}
+\othername{wtd\_mean}{\hyperref[dict:average-of]{\code{table.\allowbreak{}average\_\allowbreak{}of()}}, \manualpage{word:table.average-of}{187}{section*.175}}
+\othername{wtd\_var}{\hyperref[dict:average-of]{\code{table.\allowbreak{}average\_\allowbreak{}of()}}, \manualpage{word:table.average-of}{187}{section*.175}}
 \letterhead{X}
 \othername{xlabel}{\hyperref[dict:label-x]{\code{chart.\allowbreak{}label\_\allowbreak{}x()}}, \manualpage{word:label-x}{142}{section*.62}}
 \othername{xlim}{\hyperref[dict:range-x]{\code{chart.\allowbreak{}range\_\allowbreak{}x()}}, \manualpage{word:range-x}{144}{section*.70}}

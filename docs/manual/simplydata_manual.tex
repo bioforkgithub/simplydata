@@ -6339,7 +6339,7 @@ The average (mean) of a column; empty cells are skipped.
 \code{every=} groups a date column in \code{for\_\allowbreak{}each=} into \code{\textquotedbl{}hour\textquotedbl{}}, \code{\textquotedbl{}day\textquotedbl{}}, \code{\textquotedbl{}week\textquotedbl{}}, \code{\textquotedbl{}month\textquotedbl{}}, \code{\textquotedbl{}quarter\textquotedbl{}} or \code{\textquotedbl{}year\textquotedbl{}} periods:\\
 \codeline{table.make\_dates(\textquotedbl{}year\textquotedbl{})}\\
 \codeline{table.average\_of(\textquotedbl{}population\textquotedbl{}, for\_each=\textquotedbl{}year\textquotedbl{}, every=\textquotedbl{}year\textquotedbl{})} (with \code{sdata.\allowbreak{}example(\textquotedbl{}growth\textquotedbl{})})\\
-\code{interval=95} adds the 95 \% confidence interval of each average (the t interval, as R \code{t.\allowbreak{}test()}) and gives back a table with the average, the interval and the count.
+\code{interval=95} adds the 95 \% confidence interval of each average (the t interval, as R \code{t.\allowbreak{}test()}) and gives back a table with the average, the interval and the count. \code{weights=\textquotedbl{}people\textquotedbl{}} gives the weighted average: each row counts as much as its number in the column of weights (statsmodels DescrStatsW, as R \code{weighted.\allowbreak{}mean()}).
 
 \wordfield{Options}{}\par\nopagebreak
 \begin{optiontable}
@@ -6348,9 +6348,10 @@ The average (mean) of a column; empty cells are skipped.
 \code{every=} & \\
 \code{across=} & \\
 \code{interval=} & \\
+\code{weights=} & \\
 \end{optiontable}
 
-\wordfield{Underneath}{narwhals (group means); SciPy (stats.ttest\_1samp \code{confidence\_\allowbreak{}interval} for \code{interval=})}
+\wordfield{Underneath}{narwhals (group means); SciPy (stats.ttest\_1samp \code{confidence\_\allowbreak{}interval} for \code{interval=}); statsmodels (DescrStatsW for \code{weights=})}
 \wordfield{Example you can run}{(it uses the practice table \code{marks})}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -6450,7 +6451,7 @@ How spread out the numbers are: the sample standard deviation (divide by n - 1).
 
 It is the same as pandas .std() and R \code{sd()}. Empty cells are skipped.\\
 \codeline{table.standard\_deviation\_of(\textquotedbl{}marks\textquotedbl{}, for\_each=\textquotedbl{}class\textquotedbl{})} (with \code{sdata.\allowbreak{}example(\textquotedbl{}marks\textquotedbl{})})\\
-\code{across=} and \code{every=} work as in \code{average\_\allowbreak{}of}. \code{interval=95} adds the 95 \% confidence interval of each standard deviation (the chi-square interval of the variance from R DescTools::\code{VarCI()}, square-rooted; needs simplydata[r], as Python has no function for it). It assumes bell-shaped values.
+\code{across=} and \code{every=} work as in \code{average\_\allowbreak{}of}. \code{interval=95} adds the 95 \% confidence interval of each standard deviation (the chi-square interval of the variance from R DescTools::\code{VarCI()}, square-rooted; needs simplydata[r], as Python has no function for it). It assumes bell-shaped values. \code{weights=\textquotedbl{}people\textquotedbl{}} gives the weighted standard deviation. \code{weight\_\allowbreak{}kind=\textquotedbl{}frequency\textquotedbl{}} (the default) reads each weight as how many times the row counts (statsmodels DescrStatsW, divide by the total weight minus 1, as R \code{sqrt(Hmisc::wtd.\allowbreak{}var(x,\allowbreak{} w))}); \code{\textquotedbl{}analytic\textquotedbl{}} reads it as how precise the row is, such as the number of values behind an average (NumPy \code{cov(aweights=)}, as R \code{sqrt(Hmisc::wtd.\allowbreak{}var(x,\allowbreak{} w,\allowbreak{} normwt = TRUE))}).
 
 \wordfield{Options}{}\par\nopagebreak
 \begin{optiontable}
@@ -6459,9 +6460,11 @@ It is the same as pandas .std() and R \code{sd()}. Empty cells are skipped.\\
 \code{every=} & \\
 \code{across=} & \\
 \code{interval=} & \\
+\code{weights=} & \\
+\code{weight\_\allowbreak{}kind=} & normally \code{\textquotedbl{}frequency\textquotedbl{}}\\
 \end{optiontable}
 
-\wordfield{Underneath}{narwhals (group standard deviations); R DescTools::VarCI for \code{interval=} (simplydata[r])}
+\wordfield{Underneath}{narwhals (group standard deviations); R DescTools::VarCI for \code{interval=} (simplydata[r]); statsmodels DescrStatsW and NumPy \code{cov(aweights=)} for \code{weights=}}
 \wordfield{Example you can run}{(it uses the practice table \code{marks})}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -7590,7 +7593,7 @@ coins.chance(at_most=3)
 Fit a distribution to a column by maximum likelihood; gives back the fitted distribution.
 
 \codeline{fit = table.fit\_distribution(\textquotedbl{}sales\textquotedbl{}, \textquotedbl{}lognormal\textquotedbl{})} (with \code{sdata.\allowbreak{}example(\textquotedbl{}shop\textquotedbl{})})\\
-then \code{fit.\allowbreak{}chance(above=600)}, \code{fit.\allowbreak{}percentile(90)}, \code{fit.\allowbreak{}chart()}, and \code{fit.\allowbreak{}table()} for the result table (values, standard errors, log-likelihood, AIC, BIC, rows). As R MASS::\code{fitdistr(x,\allowbreak{} \textquotedbl{}gamma\textquotedbl{})} (fitdistrplus::fitdist for beta and others); standard errors from the observed information. Families without a location in R (gamma, weibull, lognormal, exponential, beta) keep it at 0, as R. \code{fixed=}\{\code{\textquotedbl{}shape\textquotedbl{}}: 2\} holds a parameter. With \code{for\_\allowbreak{}each=} it gives back a result table, one row per group. Empty cells are skipped.
+then \code{fit.\allowbreak{}chance(above=600)}, \code{fit.\allowbreak{}percentile(90)}, \code{fit.\allowbreak{}chart()}, and \code{fit.\allowbreak{}table()} for the result table (values, standard errors, log-likelihood, AIC, BIC, rows). As R MASS::\code{fitdistr(x,\allowbreak{} \textquotedbl{}gamma\textquotedbl{})} (fitdistrplus::fitdist for beta and others); standard errors from the observed information. Families without a location in R (gamma, weibull, lognormal, exponential, beta) keep it at 0, as R. \code{fixed=}\{\code{\textquotedbl{}shape\textquotedbl{}}: 2\} holds a parameter. With \code{for\_\allowbreak{}each=} it gives back a result table, one row per group. Empty cells are skipped. \code{\textquotedbl{}kernel density\textquotedbl{}} gives a smooth curve that follows the values, with no family chosen: SciPy \code{gaussian\_\allowbreak{}kde} with Silverman's bandwidth (statsmodels \code{bw\_\allowbreak{}silverman}), as R \code{density(x)}.
 
 \wordfield{Options}{}\par\nopagebreak
 \begin{optiontable}
@@ -7600,7 +7603,7 @@ then \code{fit.\allowbreak{}chance(above=600)}, \code{fit.\allowbreak{}percentil
 \code{fixed=} & \\
 \end{optiontable}
 
-\wordfield{Underneath}{SciPy (scipy.stats .fit and optimize, maximum likelihood; closed forms where they exist) and statsmodels (numdiff.approx\_hess3, for the standard errors)}
+\wordfield{Underneath}{SciPy (scipy.stats .fit and optimize, maximum likelihood; closed forms where they exist) and statsmodels (numdiff.approx\_hess3, for the standard errors); for \code{\textquotedbl{}kernel density\textquotedbl{}} SciPy \code{gaussian\_\allowbreak{}kde} with statsmodels \code{bw\_\allowbreak{}silverman}}
 \wordfield{Example you can run}{(it uses the practice table \code{shop})}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
