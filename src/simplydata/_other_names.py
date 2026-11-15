@@ -135,7 +135,7 @@ _TABLE = [
     ('table.compare_matched("week_0", "week_4", "week_8")', "friedman friedman_test friedmanchisquare cochrans_q "
                                                            "quade_test"),
     ('table.compare_shapes("marks", for_each="class")', "ks_2samp anderson_ksamp"),
-    ('table.compare_to_random_order("marks")', "runs_test runstest_1samp"),
+    ('table.check_random_order("marks")', "runs_test runstest_1samp"),
     ('table.compare_correlations("hours", "marks", for_each="class")', "cocor cocor_indep_groups compare_correlation"),
     ('table.correlation_between("hours", "marks", allowing_for="height")', "pcor pcor_test partial_corr partial_cor"),
     ('table.correlation_between("hours", "marks", method="somers") or method="gamma"',

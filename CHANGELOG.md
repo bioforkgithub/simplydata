@@ -73,9 +73,10 @@ nothing is computed anew.
   standard_deviation=15))` gives the one-sample Kolmogorov-Smirnov test (SciPy `ks_1samp`, as R
   `ks.test(x, "pnorm", 60, 15)`), and `test="cramer-von-mises"` the Cramer-von Mises test (SciPy, as
   R `goftest::cvm.test`).
-- `percent_of(..., method=)` and `compare_percent_to(..., method=)`: the interval of a percent
-  can be `"exact"` (Clopper-Pearson, the default), `"wilson"` or `"agresti-coull"` (statsmodels
-  `proportion_confint`, as R `DescTools::BinomCI`).
+- `percent_of(..., interval_by=)` and `compare_percent_to(..., interval_by=)`: the interval of a
+  percent can be `"exact"` (Clopper-Pearson, the default), `"wilson"` or `"agresti-coull"`
+  (statsmodels `proportion_confint`, as R `DescTools::BinomCI`). `interval_by=` is the same word
+  as on `correlation_between`; `method=` still works, with a note.
 
 ### Pairs after a test
 
@@ -112,7 +113,8 @@ nothing is computed anew.
   square-rooted). They then give back a table with the value, the interval and the count.
 - `table.interval_of("marks", "median", for_each="class")`: a bootstrap interval for any summary
   (any one-number `summary_of` measure, or a function of your own); `method="bootstrap"` (BCa),
-  `"percentile bootstrap"` or `"basic bootstrap"`.
+  `"percentile bootstrap"` or `"reverse percentile bootstrap"` (R's `type = "basic"`; the older
+  value `"basic bootstrap"` still works, with a note).
 - `summary_of(show=[...])` gains `"harmonic mean"` (SciPy `hmean`, as R `psych::harmonic.mean`)
   and `"winsorized average"` (20 % at each end, SciPy `mstats.winsorize`, as R `WRS2::winmean`).
 - `percentile_of(..., method=)`: R's nine rules, by R's number or NumPy's name (NumPy
@@ -126,8 +128,11 @@ nothing is computed anew.
   and `compare_average_to`: two one-sided tests (statsmodels `ttost_ind`, `ttost_paired`,
   `DescrStatsW.ttost_mean`, as R `TOSTER::t_TOST`), with the 90 % interval. The answer is one of
   three: the same within the margin, different, or the data cannot tell.
-- With `sides=1, higher="B"` it is a non-inferiority test: is B lower than the other side by no
+- `same_within=5, not_lower="B"` is a non-inferiority test: is B lower than the other side by no
   more than the margin? (statsmodels `CompareMeans`, as R `t.test(mu = ..., alternative = ...)`).
+  `not_higher="B"` is its mirror, for outcomes where lower is better (pain). The words say the
+  claim that is tested, which `higher="B"` did not; `sides=1, higher="B"` with `same_within=`
+  still works and a note gives the new spelling.
 
 ### Power
 
@@ -272,13 +277,15 @@ table).
   `ks.test`; with tied values R's exact p-value, which SciPy does not give, comes from R). Three or
   more: the Anderson-Darling k-sample test (SciPy `anderson_ksamp`, as R `kSamples::ad.test`
   version 2), with a p-value from shuffling the group labels 9999 times (seed 1).
-- `table.compare_to_random_order("marks", sorted_by=None)`: the runs test above and below the
+- `table.check_random_order("marks", sorted_by=None)`: the runs test above and below the
   median (statsmodels, as R `randtests::runs.test`, which leaves out values equal to the median; so
-  does simplydata, and says so).
-- `sdata.compare_averages(averages=, standard_deviations=, counts=)`: Welch's t-test (SciPy
+  does simplydata, and says so). Next to `check_steady`; the earlier name `compare_to_random_order`
+  still works, with a note.
+- `sdata.compare_averages(averages=, standard_deviations=, counts=, names=)`: Welch's t-test (SciPy
   `ttest_ind_from_stats`, as R `BSDA::tsum.test`, whose interval of the difference simplydata uses)
   or, for three or more groups, Welch's ANOVA (statsmodels `anova_generic`, the same as R
-  `oneway.test` on the rows), from the summary numbers of a paper or report.
+  `oneway.test` on the rows), from the summary numbers of a paper or report. `names=` names the
+  groups (as on `add_group_column`; `groups=` still works, with a note).
 - `sdata.compare_counts([[20, 40], [30, 30]])`: `compare_counts` on a table of counts.
 
 ### Effect sizes with their intervals, from R effectsize

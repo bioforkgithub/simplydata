@@ -91,7 +91,8 @@ def resample_p(samples, statistic, kind="independent", alternative="two-sided", 
 
 def bootstrap_interval(samples, statistic, level=95, method="bca", resamples=RESAMPLES, seed=1, paired=False,
                        vectorized=True):
-    """(low, high, words) from SciPy stats.bootstrap. method="bca" (default), "percentile" or "basic"."""
+    """(low, high, words) from SciPy stats.bootstrap. method="bca" (default), "percentile" or "basic" (the
+    reverse percentile interval; SciPy and R call it "basic")."""
     from scipy import stats
 
     check_seed_and_count(seed, resamples, "resamples")
@@ -104,7 +105,8 @@ def bootstrap_interval(samples, statistic, level=95, method="bca", resamples=RES
                                  method=BOOTSTRAP_METHODS[method], paired=paired, vectorized=vectorized,
                                  rng=np.random.default_rng(int(seed)))
     low, high = (float(v) for v in (result.confidence_interval.low, result.confidence_interval.high))
-    name = {"bca": "bias-corrected and accelerated (BCa)", "percentile": "percentile", "basic": "basic"}[method]
+    name = {"bca": "bias-corrected and accelerated (BCa)", "percentile": "percentile",
+            "basic": "reverse percentile"}[method]
     words = (f"{_level(level)} % bootstrap interval ({name}): the rows were drawn again at random, with "
              f"replacement, {int(resamples)} times (seed {int(seed)}), as R boot::boot.ci(type = "
              f"\"{'bca' if method == 'bca' else 'perc' if method == 'percentile' else 'basic'}\")")

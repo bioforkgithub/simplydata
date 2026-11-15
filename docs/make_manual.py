@@ -187,7 +187,7 @@ UNDERNEATH = {
                              "(simplydata[r])",
     "table.compare_shapes": "SciPy (stats.ks_2samp; stats.anderson_ksamp with a PermutationMethod); R ks.test for "
                             "the exact p-value with tied values (simplydata[r])",
-    "table.compare_to_random_order": "statsmodels (sandbox.stats.runs.Runs, runs_test, as runstest_1samp)",
+    "table.check_random_order": "statsmodels (sandbox.stats.runs.Runs, runs_test, as runstest_1samp)",
     "sdata.compare_averages": "SciPy (stats.ttest_ind_from_stats); statsmodels (stats.oneway.anova_generic); R "
                               "BSDA::tsum.test for the interval of the difference (simplydata[r])",
     "sdata.compare_counts": "SciPy (stats.chi2_contingency, fisher_exact; contingency.association), as "

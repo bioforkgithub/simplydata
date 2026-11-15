@@ -6450,7 +6450,7 @@ What percent of the rows meet a condition, or each group's share.
 With a condition (the same words as \code{keep\_\allowbreak{}rows}: above, below, \code{at\_\allowbreak{}least}, \code{at\_\allowbreak{}most}, \code{equal\_\allowbreak{}to}, \code{not\_\allowbreak{}equal\_\allowbreak{}to}, between, \code{one\_\allowbreak{}of}, contains, \code{starts\_\allowbreak{}with}, \code{ends\_\allowbreak{}with}, \code{is\_\allowbreak{}empty}): the percent of rows that meet it, out of the rows with a value in the column, with its 95 \% confidence interval (Clopper-Pearson exact interval, as R binom.test). Without a condition:\\
 \codeline{table.percent\_of(for\_each=\textquotedbl{}class\textquotedbl{})}\enspace each group's percent of all rows\\
 \codeline{table.percent\_of(\textquotedbl{}count\textquotedbl{}, for\_each=\textquotedbl{}shop\textquotedbl{})}\enspace each group's share of the total of a\\
-column   (with \code{sdata.\allowbreak{}example(\textquotedbl{}fruit\textquotedbl{})}) Percents go from 0 to 100. Without \code{for\_\allowbreak{}each=} you get one number; with it a new table. \code{method=} chooses the 95 \% interval of a percent: \code{\textquotedbl{}exact\textquotedbl{}} (Clopper-Pearson, the default, as R \code{binom.\allowbreak{}test()}), \code{\textquotedbl{}wilson\textquotedbl{}} (Wilson score) or \code{\textquotedbl{}agresti-coull\textquotedbl{}}; the last two from statsmodels \code{proportion\_\allowbreak{}confint}, as R DescTools::\code{BinomCI()}.
+column   (with \code{sdata.\allowbreak{}example(\textquotedbl{}fruit\textquotedbl{})}) Percents go from 0 to 100. Without \code{for\_\allowbreak{}each=} you get one number; with it a new table. \code{interval\_\allowbreak{}by=} chooses the 95 \% interval of a percent: \code{\textquotedbl{}exact\textquotedbl{}} (Clopper-Pearson, the default, as R \code{binom.\allowbreak{}test()}), \code{\textquotedbl{}wilson\textquotedbl{}} (Wilson score) or \code{\textquotedbl{}agresti-coull\textquotedbl{}}; the last two from statsmodels \code{proportion\_\allowbreak{}confint}, as R DescTools::\code{BinomCI()}.
 
 \wordfield{Options}{}\par\nopagebreak
 \begin{optiontable}
@@ -6469,7 +6469,7 @@ column   (with \code{sdata.\allowbreak{}example(\textquotedbl{}fruit\textquotedb
 \code{starts\_\allowbreak{}with=} & \\
 \code{ends\_\allowbreak{}with=} & \\
 \code{is\_\allowbreak{}empty=} & \\
-\code{method=} & normally \code{\textquotedbl{}exact\textquotedbl{}}\\
+\code{interval\_\allowbreak{}by=} & normally \code{\textquotedbl{}exact\textquotedbl{}}\\
 \end{optiontable}
 
 \wordfield{Underneath}{narwhals; SciPy (stats.binomtest, the Clopper-Pearson exact interval)}
@@ -6547,7 +6547,7 @@ table.most_common_of("days_absent", for_each="school")
 A confidence interval for any summary, from the bootstrap.
 
 \codeline{table.interval\_of(\textquotedbl{}marks\textquotedbl{}, \textquotedbl{}median\textquotedbl{}, for\_each=\textquotedbl{}class\textquotedbl{})} (with \code{sdata.\allowbreak{}example(\textquotedbl{}marks\textquotedbl{})})\\
-\code{summary=} is any one-number measure of \code{summary\_\allowbreak{}of()} (\code{\textquotedbl{}average\textquotedbl{}}, \code{\textquotedbl{}median\textquotedbl{}}, \code{\textquotedbl{}standard deviation\textquotedbl{}}, \code{\textquotedbl{}trimmed average 20\textquotedbl{}}, \code{\textquotedbl{}percentile 90\textquotedbl{}}, \code{\textquotedbl{}coefficient of variation\textquotedbl{}}, ...) or a function of your own that gets the numbers (a NumPy array) and gives back one number. The bootstrap draws the rows again at random, with replacement, \code{resamples=9999} times (\code{seed=1}, printed; the same seed gives the same interval) and works out the summary each time; SciPy stats.bootstrap, as R boot::\code{boot.\allowbreak{}ci()}. \code{method=\textquotedbl{}bootstrap\textquotedbl{}} is the bias-corrected and accelerated (BCa) interval, the usual choice; \code{\textquotedbl{}percentile bootstrap\textquotedbl{}} and \code{\textquotedbl{}basic bootstrap\textquotedbl{}} are the other two. With fewer than 20 values a note says the interval is often too narrow. Gives back one row per group: the summary, the interval and the count.
+\code{summary=} is any one-number measure of \code{summary\_\allowbreak{}of()} (\code{\textquotedbl{}average\textquotedbl{}}, \code{\textquotedbl{}median\textquotedbl{}}, \code{\textquotedbl{}standard deviation\textquotedbl{}}, \code{\textquotedbl{}trimmed average 20\textquotedbl{}}, \code{\textquotedbl{}percentile 90\textquotedbl{}}, \code{\textquotedbl{}coefficient of variation\textquotedbl{}}, ...) or a function of your own that gets the numbers (a NumPy array) and gives back one number. The bootstrap draws the rows again at random, with replacement, \code{resamples=9999} times (\code{seed=1}, printed; the same seed gives the same interval) and works out the summary each time; SciPy stats.bootstrap, as R boot::\code{boot.\allowbreak{}ci()}. \code{method=\textquotedbl{}bootstrap\textquotedbl{}} is the bias-corrected and accelerated (BCa) interval, the usual choice; \code{\textquotedbl{}percentile bootstrap\textquotedbl{}} and \code{\textquotedbl{}reverse percentile bootstrap\textquotedbl{}} (R's \code{\textquotedbl{}basic\textquotedbl{}}) are the other two. With fewer than 20 values a note says the interval is often too narrow. Gives back one row per group: the summary, the interval and the count.
 
 \wordfield{Options}{}\par\nopagebreak
 \begin{optiontable}
@@ -6606,7 +6606,7 @@ Are the averages of the groups really different?
 \codeline{table.compare\_averages(\textquotedbl{}marks\textquotedbl{}, for\_each=\textquotedbl{}class\textquotedbl{})} (with \code{sdata.\allowbreak{}example(\textquotedbl{}marks\textquotedbl{})})\\
 Two groups: Welch's t-test (the R \code{t.\allowbreak{}test()} default). Three or more: Welch's one-way ANOVA (the R \code{oneway.\allowbreak{}test()} default). Neither needs the groups to have the same spread. \code{based\_\allowbreak{}on=\textquotedbl{}ranks\textquotedbl{}} uses ranks instead (Mann-Whitney U or Kruskal-Wallis): safer when groups are small and their values are not bell-shaped. \code{test=} chooses another test: \code{\textquotedbl{}welch\textquotedbl{}}, \code{\textquotedbl{}student\textquotedbl{}}, \code{\textquotedbl{}welch anova\textquotedbl{}}, \code{\textquotedbl{}anova\textquotedbl{}}, \code{\textquotedbl{}mann-whitney\textquotedbl{}} or \code{\textquotedbl{}kruskal-wallis\textquotedbl{}}; and \code{\textquotedbl{}yuen\textquotedbl{}} (Yuen's test of 20 \% trimmed averages, R WRS2::yuen, SciPy \code{ttest\_\allowbreak{}ind(trim=0.\allowbreak{}2)}), \code{\textquotedbl{}brunner-munzel\textquotedbl{}} (R brunnermunzel.test, SciPy brunnermunzel), \code{\textquotedbl{}alexander-govern\textquotedbl{}} (3 or more groups with different spreads, R onewaytests::ag.test, SciPy alexandergovern) or \code{\textquotedbl{}median\textquotedbl{}} (Mood's median test, SciPy \code{median\_\allowbreak{}test}, as R chisq.test on the counts above and not above the overall median). Prints the answer in words (with the test used and why) and gives back a one-row table of results. The effect size says how big the difference is: Hedges' g (the difference in standard deviations) for 2 groups, omega-squared (the share of the differences explained by the groups) for 3 or more. Each group is checked for a bell shape (Shapiro-Wilk) and a note says if it does not look like one; with 30 or more values that matters little (the central limit theorem). To see which groups differ, use \code{compare\_\allowbreak{}each\_\allowbreak{}pair()}. \code{sides=1}, \code{higher=\textquotedbl{}B\textquotedbl{}} (or \code{lower=\textquotedbl{}A\textquotedbl{}}) tests in one direction only (2 groups): that B is higher, as decided before seeing the data (R \code{t.\allowbreak{}test(alternative = .\allowbreak{}.\allowbreak{}.\allowbreak{})}, wilcox.test(\\
 \codeline{alternative = ...)); the 95 \% interval is then one-sided too. R's and SciPy's}\\
-\code{alternative=} is accepted. \code{p\_\allowbreak{}value\_\allowbreak{}by=\textquotedbl{}shuffling\textquotedbl{}} (2 groups, averages): the p-value comes from shuffling the group labels \code{shuffles=9999} times (\code{seed=1}) and counting how often the difference in averages is as big as the one in the data (SciPy \code{permutation\_\allowbreak{}test}, as R perm::\code{permTS()}). When there are no more arrangements than shuffles, every one is counted and the p-value is exact. \code{same\_\allowbreak{}within=5} (2 groups) asks whether the averages are the same within 5 (or within [-3, 5]): two one-sided tests (TOST, Welch; statsmodels \code{ttost\_\allowbreak{}ind}, as R TOSTER::\code{t\_\allowbreak{}TOST()}), with the 90 \% interval. The answer is one of three: the same within the margin, different, or the data cannot tell. With \code{sides=1}, \code{higher=\textquotedbl{}B\textquotedbl{}} it is a non-inferiority test: is B lower than A by no more than 5?
+\code{alternative=} is accepted. \code{p\_\allowbreak{}value\_\allowbreak{}by=\textquotedbl{}shuffling\textquotedbl{}} (2 groups, averages): the p-value comes from shuffling the group labels \code{shuffles=9999} times (\code{seed=1}) and counting how often the difference in averages is as big as the one in the data (SciPy \code{permutation\_\allowbreak{}test}, as R perm::\code{permTS()}). When there are no more arrangements than shuffles, every one is counted and the p-value is exact. \code{same\_\allowbreak{}within=5} (2 groups) asks whether the averages are the same within 5 (or within [-3, 5]): two one-sided tests (TOST, Welch; statsmodels \code{ttost\_\allowbreak{}ind}, as R TOSTER::\code{t\_\allowbreak{}TOST()}), with the 90 \% interval. The answer is one of three: the same within the margin, different, or the data cannot tell. \code{same\_\allowbreak{}within=5}, \code{not\_\allowbreak{}lower=\textquotedbl{}B\textquotedbl{}} is a non-inferiority test: is B lower than A by no more than 5? (one-sided; as R TOSTER::\code{t\_\allowbreak{}TOST(hypothesis = \textquotedbl{}MET\textquotedbl{})}). \code{not\_\allowbreak{}higher=\textquotedbl{}B\textquotedbl{}} asks whether B is higher by no more than 5, for outcomes where lower is better, such as pain.
 
 \wordfield{Options}{}\par\nopagebreak
 \begin{optiontable}
@@ -6622,6 +6622,8 @@ Two groups: Welch's t-test (the R \code{t.\allowbreak{}test()} default). Three o
 \code{shuffles=} & normally \code{9999}\\
 \code{seed=} & normally \code{1}\\
 \code{same\_\allowbreak{}within=} & \\
+\code{not\_\allowbreak{}lower=} & \\
+\code{not\_\allowbreak{}higher=} & \\
 \code{in\_\allowbreak{}order=} & \\
 \end{optiontable}
 
@@ -6663,7 +6665,7 @@ table.compare_each_pair("marks", for_each="class")
 Did the values really change from one column to the other, row by row?
 
 \codeline{table.compare\_before\_after(\textquotedbl{}Maths\textquotedbl{}, \textquotedbl{}Science\textquotedbl{})} (with \code{sdata.\allowbreak{}example(\textquotedbl{}marks\textquotedbl{})})\\
-For two measurements of the same thing, such as each child's mark before and after a course. Uses the change in each row (after minus before): a paired t-test, or the Wilcoxon signed-rank test with \code{based\_\allowbreak{}on=\textquotedbl{}ranks\textquotedbl{}}. Rows with an empty cell in either column are skipped. Effect size: Cohen's \code{d\_\allowbreak{}z}, the average change in standard deviations of the changes. Gives back a one-row table of results. \code{sides=1}, \code{higher=\textquotedbl{}after\textquotedbl{}} (or \code{\textquotedbl{}before\textquotedbl{}}; \code{lower=} is the mirror: \code{lower=\textquotedbl{}before\textquotedbl{}} is the same as \code{higher=\textquotedbl{}after\textquotedbl{}}) tests in one direction only, as decided before seeing the data (R \code{t.\allowbreak{}test(after,\allowbreak{} before,\allowbreak{} paired = TRUE,\allowbreak{} alternative = \textquotedbl{}greater\textquotedbl{})}). \code{test=\textquotedbl{}sign\textquotedbl{}}: the sign test, which only counts ups and downs (statsmodels \code{sign\_\allowbreak{}test}, as R DescTools::\code{SignTest()}). The kind of column decides the test, and the sentence says so: yes/no columns (two values, such as \code{\textquotedbl{}yes\textquotedbl{}}/\code{\textquotedbl{}no\textquotedbl{}}, True/False or 0/1): McNemar's test with continuity correction (statsmodels mcnemar, as R \code{mcnemar.\allowbreak{}test()}), with the change in the percent and its 95 \% interval from R exact2x2::\code{mcnemarExactDP()}; \code{p\_\allowbreak{}value\_\allowbreak{}by=\textquotedbl{}exact\textquotedbl{}} gives the exact binomial test on the rows that changed (as R exact2x2::\code{exact2x2(paired = TRUE)}). columns of 3 or more categories (such as mild / moderate / severe): Bowker's test of symmetry (statsmodels \code{SquareTable.\allowbreak{}symmetry()}, as R \code{mcnemar.\allowbreak{}test()} on the k x k table). \code{p\_\allowbreak{}value\_\allowbreak{}by=\textquotedbl{}shuffling\textquotedbl{}} (numbers, averages): the p-value comes from swapping the two values within rows at random \code{shuffles=9999} times (\code{seed=1}), which flips the sign of each change, and counting how often the average change is as big as the one in the data (SciPy \code{permutation\_\allowbreak{}test}). With few rows every arrangement is counted, and the p-value is exact. \code{same\_\allowbreak{}within=5} (numbers) asks whether the average change is within -5 to 5 (or [-3, 5]): two one-sided tests on the changes (statsmodels \code{ttost\_\allowbreak{}paired}, as R TOSTER::\code{t\_\allowbreak{}TOST(paired = TRUE)}); with \code{sides=1}, \code{higher=\textquotedbl{}after\textquotedbl{}} a non-inferiority test.
+For two measurements of the same thing, such as each child's mark before and after a course. Uses the change in each row (after minus before): a paired t-test, or the Wilcoxon signed-rank test with \code{based\_\allowbreak{}on=\textquotedbl{}ranks\textquotedbl{}}. Rows with an empty cell in either column are skipped. Effect size: Cohen's \code{d\_\allowbreak{}z}, the average change in standard deviations of the changes. Gives back a one-row table of results. \code{sides=1}, \code{higher=\textquotedbl{}after\textquotedbl{}} (or \code{\textquotedbl{}before\textquotedbl{}}; \code{lower=} is the mirror: \code{lower=\textquotedbl{}before\textquotedbl{}} is the same as \code{higher=\textquotedbl{}after\textquotedbl{}}) tests in one direction only, as decided before seeing the data (R \code{t.\allowbreak{}test(after,\allowbreak{} before,\allowbreak{} paired = TRUE,\allowbreak{} alternative = \textquotedbl{}greater\textquotedbl{})}). \code{test=\textquotedbl{}sign\textquotedbl{}}: the sign test, which only counts ups and downs (statsmodels \code{sign\_\allowbreak{}test}, as R DescTools::\code{SignTest()}). The kind of column decides the test, and the sentence says so: yes/no columns (two values, such as \code{\textquotedbl{}yes\textquotedbl{}}/\code{\textquotedbl{}no\textquotedbl{}}, True/False or 0/1): McNemar's test with continuity correction (statsmodels mcnemar, as R \code{mcnemar.\allowbreak{}test()}), with the change in the percent and its 95 \% interval from R exact2x2::\code{mcnemarExactDP()}; \code{p\_\allowbreak{}value\_\allowbreak{}by=\textquotedbl{}exact\textquotedbl{}} gives the exact binomial test on the rows that changed (as R exact2x2::\code{exact2x2(paired = TRUE)}). columns of 3 or more categories (such as mild / moderate / severe): Bowker's test of symmetry (statsmodels \code{SquareTable.\allowbreak{}symmetry()}, as R \code{mcnemar.\allowbreak{}test()} on the k x k table). \code{p\_\allowbreak{}value\_\allowbreak{}by=\textquotedbl{}shuffling\textquotedbl{}} (numbers, averages): the p-value comes from swapping the two values within rows at random \code{shuffles=9999} times (\code{seed=1}), which flips the sign of each change, and counting how often the average change is as big as the one in the data (SciPy \code{permutation\_\allowbreak{}test}). With few rows every arrangement is counted, and the p-value is exact. \code{same\_\allowbreak{}within=5} (numbers) asks whether the average change is within -5 to 5 (or [-3, 5]): two one-sided tests on the changes (statsmodels \code{ttost\_\allowbreak{}paired}, as R TOSTER::\code{t\_\allowbreak{}TOST(paired = TRUE)}); \code{same\_\allowbreak{}within=5}, \code{not\_\allowbreak{}lower=\textquotedbl{}after\textquotedbl{}} is a non-inferiority test (the after values no more than 5 lower), and \code{not\_\allowbreak{}higher=\textquotedbl{}after\textquotedbl{}} its mirror (no more than 5 higher).
 
 \wordfield{Options}{}\par\nopagebreak
 \begin{optiontable}
@@ -6679,6 +6681,8 @@ For two measurements of the same thing, such as each child's mark before and aft
 \code{shuffles=} & normally \code{9999}\\
 \code{seed=} & normally \code{1}\\
 \code{same\_\allowbreak{}within=} & \\
+\code{not\_\allowbreak{}lower=} & \\
+\code{not\_\allowbreak{}higher=} & \\
 \end{optiontable}
 
 \wordfield{Underneath}{SciPy (stats.ttest\_rel or stats.wilcoxon); statsmodels (\code{contingency\_\allowbreak{}tables}.mcnemar for yes/no columns, SquareTable.symmetry for categories, \code{sign\_\allowbreak{}test}); R exact2x2::mcnemarExactDP for the change in percent (simplydata[r]); statsmodels \code{ttost\_\allowbreak{}paired} for \code{same\_\allowbreak{}within=}; SciPy \code{permutation\_\allowbreak{}test} for \code{p\_\allowbreak{}value\_\allowbreak{}by=\textquotedbl{}shuffling\textquotedbl{}}}
@@ -6696,7 +6700,7 @@ Is the average of a column really different from a number you choose?
 \codeline{table.compare\_average\_to(\textquotedbl{}marks\textquotedbl{}, 60)} (with \code{sdata.\allowbreak{}example(\textquotedbl{}marks\textquotedbl{})})\\
 A one-sample t-test, or the Wilcoxon signed-rank test (on the median) with \code{based\_\allowbreak{}on=\textquotedbl{}ranks\textquotedbl{}}. Empty cells are skipped. Effect size: Cohen's d, the difference in standard deviations. Gives back a one-row table of results. \code{test=\textquotedbl{}z\textquotedbl{}} with \code{standard\_\allowbreak{}deviation=10}: the z-test, for when the spread of the values is known beforehand (not worked out from these values), run in R (BSDA::\code{z.\allowbreak{}test()}). \code{sides=1}, \code{higher=\textquotedbl{}average\textquotedbl{}} (the average is above the number) or \code{lower=\textquotedbl{}average\textquotedbl{}} (below it) tests in one direction only, as decided before seeing the data (R t.test(x, mu = 60,\\
 \codeline{alternative = \textquotedbl{}greater\textquotedbl{})).}\\
-\code{same\_\allowbreak{}within=5} asks whether the average is within 5 of the number: two one-sided tests (statsmodels DescrStatsW.ttost\_mean, as R TOSTER::\code{t\_\allowbreak{}TOST(x - 60,\allowbreak{} eqb = 5)}); with \code{sides=1}, \code{higher=\textquotedbl{}average\textquotedbl{}} a non-inferiority test (the average no more than 5 below the number).
+\code{same\_\allowbreak{}within=5} asks whether the average is within 5 of the number: two one-sided tests (statsmodels DescrStatsW.ttost\_mean, as R TOSTER::\code{t\_\allowbreak{}TOST(x - 60,\allowbreak{} eqb = 5)}); \code{same\_\allowbreak{}within=5}, \code{not\_\allowbreak{}lower=\textquotedbl{}average\textquotedbl{}} is a non-inferiority test (the average no more than 5 below the number), and \code{not\_\allowbreak{}higher=\textquotedbl{}average\textquotedbl{}} its mirror (no more than 5 above it).
 
 \wordfield{Options}{}\par\nopagebreak
 \begin{optiontable}
@@ -6708,6 +6712,8 @@ A one-sample t-test, or the Wilcoxon signed-rank test (on the median) with \code
 \code{lower=} & \\
 \code{alternative=} & \\
 \code{same\_\allowbreak{}within=} & \\
+\code{not\_\allowbreak{}lower=} & \\
+\code{not\_\allowbreak{}higher=} & \\
 \code{test=} & \\
 \code{standard\_\allowbreak{}deviation=} & \\
 \end{optiontable}
@@ -6842,7 +6848,7 @@ table.compare_counts_to("breakfast", expected={"yes": 0.6, "no": 0.4})
 Is the percent of rows with one value really different from a percent you choose?
 
 \codeline{table.compare\_percent\_to(\textquotedbl{}passed\textquotedbl{}, value=\textquotedbl{}yes\textquotedbl{}, percent=50)} (with \code{sdata.\allowbreak{}example(\textquotedbl{}school\textquotedbl{})})\\
-The exact binomial test (as R \code{binom.\allowbreak{}test(x,\allowbreak{} n,\allowbreak{} p)}), with the exact Clopper-Pearson 95 \% interval of the percent (as \code{percent\_\allowbreak{}of()}). Percents go from 0 to 100. For a yes/no column (yes/no, True/False or 1/0) \code{value=} may be left out: \code{\textquotedbl{}yes\textquotedbl{}} (True, 1) is counted. Empty cells are skipped. Effect size: Cohen's h, the difference between the two shares on the arcsine scale (0.2 small, 0.5 medium, 0.8 large). Gives back a one-row table of results. \code{sides=1}, \code{higher=\textquotedbl{}percent\textquotedbl{}} (the data's percent is above \code{percent=}) or \code{lower=\textquotedbl{}percent\textquotedbl{}} (below it) tests in one direction only (R \code{binom.\allowbreak{}test(alternative = \textquotedbl{}greater\textquotedbl{})}). \code{method=} chooses the 95 \% interval of the percent: \code{\textquotedbl{}exact\textquotedbl{}} (Clopper-Pearson, the default), \code{\textquotedbl{}wilson\textquotedbl{}} (Wilson score, SciPy) or \code{\textquotedbl{}agresti-coull\textquotedbl{}} (statsmodels \code{proportion\_\allowbreak{}confint}), each as R DescTools::\code{BinomCI()}; the test stays the exact binomial test.
+The exact binomial test (as R \code{binom.\allowbreak{}test(x,\allowbreak{} n,\allowbreak{} p)}), with the exact Clopper-Pearson 95 \% interval of the percent (as \code{percent\_\allowbreak{}of()}). Percents go from 0 to 100. For a yes/no column (yes/no, True/False or 1/0) \code{value=} may be left out: \code{\textquotedbl{}yes\textquotedbl{}} (True, 1) is counted. Empty cells are skipped. Effect size: Cohen's h, the difference between the two shares on the arcsine scale (0.2 small, 0.5 medium, 0.8 large). Gives back a one-row table of results. \code{sides=1}, \code{higher=\textquotedbl{}percent\textquotedbl{}} (the data's percent is above \code{percent=}) or \code{lower=\textquotedbl{}percent\textquotedbl{}} (below it) tests in one direction only (R \code{binom.\allowbreak{}test(alternative = \textquotedbl{}greater\textquotedbl{})}). \code{interval\_\allowbreak{}by=} chooses the 95 \% interval of the percent: \code{\textquotedbl{}exact\textquotedbl{}} (Clopper-Pearson, the default), \code{\textquotedbl{}wilson\textquotedbl{}} (Wilson score, SciPy) or \code{\textquotedbl{}agresti-coull\textquotedbl{}} (statsmodels \code{proportion\_\allowbreak{}confint}), each as R DescTools::\code{BinomCI()}; the test stays the exact binomial test.
 
 \wordfield{Options}{}\par\nopagebreak
 \begin{optiontable}
@@ -6853,7 +6859,7 @@ The exact binomial test (as R \code{binom.\allowbreak{}test(x,\allowbreak{} n,\a
 \code{higher=} & \\
 \code{lower=} & \\
 \code{alternative=} & \\
-\code{method=} & normally \code{\textquotedbl{}exact\textquotedbl{}}\\
+\code{interval\_\allowbreak{}by=} & normally \code{\textquotedbl{}exact\textquotedbl{}}\\
 \end{optiontable}
 
 \wordfield{Underneath}{SciPy (stats.binomtest, the Clopper-Pearson exact interval)}
@@ -6906,11 +6912,11 @@ import simplydata as sdata
 table = sdata.table(sdata.example("marks"))
 table.compare_shapes("marks", for_each="class")
 \end{lstlisting}
-\wordentry{table.compare\_to\_random\_order()}{word:table.compare-to-random-order}
+\wordentry{table.check\_random\_order()}{word:table.check-random-order}
 Do the values come in a random order, or in clumps or waves?
 
-\codeline{table.compare\_to\_random\_order(\textquotedbl{}marks\textquotedbl{})}\enspace (the rows in table order)\\
-\codeline{table.compare\_to\_random\_order(\textquotedbl{}weight\textquotedbl{}, sorted\_by=\textquotedbl{}date\textquotedbl{})}\\
+\codeline{table.check\_random\_order(\textquotedbl{}marks\textquotedbl{})}\enspace (the rows in table order)\\
+\codeline{table.check\_random\_order(\textquotedbl{}weight\textquotedbl{}, sorted\_by=\textquotedbl{}date\textquotedbl{})}\\
 The runs test: each value is above or below the median, and a run is an unbroken stretch on one side. Too few runs means values clump together (a trend or waves); too many means they flip back and forth. Values equal to the median are left out, as R randtests::\code{runs.\allowbreak{}test()} does (printed). statsmodels \code{runstest\_\allowbreak{}1samp(correction=False)}, the same numbers as R. Empty cells are skipped. Gives back a one-row table.
 
 \wordfield{Options}{}\par\nopagebreak
@@ -6924,7 +6930,7 @@ The runs test: each value is above or below the median, and a run is an unbroken
 \begin{lstlisting}[style=py]
 import simplydata as sdata
 table = sdata.table(sdata.example("marks"))
-table.compare_to_random_order("marks")
+table.check_random_order("marks")
 \end{lstlisting}
 \wordentry{table.compare\_correlations()}{word:table.compare-correlations}
 Is one correlation stronger than another?
@@ -6951,7 +6957,7 @@ table.compare_correlations("hours", "marks", for_each="class")
 Are the averages of the groups different? From the summary numbers of each group.
 
 \codeline{sdata.compare\_averages(averages=[63.2, 68.9], standard\_deviations=[8.1, 9.0], counts=[20, 22])}\\
-For when only the summary numbers are given (a paper, a report), not the rows. Two groups: Welch's t-test (SciPy \code{ttest\_\allowbreak{}ind\_\allowbreak{}from\_\allowbreak{}stats}, as R BSDA::\code{tsum.\allowbreak{}test()}), with the 95 \% interval of the difference from R (BSDA::\code{tsum.\allowbreak{}test()}, simplydata[r]). Three or more groups: Welch's one-way ANOVA (statsmodels \code{anova\_\allowbreak{}generic}, the same numbers as R \code{oneway.\allowbreak{}test()} on the rows). \code{test=\textquotedbl{}student\textquotedbl{}} (two groups) or \code{test=\textquotedbl{}anova\textquotedbl{}} (three or more) assume the groups have the same spread. \code{groups=} names the groups (default \code{\textquotedbl{}group 1\textquotedbl{}}, \code{\textquotedbl{}group 2\textquotedbl{}}, ...). With the rows at hand use\\
+For when only the summary numbers are given (a paper, a report), not the rows. Two groups: Welch's t-test (SciPy \code{ttest\_\allowbreak{}ind\_\allowbreak{}from\_\allowbreak{}stats}, as R BSDA::\code{tsum.\allowbreak{}test()}), with the 95 \% interval of the difference from R (BSDA::\code{tsum.\allowbreak{}test()}, simplydata[r]). Three or more groups: Welch's one-way ANOVA (statsmodels \code{anova\_\allowbreak{}generic}, the same numbers as R \code{oneway.\allowbreak{}test()} on the rows). \code{test=\textquotedbl{}student\textquotedbl{}} (two groups) or \code{test=\textquotedbl{}anova\textquotedbl{}} (three or more) assume the groups have the same spread. \code{names=} names the groups (default \code{\textquotedbl{}group 1\textquotedbl{}}, \code{\textquotedbl{}group 2\textquotedbl{}}, ...). With the rows at hand use\\
 \codeline{table.compare\_averages(...), which also gives the effect size. Gives back a one-row table.}
 
 \wordfield{Options}{}\par\nopagebreak
@@ -6959,7 +6965,7 @@ For when only the summary numbers are given (a paper, a report), not the rows. T
 \code{averages=} & \\
 \code{standard\_\allowbreak{}deviations=} & \\
 \code{counts=} & \\
-\code{groups=} & \\
+\code{names=} & \\
 \code{test=} & \\
 \end{optiontable}
 
@@ -10526,6 +10532,7 @@ Every word and option, A to Z, with the page of its dictionary entry. Other spel
 \indexline{word:nums.chart}{nums.chart()}
 \indexline{word:sdata.chart}{sdata.chart()}
 \indexline{word:table.chart}{table.chart()}
+\indexline{word:table.check-random-order}{table.check\_random\_order()}
 \indexline{word:colour}{chart.color()}
 \indexline{word:colour-scale}{chart.color\_scale()}
 \indexline{word:colours}{chart.colors()}
@@ -10557,7 +10564,6 @@ Every word and option, A to Z, with the page of its dictionary entry. Other spel
 \indexline{word:table.compare-shapes}{table.compare\_shapes()}
 \indexline{word:table.compare-spreads}{table.compare\_spreads()}
 \indexline{word:table.compare-survival}{table.compare\_survival()}
-\indexline{word:table.compare-to-random-order}{table.compare\_to\_random\_order()}
 \indexline{word:sdata.compare-to-truth}{sdata.compare\_to\_truth()}
 \indexline{word:table.compare-to-truth}{table.compare\_to\_truth()}
 \indexline{word:contour}{chart.contour()}

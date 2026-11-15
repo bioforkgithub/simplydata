@@ -295,7 +295,7 @@ def _p_clause(p: float, if_none: str = "there were truly none", shown: str | Non
     return f"{_studies(p)} studies would show this much if {if_none} ({shown or _p_shown(p)})"
 
 
-# method= of percent_of and compare_percent_to: the 95 % interval of a percent
+# interval_by= of percent_of and compare_percent_to: the 95 % interval of a percent (method= is its old name)
 # name -> (name in sentences, statsmodels proportion_confint method); each as R DescTools::BinomCI()
 PERCENT_METHODS = {
     "exact": ("exact Clopper-Pearson interval", "beta"),
@@ -307,18 +307,18 @@ PERCENT_METHOD_ALIASES = {"clopper-pearson": "exact", "clopper pearson": "exact"
 
 
 def _percent_method(step: str, method):
-    """The method= of a percent interval, checked ("exact", "wilson" or "agresti-coull")."""
+    """The interval_by= of a percent interval, checked ("exact", "wilson" or "agresti-coull")."""
     from .._errors import choice_error
 
     name = PERCENT_METHOD_ALIASES.get(method.strip().lower(), method.strip().lower()) if isinstance(method, str) \
         else method
     if name not in PERCENT_METHODS:
-        raise choice_error(step, "method", method, list(PERCENT_METHODS))
+        raise choice_error(step, "interval_by", method, list(PERCENT_METHODS))
     return name
 
 
 def _interval_words(method: str) -> str:
-    """"exact 95 % confidence intervals" (the words used before method= existed) or "95 % Wilson score intervals"."""
+    """"exact 95 % confidence intervals" (the words used before interval_by= existed) or "95 % Wilson score intervals"."""
     return "exact 95 % confidence intervals" if method == "exact" else f"95 % {PERCENT_METHODS[method][0]}s"
 
 
@@ -349,7 +349,9 @@ def _ordinal(number: float) -> str:
     return text + {1: "st", 2: "nd", 3: "rd"}.get(whole % 10, "th")
 
 
-BOOTSTRAP_KINDS = {"bootstrap": "bca", "percentile bootstrap": "percentile", "basic bootstrap": "basic"}
+BOOTSTRAP_KINDS = {"bootstrap": "bca", "percentile bootstrap": "percentile", "reverse percentile bootstrap": "basic"}
+# old values of interval_of(method=), still accepted with a note ("basic" read as "simple, the usual one")
+OLD_BOOTSTRAP_KINDS = {"basic bootstrap": "reverse percentile bootstrap", "basic": "reverse percentile bootstrap"}
 
 
 def _one_number(step, name):
@@ -825,9 +827,9 @@ class SummaryWords:
         (seed=1, printed; the same seed gives the same interval) and works out the summary each
         time; SciPy stats.bootstrap, as R boot::boot.ci(). method="bootstrap" is the
         bias-corrected and accelerated (BCa) interval, the usual choice; "percentile bootstrap"
-        and "basic bootstrap" are the other two. With fewer than 20 values a note says the
-        interval is often too narrow. Gives back one row per group: the summary, the interval
-        and the count.
+        and "reverse percentile bootstrap" (R's "basic") are the other two. With fewer than 20
+        values a note says the interval is often too narrow. Gives back one row per group: the
+        summary, the interval and the count.
         """
         from .resampling import bootstrap_interval
 
@@ -842,6 +844,11 @@ class SummaryWords:
             raise SimplydataError("A jackknife interval is not offered: no established package gives one (R "
                                   "bootstrap::jackknife() gives only the standard error and the bias). Use "
                                   'method="bootstrap".')
+        if method in OLD_BOOTSTRAP_KINDS:
+            from .._errors import renamed_note
+
+            renamed_note(f'method="{method}"', f'method="{OLD_BOOTSTRAP_KINDS[method]}"')
+            method = OLD_BOOTSTRAP_KINDS[method]
         self._check_choice(step, "method", method, tuple(BOOTSTRAP_KINDS))
         if callable(summary):
             label, function = getattr(summary, "__name__", "your summary"), summary
@@ -1241,11 +1248,11 @@ class SummaryWords:
         return result
 
     # ------------------------------------------------------------------ percents
-    @friendly
+    @friendly(renamed={"method": "interval_by"})
     def percent_of(self, column=None, *extra, for_each=None, every=None, above=_NOT_GIVEN, below=_NOT_GIVEN,
                    at_least=_NOT_GIVEN, at_most=_NOT_GIVEN, equal_to=_NOT_GIVEN, not_equal_to=_NOT_GIVEN,
                    between=_NOT_GIVEN, one_of=_NOT_GIVEN, contains=_NOT_GIVEN, starts_with=_NOT_GIVEN,
-                   ends_with=_NOT_GIVEN, is_empty=_NOT_GIVEN, method="exact"):
+                   ends_with=_NOT_GIVEN, is_empty=_NOT_GIVEN, interval_by="exact"):
         """What percent of the rows meet a condition, or each group's share.
 
         table.percent_of("marks", above=60, for_each="class")   (with sdata.example("marks"))
@@ -1258,12 +1265,12 @@ class SummaryWords:
         table.percent_of("count", for_each="shop")   each group's share of the total of a
         column   (with sdata.example("fruit"))
         Percents go from 0 to 100. Without for_each= you get one number; with it a new table.
-        method= chooses the 95 % interval of a percent: "exact" (Clopper-Pearson, the default, as R
+        interval_by= chooses the 95 % interval of a percent: "exact" (Clopper-Pearson, the default, as R
         binom.test()), "wilson" (Wilson score) or "agresti-coull"; the last two from statsmodels
         proportion_confint, as R DescTools::BinomCI().
         """
         step = "percent_of"
-        method = _percent_method(step, method)
+        method = _percent_method(step, interval_by)
         options = dict(above=above, below=below, at_least=at_least, at_most=at_most, equal_to=equal_to,
                        not_equal_to=not_equal_to, between=between, one_of=one_of, contains=contains,
                        starts_with=starts_with, ends_with=ends_with, is_empty=is_empty)
@@ -1327,7 +1334,7 @@ class SummaryWords:
         return result
 
     def _with_shares(self, summary, hits: str, rows: str, method: str = "exact"):
-        """Add percent and its 95 % interval (Clopper-Pearson unless method= says otherwise) to a small table of counts."""
+        """Add percent and its 95 % interval (Clopper-Pearson unless interval_by= says otherwise) to a small table of counts."""
         summary = nw.maybe_reset_index(summary.with_columns(nw.col(hits).cast(nw.Int64), nw.col(rows).cast(nw.Int64)))
         found = [_share(int(h), int(n), method) for h, n in summary.select(hits, rows).rows()]
         backend = summary.implementation

@@ -46,8 +46,8 @@ def _table():
     return table({"group": ["-"]})
 
 
-@friendly
-def compare_averages(averages=None, standard_deviations=None, counts=None, groups=None, test=None):
+@friendly(renamed={"groups": "names"})
+def compare_averages(averages=None, standard_deviations=None, counts=None, names=None, test=None):
     """Are the averages of the groups different? From the summary numbers of each group.
 
     sdata.compare_averages(averages=[63.2, 68.9], standard_deviations=[8.1, 9.0], counts=[20, 22])
@@ -56,7 +56,7 @@ def compare_averages(averages=None, standard_deviations=None, counts=None, group
     the difference from R (BSDA::tsum.test(), simplydata[r]). Three or more groups: Welch's one-way
     ANOVA (statsmodels anova_generic, the same numbers as R oneway.test() on the rows).
     test="student" (two groups) or test="anova" (three or more) assume the groups have the same
-    spread. groups= names the groups (default "group 1", "group 2", ...). With the rows at hand use
+    spread. names= names the groups (default "group 1", "group 2", ...). With the rows at hand use
     table.compare_averages(...), which also gives the effect size. Gives back a one-row table.
     """
     step = "compare_averages"
@@ -74,9 +74,11 @@ def compare_averages(averages=None, standard_deviations=None, counts=None, group
                               f"For example, {example}")
     if any(s <= 0 for s in sds):
         raise SimplydataError("standard_deviations= must all be above 0.")
-    names = [f"group {i + 1}" for i in range(k)] if groups is None else [str(g) for g in groups]
+    if names is not None and (isinstance(names, (str, bytes)) or not hasattr(names, "__iter__")):
+        raise SimplydataError(f"names= needs a list of {k} names, one per group, like names={['A', 'B', 'C'][:k] if k <= 3 else '[...]'}.")
+    names = [f"group {i + 1}" for i in range(k)] if names is None else [str(g) for g in names]
     if len(names) != k or len(set(names)) != k:
-        raise SimplydataError(f"groups= needs {k} different names, one per group.")
+        raise SimplydataError(f"names= needs {k} different names, one per group.")
     allowed = SUMMARY_TESTS_TWO if k == 2 else SUMMARY_TESTS_MANY
     test = test or allowed[0]
     if test not in allowed:

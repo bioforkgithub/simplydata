@@ -285,6 +285,38 @@ def _direction(step, sides, higher, lower, alternative, choices, example, words=
     return choices[up], up
 
 
+def _non_inferiority(step, same_within, sides, higher, lower, not_lower, not_higher, words, example):
+    """not_lower="B" / not_higher="B" with same_within= (a non-inferiority test) as the sides=, higher=, lower=
+    that _direction() reads, plus the claim: None (the side named is not lower) or "not_higher".
+
+    not_lower="B" is the one-sided test that B is not lower than the other side by more than the margin
+    (the math of sides=1, higher="B"); not_higher="B" that B is not higher by more than the margin (the math
+    of sides=1, lower="B"), for outcomes where lower is better, such as pain. The older spelling sides=1,
+    higher="B" (or lower=) with same_within= still works, and a note gives the new one."""
+    if not_lower is None and not_higher is None:
+        if same_within is not None and sides == 1 and (higher is None) != (lower is None):
+            old, new = (f'higher="{higher}"', f'not_lower="{higher}"') if higher is not None else \
+                (f'lower="{lower}"', f'not_higher="{lower}"')
+            print(f"Note: sides=1, {old} with same_within= is a non-inferiority test; it is written {new}.")
+            return sides, higher, lower, (None if higher is not None else "not_higher")
+        return sides, higher, lower, None
+    if not_lower is not None and not_higher is not None:
+        raise SimplydataError(f"{step}() was given both not_lower= and not_higher=; give one of them.\n"
+                              f"For example, {example}")
+    option, side = ("not_lower", not_lower) if not_lower is not None else ("not_higher", not_higher)
+    if same_within is None:
+        raise SimplydataError(f"{option}= is a non-inferiority test, so it needs same_within= (the margin).\n"
+                              f"For example, {example}")
+    if higher is not None or lower is not None:
+        raise SimplydataError(f"{option}= already gives the direction; leave out higher= and lower=.\n"
+                              f"For example, {example}")
+    if isinstance(sides, bool) or sides not in (1, 2):
+        raise SimplydataError(f"{option}= is one-sided already; leave out sides=.\nFor example, {example}")
+    if side not in words:
+        raise choice_error(step, option, side, list(words))
+    return (1, side, None, None) if option == "not_lower" else (1, None, side, "not_higher")
+
+
 def _one_sided_sentence(looks_for: str, not_counted: str) -> str:
     return (f"One-sided, as you asked before seeing the data: it only looks for {looks_for}; {not_counted} "
             "would not count.")
@@ -602,7 +634,7 @@ class StatTestWords:
     @friendly(renamed={"between": "for_each"})
     def compare_averages(self, column=None, for_each=None, based_on="averages", test=None, sides=2, higher=None,
                          lower=None, alternative=None, p_value_by="formula", shuffles=9999, seed=1,
-                         same_within=None, in_order=None):
+                         same_within=None, not_lower=None, not_higher=None, in_order=None):
         """Are the averages of the groups really different?
 
         table.compare_averages("marks", for_each="class")   (with sdata.example("marks"))
@@ -634,8 +666,10 @@ class StatTestWords:
         same_within=5 (2 groups) asks whether the averages are the same within 5 (or within
         [-3, 5]): two one-sided tests (TOST, Welch; statsmodels ttost_ind, as R TOSTER::t_TOST()),
         with the 90 % interval. The answer is one of three: the same within the margin,
-        different, or the data cannot tell. With sides=1, higher="B" it is a non-inferiority test:
-        is B lower than A by no more than 5?
+        different, or the data cannot tell. same_within=5, not_lower="B" is a non-inferiority
+        test: is B lower than A by no more than 5? (one-sided; as R TOSTER::t_TOST(hypothesis =
+        "MET")). not_higher="B" asks whether B is higher by no more than 5, for outcomes where
+        lower is better, such as pain.
         """
         step = "compare_averages"
         example = 'with sdata.example("marks"): table.compare_averages("marks", for_each="class")'
@@ -651,6 +685,9 @@ class StatTestWords:
         groups = self._groups(step, column, for_each, example)
         k = len(groups)
         names = [g[0] for g in groups]
+        sides, higher, lower, claim = _non_inferiority(
+            step, same_within, sides, higher, lower, not_lower, not_higher, names if k == 2 else [],
+            f'table.compare_averages("{column}", for_each="{for_each}", same_within=5, not_lower="{names[-1]}")')
         if test == "jonckheere" or in_order is not None:
             if test != "jonckheere":
                 raise SimplydataError('in_order= gives the order of the groups for a trend test: test="jonckheere".')
@@ -692,7 +729,7 @@ class StatTestWords:
             return self._same_within(step, "two groups", (a, b), same_within, up, n1, n2, "Welch",
                                      "TOSTER::t_TOST()", {f"count in {n1}": len(a), f"count in {n2}": len(b),
                                                           f"average in {n1}": float(a.mean()),
-                                                          f"average in {n2}": float(b.mean())})
+                                                          f"average in {n2}": float(b.mean())}, claim)
         if p_value_by == "shuffling" and (k != 2 or test not in ("welch", "student")):
             raise SimplydataError('p_value_by="shuffling" works for the difference between the averages of 2 groups '
                                   "(Welch's or Student's t-test); leave it out here.")
@@ -1393,9 +1430,12 @@ class StatTestWords:
         return self._result_table(row)
 
     # ------------------------------------------------------------------ same_within= (equivalence)
-    def _same_within(self, step, kind, data, same_within, up, first, second, method, r_call, extra=None):
-        """Equivalence (TOST) or, with sides=1 and higher=, non-inferiority. first and second name the two
-        sides of the difference (first minus second); up is the side the test looks toward (or None)."""
+    def _same_within(self, step, kind, data, same_within, up, first, second, method, r_call, extra=None,
+                     claim=None):
+        """Equivalence (TOST) or, with not_lower= / not_higher=, non-inferiority. first and second name the two
+        sides of the difference (first minus second); up is the side the test looks toward (or None).
+        claim: None (not_lower=up: up is not lower than the other side by more than the margin) or
+        "not_higher" (the other side is not higher than up by more than the margin; the same test)."""
         from .equivalence import margin, non_inferior, say, tost
 
         low, high = margin(step, same_within)
@@ -1414,7 +1454,9 @@ class StatTestWords:
             looks_up = up == first
             edge = low if looks_up else high
             other = second if looks_up else first
-            worse = "lower"  # higher="B": B is not lower than the other side by more than the margin
+            worse = "lower"  # not_lower="B": B is not lower than the other side by more than the margin
+            if claim == "not_higher":  # not_higher="A": A is not higher than B by more than the margin
+                up, other, worse = other, up, "higher"
             amount = f"{abs(edge):g}"
             result = non_inferior(kind, data, edge, "higher" if looks_up else "lower")
             ci_low, ci_high = result["ci"]
@@ -1622,7 +1664,7 @@ class StatTestWords:
     @friendly
     def compare_before_after(self, before=None, after=None, based_on="averages", sides=2, higher=None, lower=None,
                              alternative=None, test=None, p_value_by="formula", shuffles=9999, seed=1,
-                             same_within=None):
+                             same_within=None, not_lower=None, not_higher=None):
         """Did the values really change from one column to the other, row by row?
 
         table.compare_before_after("Maths", "Science")   (with sdata.example("marks"))
@@ -1649,7 +1691,8 @@ class StatTestWords:
         permutation_test). With few rows every arrangement is counted, and the p-value is exact.
         same_within=5 (numbers) asks whether the average change is within -5 to 5 (or [-3, 5]):
         two one-sided tests on the changes (statsmodels ttost_paired, as R TOSTER::t_TOST(paired =
-        TRUE)); with sides=1, higher="after" a non-inferiority test.
+        TRUE)); same_within=5, not_lower="after" is a non-inferiority test (the after values no more
+        than 5 lower), and not_higher="after" its mirror (no more than 5 higher).
         """
         step = "compare_before_after"
         example = 'table.compare_before_after("before", "after")'
@@ -1658,6 +1701,9 @@ class StatTestWords:
         self._check_based_on(step, based_on)
         if before == after:
             raise SimplydataError(f"{step}() needs two different columns, for example {example}.")
+        sides, higher, lower, claim = _non_inferiority(
+            step, same_within, sides, higher, lower, not_lower, not_higher, ["after", "before"],
+            f'table.compare_before_after("{before}", "{after}", same_within=5, not_lower="after")')
         self._need_columns(before, after)
         self._check_choice(step, "p_value_by", p_value_by, ("formula", "exact", "shuffling"))
         kind, kept = self._paired_kind(before, after)
@@ -1690,7 +1736,7 @@ class StatTestWords:
             names = {"after": f'"{after}"', "before": f'"{before}"'}
             return self._same_within(step, "paired", (a, b), same_within, None if up is None else names[up],
                                      names["after"], names["before"], "paired", "TOSTER::t_TOST(paired = TRUE)",
-                                     {"rows": len(changes)})
+                                     {"rows": len(changes)}, claim)
         row, r = self._one_sample(step, changes, "change", 0.0, based_on, what, "the changes", alt)
         mean_change = float(changes.mean())
         if based_on == "averages":
@@ -1748,7 +1794,8 @@ class StatTestWords:
 
     @friendly
     def compare_average_to(self, column=None, value=None, based_on="averages", sides=2, higher=None, lower=None,
-                           alternative=None, same_within=None, test=None, standard_deviation=None):
+                           alternative=None, same_within=None, not_lower=None, not_higher=None, test=None,
+                           standard_deviation=None):
         """Is the average of a column really different from a number you choose?
 
         table.compare_average_to("marks", 60)   (with sdata.example("marks"))
@@ -1761,8 +1808,9 @@ class StatTestWords:
         tests in one direction only, as decided before seeing the data (R t.test(x, mu = 60,
         alternative = "greater")).
         same_within=5 asks whether the average is within 5 of the number: two one-sided tests
-        (statsmodels DescrStatsW.ttost_mean, as R TOSTER::t_TOST(x - 60, eqb = 5)); with sides=1,
-        higher="average" a non-inferiority test (the average no more than 5 below the number).
+        (statsmodels DescrStatsW.ttost_mean, as R TOSTER::t_TOST(x - 60, eqb = 5));
+        same_within=5, not_lower="average" is a non-inferiority test (the average no more than 5
+        below the number), and not_higher="average" its mirror (no more than 5 above it).
         """
         step = "compare_average_to"
         example = 'with sdata.example("marks"): table.compare_average_to("marks", 60)'
@@ -1775,6 +1823,9 @@ class StatTestWords:
             raise SimplydataError(f'{step}() needs at least 2 numbers in "{column}".')
         shown = f"{value:g}"
         what = f'the average of "{column}" against {shown}'
+        sides, higher, lower, claim = _non_inferiority(
+            step, same_within, sides, higher, lower, not_lower, not_higher, ["average"],
+            f'table.compare_average_to("{column}", {shown}, same_within=5, not_lower="average")')
         side_example = f'table.compare_average_to("{column}", {shown}, sides=1, higher="average")'
         alt, up = _direction(step, sides, higher, lower, alternative, {"average": "greater", "_value": "less"},
                              side_example)
@@ -1785,7 +1836,7 @@ class StatTestWords:
             return self._same_within(step, "one sample", (values - float(value),), same_within,
                                      None if up is None else words[up], words["average"], shown, "one-sample t",
                                      "TOSTER::t_TOST(x - value, eqb = ...)", {"average": float(values.mean()),
-                                                                  "count": len(values)})
+                                                                  "count": len(values)}, claim)
         if test is not None or standard_deviation is not None:
             if test is None:
                 raise SimplydataError(f'standard_deviation= is the known spread for the z-test, so it goes with '
@@ -2255,9 +2306,9 @@ class StatTestWords:
         top = sum(shares)
         return labels, observed, [s / top for s in shares]
 
-    @friendly
+    @friendly(renamed={"method": "interval_by"})
     def compare_percent_to(self, column=None, value=None, percent=None, sides=2, higher=None, lower=None,
-                           alternative=None, method="exact"):
+                           alternative=None, interval_by="exact"):
         """Is the percent of rows with one value really different from a percent you choose?
 
         table.compare_percent_to("passed", value="yes", percent=50)   (with sdata.example("school"))
@@ -2269,14 +2320,14 @@ class StatTestWords:
         Gives back a one-row table of results.
         sides=1, higher="percent" (the data's percent is above percent=) or lower="percent"
         (below it) tests in one direction only (R binom.test(alternative = "greater")).
-        method= chooses the 95 % interval of the percent: "exact" (Clopper-Pearson, the default),
+        interval_by= chooses the 95 % interval of the percent: "exact" (Clopper-Pearson, the default),
         "wilson" (Wilson score, SciPy) or "agresti-coull" (statsmodels proportion_confint), each as
         R DescTools::BinomCI(); the test stays the exact binomial test.
         """
         step = "compare_percent_to"
         from .summaries import PERCENT_METHODS, _percent_method
 
-        method = _percent_method(step, method)
+        method = _percent_method(step, interval_by)
         example = ('with sdata.example("school"): table.compare_percent_to("passed", value="yes", percent=50)')
         if not _is_number(percent) or not math.isfinite(percent):
             raise SimplydataError(f"{step}() needs percent= as a number from 0 to 100.\nFor example, {example}")
@@ -2299,8 +2350,8 @@ class StatTestWords:
         p = float(result.pvalue)
         if method == "agresti-coull":
             if up is not None:
-                raise SimplydataError('method="agresti-coull" gives a two-sided interval only; with sides=1 use '
-                                      'method="exact" or method="wilson".')
+                raise SimplydataError('interval_by="agresti-coull" gives a two-sided interval only; with sides=1 use '
+                                      'interval_by="exact" or interval_by="wilson".')
             from statsmodels.stats.proportion import proportion_confint
 
             low, high = proportion_confint(hits, n, alpha=0.05, method="agresti_coull")

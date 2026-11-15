@@ -92,14 +92,14 @@ def test_tost_one_sample(engine):
 
 
 def test_non_inferiority(groups, engine, capsys):
-    got = row(groups.compare_averages("v", for_each="g", same_within=1, sides=1, higher="b"))
+    got = row(groups.compare_averages("v", for_each="g", same_within=1, not_lower="b"))
     # R: t.test(a, b, mu = 1, alternative = "less") (Welch): is b lower than a by no more than 1?
     assert got["p-value"] == pytest.approx(0.9637320342953, rel=REL)
     assert got["difference one-sided 95 % CI high"] == pytest.approx(2.9212653765479, rel=REL)
     assert got["answer"] == "the data cannot tell"
     assert "b is not lower than a by more than 1" in capsys.readouterr().out
     t = make(pd.DataFrame({"x": A}), engine)
-    got = row(t.compare_average_to("x", 13, same_within=1, sides=1, higher="average"))
+    got = row(t.compare_average_to("x", 13, same_within=1, not_lower="average"))
     # R: t.test(a, mu = 12, alternative = "greater"): p 0.002438666286013, interval from 12.8034685 (minus 13)
     assert got["p-value"] == pytest.approx(0.002438666286013, rel=1e-8)
     assert got["difference one-sided 95 % CI low"] == pytest.approx(12.803468508771104 - 13, rel=1e-8)

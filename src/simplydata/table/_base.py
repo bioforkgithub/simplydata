@@ -99,6 +99,7 @@ class BaseTable:
         "fill_empty": "fill_empty_cells",
         "done": ("as_pandas", "_done"),  # done() gave back Polars for Polars tables, so it still does
         "fit_straight_line": "fit_line",  # the same word as chart.fit_line
+        "compare_to_random_order": "check_random_order",  # next to check_steady (review 2026-11-15)
     }
 
     def __init__(self, data=None, sheet=None, fast: bool = False, _frame=None, _reading=None):

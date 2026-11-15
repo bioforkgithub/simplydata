@@ -73,7 +73,7 @@ GROUPS = [
                            "table.compare_average_to", "table.compare_counts", "table.compare_shape_to",
                            "table.add_adjusted_p_value_column", "table.compare_spreads", "table.compare_counts_to",
                            "table.compare_percent_to", "table.compare_matched", "table.compare_shapes",
-                           "table.compare_to_random_order", "table.compare_correlations", "sdata.compare_averages",
+                           "table.check_random_order", "table.compare_correlations", "sdata.compare_averages",
                            "sdata.compare_counts"]),
     ("Risks and rates", ["table.compare_risks", "table.compare_rates", "table.rate_of", "sdata.compare_risks",
                          "sdata.compare_rates"]),
@@ -604,7 +604,7 @@ HELP_EXAMPLES = {
                                           'table.turn_rows_into_columns(names_from="subject", values_from="marks")\n'
                                           'table.compare_matched("Maths", "Science", "English")'),
     "table.compare_shapes": _tx("marks", 'table.compare_shapes("marks", for_each="class")'),
-    "table.compare_to_random_order": _tx("marks", 'table.compare_to_random_order("marks")'),
+    "table.check_random_order": _tx("marks", 'table.check_random_order("marks")'),
     "sdata.compare_averages": textwrap.dedent("""\
         import simplydata as sdata
         sdata.compare_averages(averages=[63.2, 68.9], standard_deviations=[8.1, 9.0], counts=[20, 22])"""),

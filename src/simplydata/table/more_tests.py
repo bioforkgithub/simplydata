@@ -16,7 +16,7 @@ statsmodels or R (through simplydata[r]); simplydata only checks the input and w
   p-value, which SciPy does not give, comes from R). Three or more: the Anderson-Darling
   k-sample test (SciPy anderson_ksamp, the midrank version for ties, as R kSamples::ad.test()
   version 2), with a p-value from shuffling the group labels (shuffles=9999, seed=1).
-* compare_to_random_order("marks"): the runs test. Each value is above or below the median; a
+* check_random_order("marks"): the runs test. Each value is above or below the median; a
   random order gives a usual number of runs (unbroken stretches on one side). Values equal to
   the median are left out, as R randtests::runs.test() does (printed); then statsmodels
   runstest_1samp(correction=False) gives R's numbers.
@@ -334,25 +334,25 @@ class MoreTestWords:
               f"the group labels {shuffles} times (seed {seed}); the same seed gives the same p-value.")
         return self._result_table(row)
 
-    # ------------------------------------------------------------------ compare_to_random_order
+    # ------------------------------------------------------------------ check_random_order
     @friendly
-    def compare_to_random_order(self, column=None, sorted_by=None):
+    def check_random_order(self, column=None, sorted_by=None):
         """Do the values come in a random order, or in clumps or waves?
 
-        table.compare_to_random_order("marks")   (the rows in table order)
-        table.compare_to_random_order("weight", sorted_by="date")
+        table.check_random_order("marks")   (the rows in table order)
+        table.check_random_order("weight", sorted_by="date")
         The runs test: each value is above or below the median, and a run is an unbroken
         stretch on one side. Too few runs means values clump together (a trend or waves); too
         many means they flip back and forth. Values equal to the median are left out, as R
         randtests::runs.test() does (printed). statsmodels runstest_1samp(correction=False),
         the same numbers as R. Empty cells are skipped. Gives back a one-row table.
         """
-        step = "compare_to_random_order"
-        example = 'table.compare_to_random_order("marks")'
+        step = "check_random_order"
+        example = 'table.check_random_order("marks")'
         self._need_name(step, "the column", column, example)
         frame = self._number_frame(step, [column])
         if sorted_by is not None:
-            self._need_name(step, "sorted_by=", sorted_by, f'table.compare_to_random_order("{column}", '
+            self._need_name(step, "sorted_by=", sorted_by, f'table.check_random_order("{column}", '
                                                             'sorted_by="date")')
             self._need_columns(sorted_by)
             if sorted_by == column:

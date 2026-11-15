@@ -1,4 +1,4 @@
-"""S1 Part A, second half: compare_matched, compare_shapes, compare_to_random_order, McNemar,
+"""S1 Part A, second half: compare_matched, compare_shapes, check_random_order, McNemar,
 Bowker and the sign test in compare_before_after, more tests in compare_shape_to, percent
 intervals (method=), and tests from summary numbers (sdata.compare_averages / compare_counts).
 
@@ -150,9 +150,9 @@ def test_shapes_three_groups(marks, engine, capsys):
     assert "shuffling the group labels 9999 times (seed 1)" in capsys.readouterr().out
 
 
-# ---------------------------------------------------------------------------- compare_to_random_order
+# ---------------------------------------------------------------------------- check_random_order
 def test_runs(marks, engine, capsys):
-    got = row(make(marks, engine).compare_to_random_order("marks"))
+    got = row(make(marks, engine).check_random_order("marks"))
     # R: randtests::runs.test(m$marks)
     assert got["statistic"] == pytest.approx(-1.648620247, rel=1e-9)
     assert got["p-value"] == pytest.approx(0.0992254582, rel=1e-8)
@@ -161,7 +161,7 @@ def test_runs(marks, engine, capsys):
 
 
 def test_runs_leaves_out_the_median(marks, engine, capsys):
-    got = row(make(marks.iloc[:53], engine).compare_to_random_order("marks"))
+    got = row(make(marks.iloc[:53], engine).check_random_order("marks"))
     # R: randtests::runs.test(m$marks[1:53]) (one value equals the median, 68, and is left out)
     assert got["statistic"] == pytest.approx(-1.680659211, rel=1e-9)
     assert got["p-value"] == pytest.approx(0.0928291276, rel=1e-8)
@@ -170,7 +170,7 @@ def test_runs_leaves_out_the_median(marks, engine, capsys):
 
 
 def test_runs_sorted_by(marks, engine):
-    by_height = row(make(marks, engine).compare_to_random_order("marks", sorted_by="height"))
+    by_height = row(make(marks, engine).check_random_order("marks", sorted_by="height"))
     assert by_height["what it compares"].startswith('the order of "marks" (order of "height")')
 
 
@@ -307,7 +307,7 @@ def test_shape_test_errors(marks, engine):
 ])
 def test_percent_to_intervals(engine, method, low, high):
     school = make(sdata.example("school"), engine)
-    got = row(school.compare_percent_to("passed", value="yes", percent=50, method=method))
+    got = row(school.compare_percent_to("passed", value="yes", percent=50, interval_by=method))
     assert got["percent 95 % CI low"] == pytest.approx(low * 100, rel=1e-9)
     assert got["percent 95 % CI high"] == pytest.approx(high * 100, rel=1e-9)
     # R: binom.test(78, 180, p = 0.5): the test does not change
@@ -316,26 +316,26 @@ def test_percent_to_intervals(engine, method, low, high):
 
 def test_percent_to_one_sided_wilson(engine):
     school = make(sdata.example("school"), engine)
-    got = row(school.compare_percent_to("passed", value="yes", percent=50, method="wilson", sides=1,
+    got = row(school.compare_percent_to("passed", value="yes", percent=50, interval_by="wilson", sides=1,
                                         higher="percent"))
     # R: DescTools::BinomCI(78, 180, method = "wilson", sides = "left")
     assert got["percent 95 % CI low"] == pytest.approx(37.401122265, rel=1e-9)
     with pytest.raises(SimplydataError, match="two-sided interval only"):
-        school.compare_percent_to("passed", value="yes", percent=50, method="agresti-coull", sides=1,
+        school.compare_percent_to("passed", value="yes", percent=50, interval_by="agresti-coull", sides=1,
                                   higher="percent")
 
 
 def test_percent_of_methods(marks, engine, capsys):
     t = make(marks, engine)
-    t.percent_of("marks", above=60, method="wilson")
+    t.percent_of("marks", above=60, interval_by="wilson")
     # R: DescTools::BinomCI(33, 54, method = "wilson"): 0.477882985382 to 0.729580661709
     assert "95 % CI 47.8 % to 73.0 %, Wilson score interval" in capsys.readouterr().out
-    got = t.percent_of("marks", above=60, for_each="class", method="agresti-coull")._frame.to_pandas()
+    got = t.percent_of("marks", above=60, for_each="class", interval_by="agresti-coull")._frame.to_pandas()
     # R: DescTools::BinomCI(c(14, 11, 8), 18, method = "agresti-coull")
     assert got["percent 95 % CI low"].tolist() == pytest.approx([54.2501488614, 38.5425626440, 24.5406689603],
                                                                 rel=1e-9)
-    with pytest.raises(SimplydataError, match='Did you mean method="wilson"'):
-        t.percent_of("marks", above=60, method="wilsn")
+    with pytest.raises(SimplydataError, match='Did you mean interval_by="wilson"'):
+        t.percent_of("marks", above=60, interval_by="wilsn")
 
 
 # ---------------------------------------------------------------------------- summary numbers
@@ -357,7 +357,7 @@ def test_sdata_compare_averages_two(capsys, needs_r):
 def test_sdata_compare_averages_many():
     got = row(sdata.compare_averages(averages=[71.8333333333333333, 64.2777777777777778, 58.6111111111111111],
                                      standard_deviations=[13.7423775663628, 14.8633206469347, 14.1800974396755],
-                                     counts=[18, 18, 18], groups=["A", "B", "C"]))
+                                     counts=[18, 18, 18], names=["A", "B", "C"]))
     # R: oneway.test(marks ~ class, m) on the rows (these are their averages and standard deviations)
     assert got["statistic"] == pytest.approx(3.99431889864, rel=1e-9)
     assert got["degrees of freedom 2"] == pytest.approx(33.9653259624, rel=1e-9)
