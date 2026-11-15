@@ -293,11 +293,16 @@ and `a`, `b` in `sdata.side_by_side(a, b)` are charts you made first.
 | `compare_before_after` | `table.compare_before_after("Maths", "Science")` | marks | Did the values change from one column to the other, row by row, more than chance? |
 | `compare_average_to` | `table.compare_average_to("marks", 60)` | marks | Is the average of a column different from a number you choose, or could it be chance? |
 | `compare_counts` | `table.compare_counts("result", for_each="class")` | marks | Does how often each value turns up differ between groups, more than chance? |
-| `compare_shape_to` | `table.compare_shape_to("marks", "normal", for_each="class")` | marks | Do the values look bell-shaped (normal), or are they too far from it to be chance? |
+| `compare_shape_to` | `table.compare_shape_to("marks", "normal", for_each="class")` | marks | Do the values look bell-shaped (normal), or are they too far from it? |
 | `add_adjusted_p_value_column` | `table.add_adjusted_p_value_column("q", method="benjamini-hochberg")` | marks | Adjust p-values for testing many things at once, in a new column. |
 | `compare_spreads` | `table.compare_spreads("marks", for_each="class")` | marks | Do the groups differ in how spread out their values are, more than chance? |
 | `compare_counts_to` | `table.compare_counts_to("breakfast", expected={"yes": 0.6, "no": 0.4})` | school | Does how often each value turns up match the shares you expect, more than chance? |
 | `compare_percent_to` | `table.compare_percent_to("passed", value="yes", percent=50)` | school | Is the percent of rows with one value different from a percent you choose, or could it be chance? |
+| `compare_matched` | `table.compare_matched("Maths", "Science", "English")` | marks | Do three or more measurements of the same rows differ, such as pain at week 0, 4 and 8? |
+| `compare_shapes` | `table.compare_shapes("marks", for_each="class")` | marks | Do the groups differ in the whole shape of their values, not only in the average? |
+| `compare_to_random_order` | `table.compare_to_random_order("marks")` | marks | Do the values come in a random order, or in clumps or waves? |
+| `sdata.compare_averages` | `sdata.compare_averages(averages=[63.2, 68.9], standard_deviations=[8.1, 9.0], counts=[20, 22])` |  | Are the averages of the groups different? From the summary numbers of each group. |
+| `sdata.compare_counts` | `sdata.compare_counts([[20, 40], [30, 30]])` |  | Are the rows and columns of a table of counts linked? From the counts alone. |
 
 ## Fitting
 

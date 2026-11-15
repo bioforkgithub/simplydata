@@ -6248,7 +6248,7 @@ What percent of the rows meet a condition, or each group's share.
 With a condition (the same words as \code{keep\_\allowbreak{}rows}: above, below, \code{at\_\allowbreak{}least}, \code{at\_\allowbreak{}most}, \code{equal\_\allowbreak{}to}, \code{not\_\allowbreak{}equal\_\allowbreak{}to}, between, \code{one\_\allowbreak{}of}, contains, \code{starts\_\allowbreak{}with}, \code{ends\_\allowbreak{}with}, \code{is\_\allowbreak{}empty}): the percent of rows that meet it, out of the rows with a value in the column, with its 95 \% confidence interval (Clopper-Pearson exact interval, as R binom.test). Without a condition:\\
 \codeline{table.percent\_of(for\_each=\textquotedbl{}class\textquotedbl{})}\enspace each group's percent of all rows\\
 \codeline{table.percent\_of(\textquotedbl{}count\textquotedbl{}, for\_each=\textquotedbl{}shop\textquotedbl{})}\enspace each group's share of the total of a\\
-column   (with \code{sdata.\allowbreak{}example(\textquotedbl{}fruit\textquotedbl{})}) Percents go from 0 to 100. Without \code{for\_\allowbreak{}each=} you get one number; with it a new table.
+column   (with \code{sdata.\allowbreak{}example(\textquotedbl{}fruit\textquotedbl{})}) Percents go from 0 to 100. Without \code{for\_\allowbreak{}each=} you get one number; with it a new table. \code{method=} chooses the 95 \% interval of a percent: \code{\textquotedbl{}exact\textquotedbl{}} (Clopper-Pearson, the default, as R \code{binom.\allowbreak{}test()}), \code{\textquotedbl{}wilson\textquotedbl{}} (Wilson score) or \code{\textquotedbl{}agresti-coull\textquotedbl{}}; the last two from statsmodels \code{proportion\_\allowbreak{}confint}, as R DescTools::\code{BinomCI()}.
 
 \wordfield{Options}{}\par\nopagebreak
 \begin{optiontable}
@@ -6267,6 +6267,7 @@ column   (with \code{sdata.\allowbreak{}example(\textquotedbl{}fruit\textquotedb
 \code{starts\_\allowbreak{}with=} & \\
 \code{ends\_\allowbreak{}with=} & \\
 \code{is\_\allowbreak{}empty=} & \\
+\code{method=} & normally \code{\textquotedbl{}exact\textquotedbl{}}\\
 \end{optiontable}
 
 \wordfield{Underneath}{narwhals; SciPy (stats.binomtest, the Clopper-Pearson exact interval)}
@@ -6419,7 +6420,7 @@ table.compare_each_pair("marks", for_each="class")
 Did the values change from one column to the other, row by row, more than chance?
 
 \codeline{table.compare\_before\_after(\textquotedbl{}Maths\textquotedbl{}, \textquotedbl{}Science\textquotedbl{})} (with \code{sdata.\allowbreak{}example(\textquotedbl{}marks\textquotedbl{})})\\
-For two measurements of the same thing, such as each child's mark before and after a course. Uses the change in each row (after minus before): a paired t-test, or the Wilcoxon signed-rank test with \code{based\_\allowbreak{}on=\textquotedbl{}ranks\textquotedbl{}}. Rows with an empty cell in either column are skipped. Effect size: Cohen's \code{d\_\allowbreak{}z}, the average change in standard deviations of the changes. Gives back a one-row table of results. \code{sides=1}, \code{higher=\textquotedbl{}after\textquotedbl{}} (or \code{\textquotedbl{}before\textquotedbl{}}; \code{lower=} is the mirror: \code{lower=\textquotedbl{}before\textquotedbl{}} is the same as \code{higher=\textquotedbl{}after\textquotedbl{}}) tests in one direction only, as decided before seeing the data (R \code{t.\allowbreak{}test(after,\allowbreak{} before,\allowbreak{} paired = TRUE,\allowbreak{} alternative = \textquotedbl{}greater\textquotedbl{})}).
+For two measurements of the same thing, such as each child's mark before and after a course. Uses the change in each row (after minus before): a paired t-test, or the Wilcoxon signed-rank test with \code{based\_\allowbreak{}on=\textquotedbl{}ranks\textquotedbl{}}. Rows with an empty cell in either column are skipped. Effect size: Cohen's \code{d\_\allowbreak{}z}, the average change in standard deviations of the changes. Gives back a one-row table of results. \code{sides=1}, \code{higher=\textquotedbl{}after\textquotedbl{}} (or \code{\textquotedbl{}before\textquotedbl{}}; \code{lower=} is the mirror: \code{lower=\textquotedbl{}before\textquotedbl{}} is the same as \code{higher=\textquotedbl{}after\textquotedbl{}}) tests in one direction only, as decided before seeing the data (R \code{t.\allowbreak{}test(after,\allowbreak{} before,\allowbreak{} paired = TRUE,\allowbreak{} alternative = \textquotedbl{}greater\textquotedbl{})}). \code{test=\textquotedbl{}sign\textquotedbl{}}: the sign test, which only counts ups and downs (statsmodels \code{sign\_\allowbreak{}test}, as R DescTools::\code{SignTest()}). The kind of column decides the test, and the sentence says so: yes/no columns (two values, such as \code{\textquotedbl{}yes\textquotedbl{}}/\code{\textquotedbl{}no\textquotedbl{}}, True/False or 0/1): McNemar's test with continuity correction (statsmodels mcnemar, as R \code{mcnemar.\allowbreak{}test()}), with the change in the percent and its 95 \% interval from R exact2x2::\code{mcnemarExactDP()}; \code{p\_\allowbreak{}value\_\allowbreak{}by=\textquotedbl{}exact\textquotedbl{}} gives the exact binomial test on the rows that changed (as R exact2x2::\code{exact2x2(paired = TRUE)}). columns of 3 or more categories (such as mild / moderate / severe): Bowker's test of symmetry (statsmodels \code{SquareTable.\allowbreak{}symmetry()}, as R \code{mcnemar.\allowbreak{}test()} on the k x k table).
 
 \wordfield{Options}{}\par\nopagebreak
 \begin{optiontable}
@@ -6430,9 +6431,11 @@ For two measurements of the same thing, such as each child's mark before and aft
 \code{higher=} & \\
 \code{lower=} & \\
 \code{alternative=} & \\
+\code{test=} & \\
+\code{p\_\allowbreak{}value\_\allowbreak{}by=} & normally \code{\textquotedbl{}formula\textquotedbl{}}\\
 \end{optiontable}
 
-\wordfield{Underneath}{SciPy (stats.ttest\_rel or stats.wilcoxon)}
+\wordfield{Underneath}{SciPy (stats.ttest\_rel or stats.wilcoxon); statsmodels (\code{contingency\_\allowbreak{}tables}.mcnemar for yes/no columns, SquareTable.symmetry for categories, \code{sign\_\allowbreak{}test}); R exact2x2::mcnemarExactDP for the change in percent (simplydata[r])}
 \wordfield{Example you can run}{(it uses the practice table \code{marks})}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -6489,10 +6492,14 @@ table.add_group_column("result", from_column="marks", cut_at=[60], names=["below
 table.compare_counts("result", for_each="class")
 \end{lstlisting}
 \wordentry{table.compare\_shape\_to()}{word:table.compare-shape-to}
-Do the values look bell-shaped (normal), or are they too far from it to be chance?
+Do the values look bell-shaped (normal), or are they too far from it?
 
 \codeline{table.compare\_shape\_to(\textquotedbl{}marks\textquotedbl{}, \textquotedbl{}normal\textquotedbl{}, for\_each=\textquotedbl{}class\textquotedbl{})} (with \code{sdata.\allowbreak{}example(\textquotedbl{}marks\textquotedbl{})})\\
-Uses the Shapiro-Wilk test (as R \code{shapiro.\allowbreak{}test()}), for 3 to 5000 values in each group; empty cells are skipped. A small p-value says the shape is too far from a bell shape to be chance. A large p-value does not prove the values are normal: with few values the test can miss a different shape, and with many values (30 or more) it flags even tiny, harmless differences, while tests on averages are then usually fine anyway (the central limit theorem). Gives back a table with one row per group.
+Uses the Shapiro-Wilk test (as R \code{shapiro.\allowbreak{}test()}), for 3 to 5000 values in each group; empty cells are skipped. A small p-value says a shape this far from a bell shape would rarely turn up if the values were bell-shaped. A large p-value does not prove the values are normal: with few values the test can miss a different shape, and with many values (30 or more) it flags even tiny, harmless differences, while tests on averages are then usually fine anyway (the central limit theorem). Gives back a table with one row per group. \code{test=} chooses another test of a bell shape: \code{\textquotedbl{}lilliefors\textquotedbl{}} (Kolmogorov-Smirnov with the average and standard deviation taken from the data, run in R: nortest::\code{lillie.\allowbreak{}test()}), \code{\textquotedbl{}dagostino\textquotedbl{}} (D'Agostino-Pearson, from skewness and kurtosis, SciPy normaltest, as R fBasics::\code{dagoTest()}) or \code{\textquotedbl{}jarque-bera\textquotedbl{}} (SciPy \code{jarque\_\allowbreak{}bera}, as R tseries::\code{jarque.\allowbreak{}bera.\allowbreak{}test()}).
+
+A distribution with fixed numbers can be the shape too:\\
+\codeline{table.compare\_shape\_to(\textquotedbl{}marks\textquotedbl{}, sdata.distribution(\textquotedbl{}normal\textquotedbl{}, average=60, standard\_deviation=15))}\\
+gives the one-sample Kolmogorov-Smirnov test (SciPy \code{ks\_\allowbreak{}1samp}, as R \code{ks.\allowbreak{}test(x,\allowbreak{} \textquotedbl{}pnorm\textquotedbl{},\allowbreak{} 60,\allowbreak{} 15)}); \code{test=\textquotedbl{}cramer-von-mises\textquotedbl{}} the Cramer-von Mises test (SciPy cramervonmises, as R goftest::\code{cvm.\allowbreak{}test()}).
 
 Any other smooth shape works too: \code{table.\allowbreak{}compare\_\allowbreak{}shape\_\allowbreak{}to(\textquotedbl{}days\textquotedbl{},\allowbreak{} \textquotedbl{}gamma\textquotedbl{})} fits the distribution (as \code{table.\allowbreak{}fit\_\allowbreak{}distribution}) and runs the Anderson-Darling test, with a p-value from \code{samples=9999} simulated samples that are each fitted again (\code{seed=1}, printed; the same seed gives the same p-value). Most shapes take a second or two; t, Cauchy and F take minutes, and a note says so before a long run. \code{samples=999} is ten times quicker and gives a rougher p-value.
 
@@ -6503,14 +6510,16 @@ Any other smooth shape works too: \code{table.\allowbreak{}compare\_\allowbreak{
 \code{for\_\allowbreak{}each=} & \\
 \code{seed=} & normally \code{1}\\
 \code{samples=} & normally \code{9999}\\
+\code{test=} & \\
 \end{optiontable}
 
-\wordfield{Underneath}{SciPy (stats.shapiro for normal; for other shapes stats.goodness\_of\_fit, Anderson-Darling with a Monte Carlo p-value)}
+\wordfield{Underneath}{SciPy (stats.shapiro for normal, normaltest, \code{jarque\_\allowbreak{}bera}, \code{ks\_\allowbreak{}1samp}, cramervonmises; for other shapes stats.goodness\_of\_fit, Anderson-Darling with a Monte Carlo p-value); R nortest::lillie.test for \code{test=\textquotedbl{}lilliefors\textquotedbl{}} (simplydata[r])}
 \wordfield{Example you can run}{(it uses the practice table \code{marks})}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
 table = sdata.table(sdata.example("marks"))
 table.compare_shape_to("marks", "normal", for_each="class")
+table.compare_shape_to("marks", "normal", test="jarque-bera")
 \end{lstlisting}
 \wordentry{table.add\_adjusted\_p\_value\_column()}{word:table.add-adjusted-p-value-column}
 Adjust p-values for testing many things at once, in a new column.
@@ -6578,7 +6587,7 @@ table.compare_counts_to("breakfast", expected={"yes": 0.6, "no": 0.4})
 Is the percent of rows with one value different from a percent you choose, or could it be chance?
 
 \codeline{table.compare\_percent\_to(\textquotedbl{}passed\textquotedbl{}, value=\textquotedbl{}yes\textquotedbl{}, percent=50)} (with \code{sdata.\allowbreak{}example(\textquotedbl{}school\textquotedbl{})})\\
-The exact binomial test (as R \code{binom.\allowbreak{}test(x,\allowbreak{} n,\allowbreak{} p)}), with the exact Clopper-Pearson 95 \% interval of the percent (as \code{percent\_\allowbreak{}of()}). Percents go from 0 to 100. For a yes/no column (yes/no, True/False or 1/0) \code{value=} may be left out: \code{\textquotedbl{}yes\textquotedbl{}} (True, 1) is counted. Empty cells are skipped. Effect size: Cohen's h, the difference between the two shares on the arcsine scale (0.2 small, 0.5 medium, 0.8 large). Gives back a one-row table of results. \code{sides=1}, \code{higher=\textquotedbl{}percent\textquotedbl{}} (the data's percent is above \code{percent=}) or \code{lower=\textquotedbl{}percent\textquotedbl{}} (below it) tests in one direction only (R \code{binom.\allowbreak{}test(alternative = \textquotedbl{}greater\textquotedbl{})}).
+The exact binomial test (as R \code{binom.\allowbreak{}test(x,\allowbreak{} n,\allowbreak{} p)}), with the exact Clopper-Pearson 95 \% interval of the percent (as \code{percent\_\allowbreak{}of()}). Percents go from 0 to 100. For a yes/no column (yes/no, True/False or 1/0) \code{value=} may be left out: \code{\textquotedbl{}yes\textquotedbl{}} (True, 1) is counted. Empty cells are skipped. Effect size: Cohen's h, the difference between the two shares on the arcsine scale (0.2 small, 0.5 medium, 0.8 large). Gives back a one-row table of results. \code{sides=1}, \code{higher=\textquotedbl{}percent\textquotedbl{}} (the data's percent is above \code{percent=}) or \code{lower=\textquotedbl{}percent\textquotedbl{}} (below it) tests in one direction only (R \code{binom.\allowbreak{}test(alternative = \textquotedbl{}greater\textquotedbl{})}). \code{method=} chooses the 95 \% interval of the percent: \code{\textquotedbl{}exact\textquotedbl{}} (Clopper-Pearson, the default), \code{\textquotedbl{}wilson\textquotedbl{}} (Wilson score, SciPy) or \code{\textquotedbl{}agresti-coull\textquotedbl{}} (statsmodels \code{proportion\_\allowbreak{}confint}), each as R DescTools::\code{BinomCI()}; the test stays the exact binomial test.
 
 \wordfield{Options}{}\par\nopagebreak
 \begin{optiontable}
@@ -6589,6 +6598,7 @@ The exact binomial test (as R \code{binom.\allowbreak{}test(x,\allowbreak{} n,\a
 \code{higher=} & \\
 \code{lower=} & \\
 \code{alternative=} & \\
+\code{method=} & normally \code{\textquotedbl{}exact\textquotedbl{}}\\
 \end{optiontable}
 
 \wordfield{Underneath}{SciPy (stats.binomtest, the Clopper-Pearson exact interval)}
@@ -6597,6 +6607,109 @@ The exact binomial test (as R \code{binom.\allowbreak{}test(x,\allowbreak{} n,\a
 import simplydata as sdata
 table = sdata.table(sdata.example("school"))
 table.compare_percent_to("passed", value="yes", percent=50)
+\end{lstlisting}
+\wordentry{table.compare\_matched()}{word:table.compare-matched}
+Do three or more measurements of the same rows differ, such as pain at week 0, 4 and 8?
+
+\codeline{table.compare\_matched(\textquotedbl{}Maths\textquotedbl{}, \textquotedbl{}Science\textquotedbl{}, \textquotedbl{}English\textquotedbl{})}\enspace (one column per measurement)\\
+Each row is one person (or plant, or field) measured in every column. The kind of column decides the test, and the sentence says which: numbers: the Friedman test (R \code{friedman.\allowbreak{}test()}, SciPy friedmanchisquare), which compares the ranks within each row, so it needs no bell shape; effect size Kendall's W (0: the rows rank the columns in no common order, 1: every row ranks them the same), from R effectsize::\code{kendalls\_\allowbreak{}w} with a bootstrap 95 \% interval (R seed 1). \code{test=\textquotedbl{}quade\textquotedbl{}}: the Quade test, which also weighs how much each row varies, run in R (stats::\code{quade.\allowbreak{}test()}). yes/no columns (two values, such as \code{\textquotedbl{}yes\textquotedbl{}}/\code{\textquotedbl{}no\textquotedbl{}} or True/False): Cochran's Q test (statsmodels \code{cochrans\_\allowbreak{}q}, as R DescTools::\code{CochranQTest()}). With two columns it gives \code{compare\_\allowbreak{}before\_\allowbreak{}after} (Wilcoxon signed-rank). Rows with an empty cell in any of the columns are skipped. \code{based\_\allowbreak{}on=\textquotedbl{}averages\textquotedbl{}} (the repeated-measures ANOVA) is not here yet. Gives back a one-row table.
+
+\wordfield{Options}{}\par\nopagebreak
+\begin{optiontable}
+\code{columns.\allowbreak{}.\allowbreak{}.\allowbreak{}} & as many as you like, separated by commas\\
+\code{based\_\allowbreak{}on=} & normally \code{\textquotedbl{}ranks\textquotedbl{}}\\
+\code{test=} & \\
+\end{optiontable}
+
+\wordfield{Underneath}{SciPy (stats.friedmanchisquare); statsmodels (\code{contingency\_\allowbreak{}tables}.cochrans\_q for yes/no columns); R stats::quade.test and effectsize::\code{kendalls\_\allowbreak{}w} (simplydata[r])}
+\wordfield{Example you can run}{(it uses the practice table \code{marks})}\par\nopagebreak
+\begin{lstlisting}[style=py]
+import simplydata as sdata
+table = sdata.table(sdata.example("marks"))
+table.keep_columns("name", "subject", "marks")
+table.turn_rows_into_columns(names_from="subject", values_from="marks")
+table.compare_matched("Maths", "Science", "English")
+\end{lstlisting}
+\wordentry{table.compare\_shapes()}{word:table.compare-shapes}
+Do the groups differ in the whole shape of their values, not only in the average?
+
+\codeline{table.compare\_shapes(\textquotedbl{}marks\textquotedbl{}, for\_each=\textquotedbl{}class\textquotedbl{})} (with \code{sdata.\allowbreak{}example(\textquotedbl{}marks\textquotedbl{})})\\
+Two groups: the two-sample Kolmogorov-Smirnov test, which looks for the biggest gap between the groups' cumulative shares (the share of values at or below each value); SciPy \code{ks\_\allowbreak{}2samp}, exact as R \code{ks.\allowbreak{}test()}. With tied values R gives an exact p-value that SciPy does not, so that p-value comes from R (simplydata[r]). Three or more groups: the Anderson-Darling k-sample test (SciPy \code{anderson\_\allowbreak{}ksamp}, the midrank version for ties, as R kSamples::\code{ad.\allowbreak{}test()} version 2), with its p-value from shuffling the group labels \code{shuffles=9999} times (\code{seed=1}, printed; the same seed gives the same p-value). Empty cells are skipped. Gives back a one-row table.
+
+\wordfield{Options}{}\par\nopagebreak
+\begin{optiontable}
+\code{column=} & \\
+\code{for\_\allowbreak{}each=} & \\
+\code{shuffles=} & normally \code{9999}\\
+\code{seed=} & normally \code{1}\\
+\end{optiontable}
+
+\wordfield{Underneath}{SciPy (stats.ks\_2samp; stats.anderson\_ksamp with a PermutationMethod); R ks.test for the exact p-value with tied values (simplydata[r])}
+\wordfield{Example you can run}{(it uses the practice table \code{marks})}\par\nopagebreak
+\begin{lstlisting}[style=py]
+import simplydata as sdata
+table = sdata.table(sdata.example("marks"))
+table.compare_shapes("marks", for_each="class")
+\end{lstlisting}
+\wordentry{table.compare\_to\_random\_order()}{word:table.compare-to-random-order}
+Do the values come in a random order, or in clumps or waves?
+
+\codeline{table.compare\_to\_random\_order(\textquotedbl{}marks\textquotedbl{})}\enspace (the rows in table order)\\
+\codeline{table.compare\_to\_random\_order(\textquotedbl{}weight\textquotedbl{}, sorted\_by=\textquotedbl{}date\textquotedbl{})}\\
+The runs test: each value is above or below the median, and a run is an unbroken stretch on one side. Too few runs means values clump together (a trend or waves); too many means they flip back and forth. Values equal to the median are left out, as R randtests::\code{runs.\allowbreak{}test()} does (printed). statsmodels \code{runstest\_\allowbreak{}1samp(correction=False)}, the same numbers as R. Empty cells are skipped. Gives back a one-row table.
+
+\wordfield{Options}{}\par\nopagebreak
+\begin{optiontable}
+\code{column=} & \\
+\code{sorted\_\allowbreak{}by=} & \\
+\end{optiontable}
+
+\wordfield{Underneath}{statsmodels (sandbox.stats.runs.Runs, \code{runs\_\allowbreak{}test}, as \code{runstest\_\allowbreak{}1samp})}
+\wordfield{Example you can run}{(it uses the practice table \code{marks})}\par\nopagebreak
+\begin{lstlisting}[style=py]
+import simplydata as sdata
+table = sdata.table(sdata.example("marks"))
+table.compare_to_random_order("marks")
+\end{lstlisting}
+\wordentry{sdata.compare\_averages()}{word:sdata.compare-averages}
+Are the averages of the groups different? From the summary numbers of each group.
+
+\codeline{sdata.compare\_averages(averages=[63.2, 68.9], standard\_deviations=[8.1, 9.0], counts=[20, 22])}\\
+For when only the summary numbers are given (a paper, a report), not the rows. Two groups: Welch's t-test (SciPy \code{ttest\_\allowbreak{}ind\_\allowbreak{}from\_\allowbreak{}stats}, as R BSDA::\code{tsum.\allowbreak{}test()}), with the 95 \% interval of the difference from R (BSDA::\code{tsum.\allowbreak{}test()}, simplydata[r]). Three or more groups: Welch's one-way ANOVA (statsmodels \code{anova\_\allowbreak{}generic}, the same numbers as R \code{oneway.\allowbreak{}test()} on the rows). \code{test=\textquotedbl{}student\textquotedbl{}} (two groups) or \code{test=\textquotedbl{}anova\textquotedbl{}} (three or more) assume the groups have the same spread. \code{groups=} names the groups (default \code{\textquotedbl{}group 1\textquotedbl{}}, \code{\textquotedbl{}group 2\textquotedbl{}}, ...). With the rows at hand use\\
+\codeline{table.compare\_averages(...), which also gives the effect size. Gives back a one-row table.}
+
+\wordfield{Options}{}\par\nopagebreak
+\begin{optiontable}
+\code{averages=} & \\
+\code{standard\_\allowbreak{}deviations=} & \\
+\code{counts=} & \\
+\code{groups=} & \\
+\code{test=} & \\
+\end{optiontable}
+
+\wordfield{Underneath}{SciPy (stats.ttest\_ind\_from\_stats); statsmodels (stats.oneway.anova\_generic); R BSDA::tsum.test for the interval of the difference (simplydata[r])}
+\wordfield{Example you can run}{}\par\nopagebreak
+\begin{lstlisting}[style=py]
+import simplydata as sdata
+sdata.compare_averages(averages=[63.2, 68.9], standard_deviations=[8.1, 9.0], counts=[20, 22])
+\end{lstlisting}
+\wordentry{sdata.compare\_counts()}{word:sdata.compare-counts}
+Are the rows and columns of a table of counts linked? From the counts alone.
+
+\codeline{sdata.compare\_counts([[20, 40], [30, 30]])}\\
+A table of counts: one list per row (or a pandas DataFrame of counts, whose row and column names are used). The chi-square test of independence (as R \code{chisq.\allowbreak{}test()}, with Yates' continuity correction for 2 x 2 tables), with Cramer's V; \code{test=\textquotedbl{}fisher\textquotedbl{}}, \code{\textquotedbl{}g\textquotedbl{}}, \code{\textquotedbl{}barnard\textquotedbl{}} or \code{\textquotedbl{}boschloo\textquotedbl{}} as in \code{table.\allowbreak{}compare\_\allowbreak{}counts()}. With a table of rows use \code{table.\allowbreak{}compare\_\allowbreak{}counts(column,\allowbreak{} for\_\allowbreak{}each=)}. Gives back a one-row table.
+
+\wordfield{Options}{}\par\nopagebreak
+\begin{optiontable}
+\code{counts=} & \\
+\code{test=} & \\
+\end{optiontable}
+
+\wordfield{Underneath}{SciPy (stats.chi2\_contingency, \code{fisher\_\allowbreak{}exact}; contingency.association), as \code{table.\allowbreak{}compare\_\allowbreak{}counts}}
+\wordfield{Example you can run}{}\par\nopagebreak
+\begin{lstlisting}[style=py]
+import simplydata as sdata
+sdata.compare_counts([[20, 40], [30, 30]])
 \end{lstlisting}
 \unsection{Fitting}{group:Fitting}
 \wordentry{table.fit\_line()}{word:table.fit-line}
@@ -9788,17 +9901,22 @@ Every word and option, A to Z, with the page of its dictionary entry. Other spel
 \indexline{word:table.column}{table.column()}
 \indexline{word:table.column-names}{table.column\_names()}
 \indexline{word:table.compare-average-to}{table.compare\_average\_to()}
+\indexline{word:sdata.compare-averages}{sdata.compare\_averages()}
 \indexline{word:table.compare-averages}{table.compare\_averages()}
 \indexline{word:table.compare-before-after}{table.compare\_before\_after()}
+\indexline{word:sdata.compare-counts}{sdata.compare\_counts()}
 \indexline{word:table.compare-counts}{table.compare\_counts()}
 \indexline{word:table.compare-counts-to}{table.compare\_counts\_to()}
 \indexline{word:table.compare-distributions}{table.compare\_distributions()}
 \indexline{word:table.compare-each-pair}{table.compare\_each\_pair()}
+\indexline{word:table.compare-matched}{table.compare\_matched()}
 \indexline{word:table.compare-percent-to}{table.compare\_percent\_to()}
 \indexline{word:table.compare-profiles}{table.compare\_profiles()}
 \indexline{word:table.compare-shape-to}{table.compare\_shape\_to()}
+\indexline{word:table.compare-shapes}{table.compare\_shapes()}
 \indexline{word:table.compare-spreads}{table.compare\_spreads()}
 \indexline{word:table.compare-survival}{table.compare\_survival()}
+\indexline{word:table.compare-to-random-order}{table.compare\_to\_random\_order()}
 \indexline{word:contour}{chart.contour()}
 \indexline{word:table.correlation-between}{table.correlation\_between()}
 \indexline{word:nums.count}{nums.count()}

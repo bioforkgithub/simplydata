@@ -154,12 +154,24 @@ UNDERNEATH = {
                               "statsmodels (stats.oneway.anova_oneway for Welch's ANOVA)",
     "table.compare_each_pair": "SciPy (stats.ttest_ind or mannwhitneyu, tukey_hsd), with Holm's correction from "
                                "statsmodels (multipletests)",
-    "table.compare_before_after": "SciPy (stats.ttest_rel or stats.wilcoxon)",
+    "table.compare_before_after": "SciPy (stats.ttest_rel or stats.wilcoxon); statsmodels (contingency_tables.mcnemar "
+                                  "for yes/no columns, SquareTable.symmetry for categories, sign_test); R "
+                                  "exact2x2::mcnemarExactDP for the change in percent (simplydata[r])",
+    "table.compare_matched": "SciPy (stats.friedmanchisquare); statsmodels (contingency_tables.cochrans_q for yes/no "
+                             "columns); R stats::quade.test and effectsize::kendalls_w (simplydata[r])",
+    "table.compare_shapes": "SciPy (stats.ks_2samp; stats.anderson_ksamp with a PermutationMethod); R ks.test for "
+                            "the exact p-value with tied values (simplydata[r])",
+    "table.compare_to_random_order": "statsmodels (sandbox.stats.runs.Runs, runs_test, as runstest_1samp)",
+    "sdata.compare_averages": "SciPy (stats.ttest_ind_from_stats); statsmodels (stats.oneway.anova_generic); R "
+                              "BSDA::tsum.test for the interval of the difference (simplydata[r])",
+    "sdata.compare_counts": "SciPy (stats.chi2_contingency, fisher_exact; contingency.association), as "
+                            "table.compare_counts",
     "table.compare_average_to": "SciPy (stats.ttest_1samp or stats.wilcoxon)",
     "table.compare_counts": "SciPy (stats.chi2_contingency, or fisher_exact with test=\"fisher\"; "
                             "contingency.association for Cramer's V)",
-    "table.compare_shape_to": "SciPy (stats.shapiro for normal; for other shapes stats.goodness_of_fit, "
-                              "Anderson-Darling with a Monte Carlo p-value)",
+    "table.compare_shape_to": "SciPy (stats.shapiro for normal, normaltest, jarque_bera, ks_1samp, cramervonmises; "
+                              "for other shapes stats.goodness_of_fit, Anderson-Darling with a Monte Carlo p-value); "
+                              "R nortest::lillie.test for test=\"lilliefors\" (simplydata[r])",
     # fitting
     "table.fit_line": "SciPy (stats.linregress)",
     "table.fit_curve": "statsmodels (WLS by QR on the powers of x, as R lm(y ~ poly(x, raw = TRUE)))",

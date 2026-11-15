@@ -290,13 +290,46 @@ def _p_clause(p: float, if_none: str = "there were truly none", shown: str | Non
     return f"{_studies(p)} studies would show this much if {if_none} ({shown or _p_shown(p)})"
 
 
-def _share(hits: int, rows: int):
-    """Percent and its 95 % Clopper-Pearson exact interval (R binom.test), all from 0 to 100."""
+# method= of percent_of and compare_percent_to: the 95 % interval of a percent
+# name -> (name in sentences, statsmodels proportion_confint method); each as R DescTools::BinomCI()
+PERCENT_METHODS = {
+    "exact": ("exact Clopper-Pearson interval", "beta"),
+    "wilson": ("Wilson score interval", "wilson"),
+    "agresti-coull": ("Agresti-Coull interval", "agresti_coull"),
+}
+PERCENT_METHOD_ALIASES = {"clopper-pearson": "exact", "clopper pearson": "exact", "beta": "exact",
+                          "agresti coull": "agresti-coull", "agresti_coull": "agresti-coull", "score": "wilson"}
+
+
+def _percent_method(step: str, method):
+    """The method= of a percent interval, checked ("exact", "wilson" or "agresti-coull")."""
+    from .._errors import choice_error
+
+    name = PERCENT_METHOD_ALIASES.get(method.strip().lower(), method.strip().lower()) if isinstance(method, str) \
+        else method
+    if name not in PERCENT_METHODS:
+        raise choice_error(step, "method", method, list(PERCENT_METHODS))
+    return name
+
+
+def _interval_words(method: str) -> str:
+    """"exact 95 % confidence intervals" (the words used before method= existed) or "95 % Wilson score intervals"."""
+    return "exact 95 % confidence intervals" if method == "exact" else f"95 % {PERCENT_METHODS[method][0]}s"
+
+
+def _share(hits: int, rows: int, method: str = "exact"):
+    """Percent and its 95 % interval, all from 0 to 100: Clopper-Pearson exact (R binom.test), or
+    Wilson / Agresti-Coull (statsmodels proportion_confint, as R DescTools::BinomCI())."""
     if rows == 0:
         return (None, None, None)
-    from scipy import stats
+    if method == "exact":
+        from scipy import stats
 
-    low, high = stats.binomtest(hits, rows).proportion_ci(confidence_level=0.95, method="exact")
+        low, high = stats.binomtest(hits, rows).proportion_ci(confidence_level=0.95, method="exact")
+    else:
+        from statsmodels.stats.proportion import proportion_confint
+
+        low, high = proportion_confint(hits, rows, alpha=0.05, method=PERCENT_METHODS[method][1])
     return (hits * 100.0 / rows, float(low) * 100.0, float(high) * 100.0)
 
 
@@ -939,7 +972,7 @@ class SummaryWords:
     def percent_of(self, column=None, *extra, for_each=None, every=None, above=_NOT_GIVEN, below=_NOT_GIVEN,
                    at_least=_NOT_GIVEN, at_most=_NOT_GIVEN, equal_to=_NOT_GIVEN, not_equal_to=_NOT_GIVEN,
                    between=_NOT_GIVEN, one_of=_NOT_GIVEN, contains=_NOT_GIVEN, starts_with=_NOT_GIVEN,
-                   ends_with=_NOT_GIVEN, is_empty=_NOT_GIVEN):
+                   ends_with=_NOT_GIVEN, is_empty=_NOT_GIVEN, method="exact"):
         """What percent of the rows meet a condition, or each group's share.
 
         table.percent_of("marks", above=60, for_each="class")   (with sdata.example("marks"))
@@ -952,8 +985,12 @@ class SummaryWords:
         table.percent_of("count", for_each="shop")   each group's share of the total of a
         column   (with sdata.example("fruit"))
         Percents go from 0 to 100. Without for_each= you get one number; with it a new table.
+        method= chooses the 95 % interval of a percent: "exact" (Clopper-Pearson, the default, as R
+        binom.test()), "wilson" (Wilson score) or "agresti-coull"; the last two from statsmodels
+        proportion_confint, as R DescTools::BinomCI().
         """
         step = "percent_of"
+        method = _percent_method(step, method)
         options = dict(above=above, below=below, at_least=at_least, at_most=at_most, equal_to=equal_to,
                        not_equal_to=not_equal_to, between=between, one_of=one_of, contains=contains,
                        starts_with=starts_with, ends_with=ends_with, is_empty=is_empty)
@@ -973,7 +1010,7 @@ class SummaryWords:
                     f"For example:  {example}\n"
                     'or:           table.percent_of(for_each="class")'
                 )
-            return self._percent_of_rows(step, for_each, every)
+            return self._percent_of_rows(step, for_each, every, method)
         if not isinstance(column, str):
             raise SimplydataError(f"{step}() needs one column name in quotes.\nFor example:  {example}")
         self._need_columns(column)
@@ -998,12 +1035,12 @@ class SummaryWords:
                   f'{"was" if left_out == 1 else "were"} left out of the percent.')
         if groups is None:
             hits, rows = (int(v) for v in frame.select(*sums).row(0))
-            share, low, high = _share(hits, rows)
+            share, low, high = _share(hits, rows, method)
             print(f'"{column}" {words} in {_say_percent(share)} of the rows ({hits} of {rows}; 95 % CI '
-                  f"{_say_percent(low)} to {_say_percent(high)}, exact Clopper-Pearson interval).")
+                  f"{_say_percent(low)} to {_say_percent(high)}, {PERCENT_METHODS[method][0]}).")
             return share
         summary = self._grouped(frame, groups, sums)._frame
-        result = self._with_shares(summary, "matching rows", "rows")
+        result = self._with_shares(summary, "matching rows", "rows", method)
         items = []
         for row in result._frame.select(*groups, "matching rows", "rows", "percent").rows():
             name = " / ".join(_say_label(v, periods.get(g)) for g, v in zip(groups, row))
@@ -1012,29 +1049,29 @@ class SummaryWords:
         if len(items) > GROUPS_IN_SENTENCE:
             text += f" ... and {len(items) - GROUPS_IN_SENTENCE} more (the new table has them all)"
         print(f'Percent of rows where "{column}" {words}, for each {_each(groups, periods)}: {text}. '
-              "(The new table has exact 95 % confidence intervals.)")
+              f"(The new table has {_interval_words(method)}.)")
         _period_note(periods)
         return result
 
-    def _with_shares(self, summary, hits: str, rows: str):
-        """Add percent and its Clopper-Pearson 95 % interval to a small table of counts."""
+    def _with_shares(self, summary, hits: str, rows: str, method: str = "exact"):
+        """Add percent and its 95 % interval (Clopper-Pearson unless method= says otherwise) to a small table of counts."""
         summary = nw.maybe_reset_index(summary.with_columns(nw.col(hits).cast(nw.Int64), nw.col(rows).cast(nw.Int64)))
-        found = [_share(int(h), int(n)) for h, n in summary.select(hits, rows).rows()]
+        found = [_share(int(h), int(n), method) for h, n in summary.select(hits, rows).rows()]
         backend = summary.implementation
         columns = [nw.new_series(name, [f[i] for f in found], nw.Float64, backend=backend)
                    for i, name in enumerate(("percent", "percent 95 % CI low", "percent 95 % CI high"))]
         return self._new_table(summary.with_columns(*columns))
 
-    def _percent_of_rows(self, step, for_each, every):
+    def _percent_of_rows(self, step, for_each, every, method="exact"):
         groups = self._group_columns(step, for_each)
         frame, periods = self._periods(step, self._frame, groups, every)
         summary = self._grouped(frame, groups, [nw.len().alias("count")])._frame
         summary = summary.with_columns(nw.lit(len(frame)).alias("__all"))
-        result = self._with_shares(summary, "count", "__all")
+        result = self._with_shares(summary, "count", "__all", method)
         result = self._new_table(result._frame.drop("__all"))
         print(f"Percent of all {len(frame)} rows in each {_each(groups, periods)}: "
               f"{_say_groups(result._frame, groups, 'percent', periods, _say_percent)}. "
-              "(The new table has exact 95 % confidence intervals.)")
+              f"(The new table has {_interval_words(method)}.)")
         _period_note(periods)
         return result
 

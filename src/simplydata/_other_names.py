@@ -13,6 +13,8 @@ from __future__ import annotations
 
 # sdata.<name>: top-level words, and words people expect on sdata that live on a table or a chart.
 _SDATA = [
+    ('sdata.compare_averages(averages=[63.2, 68.9], standard_deviations=[8.1, 9.0], counts=[20, 22])',
+     "ttest_ind_from_stats tsum_test"),
     ('sdata.find_smallest("x**2 - 4*x + 1", between=[0, 5])',
      "minimize minimise optimize optimise optim minimize_scalar fmin fminbound argmin nlm "
      "nlminb fminsearch"),
@@ -126,7 +128,12 @@ _TABLE = [
     ('table.explain("passed", using=["hours"], outcome="yes or no")', "glm logit lmer"),
     ('table.fit_distribution("days", "gamma")', "fit fitdistr fitdist"),
     ('table.compare_averages("marks", for_each="class")', "ttest ttest_ind t_test anova aov f_oneway"),
-    ('table.compare_before_after("Maths", "Science")', "ttest_rel paired_t_test wilcoxon"),
+    ('table.compare_before_after("Maths", "Science")', "ttest_rel paired_t_test wilcoxon mcnemar mcnemar_test "
+                                                        "sign_test"),
+    ('table.compare_matched("week_0", "week_4", "week_8")', "friedman friedman_test friedmanchisquare cochrans_q "
+                                                           "quade_test"),
+    ('table.compare_shapes("marks", for_each="class")', "ks_2samp anderson_ksamp"),
+    ('table.compare_to_random_order("marks")', "runs_test runstest_1samp"),
     ('table.compare_counts("result", for_each="class")', "chi2_contingency chisq_test fisher_exact crosstab"),
     ('table.compare_shape_to("marks", "normal")', "shapiro shapiro_test normaltest"),
     ('table.add_adjusted_p_value_column("q", method="benjamini-hochberg")', "p_adjust multipletests fdr"),

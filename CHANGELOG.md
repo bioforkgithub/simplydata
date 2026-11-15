@@ -65,6 +65,48 @@ nothing is computed anew.
 - `compare_counts`: `test="g"` (G-test, SciPy, as R `DescTools::GTest`), and for 2 x 2 tables
   `"barnard"` and `"boschloo"` (R `Exact::exact.test`; SciPy's versions use another two-sided rule
   and give other p-values).
+- `compare_before_after`: `test="sign"` (statsmodels `sign_test`, as R `DescTools::SignTest`).
+- `compare_shape_to`: `test="lilliefors"` (R `nortest::lillie.test`; statsmodels' p-value
+  approximation differs from R's), `"dagostino"` (SciPy `normaltest`, as R `fBasics::dagoTest`) and
+  `"jarque-bera"` (SciPy, as R `tseries::jarque.bera.test`). A distribution with fixed numbers can
+  be the shape: `compare_shape_to("marks", sdata.distribution("normal", average=60,
+  standard_deviation=15))` gives the one-sample Kolmogorov-Smirnov test (SciPy `ks_1samp`, as R
+  `ks.test(x, "pnorm", 60, 15)`), and `test="cramer-von-mises"` the Cramer-von Mises test (SciPy, as
+  R `goftest::cvm.test`).
+- `percent_of(..., method=)` and `compare_percent_to(..., method=)`: the interval of a percent
+  can be `"exact"` (Clopper-Pearson, the default), `"wilson"` or `"agresti-coull"` (statsmodels
+  `proportion_confint`, as R `DescTools::BinomCI`).
+
+### Yes/no and category columns before and after
+
+`compare_before_after` now looks at the kind of column, and the sentence says which test that
+gives. Two yes/no columns (yes/no, True/False or 0/1): McNemar's test with continuity correction
+(statsmodels `mcnemar`, as R `mcnemar.test`), with the change in the percent and its 95 % interval
+from R `exact2x2::mcnemarExactDP`; `p_value_by="exact"` gives the exact binomial test on the rows
+that changed (as R `exact2x2::exact2x2(paired = TRUE)`). Two columns of three or more categories:
+Bowker's test of symmetry (statsmodels `SquareTable.symmetry`, as R `mcnemar.test` on the k x k
+table).
+
+### New tests
+
+- `table.compare_matched("week_0", "week_4", "week_8")`: three or more measurements of the same
+  rows. Numbers: the Friedman test (SciPy, as R `friedman.test`), with Kendall's W and its
+  bootstrap interval from R `effectsize::kendalls_w` (R seed 1); `test="quade"`: the Quade test (R
+  `quade.test`). Yes/no columns: Cochran's Q (statsmodels, as R `DescTools::CochranQTest`). With two
+  columns it is `compare_before_after`.
+- `table.compare_shapes("marks", for_each="class")`: do the groups differ in the whole shape of
+  their values? Two groups: the two-sample Kolmogorov-Smirnov test (SciPy `ks_2samp`, exact as R
+  `ks.test`; with tied values R's exact p-value, which SciPy does not give, comes from R). Three or
+  more: the Anderson-Darling k-sample test (SciPy `anderson_ksamp`, as R `kSamples::ad.test`
+  version 2), with a p-value from shuffling the group labels 9999 times (seed 1).
+- `table.compare_to_random_order("marks", sorted_by=None)`: the runs test above and below the
+  median (statsmodels, as R `randtests::runs.test`, which leaves out values equal to the median; so
+  does simplydata, and says so).
+- `sdata.compare_averages(averages=, standard_deviations=, counts=)`: Welch's t-test (SciPy
+  `ttest_ind_from_stats`, as R `BSDA::tsum.test`, whose interval of the difference simplydata uses)
+  or, for three or more groups, Welch's ANOVA (statsmodels `anova_generic`, the same as R
+  `oneway.test` on the rows), from the summary numbers of a paper or report.
+- `sdata.compare_counts([[20, 40], [30, 30]])`: `compare_counts` on a table of counts.
 
 ### Effect sizes with their intervals, from R effectsize
 

@@ -72,7 +72,8 @@ GROUPS = [
     ("Statistical tests", ["table.compare_averages", "table.compare_each_pair", "table.compare_before_after",
                            "table.compare_average_to", "table.compare_counts", "table.compare_shape_to",
                            "table.add_adjusted_p_value_column", "table.compare_spreads", "table.compare_counts_to",
-                           "table.compare_percent_to"]),
+                           "table.compare_percent_to", "table.compare_matched", "table.compare_shapes",
+                           "table.compare_to_random_order", "sdata.compare_averages", "sdata.compare_counts"]),
     ("Fitting", ["table.fit_line", "table.fit_curve", "table.fit_formula"]),
     ("Finding and solving", ["sdata.find_smallest", "sdata.find_biggest", "sdata.solve"]),
     ("Values between points", ["table.values_at", "table.map_of"]),
@@ -586,7 +587,19 @@ HELP_EXAMPLES = {
     "table.compare_spreads": _tx("marks", 'table.compare_spreads("marks", for_each="class")'),
     "table.compare_counts_to": _tx("school", 'table.compare_counts_to("breakfast", expected={"yes": 0.6, "no": 0.4})'),
     "table.compare_percent_to": _tx("school", 'table.compare_percent_to("passed", value="yes", percent=50)'),
-    "table.compare_shape_to": _tx("marks", 'table.compare_shape_to("marks", "normal", for_each="class")'),
+    "table.compare_shape_to": _tx("marks", 'table.compare_shape_to("marks", "normal", for_each="class")\n'
+                                           'table.compare_shape_to("marks", "normal", test="jarque-bera")'),
+    "table.compare_matched": _tx("marks", 'table.keep_columns("name", "subject", "marks")\n'
+                                          'table.turn_rows_into_columns(names_from="subject", values_from="marks")\n'
+                                          'table.compare_matched("Maths", "Science", "English")'),
+    "table.compare_shapes": _tx("marks", 'table.compare_shapes("marks", for_each="class")'),
+    "table.compare_to_random_order": _tx("marks", 'table.compare_to_random_order("marks")'),
+    "sdata.compare_averages": textwrap.dedent("""\
+        import simplydata as sdata
+        sdata.compare_averages(averages=[63.2, 68.9], standard_deviations=[8.1, 9.0], counts=[20, 22])"""),
+    "sdata.compare_counts": textwrap.dedent("""\
+        import simplydata as sdata
+        sdata.compare_counts([[20, 40], [30, 30]])"""),
     "table.add_adjusted_p_value_column": _tx("marks", 'table = table.correlation_between("hours", "marks", "height", '
                                                       'show="each pair")\n'
                                                       'table.add_adjusted_p_value_column("q", method="benjamini-hochberg")\n'

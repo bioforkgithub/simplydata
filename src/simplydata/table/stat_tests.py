@@ -108,6 +108,22 @@ EXACT_LIMIT = 50  # exact p-values below 50 values without ties, as R wilcox.tes
 CLT_SIZE = 30  # from this many values, a "not bell-shaped" note does not suggest switching
 SHAPIRO_LIMIT = 5000  # SciPy's Shapiro-Wilk is reliable up to 5000 values
 SHAPES = ("normal",)  # compare_shape_to: the shapes it can check
+# compare_shape_to(test=): name -> (name in sentences, statistic name, R function, fewest values)
+SHAPE_TESTS = {
+    "shapiro-wilk": ("Shapiro-Wilk test", "W", "shapiro.test()", 3),
+    "lilliefors": ("Lilliefors test", "D", "nortest::lillie.test()", 5),
+    "dagostino": ("D'Agostino-Pearson test", "K2", "fBasics::dagoTest()", 8),
+    "jarque-bera": ("Jarque-Bera test", "JB", "tseries::jarque.bera.test()", 3),
+    "kolmogorov-smirnov": ("one-sample Kolmogorov-Smirnov test", "D", 'ks.test(x, "DIST", ...)', 2),
+    "cramer-von-mises": ("Cramer-von Mises test", "omega2", 'goftest::cvm.test(x, "DIST", ...)', 2),
+}
+NORMAL_TESTS = ("shapiro-wilk", "lilliefors", "dagostino", "jarque-bera")
+FIXED_SHAPE_TESTS = ("kolmogorov-smirnov", "cramer-von-mises")
+SHAPE_TEST_ALIASES = {"shapiro": "shapiro-wilk", "shapiro wilk": "shapiro-wilk", "d'agostino": "dagostino",
+                      "dagostino-pearson": "dagostino", "d'agostino-pearson": "dagostino", "normaltest": "dagostino",
+                      "jarque bera": "jarque-bera", "jb": "jarque-bera", "lillie": "lilliefors", "ks": "kolmogorov-smirnov",
+                      "kolmogorov smirnov": "kolmogorov-smirnov", "cvm": "cramer-von-mises",
+                      "cramer von mises": "cramer-von-mises", "cramer-von mises": "cramer-von-mises"}
 # add_adjusted_p_value_column: method -> (name in sentences, R p.adjust name)
 ADJUST_METHODS = {
     "holm": ("Holm", "holm"),
@@ -1128,9 +1144,153 @@ class StatTestWords:
                          r_text=interval_text(es["low"], es["high"]), have_r=not es["note"], lean=lean, how=how,
                          zeros=zeros, notes=[es["note"]] if es["note"] else [])
 
+    def _paired_kind(self, before, after):
+        """"numbers", "yes/no" (both columns hold the same 2 values, or 0 and 1) or "categories"."""
+        schema = self._frame.schema
+        numeric = schema[before].is_numeric() and schema[after].is_numeric()
+        kept = self._frame.select(before, after)
+        floats = [c for c in (before, after) if schema[c].is_float()]
+        if floats:
+            kept = kept.with_columns(nw.col(c).fill_nan(None) for c in floats)
+        kept = kept.drop_nulls()
+        values = set(kept[before].to_list()) | set(kept[after].to_list())
+        if numeric:
+            return ("yes/no" if values and values <= {0, 1} and len(values) == 2 else "numbers"), kept
+        return ("yes/no" if len(values) <= 2 else "categories"), kept
+
+    def _paired_counts(self, step, before, after, kind, kept, p_value_by, side_given):
+        """compare_before_after on yes/no columns (McNemar) or categories (Bowker), as R mcnemar.test()."""
+        from statsmodels.stats.contingency_tables import SquareTable, mcnemar
+
+        from .models import YES_NO_PAIRS, _sort_key
+
+        if side_given:
+            raise SimplydataError(f"{step}() on {kind} columns looks for a change either way; leave out sides= and "
+                                  "higher=/lower=.")
+        _skipped_note(len(self._frame) - len(kept), [before, after])
+        b_values, a_values = kept[before].to_list(), kept[after].to_list()
+        n = len(b_values)
+        if n < 2:
+            raise SimplydataError(f'{step}() needs at least 2 rows with a value in both "{before}" and "{after}".')
+        levels = sorted(set(b_values) | set(a_values), key=_sort_key)
+        if kind == "yes/no":
+            if len(levels) < 2:
+                raise SimplydataError(f'{step}() needs both values of a yes/no column; "{before}" and "{after}" only '
+                                      f'hold "{_label(levels[0])}".')
+            lowered = {str(v).strip().lower(): v for v in levels}
+            yes = next((lowered[w] for w, o in YES_NO_PAIRS if set(lowered) == {w, o}), levels[1])
+            levels = [yes] + [v for v in levels if v != yes]
+        index = {v: i for i, v in enumerate(levels)}
+        tab = np.zeros((len(levels), len(levels)), dtype=np.int64)
+        for b_, a_ in zip(b_values, a_values):
+            tab[index[b_], index[a_]] += 1
+        if kind == "yes/no":
+            return self._mcnemar(step, before, after, tab, _label(levels[0]), n, p_value_by == "exact", mcnemar)
+        if p_value_by == "exact":
+            raise SimplydataError('p_value_by="exact" works for yes/no columns (McNemar); for 3 or more categories '
+                                  "leave it out (Bowker's test).")
+        empty = [(levels[i], levels[j]) for i in range(len(levels)) for j in range(i + 1, len(levels))
+                 if tab[i, j] + tab[j, i] == 0]
+        if empty:
+            pairs = _list_words(f'"{_label(a)}" and "{_label(b)}"' for a, b in empty)
+            raise SimplydataError(f"No row changed between {pairs} (either way), so Bowker's test has nothing to "
+                                  "compare there and R mcnemar.test() gives no answer. Merge categories that "
+                                  "rarely change into their neighbours first.")
+        result = SquareTable(tab, shift_zeros=False).symmetry()
+        stat, p, df = float(result.statistic), float(result.pvalue), int(result.df)
+        changed = int(tab.sum() - np.trace(tab))
+        row = {"test": "Bowker's test of symmetry", "what it compares": f'"{before}" and "{after}", row by row',
+               "statistic name": "chi-square", "statistic": stat, "degrees of freedom": float(df), "p-value": p,
+               "rows": n, "rows that changed": changed}
+        for v in levels:
+            row[f"{_say_label(v)} in {before}"] = int(tab[index[v]].sum())
+            row[f"{_say_label(v)} in {after}"] = int(tab[:, index[v]].sum())
+        counts = _list_words(f'"{_label(v)}" {int(tab[index[v]].sum())} then {int(tab[:, index[v]].sum())}'
+                             for v in levels)
+        print(f'Counts in "{before}" then "{after}": {counts}. {changed} of {n} rows changed category.')
+        print(_p_sentence(p, "the changes truly went both ways equally", "changes this lopsided or more",
+                          "that the changes are balanced"))
+        print(f"Test: Bowker's test of symmetry (chi-square = {_num(stat)}, df = {df}), because the columns hold "
+              f"{len(levels)} categories; as R mcnemar.test() on the {len(levels)} x {len(levels)} table.")
+        return self._result_table(row)
+
+    def _mcnemar(self, step, before, after, tab, yes_label, n, exact, mcnemar):
+        """McNemar's test (statsmodels mcnemar with R's defaults) and the difference in percents (R exact2x2)."""
+        from .._r import RMissing, r_call
+
+        result = mcnemar(tab, exact=exact, correction=True)
+        p, stat = float(result.pvalue), float(result.statistic)
+        down, up = int(tab[0, 1]), int(tab[1, 0])  # yes -> no, no -> yes
+        yes_before, yes_after = int(tab[0].sum()), int(tab[:, 0].sum())
+        row = {"test": "McNemar's test" + (" (exact binomial)" if exact else " with continuity correction"),
+               "what it compares": f'"{yes_label}" in "{before}" and in "{after}", row by row',
+               "statistic name": "the smaller count of changes" if exact else "chi-square", "statistic": stat,
+               "p-value": p, "rows": n, f"{yes_label} in {before}": yes_before, f"{yes_label} in {after}": yes_after,
+               "changed from yes to no": down, "changed from no to yes": up}
+        try:
+            found = r_call("r <- exact2x2::mcnemarExactDP(x = x, m = m, n = n); list(d = unname(r$estimate[3]), "
+                           "ci = unname(r$conf.int))", packages=("exact2x2",),
+                           what="the difference in percents with its 95 % interval (R exact2x2::mcnemarExactDP())",
+                           x=up, m=up + down, n=n)
+            d = float(np.asarray(found["d"])[0])
+            low, high = (float(v) for v in np.asarray(found["ci"]))
+            note = ""
+        except RMissing:
+            d = low = high = math.nan
+            note = ("Note: the difference in percents and its 95 % CI come from the R package exact2x2 "
+                    '(mcnemarExactDP), which is not ready here; to add them: pip install "simplydata[r]", install R, '
+                    'then in R install.packages("exact2x2").')
+        row.update({"effect size name": "difference in percent yes, after minus before", "effect size": d * 100,
+                    "effect size 95 % CI low": low * 100, "effect size 95 % CI high": high * 100})
+        first = (f'"{yes_label}": {yes_before} of {n} in "{before}" and {yes_after} of {n} in "{after}". {down} rows '
+                 f'changed from "{yes_label}" to the other value, and {up} the other way.')
+        if not note:
+            first += (f" The percent changed by {d * 100:+.1f} percentage points (95 % CI {low * 100:.1f} to "
+                      f"{high * 100:.1f}).")
+        print(first)
+        print(_p_sentence(p, "there were truly no change", "a split of the changes this uneven or more",
+                          "that there is no change"))
+        how = ('the exact binomial test on the rows that changed (p_value_by="exact"), as R '
+               "exact2x2::exact2x2(paired = TRUE)" if exact else
+               f"with continuity correction (chi-square = {_num(stat)}, df = 1), as R mcnemar.test()")
+        print(f"Test: McNemar's test, {how}, because both columns are yes/no; it uses only the rows that changed."
+              + ("" if note else " The interval of the difference is R exact2x2::mcnemarExactDP()."))
+        if note:
+            print(note)
+        return self._result_table(row)
+
+    def _sign_test(self, step, before, after, sides, higher, lower, alternative):
+        """compare_before_after(test="sign"): statsmodels sign_test, as R DescTools::SignTest()."""
+        from statsmodels.stats.descriptivestats import sign_test
+
+        if sides != 2 or higher is not None or lower is not None or alternative not in (None, "two-sided"):
+            raise SimplydataError('test="sign" looks for a change either way here; leave out sides= and higher=.')
+        b, a = self._number_values(step, [before, after])
+        changes = a - b
+        ups, downs = int((changes > 0).sum()), int((changes < 0).sum())
+        if ups + downs == 0:
+            raise SimplydataError(f'Every row has the same value in "{before}" and "{after}", so there is no change '
+                                  "to test.")
+        m, p = sign_test(changes, 0)
+        p = float(p)
+        zeros = len(changes) - ups - downs
+        row = {"test": "sign test", "what it compares": f'the change from "{before}" to "{after}" in each row',
+               "statistic name": "rows that went up", "statistic": float(ups), "p-value": p, "rows that went up": ups,
+               "rows that went down": downs, "rows with no change": zeros, "median change": float(np.median(changes)),
+               "rows": len(changes)}
+        print(f'"{after}" is higher than "{before}" in {ups} rows and lower in {downs}'
+              + (f" ({zeros} with no change, left out)" if zeros else "")
+              + f"; the median change is {_num(np.median(changes))}.")
+        print(_p_sentence(p, "ups and downs were truly equally likely", "a split this uneven or more",
+                          "that there is no change"))
+        print("Test: sign test, chosen with test=; it counts only whether each row went up or down, so it needs no "
+              "bell shape and ignores how big the changes are. As R DescTools::SignTest() and statsmodels "
+              "sign_test().")
+        return self._result_table(row)
+
     @friendly
     def compare_before_after(self, before=None, after=None, based_on="averages", sides=2, higher=None, lower=None,
-                             alternative=None):
+                             alternative=None, test=None, p_value_by="formula"):
         """Did the values change from one column to the other, row by row, more than chance?
 
         table.compare_before_after("Maths", "Science")   (with sdata.example("marks"))
@@ -1142,6 +1302,15 @@ class StatTestWords:
         sides=1, higher="after" (or "before"; lower= is the mirror: lower="before" is the same as
         higher="after") tests in one direction only, as decided before seeing the data (R
         t.test(after, before, paired = TRUE, alternative = "greater")).
+        test="sign": the sign test, which only counts ups and downs (statsmodels sign_test, as R
+        DescTools::SignTest()).
+        The kind of column decides the test, and the sentence says so:
+        yes/no columns (two values, such as "yes"/"no", True/False or 0/1): McNemar's test with
+        continuity correction (statsmodels mcnemar, as R mcnemar.test()), with the change in the
+        percent and its 95 % interval from R exact2x2::mcnemarExactDP(); p_value_by="exact" gives
+        the exact binomial test on the rows that changed (as R exact2x2::exact2x2(paired = TRUE)).
+        columns of 3 or more categories (such as mild / moderate / severe): Bowker's test of
+        symmetry (statsmodels SquareTable.symmetry(), as R mcnemar.test() on the k x k table).
         """
         step = "compare_before_after"
         example = 'table.compare_before_after("before", "after")'
@@ -1150,6 +1319,21 @@ class StatTestWords:
         self._check_based_on(step, based_on)
         if before == after:
             raise SimplydataError(f"{step}() needs two different columns, for example {example}.")
+        self._need_columns(before, after)
+        self._check_choice(step, "p_value_by", p_value_by, ("formula", "exact"))
+        kind, kept = self._paired_kind(before, after)
+        if kind != "numbers":
+            if test is not None:
+                raise SimplydataError(f'test="{test}" is for columns of numbers; "{before}" and "{after}" are {kind} '
+                                      "columns, so they choose the test (leave out test=).")
+            side_given = sides != 2 or higher is not None or lower is not None or alternative not in (None, "two-sided")
+            return self._paired_counts(step, before, after, kind, kept, p_value_by, side_given)
+        if p_value_by == "exact":
+            raise SimplydataError('p_value_by="exact" is for yes/no columns (McNemar\'s exact test). For numbers, the '
+                                  'Wilcoxon test (based_on="ranks") is already exact for small groups.')
+        if test is not None:
+            self._check_choice(step, "test", test, ("sign",))
+            return self._sign_test(step, before, after, sides, higher, lower, alternative)
         b, a = self._number_values(step, [before, after])
         if len(a) < 2:
             raise SimplydataError(f'{step}() needs at least 2 rows with a number in both "{before}" and "{after}".')
@@ -1326,6 +1510,10 @@ class StatTestWords:
         ci = {k: i for i, k in enumerate(col_keys)}
         for r_, c_ in zip(rows_of, cols_of):
             observed[ri[r_], ci[c_]] += 1
+        return self._counts_engine(observed, column, for_each, test)
+
+    def _counts_engine(self, observed, column, for_each, test, what=None, unit="rows", unrelated=None):
+        """compare_counts on a table of counts (also sdata.compare_counts([[20, 40], [30, 30]]))."""
         from scipy import stats
 
         chi = stats.chi2_contingency(observed, correction=True)
@@ -1334,7 +1522,7 @@ class StatTestWords:
         v = float(stats.contingency.association(observed, method="cramer", correction=False))
         v_ci = interval_only("cramers_v", x=observed.astype(float))
         two_by_two = observed.shape == (2, 2)
-        what = f'how often each "{column}" turns up in each "{for_each}"'
+        what = what or f'how often each "{column}" turns up in each "{for_each}"'
         row = {"test": None, "what it compares": what}
         size = f"{observed.shape[0]} x {observed.shape[1]}"
         if test == "fisher":
@@ -1381,12 +1569,12 @@ class StatTestWords:
         row.update({"effect size name": "strength of the link, 0 (none) to 1 (complete) (Cramer's V)",
                     "effect size": v, "effect size 95 % CI low": v_ci["low"], "effect size 95 % CI high": v_ci["high"],
                     "rows": n, "smallest expected count": float(expected.min())})
-        first = (f"Comparing {what} ({size} table, {n} rows): Cramer's V = {_num(v)} ("
+        first = (f"Comparing {what} ({size} table, {n} {unit}): Cramer's V = {_num(v)} ("
                  + (interval_text(v_ci["low"], v_ci["high"])[2:-1] + "; " if not v_ci["note"] else "")
                  + "0 means no link, 1 a complete link).")
         print(first)
-        print(_p_sentence(p, f'"{column}" and "{for_each}" were truly unrelated', "differences this big or bigger",
-                          "that they are unrelated"))
+        print(_p_sentence(p, unrelated or f'"{column}" and "{for_each}" were truly unrelated',
+                          "differences this big or bigger", "that they are unrelated"))
         print(second)
         if v_ci["note"]:
             print(v_ci["note"])
@@ -1542,7 +1730,7 @@ class StatTestWords:
 
     @friendly
     def compare_percent_to(self, column=None, value=None, percent=None, sides=2, higher=None, lower=None,
-                           alternative=None):
+                           alternative=None, method="exact"):
         """Is the percent of rows with one value different from a percent you choose, or could it be chance?
 
         table.compare_percent_to("passed", value="yes", percent=50)   (with sdata.example("school"))
@@ -1554,8 +1742,14 @@ class StatTestWords:
         Gives back a one-row table of results.
         sides=1, higher="percent" (the data's percent is above percent=) or lower="percent"
         (below it) tests in one direction only (R binom.test(alternative = "greater")).
+        method= chooses the 95 % interval of the percent: "exact" (Clopper-Pearson, the default),
+        "wilson" (Wilson score, SciPy) or "agresti-coull" (statsmodels proportion_confint), each as
+        R DescTools::BinomCI(); the test stays the exact binomial test.
         """
         step = "compare_percent_to"
+        from .summaries import PERCENT_METHODS, _percent_method
+
+        method = _percent_method(step, method)
         example = ('with sdata.example("school"): table.compare_percent_to("passed", value="yes", percent=50)')
         if not _is_number(percent) or not math.isfinite(percent):
             raise SimplydataError(f"{step}() needs percent= as a number from 0 to 100.\nFor example, {example}")
@@ -1576,7 +1770,15 @@ class StatTestWords:
                              side_example)
         result = stats.binomtest(hits, n, percent / 100.0, alternative=alt)
         p = float(result.pvalue)
-        low, high = result.proportion_ci(confidence_level=0.95, method="exact")
+        if method == "agresti-coull":
+            if up is not None:
+                raise SimplydataError('method="agresti-coull" gives a two-sided interval only; with sides=1 use '
+                                      'method="exact" or method="wilson".')
+            from statsmodels.stats.proportion import proportion_confint
+
+            low, high = proportion_confint(hits, n, alpha=0.05, method="agresti_coull")
+        else:
+            low, high = result.proportion_ci(confidence_level=0.95, method=method)
         share = hits / n
         from statsmodels.stats.proportion import proportion_effectsize
 
@@ -1601,7 +1803,7 @@ class StatTestWords:
         print(_p_sentence(p, if_none, "a difference this big or bigger", f"that the percent is {percent:g} %"))
         print(f"Test: exact binomial test, as R binom.test({hits}, {n}, p = {percent / 100:g}"
               + ("" if up is None else f', alternative = "{alt}"') + "); the 95 % CI is the "
-              f"exact Clopper-Pearson interval.{chosen_by}{side_words}")
+              f"{PERCENT_METHODS[method][0]}.{chosen_by}{side_words}")
         if percent < 1:
             print(f"Note: percent={percent:g} means {percent:g} %. For a half write percent=50.")
         return self._result_table(row)
@@ -1636,17 +1838,56 @@ class StatTestWords:
         )
 
     # ------------------------------------------------------------------ compare_shape_to
+    @staticmethod
+    def _shape_test_run(test, v, dist=None):
+        """(statistic, p-value) of one shape test on the values v; each from SciPy or R, as R."""
+        from scipy import stats
+
+        if test == "shapiro-wilk":
+            result = stats.shapiro(v)
+        elif test == "dagostino":
+            result = stats.normaltest(v)
+        elif test == "jarque-bera":
+            result = stats.jarque_bera(v)
+        elif test == "lilliefors":
+            from .._r import r_call
+
+            found = r_call("r <- nortest::lillie.test(x); list(d = unname(r$statistic), p = r$p.value)",
+                           packages=("nortest",), what="the Lilliefors test (R nortest::lillie.test())",
+                           python_note="statsmodels lilliefors() uses another p-value approximation, which differs "
+                                       "from R's (most above p = 0.1); the Shapiro-Wilk test (the default) needs no R",
+                           x=v)
+            return float(np.asarray(found["d"])[0]), float(np.asarray(found["p"])[0])
+        elif test == "kolmogorov-smirnov":
+            ties = len(np.unique(v)) < len(v)
+            # R ks.test(): exact below 100 values without ties, otherwise the limiting distribution
+            result = stats.ks_1samp(v, dist._cdf, method="asymp" if ties or len(v) >= 100 else "exact")
+        else:
+            result = stats.cramervonmises(v, dist._cdf)
+        return float(result.statistic), float(result.pvalue)
+
     @friendly
-    def compare_shape_to(self, column=None, shape="normal", for_each=None, seed=1, samples=9999):
-        """Do the values look bell-shaped (normal), or are they too far from it to be chance?
+    def compare_shape_to(self, column=None, shape="normal", for_each=None, seed=1, samples=9999, test=None):
+        """Do the values look bell-shaped (normal), or are they too far from it?
 
         table.compare_shape_to("marks", "normal", for_each="class")   (with sdata.example("marks"))
         Uses the Shapiro-Wilk test (as R shapiro.test()), for 3 to 5000 values in each
-        group; empty cells are skipped. A small p-value says the shape is too far from a
-        bell shape to be chance. A large p-value does not prove the values are normal: with
-        few values the test can miss a different shape, and with many values (30 or more)
-        it flags even tiny, harmless differences, while tests on averages are then usually
-        fine anyway (the central limit theorem). Gives back a table with one row per group.
+        group; empty cells are skipped. A small p-value says a shape this far from a bell
+        shape would rarely turn up if the values were bell-shaped. A large p-value does not
+        prove the values are normal: with few values the test can miss a different shape, and
+        with many values (30 or more) it flags even tiny, harmless differences, while tests on
+        averages are then usually fine anyway (the central limit theorem). Gives back a table
+        with one row per group.
+        test= chooses another test of a bell shape: "lilliefors" (Kolmogorov-Smirnov with the
+        average and standard deviation taken from the data, run in R: nortest::lillie.test()),
+        "dagostino" (D'Agostino-Pearson, from skewness and kurtosis, SciPy normaltest, as R
+        fBasics::dagoTest()) or "jarque-bera" (SciPy jarque_bera, as R tseries::jarque.bera.test()).
+
+        A distribution with fixed numbers can be the shape too:
+        table.compare_shape_to("marks", sdata.distribution("normal", average=60, standard_deviation=15))
+        gives the one-sample Kolmogorov-Smirnov test (SciPy ks_1samp, as R ks.test(x, "pnorm", 60,
+        15)); test="cramer-von-mises" the Cramer-von Mises test (SciPy cramervonmises, as R
+        goftest::cvm.test()).
 
         Any other smooth shape works too: table.compare_shape_to("days", "gamma") fits the
         distribution (as table.fit_distribution) and runs the Anderson-Darling test, with a
@@ -1655,14 +1896,37 @@ class StatTestWords:
         Cauchy and F take minutes, and a note says so before a long run. samples=999 is ten
         times quicker and gives a rougher p-value.
         """
+        from ..distributions import Distribution
+
         step = "compare_shape_to"
         example = 'with sdata.example("marks"): table.compare_shape_to("marks", "normal", for_each="class")'
         self._need_name(step, "the column", column, example)
-        name = shape.strip().lower() if isinstance(shape, str) else shape
-        if not isinstance(name, str) or not name:
-            raise SimplydataError(f'{step}() needs a shape in quotes, such as "normal" or "gamma".\nFor example, {example}')
-        if name not in SHAPES:
-            return self._compare_other_shape(step, column, shape, for_each, seed, samples)
+        if isinstance(test, str):
+            test = SHAPE_TEST_ALIASES.get(test.strip().lower(), test.strip().lower())
+        dist = shape if isinstance(shape, Distribution) else None
+        if dist is not None:
+            if dist.is_discrete:
+                raise SimplydataError(f"{step}() compares with smooth (continuous) distributions; "
+                                      f"{dist.label} is a distribution of counts.")
+            test = test or "kolmogorov-smirnov"
+            self._check_choice(step, "test", test, FIXED_SHAPE_TESTS)
+        else:
+            name = shape.strip().lower() if isinstance(shape, str) else shape
+            if not isinstance(name, str) or not name:
+                raise SimplydataError(f'{step}() needs a shape in quotes, such as "normal" or "gamma", or a '
+                                      f"distribution from sdata.distribution(...).\nFor example, {example}")
+            if name not in SHAPES:
+                if test is not None:
+                    raise SimplydataError(f'test= chooses a test of a bell shape ("normal"); for "{shape}" the test is '
+                                          "Anderson-Darling with a fitted distribution (leave out test=).")
+                return self._compare_other_shape(step, column, shape, for_each, seed, samples)
+            test = test or "shapiro-wilk"
+            if test in FIXED_SHAPE_TESTS:
+                raise SimplydataError(f'test="{test}" compares with a distribution of fixed numbers, for example '
+                                      f'table.compare_shape_to("{column}", sdata.distribution("normal", average=60, '
+                                      f'standard_deviation=15), test="{test}").')
+            self._check_choice(step, "test", test, NORMAL_TESTS)
+        title, stat_name, r_name, smallest = SHAPE_TESTS[test]
         groups = self._group_columns(step, for_each, [column]) if for_each is not None else []
         frame = self._number_frame(step, [column])
         values = frame.select(nw.col(column).cast(nw.Float64))[column].to_numpy()
@@ -1675,57 +1939,76 @@ class StatTestWords:
         order = sorted(by_group, key=lambda k: tuple(_order(v) for v in k))
         skipped = int(np.isnan(values).sum())
         _skipped_note(skipped, [column])
-        from scipy import stats
 
         rows, lines, any_large_flag = [], [], False
-        what = f'the shape of "{column}" with a normal (bell-shaped) distribution'
+        if dist is None:
+            what = f'the shape of "{column}" with a normal (bell-shaped) distribution'
+            shape_words, null = "bell-shaped (normal)", "the values truly came from a bell shape"
+            far = "a shape this far from normal or further"
+            r_call_text = r_name
+        else:
+            what = f'the shape of "{column}" with the given distribution ({dist.label})'
+            shape_words, null = "like the given distribution", "the values truly came from the given distribution"
+            far = "a shape this far from it or further"
+            r_call_text = r_name.replace("DIST", dist._r("p", "x").split("(", 1)[0]) if dist._r("p", "x") else r_name
         for key in order:
             v = np.asarray(by_group[key], dtype=float)
             n = len(v)
             label = " / ".join(_say_label(x) for x in key)
             problem = None
-            if n < 3:
-                problem = f"only {n} value{'' if n == 1 else 's'}: Shapiro-Wilk needs at least 3"
-            elif n > SHAPIRO_LIMIT:
+            if n < smallest:
+                problem = f"only {n} value{'' if n == 1 else 's'}: {title.replace(' test', '')} needs at least {smallest}"
+            elif test == "shapiro-wilk" and n > SHAPIRO_LIMIT:
                 problem = (f"{n} values: Shapiro-Wilk works up to {SHAPIRO_LIMIT} values (as R); look at the shape "
-                           f'on a chart instead, for example chart.histogram(x="{column}")')
+                           f'on a chart instead, for example chart.histogram(x="{column}"), or use test="dagostino"')
             elif np.ptp(v) == 0:
                 problem = "every value is the same, so there is no shape to test"
             if problem and not groups:
                 raise SimplydataError(f'{step}() cannot test "{column}": {problem}.')
             w = p = math.nan
             if not problem:
-                result = stats.shapiro(v)
-                w, p = float(result.statistic), float(result.pvalue)
+                w, p = self._shape_test_run(test, v, dist)
             row = {g: k for g, k in zip(groups, key)}
-            row.update({"test": "Shapiro-Wilk test", "what it compares": what, "statistic name": "W",
+            row.update({"test": title, "what it compares": what, "statistic name": stat_name,
                         "statistic": w, "p-value": p, "rows": n})
             rows.append(row)
             if problem:
                 lines.append(f"  {label}: not tested ({problem}).")
                 continue
-            looks = "do not look bell-shaped" if p < 0.05 else "could well be bell-shaped"
-            if not groups:
-                lines.append(f'The values of "{column}" {looks} (normal) (Shapiro-Wilk W = {w:.3f}, {n} values).')
-                lines.append(_p_sentence(p, "the values truly came from a bell shape",
-                                         "a shape this far from normal or further", "that they are bell-shaped"))
+            if dist is None:
+                looks = "do not look bell-shaped" if p < 0.05 else "could well be bell-shaped"
             else:
-                lines.append(f"  {label}: {looks} (W = {w:.3f}, {_p_shown(p)}, {n} values)")
+                looks = (f"do not look like the given distribution ({dist.label})" if p < 0.05 else
+                         f"could well come from the given distribution ({dist.label})")
+            if not groups:
+                short = title.replace(" test", "")
+                lines.append(f'The values of "{column}" {looks}{" (normal)" if dist is None else ""} ({short} '
+                             f"{stat_name} = {w:.3f}, {n} values).")
+                lines.append(_p_sentence(p, null, far, "that they are bell-shaped" if dist is None else
+                                         "that they come from it"))
+            else:
+                lines.append(f"  {label}: {looks} ({stat_name} = {w:.3f}, {_p_shown(p)}, {n} values)")
             any_large_flag = any_large_flag or (p < 0.05 and n >= CLT_SIZE)
+        chosen = "" if test in ("shapiro-wilk", "kolmogorov-smirnov") else "; chosen with test="
         if groups:
             names = " and ".join(f'"{g}"' for g in groups)
-            print(f'Do the values of "{column}" look bell-shaped (normal) in each {names}? '
-                  "Shapiro-Wilk test (as R shapiro.test()); each p-value says how often a shape this far from normal "
-                  "would turn up if the values truly came from a bell shape:")
+            print(f'Do the values of "{column}" look {shape_words} in each {names}? '
+                  f"{title} (as R {r_call_text}{chosen}); each p-value says how often {far} "
+                  f"would turn up if {null}:")
         for line in lines:
             print(line)
         if not groups:
-            print("Test: Shapiro-Wilk test (as R shapiro.test()), the usual check of a bell shape for 3 to 5000 values.")
+            usual = {"shapiro-wilk": ", the usual check of a bell shape for 3 to 5000 values",
+                     "lilliefors": ", run in R; the average and standard deviation come from the data",
+                     "kolmogorov-smirnov": "; the distribution's numbers are fixed, not taken from the data"}
+            print(f"Test: {title} (as R {r_call_text}){usual.get(test, '')}{chosen}.")
         else:
-            print("A large p-value does not prove that the values are bell-shaped.")
+            print("A large p-value does not prove that the values are "
+                  + ("bell-shaped." if dist is None else "like the given distribution."))
         if any_large_flag:
-            print(f"Note: with {CLT_SIZE} or more values Shapiro-Wilk flags even small, harmless differences from a bell "
-                  "shape; tests on averages are usually still fine (the central limit theorem).")
+            print(f"Note: with {CLT_SIZE} or more values {title.replace(' test', '')} flags even small, harmless "
+                  f"differences from {'a bell shape' if dist is None else 'the given distribution'}; tests on "
+                  "averages are usually still fine (the central limit theorem).")
         data = {k: [r[k] for r in rows] for k in rows[0]}
         return self._new_table(nw.from_dict(data, backend=self._frame.implementation))
 

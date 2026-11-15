@@ -1,4 +1,4 @@
-Do the values of "marks" look bell-shaped (normal) in each "class"? Shapiro-Wilk test (as R shapiro.test()); each p-value says how often a shape this far from normal would turn up if the values truly came from a bell shape:
+Do the values of "marks" look bell-shaped (normal) in each "class"? Shapiro-Wilk test (as R shapiro.test()); each p-value says how often a shape this far from normal or further would turn up if the values truly came from a bell shape:
   A: could well be bell-shaped (W = 0.965, p = 0.700, 18 values)
   B: could well be bell-shaped (W = 0.954, p = 0.491, 18 values)
   C: could well be bell-shaped (W = 0.985, p = 0.985, 18 values)

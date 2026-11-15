@@ -37,6 +37,10 @@ def marks():
     return pd.DataFrame(rows)
 
 
+# The R packages simplydata calls (also installed in CI, .github/workflows/tests.yml)
+R_PACKAGES = ("survival", "vegan", "mice", "effectsize", "pwr", "Exact", "exact2x2", "nortest", "BSDA")
+
+
 @pytest.fixture
 def needs_r():
     """For tests of methods that call R (simplydata[r]): skipped where R, rpy2 or the R
@@ -45,15 +49,17 @@ def needs_r():
 
     from simplydata._r import r_ready
 
-    if not r_ready(("survival", "vegan", "mice")):
+    if not r_ready(R_PACKAGES):
+        listed = ", ".join(R_PACKAGES)
         if os.environ.get("SIMPLYDATA_REQUIRE_R") == "1":
-            pytest.fail("SIMPLYDATA_REQUIRE_R=1 but R, rpy2 or the R packages survival, vegan, mice are missing")
-        pytest.skip("needs R with survival, vegan and mice (pip install 'simplydata[r]')")
+            pytest.fail(f"SIMPLYDATA_REQUIRE_R=1 but R, rpy2 or one of the R packages {listed} is missing")
+        pytest.skip(f"needs R with {listed} (pip install 'simplydata[r]')")
 
 
 # The places that are meant to run R (each calls simplydata._r.r_call). Reaching R from anywhere
 # else is a mistake: a word that should work without R.
 R_ENTRY_POINTS = {
+    ("power.py", "_pwr"),
     ("table/patterns.py", "_r_kmeans"), ("table/patterns.py", "_r_nmds"), ("table/patterns.py", "_r_permanova"),
     ("table/survival.py", "cox_zph"), ("table/between.py", "__init__"), ("table/models.py", "_explain_imputed"),
 }
