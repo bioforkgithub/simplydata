@@ -2069,6 +2069,12 @@ class StatTestWords:
         """compare_counts on a table of counts (also sdata.compare_counts([[20, 40], [30, 30]]))."""
         from scipy import stats
 
+        empty = [f"row {i + 1}" for i in np.flatnonzero(observed.sum(axis=1) == 0)] + \
+                [f"column {j + 1}" for j in np.flatnonzero(observed.sum(axis=0) == 0)]
+        if empty:
+            raise SimplydataError(f"The table of counts has only zeros in {_list_words(empty)}, so an expected count "
+                                  "is 0 and the test cannot be worked out (R chisq.test() gives NaN). Leave that "
+                                  "row or column out.")
         chi = stats.chi2_contingency(observed, correction=True)
         expected = chi.expected_freq
         n = int(observed.sum())
@@ -2086,7 +2092,7 @@ class StatTestWords:
 
                 p = float(np.asarray(r_call("stats::fisher.test(x, workspace = 2e8)$p.value", packages=(),
                                             what=f"Fisher's exact test on a {size} table (R fisher.test())",
-                                            python_note="SciPy fisher_exact gives a {size} p-value from random tables "
+                                            python_note=f"SciPy fisher_exact gives the p-value of a {size} table from random tables "
                                                         "(leave out p_value_by= for it, seeded)",
                                             x=observed.astype(float)))[0])
                 how = "every table with the same totals counted, in R (fisher.test())"

@@ -137,7 +137,7 @@ def test_correlation_intervals(engine, needs_r, capsys):
     assert "values from 0.699 to 0.889 fit the data (95 % CI, Fisher's z" in capsys.readouterr().out
     t.correlation_between("hours", "marks", method="kendall")
     # R: DescTools::KendallTauB(hours, marks, conf.level = 0.95): 0.5315458077896 to 0.7549871038909
-    assert "values from 0.532 to 0.755 fit" in capsys.readouterr().out
+    assert "values from 0.532 to 0.755 fit the data (95 % CI, asymptotic standard error" in capsys.readouterr().out
 
 
 def test_somers_and_gamma(engine, needs_r, capsys):

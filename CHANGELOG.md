@@ -198,7 +198,8 @@ nothing is computed anew.
   (paired t-tests, or Wilcoxon signed-rank with `based_on="ranks"`, Holm-adjusted; as R
   `pairwise.t.test(paired = TRUE)` / `pairwise.wilcox.test(paired = TRUE)`).
 - `correlation_between` with two columns now prints every r with its 95 % interval: Pearson from
-  SciPy, Spearman and Kendall from R `DescTools` (Fisher's z). New `method="somers"` and
+  SciPy, Spearman from R `DescTools::SpearmanRho()` (Fisher's z) and Kendall's tau-b from
+  `DescTools::KendallTauB()` (its asymptotic standard error). New `method="somers"` and
   `method="gamma"` (R `DescTools::SomersDelta()`, `GoodmanKruskalGamma()`, with intervals) and
   `allowing_for="height"` for the partial correlation (R `ppcor::pcor.test()`).
 - New `table.compare_correlations("hours", "marks", for_each="class")`: two correlations in two
@@ -244,6 +245,13 @@ nothing is computed anew.
 - `sdata.compare_risks(events=[20, 30], out_of=[60, 60], names=["new", "usual"])` and
   `sdata.compare_rates(events=[15, 30], time=[1200, 1100])` from given counts (`names=`, as on
   `sdata.compare_averages`; `groups=` still works, with a note).
+- A 0 in the 2 x 2 table: nothing is added to the empty cells, so the p-value is R's
+  (`prop.test(c(5, 0), c(10, 10))`: p = 0.039) and a ratio with a 0 is shown as R
+  `epitools::riskratio()` / `oddsratio()` give it: infinite or 0 without an interval, or "cannot be
+  worked out" (0 / 0), with a note. No events in either group (or the event in every row) gives no
+  p-value, as R gives NaN; `compare_rates` with no events at all says the rate ratio cannot be
+  worked out. One-sided risks and rates use the same words as the other tests ("If the risk in B
+  were truly not higher than in A, ...").
 
 ### Diagnostic tests
 
@@ -261,6 +269,9 @@ nothing is computed anew.
   `sdata.compare_to_truth(sensitivity=90, specificity=95, prevalence=1)` for the base-rate question.
   `tp=`, `fn=`, `fp=`, `tn=` and `true_positives=` ... `true_negatives=` work too, with a one-line
   pointer to the simplydata name.
+- A test with no positive results says that the share of positives that are real (and the positive
+  likelihood ratio) cannot be worked out; a positive likelihood ratio below 1 is worded as "less
+  common", a test that works the wrong way round.
 - New example table `clinic`: 200 made-up patients with a rapid test, CRP and procalcitonin,
   ratings by a nurse and a doctor, two blood-pressure devices, pain scores and hospital infections
   (`caught_infection`, yes or no), and five questionnaire items `item_1` to `item_5`; the yes/no
@@ -279,7 +290,9 @@ nothing is computed anew.
   `"different per row"` (McGraw and Wong's "random", "fixed", "different" work too), `kind=`,
   `of=` choose the form, which is always named, with Koo and Li's guide words beside the
   interval). The test statistic is in "statistic name" / "statistic" (z for kappa, F for the
-  ICC), as on every test; the kappa or ICC is the "estimate".
+  ICC), as on every test; the kappa or ICC is the "estimate". The agreement by chance is shown
+  for Cohen's kappa only; weighted kappa shows the exact agreement beside it, and the result
+  names the R call exactly as it is made (`type = "consistency"` for the one-way ICC).
   `method="krippendorff"` (R `irr::kripp.alpha()`, the "kind of data" in its own column) and
   `method="lin"` (R `DescTools::CCC()`).
 - `table.limits_of_agreement("device_a", "device_b")`: Bland-Altman limits of agreement with the

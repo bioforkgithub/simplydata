@@ -58,6 +58,8 @@ def _natural_sentence(prevalence, se, sp, intervals=None, own=True):
     ci = intervals or {}
 
     def with_ci(name, value, label):
+        if math.isnan(value):
+            return f"{label} cannot be worked out".strip()
         if name in ci:
             low, high = ci[name]
             return f"{label} {_pct(value)}, {ci['_label']} {_num(low * 100)} to {_num(high * 100)} %"
@@ -71,21 +73,57 @@ def _natural_sentence(prevalence, se, sp, intervals=None, own=True):
              f"{negatives} test negative ({with_ci('specificity', sp, 'specificity')}) and {alarms} test positive "
              "by mistake."]
     if intervals is not None:
-        lines.append(f"So of the {positives} positive results, {found} ({with_ci('ppv', intervals['_ppv'], '')[1:]}) "
-                     f"really have it; of the {negs} negative results, {negatives} "
-                     f"({with_ci('npv', intervals['_npv'], '')[1:]}) really do not.")
+        ppv_words, npv_words = (with_ci(k, intervals[f"_{k}"], "")[1:] if not math.isnan(intervals[f"_{k}"]) else ""
+                                for k in ("ppv", "npv"))
     else:
-        lines.append(f"So of the {positives} positive results, {found} ({_pct(ppv) if positives else 'none'}) really "
-                     f"have it; of the {negs} negative results, {negatives} "
-                     f"({_pct(npv) if negs else 'none'}) really do not.")
+        ppv_words, npv_words = (_pct(ppv) if positives else "", _pct(npv) if negs else "")
+    if ppv_words:
+        first = f"So of the {positives} positive results, {found} ({ppv_words}) really have it"
+    else:
+        first = "So no one tests positive, and the share of positive results that are real cannot be worked out"
+    if npv_words:
+        second = f"of the {negs} negative results, {negatives} ({npv_words}) really do not"
+    else:
+        second = "no one tests negative, so the share of negative results that are right cannot be worked out"
+    lines.append(f"{first}; {second}.")
     return lines
 
 
 def at_prevalence(se, sp, prevalence):
-    """[D] PPV and NPV where prevalence (a share) have it: Bayes' rule on the sensitivity and specificity."""
-    ppv = se * prevalence / (se * prevalence + (1 - sp) * (1 - prevalence))
-    npv = sp * (1 - prevalence) / (sp * (1 - prevalence) + (1 - se) * prevalence)
+    """[D] PPV and NPV where prevalence (a share) have it: Bayes' rule on the sensitivity and specificity. A share
+    with no one in it (such as the PPV of a test that is never positive) is NaN, as R gives 0 / 0."""
+    positive = se * prevalence + (1 - sp) * (1 - prevalence)
+    negative = sp * (1 - prevalence) + (1 - se) * prevalence
+    ppv = se * prevalence / positive if positive > 0 else math.nan
+    npv = sp * (1 - prevalence) / negative if negative > 0 else math.nan
     return ppv, npv
+
+
+def _likelihood_sentence(est, low, high, ci):
+    """The likelihood ratios in words; one below 1 is "less common", 0 / 0 "cannot be worked out"."""
+    def ends(i, label):
+        if math.isnan(low[i]) or math.isnan(high[i]):
+            return f"{label}its interval cannot be worked out"
+        return f"{label}{_num(low[i])} to {_num(high[i])}"
+
+    lr_pos, lr_neg = float(est[0]), float(est[1])
+    if math.isnan(lr_pos):
+        pos = "The positive likelihood ratio cannot be worked out (0 / 0: no positive results)"
+    elif lr_pos > 1:
+        pos = (f"A positive result is {_num(lr_pos)} times more common in people who have it than in people who do not "
+               f"(positive likelihood ratio, {ends(0, ci + ' ')})")
+    elif lr_pos == 1:
+        pos = (f"A positive result is just as common in people who have it as in people who do not (positive "
+               f"likelihood ratio 1, {ends(0, ci + ' ')}): the test tells nothing")
+    else:
+        pos = (f"A positive result is less common in people who have it than in people who do not: only "
+               f"{_num(lr_pos)} times as common (positive likelihood ratio below 1, {ends(0, ci + ' ')}), so the test "
+               "works the wrong way round")
+    if math.isnan(lr_neg):
+        neg = "the negative likelihood ratio cannot be worked out (0 / 0: no negative results)"
+    else:
+        neg = f"a negative result is {_num(lr_neg)} times as common (negative likelihood ratio, {ends(1, '')})"
+    return f"{pos}; {neg}."
 
 
 def _check_prevalence(step, prevalence, example):
@@ -155,9 +193,7 @@ def accuracy_engine(tp, fn, fp, tn, level, prevalence=None, test_words="the test
                      f"estimate {ci} high": float(high[i]), "what it means": meaning,
                      "method": "R epiR::epi.tests(method = \"exact\")"})
     if not lr_note:
-        lines.append(f"A positive result is {_num(est[0])} times more common in people who have it than in people who "
-                     f"do not (positive likelihood ratio, {ci} {_num(low[0])} to {_num(high[0])}); a negative result "
-                     f"is {_num(est[1])} times as common (negative likelihood ratio, {_num(low[1])} to {_num(high[1])}).")
+        lines.append(_likelihood_sentence(est, low, high, ci))
     if prevalence is None:
         lines.append("The share of positives that are real depends on how common the condition is: give prevalence=1 "
                      "to see it for a group where 1 % have it.")

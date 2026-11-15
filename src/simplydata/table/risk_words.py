@@ -52,8 +52,11 @@ COMMON = 0.10  # the odds ratio note: an outcome this common makes the odds rati
 
 
 def _num(x) -> str:
-    """_num after rounding away float noise (0.1 * 100 = 10.000000000000002 is shown as 10.0)."""
+    """_num after rounding away float noise (0.1 * 100 = 10.000000000000002 is shown as 10.0); a NaN (such as
+    0 / 0) is shown as "cannot be worked out", never "nan"."""
     x = float(x)
+    if math.isnan(x):
+        return "cannot be worked out"
     return _num_plain(round(x, 9) if math.isfinite(x) else x)
 
 
@@ -89,6 +92,15 @@ def _event_value(step, column, values, positive, what="the event", option="posit
             return lowered[yes], f'"{_label(lowered[yes])}"'
     return distinct[1], (f'"{_label(distinct[1])}" (the second value in sorted order, as R; choose with '
                          f"{option}=)")
+
+
+def _ratio_words(estimate, low, high, ci) -> str:
+    """'2.00 (95 % CI 1.08 to 3.72)', 'infinite (its interval cannot be worked out)' or 'cannot be worked out (0 / 0)'."""
+    if math.isnan(estimate):
+        return "cannot be worked out (0 / 0)"
+    if math.isnan(low) or math.isnan(high):
+        return f"{_num(estimate)} (its interval cannot be worked out)"
+    return f"{_num(estimate)} ({ci} {_num(low)} to {_num(high)})"
 
 
 def _rows_table(make, rows):
@@ -135,10 +147,21 @@ def risk_engine(counts, against, level, what, p_value_by="formula", strata=None,
         diff = shares[group] - shares[against]
         d_low, d_high = (float(v) for v in confint_proportions_2indep(
             events, total, ref_events, ref_total, method="newcomb", compare="diff", alpha=alpha))
-        table = ct.Table2x2(tab)
+        # a copy without the 0.5 added to empty cells (statsmodels shift_zeros=True changes the array it is given):
+        # the ratios as R epitools::riskratio() / oddsratio(method = "wald") give them, 0 or infinite with a 0
         zero = bool((tab == 0).any())
-        rr, (rr_low, rr_high) = float(table.riskratio), (float(v) for v in table.riskratio_confint(alpha=alpha))
-        odds, (or_low, or_high) = float(table.oddsratio), (float(v) for v in table.oddsratio_confint(alpha=alpha))
+        no_events = events == 0 or ref_events == 0  # the risk ratio is 0, infinite or 0/0, without an interval
+        with np.errstate(divide="ignore", invalid="ignore"):
+            table = ct.Table2x2(tab.copy(), shift_zeros=False)
+            rr, (rr_low, rr_high) = float(table.riskratio), (float(v) for v in table.riskratio_confint(alpha=alpha))
+            odds, (or_low, or_high) = float(table.oddsratio), (float(v) for v in table.oddsratio_confint(alpha=alpha))
+        if no_events:
+            rr = math.nan if events == 0 and ref_events == 0 else rr
+            rr_low = rr_high = math.nan
+        if zero:
+            or_low = or_high = math.nan
+        # no events in either group, or events in every row: R prop.test() gives NaN (an expected count of 0)
+        empty_column = bool((tab.sum(axis=0) == 0).any())
         if p_value_by == "exact":
             fisher = stats.fisher_exact(tab.astype(int), alternative={"two-sided": "two-sided", "greater": "greater",
                                                                        "less": "less"}[alternative])
@@ -149,7 +172,10 @@ def risk_engine(counts, against, level, what, p_value_by="formula", strata=None,
             test_words = "Fisher's exact test (SciPy fisher_exact, as R fisher.test())"
             or_words = "conditional maximum-likelihood odds ratio with its exact interval (SciPy, as R fisher.test())"
         else:
-            if alternative == "two-sided":
+            if empty_column:
+                p = math.nan  # as R prop.test(): NaN (SciPy refuses an expected count of 0)
+                test_words = "the chi-square test with Yates' correction (SciPy, as R prop.test())"
+            elif alternative == "two-sided":
                 p = float(stats.chi2_contingency(tab, correction=True).pvalue)
                 test_words = "the chi-square test with Yates' correction (SciPy, as R prop.test())"
             else:
@@ -162,11 +188,17 @@ def risk_engine(counts, against, level, what, p_value_by="formula", strata=None,
         more = "fewer" if diff < 0 else "more"
         print(f"Out of 100, about {round(per_100)} {more} {group_word} {group} than {group_word} {against} (risk "
               f"difference {_num(diff * 100)} percentage points, {ci} {_num(d_low * 100)} to {_num(d_high * 100)}).")
-        times = f"{_num(rr)} times"
-        rr_line = (f"Risk ratio {_num(rr)} ({ci} {_num(rr_low)} to {_num(rr_high)}): the risk {group_word} {group} "
-                   f"is {times} the risk {group_word} {against}.")
-        or_line = f"Odds ratio {_num(odds)} ({ci} {_num(or_low)} to {_num(or_high)})"
-        if max(shares[group], shares[against]) > COMMON:
+        rr_line = "Risk ratio " + _ratio_words(rr, rr_low, rr_high, ci)
+        if math.isfinite(rr) and rr > 0:
+            rr_line += f": the risk {group_word} {group} is {_num(rr)} times the risk {group_word} {against}."
+        elif not math.isnan(rr):  # 0 or infinite
+            rr_line += f": there are no events {group_word} {group if rr == 0 else against}."
+        else:
+            rr_line += "."
+        or_line = "Odds ratio " + _ratio_words(odds, or_low, or_high, ci)
+        if not (math.isfinite(odds) and odds > 0):
+            or_line += "."
+        elif max(shares[group], shares[against]) > COMMON:
             or_line += ("; odds are not risks: with an outcome this common (over 10 %) the odds ratio lies further "
                         "from 1 than the risk ratio.")
         else:
@@ -174,8 +206,11 @@ def risk_engine(counts, against, level, what, p_value_by="formula", strata=None,
         print(rr_line + " " + or_line)
         nnt_row = _nnt(diff, d_low, d_high, group, against, ci, group_word)
         if zero:
-            print("Note: a count of 0 in the 2 x 2 table makes the ratios 0 or infinite and their Wald intervals "
-                  'cannot be worked out; p_value_by="exact" gives the exact test and the conditional odds ratio.')
+            exact = (" The conditional odds ratio of the exact test has its interval." if p_value_by == "exact" else
+                     ' p_value_by="exact" gives the exact test and the conditional odds ratio with its interval.')
+            print("Note: a count of 0 in the 2 x 2 table makes a ratio 0 or infinite (or 0 / 0, which cannot be worked "
+                  "out), and its Wald interval cannot be worked out, as in R epitools::riskratio() and oddsratio(); "
+                  "simplydata does not add 0.5 to the empty cells." + exact)
         rows += [
             {"measure": "risk difference", "group": group, "against": against, "estimate": diff,
              f"estimate {ci} low": d_low, f"estimate {ci} high": d_high, "p-value": p,
@@ -188,9 +223,15 @@ def risk_engine(counts, against, level, what, p_value_by="formula", strata=None,
             {"measure": "odds ratio", "group": group, "against": against, "estimate": odds,
              f"estimate {ci} low": or_low, f"estimate {ci} high": or_high, "p-value": p, "method": or_words},
         ]
-        sides = "" if alternative == "two-sided" else " in the direction you expected"
-        print(_p_sentence(p, f"the risks were truly the same{sides}", "a difference this big or bigger",
-                          "that the risks are the same"))
+        if alternative == "two-sided":
+            if_none = "the risks were truly the same"
+        else:
+            other = against if up == group else group
+            if_none = f"the risk {group_word} {up} were truly not higher than {group_word} {other}"
+        print(_p_sentence(p, if_none, "a difference this big or bigger", "that the risks are the same"))
+        if math.isnan(p):
+            print("Note: with " + ("no events in either group" if events + ref_events == 0 else "the event in every row")
+                  + ", the chi-square test has an expected count of 0, so R prop.test() gives NaN too.")
         print(f"Method: {test_words} for the p-value; exact intervals for each risk, Newcombe's score interval for "
               "the difference (as R DescTools::BinomDiffCI(method = \"score\")), Wald intervals on the log scale "
               "for the ratios (statsmodels Table2x2, as R epitools::riskratio())" +
@@ -456,7 +497,15 @@ def rate_engine(counts, against, level, per, unit, what, same_within=None, up=No
     r_side = {"two-sided": "two.sided", "greater": "greater", "less": "less"}[alternative]
     for group in others:
         e1, t1 = counts[group]
-        test = test_poisson_2indep(e1, t1, e0, t0, method="exact-cond", alternative=side)
+        if e1 + e0 == 0:
+            print(f"No events in {group} or in {against}: the rate ratio is 0 / 0, which cannot be worked out (R "
+                  "poisson.test() gives NaN), so there is nothing to test.")
+            rows.append({"measure": "rate ratio", "group": group, "against": against, "estimate": math.nan,
+                         f"estimate {ci} low": math.nan, f"estimate {ci} high": math.nan, "p-value": math.nan,
+                         "method": "no events in either group: the rate ratio cannot be worked out"})
+            continue
+        with np.errstate(divide="ignore", invalid="ignore"):  # a group with no events: the ratio is 0 or infinite
+            test = test_poisson_2indep(e1, t1, e0, t0, method="exact-cond", alternative=side)
         ratio, p = float(test.ratio), float(test.pvalue)
         try:
             found = r_call("stats::poisson.test(c(x1, x0), c(t1, t0), conf.level = level, alternative = side)$conf.int",
@@ -473,10 +522,17 @@ def rate_engine(counts, against, level, per, unit, what, same_within=None, up=No
             interval = ""
             note = ("Note: the exact interval of the rate ratio comes from R (poisson.test()), which is not ready "
                     'here; to add it: pip install "simplydata[r]" and install R.')
-        print(f"Rate ratio {_num(ratio)}{interval}: the rate in {group} is {_num(ratio)} times the rate in {against}.")
-        sides = "" if alternative == "two-sided" else " in the direction you expected"
-        print(_p_sentence(p, f"the rates were truly the same{sides}", "a difference this big or bigger",
-                          "that the rates are the same"))
+        if 0 < ratio < math.inf:
+            meaning = f": the rate in {group} is {_num(ratio)} times the rate in {against}."
+        else:  # 0 or infinite: one group has no events
+            meaning = f": there are no events in {group if ratio == 0 else against}."
+        print(f"Rate ratio {_num(ratio)}{interval}{meaning}")
+        if alternative == "two-sided":
+            if_none = "the rates were truly the same"
+        else:
+            other = against if up == group else group
+            if_none = f"the rate in {up} were truly not higher than in {other}"
+        print(_p_sentence(p, if_none, "a difference this big or bigger", "that the rates are the same"))
         print(f"Method: exact intervals for each rate (statsmodels confint_poisson, as R poisson.test()); the exact "
               f"conditional test of the rate ratio (statsmodels test_poisson_2indep), with its exact interval from R, "
               f"as R poisson.test(c({_whole(e1)}, {_whole(e0)}), c({_whole(t1)}, {_whole(t0)})).")

@@ -139,7 +139,7 @@ class AgreementWords:
                 return self._krippendorff(names, raw, "interval")
             return self._krippendorff(names, codes, "ordinal" if in_order is not None else "nominal")
         if len(names) == 2:
-            return self._cohen(names, codes, order, level, weights)
+            return self._cohen(names, codes, order, level, weights, in_order)
         return self._fleiss(names, codes, order)
 
     def _category_order(self, step, names, values, in_order, need_order):
@@ -160,10 +160,10 @@ class AgreementWords:
         return [next(v for v in seen if v == o or str(v) == str(o)) if any(v == o or str(v) == str(o) for v in seen)
                 else o for o in order]
 
-    def _cohen(self, names, codes, order, level, weights):
+    def _cohen(self, names, codes, order, level, weights, in_order=None):
         from statsmodels.stats.inter_rater import cohens_kappa
 
-        if weights is not None and order == sorted(order, key=str) and not all(
+        if weights is not None and in_order is None and order == sorted(order, key=str) and not all(
                 self._frame.schema[n].is_numeric() for n in names):
             print("Note: the categories are weighted in sorted order ("
                   + ", ".join(f'"{_label(v)}"' for v in order) + '); give in_order=[...] if their order is another.')
@@ -180,12 +180,17 @@ class AgreementWords:
         n = int(table.sum())
         same = int(np.trace(table))
         raw = same / n  # [D] share of rows where the two agree
-        chance = (raw - kappa) / (1 - kappa) if kappa != 1 else math.nan  # [D] read back from kappa
+        # [D] the agreement chance would give, read back from the unweighted kappa: kappa = (raw - chance) / (1 -
+        # chance). Not for weighted kappa (its observed and chance agreement are weighted, and statsmodels does not
+        # give them), nor for kappa = 1 (then raw = 1 and the chance agreement drops out).
+        chance = (raw - kappa) / (1 - kappa) if weights is None and kappa < 1 else None
         ci = _ci(level)
         name = "Cohen's kappa" if weights is None else f"weighted kappa ({weights} weights)"
         r_call = "irr::kappa2()" if weights is None else f'irr::kappa2(weight = "{WEIGHTS[weights][1]}")'
-        print(f'"{names[0]}" and "{names[1]}" agree on {same} of {n} rows ({_num(raw * 100)} %); by chance alone they '
-              f"would agree on about {_num(chance * 100)} %. {name} = {_num(kappa)} ({ci} {_num(low)} to {_num(high)}): "
+        by_chance = "" if chance is None else f"; by chance alone they would agree on about {_num(chance * 100)} %"
+        exact = "exactly " if weights is not None else ""
+        print(f'"{names[0]}" and "{names[1]}" agree {exact}on {same} of {n} rows ({_num(raw * 100)} %){by_chance}. '
+              f"{name[0].upper() + name[1:]} = {_num(kappa)} ({ci} {_num(low)} to {_num(high)}): "
               f"they agree {round(kappa * 100)} % of the way from chance to perfect.")
         print(_p_sentence(p, "the two agreed only by chance", "agreement this far above chance",
                           "that they agree only by chance"))
@@ -195,7 +200,7 @@ class AgreementWords:
               f"can be low even when the raw agreement is high, if one category is rare, so both are shown. "
               f"{NOT_CORRELATION}")
         row = {"test": name, "what it compares": f'"{names[0]}" and "{names[1]}"', "rows": n,
-               "raw agreement": raw, "agreement by chance": chance, "estimate": kappa,
+               "raw agreement": raw, **({} if chance is None else {"agreement by chance": chance}), "estimate": kappa,
                f"estimate {ci} low": low, f"estimate {ci} high": high, "statistic name": "z", "statistic": z,
                "p-value": p,
                "method": f"statsmodels cohens_kappa, as R {r_call}"}
@@ -240,12 +245,13 @@ class AgreementWords:
 
         matrix = np.column_stack([kept[n].to_numpy().astype(float) for n in names])
         model, unit = RATERS[raters], OF[of]
+        r_type = kind if model == "twoway" else "consistency"  # irr::icc ignores type= for the one-way model
         found = r_call("i <- irr::icc(x, model = model, type = type, unit = unit, conf.level = level); "
                        "list(value = i$value, low = i$lbound, high = i$ubound, f = i$Fvalue, df1 = i$df1, "
                        "df2 = i$df2, p = i$p.value)", packages=("irr",),
                        what="the intraclass correlation (R irr::icc())",
                        python_note="Python's stack (SciPy, statsmodels) has no ICC", x=matrix, model=model,
-                       type=kind if model == "twoway" else "consistency", unit=unit, level=level / 100)
+                       type=r_type, unit=unit, level=level / 100)
         value, low, high = (_r_numbers(found, k) for k in ("value", "low", "high"))
         f, p = _r_numbers(found, "f"), _r_numbers(found, "p")
         k = "1" if unit == "single" else "k"
@@ -270,13 +276,13 @@ class AgreementWords:
         print(f"{form} = {_num(value)} ({ci} {_num(low)} to {_num(high)}) for {len(names)} columns and {len(matrix)} "
               f"rows: {guide} (below 0.5 poor, 0.5 to 0.75 moderate, 0.75 to 0.9 good, above 0.9 excellent).")
         print(_p_sentence(p, "there were truly no agreement (ICC = 0)", "agreement this high", None))
-        print(f"Method: {form}: {words}; R irr::icc(model = \"{model}\", type = \"{kind if model == 'twoway' else 'consistency'}\", "
+        print(f"Method: {form}: {words}; R irr::icc(model = \"{model}\", type = \"{r_type}\", "
               f"unit = \"{unit}\") (F = {_num(f)}). {NOT_CORRELATION}")
         return self._result_table({"test": "intraclass correlation", "form": form,
                                    "what it compares": _list_words(f'"{c}"' for c in names), "rows": len(matrix),
                                    "estimate": value, f"estimate {ci} low": low,
                                    f"estimate {ci} high": high, "statistic name": "F", "statistic": f, "p-value": p,
-                                   "method": f"R irr::icc(model = \"{model}\", type = \"{kind}\", unit = \"{unit}\")"})
+                                   "method": f"R irr::icc(model = \"{model}\", type = \"{r_type}\", unit = \"{unit}\")"})
 
     def _krippendorff(self, names, codes, level_name):
         from .._r import r_call

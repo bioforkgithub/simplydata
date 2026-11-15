@@ -250,6 +250,8 @@ def _strength(r: float) -> str:
 
 def _p_shown(p: float) -> str:
     """"p = 0.031", "p = 0.0026" or "p < 0.0001"."""
+    if p is None or math.isnan(p):
+        return "p cannot be worked out"
     if p < 0.0001:
         return "p < 0.0001"
     return f"p = {p:.4f}" if p < 0.001 else f"p = {p:.3f}"
@@ -259,6 +261,8 @@ def _studies(p: float) -> str:
     """How often a result this big or bigger turns up when there is truly nothing, as a count of
     studies: "about 3 of 100", "about 3 of 1000", "fewer than 1 in 1000", "almost all of 100".
     Display only [D]: the p-value written as a count (rounded), not a statistic."""
+    if p is None or math.isnan(p):
+        return "an unknown number of"
     if p < 0.001:
         return "fewer than 1 in 1000"
     per_100 = int(p * 100 + 0.5)
@@ -282,6 +286,8 @@ def _p_sentence(p: float, if_none: str = "there were truly no difference",
     large p-value does not show there is nothing ("This does not show that there is no
     difference."; not_shown=None leaves it out). shown: the p-value as printed, when not "p = ..."
     (e.g. "Holm-adjusted p = 0.010")."""
+    if p is None or math.isnan(p):
+        return "The p-value cannot be worked out with these numbers (it is NaN), so this test gives no answer."
     shown = shown or _p_shown(p)
     sentence = f"If {if_none}, {this} would turn up in {_studies(p)} studies like this one ({shown})."
     if p >= 0.05 and not_shown:
@@ -1888,7 +1894,8 @@ class SummaryWords:
     @staticmethod
     def _correlation_interval(frame, column_a, column_b, method, alternative):
         """("; values from A to B fit the data (95 % CI)", note): Pearson from SciPy pearsonr; Spearman and Kendall
-        from R DescTools (Fisher's z, SpearmanRho / KendallTauB); Somers' d and gamma from R DescTools."""
+        from R DescTools (SpearmanRho: Fisher's z; KendallTauB: its asymptotic standard error); Somers' d and gamma
+        from R DescTools (asymptotic)."""
         from scipy import stats
 
         from .._r import RMissing, r_call
@@ -1916,7 +1923,7 @@ class SummaryWords:
             return "", (f"Note: the 95 % interval of {METHOD_NAMES[method]} comes from the R package DescTools, which "
                         'is not ready here; interval_by="bootstrap" gives a bootstrap interval in Python, or: pip install '
                         '"simplydata[r]", install R, then in R install.packages("DescTools").')
-        how = "Fisher's z" if method in ("spearman", "kendall") else "asymptotic"
+        how = "Fisher's z" if method == "spearman" else "asymptotic standard error"
         return f"; values from {_num(found[1])} to {_num(found[2])} fit the data (95 % CI, {how}, R DescTools)", ""
 
     def _ordinal_association(self, step, frame, column_a, column_b, method):
@@ -1967,7 +1974,8 @@ class SummaryWords:
                        what="the partial correlation (R ppcor::pcor.test())",
                        python_note="SciPy and statsmodels have no partial correlation test", x=x, y=y, z=z, m=method)
         r, p = float(np.asarray(found["r"])[0]), float(np.asarray(found["p"])[0])
-        whole = float(self._correlate(step, frame.select(column_a, column_b), column_a, column_b, method)[0])
+        # the correlation without allowing for it, on the same rows as the partial correlation
+        whole = float(self._correlate(step, rows.select(column_a, column_b), column_a, column_b, method)[0])
         print(f'The correlation between "{column_a}" and "{column_b}", allowing for "{allowing_for}", is r = {r:.2f} '
               f"({METHOD_NAMES[method]}, {len(x)} rows): {_strength(r)}; without allowing for it, r = {whole:.2f}.")
         print(_p_sentence(p, f'there were truly no link once "{allowing_for}" is allowed for',
