@@ -26,8 +26,9 @@ Choices (the same as R, so results can be checked there):
   poisson, geometric, laplace, pareto, half-normal, inverse gaussian, uniform); gamma, weibull,
   gumbel, negative binomial and von Mises solve their likelihood equations exactly; the rest
   search numerically (Nelder-Mead, then BFGS). Standard errors come from the observed
-  information (a numerical Hessian of the log-likelihood at the maximum, as fitdistr's
-  optim(hessian = TRUE)), except the textbook closed forms that fitdistr also uses. Note: on
+  information (a numerical Hessian of the log-likelihood at the maximum, statsmodels
+  approx_hess3, as fitdistr's optim(hessian = TRUE); accurate to about 1e-6), except the
+  textbook closed forms that fitdistr also uses. Note: on
   some data R's fitdistr(x, "gamma") stops a little short of the maximum; simplydata's answer
   is the exact maximum (R's score equation solved with uniroot() gives the same).
 * The normal fit's standard deviation divides by n (maximum likelihood), so it is a little

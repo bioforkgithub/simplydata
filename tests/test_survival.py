@@ -356,3 +356,29 @@ def test_cox_without_r_still_fits_and_says_how_to_add_the_check(trial, capsys, m
     assert "proportional-hazards check was left out" in out
     assert 'pip install "simplydata[r]"' in out and 'install.packages(c("survival"))' in out
     assert "lifelines" in out  # the Python alternative is named, with its different numbers
+
+
+def test_log_rank_leaves_out_a_group_with_no_expected_events(capsys):
+    # group "c" is censored before the first event, so R leaves it out:
+    # t <- c(0.5, 0.6, 2, 3, 4, 5, 6, 7); e <- c(0, 0, 1, 1, 1, 0, 1, 1); g <- c("c","c","a","a","a","b","b","b")
+    # survdiff(Surv(t, e) ~ g): chisq 5.05166051660517, expected 1.15 3.85 0, df 1, p 0.0246023499536417
+    data = pd.DataFrame({"t": [0.5, 0.6, 2, 3, 4, 5, 6, 7], "e": [0, 0, 1, 1, 1, 0, 1, 1],
+                         "g": ["c", "c", "a", "a", "a", "b", "b", "b"]})
+    r = one_row(make(data, "pandas").compare_survival(time="t", event="e", for_each="g"))
+    assert r["statistic"] == pytest.approx(5.05166051660517, rel=1e-9)
+    assert r["degrees of freedom"] == 1
+    assert r["p-value"] == pytest.approx(0.0246023499536417, rel=1e-9)
+    assert r["expected events in c"] == 0
+    assert 'Note: "c" is left out of the test' in capsys.readouterr().out
+
+
+def test_cox_all_events_in_one_group_is_a_note_not_a_crash(capsys):
+    # complete separation: every event is in group "a", so the hazard ratio heads to infinity
+    data = pd.DataFrame({"t": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10], "e": [1, 1, 1, 1, 1, 0, 0, 0, 0, 0],
+                         "g": ["a"] * 5 + ["b"] * 5})
+    make(data, "pandas").explain_survival(time="t", event="e", using="g")
+    out = capsys.readouterr().out
+    assert "extremely large or small" in out or "did not settle" in out
+    assert out.index("The event is") < out.index("Hazard ratios")
+    if "Note from R" in out:  # R's own warning comes with the other notes, after the results
+        assert out.index("Note from R") > out.index("Hazard ratios")
