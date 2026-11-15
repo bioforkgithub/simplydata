@@ -3101,8 +3101,8 @@ LESSONS = [
             "animal, samples from the same site. Without it, the p-values are too small.",
             "Multiple imputation needs the empty cells to be explainable by the other columns (missing "
             "at random). Say in your report how many cells were empty and how they were handled.",
-            "grouped_by= and multiple imputation need the statsmodels package: "
-            'pip install "simplydata[stats]".',
+            "grouped_by= works out of the box (statsmodels comes with simplydata). Multiple "
+            "imputation pools its results in R, so it needs R (see the box at the start).",
         ],
         task=[
             'Explain "marks" using "hours" and "school" (school as a column of groups). Which schools '

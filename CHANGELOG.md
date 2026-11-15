@@ -14,9 +14,12 @@ p-value adjustment, Welch's ANOVA, the log-rank test, Kaplan-Meier, the Cox mode
 logistic and Poisson models, mixed-model errors, polynomial fits, LOWESS, the line band, PCA,
 Cramer's V, the summary measures, and the gamma, Gumbel and von Mises fits. The answers are the
 same as before, except that logistic and Poisson standard errors now come from the converged
-estimates (R uses the step before), so they agree with R to about 1e-5.
+estimates (R uses the step before), so they agree with R to about 3e-5.
 
 - statsmodels is now required (`pip install "simplydata[stats]"` still works).
+- Standard errors of fitted distributions come from statsmodels' numerical Hessian
+  (`approx_hess3`); they may move by up to a few in a million (about 3e-6) from before.
+- A smoothing spline needs at least 5 different x values (SciPy's spline; it was 4).
 - Python 3.11 or newer, and SciPy 1.16 or newer (its quantiles are exact).
 - `compare_shape_to` calls SciPy `goodness_of_fit` again; most shapes take a few seconds
   with `samples=9999`, Weibull and t longer (a note says so before a long run).

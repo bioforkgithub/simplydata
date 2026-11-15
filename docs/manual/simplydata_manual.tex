@@ -2586,7 +2586,7 @@ table.explain("marks", using=["hours", "sleep", "breakfast"], empty_cells="multi
   \item If counts vary much more than a Poisson model expects (overdispersion), simplydata says so and suggests \code{outcome=\textquotedbl{}counts (overdispersed)\textquotedbl{}}; it never switches by itself.
   \item \code{grouped\_\allowbreak{}by=} is for rows that come in groups: pupils in schools, measurements on the same animal, samples from the same site. Without it, the p-values are too small.
   \item Multiple imputation needs the empty cells to be explainable by the other columns (missing at random). Say in your report how many cells were empty and how they were handled.
-  \item \code{grouped\_\allowbreak{}by=} and multiple imputation need the statsmodels package: pip install \code{\textquotedbl{}simplydata[stats]\textquotedbl{}}.
+  \item \code{grouped\_\allowbreak{}by=} works out of the box (statsmodels comes with simplydata). Multiple imputation pools its results in R, so it needs R (see the box at the start).
 \end{itemize}
 \end{goodtoknow}
 \begin{tryit}
@@ -3633,7 +3633,7 @@ The line is found by least squares: it makes the squared distances from the dots
 \code{thickness=} & \\
 \end{optiontable}
 
-\wordfield{Underneath}{SciPy (stats.linregress), drawn with matplotlib}
+\wordfield{Underneath}{SciPy (stats.linregress); the confidence band from statsmodels OLS, drawn with matplotlib}
 \wordfield{Example you can run}{(it uses the practice table \code{marks})}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -3656,7 +3656,7 @@ A curve that fits the dots best. \code{chart.\allowbreak{}fit\_\allowbreak{}curv
 \code{thickness=} & \\
 \end{optiontable}
 
-\wordfield{Underneath}{NumPy (polyfit), drawn with matplotlib}
+\wordfield{Underneath}{statsmodels (least squares on the powers of x), drawn with matplotlib}
 \wordfield{Example you can run}{(it uses the practice table \code{weather})}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -3750,7 +3750,7 @@ chart.save("curve.png")
 \wordentry{chart.smooth\_line()}{word:smooth-line}
 A smooth line that follows the dots (LOWESS). \code{chart.\allowbreak{}smooth\_\allowbreak{}line()}
 
-Good for seeing a trend that is not straight. Each colour group gets its own line. \code{thickness=3} draws a thicker line (normal is 2). \code{method=\textquotedbl{}spline\textquotedbl{}} draws a smoothing spline instead (as \code{table.\allowbreak{}values\_\allowbreak{}at(.\allowbreak{}.\allowbreak{}.\allowbreak{},\allowbreak{} smoothness=)} and R \code{smooth.\allowbreak{}spline()}): \code{smoothness=\textquotedbl{}auto\textquotedbl{}} chooses how smooth by generalised cross-validation; a number is R's \code{lambda=} (bigger is smoother).
+Good for seeing a trend that is not straight. Each colour group gets its own line. \code{thickness=3} draws a thicker line (normal is 2). \code{method=\textquotedbl{}spline\textquotedbl{}} draws a smoothing spline instead (as \code{table.\allowbreak{}values\_\allowbreak{}at(.\allowbreak{}.\allowbreak{}.\allowbreak{},\allowbreak{} smoothness=)} and R \code{smooth.\allowbreak{}spline()}): \code{smoothness=\textquotedbl{}auto\textquotedbl{}} lets R choose how smooth by generalised cross-validation, which needs R (pip install \code{\textquotedbl{}simplydata[r]\textquotedbl{}}); a number is R's \code{lambda=} (bigger is smoother) and needs no R.
 
 \wordfield{Options}{}\par\nopagebreak
 \begin{optiontable}
@@ -3760,7 +3760,7 @@ Good for seeing a trend that is not straight. Each colour group gets its own lin
 \code{smoothness=} & normally \code{\textquotedbl{}auto\textquotedbl{}}\\
 \end{optiontable}
 
-\wordfield{Underneath}{NumPy (LOWESS, written out in simplydata as in R's \code{lowess()}) or SciPy (\code{make\_\allowbreak{}smoothing\_\allowbreak{}spline}, for \code{method=\textquotedbl{}spline\textquotedbl{}}), drawn with matplotlib}
+\wordfield{Underneath}{statsmodels (lowess, which follows R's \code{lowess()}) or SciPy (\code{make\_\allowbreak{}smoothing\_\allowbreak{}spline}, for \code{method=\textquotedbl{}spline\textquotedbl{}}; \code{smoothness=\textquotedbl{}auto\textquotedbl{}} lets R smooth.spline choose it and needs R), drawn with matplotlib}
 \wordfield{Example you can run}{(it uses the practice table \code{weather})}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -6325,7 +6325,7 @@ Several measures of one or more columns at once, in one tidy table.
 \code{every=} & \\
 \end{optiontable}
 
-\wordfield{Underneath}{narwhals (group summaries); SciPy (the t distribution) for the confidence interval}
+\wordfield{Underneath}{narwhals (group summaries); SciPy (stats: gmean, variation, \code{median\_\allowbreak{}abs\_\allowbreak{}deviation}, \code{trim\_\allowbreak{}mean}, mode, skew, kurtosis, and the t distribution for the confidence interval)}
 \wordfield{Example you can run}{(it uses the practice table \code{marks})}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -6466,7 +6466,7 @@ Two groups: Welch's t-test (the R \code{t.\allowbreak{}test()} default). Three o
 \code{test=} & \\
 \end{optiontable}
 
-\wordfield{Underneath}{SciPy (stats.ttest\_ind with \code{equal\_\allowbreak{}var=False}; Welch's ANOVA written out with the F distribution; mannwhitneyu, kruskal)}
+\wordfield{Underneath}{SciPy (stats.ttest\_ind with \code{equal\_\allowbreak{}var=False}; mannwhitneyu, kruskal) and statsmodels (stats.oneway.anova\_oneway for Welch's ANOVA)}
 \wordfield{Example you can run}{(it uses the practice table \code{marks})}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -6489,7 +6489,7 @@ Each pair gets Welch's t-test (or Mann-Whitney U with \code{based\_\allowbreak{}
 \code{test=} & \\
 \end{optiontable}
 
-\wordfield{Underneath}{SciPy (stats.ttest\_ind or mannwhitneyu), with Holm's correction}
+\wordfield{Underneath}{SciPy (stats.ttest\_ind or mannwhitneyu, \code{tukey\_\allowbreak{}hsd}), with Holm's correction from statsmodels (multipletests)}
 \wordfield{Example you can run}{(it uses the practice table \code{marks})}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -6552,7 +6552,7 @@ Does how often each value turns up differ between groups, more than chance?
 \code{test=} & \\
 \end{optiontable}
 
-\wordfield{Underneath}{SciPy (stats.chi2\_contingency, or \code{fisher\_\allowbreak{}exact} with \code{test=\textquotedbl{}fisher\textquotedbl{}})}
+\wordfield{Underneath}{SciPy (stats.chi2\_contingency, or \code{fisher\_\allowbreak{}exact} with \code{test=\textquotedbl{}fisher\textquotedbl{}}; contingency.association for Cramer's V)}
 \wordfield{Example you can run}{(it uses the practice table \code{marks})}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -6577,7 +6577,7 @@ Any other smooth shape works too: \code{table.\allowbreak{}compare\_\allowbreak{
 \code{samples=} & normally \code{9999}\\
 \end{optiontable}
 
-\wordfield{Underneath}{SciPy (stats.shapiro for normal; for other shapes the method of stats.goodness\_of\_fit, Anderson-Darling with a Monte Carlo p-value, with the simulated samples refitted all at once in NumPy)}
+\wordfield{Underneath}{SciPy (stats.shapiro for normal; for other shapes stats.goodness\_of\_fit, Anderson-Darling with a Monte Carlo p-value)}
 \wordfield{Example you can run}{(it uses the practice table \code{marks})}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -6598,7 +6598,7 @@ Adjust p-values for testing many things at once, in a new column.
 \code{method=} & normally \code{\textquotedbl{}holm\textquotedbl{}}\\
 \end{optiontable}
 
-\wordfield{Underneath}{NumPy (Holm, Bonferroni, Benjamini-Hochberg and Benjamini-Yekutieli, written out as in R \code{p.\allowbreak{}adjust()})}
+\wordfield{Underneath}{statsmodels (stats.multitest.multipletests: Holm, Bonferroni, Benjamini-Hochberg and Benjamini-Yekutieli, as R \code{p.\allowbreak{}adjust()})}
 \wordfield{Example you can run}{(it uses the practice table \code{marks})}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -6701,7 +6701,7 @@ Fit a curve y = b0 + b1 * x + b2 * x**2 ... that best follows the points.
 \code{for\_\allowbreak{}each=} & \\
 \end{optiontable}
 
-\wordfield{Underneath}{NumPy (least squares by QR on the powers of x)}
+\wordfield{Underneath}{statsmodels (WLS by QR on the powers of x, as R \code{lm(y \textasciitilde{} poly(x,\allowbreak{} raw = TRUE))})}
 \wordfield{Example you can run}{(it uses the practice table \code{marks})}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -6820,7 +6820,7 @@ Estimate a column at places between the known points, by joining the dots.
 \codeline{table.values\_at(\textquotedbl{}population\textquotedbl{}, at=\{\textquotedbl{}year\textquotedbl{}: [2001, 2003, 2011]\}, for\_each=\textquotedbl{}country\textquotedbl{})} (with \code{sdata.\allowbreak{}example(\textquotedbl{}growth\textquotedbl{})})\\
 \code{at=} names the \code{column(s)} that place the points and the places wanted. One column joins the points along a line; two or more (\code{at=}\{\code{\textquotedbl{}east\textquotedbl{}}: [1.5, 2.5], \code{\textquotedbl{}north\textquotedbl{}}: [3, 4.5]\},\\
 \codeline{sdata.example(\textquotedbl{}island\textquotedbl{})) join them across a surface: the lists are read as pairs,}\\
-(1.5, 3) and (2.5, 4.5); \code{table.\allowbreak{}map\_\allowbreak{}of()} gives every combination. \code{joined\_\allowbreak{}by=} says how the points are joined (one column): \code{\textquotedbl{}straight lines\textquotedbl{}} (default, linear interpolation, R \code{approx()}), \code{\textquotedbl{}smooth curve\textquotedbl{}} (natural cubic spline, R \code{splinefun(method = \textquotedbl{}natural\textquotedbl{})}), \code{\textquotedbl{}curve without overshoot\textquotedbl{}} (PCHIP), \code{\textquotedbl{}steps\textquotedbl{}}, \code{\textquotedbl{}nearest\textquotedbl{}}; experts: \code{\textquotedbl{}akima\textquotedbl{}}, \code{\textquotedbl{}makima\textquotedbl{}}, \code{\textquotedbl{}not-a-knot\textquotedbl{}}, \code{\textquotedbl{}periodic\textquotedbl{}}. Two or more columns: \code{\textquotedbl{}straight lines\textquotedbl{}} (bilinear on a full grid, triangles otherwise), \code{\textquotedbl{}smooth surface\textquotedbl{}} (thin-plate spline), \code{\textquotedbl{}nearest\textquotedbl{}}; on a full grid also \code{\textquotedbl{}cubic\textquotedbl{}}, \code{\textquotedbl{}quintic\textquotedbl{}}, \code{\textquotedbl{}pchip\textquotedbl{}}. \code{smoothness=\textquotedbl{}auto\textquotedbl{}} or a number gives a smoothing spline that passes near, not through, the points (R \code{smooth.\allowbreak{}spline()}; a number is R's \code{lambda=}); 0 passes through every point. \code{outside=} is what happens beyond the known points: \code{\textquotedbl{}empty\textquotedbl{}} (default), \code{\textquotedbl{}nearest end\textquotedbl{}} or \code{\textquotedbl{}extend\textquotedbl{}} (curves only; guesswork). \code{for\_\allowbreak{}each=\textquotedbl{}country\textquotedbl{}} joins each group on its own. Rows with an empty cell are skipped. Gives back a new table: the \code{at=} columns, the \code{for\_\allowbreak{}each=} columns and the estimated column.
+(1.5, 3) and (2.5, 4.5); \code{table.\allowbreak{}map\_\allowbreak{}of()} gives every combination. \code{joined\_\allowbreak{}by=} says how the points are joined (one column): \code{\textquotedbl{}straight lines\textquotedbl{}} (default, linear interpolation, R \code{approx()}), \code{\textquotedbl{}smooth curve\textquotedbl{}} (natural cubic spline, R \code{splinefun(method = \textquotedbl{}natural\textquotedbl{})}), \code{\textquotedbl{}curve without overshoot\textquotedbl{}} (PCHIP), \code{\textquotedbl{}steps\textquotedbl{}}, \code{\textquotedbl{}nearest\textquotedbl{}}; experts: \code{\textquotedbl{}akima\textquotedbl{}}, \code{\textquotedbl{}makima\textquotedbl{}}, \code{\textquotedbl{}not-a-knot\textquotedbl{}}, \code{\textquotedbl{}periodic\textquotedbl{}}. Two or more columns: \code{\textquotedbl{}straight lines\textquotedbl{}} (bilinear on a full grid, triangles otherwise), \code{\textquotedbl{}smooth surface\textquotedbl{}} (thin-plate spline), \code{\textquotedbl{}nearest\textquotedbl{}}; on a full grid also \code{\textquotedbl{}cubic\textquotedbl{}}, \code{\textquotedbl{}quintic\textquotedbl{}}, \code{\textquotedbl{}pchip\textquotedbl{}}. \code{smoothness=\textquotedbl{}auto\textquotedbl{}} or a number gives a smoothing spline that passes near, not through, the points (R \code{smooth.\allowbreak{}spline()}; a number is R's \code{lambda=}); 0 passes through every point. \code{\textquotedbl{}auto\textquotedbl{}} lets R itself choose the smoothness and needs R (pip install \code{\textquotedbl{}simplydata[r]\textquotedbl{}}); a number needs no R. \code{outside=} is what happens beyond the known points: \code{\textquotedbl{}empty\textquotedbl{}} (default), \code{\textquotedbl{}nearest end\textquotedbl{}} or \code{\textquotedbl{}extend\textquotedbl{}} (curves only; guesswork). \code{for\_\allowbreak{}each=\textquotedbl{}country\textquotedbl{}} joins each group on its own. Rows with an empty cell are skipped. Gives back a new table: the \code{at=} columns, the \code{for\_\allowbreak{}each=} columns and the estimated column.
 
 \wordfield{Options}{}\par\nopagebreak
 \begin{optiontable}
@@ -6832,7 +6832,7 @@ Estimate a column at places between the known points, by joining the dots.
 \code{outside=} & normally \code{\textquotedbl{}empty\textquotedbl{}}\\
 \end{optiontable}
 
-\wordfield{Underneath}{NumPy (interp) and SciPy (interpolate: CubicSpline, PchipInterpolator, Akima1DInterpolator, \code{make\_\allowbreak{}smoothing\_\allowbreak{}spline}, griddata, RegularGridInterpolator, RBFInterpolator)}
+\wordfield{Underneath}{NumPy (interp) and SciPy (interpolate: CubicSpline, PchipInterpolator, Akima1DInterpolator, \code{make\_\allowbreak{}smoothing\_\allowbreak{}spline}, griddata, RegularGridInterpolator, RBFInterpolator); \code{smoothness=\textquotedbl{}auto\textquotedbl{}} lets R smooth.spline choose the smoothness (needs R)}
 \wordfield{Example you can run}{(it uses the practice table \code{growth})}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -6845,7 +6845,7 @@ table.values_at("population", at={"year": [2001, 2003, 2011]}, joined_by="smooth
 Estimate a column at evenly spaced places across one or more columns (a map), ready for a contour or heatmap.
 
 \codeline{table.map\_of(\textquotedbl{}height\textquotedbl{}, across=[\textquotedbl{}east\textquotedbl{}, \textquotedbl{}north\textquotedbl{}], steps=100)} (with \code{sdata.\allowbreak{}example(\textquotedbl{}island\textquotedbl{})})\\
-The map runs from the smallest to the biggest known value of each \code{across=} column, with \code{steps=} places along each (a number, or one per column). The points are joined as in \code{table.\allowbreak{}values\_\allowbreak{}at()} (same \code{joined\_\allowbreak{}by=} and \code{smoothness=}). Places outside the outline of the known points stay empty, with a note. Gives back a new long table: one row per place, with the \code{across=} columns and the estimated column.
+The map runs from the smallest to the biggest known value of each \code{across=} column, with \code{steps=} places along each (a number, or one per column). The points are joined as in \code{table.\allowbreak{}values\_\allowbreak{}at()} (same \code{joined\_\allowbreak{}by=} and \code{smoothness=}; \code{smoothness=\textquotedbl{}auto\textquotedbl{}} needs R, a number does not). Places outside the outline of the known points stay empty, with a note. Gives back a new long table: one row per place, with the \code{across=} columns and the estimated column.
 
 \wordfield{Options}{}\par\nopagebreak
 \begin{optiontable}
@@ -6903,7 +6903,7 @@ then \code{fit.\allowbreak{}chance(above=600)}, \code{fit.\allowbreak{}percentil
 \code{fixed=} & \\
 \end{optiontable}
 
-\wordfield{Underneath}{SciPy (scipy.stats and optimize, maximum likelihood; closed forms where they exist)}
+\wordfield{Underneath}{SciPy (scipy.stats .fit and optimize, maximum likelihood; closed forms where they exist) and statsmodels (numdiff.approx\_hess3, for the standard errors)}
 \wordfield{Example you can run}{(it uses the practice table \code{shop})}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -7197,7 +7197,7 @@ Explain one column from several others with a model, and say how big each effect
 \code{seed=} & normally \code{1}\\
 \end{optiontable}
 
-\wordfield{Underneath}{NumPy (least squares, and iteratively reweighted least squares as R glm); statsmodels for \code{grouped\_\allowbreak{}by=} (MixedLM) and multiple imputation (MICEData)}
+\wordfield{Underneath}{statsmodels (OLS; GLM for yes/no and counts, as R glm; MixedLM for \code{grouped\_\allowbreak{}by=}; MICEData to fill in empty cells) and R mice::pool for pooling multiple imputation (needs R)}
 \wordfield{Example you can run}{(it uses the practice table \code{school})}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -7229,7 +7229,7 @@ A formula with one = sign is fitted as \code{table.\allowbreak{}fit\_\allowbreak
 \code{for\_\allowbreak{}each=} & \\
 \end{optiontable}
 
-\wordfield{Underneath}{NumPy (the same model as \code{table.\allowbreak{}explain}); statsmodels for \code{grouped\_\allowbreak{}by=}}
+\wordfield{Underneath}{statsmodels (the same model as \code{table.\allowbreak{}explain})}
 \wordfield{Example you can run}{(it uses the practice table \code{school})}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -7251,7 +7251,7 @@ Principal component analysis turns many related columns into new columns PC1, PC
 \code{same\_\allowbreak{}scale=} & normally \code{True}\\
 \end{optiontable}
 
-\wordfield{Underneath}{NumPy (linalg.svd)}
+\wordfield{Underneath}{statsmodels (multivariate.pca.PCA, by singular value decomposition)}
 \wordfield{Example you can run}{(it uses the practice table \code{meadow})}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -7273,7 +7273,7 @@ One row per component (PC1, PC2 ...) with its standard deviation, the share of t
 \code{same\_\allowbreak{}scale=} & normally \code{True}\\
 \end{optiontable}
 
-\wordfield{Underneath}{NumPy (linalg.svd)}
+\wordfield{Underneath}{statsmodels (multivariate.pca.PCA, by singular value decomposition)}
 \wordfield{Example you can run}{(it uses the practice table \code{meadow})}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -7298,7 +7298,7 @@ Sort the rows into groups of similar rows (clusters), in a new column.
 \code{linkage=} & normally \code{\textquotedbl{}ward\textquotedbl{}}\\
 \end{optiontable}
 
-\wordfield{Underneath}{NumPy (k-means: Lloyd and Hartigan steps) or SciPy (cluster.hierarchy, for \code{method=\textquotedbl{}hierarchical\textquotedbl{}})}
+\wordfield{Underneath}{R stats::kmeans (k-means; needs R) or SciPy (cluster.hierarchy, for \code{method=\textquotedbl{}hierarchical\textquotedbl{}})}
 \wordfield{Example you can run}{(it uses the practice table \code{meadow})}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -7319,7 +7319,7 @@ How different each row is from every other row: a square table of distances.
 \code{names=} & \\
 \end{optiontable}
 
-\wordfield{Underneath}{SciPy (spatial.distance.pdist) and NumPy}
+\wordfield{Underneath}{SciPy (spatial.distance.pdist)}
 \wordfield{Example you can run}{(it uses the practice table \code{meadow})}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -7342,7 +7342,7 @@ Non-metric multidimensional scaling puts each row on a map with \code{dimensions
 \code{seed=} & normally \code{1}\\
 \end{optiontable}
 
-\wordfield{Underneath}{NumPy (SMACOF with monotone regression; SciPy optimize.isotonic\_regression when available) and SciPy (spatial.distance.pdist)}
+\wordfield{Underneath}{R vegan::metaMDS on vegan::vegdist distances (needs R)}
 \wordfield{Example you can run}{(it uses the practice table \code{meadow})}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -7367,7 +7367,7 @@ Compares whole profiles, such as the counts of all plant species in a plot, betw
 \code{seed=} & normally \code{1}\\
 \end{optiontable}
 
-\wordfield{Underneath}{NumPy (PERMANOVA and the spread check, with permutations) and SciPy (spatial.distance.pdist)}
+\wordfield{Underneath}{R vegan::adonis2, betadisper and permutest (needs R)}
 \wordfield{Example you can run}{(it uses the practice table \code{meadow})}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -7388,7 +7388,7 @@ The share still without the event over time (Kaplan-Meier), with the median time
 \code{for\_\allowbreak{}each=} & \\
 \end{optiontable}
 
-\wordfield{Underneath}{NumPy (Kaplan-Meier) and SciPy (stats, for the intervals)}
+\wordfield{Underneath}{statsmodels (duration.SurvfuncRight, Kaplan-Meier with Greenwood errors)}
 \wordfield{Example you can run}{(it uses the practice table \code{trial})}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -7408,7 +7408,7 @@ The log-rank test, as R \code{survdiff(Surv(days,\allowbreak{} died == \textquot
 \code{for\_\allowbreak{}each=} & \\
 \end{optiontable}
 
-\wordfield{Underneath}{NumPy (log-rank sums) and SciPy (stats.chi2)}
+\wordfield{Underneath}{statsmodels (duration.survdiff, the log-rank test)}
 \wordfield{Example you can run}{(it uses the practice table \code{trial})}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -7428,7 +7428,7 @@ The Cox proportional hazards model, as R \code{coxph(Surv(days,\allowbreak{} die
 \code{using=} & \\
 \end{optiontable}
 
-\wordfield{Underneath}{NumPy (Cox model: Newton-Raphson with Efron ties) and SciPy (stats)}
+\wordfield{Underneath}{statsmodels (duration.PHReg, the Cox model with Efron ties) and R survival::cox.zph for the proportional-hazards check (needs R)}
 \wordfield{Example you can run}{(it uses the practice table \code{trial})}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -7454,7 +7454,7 @@ The share still without the event over time (Kaplan-Meier curves).\\
 \code{thickness=} & \\
 \end{optiontable}
 
-\wordfield{Underneath}{NumPy (Kaplan-Meier), drawn with matplotlib}
+\wordfield{Underneath}{statsmodels (Kaplan-Meier, as \code{table.\allowbreak{}survival\_\allowbreak{}over\_\allowbreak{}time}), drawn with matplotlib}
 \wordfield{Example you can run}{(it uses the practice table \code{trial})}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
