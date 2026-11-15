@@ -1473,12 +1473,13 @@ def _warm_up_sources(track: str, number: int, last_asked: dict[int, int], used: 
     Learning days follow the gaps: yesterday, about three days ago, about a week ago. Early on, when
     there are fewer earlier days than questions, the most recent days are asked about twice (with a
     different question). Review, project and final days mix the whole course: first the days with
-    questions not asked yet, then the days asked about longest ago."""
+    questions not asked yet, then the days asked about longest ago; on a tie, the earlier day first,
+    so the newest days do not crowd out an old question that has not come up yet."""
     sources = _source_days(track, number)
     if DAYS[track][number - 1][3] != "learn":
         earlier = [d for d in range(1, number) if _has_recall(track, d)]
         unasked = {d: used.get(d, 0) < len(_recall_of(track, d)) for d in earlier}
-        earlier.sort(key=lambda d: (not unasked[d], last_asked.get(d, 0), -d))
+        earlier.sort(key=lambda d: (not unasked[d], last_asked.get(d, 0), d))
         return earlier[:max(len(sources), MIN_WARM_UP)]
     earlier = [d for d in range(number - 1, 0, -1) if _has_recall(track, d)]
     i = 0
