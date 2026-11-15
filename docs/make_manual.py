@@ -151,7 +151,8 @@ UNDERNEATH = {
     "table.add_rows_from": "pandas (concat) or Polars (concat), whichever holds the table",
     "table.correlation_between": "SciPy (stats.pearsonr or stats.spearmanr)",
     "table.compare_averages": "SciPy (stats.ttest_ind with equal_var=False; mannwhitneyu, kruskal) and "
-                              "statsmodels (stats.oneway.anova_oneway for Welch's ANOVA)",
+                              "statsmodels (stats.oneway.anova_oneway for Welch's ANOVA); R afex::aov_ez for "
+                              "matched_by= (repeated measures, Greenhouse-Geisser; needs R)",
     "table.compare_each_pair": "SciPy (stats.ttest_ind or mannwhitneyu, tukey_hsd), with Holm's correction from "
                                "statsmodels (multipletests)",
     "table.compare_before_after": "SciPy (stats.ttest_rel or stats.wilcoxon)",
@@ -185,9 +186,20 @@ UNDERNEATH = {
                                    "Cramer-von Mises statistics)",
     "nums.fit_distribution": "SciPy (scipy.stats and optimize, as table.fit_distribution)",
     # models
-    "table.explain": "statsmodels (OLS; GLM for yes/no and counts, as R glm; MixedLM for grouped_by=; MICEData "
-                     "to fill in empty cells) and R mice::pool for pooling multiple imputation (needs R)",
+    "table.explain": "statsmodels (OLS; GLM for yes/no and counts, as R glm; MixedLM for grouped_by=; GEE for "
+                     "effects=\"for the whole population\", as R geepack::geeglm; MICEData to fill in empty cells); "
+                     "R itself (needs R) for lme4::glmer, lme4::lmer with own_slope_for=, lmerTest for "
+                     "p_value_by=\"satterthwaite\", geepack for within_groups=\"in time order\", car::Anova and "
+                     "effectsize for test_type=, and mice::pool for multiple imputation",
     "table.add_predicted_column": "statsmodels (the same model as table.explain)",
+    "table.model_averages_of": "R emmeans (emmeans::emmeans and pairs, Tukey's adjustment; lme4 and pbkrtest for "
+                               "grouped_by=), on the model of table.explain (needs R)",
+    "table.check_model": "statsmodels (OLSInfluence, GLMInfluence, ProbPlot and lowess), the four pictures of R "
+                         "plot(lm), drawn with matplotlib",
+    "table.show_rows_that_pull": "statsmodels (OLSInfluence, GLMInfluence), as R cooks.distance, hatvalues and "
+                                 "rstudent",
+    "table.compare_models": "statsmodels (OLS compare_f_test; GLM deviances with SciPy's chi-square; "
+                            "eval_measures aic and bic), as R anova(m0, m1), AIC and BIC",
     # patterns across columns
     "table.add_principal_components": "statsmodels (multivariate.pca.PCA, by singular value decomposition)",
     "table.principal_components_of": "statsmodels (multivariate.pca.PCA, by singular value decomposition)",

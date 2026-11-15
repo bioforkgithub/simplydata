@@ -28,6 +28,49 @@ More statistics, each checked against R.
 - `link=` for experts: "probit" or "cloglog" for yes or no, "identity" or "sqrt" for counts,
   "inverse" or "identity" for positive numbers; the effects are then on that scale.
 
+### Working with a model: averages, checks, rows that pull, comparisons
+
+- `table.model_averages_of("marks", for_each="school", using=["hours", "breakfast"])`: the average the
+  model gives for each group, with number columns held at their averages and other group columns
+  counted equally (adjusted averages, estimated marginal means), and every pair of groups with
+  Tukey's adjustment. R `emmeans::emmeans()` and `pairs()` themselves (needs R); chances of yes and
+  odds ratios for `outcome="yes or no"`, average counts and rate ratios for `"counts"`, Kenward-Roger
+  degrees of freedom with `grouped_by=`. `marginal_means_of` and `emmeans` point to it.
+- `table.check_model("marks", using=[...])`: the four pictures of R `plot(lm())` (residuals against
+  fitted values, normal Q-Q, scale-location, residuals against leverage with Cook's distance lines),
+  with a plain sentence on what to look for in each. Numbers from statsmodels `OLSInfluence` /
+  `GLMInfluence`; for yes/no and counts the pictures of R 4.6 `plot(glm())`.
+- `table.show_rows_that_pull("marks", using=[...])`: the rows with a Cook's distance above 4 / n,
+  biggest first, with leverage and studentised residual (statsmodels, as R `cooks.distance()`,
+  `hatvalues()`, `rstudent()`), numbered as in the whole table.
+- `table.compare_models("marks", using=["hours"], against=["hours", "breakfast"])`: the F test (or
+  likelihood-ratio test for yes/no and counts) of the smaller model against the bigger, as R
+  `anova(m0, m1)`, and AIC and BIC for both, as R `AIC()` and `BIC()`, on the same rows.
+
+### More choices for grouped rows (grouped_by=)
+
+- `own_slope_for="hours"`: each group gets its own slope for hours as well as its own starting level,
+  R `lme4::lmer(... + (1 + hours | school))` itself (and `lme4::glmer()` for yes/no and counts). The
+  variance of the slopes and their correlation with the starting levels are printed, with a note on a
+  singular fit. R is used because statsmodels' `MixedLM(re_formula=)` does not reliably reach lme4's
+  answer.
+- `p_value_by="satterthwaite"` (also `"few groups"`): t-tests with Satterthwaite degrees of freedom, their
+  intervals and the whole-column F tests from R `lmerTest` itself, instead of the Wald z-tests (still
+  the default, without R).
+- `effects="for the whole population"`: generalised estimating equations (GEE) instead of a mixed model:
+  effects averaged over all groups, with robust standard errors. statsmodels `GEE`, as R
+  `geepack::geeglm()`, with `within_groups="alike"` (exchangeable, the default) or `"independent"`;
+  `within_groups="in time order"` (AR-1, rows in table order) runs R `geepack` itself, since statsmodels'
+  AR-1 estimate differs. The default `effects="for the average group"` is the mixed model.
+
+### Repeated measures
+
+- `table.compare_averages("marks", for_each="subject", matched_by="name")`: a repeated-measures ANOVA for
+  values measured on the same person (plot, animal ...) in every group, R `afex::aov_ez()` itself, with the
+  Greenhouse-Geisser correction, Mauchly's test of sphericity and generalised eta-squared printed.
+  `for_each=["subject", "class"]` with one column that changes within a person and one that does not gives
+  the mixed ANOVA. simplydata works out which column is which. Needs R.
+
 ### Tables of tests (ANOVA tables)
 
 - `table.explain(..., test_type="type 2")` adds one test for each column: `"type 2"` (the usual choice,

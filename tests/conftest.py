@@ -45,9 +45,9 @@ def needs_r():
 
     from simplydata._r import r_ready
 
-    if not r_ready(("survival", "vegan", "mice", "lme4", "betareg", "pscl", "car", "effectsize")):
+    if not r_ready(("survival", "vegan", "mice", "lme4", "betareg", "pscl", "car", "effectsize", "emmeans", "pbkrtest", "lmerTest", "afex", "geepack")):
         if os.environ.get("SIMPLYDATA_REQUIRE_R") == "1":
-            pytest.fail("SIMPLYDATA_REQUIRE_R=1 but R, rpy2 or the R packages survival, vegan, mice, lme4, betareg, pscl, car, effectsize are missing")
+            pytest.fail("SIMPLYDATA_REQUIRE_R=1 but R, rpy2 or the R packages survival, vegan, mice, lme4, betareg, pscl, car, effectsize, emmeans, pbkrtest, lmerTest, afex, geepack are missing")
         pytest.skip("needs R with survival, vegan, mice, lme4, betareg and pscl (pip install 'simplydata[r]')")
 
 
@@ -58,6 +58,8 @@ R_ENTRY_POINTS = {
     ("table/survival.py", "cox_zph"), ("table/between.py", "__init__"), ("table/models.py", "_explain_imputed"),
     ("table/models.py", "_glmer"), ("table/models_more.py", "fit_shares"), ("table/models_more.py", "fit_zeros"),
     ("table/anova_tables.py", "eta_squared"), ("table/anova_tables.py", "anova_glm"),
+    ("table/models_r.py", "emmeans_table"), ("table/models_r.py", "lmer_r"), ("table/models_r.py", "geeglm_r"),
+    ("table/models_r.py", "repeated_anova"),
 }
 
 

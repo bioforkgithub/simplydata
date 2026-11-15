@@ -82,7 +82,8 @@ GROUPS = [
                        "dist.middle_range", "dist.average", "dist.median", "dist.standard_deviation",
                        "dist.variance", "dist.summary", "dist.random_numbers", "dist.chart", "dist.table",
                        "dist.parameters"]),
-    ("Models", ["table.explain", "table.add_predicted_column"]),
+    ("Models", ["table.explain", "table.add_predicted_column", "table.model_averages_of", "table.check_model",
+                "table.show_rows_that_pull", "table.compare_models"]),
     ("Patterns across columns", ["table.add_principal_components", "table.principal_components_of",
                                  "table.add_clusters", "table.distances_between_rows", "table.add_nmds",
                                  "table.compare_profiles"]),
@@ -517,6 +518,7 @@ HELP_EXAMPLES = {
     # statistical tests
     "table.compare_averages": _tx("marks", 'result = table.compare_averages("marks", for_each="class")\n'
                                            'table.compare_averages("marks", for_each="class", based_on="ranks")\n'
+                                           'table.compare_averages("marks", for_each="subject", matched_by="name")\n'
                                            'result.save("marks_test.csv")'),
     "table.compare_each_pair": _tx("marks", 'table.compare_each_pair("marks", for_each="class")'),
     "table.compare_before_after": _tx("marks", 'table.keep_columns("name", "subject", "marks")\n'
@@ -617,10 +619,22 @@ HELP_EXAMPLES = {
     "table.explain": _tx("school", """\
         table.explain("marks", using=["hours", "sleep", "breakfast"])
         table.explain("passed", using=["hours", "breakfast"], outcome="yes or no")
-        table.explain("marks", using=["hours", "breakfast"], grouped_by="school")"""),
+        table.explain("marks", using=["hours", "breakfast"], grouped_by="school")
+        table.explain("marks", using=["hours", "breakfast"], grouped_by="school", effects="for the whole population")"""),
     "table.add_predicted_column": _tx("school", """\
         table.add_predicted_column("marks", using=["hours", "breakfast"])
         table.show_first_rows(5)"""),
+    "table.model_averages_of": _tx("school", """\
+        table.model_averages_of("marks", for_each="breakfast", using=["hours", "school"])
+        table.model_averages_of("passed", for_each="breakfast", using=["hours"], outcome="yes or no")"""),
+    "table.check_model": _tx("school", """\
+        page = table.check_model("marks", using=["hours", "breakfast"])
+        page.save("model_checks.png")"""),
+    "table.show_rows_that_pull": _tx("school", """\
+        table.show_rows_that_pull("marks", using=["hours", "breakfast"])"""),
+    "table.compare_models": _tx("school", """\
+        table.compare_models("marks", using=["hours"], against=["hours", "breakfast"])
+        table.compare_models("passed", using=["hours"], against=["hours", "breakfast"], outcome="yes or no")"""),
     # patterns across columns
     "table.add_principal_components": _tx("meadow", """\
         table.add_principal_components(how_many=2)

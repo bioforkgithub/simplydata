@@ -162,7 +162,7 @@ def report(model, test_type):
     """Print the table of tests; gives back the rows for the result table."""
     from .._r import RMissing
 
-    if model["kind"] in ("mixed", "glmm"):
+    if model["kind"] in ("mixed", "glmm", "gee"):
         raise SimplydataError("test_type= is not available with grouped_by= yet; the whole-column Wald tests are "
                               "printed instead.")
     out_rows = []

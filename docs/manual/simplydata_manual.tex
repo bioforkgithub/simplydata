@@ -6365,7 +6365,7 @@ table.correlation_between("hours", "marks")
 Are the averages of the groups really different, or could it be chance?
 
 \codeline{table.compare\_averages(\textquotedbl{}marks\textquotedbl{}, for\_each=\textquotedbl{}class\textquotedbl{})} (with \code{sdata.\allowbreak{}example(\textquotedbl{}marks\textquotedbl{})})\\
-Two groups: Welch's t-test (the R \code{t.\allowbreak{}test()} default). Three or more: Welch's one-way ANOVA (the R \code{oneway.\allowbreak{}test()} default). Neither needs the groups to have the same spread. \code{based\_\allowbreak{}on=\textquotedbl{}ranks\textquotedbl{}} uses ranks instead (Mann-Whitney U or Kruskal-Wallis): safer when groups are small and their values are not bell-shaped. \code{test=} chooses another test: \code{\textquotedbl{}welch\textquotedbl{}}, \code{\textquotedbl{}student\textquotedbl{}}, \code{\textquotedbl{}welch anova\textquotedbl{}}, \code{\textquotedbl{}anova\textquotedbl{}}, \code{\textquotedbl{}mann-whitney\textquotedbl{}} or \code{\textquotedbl{}kruskal-wallis\textquotedbl{}}. Prints the answer in words (with the test used and why) and gives back a one-row table of results. The effect size says how big the difference is: Hedges' g (the difference in standard deviations) for 2 groups, omega-squared (the share of the differences explained by the groups) for 3 or more. Each group is checked for a bell shape (Shapiro-Wilk) and a note says if it does not look like one; with 30 or more values that matters little (the central limit theorem). To see which groups differ, use \code{compare\_\allowbreak{}each\_\allowbreak{}pair()}.
+Two groups: Welch's t-test (the R \code{t.\allowbreak{}test()} default). Three or more: Welch's one-way ANOVA (the R \code{oneway.\allowbreak{}test()} default). Neither needs the groups to have the same spread. \code{based\_\allowbreak{}on=\textquotedbl{}ranks\textquotedbl{}} uses ranks instead (Mann-Whitney U or Kruskal-Wallis): safer when groups are small and their values are not bell-shaped. \code{test=} chooses another test: \code{\textquotedbl{}welch\textquotedbl{}}, \code{\textquotedbl{}student\textquotedbl{}}, \code{\textquotedbl{}welch anova\textquotedbl{}}, \code{\textquotedbl{}anova\textquotedbl{}}, \code{\textquotedbl{}mann-whitney\textquotedbl{}} or \code{\textquotedbl{}kruskal-wallis\textquotedbl{}}. Prints the answer in words (with the test used and why) and gives back a one-row table of results. The effect size says how big the difference is: Hedges' g (the difference in standard deviations) for 2 groups, omega-squared (the share of the differences explained by the groups) for 3 or more. Each group is checked for a bell shape (Shapiro-Wilk) and a note says if it does not look like one; with 30 or more values that matters little (the central limit theorem). To see which groups differ, use \code{compare\_\allowbreak{}each\_\allowbreak{}pair()}. \code{matched\_\allowbreak{}by=\textquotedbl{}name\textquotedbl{}} is for repeated measures: the same person (or plot, animal ...) in every group of \code{for\_\allowbreak{}each=}, for example \code{compare\_\allowbreak{}averages(\textquotedbl{}marks\textquotedbl{},\allowbreak{} for\_\allowbreak{}each=\textquotedbl{}subject\textquotedbl{},\allowbreak{} matched\_\allowbreak{}by=\textquotedbl{}name\textquotedbl{})}. It runs a repeated-measures ANOVA with the Greenhouse-Geisser correction, R afex::\code{aov\_\allowbreak{}ez()} (needs R). \code{for\_\allowbreak{}each=[\textquotedbl{}subject\textquotedbl{},\allowbreak{} \textquotedbl{}class\textquotedbl{}]} with one column that changes within a person and one that does not gives the mixed ANOVA.
 
 \wordfield{Options}{}\par\nopagebreak
 \begin{optiontable}
@@ -6373,15 +6373,17 @@ Two groups: Welch's t-test (the R \code{t.\allowbreak{}test()} default). Three o
 \code{for\_\allowbreak{}each=} & \\
 \code{based\_\allowbreak{}on=} & normally \code{\textquotedbl{}averages\textquotedbl{}}\\
 \code{test=} & \\
+\code{matched\_\allowbreak{}by=} & \\
 \end{optiontable}
 
-\wordfield{Underneath}{SciPy (stats.ttest\_ind with \code{equal\_\allowbreak{}var=False}; mannwhitneyu, kruskal) and statsmodels (stats.oneway.anova\_oneway for Welch's ANOVA)}
+\wordfield{Underneath}{SciPy (stats.ttest\_ind with \code{equal\_\allowbreak{}var=False}; mannwhitneyu, kruskal) and statsmodels (stats.oneway.anova\_oneway for Welch's ANOVA); R afex::\code{aov\_\allowbreak{}ez} for \code{matched\_\allowbreak{}by=} (repeated measures, Greenhouse-Geisser; needs R)}
 \wordfield{Example you can run}{(it uses the practice table \code{marks})}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
 table = sdata.table(sdata.example("marks"))
 result = table.compare_averages("marks", for_each="class")
 table.compare_averages("marks", for_each="class", based_on="ranks")
+table.compare_averages("marks", for_each="subject", matched_by="name")
 result.save("marks_test.csv")
 \end{lstlisting}
 \wordentry{table.compare\_each\_pair()}{word:table.compare-each-pair}
@@ -7094,7 +7096,7 @@ print(dist.parameters())
 Explain one column from several others with a model, and say how big each effect is.
 
 \codeline{table.explain(\textquotedbl{}marks\textquotedbl{}, using=[\textquotedbl{}hours\textquotedbl{}, \textquotedbl{}breakfast\textquotedbl{}])} (with \code{sdata.\allowbreak{}example(\textquotedbl{}school\textquotedbl{})})\\
-\code{outcome=\textquotedbl{}numbers\textquotedbl{}} (the default): linear model by least squares (R \code{lm()}). \code{outcome=\textquotedbl{}yes or no\textquotedbl{}}: logistic regression, odds ratios (R \code{glm(family = binomial)}). \code{outcome=\textquotedbl{}counts\textquotedbl{}}: Poisson regression, rate ratios (R \code{glm(family = poisson)}); \code{outcome=\textquotedbl{}counts (overdispersed)\textquotedbl{}}: quasi-Poisson (R \code{glm(family = quasipoisson)}); \code{outcome=\textquotedbl{}counts that vary a lot\textquotedbl{}}: negative binomial (R MASS::\code{glm.\allowbreak{}nb()}). \code{outcome=\textquotedbl{}positive numbers\textquotedbl{}}: Gamma regression with a log link, for positive, skewed numbers such as times or amounts (R \code{glm(family = Gamma(link = \textquotedbl{}log\textquotedbl{}))}); effects multiply the average. \code{time=\textquotedbl{}years\textquotedbl{}} with counts: rates, the count per unit of time (R offset = \code{log(years)}). \code{out\_\allowbreak{}of=\textquotedbl{}tries\textquotedbl{}} with \code{outcome=\textquotedbl{}yes or no\textquotedbl{}}: the column holds the number of yes out of that many tries (R \code{glm(cbind(yes,\allowbreak{} tries - yes) \textasciitilde{} .\allowbreak{}.\allowbreak{}.\allowbreak{},\allowbreak{} family = binomial)}). \code{outcome=\textquotedbl{}ordered groups\textquotedbl{}}: ordered logistic regression (R MASS::\code{polr()}); give the order of text groups, lowest first, with \code{in\_\allowbreak{}order=[\textquotedbl{}low\textquotedbl{},\allowbreak{} \textquotedbl{}middle\textquotedbl{},\allowbreak{} \textquotedbl{}high\textquotedbl{}]}. \code{outcome=\textquotedbl{}groups\textquotedbl{}}: multinomial logistic regression, each group against the first (R nnet::\code{multinom()}). \code{outcome=\textquotedbl{}shares\textquotedbl{}}: beta regression for shares between 0 and 1 (R betareg). \code{outcome=\textquotedbl{}counts with many zeros\textquotedbl{}}: zero-inflated Poisson regression (R pscl::\code{zeroinfl()}). \code{link=} (experts): \code{\textquotedbl{}probit\textquotedbl{}} or \code{\textquotedbl{}cloglog\textquotedbl{}} for yes or no, \code{\textquotedbl{}identity\textquotedbl{}} or \code{\textquotedbl{}sqrt\textquotedbl{}} for counts, \code{\textquotedbl{}inverse\textquotedbl{}} or \code{\textquotedbl{}identity\textquotedbl{}} for positive numbers; the effects are then on that scale, not ratios. \code{test\_\allowbreak{}type=\textquotedbl{}type 2\textquotedbl{}} adds a table with one test for each column (an ANOVA table): \code{\textquotedbl{}type 2\textquotedbl{}} (the usual choice, R car::\code{Anova(type = 2)}), \code{\textquotedbl{}type 3\textquotedbl{}} (sum-to-zero coding, R car::\code{Anova(type = 3)}) or \code{\textquotedbl{}in order\textquotedbl{}} (R \code{anova()}; the order of \code{using=} matters), with partial eta-squared for numbers (R effectsize). A text column in \code{using=} is a group column: each group is compared with the first group in sorted order (the baseline). \code{\textquotedbl{}hours * breakfast\textquotedbl{}} adds both columns and their interaction (does the effect of hours depend on breakfast?). \code{grouped\_\allowbreak{}by=\textquotedbl{}school\textquotedbl{}}: a mixed model with its own starting level for each school (R lme4::\code{lmer()}), for rows that belong together. \code{empty\_\allowbreak{}cells=\textquotedbl{}multiple imputation\textquotedbl{}} fills in empty cells 20 times (R \code{mice()}) instead of leaving those rows out; \code{seed=} fixes the random filling. Prints each effect with its 95 \% confidence interval and p-value in words, and how well the model fits; gives back a table with one row per term. A link does not show that one thing causes the other.
+\code{outcome=\textquotedbl{}numbers\textquotedbl{}} (the default): linear model by least squares (R \code{lm()}). \code{outcome=\textquotedbl{}yes or no\textquotedbl{}}: logistic regression, odds ratios (R \code{glm(family = binomial)}). \code{outcome=\textquotedbl{}counts\textquotedbl{}}: Poisson regression, rate ratios (R \code{glm(family = poisson)}); \code{outcome=\textquotedbl{}counts (overdispersed)\textquotedbl{}}: quasi-Poisson (R \code{glm(family = quasipoisson)}); \code{outcome=\textquotedbl{}counts that vary a lot\textquotedbl{}}: negative binomial (R MASS::\code{glm.\allowbreak{}nb()}). \code{outcome=\textquotedbl{}positive numbers\textquotedbl{}}: Gamma regression with a log link, for positive, skewed numbers such as times or amounts (R \code{glm(family = Gamma(link = \textquotedbl{}log\textquotedbl{}))}); effects multiply the average. \code{time=\textquotedbl{}years\textquotedbl{}} with counts: rates, the count per unit of time (R offset = \code{log(years)}). \code{out\_\allowbreak{}of=\textquotedbl{}tries\textquotedbl{}} with \code{outcome=\textquotedbl{}yes or no\textquotedbl{}}: the column holds the number of yes out of that many tries (R \code{glm(cbind(yes,\allowbreak{} tries - yes) \textasciitilde{} .\allowbreak{}.\allowbreak{}.\allowbreak{},\allowbreak{} family = binomial)}). \code{outcome=\textquotedbl{}ordered groups\textquotedbl{}}: ordered logistic regression (R MASS::\code{polr()}); give the order of text groups, lowest first, with \code{in\_\allowbreak{}order=[\textquotedbl{}low\textquotedbl{},\allowbreak{} \textquotedbl{}middle\textquotedbl{},\allowbreak{} \textquotedbl{}high\textquotedbl{}]}. \code{outcome=\textquotedbl{}groups\textquotedbl{}}: multinomial logistic regression, each group against the first (R nnet::\code{multinom()}). \code{outcome=\textquotedbl{}shares\textquotedbl{}}: beta regression for shares between 0 and 1 (R betareg). \code{outcome=\textquotedbl{}counts with many zeros\textquotedbl{}}: zero-inflated Poisson regression (R pscl::\code{zeroinfl()}). \code{link=} (experts): \code{\textquotedbl{}probit\textquotedbl{}} or \code{\textquotedbl{}cloglog\textquotedbl{}} for yes or no, \code{\textquotedbl{}identity\textquotedbl{}} or \code{\textquotedbl{}sqrt\textquotedbl{}} for counts, \code{\textquotedbl{}inverse\textquotedbl{}} or \code{\textquotedbl{}identity\textquotedbl{}} for positive numbers; the effects are then on that scale, not ratios. \code{test\_\allowbreak{}type=\textquotedbl{}type 2\textquotedbl{}} adds a table with one test for each column (an ANOVA table): \code{\textquotedbl{}type 2\textquotedbl{}} (the usual choice, R car::\code{Anova(type = 2)}), \code{\textquotedbl{}type 3\textquotedbl{}} (sum-to-zero coding, R car::\code{Anova(type = 3)}) or \code{\textquotedbl{}in order\textquotedbl{}} (R \code{anova()}; the order of \code{using=} matters), with partial eta-squared for numbers (R effectsize). A text column in \code{using=} is a group column: each group is compared with the first group in sorted order (the baseline). \code{\textquotedbl{}hours * breakfast\textquotedbl{}} adds both columns and their interaction (does the effect of hours depend on breakfast?). \code{grouped\_\allowbreak{}by=\textquotedbl{}school\textquotedbl{}}: a mixed model with its own starting level for each school (R lme4::\code{lmer()}), for rows that belong together. \code{own\_\allowbreak{}slope\_\allowbreak{}for=\textquotedbl{}hours\textquotedbl{}} gives each school its own slope for hours too (R lme4::\code{lmer()} itself, (1 + hours \textbar{} school)). \code{p\_\allowbreak{}value\_\allowbreak{}by=\textquotedbl{}satterthwaite\textquotedbl{}} (or \code{\textquotedbl{}few groups\textquotedbl{}}) gives t-tests with Satterthwaite degrees of freedom (R lmerTest) instead of Wald z-tests. \code{effects=\textquotedbl{}for the whole population\textquotedbl{}} fits GEE instead (statsmodels, as R geepack::\code{geeglm()}): effects averaged over all groups, with \code{within\_\allowbreak{}groups=\textquotedbl{}alike\textquotedbl{}} (the default), \code{\textquotedbl{}in time order\textquotedbl{}} (rows in table order, R geepack) or \code{\textquotedbl{}independent\textquotedbl{}}. \code{empty\_\allowbreak{}cells=\textquotedbl{}multiple imputation\textquotedbl{}} fills in empty cells 20 times (R \code{mice()}) instead of leaving those rows out; \code{seed=} fixes the random filling. Prints each effect with its 95 \% confidence interval and p-value in words, and how well the model fits; gives back a table with one row per term. A link does not show that one thing causes the other.
 
 \wordfield{Options}{}\par\nopagebreak
 \begin{optiontable}
@@ -7109,9 +7111,13 @@ Explain one column from several others with a model, and say how big each effect
 \code{in\_\allowbreak{}order=} & \\
 \code{link=} & \\
 \code{test\_\allowbreak{}type=} & \\
+\code{own\_\allowbreak{}slope\_\allowbreak{}for=} & \\
+\code{p\_\allowbreak{}value\_\allowbreak{}by=} & normally \code{\textquotedbl{}wald\textquotedbl{}}\\
+\code{effects=} & normally \code{\textquotedbl{}for the average group\textquotedbl{}}\\
+\code{within\_\allowbreak{}groups=} & normally \code{\textquotedbl{}alike\textquotedbl{}}\\
 \end{optiontable}
 
-\wordfield{Underneath}{statsmodels (OLS; GLM for yes/no and counts, as R glm; MixedLM for \code{grouped\_\allowbreak{}by=}; MICEData to fill in empty cells) and R mice::pool for pooling multiple imputation (needs R)}
+\wordfield{Underneath}{statsmodels (OLS; GLM for yes/no and counts, as R glm; MixedLM for \code{grouped\_\allowbreak{}by=}; GEE for \code{effects=\textquotedbl{}for the whole population\textquotedbl{}}, as R geepack::geeglm; MICEData to fill in empty cells); R itself (needs R) for lme4::glmer, lme4::lmer with \code{own\_\allowbreak{}slope\_\allowbreak{}for=}, lmerTest for \code{p\_\allowbreak{}value\_\allowbreak{}by=\textquotedbl{}satterthwaite\textquotedbl{}}, geepack for \code{within\_\allowbreak{}groups=\textquotedbl{}in time order\textquotedbl{}}, car::Anova and effectsize for \code{test\_\allowbreak{}type=}, and mice::pool for multiple imputation}
 \wordfield{Example you can run}{(it uses the practice table \code{school})}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -7119,6 +7125,7 @@ table = sdata.table(sdata.example("school"))
 table.explain("marks", using=["hours", "sleep", "breakfast"])
 table.explain("passed", using=["hours", "breakfast"], outcome="yes or no")
 table.explain("marks", using=["hours", "breakfast"], grouped_by="school")
+table.explain("marks", using=["hours", "breakfast"], grouped_by="school", effects="for the whole population")
 \end{lstlisting}
 \wordentry{table.add\_predicted\_column()}{word:table.add-predicted-column}
 Add a column with the value the model predicts for each row.
@@ -7150,6 +7157,92 @@ import simplydata as sdata
 table = sdata.table(sdata.example("school"))
 table.add_predicted_column("marks", using=["hours", "breakfast"])
 table.show_first_rows(5)
+\end{lstlisting}
+\wordentry{table.model\_averages\_of()}{word:table.model-averages-of}
+The average the model gives for each group, once the other columns are allowed for.
+
+\codeline{table.model\_averages\_of(\textquotedbl{}marks\textquotedbl{}, for\_each=\textquotedbl{}school\textquotedbl{}, using=[\textquotedbl{}hours\textquotedbl{}, \textquotedbl{}breakfast\textquotedbl{}])}\\
+(with \code{sdata.\allowbreak{}example(\textquotedbl{}school\textquotedbl{})}) The model is the one \code{explain()} fits from \code{using=} (\code{for\_\allowbreak{}each=} is added if it is not in \code{using=}). Number columns are held at their averages and the other group columns are counted equally, so the groups are compared on an equal footing (adjusted averages, also called estimated marginal means). Then every pair of groups is compared, with Tukey's adjustment for making many comparisons. \code{outcome=\textquotedbl{}yes or no\textquotedbl{}} gives the chance of yes in each group and odds ratios for the pairs; \code{outcome=\textquotedbl{}counts\textquotedbl{}} the average count and rate ratios. \code{grouped\_\allowbreak{}by=} uses the mixed model. Done by R emmeans::\code{emmeans()} and \code{pairs()} (needs R: pip install \code{\textquotedbl{}simplydata[r]\textquotedbl{}}). Gives back a table with one row per group and one per pair. Other name: marginal means (R emmeans).
+
+\wordfield{Options}{}\par\nopagebreak
+\begin{optiontable}
+\code{column=} & \\
+\code{for\_\allowbreak{}each=} & \\
+\code{using=} & \\
+\code{outcome=} & normally \code{\textquotedbl{}numbers\textquotedbl{}}\\
+\code{grouped\_\allowbreak{}by=} & \\
+\end{optiontable}
+
+\wordfield{Underneath}{R emmeans (emmeans::emmeans and pairs, Tukey's adjustment; lme4 and pbkrtest for \code{grouped\_\allowbreak{}by=}), on the model of \code{table.\allowbreak{}explain} (needs R)}
+\wordfield{Example you can run}{(it uses the practice table \code{school})}\par\nopagebreak
+\begin{lstlisting}[style=py]
+import simplydata as sdata
+table = sdata.table(sdata.example("school"))
+table.model_averages_of("marks", for_each="breakfast", using=["hours", "school"])
+table.model_averages_of("passed", for_each="breakfast", using=["hours"], outcome="yes or no")
+\end{lstlisting}
+\wordentry{table.check\_model()}{word:table.check-model}
+Four pictures to check a model from \code{explain()}, as R \code{plot(lm(.\allowbreak{}.\allowbreak{}.\allowbreak{}))}.
+
+\codeline{table.check\_model(\textquotedbl{}marks\textquotedbl{}, using=[\textquotedbl{}hours\textquotedbl{}, \textquotedbl{}breakfast\textquotedbl{}])} (with \code{sdata.\allowbreak{}example(\textquotedbl{}school\textquotedbl{})})\\
+1. Residuals against fitted values: the dots should lie in an even band around 0 with no curve (a curve means a straight line does not fit). 2. Normal Q-Q: the dots should lie on the line (the residuals follow a bell curve). 3. Scale-location: the line should be flat (the spread of the residuals is the same everywhere). 4. Residuals against leverage: rows outside the dashed Cook's distance lines pull the model strongly (\code{show\_\allowbreak{}rows\_\allowbreak{}that\_\allowbreak{}pull()} lists them). The same options as \code{explain()}; \code{outcome=\textquotedbl{}yes or no\textquotedbl{}} and \code{\textquotedbl{}counts\textquotedbl{}} show the pictures of R \code{plot(glm(.\allowbreak{}.\allowbreak{}.\allowbreak{}))}. The numbers come from statsmodels (OLSInfluence, GLMInfluence), the LOWESS lines from statsmodels lowess (as R panel.smooth). Gives back the page of four charts: .show() or .save(\code{\textquotedbl{}checks.\allowbreak{}png\textquotedbl{}}).
+
+\wordfield{Options}{}\par\nopagebreak
+\begin{optiontable}
+\code{column=} & \\
+\code{using=} & \\
+\code{outcome=} & normally \code{\textquotedbl{}numbers\textquotedbl{}}\\
+\end{optiontable}
+
+\wordfield{Underneath}{statsmodels (OLSInfluence, GLMInfluence, ProbPlot and lowess), the four pictures of R \code{plot(lm)}, drawn with matplotlib}
+\wordfield{Example you can run}{(it uses the practice table \code{school})}\par\nopagebreak
+\begin{lstlisting}[style=py]
+import simplydata as sdata
+table = sdata.table(sdata.example("school"))
+page = table.check_model("marks", using=["hours", "breakfast"])
+page.save("model_checks.png")
+\end{lstlisting}
+\wordentry{table.show\_rows\_that\_pull()}{word:table.show-rows-that-pull}
+Show the rows that change a model from \code{explain()} the most (the table does not change).
+
+\codeline{table.show\_rows\_that\_pull(\textquotedbl{}marks\textquotedbl{}, using=[\textquotedbl{}hours\textquotedbl{}, \textquotedbl{}breakfast\textquotedbl{}])} (with \code{sdata.\allowbreak{}example(\textquotedbl{}school\textquotedbl{})})\\
+Each row's Cook's distance says how much all the model's effects would move without that row; rows above 4 / (number of rows), the usual rule of thumb, are shown, the biggest first, with their leverage (how unusual the row's values in \code{using=} are) and their studentised residual (how far the row is from the model). Numbers from statsmodels OLSInfluence (GLMInfluence for \code{outcome=\textquotedbl{}yes or no\textquotedbl{}} and \code{\textquotedbl{}counts\textquotedbl{}}), as R \code{cooks.\allowbreak{}distance()}, \code{hatvalues()} and \code{rstudent()}. Each row is shown with its number in the whole table, so \code{remove\_\allowbreak{}rows\_\allowbreak{}by\_\allowbreak{}position()} can follow, but only remove a row for a reason (a mistake in the data), and say so in the report.
+
+\wordfield{Options}{}\par\nopagebreak
+\begin{optiontable}
+\code{column=} & \\
+\code{using=} & \\
+\code{outcome=} & normally \code{\textquotedbl{}numbers\textquotedbl{}}\\
+\end{optiontable}
+
+\wordfield{Underneath}{statsmodels (OLSInfluence, GLMInfluence), as R cooks.distance, hatvalues and rstudent}
+\wordfield{Example you can run}{(it uses the practice table \code{school})}\par\nopagebreak
+\begin{lstlisting}[style=py]
+import simplydata as sdata
+table = sdata.table(sdata.example("school"))
+table.show_rows_that_pull("marks", using=["hours", "breakfast"])
+\end{lstlisting}
+\wordentry{table.compare\_models()}{word:table.compare-models}
+Does a bigger model explain the column better than a smaller one, or could it be chance?
+
+\codeline{table.compare\_models(\textquotedbl{}marks\textquotedbl{}, using=[\textquotedbl{}hours\textquotedbl{}], against=[\textquotedbl{}hours\textquotedbl{}, \textquotedbl{}breakfast\textquotedbl{}])}\\
+(with \code{sdata.\allowbreak{}example(\textquotedbl{}school\textquotedbl{})}) Fits both models on the same rows (those with a value in every column of either model). When one model holds every column of the other (nested models), it tests whether the extra columns help: an F test for \code{outcome=\textquotedbl{}numbers\textquotedbl{}} (statsmodels \code{compare\_\allowbreak{}f\_\allowbreak{}test}) and a likelihood-ratio test for \code{outcome=\textquotedbl{}yes or no\textquotedbl{}} and \code{\textquotedbl{}counts\textquotedbl{}}, as R \code{anova(m0,\allowbreak{} m1)}. It also prints AIC and BIC for each model (smaller is better; a difference under about 2 means little). Gives back a table with one row per model and one for the test.
+
+\wordfield{Options}{}\par\nopagebreak
+\begin{optiontable}
+\code{column=} & \\
+\code{using=} & \\
+\code{against=} & \\
+\code{outcome=} & normally \code{\textquotedbl{}numbers\textquotedbl{}}\\
+\end{optiontable}
+
+\wordfield{Underneath}{statsmodels (OLS \code{compare\_\allowbreak{}f\_\allowbreak{}test}; GLM deviances with SciPy's chi-square; \code{eval\_\allowbreak{}measures} aic and bic), as R \code{anova(m0,\allowbreak{} m1)}, AIC and BIC}
+\wordfield{Example you can run}{(it uses the practice table \code{school})}\par\nopagebreak
+\begin{lstlisting}[style=py]
+import simplydata as sdata
+table = sdata.table(sdata.example("school"))
+table.compare_models("marks", using=["hours"], against=["hours", "breakfast"])
+table.compare_models("passed", using=["hours"], against=["hours", "breakfast"], outcome="yes or no")
 \end{lstlisting}
 \unsection{Patterns across columns}{group:Patterns-across-columns}
 \wordentry{table.add\_principal\_components()}{word:table.add-principal-components}
@@ -9760,6 +9853,7 @@ Every word and option, A to Z, with the page of its dictionary entry. Other spel
 \indexline{word:nums.chart}{nums.chart()}
 \indexline{word:sdata.chart}{sdata.chart()}
 \indexline{word:table.chart}{table.chart()}
+\indexline{word:table.check-model}{table.check\_model()}
 \indexline{word:colour}{chart.color()}
 \indexline{word:colour-scale}{chart.color\_scale()}
 \indexline{word:colours}{chart.colors()}
@@ -9776,6 +9870,7 @@ Every word and option, A to Z, with the page of its dictionary entry. Other spel
 \indexline{word:table.compare-counts-to}{table.compare\_counts\_to()}
 \indexline{word:table.compare-distributions}{table.compare\_distributions()}
 \indexline{word:table.compare-each-pair}{table.compare\_each\_pair()}
+\indexline{word:table.compare-models}{table.compare\_models()}
 \indexline{word:table.compare-percent-to}{table.compare\_percent\_to()}
 \indexline{word:table.compare-profiles}{table.compare\_profiles()}
 \indexline{word:table.compare-shape-to}{table.compare\_shape\_to()}
@@ -9881,6 +9976,7 @@ Every word and option, A to Z, with the page of its dictionary entry. Other spel
 \indexline{word:nums.median}{nums.median()}
 \indexline{word:table.median-of}{table.median\_of()}
 \indexline{word:dist.middle-range}{dist.middle\_range()}
+\indexline{word:table.model-averages-of}{table.model\_averages\_of()}
 \indexline{word:table.most-common-of}{table.most\_common\_of()}
 \indexline{word:names-on-dots}{chart.names\_on\_dots()}
 \indexline{word:sdata.next-day}{sdata.next\_day()}
@@ -9960,6 +10056,7 @@ Every word and option, A to Z, with the page of its dictionary entry. Other spel
 \indexline{word:grid.show-last-rows}{grid.show\_last\_rows()}
 \indexline{word:table.show-last-rows}{table.show\_last\_rows()}
 \indexline{word:show-legend}{chart.show\_legend()}
+\indexline{word:table.show-rows-that-pull}{table.show\_rows\_that\_pull()}
 \indexline{word:table.show-rows-with-outliers}{table.show\_rows\_with\_outliers()}
 \indexline{word:sdata.side-by-side}{sdata.side\_by\_side()}
 \indexline{word:side-histograms}{chart.side\_histograms()}
