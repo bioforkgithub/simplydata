@@ -1,8 +1,13 @@
-AUC 0.893 (95 % CI 0.845 to 0.940): a person who has it scores higher than one who does not in 89 of 100 such pairs (0.5 is no better than tossing a coin, 1 is perfect).
-Best cut-off by Youden's index (sensitivity + specificity - 1): "crp" 2.15 or more counts as positive (sensitivity 90.0 %, specificity 78.0 %). A cut-off chosen on these data looks better here than it will on new data.
-Of 1000 people like these (25.0 % have it in this table), 250 have it: the test finds 225 (sensitivity 90.0 %, 95 % CI 78.2 to 96.7 %) and misses 25. Of the 750 without it, 585 test negative (specificity 78.0 %, 95 % CI 70.5 to 84.3 %) and 165 test positive by mistake.
-So of the 390 positive results, 225 (57.7 %, 95 % CI 46.0 to 68.8 %) really have it; of the 610 negative results, 585 (95.9 %, 95 % CI 90.7 to 98.7 %) really do not.
-A positive result is 4.09 times more common in people who have it than in people who do not (positive likelihood ratio, 95 % CI 2.98 to 5.61); a negative result is 0.128 times as common (negative likelihood ratio, 0.0556 to 0.296).
+Counted as positive: "rapid_test" = "positive"; as having it: "infected" = "yes".
+Of 1000 people like these (25.0 % have it in this table), 250 have it: the test finds 195 (sensitivity 78.0 %, 95 % CI 64.0 to 88.5 %) and misses 55. Of the 750 without it, 700 test negative (specificity 93.3 %, 95 % CI 88.1 to 96.8 %) and 50 test positive by mistake.
+So of the 245 positive results, 195 (79.6 %, 95 % CI 65.7 to 89.8 %) really have it; of the 755 negative results, 700 (92.7 %, 95 % CI 87.3 to 96.3 %) really do not.
+A positive result is 11.7 times more common in people who have it than in people who do not (positive likelihood ratio, 95 % CI 6.32 to 21.7); a negative result is 0.236 times as common (negative likelihood ratio, 0.140 to 0.398).
 The share of positives that are real depends on how common the condition is: give prevalence=1 to see it for a group where 1 % have it.
-Method: exact Clopper-Pearson intervals (statsmodels proportion_confint), likelihood ratios from R epiR::epi.tests(method = "exact"); "crp" 2.15 or more as positive against "infected" = "yes". The counts of 1000 are the shares written as numbers of people.
-Method: R pROC::roc(direction = "<") (higher scores count as positive; positive_when= turns it round), ci.auc(method = "delong"), coords("best", best.method = "youden").
+Method: exact Clopper-Pearson intervals (statsmodels proportion_confint), likelihood ratios from R epiR::epi.tests(method = "exact"); "rapid_test" against "infected" = "yes". The counts of 1000 are the shares written as numbers of people.
+Counted as positive: "rapid_test" = "positive"; as having it: "infected" = "yes".
+Of 1000 people like these (25.0 % have it in this table), 250 have it: the test finds 195 (sensitivity 78.0 %, 95 % CI 64.0 to 88.5 %) and misses 55. Of the 750 without it, 700 test negative (specificity 93.3 %, 95 % CI 88.1 to 96.8 %) and 50 test positive by mistake.
+So of the 245 positive results, 195 (79.6 %, 95 % CI 65.7 to 89.8 %) really have it; of the 755 negative results, 700 (92.7 %, 95 % CI 87.3 to 96.3 %) really do not.
+A positive result is 11.7 times more common in people who have it than in people who do not (positive likelihood ratio, 95 % CI 6.32 to 21.7); a negative result is 0.236 times as common (negative likelihood ratio, 0.140 to 0.398).
+Of 1000 people like these (1.00 % have it), 10 have it: the test finds 8 (sensitivity 78.0 %) and misses 2. Of the 990 without it, 924 test negative (specificity 93.3 %) and 66 test positive by mistake.
+So of the 74 positive results, 8 (10.8 %) really have it; of the 926 negative results, 924 (99.8 %) really do not.
+Method: exact Clopper-Pearson intervals (statsmodels proportion_confint), likelihood ratios from R epiR::epi.tests(method = "exact"); "rapid_test" against "infected" = "yes". The counts of 1000 are the shares written as numbers of people.

@@ -320,7 +320,7 @@ class MoreTestWords:
         row = {"test": "Anderson-Darling k-sample test", "what it compares":
                f'the shape of "{column}" in each "{for_each}" ({", ".join(names)})',
                "statistic name": "T (standardised Anderson-Darling)", "statistic": t, "p-value": p,
-               "p-value method": f"shuffled {shuffles} times, seed {seed}"}
+               "p-value by": f"shuffled {shuffles} times, seed {seed}"}
         parts = []
         for n, v in zip(names, arrays):
             low, mid, high = (float(q) for q in np.percentile(v, [25, 50, 75]))

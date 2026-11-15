@@ -11,7 +11,7 @@ from __future__ import annotations
 
 import numpy as np
 
-from .._errors import SimplydataError, friendly
+from .._errors import SimplydataError, friendly, renamed_note
 from .stat_tests import _label, _num, _skipped_note
 from .summaries import _p_sentence
 
@@ -24,21 +24,31 @@ def _r(x, y):
 
 class CorrelationWords:
     @friendly
-    def compare_correlations(self, first=None, second=None, for_each=None):
+    def compare_correlations(self, *columns, for_each=None, first=None, second=None):
         """Is one correlation stronger than another?
 
         table.compare_correlations("hours", "marks", for_each="class")   (with sdata.example("marks"), two classes)
-        With for_each= (two groups): is the correlation of the two columns different in the two
-        groups? Fisher's z test, R cocor::cocor.indep.groups(). With two pairs of columns that
-        share one column, in the same rows: table.compare_correlations(["hours", "marks"],
-        ["height", "marks"]) asks whether hours or height goes more strongly with marks: Steiger's z
-        test, R cocor::cocor.dep.groups.overlap(). Both print the difference with Zou's 95 %
-        interval (simplydata[r]). The correlations are Pearson's r (SciPy). Gives back a one-row table.
+        The columns are given as in correlation_between("hours", "marks"). With for_each= (two
+        groups): is the correlation of the two columns different in the two groups? Fisher's z
+        test, R cocor::cocor.indep.groups(). With two pairs of columns that share one column, in
+        the same rows: table.compare_correlations(["hours", "marks"], ["height", "marks"]) asks
+        whether hours or height goes more strongly with marks: Steiger's z test, R
+        cocor::cocor.dep.groups.overlap(). Both print the difference with Zou's 95 % interval
+        (simplydata[r]). The correlations are Pearson's r (SciPy). Gives back a one-row table.
         """
         from .._r import r_call
 
         step = "compare_correlations"
         example = 'table.compare_correlations("hours", "marks", for_each="class")'
+        if first is not None or second is not None:  # the earlier spelling first=, second=
+            renamed_note("first=, second=", 'compare_correlations("hours", "marks", ...)')
+            if columns:
+                raise SimplydataError(f"Give the columns once, without first= and second=.\nFor example, {example}")
+            columns = tuple(c for c in (first, second) if c is not None)
+        if len(columns) != 2:
+            raise SimplydataError(f"{step}() needs two columns and for_each=, or two pairs of columns.\nFor example, "
+                                  f'{example}\nor table.compare_correlations(["hours", "marks"], ["height", "marks"])')
+        first, second = columns
         if isinstance(first, str) and isinstance(second, str):
             if not isinstance(for_each, str):
                 raise SimplydataError(f"{step}() with two columns needs for_each= with two groups.\nFor example, "

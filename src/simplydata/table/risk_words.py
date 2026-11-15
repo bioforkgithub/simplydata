@@ -19,18 +19,18 @@ calls the package and words the answer.
   DescTools::BreslowDayTest(), the pooled risk ratio as R epiR::epi.2by2(); the interval of the
   pooled risk ratio comes from R epiR, which Python lacks).
   same_within=10 (percentage points): two one-sided tests (statsmodels tost_proportions_2indep,
-  Wald, as R TOSTER::twoprop_test()); with sides=1 and higher= or lower=, non-inferiority.
+  Wald, as R TOSTER::twoprop_test()); with not_lower= or not_higher=, non-inferiority.
 * compare_rates("infections", time="patient_days", for_each="ward"): events per time. Each rate
   with its exact interval (statsmodels confint_poisson "exact-c", as R poisson.test()); the rate
   ratio with the exact conditional test (statsmodels test_poisson_2indep "exact-cond", as R
   poisson.test(c(x1, x2), c(t1, t2))) and R's exact interval of the ratio (poisson.test; Python
-  has only other intervals). same_within= takes a ratio margin (1.25 means 0.8 to 1.25):
+  has only other intervals). same_within= takes a ratio margin ([0.8, 1.25], or 1.25 for the same):
   statsmodels tost_poisson_2indep("exact-cond"), as two one-sided R poisson.test(r =).
 * rate_of("infections", time="patient_days", for_each="ward"): the rates and their intervals.
 
 Display arithmetic, allowed by the owner and marked [D]: "out of 100" (the difference times 100),
-the number needed to treat (1 / the difference, its interval from the difference's interval) and
-rates per 1000 (rate times 1000).
+the number needed for one event fewer or more (1 / the difference, its interval from the
+difference's interval) and rates per 1000 (rate times 1000).
 """
 
 from __future__ import annotations
@@ -41,7 +41,7 @@ import narwhals as nw
 import numpy as np
 
 from .._errors import SimplydataError, friendly
-from .stat_tests import _direction, _label, _list_words, _one_sided_sentence, _skipped_note, _whole
+from .stat_tests import _direction, _label, _list_words, _non_inferiority, _one_sided_sentence, _skipped_note, _whole
 from .stat_tests import _num as _num_plain
 from .summaries import _check_percent, _p_sentence
 
@@ -69,9 +69,9 @@ def _ci(level) -> str:
     return f"{level:g} % CI"
 
 
-def _event_value(step, column, values, positive, what="the event"):
-    """(event value, words) for a column with 2 values; positive= chooses, else yes/no-like pairs, else the
-    second value in sorted order (as R takes the second factor level)."""
+def _event_value(step, column, values, positive, what="the event", option="positive"):
+    """(event value, words) for a column with 2 values; positive= (value= on compare_risks) chooses, else
+    yes/no-like pairs, else the second value in sorted order (as R takes the second factor level)."""
     distinct = sorted(set(values), key=lambda v: (str(type(v)), v))
     if len(distinct) != 2:
         found = _list_words(f'"{_label(v)}"' for v in distinct[:6])
@@ -80,15 +80,15 @@ def _event_value(step, column, values, positive, what="the event"):
     if positive is not None:
         for v in distinct:
             if v == positive or str(v) == str(positive):
-                return v, f'"{_label(v)}" (chosen with positive=)'
-        raise SimplydataError(f'positive="{positive}" is not a value of "{column}"; its values are '
+                return v, f'"{_label(v)}" (chosen with {option}=)'
+        raise SimplydataError(f'{option}="{positive}" is not a value of "{column}"; its values are '
                               + _list_words(f'"{_label(v)}"' for v in distinct) + ".")
     lowered = {str(v).strip().lower(): v for v in distinct}
     for yes, no in EVENT_PAIRS:
         if set(lowered) == {yes, no}:
             return lowered[yes], f'"{_label(lowered[yes])}"'
     return distinct[1], (f'"{_label(distinct[1])}" (the second value in sorted order, as R; choose with '
-                         "positive=)")
+                         f"{option}=)")
 
 
 def _rows_table(make, rows):
@@ -103,10 +103,11 @@ def _say_pct(share) -> str:
 
 # ---------------------------------------------------------------------------- risks engine
 def risk_engine(counts, against, level, what, p_value_by="formula", strata=None, same_within=None, up=None,
-                alternative="two-sided", group_word="in"):
+                alternative="two-sided", group_word="in", claim=None):
     """compare_risks on counts: counts = {group: (events, total)} in the order to show; against = the
-    reference group. strata = (name, {stratum: {group: (events, total)}}) for Mantel-Haenszel. Prints the
-    sentences and gives back the list of result rows."""
+    reference group. strata = (name, {stratum: {group: (events, total)}}) for Mantel-Haenszel. claim: None or
+    "not_higher" (from not_higher=, see stat_tests._non_inferiority). Prints the sentences and gives back the
+    list of result rows."""
     from scipy import stats
     from statsmodels.stats import contingency_tables as ct
     from statsmodels.stats.proportion import confint_proportions_2indep, proportion_confint
@@ -127,7 +128,7 @@ def risk_engine(counts, against, level, what, p_value_by="formula", strata=None,
     ref_events, ref_total = counts[against]
     others = [g for g in counts if g != against]
     if same_within is not None:
-        return rows + _risk_equivalence(others[0], against, counts, level, same_within, up)
+        return rows + _risk_equivalence(others[0], against, counts, level, same_within, up, claim)
     for group in others:
         events, total = counts[group]
         tab = np.array([[events, total - events], [ref_events, ref_total - ref_events]], dtype=float)
@@ -211,32 +212,35 @@ def _prop_test_one_sided(x1, n1, x2, n2, alternative):
                                    side=alternative))[0])
 
 
+NNT_FEWER, NNT_MORE = "number needed for one event fewer", "number needed for one event more"
+
+
 def _nnt(diff, low, high, group, against, ci, group_word):
-    """The number needed to treat: 1 / the risk difference, rounded up [D] (Altman 1998)."""
-    row = {"measure": "number needed to treat", "group": group, "against": against, "p-value": None,
+    """The number needed for one event fewer (or more): 1 / the risk difference, rounded up [D] (Altman 1998).
+
+    The labels do not say "treat", "benefit" or "harm": simplydata does not know whether the event is good
+    (cured) or bad (died). The sentence names NNTB/NNTH once, for a harmful event."""
+    row = {"measure": NNT_FEWER, "group": group, "against": against, "p-value": None,
            "method": "1 / risk difference; its interval from the difference's interval (Altman 1998)"}
     if diff == 0:
-        print("The risks are the same, so there is no number needed to treat.")
+        print("The risks are the same, so no number of people gives one event fewer or more.")
         return {**row, "estimate": math.inf, f"estimate {ci} low": math.nan, f"estimate {ci} high": math.nan}
     nnt = 1 / abs(diff)  # [D]
     shown = math.ceil(round(nnt, 9))
-    if diff < 0:
-        name, short, fewer = "Number needed to treat for one event fewer", "NNTB", "fewer"
-    else:
-        name, short, fewer = "Number needed for one event more", "NNTH", "more"
-    line = (f"{name} ({short}): {shown} (1 / {_num(abs(diff))}, rounded up): for every {shown} {group_word} {group} "
-            f"instead of {against}, one event {fewer}")
-    row["measure"] = f"number needed to treat ({short})"
+    fewer = "fewer" if diff < 0 else "more"
+    short = "NNTB" if diff < 0 else "NNTH"
+    head = f"Number needed for one event {fewer}: {shown} (1 / {_num(abs(diff))}, rounded up"
+    meaning = (f"for every {shown} {group_word} {group} instead of {against}, one event {fewer} (the {short}, if "
+               "the event is harmful, such as death)")
+    row["measure"] = NNT_FEWER if diff < 0 else NNT_MORE
     if low < 0 < high:
-        benefit, harm = 1 / abs(low), 1 / abs(high)  # [D] NNTB from the lower end, NNTH from the upper end
-        line += (f"; the interval of the difference includes 0, so the interval runs from {_num(benefit)} for one "
-                 f"event fewer (NNTB) through infinity to {_num(harm)} for one event more (NNTH).")
-        print(line)
+        benefit, harm = 1 / abs(low), 1 / abs(high)  # [D] one event fewer from the lower end, more from the upper
+        print(f"{head}): {meaning}. The interval of the difference includes 0, so the interval runs from "
+              f"{_num(benefit)} for one event fewer through infinity to {_num(harm)} for one event more.")
         return {**row, "estimate": nnt, f"estimate {ci} low": math.nan, f"estimate {ci} high": math.nan,
-                f"NNTB end of the {ci}": benefit, f"NNTH end of the {ci}": harm}
+                f"{ci} end, one event fewer": benefit, f"{ci} end, one event more": harm}
     ends = sorted((1 / abs(low) if low else math.inf, 1 / abs(high) if high else math.inf))  # [D]
-    line += f" ({ci} {_num(ends[0])} to {_num(ends[1])})."
-    print(line)
+    print(f"{head}; {ci} {_num(ends[0])} to {_num(ends[1])}): {meaning}.")
     return {**row, "estimate": nnt, f"estimate {ci} low": ends[0], f"estimate {ci} high": ends[1]}
 
 
@@ -307,14 +311,33 @@ def _mantel_haenszel(strata, group, against, level, rows):
     ]
 
 
-def _risk_equivalence(group, against, counts, level, same_within, up):
-    """same_within= in percentage points: TOST (or non-inferiority with sides=1) on the difference of risks."""
+def _say_margin(same_within, low, high, scale):
+    """The line that says what same_within= means (always printed): "same_within=10 on risks means ..."."""
+    given = (f"[{float(same_within[0]):g}, {float(same_within[1]):g}]" if isinstance(same_within, (list, tuple))
+             else f"{float(same_within):g}")
+    print(f"same_within={given} on {scale[0]} means {scale[1]} from {round(low, 4):g} to {round(high, 4):g}"
+          f"{scale[2]}.")
+
+
+def _risk_margin_note(same_within):
+    """compare_risks takes percentage points; a single number below 1 is probably a share (0.1 for 10)."""
+    if isinstance(same_within, (int, float, np.integer, np.floating)) and not isinstance(same_within, bool) \
+            and 0 < same_within < 1:
+        print(f"Note: same_within= is in percentage points: {float(same_within):g} means {float(same_within):g} "
+              f"points. Did you mean {round(same_within * 100, 6):g}?")
+
+
+def _risk_equivalence(group, against, counts, level, same_within, up, claim=None):
+    """same_within= in percentage points: TOST, or with not_lower= / not_higher= non-inferiority, on the
+    difference of risks."""
     from statsmodels.stats.proportion import (confint_proportions_2indep, test_proportions_2indep,
                                               tost_proportions_2indep)
 
     from .equivalence import margin
 
     low, high = margin("compare_risks", same_within)
+    _say_margin(same_within, low, high, ("risks", "risk differences", " percentage points"))
+    _risk_margin_note(same_within)
     (e1, t1), (e0, t0) = counts[group], counts[against]
     diff = e1 / t1 - e0 / t0
     first, second = group, against
@@ -353,26 +376,29 @@ def _risk_equivalence(group, against, counts, level, same_within, up):
     looks_up = up == first
     edge = low if looks_up else high
     side = "larger" if looks_up else "smaller"
-    other = second if looks_up else first
+    named, other = (up, second if looks_up else first)
+    worse = "lower"  # not_lower="B": the risk in B is not lower than in the other group by more than the margin
+    if claim == "not_higher":  # not_higher="A": the risk in A is not higher than in the other by more than it
+        named, other, worse = other, named, "higher"
     p = float(test_proportions_2indep(e1, t1, e0, t0, value=edge / 100, method="wald", alternative=side).pvalue)
     lo, hi = (float(v) * 100 for v in confint_proportions_2indep(e1, t1, e0, t0, method="wald", compare="diff",
                                                                    alpha=0.10))
     ends = f"at least {_num(lo)}" if looks_up else f"at most {_num(hi)}"
     amount = f"{abs(edge):g}"
     verdict = "not worse than the margin" if p < 0.05 else "the data cannot tell"
-    answer = (f"so the risk in {up} is not lower than in {other} by more than {amount} percentage "
-              "points" if p < 0.05 else f"so the data cannot show that the risk in {up} is not lower than in {other} by "
-              f"more than {amount} percentage points")
+    answer = (f"so the risk in {named} is not {worse} than in {other} by more than {amount} percentage "
+              "points" if p < 0.05 else f"so the data cannot show that the risk in {named} is not {worse} than in "
+              f"{other} by more than {amount} percentage points")
     print(f"The risk difference ({first} minus {second}) is {_num(diff * 100)} percentage points; the one-sided 95 % "
           f"interval is {ends}, {answer}.")
-    print(_p_sentence(p, f"the risk in {up} were truly lower than in {other} by {amount} points or more",
-                      "a difference this far from that", f"that it is lower by more than {amount} points"))
+    print(_p_sentence(p, f"the risk in {named} were truly {worse} than in {other} by {amount} points or more",
+                      "a difference this far from that", f"that it is {worse} by more than {amount} points"))
     print("Method: one one-sided Wald z-test against the margin (non-inferiority, statsmodels test_proportions_2indep),"
           " as R TOSTER::twoprop_test(); one-sided, as you asked before seeing the data.")
     return [{"measure": "risk difference (percentage points), non-inferiority", "group": group, "against": against,
              "estimate": diff * 100, "estimate one-sided 95 % CI low": lo if looks_up else -math.inf,
              "estimate one-sided 95 % CI high": math.inf if looks_up else hi, "p-value": p, "margin": edge,
-             "answer": verdict, "sides": f"one-sided: {up} not lower by more than {amount}",
+             "answer": verdict, "sides": f"one-sided: {named} not {worse} by more than {amount}",
              "method": "non-inferiority, Wald (statsmodels test_proportions_2indep, as R TOSTER::twoprop_test())"}]
 
 
@@ -385,22 +411,26 @@ def _rate_ci(events, time, level):
 
 
 def rate_rows(counts, level, per, unit):
-    """One row per group: events, time, rate per `per` and its exact interval; prints one sentence."""
+    """One row per group: events, time, the rate per `per` with its exact interval, and a column "per" that says
+    per what ("1000 patient_days"): one column name for every rate word, so forest_plot(x="rate") finds
+    "rate 95 % CI low"."""
     ci = _ci(level)
     rows = []
     for group, (events, time) in counts.items():
         low, high = _rate_ci(events, time, level)
         rows.append({"group": group, "events": float(events), "time": float(time),
-                     f"rate per {per:g} {unit}": events / time * per,  # [D] per 1000
-                     f"rate {ci} low": low * per, f"rate {ci} high": high * per})
-    listed = _list_words(f"{_num(r[f'rate per {per:g} {unit}'])} in {r['group']} ({ci} {_num(r[f'rate {ci} low'])} to "
+                     "rate": events / time * per,  # [D] per 1000
+                     f"rate {ci} low": low * per, f"rate {ci} high": high * per, "per": f"{per:g} {unit}"})
+    listed = _list_words(f"{_num(r['rate'])} in {r['group']} ({ci} {_num(r[f'rate {ci} low'])} to "
                          f"{_num(r[f'rate {ci} high'])}; {_whole(r['events'])} events in {_whole(r['time'])})"
                          for r in rows)
     return rows, listed
 
 
-def rate_engine(counts, against, level, per, unit, what, same_within=None, up=None, alternative="two-sided"):
-    """compare_rates on counts = {group: (events, time)}; prints the sentences, gives back the rows."""
+def rate_engine(counts, against, level, per, unit, what, same_within=None, up=None, alternative="two-sided",
+                claim=None, unit_words=None):
+    """compare_rates on counts = {group: (events, time)}; prints the sentences, gives back the rows. unit is the
+    time column's name (for the "per" column), unit_words how the sentence writes it (default: unit)."""
     from statsmodels.stats.rates import test_poisson_2indep
 
     from .._r import RMissing, r_call
@@ -409,11 +439,11 @@ def rate_engine(counts, against, level, per, unit, what, same_within=None, up=No
     rows, listed = rate_rows(counts, level, per, unit)
     for r in rows:
         r["measure"] = "rate"
-    print(f"{what} per {per:g} {unit}: {listed}.")
+    print(f"{what} per {per:g} {unit_words or unit}: {listed}.")
     others = [g for g in counts if g != against]
     (e0, t0) = counts[against]
     if same_within is not None:
-        return rows + _rate_equivalence(others[0], against, counts, same_within, up)
+        return rows + _rate_equivalence(others[0], against, counts, same_within, up, claim)
     side = {"two-sided": "two-sided", "greater": "larger", "less": "smaller"}[alternative]
     r_side = {"two-sided": "two.sided", "greater": "greater", "less": "less"}[alternative]
     for group in others:
@@ -468,12 +498,17 @@ def ratio_margin(step, same_within):
     raise SimplydataError(f"same_within= needs a rate ratio, or two of them [low, high].\nFor example, {example}")
 
 
-def _rate_equivalence(group, against, counts, same_within, up):
+def _rate_equivalence(group, against, counts, same_within, up, claim=None):
     from statsmodels.stats.rates import test_poisson_2indep, tost_poisson_2indep
 
     from .._r import RMissing, r_call
 
     low, high = ratio_margin("compare_rates", same_within)
+    _say_margin(same_within, low, high, ("rates", "rate ratios", ""))
+    if not isinstance(same_within, (list, tuple)) and same_within >= 2:
+        print(f"Note: a ratio margin of {float(same_within):g} means {round(1 / same_within, 4):g} to "
+              f"{float(same_within):g}, a very wide margin. compare_rates works on the ratio of the rates; for 20 % "
+              "either way give same_within=[0.8, 1.25].")
     (e1, t1), (e0, t0) = counts[group], counts[against]
     ratio = float(test_poisson_2indep(e1, t1, e0, t0, method="exact-cond").ratio)
     span = f"{_num(low)} to {_num(high)}"
@@ -509,25 +544,30 @@ def _rate_equivalence(group, against, counts, same_within, up):
                  "answer": verdict, "method": "TOST, exact conditional (statsmodels tost_poisson_2indep)"}]
     looks_up = up == group
     edge = low if looks_up else high
-    other = against if looks_up else group
+    named, other = up, (against if looks_up else group)
+    worse = "lower"  # not_lower="B": the rate in B is not lower than in the other group by more than the margin
+    if claim == "not_higher":  # not_higher="A": the rate in A is not higher than in the other by more than it
+        named, other, worse = other, named, "higher"
+    beyond = "below" if looks_up else "above"
     p = float(test_poisson_2indep(e1, t1, e0, t0, method="exact-cond", value=edge,
                                   alternative="larger" if looks_up else "smaller").pvalue)
     verdict = "not worse than the margin" if p < 0.05 else "the data cannot tell"
+    claim_words = f"the rate ratio is not {beyond} {_num(edge)}: the rate in {named} is not {worse} than in {other} " \
+                  "by more than the margin"
     print(f"The rate ratio ({group} against {against}) is {_num(ratio)}; "
           + ("" if math.isnan(ci_low) else f"the one-sided 95 % interval is "
              f"{'at least ' + _num(ci_low) if looks_up else 'at most ' + _num(ci_high)}; ")
-          + (f"so the rate in {up} is not lower than in {other} by more than the margin ({_num(edge)})." if p < 0.05
-             else f"so the data cannot show that the rate in {up} is not lower than in {other} by more than the "
-                  f"margin ({_num(edge)})."))
-    print(_p_sentence(p, f"the rate ratio were truly beyond {_num(edge)}", "a ratio this far from that",
-                      "that it is beyond the margin"))
+          + (f"so {claim_words}." if p < 0.05 else f"so the data cannot show that {claim_words}."))
+    print(_p_sentence(p, f"the rate ratio were truly {beyond} {_num(edge)}", "a ratio this far from that",
+                      f"that it is {beyond} {_num(edge)}"))
     print(f"Method: one one-sided exact conditional test against the margin (non-inferiority, statsmodels "
           f'test_poisson_2indep), as R poisson.test(r = {_num(edge)}, alternative = "{side}"); one-sided, as you asked '
           "before seeing the data.")
     return [{"measure": "rate ratio, non-inferiority", "group": group, "against": against, "estimate": ratio,
              "estimate one-sided 95 % CI low": ci_low if looks_up else 0.0,
              "estimate one-sided 95 % CI high": math.inf if looks_up else ci_high, "p-value": p, "margin": edge,
-             "answer": verdict, "method": "non-inferiority, exact conditional (statsmodels test_poisson_2indep)"}]
+             "answer": verdict, "sides": f"one-sided: rate ratio not {beyond} {_num(edge)}",
+             "method": "non-inferiority, exact conditional (statsmodels test_poisson_2indep)"}]
 
 
 def pick_against(step, groups, against, example):
@@ -546,19 +586,25 @@ def pick_against(step, groups, against, example):
                           f"{hint}\nFor example, {example}")
 
 
-def check_sides(step, sides, higher, lower, alternative, against, groups, example, same_within):
-    """sides=1 with higher=/lower= on a word with two groups: the SciPy-style alternative for "group minus against"
-    and the group that is expected higher (or None)."""
+def check_sides(step, sides, higher, lower, alternative, against, groups, example, same_within, not_lower=None,
+                not_higher=None):
+    """sides=1 with higher=/lower= (or, with same_within=, not_lower=/not_higher=) on a word with two groups: the
+    SciPy-style alternative for "group minus against", the group that is expected higher (or None) and the
+    non-inferiority claim (None or "not_higher", see stat_tests._non_inferiority)."""
+    words = [str(g) for g in groups]
+    ni_example = example.rstrip(")") + f', same_within=10, not_lower="{words[0]}")'
+    sides, higher, lower, claim = _non_inferiority(step, same_within, sides, higher, lower, not_lower, not_higher,
+                                                   words, ni_example)
     if len(groups) != 2 and (sides != 2 or higher is not None or lower is not None or alternative is not None):
         raise SimplydataError(f"{step}() looks in one direction only with two groups; this has {len(groups)}.")
     if len(groups) != 2:
-        return "two-sided", None
+        return "two-sided", None, None
     group = next(g for g in groups if g != against)
     choices = {str(group): "greater", str(against): "less"}
     alt, up = _direction(step, sides, higher, lower, alternative, choices, example)
     if up is not None and same_within is None:
         print(_one_sided_sentence(f"{up} higher", f"{'a drop' if up == str(group) else 'a rise'} in {group}"))
-    return alt, (group if up == str(group) else (against if up is not None else None))
+    return alt, (group if up == str(group) else (against if up is not None else None)), claim
 
 
 class RiskWords:
@@ -578,32 +624,37 @@ class RiskWords:
         return _rows_table(lambda d: self._new_table(nw.from_dict(d, backend=backend)), rows)
 
     # ------------------------------------------------------------------ compare_risks
-    @friendly
-    def compare_risks(self, outcome=None, for_each=None, against=None, positive=None, allowing_for=None, interval=95,
-                      p_value_by="formula", same_within=None, sides=2, higher=None, lower=None, alternative=None):
+    @friendly(renamed={"outcome": "column"}, others={"positive": "value"})
+    def compare_risks(self, column=None, for_each=None, against=None, value=None, allowing_for=None, interval=95,
+                      p_value_by="formula", same_within=None, not_lower=None, not_higher=None, sides=2, higher=None,
+                      lower=None, alternative=None):
         """How much more (or less) often does something happen in one group than in another?
 
         table.compare_risks("died", for_each="treatment", against="usual care")   (with sdata.example("trial"))
-        outcome: a column with two values (an event or not, such as "yes"/"no"); positive= says
-        which value is the event when it is not clear. against= is the group the others are
-        compared with (default: the first in sorted order, as R).
+        column: a column with two values (an event or not, such as "yes"/"no"); value= says
+        which value is the event when it is not clear (positive= is accepted too). against= is the
+        group the others are compared with (default: the first in sorted order, as R).
         Prints the risk in each group, then the risk difference with its interval and what it
-        means out of 100 people, the number needed to treat, the risk ratio and the odds ratio,
-        then the p-value (chi-square test with Yates' correction, as R prop.test()).
+        means out of 100 people, the number needed for one event fewer (or more), the risk ratio
+        and the odds ratio, then the p-value (chi-square test with Yates' correction, as R
+        prop.test()).
         p_value_by="exact": Fisher's exact test and the conditional odds ratio (as R fisher.test()).
         allowing_for="age_group": the Mantel-Haenszel odds ratio and risk ratio, which allow for
         a third column, with the Breslow-Day check that the odds ratio is the same in each group.
         same_within=10: are the risks the same within 10 percentage points (two one-sided tests)?
-        With sides=1 and higher= or lower=: non-inferiority. interval=95 sets the level of every
-        interval. Gives back one row per measure (estimate, interval, p-value, method).
+        same_within=10, not_lower="new medicine": non-inferiority (the risk in "new medicine" is
+        not lower by more than 10 points; not_higher= for an event that is bad, such as "died").
+        interval=95 sets the level of every interval. Gives back one row per measure (estimate,
+        interval, p-value, method).
         Routes: statsmodels proportion_confint, confint_proportions_2indep (Newcombe), Table2x2,
         StratifiedTable, tost_proportions_2indep; SciPy chi2_contingency, fisher_exact; R epiR for
         the interval of the Mantel-Haenszel risk ratio.
         """
         step = "compare_risks"
         example = 'table.compare_risks("died", for_each="treatment", against="usual care")'
-        for option, value in (("the outcome column", outcome), ("for_each=", for_each)):
-            self._need_name(step, option, value, example)
+        outcome = column
+        for option, value_given in (("the column", outcome), ("for_each=", for_each)):
+            self._need_name(step, option, value_given, example)
         if allowing_for is not None:
             self._need_name(step, "allowing_for=", allowing_for, example)
         level = _level(step, interval, example)
@@ -614,13 +665,14 @@ class RiskWords:
                                   f"For example, {example}")
         kept = self._two_columns_frame(step, names, example)
         outcomes = kept[outcome].to_list()
-        event, event_words = _event_value(step, outcome, outcomes, positive)
+        event, event_words = _event_value(step, outcome, outcomes, value, option="value")
         keys = kept[for_each].to_list()
         groups = sorted(set(keys), key=lambda k: (str(type(k)), k))
         if len(groups) < 2:
             raise SimplydataError(f'{step}() needs at least 2 groups in "{for_each}".')
         ref = pick_against(step, groups, against, example)
-        alt, up = check_sides(step, sides, higher, lower, alternative, ref, groups, example, same_within)
+        alt, up, claim = check_sides(step, sides, higher, lower, alternative, ref, groups, example, same_within,
+                                     not_lower, not_higher)
         if same_within is not None and len(groups) != 2:
             raise SimplydataError(f"same_within= compares two groups; \"{for_each}\" has {len(groups)}. Keep two "
                                   "groups first, for example with table.keep_rows(...).")
@@ -646,7 +698,7 @@ class RiskWords:
             strata = (allowing_for, tables)
         what = f'"{outcome}" = {event_words}'
         rows = risk_engine(counts, _label(ref), level, what, p_value_by, strata, same_within,
-                           None if up is None else _label(up), alt)
+                           None if up is None else _label(up), alt, claim=claim)
         return self._many_rows_table(rows)
 
     # ------------------------------------------------------------------ rates
@@ -683,7 +735,8 @@ class RiskWords:
         table.rate_of("infections", time="patient_days", for_each="ward")   (with sdata.example("clinic"))
         Adds up the events and the time (in each group), and gives the rate per 1000 units of
         time (per= changes it) with its exact 95 % interval (statsmodels confint_poisson
-        "exact-c", as R poisson.test()). Gives back one row per group.
+        "exact-c", as R poisson.test()). Gives back one row per group, with the columns "rate",
+        "rate 95 % CI low/high" and "per" (such as "1000 patient_days").
         """
         step = "rate_of"
         example = 'table.rate_of("infections", time="patient_days", for_each="ward")'
@@ -699,7 +752,8 @@ class RiskWords:
 
     @friendly
     def compare_rates(self, events=None, time=None, for_each=None, against=None, per=1000, interval=95,
-                      same_within=None, sides=2, higher=None, lower=None, alternative=None):
+                      same_within=None, not_lower=None, not_higher=None, sides=2, higher=None, lower=None,
+                      alternative=None):
         """Do events happen more often per unit of time in one group than in another?
 
         table.compare_rates("infections", time="patient_days", for_each="ward", against="ward A")
@@ -707,9 +761,11 @@ class RiskWords:
         followed (days, years). Adds them up per group and prints each rate per 1000 units of time
         (per=) with its exact interval, then the rate ratio with the exact conditional test
         (statsmodels test_poisson_2indep, as R poisson.test()) and R's exact interval of the ratio
-        (simplydata[r]; without R the interval is left out with a note). same_within=1.25: are the
-        rates the same within a ratio of 0.8 to 1.25 (two one-sided exact tests)? With sides=1 and
-        higher= or lower=: non-inferiority. Gives back one row per measure.
+        (simplydata[r]; without R the interval is left out with a note). same_within=[0.8, 1.25]:
+        are the rates the same within a rate ratio of 0.8 to 1.25 (two one-sided exact tests)?
+        same_within=1.25 means the same. With not_lower="ward B" (or not_higher=): non-inferiority,
+        the rate ratio not below (or above) the margin. Gives back one row per measure: each rate
+        (columns "rate", its interval, and "per"), then the rate ratio.
         """
         step = "compare_rates"
         example = 'table.compare_rates("infections", time="patient_days", for_each="ward", against="ward A")'
@@ -726,9 +782,10 @@ class RiskWords:
         ref = pick_against(step, groups, against, example)
         if same_within is not None and len(groups) != 2:
             raise SimplydataError(f'same_within= compares two groups; "{for_each}" has {len(groups)}.')
-        alt, up = check_sides(step, sides, higher, lower, alternative, ref, groups, example, same_within)
+        alt, up, claim = check_sides(step, sides, higher, lower, alternative, ref, groups, example, same_within,
+                                     not_lower, not_higher)
         order = [_label(g) for g in groups if g != ref] + [_label(ref)]
         counts = {g: counts[g] for g in order}
-        rows = rate_engine(counts, _label(ref), level, per, f'"{time}"', f'"{events}"', same_within,
-                           None if up is None else _label(up), alt)
+        rows = rate_engine(counts, _label(ref), level, per, time, f'"{events}"', same_within,
+                           None if up is None else _label(up), alt, claim=claim, unit_words=f'"{time}"')
         return self._many_rows_table(rows)

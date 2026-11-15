@@ -172,18 +172,39 @@ def old_word(obj, name: str, old_words: dict):
     return getattr(obj, attribute)
 
 
-def friendly(func=None, *, renamed: dict | None = None):
+def other_option_note(other: str, own: str) -> None:
+    """Print, once per session, that an option name from another tool is written another way here."""
+    key = f"other {other}="
+    if key in _NOTED:
+        return
+    _NOTED.add(key)
+    print(f"Note: {other}= is {own}= in simplydata.")
+
+
+def other_value_note(option: str, other, own) -> None:
+    """Print, once per session, that a value from another tool is written another way here."""
+    key = f"other {option}={other!r}"
+    if key in _NOTED:
+        return
+    _NOTED.add(key)
+    print(f'Note: {option}="{other}" is {option}="{own}" in simplydata.')
+
+
+def friendly(func=None, *, renamed: dict | None = None, others: dict | None = None):
     """Decorator for every public step.
 
     * accepts both spellings (color/colour, gray/grey) for option names
     * turns unknown options into a friendly message with a suggestion
     * renamed={"band": "confidence_band"}: an old option name still works, with a note once
+    * others={"tp": "found"}: an option name from another tool or field works too, with a pointer
+      once per session ("Note: tp= is found= in simplydata."), as alternative= is translated
 
-    Use it as @friendly, or as @friendly(renamed={...}).
+    Use it as @friendly, or as @friendly(renamed={...}, others={...}).
     """
     if func is None:
-        return lambda f: friendly(f, renamed=renamed)
+        return lambda f: friendly(f, renamed=renamed, others=others)
     renamed = renamed or {}
+    others = others or {}
     sig = inspect.signature(func)
     params = [p for p in sig.parameters if p != "self"]
     takes_any = any(p.kind is p.VAR_KEYWORD for p in sig.parameters.values())
@@ -204,10 +225,17 @@ def friendly(func=None, *, renamed: dict | None = None):
                 if new in kwargs or new in fixed:
                     raise SimplydataError(f"Give {new}= only once ({key}= is its old name).")
                 key = new
+            elif key in others and key not in params:
+                new = others[key]
+                other_option_note(key, new)
+                if new in kwargs or new in fixed:
+                    raise SimplydataError(f"Give {new}= only once ({key}= is another name for it).")
+                key = new
             if key not in params and not takes_any:
                 raise option_error(func.__name__, key, params)
             fixed[key] = value
         return func(*args, **fixed)
 
     wrapper._renamed_options = dict(renamed)
+    wrapper._other_options = dict(others)
     return wrapper

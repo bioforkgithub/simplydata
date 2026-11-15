@@ -1,3 +1,7 @@
-Cronbach's alpha = 0.865 (95 % CI 0.833 to 0.893, Feldt) for 5 items and 200 rows.
-No single item raises alpha when it is left out (the highest without one item is 0.848, without "q1").
-Alpha rises with the number of items and does not show that the items measure one thing. Method: R psych::alpha() (raw alpha) and psych::alpha.ci() (Feldt's interval).
+"infected" = "yes": 30 of 100 (30.0 %) in ward B and 20 of 100 (20.0 %) in ward A.
+Out of 100, about 10 more in ward B than in ward A (risk difference 10.0 percentage points, 95 % CI -2.02 to 21.7).
+Risk ratio 1.50 (95 % CI 0.916 to 2.46): the risk in ward B is 1.50 times the risk in ward A. Odds ratio 1.71 (95 % CI 0.895 to 3.29); odds are not risks: with an outcome this common (over 10 %) the odds ratio lies further from 1 than the risk ratio.
+Number needed for one event more: 10 (1 / 0.100, rounded up): for every 10 in ward B instead of ward A, one event more (the NNTH, if the event is harmful, such as death). The interval of the difference includes 0, so the interval runs from 49.4 for one event fewer through infinity to 4.61 for one event more.
+If the risks were truly the same, a difference this big or bigger would turn up in about 14 of 100 studies like this one (p = 0.142). This does not show that the risks are the same.
+Method: the chi-square test with Yates' correction (SciPy, as R prop.test()) for the p-value; exact intervals for each risk, Newcombe's score interval for the difference (as R DescTools::BinomDiffCI(method = "score")), Wald intervals on the log scale for the ratios (statsmodels Table2x2, as R epitools::riskratio()).
+Kept 2 of 6 rows.

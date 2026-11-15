@@ -44,7 +44,7 @@ def test_trade_off_curve_two_scores(clinic, needs_r):
 
 def test_difference_dots(clinic, needs_r):
     chart = clinic.chart()
-    chart.difference_dots(x="device_a", y="device_b")
+    chart.difference_dots(first="device_a", second="device_b")
     ax = chart._render().axes[0]
     levels = sorted(float(ln.get_ydata()[0]) for ln in ax.lines)
     # average difference (statsmodels mean_diff_plot) and the limits from R BlandAltmanLeh::bland.altman.stats
@@ -86,6 +86,50 @@ def test_chart_errors(clinic):
     with pytest.raises(SimplydataError, match="score="):
         chart.trade_off_curve(truth="infected")
     with pytest.raises(SimplydataError, match="columns of numbers"):
-        chart.difference_dots(x="device_a", y="ward")
+        chart.difference_dots(first="device_a", second="ward")
     with pytest.raises(SimplydataError, match="95 % CI low"):
         chart.forest_plot(x="crp", y="patient")
+
+
+def test_difference_dots_old_names(clinic, needs_r, capsys):
+    chart = clinic.chart()
+    chart.difference_dots(x="device_a", y="device_b")
+    assert chart._render().axes[0].get_ylabel() == "device_a minus device_b"
+    assert '"x=" is now called "first="' in capsys.readouterr().out
+
+
+def test_forest_plot_log_scale_and_line_at(capsys):
+    t = sdata.table(sdata.example("trial"))
+    risks = t.compare_risks("died", for_each="treatment", against="usual care")
+    risks.keep_rows("measure", one_of=["risk ratio", "odds ratio"])
+    chart = risks.chart()
+    chart.forest_plot(x="estimate", y="measure", log_scale=False, line_at=1.25)
+    ax = chart._render().axes[0]
+    assert ax.get_xscale() == "linear"
+    assert "(the line: 1.25)" in ax.get_xlabel()
+    chart = risks.chart()
+    chart.forest_plot(x="estimate", y="measure", ratios=True)
+    assert chart._render().axes[0].get_xscale() == "log"
+    assert '"ratios=" is now called "log_scale="' in capsys.readouterr().out
+
+
+def test_forest_plot_says_which_level_it_drew(capsys):
+    risks = sdata.table(sdata.example("clinic")).compare_risks("caught_infection", for_each="ward",
+                                                              against="ward A", same_within=15)
+    chart = risks.chart()
+    chart.forest_plot(x="estimate", y="measure")
+    ax = chart._render().axes[0]
+    labels = [t.get_text() for t in ax.get_yticklabels()]
+    assert labels == ["risk", "risk"]  # the 90 % row of the equivalence test is left out
+    out = capsys.readouterr().out
+    assert "the table holds 95 % and 90 % intervals; forest_plot draws the 95 % intervals" in out
+    assert '"risk difference (percentage points), equivalence"' in out
+
+
+def test_forest_plot_of_rates_and_shift():
+    rates = sdata.table(sdata.example("clinic")).rate_of("infections", time="patient_days", for_each="ward")
+    chart = rates.chart()
+    chart.forest_plot(x="rate", y="group")
+    dots = next(ln for ln in chart._render().axes[0].lines if ln.get_marker() == "o")
+    # R: poisson.test(4, 1803)$estimate * 1000, poisson.test(16, 1600)$estimate * 1000
+    assert list(dots.get_xdata()) == pytest.approx([2.218524681087, 10.0], rel=1e-9)

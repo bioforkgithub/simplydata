@@ -1,0 +1,5 @@
+"marks_z" is how many standard deviations each "marks" lies above (or, below 0, under) the average within each "subject": SciPy zscore(ddof=1), as R scale().
+   name class  subject  hours  marks  height   marks_z
+1  Asha     A    Maths    6.3     61     144 -0.109304
+2  Asha     A  Science    3.8     66     144 -0.246091
+3  Asha     A  English    7.6     77     144  1.093120

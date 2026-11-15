@@ -1,13 +1,7 @@
-Counted as positive: "rapid_test" = "positive"; as having it: "infected" = "yes".
-Of 1000 people like these (25.0 % have it in this table), 250 have it: the test finds 195 (sensitivity 78.0 %, 95 % CI 64.0 to 88.5 %) and misses 55. Of the 750 without it, 700 test negative (specificity 93.3 %, 95 % CI 88.1 to 96.8 %) and 50 test positive by mistake.
-So of the 245 positive results, 195 (79.6 %, 95 % CI 65.7 to 89.8 %) really have it; of the 755 negative results, 700 (92.7 %, 95 % CI 87.3 to 96.3 %) really do not.
-A positive result is 11.7 times more common in people who have it than in people who do not (positive likelihood ratio, 95 % CI 6.32 to 21.7); a negative result is 0.236 times as common (negative likelihood ratio, 0.140 to 0.398).
-The share of positives that are real depends on how common the condition is: give prevalence=1 to see it for a group where 1 % have it.
-Method: exact Clopper-Pearson intervals (statsmodels proportion_confint), likelihood ratios from R epiR::epi.tests(method = "exact"); "rapid_test" against "infected" = "yes". The counts of 1000 are the shares written as numbers of people.
-Counted as positive: "rapid_test" = "positive"; as having it: "infected" = "yes".
-Of 1000 people like these (25.0 % have it in this table), 250 have it: the test finds 195 (sensitivity 78.0 %, 95 % CI 64.0 to 88.5 %) and misses 55. Of the 750 without it, 700 test negative (specificity 93.3 %, 95 % CI 88.1 to 96.8 %) and 50 test positive by mistake.
-So of the 245 positive results, 195 (79.6 %, 95 % CI 65.7 to 89.8 %) really have it; of the 755 negative results, 700 (92.7 %, 95 % CI 87.3 to 96.3 %) really do not.
-A positive result is 11.7 times more common in people who have it than in people who do not (positive likelihood ratio, 95 % CI 6.32 to 21.7); a negative result is 0.236 times as common (negative likelihood ratio, 0.140 to 0.398).
-Of 1000 people like these (1.00 % have it), 10 have it: the test finds 8 (sensitivity 78.0 %) and misses 2. Of the 990 without it, 924 test negative (specificity 93.3 %) and 66 test positive by mistake.
-So of the 74 positive results, 8 (10.8 %) really have it; of the 926 negative results, 924 (99.8 %) really do not.
-Method: exact Clopper-Pearson intervals (statsmodels proportion_confint), likelihood ratios from R epiR::epi.tests(method = "exact"); "rapid_test" against "infected" = "yes". The counts of 1000 are the shares written as numbers of people.
+"caught_infection" = "yes": 16 of 100 (16.0 %) in ward B and 4 of 100 (4.00 %) in ward A.
+Out of 100, about 12 more in ward B than in ward A (risk difference 12.0 percentage points, 95 % CI 3.70 to 20.8).
+Risk ratio 4.00 (95 % CI 1.39 to 11.5): the risk in ward B is 4.00 times the risk in ward A. Odds ratio 4.57 (95 % CI 1.47 to 14.2); odds are not risks: with an outcome this common (over 10 %) the odds ratio lies further from 1 than the risk ratio.
+Number needed for one event more: 9 (1 / 0.120, rounded up; 95 % CI 4.82 to 27.0): for every 9 in ward B instead of ward A, one event more (the NNTH, if the event is harmful, such as death).
+If the risks were truly the same, a difference this big or bigger would turn up in about 1 of 100 studies like this one (p = 0.010).
+Method: the chi-square test with Yates' correction (SciPy, as R prop.test()) for the p-value; exact intervals for each risk, Newcombe's score interval for the difference (as R DescTools::BinomDiffCI(method = "score")), Wald intervals on the log scale for the ratios (statsmodels Table2x2, as R epitools::riskratio()).
+Kept 2 of 6 rows.

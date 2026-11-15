@@ -34,7 +34,7 @@ Example tables you can use (all made up, for practice):
 
   sdata.example("clinic")
       200 made-up patients in two hospital wards: tests for an infection, ratings, devices and pain.
-      Columns: patient, ward, age_group, infected, rapid_test, crp, procalcitonin, nurse_rating, doctor_rating, device_a, device_b, pain_week_0, pain_week_4, pain_week_8, pain_before, pain_after, infections, patient_days, q1, q2, q3, q4, q5
+      Columns: patient, ward, age_group, infected, rapid_test, crp, procalcitonin, nurse_rating, doctor_rating, device_a, device_b, pain_week_0, pain_week_4, pain_week_8, in_pain_before, in_pain_after, infections, caught_infection, patient_days, item_1, item_2, item_3, item_4, item_5
 
 
 ... (60 more lines)

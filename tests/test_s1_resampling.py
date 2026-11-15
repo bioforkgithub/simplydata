@@ -49,7 +49,7 @@ def test_shuffling_exact_equals_r(engine, capsys):
     got = row(t.compare_averages("v", for_each="g", p_value_by="shuffling"))
     # R: perm::permTS(a[1:6], b[1:7], method = "exact.network")$p.values["p.twosided"]
     assert got["p-value"] == pytest.approx(0.033799533799534, rel=1e-9)
-    assert got["p-value method"] == "shuffling, all 1,716 arrangements counted"
+    assert got["p-value by"] == "shuffling, all 1,716 arrangements counted"
     assert "so the p-value is exact" in capsys.readouterr().out
     # R: perm::permTS(b[1:7], a[1:6], method = "exact.network", alternative = "less")$p.value
     got = row(t.compare_averages("v", for_each="g", p_value_by="shuffling", sides=1, higher="a"))
@@ -61,7 +61,7 @@ def test_shuffling_monte_carlo_is_repeatable(engine, capsys):
     first = row(t.compare_averages("v", for_each="g", p_value_by="shuffling"))
     second = row(t.compare_averages("v", for_each="g", p_value_by="shuffling"))
     assert first["p-value"] == second["p-value"]
-    assert first["p-value method"] == "shuffled 9999 times, seed 1"
+    assert first["p-value by"] == "shuffled 9999 times, seed 1"
     # R: perm::permTS(a, b, method = "exact.network") p.twosided 0.001339218057 (exact); Monte Carlo SE ~ 0.0004
     assert first["p-value"] == pytest.approx(0.001339218057, abs=0.002)
     assert row(t.compare_averages("v", for_each="g", p_value_by="shuffling", seed=2))["p-value"] != first["p-value"]
@@ -77,7 +77,7 @@ def test_shuffling_paired_equals_r(engine, capsys):
         pytest.approx(0.0390625, rel=1e-12)
     got = row(t.compare_before_after("before", "after", p_value_by="shuffling", sides=1, higher="after"))
     assert got["p-value"] == pytest.approx(0.01953125, rel=1e-12)  # R: the same, alternative = "greater"
-    assert got["p-value method"] == "shuffling, all 256 arrangements counted"
+    assert got["p-value by"] == "shuffling, all 256 arrangements counted"
 
 
 def test_shuffling_correlation_equals_r():

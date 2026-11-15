@@ -487,13 +487,18 @@ UNITS = {
     "lesson12": dict(
         lessons=[12],
         words=["table.average_of", "table.summary_of", "table.correlation_between", "table.join_with",
-               "table.total_of"],
+               "table.total_of", "table.add_z_score_column"],
         recall=[
             ("Which word gives the average of a column for each group?", 'table.average_of("marks", for_each="class")'),
             ("Which word tells whether two columns go up and down together?", 'table.correlation_between("hours", "marks")'),
             ("Which word joins two tables on a column they share?", 'table.join_with(ages, using="name")'),
             ("Which word gives several summaries at once?",
              'table.summary_of("sales", for_each="shop", show=["average", "median", "count"])'),
+        ],
+        spaced=[
+            ("Which word adds a column that says how many standard deviations each value lies above or below "
+             "the average of its group?",
+             'table.add_z_score_column("marks_z", from_column="marks", for_each="subject")'),
         ],
         task=['Fruit table: the total "count" of each fruit, drawn as bars with the numbers on the bars.'],
         solutions=[(_code('''
@@ -773,8 +778,9 @@ UNITS = {
     ),
     "risks": dict(
         lessons=[lesson_number(RISKS_LESSON)],
-        needs_r="the likelihood ratios, compare_to_truth() with a score, trade_off_curve(), the ICC and "
-                "limits_of_agreement()",
+        do=[_lesson_do(lesson_number(RISKS_LESSON), "examples 1 to 4 (examples 5 to 8 are optional, for later)")],
+        needs_r="only the optional examples 5 to 8 of the lesson (compare_to_truth() with a score, "
+                "trade_off_curve(), limits_of_agreement(), reliability_of())",
         words=["table.compare_risks", "table.compare_to_truth", "table.agreement_between"],
         recall=[
             ("Which word compares how often something happens in two groups (risk difference, NNT, ratios)?",
@@ -786,15 +792,19 @@ UNITS = {
         spaced=[
             ("Which word compares the risk of an outcome in two groups, out of 100 first and then as ratios?",
              'table.compare_risks("died", for_each="treatment", against="usual care")'),
+            ("Where only 1 % have it, why are most positive results of a good test false alarms?",
+             "Because the 990 people in 1000 without it are so many that even a small share of false alarms "
+             "among them outnumbers the few real positives among the 10 who have it: "
+             'table.compare_to_truth("rapid_test", truth="infected", prevalence=1).'),
         ],
-        task=['Clinic table: how good is the rapid test where only 2 % have the infection? Of the positive '
-              "results, how many really have it?"],
+        task=['Trial table: compare the risk of "died" between the treatments, against "usual care". Does the '
+              "interval of the difference leave out 0, and what does that mean for the number needed?"],
         solutions=[(_code('''
             import simplydata as sdata
-            table = sdata.table(sdata.example("clinic"))
-            table.compare_to_truth("rapid_test", truth="infected", prevalence=2)'''),
-            "Of 1000 people, 20 have it; the test finds 16 but 65 test positive by mistake, so only about 1 in 5 "
-            "positives is real.")],
+            table = sdata.table(sdata.example("trial"))
+            table.compare_risks("died", for_each="treatment", against="usual care")'''),
+            "About 15 fewer in 100 with the new medicine, but the interval (-31.5 to 2.8 points) includes 0, so "
+            "the data cannot tell, and the number needed for one event fewer runs through infinity.")],
     ),
     # ------------------------------------------------------------ review days
     "review_p7": dict(
@@ -1357,9 +1367,12 @@ _BEGINNER = [
     ("Patterns across many columns",
      "Find patterns across many columns with principal components and clusters.",
      ["lesson17"], "learn"),
-    ("Survival, risks and diagnostic tests",
-     "Draw survival curves, compare risks, and judge a diagnostic test in counts of 1000 people.",
-     ["lesson18", "risks"], "learn"),
+    ("Survival, and planning a study",
+     "Draw survival curves, and work out how many values a study needs.",
+     ["lesson18"], "learn"),
+    ("Risks, diagnostic tests and agreement (life sciences)",
+     "Compare risks out of 100, judge a diagnostic test in counts of 1000 people, and measure agreement.",
+     ["risks"], "learn"),
     ("Fitting, finding and solving",
      "Fit lines, curves and formulas, find where a formula is biggest, and solve equations.",
      ["fitting", "finding"], "learn"),
@@ -1369,15 +1382,12 @@ _BEGINNER = [
     ("Small project: look, clean and sum up",
      "Choose a question and a file, then look at it, clean it and sum it up.",
      ["bproj_a"], "project"),
-    ("Small project: test, figure and results",
-     "Answer your question with a test, a figure and two sentences of results.",
-     ["bproj_b"], "project"),
     ("Final test from memory",
      "Answer questions on the whole course and write a whole analysis from memory.",
      ["final_test"], "final"),
-    ("Look back, and what comes next",
-     "Do your hardest day again, and take a first look at pandas underneath simplydata.",
-     ["look_back"], "learn"),
+    ("Small project: test, figure and results, and looking back",
+     "Answer your question with a test, a figure and two sentences of results, then look back over the course.",
+     ["bproj_b", "look_back"], "project"),
 ]
 
 DAYS = {"python": _PYTHON, "beginner": _BEGINNER}

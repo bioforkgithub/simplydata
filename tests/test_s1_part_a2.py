@@ -43,12 +43,12 @@ def test_hodges_lehmann(engine, needs_r, capsys):
     t = make(engine, pd.DataFrame({"v": A + B, "g": ["a"] * 10 + ["b"] * 12}))
     got = row(t.compare_averages("v", for_each="g", based_on="ranks"))
     # R: wilcox.test(a, b, conf.int = TRUE, exact = TRUE): estimate 2, conf.int 0.9 to 3.3
-    assert (got["shift (Hodges-Lehmann)"], got["shift 95 % CI low"], got["shift 95 % CI high"]) == pytest.approx(
+    assert (got["shift"], got["shift 95 % CI low"], got["shift 95 % CI high"]) == pytest.approx(
         (2.0, 0.9, 3.3), rel=1e-9)
     assert "the typical shift from b to a (Hodges-Lehmann) is 2.00" in capsys.readouterr().out
     got = row(clinic(engine).compare_averages("crp", for_each="ward", based_on="ranks"))
     # R: wilcox.test(crp[ward A], crp[ward B], conf.int = TRUE, exact = FALSE, correct = TRUE) (ties)
-    assert (got["shift (Hodges-Lehmann)"], got["shift 95 % CI low"], got["shift 95 % CI high"]) == pytest.approx(
+    assert (got["shift"], got["shift 95 % CI low"], got["shift 95 % CI high"]) == pytest.approx(
         (-0.3999147970053, -0.7000212919475, 4.332247576894e-05), rel=1e-6)
 
 
@@ -81,8 +81,13 @@ def test_fisher_bigger_table(engine, needs_r):
     # R: fisher.test(table(nurse_rating, ward))$p.value
     assert exact["p-value"] == pytest.approx(0.4523917859695, rel=1e-9)
     seeded = row(t.compare_counts("nurse_rating", for_each="ward", test="fisher"))
-    # SciPy Monte Carlo with 100,000 tables, seed 1: within Monte Carlo error of R's exact p (SE about 0.0016)
-    assert seeded["p-value"] == pytest.approx(0.4523917859695, abs=0.006)
+    # SciPy Monte Carlo with 100,000 tables, seed 1, against R's exact p above. The standard error of a Monte Carlo
+    # p-value is sqrt(p (1 - p) / 100000) = 0.00157; allow 5 of them (0.0079). Within one platform the seeded value
+    # never changes (checked below), but between platforms it moves more than one SE: Windows and Linux 0.4523,
+    # macOS 0.4453 (4.5 SE), most likely because tables exactly as probable as the observed one are rounded
+    # differently and so counted or not (R's fisher.test() uses a 1e-7 relative tolerance for such ties).
+    se = (0.4523917859695 * (1 - 0.4523917859695) / 100_000) ** 0.5
+    assert seeded["p-value"] == pytest.approx(0.4523917859695, abs=5 * se)
     assert row(t.compare_counts("nurse_rating", for_each="ward", test="fisher"))["p-value"] == seeded["p-value"]
 
 
@@ -91,12 +96,12 @@ def test_chi_square_by_shuffling(engine):
     got = row(t.compare_counts("nurse_rating", for_each="ward", p_value_by="shuffling"))
     # R: set.seed(1); chisq.test(tab, simulate.p.value = TRUE, B = 9999)$p.value = 0.4554 (Monte Carlo, SE 0.005)
     assert got["p-value"] == pytest.approx(0.4554, abs=0.02)
-    assert got["p-value method"] == "9999 random tables, seed 1"
+    assert got["p-value by"] == "9999 random tables, seed 1"
 
 
 def test_standardized_residuals(engine, capsys):
     cells = clinic(engine).compare_counts("nurse_rating", for_each="ward", show="cells")._frame.to_pandas()
-    got = cells.set_index(["nurse_rating", "ward"])["standardized residual"]
+    got = cells.set_index(["nurse_rating", "ward"])["standardised residual"]
     # R: chisq.test(table(nurse_rating, ward))$stdres
     assert got[("mild", "ward A")] == pytest.approx(0.7548514, abs=1e-7)
     assert got[("moderate", "ward B")] == pytest.approx(1.3145341, abs=1e-7)

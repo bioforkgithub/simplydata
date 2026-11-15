@@ -23,8 +23,17 @@ jobs:
         with:
           r-version: release
           use-public-rspm: true
+      # Linux: the system libraries that R packages need to build or load (curl, fs, s2/sf, Rmpfr, ...)
+      - name: System libraries for R packages (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libcurl4-openssl-dev libssl-dev libxml2-dev libuv1-dev libfontconfig1-dev             libharfbuzz-dev libfribidi-dev libfreetype6-dev libpng-dev libtiff5-dev libjpeg-dev libudunits2-dev             libgdal-dev libgeos-dev libproj-dev libgmp-dev libmpfr-dev libglpk-dev cmake
+      # The repository that setup-r chose (Posit's binary packages on Linux with use-public-rspm), so Linux
+      # does not build from source; every package simplydata calls (tests/conftest.py R_PACKAGES) must load.
       - name: Install R packages
-        run: Rscript -e 'install.packages(c("survival", "vegan", "mice", "effectsize", "pwr", "Exact", "exact2x2", "nortest", "BSDA", "rstatix", "DescTools", "FSA", "PMCMRplus", "multcompView", "TOSTER", "presize", "epiR", "pROC", "irr", "psych", "BlandAltmanLeh", "ppcor", "cocor", "outliers", "EnvStats"), repos = "https://cloud.r-project.org")'
+        run: |
+          Rscript -e 'p <- c("survival", "vegan", "mice", "effectsize", "pwr", "Exact", "exact2x2", "nortest", "BSDA", "rstatix", "DescTools", "FSA", "PMCMRplus", "multcompView", "TOSTER", "presize", "epiR", "pROC", "irr", "psych", "BlandAltmanLeh", "ppcor", "cocor", "outliers", "EnvStats"); install.packages(p); bad <- p[!vapply(p, requireNamespace, logical(1), quietly = TRUE)]; if (length(bad)) stop("R packages that do not load: ", paste(bad, collapse = ", "))'
       - name: Tell rpy2 where R is
         shell: bash
         run: echo "R_HOME=$(Rscript -e 'cat(normalizePath(R.home(), winslash = "/"))')" >> "$GITHUB_ENV"

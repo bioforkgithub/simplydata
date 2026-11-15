@@ -5,12 +5,14 @@
   specificity, along). The points come from R pROC::coords(roc, "all") (simplydata[r]), the same ROC
   analysis as table.compare_to_truth; the legend gives the AUC with its DeLong interval and the best
   cut-off by Youden's index is marked. The diagonal is "no better than chance".
-* difference_dots(x="device_a", y="device_b"): the Bland-Altman chart: dots and average from statsmodels
+* difference_dots(first="device_a", second="device_b"): the Bland-Altman chart: dots and average from statsmodels
   graphics.agreement.mean_diff_plot, the limits and their intervals from R BlandAltmanLeh (statsmodels uses
   the n-divisor standard deviation for its limits, so they differ a little from R's).
 * forest_plot(x="estimate", y="measure"): a dot per row with its interval as a line, from any result
   table that has "<x> 95 % CI low" and "<x> 95 % CI high" columns (risks, rates, pairs, effect sizes). A
-  line marks no effect: 0, or 1 for ratios, which are drawn on a log scale. Drawing only, no statistics.
+  line marks no effect: 0, or 1 for ratios, which are drawn on a log scale (log_scale= chooses). When the
+  table holds intervals of more than one level, the first level is drawn and a note says which rows were
+  left out. Drawing only, no statistics.
 """
 
 from __future__ import annotations
@@ -103,12 +105,13 @@ def _draw_trade_off(ctx, scores, truth, group, fixed, positive, positive_when, t
 
 
 # ---------------------------------------------------------------- difference_dots
-def _draw_difference_dots(ctx, x, y, transparency=None):
+def _draw_difference_dots(ctx, first, second, transparency=None):
     from statsmodels.graphics.agreement import mean_diff_plot
 
     from .._r import r_call
     from ..table.stat_tests import _num
 
+    x, y = first, second
     rows = ctx.data[[x, y]].apply(pd.to_numeric, errors="coerce").dropna()
     a, b = rows[x].to_numpy(dtype=float), rows[y].to_numpy(dtype=float)
     kwds = {} if transparency is None else {"alpha": opacity(transparency)}
@@ -136,19 +139,39 @@ def _draw_difference_dots(ctx, x, y, transparency=None):
 
 
 # ---------------------------------------------------------------- forest_plot
-def _interval_columns(columns, x):
-    """("<x> 95 % CI low", "<x> 95 % CI high", "95 %"), for any level."""
+def _all_interval_columns(columns, x):
+    """Every ("<x> 95 % CI low", "<x> 95 % CI high", "95 %") in the table, for any level, in column order."""
     pattern = re.compile(rf"^{re.escape(x)} (\d+(?:\.\d+)?) % CI low$")
+    found = []
     for c in columns:
         m = pattern.match(str(c))
         if m and f"{x} {m.group(1)} % CI high" in columns:
-            return c, f"{x} {m.group(1)} % CI high", f"{m.group(1)} %"
-    return None
+            found.append((c, f"{x} {m.group(1)} % CI high", f"{m.group(1)} %"))
+    return found
 
 
-def _draw_forest(ctx, x, y, low, high, level, line_at, ratios, colour=None, thickness=None):
+def _interval_columns(columns, x):
+    """("<x> 95 % CI low", "<x> 95 % CI high", "95 %"): the first level found, or None."""
+    found = _all_interval_columns(columns, x)
+    return found[0] if found else None
+
+
+def _other_level_rows(data, low, high, others):
+    """True for each row whose interval is of another level (empty in low/high, given in another pair)."""
+    empty = pd.to_numeric(data[low], errors="coerce").isna() & pd.to_numeric(data[high], errors="coerce").isna()
+    given = pd.Series(False, index=data.index)
+    for o_low, o_high, _ in others:
+        given |= pd.to_numeric(data[o_low], errors="coerce").notna() | pd.to_numeric(data[o_high], errors="coerce").notna()
+    return empty & given
+
+
+def _draw_forest(ctx, x, y, low, high, level, line_at, ratios, colour=None, thickness=None, others=(),
+                 line_given=False):
     ax = ctx.ax
-    rows = ctx.data[[y, x, low, high]].copy()
+    rows = ctx.data[[y, x, low, high] + [c for o in others for c in o[:2]]].copy()
+    if others:
+        rows = rows[~_other_level_rows(rows, low, high, others)]
+    rows = rows[[y, x, low, high]]
     rows = rows[pd.to_numeric(rows[x], errors="coerce").notna()]
     est = pd.to_numeric(rows[x]).to_numpy(dtype=float)
     lo = pd.to_numeric(rows[low], errors="coerce").to_numpy(dtype=float)
@@ -163,7 +186,8 @@ def _draw_forest(ctx, x, y, low, high, level, line_at, ratios, colour=None, thic
     if ratios:
         ax.set_xscale("log")
     if ax.get_xlabel() == "":
-        ax.set_xlabel(f"{x}, with its {level} confidence interval (the line: {line_at:g}, no effect)")
+        meaning = "" if line_given else ", no effect"
+        ax.set_xlabel(f"{x}, with its {level} confidence interval (the line: {line_at:g}{meaning})")
     _remember(ctx, "forest_plot", rows, {"x": x, "y": y, "colour": None})
 
 
@@ -212,12 +236,13 @@ class AgreementChartWords:
                          fixed=fixed, positive=positive, positive_when=positive_when, transparency=transparency,
                          thickness=thickness)
 
-    @friendly
-    def difference_dots(self, x=None, y=None, transparency=None):
+    @friendly(renamed={"x": "first", "y": "second"})
+    def difference_dots(self, first=None, second=None, transparency=None):
         """Do two ways of measuring agree? The difference of each pair against its average (Bland-Altman).
-        chart.difference_dots(x="device_a", y="device_b") (with sdata.example("clinic"))
+        chart.difference_dots(first="device_a", second="device_b") (with sdata.example("clinic"))
 
-        One dot per row: along, the average of the two measurements; up, x minus y. The solid
+        One dot per row: along, the average of the two measurements; up, first minus second. The
+        names are those of table.limits_of_agreement(first, second). The solid
         line is the average difference (does one read higher?), the dashed lines the limits of
         agreement, within which 95 % of the differences lie (average plus and minus 1.96
         standard deviations), each with its 95 % interval shaded. The dots and the average come
@@ -227,8 +252,9 @@ class AgreementChartWords:
         """
         from .._r import need_r
 
-        example = 'chart.difference_dots(x="device_a", y="device_b")'
-        for option, value in (("x", x), ("y", y)):
+        example = 'chart.difference_dots(first="device_a", second="device_b")'
+        x, y = first, second
+        for option, value in (("first", x), ("second", y)):
             if not isinstance(value, str):
                 raise SimplydataError(f".difference_dots() needs {option}= as a column of numbers in quotes.\n"
                                       f"For example {example} (with sdata.example(\"clinic\")).")
@@ -243,17 +269,20 @@ class AgreementChartWords:
                "statsmodels mean_diff_plot draws limits from the standard deviation with n in the divisor, which "
                "differ a little from R's")
         self._need_axes("difference_dots")
-        return self._add("difference_dots", "draw", _draw_difference_dots, x=x, y=y, transparency=transparency)
+        return self._add("difference_dots", "draw", _draw_difference_dots, first=x, second=y,
+                         transparency=transparency)
 
-    @friendly
-    def forest_plot(self, x="estimate", y=None, line_at=None, ratios=None, colour=None, thickness=None):
+    @friendly(renamed={"ratios": "log_scale"})
+    def forest_plot(self, x="estimate", y=None, line_at=None, log_scale=None, colour=None, thickness=None):
         """Many results with their intervals, one line each (a forest plot).
         chart.forest_plot(x="difference", y="group 1")   (on a result table, such as compare_each_pair's)
 
         Draws each row's x as a dot and its interval as a line, from a result table with the
-        columns "<x> 95 % CI low" and "<x> 95 % CI high" (any level). y names the rows. A dashed
-        line marks no effect: 0, or 1 for ratios (x or every row label says "ratio"), which are
-        drawn on a log scale; line_at= and ratios=True/False choose. The first row is at the top.
+        columns "<x> 95 % CI low" and "<x> 95 % CI high" (any level). y names the rows. Ratios
+        (x or every row label says "ratio") are drawn on a log scale with a dashed line at 1 (no
+        effect), other results on a plain scale with the line at 0; log_scale=True or False and
+        line_at= choose. When the table holds intervals of more than one level (such as 95 % and
+        90 %), the first is drawn and a note names the rows left out. The first row is at the top.
         """
         example = 'chart.forest_plot(x="estimate", y="measure")'
         if not isinstance(x, str) or not isinstance(y, str):
@@ -266,11 +295,21 @@ class AgreementChartWords:
                                   "level) next to the estimate, as in the result tables of compare_risks, "
                                   "compare_each_pair and others.")
         low, high, level = found
+        others = _all_interval_columns(list(self._data.columns), x)[1:]
+        if others:
+            left = _other_level_rows(self._data, low, high, others)
+            shown = [str(v) for v in self._data.loc[left, y]]
+            levels = ", ".join(o[2] for o in others)
+            print(f"Note: the table holds {level} and {levels} intervals; forest_plot draws the {level} intervals"
+                  + (f", and left out {len(shown)} row{'s' if len(shown) != 1 else ''} with another level: "
+                     + "; ".join(f'"{s}"' for s in shown) + "." if shown else "."))
+        line_given = line_at is not None
+        ratios = log_scale
         if ratios is None:
             labels = [str(v).lower() for v in self._data[y].dropna()]
             ratios = "ratio" in x.lower() or (bool(labels) and all("ratio" in v for v in labels))
         if not isinstance(ratios, bool):
-            raise SimplydataError("ratios= should be True or False.")
+            raise SimplydataError("log_scale= should be True or False.")
         if line_at is None:
             line_at = 1.0 if ratios else 0.0
         if isinstance(line_at, bool) or not isinstance(line_at, (int, float)):
@@ -278,4 +317,5 @@ class AgreementChartWords:
         thickness = check_thickness("forest_plot", thickness)
         self._need_axes("forest_plot")
         return self._add("forest_plot", "draw", _draw_forest, x=x, y=y, low=low, high=high, level=level,
-                         line_at=float(line_at), ratios=ratios, colour=colour, thickness=thickness)
+                         line_at=float(line_at), ratios=ratios, colour=colour, thickness=thickness,
+                         others=others, line_given=line_given)

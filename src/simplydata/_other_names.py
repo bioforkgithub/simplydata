@@ -167,7 +167,7 @@ _TABLE = [
     ('table.agreement_between("nurse_rating", "doctor_rating")',
      "cohen_kappa cohens_kappa kappa kappa2 fleiss_kappa kappam_fleiss icc intraclass kripp_alpha krippendorff ccc concordance"),
     ('table.limits_of_agreement("device_a", "device_b")', "bland_altman_stats limits_agreement"),
-    ('table.reliability_of(["q1", "q2", "q3"])', "cronbach_alpha cronbach alpha internal_consistency"),
+    ('table.reliability_of(["item_1", "item_2", "item_3"])', "cronbach_alpha cronbach alpha internal_consistency"),
     ('table.add_adjusted_p_value_column("q", method="benjamini-hochberg")', "p_adjust multipletests fdr"),
     ('table.survival_over_time(time="days", event="died")', "survfit kaplan_meier"),
     ('table.compare_survival(time="days", event="died", for_each="treatment")', "survdiff logrank_test"),
@@ -183,7 +183,7 @@ _TABLE = [
 _CHART = [
     ('chart.lines(x="year", y="population")', "plot geom_line"),
     ('chart.trade_off_curve(score="crp", truth="infected")', "roc_curve roc plot_roc ggroc roc_plot"),
-    ('chart.difference_dots(x="device_a", y="device_b")', "bland_altman mean_diff_plot bland_altman_plot"),
+    ('chart.difference_dots(first="device_a", second="device_b")', "bland_altman mean_diff_plot bland_altman_plot"),
     ('chart.forest_plot(x="estimate", y="measure")', "forestplot interval_dots coefplot"),
     ('chart.dots(x="hours", y="marks")', "geom_point scatterplot"),
     ('chart.bars(x="class", y="marks")', "barplot geom_bar geom_col"),

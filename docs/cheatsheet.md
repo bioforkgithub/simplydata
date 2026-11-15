@@ -315,8 +315,8 @@ and `a`, `b` in `sdata.side_by_side(a, b)` are charts you made first.
 | `compare_risks` | `table.compare_risks("died", for_each="treatment", against="usual care")` | trial | How much more (or less) often does something happen in one group than in another? |
 | `compare_rates` | `table.compare_rates("infections", time="patient_days", for_each="ward", against="ward A")` | clinic | Do events happen more often per unit of time in one group than in another? |
 | `rate_of` | `table.rate_of("infections", time="patient_days", for_each="ward")` | clinic | How often do events happen per unit of time, such as infections per 1000 patient-days? |
-| `sdata.compare_risks` | `sdata.compare_risks(events=[20, 30], out_of=[60, 60], groups=["new", "usual"], against="usual")` |  | How much more (or less) often does something happen in one group than another? From counts. |
-| `sdata.compare_rates` | `sdata.compare_rates(events=[15, 30], time=[1200, 1100], groups=["ward A", "ward B"])` |  | Do events happen more often per unit of time in one group than another? From counts and times. |
+| `sdata.compare_risks` | `sdata.compare_risks(events=[20, 30], out_of=[60, 60], names=["new", "usual"], against="usual")` |  | How much more (or less) often does something happen in one group than another? From counts. |
+| `sdata.compare_rates` | `sdata.compare_rates(events=[15, 30], time=[1200, 1100], names=["ward A", "ward B"])` |  | Do events happen more often per unit of time in one group than another? From counts and times. |
 
 ## Diagnostic tests
 
@@ -333,8 +333,8 @@ and `a`, `b` in `sdata.side_by_side(a, b)` are charts you made first.
 |---|---|---|---|
 | `agreement_between` | `table.agreement_between("nurse_rating", "doctor_rating")` | clinic | How well do two or more raters (or devices) agree on the same rows? |
 | `limits_of_agreement` | `table.limits_of_agreement("device_a", "device_b")` | clinic | How far apart are two ways of measuring the same thing (Bland-Altman limits of agreement)? |
-| `reliability_of` | `table.reliability_of(["q1", "q2", "q3", "q4", "q5"])` | clinic | Do the items of a questionnaire hang together (Cronbach's alpha)? |
-| `difference_dots` | `chart.difference_dots(x="device_a", y="device_b")` | clinic | Do two ways of measuring agree? The difference of each pair against its average (Bland-Altman). |
+| `reliability_of` | `table.reliability_of(["item_1", "item_2", "item_3", "item_4", "item_5"])` | clinic | Do the items of a questionnaire hang together (Cronbach's alpha)? |
+| `difference_dots` | `chart.difference_dots(first="device_a", second="device_b")` | clinic | Do two ways of measuring agree? The difference of each pair against its average (Bland-Altman). |
 
 ## Fitting
 

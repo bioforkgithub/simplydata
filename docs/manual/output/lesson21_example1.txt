@@ -1,7 +1,6 @@
-"died" = "yes": 25 of 60 (41.7 %) in new medicine and 34 of 60 (56.7 %) in usual care.
-Out of 100, about 15 fewer in new medicine than in usual care (risk difference -15.0 percentage points, 95 % CI -31.5 to 2.80).
-Risk ratio 0.735 (95 % CI 0.507 to 1.07): the risk in new medicine is 0.735 times the risk in usual care. Odds ratio 0.546 (95 % CI 0.265 to 1.13); odds are not risks: with an outcome this common (over 10 %) the odds ratio lies further from 1 than the risk ratio.
-Number needed to treat for one event fewer (NNTB): 7 (1 / 0.150, rounded up): for every 7 in new medicine instead of usual care, one event fewer; the interval of the difference includes 0, so the interval runs from 3.17 for one event fewer (NNTB) through infinity to 35.8 for one event more (NNTH).
-If the risks were truly the same, a difference this big or bigger would turn up in about 14 of 100 studies like this one (p = 0.144). This does not show that the risks are the same.
+"caught_infection" = "yes": 16 of 100 (16.0 %) in ward B and 4 of 100 (4.00 %) in ward A.
+Out of 100, about 12 more in ward B than in ward A (risk difference 12.0 percentage points, 95 % CI 3.70 to 20.8).
+Risk ratio 4.00 (95 % CI 1.39 to 11.5): the risk in ward B is 4.00 times the risk in ward A. Odds ratio 4.57 (95 % CI 1.47 to 14.2); odds are not risks: with an outcome this common (over 10 %) the odds ratio lies further from 1 than the risk ratio.
+Number needed for one event more: 9 (1 / 0.120, rounded up; 95 % CI 4.82 to 27.0): for every 9 in ward B instead of ward A, one event more (the NNTH, if the event is harmful, such as death).
+If the risks were truly the same, a difference this big or bigger would turn up in about 1 of 100 studies like this one (p = 0.010).
 Method: the chi-square test with Yates' correction (SciPy, as R prop.test()) for the p-value; exact intervals for each risk, Newcombe's score interval for the difference (as R DescTools::BinomDiffCI(method = "score")), Wald intervals on the log scale for the ratios (statsmodels Table2x2, as R epitools::riskratio()).
-Kept 2 of 6 rows.

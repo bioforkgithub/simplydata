@@ -782,7 +782,7 @@ class StatTestWords:
 
                 found = resample_p((a, b), difference_in_averages, "independent", alt, shuffles, seed)
                 p = found["p"]
-                row.update({"p-value": p, "p-value method": found["method"]})
+                row.update({"p-value": p, "p-value by": found["method"]})
                 second += (f" The p-value comes from shuffling, not from the t distribution: {found['words']} "
                            "(SciPy permutation_test, as R perm::permTS()).")
             p_line = _p_sentence(p, if_none)
@@ -832,8 +832,9 @@ class StatTestWords:
                 f"the values in {names[0]} tend to be lower" if u < half else "neither group tends to be higher")
             size = "" if es["note"] else f" (rank-biserial correlation = {_num(r)}{interval_text(es['low'], es['high'])})"
             shift = _hodges_lehmann(a, b, how.startswith("exact"), alt)
-            row.update({"shift (Hodges-Lehmann)": shift["value"], "shift 95 % CI low": shift["low"],
-                        "shift 95 % CI high": shift["high"]})
+            row.update({"shift": shift["value"], "shift 95 % CI low": shift["low"],
+                        "shift 95 % CI high": shift["high"],
+                        "method": "shift: Hodges-Lehmann estimate and interval (R wilcox.test(conf.int = TRUE))"})
             moved = "" if shift["note"] else (
                 f'; the typical shift from {names[1]} to {names[0]} (Hodges-Lehmann) is {_num(shift["value"])}, '
                 f"values from {_interval_words(shift['low'], shift['high'])} fit the data (95 % CI)")
@@ -1096,7 +1097,7 @@ class StatTestWords:
                     v, p, how, _, _ = found
                     row.update({"test": "Wilcoxon signed-rank test", "difference in medians":
                                 float(np.median(a) - np.median(b)), "statistic name": "V", "statistic": v,
-                                "p-value": p, "p-value method": how})
+                                "p-value": p, "p-value by": how})
                 row["rows"] = len(complete)
                 rows.append(row)
         for row, p in zip(rows, _holm([r["p-value"] for r in rows])):
@@ -1759,7 +1760,7 @@ class StatTestWords:
 
                 found = resample_p((changes,), average, "paired", alt, shuffles, seed)
                 r["p"] = found["p"]
-                row.update({"p-value": found["p"], "p-value method": found["method"]})
+                row.update({"p-value": found["p"], "p-value by": found["method"]})
                 second += (f" The p-value comes from shuffling, not from the t distribution: {found['words']} "
                            "(SciPy permutation_test).")
         else:
@@ -1952,7 +1953,7 @@ class StatTestWords:
         tables (SciPy, seed=1, as R chisq.test(simulate.p.value = TRUE)).
         test="trend" with in_order=["low", "middle", "high"] (the for_each groups in order) and a
         yes/no column: the Cochran-Armitage test for a trend in the percent across ordered groups
-        (R prop.trend.test()). show="cells" gives back one row per cell with its standardized
+        (R prop.trend.test()). show="cells" gives back one row per cell with its standardised
         residual (statsmodels, as R chisq.test()$stdres): cells beyond 2 or -2 stand out.
         Empty cells are skipped. Effect size: Cramer's V, the
         strength of the link from 0 (none) to 1 (complete). Gives back a one-row table.
@@ -2012,7 +2013,7 @@ class StatTestWords:
         return result
 
     def _count_cells(self, observed, column, for_each, row_keys, col_keys):
-        """One row per cell: observed and expected counts and the standardized residual (statsmodels Table, as R
+        """One row per cell: observed and expected counts and the standardised residual (statsmodels Table, as R
         chisq.test()$stdres)."""
         from statsmodels.stats.contingency_tables import Table
 
@@ -2022,15 +2023,15 @@ class StatTestWords:
         for i, rk in enumerate(row_keys):
             for j, ck in enumerate(col_keys):
                 rows.append({column: _label(rk), for_each: _label(ck), "count": int(observed[i, j]),
-                             "expected count": float(expected[i, j]), "standardized residual": float(resid[i, j])})
-        out = [r for r in rows if abs(r["standardized residual"]) > 2]
+                             "expected count": float(expected[i, j]), "standardised residual": float(resid[i, j])})
+        out = [r for r in rows if abs(r["standardised residual"]) > 2]
         if out:
             listed = _list_words(f'"{r[column]}" in "{r[for_each]}" ({r["count"]}, expected {_num(r["expected count"])}, '
-                                 f'residual {_num(r["standardized residual"])})' for r in out)
-            print(f"Cells that stand out (standardized residual beyond 2 or -2): {listed}.")
+                                 f'residual {_num(r["standardised residual"])})' for r in out)
+            print(f"Cells that stand out (standardised residual beyond 2 or -2): {listed}.")
         else:
-            print("No cell stands out: every standardized residual lies between -2 and 2.")
-        print("Method: standardized residuals (statsmodels Table.standardized_resids), as R chisq.test()$stdres.")
+            print("No cell stands out: every standardised residual lies between -2 and 2.")
+        print("Method: standardised residuals (statsmodels Table.standardized_resids), as R chisq.test()$stdres.")
         frame = nw.from_dict({k: [r[k] for r in rows] for k in rows[0]}, backend=self._frame.implementation)
         return self._new_table(frame)
 
@@ -2140,7 +2141,7 @@ class StatTestWords:
                 shuffled = stats.chi2_contingency(observed, correction=False, method=stats.MonteCarloMethod(
                     n_resamples=shuffles, rng=np.random.default_rng(seed)))
                 stat, p = float(plain.statistic), float(shuffled.pvalue)
-                row.update({"statistic": stat, "p-value": p, "p-value method": f"{shuffles} random tables, seed {seed}"})
+                row.update({"statistic": stat, "p-value": p, "p-value by": f"{shuffles} random tables, seed {seed}"})
                 second = (f"Test: {name} (chi-square = {_num(stat)}, without Yates' correction), its p-value from "
                           f"{shuffles} random tables with the same totals (SciPy, seed={seed}), as R "
                           "chisq.test(simulate.p.value = TRUE).")

@@ -91,10 +91,10 @@ def test_interval_errors(marks):
 
 def test_harmonic_and_winsorized(marks, capsys):
     got = frame(marks.summary_of("marks", for_each="class",
-                                 show=["harmonic mean", "winsorized average", "winsorised mean 10"]))
+                                 show=["harmonic mean", "winsorised average", "winsorized mean 10"]))
     # R: psych::harmonic.mean(x); WRS2::winmean(x, tr = 0.2) per class
     assert got["harmonic mean"].tolist() == pytest.approx([69.048959223, 60.19762942099, 55.10949376722], rel=1e-10)
-    assert got["winsorized average 20 %"].tolist() == pytest.approx(
+    assert got["winsorised average 20 %"].tolist() == pytest.approx(
         [71.77777777778, 65.44444444444, 58.72222222222], rel=1e-10)
     assert "WRS2::winmean(x, tr = 0.1)" in capsys.readouterr().out
 

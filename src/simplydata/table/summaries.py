@@ -72,19 +72,19 @@ EVERY_EXAMPLE = ('table.make_dates("year")\n'
 MEASURES = ("count", "average", "median", "total", "smallest", "biggest", "standard deviation", "variance",
             "standard error", "confidence interval", "range", "interquartile range", "empty cells",
             "geometric mean", "skewness", "kurtosis", "coefficient of variation", "median absolute deviation",
-            "trimmed average", "most common", "percentile", "harmonic mean", "winsorized average")
+            "trimmed average", "most common", "percentile", "harmonic mean", "winsorised average")
 MEASURE_ALIASES = {"mean": "average", "sum": "total", "sd": "standard deviation", "se": "standard error",
                    "ci": "confidence interval", "iqr": "interquartile range", "geometric average": "geometric mean",
                    "gmean": "geometric mean", "skew": "skewness", "cv": "coefficient of variation",
                    "mad": "median absolute deviation", "trimmed mean": "trimmed average", "mode": "most common",
                    "quantile": "percentile", "harmonic average": "harmonic mean", "hmean": "harmonic mean",
-                   "winsorised average": "winsorized average", "winsorized mean": "winsorized average",
-                   "winsorised mean": "winsorized average"}
+                   "winsorized average": "winsorised average", "winsorized mean": "winsorised average",
+                   "winsorised mean": "winsorised average"}
 # measures worked out with NumPy / SciPy on each group's numbers (the others come from narwhals)
 ARRAY_MEASURES = ("geometric mean", "skewness", "kurtosis", "coefficient of variation", "median absolute deviation",
-                  "trimmed average", "most common", "percentile", "harmonic mean", "winsorized average")
+                  "trimmed average", "most common", "percentile", "harmonic mean", "winsorised average")
 TRIM_PERCENT = 10  # "trimmed average": 10 % cut from each end, unless another percent is given
-WINSOR_PERCENT = 20  # "winsorized average": 20 % pulled in at each end (R WRS2::winmean(tr = 0.2))
+WINSOR_PERCENT = 20  # "winsorised average": 20 % pulled in at each end (R WRS2::winmean(tr = 0.2))
 MAD_CONSTANT = 1.4826  # R mad(): makes the median absolute deviation match the sd for bell-shaped values
 LEAST_VALUES = {"skewness": 3, "kurtosis": 4}  # fewer values than this give an empty cell
 DEFAULT_MEASURES = ("count", "average", "standard deviation", "smallest", "median", "biggest")
@@ -422,10 +422,10 @@ def _measure_name(step: str, item):
         number = float(found.group(1)) if found.group(1) else float(WINSOR_PERCENT)
         if number >= 50:
             raise SimplydataError(
-                f"A winsorized average pulls in a percent at each end, so it must be below 50 (it is {number:g}).\n"
+                f"A winsorised average pulls in a percent at each end, so it must be below 50 (it is {number:g}).\n"
                 f"For example:  {example}"
             )
-        return f"winsorized average {number:g} %"
+        return f"winsorised average {number:g} %"
     name = MEASURE_ALIASES.get(name, name)
     if name == "percentile":
         raise SimplydataError(f'show="percentile" needs the percent, for example "percentile 90".\nFor example:  {example}')
@@ -435,7 +435,7 @@ def _measure_name(step: str, item):
 
 
 def _is_array_measure(name) -> bool:
-    return isinstance(name, str) and (name in ARRAY_MEASURES or name.startswith(("percentile ", "trimmed average ", "winsorized average ")))
+    return isinstance(name, str) and (name in ARRAY_MEASURES or name.startswith(("percentile ", "trimmed average ", "winsorised average ")))
 
 
 def _array_measure(name: str, values):
@@ -454,7 +454,7 @@ def _array_measure(name: str, values):
       percentile p              the usual linear rule (R quantile type 7, NumPy default)
       harmonic mean             n / sum(1 / x); only for numbers above 0 (SciPy hmean, as R
                                 psych::harmonic.mean)
-      winsorized average p %    floor(n * p / 100) values at each end set to the nearest value
+      winsorised average p %    floor(n * p / 100) values at each end set to the nearest value
                                 kept, then the average (SciPy mstats.winsorize, as R
                                 WRS2::winmean(tr = p / 100))
     """
@@ -471,7 +471,7 @@ def _array_measure(name: str, values):
         if (values <= 0).any():
             return None, "needs numbers above 0", None
         return float(stats.hmean(values)), None, None
-    if name.startswith("winsorized average "):
+    if name.startswith("winsorised average "):
         share = float(name.split()[-2]) / 100
         return float(np.mean(stats.mstats.winsorize(values, limits=(share, share)))), None, None
     if name in LEAST_VALUES and n < LEAST_VALUES[name]:
@@ -1499,9 +1499,9 @@ class SummaryWords:
         times 1.4826), "trimmed average" (10 % cut from each end, as R mean(trim = 0.1);
         "trimmed average 20" cuts 20 %), "most common" (the smallest if tied),
         "percentile 90" (any percent, R quantile type 7), "harmonic mean" (numbers above 0,
-        SciPy hmean, as R psych::harmonic.mean) and "winsorized average" (the lowest and
+        SciPy hmean, as R psych::harmonic.mean) and "winsorised average" (the lowest and
         highest 20 % set to the nearest value kept, then the average; SciPy, as R
-        WRS2::winmean(tr = 0.2); "winsorized average 10" pulls in 10 %).
+        WRS2::winmean(tr = 0.2); "winsorised average 10" pulls in 10 %).
         Without show=: count, average, standard deviation, smallest, median,
         biggest. A measure of your own also works: a function that gets one group's
         numbers (a NumPy array) and gives back one number, show=["average", my_measure].
@@ -1595,7 +1595,7 @@ class SummaryWords:
                 place = " in each group" if groups else ""
                 print(f"Note: {name} leaves out the lowest and highest {share:g} % of the values{place}, "
                       f"as R mean(x, trim = {share / 100:g}).")
-            if name.startswith("winsorized average "):
+            if name.startswith("winsorised average "):
                 share = float(name.split()[-2])
                 place = " in each group" if groups else ""
                 print(f"Note: {name} sets the lowest and highest {share:g} % of the values{place} to the nearest value "

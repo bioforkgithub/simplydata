@@ -86,6 +86,9 @@ def _quiet_fds():
     """Silence everything written to the process's stdout and stderr, including programs that
     rpy2 starts (on Windows it asks a shell for R's settings and the shell complains)."""
     saved = []
+    for stream in (sys.stdout, sys.stderr):  # what was printed before goes out first, not into the null device
+        with contextlib.suppress(Exception):
+            stream.flush()
     try:
         for fd in (1, 2):
             saved.append((fd, os.dup(fd)))

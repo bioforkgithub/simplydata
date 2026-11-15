@@ -154,7 +154,7 @@ def test_without_r_keeps_python_part(clinic, monkeypatch, capsys):
 
 
 def test_top_level_risks_and_rates(needs_r):
-    got = sdata.compare_risks(events=[20, 30], out_of=[60, 60], groups=["new medicine", "usual care"],
+    got = sdata.compare_risks(events=[20, 30], out_of=[60, 60], names=["new medicine", "usual care"],
                               against="usual care")._frame.to_pandas().set_index("measure")
     # R: epitools::riskratio(matrix(c(30, 30, 40, 20), 2, byrow = TRUE), method = "wald"): 0.4301048003 to 1.033339884
     assert got.loc["risk ratio", "estimate 95 % CI low"] == pytest.approx(0.4301048003, rel=1e-9)
@@ -167,3 +167,14 @@ def test_top_level_risks_and_rates(needs_r):
     with pytest.raises(SimplydataError, match="at most its out_of="):
         sdata.compare_risks(events=[70, 30], out_of=[60, 60])
     assert isinstance(got, pd.DataFrame)
+
+
+def test_other_names_of_the_counts(capsys):
+    a = sdata.compare_to_truth(found=45, missed=5, false_alarms=30, correct_negatives=920)._frame.to_pandas()
+    b = sdata.compare_to_truth(tp=45, fn=5, fp=30, tn=920)._frame.to_pandas()
+    assert a["estimate"].iloc[:4].tolist() == b["estimate"].iloc[:4].tolist()
+    c = sdata.compare_to_truth(true_positives=45, false_negatives=5, false_positives=30,
+                               true_negatives=920)._frame.to_pandas()
+    assert a["estimate"].iloc[:4].tolist() == c["estimate"].iloc[:4].tolist()
+    out = capsys.readouterr().out
+    assert "Note: tp= is found= in simplydata." in out and "Note: true_negatives= is correct_negatives=" in out

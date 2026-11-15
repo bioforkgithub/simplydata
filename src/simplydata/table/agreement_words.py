@@ -6,18 +6,19 @@ every row. These words measure agreement itself. Every number comes from statsmo
 
 * agreement_between("nurse_rating", "doctor_rating"): two columns of categories give Cohen's kappa with
   its interval, z and p (statsmodels cohens_kappa, as R irr::kappa2() and psych::cohen.kappa());
-  weights="linear" / "quadratic" for ordered categories (in_order= gives the order), as R
+  near_misses="linear" / "quadratic" for ordered categories (in_order= gives the order), as R
   kappa2(weight = "equal" / "squared"). The raw agreement is shown beside kappa, because kappa can be low
   when one category is rare. Three or more columns: Fleiss' kappa (statsmodels fleiss_kappa), its z and p
   from R irr::kappam.fleiss(). Columns of numbers: the intraclass correlation, R irr::icc() (two-way,
-  absolute agreement, one rater by default; raters=, kind=, of= choose the form, which is always named).
+  absolute agreement, one rater by default; raters=, kind=, of= choose the form, which is always named:
+  raters="a sample" (McGraw and Wong's "random"), "these only" ("fixed") or "different per row" ("different")).
   method="krippendorff": R irr::kripp.alpha(); method="lin": Lin's concordance correlation, R
   DescTools::CCC().
 * limits_of_agreement("device_a", "device_b"): Bland-Altman: the average difference and the limits within
   which 95 % of differences lie, each with its interval (R BlandAltmanLeh::bland.altman.stats()), and
   Lin's concordance correlation (R DescTools::CCC()). Python has no function that gives the limits with
   their intervals (statsmodels mean_diff_plot only draws them).
-* reliability_of(["q1", "q2", "q3", "q4", "q5"]): Cronbach's alpha with Feldt's interval and the alpha
+* reliability_of(["item_1", "item_2", "item_3", "item_4", "item_5"]): Cronbach's alpha with Feldt's interval and the alpha
   without each item (R psych::alpha(), psych::alpha.ci()).
 
 Display arithmetic, allowed by the owner and marked [D]: the raw agreement (a count of rows where the
@@ -30,14 +31,17 @@ import math
 
 import numpy as np
 
-from .._errors import SimplydataError, friendly
+from .._errors import SimplydataError, friendly, other_value_note
 from .risk_words import _ci, _level, _num
 from .stat_tests import _label, _list_words
 from .summaries import _p_sentence
 
 METHODS = ("kappa", "icc", "krippendorff", "lin")
 WEIGHTS = {"linear": ("linear", "equal"), "quadratic": ("quadratic", "squared")}
-RATERS = {"random": "twoway", "fixed": "twoway", "different": "oneway"}
+RATERS = {"a sample": "twoway", "these only": "twoway", "different per row": "oneway"}
+RATERS_OTHERS = {"random": "a sample", "fixed": "these only", "different": "different per row"}  # McGraw and Wong
+DATA_WORDS = {"nominal": "categories (nominal data)", "ordinal": "ordered categories (ordinal data)",
+              "interval": "numbers (interval data)"}
 KINDS = ("agreement", "consistency")
 OF = {"one rater": "single", "average of raters": "average"}
 NOT_CORRELATION = "Agreement is not correlation: two raters can rise and fall together and still disagree."
@@ -76,21 +80,22 @@ class AgreementWords:
         return names, kept
 
     # ------------------------------------------------------------------ agreement_between
-    @friendly
-    def agreement_between(self, *columns, method=None, weights=None, in_order=None, interval=95, raters="random",
-                          kind="agreement", of="one rater"):
+    @friendly(renamed={"weights": "near_misses"}, others={"weight": "near_misses", "wt": "near_misses"})
+    def agreement_between(self, *columns, method=None, near_misses=None, in_order=None, interval=95,
+                          raters="a sample", kind="agreement", of="one rater"):
         """How well do two or more raters (or devices) agree on the same rows?
 
         table.agreement_between("nurse_rating", "doctor_rating")   (with sdata.example("clinic"))
         Each column holds one rater's answers for the same rows. The kind of column decides, and
         the sentence says which:
         categories, 2 columns: Cohen's kappa (statsmodels, as R irr::kappa2()), with the raw
-        agreement beside it; weights="linear" or "quadratic" counts near misses as partly right
-        (ordered categories: give in_order=["mild", "moderate", "severe"]);
+        agreement beside it; near_misses="linear" or "quadratic" counts near misses as partly
+        right (ordered categories: give in_order=["mild", "moderate", "severe"]);
         categories, 3 or more columns: Fleiss' kappa (statsmodels; its p-value from R irr);
         numbers: the intraclass correlation (ICC) from R irr::icc(): by default two-way, absolute
-        agreement, one rater (raters="fixed" or "different", kind="consistency", of="average of
-        raters" choose another form, and the form is always named).
+        agreement, one rater, the raters a sample of many possible raters (raters="these only" or
+        "different per row", kind="consistency", of="average of raters" choose another form, and
+        the form is always named).
         method="krippendorff": Krippendorff's alpha (R irr::kripp.alpha()); method="lin": Lin's
         concordance correlation for two columns of numbers (R DescTools::CCC()).
         Rows with an empty cell are skipped. Gives back a one-row table.
@@ -101,8 +106,12 @@ class AgreementWords:
         level = _level(step, interval, example)
         if method is not None:
             self._check_choice(step, "method", method, METHODS)
+        weights = near_misses
         if weights is not None:
-            self._check_choice(step, "weights", weights, tuple(WEIGHTS))
+            self._check_choice(step, "near_misses", weights, tuple(WEIGHTS))
+        if raters in RATERS_OTHERS:
+            other_value_note("raters", raters, RATERS_OTHERS[raters])
+            raters = RATERS_OTHERS[raters]
         self._check_choice(step, "raters", raters, tuple(RATERS))
         self._check_choice(step, "kind", kind, KINDS)
         self._check_choice(step, "of", of, tuple(OF))
@@ -114,7 +123,7 @@ class AgreementWords:
             raise SimplydataError(f'method="{method}" needs columns of numbers; "{text}" is not. For categories leave '
                                   "out method= (Cohen's or Fleiss' kappa).")
         if weights is not None and (method != "kappa" or len(names) != 2):
-            raise SimplydataError("weights= is for Cohen's kappa: two columns of categories.")
+            raise SimplydataError("near_misses= is for Cohen's kappa: two columns of categories.")
         if method == "lin":
             if len(names) != 2:
                 raise SimplydataError('method="lin" compares two columns of numbers.')
@@ -138,7 +147,7 @@ class AgreementWords:
         if in_order is None:
             numeric = all(self._frame.schema[n].is_numeric() for n in names)
             if need_order and not numeric:
-                return seen  # nominal codes for Krippendorff's alpha; weights= is checked below
+                return seen  # nominal codes for Krippendorff's alpha; near_misses= is checked below
             return seen
         if isinstance(in_order, str) or not hasattr(in_order, "__iter__"):
             raise SimplydataError(f'in_order= is a list of the categories from lowest to highest, such as '
@@ -186,8 +195,9 @@ class AgreementWords:
               f"can be low even when the raw agreement is high, if one category is rare, so both are shown. "
               f"{NOT_CORRELATION}")
         row = {"test": name, "what it compares": f'"{names[0]}" and "{names[1]}"', "rows": n,
-               "raw agreement": raw, "agreement by chance": chance, "statistic name": "kappa", "estimate": kappa,
-               f"estimate {ci} low": low, f"estimate {ci} high": high, "z": z, "p-value": p,
+               "raw agreement": raw, "agreement by chance": chance, "estimate": kappa,
+               f"estimate {ci} low": low, f"estimate {ci} high": high, "statistic name": "z", "statistic": z,
+               "p-value": p,
                "method": f"statsmodels cohens_kappa, as R {r_call}"}
         return self._result_table(row)
 
@@ -221,8 +231,8 @@ class AgreementWords:
         if note:
             print(note)
         return self._result_table({"test": "Fleiss' kappa", "what it compares": listed, "rows": n,
-                                   "rows where all agree": all_same, "statistic name": "kappa", "estimate": kappa,
-                                   "z": z, "p-value": p, "method": "statsmodels fleiss_kappa; z and p from R "
+                                   "rows where all agree": all_same, "estimate": kappa,
+                                   "statistic name": "z", "statistic": z, "p-value": p, "method": "statsmodels fleiss_kappa; z and p from R "
                                                                    "irr::kappam.fleiss()"})
 
     def _icc(self, names, kept, level, raters, kind, of):
@@ -245,13 +255,14 @@ class AgreementWords:
                      f"raters (Shrout and Fleiss ICC(1,{k}))")
         else:
             letter = "A" if kind == "agreement" else "C"
-            design = "two-way random" if raters == "random" else "two-way mixed"
-            sf = {("random", "agreement"): f"; Shrout and Fleiss ICC(2,{k})",
-                  ("fixed", "consistency"): f"; Shrout and Fleiss ICC(3,{k})"}.get((raters, kind), "")
+            design = "two-way random" if raters == "a sample" else "two-way mixed"
+            sf = {("a sample", "agreement"): f"; Shrout and Fleiss ICC(2,{k})",
+                  ("these only", "consistency"): f"; Shrout and Fleiss ICC(3,{k})"}.get((raters, kind), "")
             form = f"ICC({letter},{k}), {design}"
-            words = (f"{'absolute agreement' if kind == 'agreement' else 'consistency (a rater who is always higher by '
-                     'the same amount still counts as agreeing)'}, {'one rater' if unit == 'single' else 'the average of the raters'} "
-                     f"(McGraw and Wong{sf})")
+            how = ("absolute agreement" if kind == "agreement" else
+                   "consistency (a rater who is always higher by the same amount still counts as agreeing)")
+            who = "one rater" if unit == "single" else "the average of the raters"
+            words = f"{how}, {who} (McGraw and Wong{sf})"
         ci = _ci(level)
         spread = _koo_li(low), _koo_li(high)
         guide = (f"by Koo and Li's guide it is {spread[0]}" if spread[0] == spread[1] else
@@ -263,8 +274,8 @@ class AgreementWords:
               f"unit = \"{unit}\") (F = {_num(f)}). {NOT_CORRELATION}")
         return self._result_table({"test": "intraclass correlation", "form": form,
                                    "what it compares": _list_words(f'"{c}"' for c in names), "rows": len(matrix),
-                                   "statistic name": "ICC", "estimate": value, f"estimate {ci} low": low,
-                                   f"estimate {ci} high": high, "F": f, "p-value": p,
+                                   "estimate": value, f"estimate {ci} low": low,
+                                   f"estimate {ci} high": high, "statistic name": "F", "statistic": f, "p-value": p,
                                    "method": f"R irr::icc(model = \"{model}\", type = \"{kind}\", unit = \"{unit}\")"})
 
     def _krippendorff(self, names, codes, level_name):
@@ -276,11 +287,11 @@ class AgreementWords:
                        m=level_name)
         value = float(np.asarray(found, dtype=float)[0])
         listed = _list_words(f'"{c}"' for c in names)
-        print(f"Krippendorff's alpha = {_num(value)} ({level_name} data) for {listed}, {len(codes)} rows: 1 is perfect "
-              "agreement, 0 the agreement chance would give.")
+        print(f"Krippendorff's alpha = {_num(value)} for {listed} ({DATA_WORDS[level_name]}), {len(codes)} rows: 1 is "
+              "perfect agreement, 0 the agreement chance would give.")
         print(f'Method: R irr::kripp.alpha(method = "{level_name}"). {NOT_CORRELATION}')
         return self._result_table({"test": "Krippendorff's alpha", "what it compares": listed, "rows": len(codes),
-                                   "data": level_name, "estimate": value,
+                                   "kind of data": DATA_WORDS[level_name], "estimate": value,
                                    "method": f'R irr::kripp.alpha(method = "{level_name}")'})
 
     def _ccc(self, a, b, level):
@@ -316,7 +327,8 @@ class AgreementWords:
         plus and minus 1.96 standard deviations), each with its interval (R
         BlandAltmanLeh::bland.altman.stats(), simplydata[r]), and Lin's concordance correlation (R
         DescTools::CCC()). Whether the limits are close enough is a question for the field, not
-        for statistics. chart.difference_dots(x=..., y=...) draws it. Gives back a one-row table.
+        for statistics. chart.difference_dots(first=..., second=...) draws it. Gives back a one-row
+        table.
         """
         from .._r import r_call
 
@@ -362,7 +374,7 @@ class AgreementWords:
     def reliability_of(self, *columns, interval=95):
         """Do the items of a questionnaire hang together (Cronbach's alpha)?
 
-        table.reliability_of(["q1", "q2", "q3", "q4", "q5"])   (with sdata.example("clinic"))
+        table.reliability_of(["item_1", "item_2", "item_3", "item_4", "item_5"])   (with sdata.example("clinic"))
         Each column is one item (question), each row one person. Prints Cronbach's alpha with
         Feldt's interval and what alpha would be without each item (R psych::alpha() and
         psych::alpha.ci(), simplydata[r]). Alpha rises with the number of items and does not
@@ -371,7 +383,7 @@ class AgreementWords:
         from .._r import r_call
 
         step = "reliability_of"
-        example = 'table.reliability_of(["q1", "q2", "q3", "q4", "q5"])'
+        example = 'table.reliability_of(["item_1", "item_2", "item_3", "item_4", "item_5"])'
         names, kept = self._agreement_columns(step, columns, example, at_least=2)
         for n in names:
             if not self._frame.schema[n].is_numeric():

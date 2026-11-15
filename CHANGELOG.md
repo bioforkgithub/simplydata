@@ -116,7 +116,8 @@ nothing is computed anew.
   `"percentile bootstrap"` or `"reverse percentile bootstrap"` (R's `type = "basic"`; the older
   value `"basic bootstrap"` still works, with a note).
 - `summary_of(show=[...])` gains `"harmonic mean"` (SciPy `hmean`, as R `psych::harmonic.mean`)
-  and `"winsorized average"` (20 % at each end, SciPy `mstats.winsorize`, as R `WRS2::winmean`).
+  and `"winsorised average"` (20 % at each end, SciPy `mstats.winsorize`, as R `WRS2::winmean`;
+  `"winsorized average"` works too).
 - `percentile_of(..., method=)`: R's nine rules, by R's number or NumPy's name (NumPy
   `percentile`, as R `quantile(type =)`).
 - `table.add_z_score_column("marks_z", from_column="marks", for_each="subject")`: SciPy
@@ -161,7 +162,17 @@ nothing is computed anew.
   three measurements of the same patients.
 - The lesson "Risks, diagnostic tests and agreement" is the optional life-science lesson. The
   30-day guide finds it by its title, so its number follows the lessons before it (22 once the
-  lesson "Working with a model" is in).
+  lesson "Working with a model" is in). Its core needs no R: `compare_risks` (a first example
+  with a clear effect, then the forest plot as its own example), `compare_to_truth` with a yes/no
+  test and `prevalence=`, and `agreement_between` with Cohen's kappa. Scores and trade-off curves,
+  devices, questionnaires, Mantel-Haenszel and rates follow as optional "more" examples, each
+  worked. The tasks practise what the examples show, the last one as started lines to complete.
+  In the beginner track it has a day of its own (day 25); the small project's second day moves
+  after the final test (day 30), together with looking back.
+- Lesson 12 ends with a short worked example of `add_z_score_column` (marks of different subjects on one
+  scale), and the 30-day guide asks for that word 3 and 7 days later and in the final test.
+- A recall question on the idea, not only the word: "Where only 1 % have it, why are most
+  positive results of a good test false alarms?" (asked 3 days later and in the final test).
 - The core words of this release come back in the 30-day warm-ups exactly 3 and 7 days after the
   day that teaches them, and in the final test from memory (`spaced=` questions in the guide).
 
@@ -169,7 +180,8 @@ nothing is computed anew.
 
 - `compare_averages(..., based_on="ranks")` with two groups also prints the Hodges-Lehmann shift
   with its 95 % interval (R `wilcox.test(conf.int = TRUE)`, the same exact/approximate choice as
-  the test).
+  the test), in the columns "shift" and "shift 95 % CI low/high" (so `forest_plot(x="shift")`
+  draws it), with Hodges-Lehmann named in "method".
 - `compare_average_to(..., test="z", standard_deviation=15)`: the z-test with a known standard
   deviation (R `BSDA::z.test()`; statsmodels' ztest uses the sample's own spread).
 - `compare_averages(..., test="jonckheere", in_order=[...])`: the Jonckheere-Terpstra trend test
@@ -179,8 +191,9 @@ nothing is computed anew.
 - `compare_counts`: `test="trend", in_order=[...]` (Cochran-Armitage, R `prop.trend.test()`);
   `test="fisher"` on bigger tables (100,000 seeded random tables in SciPy; `p_value_by="exact"`
   counts every table in R `fisher.test()`); `p_value_by="shuffling"` for the chi-square test
-  (SciPy, as R `chisq.test(simulate.p.value = TRUE)`); `show="cells"` with the standardized
-  residuals (statsmodels, as R `chisq.test()$stdres`).
+  (SciPy, as R `chisq.test(simulate.p.value = TRUE)`); `show="cells"` with the standardised
+  residuals (statsmodels, as R `chisq.test()$stdres`). A p-value found by shuffling or by random
+  tables says how in the column "p-value by" (the same words as `p_value_by=`).
 - `compare_each_pair(..., matched_by="patient")`: each pair compared within the same patients
   (paired t-tests, or Wilcoxon signed-rank with `based_on="ranks"`, Holm-adjusted; as R
   `pairwise.t.test(paired = TRUE)` / `pairwise.wilcox.test(paired = TRUE)`).
@@ -188,8 +201,10 @@ nothing is computed anew.
   SciPy, Spearman and Kendall from R `DescTools` (Fisher's z). New `method="somers"` and
   `method="gamma"` (R `DescTools::SomersDelta()`, `GoodmanKruskalGamma()`, with intervals) and
   `allowing_for="height"` for the partial correlation (R `ppcor::pcor.test()`).
-- New `table.compare_correlations(...)`: two correlations in two groups (Fisher's z) or two
-  correlations that share a column (Steiger's z), with Zou's interval (R `cocor`).
+- New `table.compare_correlations("hours", "marks", for_each="class")`: two correlations in two
+  groups (Fisher's z) or two correlations that share a column,
+  `compare_correlations(["hours", "marks"], ["height", "marks"])` (Steiger's z), with Zou's
+  interval (R `cocor`). The columns are given as in `correlation_between`.
 - `count_each(..., interval=95)`: simultaneous Sison-Glaz intervals for the percents (statsmodels,
   as R `DescTools::MultinomCI()`).
 - `show_rows_with_outliers` / `remove_rows_with_outliers(rule="grubbs" | "dixon" | "rosner")`:
@@ -199,10 +214,13 @@ nothing is computed anew.
 
 - `table.compare_risks("died", for_each="treatment", against="usual care")`: the risk in each group
   (exact interval), then the risk difference with Newcombe's score interval and what it means out
-  of 100, the number needed to treat (NNTB or NNTH, with its interval through infinity when the
-  difference's interval includes 0), the risk ratio and the odds ratio (Wald intervals on the log
-  scale, with a note when the outcome is common), and the p-value (chi-square with Yates'
-  correction, as R `prop.test()`). statsmodels `proportion_confint`, `confint_proportions_2indep`,
+  of 100, the number needed for one event fewer (or more), with its interval through infinity
+  when the difference's interval includes 0 (the labels do not assume the event is bad; the
+  sentence names NNTB/NNTH for a harmful event), the risk ratio and the odds ratio (Wald intervals
+  on the log scale, with a note when the outcome is common), and the p-value (chi-square with
+  Yates' correction, as R `prop.test()`). The first option is `column=`, as on the other tests,
+  and `value="yes"` says which value is the event (as on `compare_percent_to`; `positive=` is
+  accepted too). statsmodels `proportion_confint`, `confint_proportions_2indep`,
   `Table2x2`; checked against R `binom.test`, `DescTools::BinomDiffCI`, `epitools::riskratio` /
   `oddsratio`, `epiR::epi.2by2`. `p_value_by="exact"`: Fisher's exact test and the conditional
   odds ratio (SciPy, as R `fisher.test()`).
@@ -210,15 +228,22 @@ nothing is computed anew.
   (statsmodels `StratifiedTable`, as R `mantelhaen.test()`, `DescTools::BreslowDayTest()`; the
   interval of the pooled risk ratio from R `epiR::epi.2by2()`).
 - `same_within=15` (percentage points): two one-sided tests of two risks (statsmodels
-  `tost_proportions_2indep`, as R `TOSTER::twoprop_test()`); with `sides=1` and `higher=` or
-  `lower=`, non-inferiority. `sides=1` alone gives the one-sided test (R `prop.test(alternative =)`).
+  `tost_proportions_2indep`, as R `TOSTER::twoprop_test()`); `same_within=15, not_lower="B"` (or
+  `not_higher=`) is non-inferiority, as on `compare_averages`. The margin is always said in words
+  ("same_within=15 on risks means risk differences from -15 to 15 percentage points"), and a
+  number below 1 gets a note (percentage points, not a share). `sides=1` alone gives the one-sided
+  test (R `prop.test(alternative =)`).
 - `table.compare_rates("infections", time="patient_days", for_each="ward")` and
   `table.rate_of(...)`: rates per 1000 with exact intervals, the rate ratio with the exact
   conditional test (statsmodels `confint_poisson`, `test_poisson_2indep`) and R's exact interval
-  of the ratio (`poisson.test()`); `same_within=1.25` for a ratio margin (statsmodels
-  `tost_poisson_2indep`, as two one-sided R `poisson.test(r =)`).
-- `sdata.compare_risks(events=[20, 30], out_of=[60, 60])` and `sdata.compare_rates(events=[15, 30],
-  time=[1200, 1100])` from given counts.
+  of the ratio (`poisson.test()`); `same_within=[0.8, 1.25]` (or `1.25`) for a ratio margin
+  (statsmodels `tost_poisson_2indep`, as two one-sided R `poisson.test(r =)`), with `not_lower=` /
+  `not_higher=` for non-inferiority ("the rate ratio is not below 0.8"). A single ratio margin of 2
+  or more gets a note. Each rate is in the columns "rate" and "rate 95 % CI low/high", with a
+  column "per" ("1000 patient_days"), so `forest_plot(x="rate")` draws them.
+- `sdata.compare_risks(events=[20, 30], out_of=[60, 60], names=["new", "usual"])` and
+  `sdata.compare_rates(events=[15, 30], time=[1200, 1100])` from given counts (`names=`, as on
+  `sdata.compare_averages`; `groups=` still works, with a note).
 
 ### Diagnostic tests
 
@@ -234,25 +259,33 @@ nothing is computed anew.
   on the same people (R `pROC::roc.test()`), with the interval of the difference.
 - `sdata.compare_to_truth(found=45, missed=5, false_alarms=30, correct_negatives=920)`, or
   `sdata.compare_to_truth(sensitivity=90, specificity=95, prevalence=1)` for the base-rate question.
+  `tp=`, `fn=`, `fp=`, `tn=` and `true_positives=` ... `true_negatives=` work too, with a one-line
+  pointer to the simplydata name.
 - New example table `clinic`: 200 made-up patients with a rapid test, CRP and procalcitonin,
-  ratings by a nurse and a doctor, two blood-pressure devices, pain scores and hospital infections.
-- The counts "of 1000", the number needed to treat and the predictive values at another
+  ratings by a nurse and a doctor, two blood-pressure devices, pain scores and hospital infections
+  (`caught_infection`, yes or no), and five questionnaire items `item_1` to `item_5`; the yes/no
+  pain columns are `in_pain_before` and `in_pain_after`.
+- The counts "of 1000", the number needed and the predictive values at another
   prevalence are display arithmetic on the packages' results (shares written as counts).
 
 ### Agreement and reliability
 
 - `table.agreement_between("nurse_rating", "doctor_rating")`: Cohen's kappa with its interval, z
   and p, and the raw agreement beside it (statsmodels `cohens_kappa`, as R `irr::kappa2()` and
-  `psych::cohen.kappa()`); `weights="linear"` / `"quadratic"` with `in_order=` for ordered
-  categories. Three or more columns: Fleiss' kappa (statsmodels; z and p from R
+  `psych::cohen.kappa()`); `near_misses="linear"` / `"quadratic"` with `in_order=` for ordered
+  categories (`weights=`, `weight=` and `wt=` work too). Three or more columns: Fleiss' kappa (statsmodels; z and p from R
   `irr::kappam.fleiss()`). Columns of numbers: the intraclass correlation from R `irr::icc()`,
-  two-way, absolute agreement, one rater by default (`raters=`, `kind=`, `of=` choose the form,
-  which is always named, with Koo and Li's guide words beside the interval).
-  `method="krippendorff"` (R `irr::kripp.alpha()`) and `method="lin"` (R `DescTools::CCC()`).
+  two-way, absolute agreement, one rater by default (`raters="a sample"`, `"these only"` or
+  `"different per row"` (McGraw and Wong's "random", "fixed", "different" work too), `kind=`,
+  `of=` choose the form, which is always named, with Koo and Li's guide words beside the
+  interval). The test statistic is in "statistic name" / "statistic" (z for kappa, F for the
+  ICC), as on every test; the kappa or ICC is the "estimate".
+  `method="krippendorff"` (R `irr::kripp.alpha()`, the "kind of data" in its own column) and
+  `method="lin"` (R `DescTools::CCC()`).
 - `table.limits_of_agreement("device_a", "device_b")`: Bland-Altman limits of agreement with the
   intervals of the average difference and of both limits (R `BlandAltmanLeh::bland.altman.stats()`),
   and Lin's concordance correlation.
-- `table.reliability_of(["q1", "q2", "q3", "q4", "q5"])`: Cronbach's alpha with Feldt's interval
+- `table.reliability_of(["item_1", "item_2", "item_3", "item_4", "item_5"])`: Cronbach's alpha with Feldt's interval
   and the alpha without each item (R `psych::alpha()`, `psych::alpha.ci()`).
 - Every agreement word says that agreement is not correlation.
 
@@ -261,12 +294,15 @@ nothing is computed anew.
 - `chart.trade_off_curve(score="crp", truth="infected")`: the ROC curve from R pROC, with the AUC
   and its DeLong interval in the legend and the best cut-off marked; several scores give one curve
   each.
-- `chart.difference_dots(x="device_a", y="device_b")`: the Bland-Altman chart: dots and average
+- `chart.difference_dots(first="device_a", second="device_b")`: the Bland-Altman chart (the same
+  names as `limits_of_agreement`; `x=` and `y=` still work, with a note): dots and average
   difference from statsmodels `mean_diff_plot`, the limits and their shaded intervals from R
   `BlandAltmanLeh` (statsmodels' own limits use the standard deviation with n in the divisor, so
   they differ a little from R's).
 - `chart.forest_plot(x="estimate", y="measure")`: each row of a result table as a dot with its
-  interval, with a line at no effect (0, or 1 on a log scale for ratios).
+  interval, with a line at no effect (0, or 1 on a log scale for ratios); `log_scale=True/False`
+  and `line_at=` choose (`ratios=` still works, with a note). When a table holds intervals of two
+  levels (95 % and 90 %), it draws the first and names the rows it left out.
 - Their field names (`roc_curve`, `bland_altman`, `interval_dots`, `forestplot`) point to these words.
 
 ### Test titles

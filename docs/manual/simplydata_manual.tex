@@ -478,15 +478,16 @@ device\_b & blood pressure (mmHg) measured with device B, at the same time\\
 pain\_week\_0 & pain score from 0 (none) to 10 at the start\\
 pain\_week\_4 & pain score 4 weeks later\\
 pain\_week\_8 & pain score 8 weeks later\\
-pain\_before & yes or no: pain before a treatment\\
-pain\_after & yes or no: pain after it\\
+in\_pain\_before & yes or no: in pain before a treatment\\
+in\_pain\_after & yes or no: in pain after it\\
 infections & infections caught in hospital\\
+caught\_infection & yes or no: did the patient catch an infection in hospital (infections above 0)\\
 patient\_days & days the patient was in hospital\\
-q1 & answer from 1 (not at all) to 5 (very) to the first of five questions on how satisfied the patient was\\
-q2 & answer to the second question (1 to 5)\\
-q3 & answer to the third question (1 to 5)\\
-q4 & answer to the fourth question (1 to 5)\\
-q5 & answer to the fifth question (1 to 5)\\
+item\_1 & answer from 1 (not at all) to 5 (very) to the first of five questions (items) on how satisfied the patient was with the care\\
+item\_2 & answer to the second question (1 to 5)\\
+item\_3 & answer to the third question (1 to 5)\\
+item\_4 & answer to the fourth question (1 to 5)\\
+item\_5 & answer to the fifth question (1 to 5)\\
 \bottomrule\end{tabularx}\end{center}
 \section*{island}
 A map of a made-up island with two hills, on a 15 x 15 grid. \code{sdata.\allowbreak{}example(\textquotedbl{}island\textquotedbl{})}
@@ -2113,6 +2114,22 @@ school.most_common_of("days_absent")
   \item[6] The most common number of days absent (the mode): 2.
 \end{lineexplain}
 \printedoutput{output/lesson12_example8.txt}
+\section*{Example 9}
+A z-score puts marks from different subjects on one scale: how many standard deviations a value lies above or below the average of its group.
+\begin{lstlisting}[style=py]
+import simplydata as sdata
+table = sdata.table(sdata.example("marks"))
+table.add_z_score_column("marks_z", from_column="marks", for_each="subject")
+table.show_first_rows(3)
+\end{lstlisting}
+\whateachline
+\begin{lineexplain}
+  \item[1] Load simplydata.
+  \item[2] A table of the marks.
+  \item[3] A new column \code{\textquotedbl{}marks\_\allowbreak{}z\textquotedbl{}}: 0 is the average of that subject, 1 one standard deviation above it (SciPy zscore, as R \code{scale()}).
+  \item[4] Asha's 77 in English is 1.09 standard deviations above the English average; her 66 in Science is a little below the Science average (-0.25).
+\end{lineexplain}
+\printedoutput{output/lesson12_example9.txt}
 \begin{goodtoknow}
 \begin{itemize}
   \item Correlation is not cause. Children who study more might also sleep more, or like the subject more; r only says that two columns go up and down together, not which one makes the other change.
@@ -3071,19 +3088,34 @@ Worked solutions: page~\pageref{solutions:20}, or type \code{sdata.\allowbreak{}
 \chapter{Risks, diagnostic tests and agreement}\label{lesson:21}
 \begin{learnbox}
 \begin{itemize}
-  \item how to compare risks: in absolute terms first (out of 100), then as ratios
+  \item how to compare risks: in absolute terms first (out of 100), then as ratios, and how to draw them
   \item how good a test is, in counts of 1000 people: what it finds, what it misses, and its false alarms
   \item why the share of positive results that are real depends on how common the condition is
-  \item how to measure agreement between raters or devices, which is not the same as correlation
+  \item how to measure agreement between two raters, which is not the same as correlation
+  \item optional, for later: scores and their trade-off curves, devices, questionnaires and rates
 \end{itemize}
 \end{learnbox}
-\begin{needsr}The likelihood ratios, the ROC analysis, the trade-off curve, the ICC and the limits of agreement (R epiR, pROC, irr, BlandAltmanLeh); risks, sensitivity, specificity and kappa need no R. These run R's own code, the same code R users run. Install it once: pip install \code{\textquotedbl{}simplydata[r]\textquotedbl{}}, then R from https://cran.r-project.org, then in R: \code{install.\allowbreak{}packages(c(\textquotedbl{}epiR\textquotedbl{},\allowbreak{} \textquotedbl{}pROC\textquotedbl{},\allowbreak{} \textquotedbl{}irr\textquotedbl{},\allowbreak{} \textquotedbl{}BlandAltmanLeh\textquotedbl{},\allowbreak{} \textquotedbl{}DescTools\textquotedbl{}))}. Without R these words print a message that says what to install.\end{needsr}
+\begin{needsr}Examples 1 to 4 and the tasks need no R. The optional examples 5 to 8 (a score and its trade-off curve, two devices, a questionnaire, risks allowing for age) run R's own code, the same code R users run. Install it once: pip install \code{\textquotedbl{}simplydata[r]\textquotedbl{}}, then R from https://cran.r-project.org, then in R: \code{install.\allowbreak{}packages(c(\textquotedbl{}pROC\textquotedbl{},\allowbreak{} \textquotedbl{}BlandAltmanLeh\textquotedbl{},\allowbreak{} \textquotedbl{}DescTools\textquotedbl{},\allowbreak{} \textquotedbl{}psych\textquotedbl{},\allowbreak{} \textquotedbl{}epiR\textquotedbl{}))}. Without R these words print a message that says what to install.\end{needsr}
 \section*{Example 1}
-Did fewer patients die with the new medicine? Absolute risks come first, then the ratios.
+Did patients catch an infection in hospital more often in one ward? Absolute risks come first, then the ratios.
 \begin{lstlisting}[style=py]
 import simplydata as sdata
-table = sdata.table(sdata.example("trial"))
-risks = table.compare_risks("died", for_each="treatment", against="usual care")
+table = sdata.table(sdata.example("clinic"))
+table.compare_risks("caught_infection", for_each="ward", against="ward A")
+\end{lstlisting}
+\whateachline
+\begin{lineexplain}
+  \item[1] Load simplydata.
+  \item[2] 200 made-up patients in two hospital wards.
+  \item[3] 4 of 100 caught an infection in ward A and 16 of 100 in ward B: out of 100, about 12 more in ward B, and the interval of the difference (3.70 to 20.8 points) leaves out 0. For every 9 patients in ward B instead of ward A, one infection more. Then the risk ratio (4.00) and the odds ratio (4.57), and p = 0.010.
+\end{lineexplain}
+\printedoutput{output/lesson21_example1.txt}
+\section*{Example 2}
+The answer is also a table, one row per measure, so the ratios can be drawn: each as a dot with its interval (a forest plot).
+\begin{lstlisting}[style=py]
+import simplydata as sdata
+table = sdata.table(sdata.example("clinic"))
+risks = table.compare_risks("caught_infection", for_each="ward", against="ward A")
 risks.keep_rows("measure", one_of=["risk ratio", "odds ratio"])
 chart = risks.chart()
 chart.forest_plot(x="estimate", y="measure")
@@ -3092,19 +3124,19 @@ chart.save("risk_ratios.png")
 \whateachline
 \begin{lineexplain}
   \item[1] Load simplydata.
-  \item[2] 120 patients, a new medicine or usual care.
-  \item[3] 25 of 60 died with the new medicine and 34 of 60 with usual care: out of 100, about 15 fewer. The number needed to treat is 7, the risk ratio 0.735 and the odds ratio 0.546; the interval of the difference (-31.5 to 2.8 points) includes 0, so the data cannot tell.
+  \item[2] The clinic table.
+  \item[3] The same comparison as in example 1, kept as a table named risks.
   \item[4] Keep the two ratios.
   \item[5] Start a chart of the result table.
-  \item[6] Each ratio as a dot with its 95 \% interval, on a log scale, with a line at 1 (no effect).
+  \item[6] Each ratio as a dot with its 95 \% interval, on a log scale, with a line at 1 (no effect). Both intervals lie above the line.
   \item[7] Save it.
 \end{lineexplain}
-\printedoutput{output/lesson21_example1.txt}
+\printedoutput{output/lesson21_example2.txt}
 \begin{center}\begin{minipage}{\linewidth}\centering
-\includegraphics[width=0.72\textwidth,height=0.36\textheight,keepaspectratio]{figures/lesson21_example1_risk_ratios.pdf}
-\captionof{figure}{Lesson 21, example 1: \code{risk\_\allowbreak{}ratios.\allowbreak{}png}.}
+\includegraphics[width=0.72\textwidth,height=0.36\textheight,keepaspectratio]{figures/lesson21_example2_risk_ratios.pdf}
+\captionof{figure}{Lesson 21, example 2: \code{risk\_\allowbreak{}ratios.\allowbreak{}png}.}
 \end{minipage}\end{center}
-\section*{Example 2}
+\section*{Example 3}
 How good is a quick test, against the truth from a slow lab test?
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -3115,17 +3147,32 @@ table.compare_to_truth("rapid_test", truth="infected", prevalence=1)
 \whateachline
 \begin{lineexplain}
   \item[1] Load simplydata.
-  \item[2] 200 made-up patients; 50 have the infection.
+  \item[2] 50 of the 200 patients have the infection.
   \item[3] Of 1000 people like these, 250 have it: the test finds 195 (sensitivity 78 \%) and misses 55. Of the 750 without it, 50 test positive by mistake (specificity 93.3 \%).
   \item[4] Where only 1 \% have it, the same test gives 74 positives in 1000 people, and only 8 of them really have it: most positives are false alarms.
 \end{lineexplain}
-\printedoutput{output/lesson21_example2.txt}
-\section*{Example 3}
-A score such as CRP has no single cut-off: each cut-off trades found cases against false alarms.
+\printedoutput{output/lesson21_example3.txt}
+\section*{Example 4}
+Do a nurse and a doctor agree on how ill each patient looks?
+\begin{lstlisting}[style=py]
+import simplydata as sdata
+table = sdata.table(sdata.example("clinic"))
+table.agreement_between("nurse_rating", "doctor_rating")
+\end{lstlisting}
+\whateachline
+\begin{lineexplain}
+  \item[1] Load simplydata.
+  \item[2] The clinic table.
+  \item[3] They agree on 136 of 200 patients (68 \%); by chance alone they would agree on about 34 \%. Cohen's kappa = 0.516: they agree about half of the way from chance to perfect.
+\end{lineexplain}
+\printedoutput{output/lesson21_example4.txt}
+\section*{Example 5}
+More, optional (needs R): a score such as CRP has no single cut-off; each cut-off trades found cases against false alarms.
 \begin{lstlisting}[style=py]
 import simplydata as sdata
 table = sdata.table(sdata.example("clinic"))
 table.compare_to_truth("crp", truth="infected")
+table.compare_accuracy("crp", "procalcitonin", truth="infected")
 chart = table.chart()
 chart.trade_off_curve(score=["crp", "procalcitonin"], truth="infected")
 chart.save("trade_off.png")
@@ -3135,59 +3182,89 @@ chart.save("trade_off.png")
   \item[1] Load simplydata.
   \item[2] The clinic table.
   \item[3] AUC 0.893: a person who has it scores higher than one who does not in 89 of 100 such pairs. The best cut-off by Youden's index is 2.15.
-  \item[4] Start a chart.
-  \item[5] Both trade-off (ROC) curves: CRP climbs faster to the top left than procalcitonin.
-  \item[6] Save it.
+  \item[4] AUC 0.893 against 0.715, a difference of 0.177 (0.085 to 0.270), on the same patients: CRP tells better who has it (DeLong's test, p = 0.0002).
+  \item[5] Start a chart.
+  \item[6] Both trade-off (ROC) curves: CRP climbs faster to the top left than procalcitonin.
+  \item[7] Save it.
 \end{lineexplain}
-\printedoutput{output/lesson21_example3.txt}
+\printedoutput{output/lesson21_example5.txt}
 \begin{center}\begin{minipage}{\linewidth}\centering
-\includegraphics[width=0.72\textwidth,height=0.36\textheight,keepaspectratio]{figures/lesson21_example3_trade_off.pdf}
-\captionof{figure}{Lesson 21, example 3: \code{trade\_\allowbreak{}off.\allowbreak{}png}.}
+\includegraphics[width=0.72\textwidth,height=0.36\textheight,keepaspectratio]{figures/lesson21_example5_trade_off.pdf}
+\captionof{figure}{Lesson 21, example 5: \code{trade\_\allowbreak{}off.\allowbreak{}png}.}
 \end{minipage}\end{center}
-\section*{Example 4}
-Do a nurse and a doctor agree, and do two blood-pressure devices agree?
+\section*{Example 6}
+More, optional (needs R): do two blood-pressure devices agree?
 \begin{lstlisting}[style=py]
 import simplydata as sdata
 table = sdata.table(sdata.example("clinic"))
-table.agreement_between("nurse_rating", "doctor_rating")
 table.limits_of_agreement("device_a", "device_b")
 chart = table.chart()
-chart.difference_dots(x="device_a", y="device_b")
+chart.difference_dots(first="device_a", second="device_b")
 chart.save("devices.png")
 \end{lstlisting}
 \whateachline
 \begin{lineexplain}
   \item[1] Load simplydata.
   \item[2] The clinic table.
-  \item[3] They agree on 136 of 200 patients (68 \%); Cohen's kappa = 0.516: half of the way from chance to perfect.
-  \item[4] Device A reads on average 2.18 lower, and 95 \% of the differences lie between -11.7 and 7.33.
-  \item[5] Start a chart.
-  \item[6] The Bland-Altman chart: each difference against its average, with the limits of agreement.
-  \item[7] Save it.
+  \item[3] Device A reads on average 2.18 lower, and 95 \% of the differences lie between -11.7 and 7.33.
+  \item[4] Start a chart.
+  \item[5] The Bland-Altman chart: each difference (first minus second) against the average of the two, with the limits of agreement.
+  \item[6] Save it.
 \end{lineexplain}
-\printedoutput{output/lesson21_example4.txt}
+\printedoutput{output/lesson21_example6.txt}
 \begin{center}\begin{minipage}{\linewidth}\centering
-\includegraphics[width=0.72\textwidth,height=0.36\textheight,keepaspectratio]{figures/lesson21_example4_devices.pdf}
-\captionof{figure}{Lesson 21, example 4: \code{devices.\allowbreak{}png}.}
+\includegraphics[width=0.72\textwidth,height=0.36\textheight,keepaspectratio]{figures/lesson21_example6_devices.pdf}
+\captionof{figure}{Lesson 21, example 6: \code{devices.\allowbreak{}png}.}
 \end{minipage}\end{center}
+\section*{Example 7}
+More, optional (needs R): do five questions on satisfaction with care (\code{item\_\allowbreak{}1} to \code{item\_\allowbreak{}5}) hang together?
+\begin{lstlisting}[style=py]
+import simplydata as sdata
+table = sdata.table(sdata.example("clinic"))
+table.reliability_of(["item_1", "item_2", "item_3", "item_4", "item_5"])
+\end{lstlisting}
+\whateachline
+\begin{lineexplain}
+  \item[1] Load simplydata.
+  \item[2] The clinic table.
+  \item[3] Cronbach's alpha = 0.865 (0.833 to 0.893); leaving out any one item lowers it.
+\end{lineexplain}
+\printedoutput{output/lesson21_example7.txt}
+\section*{Example 8}
+More, optional: risks allowing for a third column, and rates per patient-day.
+\begin{lstlisting}[style=py]
+import simplydata as sdata
+table = sdata.table(sdata.example("clinic"))
+table.compare_risks("infected", for_each="ward", allowing_for="age_group")
+table.rate_of("infections", time="patient_days", for_each="ward")
+\end{lstlisting}
+\whateachline
+\begin{lineexplain}
+  \item[1] Load simplydata.
+  \item[2] The clinic table.
+  \item[3] Mantel-Haenszel odds ratio 1.76 (0.911 to 3.40), about the same as 1.71 without allowing for age (the interval of its risk ratio needs R epiR).
+  \item[4] 2.22 infections per 1000 patient-days in ward A and 10.0 in ward B, each with its exact interval; \code{compare\_\allowbreak{}rates} compares them.
+\end{lineexplain}
+\printedoutput{output/lesson21_example8.txt}
 \begin{goodtoknow}
 \begin{itemize}
-  \item This lesson is optional, for the life sciences (medicine, biology, ecology); no other lesson needs it.
+  \item This lesson is optional, for the life sciences (medicine, biology, ecology); no other lesson needs it. Examples 1 to 4 are the core; examples 5 to 8 are more, for when you need them.
   \item Give absolute risks first. A risk ratio of 0.5 can mean 2 in 100 instead of 4, or 20 instead of 40: the same ratio, a very different number of people helped.
+  \item When the interval of the difference includes 0, the number needed for one event fewer (or more) has an interval that runs through infinity: the data fit fewer events, no change and more. Task 1 shows one.
   \item Odds are not risks. When the outcome is common (over 10 \%), the odds ratio lies further from 1 than the risk ratio, so say which one you report.
   \item Sensitivity and specificity belong to the test; the share of positives that are real also depends on how common the condition is. Counts of 1000 people make this easy to see.
-  \item Agreement is not correlation: two devices can rise and fall together and still differ by 10 every time. Whether the limits of agreement are close enough is a question for the field.
+  \item Agreement is not correlation: two raters (or devices) can rise and fall together and still differ every time.
 \end{itemize}
 \end{goodtoknow}
 \begin{tryit}
 \begin{enumerate}
-  \item Compare the risk of \code{\textquotedbl{}infected\textquotedbl{}} between the wards, allowing for \code{\textquotedbl{}age\_\allowbreak{}group\textquotedbl{}}.
-  \item Is \code{\textquotedbl{}procalcitonin\textquotedbl{}} a worse test than \code{\textquotedbl{}crp\textquotedbl{}}? Compare the two scores on the same patients.
-  \item Do the five questions \code{\textquotedbl{}q1\textquotedbl{}} to \code{\textquotedbl{}q5\textquotedbl{}} hang together? Work out their reliability.
+  \item Compare the risk of \code{\textquotedbl{}infected\textquotedbl{}} between the wards, against \code{\textquotedbl{}ward A\textquotedbl{}}. Does the interval of the difference leave out 0?
+  \item How good is the rapid test where only 2 \% have the infection? Of the positive results, how many really have it?
+  \item Complete the started lines to draw the two ratios of task 1: risks = \code{table.\allowbreak{}compare\_\allowbreak{}risks(\textquotedbl{}infected\textquotedbl{},\allowbreak{} for\_\allowbreak{}each=\textquotedbl{}ward\textquotedbl{},\allowbreak{} against=\textquotedbl{}ward A\textquotedbl{})}, then \code{risks.\allowbreak{}keep\_\allowbreak{}rows(\textquotedbl{}measure\textquotedbl{},\allowbreak{} one\_\allowbreak{}of=[.\allowbreak{}.\allowbreak{}.\allowbreak{}])}, then chart = \code{risks.\allowbreak{}chart()} and \code{chart.\allowbreak{}forest\_\allowbreak{}plot(.\allowbreak{}.\allowbreak{}.\allowbreak{})}.
 \end{enumerate}
 Worked solutions: page~\pageref{solutions:21}, or type \code{sdata.\allowbreak{}lesson(21,\allowbreak{} solutions=True)}.
 \end{tryit}
-\par\noindent{\small\sffamily\textbf{Words in this lesson:} \hyperref[word:table.compare-risks]{\code{table.\allowbreak{}compare\_\allowbreak{}risks()}}, \hyperref[word:forest-plot]{\code{chart.\allowbreak{}forest\_\allowbreak{}plot()}}, \hyperref[word:table.compare-to-truth]{\code{table.\allowbreak{}compare\_\allowbreak{}to\_\allowbreak{}truth()}}, \hyperref[word:trade-off-curve]{\code{chart.\allowbreak{}trade\_\allowbreak{}off\_\allowbreak{}curve()}}, \hyperref[word:table.agreement-between]{\code{table.\allowbreak{}agreement\_\allowbreak{}between()}}, \hyperref[word:table.limits-of-agreement]{\code{table.\allowbreak{}limits\_\allowbreak{}of\_\allowbreak{}agreement()}}, \hyperref[word:difference-dots]{\code{chart.\allowbreak{}difference\_\allowbreak{}dots()}}, \hyperref[word:table.reliability-of]{\code{table.\allowbreak{}reliability\_\allowbreak{}of()}}, \hyperref[word:table.compare-accuracy]{\code{table.\allowbreak{}compare\_\allowbreak{}accuracy()}}.\par}
+\par\noindent{\small\sffamily\textbf{Words in this lesson:} \hyperref[word:table.compare-risks]{\code{table.\allowbreak{}compare\_\allowbreak{}risks()}}, \hyperref[word:forest-plot]{\code{chart.\allowbreak{}forest\_\allowbreak{}plot()}}, \hyperref[word:table.compare-to-truth]{\code{table.\allowbreak{}compare\_\allowbreak{}to\_\allowbreak{}truth()}}, \hyperref[word:table.agreement-between]{\code{table.\allowbreak{}agreement\_\allowbreak{}between()}}, \hyperref[word:trade-off-curve]{\code{chart.\allowbreak{}trade\_\allowbreak{}off\_\allowbreak{}curve()}}, \hyperref[word:table.compare-accuracy]{\code{table.\allowbreak{}compare\_\allowbreak{}accuracy()}}, \hyperref[word:table.limits-of-agreement]{\code{table.\allowbreak{}limits\_\allowbreak{}of\_\allowbreak{}agreement()}}, \hyperref[word:difference-dots]{\code{chart.\allowbreak{}difference\_\allowbreak{}dots()}}, \hyperref[word:table.reliability-of]{\code{table.\allowbreak{}reliability\_\allowbreak{}of()}}, \hyperref[word:table.rate-of]{\code{table.\allowbreak{}rate\_\allowbreak{}of()}}.\par}
 
 \otherchapters
 
@@ -4008,14 +4085,14 @@ chart.save("cumulative_share.png")
 Many results with their intervals, one line each (a forest plot).\\
 \codeline{chart.forest\_plot(x=\textquotedbl{}difference\textquotedbl{}, y=\textquotedbl{}group 1\textquotedbl{})}\enspace (on a result table, such as \code{compare\_\allowbreak{}each\_\allowbreak{}pair}'s)
 
-Draws each row's x as a dot and its interval as a line, from a result table with the columns \code{\textquotedbl{}\textless{}x\textgreater{} 95 \% CI low\textquotedbl{}} and \code{\textquotedbl{}\textless{}x\textgreater{} 95 \% CI high\textquotedbl{}} (any level). y names the rows. A dashed line marks no effect: 0, or 1 for ratios (x or every row label says \code{\textquotedbl{}ratio\textquotedbl{}}), which are drawn on a log scale; \code{line\_\allowbreak{}at=} and \code{ratios=True}/False choose. The first row is at the top.
+Draws each row's x as a dot and its interval as a line, from a result table with the columns \code{\textquotedbl{}\textless{}x\textgreater{} 95 \% CI low\textquotedbl{}} and \code{\textquotedbl{}\textless{}x\textgreater{} 95 \% CI high\textquotedbl{}} (any level). y names the rows. Ratios (x or every row label says \code{\textquotedbl{}ratio\textquotedbl{}}) are drawn on a log scale with a dashed line at 1 (no effect), other results on a plain scale with the line at 0; \code{log\_\allowbreak{}scale=True} or False and \code{line\_\allowbreak{}at=} choose. When the table holds intervals of more than one level (such as 95 \% and 90 \%), the first is drawn and a note names the rows left out. The first row is at the top.
 
 \wordfield{Options}{}\par\nopagebreak
 \begin{optiontable}
 \code{x=} & normally \code{\textquotedbl{}estimate\textquotedbl{}}\\
 \code{y=} & \\
 \code{line\_\allowbreak{}at=} & \\
-\code{ratios=} & \\
+\code{log\_\allowbreak{}scale=} & \\
 \code{colour=} & \\
 \code{thickness=} & \\
 \end{optiontable}
@@ -6475,7 +6552,7 @@ table.standard_deviation_of("marks", for_each="class")
 Several measures of one or more columns at once, in one tidy table.
 
 \codeline{table.summary\_of(\textquotedbl{}marks\textquotedbl{}, for\_each=\textquotedbl{}class\textquotedbl{}, show=[\textquotedbl{}average\textquotedbl{}, \textquotedbl{}standard deviation\textquotedbl{}, \textquotedbl{}count\textquotedbl{}])}\\
-(with \code{sdata.\allowbreak{}example(\textquotedbl{}marks\textquotedbl{})}). Several columns: \code{table.\allowbreak{}summary\_\allowbreak{}of([\textquotedbl{}marks\textquotedbl{},\allowbreak{} \textquotedbl{}hours\textquotedbl{}])}. \code{show=} takes any of: \code{\textquotedbl{}count\textquotedbl{}} (numbers, empty cells left out), \code{\textquotedbl{}average\textquotedbl{}}, \code{\textquotedbl{}median\textquotedbl{}}, \code{\textquotedbl{}total\textquotedbl{}}, \code{\textquotedbl{}smallest\textquotedbl{}}, \code{\textquotedbl{}biggest\textquotedbl{}}, \code{\textquotedbl{}standard deviation\textquotedbl{}} (sample, n - 1), \code{\textquotedbl{}variance\textquotedbl{}} (sample, n - 1), \code{\textquotedbl{}standard error\textquotedbl{}} (of the average), \code{\textquotedbl{}confidence interval\textquotedbl{}} (95 \% t interval of the average, as R t.test), \code{\textquotedbl{}range\textquotedbl{}} (biggest minus smallest), \code{\textquotedbl{}interquartile range\textquotedbl{}} (upper quartile minus lower quartile, R type 7), \code{\textquotedbl{}empty cells\textquotedbl{}}, and these, with the definitions R uses: \code{\textquotedbl{}geometric mean\textquotedbl{}} (numbers above 0), \code{\textquotedbl{}skewness\textquotedbl{}} and \code{\textquotedbl{}kurtosis\textquotedbl{}} (the bias-corrected sample values G1 and G2, as SciPy skew/\code{kurtosis(bias=False)}, R e1071 type 2 and Excel; kurtosis is excess kurtosis, 0 for a bell shape), \code{\textquotedbl{}coefficient of variation\textquotedbl{}} (standard deviation / average, a ratio), \code{\textquotedbl{}median absolute deviation\textquotedbl{}} (as R \code{mad()}, times 1.4826), \code{\textquotedbl{}trimmed average\textquotedbl{}} (10 \% cut from each end, as R \code{mean(trim = 0.\allowbreak{}1)}; \code{\textquotedbl{}trimmed average 20\textquotedbl{}} cuts 20 \%), \code{\textquotedbl{}most common\textquotedbl{}} (the smallest if tied), \code{\textquotedbl{}percentile 90\textquotedbl{}} (any percent, R quantile type 7), \code{\textquotedbl{}harmonic mean\textquotedbl{}} (numbers above 0, SciPy hmean, as R psych::harmonic.mean) and \code{\textquotedbl{}winsorized average\textquotedbl{}} (the lowest and highest 20 \% set to the nearest value kept, then the average; SciPy, as R WRS2::\code{winmean(tr = 0.\allowbreak{}2)}; \code{\textquotedbl{}winsorized average 10\textquotedbl{}} pulls in 10 \%). Without \code{show=}: count, average, standard deviation, smallest, median, biggest. A measure of your own also works: a function that gets one group's numbers (a NumPy array) and gives back one number, \code{show=[\textquotedbl{}average\textquotedbl{},\allowbreak{} my\_\allowbreak{}measure]}. The new table has one row for each column (and each group), so it can be saved or charted. \code{every=} groups a date column in \code{for\_\allowbreak{}each=} by \code{\textquotedbl{}week\textquotedbl{}}, \code{\textquotedbl{}month\textquotedbl{}}, \code{\textquotedbl{}year\textquotedbl{}} ...
+(with \code{sdata.\allowbreak{}example(\textquotedbl{}marks\textquotedbl{})}). Several columns: \code{table.\allowbreak{}summary\_\allowbreak{}of([\textquotedbl{}marks\textquotedbl{},\allowbreak{} \textquotedbl{}hours\textquotedbl{}])}. \code{show=} takes any of: \code{\textquotedbl{}count\textquotedbl{}} (numbers, empty cells left out), \code{\textquotedbl{}average\textquotedbl{}}, \code{\textquotedbl{}median\textquotedbl{}}, \code{\textquotedbl{}total\textquotedbl{}}, \code{\textquotedbl{}smallest\textquotedbl{}}, \code{\textquotedbl{}biggest\textquotedbl{}}, \code{\textquotedbl{}standard deviation\textquotedbl{}} (sample, n - 1), \code{\textquotedbl{}variance\textquotedbl{}} (sample, n - 1), \code{\textquotedbl{}standard error\textquotedbl{}} (of the average), \code{\textquotedbl{}confidence interval\textquotedbl{}} (95 \% t interval of the average, as R t.test), \code{\textquotedbl{}range\textquotedbl{}} (biggest minus smallest), \code{\textquotedbl{}interquartile range\textquotedbl{}} (upper quartile minus lower quartile, R type 7), \code{\textquotedbl{}empty cells\textquotedbl{}}, and these, with the definitions R uses: \code{\textquotedbl{}geometric mean\textquotedbl{}} (numbers above 0), \code{\textquotedbl{}skewness\textquotedbl{}} and \code{\textquotedbl{}kurtosis\textquotedbl{}} (the bias-corrected sample values G1 and G2, as SciPy skew/\code{kurtosis(bias=False)}, R e1071 type 2 and Excel; kurtosis is excess kurtosis, 0 for a bell shape), \code{\textquotedbl{}coefficient of variation\textquotedbl{}} (standard deviation / average, a ratio), \code{\textquotedbl{}median absolute deviation\textquotedbl{}} (as R \code{mad()}, times 1.4826), \code{\textquotedbl{}trimmed average\textquotedbl{}} (10 \% cut from each end, as R \code{mean(trim = 0.\allowbreak{}1)}; \code{\textquotedbl{}trimmed average 20\textquotedbl{}} cuts 20 \%), \code{\textquotedbl{}most common\textquotedbl{}} (the smallest if tied), \code{\textquotedbl{}percentile 90\textquotedbl{}} (any percent, R quantile type 7), \code{\textquotedbl{}harmonic mean\textquotedbl{}} (numbers above 0, SciPy hmean, as R psych::harmonic.mean) and \code{\textquotedbl{}winsorised average\textquotedbl{}} (the lowest and highest 20 \% set to the nearest value kept, then the average; SciPy, as R WRS2::\code{winmean(tr = 0.\allowbreak{}2)}; \code{\textquotedbl{}winsorised average 10\textquotedbl{}} pulls in 10 \%). Without \code{show=}: count, average, standard deviation, smallest, median, biggest. A measure of your own also works: a function that gets one group's numbers (a NumPy array) and gives back one number, \code{show=[\textquotedbl{}average\textquotedbl{},\allowbreak{} my\_\allowbreak{}measure]}. The new table has one row for each column (and each group), so it can be saved or charted. \code{every=} groups a date column in \code{for\_\allowbreak{}each=} by \code{\textquotedbl{}week\textquotedbl{}}, \code{\textquotedbl{}month\textquotedbl{}}, \code{\textquotedbl{}year\textquotedbl{}} ...
 
 \wordfield{Options}{}\par\nopagebreak
 \begin{optiontable}
@@ -6779,7 +6856,7 @@ Does how often each value turns up really differ between groups?
 
 \codeline{table.add\_group\_column(\textquotedbl{}result\textquotedbl{}, from\_column=\textquotedbl{}marks\textquotedbl{}, cut\_at=[60], names=[\textquotedbl{}below 60\textquotedbl{}, \textquotedbl{}60 or more\textquotedbl{}])}\\
 \codeline{table.compare\_counts(\textquotedbl{}result\textquotedbl{}, for\_each=\textquotedbl{}class\textquotedbl{})} (with \code{sdata.\allowbreak{}example(\textquotedbl{}marks\textquotedbl{})})\\
-(Do the classes differ in how many children score 60 or more?) Counts the rows for each pair of values and uses the chi-square test of independence (as R \code{chisq.\allowbreak{}test()}: Yates' continuity correction for 2 x 2 tables only). If an expected count is below 5 a note says so; for a 2 x 2 table \code{test=\textquotedbl{}fisher\textquotedbl{}} then gives Fisher's exact test. \code{test=\textquotedbl{}g\textquotedbl{}}: the G-test (likelihood ratio, SciPy \code{chi2\_\allowbreak{}contingency( lambda\_\allowbreak{}=\textquotedbl{}log-likelihood\textquotedbl{})}, as R DescTools::\code{GTest()}). For 2 x 2 tables also \code{test=\textquotedbl{}barnard\textquotedbl{}} and \code{test=\textquotedbl{}boschloo\textquotedbl{}}: unconditional exact tests, often stronger than Fisher's, run in R (Exact::\code{exact.\allowbreak{}test(method = \textquotedbl{}z-pooled\textquotedbl{} / \textquotedbl{}boschloo\textquotedbl{})}, simplydata[r]). \code{test=\textquotedbl{}fisher\textquotedbl{}} on a bigger table gives its p-value from 100,000 random tables with the same totals (SciPy, \code{seed=1}); \code{p\_\allowbreak{}value\_\allowbreak{}by=\textquotedbl{}exact\textquotedbl{}} counts every table instead, in R (\code{fisher.\allowbreak{}test()}). \code{p\_\allowbreak{}value\_\allowbreak{}by=\textquotedbl{}shuffling\textquotedbl{}}: the chi-square p-value from \code{shuffles=9999} random tables (SciPy, \code{seed=1}, as R \code{chisq.\allowbreak{}test(simulate.\allowbreak{}p.\allowbreak{}value = TRUE)}). \code{test=\textquotedbl{}trend\textquotedbl{}} with \code{in\_\allowbreak{}order=[\textquotedbl{}low\textquotedbl{},\allowbreak{} \textquotedbl{}middle\textquotedbl{},\allowbreak{} \textquotedbl{}high\textquotedbl{}]} (the \code{for\_\allowbreak{}each} groups in order) and a yes/no column: the Cochran-Armitage test for a trend in the percent across ordered groups (R \code{prop.\allowbreak{}trend.\allowbreak{}test()}). \code{show=\textquotedbl{}cells\textquotedbl{}} gives back one row per cell with its standardized residual (statsmodels, as R \code{chisq.\allowbreak{}test()}\$stdres): cells beyond 2 or -2 stand out. Empty cells are skipped. Effect size: Cramer's V, the strength of the link from 0 (none) to 1 (complete). Gives back a one-row table.
+(Do the classes differ in how many children score 60 or more?) Counts the rows for each pair of values and uses the chi-square test of independence (as R \code{chisq.\allowbreak{}test()}: Yates' continuity correction for 2 x 2 tables only). If an expected count is below 5 a note says so; for a 2 x 2 table \code{test=\textquotedbl{}fisher\textquotedbl{}} then gives Fisher's exact test. \code{test=\textquotedbl{}g\textquotedbl{}}: the G-test (likelihood ratio, SciPy \code{chi2\_\allowbreak{}contingency( lambda\_\allowbreak{}=\textquotedbl{}log-likelihood\textquotedbl{})}, as R DescTools::\code{GTest()}). For 2 x 2 tables also \code{test=\textquotedbl{}barnard\textquotedbl{}} and \code{test=\textquotedbl{}boschloo\textquotedbl{}}: unconditional exact tests, often stronger than Fisher's, run in R (Exact::\code{exact.\allowbreak{}test(method = \textquotedbl{}z-pooled\textquotedbl{} / \textquotedbl{}boschloo\textquotedbl{})}, simplydata[r]). \code{test=\textquotedbl{}fisher\textquotedbl{}} on a bigger table gives its p-value from 100,000 random tables with the same totals (SciPy, \code{seed=1}); \code{p\_\allowbreak{}value\_\allowbreak{}by=\textquotedbl{}exact\textquotedbl{}} counts every table instead, in R (\code{fisher.\allowbreak{}test()}). \code{p\_\allowbreak{}value\_\allowbreak{}by=\textquotedbl{}shuffling\textquotedbl{}}: the chi-square p-value from \code{shuffles=9999} random tables (SciPy, \code{seed=1}, as R \code{chisq.\allowbreak{}test(simulate.\allowbreak{}p.\allowbreak{}value = TRUE)}). \code{test=\textquotedbl{}trend\textquotedbl{}} with \code{in\_\allowbreak{}order=[\textquotedbl{}low\textquotedbl{},\allowbreak{} \textquotedbl{}middle\textquotedbl{},\allowbreak{} \textquotedbl{}high\textquotedbl{}]} (the \code{for\_\allowbreak{}each} groups in order) and a yes/no column: the Cochran-Armitage test for a trend in the percent across ordered groups (R \code{prop.\allowbreak{}trend.\allowbreak{}test()}). \code{show=\textquotedbl{}cells\textquotedbl{}} gives back one row per cell with its standardised residual (statsmodels, as R \code{chisq.\allowbreak{}test()}\$stdres): cells beyond 2 or -2 stand out. Empty cells are skipped. Effect size: Cramer's V, the strength of the link from 0 (none) to 1 (complete). Gives back a one-row table.
 
 \wordfield{Options}{}\par\nopagebreak
 \begin{optiontable}
@@ -6985,13 +7062,14 @@ table.check_random_order("marks")
 Is one correlation stronger than another?
 
 \codeline{table.compare\_correlations(\textquotedbl{}hours\textquotedbl{}, \textquotedbl{}marks\textquotedbl{}, for\_each=\textquotedbl{}class\textquotedbl{})} (with \code{sdata.\allowbreak{}example(\textquotedbl{}marks\textquotedbl{})}, two classes)\\
-With \code{for\_\allowbreak{}each=} (two groups): is the correlation of the two columns different in the two groups? Fisher's z test, R cocor::\code{cocor.\allowbreak{}indep.\allowbreak{}groups()}. With two pairs of columns that share one column, in the same rows: \code{table.\allowbreak{}compare\_\allowbreak{}correlations([\textquotedbl{}hours\textquotedbl{},\allowbreak{} \textquotedbl{}marks\textquotedbl{}],\allowbreak{} [\textquotedbl{}height\textquotedbl{},\allowbreak{} \textquotedbl{}marks\textquotedbl{}])} asks whether hours or height goes more strongly with marks: Steiger's z test, R cocor::\code{cocor.\allowbreak{}dep.\allowbreak{}groups.\allowbreak{}overlap()}. Both print the difference with Zou's 95 \% interval (simplydata[r]). The correlations are Pearson's r (SciPy). Gives back a one-row table.
+The columns are given as in \code{correlation\_\allowbreak{}between(\textquotedbl{}hours\textquotedbl{},\allowbreak{} \textquotedbl{}marks\textquotedbl{})}. With \code{for\_\allowbreak{}each=} (two groups): is the correlation of the two columns different in the two groups? Fisher's z test, R cocor::\code{cocor.\allowbreak{}indep.\allowbreak{}groups()}. With two pairs of columns that share one column, in the same rows: \code{table.\allowbreak{}compare\_\allowbreak{}correlations([\textquotedbl{}hours\textquotedbl{},\allowbreak{} \textquotedbl{}marks\textquotedbl{}],\allowbreak{} [\textquotedbl{}height\textquotedbl{},\allowbreak{} \textquotedbl{}marks\textquotedbl{}])} asks whether hours or height goes more strongly with marks: Steiger's z test, R cocor::\code{cocor.\allowbreak{}dep.\allowbreak{}groups.\allowbreak{}overlap()}. Both print the difference with Zou's 95 \% interval (simplydata[r]). The correlations are Pearson's r (SciPy). Gives back a one-row table.
 
 \wordfield{Options}{}\par\nopagebreak
 \begin{optiontable}
+\code{columns.\allowbreak{}.\allowbreak{}.\allowbreak{}} & as many as you like, separated by commas\\
+\code{for\_\allowbreak{}each=} & \\
 \code{first=} & \\
 \code{second=} & \\
-\code{for\_\allowbreak{}each=} & \\
 \end{optiontable}
 
 \wordfield{Underneath}{SciPy (stats.pearsonr); R cocor (cocor.indep.groups, cocor.dep.groups.overlap; simplydata[r])}
@@ -7047,18 +7125,20 @@ sdata.compare_counts([[20, 40], [30, 30]])
 How much more (or less) often does something happen in one group than in another?
 
 \codeline{table.compare\_risks(\textquotedbl{}died\textquotedbl{}, for\_each=\textquotedbl{}treatment\textquotedbl{}, against=\textquotedbl{}usual care\textquotedbl{})} (with \code{sdata.\allowbreak{}example(\textquotedbl{}trial\textquotedbl{})})\\
-outcome: a column with two values (an event or not, such as \code{\textquotedbl{}yes\textquotedbl{}}/\code{\textquotedbl{}no\textquotedbl{}}); \code{positive=} says which value is the event when it is not clear. \code{against=} is the group the others are compared with (default: the first in sorted order, as R). Prints the risk in each group, then the risk difference with its interval and what it means out of 100 people, the number needed to treat, the risk ratio and the odds ratio, then the p-value (chi-square test with Yates' correction, as R \code{prop.\allowbreak{}test()}). \code{p\_\allowbreak{}value\_\allowbreak{}by=\textquotedbl{}exact\textquotedbl{}}: Fisher's exact test and the conditional odds ratio (as R \code{fisher.\allowbreak{}test()}). \code{allowing\_\allowbreak{}for=\textquotedbl{}age\_\allowbreak{}group\textquotedbl{}}: the Mantel-Haenszel odds ratio and risk ratio, which allow for a third column, with the Breslow-Day check that the odds ratio is the same in each group. \code{same\_\allowbreak{}within=10}: are the risks the same within 10 percentage points (two one-sided tests)? With \code{sides=1} and \code{higher=} or \code{lower=}: non-inferiority. \code{interval=95} sets the level of every interval. Gives back one row per measure (estimate, interval, p-value, method). Routes: statsmodels \code{proportion\_\allowbreak{}confint}, \code{confint\_\allowbreak{}proportions\_\allowbreak{}2indep} (Newcombe), Table2x2, StratifiedTable, \code{tost\_\allowbreak{}proportions\_\allowbreak{}2indep}; SciPy \code{chi2\_\allowbreak{}contingency}, \code{fisher\_\allowbreak{}exact}; R epiR for the interval of the Mantel-Haenszel risk ratio.
+column: a column with two values (an event or not, such as \code{\textquotedbl{}yes\textquotedbl{}}/\code{\textquotedbl{}no\textquotedbl{}}); \code{value=} says which value is the event when it is not clear (\code{positive=} is accepted too). \code{against=} is the group the others are compared with (default: the first in sorted order, as R). Prints the risk in each group, then the risk difference with its interval and what it means out of 100 people, the number needed for one event fewer (or more), the risk ratio and the odds ratio, then the p-value (chi-square test with Yates' correction, as R \code{prop.\allowbreak{}test()}). \code{p\_\allowbreak{}value\_\allowbreak{}by=\textquotedbl{}exact\textquotedbl{}}: Fisher's exact test and the conditional odds ratio (as R \code{fisher.\allowbreak{}test()}). \code{allowing\_\allowbreak{}for=\textquotedbl{}age\_\allowbreak{}group\textquotedbl{}}: the Mantel-Haenszel odds ratio and risk ratio, which allow for a third column, with the Breslow-Day check that the odds ratio is the same in each group. \code{same\_\allowbreak{}within=10}: are the risks the same within 10 percentage points (two one-sided tests)? \code{same\_\allowbreak{}within=10}, \code{not\_\allowbreak{}lower=\textquotedbl{}new medicine\textquotedbl{}}: non-inferiority (the risk in \code{\textquotedbl{}new medicine\textquotedbl{}} is not lower by more than 10 points; \code{not\_\allowbreak{}higher=} for an event that is bad, such as \code{\textquotedbl{}died\textquotedbl{}}). \code{interval=95} sets the level of every interval. Gives back one row per measure (estimate, interval, p-value, method). Routes: statsmodels \code{proportion\_\allowbreak{}confint}, \code{confint\_\allowbreak{}proportions\_\allowbreak{}2indep} (Newcombe), Table2x2, StratifiedTable, \code{tost\_\allowbreak{}proportions\_\allowbreak{}2indep}; SciPy \code{chi2\_\allowbreak{}contingency}, \code{fisher\_\allowbreak{}exact}; R epiR for the interval of the Mantel-Haenszel risk ratio.
 
 \wordfield{Options}{}\par\nopagebreak
 \begin{optiontable}
-\code{outcome=} & \\
+\code{column=} & \\
 \code{for\_\allowbreak{}each=} & \\
 \code{against=} & \\
-\code{positive=} & \\
+\code{value=} & \\
 \code{allowing\_\allowbreak{}for=} & \\
 \code{interval=} & normally \code{95}\\
 \code{p\_\allowbreak{}value\_\allowbreak{}by=} & normally \code{\textquotedbl{}formula\textquotedbl{}}\\
 \code{same\_\allowbreak{}within=} & \\
+\code{not\_\allowbreak{}lower=} & \\
+\code{not\_\allowbreak{}higher=} & \\
 \code{sides=} & normally \code{2}\\
 \code{higher=} & \\
 \code{lower=} & \\
@@ -7076,7 +7156,7 @@ table.compare_risks("died", for_each="treatment", against="usual care")
 Do events happen more often per unit of time in one group than in another?
 
 \codeline{table.compare\_rates(\textquotedbl{}infections\textquotedbl{}, time=\textquotedbl{}patient\_days\textquotedbl{}, for\_each=\textquotedbl{}ward\textquotedbl{}, against=\textquotedbl{}ward A\textquotedbl{})}\\
-(with \code{sdata.\allowbreak{}example(\textquotedbl{}clinic\textquotedbl{})}). events: a column of counts; \code{time=}: the time each row was followed (days, years). Adds them up per group and prints each rate per 1000 units of time (\code{per=}) with its exact interval, then the rate ratio with the exact conditional test (statsmodels \code{test\_\allowbreak{}poisson\_\allowbreak{}2indep}, as R \code{poisson.\allowbreak{}test()}) and R's exact interval of the ratio (simplydata[r]; without R the interval is left out with a note). \code{same\_\allowbreak{}within=1.\allowbreak{}25}: are the rates the same within a ratio of 0.8 to 1.25 (two one-sided exact tests)? With \code{sides=1} and \code{higher=} or \code{lower=}: non-inferiority. Gives back one row per measure.
+(with \code{sdata.\allowbreak{}example(\textquotedbl{}clinic\textquotedbl{})}). events: a column of counts; \code{time=}: the time each row was followed (days, years). Adds them up per group and prints each rate per 1000 units of time (\code{per=}) with its exact interval, then the rate ratio with the exact conditional test (statsmodels \code{test\_\allowbreak{}poisson\_\allowbreak{}2indep}, as R \code{poisson.\allowbreak{}test()}) and R's exact interval of the ratio (simplydata[r]; without R the interval is left out with a note). \code{same\_\allowbreak{}within=[0.\allowbreak{}8,\allowbreak{} 1.\allowbreak{}25]}: are the rates the same within a rate ratio of 0.8 to 1.25 (two one-sided exact tests)? \code{same\_\allowbreak{}within=1.\allowbreak{}25} means the same. With \code{not\_\allowbreak{}lower=\textquotedbl{}ward B\textquotedbl{}} (or \code{not\_\allowbreak{}higher=}): non-inferiority, the rate ratio not below (or above) the margin. Gives back one row per measure: each rate (columns \code{\textquotedbl{}rate\textquotedbl{}}, its interval, and \code{\textquotedbl{}per\textquotedbl{}}), then the rate ratio.
 
 \wordfield{Options}{}\par\nopagebreak
 \begin{optiontable}
@@ -7087,6 +7167,8 @@ Do events happen more often per unit of time in one group than in another?
 \code{per=} & normally \code{1000}\\
 \code{interval=} & normally \code{95}\\
 \code{same\_\allowbreak{}within=} & \\
+\code{not\_\allowbreak{}lower=} & \\
+\code{not\_\allowbreak{}higher=} & \\
 \code{sides=} & normally \code{2}\\
 \code{higher=} & \\
 \code{lower=} & \\
@@ -7104,7 +7186,7 @@ table.compare_rates("infections", time="patient_days", for_each="ward", against=
 How often do events happen per unit of time, such as infections per 1000 patient-days?
 
 \codeline{table.rate\_of(\textquotedbl{}infections\textquotedbl{}, time=\textquotedbl{}patient\_days\textquotedbl{}, for\_each=\textquotedbl{}ward\textquotedbl{})} (with \code{sdata.\allowbreak{}example(\textquotedbl{}clinic\textquotedbl{})})\\
-Adds up the events and the time (in each group), and gives the rate per 1000 units of time (\code{per=} changes it) with its exact 95 \% interval (statsmodels \code{confint\_\allowbreak{}poisson} \code{\textquotedbl{}exact-c\textquotedbl{}}, as R \code{poisson.\allowbreak{}test()}). Gives back one row per group.
+Adds up the events and the time (in each group), and gives the rate per 1000 units of time (\code{per=} changes it) with its exact 95 \% interval (statsmodels \code{confint\_\allowbreak{}poisson} \code{\textquotedbl{}exact-c\textquotedbl{}}, as R \code{poisson.\allowbreak{}test()}). Gives back one row per group, with the columns \code{\textquotedbl{}rate\textquotedbl{}}, \code{\textquotedbl{}rate 95 \% CI low/high\textquotedbl{}} and \code{\textquotedbl{}per\textquotedbl{}} (such as \code{\textquotedbl{}1000 patient\_\allowbreak{}days\textquotedbl{}}).
 
 \wordfield{Options}{}\par\nopagebreak
 \begin{optiontable}
@@ -7125,18 +7207,20 @@ table.rate_of("infections", time="patient_days", for_each="ward")
 \wordentry{sdata.compare\_risks()}{word:sdata.compare-risks}
 How much more (or less) often does something happen in one group than another? From counts.
 
-\codeline{sdata.compare\_risks(events=[20, 30], out\_of=[60, 60], groups=[\textquotedbl{}new\textquotedbl{}, \textquotedbl{}usual\textquotedbl{}], against=\textquotedbl{}usual\textquotedbl{})}\\
-events: how many had the event in each group; \code{out\_\allowbreak{}of}: how many there were. Prints the same answer as \code{table.\allowbreak{}compare\_\allowbreak{}risks} (risks, risk difference, number needed to treat, risk ratio, odds ratio, p-value; \code{same\_\allowbreak{}within=} for equivalence). Gives back one row per measure.
+\codeline{sdata.compare\_risks(events=[20, 30], out\_of=[60, 60], names=[\textquotedbl{}new\textquotedbl{}, \textquotedbl{}usual\textquotedbl{}], against=\textquotedbl{}usual\textquotedbl{})}\\
+events: how many had the event in each group; \code{out\_\allowbreak{}of}: how many there were; names: the groups (default \code{\textquotedbl{}group 1\textquotedbl{}}, \code{\textquotedbl{}group 2\textquotedbl{}}, ...). Prints the same answer as \code{table.\allowbreak{}compare\_\allowbreak{}risks} (risks, risk difference, number needed for one event fewer or more, risk ratio, odds ratio, p-value; \code{same\_\allowbreak{}within=} for equivalence, with \code{not\_\allowbreak{}lower=} or \code{not\_\allowbreak{}higher=} for non-inferiority). Gives back one row per measure.
 
 \wordfield{Options}{}\par\nopagebreak
 \begin{optiontable}
 \code{events=} & \\
 \code{out\_\allowbreak{}of=} & \\
-\code{groups=} & \\
+\code{names=} & \\
 \code{against=} & \\
 \code{interval=} & normally \code{95}\\
 \code{p\_\allowbreak{}value\_\allowbreak{}by=} & normally \code{\textquotedbl{}formula\textquotedbl{}}\\
 \code{same\_\allowbreak{}within=} & \\
+\code{not\_\allowbreak{}lower=} & \\
+\code{not\_\allowbreak{}higher=} & \\
 \code{sides=} & normally \code{2}\\
 \code{higher=} & \\
 \code{lower=} & \\
@@ -7147,23 +7231,25 @@ events: how many had the event in each group; \code{out\_\allowbreak{}of}: how m
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
-sdata.compare_risks(events=[20, 30], out_of=[60, 60], groups=["new", "usual"], against="usual")
+sdata.compare_risks(events=[20, 30], out_of=[60, 60], names=["new", "usual"], against="usual")
 \end{lstlisting}
 \wordentry{sdata.compare\_rates()}{word:sdata.compare-rates}
 Do events happen more often per unit of time in one group than another? From counts and times.
 
-\codeline{sdata.compare\_rates(events=[15, 30], time=[1200, 1100], groups=[\textquotedbl{}ward A\textquotedbl{}, \textquotedbl{}ward B\textquotedbl{}])}\\
-events: the number of events in each group; time: the time followed (such as patient-days). Prints the same answer as \code{table.\allowbreak{}compare\_\allowbreak{}rates}. Gives back one row per measure.
+\codeline{sdata.compare\_rates(events=[15, 30], time=[1200, 1100], names=[\textquotedbl{}ward A\textquotedbl{}, \textquotedbl{}ward B\textquotedbl{}])}\\
+events: the number of events in each group; time: the time followed (such as patient-days); names: the groups. Prints the same answer as \code{table.\allowbreak{}compare\_\allowbreak{}rates} (\code{same\_\allowbreak{}within=[0.\allowbreak{}8,\allowbreak{} 1.\allowbreak{}25]} for equivalence of the rate ratio, with \code{not\_\allowbreak{}lower=} or \code{not\_\allowbreak{}higher=} for non-inferiority). Gives back one row per measure.
 
 \wordfield{Options}{}\par\nopagebreak
 \begin{optiontable}
 \code{events=} & \\
 \code{time=} & \\
-\code{groups=} & \\
+\code{names=} & \\
 \code{against=} & \\
 \code{per=} & normally \code{1000}\\
 \code{interval=} & normally \code{95}\\
 \code{same\_\allowbreak{}within=} & \\
+\code{not\_\allowbreak{}lower=} & \\
+\code{not\_\allowbreak{}higher=} & \\
 \code{sides=} & normally \code{2}\\
 \code{higher=} & \\
 \code{lower=} & \\
@@ -7174,7 +7260,7 @@ events: the number of events in each group; time: the time followed (such as pat
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
-sdata.compare_rates(events=[15, 30], time=[1200, 1100], groups=["ward A", "ward B"])
+sdata.compare_rates(events=[15, 30], time=[1200, 1100], names=["ward A", "ward B"])
 \end{lstlisting}
 \unsection{Diagnostic tests}{group:Diagnostic-tests}
 \wordentry{table.compare\_to\_truth()}{word:table.compare-to-truth}
@@ -7228,7 +7314,7 @@ table.compare_accuracy("crp", "procalcitonin", truth="infected")
 How well does a test find what is really there? From the four counts, or from percents.
 
 \codeline{sdata.compare\_to\_truth(found=45, missed=5, false\_alarms=30, correct\_negatives=920)}\\
-found: positive and has it; missed: negative but has it; \code{false\_\allowbreak{}alarms}: positive but does not have it; \code{correct\_\allowbreak{}negatives}: negative and does not have it. Prints the same answer as \code{table.\allowbreak{}compare\_\allowbreak{}to\_\allowbreak{}truth} (sensitivity, specificity, predictive values, likelihood ratios).\\
+found: positive and has it; missed: negative but has it; \code{false\_\allowbreak{}alarms}: positive but does not have it; \code{correct\_\allowbreak{}negatives}: negative and does not have it (\code{tp=}, \code{fn=}, \code{fp=}, \code{tn=} and \code{true\_\allowbreak{}positives=} ... \code{true\_\allowbreak{}negatives=} are accepted too). Prints the same answer as \code{table.\allowbreak{}compare\_\allowbreak{}to\_\allowbreak{}truth} (sensitivity, specificity, predictive values, likelihood ratios).\\
 \codeline{sdata.compare\_to\_truth(sensitivity=90, specificity=95, prevalence=1): no counts, so no}\\
 intervals; it prints how many of 1000 people like these test positive, and how many of those really have it (display arithmetic). Gives back one row per measure.
 
@@ -7282,16 +7368,16 @@ chart.save("trade_off_curve.png")
 How well do two or more raters (or devices) agree on the same rows?
 
 \codeline{table.agreement\_between(\textquotedbl{}nurse\_rating\textquotedbl{}, \textquotedbl{}doctor\_rating\textquotedbl{})} (with \code{sdata.\allowbreak{}example(\textquotedbl{}clinic\textquotedbl{})})\\
-Each column holds one rater's answers for the same rows. The kind of column decides, and the sentence says which: categories, 2 columns: Cohen's kappa (statsmodels, as R irr::\code{kappa2()}), with the raw agreement beside it; \code{weights=\textquotedbl{}linear\textquotedbl{}} or \code{\textquotedbl{}quadratic\textquotedbl{}} counts near misses as partly right (ordered categories: give \code{in\_\allowbreak{}order=[\textquotedbl{}mild\textquotedbl{},\allowbreak{} \textquotedbl{}moderate\textquotedbl{},\allowbreak{} \textquotedbl{}severe\textquotedbl{}]}); categories, 3 or more columns: Fleiss' kappa (statsmodels; its p-value from R irr); numbers: the intraclass correlation (ICC) from R irr::\code{icc()}: by default two-way, absolute agreement, one rater (\code{raters=\textquotedbl{}fixed\textquotedbl{}} or \code{\textquotedbl{}different\textquotedbl{}}, \code{kind=\textquotedbl{}consistency\textquotedbl{}}, \code{of=\textquotedbl{}average of raters\textquotedbl{}} choose another form, and the form is always named). \code{method=\textquotedbl{}krippendorff\textquotedbl{}}: Krippendorff's alpha (R irr::\code{kripp.\allowbreak{}alpha()}); \code{method=\textquotedbl{}lin\textquotedbl{}}: Lin's concordance correlation for two columns of numbers (R DescTools::\code{CCC()}). Rows with an empty cell are skipped. Gives back a one-row table.
+Each column holds one rater's answers for the same rows. The kind of column decides, and the sentence says which: categories, 2 columns: Cohen's kappa (statsmodels, as R irr::\code{kappa2()}), with the raw agreement beside it; \code{near\_\allowbreak{}misses=\textquotedbl{}linear\textquotedbl{}} or \code{\textquotedbl{}quadratic\textquotedbl{}} counts near misses as partly right (ordered categories: give \code{in\_\allowbreak{}order=[\textquotedbl{}mild\textquotedbl{},\allowbreak{} \textquotedbl{}moderate\textquotedbl{},\allowbreak{} \textquotedbl{}severe\textquotedbl{}]}); categories, 3 or more columns: Fleiss' kappa (statsmodels; its p-value from R irr); numbers: the intraclass correlation (ICC) from R irr::\code{icc()}: by default two-way, absolute agreement, one rater, the raters a sample of many possible raters (\code{raters=\textquotedbl{}these only\textquotedbl{}} or \code{\textquotedbl{}different per row\textquotedbl{}}, \code{kind=\textquotedbl{}consistency\textquotedbl{}}, \code{of=\textquotedbl{}average of raters\textquotedbl{}} choose another form, and the form is always named). \code{method=\textquotedbl{}krippendorff\textquotedbl{}}: Krippendorff's alpha (R irr::\code{kripp.\allowbreak{}alpha()}); \code{method=\textquotedbl{}lin\textquotedbl{}}: Lin's concordance correlation for two columns of numbers (R DescTools::\code{CCC()}). Rows with an empty cell are skipped. Gives back a one-row table.
 
 \wordfield{Options}{}\par\nopagebreak
 \begin{optiontable}
 \code{columns.\allowbreak{}.\allowbreak{}.\allowbreak{}} & as many as you like, separated by commas\\
 \code{method=} & \\
-\code{weights=} & \\
+\code{near\_\allowbreak{}misses=} & \\
 \code{in\_\allowbreak{}order=} & \\
 \code{interval=} & normally \code{95}\\
-\code{raters=} & normally \code{\textquotedbl{}random\textquotedbl{}}\\
+\code{raters=} & normally \code{\textquotedbl{}a sample\textquotedbl{}}\\
 \code{kind=} & normally \code{\textquotedbl{}agreement\textquotedbl{}}\\
 \code{of=} & normally \code{\textquotedbl{}one rater\textquotedbl{}}\\
 \end{optiontable}
@@ -7308,7 +7394,7 @@ table.agreement_between("device_a", "device_b")
 How far apart are two ways of measuring the same thing (Bland-Altman limits of agreement)?
 
 \codeline{table.limits\_of\_agreement(\textquotedbl{}device\_a\textquotedbl{}, \textquotedbl{}device\_b\textquotedbl{})} (with \code{sdata.\allowbreak{}example(\textquotedbl{}clinic\textquotedbl{})})\\
-Each row is one thing measured both ways. Prints how much the first reads higher or lower on average, and the limits within which 95 \% of the differences lie (average difference plus and minus 1.96 standard deviations), each with its interval (R BlandAltmanLeh::\code{bland.\allowbreak{}altman.\allowbreak{}stats()}, simplydata[r]), and Lin's concordance correlation (R DescTools::\code{CCC()}). Whether the limits are close enough is a question for the field, not for statistics. \code{chart.\allowbreak{}difference\_\allowbreak{}dots(x=.\allowbreak{}.\allowbreak{}.\allowbreak{},\allowbreak{} y=.\allowbreak{}.\allowbreak{}.\allowbreak{})} draws it. Gives back a one-row table.
+Each row is one thing measured both ways. Prints how much the first reads higher or lower on average, and the limits within which 95 \% of the differences lie (average difference plus and minus 1.96 standard deviations), each with its interval (R BlandAltmanLeh::\code{bland.\allowbreak{}altman.\allowbreak{}stats()}, simplydata[r]), and Lin's concordance correlation (R DescTools::\code{CCC()}). Whether the limits are close enough is a question for the field, not for statistics. \code{chart.\allowbreak{}difference\_\allowbreak{}dots(first=.\allowbreak{}.\allowbreak{}.\allowbreak{},\allowbreak{} second=.\allowbreak{}.\allowbreak{}.\allowbreak{})} draws it. Gives back a one-row table.
 
 \wordfield{Options}{}\par\nopagebreak
 \begin{optiontable}
@@ -7327,7 +7413,7 @@ table.limits_of_agreement("device_a", "device_b")
 \wordentry{table.reliability\_of()}{word:table.reliability-of}
 Do the items of a questionnaire hang together (Cronbach's alpha)?
 
-\codeline{table.reliability\_of([\textquotedbl{}q1\textquotedbl{}, \textquotedbl{}q2\textquotedbl{}, \textquotedbl{}q3\textquotedbl{}, \textquotedbl{}q4\textquotedbl{}, \textquotedbl{}q5\textquotedbl{}])} (with \code{sdata.\allowbreak{}example(\textquotedbl{}clinic\textquotedbl{})})\\
+\codeline{table.reliability\_of([\textquotedbl{}item\_1\textquotedbl{}, \textquotedbl{}item\_2\textquotedbl{}, \textquotedbl{}item\_3\textquotedbl{}, \textquotedbl{}item\_4\textquotedbl{}, \textquotedbl{}item\_5\textquotedbl{}])} (with \code{sdata.\allowbreak{}example(\textquotedbl{}clinic\textquotedbl{})})\\
 Each column is one item (question), each row one person. Prints Cronbach's alpha with Feldt's interval and what alpha would be without each item (R psych::\code{alpha()} and psych::\code{alpha.\allowbreak{}ci()}, simplydata[r]). Alpha rises with the number of items and does not show that the items measure one thing. Gives back one row for alpha and one per item.
 
 \wordfield{Options}{}\par\nopagebreak
@@ -7341,19 +7427,19 @@ Each column is one item (question), each row one person. Prints Cronbach's alpha
 \begin{lstlisting}[style=py]
 import simplydata as sdata
 table = sdata.table(sdata.example("clinic"))
-table.reliability_of(["q1", "q2", "q3", "q4", "q5"])
+table.reliability_of(["item_1", "item_2", "item_3", "item_4", "item_5"])
 \end{lstlisting}
 \wordentry{chart.difference\_dots()}{word:difference-dots}
 Do two ways of measuring agree? The difference of each pair against its average (Bland-Altman).\\
-\codeline{chart.difference\_dots(x=\textquotedbl{}device\_a\textquotedbl{}, y=\textquotedbl{}device\_b\textquotedbl{})} (with \code{sdata.\allowbreak{}example(\textquotedbl{}clinic\textquotedbl{})})
+\codeline{chart.difference\_dots(first=\textquotedbl{}device\_a\textquotedbl{}, second=\textquotedbl{}device\_b\textquotedbl{})} (with \code{sdata.\allowbreak{}example(\textquotedbl{}clinic\textquotedbl{})})
 
-One dot per row: along, the average of the two measurements; up, x minus y. The solid line is the average difference (does one read higher?), the dashed lines the limits of agreement, within which 95 \% of the differences lie (average plus and minus 1.96 standard deviations), each with its 95 \% interval shaded. The dots and the average come from statsmodels \code{mean\_\allowbreak{}diff\_\allowbreak{}plot}, the limits and their intervals from R BlandAltmanLeh::\code{bland.\allowbreak{}altman.\allowbreak{}stats()} (simplydata[r]), the same as\\
+One dot per row: along, the average of the two measurements; up, first minus second. The names are those of \code{table.\allowbreak{}limits\_\allowbreak{}of\_\allowbreak{}agreement(first,\allowbreak{} second)}. The solid line is the average difference (does one read higher?), the dashed lines the limits of agreement, within which 95 \% of the differences lie (average plus and minus 1.96 standard deviations), each with its 95 \% interval shaded. The dots and the average come from statsmodels \code{mean\_\allowbreak{}diff\_\allowbreak{}plot}, the limits and their intervals from R BlandAltmanLeh::\code{bland.\allowbreak{}altman.\allowbreak{}stats()} (simplydata[r]), the same as\\
 \codeline{table.limits\_of\_agreement(...).}
 
 \wordfield{Options}{}\par\nopagebreak
 \begin{optiontable}
-\code{x=} & \\
-\code{y=} & \\
+\code{first=} & \\
+\code{second=} & \\
 \code{transparency=} & \\
 \end{optiontable}
 
@@ -7363,7 +7449,7 @@ One dot per row: along, the average of the two measurements; up, x minus y. The 
 import simplydata as sdata
 clinic = sdata.example("clinic")
 chart = sdata.chart(clinic)
-chart.difference_dots(x="device_a", y="device_b")
+chart.difference_dots(first="device_a", second="device_b")
 chart.save("difference_dots.png")
 \end{lstlisting}
 \unsection{Fitting}{group:Fitting}
@@ -10505,30 +10591,38 @@ estimates.show()
 \solutionanswer{\code{values\_\allowbreak{}at} joins the months with a smooth curve and reads off each city at 6.5.}
 \par\noindent{\small\sffamily\hyperref[lesson:20]{Back to lesson 20}}
 \unsection{Lesson 21: Risks, diagnostic tests and agreement}{solutions:21}
-\solutiontask{1}{Compare the risk of \code{\textquotedbl{}infected\textquotedbl{}} between the wards, allowing for \code{\textquotedbl{}age\_\allowbreak{}group\textquotedbl{}}.}
+\solutiontask{1}{Compare the risk of \code{\textquotedbl{}infected\textquotedbl{}} between the wards, against \code{\textquotedbl{}ward A\textquotedbl{}}. Does the interval of the difference leave out 0?}
 \begin{lstlisting}[style=py]
 import simplydata as sdata
 table = sdata.table(sdata.example("clinic"))
-table.compare_risks("infected", for_each="ward", allowing_for="age_group")
+table.compare_risks("infected", for_each="ward", against="ward A")
 \end{lstlisting}
 \printedoutput{output/solution21_task1.txt}
-\solutionanswer{Mantel-Haenszel odds ratio 1.76 (0.911 to 3.40), about the same as 1.71 without allowing for age.}
-\solutiontask{2}{Is \code{\textquotedbl{}procalcitonin\textquotedbl{}} a worse test than \code{\textquotedbl{}crp\textquotedbl{}}? Compare the two scores on the same patients.}
+\solutionanswer{About 10 more in 100 in ward B, but the interval of the difference, -2.02 to 21.7 points, includes 0, so the data cannot tell (p = 0.142); the number needed runs through infinity.}
+\solutiontask{2}{How good is the rapid test where only 2 \% have the infection? Of the positive results, how many really have it?}
 \begin{lstlisting}[style=py]
 import simplydata as sdata
 table = sdata.table(sdata.example("clinic"))
-table.compare_accuracy("crp", "procalcitonin", truth="infected")
+table.compare_to_truth("rapid_test", truth="infected", prevalence=2)
 \end{lstlisting}
 \printedoutput{output/solution21_task2.txt}
-\solutionanswer{AUC 0.893 against 0.715, a difference of 0.177 (0.085 to 0.270); DeLong's test p = 0.0002.}
-\solutiontask{3}{Do the five questions \code{\textquotedbl{}q1\textquotedbl{}} to \code{\textquotedbl{}q5\textquotedbl{}} hang together? Work out their reliability.}
+\solutionanswer{Of 1000 people, 20 have it; the test finds 16 but 65 test positive by mistake, so only 16 of the 81 positives (about 1 in 5) are real.}
+\solutiontask{3}{Complete the started lines to draw the two ratios of task 1: risks = \code{table.\allowbreak{}compare\_\allowbreak{}risks(\textquotedbl{}infected\textquotedbl{},\allowbreak{} for\_\allowbreak{}each=\textquotedbl{}ward\textquotedbl{},\allowbreak{} against=\textquotedbl{}ward A\textquotedbl{})}, then \code{risks.\allowbreak{}keep\_\allowbreak{}rows(\textquotedbl{}measure\textquotedbl{},\allowbreak{} one\_\allowbreak{}of=[.\allowbreak{}.\allowbreak{}.\allowbreak{}])}, then chart = \code{risks.\allowbreak{}chart()} and \code{chart.\allowbreak{}forest\_\allowbreak{}plot(.\allowbreak{}.\allowbreak{}.\allowbreak{})}.}
 \begin{lstlisting}[style=py]
 import simplydata as sdata
 table = sdata.table(sdata.example("clinic"))
-table.reliability_of(["q1", "q2", "q3", "q4", "q5"])
+risks = table.compare_risks("infected", for_each="ward", against="ward A")
+risks.keep_rows("measure", one_of=["risk ratio", "odds ratio"])
+chart = risks.chart()
+chart.forest_plot(x="estimate", y="measure")
+chart.save("infected_ratios.png")
 \end{lstlisting}
 \printedoutput{output/solution21_task3.txt}
-\solutionanswer{Cronbach's alpha = 0.865 (0.833 to 0.893); leaving out any one question lowers it.}
+\begin{center}\begin{minipage}{\linewidth}\centering
+\includegraphics[width=0.52\textwidth,height=0.30\textheight,keepaspectratio]{figures/solution21_task3_infected_ratios.pdf}
+\captionof*{figure}{Lesson 21, task 3: \code{infected\_\allowbreak{}ratios.\allowbreak{}png}.}
+\end{minipage}\end{center}
+\solutionanswer{Both intervals cross the line at 1, as the interval of the difference includes 0.}
 \par\noindent{\small\sffamily\hyperref[lesson:21]{Back to lesson 21}}
 
 \backmatter
