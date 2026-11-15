@@ -147,13 +147,15 @@ UNDERNEATH = {
     "table.percentile_of": "narwhals (quantile with linear interpolation, as R quantile type 7)",
     "table.most_common_of": "narwhals (value counts per group)",
     "table.add_adjusted_p_value_column": "statsmodels (stats.multitest.multipletests: Holm, Bonferroni, "
-                                         "Benjamini-Hochberg and Benjamini-Yekutieli, as R p.adjust())",
+                                         "Benjamini-Hochberg, Benjamini-Yekutieli, Hochberg and Hommel, as R p.adjust())",
     "table.add_rows_from": "pandas (concat) or Polars (concat), whichever holds the table",
     "table.correlation_between": "SciPy (stats.pearsonr or stats.spearmanr)",
     "table.compare_averages": "SciPy (stats.ttest_ind with equal_var=False; mannwhitneyu, kruskal) and "
                               "statsmodels (stats.oneway.anova_oneway for Welch's ANOVA)",
-    "table.compare_each_pair": "SciPy (stats.ttest_ind or mannwhitneyu, tukey_hsd), with Holm's correction from "
-                               "statsmodels (multipletests)",
+    "table.compare_each_pair": "SciPy (stats.ttest_ind or mannwhitneyu, tukey_hsd, dunnett), with Holm's correction "
+                               "from statsmodels (multipletests); R rstatix::games_howell_test, "
+                               "DescTools::ScheffeTest and PostHocTest, FSA::dunnTest, "
+                               "PMCMRplus::kwAllPairsConoverTest (simplydata[r])",
     "table.compare_before_after": "SciPy (stats.ttest_rel or stats.wilcoxon); statsmodels (contingency_tables.mcnemar "
                                   "for yes/no columns, SquareTable.symmetry for categories, sign_test); R "
                                   "exact2x2::mcnemarExactDP for the change in percent (simplydata[r])",

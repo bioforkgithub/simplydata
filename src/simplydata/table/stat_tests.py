@@ -86,6 +86,7 @@ from .columns import (CONSTANTS, FORMULA_HELP, FUNCTION_SPELLINGS, FUNCTIONS, SP
                       _FormulaReader, _is_number, special_function)
 from .summaries import GROUPS_IN_SENTENCE as GROUPS_SHOWN
 from .effect_sizes import effect_size, interval_only, interval_text
+from .post_hoc import R_PAIR_TESTS, dunnett_pairs, r_pairs
 from .summaries import _key, _order, _p_clause, _p_sentence, _p_shown, _plain, _say_label
 
 BASED_ON = ("averages", "ranks")
@@ -98,7 +99,9 @@ RANK_TESTS = ("mann-whitney", "kruskal-wallis")
 TWO_GROUP_TESTS = ("welch", "student", "mann-whitney", "yuen", "brunner-munzel")
 COUNT_TESTS = ("chi-square", "fisher", "g", "barnard", "boschloo")
 EXACT_METHODS = {"barnard": "z-pooled", "boschloo": "boschloo"}  # R Exact::exact.test(method =)
-PAIR_TESTS = ("welch", "mann-whitney", "tukey")
+PAIR_TESTS = ("welch", "mann-whitney", "tukey", "games-howell", "scheffe", "lsd", "dunn", "conover")
+PAIR_ALIASES = {"games howell": "games-howell", "gameshowell": "games-howell", "scheffé": "scheffe",
+                "fisher": "lsd", "fisher's lsd": "lsd", "dunn's": "dunn", "conover-iman": "conover"}
 SPREAD_TESTS = ("levene", "bartlett", "fligner", "ansari", "mood", "f")
 TWO_GROUP_SPREAD_TESTS = ("ansari", "mood", "f")
 SPREAD_ALIASES = {"brown-forsythe": "levene", "brown forsythe": "levene", "fligner-killeen": "fligner",
@@ -130,6 +133,8 @@ ADJUST_METHODS = {
     "bonferroni": ("Bonferroni", "bonferroni"),
     "benjamini-hochberg": ("Benjamini-Hochberg", "BH"),
     "benjamini-yekutieli": ("Benjamini-Yekutieli", "BY"),
+    "hochberg": ("Hochberg", "hochberg"),
+    "hommel": ("Hommel", "hommel"),
 }
 ADJUST_ALIASES = {"bh": "benjamini-hochberg", "fdr": "benjamini-hochberg", "by": "benjamini-yekutieli",
                   "benjamini hochberg": "benjamini-hochberg", "benjamini yekutieli": "benjamini-yekutieli"}
@@ -140,6 +145,10 @@ ADJUST_MEANING = {
                           "(the false discovery rate)",
     "benjamini-yekutieli": "about 5 % of the findings below 0.05 are expected to be false alarms "
                            "(the false discovery rate), however the tests depend on each other",
+    "hochberg": "the chance of even one false alarm among all the tests stays at 5 % (when the tests do not "
+                "depend on each other in an unusual way)",
+    "hommel": "the chance of even one false alarm among all the tests stays at 5 % (when the tests do not depend "
+              "on each other in an unusual way)",
 }
 
 
@@ -199,7 +208,7 @@ def _skipped_note(skipped: int, names) -> None:
 
 # simplydata method name -> statsmodels multipletests method (the same numbers as R p.adjust())
 _MULTIPLETESTS = {"holm": "holm", "bonferroni": "bonferroni", "benjamini-hochberg": "fdr_bh",
-                  "benjamini-yekutieli": "fdr_by"}
+                  "benjamini-yekutieli": "fdr_by", "hochberg": "simes-hochberg", "hommel": "hommel"}
 
 
 def _adjust_p(p_values, method: str) -> np.ndarray:
@@ -855,7 +864,7 @@ class StatTestWords:
 
     # ------------------------------------------------------------------ compare_each_pair
     @friendly(renamed={"between": "for_each"})
-    def compare_each_pair(self, column=None, for_each=None, based_on="averages", test=None):
+    def compare_each_pair(self, column=None, for_each=None, based_on="averages", test=None, against=None, seed=1):
         """Which pairs of groups differ? Every pair is compared, with Holm's correction.
 
         table.compare_each_pair("marks", for_each="class")   (with sdata.example("marks"))
@@ -869,10 +878,36 @@ class StatTestWords:
         the textbook follow-up to a one-way ANOVA, with 95 % confidence intervals that hold
         for all pairs at once. It assumes the groups have the same spread; the default does
         not. test="welch" and test="mann-whitney" name the other two choices.
+        More follow-up tests, each run in R (simplydata[r]): test="games-howell" (like Tukey, but
+        for groups with different spreads; R rstatix::games_howell_test()), "scheffe" (R
+        DescTools::ScheffeTest()), "lsd" (Fisher's least significant difference, NOT adjusted for
+        the number of pairs; R DescTools::PostHocTest(method = "lsd")), and for ranks "dunn" (R
+        FSA::dunnTest(method = "holm")) and "conover" (R PMCMRplus::kwAllPairsConoverTest(
+        p.adjust.method = "holm")).
+        against="A" compares every group with one control group only: Dunnett's test (SciPy
+        stats.dunnett, as R multcomp::glht(mcp(group = "Dunnett"))), with intervals that hold for
+        all the comparisons at once. SciPy works it out with random numbers, so seed=1 is used
+        (printed); the last digit can differ from R's.
         """
         step = "compare_each_pair"
         example = 'with sdata.example("marks"): table.compare_each_pair("marks", for_each="class")'
         self._check_based_on(step, based_on)
+        if isinstance(test, str):
+            test = PAIR_ALIASES.get(test.strip().lower(), test.strip().lower())
+        if against is not None:
+            if test is not None or based_on != "averages":
+                raise SimplydataError("against= gives Dunnett's test on averages; leave out test= and based_on=.")
+            if isinstance(seed, bool) or not isinstance(seed, (int, np.integer)):
+                raise SimplydataError("seed= needs a whole number, such as seed=1.")
+            groups = self._groups(step, column, for_each, example)
+            return self._dunnett(column, for_each, groups, against, int(seed))
+        if test in R_PAIR_TESTS:
+            wanted = R_PAIR_TESTS[test][1]
+            if based_on == "ranks" and wanted == "averages":
+                raise SimplydataError(f'test="{test}" compares averages, but based_on="ranks" asks for ranks; for ranks '
+                                      'use test="dunn" or test="conover".')
+            groups = self._groups(step, column, for_each, example)
+            return self._r_pairs(column, for_each, groups, test)
         if test is not None:
             self._check_choice(step, "test", test, PAIR_TESTS)
             if based_on == "ranks" and test != "mann-whitney":
@@ -934,6 +969,44 @@ class StatTestWords:
                   f"{direction}; {words}.")
         for note in sorted(pair_notes - {""}):
             print(note.replace("rank-biserial correlation and its", "the rank-biserial correlation of each pair and its"))
+        frame = nw.from_dict({key: [r[key] for r in rows] for key in rows[0]}, backend=self._frame.implementation)
+        return self._new_table(frame)
+
+    def _pair_lines(self, rows, p_name, adjusted):
+        for row in rows:
+            if "difference" in row:
+                diff, word = row["difference"], "average"
+            else:
+                diff, word = row["difference in medians"], "median"
+            interval = ""
+            if "difference 95 % CI low" in row:
+                interval = (f" (95 % CI {_num(row['difference 95 % CI low'])} to "
+                            f"{_num(row['difference 95 % CI high'])})")
+            print(f"  {row['group 1']} vs {row['group 2']}: the {word} of {row['group 1']} is {_num(abs(diff))} "
+                  f"{'higher' if diff > 0 else 'lower'}{interval}; {adjusted}{_p_shown(row[p_name])}.")
+
+    def _r_pairs(self, column, for_each, groups, test):
+        """compare_each_pair(test="games-howell" | "scheffe" | "lsd" | "dunn" | "conover"), run in R."""
+        rows = r_pairs(test, groups)
+        title, based_on, r_name, meaning = R_PAIR_TESTS[test]
+        pairs = "pair" if len(rows) == 1 else "pairs"
+        print(f'Each pair of "{for_each}" groups compared on "{column}" with {title}, run in R as {r_name}: '
+              f"{len(rows)} {pairs}; {meaning}.")
+        p_name = "p-value" if test == "lsd" else "p-value (adjusted)"
+        self._pair_lines(rows, p_name, "" if test == "lsd" else
+                         ("Holm-adjusted " if test in ("dunn", "conover") else "adjusted "))
+        frame = nw.from_dict({key: [r[key] for r in rows] for key in rows[0]}, backend=self._frame.implementation)
+        return self._new_table(frame)
+
+    def _dunnett(self, column, for_each, groups, against, seed):
+        """compare_each_pair(against=): Dunnett's test, SciPy stats.dunnett."""
+        rows = dunnett_pairs(groups, against, seed)
+        others = "group" if len(rows) == 1 else "groups"
+        print(f'Each "{for_each}" group compared on "{column}" with the control group "{against}" ({len(rows)} {others}) '
+              "with Dunnett's test, as R multcomp::glht(mcp(group = \"Dunnett\")): the p-values and 95 % intervals hold "
+              "for all the comparisons at once, so the chance of any false alarm stays at 5 %. SciPy stats.dunnett "
+              f"works this out with random numbers (seed {seed}); the last digit can differ from R's.")
+        self._pair_lines(rows, "p-value (adjusted)", "adjusted ")
         frame = nw.from_dict({key: [r[key] for r in rows] for key in rows[0]}, backend=self._frame.implementation)
         return self._new_table(frame)
 
@@ -2068,7 +2141,9 @@ class StatTestWords:
         promise, simpler and stricter. "benjamini-hochberg" (also "bh" or "fdr"): about 5 %
         of the findings below 0.05 are expected to be false alarms (the false discovery
         rate); it finds more with many tests. "benjamini-yekutieli" ("by"): a false
-        discovery rate that is safe however the tests depend on each other.
+        discovery rate that is safe however the tests depend on each other. "hochberg" and
+        "hommel": the same promise as Holm, a little stronger, when the tests do not depend on
+        each other in an unusual way (statsmodels multipletests, as R p.adjust()).
         from_column= is the column of p-values ("p-value" in simplydata result tables).
         Without a name the new column is called, for example, "p-value (Holm)". Empty
         cells stay empty and are not counted, as R p.adjust().

@@ -38,7 +38,7 @@ def marks():
 
 
 # The R packages simplydata calls (also installed in CI, .github/workflows/tests.yml)
-R_PACKAGES = ("survival", "vegan", "mice", "effectsize", "pwr", "Exact", "exact2x2", "nortest", "BSDA")
+R_PACKAGES = ("survival", "vegan", "mice", "effectsize", "pwr", "Exact", "exact2x2", "nortest", "BSDA", "rstatix", "DescTools", "FSA", "PMCMRplus")
 
 
 @pytest.fixture

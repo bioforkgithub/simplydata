@@ -77,6 +77,19 @@ nothing is computed anew.
   can be `"exact"` (Clopper-Pearson, the default), `"wilson"` or `"agresti-coull"` (statsmodels
   `proportion_confint`, as R `DescTools::BinomCI`).
 
+### Pairs after a test
+
+- `compare_each_pair(..., test=)` gains `"games-howell"` (R `rstatix::games_howell_test`, for groups
+  with different spreads, with simultaneous intervals), `"scheffe"` and `"lsd"` (R
+  `DescTools::ScheffeTest`, `PostHocTest(method = "lsd")`; LSD is not adjusted and says so), and for
+  ranks `"dunn"` (R `FSA::dunnTest(method = "holm")`) and `"conover"` (R
+  `PMCMRplus::kwAllPairsConoverTest`, Holm).
+- `compare_each_pair(..., against="A")`: Dunnett's test of every group against one control group
+  (SciPy `stats.dunnett`, as R `multcomp::glht(mcp(group = "Dunnett"))`; both use random numbers,
+  so simplydata seeds SciPy's, `seed=1`, printed).
+- `add_adjusted_p_value_column(method=)` gains `"hochberg"` and `"hommel"` (statsmodels
+  `multipletests`, as R `p.adjust`).
+
 ### Yes/no and category columns before and after
 
 `compare_before_after` now looks at the kind of column, and the sentence says which test that
