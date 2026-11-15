@@ -96,7 +96,7 @@ the manual for each lesson and word, and the answers at the back.
 ## Manual
 
 **[The simplydata manual (PDF)](https://github.com/bioforkgithub/simplydata/blob/main/docs/manual/simplydata_manual.pdf)** has everything in one book:
-all twenty lessons with the real charts and output they make, every word explained (its options,
+all twenty-one lessons with the real charts and output they make, every word explained (its options,
 an example you can run and the library that does the work underneath), the data science ideas
 behind the numbers (average or median, standard deviation or standard error, confidence intervals,
 p-values, effect sizes, and which statistical test to use when), and a worked solution for every
