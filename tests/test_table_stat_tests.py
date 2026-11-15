@@ -356,9 +356,11 @@ def test_small_counts_note_suggests_fisher_and_never_switches(engine, capsys):
     assert "below 5" not in capsys.readouterr().out
 
 
-def test_fisher_needs_two_by_two(marks):
-    with pytest.raises(SimplydataError, match="2 x 2"):
-        make_table(with_result(marks)).compare_counts("result", for_each="class", test="fisher")
+def test_fisher_on_a_bigger_table_uses_seeded_random_tables(marks, capsys):
+    # S1: Fisher on tables bigger than 2 x 2 gives its p-value from 100,000 seeded random tables (SciPy);
+    # its agreement with R fisher.test() is checked in test_s1_part_a2.py
+    make_table(with_result(marks)).compare_counts("result", for_each="class", test="fisher")
+    assert "100,000 random tables" in capsys.readouterr().out
 
 
 # ---------------------------------------------------------------- fit_straight_line

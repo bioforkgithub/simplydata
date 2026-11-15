@@ -9,6 +9,7 @@ from .accuracy_words import AccuracyWords
 from .agreement_words import AgreementWords
 from .between import BetweenWords
 from .columns import ColumnWords
+from .correlation_words import CorrelationWords
 from .distribution_words import DistributionTableWords
 from .fitting import FittingWords
 from .models import ModelWords
@@ -22,7 +23,7 @@ from .summaries import SummaryWords
 from .survival import SurvivalWords
 
 
-class Table(PositionWords, RowWords, ColumnWords, SummaryWords, StatTestWords, MoreTestWords, RiskWords, AccuracyWords, AgreementWords, FittingWords, ModelWords, PatternWords, SurvivalWords,
+class Table(PositionWords, RowWords, ColumnWords, SummaryWords, StatTestWords, MoreTestWords, RiskWords, AccuracyWords, AgreementWords, CorrelationWords, FittingWords, ModelWords, PatternWords, SurvivalWords,
             BetweenWords, DistributionTableWords, BaseTable):
     """A table. Make one with sdata.table(...), then add steps: table.keep_rows(...), table.sort_by(...)."""
 

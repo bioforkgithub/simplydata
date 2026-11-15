@@ -140,6 +140,36 @@ nothing is computed anew.
   average of that width (R `presize::prec_mean`).
 - `based_on="ranks"` says plainly that no package gives rank-test power.
 
+### More from Part A: shifts, trends, bigger tables, correlations
+
+- `compare_averages(..., based_on="ranks")` with two groups also prints the Hodges-Lehmann shift
+  with its 95 % interval (R `wilcox.test(conf.int = TRUE)`, the same exact/approximate choice as
+  the test).
+- `compare_average_to(..., test="z", standard_deviation=15)`: the z-test with a known standard
+  deviation (R `BSDA::z.test()`; statsmodels' ztest uses the sample's own spread).
+- `compare_averages(..., test="jonckheere", in_order=[...])`: the Jonckheere-Terpstra trend test
+  (statsmodels, as R `clinfun::jonckheere.test()`; tie handling differs slightly).
+- `compare_matched(..., test="page")`: Page's trend test along the column order (SciPy, as R
+  `crank::page.trend.test()`).
+- `compare_counts`: `test="trend", in_order=[...]` (Cochran-Armitage, R `prop.trend.test()`);
+  `test="fisher"` on bigger tables (100,000 seeded random tables in SciPy; `p_value_by="exact"`
+  counts every table in R `fisher.test()`); `p_value_by="shuffling"` for the chi-square test
+  (SciPy, as R `chisq.test(simulate.p.value = TRUE)`); `show="cells"` with the standardized
+  residuals (statsmodels, as R `chisq.test()$stdres`).
+- `compare_each_pair(..., matched_by="patient")`: each pair compared within the same patients
+  (paired t-tests, or Wilcoxon signed-rank with `based_on="ranks"`, Holm-adjusted; as R
+  `pairwise.t.test(paired = TRUE)` / `pairwise.wilcox.test(paired = TRUE)`).
+- `correlation_between` with two columns now prints every r with its 95 % interval: Pearson from
+  SciPy, Spearman and Kendall from R `DescTools` (Fisher's z). New `method="somers"` and
+  `method="gamma"` (R `DescTools::SomersDelta()`, `GoodmanKruskalGamma()`, with intervals) and
+  `allowing_for="height"` for the partial correlation (R `ppcor::pcor.test()`).
+- New `table.compare_correlations(...)`: two correlations in two groups (Fisher's z) or two
+  correlations that share a column (Steiger's z), with Zou's interval (R `cocor`).
+- `count_each(..., interval=95)`: simultaneous Sison-Glaz intervals for the percents (statsmodels,
+  as R `DescTools::MultinomCI()`).
+- `show_rows_with_outliers` / `remove_rows_with_outliers(rule="grubbs" | "dixon" | "rosner")`:
+  outlier tests from R `outliers` and `EnvStats`.
+
 ### Risks and rates
 
 - `table.compare_risks("died", for_each="treatment", against="usual care")`: the risk in each group

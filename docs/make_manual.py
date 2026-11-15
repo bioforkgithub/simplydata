@@ -162,22 +162,29 @@ UNDERNEATH = {
                                          "Benjamini-Hochberg, Benjamini-Yekutieli, Hochberg and Hommel, as R p.adjust())",
     "table.add_rows_from": "pandas (concat) or Polars (concat), whichever holds the table",
     "table.correlation_between": "SciPy (stats.pearsonr, spearmanr or kendalltau; permutation_test and bootstrap "
-                                 "for p_value_by=\"shuffling\" and interval_by=\"bootstrap\")",
+                                 "for p_value_by=\"shuffling\" and interval_by=\"bootstrap\"); R DescTools (SpearmanRho, "
+                                 "KendallTauB, SomersDelta, GoodmanKruskalGamma) for intervals and ppcor::pcor.test for "
+                                 "allowing_for= (simplydata[r])",
+    "table.compare_correlations": "SciPy (stats.pearsonr); R cocor (cocor.indep.groups, cocor.dep.groups.overlap; "
+                                  "simplydata[r])",
     "table.compare_averages": "SciPy (stats.ttest_ind with equal_var=False; mannwhitneyu, kruskal) and "
                               "statsmodels (stats.oneway.anova_oneway for Welch's ANOVA; weightstats.ttost_ind "
-                              "and CompareMeans for same_within=); SciPy permutation_test for p_value_by=\"shuffling\"",
+                              "and CompareMeans for same_within=; nonparametric.jonckheere_terpstra); SciPy "
+                              "permutation_test for p_value_by=\"shuffling\"; R wilcox.test for the Hodges-Lehmann "
+                              "shift (simplydata[r])",
     "table.compare_each_pair": "SciPy (stats.ttest_ind or mannwhitneyu, tukey_hsd, dunnett), with Holm's correction "
                                "from statsmodels (multipletests); R rstatix::games_howell_test, "
                                "DescTools::ScheffeTest and PostHocTest, FSA::dunnTest, "
                                "PMCMRplus::kwAllPairsConoverTest and multcompView::multcompLetters for "
-                               "show=\"letters\" (simplydata[r])",
+                               "show=\"letters\" (simplydata[r]); SciPy ttest_rel and wilcoxon for matched_by=",
     "table.compare_before_after": "SciPy (stats.ttest_rel or stats.wilcoxon); statsmodels (contingency_tables.mcnemar "
                                   "for yes/no columns, SquareTable.symmetry for categories, sign_test); R "
                                   "exact2x2::mcnemarExactDP for the change in percent (simplydata[r]); "
                                   "statsmodels ttost_paired for same_within=; SciPy permutation_test for "
                                   "p_value_by=\"shuffling\"",
     "table.compare_matched": "SciPy (stats.friedmanchisquare); statsmodels (contingency_tables.cochrans_q for yes/no "
-                             "columns); R stats::quade.test and effectsize::kendalls_w (simplydata[r])",
+                             "columns); SciPy page_trend_test; R stats::quade.test and effectsize::kendalls_w "
+                             "(simplydata[r])",
     "table.compare_shapes": "SciPy (stats.ks_2samp; stats.anderson_ksamp with a PermutationMethod); R ks.test for "
                             "the exact p-value with tied values (simplydata[r])",
     "table.compare_to_random_order": "statsmodels (sandbox.stats.runs.Runs, runs_test, as runstest_1samp)",
@@ -204,9 +211,18 @@ UNDERNEATH = {
     "table.limits_of_agreement": "R BlandAltmanLeh::bland.altman.stats and DescTools::CCC (simplydata[r])",
     "table.reliability_of": "R psych::alpha and psych::alpha.ci (simplydata[r])",
     "table.compare_average_to": "SciPy (stats.ttest_1samp or stats.wilcoxon); statsmodels "
-                                "(DescrStatsW.ttost_mean for same_within=)",
-    "table.compare_counts": "SciPy (stats.chi2_contingency, or fisher_exact with test=\"fisher\"; "
-                            "contingency.association for Cramer's V)",
+                                "(DescrStatsW.ttost_mean for same_within=); R BSDA::z.test for test=\"z\" (simplydata[r])",
+    "table.compare_counts": "SciPy (stats.chi2_contingency, or fisher_exact with test=\"fisher\", with a seeded "
+                            "MonteCarloMethod for bigger tables; contingency.association for Cramer's V); statsmodels "
+                            "Table.standardized_resids for show=\"cells\"; R fisher.test and prop.trend.test "
+                            "(simplydata[r])",
+    "table.show_rows_with_outliers": "narwhals (quartiles, average and standard deviation per group); R "
+                                     "outliers::grubbs.test, dixon.test and EnvStats::rosnerTest for the test rules "
+                                     "(simplydata[r])",
+    "table.remove_rows_with_outliers": "narwhals, as show_rows_with_outliers; R outliers and EnvStats for the test "
+                                       "rules (simplydata[r])",
+    "table.count_each": "narwhals (counts per value); statsmodels (multinomial_proportions_confint, Sison-Glaz, for "
+                        "interval=)",
     "table.compare_shape_to": "SciPy (stats.shapiro for normal, normaltest, jarque_bera, ks_1samp, cramervonmises; "
                               "for other shapes stats.goodness_of_fit, Anderson-Darling with a Monte Carlo p-value); "
                               "R nortest::lillie.test for test=\"lilliefors\" (simplydata[r])",

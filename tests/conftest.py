@@ -39,7 +39,7 @@ def marks():
 
 # The R packages simplydata calls (also installed in CI, .github/workflows/tests.yml)
 R_PACKAGES = ("survival", "vegan", "mice", "effectsize", "pwr", "Exact", "exact2x2", "nortest", "BSDA", "rstatix", "DescTools", "FSA", "PMCMRplus", "multcompView", "TOSTER", "presize", "epiR", "pROC", "irr", "psych",
-              "BlandAltmanLeh")
+              "BlandAltmanLeh", "ppcor", "cocor", "outliers", "EnvStats")
 
 
 @pytest.fixture
@@ -71,6 +71,9 @@ R_ENTRY_POINTS = {
     ("table/agreement_words.py", "limits_of_agreement"), ("table/agreement_words.py", "reliability_of"),
     ("words/agreement_charts.py", "_roc_points"), ("words/agreement_charts.py", "trade_off_curve"),
     ("words/agreement_charts.py", "_draw_difference_dots"), ("words/agreement_charts.py", "difference_dots"),
+    ("table/stat_tests.py", "_z_test"), ("table/stat_tests.py", "_trend_test"), ("table/stat_tests.py", "_counts_engine"),
+    ("table/summaries.py", "_ordinal_association"), ("table/summaries.py", "_partial_correlation"),
+    ("table/correlation_words.py", "compare_correlations"), ("table/rows.py", "_test_outliers"),
 }
 
 

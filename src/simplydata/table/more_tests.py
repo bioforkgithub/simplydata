@@ -35,7 +35,7 @@ from .models import YES_NO_PAIRS, _sort_key
 from .stat_tests import ALIKE, _label, _list_words, _num, _skipped_note, _whole
 from .summaries import _p_sentence, _say_label
 
-MATCHED_TESTS = ("friedman", "quade", "cochran")
+MATCHED_TESTS = ("friedman", "quade", "cochran", "page")
 MATCHED_ALIASES = {"cochran's q": "cochran", "cochran q": "cochran", "cochrans q": "cochran",
                    "friedman test": "friedman", "quade test": "quade"}
 SHUFFLES = 9999  # compare_shapes, 3 or more groups: the group labels are shuffled this often
@@ -87,6 +87,9 @@ class MoreTestWords:
         rows rank the columns in no common order, 1: every row ranks them the same), from R
         effectsize::kendalls_w with a bootstrap 95 % interval (R seed 1). test="quade": the Quade
         test, which also weighs how much each row varies, run in R (stats::quade.test()).
+        test="page": Page's test for a trend: do the values rise in the order the columns are
+        given? (SciPy page_trend_test, as R crank::page.trend.test(); for a fall, give the columns
+        the other way round.)
         yes/no columns (two values, such as "yes"/"no" or True/False): Cochran's Q test
         (statsmodels cochrans_q, as R DescTools::CochranQTest()).
         With two columns it gives compare_before_after (Wilcoxon signed-rank). Rows with an
@@ -135,7 +138,30 @@ class MoreTestWords:
         matrix = np.column_stack([np.asarray(raw[c], dtype=float) for c in names])
         if len(matrix) < 2:
             raise SimplydataError(f"{step}() needs at least 2 rows with a number in every column.")
+        if test == "page":
+            return self._page(names, matrix)
         return self._friedman(step, names, matrix, test or "friedman")
+
+    def _page(self, names, matrix):
+        from scipy import stats
+
+        result = stats.page_trend_test(matrix)
+        stat, p = float(result.statistic), float(result.pvalue)
+        n, k = matrix.shape
+        medians = [float(np.median(matrix[:, j])) for j in range(k)]
+        listed = _list_words(f'{_num(m)} in "{c}"' for c, m in zip(names, medians))
+        print(f"The median is {listed} ({n} rows, each measured {k} times, in this order).")
+        print(_p_sentence(p, "the values truly did not rise along this order", "a rise this steady or steadier",
+                          "that there is no rise"))
+        print(f"Test: Page's test for a trend (L = {_whole(stat)}, {result.method}): it only looks for values that "
+              "rise from the first column to the last; a fall would not count (give the columns the other way round "
+              "for a fall). SciPy page_trend_test, as R crank::page.trend.test().")
+        row = {"test": "Page's trend test", "what it compares": "a rise along " + _list_words(f'"{c}"' for c in names),
+               "statistic name": "L", "statistic": stat, "p-value": p, "rows": n,
+               "sides": "one-sided: values rise along the order given"}
+        for c, m in zip(names, medians):
+            row[f"median of {c}"] = m
+        return self._result_table(row)
 
     def _friedman(self, step, names, matrix, test):
         from scipy import stats

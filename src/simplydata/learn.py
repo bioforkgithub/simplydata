@@ -73,7 +73,8 @@ GROUPS = [
                            "table.compare_average_to", "table.compare_counts", "table.compare_shape_to",
                            "table.add_adjusted_p_value_column", "table.compare_spreads", "table.compare_counts_to",
                            "table.compare_percent_to", "table.compare_matched", "table.compare_shapes",
-                           "table.compare_to_random_order", "sdata.compare_averages", "sdata.compare_counts"]),
+                           "table.compare_to_random_order", "table.compare_correlations", "sdata.compare_averages",
+                           "sdata.compare_counts"]),
     ("Risks and rates", ["table.compare_risks", "table.compare_rates", "table.rate_of", "sdata.compare_risks",
                          "sdata.compare_rates"]),
     ("Diagnostic tests", ["table.compare_to_truth", "table.compare_accuracy", "sdata.compare_to_truth",
@@ -610,6 +611,8 @@ HELP_EXAMPLES = {
     "sdata.compare_counts": textwrap.dedent("""\
         import simplydata as sdata
         sdata.compare_counts([[20, 40], [30, 30]])"""),
+    "table.compare_correlations": _tx("marks", 'table.keep_rows("class", one_of=["A", "B"])\n'
+                                               'table.compare_correlations("hours", "marks", for_each="class")'),
     "table.compare_risks": _tx("trial", 'table.compare_risks("died", for_each="treatment", against="usual care")'),
     "table.compare_rates": _tx("clinic", 'table.compare_rates("infections", time="patient_days", for_each="ward", '
                                          'against="ward A")'),

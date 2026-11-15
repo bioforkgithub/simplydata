@@ -55,8 +55,10 @@ _SUMMARIES = {
     "standard_deviation_of": ("standard deviation", lambda c: nw.col(c).std(ddof=1)),
 }
 
-CORRELATION_METHODS = ("pearson", "spearman", "kendall")
-METHOD_NAMES = {"pearson": "Pearson", "spearman": "Spearman", "kendall": "Kendall's tau-b"}
+CORRELATION_METHODS = ("pearson", "spearman", "kendall", "somers", "gamma")
+ORDINAL_METHODS = ("somers", "gamma")  # two columns, the measure with its interval from R DescTools
+METHOD_NAMES = {"pearson": "Pearson", "spearman": "Spearman", "kendall": "Kendall's tau-b", "somers": "Somers' d",
+                "gamma": "Goodman and Kruskal's gamma"}
 CORRELATION_SHOW = ("r", "p-value", "each pair")
 STRONGEST_PAIRS = 3  # a correlation table prints this many of its strongest pairs
 
@@ -1149,12 +1151,15 @@ class SummaryWords:
         return result
 
     @friendly
-    def count_each(self, column):
+    def count_each(self, column, interval=None):
         """Each different value in a column, how many times it appears, and its percent.
 
         Biggest count first. Empty cells count as a value of their own, so the percents
         are out of all rows. Percents are rounded to 1 decimal place.
         table.count_each("fruit")   (with sdata.example("fruit"))
+        interval=95 adds a 95 % interval to each percent that holds for all of them at once
+        (Sison and Glaz, statsmodels multinomial_proportions_confint, as R
+        DescTools::MultinomCI()).
         """
         if not isinstance(column, str):
             raise SimplydataError(
@@ -1178,6 +1183,21 @@ class SummaryWords:
         kinds = len(result)
         print(f'How many rows have each "{column}" ({kinds} different value{"" if kinds == 1 else "s"}): '
               f"{_say_groups(result, [column], 'count')}.")
+        if interval is not None:
+            from statsmodels.stats.proportion import multinomial_proportions_confint
+
+            level = _check_percent("count_each", interval, "interval", 'table.count_each("fruit", interval=95)')
+            if not 50 <= level < 100 or kinds < 2:
+                raise SimplydataError("interval= is the level in percent, such as interval=95, and needs at least two "
+                                      "different values.")
+            counts = result["count"].to_numpy()
+            ci = multinomial_proportions_confint(counts, alpha=1 - level / 100, method="sison-glaz")
+            result = result.with_columns(
+                nw.new_series(f"percent {level:g} % CI low", ci[:, 0] * 100, nw.Float64, backend=self._frame.implementation),
+                nw.new_series(f"percent {level:g} % CI high", ci[:, 1] * 100, nw.Float64,
+                              backend=self._frame.implementation))
+            print(f"The {level:g} % intervals hold for all {kinds} percents at once (Sison and Glaz; statsmodels "
+                  "multinomial_proportions_confint, as R DescTools::MultinomCI()).")
         return self._new_table(nw.maybe_reset_index(result))
 
     @friendly
@@ -1602,7 +1622,7 @@ class SummaryWords:
     @friendly
     def correlation_between(self, *columns, method="pearson", show="r", sides=2, higher=None, lower=None,
                             alternative=None, p_value_by="formula", interval_by=None, shuffles=9999, resamples=9999,
-                            seed=1):
+                            seed=1, allowing_for=None):
         """How strongly columns of numbers go up or down together, from -1 to 1.
 
         table.correlation_between("hours", "marks")   (with sdata.example("marks"))
@@ -1671,7 +1691,24 @@ class SummaryWords:
             self._check_choice(step, "interval_by", interval_by, ("bootstrap",))
         if len(names) > 2 and (p_value_by != "formula" or interval_by is not None):
             raise SimplydataError("p_value_by= and interval_by= work with two columns; give two column names.")
+        if (method in ORDINAL_METHODS or allowing_for is not None) and len(names) != 2:
+            raise SimplydataError(f'method="{method}" and allowing_for= work with two columns.' if allowing_for is None
+                                  else "allowing_for= works with two columns (and the one to allow for).")
+        if method in ORDINAL_METHODS and (alt != "two-sided" or p_value_by != "formula" or interval_by is not None
+                                          or allowing_for is not None):
+            raise SimplydataError(f'method="{method}" gives the measure with its 95 % interval; leave out sides=, '
+                                  "p_value_by=, interval_by= and allowing_for=.")
+        if allowing_for is not None:
+            if not isinstance(allowing_for, str) or allowing_for in names:
+                raise SimplydataError('allowing_for= needs a third column name, such as allowing_for="height".')
+            if alt != "two-sided" or p_value_by != "formula" or interval_by is not None:
+                raise SimplydataError("allowing_for= gives the two-sided partial correlation; leave out sides=, "
+                                      "p_value_by= and interval_by=.")
+            return self._partial_correlation(step, self._number_frame(step, names + [allowing_for]), names[0],
+                                             names[1], allowing_for, method)
         frame = self._number_frame(step, names)
+        if method in ORDINAL_METHODS:
+            return self._ordinal_association(step, frame, names[0], names[1], method)
         if len(names) == 2:
             return self._one_correlation(step, frame, names[0], names[1], method, alt, up,
                                          p_value_by=p_value_by, interval_by=interval_by, shuffles=shuffles,
@@ -1718,6 +1755,10 @@ class SummaryWords:
             verb = "was" if skipped == 1 else "were"
             print(f'Note: {skipped} {rows} with an empty cell in "{column_a}" or "{column_b}" {verb} skipped.')
         extra, interval = [], ""
+        if interval_by is None:
+            interval, note = self._correlation_interval(frame, column_a, column_b, method, alternative)
+            if note:
+                extra.append(note)
         if p_value_by == "shuffling" or interval_by is not None:
             from .resampling import bootstrap_interval, correlation, resample_p
             from .stat_tests import _num
@@ -1755,6 +1796,98 @@ class SummaryWords:
                   + f' As R cor.test(method = "{method}", alternative = "{alternative}").')
         for line in extra:
             print(line)
+        return r
+
+    @staticmethod
+    def _correlation_interval(frame, column_a, column_b, method, alternative):
+        """("; values from A to B fit the data (95 % CI)", note): Pearson from SciPy pearsonr; Spearman and Kendall
+        from R DescTools (Fisher's z, SpearmanRho / KendallTauB); Somers' d and gamma from R DescTools."""
+        from scipy import stats
+
+        from .._r import RMissing, r_call
+        from .stat_tests import _interval_words, _num
+
+        pairs = frame.select(column_a, column_b).drop_nulls()
+        x, y = (pairs[c].to_numpy().astype(float) for c in (column_a, column_b))
+        if method == "pearson":
+            ci = stats.pearsonr(x, y, alternative=alternative).confidence_interval(0.95)
+            kind = "" if alternative == "two-sided" else "one-sided "
+            return f"; values from {_interval_words(ci.low, ci.high)} fit the data ({kind}95 % CI)", ""
+        if alternative != "two-sided":
+            return "", ""
+        code = {"spearman": "DescTools::SpearmanRho(x, y, conf.level = 0.95)",
+                "kendall": "DescTools::KendallTauB(x, y, conf.level = 0.95)",
+                "somers": 'DescTools::SomersDelta(x, y, direction = "column", conf.level = 0.95)',
+                "gamma": "DescTools::GoodmanKruskalGamma(x, y, conf.level = 0.95)"}[method]
+        try:
+            found = np.asarray(r_call(f"as.numeric({code})", packages=("DescTools",),
+                                      what=f"the 95 % interval of {METHOD_NAMES[method]} (R DescTools)", x=x, y=y),
+                               dtype=float)
+        except RMissing:
+            if method in ("somers", "gamma"):
+                raise
+            return "", (f"Note: the 95 % interval of {METHOD_NAMES[method]} comes from the R package DescTools, which "
+                        'is not ready here; interval_by="bootstrap" gives a bootstrap interval in Python, or: pip install '
+                        '"simplydata[r]", install R, then in R install.packages("DescTools").')
+        how = "Fisher's z" if method in ("spearman", "kendall") else "asymptotic"
+        return f"; values from {_num(found[1])} to {_num(found[2])} fit the data (95 % CI, {how}, R DescTools)", ""
+
+    def _ordinal_association(self, step, frame, column_a, column_b, method):
+        """Somers' d (of the second column given the first) or Goodman and Kruskal's gamma, with the 95 % interval
+        from R DescTools (SciPy somersd gives the same d, but no interval; gamma has no Python function)."""
+        pairs = frame.select(column_a, column_b).drop_nulls()
+        skipped = len(frame) - len(pairs)
+        if skipped:
+            print(f"Note: {skipped} row{'' if skipped == 1 else 's'} with an empty cell in \"{column_a}\" or "
+                  f"\"{column_b}\" {'was' if skipped == 1 else 'were'} skipped.")
+        from .._r import r_call
+        from .stat_tests import _num
+
+        x, y = (pairs[c].to_numpy().astype(float) for c in (column_a, column_b))
+        code = ('DescTools::SomersDelta(x, y, direction = "column", conf.level = 0.95)' if method == "somers" else
+                "DescTools::GoodmanKruskalGamma(x, y, conf.level = 0.95)")
+        found = np.asarray(r_call(f"as.numeric({code})", packages=("DescTools",),
+                                  what=f"{METHOD_NAMES[method]} with its 95 % interval (R DescTools)",
+                                  python_note="SciPy somersd gives Somers' d without an interval; Python has no gamma"
+                                  if method == "somers" else "Python has no Goodman-Kruskal gamma", x=x, y=y),
+                           dtype=float)
+        value, low, high = (float(v) for v in found[:3])
+        meaning = (f'of all pairs of rows that differ in "{column_a}", the share where "{column_b}" goes the same way '
+                   "minus the share where it goes the other way" if method == "somers" else
+                   "of all pairs of rows that differ in both columns, the share in the same order minus the share in "
+                   "the opposite order (tied pairs left out)")
+        verdict = ("the interval leaves out 0, so the data show a link" if low > 0 or high < 0 else
+                   "the interval includes 0, so the data cannot tell whether there is a link")
+        print(f'{METHOD_NAMES[method]} between "{column_a}" and "{column_b}" = {_num(value)} ({len(x)} rows; values '
+              f"from {_num(low)} to {_num(high)} fit the data, 95 % CI): {verdict}.")
+        r_name = 'SomersDelta(direction = "column")' if method == "somers" else "GoodmanKruskalGamma()"
+        print(f"It is {meaning}. Method: R DescTools::{r_name}.")
+        return value
+
+    def _partial_correlation(self, step, frame, column_a, column_b, allowing_for, method):
+        """The partial correlation of two columns allowing for a third, from R ppcor::pcor.test() (Python has none)."""
+        from .._r import r_call
+
+        names = [column_a, column_b, allowing_for]
+        rows = frame.select(*names).drop_nulls()
+        skipped = len(frame) - len(rows)
+        if skipped:
+            print(f"Note: {skipped} row{'' if skipped == 1 else 's'} with an empty cell in "
+                  + " or ".join(f'"{n}"' for n in names) + f" {'was' if skipped == 1 else 'were'} skipped.")
+        x, y, z = (rows[c].to_numpy().astype(float) for c in names)
+        found = r_call("p <- ppcor::pcor.test(x, y, z, method = m); list(r = p$estimate, p = p$p.value, "
+                       "stat = p$statistic)", packages=("ppcor",),
+                       what="the partial correlation (R ppcor::pcor.test())",
+                       python_note="SciPy and statsmodels have no partial correlation test", x=x, y=y, z=z, m=method)
+        r, p = float(np.asarray(found["r"])[0]), float(np.asarray(found["p"])[0])
+        whole = float(self._correlate(step, frame.select(column_a, column_b), column_a, column_b, method)[0])
+        print(f'The correlation between "{column_a}" and "{column_b}", allowing for "{allowing_for}", is r = {r:.2f} '
+              f"({METHOD_NAMES[method]}, {len(x)} rows): {_strength(r)}; without allowing for it, r = {whole:.2f}.")
+        print(_p_sentence(p, f'there were truly no link once "{allowing_for}" is allowed for',
+                          "a link this strong or stronger", "that there is no link"))
+        print(f'Method: partial correlation, as R ppcor::pcor.test(method = "{method}"): the link that is left after '
+              f'taking out what both columns share with "{allowing_for}". A correlation does not show that one thing '
+              "causes the other.")
         return r
 
     def _correlation_table(self, step, frame, names, method, shown):

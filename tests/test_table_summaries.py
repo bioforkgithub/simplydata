@@ -244,7 +244,8 @@ def test_correlation_matches_scipy(engine, marks, method, capsys):
     assert isinstance(r, float)
     assert r == pytest.approx(want_r)
     out = capsys.readouterr().out
-    assert out.count("\n") == 2  # the r sentence and the p-value sentence
+    # the r sentence and the p-value sentence (without R, a note says where the Spearman interval comes from)
+    assert len([line for line in out.splitlines() if not line.startswith("Note:")]) == 2
     assert f"r = {want_r:.2f}" in out and _strength(want_r) in out
     assert _p_sentence(want_p, "there were truly no link", "a link this strong or stronger",
                        "that there is no link") in out

@@ -5598,7 +5598,7 @@ table.show()
 Show the rows whose value in a column is an outlier, and say why (the table does not change).
 
 \codeline{table.show\_rows\_with\_outliers(\textquotedbl{}marks\textquotedbl{}, for\_each=\textquotedbl{}subject\textquotedbl{})} (with \code{sdata.\allowbreak{}example(\textquotedbl{}marks\textquotedbl{})})\\
-\code{rule=\textquotedbl{}1.\allowbreak{}5 IQR\textquotedbl{}} (the default) is Tukey's rule, the one box plots use: below Q1 - 1.5 x IQR or above Q3 + 1.5 x IQR. Also \code{rule=\textquotedbl{}3 IQR\textquotedbl{}} or \code{rule=\textquotedbl{}3 standard deviations\textquotedbl{}}. Empty cells are never outliers. Each row is shown with its number in the whole table (counting from 1), so \code{remove\_\allowbreak{}rows\_\allowbreak{}by\_\allowbreak{}position()} can follow.
+\code{rule=\textquotedbl{}1.\allowbreak{}5 IQR\textquotedbl{}} (the default) is Tukey's rule, the one box plots use: below Q1 - 1.5 x IQR or above Q3 + 1.5 x IQR. Also \code{rule=\textquotedbl{}3 IQR\textquotedbl{}} or \code{rule=\textquotedbl{}3 standard deviations\textquotedbl{}}, or an outlier test run in R (simplydata[r]): \code{rule=\textquotedbl{}grubbs\textquotedbl{}} (outliers::\code{grubbs.\allowbreak{}test()}, the value farthest from the average), \code{\textquotedbl{}dixon\textquotedbl{}} (outliers::\code{dixon.\allowbreak{}test()}, 3 to 30 values) or \code{\textquotedbl{}rosner\textquotedbl{}} (EnvStats::\code{rosnerTest()}, up to 3 outliers), each at the 5 \% level, group by group. Empty cells are never outliers. Each row is shown with its number in the whole table (counting from 1), so \code{remove\_\allowbreak{}rows\_\allowbreak{}by\_\allowbreak{}position()} can follow.
 
 \wordfield{Options}{}\par\nopagebreak
 \begin{optiontable}
@@ -5607,7 +5607,7 @@ Show the rows whose value in a column is an outlier, and say why (the table does
 \code{rule=} & normally \code{\textquotedbl{}1.\allowbreak{}5 IQR\textquotedbl{}}\\
 \end{optiontable}
 
-\wordfield{Underneath}{narwhals, which runs the step in pandas or Polars (whichever holds the table)}
+\wordfield{Underneath}{narwhals (quartiles, average and standard deviation per group); R outliers::grubbs.test, dixon.test and EnvStats::rosnerTest for the test rules (simplydata[r])}
 \wordfield{Example you can run}{(it uses the practice table \code{marks})}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -5618,7 +5618,7 @@ table.show_rows_with_outliers("marks", for_each="class")
 Remove the rows whose value in a column is an outlier, and say how many and why.
 
 \codeline{table.remove\_rows\_with\_outliers(\textquotedbl{}marks\textquotedbl{}, for\_each=\textquotedbl{}subject\textquotedbl{})} (with \code{sdata.\allowbreak{}example(\textquotedbl{}marks\textquotedbl{})})\\
-\code{rule=\textquotedbl{}1.\allowbreak{}5 IQR\textquotedbl{}} (the default) is Tukey's rule, the one box plots use: below Q1 - 1.5 x IQR or above Q3 + 1.5 x IQR. Also \code{rule=\textquotedbl{}3 IQR\textquotedbl{}} or \code{rule=\textquotedbl{}3 standard deviations\textquotedbl{}}. Rows with an empty cell stay. Look first with \code{show\_\allowbreak{}rows\_\allowbreak{}with\_\allowbreak{}outliers()}, and say in your report which rule removed how many rows.
+\code{rule=\textquotedbl{}1.\allowbreak{}5 IQR\textquotedbl{}} (the default) is Tukey's rule, the one box plots use: below Q1 - 1.5 x IQR or above Q3 + 1.5 x IQR. Also \code{rule=\textquotedbl{}3 IQR\textquotedbl{}} or \code{rule=\textquotedbl{}3 standard deviations\textquotedbl{}}, or an outlier test run in R (simplydata[r]): \code{rule=\textquotedbl{}grubbs\textquotedbl{}} (outliers::\code{grubbs.\allowbreak{}test()}, the value farthest from the average), \code{\textquotedbl{}dixon\textquotedbl{}} (outliers::\code{dixon.\allowbreak{}test()}, 3 to 30 values) or \code{\textquotedbl{}rosner\textquotedbl{}} (EnvStats::\code{rosnerTest()}, up to 3 outliers), each at the 5 \% level, group by group. Rows with an empty cell stay. Look first with \code{show\_\allowbreak{}rows\_\allowbreak{}with\_\allowbreak{}outliers()}, and say in your report which rule removed how many rows.
 
 \wordfield{Options}{}\par\nopagebreak
 \begin{optiontable}
@@ -5627,7 +5627,7 @@ Remove the rows whose value in a column is an outlier, and say how many and why.
 \code{rule=} & normally \code{\textquotedbl{}1.\allowbreak{}5 IQR\textquotedbl{}}\\
 \end{optiontable}
 
-\wordfield{Underneath}{narwhals, which runs the step in pandas or Polars (whichever holds the table)}
+\wordfield{Underneath}{narwhals, as \code{show\_\allowbreak{}rows\_\allowbreak{}with\_\allowbreak{}outliers}; R outliers and EnvStats for the test rules (simplydata[r])}
 \wordfield{Example you can run}{(it uses the practice table \code{marks})}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -6268,14 +6268,16 @@ table.count_rows(for_each="class")
 Each different value in a column, how many times it appears, and its percent.
 
 Biggest count first. Empty cells count as a value of their own, so the percents are out of all rows. Percents are rounded to 1 decimal place.\\
-\codeline{table.count\_each(\textquotedbl{}fruit\textquotedbl{})} (with \code{sdata.\allowbreak{}example(\textquotedbl{}fruit\textquotedbl{})})
+\codeline{table.count\_each(\textquotedbl{}fruit\textquotedbl{})} (with \code{sdata.\allowbreak{}example(\textquotedbl{}fruit\textquotedbl{})})\\
+\code{interval=95} adds a 95 \% interval to each percent that holds for all of them at once (Sison and Glaz, statsmodels \code{multinomial\_\allowbreak{}proportions\_\allowbreak{}confint}, as R DescTools::\code{MultinomCI()}).
 
 \wordfield{Options}{}\par\nopagebreak
 \begin{optiontable}
 \code{column} & needed\\
+\code{interval=} & \\
 \end{optiontable}
 
-\wordfield{Underneath}{narwhals, which runs the step in pandas or Polars (whichever holds the table)}
+\wordfield{Underneath}{narwhals (counts per value); statsmodels (\code{multinomial\_\allowbreak{}proportions\_\allowbreak{}confint}, Sison-Glaz, for \code{interval=})}
 \wordfield{Example you can run}{(it uses the practice table \code{fruit})}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -6587,9 +6589,10 @@ Each pair uses the rows where both columns have a number. \code{show=\textquoted
 \code{shuffles=} & normally \code{9999}\\
 \code{resamples=} & normally \code{9999}\\
 \code{seed=} & normally \code{1}\\
+\code{allowing\_\allowbreak{}for=} & \\
 \end{optiontable}
 
-\wordfield{Underneath}{SciPy (stats.pearsonr, spearmanr or kendalltau; \code{permutation\_\allowbreak{}test} and bootstrap for \code{p\_\allowbreak{}value\_\allowbreak{}by=\textquotedbl{}shuffling\textquotedbl{}} and \code{interval\_\allowbreak{}by=\textquotedbl{}bootstrap\textquotedbl{}})}
+\wordfield{Underneath}{SciPy (stats.pearsonr, spearmanr or kendalltau; \code{permutation\_\allowbreak{}test} and bootstrap for \code{p\_\allowbreak{}value\_\allowbreak{}by=\textquotedbl{}shuffling\textquotedbl{}} and \code{interval\_\allowbreak{}by=\textquotedbl{}bootstrap\textquotedbl{}}); R DescTools (SpearmanRho, KendallTauB, SomersDelta, GoodmanKruskalGamma) for intervals and ppcor::pcor.test for \code{allowing\_\allowbreak{}for=} (simplydata[r])}
 \wordfield{Example you can run}{(it uses the practice table \code{marks})}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -6619,9 +6622,10 @@ Two groups: Welch's t-test (the R \code{t.\allowbreak{}test()} default). Three o
 \code{shuffles=} & normally \code{9999}\\
 \code{seed=} & normally \code{1}\\
 \code{same\_\allowbreak{}within=} & \\
+\code{in\_\allowbreak{}order=} & \\
 \end{optiontable}
 
-\wordfield{Underneath}{SciPy (stats.ttest\_ind with \code{equal\_\allowbreak{}var=False}; mannwhitneyu, kruskal) and statsmodels (stats.oneway.anova\_oneway for Welch's ANOVA; weightstats.ttost\_ind and CompareMeans for \code{same\_\allowbreak{}within=}); SciPy \code{permutation\_\allowbreak{}test} for \code{p\_\allowbreak{}value\_\allowbreak{}by=\textquotedbl{}shuffling\textquotedbl{}}}
+\wordfield{Underneath}{SciPy (stats.ttest\_ind with \code{equal\_\allowbreak{}var=False}; mannwhitneyu, kruskal) and statsmodels (stats.oneway.anova\_oneway for Welch's ANOVA; weightstats.ttost\_ind and CompareMeans for \code{same\_\allowbreak{}within=}; nonparametric.jonckheere\_terpstra); SciPy \code{permutation\_\allowbreak{}test} for \code{p\_\allowbreak{}value\_\allowbreak{}by=\textquotedbl{}shuffling\textquotedbl{}}; R wilcox.test for the Hodges-Lehmann shift (simplydata[r])}
 \wordfield{Example you can run}{(it uses the practice table \code{marks})}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -6634,7 +6638,7 @@ result.save("marks_test.csv")
 Which pairs of groups differ? Every pair is compared, with Holm's correction.
 
 \codeline{table.compare\_each\_pair(\textquotedbl{}marks\textquotedbl{}, for\_each=\textquotedbl{}class\textquotedbl{})} (with \code{sdata.\allowbreak{}example(\textquotedbl{}marks\textquotedbl{})})\\
-Each pair gets Welch's t-test (or Mann-Whitney U with \code{based\_\allowbreak{}on=\textquotedbl{}ranks\textquotedbl{}}). Testing many pairs makes a false alarm more likely, so the p-values are adjusted with Holm's method: the chance of at least one false alarm stays at 5 \%. This is the same as R \code{pairwise.\allowbreak{}t.\allowbreak{}test(pool.\allowbreak{}sd = FALSE,\allowbreak{} p.\allowbreak{}adjust.\allowbreak{}method = \textquotedbl{}holm\textquotedbl{})}. Gives back a table with one row per pair. \code{test=\textquotedbl{}tukey\textquotedbl{}} gives Tukey's honest significant difference instead (R \code{TukeyHSD(aov(marks \textasciitilde{} class))}, the Tukey-Kramer form when the groups differ in size): the textbook follow-up to a one-way ANOVA, with 95 \% confidence intervals that hold for all pairs at once. It assumes the groups have the same spread; the default does not. \code{test=\textquotedbl{}welch\textquotedbl{}} and \code{test=\textquotedbl{}mann-whitney\textquotedbl{}} name the other two choices. More follow-up tests, each run in R (simplydata[r]): \code{test=\textquotedbl{}games-howell\textquotedbl{}} (like Tukey, but for groups with different spreads; R rstatix::\code{games\_\allowbreak{}howell\_\allowbreak{}test()}), \code{\textquotedbl{}scheffe\textquotedbl{}} (R DescTools::\code{ScheffeTest()}), \code{\textquotedbl{}lsd\textquotedbl{}} (Fisher's least significant difference, NOT adjusted for the number of pairs; R DescTools::\code{PostHocTest(method = \textquotedbl{}lsd\textquotedbl{})}), and for ranks \code{\textquotedbl{}dunn\textquotedbl{}} (R FSA::\code{dunnTest(method = \textquotedbl{}holm\textquotedbl{})}) and \code{\textquotedbl{}conover\textquotedbl{}} (R PMCMRplus::\code{kwAllPairsConoverTest( p.\allowbreak{}adjust.\allowbreak{}method = \textquotedbl{}holm\textquotedbl{})}). \code{against=\textquotedbl{}A\textquotedbl{}} compares every group with one control group only: Dunnett's test (SciPy stats.dunnett, as R multcomp::\code{glht(mcp(group = \textquotedbl{}Dunnett\textquotedbl{}))}), with intervals that hold for all the comparisons at once. SciPy works it out with random numbers, so \code{seed=1} is used (printed); the last digit can differ from R's. \code{show=\textquotedbl{}letters\textquotedbl{}} gives each group letters instead (a compact letter display, R multcompView::\code{multcompLetters()}): groups that share a letter have an adjusted p-value of 0.05 or more between them. It works with every \code{test=} above, and gives back one row per group.
+Each pair gets Welch's t-test (or Mann-Whitney U with \code{based\_\allowbreak{}on=\textquotedbl{}ranks\textquotedbl{}}). Testing many pairs makes a false alarm more likely, so the p-values are adjusted with Holm's method: the chance of at least one false alarm stays at 5 \%. This is the same as R \code{pairwise.\allowbreak{}t.\allowbreak{}test(pool.\allowbreak{}sd = FALSE,\allowbreak{} p.\allowbreak{}adjust.\allowbreak{}method = \textquotedbl{}holm\textquotedbl{})}. Gives back a table with one row per pair. \code{test=\textquotedbl{}tukey\textquotedbl{}} gives Tukey's honest significant difference instead (R \code{TukeyHSD(aov(marks \textasciitilde{} class))}, the Tukey-Kramer form when the groups differ in size): the textbook follow-up to a one-way ANOVA, with 95 \% confidence intervals that hold for all pairs at once. It assumes the groups have the same spread; the default does not. \code{test=\textquotedbl{}welch\textquotedbl{}} and \code{test=\textquotedbl{}mann-whitney\textquotedbl{}} name the other two choices. More follow-up tests, each run in R (simplydata[r]): \code{test=\textquotedbl{}games-howell\textquotedbl{}} (like Tukey, but for groups with different spreads; R rstatix::\code{games\_\allowbreak{}howell\_\allowbreak{}test()}), \code{\textquotedbl{}scheffe\textquotedbl{}} (R DescTools::\code{ScheffeTest()}), \code{\textquotedbl{}lsd\textquotedbl{}} (Fisher's least significant difference, NOT adjusted for the number of pairs; R DescTools::\code{PostHocTest(method = \textquotedbl{}lsd\textquotedbl{})}), and for ranks \code{\textquotedbl{}dunn\textquotedbl{}} (R FSA::\code{dunnTest(method = \textquotedbl{}holm\textquotedbl{})}) and \code{\textquotedbl{}conover\textquotedbl{}} (R PMCMRplus::\code{kwAllPairsConoverTest( p.\allowbreak{}adjust.\allowbreak{}method = \textquotedbl{}holm\textquotedbl{})}). \code{against=\textquotedbl{}A\textquotedbl{}} compares every group with one control group only: Dunnett's test (SciPy stats.dunnett, as R multcomp::\code{glht(mcp(group = \textquotedbl{}Dunnett\textquotedbl{}))}), with intervals that hold for all the comparisons at once. SciPy works it out with random numbers, so \code{seed=1} is used (printed); the last digit can differ from R's. \code{show=\textquotedbl{}letters\textquotedbl{}} gives each group letters instead (a compact letter display, R multcompView::\code{multcompLetters()}): groups that share a letter have an adjusted p-value of 0.05 or more between them. It works with every \code{test=} above, and gives back one row per group. \code{matched\_\allowbreak{}by=\textquotedbl{}patient\textquotedbl{}}: the same rows (patients) were measured in every group, such as pain at week 0, 4 and 8 in long form. Each pair is then compared within the patients: paired t-tests, or with \code{based\_\allowbreak{}on=\textquotedbl{}ranks\textquotedbl{}} (after \code{compare\_\allowbreak{}matched}'s Friedman test) the Wilcoxon signed-rank test, with Holm's correction (SciPy, as R \code{pairwise.\allowbreak{}t.\allowbreak{}test(paired = TRUE)} and \code{pairwise.\allowbreak{}wilcox.\allowbreak{}test(paired = TRUE)}).
 
 \wordfield{Options}{}\par\nopagebreak
 \begin{optiontable}
@@ -6645,9 +6649,10 @@ Each pair gets Welch's t-test (or Mann-Whitney U with \code{based\_\allowbreak{}
 \code{against=} & \\
 \code{seed=} & normally \code{1}\\
 \code{show=} & normally \code{\textquotedbl{}pairs\textquotedbl{}}\\
+\code{matched\_\allowbreak{}by=} & \\
 \end{optiontable}
 
-\wordfield{Underneath}{SciPy (stats.ttest\_ind or mannwhitneyu, \code{tukey\_\allowbreak{}hsd}, dunnett), with Holm's correction from statsmodels (multipletests); R rstatix::\code{games\_\allowbreak{}howell\_\allowbreak{}test}, DescTools::ScheffeTest and PostHocTest, FSA::dunnTest, PMCMRplus::kwAllPairsConoverTest and multcompView::multcompLetters for \code{show=\textquotedbl{}letters\textquotedbl{}} (simplydata[r])}
+\wordfield{Underneath}{SciPy (stats.ttest\_ind or mannwhitneyu, \code{tukey\_\allowbreak{}hsd}, dunnett), with Holm's correction from statsmodels (multipletests); R rstatix::\code{games\_\allowbreak{}howell\_\allowbreak{}test}, DescTools::ScheffeTest and PostHocTest, FSA::dunnTest, PMCMRplus::kwAllPairsConoverTest and multcompView::multcompLetters for \code{show=\textquotedbl{}letters\textquotedbl{}} (simplydata[r]); SciPy \code{ttest\_\allowbreak{}rel} and wilcoxon for \code{matched\_\allowbreak{}by=}}
 \wordfield{Example you can run}{(it uses the practice table \code{marks})}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -6689,7 +6694,7 @@ table.compare_before_after("Maths", "Science")
 Is the average of a column really different from a number you choose?
 
 \codeline{table.compare\_average\_to(\textquotedbl{}marks\textquotedbl{}, 60)} (with \code{sdata.\allowbreak{}example(\textquotedbl{}marks\textquotedbl{})})\\
-A one-sample t-test, or the Wilcoxon signed-rank test (on the median) with \code{based\_\allowbreak{}on=\textquotedbl{}ranks\textquotedbl{}}. Empty cells are skipped. Effect size: Cohen's d, the difference in standard deviations. Gives back a one-row table of results. \code{sides=1}, \code{higher=\textquotedbl{}average\textquotedbl{}} (the average is above the number) or \code{lower=\textquotedbl{}average\textquotedbl{}} (below it) tests in one direction only, as decided before seeing the data (R t.test(x, mu = 60,\\
+A one-sample t-test, or the Wilcoxon signed-rank test (on the median) with \code{based\_\allowbreak{}on=\textquotedbl{}ranks\textquotedbl{}}. Empty cells are skipped. Effect size: Cohen's d, the difference in standard deviations. Gives back a one-row table of results. \code{test=\textquotedbl{}z\textquotedbl{}} with \code{standard\_\allowbreak{}deviation=10}: the z-test, for when the spread of the values is known beforehand (not worked out from these values), run in R (BSDA::\code{z.\allowbreak{}test()}). \code{sides=1}, \code{higher=\textquotedbl{}average\textquotedbl{}} (the average is above the number) or \code{lower=\textquotedbl{}average\textquotedbl{}} (below it) tests in one direction only, as decided before seeing the data (R t.test(x, mu = 60,\\
 \codeline{alternative = \textquotedbl{}greater\textquotedbl{})).}\\
 \code{same\_\allowbreak{}within=5} asks whether the average is within 5 of the number: two one-sided tests (statsmodels DescrStatsW.ttost\_mean, as R TOSTER::\code{t\_\allowbreak{}TOST(x - 60,\allowbreak{} eqb = 5)}); with \code{sides=1}, \code{higher=\textquotedbl{}average\textquotedbl{}} a non-inferiority test (the average no more than 5 below the number).
 
@@ -6703,9 +6708,11 @@ A one-sample t-test, or the Wilcoxon signed-rank test (on the median) with \code
 \code{lower=} & \\
 \code{alternative=} & \\
 \code{same\_\allowbreak{}within=} & \\
+\code{test=} & \\
+\code{standard\_\allowbreak{}deviation=} & \\
 \end{optiontable}
 
-\wordfield{Underneath}{SciPy (stats.ttest\_1samp or stats.wilcoxon); statsmodels (DescrStatsW.ttost\_mean for \code{same\_\allowbreak{}within=})}
+\wordfield{Underneath}{SciPy (stats.ttest\_1samp or stats.wilcoxon); statsmodels (DescrStatsW.ttost\_mean for \code{same\_\allowbreak{}within=}); R BSDA::z.test for \code{test=\textquotedbl{}z\textquotedbl{}} (simplydata[r])}
 \wordfield{Example you can run}{(it uses the practice table \code{marks})}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -6717,16 +6724,21 @@ Does how often each value turns up really differ between groups?
 
 \codeline{table.add\_group\_column(\textquotedbl{}result\textquotedbl{}, from\_column=\textquotedbl{}marks\textquotedbl{}, cut\_at=[60], names=[\textquotedbl{}below 60\textquotedbl{}, \textquotedbl{}60 or more\textquotedbl{}])}\\
 \codeline{table.compare\_counts(\textquotedbl{}result\textquotedbl{}, for\_each=\textquotedbl{}class\textquotedbl{})} (with \code{sdata.\allowbreak{}example(\textquotedbl{}marks\textquotedbl{})})\\
-(Do the classes differ in how many children score 60 or more?) Counts the rows for each pair of values and uses the chi-square test of independence (as R \code{chisq.\allowbreak{}test()}: Yates' continuity correction for 2 x 2 tables only). If an expected count is below 5 a note says so; for a 2 x 2 table \code{test=\textquotedbl{}fisher\textquotedbl{}} then gives Fisher's exact test. \code{test=\textquotedbl{}g\textquotedbl{}}: the G-test (likelihood ratio, SciPy \code{chi2\_\allowbreak{}contingency( lambda\_\allowbreak{}=\textquotedbl{}log-likelihood\textquotedbl{})}, as R DescTools::\code{GTest()}). For 2 x 2 tables also \code{test=\textquotedbl{}barnard\textquotedbl{}} and \code{test=\textquotedbl{}boschloo\textquotedbl{}}: unconditional exact tests, often stronger than Fisher's, run in R (Exact::\code{exact.\allowbreak{}test(method = \textquotedbl{}z-pooled\textquotedbl{} / \textquotedbl{}boschloo\textquotedbl{})}, simplydata[r]). Empty cells are skipped. Effect size: Cramer's V, the strength of the link from 0 (none) to 1 (complete). Gives back a one-row table.
+(Do the classes differ in how many children score 60 or more?) Counts the rows for each pair of values and uses the chi-square test of independence (as R \code{chisq.\allowbreak{}test()}: Yates' continuity correction for 2 x 2 tables only). If an expected count is below 5 a note says so; for a 2 x 2 table \code{test=\textquotedbl{}fisher\textquotedbl{}} then gives Fisher's exact test. \code{test=\textquotedbl{}g\textquotedbl{}}: the G-test (likelihood ratio, SciPy \code{chi2\_\allowbreak{}contingency( lambda\_\allowbreak{}=\textquotedbl{}log-likelihood\textquotedbl{})}, as R DescTools::\code{GTest()}). For 2 x 2 tables also \code{test=\textquotedbl{}barnard\textquotedbl{}} and \code{test=\textquotedbl{}boschloo\textquotedbl{}}: unconditional exact tests, often stronger than Fisher's, run in R (Exact::\code{exact.\allowbreak{}test(method = \textquotedbl{}z-pooled\textquotedbl{} / \textquotedbl{}boschloo\textquotedbl{})}, simplydata[r]). \code{test=\textquotedbl{}fisher\textquotedbl{}} on a bigger table gives its p-value from 100,000 random tables with the same totals (SciPy, \code{seed=1}); \code{p\_\allowbreak{}value\_\allowbreak{}by=\textquotedbl{}exact\textquotedbl{}} counts every table instead, in R (\code{fisher.\allowbreak{}test()}). \code{p\_\allowbreak{}value\_\allowbreak{}by=\textquotedbl{}shuffling\textquotedbl{}}: the chi-square p-value from \code{shuffles=9999} random tables (SciPy, \code{seed=1}, as R \code{chisq.\allowbreak{}test(simulate.\allowbreak{}p.\allowbreak{}value = TRUE)}). \code{test=\textquotedbl{}trend\textquotedbl{}} with \code{in\_\allowbreak{}order=[\textquotedbl{}low\textquotedbl{},\allowbreak{} \textquotedbl{}middle\textquotedbl{},\allowbreak{} \textquotedbl{}high\textquotedbl{}]} (the \code{for\_\allowbreak{}each} groups in order) and a yes/no column: the Cochran-Armitage test for a trend in the percent across ordered groups (R \code{prop.\allowbreak{}trend.\allowbreak{}test()}). \code{show=\textquotedbl{}cells\textquotedbl{}} gives back one row per cell with its standardized residual (statsmodels, as R \code{chisq.\allowbreak{}test()}\$stdres): cells beyond 2 or -2 stand out. Empty cells are skipped. Effect size: Cramer's V, the strength of the link from 0 (none) to 1 (complete). Gives back a one-row table.
 
 \wordfield{Options}{}\par\nopagebreak
 \begin{optiontable}
 \code{column=} & \\
 \code{for\_\allowbreak{}each=} & \\
 \code{test=} & \\
+\code{in\_\allowbreak{}order=} & \\
+\code{p\_\allowbreak{}value\_\allowbreak{}by=} & normally \code{\textquotedbl{}formula\textquotedbl{}}\\
+\code{shuffles=} & normally \code{9999}\\
+\code{seed=} & normally \code{1}\\
+\code{show=} & \\
 \end{optiontable}
 
-\wordfield{Underneath}{SciPy (stats.chi2\_contingency, or \code{fisher\_\allowbreak{}exact} with \code{test=\textquotedbl{}fisher\textquotedbl{}}; contingency.association for Cramer's V)}
+\wordfield{Underneath}{SciPy (stats.chi2\_contingency, or \code{fisher\_\allowbreak{}exact} with \code{test=\textquotedbl{}fisher\textquotedbl{}}, with a seeded MonteCarloMethod for bigger tables; contingency.association for Cramer's V); statsmodels Table.standardized\_resids for \code{show=\textquotedbl{}cells\textquotedbl{}}; R fisher.test and prop.trend.test (simplydata[r])}
 \wordfield{Example you can run}{(it uses the practice table \code{marks})}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -6855,7 +6867,7 @@ table.compare_percent_to("passed", value="yes", percent=50)
 Do three or more measurements of the same rows differ, such as pain at week 0, 4 and 8?
 
 \codeline{table.compare\_matched(\textquotedbl{}Maths\textquotedbl{}, \textquotedbl{}Science\textquotedbl{}, \textquotedbl{}English\textquotedbl{})}\enspace (one column per measurement)\\
-Each row is one person (or plant, or field) measured in every column. The kind of column decides the test, and the sentence says which: numbers: the Friedman test (R \code{friedman.\allowbreak{}test()}, SciPy friedmanchisquare), which compares the ranks within each row, so it needs no bell shape; effect size Kendall's W (0: the rows rank the columns in no common order, 1: every row ranks them the same), from R effectsize::\code{kendalls\_\allowbreak{}w} with a bootstrap 95 \% interval (R seed 1). \code{test=\textquotedbl{}quade\textquotedbl{}}: the Quade test, which also weighs how much each row varies, run in R (stats::\code{quade.\allowbreak{}test()}). yes/no columns (two values, such as \code{\textquotedbl{}yes\textquotedbl{}}/\code{\textquotedbl{}no\textquotedbl{}} or True/False): Cochran's Q test (statsmodels \code{cochrans\_\allowbreak{}q}, as R DescTools::\code{CochranQTest()}). With two columns it gives \code{compare\_\allowbreak{}before\_\allowbreak{}after} (Wilcoxon signed-rank). Rows with an empty cell in any of the columns are skipped. \code{based\_\allowbreak{}on=\textquotedbl{}averages\textquotedbl{}} (the repeated-measures ANOVA) is not here yet. Gives back a one-row table.
+Each row is one person (or plant, or field) measured in every column. The kind of column decides the test, and the sentence says which: numbers: the Friedman test (R \code{friedman.\allowbreak{}test()}, SciPy friedmanchisquare), which compares the ranks within each row, so it needs no bell shape; effect size Kendall's W (0: the rows rank the columns in no common order, 1: every row ranks them the same), from R effectsize::\code{kendalls\_\allowbreak{}w} with a bootstrap 95 \% interval (R seed 1). \code{test=\textquotedbl{}quade\textquotedbl{}}: the Quade test, which also weighs how much each row varies, run in R (stats::\code{quade.\allowbreak{}test()}). \code{test=\textquotedbl{}page\textquotedbl{}}: Page's test for a trend: do the values rise in the order the columns are given? (SciPy \code{page\_\allowbreak{}trend\_\allowbreak{}test}, as R crank::\code{page.\allowbreak{}trend.\allowbreak{}test()}; for a fall, give the columns the other way round.) yes/no columns (two values, such as \code{\textquotedbl{}yes\textquotedbl{}}/\code{\textquotedbl{}no\textquotedbl{}} or True/False): Cochran's Q test (statsmodels \code{cochrans\_\allowbreak{}q}, as R DescTools::\code{CochranQTest()}). With two columns it gives \code{compare\_\allowbreak{}before\_\allowbreak{}after} (Wilcoxon signed-rank). Rows with an empty cell in any of the columns are skipped. \code{based\_\allowbreak{}on=\textquotedbl{}averages\textquotedbl{}} (the repeated-measures ANOVA) is not here yet. Gives back a one-row table.
 
 \wordfield{Options}{}\par\nopagebreak
 \begin{optiontable}
@@ -6864,7 +6876,7 @@ Each row is one person (or plant, or field) measured in every column. The kind o
 \code{test=} & \\
 \end{optiontable}
 
-\wordfield{Underneath}{SciPy (stats.friedmanchisquare); statsmodels (\code{contingency\_\allowbreak{}tables}.cochrans\_q for yes/no columns); R stats::quade.test and effectsize::\code{kendalls\_\allowbreak{}w} (simplydata[r])}
+\wordfield{Underneath}{SciPy (stats.friedmanchisquare); statsmodels (\code{contingency\_\allowbreak{}tables}.cochrans\_q for yes/no columns); SciPy \code{page\_\allowbreak{}trend\_\allowbreak{}test}; R stats::quade.test and effectsize::\code{kendalls\_\allowbreak{}w} (simplydata[r])}
 \wordfield{Example you can run}{(it uses the practice table \code{marks})}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -6913,6 +6925,27 @@ The runs test: each value is above or below the median, and a run is an unbroken
 import simplydata as sdata
 table = sdata.table(sdata.example("marks"))
 table.compare_to_random_order("marks")
+\end{lstlisting}
+\wordentry{table.compare\_correlations()}{word:table.compare-correlations}
+Is one correlation stronger than another?
+
+\codeline{table.compare\_correlations(\textquotedbl{}hours\textquotedbl{}, \textquotedbl{}marks\textquotedbl{}, for\_each=\textquotedbl{}class\textquotedbl{})} (with \code{sdata.\allowbreak{}example(\textquotedbl{}marks\textquotedbl{})}, two classes)\\
+With \code{for\_\allowbreak{}each=} (two groups): is the correlation of the two columns different in the two groups? Fisher's z test, R cocor::\code{cocor.\allowbreak{}indep.\allowbreak{}groups()}. With two pairs of columns that share one column, in the same rows: \code{table.\allowbreak{}compare\_\allowbreak{}correlations([\textquotedbl{}hours\textquotedbl{},\allowbreak{} \textquotedbl{}marks\textquotedbl{}],\allowbreak{} [\textquotedbl{}height\textquotedbl{},\allowbreak{} \textquotedbl{}marks\textquotedbl{}])} asks whether hours or height goes more strongly with marks: Steiger's z test, R cocor::\code{cocor.\allowbreak{}dep.\allowbreak{}groups.\allowbreak{}overlap()}. Both print the difference with Zou's 95 \% interval (simplydata[r]). The correlations are Pearson's r (SciPy). Gives back a one-row table.
+
+\wordfield{Options}{}\par\nopagebreak
+\begin{optiontable}
+\code{first=} & \\
+\code{second=} & \\
+\code{for\_\allowbreak{}each=} & \\
+\end{optiontable}
+
+\wordfield{Underneath}{SciPy (stats.pearsonr); R cocor (cocor.indep.groups, cocor.dep.groups.overlap; simplydata[r])}
+\wordfield{Example you can run}{(it uses the practice table \code{marks})}\par\nopagebreak
+\begin{lstlisting}[style=py]
+import simplydata as sdata
+table = sdata.table(sdata.example("marks"))
+table.keep_rows("class", one_of=["A", "B"])
+table.compare_correlations("hours", "marks", for_each="class")
 \end{lstlisting}
 \wordentry{sdata.compare\_averages()}{word:sdata.compare-averages}
 Are the averages of the groups different? From the summary numbers of each group.
@@ -10507,6 +10540,7 @@ Every word and option, A to Z, with the page of its dictionary entry. Other spel
 \indexline{word:sdata.compare-averages}{sdata.compare\_averages()}
 \indexline{word:table.compare-averages}{table.compare\_averages()}
 \indexline{word:table.compare-before-after}{table.compare\_before\_after()}
+\indexline{word:table.compare-correlations}{table.compare\_correlations()}
 \indexline{word:sdata.compare-counts}{sdata.compare\_counts()}
 \indexline{word:table.compare-counts}{table.compare\_counts()}
 \indexline{word:table.compare-counts-to}{table.compare\_counts\_to()}

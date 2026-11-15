@@ -91,13 +91,14 @@ from .summaries import _key, _order, _p_clause, _p_sentence, _p_shown, _plain, _
 
 BASED_ON = ("averages", "ranks")
 AVERAGE_TESTS = ("welch", "student", "welch anova", "anova", "mann-whitney", "kruskal-wallis", "yuen",
-                 "brunner-munzel", "alexander-govern", "median")
+                 "brunner-munzel", "alexander-govern", "median", "jonckheere")
 # test= choices of compare_averages with their own engine (_more_average_test); the first two take 2 groups
 MORE_AVERAGE_TESTS = ("yuen", "brunner-munzel", "alexander-govern", "median")
-RANK_LIKE = ("mann-whitney", "kruskal-wallis", "brunner-munzel", "median")  # allowed with based_on="ranks"
+RANK_LIKE = ("mann-whitney", "kruskal-wallis", "brunner-munzel", "median", "jonckheere")  # with based_on="ranks"
 RANK_TESTS = ("mann-whitney", "kruskal-wallis")
 TWO_GROUP_TESTS = ("welch", "student", "mann-whitney", "yuen", "brunner-munzel")
 COUNT_TESTS = ("chi-square", "fisher", "g", "barnard", "boschloo")
+FISHER_TABLES = 100_000  # Fisher on a bigger table: the p-value from this many random tables (seeded)
 EXACT_METHODS = {"barnard": "z-pooled", "boschloo": "boschloo"}  # R Exact::exact.test(method =)
 PAIR_TESTS = ("welch", "mann-whitney", "tukey", "games-howell", "scheffe", "lsd", "dunn", "conover")
 PAIR_ALIASES = {"games howell": "games-howell", "gameshowell": "games-howell", "scheffé": "scheffe",
@@ -324,6 +325,25 @@ def _mann_whitney(a, b, alternative="two-sided"):
     u = float(result.statistic)  # U of the first group, the same as R's W
     how = "exact p-value" if exact else "normal approximation with continuity correction"
     return u, float(result.pvalue), how
+
+
+def _hodges_lehmann(a, b, exact, alternative="two-sided"):
+    """The Hodges-Lehmann shift (first minus second) and its interval, from R wilcox.test(conf.int = TRUE) with the
+    same exact/approximate choice as the test (Python has no function for this interval)."""
+    from .._r import RMissing, r_call
+
+    side = {"two-sided": "two.sided", "greater": "greater", "less": "less"}[alternative]
+    try:
+        found = r_call("w <- stats::wilcox.test(a, b, conf.int = TRUE, exact = ex, correct = TRUE, alternative = side); "
+                       "list(value = unname(w$estimate), ci = as.numeric(w$conf.int))", packages=(),
+                       what="the Hodges-Lehmann shift with its interval (R wilcox.test(conf.int = TRUE))",
+                       a=np.asarray(a, dtype=float), b=np.asarray(b, dtype=float), ex=bool(exact), side=side)
+    except RMissing:
+        return {"value": math.nan, "low": math.nan, "high": math.nan,
+                "note": ("Note: the Hodges-Lehmann shift with its 95 % CI comes from R (wilcox.test(conf.int = TRUE)), "
+                         'which is not ready here; to add it: pip install "simplydata[r]" and install R.')}
+    low, high = (float(v) for v in np.asarray(found["ci"], dtype=float))
+    return {"value": float(np.asarray(found["value"])[0]), "low": low, "high": high, "note": ""}
 
 
 def _signed_rank(changes, alternative="two-sided"):
@@ -582,7 +602,7 @@ class StatTestWords:
     @friendly(renamed={"between": "for_each"})
     def compare_averages(self, column=None, for_each=None, based_on="averages", test=None, sides=2, higher=None,
                          lower=None, alternative=None, p_value_by="formula", shuffles=9999, seed=1,
-                         same_within=None):
+                         same_within=None, in_order=None):
         """Are the averages of the groups really different?
 
         table.compare_averages("marks", for_each="class")   (with sdata.example("marks"))
@@ -631,6 +651,10 @@ class StatTestWords:
         groups = self._groups(step, column, for_each, example)
         k = len(groups)
         names = [g[0] for g in groups]
+        if test == "jonckheere" or in_order is not None:
+            if test != "jonckheere":
+                raise SimplydataError('in_order= gives the order of the groups for a trend test: test="jonckheere".')
+            return self._jonckheere(step, column, for_each, groups, in_order)
         if (sides != 2 or higher is not None or lower is not None or alternative not in (None, "two-sided")) \
                 and k != 2:
             raise SimplydataError(
@@ -770,10 +794,16 @@ class StatTestWords:
             lean = f"the values in {names[0]} tend to be higher" if u > half else (
                 f"the values in {names[0]} tend to be lower" if u < half else "neither group tends to be higher")
             size = "" if es["note"] else f" (rank-biserial correlation = {_num(r)}{interval_text(es['low'], es['high'])})"
+            shift = _hodges_lehmann(a, b, how.startswith("exact"), alt)
+            row.update({"shift (Hodges-Lehmann)": shift["value"], "shift 95 % CI low": shift["low"],
+                        "shift 95 % CI high": shift["high"]})
+            moved = "" if shift["note"] else (
+                f'; the typical shift from {names[1]} to {names[0]} (Hodges-Lehmann) is {_num(shift["value"])}, '
+                f"values from {_interval_words(shift['low'], shift['high'])} fit the data (95 % CI)")
             first = (f'The median "{column}" is {_num(medians[0])} in {names[0]} and {_num(medians[1])} in {names[1]}: '
-                     f"{lean}{size}.")
+                     f"{lean}{size}{moved}.")
             p_line = _p_sentence(p, if_none)
-            notes = [es["note"]] if es["note"] else []
+            notes = [n for n in (es["note"], shift["note"]) if n]
             second = (f"Test: Mann-Whitney U test (U = {_whole(u)}, {how}), which compares ranks rather than "
                       "averages, so it does not need bell-shaped values.")
         else:
@@ -813,6 +843,37 @@ class StatTestWords:
         print(second)
         for note in notes:
             print(note)
+        return self._result_table(row)
+
+    def _jonckheere(self, step, column, for_each, groups, in_order):
+        """The Jonckheere-Terpstra test for a trend across ordered groups (statsmodels jonckheere_terpstra, two-sided;
+        R clinfun::jonckheere.test agrees to about 1e-4, the two treat ties a little differently)."""
+        from statsmodels.stats.nonparametric import jonckheere_terpstra
+
+        by_name = dict(groups)
+        if in_order is None or isinstance(in_order, str) or not hasattr(in_order, "__iter__"):
+            raise SimplydataError(f'test="jonckheere" needs the "{for_each}" groups in order: in_order=['
+                                  + ", ".join(f'"{n}"' for n in by_name) + "] (lowest first).")
+        order = [str(g) for g in in_order]
+        if sorted(order) != sorted(by_name):
+            raise SimplydataError(f'in_order= must list every "{for_each}" group once: '
+                                  + _list_words(f'"{n}"' for n in by_name) + ".")
+        samples = [by_name[g] for g in order]
+        result = jonckheere_terpstra(samples, alternative="two-sided")
+        stat, p = float(result.statistic), float(result.pvalue)
+        medians = [float(np.median(v)) for v in samples]
+        listed = _list_words(f'{_num(m)} in {g}' for g, m in zip(order, medians))
+        print(f'The median "{column}" is {listed} (in this order).')
+        print(_p_sentence(p, "there were truly no trend across the groups", "a trend this strong or stronger",
+                          "that there is no trend"))
+        print(f"Test: Jonckheere-Terpstra test for a trend across ordered groups (JT = {_whole(stat)}, normal "
+              "approximation), two-sided: it looks for values that rise or fall along the order you gave; "
+              "statsmodels jonckheere_terpstra, as R clinfun::jonckheere.test().")
+        row = {"test": "Jonckheere-Terpstra test", "what it compares": f'"{column}" across "{for_each}" in the order '
+               + ", ".join(order), "statistic name": "JT", "statistic": stat, "p-value": p}
+        for g, m, v in zip(order, medians, samples):
+            row[f"median in {g}"] = m
+            row[f"count in {g}"] = len(v)
         return self._result_table(row)
 
     def _more_average_test(self, column, for_each, groups, test, alt, up, side_words, if_none):
@@ -896,7 +957,7 @@ class StatTestWords:
     # ------------------------------------------------------------------ compare_each_pair
     @friendly(renamed={"between": "for_each"})
     def compare_each_pair(self, column=None, for_each=None, based_on="averages", test=None, against=None, seed=1,
-                          show="pairs"):
+                          show="pairs", matched_by=None):
         """Which pairs of groups differ? Every pair is compared, with Holm's correction.
 
         table.compare_each_pair("marks", for_each="class")   (with sdata.example("marks"))
@@ -924,9 +985,19 @@ class StatTestWords:
         multcompView::multcompLetters()): groups that share a letter have an adjusted p-value of
         0.05 or more between them. It works with every test= above, and gives back one row per
         group.
+        matched_by="patient": the same rows (patients) were measured in every group, such as pain
+        at week 0, 4 and 8 in long form. Each pair is then compared within the patients: paired
+        t-tests, or with based_on="ranks" (after compare_matched's Friedman test) the Wilcoxon
+        signed-rank test, with Holm's correction (SciPy, as R pairwise.t.test(paired = TRUE) and
+        pairwise.wilcox.test(paired = TRUE)).
         """
         step = "compare_each_pair"
         self._check_choice(step, "show", show, ("pairs", "letters"))
+        if matched_by is not None:
+            if test is not None or against is not None or show != "pairs":
+                raise SimplydataError("matched_by= gives paired tests of each pair (Holm); leave out test=, against= "
+                                      "and show=.")
+            return self._matched_pairs(step, column, for_each, matched_by, based_on)
         if show == "letters" and against is not None:
             raise SimplydataError("show=\"letters\" compares every pair; against= compares each group with one "
                                   "control only. Leave out one of them.")
@@ -934,6 +1005,73 @@ class StatTestWords:
         if show == "pairs":
             return pairs
         return self._pair_letters(column, for_each, pairs)
+
+    def _matched_pairs(self, step, column, for_each, matched_by, based_on):
+        """Paired tests of each pair of groups within the matched rows, Holm-adjusted."""
+        from scipy import stats
+
+        example = 'table.compare_each_pair("pain", for_each="week", matched_by="patient", based_on="ranks")'
+        self._check_based_on(step, based_on)
+        for option, value in (("the column", column), ("for_each=", for_each), ("matched_by=", matched_by)):
+            self._need_name(step, option, value, example)
+        if len({column, for_each, matched_by}) != 3:
+            raise SimplydataError(f"{step}() needs three different columns.\nFor example, {example}")
+        frame = self._number_frame(step, [column])
+        floats = [c for c in (for_each, matched_by) if frame.schema[c].is_float()]
+        if floats:
+            frame = frame.with_columns(nw.col(c).fill_nan(None) for c in floats)
+        kept = frame.select(matched_by, for_each, column).drop_nulls()
+        _skipped_note(len(frame) - len(kept), [column, for_each, matched_by])
+        cells = {}
+        for who, group, value in zip(kept[matched_by].to_list(), kept[for_each].to_list(),
+                                     kept[column].to_numpy().astype(float)):
+            if (who, group) in cells:
+                raise SimplydataError(f'"{_label(who)}" has more than one row for "{_label(group)}"; matched_by= needs '
+                                      f'one value per "{matched_by}" in each "{for_each}" group.')
+            cells[(who, group)] = value
+        groups = sorted({g for _, g in cells}, key=lambda k: (str(type(k)), k))
+        people = sorted({w for w, _ in cells}, key=lambda k: (str(type(k)), k))
+        complete = [w for w in people if all((w, g) in cells for g in groups)]
+        if len(complete) < len(people):
+            print(f'Note: {len(people) - len(complete)} of the {len(people)} "{matched_by}" values were not measured in '
+                  f'every "{for_each}" group and were left out.')
+        if len(groups) < 2 or len(complete) < 2:
+            raise SimplydataError(f'{step}() needs at least 2 groups and 2 "{matched_by}" values measured in each.')
+        data = {g: np.array([cells[(w, g)] for w in complete]) for g in groups}
+        rows = []
+        for i in range(len(groups)):
+            for j in range(i + 1, len(groups)):
+                g1, g2 = groups[i], groups[j]
+                a, b = data[g1], data[g2]
+                row = {"group 1": _label(g1), "group 2": _label(g2)}
+                if based_on == "averages":
+                    result = stats.ttest_rel(a, b)
+                    low, high = result.confidence_interval(0.95)
+                    row.update({"test": "paired t-test", "difference": float(np.mean(a - b)),
+                                "difference 95 % CI low": float(low), "difference 95 % CI high": float(high),
+                                "statistic name": "t", "statistic": float(result.statistic),
+                                "degrees of freedom": float(result.df), "p-value": float(result.pvalue)})
+                else:
+                    found = _signed_rank(a - b)
+                    if found is None:
+                        raise SimplydataError(f'Every "{matched_by}" has the same value in {_label(g1)} and '
+                                              f"{_label(g2)}, so there is nothing to test.")
+                    v, p, how, _, _ = found
+                    row.update({"test": "Wilcoxon signed-rank test", "difference in medians":
+                                float(np.median(a) - np.median(b)), "statistic name": "V", "statistic": v,
+                                "p-value": p, "p-value method": how})
+                row["rows"] = len(complete)
+                rows.append(row)
+        for row, p in zip(rows, _holm([r["p-value"] for r in rows])):
+            row["p-value (Holm)"] = p
+        test = "paired t-tests" if based_on == "averages" else "Wilcoxon signed-rank tests"
+        r_name = ("pairwise.t.test(paired = TRUE)" if based_on == "averages" else "pairwise.wilcox.test(paired = TRUE)")
+        print(f'Each pair of "{for_each}" groups compared on "{column}" within the same {len(complete)} "{matched_by}" '
+              f"values with {test}; the p-values are adjusted for {len(rows)} pair{'' if len(rows) == 1 else 's'} with "
+              f"Holm's method, so the chance of any false alarm stays at 5 %. As R {r_name}.")
+        self._pair_lines(rows, "p-value (Holm)", "Holm-adjusted ")
+        frame = nw.from_dict({key: [r[key] for r in rows] for key in rows[0]}, backend=self._frame.implementation)
+        return self._new_table(frame)
 
     def _pair_letters(self, column, for_each, pairs):
         """compare_each_pair(show="letters"): R multcompView::multcompLetters() on the pairs' p-values."""
@@ -1610,13 +1748,15 @@ class StatTestWords:
 
     @friendly
     def compare_average_to(self, column=None, value=None, based_on="averages", sides=2, higher=None, lower=None,
-                           alternative=None, same_within=None):
+                           alternative=None, same_within=None, test=None, standard_deviation=None):
         """Is the average of a column really different from a number you choose?
 
         table.compare_average_to("marks", 60)   (with sdata.example("marks"))
         A one-sample t-test, or the Wilcoxon signed-rank test (on the median) with
         based_on="ranks". Empty cells are skipped. Effect size: Cohen's d, the difference
         in standard deviations. Gives back a one-row table of results.
+        test="z" with standard_deviation=10: the z-test, for when the spread of the values is
+        known beforehand (not worked out from these values), run in R (BSDA::z.test()).
         sides=1, higher="average" (the average is above the number) or lower="average" (below it)
         tests in one direction only, as decided before seeing the data (R t.test(x, mu = 60,
         alternative = "greater")).
@@ -1646,6 +1786,13 @@ class StatTestWords:
                                      None if up is None else words[up], words["average"], shown, "one-sample t",
                                      "TOSTER::t_TOST(x - value, eqb = ...)", {"average": float(values.mean()),
                                                                   "count": len(values)})
+        if test is not None or standard_deviation is not None:
+            if test is None:
+                raise SimplydataError(f'standard_deviation= is the known spread for the z-test, so it goes with '
+                                      f'test="z": table.compare_average_to("{column}", {shown}, test="z", '
+                                      f"standard_deviation={standard_deviation!r}).")
+            self._check_choice(step, "test", test, ("z",))
+            return self._z_test(step, column, values, float(value), standard_deviation, based_on, alt, up, shown)
         row, r = self._one_sample(step, values, f'value of "{column}"', float(value), based_on, what,
                                   f'"{column}"', alt)
         mean = float(values.mean())
@@ -1695,9 +1842,47 @@ class StatTestWords:
             print(note)
         return self._result_table(row)
 
+    def _z_test(self, step, column, values, value, sd, based_on, alt, up, shown):
+        """The one-sample z-test with a known standard deviation, from R BSDA::z.test() (statsmodels' ztest
+        uses the standard deviation of the values, so it is not this test)."""
+        from .._r import r_call
+
+        if based_on != "averages":
+            raise SimplydataError('test="z" compares the average; leave out based_on=.')
+        if isinstance(sd, bool) or not _is_number(sd) or not sd > 0:
+            raise SimplydataError(f'test="z" needs the known standard deviation, such as standard_deviation=10 '
+                                  f'(known beforehand, not worked out from "{column}").')
+        side = {"two-sided": "two.sided", "greater": "greater", "less": "less"}[alt]
+        found = r_call("z <- BSDA::z.test(x, mu = mu, sigma.x = s, alternative = side); "
+                       "list(z = unname(z$statistic), p = z$p.value, ci = as.numeric(z$conf.int))", packages=("BSDA",),
+                       what="the z-test with a known standard deviation (R BSDA::z.test())",
+                       python_note="statsmodels ztest uses the standard deviation of the values, not a known one",
+                       x=values, mu=value, s=float(sd), side=side)
+        z, p = float(np.asarray(found["z"])[0]), float(np.asarray(found["p"])[0])
+        low, high = (float(v) for v in np.asarray(found["ci"], dtype=float))
+        mean = float(values.mean())
+        diff = mean - value
+        print(f'The average "{column}" is {_num(mean)}, which is {_num(abs(diff))} {"higher" if diff > 0 else "lower"} '
+              f"than {shown} ({'' if up is None else 'one-sided '}95 % CI of the average {_interval_words(low, high)}).")
+        if_none = f"the average were truly {shown}" if up is None else (
+            f"the average were truly not {'above' if up == 'average' else 'below'} {shown}")
+        print(_p_sentence(p, if_none, "a difference this big or bigger", f"that the average is {shown}"))
+        second = (f"Test: z-test with the known standard deviation {sd:g} (z = {_num(z)}), as R BSDA::z.test(); use it "
+                  "only when the spread is known beforehand, otherwise the t-test (leave out test=).")
+        if up is not None:
+            second += " " + _one_sided_sentence(f'an average of "{column}" above {shown}' if up == "average" else
+                                                f"an average below {shown}",
+                                                "an average below it" if up == "average" else "an average above it")
+        print(second)
+        return self._result_table({"test": "one-sample z-test", "what it compares": f'the average of "{column}" against '
+                                   f"{shown}", "statistic name": "z", "statistic": z, "p-value": p,
+                                   "known standard deviation": float(sd), "average": mean,
+                                   "average 95 % CI low": low, "average 95 % CI high": high, "rows": len(values)})
+
     # ------------------------------------------------------------------ compare_counts
     @friendly(renamed={"between": "for_each"})
-    def compare_counts(self, column=None, for_each=None, test=None):
+    def compare_counts(self, column=None, for_each=None, test=None, in_order=None, p_value_by="formula",
+                       shuffles=9999, seed=1, show=None):
         """Does how often each value turns up really differ between groups?
 
         table.add_group_column("result", from_column="marks", cut_at=[60], names=["below 60", "60 or more"])
@@ -1710,6 +1895,14 @@ class StatTestWords:
         lambda_="log-likelihood"), as R DescTools::GTest()). For 2 x 2 tables also
         test="barnard" and test="boschloo": unconditional exact tests, often stronger than
         Fisher's, run in R (Exact::exact.test(method = "z-pooled" / "boschloo"), simplydata[r]).
+        test="fisher" on a bigger table gives its p-value from 100,000 random tables with the
+        same totals (SciPy, seed=1); p_value_by="exact" counts every table instead, in R
+        (fisher.test()). p_value_by="shuffling": the chi-square p-value from shuffles=9999 random
+        tables (SciPy, seed=1, as R chisq.test(simulate.p.value = TRUE)).
+        test="trend" with in_order=["low", "middle", "high"] (the for_each groups in order) and a
+        yes/no column: the Cochran-Armitage test for a trend in the percent across ordered groups
+        (R prop.trend.test()). show="cells" gives back one row per cell with its standardized
+        residual (statsmodels, as R chisq.test()$stdres): cells beyond 2 or -2 stand out.
         Empty cells are skipped. Effect size: Cramer's V, the
         strength of the link from 0 (none) to 1 (complete). Gives back a one-row table.
         """
@@ -1719,7 +1912,14 @@ class StatTestWords:
         self._need_name(step, "for_each=", for_each, example)
         self._need_columns(column, for_each)
         if test is not None:
-            self._check_choice(step, "test", test, COUNT_TESTS)
+            self._check_choice(step, "test", test, COUNT_TESTS + ("trend",))
+        self._check_choice(step, "p_value_by", p_value_by, ("formula", "exact", "shuffling"))
+        if show is not None:
+            self._check_choice(step, "show", show, ("cells",))
+        if isinstance(seed, bool) or not isinstance(seed, (int, np.integer)):
+            raise SimplydataError("seed= needs a whole number, such as seed=1.")
+        if isinstance(shuffles, bool) or not isinstance(shuffles, (int, np.integer)) or shuffles < 99:
+            raise SimplydataError("shuffles= needs a whole number of 99 or more, such as shuffles=9999.")
         if column == for_each:
             raise SimplydataError(f"{step}() needs two different columns, for example {example}.")
         frame = self._frame
@@ -1735,14 +1935,85 @@ class StatTestWords:
         if len(row_keys) < 2 or len(col_keys) < 2:
             few = column if len(row_keys) < 2 else for_each
             raise SimplydataError(f'{step}() needs at least 2 different values in "{few}".')
+        if in_order is not None:
+            if isinstance(in_order, str) or not hasattr(in_order, "__iter__"):
+                raise SimplydataError(f'in_order= lists the "{for_each}" groups in order, such as '
+                                      'in_order=["low", "middle", "high"].')
+            given = list(in_order)
+            missing = [k for k in col_keys if k not in given and str(k) not in [str(g) for g in given]]
+            if missing or len(given) != len(col_keys):
+                raise SimplydataError(f'in_order= must list every "{for_each}" group once: '
+                                      + _list_words(f'"{_label(k)}"' for k in col_keys) + ".")
+            col_keys = [next(k for k in col_keys if k == g or str(k) == str(g)) for g in given]
+        elif test == "trend":
+            raise SimplydataError(f'test="trend" needs the "{for_each}" groups in order: in_order=[...] (lowest first).')
         observed = np.zeros((len(row_keys), len(col_keys)), dtype=np.int64)
         ri = {k: i for i, k in enumerate(row_keys)}
         ci = {k: i for i, k in enumerate(col_keys)}
         for r_, c_ in zip(rows_of, cols_of):
             observed[ri[r_], ci[c_]] += 1
-        return self._counts_engine(observed, column, for_each, test)
+        if test == "trend":
+            return self._trend_test(step, observed, column, for_each, row_keys, col_keys)
+        result = self._counts_engine(observed, column, for_each, test, p_value_by=p_value_by, shuffles=int(shuffles),
+                                     seed=int(seed))
+        if show == "cells":
+            return self._count_cells(observed, column, for_each, row_keys, col_keys)
+        return result
 
-    def _counts_engine(self, observed, column, for_each, test, what=None, unit="rows", unrelated=None):
+    def _count_cells(self, observed, column, for_each, row_keys, col_keys):
+        """One row per cell: observed and expected counts and the standardized residual (statsmodels Table, as R
+        chisq.test()$stdres)."""
+        from statsmodels.stats.contingency_tables import Table
+
+        table = Table(observed.astype(float))
+        resid, expected = np.asarray(table.standardized_resids), np.asarray(table.fittedvalues)
+        rows = []
+        for i, rk in enumerate(row_keys):
+            for j, ck in enumerate(col_keys):
+                rows.append({column: _label(rk), for_each: _label(ck), "count": int(observed[i, j]),
+                             "expected count": float(expected[i, j]), "standardized residual": float(resid[i, j])})
+        out = [r for r in rows if abs(r["standardized residual"]) > 2]
+        if out:
+            listed = _list_words(f'"{r[column]}" in "{r[for_each]}" ({r["count"]}, expected {_num(r["expected count"])}, '
+                                 f'residual {_num(r["standardized residual"])})' for r in out)
+            print(f"Cells that stand out (standardized residual beyond 2 or -2): {listed}.")
+        else:
+            print("No cell stands out: every standardized residual lies between -2 and 2.")
+        print("Method: standardized residuals (statsmodels Table.standardized_resids), as R chisq.test()$stdres.")
+        frame = nw.from_dict({k: [r[k] for r in rows] for k in rows[0]}, backend=self._frame.implementation)
+        return self._new_table(frame)
+
+    def _trend_test(self, step, observed, column, for_each, row_keys, col_keys):
+        """Cochran-Armitage test for a trend in a percent across ordered groups, R prop.trend.test() (statsmodels'
+        test_ordinal_association is the linear-by-linear test, a different statistic)."""
+        from .._r import r_call
+        from .more_tests import _yes_no
+
+        if observed.shape[0] != 2:
+            raise SimplydataError(f'test="trend" needs a yes/no column; "{column}" has {observed.shape[0]} values.')
+        yes, _, yes_words = _yes_no(column, list(row_keys))
+        events = observed[row_keys.index(yes)].astype(float)
+        totals = observed.sum(axis=0).astype(float)
+        found = r_call("t <- stats::prop.trend.test(x, n); list(chi = unname(t$statistic), p = t$p.value)", packages=(),
+                       what="the test for a trend across ordered groups (R prop.trend.test())",
+                       python_note="statsmodels test_ordinal_association is the linear-by-linear test, a different "
+                                   "statistic", x=events, n=totals)
+        chi, p = float(np.asarray(found["chi"])[0]), float(np.asarray(found["p"])[0])
+        listed = _list_words(f'{_num(e / t * 100)} % in "{_label(k)}"' for e, t, k in zip(events, totals, col_keys))
+        print(f'"{column}" = {yes_words}: {listed} (in this order).')
+        print(_p_sentence(p, "the percent truly had no trend across the groups", "a trend this strong or stronger",
+                          "that there is no trend"))
+        print(f"Test: Cochran-Armitage test for trend (chi-square = {_num(chi)}, df = 1), as R prop.trend.test(), with "
+              f'scores 1 to {len(col_keys)} for the "{for_each}" groups in the order given.')
+        row = {"test": "Cochran-Armitage test for trend", "what it compares":
+               f'the percent "{column}" = {_label(yes)} across "{for_each}" in order', "statistic name": "chi-square",
+               "statistic": chi, "degrees of freedom": 1.0, "p-value": p}
+        for e, t, k in zip(events, totals, col_keys):
+            row[f"percent {_label(yes)} in {_label(k)}"] = e / t * 100
+        return self._result_table(row)
+
+    def _counts_engine(self, observed, column, for_each, test, what=None, unit="rows", unrelated=None,
+                       p_value_by="formula", shuffles=9999, seed=1):
         """compare_counts on a table of counts (also sdata.compare_counts([[20, 40], [30, 30]]))."""
         from scipy import stats
 
@@ -1755,12 +2026,27 @@ class StatTestWords:
         what = what or f'how often each "{column}" turns up in each "{for_each}"'
         row = {"test": None, "what it compares": what}
         size = f"{observed.shape[0]} x {observed.shape[1]}"
-        if test == "fisher":
-            if not two_by_two:
-                raise SimplydataError(
-                    f'test="fisher" works on 2 x 2 tables here, but "{column}" and "{for_each}" make a {size} table.\n'
-                    "Use the chi-square test (leave out test=), or merge groups first."
-                )
+        if p_value_by != "formula" and test not in (None, "chi-square", "fisher"):
+            raise SimplydataError(f'p_value_by= goes with the chi-square test or test="fisher", not test="{test}".')
+        if test == "fisher" and not two_by_two:
+            if p_value_by == "exact":
+                from .._r import r_call
+
+                p = float(np.asarray(r_call("stats::fisher.test(x, workspace = 2e8)$p.value", packages=(),
+                                            what=f"Fisher's exact test on a {size} table (R fisher.test())",
+                                            python_note="SciPy fisher_exact gives a {size} p-value from random tables "
+                                                        "(leave out p_value_by= for it, seeded)",
+                                            x=observed.astype(float)))[0])
+                how = "every table with the same totals counted, in R (fisher.test())"
+            else:
+                result = stats.fisher_exact(observed, method=stats.MonteCarloMethod(
+                    n_resamples=FISHER_TABLES, rng=np.random.default_rng(seed)))
+                p = float(result.pvalue)
+                how = (f"from {FISHER_TABLES:,} random tables with the same totals (SciPy, seed={seed}); "
+                       'p_value_by="exact" counts every table, in R')
+            row.update({"test": "Fisher's exact test", "p-value": p})
+            second = f"Test: Fisher's exact test on the {size} table (chosen with test=), its p-value {how}."
+        elif test == "fisher":
             result = stats.fisher_exact(observed)
             p = float(result.pvalue)
             row.update({"test": "Fisher's exact test", "statistic name": "odds ratio (sample)",
@@ -1796,6 +2082,17 @@ class StatTestWords:
                         "degrees of freedom": float(df), "p-value": p})
             yates = " with Yates' continuity correction (as R chisq.test() does for 2 x 2 tables)" if two_by_two else ""
             second = f"Test: {name}{yates} (chi-square = {_num(stat)}, df = {df}), the usual test for counts."
+            if p_value_by == "exact":
+                raise SimplydataError('p_value_by="exact" for counts is Fisher\'s exact test: give test="fisher".')
+            if p_value_by == "shuffling":
+                plain = stats.chi2_contingency(observed, correction=False)
+                shuffled = stats.chi2_contingency(observed, correction=False, method=stats.MonteCarloMethod(
+                    n_resamples=shuffles, rng=np.random.default_rng(seed)))
+                stat, p = float(plain.statistic), float(shuffled.pvalue)
+                row.update({"statistic": stat, "p-value": p, "p-value method": f"{shuffles} random tables, seed {seed}"})
+                second = (f"Test: {name} (chi-square = {_num(stat)}, without Yates' correction), its p-value from "
+                          f"{shuffles} random tables with the same totals (SciPy, seed={seed}), as R "
+                          "chisq.test(simulate.p.value = TRUE).")
         row.update({"effect size name": "strength of the link, 0 (none) to 1 (complete) (Cramer's V)",
                     "effect size": v, "effect size 95 % CI low": v_ci["low"], "effect size 95 % CI high": v_ci["high"],
                     "rows": n, "smallest expected count": float(expected.min())})
@@ -1809,12 +2106,12 @@ class StatTestWords:
         if v_ci["note"]:
             print(v_ci["note"])
         low = int((expected < 5).sum())
-        if low and test != "fisher":
+        if low and test != "fisher" and p_value_by != "shuffling":
             counts = "count is" if low == 1 else "counts are"
             note = (f"Note: {low} of the {expected.size} expected {counts} below 5, so the chi-square p-value "
                     "may be off. ")
             note += ('Fisher\'s exact test is safer here: test="fisher".' if two_by_two
-                     else "Merge small groups, or collect more data.")
+                     else 'test="fisher" (or p_value_by="shuffling") gives a p-value that does not need large counts.')
             print(note)
         return self._result_table(row)
 
