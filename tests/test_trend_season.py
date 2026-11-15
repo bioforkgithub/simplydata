@@ -132,13 +132,16 @@ def test_multiplied_season_matches_r(engine, capsys):
     assert "The season multiplies visitors by" in capsys.readouterr().out
 
 
-def test_straight_line_matches_r_lm_and_tapply(engine):
+def test_straight_line_matches_r_lm_with_season_effects(engine):
     t = visitors(engine, "Harbour Museum")
     t.add_trend_and_season("visitors", sorted_by="month", repeats_every=12, method="straight line")
-    # R: fit <- lm(h ~ seq_along(h)); tapply(residuals(fit), (seq_along(h) - 1) %% 12, mean)
-    trend = col(t, "visitors_trend")
-    assert trend[0] == pytest.approx(1203.1790986791 + 6.95576722128446, rel=1e-12)
-    assert col(t, "visitors_season")[:2] == pytest.approx([-212.465502505157, -193.921269726442], rel=1e-10)
+    # R: tt <- seq_along(h); p <- factor((tt - 1) %% 12)
+    #    fit <- lm(h ~ tt + p, contrasts = list(p = "contr.sum")); trend <- coef(fit)[1] + coef(fit)[2] * tt
+    #    season <- fitted(fit) - trend; residuals(fit)
+    assert col(t, "visitors_trend")[:2] == pytest.approx([1214.21180555556, 1221.1105526418], rel=1e-12)
+    assert col(t, "visitors_season")[:3] == pytest.approx([-212.779113247873, -194.177860334112,
+                                                           -225.909940753692], rel=1e-10)
+    assert col(t, "visitors_rest")[0] == pytest.approx(-29.4326923076835, rel=1e-9)
 
 
 def test_trend_and_season_errors(engine):

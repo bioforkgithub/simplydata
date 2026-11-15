@@ -67,7 +67,7 @@ Install once: `pip install "simplydata[r]"`, R from https://cran.r-project.org, 
 - `table.add_trend_and_season("visitors", sorted_by="month", repeats_every="year")`: adds the trend, the season and
   the rest as three columns. method="loess" (R `stl`: statsmodels STL with R's settings; season_window="fixed" runs
   R `stl(s.window = "periodic")` itself), "moving averages" (R `decompose`, season "added" or "multiplied") or
-  "straight line".
+  "straight line" (one statsmodels least-squares fit of the line and the season effects, as R `lm`).
 - `table.trend_of("visitors", sorted_by="month")`: Sen's slope with its 95 % interval (SciPy `theilslopes`, as R
   `trend::sens.slope`) and the Mann-Kendall test (R `trend::mk.test` itself); repeats_every= gives the seasonal test
   and slope (R `trend::smk.test`, `trend::sea.sens.slope`). Without R the slope is still given.

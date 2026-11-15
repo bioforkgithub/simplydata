@@ -12,8 +12,9 @@ Every number comes from a package, with the options that give R's numbers:
   1e-4).
 * method="moving averages": statsmodels seasonal_decompose(two_sided=True) = R decompose() (added or
   multiplied seasons).
-* method="straight line": statsmodels OLS on the row number = R lm(x ~ time); with repeats_every= the
-  season is the average of what is left at each place in the cycle (pandas groupby mean = R tapply).
+* method="straight line": one statsmodels OLS fit on the row number and, with repeats_every=, one effect per
+  place in the cycle that add up to 0 = R lm(x ~ time + place, contrasts = list(place = "contr.sum")); the
+  trend is the line from the fit, the season the rest of the fitted values.
 * trend_of: Sen's slope and its 95 % interval from SciPy theilslopes (= R trend::sens.slope); the
   Mann-Kendall test, the seasonal Mann-Kendall test and the seasonal Sen slope run in R itself
   (trend::mk.test, trend::smk.test, trend::sea.sens.slope: SciPy has no continuity correction).
@@ -111,24 +112,23 @@ def trend_and_season(values, period, method="loess", season="added", season_wind
     x = np.asarray(values, dtype=float)
     n = len(x)
     if method == "straight line":
-        from statsmodels.regression.linear_model import OLS
+        # one least-squares fit of the time and (with a cycle) one effect per place in the cycle, the
+        # effects adding to 0 (sum contrasts): R lm(x ~ time + place, contrasts = list(place = "contr.sum"))
+        import pandas as pd
+        from statsmodels.formula.api import ols
 
         time = np.arange(1, n + 1, dtype=float)
-        fit = OLS(x, np.column_stack([np.ones(n), time])).fit()
-        trend = np.asarray(fit.fittedvalues)
-        left = x - trend
-        if period is None:
-            season_part = np.zeros(n)
-        else:
-            import pandas as pd
-
-            place = np.arange(n) % period
-            season_part = pd.Series(left).groupby(place).transform("mean").to_numpy()
-        rest = x - trend - season_part
-        call = "lm(x ~ time)" + ("; season: tapply(residuals, place in cycle, mean)" if period else "")
+        data = pd.DataFrame({"x": x, "time": time, "place": np.arange(n) % (period or 1)})
+        formula = "x ~ time + C(place, Sum)" if period else "x ~ time"
+        fit = ols(formula, data).fit()
+        trend = fit.params["Intercept"] + fit.params["time"] * time
+        season_part = np.asarray(fit.fittedvalues) - trend
+        rest = np.asarray(fit.resid)
+        call = ('lm(x ~ time + place, contrasts = list(place = "contr.sum")), place = factor((time - 1) %% '
+                f"{period})" if period else "lm(x ~ time)")
         return dict(trend=trend, season=season_part, rest=rest,
-                    how="a least-squares straight line over time" + (", and the average of what is left at each "
-                                                                     "place in the cycle" if period else ""),
+                    how="one least-squares fit of a straight line over time" + (
+                        " and an effect for each place in the cycle (the effects add up to 0)" if period else ""),
                     call=call)
     if period is None:
         raise SimplydataError(f'method="{method}" needs repeats_every= (how many readings make one cycle).')

@@ -186,8 +186,8 @@ class TimeSeriesWords:
         7, or "fixed" for the same season every cycle, which runs R stl(s.window = "periodic") itself and
         needs simplydata[r]; robust=True keeps outliers from pulling the trend), "moving averages" (R
         decompose(): statsmodels seasonal_decompose; season="multiplied" for a season that grows with the
-        level) or "straight line" (a straight-line trend; with repeats_every= the season is the average
-        left at each place in the cycle). One undo step.
+        level) or "straight line" (R lm(): one statsmodels least-squares fit of a straight line over time and,
+        with repeats_every=, an effect for each place in the cycle, the effects adding up to 0). One undo step.
         """
         from .. import _trend_season as ts
 
