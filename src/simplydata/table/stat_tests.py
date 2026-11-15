@@ -449,6 +449,7 @@ FIT_HELP = (
     "  gamma(x)  lgamma(x)        gamma function, and the log of its size (as R)\n"
     "  digamma(x)  beta(a, b)     digamma function, beta function (as R)\n"
     "  besselJ(x, nu)             Bessel function of the first kind, order nu (as R)\n"
+    "  sinc(x)                    sin(pi x) / (pi x), and 1 at x = 0 (as NumPy sinc)\n"
     'Example: table.fit_formula("marks = a * hours + b")   (with sdata.example("marks"))'
 )
 
@@ -634,7 +635,7 @@ class StatTestWords:
     @friendly(renamed={"between": "for_each"})
     def compare_averages(self, column=None, for_each=None, based_on="averages", test=None, sides=2, higher=None,
                          lower=None, alternative=None, p_value_by="formula", shuffles=9999, seed=1,
-                         same_within=None, not_lower=None, not_higher=None, in_order=None):
+                         same_within=None, not_lower=None, not_higher=None, in_order=None, matched_by=None):
         """Are the averages of the groups really different?
 
         table.compare_averages("marks", for_each="class")   (with sdata.example("marks"))
@@ -670,8 +671,25 @@ class StatTestWords:
         test: is B lower than A by no more than 5? (one-sided; as R TOSTER::t_TOST(hypothesis =
         "MET")). not_higher="B" asks whether B is higher by no more than 5, for outcomes where
         lower is better, such as pain.
+        matched_by="name" is for repeated measures: the same person (or plot, animal ...) in every
+        group of for_each=, for example compare_averages("marks", for_each="subject",
+        matched_by="name"). It runs a repeated-measures ANOVA with the Greenhouse-Geisser
+        correction, R afex::aov_ez() (needs R). for_each=["subject", "class"] with one column that
+        changes within a person and one that does not gives the mixed ANOVA.
         """
         step = "compare_averages"
+        if matched_by is not None:
+            if based_on != "averages" or test is not None:
+                raise SimplydataError('matched_by= runs a repeated-measures ANOVA on averages; leave out based_on= '
+                                      "and test= (for two matched columns side by side, compare_before_after() "
+                                      "has a rank test).")
+            if (sides != 2 or higher is not None or lower is not None or alternative not in (None, "two-sided")
+                    or p_value_by != "formula" or same_within is not None or not_lower is not None
+                    or not_higher is not None or in_order is not None):
+                raise SimplydataError("matched_by= runs a repeated-measures ANOVA, which looks for any difference; "
+                                      "leave out sides=, higher=, lower=, p_value_by=, same_within=, not_lower=, "
+                                      "not_higher= and in_order=.")
+            return self._repeated_averages(column, for_each, matched_by)
         example = 'with sdata.example("marks"): table.compare_averages("marks", for_each="class")'
         self._check_based_on(step, based_on)
         self._check_choice(step, "p_value_by", p_value_by, ("formula", "shuffling"))

@@ -9,7 +9,7 @@ Python code. The text is read with Python's ast module and only these pieces are
 column names, numbers, + - * / ** // %, brackets, a minus sign in front, the constant pi,
 the functions round, abs, sqrt, log, exp, sin, cos and tan, the special functions erf,
 erfc, gamma, lgamma, digamma, beta and besselJ (named and ordered as in R, worked out by
-SciPy), and the summary words average, median, total, smallest, biggest and count.
+SciPy), sinc (sin(pi x) / (pi x), as NumPy), and the summary words average, median, total, smallest, biggest and count.
 Everything else is refused with a friendly message. Rules in
 add_group_column(rules=) are read by the shared condition reader in conditions.py (the
 same one keep_rows() uses), with comparisons, and / or / not, in [...] and is empty added.
@@ -54,6 +54,7 @@ FORMULA_HELP = (
     "  gamma(x)  lgamma(x)        gamma function, and the log of its size (as R)\n"
     "  digamma(x)  beta(a, b)     digamma function, beta function (as R)\n"
     "  besselJ(x, nu)             Bessel function of the first kind, order nu (as R)\n"
+    "  sinc(x)                    sin(pi x) / (pi x), and 1 at x = 0 (as NumPy sinc)\n"
     "  average(x)  median(x)      summary words: one value for the whole column,\n"
     "  total(x)  count(x)         or for each group with for_each=\n"
     "  smallest(x)  biggest(x)    (count counts the cells that are not empty)\n"
@@ -63,9 +64,9 @@ FORMULA_HELP = (
 
 FUNCTIONS = {"round": (1, 2), "abs": (1, 1), "sqrt": (1, 1), "log": (1, 2), "exp": (1, 1),
              "sin": (1, 1), "cos": (1, 1), "tan": (1, 1), "erf": (1, 1), "erfc": (1, 1), "gamma": (1, 1),
-             "lgamma": (1, 1), "digamma": (1, 1), "beta": (2, 2), "besselJ": (2, 2)}
+             "lgamma": (1, 1), "digamma": (1, 1), "beta": (2, 2), "besselJ": (2, 2), "sinc": (1, 1)}
 # functions worked out with SciPy / NumPy on the numbers themselves (narwhals has no word for them)
-SPECIAL_FUNCTIONS = ("tan", "erf", "erfc", "gamma", "lgamma", "digamma", "beta", "besselJ")
+SPECIAL_FUNCTIONS = ("tan", "erf", "erfc", "gamma", "lgamma", "digamma", "beta", "besselJ", "sinc")
 FUNCTION_SPELLINGS = {"besselj": "besselJ"}  # both spellings work
 CONSTANTS = {"pi": math.pi}
 # summary words inside formulas -> the narwhals method that works them out
@@ -122,6 +123,8 @@ def special_function(name: str, *values):
             return special.beta(values[0], values[1])
         if name == "besselJ":
             return special.jv(values[1], values[0])
+        if name == "sinc":
+            return np.sinc(values[0])
         found = {"erf": special.erf, "erfc": special.erfc, "gamma": special.gamma,
                  "lgamma": special.gammaln, "digamma": special.digamma}[name]
         return found(values[0])
@@ -439,6 +442,46 @@ def _rows_word(n):
     return f"{n} row" if n == 1 else f"{n} rows"
 
 
+def _ordinal(p) -> str:
+    p = float(p)
+    text = f"{p:g}"
+    if not p.is_integer():
+        return text
+    n = int(p)
+    end = "th" if 10 <= n % 100 <= 20 else {1: "st", 2: "nd", 3: "rd"}.get(n % 10, "th")
+    return f"{n}{end}"
+
+
+def _roll_with_pandas(frame, keys, columns, kind, window, offset, order, show, centre, percent):
+    """Rolling values from pandas (rolling(n, center=), rolling("7D", on=), expanding()), the frame being in
+    calculation order: one value per row, group by group."""
+    import numpy as np
+    import pandas as pd
+
+    positions = list(frame.groupby(keys, sort=False, dropna=False).indices.values()) if keys else [np.arange(len(frame))]
+    out = np.full(len(frame), np.nan)
+    for rows in positions:
+        part = frame.iloc[rows]
+        data = part[columns].astype(float)
+        if kind == "time":
+            data.index = pd.DatetimeIndex(part[order[0]])
+        if kind == "all":
+            rolled = data.expanding(min_periods=1)
+        elif kind == "time":
+            rolled = data.rolling(offset, min_periods=1)
+        else:
+            rolled = data.rolling(window, center=centre)
+        if show in ("correlation", "covariance"):
+            first = rolled[columns[0]]
+            values = (first.corr if show == "correlation" else first.cov)(data[columns[1]])
+        elif show == "percentile":
+            values = rolled[columns[0]].quantile(percent / 100.0, interpolation="linear")
+        else:
+            values = getattr(rolled[columns[0]], ROLLING_PANDAS[show])()
+        out[rows] = np.asarray(values, dtype=float)
+    return out
+
+
 def _cells_word(n):
     return f"{n} cell" if n == 1 else f"{n} cells"
 
@@ -498,7 +541,13 @@ DATE_PARTS = ("year", "quarter", "month", "month name", "week", "day", "weekday"
 MONTH_NAMES = ("January", "February", "March", "April", "May", "June", "July", "August",
                "September", "October", "November", "December")
 WEEKDAY_NAMES = ("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday")
-ROLLING_SHOWS = ("average", "total", "median", "smallest", "biggest", "standard deviation")
+ROLLING_SHOWS = ("average", "total", "median", "smallest", "biggest", "standard deviation", "variance", "skewness",
+                 "kurtosis", "percentile", "count", "correlation", "covariance")
+ROLLING_PANDAS = {"average": "mean", "total": "sum", "median": "median", "smallest": "min", "biggest": "max",
+                  "standard deviation": "std", "variance": "var", "skewness": "skew", "kurtosis": "kurt",
+                  "count": "count"}
+ROLLING_LEAST = {"standard deviation": 2, "variance": 2, "skewness": 3, "kurtosis": 4, "correlation": 2,
+                 "covariance": 2}
 TEXT_PART_WAYS = (
     '  first_characters=3      the first 3 characters     table.add_text_part_column("initial", from_column="name", first_characters=1)\n'
     "  last_characters=3       the last 3 characters\n"
@@ -1450,34 +1499,94 @@ class ColumnWords:
         return int(rows_back)
 
     @friendly
-    def add_rolling_column(self, name=None, from_column=None, window=3, show="average", for_each=None, sorted_by=None):
+    def add_rolling_column(self, name=None, from_column=None, window=3, show="average", for_each=None, sorted_by=None,
+                           centre=False, percent=None, center=None):
         """Add a rolling (moving) summary: for each row, the average of this row and the rows just before it.
 
         window= is how many rows go into each summary (this row and the window - 1 rows
         before it). The first rows of each group are empty until there are enough rows, and a
         window with an empty cell in it gives an empty cell. show= can be "average", "total",
-        "median", "smallest", "biggest" or "standard deviation". sorted_by= works it out in the
-        order of a column such as a date (the rows themselves keep their place).
+        "median", "smallest", "biggest", "standard deviation", "variance", "skewness", "kurtosis"
+        (excess, both adjusted for small windows as pandas skew and kurt), "percentile" (with
+        percent=90; as R quantile type 7), "count" (readings in the window), or "correlation" and
+        "covariance" (from_column= two columns). sorted_by= works it out in the order of a column such
+        as a date (the rows themselves keep their place).
           table.add_rolling_column("rain_3_months", from_column="rain", window=3, show="total",
                                    for_each="city", sorted_by="month_number")   (with sdata.example("weather"))
+        window="7 days" (or "12 hours", "2 weeks") is a window of time ending at this row's date: this
+        day and the 6 days before, with whatever readings fall in it (sorted_by= a date column; empty
+        cells are left out), as pandas rolling("7D"). centre=True puts the window's middle on the row (an odd window such as 7), as R
+        stats::filter(x, rep(1/7, 7), sides = 2).
         """
         step = "add_rolling_column"
         example = ('For example: table.add_rolling_column("rain_3_months", from_column="rain", window=3, '
                    'for_each="city", sorted_by="month_number")   (with sdata.example("weather"))')
-        keys, order = self._sequence_checks(step, name, from_column, for_each, sorted_by, example)
-        if isinstance(window, str):
-            raise SimplydataError(
-                f'window= counts rows, like window=7. Windows of time such as "{window}" are not ready yet: '
-                "sort by the date and use the number of rows."
-            )
-        if not _whole_number(window) or window < 1:
-            raise SimplydataError(f"window= should be a whole number of rows, like window=3.\n{example}")
-        window = int(window)
+        if center is not None:
+            centre = center
+        if not isinstance(centre, bool):
+            raise SimplydataError("centre= should be True or False.")
         self._check_choice(step, "show", show, ROLLING_SHOWS)
-        if show == "standard deviation" and window < 2:
-            raise SimplydataError("A standard deviation needs at least two values, so use window=2 or more.")
+        pair = show in ("correlation", "covariance")
+        if pair:
+            if not (isinstance(from_column, (list, tuple)) and len(from_column) == 2
+                    and all(isinstance(c, str) for c in from_column)):
+                raise SimplydataError(f'show="{show}" needs from_column= two column names, such as '
+                                      'from_column=["temperature", "rain"].')
+            self._need_columns(*from_column)
+            self._need_numbers(*from_column, step=step)
+            columns = list(from_column)
+            keys, order = self._sequence_checks(step, name, columns[0], for_each, sorted_by, example)
+        else:
+            keys, order = self._sequence_checks(step, name, from_column, for_each, sorted_by, example)
+            columns = [from_column]
+        if show == "percentile":
+            if isinstance(percent, bool) or not isinstance(percent, (int, float)) or not 0 <= percent <= 100:
+                raise SimplydataError('show="percentile" needs percent= from 0 to 100, such as percent=90.')
+        elif percent is not None:
+            raise SimplydataError('percent= goes with show="percentile".')
+        kind, offset, size_words = "rows", None, None
+        if isinstance(window, str):
+            text = window.strip().lower()
+            if text == "all":
+                # accepted, not taught: running values get their own word (add_running_column) later
+                kind = "all"
+                print('Note: window="all" (from the first row up to each row, as pandas expanding()) works for now, '
+                      "but it is planned as its own word, add_running_column, in a later version.")
+            else:
+                from .. import _dates
+
+                count, unit = _dates.read_every(window, step)
+                if unit in ("month", "quarter", "year"):
+                    raise SimplydataError(f'window="{window}": months, quarters and years have different lengths, '
+                                          'so give days instead (window="30 days"), or a number of rows.')
+                if len(order) != 1 or not self._frame.schema[order[0]].is_temporal():
+                    raise SimplydataError(f'window="{window}" needs sorted_by= one column of dates or times, such as '
+                                          'sorted_by="date".')
+                kind = "time"
+                offset = {"second": "s", "minute": "min", "hour": "h", "day": "D", "week": "W"}[unit]
+                offset = f"{count * 7}D" if unit == "week" else f"{count}{offset}"
+                size_words = _dates.every_words(count, unit) if count > 1 else f"1 {unit}"
+            if centre:
+                raise SimplydataError(f'centre=True goes with a window of rows, such as window=7, not window="{window}".')
+        else:
+            if not _whole_number(window) or window < 1:
+                raise SimplydataError(f"window= should be a whole number of rows, like window=3.\n{example}")
+            window = int(window)
+            if centre and window % 2 == 0:
+                raise SimplydataError("A centred window needs an odd number of rows, like 7; for a 12-month season use "
+                                      "add_trend_and_season.")
+            least = ROLLING_LEAST.get(show, 1)
+            if window < least:
+                raise SimplydataError(f"A {show} needs at least {least} values, so use window={least} or more.")
+
+        simple = kind == "rows" and not centre and show in ("average", "total", "median", "smallest", "biggest",
+                                                             "standard deviation")
 
         def make(frame, over):
+            if not simple:
+                values = _roll_with_pandas(frame.to_pandas(), keys, columns, kind, window, offset, order, show,
+                                           centre, percent)
+                return frame.with_columns(nw.new_series(name, values, nw.Float64, backend=frame.implementation))
             col = nw.col(from_column)
             if show in ("average", "total", "standard deviation"):
                 expr = {"average": col.rolling_mean, "total": col.rolling_sum,
@@ -1504,11 +1613,21 @@ class ColumnWords:
             return nw.from_native(native, eager_only=True)
 
         group, how = self._order_words(keys, order)
-        before = "this row only" if window == 1 else f"this row and the {_rows_word(window - 1)} before it"
-        print(f'Each "{name}" is the {show} of {from_column} in {before}{group}, {how}.')
-        return self._row_after_row(
-            name, keys, order, make,
-            f'add rolling column "{name}" = {show} of {from_column} over {_rows_word(window)}{group}')
+        what = (f"{show} of {columns[0]} and {columns[1]}" if pair else
+                f"{_ordinal(percent)} percentile of {from_column}" if show == "percentile" else
+                f"number of readings of {from_column}" if show == "count" else f"{show} of {from_column}")
+        if kind == "all":
+            span = "all the rows from the first up to and including this row (empty cells left out)"
+        elif kind == "time":
+            span = f"the {size_words} up to and including this row's {order[0]} (empty cells left out)"
+        elif centre:
+            span = f"the {window} rows centred on this row"
+        else:
+            span = "this row only" if window == 1 else f"this row and the {_rows_word(window - 1)} before it"
+        print(f'Each "{name}" is the {what} in {span}{group}, {how}.')
+        size = {"all": "all rows so far", "time": size_words}.get(kind, _rows_word(window) if kind == "rows" else "")
+        return self._row_after_row(name, keys, order, make,
+                                   f'add rolling column "{name}" = {what} over {size}{group}')
 
     @friendly
     def add_previous_value_column(self, name=None, from_column=None, rows_back=1, for_each=None, sorted_by=None):

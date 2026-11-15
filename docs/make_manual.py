@@ -77,6 +77,9 @@ GROUP_UNDERNEATH = {
     "Numbers: summaries": "NumPy (functions that skip empty values, such as nanmean)",
     "Grids of numbers": "NumPy (a two-dimensional array)",
     "Numbers: undo and finish": "simplydata itself: it keeps every version of the numbers",
+    "Waves and systems": "SciPy (signal.lti / dlti, step, impulse, lsim, freqresp, freqz, cont2discrete, tf2ss, tf2zpk); "
+               "the formula read with Python's ast and NumPy polynomials; rise time, settling time, overshoot and "
+               "margins from python-control (step_info, stability_margins: simplydata[systems])",
     "Help": "plain Python: simplydata reads its own word list and docstrings",
     "30 days of simplydata": "plain Python: the days are in simplydata/learn_days.py, and the progress is a small "
                              "JSON file on your computer (json, pathlib)",
@@ -111,8 +114,8 @@ UNDERNEATH = {
     "fit_line": "SciPy (stats.linregress); the confidence band from statsmodels OLS, drawn with matplotlib",
     "fit_curve": "statsmodels (least squares on the powers of x), drawn with matplotlib",
     "smooth_line": "statsmodels (lowess, which follows R's lowess()) or SciPy (make_smoothing_spline, for "
-                   "method=\"spline\"; smoothness=\"auto\" lets R smooth.spline choose it and needs R), drawn "
-                   "with matplotlib",
+                   "method=\"spline\"; smoothness=\"auto\" lets R smooth.spline choose it and needs R); the other "
+                   "methods as nums.smooth (SciPy, pandas; \"median\" R runmed); drawn with matplotlib",
     "density": "seaborn (kdeplot)",
     "trade_off_curve": "R pROC (roc, coords, ci.auc; simplydata[r]), drawn with matplotlib",
     "difference_dots": "statsmodels (graphics.agreement.mean_diff_plot) for the dots; R "
@@ -172,7 +175,8 @@ UNDERNEATH = {
                               "statsmodels (stats.oneway.anova_oneway for Welch's ANOVA; weightstats.ttost_ind "
                               "and CompareMeans for same_within=; nonparametric.jonckheere_terpstra); SciPy "
                               "permutation_test for p_value_by=\"shuffling\"; R wilcox.test for the Hodges-Lehmann "
-                              "shift (simplydata[r])",
+                              "shift (simplydata[r]); R afex::aov_ez for matched_by= (repeated measures, "
+                              "Greenhouse-Geisser; needs R)",
     "table.compare_each_pair": "SciPy (stats.ttest_ind or mannwhitneyu, tukey_hsd, dunnett), with Holm's correction "
                                "from statsmodels (multipletests); R rstatix::games_howell_test, "
                                "DescTools::ScheffeTest and PostHocTest, FSA::dunnTest, "
@@ -251,11 +255,79 @@ UNDERNEATH = {
                               "gaussian_kde with statsmodels bw_silverman",
     "table.compare_distributions": "SciPy (scipy.stats, maximum likelihood; Anderson-Darling, Kolmogorov-Smirnov and "
                                    "Cramer-von Mises statistics)",
+    "nums.spectrum_of": "SciPy (signal.periodogram, signal.welch); R lomb::lsp for uneven times (simplydata[r])",
+    "table.spectrum_of": "SciPy (signal.periodogram, signal.welch); R lomb::lsp for uneven times (simplydata[r])",
+    "table.check_steady": "R (tseries::adf.test and kpss.test, through rpy2: simplydata[r])",
+    "table.autocorrelation_of": "statsmodels (tsa.stattools acf, pacf method ywm, acovf, acorr_ljungbox), as R acf, pacf, Box.test",
+    "table.add_trend_and_season": "statsmodels (STL with R's settings, seasonal_decompose, OLS with season effects); "
+                                  "R stats::stl(s.window = \"periodic\") for a fixed season (simplydata[r])",
+    "table.trend_of": "SciPy (stats.theilslopes); R trend::mk.test, smk.test, sea.sens.slope (simplydata[r])",
+    "sdata.dates": "pandas (Timestamp, DateOffset)",
+    "table.add_missing_dates": "pandas (dates by DateOffset; concat), as reindex / Polars upsample",
+    "table.add_smoothed_column": "SciPy (ndimage.convolve1d, gaussian_filter1d, signal.savgol_filter, whittaker_henderson, "
+                                 "wiener), pandas (rolling, ewm), statsmodels (lowess); R stats::runmed for the median "
+                                 "(simplydata[r])",
+    "nums.smooth": "as table.add_smoothed_column",
+    "nums.remove_trend": "SciPy (signal.detrend)",
+    "nums.keep_frequencies": "SciPy (signal.butter, cheby1, cheby2, ellip, bessel as sos; iirpeak; sosfiltfilt, sosfilt)",
+    "nums.remove_frequencies": "SciPy (as keep_frequencies; iirnotch, iircomb)",
+    "table.add_filtered_column": "SciPy (as nums.keep_frequencies)",
+    "nums.find_peaks": "SciPy (signal.find_peaks, peak_prominences, peak_widths)",
+    "nums.find_dips": "SciPy (signal.find_peaks on minus the numbers)",
+    "table.find_peaks": "SciPy (signal.find_peaks, peak_prominences, peak_widths)",
+    "table.find_dips": "SciPy (signal.find_peaks on minus the column)",
+    "nums.fourier_transform": "SciPy (fft.rfft, fft.fft)",
+    "sdata.inverse_fourier_transform": "SciPy (fft.irfft, fft.ifft)",
+    "nums.envelope": "SciPy (signal.hilbert)",
+    "nums.convolve_with": "SciPy (signal.convolve)",
+    "nums.deconvolve_by": "SciPy (signal.deconvolve)",
+    "nums.change_time_step": "SciPy (signal.resample, resample_poly, decimate)",
+    "sdata.wave": "SciPy (signal.square, sawtooth, chirp, gausspulse, unit_impulse) and NumPy sin",
+    "sdata.window_shape": "SciPy (signal.get_window)",
+    "table.add_envelope_column": "SciPy (signal.hilbert)",
+    "sdata.frequency_filter": "SciPy (the designs of nums.keep_frequencies; sosfreqz, sos2zpk, sosfilt)",
+    "system.step_response": "SciPy (signal.step, dstep); python-control (step_info) for the rise time, settling time "
+                            "and overshoot (simplydata[systems])",
+    "system.frequency_response": "SciPy (signal.freqresp, freqz); python-control (stability_margins) for the gain and "
+                                 "phase margins (simplydata[systems])",
+    "sticks": "matplotlib (vlines and plot)",
+    "autocorrelation_bars": "statsmodels (as table.autocorrelation_of), drawn with matplotlib",
+    "cross_correlation_bars": "statsmodels (as table.correlation_between with rows_back=), drawn with matplotlib",
+    "lag_dots": "pandas (shift), drawn with matplotlib",
+    "trend_and_season": "statsmodels (as table.add_trend_and_season), drawn with matplotlib",
+    "forecast": "R (as table.forecast, through rpy2: simplydata[r]), drawn with matplotlib",
+    "spectrum": "SciPy (as table.spectrum_of; lomb-scargle from R lomb), drawn with matplotlib",
+    "spectrum_over_time": "SciPy (signal.spectrogram), drawn with matplotlib (pcolormesh)",
+    "peak_dots": "SciPy (as table.find_peaks), drawn with matplotlib",
+    "table.forecast": "R (forecast::naive, snaive, meanf, rwf; stats::HoltWinters, stats::arima; forecast::forecast "
+                      "and accuracy, through rpy2: simplydata[r])",
+    "nums.forecast": "R (as table.forecast, through rpy2: simplydata[r])",
+    "table.compare_forecasts": "R (forecast::accuracy on each method's forecast, through rpy2: simplydata[r])",
+    "table.find_change_points": "R (changepoint::cpt.mean and cpt.meanvar, PELT; stats::mad; through rpy2: simplydata[r])",
+    "nums.autocorrelation_of": "statsmodels (tsa.stattools acf, pacf method ywm, acovf, acorr_ljungbox), as R acf, pacf, Box.test",
     "nums.fit_distribution": "SciPy (scipy.stats and optimize, as table.fit_distribution)",
     # models
-    "table.explain": "statsmodels (OLS; GLM for yes/no and counts, as R glm; MixedLM for grouped_by=; MICEData "
-                     "to fill in empty cells) and R mice::pool for pooling multiple imputation (needs R)",
-    "table.add_predicted_column": "statsmodels (the same model as table.explain)",
+    "table.explain": "statsmodels (OLS; GLM for yes/no and counts, as R glm; MixedLM for grouped_by=; GEE for "
+                     "effects=\"for the whole population\", as R geepack::geeglm; MICEData to fill in empty cells; "
+                     "eval_measures aic and bic and McFadden's pseudo R squared, as R AIC, BIC and "
+                     "performance::r2_mcfadden); R mgcv::gam for curve_for= (needs R); "
+                     "R itself (needs R) for lme4::glmer, lme4::lmer with own_slope_for=, lmerTest for "
+                     "p_value_by=\"satterthwaite\", geepack for within_groups=\"in time order\" and GEE with out_of=, car::Anova and "
+                     "effectsize for test_type=, sandwich::vcovHC for robust_errors=True with yes/no and counts, and mice::pool for "
+                     "multiple imputation; R performance::r2_nakagawa for the R squared of every grouped_by= model",
+    "table.add_predicted_column": "statsmodels (the same model as table.explain; get_prediction for interval= and for_new_rows=)",
+    "table.model_averages_of": "R emmeans (emmeans::emmeans and pairs, Tukey's adjustment; lme4 and pbkrtest for "
+                               "grouped_by=; MASS, nnet, betareg and pscl for the other outcomes), on the model of "
+                               "table.explain (needs R)",
+    "table.check_model": "statsmodels (OLSInfluence, GLMInfluence, MixedLM, ProbPlot and lowess), the pictures of R "
+                         "plot(lm), plot(glm) and plot(lmer) with qqnorm(ranef), drawn with matplotlib; R lme4::glmer "
+                         "for yes/no and counts with grouped_by=; statsmodels variance_inflation_factor (least "
+                         "squares) or R car::vif (GLMs, group columns) for the variance inflation factors",
+    "table.show_rows_that_pull": "statsmodels (OLSInfluence, GLMInfluence), as R cooks.distance, hatvalues and "
+                                 "rstudent; R lme4 influence() and cooks.distance() for whole groups with grouped_by=",
+    "table.compare_models": "statsmodels (OLS compare_f_test; GLM deviances and log-likelihoods with SciPy's chi-square "
+                            "and F; MixedLM refitted by maximum likelihood; eval_measures aic and bic), as R anova(m0, "
+                            "m1), lmtest::lrtest, AIC and BIC; R for glmer, betareg and zeroinfl models",
     # patterns across columns
     "table.add_principal_components": "statsmodels (multivariate.pca.PCA, by singular value decomposition)",
     "table.principal_components_of": "statsmodels (multivariate.pca.PCA, by singular value decomposition)",
@@ -440,7 +512,8 @@ FAMILY_TITLES = {
                              "called on simplydata itself, and words that start with \\code{dist.} are steps on "
                              "a distribution: \\code{dist = sdata.distribution(\"normal\")}."),
     "numbers": ("Number words", "Steps on numbers, \\code{nums = sdata.numbers([12, 15, 9, 20, 14])}, "
-                                "and on grids of numbers, \\code{grid = sdata.number\\_grid([[3, 5, 2], [8, 6, 4]])}."),
+                                "on grids of numbers, \\code{grid = sdata.number\\_grid([[3, 5, 2], [8, 6, 4]])}, "
+                                "and on systems, \\code{system = sdata.system(\"1 / (s**2 + 2*s + 5)\")}."),
     "help": ("Help words", "Words that teach simplydata."),
 }
 
@@ -961,8 +1034,13 @@ def make() -> str:
 
 # ---------------------------------------------------------------- running the examples
 def _work_folder() -> Path:
-    """Scratch space for the build: F:\\claude_work if it exists (keeps the project folder
-    small), else the system's temporary folder."""
+    """Scratch space for the build: SIMPLYDATA_WORK_DIR if set (so parallel builds do not share
+    one folder), else F:\\claude_work if it exists (keeps the project folder small), else the
+    system's temporary folder."""
+    if os.environ.get("SIMPLYDATA_WORK_DIR"):
+        base = Path(os.environ["SIMPLYDATA_WORK_DIR"])
+        base.mkdir(parents=True, exist_ok=True)
+        return base
     base = Path(r"F:\claude_work\scratch\simplydata")
     if not base.parent.exists():
         base = Path(tempfile.gettempdir()) / "simplydata_manual"

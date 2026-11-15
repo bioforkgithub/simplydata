@@ -1,6 +1,16 @@
-"caught_infection" = "yes": 16 of 100 (16.0 %) in ward B and 4 of 100 (4.00 %) in ward A.
-Out of 100, about 12 more in ward B than in ward A (risk difference 12.0 percentage points, 95 % CI 3.70 to 20.8).
-Risk ratio 4.00 (95 % CI 1.39 to 11.5): the risk in ward B is 4.00 times the risk in ward A. Odds ratio 4.57 (95 % CI 1.47 to 14.2); odds are not risks: with an outcome this common (over 10 %) the odds ratio lies further from 1 than the risk ratio.
-Number needed for one event more: 9 (1 / 0.120, rounded up; 95 % CI 4.82 to 27.0): for every 9 in ward B instead of ward A, one event more (the NNTH, if the event is harmful, such as death).
-If the risks were truly the same, a difference this big or bigger would turn up in about 1 of 100 studies like this one (p = 0.010).
-Method: the chi-square test with Yates' correction (SciPy, as R prop.test()) for the p-value; exact intervals for each risk, Newcombe's score interval for the difference (as R DescTools::BinomDiffCI(method = "score")), Wald intervals on the log scale for the ratios (statsmodels Table2x2, as R epitools::riskratio()).
+Explaining "marks" from "hours" and "breakfast" (180 rows). Each effect below holds the other columns fixed:
+  intercept: 32.3, the expected "marks" when every number column is 0 and every group column is at its baseline.
+  hours: each 1 more "hours" goes with 2.82 more "marks" (95 % CI 2.29 to 3.34); fewer than 1 in 1000 studies would show this much if there were truly none (p < 0.0001).
+  breakfast "yes" against "no": "marks" is 3.21 higher (95 % CI 0.561 to 5.86); about 2 of 100 studies would show this much if there were truly none (p = 0.018).
+Method: linear model by least squares, as R lm(marks ~ hours + breakfast).
+R squared = 0.403 (adjusted 0.397): the model explains about 40 % of the differences in "marks". The model as a whole (F = 59.8, df = 2 and 177): fewer than 1 in 1000 studies would show this much if none of the columns truly mattered (p < 0.0001).
+How well it fits: AIC 1292, BIC 1305: smaller is better, but only to compare models of the same rows (compare_models).
+Method: AIC and BIC as R AIC(), BIC().
+A link does not show that one thing causes the other.
+Checking the model of "marks" (180 rows) in four pictures, as R plot(lm(marks ~ hours + breakfast)):
+  1. residuals against fitted values: an even band around 0, with no curve, means the form fits;
+  2. normal Q-Q: dots on the line mean the residuals follow a bell curve;
+  3. scale-location: a flat line means the spread is the same everywhere;
+  4. residuals against leverage: rows beyond the dashed lines (Cook's distance 0.5 and 1) pull the model strongly.
+Numbers from statsmodels (OLSInfluence or GLMInfluence); the smooth lines are LOWESS, as R panel.smooth. Pictures help judge a model better than tests of the residuals.
+How strongly each column is linked with the others (variance inflation factor, statsmodels variance_inflation_factor, as R car::vif()): "hours" 1.00 and "breakfast" 1.00. Above 5 a column's effect is hard to tell apart from the others'.

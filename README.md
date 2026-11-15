@@ -3,8 +3,9 @@
 [![PyPI](https://img.shields.io/pypi/v/simplydata)](https://pypi.org/project/simplydata/) [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.24210045.svg)](https://doi.org/10.5281/zenodo.24210045)
 
 **Simple words for data science in Python.** One small vocabulary you can learn in a day,
-built on matplotlib, seaborn, pandas, Polars, NumPy and SciPy (with narwhals linking pandas and
-Polars), so you don't have to learn them first.
+built on matplotlib, seaborn, pandas, Polars, NumPy, SciPy and statsmodels (with narwhals linking
+pandas and Polars), and on R through rpy2 for the methods only R has, so you don't have to learn
+them first.
 
 > Status: early development (charts, tables, numbers, statistical tests, fitting and distributions ready). The word list may still change: an old word keeps working for one release and prints a one-line note with its new name.
 
@@ -35,11 +36,13 @@ one cleaned table can feed many charts, and charts go side by side with
 pip install simplydata            # needs Python 3.11 or newer
 pip install "simplydata[fast]"    # adds Polars, the fast engine for big data
 pip install "simplydata[files]"   # adds reading Word, SPSS and Stata files
-pip install "simplydata[r]"       # adds rpy2, for the methods that run R's own code
+pip install "simplydata[stats]"   # adds statsmodels, for mixed models and multiple imputation
+pip install "simplydata[systems]" # adds python-control: rise time, settling time and margins of systems
+pip install "simplydata[r]"       # adds rpy2, the bridge from Python to R (install R itself from https://cran.r-project.org)
 ```
 
 The `[r]` extra also needs R (https://cran.r-project.org) and, in R,
-`install.packages(c("vegan", "survival", "mice", "effectsize", "pwr", "Exact"))`. On Windows with
+`install.packages(...)` with the R packages listed under "What simplydata covers" below. On Windows with
 Python 3.13, rpy2 has no ready-made wheel; set `RPY2_CFFI_MODE=ABI` first (in PowerShell:
 `$env:RPY2_CFFI_MODE = "ABI"`, in cmd: `set RPY2_CFFI_MODE=ABI`), then run the pip line.
 
@@ -52,16 +55,20 @@ import simplydata as sdata
 sdata.lesson(1)
 ```
 
-There are twenty-one short lessons. Lessons 1 to 8 teach charts, from your first chart to
+There are twenty-six short lessons. Lessons 1 to 8 teach charts, from your first chart to
 animations. Lessons 9 to 12 teach tables: looking at your data, choosing rows and columns,
 cleaning it, and summing it up. Lesson 13 teaches numbers (lists and grids of numbers), and
 lesson 14 the statistical tests: is a difference real, and how big is it? Lesson 15 puts it
 all together, from a question and a file to a figure with panels A and B and a saved table.
-Lessons 16 to 21 go further: models (multiple, logistic, Poisson and mixed regression, multiple
+Lessons 16 to 22 go further: models (multiple, logistic, Poisson and mixed regression, multiple
 imputation), patterns across many columns (PCA, clustering, Bray-Curtis distances, NMDS,
 PERMANOVA), survival curves and Cox models, power analysis, fitting curves and formulas,
-finding the smallest or biggest value and solving equations, distributions and chances, and
-values between the points you measured, risks, diagnostic tests and agreement. Each
+finding the smallest or biggest value and solving equations, distributions and chances,
+values between the points you measured, working with a model (checking it, comparing two
+models and predicting with an interval), and risks, diagnostic tests and agreement. The last four lessons cover time series (dates, missing
+days, time windows, smoothing and trend), forecasts checked on held-back months, cycles in a
+recording (spectra, filters, peaks, and whether a series stays steady) and, optional, linear
+systems (step and frequency responses, feedback). Each
 lesson has an example you can run, says what every line does, explains the idea behind it
 (average or median, standard deviation or standard error, p-values) and ends with a small task
 to try yourself.
@@ -70,7 +77,7 @@ to try yourself.
 - `sdata.words()` lists every word, with an example (also in [docs/cheatsheet.md](https://github.com/bioforkgithub/simplydata/blob/main/docs/cheatsheet.md))
 - `sdata.help("bars")` explains one word: what it does, its options and an example
   (table and number words too: `sdata.help("keep_rows")`, `sdata.help("average")`)
-- `sdata.example()` lists the made-up tables to practise with (marks, weather, fruit, growth, shop, school, meadow, trial, clinic, island; shop has dates and empty cells)
+- `sdata.example()` lists the made-up tables to practise with (marks, weather, fruit, growth, sensor, visitors, river, shop, school, meadow, trial, clinic, island; shop has dates and empty cells)
 - `sdata.lesson(3, solutions=True)` adds a worked solution to each "Try it yourself" task
 
 ## Or learn it in 30 days
@@ -98,7 +105,7 @@ the manual for each lesson and word, and the answers at the back.
 ## Manual
 
 **[The simplydata manual (PDF)](https://github.com/bioforkgithub/simplydata/blob/main/docs/manual/simplydata_manual.pdf)** has everything in one book:
-all twenty-one lessons with the real charts and output they make, every word explained (its options,
+all twenty-six lessons with the real charts and output they make, every word explained (its options,
 an example you can run and the library that does the work underneath), the data science ideas
 behind the numbers (average or median, standard deviation or standard error, confidence intervals,
 p-values, effect sizes, and which statistical test to use when), and a worked solution for every
@@ -212,6 +219,79 @@ established, peer-reviewed packages: Python packages (SciPy, statsmodels, pandas
 others), and R packages through rpy2 where Python has none. simplydata translates simple words
 into those calls, with the right settings, and says in the result which method was used. What we
 test is that translation: each answer is checked against the package underneath and against R.
+
+## What simplydata covers
+
+These are the packages simplydata gives plain words for, and every R package it calls.
+
+| Area | Python packages |
+|---|---|
+| Tables | pandas; Polars (`simplydata[fast]`, with pyarrow); narwhals, so the same words work on both; openpyxl for Excel files; python-docx and pyreadstat for Word, SPSS and Stata files (`simplydata[files]`) |
+| Numbers and arrays | NumPy |
+| Charts | matplotlib and seaborn |
+| Statistics | SciPy (`scipy.stats` for tests and distributions; `scipy.special`) and statsmodels (Welch's ANOVA, ANOVA tables, corrections for many tests, lowess smoothing) |
+| Models | statsmodels (regression, logistic, Poisson, negative binomial, Gamma, ordered, multinomial (MNLogit) and mixed models, GEE, Cox models and survival curves, multiple imputation) |
+| Patterns across many columns | SciPy (`scipy.spatial` for distances, `scipy.cluster` for clustering) and statsmodels (PCA) |
+| Fitting, finding and values between points | SciPy (`scipy.optimize` and `scipy.interpolate`) |
+| Time series, cycles and filters | SciPy (`scipy.signal` for spectra, filters, peaks and the analytic signal; `scipy.fft` for the Fourier transform) |
+| Systems | python-control (`simplydata[systems]`): rise time, settling time, overshoot and stability margins of a system |
+| The bridge to R | rpy2 (`simplydata[r]`) |
+
+R packages, used where Python has no method of its own:
+
+| Area | R package | What simplydata uses it for |
+|---|---|---|
+| Statistics | stats (comes with R) | k-means clustering, smoothing splines, and the linear models behind ANOVA tables |
+| Statistics | car | ANOVA tables for each column of a model; variance inflation factors |
+| Statistics | effectsize | effect sizes with their 95 % intervals (Hedges' g, omega-squared, rank-biserial, Cramer's V, Kendall's W ...) and partial eta-squared |
+| Statistics | pwr | power and sample size for ANOVA, chi-square tests, correlations and two percents |
+| Statistics | TOSTER | power of two one-sided tests (`same_within=` in `how_many_needed`) |
+| Statistics | presize | how many values give a confidence interval of a chosen width |
+| Statistics | Exact | Barnard's and Boschloo's tests of a 2 x 2 table |
+| Statistics | exact2x2 | the exact interval of the change in percent in McNemar's test |
+| Statistics | nortest | the Lilliefors test of a bell shape |
+| Statistics | BSDA | the z-test, and the t-test from averages and standard deviations alone |
+| Statistics | DescTools | intervals of medians, quantiles, variances and percents; Scheffe and other pair tests; Spearman's, Kendall's, Somers' and Goodman-Kruskal measures with intervals; Lin's concordance |
+| Statistics | rstatix | the Games-Howell pair test |
+| Statistics | FSA | Dunn's pair test |
+| Statistics | PMCMRplus | Conover's pair test |
+| Statistics | multcompView | the letters that mark groups that do not differ |
+| Statistics | ppcor | partial correlation (`allowing_for=`) |
+| Statistics | cocor | comparing two correlations |
+| Statistics | outliers | Grubbs' and Dixon's outlier tests |
+| Statistics | EnvStats | Rosner's outlier test |
+| Risks and diagnostic tests | epiR | the Mantel-Haenszel risk ratio; likelihood ratios of a diagnostic test |
+| Risks and diagnostic tests | pROC | trade-off (ROC) curves, the area under them and its interval, and comparing two scores |
+| Agreement | irr | the intraclass correlation, Krippendorff's alpha and the p-value of Fleiss' kappa |
+| Agreement | psych | Cronbach's alpha and its interval |
+| Agreement | BlandAltmanLeh | limits of agreement of two devices |
+| Statistics | afex | repeated-measures ANOVA |
+| Models | lme4 | mixed models for yes/no and counts; linear mixed models with `own_slope_for=` or `p_value_by="satterthwaite"`; which groups pull a mixed model |
+| Models | lmerTest | Satterthwaite p-values for mixed models |
+| Models | pbkrtest | Kenward-Roger degrees of freedom for model averages from mixed models |
+| Models | emmeans | model averages and their pairs |
+| Models | performance | R squared for mixed models |
+| Models | MASS | negative binomial and ordered models, when R needs to refit them |
+| Models | nnet | models for outcomes with several groups, when R needs to refit them |
+| Models | betareg | beta regression for shares |
+| Models | pscl | zero-inflated counts |
+| Models | geepack | effects for the whole population (GEE) with `within_groups="in time order"` or `out_of=`; other GEE is statsmodels |
+| Models | mgcv | smooth curves in a model (GAM) |
+| Models | sandwich | robust standard errors |
+| Models | mice | pooling the filled-in tables of multiple imputation |
+| Survival | survival | the proportional-hazards check of a Cox model |
+| Patterns across many columns | vegan | NMDS, PERMANOVA and its spread check (the distances are SciPy `pdist`) |
+| Time series | stats (comes with R) | the seasonal split of a series (STL) and the running median |
+| Time series | trend | the Mann-Kendall trend test and Sen's slope |
+| Time series | tseries | whether a series stays steady (ADF and KPSS tests) |
+| Time series | forecast | forecasts and how far off they were on held-back readings |
+| Time series | changepoint | the points where the average of a series jumps to a new level |
+| Cycles | lomb | the Lomb-Scargle spectrum of readings at uneven times |
+
+To use the words that need R, install R from https://cran.r-project.org, then
+`pip install "simplydata[r]"`, then in R `install.packages(...)` with the packages above.
+Every other word works without R. A word that needs R and cannot find it, or a package, stops with
+a friendly message that says what to install.
 
 ## Ideas behind it
 

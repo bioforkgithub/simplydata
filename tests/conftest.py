@@ -37,9 +37,13 @@ def marks():
     return pd.DataFrame(rows)
 
 
-# The R packages simplydata calls (also installed in CI, .github/workflows/tests.yml)
-R_PACKAGES = ("survival", "vegan", "mice", "effectsize", "pwr", "Exact", "exact2x2", "nortest", "BSDA", "rstatix", "DescTools", "FSA", "PMCMRplus", "multcompView", "TOSTER", "presize", "epiR", "pROC", "irr", "psych",
-              "BlandAltmanLeh", "ppcor", "cocor", "outliers", "EnvStats")
+# The R packages simplydata's words call (CI installs the same list: .github/workflows/tests.yml)
+R_PACKAGES = ("survival", "vegan", "mice", "lme4", "betareg", "pscl", "car", "effectsize", "emmeans", "pbkrtest",
+              "lmerTest", "afex", "geepack", "sandwich", "performance", "mgcv", "MASS", "nnet",
+              "tseries", "lomb", "trend", "forecast", "changepoint",
+              "pwr", "Exact", "exact2x2", "nortest", "BSDA", "rstatix", "DescTools", "FSA", "PMCMRplus",
+              "multcompView", "TOSTER", "presize", "epiR", "pROC", "irr", "psych", "BlandAltmanLeh", "ppcor", "cocor",
+              "outliers", "EnvStats")
 
 
 @pytest.fixture
@@ -55,6 +59,20 @@ def needs_r():
         if os.environ.get("SIMPLYDATA_REQUIRE_R") == "1":
             pytest.fail(f"SIMPLYDATA_REQUIRE_R=1 but R, rpy2 or one of the R packages {listed} is missing")
         pytest.skip(f"needs R with {listed} (pip install 'simplydata[r]')")
+
+
+@pytest.fixture
+def needs_control():
+    """For tests of the measures that come from python-control (simplydata[systems]): skipped where it is
+    not installed, except when SIMPLYDATA_REQUIRE_CONTROL=1 (CI), where they must run."""
+    import os
+
+    try:
+        import control  # noqa: F401
+    except ImportError:
+        if os.environ.get("SIMPLYDATA_REQUIRE_CONTROL") == "1":
+            pytest.fail("SIMPLYDATA_REQUIRE_CONTROL=1 but python-control is missing (pip install 'simplydata[systems]')")
+        pytest.skip("needs python-control (pip install 'simplydata[systems]')")
 
 
 # The places that are meant to run R (each calls simplydata._r.r_call). Reaching R from anywhere
@@ -74,6 +92,15 @@ R_ENTRY_POINTS = {
     ("table/stat_tests.py", "_z_test"), ("table/stat_tests.py", "_trend_test"), ("table/stat_tests.py", "_counts_engine"),
     ("table/summaries.py", "_ordinal_association"), ("table/summaries.py", "_partial_correlation"),
     ("table/correlation_words.py", "compare_correlations"), ("table/rows.py", "_test_outliers"),
+    ("table/models.py", "_glmer"), ("table/models_more.py", "fit_shares"), ("table/models_more.py", "fit_zeros"),
+    ("table/anova_tables.py", "eta_squared"), ("table/anova_tables.py", "anova_glm"),
+    ("table/anova_tables.py", "need_r_for"),
+    ("table/models_r.py", "emmeans_table"), ("table/models_r.py", "lmer_r"), ("table/models_r.py", "geeglm_r"),
+    ("table/models_r.py", "repeated_anova"), ("table/models_r.py", "group_influence"), ("table/models_r.py", "robust_cov"),
+    ("table/models_r.py", "vif_r"), ("table/models_r.py", "gam_r"), ("table/models_r.py", "nakagawa_r"),
+    ("table/time_series.py", "check_steady"), ("_signals.py", "_lomb_scargle"),
+    ("_trend_season.py", "_r_stl_periodic"), ("_trend_season.py", "_r_mann_kendall"),
+    ("_forecast.py", "r_forecast"), ("_forecast.py", "r_change_points"), ("_smoothing.py", "smooth"),
 }
 
 

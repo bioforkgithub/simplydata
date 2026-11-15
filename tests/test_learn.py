@@ -42,6 +42,9 @@ def test_example_tables_load_with_the_columns_described(name):
         assert table.isna().any().any() and pd.api.types.is_datetime64_any_dtype(table["date"])
     elif name == "school":  # empty sleep cells, for multiple imputation
         assert table["sleep"].isna().any() and not table.drop(columns="sleep").isna().any().any()
+    elif name == "river":  # missing days and a few empty level cells, for add_missing_dates and filling
+        assert table["level"].isna().any() and not table.drop(columns="level").isna().any().any()
+        assert pd.api.types.is_datetime64_any_dtype(table["date"]) and len(table) < 2 * 731
     else:
         assert not table.isna().any().any()
 
@@ -70,7 +73,7 @@ def test_example_files_are_inside_the_package():
 
 # ---------------------------------------------------------------- the grouping
 def _public_ps_functions():
-    skip = {"Chart", "NumberGrid", "Numbers", "SimplydataError", "Table", "__version__"}
+    skip = {"Chart", "NumberGrid", "Numbers", "SimplydataError", "System", "Table", "__version__"}
     return [n for n in sdata.__all__ if n not in skip]
 
 
@@ -298,14 +301,14 @@ def test_every_docstring_example_runs_and_draws(key, tmp_path, monkeypatch, caps
 
 
 # ---------------------------------------------------------------- sdata.lesson()
-LESSON_NUMBERS = range(1, 22)
+LESSON_NUMBERS = range(1, 27)
 
 
-def test_there_are_twenty_one_lessons(capsys):
-    assert len(learn.LESSONS) == 21
+def test_there_are_twenty_six_lessons(capsys):
+    assert len(learn.LESSONS) == 26
     sdata.lesson()
     out = capsys.readouterr().out
-    assert "21 lessons" in out
+    assert "26 lessons" in out
     for i in LESSON_NUMBERS:
         assert f"sdata.lesson({i})" in out
 
@@ -353,9 +356,9 @@ def test_lessons_use_tables_and_charts(number):
         assert gone not in code, f"lesson {number} uses {gone}"
 
 
-@pytest.mark.parametrize("bad", [0, 22, "1", 1.0, True])
+@pytest.mark.parametrize("bad", [0, 27, "1", 1.0, True])
 def test_wrong_lesson_number_is_explained(bad):
-    with pytest.raises(sdata.SimplydataError, match="lessons 1 to 21"):
+    with pytest.raises(sdata.SimplydataError, match="lessons 1 to 26"):
         sdata.lesson(bad)
 
 

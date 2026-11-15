@@ -16,25 +16,25 @@ Example tables you can use (all made up, for practice):
       Population of four made-up countries, every two years from 2000 to 2024.
       Columns: year, country, population, forest
 
+  sdata.example("sensor")
+      Five seconds of a made-up sensor, 200 readings per second: cycles, a hum, a drift, noise and spikes.
+      Columns: time, signal, vibration
+
+  sdata.example("visitors")
+      Monthly visitors to two made-up museums, 2014 to 2025: a rising trend, a yearly season and noise.
+      Columns: month, museum, visitors
+
+  sdata.example("river")
+      Daily water level and nitrate at two made-up river stations, 2024 to 2025. Some days and cells are missing.
+      Columns: date, station, level, nitrate
+
   sdata.example("shop")
       Daily sales of two made-up shops from January to March 2026. Some cells are empty.
       Columns: date, shop, sales, customers
 
   sdata.example("school")
-      Made-up pupils in 12 schools: study, sleep and test marks. Some sleep cells are empty.
-      Columns: school, pupil, hours, sleep, breakfast, marks, passed, days_absent
-
-  sdata.example("meadow")
-      Plants counted in 30 made-up plots of three fields, half of them grazed by sheep.
-      Columns: plot, field, grazed, clover, daisy, buttercup, dandelion, nettle, thistle, moss, fern, orchid, yarrow
-
-  sdata.example("trial")
-      120 made-up patients in a trial of a new medicine, followed for up to 3 years.
-      Columns: patient, treatment, age, days, died
-
-  sdata.example("clinic")
-      200 made-up patients in two hospital wards: tests for an infection, ratings, devices and pain.
-      Columns: patient, ward, age_group, infected, rapid_test, crp, procalcitonin, nurse_rating, doctor_rating, device_a, device_b, pain_week_0, pain_week_4, pain_week_8, in_pain_before, in_pain_after, infections, caught_infection, patient_days, item_1, item_2, item_3, item_4, item_5
+      Made-up pupils in 12 schools, three classes in each: study, sleep and test marks. Some sleep cells are empty.
+      Columns: school, pupil, class, hours, sleep, breakfast, marks, passed, days_absent
 
 
-... (60 more lines)
+... (72 more lines)

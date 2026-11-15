@@ -13,10 +13,11 @@ from .words.look import LookWords
 from .words.stats import StatsWords
 from .words.survival import SurvivalChartWords
 from .words.text import TextWords
+from .words.time_charts import TimeChartWords
 
 
-class Chart(ChartWords, StatsWords, CurveWords, SurvivalChartWords, AgreementChartWords, TextWords, AxesWords, LookWords, LayoutWords,
-            BaseChart):
+class Chart(ChartWords, StatsWords, CurveWords, SurvivalChartWords, AgreementChartWords, TimeChartWords, TextWords,
+            AxesWords, LookWords, LayoutWords, BaseChart):
     """A chart. Make one with sdata.chart(...), then add steps: chart.bars(...), chart.title_top(...)."""
 
 

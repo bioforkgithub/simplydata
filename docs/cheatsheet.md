@@ -27,8 +27,10 @@ grid = sdata.number_grid([[3, 5, 2], [8, 6, 4]])
 
 In Python, `sdata.help("bars")` explains any word, `sdata.words()` prints this list and
 `sdata.lesson(1)` starts the one-day course (lessons 9 to 12 are about tables, lesson 13
-about numbers, lesson 14 about statistical tests, lesson 15 puts it all together, and lessons 16 to 20
-go further: models, patterns, survival, fitting curves, finding and solving, and distributions).
+about numbers, lesson 14 about statistical tests, lesson 15 puts it all together, and lessons 16 to 25
+go further: models, patterns, survival, fitting curves, finding and solving, distributions, checking
+a model, time series, forecasts, cycles and systems). System words are steps on a system:
+`system = sdata.system("1 / (s**2 + 2*s + 5)")`.
 
 Every example runs as written on the practice table in the *Table* column:
 for example `weather = sdata.example("weather")` then `chart = sdata.chart(weather)`,
@@ -68,6 +70,7 @@ and `a`, `b` in `sdata.side_by_side(a, b)` are charts you made first.
 | `dots_3d` | `chart.dots_3d(x="hours", y="height", z="marks", colour="class")` | marks | Dots floating in a 3D box. |
 | `band` | `chart.band(x="month", between=["lowest", "highest"])` | weather | A shaded band between a low and a high column, along x. |
 | `empty_cells` | `chart.empty_cells()` | shop | A map of the empty cells: one row of the chart for each row of the table, one strip for each column, with empty cells coloured. |
+| `sticks` | `chart.sticks(x="month_number", y="rain", colour="city")` | weather | A thin line from 0 up (or down) to each value, with a dot on top (a stem chart). |
 
 ## Statistics
 
@@ -388,6 +391,10 @@ and `a`, `b` in `sdata.side_by_side(a, b)` are charts you made first.
 |---|---|---|---|
 | `explain` | `table.explain("marks", using=["hours", "breakfast"])` | school | Explain one column from several others with a model, and say how big each effect is. |
 | `add_predicted_column` | `table.add_predicted_column("marks", using=["hours", "breakfast"])` | school | Add a column with the value the model predicts for each row. |
+| `model_averages_of` | `table.model_averages_of("marks", for_each="school", using=["hours", "breakfast"])` | school | The average the model gives for each group, once the other columns are allowed for. |
+| `check_model` | `table.check_model("marks", using=["hours", "breakfast"])` | school | Four pictures to check a model from explain(), as R plot(lm(...)). |
+| `show_rows_that_pull` | `table.show_rows_that_pull("marks", using=["hours", "breakfast"])` | school | Show the rows that change a model from explain() the most (the table does not change). |
+| `compare_models` | `table.compare_models("marks", using=["hours"], against=["hours", "breakfast"])` | school | Does a bigger model explain the column better than a smaller one, or could it be chance? |
 
 ## Patterns across columns
 
@@ -408,6 +415,62 @@ and `a`, `b` in `sdata.side_by_side(a, b)` are charts you made first.
 | `compare_survival` | `table.compare_survival(time="days", event="died", for_each="treatment")` | trial | Do the groups really differ in the time until the event? (log-rank test) |
 | `explain_survival` | `table.explain_survival(time="days", event="died", using=["treatment", "age"])` | trial | Which columns go with a higher or lower risk of the event? (Cox model, hazard ratios) |
 | `survival_curves` | `chart.survival_curves(time="days", event="died", colour="treatment")` | trial | The share still without the event over time (Kaplan-Meier curves). |
+
+## Dates and time windows
+
+| Word | Example | Table | What it does |
+|---|---|---|---|
+| `sdata.dates` | `sdata.dates("2026-01-01", to="2026-12-31", every="day")` |  | A table with one column, "date": regular dates from start, every day (or week, month ...). |
+| `add_missing_dates` | `table.add_missing_dates("date", every="day", for_each="station")` | river | Add a row for every date that is missing from a regular run of dates (other cells empty). |
+
+## Smoothing and trend
+
+| Word | Example | Table | What it does |
+|---|---|---|---|
+| `add_smoothed_column` | `table.add_smoothed_column("signal_smoothed", from_column="signal", method="savitzky-golay", window=11, sorted_by="time")` | sensor | Add a smoothed copy of a column: each value becomes a summary of its neighbours in time. |
+| `smooth` | `nums.smooth(method="median", window=5)` | sensor | Smooth the numbers: each one becomes a summary of its neighbours, so noise and spikes shrink. |
+| `trend_of` | `table.trend_of("visitors", sorted_by="month", for_each="museum")` | visitors | Does a column keep rising or falling over time, and by how much? (Mann-Kendall test, Sen's slope) |
+| `remove_trend` | `nums.remove_trend()` | sensor | Take away the trend: the best straight line (or only the average) is taken from the numbers. |
+| `add_trend_and_season` | `table.add_trend_and_season("visitors", sorted_by="month", repeats_every="year", for_each="museum")` | visitors | Split a column into a trend, a season that repeats, and the rest, as three new columns. |
+| `autocorrelation_of` | `table.autocorrelation_of("signal", sorted_by="time", rows_back=40)` | sensor | How much a column is like itself some rows back (autocorrelation), with a noise band. |
+| `autocorrelation_of` | `nums.autocorrelation_of(rows_back=24)` | sensor | How much the numbers are like themselves some places back (autocorrelation), with a noise band. |
+| `check_steady` | `table.check_steady("signal", sorted_by="time")` | sensor | Does a column stay steady over time, or does it wander? (ADF and KPSS tests, as R tseries) |
+| `find_change_points` | `table.find_change_points("nitrate", sorted_by="date", for_each="station")` | river | Find the points where the average of a column jumps to a new level (R changepoint, PELT). |
+| `trend_and_season` | `chart.trend_and_season(x="month", y="visitors", repeats_every="year")` | visitors | Four panels sharing x: the column itself, its trend, its season and the rest (as R plot(stl(...)), which labels the first panel "data"). |
+| `autocorrelation_bars` | `chart.autocorrelation_bars("visitors", sorted_by="month")` | visitors | Sticks for the correlation of a column with itself 1, 2, ... rows back, with the noise band. |
+| `cross_correlation_bars` | `chart.cross_correlation_bars("signal", "vibration", sorted_by="time", rows_back=20)` | sensor | Sticks for the correlation of two columns when the second is shifted by -k to k rows. |
+| `lag_dots` | `chart.lag_dots("visitors", sorted_by="month", rows_back=[1, 12])` | visitors | Dots of each value against the value some rows back, with the 1:1 line (as R lag.plot). |
+
+## Forecasts
+
+| Word | Example | Table | What it does |
+|---|---|---|---|
+| `forecast` | `table.forecast("visitors", sorted_by="month", steps_ahead=12, repeats_every="year", for_each="museum")` | visitors | Forecast the next values of a column, with an interval for each. |
+| `forecast` | `nums.forecast(steps_ahead=12, repeats_every=12)` | visitors | Forecast the next numbers, with an interval for each (R forecast and stats, run in R). |
+| `forecast` | `chart.forecast(steps_ahead=12, repeats_every="year")` | visitors | The forecast after the data: a dashed line and its interval band, per colour group. |
+| `compare_forecasts` | `table.compare_forecasts("visitors", sorted_by="month", repeats_every="year", for_each="museum")` | visitors | Which forecast method would have done best on the last rows? (R forecast::accuracy) |
+
+## Cycles and filters
+
+| Word | Example | Table | What it does |
+|---|---|---|---|
+| `find_peaks` | `table.find_peaks("signal", sorted_by="time", at_least=1, apart=0.05)` | sensor | Find the peaks of a column: readings higher than both neighbours, with conditions. |
+| `find_peaks` | `nums.find_peaks(at_least=1, apart=10)` | sensor | Find the peaks: numbers higher than both neighbours, with conditions. |
+| `peak_dots` | `chart.peak_dots(at_least=1, apart=0.05)` | sensor | Dots on the peaks of the line (and on the dips with dips=True). |
+| `find_dips` | `table.find_dips("signal", sorted_by="time", at_most=-1, apart=0.05)` | sensor | Find the dips of a column: readings lower than both neighbours (find_peaks upside down). |
+| `find_dips` | `nums.find_dips(at_most=-1, apart=10)` | sensor | Find the dips: numbers lower than both neighbours. |
+| `spectrum_of` | `table.spectrum_of("signal", sorted_by="time")` | sensor | Which repeating cycles (frequencies) a column holds over time, and how strong each is. |
+| `spectrum_of` | `nums.spectrum_of(time_step=0.01)` | sensor | Which repeating cycles (frequencies) the numbers hold, and how strong each is. |
+| `spectrum` | `chart.spectrum("signal", sorted_by="time")` | sensor | Power against frequency: which cycles a column holds, the 3 strongest labelled with their period. |
+| `spectrum_over_time` | `chart.spectrum_over_time("signal", sorted_by="time", window=100)` | sensor | How the cycles in a column change over time: a heat map of time, frequency and power (decibels). |
+| `keep_frequencies` | `nums.keep_frequencies(below=5, time_step=0.01)` | sensor | Keep only some frequencies of the numbers (a low-pass, high-pass, band-pass or peak filter). |
+| `remove_frequencies` | `nums.remove_frequencies(equal_to=50, time_step=0.005)` | sensor | Remove some frequencies from the numbers, such as a 50-per-second hum (band-stop or notch filter). |
+| `add_filtered_column` | `table.add_filtered_column("slow", from_column="signal", keep_below=10, sorted_by="time")` | sensor | Add a filtered copy of a column: some frequencies kept or removed (low-pass, high-pass, band, notch). |
+| `sdata.frequency_filter` | `sdata.frequency_filter(keep_below=10, time_step=0.005)` |  | The filter of add_filtered_column as a system in steps, to look at before using it. |
+| `envelope` | `nums.envelope()` | sensor | The envelope of the numbers: how big the wave is at each moment (from the Hilbert transform). |
+| `add_envelope_column` | `table.add_envelope_column("signal_envelope", from_column="signal", sorted_by="time")` | sensor | Add the envelope of a column: how big its wave is at each moment (from the Hilbert transform). |
+| `fourier_transform` | `nums.fourier_transform(time_step=0.005)` | sensor | The numbers as a sum of waves: the size and phase of each frequency (the Fourier transform). |
+| `sdata.inverse_fourier_transform` | `sdata.inverse_fourier_transform(table)` |  | Numbers back from a Fourier transform table (its real and imaginary parts). |
 
 ## Planning a study
 
@@ -530,6 +593,31 @@ and `a`, `b` in `sdata.side_by_side(a, b)` are charts you made first.
 | `chart` | `nums.chart()` |  | Start a chart from these numbers. |
 | `save` | `nums.save("nums.csv")` |  | Save the numbers; the end of the file name decides the type. |
 | `as_numpy` | `nums.as_numpy()` |  | Give back the numbers as a plain NumPy array, for other Python tools. |
+
+## Waves and systems
+
+| Word | Example | Table | What it does |
+|---|---|---|---|
+| `convolve_with` | `nums.convolve_with([1, 2, 1])` |  | Convolve the numbers with other numbers: each result is a sum of products as one list slides along. |
+| `deconvolve_by` | `nums.deconvolve_by([1, 2, 3])` |  | Undo a convolution: the numbers divided by other numbers (polynomial division). |
+| `change_time_step` | `nums.change_time_step(to=0.01, time_step=0.001)` | sensor | Change the time between readings (resample): fewer readings (with a filter first) or more. |
+| `sdata.wave` | `sdata.wave("sine", frequency=5, time_step=0.01, how_many=100)` |  | Numbers that make a wave: a sine, square, sawtooth, chirp, pulse or impulse. |
+| `sdata.window_shape` | `sdata.window_shape("hann", how_many=64)` |  | The weights of a window (taper), such as "hann": high in the middle, low at the ends. |
+| `sdata.system` | `sdata.system("1 / (s**2 + 2*s + 5)")` |  | A linear system (one input, one output) from its formula, coefficients, poles or matrices. |
+| `step_response` | `system.step_response(until=10)` |  | How the output answers an input that jumps from 0 to 1 and stays there. |
+| `impulse_response` | `system.impulse_response(until=10)` |  | How the output answers a short kick at time 0 (an impulse of size 1). |
+| `response_to` | `system.response_to(sdata.wave("square", frequency=0.2, time_step=0.05, how_many=400))` |  | How the output answers any input you give: a simulation. |
+| `frequency_response` | `system.frequency_response(between=[0.1, 100])` |  | How much the system passes each frequency (gain) and how much it delays it (phase): the Bode data. |
+| `poles` | `system.poles()` |  | The poles: the values of s (or z) where the bottom of the formula is 0. They set how it moves. |
+| `zeros` | `system.zeros()` |  | The zeros: the values of s (or z) where the top of the formula is 0 (inputs that do not get through). |
+| `is_stable` | `system.is_stable()` |  | True when every response to a bounded input stays bounded (and settles). |
+| `steady_gain` | `system.steady_gain()` |  | Where the output settles for a constant input of 1 (the DC gain). |
+| `in_steps` | `system.in_steps(time_step=0.1)` |  | The same system in steps of time_step (discrete time), for a computer that reads and acts in steps. |
+| `then` | `system.then(sdata.system("1 / s"))` |  | This system, then another one after it (in series): the output of this one feeds the other. |
+| `add` | `system.add(sdata.system("1 / (s + 3)"))` |  | This system and another side by side, their outputs added (in parallel): both get the same input. |
+| `with_feedback` | `system.with_feedback()` |  | The closed loop: the output is fed back (through a sensor, say) and taken from the input. |
+| `table` | `system.table()` |  | The system as numbers: form="transfer function" (the coefficients of the top and the bottom, highest power first: power of s (power of z in steps), numerator, denominator), "state space" (the matrices A, B, C, D in controller form: matrix, row, column, value; SciPy tf2ss, as R control::tf2ss) or "poles and zeros" (kind, real part, imaginary part; the last row is the gain). |
+| `chart` | `system.chart()` |  | A chart of the system: show="bode" (gain in decibels and phase against frequency on a log scale, two panels; "gain and phase" is accepted), "step", "impulse", "poles and zeros" (x for poles, o for zeros; the unit circle for a system in steps; "pole-zero" is accepted) or "nyquist" (the frequency response as one curve; a feedback loop is stable when it stays clear of -1). |
 
 ## Help
 

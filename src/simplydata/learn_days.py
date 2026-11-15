@@ -27,7 +27,7 @@ import textwrap
 from pathlib import Path
 
 from ._errors import SimplydataError, suggest
-from .learn import RISKS_LESSON, lesson_number
+from .learn import CYCLES_LESSON, FORECASTS_LESSON, RISKS_LESSON, SYSTEMS_LESSON, TIME_SERIES_LESSON, lesson_number
 
 TRACK_NAMES = ("python", "beginner")
 DAYS_IN_A_TRACK = 30
@@ -44,8 +44,8 @@ TRACKS = {
         title="Beginner track",
         who="for people who have never programmed",
         about="Three days of just enough Python first, then about one lesson a day, with review days on "
-              "days 7, 14 and 21, a small project of your own (days 27 and 28), a final test from memory "
-              "and a look back.",
+              "days 7, 14 and 21, a small project of your own (days 28 and 30), a final test from memory "
+              "(day 29) and a look back.",
     ),
 }
 
@@ -648,7 +648,7 @@ UNITS = {
             table.save("weather.xlsx")'''),
             "Question, test, figure, saved table: the whole analysis in eight lines.")],
     ),
-    # ------------------------------------------------------------ going further (lessons 16 to 20)
+    # ------------------------------------------------------------ going further (lessons 16 to 21)
     "lesson16": dict(
         lessons=[16],
         words=["table.explain", "table.add_predicted_column"],
@@ -666,6 +666,33 @@ UNITS = {
             table = sdata.table(sdata.example("school"))
             table.explain("days_absent", using=["sleep", "breakfast"], outcome="counts")'''),
             "Counts of days call for Poisson regression; read the line for breakfast and its p-value.")],
+    ),
+    "lesson21": dict(
+        lessons=[21],
+        words=["table.check_model", "table.compare_models", "table.add_predicted_column", "table.show_rows_that_pull"],
+        do=[_lesson_do(21, "examples 1 to 4"),
+            "Example 5 (model_averages_of) needs R: do it only if you have R, or come back to it later."],
+        recall=[
+            ("Which word draws four pictures to check a model from explain()?",
+             'table.check_model("marks", using=["hours", "breakfast"])'),
+            ("Which word asks whether adding a column helps a model?",
+             'table.compare_models("marks", using=["hours"], against=["hours", "breakfast"])'),
+            ("Which options of add_predicted_column add a 95 % interval, and make it the interval for one new row?",
+             'interval=95, and for_new_rows=True: '
+             'table.add_predicted_column("marks", using=["hours"], interval=95, for_new_rows=True)'),
+            ("Which word lists the rows that pull a model the most?",
+             'table.show_rows_that_pull("marks", using=["hours", "breakfast"])'),
+        ],
+        task=['School table: does "sleep" help a yes-or-no model of "passed" that already has "hours"? Check the '
+              "model with its pictures first."],
+        solutions=[(_code('''
+            import simplydata as sdata
+            table = sdata.table(sdata.example("school"))
+            page = table.check_model("passed", using=["hours", "sleep"], outcome="yes or no")
+            page.save("passed_checks.png")
+            table.compare_models("passed", using=["hours"], against=["hours", "sleep"], outcome="yes or no")'''),
+            "The first picture shows two bands, as every yes/no model does, and its smooth line stays close to 0. "
+            "Sleep helps: chi-square = 11.0, p = 0.0009, and the AIC drops by 9.04.")],
     ),
     "lesson17": dict(
         lessons=[17],
@@ -781,6 +808,7 @@ UNITS = {
         do=[_lesson_do(lesson_number(RISKS_LESSON), "examples 1 to 4 (examples 5 to 8 are optional, for later)")],
         needs_r="only the optional examples 5 to 8 of the lesson (compare_to_truth() with a score, "
                 "trade_off_curve(), limits_of_agreement(), reliability_of())",
+        r_packages=("pROC", "BlandAltmanLeh", "DescTools", "psych", "epiR"),
         words=["table.compare_risks", "table.compare_to_truth", "table.agreement_between"],
         recall=[
             ("Which word compares how often something happens in two groups (risk difference, NNT, ratios)?",
@@ -805,6 +833,49 @@ UNITS = {
             table.compare_risks("died", for_each="treatment", against="usual care")'''),
             "About 15 fewer in 100 with the new medicine, but the interval (-31.5 to 2.8 points) includes 0, so "
             "the data cannot tell, and the number needed for one event fewer runs through infinity.")],
+    ),
+    "signals": dict(
+        lessons=[lesson_number(t) for t in (TIME_SERIES_LESSON, FORECASTS_LESSON, CYCLES_LESSON, SYSTEMS_LESSON)],
+        needs_r="trend_of() and forecast()",
+        r_packages=("trend", "forecast"),
+        words=["table.add_missing_dates", "table.add_smoothed_column", "table.trend_of", "table.forecast",
+               "table.find_peaks"],
+        do=[_lesson_do(lesson_number(TIME_SERIES_LESSON), "examples 2 to 4"),
+            _lesson_do(lesson_number(FORECASTS_LESSON), "examples 3 to 5"),
+            _lesson_do(lesson_number(CYCLES_LESSON), "example 3"),
+            f"The systems lesson (sdata.lesson({lesson_number(SYSTEMS_LESSON)}), optional) and the rest of the "
+            f"cycles lesson (sdata.lesson({lesson_number(CYCLES_LESSON)}): spectra, filters) go further: do them "
+            "when you need them."],
+        recall=[
+            ("Which word adds the days that are missing from a daily table?",
+             'table.add_missing_dates("date", every="day", for_each="station")'),
+            ("Which option of add_rolling_column averages over the last 7 days of time, not 7 rows?",
+             'window="7 days"'),
+            ("Which word smooths a column with a moving average over its neighbours in time?",
+             'table.add_smoothed_column("nitrate_smoothed", from_column="nitrate", window=31, sorted_by="date")'),
+            ("Which word tests whether a series has a real trend (Mann-Kendall) and gives its slope?",
+             'table.trend_of("nitrate", sorted_by="date")'),
+            ("Which word forecasts the next 12 months?",
+             'table.forecast("visitors", sorted_by="month", steps_ahead=12)'),
+            ("Which option of forecast checks it on the last 12 months, which it has not seen?",
+             "check_on_last=12"),
+            ("Why hold back the last months before trusting a forecast?",
+             "A forecast is only as good as its check on data it has not seen: held-back months show how far "
+             "off it really is."),
+            ('Why does window="7 days" still work when days are missing?',
+             "It counts days of time, not rows: a window holds whatever readings fall in those 7 days."),
+            ("Which word finds the readings higher than both neighbours?",
+             'table.find_peaks("signal", sorted_by="time", at_least=1)'),
+        ],
+        task=['River table: add the missing days, fill the empty "level" cells, and test whether the level of '
+              "each station has a trend."],
+        solutions=[(_code('''
+            import simplydata as sdata
+            table = sdata.table(sdata.example("river"))
+            table.add_missing_dates("date", every="day", for_each="station")
+            table.fill_empty_cells("level", with_the="line between neighbours", sorted_by="date", for_each="station")
+            table.trend_of("level", sorted_by="date", for_each="station")'''),
+            "trend_of prints Sen's slope (per day and per year) and the Mann-Kendall p-value for each station.")],
     ),
     # ------------------------------------------------------------ review days
     "review_p7": dict(
@@ -944,7 +1015,7 @@ UNITS = {
             table.count_rows()
             table.describe_columns()'''),
             "The first line only makes a raw file to practise on; with your own data, start at the second "
-            "line. The school table has 180 rows and 8 columns; sleep has 19 empty cells.")],
+            "line. The school table has 180 rows and 9 columns; sleep has 19 empty cells.")],
     ),
     "proj_clean": dict(
         lessons=[11],
@@ -1129,7 +1200,9 @@ UNITS = {
             "when it is finished, check it with sdata.help."],
         task=['From memory, in an empty file: open the "marks" table, remove the rows with empty cells, give '
               'the average marks for each class, test the difference, and save a two-panel figure (boxes, '
-              "and dots of hours against marks with a fitted line) as a PDF."],
+              "and dots of hours against marks with a fitted line) as a PDF.",
+              'From memory: school table, check the model of "marks" from "hours" and "breakfast" with its '
+              'pictures, then ask whether "sleep" helps it.'],
         solutions=[(_code('''
             import simplydata as sdata
             table = sdata.table(sdata.example("marks"))
@@ -1144,7 +1217,14 @@ UNITS = {
             figure = sdata.grid(a, b, per_row=2, letters=True)
             figure.save("final.pdf")'''),
             "If you wrote this from memory, you know the core of simplydata. Words you missed: run their "
-            "sdata.help again tomorrow.")],
+            "sdata.help again tomorrow."),
+            (_code('''
+            import simplydata as sdata
+            table = sdata.table(sdata.example("school"))
+            page = table.check_model("marks", using=["hours", "breakfast"])
+            page.save("marks_checks.png")
+            table.compare_models("marks", using=["hours", "breakfast"], against=["hours", "breakfast", "sleep"])'''),
+            "check_model, then compare_models: on the 161 rows with every value, sleep helps (p = 0.002).")],
     ),
     "compare_pandas": dict(
         lessons=[15],
@@ -1250,21 +1330,24 @@ _PYTHON = [
     ("Models: explain one column from several",
      "Explain one column from several others: multiple, logistic, Poisson and mixed regression.",
      ["lesson16"], "learn"),
-    ("Patterns across many columns",
-     "Find patterns across many columns with principal components, clusters, NMDS and PERMANOVA.",
-     ["lesson17"], "learn"),
-    ("Survival, and planning a study",
-     "Draw and test survival curves, and work out how many values a study needs.",
-     ["lesson18"], "learn"),
-    ("Fitting lines, curves and formulas",
-     "Fit straight lines, curves and formulas of your own to a table, and draw them on a chart.",
-     ["fitting"], "learn"),
-    ("Finding, solving and distributions",
-     "Find where a formula is smallest or biggest, solve equations, and work out chances from a distribution.",
-     ["finding", "distributions"], "learn"),
-    ("Values between points; risks and diagnostic tests",
-     "Estimate values between measured points, compare risks, judge a diagnostic test and measure agreement.",
-     ["between", "risks"], "learn"),
+    ("Working with a model",
+     "Check a model with its pictures, ask whether a column helps, and say how sure a prediction is.",
+     ["lesson21"], "learn"),
+    ("Patterns across many columns, and values between points",
+     "Find patterns across many columns with principal components, clusters, NMDS and PERMANOVA, and estimate "
+     "values between the points you measured.",
+     ["lesson17", "between"], "learn"),
+    ("Survival, risks and planning a study",
+     "Draw and test survival curves, compare risks and judge a diagnostic test, and work out how many values a "
+     "study needs.",
+     ["lesson18", "risks"], "learn"),
+    ("Fitting, finding, solving and distributions",
+     "Fit lines, curves and formulas of your own, find where a formula is smallest or biggest, solve "
+     "equations, and work out chances from a distribution.",
+     ["fitting", "finding", "distributions"], "learn"),
+    ("Time series: dates, smoothing, trend and forecasts",
+     "Add the missing days of a series, smooth it, test its trend, forecast it and find its peaks.",
+     ["signals"], "learn"),
     ("Review, and the question of your project",
      "Remember the words of the third week, then choose the question and the raw file of your own project.",
      ["review_p21", "proj_question"], "review"),
@@ -1364,29 +1447,31 @@ _BEGINNER = [
     ("Models: explain one column from several",
      "Explain one column from several others with a model.",
      ["lesson16"], "learn"),
-    ("Patterns across many columns",
-     "Find patterns across many columns with principal components and clusters.",
-     ["lesson17"], "learn"),
+    ("Check a model, and patterns across many columns",
+     "Check a model and ask whether a column helps, then find patterns across many columns with principal "
+     "components and clusters.",
+     ["lesson21", "lesson17"], "learn"),
     ("Survival, and planning a study",
      "Draw survival curves, and work out how many values a study needs.",
      ["lesson18"], "learn"),
     ("Risks, diagnostic tests and agreement (life sciences)",
      "Compare risks out of 100, judge a diagnostic test in counts of 1000 people, and measure agreement.",
      ["risks"], "learn"),
-    ("Fitting, finding and solving",
-     "Fit lines, curves and formulas, find where a formula is biggest, and solve equations.",
-     ["fitting", "finding"], "learn"),
-    ("Distributions and values between points",
-     "Work out chances from a distribution, and estimate values between measured points.",
-     ["distributions", "between"], "learn"),
+    ("Fitting, solving, distributions and values between points",
+     "Fit lines, curves and formulas, find where a formula is biggest, solve equations, work out chances "
+     "from a distribution and estimate values between the points you measured.",
+     ["fitting", "finding", "distributions", "between"], "learn"),
+    ("Time series: dates, smoothing, trend and forecasts",
+     "Add the missing days of a series, smooth it, test its trend, forecast it and find its peaks.",
+     ["signals"], "learn"),
     ("Small project: look, clean and sum up",
      "Choose a question and a file, then look at it, clean it and sum it up.",
      ["bproj_a"], "project"),
     ("Final test from memory",
      "Answer questions on the whole course and write a whole analysis from memory.",
      ["final_test"], "final"),
-    ("Small project: test, figure and results, and looking back",
-     "Answer your question with a test, a figure and two sentences of results, then look back over the course.",
+    ("Small project: test, figure and results, and a look back",
+     "Finish your project with a test, a figure and two sentences of results, then look back over the course.",
      ["bproj_b", "look_back"], "project"),
 ]
 
@@ -1440,12 +1525,13 @@ def _warm_up_sources(track: str, number: int, last_asked: dict[int, int], used: 
     Learning days follow the gaps: yesterday, about three days ago, about a week ago. Early on, when
     there are fewer earlier days than questions, the most recent days are asked about twice (with a
     different question). Review, project and final days mix the whole course: first the days with
-    questions not asked yet, then the days asked about longest ago."""
+    questions not asked yet, then the days asked about longest ago; on a tie, the earlier day first,
+    so the newest days do not crowd out an old question that has not come up yet."""
     sources = _source_days(track, number)
     if DAYS[track][number - 1][3] != "learn":
         earlier = [d for d in range(1, number) if _has_recall(track, d)]
         unasked = {d: used.get(d, 0) < len(_recall_of(track, d)) for d in earlier}
-        earlier.sort(key=lambda d: (not unasked[d], last_asked.get(d, 0), -d))
+        earlier.sort(key=lambda d: (not unasked[d], last_asked.get(d, 0), d))
         return earlier[:max(len(sources), MIN_WARM_UP)]
     earlier = [d for d in range(number - 1, 0, -1) if _has_recall(track, d)]
     i = 0
@@ -1512,7 +1598,7 @@ def plan(track: str, number: int) -> dict:
     title, goal, units, kind = DAYS[track][number - 1]
     found = dict(track=track, number=number, title=title, goal=goal, kind=kind, units=list(units),
                  lessons=[], manual=[], words=[], do=[], examples=[], errors=[], task=[], solutions=[],
-                 needs_r=[], warm_up=warm_up(track, number))
+                 needs_r=[], r_packages=[], warm_up=warm_up(track, number))
     for name in units:
         unit = UNITS[name]
         for n in unit["lessons"]:
@@ -1531,6 +1617,9 @@ def plan(track: str, number: int) -> dict:
         found["solutions"] += unit.get("solutions", [])
         if unit.get("needs_r"):
             found["needs_r"].append(unit["needs_r"])
+            for package in unit.get("r_packages", ("vegan", "survival", "mice")):
+                if package not in found["r_packages"]:
+                    found["r_packages"].append(package)
     return found
 
 
@@ -1540,7 +1629,7 @@ def needs_r_line(p: dict) -> str | None:
         return None
     from .learn import needs_r_text
 
-    return needs_r_text(" and ".join(p["needs_r"]))
+    return needs_r_text(" and ".join(p["needs_r"]), packages=p.get("r_packages") or ("vegan", "survival", "mice"))
 
 
 def all_code() -> list[tuple[str, str]]:

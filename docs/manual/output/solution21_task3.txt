@@ -1,7 +1,8 @@
-"infected" = "yes": 30 of 100 (30.0 %) in ward B and 20 of 100 (20.0 %) in ward A.
-Out of 100, about 10 more in ward B than in ward A (risk difference 10.0 percentage points, 95 % CI -2.02 to 21.7).
-Risk ratio 1.50 (95 % CI 0.916 to 2.46): the risk in ward B is 1.50 times the risk in ward A. Odds ratio 1.71 (95 % CI 0.895 to 3.29); odds are not risks: with an outcome this common (over 10 %) the odds ratio lies further from 1 than the risk ratio.
-Number needed for one event more: 10 (1 / 0.100, rounded up): for every 10 in ward B instead of ward A, one event more (the NNTH, if the event is harmful, such as death). The interval of the difference includes 0, so the interval runs from 49.4 for one event fewer through infinity to 4.61 for one event more.
-If the risks were truly the same, a difference this big or bigger would turn up in about 14 of 100 studies like this one (p = 0.142). This does not show that the risks are the same.
-Method: the chi-square test with Yates' correction (SciPy, as R prop.test()) for the p-value; exact intervals for each risk, Newcombe's score interval for the difference (as R DescTools::BinomDiffCI(method = "score")), Wald intervals on the log scale for the ratios (statsmodels Table2x2, as R epitools::riskratio()).
-Kept 2 of 6 rows.
+Added "predicted marks": the fitted value of "marks" from "hours" and "sleep" (least squares, 161 rows). 19 rows with an empty cell stay empty.
+Added "predicted marks 95 % prediction low" and "predicted marks 95 % prediction high": the 95 % prediction interval, where one new row with these values would fall (wider than the interval of the average, as R predict(interval = "prediction"); statsmodels get_prediction()).
+Kept 3 columns: predicted marks, predicted marks 95 % prediction low, predicted marks 95 % prediction high.
+   predicted marks  predicted marks 95 % prediction low  predicted marks 95 % prediction high
+1        46.879810                            29.798641                             63.960978
+2              NaN                                  NaN                                   NaN
+3        50.719484                            33.548550                             67.890419
+(the first 3 rows of 180; table.show(rows=180) shows them all)

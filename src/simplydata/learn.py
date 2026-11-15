@@ -26,7 +26,7 @@ WIDTH = 78
 GROUPS = [
     ("Start, show and save", ["sdata.chart", "sdata.example", "show", "save"]),
     ("Chart types", ["bars", "lines", "dots", "area", "histogram", "boxes", "violins",
-                     "heatmap", "pie", "polar", "contour", "surface", "dots_3d", "band", "empty_cells"]),
+                     "heatmap", "pie", "polar", "contour", "surface", "dots_3d", "band", "empty_cells", "sticks"]),
     ("Statistics", ["show=", "error=", "error_bars", "fit_line", "fit_curve", "fit_formula", "fit_distribution",
                     "curve", "smooth_line",
                     "density", "count_bars", "all_dots", "side_histograms", "qq_dots",
@@ -90,12 +90,25 @@ GROUPS = [
                        "dist.middle_range", "dist.average", "dist.median", "dist.standard_deviation",
                        "dist.variance", "dist.summary", "dist.random_numbers", "dist.chart", "dist.table",
                        "dist.parameters"]),
-    ("Models", ["table.explain", "table.add_predicted_column"]),
+    ("Models", ["table.explain", "table.add_predicted_column", "table.model_averages_of", "table.check_model",
+                "table.show_rows_that_pull", "table.compare_models"]),
     ("Patterns across columns", ["table.add_principal_components", "table.principal_components_of",
                                  "table.add_clusters", "table.distances_between_rows", "table.add_nmds",
                                  "table.compare_profiles"]),
     ("Survival", ["table.survival_over_time", "table.compare_survival", "table.explain_survival",
                   "survival_curves"]),
+    # Time series and signals: the core words first in each group, then the "more" words.
+    ("Dates and time windows", ["sdata.dates", "table.add_missing_dates"]),
+    ("Smoothing and trend", ["table.add_smoothed_column", "nums.smooth", "table.trend_of", "nums.remove_trend",
+                             "table.add_trend_and_season", "table.autocorrelation_of", "nums.autocorrelation_of",
+                             "table.check_steady", "table.find_change_points", "trend_and_season",
+                             "autocorrelation_bars", "cross_correlation_bars", "lag_dots"]),
+    ("Forecasts", ["table.forecast", "nums.forecast", "forecast", "table.compare_forecasts"]),
+    ("Cycles and filters", ["table.find_peaks", "nums.find_peaks", "peak_dots", "table.find_dips", "nums.find_dips",
+                            "table.spectrum_of", "nums.spectrum_of", "spectrum", "spectrum_over_time",
+                            "nums.keep_frequencies", "nums.remove_frequencies", "table.add_filtered_column",
+                            "sdata.frequency_filter", "nums.envelope", "table.add_envelope_column",
+                            "nums.fourier_transform", "sdata.inverse_fourier_transform"]),
     ("Planning a study", ["sdata.how_many_needed", "sdata.chance_to_find"]),
     ("Combine and reshape", ["table.join_with", "table.add_rows_from", "table.turn_columns_into_rows",
                              "table.turn_rows_into_columns"]),
@@ -123,6 +136,13 @@ GROUPS = [
                           "grid.remove_columns_by_position", "grid.replace_numbers", "grid.swap_rows_and_columns"]),
     ("Numbers: undo and finish", ["nums.undo", "nums.steps", "nums.start_again", "nums.table", "nums.chart",
                                   "nums.save", "nums.as_numpy"]),
+    # "system.name" is a step on a system: system = sdata.system("1 / (s**2 + 2*s + 5)"), then system.poles().
+    ("Waves and systems", ["nums.convolve_with", "nums.deconvolve_by", "nums.change_time_step", "sdata.wave",
+                           "sdata.window_shape", "sdata.system", "system.step_response", "system.impulse_response",
+                           "system.response_to",
+                           "system.frequency_response", "system.poles", "system.zeros", "system.is_stable",
+                           "system.steady_gain", "system.in_steps", "system.then", "system.add",
+                           "system.with_feedback", "system.table", "system.chart"]),
     ("Help", ["sdata.words", "sdata.help", "sdata.lesson"]),
     ("30 days of simplydata", ["sdata.start_30_days", "sdata.today", "sdata.day", "sdata.answers",
                                "sdata.next_day"]),
@@ -191,7 +211,7 @@ EXTRA_NOTES = {
 
 
 
-def needs_r_text(what: str, packages=("vegan", "survival", "mice")) -> str:
+def needs_r_text(what: str, packages=("vegan", "survival", "mice", "emmeans")) -> str:
     """The "Needs R" box of a lesson or day: what needs R, and how to get it, in plain words."""
     listed = ", ".join(f'"{p}"' for p in packages)
     return (f"{what} run R's own code, the same code R users run. Install it once: "
@@ -226,6 +246,13 @@ def _nx(body: str, values: str = "[12, 15, 9, 20, 14]") -> str:
 def _dx(body: str) -> str:
     """A runnable distribution example: make a distribution, then the steps."""
     lines = ["import simplydata as sdata", 'dist = sdata.distribution("normal", average=50, standard_deviation=10)']
+    lines += textwrap.dedent(body).strip().splitlines()
+    return "\n".join(lines)
+
+
+def _system_x(body: str, formula: str = "1 / (s**2 + 2*s + 5)") -> str:
+    """A runnable system example: make a system, then the steps."""
+    lines = ["import simplydata as sdata", f'system = sdata.system("{formula}")']
     lines += textwrap.dedent(body).strip().splitlines()
     return "\n".join(lines)
 
@@ -529,6 +556,7 @@ HELP_EXAMPLES = {
     # statistical tests
     "table.compare_averages": _tx("marks", 'result = table.compare_averages("marks", for_each="class")\n'
                                            'table.compare_averages("marks", for_each="class", based_on="ranks")\n'
+                                           'table.compare_averages("marks", for_each="subject", matched_by="name")\n'
                                            'result.save("marks_test.csv")'),
     "table.compare_each_pair": _tx("marks", 'table.compare_each_pair("marks", for_each="class")'),
     "table.compare_before_after": _tx("marks", 'table.keep_columns("name", "subject", "marks")\n'
@@ -664,10 +692,27 @@ HELP_EXAMPLES = {
     "table.explain": _tx("school", """\
         table.explain("marks", using=["hours", "sleep", "breakfast"])
         table.explain("passed", using=["hours", "breakfast"], outcome="yes or no")
-        table.explain("marks", using=["hours", "breakfast"], grouped_by="school")"""),
+        table.explain("marks", using=["hours", "breakfast"], grouped_by="school")
+        table.explain("marks", using=["hours", "breakfast"], grouped_by=["school", "class"])
+        table.explain("marks", using=["hours", "breakfast"], grouped_by="school", effects="for the whole population")
+        table.explain("marks", using=["hours", "breakfast"], curve_for="hours")
+        table.explain("marks", using=["hours", "breakfast"], robust_errors=True)"""),
     "table.add_predicted_column": _tx("school", """\
-        table.add_predicted_column("marks", using=["hours", "breakfast"])
+        table.add_predicted_column("marks", using=["hours", "breakfast"], interval=95)
         table.show_first_rows(5)"""),
+    "table.model_averages_of": _tx("school", """\
+        table.model_averages_of("marks", for_each="breakfast", using=["hours", "school"])
+        table.model_averages_of("passed", for_each="breakfast", using=["hours"], outcome="yes or no")"""),
+    "table.check_model": _tx("school", """\
+        page = table.check_model("marks", using=["hours", "breakfast"])
+        page.save("model_checks.png")
+        table.check_model("marks", using=["hours", "breakfast"], grouped_by="school")"""),
+    "table.show_rows_that_pull": _tx("school", """\
+        table.show_rows_that_pull("marks", using=["hours", "breakfast"])"""),
+    "table.compare_models": _tx("school", """\
+        table.compare_models("marks", using=["hours"], against=["hours", "breakfast"])
+        table.compare_models("passed", using=["hours"], against=["hours", "breakfast"], outcome="yes or no")
+        table.compare_models("marks", using=["hours"], against=["hours", "breakfast"], grouped_by="school")"""),
     # patterns across columns
     "table.add_principal_components": _tx("meadow", """\
         table.add_principal_components(how_many=2)
@@ -689,6 +734,80 @@ HELP_EXAMPLES = {
         chart.dots(x="NMDS1", y="NMDS2", colour="grazed")
         chart.save("meadow_nmds.png")"""),
     "table.compare_profiles": _tx("meadow", 'table.compare_profiles(for_each="grazed")'),
+    # signals and time series
+    "table.spectrum_of": _tx("sensor", 'table.spectrum_of("signal", sorted_by="time")'),
+    "nums.spectrum_of": _nx("nums.spectrum_of(time_step=0.005)", values='sdata.example("sensor")["signal"]'),
+    "table.check_steady": _tx("sensor", 'table.check_steady("signal", sorted_by="time")'),
+    "table.autocorrelation_of": _tx("sensor", 'table.autocorrelation_of("signal", sorted_by="time", rows_back=10)'),
+    "table.add_trend_and_season": _tx("visitors", """\
+        table.add_trend_and_season("visitors", sorted_by="month", repeats_every="year", for_each="museum")
+        table.show_first_rows(3)"""),
+    "table.trend_of": _tx("visitors", 'table.trend_of("visitors", sorted_by="month", for_each="museum")'),
+    "sdata.dates": 'import simplydata as sdata\ntable = sdata.dates("2026-01-01", to="2026-12-31", every="day")',
+    "table.add_missing_dates": _tx("river", """\
+        table.add_missing_dates("date", every="day", for_each="station")
+        table.fill_empty_cells("nitrate", with_the="line between neighbours", sorted_by="date", for_each="station")"""),
+    "table.add_smoothed_column": _tx("sensor", 'table.add_smoothed_column("signal_smoothed", from_column="signal", '
+                                               'method="savitzky-golay", window=11, sorted_by="time")'),
+    "nums.smooth": _nx('nums.smooth(method="median", window=5)', values='sdata.example("sensor")["signal"]'),
+    "nums.remove_trend": _nx("nums.remove_trend()", values='sdata.example("sensor")["signal"]'),
+    "nums.keep_frequencies": _nx("nums.keep_frequencies(below=10, time_step=0.005)",
+                                 values='sdata.example("sensor")["signal"]'),
+    "nums.remove_frequencies": _nx("nums.remove_frequencies(equal_to=50, time_step=0.005)",
+                                   values='sdata.example("sensor")["signal"]'),
+    "table.add_filtered_column": _tx("sensor", 'table.add_filtered_column("slow", from_column="signal", keep_below=10, '
+                                               'sorted_by="time")'),
+    "nums.find_peaks": _nx("nums.find_peaks(at_least=1, apart=10)", values='sdata.example("sensor")["signal"]'),
+    "nums.find_dips": _nx("nums.find_dips(at_most=-1, apart=10)", values='sdata.example("sensor")["signal"]'),
+    "table.find_peaks": _tx("sensor", 'table.find_peaks("signal", sorted_by="time", at_least=1, apart=0.05)'),
+    "table.find_dips": _tx("sensor", 'table.find_dips("signal", sorted_by="time", at_most=-1, apart=0.05)'),
+    "nums.fourier_transform": _nx("nums.fourier_transform(time_step=0.005)", values='sdata.example("sensor")["signal"]'),
+    "sdata.inverse_fourier_transform": _nx("""        table = nums.fourier_transform()
+        back = sdata.inverse_fourier_transform(table)""", values="[1, 2, 3, 4]"),
+    "nums.envelope": _nx("nums.envelope()", values='sdata.example("sensor")["signal"]'),
+    "nums.convolve_with": _nx("nums.convolve_with([1, 2, 1])", values="[1, 2, 3]"),
+    "nums.deconvolve_by": _nx("nums.deconvolve_by([1, 2, 3])", values="[0, 1, 2.5, 4, 1.5]"),
+    "nums.change_time_step": _nx("nums.change_time_step(to=0.01, time_step=0.005)",
+                                 values='sdata.example("sensor")["signal"]'),
+    "sdata.wave": "\n".join(["import simplydata as sdata",
+                              'nums = sdata.wave("sine", frequency=5, time_step=0.01, how_many=100)']),
+    "sdata.window_shape": "\n".join(["import simplydata as sdata", 'nums = sdata.window_shape("hann", how_many=64)']),
+    "table.add_envelope_column": _tx("sensor", 'table.add_envelope_column("signal_envelope", from_column="signal", sorted_by="time")'),
+    "sdata.frequency_filter": "\n".join(['import simplydata as sdata', 'system = sdata.frequency_filter(keep_below=10, time_step=0.005)', 'system.frequency_response(between=[1, 90])']),
+    "sticks": _ex("weather", 'chart.sticks(x="month_number", y="rain", colour="city")', "sticks"),
+    "autocorrelation_bars": "\n".join(['import simplydata as sdata', 'table = sdata.table(sdata.example("visitors"))', 'table.keep_rows("museum", equal_to="Harbour Museum")', 'chart = table.chart()', 'chart.autocorrelation_bars("visitors", sorted_by="month")', 'chart.save("autocorrelation_bars.png")']),
+    "cross_correlation_bars": _ex("sensor", 'chart.cross_correlation_bars("signal", "vibration", sorted_by="time", rows_back=20)', "cross_correlation_bars"),
+    "lag_dots": "\n".join(['import simplydata as sdata', 'table = sdata.table(sdata.example("visitors"))', 'table.keep_rows("museum", equal_to="Harbour Museum")', 'chart = table.chart()', 'chart.lag_dots("visitors", sorted_by="month", rows_back=[1, 12])', 'chart.save("lag_dots.png")']),
+    "trend_and_season": "\n".join(['import simplydata as sdata', 'table = sdata.table(sdata.example("visitors"))', 'table.keep_rows("museum", equal_to="Harbour Museum")', 'chart = table.chart()', 'chart.trend_and_season(x="month", y="visitors", repeats_every="year")', 'chart.save("trend_and_season.png")']),
+    "forecast": _ex("visitors", 'chart.lines(x="month", y="visitors", colour="museum")\nchart.forecast(steps_ahead=12, repeats_every="year")', "forecast"),
+    "spectrum": _ex("sensor", 'chart.spectrum("signal", sorted_by="time")', "spectrum"),
+    "spectrum_over_time": _ex("sensor", 'chart.spectrum_over_time("signal", sorted_by="time", window=100)', "spectrum_over_time"),
+    "peak_dots": _ex("sensor", 'chart.lines(x="time", y="signal")\nchart.peak_dots(at_least=1, apart=0.05)', "peak_dots"),
+    "sdata.system": "\n".join(['import simplydata as sdata', 'system = sdata.system("1 / (s**2 + 2*s + 5)")']),
+    "system.step_response": _system_x("system.step_response(until=10)"),
+    "system.impulse_response": _system_x("system.impulse_response(until=10)"),
+    "system.response_to": _system_x('system.response_to(sdata.wave("square", frequency=0.2, time_step=0.05, how_many=400))'),
+    "system.frequency_response": _system_x("system.frequency_response(between=[0.1, 100])"),
+    "system.poles": _system_x("system.poles()"),
+    "system.zeros": _system_x("system.zeros()", formula="(s + 1) / (s**2 + 2*s + 5)"),
+    "system.is_stable": _system_x("system.is_stable()"),
+    "system.steady_gain": _system_x("system.steady_gain()"),
+    "system.in_steps": _system_x("system.in_steps(time_step=0.1)"),
+    "system.then": _system_x('system.then(sdata.system("1 / s"))'),
+    "system.add": _system_x('system.add(sdata.system("1 / (s + 3)"))'),
+    "system.with_feedback": _system_x("system.with_feedback()"),
+    "system.table": _system_x('system.table()\nsystem.table(form="state space")'),
+    "system.chart": _system_x('chart = system.chart()\nchart.save("bode.png")'),
+    "table.forecast": _tx("visitors", 'table.forecast("visitors", sorted_by="month", steps_ahead=12, '
+                                      'repeats_every="year", for_each="museum")'),
+    "nums.forecast": _nx("nums.forecast(steps_ahead=12, repeats_every=12)",
+                         values='sdata.example("visitors")["visitors"][:144]'),
+    "table.compare_forecasts": _tx("visitors", 'table.compare_forecasts("visitors", sorted_by="month", '
+                                               'repeats_every="year", for_each="museum")'),
+    "table.find_change_points": _tx("river", 'table.find_change_points("nitrate", sorted_by="date", '
+                                             'for_each="station")'),
+    "nums.autocorrelation_of": _nx("nums.autocorrelation_of(rows_back=10)",
+                                   values='sdata.example("sensor")["signal"]'),
     # survival
     "table.survival_over_time": _tx("trial", 'table.survival_over_time(time="days", event="died", for_each="treatment")'),
     "table.compare_survival": _tx("trial", 'table.compare_survival(time="days", event="died", for_each="treatment")'),
@@ -849,7 +968,7 @@ def _grid_class():
 
 # The objects that have steps, and the name they go by in examples ("chart" has no prefix
 # in GROUPS: a plain name is a chart word).
-_PREFIX = {"table": "table", "numbers": "nums", "grid": "grid", "dist": "dist"}
+_PREFIX = {"table": "table", "numbers": "nums", "grid": "grid", "dist": "dist", "system": "system"}
 
 
 def _distribution_class():
@@ -858,10 +977,16 @@ def _distribution_class():
     return Distribution
 
 
+def _system_class():
+    from .systems import System
+
+    return System
+
+
 def _classes():
     """(class, kind) for every object with steps."""
     return [(_chart_class(), "chart"), (_table_class(), "table"), (_numbers_class(), "numbers"),
-            (_grid_class(), "grid"), (_distribution_class(), "dist")]
+            (_grid_class(), "grid"), (_distribution_class(), "dist"), (_system_class(), "system")]
 
 
 def _kind(key: str) -> str:
@@ -943,7 +1068,7 @@ def _prefixes(key: str) -> str:
     return _PREFIX.get(_kind(key), "chart|sdata|page")
 
 
-def _find_call(text: str, prefix_word: str, prefixes: str = "chart|sdata|page|table|nums|grid|dist") -> str | None:
+def _find_call(text: str, prefix_word: str, prefixes: str = "chart|sdata|page|table|nums|grid|dist|system") -> str | None:
     """Find the first call like chart.bars(...) in text, brackets and quotes included."""
     m = re.search(rf"(?:{prefixes})\.{re.escape(prefix_word)}\(", text)
     if not m:
@@ -1019,6 +1144,8 @@ def words() -> None:
     print("grid words are steps on a grid of numbers: grid = sdata.number_grid([[1, 2], [3, 4]]).")
     print('Distribution words are steps on a distribution: dist = sdata.distribution("normal"), then '
           "dist.chance(above=2).")
+    print('System words are steps on a system: system = sdata.system("1 / (s**2 + 2*s + 5)"), then '
+          "system.step_response().")
     print('The examples use the practice tables; sdata.help("word") shows which one, ready to run.')
     for group, keys in GROUPS:
         print()
@@ -1036,7 +1163,7 @@ def words() -> None:
 # ---------------------------------------------------------------- sdata.help()
 def _normalise(word: str) -> str:
     w = str(word).strip()
-    for start in ("sdata.", "chart.", "table.", "page.", "nums.", "grid.", "dist.", "."):
+    for start in ("sdata.", "chart.", "table.", "page.", "nums.", "grid.", "dist.", "system.", "."):
         if w.startswith(start):
             w = w[len(start):]
     if w.endswith("()"):
@@ -1292,6 +1419,14 @@ def _sx(code: str) -> str:
 # The code of each part runs on its own (the tests run every part).
 # solutions: one (code, one-line explanation) for each task, in the same order. Each runs on
 # its own (the tests run every one), and sdata.lesson(3, solutions=True) prints them.
+# The lessons of v0.6, found by title (learn_days.py and the tests use lesson_number), so their numbers can
+# change when lessons are added before them. Agreed order across branches: S2's "Working with a model" is
+# lesson 21, S1's "Risks, diagnostic tests and agreement" 22, these four 23 to 26.
+TIME_SERIES_LESSON = "Time series: dates, missing days, time windows and trend"
+FORECASTS_LESSON = "Forecasts: the next months, checked first"
+CYCLES_LESSON = "Cycles: spectra, filters, peaks, and steady or not"
+SYSTEMS_LESSON = "Systems: a spring and damper, its response and a feedback loop"
+
 LESSONS = [
     dict(
         title="Your first chart",
@@ -3136,7 +3271,8 @@ LESSONS = [
     ),
     dict(
         title="Models: explain one column from several others",
-        needs_r=needs_r_text('explain(..., empty_cells="multiple imputation") pools its results with R (mice); this one option'),
+        needs_r=needs_r_text('Only explain(..., empty_cells="multiple imputation") needs R: it pools its results with '
+                             "R (mice). The rest of the lesson needs no R. That option and the other R words"),
         learn=[
             "how to explain one column from several others at once (multiple regression)",
             "how to explain a yes/no column (logistic regression) and a column of counts (Poisson regression)",
@@ -3618,6 +3754,137 @@ LESSONS = [
                "table.map_of", "curve"],
     ),
     dict(
+        title="Working with a model: check it, compare it, predict with it",
+        needs_r=needs_r_text("Only example 5, which you may leave out, needs R: model_averages_of() (R emmeans). The "
+                             "rest of the lesson needs no R. model_averages_of() and the other R words"),
+        learn=[
+            "how to check a model from explain() with four pictures (check_model)",
+            "how to find the rows that pull a model the most (show_rows_that_pull)",
+            "how to ask whether a column helps a model (compare_models)",
+            "how sure a prediction is, for the average and for one new row (add_predicted_column with interval=95)",
+            "if you have R: the average of each group once the other columns are allowed for (model_averages_of)",
+        ],
+        parts=[
+            ("explain() gives the effects, but they can only be trusted if the model suits the data. "
+             "check_model draws the four pictures R users look at first.", [
+                ("import simplydata as sdata", "Load simplydata."),
+                ('table = sdata.table(sdata.example("school"))', "The pupils of lesson 16."),
+                ('table.explain("marks", using=["hours", "breakfast"])',
+                 "The model to check: 2.82 more marks for each hour of study and 3.21 more with breakfast. "
+                 "The line under the effects says how well it fits: AIC 1292 and BIC 1305, numbers that only "
+                 "mean something when you compare two models."),
+                ('page = table.check_model("marks", using=["hours", "breakfast"])',
+                 "Four pictures of the same model. Here the residuals lie in an even band around 0, the dots "
+                 "follow the Q-Q line, the scale-location line is flat, and the dashed Cook's distance lines lie "
+                 "outside the leverage picture: no row comes near them. The variance inflation factors are "
+                 "1.00: hours and breakfast are not linked."),
+                ('page.save("lesson21_checks.png")', "Save the page of pictures."),
+            ]),
+            ("Some rows pull a model more than others. show_rows_that_pull lists them, the strongest "
+             "first, so you can look at them before you trust the model.", [
+                ("import simplydata as sdata", "Load simplydata."),
+                ('table = sdata.table(sdata.example("school"))', "The school table."),
+                ('table.show_rows_that_pull("marks", using=["hours", "breakfast"])',
+                 "12 of the 180 rows have a Cook's distance above the rule of thumb 4 / 180 = 0.0222. The "
+                 "biggest, row 48 (0.0459), is far below 0.5, where the pictures draw the first dashed line: no "
+                 "row pulls strongly. The table itself does not change."),
+            ]),
+            ("Does a column help? compare_models fits the model with and without it, on the same rows, "
+             "and tests the difference.", [
+                ("import simplydata as sdata", "Load simplydata."),
+                ('table = sdata.table(sdata.example("school"))', "The school table."),
+                ('table.compare_models("marks", using=["hours"], against=["hours", "breakfast"])',
+                 "Does breakfast help a model that already has hours? The F test says it is unlikely to be "
+                 "chance (p = 0.018), and the AIC is 3.72 lower with breakfast: keep it."),
+            ]),
+            ("A prediction is never exact. interval=95 says how sure the model is about the average; "
+             "for_new_rows=True says where one new pupil would fall, which is much wider.", [
+                ("import simplydata as sdata", "Load simplydata."),
+                ('table = sdata.table(sdata.example("school"))', "The school table."),
+                ('table.add_predicted_column("marks", using=["hours", "breakfast"], name="average", interval=95)',
+                 'Adds "average", the predicted marks, and the ends of its 95 % confidence interval, "average '
+                 '95 % CI low" and "average 95 % CI high". name= gives the new columns short names.'),
+                ('table.add_predicted_column("marks", using=["hours", "breakfast"], name="new pupil", '
+                 "interval=95, for_new_rows=True)",
+                 'The 95 % prediction interval, in "new pupil 95 % prediction low" and "... high".'),
+                ('table.keep_columns(contains="95 %")', "Keep only the four ends of the two intervals."),
+                ("table.show(rows=3)",
+                 "For pupils like pupil 1 the model expects between 42.3 and 46.6 marks on average (44.5 in "
+                 "the middle), but one new pupil like pupil 1 could score anything from 27.2 to 61.7."),
+            ]),
+            ("If you have R (you may leave this example out): model_averages_of gives the average of each "
+             "group with the other columns held fixed, and compares every pair.", [
+                ("import simplydata as sdata", "Load simplydata."),
+                ('table = sdata.table(sdata.example("school"))', "The school table."),
+                ('table.model_averages_of("marks", for_each="breakfast", using=["hours", "school"])',
+                 "With hours held at their average (5.00) and the 12 schools counted equally, pupils without "
+                 "breakfast average 46.6 marks and pupils with breakfast 49.5. If the two groups truly did not "
+                 "differ, a difference of -2.95 or bigger would turn up in about 1 of 100 studies like this one "
+                 "(p = 0.008). This is R emmeans."),
+            ]),
+        ],
+        notes=[
+            "Check before you trust: look at check_model's pictures before you read the p-values of explain().",
+            "For a yes/no or count model the first picture always shows bands of dots, one for each value; look "
+            "at the smooth line, which should stay near 0.",
+            "AIC and BIC compare models of the same rows only. sleep has 19 empty cells, so a model with sleep "
+            "uses fewer rows; compare_models fits both models on the rows they share.",
+            "A pseudo R squared (yes/no, counts) is not a share explained: 0 means no better than no columns.",
+            "Remove a row that pulls only for a reason, such as a typing mistake, and say so in your report.",
+            "The confidence interval (interval=95) is about the average of many pupils like this one; the "
+            "prediction interval (for_new_rows=True) is about one pupil. The second is always wider.",
+        ],
+        task=[
+            'Partly done for you: after import simplydata as sdata, the next two lines are '
+            'table = sdata.table(sdata.example("school")) and table.check_model("marks", using=["hours", '
+            '"breakfast"]). Write the last line yourself: does '
+            '"sleep" help the model of "marks" that already has "hours" and "breakfast"?',
+            'Check the model of "marks" using "hours" and "school" with check_model and show_rows_that_pull, '
+            'then use compare_models to ask whether adding "breakfast" to it helps.',
+            "Try to remember without looking back: which word adds a prediction with its interval, and which "
+            'option gives the interval for one new row? Use them to predict "marks" from "hours" and "sleep", '
+            "and look at the first 3 rows.",
+            'If you have R: find the model averages of "marks" for each "school", allowing for "hours". Which '
+            "school has the highest average and which the lowest, and how many pairs of schools differ?",
+        ],
+        solutions=[
+            (_sx("""\
+                import simplydata as sdata
+                table = sdata.table(sdata.example("school"))
+                table.check_model("marks", using=["hours", "breakfast"])
+                table.compare_models("marks", using=["hours", "breakfast"], against=["hours", "breakfast", "sleep"])"""),
+             "Yes: on the 161 rows with every value, sleep helps (F = 10.2, p = 0.002) and the AIC drops by "
+             "8.17."),
+            (_sx("""\
+                import simplydata as sdata
+                table = sdata.table(sdata.example("school"))
+                page = table.check_model("marks", using=["hours", "school"])
+                page.save("model_checks.png")
+                table.show_rows_that_pull("marks", using=["hours", "school"])
+                table.compare_models("marks", using=["hours", "school"], against=["hours", "school", "breakfast"])"""),
+             "The pictures look fine, and no row comes near the Cook's distance lines (the largest is 0.0457, "
+             "row 97). Adding breakfast helps: F = 7.13, p = 0.008, and the AIC drops by 5.57."),
+            (_sx("""\
+                import simplydata as sdata
+                table = sdata.table(sdata.example("school"))
+                table.add_predicted_column("marks", using=["hours", "sleep"], interval=95, for_new_rows=True)
+                table.keep_columns(contains="predicted")
+                table.show(rows=3)"""),
+             "add_predicted_column with interval=95 and for_new_rows=True; keep_columns(contains=\"predicted\") "
+             "keeps the three new columns, and show(rows=3) shows the first 3 rows with every column. Pupil 1 is predicted 46.9, but one pupil "
+             "like this could score from 29.8 to 64.0. Pupil 2 has no sleep value, so its cells stay empty."),
+            (_sx("""\
+                import simplydata as sdata
+                table = sdata.table(sdata.example("school"))
+                table.model_averages_of("marks", for_each="school", using=["hours"])"""),
+             "With hours held at their average (5.00), School D has the highest average mark (57.7) and School C "
+             "the lowest (36.5). 22 of the 66 pairs of schools differ after Tukey's adjustment (p < 0.05). "
+             "This needs R (emmeans)."),
+        ],
+        words=["table.check_model", "table.show_rows_that_pull", "table.compare_models",
+               "table.add_predicted_column", "table.model_averages_of", "table.explain"],
+    ),
+    dict(
         title="Risks, diagnostic tests and agreement",
         needs_r=needs_r_text("Examples 1 to 4 and the tasks need no R. The optional examples 5 to 8 (a score and "
                              "its trade-off curve, two devices, a questionnaire, risks allowing for age)",
@@ -3765,7 +4032,435 @@ LESSONS = [
                "trade_off_curve", "table.compare_accuracy", "table.limits_of_agreement", "difference_dots",
                "table.reliability_of", "table.rate_of"],
     ),
+    dict(
+        title=TIME_SERIES_LESSON,
+        learn=[
+            "how to make a run of dates, and add the days that are missing from a daily table",
+            "how to average over a window of time, such as the last 7 days",
+            "how to smooth a noisy series, and test whether it has a trend",
+        ],
+        needs_r=needs_r_text("trend_of() and its test", packages=("trend",)),
+        parts=[
+            ("Time series are readings in time order: one a day, a month or a second. A run of dates is the "
+             "backbone of such a table.", [
+                ("import simplydata as sdata", "Load simplydata."),
+                ('days = sdata.dates("2026-01-01", to="2026-12-31", every="month")',
+                 "12 dates, the first of each month of 2026, in a table with one column, date."),
+                ("days.show()", "Show them."),
+            ]),
+            ("Two river stations measured the water level and nitrate every day for two years, but some days "
+             "are missing: their rows are simply not there. Words that need even steps stop with a message, so "
+             "add the missing days first and fill them in.", [
+                ("import simplydata as sdata", "Load simplydata."),
+                ('table = sdata.table(sdata.example("river"))', "Daily date, station, level and nitrate."),
+                ('table.add_missing_dates("date", every="day", for_each="station")',
+                 "15 days were missing (6 at Station A, 9 at Station B); their rows are added with empty cells."),
+                ('table.fill_empty_cells("nitrate", with_the="line between neighbours", sorted_by="date", '
+                 'for_each="station")',
+                 "The 15 empty nitrate cells get the value on the straight line between their neighbours."),
+                ('table.fill_empty_cells("level", with_the="line between neighbours", sorted_by="date", '
+                 'for_each="station")',
+                 "The same for the level: 23 cells (a few were empty already)."),
+            ]),
+            ("Daily readings are noisy. A time window averages the readings of the last 7 days; a smoother "
+             "averages the readings on both sides of each day.", [
+                ("import simplydata as sdata", "Load simplydata."),
+                ('table = sdata.table(sdata.example("river"))', "The river table."),
+                ('table.add_missing_dates("date", every="day", for_each="station")', "Add the missing days."),
+                ('table.fill_empty_cells("nitrate", with_the="line between neighbours", sorted_by="date", '
+                 'for_each="station")', "Fill them in."),
+                ('table.add_rolling_column("week_average", from_column="nitrate", window="7 days", '
+                 'sorted_by="date", for_each="station")',
+                 "Each week_average is the average nitrate of the 7 days up to that day, for each station."),
+                ('table.add_smoothed_column("nitrate_smoothed", from_column="nitrate", method="moving average", '
+                 'window=31, sorted_by="date", for_each="station")',
+                 "A moving average over 31 days centred on each day; the first and last 15 days have no full "
+                 "window, so they are empty (as R stats::filter(x, rep(1 / 31, 31), sides = 2))."),
+                ("chart = table.chart()", "Start a chart."),
+                ('chart.lines(x="date", y="nitrate_smoothed", colour="station")',
+                 "The smoothed nitrate, one line per station: Station A creeps up, Station B goes down."),
+                ('chart.save("nitrate.png")', "Save it."),
+            ]),
+            ("Is the trend real, or could it be chance? trend_of gives the slope (Sen's slope, the middle of the "
+             "slopes between all pairs of days) and the Mann-Kendall test.", [
+                ("import simplydata as sdata", "Load simplydata."),
+                ('table = sdata.table(sdata.example("river"))', "The river table."),
+                ('table.trend_of("nitrate", sorted_by="date", for_each="station")',
+                 "Station A rises by 0.0712 a year (p = 0.003); Station B falls by 0.935 a year (p < 0.0001). "
+                 "R's trend::sens.slope() and trend::mk.test() give the same numbers."),
+            ]),
+        ],
+        notes=[
+            "sorted_by= is the time column: it gives the order and the time between readings. for_each= gives "
+            "one series per group, here one per station.",
+            "window=7 is 7 rows; window=\"7 days\" is 7 days of time, whatever the number of rows.",
+            "trend_of needs no even steps and no filling: empty cells are left out.",
+        ],
+        task=[
+            "Make a run of dates for every day of March 2026.",
+            "Add a column with the average level of the last 30 days at each station.",
+            "Smooth the level of each station with a moving average over 61 days instead of 31, and draw it. "
+            "What does the wider window do?",
+        ],
+        solutions=[
+            (_sx("""\
+                import simplydata as sdata
+                days = sdata.dates("2026-03-01", to="2026-03-31", every="day")
+                days.show()"""),
+             "31 dates, one a day."),
+            (_sx("""\
+                import simplydata as sdata
+                table = sdata.table(sdata.example("river"))
+                table.add_rolling_column("month_level", from_column="level", window="30 days", sorted_by="date", for_each="station")
+                table.show_first_rows()"""),
+             "A time window works even with missing days: it counts days, not rows."),
+            (_sx("""\
+                import simplydata as sdata
+                table = sdata.table(sdata.example("river"))
+                table.add_missing_dates("date", every="day", for_each="station")
+                table.fill_empty_cells("level", with_the="line between neighbours", sorted_by="date", for_each="station")
+                table.add_smoothed_column("level_smoothed", from_column="level", window=61, sorted_by="date", for_each="station")
+                chart = table.chart()
+                chart.lines(x="date", y="level_smoothed", colour="station")
+                chart.save("level_smoothed.png")"""),
+             "The wider window gives a calmer line that hides the shorter ups and downs, and now the first and "
+             "last 30 days of each station are empty."),
+        ],
+        words=["sdata.dates", "table.add_missing_dates", "table.fill_empty_cells", "table.add_rolling_column",
+               "table.add_smoothed_column", "table.trend_of", "lines"],
+    ),
+    dict(
+        title=FORECASTS_LESSON,
+        learn=[
+            "how to draw a series over time, and each year on top of the others (a seasonal chart)",
+            "how to forecast the next months, starting from the simplest forecast",
+            "how to check a forecast on months it has not seen before trusting it",
+        ],
+        needs_r=needs_r_text("forecast() and compare_forecasts()", packages=("forecast",)),
+        parts=[
+            ("Two museums counted their visitors every month for twelve years. A chart over time comes first: "
+             "it shows the trend and the season at a glance.", [
+                ("import simplydata as sdata", "Load simplydata."),
+                ('table = sdata.table(sdata.example("visitors"))', "Monthly visitors to two made-up museums, "
+                                                                   "2014 to 2025: month, museum, visitors."),
+                ("chart = table.chart()", "Start a chart of the table."),
+                ('chart.lines(x="month", y="visitors", colour="museum")',
+                 "One line per museum: both rise year after year, with a peak every summer."),
+                ('chart.save("visitor_lines.png")', "Save it."),
+            ]),
+            ("A seasonal chart puts each year on top of the others, January to December. It needs no new word: "
+             "take the month and the year out of the date, then draw one line per year.", [
+                ("import simplydata as sdata", "Load simplydata."),
+                ('table = sdata.table(sdata.example("visitors"))', "The visitors table."),
+                ('table.keep_rows("museum", equal_to="Harbour Museum")', "Keep one museum: 144 of 288 rows."),
+                ('table.add_date_part_column("month_name", from_column="month", part="month")',
+                 "The month of each date."),
+                ('table.add_date_part_column("year", from_column="month", part="year")', "The year of each date."),
+                ("chart = table.chart()", "Start a chart."),
+                ('chart.lines(x="month_name", y="visitors", colour="year")',
+                 "Twelve lines, one per year, all with the same summer peak; later years lie higher."),
+                ('chart.save("visitor_seasons.png")', "Save it."),
+            ]),
+            ("Start with the simplest forecast: every future month is the last value. Any better method must "
+             "beat it.", [
+                ("import simplydata as sdata", "Load simplydata."),
+                ('table = sdata.table(sdata.example("visitors"))', "The visitors table."),
+                ('table.forecast("visitors", sorted_by="month", steps_ahead=12, method="last value", '
+                 'for_each="museum")',
+                 "Harbour Museum: 2072 every month (95 % prediction interval 1746 to 2398 next month, 944 to 3200 in a "
+                 "year). The printout warns that the errors still hold a pattern: the season is missed."),
+            ]),
+            ("Exponential smoothing (Holt-Winters) follows the level, the trend and the season. Before "
+             "trusting it, hold back the last year, forecast it from the years before, and see how far off it "
+             "is.", [
+                ("import simplydata as sdata", "Load simplydata."),
+                ('table = sdata.table(sdata.example("visitors"))', "The visitors table."),
+                ('table.forecast("visitors", sorted_by="month", steps_ahead=12, repeats_every="year", '
+                 'check_on_last=12, for_each="museum")',
+                 "Fitted on all but the last 12 months, it was off by 64.7 visitors a month on average at the "
+                 "Harbour Museum (2.93 %) and 21.5 at the Hill Gallery (2.20 %)."),
+                ('table.compare_forecasts("visitors", sorted_by="month", repeats_every="year", for_each="museum")',
+                 "Four methods on the same held-back year: exponential smoothing is best for both museums (MASE "
+                 "0.469 and 0.348; below 1 is better than repeating last year's month)."),
+            ]),
+            ("Now forecast the next year from all the data, and draw it after the lines.", [
+                ("import simplydata as sdata", "Load simplydata."),
+                ('table = sdata.table(sdata.example("visitors"))', "The visitors table."),
+                ('table.forecast("visitors", sorted_by="month", steps_ahead=12, repeats_every="year", '
+                 'for_each="museum")',
+                 "Harbour Museum next month: 2016 visitors (95 % prediction interval 1887 to 2146); Hill "
+                 "Gallery: 947 (887 to 1008). R's HoltWinters() and forecast() give the same numbers."),
+                ("chart = table.chart()", "Start a chart."),
+                ('chart.lines(x="month", y="visitors", colour="museum")', "The data, one line per museum."),
+                ('chart.forecast(steps_ahead=12, repeats_every="year")',
+                 "The forecast as a dashed line after the data, with its interval band."),
+                ('chart.save("visitor_forecast.png")', "Save it."),
+            ]),
+        ],
+        notes=[
+            "repeats_every=\"year\" turns into 12 rows for monthly data (7 for \"week\" with daily data).",
+            "A prediction interval says where the next values will probably fall. It widens the further ahead "
+            "you look.",
+            "check_on_last=12 holds back the last 12 readings: a forecast is only as good as its check on data "
+            "it has not seen.",
+        ],
+        task=[
+            "Forecast the Harbour Museum with method=\"same season last time\". How does it compare with "
+            "exponential smoothing?",
+            "Check the \"straight on\" method (the line from the first reading to the last) on the last 12 months "
+            "of the Hill Gallery.",
+        ],
+        solutions=[
+            (_sx("""\
+                import simplydata as sdata
+                table = sdata.table(sdata.example("visitors"))
+                table.keep_rows("museum", equal_to="Harbour Museum")
+                table.forecast("visitors", sorted_by="month", steps_ahead=12, repeats_every="year", method="same season last time")"""),
+             "It repeats last year's months, so it misses the rise; compare_forecasts showed it is about twice "
+             "as far off as exponential smoothing (MASE 0.930 against 0.469)."),
+            (_sx("""\
+                import simplydata as sdata
+                table = sdata.table(sdata.example("visitors"))
+                table.keep_rows("museum", equal_to="Hill Gallery")
+                table.forecast("visitors", sorted_by="month", steps_ahead=12, method="straight on", check_on_last=12)"""),
+             "It follows the rise but not the season: far worse than exponential smoothing (MASE 2.08 in "
+             "compare_forecasts)."),
+        ],
+        words=["lines", "table.add_date_part_column", "table.forecast", "table.compare_forecasts", "forecast"],
+    ),
+    dict(
+        title=CYCLES_LESSON,
+        learn=[
+            "how to find the repeating cycles in a recording, and how strong each is (the spectrum)",
+            "how to take out a hum, or keep only the slow cycles (filters)",
+            "how to find the peaks and the dips of a signal",
+            "more, if you want it: a smoother spectrum (Welch), and whether a series stays steady",
+        ],
+        needs_r=needs_r_text("Only the last part, check_steady() and its two tests,", packages=("tseries",)),
+        parts=[
+            ("A sensor gives 200 readings a second for 5 seconds. Which cycles does its signal hold? The "
+             "spectrum splits a recording into its frequencies, like a prism splits light into colours.", [
+                ("import simplydata as sdata", "Load simplydata."),
+                ('table = sdata.table(sdata.example("sensor"))', "Five seconds of a made-up sensor: time in "
+                                                                 "seconds, signal and vibration."),
+                ('table.spectrum_of("signal", sorted_by="time")',
+                 "The strongest cycle has frequency 5 per second (it repeats every 0.2 seconds) and holds 68 % "
+                 "of the variance; next come 20 per second (11 %) and a 50-per-second hum (4 %)."),
+                ("chart = table.chart()", "Start a chart."),
+                ('chart.spectrum("signal", sorted_by="time")',
+                 "The same numbers as a chart: power against frequency on a log scale, the three strongest "
+                 "cycles labelled with how often they repeat."),
+                ('chart.save("spectrum.png")', "Save it."),
+            ]),
+            ("A filter keeps some frequencies and removes others. remove_at=50 takes out the hum; keep_below=10 "
+             "keeps only the slow cycles.", [
+                ("import simplydata as sdata", "Load simplydata."),
+                ('table = sdata.table(sdata.example("sensor"))', "The sensor table."),
+                ('table.add_filtered_column("no_hum", from_column="signal", remove_at=50, sorted_by="time")',
+                 "A notch filter at 50 per second, run forwards and backwards so nothing moves in time."),
+                ('table.spectrum_of("no_hum", sorted_by="time")',
+                 "The hum is gone: now 5 per second holds 71 % and 20 per second 12 % of the variance."),
+                ('table.add_filtered_column("slow", from_column="signal", keep_below=10, sorted_by="time")',
+                 "A Butterworth low-pass filter (steepness 4), as R signal::filtfilt(signal::butter(4, 0.1), x)."),
+                ("chart = table.chart()", "Start a chart."),
+                ('chart.lines(x="time", y="signal")', "The raw signal."),
+                ('chart.lines(x="time", y="slow")', "The slow part only: a clean 5-per-second wave."),
+                ("chart.range_x(0, 1)", "Show the first second."),
+                ('chart.save("filter.png")', "Save it."),
+            ]),
+            ("Peaks are readings higher than both neighbours; dips are readings lower than both. Conditions "
+             "keep only the ones that matter.", [
+                ("import simplydata as sdata", "Load simplydata."),
+                ('table = sdata.table(sdata.example("sensor"))', "The sensor table."),
+                ('table.find_peaks("signal", sorted_by="time", at_least=2.5)',
+                 "One peak is at least 2.5 high: 3.48 at time 3.885, a spike. R's pracma::findpeaks() finds the "
+                 "same."),
+                ('table.find_dips("signal", sorted_by="time", at_most=-2)',
+                 "find_dips is find_peaks upside down: one dip goes down to -2 or lower, -2.36 at time 0.94."),
+                ("chart = table.chart()", "Start a chart."),
+                ('chart.lines(x="time", y="signal")', "The signal."),
+                ("chart.peak_dots(at_least=2.5)", "A mark on the peak."),
+                ('chart.save("peaks.png")', "Save it."),
+            ]),
+            ("More (if you want it): Welch's method averages the spectra of overlapping pieces of the "
+             "recording. The spectrum is smoother but coarser.", [
+                ("import simplydata as sdata", "Load simplydata."),
+                ('table = sdata.table(sdata.example("sensor"))', "The sensor table."),
+                ('table.spectrum_of("signal", sorted_by="time", method="welch", window=200)',
+                 "Pieces of 200 readings with half overlap: the same three cycles stand out (5, 20 and 50 per "
+                 "second)."),
+            ]),
+            ("More (if you want it; needs R): some forecasts (ARIMA) assume the series is steady: the same "
+             "average and spread all the way through. check_steady runs two tests that start from opposite "
+             "assumptions and gives one answer: steady, wanders, or close to the edge.", [
+                ("import simplydata as sdata", "Load simplydata."),
+                ('table = sdata.table(sdata.example("sensor"))', "The sensor table."),
+                ('table.check_steady("signal", sorted_by="time")',
+                 "The signal looks steady: it stays around a steady level (both tests agree: ADF p below 0.01, "
+                 "KPSS p = 0.095), as R tseries::adf.test() and kpss.test()."),
+            ]),
+        ],
+        notes=[
+            "Frequencies are counted per unit of the sorted_by column: per second here. For a list of numbers "
+            "give time_step= (nums.spectrum_of(time_step=0.005)).",
+            "The powers add up to the variance, so each peak's share of the variance is easy to read. R's "
+            "spec.pgram() gives half these powers (it spreads them over negative frequencies too).",
+            "A recording can only show frequencies up to half its readings per second: 100 per second here.",
+            "Filters run both ways by default, so nothing moves in time. both_ways=False runs forwards only, "
+            "as a live instrument would. sdata.frequency_filter(keep_below=10, time_step=0.005) gives the filter "
+            "itself, to look at with .chart().",
+            "ADF starts from \"it wanders\" (a small p-value says steady); KPSS starts from \"steady\" (a "
+            "small p-value says it wanders). The first line of the printout gives the answer in words.",
+        ],
+        task=[
+            'Which cycle is strongest in the "vibration" column? Is it the same as in "signal"?',
+            "Keep only the frequencies between 15 and 25 in the signal. Which cycle is left?",
+            "Find the dips of the signal that go down to -1.5 or lower. Is the lowest one still the same?",
+        ],
+        solutions=[
+            (_sx("""\
+                import simplydata as sdata
+                table = sdata.table(sdata.example("sensor"))
+                table.spectrum_of("vibration", sorted_by="time")"""),
+             "The same: 5 per second (65 % of the variance), then 20 per second and the 50-per-second hum. "
+             "The vibration follows the signal, a little later."),
+            (_sx("""\
+                import simplydata as sdata
+                table = sdata.table(sdata.example("sensor"))
+                table.add_filtered_column("middle", from_column="signal", keep_between=[15, 25], sorted_by="time")
+                table.spectrum_of("middle", sorted_by="time")"""),
+             "Only the 20-per-second cycle is left: it holds 89 % of the variance of the new column."),
+            (_sx("""\
+                import simplydata as sdata
+                table = sdata.table(sdata.example("sensor"))
+                table.find_dips("signal", sorted_by="time", at_most=-1.5)"""),
+             "Many more dips now, each with its time and value; the lowest is still -2.36 at time 0.94."),
+        ],
+        words=["table.spectrum_of", "spectrum", "table.add_filtered_column", "table.find_peaks", "table.find_dips",
+               "peak_dots", "table.check_steady"],
+    ),
+    dict(
+        title=SYSTEMS_LESSON,
+        learn=[
+            "that a filter is a system, and how to write down a system of your own (a spring and damper)",
+            "whether a system is stable, from its poles, and how it answers a step (overshoot, settling time)",
+            "how a feedback loop with a controller changes the answer",
+            "more, if you want it: the Bode chart and the margins, and a system in steps for a computer",
+        ],
+        parts=[
+            ("This lesson is optional, for engineering. It starts from the filter of the cycles lesson: a "
+             "filter is a system, something that turns an input (the raw signal) into an output.", [
+                ("import simplydata as sdata", "Load simplydata."),
+                ("low_pass = sdata.frequency_filter(keep_below=10, time_step=0.005)",
+                 "The filter of add_filtered_column(keep_below=10) as a system: it prints its formula and its "
+                 "poles. All poles lie inside the unit circle, so it is stable: its output settles."),
+                ("low_pass.frequency_response(between=[1, 50])",
+                 "How much of each frequency gets through: all of 1 per second (gain 1), almost nothing of 50 "
+                 "per second (gain 0.0006)."),
+                ("chart = low_pass.chart()", "The gain and the phase against frequency (a Bode chart)."),
+                ('chart.save("low_pass.png")', "Save it."),
+            ]),
+            ("A weight on a spring with a damper: push it with a force and it moves. Its output (the position) "
+             "over its input (the force) is 1 / (s**2 + 0.8*s + 4). s stands for \"how fast it changes\": s "
+             "times the position is its speed.", [
+                ("import simplydata as sdata", "Load simplydata."),
+                ('spring = sdata.system("1 / (s**2 + 0.8*s + 4)")',
+                 "Poles -0.4 +/- 1.96i: stable, because every pole has a negative real part. A constant force "
+                 "of 1 settles at 0.25. R: control::tf(1, c(1, 0.8, 4))."),
+                ("spring.poles()", "The table of poles: damping ratio 0.2 (lightly damped), natural frequency 2."),
+                ('chart = spring.chart(show="poles and zeros")',
+                 "The poles as x on the plane of real and imaginary parts: both lie left of the line, so the "
+                 "spring is stable."),
+                ('chart.save("spring_poles.png")', "Save it."),
+                ("spring.step_response(until=15)",
+                 "It overshoots by 52.6 % (peak 0.3815 at time 1.58), rises in 0.60 and settles within 2 % "
+                 "after 9.9. R's control::step() gives the same response."),
+                ('chart = spring.chart(show="step", until=15)', "The step response as a chart."),
+                ('chart.save("spring_step.png")', "Save it."),
+            ]),
+            ("A controller measures the position, compares it with the target and pushes. This one pushes by 2 "
+             "x the error plus 2 x the error added up over time: 2 * (s + 1) / s.", [
+                ("import simplydata as sdata", "Load simplydata."),
+                ('spring = sdata.system("1 / (s**2 + 0.8*s + 4)")', "The spring."),
+                ('controller = sdata.system("2 * (s + 1) / s")', "The controller."),
+                ("loop = controller.then(spring).with_feedback()",
+                 "The controller, then the spring, with the position fed back: (2*s + 2) / (s**3 + 0.8*s**2 + "
+                 "6*s + 2), as R control::feedback()."),
+                ("loop.step_response(until=30)",
+                 "Now the position settles at the target, 1 (without the controller it settled at 0.25), with "
+                 "only 1.5 % overshoot."),
+            ]),
+            ("More (if you want it): the frequency response says how much of each frequency gets through (the "
+             "gain) and how late (the phase). The frequencies of systems are in radians per second, as R "
+             "control and SciPy: 2 radians per second is 0.32 cycles per second.", [
+                ("import simplydata as sdata", "Load simplydata."),
+                ('spring = sdata.system("1 / (s**2 + 0.8*s + 4)")', "The spring."),
+                ("spring.frequency_response(between=[0.1, 10])",
+                 "-12.02 decibels at 0.1 radians per second, -39.68 at 10; R's control::bode() gives the same."),
+                ("chart = spring.chart(between=[0.1, 10])",
+                 "The Bode chart: a peak near 2 radians per second, where the spring rings."),
+                ('chart.save("spring_bode.png")', "Save it."),
+                ('controller = sdata.system("2 * (s + 1) / s")', "The controller."),
+                ("controller.then(spring).frequency_response()",
+                 "Before closing the loop: gain margin 18.06 decibels and phase margin 32.98 degrees. The loop "
+                 "could take about 8 times the gain, or 33 degrees more delay, before it stopped settling."),
+            ]),
+            ("More (if you want it): a computer reads and acts in steps. in_steps turns the system into one "
+             "that works every 0.1 seconds.", [
+                ("import simplydata as sdata", "Load simplydata."),
+                ('spring = sdata.system("1 / (s**2 + 0.8*s + 4)")', "The spring."),
+                ("digital = spring.in_steps(time_step=0.1)",
+                 "(0.00485317*z + 0.0047253) / (z**2 - 1.8848*z + 0.923116), as R control::c2d(sys, 0.1)."),
+                ("response = digital.step_response(until=15)",
+                 "Almost the same answer as before: overshoot 52.7 %, settling time 9.9."),
+                ("chart = response.chart()", "The response is a table, so it can be drawn like any other."),
+                ('chart.lines(x="time", y="output", joined_by="steps")',
+                 "Each value holds until the next step, as the computer sees it."),
+                ('chart.save("spring_in_steps.png")', "Save it."),
+            ]),
+        ],
+        notes=[
+            "This lesson is optional: no other lesson needs it.",
+            "A system can be written as a formula, as numerator= and denominator= (highest power first), as "
+            "poles= and zeros=, or as matrices a=, b=, c=, d=.",
+            "Frequencies of systems are in radians per second, as R control and SciPy; unit=\"cycles per "
+            "second\" gives cycles per second. A filter from sdata.frequency_filter is in cycles per second.",
+            "R's control package has no stepinfo() or margin(): the rise time, settling time, overshoot and "
+            "margins come from python-control (step_info, stability_margins), the Python package for control "
+            'systems. Install it with pip install "simplydata[systems]"; without it the responses still come.',
+        ],
+        task=[
+            "Make the damper stronger: 1 / (s**2 + 2*s + 4). What happens to the overshoot?",
+            "Use a controller that only pushes in proportion to the error, sdata.system(\"10\"). Where does the "
+            "position settle?",
+            "Draw the poles and zeros of the closed loop of part 3.",
+        ],
+        solutions=[
+            (_sx("""\
+                import simplydata as sdata
+                spring = sdata.system("1 / (s**2 + 2*s + 4)")
+                spring.step_response(until=15)"""),
+             "Damping ratio 0.5 instead of 0.2: the overshoot drops to about 16 %."),
+            (_sx("""\
+                import simplydata as sdata
+                spring = sdata.system("1 / (s**2 + 0.8*s + 4)")
+                loop = sdata.system("10").then(spring).with_feedback()
+                loop.step_response(until=30)"""),
+             "It settles at 0.714, not at 1: a push in proportion to the error always leaves some error. The "
+             "part that adds up the error over time removes it."),
+            (_sx("""\
+                import simplydata as sdata
+                spring = sdata.system("1 / (s**2 + 0.8*s + 4)")
+                loop = sdata.system("2 * (s + 1) / s").then(spring).with_feedback()
+                chart = loop.chart(show="poles and zeros")
+                chart.save("loop_poles.png")"""),
+             "Three poles, all left of the imaginary axis (stable), and one zero at -1."),
+        ],
+        words=["sdata.frequency_filter", "sdata.system", "system.poles", "system.chart", "system.step_response",
+               "system.then", "system.with_feedback", "system.frequency_response", "system.in_steps"],
+    ),
 ]
+
 
 def _wrap(text: str, indent: str = "", width: int = WIDTH) -> str:
     return textwrap.fill(text, width, initial_indent=indent, subsequent_indent=indent)
@@ -3794,8 +4489,10 @@ def _list_lessons() -> None:
     print(f"Learn simplydata in one day: {len(LESSONS)} lessons of about 30 minutes.")
     print("Lessons 1 to 8 teach charts, lessons 9 to 12 teach tables, lesson 13 teaches numbers,")
     print("lesson 14 teaches statistical tests and lesson 15 puts it all together, from a question")
-    print("to a figure. Lessons 16 to 20 go further: models, patterns across many columns,")
-    print("survival and planning a study, fitting curves and finding answers, and distributions.\n")
+    print(f"to a figure. Lessons 16 to {len(LESSONS)} go further: models, patterns across many columns,")
+    print("survival and planning a study, fitting curves and finding answers, distributions, working")
+    print("with a model, risks, diagnostic tests and agreement, time series, forecasts, cycles and")
+    print("(optional) systems.\n")
     for i, les in enumerate(LESSONS, start=1):
         print(f"  sdata.lesson({i}){' ' * (5 - len(str(i)))}{les['title']}")
     print("\nStart with sdata.lesson(1). Each lesson ends with a small task to try yourself.")

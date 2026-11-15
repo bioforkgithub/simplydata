@@ -1,11 +1,7 @@
-AUC 0.893 (95 % CI 0.845 to 0.940): a person who has it scores higher than one who does not in 89 of 100 such pairs (0.5 is no better than tossing a coin, 1 is perfect).
-Best cut-off by Youden's index (sensitivity + specificity - 1): "crp" 2.15 or more counts as positive (sensitivity 90.0 %, specificity 78.0 %). A cut-off chosen on these data looks better here than it will on new data.
-Of 1000 people like these (25.0 % have it in this table), 250 have it: the test finds 225 (sensitivity 90.0 %, 95 % CI 78.2 to 96.7 %) and misses 25. Of the 750 without it, 585 test negative (specificity 78.0 %, 95 % CI 70.5 to 84.3 %) and 165 test positive by mistake.
-So of the 390 positive results, 225 (57.7 %, 95 % CI 46.0 to 68.8 %) really have it; of the 610 negative results, 585 (95.9 %, 95 % CI 90.7 to 98.7 %) really do not.
-A positive result is 4.09 times more common in people who have it than in people who do not (positive likelihood ratio, 95 % CI 2.98 to 5.61); a negative result is 0.128 times as common (negative likelihood ratio, 0.0556 to 0.296).
-The share of positives that are real depends on how common the condition is: give prevalence=1 to see it for a group where 1 % have it.
-Method: exact Clopper-Pearson intervals (statsmodels proportion_confint), likelihood ratios from R epiR::epi.tests(method = "exact"); "crp" 2.15 or more as positive against "infected" = "yes". The counts of 1000 are the shares written as numbers of people.
-Method: R pROC::roc(direction = "<") (higher scores count as positive; positive_when= turns it round), ci.auc(method = "delong"), coords("best", best.method = "youden").
-AUC 0.893 for "crp" (95 % CI 0.845 to 0.940) and 0.715 for "procalcitonin" (0.636 to 0.795): a difference of 0.177 (95 % CI 0.0853 to 0.270), measured on the same 200 people ("infected" = "yes" counts as having it).
-If the two scores were truly equally good, a difference this big or bigger would turn up in fewer than 1 in 1000 studies like this one (p = 0.0002).
-Test: DeLong's test for two ROC curves on the same rows (z = 3.77), as R pROC::roc.test(method = "delong", paired = TRUE); higher scores count as positive.
+Model averages of "marks" for each "breakfast" (180 rows), with "hours" held at its average (5.00) and the groups of "school" counted equally:
+  no: average 46.6 (95 % CI 44.9 to 48.3)
+  yes: average 49.5 (95 % CI 48.3 to 50.8)
+Each pair of groups (difference, one pair, so nothing to adjust for):
+  no minus yes: difference -2.95 (95 % CI -5.13 to -0.768); about 1 of 100 studies would show this much if the two groups truly did not differ (p = 0.008).
+Method: the model lm(marks ~ hours + school + breakfast), then R emmeans::emmeans(m, ~ breakfast) and pairs().
+Note: "breakfast" was not in using=, so it was added to the model.

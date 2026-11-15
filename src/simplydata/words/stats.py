@@ -60,7 +60,8 @@ except ImportError:  # pragma: no cover
 _CHART_KINDS = {
     "bars", "lines", "dots", "area", "histogram", "boxes", "violins", "heatmap", "pie",
     "polar", "contour", "surface", "dots_3d", "density", "count_bars", "all_dots",
-    "qq_dots", "cumulative_share",
+    "qq_dots", "cumulative_share", "sticks", "autocorrelation_bars", "cross_correlation_bars", "lag_dots",
+    "trend_and_season", "spectrum", "spectrum_over_time",
 }
 _EXAMPLE = {
     "dots": 'chart.dots(x="hours", y="marks")',
@@ -477,9 +478,27 @@ def _draw_fit_curve(ctx, degree, show_equation, colour, thickness=None):
     _draw_fit(ctx, "fit_curve", "curve", colour, show_equation, degree=degree, thickness=thickness)
 
 
-def _draw_smooth_line(ctx, colour, thickness=None, method="lowess", smoothness="auto"):
-    how = "spline" if method == "spline" else "smooth"
-    _draw_fit(ctx, "smooth_line", how, colour, False, thickness=thickness, smoothness=smoothness)
+def _draw_smooth_line(ctx, colour, thickness=None, method="lowess", smoothness="auto", window=5, ends=None,
+                      options=None):
+    if method in ("lowess", "spline"):
+        how = "spline" if method == "spline" else "smooth"
+        _draw_fit(ctx, "smooth_line", how, colour, False, thickness=thickness, smoothness=smoothness)
+        return
+    from .. import _smoothing
+
+    last = _layer(ctx, "smooth_line", {"dots", "lines"})
+    table, x, y, group = last["table"], last["x"], last["y"], last["colour"]
+    _numeric_xy("smooth_line", table, x, y)
+    for _, part, col in _groups(ctx, table, group, colour):
+        xv, yv = _numeric_xy("smooth_line", part, x, y)
+        order = np.argsort(xv, kind="stable")
+        xv, yv = xv[order], yv[order]
+        steps = np.diff(xv)
+        if len(xv) < 3 or steps[0] <= 0 or not np.allclose(steps, steps[0], rtol=1e-6, atol=0):
+            raise SimplydataError(f'chart.smooth_line(method="{method}") needs evenly spaced x values, one dot per '
+                                  'step (a window counts readings). For uneven x use method="lowess" or "spline".')
+        got = _smoothing.smooth(yv, method, window, ends, step_name="smooth_line", **(options or {}))
+        ctx.ax.plot(xv, got.values, color=col, zorder=3, linewidth=thickness)
 
 
 def _draw_side_histograms(ctx):
@@ -665,7 +684,8 @@ class StatsWords:
                          show_equation=bool(show_equation), colour=colour, thickness=thickness)
 
     @friendly
-    def smooth_line(self, colour=None, thickness=None, method="lowess", smoothness="auto"):
+    def smooth_line(self, colour=None, thickness=None, method="lowess", smoothness="auto", window=5, ends=None,
+                    weights=None, degree=None, newest_weight=None, width=None):
         """A smooth line that follows the dots (LOWESS). chart.smooth_line()
 
         Good for seeing a trend that is not straight. Each colour group gets its own line.
@@ -674,14 +694,41 @@ class StatsWords:
         smoothness=) and R smooth.spline()): smoothness="auto" lets R choose how smooth by
         generalised cross-validation, which needs R (pip install "simplydata[r]"); a number
         is R's lambda= (bigger is smoother) and needs no R.
+        The smoothing methods of nums.smooth work too, on dots or lines with evenly spaced x:
+        "moving average" (window=, weights=, ends=), "median" (needs R), "savitzky-golay"
+        (degree=), "exponential" (newest_weight=), "gaussian" (width=), "whittaker" (smoothness=)
+        and "wiener". The line goes through the x values of the dots, as table.add_smoothed_column.
         """
+        from .. import _smoothing
+        from .._errors import choice_error
+
         _fixed_colour("smooth_line", colour)
         thickness = check_thickness("smooth_line", thickness)
-        if not isinstance(method, str) or method.strip().lower() not in SMOOTH_METHODS:
-            from .._errors import choice_error
-
-            raise choice_error("smooth_line", "method", method, ["lowess", "spline"])
-        method = SMOOTH_METHODS[method.strip().lower()]
+        key = method.strip().lower() if isinstance(method, str) else method
+        if key in SMOOTH_METHODS:
+            method = SMOOTH_METHODS[key]
+        else:
+            try:
+                method = _smoothing.read_method(method, "smooth_line")
+            except SimplydataError:
+                raise choice_error("smooth_line", "method", method, list(_smoothing.METHODS)) from None
+        options = {k: v for k, v in (("weights", weights), ("degree", degree), ("newest_weight", newest_weight),
+                                     ("width", width)) if v is not None}
+        if method not in ("lowess", "spline"):
+            if method == "whittaker" and smoothness != "auto":
+                options["smoothness"] = smoothness
+            allowed = _smoothing.OPTIONS.get(method, set())
+            extra = sorted(k for k in options if k not in allowed)
+            if extra:
+                raise SimplydataError(f'smooth_line(method="{method}") does not take {extra[0]}=.')
+            if method in _smoothing.WINDOW_METHODS and weights is None:
+                _smoothing._odd_window(window, "smooth_line", method)
+            self._check_layer_now("smooth_line", {"dots", "lines"})
+            return self._add("smooth_line", "extra", _draw_smooth_line, colour=colour, thickness=thickness,
+                             method=method, window=window, ends=ends, options=options)
+        if options or ends is not None or window != 5:
+            raise SimplydataError(f'window=, ends=, weights=, degree=, newest_weight= and width= go with the window '
+                                  f'methods (such as method="moving average"), not with method="{method}".')
         from ..table.between import smoothness_choice
 
         smoothness = smoothness_choice("smooth_line", smoothness)

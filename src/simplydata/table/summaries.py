@@ -1715,7 +1715,7 @@ class SummaryWords:
     @friendly
     def correlation_between(self, *columns, method="pearson", show="r", sides=2, higher=None, lower=None,
                             alternative=None, p_value_by="formula", interval_by=None, shuffles=9999, resamples=9999,
-                            seed=1, allowing_for=None):
+                            seed=1, allowing_for=None, rows_back=None, sorted_by=None):
         """How strongly columns of numbers go up or down together, from -1 to 1.
 
         table.correlation_between("hours", "marks")   (with sdata.example("marks"))
@@ -1742,6 +1742,9 @@ class SummaryWords:
         against the other shuffles=9999 times (seed=1; SciPy permutation_test), and
         interval_by="bootstrap" adds a 95 % interval of r from drawing the rows again with
         replacement resamples=9999 times (seed=1; SciPy bootstrap, BCa, as R boot::boot.ci()).
+        With rows_back=12 and two columns (sorted_by= the time column): the correlation for shifts
+        -12 to 12 (cross-correlation, as R ccf with the sign of the lag reversed): shift 2 pairs the
+        first column with the second 2 rows later. It says which column follows the other.
         A correlation does not show that one thing causes the other.
         """
         step = "correlation_between"
@@ -1753,6 +1756,15 @@ class SummaryWords:
                 f"{step}() needs two column names in quotes (or more, for a correlation table).\n"
                 f'For example, with sdata.example("marks"): table.{step}("hours", "marks")'
             )
+        if rows_back is not None or sorted_by is not None:
+            if rows_back is None:
+                raise SimplydataError(f"{step}() uses sorted_by= with rows_back= (the cross-correlation); "
+                                      "give rows_back=, such as rows_back=12.")
+            if (sides != 2 or higher is not None or lower is not None or alternative not in (None, "two-sided")
+                    or p_value_by != "formula" or interval_by is not None or allowing_for is not None):
+                raise SimplydataError(f"{step}() with rows_back= gives the cross-correlation; leave out sides=, "
+                                      "higher=, lower=, p_value_by=, interval_by= and allowing_for=.")
+            return self._cross_correlation(step, names, rows_back, sorted_by)
         self._check_choice(step, "method", method, CORRELATION_METHODS)
         shown = _plain_name(show)
         if shown not in CORRELATION_SHOW:

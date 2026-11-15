@@ -1,7 +1,14 @@
-"caught_infection" = "yes": 16 of 100 (16.0 %) in ward B and 4 of 100 (4.00 %) in ward A.
-Out of 100, about 12 more in ward B than in ward A (risk difference 12.0 percentage points, 95 % CI 3.70 to 20.8).
-Risk ratio 4.00 (95 % CI 1.39 to 11.5): the risk in ward B is 4.00 times the risk in ward A. Odds ratio 4.57 (95 % CI 1.47 to 14.2); odds are not risks: with an outcome this common (over 10 %) the odds ratio lies further from 1 than the risk ratio.
-Number needed for one event more: 9 (1 / 0.120, rounded up; 95 % CI 4.82 to 27.0): for every 9 in ward B instead of ward A, one event more (the NNTH, if the event is harmful, such as death).
-If the risks were truly the same, a difference this big or bigger would turn up in about 1 of 100 studies like this one (p = 0.010).
-Method: the chi-square test with Yates' correction (SciPy, as R prop.test()) for the p-value; exact intervals for each risk, Newcombe's score interval for the difference (as R DescTools::BinomDiffCI(method = "score")), Wald intervals on the log scale for the ratios (statsmodels Table2x2, as R epitools::riskratio()).
-Kept 2 of 6 rows.
+Found 12 of 180 rows with a Cook's distance above 4 / 180 = 0.0222:
+  row 48: marks 68.0, hours 2.40, breakfast "yes": Cook's distance 0.0459, leverage 0.0151, studentised residual 3.06
+  row 15: marks 46.0, hours 9.90, breakfast "yes": Cook's distance 0.0446, leverage 0.0310, studentised residual -2.07
+  row 69: marks 82.0, hours 12.3, breakfast "yes": Cook's distance 0.0408, leverage 0.0582, studentised residual 1.41
+  row 41: marks 20.0, hours 3.20, breakfast "no": Cook's distance 0.0385, leverage 0.0183, studentised residual -2.53
+  row 52: marks 62.0, hours 3.10, breakfast "no": Cook's distance 0.0377, leverage 0.0186, studentised residual 2.48
+  row 61: marks 74.0, hours 9.70, breakfast "no": Cook's distance 0.0360, leverage 0.0365, studentised residual 1.70
+  row 35: marks 21.0, hours 2.60, breakfast "no": Cook's distance 0.0333, leverage 0.0206, studentised residual -2.20
+  row 39: marks 48.0, hours 9.60, breakfast "yes": Cook's distance 0.0284, leverage 0.0283, studentised residual -1.72
+  row 31: marks 37.0, hours 7.60, breakfast "yes": Cook's distance 0.0273, leverage 0.0149, studentised residual -2.35
+  row 91: marks 23.0, hours 1.80, breakfast "yes": Cook's distance 0.0264, leverage 0.0184, studentised residual -2.08
+  ... and 2 more rows above 0.0222.
+Leverage: how unusual a row's values in using= are (the average is 0.0167). Studentised residual: how far the row lies from the model, in standard errors (beyond 2 or 3 is unusual).
+Method: statsmodels OLSInfluence, as R cooks.distance(), hatvalues() and rstudent(). The row numbers count from 1 in the whole table; remove a row only for a reason (a mistake in the data), and say so.

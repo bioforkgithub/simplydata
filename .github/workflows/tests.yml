@@ -23,24 +23,33 @@ jobs:
         with:
           r-version: release
           use-public-rspm: true
-      # Linux: the system libraries that R packages need to build or load (curl, fs, s2/sf, Rmpfr, ...)
-      - name: System libraries for R packages (Linux)
+      # System libraries some R packages build against or load on Linux (tseries -> quantmod -> curl;
+      # forecast -> fs; s2/sf, Rmpfr and the graphics libraries for the S1 packages)
+      - name: Install system libraries for R (Linux)
         if: runner.os == 'Linux'
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y libcurl4-openssl-dev libssl-dev libxml2-dev libuv1-dev libfontconfig1-dev             libharfbuzz-dev libfribidi-dev libfreetype6-dev libpng-dev libtiff5-dev libjpeg-dev libudunits2-dev             libgdal-dev libgeos-dev libproj-dev libgmp-dev libmpfr-dev libglpk-dev cmake
-      # The repository that setup-r chose (Posit's binary packages on Linux with use-public-rspm), so Linux
-      # does not build from source; every package simplydata calls (tests/conftest.py R_PACKAGES) must load.
+        run: >-
+          sudo apt-get update && sudo apt-get install -y libcurl4-openssl-dev libuv1-dev libssl-dev libxml2-dev
+          libfontconfig1-dev libharfbuzz-dev libfribidi-dev libfreetype6-dev libpng-dev libtiff5-dev libjpeg-dev
+          libudunits2-dev libgdal-dev libgeos-dev libproj-dev libgmp-dev libmpfr-dev libglpk-dev cmake
+      # setup-r sets the repositories (binary packages from Posit's public repository where it has them);
+      # the step fails when any package does not load, not later in the tests. The list is
+      # tests/conftest.py R_PACKAGES.
       - name: Install R packages
-        run: |
-          Rscript -e 'p <- c("survival", "vegan", "mice", "effectsize", "pwr", "Exact", "exact2x2", "nortest", "BSDA", "rstatix", "DescTools", "FSA", "PMCMRplus", "multcompView", "TOSTER", "presize", "epiR", "pROC", "irr", "psych", "BlandAltmanLeh", "ppcor", "cocor", "outliers", "EnvStats"); install.packages(p); bad <- p[!vapply(p, requireNamespace, logical(1), quietly = TRUE)]; if (length(bad)) stop("R packages that do not load: ", paste(bad, collapse = ", "))'
+        run: >-
+          Rscript -e 'pkgs <- c("survival", "vegan", "mice", "lme4", "betareg", "pscl", "car", "effectsize",
+          "emmeans", "pbkrtest", "lmerTest", "afex", "geepack", "sandwich", "performance", "mgcv", "MASS", "nnet",
+          "tseries", "lomb", "trend", "forecast", "changepoint",
+          "pwr", "Exact", "exact2x2", "nortest", "BSDA", "rstatix", "DescTools", "FSA", "PMCMRplus",
+          "multcompView", "TOSTER", "presize", "epiR", "pROC", "irr", "psych", "BlandAltmanLeh", "ppcor", "cocor",
+          "outliers", "EnvStats");
+          install.packages(pkgs); for (p in pkgs) library(p, character.only = TRUE)'
       - name: Tell rpy2 where R is
         shell: bash
         run: echo "R_HOME=$(Rscript -e 'cat(normalizePath(R.home(), winslash = "/"))')" >> "$GITHUB_ENV"
       - name: Install
         run: |
           python -m pip install --upgrade pip
-          python -m pip install -e ".[test,r]"
+          python -m pip install -e ".[test,r,systems]"
         env:
           # rpy2 has no Windows wheel for every Python, and its C part does not build with MSVC;
           # ABI mode needs no compiler (rpy2's documented way on Windows)
@@ -50,6 +59,7 @@ jobs:
         env:
           MPLBACKEND: Agg
           SIMPLYDATA_REQUIRE_R: "1"  # in CI the R tests must run, never be skipped
+          SIMPLYDATA_REQUIRE_CONTROL: "1"  # and the python-control tests (simplydata[systems])
 
   # Without R: words that do not need R must work, and only the R words may be skipped
   test-without-r:
@@ -62,9 +72,10 @@ jobs:
       - name: Install (no R, no rpy2)
         run: |
           python -m pip install --upgrade pip
-          python -m pip install -e ".[test]"
+          python -m pip install -e ".[test,systems]"
       - name: Run tests
         run: python -m pytest -q
         env:
           MPLBACKEND: Agg
           SIMPLYDATA_NO_R: "1"  # R may be missing only where a word is meant to run R
+          SIMPLYDATA_REQUIRE_CONTROL: "1"  # python-control (simplydata[systems]) is installed here
