@@ -88,7 +88,7 @@ def autocorrelation(values, rows_back=None, show="correlation", band="white nois
                 outside=outside, ljung_box=(stat, p), k=k, n=n, half=half)
 
 
-NOISE = "the readings were truly random noise"  # the Ljung-Box p-value clause (W2)
+NOISE = "the readings were truly not linked to the readings before them"  # the Ljung-Box p-value clause (W2)
 
 
 def sentence(result, what, show, band):

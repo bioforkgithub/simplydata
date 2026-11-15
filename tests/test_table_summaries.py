@@ -366,3 +366,14 @@ def test_sentence_numbers_are_short():
     assert _say_number(3.0) == "3"
     assert _say_number(0.004213) == "0.0042"
     assert _say_number(float("nan")) == "empty"
+
+
+def test_cross_correlation_refuses_options_it_does_not_use():
+    # the cross-correlation is Pearson's r at each shift, as R ccf(); other options are refused, not ignored
+    sensor = sdata.table(sdata.example("sensor"))
+    with pytest.raises(SimplydataError, match="method= and show="):
+        sensor.correlation_between("signal", "vibration", rows_back=10, sorted_by="time", method="spearman")
+    with pytest.raises(SimplydataError, match="method= and show="):
+        sensor.correlation_between("signal", "vibration", rows_back=10, sorted_by="time", show="p")
+    with pytest.raises(SimplydataError, match="higher="):
+        sensor.correlation_between("signal", "vibration", rows_back=10, sorted_by="time", higher="signal")

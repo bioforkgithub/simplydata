@@ -417,3 +417,12 @@ def test_the_model_words_of_lesson_21_come_back_spaced_and_in_the_final_test(tra
     assert any(6 <= n - taught <= 8 for n in asked), asked
     final = learn_days.plan(track, 29)
     assert final["kind"] == "final" and any("compare_models" in code for code, _ in final["solutions"])
+
+
+def test_lesson_tasks_are_asked_on_the_day_they_are_taught():
+    # lesson 20's tasks are about distributions: the "between" unit (lesson 20 example 3, python day 17)
+    # does not ask for them; the distributions unit (python day 19) does.
+    from simplydata import learn_days
+
+    assert "lesson's tasks" not in learn_days.UNITS["between"]["do"][0]
+    assert "sdata.lesson(20, solutions=True)" in learn_days.UNITS["distributions"]["do"][0]

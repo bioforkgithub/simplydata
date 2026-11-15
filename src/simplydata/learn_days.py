@@ -54,11 +54,15 @@ def _code(text: str) -> str:
     return textwrap.dedent(text).strip()
 
 
-def _lesson_do(number: int, which: str = "") -> str:
+def _lesson_do(number: int, which: str = "", tasks: bool = True) -> str:
+    """tasks=False leaves out the lesson's tasks, for a unit whose lesson tasks are set on another day."""
     part = f", {which}" if which else ""
-    return (f"Work through sdata.lesson({number}){part}: type each example yourself (do not copy and paste), "
-            f"run it and read what each line does. Then do the lesson's tasks and check them with "
-            f"sdata.lesson({number}, solutions=True).")
+    text = (f"Work through sdata.lesson({number}){part}: type each example yourself (do not copy and paste), "
+            f"run it and read what each line does.")
+    if tasks:
+        text += (f" Then do the lesson's tasks and check them with "
+                 f"sdata.lesson({number}, solutions=True).")
+    return text
 
 
 # ---------------------------------------------------------------- the units
@@ -544,7 +548,8 @@ UNITS = {
             ("Which word tests whether the average marks differ between the classes?",
              'table.compare_averages("marks", for_each="class")'),
             ("Which word says which pairs of groups differ?", 'table.compare_each_pair("marks", for_each="class")'),
-            ('A p-value answers "could it be chance?". What answers "how big is it?"',
+            ('A p-value says how often a difference this big would turn up if there were truly none. '
+             'What says "how big is it?"',
              "The effect size: the difference in averages, Cohen's d or Hedges' g, omega-squared."),
             ("Which option gives the rank-based test, for small groups that are not bell-shaped?",
              'based_on="ranks"'),
@@ -787,7 +792,7 @@ UNITS = {
     "between": dict(
         lessons=[20],
         words=["table.values_at", "table.map_of"],
-        do=[_lesson_do(20, "example 3")],
+        do=[_lesson_do(20, "example 3", tasks=False)],
         recall=[
             ("Which word estimates a column between the points you measured?",
              'table.values_at("population", at={"year": [2001, 2011]})'),

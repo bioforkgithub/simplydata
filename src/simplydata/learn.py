@@ -3794,8 +3794,9 @@ LESSONS = [
                 ("import simplydata as sdata", "Load simplydata."),
                 ('table = sdata.table(sdata.example("school"))', "The school table."),
                 ('table.compare_models("marks", using=["hours"], against=["hours", "breakfast"])',
-                 "Does breakfast help a model that already has hours? The F test says it is unlikely to be "
-                 "chance (p = 0.018), and the AIC is 3.72 lower with breakfast: keep it."),
+                 "Does breakfast help a model that already has hours? The F test: about 2 of 100 studies would "
+                 "show this much if breakfast truly did not help (p = 0.018), and the AIC is 3.72 lower "
+                 "with breakfast: keep it."),
             ]),
             ("A prediction is never exact. interval=95 says how sure the model is about the average; "
              "for_new_rows=True says where one new pupil would fall, which is much wider.", [
@@ -4081,12 +4082,12 @@ LESSONS = [
                  "The smoothed nitrate, one line per station: Station A creeps up, Station B goes down."),
                 ('chart.save("nitrate.png")', "Save it."),
             ]),
-            ("Is the trend real, or could it be chance? trend_of gives the slope (Sen's slope, the middle of the "
+            ("Is there a steady trend? trend_of gives the slope (Sen's slope, the middle of the "
              "slopes between all pairs of days) and the Mann-Kendall test.", [
                 ("import simplydata as sdata", "Load simplydata."),
                 ('table = sdata.table(sdata.example("river"))', "The river table."),
                 ('table.trend_of("nitrate", sorted_by="date", for_each="station")',
-                 "Station A rises by 0.0712 a year (p = 0.003); Station B falls by 0.935 a year (p < 0.0001). "
+                 "Station A rises by 0.0708 a year (p = 0.003); Station B falls by 0.927 a year (p < 0.0001). "
                  "R's trend::sens.slope() and trend::mk.test() give the same numbers."),
             ]),
         ],

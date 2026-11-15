@@ -394,7 +394,7 @@ and `a`, `b` in `sdata.side_by_side(a, b)` are charts you made first.
 | `model_averages_of` | `table.model_averages_of("marks", for_each="school", using=["hours", "breakfast"])` | school | The average the model gives for each group, once the other columns are allowed for. |
 | `check_model` | `table.check_model("marks", using=["hours", "breakfast"])` | school | Four pictures to check a model from explain(), as R plot(lm(...)). |
 | `show_rows_that_pull` | `table.show_rows_that_pull("marks", using=["hours", "breakfast"])` | school | Show the rows that change a model from explain() the most (the table does not change). |
-| `compare_models` | `table.compare_models("marks", using=["hours"], against=["hours", "breakfast"])` | school | Does a bigger model explain the column better than a smaller one, or could it be chance? |
+| `compare_models` | `table.compare_models("marks", using=["hours"], against=["hours", "breakfast"])` | school | Does a bigger model explain the column better than a smaller one? |
 
 ## Patterns across columns
 

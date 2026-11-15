@@ -320,10 +320,13 @@ class ModelToolWords:
         for i, term in enumerate(terms):
             f, df1, df2 = float(out["f"][i]), float(out["numdf"][i]), float(out["dendf"][i])
             p, ges = float(out["p"][i]), float(out["ges"][i])
-            what = "the interaction " + term if " : " in term else f'"{term}"'
+            interaction = " : " in term
+            what = "the interaction " + term if interaction else f'"{term}"'
+            null = ("the differences were truly the same in every group" if interaction
+                    else "the averages truly did not differ")
             corrected = " (Greenhouse-Geisser corrected)" if term in gg else ""
             print(f"  {what}: F = {_num(f)}, df = {_num(df1)} and {_num(df2)}{corrected}, generalised eta-squared "
-                  f"{_num(ges)}; {_p_clause(p, 'the averages truly did not differ')}.")
+                  f"{_num(ges)}; {_p_clause(p, null)}.")
             row = {"term": term, "statistic name": "F", "statistic": f, "degrees of freedom 1": df1,
                    "degrees of freedom 2": df2, "p-value": p, "generalised eta-squared": ges,
                    "Greenhouse-Geisser epsilon": gg.get(term, math.nan)}
@@ -331,7 +334,7 @@ class ModelToolWords:
                 row.update({"Mauchly W": sph[term][0], "Mauchly p-value": sph[term][1]})
             rows.append(row)
         for term, (w, p) in sph.items():
-            print(f"  Sphericity of {term} (Mauchly's test, W = {_num(w)}): {_p_clause(p, 'the spread of the differences were truly the same')}; "
+            print(f"  Sphericity of {term} (Mauchly's test, W = {_num(w)}): {_p_clause(p, 'the spread of the differences was truly the same')}; "
                   "Greenhouse-Geisser epsilon "
                   f"{_num(gg.get(term, math.nan))}.")
         b = f", between = {_list_words(_quoted(c) for c in between)}" if between else ""
@@ -743,7 +746,7 @@ class ModelToolWords:
     @friendly
     def compare_models(self, column=None, using=None, against=None, outcome="numbers", grouped_by=None,
                        in_order=None):
-        """Does a bigger model explain the column better than a smaller one, or could it be chance?
+        """Does a bigger model explain the column better than a smaller one?
 
         table.compare_models("marks", using=["hours"], against=["hours", "breakfast"])
         (with sdata.example("school"))

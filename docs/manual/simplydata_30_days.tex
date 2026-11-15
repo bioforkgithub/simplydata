@@ -4,7 +4,7 @@
 % change simplydata/learn_days.py, then run
 %     python docs/make_manual.py --no-run
 % ---------------------------------------------------------------------------------------------
-% Page numbers from simplydata_manual.tex 407a982db7b513f9
+% Page numbers from simplydata_manual.tex 4beb3403148b16a1
 
 \documentclass[10pt,a4paper]{article}
 % no dates or random IDs in the PDF, so it only changes when the guide changes
@@ -690,7 +690,7 @@ chart.save("good_marks.png")
 \begin{enumerate}
   \item Which word draws four pictures to check a model from \code{explain()}? \fromday{16}\writeline
   \item Which word lists every change you made to a table, for your methods? \fromday{13}\writeline
-  \item A p-value answers \code{\textquotedbl{}could it be chance?\textquotedbl{}}. What answers \code{\textquotedbl{}how big is it?\textquotedbl{}} \fromday{10}\writeline
+  \item A p-value says how often a difference this big would turn up if there were truly none. What says \code{\textquotedbl{}how big is it?\textquotedbl{}} \fromday{10}\writeline
   \item Which two words show the spread of each group, with every value as a dot on top? \fromday{3}\writeline
   \item Which option adds a 95 \% confidence interval to \code{average\_\allowbreak{}of} or \code{median\_\allowbreak{}of}? \fromday{10}\writeline
   \item Which option gets the p-value by shuffling the group labels, and what does that p-value count? \fromday{10}\writeline
@@ -700,7 +700,7 @@ chart.save("good_marks.png")
 \begin{todo}
 \begin{itemize}
   \item Work through \code{sdata.\allowbreak{}lesson(17)}: type each example yourself (do not copy and paste), run it and read what each line does. Then do the lesson's tasks and check them with \code{sdata.\allowbreak{}lesson(17,\allowbreak{} solutions=True)}.
-  \item Work through \code{sdata.\allowbreak{}lesson(20)}, example 3: type each example yourself (do not copy and paste), run it and read what each line does. Then do the lesson's tasks and check them with \code{sdata.\allowbreak{}lesson(20,\allowbreak{} solutions=True)}.
+  \item Work through \code{sdata.\allowbreak{}lesson(20)}, example 3: type each example yourself (do not copy and paste), run it and read what each line does.
 \end{itemize}
 \field{In the manual}{lesson~17, \manualpage{lesson:17}{94}{chapter.II.17}; lesson~20, \manualpage{lesson:20}{108}{chapter.II.20}.}
 \field{Words to look up}{\kind{table}\,\code{table.\allowbreak{}add\_\allowbreak{}principal\_\allowbreak{}components()}~\manualpage{word:table.add-principal-components}{265}{section*.260}; \kind{table}\,\code{table.\allowbreak{}add\_\allowbreak{}clusters()}~\manualpage{word:table.add-clusters}{266}{section*.262}; \kind{table}\,\code{table.\allowbreak{}add\_\allowbreak{}nmds()}~\manualpage{word:table.add-nmds}{268}{section*.264}; \kind{table}\,\code{table.\allowbreak{}compare\_\allowbreak{}profiles()}~\manualpage{word:table.compare-profiles}{268}{section*.265}; \kind{table}\,\code{table.\allowbreak{}values\_\allowbreak{}at()}~\manualpage{word:table.values-at}{251}{section*.231}; \kind{table}\,\code{table.\allowbreak{}map\_\allowbreak{}of()}~\manualpage{word:table.map-of}{252}{section*.232}.}
@@ -1832,7 +1832,7 @@ nums.avrage()
 \begin{enumerate}
   \item Which word draws survival curves? \fromday{24}\writeline
   \item How do you explain a yes-or-no column such as \code{\textquotedbl{}passed\textquotedbl{}}? \fromday{22}\writeline
-  \item A p-value answers \code{\textquotedbl{}could it be chance?\textquotedbl{}}. What answers \code{\textquotedbl{}how big is it?\textquotedbl{}} \fromday{18}\writeline
+  \item A p-value says how often a difference this big would turn up if there were truly none. What says \code{\textquotedbl{}how big is it?\textquotedbl{}} \fromday{18}\writeline
   \item If \code{keep\_\allowbreak{}rows} keeps rows, what would you guess takes columns away? \fromday{11}\writeline
   \item Which option adds a 95 \% confidence interval to \code{average\_\allowbreak{}of} or \code{median\_\allowbreak{}of}? \fromday{18}\writeline
   \item Which option gets the p-value by shuffling the group labels, and what does that p-value count? \fromday{18}\writeline
@@ -1871,7 +1871,7 @@ nums.avrage()
   \item Work through \code{sdata.\allowbreak{}lesson(19)}, examples 1 and 2: type each example yourself (do not copy and paste), run it and read what each line does. Then do the lesson's tasks and check them with \code{sdata.\allowbreak{}lesson(19,\allowbreak{} solutions=True)}.
   \item Work through \code{sdata.\allowbreak{}lesson(19)}, example 3: type each example yourself (do not copy and paste), run it and read what each line does. Then do the lesson's tasks and check them with \code{sdata.\allowbreak{}lesson(19,\allowbreak{} solutions=True)}.
   \item Work through \code{sdata.\allowbreak{}lesson(20)}, examples 1 and 2: type each example yourself (do not copy and paste), run it and read what each line does. Then do the lesson's tasks and check them with \code{sdata.\allowbreak{}lesson(20,\allowbreak{} solutions=True)}.
-  \item Work through \code{sdata.\allowbreak{}lesson(20)}, example 3: type each example yourself (do not copy and paste), run it and read what each line does. Then do the lesson's tasks and check them with \code{sdata.\allowbreak{}lesson(20,\allowbreak{} solutions=True)}.
+  \item Work through \code{sdata.\allowbreak{}lesson(20)}, example 3: type each example yourself (do not copy and paste), run it and read what each line does.
 \end{itemize}
 \field{In the manual}{lesson~19, \manualpage{lesson:19}{103}{chapter.II.19}; lesson~20, \manualpage{lesson:20}{108}{chapter.II.20}; ``Fitting a line or a formula'', \manualpage{ideas:regression}{345}{section*.452}; ``The shape of the values: distributions'', \manualpage{ideas:distribution}{341}{section*.436}.}
 \field{Words to look up}{\kind{table}\,\code{table.\allowbreak{}fit\_\allowbreak{}line()}~\manualpage{word:table.fit-line}{247}{section*.223}; \kind{table}\,\code{table.\allowbreak{}fit\_\allowbreak{}curve()}~\manualpage{word:table.fit-curve}{248}{section*.224}; \kind{table}\,\code{table.\allowbreak{}fit\_\allowbreak{}formula()}~\manualpage{word:table.fit-formula}{248}{section*.225}; \kind{chart}\,\code{chart.\allowbreak{}fit\_\allowbreak{}formula()}~\manualpage{word:fit-formula}{165}{section*.42}; \kind{sdata}\,\code{sdata.\allowbreak{}find\_\allowbreak{}smallest()}~\manualpage{word:sdata.find-smallest}{249}{section*.227}; \kind{sdata}\,\code{sdata.\allowbreak{}find\_\allowbreak{}biggest()}~\manualpage{word:sdata.find-biggest}{250}{section*.228}; \kind{sdata}\,\code{sdata.\allowbreak{}solve()}~\manualpage{word:sdata.solve}{250}{section*.229}; \kind{sdata}\,\code{sdata.\allowbreak{}distribution()}~\manualpage{word:sdata.distribution}{252}{section*.234}.}
@@ -2386,7 +2386,7 @@ table.compare_models("passed", using=["hours"], against=["hours", "sleep"], outc
 \begin{enumerate}
   \item Which word draws four pictures to check a model from \code{explain()}? \fromday{16}\\ $\rightarrow$ \code{table.\allowbreak{}check\_\allowbreak{}model(\textquotedbl{}marks\textquotedbl{},\allowbreak{} using=[\textquotedbl{}hours\textquotedbl{},\allowbreak{} \textquotedbl{}breakfast\textquotedbl{}])}
   \item Which word lists every change you made to a table, for your methods? \fromday{13}\\ $\rightarrow$ \code{table.\allowbreak{}steps()}
-  \item A p-value answers \code{\textquotedbl{}could it be chance?\textquotedbl{}}. What answers \code{\textquotedbl{}how big is it?\textquotedbl{}} \fromday{10}\\ $\rightarrow$ The effect size: the difference in averages, Cohen's d or Hedges' g, omega-squared.
+  \item A p-value says how often a difference this big would turn up if there were truly none. What says \code{\textquotedbl{}how big is it?\textquotedbl{}} \fromday{10}\\ $\rightarrow$ The effect size: the difference in averages, Cohen's d or Hedges' g, omega-squared.
   \item Which two words show the spread of each group, with every value as a dot on top? \fromday{3}\\ $\rightarrow$ \code{chart.\allowbreak{}boxes(x=\textquotedbl{}class\textquotedbl{},\allowbreak{} y=\textquotedbl{}marks\textquotedbl{})} and \code{chart.\allowbreak{}all\_\allowbreak{}dots(x=\textquotedbl{}class\textquotedbl{},\allowbreak{} y=\textquotedbl{}marks\textquotedbl{})}
   \item Which option adds a 95 \% confidence interval to \code{average\_\allowbreak{}of} or \code{median\_\allowbreak{}of}? \fromday{10}\\ $\rightarrow$ \code{interval=95}, as in \code{table.\allowbreak{}average\_\allowbreak{}of(\textquotedbl{}sleep\textquotedbl{},\allowbreak{} for\_\allowbreak{}each=\textquotedbl{}passed\textquotedbl{},\allowbreak{} interval=95)}
   \item Which option gets the p-value by shuffling the group labels, and what does that p-value count? \fromday{10}\\ $\rightarrow$ \code{p\_\allowbreak{}value\_\allowbreak{}by=\textquotedbl{}shuffling\textquotedbl{}}, as in \code{table.\allowbreak{}compare\_\allowbreak{}averages(\textquotedbl{}sleep\textquotedbl{},\allowbreak{} for\_\allowbreak{}each=\textquotedbl{}passed\textquotedbl{},\allowbreak{} p\_\allowbreak{}value\_\allowbreak{}by=\textquotedbl{}shuffling\textquotedbl{})}: how often shuffled labels give a difference as big as the real one.
@@ -3225,7 +3225,7 @@ sdata.how_many_needed(effect_size=0.2, power=0.8)
 \begin{enumerate}
   \item Which word draws survival curves? \fromday{24}\\ $\rightarrow$ \code{chart.\allowbreak{}survival\_\allowbreak{}curves(time=\textquotedbl{}days\textquotedbl{},\allowbreak{} event=\textquotedbl{}died\textquotedbl{},\allowbreak{} colour=\textquotedbl{}treatment\textquotedbl{})}
   \item How do you explain a yes-or-no column such as \code{\textquotedbl{}passed\textquotedbl{}}? \fromday{22}\\ $\rightarrow$ \code{outcome=\textquotedbl{}yes or no\textquotedbl{}} (logistic regression)
-  \item A p-value answers \code{\textquotedbl{}could it be chance?\textquotedbl{}}. What answers \code{\textquotedbl{}how big is it?\textquotedbl{}} \fromday{18}\\ $\rightarrow$ The effect size: the difference in averages, Cohen's d or Hedges' g, omega-squared.
+  \item A p-value says how often a difference this big would turn up if there were truly none. What says \code{\textquotedbl{}how big is it?\textquotedbl{}} \fromday{18}\\ $\rightarrow$ The effect size: the difference in averages, Cohen's d or Hedges' g, omega-squared.
   \item If \code{keep\_\allowbreak{}rows} keeps rows, what would you guess takes columns away? \fromday{11}\\ $\rightarrow$ \code{remove\_\allowbreak{}columns}: verb + thing. \code{keep\_\allowbreak{}} and \code{remove\_\allowbreak{}} work on rows, columns and numbers.
   \item Which option adds a 95 \% confidence interval to \code{average\_\allowbreak{}of} or \code{median\_\allowbreak{}of}? \fromday{18}\\ $\rightarrow$ \code{interval=95}, as in \code{table.\allowbreak{}average\_\allowbreak{}of(\textquotedbl{}sleep\textquotedbl{},\allowbreak{} for\_\allowbreak{}each=\textquotedbl{}passed\textquotedbl{},\allowbreak{} interval=95)}
   \item Which option gets the p-value by shuffling the group labels, and what does that p-value count? \fromday{18}\\ $\rightarrow$ \code{p\_\allowbreak{}value\_\allowbreak{}by=\textquotedbl{}shuffling\textquotedbl{}}, as in \code{table.\allowbreak{}compare\_\allowbreak{}averages(\textquotedbl{}sleep\textquotedbl{},\allowbreak{} for\_\allowbreak{}each=\textquotedbl{}passed\textquotedbl{},\allowbreak{} p\_\allowbreak{}value\_\allowbreak{}by=\textquotedbl{}shuffling\textquotedbl{})}: how often shuffled labels give a difference as big as the real one.

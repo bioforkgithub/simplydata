@@ -1764,6 +1764,9 @@ class SummaryWords:
                     or p_value_by != "formula" or interval_by is not None or allowing_for is not None):
                 raise SimplydataError(f"{step}() with rows_back= gives the cross-correlation; leave out sides=, "
                                       "higher=, lower=, p_value_by=, interval_by= and allowing_for=.")
+            if _plain_name(method) != "pearson" or _plain_name(show) != "r":
+                raise SimplydataError(f"{step}() with rows_back= gives the cross-correlation, which is "
+                                      'Pearson\'s r (as R ccf()); leave out method= and show=.')
             return self._cross_correlation(step, names, rows_back, sorted_by)
         self._check_choice(step, "method", method, CORRELATION_METHODS)
         shown = _plain_name(show)

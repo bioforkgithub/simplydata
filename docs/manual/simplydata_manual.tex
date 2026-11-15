@@ -3172,7 +3172,7 @@ table.compare_models("marks", using=["hours"], against=["hours", "breakfast"])
 \begin{lineexplain}
   \item[1] Load simplydata.
   \item[2] The school table.
-  \item[3] Does breakfast help a model that already has hours? The F test says it is unlikely to be chance (p = 0.018), and the AIC is 3.72 lower with breakfast: keep it.
+  \item[3] Does breakfast help a model that already has hours? The F test: about 2 of 100 studies would show this much if breakfast truly did not help (p = 0.018), and the AIC is 3.72 lower with breakfast: keep it.
 \end{lineexplain}
 \printedoutput{output/lesson21_example3.txt}
 \section*{Example 4}
@@ -3483,7 +3483,7 @@ chart.save("nitrate.png")
 \captionof{figure}{Lesson 23, example 3: \code{nitrate.\allowbreak{}png}.}
 \end{minipage}\end{center}
 \section*{Example 4}
-Is the trend real, or could it be chance? \code{trend\_\allowbreak{}of} gives the slope (Sen's slope, the middle of the slopes between all pairs of days) and the Mann-Kendall test.
+Is there a steady trend? \code{trend\_\allowbreak{}of} gives the slope (Sen's slope, the middle of the slopes between all pairs of days) and the Mann-Kendall test.
 \begin{lstlisting}[style=py]
 import simplydata as sdata
 table = sdata.table(sdata.example("river"))
@@ -3493,7 +3493,7 @@ table.trend_of("nitrate", sorted_by="date", for_each="station")
 \begin{lineexplain}
   \item[1] Load simplydata.
   \item[2] The river table.
-  \item[3] Station A rises by 0.0712 a year (p = 0.003); Station B falls by 0.935 a year (p \textless{} 0.0001). R's trend::\code{sens.\allowbreak{}slope()} and trend::\code{mk.\allowbreak{}test()} give the same numbers.
+  \item[3] Station A rises by 0.0708 a year (p = 0.003); Station B falls by 0.927 a year (p \textless{} 0.0001). R's trend::\code{sens.\allowbreak{}slope()} and trend::\code{mk.\allowbreak{}test()} give the same numbers.
 \end{lineexplain}
 \printedoutput{output/lesson23_example4.txt}
 \begin{goodtoknow}
@@ -8811,7 +8811,7 @@ table = sdata.table(sdata.example("school"))
 table.show_rows_that_pull("marks", using=["hours", "breakfast"])
 \end{lstlisting}
 \wordentry{table.compare\_models()}{word:table.compare-models}
-Does a bigger model explain the column better than a smaller one, or could it be chance?
+Does a bigger model explain the column better than a smaller one?
 
 \codeline{table.compare\_models(\textquotedbl{}marks\textquotedbl{}, using=[\textquotedbl{}hours\textquotedbl{}], against=[\textquotedbl{}hours\textquotedbl{}, \textquotedbl{}breakfast\textquotedbl{}])}\\
 (with \code{sdata.\allowbreak{}example(\textquotedbl{}school\textquotedbl{})}) Fits both models on the same rows (those with a value in every column of either model). When one model holds every column of the other (nested models), it tests whether the extra columns help, as R \code{anova(m0,\allowbreak{} m1)}: an F test for \code{outcome=\textquotedbl{}numbers\textquotedbl{}} (statsmodels \code{compare\_\allowbreak{}f\_\allowbreak{}test}), \code{\textquotedbl{}counts (overdispersed)\textquotedbl{}} and \code{\textquotedbl{}positive numbers\textquotedbl{}} (R \code{anova(test = \textquotedbl{}F\textquotedbl{})}), and a likelihood-ratio test for the other outcomes. With \code{grouped\_\allowbreak{}by=} both mixed models are fitted by maximum likelihood for the test, as R \code{anova()} refits lme4 models (also with \code{grouped\_\allowbreak{}by=[\textquotedbl{}school\textquotedbl{},\allowbreak{} \textquotedbl{}class\textquotedbl{}]}, groups inside groups). It also prints AIC and BIC for each model (smaller is better; a difference under about 2 means little). Gives back a table with one row per model and one for the test.
