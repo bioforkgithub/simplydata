@@ -1,4 +1,4 @@
-"""Tests for values between known points: table.values_at, table.map_of and
+"""Tests for values between known points: table.values_at, table.make_map_of and
 fill_empty_cells(with_the="curve between neighbours").
 
 Every printed number is checked against R 4.6.2 (values written in below, with the R call
@@ -38,7 +38,7 @@ def frame(result):
     return result._frame.to_pandas() if hasattr(result._frame, "to_pandas") else result._frame
 
 
-# Applia in sdata.example("growth"): R  x <- seq(2000, 2024, by = 2); y <- c(12.0, ..., 24.1)
+# Applia in sdata.get_example("growth"): R  x <- seq(2000, 2024, by = 2); y <- c(12.0, ..., 24.1)
 YEARS = np.arange(2000, 2025, 2.0)
 APPLIA = np.array([12.0, 12.6, 13.4, 14.4, 15.1, 16.2, 17.0, 18.1, 19.6, 20.4, 21.9, 23.2, 24.1])
 AT = [2001, 2003, 2011, 2023.5, 2004, 2005]
@@ -160,7 +160,7 @@ def test_smoothing_spline_with_ties_matches_r(needs_r):
     # m <- read.csv(".../marks.csv"); 54 rows, 40 different hours (ties are averaged, and R's GCV
     # counts their spread): smooth.spline(m$hours, m$marks, all.knots = TRUE)
     # lambda 0.0808156517, df 2.7685814228; predict(f, c(2, 5, 8.5))$y
-    marks = sdata.example("marks").dropna(subset=["hours", "marks"])
+    marks = sdata.get_example("marks").dropna(subset=["hours", "marks"])
     spline = smoothing_spline(marks["hours"], marks["marks"])
     assert spline.lam == pytest.approx(0.0808156517, rel=1e-6)  # differs by ~1e-8 between systems
     assert spline.df == pytest.approx(2.7685814228, rel=1e-6)
@@ -201,8 +201,8 @@ def test_thin_plate_spline_matches_r_by_hand():
 
 # ====================================================================== values_at
 def test_values_at_one_direction_for_each(engine, capsys):
-    table = make(sdata.example("growth"), engine)
-    result = table.values_at("population", at={"year": [2001, 2003, 2011]}, for_each="country")
+    table = make(sdata.get_example("growth"), engine)
+    result = table.values_at("population", at={"year": [2001, 2003, 2011]}, for_each_group_in="country")
     out = capsys.readouterr().out
     assert ('Estimated "population" at 3 values of "year" for each of the 4 groups in "country", joined by '
             "straight lines between the known points (linear interpolation, as R approx()).") in out
@@ -217,14 +217,14 @@ def test_values_at_one_direction_for_each(engine, capsys):
 
 @pytest.mark.parametrize("how", ["smooth curve", "curve without overshoot", "steps", "nearest", "akima"])
 def test_values_at_each_way(engine, how, capsys):
-    table = make(sdata.example("growth"), engine).keep_rows("country", equal_to="Applia")
+    table = make(sdata.get_example("growth"), engine).keep_rows_where("country", is_equal_to="Applia")
     result = frame(table.values_at("population", at={"year": AT}, joined_by=how))
     assert np.allclose(result["population"], R_ONE_DIRECTION[how], atol=1e-9)
     assert how.split()[0] in capsys.readouterr().out
 
 
 def test_values_at_other_names_and_spellings():
-    table = Table(sdata.example("growth")).keep_rows("country", equal_to="Applia")
+    table = Table(sdata.get_example("growth")).keep_rows_where("country", is_equal_to="Applia")
     assert np.allclose(frame(table.values_at("population", at={"year": AT}, joined_by="spline"))["population"],
                        R_ONE_DIRECTION["smooth curve"])
     assert np.allclose(frame(table.values_at("population", at={"year": AT}, joined_by="PCHIP"))["population"],
@@ -233,7 +233,7 @@ def test_values_at_other_names_and_spellings():
 
 
 def test_values_at_outside(capsys):
-    table = Table(sdata.example("growth")).keep_rows("country", equal_to="Applia")
+    table = Table(sdata.get_example("growth")).keep_rows_where("country", is_equal_to="Applia")
     capsys.readouterr()
     got = frame(table.values_at("population", at={"year": [1990, 2001, 2030]}))["population"]
     assert np.isnan(got[0]) and np.isnan(got[2]) and got[1] == pytest.approx(12.3)
@@ -251,7 +251,7 @@ def test_values_at_outside(capsys):
 
 
 def test_values_at_smoothing(engine, capsys):
-    table = make(sdata.example("growth"), engine).keep_rows("country", equal_to="Applia")
+    table = make(sdata.get_example("growth"), engine).keep_rows_where("country", is_equal_to="Applia")
     capsys.readouterr()
     got = frame(table.values_at("population", at={"year": [2001, 2003, 2011]}, smoothness="auto"))
     assert np.allclose(got["population"], [12.2633508089467, 13.0542882126724, 16.6317113148074], atol=1e-3)
@@ -276,7 +276,7 @@ def test_values_at_ties_and_empty_cells(capsys):
 
 
 def test_values_at_two_directions(engine, capsys):
-    table = make(sdata.example("island"), engine)
+    table = make(sdata.get_example("island"), engine)
     got = frame(table.values_at("height", at={"east": [1.5, 2.5, 7.2], "north": [3, 4.5, 11.9]}))
     # by hand in R on the 15 x 15 grid: H[e0, n0] (1 - de)(1 - dn) + ... (bilinear)
     assert np.allclose(got["height"], [0.5, 14.25, 37.72], atol=1e-9)
@@ -308,7 +308,7 @@ def test_values_at_dates():
 
 
 def test_values_at_friendly_errors():
-    table = Table(sdata.example("growth"))
+    table = Table(sdata.get_example("growth"))
     with pytest.raises(SimplydataError, match="at="):
         table.values_at("population")
     with pytest.raises(SimplydataError, match='Did you mean joined_by="steps"'):
@@ -322,15 +322,15 @@ def test_values_at_friendly_errors():
     with pytest.raises(SimplydataError, match="leave out"):
         table.values_at("population", at={"year": [2001]}, joined_by="steps", smoothness="auto")
     with pytest.raises(SimplydataError, match="first and last"):
-        table.keep_rows("country", equal_to="Applia").values_at("population", at={"year": [2001]}, joined_by="periodic")
+        table.keep_rows_where("country", is_equal_to="Applia").values_at("population", at={"year": [2001]}, joined_by="periodic")
     with pytest.raises(SimplydataError, match="two or more directions"):
         table.values_at("population", at={"year": [2001]}, joined_by="smooth surface")
 
 
 # ====================================================================== map_of
 def test_map_of(engine, capsys):
-    table = make(sdata.example("island"), engine)
-    got = frame(table.map_of("height", across=["east", "north"], steps=5))
+    table = make(sdata.get_example("island"), engine)
+    got = frame(table.make_map_of("height", across=["east", "north"], steps=5))
     assert len(got) == 25 and list(got.columns) == ["east", "north", "height"]
     assert got["east"].tolist()[:5] == [0.0] * 5
     assert np.allclose(got["north"][:5], [0, 3.5, 7, 10.5, 14])
@@ -338,12 +338,12 @@ def test_map_of(engine, capsys):
     assert got["height"][0] == -6 and got["height"][1] == pytest.approx(-2.0)
     assert 'at 5 x 5 evenly spaced places across "east" and "north"' in capsys.readouterr().out
     with pytest.raises(SimplydataError, match="steps="):
-        table.map_of("height", across=["east", "north"], steps=1)
+        table.make_map_of("height", across=["east", "north"], steps=1)
 
 
 def test_map_of_scattered_outline(capsys):
     table = Table(pd.DataFrame({"east": SX, "north": SY, "depth": SZ}))
-    got = frame(table.map_of("depth", across=["east", "north"], steps=[4, 3]))
+    got = frame(table.make_map_of("depth", across=["east", "north"], steps=[4, 3]))
     assert len(got) == 12
     assert got["depth"].isna().sum() > 0
     assert "outside the outline of the known points" in capsys.readouterr().out
@@ -368,7 +368,7 @@ def test_fill_empty_cells_with_curves(engine, capsys):
                          "day": [1, 2, 3, 4, 5.5, 6, 7, 8, 9, 1, 2, 3, 4],
                          "sales": [1, 4, None, 16, None, None, 49, 64, None, 1, None, 3, 4]})
     table = make(data, engine)
-    table.fill_empty_cells("sales", with_the="curve between neighbours", sorted_by="day", for_each="shop")
+    table.fill_empty_cells_in("sales", with_the="curve between neighbours", sorted_by="day", for_each_group_in="shop")
     got = frame(table)["sales"]
     assert np.allclose(got[:8], [1, 4, 8.94543147208, 16, 30.1700507614, 35.9018612521, 49, 64], atol=1e-9)
     assert np.isnan(got[8])
@@ -376,7 +376,7 @@ def test_fill_empty_cells_with_curves(engine, capsys):
     assert "Filled 4 cells in sales on a smooth curve" in out and "zoo::na.spline" in out
     assert "1 cell stayed empty" in out
     table.undo()
-    table.fill_empty_cells("sales", with_the="curve without overshoot", sorted_by="day", for_each="shop")
+    table.fill_empty_cells_in("sales", with_the="curve without overshoot", sorted_by="day", for_each_group_in="shop")
     assert "never overshoots" in capsys.readouterr().out
     # shop b: pracma::pchip(c(1, 3, 4), c(1, 3, 4), 2) = 2
     assert frame(table)["sales"][10] == pytest.approx(2.0)

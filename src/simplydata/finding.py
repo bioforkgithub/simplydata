@@ -1,6 +1,6 @@
 """Finding the smallest or biggest value of a formula, and solving equations.
 
-sdata.find_smallest("x**2 - 4*x + 1", between=[0, 5]) and sdata.find_biggest(...) find where
+sdata.find_where_smallest("x**2 - 4*x + 1", between=[0, 5]) and sdata.find_where_biggest(...) find where
 a formula is lowest or highest; sdata.solve("x**3 - 2*x = 5", between=[0, 3]) finds where the
 two sides are equal. The names in the formula (x, y, a, rate) are what to find. The formula is
 read safely (never run), as in table.fit_formula.
@@ -18,7 +18,7 @@ why (simplydata never switches silently). Defaults match R, so answers can be ch
 * a straight-line (linear) formula with straight-line rules: linear programming (HiGHS),
   exact, as R lpSolve::lp(); also the "value of one more" of each rule (shadow prices).
   With whole_numbers=True: mixed-integer linear programming (HiGHS), as lp(int.vec =).
-* search="whole range": differential evolution over between= (seed=1) and then a local
+* search="whole range": differential evolution over between= (with_seed=1) and then a local
   polish, so the answer is the lowest point anywhere in the range, not only near the start.
 
 Unlike R lpSolve::lp(), names are NOT assumed to be 0 or more: give the rule "x >= 0" (or
@@ -752,7 +752,7 @@ def _whole_range(step, names, limits, objective, rule_list, whole, start, chosen
                 found.x, found.fun = polished.x, polished.fun
     place = np.atleast_1d(found.x)
     ranges = ", ".join(f"{n} {_range_words(*limits[n])}" for n in names[:SHOWN_NAMES])
-    seed_words = f", seed={SEED}" if chosen in ("differential evolution", "dual annealing", "basin hopping") else ""
+    seed_words = f", with_seed={SEED}" if chosen in ("differential evolution", "dual annealing", "basin hopping") else ""
     sentence = (f"Method: {words} over the whole range ({ranges}{seed_words}){polish_words}, as {r_name}. It looks "
                 "everywhere in between=, so it finds the lowest dip, not only the nearest one; it is a search, "
                 "not a proof, so a very narrow dip can still be missed.")
@@ -769,11 +769,11 @@ def _whole_range(step, names, limits, objective, rule_list, whole, start, chosen
 
 
 @friendly
-def find_smallest(formula=None, between=None, start=None, rules=None, whole_numbers=False, search="from start",
-                  method=None, known=None, fast=False):
+def find_where_smallest(formula=None, between=None, start=None, rules=None, whole_numbers=False, search="from start",
+                        method=None, known=None, fast=False):
     """Find where a formula is smallest, and its value there.
 
-    sdata.find_smallest("x**2 - 4*x + 1", between=[0, 5])   (the smallest value is -3, at x = 2)
+    sdata.find_where_smallest("x**2 - 4*x + 1", between=[0, 5])   (the smallest value is -3, at x = 2)
     The names in the formula (x, y, a, rate) are what to find. Give a range with between=
     ([0, 5] for one name; {"x": [0, 5], "y": [0, None]} for several, None = no limit) or
     starting guesses with start= (a number, or {"x": 1, "y": 2}). rules=["x + y <= 4", "x >= 0"]
@@ -789,16 +789,16 @@ def find_smallest(formula=None, between=None, start=None, rules=None, whole_numb
     value of one more on the right of each rule (shadow price, R lp(compute.sens = TRUE)$duals).
     fast=True gives the table on the fast engine (Polars).
     """
-    return _find("find_smallest", "smallest", formula, between, start, rules, whole_numbers, search, method,
+    return _find("find_where_smallest", "smallest", formula, between, start, rules, whole_numbers, search, method,
                  known, fast)
 
 
 @friendly
-def find_biggest(formula=None, between=None, start=None, rules=None, whole_numbers=False, search="from start",
-                 method=None, known=None, fast=False):
+def find_where_biggest(formula=None, between=None, start=None, rules=None, whole_numbers=False, search="from start",
+                       method=None, known=None, fast=False):
     """Find where a formula is biggest, and its value there.
 
-    sdata.find_biggest("3*x + 2*y", rules=["x + y <= 4", "x + 3*y <= 6", "x >= 0", "y >= 0"])   (12, at x = 4, y = 0)
+    sdata.find_where_biggest("3*x + 2*y", rules=["x + y <= 4", "x + 3*y <= 6", "x >= 0", "y >= 0"])   (12, at x = 4, y = 0)
     The same options as find_smallest(): between=, start=, rules=, whole_numbers=,
     search="whole range", method=, known= (a dict, or a one-row result table from
     table.fit_formula, so a fitted curve can be handed straight over). It works by finding
@@ -806,7 +806,7 @@ def find_biggest(formula=None, between=None, start=None, rules=None, whole_numbe
     table: each name, the biggest value, the method, whether it settled, and for linear
     programs the value of one more on the right of each rule (shadow price).
     """
-    return _find("find_biggest", "biggest", formula, between, start, rules, whole_numbers, search, method,
+    return _find("find_where_biggest", "biggest", formula, between, start, rules, whole_numbers, search, method,
                  known, fast)
 
 
@@ -821,11 +821,11 @@ def _read_solve_equation(text, known):
     signs = _SIGN_PATTERN.findall(text)
     if not signs:
         raise SimplydataError(f'solve() needs an = sign, for example {_solve_example()}; "{text}" has none.\n'
-                              'To find where a formula is smallest, use sdata.find_smallest("...").')
+                              'To find where a formula is smallest, use sdata.find_where_smallest("...").')
     formula, sign = read_equation(text, known=known)
     if sign != "=":
         raise SimplydataError(f'solve() works with = only; "{text}" is a rule. To keep to rules, use '
-                              'sdata.find_smallest(formula, rules=["..."]).')
+                              'sdata.find_where_smallest(formula, rules=["..."]).')
     return formula
 
 
@@ -932,7 +932,7 @@ def _solve_one(text, name, formula, limits, has_limits, start, method, fast):
             raise SimplydataError(
                 f"The two sides of {text} never cross between {_show(low)} and {_show(high)}; try a wider between=.\n"
                 f"(A solution where the curve only touches, like x**2 = 0, has no crossing: "
-                f'sdata.find_smallest("abs({formula.left_text} - ({formula.right_text}))", between=...) finds it.)'
+                f'sdata.find_where_smallest("abs({formula.left_text} - ({formula.right_text}))", between=...) finds it.)'
             )
         values = ", ".join(_show(r) for r in roots)
         if len(roots) == 1:

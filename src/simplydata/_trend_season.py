@@ -15,7 +15,7 @@ Every number comes from a package, with the options that give R's numbers:
 * method="straight line": one statsmodels OLS fit on the row number and, with repeats_every=, one effect per
   place in the cycle that add up to 0 = R lm(x ~ time + place, contrasts = list(place = "contr.sum")); the
   trend is the line from the fit, the season the rest of the fitted values.
-* trend_of: Sen's slope and its 95 % interval from SciPy theilslopes (= R trend::sens.slope); the
+* find_trend_of: Sen's slope and its 95 % interval from SciPy theilslopes (= R trend::sens.slope); the
   Mann-Kendall test, the seasonal Mann-Kendall test and the seasonal Sen slope run in R itself
   (trend::mk.test, trend::smk.test, trend::sea.sens.slope: SciPy has no continuity correction).
 """

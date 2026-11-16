@@ -18,14 +18,14 @@ from .words.time_charts import TimeChartWords
 
 class Chart(ChartWords, StatsWords, CurveWords, SurvivalChartWords, AgreementChartWords, TimeChartWords, TextWords,
             AxesWords, LookWords, LayoutWords, BaseChart):
-    """A chart. Make one with sdata.chart(...), then add steps: chart.bars(...), chart.title_top(...)."""
+    """A chart. Make one with sdata.chart(...), then add steps: chart.draw_bars(...), chart.write_title_on_top(...)."""
 
 
 @friendly(renamed={"big_data": "fast"})
 def chart(data=None, sheet=None, fast: bool = False) -> Chart:
-    """Start a chart. sdata.chart(sdata.example("marks"))
+    """Start a chart. sdata.chart(sdata.get_example("marks"))
 
-    sdata.chart(table)                        a pandas or Polars table, like sdata.example("marks")
+    sdata.chart(table)                        a pandas or Polars table, like sdata.get_example("marks")
     sdata.chart("my_file.xlsx")               your own file (Excel, CSV, TSV, Parquet, JSON)
     sdata.chart("my_file.xlsx", sheet="2026") one sheet of an Excel file
     sdata.chart()                             no table: give lists to each step instead

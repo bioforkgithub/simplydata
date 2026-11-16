@@ -196,7 +196,7 @@ class AgreementChartWords:
     def trade_off_curve(self, score=None, truth=None, positive=None, colour=None, positive_when="higher",
                         transparency=None, thickness=None):
         """How a score trades found cases against false alarms, cut-off by cut-off (the ROC curve).
-        chart.trade_off_curve(score="crp", truth="infected") (with sdata.example("clinic"))
+        chart.trade_off_curve(score="crp", truth="infected") (with sdata.get_example("clinic"))
 
         Each possible cut-off of the score gives a point: along, the share of those without it
         who test positive anyway (false alarms, 1 - specificity); up, the share of those with it
@@ -213,7 +213,7 @@ class AgreementChartWords:
         scores = [score] if isinstance(score, str) else list(score) if isinstance(score, (list, tuple)) else []
         if not scores or not all(isinstance(s, str) for s in scores):
             raise SimplydataError(f".trade_off_curve() needs score= as a column of numbers in quotes (or a list of "
-                                  f"them).\nFor example {example} (with sdata.example(\"clinic\")).")
+                                  f"them).\nFor example {example} (with sdata.get_example(\"clinic\")).")
         if not isinstance(truth, str):
             raise SimplydataError(f".trade_off_curve() needs truth= as the column with the real answer.\n"
                                   f"For example {example}.")
@@ -239,7 +239,7 @@ class AgreementChartWords:
     @friendly(renamed={"x": "first", "y": "second"})
     def difference_dots(self, first=None, second=None, transparency=None):
         """Do two ways of measuring agree? The difference of each pair against its average (Bland-Altman).
-        chart.difference_dots(first="device_a", second="device_b") (with sdata.example("clinic"))
+        chart.difference_dots(first="device_a", second="device_b") (with sdata.get_example("clinic"))
 
         One dot per row: along, the average of the two measurements; up, first minus second. The
         names are those of table.limits_of_agreement(first, second). The solid
@@ -257,7 +257,7 @@ class AgreementChartWords:
         for option, value in (("first", x), ("second", y)):
             if not isinstance(value, str):
                 raise SimplydataError(f".difference_dots() needs {option}= as a column of numbers in quotes.\n"
-                                      f"For example {example} (with sdata.example(\"clinic\")).")
+                                      f"For example {example} (with sdata.get_example(\"clinic\")).")
         if x == y:
             raise SimplydataError(f".difference_dots() needs two different columns.\nFor example {example}.")
         check(self._data, x=x, y=y)
@@ -275,7 +275,7 @@ class AgreementChartWords:
     @friendly(renamed={"ratios": "log_scale"})
     def forest_plot(self, x="estimate", y=None, line_at=None, log_scale=None, colour=None, thickness=None):
         """Many results with their intervals, one line each (a forest plot).
-        chart.forest_plot(x="difference", y="group 1")   (on a result table, such as compare_each_pair's)
+        chart.forest_plot(x="difference", y="group 1")   (on a result table, such as compare_each_pair_of's)
 
         Draws each row's x as a dot and its interval as a line, from a result table with the
         columns "<x> 95 % CI low" and "<x> 95 % CI high" (any level). y names the rows. Ratios

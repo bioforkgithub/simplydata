@@ -15,11 +15,11 @@ from simplydata import SimplydataError
 
 @pytest.fixture
 def clinic():
-    return sdata.table(sdata.example("clinic"))
+    return sdata.table(sdata.get_example("clinic"))
 
 
 def test_trade_off_curve(clinic, needs_r):
-    chart = clinic.chart()
+    chart = clinic.start_chart()
     chart.trade_off_curve(score="crp", truth="infected")
     ax = chart._render().axes[0]
     labels = [ln.get_label() for ln in ax.lines]
@@ -35,7 +35,7 @@ def test_trade_off_curve(clinic, needs_r):
 
 
 def test_trade_off_curve_two_scores(clinic, needs_r):
-    chart = clinic.chart()
+    chart = clinic.start_chart()
     chart.trade_off_curve(score=["crp", "procalcitonin"], truth="infected")
     labels = [ln.get_label() for ln in chart._render().axes[0].lines]
     # R: pROC::ci.auc(roc(truth, procalcitonin, direction = "<")): 0.7151333333 (0.6356566991 to 0.7946...)
@@ -43,7 +43,7 @@ def test_trade_off_curve_two_scores(clinic, needs_r):
 
 
 def test_difference_dots(clinic, needs_r):
-    chart = clinic.chart()
+    chart = clinic.start_chart()
     chart.difference_dots(first="device_a", second="device_b")
     ax = chart._render().axes[0]
     levels = sorted(float(ln.get_ydata()[0]) for ln in ax.lines)
@@ -58,9 +58,9 @@ def test_difference_dots(clinic, needs_r):
 
 
 def test_forest_plot():
-    pairs = sdata.table(sdata.example("marks")).compare_each_pair("marks", for_each="class", test="tukey")
+    pairs = sdata.table(sdata.get_example("marks")).compare_each_pair_of("marks", for_each_group_in="class", test="tukey")
     frame = pairs._frame.to_pandas()
-    chart = pairs.chart()
+    chart = pairs.start_chart()
     chart.forest_plot(x="difference", y="group 1")
     ax = chart._render().axes[0]
     dots = next(ln for ln in ax.lines if ln.get_marker() == "o")
@@ -71,10 +71,10 @@ def test_forest_plot():
 
 
 def test_forest_plot_ratios():
-    t = sdata.table(sdata.example("trial"))
-    risks = t.compare_risks("died", for_each="treatment", against="usual care")
-    risks.keep_rows("measure", one_of=["risk ratio", "odds ratio"])
-    chart = risks.chart()
+    t = sdata.table(sdata.get_example("trial"))
+    risks = t.compare_risks("died", for_each_group_in="treatment", against="usual care")
+    risks.keep_rows_where("measure", is_one_of=["risk ratio", "odds ratio"])
+    chart = risks.start_chart()
     chart.forest_plot(x="estimate", y="measure")
     ax = chart._render().axes[0]
     assert ax.get_xscale() == "log"
@@ -82,7 +82,7 @@ def test_forest_plot_ratios():
 
 
 def test_chart_errors(clinic):
-    chart = clinic.chart()
+    chart = clinic.start_chart()
     with pytest.raises(SimplydataError, match="score="):
         chart.trade_off_curve(truth="infected")
     with pytest.raises(SimplydataError, match="columns of numbers"):
@@ -92,31 +92,31 @@ def test_chart_errors(clinic):
 
 
 def test_difference_dots_old_names(clinic, needs_r, capsys):
-    chart = clinic.chart()
+    chart = clinic.start_chart()
     chart.difference_dots(x="device_a", y="device_b")
     assert chart._render().axes[0].get_ylabel() == "device_a minus device_b"
     assert '"x=" is now called "first="' in capsys.readouterr().out
 
 
 def test_forest_plot_log_scale_and_line_at(capsys):
-    t = sdata.table(sdata.example("trial"))
-    risks = t.compare_risks("died", for_each="treatment", against="usual care")
-    risks.keep_rows("measure", one_of=["risk ratio", "odds ratio"])
-    chart = risks.chart()
+    t = sdata.table(sdata.get_example("trial"))
+    risks = t.compare_risks("died", for_each_group_in="treatment", against="usual care")
+    risks.keep_rows_where("measure", is_one_of=["risk ratio", "odds ratio"])
+    chart = risks.start_chart()
     chart.forest_plot(x="estimate", y="measure", log_scale=False, line_at=1.25)
     ax = chart._render().axes[0]
     assert ax.get_xscale() == "linear"
     assert "(the line: 1.25)" in ax.get_xlabel()
-    chart = risks.chart()
+    chart = risks.start_chart()
     chart.forest_plot(x="estimate", y="measure", ratios=True)
     assert chart._render().axes[0].get_xscale() == "log"
     assert '"ratios=" is now called "log_scale="' in capsys.readouterr().out
 
 
 def test_forest_plot_says_which_level_it_drew(capsys):
-    risks = sdata.table(sdata.example("clinic")).compare_risks("caught_infection", for_each="ward",
+    risks = sdata.table(sdata.get_example("clinic")).compare_risks("caught_infection", for_each_group_in="ward",
                                                               against="ward A", same_within=15)
-    chart = risks.chart()
+    chart = risks.start_chart()
     chart.forest_plot(x="estimate", y="measure")
     ax = chart._render().axes[0]
     labels = [t.get_text() for t in ax.get_yticklabels()]
@@ -127,8 +127,8 @@ def test_forest_plot_says_which_level_it_drew(capsys):
 
 
 def test_forest_plot_of_rates_and_shift():
-    rates = sdata.table(sdata.example("clinic")).rate_of("infections", time="patient_days", for_each="ward")
-    chart = rates.chart()
+    rates = sdata.table(sdata.get_example("clinic")).rate_of("infections", time="patient_days", for_each_group_in="ward")
+    chart = rates.start_chart()
     chart.forest_plot(x="rate", y="group")
     dots = next(ln for ln in chart._render().axes[0].lines if ln.get_marker() == "o")
     # R: poisson.test(4, 1803)$estimate * 1000, poisson.test(16, 1600)$estimate * 1000

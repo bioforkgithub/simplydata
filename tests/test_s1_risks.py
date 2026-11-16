@@ -24,7 +24,7 @@ def engine(request):
 
 
 def make(name, engine):
-    data = sdata.example(name)
+    data = sdata.get_example(name)
     if engine == "polars":
         pl = pytest.importorskip("polars")
         return make_table(pl.from_pandas(data))
@@ -38,7 +38,7 @@ def rows(result):
 
 
 def test_compare_risks_trial(engine, capsys):
-    got = rows(make("trial", engine).compare_risks("died", for_each="treatment", against="usual care"))
+    got = rows(make("trial", engine).compare_risks("died", for_each_group_in="treatment", against="usual care"))
     new, usual = got["risk new medicine"], got["risk usual care"]
     assert (new["events"], new["out of"], usual["events"], usual["out of"]) == (25, 60, 34, 60)
     # R: binom.test(25, 60)$conf.int, binom.test(34, 60)$conf.int
@@ -77,7 +77,7 @@ def test_compare_risks_trial(engine, capsys):
 
 
 def test_compare_risks_exact(engine):
-    got = rows(make("trial", engine).compare_risks("died", for_each="treatment", against="usual care",
+    got = rows(make("trial", engine).compare_risks("died", for_each_group_in="treatment", against="usual care",
                                                    p_value_by="exact"))
     odds = got["odds ratio new medicine"]
     # R: fisher.test(matrix(c(25, 35, 34, 26), 2, byrow = TRUE)): p 0.1437702219435, conditional MLE
@@ -88,13 +88,13 @@ def test_compare_risks_exact(engine):
 
 
 def test_compare_risks_level(engine):
-    got = rows(make("trial", engine).compare_risks("died", for_each="treatment", against="usual care", interval=90))
+    got = rows(make("trial", engine).compare_risks("died", for_each_group_in="treatment", against="usual care", interval=90))
     # R: riskratio(..., method = "wald", conf.level = 0.90)$measure[2, 2]
     assert got["risk ratio new medicine"]["estimate 90 % CI low"] == pytest.approx(0.5379909643905, rel=REL)
 
 
 def test_compare_risks_mantel_haenszel(engine, needs_r, capsys):
-    got = rows(make("clinic", engine).compare_risks("infected", for_each="ward", allowing_for="age_group"))
+    got = rows(make("clinic", engine).compare_risks("infected", for_each_group_in="ward", allowing_for="age_group"))
     mh = got["odds ratio allowing for age_group ward B"]
     # R: mantelhaen.test(arr): estimate, conf.int, p.value (continuity correction, the R default)
     assert (mh["estimate"], mh["estimate 95 % CI low"], mh["estimate 95 % CI high"]) == pytest.approx(
@@ -114,7 +114,7 @@ def test_compare_risks_mantel_haenszel(engine, needs_r, capsys):
 
 def test_compare_risks_equivalence(engine, capsys):
     t = make("clinic", engine)
-    got = rows(t.compare_risks("infected", for_each="ward", same_within=15))
+    got = rows(t.compare_risks("infected", for_each_group_in="ward", same_within=15))
     eq = got["risk difference (percentage points), equivalence ward B"]
     # R: TOSTER::twoprop_test(p1 = .3, p2 = .2, n1 = 100, n2 = 100, null = c(-.15, .15), alternative = "equivalence")
     assert eq["p-value"] == pytest.approx(0.2055398893617, rel=1e-9)
@@ -122,18 +122,18 @@ def test_compare_risks_equivalence(engine, capsys):
         (-5.254009845539e-05 * 100, 0.2000525400985 * 100), rel=1e-6)
     assert eq["answer"] == "the data cannot tell"
     # R: twoprop_test(..., null = -0.15, alternative = "greater")$p.value
-    got = rows(t.compare_risks("infected", for_each="ward", same_within=15, sides=1, higher="ward B"))
+    got = rows(t.compare_risks("infected", for_each_group_in="ward", same_within=15, sides=1, higher="ward B"))
     assert got["risk difference (percentage points), non-inferiority ward B"]["p-value"] == pytest.approx(
         1.978512496173e-05, rel=1e-8)
     # R: twoprop_test(..., null = 0.15, alternative = "less")$p.value
-    got = rows(t.compare_risks("infected", for_each="ward", same_within=15, sides=1, lower="ward B"))
+    got = rows(t.compare_risks("infected", for_each_group_in="ward", same_within=15, sides=1, lower="ward B"))
     assert got["risk difference (percentage points), non-inferiority ward B"]["p-value"] == pytest.approx(
         0.2055398893617, rel=1e-9)
     assert "TOSTER::twoprop_test" in capsys.readouterr().out
 
 
 def test_compare_risks_one_sided(engine, needs_r, capsys):
-    got = rows(make("clinic", engine).compare_risks("infected", for_each="ward", sides=1, higher="ward B"))
+    got = rows(make("clinic", engine).compare_risks("infected", for_each_group_in="ward", sides=1, higher="ward B"))
     # R: prop.test(c(30, 20), c(100, 100), alternative = "greater")$p.value
     assert got["risk difference ward B"]["p-value"] == pytest.approx(0.07082234514757, rel=1e-9)
     assert "One-sided, as you asked before seeing the data: it only looks for ward B higher" in capsys.readouterr().out
@@ -142,19 +142,19 @@ def test_compare_risks_one_sided(engine, needs_r, capsys):
 def test_compare_risks_errors(engine):
     t = make("trial", engine)
     with pytest.raises(SimplydataError, match="two values"):
-        t.compare_risks("age", for_each="treatment")
+        t.compare_risks("age", for_each_group_in="treatment")
     with pytest.raises(SimplydataError, match='Did you mean against="usual care"'):
-        t.compare_risks("died", for_each="treatment", against="usual cere")
+        t.compare_risks("died", for_each_group_in="treatment", against="usual cere")
     with pytest.raises(SimplydataError, match="value="):
-        t.compare_risks("died", for_each="treatment", value="maybe")
+        t.compare_risks("died", for_each_group_in="treatment", value="maybe")
     with pytest.raises(SimplydataError, match="The interval should be from 0 to 100"):
-        t.compare_risks("died", for_each="treatment", interval=120)
+        t.compare_risks("died", for_each_group_in="treatment", interval=120)
     with pytest.raises(SimplydataError, match="sides=1"):
-        t.compare_risks("died", for_each="treatment", higher="usual care")
+        t.compare_risks("died", for_each_group_in="treatment", higher="usual care")
 
 
 def test_compare_rates(engine, capsys, needs_r):
-    got = rows(make("clinic", engine).compare_rates("infections", time="patient_days", for_each="ward",
+    got = rows(make("clinic", engine).compare_rates("infections", time="patient_days", for_each_group_in="ward",
                                                     against="ward A"))
     b, a = got["rate ward B"], got["rate ward A"]
     # R: poisson.test(16, 1600)$conf.int * 1000, poisson.test(4, 1803)$conf.int * 1000
@@ -173,7 +173,7 @@ def test_compare_rates(engine, capsys, needs_r):
 
 def test_compare_rates_equivalence(engine, needs_r):
     t = make("clinic", engine)
-    got = rows(t.compare_rates("infections", time="patient_days", for_each="ward", against="ward A", same_within=2))
+    got = rows(t.compare_rates("infections", time="patient_days", for_each_group_in="ward", against="ward A", same_within=2))
     eq = got["rate ratio, equivalence ward B"]
     # R: poisson.test(c(16, 4), c(1600, 1803), r = 0.5, alternative = "greater")$p.value and r = 2, "less"
     assert eq["p-value against the low margin"] == pytest.approx(7.861933280129e-06, rel=1e-8)
@@ -182,7 +182,7 @@ def test_compare_rates_equivalence(engine, needs_r):
     assert (eq["estimate 90 % CI low"], eq["estimate 90 % CI high"]) == pytest.approx(
         (1.683090065535, 14.66588822402), rel=1e-9)
     assert eq["answer"] == "different"
-    got = rows(t.compare_rates("infections", time="patient_days", for_each="ward", against="ward A", same_within=2,
+    got = rows(t.compare_rates("infections", time="patient_days", for_each_group_in="ward", against="ward A", same_within=2,
                                sides=1, lower="ward B"))
     ni = got["rate ratio, non-inferiority ward B"]
     # R: poisson.test(c(16, 4), c(1600, 1803), r = 2, alternative = "less")$p.value; conf.int[2] (one-sided)
@@ -191,7 +191,7 @@ def test_compare_rates_equivalence(engine, needs_r):
 
 
 def test_rate_of(engine, capsys):
-    got = make("clinic", engine).rate_of("infections", time="patient_days", for_each="ward", per=100)._frame
+    got = make("clinic", engine).rate_of("infections", time="patient_days", for_each_group_in="ward", per=100)._frame
     got = got.to_pandas().set_index("group")
     # R: poisson.test(4, 1803)$conf.int * 100
     assert got.loc["ward A", "rate 95 % CI low"] == pytest.approx(0.0604473307613, rel=REL)
@@ -205,9 +205,9 @@ def test_rates_errors(engine):
     with pytest.raises(SimplydataError, match="rate_of"):
         t.compare_rates("infections", time="patient_days")
     with pytest.raises(SimplydataError, match="numbers"):
-        t.compare_rates("ward", time="patient_days", for_each="age_group")
+        t.compare_rates("ward", time="patient_days", for_each_group_in="age_group")
     with pytest.raises(SimplydataError, match="rate ratio above 1"):
-        t.compare_rates("infections", time="patient_days", for_each="ward", same_within=0.5)
+        t.compare_rates("infections", time="patient_days", for_each_group_in="ward", same_within=0.5)
 
 
 def test_rates_without_r_keep_python_part(engine, monkeypatch, capsys):
@@ -217,7 +217,7 @@ def test_rates_without_r_keep_python_part(engine, monkeypatch, capsys):
         raise _r.RMissing("no R")
 
     monkeypatch.setattr(_r, "r_call", missing)
-    got = rows(make("clinic", engine).compare_rates("infections", time="patient_days", for_each="ward",
+    got = rows(make("clinic", engine).compare_rates("infections", time="patient_days", for_each_group_in="ward",
                                                     against="ward A"))
     assert got["rate ratio ward B"]["p-value"] == pytest.approx(0.00321758778564, rel=1e-9)
     assert math.isnan(got["rate ratio ward B"]["estimate 95 % CI low"])
@@ -227,8 +227,8 @@ def test_rates_without_r_keep_python_part(engine, monkeypatch, capsys):
 # ---------------------------------------------------------------- the names approved on 2026-11-15 (Part C/D review)
 def test_compare_risks_column_and_value(engine, capsys):
     t = make("trial", engine)
-    new = rows(t.compare_risks(column="died", for_each="treatment", against="usual care", value="yes"))
-    old = rows(t.compare_risks(outcome="died", for_each="treatment", against="usual care", positive="yes"))
+    new = rows(t.compare_risks(column="died", for_each_group_in="treatment", against="usual care", value="yes"))
+    old = rows(t.compare_risks(outcome="died", for_each_group_in="treatment", against="usual care", positive="yes"))
     assert new["risk ratio new medicine"]["estimate"] == old["risk ratio new medicine"]["estimate"]
     out = capsys.readouterr().out
     assert '"died" = "yes" (chosen with value=)' in out
@@ -236,7 +236,7 @@ def test_compare_risks_column_and_value(engine, capsys):
 
 
 def test_clear_effect_and_nnt_more(engine, capsys):
-    got = rows(make("clinic", engine).compare_risks("caught_infection", for_each="ward", against="ward A"))
+    got = rows(make("clinic", engine).compare_risks("caught_infection", for_each_group_in="ward", against="ward A"))
     rd = got["risk difference ward B"]
     # R: DescTools::BinomDiffCI(16, 100, 4, 100, method = "score"): 0.12, 0.0369716789414, 0.2076491211102
     assert (rd["estimate"], rd["estimate 95 % CI low"], rd["estimate 95 % CI high"]) == pytest.approx(
@@ -257,7 +257,7 @@ def test_clear_effect_and_nnt_more(engine, capsys):
 
 def test_risk_not_lower_and_not_higher(engine, capsys):
     t = make("trial", engine)
-    got = rows(t.compare_risks("died", for_each="treatment", against="usual care", same_within=10,
+    got = rows(t.compare_risks("died", for_each_group_in="treatment", against="usual care", same_within=10,
                                not_higher="new medicine"))
     ni = got["risk difference (percentage points), non-inferiority new medicine"]
     # R: TOSTER::twoprop_test(p1 = 25/60, p2 = 34/60, n1 = 60, n2 = 60, null = 0.10, alternative = "less")$p.value
@@ -269,16 +269,16 @@ def test_risk_not_lower_and_not_higher(engine, capsys):
     assert "same_within=10 on risks means risk differences from -10 to 10 percentage points." in out
     assert "the risk in new medicine is not higher than in usual care by more than 10 percentage points" in out
     # the older spelling gives the same test, with a note
-    old = rows(t.compare_risks("died", for_each="treatment", against="usual care", same_within=10, sides=1,
+    old = rows(t.compare_risks("died", for_each_group_in="treatment", against="usual care", same_within=10, sides=1,
                                lower="new medicine"))
     assert old["risk difference (percentage points), non-inferiority new medicine"]["p-value"] == ni["p-value"]
     assert 'it is written not_higher="new medicine"' in capsys.readouterr().out
     with pytest.raises(SimplydataError, match="not_lower= is a non-inferiority test"):
-        t.compare_risks("died", for_each="treatment", not_lower="new medicine")
+        t.compare_risks("died", for_each_group_in="treatment", not_lower="new medicine")
 
 
 def test_risk_margin_below_one_is_noted(engine, capsys):
-    make("trial", engine).compare_risks("died", for_each="treatment", same_within=0.1)
+    make("trial", engine).compare_risks("died", for_each_group_in="treatment", same_within=0.1)
     assert "same_within= is in percentage points: 0.1 means 0.1 points. Did you mean 10?" in capsys.readouterr().out
 
 
@@ -300,7 +300,7 @@ def test_sdata_risks_names_and_not_lower(capsys):
 
 def test_rate_not_lower_with_ratio_words(engine, needs_r, capsys):
     t = make("clinic", engine)
-    got = rows(t.compare_rates("infections", time="patient_days", for_each="ward", against="ward A",
+    got = rows(t.compare_rates("infections", time="patient_days", for_each_group_in="ward", against="ward A",
                                same_within=[0.8, 1.25], not_lower="ward B"))
     ni = got["rate ratio, non-inferiority ward B"]
     # R: poisson.test(c(16, 4), c(1600, 1803), r = 0.8, alternative = "greater")$p.value; and its conf.int[1]
@@ -310,7 +310,7 @@ def test_rate_not_lower_with_ratio_words(engine, needs_r, capsys):
     assert "same_within=[0.8, 1.25] on rates means rate ratios from 0.8 to 1.25." in out
     assert "so the rate ratio is not below 0.800: the rate in ward B is not lower than in ward A" in out
     # not_higher="ward A" is the same claim from the other side
-    got = rows(t.compare_rates("infections", time="patient_days", for_each="ward", against="ward A",
+    got = rows(t.compare_rates("infections", time="patient_days", for_each_group_in="ward", against="ward A",
                                same_within=5, not_higher="ward A"))
     # R: poisson.test(c(16, 4), c(1600, 1803), r = 0.2, alternative = "greater")$p.value
     assert got["rate ratio, non-inferiority ward B"]["p-value"] == pytest.approx(1.866245152636e-10, rel=1e-6)

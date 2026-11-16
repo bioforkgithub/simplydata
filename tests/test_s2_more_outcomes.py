@@ -33,7 +33,7 @@ def check(got, expected, rel=1e-6):
 
 
 def graded_school():
-    s = sdata.example("school")
+    s = sdata.get_example("school")
     s["grade"] = np.where(s.marks < 40, "low", np.where(s.marks < 55, "middle", "high"))
     s.loc[s.marks.isna(), "grade"] = None
     return s
@@ -64,12 +64,12 @@ def test_ordered_groups_need_their_order_and_three_groups():
         make_table(graded_school()).explain("grade", using="hours", outcome="ordered groups",
                                             in_order=["low", "middle"])
     with pytest.raises(SimplydataError, match='For 2 groups use outcome="yes or no"'):
-        make_table(sdata.example("school")).explain("breakfast", using="hours", outcome="groups")
+        make_table(sdata.get_example("school")).explain("breakfast", using="hours", outcome="groups")
 
 
 # ---------------------------------------------------------------- groups
 def test_groups_match_multinom(capsys):
-    got = rows(make_table(sdata.example("meadow")).explain("field", using=["clover", "nettle"], outcome="groups"),
+    got = rows(make_table(sdata.get_example("meadow")).explain("field", using=["clover", "nettle"], outcome="groups"),
                key=("group", "term"))
     out = capsys.readouterr().out
     # R: mn <- nnet::multinom(field ~ clover + nettle, data = meadow, reltol = 1e-12, maxit = 1000)
@@ -86,7 +86,7 @@ def test_groups_match_multinom(capsys):
 
 # ---------------------------------------------------------------- shares
 def test_shares_match_betareg(capsys, needs_r):
-    growth = sdata.example("growth").assign(share=lambda d: d.forest / 100)
+    growth = sdata.get_example("growth").assign(share=lambda d: d.forest / 100)
     got = rows(make_table(growth).explain("share", using=["year", "country"], outcome="shares"))
     out = capsys.readouterr().out
     # R: g$share <- g$forest / 100; b <- betareg::betareg(share ~ year + country, data = g); summary(b)
@@ -97,7 +97,7 @@ def test_shares_match_betareg(capsys, needs_r):
 
 def test_shares_must_be_between_0_and_1():
     with pytest.raises(SimplydataError, match="They look like percents"):
-        make_table(sdata.example("growth")).explain("forest", using="year", outcome="shares")
+        make_table(sdata.get_example("growth")).explain("forest", using="year", outcome="shares")
 
 
 # ---------------------------------------------------------------- counts with many zeros
@@ -122,7 +122,7 @@ def test_counts_with_many_zeros_need_zeros():
 
 # ---------------------------------------------------------------- link=
 def test_probit_link_matches_r(capsys):
-    got = rows(make_table(sdata.example("school")).explain("passed", using=["hours", "breakfast"],
+    got = rows(make_table(sdata.get_example("school")).explain("passed", using=["hours", "breakfast"],
                                                            outcome="yes or no", link="probit"))
     out = capsys.readouterr().out
     # R: glm(y ~ hours + breakfast, data = s, family = binomial(link = "probit")); AIC 205.170654676779
@@ -134,7 +134,7 @@ def test_probit_link_matches_r(capsys):
 
 
 def test_link_checks():
-    school = make_table(sdata.example("school"))
+    school = make_table(sdata.get_example("school"))
     with pytest.raises(SimplydataError, match="link= for outcome=\"yes or no\" is one of"):
         school.explain("passed", using="hours", outcome="yes or no", link="sqrt")
     with pytest.raises(SimplydataError, match="link= works with"):

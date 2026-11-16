@@ -5,7 +5,7 @@ Choices (the same defaults as R, so results can be checked there):
 
 * fit_line(x=, y=): ordinary least squares (R lm(y ~ x)), t-based 95 % intervals. Its old
   name fit_straight_line still works for one release, with a note.
-* fit_curve(x=, y=, degree=2): least squares on the powers of x, as R
+* fit_curve(x=, y=, of_degree=2): least squares on the powers of x, as R
   lm(y ~ poly(x, 2, raw = TRUE)), with statsmodels WLS through a QR decomposition of the powers
   (as lm, and steadier than the normal equations np.polyfit uses). t-based 95 % intervals,
   R squared and adjusted R squared as R summary.lm(). weights= as R lm(weights =).
@@ -34,7 +34,7 @@ Choices (the same defaults as R, so results can be checked there):
   the values from a fit_formula() result with using=) and adds the value of the formula
   for every row, as R predict(nls(...), newdata).
 
-for_each= fits each group on its own (one row, or one set of rows, per group in the result).
+for_each_group_in= fits each group on its own (one row, or one set of rows, per group in the result).
 Problems are printed notes, never silent switches.
 """
 
@@ -323,7 +323,7 @@ def fit_formula_core(formula, data, columns, start=None, between=None, weights=N
         if np.any(w[keep] <= 0):
             raise SimplydataError(
                 "weights= needs a number above 0 in every row used (a row with weight 0 would count for "
-                "nothing). Leave such rows out first, for example with table.keep_rows(...)."
+                "nothing). Leave such rows out first, for example with table.keep_rows_where(...)."
             )
         w = w[keep]
     skipped = int(len(y) - keep.sum())
@@ -527,16 +527,16 @@ class FittingWords:
     def _fit_data(self, step, columns, for_each, weights, example):
         """[(group label, group value, {column: numbers})], empty cells skipped with a note.
 
-        Without for_each= there is one item, with label None."""
+        Without for_each_group_in= there is one item, with label None."""
         st = _st()
         needed = list(dict.fromkeys(list(columns) + ([weights] if weights is not None else [])))
         if weights is not None:
             self._need_name(step, "weights=", weights, example)
         if for_each is not None:
-            self._need_name(step, "for_each=", for_each, example)
+            self._need_name(step, "for_each_group_in=", for_each, example)
             self._need_columns(for_each)
             if for_each in needed:
-                raise SimplydataError(f'"{for_each}" cannot be both a column of the fit and the for_each= column.\n'
+                raise SimplydataError(f'"{for_each}" cannot be both a column of the fit and the for_each_group_in= column.\n'
                                       f"For example, {example}")
         frame = self._number_frame(step, needed)
         if for_each is not None and frame.schema[for_each].is_float():
@@ -558,7 +558,7 @@ class FittingWords:
     def fit_line(self, x=None, y=None):
         """Fit the straight line y = slope * x + intercept that best follows the points.
 
-        table.fit_line(x="hours", y="marks")   (with sdata.example("marks"))
+        table.fit_line(x="hours", y="marks")   (with sdata.get_example("marks"))
         Ordinary least squares (the same as R lm(y ~ x)). Prints how much y goes up for each
         1 more of x, with its 95 % confidence interval and p-value, and R squared: the share
         of the differences in y that the line explains. Rows with an empty cell in x or y
@@ -568,7 +568,7 @@ class FittingWords:
         """
         st = _st()
         step = "fit_line"
-        example = 'with sdata.example("marks"): table.fit_line(x="hours", y="marks")'
+        example = 'with sdata.get_example("marks"): table.fit_line(x="hours", y="marks")'
         self._need_name(step, "x=", x, example)
         self._need_name(step, "y=", y, example)
         if x == y:
@@ -610,33 +610,33 @@ class FittingWords:
         return self._result_table(row)
 
     # ------------------------------------------------------------------ fit_curve
-    @friendly
-    def fit_curve(self, x=None, y=None, degree=2, weights=None, for_each=None):
+    @friendly(renamed={"degree": "of_degree", "for_each": "for_each_group_in"})
+    def fit_curve(self, x=None, y=None, of_degree=2, weights=None, for_each_group_in=None):
         """Fit a curve y = b0 + b1 * x + b2 * x**2 ... that best follows the points.
 
-        table.fit_curve(x="hours", y="marks", degree=2)   (with sdata.example("marks"))
-        degree=2 is a curve with one bend, degree=3 can bend twice, and so on (up to 10), the
-        same curve as chart.fit_curve(degree=). Least squares on the powers of x, as R
+        table.fit_curve(x="hours", y="marks", of_degree=2)   (with sdata.get_example("marks"))
+        of_degree=2 is a curve with one bend, of_degree=3 can bend twice, and so on (up to 10), the
+        same curve as chart.fit_curve(of_degree=). Least squares on the powers of x, as R
         lm(y ~ poly(x, 2, raw = TRUE)). Prints the curve and R squared; gives back one row
         per term (the intercept, x, x**2 ...) with its estimate, standard error, t, p-value
         and 95 % confidence interval. weights="column" counts some rows more (as R
-        lm(weights =)); for_each="column" fits each group on its own. Rows with an empty
+        lm(weights =)); for_each_group_in="column" fits each group on its own. Rows with an empty
         cell are skipped.
         """
         st = _st()
         step = "fit_curve"
-        example = 'with sdata.example("marks"): table.fit_curve(x="hours", y="marks", degree=2)'
+        example = 'with sdata.get_example("marks"): table.fit_curve(x="hours", y="marks", of_degree=2)'
         self._need_name(step, "x=", x, example)
         self._need_name(step, "y=", y, example)
         if x == y:
             raise SimplydataError(f"{step}() needs two different columns, for example {example}.")
-        if isinstance(degree, bool) or not isinstance(degree, (int, np.integer)) or not 1 <= degree <= MAX_DEGREE:
+        if isinstance(of_degree, bool) or not isinstance(of_degree, (int, np.integer)) or not 1 <= of_degree <= MAX_DEGREE:
             raise SimplydataError(
-                f"degree= should be a whole number from 1 to {MAX_DEGREE}, not {degree!r}.\n"
-                "For example degree=2 for a curve with one bend."
+                f"of_degree= should be a whole number from 1 to {MAX_DEGREE}, not {of_degree!r}.\n"
+                "For example of_degree=2 for a curve with one bend."
             )
-        degree = int(degree)
-        groups = self._fit_data(step, [x, y], for_each, weights, example)
+        of_degree = int(of_degree)
+        groups = self._fit_data(step, [x, y], for_each_group_in, weights, example)
         rows, lines, failed = [], [], []
         for label, key, arrays in groups:
             xs, ys = arrays[x], arrays[y]
@@ -645,22 +645,22 @@ class FittingWords:
             try:
                 if w is not None and np.any(w <= 0):
                     raise SimplydataError("weights= needs a number above 0 in every row used.")
-                if len(np.unique(xs)) <= degree:
+                if len(np.unique(xs)) <= of_degree:
                     raise SimplydataError(
-                        f'A curve of degree {degree} needs at least {degree + 1} different values of "{x}"{where}, '
+                        f'A curve of degree {of_degree} needs at least {of_degree + 1} different values of "{x}"{where}, '
                         f"and more rows than that to say anything about its fit; there are {len(np.unique(xs))}.")
-                if len(xs) <= degree + 1:
+                if len(xs) <= of_degree + 1:
                     raise SimplydataError(f"{step}() needs more rows ({len(xs)}){where} than terms in the curve "
-                                          f"({degree + 1}).")
-                fit = fit_curve_core(xs, ys, degree, w)
+                                          f"({of_degree + 1}).")
+                fit = fit_curve_core(xs, ys, of_degree, w)
             except SimplydataError as error:
                 if label is None:
                     raise
                 failed.append((label, str(error).split("\n")[0]))
                 continue
-            terms = ["(intercept)", x] + [f"{x}**{k}" for k in range(2, degree + 1)]
+            terms = ["(intercept)", x] + [f"{x}**{k}" for k in range(2, of_degree + 1)]
             for j, term in enumerate(terms):
-                row = {} if label is None else {for_each: key}
+                row = {} if label is None else {for_each_group_in: key}
                 row.update({"term": term, "estimate": float(fit["beta"][j]),
                             "standard error": float(fit["se"][j]), "statistic name": "t",
                             "statistic": float(fit["t"][j]), "degrees of freedom": float(fit["df"]),
@@ -672,22 +672,22 @@ class FittingWords:
         if not rows:
             raise SimplydataError(f"{step}() could not fit a curve in any group: {failed[0][1]}")
         r_weights = f", weights = {weights}" if weights is not None else ""
-        if for_each is None:
+        if for_each_group_in is None:
             fit = lines[0][1]
             print(f"Curve: {_curve_text(y, x, fit['beta'])} (each with its 95 % CI in the table); "
                   f"R squared = {fit['r2']:.2f}, adjusted {fit['adjusted']:.2f}.")
         else:
-            print(f'Curves of degree {degree} for each "{for_each}" (each value with its 95 % CI in the table):')
+            print(f'Curves of degree {of_degree} for each "{for_each_group_in}" (each value with its 95 % CI in the table):')
             for label, fit in lines[:st.GROUPS_SHOWN]:
                 print(f"  {label} ({fit['n']} rows): {_curve_text(y, x, fit['beta'])}; "
                       f"R squared = {fit['r2']:.2f}, adjusted {fit['adjusted']:.2f}.")
             if len(lines) > st.GROUPS_SHOWN:
                 print(f"  ... and {len(lines) - st.GROUPS_SHOWN} more groups (the table has them all)")
         weighted = f'weighted least squares (weights "{weights}")' if weights is not None else "least squares"
-        print(f"Method: {weighted} on powers of {x}, as R lm({y} ~ poly({x}, {degree}, raw = TRUE){r_weights}).")
+        print(f"Method: {weighted} on powers of {x}, as R lm({y} ~ poly({x}, {of_degree}, raw = TRUE){r_weights}).")
         for label, problem in failed:
             print(f'Note: group "{label}" was not fitted: {problem}')
-        if degree >= WIGGLY_DEGREE:
+        if of_degree >= WIGGLY_DEGREE:
             print('Note: high degrees wiggle between points; a smooth curve (values_at(..., smoothness="auto")) '
                   "or a formula (fit_formula) may describe the data better.")
         return self._rows_table(rows)
@@ -713,12 +713,12 @@ class FittingWords:
             raise SimplydataError(f"{step}() could not fit the formula in any group. In the first: {fits[0][2]}")
         return parsed, fits
 
-    @friendly
-    def fit_formula(self, formula=None, start=None, between=None, weights=None, for_each=None,
+    @friendly(renamed={"for_each": "for_each_group_in"})
+    def fit_formula(self, formula=None, start=None, between=None, weights=None, for_each_group_in=None,
                     search="from start", method=None):
         """Find the values in a formula that make it follow the data best.
 
-        table.fit_formula("population = a * exp(b * (year - 2000))")   (with sdata.example("growth"))
+        table.fit_formula("population = a * exp(b * (year - 2000))")   (with sdata.get_example("growth"))
         Write the column to fit on the left of =. On the right, names that are columns are
         data; any other name (such as a, b or rate) is a value to find. Uses nonlinear least
         squares, as R nls() (Levenberg-Marquardt). Every value to find starts at 1; give
@@ -726,7 +726,7 @@ class FittingWords:
         between={"b": [0, None]} keeps a value between limits (None: no limit), as R
         nls(algorithm = "port"); search="whole range" searches the whole range of between=
         before fitting (differential evolution, seed 1), for when start values are hard to
-        guess. weights="column" counts some rows more (as R nls(weights =)). for_each="column"
+        guess. weights="column" counts some rows more (as R nls(weights =)). for_each_group_in="column"
         fits each group on its own. method= lets an expert choose "levenberg-marquardt",
         "trust region" or "dogbox".
         Prints each value with its 95 % confidence interval, the residual standard error and
@@ -738,13 +738,13 @@ class FittingWords:
         """
         st = _st()
         step = "fit_formula"
-        example = 'with sdata.example("growth"): table.fit_formula("population = a * exp(b * (year - 2000))")'
-        parsed, fits = self._fit_formula_groups(step, formula, start, between, weights, for_each, search, method,
+        example = 'with sdata.get_example("growth"): table.fit_formula("population = a * exp(b * (year - 2000))")'
+        parsed, fits = self._fit_formula_groups(step, formula, start, between, weights, for_each_group_in, search, method,
                                                 example)
         rows = []
         num = st._num
         for label, key, fit in fits:
-            row = {} if label is None else {for_each: key}
+            row = {} if label is None else {for_each_group_in: key}
             row.update({"test": "formula fit (nonlinear least squares)", "formula": parsed.text})
             if isinstance(fit, str):
                 for name in parsed.names:
@@ -776,11 +776,11 @@ class FittingWords:
                     f"R squared = {fit.r2:.2f} (only a rough guide for a curve).")
 
         done = [(label, fit) for label, _, fit in fits if not isinstance(fit, str)]
-        if for_each is None:
+        if for_each_group_in is None:
             fit = done[0][1]
             print(f'Fitted "{parsed.text}" to {fit.n} rows: {values_text(fit)}. {quality(fit)}')
         else:
-            print(f'Fitted "{parsed.text}" for each "{for_each}":')
+            print(f'Fitted "{parsed.text}" for each "{for_each_group_in}":')
             for label, fit in done[:st.GROUPS_SHOWN]:
                 print(f"  {label} ({fit.n} rows): {values_text(fit)}. {quality(fit)}")
             if len(done) > st.GROUPS_SHOWN:
@@ -801,8 +801,8 @@ class FittingWords:
         """add_predicted_column("y = a * exp(b * x)"): fit (or take using=) and add the formula's value."""
         st = _st()
         step = "add_predicted_column"
-        example = ('with sdata.example("growth"): table.add_predicted_column("population = a * exp(b * (year - '
-                   '2000))", for_each="country")')
+        example = ('with sdata.get_example("growth"): table.add_predicted_column("population = a * exp(b * (year - '
+                   '2000))", for_each_group_in="country")')
         parsed = read_fit_formula(formula, self._columns, step)
         if name is None:
             name = f"predicted {parsed.left}"
@@ -811,7 +811,7 @@ class FittingWords:
         if name in self._columns:
             raise SimplydataError(f'There is already a column called "{name}". Choose another name with name=.')
         if for_each is not None:
-            self._need_name(step, "for_each=", for_each, example)
+            self._need_name(step, "for_each_group_in=", for_each, example)
             self._need_columns(for_each)
         if using is not None:
             values_by_group, how = self._values_from_result(step, parsed, using, for_each, start, between, weights)
@@ -888,12 +888,12 @@ class FittingWords:
         if for_each is None:
             if len(records) != 1:
                 raise SimplydataError(f"using= has {len(records)} rows (one per group?). Say which column holds the "
-                                      "groups with for_each=.")
+                                      "groups with for_each_group_in=.")
             found = {None: {k: float(records[0][k]) for k in parsed.names}}
         else:
             if for_each not in result.columns:
                 raise SimplydataError(f'using= has no "{for_each}" column: give the fit_formula(..., '
-                                      f'for_each="{for_each}") result.')
+                                      f'for_each_group_in="{for_each}") result.')
             found = {r[for_each]: {k: float(r[k]) for k in parsed.names} for r in records
                      if all(r[k] is not None and math.isfinite(float(r[k])) for k in parsed.names)}
         rows = [r.get("rows") for r in records if r.get("rows") is not None]

@@ -3,7 +3,7 @@
 These words work on the most recent data layer (ctx.last) and are drawn in the "extra"
 phase, after every chart type. Methods, written so they can be stated in a paper:
 
-* error_bars: for every x value (and colour group) the mean of y, with
+* draw_error_bars: for every x value (and colour group) the mean of y, with
   "standard deviation" (sd) = sample standard deviation (n - 1), "standard error" (se) =
   sd / sqrt(n), "confidence interval" (ci) = 95 % confidence interval of the mean from the
   t distribution (_stats.t_interval).
@@ -12,18 +12,18 @@ phase, after every chart type. Methods, written so they can be stated in a paper
   sideways together (ggplot2's position_dodge), spread over 15 % of the smallest x gap
   (15 % of 1 for categories); dodge=False keeps the true x.
 * fit_line: ordinary least squares, scipy.stats.linregress; R² = rvalue².
-  confidence_band=True is the 95 % confidence band of the fitted line (of the mean of y at each x),
+  with_confidence_band=True is the 95 % confidence band of the fitted line (of the mean of y at each x),
   from statsmodels OLS get_prediction().conf_int(), as R predict(lm, interval = "confidence").
 * fit_curve: least-squares polynomial, the same statsmodels fit as table.fit_curve; R² = 1 - SSE / SST.
-* smooth_line: LOWESS (Cleveland 1979), statsmodels lowess(), which follows R's lowess():
+* draw_smooth_line: LOWESS (Cleveland 1979), statsmodels lowess(), which follows R's lowess():
   local straight-line fits with tricube weights over the nearest 2/3 of the points, then 3
   robustness iterations with bisquare weights (6 × median absolute residual). Up to 1000
   points every point is fitted (delta = 0) and the curve is R's to about 1e-9; above 1000
   points, points within 1 % of the x range are interpolated (delta = 0.01 · range, R's
   default), to keep it fast, and statsmodels and R interpolate a little differently, so the
   curve agrees with R to about 1e-5.
-* side_histograms: numpy.histogram_bin_edges(bins="auto"), the same bins for all groups.
-* sdata.pairs: seaborn.histplot on the diagonal, or seaborn.kdeplot (Gaussian kernel,
+* draw_side_histograms: numpy.histogram_bin_edges(with_bins="auto"), the same bins for all groups.
+* sdata.draw_all_pairs: seaborn.histplot on the diagonal, or seaborn.kdeplot (Gaussian kernel,
   Scott's bandwidth) when colour= makes groups; seaborn.scatterplot elsewhere.
 """
 
@@ -64,8 +64,8 @@ _CHART_KINDS = {
     "trend_and_season", "spectrum", "spectrum_over_time",
 }
 _EXAMPLE = {
-    "dots": 'chart.dots(x="hours", y="marks")',
-    "lines": 'chart.lines(x="month", y="temperature")',
+    "dots": 'chart.draw_dots(x="hours", y="marks")',
+    "lines": 'chart.draw_lines(x="month", y="temperature")',
 }
 
 
@@ -260,7 +260,7 @@ def _fixed_colour(word, colour):
         )
 
 
-# smooth_line(method=): the plain names first, other spellings accepted
+# draw_smooth_line(method=): the plain names first, other spellings accepted
 SMOOTH_METHODS = {"lowess": "lowess", "loess": "lowess", "spline": "spline", "smoothing spline": "spline",
                   "smooth.spline": "spline"}
 
@@ -269,7 +269,7 @@ SMOOTH_METHODS = {"lowess": "lowess", "loess": "lowess", "spline": "spline", "sm
 def _not_average_error(show):
     return SimplydataError(
         f'.error_bars() shows spread around the average, but your lines show the {show}.\n'
-        'Use chart.lines(..., show="average") with error bars.'
+        'Use chart.draw_lines(..., show="average") with error bars.'
     )
 
 
@@ -284,7 +284,7 @@ def _draw_error_bars(ctx, kind, column, dodge=True):
         if is_listlike(column):
             if len(column) != len(table):
                 raise SimplydataError(
-                    f"error_bars(column=...) got {len(column)} error sizes, but the chart has {len(table)} points."
+                    f"draw_error_bars(column=...) got {len(column)} error sizes, but the chart has {len(table)} points."
                 )
             values, name = pd.Series(list(column), index=table.index), "your list"
         else:
@@ -299,7 +299,7 @@ def _draw_error_bars(ctx, kind, column, dodge=True):
         if last["kind"] == "lines" and table.duplicated(subset=keys).any():
             raise SimplydataError(
                 "Your lines join several rows per x value, so one error size per row does not fit.\n"
-                'Use chart.error_bars("standard deviation") to work out the spread instead, or use one row '
+                'Use chart.draw_error_bars("standard deviation") to work out the spread instead, or use one row '
                 "per x value."
             )
         data = table.assign(_err=values.to_numpy())
@@ -317,7 +317,7 @@ def _draw_error_bars(ctx, kind, column, dodge=True):
         if summary["half"].isna().all():
             raise SimplydataError(
                 f'.error_bars("{ERROR_LONG[kind]}") needs at least 2 values for an x value, but every x has only one.\n'
-                'If your table has its own error sizes, use chart.error_bars(column="your error column").'
+                'If your table has its own error sizes, use chart.draw_error_bars(column="your error column").'
             )
         for level, part, colour in _groups(ctx, summary, group):
             part = part.dropna(subset=["half"])
@@ -488,14 +488,14 @@ def _draw_smooth_line(ctx, colour, thickness=None, method="lowess", smoothness="
 
     last = _layer(ctx, "smooth_line", {"dots", "lines"})
     table, x, y, group = last["table"], last["x"], last["y"], last["colour"]
-    _numeric_xy("smooth_line", table, x, y)
+    _numeric_xy("draw_smooth_line", table, x, y)
     for _, part, col in _groups(ctx, table, group, colour):
-        xv, yv = _numeric_xy("smooth_line", part, x, y)
+        xv, yv = _numeric_xy("draw_smooth_line", part, x, y)
         order = np.argsort(xv, kind="stable")
         xv, yv = xv[order], yv[order]
         steps = np.diff(xv)
         if len(xv) < 3 or steps[0] <= 0 or not np.allclose(steps, steps[0], rtol=1e-6, atol=0):
-            raise SimplydataError(f'chart.smooth_line(method="{method}") needs evenly spaced x values, one dot per '
+            raise SimplydataError(f'chart.draw_smooth_line(method="{method}") needs evenly spaced x values, one dot per '
                                   'step (a window counts readings). For uneven x use method="lowess" or "spline".')
         got = _smoothing.smooth(yv, method, window, ends, step_name="smooth_line", **(options or {}))
         ctx.ax.plot(xv, got.values, color=col, zorder=3, linewidth=thickness)
@@ -504,7 +504,7 @@ def _draw_smooth_line(ctx, colour, thickness=None, method="lowess", smoothness="
 def _draw_side_histograms(ctx):
     last = _layer(ctx, "side_histograms", {"dots"})
     table, x, y, group = last["table"], last["x"], last["y"], last["colour"]
-    _numeric_xy("side_histograms", table, x, y)
+    _numeric_xy("draw_side_histograms", table, x, y)
     ax = ctx.ax
     top = ax.inset_axes([0, 1.02, 1, 0.18], sharex=ax)
     right = ax.inset_axes([1.02, 0, 0.18, 1], sharey=ax)
@@ -553,8 +553,8 @@ def _draw_line_with_slope(ctx, slope, through, dashed, colour, label, thickness=
     ax = ctx.ax
     if ax.get_xscale() != "linear" or ax.get_yscale() != "linear":
         raise SimplydataError(
-            ".line_with_slope() draws a straight line, which is only straight on ordinary axes, "
-            "not on a log scale.\nLeave out .log_scale_x() / .log_scale_y(), or draw the line on a chart without them.")
+            ".draw_line_with_slope() draws a straight line, which is only straight on ordinary axes, "
+            "not on a log scale.\nLeave out .use_log_scale_x() / .use_log_scale_y(), or draw the line on a chart without them.")
     line = ax.axline(through, slope=slope, color=colour, linestyle="--" if dashed else "-",
                      linewidth=1.5 if thickness is None else thickness, zorder=2.5)
     if label:
@@ -617,9 +617,9 @@ class StatsWords:
                         f'.{word}() needs numbers on {role}, but "{col}" holds {_kind_of(self._data[col])}.')
         return step
 
-    @friendly
-    def error_bars(self, kind="standard deviation", column=None, dodge=True):
-        """Error bars on dots or lines. chart.error_bars("standard error")
+    @friendly(renamed={"kind": "of_kind"})
+    def draw_error_bars(self, of_kind="standard deviation", column=None, dodge=True):
+        """Error bars on dots or lines. chart.draw_error_bars("standard error")
 
         For every x value the bar shows the average of y and how sure or spread it is:
         "standard deviation" (n - 1): how spread out the values are around the average;
@@ -630,29 +630,29 @@ class StatsWords:
         With colour groups, bars at the same x move a little apart (with their lines and
         dots) so they do not hide each other; dodge=False keeps them on the true x.
         """
-        kind = error_code("error_bars", kind, option="kind")
+        of_kind = error_code("draw_error_bars", of_kind, option="kind")
         if column is not None and not is_listlike(column):
             if not isinstance(column, str):
                 raise SimplydataError('column= should be the name of a column, for example column="error".')
             if len(self._data.columns) and column not in self._data.columns:
                 raise column_error(column, self._data.columns)
-        step = self._check_layer_now("error_bars", {"dots", "lines"}, numeric=False)
+        step = self._check_layer_now("draw_error_bars", {"dots", "lines"}, numeric=False)
         if step is not None and step.name == "lines" and column is None:
             show = step.kwargs.get("show", "average")
             if show not in ("average", "mean"):
                 raise _not_average_error(show)
         if column is None:
-            say_error(kind)
-        return self._add("error_bars", "extra", _draw_error_bars, kind=kind, column=column,
+            say_error(of_kind)
+        return self._add("error_bars", "extra", _draw_error_bars, kind=of_kind, column=column,
                          dodge=bool(dodge))
 
-    @friendly(renamed={"band": "confidence_band"})
-    def fit_line(self, confidence_band=False, show_equation=False, colour=None, thickness=None):
+    @friendly(renamed={"band": "with_confidence_band", "confidence_band": "with_confidence_band"})
+    def fit_line(self, with_confidence_band=False, show_equation=False, colour=None, thickness=None):
         """A straight line that fits the dots best (linear regression). chart.fit_line()
 
         The line is found by least squares: it makes the squared distances from the dots
         to the line as small as possible.
-        confidence_band=True shades the 95 % confidence band: where the true line very
+        with_confidence_band=True shades the 95 % confidence band: where the true line very
         likely is.
         show_equation=True writes the equation and R² on the chart.
         Each colour group gets its own line. colour="red" makes every line red.
@@ -661,32 +661,32 @@ class StatsWords:
         _fixed_colour("fit_line", colour)
         thickness = check_thickness("fit_line", thickness)
         self._check_layer_now("fit_line", {"dots"})
-        return self._add("fit_line", "extra", _draw_fit_line, band=bool(confidence_band),
+        return self._add("fit_line", "extra", _draw_fit_line, band=bool(with_confidence_band),
                          show_equation=bool(show_equation), colour=colour, thickness=thickness)
 
-    @friendly
-    def fit_curve(self, degree=2, show_equation=False, colour=None, thickness=None):
-        """A curve that fits the dots best. chart.fit_curve(degree=2)
+    @friendly(renamed={"degree": "of_degree"})
+    def fit_curve(self, of_degree=2, show_equation=False, colour=None, thickness=None):
+        """A curve that fits the dots best. chart.fit_curve(of_degree=2)
 
-        degree=2 is a curve with one bend (x²), degree=3 can bend twice (x³), and so on.
+        of_degree=2 is a curve with one bend (x²), of_degree=3 can bend twice (x³), and so on.
         show_equation=True writes the equation and R² on the chart.
         thickness=3 draws a thicker curve (normal is 2).
         """
         thickness = check_thickness("fit_curve", thickness)
-        if isinstance(degree, bool) or not isinstance(degree, (int, np.integer)) or not 1 <= degree <= 10:
+        if isinstance(of_degree, bool) or not isinstance(of_degree, (int, np.integer)) or not 1 <= of_degree <= 10:
             raise SimplydataError(
-                f"degree= should be a whole number from 1 to 10, not {degree!r}.\n"
-                "For example chart.fit_curve(degree=2) for a curve with one bend."
+                f"of_degree= should be a whole number from 1 to 10, not {of_degree!r}.\n"
+                "For example chart.fit_curve(of_degree=2) for a curve with one bend."
             )
         _fixed_colour("fit_curve", colour)
         self._check_layer_now("fit_curve", {"dots"})
-        return self._add("fit_curve", "extra", _draw_fit_curve, degree=int(degree),
+        return self._add("fit_curve", "extra", _draw_fit_curve, degree=int(of_degree),
                          show_equation=bool(show_equation), colour=colour, thickness=thickness)
 
-    @friendly
-    def smooth_line(self, colour=None, thickness=None, method="lowess", smoothness="auto", window=5, ends=None,
-                    weights=None, degree=None, newest_weight=None, width=None):
-        """A smooth line that follows the dots (LOWESS). chart.smooth_line()
+    @friendly(renamed={"degree": "of_degree"})
+    def draw_smooth_line(self, colour=None, thickness=None, method="lowess", smoothness="auto", window=5, ends=None,
+                         weights=None, of_degree=None, newest_weight=None, width=None):
+        """A smooth line that follows the dots (LOWESS). chart.draw_smooth_line()
 
         Good for seeing a trend that is not straight. Each colour group gets its own line.
         thickness=3 draws a thicker line (normal is 2).
@@ -696,14 +696,14 @@ class StatsWords:
         is R's lambda= (bigger is smoother) and needs no R.
         The smoothing methods of nums.smooth work too, on dots or lines with evenly spaced x:
         "moving average" (window=, weights=, ends=), "median" (needs R), "savitzky-golay"
-        (degree=), "exponential" (newest_weight=), "gaussian" (width=), "whittaker" (smoothness=)
+        (of_degree=), "exponential" (newest_weight=), "gaussian" (width=), "whittaker" (smoothness=)
         and "wiener". The line goes through the x values of the dots, as table.add_smoothed_column.
         """
         from .. import _smoothing
         from .._errors import choice_error
 
         _fixed_colour("smooth_line", colour)
-        thickness = check_thickness("smooth_line", thickness)
+        thickness = check_thickness("draw_smooth_line", thickness)
         key = method.strip().lower() if isinstance(method, str) else method
         if key in SMOOTH_METHODS:
             method = SMOOTH_METHODS[key]
@@ -711,8 +711,8 @@ class StatsWords:
             try:
                 method = _smoothing.read_method(method, "smooth_line")
             except SimplydataError:
-                raise choice_error("smooth_line", "method", method, list(_smoothing.METHODS)) from None
-        options = {k: v for k, v in (("weights", weights), ("degree", degree), ("newest_weight", newest_weight),
+                raise choice_error("draw_smooth_line", "method", method, list(_smoothing.METHODS)) from None
+        options = {k: v for k, v in (("weights", weights), ("degree", of_degree), ("newest_weight", newest_weight),
                                      ("width", width)) if v is not None}
         if method not in ("lowess", "spline"):
             if method == "whittaker" and smoothness != "auto":
@@ -720,14 +720,14 @@ class StatsWords:
             allowed = _smoothing.OPTIONS.get(method, set())
             extra = sorted(k for k in options if k not in allowed)
             if extra:
-                raise SimplydataError(f'smooth_line(method="{method}") does not take {extra[0]}=.')
+                raise SimplydataError(f'draw_smooth_line(method="{method}") does not take {extra[0]}=.')
             if method in _smoothing.WINDOW_METHODS and weights is None:
                 _smoothing._odd_window(window, "smooth_line", method)
-            self._check_layer_now("smooth_line", {"dots", "lines"})
+            self._check_layer_now("draw_smooth_line", {"dots", "lines"})
             return self._add("smooth_line", "extra", _draw_smooth_line, colour=colour, thickness=thickness,
                              method=method, window=window, ends=ends, options=options)
         if options or ends is not None or window != 5:
-            raise SimplydataError(f'window=, ends=, weights=, degree=, newest_weight= and width= go with the window '
+            raise SimplydataError(f'window=, ends=, weights=, of_degree=, newest_weight= and width= go with the window '
                                   f'methods (such as method="moving average"), not with method="{method}".')
         from ..table.between import smoothness_choice
 
@@ -735,64 +735,64 @@ class StatsWords:
         if method == "lowess" and smoothness != "auto":
             raise SimplydataError('smoothness= a number goes with method="spline" (a smoothing spline); LOWESS '
                                   'always uses the nearest 2/3 of the dots, as R lowess().\n'
-                                  'For example chart.smooth_line(method="spline", smoothness=0.001)')
+                                  'For example chart.draw_smooth_line(method="spline", smoothness=0.001)')
         if smoothness == 0:
             raise SimplydataError('smoothness=0 would pass through every dot; use "auto" or a number above 0, '
-                                  'or chart.lines(..., joined_by="smooth curve") to join the dots.')
-        self._check_layer_now("smooth_line", {"dots"})
+                                  'or chart.draw_lines(..., joined_by="smooth curve") to join the dots.')
+        self._check_layer_now("draw_smooth_line", {"dots"})
         return self._add("smooth_line", "extra", _draw_smooth_line, colour=colour, thickness=thickness,
                          method=method, smoothness=smoothness)
 
     @friendly
-    def side_histograms(self):
-        """Small histograms along the top and right edges of a dots chart. chart.side_histograms()"""
-        self._check_layer_now("side_histograms", {"dots"})
+    def draw_side_histograms(self):
+        """Small histograms along the top and right edges of a dots chart. chart.draw_side_histograms()"""
+        self._check_layer_now("draw_side_histograms", {"dots"})
         return self._add("side_histograms", "extra", _draw_side_histograms)
 
-    @friendly
-    def line_at_x(self, value, dashed=True, colour="grey", label=None, thickness=None):
-        """A straight up-and-down line at one x value. chart.line_at_x(2010, label="2010")
+    @friendly(renamed={"label": "labelled"})
+    def draw_line_at_x(self, value, dashed=True, colour="grey", labelled=None, thickness=None):
+        """A straight up-and-down line at one x value. chart.draw_line_at_x(2010, labelled="2010")
 
         thickness=3 draws a thicker line (normal is 1.5).
         """
         _check_position("line_at_x", "value", value, "line_at_x(10)")
         _fixed_colour("line_at_x", colour)
-        thickness = check_thickness("line_at_x", thickness)
+        thickness = check_thickness("draw_line_at_x", thickness)
         return self._add("line_at_x", "extra", _draw_line_at, axis="x", value=value, dashed=bool(dashed),
-                         colour=colour, label=None if label is None else str(label), thickness=thickness)
+                         colour=colour, label=None if labelled is None else str(labelled), thickness=thickness)
 
-    @friendly
-    def line_at_y(self, value, dashed=True, colour="grey", label=None, thickness=None):
-        """A straight side-to-side line at one y value. chart.line_at_y(50, label="pass mark")
+    @friendly(renamed={"label": "labelled"})
+    def draw_line_at_y(self, value, dashed=True, colour="grey", labelled=None, thickness=None):
+        """A straight side-to-side line at one y value. chart.draw_line_at_y(50, labelled="pass mark")
 
         thickness=3 draws a thicker line (normal is 1.5).
         """
         _check_position("line_at_y", "value", value, "line_at_y(50)")
         _fixed_colour("line_at_y", colour)
-        thickness = check_thickness("line_at_y", thickness)
+        thickness = check_thickness("draw_line_at_y", thickness)
         return self._add("line_at_y", "extra", _draw_line_at, axis="y", value=value, dashed=bool(dashed),
-                         colour=colour, label=None if label is None else str(label), thickness=thickness)
+                         colour=colour, label=None if labelled is None else str(labelled), thickness=thickness)
 
-    @friendly
-    def line_with_slope(self, slope, through=None, intercept=None, dashed=True, colour="grey", label=None,
-                        thickness=None):
-        """A straight line with a given slope, right across the chart. chart.line_with_slope(1, through=(0, 0))
+    @friendly(renamed={"label": "labelled"})
+    def draw_line_with_slope(self, slope, through=None, intercept=None, dashed=True, colour="grey", labelled=None,
+                             thickness=None):
+        """A straight line with a given slope, right across the chart. chart.draw_line_with_slope(1, through=(0, 0))
 
-        chart.line_with_slope(1, label="1:1") draws the 1:1 line (y = x) on a chart of
+        chart.draw_line_with_slope(1, labelled="1:1") draws the 1:1 line (y = x) on a chart of
         observed against predicted values. through=(2, 10) makes the line pass through
         x = 2, y = 10 (normally through 0, 0); intercept=5 instead sets where it crosses
-        x = 0, so y = intercept + slope * x. label= names it in the legend.
+        x = 0, so y = intercept + slope * x. labelled= names it in the legend.
         thickness=3 draws a thicker line (normal is 1.5). Ordinary (not log) axes only.
         """
         if isinstance(slope, bool) or not isinstance(slope, (int, float, np.integer, np.floating)) \
                 or not np.isfinite(slope):
             raise SimplydataError(
                 f".line_with_slope() needs a number for the slope, not {slope!r}.\n"
-                "For example chart.line_with_slope(1) for the 1:1 line (y = x).")
+                "For example chart.draw_line_with_slope(1) for the 1:1 line (y = x).")
         if through is not None and intercept is not None:
             raise SimplydataError(
-                ".line_with_slope() takes through= or intercept=, not both: both say where the line goes.\n"
-                "For example chart.line_with_slope(2, intercept=5) or chart.line_with_slope(2, through=(1, 7)).")
+                ".draw_line_with_slope() takes through= or intercept=, not both: both say where the line goes.\n"
+                "For example chart.draw_line_with_slope(2, intercept=5) or chart.draw_line_with_slope(2, through=(1, 7)).")
         if intercept is not None:
             _check_position("line_with_slope", "intercept", intercept, "line_with_slope(2, intercept=5)")
             through = (0, intercept)
@@ -806,9 +806,9 @@ class StatsWords:
                 _check_position("line_with_slope", "through", v, "line_with_slope(1, through=(0, 0))")
             through = (through[0], through[1])
         _fixed_colour("line_with_slope", colour)
-        thickness = check_thickness("line_with_slope", thickness)
+        thickness = check_thickness("draw_line_with_slope", thickness)
         self._add("line_with_slope", "extra", _draw_line_with_slope, slope=slope, through=through,
-                  dashed=bool(dashed), colour=colour, label=None if label is None else str(label),
+                  dashed=bool(dashed), colour=colour, label=None if labelled is None else str(labelled),
                   thickness=thickness)
         return self._replace("slope_legend", "extra", _slope_legend)
 
@@ -835,18 +835,18 @@ class StatsWords:
         return self._shade("y", low, high, colour)
 
 
-# ====================================================================== sdata.pairs
+# ====================================================================== sdata.draw_all_pairs
 class PairsChart(TextWords, LookWords, BaseChart):
-    """Every number column against every other. Make one with sdata.pairs(table)."""
+    """Every number column against every other. Make one with sdata.draw_all_pairs(table)."""
 
     def __init__(self, data, colour=None, columns=None):
         super().__init__(data)
         table = self._data
         if not len(table.columns):
-            raise SimplydataError('sdata.pairs() needs a table, for example sdata.pairs(sdata.example("marks")).')
+            raise SimplydataError('sdata.draw_all_pairs() needs a table, for example sdata.draw_all_pairs(sdata.get_example("marks")).')
         group, fixed = colour_role(table, colour)
         if is_listlike(group):
-            raise SimplydataError('In sdata.pairs(), colour= should be a column name, for example colour="class".')
+            raise SimplydataError('In sdata.draw_all_pairs(), colour= should be a column name, for example colour="class".')
         if columns is not None:
             if isinstance(columns, str) or not is_listlike(columns):
                 raise SimplydataError('columns= should be a list of column names, for example columns=["hours", "marks"].')
@@ -859,16 +859,16 @@ class PairsChart(TextWords, LookWords, BaseChart):
         numbers = [c for c in chosen if _is_number_column(table[c])]
         if columns is not None and len(numbers) < len(chosen):
             bad = [str(c) for c in chosen if c not in numbers]
-            raise SimplydataError("sdata.pairs() can only use columns with numbers. Not numbers: " + ", ".join(bad))
+            raise SimplydataError("sdata.draw_all_pairs() can only use columns with numbers. Not numbers: " + ", ".join(bad))
         if len(numbers) < 2:
             raise SimplydataError(
-                "sdata.pairs() needs at least 2 columns with numbers.\n"
+                "sdata.draw_all_pairs() needs at least 2 columns with numbers.\n"
                 f"Columns with numbers: {', '.join(map(str, numbers)) or 'none'}"
             )
         if len(numbers) > 10:
             raise SimplydataError(
                 f"Your table has {len(numbers)} columns with numbers, too many for one pairs chart.\n"
-                'Choose up to 10 with columns=, for example sdata.pairs(table, columns=["hours", "marks", "height"]).'
+                'Choose up to 10 with columns=, for example sdata.draw_all_pairs(table, columns=["hours", "marks", "height"]).'
             )
         self._columns = numbers
         self._group, self._fixed = group, fixed
@@ -929,12 +929,12 @@ class PairsChart(TextWords, LookWords, BaseChart):
         return fig
 
 
-def pairs(data, colour=None, columns=None):
-    """Every number column against every other. sdata.pairs(sdata.example("marks"), colour="class")
+def draw_all_pairs(data, colour=None, columns=None):
+    """Every number column against every other. sdata.draw_all_pairs(sdata.get_example("marks"), colour="class")
 
     Histograms on the diagonal (density curves when colour= makes groups), dots
     everywhere else. colour="class" colours each group. columns=["hours", "marks"] chooses
     the columns. Empty cells are skipped. Then use it like any chart:
-    .title_top("..."), .save("pairs.png").
+    .write_title_on_top("..."), .save("pairs.png").
     """
     return PairsChart(data, colour=colour, columns=columns)

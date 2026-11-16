@@ -18,7 +18,7 @@ def rows_of_tests(result):
 
 @pytest.fixture
 def school():
-    return make_table(sdata.example("school"))
+    return make_table(sdata.get_example("school"))
 
 
 # R: m <- lm(marks ~ breakfast * school, data = s2)  (unbalanced: the three types differ)
@@ -77,7 +77,7 @@ def test_test_type_spellings_and_checks(school):
 
 def test_separation_prints_infinite_instead_of_crashing(capsys):
     # a group column that splits yes and no completely: the odds ratio runs off to infinity
-    data = sdata.example("school").assign(passed=lambda d: d.breakfast.map({"yes": "yes", "no": "no"}))
+    data = sdata.get_example("school").assign(passed=lambda d: d.breakfast.map({"yes": "yes", "no": "no"}))
     make_table(data).explain("passed", using=["hours", "breakfast"], outcome="yes or no")
     out = capsys.readouterr().out
     assert "complete separation" in out

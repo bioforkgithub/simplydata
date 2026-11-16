@@ -10,10 +10,10 @@
 * fit_formula(): table.fit_formula's engine (table/fitting.fit_formula_core: nonlinear least
   squares, as R nls()) on the dots of each colour group; the curve is the formula with the
   values found, over each group's x range.
-* fit_distribution(): the maximum-likelihood fit of the distributions engine (as R
+* chart.fit_distribution(): the maximum-likelihood fit of the distributions engine (as R
   MASS::fitdistr()) on the values of a histogram or density chart, per colour group, scaled
   as curve() scales a density.
-* lines(joined_by=) and qq_dots(distribution=) use the helpers at the end of this file;
+* lines(joined_by=) and draw_qq_dots(distribution=) use the helpers at the end of this file;
   the joining itself is table/between.py (the engine of table.values_at()).
 """
 
@@ -107,7 +107,7 @@ def read_curve_formula(word, text):
     if len(formula.names) != 1:
         if not formula.names:
             raise SimplydataError(f'"{right}" has no name such as x in it, so it does not change along the chart. '
-                                  f"For a flat line use chart.line_at_y(...).\nFor example chart.{example}")
+                                  f"For a flat line use chart.draw_line_at_y(...).\nFor example chart.{example}")
         others = ", ".join(formula.names[1:])
         raise SimplydataError(
             f'.{word}() draws a formula of one name, along x; "{right}" has {len(formula.names)}: '
@@ -122,7 +122,7 @@ def _is_distribution(thing) -> bool:
 
 def _density(dist, x):
     """Height of the density curve: a simplydata Distribution keeps pdf private (dist.pdf() points
-    people to density_at()); other objects with .pdf work too."""
+    people to find_density_at()); other objects with .pdf work too."""
     return np.asarray((getattr(dist, "_pdf", None) or dist.pdf)(x), dtype=float)
 
 
@@ -147,7 +147,7 @@ def quantiles(dist, shares):
         return np.asarray(inner.ppf(shares), dtype=float)
     if hasattr(dist, "ppf"):
         return np.asarray(dist.ppf(shares), dtype=float)
-    out = dist.percentile(list(shares * 100))
+    out = dist.find_percentile(list(shares * 100))
     return np.asarray(list(out) if not np.isscalar(out) else [out], dtype=float)
 
 
@@ -157,7 +157,7 @@ def _cumulative(dist, x):
         return np.asarray(inner.cdf(x), dtype=float)
     if hasattr(dist, "_cdf") or hasattr(dist, "cdf"):
         return np.asarray((getattr(dist, "_cdf", None) or dist.cdf)(x), dtype=float)
-    out = dist.chance(at_most=list(np.asarray(x, dtype=float)))
+    out = dist.find_chance_that_value(is_at_most=list(np.asarray(x, dtype=float)))
     return np.asarray(list(out), dtype=float)
 
 
@@ -174,7 +174,7 @@ def _default_range(dist):
 
 def fit_distribution_to(values, name, column=None, say=False):
     """The maximum-likelihood fit of the distributions engine, and the sentences it printed
-    (the same as table.fit_distribution's when say=True), kept to be printed once."""
+    (the same as table.fit_distribution_to's when say=True), kept to be printed once."""
     from ..distributions import fit
 
     out = io.StringIO()
@@ -195,9 +195,9 @@ def histogram_scale(ctx, n_values, cumulative=False):
     if cumulative or is_cumulative:
         if not (cumulative and is_cumulative):
             raise SimplydataError(
-                'On a cumulative histogram draw the cumulative curve: chart.curve(distribution, show="cumulative"); '
+                'On a cumulative histogram draw the cumulative curve: chart.draw_curve(distribution, show="cumulative"); '
                 'on an ordinary histogram show="density".' if is_cumulative else
-                'show="cumulative" goes on a cumulative histogram: chart.histogram(..., cumulative=True).')
+                'show="cumulative" goes on a cumulative histogram: chart.draw_histogram(..., cumulative=True).')
         factor = {"count": float(n_values), "percent": 100.0, "density": 1.0}.get(show, 1.0)
         words = {"count": f"x {n_values} values", "percent": "x 100", "density": ""}.get(show, "")
         return factor, (f"to the histogram's cumulative {show} ({words.strip()})" if words else "")
@@ -223,7 +223,7 @@ def _values_of_layer(ctx, word):
     return pd.to_numeric(table[column], errors="coerce")
 
 
-_HISTOGRAM_EXAMPLE = 'chart.histogram(x="marks", show="density")'
+_HISTOGRAM_EXAMPLE = 'chart.draw_histogram(x="marks", show="density")'
 
 
 def _histogram_layer_error(found):
@@ -245,7 +245,7 @@ def _draw_curve(ctx, thing, between, steps, dashed, colour, label, thickness, sh
         span = between or _x_range_of_chart(ctx)
         if span is None:
             raise SimplydataError(f'.curve("{text}") needs between=[low, high] to know where to draw, because the '
-                                  "chart has nothing else on it yet.\nFor example chart.curve(\"y = 100 * exp(-0.3 * x)\", "
+                                  "chart has nothing else on it yet.\nFor example chart.draw_curve(\"y = 100 * exp(-0.3 * x)\", "
                                   "between=[0, 10])")
         xs = np.linspace(span[0], span[1], steps)
         ys = np.asarray(formula({name: xs}), dtype=float) * np.ones_like(xs)
@@ -364,7 +364,7 @@ def _draw_fit_distribution(ctx, distribution, colour, thickness, said):
         values = pd.to_numeric(part[x], errors="coerce").dropna().to_numpy(dtype=float)
         if len(values) < 2:
             continue
-        # one curve: the sentences of table.fit_distribution; groups: one line each
+        # one curve: the sentences of table.fit_distribution_to; groups: one line each
         dist, printed = fit_distribution_to(values, distribution, column=x, say=name is None)
         span = _x_range_of_chart(ctx) or _default_range(dist)
         factor, words = histogram_scale(ctx, len(values))
@@ -389,20 +389,20 @@ def _draw_fit_distribution(ctx, distribution, colour, thickness, said):
 
 # ====================================================================== words
 class CurveWords:
-    @friendly
-    def curve(self, formula_or_distribution=None, between=None, steps=200, dashed=False, colour=None, label=None,
-              thickness=None, show="density"):
-        """Draw a formula, or a distribution, as a curve. chart.curve("y = 100 * exp(-0.3 * x)", between=[0, 10])
+    @friendly(renamed={"label": "labelled"})
+    def draw_curve(self, formula_or_distribution=None, between=None, steps=200, dashed=False, colour=None, labelled=None,
+                   thickness=None, show="density"):
+        """Draw a formula, or a distribution, as a curve. chart.draw_curve("y = 100 * exp(-0.3 * x)", between=[0, 10])
 
         The formula uses one name (x, or any other) and the functions of table.add_column;
         between=[low, high] says where along x (normally the x range of the chart).
-        chart.curve(sdata.distribution("normal", average=50, standard_deviation=10)) draws a
+        chart.draw_curve(sdata.distribution("normal", average=50, standard_deviation=10)) draws a
         distribution: its density curve, or for whole-number distributions (binomial,
         poisson ...) the chance of each value. Over a histogram the curve is scaled to the
         bars (count, percent or density), with a note. show="cumulative" draws the chance of
         a value at or below x instead (on a cumulative histogram it is scaled the same way).
         steps= is how many points make the curve (normally 200); dashed=True, colour="red",
-        thickness=3 and label="model" (shown in the legend) change how it looks.
+        thickness=3 and labelled="model" (shown in the legend) change how it looks.
         """
         word = "curve"
         thickness = check_thickness(word, thickness)
@@ -418,12 +418,12 @@ class CurveWords:
         else:
             if show == "cumulative":
                 raise SimplydataError('show="cumulative" is for a distribution, such as '
-                                      'chart.curve(sdata.distribution("normal"), show="cumulative").')
+                                      'chart.draw_curve(sdata.distribution("normal"), show="cumulative").')
             thing = read_curve_formula(word, formula_or_distribution)
         self._add(word, "extra", _draw_curve, thing=thing, between=span, steps=int(steps), dashed=bool(dashed),
-                  colour=colour, label=None if label is None else str(label), thickness=thickness, show=show,
+                  colour=colour, label=None if labelled is None else str(labelled), thickness=thickness, show=show,
                   said={})
-        if label is not None:
+        if labelled is not None:
             from .stats import _slope_legend
 
             self._replace("slope_legend", "extra", _slope_legend)
@@ -433,8 +433,8 @@ class CurveWords:
     def fit_formula(self, formula=None, start=None, between=None, show_equation=False, colour=None, thickness=None):
         """The curve of a formula fitted to the dots. chart.fit_formula("population = a * exp(b * (year - 2000))")
 
-        After dots, for example chart.dots(x="year", y="population", colour="country") (with
-        sdata.example("growth")).
+        After dots, for example chart.draw_dots(x="year", y="population", colour="country") (with
+        sdata.get_example("growth")).
 
         The same fit as table.fit_formula (nonlinear least squares, as R nls()): names that
         are columns are data, other names (a, b) are the values to find. start= and
@@ -448,7 +448,7 @@ class CurveWords:
         if not isinstance(formula, str) or formula.count("=") != 1:
             raise SimplydataError(
                 '.fit_formula() needs a formula with one = sign: the y column on the left, for example\n'
-                'chart.dots(x="year", y="population").fit_formula("population = a * exp(b * (year - 2000))")')
+                'chart.draw_dots(x="year", y="population").fit_formula("population = a * exp(b * (year - 2000))")')
         self._check_layer_now(word, {"dots"})
         return self._add(word, "extra", _draw_fit_formula, formula=formula, start=start, between=between,
                          show_equation=bool(show_equation), colour=colour, thickness=thickness, said={})
@@ -457,10 +457,10 @@ class CurveWords:
     def fit_distribution(self, distribution="normal", colour=None, thickness=None):
         """The best-fitting distribution's curve over a histogram or density chart. chart.fit_distribution("normal")
 
-        After a histogram or density, for example chart.histogram(x="marks", show="density")
-        (with sdata.example("marks")).
+        After a histogram or density, for example chart.draw_histogram(x="marks", show="density")
+        (with sdata.get_example("marks")).
 
-        The parameters are found by maximum likelihood, as table.fit_distribution (R
+        The parameters are found by maximum likelihood, as table.fit_distribution_to (R
         MASS::fitdistr()), and printed (once). Each colour group gets its own curve. Over a
         histogram the curve is scaled to what the bars show (count, percent or density).
         distribution= is any name of sdata.distribution, such as "gamma" or "lognormal".
@@ -480,7 +480,7 @@ class CurveWords:
                          thickness=thickness, said={})
 
 
-# ====================================================================== helpers for lines() and qq_dots()
+# ====================================================================== helpers for lines() and draw_qq_dots()
 def draw_joined_lines(ctx, table, n, estimator, joined_by, dots, dashed, transparency, thickness, colours):
     """lines(joined_by=...) with a curve: each group's points (one per x, by show=) joined by that curve."""
     from ..table.between import join_one_direction, unique_mean

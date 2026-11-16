@@ -29,7 +29,7 @@ def engine(request):
 
 @pytest.fixture
 def marks_df():
-    return sdata.example("marks")
+    return sdata.get_example("marks")
 
 
 @pytest.fixture
@@ -39,7 +39,7 @@ def marks(engine, marks_df):
 
 @pytest.fixture
 def weather_df():
-    return sdata.example("weather")
+    return sdata.get_example("weather")
 
 
 @pytest.fixture
@@ -76,7 +76,7 @@ def test_show_first_rows_and_show_count_from_1(marks, capsys):
     assert _labels(capsys.readouterr().out) == [1, 2, 3]
     marks.show(rows=3)
     assert _labels(capsys.readouterr().out) == [1, 2, 3]
-    marks.keep_rows("class", equal_to="B")
+    marks.keep_rows_where("class", is_equal_to="B")
     capsys.readouterr()
     marks.show()
     labels = _labels(capsys.readouterr().out)
@@ -175,7 +175,7 @@ def test_to_beyond_the_end_stops_at_the_last_row_with_a_note(marks, marks_df, ca
 
 
 def test_positions_are_of_the_table_as_it_is_now(marks, marks_df):
-    marks.keep_rows("class", equal_to="B")
+    marks.keep_rows_where("class", is_equal_to="B")
     marks.keep_rows_by_position(1, to=2)
     same(marks, marks_df[marks_df["class"] == "B"].iloc[0:2])
 
@@ -183,7 +183,7 @@ def test_positions_are_of_the_table_as_it_is_now(marks, marks_df):
 def test_keep_rows_by_position_undo_and_steps(marks, marks_df, capsys):
     marks.keep_rows_by_position(10, to=20)
     marks.keep_rows_by_position(1, step=2)
-    marks.steps()
+    marks.show_steps()
     out = capsys.readouterr().out
     assert "1. keep rows 10 to 20" in out and "2. keep every 2nd row from row 1 to row 11" in out
     marks.undo()
@@ -195,7 +195,7 @@ def test_keep_rows_by_position_undo_and_steps(marks, marks_df, capsys):
 def test_every_step_copies(marks):
     before = marks._frame
     marks.keep_rows_by_position(1, to=5)
-    marks.replace_values("marks", above=0, with_value=0)
+    marks.replace_values_in("marks", is_above=0, with_value=0)
     assert plain(marks)["marks"].tolist() == [0] * 5
     marks.undo()
     marks.undo()
@@ -224,11 +224,11 @@ def test_every_step_copies(marks):
                                             "54 is the last"),
     (lambda t: t.keep_rows_by_position(range(5)), "range() starts at 0"),
     (lambda t: t.keep_rows_by_position({1, 2}), "a set has no order"),
-    (lambda t: t.keep_rows_by_position("marks", above=50), 'table.keep_rows("marks", above=...)'),
+    (lambda t: t.keep_rows_by_position("marks", above=50), 'table.keep_rows_where("marks", is_above=...)'),
     (lambda t: t.keep_rows_by_position("marks"), '"marks" is a column'),
     (lambda t: t.keep_rows_by_position(1, stpe=2), "Did you mean step=?"),
     (lambda t: t.remove_rows_by_position(1, to="last"), "That would remove every row"),
-    (lambda t: t.remove_rows_by_position("marks", below=50), 'table.remove_rows("marks", below=...)'),
+    (lambda t: t.remove_rows_by_position("marks", below=50), 'table.remove_rows_where("marks", is_below=...)'),
 ])
 def test_keep_rows_by_position_errors(marks, call, message):
     with pytest.raises(SimplydataError) as info:
@@ -293,9 +293,9 @@ def test_unnamed_column_from_a_csv(engine, tmp_path):
     path = tmp_path / "with_index.csv"
     pd.DataFrame({"a": [1, 2], "b": [3, 4]}).to_csv(path)  # writes the index as a column with no name
     t = sdata.table(str(path), fast=engine == "polars")
-    first = t.column_names()[0]
+    first = t.get_column_names()[0]
     t.remove_columns_by_position(1)
-    assert t.column_names() == ["a", "b"] and first not in t.column_names()
+    assert t.get_column_names() == ["a", "b"] and first not in t.get_column_names()
 
 
 @pytest.mark.parametrize("call, message", [
@@ -314,16 +314,16 @@ def test_columns_by_position_errors(marks, call, message):
 
 # ====================================================================== row and cell_at
 def test_row_gives_a_plain_dict(marks, marks_df):
-    row = marks.row(3)
+    row = marks.get_row(3)
     assert row == marks_df.iloc[2].to_dict()  # pandas df.iloc[2].to_dict(); Polars df.row(2, named=True)
     assert type(row["marks"]) is int and type(row["hours"]) is float
-    assert marks.row("last")["name"] == marks_df.iloc[-1]["name"]
+    assert marks.get_row("last")["name"] == marks_df.iloc[-1]["name"]
     assert not marks._history
 
 
 def test_cell_at(marks, marks_df, capsys):
-    assert marks.cell_at(row=3, column="marks") == marks_df.at[2, "marks"]  # Polars df.item(2, "marks")
-    assert marks.cell_at(row="last", column="name") == marks_df["name"].iloc[-1]
+    assert marks.get_cell_at(row=3, column="marks") == marks_df.at[2, "marks"]  # Polars df.item(2, "marks")
+    assert marks.get_cell_at(row="last", column="name") == marks_df["name"].iloc[-1]
     assert capsys.readouterr().out == ""
     assert not marks._history
 
@@ -332,28 +332,28 @@ def test_cell_at_empty_cell_and_dates(engine):
     data = pd.DataFrame({"x": [1.0, np.nan], "when": pd.to_datetime(["2026-03-15", "2026-04-01"]),
                          "ok": [True, False]})
     t = _engine_table(data, engine)
-    assert t.cell_at(row=2, column="x") is None
-    assert t.cell_at(row=1, column="when") == dt.datetime(2026, 3, 15)
-    assert t.cell_at(row=1, column="ok") is True
-    assert t.row(2) == {"x": None, "when": dt.datetime(2026, 4, 1), "ok": False}
+    assert t.get_cell_at(row=2, column="x") is None
+    assert t.get_cell_at(row=1, column="when") == dt.datetime(2026, 3, 15)
+    assert t.get_cell_at(row=1, column="ok") is True
+    assert t.get_row(2) == {"x": None, "when": dt.datetime(2026, 4, 1), "ok": False}
 
 
 def test_cell_at_says_when_a_cell_is_empty(engine, capsys):
     t = _engine_table(pd.DataFrame({"marks": [1.0, None, 3.0]}), engine)
-    t.cell_at(row=2, column="marks")
+    t.get_cell_at(row=2, column="marks")
     assert 'Row 2, column "marks" is empty.' in capsys.readouterr().out
 
 
 @pytest.mark.parametrize("call, message", [
-    (lambda t: t.cell_at(row=3, column=2), 'column= takes the column\'s name, like column="marks"'),
-    (lambda t: t.cell_at(row=3), "needs column="),
-    (lambda t: t.cell_at(column="marks"), "needs row="),
-    (lambda t: t.cell_at(row=99, column="marks"), "There is no row 99"),
-    (lambda t: t.cell_at(row=1, column="mraks"), 'Did you mean "marks"?'),
-    (lambda t: t.row(0), "the first row is 1, not 0"),
-    (lambda t: t.row(), "needs which row"),
-    (lambda t: t.row([1, 2]), "table.keep_rows_by_position([1, 2])"),
-    (lambda t: t.row(-1), '"last" on its own is the last row'),
+    (lambda t: t.get_cell_at(row=3, column=2), 'column= takes the column\'s name, like column="marks"'),
+    (lambda t: t.get_cell_at(row=3), "needs column="),
+    (lambda t: t.get_cell_at(column="marks"), "needs row="),
+    (lambda t: t.get_cell_at(row=99, column="marks"), "There is no row 99"),
+    (lambda t: t.get_cell_at(row=1, column="mraks"), 'Did you mean "marks"?'),
+    (lambda t: t.get_row(0), "the first row is 1, not 0"),
+    (lambda t: t.get_row(), "needs which row"),
+    (lambda t: t.get_row([1, 2]), "table.keep_rows_by_position([1, 2])"),
+    (lambda t: t.get_row(-1), '"last" on its own is the last row'),
 ])
 def test_row_and_cell_errors(marks, call, message):
     with pytest.raises(SimplydataError) as info:
@@ -375,7 +375,7 @@ def test_keep_columns_run_by_name(weather, weather_df, capsys):
     weather.keep_columns("temperature", to="wind_speed")
     assert "Kept 4 columns: temperature, rain, wind_direction, wind_speed." in capsys.readouterr().out
     same(weather, weather_df.loc[:, "temperature":"wind_speed"])  # pandas loc slice, both ends included
-    weather.steps()
+    weather.show_steps()
     assert "keep columns temperature to wind_speed" in capsys.readouterr().out
 
 
@@ -386,7 +386,7 @@ def test_keep_columns_run_of_one(weather, weather_df):
 
 @pytest.mark.parametrize("kind", ["number", "numbers", "numeric", "Number"])
 def test_keep_columns_by_kind(weather, weather_df, kind):
-    weather.keep_columns(kind=kind)
+    weather.keep_columns(of_kind=kind)
     same(weather, weather_df.select_dtypes("number"))  # Polars cs.numeric()
 
 
@@ -396,31 +396,31 @@ def test_keep_columns_text_date_true_false(engine):
     for kind, expected in (("text", ["name"]), ("string", ["name"]), ("date", ["when"]), ("datetime", ["when"]),
                            ("true/false", ["ok"]), ("bool", ["ok"]), ("number", ["x"])):
         t = _engine_table(data, engine)
-        t.keep_columns(kind=kind)
-        assert t.column_names() == expected  # Polars cs.string() / cs.temporal() / cs.boolean() / cs.numeric()
+        t.keep_columns(of_kind=kind)
+        assert t.get_column_names() == expected  # Polars cs.string() / cs.temporal() / cs.boolean() / cs.numeric()
 
 
 @pytest.mark.parametrize("option, value, expected", [
     ("starts_with", "wind", ["wind_direction", "wind_speed"]),
     ("ends_with", "_speed", ["wind_speed"]),
     ("contains", "on", ["month", "month_number", "wind_direction"]),
-    ("pattern", r"^wind_", ["wind_direction", "wind_speed"]),
-    ("pattern", r"n$", ["rain", "wind_direction"]),
+    ("matches_pattern", r"^wind_", ["wind_direction", "wind_speed"]),
+    ("matches_pattern", r"n$", ["rain", "wind_direction"]),
 ])
 def test_keep_columns_by_name_text(weather, weather_df, option, value, expected):
     weather.keep_columns(**{option: value})
-    assert weather.column_names() == expected
+    assert weather.get_column_names() == expected
     native = {"starts_with": lambda: [c for c in weather_df.columns if c.startswith(value)],
               "ends_with": lambda: [c for c in weather_df.columns if c.endswith(value)],
               "contains": lambda: list(weather_df.filter(like=value).columns),
-              "pattern": lambda: list(weather_df.filter(regex=value).columns)}[option]()
+              "matches_pattern": lambda: list(weather_df.filter(regex=value).columns)}[option]()
     assert expected == native
 
 
 def test_two_steps_keep_columns_that_meet_both(weather):
-    weather.keep_columns(kind="number")
+    weather.keep_columns(of_kind="number")
     weather.keep_columns(starts_with="wind")
-    assert weather.column_names() == ["wind_direction", "wind_speed"]
+    assert weather.get_column_names() == ["wind_direction", "wind_speed"]
 
 
 def test_remove_columns_run_kind_and_names(weather, weather_df, capsys):
@@ -428,17 +428,17 @@ def test_remove_columns_run_kind_and_names(weather, weather_df, capsys):
     assert "Removed 2 columns: wind_direction, wind_speed. 5 columns left." in capsys.readouterr().out
     same(weather, weather_df.drop(columns=["wind_direction", "wind_speed"]))
     weather.undo()
-    weather.remove_columns(kind="text")
+    weather.remove_columns(of_kind="text")
     same(weather, weather_df.drop(columns=["month", "city"]))  # Polars df.select(~cs.string())
     weather.undo()
     weather.remove_columns(contains="wind")
-    assert weather.column_names() == ["month", "month_number", "city", "temperature", "rain"]
+    assert weather.get_column_names() == ["month", "month_number", "city", "temperature", "rain"]
 
 
 def test_plain_keep_columns_still_quiet_and_in_given_order(marks, capsys):
     marks.keep_columns("marks", "name")
     assert capsys.readouterr().out == ""
-    assert marks.column_names() == ["marks", "name"]
+    assert marks.get_column_names() == ["marks", "name"]
 
 
 @pytest.mark.parametrize("call, message", [
@@ -448,18 +448,18 @@ def test_plain_keep_columns_still_quiet_and_in_given_order(marks, capsys):
     (lambda t: t.keep_columns(to="rain"), "to= needs the first column's name before it"),
     (lambda t: t.keep_columns("rain", to=5), "to= takes the name of the last column"),
     (lambda t: t.keep_columns("rian", to="wind_speed"), 'Did you mean "rain"?'),
-    (lambda t: t.keep_columns(kind="date"), "This table has no date columns. The kinds it has: text (month, city)"),
-    (lambda t: t.keep_columns(kind="numbr"), 'Did you mean kind="number"?'),
-    (lambda t: t.keep_columns("city", kind="text"), "one way at a time, but you gave column names and kind=. "
+    (lambda t: t.keep_columns(of_kind="date"), "This table has no date columns. The kinds it has: text (month, city)"),
+    (lambda t: t.keep_columns(of_kind="numbr"), 'Did you mean kind="number"?'),
+    (lambda t: t.keep_columns("city", of_kind="text"), "one way at a time, but you gave column names and of_kind=. "
                                                    "Write two steps"),
-    (lambda t: t.keep_columns(kind="number", starts_with="w"), "you gave kind= and starts_with="),
-    (lambda t: t.keep_columns(pattern="("), "pattern= is a regular expression"),
+    (lambda t: t.keep_columns(of_kind="number", starts_with="w"), "you gave of_kind= and starts_with="),
+    (lambda t: t.keep_columns(matches_pattern="("), "pattern= is a regular expression"),
     (lambda t: t.keep_columns(contains="zzz"), 'No column name contains "zzz"'),
     (lambda t: t.keep_columns(starts_with="Wind"), 'No column name starts with "Wind" (capital letters matter)'),
     (lambda t: t.keep_columns(starts_with=3), "starts_with= needs some text in quotes"),
     (lambda t: t.keep_columns(2), "keep_columns_by_position(2)"),
-    (lambda t: t.keep_columns(), "needs the names of the columns to keep, or one of kind="),
-    (lambda t: t.remove_columns(pattern="."), "That would remove every column"),
+    (lambda t: t.keep_columns(), "needs the names of the columns to keep, or one of of_kind="),
+    (lambda t: t.remove_columns(matches_pattern="."), "That would remove every column"),
 ])
 def test_keep_columns_errors(weather, call, message):
     with pytest.raises(SimplydataError) as info:
@@ -470,7 +470,7 @@ def test_keep_columns_errors(weather, call, message):
 
 # ====================================================================== replace_values with conditions
 def test_replace_values_above_caps(marks, marks_df, capsys):
-    marks.replace_values("marks", above=90, with_value=90)
+    marks.replace_values_in("marks", is_above=90, with_value=90)
     n = int((marks_df["marks"] > 90).sum())
     assert f'Replaced {n} values in "marks" that were above 90 with 90.' in capsys.readouterr().out
     same(marks, marks_df.assign(marks=marks_df["marks"].clip(upper=90)))  # pandas clip / mask
@@ -479,12 +479,12 @@ def test_replace_values_above_caps(marks, marks_df, capsys):
 
 
 @pytest.mark.parametrize("option, value, native", [
-    ("above", 90, lambda s: s > 90), ("below", 40, lambda s: s < 40), ("at_least", 95, lambda s: s >= 95),
-    ("at_most", 40, lambda s: s <= 40), ("equal_to", 61, lambda s: s == 61), ("not_equal_to", 61, lambda s: s != 61),
-    ("between", [50, 60], lambda s: s.between(50, 60)), ("one_of", [61, 66], lambda s: s.isin([61, 66])),
+    ("is_above", 90, lambda s: s > 90), ("is_below", 40, lambda s: s < 40), ("is_at_least", 95, lambda s: s >= 95),
+    ("is_at_most", 40, lambda s: s <= 40), ("is_equal_to", 61, lambda s: s == 61), ("is_not_equal_to", 61, lambda s: s != 61),
+    ("is_between", [50, 60], lambda s: s.between(50, 60)), ("is_one_of", [61, 66], lambda s: s.isin([61, 66])),
 ])
 def test_replace_values_each_number_condition(marks, marks_df, option, value, native):
-    marks.replace_values("marks", with_value=0, **{option: value})
+    marks.replace_values_in("marks", with_value=0, **{option: value})
     expected = marks_df["marks"].mask(native(marks_df["marks"]), 0)  # pandas s.mask(cond, 0)
     assert plain(marks)["marks"].tolist() == expected.tolist()
 
@@ -494,52 +494,52 @@ def test_replace_values_each_number_condition(marks, marks_df, option, value, na
     ("ends_with", "a", lambda s: s.str.endswith("a")),
 ])
 def test_replace_values_text_conditions(marks, marks_df, option, value, native):
-    marks.replace_values("name", with_value="X", **{option: value})
+    marks.replace_values_in("name", with_value="X", **{option: value})
     assert plain(marks)["name"].tolist() == marks_df["name"].mask(native(marks_df["name"]), "X").tolist()
 
 
 def test_replace_values_dates(engine):
     data = pd.DataFrame({"when": pd.to_datetime(["2026-01-01", "2026-03-01", "2026-05-01"])})
     t = _engine_table(data, engine)
-    t.replace_values("when", after="2026-02-01", with_value=None)
+    t.replace_values_in("when", is_after="2026-02-01", with_value=None)
     assert plain(t)["when"].isna().tolist() == [False, True, True]
     t.undo()
-    t.replace_values("when", before="2026-02-01", with_value="2026-02-01")
+    t.replace_values_in("when", is_before="2026-02-01", with_value="2026-02-01")
     assert plain(t)["when"].tolist()[0] == pd.Timestamp("2026-02-01")
 
 
 def test_replace_values_with_none_makes_empties_and_empties_never_match(engine, capsys):
     data = pd.DataFrame({"rain": [5.0, -1.0, np.nan, -3.0, 2.0]})
     t = _engine_table(data, engine)
-    t.replace_values("rain", below=0, with_value=None)
+    t.replace_values_in("rain", is_below=0, with_value=None)
     assert 'Made 2 values in "rain" empty: the ones that were below 0.' in capsys.readouterr().out
     expected = data["rain"].mask(data["rain"] < 0)  # pandas s.mask(s < 0)
     assert plain(t)["rain"].isna().tolist() == expected.isna().tolist()
     t.undo()
-    t.replace_values("rain", not_equal_to=5, with_value=0)
+    t.replace_values_in("rain", is_not_equal_to=5, with_value=0)
     assert plain(t)["rain"].isna().tolist() == [False, False, True, False, False]  # the empty cell stays
 
 
 def test_replace_values_missing_value_codes(engine):
     t = _engine_table(pd.DataFrame({"price": [10.0, -99, 12, -999]}), engine)
-    t.replace_values("price", one_of=[-99, -999], with_value=None)
+    t.replace_values_in("price", is_one_of=[-99, -999], with_value=None)
     assert plain(t)["price"].isna().tolist() == [False, True, False, True]
 
 
 def test_replace_values_steps_say_the_condition(marks, capsys):
-    marks.replace_values("marks", above=90, with_value=90)
-    marks.steps()
+    marks.replace_values_in("marks", is_above=90, with_value=90)
+    marks.show_steps()
     assert "replace values in marks where marks is above 90 with 90" in capsys.readouterr().out
 
 
 @pytest.mark.parametrize("call, message", [
-    (lambda t: t.replace_values("marks", 61, above=90, with_value=0), "either the old value or one condition"),
-    (lambda t: t.replace_values("marks", above=90), "needs with_value="),
-    (lambda t: t.replace_values("marks", above=90, below=10, with_value=0), "one condition at a time"),
-    (lambda t: t.replace_values("marks", above="x", with_value=0), "needs a number"),
-    (lambda t: t.replace_values("marks", above=90, with_value="x"), "needs a number"),
-    (lambda t: t.replace_values("name", above=90, with_value="x"), "compares numbers or dates"),
-    (lambda t: t.replace_values("marks", abuve=90, with_value=0), "Did you mean above=?"),
+    (lambda t: t.replace_values_in("marks", 61, is_above=90, with_value=0), "either the old value or one condition"),
+    (lambda t: t.replace_values_in("marks", is_above=90), "needs with_value="),
+    (lambda t: t.replace_values_in("marks", is_above=90, is_below=10, with_value=0), "one condition at a time"),
+    (lambda t: t.replace_values_in("marks", is_above="x", with_value=0), "needs a number"),
+    (lambda t: t.replace_values_in("marks", is_above=90, with_value="x"), "needs a number"),
+    (lambda t: t.replace_values_in("name", is_above=90, with_value="x"), "compares numbers or dates"),
+    (lambda t: t.replace_values_in("marks", abuve=90, with_value=0), "Did you mean is_above=?"),
 ])
 def test_replace_values_condition_errors(marks, call, message):
     with pytest.raises(SimplydataError) as info:
@@ -549,22 +549,22 @@ def test_replace_values_condition_errors(marks, call, message):
 
 
 def test_replace_values_old_ways_still_work(marks, marks_df):
-    marks.replace_values("subject", "Maths", with_value="Math")
+    marks.replace_values_in("subject", "Maths", with_value="Math")
     assert "Math" in plain(marks)["subject"].tolist()
-    marks.replace_values("class", {"A": "B", "B": "A"})
+    marks.replace_values_in("class", {"A": "B", "B": "A"})
     assert plain(marks)["class"].tolist() == marks_df["class"].replace({"A": "B", "B": "A"}).tolist()
 
 
 # ====================================================================== [ ] and dots
 @pytest.mark.parametrize("key, first_line", [
-    ("marks", 'For the column "marks" on its own write table.column("marks").'),
-    ("mraks", 'There is no column "mraks". Did you mean table.column("marks")?'),
+    ("marks", 'For the column "marks" on its own write table.get_column("marks").'),
+    ("mraks", 'There is no column "mraks". Did you mean table.get_column("marks")?'),
     (["name", "marks"], 'To keep these columns write table.keep_columns("name", "marks").'),
     (slice(2, 5), "In Python [2:5] means rows 3 to 5 counting from 1: table.keep_rows_by_position(3, to=5)."),
     (slice(None, 3), "rows 1 to 3 counting from 1: table.keep_rows_by_position(1, to=3)."),
     (slice(10, None), 'table.keep_rows_by_position(11, to="last")'),
-    (2, "In Python [2] is row 3 counting from 1: table.row(3) shows it."),
-    (-1, 'table.row("last")'),
+    (2, "In Python [2] is row 3 counting from 1: table.get_row(3) shows it."),
+    (-1, 'table.get_row("last")'),
 ])
 def test_brackets_point_to_the_words(marks, key, first_line):
     with pytest.raises(SimplydataError) as info:
@@ -572,13 +572,13 @@ def test_brackets_point_to_the_words(marks, key, first_line):
     text = str(info.value)
     assert first_line in text.splitlines()[0]
     assert "Python's [ ] counts from 0, so simplydata does not use it" in text
-    assert "table.keep_rows_by_position(10, to=20)" in text and 'table.cell_at(row=3, column="marks")' in text
+    assert "table.keep_rows_by_position(10, to=20)" in text and 'table.get_cell_at(row=3, column="marks")' in text
 
 
 def test_brackets_error_is_still_a_type_error(marks):
     with pytest.raises(TypeError):
         marks["marks"]
-    with pytest.raises(TypeError, match="table.row"):
+    with pytest.raises(TypeError, match="table.get_row"):
         list(marks)
 
 
@@ -586,8 +586,8 @@ def test_column_after_a_dot_points_to_column_and_keep_rows(marks):
     with pytest.raises(AttributeError) as info:
         marks.marks
     text = str(info.value)
-    assert text.startswith('marks is a column. For its numbers write table.column("marks"); to choose rows write '
-                           'table.keep_rows("marks > 50").')
-    with pytest.raises(SimplydataError, match=r'For its values write table.column\("name"\)'):
+    assert text.startswith('marks is a column. For its numbers write table.get_column("marks"); to choose rows write '
+                           'table.keep_rows_where("marks > 50").')
+    with pytest.raises(SimplydataError, match=r'For its values write table.get_column\("name"\)'):
         marks.name
     assert not hasattr(marks, "marks")

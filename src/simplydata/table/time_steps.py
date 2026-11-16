@@ -39,28 +39,28 @@ def _common_every(days: np.ndarray):
 
 
 class TimeStepWords:
-    @friendly
-    def add_missing_dates(self, column=None, every=None, for_each=None, between=None):
+    @friendly(renamed={"for_each": "for_each_group_in"})
+    def add_missing_dates(self, column=None, every=None, for_each_group_in=None, between=None):
         """Add a row for every date that is missing from a regular run of dates (other cells empty).
 
-        table.add_missing_dates("date", every="day", for_each="station")   (with sdata.example("river"))
+        table.add_missing_dates("date", every="day", for_each_group_in="station")   (with sdata.get_example("river"))
         every= is the step ("day", "week", "month", "hour", "15 minutes" ...); without it, the most
-        common step between the dates, printed. for_each= fills each group's own run (the group's
+        common step between the dates, printed. for_each_group_in= fills each group's own run (the group's
         value is copied into the new rows). between=["2024-01-01", "2025-12-31"] also adds rows before
         the first and after the last date. The new rows have empty cells: fill them next with
-        table.fill_empty_cells(..., with_the="line between neighbours", sorted_by=..., for_each=...).
+        table.fill_empty_cells_in(..., with_the="line between neighbours", sorted_by=..., for_each_group_in=...).
         The table comes back sorted by the groups and the dates. As pandas reindex / Polars upsample;
         R merge(data.frame(date = seq(...)), x, all.x = TRUE). Undo with table.undo().
         """
         import pandas as pd
 
         step_name = "add_missing_dates"
-        example = 'table.add_missing_dates("date", every="day", for_each="station")'
+        example = 'table.add_missing_dates("date", every="day", for_each_group_in="station")'
         self._need_name(step_name, "the date column", column, example)
         self._need_columns(column)
         if not self._frame.schema[column].is_temporal():
-            raise SimplydataError(f'"{column}" does not hold dates. Make dates first: table.make_dates("{column}").')
-        groups = self._group_columns(step_name, for_each, [column]) if for_each is not None else []
+            raise SimplydataError(f'"{column}" does not hold dates. Make dates first: table.turn_into_dates("{column}").')
+        groups = self._group_columns(step_name, for_each_group_in, [column]) if for_each_group_in is not None else []
         native = self._frame.to_pandas()
         if native[column].isna().any():
             raise SimplydataError(f'"{column}" has empty cells; remove those rows or fill them first.')
@@ -121,8 +121,8 @@ class TimeStepWords:
         source = "" if every is not None else f" (every {unit_words}: the most common step)"
         if total:
             print(f'Added {total} missing {plural} to "{column}"{each}{source}; the new rows have empty cells. '
-                  f'Fill them next: table.fill_empty_cells("<column>", with_the="line between neighbours", '
-                  f'sorted_by="{column}"' + (f', for_each="{groups[0]}"' if len(groups) == 1 else "") + ").")
+                  f'Fill them next: table.fill_empty_cells_in("<column>", with_the="line between neighbours", '
+                  f'sorted_by="{column}"' + (f', for_each_group_in="{groups[0]}"' if len(groups) == 1 else "") + ").")
         else:
             print(f'No dates were missing from "{column}"{source}.')
         added = pd.DataFrame(new_rows, columns=[column, *groups]) if new_rows else None
@@ -140,19 +140,19 @@ class TimeStepWords:
             frame = nw.from_native(native_new, eager_only=True)
         return self._change(f'add {total} missing dates to "{column}"', frame)
 
-    @friendly
+    @friendly(renamed={"for_each": "for_each_group_in", "degree": "of_degree"})
     def add_smoothed_column(self, name=None, from_column=None, method="moving average", window=5, sorted_by=None,
-                            for_each=None, ends=None, weights=None, degree=None, newest_weight=None, width=None,
+                            for_each_group_in=None, ends=None, weights=None, of_degree=None, newest_weight=None, width=None,
                             smoothness=None, alpha=None, span=None, half_life=None, com=None):
         """Add a smoothed copy of a column: each value becomes a summary of its neighbours in time.
 
         table.add_smoothed_column("signal_smoothed", from_column="signal", method="savitzky-golay", window=11, sorted_by="time")
-        (with sdata.example("sensor")). The methods and their options are those of
+        (with sdata.get_example("sensor")). The methods and their options are those of
         nums.smooth: "moving average" (weights=, ends=), "median" (R runmed, needs simplydata[r]),
-        "savitzky-golay" (degree=), "exponential" (newest_weight=), "gaussian" (width=), "lowess" and
+        "savitzky-golay" (of_degree=), "exponential" (newest_weight=), "gaussian" (width=), "lowess" and
         "spline" (smoothness=; these two use the sorted_by values as x and allow uneven steps and empty
         cells), "whittaker" (smoothness=) or "wiener". The other methods need evenly spaced readings
-        (sorted_by=) and no empty cells. for_each= smooths each group on its own. Undo with table.undo().
+        (sorted_by=) and no empty cells. for_each_group_in= smooths each group on its own. Undo with table.undo().
         """
         from .. import _smoothing
         from .._time_axis import need_filled, need_regular, series_of
@@ -167,7 +167,7 @@ class TimeStepWords:
             raise SimplydataError(f"{step_name}() needs name= as the new column's name.\nFor example, {example}")
         if name in self._columns:
             raise SimplydataError(f'"{name}" is already a column; give another name.')
-        series = series_of(self, from_column, sorted_by, for_each, step_name, example)
+        series = series_of(self, from_column, sorted_by, for_each_group_in, step_name, example)
         filled = np.full(len(self._frame), np.nan)
         got = None
         for one in series:
@@ -176,10 +176,10 @@ class TimeStepWords:
                 if sorted_by is not None:
                     need_regular(one, step_name, sorted_by)
             got = _smoothing.smooth(one.values, chosen, window, ends, times=one.times, step_name=step_name,
-                                    weights=weights, degree=degree, newest_weight=newest_weight, width=width,
+                                    weights=weights, of_degree=of_degree, newest_weight=newest_weight, width=width,
                                     smoothness=smoothness, alpha=alpha, span=span, half_life=half_life, com=com)
             filled[one.rows] = got.values
-        groups = self._group_columns(step_name, for_each, [from_column]) if for_each is not None else []
+        groups = self._group_columns(step_name, for_each_group_in, [from_column]) if for_each_group_in is not None else []
         each = f", for each {', '.join(groups)}" if groups else ""
         order = f' in order of "{sorted_by}"' if sorted_by else ""
         print(f'Smoothed "{from_column}" with {got.sentence}{each}{order}. Added "{name}".')

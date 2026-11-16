@@ -30,9 +30,9 @@ def notes(out):
 @pytest.mark.parametrize("old, new, call", [
     ("show_first", "show_first_rows", lambda t: t.show_first(2)),
     ("show_last", "show_last_rows", lambda t: t.show_last(2)),
-    ("count_empty", "count_empty_cells", lambda t: t.count_empty()),
-    ("remove_empty_rows", "remove_rows_with_empty_cells", lambda t: t.remove_empty_rows("marks")),
-    ("fill_empty", "fill_empty_cells", lambda t: t.fill_empty("marks", with_value=0)),
+    ("count_empty", "count_empty_cells_in", lambda t: t.count_empty()),
+    ("remove_empty_rows", "remove_rows_with_empty_cells_in", lambda t: t.remove_empty_rows("marks")),
+    ("fill_empty", "fill_empty_cells_in", lambda t: t.fill_empty("marks", with_value=0)),
 ])
 def test_old_table_words_work_and_note_once(old, new, call, gappy, capsys):
     a, b = sdata.table(gappy), sdata.table(gappy)
@@ -85,45 +85,45 @@ def test_unknown_word_is_still_an_error(gappy):
 
 # ---------------------------------------------------------------- chart words and options
 def test_old_chart_words_work(marks, capsys):
-    chart = sdata.chart(marks).boxes(x="class", y="marks").all_points(x="class", y="marks")
+    chart = sdata.chart(marks).draw_boxes(x="class", y="marks").all_points(x="class", y="marks")
     assert [s.name for s in chart._steps][-1] == "all_dots"
-    c = sdata.chart(marks).heatmap(x="test", y="name", value="marks").colour_bar_label("Marks")
+    c = sdata.chart(marks).draw_heatmap(x="test", y="name", value="marks").colour_bar_label("Marks")
     assert c._render()  # draws
-    sdata.chart(marks).heatmap(x="test", y="name", value="marks").color_bar_label("Marks")
-    one = sdata.chart(marks).dots(x="height", y="marks").one_per(row="class", column="test")
+    sdata.chart(marks).draw_heatmap(x="test", y="name", value="marks").color_bar_label("Marks")
+    one = sdata.chart(marks).draw_dots(x="height", y="marks").one_per(row="class", column="test")
     assert len(one._render().axes) == 2 * 3
     out = capsys.readouterr().out
-    assert notes(out) == [note('"all_points"', '"all_dots"'), note('"colour_bar_label"', '"label_colour_bar"'),
-                          note('"color_bar_label"', '"label_colour_bar"'), note('"one_per"', '"one_chart_per"'),
+    assert notes(out) == [note('"all_points"', '"draw_all_dots"'), note('"colour_bar_label"', '"label_colour_bar"'),
+                          note('"color_bar_label"', '"label_colour_bar"'), note('"one_per"', '"draw_one_chart_for_each_group_in"'),
                           note('"row="', '"down="'), note('"column="', '"across="')]
     plt.close("all")
 
 
 def test_old_options_work_with_a_note(marks, tmp_path, capsys):
-    sdata.chart(marks).dots(x="height", y="marks").fit_line(band=True)._render()
+    sdata.chart(marks).draw_dots(x="height", y="marks").fit_line(band=True)._render()
     weather = pd.DataFrame({"month": ["Jan", "Feb", "Mar"], "temp": [2, 4, 8], "rain": [50, 40, 30]})
-    second = sdata.chart(weather).lines(x="month", y="temp").second_y("rain", chart="bars")
+    second = sdata.chart(weather).draw_lines(x="month", y="temp").add_second_y("rain", chart="bars")
     assert second._steps[-1].kwargs["drawn_as"] == "bars"
-    a = sdata.chart(marks).bars(x="name", y="marks")
-    assert sdata.grid(a, a, a, columns=3)._columns == 3
-    assert sdata.chart(marks).bars(x="name", y="marks").one_chart_per("class", columns=1)._settings["split"]["columns"] == 1
+    a = sdata.chart(marks).draw_bars(x="name", y="marks")
+    assert sdata.put_in_rows_and_columns(a, a, a, columns=3)._columns == 3
+    assert sdata.chart(marks).draw_bars(x="name", y="marks").draw_one_chart_for_each_group_in("class", columns=1)._settings["split"]["columns"] == 1
     marks.to_csv(tmp_path / "m.csv", index=False)
     pytest.importorskip("polars")
     assert sdata.table(tmp_path / "m.csv", big_data=True)._engine == "Polars"
     sdata.chart(tmp_path / "m.csv", big_data=True)
     out = notes(capsys.readouterr().out)
-    assert out == [note('"band="', '"confidence_band="'), note('"chart="', '"drawn_as="'),
+    assert out == [note('"band="', '"with_confidence_band="'), note('"chart="', '"drawn_as="'),
                    note('"columns="', '"per_row="'), note('"big_data="', '"fast="')]
     plt.close("all")
 
 
 def test_old_and_new_option_together_is_explained(marks):
     with pytest.raises(SimplydataError, match="only once"):
-        sdata.chart(marks).dots(x="height", y="marks").fit_line(band=True, confidence_band=True)
+        sdata.chart(marks).draw_dots(x="height", y="marks").fit_line(band=True, with_confidence_band=True)
 
 
 def test_old_zoom_box_options(marks, capsys):
-    chart = sdata.chart(marks).dots(x="height", y="marks").zoom_box(x_from=140, x_to=160, y_from=40, y_to=80,
+    chart = sdata.chart(marks).draw_dots(x="height", y="marks").add_zoom_box(x_from=140, x_to=160, y_from=40, y_to=80,
                                                                 where="upper left")
     step = chart._steps[-1]
     assert step.kwargs["x_between"] == (140, 160) and step.kwargs["y_between"] == (40, 80)
@@ -137,7 +137,7 @@ def test_old_zoom_box_options(marks, capsys):
 
 # ---------------------------------------------------------------- new words
 def test_show_legend_brings_the_legend_back(marks):
-    chart = sdata.chart(marks).lines(x="test", y="marks", colour="class").hide_legend()
+    chart = sdata.chart(marks).draw_lines(x="test", y="marks", colour="class").hide_legend()
     assert not chart._render().legends and chart._render().axes[0].get_legend() is None
     chart.show_legend()
     fig = chart._render()
@@ -148,13 +148,13 @@ def test_show_legend_brings_the_legend_back(marks):
 @pytest.mark.parametrize("long, short", [("standard deviation", "sd"), ("standard error", "se"),
                                          ("confidence interval", "ci")])
 def test_long_error_names_are_the_same_as_short(marks, long, short, capsys):
-    a = sdata.chart(marks).bars(x="class", y="marks", error=long)
-    b = sdata.chart(marks).bars(x="class", y="marks", error=short)
+    a = sdata.chart(marks).draw_bars(x="class", y="marks", error=long)
+    b = sdata.chart(marks).draw_bars(x="class", y="marks", error=short)
     assert a._steps[-1].kwargs["error"] == b._steps[-1].kwargs["error"] == short
     out = capsys.readouterr().out.splitlines()
     assert out[0] == out[1] and out[0].startswith("Error bars: the ")  # says which one was drawn
     assert notes("\n".join(out)) == []  # short forms are standard abbreviations: no note
-    e = sdata.chart(marks).dots(x="test", y="marks").error_bars(long.title())  # any capitals work
+    e = sdata.chart(marks).draw_dots(x="test", y="marks").draw_error_bars(long.title())  # any capitals work
     assert e._steps[-1].kwargs["kind"] == short
     plt.close("all")
 
@@ -162,16 +162,16 @@ def test_long_error_names_are_the_same_as_short(marks, long, short, capsys):
 def test_error_choice_lists_the_long_names(marks):
     with pytest.raises(SimplydataError, match='You can use: "standard deviation", "standard error", '
                                               '"confidence interval"'):
-        sdata.chart(marks).bars(x="class", y="marks", error="spread")
+        sdata.chart(marks).draw_bars(x="class", y="marks", error="spread")
 
 
 @pytest.mark.parametrize("show, how", [("smallest", min), ("biggest", max)])
 def test_show_takes_every_measure_name(marks, show, how):
-    fig = sdata.chart(marks).bars(x="class", y="marks", show=show)._render()
+    fig = sdata.chart(marks).draw_bars(x="class", y="marks", show=show)._render()
     heights = sorted(p.get_height() for p in fig.axes[0].patches)
     want = sorted(marks.groupby("class")["marks"].agg(how))
     assert heights == pytest.approx(want)
-    sd = sdata.chart(marks).bars(x="class", y="marks", show="standard deviation")._render()
+    sd = sdata.chart(marks).draw_bars(x="class", y="marks", show="standard deviation")._render()
     got = sorted(p.get_height() for p in sd.axes[0].patches)
     assert got == pytest.approx(sorted(marks.groupby("class")["marks"].std()))
     plt.close("all")

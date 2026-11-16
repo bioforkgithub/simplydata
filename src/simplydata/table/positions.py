@@ -7,8 +7,8 @@ Positions count from 1, both ends included, as the printed row numbers do (table
     table.keep_rows_by_position([1, 5, 9])       these rows, in this order
     table.remove_rows_by_position([12, 40])      the rows show_rows_with_outliers() pointed to
     table.keep_columns_by_position(1, to=3)      the first three columns
-    table.row(3)                                 one row, as a dict (the table does not change)
-    table.cell_at(row=3, column="marks")         one cell (the table does not change)
+    table.get_row(3)                                 one row, as a dict (the table does not change)
+    table.get_cell_at(row=3, column="marks")         one cell (the table does not change)
     table.reverse_rows()                         the last row first
 
 Positions are of the table as it is now: after any step the rows are numbered again from 1.
@@ -25,6 +25,11 @@ from .conditions import _rows
 from .rows import COLUMN_OPTIONS, CONDITIONS
 
 
+
+def _is(key: str) -> str:
+    """The condition option as it is written now: above -> is_above (the old names still work)."""
+    return key if key.startswith("is_") or key in ("contains", "starts_with", "ends_with") else f"is_{key}"
+
 def _columns_word(n: int) -> str:
     return f"{n} column" if n == 1 else f"{n} columns"
 
@@ -32,23 +37,23 @@ def _columns_word(n: int) -> str:
 class PositionWords:
     # ================================================================== helpers
     def _no_conditions(self, step: str, positions, conditions: dict, what: str = "rows"):
-        """keep_rows_by_position("marks", above=50) by mistake: point to the word that chooses by value."""
+        """keep_rows_by_position("marks", is_above=50) by mistake: point to the word that chooses by value."""
         if not conditions:
             return
         key = next(iter(conditions))
         verb = "keep" if step.startswith("keep") else "remove"
-        if what == "rows" and key in CONDITIONS:
+        if what == "rows" and (key in CONDITIONS or key[3:] in CONDITIONS):
             column = positions if isinstance(positions, str) else "marks"
             raise SimplydataError(
                 f".{step}() chooses rows by their place in the table, not by their values.\n"
-                f'For rows whose values meet a condition write table.{verb}_rows("{column}", {key}=...).\n'
-                'For example:  table.keep_rows("marks", above=50)   (with sdata.example("marks"))'
+                f'For rows whose values meet a condition write table.{verb}_rows_where("{column}", {_is(key)}=...).\n'
+                'For example:  table.keep_rows_where("marks", is_above=50)   (with sdata.get_example("marks"))'
             )
-        if what == "columns" and key in COLUMN_OPTIONS:
+        if what == "columns" and (key in COLUMN_OPTIONS or key in ("of_kind", "matches_pattern")):
             raise SimplydataError(
                 f".{step}() chooses columns by their place in the table. To choose them by name or kind "
                 f"write table.{verb}_columns({key}=...).\n"
-                'For example:  table.keep_columns(kind="number")   (with sdata.example("marks"))'
+                'For example:  table.keep_columns(of_kind="number")   (with sdata.get_example("marks"))'
             )
         raise option_error(step, key, ["positions", "to", "step"])
 
@@ -56,7 +61,7 @@ class PositionWords:
         """An extra line when a column name is given where a row position goes."""
         if isinstance(value, str) and value in self._columns:
             return (f'"{value}" is a column. For rows whose {value} meets a condition use '
-                    f'table.keep_rows("{value}", above=50); for the column itself, table.keep_columns("{value}").')
+                    f'table.keep_rows_where("{value}", is_above=50); for the column itself, table.keep_columns("{value}").')
         return None
 
     def _column_hint(self, value):
@@ -85,12 +90,12 @@ class PositionWords:
     def keep_rows_by_position(self, positions=None, to=None, step=None, **conditions):
         """Keep rows by their position, counting from 1: a run, every n-th row, or a list.
 
-        table.keep_rows_by_position(10, to=20)   (with sdata.example("marks"))
+        table.keep_rows_by_position(10, to=20)   (with sdata.get_example("marks"))
         Both ends are included, so rows 10 to 20 are 11 rows. to="last" goes to the end;
         step=10 keeps every 10th row (1, 11, 21 ...); a list such as [1, 5, 9] keeps those rows
         in that order. The numbers are the ones table.show() prints, as pandas df.iloc[9:20].
         """
-        example = 'table.keep_rows_by_position(10, to=20)   (with sdata.example("marks"))'
+        example = 'table.keep_rows_by_position(10, to=20)   (with sdata.get_example("marks"))'
         self._no_conditions("keep_rows_by_position", positions, conditions)
         picked = self._rows_picked("keep_rows_by_position", positions, to, step, example)
         total = len(self._frame)
@@ -108,11 +113,11 @@ class PositionWords:
     def remove_rows_by_position(self, positions=None, to=None, step=None, **conditions):
         """Remove rows by their position, counting from 1: a run, every n-th row, or a list.
 
-        table.remove_rows_by_position([12, 40])   (with sdata.example("marks"))
+        table.remove_rows_by_position([12, 40])   (with sdata.get_example("marks"))
         The opposite of keep_rows_by_position, with the same positions: remove_rows_by_position(1)
         removes the first row (a second header read as data), (2, step=2) every 2nd row.
         """
-        example = 'table.remove_rows_by_position([12, 40])   (with sdata.example("marks"))'
+        example = 'table.remove_rows_by_position([12, 40])   (with sdata.get_example("marks"))'
         self._no_conditions("remove_rows_by_position", positions, conditions)
         picked = self._rows_picked("remove_rows_by_position", positions, to, step, example)
         total = len(self._frame)
@@ -129,11 +134,11 @@ class PositionWords:
     def keep_columns_by_position(self, positions=None, to=None, step=None, **conditions):
         """Keep columns by their position, counting from 1 at the left; it says which columns they were.
 
-        table.keep_columns_by_position(1, to=3)   (with sdata.example("marks"))
+        table.keep_columns_by_position(1, to=3)   (with sdata.get_example("marks"))
         Both ends are included. "last" is the last column; step=2 keeps every 2nd column; a list
         such as [3, 1] keeps those columns in that order. As pandas df.iloc[:, 0:3].
         """
-        example = 'table.keep_columns_by_position(1, to=3)   (with sdata.example("marks"))'
+        example = 'table.keep_columns_by_position(1, to=3)   (with sdata.get_example("marks"))'
         self._no_conditions("keep_columns_by_position", positions, conditions, what="columns")
         picked = self._columns_picked("keep_columns_by_position", positions, to, step, example)
         names = [self._columns[i] for i in picked.indices]
@@ -146,11 +151,11 @@ class PositionWords:
     def remove_columns_by_position(self, positions=None, to=None, step=None, **conditions):
         """Remove columns by their position, counting from 1 at the left; it says which columns they were.
 
-        table.remove_columns_by_position(1)   (with sdata.example("marks"))
+        table.remove_columns_by_position(1)   (with sdata.get_example("marks"))
         Handy for the "Unnamed: 0" column a CSV file often brings. Same positions as
         keep_columns_by_position.
         """
-        example = 'table.remove_columns_by_position(1)   (with sdata.example("marks"))'
+        example = 'table.remove_columns_by_position(1)   (with sdata.get_example("marks"))'
         self._no_conditions("remove_columns_by_position", positions, conditions, what="columns")
         picked = self._columns_picked("remove_columns_by_position", positions, to, step, example)
         if len(picked) == len(self._columns):
@@ -171,35 +176,35 @@ class PositionWords:
                 f"table.keep_rows_by_position({list(position)!r}).\nFor example:  {example}"
             )
         picked = read_positions(step, position, None, None, len(self._frame), noun="row", count_noun="rows",
-                                owner="The table has", example=example, last_hint='table.row("last")',
+                                owner="The table has", example=example, last_hint='table.get_row("last")',
                                 other_hint=self._row_hint)
         return picked.indices[0]
 
     @friendly
-    def row(self, position=None):
-        """One row as a plain dict of column: value, counting from 1. table.row(3)
+    def get_row(self, position=None):
+        """One row as a plain dict of column: value, counting from 1. table.get_row(3)
 
-        table.row(3)   (with sdata.example("marks"))
-        table.row("last") is the last row. Empty cells become None. The table does not change.
+        table.get_row(3)   (with sdata.get_example("marks"))
+        table.get_row("last") is the last row. Empty cells become None. The table does not change.
         As pandas df.iloc[2].to_dict() and Polars df.row(2, named=True).
         """
-        example = 'table.row(3)   (with sdata.example("marks"))'
+        example = 'table.get_row(3)   (with sdata.get_example("marks"))'
         if position is None:
-            raise SimplydataError('.row() needs which row, counting from 1, like table.row(3) or table.row("last").'
+            raise SimplydataError('.row() needs which row, counting from 1, like table.get_row(3) or table.get_row("last").'
                                   f"\nFor example:  {example}")
         i = self._one_row("row", position, example)
         values = self._frame.row(i)
         return {name: _plain_cell(value) for name, value in zip(self._columns, values)}
 
     @friendly
-    def cell_at(self, row=None, column=None):
-        """The value in one cell: a row counting from 1 and a column by name. table.cell_at(row=3, column="marks")
+    def get_cell_at(self, row=None, column=None):
+        """The value in one cell: a row counting from 1 and a column by name. table.get_cell_at(row=3, column="marks")
 
-        table.cell_at(row=3, column="marks")   (with sdata.example("marks"))
+        table.get_cell_at(row=3, column="marks")   (with sdata.get_example("marks"))
         row="last" is the last row. An empty cell gives None, with a note. The table does not
         change. As pandas df.at[2, "marks"] and Polars df.item(2, "marks").
         """
-        example = 'table.cell_at(row=3, column="marks")   (with sdata.example("marks"))'
+        example = 'table.get_cell_at(row=3, column="marks")   (with sdata.get_example("marks"))'
         if row is None or column is None:
             missing = " and ".join(o for o, v in (("row=", row), ("column=", column)) if v is None)
             raise SimplydataError(f".cell_at() needs {missing}: a row counting from 1 and a column name.\n"
@@ -211,7 +216,7 @@ class PositionWords:
                 f"For example:  {example}"
             )
         self._need_columns(column)
-        i = self._one_row("cell_at", row, example)
+        i = self._one_row("get_cell_at", row, example)
         value = _plain_cell(self._frame.item(i, column))
         if value is None:
             print(f'Row {i + 1}, column "{column}" is empty.')
@@ -222,7 +227,7 @@ class PositionWords:
     def reverse_rows(self):
         """Turn the table upside down: the last row comes first. table.reverse_rows()
 
-        table.reverse_rows()   (with sdata.example("marks"))
+        table.reverse_rows()   (with sdata.get_example("marks"))
         For an order by the values in a column use table.sort_by("marks", biggest_first=True).
         """
         total = len(self._frame)

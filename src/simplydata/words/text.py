@@ -123,8 +123,8 @@ def _numbers_on_bars(ctx, decimals):
     bars = [c for c in ax.containers if isinstance(c, mpl.container.BarContainer)]
     if not bars:
         raise SimplydataError(
-            ".numbers_on_bars() writes the value on each bar, but this chart has no bars.\n"
-            'Add some first, for example chart.bars(x="name", y="marks").'
+            ".write_numbers_on_bars() writes the value on each bar, but this chart has no bars.\n"
+            'Add some first, for example chart.draw_bars(x="name", y="marks").'
         )
     sideways = getattr(bars[0], "orientation", "vertical") == "horizontal"
 
@@ -231,9 +231,9 @@ def _names_on_dots(ctx, column, colour):
     if not last or last.get("kind") != "dots":
         found = last.get("kind") if last else None
         raise SimplydataError(
-            ".names_on_dots() writes a name next to each dot, but "
+            ".write_names_on_dots() writes a name next to each dot, but "
             + (f"the last chart type is {found}." if found else "your chart has no dots yet.")
-            + '\nUse it after chart.dots(x="hours", y="marks").'
+            + '\nUse it after chart.draw_dots(x="hours", y="marks").'
         )
     ax, table = ctx.ax, last["table"]
     if is_listlike(column):
@@ -297,8 +297,8 @@ def _names_on_dots(ctx, column, colour):
 
 
 def _names_left_out(n):
-    return (f"Note: {n} name{'s were' if n != 1 else ' was'} left out of this chart (names_on_dots), because "
-            "there was no free space next to the dot. A bigger chart (chart.size(...)) makes room.")
+    return (f"Note: {n} name{'s were' if n != 1 else ' was'} left out of this chart (write_names_on_dots), because "
+            "there was no free space next to the dot. A bigger chart (chart.set_size(...)) makes room.")
 
 
 # ---------------------------------------------------------------- the words
@@ -310,8 +310,8 @@ def _check_text(step, text, example):
 
 class TextWords:
     @friendly
-    def title_top(self, text):
-        """A title above the chart. chart.title_top("My class marks")"""
+    def write_title_on_top(self, text):
+        """A title above the chart. chart.write_title_on_top("My class marks")"""
         return self._replace("title_top", "text", _title_top, scope="figure", text=str(text))
 
     @friendly
@@ -325,55 +325,55 @@ class TextWords:
         return self._replace("label_y", "text", _label_y, scope="figure", text=str(text))
 
     @friendly
-    def caption_bottom(self, text):
-        """A small line of text under the whole chart. chart.caption_bottom("Data from 2026")"""
-        text = _check_text("caption_bottom", text, 'chart.caption_bottom("Data from 2026")')
+    def write_caption_at_bottom(self, text):
+        """A small line of text under the whole chart. chart.write_caption_at_bottom("Data from 2026")"""
+        text = _check_text("caption_bottom", text, 'chart.write_caption_at_bottom("Data from 2026")')
         # "finish": runs after label_x, so it knows whether there is a shared x label to go under
         return self._replace("caption_bottom", "finish", _caption_bottom, scope="figure", text=text)
 
-    @friendly
-    def note(self, text, x=None, y=None, arrow=False):
-        """A note on the chart at a place x, y. chart.note("Biggest", x=2024, y=49)
+    @friendly(renamed={"arrow": "with_arrow"})
+    def write_note(self, text, x=None, y=None, with_arrow=False):
+        """A note on the chart at a place x, y. chart.write_note("Biggest", x=2024, y=49)
 
-        arrow=True puts the note a little away, with an arrow pointing at x, y.
-        On bar charts x can be a name: chart.note("Best", x="Ben", y=90) on bars of names.
+        with_arrow=True puts the note a little away, with an arrow pointing at x, y.
+        On bar charts x can be a name: chart.write_note("Best", x="Ben", y=90) on bars of names.
         """
-        text = _check_text("note", text, 'chart.note("Highest!", x=5, y=98)')
+        text = _check_text("note", text, 'chart.write_note("Highest!", x=5, y=98)')
         if x is None or y is None:
             raise SimplydataError(
-                '.note() needs a place: x= and y=, for example chart.note("Highest!", x=5, y=98).')
+                '.write_note() needs a place: x= and y=, for example chart.write_note("Highest!", x=5, y=98).')
         for name, v in (("x", x), ("y", y)):
             ok = isinstance(v, (numbers.Real, str)) or hasattr(v, "year")  # numbers, names, dates
             if isinstance(v, bool) or not ok:
                 raise SimplydataError(
-                    f'.note() needs a number for {name}=, not {v!r}. For example chart.note("Highest!", x=5, y=98).')
-        if not isinstance(arrow, bool):
-            raise SimplydataError(".note() needs arrow=True or arrow=False.")
-        return self._add("note", "extra", _note, text=text, x=x, y=y, arrow=arrow)
+                    f'.note() needs a number for {name}=, not {v!r}. For example chart.write_note("Highest!", x=5, y=98).')
+        if not isinstance(with_arrow, bool):
+            raise SimplydataError(".write_note() needs with_arrow=True or with_arrow=False.")
+        return self._add("note", "extra", _note, text=text, x=x, y=y, arrow=with_arrow)
 
-    @friendly
-    def numbers_on_bars(self, decimals=0):
-        """Write the value of each bar on it. chart.numbers_on_bars() · decimals=1 shows 12.5"""
-        if isinstance(decimals, bool) or not isinstance(decimals, numbers.Integral) or not 0 <= decimals <= 6:
+    @friendly(renamed={"decimals": "with_decimals"})
+    def write_numbers_on_bars(self, with_decimals=0):
+        """Write the value of each bar on it. chart.write_numbers_on_bars() · with_decimals=1 shows 12.5"""
+        if isinstance(with_decimals, bool) or not isinstance(with_decimals, numbers.Integral) or not 0 <= with_decimals <= 6:
             raise SimplydataError(
-                ".numbers_on_bars() needs a whole number from 0 to 6 for decimals=, "
-                "for example chart.numbers_on_bars(decimals=1).")
-        return self._replace("numbers_on_bars", "extra", _numbers_on_bars, decimals=int(decimals))
+                ".write_numbers_on_bars() needs a whole number from 0 to 6 for with_decimals=, "
+                "for example chart.write_numbers_on_bars(with_decimals=1).")
+        return self._replace("numbers_on_bars", "extra", _numbers_on_bars, decimals=int(with_decimals))
 
     @friendly
-    def names_on_dots(self, column, colour=None):
-        """Write a name next to each dot. chart.names_on_dots("name")
-        (with chart.dots(x="hours", y="marks") on sdata.example("marks"))
+    def write_names_on_dots(self, column, colour=None):
+        """Write a name next to each dot. chart.write_names_on_dots("name")
+        (with chart.draw_dots(x="hours", y="marks") on sdata.get_example("marks"))
 
         column is the column whose words are written (or a list: one name for each dot).
         Each name goes where it covers no other name or dot: right of its dot, else left,
         above, below or in a corner. A name with no free place is left out, and a line says
-        how many; a bigger chart (chart.size(...)) makes room.
+        how many; a bigger chart (chart.set_size(...)) makes room.
         colour="grey" writes the names in that colour.
         """
         if column is None or isinstance(column, bool) or not (isinstance(column, str) or is_listlike(column)):
             raise SimplydataError(
-                f'.names_on_dots() needs a column of names, for example chart.names_on_dots("name"), not {column!r}.')
+                f'.names_on_dots() needs a column of names, for example chart.write_names_on_dots("name"), not {column!r}.')
         if isinstance(column, str) and column not in self._data.columns:
             raise column_error(column, self._data.columns)
         if colour is not None and not (isinstance(colour, str) and mpl.colors.is_color_like(colour)):
@@ -383,25 +383,25 @@ class TextWords:
         if draws and draws[-1].name != "dots":
             raise SimplydataError(
                 f".names_on_dots() writes a name next to each dot, but the last chart type is {draws[-1].name}.\n"
-                'Use it after chart.dots(x="hours", y="marks").')
-        # "text" phase: after range_x/range_y, so free places are found on the final axes
+                'Use it after chart.draw_dots(x="hours", y="marks").')
+        # "text" phase: after set_range_x/set_range_y, so free places are found on the final axes
         return self._replace("names_on_dots", "text", _names_on_dots, column=column, colour=colour)
 
     @friendly
-    def font_size(self, size):
-        """Make all the text bigger or smaller. chart.font_size(14) (normal is 12)"""
+    def use_font_size(self, size):
+        """Make all the text bigger or smaller. chart.use_font_size(14) (normal is 12)"""
         if isinstance(size, bool) or not isinstance(size, numbers.Real) or size <= 0:
             raise SimplydataError(
-                f".font_size() needs a number bigger than 0, not {size!r}. For example chart.font_size(14).")
+                f".font_size() needs a number bigger than 0, not {size!r}. For example chart.use_font_size(14).")
         if not 4 <= size <= 60:
             raise SimplydataError(
                 f"Font size {size} is very {'small' if size < 4 else 'big'}. "
-                "Try a number between 8 and 24, for example chart.font_size(14).")
+                "Try a number between 8 and 24, for example chart.use_font_size(14).")
         return self._set(font_size=float(size))
 
     @friendly
-    def font_name(self, name):
-        """The font for all the text on the chart. chart.font_name("DejaVu Serif")
+    def use_font(self, name):
+        """The font for all the text on the chart. chart.use_font("DejaVu Serif")
 
         Any font installed on your computer, such as "Arial" or "Times New Roman", or a
         kind of font: "serif", "sans-serif" (normal) or "monospace". If the font is not
@@ -409,6 +409,6 @@ class TextWords:
         """
         if not isinstance(name, str) or not name.strip():
             raise SimplydataError(
-                f'.font_name() needs the name of a font, for example chart.font_name("Arial"), not {name!r}.')
+                f'.font_name() needs the name of a font, for example chart.use_font("Arial"), not {name!r}.')
         return self._set(font_name=installed_font(name.strip()))
 

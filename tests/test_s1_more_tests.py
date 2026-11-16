@@ -1,6 +1,6 @@
 """S1 Part A: more test= choices on compare_averages, compare_spreads and compare_counts.
 
-Reference values: R 4.6.2 on sdata.example("marks") (m <- read.csv(".../marks.csv"); a, b, cc = the marks of
+Reference values: R 4.6.2 on sdata.get_example("marks") (m <- read.csv(".../marks.csv"); a, b, cc = the marks of
 classes A, B and C; ab = the rows of classes A and B; res = ifelse(m$marks >= 60, "60 or more", "below 60")).
 """
 
@@ -32,7 +32,7 @@ def row(result):
 
 @pytest.fixture
 def marks():
-    return sdata.example("marks")
+    return sdata.get_example("marks")
 
 
 @pytest.fixture
@@ -47,7 +47,7 @@ def counts(marks, engine):
 
 # ---------------------------------------------------------------------------- compare_averages
 def test_yuen(ab, capsys):
-    got = row(ab.compare_averages("marks", for_each="class", test="yuen"))
+    got = row(ab.compare_averages_of("marks", for_each_group_in="class", test="yuen"))
     # R: WRS2::yuen(marks ~ class, data = ab, tr = 0.2)
     assert got["statistic"] == pytest.approx(1.53468088195914, rel=REL)
     assert got["p-value"] == pytest.approx(0.13915081007666, rel=1e-8)
@@ -58,23 +58,23 @@ def test_yuen(ab, capsys):
 
 
 def test_brunner_munzel(ab):
-    got = row(ab.compare_averages("marks", for_each="class", test="brunner-munzel"))
+    got = row(ab.compare_averages_of("marks", for_each_group_in="class", test="brunner-munzel"))
     # R: brunnermunzel::brunnermunzel.test(a, b)
     assert got["statistic"] == pytest.approx(-1.695062129278, rel=REL)
     assert got["p-value"] == pytest.approx(0.0993777514031908, rel=1e-8)
-    ranks = row(ab.compare_averages("marks", for_each="class", based_on="ranks", test="brunner-munzel"))
+    ranks = row(ab.compare_averages_of("marks", for_each_group_in="class", based_on="ranks", test="brunner-munzel"))
     assert ranks["p-value"] == got["p-value"]
 
 
 def test_alexander_govern(marks, engine):
-    got = row(make(marks, engine).compare_averages("marks", for_each="class", test="alexander-govern"))
+    got = row(make(marks, engine).compare_averages_of("marks", for_each_group_in="class", test="alexander-govern"))
     # R: onewaytests::ag.test(marks ~ class, data = m)  (onewaytests 3.2)
     assert got["statistic"] == pytest.approx(7.10054816479951, rel=REL)
     assert got["p-value"] == pytest.approx(0.0287167678148864, rel=1e-8)
 
 
 def test_mood_median_test(marks, engine, capsys):
-    got = row(make(marks, engine).compare_averages("marks", for_each="class", test="median"))
+    got = row(make(marks, engine).compare_averages_of("marks", for_each_group_in="class", test="median"))
     # R: chisq.test(table(m$class, m$marks > median(m$marks)))
     assert got["statistic"] == pytest.approx(4.0, rel=REL)
     assert got["p-value"] == pytest.approx(0.135335283236613, rel=1e-8)
@@ -84,26 +84,26 @@ def test_mood_median_test(marks, engine, capsys):
 
 def test_more_average_tests_errors(marks, ab):
     with pytest.raises(SimplydataError, match="exactly 2 groups"):
-        make_table(marks).compare_averages("marks", for_each="class", test="yuen")
+        make_table(marks).compare_averages_of("marks", for_each_group_in="class", test="yuen")
     with pytest.raises(SimplydataError, match="no one direction"):
-        ab.compare_averages("marks", for_each="class", test="median", sides=1, higher="B")
+        ab.compare_averages_of("marks", for_each_group_in="class", test="median", sides=1, higher="B")
     with pytest.raises(SimplydataError, match='based_on="ranks"'):
-        ab.compare_averages("marks", for_each="class", based_on="ranks", test="yuen")
+        ab.compare_averages_of("marks", for_each_group_in="class", based_on="ranks", test="yuen")
 
 
 # ---------------------------------------------------------------------------- compare_spreads
 def test_ansari_and_mood(ab):
     # R: ansari.test(a, b): AB 160.5, p 0.504390721965635
-    got = row(ab.compare_spreads("marks", for_each="class", test="ansari"))
+    got = row(ab.compare_spreads_of("marks", for_each_group_in="class", test="ansari"))
     assert got["statistic"] == 160.5 and got["p-value"] == pytest.approx(0.504390721965635, rel=1e-8)
     # R: mood.test(a, b): Z 0.409386412856107, p 0.682256109163144
-    got = row(ab.compare_spreads("marks", for_each="class", test="mood"))
+    got = row(ab.compare_spreads_of("marks", for_each_group_in="class", test="mood"))
     assert got["statistic"] == pytest.approx(0.409386412856107, rel=REL)
     assert got["p-value"] == pytest.approx(0.682256109163144, rel=1e-8)
 
 
 def test_f_test_of_two_variances(ab, needs_r):
-    got = row(ab.compare_spreads("marks", for_each="class", test="f"))
+    got = row(ab.compare_spreads_of("marks", for_each_group_in="class", test="f"))
     # R: var.test(a, b): F 0.854854218132868 on 17 and 17 df, p 0.7501632316422, CI 0.319774846319096 to 2.28528210605512
     assert got["statistic"] == pytest.approx(0.854854218132868, rel=REL)
     assert (got["degrees of freedom 1"], got["degrees of freedom 2"]) == (17, 17)
@@ -114,12 +114,12 @@ def test_f_test_of_two_variances(ab, needs_r):
 
 def test_two_group_spread_tests_need_two_groups(marks):
     with pytest.raises(SimplydataError, match="exactly 2 groups"):
-        make_table(marks).compare_spreads("marks", for_each="class", test="ansari")
+        make_table(marks).compare_spreads_of("marks", for_each_group_in="class", test="ansari")
 
 
 # ---------------------------------------------------------------------------- compare_counts
 def test_g_test(counts, capsys):
-    got = row(counts.compare_counts("result", for_each="class", test="g"))
+    got = row(counts.compare_counts_of("result", for_each_group_in="class", test="g"))
     # R: DescTools::GTest(table(res, m$class)): G 4.31385046826758, df 2, p 0.115680264495438
     assert got["statistic"] == pytest.approx(4.31385046826758, rel=REL)
     assert got["degrees of freedom"] == 2
@@ -130,13 +130,13 @@ def test_barnard_and_boschloo_from_r(marks, engine, needs_r):
     data = marks[marks["class"] != "C"].reset_index(drop=True)
     t = make(data.assign(result=np.where(data["marks"] >= 60, "60 or more", "below 60")), engine)
     # R: tab <- matrix(c(14, 4, 11, 7), 2); Exact::exact.test(tab, method = "z-pooled")$p.value
-    assert row(t.compare_counts("result", for_each="class", test="barnard"))["p-value"] == \
+    assert row(t.compare_counts_of("result", for_each_group_in="class", test="barnard"))["p-value"] == \
         pytest.approx(0.309714163032, rel=1e-8)
     # Exact::exact.test(tab, method = "boschloo")$p.value
-    assert row(t.compare_counts("result", for_each="class", test="boschloo"))["p-value"] == \
+    assert row(t.compare_counts_of("result", for_each_group_in="class", test="boschloo"))["p-value"] == \
         pytest.approx(0.403519988736, rel=1e-8)
 
 
 def test_barnard_needs_two_by_two(counts):
     with pytest.raises(SimplydataError, match="2 x 2 tables"):
-        counts.compare_counts("result", for_each="class", test="barnard")
+        counts.compare_counts_of("result", for_each_group_in="class", test="barnard")

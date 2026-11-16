@@ -287,7 +287,7 @@ class AccuracyWords:
                          cut_off=None, positive_when="higher"):
         """How well does a test find what is really there (sensitivity, specificity, predictive values)?
 
-        table.compare_to_truth("rapid_test", truth="infected")   (with sdata.example("clinic"))
+        table.compare_to_truth("rapid_test", truth="infected")   (with sdata.get_example("clinic"))
         truth= is the column with the real answer (a reference standard). A yes/no test column
         gives, of 1000 people like these, how many the test finds and misses, with sensitivity,
         specificity and the share of positive and negative results that are right (exact
@@ -333,7 +333,7 @@ class AccuracyWords:
     def compare_accuracy(self, *scores, truth=None, positive=None, interval=95, positive_when="higher"):
         """Which of two scores tells better who has it? DeLong's test of two AUCs on the same rows.
 
-        table.compare_accuracy("crp", "procalcitonin", truth="infected")   (with sdata.example("clinic"))
+        table.compare_accuracy("crp", "procalcitonin", truth="infected")   (with sdata.get_example("clinic"))
         Both scores were measured on the same people, so their ROC curves are compared as a pair
         (R pROC::roc.test(method = "delong", paired = TRUE), simplydata[r]). Prints each AUC with
         its DeLong interval, the difference with its interval, and the p-value. Higher scores

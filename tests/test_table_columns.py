@@ -136,9 +136,9 @@ def test_add_column_replaces_and_undo(table, marks):
     table.undo()
     same_values(plain(table)["marks"], marks["marks"])
     table.add_column("x", "marks * 2")
-    assert "x" in table.column_names()
+    assert "x" in table.get_column_names()
     table.undo()
-    assert "x" not in table.column_names()
+    assert "x" not in table.get_column_names()
 
 
 def test_add_column_friendly_errors(table):
@@ -249,7 +249,7 @@ def test_formula_empty_cells_stay_empty(engine):
 def test_formula_safety(table, formula):
     with pytest.raises(SimplydataError):
         table.add_column("x", formula)
-    assert "x" not in table.column_names()
+    assert "x" not in table.get_column_names()
 
 
 def test_formula_friendly_messages(table):
@@ -285,7 +285,7 @@ def test_group_column_boundaries(engine):
                       right=False, labels=["D", "C", "B", "A"])
     assert got[:8] == list(expected.astype(str))
     t.undo()
-    assert t.column_names() == ["marks"]
+    assert t.get_column_names() == ["marks"]
 
 
 def test_group_column_errors(table):
@@ -310,7 +310,7 @@ def test_rank_column_like_sports_tables(engine):
     t.add_rank_column("place_small", from_column="points", biggest_first=False)
     assert list(plain(t)["place_small"]) == [2, 5, 3, 3, 1]
     t.undo()
-    assert "place_small" not in t.column_names()
+    assert "place_small" not in t.get_column_names()
 
 
 def test_rank_matches_pandas_and_empty_cells(table, marks, engine):
@@ -348,7 +348,7 @@ def test_join_with_matches_pandas(engine, marks, people, keep, how, capsys):
     expected = expected.sort_values(key, na_position="last").reset_index(drop=True)
     pd.testing.assert_frame_equal(got, expected, check_dtype=False)
     t.undo()
-    assert len(t) == len(marks) and "age" not in t.column_names()
+    assert len(t) == len(marks) and "age" not in t.get_column_names()
 
 
 def test_join_with_any_kind_of_other(engine, marks, people, tmp_path, capsys):
@@ -360,7 +360,7 @@ def test_join_with_any_kind_of_other(engine, marks, people, tmp_path, capsys):
     for other in others:
         t = build(marks, engine)
         t.join_with(other, using="name")
-        assert "age" in t.column_names()
+        assert "age" in t.get_column_names()
         assert t._engine == ("Polars" if engine == "polars" else "pandas")
         assert set(plain(t)["name"]) <= {"Asha", "Ben"}
 
@@ -423,9 +423,9 @@ def test_turn_columns_into_rows_matches_pandas(table, marks):
                           var_name="column", value_name="value")
     pd.testing.assert_frame_equal(plain(table), expected, check_dtype=False)
     table.undo()
-    assert table.column_names() == list(marks.columns)
+    assert table.get_column_names() == list(marks.columns)
     table.turn_columns_into_rows("marks", names_to="what", values_to="amount")
-    assert table.column_names() == ["name", "class", "test", "height", "what", "amount"]
+    assert table.get_column_names() == ["name", "class", "test", "height", "what", "amount"]
 
 
 def test_turn_columns_into_rows_errors(table):
@@ -457,7 +457,7 @@ def test_turn_rows_into_columns_matches_pandas(engine, marks):
 
 
 def test_round_trip_long_and_wide(engine):
-    weather = sdata.example("weather")[["month", "city", "temperature", "rain"]]
+    weather = sdata.get_example("weather")[["month", "city", "temperature", "rain"]]
     t = build(weather, engine)
     t.turn_columns_into_rows(["temperature", "rain"])
     t.turn_rows_into_columns(names_from="column", values_from="value")
@@ -466,7 +466,7 @@ def test_round_trip_long_and_wide(engine):
 
 def test_turn_rows_into_columns_errors(table):
     t = build({"name": ["a", "a", "b"], "test": [1, 1, 1], "m": [1, 2, 3]}, "pandas")
-    with pytest.raises(SimplydataError, match='average_of\\("m", for_each=\\["name", "test"\\]\\)'):
+    with pytest.raises(SimplydataError, match='find_average_of\\("m", for_each_group_in=\\["name", "test"\\]\\)'):
         t.turn_rows_into_columns(names_from="test", values_from="m")
     with pytest.raises(SimplydataError, match="needs names_from= and values_from="):
         table.turn_rows_into_columns(names_from="test")
@@ -477,7 +477,7 @@ def test_turn_rows_into_columns_errors(table):
 # ---------------------------------------------------------------------------- docstrings
 def test_docstring_examples_run():
     for engine in ENGINES:
-        marks = build(sdata.example("marks"), engine)
+        marks = build(sdata.get_example("marks"), engine)
         marks.sort_by("marks", biggest_first=True)
         marks.add_column("study_and_marks", by_adding=["hours", "marks"])
         marks.add_column("half", from_column="marks", divide_by=2)
@@ -487,7 +487,7 @@ def test_docstring_examples_run():
         marks.add_rank_column("place", from_column="marks")
         marks.join_with({"name": ["Asha", "Ben"], "age": [12, 13]}, using="name")
         marks.add_rows_from(marks)
-        weather = build(sdata.example("weather"), engine)
+        weather = build(sdata.get_example("weather"), engine)
         weather.turn_columns_into_rows(["temperature", "rain"])
         weather.undo()
         weather.turn_rows_into_columns(names_from="city", values_from="temperature")

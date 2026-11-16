@@ -1,4 +1,4 @@
-"""Table words for distributions: fit_distribution, compare_distributions, and the shape_test engine.
+"""Table words for distributions: fit_distribution_to, compare_distributions_for, and the shape_test engine.
 
 The numbers come from simplydata.distributions (maximum likelihood, as R MASS::fitdistr and
 fitdistrplus); see that module for every choice.
@@ -52,28 +52,28 @@ class DistributionTableWords:
         data = {c: [r.get(c) for r in rows] for c in columns}
         return self._new_table(nw.from_dict(data, backend=self._frame.implementation))
 
-    # ------------------------------------------------------------------ fit_distribution
-    @friendly
-    def fit_distribution(self, column=None, distribution="normal", for_each=None, fixed=None):
+    # ------------------------------------------------------------------ fit_distribution_to
+    @friendly(renamed={"for_each": "for_each_group_in"})
+    def fit_distribution_to(self, column=None, distribution="normal", for_each_group_in=None, fixed=None):
         """Fit a distribution to a column by maximum likelihood; gives back the fitted distribution.
 
-        fit = table.fit_distribution("sales", "lognormal")   (with sdata.example("shop"))
-        then fit.chance(above=600), fit.percentile(90), fit.chart(), and fit.table() for the
+        fit = table.fit_distribution_to("sales", "lognormal")   (with sdata.get_example("shop"))
+        then fit.find_chance_that_value(is_above=600), fit.find_percentile(90), fit.draw_chart(), and fit.turn_into_table() for the
         result table (values, standard errors, log-likelihood, AIC, BIC, rows). As R
         MASS::fitdistr(x, "gamma") (fitdistrplus::fitdist for beta and others); standard
         errors from the observed information. Families without a location in R (gamma,
         weibull, lognormal, exponential, beta) keep it at 0, as R. fixed={"shape": 2} holds a
-        parameter. With for_each= it gives back a result table, one row per group.
+        parameter. With for_each_group_in= it gives back a result table, one row per group.
         Empty cells are skipped.
         "kernel density" gives a smooth curve that follows the values, with no family chosen:
         SciPy gaussian_kde with Silverman's bandwidth (statsmodels bw_silverman), as R density(x).
         """
-        step = "fit_distribution"
-        example = 'with sdata.example("trial"): table.fit_distribution("days", "gamma")'
-        if for_each is not None and _d._is_kernel(distribution):
+        step = "fit_distribution_to"
+        example = 'with sdata.get_example("trial"): table.fit_distribution_to("days", "gamma")'
+        if for_each_group_in is not None and _d._is_kernel(distribution):
             raise SimplydataError('A kernel density is made for one group at a time: keep its rows first, then '
-                                  'table.fit_distribution("marks", "kernel density").')
-        groups, parts = self._distribution_groups(step, column, for_each, example)
+                                  'table.fit_distribution_to("marks", "kernel density").')
+        groups, parts = self._distribution_groups(step, column, for_each_group_in, example)
         backend = self._frame.implementation
         if not groups:
             values = parts[0][2] if parts else np.asarray([])
@@ -102,23 +102,23 @@ class DistributionTableWords:
             print("Note: the maximum-likelihood standard deviation divides by n, so it is a little smaller than R sd().")
         return self._distribution_rows_table(rows)
 
-    # ------------------------------------------------------------------ compare_distributions
-    @friendly
-    def compare_distributions(self, column=None, distributions=DEFAULT_COMPARED, for_each=None):
+    # ------------------------------------------------------------------ compare_distributions_for
+    @friendly(renamed={"for_each": "for_each_group_in"})
+    def compare_distributions_for(self, column=None, distributions=DEFAULT_COMPARED, for_each_group_in=None):
         """Fit several distributions to a column and rank them by AIC (smaller is better).
 
-        table.compare_distributions("sales")   (with sdata.example("shop"))
+        table.compare_distributions_for("sales")   (with sdata.get_example("shop"))
         distributions=("normal", "lognormal", "gamma", "weibull") by default. Each is fitted by
-        maximum likelihood (as fit_distribution); the result table has one row per
+        maximum likelihood (as fit_distribution_to); the result table has one row per
         distribution with its values, log-likelihood, AIC, BIC, the AIC difference from the
         best, and the Anderson-Darling, Kolmogorov-Smirnov and Cramer-von Mises statistics, as
         R fitdistrplus::gofstat(). An AIC difference below 2 is too small to choose between them.
         """
-        step = "compare_distributions"
-        example = 'with sdata.example("trial"): table.compare_distributions("days")'
+        step = "compare_distributions_for"
+        example = 'with sdata.get_example("trial"): table.compare_distributions_for("days")'
         if isinstance(distributions, str):
             distributions = [distributions]
-        groups, parts = self._distribution_groups(step, column, for_each, example)
+        groups, parts = self._distribution_groups(step, column, for_each_group_in, example)
         rows, sentences = [], []
         for key, label, values in parts:
             ranked, notes = _d.compare_fits(values, distributions, column=column)

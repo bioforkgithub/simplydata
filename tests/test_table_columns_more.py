@@ -1,5 +1,5 @@
 """Tests for the newer column words: date parts, days between dates, text words, change_column,
-group rules, by_running=, summary words with for_each=, and rolling / previous / change columns.
+group rules, by_running=, summary words with for_each_group_in=, and rolling / previous / change columns.
 
 Every word runs on pandas and Polars and is checked against plain pandas / NumPy.
 """
@@ -78,7 +78,7 @@ def test_date_parts_match_pandas(engine):
         "hour": s.dt.hour, "minute": s.dt.minute,
     }
     for part, values in expected.items():
-        t.add_date_part_column(part, from_column="when", part=part)
+        t.add_column_with_part_of_date(part, from_column="when", part=part)
         same_values(plain(t)[part], values)
     # ISO week: 30 Dec 2024 is in week 1 of 2025, 1 Jan 2027 is in week 53 of 2026
     assert plain(t)["week"][3] == 1 and plain(t)["week"][4] == 53
@@ -86,8 +86,8 @@ def test_date_parts_match_pandas(engine):
 
 def test_date_parts_whole_numbers_without_empty_dates(engine):
     t = build({"when": pd.to_datetime(["2026-01-05", "2026-02-10"])}, engine)
-    t.add_date_part_column("year", from_column="when", part="year")
-    t.add_date_part_column("week", from_column="when", part="week")
+    t.add_column_with_part_of_date("year", from_column="when", part="year")
+    t.add_column_with_part_of_date("week", from_column="when", part="week")
     out = plain(t)
     assert list(out["year"]) == [2026, 2026] and list(out["week"]) == [2, 7]
     assert pd.api.types.is_integer_dtype(out["year"]) and pd.api.types.is_integer_dtype(out["week"])
@@ -96,17 +96,17 @@ def test_date_parts_whole_numbers_without_empty_dates(engine):
 def test_date_part_errors_and_undo(engine):
     t = build({"when": STAMPS, "text": ["2026-01-01"] * 6}, engine)
     before = plain(t)
-    with pytest.raises(SimplydataError, match="make_dates"):
-        t.add_date_part_column("y", from_column="text", part="year")
+    with pytest.raises(SimplydataError, match="turn_into_dates"):
+        t.add_column_with_part_of_date("y", from_column="text", part="year")
     with pytest.raises(SimplydataError, match='Did you mean part="month"'):
-        t.add_date_part_column("m", from_column="when", part="mont")
+        t.add_column_with_part_of_date("m", from_column="when", part="mont")
     with pytest.raises(SimplydataError, match="needs part="):
-        t.add_date_part_column("m", from_column="when")
+        t.add_column_with_part_of_date("m", from_column="when")
     with pytest.raises(SimplydataError, match="from_column="):
-        t.add_date_part_column("m", part="month")
+        t.add_column_with_part_of_date("m", part="month")
     with pytest.raises(SimplydataError, match="Did you mean"):
-        t.add_date_part_column("m", from_column="whn", part="month")
-    t.add_date_part_column("m", from_column="when", part="month")
+        t.add_column_with_part_of_date("m", from_column="whn", part="month")
+    t.add_column_with_part_of_date("m", from_column="when", part="month")
     assert "add date part column" in t._history[-1][0]
     undo_gives_back(t, before)
 
@@ -115,8 +115,8 @@ def test_hour_of_plain_dates_is_refused():
     pytest.importorskip("polars")
     t = build({"day": pd.to_datetime(["2026-01-01"])}, "polars", dates_only=["day"])
     with pytest.raises(SimplydataError, match="no hours"):
-        t.add_date_part_column("h", from_column="day", part="hour")
-    t.add_date_part_column("d", from_column="day", part="weekday name")
+        t.add_column_with_part_of_date("h", from_column="day", part="hour")
+    t.add_column_with_part_of_date("d", from_column="day", part="weekday name")
     assert plain(t)["d"][0] == "Thursday"
 
 
@@ -218,41 +218,41 @@ WORDS = ["Gadus sp.", "Sprattus sp. x", None, "sp.sp.", "Clupea", ""]
 def test_replace_text_plain(engine, capsys):
     t = build({"species": WORDS}, engine)
     before = plain(t)
-    t.replace_text("species", " sp.", with_value="")
+    t.replace_text_in("species", " sp.", with_value="")
     same_values(plain(t)["species"], pd.Series(WORDS, dtype=object).str.replace(" sp.", "", regex=False))
     assert 'Replaced " sp." in 2 cells of species.' in capsys.readouterr().out
     undo_gives_back(t, before)
-    t.replace_text("species", ".", with_value="$1\\")  # plain text: no pattern signs
+    t.replace_text_in("species", ".", with_value="$1\\")  # plain text: no pattern signs
     assert plain(t)["species"][0] == "Gadus sp$1\\"
 
 
 def test_replace_text_pattern(engine):
     t = build({"id": ["a  1", "b 22", None, "c3"]}, engine)
-    t.replace_text("id", pattern=r"\s+", with_value="_")
+    t.replace_text_in("id", matches_pattern=r"\s+", with_value="_")
     same_values(plain(t)["id"], ["a_1", "b_22", np.nan, "c3"])
-    t.replace_text("id", pattern=r"(\d)", with_value="$1\\x")  # the new text is used as written
+    t.replace_text_in("id", matches_pattern=r"(\d)", with_value="$1\\x")  # the new text is used as written
     same_values(plain(t)["id"], [re.sub(r"(\d)", lambda m: "$1\\x", s) for s in ["a_1", "b_22"]] + [np.nan, "c$1\\x"])
 
 
 def test_replace_text_errors(engine):
     t = build({"species": WORDS, "n": range(6)}, engine)
     with pytest.raises(SimplydataError, match="with_value="):
-        t.replace_text("species", "sp.")
+        t.replace_text_in("species", "sp.")
     with pytest.raises(SimplydataError, match="one of the two"):
-        t.replace_text("species", "sp.", with_value="", pattern="x")
+        t.replace_text_in("species", "sp.", with_value="", matches_pattern="x")
     with pytest.raises(SimplydataError, match="works on text"):
-        t.replace_text("n", "1", with_value="2")
+        t.replace_text_in("n", "1", with_value="2")
     with pytest.raises(SimplydataError, match="not a regular expression"):
-        t.replace_text("species", pattern="(", with_value="")
+        t.replace_text_in("species", matches_pattern="(", with_value="")
     with pytest.raises(SimplydataError, match="no option called with_text"):
-        t.replace_text("species", "sp.", with_text="")
+        t.replace_text_in("species", "sp.", with_text="")
 
 
 def test_replace_text_pattern_the_fast_engine_cannot_use():
     pytest.importorskip("polars")
     t = build({"s": ["a1"]}, "polars")
     with pytest.raises(SimplydataError, match="look-ahead"):
-        t.replace_text("s", pattern=r"(?=1)", with_value="x")
+        t.replace_text_in("s", matches_pattern=r"(?=1)", with_value="x")
 
 
 # ---------------------------------------------------------------------------- add_text_part_column
@@ -266,29 +266,29 @@ def test_text_parts_match_pandas(engine, capsys):
     def clean(series):
         return series.where(series.str.strip() != "", np.nan)
 
-    t.add_text_part_column("first3", from_column="code", first_characters=3)
+    t.add_column_with_part_of_text("first3", from_column="code", first_characters=3)
     same_values(plain(t)["first3"], clean(s.str[:3]))
-    t.add_text_part_column("last2", from_column="code", last_characters=2)
+    t.add_column_with_part_of_text("last2", from_column="code", last_characters=2)
     same_values(plain(t)["last2"], clean(s.str[-2:]))
-    t.add_text_part_column("mid", from_column="code", characters=[2, 4])
+    t.add_column_with_part_of_text("mid", from_column="code", characters=[2, 4])
     same_values(plain(t)["mid"], clean(s.str[1:4]))
-    t.add_text_part_column("before", from_column="code", before="_")
+    t.add_column_with_part_of_text("before", from_column="code", before="_")
     found = s.str.contains("_", regex=False) == True  # noqa: E712
     same_values(plain(t)["before"], clean(s.str.partition("_")[0].where(found)))
-    t.add_text_part_column("after", from_column="code", after="_")
+    t.add_column_with_part_of_text("after", from_column="code", after="_")
     same_values(plain(t)["after"], clean(s.str.partition("_")[2].where(found)))
     capsys.readouterr()
-    t.add_text_part_column("plate", from_column="code", pattern=r"P\d+")
+    t.add_column_with_part_of_text("plate", from_column="code", matches_pattern=r"P\d+")
     same_values(plain(t)["plate"], s.str.extract(r"(P\d+)", expand=False))
     assert '4 cells of code had no match for the pattern, so "plate" is empty there.' not in capsys.readouterr().out
-    t.add_text_part_column("number", from_column="code", pattern=r"P(\d+)")
+    t.add_column_with_part_of_text("number", from_column="code", matches_pattern=r"P(\d+)")
     same_values(plain(t)["number"], s.str.extract(r"P(\d+)", expand=False))
 
 
 def test_text_part_feedback_and_marks(table, marks, capsys):
-    table.add_text_part_column("initial", from_column="name", first_characters=1)
+    table.add_column_with_part_of_text("initial", from_column="name", first_characters=1)
     same_values(plain(table)["initial"], marks["name"].str[0])
-    table.add_text_part_column("x", from_column="name", after="s")
+    table.add_column_with_part_of_text("x", from_column="name", after="s")
     assert 'cells of name had no "s", so "x" is empty there.' in capsys.readouterr().out
     same_values(plain(table)["x"], marks["name"].map(lambda v: v.split("s", 1)[1] if "s" in v else np.nan))
 
@@ -296,23 +296,23 @@ def test_text_part_feedback_and_marks(table, marks, capsys):
 def test_text_part_errors(engine):
     t = build({"code": CODES, "n": range(6)}, engine)
     with pytest.raises(SimplydataError, match="Choose one"):
-        t.add_text_part_column("x", from_column="code")
+        t.add_column_with_part_of_text("x", from_column="code")
     with pytest.raises(SimplydataError, match="2 ways at once"):
-        t.add_text_part_column("x", from_column="code", before="_", after="_")
+        t.add_column_with_part_of_text("x", from_column="code", before="_", after="_")
     with pytest.raises(SimplydataError, match="whole number"):
-        t.add_text_part_column("x", from_column="code", first_characters=0)
+        t.add_column_with_part_of_text("x", from_column="code", first_characters=0)
     with pytest.raises(SimplydataError, match="counting from 1"):
-        t.add_text_part_column("x", from_column="code", characters=[3, 1])
+        t.add_column_with_part_of_text("x", from_column="code", characters=[3, 1])
     with pytest.raises(SimplydataError, match="works on text"):
-        t.add_text_part_column("x", from_column="n", first_characters=1)
+        t.add_column_with_part_of_text("x", from_column="n", first_characters=1)
     with pytest.raises(SimplydataError, match="the mark in quotes"):
-        t.add_text_part_column("x", from_column="code", before="")
+        t.add_column_with_part_of_text("x", from_column="code", before="")
 
 
 def test_text_part_marks_with_pattern_signs(engine):
     t = build({"v": ["a.b(c", "x(y"]}, engine)
-    t.add_text_part_column("left", from_column="v", before="(")
-    t.add_text_part_column("right", from_column="v", after=".")
+    t.add_column_with_part_of_text("left", from_column="v", before="(")
+    t.add_column_with_part_of_text("right", from_column="v", after=".")
     same_values(plain(t)["left"], ["a.b", "x"])
     same_values(plain(t)["right"], ["b(c", np.nan])
 
@@ -335,7 +335,7 @@ def test_change_column(table, marks):
 
 
 def test_change_column_centred_per_group(table, marks):
-    table.change_column("marks", "marks - average(marks)", for_each="class")
+    table.change_column("marks", "marks - average(marks)", for_each_group_in="class")
     same_values(plain(table)["marks"], marks["marks"] - marks.groupby("class")["marks"].transform("mean"))
 
 
@@ -350,7 +350,7 @@ def test_change_column_errors(table):
 
 # ---------------------------------------------------------------------------- summary words and for_each
 def test_share_of_group_total(table, marks):
-    table.add_column("share", "marks / total(marks) * 100", for_each="class")
+    table.add_column("share", "marks / total(marks) * 100", for_each_group_in="class")
     expected = marks["marks"] / marks.groupby("class")["marks"].transform("sum") * 100
     same_values(plain(table)["share"], expected)
     assert table._history[-1][0] == 'add column "share" = marks / total(marks) * 100 (summaries for each class)'
@@ -362,7 +362,7 @@ def test_share_of_group_total(table, marks):
 def test_every_summary_word(engine, word, how):
     data = pd.DataFrame({"g": ["a", "a", "b", "b", "b", None], "x": [1.0, 4.0, np.nan, 2.0, 7.0, 3.0]})
     t = build(data, engine)
-    t.add_column("s", f"{word}(x)", for_each="g")
+    t.add_column("s", f"{word}(x)", for_each_group_in="g")
     expected = data.groupby("g", dropna=False)["x"].transform(how)
     same_values(plain(t)["s"], expected)
     t.add_column("whole", f"{word}(x)")
@@ -372,20 +372,20 @@ def test_every_summary_word(engine, word, how):
 def test_summary_words_more(table, marks):
     table.add_column("from_mean", "marks - average(marks)")
     same_values(plain(table)["from_mean"], marks["marks"] - marks["marks"].mean())
-    table.add_column("n", "count(name)", for_each=["class", "test"])  # count may count text
+    table.add_column("n", "count(name)", for_each_group_in=["class", "test"])  # count may count text
     same_values(plain(table)["n"], marks.groupby(["class", "test"])["name"].transform("count"))
-    table.add_column("z", "(marks - average(marks)) / (biggest(marks) - smallest(marks))", for_each="class")
+    table.add_column("z", "(marks - average(marks)) / (biggest(marks) - smallest(marks))", for_each_group_in="class")
     g = marks.groupby("class")["marks"]
     same_values(plain(table)["z"], (marks["marks"] - g.transform("mean")) / (g.transform("max") - g.transform("min")))
-    table.add_column("spread", "total(marks * 2)", for_each="class")
+    table.add_column("spread", "total(marks * 2)", for_each_group_in="class")
     same_values(plain(table)["spread"], g.transform("sum") * 2)
 
 
 def test_summary_word_errors(table):
     with pytest.raises(SimplydataError, match="only matters when the formula has a summary word"):
-        table.add_column("x", "marks * 2", for_each="class")
+        table.add_column("x", "marks * 2", for_each_group_in="class")
     with pytest.raises(SimplydataError, match="only works with a formula"):
-        table.add_column("x", by_adding=["marks", "test"], for_each="class")
+        table.add_column("x", by_adding=["marks", "test"], for_each_group_in="class")
     with pytest.raises(SimplydataError, match="called average"):
         table.add_column("x", "marks / mean(marks)")
     with pytest.raises(SimplydataError, match="cannot be inside another summary word"):
@@ -395,7 +395,7 @@ def test_summary_word_errors(table):
     with pytest.raises(SimplydataError, match="cannot do sums"):
         table.add_column("x", "total(name)")
     with pytest.raises(SimplydataError, match='Did you mean "class"'):
-        table.add_column("x", "total(marks)", for_each="clas")
+        table.add_column("x", "total(marks)", for_each_group_in="clas")
     with pytest.raises(SimplydataError, match="needs brackets"):
         table.add_column("x", "marks / total")
 
@@ -546,7 +546,7 @@ def test_rolling_matches_pandas(engine, show, how, capsys):
     data = shuffled_series()
     t = build(data, engine)
     before = plain(t)
-    t.add_rolling_column("r", from_column="cases", window=3, show=show, for_each="site", sorted_by="day")
+    t.add_rolling_column("r", from_column="cases", window=3, show=show, for_each_group_in="site", sorted_by="day")
     ordered = data.sort_values("day", kind="stable")
     expected = ordered.groupby("site")["cases"].transform(lambda s: getattr(s.rolling(3), how)()).sort_index()
     same_values(plain(t)["r"], expected)
@@ -588,10 +588,10 @@ def test_previous_value_matches_shift(engine):
     data["note"] = [f"n{i}" for i in range(len(data))]
     t = build(data, engine)
     before = plain(t)
-    t.add_previous_value_column("before", from_column="cases", for_each="site", sorted_by="day")
+    t.add_previous_value_column("before", from_column="cases", for_each_group_in="site", sorted_by="day")
     ordered = data.sort_values("day", kind="stable")
     same_values(plain(t)["before"], ordered.groupby("site")["cases"].shift(1).sort_index())
-    t.add_previous_value_column("two_back", from_column="note", rows_back=2, for_each="site", sorted_by="day")
+    t.add_previous_value_column("two_back", from_column="note", rows_back=2, for_each_group_in="site", sorted_by="day")
     same_values(plain(t)["two_back"], ordered.groupby("site")["note"].shift(2).sort_index())
     t.add_previous_value_column("plain", from_column="cases")
     same_values(plain(t)["plain"], data["cases"].shift(1))
@@ -605,11 +605,11 @@ def test_change_matches_diff_and_pct_change(engine, capsys):
     data = shuffled_series()
     data.loc[data.index[2], "cases"] = 0.0
     t = build(data, engine)
-    t.add_change_column("change", from_column="cases", for_each="site", sorted_by="day")
+    t.add_change_column("change", from_column="cases", for_each_group_in="site", sorted_by="day")
     ordered = data.sort_values("day", kind="stable")
     g = ordered.groupby("site")["cases"]
     same_values(plain(t)["change"], g.diff().sort_index())
-    t.add_change_column("growth", from_column="cases", in_percent=True, for_each="site", sorted_by="day")
+    t.add_change_column("growth", from_column="cases", in_percent=True, for_each_group_in="site", sorted_by="day")
     previous = g.shift(1)
     expected = ((ordered["cases"] - previous) / previous * 100).replace([np.inf, -np.inf], np.nan).sort_index()
     same_values(plain(t)["growth"], expected)
@@ -624,9 +624,9 @@ def test_change_matches_diff_and_pct_change(engine, capsys):
 def test_change_on_example_growth(engine):
     import simplydata as sdata
 
-    data = sdata.example("growth").sample(frac=1, random_state=1).reset_index(drop=True)
+    data = sdata.get_example("growth").sample(frac=1, random_state=1).reset_index(drop=True)
     t = build(data, engine)
-    t.add_change_column("growth", from_column="population", in_percent=True, for_each="country", sorted_by="year")
+    t.add_change_column("growth", from_column="population", in_percent=True, for_each_group_in="country", sorted_by="year")
     expected = data.sort_values("year", kind="stable").groupby("country")["population"].pct_change().sort_index() * 100
     same_values(plain(t)["growth"], expected)
 
@@ -640,7 +640,7 @@ def test_rules_and_keep_rows_share_one_reader_and_one_empty_cell_rule(engine, ca
     same_values(plain(t)["low"], ["low", "other", "other", "low"])
     assert "Note: 1 row has an empty cell in x. An empty cell never meets a rule." in capsys.readouterr().out
     t2 = build(data, engine)
-    t2.keep_rows("not (x >= 50)")
+    t2.keep_rows_where("not (x >= 50)")
     same_values(plain(t2)["x"], [10.0, 40.0])
     out = capsys.readouterr().out
     assert "Note: 1 row has an empty cell in x. An empty cell never meets a condition, so it was left out." in out
@@ -665,7 +665,7 @@ def test_rules_note_counts_only_rows_an_empty_cell_kept_out(engine, capsys):
 
 def test_remove_rows_note_says_empty_rows_stay(engine, capsys):
     t = build({"x": [10.0, np.nan, 90.0]}, engine)
-    t.remove_rows("x > 50")
+    t.remove_rows_where("x > 50")
     assert len(plain(t)) == 2
     assert "so it was not removed." in capsys.readouterr().out
 
@@ -677,12 +677,12 @@ def test_rolling_per_group_in_table_order_lands_in_the_right_rows(engine, show, 
     pandas here, or rolling values per group come out in the wrong rows."""
     data = pd.DataFrame({"g": list("abababab"), "v": [5.0, 1, 3, 9, 3, 2, 8, 4]})
     t = build(data, engine)
-    t.add_rolling_column("r", from_column="v", window=2, show=show, for_each="g")
+    t.add_rolling_column("r", from_column="v", window=2, show=show, for_each_group_in="g")
     expected = data.groupby("g")["v"].transform(lambda s: getattr(s.rolling(2), how)())
     same_values(plain(t)["r"], expected)
-    t.add_previous_value_column("p", from_column="v", for_each="g")
+    t.add_previous_value_column("p", from_column="v", for_each_group_in="g")
     same_values(plain(t)["p"], data.groupby("g")["v"].shift(1))
-    t.add_change_column("c", from_column="v", for_each="g")
+    t.add_change_column("c", from_column="v", for_each_group_in="g")
     same_values(plain(t)["c"], data.groupby("g")["v"].diff())
 
 
@@ -692,7 +692,7 @@ def test_add_is_empty_column_keeps_track_of_filled_cells(engine, capsys):
     t = build(data, engine)
     t.add_is_empty_column("v_was_empty", from_column="v")
     t.add_is_empty_column("no_name", from_column="name")
-    t.fill_empty_cells("v", with_the="line between neighbours")
+    t.fill_empty_cells_in("v", with_the="line between neighbours")
     got = plain(t)
     assert list(got["v_was_empty"]) == [False, True, False, True]
     assert list(got["no_name"]) == [False, True, True, False]  # blank text counts as empty

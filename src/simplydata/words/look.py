@@ -31,7 +31,7 @@ def check_colour(value, step: str):
 
 # ---------------------------------------------------------------- legends
 def _twins(ctx) -> list:
-    """Extra y-axes (chart.second_y) that may carry legend entries."""
+    """Extra y-axes (chart.add_second_y) that may carry legend entries."""
     found = []
     stored = ctx.store.get("second_y")
     if isinstance(stored, dict):
@@ -155,7 +155,7 @@ def _label_legend(ctx, text):
     if not found and not ctx.fig.legends and not ctx.store.get("legend_hidden"):
         raise SimplydataError(
             ".label_legend() names the legend, but this chart has no legend.\n"
-            'A legend appears when colour= makes groups, for example chart.dots(x="hours", y="marks", colour="class").'
+            'A legend appears when colour= makes groups, for example chart.draw_dots(x="hours", y="marks", colour="class").'
         )
 
 
@@ -164,7 +164,7 @@ def _label_colour_bar(ctx, text):
     if bar is None:
         raise SimplydataError(
             ".label_colour_bar() needs a chart with a colour bar,\n"
-            'for example chart.heatmap() or chart.contour(x="east", y="north", z="height").'
+            'for example chart.draw_heatmap() or chart.draw_contour(x="east", y="north", z="height").'
         )
     for one in bar if isinstance(bar, (list, tuple)) else [bar]:
         one.set_label(text)
@@ -172,8 +172,8 @@ def _label_colour_bar(ctx, text):
 
 class LookWords:
     @friendly
-    def style(self, name):
-        """The overall look. chart.style("school")
+    def use_style(self, name):
+        """The overall look. chart.use_style("school")
 
         "paper" (default), "school", "presentation" or "dark".
         """
@@ -181,8 +181,8 @@ class LookWords:
         return self._set(style=name)
 
     @friendly
-    def size(self, width=8, height=6, unit="inches"):
-        """The size of the chart. chart.size(width=17, height=12, unit="cm")
+    def set_size(self, width=8, height=6, unit="inches"):
+        """The size of the chart. chart.set_size(width=17, height=12, unit="cm")
 
         unit= is "inches" (normal), "cm", "mm" or "pixels". A saved file is exactly this size.
         In pixels, the saved picture has exactly that many pixels at any resolution=.
@@ -197,37 +197,37 @@ class LookWords:
         else:
             pixels = None
             width, height = width / PER_INCH[unit], height / PER_INCH[unit]
-        # size_set tells one_chart_per() and pages not to choose a size themselves
+        # size_set tells draw_one_chart_for_each_group_in() and pages not to choose a size themselves
         return self._set(width=width, height=height, pixels=pixels, size_set=True)
 
     # ------------------------------------------------------------ colours
     @friendly
-    def colour(self, name):
-        """One colour for the whole chart. chart.colour("blue") or chart.colour("#0072B2")"""
+    def use_colour(self, name):
+        """One colour for the whole chart. chart.use_colour("blue") or chart.use_colour("#0072B2")"""
         return self._set(colour=check_colour(name, "colour"))
 
-    color = colour  # American spelling, same word
+    use_color = use_colour  # American spelling, same word
 
     @friendly
-    def colours(self, *names):
-        """Your own colours for the groups, in order. chart.colours("blue", "orange", "green")"""
+    def use_colours(self, *names):
+        """Your own colours for the groups, in order. chart.use_colours("blue", "orange", "green")"""
         if len(names) == 1 and is_listlike(names[0]):
             names = tuple(names[0])
         if not names:
-            raise SimplydataError('.colours() needs at least one colour, for example chart.colours("blue", "orange").')
+            raise SimplydataError('.use_colours() needs at least one colour, for example chart.use_colours("blue", "orange").')
         return self._set(colours=[check_colour(n, "colours") for n in names])
 
-    colors = colours  # American spelling, same word
+    use_colors = use_colours  # American spelling, same word
 
     @friendly
-    def colour_scale(self, *names, middle=None, log=False, steps=None, between=None):
+    def use_colour_scale(self, *names, middle=None, log=False, steps=None, between=None):
         """The colours for numbers on a heatmap, contour map, surface or dots coloured by a number column.
-        chart.colour_scale("magma") (with chart.heatmap(x="month", y="city", value="rain") on sdata.example("weather"))
+        chart.use_colour_scale("magma") (with chart.draw_heatmap(x="month", y="city", value="rain") on sdata.get_example("weather"))
 
         A name: "viridis" (normal), "cividis", "magma", "blues", "greens" ..., "blue to red"
         or "purple to orange" for numbers on both sides of a middle; these are all safe
         for colour-blind readers. Any matplotlib colour map name works too ("Blues", "turbo",
-        "rocket"), and two or more colours make your own: chart.colour_scale("white", "navy").
+        "rocket"), and two or more colours make your own: chart.use_colour_scale("white", "navy").
         middle=0 puts the middle colour of a two-sided scale at 0 (or middle=1 for ratios);
         the scale goes equally far on both sides, so a step of 1 is the same change of colour.
         log=True spreads the colours on a log scale (1, 10, 100 ... evenly), for counts
@@ -241,7 +241,7 @@ class LookWords:
         self._set(colour_scale=dict(map=cmap, name=shown, middle=middle, log=log, steps=steps, between=between))
         return self._replace("colour_scale_check", "finish", check_used)
 
-    color_scale = colour_scale  # American spelling, same word
+    use_color_scale = use_colour_scale  # American spelling, same word
 
     # ------------------------------------------------------------ grid
     @friendly
@@ -259,24 +259,32 @@ class LookWords:
         return self._replace("legend", "finish", _legend, scope="figure", where=where)
 
     @friendly
-    def legend_top(self):
-        """The legend above the chart, in one row. chart.legend_top()"""
+    def put_legend_at_top(self):
+        """The legend above the chart, in one row. chart.put_legend_at_top()"""
         return self._legend_step("top")
 
+    put_legend_on_top = put_legend_at_top  # the other spelling, same word
+
     @friendly
-    def legend_bottom(self):
-        """The legend below the chart, in one row under the x-axis name. chart.legend_bottom()"""
+    def put_legend_at_bottom(self):
+        """The legend below the chart, in one row under the x-axis name. chart.put_legend_at_bottom()"""
         return self._legend_step("bottom")
 
-    @friendly
-    def legend_left(self):
-        """The legend to the left of the chart. chart.legend_left()"""
-        return self._legend_step("left")
+    put_legend_on_bottom = put_legend_at_bottom  # the other spelling, same word
 
     @friendly
-    def legend_right(self):
-        """The legend to the right of the chart, outside the plot. chart.legend_right()"""
+    def put_legend_on_left(self):
+        """The legend to the left of the chart. chart.put_legend_on_left()"""
+        return self._legend_step("left")
+
+    put_legend_at_left = put_legend_on_left  # the other spelling, same word
+
+    @friendly
+    def put_legend_on_right(self):
+        """The legend to the right of the chart, outside the plot. chart.put_legend_on_right()"""
         return self._legend_step("right")
+
+    put_legend_at_right = put_legend_on_right  # the other spelling, same word
 
     @friendly
     def hide_legend(self):
@@ -286,7 +294,7 @@ class LookWords:
     @friendly
     def label_legend(self, text):
         """The name above the legend. chart.label_legend("Class")
-        (with chart.dots(x="hours", y="marks", colour="class") on sdata.example("marks"))
+        (with chart.draw_dots(x="hours", y="marks", colour="class") on sdata.get_example("marks"))
 
         Without it the legend is named after the colour= column. label_legend("") leaves
         the name out.
@@ -301,7 +309,7 @@ class LookWords:
     def order_legend(self, *names):
         """Put the colour groups in your order: in the legend, the colours and side by side.
         chart.order_legend("Science", "Maths", "English")
-        (with chart.bars(x="class", y="marks", colour="subject") on sdata.example("marks"))
+        (with chart.draw_bars(x="class", y="marks", colour="subject") on sdata.get_example("marks"))
 
         Groups you leave out come after the ones you name. The slices of a pie follow it too.
         The first group gets the first colour.

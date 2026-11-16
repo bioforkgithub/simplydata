@@ -18,7 +18,7 @@ REL = 1e-9
 
 @pytest.fixture(params=["pandas", "polars"])
 def clinic(request):
-    data = sdata.example("clinic")
+    data = sdata.get_example("clinic")
     if request.param == "polars":
         pl = pytest.importorskip("polars")
         return make_table(pl.from_pandas(data))

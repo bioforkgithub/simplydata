@@ -49,7 +49,7 @@ Choices (the same defaults as R, so results can be checked there):
   chained equations with predictive mean matching (statsmodels MICEData, 5 donors as R
   mice()), the model is fitted to each filled-in table, and the results are pooled with
   Rubin's rules, with the Barnard-Rubin degrees of freedom (as R mice::pool()). The filling
-  is random: seed= fixes it.
+  is random: with_seed= fixes it.
 
 How well it fits (two lines at the end: the numbers in plain words, then a Method line with the R
 calls): AIC and BIC as R AIC() and BIC(), with R squared for least
@@ -102,7 +102,7 @@ ROWS_PER_EFFECT = 10
 OVERDISPERSION = 1.5
 Z95 = 1.959963984540054
 YES_NO_PAIRS = (("yes", "no"), ("true", "false"), ("1", "0"), ("1.0", "0.0"), ("y", "n"))
-EXAMPLE = 'with sdata.example("school"): table.explain("marks", using=["hours", "breakfast"])'
+EXAMPLE = 'with sdata.get_example("school"): table.explain("marks", using=["hours", "breakfast"])'
 INTERCEPT = "(intercept)"
 KINDS = {"numbers": "lm", "yes or no": "binomial", "counts": "poisson", "counts (overdispersed)": "quasipoisson",
          "counts that vary a lot": "negbin", "positive numbers": "gamma"}
@@ -448,7 +448,7 @@ class ModelWords:
             dtype = frame.schema[name]
             if dtype.is_temporal():
                 raise SimplydataError(f'"{name}" holds dates or times, which {step}() cannot use. Make a number '
-                                      "from them first, for example with table.add_date_part_column().")
+                                      "from them first, for example with table.add_column_with_part_of_date().")
             if dtype.is_numeric():
                 values = frame[name].cast(nw.Float64).to_numpy().astype(float)
                 raw[name], missing[name], kinds[name] = values, np.isnan(values), "number"
@@ -1262,14 +1262,14 @@ class ModelWords:
         return notes
 
     # ------------------------------------------------------------------ explain
-    @friendly(renamed={"smooth_for": "curve_for", "robust": "robust_errors"})
-    def explain(self, column=None, using=None, outcome="numbers", grouped_by=None, empty_cells="leave out", seed=1,
+    @friendly(renamed={"smooth_for": "curve_for", "robust": "robust_errors", "seed": "with_seed"})
+    def explain(self, column=None, using=None, outcome="numbers", grouped_by=None, empty_cells="leave out", with_seed=1,
                 time=None, out_of=None, in_order=None, link=None, test_type=None, own_slope_for=None,
                 robust_errors=False, p_value_by="wald", effects="for the average group", within_groups="alike",
                 curve_for=None):
         """Explain one column from several others with a model, and say how big each effect is.
 
-        table.explain("marks", using=["hours", "breakfast"])   (with sdata.example("school"))
+        table.explain("marks", using=["hours", "breakfast"])   (with sdata.get_example("school"))
         outcome="numbers" (the default): linear model by least squares (R lm()).
         outcome="yes or no": logistic regression, odds ratios (R glm(family = binomial)).
         outcome="counts": Poisson regression, rate ratios (R glm(family = poisson));
@@ -1309,7 +1309,7 @@ class ModelWords:
         sandwich::vcovHC()), which stay right when the spread is not the same everywhere; it does
         not make the model resistant to outliers.
         empty_cells="multiple imputation"
-        fills in empty cells 20 times (R mice()) instead of leaving those rows out; seed= fixes
+        fills in empty cells 20 times (R mice()) instead of leaving those rows out; with_seed= fixes
         the random filling. Prints each effect with its 95 % confidence interval and p-value in
         words, and how well the model fits: R squared (numbers), McFadden's pseudo R squared
         (yes or no, counts, groups) or Nakagawa's R squared (grouped_by=, R performance, needs R), with
@@ -1318,8 +1318,8 @@ class ModelWords:
         """
         step = "explain"
         robust, smooth_for = robust_errors, curve_for
-        if isinstance(seed, bool) or not isinstance(seed, int):
-            raise SimplydataError("seed= is a whole number that fixes the random filling-in, for example seed=1.")
+        if isinstance(with_seed, bool) or not isinstance(with_seed, int):
+            raise SimplydataError("with_seed= is a whole number that fixes the random filling-in, for example with_seed=1.")
         grouped_by, inner = self._read_nested(step, grouped_by, own_slope_for, p_value_by, effects, robust, test_type)
         terms, pieces, variables, raw, missing, kinds = self._model_parts(
             step, column, using, outcome, grouped_by, empty_cells, time=time, out_of=out_of)
@@ -1361,7 +1361,7 @@ class ModelWords:
         if in_order is not None:
             raise SimplydataError('in_order= gives the order of the groups for outcome="ordered groups".')
         if empty_cells == "multiple imputation":
-            return self._explain_imputed(step, column, outcome, terms, pieces, variables, raw, missing, kinds, seed)
+            return self._explain_imputed(step, column, outcome, terms, pieces, variables, raw, missing, kinds, with_seed)
         keep = ~np.any([missing[nm] for nm in names], axis=0)
         _skipped_note(int((~keep).sum()), names)
         if inner is not None:
@@ -1544,7 +1544,7 @@ class ModelWords:
             how = "deviance explained as R summary.gam()"
         print(fit_line({"aic": float(np.atleast_1d(out["aic"])[0]), "bic": float(np.atleast_1d(out["bic"])[0])},
                        start=start, method=how))
-        print("Note: a curve's shape is best seen in a picture: chart.dots(...) with chart.smooth_line() shows it.")
+        print("Note: a curve's shape is best seen in a picture: chart.draw_dots(...) with chart.draw_smooth_line() shows it.")
         self._closing(list(p[1:]) + list(sp))
         return self._term_table(part, coef, [], more_rows=rows)
 
@@ -1741,7 +1741,7 @@ class ModelWords:
         if yes_words:
             print(f"Outcome {yes_words}.")
         print(f"Method: multiple imputation by chained equations (predictive mean matching with {PMM_DONORS} donors, "
-              f"seed={seed}): the empty cells were filled in {m} times, the model was fitted to each of the {m} "
+              f"with_seed={seed}): the empty cells were filled in {m} times, the model was fitted to each of the {m} "
               "filled-in tables, and the results were pooled with Rubin's rules (t-based intervals with Barnard-Rubin "
               f"degrees of freedom), as R pool(with(mice(...), {call})).")
         print(f"The filling-in adds uncertainty: up to {round(float(np.max(lam)) * 100)} % of the variance of an "
@@ -1751,12 +1751,12 @@ class ModelWords:
         return self._term_table(model, coef, [], extra={"share of variance from empty cells": lam})
 
     # ------------------------------------------------------------------ add_predicted_column
-    @friendly
+    @friendly(renamed={"for_each": "for_each_group_in"})
     def add_predicted_column(self, column=None, using=None, outcome="numbers", name=None, grouped_by=None,
-                             start=None, between=None, weights=None, for_each=None, interval=None, for_new_rows=False):
+                             start=None, between=None, weights=None, for_each_group_in=None, interval=None, for_new_rows=False):
         """Add a column with the value the model predicts for each row.
 
-        table.add_predicted_column("marks", using=["hours", "breakfast"])   (with sdata.example("school"))
+        table.add_predicted_column("marks", using=["hours", "breakfast"])   (with sdata.get_example("school"))
         The same model as explain() with the same options: outcome="numbers" gives the fitted
         value (R fitted(lm(...))), outcome="yes or no" the chance of yes from 0 to 1 and
         outcome="counts" the expected count (R fitted(glm(...))). With grouped_by= the
@@ -1771,9 +1771,9 @@ class ModelWords:
         get_prediction().
 
         A formula with one = sign is fitted as table.fit_formula() (with its options start=,
-        between=, weights= and for_each=) and its value is added for every row, also rows
+        between=, weights= and for_each_group_in=) and its value is added for every row, also rows
         whose left-hand column is empty (as R predict(nls(...), newdata)):
-        table.add_predicted_column("population = a * exp(b * (year - 2000))", for_each="country")
+        table.add_predicted_column("population = a * exp(b * (year - 2000))", for_each_group_in="country")
         using= a fit_formula() result takes its values instead of fitting again.
         """
         step = "add_predicted_column"
@@ -1784,13 +1784,13 @@ class ModelWords:
             if outcome != "numbers" or grouped_by is not None:
                 raise SimplydataError("outcome= and grouped_by= are for a model from explain(); a formula is fitted "
                                       "by nonlinear least squares, as table.fit_formula().")
-            return self._add_formula_column(column, using, name, start, between, weights, for_each)
+            return self._add_formula_column(column, using, name, start, between, weights, for_each_group_in)
         given = [k for k, v in (("start", start), ("between", between), ("weights", weights),
-                                ("for_each", for_each)) if v is not None]
+                                ("for_each", for_each_group_in)) if v is not None]
         if given:
             raise SimplydataError(
                 f"{', '.join(k + '=' for k in given)} {'is' if len(given) == 1 else 'are'} for a formula, such as "
-                'table.add_predicted_column("population = a * exp(b * (year - 2000))", for_each="country").\n'
+                'table.add_predicted_column("population = a * exp(b * (year - 2000))", for_each_group_in="country").\n'
                 'For a model from explain() use using= and grouped_by=, for example '
                 'table.add_predicted_column("marks", using=["hours", "breakfast"]).'
             )

@@ -7,7 +7,7 @@ import pytest
 import simplydata as sdata
 from simplydata import SimplydataError
 from simplydata._data import frame_for, is_listlike, load
-from simplydata.numbers import NumberGrid, Numbers, number_grid, numbers, random_numbers
+from simplydata.numbers import NumberGrid, Numbers, number_grid, numbers, make_random_numbers
 
 NAN = np.nan
 
@@ -61,42 +61,42 @@ def test_making_numbers_errors():
 
 
 def test_random_numbers_match_numpy():
-    same(random_numbers(how_many=5, seed=1), np.random.default_rng(1).uniform(0, 1, 5))
-    same(random_numbers(how_many=5, between=[10, 2], seed=2), np.random.default_rng(2).uniform(2, 10, 5))
-    dice = random_numbers(how_many=500, between=[1, 6], whole_numbers=True, seed=3)
+    same(make_random_numbers(how_many=5, with_seed=1), np.random.default_rng(1).uniform(0, 1, 5))
+    same(make_random_numbers(how_many=5, between=[10, 2], with_seed=2), np.random.default_rng(2).uniform(2, 10, 5))
+    dice = make_random_numbers(how_many=500, between=[1, 6], whole_numbers=True, with_seed=3)
     same(dice, np.random.default_rng(3).integers(1, 6, 500, endpoint=True))
-    assert dice.smallest() == 1 and dice.biggest() == 6
-    same(random_numbers(how_many=4, average=50, standard_deviation=10, seed=4),
+    assert dice.find_smallest() == 1 and dice.find_biggest() == 6
+    same(make_random_numbers(how_many=4, average=50, standard_deviation=10, with_seed=4),
          np.random.default_rng(4).normal(50, 10, 4))
-    grid = random_numbers(rows=2, columns=3, seed=5)
-    assert isinstance(grid, NumberGrid) and grid.shape() == (2, 3)
-    same(random_numbers(how_many=3, seed=9), random_numbers(how_many=3, seed=9))
+    grid = make_random_numbers(rows=2, columns=3, with_seed=5)
+    assert isinstance(grid, NumberGrid) and grid.find_shape() == (2, 3)
+    same(make_random_numbers(how_many=3, with_seed=9), make_random_numbers(how_many=3, with_seed=9))
 
 
 def test_random_numbers_errors():
     with pytest.raises(SimplydataError, match="how_many"):
-        random_numbers(seed=1)
+        make_random_numbers(with_seed=1)
     with pytest.raises(SimplydataError, match="not both"):
-        random_numbers(how_many=3, between=[0, 1], average=2, standard_deviation=1)
+        make_random_numbers(how_many=3, between=[0, 1], average=2, standard_deviation=1)
     with pytest.raises(SimplydataError, match="seed="):
-        random_numbers(how_many=3, seed=-1)
+        make_random_numbers(how_many=3, with_seed=-1)
     with pytest.raises(SimplydataError, match="both average= and standard_deviation="):
-        random_numbers(how_many=3, average=5)
+        make_random_numbers(how_many=3, average=5)
     with pytest.raises(SimplydataError, match="whole numbers in between"):
-        random_numbers(how_many=3, between=[0.5, 2], whole_numbers=True)
+        make_random_numbers(how_many=3, between=[0.5, 2], whole_numbers=True)
 
 
 def test_making_grids():
     grid = number_grid([[1, 2, 3], [4, 5, 6]])
     assert isinstance(grid, NumberGrid)
-    assert grid.shape() == (2, 3) and grid.count_rows() == 2 and grid.count_columns() == 3
+    assert grid.find_shape() == (2, 3) and grid.count_rows() == 2 and grid.count_columns() == 3
     assert grid.count() == 6 and len(grid) == 2
     same(number_grid(rows=2, columns=3), np.zeros((2, 3)))
     same(number_grid(rows=2, columns=2, filled_with=1), np.ones((2, 2)))
     same(number_grid(rows=1, columns=2, filled_with=None), [[NAN, NAN]])
     same(number_grid([1, 2, 3, 4, 5, 6], columns=3), np.arange(1, 7).reshape(2, 3))
     same(number_grid([1, 2, 3, 4, 5, 6], rows=3), np.arange(1, 7).reshape(3, 2))
-    same(numbers(1, to=6).number_grid(columns=2), np.arange(1, 7).reshape(3, 2))
+    same(numbers(1, to=6).make_number_grid(columns=2), np.arange(1, 7).reshape(3, 2))
     with pytest.raises(SimplydataError, match="same length"):
         number_grid([[1, 2], [3]])
     with pytest.raises(SimplydataError, match="cannot fill"):
@@ -108,19 +108,19 @@ def test_making_grids():
 # ====================================================================== looking and picking
 def test_positions_count_from_one():
     nums = numbers([3, 5, 2, 8])
-    assert nums.number_at(1) == 3 and nums.number_at(4) == 8
-    assert isinstance(nums.number_at(1), int)
+    assert nums.get_number_at(1) == 3 and nums.get_number_at(4) == 8
+    assert isinstance(nums.get_number_at(1), int)
     with pytest.raises(SimplydataError, match="from 1 to 4"):
-        nums.number_at(0)
+        nums.get_number_at(0)
     with pytest.raises(SimplydataError, match="count from 1"):
         nums[0]
     grid = number_grid([[1, 2, 3], [4, 5, 6]])
-    assert grid.number_at(row=2, column=3) == 6
-    same(grid.row(1), [1, 2, 3])
-    same(grid.column(2), [2, 5])
-    same(grid.numbers(), [1, 2, 3, 4, 5, 6])
+    assert grid.get_number_at(row=2, column=3) == 6
+    same(grid.get_row(1), [1, 2, 3])
+    same(grid.get_column(2), [2, 5])
+    same(grid.get_all_numbers(), [1, 2, 3, 4, 5, 6])
     with pytest.raises(SimplydataError, match="from 1 to 2"):
-        grid.row(3)
+        grid.get_row(3)
     with pytest.raises(SimplydataError, match="number_at"):
         grid[0, 0]
 
@@ -139,38 +139,38 @@ def test_show_words(capsys):
 def test_keep_and_remove_use_table_conditions(capsys):
     values = np.array([3, 50, 70, NAN, 51, 40])
     nums = numbers(values)
-    nums.keep_numbers(above=50)
+    nums.keep_each_number_that(is_above=50)
     same(nums, [70, 51])
     assert "Kept 2 of 6 numbers." in capsys.readouterr().out
     nums.undo()
-    nums.remove_numbers(between=[40, 60])
+    nums.remove_each_number_that(is_between=[40, 60])
     same(nums, [3, 70, NAN])
     assert "Removed 3 of 6 numbers. 3 left." in capsys.readouterr().out
     for option, expected in [
-        (dict(below=40), [3]), (dict(at_least=50), [50, 70, 51]), (dict(at_most=40), [3, 40]),
-        (dict(equal_to=70), [70]), (dict(not_equal_to=70), [3, 50, 51, 40]),
-        (dict(one_of=[3, 40]), [3, 40]), (dict(is_empty=True), [NAN]),
-        (dict(is_empty=False), [3, 50, 70, 51, 40]), (dict(between=[60, 40]), [50, 51, 40]),
+        (dict(is_below=40), [3]), (dict(is_at_least=50), [50, 70, 51]), (dict(is_at_most=40), [3, 40]),
+        (dict(is_equal_to=70), [70]), (dict(is_not_equal_to=70), [3, 50, 51, 40]),
+        (dict(is_one_of=[3, 40]), [3, 40]), (dict(is_empty=True), [NAN]),
+        (dict(is_empty=False), [3, 50, 70, 51, 40]), (dict(is_between=[60, 40]), [50, 51, 40]),
     ]:
         nums = numbers(values)
-        nums.keep_numbers(**option)
+        nums.keep_each_number_that(**option)
         same(nums, expected)
 
 
 def test_keep_errors():
     nums = numbers([1, 2, 3])
     with pytest.raises(SimplydataError, match="one condition"):
-        nums.keep_numbers()
+        nums.keep_each_number_that()
     with pytest.raises(SimplydataError, match="one condition at a time"):
-        nums.keep_numbers(above=1, below=3)
+        nums.keep_each_number_that(is_above=1, is_below=3)
     with pytest.raises(SimplydataError, match="without quotes"):
-        nums.keep_numbers(above="2")
+        nums.keep_each_number_that(is_above="2")
     with pytest.raises(SimplydataError, match="two numbers"):
-        nums.keep_numbers(between=5)
+        nums.keep_each_number_that(is_between=5)
     with pytest.raises(SimplydataError, match="no option called contains="):
-        nums.keep_numbers(contains="1")
+        nums.keep_each_number_that(contains="1")
     with pytest.raises(SimplydataError, match="above=50"):
-        nums.keep_numbers(50)
+        nums.keep_each_number_that(50)
 
 
 def test_first_last_random_empty_duplicate():
@@ -186,7 +186,7 @@ def test_first_last_random_empty_duplicate():
     nums.remove_duplicate_numbers()
     same(nums, [4, 1, 2])
     picked = numbers(1, to=20)
-    picked.keep_random_numbers(5, seed=1)
+    picked.keep_random_numbers(5, with_seed=1)
     expected = np.sort(np.random.default_rng(1).choice(20, 5, replace=False)) + 1
     same(picked, expected)
 
@@ -212,7 +212,7 @@ def test_fill_empty_numbers(capsys):
 @pytest.mark.parametrize("word, symbol, other", [
     ("add", lambda a, b: a + b, 5), ("subtract", lambda a, b: a - b, 2),
     ("times", lambda a, b: a * b, 3), ("divide_by", lambda a, b: a / b, 4),
-    ("power", lambda a, b: a ** b, 2), ("add", lambda a, b: a + b, [1, 2, 3, 4]),
+    ("raise_to_power", lambda a, b: a ** b, 2), ("add", lambda a, b: a + b, [1, 2, 3, 4]),
     ("times", lambda a, b: a * b, [0.5, 1, 2, 3]),
 ])
 def test_words_change_and_symbols_make_new(word, symbol, other):
@@ -264,20 +264,20 @@ def test_power_edge_cases(capsys):
     same(numbers([-4, 4]) ** 0.5, [NAN, 2])
     assert "power with decimals" in capsys.readouterr().out
     big = numbers([10]) ** 30
-    assert big.number_at(1) == pytest.approx(1e30)  # no silent whole-number overflow
+    assert big.get_number_at(1) == pytest.approx(1e30)  # no silent whole-number overflow
     assert (numbers([2, 3]) ** 2).as_numpy().dtype.kind == "i"
 
 
 def test_one_at_a_time_words(capsys):
     v = np.array([1.0, 4.0, -9.0, 100.0, 0.0])
     checks = [
-        ("square_root", {}, np.where(v < 0, NAN, np.sqrt(np.abs(v)))),
-        ("absolute_value", {}, np.abs(v)),
-        ("log", {}, np.where(v <= 0, NAN, np.log(np.abs(v) + (v == 0)))),
-        ("log", {"base": 10}, np.where(v <= 0, NAN, np.log10(np.abs(v) + (v == 0)))),
-        ("log", {"base": 2}, np.where(v <= 0, NAN, np.log2(np.abs(v) + (v == 0)))),
-        ("log", {"base": 5}, np.where(v <= 0, NAN, np.log(np.abs(v) + (v == 0)) / np.log(5))),
-        ("exp", {}, np.exp(v)),
+        ("take_square_root", {}, np.where(v < 0, NAN, np.sqrt(np.abs(v)))),
+        ("take_absolute_value", {}, np.abs(v)),
+        ("take_log", {}, np.where(v <= 0, NAN, np.log(np.abs(v) + (v == 0)))),
+        ("take_log", {"base": 10}, np.where(v <= 0, NAN, np.log10(np.abs(v) + (v == 0)))),
+        ("take_log", {"base": 2}, np.where(v <= 0, NAN, np.log2(np.abs(v) + (v == 0)))),
+        ("take_log", {"base": 5}, np.where(v <= 0, NAN, np.log(np.abs(v) + (v == 0)) / np.log(5))),
+        ("take_exp", {}, np.exp(v)),
     ]
     for word, kw, expected in checks:
         nums = numbers(v)
@@ -299,7 +299,7 @@ def test_round_half_to_even():
     nums.round_to(2)
     same(nums, np.round([0.5, 1.5, 2.5, 3.5, 2.675, 1234], 2))
     nums.round_to(-2)
-    assert nums.number_at(6) == 1200
+    assert nums.get_number_at(6) == 1200
     with pytest.raises(SimplydataError, match="whole number"):
         nums.round_to(1.5)
 
@@ -313,7 +313,7 @@ def test_order_words():
     nums.reverse()
     same(nums, [NAN, 1, 2, 3])
     nums = numbers([1, 2, NAN, 3])
-    nums.running_total()
+    nums.turn_into_running_total()
     same(nums, pd.Series([1, 2, NAN, 3]).cumsum())
     with pytest.raises(SimplydataError, match="True or False"):
         nums.sort(biggest_first="yes")
@@ -323,7 +323,7 @@ def test_history_words(capsys):
     nums = numbers([1, 2, 3])
     nums.add(1)
     nums.times(2)
-    nums.steps()
+    nums.show_steps()
     assert "1. add 1\n2. times 2" in capsys.readouterr().out
     nums.start_again()
     same(nums, [1, 2, 3])
@@ -340,26 +340,26 @@ def test_history_words(capsys):
 def test_summaries_match_numpy(capsys):
     v = np.array([3.0, 5.0, NAN, 2.0, 8.0])
     nums = numbers(v)
-    assert nums.average() == pytest.approx(np.nanmean(v))
-    assert nums.median() == pytest.approx(np.nanmedian(v))
-    assert nums.total() == pytest.approx(np.nansum(v))
-    assert nums.smallest() == 2 and nums.biggest() == 8
-    assert nums.standard_deviation() == pytest.approx(np.nanstd(v, ddof=1))
-    assert nums.standard_deviation() == pytest.approx(pd.Series(v).std())
-    assert nums.percentile(90) == pytest.approx(np.nanpercentile(v, 90))
+    assert nums.find_average() == pytest.approx(np.nanmean(v))
+    assert nums.find_median() == pytest.approx(np.nanmedian(v))
+    assert nums.find_total() == pytest.approx(np.nansum(v))
+    assert nums.find_smallest() == 2 and nums.find_biggest() == 8
+    assert nums.find_standard_deviation() == pytest.approx(np.nanstd(v, ddof=1))
+    assert nums.find_standard_deviation() == pytest.approx(pd.Series(v).std())
+    assert nums.find_percentile(90) == pytest.approx(np.nanpercentile(v, 90))
     assert nums.count() == 5 and nums.count_empty_numbers() == 1 and len(nums) == 5
     assert "1 empty value was skipped" in capsys.readouterr().out
-    assert isinstance(numbers([1, 2]).total(), int)
+    assert isinstance(numbers([1, 2]).find_total(), int)
 
 
 def test_summaries_on_nothing(capsys):
     empty = numbers([NAN, NAN])
-    assert np.isnan(empty.average())
-    assert empty.total() == 0
-    assert np.isnan(numbers([4]).standard_deviation())
+    assert np.isnan(empty.find_average())
+    assert empty.find_total() == 0
+    assert np.isnan(numbers([4]).find_standard_deviation())
     assert "at least 2 numbers" in capsys.readouterr().out
     with pytest.raises(SimplydataError, match="0 to 100"):
-        numbers([1, 2]).percentile(120)
+        numbers([1, 2]).find_percentile(120)
 
 
 def test_count_each():
@@ -373,14 +373,14 @@ def test_count_each():
 
 def test_summary_names_and_hints():
     nums = numbers([1, 2])
-    with pytest.raises(SimplydataError, match=r"nums\.average\(\)"):
-        nums.average_of()
-    with pytest.raises(SimplydataError, match=r"nums\.average\(\)"):
+    with pytest.raises(SimplydataError, match=r"nums\.find_average\(\)"):
+        nums.find_average_of()
+    with pytest.raises(SimplydataError, match=r"nums\.find_average\(\)"):
         nums.mean()
-    with pytest.raises(SimplydataError, match=r"keep_numbers"):
-        nums.keep_rows()
+    with pytest.raises(SimplydataError, match=r"keep_each_number_that"):
+        nums.keep_rows_where()
     with pytest.raises(SimplydataError, match="brackets"):
-        nums.total = 3
+        nums.find_total = 3
     assert not hasattr(nums, "dtype")  # still an AttributeError for Python tools
 
 
@@ -388,15 +388,15 @@ def test_summary_names_and_hints():
 def test_grid_summaries_for_each():
     g = np.array([[1.0, 2.0, NAN], [4.0, 5.0, 6.0]])
     grid = number_grid(g)
-    assert grid.average() == pytest.approx(np.nanmean(g))
-    same(grid.average(for_each="row"), np.nanmean(g, axis=1))
-    same(grid.total(for_each="column"), np.nansum(g, axis=0))
-    same(grid.biggest(for_each="row"), np.nanmax(g, axis=1))
-    same(grid.standard_deviation(for_each="column"), [np.std([1, 4], ddof=1), np.std([2, 5], ddof=1), NAN])
-    same(grid.percentile(50, for_each="row"), np.nanmedian(g, axis=1))
-    assert isinstance(grid.median(for_each="row"), Numbers)
+    assert grid.find_average() == pytest.approx(np.nanmean(g))
+    same(grid.find_average(for_each="row"), np.nanmean(g, axis=1))
+    same(grid.find_total(for_each="column"), np.nansum(g, axis=0))
+    same(grid.find_biggest(for_each="row"), np.nanmax(g, axis=1))
+    same(grid.find_standard_deviation(for_each="column"), [np.std([1, 4], ddof=1), np.std([2, 5], ddof=1), NAN])
+    same(grid.find_percentile(50, for_each="row"), np.nanmedian(g, axis=1))
+    assert isinstance(grid.find_median(for_each="row"), Numbers)
     with pytest.raises(SimplydataError, match='Did you mean for_each="row"'):
-        grid.average(for_each="rows")
+        grid.find_average(for_each="rows")
 
 
 def test_grid_maths_and_swap():
@@ -407,12 +407,12 @@ def test_grid_maths_and_swap():
     same(grid + [10, 20, 30], g + [10, 20, 30])  # one number per column
     same(numbers([1, 1, 1]) + grid, g + 1)
     assert isinstance(grid ** 2, NumberGrid)
-    grid.square_root()
+    grid.take_square_root()
     same(grid, np.sqrt(g))
     grid.undo()
     grid.swap_rows_and_columns()
     same(grid, g.T)
-    assert grid.shape() == (3, 2)
+    assert grid.find_shape() == (3, 2)
     grid.undo()
     same(grid, g)
     with pytest.raises(SimplydataError, match="one for each column"):
@@ -427,12 +427,12 @@ def test_done_table_save(tmp_path):
     plain = nums.as_numpy()
     assert isinstance(plain, np.ndarray)
     plain[0] = 99
-    assert nums.number_at(1) == 1  # as_numpy() gives a copy
-    assert nums.table(name="marks").column_names() == ["marks"]
+    assert nums.get_number_at(1) == 1  # as_numpy() gives a copy
+    assert nums.turn_into_table(name="marks").get_column_names() == ["marks"]
     nums.save(tmp_path / "nums.csv")
     assert pd.read_csv(tmp_path / "nums.csv")["value"].tolist() == [1, 2, 3]
     grid = number_grid([[1, 2], [3, 4]])
-    assert grid.table().column_names() == ["1", "2"]
+    assert grid.turn_into_table().get_column_names() == ["1", "2"]
     grid.save(tmp_path / "grid.csv")
     assert pd.read_csv(tmp_path / "grid.csv").values.tolist() == [[1, 2], [3, 4]]
     with pytest.raises(SimplydataError, match="file type"):
@@ -450,11 +450,11 @@ def test_charts_and_tables_accept_numbers():
     assert list(frame.columns) == ["1", "2"] and list(frame.index) == [1, 2]
     table, names = frame_for(pd.DataFrame(), y=nums)
     assert table[names["y"]].tolist() == [3, 5, 2]
-    sdata.chart().lines(nums).dots(x=nums, y=nums * 2).histogram(x=nums)._render()
-    sdata.chart(grid).heatmap(numbers=True)._render()
-    grid.chart().heatmap()._render()
-    nums.chart().bars(x=numbers(1, to=3), y="value")._render()
-    assert sdata.table(nums).column_names() == ["value"]
+    sdata.chart().draw_lines(nums).draw_dots(x=nums, y=nums * 2).draw_histogram(x=nums)._render()
+    sdata.chart(grid).draw_heatmap(with_numbers=True)._render()
+    grid.start_chart().draw_heatmap()._render()
+    nums.start_chart().draw_bars(x=numbers(1, to=3), y="value")._render()
+    assert sdata.table(nums).get_column_names() == ["value"]
     assert sdata.table(grid).count_rows() == 2
 
 

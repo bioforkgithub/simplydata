@@ -3,7 +3,7 @@
 Why record instead of drawing straight away?
 * the order of a user's lines does not matter (legend before bars still works)
 * style and size can be changed at any time
-* the same steps can be drawn again on many panels (one_chart_per, side_by_side)
+* the same steps can be drawn again on many panels (draw_one_chart_for_each_group_in, put_side_by_side)
 
 Every public step:
 1. checks its input straight away, so mistakes are reported on the line that made them
@@ -25,7 +25,8 @@ from matplotlib.figure import Figure
 
 from . import _style
 from ._data import load
-from ._errors import SimplydataError, choice_error, missing_word_error, old_word, other_name_error, suggest
+from ._errors import (SimplydataError, choice_error, missing_word_error, old_word, other_name_error, public_words,
+                      suggest)
 from ._units import check_number
 
 # Phases decide drawing order, whatever order the user wrote the steps in.
@@ -49,7 +50,7 @@ def _tidy_dates(fig):
 
 
 # ---------------------------------------------------------------- notes while drawing
-# A chart can be drawn several times for one picture (each panel of one_chart_per, each frame
+# A chart can be drawn several times for one picture (each panel of draw_one_chart_for_each_group_in, each frame
 # of an animation, the zoom box ...). Notes made while drawing are collected and printed once,
 # when the whole picture is done, so the same note never shows up again and again.
 _NOTES = {"depth": 0, "lines": {}}
@@ -126,10 +127,30 @@ class BaseChart:
 
     # Old names that still work for one release (with a note the first time): old -> new.
     _OLD_WORDS = {
-        "all_points": "all_dots",
-        "colour_bar_label": "label_colour_bar",
-        "color_bar_label": "label_colour_bar",
-        "one_per": "one_chart_per",
+        "bars": "draw_bars", "lines": "draw_lines", "dots": "draw_dots", "area": "draw_area",
+        "histogram": "draw_histogram", "boxes": "draw_boxes", "violins": "draw_violins", "heatmap": "draw_heatmap",
+        "pie": "draw_pie", "polar": "draw_polar", "contour": "draw_contour", "surface": "draw_surface",
+        "dots_3d": "draw_dots_3d", "band": "draw_band", "empty_cells": "draw_map_of_empty_cells",
+        "error_bars": "draw_error_bars", "curve": "draw_curve", "smooth_line": "draw_smooth_line",
+        "density": "draw_density", "count_bars": "draw_count_bars", "all_dots": "draw_all_dots",
+        "side_histograms": "draw_side_histograms", "qq_dots": "draw_qq_dots",
+        "cumulative_share": "draw_cumulative_share", "title_top": "write_title_on_top",
+        "caption_bottom": "write_caption_at_bottom", "note": "write_note",
+        "numbers_on_bars": "write_numbers_on_bars", "names_on_dots": "write_names_on_dots",
+        "font_size": "use_font_size", "font_name": "use_font", "range_x": "set_range_x", "range_y": "set_range_y",
+        "log_scale_x": "use_log_scale_x", "log_scale_y": "use_log_scale_y", "ticks_x": "put_ticks_x",
+        "ticks_y": "put_ticks_y", "tick_format_x": "write_ticks_x_as", "tick_format_y": "write_ticks_y_as",
+        "second_y": "add_second_y", "colour": "use_colour", "colours": "use_colours",
+        "colour_scale": "use_colour_scale", "style": "use_style", "size": "set_size",
+        "legend_top": "put_legend_at_top", "legend_bottom": "put_legend_at_bottom",
+        "legend_left": "put_legend_on_left", "legend_right": "put_legend_on_right",
+        "one_chart_per": "draw_one_chart_for_each_group_in", "zoom_box": "add_zoom_box",
+        "survival_curves": "draw_survival_curves", "line_at_x": "draw_line_at_x", "line_at_y": "draw_line_at_y",
+        "line_with_slope": "draw_line_with_slope", "color": "use_color", "colors": "use_colors",
+        "color_scale": "use_color_scale", "scatter": "draw_dots", "bar": "draw_bars", "line": "draw_lines",
+        "box": "draw_boxes", "violin": "draw_violins", "all_points": "draw_all_dots",
+        "colour_bar_label": "label_colour_bar", "color_bar_label": "label_colour_bar",
+        "one_per": "draw_one_chart_for_each_group_in",
     }
 
     def __init__(self, data=None, sheet=None, fast: bool = False):
@@ -141,7 +162,7 @@ class BaseChart:
             "height": 6.0,
             "font_size": None,
             "grid": None,
-            "split": None,  # set by one_chart_per(): dict(by=, row=, column=, columns=)
+            "split": None,  # set by draw_one_chart_for_each_group_in(): dict(by=, row=, column=, columns=)
             "projection": None,  # "polar" or "3d" for charts that need special axes
         }
         self._cache: Figure | None = None
@@ -153,7 +174,7 @@ class BaseChart:
         return self
 
     def _replace(self, name: str, phase: str, func: Callable, scope: str = "axes", **kwargs):
-        """Like _add, but a step with this name replaces an earlier one (e.g. title_top)."""
+        """Like _add, but a step with this name replaces an earlier one (e.g. write_title_on_top)."""
         self._steps = [s for s in self._steps if s.name != name]
         return self._add(name, phase, func, scope, **kwargs)
 
@@ -172,11 +193,13 @@ class BaseChart:
         for step in sorted(steps, key=lambda s: (s.phase, s.order)):
             try:
                 step.func(ctx, **step.kwargs)
-            except SimplydataError:
+            except SimplydataError as exc:
+                if exc.args and isinstance(exc.args[0], str):  # the words as they are written now
+                    exc.args = (public_words(exc.args[0]), *exc.args[1:])
                 raise
             except Exception as exc:  # turn library errors into a plain message
                 raise SimplydataError(
-                    f"Something went wrong while drawing .{step.name}():\n{exc}"
+                    f"Something went wrong while drawing .{self._public_name(step.name)}():\n{exc}"
                 ) from exc
 
     def _draw_panel(self, fig, ax, data=None, panel_title=None, axes=None) -> Context:
@@ -189,7 +212,7 @@ class BaseChart:
             axes=axes if axes is not None else [ax],
             panel_title=panel_title,
         )
-        ctx.store["whole_table"] = self._data  # a panel shows part of it (one_chart_per, animate)
+        ctx.store["whole_table"] = self._data  # a panel shows part of it (draw_one_chart_for_each_group_in, animate)
         self._run([s for s in self._steps if s.scope == "axes"], ctx)
         if panel_title is not None and not ax.get_title():
             ax.set_title(str(panel_title))
@@ -319,7 +342,7 @@ class BaseChart:
         s = self._settings
         if not s.get("size_set"):
             return self._save_now(path, fmt, resolution)
-        # chart.size() was used: the file is exactly that size (no trimming of the edges)
+        # chart.set_size() was used: the file is exactly that size (no trimming of the edges)
         before = (s["width"], s["height"])
         if s.get("pixels"):
             s["width"], s["height"] = s["pixels"][0] / resolution, s["pixels"][1] / resolution
@@ -350,14 +373,14 @@ class BaseChart:
         return resolution
 
     def _check_pixels(self, resolution):
-        # a page of charts works out its own size unless page.size() was used
+        # a page of charts works out its own size unless page.set_size() was used
         width, height = self._page_size() if hasattr(self, "_page_size") else (
             self._settings["width"], self._settings["height"])
         w, h = width * resolution, height * resolution
         if max(w, h) >= 2**16:
             raise SimplydataError(
                 f"This picture would be {round(w):,} x {round(h):,} pixels, too big to save. "
-                "Choose a smaller chart.size() or a lower resolution=."
+                "Choose a smaller chart.set_size() or a lower resolution=."
             )
 
     def _save_now(self, path, fmt, resolution, exact=False):
@@ -400,11 +423,17 @@ class BaseChart:
         return buf.getvalue()
 
     def __repr__(self):
-        kinds = [s.name for s in self._steps if s.phase == PHASES["draw"]]
+        kinds = [self._public_name(s.name) for s in self._steps if s.phase == PHASES["draw"]]
         what = ", ".join(kinds) if kinds else "empty"
         return f"<simplydata chart: {what}>"
 
     # ------------------------------------------------------------------ help
+    @classmethod
+    def _public_name(cls, step_name: str) -> str:
+        """The word a step is written with: steps keep their short inner names (bars, title_top ...)."""
+        new = cls._OLD_WORDS.get(step_name)
+        return new if isinstance(new, str) and hasattr(cls, new) else step_name
+
     @classmethod
     def _word_names(cls) -> list[str]:
         return sorted(n for n in dir(cls) if not n.startswith("_") and callable(getattr(cls, n)))
@@ -420,8 +449,8 @@ class BaseChart:
         # chart.title = "x" would silently do nothing; tell the user what to write instead.
         if not name.startswith("_"):
             words = self._word_names()
-            guesses = [w for w in words if w.startswith(name)] or suggest(name, words)
-            hint = f'chart.{guesses[0]}({value!r})' if guesses else "a step such as chart.title_top(\"...\")"
+            guesses = [w for w in words if w.startswith(name) or f"_{name}_" in w] or suggest(name, words)
+            hint = f'chart.{guesses[0]}({value!r})' if guesses else "a step such as chart.write_title_on_top(\"...\")"
             raise SimplydataError(
                 f"Steps are written with brackets, not with =.\nInstead of chart.{name} = ..., write {hint}"
             )

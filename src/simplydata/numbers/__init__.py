@@ -3,11 +3,11 @@
     nums = numbers([3, 5, 2, 8])
     nums.add(5)            # words change the numbers (nums.undo() takes it back)
     bigger = nums * 2      # symbols make new numbers
-    nums.average()
+    nums.find_average()
 
-sdata.lesson(13) teaches them.
+sdata.show_lesson(13) teaches them.
 """
 
-from .numbers import NumberGrid, Numbers, number_grid, numbers, random_numbers
+from .numbers import NumberGrid, Numbers, make_random_numbers, number_grid, numbers
 
-__all__ = ["NumberGrid", "Numbers", "number_grid", "numbers", "random_numbers"]
+__all__ = ["NumberGrid", "Numbers", "make_random_numbers", "make_number_grid", "numbers"]

@@ -82,7 +82,7 @@ def test_risk_zero_cell_table_route(engine, capsys):
     if engine == "polars":
         pl = pytest.importorskip("polars")
         data = pl.from_pandas(data)
-    got = rows(make_table(data).compare_risks("ev", for_each="g", against="A"))
+    got = rows(make_table(data).compare_risks("ev", for_each_group_in="g", against="A"))
     # R: prop.test(c(3, 0), c(6, 6))$p.value (the shifted table gave 0.301)
     assert got["risk difference B"]["p-value"] == pytest.approx(0.18242243945, rel=REL)
     # R: epitools::riskratio(matrix(c(6, 0, 3, 3), 2, byrow = TRUE), method = "wald")$measure[2, 1]: Inf
@@ -182,7 +182,7 @@ ORDER = ["mild", "moderate", "severe"]
 
 
 def kappa_table():
-    data = sdata.example("clinic")
+    data = sdata.get_example("clinic")
     return make_table(data)
 
 
@@ -223,7 +223,7 @@ def test_icc_one_way_names_the_call(needs_r, capsys):
 def test_partial_correlation_whole_r_on_the_same_rows(needs_r, capsys):
     t = make_table(pd.DataFrame({"a": [1, 2, 3, 4, 5, 6, 7, 8.], "b": [1, 3, 2, 5, 4, 7, 6, 1.],
                                  "z": [3, 1, 4, 1, 5, 9, 2, None]}))
-    t.correlation_between("a", "b", allowing_for="z")
+    t.find_correlation_between("a", "b", allowing_for="z")
     out = capsys.readouterr().out
     # R: ppcor::pcor.test(a[1:7], b[1:7], z[1:7])$estimate 0.8744360902256; cor(a[1:7], b[1:7]) 0.8928571428571
     # (cor(a, b) on all 8 rows is 0.3735488486479)
@@ -231,8 +231,8 @@ def test_partial_correlation_whole_r_on_the_same_rows(needs_r, capsys):
 
 
 def test_kendall_interval_words(needs_r, capsys):
-    t = make_table(sdata.example("marks"))
-    t.correlation_between("hours", "marks", method="kendall")
+    t = make_table(sdata.get_example("marks"))
+    t.find_correlation_between("hours", "marks", method="kendall")
     # R: DescTools::KendallTauB(hours, marks, conf.level = 0.95): an asymptotic standard error, not Fisher's z
     out = capsys.readouterr().out
     assert "asymptotic standard error, R DescTools" in out and "Fisher's z" not in out

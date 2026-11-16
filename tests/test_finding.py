@@ -1,4 +1,4 @@
-"""Tests for find_smallest, find_biggest, solve and the shared maths formula reader.
+"""Tests for find_where_smallest, find_where_biggest, solve and the shared maths formula reader.
 
 Reference values come from R 4.6.2 (base R, lpSolve 5.6, nloptr, nleqslv, rootSolve), with the
 R call that made them written next to each value. Where R and SciPy use different algorithms
@@ -15,7 +15,7 @@ import pytest
 import simplydata as sdata
 from simplydata import SimplydataError
 from simplydata._maths_formula import MathsFormula, read_equation, read_formula
-from simplydata.finding import find_biggest, find_smallest, solve
+from simplydata.finding import find_where_biggest, find_where_smallest, solve
 from simplydata.table import table as make_table
 
 
@@ -103,7 +103,7 @@ def test_read_equation_errors():
 # ---------------------------------------------------------------------------- one name
 def test_smallest_on_a_range(capsys):
     # R: optimize(function(x) x^2 - 4*x + 1, c(0, 5), tol = 1e-10) -> 2, -3
-    r = row(find_smallest("x**2 - 4*x + 1", between=[0, 5]))
+    r = row(find_where_smallest("x**2 - 4*x + 1", between=[0, 5]))
     out = capsys.readouterr().out
     assert "The smallest value of x**2 - 4*x + 1 between 0 and 5 is -3, at x = 2." in out
     assert "Brent's method on the range, as R optimize()" in out
@@ -114,7 +114,7 @@ def test_smallest_on_a_range(capsys):
 
 def test_several_dips_note(capsys):
     # R: optimize(function(x) x * sin(x), c(0, 15), tol = 1e-10) -> 4.91318042873019, -4.81446988971227
-    r = row(find_smallest("x * sin(x)", between=[0, 15]))
+    r = row(find_where_smallest("x * sin(x)", between=[0, 15]))
     out = capsys.readouterr().out
     assert r["x"] == pytest.approx(4.91318042873019, abs=1e-7)
     assert r["smallest value"] == pytest.approx(-4.81446988971227, abs=1e-10)
@@ -123,17 +123,17 @@ def test_several_dips_note(capsys):
 
 
 def test_lowest_point_at_the_edge(capsys):
-    r = row(find_smallest("x", between=[0, 5]))
+    r = row(find_where_smallest("x", between=[0, 5]))
     assert r["x"] == 0 and "at the end of the range" in capsys.readouterr().out
 
 
 def test_biggest_notes_speak_of_the_highest_point_and_peaks(capsys):
-    r = row(find_biggest("x", between=[0, 5]))
+    r = row(find_where_biggest("x", between=[0, 5]))
     out = capsys.readouterr().out
     assert r["x"] == 5 and "the highest point is at the end of the range, x = 5" in out
     assert "may give a higher value" in out and "lowest" not in out
     # minus x * sin(x) has the same places as above: the biggest of -x*sin(x) on [0, 15] is at 4.913...
-    r = row(find_biggest("-x * sin(x)", between=[0, 15]))
+    r = row(find_where_biggest("-x * sin(x)", between=[0, 15]))
     out = capsys.readouterr().out
     assert r["x"] == pytest.approx(4.91318042873019, abs=1e-7)
     assert "several peaks may have a higher one elsewhere" in out
@@ -143,7 +143,7 @@ def test_biggest_notes_speak_of_the_highest_point_and_peaks(capsys):
 def test_biggest_with_known_values(capsys):
     # R: optimize(function(x) 2 * x * exp(-0.5 * x), c(0, 20), tol = 1e-10, maximum = TRUE)
     #    -> 2.00000000572146, 1.47151776468577
-    r = row(find_biggest("a * x * exp(-b * x)", between=[0, 20], known={"a": 2, "b": 0.5}))
+    r = row(find_where_biggest("a * x * exp(-b * x)", between=[0, 20], known={"a": 2, "b": 0.5}))
     out = capsys.readouterr().out
     assert "Using a = 2, b = 0.5 from known=." in out
     assert "The biggest value of a * x * exp(-b * x) between 0 and 20 is 1.47152, at x = 2." in out
@@ -152,10 +152,10 @@ def test_biggest_with_known_values(capsys):
 
 
 def test_biggest_with_a_fit_formula_table():
-    marks = make_table(sdata.example("marks"))
+    marks = make_table(sdata.get_example("marks"))
     fit = marks.fit_formula("marks = a * hours + b")
     a, b = row(fit)["a"], row(fit)["b"]
-    r = row(find_biggest("a * x + b - x**2", known=fit, between=[0, 50]))
+    r = row(find_where_biggest("a * x + b - x**2", known=fit, between=[0, 50]))
     assert r["x"] == pytest.approx(a / 2, abs=1e-7)
     assert r["biggest value"] == pytest.approx(b + a ** 2 / 4, abs=1e-9)
 
@@ -163,7 +163,7 @@ def test_biggest_with_a_fit_formula_table():
 def test_smallest_from_a_start(capsys):
     # R: optimize(function(x) (x - 3)^2 + 1, c(0.261803398874989, 7.43050983124842), tol = 1e-10) -> 3, 1
     # (the bracket printed by simplydata)
-    r = row(find_smallest("(x - 3)**2 + 1", start=0))
+    r = row(find_where_smallest("(x - 3)**2 + 1", start=0))
     out = capsys.readouterr().out
     assert "Brent's method from a bracket around the start (x from 0.261803 to 7.4305)" in out
     assert r["x"] == pytest.approx(3, abs=1e-7) and r["smallest value"] == pytest.approx(1, abs=1e-12)
@@ -171,7 +171,7 @@ def test_smallest_from_a_start(capsys):
 
 def test_no_smallest_from_a_start():
     with pytest.raises(SimplydataError, match="keeps getting smaller"):
-        find_smallest("x**3", start=0)
+        find_where_smallest("x**3", start=0)
 
 
 # ---------------------------------------------------------------------------- several names
@@ -182,7 +182,7 @@ def test_nelder_mead(capsys):
     # R: optim(c(-1.2, 1), rosen) -> 1.00026, 1.00051 (default reltol 1e-8 stops early);
     #    optim(that, rosen, method = "BFGS") -> 1.000002, 1.000005; the minimum is exactly (1, 1), value 0.
     # SciPy runs with tighter tolerances, so its answer is compared with the exact place to 1e-6.
-    r = row(find_smallest(ROSENBROCK, start={"x": -1.2, "y": 1}))
+    r = row(find_where_smallest(ROSENBROCK, start={"x": -1.2, "y": 1}))
     out = capsys.readouterr().out
     assert "Method: Nelder-Mead from y = 1, x = -1.2, as R optim() (its default method)." in out
     assert r["x"] == pytest.approx(1, abs=1e-6) and r["y"] == pytest.approx(1, abs=1e-6)
@@ -192,7 +192,7 @@ def test_nelder_mead(capsys):
 
 def test_l_bfgs_b_with_limits(capsys):
     # R: optim(c(-1.2, 1), rosen, method = "L-BFGS-B", lower = c(-2, -1), upper = c(0.5, 2)) -> 0.5, 0.25; 0.25
-    r = row(find_smallest(ROSENBROCK, start={"x": -1.2, "y": 1}, between={"x": [-2, 0.5], "y": [-1, 2]}))
+    r = row(find_where_smallest(ROSENBROCK, start={"x": -1.2, "y": 1}, between={"x": [-2, 0.5], "y": [-1, 2]}))
     out = capsys.readouterr().out
     assert 'L-BFGS-B from y = 1, x = -1.2 with the limits in between=, as R optim(method = "L-BFGS-B")' in out
     assert r["x"] == pytest.approx(0.5, abs=1e-6) and r["y"] == pytest.approx(0.25, abs=1e-6)
@@ -202,40 +202,40 @@ def test_l_bfgs_b_with_limits(capsys):
 @pytest.mark.parametrize("method", ["bfgs", "l-bfgs-b", "powell", "trust region", "slsqp"])
 def test_expert_methods(method):
     # all should end near the exact minimum (1, 1); numerical slopes limit the gradient methods to ~1e-5
-    r = row(find_smallest(ROSENBROCK, start={"x": -1.2, "y": 1}, method=method))
+    r = row(find_where_smallest(ROSENBROCK, start={"x": -1.2, "y": 1}, method=method))
     assert r["x"] == pytest.approx(1, abs=1e-4) and r["y"] == pytest.approx(1, abs=1e-4)
 
 
 def test_cobyla():
     # COBYLA is slow on Rosenbrock's valley, so a simple bowl: the exact answer is (1, -2), value 3
-    r = row(find_smallest("(x - 1)**2 + 2*(y + 2)**2 + 3", start={"x": 0, "y": 0}, method="cobyla"))
+    r = row(find_where_smallest("(x - 1)**2 + 2*(y + 2)**2 + 3", start={"x": 0, "y": 0}, method="cobyla"))
     assert (r["x"], r["y"], r["smallest value"]) == pytest.approx((1, -2, 3), abs=1e-4)
 
 
 def test_method_spelling_and_errors():
-    r = row(find_smallest(ROSENBROCK, start={"x": -1.2, "y": 1}, method="Nelder Mead"))
+    r = row(find_where_smallest(ROSENBROCK, start={"x": -1.2, "y": 1}, method="Nelder Mead"))
     assert r["method"] == "Nelder-Mead"
     with pytest.raises(SimplydataError, match='Did you mean method="nelder-mead"'):
-        find_smallest("x**2", between=[0, 5], method="nelder")
+        find_where_smallest("x**2", between=[0, 5], method="nelder")
 
 
 def test_several_names_need_start():
     with pytest.raises(SimplydataError, match="needs a start for each name"):
-        find_smallest(ROSENBROCK)
+        find_where_smallest(ROSENBROCK)
     with pytest.raises(SimplydataError, match="between= needs a range for each"):
-        find_smallest(ROSENBROCK, between=[0, 1])
+        find_where_smallest(ROSENBROCK, between=[0, 1])
 
 
 def test_no_range_and_no_start():
     with pytest.raises(SimplydataError, match=r"needs between=\[low, high\] or start="):
-        find_smallest("x**2")
+        find_where_smallest("x**2")
 
 
 # ---------------------------------------------------------------------------- rules
 def test_non_linear_rule_slsqp(capsys):
     # R: nloptr(c(0, 0), ..., algorithm = "NLOPT_LD_SLSQP") with x^2 + y^2 <= 1
     #    -> 0.447213595500034, 0.894427190999972; 1.52786404500021 (exactly (1, 2) / sqrt(5))
-    r = row(find_smallest("(x - 1)**2 + (y - 2)**2", rules=["x**2 + y**2 <= 1"], start={"x": 0, "y": 0}))
+    r = row(find_where_smallest("(x - 1)**2 + (y - 2)**2", rules=["x**2 + y**2 <= 1"], start={"x": 0, "y": 0}))
     out = capsys.readouterr().out
     assert "SLSQP (sequential quadratic programming) under the rules" in out
     assert "because the formula or a rule is not straight-line" in out
@@ -250,7 +250,7 @@ def test_linear_program_and_shadow_prices(capsys):
     #    objval 12, solution 4 0, duals 3 0 0 -1 (two rules, then the reduced costs of x and y;
     #    lp() assumes x, y >= 0, which simplydata needs as rules, and y's reduced cost -1 is the
     #    value of one more on "y >= 0")
-    r = row(find_biggest("3*x + 2*y", rules=["x + y <= 4", "x + 3*y <= 6", "x >= 0", "y >= 0"]))
+    r = row(find_where_biggest("3*x + 2*y", rules=["x + y <= 4", "x + 3*y <= 6", "x >= 0", "y >= 0"]))
     out = capsys.readouterr().out
     assert "The biggest value of 3*x + 2*y under the 4 rules is 12, at x = 4, y = 0." in out
     assert ("Method: linear programming (HiGHS), as R lpSolve::lp(), because the formula and every rule are "
@@ -265,7 +265,7 @@ def test_linear_program_and_shadow_prices(capsys):
 def test_linear_program_smallest_with_at_least_rules():
     # R: lp("min", c(2, 3), rbind(c(1, 1), c(1, 2)), c(">=", ">="), c(4, 6), compute.sens = TRUE)
     #    objval 10, solution 2 2, duals 1 1 0 0
-    r = row(find_smallest("2*x + 3*y", rules=["x + y >= 4", "x + 2*y >= 6", "x >= 0", "y >= 0"]))
+    r = row(find_where_smallest("2*x + 3*y", rules=["x + y >= 4", "x + 2*y >= 6", "x >= 0", "y >= 0"]))
     assert (r["x"], r["y"], r["smallest value"]) == pytest.approx((2, 2, 10), abs=1e-9)
     assert r["value of one more: x + y >= 4"] == pytest.approx(1, abs=1e-9)
     assert r["value of one more: x + 2*y >= 6"] == pytest.approx(1, abs=1e-9)
@@ -275,37 +275,37 @@ def test_whole_numbers(capsys):
     # R: lp("max", c(5, 4), rbind(c(6, 4), c(1, 2)), c("<=", "<="), c(24, 6), int.vec = 1:2) -> 20 at 4 0
     #    (without int.vec: 21 at 3, 1.5)
     rules = ["6*x + 4*y <= 24", "x + 2*y <= 6", "x >= 0", "y >= 0"]
-    r = row(find_biggest("5*x + 4*y", rules=rules, whole_numbers=True))
+    r = row(find_where_biggest("5*x + 4*y", rules=rules, whole_numbers=True))
     assert "mixed-integer linear programming (HiGHS), as R lpSolve::lp(int.vec = ...)" in capsys.readouterr().out
     assert (r["x"], r["y"], r["biggest value"]) == pytest.approx((4, 0, 20), abs=1e-9)
-    relaxed = row(find_biggest("5*x + 4*y", rules=rules))
+    relaxed = row(find_where_biggest("5*x + 4*y", rules=rules))
     assert (relaxed["x"], relaxed["y"], relaxed["biggest value"]) == pytest.approx((3, 1.5, 21), abs=1e-9)
 
 
 def test_knapsack():
     # R: lp("max", c(10, 13, 7, 8), rbind(c(3, 4, 2, 3)), "<=", 7, all.bin = TRUE) -> 23 at 1 1 0 0
-    r = row(find_biggest("10*a + 13*b + 7*c + 8*d", rules=["3*a + 4*b + 2*c + 3*d <= 7"],
+    r = row(find_where_biggest("10*a + 13*b + 7*c + 8*d", rules=["3*a + 4*b + 2*c + 3*d <= 7"],
                          between={n: [0, 1] for n in "abcd"}, whole_numbers=True))
     assert [r[n] for n in "abcd"] == pytest.approx([1, 1, 0, 0]) and r["biggest value"] == pytest.approx(23)
 
 
 def test_infeasible_and_unbounded():
     with pytest.raises(SimplydataError, match="No values meet every rule at once"):
-        find_smallest("x", rules=["x >= 5", "x <= 3"])
+        find_where_smallest("x", rules=["x >= 5", "x <= 3"])
     with pytest.raises(SimplydataError, match="grow without end.*such as x >= 0"):
-        find_biggest("x + y", rules=["x - y <= 1", "x >= 0"])
+        find_where_biggest("x + y", rules=["x - y <= 1", "x >= 0"])
 
 
 def test_whole_numbers_need_a_linear_formula():
     with pytest.raises(SimplydataError, match="straight-line"):
-        find_smallest("x**2 + y", whole_numbers=True, start={"x": 1, "y": 1})
+        find_where_smallest("x**2 + y", whole_numbers=True, start={"x": 1, "y": 1})
 
 
 # ---------------------------------------------------------------------------- whole range
 def test_whole_range_rastrigin(capsys):
     # the known answer: Rastrigin's function is 0 at (0, 0), its lowest point among many dips
     rastrigin = "20 + x**2 - 10*cos(2*pi*x) + y**2 - 10*cos(2*pi*y)"
-    r = row(find_smallest(rastrigin, between={"x": [-5.12, 5.12], "y": [-5.12, 5.12]}, search="whole range"))
+    r = row(find_where_smallest(rastrigin, between={"x": [-5.12, 5.12], "y": [-5.12, 5.12]}, search="whole range"))
     out = capsys.readouterr().out
     assert "differential evolution over the whole range" in out and "seed=1" in out
     assert r["x"] == pytest.approx(0, abs=1e-6) and r["y"] == pytest.approx(0, abs=1e-6)
@@ -318,7 +318,7 @@ HIMMELBLAU_MINIMA = [(3, 2), (-2.805118, 3.131312), (-3.779310, -3.283186), (3.5
 @pytest.mark.parametrize("method", ["differential evolution", "dual annealing", "shgo", "basin hopping", "direct"])
 def test_whole_range_methods_himmelblau(method):
     # the known answer: Himmelblau's function has four lowest points, all with value 0
-    r = row(find_smallest("(x**2 + y - 11)**2 + (x + y**2 - 7)**2", between={"x": [-5, 5], "y": [-5, 5]},
+    r = row(find_where_smallest("(x**2 + y - 11)**2 + (x + y**2 - 7)**2", between={"x": [-5, 5], "y": [-5, 5]},
                           search="whole range", method=method, start={"x": 0, "y": 0}))
     assert r["smallest value"] == pytest.approx(0, abs=1e-8)
     assert min(math.dist((r["x"], r["y"]), m) for m in HIMMELBLAU_MINIMA) < 1e-4
@@ -326,7 +326,7 @@ def test_whole_range_methods_himmelblau(method):
 
 def test_whole_range_needs_two_ends():
     with pytest.raises(SimplydataError, match="needs a range with two ends"):
-        find_smallest("x**2 + y**2", between={"x": [-1, 1], "y": [0, None]}, search="whole range")
+        find_where_smallest("x**2 + y**2", between={"x": [-1, 1], "y": [0, None]}, search="whole range")
 
 
 # ---------------------------------------------------------------------------- solve
@@ -417,7 +417,7 @@ def test_solve_with_known():
 # ---------------------------------------------------------------------------- engines and options
 def test_fast_gives_a_polars_table():
     pl = pytest.importorskip("polars")
-    result = find_smallest("x**2 - 2*x", between=[0, 5], fast=True)
+    result = find_where_smallest("x**2 - 2*x", between=[0, 5], fast=True)
     assert isinstance(result._frame.to_native(), pl.DataFrame)
     assert result._frame["x"].to_list()[0] == pytest.approx(1, abs=1e-8)
     assert isinstance(solve("x**2 = 4", fast=True)._frame.to_native(), pl.DataFrame)
@@ -425,12 +425,12 @@ def test_fast_gives_a_polars_table():
 
 def test_unknown_option_is_friendly():
     with pytest.raises(SimplydataError, match="Did you mean between="):
-        find_smallest("x**2", betwen=[0, 1])
+        find_where_smallest("x**2", betwen=[0, 1])
 
 
 def test_equality_rule_and_strict_note(capsys):
     # the closest point to (0, 0) on the line x + y = 2 is (1, 1); exact answer, value 2
-    r = row(find_smallest("x**2 + y**2", rules=["x + y = 2", "x > -5"], start={"x": 0, "y": 0}))
+    r = row(find_where_smallest("x**2 + y**2", rules=["x + y = 2", "x > -5"], start={"x": 0, "y": 0}))
     out = capsys.readouterr().out
     assert "< and > in rules are treated as <= and >=" in out
     assert (r["x"], r["y"], r["smallest value"]) == pytest.approx((1, 1, 2), abs=1e-7)
@@ -438,11 +438,11 @@ def test_equality_rule_and_strict_note(capsys):
 
 def test_whole_range_with_rules_and_whole_numbers():
     # inside the circle x^2 + y^2 <= 4 the lowest point of x + y is -2*sqrt(2), at (-sqrt(2), -sqrt(2))
-    r = row(find_smallest("x + y + 0*x**2", rules=["x**2 + y**2 <= 4"], between={"x": [-3, 3], "y": [-3, 3]},
+    r = row(find_where_smallest("x + y + 0*x**2", rules=["x**2 + y**2 <= 4"], between={"x": [-3, 3], "y": [-3, 3]},
                           search="whole range"))
     assert r["smallest value"] == pytest.approx(-2 * math.sqrt(2), abs=1e-5)
     # whole numbers anywhere in the range: (x - 2.4)^2 + (y + 1.6)^2 is lowest at x = 2, y = -2
-    r = row(find_smallest("(x - 2.4)**2 + (y + 1.6)**2", between={"x": [-5, 5], "y": [-5, 5]},
+    r = row(find_where_smallest("(x - 2.4)**2 + (y + 1.6)**2", between={"x": [-5, 5], "y": [-5, 5]},
                           search="whole range", whole_numbers=True))
     assert (r["x"], r["y"]) == (2, -2)
     assert r["smallest value"] == pytest.approx(0.32, abs=1e-12)

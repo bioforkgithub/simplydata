@@ -4,7 +4,7 @@ Each function here hands the rows of a model that explain() has already checked 
 by ModelWords._fit_model) to R and gives back R's own numbers:
 
 * emmeans_table: adjusted averages and their pairwise differences, R emmeans::emmeans() and
-  pairs() (Tukey's adjustment), for model_averages_of.
+  pairs() (Tukey's adjustment), for find_model_averages_of.
 * satterthwaite: a linear mixed model with Satterthwaite t-tests, R lmerTest::lmer() with
   summary(), contest() and its intervals, for explain(..., p_value_by="satterthwaite").
 * mixed_r: lme4::lmer() or glmer() with own slopes, (1 + x | g), for own_slope_for= when
@@ -12,7 +12,7 @@ by ModelWords._fit_model) to R and gives back R's own numbers:
 * geeglm: R geepack::geeglm() itself, for effects="for the whole population" when the
   correlation within groups is "in time order" (statsmodels' AR-1 estimator differs from
   geepack's).
-* repeated_anova: R afex::aov_ez(), for compare_averages(..., matched_by=).
+* repeated_anova: R afex::aov_ez(), for compare_averages_of(..., matched_by=).
 
 Nothing is calculated here: the functions write the R call, pass the values and read the result.
 """
@@ -299,7 +299,7 @@ def group_influence(model):
              "list(group = as.character(inf$deleted), cooks = unname(as.numeric(cd)))")
     return r_call(code, packages=("lme4",), source="lme4::influence",
                   what="Groups that pull a mixed model (R lme4 influence() and cooks.distance())",
-                  python_note="statsmodels gives no influence measures for mixed models; show_rows_that_pull() "
+                  python_note="statsmodels gives no influence measures for mixed models; show_rows_that_pull_model() "
                               "without grouped_by= works without R", **values)
 
 

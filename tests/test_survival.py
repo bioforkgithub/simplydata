@@ -1,4 +1,4 @@
-"""Tests for the survival words (Kaplan-Meier, log-rank, Cox) and chart.survival_curves.
+"""Tests for the survival words (Kaplan-Meier, log-rank, Cox) and chart.draw_survival_curves.
 
 Reference values come from R 4.6.2 with the survival package that ships with it, on
 pandas and Polars tables. The R data:
@@ -56,13 +56,13 @@ def one_row(result):
 
 @pytest.fixture
 def trial():
-    return sdata.example("trial")
+    return sdata.get_example("trial")
 
 
 # ---------------------------------------------------------------- survival_over_time
 def test_kaplan_meier_matches_r_trial(trial, engine, capsys):
     # summary(survfit(Surv(days, ev) ~ treatment, data = d))
-    out = frame(make(trial, engine).survival_over_time(time="days", event="died", for_each="treatment"))
+    out = frame(make(trial, engine).find_survival_over_time(time="days", event="died", for_each_group_in="treatment"))
     assert list(out.columns) == ["treatment", "time", "at risk", "events", "censored", "survival",
                                  "95 % CI low", "95 % CI high"]
     new = out[out["treatment"] == "new medicine"].reset_index(drop=True)
@@ -93,14 +93,14 @@ def test_kaplan_meier_matches_r_trial(trial, engine, capsys):
 
 
 def test_kaplan_meier_one_group(trial, engine, capsys):
-    out = frame(make(trial, engine).survival_over_time(time="days", event="died"))
+    out = frame(make(trial, engine).find_survival_over_time(time="days", event="died"))
     assert "treatment" not in out.columns
     assert 'median "days" 614 (95 % CI 526 to not reached; 120 rows, 59 events)' in capsys.readouterr().out
 
 
 def test_kaplan_meier_ties_and_censored_counts(engine, capsys):
     # summary(survfit(Surv(time, event) ~ group)) rows 1, 2, 5, 9, 10
-    out = frame(make(TIES, engine).survival_over_time(time="time", event="event", for_each="group"))
+    out = frame(make(TIES, engine).find_survival_over_time(time="time", event="event", for_each_group_in="group"))
     rows = out.iloc[[0, 1, 4, 8, 9]]
     assert rows["time"].tolist() == [1, 3, 6, 2, 3]
     assert rows["at risk"].tolist() == [15, 13, 10, 12, 10]
@@ -121,7 +121,7 @@ def test_kaplan_meier_ties_and_censored_counts(engine, capsys):
 def test_median_exactly_one_half_as_r(engine, capsys):
     # survfit(Surv(1:10, rep(1, 10)) ~ 1): median 5.5, 0.95LCL 3, UCL NA
     t = make(pd.DataFrame({"t": range(1, 11), "e": [True] * 10}), engine)
-    t.survival_over_time(time="t", event="e")
+    t.find_survival_over_time(time="t", event="e")
     text = capsys.readouterr().out
     assert 'median "t" 5.5 (95 % CI 3 to not reached' in text
     assert '"e" = True' in text
@@ -138,17 +138,17 @@ def test_empty_cells_skipped_with_note(trial, engine, capsys):
     data["days"] = data["days"].astype(float)
     data.loc[[0, 1], "days"] = np.nan
     data.loc[2, "died"] = None
-    out = frame(make(data, engine).survival_over_time(time="days", event="died"))
+    out = frame(make(data, engine).find_survival_over_time(time="days", event="died"))
     assert "Note: 3 rows with an empty cell" in capsys.readouterr().out
     assert out["events"].sum() + out["censored"].sum() <= 117
 
 
 def test_event_values_read_as_yes_no(trial, engine, capsys):
-    base = frame(make(trial, engine).survival_over_time(time="days", event="died"))
+    base = frame(make(trial, engine).find_survival_over_time(time="days", event="died"))
     for values, said in ((trial["died"].eq("yes"), "True"), (trial["died"].eq("yes").astype(int), "1"),
                          (trial["died"].str.upper(), '"YES"')):
         data = trial.assign(died=values)
-        out = frame(make(data, engine).survival_over_time(time="days", event="died"))
+        out = frame(make(data, engine).find_survival_over_time(time="days", event="died"))
         assert out["survival"].tolist() == pytest.approx(base["survival"].tolist())
         assert f'"died" = {said}' in capsys.readouterr().out
 
@@ -156,25 +156,25 @@ def test_event_values_read_as_yes_no(trial, engine, capsys):
 def test_survival_errors(trial, engine):
     t = make(trial, engine)
     with pytest.raises(SimplydataError, match="column name"):
-        t.survival_over_time(time="days")
+        t.find_survival_over_time(time="days")
     with pytest.raises(SimplydataError, match="other than 0 and 1"):
-        make(trial.assign(died=2), engine).survival_over_time(time="days", event="died")
+        make(trial.assign(died=2), engine).find_survival_over_time(time="days", event="died")
     with pytest.raises(SimplydataError, match="should say whether"):
-        t.survival_over_time(time="days", event="treatment")
+        t.find_survival_over_time(time="days", event="treatment")
     with pytest.raises(SimplydataError, match="should hold numbers"):
-        t.survival_over_time(time="patient", event="died")
+        t.find_survival_over_time(time="patient", event="died")
     with pytest.raises(SimplydataError, match="below 0"):
-        make(trial.assign(days=-trial["days"]), engine).survival_over_time(time="days", event="died")
+        make(trial.assign(days=-trial["days"]), engine).find_survival_over_time(time="days", event="died")
     with pytest.raises(SimplydataError, match="days_"):
-        t.survival_over_time(time="days_", event="died")
+        t.find_survival_over_time(time="days_", event="died")
     with pytest.raises(SimplydataError, match="both"):
-        t.survival_over_time(time="days", event="died", for_each="died")
+        t.find_survival_over_time(time="days", event="died", for_each_group_in="died")
 
 
 # ---------------------------------------------------------------- compare_survival
 def test_log_rank_matches_r_trial(trial, engine, capsys):
     # survdiff(Surv(days, ev) ~ treatment, data = d)
-    r = one_row(make(trial, engine).compare_survival(time="days", event="died", for_each="treatment"))
+    r = one_row(make(trial, engine).compare_survival(time="days", event="died", for_each_group_in="treatment"))
     assert r["test"] == "log-rank test"
     assert r["statistic"] == pytest.approx(1.53386475701214, rel=TOL)
     assert r["degrees of freedom"] == 1
@@ -191,7 +191,7 @@ def test_log_rank_matches_r_trial(trial, engine, capsys):
 
 def test_log_rank_three_groups_with_ties(engine):
     # survdiff(Surv(time, event) ~ group)
-    r = one_row(make(TIES, engine).compare_survival(time="time", event="event", for_each="group"))
+    r = one_row(make(TIES, engine).compare_survival(time="time", event="event", for_each_group_in="group"))
     assert r["statistic"] == pytest.approx(15.0463429999238, rel=TOL)
     assert r["degrees of freedom"] == 2
     assert r["p-value"] == pytest.approx(0.00054041591604996, rel=1e-8)
@@ -201,12 +201,12 @@ def test_log_rank_three_groups_with_ties(engine):
 
 def test_log_rank_errors(trial, engine):
     t = make(trial, engine)
-    with pytest.raises(SimplydataError, match="for_each="):
+    with pytest.raises(SimplydataError, match="for_each_group_in="):
         t.compare_survival(time="days", event="died")
     with pytest.raises(SimplydataError, match="at least 2 groups"):
-        make(trial.assign(treatment="same"), engine).compare_survival(time="days", event="died", for_each="treatment")
+        make(trial.assign(treatment="same"), engine).compare_survival(time="days", event="died", for_each_group_in="treatment")
     with pytest.raises(SimplydataError, match="no events"):
-        make(trial.assign(died="no"), engine).compare_survival(time="days", event="died", for_each="treatment")
+        make(trial.assign(died="no"), engine).compare_survival(time="days", event="died", for_each_group_in="treatment")
 
 
 # ---------------------------------------------------------------- explain_survival
@@ -272,21 +272,21 @@ def test_cox_errors(trial, engine):
 
 def test_words_do_not_change_the_table(trial, engine):
     t = make(trial, engine)
-    t.survival_over_time(time="days", event="died")
-    t.compare_survival(time="days", event="died", for_each="treatment")
+    t.find_survival_over_time(time="days", event="died")
+    t.compare_survival(time="days", event="died", for_each_group_in="treatment")
     t.explain_survival(time="days", event="died", using="age")
     pd.testing.assert_frame_equal(t._frame.to_pandas(), make(trial, engine)._frame.to_pandas())
 
 
-# ---------------------------------------------------------------- chart.survival_curves
+# ---------------------------------------------------------------- chart.draw_survival_curves
 def _curves(ax):
     return [ln for ln in ax.lines if ln.get_drawstyle().startswith("steps")]
 
 
 def test_chart_numbers_equal_the_table(trial, capsys):
-    chart = sdata.chart(trial).survival_curves(time="days", event="died", colour="treatment")
+    chart = sdata.chart(trial).draw_survival_curves(time="days", event="died", colour="treatment")
     ax = chart._render().axes[0]
-    table = frame(sdata.table(trial).survival_over_time(time="days", event="died", for_each="treatment"))
+    table = frame(sdata.table(trial).find_survival_over_time(time="days", event="died", for_each_group_in="treatment"))
     lines = _curves(ax)
     assert [ln.get_label() for ln in lines] == ["new medicine", "usual care"]
     for line, name in zip(lines, ["new medicine", "usual care"]):
@@ -304,8 +304,8 @@ def test_chart_numbers_equal_the_table(trial, capsys):
 
 
 def test_chart_band_risk_table_and_options(trial):
-    chart = sdata.chart(trial).survival_curves(time="days", event="died", colour="treatment",
-                                               confidence_band=True, censor_marks=False, at_risk_table=True)
+    chart = sdata.chart(trial).draw_survival_curves(time="days", event="died", colour="treatment",
+                                               with_confidence_band=True, with_censor_marks=False, with_at_risk_table=True)
     ax = chart._render().axes[0]
     assert len(ax.collections) == 2  # one band per group
     assert not [ln for ln in ax.lines if ln.get_marker() == "|"]
@@ -316,34 +316,34 @@ def test_chart_band_risk_table_and_options(trial):
 def test_chart_panels_letters_and_empty_cells(trial, tmp_path, capsys):
     data = trial.copy()
     data.loc[0, "died"] = None
-    one = sdata.chart(data).survival_curves(time="days", event="died", colour="red")
+    one = sdata.chart(data).draw_survival_curves(time="days", event="died", colour="red")
     assert _curves(one._render().axes[0])[0].get_color() == "red"
     assert "1 row with empty" in capsys.readouterr().out
-    panels = sdata.chart(trial).survival_curves(time="days", event="died").one_chart_per("treatment")
+    panels = sdata.chart(trial).draw_survival_curves(time="days", event="died").draw_one_chart_for_each_group_in("treatment")
     assert len(panels._render().axes) == 2
-    sdata.side_by_side(one, panels, letters=True).save(tmp_path / "page.png")
+    sdata.put_side_by_side(one, panels, with_letters=True).save(tmp_path / "page.png")
 
 
 def test_chart_errors(trial):
     chart = sdata.chart(trial)
     with pytest.raises(SimplydataError, match="event="):
-        chart.survival_curves(time="days")
+        chart.draw_survival_curves(time="days")
     with pytest.raises(SimplydataError, match="True or False"):
-        chart.survival_curves(time="days", event="died", confidence_band="yes")
+        chart.draw_survival_curves(time="days", event="died", with_confidence_band="yes")
     with pytest.raises(SimplydataError, match="should say whether"):
-        chart.survival_curves(time="days", event="treatment")
+        chart.draw_survival_curves(time="days", event="treatment")
     with pytest.raises(SimplydataError, match="should hold numbers"):
-        chart.survival_curves(time="patient", event="died")
+        chart.draw_survival_curves(time="patient", event="died")
 
 
 def test_survival_curves_transparency_and_thickness():
-    chart = sdata.chart(sdata.example("trial")).survival_curves(
+    chart = sdata.chart(sdata.get_example("trial")).draw_survival_curves(
         time="days", event="died", colour="treatment", transparency=0.4, thickness=3)
     lines = [ln for ln in chart._render().axes[0].lines if ln.get_drawstyle() == "steps-post"]
     assert len(lines) == 2
     assert all(abs(ln.get_alpha() - 0.6) < 1e-12 and ln.get_linewidth() == 3 for ln in lines)
     with pytest.raises(sdata.SimplydataError, match="transparency"):
-        sdata.chart(sdata.example("trial")).survival_curves(time="days", event="died", transparency=2)
+        sdata.chart(sdata.get_example("trial")).draw_survival_curves(time="days", event="died", transparency=2)
 
 
 def test_cox_without_r_still_fits_and_says_how_to_add_the_check(trial, capsys, monkeypatch):
@@ -366,7 +366,7 @@ def test_log_rank_leaves_out_a_group_with_no_expected_events(capsys):
     # survdiff(Surv(t, e) ~ g): chisq 5.05166051660517, expected 1.15 3.85 0, df 1, p 0.0246023499536417
     data = pd.DataFrame({"t": [0.5, 0.6, 2, 3, 4, 5, 6, 7], "e": [0, 0, 1, 1, 1, 0, 1, 1],
                          "g": ["c", "c", "a", "a", "a", "b", "b", "b"]})
-    r = one_row(make(data, "pandas").compare_survival(time="t", event="e", for_each="g"))
+    r = one_row(make(data, "pandas").compare_survival(time="t", event="e", for_each_group_in="g"))
     assert r["statistic"] == pytest.approx(5.05166051660517, rel=1e-9)
     assert r["degrees of freedom"] == 1
     assert r["p-value"] == pytest.approx(0.0246023499536417, rel=1e-9)

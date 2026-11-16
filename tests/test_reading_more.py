@@ -448,5 +448,5 @@ def test_show_big_table(capsys):
 
 
 def test_example_table_shows(capsys):
-    show(sdata.table(sdata.example("marks")), rows=2)
+    show(sdata.table(sdata.get_example("marks")), rows=2)
     assert "Showing 2 of 54 rows" in capsys.readouterr().out

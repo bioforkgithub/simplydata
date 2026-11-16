@@ -32,7 +32,7 @@ def test_undo_steps_start_again(table, capsys):
     table._change("remove first row", table._frame.tail(n - 1))
     table._change("remove another row", table._frame.tail(n - 2))
     assert len(table) == n - 2
-    table.steps()
+    table.show_steps()
     out = capsys.readouterr().out
     assert "1. remove first row" in out and "2. remove another row" in out
     table.undo()
@@ -59,7 +59,7 @@ def test_save_types(table, tmp_path):
 
 
 def test_chart_from_table(table):
-    chart = table.chart().bars(x="name", y="marks")
+    chart = table.start_chart().draw_bars(x="name", y="marks")
     assert len(chart._render().axes[0].patches) == 4
     assert len(sdata.chart(table)._data) == len(table)
 
@@ -74,13 +74,13 @@ def test_friendly_errors(table):
 
 
 def test_column_names_and_repr(table, marks):
-    assert table.column_names() == list(marks.columns)
+    assert table.get_column_names() == list(marks.columns)
     assert "rows" in repr(table)
 
 
 def test_rows_are_numbered_again_after_every_step(marks, capsys):
     t = sdata.table(marks)
-    t.keep_rows("marks", above=60)
+    t.keep_rows_where("marks", is_above=60)
     assert list(t._done().index) == list(range(len(t)))
     t.sort_by("marks", biggest_first=True)
     assert list(t._done().index) == list(range(len(t)))

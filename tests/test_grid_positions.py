@@ -1,5 +1,5 @@
-"""Parts of a grid by position, grid.replace_numbers, "last" in row/column/number_at, and the
-pointer for grid.keep_numbers. Every result is checked against the NumPy expression next to it."""
+"""Parts of a grid by position, grid.replace_each_number_that, "last" in row/column/number_at, and the
+pointer for grid.keep_each_number_that. Every result is checked against the NumPy expression next to it."""
 
 import numpy as np
 import pytest
@@ -57,9 +57,9 @@ def test_remove_rows_and_columns(grid, capsys):
 def test_one_row_left_is_still_a_grid(grid, capsys):
     grid.keep_rows_by_position(2)
     out = capsys.readouterr().out
-    assert "One row is left, so this is still a grid; grid.row(1) gives it as numbers." in out
-    assert grid.shape() == (1, 6)
-    np.testing.assert_array_equal(grid.row(1).as_numpy(), G[1])
+    assert "One row is left, so this is still a grid; grid.get_row(1) gives it as numbers." in out
+    assert grid.find_shape() == (1, 6)
+    np.testing.assert_array_equal(grid.get_row(1).as_numpy(), G[1])
 
 
 def test_to_beyond_the_end(grid, capsys):
@@ -70,7 +70,7 @@ def test_to_beyond_the_end(grid, capsys):
 
 def test_steps_list_each_part(grid, capsys):
     grid.keep_rows_by_position(2, to=3).keep_columns_by_position(1, to=3)
-    grid.steps()
+    grid.show_steps()
     out = capsys.readouterr().out
     assert "1. keep rows 2 to 3" in out and "2. keep columns 1 to 3" in out
 
@@ -94,29 +94,29 @@ def test_grid_position_errors(grid, call, message):
 
 
 def test_last_in_row_column_and_number_at(grid):
-    np.testing.assert_array_equal(grid.row("last").as_numpy(), G[-1])
-    np.testing.assert_array_equal(grid.column("last").as_numpy(), G[:, -1])
-    assert grid.number_at(row="last", column=1) == G[-1, 0]
-    assert grid.number_at(row="last", column="last") == G[-1, -1]
+    np.testing.assert_array_equal(grid.get_row("last").as_numpy(), G[-1])
+    np.testing.assert_array_equal(grid.get_column("last").as_numpy(), G[:, -1])
+    assert grid.get_number_at(row="last", column=1) == G[-1, 0]
+    assert grid.get_number_at(row="last", column="last") == G[-1, -1]
     with pytest.raises(SimplydataError, match='or "last"'):
-        grid.row(9)
+        grid.get_row(9)
 
 
 def test_grid_replace_numbers_keeps_the_shape(grid, capsys):
-    grid.replace_numbers(below=0, with_value=0)
+    grid.replace_each_number_that(is_below=0, with_value=0)
     n = int((G < 0).sum())
     assert f"Replaced {n} of 24 numbers below 0 with 0." in capsys.readouterr().out
     np.testing.assert_array_equal(grid.as_numpy(), np.where(G < 0, 0, G))  # NumPy np.where(g < 0, 0, g)
-    assert grid.shape() == (4, 6)
+    assert grid.find_shape() == (4, 6)
     grid.undo()
     np.testing.assert_array_equal(grid.as_numpy(), G)
 
 
 def test_grid_replace_empty_numbers():
     grid = sdata.number_grid([[1, None], [None, 4]])
-    grid.replace_numbers(is_empty=True, with_value=0)
+    grid.replace_each_number_that(is_empty=True, with_value=0)
     np.testing.assert_array_equal(grid.as_numpy(), [[1, 0], [0, 4]])
-    grid.replace_numbers(above=3, with_value=None)
+    grid.replace_each_number_that(is_above=3, with_value=None)
     assert np.isnan(grid.as_numpy()[1, 1])
 
 
@@ -126,13 +126,13 @@ def test_grid_keep_numbers_explains_why_not(grid, name):
         getattr(grid, name)
     text = str(info.value)
     assert "A grid keeps its rows and columns, so it cannot drop single numbers" in text
-    assert "grid.numbers().keep_numbers(above=5)" in text and "grid.replace_numbers(above=5, with_value=0)" in text
+    assert "grid.get_all_numbers().keep_each_number_that(is_above=5)" in text and "grid.replace_each_number_that(is_above=5, with_value=0)" in text
 
 
 @pytest.mark.parametrize("name, word", [
     ("keep_rows", "keep_rows_by_position"), ("keep_columns", "keep_columns_by_position"),
     ("remove_rows", "remove_rows_by_position"), ("remove_columns", "remove_columns_by_position"),
-    ("where", "replace_numbers"), ("clip", "replace_numbers"), ("delete", "remove_rows_by_position"),
+    ("where", "replace_each_number_that"), ("clip", "replace_each_number_that"), ("delete", "remove_rows_by_position"),
 ])
 def test_grid_other_names(grid, name, word):
     with pytest.raises(AttributeError, match=rf"grid\.{word}\(\)"):
@@ -140,7 +140,7 @@ def test_grid_other_names(grid, name, word):
 
 
 def test_grid_table_rows_are_numbered_from_1(grid, capsys):
-    grid.table().show()
+    grid.turn_into_table().show()
     lines = [line for line in capsys.readouterr().out.splitlines() if line[:1].isdigit()]
     assert [int(line.split()[0]) for line in lines] == [1, 2, 3, 4]
 

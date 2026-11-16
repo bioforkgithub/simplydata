@@ -13,8 +13,8 @@ class DistributionNumberWords:
     def fit_distribution(self, distribution="normal", fixed=None):
         """Fit a distribution to the numbers by maximum likelihood; gives back the fitted distribution.
 
-        fit = nums.fit_distribution("gamma")   then fit.chance(above=10), fit.table()
-        As R MASS::fitdistr(x, "gamma"); see table.fit_distribution. Empty values are skipped.
+        fit = nums.fit_distribution("gamma")   then fit.find_chance_that_value(is_above=10), fit.turn_into_table()
+        As R MASS::fitdistr(x, "gamma"); see table.fit_distribution_to. Empty values are skipped.
         """
         values = np.asarray(self._values, dtype=float).ravel()
         empty = int(np.isnan(values).sum())

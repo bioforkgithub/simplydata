@@ -1,10 +1,10 @@
 """Distributions in plain words: chances, percentiles, random numbers and fitting.
 
     dist = sdata.distribution("normal", average=50, standard_deviation=10)
-    dist.chance(above=80)          # 0.00135, printed as "0.135 %", with the R call that gives it
-    dist.percentile(95)            # 66.4
-    fit = table.fit_distribution("days", "gamma")   # a Distribution with the fitted values
-    fit.chance(above=365)
+    dist.find_chance_that_value(is_above=80)          # 0.00135, printed as "0.135 %", with the R call that gives it
+    dist.find_percentile(95)            # 66.4
+    fit = table.fit_distribution_to("days", "gamma")   # a Distribution with the fitted values
+    fit.find_chance_that_value(is_above=365)
 
 Every word prints one plain sentence with the answer and the R function that gives the same
 number (R is exact here, so the call teaches the R name and lets you check). Parameters are R's,
@@ -15,9 +15,9 @@ Choices (the same as R, so results can be checked there):
 
 * Numbers come from the classic scipy.stats distributions (pdf/pmf, cdf, sf, ppf, isf). Upper
   tails use sf and isf, so tiny chances stay accurate, as R's lower.tail = FALSE.
-* Counts (discrete distributions): below=3 means 0, 1 or 2 (strict, as keep_rows), at_most=3
-  includes 3 (R pbinom(3)); the sentence spells it out ("3 or fewer"). percentile() and
-  cut_off() give the smallest count with at least that share at or below it (R qbinom()).
+* Counts (discrete distributions): is_below=3 means 0, 1 or 2 (strict, as keep_rows_where), is_at_most=3
+  includes 3 (R pbinom(3)); the sentence spells it out ("3 or fewer"). find_percentile() and
+  find_cut_off() give the smallest count with at least that share at or below it (R qbinom()).
 * geometric and negative binomial count the failures before the (first or size-th) success,
   as R; hypergeometric counts the marked items drawn (R dhyper(x, m, n, k)).
 * Fitting is maximum likelihood (R MASS::fitdistr, fitdistrplus::fitdist). Families that have
@@ -33,7 +33,7 @@ Choices (the same as R, so results can be checked there):
   is the exact maximum (R's score equation solved with uniroot() gives the same).
 * The normal fit's standard deviation divides by n (maximum likelihood), so it is a little
   smaller than R sd(), as fitdistr.
-* compare_distributions ranks by AIC, with the Anderson-Darling, Kolmogorov-Smirnov and
+* compare_distributions_for ranks by AIC, with the Anderson-Darling, Kolmogorov-Smirnov and
   Cramer-von Mises statistics of each fit, as R fitdistrplus::gofstat().
 * shape_test (compare_shape_to with any shape but normal): Anderson-Darling with a Monte Carlo
   p-value that allows for the fitting (SciPy goodness_of_fit, seed printed).
@@ -48,7 +48,7 @@ from dataclasses import dataclass, field
 
 import numpy as np
 
-from ._errors import MissingWordError, SimplydataError, friendly, suggest
+from ._errors import MissingWordError, SimplydataError, friendly, old_word, suggest
 
 REQUIRED = object()
 SEED = 1
@@ -767,7 +767,7 @@ def distribution(name=None, *values, **parameters):
     """Make a distribution to ask chances, percentiles and random numbers of.
 
     dist = sdata.distribution("normal", average=50, standard_deviation=10)
-    then dist.chance(above=80), dist.percentile(95), dist.random_numbers(how_many=100, seed=1).
+    then dist.find_chance_that_value(is_above=80), dist.find_percentile(95), dist.make_random_numbers(how_many=100, with_seed=1).
     Names: normal, lognormal, exponential, gamma, beta, uniform, t, chi-square, F, weibull,
     cauchy, logistic, laplace, gumbel, pareto, triangular, half-normal, inverse gaussian,
     von mises; for counts binomial, bernoulli, poisson, negative binomial, geometric,
@@ -787,32 +787,39 @@ def distribution(name=None, *values, **parameters):
 
 
 # ====================================================================== the Distribution
-HINTS = {"pdf": "density_at", "pmf": "chance", "cdf": "chance", "sf": "chance", "ppf": "percentile",
-         "quantile": "percentile", "isf": "cut_off", "critical_value": "cut_off", "rvs": "random_numbers",
-         "sample": "random_numbers", "mean": "average", "std": "standard_deviation", "sd": "standard_deviation",
-         "var": "variance", "interval": "middle_range", "stats": "summary", "describe": "summary",
-         "probability": "chance", "density": "density_at", "plot": "chart", "show": "summary", "fit": "fit_distribution",
-         "dnorm": "density_at", "pnorm": "chance", "qnorm": "percentile", "rnorm": "random_numbers",
-         "logpdf": "density_at", "logcdf": "chance", "moment": "summary", "entropy": "summary",
-         "support": "summary", "params": "parameters", "args": "parameters", "kwds": "parameters"}
+HINTS = {"pdf": "find_density_at", "pmf": "find_chance_that_value", "cdf": "find_chance_that_value", "sf": "find_chance_that_value", "ppf": "find_percentile",
+         "quantile": "find_percentile", "isf": "find_cut_off", "critical_value": "find_cut_off", "rvs": "make_random_numbers",
+         "sample": "make_random_numbers", "mean": "find_average", "std": "find_standard_deviation", "sd": "find_standard_deviation",
+         "var": "find_variance", "interval": "find_middle_range", "stats": "show_summary", "describe": "show_summary",
+         "probability": "find_chance_that_value", "density": "find_density_at", "plot": "draw_chart", "show": "show_summary", "fit": "fit_distribution",
+         "dnorm": "find_density_at", "pnorm": "find_chance_that_value", "qnorm": "find_percentile", "rnorm": "make_random_numbers",
+         "logpdf": "find_density_at", "logcdf": "find_chance_that_value", "moment": "show_summary", "entropy": "show_summary",
+         "support": "show_summary", "params": "show_parameters", "args": "show_parameters", "kwds": "show_parameters"}
 # How the word a HINT points to is written, with a typical value.
-HINT_EXAMPLES = {"density_at": "dist.density_at(60)", "chance": "dist.chance(below=60) (or at_most=, above=, "
-                 "at_least=, between=; for counts dist.chance(3) is exactly 3)",
-                 "percentile": "dist.percentile(95)", "cut_off": "dist.cut_off(above=0.025)",
-                 "random_numbers": "dist.random_numbers(how_many=100, seed=1)", "middle_range": "dist.middle_range(95)",
-                 "summary": "dist.summary()", "average": "dist.average()",
-                 "standard_deviation": "dist.standard_deviation()", "variance": "dist.variance()",
-                 "chart": "dist.chart()", "parameters": "dist.parameters()"}
+HINT_EXAMPLES = {"find_density_at": "dist.find_density_at(60)", "find_chance_that_value": "dist.find_chance_that_value(is_below=60) (or is_at_most=, is_above=, "
+                 "is_at_least=, is_between=; for counts dist.find_chance_that_value(3) is exactly 3)",
+                 "find_percentile": "dist.find_percentile(95)", "find_cut_off": "dist.find_cut_off(with_chance_above=0.025)",
+                 "make_random_numbers": "dist.make_random_numbers(how_many=100, with_seed=1)", "find_middle_range": "dist.find_middle_range(95)",
+                 "show_summary": "dist.show_summary()", "find_average": "dist.find_average()",
+                 "find_standard_deviation": "dist.find_standard_deviation()", "find_variance": "dist.find_variance()",
+                 "draw_chart": "dist.draw_chart()", "show_parameters": "dist.show_parameters()"}
 
 
 class Distribution:
     """A distribution with its parameters. Make one with sdata.distribution("normal", average=50, standard_deviation=10).
 
-    Words: chance, density_at, percentile, cut_off, middle_range, average, median,
-    standard_deviation, variance, summary, random_numbers, chart, table, parameters.
+    Words: chance, find_density_at, percentile, cut_off, find_middle_range, average, median,
+    standard_deviation, variance, summary, make_random_numbers, chart, table, parameters.
     """
 
-    _OLD_WORDS: dict = {}  # no old names yet (sdata.help reads this, as for tables and charts)
+    # Old names that still work for one release (with a note the first time): old -> new.
+    _OLD_WORDS = {
+        "chance": "find_chance_that_value", "density_at": "find_density_at", "percentile": "find_percentile",
+        "cut_off": "find_cut_off", "middle_range": "find_middle_range", "average": "find_average",
+        "median": "find_median", "standard_deviation": "find_standard_deviation", "variance": "find_variance",
+        "summary": "show_summary", "random_numbers": "make_random_numbers", "chart": "draw_chart",
+        "table": "turn_into_table", "parameters": "show_parameters",
+    }
 
     @classmethod
     def _word_names(cls) -> list[str]:
@@ -859,9 +866,9 @@ class Distribution:
         return self._r("d", "x") or "no R function (a SciPy distribution)"
 
     # pdf, pmf and cdf are for charts (words/curves.py), so they start with _: dist.pdf() is an
-    # other name that points to density_at(), never a word that runs (see HINTS).
+    # other name that points to find_density_at(), never a word that runs (see HINTS).
     def _pdf(self, x):
-        """Height of the density curve (continuous); for people the word is density_at()."""
+        """Height of the density curve (continuous); for people the word is find_density_at()."""
         with np.errstate(all="ignore"):
             return self._frozen.pdf(np.asarray(x, dtype=float))
 
@@ -871,7 +878,7 @@ class Distribution:
             return self._frozen.pmf(np.asarray(k, dtype=float))
 
     def _cdf(self, x):
-        """Chance of a value at or below x; for people the word is chance(at_most=x)."""
+        """Chance of a value at or below x; for people the word is chance(is_at_most=x)."""
         with np.errstate(all="ignore"):
             return self._frozen.cdf(np.asarray(x, dtype=float))
 
@@ -945,19 +952,21 @@ class Distribution:
             lines.append(f"Fitted by maximum likelihood to {info['rows']} values"
                          + (f' of "{info["column"]}"' if info.get("column") else "")
                          + f": log-likelihood {info['log-likelihood']:.4g}, AIC {info['AIC']:.6g}. "
-                           "fit.table() gives the standard errors.")
+                           "fit.turn_into_table() gives the standard errors.")
         return "\n".join(lines)
 
     def __getattr__(self, name):
         if name.startswith("_"):
             raise AttributeError(name)
+        if name in self._OLD_WORDS:
+            return old_word(self, name, self._OLD_WORDS)
         known = [w for w in WORDS]
         target = HINTS.get(name)
         if target:
             if target == "fit_distribution":
                 raise MissingWordError(
                     f"A distribution has no step called .{name}(). To fit one to data use "
-                    'table.fit_distribution("column", "gamma") or nums.fit_distribution("gamma").')
+                    'table.fit_distribution_to("column", "gamma") or nums.fit_distribution("gamma").')
             example = HINT_EXAMPLES.get(target, f"dist.{target}()")
             raise MissingWordError(f"A distribution has no step called .{name}().\n"
                                    f"In simplydata this is {example}.\n"
@@ -998,50 +1007,51 @@ class Distribution:
         return float(values[0])
 
     # ------------------------------------------------------------------ chance
-    @friendly
-    def chance(self, value=None, above=None, below=None, at_most=None, at_least=None, between=None):
+    @friendly(renamed={"above": "is_above", "below": "is_below", "at_most": "is_at_most", "at_least": "is_at_least",
+                       "between": "is_between"})
+    def find_chance_that_value(self, value=None, is_above=None, is_below=None, is_at_most=None, is_at_least=None, is_between=None):
         """The chance of a value in a range, as a share from 0 to 1 (printed as a percent).
 
-        dist.chance(above=80)   dist.chance(below=60)   dist.chance(between=[40, 60])
-        at_most= and at_least= include the number itself; above= and below= do not (as
-        keep_rows). For counts, dist.chance(3) is the chance of exactly 3; below=3 means 0, 1
-        or 2 and at_most=3 means 3 or fewer (R pbinom(3)). One lower option (above=, at_least=)
-        and one upper option (below=, at_most=) can go together. A list gives Numbers.
+        dist.find_chance_that_value(is_above=80)   dist.find_chance_that_value(is_below=60)   dist.find_chance_that_value(is_between=[40, 60])
+        is_at_most= and is_at_least= include the number itself; is_above= and is_below= do not (as
+        keep_rows_where). For counts, dist.find_chance_that_value(3) is the chance of exactly 3; is_below=3 means 0, 1
+        or 2 and is_at_most=3 means 3 or fewer (R pbinom(3)). One lower option (is_above=, is_at_least=)
+        and one upper option (is_below=, is_at_most=) can go together. A list gives Numbers.
         R: pnorm(q, lower.tail = ), dbinom.
         """
-        step = "chance"
-        example = "dist.chance(above=80)   or   dist.chance(between=[40, 60])"
-        given = {k: v for k, v in (("above", above), ("below", below), ("at_most", at_most),
-                                   ("at_least", at_least), ("between", between)) if v is not None}
+        step = "find_chance_that_value"
+        example = "dist.find_chance_that_value(is_above=80)   or   dist.find_chance_that_value(is_between=[40, 60])"
+        given = {k: v for k, v in (("above", is_above), ("below", is_below), ("at_most", is_at_most),
+                                   ("at_least", is_at_least), ("between", is_between)) if v is not None}
         if value is not None:
             if given:
-                raise SimplydataError("Give one number for the chance of exactly that value, or above=/below=/"
-                                      "at_most=/at_least=/between=, not both.")
+                raise SimplydataError("Give one number for the chance of exactly that value, or is_above=/is_below=/"
+                                      "is_at_most=/is_at_least=/is_between=, not both.")
             return self._chance_exactly(value)
         if not given:
-            raise SimplydataError(f"chance() needs a range: above=, below=, at_most=, at_least= or between=.\n"
+            raise SimplydataError(f"find_chance_that_value() needs a range: is_above=, is_below=, is_at_most=, is_at_least= or is_between=.\n"
                                   f"For example:  {example}")
         if "between" in given:
             if len(given) > 1:
-                raise SimplydataError("Give between=[low, high] on its own (it includes both ends), "
-                                      "or above=/at_least= with below=/at_most=.")
-            b = between
+                raise SimplydataError("Give is_between=[low, high] on its own (it includes both ends), "
+                                      "or is_above=/is_at_least= with is_below=/is_at_most=.")
+            b = is_between
             from .numbers._base import BaseNumbers
 
             if isinstance(b, BaseNumbers):
                 b = list(b._values)
             if (isinstance(b, (str, bytes)) or not hasattr(b, "__len__") or len(b) != 2
                     or not all(_is_number(v) and not math.isnan(v) for v in b)):
-                raise SimplydataError("between= needs two numbers in square brackets: the lowest and the highest.\n"
-                                      "For example:  dist.chance(between=[40, 60])")
+                raise SimplydataError("is_between= needs two numbers in square brackets: the lowest and the highest.\n"
+                                      "For example:  dist.find_chance_that_value(is_between=[40, 60])")
             low, high = sorted(float(v) for v in b)
             return self._chance_range(("at_least", low), ("at_most", high), many=False)
         lowers = [k for k in given if k in ("above", "at_least")]
         uppers = [k for k in given if k in ("below", "at_most")]
         if len(lowers) > 1 or len(uppers) > 1:
-            raise SimplydataError("Give at most one of above= and at_least=, and at most one of below= and at_most=.\n"
+            raise SimplydataError("Give at most one of is_above= and is_at_least=, and at most one of is_below= and is_at_most=.\n"
                                   f"For example:  {example}")
-        arrays = {k: self._numbers_in(step, f"{k}=", v, example) for k, v in given.items()}
+        arrays = {k: self._numbers_in(step, f"is_{k}=", v, example) for k, v in given.items()}
         many = any(m for _, m in arrays.values())
         if lowers and uppers:
             if many:
@@ -1146,12 +1156,12 @@ class Distribution:
         return share
 
     def _chance_exactly(self, value):
-        example = "dist.chance(3)"
+        example = "dist.find_chance_that_value(3)"
         if not self.is_discrete:
             raise SimplydataError(
                 "For a smooth (continuous) distribution the chance of exactly one value is 0. Ask for a range, "
-                "like dist.chance(between=[59.5, 60.5]), or the height of the curve with dist.density_at(60).")
-        xs, many = self._numbers_in("chance", "the value", value, example)
+                "like dist.find_chance_that_value(is_between=[59.5, 60.5]), or the height of the curve with dist.find_density_at(60).")
+        xs, many = self._numbers_in("find_chance_that_value", "the value", value, example)
         with np.errstate(all="ignore"):
             share = np.clip(self._frozen.pmf(xs), 0, 1)
         code = self._r("d", _r_vector(xs))
@@ -1164,18 +1174,18 @@ class Distribution:
 
     # ------------------------------------------------------------------ density
     @friendly
-    def density_at(self, value=None):
+    def find_density_at(self, value=None):
         """The height of the density curve at a value (continuous distributions).
 
-        dist.density_at(60)   (R dnorm(60, mean = 50, sd = 10)). A list gives Numbers.
-        It is not a chance: a chance is an area under the curve (dist.chance(between=[...])).
+        dist.find_density_at(60)   (R dnorm(60, mean = 50, sd = 10)). A list gives Numbers.
+        It is not a chance: a chance is an area under the curve (dist.find_chance_that_value(is_between=[...])).
         """
         if self.is_discrete:
             raise SimplydataError(
-                "A count distribution has no density curve: use dist.chance(3) for the chance of exactly 3.")
+                "A count distribution has no density curve: use dist.find_chance_that_value(3) for the chance of exactly 3.")
         if value is None:
-            raise SimplydataError("density_at() needs a value.\nFor example:  dist.density_at(60)")
-        xs, many = self._numbers_in("density_at", "the value", value, "dist.density_at(60)")
+            raise SimplydataError("density_at() needs a value.\nFor example:  dist.find_density_at(60)")
+        xs, many = self._numbers_in("find_density_at", "the value", value, "dist.find_density_at(60)")
         with np.errstate(all="ignore"):
             heights = np.asarray(self._frozen.pdf(xs), dtype=float)
         code = self._r("d", _r_vector(xs))
@@ -1197,17 +1207,17 @@ class Distribution:
         return np.asarray(out, dtype=float)
 
     @friendly
-    def percentile(self, percent=None):
+    def find_percentile(self, percent=None):
         """The value that this percent of the distribution is below: percentile(95).
 
-        dist.percentile(95)   (R qnorm(0.95, mean = 50, sd = 10)). percentile(50) is the median.
+        dist.find_percentile(95)   (R qnorm(0.95, mean = 50, sd = 10)). percentile(50) is the median.
         For counts: the smallest count with at least that percent at or below it (R qbinom).
         A list of percents gives Numbers.
         """
-        example = "dist.percentile(95)"
+        example = "dist.find_percentile(95)"
         if percent is None:
             raise SimplydataError(f"percentile() needs a percent from 0 to 100.\nFor example:  {example}")
-        ps, many = self._numbers_in("percentile", "a percent", percent, example)
+        ps, many = self._numbers_in("find_percentile", "a percent", percent, example)
         if np.any((ps < 0) | (ps > 100)):
             raise SimplydataError("percentile() needs a percent from 0 to 100: percentile(95) is the value 95 % of "
                                   f"the distribution is below.\nFor example:  {example}")
@@ -1225,24 +1235,25 @@ class Distribution:
             print(f"{_say(ps[0])} % of the distribution is below {_answer(values[0])} ({self._with_r(code)}).")
         return self._give(values, many)
 
-    @friendly
-    def cut_off(self, above=None, below=None):
+    @friendly(renamed={"above": "with_chance_above", "below": "with_chance_below"})
+    def find_cut_off(self, with_chance_above=None, with_chance_below=None):
         """The value with this chance above it (or below it): critical values.
 
-        dist.cut_off(above=0.025)   the value with a 2.5 % chance above it (R qnorm(0.025, lower.tail = FALSE))
-        dist.cut_off(below=0.05)    the value with a 5 % chance below it
+        dist.find_cut_off(with_chance_above=0.025)   the value with a 2.5 % chance above it (R qnorm(0.025, lower.tail = FALSE))
+        dist.find_cut_off(with_chance_below=0.05)    the value with a 5 % chance below it
         Chances are shares from 0 to 1. A list gives Numbers.
         """
-        example = "dist.cut_off(above=0.025)"
-        if (above is None) == (below is None):
-            raise SimplydataError(f"cut_off() needs above= or below= (a chance from 0 to 1), one of them.\n"
+        example = "dist.find_cut_off(with_chance_above=0.025)"
+        if (with_chance_above is None) == (with_chance_below is None):
+            raise SimplydataError(f"find_cut_off() needs with_chance_above= or with_chance_below= (a chance from 0 to 1), "
+                                  "one of them.\n"
                                   f"For example:  {example}")
-        option = "above" if above is not None else "below"
-        shares, many = self._numbers_in("cut_off", f"{option}=", above if above is not None else below, example)
+        option = "above" if with_chance_above is not None else "below"
+        shares, many = self._numbers_in("find_cut_off", f"with_chance_{option}=", with_chance_above if with_chance_above is not None else with_chance_below, example)
         if np.any((shares < 0) | (shares > 1)):
             raise SimplydataError(
-                f"cut_off() takes a chance from 0 to 1, like {option}=0.025 for 2.5 %. For a percentile from 0 to "
-                f"100, use dist.percentile(97.5).")
+                f"find_cut_off() takes a chance from 0 to 1, like with_chance_{option}=0.025 for 2.5 %. For a percentile from 0 to "
+                f"100, use dist.find_percentile(97.5).")
         upper = option == "above"
         values = self._quantile(shares, upper=upper)
         code = self._r("q", _r_vector(shares), upper=upper)
@@ -1262,14 +1273,14 @@ class Distribution:
         return self._give(values, many)
 
     @friendly
-    def middle_range(self, percent=95):
+    def find_middle_range(self, percent=95):
         """The range that holds the middle percent of the distribution, as Numbers [low, high].
 
-        dist.middle_range(95)   (R qnorm(c(0.025, 0.975), mean = 50, sd = 10))
+        dist.find_middle_range(95)   (R qnorm(c(0.025, 0.975), mean = 50, sd = 10))
         """
-        example = "dist.middle_range(95)"
+        example = "dist.find_middle_range(95)"
         if not _is_number(percent) or not 0 < percent < 100:
-            raise SimplydataError(f"middle_range() needs a percent above 0 and below 100.\nFor example:  {example}")
+            raise SimplydataError(f"find_middle_range() needs a percent above 0 and below 100.\nFor example:  {example}")
         tail = (1 - percent / 100) / 2
         low = self._quantile(np.asarray([tail]), upper=False)[0]
         high = self._quantile(np.asarray([1 - tail]), upper=False)[0]
@@ -1290,26 +1301,26 @@ class Distribution:
         return float(value)
 
     @friendly
-    def average(self):
-        """The average (mean) of the distribution. dist.average()"""
+    def find_average(self):
+        """The average (mean) of the distribution. dist.find_average()"""
         with np.errstate(all="ignore"):
             return self._moment("average", float(self._frozen.mean()))
 
     @friendly
-    def median(self):
-        """The median: half of the distribution is below it. dist.median()"""
+    def find_median(self):
+        """The median: half of the distribution is below it. dist.find_median()"""
         with np.errstate(all="ignore"):
             return self._moment("median", float(self._frozen.median()))
 
     @friendly
-    def standard_deviation(self):
-        """The standard deviation of the distribution. dist.standard_deviation()"""
+    def find_standard_deviation(self):
+        """The standard deviation of the distribution. dist.find_standard_deviation()"""
         with np.errstate(all="ignore"):
             return self._moment("standard deviation", float(self._frozen.std()))
 
     @friendly
-    def variance(self):
-        """The variance (the standard deviation squared). dist.variance()"""
+    def find_variance(self):
+        """The variance (the standard deviation squared). dist.find_variance()"""
         with np.errstate(all="ignore"):
             return self._moment("variance", float(self._frozen.var()))
 
@@ -1349,9 +1360,9 @@ class Distribution:
         return Table(_frame=nw.from_dict({k: [v] for k, v in row.items()}, backend=backend))
 
     @friendly
-    def summary(self):
+    def show_summary(self):
         """A one-row table: average, median, standard deviation, variance, skewness, excess kurtosis,
-        entropy and the lowest and highest possible values. dist.summary()"""
+        entropy and the lowest and highest possible values. dist.show_summary()"""
         row = self._summary_row()
         print(f"The distribution ({self.label}): average {_answer(row['average'])}, median {_answer(row['median'])}, "
               f"standard deviation {_answer(row['standard deviation'])}, skewness {_answer(row['skewness'])}, "
@@ -1360,23 +1371,23 @@ class Distribution:
         return self._table(row)
 
     @friendly
-    def parameters(self):
-        """The parameters as a dictionary of plain names: {"average": 50, "standard_deviation": 10}. dist.parameters()"""
+    def show_parameters(self):
+        """The parameters as a dictionary of plain names: {"average": 50, "standard_deviation": 10}. dist.show_parameters()"""
         return dict(self._params)
 
     # ------------------------------------------------------------------ random numbers
-    @friendly
-    def random_numbers(self, how_many=None, seed=SEED, rows=None, columns=None):
+    @friendly(renamed={"seed": "with_seed"})
+    def make_random_numbers(self, how_many=None, with_seed=SEED, rows=None, columns=None):
         """Numbers drawn at random from the distribution; the same seed gives the same numbers.
 
-        dist.random_numbers(how_many=100, seed=1)   (rows= and columns= give a grid)
+        dist.make_random_numbers(how_many=100, with_seed=1)   (rows= and columns= give a grid)
         R's rnorm() and friends use another random number generator, so their numbers differ.
         """
         from .numbers._base import check_seed, check_whole
         from .numbers.numbers import NumberGrid, Numbers
 
-        example = "dist.random_numbers(how_many=100, seed=1)"
-        seed = check_seed(seed, example)
+        example = "dist.make_random_numbers(how_many=100, with_seed=1)"
+        with_seed = check_seed(with_seed, example)
         if how_many is not None and (rows is not None or columns is not None):
             raise SimplydataError(f"Give how_many= for a list, or rows= and columns= for a grid, not both.\n"
                                   f"For example:  {example}")
@@ -1386,35 +1397,35 @@ class Distribution:
             size = (check_whole("random_numbers", "rows=", rows, example, smallest=1),
                     check_whole("random_numbers", "columns=", columns, example, smallest=1))
         else:
-            raise SimplydataError(f"random_numbers() needs how_many= (or rows= and columns= for a grid).\n"
+            raise SimplydataError(f"make_random_numbers() needs how_many= (or rows= and columns= for a grid).\n"
                                   f"For example:  {example}")
-        values = self._frozen.rvs(size=size, random_state=np.random.default_rng(seed))
+        values = self._frozen.rvs(size=size, random_state=np.random.default_rng(with_seed))
         values = np.asarray(values, dtype=float)
         count = size if isinstance(size, int) else size[0] * size[1]
         code = self._r("r", _r(count))
-        seed_text = f"seed={seed}" if seed is not None else "no seed, so different every time"
+        seed_text = f"with_seed={with_seed}" if with_seed is not None else "no seed, so different every time"
         r_text = f"; R: {code}, whose numbers differ" if code else ""
         print(f"Drew {count} random numbers from the {self.label} distribution ({seed_text}{r_text}).")
         return NumberGrid(values) if isinstance(size, tuple) else Numbers(values)
 
     # ------------------------------------------------------------------ chart and table
     @friendly
-    def chart(self, show="density", between=None):
+    def draw_chart(self, show="density", between=None):
         """A chart of the distribution: its density curve (or bars for counts).
 
-        dist.chart()   or   dist.chart(show="cumulative") for the chance of a value at or below x.
+        dist.draw_chart()   or   dist.draw_chart(show="cumulative") for the chance of a value at or below x.
         """
         from ._errors import choice_error
         from .chart import chart
 
         if show not in ("density", "cumulative"):
             raise choice_error("chart", "show", show, ["density", "cumulative"])
-        return chart().curve(self, between=between, show=show)
+        return chart().draw_curve(self, between=between, show=show)
 
     @friendly
-    def table(self):
+    def turn_into_table(self):
         """A one-row table: the distribution, its parameters and, for a fit, the standard errors,
-        log-likelihood, AIC and BIC. dist.table()"""
+        log-likelihood, AIC and BIC. dist.turn_into_table()"""
         info = self._fit_info
         row = {"distribution": self.name}
         if info and info.get("column"):
@@ -1430,8 +1441,9 @@ class Distribution:
         return name.replace("_", " ") if isinstance(self._family, Family) else name
 
 
-WORDS = ["chance", "density_at", "percentile", "cut_off", "middle_range", "average", "median",
-         "standard_deviation", "variance", "summary", "random_numbers", "chart", "table", "parameters"]
+WORDS = ["find_chance_that_value", "find_density_at", "find_percentile", "find_cut_off", "find_middle_range",
+         "find_average", "find_median", "find_standard_deviation", "find_variance", "show_summary",
+         "make_random_numbers", "draw_chart", "turn_into_table", "show_parameters"]
 
 
 # ====================================================================== fitting
@@ -1854,7 +1866,7 @@ def _kernel_scipy(kde):
 
 class KernelDensity(Distribution):
     """The kernel density of some numbers: a smooth curve made of a small bell curve (a Gaussian kernel) on
-    each value, as R density(x). table.fit_distribution("marks", "kernel density")"""
+    each value, as R density(x). table.fit_distribution_to("marks", "kernel density")"""
 
     def __init__(self, values, column=None, backend=None):
         from statsmodels.nonparametric.bandwidths import bw_silverman
@@ -1904,8 +1916,8 @@ class KernelDensity(Distribution):
     def _shown(self, name):
         return name
 
-    def table(self):
-        """A one-row table: kernel density, the column, the bandwidth and the number of values. dist.table()"""
+    def turn_into_table(self):
+        """A one-row table: kernel density, the column, the bandwidth and the number of values. dist.turn_into_table()"""
         info = self._kde_info
         row = {"distribution": self.name}
         if info.get("column"):
@@ -1939,7 +1951,7 @@ def fit(values, name="normal", fixed=None, say=False, column=None, backend=None)
     """Fit a distribution to numbers by maximum likelihood; gives back the fitted Distribution.
 
     For other parts of simplydata (chart.fit_distribution) and for the table and numbers
-    words. say=True prints the two sentences that table.fit_distribution prints.
+    words. say=True prints the two sentences that table.fit_distribution_to prints.
     name="kernel density" gives the kernel density instead (no fit by maximum likelihood).
     """
     if _is_kernel(name):
@@ -2198,7 +2210,7 @@ def _shape_test_start(values, name, seed, samples, column):
                               f"{family.not_fittable or 'it has no fit to test against'}.")
     samples = check_samples(samples)
     if isinstance(seed, bool) or not isinstance(seed, (int, np.integer)):
-        raise SimplydataError("seed= needs a whole number, such as seed=1 (the same seed gives the same p-value).")
+        raise SimplydataError("with_seed= needs a whole number, such as with_seed=1 (the same seed gives the same p-value).")
     x = np.asarray(values, dtype=float).ravel()
     x = x[~np.isnan(x)]
     dist = fit(x, label, column=column)
@@ -2214,9 +2226,9 @@ def shape_test(values, name, seed=SEED, samples=SHAPE_TEST_SAMPLES, column=None,
     """Anderson-Darling test of a fitted shape with a Monte Carlo p-value that allows for the fitting.
 
     The engine of table.compare_shape_to(column, "gamma") (any shape but "normal", which keeps
-    Shapiro-Wilk). The parameters are fitted by maximum likelihood (as fit_distribution); the
+    Shapiro-Wilk). The parameters are fitted by maximum likelihood (as fit_distribution_to); the
     p-value comes from samples= simulated samples (9999) drawn from the fitted distribution
-    (seed=), each fitted again by maximum likelihood with the same parameters held (loc = 0 for
+    (with_seed=), each fitted again by maximum likelihood with the same parameters held (loc = 0 for
     gamma, as R): SciPy goodness_of_fit(statistic="ad"). When the run is expected to take
     longer than about 10 s, a short note says so before it starts.
     Gives back a dict: test, what it compares, statistic name, statistic, p-value, rows,
@@ -2241,7 +2253,7 @@ def shape_test(values, name, seed=SEED, samples=SHAPE_TEST_SAMPLES, column=None,
                 + _p_sentence(p, f"the values truly came from a {title} distribution",
                               f"a shape this far from {title} or further", f"that they follow a {title} distribution"))
     method = (f"Test: Anderson-Darling test of a fitted {title} shape, with a Monte Carlo p-value from "
-              f"{samples} simulated samples that are each fitted again (SciPy goodness_of_fit, seed={seed}); "
+              f"{samples} simulated samples that are each fitted again (SciPy goodness_of_fit, with_seed={seed}); "
               + (f"the statistic is R goftest::ad.test(x, \"{family.r_package}p{family.r_prefix}\", ...) with the "
                  "fitted values." if isinstance(family, Family) and family.r_prefix else
                  "the statistic is the usual Anderson-Darling A with the fitted values."))

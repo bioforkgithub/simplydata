@@ -123,7 +123,7 @@ def test_step_response_time_points_start_at_zero_and_keep_the_step(capsys):
 
 def test_response_to_refuses_inputs_in_other_steps(capsys):
     in_steps = sdata.system("0.1 / (z - 0.9)", time_step=0.1)
-    inputs = sdata.wave("sine", frequency=1, time_step=0.01, how_many=50)
+    inputs = sdata.make_wave("sine", frequency=1, time_step=0.01, how_many=50)
     with pytest.raises(SimplydataError, match="remember a time step of 0.01, but the system works in steps of 0.1"):
         in_steps.response_to(inputs)
     inputs.change_time_step(to=0.1)
@@ -134,7 +134,7 @@ def test_impulse_and_response_to_match_r(s1, capsys):
     got = frame(s1.impulse_response(time_points=np.arange(0, 6.0001, 0.03)))
     # R: control::impulse(s1, t)$y[1, c(2, 18)]
     assert got["output"].to_numpy()[[1, 17]] == pytest.approx([0.0290959011308254, 0.255843549925528], rel=1e-8)
-    square = sdata.wave("square", frequency=0.2, time_step=0.05, how_many=400)
+    square = sdata.make_wave("square", frequency=0.2, time_step=0.05, how_many=400)
     got = frame(s1.response_to(square))
     # R: tt <- (0:399) * 0.05; u <- gsignal::square(2 * pi * 0.2 * tt); control::lsim(s1, u, tt)$y[c(100, 400)]
     assert got["output"].to_numpy()[[99, 399]] == pytest.approx([-0.208934151094657, -0.20744338441064], rel=1e-8)

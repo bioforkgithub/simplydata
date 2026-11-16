@@ -153,7 +153,7 @@ def test_no_day_holds_more_than_about_two_lessons(track, number):
 
 
 # Words of the parts left to the manual: the 30 days neither teach them nor ask about them.
-MANUAL_ONLY_WORDS = ("find_smallest", "find_biggest", "sdata.solve", "values_at", "map_of", "compare_risks",
+MANUAL_ONLY_WORDS = ("find_where_smallest", "find_where_biggest", "sdata.solve", "values_at", "make_map_of", "compare_risks",
                      "compare_to_truth", "agreement_between", "forecast", "spectrum", "add_filtered_column",
                      "check_steady", "sdata.system", "step_response", "with_feedback")
 
@@ -174,7 +174,7 @@ def test_days_point_to_the_rest_in_the_manual():
         more = [line for n in DAYS for line in learn_days.plan(track, n)["do"] if line.startswith("More in the manual")]
         text = " ".join(more)
         for n in sorted(MANUAL_ONLY) + [19, 20, learn.lesson_number(learn.CYCLES_LESSON)]:
-            assert f"sdata.lesson({n})" in text, (track, n)
+            assert f"sdata.show_lesson({n})" in text, (track, n)
         assert len(more) == 3, track
 
 
@@ -189,7 +189,7 @@ def test_manual_sections_named_by_the_days_exist():
 # ---------------------------------------------------------------- the words
 @pytest.fixture
 def on(monkeypatch):
-    """Set the date sdata.today() sees: on(5) is the 5th day after START (day 1 = START)."""
+    """Set the date sdata.show_today() sees: on(5) is the 5th day after START (day 1 = START)."""
     def set_day(n):
         monkeypatch.setattr(learn_days, "_date_today", lambda: START + datetime.timedelta(days=n - 1))
     set_day(1)
@@ -208,7 +208,7 @@ def test_progress_file_follows_the_environment_variable(tmp_path, monkeypatch):
 
 
 def test_today_before_starting_explains_and_shows_day_1(on, capsys):
-    sdata.today()
+    sdata.show_today()
     out = capsys.readouterr().out
     assert "not started" in out and "sdata.start_30_days()" in out and 'track="beginner"' in out
     assert "Day 1 of 30 (Python track)" in out
@@ -228,7 +228,7 @@ def test_start_remembers_the_day_and_shows_day_1(on, capsys):
 def test_starting_twice_changes_nothing_and_says_how_to_start_again(on, capsys):
     sdata.start_30_days(track="beginner")
     on(3)
-    sdata.today()
+    sdata.show_today()
     capsys.readouterr()
     sdata.start_30_days()
     out = capsys.readouterr().out
@@ -241,13 +241,13 @@ def test_starting_twice_changes_nothing_and_says_how_to_start_again(on, capsys):
 def test_today_goes_on_one_day_at_a_time(on, capsys):
     sdata.start_30_days()
     on(2)
-    sdata.today()
+    sdata.show_today()
     out = capsys.readouterr().out
-    assert "Day 2 of 30" in out and "(day 1)" in out and "sdata.answers(2)" in out
-    sdata.today()  # the same date again: the same day
+    assert "Day 2 of 30" in out and "(day 1)" in out and "sdata.show_answers(2)" in out
+    sdata.show_today()  # the same date again: the same day
     assert "Day 2 of 30" in capsys.readouterr().out
     on(3)
-    sdata.today()
+    sdata.show_today()
     out = capsys.readouterr().out
     assert "Day 3 of 30" in out and "By the calendar" not in out
 
@@ -255,14 +255,14 @@ def test_today_goes_on_one_day_at_a_time(on, capsys):
 def test_after_a_break_today_carries_on_and_says_so_kindly(on, capsys):
     sdata.start_30_days()
     on(2)
-    sdata.today()
+    sdata.show_today()
     on(9)
     capsys.readouterr()
-    sdata.today()
+    sdata.show_today()
     out = capsys.readouterr().out
     assert "Day 3 of 30" in out
     assert "By the calendar it is day 9" in out and "nothing is lost" in out
-    assert "sdata.today(follow_calendar=True)" in out
+    assert "sdata.show_today(follow_calendar=True)" in out
     for scolding in ("missed", "late", "behind", "should have"):
         assert scolding not in out.split("Day 3 of 30")[0]
 
@@ -271,7 +271,7 @@ def test_one_day_off_is_not_mentioned(on, capsys):
     sdata.start_30_days()
     on(3)
     capsys.readouterr()
-    sdata.today()
+    sdata.show_today()
     out = capsys.readouterr().out
     assert "Day 2 of 30" in out and "By the calendar" not in out
 
@@ -280,66 +280,66 @@ def test_today_can_follow_the_calendar(on, capsys):
     sdata.start_30_days()
     on(9)
     capsys.readouterr()
-    sdata.today(follow_calendar=True)
+    sdata.show_today(follow_calendar=True)
     out = capsys.readouterr().out
     assert "Day 9 of 30" in out and "Days 2 to 8 were not opened" in out
     on(10)
-    sdata.today()
+    sdata.show_today()
     assert "Day 10 of 30" in capsys.readouterr().out
 
 
 def test_next_day_goes_on_now(on, capsys):
     sdata.start_30_days()
-    sdata.next_day()
-    sdata.next_day()
+    sdata.go_to_next_day()
+    sdata.go_to_next_day()
     assert "Day 3 of 30" in capsys.readouterr().out
     assert set(_saved()["opened"]) == {"1", "2", "3"}
     on(2)
-    sdata.today()
+    sdata.show_today()
     assert "Day 4 of 30" in capsys.readouterr().out
 
 
 def test_after_day_30_well_done(on, capsys):
     sdata.start_30_days()
     for _ in range(29):
-        sdata.next_day()
+        sdata.go_to_next_day()
     assert "This is the last day" in capsys.readouterr().out
-    sdata.next_day()
+    sdata.go_to_next_day()
     assert "Well done" in capsys.readouterr().out
     on(40)
-    sdata.today()
+    sdata.show_today()
     assert "Well done" in capsys.readouterr().out
 
 
 def test_day_shows_any_day_without_moving(on, capsys):
     sdata.start_30_days()
     capsys.readouterr()
-    sdata.day(12)
+    sdata.show_day(12)
     out = capsys.readouterr().out
-    assert "Day 12 of 30 (Python track)" in out and "Next: sdata.day(13)" in out
+    assert "Day 12 of 30 (Python track)" in out and "Next: sdata.show_day(13)" in out
     assert set(_saved()["opened"]) == {"1"}
-    sdata.day(5, track="beginner")
+    sdata.show_day(5, track="beginner")
     assert "Day 5 of 30 (Beginner track)" in capsys.readouterr().out
 
 
 def test_day_without_a_number_lists_the_calendar_with_ticks(on, capsys):
     sdata.start_30_days()
-    sdata.next_day()
+    sdata.go_to_next_day()
     capsys.readouterr()
-    sdata.day()
+    sdata.show_day()
     out = capsys.readouterr().out
     assert "[x]  1." in out and "[x]  2." in out and "[ ]  3." in out and "[ ] 30." in out
     assert "review" in out and "project" in out
 
 
 def test_answers_are_not_shown_with_the_questions(on, capsys):
-    sdata.day(4)
+    sdata.show_day(4)
     out = capsys.readouterr().out
     p = learn_days.plan("python", 4)
     for question, answer, _ in p["warm_up"]:
         assert question in out.replace("\n       ", " ")
     assert p["solutions"][0][0].splitlines()[-1] not in out
-    sdata.answers(4)
+    sdata.show_answers(4)
     out = capsys.readouterr().out
     assert "Answers to day 4" in out
     for line in p["solutions"][0][0].splitlines():
@@ -348,18 +348,18 @@ def test_answers_are_not_shown_with_the_questions(on, capsys):
 
 def test_answers_without_a_number_is_the_last_day_opened(on, capsys):
     sdata.start_30_days()
-    sdata.next_day()
+    sdata.go_to_next_day()
     capsys.readouterr()
-    sdata.answers()
+    sdata.show_answers()
     assert "Answers to day 2 (Python track)" in capsys.readouterr().out
 
 
 @pytest.mark.parametrize("bad", [0, 31, "5", 2.0, True])
 def test_wrong_day_number_is_explained(bad):
     with pytest.raises(sdata.SimplydataError, match="days 1 to 30"):
-        sdata.day(bad)
+        sdata.show_day(bad)
     with pytest.raises(sdata.SimplydataError, match="days 1 to 30"):
-        sdata.answers(bad)
+        sdata.show_answers(bad)
 
 
 @pytest.mark.parametrize("typed, expected", [("Python", "python"), ("beginners", "beginner"), (" BEGINNER ", "beginner")])
@@ -377,7 +377,7 @@ def test_wrong_track_says_did_you_mean():
 def test_a_broken_progress_file_is_not_an_error(on, capsys):
     learn_days.progress_file().parent.mkdir(parents=True, exist_ok=True)
     learn_days.progress_file().write_text("{not json", encoding="utf-8")
-    sdata.today()
+    sdata.show_today()
     out = capsys.readouterr().out
     assert "could not be read" in out and "Day 1 of 30" in out
     sdata.start_30_days(start_again=True)
@@ -392,7 +392,7 @@ def test_other_names_point_to_the_30_days(capsys):
 
 
 def test_lesson_1_and_help_tell_learners_about_the_30_days(capsys):
-    sdata.lesson(1)
+    sdata.show_lesson(1)
     assert "sdata.start_30_days()" in capsys.readouterr().out
     sdata.help()
     assert "sdata.start_30_days()" in capsys.readouterr().out
@@ -462,10 +462,10 @@ def test_lesson_tasks_are_asked_on_the_day_they_are_taught():
 
     for unit, n in (("fitting", 19), ("distributions", 20)):
         do = learn_days.UNITS[unit]["do"][0]
-        assert "examples 1 and 2" in do and "tasks 1 and 2" in do and f"sdata.lesson({n}, solutions=True)" in do
+        assert "examples 1 and 2" in do and "tasks 1 and 2" in do and f"sdata.show_lesson({n}, solutions=True)" in do
         assert "lesson's tasks" not in do
         assert len(learn.LESSONS[n - 1]["task"]) == 3
     cycles = learn.lesson_number(learn.CYCLES_LESSON)
     do = " ".join(learn_days.UNITS["time_series"]["do"])
-    assert f"sdata.lesson({cycles}), example 3 only" in do and "task 3" in do
+    assert f"sdata.show_lesson({cycles}), example 3 only" in do and "task 3" in do
     assert "find_dips" in learn.LESSONS[cycles - 1]["task"][2] or "dips" in learn.LESSONS[cycles - 1]["task"][2]

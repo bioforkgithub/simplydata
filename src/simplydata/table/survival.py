@@ -7,7 +7,7 @@ True/False or 1/0, and the printed sentence says which value counts as the event
 
 Methods (the same defaults as R's survival package, so results can be checked there):
 
-* survival_over_time: the Kaplan-Meier estimate (R survfit(Surv(time, event) ~ group)),
+* find_survival_over_time: the Kaplan-Meier estimate (R survfit(Surv(time, event) ~ group)),
   from statsmodels SurvfuncRight.
   At each time with events, survival is multiplied by (1 - events / at risk); "at risk"
   counts the rows with a time at or after that moment (events come before censoring at a
@@ -45,7 +45,7 @@ from .summaries import _p_clause, _p_sentence
 
 Z95 = 1.959963984540054  # qnorm(0.975)
 EVENT_WORDS = {"yes": True, "no": False, "true": True, "false": False, "1": True, "0": False}
-EXAMPLE = 'with sdata.example("trial"): table.{word}(time="days", event="died"{more})'
+EXAMPLE = 'with sdata.get_example("trial"): table.{word}(time="days", event="died"{more})'
 COX_STEPS = 20  # R coxph.control(iter.max = 20)
 
 
@@ -89,7 +89,7 @@ def read_event(values, column: str):
         raise SimplydataError(
             f'The event column "{column}" should say whether the event happened (yes/no, True/False or 1/0), '
             f"but it also has {_list_words(repr(o) for o in other)}.\n"
-            "Change those first, for example with table.replace_values(...), or use another column."
+            "Change those first, for example with table.replace_values_in(...), or use another column."
         )
     kinds = sorted({type(v).__name__ for v in values})
     raise SimplydataError(
@@ -323,46 +323,46 @@ class SurvivalWords:
         return [_label(k) for k in order], np.array([place[k] for k in keys])
 
     def _check_for_each(self, step, for_each, time, event, example):
-        _need(step, "for_each=", for_each, example)
+        _need(step, "for_each_group_in=", for_each, example)
         if for_each in (time, event):
-            raise SimplydataError(f'"{for_each}" cannot be both for_each= and time= or event=.\nFor example, {example}')
+            raise SimplydataError(f'"{for_each}" cannot be both for_each_group_in= and time= or event=.\nFor example, {example}')
 
-    # ------------------------------------------------------------------ survival_over_time
-    @friendly
-    def survival_over_time(self, time=None, event=None, for_each=None):
+    # ------------------------------------------------------------------ find_survival_over_time
+    @friendly(renamed={"for_each": "for_each_group_in"})
+    def find_survival_over_time(self, time=None, event=None, for_each_group_in=None):
         """The share still without the event over time (Kaplan-Meier), with the median time.
 
-        table.survival_over_time(time="days", event="died", for_each="treatment")   (with sdata.example("trial"))
+        table.find_survival_over_time(time="days", event="died", for_each_group_in="treatment")   (with sdata.get_example("trial"))
         time= is the time until the event or the end of follow-up; event= says whether the
-        event happened (yes/no, True/False or 1/0). for_each= gives one curve per group.
+        event happened (yes/no, True/False or 1/0). for_each_group_in= gives one curve per group.
         Prints the median time (by when half have had the event) with its 95 % CI per group,
         or says it was not reached, as R print(survfit(Surv(days, died == "yes") ~ treatment)).
         Gives back a table with one row per event time: the group, time, at risk, events,
         censored (since the previous row), survival and its 95 % CI (log scale, R's
-        default), as R summary(survfit(...)). Draw the curves with chart.survival_curves(...).
+        default), as R summary(survfit(...)). Draw the curves with chart.draw_survival_curves(...).
         """
-        step = "survival_over_time"
-        example = EXAMPLE.format(word=step, more=', for_each="treatment"')
-        if for_each is not None:
-            self._check_for_each(step, for_each, time, event, example)
-        times, events, kept, yes = self._survival_data(step, time, event, [for_each] if for_each else [], example)
-        if for_each:
-            names, codes = self._group_codes(kept[for_each])
+        step = "find_survival_over_time"
+        example = EXAMPLE.format(word=step, more=', for_each_group_in="treatment"')
+        if for_each_group_in is not None:
+            self._check_for_each(step, for_each_group_in, time, event, example)
+        times, events, kept, yes = self._survival_data(step, time, event, [for_each_group_in] if for_each_group_in else [], example)
+        if for_each_group_in:
+            names, codes = self._group_codes(kept[for_each_group_in])
         else:
             names, codes = [None], np.zeros(len(times), dtype=int)
         columns = ["time", "at risk", "events", "censored", "survival", "95 % CI low", "95 % CI high"]
         keys = ("time", "at_risk", "events", "censored", "survival", "low", "high")
-        out = {c: [] for c in ([for_each] if for_each else []) + columns}
+        out = {c: [] for c in ([for_each_group_in] if for_each_group_in else []) + columns}
         print(self._event_sentence(event, yes, events, time))
         print("Median time until the event (by then half have had it), with its 95 % CI:")
         for j, name in enumerate(names):
             km = kaplan_meier(times[codes == j], events[codes == j])
-            if for_each:
-                out[for_each] += [name] * len(km["time"])
+            if for_each_group_in:
+                out[for_each_group_in] += [name] * len(km["time"])
             for c, key in zip(columns, keys):
                 out[c] += [int(v) if c in ("at risk", "events", "censored") else float(v) for v in km[key]]
             med, low, high = median_time(km)
-            who = f"{name}: " if for_each else ""
+            who = f"{name}: " if for_each_group_in else ""
             count = f"{km['n']} rows, {km['total_events']} events"
             if not km["total_events"]:
                 print(f"  {who}no events ({count}), so the median was not reached.")
@@ -371,17 +371,17 @@ class SurvivalWords:
                       f"at the end of follow-up (survival {_num(km['survival'][-1])} after the last event).")
             else:
                 print(f'  {who}median "{time}" {_show(med)} (95 % CI {_show(low)} to {_show(high)}; {count}).')
-        group = for_each if for_each else "1"
+        group = for_each_group_in if for_each_group_in else "1"
         print(f"Method: Kaplan-Meier estimate with 95 % confidence intervals on the log scale (Greenwood), "
               f"as R survfit({_surv(time, event, yes)} ~ {group}).")
         return self._new_table(nw.from_dict(out, backend=self._frame.implementation))
 
     # ------------------------------------------------------------------ compare_survival
-    @friendly
-    def compare_survival(self, time=None, event=None, for_each=None):
+    @friendly(renamed={"for_each": "for_each_group_in"})
+    def compare_survival(self, time=None, event=None, for_each_group_in=None):
         """Do the groups really differ in the time until the event? (log-rank test)
 
-        table.compare_survival(time="days", event="died", for_each="treatment")   (with sdata.example("trial"))
+        table.compare_survival(time="days", event="died", for_each_group_in="treatment")   (with sdata.get_example("trial"))
         The log-rank test, as R survdiff(Surv(days, died == "yes") ~ treatment): at each event
         time the events are shared out over the groups by how many rows are at risk in each,
         and the observed events are compared with these expected ones over the whole
@@ -389,13 +389,13 @@ class SurvivalWords:
         gives back a one-row table of results.
         """
         step = "compare_survival"
-        example = EXAMPLE.format(word=step, more=', for_each="treatment"')
-        self._check_for_each(step, for_each, time, event, example)
-        times, events, kept, yes = self._survival_data(step, time, event, [for_each], example)
-        names, codes = self._group_codes(kept[for_each])
+        example = EXAMPLE.format(word=step, more=', for_each_group_in="treatment"')
+        self._check_for_each(step, for_each_group_in, time, event, example)
+        times, events, kept, yes = self._survival_data(step, time, event, [for_each_group_in], example)
+        names, codes = self._group_codes(kept[for_each_group_in])
         k = len(names)
         if k < 2:
-            raise SimplydataError(f'{step}() needs at least 2 groups in "{for_each}"; it found only "{names[0]}".')
+            raise SimplydataError(f'{step}() needs at least 2 groups in "{for_each_group_in}"; it found only "{names[0]}".')
         if not events.any():
             raise SimplydataError(f'{step}() found no events ("{event}" = {yes}) in any group, so there is nothing '
                                   "to compare.")
@@ -405,11 +405,11 @@ class SurvivalWords:
         p = float(stats.chi2.sf(chi, df)) if df > 0 else math.nan
         print(self._event_sentence(event, yes, events, time))
         counts = _list_words(f"{n} {_whole(o)} vs {_num(e)}" for n, o, e in zip(names, observed, expected))
-        print(f'Events in each "{for_each}" group, observed vs expected if all groups were alike: {counts}.')
+        print(f'Events in each "{for_each_group_in}" group, observed vs expected if all groups were alike: {counts}.')
         print(_p_sentence(p, "the groups truly had the same time until the event", "differences this big or bigger",
                           "that the groups are alike"))
         print(f"Test: log-rank test (chi-square = {_num(chi)}, df = {df}), as R survdiff({_surv(time, event, yes)} ~ "
-              f"{for_each}); it compares the whole curves, giving every event time the same weight.")
+              f"{for_each_group_in}); it compares the whole curves, giving every event time the same weight.")
         left_out = [n for n, e in zip(names, expected) if not e > 0]
         if left_out:
             verb, them = ("is", "it has") if len(left_out) == 1 else ("are", "they have")
@@ -417,7 +417,7 @@ class SurvivalWords:
             print(f"Note: {quoted} {verb} left out of the test: {them} no rows still followed "
                   "at any event time, so no expected events (R survdiff leaves such groups out too).")
         row = {"test": "log-rank test",
-               "what it compares": f'the time until "{event}" = {yes} in each "{for_each}" ({", ".join(names)})',
+               "what it compares": f'the time until "{event}" = {yes} in each "{for_each_group_in}" ({", ".join(names)})',
                "statistic name": "chi-square", "statistic": chi, "degrees of freedom": float(df), "p-value": p}
         for j, name in enumerate(names):
             row[f"count in {name}"] = int((codes == j).sum())
@@ -458,7 +458,7 @@ class SurvivalWords:
     def explain_survival(self, time=None, event=None, using=None):
         """Which columns go with a higher or lower risk of the event? (Cox model, hazard ratios)
 
-        table.explain_survival(time="days", event="died", using=["treatment", "age"])   (with sdata.example("trial"))
+        table.explain_survival(time="days", event="died", using=["treatment", "age"])   (with sdata.get_example("trial"))
         The Cox proportional hazards model, as R coxph(Surv(days, died == "yes") ~ treatment +
         age), with Efron's method for tied times. A hazard ratio above 1 means a higher risk
         of the event at any moment (2 = twice the risk), below 1 a lower risk. Numbers count
@@ -538,7 +538,7 @@ class SurvivalWords:
                 column = names[cols[0]][0]
                 print(f'Note: the hazard ratio of "{column}" may change over time (proportional-hazards check as R '
                       f"cox.zph(), {_p_shown(zph[i][2])}), so it is an average over the follow-up. "
-                      "chart.survival_curves(...) shows how the curves run.")
+                      "chart.draw_survival_curves(...) shows how the curves run.")
         if zph[-1][2] < 0.05 and all(t[2] >= 0.05 for t in zph[:-1]):
             print(f"Note: the proportional-hazards check of the whole model has {_p_shown(zph[-1][2])} "
                   "(as R cox.zph()): some hazard ratio may change over time.")

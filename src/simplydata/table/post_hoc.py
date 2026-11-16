@@ -11,7 +11,7 @@ Each comes from the package that defines it; simplydata only puts the pairs in o
 * "conover" (ranks): R PMCMRplus::kwAllPairsConoverTest(p.adjust.method = "holm").
 * against="A" (every group against one control group): Dunnett's test, SciPy stats.dunnett (as R
   multcomp::glht(mcp(group = "Dunnett"))); SciPy and multcomp both integrate the multivariate t
-  distribution with random numbers, so simplydata seeds SciPy's (seed=1, printed) and the last digit
+  distribution with random numbers, so simplydata seeds SciPy's (with_seed=1, printed) and the last digit
   can differ from R's.
 
 All pairs come in the order of R's combn(): (1, 2), (1, 3), ..., (2, 3), ... as in R's output.
@@ -102,7 +102,7 @@ def dunnett_pairs(groups, against, seed):
     if against not in names:
         from .._errors import choice_error
 
-        raise choice_error("compare_each_pair", "against", against, names)
+        raise choice_error("compare_each_pair_of", "against", against, names)
     control = dict(groups)[against]
     others = [(n, v) for n, v in groups if n != against]
     result = stats.dunnett(*[v for _, v in others], control=control, rng=np.random.default_rng(seed))

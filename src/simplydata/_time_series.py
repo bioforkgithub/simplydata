@@ -38,7 +38,7 @@ def read_rows_back(rows_back, n, step_name):
     return int(rows_back)
 
 
-def autocorrelation(values, rows_back=None, show="correlation", band="white noise", step_name="autocorrelation_of"):
+def autocorrelation(values, rows_back=None, show="correlation", band="white noise", step_name="find_autocorrelation_of"):
     """dict(rows back, values, column, band low/high, outside, ljung_box (stat, p), k, sentence pieces)."""
     from scipy import stats
     from statsmodels.stats.diagnostic import acorr_ljungbox

@@ -85,7 +85,7 @@ class AgreementWords:
                           raters="a sample", kind="agreement", of="one rater"):
         """How well do two or more raters (or devices) agree on the same rows?
 
-        table.agreement_between("nurse_rating", "doctor_rating")   (with sdata.example("clinic"))
+        table.agreement_between("nurse_rating", "doctor_rating")   (with sdata.get_example("clinic"))
         Each column holds one rater's answers for the same rows. The kind of column decides, and
         the sentence says which:
         categories, 2 columns: Cohen's kappa (statsmodels, as R irr::kappa2()), with the raw
@@ -327,7 +327,7 @@ class AgreementWords:
     def limits_of_agreement(self, first=None, second=None, interval=95):
         """How far apart are two ways of measuring the same thing (Bland-Altman limits of agreement)?
 
-        table.limits_of_agreement("device_a", "device_b")   (with sdata.example("clinic"))
+        table.limits_of_agreement("device_a", "device_b")   (with sdata.get_example("clinic"))
         Each row is one thing measured both ways. Prints how much the first reads higher or lower
         on average, and the limits within which 95 % of the differences lie (average difference
         plus and minus 1.96 standard deviations), each with its interval (R
@@ -380,7 +380,7 @@ class AgreementWords:
     def reliability_of(self, *columns, interval=95):
         """Do the items of a questionnaire hang together (Cronbach's alpha)?
 
-        table.reliability_of(["item_1", "item_2", "item_3", "item_4", "item_5"])   (with sdata.example("clinic"))
+        table.reliability_of(["item_1", "item_2", "item_3", "item_4", "item_5"])   (with sdata.get_example("clinic"))
         Each column is one item (question), each row one person. Prints Cronbach's alpha with
         Feldt's interval and what alpha would be without each item (R psych::alpha() and
         psych::alpha.ci(), simplydata[r]). Alpha rises with the number of items and does not

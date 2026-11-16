@@ -1,13 +1,13 @@
 """Looking, choosing columns and rows, empty cells, fixing columns.
 
 Every word is written with narwhals expressions, so it works the same on pandas and Polars.
-Only make_dates() needs a little native code (text-to-date parsing that forgives bad cells).
+Only turn_into_dates() needs a little native code (text-to-date parsing that forgives bad cells).
 
 What counts as an "empty cell" everywhere in this file:
 a missing value (None, NaN, NaT), or text that is only spaces or nothing at all.
-Empty cells never match a condition in keep_rows()/remove_rows(), except is_empty=.
+Empty cells never match a condition in keep_rows_where()/remove_rows_where(), except is_empty=.
 
-keep_rows()/remove_rows() also read a written condition, "marks > 50 and class == 'A'".
+keep_rows_where()/remove_rows_where() also read a written condition, "marks > 50 and class == 'A'".
 The condition is read by the shared reader in conditions.py (also used by
 add_group_column(rules=)): the text is never run, and a comparison with an empty cell is
 never true and never false (as in SQL), so "not" never brings back empty cells either.
@@ -31,7 +31,7 @@ from .conditions import (
     _looks_like_number, _rows, _say, empty_cells_note,
 )
 
-# Conditions for keep_rows() / remove_rows(), in the order they are listed in messages.
+# Conditions for keep_rows_where() / remove_rows_where(), in the order they are listed in messages.
 CONDITIONS = (
     "above", "below", "at_least", "at_most", "equal_to", "not_equal_to",
     "between", "one_of", "contains", "starts_with", "ends_with", "is_empty", "after", "before",
@@ -40,7 +40,7 @@ COMPARE = ("above", "below", "at_least", "at_most")
 TEXT_ONLY = ("contains", "starts_with", "ends_with")
 FILL_CHOICES = ("average", "median", "value above", "value below", "line between neighbours",
                 "curve between neighbours", "curve without overshoot")
-# with_the= choices that join the filled neighbours (they take sorted_by= and for_each=)
+# with_the= choices that join the filled neighbours (they take sorted_by= and for_each_group_in=)
 BETWEEN_CHOICES = ("line between neighbours", "curve between neighbours", "curve without overshoot")
 
 # Text-to-date formats, tried in this order. Day comes before month (03/04/2026 is 3 April);
@@ -56,13 +56,18 @@ DATE_FORMATS = (
 )
 
 
+
+def _is(key: str) -> str:
+    """The condition option as it is written now: above -> is_above (the old names still work)."""
+    return key if key.startswith("is_") or key in ("contains", "starts_with", "ends_with") else f"is_{key}"
+
 def _with_times(*days):
     """Each day format, then the same with a time after it."""
     return tuple(f + t for f in days for t in ("", " %H:%M:%S", " %H:%M"))
 
 
 _ISO = ("%Y-%m-%d", "%Y-%m-%d %H:%M:%S", "%Y-%m-%d %H:%M", "%Y-%m-%dT%H:%M:%S", "%Y-%m-%dT%H:%M")
-# make_dates(order=...): only the formats that read the parts in that order (a year with four
+# turn_into_dates(order=...): only the formats that read the parts in that order (a year with four
 # digits written first is always year-month-day, so those formats are kept for every order).
 DATE_ORDERS = {
     "day month year": _ISO + _with_times("%Y/%m/%d", "%d/%m/%Y", "%d.%m.%Y", "%d-%m-%Y")
@@ -80,7 +85,7 @@ SHOW_LIMIT = 1000  # rows that table.show() shows when rows= is not given
 
 
 def _example(code: str, name: str = "marks") -> str:
-    return f'\nFor example:  {code}   (with sdata.example("{name}"))'
+    return f'\nFor example:  {code}   (with sdata.get_example("{name}"))'
 
 
 
@@ -245,7 +250,7 @@ class RowWords:
         if kind == "mixed":
             raise SimplydataError(
                 f'"{column}" holds a mix of things. Turn it into text first with '
-                f'table.make_text("{column}").' + _example(example)
+                f'table.turn_into_text("{column}").' + _example(example)
             )
         raise SimplydataError(
             f'.{step}() works on text, but "{column}" is a {kind} column.' + _example(example)
@@ -260,10 +265,10 @@ class RowWords:
             if isinstance(value, str) and _looks_like_number(value):
                 raise SimplydataError(
                     f'"{column}" is a number column, so write the number without quotes: '
-                    f"{option}={value.strip()}" + _example(example)
+                    f"{_is(option)}={value.strip()}" + _example(example)
                 )
             raise SimplydataError(
-                f'{option}= needs a number here, because "{column}" is a number column '
+                f'{_is(option)}= needs a number here, because "{column}" is a number column '
                 f"(you gave {_say(value)})." + _example(example)
             )
         if kind == "text":
@@ -272,16 +277,16 @@ class RowWords:
             hint = ""
             if _is_number(value):
                 hint = (f' If "{column}" holds numbers written as text, first use '
-                        f'table.make_numbers("{column}").')
+                        f'table.turn_into_numbers("{column}").')
             raise SimplydataError(
-                f'"{column}" is a text column, so {option}= needs text in quotes, like '
-                f'{option}="{value}".{hint}' + _example('table.keep_rows("class", equal_to="A")')
+                f'"{column}" is a text column, so {_is(option)}= needs text in quotes, like '
+                f'{_is(option)}="{value}".{hint}' + _example('table.keep_rows_where("class", is_equal_to="A")')
             )
         if kind == "true/false":
             if isinstance(value, bool):
                 return value
             raise SimplydataError(
-                f'"{column}" is a true/false column, so {option}= needs True or False (no quotes).'
+                f'"{column}" is a true/false column, so {_is(option)}= needs True or False (no quotes).'
             )
         if kind == "date":
             return self._date_value(option, column, value)
@@ -295,7 +300,7 @@ class RowWords:
             except ValueError:
                 raise SimplydataError(
                     f'"{column}" is a date column. Write dates as year-month-day, like '
-                    f'{option}="2026-03-15".'
+                    f'{_is(option)}="2026-03-15".'
                 ) from None
         if hasattr(value, "to_pydatetime"):  # a pandas Timestamp
             value = value.to_pydatetime()
@@ -304,16 +309,16 @@ class RowWords:
         if isinstance(value, _dt.date):
             return _dt.datetime.combine(value, _dt.time()) if is_datetime else value
         raise SimplydataError(
-            f'"{column}" is a date column, so {option}= needs a date like "2026-03-15" (you gave {_say(value)}).'
+            f'"{column}" is a date column, so {_is(option)}= needs a date like "2026-03-15" (you gave {_say(value)}).'
         )
 
     def _condition(self, step: str, column, options: dict, extra: tuple):
-        """Build the row condition for keep_rows()/remove_rows(). Gives (expression, words)."""
-        example = f'table.{step}("marks", above=50)'
+        """Build the row condition for keep_rows_where()/remove_rows_where(). Gives (expression, words)."""
+        example = f'table.{step}("marks", is_above=50)'
         if extra:
             raise SimplydataError(
                 f".{step}() needs the column and then one plain word saying which rows, "
-                f'like above=50 or equal_to="A".' + _example(example)
+                f'like is_above=50 or is_equal_to="A".' + _example(example)
             )
         if column is None:
             raise SimplydataError(f".{step}() needs a column name first." + _example(example))
@@ -322,7 +327,7 @@ class RowWords:
         if not given:
             raise SimplydataError(
                 f".{step}() needs one condition saying which rows. You can use: "
-                + ", ".join(f"{c}=" for c in CONDITIONS)
+                + ", ".join(f"{_is(c)}=" for c in CONDITIONS)
                 + f"\nor write the whole condition: table.{step}(\"marks > 50 and class == 'A'\")"
                 + _example(example)
             )
@@ -330,8 +335,8 @@ class RowWords:
             names = " and ".join(f"{c}=" for c in given)
             raise SimplydataError(
                 f".{step}() takes one condition at a time, but you gave {names}. "
-                f"Write one step per condition, or use between=[low, high]."
-                + _example(f'table.{step}("marks", at_least=40)   then   table.{step}("marks", at_most=80)')
+                f"Write one step per condition, or use is_between=[low, high]."
+                + _example(f'table.{step}("marks", is_at_least=40)   then   table.{step}("marks", is_at_most=80)')
             )
         option, value = next(iter(given.items()))
         kind = self._kind_of(column)
@@ -349,7 +354,7 @@ class RowWords:
             if kind != "date":
                 other = "above" if option == "after" else "below"
                 raise SimplydataError(
-                    f'{option}= is for dates, but "{column}" is a {kind} column. '
+                    f'{_is(option)}= is for dates, but "{column}" is a {kind} column. '
                     f"For numbers use {other}=." + _example(f'table.{step}("marks", {other}=50)')
                 )
             given_time = isinstance(value, _dt.datetime) or hasattr(value, "to_pydatetime") or (
@@ -368,21 +373,21 @@ class RowWords:
 
         if (option in COMPARE or option == "between") and kind not in ("number", "date"):
             raise SimplydataError(
-                f'{option}= compares numbers or dates, but "{column}" is a {kind} column. '
-                f"For text use equal_to=, one_of=, contains=, starts_with= or ends_with=."
-                + _example(f'table.{step}("class", equal_to="A")')
+                f'{_is(option)}= compares numbers or dates, but "{column}" is a {kind} column. '
+                f"For text use is_equal_to=, is_one_of=, contains=, starts_with= or ends_with=."
+                + _example(f'table.{step}("class", is_equal_to="A")')
             )
 
         if option in TEXT_ONLY:
             if kind != "text":
                 raise SimplydataError(
-                    f'{option}= looks inside text, but "{column}" is a {kind} column. '
-                    f"For numbers use above=, below=, between= or equal_to=." + _example(example)
+                    f'{_is(option)}= looks inside text, but "{column}" is a {kind} column. '
+                    f"For numbers use is_above=, is_below=, is_between= or is_equal_to=." + _example(example)
                 )
             if not isinstance(value, str):
                 raise SimplydataError(
-                    f'{option}= needs text in quotes, like {option}="{value}".'
-                    + _example(f'table.{step}("name", {option}="A")')
+                    f'{_is(option)}= needs text in quotes, like {_is(option)}="{value}".'
+                    + _example(f'table.{step}("name", {_is(option)}="A")')
                 )
             text = col.cast(nw.String)
             if option == "contains":
@@ -399,26 +404,26 @@ class RowWords:
         elif option == "between":
             if isinstance(value, (str, bytes)) or not isinstance(value, (list, tuple)) or len(value) != 2:
                 raise SimplydataError(
-                    "between= needs two values in square brackets: the lowest and the highest."
-                    + _example(f'table.{step}("marks", between=[40, 60])')
+                    "is_between= needs two values in square brackets: the lowest and the highest."
+                    + _example(f'table.{step}("marks", is_between=[40, 60])')
                 )
             low, high = sorted(self._value_for(option, column, v, example) for v in value)
             cond, words = (col >= low) & (col <= high), f"is between {_say(low)} and {_say(high)}"
         elif option == "one_of":
             if isinstance(value, (str, bytes)) or not isinstance(value, (list, tuple, set)):
                 raise SimplydataError(
-                    "one_of= needs a list in square brackets. For a single value use equal_to=."
-                    + _example(f'table.{step}("subject", one_of=["Maths", "Science"])')
+                    "is_one_of= needs a list in square brackets. For a single value use is_equal_to=."
+                    + _example(f'table.{step}("subject", is_one_of=["Maths", "Science"])')
                 )
             values = [self._value_for(option, column, v, example) for v in value]
             if not values:
                 raise SimplydataError(
-                    "one_of= needs at least one value in the list."
-                    + _example(f'table.{step}("subject", one_of=["Maths", "Science"])')
+                    "is_one_of= needs at least one value in the list."
+                    + _example(f'table.{step}("subject", is_one_of=["Maths", "Science"])')
                 )
             cond, words = self._is_in(column, values), "is one of " + ", ".join(_say(v) for v in values)
         else:  # equal_to, not_equal_to
-            value = self._value_for(option, column, value, f'table.{step}("class", equal_to="A")')
+            value = self._value_for(option, column, value, f'table.{step}("class", is_equal_to="A")')
             if option == "equal_to":
                 cond, words = col == value, f"is {_say(value)}"
             else:
@@ -454,7 +459,7 @@ class RowWords:
     def describe_columns(self):
         """Describe every column: its kind, empty cells, smallest, biggest and average.
 
-        table.describe_columns()   (with sdata.example("marks"))
+        table.describe_columns()   (with sdata.get_example("marks"))
         """
         import pandas as pd
 
@@ -481,10 +486,10 @@ class RowWords:
         return None
 
     @friendly
-    def count_empty_cells(self):
+    def count_empty_cells_in(self):
         """Show how many empty cells each column has.
 
-        table.count_empty_cells()   (with sdata.example("shop"))
+        table.count_empty_cells_in()   (with sdata.get_example("shop"))
         """
         counts = {name: self._count(self._empty(name)) for name in self._columns}
         width = max((len(str(n)) for n in counts), default=0)
@@ -505,9 +510,9 @@ class RowWords:
         example = f'table.{step}("height")' if verb == "remove" else f'table.{step}("name", "marks")'
         run_example = f'table.{step}("temperature", to="wind_speed")'
         names = list(dict.fromkeys(_as_list(names)))
-        ways = {"names": bool(names), "kind=": kind is not None, "starts_with=": starts_with is not None,
+        ways = {"names": bool(names), "of_kind=": kind is not None, "starts_with=": starts_with is not None,
                 "ends_with=": ends_with is not None, "contains=": contains is not None,
-                "pattern=": pattern is not None}
+                "matches_pattern=": pattern is not None}
         given = [w for w, on in ways.items() if on]
         if to is not None and not names:
             raise SimplydataError(
@@ -515,16 +520,16 @@ class RowWords:
             )
         if not given:
             raise SimplydataError(
-                f".{step}() needs the names of the columns to {verb}, or one of kind=, starts_with=, "
-                "ends_with=, contains= or pattern=." + _example(example)
-                + _example(f'table.{step}(kind="number")')
+                f".{step}() needs the names of the columns to {verb}, or one of of_kind=, starts_with=, "
+                "ends_with=, contains= or matches_pattern=." + _example(example)
+                + _example(f'table.{step}(of_kind="number")')
             )
         if len(given) > 1:
             shown = " and ".join("column names" if w == "names" else w for w in given)
             raise SimplydataError(
                 f".{step}() chooses columns one way at a time, but you gave {shown}. Write two steps: "
                 "the second step works on what the first one left, so you get the columns that meet both."
-                + _example(f'table.{step}(kind="number")   then   table.{step}(starts_with="wind")', "weather")
+                + _example(f'table.{step}(of_kind="number")   then   table.{step}(starts_with="wind")', "weather")
             )
         columns = self._columns
         if names:
@@ -567,7 +572,7 @@ class RowWords:
                 raise SimplydataError(
                     f"This table has no {wanted} columns. The kinds it has: "
                     + "; ".join(f'{k} ({", ".join(v)})' for k, v in there.items())
-                    + f'\nFor example:  table.{step}(kind="{next(iter(there))}")'
+                    + f'\nFor example:  table.{step}(of_kind="{next(iter(there))}")'
                 )
             return chosen, f"of kind {wanted}", False
         option, value = next((o, v) for o, v in (("starts_with", starts_with), ("ends_with", ends_with),
@@ -580,9 +585,9 @@ class RowWords:
                 found = re.compile(value)
             except re.error as error:
                 raise SimplydataError(
-                    f'pattern= is a regular expression, and "{value}" is not one that works ({error}). '
+                    f'matches_pattern= is a regular expression, and "{value}" is not one that works ({error}). '
                     "For plain text use contains=, starts_with= or ends_with="
-                    + _example(f'table.{step}(pattern="^wind_")', "weather")
+                    + _example(f'table.{step}(matches_pattern="^wind_")', "weather")
                 ) from None
             chosen = [c for c in columns if found.search(str(c))]
             words, none = f'whose names match the pattern "{value}"', f'matches the pattern "{value}"'
@@ -601,35 +606,35 @@ class RowWords:
             )
         return chosen, words, False
 
-    @friendly
-    def keep_columns(self, *names, to=None, kind=None, starts_with=None, ends_with=None, contains=None,
-                     pattern=None):
+    @friendly(renamed={"kind": "of_kind", "pattern": "matches_pattern"})
+    def keep_columns(self, *names, to=None, of_kind=None, starts_with=None, ends_with=None, contains=None,
+                     matches_pattern=None):
         """Keep only these columns: by name (in the order you list them), a run of names, or by kind.
 
-        table.keep_columns("name", "marks")   (with sdata.example("marks"))
+        table.keep_columns("name", "marks")   (with sdata.get_example("marks"))
         table.keep_columns("hours", to="height") keeps a run of columns, both ends included;
-        kind="number" (or "text", "date", "true/false", the kinds describe_columns() prints)
+        of_kind="number" (or "text", "date", "true/false", the kinds describe_columns() prints)
         keeps every column of that kind; starts_with=, ends_with=, contains= (plain text, capital
-        letters matter) and pattern= (a regular expression) choose by the column names.
+        letters matter) and matches_pattern= (a regular expression) choose by the column names.
         One way at a time; two steps one after the other keep the columns that meet both.
         """
-        chosen, words, plain_names = self._columns_chosen("keep_columns", names, to, kind, starts_with, ends_with,
-                                                          contains, pattern)
+        chosen, words, plain_names = self._columns_chosen("keep_columns", names, to, of_kind, starts_with, ends_with,
+                                                          contains, matches_pattern)
         if not plain_names:
             print(f"Kept {_columns_count(len(chosen))}: {', '.join(chosen)}.")
         return self._change("keep columns " + words, self._frame.select(chosen))
 
-    @friendly
-    def remove_columns(self, *names, to=None, kind=None, starts_with=None, ends_with=None, contains=None,
-                       pattern=None):
+    @friendly(renamed={"kind": "of_kind", "pattern": "matches_pattern"})
+    def remove_columns(self, *names, to=None, of_kind=None, starts_with=None, ends_with=None, contains=None,
+                       matches_pattern=None):
         """Remove these columns: by name, a run of names, or by kind.
 
-        table.remove_columns("height")   (with sdata.example("marks"))
-        The same ways as keep_columns: remove_columns("hours", to="marks"), remove_columns(kind="text"),
-        remove_columns(starts_with="wind"), remove_columns(pattern="^wind_").
+        table.remove_columns("height")   (with sdata.get_example("marks"))
+        The same ways as keep_columns: remove_columns("hours", to="marks"), remove_columns(of_kind="text"),
+        remove_columns(starts_with="wind"), remove_columns(matches_pattern="^wind_").
         """
-        chosen, words, plain_names = self._columns_chosen("remove_columns", names, to, kind, starts_with,
-                                                          ends_with, contains, pattern)
+        chosen, words, plain_names = self._columns_chosen("remove_columns", names, to, of_kind, starts_with,
+                                                          ends_with, contains, matches_pattern)
         if len(chosen) == len(self._columns):
             raise SimplydataError(
                 "That would remove every column. Keep at least one." + _example('table.remove_columns("height")')
@@ -643,7 +648,7 @@ class RowWords:
     def rename_column(self, old=None, to=None):
         """Give a column a new name.
 
-        table.rename_column("marks", to="score")   (with sdata.example("marks"))
+        table.rename_column("marks", to="score")   (with sdata.get_example("marks"))
         """
         example = 'table.rename_column("marks", to="score")'
         self._need_one_column("rename_column", old, example)
@@ -660,7 +665,7 @@ class RowWords:
 
     # ================================================================== choosing rows
     def _where(self, step: str, column, options: dict, extra: tuple):
-        """(condition, words, note) for keep_rows()/remove_rows(): a written condition or one plain word."""
+        """(condition, words, note) for keep_rows_where()/remove_rows_where(): a written condition or one plain word."""
         given = any(v is not _NOT_GIVEN for v in options.values())
         if isinstance(column, str) and column not in self._frame.columns:
             text = column.strip()
@@ -668,12 +673,12 @@ class RowWords:
                 if given or extra:
                     raise SimplydataError(
                         f".{step}() takes either a written condition or a column with one plain word, not both."
-                        + _example(f'table.{step}("marks > 50")') + _example(f'table.{step}("marks", above=50)')
+                        + _example(f'table.{step}("marks > 50")') + _example(f'table.{step}("marks", is_above=50)')
                     )
                 true, note = self._read_condition(step, text)
                 return true, text, note
         is_yes_no = isinstance(column, str) and column in self._frame.columns and self._kind_of(column) == "true/false"
-        if is_yes_no and not given and not extra:  # keep_rows("passed")
+        if is_yes_no and not given and not extra:  # keep_rows_where("passed")
             true, note = self._read_condition(step, f"`{column}`")
             return true, f"{column} is True", note
         cond, words = self._condition(step, column, options, extra)
@@ -691,56 +696,60 @@ class RowWords:
             ) from None
         n, note = empty_cells_note(self._frame, true, false, reader.used)
         if n:
-            gone = "they were left out" if step == "keep_rows" else "they were not removed"
+            gone = "they were left out" if step == "keep_rows_where" else "they were not removed"
             if n == 1:
-                gone = "it was left out" if step == "keep_rows" else "it was not removed"
+                gone = "it was left out" if step == "keep_rows_where" else "it was not removed"
             note = note[:-1] + f", so {gone}."
         return true, note
 
-    @friendly
-    def keep_rows(self, column=None, *extra, above=_NOT_GIVEN, below=_NOT_GIVEN, at_least=_NOT_GIVEN,
-                  at_most=_NOT_GIVEN, equal_to=_NOT_GIVEN, not_equal_to=_NOT_GIVEN, between=_NOT_GIVEN,
-                  one_of=_NOT_GIVEN, contains=_NOT_GIVEN, starts_with=_NOT_GIVEN, ends_with=_NOT_GIVEN,
-                  is_empty=_NOT_GIVEN, after=_NOT_GIVEN, before=_NOT_GIVEN):
+    @friendly(renamed={"above": "is_above", "below": "is_below", "at_least": "is_at_least", "at_most": "is_at_most",
+                       "equal_to": "is_equal_to", "not_equal_to": "is_not_equal_to", "between": "is_between",
+                       "one_of": "is_one_of", "after": "is_after", "before": "is_before"})
+    def keep_rows_where(self, column=None, *extra, is_above=_NOT_GIVEN, is_below=_NOT_GIVEN, is_at_least=_NOT_GIVEN,
+                        is_at_most=_NOT_GIVEN, is_equal_to=_NOT_GIVEN, is_not_equal_to=_NOT_GIVEN, is_between=_NOT_GIVEN,
+                        is_one_of=_NOT_GIVEN, contains=_NOT_GIVEN, starts_with=_NOT_GIVEN, ends_with=_NOT_GIVEN,
+                        is_empty=_NOT_GIVEN, is_after=_NOT_GIVEN, is_before=_NOT_GIVEN):
         """Keep only the rows that match a condition.
 
-        table.keep_rows("marks", above=50)   (with sdata.example("marks"))
-        table.keep_rows("marks > 50 and class == 'A'")   a written condition
-        Plain words: above, below, at_least, at_most, equal_to, not_equal_to,
-        between=[low, high] (both ends included), one_of=[...], contains, starts_with,
-        ends_with (capital letters matter), is_empty=True, and after= / before= for dates.
+        table.keep_rows_where("marks", is_above=50)   (with sdata.get_example("marks"))
+        table.keep_rows_where("marks > 50 and class == 'A'")   a written condition
+        Plain words: is_above, is_below, is_at_least, is_at_most, is_equal_to, is_not_equal_to,
+        is_between=[low, high] (both ends included), is_one_of=[...], contains, starts_with,
+        ends_with (capital letters matter), is_empty=True, and is_after= / is_before= for dates.
         Written conditions use == != < <= > >=, and, or, not, brackets, in [...], is empty;
         text and dates go in quotes. Empty cells only match is_empty / is empty.
         """
-        options = dict(above=above, below=below, at_least=at_least, at_most=at_most, equal_to=equal_to,
-                       not_equal_to=not_equal_to, between=between, one_of=one_of, contains=contains,
-                       starts_with=starts_with, ends_with=ends_with, is_empty=is_empty, after=after, before=before)
-        cond, words, note = self._where("keep_rows", column, options, extra)
+        options = dict(above=is_above, below=is_below, at_least=is_at_least, at_most=is_at_most, equal_to=is_equal_to,
+                       not_equal_to=is_not_equal_to, between=is_between, one_of=is_one_of, contains=contains,
+                       starts_with=starts_with, ends_with=ends_with, is_empty=is_empty, after=is_after, before=is_before)
+        cond, words, note = self._where("keep_rows_where", column, options, extra)
         return self._filter(f"keep rows where {words}", cond, note=note)
 
-    @friendly
-    def remove_rows(self, column=None, *extra, above=_NOT_GIVEN, below=_NOT_GIVEN, at_least=_NOT_GIVEN,
-                    at_most=_NOT_GIVEN, equal_to=_NOT_GIVEN, not_equal_to=_NOT_GIVEN, between=_NOT_GIVEN,
-                    one_of=_NOT_GIVEN, contains=_NOT_GIVEN, starts_with=_NOT_GIVEN, ends_with=_NOT_GIVEN,
-                    is_empty=_NOT_GIVEN, after=_NOT_GIVEN, before=_NOT_GIVEN):
-        """Remove the rows that match a condition (the opposite of keep_rows).
+    @friendly(renamed={"above": "is_above", "below": "is_below", "at_least": "is_at_least", "at_most": "is_at_most",
+                       "equal_to": "is_equal_to", "not_equal_to": "is_not_equal_to", "between": "is_between",
+                       "one_of": "is_one_of", "after": "is_after", "before": "is_before"})
+    def remove_rows_where(self, column=None, *extra, is_above=_NOT_GIVEN, is_below=_NOT_GIVEN, is_at_least=_NOT_GIVEN,
+                          is_at_most=_NOT_GIVEN, is_equal_to=_NOT_GIVEN, is_not_equal_to=_NOT_GIVEN, is_between=_NOT_GIVEN,
+                          is_one_of=_NOT_GIVEN, contains=_NOT_GIVEN, starts_with=_NOT_GIVEN, ends_with=_NOT_GIVEN,
+                          is_empty=_NOT_GIVEN, is_after=_NOT_GIVEN, is_before=_NOT_GIVEN):
+        """Remove the rows that match a condition (the opposite of keep_rows_where).
 
-        table.remove_rows("subject", equal_to="English")   (with sdata.example("marks"))
-        table.remove_rows("marks < 40 or hours < 2")   a written condition
-        Same conditions as keep_rows; between=[low, high] includes both ends. A row whose
+        table.remove_rows_where("subject", is_equal_to="English")   (with sdata.get_example("marks"))
+        table.remove_rows_where("marks < 40 or hours < 2")   a written condition
+        Same conditions as keep_rows_where; is_between=[low, high] includes both ends. A row whose
         cell is empty is never removed by a comparison on that cell (use is_empty=True).
         """
-        options = dict(above=above, below=below, at_least=at_least, at_most=at_most, equal_to=equal_to,
-                       not_equal_to=not_equal_to, between=between, one_of=one_of, contains=contains,
-                       starts_with=starts_with, ends_with=ends_with, is_empty=is_empty, after=after, before=before)
-        cond, words, note = self._where("remove_rows", column, options, extra)
+        options = dict(above=is_above, below=is_below, at_least=is_at_least, at_most=is_at_most, equal_to=is_equal_to,
+                       not_equal_to=is_not_equal_to, between=is_between, one_of=is_one_of, contains=contains,
+                       starts_with=starts_with, ends_with=ends_with, is_empty=is_empty, after=is_after, before=is_before)
+        cond, words, note = self._where("remove_rows_where", column, options, extra)
         return self._filter(f"remove rows where {words}", ~cond, kept_word=False, note=note)
 
     @friendly
     def keep_first_rows(self, n=5):
         """Keep only the first rows.
 
-        table.keep_first_rows(10)   (with sdata.example("marks"))
+        table.keep_first_rows(10)   (with sdata.get_example("marks"))
         """
         n = _check_count("keep_first_rows", n, "table.keep_first_rows(10)")
         before = len(self._frame)
@@ -752,7 +761,7 @@ class RowWords:
     def keep_last_rows(self, n=5):
         """Keep only the last rows.
 
-        table.keep_last_rows(10)   (with sdata.example("marks"))
+        table.keep_last_rows(10)   (with sdata.get_example("marks"))
         """
         n = _check_count("keep_last_rows", n, "table.keep_last_rows(10)")
         before = len(self._frame)
@@ -760,33 +769,33 @@ class RowWords:
         print(f"Kept {len(new)} of {_rows(before)}.")
         return self._change(f"keep the last {_rows(n)}", new)
 
-    @friendly
-    def keep_random_rows(self, n=5, seed=None):
+    @friendly(renamed={"seed": "with_seed"})
+    def keep_random_rows(self, n=5, with_seed=None):
         """Keep some rows picked at random; give a seed to get the same rows every time.
 
-        table.keep_random_rows(10, seed=1)   (with sdata.example("marks"))
+        table.keep_random_rows(10, with_seed=1)   (with sdata.get_example("marks"))
         """
-        example = "table.keep_random_rows(10, seed=1)"
+        example = "table.keep_random_rows(10, with_seed=1)"
         n = _check_count("keep_random_rows", n, example)
-        if seed is not None and (not isinstance(seed, numbers.Integral) or isinstance(seed, bool) or seed < 0):
+        if with_seed is not None and (not isinstance(with_seed, numbers.Integral) or isinstance(with_seed, bool) or with_seed < 0):
             raise SimplydataError(
-                "seed= needs a whole number, like seed=1. The same seed picks the same rows again."
+                "with_seed= needs a whole number, like with_seed=1. The same seed picks the same rows again."
                 + _example(example)
             )
         before = len(self._frame)
         if n > before:
             print(f"The table has only {_rows(before)}, so all of them are kept.")
             n = before
-        new = self._frame.sample(n=n, seed=None if seed is None else int(seed))
+        new = self._frame.sample(n=n, seed=None if with_seed is None else int(with_seed))
         print(f"Kept {len(new)} of {_rows(before)}.")
-        what = f"keep {n} random rows" + (f" (seed {seed})" if seed is not None else "")
+        what = f"keep {n} random rows" + (f" (seed {with_seed})" if with_seed is not None else "")
         return self._change(what, new)
 
     @friendly
     def remove_duplicate_rows(self, columns=None):
         """Remove rows that repeat an earlier row, or that repeat it in the columns you name.
 
-        table.remove_duplicate_rows(columns=["name"])   (with sdata.example("marks"))
+        table.remove_duplicate_rows(columns=["name"])   (with sdata.get_example("marks"))
         """
         if columns is None:
             subset, what = None, "remove duplicate rows"
@@ -806,10 +815,10 @@ class RowWords:
 
     # ================================================================== empty cells
     @friendly
-    def remove_rows_with_empty_cells(self, column=None):
+    def remove_rows_with_empty_cells_in(self, column=None):
         """Remove rows with an empty cell (in any column, or only in the column you name).
 
-        table.remove_rows_with_empty_cells("sales")   (with sdata.example("shop"))
+        table.remove_rows_with_empty_cells_in("sales")   (with sdata.get_example("shop"))
         """
         if column is None:
             names, what = self._columns, "remove rows with an empty cell"
@@ -820,54 +829,54 @@ class RowWords:
         any_empty = nw.any_horizontal(*[self._empty(c) for c in names], ignore_nulls=True)
         return self._filter(what, ~any_empty.fill_null(False), kept_word=False)
 
-    @friendly
-    def fill_empty_cells(self, column=None, with_value=None, with_the=None, sorted_by=None, for_each=None):
+    @friendly(renamed={"for_each": "for_each_group_in"})
+    def fill_empty_cells_in(self, column=None, with_value=None, with_the=None, sorted_by=None, for_each_group_in=None):
         """Fill the empty cells of a column with a value, or with the average, median, value above or value below.
 
-        table.fill_empty_cells("customers", with_the="median")   (with sdata.example("shop"))
+        table.fill_empty_cells_in("customers", with_the="median")   (with sdata.get_example("shop"))
         with_the="line between neighbours" fills each gap on the straight line between the
         filled cells just before and just after it (linear interpolation). It follows the rows
         in table order, or sorted_by= a column of numbers or dates (then the line is spaced by
-        those values, so a missing day counts as one day); for_each= fills each group on its
+        those values, so a missing day counts as one day); for_each_group_in= fills each group on its
         own. Empty cells at the start or end have only one neighbour, so they stay empty.
-          table.fill_empty_cells("sales", with_the="line between neighbours", sorted_by="date", for_each="shop")
+          table.fill_empty_cells_in("sales", with_the="line between neighbours", sorted_by="date", for_each_group_in="shop")
         with_the="curve between neighbours" fills them on a smooth curve through the filled
         cells instead (a natural cubic spline, as R zoo::na.spline(method = "natural")), and
         with_the="curve without overshoot" on a smooth curve that never goes above or below
-        its neighbours (PCHIP); both take sorted_by= and for_each= the same way.
+        its neighbours (PCHIP); both take sorted_by= and for_each_group_in= the same way.
         """
-        example = 'table.fill_empty_cells("marks", with_the="average")'
-        self._need_one_column("fill_empty_cells", column, example)
+        example = 'table.fill_empty_cells_in("marks", with_the="average")'
+        self._need_one_column("fill_empty_cells_in", column, example)
         if (with_value is None) == (with_the is None):
             raise SimplydataError(
-                ".fill_empty_cells() needs exactly one of with_value= or with_the=."
-                + _example('table.fill_empty_cells("marks", with_value=0)')
+                ".fill_empty_cells_in() needs exactly one of with_value= or with_the=."
+                + _example('table.fill_empty_cells_in("marks", with_value=0)')
                 + _example(example)
             )
         if with_the is not None:
             choice = str(with_the).strip().lower().replace("_", " ").replace("neighbors", "neighbours")
             if choice in BETWEEN_CHOICES:
-                return self._fill_by_line(column, sorted_by, for_each, choice)
-        if sorted_by is not None or for_each is not None:
+                return self._fill_by_line(column, sorted_by, for_each_group_in, choice)
+        if sorted_by is not None or for_each_group_in is not None:
             raise SimplydataError(
-                'sorted_by= and for_each= go with with_the="line between neighbours" (or "curve between neighbours").'
-                + _example('table.fill_empty_cells("sales", with_the="line between neighbours", sorted_by="date")',
+                'sorted_by= and for_each_group_in= go with with_the="line between neighbours" (or "curve between neighbours").'
+                + _example('table.fill_empty_cells_in("sales", with_the="line between neighbours", sorted_by="date")',
                            "shop")
             )
         empty = self._empty(column)
         kind = self._kind_of(column)
         col = nw.col(column)
         if with_value is not None:
-            value = self._value_for("with_value", column, with_value, 'table.fill_empty_cells("marks", with_value=0)')
+            value = self._value_for("with_value", column, with_value, 'table.fill_empty_cells_in("marks", with_value=0)')
             new_col, how = nw.when(empty).then(nw.lit(value)).otherwise(col), _say(value)
         else:
-            self._check_choice("fill_empty_cells", "with_the", choice, FILL_CHOICES)
+            self._check_choice("fill_empty_cells_in", "with_the", choice, FILL_CHOICES)
             if choice in ("average", "median"):
                 if kind != "number":
                     raise SimplydataError(
                         f'with_the="{choice}" needs numbers, but "{column}" is a {kind} column. '
                         f'Try with_the="value above" or with_value= instead.'
-                        + _example('table.fill_empty_cells("subject", with_the="value above")')
+                        + _example('table.fill_empty_cells_in("subject", with_the="value above")')
                     )
                 filled = self._frame.filter(~empty)
                 if len(filled) == 0:
@@ -892,7 +901,7 @@ class RowWords:
         """
         from .._stats import line_between_neighbours
 
-        example = f'table.fill_empty_cells("sales", with_the="{choice}", sorted_by="date")'
+        example = f'table.fill_empty_cells_in("sales", with_the="{choice}", sorted_by="date")'
         kind = self._kind_of(column)
         if kind != "number":
             raise SimplydataError(
@@ -901,7 +910,7 @@ class RowWords:
             )
         keys = [for_each] if isinstance(for_each, str) else list(for_each or [])
         if for_each is not None and (not keys or not all(isinstance(k, str) for k in keys)):
-            raise SimplydataError("for_each= should be a column name or a list of column names." + _example(example, "shop"))
+            raise SimplydataError("for_each_group_in= should be a column name or a list of column names." + _example(example, "shop"))
         if sorted_by is not None and not isinstance(sorted_by, str):
             raise SimplydataError("sorted_by= should be one column name, such as a date." + _example(example, "shop"))
         self._need_columns(*keys, *([sorted_by] if sorted_by else []))
@@ -960,14 +969,14 @@ class RowWords:
 
     # ================================================================== fixing columns
     @friendly
-    def make_numbers(self, column=None):
+    def turn_into_numbers(self, column=None):
         """Turn a column into numbers; cells that are not numbers become empty.
 
-        table.make_numbers("marks")   (with sdata.example("marks"))
+        table.turn_into_numbers("marks")   (with sdata.get_example("marks"))
         Understands 12.5, -3, 1e3, 1 200 and 1,200 (thousands) and 12,5 (decimal comma).
         """
-        example = 'table.make_numbers("marks")'
-        self._need_one_column("make_numbers", column, example)
+        example = 'table.turn_into_numbers("marks")'
+        self._need_one_column("turn_into_numbers", column, example)
         kind = self._kind_of(column)
         col = nw.col(column)
         if kind == "number":
@@ -994,22 +1003,22 @@ class RowWords:
         return self._change(f"make {column} into numbers", self._frame.with_columns(values))
 
     @friendly
-    def make_dates(self, column=None, order=None):
+    def turn_into_dates(self, column=None, order=None):
         """Turn a column into dates; cells that are not dates become empty.
 
-        table.make_dates("year")   (with sdata.example("growth"))
+        table.turn_into_dates("year")   (with sdata.get_example("growth"))
         Understands 2026-03-15, 15/03/2026, 15.03.2026, 15 March 2026, March 15, 2026, 2026-03 and 2026.
         03/04/2026 is read day first, as 3 April (month first only when day first cannot work).
         order= says how the dates are written, so nothing is guessed: "day month year"
         (15/03/2026), "month day year" (03/15/2026) or "year month day" (2026/03/15).
-          table.make_dates("when", order="month day year")
+          table.turn_into_dates("when", order="month day year")
         """
-        example = 'table.make_dates("year")'
-        self._need_one_column("make_dates", column, example)
+        example = 'table.turn_into_dates("year")'
+        self._need_one_column("turn_into_dates", column, example)
         if order is not None:
             if isinstance(order, str):
                 order = " ".join(order.lower().replace(",", " ").replace("-", " ").split())
-            self._check_choice("make_dates", "order", order, DATE_ORDERS)
+            self._check_choice("turn_into_dates", "order", order, DATE_ORDERS)
         kind = self._kind_of(column)
         col = nw.col(column)
         if kind == "date":
@@ -1019,7 +1028,7 @@ class RowWords:
             raise SimplydataError(f'"{column}" is a true/false column, so it cannot become dates.')
         if kind == "number" and not self._frame.schema[column].is_integer():
             raise SimplydataError(
-                f'make_dates() can turn whole years like 2026 into dates, but "{column}" has decimals.'
+                f'turn_into_dates() can turn whole years like 2026 into dates, but "{column}" has decimals.'
                 + _example(example, "growth")
             )
         text = col.cast(nw.String).str.strip_chars()
@@ -1036,13 +1045,13 @@ class RowWords:
         return self._change(what, self._frame.with_columns(values))
 
     @friendly
-    def make_text(self, column=None):
+    def turn_into_text(self, column=None):
         """Turn a column into text.
 
-        table.make_text("month_number")   (with sdata.example("weather"))
+        table.turn_into_text("month_number")   (with sdata.get_example("weather"))
         """
-        example = 'table.make_text("month_number")'
-        self._need_one_column("make_text", column, example)
+        example = 'table.turn_into_text("month_number")'
+        self._need_one_column("turn_into_text", column, example)
         kind = self._kind_of(column)
         dtype = self._frame.schema[column]
         col = nw.col(column)
@@ -1071,62 +1080,65 @@ class RowWords:
         return self._change(what, self._frame.with_columns(change(text).alias(column)))
 
     @friendly
-    def make_lowercase(self, column=None):
+    def turn_into_lowercase(self, column=None):
         """Write all the text in a column in small letters.
 
-        table.make_lowercase("name")   (with sdata.example("marks"))
+        table.turn_into_lowercase("name")   (with sdata.get_example("marks"))
         """
-        return self._text_step("make_lowercase", column, f"make {column} lowercase", lambda t: t.str.to_lowercase())
+        return self._text_step("turn_into_lowercase", column, f"make {column} lowercase", lambda t: t.str.to_lowercase())
 
     @friendly
-    def make_uppercase(self, column=None):
+    def turn_into_uppercase(self, column=None):
         """Write all the text in a column in capital letters.
 
-        table.make_uppercase("name")   (with sdata.example("marks"))
+        table.turn_into_uppercase("name")   (with sdata.get_example("marks"))
         """
-        return self._text_step("make_uppercase", column, f"make {column} uppercase", lambda t: t.str.to_uppercase())
+        return self._text_step("turn_into_uppercase", column, f"make {column} uppercase", lambda t: t.str.to_uppercase())
 
     @friendly
-    def remove_extra_spaces(self, column=None):
+    def remove_extra_spaces_in(self, column=None):
         """Remove spaces at the start and end of the text, and double spaces inside it.
 
-        table.remove_extra_spaces("name")   (with sdata.example("marks"))
+        table.remove_extra_spaces_in("name")   (with sdata.get_example("marks"))
         """
         return self._text_step(
-            "remove_extra_spaces", column, f"remove extra spaces in {column}",
+            "remove_extra_spaces_in", column, f"remove extra spaces in {column}",
             lambda t: t.str.replace_all(r"\s+", " ", literal=False).str.strip_chars(),
         )
 
-    @friendly
-    def replace_values(self, column=None, old=_NOT_GIVEN, with_value=_NOT_GIVEN, *, above=_NOT_GIVEN,
-                       below=_NOT_GIVEN, at_least=_NOT_GIVEN, at_most=_NOT_GIVEN, equal_to=_NOT_GIVEN,
-                       not_equal_to=_NOT_GIVEN, between=_NOT_GIVEN, one_of=_NOT_GIVEN, contains=_NOT_GIVEN,
-                       starts_with=_NOT_GIVEN, ends_with=_NOT_GIVEN, after=_NOT_GIVEN, before=_NOT_GIVEN):
+    @friendly(renamed={"above": "is_above", "below": "is_below", "at_least": "is_at_least", "at_most": "is_at_most",
+                       "equal_to": "is_equal_to", "not_equal_to": "is_not_equal_to", "between": "is_between",
+                       "one_of": "is_one_of", "after": "is_after", "before": "is_before"})
+    def replace_values_in(self, column=None, old=_NOT_GIVEN, with_value=_NOT_GIVEN, *, is_above=_NOT_GIVEN,
+                          is_below=_NOT_GIVEN, is_at_least=_NOT_GIVEN, is_at_most=_NOT_GIVEN, is_equal_to=_NOT_GIVEN,
+                          is_not_equal_to=_NOT_GIVEN, is_between=_NOT_GIVEN, is_one_of=_NOT_GIVEN, contains=_NOT_GIVEN,
+                          starts_with=_NOT_GIVEN, ends_with=_NOT_GIVEN, is_after=_NOT_GIVEN, is_before=_NOT_GIVEN):
         """Replace a value (or a list of values) in a column; with_value=None makes those cells empty.
 
-        table.replace_values("subject", "Maths", with_value="Math")   (with sdata.example("marks"))
-        table.replace_values("class", {"A": "Class A", "B": "Class B"})   several at once, old: new
-        table.replace_values("marks", above=90, with_value=90)   every value that meets a condition
+        table.replace_values_in("subject", "Maths", with_value="Math")   (with sdata.get_example("marks"))
+        table.replace_values_in("class", {"A": "Class A", "B": "Class B"})   several at once, old: new
+        table.replace_values_in("marks", is_above=90, with_value=90)   every value that meets a condition
         With {old: new}, every cell is looked up once in the original column, so
         {"A": "B", "B": "A"} swaps A and B. A new value of None makes those cells empty.
-        The conditions are the keep_rows ones, one at a time: above, below, at_least, at_most,
-        equal_to, not_equal_to, between, one_of, contains, starts_with, ends_with, after, before.
-        Empty cells never match (fill them with fill_empty_cells).
+        The conditions are the keep_rows_where ones, one at a time: is_above, is_below, is_at_least,
+        is_at_most, is_equal_to, is_not_equal_to, is_between, is_one_of, contains, starts_with, ends_with,
+        is_after, is_before.
+        Empty cells never match (fill them with fill_empty_cells_in).
         """
-        example = 'table.replace_values("subject", "Maths", with_value="Math")'
-        self._need_one_column("replace_values", column, example)
-        options = dict(above=above, below=below, at_least=at_least, at_most=at_most, equal_to=equal_to,
-                       not_equal_to=not_equal_to, between=between, one_of=one_of, contains=contains,
-                       starts_with=starts_with, ends_with=ends_with, after=after, before=before)
+        example = 'table.replace_values_in("subject", "Maths", with_value="Math")'
+        self._need_one_column("replace_values_in", column, example)
+        options = dict(above=is_above, below=is_below, at_least=is_at_least, at_most=is_at_most, equal_to=is_equal_to,
+                       not_equal_to=is_not_equal_to, between=is_between, one_of=is_one_of, contains=contains,
+                       starts_with=starts_with, ends_with=ends_with, after=is_after, before=is_before)
         if any(v is not _NOT_GIVEN for v in options.values()):
             return self._replace_where(column, old, with_value, options)
         if isinstance(old, dict):
             return self._replace_many(column, old, with_value)
         if old is _NOT_GIVEN or with_value is _NOT_GIVEN:
             raise SimplydataError(
-                ".replace_values() needs the column, the old value, and with_value= the new value,"
+                ".replace_values_in() needs the column, the old value, and with_value= the new value,"
                 " or the column and {old: new} pairs." + _example(example)
-                + _example('table.replace_values("class", {"A": "Class A", "B": "Class B"})')
+                + _example('table.replace_values_in("class", {"A": "Class A", "B": "Class B"})')
             )
         olds = list(old) if isinstance(old, (list, tuple, set)) else [old]
         olds = [self._value_for("old value", column, v, example) for v in olds]
@@ -1144,19 +1156,19 @@ class RowWords:
         return self._change(f"replace {olds_words} in {column} with {_say(with_value)}", new)
 
     def _replace_where(self, column, old, with_value, options: dict):
-        """replace_values(column, above=100, with_value=100): the cells that meet one keep_rows condition."""
+        """replace_values(column, is_above=100, with_value=100): the cells that meet one keep_rows_where condition."""
         given = [k for k, v in options.items() if v is not _NOT_GIVEN]
-        example = f'table.replace_values("marks", above=90, with_value=90)'
+        example = f'table.replace_values_in("marks", is_above=90, with_value=90)'
         if old is not _NOT_GIVEN:
             raise SimplydataError(
                 f".replace_values() takes either the old value or one condition ({given[0]}=), not both."
-                + _example('table.replace_values("subject", "Maths", with_value="Math")') + _example(example)
+                + _example('table.replace_values_in("subject", "Maths", with_value="Math")') + _example(example)
             )
         if with_value is _NOT_GIVEN:
             raise SimplydataError(
-                ".replace_values() needs with_value=, the new value (None makes the cells empty)." + _example(example)
+                ".replace_values_in() needs with_value=, the new value (None makes the cells empty)." + _example(example)
             )
-        cond, words = self._condition("replace_values", column, options, ())
+        cond, words = self._condition("replace_values_in", column, options, ())
         col = nw.col(column)
         if with_value is None:
             new_col, said = nw.when(~cond).then(col), "empty"
@@ -1173,7 +1185,7 @@ class RowWords:
         return self._change(f"replace values in {column} where {column} {words} with {said}", new)
 
     def _replace_many(self, column, pairs: dict, with_value):
-        example = 'table.replace_values("class", {"A": "Class A", "B": "Class B"})'
+        example = 'table.replace_values_in("class", {"A": "Class A", "B": "Class B"})'
         if with_value is not _NOT_GIVEN:
             raise SimplydataError(
                 "With {old: new} pairs the new values are already in the brackets, so leave out with_value=."
@@ -1192,8 +1204,8 @@ class RowWords:
                     raise SimplydataError(
                         f'The new values must be the same kind as "{column}", a {kind} column '
                         f"(you gave {_say(new_value)}). To change the kind, replace first and then use "
-                        f"make_numbers(), make_text() or make_dates()."
-                        + _example('table.replace_values("class", {"A": "1", "B": "2"}).make_numbers("class")')
+                        f"turn_into_numbers(), turn_into_text() or turn_into_dates()."
+                        + _example('table.replace_values_in("class", {"A": "1", "B": "2"}).turn_into_numbers("class")')
                     ) from None
             checked.append((old_value, new_value))
         col = nw.col(column)
@@ -1214,24 +1226,24 @@ class RowWords:
         what = ", ".join(f"{_say(o)} with {_say(n)}" for o, n in checked)
         return self._change(f"replace {what} in {column}", new)
 
-    @friendly
-    def round_to(self, column=None, decimals=_NOT_GIVEN):
+    @friendly(renamed={"decimals": "with_decimals"})
+    def round_numbers_in(self, column=None, with_decimals=_NOT_GIVEN):
         """Round numbers to this many decimal places: in one column, a list of columns, or every number column.
 
-        table.round_to("hours", 0)   table.round_to(["hours", "marks"], 1)   table.round_to(1)
-        (with sdata.example("marks"))
+        table.round_numbers_in("hours", 0)   table.round_numbers_in(["hours", "marks"], 1)   table.round_numbers_in(1)
+        (with sdata.get_example("marks"))
         A number exactly halfway goes to the even neighbour (2.5 becomes 2, 3.5 becomes 4),
         like R and NumPy; this stops a run of halves from always pushing totals up.
-        round_to(0) gives whole numbers; a negative number of places rounds to tens (-1), hundreds (-2).
+        round_numbers_in("price", with_decimals=0) gives whole numbers; a negative number of places rounds to tens (-1), hundreds (-2).
         """
-        example = 'table.round_to("hours", 0)'
-        if decimals is _NOT_GIVEN and isinstance(column, numbers.Integral) and not isinstance(column, bool):
-            column, decimals = None, column  # table.round_to(2): every number column
-        if decimals is _NOT_GIVEN:
-            decimals = 0
-        if not isinstance(decimals, numbers.Integral) or isinstance(decimals, bool):
-            raise SimplydataError(".round_to() needs a whole number of decimal places, like 2." + _example(example))
-        decimals = int(decimals)
+        example = 'table.round_numbers_in("hours", 0)'
+        if with_decimals is _NOT_GIVEN and isinstance(column, numbers.Integral) and not isinstance(column, bool):
+            column, with_decimals = None, column  # table.round_numbers_in(2): every number column
+        if with_decimals is _NOT_GIVEN:
+            with_decimals = 0
+        if not isinstance(with_decimals, numbers.Integral) or isinstance(with_decimals, bool):
+            raise SimplydataError(".round_numbers_in() needs a whole number of decimal places, like 2." + _example(example))
+        with_decimals = int(with_decimals)
         number_columns = [c for c in self._columns if self._kind_of(c) == "number"]
         if column is None:
             names = number_columns
@@ -1241,31 +1253,31 @@ class RowWords:
             names = [column] if isinstance(column, str) else _as_list([column])
             if not names or not all(isinstance(n, str) for n in names):
                 raise SimplydataError(
-                    ".round_to() needs column names in quotes, then the decimal places." + _example(example)
+                    ".round_numbers_in() needs column names in quotes, then the decimal places." + _example(example)
                 )
             self._need_columns(*names)
             for name in names:
                 if name not in number_columns:
                     raise SimplydataError(
-                        f'.round_to() rounds numbers, but "{name}" is a {self._kind_of(name)} column.\n'
+                        f'.round_numbers_in() rounds numbers, but "{name}" is a {self._kind_of(name)} column.\n'
                         f"Columns with numbers: {', '.join(number_columns) or 'none'}" + _example(example)
                     )
         changes = []
         for name in names:
             dtype = self._frame.schema[name]
             col = nw.col(name)
-            if dtype.is_integer() and decimals >= 0:
+            if dtype.is_integer() and with_decimals >= 0:
                 continue  # whole numbers stay as they are
-            if decimals >= 0:
-                changes.append(col.round(decimals).alias(name))
+            if with_decimals >= 0:
+                changes.append(col.round(with_decimals).alias(name))
             else:
-                size = 10 ** -decimals
+                size = 10 ** -with_decimals
                 rounded = (col.cast(nw.Float64) / size).round(0) * size
                 changes.append((rounded.cast(dtype) if dtype.is_integer() else rounded).alias(name))
-        if decimals >= 0:
-            to = f"{decimals} decimal place" + ("" if decimals == 1 else "s")
+        if with_decimals >= 0:
+            to = f"{with_decimals} decimal place" + ("" if with_decimals == 1 else "s")
         else:
-            to = f"the nearest {10 ** -decimals}"
+            to = f"the nearest {10 ** -with_decimals}"
         where = ", ".join(names)
         print(f"Rounded {where} to {to}.")
         new = self._frame.with_columns(*changes) if changes else self._frame
@@ -1275,7 +1287,7 @@ class RowWords:
     def show(self, rows=None):
         """Show the table, every row and every column (or only the first rows=).
 
-        table.show()   table.show(rows=10)   (with sdata.example("marks"))
+        table.show()   table.show(rows=10)   (with sdata.get_example("marks"))
         A table with more than 1,000 rows shows its first 1,000; choose another number with rows=.
         Rows are numbered from 1, the numbers keep_rows_by_position() takes.
         """
@@ -1293,22 +1305,22 @@ class RowWords:
 
     # ================================================================== biggest and smallest
     def _for_each(self, step: str, for_each, column, example: str) -> list:
-        """The for_each= columns as a list (empty when not given)."""
+        """The for_each_group_in= columns as a list (empty when not given)."""
         if for_each is None:
             return []
         groups = [for_each] if isinstance(for_each, str) else _as_list([for_each])
         if not groups or not all(isinstance(g, str) for g in groups):
-            raise SimplydataError('for_each= needs a column name in quotes, like for_each="class".' + _example(example))
+            raise SimplydataError('for_each_group_in= needs a column name in quotes, like for_each_group_in="class".' + _example(example))
         self._need_columns(*groups)
         if column in groups:
             raise SimplydataError(
-                f'"{column}" cannot be both the column to look at and the for_each= column.' + _example(example)
+                f'"{column}" cannot be both the column to look at and the for_each_group_in= column.' + _example(example)
             )
         return groups
 
     def _keep_extreme(self, step: str, n, by, for_each, biggest: bool):
         word = "biggest" if biggest else "smallest"
-        example = f'table.{step}(3, by="marks", for_each="subject")'
+        example = f'table.{step}(3, by="marks", for_each_group_in="subject")'
         if n is None:
             raise SimplydataError(f".{step}() needs how many rows to keep, like 3." + _example(example))
         n = _check_count(step, n, example)
@@ -1342,30 +1354,30 @@ class RowWords:
             print(f"Note: {_rows(n_empty)} with an empty {by} cell {'was' if n_empty == 1 else 'were'} left out.")
         return self._change(f"keep the {_rows(n)} with the {word} {by}{each}", kept)
 
-    @friendly
-    def keep_biggest_rows(self, n=None, by=None, for_each=None):
+    @friendly(renamed={"for_each": "for_each_group_in"})
+    def keep_biggest_rows(self, n=None, by=None, for_each_group_in=None):
         """Keep the n rows with the biggest values in a column (also for each group).
 
-        table.keep_biggest_rows(3, by="marks", for_each="subject")   (with sdata.example("marks"))
+        table.keep_biggest_rows(3, by="marks", for_each_group_in="subject")   (with sdata.get_example("marks"))
         The rows come biggest first. Exactly n rows are kept: when rows tie at the cut, the
         ones higher up in the table are kept (a note says so). Empty cells are never kept.
         """
-        return self._keep_extreme("keep_biggest_rows", n, by, for_each, biggest=True)
+        return self._keep_extreme("keep_biggest_rows", n, by, for_each_group_in, biggest=True)
 
-    @friendly
-    def keep_smallest_rows(self, n=None, by=None, for_each=None):
+    @friendly(renamed={"for_each": "for_each_group_in"})
+    def keep_smallest_rows(self, n=None, by=None, for_each_group_in=None):
         """Keep the n rows with the smallest values in a column (also for each group).
 
-        table.keep_smallest_rows(3, by="marks", for_each="subject")   (with sdata.example("marks"))
+        table.keep_smallest_rows(3, by="marks", for_each_group_in="subject")   (with sdata.get_example("marks"))
         The rows come smallest first. Exactly n rows are kept: when rows tie at the cut, the
         ones higher up in the table are kept (a note says so). Empty cells are never kept.
         """
-        return self._keep_extreme("keep_smallest_rows", n, by, for_each, biggest=False)
+        return self._keep_extreme("keep_smallest_rows", n, by, for_each_group_in, biggest=False)
 
     # ================================================================== outliers
     def _outliers(self, step: str, column, for_each, rule):
         """Print the rule and its limits; give the table with an outlier column (_NEW) and the helper names."""
-        example = f'table.{step}("marks", for_each="subject")'
+        example = f'table.{step}("marks", for_each_group_in="subject")'
         self._need_one_column(step, column, example)
         kind = self._kind_of(column)
         if kind != "number":
@@ -1498,11 +1510,11 @@ class RowWords:
         words = f"{rule.capitalize()}'s test" + (f", for each {', '.join(groups)}" if groups else "")
         return frame, [_NEW], words
 
-    @friendly
-    def show_rows_with_outliers(self, column=None, for_each=None, rule="1.5 IQR"):
+    @friendly(renamed={"for_each": "for_each_group_in"})
+    def show_rows_with_outliers(self, column=None, for_each_group_in=None, rule="1.5 IQR"):
         """Show the rows whose value in a column is an outlier, and say why (the table does not change).
 
-        table.show_rows_with_outliers("marks", for_each="subject")   (with sdata.example("marks"))
+        table.show_rows_with_outliers("marks", for_each_group_in="subject")   (with sdata.get_example("marks"))
         rule="1.5 IQR" (the default) is Tukey's rule, the one box plots use: below Q1 - 1.5 x IQR
         or above Q3 + 1.5 x IQR. Also rule="3 IQR" or rule="3 standard deviations", or an
         outlier test run in R (simplydata[r]): rule="grubbs" (outliers::grubbs.test(), the value
@@ -1511,7 +1523,7 @@ class RowWords:
         Empty cells are never outliers. Each row is shown with its number in the whole table
         (counting from 1), so remove_rows_by_position() can follow.
         """
-        frame, helpers, _ = self._outliers("show_rows_with_outliers", column, for_each, rule)
+        frame, helpers, _ = self._outliers("show_rows_with_outliers", column, for_each_group_in, rule)
         place = _NEW + "place"
         found = frame.with_row_index(place).filter(nw.col(_NEW))
         positions = found[place].to_list()
@@ -1523,11 +1535,11 @@ class RowWords:
                   f"table.remove_rows_by_position({_list_code(p + 1 for p in positions)}) would remove them.")
         return None
 
-    @friendly
-    def remove_rows_with_outliers(self, column=None, for_each=None, rule="1.5 IQR"):
+    @friendly(renamed={"for_each": "for_each_group_in"})
+    def remove_rows_with_outliers(self, column=None, for_each_group_in=None, rule="1.5 IQR"):
         """Remove the rows whose value in a column is an outlier, and say how many and why.
 
-        table.remove_rows_with_outliers("marks", for_each="subject")   (with sdata.example("marks"))
+        table.remove_rows_with_outliers("marks", for_each_group_in="subject")   (with sdata.get_example("marks"))
         rule="1.5 IQR" (the default) is Tukey's rule, the one box plots use: below Q1 - 1.5 x IQR
         or above Q3 + 1.5 x IQR. Also rule="3 IQR" or rule="3 standard deviations", or an
         outlier test run in R (simplydata[r]): rule="grubbs" (outliers::grubbs.test(), the value
@@ -1536,7 +1548,7 @@ class RowWords:
         Rows with an empty cell stay. Look first with show_rows_with_outliers(), and say in your
         report which rule removed how many rows.
         """
-        frame, helpers, words = self._outliers("remove_rows_with_outliers", column, for_each, rule)
+        frame, helpers, words = self._outliers("remove_rows_with_outliers", column, for_each_group_in, rule)
         new = frame.filter(~nw.col(_NEW)).drop(helpers)
         before = len(frame)
         print(f"Removed {before - len(new)} of {_rows(before)}. {_rows(len(new))} left.")

@@ -4,14 +4,14 @@ Rules (the same as the rest of simplydata, see _stats.py):
 
 * empty cells are skipped, and a short note says how many were skipped
 * standard deviation uses the sample formula (divide by n - 1), like pandas and R
-* without for_each= you get one plain number; with for_each= you get a NEW small table
+* without for_each_group_in= you get one plain number; with for_each_group_in= you get a NEW small table
   with one row per group, sorted by group. Rows with an empty group cell form their own
   group, shown last.
 * every summary also prints its answer as one short sentence, so a script needs no print()
 * every="month" (or "hour", "day", "week", "quarter", "year") groups a date column in
-  for_each= into periods; each period is shown in the new table by its first day (a week
+  for_each_group_in= into periods; each period is shown in the new table by its first day (a week
   starts on Monday, as ISO 8601)
-* across="subject" gives a cross table: one row per for_each= group, one column per value
+* across="subject" gives a cross table: one row per for_each_group_in= group, one column per value
   of across= (pandas pivot_table / crosstab)
 * percents are numbers from 0 to 100 (never fractions, never text); tables keep every
   digit, sentences show one decimal: 41.7 %. Percent intervals are Clopper-Pearson exact
@@ -47,12 +47,12 @@ from .rows import _NOT_GIVEN
 
 # word -> (start of the result column name, narwhals calculation)
 _SUMMARIES = {
-    "average_of": ("average", lambda c: nw.col(c).mean()),
-    "median_of": ("median", lambda c: nw.col(c).median()),
-    "total_of": ("total", lambda c: nw.col(c).sum()),
-    "smallest_of": ("smallest", lambda c: nw.col(c).min()),
-    "biggest_of": ("biggest", lambda c: nw.col(c).max()),
-    "standard_deviation_of": ("standard deviation", lambda c: nw.col(c).std(ddof=1)),
+    "find_average_of": ("average", lambda c: nw.col(c).mean()),
+    "find_median_of": ("median", lambda c: nw.col(c).median()),
+    "find_total_of": ("total", lambda c: nw.col(c).sum()),
+    "find_smallest_of": ("smallest", lambda c: nw.col(c).min()),
+    "find_biggest_of": ("biggest", lambda c: nw.col(c).max()),
+    "find_standard_deviation_of": ("standard deviation", lambda c: nw.col(c).std(ddof=1)),
 }
 
 CORRELATION_METHODS = ("pearson", "spearman", "kendall", "somers", "gamma")
@@ -64,11 +64,11 @@ STRONGEST_PAIRS = 3  # a correlation table prints this many of its strongest pai
 
 # every= : the time step -> narwhals truncate code (weeks are done by hand: Monday start)
 EVERY = {"hour": "1h", "day": "1d", "week": None, "month": "1mo", "quarter": "1q", "year": "1y"}
-EVERY_EXAMPLE = ('table.make_dates("year")\n'
-                 '              table.average_of("population", for_each="year", every="year")'
-                 '   (with sdata.example("growth"))')
+EVERY_EXAMPLE = ('table.turn_into_dates("year")\n'
+                 '              table.find_average_of("population", for_each_group_in="year", every="year")'
+                 '   (with sdata.get_example("growth"))')
 
-# summary_of(show=[...]): the measure names, the same as the _of words and chart show=/error=
+# find_summary_of(show=[...]): the measure names, the same as the _of words and chart show=/error=
 MEASURES = ("count", "average", "median", "total", "smallest", "biggest", "standard deviation", "variance",
             "standard error", "confidence interval", "range", "interquartile range", "empty cells",
             "geometric mean", "skewness", "kurtosis", "coefficient of variation", "median absolute deviation",
@@ -88,7 +88,7 @@ WINSOR_PERCENT = 20  # "winsorised average": 20 % pulled in at each end (R WRS2:
 MAD_CONSTANT = 1.4826  # R mad(): makes the median absolute deviation match the sd for bell-shaped values
 LEAST_VALUES = {"skewness": 3, "kurtosis": 4}  # fewer values than this give an empty cell
 DEFAULT_MEASURES = ("count", "average", "standard deviation", "smallest", "median", "biggest")
-SUMMARY_LINES = 12  # summary_of prints at most this many rows; the table has them all
+SUMMARY_LINES = 12  # find_summary_of prints at most this many rows; the table has them all
 
 
 # lower edge of each band, biggest first
@@ -111,8 +111,8 @@ def _as_list(step: str, option: str, value) -> list[str]:
         return list(value)
     raise SimplydataError(
         f"{step}() needs {option} as a column name in quotes, or a list of names.\n"
-        f'For example, with sdata.example("marks"): table.{step}("marks", for_each="class")\n'
-        f'or table.{step}(["marks", "hours"], for_each=["class", "subject"])'
+        f'For example, with sdata.get_example("marks"): table.{step}("marks", for_each_group_in="class")\n'
+        f'or table.{step}(["marks", "hours"], for_each_group_in=["class", "subject"])'
     )
 
 
@@ -301,7 +301,7 @@ def _p_clause(p: float, if_none: str = "there were truly none", shown: str | Non
     return f"{_studies(p)} studies would show this much if {if_none} ({shown or _p_shown(p)})"
 
 
-# interval_by= of percent_of and compare_percent_to: the 95 % interval of a percent (method= is its old name)
+# interval_by= of find_percent_of_rows_where and compare_percent_to: the 95 % interval of a percent (method= is its old name)
 # name -> (name in sentences, statsmodels proportion_confint method); each as R DescTools::BinomCI()
 PERCENT_METHODS = {
     "exact": ("exact Clopper-Pearson interval", "beta"),
@@ -356,12 +356,12 @@ def _ordinal(number: float) -> str:
 
 
 BOOTSTRAP_KINDS = {"bootstrap": "bca", "percentile bootstrap": "percentile", "reverse percentile bootstrap": "basic"}
-# old values of interval_of(method=), still accepted with a note ("basic" read as "simple, the usual one")
+# old values of find_interval_of(method=), still accepted with a note ("basic" read as "simple, the usual one")
 OLD_BOOTSTRAP_KINDS = {"basic bootstrap": "reverse percentile bootstrap", "basic": "reverse percentile bootstrap"}
 
 
 def _one_number(step, name):
-    """interval_of(summary=): the summary_of measure as a function of one group's numbers (NumPy / SciPy)."""
+    """interval_of(summary=): the find_summary_of measure as a function of one group's numbers (NumPy / SciPy)."""
     from scipy import stats
 
     plain = {"average": np.mean, "median": np.median, "total": np.sum, "smallest": np.min, "biggest": np.max,
@@ -371,7 +371,7 @@ def _one_number(step, name):
         return plain[name]
     if _is_array_measure(name) and name != "most common":
         return lambda x: _array_measure(name, np.asarray(x, dtype=float))[0]
-    raise SimplydataError(f'interval_of() needs a summary that gives one number from the values; "{name}" does not. '
+    raise SimplydataError(f'find_interval_of() needs a summary that gives one number from the values; "{name}" does not. '
                           'Try "average", "median" or "standard deviation".')
 
 
@@ -389,7 +389,7 @@ def _percentile_rule(step, method):
 
 
 def _check_percent(step: str, percent, option="percent", example=None) -> float:
-    example = example or f'table.{step}("marks", 90, for_each="class")   (with sdata.example("marks"))'
+    example = example or f'table.{step}("marks", 90, for_each_group_in="class")   (with sdata.get_example("marks"))'
     if not isinstance(percent, (int, float)) or isinstance(percent, bool) or not math.isfinite(percent):
         raise SimplydataError(f"{step}() needs the {option} as a number from 0 to 100.\nFor example:  {example}")
     if not 0 <= percent <= 100:
@@ -405,7 +405,7 @@ def _measure_name(step: str, item):
     name = _plain_name(item)
     if not isinstance(name, str):
         raise choice_error(step, "show", item, list(MEASURES))
-    example = f'table.{step}("marks", show=["percentile 90", "trimmed average 20"])   (with sdata.example("marks"))'
+    example = f'table.{step}("marks", show=["percentile 90", "trimmed average 20"])   (with sdata.get_example("marks"))'
     found = re.fullmatch(r"(?:(\d+(?:\.\d+)?)\s*(?:st|nd|rd|th)?\s*(?:percentile|quantile)"
                          r"|(?:percentile|quantile)\s*(\d+(?:\.\d+)?))", name)
     if found:
@@ -507,7 +507,7 @@ def _array_measure(name: str, values):
 
 
 def _measure_values(names, raw: dict) -> dict:
-    """The summary_of measures of one group, from its raw pieces (count, mean, sd ...)."""
+    """The find_summary_of measures of one group, from its raw pieces (count, mean, sd ...)."""
     n = int(raw["n"] or 0)
 
     def number(value):
@@ -579,7 +579,7 @@ class SummaryWords:
             raise SimplydataError(
                 f'{step} needs a column of numbers; "{name}" has {what}.\n'
                 f"{hint}\n"
-                f'For example, with sdata.example("marks"): table.{step}("marks")'
+                f'For example, with sdata.get_example("marks"): table.{step}("marks")'
             )
         floats = [c for c in columns if schema[c].is_float()]
         if floats:
@@ -587,13 +587,13 @@ class SummaryWords:
         return self._frame
 
     def _group_columns(self, step: str, for_each, columns=()) -> list[str]:
-        groups = _as_list(step, "for_each=", for_each)
+        groups = _as_list(step, "for_each_group_in=", for_each)
         self._need_columns(*groups)
         for name in groups:
             if name in columns:
                 raise SimplydataError(
-                    f'"{name}" cannot be both the column to summarise and the for_each= column.\n'
-                    f'For example, with sdata.example("marks"): table.{step}("marks", for_each="class")'
+                    f'"{name}" cannot be both the column to summarise and the for_each_group_in= column.\n'
+                    f'For example, with sdata.get_example("marks"): table.{step}("marks", for_each_group_in="class")'
                 )
         return groups
 
@@ -617,7 +617,7 @@ class SummaryWords:
         return self._new_table(nw.maybe_reset_index(result))
 
     def _periods(self, step: str, frame, groups, every):
-        """every="month": the date columns in for_each= become the first day of their month.
+        """every="month": the date columns in for_each_group_in= become the first day of their month.
 
         Gives back (frame, {date column: "month"}). Without every= nothing changes."""
         if every is None:
@@ -627,7 +627,7 @@ class SummaryWords:
             raise choice_error(step, "every", every, list(EVERY))
         if not groups:
             raise SimplydataError(
-                f"every= needs the column of dates in for_each=, to say which dates to group.\n"
+                f"every= needs the column of dates in for_each_group_in=, to say which dates to group.\n"
                 f"For example:  {EVERY_EXAMPLE}"
             )
         schema = frame.schema
@@ -636,9 +636,9 @@ class SummaryWords:
             kinds = ", ".join(f'"{g}"' for g in groups)
             text = [g for g in groups if schema[g] == nw.String]
             hint = (f'If {_names(text)} holds dates written as text, make them dates first: '
-                    f'table.make_dates("{text[0]}").\n' if text else "")
+                    f'table.turn_into_dates("{text[0]}").\n' if text else "")
             raise SimplydataError(
-                f"every= groups dates into periods, but none of the for_each= columns ({kinds}) holds dates.\n"
+                f"every= groups dates into periods, but none of the for_each_group_in= columns ({kinds}) holds dates.\n"
                 f"{hint}For example:  {EVERY_EXAMPLE}"
             )
         frame = nw.maybe_reset_index(frame)
@@ -681,20 +681,20 @@ class SummaryWords:
             print(f"  ... and {len(rows) - GROUPS_IN_SENTENCE} more rows (the new table has them all)")
 
     def _check_across(self, step: str, across, groups, columns=()):
-        example = f'table.{step}("marks", for_each="class", across="subject")   (with sdata.example("marks"))'
+        example = f'table.{step}("marks", for_each_group_in="class", across="subject")   (with sdata.get_example("marks"))'
         if step == "count_rows":
-            example = 'table.count_rows(for_each="class", across="subject")   (with sdata.example("marks"))'
+            example = 'table.count_rows(for_each_group_in="class", across="subject")   (with sdata.get_example("marks"))'
         if not isinstance(across, str):
             raise SimplydataError(f"{step}() needs across= as one column name in quotes.\nFor example:  {example}")
         if groups is None:
             raise SimplydataError(
-                f"across= makes a cross table: for_each= gives its rows and across= its columns.\n"
+                f"across= makes a cross table: for_each_group_in= gives its rows and across= its columns.\n"
                 f"For example:  {example}"
             )
         self._need_columns(across)
         if across in groups or across in columns:
             raise SimplydataError(
-                f'"{across}" cannot be both the across= column and a for_each= column or the column to summarise.\n'
+                f'"{across}" cannot be both the across= column and a for_each_group_in= column or the column to summarise.\n'
                 f"For example:  {example}"
             )
 
@@ -708,9 +708,9 @@ class SummaryWords:
             self._check_across(step, across, groups, columns)
             if len(columns) > 1:
                 raise SimplydataError(
-                    f"across= makes a cross table of one column. Give one column, or use summary_of() for several.\n"
-                    f'For example:  table.{step}("marks", for_each="class", across="subject")'
-                    '   (with sdata.example("marks"))'
+                    f"across= makes a cross table of one column. Give one column, or use find_summary_of() for several.\n"
+                    f'For example:  table.{step}("marks", for_each_group_in="class", across="subject")'
+                    '   (with sdata.get_example("marks"))'
                 )
         frame = self._number_frame(step, columns)
         frame, periods = self._periods(step, frame, groups, every)
@@ -745,22 +745,22 @@ class SummaryWords:
         return result
 
     def _weighted(self, step, column, weights, for_each, every, across, interval, kind="frequency"):
-        """average_of / standard_deviation_of with weights=: statsmodels DescrStatsW (frequency weights) or
+        """average_of / find_standard_deviation_of with weights=: statsmodels DescrStatsW (frequency weights) or
         NumPy cov(aweights=) (analytic weights), as R weighted.mean() and Hmisc::wtd.var()."""
         import numpy as np
         from statsmodels.stats.weightstats import DescrStatsW
 
-        example = f'table.{step}("marks", for_each="class", weights="people")'
+        example = f'table.{step}("marks", for_each_group_in="class", weights="people")'
         if interval is not None:
             raise SimplydataError("weights= and interval= do not go together here yet; leave out one of them.")
         if every is not None or across is not None or not isinstance(column, str):
-            raise SimplydataError(f"weights= works with one column and for_each=; leave out every= and across=.\n"
+            raise SimplydataError(f"weights= works with one column and for_each_group_in=; leave out every= and across=.\n"
                                   f"For example:  {example}")
         if not isinstance(weights, str):
             raise SimplydataError(f"weights= is the name of a column of weights, in quotes.\nFor example:  {example}")
         if weights == column:
             raise SimplydataError(f'weights= needs a column other than "{column}".')
-        if step == "standard_deviation_of":
+        if step == "find_standard_deviation_of":
             self._check_choice(step, "weight_kind", kind, ("frequency", "analytic"))
         groups = self._group_columns(step, for_each, [column, weights]) if for_each is not None else []
         frame = self._number_frame(step, [column, weights])
@@ -779,13 +779,13 @@ class SummaryWords:
                                       "negative values.")
             if len(x) == 0 or w.sum() == 0:
                 found[key] = math.nan
-            elif step == "average_of":
+            elif step == "find_average_of":
                 found[key] = float(DescrStatsW(x, weights=w).mean)
             elif kind == "frequency":
                 found[key] = float(DescrStatsW(x, weights=w, ddof=1).std) if w.sum() > 1 else math.nan
             else:
                 found[key] = float(np.sqrt(np.cov(x, aweights=w, ddof=1))) if np.sum(w > 0) > 1 else math.nan
-        if step == "average_of":
+        if step == "find_average_of":
             said, how = "weighted average", "statsmodels DescrStatsW, as R weighted.mean(x, w)"
         elif kind == "frequency":
             said = "weighted standard deviation"
@@ -808,22 +808,22 @@ class SummaryWords:
         return table
 
     def _summary_interval(self, step, column, for_each, every, across, interval, share=None):
-        """average_of / median_of / percentile_of / standard_deviation_of with interval=: one row per group with
+        """average_of / find_median_of / find_percentile_of / find_standard_deviation_of with interval=: one row per group with
         the value, its interval and the count. Each interval comes from a package (SciPy, or R DescTools)."""
         from scipy import stats
 
-        level = _check_percent(step, interval, "interval", f'table.{step}("marks", for_each="class", interval=95)')
+        level = _check_percent(step, interval, "interval", f'table.{step}("marks", for_each_group_in="class", interval=95)')
         if not 50 <= level < 100:
             raise SimplydataError(f"interval= is the level of the interval in percent, such as interval=95 or 90 "
                                   f"(it is {level:g}).")
         if every is not None or across is not None or not isinstance(column, str):
-            raise SimplydataError(f"interval= works with one column and for_each=; leave out every= and across=.")
+            raise SimplydataError(f"interval= works with one column and for_each_group_in=; leave out every= and across=.")
         groups = self._group_columns(step, for_each, [column]) if for_each is not None else []
         frame = self._number_frame(step, [column])
         self._note_empty(frame, [column])
         arrays = self._group_arrays(frame, groups, column)
-        kind = {"average_of": "average", "median_of": "median", "standard_deviation_of": "standard deviation",
-                "percentile_of": f"percentile {share * 100:g}" if share is not None else None}[step]
+        kind = {"find_average_of": "average", "find_median_of": "median", "find_standard_deviation_of": "standard deviation",
+                "find_percentile_of": f"percentile {share * 100:g}" if share is not None else None}[step]
         start = kind
         how = {"average": "t interval, as R t.test()",
                "standard deviation": "chi-square interval, from R DescTools::VarCI() (the interval of the variance, "
@@ -883,17 +883,17 @@ class SummaryWords:
             print("Note: an end of the interval is empty where there are too few values to reach that level.")
         return table
 
-    @friendly
-    def interval_of(self, column=None, summary="average", for_each=None, interval=95, method="bootstrap",
-                    resamples=9999, seed=1):
+    @friendly(renamed={"for_each": "for_each_group_in", "seed": "with_seed"})
+    def find_interval_of(self, column=None, summary="average", for_each_group_in=None, interval=95, method="bootstrap",
+                         resamples=9999, with_seed=1):
         """A confidence interval for any summary, from the bootstrap.
 
-        table.interval_of("marks", "median", for_each="class")   (with sdata.example("marks"))
-        summary= is any one-number measure of summary_of() ("average", "median", "standard
+        table.find_interval_of("marks", "median", for_each_group_in="class")   (with sdata.get_example("marks"))
+        summary= is any one-number measure of find_summary_of() ("average", "median", "standard
         deviation", "trimmed average 20", "percentile 90", "coefficient of variation", ...) or a
         function of your own that gets the numbers (a NumPy array) and gives back one number.
         The bootstrap draws the rows again at random, with replacement, resamples=9999 times
-        (seed=1, printed; the same seed gives the same interval) and works out the summary each
+        (with_seed=1, printed; the same seed gives the same interval) and works out the summary each
         time; SciPy stats.bootstrap, as R boot::boot.ci(). method="bootstrap" is the
         bias-corrected and accelerated (BCa) interval, the usual choice; "percentile bootstrap"
         and "reverse percentile bootstrap" (R's "basic") are the other two. With fewer than 20
@@ -902,8 +902,8 @@ class SummaryWords:
         """
         from .resampling import bootstrap_interval
 
-        step = "interval_of"
-        example = 'table.interval_of("marks", "median", for_each="class")   (with sdata.example("marks"))'
+        step = "find_interval_of"
+        example = 'table.find_interval_of("marks", "median", for_each_group_in="class")   (with sdata.get_example("marks"))'
         if not isinstance(column, str):
             raise SimplydataError(f"{step}() needs one column name in quotes, then the summary.\nFor example:  {example}")
         level = _check_percent(step, interval, "interval", example)
@@ -924,7 +924,7 @@ class SummaryWords:
         else:
             label = _measure_name(step, summary)
             function = _one_number(step, label)
-        groups = self._group_columns(step, for_each, [column]) if for_each is not None else []
+        groups = self._group_columns(step, for_each_group_in, [column]) if for_each_group_in is not None else []
         frame = self._number_frame(step, [column])
         self._note_empty(frame, [column])
         rows, notes, words = [], set(), ""
@@ -933,7 +933,7 @@ class SummaryWords:
                 raise SimplydataError(f"{step}() needs at least 2 numbers in each group.")
             value = float(function(x))
             low, high, words, note = bootstrap_interval((x,), lambda v: float(function(v)), level,
-                                                        BOOTSTRAP_KINDS[method], resamples, seed, vectorized=False)
+                                                        BOOTSTRAP_KINDS[method], resamples, with_seed, vectorized=False)
             notes.add(note)
             if math.isnan(low) or math.isnan(high):
                 notes.add(f'Note: the {method} interval could not be worked out for '
@@ -955,78 +955,78 @@ class SummaryWords:
         return self._new_table(nw.from_dict(data, backend=self._frame.implementation))
 
     # ------------------------------------------------------------------ number words
-    @friendly
-    def average_of(self, column, for_each=None, every=None, across=None, interval=None, weights=None):
+    @friendly(renamed={"for_each": "for_each_group_in"})
+    def find_average_of(self, column, for_each_group_in=None, every=None, across=None, interval=None, weights=None):
         """The average (mean) of a column; empty cells are skipped.
 
-        table.average_of("marks", for_each="class")   (with sdata.example("marks"))
+        table.find_average_of("marks", for_each_group_in="class")   (with sdata.get_example("marks"))
         across= gives a cross table, one column per subject:
-        table.average_of("marks", for_each="class", across="subject")
-        every= groups a date column in for_each= into "hour", "day", "week", "month",
+        table.find_average_of("marks", for_each_group_in="class", across="subject")
+        every= groups a date column in for_each_group_in= into "hour", "day", "week", "month",
         "quarter" or "year" periods:
-        table.make_dates("year")
-        table.average_of("population", for_each="year", every="year")   (with sdata.example("growth"))
+        table.turn_into_dates("year")
+        table.find_average_of("population", for_each_group_in="year", every="year")   (with sdata.get_example("growth"))
         interval=95 adds the 95 % confidence interval of each average (the t interval, as R
         t.test()) and gives back a table with the average, the interval and the count.
         weights="people" gives the weighted average: each row counts as much as its number in the
         column of weights (statsmodels DescrStatsW, as R weighted.mean()).
         """
         if weights is not None:
-            return self._weighted("average_of", column, weights, for_each, every, across, interval)
+            return self._weighted("find_average_of", column, weights, for_each_group_in, every, across, interval)
         if interval is not None:
-            return self._summary_interval("average_of", column, for_each, every, across, interval)
-        return self._summary("average_of", column, for_each, every, across)
+            return self._summary_interval("find_average_of", column, for_each_group_in, every, across, interval)
+        return self._summary("find_average_of", column, for_each_group_in, every, across)
 
-    @friendly
-    def median_of(self, column, for_each=None, every=None, across=None, interval=None):
+    @friendly(renamed={"for_each": "for_each_group_in"})
+    def find_median_of(self, column, for_each_group_in=None, every=None, across=None, interval=None):
         """The middle number of a column once it is sorted; empty cells are skipped.
 
-        table.median_of("marks", for_each="class")   (with sdata.example("marks"))
-        across= and every= work as in average_of.
+        table.find_median_of("marks", for_each_group_in="class")   (with sdata.get_example("marks"))
+        across= and every= work as in find_average_of.
         interval=95 adds the 95 % confidence interval of each median: the exact interval from
         the order of the values (SciPy quantile_test, as R DescTools::MedianCI(method =
         "exact")); it gives back a table with the median, the interval and the count.
         """
         if interval is not None:
-            return self._summary_interval("median_of", column, for_each, every, across, interval)
-        return self._summary("median_of", column, for_each, every, across)
+            return self._summary_interval("find_median_of", column, for_each_group_in, every, across, interval)
+        return self._summary("find_median_of", column, for_each_group_in, every, across)
 
-    @friendly
-    def total_of(self, column, for_each=None, every=None, across=None):
+    @friendly(renamed={"for_each": "for_each_group_in"})
+    def find_total_of(self, column, for_each_group_in=None, every=None, across=None):
         """All the numbers in a column added up; empty cells are skipped.
 
-        table.total_of("count", for_each="shop")   (with sdata.example("fruit"))
-        table.total_of("count", for_each="shop", across="fruit")   a cross table
-        every="month" with a date column in for_each= gives the total of each month.
+        table.find_total_of("count", for_each_group_in="shop")   (with sdata.get_example("fruit"))
+        table.find_total_of("count", for_each_group_in="shop", across="fruit")   a cross table
+        every="month" with a date column in for_each_group_in= gives the total of each month.
         """
-        return self._summary("total_of", column, for_each, every, across)
+        return self._summary("find_total_of", column, for_each_group_in, every, across)
 
-    @friendly
-    def smallest_of(self, column, for_each=None, every=None, across=None):
+    @friendly(renamed={"for_each": "for_each_group_in"})
+    def find_smallest_of(self, column, for_each_group_in=None, every=None, across=None):
         """The smallest number in a column; empty cells are skipped.
 
-        table.smallest_of("temperature", for_each="city")   (with sdata.example("weather"))
-        across= and every= work as in average_of.
+        table.find_smallest_of("temperature", for_each_group_in="city")   (with sdata.get_example("weather"))
+        across= and every= work as in find_average_of.
         """
-        return self._summary("smallest_of", column, for_each, every, across)
+        return self._summary("find_smallest_of", column, for_each_group_in, every, across)
 
-    @friendly
-    def biggest_of(self, column, for_each=None, every=None, across=None):
+    @friendly(renamed={"for_each": "for_each_group_in"})
+    def find_biggest_of(self, column, for_each_group_in=None, every=None, across=None):
         """The biggest number in a column; empty cells are skipped.
 
-        table.biggest_of("temperature", for_each="city")   (with sdata.example("weather"))
-        across= and every= work as in average_of.
+        table.find_biggest_of("temperature", for_each_group_in="city")   (with sdata.get_example("weather"))
+        across= and every= work as in find_average_of.
         """
-        return self._summary("biggest_of", column, for_each, every, across)
+        return self._summary("find_biggest_of", column, for_each_group_in, every, across)
 
-    @friendly
-    def standard_deviation_of(self, column, for_each=None, every=None, across=None, interval=None, weights=None,
-                              weight_kind="frequency"):
+    @friendly(renamed={"for_each": "for_each_group_in"})
+    def find_standard_deviation_of(self, column, for_each_group_in=None, every=None, across=None, interval=None, weights=None,
+                                   weight_kind="frequency"):
         """How spread out the numbers are: the sample standard deviation (divide by n - 1).
 
         It is the same as pandas .std() and R sd(). Empty cells are skipped.
-        table.standard_deviation_of("marks", for_each="class")   (with sdata.example("marks"))
-        across= and every= work as in average_of.
+        table.find_standard_deviation_of("marks", for_each_group_in="class")   (with sdata.get_example("marks"))
+        across= and every= work as in find_average_of.
         interval=95 adds the 95 % confidence interval of each standard deviation (the chi-square
         interval of the variance from R DescTools::VarCI(), square-rooted; needs simplydata[r],
         as Python has no function for it). It assumes bell-shaped values.
@@ -1037,25 +1037,25 @@ class SummaryWords:
         cov(aweights=), as R sqrt(Hmisc::wtd.var(x, w, normwt = TRUE))).
         """
         if weights is not None:
-            return self._weighted("standard_deviation_of", column, weights, for_each, every, across, interval,
+            return self._weighted("find_standard_deviation_of", column, weights, for_each_group_in, every, across, interval,
                                   weight_kind)
         if weight_kind != "frequency":
             raise SimplydataError("weight_kind= says how to read weights=, so it goes with weights=.\n"
-                                  'For example:  table.standard_deviation_of("marks", weights="people", '
+                                  'For example:  table.find_standard_deviation_of("marks", weights="people", '
                                   'weight_kind="analytic")')
         if interval is not None:
-            return self._summary_interval("standard_deviation_of", column, for_each, every, across, interval)
-        return self._summary("standard_deviation_of", column, for_each, every, across)
+            return self._summary_interval("find_standard_deviation_of", column, for_each_group_in, every, across, interval)
+        return self._summary("find_standard_deviation_of", column, for_each_group_in, every, across)
 
-    @friendly
-    def percentile_of(self, column=None, percent=None, for_each=None, every=None, across=None, method="linear",
-                      interval=None):
+    @friendly(renamed={"for_each": "for_each_group_in"})
+    def find_percentile_of(self, column=None, percent=None, for_each_group_in=None, every=None, across=None, method="linear",
+                           interval=None):
         """The value below which a given percent of the numbers lie; empty cells are skipped.
 
-        table.percentile_of("marks", 90, for_each="class")   (with sdata.example("marks"))
-        percentile_of("marks", 50) is the median, 25 and 75 the quartiles. Between two
+        table.find_percentile_of("marks", 90, for_each_group_in="class")   (with sdata.get_example("marks"))
+        find_percentile_of("marks", 50) is the median, 25 and 75 the quartiles. Between two
         numbers it uses the usual linear rule (R quantile(type = 7), NumPy and pandas
-        default). across= and every= work as in average_of.
+        default). across= and every= work as in find_average_of.
         method= picks one of R's nine rules, by R's number or NumPy's name: 1 "inverted_cdf",
         2 "averaged_inverted_cdf", 3 "closest_observation", 4 "interpolated_inverted_cdf",
         5 "hazen", 6 "weibull" (as SPSS and Minitab), 7 "linear" (the default), 8
@@ -1066,10 +1066,10 @@ class SummaryWords:
         same as R DescTools::QuantileCI(method = "exact"), which picks other values for other
         percents); with few values an end can be empty.
         """
-        step = "percentile_of"
+        step = "find_percentile_of"
         if column is None:
             raise SimplydataError(f"{step}() needs the column first, then the percent.\n"
-                                  f'For example:  table.{step}("marks", 90, for_each="class")   (with sdata.example("marks"))')
+                                  f'For example:  table.{step}("marks", 90, for_each_group_in="class")   (with sdata.get_example("marks"))')
         number = _check_percent(step, percent)
         share = number / 100
         rule = _percentile_rule(step, method)
@@ -1077,17 +1077,17 @@ class SummaryWords:
             if rule != "linear":
                 raise SimplydataError("interval= gives the interval of the percentile itself, the same for every "
                                       "method=; leave out method=.")
-            return self._summary_interval(step, column, for_each, every, across, interval, share=share)
+            return self._summary_interval(step, column, for_each_group_in, every, across, interval, share=share)
         if rule == "linear":
             measure = (f"percentile {number:g}", lambda c: nw.col(c).quantile(share, interpolation="linear"),
                        f"{_ordinal(number)} percentile")
-            return self._summary(step, column, for_each, every, across, measure=measure)
-        return self._percentile_by_rule(step, column, number, for_each, every, across, rule)
+            return self._summary(step, column, for_each_group_in, every, across, measure=measure)
+        return self._percentile_by_rule(step, column, number, for_each_group_in, every, across, rule)
 
     def _percentile_by_rule(self, step, column, number, for_each, every, across, rule):
         """percentile_of(method=) other than the linear rule: NumPy percentile(method=), as R quantile(type =)."""
         if every is not None or across is not None or not isinstance(column, str):
-            raise SimplydataError("method= works with one column and for_each=; leave out every= and across=.")
+            raise SimplydataError("method= works with one column and for_each_group_in=; leave out every= and across=.")
         groups = self._group_columns(step, for_each, [column]) if for_each is not None else []
         frame = self._number_frame(step, [column])
         self._note_empty(frame, [column])
@@ -1108,22 +1108,22 @@ class SummaryWords:
         print(f'The {_ordinal(number)} percentile of "{column}" for each {_each(groups)}: {shown} ({how}).')
         return table
 
-    @friendly
-    def most_common_of(self, column=None, for_each=None, every=None):
+    @friendly(renamed={"for_each": "for_each_group_in"})
+    def find_most_common_of(self, column=None, for_each_group_in=None, every=None):
         """The value that turns up most often (the mode), for numbers or text; empty cells are skipped.
 
-        table.most_common_of("days_absent", for_each="school")   (with sdata.example("school"))
+        table.find_most_common_of("days_absent", for_each_group_in="school")   (with sdata.get_example("school"))
         When values are tied, the smallest (first in order) is given and a note names the
-        others. Without for_each= you get the value; with it a new table with, for each
+        others. Without for_each_group_in= you get the value; with it a new table with, for each
         group, the most common value, how many rows have it, its percent of the group's
         filled cells, and how many values share the top count.
         """
-        step = "most_common_of"
-        example = 'table.most_common_of("days_absent", for_each="school")   (with sdata.example("school"))'
+        step = "find_most_common_of"
+        example = 'table.find_most_common_of("days_absent", for_each_group_in="school")   (with sdata.get_example("school"))'
         if not isinstance(column, str):
             raise SimplydataError(f"{step}() needs one column name in quotes.\nFor example:  {example}")
         self._need_columns(column)
-        groups = self._group_columns(step, for_each, [column]) if for_each is not None else []
+        groups = self._group_columns(step, for_each_group_in, [column]) if for_each_group_in is not None else []
         frame = self._frame
         empty = self._empty(column)
         n_empty = int(frame.select(empty.cast(nw.Int64).sum()).item())
@@ -1166,7 +1166,7 @@ class SummaryWords:
         name = f"most common {column}"
         data = {g: [k[i] for k in order] for i, g in enumerate(groups)}
         if name in data or any(c in data for c in ("count", "percent", "values with that count")):
-            raise SimplydataError(f'A for_each= column has the name of a result column ("{name}", "count" or '
+            raise SimplydataError(f'A for_each_group_in= column has the name of a result column ("{name}", "count" or '
                                   '"percent"). Rename it first.')
         data[name] = [found[k][0][0] for k in order]
         data["count"] = [found[k][1] for k in order]
@@ -1184,21 +1184,21 @@ class SummaryWords:
         return result
 
     # ------------------------------------------------------------------ counting words
-    @friendly
-    def count_rows(self, for_each=None, across=None, every=None, in_percent=False):
+    @friendly(renamed={"for_each": "for_each_group_in"})
+    def count_rows(self, for_each_group_in=None, across=None, every=None, in_percent=False):
         """How many rows the table has, or how many in each group.
 
-        table.count_rows(for_each="class")   (with sdata.example("marks"))
+        table.count_rows(for_each_group_in="class")   (with sdata.get_example("marks"))
         across= gives a cross table (pandas crosstab), one column per value:
-        table.count_rows(for_each="shop", across="fruit")   (with sdata.example("fruit"))
+        table.count_rows(for_each_group_in="shop", across="fruit")   (with sdata.get_example("fruit"))
         in_percent=True gives percents (0 to 100) instead: of all rows, or with across= of
         each row of the cross table, so every row adds up to 100 %.
-        every="month" with a date column in for_each= counts the rows of each month.
+        every="month" with a date column in for_each_group_in= counts the rows of each month.
         """
         step = "count_rows"
         if not isinstance(in_percent, bool):
             raise SimplydataError("in_percent= should be True or False.")
-        if for_each is None:
+        if for_each_group_in is None:
             if across is not None:
                 self._check_across(step, across, None)
             if every is not None:
@@ -1206,12 +1206,12 @@ class SummaryWords:
             if in_percent:
                 raise SimplydataError(
                     "in_percent=True needs groups to share out the rows.\n"
-                    'For example:  table.count_rows(for_each="class", in_percent=True)   (with sdata.example("marks"))'
+                    'For example:  table.count_rows(for_each_group_in="class", in_percent=True)   (with sdata.get_example("marks"))'
                 )
             n = len(self._frame)
             print(f"The table has {n} row{'' if n == 1 else 's'}.")
             return n
-        groups = self._group_columns(step, for_each)
+        groups = self._group_columns(step, for_each_group_in)
         if across is not None:
             self._check_across(step, across, groups)
         frame, periods = self._periods(step, self._frame, groups, every)
@@ -1249,7 +1249,7 @@ class SummaryWords:
 
         Biggest count first. Empty cells count as a value of their own, so the percents
         are out of all rows. Percents are rounded to 1 decimal place.
-        table.count_each("fruit")   (with sdata.example("fruit"))
+        table.count_each("fruit")   (with sdata.get_example("fruit"))
         interval=95 adds a 95 % interval to each percent that holds for all of them at once
         (Sison and Glaz, statsmodels multinomial_proportions_confint, as R
         DescTools::MultinomCI()).
@@ -1257,7 +1257,7 @@ class SummaryWords:
         if not isinstance(column, str):
             raise SimplydataError(
                 "count_each() needs one column name in quotes.\n"
-                'For example, with sdata.example("fruit"): table.count_each("fruit")'
+                'For example, with sdata.get_example("fruit"): table.count_each("fruit")'
             )
         self._need_columns(column)
         if column in ("count", "percent"):
@@ -1293,22 +1293,22 @@ class SummaryWords:
                   "multinomial_proportions_confint, as R DescTools::MultinomCI()).")
         return self._new_table(nw.maybe_reset_index(result))
 
-    @friendly
-    def count_different_values(self, column=None, for_each=None, every=None):
+    @friendly(renamed={"for_each": "for_each_group_in"})
+    def count_different_values_in(self, column=None, for_each_group_in=None, every=None):
         """How many different values a column has, or how many in each group.
 
-        table.count_different_values("name", for_each="class")   (with sdata.example("marks"))
+        table.count_different_values_in("name", for_each_group_in="class")   (with sdata.get_example("marks"))
         Empty cells are not counted (as pandas nunique()); a note says how many there were.
         Capital letters matter: "Apple" and "apple" are two values.
         """
-        step = "count_different_values"
+        step = "count_different_values_in"
         if not isinstance(column, str):
             raise SimplydataError(
                 f"{step}() needs one column name in quotes.\n"
-                f'For example:  table.{step}("name", for_each="class")   (with sdata.example("marks"))'
+                f'For example:  table.{step}("name", for_each_group_in="class")   (with sdata.get_example("marks"))'
             )
         self._need_columns(column)
-        groups = self._group_columns(step, for_each, [column]) if for_each is not None else None
+        groups = self._group_columns(step, for_each_group_in, [column]) if for_each_group_in is not None else None
         empty = self._empty(column)
         frame = self._frame.with_columns(nw.when(~empty).then(nw.col(column)).alias("__value"),
                                          empty.cast(nw.Int64).alias("__empty"))
@@ -1334,61 +1334,64 @@ class SummaryWords:
         return result
 
     # ------------------------------------------------------------------ percents
-    @friendly(renamed={"method": "interval_by"})
-    def percent_of(self, column=None, *extra, for_each=None, every=None, above=_NOT_GIVEN, below=_NOT_GIVEN,
-                   at_least=_NOT_GIVEN, at_most=_NOT_GIVEN, equal_to=_NOT_GIVEN, not_equal_to=_NOT_GIVEN,
-                   between=_NOT_GIVEN, one_of=_NOT_GIVEN, contains=_NOT_GIVEN, starts_with=_NOT_GIVEN,
-                   ends_with=_NOT_GIVEN, is_empty=_NOT_GIVEN, interval_by="exact"):
+    @friendly(renamed={"method": "interval_by", "for_each": "for_each_group_in", "above": "is_above",
+                       "below": "is_below", "at_least": "is_at_least", "at_most": "is_at_most",
+                       "equal_to": "is_equal_to", "not_equal_to": "is_not_equal_to", "between": "is_between",
+                       "one_of": "is_one_of"})
+    def find_percent_of_rows_where(self, column=None, *extra, for_each_group_in=None, every=None, is_above=_NOT_GIVEN, is_below=_NOT_GIVEN,
+                                   is_at_least=_NOT_GIVEN, is_at_most=_NOT_GIVEN, is_equal_to=_NOT_GIVEN, is_not_equal_to=_NOT_GIVEN,
+                                   is_between=_NOT_GIVEN, is_one_of=_NOT_GIVEN, contains=_NOT_GIVEN, starts_with=_NOT_GIVEN,
+                                   ends_with=_NOT_GIVEN, is_empty=_NOT_GIVEN, interval_by="exact"):
         """What percent of the rows meet a condition, or each group's share.
 
-        table.percent_of("marks", above=60, for_each="class")   (with sdata.example("marks"))
-        With a condition (the same words as keep_rows: above, below, at_least, at_most,
-        equal_to, not_equal_to, between, one_of, contains, starts_with, ends_with, is_empty):
+        table.find_percent_of_rows_where("marks", is_above=60, for_each_group_in="class")   (with sdata.get_example("marks"))
+        With a condition (the same words as keep_rows_where: is_above, is_below, is_at_least, is_at_most,
+        is_equal_to, is_not_equal_to, is_between, is_one_of, contains, starts_with, ends_with, is_empty):
         the percent of rows that meet it, out of the rows with a value in the column, with
         its 95 % confidence interval (Clopper-Pearson exact interval, as R binom.test).
         Without a condition:
-        table.percent_of(for_each="class")   each group's percent of all rows
-        table.percent_of("count", for_each="shop")   each group's share of the total of a
-        column   (with sdata.example("fruit"))
-        Percents go from 0 to 100. Without for_each= you get one number; with it a new table.
+        table.find_percent_of_rows_where(for_each_group_in="class")   each group's percent of all rows
+        table.find_percent_of_rows_where("count", for_each_group_in="shop")   each group's share of the total of a
+        column   (with sdata.get_example("fruit"))
+        Percents go from 0 to 100. Without for_each_group_in= you get one number; with it a new table.
         interval_by= chooses the 95 % interval of a percent: "exact" (Clopper-Pearson, the default, as R
         binom.test()), "wilson" (Wilson score) or "agresti-coull"; the last two from statsmodels
         proportion_confint, as R DescTools::BinomCI().
         """
-        step = "percent_of"
+        step = "find_percent_of_rows_where"
         method = _percent_method(step, interval_by)
-        options = dict(above=above, below=below, at_least=at_least, at_most=at_most, equal_to=equal_to,
-                       not_equal_to=not_equal_to, between=between, one_of=one_of, contains=contains,
+        options = dict(above=is_above, below=is_below, at_least=is_at_least, at_most=is_at_most, equal_to=is_equal_to,
+                       not_equal_to=is_not_equal_to, between=is_between, one_of=is_one_of, contains=contains,
                        starts_with=starts_with, ends_with=ends_with, is_empty=is_empty)
         given = {k: v for k, v in options.items() if v is not _NOT_GIVEN}
-        example = 'table.percent_of("marks", above=60, for_each="class")   (with sdata.example("marks"))'
+        example = 'table.find_percent_of_rows_where("marks", is_above=60, for_each_group_in="class")   (with sdata.get_example("marks"))'
         if extra:
             raise SimplydataError(
-                f"{step}() needs the column and then one plain word saying which rows, like above=60 or "
-                f'equal_to="A".\nFor example:  {example}'
+                f"{step}() needs the column and then one plain word saying which rows, like is_above=60 or "
+                f'is_equal_to="A".\nFor example:  {example}'
             )
         if column is None:
             if given:
                 raise SimplydataError(f"{step}() needs the column name first.\nFor example:  {example}")
-            if for_each is None:
+            if for_each_group_in is None:
                 raise SimplydataError(
                     f"{step}() needs a column with a condition, or groups to share out the rows.\n"
                     f"For example:  {example}\n"
-                    'or:           table.percent_of(for_each="class")'
+                    'or:           table.find_percent_of_rows_where(for_each_group_in="class")'
                 )
-            return self._percent_of_rows(step, for_each, every, method)
+            return self._percent_of_rows(step, for_each_group_in, every, method)
         if not isinstance(column, str):
             raise SimplydataError(f"{step}() needs one column name in quotes.\nFor example:  {example}")
         self._need_columns(column)
-        groups = self._group_columns(step, for_each, [column]) if for_each is not None else None
+        groups = self._group_columns(step, for_each_group_in, [column]) if for_each_group_in is not None else None
         if not given:
             return self._percent_of_total(step, column, groups, every)
         if len(given) > 1:
             names = " and ".join(f"{c}=" for c in given)
             raise SimplydataError(
                 f"{step}() takes one condition at a time, but you gave {names}. "
-                "Use between=[low, high] for a range.\n"
-                'For example:  table.percent_of("marks", between=[40, 80])   (with sdata.example("marks"))'
+                "Use is_between=[low, high] for a range.\n"
+                'For example:  table.find_percent_of_rows_where("marks", is_between=[40, 80])   (with sdata.get_example("marks"))'
             )
         cond, words = self._condition(step, column, options, ())
         counted = nw.lit(True) if "is_empty" in given else ~self._empty(column)
@@ -1444,9 +1447,9 @@ class SummaryWords:
     def _percent_of_total(self, step, column, groups, every):
         if groups is None:
             raise SimplydataError(
-                f'{step}("{column}") needs for_each= to share out the total of "{column}", or a condition '
-                "such as above=60 to count rows.\n"
-                'For example:  table.percent_of("count", for_each="shop")   (with sdata.example("fruit"))'
+                f'{step}("{column}") needs for_each_group_in= to share out the total of "{column}", or a condition '
+                "such as is_above=60 to count rows.\n"
+                'For example:  table.find_percent_of_rows_where("count", for_each_group_in="shop")   (with sdata.get_example("fruit"))'
             )
         frame = self._number_frame(step, [column])
         frame, periods = self._periods(step, frame, groups, every)
@@ -1474,7 +1477,7 @@ class SummaryWords:
             raise SimplydataError(
                 f"show= needs at least one measure.\n"
                 f'For example:  table.{step}("marks", show=["average", "standard deviation", "count"])'
-                '   (with sdata.example("marks"))'
+                '   (with sdata.get_example("marks"))'
             )
         measures = []
         for item in items:
@@ -1486,12 +1489,12 @@ class SummaryWords:
                 measures.append(name)
         return measures
 
-    @friendly
-    def summary_of(self, column=None, show=None, for_each=None, every=None):
+    @friendly(renamed={"for_each": "for_each_group_in"})
+    def find_summary_of(self, column=None, show=None, for_each_group_in=None, every=None):
         """Several measures of one or more columns at once, in one tidy table.
 
-        table.summary_of("marks", for_each="class", show=["average", "standard deviation", "count"])
-        (with sdata.example("marks")). Several columns: table.summary_of(["marks", "hours"]).
+        table.find_summary_of("marks", for_each_group_in="class", show=["average", "standard deviation", "count"])
+        (with sdata.get_example("marks")). Several columns: table.find_summary_of(["marks", "hours"]).
         show= takes any of: "count" (numbers, empty cells left out), "average", "median",
         "total", "smallest", "biggest", "standard deviation" (sample, n - 1), "variance"
         (sample, n - 1), "standard error" (of the average), "confidence interval" (95 % t
@@ -1512,21 +1515,21 @@ class SummaryWords:
         biggest. A measure of your own also works: a function that gets one group's
         numbers (a NumPy array) and gives back one number, show=["average", my_measure].
         The new table has one row for each column (and each group), so it can be saved
-        or charted. every= groups a date column in for_each= by "week", "month", "year" ...
+        or charted. every= groups a date column in for_each_group_in= by "week", "month", "year" ...
         """
-        step = "summary_of"
+        step = "find_summary_of"
         if column is None:
             raise SimplydataError(
                 f"{step}() needs the column to summarise.\n"
-                f'For example:  table.{step}("marks", for_each="class", show=["average", "count"])'
-                '   (with sdata.example("marks"))'
+                f'For example:  table.{step}("marks", for_each_group_in="class", show=["average", "count"])'
+                '   (with sdata.get_example("marks"))'
             )
         columns = _as_list(step, "the column", column)
         measures = self._measures(step, show)
-        groups = self._group_columns(step, for_each, columns) if for_each is not None else []
+        groups = self._group_columns(step, for_each_group_in, columns) if for_each_group_in is not None else []
         if "column" in groups:
             raise SimplydataError(
-                'summary_of() makes a column called "column", so a for_each= column cannot have that name.\n'
+                'summary_of() makes a column called "column", so a for_each_group_in= column cannot have that name.\n'
                 'Rename it first, for example table.rename_column("column", to="group").'
             )
         frame = self._number_frame(step, columns)
@@ -1553,7 +1556,7 @@ class SummaryWords:
                 out_names.append(label)
         for name in out_names:
             if name in data:
-                raise SimplydataError(f'A for_each= column is called "{name}", like a measure. Rename it first.')
+                raise SimplydataError(f'A for_each_group_in= column is called "{name}", like a measure. Rename it first.')
             data[name] = []
         for i, c in enumerate(columns):
             col = nw.col(c)
@@ -1653,7 +1656,7 @@ class SummaryWords:
                         "A measure of your own gets the numbers of one group (a NumPy array, empty cells left out) "
                         "and gives back one number, for example:\n"
                         "    def spread(values):\n        return values.max() - values.min()\n"
-                        '    table.summary_of("marks", show=["average", spread])   (with sdata.example("marks"))'
+                        '    table.find_summary_of("marks", show=["average", spread])   (with sdata.get_example("marks"))'
                     ) from None
                 out[(key, label)] = value
         return out
@@ -1683,17 +1686,17 @@ class SummaryWords:
 
     # ------------------------------------------------------------------ one column on its own
     @friendly
-    def column(self, name=None):
+    def get_column(self, name=None):
         """One column on its own: a column of numbers becomes sdata.numbers, any other a plain list.
 
-        marks = table.column("marks")   (with sdata.example("marks"))
-        then marks.average(), marks.chart() ... like any sdata.numbers. Empty cells become
+        marks = table.get_column("marks")   (with sdata.get_example("marks"))
+        then marks.find_average(), marks.start_chart() ... like any sdata.numbers. Empty cells become
         empty numbers. The table does not change.
         """
         if not isinstance(name, str):
             raise SimplydataError(
                 "column() needs one column name in quotes.\n"
-                'For example:  marks = table.column("marks")   (with sdata.example("marks"))'
+                'For example:  marks = table.get_column("marks")   (with sdata.get_example("marks"))'
             )
         self._need_columns(name)
         dtype = self._frame.schema[name]
@@ -1712,13 +1715,13 @@ class SummaryWords:
         return [None if _missing(v) else _plain(v) for v in series.to_list()]
 
     # ------------------------------------------------------------------ correlation
-    @friendly
-    def correlation_between(self, *columns, method="pearson", show="r", sides=2, higher=None, lower=None,
-                            alternative=None, p_value_by="formula", interval_by=None, shuffles=9999, resamples=9999,
-                            seed=1, allowing_for=None, rows_back=None, sorted_by=None):
+    @friendly(renamed={"seed": "with_seed"})
+    def find_correlation_between(self, *columns, method="pearson", show="r", sides=2, higher=None, lower=None,
+                                 alternative=None, p_value_by="formula", interval_by=None, shuffles=9999, resamples=9999,
+                                 with_seed=1, allowing_for=None, rows_back=None, sorted_by=None):
         """How strongly columns of numbers go up or down together, from -1 to 1.
 
-        table.correlation_between("hours", "marks")   (with sdata.example("marks"))
+        table.find_correlation_between("hours", "marks")   (with sdata.get_example("marks"))
         method="pearson" (a straight-line link, the usual one), "spearman" (uses ranks,
         for any link that keeps going one way) or "kendall" (Kendall's tau-b, also ranks: the
         share of pairs of rows that agree in order minus the share that disagree; as R
@@ -1727,7 +1730,7 @@ class SummaryWords:
         empty cell in either column are skipped.
         With three or more columns it gives back a correlation table (as pandas .corr()),
         and prints the strongest pairs:
-        table.correlation_between("hours", "marks", "height")
+        table.find_correlation_between("hours", "marks", "height")
         Each pair uses the rows where both columns have a number. show="p-value" gives the
         table of p-values instead, and show="each pair" one row per pair (r, p-value,
         rows), ready for add_adjusted_p_value_column(): testing many pairs makes a chance
@@ -1739,22 +1742,22 @@ class SummaryWords:
         sides=1, higher="positive" (or "negative") tests in one direction only, as decided before
         seeing the data (R cor.test(alternative = "greater")); two columns only.
         Two columns only: p_value_by="shuffling" gives the p-value from shuffling one column
-        against the other shuffles=9999 times (seed=1; SciPy permutation_test), and
+        against the other shuffles=9999 times (with_seed=1; SciPy permutation_test), and
         interval_by="bootstrap" adds a 95 % interval of r from drawing the rows again with
-        replacement resamples=9999 times (seed=1; SciPy bootstrap, BCa, as R boot::boot.ci()).
+        replacement resamples=9999 times (with_seed=1; SciPy bootstrap, BCa, as R boot::boot.ci()).
         With rows_back=12 and two columns (sorted_by= the time column): the correlation for shifts
         -12 to 12 (cross-correlation, as R ccf with the sign of the lag reversed): shift 2 pairs the
         first column with the second 2 rows later. It says which column follows the other.
         A correlation does not show that one thing causes the other.
         """
-        step = "correlation_between"
+        step = "find_correlation_between"
         names = []
         for value in columns:
             names.extend(value if isinstance(value, (list, tuple)) else [value])
         if len(names) < 2 or not all(isinstance(v, str) for v in names):
             raise SimplydataError(
                 f"{step}() needs two column names in quotes (or more, for a correlation table).\n"
-                f'For example, with sdata.example("marks"): table.{step}("hours", "marks")'
+                f'For example, with sdata.get_example("marks"): table.{step}("hours", "marks")'
             )
         if rows_back is not None or sorted_by is not None:
             if rows_back is None:
@@ -1776,7 +1779,7 @@ class SummaryWords:
             if len(names) == 2:
                 raise SimplydataError(
                     f"{step}() needs two different columns.\n"
-                    f'For example, with sdata.example("marks"): table.{step}("hours", "marks")'
+                    f'For example, with sdata.get_example("marks"): table.{step}("hours", "marks")'
                 )
             twice = next(n for n in names if names.count(n) > 1)
             raise SimplydataError(f'"{twice}" is listed twice. Give each column once.')
@@ -1787,7 +1790,7 @@ class SummaryWords:
             )
         from .stat_tests import _direction
 
-        example = f'table.correlation_between("{names[0]}", "{names[1]}", sides=1, higher="positive")'
+        example = f'table.find_correlation_between("{names[0]}", "{names[1]}", sides=1, higher="positive")'
         if len(names) > 2 and (sides != 2 or higher is not None or lower is not None
                                or alternative not in (None, "two-sided")):
             raise SimplydataError("sides=1 and higher= work with two columns; a correlation table tests every pair "
@@ -1820,7 +1823,7 @@ class SummaryWords:
         if len(names) == 2:
             return self._one_correlation(step, frame, names[0], names[1], method, alt, up,
                                          p_value_by=p_value_by, interval_by=interval_by, shuffles=shuffles,
-                                         resamples=resamples, seed=seed)
+                                         resamples=resamples, seed=with_seed)
         return self._correlation_table(step, frame, names, method, shown)
 
     @staticmethod
@@ -2033,6 +2036,6 @@ class SummaryWords:
                   "least one of these columns; each pair skipped only the rows it could not use.")
         listed = ", ".join(f'"{n}"' for n in names)
         print(f"Note: these p-values are not adjusted for testing {n_pairs} pairs. To adjust them: "
-              f'results = table.correlation_between({listed}, show="each pair"), then '
+              f'results = table.find_correlation_between({listed}, show="each pair"), then '
               'results.add_adjusted_p_value_column(from_column="p-value").')
         return result

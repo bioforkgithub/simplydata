@@ -1,4 +1,4 @@
-"""sdata.wave(...) and sdata.window_shape(...): made-up signals and window weights, from SciPy."""
+"""sdata.make_wave(...) and sdata.make_window_shape(...): made-up signals and window weights, from SciPy."""
 
 from __future__ import annotations
 
@@ -11,9 +11,9 @@ SWEEPS = ("linear", "quadratic", "logarithmic", "hyperbolic")
 
 
 @friendly
-def wave(shape="sine", frequency=1, time_step=None, how_many=None, high_share=0.5, rising_share=1.0,
-         sweep="linear", bandwidth=0.5, at=1, sampling_rate=None, fs=None):
-    """Numbers that make a wave: a sine, square, sawtooth, chirp, pulse or impulse. sdata.wave("sine", frequency=5, time_step=0.01, how_many=100)
+def make_wave(shape="sine", frequency=1, time_step=None, how_many=None, high_share=0.5, rising_share=1.0,
+              sweep="linear", bandwidth=0.5, at=1, sampling_rate=None, fs=None):
+    """Numbers that make a wave: a sine, square, sawtooth, chirp, pulse or impulse. sdata.make_wave("sine", frequency=5, time_step=0.01, how_many=100)
 
     frequency= is cycles per unit of time (for "chirp", [start, end] with sweep= "linear",
     "quadratic", "logarithmic" or "hyperbolic"); time_step= the time between readings (sampling_rate= or
@@ -31,7 +31,7 @@ def wave(shape="sine", frequency=1, time_step=None, how_many=None, high_share=0.
     if shape not in SHAPES:
         raise choice_error("wave", "shape", shape, list(SHAPES))
     if isinstance(how_many, bool) or not isinstance(how_many, int) or how_many < 1:
-        raise SimplydataError('wave() needs how_many= as the number of readings, such as sdata.wave("sine", '
+        raise SimplydataError('wave() needs how_many= as the number of readings, such as sdata.make_wave("sine", '
                               "frequency=5, time_step=0.01, how_many=100).")
     step, words = read_time_step(time_step, sampling_rate, fs, None, "wave")
     t = np.arange(how_many) * step
@@ -65,8 +65,8 @@ def wave(shape="sine", frequency=1, time_step=None, how_many=None, high_share=0.
 
 
 @friendly
-def window_shape(name="hann", how_many=64, periodic=False):
-    """The weights of a window (taper), such as "hann": high in the middle, low at the ends. sdata.window_shape("hann", how_many=64)
+def make_window_shape(name="hann", how_many=64, periodic=False):
+    """The weights of a window (taper), such as "hann": high in the middle, low at the ends. sdata.make_window_shape("hann", how_many=64)
 
     Any SciPy window name: "hann", "hamming", "blackman", "bartlett", "kaiser" (give ("kaiser", 5)),
     "tukey" ... Symmetric by default, as R gsignal::hann and NumPy hanning; periodic=True gives the
@@ -88,10 +88,10 @@ def window_shape(name="hann", how_many=64, periodic=False):
 
 
 @friendly
-def inverse_fourier_transform(table=None):
-    """Numbers back from a Fourier transform table (its real and imaginary parts). sdata.inverse_fourier_transform(table)
+def find_inverse_fourier_transform(table=None):
+    """Numbers back from a Fourier transform table (its real and imaginary parts). sdata.find_inverse_fourier_transform(table)
 
-    table is what nums.fourier_transform() gave back (show="half" or "all"). SciPy irfft / ifft, as R
+    table is what nums.take_fourier_transform() gave back (show="half" or "all"). SciPy irfft / ifft, as R
     Re(fft(z, inverse = TRUE)) / n. A round trip gives the numbers back (to about 1e-12).
     """
     from scipy import fft
@@ -100,7 +100,7 @@ def inverse_fourier_transform(table=None):
 
     info = getattr(table, "_fourier", None)
     if info is None:
-        raise SimplydataError("inverse_fourier_transform() needs the table that nums.fourier_transform() gave back.")
+        raise SimplydataError("inverse_fourier_transform() needs the table that nums.take_fourier_transform() gave back.")
     frame = table._frame
     z = np.asarray(frame["real part"].to_numpy(), dtype=float) + 1j * np.asarray(frame["imaginary part"].to_numpy(),
                                                                                     dtype=float)

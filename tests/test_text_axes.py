@@ -32,8 +32,8 @@ def draw(fig):
 
 # ================================================================ caption_bottom
 def test_caption_under_x_label(marks):
-    chart = sdata.chart(marks).bars(x="name", y="marks").label_x("Student")
-    chart.caption_bottom("Data from 2026").rotate_labels_x()
+    chart = sdata.chart(marks).draw_bars(x="name", y="marks").label_x("Student")
+    chart.write_caption_at_bottom("Data from 2026").rotate_labels_x()
     fig = chart._render()
     ax = fig.axes[0]
     assert "Data from 2026" in texts(ax)
@@ -45,19 +45,19 @@ def test_caption_under_x_label(marks):
 
 
 def test_caption_order_does_not_matter(marks):
-    chart = sdata.chart(marks).caption_bottom("first").bars(x="name", y="marks")
+    chart = sdata.chart(marks).write_caption_at_bottom("first").draw_bars(x="name", y="marks")
     assert "first" in texts(chart._render().axes[0])
 
 
 def test_caption_replaces_earlier(marks):
-    chart = sdata.chart(marks).bars(x="name", y="marks").caption_bottom("a").caption_bottom("b")
+    chart = sdata.chart(marks).draw_bars(x="name", y="marks").write_caption_at_bottom("a").write_caption_at_bottom("b")
     t = texts(chart._render().axes[0])
     assert "b" in t and "a" not in t
 
 
 def test_caption_several_panels_below_shared_label(marks):
-    chart = sdata.chart(marks).lines(x="test", y="marks").one_chart_per("class")
-    chart.label_x("Test").caption_bottom("Made-up marks")
+    chart = sdata.chart(marks).draw_lines(x="test", y="marks").draw_one_chart_for_each_group_in("class")
+    chart.label_x("Test").write_caption_at_bottom("Made-up marks")
     fig = chart._render()
     r = draw(fig)
     caption = [a for a in fig.artists if isinstance(a, Annotation)][0]
@@ -69,18 +69,18 @@ def test_caption_several_panels_below_shared_label(marks):
 
 
 def test_caption_several_panels_without_label(marks):
-    chart = sdata.chart(marks).lines(x="test", y="marks").one_chart_per("class").caption_bottom("Only caption")
+    chart = sdata.chart(marks).draw_lines(x="test", y="marks").draw_one_chart_for_each_group_in("class").write_caption_at_bottom("Only caption")
     assert chart._render().get_supxlabel() == "Only caption"
 
 
 def test_caption_needs_words(marks):
     with pytest.raises(SimplydataError, match="needs some words"):
-        sdata.chart(marks).caption_bottom("  ")
+        sdata.chart(marks).write_caption_at_bottom("  ")
 
 
 # ================================================================ note
 def test_note_at_place(weather):
-    chart = sdata.chart(weather).lines(x="month", y="temperature").note("Warmest", x=7, y=17)
+    chart = sdata.chart(weather).draw_lines(x="month", y="temperature").write_note("Warmest", x=7, y=17)
     ax = chart._render().axes[0]
     note = [t for t in ax.texts if t.get_text() == "Warmest"][0]
     assert note.xy == (7, 17)
@@ -88,7 +88,7 @@ def test_note_at_place(weather):
 
 
 def test_note_with_arrow_points_at_place_and_stays_inside(weather):
-    chart = sdata.chart(weather).lines(x="month", y="temperature").note("Warmest", x=7, y=17, arrow=True)
+    chart = sdata.chart(weather).draw_lines(x="month", y="temperature").write_note("Warmest", x=7, y=17, with_arrow=True)
     fig = chart._render()
     ax = fig.axes[0]
     note = [t for t in ax.texts if t.get_text() == "Warmest"][0]
@@ -100,29 +100,29 @@ def test_note_with_arrow_points_at_place_and_stays_inside(weather):
 
 
 def test_note_on_bar_name(marks):
-    chart = sdata.chart(marks).bars(x="name", y="marks").note("Best", x="Ben", y=90)
+    chart = sdata.chart(marks).draw_bars(x="name", y="marks").write_note("Best", x="Ben", y=90)
     note = [t for t in chart._render().axes[0].texts if t.get_text() == "Best"][0]
     assert note.xy == (1, 90)
 
 
 def test_note_unknown_bar_name(marks):
-    chart = sdata.chart(marks).bars(x="name", y="marks").note("Best", x="Bne", y=90)
+    chart = sdata.chart(marks).draw_bars(x="name", y="marks").write_note("Best", x="Bne", y=90)
     with pytest.raises(SimplydataError, match="Names you have: Asha, Ben"):
         chart._render()
 
 
 def test_note_needs_place(marks):
     with pytest.raises(SimplydataError, match=r"x= and y="):
-        sdata.chart(marks).note("Hi")
+        sdata.chart(marks).write_note("Hi")
     with pytest.raises(SimplydataError, match="arrow=True"):
-        sdata.chart(marks).note("Hi", x=1, y=2, arrow="yes")
+        sdata.chart(marks).write_note("Hi", x=1, y=2, with_arrow="yes")
     with pytest.raises(SimplydataError, match="needs a number for x="):
-        sdata.chart(marks).note("Hi", x=[1], y=2)
+        sdata.chart(marks).write_note("Hi", x=[1], y=2)
 
 
 def test_several_notes_kept(weather):
-    chart = sdata.chart(weather).lines(x="month", y="temperature")
-    chart.note("a", x=1, y=1).note("b", x=2, y=2)
+    chart = sdata.chart(weather).draw_lines(x="month", y="temperature")
+    chart.write_note("a", x=1, y=1).write_note("b", x=2, y=2)
     t = texts(chart._render().axes[0])
     assert "a" in t and "b" in t
 
@@ -133,14 +133,14 @@ def bar_numbers(ax):
 
 
 def test_numbers_on_bars(marks):
-    chart = sdata.chart(marks).bars(x="name", y="marks").numbers_on_bars(decimals=1)
+    chart = sdata.chart(marks).draw_bars(x="name", y="marks").write_numbers_on_bars(with_decimals=1)
     ax = chart._render().axes[0]
     expected = sorted(f"{v:.1f}" for v in marks.groupby("name")["marks"].mean())
     assert bar_numbers(ax) == expected
 
 
 def test_numbers_on_bars_stay_inside(marks):
-    chart = sdata.chart(marks).bars(x="name", y="marks").numbers_on_bars()
+    chart = sdata.chart(marks).draw_bars(x="name", y="marks").write_numbers_on_bars()
     fig = chart._render()
     ax = fig.axes[0]
     r = draw(fig)
@@ -149,7 +149,7 @@ def test_numbers_on_bars_stay_inside(marks):
 
 
 def test_numbers_on_sideways_bars(marks):
-    chart = sdata.chart(marks).bars(x="name", y="marks", sideways=True).numbers_on_bars()
+    chart = sdata.chart(marks).draw_bars(x="name", y="marks", sideways=True).write_numbers_on_bars()
     ax = chart._render().axes[0]
     expected = sorted(f"{v:.0f}" for v in marks.groupby("name")["marks"].mean())
     assert bar_numbers(ax) == expected
@@ -157,8 +157,8 @@ def test_numbers_on_sideways_bars(marks):
 
 
 def test_numbers_on_stacked_bars(marks):
-    chart = sdata.chart(marks).bars(x="name", y="marks", colour="class", stacked=True, show="total")
-    chart.numbers_on_bars()
+    chart = sdata.chart(marks).draw_bars(x="name", y="marks", colour="class", stacked=True, show="total")
+    chart.write_numbers_on_bars()
     ax = chart._render().axes[0]
     expected = sorted(f"{v:,.0f}" for v in marks.groupby(["name", "class"])["marks"].sum())
     assert bar_numbers(ax) == expected
@@ -167,13 +167,13 @@ def test_numbers_on_stacked_bars(marks):
 
 
 def test_numbers_on_grouped_bars(marks):
-    chart = sdata.chart(marks).bars(x="name", y="marks", colour="class").numbers_on_bars()
+    chart = sdata.chart(marks).draw_bars(x="name", y="marks", colour="class").write_numbers_on_bars()
     ax = chart._render().axes[0]
     assert len(bar_numbers(ax)) == 8
 
 
 def test_numbers_go_past_error_bars(marks):
-    chart = sdata.chart(marks).bars(x="name", y="marks", error="sd").numbers_on_bars()
+    chart = sdata.chart(marks).draw_bars(x="name", y="marks", error="sd").write_numbers_on_bars()
     ax = chart._render().axes[0]
     sd_top = (marks.groupby("name", sort=False)["marks"].mean()
               + marks.groupby("name", sort=False)["marks"].std()).to_numpy()
@@ -182,20 +182,20 @@ def test_numbers_go_past_error_bars(marks):
 
 
 def test_numbers_need_bars(weather):
-    chart = sdata.chart(weather).lines(x="month", y="rain").numbers_on_bars()
+    chart = sdata.chart(weather).draw_lines(x="month", y="rain").write_numbers_on_bars()
     with pytest.raises(SimplydataError, match="no bars"):
         chart._render()
 
 
 def test_numbers_decimals_checked(marks):
     with pytest.raises(SimplydataError, match="whole number"):
-        sdata.chart(marks).numbers_on_bars(decimals=1.5)
+        sdata.chart(marks).write_numbers_on_bars(with_decimals=1.5)
 
 
 # ================================================================ font_size
 def test_font_size_scales_all_text(marks):
-    small = sdata.chart(marks).bars(x="name", y="marks").title_top("T").label_x("X")
-    big = sdata.chart(marks).bars(x="name", y="marks").title_top("T").label_x("X").font_size(24)
+    small = sdata.chart(marks).draw_bars(x="name", y="marks").write_title_on_top("T").label_x("X")
+    big = sdata.chart(marks).draw_bars(x="name", y="marks").write_title_on_top("T").label_x("X").use_font_size(24)
     a, b = small._render().axes[0], big._render().axes[0]
     assert b.title.get_fontsize() == pytest.approx(2 * a.title.get_fontsize())
     assert b.xaxis.label.get_fontsize() == pytest.approx(2 * a.xaxis.label.get_fontsize())
@@ -204,58 +204,58 @@ def test_font_size_scales_all_text(marks):
 
 def test_font_size_checked(marks):
     with pytest.raises(SimplydataError, match="bigger than 0"):
-        sdata.chart(marks).font_size(-3)
+        sdata.chart(marks).use_font_size(-3)
     with pytest.raises(SimplydataError, match="very big"):
-        sdata.chart(marks).font_size(500)
+        sdata.chart(marks).use_font_size(500)
     with pytest.raises(SimplydataError, match="bigger than 0"):
-        sdata.chart(marks).font_size("big")
+        sdata.chart(marks).use_font_size("big")
 
 
 # ================================================================ range
 def test_range_y_both_ends(weather):
-    ax = sdata.chart(weather).lines(x="month", y="rain").range_y(0, 200)._render().axes[0]
+    ax = sdata.chart(weather).draw_lines(x="month", y="rain").set_range_y(0, 200)._render().axes[0]
     assert ax.get_ylim() == (0, 200)
 
 
 def test_range_one_end_only(weather):
-    ax = sdata.chart(weather).lines(x="month", y="rain").range_y(0, None)._render().axes[0]
+    ax = sdata.chart(weather).draw_lines(x="month", y="rain").set_range_y(0, None)._render().axes[0]
     low, high = ax.get_ylim()
     assert low == 0 and high >= 130
-    ax = sdata.chart(weather).lines(x="month", y="rain").range_x(None, 6)._render().axes[0]
+    ax = sdata.chart(weather).draw_lines(x="month", y="rain").set_range_x(None, 6)._render().axes[0]
     low, high = ax.get_xlim()
     assert high == 6 and low <= 1
 
 
 def test_range_and_flip_in_any_order(weather):
-    for chart in (sdata.chart(weather).lines(x="month", y="rain").range_y(0, 200).flip_y(),
-                  sdata.chart(weather).lines(x="month", y="rain").flip_y().range_y(0, 200)):
+    for chart in (sdata.chart(weather).draw_lines(x="month", y="rain").set_range_y(0, 200).flip_y(),
+                  sdata.chart(weather).draw_lines(x="month", y="rain").flip_y().set_range_y(0, 200)):
         assert chart._render().axes[0].get_ylim() == (200, 0)
 
 
 def test_range_errors(weather):
     chart = sdata.chart(weather)
     with pytest.raises(SimplydataError, match="at least one end"):
-        chart.range_y()
+        chart.set_range_y()
     with pytest.raises(SimplydataError, match=r"(?s)range_y\(100, 0\).*flip_y"):
-        chart.range_y(100, 0)
+        chart.set_range_y(100, 0)
     with pytest.raises(SimplydataError, match="needs numbers"):
-        chart.range_x("0", 10)
+        chart.set_range_x("0", 10)
 
 
 def test_range_one_end_past_other_end(weather):
-    chart = sdata.chart(weather).lines(x="month", y="rain").range_y(500, None)
+    chart = sdata.chart(weather).draw_lines(x="month", y="rain").set_range_y(500, None)
     with pytest.raises(SimplydataError, match="empty"):
         chart._render()
 
 
 # ================================================================ log scale
 def test_log_scale(weather):
-    ax = sdata.chart(weather).dots(x="month", y="rain").log_scale_x().log_scale_y()._render().axes[0]
+    ax = sdata.chart(weather).draw_dots(x="month", y="rain").use_log_scale_x().use_log_scale_y()._render().axes[0]
     assert ax.get_xscale() == "log" and ax.get_yscale() == "log"
 
 
 def test_log_scale_with_ticks_and_range(weather):
-    chart = sdata.chart(weather).dots(x="month", y="rain").ticks_y(50, 100).range_y(10, 1000).log_scale_y()
+    chart = sdata.chart(weather).draw_dots(x="month", y="rain").put_ticks_y(50, 100).set_range_y(10, 1000).use_log_scale_y()
     ax = chart._render().axes[0]
     assert ax.get_yscale() == "log"
     assert list(ax.get_yticks()) == [50, 100]   # the log scale did not wipe the ticks
@@ -263,42 +263,42 @@ def test_log_scale_with_ticks_and_range(weather):
 
 
 def test_log_scale_zero_is_friendly():
-    chart = sdata.chart(pd.DataFrame({"a": [1, 2, 3], "b": [0, 5, -1]})).dots(x="a", y="b").log_scale_y()
+    chart = sdata.chart(pd.DataFrame({"a": [1, 2, 3], "b": [0, 5, -1]})).draw_dots(x="a", y="b").use_log_scale_y()
     with pytest.raises(SimplydataError, match=r'(?s)"b" has 2 of them.*remove those rows'):
         chart._render()
 
 
 def test_log_scale_on_bars_checks_bar_values():
     data = pd.DataFrame({"name": ["a", "b"], "v": [3, 0]})
-    chart = sdata.chart(data).bars(x="name", y="v").log_scale_y()
+    chart = sdata.chart(data).draw_bars(x="name", y="v").use_log_scale_y()
     with pytest.raises(SimplydataError, match="zero or negative"):
         chart._render()
     with pytest.raises(SimplydataError, match="holds words"):
-        sdata.chart(data).bars(x="name", y="v").log_scale_x()._render()
+        sdata.chart(data).draw_bars(x="name", y="v").use_log_scale_x()._render()
 
 
 def test_log_scale_and_range_from_zero(weather):
     with pytest.raises(SimplydataError, match="above 0"):
-        sdata.chart(weather).range_y(0, 10).log_scale_y()
+        sdata.chart(weather).set_range_y(0, 10).use_log_scale_y()
     with pytest.raises(SimplydataError, match="above 0"):
-        sdata.chart(weather).log_scale_y().range_y(0, 10)
+        sdata.chart(weather).use_log_scale_y().set_range_y(0, 10)
 
 
 # ================================================================ ticks
 def test_ticks(weather):
-    ax = sdata.chart(weather).lines(x="month", y="rain").ticks_x(0, 6, 12)._render().axes[0]
+    ax = sdata.chart(weather).draw_lines(x="month", y="rain").put_ticks_x(0, 6, 12)._render().axes[0]
     assert list(ax.get_xticks()) == [0, 6, 12]
 
 
 def test_ticks_with_labels_and_list(weather):
-    chart = sdata.chart(weather).lines(x="month", y="rain").ticks_x([1, 7], labels=["Jan", "Jul"])
+    chart = sdata.chart(weather).draw_lines(x="month", y="rain").put_ticks_x([1, 7], labels=["Jan", "Jul"])
     ax = chart._render().axes[0]
     assert list(ax.get_xticks()) == [1, 7]
     assert [t.get_text() for t in ax.get_xticklabels()] == ["Jan", "Jul"]
 
 
 def test_ticks_by_bar_name(marks):
-    ax = sdata.chart(marks).bars(x="name", y="marks").ticks_x("Asha", "Dina")._render().axes[0]
+    ax = sdata.chart(marks).draw_bars(x="name", y="marks").put_ticks_x("Asha", "Dina")._render().axes[0]
     assert list(ax.get_xticks()) == [0, 3]
     assert [t.get_text() for t in ax.get_xticklabels()] == ["Asha", "Dina"]
 
@@ -306,16 +306,16 @@ def test_ticks_by_bar_name(marks):
 def test_ticks_errors(weather):
     chart = sdata.chart(weather)
     with pytest.raises(SimplydataError, match=r"ticks_y\(0, 10, 20, 30\)"):
-        chart.ticks_y()
+        chart.put_ticks_y()
     with pytest.raises(SimplydataError, match="3 ticks but 2 labels"):
-        chart.ticks_x(1, 2, 3, labels=["a", "b"])
+        chart.put_ticks_x(1, 2, 3, labels=["a", "b"])
     with pytest.raises(SimplydataError, match="should be a list"):
-        chart.ticks_x(1, labels="a")
+        chart.put_ticks_x(1, labels="a")
 
 
 # ================================================================ rotate
 def test_rotate_labels_x(marks):
-    ax = sdata.chart(marks).bars(x="name", y="marks").rotate_labels_x()._render().axes[0]
+    ax = sdata.chart(marks).draw_bars(x="name", y="marks").rotate_labels_x()._render().axes[0]
     for label in ax.get_xticklabels():
         assert label.get_rotation() == 45
         assert label.get_horizontalalignment() == "right"
@@ -323,13 +323,13 @@ def test_rotate_labels_x(marks):
 
 
 def test_rotate_after_ticks_whatever_the_order(weather):
-    chart = sdata.chart(weather).lines(x="month", y="rain").rotate_labels_x(90).ticks_x(1, 6, 12)
+    chart = sdata.chart(weather).draw_lines(x="month", y="rain").rotate_labels_x(90).put_ticks_x(1, 6, 12)
     ax = chart._render().axes[0]
     assert [t.get_rotation() for t in ax.get_xticklabels()] == [90, 90, 90]
 
 
 def test_rotate_labels_y(weather):
-    ax = sdata.chart(weather).lines(x="month", y="rain").rotate_labels_y(30)._render().axes[0]
+    ax = sdata.chart(weather).draw_lines(x="month", y="rain").rotate_labels_y(30)._render().axes[0]
     assert all(t.get_rotation() == 30 for t in ax.get_yticklabels())
 
 
@@ -340,13 +340,13 @@ def test_rotate_checked(marks):
 
 # ================================================================ flip
 def test_flip(weather):
-    chart = sdata.chart(weather).lines(x="month", y="rain").flip_x().flip_y().flip_y()
+    chart = sdata.chart(weather).draw_lines(x="month", y="rain").flip_x().flip_y().flip_y()
     ax = chart._render().axes[0]
     assert ax.xaxis_inverted() and ax.yaxis_inverted()  # calling twice does not flip back
 
 
 def test_flip_shared_panels(marks):
-    chart = sdata.chart(marks).lines(x="test", y="marks").one_chart_per("class").flip_y()
+    chart = sdata.chart(marks).draw_lines(x="test", y="marks").draw_one_chart_for_each_group_in("class").flip_y()
     assert all(ax.yaxis_inverted() for ax in chart._render().axes)
 
 
@@ -359,8 +359,8 @@ def second(fig):
 
 
 def test_second_y_lines(weather):
-    chart = sdata.chart(weather).bars(x="month", y="temperature")
-    chart.second_y("rain", label="Rain (mm)")
+    chart = sdata.chart(weather).draw_bars(x="month", y="temperature")
+    chart.add_second_y("rain", labelled="Rain (mm)")
     main, twin = second(chart._render())
     line = twin.lines[0]
     assert list(line.get_ydata()) == weather["rain"].tolist()
@@ -372,7 +372,7 @@ def test_second_y_lines(weather):
 
 
 def test_second_y_bars_under_lines(weather):
-    chart = sdata.chart(weather).lines(x="month", y="temperature").second_y("rain", drawn_as="bars")
+    chart = sdata.chart(weather).draw_lines(x="month", y="temperature").add_second_y("rain", drawn_as="bars")
     main, twin = second(chart._render())
     assert [p.get_height() for p in twin.patches] == weather["rain"].tolist()
     assert main.get_zorder() > twin.get_zorder()   # the line is drawn in front of the bars
@@ -380,14 +380,14 @@ def test_second_y_bars_under_lines(weather):
 
 
 def test_second_y_bars_next_to_bars(weather):
-    chart = sdata.chart(weather).bars(x="month", y="temperature").second_y("rain", drawn_as="bars")
+    chart = sdata.chart(weather).draw_bars(x="month", y="temperature").add_second_y("rain", drawn_as="bars")
     main, twin = second(chart._render())
     for a, b in zip(main.patches, twin.patches):
         assert a.get_x() + a.get_width() == pytest.approx(b.get_x())  # side by side, not on top
 
 
 def test_second_y_dots_and_colour(weather):
-    chart = sdata.chart(weather).lines(x="month", y="temperature").second_y("rain", drawn_as="dots", colour="red")
+    chart = sdata.chart(weather).draw_lines(x="month", y="temperature").add_second_y("rain", drawn_as="dots", colour="red")
     _, twin = second(chart._render())
     pts = twin.collections[0].get_offsets()
     assert list(pts[:, 1]) == weather["rain"].tolist()
@@ -395,7 +395,7 @@ def test_second_y_dots_and_colour(weather):
 
 
 def test_second_y_keeps_groups_in_legend(marks):
-    chart = sdata.chart(marks).lines(x="test", y="marks", colour="class").second_y("height")
+    chart = sdata.chart(marks).draw_lines(x="test", y="marks", colour="class").add_second_y("height")
     main, twin = second(chart._render())
     leg = main.get_legend() or twin.get_legend()
     assert [t.get_text() for t in leg.texts] == ["A", "B", "height"]
@@ -406,20 +406,20 @@ def test_second_y_keeps_groups_in_legend(marks):
 
 def test_second_y_errors(weather):
     with pytest.raises(SimplydataError, match='Did you mean "rain"'):
-        sdata.chart(weather).second_y("rian")
+        sdata.chart(weather).add_second_y("rian")
     with pytest.raises(SimplydataError, match='Did you mean drawn_as="bars"'):
-        sdata.chart(weather).second_y("rain", drawn_as="bar")
+        sdata.chart(weather).add_second_y("rain", drawn_as="bar")
     with pytest.raises(SimplydataError, match="one colour name"):
-        sdata.chart(weather).second_y("rain", colour=3)
+        sdata.chart(weather).add_second_y("rain", colour=3)
     with pytest.raises(SimplydataError, match="needs a chart to sit on"):
-        sdata.chart(weather).second_y("rain")._render()
+        sdata.chart(weather).add_second_y("rain")._render()
     with pytest.raises(SimplydataError, match="sideways"):
-        sdata.chart(weather).bars(x="month", y="temperature", sideways=True).second_y("rain")._render()
+        sdata.chart(weather).draw_bars(x="month", y="temperature", sideways=True).add_second_y("rain")._render()
 
 
 def test_second_y_stored_in_store(weather):
     seen = {}
-    chart = sdata.chart(weather).lines(x="month", y="temperature").second_y("rain")
+    chart = sdata.chart(weather).draw_lines(x="month", y="temperature").add_second_y("rain")
     chart._add("peek", "finish", lambda ctx: seen.update(ctx.store))
     chart._render()
     assert "second_y" in seen
@@ -427,9 +427,9 @@ def test_second_y_stored_in_store(weather):
 
 # ================================================================ a full chart saves
 def test_everything_together_saves(tmp_path, weather):
-    chart = sdata.chart(weather).lines(x="month", y="temperature", dots=True)
-    chart.second_y("rain", drawn_as="bars", label="Rain (mm)").title_top("Weather").label_x("Month")
-    chart.caption_bottom("Made-up numbers").note("Warmest", x=7, y=17, arrow=True)
-    chart.ticks_x(range(1, 13), labels=list("JFMAMJJASOND")).rotate_labels_x(0).range_y(0, None).font_size(14)
+    chart = sdata.chart(weather).draw_lines(x="month", y="temperature", with_dots=True)
+    chart.add_second_y("rain", drawn_as="bars", labelled="Rain (mm)").write_title_on_top("Weather").label_x("Month")
+    chart.write_caption_at_bottom("Made-up numbers").write_note("Warmest", x=7, y=17, with_arrow=True)
+    chart.put_ticks_x(range(1, 13), labels=list("JFMAMJJASOND")).rotate_labels_x(0).set_range_y(0, None).use_font_size(14)
     chart.save(tmp_path / "weather.png")
     assert (tmp_path / "weather.png").stat().st_size > 0

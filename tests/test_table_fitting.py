@@ -43,7 +43,7 @@ def rows(result):
 
 
 def applia():
-    g = sdata.example("growth")
+    g = sdata.get_example("growth")
     return g[g["country"] == "Applia"].reset_index(drop=True)
 
 
@@ -89,7 +89,7 @@ def check_growth_row(got, want):
 
 # ---------------------------------------------------------------- fit_formula
 def test_fit_formula_for_each_country_matches_r_nls(engine, capsys):
-    result = make(sdata.example("growth"), engine).fit_formula(GROWTH, for_each="country")
+    result = make(sdata.get_example("growth"), engine).fit_formula(GROWTH, for_each_group_in="country")
     got = rows(result)
     assert [r["country"] for r in got] == list(R_GROWTH)
     for row in got:
@@ -176,7 +176,7 @@ def test_weighted_and_bounded_fit_matches_r_port(engine):
 
 
 def test_whole_range_search_finds_the_r_answer_without_start_values(engine, capsys):
-    g = sdata.example("growth")
+    g = sdata.get_example("growth")
     t = make(g[g["country"] == "Bananaland"].reset_index(drop=True), engine)
     got = rows(t.fit_formula(GROWTH, between={"a": [0, 100], "b": [-1, 1]}, search="whole range"))[0]
     want = R_GROWTH["Bananaland"]  # R nls() from the good start a = 30, b = 0.01
@@ -218,10 +218,10 @@ def test_scipy_option_names_are_explained():
 
 
 def test_a_group_that_cannot_be_fitted_gets_a_note_and_an_empty_row(capsys):
-    g = sdata.example("growth")
+    g = sdata.get_example("growth")
     small = pd.DataFrame({"year": [2000, 2002], "country": ["Tiny", "Tiny"], "population": [1.0, 1.1],
                           "forest": [1.0, 1.0]})
-    got = rows(make_table(pd.concat([g, small])).fit_formula(GROWTH, for_each="country"))
+    got = rows(make_table(pd.concat([g, small])).fit_formula(GROWTH, for_each_group_in="country"))
     tiny = got[-1]
     assert tiny["country"] == "Tiny" and math.isnan(tiny["a"]) and tiny["converged"] == "no"
     check_growth_row(got[0], R_GROWTH["Applia"])
@@ -337,7 +337,7 @@ def test_add_predicted_column_with_a_formula_matches_r_fitted_and_predict(engine
     data["population"] = data["population"].astype(float)
     t = make(data, engine)
     same = t.add_predicted_column(GROWTH)
-    assert same is t and t.column_names()[-1] == "predicted population"
+    assert same is t and t.get_column_names()[-1] == "predicted population"
     got = t.as_pandas()["predicted population"].tolist()
     assert got[:13] == pytest.approx(R_FITTED, rel=1e-7)
     assert got[13] == pytest.approx(29.226726235424668, rel=1e-7)  # R: predict(fit, data.frame(year = 2030))
@@ -345,12 +345,12 @@ def test_add_predicted_column_with_a_formula_matches_r_fitted_and_predict(engine
     assert (f'Added "predicted population": "{GROWTH}" with a = 12.0, b = 0.0297 (fitted to 13 rows by nonlinear '
             "least squares, as R nls()). Undo with table.undo().") in out
     t.undo()
-    assert "predicted population" not in t.column_names()
+    assert "predicted population" not in t.get_column_names()
 
 
 def test_add_predicted_column_for_each_group(engine):
-    t = make(sdata.example("growth"), engine)
-    t.add_predicted_column(GROWTH, for_each="country", name="trend")
+    t = make(sdata.get_example("growth"), engine)
+    t.add_predicted_column(GROWTH, for_each_group_in="country", name="trend")
     frame = t.as_pandas()
     for country, want in R_GROWTH.items():
         part = frame[frame["country"] == country]
@@ -359,9 +359,9 @@ def test_add_predicted_column_for_each_group(engine):
 
 
 def test_add_predicted_column_using_a_fit_result(engine, capsys):
-    t = make(sdata.example("growth"), engine)
-    fit = t.fit_formula(GROWTH, for_each="country")
-    t.add_predicted_column(GROWTH, using=fit, for_each="country")
+    t = make(sdata.get_example("growth"), engine)
+    fit = t.fit_formula(GROWTH, for_each_group_in="country")
+    t.add_predicted_column(GROWTH, using=fit, for_each_group_in="country")
     frame = t.as_pandas()
     part = frame[frame["country"] == "Cherria"]
     want = R_GROWTH["Cherria"]
@@ -389,7 +389,7 @@ def test_add_predicted_column_formula_errors(call, message):
 
 # ---------------------------------------------------------------- fit_curve
 def test_fit_curve_matches_r_lm_poly(engine, capsys):
-    got = rows(make(sdata.example("marks"), engine).fit_curve(x="hours", y="marks", degree=2))
+    got = rows(make(sdata.get_example("marks"), engine).fit_curve(x="hours", y="marks", of_degree=2))
     # R: fit <- lm(marks ~ poly(hours, 2, raw = TRUE), data = m); summary(fit); confint(fit)
     assert [r["term"] for r in got] == ["(intercept)", "hours", "hours**2"]
     want = [(30.99604022005571, 5.069361940938749, 6.1143868954671312, 1.3570612382675401e-07, 20.81887146157029,
@@ -416,7 +416,7 @@ def test_fit_curve_matches_r_lm_poly(engine, capsys):
 
 
 def test_weighted_fit_curve_matches_r_lm_weights(engine, capsys):
-    data = sdata.example("marks").assign(w=lambda d: d["height"] / 100)
+    data = sdata.get_example("marks").assign(w=lambda d: d["height"] / 100)
     got = rows(make(data, engine).fit_curve(x="hours", y="marks", weights="w"))
     # R: lm(marks ~ poly(hours, 2, raw = TRUE), data = m, weights = height / 100); summary; confint
     assert got[0]["estimate"] == pytest.approx(31.087086851390552, rel=1e-10)
@@ -429,7 +429,7 @@ def test_weighted_fit_curve_matches_r_lm_weights(engine, capsys):
 
 
 def test_fit_curve_for_each_class_matches_r(engine, capsys):
-    got = rows(make(sdata.example("marks"), engine).fit_curve(x="hours", y="marks", degree=3, for_each="class"))
+    got = rows(make(sdata.get_example("marks"), engine).fit_curve(x="hours", y="marks", of_degree=3, for_each_group_in="class"))
     assert len(got) == 12 and [r["class"] for r in got[::4]] == ["A", "B", "C"]
     # R: for each class: lm(marks ~ poly(hours, 3, raw = TRUE), data = subset(m, class == cl))
     want = {"A": (-14.313681748012252, 0.22610380478963801, 0.81006977728818552, 0.76937044384993958),
@@ -449,13 +449,13 @@ def test_fit_curve_for_each_class_matches_r(engine, capsys):
 
 
 def test_high_degree_gets_a_note(capsys):
-    make_table(sdata.example("marks")).fit_curve(x="hours", y="marks", degree=4)
+    make_table(sdata.get_example("marks")).fit_curve(x="hours", y="marks", of_degree=4)
     assert "Note: high degrees wiggle between points" in capsys.readouterr().out
 
 
 def test_fit_curve_degree_one_is_the_straight_line(capsys):
-    t = make_table(sdata.example("marks"))
-    curve = rows(t.fit_curve(x="hours", y="marks", degree=1))
+    t = make_table(sdata.get_example("marks"))
+    curve = rows(t.fit_curve(x="hours", y="marks", of_degree=1))
     line = rows(t.fit_line(x="hours", y="marks"))[0]
     assert curve[1]["estimate"] == pytest.approx(line["slope"], rel=1e-12)
     assert curve[0]["standard error"] == pytest.approx(line["intercept standard error"], rel=1e-10)
@@ -470,22 +470,22 @@ def test_fit_curve_core_is_steady_with_big_x():
 
 
 @pytest.mark.parametrize("call, message", [
-    (lambda t: t.fit_curve(x="hours", y="marks", degree=11), "degree= should be a whole number from 1 to 10"),
-    (lambda t: t.fit_curve(x="hours", y="marks", degree=2.5), "degree= should be a whole number"),
+    (lambda t: t.fit_curve(x="hours", y="marks", of_degree=11), "degree= should be a whole number from 1 to 10"),
+    (lambda t: t.fit_curve(x="hours", y="marks", of_degree=2.5), "degree= should be a whole number"),
     (lambda t: t.fit_curve(x="hours", y="hours"), "two different columns"),
     (lambda t: t.fit_curve(x="hours", y="name"), "text"),
-    (lambda t: t.fit_curve(x="hours", y="marks", for_each="hours"), "both a column of the fit"),
-    (lambda t: t.fit_curve(x="hours", y="marks", degree=9, for_each="name"), "could not fit a curve in any group"),
+    (lambda t: t.fit_curve(x="hours", y="marks", for_each_group_in="hours"), "both a column of the fit"),
+    (lambda t: t.fit_curve(x="hours", y="marks", of_degree=9, for_each_group_in="name"), "could not fit a curve in any group"),
     (lambda t: t.fit_curve(x="hourz", y="marks"), 'Did you mean "hours"'),
 ])
 def test_fit_curve_friendly_errors(call, message):
     with pytest.raises(SimplydataError, match=message):
-        call(make_table(sdata.example("marks")))
+        call(make_table(sdata.get_example("marks")))
 
 
 # ---------------------------------------------------------------- fit_line and its old name
 def test_fit_line_is_the_main_name_and_fit_straight_line_still_works(engine, capsys):
-    t = make(sdata.example("marks"), engine)
+    t = make(sdata.get_example("marks"), engine)
     line = rows(t.fit_line(x="hours", y="marks"))[0]
     # R: lm(marks ~ hours, data = m)
     assert line["slope"] == pytest.approx(5.20319382959493, rel=1e-12)

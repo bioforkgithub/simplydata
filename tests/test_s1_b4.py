@@ -31,7 +31,7 @@ def make(engine, data):
 
 
 def test_count_each_interval(engine, capsys):
-    got = make(engine, sdata.example("fruit")).count_each("fruit", interval=95)._frame.to_pandas().set_index("fruit")
+    got = make(engine, sdata.get_example("fruit")).count_each("fruit", interval=95)._frame.to_pandas().set_index("fruit")
     # R: DescTools::MultinomCI(table): apple 0.1212121212121 to 0.447361627938; pear 0 to 0.265543446120
     assert got.loc["apple", "percent 95 % CI low"] == pytest.approx(12.12121212121, rel=1e-9)
     assert got.loc["apple", "percent 95 % CI high"] == pytest.approx(44.7361627938, rel=1e-9)
@@ -53,7 +53,7 @@ def test_outlier_tests(engine, needs_r, capsys, rule, flagged):
 
 def test_grubbs_by_group(engine, needs_r, capsys):
     t = make(engine, pd.DataFrame({"v": X + X[:9], "g": ["a"] * 12 + ["b"] * 9}))
-    t.show_rows_with_outliers("v", for_each="g", rule="grubbs")
+    t.show_rows_with_outliers("v", for_each_group_in="g", rule="grubbs")
     out = capsys.readouterr().out
     # R: grubbs.test(x)$p.value = 0.02053415795634 in group a; group b (no outlier) is not flagged
     assert "a: the value farthest from the average, 25.6, is an outlier (p = 0.0205" in out

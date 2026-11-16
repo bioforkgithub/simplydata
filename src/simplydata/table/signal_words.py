@@ -1,4 +1,4 @@
-"""Table words for signals: table.spectrum_of("signal", sorted_by="time")."""
+"""Table words for signals: table.find_spectrum_of("signal", sorted_by="time")."""
 
 from __future__ import annotations
 
@@ -10,32 +10,32 @@ from .._errors import friendly
 from .._time_axis import need_filled, need_regular, series_of
 from ..numbers.signal_words import spectrum_columns
 
-EXAMPLE = 'table.spectrum_of("signal", sorted_by="time")'
+EXAMPLE = 'table.find_spectrum_of("signal", sorted_by="time")'
 
 
 class SignalTableWords:
-    @friendly
-    def spectrum_of(self, column=None, sorted_by=None, method="periodogram", window=None, window_shape="hann",
-                    show="power", between=None, for_each=None):
+    @friendly(renamed={"for_each": "for_each_group_in"})
+    def find_spectrum_of(self, column=None, sorted_by=None, method="periodogram", window=None, window_shape="hann",
+                         show="power", between=None, for_each_group_in=None):
         """Which repeating cycles (frequencies) a column holds over time, and how strong each is.
 
-        table.spectrum_of("signal", sorted_by="time")   (with sdata.example("sensor"))
+        table.find_spectrum_of("signal", sorted_by="time")   (with sdata.get_example("sensor"))
         sorted_by= is the time column (numbers or dates); it gives the order and the time between
         readings (dates: per day, or per month, quarter or year for calendar steps). Without it the
         rows are taken in table order and frequencies are in cycles per reading. The readings must be
         evenly spaced and filled in, except with method="lomb-scargle", which is made for uneven times
-        (empty cells are then left out). method= and show= as nums.spectrum_of: "periodogram" (SciPy;
+        (empty cells are then left out). method= and show= as nums.find_spectrum: "periodogram" (SciPy;
         2 x R spec.pgram(x, taper = 0, detrend = FALSE, fast = FALSE)$spec except at the top
         frequency), "welch" (window= readings per piece) or "lomb-scargle" (R lomb::lsp() itself, needs
-        simplydata[r] and R). for_each= gives one spectrum per group. Gives back a table: frequency,
+        simplydata[r] and R). for_each_group_in= gives one spectrum per group. Gives back a table: frequency,
         repeats every (1 / frequency), power, share of the variance (%). Prints the 3 strongest cycles.
         """
-        step_name = "spectrum_of"
+        step_name = "find_spectrum_of"
         self._need_name(step_name, "the column", column, EXAMPLE)
         name = _signals.read_method(method, step_name)
         between = _signals.check_frequency_range(between, step_name)
-        series = series_of(self, column, sorted_by, for_each, step_name, EXAMPLE)
-        groups = self._group_columns(step_name, for_each, [column]) if for_each is not None else []
+        series = series_of(self, column, sorted_by, for_each_group_in, step_name, EXAMPLE)
+        groups = self._group_columns(step_name, for_each_group_in, [column]) if for_each_group_in is not None else []
         parts, method_line = [], None
         for one in series:
             values, times = one.values, one.times

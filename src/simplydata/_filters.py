@@ -50,7 +50,7 @@ def _g(x) -> str:
 
 
 def design(kind, cutoffs, step, method="butterworth", steepness=4, ripple=0.5, removed_by=40, window=101,
-           window_shape="hamming", step_name="keep_frequencies"):
+           window_shape="hamming", step_name="keep_each_frequency_that"):
     """kind: "low", "high", "pass", "stop"; cutoffs in cycles per unit of time. Returns dict(sos or ba,
     words, r_call)."""
     from scipy import signal
@@ -88,20 +88,20 @@ def design(kind, cutoffs, step, method="butterworth", steepness=4, ripple=0.5, r
                                                rs=_g(removed_by), fs=_g(1 / step), f=f_r))
 
 
-def design_single(keep, frequency, step, width=1.0, and_multiples=False, step_name="remove_frequencies"):
+def design_single(keep, frequency, step, width=1.0, and_multiples=False, step_name="remove_each_frequency_that"):
     """One frequency: iirnotch (remove), iircomb (remove with its multiples) or iirpeak (keep)."""
     from scipy import signal
 
     nyquist = 0.5 / step
     f = float(frequency)
     if not 0 < f < nyquist:
-        raise SimplydataError(f"equal_to= must lie between 0 and {_g(nyquist)} (half the readings per unit of time).")
+        raise SimplydataError(f"is_equal_to= must lie between 0 and {_g(nyquist)} (half the readings per unit of time).")
     if isinstance(width, bool) or not isinstance(width, (int, float, np.integer, np.floating)) or width <= 0:
         raise SimplydataError("width= needs a number above 0: how wide the removed (or kept) band is, in frequency.")
     quality = f / float(width)
     if and_multiples:
         if keep:
-            raise SimplydataError("and_multiples= goes with remove_frequencies(equal_to=...).")
+            raise SimplydataError("and_multiples= goes with remove_each_frequency_that(is_equal_to=...).")
         fs = 1 / step
         if abs(fs / f - round(fs / f)) > 1e-9:
             raise SimplydataError("and_multiples=True needs a frequency that divides the readings per unit of time "

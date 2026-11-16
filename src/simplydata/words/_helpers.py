@@ -28,7 +28,7 @@ def colour_role(data: pd.DataFrame, colour):
 
 
 def palette_for(table: pd.DataFrame, group: str | None, settings: dict | None = None):
-    """Colours for each group: chart.colours(...) if the user set them, else the default set."""
+    """Colours for each group: chart.use_colours(...) if the user set them, else the default set."""
     if group is None:
         return None
     base = list((settings or {}).get("colours") or palette(settings))
@@ -37,7 +37,7 @@ def palette_for(table: pd.DataFrame, group: str | None, settings: dict | None = 
 
 
 def default_colour(settings: dict | None = None, fixed=None):
-    """The colour for a chart without groups: colour="red" > chart.colour("red") > first default."""
+    """The colour for a chart without groups: colour="red" > chart.use_colour("red") > first default."""
     if fixed is not None:
         return fixed
     settings = settings or {}
@@ -49,7 +49,7 @@ def default_colour(settings: dict | None = None, fixed=None):
 
 
 def single_list(x, y):
-    """chart.lines([3, 5, 2]) means: these are the y values, x is 1, 2, 3 ..."""
+    """chart.draw_lines([3, 5, 2]) means: these are the y values, x is 1, 2, 3 ..."""
     if y is None and is_listlike(x):
         return list(range(1, len(x) + 1)), x
     return x, y

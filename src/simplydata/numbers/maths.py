@@ -50,8 +50,8 @@ class MathsWords:
         return self._sum_word("divide_by", number)
 
     @friendly
-    def power(self, number=None):
-        """Raise every number to a power: power(2) squares, power(3) cubes. nums.power(2)
+    def raise_to_power(self, number=None):
+        """Raise every number to a power: power(2) squares, power(3) cubes. nums.raise_to_power(2)
 
         power(0.5) is the same as the square root. For new numbers, write squares = nums ** 2.
         """
@@ -63,8 +63,8 @@ class MathsWords:
         return self._change(what, values)
 
     @friendly
-    def square_root(self):
-        """The square root of every number: 9 becomes 3. nums.square_root()
+    def take_square_root(self):
+        """The square root of every number: 9 becomes 3. nums.take_square_root()
 
         Negative numbers have no square root among ordinary numbers, so they become empty.
         """
@@ -76,31 +76,31 @@ class MathsWords:
                           "a negative number has no square root")
 
     @friendly
-    def absolute_value(self):
-        """Every number without its minus sign: -3 becomes 3. nums.absolute_value()"""
+    def take_absolute_value(self):
+        """Every number without its minus sign: -3 becomes 3. nums.take_absolute_value()"""
         return self._each("absolute value", np.abs(self._values))
 
-    @friendly
-    def round_to(self, decimals=0):
+    @friendly(renamed={"decimals": "with_decimals"})
+    def round_to(self, with_decimals=0):
         """Round every number to this many decimal places. nums.round_to(2)
 
         A number exactly halfway goes to the even neighbour (2.5 becomes 2, 3.5 becomes 4),
         like R and NumPy; this stops a run of halves from always pushing totals up.
         round_to(0) gives whole numbers; round_to(-1) rounds to tens.
         """
-        if not isinstance(decimals, _nb.Integral) or isinstance(decimals, bool):
+        if not isinstance(with_decimals, _nb.Integral) or isinstance(with_decimals, bool):
             raise SimplydataError(
                 ".round_to() needs a whole number of decimal places, like 2." + self._example("round_to(2)")
             )
-        decimals = int(decimals)
-        places = "decimal place" if decimals == 1 else "decimal places"
-        return self._each(f"round to {decimals} {places}", np.round(self._values, decimals))
+        with_decimals = int(with_decimals)
+        places = "decimal place" if with_decimals == 1 else "decimal places"
+        return self._each(f"round to {with_decimals} {places}", np.round(self._values, with_decimals))
 
     @friendly
-    def log(self, base="e"):
+    def take_log(self, base="e"):
         """The logarithm of every number: natural (base e) unless you give base=10 or base=2.
 
-        nums.log()  nums.log(base=10)  nums.log(base=2)
+        nums.take_log()  nums.take_log(base=10)  nums.take_log(base=2)
         log(base=10) of 1000 is 3, because 10 x 10 x 10 = 1000. The log only exists for
         numbers above 0, so 0 and negative numbers become empty.
         """
@@ -124,8 +124,8 @@ class MathsWords:
         return self._each(what, result, int(bad.sum()), "the log only exists for numbers above 0")
 
     @friendly
-    def exp(self):
-        """e (about 2.718) to the power of every number; it undoes log(). nums.exp()"""
+    def take_exp(self):
+        """e (about 2.718) to the power of every number; it undoes log(). nums.take_exp()"""
         with np.errstate(all="ignore"):
             result = np.exp(self._values.astype(float))
         too_big = int((np.isinf(result) & np.isfinite(self._values)).sum())

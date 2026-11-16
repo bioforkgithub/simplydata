@@ -426,7 +426,7 @@ class System:
     def response_to(self, inputs=None, time_points=None):
         """How the output answers any input you give: a simulation.
 
-        system.response_to(sdata.wave("square", frequency=0.2, time_step=0.05, how_many=400))
+        system.response_to(sdata.make_wave("square", frequency=0.2, time_step=0.05, how_many=400))
         inputs= are the input values (Numbers or a list), one per time. time_points= are the times (evenly
         spaced); left out, they come from the time step the numbers remember (or the system's own
         time step). The system starts at rest and each input value holds until the next time (zero order
@@ -436,7 +436,7 @@ class System:
         from scipy import signal
 
         if inputs is None:
-            raise SimplydataError("response_to() needs inputs=, such as system.response_to(sdata.wave(\"square\", "
+            raise SimplydataError("response_to() needs inputs=, such as system.response_to(sdata.make_wave(\"square\", "
                                   "frequency=0.2, time_step=0.05, how_many=400)).")
         u = np.asarray(getattr(inputs, "_values", inputs), dtype=float).ravel()
         if len(u) < 2 or np.isnan(u).any():
@@ -452,7 +452,7 @@ class System:
         if time_points is None:
             if step is None:
                 raise SimplydataError("response_to() needs time_points= (or inputs that remember their time step, "
-                                      "such as sdata.wave(...)).")
+                                      "such as sdata.make_wave(...)).")
             t = np.arange(len(u)) * step
         else:
             t = self._times(None, 2, time_points, "response_to")
@@ -780,7 +780,7 @@ class System:
         import pandas as pd
 
         from .chart import Chart
-        from .words.layout import one_above_other
+        from .words.layout import put_one_above_other
 
         show = CHART_SPELLINGS.get(str(show).strip().lower(), show) if isinstance(show, str) else show
         if show not in CHARTS:
@@ -795,20 +795,20 @@ class System:
             with contextlib.redirect_stdout(quiet):
                 got = (self.step_response if show == "step" else self.impulse_response)(until=until)
             frame = got._frame.to_pandas() if hasattr(got._frame, "to_pandas") else got._frame
-            made = Chart(frame).lines(x="time", y="output")
+            made = Chart(frame).draw_lines(x="time", y="output")
             if show == "step" and self._stable() and np.isfinite(self._steady()):
-                made.line_at_y(self._steady(), label="settles at")
-            return made.title_top("Step response" if show == "step" else "Impulse response")
+                made.draw_line_at_y(self._steady(), labelled="settles at")
+            return made.write_title_on_top("Step response" if show == "step" else "Impulse response")
         if show == "bode":
             shown = self._read_units(unit, "chart")
             with contextlib.redirect_stdout(quiet):
                 got = self.frequency_response(between=between, unit=shown)
             frame = got._frame.to_pandas() if hasattr(got._frame, "to_pandas") else got._frame
-            top = Chart(frame).lines(x="frequency", y="gain (decibels)").log_scale_x().label_x(
+            top = Chart(frame).draw_lines(x="frequency", y="gain (decibels)").use_log_scale_x().label_x(
                 f"frequency ({shown})")
-            bottom = Chart(frame).lines(x="frequency", y="phase (degrees)").log_scale_x().label_x(
+            bottom = Chart(frame).draw_lines(x="frequency", y="phase (degrees)").use_log_scale_x().label_x(
                 f"frequency ({shown})")
-            return one_above_other(top, bottom, same_x=True)
+            return put_one_above_other(top, bottom, same_x=True)
         if show == "poles and zeros":
             poles, zeros = self._poles(), self._zeros()
             frame = pd.DataFrame({"real part": np.concatenate([poles.real, zeros.real]),
@@ -816,13 +816,13 @@ class System:
             made = Chart(frame)
             made._need_axes("pole_zero")
             return made._add("pole_zero", "draw", _draw_pole_zero, poles=poles, zeros=zeros,
-                             circle=self._time_step is not None).title_top("Poles (x) and zeros (o)")
+                             circle=self._time_step is not None).write_title_on_top("Poles (x) and zeros (o)")
         w = self._default_w(400)
         h = self._complex_response(w)
         frame = pd.DataFrame({"real part": h.real, "imaginary part": h.imag})
         made = Chart(frame)
         made._need_axes("nyquist")
-        return made._add("nyquist", "draw", _draw_nyquist, h=h).title_top("Nyquist curve")
+        return made._add("nyquist", "draw", _draw_nyquist, h=h).write_title_on_top("Nyquist curve")
 
 
 def _draw_pole_zero(ctx, poles, zeros, circle):
@@ -994,7 +994,7 @@ def frequency_filter(keep_below=None, keep_above=None, keep_between=None, remove
 
     sdata.frequency_filter(keep_below=10, time_step=0.005)
     One condition (keep_below=, keep_above=, keep_between=, remove_between=, remove_at=) and the options of
-    nums.keep_frequencies (method=, steepness=, ...). Gives back a System:
+    nums.keep_each_frequency_that (method=, steepness=, ...). Gives back a System:
     .frequency_response() (in cycles per unit of time), .chart() (the Bode chart), .poles(), .table(),
     .response_to(nums) (forwards only, from rest, as both_ways=False).
     """

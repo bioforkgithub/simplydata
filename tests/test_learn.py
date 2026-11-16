@@ -1,7 +1,9 @@
-"""The learning tools: example tables, sdata.words(), sdata.help(), sdata.lesson() and the cheat sheet."""
+"""The learning tools: example tables, sdata.show_all_words(), sdata.help(), sdata.show_lesson() and the cheat sheet."""
 
+import contextlib
 import importlib.util
 import inspect
+import io
 import re
 import warnings
 from pathlib import Path
@@ -21,10 +23,15 @@ KEYS = learn._all_keys()
 def _run(code, folder, monkeypatch):
     """Run an example the way a learner would: as a script in an empty folder."""
     monkeypatch.chdir(folder)
-    with warnings.catch_warnings():
-        warnings.simplefilter("ignore")  # chart.show() with no screen only warns
-        exec(compile(code, "<example>", "exec"), {"__name__": "__main__"})
-    plt.close("all")
+    printed = io.StringIO()
+    try:
+        with warnings.catch_warnings(), contextlib.redirect_stdout(printed):
+            warnings.simplefilter("ignore")  # chart.show() with no screen only warns
+            exec(compile(code, "<example>", "exec"), {"__name__": "__main__"})
+    finally:
+        print(printed.getvalue(), end="")
+        plt.close("all")
+    assert "is now called" not in printed.getvalue(), "an example uses an old name"
 
 
 def _saved_files(code):
@@ -34,7 +41,7 @@ def _saved_files(code):
 # ---------------------------------------------------------------- example tables
 @pytest.mark.parametrize("name", list(EXAMPLES))
 def test_example_tables_load_with_the_columns_described(name):
-    table = sdata.example(name)
+    table = sdata.get_example(name)
     assert isinstance(table, pd.DataFrame)
     assert len(table) >= 20
     assert list(table.columns) == list(EXAMPLES[name][1])
@@ -50,19 +57,19 @@ def test_example_tables_load_with_the_columns_described(name):
 
 
 def test_example_without_name_lists_tables(capsys):
-    assert sdata.example() is None
+    assert sdata.get_example() is None
     out = capsys.readouterr().out
     for name in EXAMPLES:
-        assert f'sdata.example("{name}")' in out
+        assert f'sdata.get_example("{name}")' in out
 
 
 def test_example_misspelt_says_did_you_mean():
-    with pytest.raises(sdata.SimplydataError, match=r'Did you mean sdata.example\("weather"\)'):
-        sdata.example("wether")
+    with pytest.raises(sdata.SimplydataError, match=r'Did you mean sdata.get_example\("weather"\)'):
+        sdata.get_example("wether")
 
 
 def test_example_accepts_capitals_and_csv_ending():
-    assert sdata.example("Marks.csv").equals(sdata.example("marks"))
+    assert sdata.get_example("Marks.csv").equals(sdata.get_example("marks"))
 
 
 def test_example_files_are_inside_the_package():
@@ -133,22 +140,23 @@ def test_every_word_has_a_summary_example_and_help_example():
 
 def test_aliases_are_found():
     aliases = learn._aliases()
-    assert "bar" in aliases["bars"]
-    assert "scatter" in aliases["dots"]
-    assert "color" in aliases["colour"]
+    assert "use_color" in aliases["use_colour"]
+    assert "put_legend_on_top" in aliases["put_legend_at_top"]
+    assert "put_legend_at_right" in aliases["put_legend_on_right"]
+    assert "bars" not in aliases and "draw_bars" not in aliases  # old names are not other spellings
 
 
-# ---------------------------------------------------------------- sdata.words()
+# ---------------------------------------------------------------- sdata.show_all_words()
 def test_words_prints_every_word_in_its_group(capsys):
-    sdata.words()
+    sdata.show_all_words()
     out = capsys.readouterr().out
     for group, keys in learn.GROUPS:
         assert group in out
         for key in keys:
             assert f"  {learn._display(key)} " in out
-    assert 'chart.bars(x="name", y="marks")' in out
-    assert 'table.keep_rows("marks", above=50)' in out
-    assert "(also: bar)" in out
+    assert 'chart.draw_bars(x="name", y="marks")' in out
+    assert 'table.keep_rows_where("marks", is_above=50)' in out
+    assert "(also: use_color)" in out
 
 
 # ---------------------------------------------------------------- sdata.help()
@@ -161,15 +169,22 @@ def test_help_for_every_word(key, capsys):
     assert learn.HELP_EXAMPLES[key].splitlines()[-1] in out
 
 
-@pytest.mark.parametrize("typed", ["bars", "chart.bars", "bars()", ".bars()", "bar", "sdata.bars"])
+@pytest.mark.parametrize("typed", ["draw_bars", "chart.draw_bars", "draw_bars()", ".draw_bars()", "sdata.draw_bars"])
 def test_help_understands_ways_of_writing_a_word(typed, capsys):
     sdata.help(typed)
-    assert capsys.readouterr().out.startswith("chart.bars()")
+    assert capsys.readouterr().out.startswith("chart.draw_bars()")
+
+
+@pytest.mark.parametrize("typed, old", [("bars", "bars"), ("bars()", "bars"), ("bar", "bar"), ("sdata.bars", "bars")])
+def test_help_for_an_old_way_of_writing_a_word_points_to_the_new_one(typed, old, capsys):
+    sdata.help(typed)
+    out = capsys.readouterr().out
+    assert out.startswith(f'"{old}" is now called "draw_bars"') and "\nchart.draw_bars()\n" in out
 
 
 @pytest.mark.parametrize("typed, expected", [
-    ("chart", "sdata.chart()"), ("pairs", "sdata.pairs()"), ("show=", "show="), ("error", "error="),
-    ("color", "chart.colour()"), ("scatter", "chart.dots()"),
+    ("chart", "sdata.chart()"), ("draw_all_pairs", "sdata.draw_all_pairs()"), ("show=", "show="), ("error", "error="),
+    ("use_color", "chart.use_colour()"), ("put_legend_on_top", "chart.put_legend_at_top()"),
 ])
 def test_help_finds_ps_words_options_and_spellings(typed, expected, capsys):
     sdata.help(typed)
@@ -177,19 +192,20 @@ def test_help_finds_ps_words_options_and_spellings(typed, expected, capsys):
 
 
 def test_help_accepts_the_step_itself(capsys):
-    sdata.help(sdata.Chart.histogram)
-    assert capsys.readouterr().out.startswith("chart.histogram()")
-    sdata.help(sdata.Table.keep_rows)
-    assert capsys.readouterr().out.startswith("table.keep_rows()")
+    sdata.help(sdata.Chart.draw_histogram)
+    assert capsys.readouterr().out.startswith("chart.draw_histogram()")
+    sdata.help(sdata.Table.keep_rows_where)
+    assert capsys.readouterr().out.startswith("table.keep_rows_where()")
     sdata.help(sdata.Table.save)
     out = capsys.readouterr().out
     assert out.startswith("table.save()") and "chart.save()" not in out
 
 
-@pytest.mark.parametrize("typed", ["keep_rows", "table.keep_rows", "keep_rows()", "table.keep_rows()"])
+@pytest.mark.parametrize("typed", ["keep_rows_where", "table.keep_rows_where", "keep_rows_where()",
+                                   "table.keep_rows_where()"])
 def test_help_finds_table_words(typed, capsys):
     sdata.help(typed)
-    assert capsys.readouterr().out.startswith("table.keep_rows()")
+    assert capsys.readouterr().out.startswith("table.keep_rows_where()")
 
 
 def test_help_for_a_word_on_charts_and_tables_explains_both(capsys):
@@ -206,7 +222,7 @@ def test_help_for_a_word_on_charts_and_tables_explains_both(capsys):
 
 
 @pytest.mark.parametrize("typed, expected", [
-    ("average", "nums.average()"), ("nums.average", "nums.average()"), ("grid.row", "grid.row()"),
+    ("nums.find_average", "nums.find_average()"), ("nums.find_average", "nums.find_average()"), ("grid.get_row", "grid.get_row()"),
     ("swap_rows_and_columns", "grid.swap_rows_and_columns()"), ("numbers", "sdata.numbers()"),
 ])
 def test_help_finds_number_words(typed, expected, capsys):
@@ -215,26 +231,26 @@ def test_help_finds_number_words(typed, expected, capsys):
 
 
 def test_help_table_word_options_hide_internal_details(capsys):
-    sdata.help("keep_rows")
+    sdata.help("keep_rows_where")
     out = capsys.readouterr().out
-    assert "  above=\n" in out and "not given" not in out and "extra" not in out
+    assert "  is_above=\n" in out and "not given" not in out and "extra" not in out
 
 
 def test_help_unknown_word_says_did_you_mean(capsys):
     sdata.help("histogarm")
     out = capsys.readouterr().out
     assert 'no word called "histogarm"' in out
-    assert 'sdata.help("histogram")' in out
+    assert 'sdata.help("draw_histogram")' in out
 
 
 def test_help_without_word_explains_help(capsys):
     sdata.help()
     out = capsys.readouterr().out
-    assert 'sdata.help("bars")' in out and "sdata.words()" in out and "sdata.lesson()" in out
+    assert 'sdata.help("draw_bars")' in out and "sdata.show_all_words()" in out and "sdata.show_lesson()" in out
 
 
 def test_help_shows_options_with_defaults(capsys):
-    sdata.help("bars")
+    sdata.help("draw_bars")
     out = capsys.readouterr().out
     assert re.search(r'show=\s+normally "average"', out)
     assert "sideways=" in out
@@ -250,7 +266,7 @@ def test_every_help_example_runs(key, tmp_path, monkeypatch, capsys):
 
 # ---------------------------------------------------------------- docstring examples
 def _doc_example_code(key):
-    """The word's own short example (from its docstring, as sdata.words() and the cheat sheet show
+    """The word's own short example (from its docstring, as sdata.show_all_words() and the cheat sheet show
     it), after the lines of its help example that come before it: the example table and, for
     steps such as fit_line, the chart step they go on."""
     word = learn._word(key)
@@ -270,7 +286,7 @@ def test_every_word_has_an_example_in_its_docstring(key):
 
 @pytest.mark.parametrize("key", KEYS)
 def test_docstring_table_is_the_help_example_table(key):
-    """A docstring that names its table, (with sdata.example("weather")), must match sdata.help's example."""
+    """A docstring that names its table, (with sdata.get_example("weather")), must match sdata.help's example."""
     if key in learn.OPTIONS:
         return
     named = learn._TABLE.search(inspect.getdoc(learn._function(key)) or "")
@@ -300,22 +316,22 @@ def test_every_docstring_example_runs_and_draws(key, tmp_path, monkeypatch, caps
     plt.close("all")
 
 
-# ---------------------------------------------------------------- sdata.lesson()
+# ---------------------------------------------------------------- sdata.show_lesson()
 LESSON_NUMBERS = range(1, 27)
 
 
 def test_there_are_twenty_six_lessons(capsys):
     assert len(learn.LESSONS) == 26
-    sdata.lesson()
+    sdata.show_lesson()
     out = capsys.readouterr().out
     assert "26 lessons" in out
     for i in LESSON_NUMBERS:
-        assert f"sdata.lesson({i})" in out
+        assert f"sdata.show_lesson({i})" in out
 
 
 @pytest.mark.parametrize("number", LESSON_NUMBERS)
 def test_lesson_prints_all_its_parts(number, capsys):
-    sdata.lesson(number)
+    sdata.show_lesson(number)
     out = capsys.readouterr().out
     les = learn.LESSONS[number - 1]
     assert les["title"] in out
@@ -349,17 +365,17 @@ def test_every_group_comes_up_in_a_lesson():
 
 @pytest.mark.parametrize("number", LESSON_NUMBERS)
 def test_lessons_use_tables_and_charts(number):
-    """Every lesson works with separate objects: sdata.table, sdata.chart or table.chart()."""
+    """Every lesson works with separate objects: sdata.table, sdata.chart or table.start_chart()."""
     code = "\n".join(learn.lesson_code(number))
-    assert any(way in code for way in ("sdata.table(", "sdata.chart(", ".chart()")), number
-    for gone in ("sdata.start", "draw_", "story"):
+    assert any(way in code for way in ("sdata.table(", "sdata.chart(", ".start_chart()")), number
+    for gone in ("sdata.start", "story"):
         assert gone not in code, f"lesson {number} uses {gone}"
 
 
 @pytest.mark.parametrize("bad", [0, 27, "1", 1.0, True])
 def test_wrong_lesson_number_is_explained(bad):
     with pytest.raises(sdata.SimplydataError, match="lessons 1 to 26"):
-        sdata.lesson(bad)
+        sdata.show_lesson(bad)
 
 
 # ---------------------------------------------------------------- cheat sheet
@@ -394,10 +410,10 @@ def test_every_solution_runs(number, task, tmp_path, monkeypatch, capsys):
 
 
 def test_lesson_shows_solutions_only_when_asked(capsys):
-    sdata.lesson(3)
+    sdata.show_lesson(3)
     out = capsys.readouterr().out
-    assert "Solutions" not in out and "sdata.lesson(3, solutions=True)" in out
-    sdata.lesson(3, solutions=True)
+    assert "Solutions" not in out and "sdata.show_lesson(3, solutions=True)" in out
+    sdata.show_lesson(3, solutions=True)
     out = capsys.readouterr().out
     assert "\nSolutions\n" in out
     for source, _ in learn.lesson_solutions(3):
@@ -520,8 +536,8 @@ def test_dictionary_has_every_word_with_a_page():
     assert len(entries) == len(dictionary.entries())
     for entry in entries:
         assert entry.count(r"\sense{") == entry.count(r"\where{Manual \manualpage{word:")
-    lesson = next(n for n in LESSON_NUMBERS if "table.keep_rows" in learn.LESSONS[n - 1]["words"])
-    assert re.search(r"\\where\{Manual \\manualpage\{word:table\.keep-rows\}\{\d+\}\{[^}]+\}; "
+    lesson = next(n for n in LESSON_NUMBERS if "table.keep_rows_where" in learn.LESSONS[n - 1]["words"])
+    assert re.search(r"\\where\{Manual \\manualpage\{word:table\.keep-rows-where\}\{\d+\}\{[^}]+\}; "
                      rf"lesson {lesson} ", written)
 
 
@@ -552,7 +568,7 @@ def test_manual_escapes_latex_special_characters(text, expected):
 def test_readme_example_runs(tmp_path, monkeypatch):
     text = (ROOT / "README.md").read_text(encoding="utf-8")
     code = text.split("```python", 1)[1].split("```", 1)[0]
-    assert 'sdata.example("marks")' in code and ".chart()" in code
+    assert 'sdata.get_example("marks")' in code and ".start_chart()" in code
     _run(code, tmp_path, monkeypatch)
 
 
@@ -560,13 +576,13 @@ def test_readme_example_runs(tmp_path, monkeypatch):
 OLD_WORDS = {  # old name -> what sdata.help shows instead
     "fit_straight_line": "table.fit_line()",
     "show_first": "table.show_first_rows()",
-    "remove_empty_rows": "table.remove_rows_with_empty_cells()",
-    "count_empty": "table.count_empty_cells()",
-    "fill_empty": "table.fill_empty_cells()",
+    "remove_empty_rows": "table.remove_rows_with_empty_cells_in()",
+    "count_empty": "table.count_empty_cells_in()",
+    "fill_empty": "table.fill_empty_cells_in()",
     "done": "table.as_pandas()",
-    "all_points": "chart.all_dots()",
+    "all_points": "chart.draw_all_dots()",
     "colour_bar_label": "chart.label_colour_bar()",
-    "one_per": "chart.one_chart_per()",
+    "one_per": "chart.draw_one_chart_for_each_group_in()",
 }
 
 
@@ -583,7 +599,8 @@ def _new_word(call):
 
 
 @pytest.mark.parametrize("old, new, where", [
-    ("band=", "confidence_band=", "chart.fit_line()"), ("big_data", "fast=", "sdata.chart()"),
+    ("band=", "with_confidence_band=", "chart.fit_line()"),
+    ("above=", "is_above=", "table.keep_rows_where()"), ("for_each=", "for_each_group_in=", "table.find_average_of()"), ("big_data", "fast=", "sdata.chart()"),
     ("drawn_as", None, None),
 ])
 def test_help_for_an_old_option_points_to_the_new_one(old, new, where, capsys):
@@ -596,7 +613,7 @@ def test_help_for_an_old_option_points_to_the_new_one(old, new, where, capsys):
 
 
 def test_old_names_are_not_listed(capsys):
-    sdata.words()
+    sdata.show_all_words()
     out = capsys.readouterr().out
     for old in OLD_WORDS:
         assert f"  {old} " not in out and f".{old}(" not in out
@@ -616,7 +633,7 @@ def test_old_names_are_not_listed(capsys):
 def test_new_numbers_words_are_exported():
     assert isinstance(sdata.numbers([1, 2]), sdata.Numbers)
     assert isinstance(sdata.number_grid([[1, 2], [3, 4]]), sdata.NumberGrid)
-    assert isinstance(sdata.random_numbers(how_many=3, seed=1), sdata.Numbers)
-    assert callable(sdata.words) and callable(sdata.table)  # functions, not the subpackages
-    for name in ("numbers", "number_grid", "random_numbers", "Numbers", "NumberGrid"):
+    assert isinstance(sdata.make_random_numbers(how_many=3, with_seed=1), sdata.Numbers)
+    assert callable(sdata.show_all_words) and callable(sdata.table)  # functions, not the subpackages
+    for name in ("numbers", "number_grid", "make_random_numbers", "Numbers", "NumberGrid"):
         assert name in sdata.__all__

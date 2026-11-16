@@ -1,8 +1,8 @@
 """Chart words for time series and signals: sticks, autocorrelation_bars, cross_correlation_bars, lag_dots,
 trend_and_season, forecast, spectrum, spectrum_over_time, peak_dots.
 
-The numbers come from the table words (autocorrelation_of, correlation_between, add_trend_and_season,
-forecast, spectrum_of, find_peaks), worked out when the word is called, so the chart shows exactly what
+The numbers come from the table words (find_autocorrelation_of, find_correlation_between, add_trend_and_season,
+forecast, find_spectrum_of, find_each_peak_that), worked out when the word is called, so the chart shows exactly what
 the table word gives back and prints the same sentences. The drawing is matplotlib.
 """
 
@@ -19,7 +19,7 @@ def _table_of(chart, columns=None):
     from ..table import Table
 
     if chart._data is None or not len(chart._data.columns):
-        raise SimplydataError("This chart word needs a table: start with sdata.chart(table) or table.chart().")
+        raise SimplydataError("This chart word needs a table: start with sdata.chart(table) or table.start_chart().")
     return Table((chart._data if columns is None else chart._data[columns]).copy())
 
 
@@ -217,7 +217,7 @@ class TimeChartWords:
     def sticks(self, x=None, y=None, colour=None, thickness=None):
         """A thin line from 0 up (or down) to each value, with a dot on top (a stem chart).
 
-        chart.sticks(x="month_number", y="rain", colour="city")   (with sdata.example("weather"))
+        chart.sticks(x="month_number", y="rain", colour="city")   (with sdata.get_example("weather"))
         Good for values at separate places, such as correlations for each number of rows back.
         colour="group" draws each group in its own colour. thickness=3 draws thicker sticks (normal is 1.5).
         """
@@ -235,14 +235,14 @@ class TimeChartWords:
                              band="white noise"):
         """Sticks for the correlation of a column with itself 1, 2, ... rows back, with the noise band.
 
-        chart.autocorrelation_bars("visitors", sorted_by="month")   (with one museum of sdata.example("visitors"))
-        The column first, sorted_by= the time column (the order), as table.autocorrelation_of: the heights
+        chart.autocorrelation_bars("visitors", sorted_by="month")   (with one museum of sdata.get_example("visitors"))
+        The column first, sorted_by= the time column (the order), as table.find_autocorrelation_of: the heights
         are its numbers (rows_back=, show="correlation" or "partial", band="white noise" or "bartlett"); the
         dashed lines are the band, as R plot(acf(x)). colour= groups are not used: keep one series first.
         """
         y, x = self._column_first("autocorrelation_bars", column, sorted_by,
                                   'chart.autocorrelation_bars("visitors", sorted_by="month")')
-        got = _frame(_table_of(self).autocorrelation_of(y, sorted_by=x, rows_back=rows_back, show=show, band=band))
+        got = _frame(_table_of(self).find_autocorrelation_of(y, sorted_by=x, rows_back=rows_back, show=show, band=band))
         value = [c for c in got.columns if c not in ("rows back", "band low", "band high", "outside band",
                                                      "Ljung-Box statistic", "Ljung-Box p-value")][-1]
         self._need_axes("autocorrelation_bars")
@@ -253,8 +253,8 @@ class TimeChartWords:
     def cross_correlation_bars(self, *columns, sorted_by=None, rows_back=None, **other_names):
         """Sticks for the correlation of two columns when the second is shifted by -k to k rows.
 
-        chart.cross_correlation_bars("signal", "vibration", sorted_by="time", rows_back=20)   (with sdata.example("sensor"))
-        The two columns first, sorted_by= the time column, as table.correlation_between: the heights are
+        chart.cross_correlation_bars("signal", "vibration", sorted_by="time", rows_back=20)   (with sdata.get_example("sensor"))
+        The two columns first, sorted_by= the time column, as table.find_correlation_between: the heights are
         its numbers. A high stick at shift 6 means the second column follows the first 6 rows later.
         """
         example = 'chart.cross_correlation_bars("signal", "vibration", sorted_by="time")'
@@ -276,7 +276,7 @@ class TimeChartWords:
         check(self._data, x=x, y=y)
         check(self._data, y=against)
         rows_back = 10 if rows_back is None else rows_back
-        got = _frame(_table_of(self).correlation_between(y, against, rows_back=rows_back, sorted_by=x))
+        got = _frame(_table_of(self).find_correlation_between(y, against, rows_back=rows_back, sorted_by=x))
         shift = [c for c in got.columns if c.startswith("shift")][0]
         value = [c for c in got.columns if c not in (shift,) and got[c].dtype.kind == "f"][0]
         low = high = None
@@ -290,7 +290,7 @@ class TimeChartWords:
     def lag_dots(self, column=None, sorted_by=None, rows_back=1, transparency=None):
         """Dots of each value against the value some rows back, with the 1:1 line (as R lag.plot).
 
-        chart.lag_dots("visitors", sorted_by="month", rows_back=[1, 12])   (with one museum of sdata.example("visitors"))
+        chart.lag_dots("visitors", sorted_by="month", rows_back=[1, 12])   (with one museum of sdata.get_example("visitors"))
         The column first, sorted_by= the time column (the order; table order without it). rows_back= one
         number or a list: each gets its own colour. Dots near the dashed 1:1 line mean the value is like
         the one rows_back earlier. transparency=0.5 makes the dots half see-through where many overlap.
@@ -312,7 +312,7 @@ class TimeChartWords:
         """Four panels sharing x: the column itself, its trend, its season and the rest (as R plot(stl(...)),
         which labels the first panel "data").
 
-        chart.trend_and_season(x="month", y="visitors", repeats_every="year")   (with one museum of sdata.example("visitors"))
+        chart.trend_and_season(x="month", y="visitors", repeats_every="year")   (with one museum of sdata.get_example("visitors"))
         The parts are those of table.add_trend_and_season (repeats_every=, method="loess", "moving
         averages" or "straight line"); the first panel is named after the column.
         """
@@ -333,24 +333,24 @@ class TimeChartWords:
                  season="added", order=None, seasonal_order=None, interval=95):
         """The forecast after the data: a dashed line and its interval band, per colour group.
 
-        chart.forecast(steps_ahead=12, repeats_every="year")   (after chart.lines(x="month", y="visitors",
-        colour="museum") with sdata.example("visitors")). x= and y= come from the lines before it (or give them). The numbers and the printed sentence are
+        chart.forecast(steps_ahead=12, repeats_every="year")   (after chart.draw_lines(x="month", y="visitors",
+        colour="museum") with sdata.get_example("visitors")). x= and y= come from the lines before it (or give them). The numbers and the printed sentence are
         those of table.forecast (method=, repeats_every=, interval= ...); the colour groups of the lines
         are forecast one by one.
         """
-        x, y, colour = self._xy("forecast", x, y, 'chart.lines(x="month", y="visitors").forecast(steps_ahead=12)')
+        x, y, colour = self._xy("forecast", x, y, 'chart.draw_lines(x="month", y="visitors").forecast(steps_ahead=12)')
         group = colour if isinstance(colour, str) and colour in self._data.columns else None
         got = _frame(_table_of(self).forecast(y, sorted_by=x, steps_ahead=steps_ahead, method=method,
                                                repeats_every=repeats_every, trend=trend, season=season, order=order,
-                                               seasonal_order=seasonal_order, interval=interval, for_each=group))
+                                               seasonal_order=seasonal_order, interval=interval, for_each_group_in=group))
         return self._add("forecast", "extra", _draw_forecast, frame=got, x=x, group=group, interval=interval)
 
     @friendly(renamed={"y": "column", "x": "sorted_by"})
     def spectrum(self, column=None, sorted_by=None, method="periodogram", show="power", window=None, log_scale=True):
         """Power against frequency: which cycles a column holds, the 3 strongest labelled with their period.
 
-        chart.spectrum("signal", sorted_by="time")   (with sdata.example("sensor"))
-        The column first, sorted_by= the time column, as table.spectrum_of: the numbers are its numbers
+        chart.spectrum("signal", sorted_by="time")   (with sdata.get_example("sensor"))
+        The column first, sorted_by= the time column, as table.find_spectrum_of: the numbers are its numbers
         (method="periodogram", "welch" or "lomb-scargle"; show="power", "decibels" or "amplitude").
         log_scale=True puts the power on a log scale (not for decibels). colour= groups each get a line.
         """
@@ -362,8 +362,8 @@ class TimeChartWords:
         last = self._last_layer("spectrum")
         colour = last.get("colour") if last.get("y") == y else None
         group = colour if isinstance(colour, str) and colour in self._data.columns else None
-        got = _frame(_table_of(self).spectrum_of(y, sorted_by=x, method=method, show=show, window=window,
-                                                 for_each=group))
+        got = _frame(_table_of(self).find_spectrum_of(y, sorted_by=x, method=method, show=show, window=window,
+                                                 for_each_group_in=group))
         column = [c for c in got.columns if c not in ("frequency", "repeats every", "share of variance (%)")
                   and c != group][-1]
         peaks = []
@@ -381,7 +381,7 @@ class TimeChartWords:
     def spectrum_over_time(self, column=None, sorted_by=None, window=256, window_shape="hann"):
         """How the cycles in a column change over time: a heat map of time, frequency and power (decibels).
 
-        chart.spectrum_over_time("signal", sorted_by="time", window=100)   (with sdata.example("sensor"))
+        chart.spectrum_over_time("signal", sorted_by="time", window=100)   (with sdata.get_example("sensor"))
         The column first, sorted_by= the time column. The column is cut into pieces of window= readings
         that overlap by half; each piece gets its periodogram (window_shape= weights, the mean of each piece
         removed), as SciPy signal.spectrogram; the time of each piece is its middle. The readings must be
@@ -411,25 +411,25 @@ class TimeChartWords:
         return self._add("spectrum_over_time", "draw", _draw_spectrum_over_time, times=times + start,
                          frequencies=frequencies, decibels=decibels)
 
-    @friendly
-    def peak_dots(self, x=None, y=None, at_least=None, apart=None, stands_out_by=None, dips=False, at_most=None):
+    @friendly(renamed={"at_least": "is_at_least", "at_most": "is_at_most"})
+    def peak_dots(self, x=None, y=None, is_at_least=None, apart=None, stands_out_by=None, dips=False, is_at_most=None):
         """Dots on the peaks of the line (and on the dips with dips=True).
 
-        chart.peak_dots(at_least=1, apart=0.05)   (after chart.lines(x="time", y="signal") with sdata.example("sensor"))
-        The peaks are those of table.find_peaks (at_least=, apart=, stands_out_by=); dips=True marks the
-        dips of table.find_dips instead (at_most=). x= and y= come from the lines before it.
+        chart.peak_dots(is_at_least=1, apart=0.05)   (after chart.draw_lines(x="time", y="signal") with sdata.get_example("sensor"))
+        The peaks are those of table.find_each_peak_that (is_at_least=, apart=, stands_out_by=); dips=True marks the
+        dips of table.find_each_dip_that instead (is_at_most=). x= and y= come from the lines before it.
         """
-        x, y, colour = self._xy("peak_dots", x, y, 'chart.lines(x="time", y="signal").peak_dots(at_least=1)')
+        x, y, colour = self._xy("peak_dots", x, y, 'chart.draw_lines(x="time", y="signal").peak_dots(is_at_least=1)')
         group = colour if isinstance(colour, str) and colour in self._data.columns else None
         table = _table_of(self)
         if dips:
-            got = table.find_dips(y, sorted_by=x, at_most=at_most, apart=apart, stands_out_by=stands_out_by,
-                                  for_each=group)
+            got = table.find_each_dip_that(y, sorted_by=x, is_at_most=is_at_most, apart=apart, stands_out_by=stands_out_by,
+                                  for_each_group_in=group)
         else:
-            if at_most is not None:
-                raise SimplydataError("at_most= goes with dips=True.")
-            got = table.find_peaks(y, sorted_by=x, at_least=at_least, apart=apart, stands_out_by=stands_out_by,
-                                   for_each=group)
+            if is_at_most is not None:
+                raise SimplydataError("is_at_most= goes with dips=True.")
+            got = table.find_each_peak_that(y, sorted_by=x, is_at_least=is_at_least, apart=apart, stands_out_by=stands_out_by,
+                                   for_each_group_in=group)
         frame = _frame(got)
         where = x if x is not None else "position"
         return self._add("peak_dots", "extra", _draw_peak_dots, frame=frame, x=where,

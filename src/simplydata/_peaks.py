@@ -1,5 +1,5 @@
 """Peaks and dips: SciPy signal.find_peaks, peak_prominences and peak_widths (the definitions of MATLAB
-findpeaks; R pracma::findpeaks gives the same positions for height and distance). find_dips runs the
+findpeaks; R pracma::findpeaks gives the same positions for height and distance). find_each_dip_that runs the
 same on minus the values.
 """
 
@@ -23,7 +23,7 @@ def _positive(value, name, step_name):
 
 
 def find(values, at_least=None, apart=None, stands_out_by=None, wide_at_least=None, step=1.0, dips=False,
-         step_name="find_peaks", experts=None):
+         step_name="find_each_peak_that", experts=None):
     """dict(positions (from 0), heights, stands out by, widths (in readings), left/right bases, sentence bits)."""
     from scipy import signal
 

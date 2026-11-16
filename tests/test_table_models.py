@@ -34,12 +34,12 @@ def make(data, engine):
 
 @pytest.fixture
 def school():
-    return sdata.example("school")
+    return sdata.get_example("school")
 
 
 @pytest.fixture
 def class_marks():
-    return sdata.example("marks")
+    return sdata.get_example("marks")
 
 
 def rows(result):
@@ -323,7 +323,7 @@ def test_multiple_imputation_close_to_r_mice(school, engine, capsys, needs_r):
                                               empty_cells="multiple imputation"))
     assert again["sleep"]["effect"] == got["sleep"]["effect"]  # the same seed gives the same answer
     other = rows(make(school, engine).explain("marks", using=["hours", "breakfast", "sleep"],
-                                              empty_cells="multiple imputation", seed=7))
+                                              empty_cells="multiple imputation", with_seed=7))
     assert other["sleep"]["effect"] != got["sleep"]["effect"]
 
 

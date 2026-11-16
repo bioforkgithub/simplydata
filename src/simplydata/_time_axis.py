@@ -1,7 +1,7 @@
 """The time axis of a series: order, spacing, gaps and the time between readings.
 
-Glue for the words on things that change over time (spectrum_of, check_steady, ...). It sorts a
-column by sorted_by=, splits it with for_each=, works out the step between readings (numbers, or
+Glue for the words on things that change over time (find_spectrum_of, check_steady_over_time, ...). It sorts a
+column by sorted_by=, splits it with for_each_group_in=, works out the step between readings (numbers, or
 dates in days, with calendar months, quarters and years counted as regular), and gives friendly
 errors for gaps and empty cells. It computes no statistics.
 """
@@ -70,7 +70,7 @@ def series_of(table, column, sorted_by=None, for_each=None, step_name="this step
             raise SimplydataError(f"{step_name}() needs sorted_by= as one column name in quotes.\nFor example, {example}")
         table._need_columns(sorted_by)
         if sorted_by == column or sorted_by in groups:
-            raise SimplydataError(f'"{sorted_by}" cannot be both sorted_by= and the column or for_each=.')
+            raise SimplydataError(f'"{sorted_by}" cannot be both sorted_by= and the column or for_each_group_in=.')
     values = frame[column].cast(nw.Float64).to_numpy().astype(float)
     keys = [tuple(r) for r in frame.select(groups).rows()] if groups else [()] * len(values)
     times, kind, wall = None, None, None
@@ -91,7 +91,7 @@ def series_of(table, column, sorted_by=None, for_each=None, step_name="this step
             times = np.asarray(raw, dtype=float)
         else:
             raise SimplydataError(f'sorted_by="{sorted_by}" should hold numbers or dates (make dates first: '
-                                  f'table.make_dates("{sorted_by}")).')
+                                  f'table.turn_into_dates("{sorted_by}")).')
         if np.any(np.isnat(times) if kind == "dates" else np.isnan(times)):
             raise SimplydataError(f'"{sorted_by}" has empty cells, so the order of those rows is not known. '
                                   "Fill or remove them first.")
@@ -116,7 +116,7 @@ def series_of(table, column, sorted_by=None, for_each=None, step_name="this step
         if (np.diff(t.astype("int64") if kind == "dates" else t) == 0).any():
             where = f" for {label}" if label else ""
             raise SimplydataError(f'Some rows have the same "{sorted_by}"{where}, so the order is not clear. '
-                                  "Summarise them first, for example with table.average_of(..., for_each=...).")
+                                  "Summarise them first, for example with table.find_average_of(..., for_each_group_in=...).")
         if kind == "dates":
             if wall is not None and np.all(np.diff(t).astype("timedelta64[ns]").astype(np.int64) >= 23 * 3600e9):
                 t = clock  # a day or more apart: steps on the clock (shorter steps keep the true time apart)
@@ -162,7 +162,7 @@ def need_filled(series: TimeSeries, column: str, step_name: str, sorted_by: str 
     raise SimplydataError(
         f'{step_name}() needs a value at every step, but "{column}" has {empty} empty cell'
         f'{"" if empty == 1 else "s"}{where}. Fill them first, for example: '
-        f'table.fill_empty_cells("{column}", with_the="line between neighbours"{order}).')
+        f'table.fill_empty_cells_in("{column}", with_the="line between neighbours"{order}).')
 
 
 def read_time_step(time_step=None, sampling_rate=None, fs=None, remembered=None, step_name="this step"):

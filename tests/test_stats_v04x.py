@@ -38,12 +38,12 @@ def make(data, engine):
 
 @pytest.fixture
 def marks():
-    return sdata.example("marks")
+    return sdata.get_example("marks")
 
 
 @pytest.fixture
 def school():
-    return sdata.example("school")
+    return sdata.get_example("school")
 
 
 def row(result):
@@ -65,7 +65,7 @@ def unchanged(t, before):
 def test_levene_brown_forsythe_matches_r(marks, engine, capsys):
     t = make(marks, engine)
     before = t._frame.to_pandas().copy()
-    got = row(t.compare_spreads("marks", for_each="class"))
+    got = row(t.compare_spreads_of("marks", for_each_group_in="class"))
     # R: g <- factor(m$class); anova(lm(abs(m$marks - ave(m$marks, g, FUN = median)) ~ g))
     #    (= car::leveneTest(marks ~ class, data = m), center = median)
     assert got["statistic"] == pytest.approx(0.09374281994333, rel=1e-9)
@@ -82,18 +82,18 @@ def test_levene_brown_forsythe_matches_r(marks, engine, capsys):
             "91 of 100 studies like this one (p = 0.911). This does not show that the groups have the same spread.") in out
     assert "car::leveneTest()" in out and "Brown-Forsythe" in out
     unchanged(t, before)
-    assert t.compare_spreads("marks", for_each="class", test="Brown-Forsythe")._frame.to_pandas()["statistic"][0] \
+    assert t.compare_spreads_of("marks", for_each_group_in="class", test="Brown-Forsythe")._frame.to_pandas()["statistic"][0] \
         == pytest.approx(got["statistic"])
 
 
 def test_bartlett_and_fligner_match_r(marks, engine):
     t = make(marks, engine)
-    got = row(t.compare_spreads("marks", for_each="class", test="bartlett"))
+    got = row(t.compare_spreads_of("marks", for_each_group_in="class", test="bartlett"))
     # R: bartlett.test(marks ~ class, data = m)
     assert got["statistic"] == pytest.approx(0.103698845381851, rel=1e-9)
     assert got["degrees of freedom"] == 2
     assert got["p-value"] == pytest.approx(0.949471824991942, rel=1e-9)
-    got = row(t.compare_spreads("marks", for_each="class", test="fligner"))
+    got = row(t.compare_spreads_of("marks", for_each_group_in="class", test="fligner"))
     # R: fligner.test(marks ~ class, data = m)
     assert got["statistic"] == pytest.approx(0.282004280539934, rel=1e-9)
     assert got["p-value"] == pytest.approx(0.868487452898067, rel=1e-9)
@@ -102,17 +102,17 @@ def test_bartlett_and_fligner_match_r(marks, engine):
 
 def test_spreads_with_empty_cells_and_twelve_groups_match_r(school, engine, capsys):
     t = make(school, engine)
-    lev = row(t.compare_spreads("sleep", for_each="school"))
+    lev = row(t.compare_spreads_of("sleep", for_each_group_in="school"))
     assert "19 rows with an empty cell" in capsys.readouterr().out
     # R: ss <- s[!is.na(s$sleep), ]; Levene as above on sleep ~ school
     assert lev["statistic"] == pytest.approx(1.127607010742, rel=1e-9)
     assert lev["p-value"] == pytest.approx(0.343747588311, rel=1e-9)
     assert lev["degrees of freedom 1"] == 11 and lev["degrees of freedom 2"] == 149
-    bart = row(t.compare_spreads("sleep", for_each="school", test="bartlett"))
+    bart = row(t.compare_spreads_of("sleep", for_each_group_in="school", test="bartlett"))
     # R: bartlett.test(sleep ~ school, data = s)
     assert bart["statistic"] == pytest.approx(17.7445739625315, rel=1e-9)
     assert bart["p-value"] == pytest.approx(0.0876997805625571, rel=1e-9)
-    flig = row(t.compare_spreads("sleep", for_each="school", test="fligner"))
+    flig = row(t.compare_spreads_of("sleep", for_each_group_in="school", test="fligner"))
     # R: fligner.test(sleep ~ school, data = s)
     assert flig["statistic"] == pytest.approx(10.9594999689304, rel=1e-9)
     assert flig["p-value"] == pytest.approx(0.446662475634758, rel=1e-9)
@@ -123,27 +123,27 @@ def test_spreads_notes_and_errors(engine, capsys):
     skewed = np.round(rng.exponential(1.0, 40), 3)
     data = pd.DataFrame({"g": ["a"] * 40 + ["b"] * 40, "y": np.r_[skewed, np.round(rng.normal(0, 8, 40), 3)]})
     t = make(data, engine)
-    got = row(t.compare_spreads("y", for_each="g", test="bartlett"))
+    got = row(t.compare_spreads_of("y", for_each_group_in="g", test="bartlett"))
     out = capsys.readouterr().out
     assert got["p-value"] < 0.05
     assert 'group "a" don\'t look bell-shaped' in out and 'test="levene"' in out
     assert "does not need equal spreads" in out
     with pytest.raises(SimplydataError, match='did you mean|Did you mean test="levene"'):
-        t.compare_spreads("y", for_each="g", test="levine")
+        t.compare_spreads_of("y", for_each_group_in="g", test="levine")
     with pytest.raises(SimplydataError, match="cannot be both"):
-        t.compare_spreads("y", for_each="y")
+        t.compare_spreads_of("y", for_each_group_in="y")
     flat = make(pd.DataFrame({"g": list("aaabbb"), "y": [1, 1, 1, 2, 3, 5]}), engine)
     with pytest.raises(SimplydataError, match="Bartlett's test"):
-        flat.compare_spreads("y", for_each="g", test="bartlett")
+        flat.compare_spreads_of("y", for_each_group_in="g", test="bartlett")
     same = make(pd.DataFrame({"g": list("aabb"), "y": [1, 1, 2, 2]}), engine)
     with pytest.raises(SimplydataError, match="no spread"):
-        same.compare_spreads("y", for_each="g")
+        same.compare_spreads_of("y", for_each_group_in="g")
 
 
 # ================================================================ compare_each_pair(test="tukey")
 def test_tukey_matches_r(marks, engine, capsys):
     t = make(marks, engine)
-    got = rows(t.compare_each_pair("marks", for_each="class", test="tukey"))
+    got = rows(t.compare_each_pair_of("marks", for_each_group_in="class", test="tukey"))
     # R: TukeyHSD(aov(marks ~ class, data = m)); R gives B-A etc., here A minus B (sign turned)
     r = {("A", "B"): (-7.55555555555556, -19.0375599447001, 3.92644883358901, 0.2598051600910130),
          ("A", "C"): (-13.22222222222221, -24.7042266113668, -1.74021783307765, 0.0204169133370182),
@@ -161,7 +161,7 @@ def test_tukey_matches_r(marks, engine, capsys):
 
 def test_tukey_kramer_unequal_sizes_matches_r(school, engine, capsys):
     t = make(school, engine)
-    got = rows(t.compare_each_pair("sleep", for_each="school", test="tukey"))
+    got = rows(t.compare_each_pair_of("sleep", for_each_group_in="school", test="tukey"))
     out = capsys.readouterr().out
     assert len(got) == 66 and "Tukey-Kramer" in out
     # R: TukeyHSD(aov(sleep ~ school, data = ss))$school
@@ -179,17 +179,17 @@ def test_tukey_kramer_unequal_sizes_matches_r(school, engine, capsys):
 
 def test_each_pair_test_choices(marks, engine):
     t = make(marks, engine)
-    default = rows(t.compare_each_pair("marks", for_each="class"))
-    welch = rows(t.compare_each_pair("marks", for_each="class", test="welch"))
+    default = rows(t.compare_each_pair_of("marks", for_each_group_in="class"))
+    welch = rows(t.compare_each_pair_of("marks", for_each_group_in="class", test="welch"))
     pd.testing.assert_frame_equal(default, welch)
     assert "p-value (Holm)" in default.columns
-    ranks = rows(t.compare_each_pair("marks", for_each="class", based_on="ranks"))
-    mw = rows(t.compare_each_pair("marks", for_each="class", test="mann-whitney"))
+    ranks = rows(t.compare_each_pair_of("marks", for_each_group_in="class", based_on="ranks"))
+    mw = rows(t.compare_each_pair_of("marks", for_each_group_in="class", test="mann-whitney"))
     pd.testing.assert_frame_equal(ranks, mw)
     with pytest.raises(SimplydataError, match="based_on=\"ranks\" asks for ranks"):
-        t.compare_each_pair("marks", for_each="class", based_on="ranks", test="tukey")
+        t.compare_each_pair_of("marks", for_each_group_in="class", based_on="ranks", test="tukey")
     with pytest.raises(SimplydataError, match='test="tukey"'):
-        t.compare_each_pair("marks", for_each="class", test="turkey")
+        t.compare_each_pair_of("marks", for_each_group_in="class", test="turkey")
 
 
 # ================================================================ compare_counts_to
@@ -281,7 +281,7 @@ def test_percent_to_matches_r(school, engine, capsys):
 
 
 def test_percent_to_trial_and_other_kinds(engine, capsys):
-    trial = sdata.example("trial")
+    trial = sdata.get_example("trial")
     t = make(trial, engine)
     got = row(t.compare_percent_to("died", "yes", 40))
     # R: binom.test(59, 120, p = 0.4); pwr::ES.h(59 / 120, 0.4)
@@ -345,7 +345,7 @@ R_SLEEP_BY_SCHOOL = {
 
 def test_new_measures_match_r(school, engine, capsys):
     t = make(school, engine)
-    got = rows(t.summary_of(["hours", "sleep"], show=MEASURE_LIST))
+    got = rows(t.find_summary_of(["hours", "sleep"], show=MEASURE_LIST))
     assert list(got.columns) == ["column", *COLUMNS]
     for i, reference in enumerate((R_HOURS, R_SLEEP)):
         for name, value in zip(COLUMNS, reference):
@@ -357,7 +357,7 @@ def test_new_measures_match_r(school, engine, capsys):
 def test_new_measures_by_group_match_r(school, engine):
     t = make(school, engine)
     for column, reference in (("marks", R_MARKS_BY_SCHOOL), ("sleep", R_SLEEP_BY_SCHOOL)):
-        got = rows(t.summary_of(column, for_each="school", show=MEASURE_LIST)).set_index("school")
+        got = rows(t.find_summary_of(column, for_each_group_in="school", show=MEASURE_LIST)).set_index("school")
         for school_name, values in reference.items():
             for name, value in zip(COLUMNS, values):
                 assert got.loc[school_name, name] == pytest.approx(value, rel=1e-9), (column, school_name, name)
@@ -366,7 +366,7 @@ def test_new_measures_by_group_match_r(school, engine):
 def test_measures_agree_with_scipy_and_small_r_example(engine):
     x = [2.0, 4.0, 4.0, 8.0, 16.0, 3.0, 7.0, 7.0, 1.0]
     t = make(pd.DataFrame({"x": x}), engine)
-    got = rows(t.summary_of("x", show=["trimmed average", "trimmed average 25", "mad", "percentile 10",
+    got = rows(t.find_summary_of("x", show=["trimmed average", "trimmed average 25", "mad", "percentile 10",
                                        "percentile 33", "90th percentile", "gmean", "skew", "cv", "mode"]))
     # R: mean(x, trim = 0.1); mean(x, trim = 0.25); mad(x); quantile(x, c(0.1, 0.33, 0.9), type = 7)
     assert got["trimmed average 10 %"][0] == pytest.approx(5.77777777777778)
@@ -385,7 +385,7 @@ def test_measures_agree_with_scipy_and_small_r_example(engine):
 
 def test_measure_notes_for_empty_results(engine, capsys):
     data = pd.DataFrame({"g": ["a", "a", "b", "b", "b", "b"], "y": [0.0, 2.0, 1.0, 1.0, 3.0, 3.0]})
-    got = rows(make(data, engine).summary_of("y", for_each="g", show=["geometric mean", "kurtosis", "most common"]))
+    got = rows(make(data, engine).find_summary_of("y", for_each_group_in="g", show=["geometric mean", "kurtosis", "most common"]))
     assert pd.isna(got["geometric mean"][0]) and got["geometric mean"][1] == pytest.approx(3 ** 0.5)
     assert pd.isna(got["kurtosis"][0]) and not pd.isna(got["kurtosis"][1])
     out = capsys.readouterr().out
@@ -397,50 +397,50 @@ def test_measure_notes_for_empty_results(engine, capsys):
 def test_measure_name_errors(marks, engine):
     t = make(marks, engine)
     with pytest.raises(SimplydataError, match='needs the percent, for example "percentile 90"'):
-        t.summary_of("marks", show="percentile")
+        t.find_summary_of("marks", show="percentile")
     with pytest.raises(SimplydataError, match="from 0 to 100"):
-        t.summary_of("marks", show="percentile 120")
+        t.find_summary_of("marks", show="percentile 120")
     with pytest.raises(SimplydataError, match="below 50"):
-        t.summary_of("marks", show="trimmed average 60")
+        t.find_summary_of("marks", show="trimmed average 60")
     with pytest.raises(SimplydataError, match='Did you mean show="skewness"'):
-        t.summary_of("marks", show="skewnes")
+        t.find_summary_of("marks", show="skewnes")
 
 
 # ================================================================ percentile_of and most_common_of
 def test_percentile_of_matches_r(marks, engine, capsys):
     t = make(marks, engine)
-    got = rows(t.percentile_of("marks", 90, for_each="class"))
+    got = rows(t.find_percentile_of("marks", 90, for_each_group_in="class"))
     # R: tapply(m$marks, m$class, quantile, 0.9)
     assert got["percentile 90 of marks"].tolist() == pytest.approx([86.3, 78.2, 73.2])
     assert "The 90th percentile of \"marks\" for each \"class\"" in capsys.readouterr().out
-    one = t.percentile_of("marks", 50)
+    one = t.find_percentile_of("marks", 50)
     assert one == pytest.approx(float(np.median(marks["marks"])))
-    cross = rows(t.percentile_of("marks", 25, for_each="class", across="subject"))
+    cross = rows(t.find_percentile_of("marks", 25, for_each_group_in="class", across="subject"))
     a_maths = marks[(marks["class"] == "A") & (marks["subject"] == "Maths")]["marks"]
     assert cross.loc[cross["class"] == "A", "Maths"].item() == pytest.approx(np.percentile(a_maths, 25))
     with pytest.raises(SimplydataError, match="from 0 to 100"):
-        t.percentile_of("marks", 101)
+        t.find_percentile_of("marks", 101)
     with pytest.raises(SimplydataError, match="percent as a number"):
-        t.percentile_of("marks")
+        t.find_percentile_of("marks")
 
 
 def test_most_common_of(school, engine, capsys):
     t = make(school, engine)
     # R: table(s$days_absent) -- 2 turns up 44 times
-    assert t.most_common_of("days_absent") == 2
+    assert t.find_most_common_of("days_absent") == 2
     assert "44 of 180" in capsys.readouterr().out
-    got = rows(t.most_common_of("days_absent", for_each="school"))
+    got = rows(t.find_most_common_of("days_absent", for_each_group_in="school"))
     # R: tapply(s$days_absent, s$school, function(x) names(which.max(table(x))))
     assert got["most common days_absent"].tolist() == [3, 2, 2, 4, 2, 4, 2, 4, 3, 1, 2, 4]
     assert set(got.columns) == {"school", "most common days_absent", "count", "percent", "values with that count"}
-    text = rows(t.most_common_of("passed", for_each="school"))
+    text = rows(t.find_most_common_of("passed", for_each_group_in="school"))
     assert text["most common passed"][0] == "no"
     ties = make(pd.DataFrame({"tree": ["oak", "ash", "ash", "oak", None, "elm"]}), engine)
-    assert ties.most_common_of("tree") == "ash"
+    assert ties.find_most_common_of("tree") == "ash"
     out = capsys.readouterr().out
     assert '"ash", "oak"' in out and "1 empty cell" in out
     with pytest.raises(SimplydataError, match="one column name"):
-        t.most_common_of(["marks"])
+        t.find_most_common_of(["marks"])
 
 
 # ================================================================ special functions in formulas
@@ -479,7 +479,7 @@ def test_special_functions_match_r(engine, capsys):
 def test_special_functions_with_summaries_groups_and_empty_cells(engine):
     data = pd.DataFrame({"g": ["a", "a", "b", "b"], "x": [1.0, 2.0, None, 4.0], "y": [2.0, 3.0, 4.0, 5.0]})
     t = make(data, engine)
-    t.add_column("share", "gamma(x) / total(gamma(y))", for_each="g")
+    t.add_column("share", "gamma(x) / total(gamma(y))", for_each_group_in="g")
     t.add_column("inside", "lgamma(total(y))")
     t.add_column("both", "beta(x, y)")
     t.add_column("bad", "gamma(x - x - 1)")  # gamma(-1) is not a number: an empty cell, as R gives NaN
@@ -502,8 +502,8 @@ def test_special_function_errors(marks, engine):
     with pytest.raises(SimplydataError, match="needs brackets"):
         t.add_column("g", "gamma * hours")
     with pytest.raises(SimplydataError, match="Add it as a column first"):
-        t.keep_rows("gamma(hours) > 2")
-    assert len(t.keep_rows("hours > pi")._frame) == int((marks["hours"] > math.pi).sum())
+        t.keep_rows_where("gamma(hours) > 2")
+    assert len(t.keep_rows_where("hours > pi")._frame) == int((marks["hours"] > math.pi).sum())
 
 
 def test_fit_formula_with_special_functions(engine, capsys):
