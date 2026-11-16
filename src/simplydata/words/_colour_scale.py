@@ -1,6 +1,6 @@
 """The colour scale of heatmaps, contour maps, surfaces and dots coloured by a number column.
 
-chart.colour_scale(...) only records what the user asked for (checked straight away);
+chart.use_colour_scale(...) only records what the user asked for (checked straight away);
 scale_for() turns it into a matplotlib colour map and norm when a chart type is drawn:
 
 * the map: a plain name ("blue to red"), any matplotlib/seaborn colour map name
@@ -158,9 +158,9 @@ def wanted(settings) -> bool:
 
 
 def scale_for(ctx, values, word, diverge_at_zero=False):
-    """(cmap, norm, extend, levels) for these values, from chart.colour_scale (or the defaults).
+    """(cmap, norm, extend, levels) for these values, from chart.use_colour_scale (or the defaults).
 
-    diverge_at_zero: with no colour_scale, values on both sides of 0 get "blue to red" with
+    diverge_at_zero: with no use_colour_scale, values on both sides of 0 get "blue to red" with
     white at 0 (the heatmap's usual look).
     levels: the edges for a filled contour map (None: let matplotlib choose 10).
     """
@@ -185,7 +185,7 @@ def scale_for(ctx, values, word, diverge_at_zero=False):
     if log:
         if lo_data <= 0:
             raise SimplydataError(
-                f".colour_scale(log=True) cannot colour zero or negative numbers, and .{word}() has some "
+                f".use_colour_scale(log=True) cannot colour zero or negative numbers, and .{word}() has some "
                 f"(smallest: {lo_data:g}).\nA log scale only works when every value is bigger than 0. "
                 "Leave out log=True, or remove those values from the table first.")
         norm = mcolors.LogNorm(lo, hi)
@@ -233,7 +233,7 @@ def check_used(ctx):
     """A colour scale on a chart that has no colours for numbers is a mistake worth telling."""
     if ctx.settings.get("colour_scale") and not ctx.store.get("colour_scale_used"):
         raise SimplydataError(
-            ".colour_scale() sets the colours for numbers, but this chart has nothing coloured by numbers.\n"
-            "It works with chart.heatmap(), chart.contour(), chart.surface(), and chart.dots() or "
-            'chart.dots_3d() with colour= a number column, for example chart.dots(x="hours", y="marks", '
-            'colour="height").\nFor groups, use chart.colours("blue", "orange") instead.')
+            ".use_colour_scale() sets the colours for numbers, but this chart has nothing coloured by numbers.\n"
+            "It works with chart.draw_heatmap(), chart.draw_contour(), chart.draw_surface(), and chart.draw_dots() or "
+            'chart.draw_dots_3d() with colour= a number column, for example chart.draw_dots(x="hours", y="marks", '
+            'colour="height").\nFor groups, use chart.use_colours("blue", "orange") instead.')

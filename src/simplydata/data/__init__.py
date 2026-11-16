@@ -1,4 +1,4 @@
-"""Small made-up tables to practise with: sdata.example("marks").
+"""Small made-up tables to practise with: sdata.get_example("marks").
 
 Every number in these tables is invented. They are not real people, places or countries.
 """
@@ -178,17 +178,17 @@ EXAMPLES = {
 def _list_examples() -> None:
     print("Example tables you can use (all made up, for practice):\n")
     for name, (about, columns) in EXAMPLES.items():
-        print(f'  sdata.example("{name}")')
+        print(f'  sdata.get_example("{name}")')
         print(f"      {about}")
         print(f"      Columns: {', '.join(columns)}")
         print()
-    print('Use one like this:  table = sdata.example("marks")  then  chart = sdata.chart(table)')
+    print('Use one like this:  table = sdata.get_example("marks")  then  chart = sdata.chart(table)')
 
 
-def example(name: str | None = None):
-    """A small made-up table to practise with. sdata.example("marks")
+def get_example(name: str | None = None):
+    """A small made-up table to practise with. sdata.get_example("marks")
 
-    sdata.example() with no name lists every table and its columns.
+    sdata.get_example() with no name lists every table and its columns.
     The tables are: marks, weather, fruit, growth, sensor, visitors, river, shop, school, meadow, trial, clinic,
     island.
     "shop" has empty cells and a column of dates to practise with; "school" has empty cells too.
@@ -203,7 +203,7 @@ def example(name: str | None = None):
         lines = [f'There is no example table called "{name}".']
         guess = suggest(key, EXAMPLES, n=1)
         if guess:
-            lines.append(f'Did you mean sdata.example("{guess[0]}")?')
+            lines.append(f'Did you mean sdata.get_example("{guess[0]}")?')
         lines.append("Tables you can use: " + ", ".join(EXAMPLES))
         raise SimplydataError("\n".join(lines))
     with (files(__name__) / f"{key}.csv").open("r", encoding="utf-8") as fh:

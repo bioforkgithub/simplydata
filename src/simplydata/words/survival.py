@@ -1,10 +1,10 @@
 """Survival curves on charts: the Kaplan-Meier estimate as steps.
 
-The numbers are those of table.survival_over_time() (simplydata.table.survival.kaplan_meier,
+The numbers are those of table.find_survival_over_time() (simplydata.table.survival.kaplan_meier,
 the same as R survfit()): each curve starts at 1 at time 0, drops at each event time and
 ends at the last time followed in its group, as R plot(survfit(...)). Censored rows are
-small upright ticks on the curve at their time. confidence_band=True shades the 95 %
-confidence interval (log scale, R's default conf.type = "log"). at_risk_table=True writes
+small upright ticks on the curve at their time. with_confidence_band=True shades the 95 %
+confidence interval (log scale, R's default conf.type = "log"). with_at_risk_table=True writes
 the number still at risk (time at or after the tick) under each tick of the x-axis, one row
 per group, as in papers.
 """
@@ -113,50 +113,51 @@ def _draw_at_risk(ctx):
 
 
 class SurvivalChartWords:
-    @friendly
-    def survival_curves(self, time=None, event=None, colour=None, confidence_band=False, censor_marks=True,
-                        at_risk_table=False, transparency=None, thickness=None):
+    @friendly(renamed={"confidence_band": "with_confidence_band", "censor_marks": "with_censor_marks",
+                       "at_risk_table": "with_at_risk_table"})
+    def draw_survival_curves(self, time=None, event=None, colour=None, with_confidence_band=False, with_censor_marks=True,
+                             with_at_risk_table=False, transparency=None, thickness=None):
         """The share still without the event over time (Kaplan-Meier curves).
-        chart.survival_curves(time="days", event="died", colour="treatment") (with sdata.example("trial"))
+        chart.draw_survival_curves(time="days", event="died", colour="treatment") (with sdata.get_example("trial"))
 
         time= is the time until the event or the end of follow-up; event= says whether the
         event happened (yes/no, True/False or 1/0). colour="treatment" draws one curve per
         group, or colour="blue" one colour. Each curve starts at 1 and drops at each event;
-        censored rows (followed without the event) are small ticks (censor_marks=False hides
-        them). confidence_band=True shades the 95 % confidence interval. at_risk_table=True
+        censored rows (followed without the event) are small ticks (with_censor_marks=False hides
+        them). with_confidence_band=True shades the 95 % confidence interval. with_at_risk_table=True
         writes the number still at risk under the x-axis. transparency= (0 to 1) makes the curves
         see-through and thickness= sets their width in points. The numbers are those of
-        table.survival_over_time() (as R survfit()).
+        table.find_survival_over_time() (as R survfit()).
         """
-        example = 'chart.survival_curves(time="days", event="died", colour="treatment")'
+        example = 'chart.draw_survival_curves(time="days", event="died", colour="treatment")'
         for option, value in (("time", time), ("event", event)):
             if not isinstance(value, str):
-                raise SimplydataError(f".survival_curves() needs {option}= as a column name in quotes.\n"
-                                      f"For example {example} (with sdata.example(\"trial\")).")
+                raise SimplydataError(f".draw_survival_curves() needs {option}= as a column name in quotes.\n"
+                                      f"For example {example} (with sdata.get_example(\"trial\")).")
         if time == event:
             raise SimplydataError(f'"{time}" cannot be both time= and event=.\nFor example {example}.')
-        for option, value in (("confidence_band", confidence_band), ("censor_marks", censor_marks),
-                              ("at_risk_table", at_risk_table)):
+        for option, value in (("confidence_band", with_confidence_band), ("censor_marks", with_censor_marks),
+                              ("at_risk_table", with_at_risk_table)):
             if not isinstance(value, bool):
-                raise SimplydataError(f"{option}= in .survival_curves() should be True or False, not {value!r}.")
-        transparency = check_transparency("survival_curves", transparency)
-        thickness = check_thickness("survival_curves", thickness)
+                raise SimplydataError(f"{option}= in .draw_survival_curves() should be True or False, not {value!r}.")
+        transparency = check_transparency("draw_survival_curves", transparency)
+        thickness = check_thickness("draw_survival_curves", thickness)
         group, _ = colour_role(self._data, colour)
         if group is not None and not isinstance(group, str):
-            raise SimplydataError(f'.survival_curves() needs colour= as a column name or a colour.\nFor example {example}.')
+            raise SimplydataError(f'.draw_survival_curves() needs colour= as a column name or a colour.\nFor example {example}.')
         if group in (time, event):
             raise SimplydataError(f'"{group}" cannot be both colour= and time= or event=.')
         check(self._data, x=time, y=event, colour=group)
         rows = _rows_used(self._data, time, event, group)
         if not len(rows):
-            raise SimplydataError(f'.survival_curves() found no rows with "{time}" and "{event}" filled in.')
+            raise SimplydataError(f'.draw_survival_curves() found no rows with "{time}" and "{event}" filled in.')
         check_time(rows[time].tolist(), time)  # say what is wrong on the user's line
         read_event(rows[event].tolist(), event)
-        self._need_axes("survival_curves")
+        self._need_axes("draw_survival_curves")
         # x= and y= so the chart notes count the rows left out because of empty cells
         self._add("survival_curves", "draw", _draw_survival, x=time, y=event, colour=colour,
-                  confidence_band=confidence_band, censor_marks=censor_marks, transparency=transparency,
+                  confidence_band=with_confidence_band, censor_marks=with_censor_marks, transparency=transparency,
                   thickness=thickness)
-        if at_risk_table:
+        if with_at_risk_table:
             self._replace("survival_at_risk", "finish", _draw_at_risk)
         return self

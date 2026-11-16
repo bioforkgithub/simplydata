@@ -87,116 +87,116 @@ GROUP_UNDERNEATH = {
 UNDERNEATH = {
     # start, show and save
     "sdata.chart": "pandas reads the file (Polars for big files); the chart is drawn with matplotlib and seaborn",
-    "sdata.example": "pandas (read_csv of a small file inside simplydata)",
+    "sdata.get_example": "pandas (read_csv of a small file inside simplydata)",
     "show": "matplotlib (pyplot.show)",
     "save": "matplotlib (Figure.savefig); Pillow writes .gif animations",
     # chart types
-    "bars": "seaborn (barplot; countplot for show=\"count\")",
-    "lines": "seaborn (lineplot); SciPy (interpolate) for joined_by= curves",
-    "dots": "seaborn (scatterplot)",
-    "area": "matplotlib (fill_between, or stackplot with stacked=True)",
-    "histogram": "seaborn (histplot)",
-    "boxes": "seaborn (boxplot)",
-    "violins": "seaborn (violinplot)",
-    "heatmap": "seaborn (heatmap); SciPy (scipy.cluster.hierarchy) for cluster=True",
-    "pie": "matplotlib (Axes.pie)",
-    "polar": "matplotlib (polar axes)",
-    "contour": "matplotlib (contourf); SciPy (interpolate.griddata) for scattered points",
-    "surface": "matplotlib (mplot3d plot_surface); SciPy (interpolate.griddata) for scattered points",
-    "dots_3d": "matplotlib (mplot3d scatter)",
-    "band": "matplotlib (fill_between)",
-    "empty_cells": "pandas finds the empty cells (isna); matplotlib (imshow) draws the grid",
-    "names_on_dots": "matplotlib (annotate), with simplydata choosing a free place for each name",
+    "draw_bars": "seaborn (barplot; countplot for show=\"count\")",
+    "draw_lines": "seaborn (lineplot); SciPy (interpolate) for joined_by= curves",
+    "draw_dots": "seaborn (scatterplot)",
+    "draw_area": "matplotlib (fill_between, or stackplot with stacked=True)",
+    "draw_histogram": "seaborn (histplot)",
+    "draw_boxes": "seaborn (boxplot)",
+    "draw_violins": "seaborn (violinplot)",
+    "draw_heatmap": "seaborn (heatmap); SciPy (scipy.cluster.hierarchy) for cluster=True",
+    "draw_pie": "matplotlib (Axes.pie)",
+    "draw_polar": "matplotlib (polar axes)",
+    "draw_contour": "matplotlib (contourf); SciPy (interpolate.griddata) for scattered points",
+    "draw_surface": "matplotlib (mplot3d plot_surface); SciPy (interpolate.griddata) for scattered points",
+    "draw_dots_3d": "matplotlib (mplot3d scatter)",
+    "draw_band": "matplotlib (fill_between)",
+    "draw_map_of_empty_cells": "pandas finds the empty cells (isna); matplotlib (imshow) draws the grid",
+    "write_names_on_dots": "matplotlib (annotate), with simplydata choosing a free place for each name",
     # statistics
     "show=": "seaborn (the estimator of barplot and lineplot)",
     "error=": "seaborn (errorbar=\"sd\" or \"se\"); the confidence interval from the t distribution (SciPy)",
-    "error_bars": "pandas (group averages) and matplotlib (errorbar); SciPy for the t-based confidence interval",
+    "draw_error_bars": "pandas (group averages) and matplotlib (errorbar); SciPy for the t-based confidence interval",
     "fit_line": "SciPy (stats.linregress); the confidence band from statsmodels OLS, drawn with matplotlib",
     "fit_curve": "statsmodels (least squares on the powers of x), drawn with matplotlib",
-    "smooth_line": "statsmodels (lowess, which follows R's lowess()) or SciPy (make_smoothing_spline, for "
+    "draw_smooth_line": "statsmodels (lowess, which follows R's lowess()) or SciPy (make_smoothing_spline, for "
                    "method=\"spline\"; smoothness=\"auto\" lets R smooth.spline choose it and needs R); the other "
                    "methods as nums.smooth (SciPy, pandas; \"median\" R runmed); drawn with matplotlib",
-    "density": "seaborn (kdeplot)",
+    "draw_density": "seaborn (kdeplot)",
     "trade_off_curve": "R pROC (roc, coords, ci.auc; simplydata[r]), drawn with matplotlib",
     "difference_dots": "statsmodels (graphics.agreement.mean_diff_plot) for the dots; R "
                        "BlandAltmanLeh::bland.altman.stats for the limits and their intervals (simplydata[r])",
     "forest_plot": "matplotlib (errorbar), from the interval columns of a result table",
-    "qq_dots": "SciPy (stats.probplot, against a fitted scipy.stats distribution for distribution=) for the points "
+    "draw_qq_dots": "SciPy (stats.probplot, against a fitted scipy.stats distribution for distribution=) for the points "
                "and the line; matplotlib draws them",
-    "cumulative_share": "seaborn (ecdfplot)",
-    "count_bars": "seaborn (countplot)",
-    "all_dots": "seaborn (swarmplot; stripplot for groups of more than 100 dots)",
-    "side_histograms": "matplotlib (hist), with NumPy choosing the bins",
-    "sdata.pairs": "seaborn (scatterplot, histplot and kdeplot)",
+    "draw_cumulative_share": "seaborn (ecdfplot)",
+    "draw_count_bars": "seaborn (countplot)",
+    "draw_all_dots": "seaborn (swarmplot; stripplot for groups of more than 100 dots)",
+    "draw_side_histograms": "matplotlib (hist), with NumPy choosing the bins",
+    "sdata.draw_all_pairs": "seaborn (scatterplot, histplot and kdeplot)",
     # several charts
-    "one_chart_per": "matplotlib (a grid of subplots)",
-    "sdata.side_by_side": "matplotlib (subplots)",
-    "sdata.one_above_other": "matplotlib (subplots)",
-    "sdata.grid": "matplotlib (subplots)",
-    "zoom_box": "matplotlib (inset_axes and indicate_inset_zoom)",
+    "draw_one_chart_for_each_group_in": "matplotlib (a grid of subplots)",
+    "sdata.put_side_by_side": "matplotlib (subplots)",
+    "sdata.put_one_above_other": "matplotlib (subplots)",
+    "sdata.put_in_rows_and_columns": "matplotlib (subplots)",
+    "add_zoom_box": "matplotlib (inset_axes and indicate_inset_zoom)",
     "animate": "matplotlib (animation) and Pillow (the .gif file)",
     # tables
     "sdata.table": "pandas or Polars read the file; narwhals lets every table word run on both",
     "table.show": "pandas or Polars (printing the table)",
-    "table.column": "NumPy (a column of numbers becomes sdata.numbers)",
-    "table.fill_empty_cells": "narwhals; NumPy (interp) for the line between neighbours; SciPy (CubicSpline, "
+    "table.get_column": "NumPy (a column of numbers becomes sdata.numbers)",
+    "table.fill_empty_cells_in": "narwhals; NumPy (interp) for the line between neighbours; SciPy (CubicSpline, "
                               "PchipInterpolator) for the curves",
-    "table.make_dates": "pandas (to_datetime) or Polars (str.strptime), trying the date formats in a fixed order",
+    "table.turn_into_dates": "pandas (to_datetime) or Polars (str.strptime), trying the date formats in a fixed order",
     "table.split_column": "pandas (str.split) or Polars (str.splitn), whichever holds the table",
     "table.add_rolling_column": "narwhals (rolling_mean, rolling_sum, rolling_std with over(order_by=)); "
                                 "pandas or Polars rolling for median, smallest and biggest",
-    "table.summary_of": "narwhals (group summaries); SciPy (stats: gmean, variation, median_abs_deviation, "
+    "table.find_summary_of": "narwhals (group summaries); SciPy (stats: gmean, variation, median_abs_deviation, "
                         "trim_mean, mode, skew, kurtosis, hmean, mstats.winsorize, and the t distribution for the "
                         "confidence interval)",
-    "table.interval_of": "SciPy (stats.bootstrap, BCa, percentile or basic)",
+    "table.find_interval_of": "SciPy (stats.bootstrap, BCa, percentile or basic)",
     "table.add_z_score_column": "SciPy (stats.zscore with ddof=1, as R scale())",
-    "table.average_of": "narwhals (group means); SciPy (stats.ttest_1samp confidence_interval for interval=); "
+    "table.find_average_of": "narwhals (group means); SciPy (stats.ttest_1samp confidence_interval for interval=); "
                         "statsmodels (DescrStatsW for weights=)",
-    "table.median_of": "narwhals (group medians); SciPy (stats.quantile_test confidence_interval for interval=)",
-    "table.standard_deviation_of": "narwhals (group standard deviations); R DescTools::VarCI for interval= "
+    "table.find_median_of": "narwhals (group medians); SciPy (stats.quantile_test confidence_interval for interval=)",
+    "table.find_standard_deviation_of": "narwhals (group standard deviations); R DescTools::VarCI for interval= "
                                    "(simplydata[r]); statsmodels DescrStatsW and NumPy cov(aweights=) for weights=",
-    "table.percent_of": "narwhals; SciPy (stats.binomtest, the Clopper-Pearson exact interval)",
-    "table.compare_spreads": "SciPy (stats.levene with center=\"median\", stats.bartlett, stats.fligner)",
+    "table.find_percent_of_rows_where": "narwhals; SciPy (stats.binomtest, the Clopper-Pearson exact interval)",
+    "table.compare_spreads_of": "SciPy (stats.levene with center=\"median\", stats.bartlett, stats.fligner)",
     "table.compare_counts_to": "SciPy (stats.chisquare)",
     "table.compare_percent_to": "SciPy (stats.binomtest, the Clopper-Pearson exact interval)",
-    "table.percentile_of": "narwhals (quantile with linear interpolation, as R quantile type 7); NumPy (percentile "
+    "table.find_percentile_of": "narwhals (quantile with linear interpolation, as R quantile type 7); NumPy (percentile "
                            "with method=, R's nine types); SciPy (stats.quantile_test for interval=)",
-    "table.most_common_of": "narwhals (value counts per group)",
+    "table.find_most_common_of": "narwhals (value counts per group)",
     "table.add_adjusted_p_value_column": "statsmodels (stats.multitest.multipletests: Holm, Bonferroni, "
                                          "Benjamini-Hochberg, Benjamini-Yekutieli, Hochberg and Hommel, as R p.adjust())",
     "table.add_rows_from": "pandas (concat) or Polars (concat), whichever holds the table",
-    "table.correlation_between": "SciPy (stats.pearsonr, spearmanr or kendalltau; permutation_test and bootstrap "
+    "table.find_correlation_between": "SciPy (stats.pearsonr, spearmanr or kendalltau; permutation_test and bootstrap "
                                  "for p_value_by=\"shuffling\" and interval_by=\"bootstrap\"); R DescTools (SpearmanRho, "
                                  "KendallTauB, SomersDelta, GoodmanKruskalGamma) for intervals and ppcor::pcor.test for "
                                  "allowing_for= (simplydata[r])",
     "table.compare_correlations": "SciPy (stats.pearsonr); R cocor (cocor.indep.groups, cocor.dep.groups.overlap; "
                                   "simplydata[r])",
-    "table.compare_averages": "SciPy (stats.ttest_ind with equal_var=False; mannwhitneyu, kruskal) and "
+    "table.compare_averages_of": "SciPy (stats.ttest_ind with equal_var=False; mannwhitneyu, kruskal) and "
                               "statsmodels (stats.oneway.anova_oneway for Welch's ANOVA; weightstats.ttost_ind "
                               "and CompareMeans for same_within=; nonparametric.jonckheere_terpstra); SciPy "
                               "permutation_test for p_value_by=\"shuffling\"; R wilcox.test for the Hodges-Lehmann "
                               "shift (simplydata[r]); R afex::aov_ez for matched_by= (repeated measures, "
                               "Greenhouse-Geisser; needs R)",
-    "table.compare_each_pair": "SciPy (stats.ttest_ind or mannwhitneyu, tukey_hsd, dunnett), with Holm's correction "
+    "table.compare_each_pair_of": "SciPy (stats.ttest_ind or mannwhitneyu, tukey_hsd, dunnett), with Holm's correction "
                                "from statsmodels (multipletests); R rstatix::games_howell_test, "
                                "DescTools::ScheffeTest and PostHocTest, FSA::dunnTest, "
                                "PMCMRplus::kwAllPairsConoverTest and multcompView::multcompLetters for "
                                "show=\"letters\" (simplydata[r]); SciPy ttest_rel and wilcoxon for matched_by=",
-    "table.compare_before_after": "SciPy (stats.ttest_rel or stats.wilcoxon); statsmodels (contingency_tables.mcnemar "
+    "table.compare_before_and_after": "SciPy (stats.ttest_rel or stats.wilcoxon); statsmodels (contingency_tables.mcnemar "
                                   "for yes/no columns, SquareTable.symmetry for categories, sign_test); R "
                                   "exact2x2::mcnemarExactDP for the change in percent (simplydata[r]); "
                                   "statsmodels ttost_paired for same_within=; SciPy permutation_test for "
                                   "p_value_by=\"shuffling\"",
-    "table.compare_matched": "SciPy (stats.friedmanchisquare); statsmodels (contingency_tables.cochrans_q for yes/no "
+    "table.compare_matched_columns": "SciPy (stats.friedmanchisquare); statsmodels (contingency_tables.cochrans_q for yes/no "
                              "columns); SciPy page_trend_test; R stats::quade.test and effectsize::kendalls_w "
                              "(simplydata[r])",
-    "table.compare_shapes": "SciPy (stats.ks_2samp; stats.anderson_ksamp with a PermutationMethod); R ks.test for "
+    "table.compare_shapes_of": "SciPy (stats.ks_2samp; stats.anderson_ksamp with a PermutationMethod); R ks.test for "
                             "the exact p-value with tied values (simplydata[r])",
-    "table.check_random_order": "statsmodels (sandbox.stats.runs.Runs, runs_test, as runstest_1samp)",
+    "table.check_if_random_order": "statsmodels (sandbox.stats.runs.Runs, runs_test, as runstest_1samp)",
     "sdata.compare_averages": "SciPy (stats.ttest_ind_from_stats); statsmodels (stats.oneway.anova_generic); R "
                               "BSDA::tsum.test for the interval of the difference (simplydata[r])",
     "sdata.compare_counts": "SciPy (stats.chi2_contingency, fisher_exact; contingency.association), as "
-                            "table.compare_counts",
+                            "table.compare_counts_of",
     # risks, rates and diagnostic tests
     "table.compare_risks": "statsmodels (proportion_confint, confint_proportions_2indep with Newcombe's interval, "
                            "Table2x2, StratifiedTable for allowing_for=, tost_proportions_2indep for same_within=); "
@@ -217,7 +217,7 @@ UNDERNEATH = {
     "table.reliability_of": "R psych::alpha and psych::alpha.ci (simplydata[r])",
     "table.compare_average_to": "SciPy (stats.ttest_1samp or stats.wilcoxon); statsmodels "
                                 "(DescrStatsW.ttost_mean for same_within=); R BSDA::z.test for test=\"z\" (simplydata[r])",
-    "table.compare_counts": "SciPy (stats.chi2_contingency, or fisher_exact with test=\"fisher\", with a seeded "
+    "table.compare_counts_of": "SciPy (stats.chi2_contingency, or fisher_exact with test=\"fisher\", with a seeded "
                             "MonteCarloMethod for bigger tables; contingency.association for Cramer's V); statsmodels "
                             "Table.standardized_resids for show=\"cells\"; R fisher.test and prop.trend.test "
                             "(simplydata[r])",
@@ -236,76 +236,76 @@ UNDERNEATH = {
     "table.fit_curve": "statsmodels (WLS by QR on the powers of x, as R lm(y ~ poly(x, raw = TRUE)))",
     "table.fit_formula": "SciPy (optimize.curve_fit; optimize.differential_evolution for search=\"whole range\")",
     "fit_formula": "SciPy (optimize.curve_fit, as table.fit_formula), drawn with matplotlib",
-    "fit_distribution": "SciPy (scipy.stats, maximum likelihood as table.fit_distribution), drawn with matplotlib",
-    "curve": "NumPy (the formula on a grid of x values) or scipy.stats (a distribution), drawn with matplotlib",
+    "fit_distribution": "SciPy (scipy.stats, maximum likelihood as table.fit_distribution_to), drawn with matplotlib",
+    "draw_curve": "NumPy (the formula on a grid of x values) or scipy.stats (a distribution), drawn with matplotlib",
     # finding and solving
-    "sdata.find_smallest": "SciPy (optimize.minimize_scalar, minimize, linprog and milp with HiGHS, "
+    "sdata.find_where_smallest": "SciPy (optimize.minimize_scalar, minimize, linprog and milp with HiGHS, "
                            "differential_evolution and other global searches)",
-    "sdata.find_biggest": "SciPy (the same as find_smallest, on minus the formula)",
+    "sdata.find_where_biggest": "SciPy (the same as find_smallest, on minus the formula)",
     "sdata.solve": "SciPy (optimize.brentq, root_scalar, root) and NumPy (polynomial roots, linalg.solve)",
     # values between points
     "table.values_at": "NumPy (interp) and SciPy (interpolate: CubicSpline, PchipInterpolator, Akima1DInterpolator, "
                        "make_smoothing_spline, griddata, RegularGridInterpolator, RBFInterpolator); "
                        "smoothness=\"auto\" lets R smooth.spline choose the smoothness (needs R)",
-    "table.map_of": "SciPy (interpolate: RegularGridInterpolator, griddata, RBFInterpolator)",
+    "table.make_map_of": "SciPy (interpolate: RegularGridInterpolator, griddata, RBFInterpolator)",
     # distributions
     "sdata.distribution": "SciPy (scipy.stats frozen distributions)",
-    "table.fit_distribution": "SciPy (scipy.stats .fit and optimize, maximum likelihood; closed forms where they "
+    "table.fit_distribution_to": "SciPy (scipy.stats .fit and optimize, maximum likelihood; closed forms where they "
                               "exist) and statsmodels (numdiff.approx_hess3, for the standard errors); for \"kernel density\" SciPy "
                               "gaussian_kde with statsmodels bw_silverman",
-    "table.compare_distributions": "SciPy (scipy.stats, maximum likelihood; Anderson-Darling, Kolmogorov-Smirnov and "
+    "table.compare_distributions_for": "SciPy (scipy.stats, maximum likelihood; Anderson-Darling, Kolmogorov-Smirnov and "
                                    "Cramer-von Mises statistics)",
-    "nums.spectrum_of": "SciPy (signal.periodogram, signal.welch); R lomb::lsp for uneven times (simplydata[r])",
-    "table.spectrum_of": "SciPy (signal.periodogram, signal.welch); R lomb::lsp for uneven times (simplydata[r])",
-    "table.check_steady": "R (tseries::adf.test and kpss.test, through rpy2: simplydata[r])",
-    "table.autocorrelation_of": "statsmodels (tsa.stattools acf, pacf method ywm, acovf, acorr_ljungbox), as R acf, pacf, Box.test",
+    "nums.find_spectrum": "SciPy (signal.periodogram, signal.welch); R lomb::lsp for uneven times (simplydata[r])",
+    "table.find_spectrum_of": "SciPy (signal.periodogram, signal.welch); R lomb::lsp for uneven times (simplydata[r])",
+    "table.check_steady_over_time": "R (tseries::adf.test and kpss.test, through rpy2: simplydata[r])",
+    "table.find_autocorrelation_of": "statsmodels (tsa.stattools acf, pacf method ywm, acovf, acorr_ljungbox), as R acf, pacf, Box.test",
     "table.add_trend_and_season": "statsmodels (STL with R's settings, seasonal_decompose, OLS with season effects); "
                                   "R stats::stl(s.window = \"periodic\") for a fixed season (simplydata[r])",
-    "table.trend_of": "SciPy (stats.theilslopes); R trend::mk.test, smk.test, sea.sens.slope (simplydata[r])",
-    "sdata.dates": "pandas (Timestamp, DateOffset)",
+    "table.find_trend_of": "SciPy (stats.theilslopes); R trend::mk.test, smk.test, sea.sens.slope (simplydata[r])",
+    "sdata.make_run_of_dates": "pandas (Timestamp, DateOffset)",
     "table.add_missing_dates": "pandas (dates by DateOffset; concat), as reindex / Polars upsample",
     "table.add_smoothed_column": "SciPy (ndimage.convolve1d, gaussian_filter1d, signal.savgol_filter, whittaker_henderson, "
                                  "wiener), pandas (rolling, ewm), statsmodels (lowess); R stats::runmed for the median "
                                  "(simplydata[r])",
     "nums.smooth": "as table.add_smoothed_column",
     "nums.remove_trend": "SciPy (signal.detrend)",
-    "nums.keep_frequencies": "SciPy (signal.butter, cheby1, cheby2, ellip, bessel as sos; iirpeak; sosfiltfilt, sosfilt)",
-    "nums.remove_frequencies": "SciPy (as keep_frequencies; iirnotch, iircomb)",
-    "table.add_filtered_column": "SciPy (as nums.keep_frequencies)",
-    "nums.find_peaks": "SciPy (signal.find_peaks, peak_prominences, peak_widths)",
-    "nums.find_dips": "SciPy (signal.find_peaks on minus the numbers)",
-    "table.find_peaks": "SciPy (signal.find_peaks, peak_prominences, peak_widths)",
-    "table.find_dips": "SciPy (signal.find_peaks on minus the column)",
-    "nums.fourier_transform": "SciPy (fft.rfft, fft.fft)",
-    "sdata.inverse_fourier_transform": "SciPy (fft.irfft, fft.ifft)",
-    "nums.envelope": "SciPy (signal.hilbert)",
+    "nums.keep_each_frequency_that": "SciPy (signal.butter, cheby1, cheby2, ellip, bessel as sos; iirpeak; sosfiltfilt, sosfilt)",
+    "nums.remove_each_frequency_that": "SciPy (as keep_each_frequency_that; iirnotch, iircomb)",
+    "table.add_filtered_column": "SciPy (as nums.keep_each_frequency_that)",
+    "nums.find_each_peak_that": "SciPy (signal.find_peaks, peak_prominences, peak_widths)",
+    "nums.find_each_dip_that": "SciPy (signal.find_peaks on minus the numbers)",
+    "table.find_each_peak_that": "SciPy (signal.find_peaks, peak_prominences, peak_widths)",
+    "table.find_each_dip_that": "SciPy (signal.find_peaks on minus the column)",
+    "nums.take_fourier_transform": "SciPy (fft.rfft, fft.fft)",
+    "sdata.find_inverse_fourier_transform": "SciPy (fft.irfft, fft.ifft)",
+    "nums.find_envelope": "SciPy (signal.hilbert)",
     "nums.convolve_with": "SciPy (signal.convolve)",
     "nums.deconvolve_by": "SciPy (signal.deconvolve)",
     "nums.change_time_step": "SciPy (signal.resample, resample_poly, decimate)",
-    "sdata.wave": "SciPy (signal.square, sawtooth, chirp, gausspulse, unit_impulse) and NumPy sin",
-    "sdata.window_shape": "SciPy (signal.get_window)",
+    "sdata.make_wave": "SciPy (signal.square, sawtooth, chirp, gausspulse, unit_impulse) and NumPy sin",
+    "sdata.make_window_shape": "SciPy (signal.get_window)",
     "table.add_envelope_column": "SciPy (signal.hilbert)",
-    "sdata.frequency_filter": "SciPy (the designs of nums.keep_frequencies; sosfreqz, sos2zpk, sosfilt)",
+    "sdata.frequency_filter": "SciPy (the designs of nums.keep_each_frequency_that; sosfreqz, sos2zpk, sosfilt)",
     "system.step_response": "SciPy (signal.step, dstep); python-control (step_info) for the rise time, settling time "
                             "and overshoot (simplydata[systems])",
     "system.frequency_response": "SciPy (signal.freqresp, freqz); python-control (stability_margins) for the gain and "
                                  "phase margins (simplydata[systems])",
     "sticks": "matplotlib (vlines and plot)",
-    "autocorrelation_bars": "statsmodels (as table.autocorrelation_of), drawn with matplotlib",
-    "cross_correlation_bars": "statsmodels (as table.correlation_between with rows_back=), drawn with matplotlib",
+    "autocorrelation_bars": "statsmodels (as table.find_autocorrelation_of), drawn with matplotlib",
+    "cross_correlation_bars": "statsmodels (as table.find_correlation_between with rows_back=), drawn with matplotlib",
     "lag_dots": "pandas (shift), drawn with matplotlib",
     "trend_and_season": "statsmodels (as table.add_trend_and_season), drawn with matplotlib",
     "forecast": "R (as table.forecast, through rpy2: simplydata[r]), drawn with matplotlib",
-    "spectrum": "SciPy (as table.spectrum_of; lomb-scargle from R lomb), drawn with matplotlib",
+    "spectrum": "SciPy (as table.find_spectrum_of; lomb-scargle from R lomb), drawn with matplotlib",
     "spectrum_over_time": "SciPy (signal.spectrogram), drawn with matplotlib (pcolormesh)",
-    "peak_dots": "SciPy (as table.find_peaks), drawn with matplotlib",
+    "peak_dots": "SciPy (as table.find_each_peak_that), drawn with matplotlib",
     "table.forecast": "R (forecast::naive, snaive, meanf, rwf; stats::HoltWinters, stats::arima; forecast::forecast "
                       "and accuracy, through rpy2: simplydata[r])",
     "nums.forecast": "R (as table.forecast, through rpy2: simplydata[r])",
-    "table.compare_forecasts": "R (forecast::accuracy on each method's forecast, through rpy2: simplydata[r])",
-    "table.find_change_points": "R (changepoint::cpt.mean and cpt.meanvar, PELT; stats::mad; through rpy2: simplydata[r])",
-    "nums.autocorrelation_of": "statsmodels (tsa.stattools acf, pacf method ywm, acovf, acorr_ljungbox), as R acf, pacf, Box.test",
-    "nums.fit_distribution": "SciPy (scipy.stats and optimize, as table.fit_distribution)",
+    "table.compare_forecasts_for": "R (forecast::accuracy on each method's forecast, through rpy2: simplydata[r])",
+    "table.find_change_points_in": "R (changepoint::cpt.mean and cpt.meanvar, PELT; stats::mad; through rpy2: simplydata[r])",
+    "nums.find_autocorrelation": "statsmodels (tsa.stattools acf, pacf method ywm, acovf, acorr_ljungbox), as R acf, pacf, Box.test",
+    "nums.fit_distribution": "SciPy (scipy.stats and optimize, as table.fit_distribution_to)",
     # models
     "table.explain": "statsmodels (OLS; GLM for yes/no and counts, as R glm; MixedLM for grouped_by=; GEE for "
                      "effects=\"for the whole population\", as R geepack::geeglm; MICEData to fill in empty cells; "
@@ -316,47 +316,47 @@ UNDERNEATH = {
                      "effectsize for test_type=, sandwich::vcovHC for robust_errors=True with yes/no and counts, and mice::pool for "
                      "multiple imputation; R performance::r2_nakagawa for the R squared of every grouped_by= model",
     "table.add_predicted_column": "statsmodels (the same model as table.explain; get_prediction for interval= and for_new_rows=)",
-    "table.model_averages_of": "R emmeans (emmeans::emmeans and pairs, Tukey's adjustment; lme4 and pbkrtest for "
+    "table.find_model_averages_of": "R emmeans (emmeans::emmeans and pairs, Tukey's adjustment; lme4 and pbkrtest for "
                                "grouped_by=; MASS, nnet, betareg and pscl for the other outcomes), on the model of "
                                "table.explain (needs R)",
-    "table.check_model": "statsmodels (OLSInfluence, GLMInfluence, MixedLM, ProbPlot and lowess), the pictures of R "
+    "table.check_model_of": "statsmodels (OLSInfluence, GLMInfluence, MixedLM, ProbPlot and lowess), the pictures of R "
                          "plot(lm), plot(glm) and plot(lmer) with qqnorm(ranef), drawn with matplotlib; R lme4::glmer "
                          "for yes/no and counts with grouped_by=; statsmodels variance_inflation_factor (least "
                          "squares) or R car::vif (GLMs, group columns) for the variance inflation factors",
-    "table.show_rows_that_pull": "statsmodels (OLSInfluence, GLMInfluence), as R cooks.distance, hatvalues and "
+    "table.show_rows_that_pull_model": "statsmodels (OLSInfluence, GLMInfluence), as R cooks.distance, hatvalues and "
                                  "rstudent; R lme4 influence() and cooks.distance() for whole groups with grouped_by=",
     "table.compare_models": "statsmodels (OLS compare_f_test; GLM deviances and log-likelihoods with SciPy's chi-square "
                             "and F; MixedLM refitted by maximum likelihood; eval_measures aic and bic), as R anova(m0, "
                             "m1), lmtest::lrtest, AIC and BIC; R for glmer, betareg and zeroinfl models",
     # patterns across columns
     "table.add_principal_components": "statsmodels (multivariate.pca.PCA, by singular value decomposition)",
-    "table.principal_components_of": "statsmodels (multivariate.pca.PCA, by singular value decomposition)",
+    "table.find_principal_components_of": "statsmodels (multivariate.pca.PCA, by singular value decomposition)",
     "table.add_clusters": "R stats::kmeans (k-means; needs R) or SciPy (cluster.hierarchy, for "
                           "method=\"hierarchical\")",
-    "table.distances_between_rows": "SciPy (spatial.distance.pdist)",
+    "table.find_distances_between_rows": "SciPy (spatial.distance.pdist)",
     "table.add_nmds": "R vegan::metaMDS on vegan::vegdist distances (needs R)",
-    "table.compare_profiles": "R vegan::adonis2, betadisper and permutest (needs R)",
+    "table.compare_profiles_of": "R vegan::adonis2, betadisper and permutest (needs R)",
     # survival
-    "table.survival_over_time": "statsmodels (duration.SurvfuncRight, Kaplan-Meier with Greenwood errors)",
+    "table.find_survival_over_time": "statsmodels (duration.SurvfuncRight, Kaplan-Meier with Greenwood errors)",
     "table.compare_survival": "statsmodels (duration.survdiff, the log-rank test)",
     "table.explain_survival": "statsmodels (duration.PHReg, the Cox model with Efron ties) and R "
                               "survival::cox.zph for the proportional-hazards check (needs R)",
-    "survival_curves": "statsmodels (Kaplan-Meier, as table.survival_over_time), drawn with matplotlib",
+    "draw_survival_curves": "statsmodels (Kaplan-Meier, as table.find_survival_over_time), drawn with matplotlib",
     # planning a study
-    "sdata.how_many_needed": "statsmodels (stats.power: TTestIndPower, TTestPower, FTestAnovaPower, "
+    "sdata.find_how_many_needed": "statsmodels (stats.power: TTestIndPower, TTestPower, FTestAnovaPower, "
                              "GofChisquarePower, solve_power); R pwr::pwr.r.test, power.prop.test, "
                              "TOSTER::power_t_TOST and presize::prec_mean (simplydata[r])",
-    "sdata.chance_to_find": "statsmodels (stats.power classes; proportion.power_proportions_2indep for percents=); "
+    "sdata.find_chance_of_finding": "statsmodels (stats.power classes; proportion.power_proportions_2indep for percents=); "
                             "R pwr::pwr.r.test and TOSTER::power_t_TOST (simplydata[r])",
     "table.save": "pandas (to_excel, to_csv ...) or Polars, whichever holds the table",
-    "table.chart": "matplotlib and seaborn (the chart is drawn from a pandas copy of the table)",
+    "table.start_chart": "matplotlib and seaborn (the chart is drawn from a pandas copy of the table)",
     "table.as_pandas": "pandas",
     "table.as_polars": "Polars",
     # numbers
-    "sdata.random_numbers": "NumPy (random.default_rng)",
-    "nums.percentile": "NumPy (nanpercentile, the usual \"linear\" method, as pandas and R)",
-    "nums.table": "pandas",
-    "nums.chart": "matplotlib and seaborn, from a pandas table with one column called value",
+    "sdata.make_random_numbers": "NumPy (random.default_rng)",
+    "nums.find_percentile": "NumPy (nanpercentile, the usual \"linear\" method, as pandas and R)",
+    "nums.turn_into_table": "pandas",
+    "nums.start_chart": "matplotlib and seaborn, from a pandas table with one column called value",
     "nums.save": "pandas (to_csv, to_excel ...)",
     "nums.keep_random_numbers": "NumPy (random.default_rng)",
     "nums.fill_empty_numbers": "NumPy (interp for the line between neighbours)",
@@ -375,14 +375,14 @@ words; simplydata picks the right call in the right library, with the right sett
 \begin{lstlisting}[style=py]
 import simplydata as sdata
 
-table = sdata.table(sdata.example("marks"))   # or your own: sdata.table("marks.xlsx")
-table.keep_rows("marks", above=50)
-table.average_of("marks", for_each="class")   # says the answer in a sentence
+table = sdata.table(sdata.get_example("marks"))   # or your own: sdata.table("marks.xlsx")
+table.keep_rows_where("marks", is_above=50)
+table.find_average_of("marks", for_each_group_in="class")   # says the answer in a sentence
 table.save("good_marks.xlsx")
 
-chart = table.chart()                         # or sdata.chart(table)
-chart.bars(x="class", y="marks", error="standard error")
-chart.title_top("Good marks in each class")
+chart = table.start_chart()                         # or sdata.chart(table)
+chart.draw_bars(x="class", y="marks", error="standard error")
+chart.write_title_on_top("Good marks in each class")
 chart.save("marks.png")
 \end{lstlisting}
 
@@ -429,14 +429,14 @@ appears by itself when you write \code{chart} on the last line of a cell. In a s
 \section*{simplydata teaches itself}
 \begin{lstlisting}[style=py]
 import simplydata as sdata
-sdata.lesson()                      # lists the lessons
-sdata.lesson(1)                     # the first lesson
-sdata.lesson(1, solutions=True)     # the first lesson, with worked solutions to its tasks
-sdata.words()                       # every word, with a short example
-sdata.help("bars")                  # one word: what it does, its options and an example
-sdata.example()                     # the made-up tables you can practise with
+sdata.show_lesson()                      # lists the lessons
+sdata.show_lesson(1)                     # the first lesson
+sdata.show_lesson(1, solutions=True)     # the first lesson, with worked solutions to its tasks
+sdata.show_all_words()                       # every word, with a short example
+sdata.help("draw_bars")                  # one word: what it does, its options and an example
+sdata.get_example()                     # the made-up tables you can practise with
 sdata.start_30_days()               # or learn it in 30 days of about an hour,
-sdata.today()                       # ... with sdata.today() each day
+sdata.show_today()                       # ... with sdata.show_today() each day
 \end{lstlisting}
 Rather learn an hour a day? \code{sdata.start\_30\_days()} spreads the everyday lessons over 30 days, each with
 a warm-up of questions on earlier days and a task, and a project of your own at the end
@@ -457,8 +457,11 @@ suggests the nearest one. A missing word can be requested on GitHub, at
 
 \unchapter{How the words are built}{start:grammar}
 
-A few rules make the words easy to guess. If you know one word of a pattern, you can usually
-guess its siblings.
+A line of simplydata reads like an instruction you say to the program: the thing (a chart, a
+table, numbers), then a verb that says what it should do, then the details as options:
+\code{table.keep\_rows\_where("marks", is\_above=50)}, \code{chart.draw\_bars(x="class", y="marks")}.
+A longer word is fine when it makes the line clearer read aloud. A few rules make the words easy to
+guess. If you know one word of a pattern, you can usually guess its siblings.
 
 \begin{center}
 \small
@@ -466,17 +469,23 @@ guess its siblings.
 \toprule
 \textbf{Pattern} & \textbf{Examples}\\
 \midrule
-\textbf{verb + thing} changes a table or numbers
-  & \code{keep\_rows}, \code{remove\_columns}, \code{fill\_empty\_cells}, \code{add\_column}, \code{keep\_numbers}\\
-\textbf{chart types are nouns} on a chart
-  & \code{chart.bars(...)}, \code{chart.histogram(...)}, \code{chart.dots(...)}\\
-\textbf{thing + where} places something on a chart
-  & \code{title\_top}, \code{label\_y}, \code{line\_at\_y}, \code{legend\_bottom}, \code{shade\_between\_x}\\
-\textbf{measure + \_of} sums up one column; \textbf{relation + \_between} links two;
-\textbf{compare\_ + measure} tests
-  & \code{average\_of}, \code{median\_of}, \code{correlation\_between}, \code{compare\_averages}\\
+\textbf{verb + thing} changes a table or numbers; a small word at the end joins the first input
+  & \code{keep\_rows\_where}, \code{remove\_columns}, \code{fill\_empty\_cells\_in}, \code{add\_column},
+    \code{keep\_each\_number\_that}\\
+\textbf{get\_} takes one piece out; \textbf{take\_} does maths on every number; \textbf{make\_} makes
+something new; \textbf{turn\_into\_} gives the same data as another kind
+  & \code{get\_column}, \code{take\_log}, \code{make\_random\_numbers}, \code{turn\_into\_numbers}\\
+\textbf{draw\_ + chart type}
+  & \code{chart.draw\_bars(...)}, \code{chart.draw\_histogram(...)}, \code{chart.draw\_dots(...)}\\
+\textbf{verb + thing + where} places or sets something on a chart
+  & \code{write\_title\_on\_top}, \code{label\_y}, \code{draw\_line\_at\_y}, \code{put\_legend\_at\_bottom},
+    \code{set\_range\_y}, \code{use\_colour}\\
+\textbf{find\_ + measure + \_of} sums up one column; \textbf{find\_ + relation + \_between} links two;
+\textbf{compare\_ + measure + \_of} tests groups, \textbf{\_to} tests against one value
+  & \code{find\_average\_of}, \code{find\_median\_of}, \code{find\_correlation\_between},
+    \code{compare\_averages\_of}, \code{compare\_average\_to}\\
 \textbf{show\_ / hide\_ + thing} looks without changing
-  & \code{show\_first\_rows}, \code{show\_grid}, \code{hide\_legend}\\
+  & \code{show\_first\_rows}, \code{show\_grid}, \code{hide\_legend}, \code{show\_steps}\\
 \textbf{as\_ + library} hands the data on; \textbf{save} writes a file
   & \code{as\_pandas}, \code{as\_polars}, \code{as\_numpy}; \code{table.save("clean.xlsx")}\\
 \bottomrule
@@ -484,30 +493,35 @@ guess its siblings.
 \end{center}
 
 \begin{itemize}
-  \item \textbf{One option name, one meaning, everywhere:} \code{for\_each=} (groups),
-    \code{colour=} (one colour, or a colour per group), \code{between=[low, high]}, \code{from\_column=},
-    \code{with\_value=}, \code{biggest\_first=}, \code{per\_row=}, \code{label=}, \code{fast=}.
+  \item \textbf{One option name, one meaning, everywhere:} \code{for\_each\_group\_in=} (groups),
+    \code{colour=} (one colour, or a colour per group), conditions that start with \code{is\_}
+    (\code{is\_above=}, \code{is\_one\_of=}, \code{is\_between=[low, high]}), \code{between=[low, high]}
+    for a span, switches that start with \code{with\_} (\code{with\_dots=True}, \code{with\_seed=1}),
+    \code{from\_column=}, \code{with\_value=}, \code{biggest\_first=}, \code{per\_row=}, \code{labelled=},
+    \code{fast=}.
   \item \textbf{Measure names are the same wherever they appear:} \code{"average"}, \code{"median"},
     \code{"total"}, \code{"count"}, \code{"smallest"}, \code{"biggest"}, \code{"standard deviation"},
     \code{"standard error"}, \code{"confidence interval"}.
   \item \textbf{Axes are x and y.} Anything that belongs to one axis ends in \code{\_x} or \code{\_y}:
-    \code{label\_y}, \code{range\_x}, \code{log\_scale\_y}.
+    \code{label\_y}, \code{set\_range\_x}, \code{use\_log\_scale\_y}.
   \item \textbf{The word names the idea}, and the printed answer names the technical term, so you can
     follow (and write) the Methods section of a paper.
   \item \textbf{Order does not matter} on a chart: after the chart type, write the other steps in any
     order. Both \code{colour} and \code{color}, \code{grey} and \code{gray} work.
   \item \textbf{Every change can be taken back}: tables and numbers remember each step, so
-    \code{undo()}, \code{steps()} and \code{start\_again()} always work.
+    \code{undo()}, \code{show\_steps()} and \code{start\_again()} always work.
+  \item \textbf{Old names keep working for one release.} A word that was renamed still runs and
+    prints one line, once, with its new name; \code{sdata.help("old\_name")} points to the new word.
 \end{itemize}
 """
 
 # Family of chapters in the dictionary: chosen from the kind of the words in each group.
 FAMILY_TITLES = {
     "chart": ("Chart words", "Steps on a chart: \\code{chart = sdata.chart(table)}, then "
-                             "\\code{chart.bars(...)}. Words that start with \\code{sdata.} are called on "
+                             "\\code{chart.draw\\_bars(...)}. Words that start with \\code{sdata.} are called on "
                              "simplydata itself, and words that end in \\code{=} are options inside a chart step."),
     "table": ("Table words", "Steps on a table: \\code{table = sdata.table(...)}, then "
-                             "\\code{table.keep\\_rows(...)}. Table words work the same on pandas and Polars tables. "
+                             "\\code{table.keep\\_rows\\_where(...)}. Table words work the same on pandas and Polars tables. "
                              "Words that start with \\code{sdata.} (finding and solving, planning a study) are "
                              "called on simplydata itself, and words that start with \\code{dist.} are steps on "
                              "a distribution: \\code{dist = sdata.distribution(\"normal\")}."),
@@ -556,8 +570,8 @@ def code(text: str) -> str:
     return r"\code{" + text + "}"
 
 
-# Code inside prose: a call such as chart.bars(...), an option such as show="median", a
-# "quoted value", a dotted or underscored name (table.save, keep_rows) or a file ending (.xlsx).
+# Code inside prose: a call such as chart.draw_bars(...), an option such as show="median", a
+# "quoted value", a dotted or underscored name (table.save, keep_rows_where) or a file ending (.xlsx).
 _CALL = re.compile(r"(?<![\w.])[A-Za-z_]\w*(?:\.[A-Za-z_]\w*)*\(")
 _OPTION = re.compile(r"(?<![\w.])[a-z_][a-z0-9_]*=(?!=)")
 _QUOTED = re.compile(r'"[^"\n]*"')
@@ -626,7 +640,7 @@ def rich(text: str) -> str:
 
 
 def label(key: str) -> str:
-    """A LaTeX label for a word: "table.keep_rows" -> "word:table.keep-rows"."""
+    """A LaTeX label for a word: "table.keep_rows_where" -> "word:table.keep-rows"."""
     return "word:" + key.replace("_", "-").replace("=", "-eq")
 
 
@@ -728,10 +742,10 @@ def _title_page() -> str:
 \begin{lstlisting}[style=title]
 import simplydata as sdata
 
-table = sdata.table(sdata.example("marks"))
-table.compare_averages("marks", for_each="class")
-chart = table.chart()
-chart.boxes(x="class", y="marks")
+table = sdata.table(sdata.get_example("marks"))
+table.compare_averages_of("marks", for_each_group_in="class")
+chart = table.start_chart()
+chart.draw_boxes(x="class", y="marks")
 chart.save("marks.png")
 \end{lstlisting}
 \vfill
@@ -747,10 +761,10 @@ def _practice_tables() -> str:
     lines = [r"\unchapter{The practice tables}{start:tables}",
              "All the examples use small made-up tables that come with simplydata, so they run "
              "anywhere without a file. Every number in them is invented. Get one with "
-             + code('sdata.example("marks")') + ", and list them all with " + code("sdata.example()") + "."]
+             + code('sdata.get_example("marks")') + ", and list them all with " + code("sdata.get_example()") + "."]
     for name, (about, columns) in EXAMPLES.items():
         lines.append(f"\\section*{{{esc(name)}}}")
-        lines.append(rich(about) + " " + code(f'sdata.example("{name}")'))
+        lines.append(rich(about) + " " + code(f'sdata.get_example("{name}")'))
         lines.append("\\begin{center}\\small")
         lines.append(r"\begin{tabularx}{\textwidth}{@{}>{\ttfamily}l>{\raggedright\arraybackslash}X@{}}")
         lines.append(r"\toprule \textrm{\textbf{Column}} & \textbf{What it holds}\\ \midrule")
@@ -799,7 +813,7 @@ def _lesson(number: int, aliases_lookup) -> str:
     out += [f"  \\item {rich(task)}" for task in les["task"]]
     out.append(r"\end{enumerate}")
     out.append(f"Worked solutions: page~\\pageref{{solutions:{number}}}, "
-               f"or type {code(f'sdata.lesson({number}, solutions=True)')}.")
+               f"or type {code(f'sdata.show_lesson({number}, solutions=True)')}.")
     out.append(r"\end{tryit}")
     words = []
     for word in les["words"]:
@@ -843,7 +857,7 @@ def _doc_text(doc: str) -> str:
         for line in block.splitlines():
             stripped = line.strip()
             columns = re.search(r"\S( {3,})\S", stripped)
-            if columns and "(with sdata.example" not in stripped:
+            if columns and "(with sdata.get_example" not in stripped:
                 # a line set out in two columns: code on the left, what it means on the right
                 if prose:
                     pieces.append(rich(" ".join(prose)))
@@ -911,7 +925,7 @@ def _word_entry(key: str, aliases: dict) -> str:
 
 def _family(keys: list[str]) -> str | None:
     """Which chapter a group belongs to. A group with table words is a table group even when it has
-    a chart word too (survival_curves); a group of sdata words only (finding and solving, planning
+    a chart word too (draw_survival_curves); a group of sdata words only (finding and solving, planning
     a study) stays in the chapter before it, so no chapter starts twice."""
     kinds = {learn._kind(k) for k in keys} - {"sdata"}
     if not kinds:
@@ -944,7 +958,7 @@ def _solutions() -> str:
            "One worked solution for each ``Try it yourself'' task. There is often more than one good "
            "answer: if yours runs and answers the question, it is right. Each solution runs on its own "
            "and was run to make the chart and output shown. In Python, "
-           + code("sdata.lesson(3, solutions=True)") + " prints the solutions of lesson 3."]
+           + code("sdata.show_lesson(3, solutions=True)") + " prints the solutions of lesson 3."]
     for number, les in enumerate(learn.LESSONS, start=1):
         out.append(f"\\unsection{{Lesson {number}: {esc(les['title'])}}}{{solutions:{number}}}")
         for task_no, (task, (source, explain)) in enumerate(zip(les["task"], learn.lesson_solutions(number)), start=1):
@@ -970,7 +984,7 @@ def _index(aliases: dict) -> str:
     entries.sort(key=lambda e: (e[0].strip("="), e[1]))
     lines = [r"\unchapter{Index of words}{index}",
              "Every word and option, A to Z, with the page of its dictionary entry. Other spellings of a "
-             "word (such as " + code("chart.bar()") + " for " + code("chart.bars()") + ") point to the same entry.",
+             "word (such as " + code("chart.use_color()") + " for " + code("chart.use_colour()") + ") point to the same entry.",
              r"\begin{multicols}{2}\small\raggedright\setlength{\parskip}{0.1em}"]
     for _, shown, key in entries:
         lines.append(f"\\indexline{{{label(key)}}}{{{esc(shown)}}}")
@@ -1017,8 +1031,8 @@ def make() -> str:
         "Each entry gives the word as you type it, what it does (in the words of "
         + code('sdata.help("word")') + "), the options you can put in its brackets and what they "
         "normally are, the library that does the work underneath, and an example you can run as it is. "
-        "The same entries are in Python: " + code('sdata.help("bars")') + ". The words come in the same "
-        "groups as " + code("sdata.words()") + "; the \\hyperref[index]{index of words} at the end of the "
+        "The same entries are in Python: " + code('sdata.help("draw_bars")') + ". The words come in the same "
+        "groups as " + code("sdata.show_all_words()") + "; the \\hyperref[index]{index of words} at the end of the "
         "book lists them A to Z.",
         _dictionary(aliases),
         r"\part{Data science ideas}\label{part:ideas}",

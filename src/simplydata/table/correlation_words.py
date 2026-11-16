@@ -1,6 +1,6 @@
 """Is one correlation stronger than another? compare_correlations, from R cocor (simplydata[r]).
 
-* Two groups: compare_correlations("hours", "marks", for_each="school") with exactly two groups: Fisher's z
+* Two groups: compare_correlations("hours", "marks", for_each_group_in="school") with exactly two groups: Fisher's z
   test (R cocor::cocor.indep.groups(test = "fisher1925")) and Zou's (2007) interval of the difference.
 * One group, two correlations that share a column: compare_correlations(["hours", "marks"], ["sleep", "marks"]):
   Steiger's (1980) z test (cocor::cocor.dep.groups.overlap(test = "steiger1980")) and Zou's interval.
@@ -23,12 +23,12 @@ def _r(x, y):
 
 
 class CorrelationWords:
-    @friendly
-    def compare_correlations(self, *columns, for_each=None, first=None, second=None):
+    @friendly(renamed={"for_each": "for_each_group_in"})
+    def compare_correlations(self, *columns, for_each_group_in=None, first=None, second=None):
         """Is one correlation stronger than another?
 
-        table.compare_correlations("hours", "marks", for_each="class")   (with sdata.example("marks"), two classes)
-        The columns are given as in correlation_between("hours", "marks"). With for_each= (two
+        table.compare_correlations("hours", "marks", for_each_group_in="class")   (with sdata.get_example("marks"), two classes)
+        The columns are given as in find_correlation_between("hours", "marks"). With for_each_group_in= (two
         groups): is the correlation of the two columns different in the two groups? Fisher's z
         test, R cocor::cocor.indep.groups(). With two pairs of columns that share one column, in
         the same rows: table.compare_correlations(["hours", "marks"], ["height", "marks"]) asks
@@ -39,32 +39,32 @@ class CorrelationWords:
         from .._r import r_call
 
         step = "compare_correlations"
-        example = 'table.compare_correlations("hours", "marks", for_each="class")'
+        example = 'table.compare_correlations("hours", "marks", for_each_group_in="class")'
         if first is not None or second is not None:  # the earlier spelling first=, second=
             renamed_note("first=, second=", 'compare_correlations("hours", "marks", ...)')
             if columns:
                 raise SimplydataError(f"Give the columns once, without first= and second=.\nFor example, {example}")
             columns = tuple(c for c in (first, second) if c is not None)
         if len(columns) != 2:
-            raise SimplydataError(f"{step}() needs two columns and for_each=, or two pairs of columns.\nFor example, "
+            raise SimplydataError(f"{step}() needs two columns and for_each_group_in=, or two pairs of columns.\nFor example, "
                                   f'{example}\nor table.compare_correlations(["hours", "marks"], ["height", "marks"])')
         first, second = columns
         if isinstance(first, str) and isinstance(second, str):
-            if not isinstance(for_each, str):
-                raise SimplydataError(f"{step}() with two columns needs for_each= with two groups.\nFor example, "
+            if not isinstance(for_each_group_in, str):
+                raise SimplydataError(f"{step}() with two columns needs for_each_group_in= with two groups.\nFor example, "
                                       f"{example}\nor give two pairs of columns: "
                                       'table.compare_correlations(["hours", "marks"], ["height", "marks"])')
-            names = [first, second, for_each]
+            names = [first, second, for_each_group_in]
             if len(set(names)) != 3:
                 raise SimplydataError(f"{step}() needs three different columns.\nFor example, {example}")
             frame = self._number_frame(step, [first, second])
             kept = frame.select(*names).drop_nulls()
             _skipped_note(len(frame) - len(kept), names)
-            keys = np.asarray(kept[for_each].to_list(), dtype=object)
+            keys = np.asarray(kept[for_each_group_in].to_list(), dtype=object)
             groups = sorted(set(keys.tolist()), key=lambda k: (str(type(k)), k))
             if len(groups) != 2:
-                raise SimplydataError(f'{step}() compares two groups; "{for_each}" has {len(groups)}. Keep two first, '
-                                      "for example with table.keep_rows(...).")
+                raise SimplydataError(f'{step}() compares two groups; "{for_each_group_in}" has {len(groups)}. Keep two first, '
+                                      "for example with table.keep_rows_where(...).")
             x, y = (kept[c].to_numpy().astype(float) for c in (first, second))
             parts = [(x[keys == g], y[keys == g]) for g in groups]
             if min(len(a) for a, _ in parts) < 4:
@@ -93,10 +93,10 @@ class CorrelationWords:
                                        "p-value": p, f"rows in {g1}": n1, f"rows in {g2}": n2})
         pairs = [list(v) if isinstance(v, (list, tuple)) else None for v in (first, second)]
         if None in pairs or any(len(p) != 2 or not all(isinstance(c, str) for c in p) for p in pairs):
-            raise SimplydataError(f"{step}() needs two columns and for_each=, or two pairs of columns.\nFor example, "
+            raise SimplydataError(f"{step}() needs two columns and for_each_group_in=, or two pairs of columns.\nFor example, "
                                   f'{example}\nor table.compare_correlations(["hours", "marks"], ["height", "marks"])')
-        if for_each is not None:
-            raise SimplydataError("Two pairs of columns are compared in the same rows; leave out for_each=.")
+        if for_each_group_in is not None:
+            raise SimplydataError("Two pairs of columns are compared in the same rows; leave out for_each_group_in=.")
         shared = set(pairs[0]) & set(pairs[1])
         if len(shared) != 1 or len(set(pairs[0]) | set(pairs[1])) != 3:
             raise SimplydataError("The two pairs must share exactly one column, such as [\"hours\", \"marks\"] and "

@@ -1,4 +1,4 @@
-"""Chart words for time series and signals, and chart.smooth_line with the smoothing methods.
+"""Chart words for time series and signals, and chart.draw_smooth_line with the smoothing methods.
 
 The chart words draw what the table words give back (those numbers are checked against R in
 test_time_series.py, test_forecast.py, test_spectrum and test_filters.py); here the drawn data is compared
@@ -19,7 +19,7 @@ matplotlib.use("Agg")
 
 
 def harbour():
-    data = sdata.example("visitors")
+    data = sdata.get_example("visitors")
     return data[data["museum"] == "Harbour Museum"].reset_index(drop=True)
 
 
@@ -35,7 +35,7 @@ def test_sticks_draws_a_line_from_zero_to_each_value():
     assert ax.get_lines()[0].get_ydata().tolist() == [0.5, -0.2, 0.1, 0.3]
     with pytest.raises(SimplydataError, match="needs x= and y="):
         sdata.chart(data).sticks(x="k")
-    sdata.chart(data).sticks(x="k", y="r").line_at_y(0.2)._render()  # a line on top works
+    sdata.chart(data).sticks(x="k", y="r").draw_line_at_y(0.2)._render()  # a line on top works
 
 
 def test_autocorrelation_bars_equal_autocorrelation_of(capsys):
@@ -43,7 +43,7 @@ def test_autocorrelation_bars_equal_autocorrelation_of(capsys):
     chart = sdata.chart(data).autocorrelation_bars("visitors", sorted_by="month", rows_back=24)
     ax = chart._render().axes[0]
     heights = [s[1, 1] for s in ax.collections[0].get_segments()]
-    table = native(sdata.table(data).autocorrelation_of("visitors", sorted_by="month", rows_back=24))
+    table = native(sdata.table(data).find_autocorrelation_of("visitors", sorted_by="month", rows_back=24))
     assert heights == pytest.approx(table["correlation"].tolist(), rel=1e-12)
     assert len(heights) == 24
     assert "Ljung-Box" in capsys.readouterr().out
@@ -53,11 +53,11 @@ def test_autocorrelation_bars_equal_autocorrelation_of(capsys):
 
 
 def test_cross_correlation_bars_equal_correlation_between():
-    data = sdata.example("sensor")
+    data = sdata.get_example("sensor")
     ax = sdata.chart(data).cross_correlation_bars("signal", "vibration", sorted_by="time",
                                                   rows_back=10)._render().axes[0]
     heights = [s[1, 1] for s in ax.collections[0].get_segments()]
-    table = native(sdata.table(data).correlation_between("signal", "vibration", rows_back=10, sorted_by="time"))
+    table = native(sdata.table(data).find_correlation_between("signal", "vibration", rows_back=10, sorted_by="time"))
     value = [c for c in table.columns if table[c].dtype.kind == "f" and not c.startswith("shift")
              and "band" not in c][0]
     assert heights == pytest.approx(table[value].tolist(), rel=1e-12)
@@ -99,7 +99,7 @@ def test_trend_and_season_panels_equal_the_table_word():
 @pytest.mark.usefixtures("needs_r")
 def test_chart_forecast_equals_table_forecast():
     data = harbour()
-    chart = sdata.chart(data).lines(x="month", y="visitors").forecast(steps_ahead=6, repeats_every="year")
+    chart = sdata.chart(data).draw_lines(x="month", y="visitors").forecast(steps_ahead=6, repeats_every="year")
     ax = chart._render().axes[0]
     dashed = [line for line in ax.get_lines() if line.get_linestyle() == "--"][0]
     table = native(sdata.table(data).forecast("visitors", sorted_by="month", steps_ahead=6, repeats_every="year"))
@@ -107,9 +107,9 @@ def test_chart_forecast_equals_table_forecast():
 
 
 def test_spectrum_chart_equals_spectrum_of():
-    data = sdata.example("sensor")
+    data = sdata.get_example("sensor")
     ax = sdata.chart(data).spectrum("signal", sorted_by="time")._render().axes[0]
-    table = native(sdata.table(data).spectrum_of("signal", sorted_by="time"))
+    table = native(sdata.table(data).find_spectrum_of("signal", sorted_by="time"))
     table = table[table["frequency"] > 0]
     assert ax.get_lines()[0].get_ydata() == pytest.approx(table["power"].to_numpy(), rel=1e-12)
     assert ax.get_yscale() == "log"
@@ -120,25 +120,25 @@ def test_spectrum_chart_equals_spectrum_of():
 def test_spectrum_over_time_matches_r():
     from simplydata.words.time_charts import spectrum_over_time
 
-    x = sdata.example("sensor")["signal"].to_numpy()
+    x = sdata.get_example("sensor")["signal"].to_numpy()
     f, t, power = spectrum_over_time(x, 0.005, 100)
     # R by hand (ref_spectrogram.R): piece 1 at frequencies 0, 4 and 100; piece 5 at 4; middle times 0.25, 1.25
     assert power[[0, 2, 50], 0] == pytest.approx([0.00385981167326594, 0.151959085622423, 0.000378566612598927],
                                                 rel=1e-10)
     assert power[2, 4] == pytest.approx(0.127424736887222, rel=1e-10)
     assert t[[0, 4]] == pytest.approx([0.25, 1.25]) and f[2] == pytest.approx(4)
-    sdata.chart(sdata.example("sensor")).spectrum_over_time("signal", sorted_by="time", window=100)._render()
+    sdata.chart(sdata.get_example("sensor")).spectrum_over_time("signal", sorted_by="time", window=100)._render()
     with pytest.raises(SimplydataError, match="window="):
-        sdata.chart(sdata.example("sensor")).spectrum_over_time("signal", sorted_by="time", window=2)
+        sdata.chart(sdata.get_example("sensor")).spectrum_over_time("signal", sorted_by="time", window=2)
 
 
 def test_peak_dots_equal_find_peaks():
-    data = sdata.example("sensor")
-    ax = sdata.chart(data).lines(x="time", y="signal").peak_dots(at_least=1, apart=0.05)._render().axes[0]
-    table = native(sdata.table(data).find_peaks("signal", sorted_by="time", at_least=1, apart=0.05))
+    data = sdata.get_example("sensor")
+    ax = sdata.chart(data).draw_lines(x="time", y="signal").peak_dots(is_at_least=1, apart=0.05)._render().axes[0]
+    table = native(sdata.table(data).find_each_peak_that("signal", sorted_by="time", is_at_least=1, apart=0.05))
     dots = ax.collections[-1].get_offsets()
     assert len(dots) == 41 and pytest.approx(table["value"].to_numpy()) == dots[:, 1]
-    ax = sdata.chart(data).lines(x="time", y="signal").peak_dots(dips=True, at_most=-1)._render().axes[0]
+    ax = sdata.chart(data).draw_lines(x="time", y="signal").peak_dots(dips=True, is_at_most=-1)._render().axes[0]
     assert len(ax.collections[-1].get_offsets()) > 0
 
 
@@ -149,8 +149,8 @@ def test_peak_dots_equal_find_peaks():
                                                  reason="SciPy 1.17 or newer (Python 3.12 or newer)")),
                                              ("wiener", {"window": 7})])
 def test_smooth_line_methods_equal_nums_smooth(method, options):
-    data = sdata.example("sensor")
-    ax = sdata.chart(data).dots(x="time", y="signal").smooth_line(method=method, **options)._render().axes[0]
+    data = sdata.get_example("sensor")
+    ax = sdata.chart(data).draw_dots(x="time", y="signal").draw_smooth_line(method=method, **options)._render().axes[0]
     drawn = ax.get_lines()[-1].get_ydata()
     nums = sdata.numbers(data["signal"])
     nums.smooth(method=method, **options)
@@ -160,11 +160,11 @@ def test_smooth_line_methods_equal_nums_smooth(method, options):
 
 def test_smooth_line_window_methods_need_even_steps():
     data = pd.DataFrame({"x": [1, 2, 4, 5, 6, 8, 9], "y": [1, 3, 2, 5, 4, 6, 5]})
-    chart = sdata.chart(data).dots(x="x", y="y").smooth_line(method="moving average", window=3)
+    chart = sdata.chart(data).draw_dots(x="x", y="y").draw_smooth_line(method="moving average", window=3)
     with pytest.raises(SimplydataError, match="evenly spaced"):
         chart._render()
     with pytest.raises(SimplydataError, match="window="):
-        sdata.chart(data).dots(x="x", y="y").smooth_line(method="moving average", window=4)
+        sdata.chart(data).draw_dots(x="x", y="y").draw_smooth_line(method="moving average", window=4)
     with pytest.raises(SimplydataError, match="go with the window"):
-        sdata.chart(data).dots(x="x", y="y").smooth_line(window=3)
-    sdata.chart(data).dots(x="x", y="y").smooth_line()._render()  # lowess still takes uneven x
+        sdata.chart(data).draw_dots(x="x", y="y").draw_smooth_line(window=3)
+    sdata.chart(data).draw_dots(x="x", y="y").draw_smooth_line()._render()  # lowess still takes uneven x

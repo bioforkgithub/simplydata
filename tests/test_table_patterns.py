@@ -34,12 +34,12 @@ def make(data, engine):
 
 @pytest.fixture
 def meadow(engine):
-    return make(sdata.example("meadow"), engine)
+    return make(sdata.get_example("meadow"), engine)
 
 
 @pytest.fixture
 def school(engine):
-    return make(sdata.example("school"), engine)
+    return make(sdata.get_example("school"), engine)
 
 
 def row(result):
@@ -55,7 +55,7 @@ def aligned(found, expected):
 
 
 def complete_school():
-    data = sdata.example("school")
+    data = sdata.get_example("school")
     return data, data[SCHOOL_NUMBERS].notna().all(axis=1).to_numpy()
 
 
@@ -84,14 +84,14 @@ def test_add_principal_components_matches_prcomp(school, capsys):
     assert frame.loc[~kept, ["PC1", "PC2"]].isna().all().all()
     assert np.allclose(aligned(scores[:3], SCHOOL_SCORES), SCHOOL_SCORES, atol=1e-9)
     # signs do not depend on the computer: each component's biggest weight is positive
-    weights = school.principal_components_of()._frame.to_pandas().filter(like="weight of").to_numpy()
+    weights = school.find_principal_components_of()._frame.to_pandas().filter(like="weight of").to_numpy()
     assert (weights[np.arange(len(weights)), np.abs(weights).argmax(axis=1)] > 0).all()
     school.undo()
-    assert "PC1" not in school.column_names()
+    assert "PC1" not in school.get_column_names()
 
 
 def test_principal_components_of_matches_prcomp(school):
-    result = school.principal_components_of()._frame.to_pandas()
+    result = school.find_principal_components_of()._frame.to_pandas()
     assert result["component"].tolist() == ["PC1", "PC2", "PC3", "PC4"]
     assert np.allclose(result["standard deviation"], SCHOOL_SDEV, rtol=1e-9)
     # summary(p)$importance: 0.49692, 0.23669, 0.18528, 0.08111
@@ -104,7 +104,7 @@ def test_principal_components_of_matches_prcomp(school):
 
 def test_principal_components_unscaled_meadow(meadow):
     # R: p2 <- prcomp(sp); summary(p2)$importance[2, 1:3]; p2$rotation[, 1:2]
-    result = meadow.principal_components_of(same_scale=False)._frame.to_pandas()
+    result = meadow.find_principal_components_of(same_scale=False)._frame.to_pandas()
     assert np.allclose(result["spread explained (%)"][:3] / 100, [0.34497, 0.20609, 0.14096], atol=5e-6)
     assert result["standard deviation"][0] == pytest.approx(14.86811403577, rel=1e-9)
     pc1 = result.loc[0, [f"weight of {c}" for c in SPECIES]].to_numpy(float)
@@ -125,7 +125,7 @@ def test_principal_components_errors(school, meadow):
         school.add_principal_components(columns=["hours", "school"])
     with pytest.raises(SimplydataError, match="not found"):
         school.add_principal_components(columns=["hours", "slep"])
-    flat = make(sdata.example("meadow").assign(orchid=3), "pandas")
+    flat = make(sdata.get_example("meadow").assign(orchid=3), "pandas")
     with pytest.raises(SimplydataError, match="same value in every row"):
         flat.add_principal_components()
     assert school._history == []
@@ -138,7 +138,7 @@ def test_kmeans_matches_r_meadow(meadow, capsys, needs_r):
     text = capsys.readouterr().out
     labels = meadow._frame.to_pandas()["cluster"].tolist()
     assert labels == [1, 1, 1, 2, 1, 3, 3, 3, 3, 3, 2, 1, 1, 2, 1, 3, 2, 3, 3, 3, 1, 1, 1, 1, 1, 3, 3, 3, 3, 3]
-    x = sdata.example("meadow")[SPECIES].to_numpy(float)
+    x = sdata.get_example("meadow")[SPECIES].to_numpy(float)
     z = (x - x.mean(0)) / x.std(0, ddof=1)
     within, total = _sum_squares(z, np.array(labels))
     assert within == pytest.approx(188.442099934031, rel=1e-9)  # k1$tot.withinss
@@ -146,7 +146,7 @@ def test_kmeans_matches_r_meadow(meadow, capsys, needs_r):
     assert "sizes 12, 4 and 14" in text and "35.0 % of the spread lies between the clusters" in text
     assert "Hartigan-Wong" in text and "set.seed(1); kmeans(x, 3, nstart = 25)" in text
     meadow.undo()
-    assert "cluster" not in meadow.column_names()
+    assert "cluster" not in meadow.get_column_names()
 
 
 @pytest.mark.parametrize("k, same_scale, r_within", [
@@ -155,7 +155,7 @@ def test_kmeans_matches_r_meadow(meadow, capsys, needs_r):
 ])
 def test_kmeans_within_sum_of_squares(meadow, k, same_scale, r_within, needs_r):
     meadow.add_clusters(how_many=k, same_scale=same_scale)
-    x = sdata.example("meadow")[SPECIES].to_numpy(float)
+    x = sdata.get_example("meadow")[SPECIES].to_numpy(float)
     z = (x - x.mean(0)) / x.std(0, ddof=1) if same_scale else x - x.mean(0)
     labels = meadow._frame.to_pandas()["cluster"].to_numpy()
     assert _sum_squares(z, labels)[0] == pytest.approx(r_within, rel=1e-9)
@@ -238,7 +238,7 @@ def test_cluster_errors(meadow):
     ("jaccard", [[0.1, 0.1, 0.1], [0, 0, 0], [0, 0, 0]]),  # vegdist(sp, "jaccard", binary = TRUE)
 ])
 def test_distances_match_vegdist(meadow, measure, expected):
-    result = meadow.distances_between_rows(measure=measure, names="plot")._frame.to_pandas()
+    result = meadow.find_distances_between_rows(measure=measure, names="plot")._frame.to_pandas()
     assert result.columns[0] == "plot" and result.shape == (30, 31)
     picked = result.set_index("plot").iloc[[0, 8, 16], [1, 19, 29]].to_numpy()
     assert np.allclose(picked, expected, rtol=1e-12, atol=1e-12)
@@ -248,15 +248,15 @@ def test_distances_match_vegdist(meadow, measure, expected):
 
 def test_distances_jaccard_is_presence_absence(engine):
     data = pd.DataFrame({"site": ["a", "b", "c"], "x": [5, 1, 0], "y": [0, 2, 3], "z": [1, 0, 4]})
-    result = make(data, engine).distances_between_rows(measure="jaccard", names="site")._frame.to_pandas()
+    result = make(data, engine).find_distances_between_rows(measure="jaccard", names="site")._frame.to_pandas()
     # a = {x, z}, b = {x, y}, c = {y, z}: 2 of the 3 species found in either are in only one
     assert result.set_index("site").loc["a", "b"] == pytest.approx(2 / 3)
 
 
 def test_distances_without_names_and_with_empty_cells(engine, capsys):
-    data = sdata.example("meadow")
+    data = sdata.get_example("meadow")
     data.loc[2, "moss"] = None
-    result = make(data, engine).distances_between_rows()._frame.to_pandas()
+    result = make(data, engine).find_distances_between_rows()._frame.to_pandas()
     assert "1 row with an empty cell" in capsys.readouterr().out
     assert result.columns[0] == "row" and result["row"].tolist()[:3] == ["1", "2", "4"]
     assert result.shape == (29, 30)
@@ -266,15 +266,15 @@ def test_distance_errors(engine):
     data = pd.DataFrame({"site": ["a", "a", "c"], "x": [5, -1, 0], "y": [0, 2, 3]})
     t = make(data, engine)
     with pytest.raises(SimplydataError, match="cannot be below 0"):
-        t.distances_between_rows()
+        t.find_distances_between_rows()
     t2 = make(pd.DataFrame({"x": [1, 0, 3], "y": [2, 0, 1]}), engine)
     with pytest.raises(SimplydataError, match="nothing in it"):
-        t2.distances_between_rows()
+        t2.find_distances_between_rows()
     t3 = make(pd.DataFrame({"site": ["a", "a", "c"], "x": [1, 2, 3]}), engine)
     with pytest.raises(SimplydataError, match="more than once"):
-        t3.distances_between_rows(names="site")
+        t3.find_distances_between_rows(names="site")
     with pytest.raises(SimplydataError, match="bray-curtis"):
-        t3.distances_between_rows(measure="bray")
+        t3.find_distances_between_rows(measure="bray")
 
 
 # ---------------------------------------------------------------------------- NMDS
@@ -301,7 +301,7 @@ def test_nmds_matches_metamds(meadow, capsys, needs_r):
     assert np.sqrt(1 - disparity) > 0.999  # vegan::procrustes / protest correlation
     assert abs(points.mean(axis=0)).max() < 1e-9
     meadow.undo()
-    assert "NMDS1" not in meadow.column_names()
+    assert "NMDS1" not in meadow.get_column_names()
 
 
 @pytest.mark.parametrize("measure, dimensions, r_stress", [
@@ -312,14 +312,14 @@ def test_nmds_matches_metamds(meadow, capsys, needs_r):
 def test_nmds_stress_matches_metamds(measure, dimensions, r_stress, needs_r):
     from simplydata.table.patterns import _r_nmds
 
-    x = sdata.example("meadow")[SPECIES].to_numpy(float)
+    x = sdata.get_example("meadow")[SPECIES].to_numpy(float)
     points, stress, repeated = _r_nmds(x, measure, dimensions, 20, 1)
     assert stress == pytest.approx(r_stress, abs=0.005)  # the R values were found with trymax = 100
     assert points.shape == (30, dimensions)
 
 
 def test_nmds_empty_cells_and_errors(engine, capsys, needs_r):
-    data = sdata.example("meadow")
+    data = sdata.get_example("meadow")
     data.loc[0, "clover"] = None
     t = make(data, engine)
     t.add_nmds(tries=3)
@@ -334,7 +334,7 @@ def test_nmds_empty_cells_and_errors(engine, capsys, needs_r):
 
 # ---------------------------------------------------------------------------- PERMANOVA
 def test_compare_profiles_matches_adonis2(meadow, capsys, needs_r):
-    result = row(meadow.compare_profiles(for_each="grazed"))
+    result = row(meadow.compare_profiles_of(for_each_group_in="grazed"))
     text = capsys.readouterr().out
     # R: set.seed(1); adonis2(vegdist(sp) ~ grazed, data = meadow, permutations = 999)
     assert result["statistic"] == pytest.approx(9.1438238530611, rel=1e-9)
@@ -361,7 +361,7 @@ def test_compare_profiles_matches_adonis2(meadow, capsys, needs_r):
     ("grazed", "jaccard", 1.7290369552548, 0.0581598710330635, 0.206, None, 0.001),
 ])
 def test_compare_profiles_other_cases(meadow, capsys, for_each, measure, f, r2, r_p, disp_f, disp_p, needs_r):
-    result = row(meadow.compare_profiles(for_each=for_each, measure=measure))
+    result = row(meadow.compare_profiles_of(for_each_group_in=for_each, measure=measure))
     assert result["statistic"] == pytest.approx(f, rel=1e-9)
     assert result["R squared"] == pytest.approx(r2, rel=1e-9)
     assert result["p-value"] == pytest.approx(r_p)  # R's own p for the same seed
@@ -374,30 +374,30 @@ def test_compare_profiles_other_cases(meadow, capsys, for_each, measure, f, r2, 
 
 
 def test_compare_profiles_skips_empty_cells(engine, capsys, needs_r):
-    data = sdata.example("meadow")
+    data = sdata.get_example("meadow")
     data.loc[3, "moss"] = None
     data.loc[5, "grazed"] = None
-    full = row(make(data, engine).compare_profiles(for_each="grazed", permutations=99))
+    full = row(make(data, engine).compare_profiles_of(for_each_group_in="grazed", permutations=99))
     assert "2 rows with an empty cell" in capsys.readouterr().out
-    fewer = row(make(data.drop(index=[3, 5]), engine).compare_profiles(for_each="grazed", permutations=99))
+    fewer = row(make(data.drop(index=[3, 5]), engine).compare_profiles_of(for_each_group_in="grazed", permutations=99))
     assert full["statistic"] == pytest.approx(fewer["statistic"], rel=1e-12)
     assert full["count in no"] + full["count in yes"] == 28
 
 
 def test_compare_profiles_errors(meadow):
-    with pytest.raises(SimplydataError, match="for_each="):
-        meadow.compare_profiles()
+    with pytest.raises(SimplydataError, match="for_each_group_in="):
+        meadow.compare_profiles_of()
     with pytest.raises(SimplydataError, match="not found"):
-        meadow.compare_profiles(for_each="grazing")
+        meadow.compare_profiles_of(for_each_group_in="grazing")
     with pytest.raises(SimplydataError, match="permutations="):
-        meadow.compare_profiles(for_each="grazed", permutations=0)
+        meadow.compare_profiles_of(for_each_group_in="grazed", permutations=0)
     with pytest.raises(SimplydataError, match="at least 2 rows in each group"):
-        meadow.compare_profiles(for_each="plot")
+        meadow.compare_profiles_of(for_each_group_in="plot")
 
 
 def test_r_warnings_become_plain_notes(meadow, capsys, needs_r):
     # vegan::betadisper warns for semimetric distances such as Jaccard; simplydata passes it on once
-    meadow.compare_profiles(for_each="grazed", measure="jaccard")
+    meadow.compare_profiles_of(for_each_group_in="grazed", measure="jaccard")
     out = capsys.readouterr().out
     assert out.count("some squared distances are negative and changed to zero") == 1
     assert "Note from R (vegan): some squared distances are negative and changed to zero." in out
@@ -414,6 +414,6 @@ def test_r_call_passes_warnings_on_and_still_answers(capsys, needs_r):
 
 def test_seeds_must_fit_r(meadow):
     # R set.seed() takes whole numbers up to 2**31 - 1; a bigger seed gets a plain message, before R runs
-    for word, extra in (("add_clusters", {}), ("add_nmds", {}), ("compare_profiles", {"for_each": "grazed"})):
-        with pytest.raises(SimplydataError, match="seed= as a whole number from 0 to 2147483647"):
-            getattr(meadow, word)(seed=2 ** 31, **extra)
+    for word, extra in (("add_clusters", {}), ("add_nmds", {}), ("compare_profiles_of", {"for_each_group_in": "grazed"})):
+        with pytest.raises(SimplydataError, match="with_seed= as a whole number from 0 to 2147483647"):
+            getattr(meadow, word)(with_seed=2 ** 31, **extra)

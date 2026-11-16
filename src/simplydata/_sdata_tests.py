@@ -1,7 +1,7 @@
 """Tests from summary numbers: sdata.compare_averages(...) and sdata.compare_counts(...).
 
 For when only the numbers of a paper or a report are at hand, not the rows. The same tests as
-table.compare_averages and table.compare_counts, from SciPy and statsmodels:
+table.compare_averages_of and table.compare_counts_of, from SciPy and statsmodels:
 
 * sdata.compare_averages(averages=[63.2, 68.9], standard_deviations=[8.1, 9.0], counts=[20, 22]):
   two groups: Welch's t-test from the summary numbers (SciPy ttest_ind_from_stats(equal_var=False),
@@ -10,7 +10,7 @@ table.compare_averages and table.compare_counts, from SciPy and statsmodels:
   (statsmodels anova_generic(use_var="unequal"), the same numbers as R oneway.test() on the rows).
   test="student" / "anova" assume equal spreads.
 * sdata.compare_counts([[20, 40], [30, 30]]): the chi-square test of independence on a table of
-  counts, as table.compare_counts (R chisq.test()); test="fisher", "g", "barnard", "boschloo" as there.
+  counts, as table.compare_counts_of (R chisq.test()); test="fisher", "g", "barnard", "boschloo" as there.
 """
 
 from __future__ import annotations
@@ -57,13 +57,13 @@ def compare_averages(averages=None, standard_deviations=None, counts=None, names
     ANOVA (statsmodels anova_generic, the same numbers as R oneway.test() on the rows).
     test="student" (two groups) or test="anova" (three or more) assume the groups have the same
     spread. names= names the groups (default "group 1", "group 2", ...). With the rows at hand use
-    table.compare_averages(...), which also gives the effect size. Gives back a one-row table.
+    table.compare_averages_of(...), which also gives the effect size. Gives back a one-row table.
     """
     step = "compare_averages"
     example = "sdata.compare_averages(averages=[63.2, 68.9], standard_deviations=[8.1, 9.0], counts=[20, 22])"
     if averages is None or standard_deviations is None or counts is None:
         raise SimplydataError(f"sdata.{step}() needs averages=, standard_deviations= and counts= (one number per "
-                              f"group).\nFor example, {example}\nWith a table of rows, use table.{step}(...).")
+                              f"group).\nFor example, {example}\nWith a table of rows, use table.{step}_of(...).")
     means = _numbers(step, "averages=", averages, example)
     sds = _numbers(step, "standard_deviations=", standard_deviations, example)
     ns = _numbers(step, "counts=", counts, example, whole=True)
@@ -152,14 +152,14 @@ def compare_counts(counts=None, test=None):
     A table of counts: one list per row (or a pandas DataFrame of counts, whose row and column
     names are used). The chi-square test of independence (as R chisq.test(), with Yates'
     continuity correction for 2 x 2 tables), with Cramer's V; test="fisher", "g", "barnard" or
-    "boschloo" as in table.compare_counts(). With a table of rows use table.compare_counts(column,
-    for_each=). Gives back a one-row table.
+    "boschloo" as in table.compare_counts_of(). With a table of rows use table.compare_counts_of(column,
+    for_each_group_in=). Gives back a one-row table.
     """
     step = "compare_counts"
     example = "sdata.compare_counts([[20, 40], [30, 30]])"
     if counts is None:
         raise SimplydataError(f"sdata.{step}() needs a table of counts, one list per row.\nFor example, {example}\n"
-                              f"With a table of rows, use table.{step}(column, for_each=...).")
+                              f"With a table of rows, use table.{step}_of(column, for_each_group_in=...).")
     try:
         observed = np.asarray(counts.to_numpy() if hasattr(counts, "to_numpy") else counts, dtype=float)
     except (TypeError, ValueError):

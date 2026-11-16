@@ -43,7 +43,7 @@ def grid():
 
 # ---------------------------------------------------------------- area
 def test_area_heights_are_averages(sales):
-    ctx = draw(sdata.chart(sales).area(x="year", y="sales", colour="shop"))
+    ctx = draw(sdata.chart(sales).draw_area(x="year", y="sales", colour="shop"))
     expected = sales.groupby(["year", "shop"])["sales"].mean().unstack("shop")
     north = ctx.ax.lines[0]
     assert list(north.get_xdata()) == [2020, 2021, 2022]
@@ -51,7 +51,7 @@ def test_area_heights_are_averages(sales):
 
 
 def test_area_stacked_top_is_total(sales):
-    ctx = draw(sdata.chart(sales).area(x="year", y="sales", colour="shop", stacked=True))
+    ctx = draw(sdata.chart(sales).draw_area(x="year", y="sales", colour="shop", stacked=True))
     top = ctx.ax.collections[-1].get_paths()[0].vertices[:, 1].max()
     totals = sales.groupby(["year", "shop"])["sales"].mean().groupby("year").sum()
     assert np.isclose(top, totals.max())
@@ -59,19 +59,19 @@ def test_area_stacked_top_is_total(sales):
 
 def test_area_stacked_needs_colour(sales):
     with pytest.raises(SimplydataError, match="stacked"):
-        sdata.chart(sales).area(x="year", y="sales", stacked=True)
+        sdata.chart(sales).draw_area(x="year", y="sales", stacked=True)
 
 
 # ---------------------------------------------------------------- histogram
 def test_histogram_counts_match_numpy(big):
-    ax = draw(sdata.chart(big).histogram(x="marks", bins=10)).ax
+    ax = draw(sdata.chart(big).draw_histogram(x="marks", with_bins=10)).ax
     counts, edges = np.histogram(big["marks"], bins=10)
     assert [p.get_height() for p in ax.patches] == list(counts)
     assert np.isclose(ax.patches[0].get_x(), edges[0])
 
 
 def test_histogram_edges_list(big):
-    ax = draw(sdata.chart(big).histogram(x="marks", bins=[0, 50, 70, 120])).ax
+    ax = draw(sdata.chart(big).draw_histogram(x="marks", with_bins=[0, 50, 70, 120])).ax
     counts, _ = np.histogram(big["marks"], bins=[0, 50, 70, 120])
     assert [p.get_height() for p in ax.patches] == list(counts)
 
@@ -79,31 +79,31 @@ def test_histogram_edges_list(big):
 @pytest.mark.parametrize("bins", [0, -3, 2.5, True, [5, 3], "ten"])
 def test_histogram_bad_bins(big, bins):
     with pytest.raises(SimplydataError, match="bins="):
-        sdata.chart(big).histogram(x="marks", bins=bins)
+        sdata.chart(big).draw_histogram(x="marks", with_bins=bins)
 
 
 def test_histogram_needs_numbers(big):
     with pytest.raises(SimplydataError, match="needs numbers"):
-        sdata.chart(big).histogram(x="class")
+        sdata.chart(big).draw_histogram(x="class")
 
 
 # ---------------------------------------------------------------- count bars
 def test_count_bars_match_value_counts(marks):
     fruit = pd.DataFrame({"fruit": ["apple", "pear", "apple", "kiwi", "apple", "pear"]})
-    ax = draw(sdata.chart(fruit).count_bars(x="fruit")).ax
+    ax = draw(sdata.chart(fruit).draw_count_bars(x="fruit")).ax
     expected = fruit["fruit"].value_counts(sort=False)
     assert [p.get_height() for p in ax.patches] == list(expected)
     assert [t.get_text() for t in ax.get_xticklabels()] == list(expected.index)
 
 
 def test_count_bars_sideways(marks):
-    ax = draw(sdata.chart(marks).count_bars(x="name", sideways=True)).ax
+    ax = draw(sdata.chart(marks).draw_count_bars(x="name", sideways=True)).ax
     assert [p.get_width() for p in ax.patches] == list(marks["name"].value_counts(sort=False))
 
 
 # ---------------------------------------------------------------- boxes and violins
 def test_box_medians_match_pandas(marks):
-    ax = draw(sdata.chart(marks).boxes(x="class", y="marks")).ax
+    ax = draw(sdata.chart(marks).draw_boxes(x="class", y="marks")).ax
     flat = {round(line.get_ydata()[0], 6) for line in ax.lines
             if len(line.get_ydata()) == 2 and line.get_ydata()[0] == line.get_ydata()[1]}
     for median in marks.groupby("class")["marks"].median():
@@ -111,7 +111,7 @@ def test_box_medians_match_pandas(marks):
 
 
 def test_violins_stop_at_data(marks):
-    ax = draw(sdata.chart(marks).violins(x="class", y="marks")).ax
+    ax = draw(sdata.chart(marks).draw_violins(x="class", y="marks")).ax
     bodies = [c for c in ax.collections if isinstance(c, PolyCollection)]
     assert len(bodies) == 2
     for body, (_, rows) in zip(bodies, marks.groupby("class", sort=False)):
@@ -121,12 +121,12 @@ def test_violins_stop_at_data(marks):
 
 def test_boxes_need_y():
     with pytest.raises(SimplydataError, match="needs y="):
-        sdata.chart().boxes()
+        sdata.chart().draw_boxes()
 
 
 # ---------------------------------------------------------------- all points
 def test_all_dots_shows_every_value(marks):
-    ax = draw(sdata.chart(marks).all_dots(x="class", y="marks")).ax
+    ax = draw(sdata.chart(marks).draw_all_dots(x="class", y="marks")).ax
     ys = np.concatenate([c.get_offsets()[:, 1] for c in ax.collections])
     assert sorted(ys) == sorted(marks["marks"])
 
@@ -136,28 +136,28 @@ def _dot_colours(ax, before):
     return {to_hex(c) for coll in ax.collections[before:] for c in coll.get_facecolors()}
 
 
-@pytest.mark.parametrize("shapes", ["boxes", "violins"])
+@pytest.mark.parametrize("shapes", ["draw_boxes", "draw_violins"])
 def test_all_dots_over_boxes_stand_out(marks, shapes):
     """Dots on top of boxes or violins are dark grey, not the boxes' own colour."""
     from matplotlib.colors import to_hex
     from simplydata.words._helpers import default_colour
-    alone = draw(sdata.chart(marks).all_dots(x="class", y="marks")).ax
+    alone = draw(sdata.chart(marks).draw_all_dots(x="class", y="marks")).ax
     assert _dot_colours(alone, 0) == {to_hex(default_colour())}  # alone: the usual colour
     chart = getattr(sdata.chart(marks), shapes)(x="class", y="marks")
     before = len(draw(chart).ax.collections)
-    ax = draw(chart.all_dots(x="class", y="marks")).ax
+    ax = draw(chart.draw_all_dots(x="class", y="marks")).ax
     assert _dot_colours(ax, before) == {"#333333"}
     # a colour the user gives is kept
-    chosen = getattr(sdata.chart(marks), shapes)(x="class", y="marks").all_dots(x="class", y="marks",
+    chosen = getattr(sdata.chart(marks), shapes)(x="class", y="marks").draw_all_dots(x="class", y="marks",
                                                                                  colour="red")
     assert _dot_colours(draw(chosen).ax, before) == {"#ff0000"}
 
 
 def test_all_dots_in_groups_over_boxes_get_a_dark_rim(marks):
     from matplotlib.colors import to_hex
-    chart = sdata.chart(marks).boxes(x="class", y="marks", colour="class")
+    chart = sdata.chart(marks).draw_boxes(x="class", y="marks", colour="class")
     before = len(draw(chart).ax.collections)
-    ax = draw(chart.all_dots(x="class", y="marks", colour="class")).ax
+    ax = draw(chart.draw_all_dots(x="class", y="marks", colour="class")).ax
     edges = {to_hex(c) for coll in ax.collections[before:] for c in coll.get_edgecolors()}
     assert edges == {"#333333"}
     assert len(_dot_colours(ax, before)) == marks["class"].nunique()  # still one colour per group
@@ -165,22 +165,22 @@ def test_all_dots_in_groups_over_boxes_get_a_dark_rim(marks):
 
 def test_all_dots_strip_is_same_every_time(big):
     state = np.random.get_state()
-    a = draw(sdata.chart(big).all_dots(x="class", y="marks")).ax.collections[0].get_offsets()
-    b = draw(sdata.chart(big).all_dots(x="class", y="marks")).ax.collections[0].get_offsets()
+    a = draw(sdata.chart(big).draw_all_dots(x="class", y="marks")).ax.collections[0].get_offsets()
+    b = draw(sdata.chart(big).draw_all_dots(x="class", y="marks")).ax.collections[0].get_offsets()
     assert np.array_equal(a, b)
     assert np.array_equal(np.random.get_state()[1], state[1])  # user's random numbers untouched
 
 
 # ---------------------------------------------------------------- density
 def test_density_matches_scipy_kde(big):
-    ax = draw(sdata.chart(big).density(x="marks")).ax
+    ax = draw(sdata.chart(big).draw_density(x="marks")).ax
     line = ax.lines[0]
     expected = stats.gaussian_kde(big["marks"])(line.get_xdata())
     assert np.allclose(line.get_ydata(), expected)
 
 
 def test_density_groups_each_have_area_one(big):
-    ax = draw(sdata.chart(big).density(x="marks", colour="class")).ax
+    ax = draw(sdata.chart(big).draw_density(x="marks", colour="class")).ax
     for line in ax.lines:
         assert np.isclose(np.trapezoid(line.get_ydata(), line.get_xdata()), 1, atol=0.02)
 
@@ -194,7 +194,7 @@ def rain():
 
 
 def test_heatmap_pivot_values(rain):
-    ctx = draw(sdata.chart(rain).heatmap(x="month", y="city", value="rain"))
+    ctx = draw(sdata.chart(rain).draw_heatmap(x="month", y="city", value="rain"))
     expected = rain.pivot_table(index="city", columns="month", values="rain", aggfunc="mean")
     drawn = ctx.store["heatmap_table"]
     assert list(drawn.columns) == ["Jan", "Feb", "Mar"]  # order of appearance, not a-z
@@ -205,14 +205,14 @@ def test_heatmap_pivot_values(rain):
 
 
 def test_heatmap_numbers_written(rain):
-    ax = draw(sdata.chart(rain).heatmap(x="month", y="city", value="rain", numbers=True)).ax
+    ax = draw(sdata.chart(rain).draw_heatmap(x="month", y="city", value="rain", with_numbers=True)).ax
     texts = [t.get_text() for t in ax.texts]
     assert "200" in texts and "150" in texts  # Bergen in Jan: (190 + 210) / 2
 
 
 def test_heatmap_whole_table_uses_number_columns():
     table = pd.DataFrame({"gene": ["g1", "g2"], "s1": [1.0, 2], "s2": [3.0, 4], "ok": [True, False]})
-    ctx = draw(sdata.chart(table).heatmap())
+    ctx = draw(sdata.chart(table).draw_heatmap())
     drawn = ctx.store["heatmap_table"]
     assert list(drawn.columns) == ["s1", "s2"] and list(drawn.index) == ["g1", "g2"]
 
@@ -221,7 +221,7 @@ def test_heatmap_cluster_order_matches_scipy():
     rng = np.random.default_rng(3)
     values = rng.normal(size=(8, 5))
     table = pd.DataFrame(values, columns=list("abcde"))
-    ctx = draw(sdata.chart(table).heatmap(cluster=True))
+    ctx = draw(sdata.chart(table).draw_heatmap(cluster=True))
     rows = hierarchy.leaves_list(hierarchy.linkage(values, "average", "euclidean"))
     cols = hierarchy.leaves_list(hierarchy.linkage(values.T, "average", "euclidean"))
     drawn = ctx.store["heatmap_table"]
@@ -233,32 +233,32 @@ def test_heatmap_cluster_order_matches_scipy():
 
 def test_heatmap_needs_all_three(rain):
     with pytest.raises(SimplydataError, match="all three"):
-        sdata.chart(rain).heatmap(x="month", value="rain")
+        sdata.chart(rain).draw_heatmap(x="month", value="rain")
 
 
 # ---------------------------------------------------------------- pie
 def test_pie_counts_rows():
     fruit = pd.DataFrame({"fruit": ["apple", "pear", "apple", "kiwi"]})
-    ax = draw(sdata.chart(fruit).pie(labels="fruit")).ax
+    ax = draw(sdata.chart(fruit).draw_pie(labels="fruit")).ax
     wedges = [p for p in ax.patches if isinstance(p, Wedge)]
     sizes = [abs(w.theta2 - w.theta1) for w in wedges]
     assert np.allclose(np.array(sizes) / 360, [0.5, 0.25, 0.25])
 
 
 def test_pie_values_are_summed(rain):
-    ctx = draw(sdata.chart(rain).pie(labels="city", values="rain"))
+    ctx = draw(sdata.chart(rain).draw_pie(labels="city", values="rain"))
     pd.testing.assert_series_equal(ctx.store["pie_sizes"], rain.groupby("city", sort=False)["rain"].sum())
 
 
 def test_pie_refuses_negative():
     with pytest.raises(SimplydataError, match="below 0"):
-        sdata.chart({"a": ["x", "y"], "v": [3, -1]}).pie(labels="a", values="v")._render()
+        sdata.chart({"a": ["x", "y"], "v": [3, -1]}).draw_pie(labels="a", values="v")._render()
 
 
 # ---------------------------------------------------------------- polar and 3D
 def test_polar_uses_degrees():
     table = pd.DataFrame({"direction": [0.0, 90, 180], "speed": [1.0, 2, 3]})
-    chart = sdata.chart(table).polar(angle="direction", distance="speed")
+    chart = sdata.chart(table).draw_polar(angle="direction", distance="speed")
     ax = chart._render().axes[0]
     assert ax.name == "polar"
     assert np.allclose(ax.collections[0].get_offsets()[:, 0], np.deg2rad([0, 90, 180]))
@@ -266,27 +266,27 @@ def test_polar_uses_degrees():
 
 def test_polar_and_flat_words_do_not_mix(marks):
     with pytest.raises(SimplydataError, match="cannot share"):
-        sdata.chart(marks).bars(x="name", y="marks").polar(angle="marks", distance="height")
+        sdata.chart(marks).draw_bars(x="name", y="marks").draw_polar(angle="marks", distance="height")
     with pytest.raises(SimplydataError, match="cannot share"):
-        sdata.chart(marks).polar(angle="marks", distance="height").lines(x="test", y="marks")
+        sdata.chart(marks).draw_polar(angle="marks", distance="height").draw_lines(x="test", y="marks")
     with pytest.raises(SimplydataError, match="cannot share"):
-        sdata.chart(marks).dots_3d(x="test", y="marks", z="height").polar(angle="marks", distance="height")
+        sdata.chart(marks).draw_dots_3d(x="test", y="marks", z="height").draw_polar(angle="marks", distance="height")
 
 
 def test_3d_words_share_a_chart(grid):
-    chart = sdata.chart(grid).surface(x="lon", y="lat", z="depth").dots_3d(x="lon", y="lat", z="depth")
+    chart = sdata.chart(grid).draw_surface(x="lon", y="lat", z="depth").draw_dots_3d(x="lon", y="lat", z="depth")
     ax = chart._render().axes[0]
     assert ax.name == "3d"
 
 
 def test_dots_3d_every_point(marks):
-    ax = sdata.chart(marks).dots_3d(x="test", y="marks", z="height", colour="class")._render().axes[0]
+    ax = sdata.chart(marks).draw_dots_3d(x="test", y="marks", z="height", colour="class")._render().axes[0]
     assert sum(len(c._offsets3d[0]) for c in ax.collections) == len(marks)
 
 
 # ---------------------------------------------------------------- contour and surface
 def test_contour_full_grid_is_used_as_is(grid):
-    ctx = draw(sdata.chart(grid).contour(x="lon", y="lat", z="depth"))
+    ctx = draw(sdata.chart(grid).draw_contour(x="lon", y="lat", z="depth"))
     gx, gy, gz = ctx.store["grid"]
     expected = grid.pivot(index="lat", columns="lon", values="depth")
     assert np.allclose(gz, expected.to_numpy())
@@ -297,44 +297,46 @@ def test_contour_scattered_matches_griddata():
     rng = np.random.default_rng(5)
     t = pd.DataFrame({"x": rng.uniform(0, 1, 50), "y": rng.uniform(0, 1, 50)})
     t["z"] = t.x + 2 * t.y
-    gx, gy, gz = draw(sdata.chart(t).contour(x="x", y="y", z="z", filled=False)).store["grid"]
+    gx, gy, gz = draw(sdata.chart(t).draw_contour(x="x", y="y", z="z", filled=False)).store["grid"]
     expected = griddata((t.x, t.y), t.z, (gx, gy), method="linear")
     assert np.allclose(gz, expected, equal_nan=True)
 
 
 def test_contour_needs_numbers(marks):
     with pytest.raises(SimplydataError, match="needs numbers"):
-        sdata.chart(marks).contour(x="name", y="test", z="marks")
+        sdata.chart(marks).draw_contour(x="name", y="test", z="marks")
 
 
 def test_surface_draws_on_3d(grid):
-    ctx = draw(sdata.chart(grid).surface(x="lon", y="lat", z="depth"))
+    ctx = draw(sdata.chart(grid).draw_surface(x="lon", y="lat", z="depth"))
     assert ctx.ax.name == "3d" and "colour_bar" in ctx.store
 
 
 # ---------------------------------------------------------------- standard names
 def test_standard_name_aliases(marks):
+    """bar, line, box and violin are names from other tools: they point to the draw_ words and never run."""
+    from simplydata._errors import MissingWordError
+
     chart = sdata.chart(marks)
-    assert chart.bar.__func__ is chart.bars.__func__
-    assert chart.line.__func__ is chart.lines.__func__
-    assert chart.box.__func__ is chart.boxes.__func__
-    assert chart.violin.__func__ is chart.violins.__func__
+    for name, word in (("bar", "draw_bars"), ("line", "draw_lines"), ("box", "draw_boxes"), ("violin", "draw_violins")):
+        with pytest.raises(MissingWordError, match=f"In simplydata this is chart.{word}"):
+            getattr(chart, name)
 
 
 def test_every_new_word_saves(marks, grid, tmp_path):
     charts = [
-        sdata.chart(marks).area(x="test", y="marks"),
-        sdata.chart(marks).histogram(x="marks"),
-        sdata.chart(marks).box(x="class", y="marks", colour="name"),
-        sdata.chart(marks).violin(x="class", y="marks").all_dots(x="class", y="marks"),
-        sdata.chart(marks).count_bars(x="name", colour="class"),
-        sdata.chart(marks).density(x="marks", colour="class"),
-        sdata.chart(marks).heatmap(x="test", y="name", value="marks", numbers=True, cluster=True),
-        sdata.chart(marks).pie(labels="name"),
-        sdata.chart(marks).polar(angle="marks", distance="height", colour="class"),
-        sdata.chart(grid).contour(x="lon", y="lat", z="depth"),
-        sdata.chart(grid).surface(x="lon", y="lat", z="depth"),
-        sdata.chart(marks).dots_3d(x="test", y="marks", z="height", colour="marks"),
+        sdata.chart(marks).draw_area(x="test", y="marks"),
+        sdata.chart(marks).draw_histogram(x="marks"),
+        sdata.chart(marks).draw_boxes(x="class", y="marks", colour="name"),
+        sdata.chart(marks).draw_violins(x="class", y="marks").draw_all_dots(x="class", y="marks"),
+        sdata.chart(marks).draw_count_bars(x="name", colour="class"),
+        sdata.chart(marks).draw_density(x="marks", colour="class"),
+        sdata.chart(marks).draw_heatmap(x="test", y="name", value="marks", with_numbers=True, cluster=True),
+        sdata.chart(marks).draw_pie(labels="name"),
+        sdata.chart(marks).draw_polar(angle="marks", distance="height", colour="class"),
+        sdata.chart(grid).draw_contour(x="lon", y="lat", z="depth"),
+        sdata.chart(grid).draw_surface(x="lon", y="lat", z="depth"),
+        sdata.chart(marks).draw_dots_3d(x="test", y="marks", z="height", colour="marks"),
     ]
     for i, chart in enumerate(charts):
         chart.save(tmp_path / f"{i}.png")

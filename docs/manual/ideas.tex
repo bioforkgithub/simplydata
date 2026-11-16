@@ -30,8 +30,8 @@ towards it but hardly moves the median. So:
   \item When the two are far apart, say so: it tells the reader the values are skewed.
 \end{itemize}
 
-In simplydata: \code{table.average\_of("marks")}, \code{table.median\_of("marks")},
-\code{nums.average()}, \code{nums.median()}, and on charts \code{show="average"} or
+In simplydata: \code{table.find\_average\_of("marks")}, \code{table.find\_median\_of("marks")},
+\code{nums.find\_average()}, \code{nums.find\_median()}, and on charts \code{show="average"} or
 \code{show="median"}. Lesson~\ref{lesson:5} draws both.
 
 \unsection{Spread: range, percentiles and standard deviation}{ideas:spread}
@@ -43,10 +43,10 @@ marks from 20 to 100. The \textbf{spread} tells them apart.
   \item The \textbf{range} is the biggest value minus the smallest. It is easy to understand but
     depends on just two values, often the strangest ones.
   \item A \textbf{percentile} is the value that a given share of the values is below:
-    \code{nums.percentile(90)} is the value that 90\,\% are below. The median is the 50th
+    \code{nums.find\_percentile(90)} is the value that 90\,\% are below. The median is the 50th
     percentile. The middle half of the values lies between the 25th and 75th percentiles; that
     distance is the \textbf{interquartile range (IQR)}, and it is the box in a box plot
-    (\code{chart.boxes}).
+    (\code{chart.draw\_boxes}).
   \item The \textbf{standard deviation} (SD, written $s$) is about how far a typical value is from
     the average:
     \[
@@ -64,13 +64,13 @@ The SD goes with the average and the IQR with the median. For all the marks of t
 \unsection{The shape of the values: distributions}{ideas:distribution}
 
 The way values are spread out is their \textbf{distribution}; a histogram
-(\code{chart.histogram}) or a density curve (\code{chart.density}) shows it. Many measurements,
+(\code{chart.draw\_histogram}) or a density curve (\code{chart.draw\_density}) shows it. Many measurements,
 such as heights or measuring errors, follow a bell shape called the \textbf{normal} (or
 Gaussian) \textbf{distribution}. For a normal distribution about 68\,\% of the values lie within
 one SD of the average and about 95\,\% within two SD.
 
 Not everything is bell-shaped. Counts and concentrations are often skewed to the right (many
-small values, a few large ones); a log scale (\code{chart.log\_scale\_y()}) often makes them look
+small values, a few large ones); a log scale (\code{chart.use\_log\_scale\_y()}) often makes them look
 more symmetric. Look at the distribution before choosing what to report and which test to use.
 
 \ideachapter{How sure are we?}{ideas:uncertainty}
@@ -123,7 +123,7 @@ inside (that would be about $\bar{x} \pm 2\,\mathrm{SD}$ for a bell shape).
   \item An interval says more than a p-value: it gives the size of the effect \emph{and} how sure
     you are of it. \code{table.fit\_line} prints the slope with its 95\,\% CI.
   \item On charts: \code{error="confidence interval"} on bars and lines, and
-    \code{fit\_line(confidence\_band=True)} for a fitted line.
+    \code{fit\_line(with\_confidence\_band=True)} for a fitted line.
 \end{itemize}
 
 \unsection{Why averages behave well: the central limit theorem}{ideas:clt}
@@ -195,7 +195,7 @@ study with low power can only find large effects; plan the sample size before co
 Every test at $\alpha = 0.05$ carries a 5\,\% risk of a false alarm, and the risks add up: with 20
 tests on pure noise, you expect about one ``significant'' result. Correcting for
 \textbf{multiple comparisons} keeps the chance of \emph{any} false alarm at 5\,\%.
-\code{table.compare\_each\_pair} uses \textbf{Holm's method}, which is never less powerful than the
+\code{table.compare\_each\_pair\_of} uses \textbf{Holm's method}, which is never less powerful than the
 simpler Bonferroni correction (multiply each p-value by the number of tests). Decide which
 comparisons you will make before you look at the data.
 
@@ -210,11 +210,11 @@ which is usually what matters. Report both, ideally with a confidence interval f
 \toprule
 \textbf{Effect size} & \textbf{What it says} & \textbf{Given by}\\
 \midrule
-Difference in averages & in the units of the data (``7.6 marks higher''): often the clearest & \code{compare\_averages}, \code{compare\_each\_pair}\\
-Cohen's $d$, Hedges' $g$ & the difference in standard deviations; $g$ corrects $d$ for small samples. Rough guide: 0.2 small, 0.5 medium, 0.8 large & \code{compare\_averages} (2 groups), \code{compare\_average\_to}, \code{compare\_before\_after} ($d_z$)\\
-Omega-squared $\omega^2$ & the share of all the differences that the groups explain (0 to 1) & \code{compare\_averages} (3+ groups)\\
-Cramér's $V$ & how strongly two categories are linked, 0 (none) to 1 & \code{compare\_counts}\\
-Correlation $r$ & how closely two columns go up and down together, $-1$ to $1$ & \code{correlation\_between}\\
+Difference in averages & in the units of the data (``7.6 marks higher''): often the clearest & \code{compare\_averages\_of}, \code{compare\_each\_pair\_of}\\
+Cohen's $d$, Hedges' $g$ & the difference in standard deviations; $g$ corrects $d$ for small samples. Rough guide: 0.2 small, 0.5 medium, 0.8 large & \code{compare\_averages\_of} (2 groups), \code{compare\_average\_to}, \code{compare\_before\_and\_after} ($d_z$)\\
+Omega-squared $\omega^2$ & the share of all the differences that the groups explain (0 to 1) & \code{compare\_averages\_of} (3+ groups)\\
+Cramér's $V$ & how strongly two categories are linked, 0 (none) to 1 & \code{compare\_counts\_of}\\
+Correlation $r$ & how closely two columns go up and down together, $-1$ to $1$ & \code{find\_correlation\_between}\\
 $R^2$ & the share of the differences in $y$ that a line or curve explains & \code{fit\_line}, \code{fit\_formula}\\
 \bottomrule
 \end{tabularx}
@@ -235,12 +235,12 @@ $-1$ (one always goes down when the other goes up) through $0$ (no straight-line
     sensitive to outliers, and can be near 0 for a strong curved link (a U shape).
   \item \textbf{Spearman's $\rho$} (rho) uses ranks: it measures any link that keeps going one way
     (always up, or always down), and is robust to outliers.
-    \code{table.correlation\_between("hours", "marks", method="spearman")}.
+    \code{table.find\_correlation\_between("hours", "marks", method="spearman")}.
   \item $r^2$ is the share of the differences in one column that a straight line through the other
     explains. $r = 0.5$ explains only a quarter.
 \end{itemize}
 
-Always draw the dots (\code{chart.dots}) before trusting a correlation: very different patterns
+Always draw the dots (\code{chart.draw\_dots}) before trusting a correlation: very different patterns
 can have the same $r$ (Anscombe's quartet is the famous example).
 
 \unsection{Correlation is not cause}{ideas:cause}
@@ -303,10 +303,10 @@ A table is \textbf{tidy} (Hadley Wickham's term) when each \textbf{variable} is 
 column for what was measured (\code{marks}) and columns that say which child and which subject.
 
 \begin{itemize}
-  \item \textbf{Long tables} suit charts, groups and tests: \code{chart.bars(x="subject", y="marks")}
-    and \code{compare\_averages("marks", for\_each="subject")} need the subject as a column.
+  \item \textbf{Long tables} suit charts, groups and tests: \code{chart.draw\_bars(x="subject", y="marks")}
+    and \code{compare\_averages\_of("marks", for\_each\_group\_in="subject")} need the subject as a column.
   \item \textbf{Wide tables} suit sums across columns (a total per child) and paired tests
-    (\code{compare\_before\_after("Maths", "Science")}), and are how people often type data into
+    (\code{compare\_before\_and\_after("Maths", "Science")}), and are how people often type data into
     a spreadsheet.
   \item \code{table.turn\_columns\_into\_rows} makes a wide table long (in pandas: \code{melt}; in R:
     \code{pivot\_longer}); \code{table.turn\_rows\_into\_columns} makes a long table wide (\code{pivot}).
@@ -328,14 +328,14 @@ Real data has empty cells: a sample was lost, a question skipped. What to do dep
     say so in your report.
 \end{itemize}
 
-\textbf{Removing} rows with empty cells (\code{table.remove\_rows\_with\_empty\_cells()}) is
+\textbf{Removing} rows with empty cells (\code{table.remove\_rows\_with\_empty\_cells\_in()}) is
 simple and honest when few rows are affected. \textbf{Filling} them in is called
-\textbf{imputation}: \code{table.fill\_empty\_cells("marks", with\_the="average")} (also
+\textbf{imputation}: \code{table.fill\_empty\_cells\_in("marks", with\_the="average")} (also
 \code{"median"}, \code{"value above"}, \code{"value below"}, or \code{with\_value=0}). Filling with
 the average keeps the average the same, but makes the values look \emph{less spread out} than they
 really are, so standard deviations, standard errors and p-values become too small. Filling with the
 value above or below suits a series in time order. Whatever you choose, count the empty cells first
-(\code{table.count\_empty\_cells()}) and say in your methods how you handled them.
+(\code{table.count\_empty\_cells\_in()}) and say in your methods how you handled them.
 
 \ideachapter{Which test when?}{ideas:which-test}
 
@@ -361,12 +361,12 @@ answer four questions:
 \textbf{Question} & \textbf{simplydata word} & \textbf{Test (the usual one)} & \textbf{With \code{based\_on="ranks"}}\\
 \midrule
 Is one average different from a number you choose? & \code{compare\_average\_to("marks", 60)} & one-sample $t$-test & Wilcoxon signed-rank test\\
-Do \textbf{two} groups differ in their average? & \code{compare\_averages("marks", for\_each="group")} & Welch's $t$-test & Mann--Whitney $U$ test\\
-Do \textbf{three or more} groups differ? & \code{compare\_averages("marks", for\_each="class")} & Welch's one-way ANOVA & Kruskal--Wallis test\\
-\emph{Which} groups differ? & \code{compare\_each\_pair("marks", for\_each="class")} & pairwise Welch $t$-tests, Holm's correction & pairwise Mann--Whitney tests, Holm's correction\\
-Did the values change, in the \textbf{same} rows measured twice? & \code{compare\_before\_after("before", "after")} & paired $t$-test & Wilcoxon signed-rank test\\
-Do \textbf{counts} of categories differ between groups? & \code{compare\_counts("result", for\_each="class")} & chi-square test of independence & --- (for a $2\times2$ table with small counts: \code{test="fisher"}, Fisher's exact test)\\
-Do two columns of numbers go up and down together? & \code{correlation\_between("hours", "marks")} & Pearson's $r$ & \code{method="spearman"}: Spearman's $\rho$\\
+Do \textbf{two} groups differ in their average? & \code{compare\_averages\_of("marks", for\_each\_group\_in="group")} & Welch's $t$-test & Mann--Whitney $U$ test\\
+Do \textbf{three or more} groups differ? & \code{compare\_averages\_of("marks", for\_each\_group\_in="class")} & Welch's one-way ANOVA & Kruskal--Wallis test\\
+\emph{Which} groups differ? & \code{compare\_each\_pair\_of("marks", for\_each\_group\_in="class")} & pairwise Welch $t$-tests, Holm's correction & pairwise Mann--Whitney tests, Holm's correction\\
+Did the values change, in the \textbf{same} rows measured twice? & \code{compare\_before\_and\_after("before", "after")} & paired $t$-test & Wilcoxon signed-rank test\\
+Do \textbf{counts} of categories differ between groups? & \code{compare\_counts\_of("result", for\_each\_group\_in="class")} & chi-square test of independence & --- (for a $2\times2$ table with small counts: \code{test="fisher"}, Fisher's exact test)\\
+Do two columns of numbers go up and down together? & \code{find\_correlation\_between("hours", "marks")} & Pearson's $r$ & \code{method="spearman"}: Spearman's $\rho$\\
 How much does $y$ change with $x$? & \code{fit\_line(x="hours", y="marks")} & linear regression (least squares) & ---\\
 Does the data follow a formula (growth, decay, saturation)? & \code{fit\_formula("y = a * exp(b * x)")} & nonlinear least squares & ---\\
 \bottomrule
@@ -379,15 +379,15 @@ Does the data follow a formula (growth, decay, saturation)? & \code{fit\_formula
     assume that the groups have the same spread. They are R's defaults and lose almost nothing when
     the spreads are equal. An expert can still choose: \code{test="student"} or \code{test="anova"}.
   \item \textbf{Paired or not?} If each row of one measurement belongs to a row of the other (the same
-    child, the same site), the test must be paired: \code{compare\_before\_after}. Treating paired
+    child, the same site), the test must be paired: \code{compare\_before\_and\_after}. Treating paired
     data as independent groups throws away information.
-  \item \textbf{Counts, not percentages.} \code{compare\_counts} needs the rows themselves (one row per
+  \item \textbf{Counts, not percentages.} \code{compare\_counts\_of} needs the rows themselves (one row per
     observation), not percentages worked out by hand.
   \item \textbf{One test per question.} Decide the question and the test before looking at the
     results; trying several tests and keeping the best p-value makes false alarms much more
     likely.
   \item Each test gives back a one-row table with every number in it:
-    \code{result = table.compare\_averages(...)}, then \code{result.save("test.csv")}.
+    \code{result = table.compare\_averages\_of(...)}, then \code{result.save("test.csv")}.
 \end{itemize}
 \end{goodtoknow}
 
@@ -403,4 +403,4 @@ A good results sentence lets a reader check your work. Give:
 
 For example: ``Class~A scored on average 13.2 marks more than class~C (Welch's $t$-test with Holm's
 correction, $p = 0.023$; $n = 18$ per class).'' simplydata's printed answers name each test, and
-\code{table.steps()} lists every change you made to the table, in order, for your methods.
+\code{table.show\_steps()} lists every change you made to the table, in order, for your methods.

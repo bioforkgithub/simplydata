@@ -1,12 +1,12 @@
 """Patterns across many columns: principal components, clusters, distances, NMDS and PERMANOVA.
 
 These words look at many number columns at once (for example the counts of ten plant species
-in each plot of sdata.example("meadow")). columns=None uses every number column; give a list
+in each plot of sdata.get_example("meadow")). columns=None uses every number column; give a list
 to choose. Rows with an empty cell in the columns used are left out with a printed note, and
 an add_ word gives them empty cells. PCA, distances and hierarchical clusters come from
 statsmodels and SciPy; k-means, NMDS and PERMANOVA from R itself (simplydata[r]).
 
-* add_principal_components / principal_components_of: principal component analysis by
+* add_principal_components / find_principal_components_of: principal component analysis by
   singular value decomposition of the centred (and, with same_scale=True, scaled) columns,
   exactly as R prcomp(x, scale. = TRUE). The sign of a component is arbitrary (flipping it
   changes nothing) and differs between maths libraries, so each component is turned so that
@@ -17,7 +17,7 @@ statsmodels and SciPy; k-means, NMDS and PERMANOVA from R itself (simplydata[r])
   how_many clusters; linkage="ward" is R hclust(method = "ward.D2"), and "average",
   "complete" and "single" are the R methods of the same name. Clusters are numbered 1, 2, 3
   in the order they first appear in the table, so the numbers do not jump between runs.
-* distances_between_rows: "bray-curtis" (the R vegan::vegdist default), "euclidean",
+* find_distances_between_rows: "bray-curtis" (the R vegan::vegdist default), "euclidean",
   "manhattan", and "jaccard", which is vegan::vegdist(binary = TRUE): the share of the
   species present in either row that are present in only one of them (counts above 0 are
   "present").
@@ -27,7 +27,7 @@ statsmodels and SciPy; k-means, NMDS and PERMANOVA from R itself (simplydata[r])
   set.seed(seed). Kruskal stress-1 as metaMDS reports it; the map is centred and turned so
   that NMDS1 holds the most spread (metaMDS default); rotation and signs are arbitrary.
   Clarke's (1993) rule of thumb reads the stress. Needs simplydata[r], R and vegan.
-* compare_profiles: PERMANOVA, R vegan::adonis2(distances ~ group) itself, then the spread
+* compare_profiles_of: PERMANOVA, R vegan::adonis2(distances ~ group) itself, then the spread
   check vegan::betadisper() with vegan::permutest(), run through rpy2 after set.seed(seed),
   so pseudo-F, R squared and both permutation p-values are R's for the same seed. A note is
   printed when the spreads differ. Needs simplydata[r], R and vegan.
@@ -251,7 +251,7 @@ class PatternWords:
             raise SimplydataError(
                 f'measure="{measure}" cannot compare a row with nothing in it (every value 0), and '
                 f"{empty} row{'s are' if empty > 1 else ' is'} like that. "
-                "Remove them first, for example with table.remove_rows(...)."
+                "Remove them first, for example with table.remove_rows_where(...)."
             )
 
     @staticmethod
@@ -283,7 +283,7 @@ class PatternWords:
     def add_principal_components(self, columns=None, how_many=2, same_scale=True):
         """Add principal components: a few new columns that hold most of the spread of many columns.
 
-        table.add_principal_components(how_many=2)   (with sdata.example("meadow"))
+        table.add_principal_components(how_many=2)   (with sdata.get_example("meadow"))
         Principal component analysis turns many related columns into new columns PC1, PC2 ...
         that do not overlap: PC1 holds the most spread, PC2 the most of what is left, and so
         on. The new columns are the scores of each row. columns=None uses every number
@@ -293,11 +293,11 @@ class PatternWords:
         the same kind of measure on the same scale). Prints how much of the spread each
         component explains and the 3 columns with the largest weights in each. The sign of a
         component is arbitrary: flipping it changes nothing. Rows with an empty cell get
-        empty PC cells. table.principal_components_of() gives all the weights as a table.
+        empty PC cells. table.find_principal_components_of() gives all the weights as a table.
         Method: singular value decomposition (statsmodels PCA), as R prcomp().
         """
         step = "add_principal_components"
-        example = 'with sdata.example("meadow"): table.add_principal_components(how_many=2)'
+        example = 'with sdata.get_example("meadow"): table.add_principal_components(how_many=2)'
         columns, keep, sdev, share, rotation, scores = self._pca(step, columns, same_scale, example)
         most = len(sdev)
         self._check_whole(step, "how_many=", how_many, 1, most, example)
@@ -316,16 +316,16 @@ class PatternWords:
               f"{'TRUE' if same_scale else 'FALSE'}). Added {_list_words(names)} (the scores of each row). "
               "The sign of each component is arbitrary: flipping it changes nothing.")
         if how_many < most:
-            print(f"There are {most} components in all; table.principal_components_of() shows them all.")
+            print(f"There are {most} components in all; table.find_principal_components_of() shows them all.")
         return self._with_new_columns(
             f"add principal components {', '.join(names)} of {', '.join(map(str, columns))}",
             [(n, scores[:, i]) for i, n in enumerate(names)], keep)
 
     @friendly
-    def principal_components_of(self, columns=None, same_scale=True):
+    def find_principal_components_of(self, columns=None, same_scale=True):
         """A table of the principal components: how much spread each explains and the weight of each column.
 
-        table.principal_components_of()   (with sdata.example("meadow"))
+        table.find_principal_components_of()   (with sdata.get_example("meadow"))
         One row per component (PC1, PC2 ...) with its standard deviation, the share of the
         spread it explains, the cumulative share, and one column of weights per original
         column, "weight of hours" and so on (the loadings, R prcomp()$rotation). A large
@@ -333,8 +333,8 @@ class PatternWords:
         component is arbitrary. same_scale=True puts each column on the same scale first, as
         R prcomp(scale. = TRUE).
         """
-        step = "principal_components_of"
-        example = 'with sdata.example("meadow"): table.principal_components_of()'
+        step = "find_principal_components_of"
+        example = 'with sdata.get_example("meadow"): table.find_principal_components_of()'
         columns, _, sdev, share, rotation, _ = self._pca(step, columns, same_scale, example)
         cumulative = np.cumsum(share)
         data = {"component": [f"PC{i}" for i in range(1, len(sdev) + 1)],
@@ -349,15 +349,15 @@ class PatternWords:
         return self._new_table(nw.from_dict(data, backend=self._frame.implementation))
 
     # ------------------------------------------------------------------ clusters
-    @friendly
-    def add_clusters(self, columns=None, how_many=3, method="k-means", same_scale=True, seed=1, name="cluster",
+    @friendly(renamed={"seed": "with_seed"})
+    def add_clusters(self, columns=None, how_many=3, method="k-means", same_scale=True, with_seed=1, name="cluster",
                      linkage="ward"):
         """Sort the rows into groups of similar rows (clusters), in a new column.
 
-        table.add_clusters(how_many=3)   (with sdata.example("meadow"))
+        table.add_clusters(how_many=3)   (with sdata.get_example("meadow"))
         method="k-means" (the default) finds how_many clusters whose rows are as close as
         possible to their cluster's average, from 25 random starts (as R kmeans(nstart = 25));
-        seed= makes the result the same every time. method="hierarchical" joins the closest
+        with_seed= makes the result the same every time. method="hierarchical" joins the closest
         rows step by step and cuts the tree into how_many clusters; linkage="ward" (the
         default, R hclust(method = "ward.D2")), "average", "complete" or "single".
         same_scale=True (the default) puts each column on the same scale first (R scale()).
@@ -366,7 +366,7 @@ class PatternWords:
         kmeans: between_SS / total_SS). Rows with an empty cell get an empty cluster cell.
         """
         step = "add_clusters"
-        example = 'with sdata.example("meadow"): table.add_clusters(how_many=3)'
+        example = 'with sdata.get_example("meadow"): table.add_clusters(how_many=3)'
         self._check_choice(step, "method", method, CLUSTER_METHODS)
         if method == "hierarchical":
             self._check_choice(step, "linkage", linkage, list(LINKAGES))
@@ -377,12 +377,12 @@ class PatternWords:
         self._check_whole(step, "how_many=", how_many, 2, len(x) - 1, example)
         z = self._scaled(x, columns, same_scale)
         if method == "k-means":
-            self._check_whole(step, "seed=", seed, 0, R_SEED_MAX, example)
+            self._check_whole(step, "with_seed=", with_seed, 0, R_SEED_MAX, example)
             if len(np.unique(z, axis=0)) < how_many:
                 raise SimplydataError(f"There are only {len(np.unique(z, axis=0))} different rows, so they cannot "
                                       f"make {how_many} clusters.")
-            labels, between = _r_kmeans(z, how_many, seed)
-            how = (f"k-means (Hartigan-Wong) with {KMEANS_STARTS} random starts, run in R: set.seed({seed}); "
+            labels, between = _r_kmeans(z, how_many, with_seed)
+            how = (f"k-means (Hartigan-Wong) with {KMEANS_STARTS} random starts, run in R: set.seed({with_seed}); "
                    f"kmeans(x, {how_many}, nstart = {KMEANS_STARTS})")
         else:
             from scipy.cluster.hierarchy import fcluster
@@ -426,10 +426,10 @@ class PatternWords:
         return names, labels
 
     @friendly
-    def distances_between_rows(self, columns=None, measure="bray-curtis", names=None):
+    def find_distances_between_rows(self, columns=None, measure="bray-curtis", names=None):
         """How different each row is from every other row: a square table of distances.
 
-        table.distances_between_rows(names="plot")   (with sdata.example("meadow"))
+        table.find_distances_between_rows(names="plot")   (with sdata.get_example("meadow"))
         measure="bray-curtis" (the default, as R vegan::vegdist()) is the usual measure for
         counts of species: 0 when two rows have the same counts, 1 when they share nothing.
         "jaccard" uses only present / absent (a count above 0 is present), as
@@ -437,8 +437,8 @@ class PatternWords:
         found in only one. "euclidean" is the straight-line distance and "manhattan" the sum
         of the differences. names= is a column whose values label the rows and columns.
         """
-        step = "distances_between_rows"
-        example = 'with sdata.example("meadow"): table.distances_between_rows(names="plot")'
+        step = "find_distances_between_rows"
+        example = 'with sdata.get_example("meadow"): table.find_distances_between_rows(names="plot")'
         self._check_choice(step, "measure", measure, list(MEASURES))
         columns = self._pattern_columns(step, columns, example,
                                         leave_out=(names,) if isinstance(names, str) else ())
@@ -454,33 +454,33 @@ class PatternWords:
         return self._new_table(nw.from_dict(data, backend=self._frame.implementation))
 
     # ------------------------------------------------------------------ NMDS
-    @friendly
-    def add_nmds(self, columns=None, measure="bray-curtis", dimensions=2, tries=20, seed=1):
+    @friendly(renamed={"seed": "with_seed"})
+    def add_nmds(self, columns=None, measure="bray-curtis", dimensions=2, tries=20, with_seed=1):
         """Draw the rows as points on a map where close points are similar rows (NMDS), in new columns.
 
-        table.add_nmds()   (with sdata.example("meadow"))
+        table.add_nmds()   (with sdata.get_example("meadow"))
         Non-metric multidimensional scaling puts each row on a map with dimensions= axes
         (NMDS1, NMDS2) so that the order of the distances on the map follows the order of
         the distances between the rows (measure="bray-curtis", as R vegan::metaMDS). It tries
-        at least tries= random starts (seed= makes them the same every time), and more, up to
+        at least tries= random starts (with_seed= makes them the same every time), and more, up to
         100, until the best map has been found twice; it keeps the map with the lowest stress
         (Kruskal's stress-1: how badly the map fits). Clarke's (1993) rule of thumb: below 0.05
         excellent, below 0.1 good, below 0.2 usable, above 0.2 hard to trust. The axes have no units; their rotation and signs are
         arbitrary. Rows with an empty cell get empty NMDS cells.
         """
         step = "add_nmds"
-        example = 'with sdata.example("meadow"): table.add_nmds()'
+        example = 'with sdata.get_example("meadow"): table.add_nmds()'
         self._check_choice(step, "measure", measure, list(MEASURES))
         self._check_whole(step, "dimensions=", dimensions, 1, 10, example)
         self._check_whole(step, "tries=", tries, 0, None, example)
-        self._check_whole(step, "seed=", seed, 0, R_SEED_MAX, example)
+        self._check_whole(step, "with_seed=", with_seed, 0, R_SEED_MAX, example)
         columns = self._pattern_columns(step, columns, example)
         x, keep = self._pattern_matrix(step, columns, least_rows=dimensions + 3)
         self._check_measure(measure, x, columns)
         delta = _distances(x, measure)
         if not (delta > 0).any():
             raise SimplydataError("Every row is the same in these columns, so there is nothing to draw.")
-        points, stress, repeated = _r_nmds(x, measure, dimensions, tries, seed)
+        points, stress, repeated = _r_nmds(x, measure, dimensions, tries, with_seed)
         first, most = _nmds_tries(tries)
         if stress < 0.05:
             reading = "excellent"
@@ -494,7 +494,7 @@ class PatternWords:
         print(f"NMDS map of {len(x)} rows from {len(columns)} columns ({MEASURES[measure]} distances, {dimensions} "
               f"dimensions): stress = {stress:.3f}, {reading} (Clarke's rule of thumb: below 0.05 excellent, below 0.1 "
               "good, below 0.2 usable, above 0.2 hard to trust).")
-        print(f"Method: non-metric multidimensional scaling, run in R: set.seed({seed}); vegan::metaMDS("
+        print(f"Method: non-metric multidimensional scaling, run in R: set.seed({with_seed}); vegan::metaMDS("
               f"vegdist(x, {R_DISTANCE[measure]}), k = {dimensions}, try = {first}, trymax = {most}, "
               f"autotransform = FALSE) (Kruskal's stress-1). Added {_list_words(names)}; the axes have no units and "
               "their rotation and signs are arbitrary.")
@@ -505,63 +505,63 @@ class PatternWords:
                                       [(n, points[:, i]) for i, n in enumerate(names)], keep)
 
     # ------------------------------------------------------------------ PERMANOVA
-    @friendly
-    def compare_profiles(self, columns=None, for_each=None, measure="bray-curtis", permutations=999, seed=1):
+    @friendly(renamed={"for_each": "for_each_group_in", "seed": "with_seed"})
+    def compare_profiles_of(self, columns=None, for_each_group_in=None, measure="bray-curtis", permutations=999, with_seed=1):
         """Do the groups really differ in their make-up across many columns (PERMANOVA)?
 
-        table.compare_profiles(for_each="grazed")   (with sdata.example("meadow"))
+        table.compare_profiles_of(for_each_group_in="grazed")   (with sdata.get_example("meadow"))
         Compares whole profiles, such as the counts of all plant species in a plot, between
-        the groups in for_each=. PERMANOVA, as R vegan::adonis2(distances ~ group): R squared
+        the groups in for_each_group_in=. PERMANOVA, as R vegan::adonis2(distances ~ group): R squared
         is the share of the differences between rows (measure= distances, Bray-Curtis by
         default) that the groups explain, and pseudo-F compares the differences between
         groups with those within groups. The p-value comes from shuffling the rows
-        permutations= times (seed= makes it the same every time). It also checks whether the
+        permutations= times (with_seed= makes it the same every time). It also checks whether the
         groups differ in spread (vegan::betadisper and permutest), because PERMANOVA can then
         mistake a difference in spread for a difference in make-up. Gives back a one-row table.
         """
-        step = "compare_profiles"
-        example = 'with sdata.example("meadow"): table.compare_profiles(for_each="grazed")'
+        step = "compare_profiles_of"
+        example = 'with sdata.get_example("meadow"): table.compare_profiles_of(for_each_group_in="grazed")'
         self._check_choice(step, "measure", measure, list(MEASURES))
-        self._need_name(step, "for_each=", for_each, example)
-        self._need_columns(for_each)
+        self._need_name(step, "for_each_group_in=", for_each_group_in, example)
+        self._need_columns(for_each_group_in)
         self._check_whole(step, "permutations=", permutations, 1, None, example)
-        self._check_whole(step, "seed=", seed, 0, R_SEED_MAX, example)
-        columns = self._pattern_columns(step, columns, example, leave_out=(for_each,))
-        if for_each in columns:
-            raise SimplydataError(f'"{for_each}" cannot be both a column to compare and the for_each= column.\n'
+        self._check_whole(step, "with_seed=", with_seed, 0, R_SEED_MAX, example)
+        columns = self._pattern_columns(step, columns, example, leave_out=(for_each_group_in,))
+        if for_each_group_in in columns:
+            raise SimplydataError(f'"{for_each_group_in}" cannot be both a column to compare and the for_each_group_in= column.\n'
                                   f"For example, {example}")
-        x, keep = self._pattern_matrix(step, columns, extra=(for_each,), least_rows=3)
+        x, keep = self._pattern_matrix(step, columns, extra=(for_each_group_in,), least_rows=3)
         self._check_measure(measure, x, columns)
-        every = self._frame[for_each].to_list()
+        every = self._frame[for_each_group_in].to_list()
         keys = [every[i] for i in np.flatnonzero(keep)]
         order = sorted(set(keys), key=lambda k: (str(type(k)), k))
         a = len(order)
         if a < 2:
-            raise SimplydataError(f'{step}() needs at least 2 groups in "{for_each}"; it found {a}.')
+            raise SimplydataError(f'{step}() needs at least 2 groups in "{for_each_group_in}"; it found {a}.')
         codes = np.array([order.index(k) for k in keys])
         sizes = np.bincount(codes, minlength=a)
         group_names = [str(k) for k in order]
         if (sizes < 2).any():
             small = [g for g, s in zip(group_names, sizes) if s < 2]
             raise SimplydataError(f"{step}() needs at least 2 rows in each group; "
-                                  f'{_quoted_list(small)} in "{for_each}" has fewer.')
+                                  f'{_quoted_list(small)} in "{for_each_group_in}" has fewer.')
         n = len(x)
         if n <= a:
             raise SimplydataError(f"{step}() needs more rows than groups.")
-        result = _r_permanova(x, measure, np.array(group_names, dtype=object)[codes], permutations, seed)
+        result = _r_permanova(x, measure, np.array(group_names, dtype=object)[codes], permutations, with_seed)
         f, r2, p = result["f"], result["r2"], result["p"]
         spread_f, spread_p, z = result["spread_f"], result["spread_p"], result["distances"]
         spreads = [float(z[codes == g].mean()) for g in range(a)]
         groups_text = ", ".join(group_names)
-        what = (f'the make-up of {len(columns)} columns ({", ".join(map(str, columns))}) in each "{for_each}" '
+        what = (f'the make-up of {len(columns)} columns ({", ".join(map(str, columns))}) in each "{for_each_group_in}" '
                 f"({groups_text})")
-        print(f'The groups of "{for_each}" ({groups_text}) explain {_pct(r2)} of the differences between the rows '
+        print(f'The groups of "{for_each_group_in}" ({groups_text}) explain {_pct(r2)} of the differences between the rows '
               f"(R squared = {_num(r2)}; {MEASURES[measure]} distances over {len(columns)} columns; pseudo-F = "
               f"{_num(f)}, from {permutations} permutations).")
         print(_p_sentence(p, "the groups truly had the same make-up", "a difference in make-up this big or bigger",
                           "that the groups have the same make-up"))
-        print(f"Test: PERMANOVA (permutational analysis of variance on distances), run in R: set.seed({seed}); "
-              f"vegan::adonis2(distances ~ {for_each}, permutations = {permutations}) with distances = "
+        print(f"Test: PERMANOVA (permutational analysis of variance on distances), run in R: set.seed({with_seed}); "
+              f"vegan::adonis2(distances ~ {for_each_group_in}, permutations = {permutations}) with distances = "
               f"vegan::{MEASURE_R[measure]}.")
         print("Spread check: the average distance to the group centre is "
               f"{_list_words(f'{_num(s)} in {g}' for g, s in zip(group_names, spreads))} (as vegan::betadisper and "

@@ -35,7 +35,7 @@ def check(got, expected, rel=1e-6):
 
 # ---------------------------------------------------------------- negative binomial
 def test_negative_binomial_matches_glm_nb(capsys):
-    got = rows(make_table(sdata.example("meadow")).explain("nettle", using=["grazed", "field"],
+    got = rows(make_table(sdata.get_example("meadow")).explain("nettle", using=["grazed", "field"],
                                                            outcome="counts that vary a lot"))
     out = capsys.readouterr().out
     # R: m <- MASS::glm.nb(nettle ~ grazed + field, data = meadow); summary(m); m$theta  4.93725072911898
@@ -53,7 +53,7 @@ def test_negative_binomial_matches_glm_nb(capsys):
 
 
 def test_overdispersion_note_names_both_choices(capsys):
-    school = sdata.example("school").assign(days_absent=lambda d: d.days_absent * 3)
+    school = sdata.get_example("school").assign(days_absent=lambda d: d.days_absent * 3)
     make_table(school).explain("days_absent", using="hours", outcome="counts")
     out = capsys.readouterr().out
     assert 'outcome="counts that vary a lot" (negative binomial)' in out and "(quasi-Poisson)" in out
@@ -61,7 +61,7 @@ def test_overdispersion_note_names_both_choices(capsys):
 
 # ---------------------------------------------------------------- Gamma
 def test_gamma_regression_matches_r(capsys):
-    got = rows(make_table(sdata.example("trial")).explain("days", using=["treatment", "age"],
+    got = rows(make_table(sdata.get_example("trial")).explain("days", using=["treatment", "age"],
                                                           outcome="positive numbers"))
     out = capsys.readouterr().out
     # R: m <- glm(days ~ treatment + age, data = trial, family = Gamma(link = "log")); summary(m)
@@ -134,5 +134,5 @@ def test_negative_binomial_without_extra_variation_says_so():
     # R: MASS::glm.nb(days_absent ~ hours + school, data = s) warns "iteration limit reached": theta grows without
     #    limit (the counts vary no more than Poisson allows); statsmodels finds no theta at all
     with pytest.raises(SimplydataError, match="theta grows without limit"):
-        make_table(sdata.example("school")).explain("days_absent", using=["hours", "school"],
+        make_table(sdata.get_example("school")).explain("days_absent", using=["hours", "school"],
                                                     outcome="counts that vary a lot")

@@ -2,6 +2,7 @@ Note: 19 empty cells in "sleep" were skipped.
 The average of "sleep" for each "passed", with the values that fit the data (95 % confidence interval): no: 7.72 (7.53 to 7.9); yes: 8.2 (7.98 to 8.43).
 Interval: t interval, as R t.test().
 Note: 19 rows with an empty cell in "sleep" or "passed" were skipped.
-The average "sleep" is 7.72 in no and 8.20 in yes: no is 0.485 lower (95 % CI of the difference -0.774 to -0.196; Hedges' g = -0.528 (95 % CI -0.842 to -0.213), a difference of 0.528 standard deviations).
+The average "sleep" is 7.72 in no and 8.20 in yes: no is 0.485 lower (95 % CI of the difference -0.774 to -0.196).
 If there were truly no difference, a difference this big or bigger would turn up in about 1 of 1000 studies like this one (p = 0.001).
 Test: Welch's t-test (t = -3.32, df = 145.821), the usual test for two averages; it does not assume both groups have the same spread.
+Note: Hedges' g and its 95 % CI come from the R package effectsize, which is not ready here; to add them: pip install "simplydata[r]", install R, then in R install.packages("effectsize").

@@ -1,3 +1,4 @@
-Comparing how often each "result" turns up in each "class" (2 x 3 table, 54 rows): Cramer's V = 0.279 (95 % CI 0 to 0.521; 0 means no link, 1 a complete link).
+Comparing how often each "result" turns up in each "class" (2 x 3 table, 54 rows): Cramer's V = 0.279 (0 means no link, 1 a complete link).
 If "result" and "class" were truly unrelated, differences this big or bigger would turn up in about 12 of 100 studies like this one (p = 0.122). This does not show that they are unrelated.
 Test: chi-square test of independence (chi-square = 4.21, df = 2), the usual test for counts.
+Note: the 95 % CI of Cramer's V comes from the R package effectsize, which is not ready here; to add it: pip install "simplydata[r]", install R, then in R install.packages("effectsize").

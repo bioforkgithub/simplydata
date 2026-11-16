@@ -1,11 +1,11 @@
 """Several charts together, small multiples, zoom boxes and animation.
 
 How the hard tricks work underneath (users never see this):
-* one_chart_per  sets settings["split"]; BaseChart._render_split draws one panel per group.
-* side_by_side,  a Page gives every chart its own matplotlib SubFigure, so each chart keeps
-  one_above_other, its own title, labels and legend, and figure-wide steps of one chart
+* draw_one_chart_for_each_group_in  sets settings["split"]; BaseChart._render_split draws one panel per group.
+* put_side_by_side,  a Page gives every chart its own matplotlib SubFigure, so each chart keeps
+  put_one_above_other, its own title, labels and legend, and figure-wide steps of one chart
   grid             (labels, legends) cannot land on another chart.
-* zoom_box       draws the chart's data steps again into an inset axes.
+* add_zoom_box       draws the chart's data steps again into an inset axes.
 * animate        draws the chart once per value of a column and saves the frames as a GIF.
 """
 
@@ -59,7 +59,7 @@ def _check_bool(step, name, value):
 def _zoom_box(ctx, chart, x_between, y_between, where):
     ax = ctx.ax
     if ax.name != "rectilinear":
-        raise SimplydataError(".zoom_box() works on flat charts with an x and a y axis, not on polar or 3D charts.")
+        raise SimplydataError(".add_zoom_box() works on flat charts with an x and a y axis, not on polar or 3D charts.")
     inset = ax.inset_axes(_ZOOM_PLACES[where])
     sub = Context(fig=ctx.fig, ax=inset, data=ctx.data, settings=ctx.settings, axes=[inset])
     again = [s for s in chart._steps
@@ -95,8 +95,8 @@ def _label_frame(fig, axes, over, value):
 class LayoutWords:
     # ------------------------------------------------------------ small multiples
     @friendly(renamed={"row": "down", "column": "across", "columns": "per_row"})
-    def one_chart_per(self, by=None, down=None, across=None, per_row=None, same_x=True, same_y=True):
-        """One small chart for each group. chart.one_chart_per("class", per_row=3) (with sdata.example("marks"))
+    def draw_one_chart_for_each_group_in(self, by=None, down=None, across=None, per_row=None, same_x=True, same_y=True):
+        """One small chart for each group. chart.draw_one_chart_for_each_group_in("class", per_row=3) (with sdata.get_example("marks"))
 
         per_row=3 puts 3 small charts in each row.
         down="class", across="subject" makes a table of charts: the classes go down (one
@@ -106,26 +106,26 @@ class LayoutWords:
         row, column, columns = down, across, per_row
         if by is None and row is None and column is None:
             raise SimplydataError(
-                '.one_chart_per() needs a column to split by, for example chart.one_chart_per("class")\n'
-                'or chart.one_chart_per(down="class", across="subject").'
+                '.draw_one_chart_for_each_group_in() needs a column to split by, for example chart.draw_one_chart_for_each_group_in("class")\n'
+                'or chart.draw_one_chart_for_each_group_in(down="class", across="subject").'
             )
         if by is not None and (row is not None or column is not None):
             raise SimplydataError(
-                '.one_chart_per() takes either one column (chart.one_chart_per("class"))\n'
-                'or down= and across= (chart.one_chart_per(down="class", across="subject")), not both.'
+                '.draw_one_chart_for_each_group_in() takes either one column (chart.draw_one_chart_for_each_group_in("class"))\n'
+                'or down= and across= (chart.draw_one_chart_for_each_group_in(down="class", across="subject")), not both.'
             )
         if columns is not None:
             if by is None:
                 raise SimplydataError(
-                    'per_row= only works with one column, for example chart.one_chart_per("class", per_row=3).')
+                    'per_row= only works with one column, for example chart.draw_one_chart_for_each_group_in("class", per_row=3).')
             if isinstance(columns, bool) or not isinstance(columns, int) or columns < 1:
                 raise SimplydataError(f"per_row= should be a whole number such as 2 or 3, not {columns!r}.")
-        _check_bool("one_chart_per", "same_x", same_x)
-        _check_bool("one_chart_per", "same_y", same_y)
+        _check_bool("draw_one_chart_for_each_group_in", "same_x", same_x)
+        _check_bool("draw_one_chart_for_each_group_in", "same_y", same_y)
         data = self._data
         if data is None or len(data.columns) == 0:
             raise SimplydataError(
-                '.one_chart_per() needs a table, for example sdata.chart(sdata.example("marks")).one_chart_per("class").')
+                '.draw_one_chart_for_each_group_in() needs a table, for example sdata.chart(sdata.get_example("marks")).draw_one_chart_for_each_group_in("class").')
         for name in (by, row, column):
             if name is not None and name not in data.columns:
                 raise column_error(name, data.columns)
@@ -144,18 +144,18 @@ class LayoutWords:
 
     # ------------------------------------------------------------ zoom box
     @friendly
-    def zoom_box(self, x_between=None, y_between=None, where="top right", **old):
+    def add_zoom_box(self, x_between=None, y_between=None, where="top right", **old):
         """A small box showing part of the chart close up.
 
-        chart.zoom_box(x_between=[2, 4], y_between=[40, 60]) (with sdata.example("marks"))
+        chart.add_zoom_box(x_between=[2, 4], y_between=[40, 60]) (with sdata.get_example("marks"))
         x_between= and y_between= are the part to show: [low, high] on each axis.
         where="top right" (default), "top left", "bottom right" or "bottom left".
         """
-        example = "chart.zoom_box(x_between=[2, 4], y_between=[40, 60])"
+        example = "chart.add_zoom_box(x_between=[2, 4], y_between=[40, 60])"
         spans = {"x": x_between, "y": y_between}
         for key in old:  # x_from=, x_to=, y_from=, y_to= are the old way of writing the spans
             if key not in ("x_from", "x_to", "y_from", "y_to"):
-                raise option_error("zoom_box", key, ["x_between", "y_between", "where"])
+                raise option_error("add_zoom_box", key, ["x_between", "y_between", "where"])
         for axis in "xy":
             low, high = old.get(f"{axis}_from"), old.get(f"{axis}_to")
             if low is None and high is None:
@@ -168,21 +168,21 @@ class LayoutWords:
             new = _OLD_PLACES[where.strip().lower()]
             renamed_note(f'where="{where}"', f'where="{new}"')
             where = new
-        self._check_choice("zoom_box", "where", where, list(_ZOOM_PLACES))
+        self._check_choice("add_zoom_box", "where", where, list(_ZOOM_PLACES))
         for axis, span in spans.items():
             name = f"{axis}_between"
             if span is None:
-                raise SimplydataError(f".zoom_box() needs {name}=[low, high].\nFor example {example}")
+                raise SimplydataError(f".add_zoom_box() needs {name}=[low, high].\nFor example {example}")
             if isinstance(span, (str, bytes)) or not is_listlike(span) or len(span) != 2:
-                raise SimplydataError(f".zoom_box() needs two numbers in {name}=[low, high], not {span!r}.\n"
+                raise SimplydataError(f".add_zoom_box() needs two numbers in {name}=[low, high], not {span!r}.\n"
                                       f"For example {example}")
             for value in span:
                 if isinstance(value, bool) or not isinstance(value, numbers.Real):
-                    raise SimplydataError(f".zoom_box() needs numbers in {name}=, not {value!r}.\n"
+                    raise SimplydataError(f".add_zoom_box() needs numbers in {name}=, not {value!r}.\n"
                                           f"For example {example}")
             low, high = sorted(float(v) for v in span)
             if low == high:
-                raise SimplydataError(f".zoom_box() needs two different numbers in {name}=.\nFor example {example}")
+                raise SimplydataError(f".add_zoom_box() needs two different numbers in {name}=.\nFor example {example}")
             spans[axis] = (low, high)
         return self._replace("zoom_box", "finish", _zoom_box, chart=self, x_between=spans["x"],
                              y_between=spans["y"], where=where)
@@ -192,12 +192,12 @@ class LayoutWords:
     def animate(self, over, seconds_per_frame=0.8, keep=False):
         """A moving chart with one picture for each value of a column.
 
-        chart.animate(over="year") (with sdata.example("growth")), then chart.save("growth.gif")
+        chart.animate(over="year") (with sdata.get_example("growth")), then chart.save("growth.gif")
         keep=True builds the chart up: each picture also keeps the values before it.
         """
         data = self._data
         if data is None or len(data.columns) == 0:
-            raise SimplydataError('.animate() needs a table, for example sdata.chart(sdata.example("growth")).animate(over="year").')
+            raise SimplydataError('.animate() needs a table, for example sdata.chart(sdata.get_example("growth")).animate(over="year").')
         if is_listlike(over) or over not in data.columns:
             raise column_error(over, data.columns)
         if isinstance(seconds_per_frame, bool) or not isinstance(seconds_per_frame, numbers.Real) \
@@ -272,7 +272,7 @@ class LayoutWords:
 
 # ---------------------------------------------------------------- pages of several charts
 class Page(BaseChart):
-    """Several charts on one page. Make one with sdata.side_by_side, sdata.one_above_other or sdata.grid."""
+    """Several charts on one page. Make one with sdata.put_side_by_side, sdata.put_one_above_other or sdata.put_in_rows_and_columns."""
 
     def __init__(self, charts, rows, columns, same_x=False, same_y=False, how="grid", letters=False):
         self._charts = list(charts)
@@ -284,7 +284,7 @@ class Page(BaseChart):
         styles = {c._settings["style"] for c in self._charts}
         self._settings = {
             "style": styles.pop() if len(styles) == 1 else "paper",
-            "style_set": False,  # True after page.style(...): then every chart uses it
+            "style_set": False,  # True after page.use_style(...): then every chart uses it
             "font_size": None,
             "grid": None,
             "title": None,
@@ -294,17 +294,17 @@ class Page(BaseChart):
         }
         self._cache = None
 
-    size = LookWords.size
+    set_size = LookWords.set_size
 
     @friendly
-    def style(self, name):
+    def use_style(self, name):
         """One look for every chart on the page: "paper", "school", "presentation" or "dark"."""
-        LookWords.style(self, name)
+        LookWords.use_style(self, name)
         return self._set(style_set=True)
 
     @friendly
-    def title_top(self, text):
-        """A title above the whole page. page.title_top("Marks in both classes")"""
+    def write_title_on_top(self, text):
+        """A title above the whole page. page.write_title_on_top("Marks in both classes")"""
         return self._set(title=str(text))
 
     def _page_size(self):
@@ -363,7 +363,7 @@ def _put_letter(cell, panels, letter):
     """Write the panel letter at the top left of one chart on a page.
 
     A chart with one panel gets it as the panel's left title. A chart split into panels
-    (one_chart_per) already has a title centred on each panel, so the letter goes on its own
+    (draw_one_chart_for_each_group_in) already has a title centred on each panel, so the letter goes on its own
     line above the panels, at the left of the chart, where it cannot cover a panel title.
     """
     size = matplotlib.rcParams["axes.titlesize"] * 1.2
@@ -371,7 +371,7 @@ def _put_letter(cell, panels, letter):
         panels[0].set_title(letter, loc="left", fontweight="bold", fontsize=size)
         return
     sup = getattr(cell, "_suptitle", None)
-    if sup is not None and sup.get_visible() and sup.get_text():  # title_top of the chart: same line
+    if sup is not None and sup.get_visible() and sup.get_text():  # write_title_on_top of the chart: same line
         x, y = sup.get_position()
         cell.text(0.01, y, letter, ha="left", va=sup.get_va(), fontweight="bold", fontsize=size,
                   transform=cell.transSubfigure)
@@ -398,7 +398,7 @@ def _page_charts(step, charts):
         if isinstance(c, Page):
             raise SimplydataError(
                 f"Chart {i} given to sdata.{step}() is already a page of charts.\n"
-                "Give the single charts instead, for example sdata.grid(a, b, c, d, per_row=2)."
+                "Give the single charts instead, for example sdata.put_in_rows_and_columns(a, b, c, d, per_row=2)."
             )
         if not isinstance(c, BaseChart):
             raise SimplydataError(
@@ -413,39 +413,41 @@ def _check_page_options(step, same_x, same_y, letters=False):
     _check_bool(step, "letters", letters)
 
 
-def side_by_side(*charts, same_x=False, same_y=False, letters=False):
-    """Charts next to each other. sdata.side_by_side(a, b).save("both.png")
+@friendly(renamed={"letters": "with_letters"})
+def put_side_by_side(*charts, same_x=False, same_y=False, with_letters=False):
+    """Charts next to each other. sdata.put_side_by_side(a, b).save("both.png")
 
     same_y=True gives them all the same y range, so heights can be compared.
-    letters=True writes A, B, C ... at the top left of each chart, as in papers.
+    with_letters=True writes A, B, C ... at the top left of each chart, as in papers.
     """
-    charts = _page_charts("side_by_side", charts)
-    _check_page_options("side_by_side", same_x, same_y, letters)
-    return Page(charts, 1, len(charts), same_x, same_y, how="side by side", letters=letters)
+    charts = _page_charts("put_side_by_side", charts)
+    _check_page_options("put_side_by_side", same_x, same_y, with_letters)
+    return Page(charts, 1, len(charts), same_x, same_y, how="side by side", letters=with_letters)
 
 
-def one_above_other(*charts, same_x=False, same_y=False, letters=False):
-    """Charts on top of each other. sdata.one_above_other(a, b).save("both.png")
+@friendly(renamed={"letters": "with_letters"})
+def put_one_above_other(*charts, same_x=False, same_y=False, with_letters=False):
+    """Charts on top of each other. sdata.put_one_above_other(a, b).save("both.png")
 
     same_x=True gives them all the same x range, which suits time series.
-    letters=True writes A, B, C ... at the top left of each chart, as in papers.
+    with_letters=True writes A, B, C ... at the top left of each chart, as in papers.
     """
-    charts = _page_charts("one_above_other", charts)
-    _check_page_options("one_above_other", same_x, same_y, letters)
-    return Page(charts, len(charts), 1, same_x, same_y, how="one above the other", letters=letters)
+    charts = _page_charts("put_one_above_other", charts)
+    _check_page_options("put_one_above_other", same_x, same_y, with_letters)
+    return Page(charts, len(charts), 1, same_x, same_y, how="one above the other", letters=with_letters)
 
 
-@friendly(renamed={"columns": "per_row"})
-def grid(*charts, per_row=2, same_x=False, same_y=False, letters=False):
-    """Charts in rows and columns. sdata.grid(a, b, c, d, per_row=2)
+@friendly(renamed={"columns": "per_row", "letters": "with_letters"})
+def put_in_rows_and_columns(*charts, per_row=2, same_x=False, same_y=False, with_letters=False):
+    """Charts in rows and columns. sdata.put_in_rows_and_columns(a, b, c, d, per_row=2)
 
     per_row=2 puts 2 charts in each row.
-    letters=True writes A, B, C ... at the top left of each chart, as figures in papers do.
+    with_letters=True writes A, B, C ... at the top left of each chart, as figures in papers do.
     """
     charts = _page_charts("grid", charts)
     if isinstance(per_row, bool) or not isinstance(per_row, int) or per_row < 1:
         raise SimplydataError(f"per_row= should be a whole number such as 2 or 3, not {per_row!r}.")
-    _check_page_options("grid", same_x, same_y, letters)
+    _check_page_options("grid", same_x, same_y, with_letters)
     columns = min(per_row, len(charts))
     return Page(charts, math.ceil(len(charts) / columns), columns, same_x, same_y,
-                how=f"grid of {columns} columns", letters=letters)
+                how=f"grid of {columns} columns", letters=with_letters)

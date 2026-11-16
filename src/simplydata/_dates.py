@@ -1,4 +1,4 @@
-"""sdata.dates(...): a table of regular dates, and the date steps that add_missing_dates uses.
+"""sdata.make_run_of_dates(...): a table of regular dates, and the date steps that add_missing_dates uses.
 
 Glue on pandas dates: pandas Timestamp and DateOffset make each date. Month steps are counted from
 the first date, so a run from the 31st stays on the 31st, or the month's last day when the month is
@@ -15,7 +15,7 @@ from ._errors import SimplydataError, choice_error, friendly
 UNITS = {"second": "seconds", "minute": "minutes", "hour": "hours", "day": "days", "week": "weeks",
          "month": "months", "quarter": "quarters", "year": "years"}
 PLURALS = {plural: single for single, plural in UNITS.items()}
-EXAMPLE = 'sdata.dates("2026-01-01", to="2026-12-31", every="day")'
+EXAMPLE = 'sdata.make_run_of_dates("2026-01-01", to="2026-12-31", every="day")'
 MAX_DATES = 10_000_000
 
 
@@ -94,12 +94,12 @@ def _shown(stamp) -> str:
 
 
 @friendly
-def dates(start=None, to=None, every="day", how_many=None, fast=False):
+def make_run_of_dates(start=None, to=None, every="day", how_many=None, fast=False):
     """A table with one column, "date": regular dates from start, every day (or week, month ...).
 
-    sdata.dates("2026-01-01", to="2026-12-31", every="day")
+    sdata.make_run_of_dates("2026-01-01", to="2026-12-31", every="day")
     Give to= (the last date, included when a step lands on it) or how_many= (how many dates):
-    sdata.dates("2026-01", how_many=24, every="month"). every= is "second", "minute", "hour", "day",
+    sdata.make_run_of_dates("2026-01", how_many=24, every="month"). every= is "second", "minute", "hour", "day",
     "week", "month", "quarter" or "year", or a count and a unit such as "15 minutes" or "2 weeks".
     Month steps are counted from the first date: from the 31st the dates stay on the 31st, or on the
     month's last day when the month is shorter (2026-01-31, 2026-02-28, 2026-03-31), as pandas
@@ -112,15 +112,15 @@ def dates(start=None, to=None, every="day", how_many=None, fast=False):
     from .table import Table
 
     if start is None:
-        raise SimplydataError(f"dates() needs a first date.\nFor example, {EXAMPLE}")
+        raise SimplydataError(f"make_run_of_dates() needs a first date.\nFor example, {EXAMPLE}")
     first = read_date(start, "start")
     count, unit = read_every(every)
     if (to is None) == (how_many is None):
-        raise SimplydataError(f"dates() needs either to= (the last date) or how_many= (how many dates), not "
+        raise SimplydataError(f"make_run_of_dates() needs either to= (the last date) or how_many= (how many dates), not "
                               f"{'both' if to is not None else 'neither'}.\nFor example, {EXAMPLE}")
     if how_many is not None:
         if isinstance(how_many, bool) or not isinstance(how_many, int) or not 1 <= how_many <= MAX_DATES:
-            raise SimplydataError("dates() needs how_many= as a whole number of at least 1, such as how_many=24.")
+            raise SimplydataError("make_run_of_dates() needs how_many= as a whole number of at least 1, such as how_many=24.")
         made = date_steps(first, count, unit, how_many=how_many)
     else:
         last = read_date(to, "to")

@@ -23,7 +23,7 @@ def engine(request):
 
 
 def make(engine, data=None):
-    data = sdata.example("clinic") if data is None else data
+    data = sdata.get_example("clinic") if data is None else data
     if engine == "polars":
         pl = pytest.importorskip("polars")
         return make_table(pl.from_pandas(data))
@@ -64,7 +64,7 @@ def test_weighted_kappa_and_level(engine):
 
 
 def test_fleiss_kappa(engine, needs_r):
-    data = sdata.example("clinic")
+    data = sdata.get_example("clinic")
     data["crp_rating"] = np.where(data.crp > 3, "severe", np.where(data.crp > 1.5, "moderate", "mild"))
     got = row(make(engine, data).agreement_between("nurse_rating", "doctor_rating", "crp_rating"))
     # R: irr::kappam.fleiss(cbind(nurse, doctor, crp coded 1-3)): value, statistic
@@ -75,12 +75,12 @@ def test_fleiss_kappa(engine, needs_r):
 @pytest.mark.parametrize("options, name, expected", [
     # R: irr::icc(cbind(device_a, device_b), model =, type =, unit =): value, lbound, ubound
     ({}, "twoway_agreement_single", (0.938834756965, 0.8937258725702, 0.9616016437585)),
-    ({"raters": "these only", "kind": "consistency"}, "twoway_consistency_single",
+    ({"raters": "these only", "checking_for": "consistency"}, "twoway_consistency_single",
      (0.9483786034937, 0.9323498556937, 0.9606868305061)),
     ({"raters": "different per row"}, "oneway_consistency_single", (0.9385254375713, 0.9195943831064,
                                                                      0.9531126639668)),
     # McGraw and Wong's words are accepted too
-    ({"raters": "fixed", "kind": "consistency"}, "twoway_consistency_single",
+    ({"raters": "fixed", "checking_for": "consistency"}, "twoway_consistency_single",
      (0.9483786034937, 0.9323498556937, 0.9606868305061)),
     ({"raters": "different"}, "oneway_consistency_single", (0.9385254375713, 0.9195943831064, 0.9531126639668)),
     ({"of": "average of raters"}, "twoway_agreement_average", (0.9684525755404, 0.9434971279195, 0.9805034834157)),
@@ -179,7 +179,7 @@ def test_fleiss_without_r_keeps_kappa(engine, monkeypatch, capsys):
         raise _r.RMissing("no R")
 
     monkeypatch.setattr(_r, "r_call", missing)
-    data = sdata.example("clinic")
+    data = sdata.get_example("clinic")
     data["third"] = data["doctor_rating"]
     got = row(make(engine, data).agreement_between("nurse_rating", "doctor_rating", "third"))
     assert math.isnan(got["p-value"]) and got["estimate"] > 0

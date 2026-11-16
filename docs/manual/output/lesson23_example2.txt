@@ -1,3 +1,3 @@
-Added 15 missing days to "date" (6 for Station A, 9 for Station B); the new rows have empty cells. Fill them next: table.fill_empty_cells("<column>", with_the="line between neighbours", sorted_by="date", for_each="station").
+Added 15 missing days to "date" (6 for Station A, 9 for Station B); the new rows have empty cells. Fill them next: table.fill_empty_cells_in("<column>", with_the="line between neighbours", sorted_by="date", for_each_group_in="station").
 Filled 15 cells in nitrate on the line between neighbours in order of date, for each station on its own.
 Filled 23 cells in level on the line between neighbours in order of date, for each station on its own.

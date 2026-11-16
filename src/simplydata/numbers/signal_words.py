@@ -1,4 +1,4 @@
-"""Numbers words for signals: nums.spectrum_of(time_step=0.01)."""
+"""Numbers words for signals: nums.find_spectrum(time_step=0.01)."""
 
 from __future__ import annotations
 
@@ -11,11 +11,11 @@ from .._time_axis import read_time_step
 
 class SignalNumberWords:
     @friendly(renamed={"times": "time_points"})
-    def spectrum_of(self, time_step=None, method="periodogram", window=None, window_shape="hann", show="power",
-                 between=None, time_points=None, sampling_rate=None, fs=None):
+    def find_spectrum(self, time_step=None, method="periodogram", window=None, window_shape="hann", show="power",
+                      between=None, time_points=None, sampling_rate=None, fs=None):
         """Which repeating cycles (frequencies) the numbers hold, and how strong each is.
 
-        nums.spectrum_of(time_step=0.01)   (readings 0.01 seconds apart: frequencies per second)
+        nums.find_spectrum(time_step=0.01)   (readings 0.01 seconds apart: frequencies per second)
         time_step= is the time between readings (sampling_rate= or fs=, readings per unit of time, are
         accepted instead); without it the frequencies are in cycles per reading. method="periodogram"
         (the default; SciPy periodogram, one-sided, scaled so that the powers times the frequency step
@@ -28,7 +28,7 @@ class SignalNumberWords:
         the table. Gives back a table: frequency, repeats every (1 / frequency), the power and the share
         of the variance (%) at each frequency. Prints the 3 strongest cycles.
         """
-        step_name = "spectrum_of"
+        step_name = "find_spectrum"
         name = _signals.read_method(method, step_name)
         values = np.asarray(self._values, dtype=float).ravel()
         if name == "lomb-scargle":
@@ -47,7 +47,7 @@ class SignalNumberWords:
                 raise SimplydataError('time_points= is for method="lomb-scargle"; other methods need evenly '
                                       "spaced readings and take time_step=.")
             if np.isnan(values).any():
-                raise SimplydataError(f"spectrum_of() needs a value at every step, but {int(np.isnan(values).sum())} "
+                raise SimplydataError(f"find_spectrum() needs a value at every step, but {int(np.isnan(values).sum())} "
                                       "numbers are empty. Fill them first, for example "
                                       'nums.fill_empty_numbers(with_the="line between neighbours").')
             step, words = read_time_step(time_step, sampling_rate, fs, getattr(self, "_time_step", None), step_name)
@@ -63,11 +63,11 @@ class SignalNumberWords:
 
 class TimeSeriesNumberWords:
     @friendly
-    def autocorrelation_of(self, rows_back=None, show="correlation", band="white noise"):
+    def find_autocorrelation(self, rows_back=None, show="correlation", band="white noise"):
         """How much the numbers are like themselves some places back (autocorrelation), with a noise band.
 
-        nums.autocorrelation_of(rows_back=24)
-        As table.autocorrelation_of: R acf (show="correlation"), pacf ("partial") or the
+        nums.find_autocorrelation(rows_back=24)
+        As table.find_autocorrelation_of: R acf (show="correlation"), pacf ("partial") or the
         covariance, the white-noise or Bartlett band, and the Ljung-Box test, from statsmodels with
         R's options. The numbers are taken in order, evenly spaced, with no empty values.
         """
@@ -75,10 +75,10 @@ class TimeSeriesNumberWords:
 
         from ..table import Table
 
-        step_name = "autocorrelation_of"
+        step_name = "find_autocorrelation"
         values = np.asarray(self._values, dtype=float).ravel()
         if np.isnan(values).any():
-            raise SimplydataError(f"autocorrelation_of() needs a value at every place, but {int(np.isnan(values).sum())} "
+            raise SimplydataError(f"find_autocorrelation() needs a value at every place, but {int(np.isnan(values).sum())} "
                                   'numbers are empty. Fill them first: nums.fill_empty_numbers(with_the="line between '
                                   'neighbours").')
         got = _time_series.autocorrelation(values, rows_back, show, band, step_name)

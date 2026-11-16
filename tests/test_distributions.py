@@ -52,7 +52,7 @@ def row(result):
 
 @pytest.fixture
 def days():
-    return sdata.example("trial")["days"].to_numpy(float)
+    return sdata.get_example("trial")["days"].to_numpy(float)
 
 
 # Samples made in R 4.6.2 by ref_fit2.R after set.seed(42), rounded to 4 decimals (R: round(r...(n, ...), 4)).
@@ -207,12 +207,12 @@ CATALOGUE = [
 def test_every_catalogue_distribution_matches_r(name, params, x, d, p, upper, q30, q95, capsys):
     dist = distribution(name, **params)
     tolerance = dict(rel=1e-8, abs=1e-12) if name == "von mises" else EXACT  # R side: integrate()/uniroot()
-    height = dist.chance(x) if dist.is_discrete else dist.density_at(x)
+    height = dist.find_chance_that_value(x) if dist.is_discrete else dist.find_density_at(x)
     assert height == pytest.approx(d, **tolerance)
-    assert dist.chance(at_most=x) == pytest.approx(p, **tolerance)
-    assert dist.chance(above=x) == pytest.approx(upper, **tolerance)
-    assert dist.percentile(30) == pytest.approx(q30, **tolerance)
-    assert dist.percentile(95) == pytest.approx(q95, **tolerance)
+    assert dist.find_chance_that_value(is_at_most=x) == pytest.approx(p, **tolerance)
+    assert dist.find_chance_that_value(is_above=x) == pytest.approx(upper, **tolerance)
+    assert dist.find_percentile(30) == pytest.approx(q30, **tolerance)
+    assert dist.find_percentile(95) == pytest.approx(q95, **tolerance)
     out = capsys.readouterr().out
     if name != "von mises":
         assert "R: " in out
@@ -222,7 +222,7 @@ def test_printed_sentence_names_the_r_call(capsys):
     dist = sdata_distribution = distribution("normal", average=50, standard_deviation=10)
     assert repr(sdata_distribution) == ("Normal distribution with average 50 and standard deviation 10 "
                                         "(R: dnorm(x, mean = 50, sd = 10)).")
-    share = dist.chance(above=80)
+    share = dist.find_chance_that_value(is_above=80)
     assert share == pytest.approx(0.0013498980316300946, **EXACT)  # pnorm(80, 50, 10, lower.tail = FALSE)
     assert capsys.readouterr().out.strip() == (
         "The chance of a value above 80 is 0.135 % (normal, average 50, standard deviation 10; "
@@ -231,11 +231,11 @@ def test_printed_sentence_names_the_r_call(capsys):
 
 def test_tiny_upper_tails_stay_accurate(capsys):
     dist = distribution("normal", average=50, standard_deviation=10)
-    assert dist.chance(above=130) == pytest.approx(6.2209605742717849e-16, rel=1e-10)  # 1 - pnorm would give 0
-    assert distribution("normal").cut_off(above=1e-12) == pytest.approx(7.0344838253011321, rel=1e-10)
-    assert dist.cut_off(above=0.025) == pytest.approx(69.599639845400532, **EXACT)
-    assert dist.chance(between=[40, 60]) == pytest.approx(0.68268949213708585, **EXACT)
-    assert distribution("t", df=7).cut_off(above=0.025) == pytest.approx(2.3646242515927836, **EXACT)
+    assert dist.find_chance_that_value(is_above=130) == pytest.approx(6.2209605742717849e-16, rel=1e-10)  # 1 - pnorm would give 0
+    assert distribution("normal").find_cut_off(with_chance_above=1e-12) == pytest.approx(7.0344838253011321, rel=1e-10)
+    assert dist.find_cut_off(with_chance_above=0.025) == pytest.approx(69.599639845400532, **EXACT)
+    assert dist.find_chance_that_value(is_between=[40, 60]) == pytest.approx(0.68268949213708585, **EXACT)
+    assert distribution("t", df=7).find_cut_off(with_chance_above=0.025) == pytest.approx(2.3646242515927836, **EXACT)
     out = capsys.readouterr().out
     assert "R: pnorm(60, mean = 50, sd = 10) - pnorm(40, mean = 50, sd = 10)" in out
     assert "R: qt(0.025, df = 7, lower.tail = FALSE)" in out
@@ -243,78 +243,78 @@ def test_tiny_upper_tails_stay_accurate(capsys):
 
 def test_counts_spell_out_strict_and_inclusive_limits(capsys):
     dist = distribution("binomial", tries=10, chance=0.3)
-    assert dist.chance(below=3) == pytest.approx(0.38278278639999974, **EXACT)  # pbinom(2, 10, .3)
+    assert dist.find_chance_that_value(is_below=3) == pytest.approx(0.38278278639999974, **EXACT)  # pbinom(2, 10, .3)
     assert "fewer than 3 (2 or fewer)" in capsys.readouterr().out
-    assert dist.chance(at_most=3) == pytest.approx(0.64961071840000018, **EXACT)  # pbinom(3, 10, .3)
+    assert dist.find_chance_that_value(is_at_most=3) == pytest.approx(0.64961071840000018, **EXACT)  # pbinom(3, 10, .3)
     assert "3 or fewer" in capsys.readouterr().out
-    assert dist.chance(above=3) == pytest.approx(0.35038928159999977, **EXACT)
+    assert dist.find_chance_that_value(is_above=3) == pytest.approx(0.35038928159999977, **EXACT)
     assert "more than 3 (4 or more)" in capsys.readouterr().out
-    assert dist.chance(at_least=3) == pytest.approx(0.61721721360000026, **EXACT)  # pbinom(2, lower.tail = F)
+    assert dist.find_chance_that_value(is_at_least=3) == pytest.approx(0.61721721360000026, **EXACT)  # pbinom(2, lower.tail = F)
     assert "R: pbinom(2, size = 10, prob = 0.3, lower.tail = FALSE)" in capsys.readouterr().out
-    assert dist.chance(between=[2, 5]) == pytest.approx(0.8033426667000001, **EXACT)  # pbinom(5) - pbinom(1)
+    assert dist.find_chance_that_value(is_between=[2, 5]) == pytest.approx(0.8033426667000001, **EXACT)  # pbinom(5) - pbinom(1)
     assert "2 to 5 (both included)" in capsys.readouterr().out
-    assert dist.chance(above=1, below=6) == pytest.approx(0.8033426667000001, **EXACT)
-    assert dist.chance(3) == pytest.approx(0.26682793199999993, **EXACT)
-    assert dist.chance(below=2.5) == pytest.approx(dist.chance(at_most=2))
-    assert dist.chance(above=7, below=7) == 0
+    assert dist.find_chance_that_value(is_above=1, is_below=6) == pytest.approx(0.8033426667000001, **EXACT)
+    assert dist.find_chance_that_value(3) == pytest.approx(0.26682793199999993, **EXACT)
+    assert dist.find_chance_that_value(is_below=2.5) == pytest.approx(dist.find_chance_that_value(is_at_most=2))
+    assert dist.find_chance_that_value(is_above=7, is_below=7) == 0
 
 
 def test_counts_cut_off_and_middle_range_match_r(capsys):
     dist = distribution("binomial", size=10, prob=0.3)  # R's names work too
-    assert dist.cut_off(above=0.05) == 5  # qbinom(.05, 10, .3, lower.tail = FALSE)
+    assert dist.find_cut_off(with_chance_above=0.05) == 5  # qbinom(.05, 10, .3, lower.tail = FALSE)
     assert "4.73 %" in capsys.readouterr().out  # pbinom(5, 10, .3, lower.tail = FALSE) = 0.0473
-    middle = dist.middle_range(95)
+    middle = dist.find_middle_range(95)
     assert list(middle._values) == [0, 6]  # qbinom(c(.025, .975), 10, .3)
-    normal = distribution("normal", mean=50, sd=10).middle_range(95)
+    normal = distribution("normal", mean=50, sd=10).find_middle_range(95)
     assert list(normal._values) == pytest.approx([30.400360154599468, 69.599639845400532], **EXACT)
 
 
 def test_lists_give_numbers(capsys):
     dist = distribution("normal", average=50, standard_deviation=10)
-    got = dist.chance(below=[50, 60, 70])
+    got = dist.find_chance_that_value(is_below=[50, 60, 70])
     assert isinstance(got, Numbers)
     assert list(got._values) == pytest.approx(stats.norm(50, 10).cdf([50, 60, 70]), **EXACT)
     assert "The chances of a value below 50, 60 and 70 are 50 %, 84.1 % and 97.7 %" in capsys.readouterr().out
-    assert isinstance(dist.percentile([5, 50, 95]), Numbers)
-    assert isinstance(dist.density_at([40, 50]), Numbers)
-    assert isinstance(dist.cut_off(above=[0.05, 0.025]), Numbers)
-    assert isinstance(distribution("poisson", average=2).chance([0, 1, 2]), Numbers)
-    assert isinstance(dist.chance(below=sdata.numbers([1, 2])), Numbers)
-    assert isinstance(dist.chance(above=60), float)
+    assert isinstance(dist.find_percentile([5, 50, 95]), Numbers)
+    assert isinstance(dist.find_density_at([40, 50]), Numbers)
+    assert isinstance(dist.find_cut_off(with_chance_above=[0.05, 0.025]), Numbers)
+    assert isinstance(distribution("poisson", average=2).find_chance_that_value([0, 1, 2]), Numbers)
+    assert isinstance(dist.find_chance_that_value(is_below=sdata.numbers([1, 2])), Numbers)
+    assert isinstance(dist.find_chance_that_value(is_above=60), float)
 
 
 def test_moments_and_summary_match_formulas(capsys):
     dist = distribution("gamma", shape=2, scale=10)  # scale= in place of rate=
-    assert dist.parameters() == {"shape": 2.0, "rate": 0.1}
-    assert dist.average() == pytest.approx(20)
-    assert dist.variance() == pytest.approx(200)
-    assert dist.standard_deviation() == pytest.approx(math.sqrt(200))
-    assert dist.median() == pytest.approx(stats.gamma(2, scale=10).median())
-    got = row(dist.summary())
+    assert dist.show_parameters() == {"shape": 2.0, "rate": 0.1}
+    assert dist.find_average() == pytest.approx(20)
+    assert dist.find_variance() == pytest.approx(200)
+    assert dist.find_standard_deviation() == pytest.approx(math.sqrt(200))
+    assert dist.find_median() == pytest.approx(stats.gamma(2, scale=10).median())
+    got = row(dist.show_summary())
     assert got["skewness"] == pytest.approx(2 / math.sqrt(2))
     assert got["excess kurtosis"] == pytest.approx(6 / 2)
     assert got["lowest possible"] == 0 and math.isinf(got["highest possible"])
-    assert distribution("cauchy").average() != distribution("cauchy").average()  # nan: no average
+    assert distribution("cauchy").find_average() != distribution("cauchy").find_average()  # nan: no average
     assert "no finite average" in capsys.readouterr().out
 
 
 def test_scipy_distributions_by_their_own_names(capsys):
     dist = distribution("burr12", c=2, d=3)
     assert repr(dist) == "SciPy's burr12 with c=2, d=3."
-    assert dist.chance(below=1) == pytest.approx(stats.burr12(2, 3).cdf(1), **EXACT)
+    assert dist.find_chance_that_value(is_below=1) == pytest.approx(stats.burr12(2, 3).cdf(1), **EXACT)
     with pytest.raises(SimplydataError, match="needs d="):
         distribution("burr12", c=2)
 
 
 def test_random_numbers_repeat_with_the_seed(capsys):
     dist = distribution("normal", average=50, standard_deviation=10)
-    first = dist.random_numbers(how_many=2000, seed=3)
-    again = dist.random_numbers(how_many=2000, seed=3)
+    first = dist.make_random_numbers(how_many=2000, with_seed=3)
+    again = dist.make_random_numbers(how_many=2000, with_seed=3)
     assert np.array_equal(first._values, again._values)
     assert first._values.mean() == pytest.approx(50, abs=1)  # 4 standard errors
     assert first._values.std() == pytest.approx(10, abs=0.7)
     assert "seed=3; R: rnorm(2000, mean = 50, sd = 10), whose numbers differ" in capsys.readouterr().out
-    grid = distribution("poisson", average=4).random_numbers(rows=3, columns=2)
+    grid = distribution("poisson", average=4).make_random_numbers(rows=3, columns=2)
     assert grid._values.shape == (3, 2)
     assert np.all(grid._values == np.round(grid._values))
 
@@ -341,21 +341,21 @@ def test_friendly_errors():
     with pytest.raises(SimplydataError, match="lowest value"):
         distribution("uniform", between=[5, 1])
     normal, counts = distribution("normal"), distribution("poisson", average=2)
-    with pytest.raises(SimplydataError, match="density_at"):
-        normal.chance(3)
-    with pytest.raises(SimplydataError, match="chance\\(3\\)"):
-        counts.density_at(3)
+    with pytest.raises(SimplydataError, match="find_density_at"):
+        normal.find_chance_that_value(3)
+    with pytest.raises(SimplydataError, match="find_chance_that_value\\(3\\)"):
+        counts.find_density_at(3)
     with pytest.raises(SimplydataError, match="0 to 100"):
-        normal.percentile(120)
+        normal.find_percentile(120)
     with pytest.raises(SimplydataError, match="percentile\\(97.5\\)"):
-        normal.cut_off(above=2.5)
+        normal.find_cut_off(with_chance_above=2.5)
     with pytest.raises(SimplydataError, match="a range"):
-        normal.chance()
+        normal.find_chance_that_value()
     with pytest.raises(SimplydataError, match="no option called"):
-        normal.chance(over=3)
-    with pytest.raises(SimplydataError, match="density_at"):
+        normal.find_chance_that_value(over=3)
+    with pytest.raises(SimplydataError, match="find_density_at"):
         normal.pdff  # noqa: B018
-    with pytest.raises(SimplydataError, match="dist.percentile"):
+    with pytest.raises(SimplydataError, match="dist.find_percentile"):
         normal.ppf  # noqa: B018
     with pytest.raises(SimplydataError, match="cannot be changed"):
         normal.average_value = 3
@@ -368,8 +368,8 @@ def test_interface_for_charts():
     assert list(dist._pdf([1, 2])) == pytest.approx(stats.gamma(2, scale=2).pdf([1, 2]))
     counts = distribution("poisson", average=2)
     assert counts.is_discrete and list(counts._pmf([0, 1])) == pytest.approx(stats.poisson(2).pmf([0, 1]))
-    for other, word in (("pdf", "dist.density_at(60)"), ("cdf", "dist.chance(below=60)"), ("ppf", "dist.percentile(95)"),
-                        ("rvs", "dist.random_numbers(how_many=100, seed=1)")):
+    for other, word in (("pdf", "dist.find_density_at(60)"), ("cdf", "dist.find_chance_that_value(is_below=60)"), ("ppf", "dist.find_percentile(95)"),
+                        ("rvs", "dist.make_random_numbers(how_many=100, with_seed=1)")):
         with pytest.raises(AttributeError, match=re.escape(f"In simplydata this is {word}")):
             getattr(dist, other)  # other tools' names point to the word, and never run
 
@@ -379,9 +379,9 @@ def test_chart_draws_with_the_curve_word():
 
     for dist in (distribution("normal", average=50, standard_deviation=10), distribution("poisson", average=3)):
         for show in ("density", "cumulative"):
-            assert isinstance(dist.chart(show=show), Chart)
+            assert isinstance(dist.draw_chart(show=show), Chart)
     with pytest.raises(SimplydataError, match="cumulative"):
-        distribution("normal").chart(show="cdf")
+        distribution("normal").draw_chart(show="cdf")
 
 
 # ====================================================================== fitting against R
@@ -394,10 +394,10 @@ GAMMA = dict(shape=2.12734096971, rate=0.00446623248479, se=(0.2560323444, 0.000
 
 
 def test_fit_gamma_matches_the_exact_r_maximum(days, engine, capsys):
-    t = make(sdata.example("trial"), engine)
-    fitted = t.fit_distribution("days", "gamma")
+    t = make(sdata.get_example("trial"), engine)
+    fitted = t.fit_distribution_to("days", "gamma")
     assert isinstance(fitted, Distribution)
-    got = row(fitted.table())
+    got = row(fitted.turn_into_table())
     assert got["shape"] == pytest.approx(GAMMA["shape"], rel=1e-10)
     assert got["rate"] == pytest.approx(GAMMA["rate"], rel=1e-10)
     assert got["standard error of shape"] == pytest.approx(GAMMA["se"][0], rel=1e-6)
@@ -410,30 +410,30 @@ def test_fit_gamma_matches_the_exact_r_maximum(days, engine, capsys):
     assert ('Fitted a gamma distribution to "days" (120 values): shape = 2.13 (standard error 0.256), '
             "rate = 0.00447 (0.000606). Log-likelihood -843.8, AIC 1691.6.") in out
     assert 'as R MASS::fitdistr(x, "gamma")' in out and 'compare_shape_to("days", "gamma")' in out
-    assert fitted.chance(above=365) == pytest.approx(stats.gamma(GAMMA["shape"], scale=1 / GAMMA["rate"]).sf(365))
+    assert fitted.find_chance_that_value(is_above=365) == pytest.approx(stats.gamma(GAMMA["shape"], scale=1 / GAMMA["rate"]).sf(365))
     if engine == "polars":
-        assert fitted.table()._engine == "Polars"
+        assert fitted.turn_into_table()._engine == "Polars"
 
 
 def test_fit_closed_forms_match_fitdistr(days, capsys):
-    t = make(sdata.example("trial"), "pandas")
-    normal = row(t.fit_distribution("days").table())  # fitdistr(d, "normal")
+    t = make(sdata.get_example("trial"), "pandas")
+    normal = row(t.fit_distribution_to("days").turn_into_table())  # fitdistr(d, "normal")
     assert normal["average"] == pytest.approx(476.316666667, rel=1e-11)
     assert normal["standard deviation"] == pytest.approx(281.234243509, rel=1e-11)
     assert normal["standard error of average"] == pytest.approx(25.6730565188, rel=1e-10)
     assert normal["standard error of standard deviation"] == pytest.approx(18.1535923582, rel=1e-10)
     assert normal["log-likelihood"] == pytest.approx(-846.975175449, rel=1e-11)
     assert "a little smaller than R sd()" in capsys.readouterr().out
-    lognormal = row(t.fit_distribution("days", "lognormal").table())
+    lognormal = row(t.fit_distribution_to("days", "lognormal").turn_into_table())
     assert lognormal["log average"] == pytest.approx(5.91300526464, rel=1e-11)
     assert lognormal["log standard deviation"] == pytest.approx(0.831056685233, rel=1e-11)
     assert lognormal["standard error of log average"] == pytest.approx(0.0758647488446, rel=1e-10)
     assert lognormal["log-likelihood"] == pytest.approx(-857.62638296, rel=1e-11)
-    exponential = row(t.fit_distribution("days", "exponential").table())
+    exponential = row(t.fit_distribution_to("days", "exponential").turn_into_table())
     assert exponential["rate"] == pytest.approx(0.00209944364743, rel=1e-11)
     assert exponential["standard error of rate"] == pytest.approx(0.000191652107318, rel=1e-10)
     assert exponential["log-likelihood"] == pytest.approx(-859.929947898, rel=1e-11)
-    weibull = row(t.fit_distribution("days", "weibull").table())
+    weibull = row(t.fit_distribution_to("days", "weibull").turn_into_table())
     assert weibull["shape"] == pytest.approx(1.68720733202, rel=1e-10)
     assert weibull["scale"] == pytest.approx(531.396176566, rel=1e-10)
     assert weibull["standard error of shape"] == pytest.approx(0.1254202971, rel=1e-6)
@@ -442,8 +442,8 @@ def test_fit_closed_forms_match_fitdistr(days, capsys):
 
 
 def test_fit_with_a_fixed_parameter(capsys):
-    t = make(sdata.example("trial"), "pandas")
-    got = row(t.fit_distribution("days", "gamma", fixed={"shape": 2}).table())
+    t = make(sdata.get_example("trial"), "pandas")
+    got = row(t.fit_distribution_to("days", "gamma", fixed={"shape": 2}).turn_into_table())
     # exact: rate = 2 / mean(d); fitdistrplus::fitdist(fix.arg = list(shape = 2)) from rate 0.004 stops at
     # 0.0042649 (log-likelihood -843.9733), short of the maximum -843.943940704.
     assert got["rate"] == pytest.approx(2 / 476.316666667, rel=1e-8)
@@ -456,14 +456,14 @@ def test_fit_with_a_fixed_parameter(capsys):
 
 def test_fit_counts_match_fitdistr(capsys):
     counts = nums(COUNTS)
-    poisson = row(counts.fit_distribution("poisson").table())  # fitdistr(counts, "poisson")
+    poisson = row(counts.fit_distribution("poisson").turn_into_table())  # fitdistr(counts, "poisson")
     assert poisson["average"] == pytest.approx(4.375) and poisson["log-likelihood"] == pytest.approx(-247.688738575)
     assert poisson["standard error of average"] == pytest.approx(0.233853586673, rel=1e-10)
-    geometric = row(counts.fit_distribution("geometric").table())
+    geometric = row(counts.fit_distribution("geometric").turn_into_table())
     assert geometric["chance"] == pytest.approx(0.186046511628, rel=1e-10)
     assert geometric["standard error of chance"] == pytest.approx(0.0187661996462, rel=1e-10)
     assert geometric["log-likelihood"] == pytest.approx(-206.588904893, rel=1e-11)
-    nb = row(counts.fit_distribution("negative binomial").table())  # score equation in size, mu = mean
+    nb = row(counts.fit_distribution("negative binomial").turn_into_table())  # score equation in size, mu = mean
     assert nb["size"] == pytest.approx(1.59241553484, rel=1e-10)  # fitdistr: 1.592415433
     assert nb["average"] == pytest.approx(4.375, rel=1e-12)
     assert nb["standard error of size"] == pytest.approx(0.3780812701, rel=1e-6)
@@ -498,22 +498,22 @@ NUMERIC_FITS = [
 @pytest.mark.parametrize("name, sample, values, errors, loglik", NUMERIC_FITS, ids=[f[0] for f in NUMERIC_FITS])
 def test_more_fits_match_the_exact_r_maximum(name, sample, values, errors, loglik, capsys):
     fitted = fit(globals()[sample], name)
-    got = [v for v in fitted.parameters().values() if v is not None]
+    got = [v for v in fitted.show_parameters().values() if v is not None]
     info = fitted._fit_info
     # numerical searches stop on the log-likelihood, which is flat near the top: values to 1e-5,
     # (t's degrees of freedom, the flattest, to 1e-6 relative here), log-likelihood to 1e-10
     assert got == pytest.approx(values, rel=1e-5)
-    assert [info["errors"][k] for k in fitted.parameters() if fitted.parameters()[k] is not None] == pytest.approx(
+    assert [info["errors"][k] for k in fitted.show_parameters() if fitted.show_parameters()[k] is not None] == pytest.approx(
         errors, rel=1e-4, nan_ok=True)
     assert info["log-likelihood"] == pytest.approx(loglik, rel=1e-10)
 
 
 def test_fit_for_each_group_gives_a_table(engine, capsys):
-    t = make(sdata.example("trial"), engine)
-    result = t.fit_distribution("days", "normal", for_each="treatment")
+    t = make(sdata.get_example("trial"), engine)
+    result = t.fit_distribution_to("days", "normal", for_each_group_in="treatment")
     frame = result._frame.to_pandas()
     assert list(frame["treatment"]) == ["new medicine", "usual care"]
-    trial = sdata.example("trial")
+    trial = sdata.get_example("trial")
     for _, r in frame.iterrows():
         values = trial.loc[trial["treatment"] == r["treatment"], "days"].to_numpy(float)
         assert r["average"] == pytest.approx(values.mean())
@@ -525,33 +525,33 @@ def test_fit_for_each_group_gives_a_table(engine, capsys):
 
 def test_fit_skips_empty_cells_with_a_note(capsys):
     data = pd.DataFrame({"x": [1.2, 2.5, None, 3.1, 0.7, 1.9]})
-    fitted = make(data, "pandas").fit_distribution("x", "exponential")
-    assert fitted.parameters()["rate"] == pytest.approx(1 / np.mean([1.2, 2.5, 3.1, 0.7, 1.9]))
+    fitted = make(data, "pandas").fit_distribution_to("x", "exponential")
+    assert fitted.show_parameters()["rate"] == pytest.approx(1 / np.mean([1.2, 2.5, 3.1, 0.7, 1.9]))
     assert 'Note: 1 row with an empty cell in "x" was skipped.' in capsys.readouterr().out
-    assert nums([1.0, None, 2.0, 4.0]).fit_distribution("gamma").table() is not None
+    assert nums([1.0, None, 2.0, 4.0]).fit_distribution("gamma").turn_into_table() is not None
     assert "1 empty value was skipped" in capsys.readouterr().out
 
 
 def test_fit_errors_say_how_to_fix():
     t = make(pd.DataFrame({"x": [-1.0, 2, 3, 4], "n": [1, 2, 3, 30]}), "pandas")
     with pytest.raises(SimplydataError, match="only values above 0"):
-        t.fit_distribution("x", "gamma")
+        t.fit_distribution_to("x", "gamma")
     with pytest.raises(SimplydataError, match='fixed=\\{"tries": 10\\}'):
-        t.fit_distribution("n", "binomial")
+        t.fit_distribution_to("n", "binomial")
     with pytest.raises(SimplydataError, match="give them yourself"):
-        t.fit_distribution("x", "triangular")
+        t.fit_distribution_to("x", "triangular")
     with pytest.raises(SimplydataError, match='fit "poisson" instead'):
         fit([2, 3, 2, 3, 2, 3], "negative binomial")
     with pytest.raises(SimplydataError, match="not a parameter"):
-        t.fit_distribution("n", "gamma", fixed={"shap": 2})
-    binomial = row(t.fit_distribution("n", "binomial", fixed={"tries": 40}).table())
+        t.fit_distribution_to("n", "gamma", fixed={"shap": 2})
+    binomial = row(t.fit_distribution_to("n", "binomial", fixed={"tries": 40}).turn_into_table())
     assert binomial["chance"] == pytest.approx(36 / 4 / 40)
 
 
 # ====================================================================== comparing and testing shapes
 def test_compare_distributions_matches_gofstat(engine, capsys):
     # fitdistrplus::gofstat(list(norm, lnorm, gamma, weibull)), gamma and weibull started at the exact maximum
-    result = make(sdata.example("trial"), engine).compare_distributions("days")
+    result = make(sdata.get_example("trial"), engine).compare_distributions_for("days")
     frame = result._frame.to_pandas().set_index("distribution")
     assert list(frame.index) == ["weibull", "gamma", "normal", "lognormal"]
     r = {"normal": (1.446807653051138, 0.1029207153292602, 0.2369524419003307, 1697.95035089818, 1703.52533438374),
@@ -576,12 +576,12 @@ def test_compare_distributions_matches_gofstat(engine, capsys):
 def test_compare_distributions_leaves_out_what_cannot_fit(capsys):
     data = pd.DataFrame({"x": [-1.5, 0.2, 1.1, 2.3, 0.8, -0.4, 1.7], "g": list("aaabbbb")})
     t = make(data, "pandas")
-    frame = t.compare_distributions("x", distributions=("normal", "gamma", "logistic"))._frame.to_pandas()
+    frame = t.compare_distributions_for("x", distributions=("normal", "gamma", "logistic"))._frame.to_pandas()
     assert set(frame["distribution"]) == {"normal", "logistic"}
     assert "gamma was left out" in capsys.readouterr().out
     with pytest.raises(SimplydataError, match="cannot be compared"):
-        t.compare_distributions("x", distributions=("normal", "poisson"))
-    grouped = t.compare_distributions("x", distributions=("normal", "logistic"), for_each="g")._frame.to_pandas()
+        t.compare_distributions_for("x", distributions=("normal", "poisson"))
+    grouped = t.compare_distributions_for("x", distributions=("normal", "logistic"), for_each_group_in="g")._frame.to_pandas()
     assert list(grouped["g"]) == ["a", "a", "b", "b"]
 
 
@@ -591,7 +591,7 @@ def test_shape_test_statistic_matches_goftest_and_p_value_the_r_bootstrap(days):
     result = shape_test(days, "gamma", column="days")  # 9999 samples, seed 1 (about 1 s)
     assert result["statistic"] == pytest.approx(1.05483345026, rel=1e-8)
     assert result["p-value"] == pytest.approx(0.0103, abs=0.02)
-    assert result["distribution"].parameters()["shape"] == pytest.approx(GAMMA["shape"], rel=1e-10)
+    assert result["distribution"].show_parameters()["shape"] == pytest.approx(GAMMA["shape"], rel=1e-10)
     assert 'The values of "days" do not look like a gamma distribution' in result["sentence"]
     assert "seed=1" in result["method"] and 'ad.test(x, "pgamma"' in result["method"]
 
@@ -651,7 +651,7 @@ def test_samples_option_of_compare_shape_to(capsys, monkeypatch):
     # a quick run gets no note; the time estimate is fixed here so a busy computer cannot change that
     # (test_a_long_run_gets_a_note_before_it_starts checks the note itself)
     monkeypatch.setattr(d._ShapeRun, "pilot", lambda self: 1.0)
-    t = make(sdata.example("trial"), "pandas")
+    t = make(sdata.get_example("trial"), "pandas")
     result = row(t.compare_shape_to("days", "weibull", samples=999))
     out = capsys.readouterr().out
     assert result["Monte Carlo samples"] == 999 and result["seed"] == 1
@@ -659,7 +659,7 @@ def test_samples_option_of_compare_shape_to(capsys, monkeypatch):
     assert result["statistic"] == pytest.approx(0.656369498, rel=1e-6)
     again = row(t.compare_shape_to("days", "weibull", samples=999))
     assert again["p-value"] == result["p-value"]
-    other_seed = row(t.compare_shape_to("days", "weibull", samples=999, seed=2))
+    other_seed = row(t.compare_shape_to("days", "weibull", samples=999, with_seed=2))
     assert other_seed["seed"] == 2
     for bad in ("many", 9.5, True, None):
         with pytest.raises(SimplydataError, match="samples= as a whole number"):
@@ -673,17 +673,17 @@ def test_samples_option_of_compare_shape_to(capsys, monkeypatch):
 def test_a_long_run_gets_a_note_before_it_starts(capsys, monkeypatch):
     from simplydata import distributions as d
 
-    t = make(sdata.example("trial"), "pandas")
+    t = make(sdata.get_example("trial"), "pandas")
     monkeypatch.setattr(d._ShapeRun, "pilot", lambda self: 75.0)  # as if a minute and a bit were left
     t.compare_shape_to("days", "gamma", samples=99)
     out = capsys.readouterr().out
     assert out.startswith("This takes about a minute: 99 simulated samples are refitted. "
                           "Use samples= for a quicker, rougher answer.\n")
-    t.compare_shape_to("days", "gamma", samples=99, for_each="treatment")
+    t.compare_shape_to("days", "gamma", samples=99, for_each_group_in="treatment")
     out = capsys.readouterr().out  # one note for all groups, before the first group
     assert out.count("This takes") == 1
     assert out.startswith("This takes about 3 minutes: 99 simulated samples are refitted for each group.")
-    shape_test(sdata.example("trial")["days"].to_numpy(float), "gamma", samples=99)
+    shape_test(sdata.get_example("trial")["days"].to_numpy(float), "gamma", samples=99)
     assert capsys.readouterr().out.startswith("This takes about a minute")
 
 
@@ -699,7 +699,7 @@ def test_time_words():
 
 # ====================================================================== compare_shape_to with any shape
 def test_compare_shape_to_any_shape_uses_the_shape_test(engine, capsys):
-    trial = sdata.example("trial")
+    trial = sdata.get_example("trial")
     t = make(trial, engine)
     result = row(t.compare_shape_to("days", "gamma"))
     out = capsys.readouterr().out
@@ -712,11 +712,11 @@ def test_compare_shape_to_any_shape_uses_the_shape_test(engine, capsys):
 
 
 def test_compare_shape_to_any_shape_for_each_group(capsys):
-    t = make(sdata.example("trial"), "pandas")
-    frame = t.compare_shape_to("days", "lognormal", for_each="treatment")._frame.to_pandas()
+    t = make(sdata.get_example("trial"), "pandas")
+    frame = t.compare_shape_to("days", "lognormal", for_each_group_in="treatment")._frame.to_pandas()
     out = capsys.readouterr().out
     assert list(frame["treatment"]) == ["new medicine", "usual care"]
-    for name, part in sdata.example("trial").groupby("treatment"):
+    for name, part in sdata.get_example("trial").groupby("treatment"):
         alone = shape_test(part["days"].to_numpy(dtype=float), "lognormal", column="days")
         got = frame.loc[frame["treatment"] == name].iloc[0]
         assert got["statistic"] == pytest.approx(alone["statistic"], rel=1e-12)
@@ -726,11 +726,11 @@ def test_compare_shape_to_any_shape_for_each_group(capsys):
 
 
 def test_compare_shape_to_normal_keeps_shapiro_wilk_and_unknown_shapes_are_explained(capsys):
-    t = make(sdata.example("marks"), "pandas")
+    t = make(sdata.get_example("marks"), "pandas")
     assert row(t.compare_shape_to("marks", "normal"))["test"] == "Shapiro-Wilk test"
     with pytest.raises(SimplydataError, match="does not know"):
         t.compare_shape_to("marks", "gamm")
     with pytest.raises(SimplydataError, match="count distribution"):
         t.compare_shape_to("marks", "poisson")
     with pytest.raises(SimplydataError, match="seed="):
-        t.compare_shape_to("marks", "gamma", seed="one")
+        t.compare_shape_to("marks", "gamma", with_seed="one")

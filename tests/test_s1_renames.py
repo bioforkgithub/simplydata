@@ -46,18 +46,18 @@ def notes(out):
 
 # ---------------------------------------------------------------------------- check_random_order
 def test_check_random_order_old_name(engine, capsys):
-    t = make(sdata.example("marks"), engine)
-    new = row(t.check_random_order("marks"))
+    t = make(sdata.get_example("marks"), engine)
+    new = row(t.check_if_random_order("marks"))
     capsys.readouterr()
     old = row(t.compare_to_random_order("marks"))
     assert old == new
     assert notes(capsys.readouterr().out) == [
-        f'Note: "compare_to_random_order" is now called "check_random_order". {NOTE_END}']
+        f'Note: "compare_to_random_order" is now called "check_if_random_order". {NOTE_END}']
 
 
 # ---------------------------------------------------------------------------- interval_by= on percents
 def test_percent_interval_by_and_old_method(engine, capsys):
-    school = make(sdata.example("school"), engine)
+    school = make(sdata.get_example("school"), engine)
     got = row(school.compare_percent_to("passed", value="yes", percent=50, interval_by="wilson"))
     # R: DescTools::BinomCI(78, 180, method = "wilson"): 0.363081784442 to 0.506370948614
     assert got["percent 95 % CI low"] == pytest.approx(36.3081784442, rel=1e-9)
@@ -67,8 +67,8 @@ def test_percent_interval_by_and_old_method(engine, capsys):
     assert notes(capsys.readouterr().out) == [f'Note: "method=" is now called "interval_by=". {NOTE_END}']
     with pytest.raises(SimplydataError, match="only once"):
         school.compare_percent_to("passed", value="yes", percent=50, method="wilson", interval_by="wilson")
-    marks = make(sdata.example("marks"), engine)
-    marks.percent_of("marks", above=60, method="wilson")
+    marks = make(sdata.get_example("marks"), engine)
+    marks.find_percent_of_rows_where("marks", is_above=60, method="wilson")
     # R: DescTools::BinomCI(33, 54, method = "wilson"): 0.477882985382 to 0.729580661709
     assert "95 % CI 47.8 % to 73.0 %, Wilson score interval" in capsys.readouterr().out
 
@@ -100,7 +100,7 @@ def groups(engine):
 
 
 def test_not_lower_two_groups(groups, capsys):
-    got = row(groups.compare_averages("v", for_each="g", same_within=1, not_lower="b"))
+    got = row(groups.compare_averages_of("v", for_each_group_in="g", same_within=1, not_lower="b"))
     # R: t.test(a, b, mu = 1, alternative = "less") (Welch): is b lower than a by no more than 1?
     assert got["p-value"] == pytest.approx(0.9637320342953, rel=REL)
     assert got["difference one-sided 95 % CI high"] == pytest.approx(2.9212653765479, rel=REL)
@@ -108,31 +108,31 @@ def test_not_lower_two_groups(groups, capsys):
     out = capsys.readouterr().out
     assert "b is not lower than a by more than 1" in out and not notes(out) and "Note:" not in out
     # not_higher="a" is the same test, said from a's side
-    mirror = row(groups.compare_averages("v", for_each="g", same_within=1, not_higher="a"))
+    mirror = row(groups.compare_averages_of("v", for_each_group_in="g", same_within=1, not_higher="a"))
     assert mirror["p-value"] == pytest.approx(0.9637320342953, rel=REL)
     assert mirror["sides"] == "one-sided: a not higher by more than 1"
     assert "a is not higher than b by more than 1" in capsys.readouterr().out
 
 
 def test_old_sides_higher_with_same_within(groups, capsys):
-    new = row(groups.compare_averages("v", for_each="g", same_within=1, not_lower="b"))
+    new = row(groups.compare_averages_of("v", for_each_group_in="g", same_within=1, not_lower="b"))
     capsys.readouterr()
-    old = row(groups.compare_averages("v", for_each="g", same_within=1, sides=1, higher="b"))
+    old = row(groups.compare_averages_of("v", for_each_group_in="g", same_within=1, sides=1, higher="b"))
     assert old == new
     assert ('Note: sides=1, higher="b" with same_within= is a non-inferiority test; it is written not_lower="b".'
             in capsys.readouterr().out)
-    old = row(groups.compare_averages("v", for_each="g", same_within=1, sides=1, lower="a"))
+    old = row(groups.compare_averages_of("v", for_each_group_in="g", same_within=1, sides=1, lower="a"))
     assert old["p-value"] == pytest.approx(0.9637320342953, rel=REL)
     assert 'it is written not_higher="a"' in capsys.readouterr().out
 
 
 def test_not_lower_paired_and_one_sample(engine):
     t = make(pd.DataFrame({"w1": RM[:, 0], "w2": RM[:, 1]}), engine)
-    got = row(t.compare_before_after("w1", "w2", same_within=1, not_lower="after"))
+    got = row(t.compare_before_and_after("w1", "w2", same_within=1, not_lower="after"))
     # R: t.test(w2, w1, paired = TRUE, mu = -1, alternative = "greater"): p and the interval's low end
     assert got["p-value"] == pytest.approx(5.16076413281542e-06, rel=1e-8)
     assert got["difference one-sided 95 % CI low"] == pytest.approx(0.338797082287649, rel=REL)
-    got = row(t.compare_before_after("w1", "w2", same_within=1, not_higher="after"))
+    got = row(t.compare_before_and_after("w1", "w2", same_within=1, not_higher="after"))
     # R: t.test(w2, w1, paired = TRUE, mu = 1, alternative = "less")
     assert got["p-value"] == pytest.approx(0.0157175155174882, rel=REL)
     assert got["difference one-sided 95 % CI high"] == pytest.approx(0.8862029177123512, rel=REL)
@@ -150,29 +150,29 @@ def test_not_lower_paired_and_one_sample(engine):
 
 def test_not_lower_errors(groups):
     with pytest.raises(SimplydataError, match="needs same_within="):
-        groups.compare_averages("v", for_each="g", not_lower="b")
+        groups.compare_averages_of("v", for_each_group_in="g", not_lower="b")
     with pytest.raises(SimplydataError, match="both not_lower= and not_higher="):
-        groups.compare_averages("v", for_each="g", same_within=1, not_lower="b", not_higher="a")
+        groups.compare_averages_of("v", for_each_group_in="g", same_within=1, not_lower="b", not_higher="a")
     with pytest.raises(SimplydataError, match="leave out higher= and lower="):
-        groups.compare_averages("v", for_each="g", same_within=1, not_lower="b", higher="b")
+        groups.compare_averages_of("v", for_each_group_in="g", same_within=1, not_lower="b", higher="b")
     with pytest.raises(SimplydataError, match='does not know not_lower="B "'):
-        groups.compare_averages("v", for_each="g", same_within=1, not_lower="B ")
+        groups.compare_averages_of("v", for_each_group_in="g", same_within=1, not_lower="B ")
 
 
 # ---------------------------------------------------------------------------- reverse percentile bootstrap
 def test_reverse_percentile_bootstrap(engine, capsys):
-    t = make(sdata.example("marks"), engine)
-    new = t.interval_of("marks", "median", method="reverse percentile bootstrap")._frame.to_pandas()
+    t = make(sdata.get_example("marks"), engine)
+    new = t.find_interval_of("marks", "median", method="reverse percentile bootstrap")._frame.to_pandas()
     out = capsys.readouterr().out
     assert "bootstrap interval (reverse percentile)" in out and 'boot.ci(type = "basic")' in out
     # the reverse percentile interval is 2 x median minus the percentile interval, reversed
     # (R: boot.ci(type = "basic") is 2 * t0 - the percentile ends)
-    perc = t.interval_of("marks", "median", method="percentile bootstrap")._frame.to_pandas()
+    perc = t.find_interval_of("marks", "median", method="percentile bootstrap")._frame.to_pandas()
     median = new["median of marks"][0]
     assert new["median of marks 95 % CI low"][0] == pytest.approx(2 * median - perc["median of marks 95 % CI high"][0])
     assert new["median of marks 95 % CI high"][0] == pytest.approx(2 * median - perc["median of marks 95 % CI low"][0])
     capsys.readouterr()
-    old = t.interval_of("marks", "median", method="basic bootstrap")._frame.to_pandas()
+    old = t.find_interval_of("marks", "median", method="basic bootstrap")._frame.to_pandas()
     assert old.equals(new)
     assert notes(capsys.readouterr().out) == [
         f'Note: method="basic bootstrap" is now called method="reverse percentile bootstrap". {NOTE_END}']

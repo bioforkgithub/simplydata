@@ -88,7 +88,7 @@ def test_own_slope_checks(farms):
 def test_satterthwaite_matches_lmertest(capsys, needs_r):
     # R: m <- lmerTest::lmer(marks ~ hours + breakfast + (1 | school), data = s); coef(summary(m));
     #    contest(m, L[i, ], confint = TRUE, joint = FALSE)
-    school = make_table(sdata.example("school"))
+    school = make_table(sdata.get_example("school"))
     got = by_term(school.explain("marks", using=["hours", "breakfast"], grouped_by="school",
                                  p_value_by="satterthwaite"))
     assert got["(intercept)"]["degrees of freedom"] == pytest.approx(26.8318529454399, rel=1e-5)

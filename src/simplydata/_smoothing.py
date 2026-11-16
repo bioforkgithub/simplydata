@@ -114,7 +114,7 @@ def smooth(values, method="moving average", window=5, ends=None, times=None, ste
         raise SimplydataError(f'method="{method}" has no ends= choice (it needs none).')
     if method != "lowess" and method != "spline" and np.isnan(x).any():
         raise SimplydataError(f"{step_name}() needs a value at every step, but {int(np.isnan(x).sum())} are empty. "
-                              'Fill them first (fill_empty_cells(..., with_the="line between neighbours")).')
+                              'Fill them first (fill_empty_cells_in(..., with_the="line between neighbours")).')
 
     if method == "moving average":
         weights = options.get("weights")
@@ -169,7 +169,7 @@ def smooth(values, method="moving average", window=5, ends=None, times=None, ste
         k = _odd_window(window, step_name, method)
         degree = _opt(options, "degree", 2)
         if isinstance(degree, bool) or not isinstance(degree, (int, np.integer)) or not 0 <= degree < k:
-            raise SimplydataError(f"degree= needs a whole number from 0 to {k - 1} (below the window).")
+            raise SimplydataError(f"of_degree= needs a whole number from 0 to {k - 1} (below the window).")
         if n < k:
             raise SimplydataError(f"{step_name}() needs at least {k} readings for this window; there are {n}.")
         out = signal.savgol_filter(x, k, int(degree), mode="interp")

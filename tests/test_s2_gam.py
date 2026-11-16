@@ -18,7 +18,7 @@ def by_term(result):
 
 @pytest.fixture
 def school():
-    return make_table(sdata.example("school"))
+    return make_table(sdata.get_example("school"))
 
 
 def test_smooth_curve_for_numbers_matches_mgcv(school, capsys, needs_r):
@@ -95,7 +95,7 @@ def test_curve_for_yes_or_no_has_no_degrees_of_freedom(school, needs_r):
 def test_curve_for_counts_different_values_on_the_rows_used():
     import numpy as np
 
-    frame = sdata.example("school")
+    frame = sdata.get_example("school")
     frame["z"] = (np.arange(len(frame)) % 9).astype(float)
     frame.loc[:4, "z"] = 100.0 + np.arange(5)
     frame.loc[:4, "marks"] = np.nan

@@ -2,7 +2,7 @@
 
 Every number is checked against SciPy and against R 4.6.2 (reference values hard-coded below,
 with the R call that made them), on pandas and Polars tables. The R data is the practice
-table sdata.example("marks"), read in R with read.csv(".../data/marks.csv").
+table sdata.get_example("marks"), read in R with read.csv(".../data/marks.csv").
 """
 
 import math
@@ -36,7 +36,7 @@ def make(data, engine):
 
 @pytest.fixture
 def marks():
-    return sdata.example("marks")
+    return sdata.get_example("marks")
 
 
 def group(df, name, column="marks", by="class"):
@@ -65,7 +65,7 @@ def test_welch_t_test_matches_r_and_scipy(marks, engine, capsys):
     ab = marks[marks["class"].isin(["A", "B"])].reset_index(drop=True)
     t = make(ab, engine)
     before = t._frame.to_pandas().copy()
-    got = row(t.compare_averages("marks", for_each="class"))
+    got = row(t.compare_averages_of("marks", for_each_group_in="class"))
     # R: t.test(marks ~ class, data = subset(m, class %in% c("A", "B")))
     assert got["statistic"] == pytest.approx(1.583550500481361, rel=REL)
     assert got["degrees of freedom"] == pytest.approx(33.793073095025697, rel=REL)
@@ -90,7 +90,7 @@ def test_welch_t_test_matches_r_and_scipy(marks, engine, capsys):
 
 def test_student_t_test_with_test_option_matches_r(marks, engine, capsys):
     ab = marks[marks["class"].isin(["A", "B"])].reset_index(drop=True)
-    got = row(make(ab, engine).compare_averages("marks", for_each="class", test="student"))
+    got = row(make(ab, engine).compare_averages_of("marks", for_each_group_in="class", test="student"))
     # R: t.test(marks ~ class, data = ab, var.equal = TRUE)
     assert got["statistic"] == pytest.approx(1.583550500481361, rel=REL)
     assert got["degrees of freedom"] == 34
@@ -101,7 +101,7 @@ def test_student_t_test_with_test_option_matches_r(marks, engine, capsys):
 
 # ---------------------------------------------------------------- compare_averages: 3+ groups
 def test_welch_anova_matches_r_oneway_test(marks, engine, capsys):
-    got = row(make(marks, engine).compare_averages("marks", for_each="class"))
+    got = row(make(marks, engine).compare_averages_of("marks", for_each_group_in="class"))
     # R: oneway.test(marks ~ class, data = m)          (var.equal = FALSE is the default)
     assert got["test"] == "Welch's one-way ANOVA"
     assert got["statistic"] == pytest.approx(3.9943188986448011, rel=REL)
@@ -110,7 +110,7 @@ def test_welch_anova_matches_r_oneway_test(marks, engine, capsys):
     assert got["p-value"] == pytest.approx(0.0276731022463206, rel=1e-8)
     out = capsys.readouterr().out
     assert "Welch's one-way ANOVA (F = 3.99, df = 2 and 34.0)" in out
-    assert 'table.compare_each_pair("marks", for_each="class")' in out
+    assert 'table.compare_each_pair_of("marks", for_each_group_in="class")' in out
     assert ("If the groups were truly alike, differences this big or bigger between them would turn up in about 3 of "
             "100 studies like this one (p = 0.028).") in out
 
@@ -135,7 +135,7 @@ def test_welch_anova_formula_on_unequal_groups_matches_r_and_scipy():
 
 def test_welch_anova_on_two_groups_equals_welch_t_squared(marks):
     ab = marks[marks["class"].isin(["A", "B"])]
-    got = row(make_table(ab).compare_averages("marks", for_each="class", test="welch anova"))
+    got = row(make_table(ab).compare_averages_of("marks", for_each_group_in="class", test="welch anova"))
     # R: oneway.test(marks ~ class, data = ab)
     assert got["statistic"] == pytest.approx(2.507632187574768, rel=REL)
     assert got["statistic"] == pytest.approx(1.583550500481361 ** 2, rel=REL)
@@ -143,7 +143,7 @@ def test_welch_anova_on_two_groups_equals_welch_t_squared(marks):
 
 
 def test_classic_anova_with_test_option_matches_r(marks, engine):
-    got = row(make(marks, engine).compare_averages("marks", for_each="class", test="anova"))
+    got = row(make(marks, engine).compare_averages_of("marks", for_each_group_in="class", test="anova"))
     # R: oneway.test(marks ~ class, data = m, var.equal = TRUE)
     assert got["statistic"] == pytest.approx(3.8900486306902953, rel=REL)
     assert got["degrees of freedom 2"] == 51
@@ -153,7 +153,7 @@ def test_classic_anova_with_test_option_matches_r(marks, engine):
 # ---------------------------------------------------------------- compare_averages: ranks
 def test_mann_whitney_matches_r(marks, engine, capsys):
     ab = marks[marks["class"].isin(["A", "B"])].reset_index(drop=True)
-    got = row(make(ab, engine).compare_averages("marks", for_each="class", based_on="ranks"))
+    got = row(make(ab, engine).compare_averages_of("marks", for_each_group_in="class", based_on="ranks"))
     # The marks have ties, so the normal approximation with continuity correction is used.
     # R: wilcox.test(marks ~ class, data = ab, exact = FALSE)
     assert got["statistic"] == 213.5
@@ -166,14 +166,14 @@ def test_mann_whitney_matches_r(marks, engine, capsys):
 def test_mann_whitney_exact_without_ties_matches_r():
     data = pd.DataFrame({"g": ["x"] * 5 + ["y"] * 6,
                          "v": [1.1, 2.3, 3.8, 4.0, 5.9, 2.0, 6.5, 7.1, 8.4, 9.9, 10.3]})
-    got = row(make_table(data).compare_averages("v", for_each="g", based_on="ranks"))
+    got = row(make_table(data).compare_averages_of("v", for_each_group_in="g", based_on="ranks"))
     # R: wilcox.test(c(1.1, 2.3, 3.8, 4.0, 5.9), c(2.0, 6.5, 7.1, 8.4, 9.9, 10.3))
     assert got["statistic"] == 4
     assert got["p-value"] == pytest.approx(0.051948051948052, rel=1e-10)
 
 
 def test_kruskal_wallis_matches_r(marks, engine, capsys):
-    got = row(make(marks, engine).compare_averages("marks", for_each="class", based_on="ranks"))
+    got = row(make(marks, engine).compare_averages_of("marks", for_each_group_in="class", based_on="ranks"))
     # R: kruskal.test(marks ~ class, data = m)
     assert got["test"] == "Kruskal-Wallis test"
     assert got["statistic"] == pytest.approx(7.5376653944020422, rel=REL)
@@ -186,7 +186,7 @@ def test_kruskal_wallis_small_groups_match_r():
     data = pd.DataFrame({"g": list("xxxxxyyyyzzzzzz"),
                          "v": [10.1, 11.4, 9.8, 12.0, 10.7, 13.2, 12.9, 14.8, 11.9,
                                9.0, 8.7, 10.2, 9.9, 8.1, 9.4]})
-    got = row(make_table(data).compare_averages("v", for_each="g", test="kruskal-wallis"))
+    got = row(make_table(data).compare_averages_of("v", for_each_group_in="g", test="kruskal-wallis"))
     # R: kruskal.test(list(x, y, z))
     assert got["statistic"] == pytest.approx(10.4025, rel=REL)
     assert got["p-value"] == pytest.approx(0.00550967302325559, rel=1e-8)
@@ -199,7 +199,7 @@ def test_holm_matches_r_p_adjust():
 
 
 def test_each_pair_welch_holm_matches_r(marks, engine, capsys):
-    result = make(marks, engine).compare_each_pair("marks", for_each="class")
+    result = make(marks, engine).compare_each_pair_of("marks", for_each_group_in="class")
     frame = result._frame.to_pandas()
     assert list(zip(frame["group 1"], frame["group 2"])) == [("A", "B"), ("A", "C"), ("B", "C")]
     # R: pairwise.t.test(m$marks, m$class, pool.sd = FALSE, p.adjust.method = "none")
@@ -213,7 +213,7 @@ def test_each_pair_welch_holm_matches_r(marks, engine, capsys):
 
 
 def test_each_pair_on_ranks_matches_r(marks):
-    frame = make_table(marks).compare_each_pair("marks", for_each="class", based_on="ranks")._frame.to_pandas()
+    frame = make_table(marks).compare_each_pair_of("marks", for_each_group_in="class", based_on="ranks")._frame.to_pandas()
     # R: pairwise.wilcox.test(m$marks, m$class, p.adjust.method = "holm", exact = FALSE)
     assert frame["p-value (Holm)"].tolist() == pytest.approx([0.2126108975510370, 0.0246143303939027,
                                                               0.22893038037713], rel=1e-8)
@@ -223,7 +223,7 @@ def test_each_pair_unequal_groups_matches_r():
     data = pd.DataFrame({"g": list("xxxxxyyyyzzzzzz"),
                          "v": [10.1, 11.4, 9.8, 12.0, 10.7, 13.2, 12.9, 14.8, 11.9,
                                9.0, 8.7, 10.2, 9.9, 8.1, 9.4]})
-    frame = make_table(data).compare_each_pair("v", for_each="g")._frame.to_pandas()
+    frame = make_table(data).compare_each_pair_of("v", for_each_group_in="g")._frame.to_pandas()
     # R: pairwise.t.test(v, g, pool.sd = FALSE, p.adjust.method = "holm")
     assert frame["p-value (Holm)"].tolist() == pytest.approx([0.0306973234457488, 0.0306973234457488,
                                                               0.00764108783563924], rel=1e-8)
@@ -234,7 +234,7 @@ def test_paired_t_test_matches_r(marks, engine, capsys):
     w = wide(marks)
     t = make(w, engine)
     before = t._frame.to_pandas().copy()
-    got = row(t.compare_before_after("Maths", "Science"))
+    got = row(t.compare_before_and_after("Maths", "Science"))
     # R: t.test(w$marks.Science, w$marks.Maths, paired = TRUE)
     assert got["statistic"] == pytest.approx(1.455821935271032, rel=REL)
     assert got["degrees of freedom"] == 17
@@ -249,7 +249,7 @@ def test_paired_t_test_matches_r(marks, engine, capsys):
 
 
 def test_signed_rank_paired_matches_r(marks, engine):
-    got = row(make(wide(marks), engine).compare_before_after("Maths", "Science", based_on="ranks"))
+    got = row(make(wide(marks), engine).compare_before_and_after("Maths", "Science", based_on="ranks"))
     # The changes have ties, so the normal approximation with continuity correction is used.
     # R: wilcox.test(w$marks.Science, w$marks.Maths, paired = TRUE, exact = FALSE)
     assert got["statistic"] == 121
@@ -259,7 +259,7 @@ def test_signed_rank_paired_matches_r(marks, engine):
 def test_before_after_skips_rows_with_an_empty_cell(engine, capsys):
     data = pd.DataFrame({"before": [5.0, 6.0, np.nan, 8.0, 7.5, 6.2],
                          "after": [6.1, 6.9, 7.0, np.nan, 8.8, 7.0]})
-    got = row(make(data, engine).compare_before_after("before", "after"))
+    got = row(make(data, engine).compare_before_and_after("before", "after"))
     kept = data.dropna()
     assert got["rows"] == 4
     assert got["p-value"] == pytest.approx(stats.ttest_rel(kept["after"], kept["before"]).pvalue)
@@ -268,7 +268,7 @@ def test_before_after_skips_rows_with_an_empty_cell(engine, capsys):
 
 def test_signed_rank_leaves_out_zero_changes_like_r(capsys):
     data = pd.DataFrame({"before": [1.0, 2.0, 3.0, 4.0, 5.0, 6.0], "after": [1.0, 3.5, 2.5, 6.0, 8.0, 9.5]})
-    got = row(make_table(data).compare_before_after("before", "after", based_on="ranks"))
+    got = row(make_table(data).compare_before_and_after("before", "after", based_on="ranks"))
     d = (data["after"] - data["before"]).to_numpy()
     scipy = stats.wilcoxon(d, zero_method="wilcox", correction=True, method="approx")
     assert got["p-value"] == pytest.approx(scipy.pvalue)
@@ -312,7 +312,7 @@ def with_result(marks):
 
 def test_chi_square_matches_r(marks, engine, capsys):
     t = make(with_result(marks), engine)
-    got = row(t.compare_counts("result", for_each="class"))
+    got = row(t.compare_counts_of("result", for_each_group_in="class"))
     # R: chisq.test(table(m$result, m$class))
     assert got["statistic"] == pytest.approx(4.207792207792208, rel=REL)
     assert got["degrees of freedom"] == 2
@@ -327,7 +327,7 @@ def test_chi_square_matches_r(marks, engine, capsys):
 def test_chi_square_two_by_two_uses_yates_like_r(marks, engine, capsys):
     data = with_result(marks)
     data["class A"] = np.where(data["class"] == "A", "yes", "no")
-    got = row(make(data, engine).compare_counts("result", for_each="class A"))
+    got = row(make(data, engine).compare_counts_of("result", for_each_group_in="class A"))
     # R: chisq.test(table(m$result, m$class == "A"))      (correct = TRUE is the default)
     assert got["statistic"] == pytest.approx(2.191558441558442, rel=REL)
     assert got["p-value"] == pytest.approx(0.138768846789353, rel=1e-8)
@@ -335,7 +335,7 @@ def test_chi_square_two_by_two_uses_yates_like_r(marks, engine, capsys):
     # Cramer's V uses the chi-square without the correction
     observed = np.array([[19, 14], [17, 4]])
     assert got["effect size"] == pytest.approx(association(observed, method="cramer", correction=False))
-    fisher = row(make(data, engine).compare_counts("result", for_each="class A", test="fisher"))
+    fisher = row(make(data, engine).compare_counts_of("result", for_each_group_in="class A", test="fisher"))
     # R: fisher.test(table(m$result, m$class == "A"))
     assert fisher["p-value"] == pytest.approx(0.137562740161948, rel=1e-8)
     assert fisher["test"] == "Fisher's exact test"
@@ -343,14 +343,14 @@ def test_chi_square_two_by_two_uses_yates_like_r(marks, engine, capsys):
 
 def test_small_counts_note_suggests_fisher_and_never_switches(engine, capsys):
     data = pd.DataFrame({"a": ["x"] * 4 + ["y"] * 5, "b": ["p", "p", "p", "q", "p", "q", "q", "q", "q"]})
-    got = row(make(data, engine).compare_counts("a", for_each="b"))
+    got = row(make(data, engine).compare_counts_of("a", for_each_group_in="b"))
     # R: chisq.test(matrix(c(3, 1, 1, 4), 2))
     assert got["test"] == "chi-square test of independence"
     assert got["statistic"] == pytest.approx(0.950625, rel=REL)
     assert got["p-value"] == pytest.approx(0.329560259960621, rel=1e-8)
     out = capsys.readouterr().out
     assert "expected counts are below 5" in out and 'test="fisher"' in out
-    fisher = row(make(data, engine).compare_counts("a", for_each="b", test="fisher"))
+    fisher = row(make(data, engine).compare_counts_of("a", for_each_group_in="b", test="fisher"))
     # R: fisher.test(matrix(c(3, 1, 1, 4), 2))
     assert fisher["p-value"] == pytest.approx(0.206349206349207, rel=1e-8)
     assert "below 5" not in capsys.readouterr().out
@@ -359,7 +359,7 @@ def test_small_counts_note_suggests_fisher_and_never_switches(engine, capsys):
 def test_fisher_on_a_bigger_table_uses_seeded_random_tables(marks, capsys):
     # S1: Fisher on tables bigger than 2 x 2 gives its p-value from 100,000 seeded random tables (SciPy);
     # its agreement with R fisher.test() is checked in test_s1_part_a2.py
-    make_table(with_result(marks)).compare_counts("result", for_each="class", test="fisher")
+    make_table(with_result(marks)).compare_counts_of("result", for_each_group_in="class", test="fisher")
     assert "100,000 random tables" in capsys.readouterr().out
 
 
@@ -386,8 +386,8 @@ def test_straight_line_matches_r_lm(marks, engine, capsys):
 
 # ---------------------------------------------------------------- fit_formula
 def growth_applia(engine):
-    t = make(sdata.example("growth"), engine)
-    t.keep_rows("country", equal_to="Applia")
+    t = make(sdata.get_example("growth"), engine)
+    t.keep_rows_where("country", is_equal_to="Applia")
     return t
 
 
@@ -448,7 +448,7 @@ def test_fit_formula_friendly_errors(marks, formula, message):
 
 
 def test_fit_formula_failed_fit_is_explained(marks):
-    t = make_table(sdata.example("growth"))
+    t = make_table(sdata.get_example("growth"))
     with pytest.raises(SimplydataError, match="impossible numbers"):
         t.fit_formula("population = a * exp(b * year)")
     with pytest.raises(SimplydataError, match="not in the formula"):
@@ -461,7 +461,7 @@ def test_skewed_small_group_gets_a_note_suggesting_ranks(capsys):
                          "v": [1, 1, 1, 1, 1, 1, 1, 2, 2, 40] + list(range(10, 20))})
     p = stats.shapiro(data["v"][:10]).pvalue
     assert p < 0.05
-    result = row(make_table(data).compare_averages("v", for_each="g"))
+    result = row(make_table(data).compare_averages_of("v", for_each_group_in="g"))
     out = capsys.readouterr().out
     assert f'the values in group "a" don\'t look bell-shaped (Shapiro-Wilk' in out
     assert 'a safer test here: based_on="ranks"' in out
@@ -472,24 +472,24 @@ def test_skewed_large_group_note_explains_central_limit_theorem(capsys):
     rng = np.random.default_rng(3)
     data = pd.DataFrame({"g": ["a"] * 200 + ["b"] * 200,
                          "v": np.concatenate([rng.exponential(1, 200), rng.exponential(1.3, 200)])})
-    make_table(data).compare_averages("v", for_each="g")
+    make_table(data).compare_averages_of("v", for_each_group_in="g")
     out = capsys.readouterr().out
     assert "central limit theorem" in out and "based_on=" not in out
 
 
 def test_tiny_group_note_and_error(capsys):
     data = pd.DataFrame({"g": ["a", "a", "b", "b", "b"], "v": [1.0, 2.0, 3.0, 4.5, 5.0]})
-    make_table(data).compare_averages("v", for_each="g")
+    make_table(data).compare_averages_of("v", for_each_group_in="g")
     assert 'group "a" has only 2 values: too few to check' in capsys.readouterr().out
     single = pd.DataFrame({"g": ["a", "b", "b"], "v": [1.0, 3.0, 4.0]})
     with pytest.raises(SimplydataError, match="at least 2 values in each group"):
-        make_table(single).compare_averages("v", for_each="g")
+        make_table(single).compare_averages_of("v", for_each_group_in="g")
 
 
 def test_ranks_give_no_bell_shape_note(capsys):
     data = pd.DataFrame({"g": ["a"] * 10 + ["b"] * 10,
                          "v": [1, 1, 1, 1, 1, 1, 1, 2, 2, 40] + list(range(10, 20))})
-    make_table(data).compare_averages("v", for_each="g", based_on="ranks")
+    make_table(data).compare_averages_of("v", for_each_group_in="g", based_on="ranks")
     assert "bell-shaped (Shapiro" not in capsys.readouterr().out
 
 
@@ -497,14 +497,14 @@ def test_ranks_give_no_bell_shape_note(capsys):
 def test_empty_cells_skipped_with_a_note(engine, capsys):
     data = pd.DataFrame({"g": ["a", "a", "a", None, "b", "b", "b"],
                          "v": [1.0, np.nan, 3.0, 4.0, 5.0, 6.5, 7.0]})
-    got = row(make(data, engine).compare_averages("v", for_each="g"))
+    got = row(make(data, engine).compare_averages_of("v", for_each_group_in="g"))
     assert got["count in a"] == 2 and got["count in b"] == 3
     assert got["p-value"] == pytest.approx(stats.ttest_ind([1.0, 3.0], [5.0, 6.5, 7.0], equal_var=False).pvalue)
     assert 'Note: 2 rows with an empty cell in "v" or "g" were skipped.' in capsys.readouterr().out
 
 
 def test_result_is_a_table_on_the_same_engine_and_can_be_saved(marks, engine, tmp_path):
-    result = make(marks, engine).compare_averages("marks", for_each="class")
+    result = make(marks, engine).compare_averages_of("marks", for_each_group_in="class")
     assert getattr(result, "_is_simplydata_table", False)
     assert result._engine == ("Polars" if engine == "polars" else "pandas")
     result.save(tmp_path / "test.csv")
@@ -523,18 +523,18 @@ def test_numbers_are_written_plainly():
 
 # ---------------------------------------------------------------- friendly errors
 @pytest.mark.parametrize("call, message", [
-    (lambda t: t.compare_averages("marks", for_each="class", based_on="median"), 'based_on="median"'),
-    (lambda t: t.compare_averages("marks", for_each="class", test="welsh"), 'Did you mean test="welch"'),
-    (lambda t: t.compare_averages("marks", for_each="class", test="welch"), "compares exactly 2 groups"),
-    (lambda t: t.compare_averages("marks", for_each="class", based_on="ranks", test="welch"), "Use one of them"),
-    (lambda t: t.compare_averages("name", for_each="class"), "needs a column of numbers"),
-    (lambda t: t.compare_averages("marks", for_each="marks"), "cannot be both"),
-    (lambda t: t.compare_averages("marks", for_each="klass"), 'Did you mean "class"'),
-    (lambda t: t.compare_averages("marks"), "for_each= as a column name"),
-    (lambda t: t.compare_averages("marks", by="class"), "has no option called by="),
+    (lambda t: t.compare_averages_of("marks", for_each_group_in="class", based_on="median"), 'based_on="median"'),
+    (lambda t: t.compare_averages_of("marks", for_each_group_in="class", test="welsh"), 'Did you mean test="welch"'),
+    (lambda t: t.compare_averages_of("marks", for_each_group_in="class", test="welch"), "compares exactly 2 groups"),
+    (lambda t: t.compare_averages_of("marks", for_each_group_in="class", based_on="ranks", test="welch"), "Use one of them"),
+    (lambda t: t.compare_averages_of("name", for_each_group_in="class"), "needs a column of numbers"),
+    (lambda t: t.compare_averages_of("marks", for_each_group_in="marks"), "cannot be both"),
+    (lambda t: t.compare_averages_of("marks", for_each_group_in="klass"), 'Did you mean "class"'),
+    (lambda t: t.compare_averages_of("marks"), "for_each_group_in= as a column name"),
+    (lambda t: t.compare_averages_of("marks", by="class"), "has no option called by="),
     (lambda t: t.compare_average_to("marks", "60"), "needs a number"),
-    (lambda t: t.compare_before_after("marks", "marks"), "two different columns"),
-    (lambda t: t.compare_counts("subject", for_each="class", test="g-test"), 'test="g-test"'),
+    (lambda t: t.compare_before_and_after("marks", "marks"), "two different columns"),
+    (lambda t: t.compare_counts_of("subject", for_each_group_in="class", test="g-test"), 'test="g-test"'),
     (lambda t: t.fit_straight_line(x="hours", y="hours"), "two different columns"),
 ])
 def test_friendly_errors(marks, call, message):
@@ -544,12 +544,12 @@ def test_friendly_errors(marks, call, message):
 
 def test_one_group_only_is_explained(marks):
     t = make_table(marks)
-    t.keep_rows("class", equal_to="A")
+    t.keep_rows_where("class", is_equal_to="A")
     with pytest.raises(SimplydataError, match='at least 2 groups in "class"; it found only "A"'):
-        t.compare_averages("marks", for_each="class")
+        t.compare_averages_of("marks", for_each_group_in="class")
 
 
 def test_all_values_the_same_is_explained():
     data = pd.DataFrame({"g": ["a", "a", "b", "b"], "v": [1.0, 1.0, 2.0, 2.0]})
     with pytest.raises(SimplydataError, match="Every value is the same"):
-        make_table(data).compare_averages("v", for_each="g")
+        make_table(data).compare_averages_of("v", for_each_group_in="g")

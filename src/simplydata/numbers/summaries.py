@@ -1,9 +1,10 @@
 """Summaries: average, median, total ... They never change the numbers; they give back an answer.
 
 Naming: the same words as tables, without "_of". A table needs to be told which column
-(table.average_of("marks")); numbers are already one set, so there is nothing to name:
-nums.average(). Grids take for_each="row" or for_each="column", like tables take
-for_each="class", and then give back one answer per row or column as new numbers.
+(table.find_average_of("marks")); numbers are already one set, so there is nothing to name:
+nums.find_average(). Grids take in_each="row" or in_each="column" (tables take
+for_each_group_in="class"), and then give back one answer per row or column as new numbers.
+The old spelling for_each="row" still works for one release, with a note.
 
 Rules (the same as tables, see table/summaries.py):
 
@@ -25,7 +26,7 @@ from ._base import amount, is_number, plain, say
 
 IN_SENTENCE = 8  # a sentence lists at most this many answers; the new numbers have them all
 
-FOR_EACH = ("row", "column")
+IN_EACH = ("row", "column")
 
 
 def _standard_deviation(values, axis=None):
@@ -72,13 +73,13 @@ class SummaryCore:
         if n:
             print(f"Note: {amount(n, 'empty value')} {'was' if n == 1 else 'were'} skipped.")
 
-    def _summary(self, step: str, func, for_each=None, **more):
+    def _summary(self, step: str, func, in_each=None, **more):
         values = self._values
         what = f"the {_ordinal(more['q'])} percentile" if step == "percentile" else f"the {step.replace('_', ' ')}"
-        if for_each is not None:
-            if for_each not in FOR_EACH:
-                raise choice_error(step, "for_each", for_each, FOR_EACH)
-            axis = 1 if for_each == "row" else 0
+        if in_each is not None:
+            if in_each not in IN_EACH:
+                raise choice_error(f"find_{step}", "in_each", in_each, IN_EACH)
+            axis = 1 if in_each == "row" else 0
             if values.size == 0:
                 result = np.full(values.shape[1 - axis], np.nan)
             else:
@@ -88,7 +89,7 @@ class SummaryCore:
             listed = ", ".join(answers[:IN_SENTENCE])
             if len(answers) > IN_SENTENCE:
                 listed += f" ... and {len(answers) - IN_SENTENCE} more"
-            print(f"{what[0].upper()}{what[1:]} of each {for_each}: {listed}.")
+            print(f"{what[0].upper()}{what[1:]} of each {in_each}: {listed}.")
             return self._wrap(np.asarray(result))
         filled = values[~self._empty_mask()]
         if filled.size == 0:
@@ -108,41 +109,41 @@ class SummaryCore:
     def _check_percent(self, percent):
         if not is_number(percent) or not 0 <= percent <= 100:
             raise SimplydataError(
-                ".percentile() needs a number from 0 to 100: percentile(90) is the number that 90 % "
-                "of the numbers are below." + self._example("percentile(90)")
+                ".find_percentile() needs a number from 0 to 100: find_percentile(90) is the number that 90 % "
+                "of the numbers are below." + self._example("find_percentile(90)")
             )
         return float(percent)
 
 
 def _make(step: str, func, doc: str, grid: bool):
     if grid:
-        def word(self, for_each=None):
-            return self._summary(step, func, for_each)
-        word.__doc__ = (f"{doc}\n\n        grid.{step}()   or one answer per row or column:   "
-                        f'grid.{step}(for_each="row")\n        ')
+        def word(self, in_each=None):
+            return self._summary(step, func, in_each)
+        word.__doc__ = (f"{doc}\n\n        grid.find_{step}()   or one answer per row or column:   "
+                        f'grid.find_{step}(in_each="row")\n        ')
     else:
         def word(self):
             return self._summary(step, func)
-        word.__doc__ = f"{doc}\n\n        nums.{step}()\n        "
-    word.__name__ = word.__qualname__ = step
-    return friendly(word)
+        word.__doc__ = f"{doc}\n\n        nums.find_{step}()\n        "
+    word.__name__ = word.__qualname__ = f"find_{step}"
+    return friendly(word, renamed={"for_each": "in_each"}) if grid else friendly(word)
 
 
 class SummaryWords(SummaryCore):
     """Summaries for a list of numbers."""
 
-    average = _make("average", *SUMMARIES["average"], grid=False)
-    median = _make("median", *SUMMARIES["median"], grid=False)
-    total = _make("total", *SUMMARIES["total"], grid=False)
-    smallest = _make("smallest", *SUMMARIES["smallest"], grid=False)
-    biggest = _make("biggest", *SUMMARIES["biggest"], grid=False)
-    standard_deviation = _make("standard_deviation", *SUMMARIES["standard_deviation"], grid=False)
+    find_average = _make("average", *SUMMARIES["average"], grid=False)
+    find_median = _make("median", *SUMMARIES["median"], grid=False)
+    find_total = _make("total", *SUMMARIES["total"], grid=False)
+    find_smallest = _make("smallest", *SUMMARIES["smallest"], grid=False)
+    find_biggest = _make("biggest", *SUMMARIES["biggest"], grid=False)
+    find_standard_deviation = _make("standard_deviation", *SUMMARIES["standard_deviation"], grid=False)
 
     @friendly
-    def percentile(self, percent=None):
-        """The number that this percent of the numbers are below: percentile(50) is the median.
+    def find_percentile(self, percent=None):
+        """The number that this percent of the numbers are below: find_percentile(50) is the median.
 
-        nums.percentile(90)
+        nums.find_percentile(90)
         Uses NumPy's usual "linear" method, the same as pandas and R. Empty values are skipped.
         """
         return self._summary("percentile", np.nanpercentile, q=self._check_percent(percent))
@@ -173,20 +174,20 @@ class SummaryWords(SummaryCore):
 
 
 class GridSummaryWords(SummaryCore):
-    """Summaries for a grid: one answer, or one per row or column with for_each=."""
+    """Summaries for a grid: one answer, or one per row or column with in_each=."""
 
-    average = _make("average", *SUMMARIES["average"], grid=True)
-    median = _make("median", *SUMMARIES["median"], grid=True)
-    total = _make("total", *SUMMARIES["total"], grid=True)
-    smallest = _make("smallest", *SUMMARIES["smallest"], grid=True)
-    biggest = _make("biggest", *SUMMARIES["biggest"], grid=True)
-    standard_deviation = _make("standard_deviation", *SUMMARIES["standard_deviation"], grid=True)
+    find_average = _make("average", *SUMMARIES["average"], grid=True)
+    find_median = _make("median", *SUMMARIES["median"], grid=True)
+    find_total = _make("total", *SUMMARIES["total"], grid=True)
+    find_smallest = _make("smallest", *SUMMARIES["smallest"], grid=True)
+    find_biggest = _make("biggest", *SUMMARIES["biggest"], grid=True)
+    find_standard_deviation = _make("standard_deviation", *SUMMARIES["standard_deviation"], grid=True)
 
-    @friendly
-    def percentile(self, percent=None, for_each=None):
-        """The number that this percent of the numbers are below: percentile(50) is the median.
+    @friendly(renamed={"for_each": "in_each"})
+    def find_percentile(self, percent=None, in_each=None):
+        """The number that this percent of the numbers are below: find_percentile(50) is the median.
 
-        grid.percentile(90)   or   grid.percentile(90, for_each="column")
+        grid.find_percentile(90)   or   grid.find_percentile(90, in_each="column")
         Uses NumPy's usual "linear" method, the same as pandas and R. Empty values are skipped.
         """
-        return self._summary("percentile", np.nanpercentile, for_each, q=self._check_percent(percent))
+        return self._summary("percentile", np.nanpercentile, in_each, q=self._check_percent(percent))

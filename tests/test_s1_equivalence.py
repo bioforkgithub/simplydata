@@ -42,7 +42,7 @@ def groups(engine):
 
 
 def test_tost_two_groups(groups, capsys):
-    got = row(groups.compare_averages("v", for_each="g", same_within=2.5))
+    got = row(groups.compare_averages_of("v", for_each_group_in="g", same_within=2.5))
     # R: TOSTER::t_TOST(x = a, y = b, eqb = 2.5)$TOST$p.value (Welch): lower 7.622562779918e-08, upper 0.1805239677
     assert got["p-value against the low margin"] == pytest.approx(7.622562779918e-08, rel=1e-8)
     assert got["p-value against the high margin"] == pytest.approx(0.1805239676677, rel=REL)
@@ -57,19 +57,19 @@ def test_tost_two_groups(groups, capsys):
 
 def test_tost_answers(groups, engine, capsys):
     # R: t_TOST(x = a, y = b, low_eqbound = -3, high_eqbound = 5)$TOST$p.value: 1.731657060930e-08, 1.368738675564e-05
-    got = row(groups.compare_averages("v", for_each="g", same_within=[-3, 5]))
+    got = row(groups.compare_averages_of("v", for_each_group_in="g", same_within=[-3, 5]))
     assert got["p-value"] == pytest.approx(1.368738675564e-05, rel=1e-8)
     assert got["answer"] == "the same within the margin"
     assert "a and b are the same within -3 to 5" in capsys.readouterr().out
     two = make(pd.DataFrame({"v": A[:4] + B[:4], "g": ["a"] * 4 + ["b"] * 4}), engine)
-    got = row(two.compare_averages("v", for_each="g", same_within=1))
+    got = row(two.compare_averages_of("v", for_each_group_in="g", same_within=1))
     assert got["answer"] == "the data cannot tell"
     assert "the data cannot tell whether" in capsys.readouterr().out
 
 
 def test_tost_paired(engine):
     t = make(pd.DataFrame({"w1": RM[:, 0], "w2": RM[:, 1]}), engine)
-    got = row(t.compare_before_after("w1", "w2", same_within=1))
+    got = row(t.compare_before_and_after("w1", "w2", same_within=1))
     # R: t_TOST(x = rm3[, 2], y = rm3[, 1], paired = TRUE, eqb = 1)$TOST$p.value and $effsize (90 %)
     assert got["p-value against the low margin"] == pytest.approx(5.160764132815e-06, rel=1e-8)
     assert got["p-value against the high margin"] == pytest.approx(0.01571751551749, rel=REL)
@@ -92,7 +92,7 @@ def test_tost_one_sample(engine):
 
 
 def test_non_inferiority(groups, engine, capsys):
-    got = row(groups.compare_averages("v", for_each="g", same_within=1, not_lower="b"))
+    got = row(groups.compare_averages_of("v", for_each_group_in="g", same_within=1, not_lower="b"))
     # R: t.test(a, b, mu = 1, alternative = "less") (Welch): is b lower than a by no more than 1?
     assert got["p-value"] == pytest.approx(0.9637320342953, rel=REL)
     assert got["difference one-sided 95 % CI high"] == pytest.approx(2.9212653765479, rel=REL)
@@ -108,8 +108,8 @@ def test_non_inferiority(groups, engine, capsys):
 
 def test_same_within_errors(groups):
     with pytest.raises(SimplydataError, match="above 0"):
-        groups.compare_averages("v", for_each="g", same_within=-1)
+        groups.compare_averages_of("v", for_each_group_in="g", same_within=-1)
     with pytest.raises(SimplydataError, match="low below 0"):
-        groups.compare_averages("v", for_each="g", same_within=[1, 5])
+        groups.compare_averages_of("v", for_each_group_in="g", same_within=[1, 5])
     with pytest.raises(SimplydataError, match="2 groups"):
-        groups.compare_averages("v", for_each="g", same_within=1, based_on="ranks")
+        groups.compare_averages_of("v", for_each_group_in="g", same_within=1, based_on="ranks")

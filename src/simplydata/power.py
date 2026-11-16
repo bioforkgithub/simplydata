@@ -1,21 +1,21 @@
 """Power: how many values a study needs, and its chance to find a real difference.
 
-Before a study, two questions: how many values do I need (how_many_needed), and with the
+Before a study, two questions: how many values do I need (find_how_many_needed), and with the
 values I can get, what is the chance to find a real difference of the size I expect
-(chance_to_find, the "power")? test= names the simplydata test the study will use.
+(find_chance_of_finding, the "power")? test= names the simplydata test the study will use.
 Numbers come from statsmodels' power classes (TTestIndPower, TTestPower, FTestAnovaPower,
 GofChisquarePower, with their solve_power for the number needed) and, for correlations, from
 R pwr::pwr.r.test through simplydata[r]; they match R, so results can be checked there:
 
 * compare_averages, 2 groups: two-sample t-test power, R power.t.test() (type = "two.sample").
   Effect size: Cohen's d, the difference in standard deviations (or difference= / spread=).
-  It uses the usual equal-spread formula; simplydata's compare_averages uses Welch's
+  It uses the usual equal-spread formula; simplydata's compare_averages_of uses Welch's
   t-test, which gives almost the same power when the groups are the same size.
 * compare_averages, 3 or more groups: one-way ANOVA power for groups of the same size,
   R pwr::pwr.anova.test(). Effect size: Cohen's f, the spread (standard deviation) of the
   group averages divided by the spread within the groups. Again the equal-spread formula,
   close to Welch's ANOVA when the groups are the same size.
-* compare_before_after: paired t-test power, R power.t.test(type = "paired"). Effect size:
+* compare_before_and_after: paired t-test power, R power.t.test(type = "paired"). Effect size:
   Cohen's d_z, the average change divided by the standard deviation of the changes.
 * compare_average_to: one-sample t-test power, R power.t.test(type = "one.sample").
 * compare_counts: chi-square test power, R pwr::pwr.chisq.test(), with Cohen's w. groups=3
@@ -23,7 +23,7 @@ R pwr::pwr.r.test through simplydata[r]; they match R, so results can be checked
   3 groups and an outcome with 4 kinds: (3 - 1) x (4 - 1) = 6 degrees of freedom.
   values_per_group times the number of groups is R's N. The formula has no Yates
   correction, so for 2 x 2 tables it is a little hopeful compared with compare_counts.
-* correlation_between: R pwr::pwr.r.test(), Fisher's arctanh approximation. Effect: r.
+* find_correlation_between: R pwr::pwr.r.test(), Fisher's arctanh approximation. Effect: r.
 
 As in R power.t.test(), a two-sided t-test counts only the chance of finding the difference
 in the right direction (strict = FALSE); the other direction adds almost nothing. With
@@ -45,6 +45,9 @@ from ._errors import SimplydataError, choice_error, friendly
 
 TESTS = ("compare_averages", "compare_before_after", "compare_average_to", "compare_counts",
          "correlation_between")
+# test= may also name the table word as it is written now (2026-11-16 talking rewrite)
+TEST_WORDS = {"compare_averages_of": "compare_averages", "compare_before_and_after": "compare_before_after",
+              "compare_counts_of": "compare_counts", "find_correlation_between": "correlation_between"}
 # Cohen's (1988) rough sizes: small, medium, large
 COHEN = {"d": (0.2, 0.5, 0.8), "f": (0.1, 0.25, 0.4), "w": (0.1, 0.3, 0.5), "r": (0.1, 0.3, 0.5)}
 EFFECT_NAMES = {"d": "Cohen's d", "f": "Cohen's f", "w": "Cohen's w", "r": "correlation r"}
@@ -92,6 +95,8 @@ def _cohen_words(kind: str, size: float) -> str:
 
 def _plan(step, test, effect_size, difference, spread, significance, groups, sides):
     """Check the inputs and describe the calculation: power(n) for n values per group, and the words."""
+    if isinstance(test, str):
+        test = TEST_WORDS.get(test, test)
     if not isinstance(test, str) or test not in TESTS:
         raise choice_error(step, "test", test, TESTS)
     if isinstance(sides, bool) or sides not in (1, 2):
@@ -263,11 +268,11 @@ def _plan(step, test, effect_size, difference, spread, significance, groups, sid
 
     notes = []
     if test == "compare_averages":
-        notes.append("Note: the calculation uses the usual equal-spread formula; compare_averages uses Welch's "
+        notes.append("Note: the calculation uses the usual equal-spread formula; table.compare_averages_of uses Welch's "
                      f"{'t-test' if k == 2 else 'ANOVA'}, which is very close to it when the groups are "
                      "the same size.")
     if kind == "w" and df == 1:
-        notes.append("Note: the formula has no Yates correction, so for a 2 x 2 table compare_counts is a "
+        notes.append("Note: the formula has no Yates correction, so for a 2 x 2 table table.compare_counts_of is a "
                      "little less likely to find the difference than this says.")
     notes.append(_cohen_words(kind, effect))
 
@@ -372,7 +377,7 @@ def _no_ranks(step, based_on):
 
 
 def _interval_width_needed(step, width, spread, significance):
-    """how_many_needed(interval_width=, spread=): R presize::prec_mean (Python has none)."""
+    """find_how_many_needed(interval_width=, spread=): R presize::prec_mean (Python has none)."""
     width = _number(step, "interval_width", width, "interval_width=4")
     if spread is None:
         raise SimplydataError(f"{step}() with interval_width= needs spread= (the standard deviation you expect), "
@@ -404,12 +409,12 @@ def _result(row: dict):
 
 
 @friendly
-def how_many_needed(test="compare_averages", effect_size=None, difference=None, spread=None, power=0.8,
-                    significance=0.05, groups=2, sides=2, percents=None, same_within=None, interval_width=None,
-                    based_on="averages"):
+def find_how_many_needed(test="compare_averages", effect_size=None, difference=None, spread=None, power=0.8,
+                         significance=0.05, groups=2, sides=2, percents=None, same_within=None, interval_width=None,
+                         based_on="averages"):
     """How many values (in each group) does a study need to find a real difference?
 
-    sdata.how_many_needed(effect_size=0.5)       (two groups, a medium difference: 64 in each)
+    sdata.find_how_many_needed(effect_size=0.5)       (two groups, a medium difference: 64 in each)
     test= is the simplydata test the study will use: "compare_averages" (2 groups: t-test;
     groups=3 or more: ANOVA with Cohen's f), "compare_before_after" (paired, Cohen's d of the
     changes), "compare_average_to" (one sample), "compare_counts" (chi-square with Cohen's w;
@@ -423,14 +428,14 @@ def how_many_needed(test="compare_averages", effect_size=None, difference=None, 
     statsmodels (correlations: R pwr.r.test through simplydata[r]). The number is rounded
     UP to a whole number; the exact value is in the result. Gives back a one-row table.
     test="compare_counts", percents=[30, 15]: two groups compared on a yes/no outcome, with the
-    percents you expect (R power.prop.test(), run through simplydata[r]; chance_to_find gives
+    percents you expect (R power.prop.test(), run through simplydata[r]; find_chance_of_finding gives
     the same power from statsmodels power_proportions_2indep).
     same_within=5, spread=10 (difference=0 by default): the number needed to show the groups are
     the same within 5 with two one-sided tests (R TOSTER::power_t_TOST()).
     interval_width=4, spread=10: the number needed for a 95 % interval of an average that is 4
     wide from end to end (R presize::prec_mean()).
     """
-    step = "how_many_needed"
+    step = "find_how_many_needed"
     _no_ranks(step, based_on)
     target = _number(step, "power", power, "power=0.8")
     if not 0 < target < 1:
@@ -495,14 +500,14 @@ def how_many_needed(test="compare_averages", effect_size=None, difference=None, 
 
 
 @friendly
-def chance_to_find(test="compare_averages", effect_size=None, difference=None, spread=None,
-                   values_per_group=None, significance=0.05, groups=2, sides=2, percents=None, same_within=None,
-                   based_on="averages"):
+def find_chance_of_finding(test="compare_averages", effect_size=None, difference=None, spread=None,
+                           values_per_group=None, significance=0.05, groups=2, sides=2, percents=None, same_within=None,
+                           based_on="averages"):
     """What chance does a study have to find a real difference of a given size (its power)?
 
-    sdata.chance_to_find(effect_size=0.5, values_per_group=30)   (two groups of 30: about 48 %)
-    The same options as how_many_needed(), with values_per_group= instead of power=: the
-    number in each group (pairs for compare_before_after and correlation_between; all the
+    sdata.find_chance_of_finding(effect_size=0.5, values_per_group=30)   (two groups of 30: about 48 %)
+    The same options as find_how_many_needed(), with values_per_group= instead of power=: the
+    number in each group (pairs for compare_before_and_after and find_correlation_between; all the
     values for compare_average_to). The t-tests use the usual equal-spread formula (R
     power.t.test()), very close to Welch's t-test when the groups are the same size; the
     others match R pwr. Gives back a one-row table.
@@ -511,7 +516,7 @@ def chance_to_find(test="compare_averages", effect_size=None, difference=None, s
     the chance that two one-sided tests show the groups are the same within 5 (R
     TOSTER::power_t_TOST()).
     """
-    step = "chance_to_find"
+    step = "find_chance_of_finding"
     _no_ranks(step, based_on)
     if values_per_group is None:
         raise SimplydataError(f"{step}() needs values_per_group=, the number of values in each group, "
@@ -548,7 +553,7 @@ def chance_to_find(test="compare_averages", effect_size=None, difference=None, s
     print(f"With {plan['amount'](n)}, a study has {_a(shown)} {shown} chance (power = {_num(chance)}) to find "
           f"{plan['effect_words']}, using {plan['test_words']}. Method: {plan['method']}.")
     if chance < 0.8:
-        print("Note: this is below the usual 80 %; how_many_needed() tells you how many values you need.")
+        print("Note: this is below the usual 80 %; find_how_many_needed() tells you how many values you need.")
     for note in plan["notes"]:
         print(note)
     row = dict(plan["row"])

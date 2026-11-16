@@ -1,10 +1,10 @@
-"""Table words for time series: table.autocorrelation_of(...), table.check_steady(...),
-table.add_trend_and_season(...), table.trend_of(...) and correlation_between(..., rows_back=).
+"""Table words for time series: table.find_autocorrelation_of(...), table.check_steady_over_time(...),
+table.add_trend_and_season(...), table.find_trend_of(...) and find_correlation_between(..., rows_back=).
 
-autocorrelation_of: statsmodels acf / pacf / acovf and acorr_ljungbox with R's options (see
+find_autocorrelation_of: statsmodels acf / pacf / acovf and acorr_ljungbox with R's options (see
 simplydata._time_series).
 
-check_steady runs R's own tests through rpy2 (simplydata[r]): the augmented Dickey-Fuller test as R
+check_steady_over_time runs R's own tests through rpy2 (simplydata[r]): the augmented Dickey-Fuller test as R
 tseries::adf.test(x) (a constant and a straight-line trend in the test regression, trunc((n - 1)^(1/3))
 rows back) and the KPSS test as R tseries::kpss.test(x, null = "Level" or "Trend"), with p-values read
 from the published tables exactly as tseries does (outside the tables tseries gives the edge value,
@@ -25,7 +25,7 @@ from .._time_axis import need_filled, need_regular, series_of
 from .stat_tests import _p_sentence, _p_shown
 from .. import _time_series
 
-EXAMPLE = 'table.check_steady("signal", sorted_by="time")'
+EXAMPLE = 'table.check_steady_over_time("signal", sorted_by="time")'
 AROUND = {"level": "Level", "straight line": "Trend"}
 TESTS = ("both", "adf", "kpss")
 TEST_ALIASES = {"augmented dickey-fuller": "adf", "dickey-fuller": "adf", "adf.test": "adf", "kpss.test": "kpss"}
@@ -52,12 +52,12 @@ def _p_bounded(p, flag) -> str:
 
 
 class TimeSeriesWords:
-    @friendly
-    def autocorrelation_of(self, column=None, sorted_by=None, rows_back=None, show="correlation",
-                           band="white noise", for_each=None):
+    @friendly(renamed={"for_each": "for_each_group_in"})
+    def find_autocorrelation_of(self, column=None, sorted_by=None, rows_back=None, show="correlation",
+                                band="white noise", for_each_group_in=None):
         """How much a column is like itself some rows back (autocorrelation), with a noise band.
 
-        table.autocorrelation_of("signal", sorted_by="time", rows_back=40)   (with sdata.example("sensor"))
+        table.find_autocorrelation_of("signal", sorted_by="time", rows_back=40)   (with sdata.get_example("sensor"))
         The correlation of the column with itself 1, 2, ... rows_back= rows back (default as R:
         10 x log10 of the number of readings). A pattern that repeats every 12 rows shows as a high
         correlation 12 rows back. show="correlation" (R acf), "partial" (R pacf: each rows back with
@@ -67,11 +67,11 @@ class TimeSeriesWords:
         must be evenly spaced (sorted_by=) and filled in. Numbers come from statsmodels with R's
         options. Gives back one row per rows back.
         """
-        step_name = "autocorrelation_of"
-        example = 'table.autocorrelation_of("signal", sorted_by="time")'
+        step_name = "find_autocorrelation_of"
+        example = 'table.find_autocorrelation_of("signal", sorted_by="time")'
         self._need_name(step_name, "the column", column, example)
-        series = series_of(self, column, sorted_by, for_each, step_name, example)
-        groups = self._group_columns(step_name, for_each, [column]) if for_each is not None else []
+        series = series_of(self, column, sorted_by, for_each_group_in, step_name, example)
+        groups = self._group_columns(step_name, for_each_group_in, [column]) if for_each_group_in is not None else []
         rows, method = [], None
         for one in series:
             need_filled(one, column, step_name, sorted_by)
@@ -92,11 +92,11 @@ class TimeSeriesWords:
         data = {key: [r[key] for r in rows] for key in rows[0]}
         return self._new_table(nw.from_dict(data, backend=self._frame.implementation))
 
-    @friendly
-    def check_steady(self, column=None, sorted_by=None, around="level", method="both", for_each=None):
+    @friendly(renamed={"for_each": "for_each_group_in"})
+    def check_steady_over_time(self, column=None, sorted_by=None, around="level", method="both", for_each_group_in=None):
         """Does a column stay steady over time, or does it wander? (ADF and KPSS tests, as R tseries)
 
-        table.check_steady("signal", sorted_by="time")   (with sdata.example("sensor"))
+        table.check_steady_over_time("signal", sorted_by="time")   (with sdata.get_example("sensor"))
         "Steady" (stationary) means the column keeps the same average and spread over time: it goes
         up and down around one level (around="level") or around one straight line (around="straight
         line"). Two tests that start from opposite assumptions run together (method="both"; "adf" or
@@ -105,15 +105,15 @@ class TimeSeriesWords:
         R's own (tseries::adf.test, tseries::kpss.test), run through rpy2: needs simplydata[r] and R.
         The readings must be evenly spaced (sorted_by=) and filled in. Gives back one row per test.
         """
-        step_name = "check_steady"
+        step_name = "check_steady_over_time"
         self._need_name(step_name, "the column", column, EXAMPLE)
         if around not in AROUND:
             raise choice_error(step_name, "around", around, list(AROUND))
         test = TEST_ALIASES.get(method.strip().lower(), method.strip().lower()) if isinstance(method, str) else method
         if test not in TESTS:
             raise choice_error(step_name, "method", method, list(TESTS))
-        series = series_of(self, column, sorted_by, for_each, step_name, EXAMPLE)
-        groups = self._group_columns(step_name, for_each, [column]) if for_each is not None else []
+        series = series_of(self, column, sorted_by, for_each_group_in, step_name, EXAMPLE)
+        groups = self._group_columns(step_name, for_each_group_in, [column]) if for_each_group_in is not None else []
         from .._r import r_call
 
         rows = []
@@ -146,7 +146,7 @@ class TimeSeriesWords:
                 else:
                     reading = "the tests disagree"
                     print(f"The two tests disagree about {what} ({adf_text}, {kpss_text}), a common sign of a "
-                          "series close to the edge; look at chart.lines(...) before deciding.")
+                          "series close to the edge; look at chart.draw_lines(...) before deciding.")
             elif test == "adf":
                 reading = "steady" if adf_steady else "could easily wander"
                 print(f"{what} {'looks steady' if adf_steady else 'may wander: the ADF test cannot show it is steady'}"
@@ -174,13 +174,13 @@ class TimeSeriesWords:
         return self._new_table(nw.from_dict(data, backend=self._frame.implementation))
 
     # ------------------------------------------------------------------ trend and season
-    @friendly
+    @friendly(renamed={"for_each": "for_each_group_in"})
     def add_trend_and_season(self, column=None, sorted_by=None, repeats_every=None, method="loess", season="added",
-                             season_window=7, robust=False, for_each=None, names=None):
+                             season_window=7, robust=False, for_each_group_in=None, names=None):
         """Split a column into a trend, a season that repeats, and the rest, as three new columns.
 
-        table.add_trend_and_season("visitors", sorted_by="month", repeats_every="year", for_each="museum")
-        (with sdata.example("visitors")). Adds visitors_trend, visitors_season and visitors_rest (names=
+        table.add_trend_and_season("visitors", sorted_by="month", repeats_every="year", for_each_group_in="museum")
+        (with sdata.get_example("visitors")). Adds visitors_trend, visitors_season and visitors_rest (names=
         gives three other names); trend + season + rest = the column (season "added"). repeats_every= is
         the number of readings in one cycle (12, or "year" for monthly readings). method="loess" (the
         default, R stl(): statsmodels STL with R's settings; season_window= odd number of cycles, at least
@@ -208,7 +208,7 @@ class TimeSeriesWords:
         taken = [n for n in names if n in self._columns]
         if taken:
             raise SimplydataError(f'"{taken[0]}" is already a column; give other names with names=[...].')
-        series = series_of(self, column, sorted_by, for_each, step_name, example)
+        series = series_of(self, column, sorted_by, for_each_group_in, step_name, example)
         n_rows = len(self._frame)
         filled = {name: np.full(n_rows, np.nan) for name in names}
         how = call = None
@@ -240,12 +240,12 @@ class TimeSeriesWords:
                              backend=base.implementation) for name in names]
         return self._change(f'add trend and season of "{column}"', base.with_columns(*new))
 
-    # ------------------------------------------------------------------ trend_of
-    @friendly
-    def trend_of(self, column=None, sorted_by=None, repeats_every=None, for_each=None):
+    # ------------------------------------------------------------------ find_trend_of
+    @friendly(renamed={"for_each": "for_each_group_in"})
+    def find_trend_of(self, column=None, sorted_by=None, repeats_every=None, for_each_group_in=None):
         """Does a column keep rising or falling over time, and by how much? (Mann-Kendall test, Sen's slope)
 
-        table.trend_of("visitors", sorted_by="month", for_each="museum")   (with sdata.example("visitors"))
+        table.find_trend_of("visitors", sorted_by="month", for_each_group_in="museum")   (with sdata.get_example("visitors"))
         Sen's slope is the middle (median) of the slopes between every pair of readings, so a few odd
         readings do not move it, with its 95 % interval (SciPy theilslopes, as R trend::sens.slope): the
         change per reading in table order, per month (quarter, year) for dates one calendar step apart,
@@ -262,11 +262,11 @@ class TimeSeriesWords:
 
         from .. import _trend_season as ts
 
-        step_name = "trend_of"
-        example = 'table.trend_of("visitors", sorted_by="month")'
+        step_name = "find_trend_of"
+        example = 'table.find_trend_of("visitors", sorted_by="month")'
         self._need_name(step_name, "the column", column, example)
-        series = series_of(self, column, sorted_by, for_each, step_name, example)
-        groups = self._group_columns(step_name, for_each, [column]) if for_each is not None else []
+        series = series_of(self, column, sorted_by, for_each_group_in, step_name, example)
+        groups = self._group_columns(step_name, for_each_group_in, [column]) if for_each_group_in is not None else []
         per_year = {"months": 12, "quarters": 4, "days": 365.25}
         rows, missing_note, period = [], None, None
         for one in series:
@@ -342,9 +342,9 @@ class TimeSeriesWords:
         data = {key: [r.get(key, math.nan) for r in rows] for key in keys}
         return self._new_table(nw.from_dict(data, backend=self._frame.implementation))
 
-    # ------------------------------------------------------------------ correlation_between(rows_back=)
+    # ------------------------------------------------------------------ find_correlation_between(rows_back=)
     def _cross_correlation(self, step, names, rows_back, sorted_by):
-        """correlation_between(a, b, rows_back=k): the cross-correlation for shifts -k to k."""
+        """find_correlation_between(a, b, rows_back=k): the cross-correlation for shifts -k to k."""
         from .. import _trend_season as ts
         from .._time_series import read_rows_back
 

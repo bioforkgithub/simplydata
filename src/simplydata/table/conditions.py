@@ -1,6 +1,6 @@
 """One reader for written conditions, used everywhere a condition is written as text.
 
-keep_rows("marks > 50 and class == 'A'"), remove_rows(...) and
+keep_rows_where("marks > 50 and class == 'A'"), remove_rows_where(...) and
 add_group_column(rules={"marks >= 80": "top"}) all read their conditions here, so they
 accept the same things and treat empty cells the same way.
 
@@ -71,7 +71,7 @@ def _count_in(frame, expr) -> int:
 
 
 def _say(value) -> str:
-    """A value written the way steps() shows it."""
+    """A value written the way show_steps() shows it."""
     if isinstance(value, str):
         return f'"{value}"'
     if hasattr(value, "to_pydatetime"):  # pandas Timestamp
@@ -117,7 +117,7 @@ CONDITION_HELP = (
     "  is empty                marks is empty, marks is not empty\n"
     "  sums                    marks / hours > 10   (+ - * / ** and round, abs, sqrt, log)\n"
     "An empty cell never meets a condition, and not does not change that: use is empty to find them.\n"
-    "Example: table.keep_rows(\"marks > 50 and class == 'A'\")   (with sdata.example(\"marks\"))\n"
+    "Example: table.keep_rows_where(\"marks > 50 and class == 'A'\")   (with sdata.get_example(\"marks\"))\n"
     "Example: table.add_group_column(\"result\", rules={\"marks >= 60\": \"pass\"}, otherwise=\"fail\")"
 )
 
@@ -153,13 +153,13 @@ class _ConditionReader(_FormulaReader):
 
     read() gives two expressions: where the condition is surely true, and where it is surely
     false. A comparison with an empty cell is neither (three-valued logic, as in SQL), so
-    keep_rows keeps only "surely true" rows and "not" cannot bring empty cells back.
+    keep_rows_where keeps only "surely true" rows and "not" cannot bring empty cells back.
     """
 
-    def __init__(self, text, frame, where="keep_rows() or remove_rows()"):
+    def __init__(self, text, frame, where="keep_rows_where() or remove_rows_where()"):
         super().__init__(text, frame.columns)
         self.frame = frame
-        self.where = where  # named in messages: "keep_rows() or remove_rows()", "rules="
+        self.where = where  # named in messages: "keep_rows_where() or remove_rows_where()", "rules="
         self.in_sum = False
 
     # messages from the formula reader speak of a condition and list what a condition can use
@@ -188,15 +188,15 @@ class _ConditionReader(_FormulaReader):
             raise _condition_error(
                 f"Summary words such as average() cannot be used in {self.where} yet. "
                 "Add them as a column first, then compare with it:\n"
-                '  table.add_column("class_average", "average(marks)", for_each="class")\n'
-                '  table.keep_rows("marks > class_average")'
+                '  table.add_column("class_average", "average(marks)", for_each_group_in="class")\n'
+                '  table.keep_rows_where("marks > class_average")'
             )
         if getattr(self, "specials", None):  # gamma(x) and friends are worked out on a column first
             name = self.specials[0][2]
             raise _condition_error(
                 f"{name}() cannot be used in {self.where} yet. Add it as a column first, then compare with it:\n"
                 f'  table.add_column("new", "{name}(...)")\n'
-                '  table.keep_rows("new > 1")'
+                '  table.keep_rows_where("new > 1")'
             )
         return result
 
@@ -385,7 +385,7 @@ class _ConditionReader(_FormulaReader):
         if sign not in ("==", "!=") and left.kind not in ("number", "date"):
             raise _condition_error(
                 f'{sign} compares numbers or dates, but "{left.label}" is a {left.kind} column. '
-                f"For text use == or !=, or keep_rows(\"{left.label}\", starts_with=\"A\")."
+                f"For text use == or !=, or keep_rows_where(\"{left.label}\", starts_with=\"A\")."
             )
         if right.is_value:
             other, known = self._fit(left, right.literal, sign), left.known
@@ -413,7 +413,7 @@ class _ConditionReader(_FormulaReader):
         if kind == "text":
             if isinstance(value, str):
                 return value
-            hint = (f' If "{label}" holds numbers written as text, first use table.make_numbers("{label}").'
+            hint = (f' If "{label}" holds numbers written as text, first use table.turn_into_numbers("{label}").'
                     if _is_number(value) else "")
             raise _condition_error(f"\"{label}\" is a text column, so put the text in quotes: {label} {sign} '{value}'.{hint}")
         if kind == "true/false":
@@ -433,7 +433,7 @@ class _ConditionReader(_FormulaReader):
                 f"\"{label}\" is a date column, so write the date in quotes as year-month-day: {label} {sign} '2026-03-15'."
             )
         raise _condition_error(
-            f'"{label}" holds a mix of things. Turn it into text first with table.make_text("{label}").'
+            f'"{label}" holds a mix of things. Turn it into text first with table.turn_into_text("{label}").'
         )
 
 

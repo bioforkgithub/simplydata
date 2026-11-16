@@ -1,4 +1,4 @@
-"""Numbers and NumberGrid, and the words that make them: numbers(), number_grid(), random_numbers()."""
+"""Numbers and NumberGrid, and the words that make them: numbers(), number_grid(), make_random_numbers()."""
 
 from __future__ import annotations
 
@@ -31,20 +31,27 @@ class Numbers(PickingWords, MathsWords, SummaryWords, DistributionNumberWords, S
     _name = "nums"
     _noun = "numbers"
     _OLD_WORDS = {**BaseNumbers._OLD_WORDS, "fill_empty": "fill_empty_numbers",
-                  "show_first": "show_first_numbers", "show_last": "show_last_numbers"}
+                  "show_first": "show_first_numbers", "show_last": "show_last_numbers",
+                  "running_total": "turn_into_running_total", "keep_numbers": "keep_each_number_that",
+                  "remove_numbers": "remove_each_number_that", "number_grid": "make_number_grid",
+                  "spectrum_of": "find_spectrum", "autocorrelation_of": "find_autocorrelation",
+                  "keep_frequencies": "keep_each_frequency_that",
+                  "remove_frequencies": "remove_each_frequency_that", "find_peaks": "find_each_peak_that",
+                  "find_dips": "find_each_dip_that", "fourier_transform": "take_fourier_transform",
+                  "envelope": "find_envelope",}
 
     def _as_pandas(self, name="value", for_chart=False):
         import pandas as pd
 
         if not isinstance(name, str) or not name.strip():
-            raise SimplydataError('name= needs a column name in quotes, like nums.table(name="marks").')
+            raise SimplydataError('name= needs a column name in quotes, like nums.turn_into_table(name="marks").')
         return pd.DataFrame({name: self._values})
 
     def _picking_help(self) -> str:
         return (
             "Numbers are picked with words, and positions count from 1:\n"
-            "    nums.number_at(1)              the first number\n"
-            '    nums.number_at("last")         the last number\n'
+            "    nums.get_number_at(1)              the first number\n"
+            '    nums.get_number_at("last")         the last number\n'
             "    nums.keep_first_numbers(3)     keep only the first 3\n"
             "    nums.keep_numbers_by_position(3, to=8)   the numbers at positions 3 to 8\n"
             "Python's [ ] counts from 0, so simplydata does not use it. "
@@ -59,8 +66,8 @@ class Numbers(PickingWords, MathsWords, SummaryWords, DistributionNumberWords, S
 _GRID_KEEP_NUMBERS = (
     "A grid keeps its rows and columns, so it cannot drop single numbers (the rows would end up with "
     "different lengths; that is why NumPy's g[g > 5] gives a flat list).\n"
-    "For the numbers above 5 as a list:  grid.numbers().keep_numbers(above=5)\n"
-    "To change them where they are:      grid.replace_numbers(above=5, with_value=0)\n"
+    "For the numbers above 5 as a list:  grid.get_all_numbers().keep_each_number_that(is_above=5)\n"
+    "To change them where they are:      grid.replace_each_number_that(is_above=5, with_value=0)\n"
     "To keep whole rows or columns:      grid.keep_rows_by_position(1, to=2)"
 )
 
@@ -71,16 +78,19 @@ class NumberGrid(ReplacingWords, GridSummaryWords, MathsWords, BaseNumbers):
     _is_simplydata_grid = True
     _name = "grid"
     _noun = "grid"
-    _OLD_WORDS = {**BaseNumbers._OLD_WORDS, "show_first": "show_first_rows", "show_last": "show_last_rows"}
+    _OLD_WORDS = {**BaseNumbers._OLD_WORDS, "show_first": "show_first_rows", "show_last": "show_last_rows",
+                  "shape": "find_shape", "row": "get_row", "column": "get_column", "numbers": "get_all_numbers",}
     # Names people may try on a grid -> the grid word (they never run).
     _HINTS = {"keep_rows": "keep_rows_by_position", "remove_rows": "remove_rows_by_position",
+              "keep_rows_where": "keep_rows_by_position", "remove_rows_where": "remove_rows_by_position",
               "keep_columns": "keep_columns_by_position", "remove_columns": "remove_columns_by_position",
-              "where": "replace_numbers", "clip": "replace_numbers", "replace": "replace_numbers",
-              "replace_values": "replace_numbers", "putmask": "replace_numbers", "delete": "remove_rows_by_position",
+              "where": "replace_each_number_that", "clip": "replace_each_number_that", "replace": "replace_each_number_that",
+              "replace_values": "replace_each_number_that", "putmask": "replace_each_number_that", "delete": "remove_rows_by_position",
               "take": "keep_rows_by_position", "slice": "keep_rows_by_position",
               "keep_first_rows": "keep_rows_by_position", "keep_last_rows": "keep_rows_by_position"}
     # Words that cannot work on a grid, with the reason and what to write instead.
-    _POINTERS = {"keep_numbers": _GRID_KEEP_NUMBERS, "remove_numbers": _GRID_KEEP_NUMBERS}
+    _POINTERS = {"keep_each_number_that": _GRID_KEEP_NUMBERS, "remove_each_number_that": _GRID_KEEP_NUMBERS,
+                 "keep_numbers": _GRID_KEEP_NUMBERS, "remove_numbers": _GRID_KEEP_NUMBERS}
 
     def _as_pandas(self, name=None, for_chart=False):
         """A table with columns called "1", "2", ...; for charts the rows are numbered from 1 too."""
@@ -95,9 +105,9 @@ class NumberGrid(ReplacingWords, GridSummaryWords, MathsWords, BaseNumbers):
     def _picking_help(self) -> str:
         return (
             "Numbers in a grid are picked with words, and positions count from 1:\n"
-            "    grid.number_at(row=1, column=2)   one number\n"
-            "    grid.row(1)                       the first row, as numbers\n"
-            "    grid.column(2)                    the second column, as numbers\n"
+            "    grid.get_number_at(row=1, column=2)   one number\n"
+            "    grid.get_row(1)                       the first row, as numbers\n"
+            "    grid.get_column(2)                    the second column, as numbers\n"
             "    grid.keep_rows_by_position(2, to=5).keep_columns_by_position(1, to=3)   a block\n"
             "Python's [ ] counts from 0, so simplydata does not use it. "
             "For a NumPy array, use grid.as_numpy()."
@@ -123,8 +133,8 @@ class NumberGrid(ReplacingWords, GridSummaryWords, MathsWords, BaseNumbers):
         return int(self._values.shape[1])
 
     @friendly
-    def shape(self):
-        """How many rows and columns, as (rows, columns). grid.shape()"""
+    def find_shape(self):
+        """How many rows and columns, as (rows, columns). grid.find_shape()"""
         return tuple(int(n) for n in self._values.shape)
 
     @friendly
@@ -144,7 +154,7 @@ class NumberGrid(ReplacingWords, GridSummaryWords, MathsWords, BaseNumbers):
 
     def _position(self, step, value, option):
         n = self._values.shape[0 if option == "row" else 1]
-        example = f"{step}(row=1, column=2)" if step == "number_at" else f"{step}(1)"
+        example = f"{step}(row=1, column=2)" if step == "get_number_at" else f"{step}(1)"
         if isinstance(value, str) and value.strip().lower() == "last" and n:
             return n - 1
         if not isinstance(value, (int, np.integer)) or isinstance(value, bool) or not 1 <= value <= n:
@@ -155,33 +165,33 @@ class NumberGrid(ReplacingWords, GridSummaryWords, MathsWords, BaseNumbers):
         return int(value) - 1
 
     @friendly
-    def number_at(self, row=None, column=None):
-        """The number at a row and column, counting from 1. grid.number_at(row=1, column=2)
+    def get_number_at(self, row=None, column=None):
+        """The number at a row and column, counting from 1. grid.get_number_at(row=1, column=2)
 
-        "last" is the last row or column: grid.number_at(row="last", column="last").
+        "last" is the last row or column: grid.get_number_at(row="last", column="last").
         """
-        return plain(self._values[self._position("number_at", row, "row"),
-                                  self._position("number_at", column, "column")])
+        return plain(self._values[self._position("get_number_at", row, "row"),
+                                  self._position("get_number_at", column, "column")])
 
     @friendly
-    def row(self, position=None):
-        """One row of the grid as new numbers, counting from 1: row(1) is the top row. grid.row(1)
+    def get_row(self, position=None):
+        """One row of the grid as new numbers, counting from 1: get_row(1) is the top row. grid.get_row(1)
 
-        grid.row("last") is the bottom row.
+        grid.get_row("last") is the bottom row.
         """
         return Numbers(self._values[self._position("row", position, "row")].copy())
 
     @friendly
-    def column(self, position=None):
-        """One column of the grid as new numbers, counting from 1: column(1) is the left one. grid.column(1)
+    def get_column(self, position=None):
+        """One column of the grid as new numbers, counting from 1: get_column(1) is the left one. grid.get_column(1)
 
-        grid.column("last") is the right one.
+        grid.get_column("last") is the right one.
         """
         return Numbers(self._values[:, self._position("column", position, "column")].copy())
 
     @friendly
-    def numbers(self):
-        """All the numbers of the grid as a list, row by row (flatten). nums = grid.numbers()"""
+    def get_all_numbers(self):
+        """All the numbers of the grid as a list, row by row (flatten). nums = grid.get_all_numbers()"""
         return Numbers(self._values.ravel().copy())
 
     # ------------------------------------------------------------------ rows and columns by position
@@ -222,7 +232,7 @@ class NumberGrid(ReplacingWords, GridSummaryWords, MathsWords, BaseNumbers):
         if picked.note:
             print(picked.note.format(verb="kept" if keep else "removed"))
         if new.shape[axis] == 1:
-            print(f"One {noun} is left, so this is still a grid; grid.{noun}(1) gives it as numbers.")
+            print(f"One {noun} is left, so this is still a grid; grid.get_{noun}(1) gives it as numbers.")
         verb = "keep" if keep else "remove"
         return self._change(f"{verb} {picked.short_words()}", new)
 
@@ -267,17 +277,17 @@ class NumberGrid(ReplacingWords, GridSummaryWords, MathsWords, BaseNumbers):
         return self._grid_step("remove_columns_by_position", picked, 1, keep=False)
 
     # ------------------------------------------------------------------ changing the grid
-    def replace_numbers(self, *args, **kwargs):
+    def replace_each_number_that(self, *args, **kwargs):
         """Replace a number, or every number that meets one condition; the grid keeps its rows and columns.
 
-        grid.replace_numbers(below=4, with_value=0)
-        The conditions are keep_numbers' (one at a time): above, below, at_least, at_most, equal_to,
-        not_equal_to, between, one_of, is_empty; with_value=None makes the numbers empty.
+        grid.replace_each_number_that(is_below=4, with_value=0)
+        The conditions are those of keep_each_number_that (one at a time): is_above, is_below,
+        is_at_least, is_at_most, is_equal_to, is_not_equal_to, is_between, is_one_of, is_empty; with_value=None makes the numbers empty.
         As NumPy np.where(g < 4, 0, g) or g[g < 4] = 0.
         """
-        return ReplacingWords.replace_numbers(self, *args, **kwargs)
+        return ReplacingWords.replace_each_number_that(self, *args, **kwargs)
 
-    replace_numbers.__wrapped__ = ReplacingWords.replace_numbers  # the same options in sdata.help()
+    replace_each_number_that.__wrapped__ = ReplacingWords.replace_each_number_that  # the same options in sdata.help()
 
     @friendly
     def swap_rows_and_columns(self):
@@ -290,15 +300,15 @@ class NumberGrid(ReplacingWords, GridSummaryWords, MathsWords, BaseNumbers):
         return self._change("swap rows and columns", self._values.T.copy())
 
     @friendly
-    def table(self):
-        """Turn the grid into a simplydata table with columns "1", "2", ... grid.table()"""
+    def turn_into_table(self):
+        """Turn the grid into a simplydata table with columns "1", "2", ... grid.turn_into_table()"""
         from ..table import Table
 
         return Table(self._as_pandas())
 
     @friendly
-    def chart(self):
-        """Start a chart from this grid, for example a heatmap. grid.chart().heatmap(numbers=True)"""
+    def start_chart(self):
+        """Start a chart from this grid, for example a heatmap. grid.start_chart().draw_heatmap(with_numbers=True)"""
         from ..chart import chart
 
         return chart(self)
@@ -455,7 +465,7 @@ def number_grid(values=None, rows=None, columns=None, filled_with=0) -> NumberGr
     """
     for option, value in (("rows=", rows), ("columns=", columns)):
         if value is not None:
-            check_whole("number_grid", option, value, _GRID_EXAMPLE, smallest=1)
+            check_whole("make_number_grid", option, value, _GRID_EXAMPLE, smallest=1)
     if values is None:
         if rows is None or columns is None:
             raise SimplydataError(f"sdata.number_grid() needs your numbers, or rows= and columns=.\nFor example:  {_GRID_EXAMPLE}")
@@ -493,22 +503,22 @@ def number_grid(values=None, rows=None, columns=None, filled_with=0) -> NumberGr
     return NumberGrid(arr.reshape(int(rows), int(columns)))
 
 
-@friendly
-def random_numbers(how_many=None, between=None, average=None, standard_deviation=None,
-                   whole_numbers=False, seed=None, rows=None, columns=None):
-    """Make random numbers; give seed= to get the same numbers every time.
+@friendly(renamed={"seed": "with_seed"})
+def make_random_numbers(how_many=None, between=None, average=None, standard_deviation=None,
+                        whole_numbers=False, with_seed=None, rows=None, columns=None):
+    """Make random numbers; give with_seed= to get the same numbers every time.
 
-    sdata.random_numbers(how_many=10, between=[0, 1], seed=1)
+    sdata.make_random_numbers(how_many=10, between=[0, 1], with_seed=1)
         any number from 0 up to 1, each equally likely (a uniform distribution)
-    sdata.random_numbers(how_many=10, between=[1, 6], whole_numbers=True, seed=1)
+    sdata.make_random_numbers(how_many=10, between=[1, 6], whole_numbers=True, with_seed=1)
         whole numbers from 1 to 6, both ends included, like rolling a dice
-    sdata.random_numbers(how_many=100, average=50, standard_deviation=10, seed=1)
+    sdata.make_random_numbers(how_many=100, average=50, standard_deviation=10, with_seed=1)
         numbers that bunch around the average in a bell shape (a normal distribution);
         about 2 in 3 land within one standard deviation of the average
     rows= and columns= in place of how_many= give a grid.
     """
-    example = "sdata.random_numbers(how_many=10, between=[0, 1], seed=1)"
-    seed = check_seed(seed, example)
+    example = "sdata.make_random_numbers(how_many=10, between=[0, 1], with_seed=1)"
+    with_seed = check_seed(with_seed, example)
     if not isinstance(whole_numbers, bool):
         raise SimplydataError(f"whole_numbers= needs True or False (no quotes).\nFor example:  {example}")
     if how_many is not None and (rows is not None or columns is not None):
@@ -523,7 +533,7 @@ def random_numbers(how_many=None, between=None, average=None, standard_deviation
                 check_whole("random_numbers", "columns=", columns, example, smallest=1))
     else:
         raise SimplydataError(
-            "sdata.random_numbers() needs how_many= (or rows= and columns= for a grid).\n"
+            "sdata.make_random_numbers() needs how_many= (or rows= and columns= for a grid).\n"
             f"For example:  {example}"
         )
     bell = average is not None or standard_deviation is not None
@@ -531,11 +541,11 @@ def random_numbers(how_many=None, between=None, average=None, standard_deviation
         raise SimplydataError(
             "Give between=[low, high] for numbers spread evenly, or average= and standard_deviation= for a "
             "bell shape (normal distribution), not both.\n"
-            "For example:  sdata.random_numbers(how_many=100, average=50, standard_deviation=10, seed=1)"
+            "For example:  sdata.make_random_numbers(how_many=100, average=50, standard_deviation=10, with_seed=1)"
         )
-    rng = np.random.default_rng(seed)
+    rng = np.random.default_rng(with_seed)
     if bell:
-        bell_example = "sdata.random_numbers(how_many=100, average=50, standard_deviation=10, seed=1)"
+        bell_example = "sdata.make_random_numbers(how_many=100, average=50, standard_deviation=10, with_seed=1)"
         if not is_number(average) or not is_number(standard_deviation) or standard_deviation < 0:
             raise SimplydataError(
                 "A bell shape needs both average= and standard_deviation= as numbers "

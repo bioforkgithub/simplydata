@@ -9,8 +9,8 @@ from .._errors import friendly
 
 
 class SmoothingNumberWords:
-    @friendly
-    def smooth(self, method="moving average", window=5, ends=None, weights=None, degree=None, newest_weight=None,
+    @friendly(renamed={"degree": "of_degree"})
+    def smooth(self, method="moving average", window=5, ends=None, weights=None, of_degree=None, newest_weight=None,
                width=None, smoothness=None, alpha=None, span=None, half_life=None, com=None):
         """Smooth the numbers: each one becomes a summary of its neighbours, so noise and spikes shrink.
 
@@ -19,7 +19,7 @@ class SmoothingNumberWords:
         window= readings centred on each; weights=[1, 2, 1] for a weighted average; ends= "empty" (as R
         stats::filter), "shorter windows" or "mirror"), "median" (removes single spikes; R runmed() itself,
         ends= "tukey" (R's default), "keep" or "constant"; needs simplydata[r]), "savitzky-golay" (a
-        degree=2 curve fitted in each window; keeps peak heights; R signal::sgolayfilt), "exponential"
+        of_degree=2 curve fitted in each window; keeps peak heights; R signal::sgolayfilt), "exponential"
         (newest_weight=0.3: each value = 0.3 x the reading + 0.7 x the value before; alpha=, span=,
         half_life= or com= instead), "gaussian" (weights from a bell curve with a standard deviation of
         width=2 readings), "lowess" (smoothness= the share of readings in each local fit, 2/3), "spline"
@@ -27,7 +27,7 @@ class SmoothingNumberWords:
         Undo with nums.undo().
         """
         got = _smoothing.smooth(np.asarray(self._values, dtype=float).ravel(), method, window, ends,
-                                step_name="smooth", weights=weights, degree=degree, newest_weight=newest_weight,
+                                step_name="smooth", weights=weights, of_degree=of_degree, newest_weight=newest_weight,
                                 width=width, smoothness=smoothness, alpha=alpha, span=span, half_life=half_life,
                                 com=com)
         print(f"Smoothed the numbers with {got.sentence}.")

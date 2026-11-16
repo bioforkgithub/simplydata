@@ -18,6 +18,7 @@ SPELLINGS = {
     "color": "colour",
     "colors": "colours",
     "gray": "grey",
+    "labeled": "labelled",
 }
 
 
@@ -56,7 +57,7 @@ def missing_word_error(word: str, known) -> MissingWordError:
     guesses = suggest(word, known)
     if guesses:
         lines.append("Did you mean " + " or ".join(f".{g}()" for g in guesses) + "?")
-    lines.append("Type sdata.words() to see every step.")
+    lines.append("Type sdata.show_all_words() to see every step.")
     lines.append(f"Missing something? Ask for it at {ISSUES_URL}")
     return MissingWordError("\n".join(lines))
 
@@ -69,7 +70,7 @@ _TARGET = re.compile(r"(?:sdata|table|chart|nums|grid|dist)\.(\w+)\(")
 
 
 def other_name_target(written: str) -> str:
-    """The word a pointer names: "sdata.find_smallest(...)" -> "find_smallest"."""
+    """The word a pointer names: "sdata.find_where_smallest(...)" -> "find_where_smallest"."""
     found = _TARGET.search(written)
     return found.group(1) if found else written
 
@@ -115,7 +116,7 @@ def missing_sdata_word(name: str, known) -> MissingWordError:
     guesses = suggest(name, [k for k in known if not k[0].isupper() and not k.startswith("_")])
     if guesses:
         lines.append("Did you mean " + " or ".join(f"sdata.{g}()" for g in guesses) + "?")
-    lines.append("Type sdata.words() to see every word.")
+    lines.append("Type sdata.show_all_words() to see every word.")
     lines.append(f"Missing something? Ask for it at {ISSUES_URL}")
     return MissingWordError("\n".join(lines))
 
@@ -142,7 +143,7 @@ def choice_error(step: str, option: str, value, choices) -> SimplydataError:
 # ---------------------------------------------------------------- old names
 # When a word or option gets a better name, the old one keeps working for one release.
 # The first time it is used in a session, one gentle line says what it is called now.
-_NOTED: set[str] = set()
+_NOTED: set = set()
 
 
 def _quoted(name: str) -> str:
@@ -150,10 +151,15 @@ def _quoted(name: str) -> str:
 
 
 def renamed_note(old: str, new: str) -> None:
-    """Print, once per session, that an old word or option now has a new name."""
-    if old in _NOTED:
+    """Print, once per session, that an old word or option now has a new name.
+
+    The note is remembered for the pair (old, new): the same old name can stand for different new
+    words on different objects (table.chart is start_chart, dist.chart is draw_chart), and each
+    of them gets its own note.
+    """
+    if (old, new) in _NOTED:
         return
-    _NOTED.add(old)
+    _NOTED.add((old, new))
     print(f"Note: {_quoted(old)} is now called {_quoted(new)}. "
           "The old name will stop working in a later version.")
 
@@ -170,6 +176,29 @@ def old_word(obj, name: str, old_words: dict):
     shown, attribute = new if isinstance(new, tuple) else (new, new)
     renamed_note(name, shown)
     return getattr(obj, attribute)
+
+
+_CHART_WORDS_NOW = None
+
+
+def public_words(text: str) -> str:
+    """A message with the chart words as they are written now: chart steps keep short inner names
+    (bars, title_top ...), so ".bars(" in a message becomes ".draw_bars(". Old names that are still
+    words of their own are left alone."""
+    global _CHART_WORDS_NOW
+    if _CHART_WORDS_NOW is None:
+        from ._core import BaseChart
+
+        words = set(BaseChart._word_names())
+        from .chart import Chart
+
+        words |= set(Chart._word_names())
+        found = {old: new for old, new in Chart._OLD_WORDS.items()
+                 if isinstance(new, str) and old not in words and new in words}
+        pattern = re.compile(r"(?<![\w])(\.|chart\.|page\.)(%s)\(" % "|".join(sorted(found, key=len, reverse=True)))
+        _CHART_WORDS_NOW = (pattern, found)
+    pattern, found = _CHART_WORDS_NOW
+    return pattern.sub(lambda m: f"{m.group(1)}{found[m.group(2)]}(", text)
 
 
 def other_option_note(other: str, own: str) -> None:
@@ -234,7 +263,15 @@ def friendly(func=None, *, renamed: dict | None = None, others: dict | None = No
             if key not in params and not takes_any:
                 raise option_error(func.__name__, key, params)
             fixed[key] = value
-        return func(*args, **fixed)
+        try:
+            return func(*args, **fixed)
+        except SimplydataError as exc:
+            said = exc.args[0] if exc.args and isinstance(exc.args[0], str) else None
+            if said is not None and "." in said:
+                now = public_words(said)
+                if now != said:
+                    exc.args = (now, *exc.args[1:])
+            raise
 
     wrapper._renamed_options = dict(renamed)
     wrapper._other_options = dict(others)

@@ -1,5 +1,5 @@
 """keep_frequencies / remove_frequencies, find_peaks / find_dips, fourier_transform, envelope, convolution,
-change_time_step, sdata.wave and sdata.window_shape, checked against R.
+change_time_step, sdata.make_wave and sdata.make_window_shape, checked against R.
 
 Reference values: R 4.6.2 with signal 1.8.1, gsignal 0.3.7 and pracma 2.4.6 (ref_partC_filters.R,
 ref_partC_more.R, ref_waves.R in the v0.6 scratch folder): x <- read.csv("sensor.csv")$signal
@@ -14,7 +14,7 @@ from simplydata import SimplydataError
 
 
 def sensor():
-    return sdata.numbers(sdata.example("sensor")["signal"])
+    return sdata.numbers(sdata.get_example("sensor")["signal"])
 
 
 def values(nums):
@@ -23,7 +23,7 @@ def values(nums):
 
 def test_low_pass_both_ways_matches_r_in_the_middle(capsys):
     nums = sensor()
-    nums.keep_frequencies(below=10, time_step=0.005)
+    nums.keep_each_frequency_that(is_below=10, time_step=0.005)
     # R: signal::filtfilt(signal::butter(4, 10 / 100), x)[c(300, 500)]
     assert values(nums)[[299, 499]] == pytest.approx([0.472444558628213, 0.360961693964092], rel=1e-8)
     out = capsys.readouterr().out
@@ -33,7 +33,7 @@ def test_low_pass_both_ways_matches_r_in_the_middle(capsys):
 
 def test_low_pass_one_way_matches_r_exactly():
     nums = sensor()
-    nums.keep_frequencies(below=10, time_step=0.005, both_ways=False)
+    nums.keep_each_frequency_that(is_below=10, time_step=0.005, both_ways=False)
     # R: signal::filter(signal::butter(4, 10 / 100), x)[c(1, 2, 500)]
     assert values(nums)[[0, 1, 499]] == pytest.approx([-9.910895072833e-05, -0.000434960360571508, 1.1659453665398],
                                                       rel=1e-9)
@@ -60,7 +60,7 @@ def test_filter_coefficients_match_r():
 
 def test_band_stop_and_notch():
     nums = sensor()
-    nums.remove_frequencies(between=[45, 55], time_step=0.005, steepness=2)
+    nums.remove_each_frequency_that(is_between=[45, 55], time_step=0.005, steepness=2)
     # R: signal::filtfilt(signal::butter(2, c(45, 55) / 100, type = "stop"), x)[500]
     assert values(nums)[499] == pytest.approx(0.701235162036394, rel=1e-8)
     from simplydata import _filters
@@ -74,23 +74,23 @@ def test_band_stop_and_notch():
 def test_fir_is_not_offered_yet():
     # SciPy firwin and R signal::fir1(100, 0.1) give different weights (R's add up to 1.0015): owner to decide
     with pytest.raises(SimplydataError, match="not ready"):
-        sensor().keep_frequencies(below=10, time_step=0.005, method="fir")
+        sensor().keep_each_frequency_that(is_below=10, time_step=0.005, method="fir")
 
 
 def test_filter_errors():
     nums = sensor()
     with pytest.raises(SimplydataError, match="exactly one of"):
-        nums.keep_frequencies(below=5, above=1, time_step=0.005)
+        nums.keep_each_frequency_that(is_below=5, is_above=1, time_step=0.005)
     with pytest.raises(SimplydataError, match="the highest frequency"):
-        nums.keep_frequencies(below=150, time_step=0.005)
+        nums.keep_each_frequency_that(is_below=150, time_step=0.005)
     with pytest.raises(SimplydataError, match="method"):
-        nums.keep_frequencies(below=5, time_step=0.005, method="kalman")
+        nums.keep_each_frequency_that(is_below=5, time_step=0.005, method="kalman")
     with pytest.raises(SimplydataError, match="lower first"):
-        nums.keep_frequencies(between=[5, 1], time_step=0.005)
+        nums.keep_each_frequency_that(is_between=[5, 1], time_step=0.005)
 
 
 def test_peaks_match_r_pracma(capsys):
-    result = sensor().find_peaks(at_least=1, apart=10)
+    result = sensor().find_each_peak_that(is_at_least=1, apart=10)
     # R: pk <- pracma::findpeaks(x, minpeakheight = 1, minpeakdistance = 10); nrow(pk) = 41; first positions
     frame = result._frame.to_pandas()
     assert len(frame) == 41
@@ -103,24 +103,24 @@ def test_peaks_match_r_pracma(capsys):
 
 def test_dips_match_r_pracma():
     # R: nrow(pracma::findpeaks(-x, minpeakheight = 1, minpeakdistance = 10)) = 24
-    assert len(sensor().find_dips(at_most=-1, apart=10)._frame) == 24
+    assert len(sensor().find_each_dip_that(is_at_most=-1, apart=10)._frame) == 24
 
 
 def test_fourier_and_back():
-    nums = sdata.numbers(sdata.example("sensor")["signal"][:8])
-    table = nums.fourier_transform(show="all")
+    nums = sdata.numbers(sdata.get_example("sensor")["signal"][:8])
+    table = nums.take_fourier_transform(show="all")
     frame = table._frame.to_pandas()
     # R: f <- fft(x[1:8]); Mod(f)[1:5]; Arg(f)[2] * 180 / pi
     assert frame["size"].tolist()[:5] == pytest.approx([4.3293, 1.82513172796631, 0.175694763723908,
                                                         0.985125390785714, 1.5627], rel=1e-12)
     assert frame["phase"].iloc[1] == pytest.approx(179.55464931432, rel=1e-12)
-    back = sdata.inverse_fourier_transform(table)
+    back = sdata.find_inverse_fourier_transform(table)
     assert values(back)[:2] == pytest.approx([-0.2379, 0.6642], rel=1e-12)  # R: Re(fft(f, inverse = TRUE) / 8)
 
 
 def test_envelope_matches_r():
     nums = sensor()
-    nums.envelope()
+    nums.find_envelope()
     assert values(nums)[[0, 499]] == pytest.approx([0.954709332626447, 0.453261712062559], rel=1e-10)  # gsignal::hilbert
 
 
@@ -146,13 +146,13 @@ def test_change_time_step():
 
 
 def test_waves_and_windows_match_r():
-    nums = sdata.wave("square", frequency=5, time_step=0.01, how_many=10)
+    nums = sdata.make_wave("square", frequency=5, time_step=0.01, how_many=10)
     assert values(nums) == pytest.approx([1] * 10)  # R: gsignal::square(2 * pi * 5 * t), t <- (0:9) * 0.01
-    nums = sdata.wave("sawtooth", frequency=5, time_step=0.01, how_many=10)
+    nums = sdata.make_wave("sawtooth", frequency=5, time_step=0.01, how_many=10)
     assert values(nums)[:4] == pytest.approx([-1, -0.9, -0.8, -0.7])  # R: gsignal::sawtooth(...)
     assert nums._time_step == 0.01
-    assert values(sdata.window_shape("hann", how_many=5)) == pytest.approx([0, 0.5, 1, 0.5, 0])  # gsignal::hann(5)
-    assert values(sdata.window_shape("hamming", how_many=5)) == pytest.approx([0.08, 0.54, 1, 0.54, 0.08])
+    assert values(sdata.make_window_shape("hann", how_many=5)) == pytest.approx([0, 0.5, 1, 0.5, 0])  # gsignal::hann(5)
+    assert values(sdata.make_window_shape("hamming", how_many=5)) == pytest.approx([0.08, 0.54, 1, 0.54, 0.08])
 
 
 def test_table_filter_and_peaks(capsys):
@@ -161,12 +161,12 @@ def test_table_filter_and_peaks(capsys):
     from simplydata.table import table as make_table
 
     for engine in ("pandas", "polars"):
-        data = sdata.example("sensor")
+        data = sdata.get_example("sensor")
         t = make_table(data) if engine == "pandas" else make_table(pytest.importorskip("polars").from_pandas(data))
         t.add_filtered_column("slow", from_column="signal", keep_below=10, sorted_by="time")
         # R: signal::filtfilt(signal::butter(4, 10 / 100), x)[500] (time steps of 0.005 s)
         assert np.asarray(t._frame["slow"].to_numpy(), dtype=float)[499] == pytest.approx(0.360961693964092, rel=1e-8)
-        peaks = t.find_peaks("signal", sorted_by="time", at_least=1, apart=0.05)
+        peaks = t.find_each_peak_that("signal", sorted_by="time", is_at_least=1, apart=0.05)
         frame = peaks._frame.to_pandas() if hasattr(peaks._frame, "to_pandas") else peaks._frame
         # R: pracma::findpeaks(x, minpeakheight = 1, minpeakdistance = 10): 41 peaks, the first at reading 4
         assert len(frame) == 41 and frame["position"].iloc[0] == 4
@@ -195,7 +195,7 @@ def test_wav_reading_matches_r_tuner(capsys):
 
 
 def test_wav_round_trip(tmp_path, capsys):
-    nums = sdata.wave("sine", frequency=440, time_step=1 / 8000, how_many=800)
+    nums = sdata.make_wave("sine", frequency=440, time_step=1 / 8000, how_many=800)
     nums.save(str(tmp_path / "tone.wav"))
     back = sdata.numbers(str(tmp_path / "tone.wav"))
     assert values(back) == pytest.approx(values(nums), abs=1e-7) and back._time_step == 1 / 8000
@@ -210,7 +210,7 @@ def test_wav_round_trip(tmp_path, capsys):
 def test_add_envelope_column_matches_r(engine, capsys):
     from simplydata.table import table as make_table
 
-    data = sdata.example("sensor")
+    data = sdata.get_example("sensor")
     t = make_table(data) if engine == "pandas" else make_table(pytest.importorskip("polars").from_pandas(data))
     t.add_envelope_column("size", from_column="signal", sorted_by="time")
     t.add_envelope_column("turn", from_column="signal", show="frequency", sorted_by="time")
@@ -238,9 +238,9 @@ def test_add_envelope_column_matches_r(engine, capsys):
 def test_add_envelope_column_for_each():
     import pandas as pd
 
-    data = sdata.example("sensor").assign(half=["first"] * 500 + ["second"] * 500)
+    data = sdata.get_example("sensor").assign(half=["first"] * 500 + ["second"] * 500)
     t = sdata.table(data)
-    t.add_envelope_column("size", from_column="signal", sorted_by="time", for_each="half")
+    t.add_envelope_column("size", from_column="signal", sorted_by="time", for_each_group_in="half")
     size = t._frame["size"].to_numpy()
     # R: Mod(gsignal::hilbert(x[1:500]))[c(1, 500)], Mod(gsignal::hilbert(x[501:1000]))[c(1, 500)]
     assert size[[0, 499, 500, 999]] == pytest.approx(
@@ -275,7 +275,7 @@ def test_show_filter_shows_the_chart_and_the_line_that_saves_it(monkeypatch, tmp
     nums = sensor()
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
-        nums.keep_frequencies(below=10, time_step=0.005, show_filter=True)
+        nums.keep_each_frequency_that(is_below=10, time_step=0.005, show_filter=True)
     out = capsys.readouterr().out
     line = 'To save this chart: sdata.frequency_filter(keep_below=10, time_step=0.005).chart().save("filter.png")'
     assert line in out and shown
@@ -286,19 +286,19 @@ def test_show_filter_shows_the_chart_and_the_line_that_saves_it(monkeypatch, tmp
         warnings.simplefilter("ignore")
         sdata.frequency_filter(keep_below=10, time_step=0.005).chart().save(str(tmp_path / "filter.png"))
     assert (tmp_path / "filter.png").exists()
-    t = sdata.table(sdata.example("sensor"))
+    t = sdata.table(sdata.get_example("sensor"))
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
         t.add_filtered_column("hum", from_column="signal", remove_at=50, sorted_by="time", show_filter=True)
-        sensor().remove_frequencies(below=2, time_step=0.005, method="chebyshev", show_filter=True)
+        sensor().remove_each_frequency_that(is_below=2, time_step=0.005, method="chebyshev", show_filter=True)
     out = capsys.readouterr().out
     assert "sdata.frequency_filter(remove_at=50, time_step=0.005).chart()" in out
     assert 'sdata.frequency_filter(keep_above=2, time_step=0.005, method="chebyshev").chart()' in out
     with pytest.raises(SimplydataError, match=r"show_filter= is True .* or False\. To save the chart: "
                                               r"sdata\.frequency_filter\(keep_below=10"):
-        sensor().keep_frequencies(below=10, time_step=0.005, show_filter="filter.png")
+        sensor().keep_each_frequency_that(is_below=10, time_step=0.005, show_filter="filter.png")
     with pytest.raises(SimplydataError, match="show_filter="):
-        sensor().keep_frequencies(below=10, time_step=0.005, show_filter=3)
+        sensor().keep_each_frequency_that(is_below=10, time_step=0.005, show_filter=3)
 
 
 def _write_pcm(path, width, whole_numbers):
@@ -351,7 +351,7 @@ def test_wav_16_bit_round_trip_keeps_every_value(tmp_path, capsys):
 
 
 def test_undo_after_change_time_step_brings_the_time_step_back(capsys):
-    nums = sdata.wave("sine", frequency=5, time_step=0.01, how_many=100)
+    nums = sdata.make_wave("sine", frequency=5, time_step=0.01, how_many=100)
     nums.change_time_step(to=0.02)
     assert nums._time_step == 0.02 and len(values(nums)) == 50
     nums.undo()
@@ -363,12 +363,12 @@ def test_undo_after_change_time_step_brings_the_time_step_back(capsys):
 
 
 def test_change_time_step_remembers_the_step_it_gives(capsys):
-    nums = sdata.wave("sine", frequency=5, time_step=0.01, how_many=101)
+    nums = sdata.make_wave("sine", frequency=5, time_step=0.01, how_many=101)
     capsys.readouterr()
     nums.change_time_step(to=0.03)  # 101 readings cannot become exactly 0.03 apart: 34 fill the same time
     assert len(values(nums)) == 34 and nums._time_step == pytest.approx(0.01 * 101 / 34, rel=1e-12)
     assert "The time step is 0.0297059, not exactly 0.03" in capsys.readouterr().out
-    nums = sdata.wave("sine", frequency=5, time_step=0.01, how_many=100)
+    nums = sdata.make_wave("sine", frequency=5, time_step=0.01, how_many=100)
     nums.change_time_step(to=0.02)
     assert nums._time_step == 0.02 and "not exactly" not in capsys.readouterr().out
 
@@ -377,7 +377,7 @@ def test_bessel_matches_r_gsignal_with_the_prewarped_cutoff(capsys):
     from scipy import signal
 
     nums = sensor()
-    nums.keep_frequencies(below=10, time_step=0.005, method="bessel")
+    nums.keep_each_frequency_that(is_below=10, time_step=0.005, method="bessel")
     # R: z <- gsignal::as.Arma(gsignal::bilinear(gsignal::besself(4, 2 * 200 * tan(pi * 10 / 200)), T = 1 / 200))
     #    signal::filtfilt(z, x)[c(300, 500)]
     assert values(nums)[[299, 499]] == pytest.approx([0.365463543645377, 0.330800987305200], rel=1e-10)
@@ -390,7 +390,7 @@ def test_bessel_matches_r_gsignal_with_the_prewarped_cutoff(capsys):
     assert a == pytest.approx([1, -1.4502103303751783, 0.9699838065630142, -0.3045315433134006, 0.0383944842064527],
                               rel=1e-10)
     nums = sensor()
-    nums.keep_frequencies(between=[10, 30], time_step=0.005, method="bessel", steepness=2)
+    nums.keep_each_frequency_that(is_between=[10, 30], time_step=0.005, method="bessel", steepness=2)
     # R: signal::filtfilt(gsignal::as.Arma(gsignal::bilinear(gsignal::besself(2, 2 * 200 * tan(pi * c(10, 30) / 200),
     #    type = "pass"), T = 1 / 200)), x)[c(300, 500)]
     assert values(nums)[[299, 499]] == pytest.approx([-0.263351352212425, 0.114621142699148], rel=1e-10)
@@ -403,6 +403,6 @@ def test_peaks_wide_at_least_needs_even_times():
 
     t = make_table(pd.DataFrame({"t": [0, 1, 2, 3, 5, 6, 7, 8.0], "x": [0, 1, 0, 2, 0, 3, 0, 1.0]}))
     with pytest.raises(SimplydataError, match="evenly spaced"):
-        t.find_peaks("x", sorted_by="t", wide_at_least=1)
+        t.find_each_peak_that("x", sorted_by="t", wide_at_least=1)
     with pytest.raises(SimplydataError, match="evenly spaced"):
-        t.find_dips("x", sorted_by="t", wide_at_least=1)
+        t.find_each_dip_that("x", sorted_by="t", wide_at_least=1)

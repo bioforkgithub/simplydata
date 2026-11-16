@@ -1,7 +1,7 @@
 """The heart of simplydata numbers: a list of numbers, or a grid of them.
 
 Numbers live in a NumPy array. Every step that changes them goes through self._change(...),
-which remembers the numbers as they were before. That gives undo(), steps() and
+which remembers the numbers as they were before. That gives undo(), show_steps() and
 start_again() for free, exactly like tables.
 
 Two ways to do maths, on purpose:
@@ -16,7 +16,7 @@ Rules shared by every word (the same as tables):
 * an "empty" value is NaN (missing). Summaries skip empty values and say how many.
 * a calculation with no answer (dividing by 0, the square root of a negative number,
   the log of 0) gives an empty value and a short note, never a crash or "inf".
-* positions count from 1, like people do and like charts do (chart.lines([3, 5, 2])
+* positions count from 1, like people do and like charts do (chart.draw_lines([3, 5, 2])
   puts the first number at x = 1). Python's [ ] (which counts from 0) is not used.
 """
 
@@ -33,12 +33,12 @@ HISTORY_LIMIT = 30  # how many steps undo() can take back
 
 # Words people may know from NumPy, pandas or tables -> the simplydata word.
 HINTS = {
-    "mean": "average", "avg": "average", "sum": "total", "min": "smallest", "max": "biggest",
-    "minimum": "smallest", "maximum": "biggest", "std": "standard_deviation", "sd": "standard_deviation",
-    "sqrt": "square_root", "abs": "absolute_value", "round": "round_to", "cumsum": "running_total",
-    "multiply": "times", "divide": "divide_by", "plus": "add", "minus": "subtract", "pow": "power",
-    "quantile": "percentile", "size": "count", "len": "count", "count_rows": "count",
-    "keep_rows": "keep_numbers", "remove_rows": "remove_numbers", "filter": "keep_numbers",
+    "mean": "find_average", "avg": "find_average", "sum": "find_total", "min": "find_smallest", "max": "find_biggest",
+    "minimum": "find_smallest", "maximum": "find_biggest", "std": "find_standard_deviation", "sd": "find_standard_deviation",
+    "sqrt": "take_square_root", "abs": "take_absolute_value", "round": "round_to", "cumsum": "turn_into_running_total",
+    "multiply": "times", "divide": "divide_by", "plus": "add", "minus": "subtract", "pow": "raise_to_power",
+    "quantile": "find_percentile", "size": "count", "len": "count", "count_rows": "count",
+    "keep_rows": "keep_each_number_that", "remove_rows": "remove_each_number_that", "filter": "keep_each_number_that",
     "keep_first_rows": "keep_first_numbers", "keep_last_rows": "keep_last_numbers",
     "keep_random_rows": "keep_random_numbers", "remove_empty_rows": "remove_empty_numbers",
     "remove_rows_with_empty_cells": "remove_empty_numbers", "count_empty_cells": "count_empty_numbers",
@@ -47,18 +47,22 @@ HINTS = {
     "remove_empty": "remove_empty_numbers", "dropna": "remove_empty_numbers",
     "remove_duplicate_rows": "remove_duplicate_numbers", "unique": "remove_duplicate_numbers",
     "sort_by": "sort", "sorted": "sort", "reversed": "reverse", "fillna": "fill_empty_numbers",
-    "transpose": "swap_rows_and_columns", "T": "swap_rows_and_columns", "flatten": "numbers",
-    "ravel": "numbers", "reshape": "number_grid", "grid": "number_grid", "to_numpy": "as_numpy",
-    "numpy": "as_numpy", "array": "as_numpy", "get": "number_at", "at": "number_at", "item": "number_at",
+    "transpose": "swap_rows_and_columns", "T": "swap_rows_and_columns", "flatten": "get_all_numbers",
+    "ravel": "get_all_numbers", "reshape": "make_number_grid", "grid": "make_number_grid", "to_numpy": "as_numpy",
+    "numpy": "as_numpy", "array": "as_numpy", "get": "get_number_at", "at": "get_number_at", "item": "get_number_at",
     "column_names": "count_columns", "count_numbers": "count", "head": "show_first_numbers",
     "tail": "show_last_numbers",
-    "print": "show", "sqrt_": "square_root", "log10": "log", "log2": "log", "ln": "log",
+    "print": "show", "sqrt_": "take_square_root", "log10": "take_log", "log2": "take_log", "ln": "take_log",
     "take": "keep_numbers_by_position", "slice": "keep_numbers_by_position",
     "keep_numbers_at": "keep_numbers_by_position", "keep_positions": "keep_numbers_by_position",
     "remove_positions": "remove_numbers_by_position", "delete": "remove_numbers_by_position",
-    "replace": "replace_numbers", "replace_values": "replace_numbers", "where": "replace_numbers",
-    "clip": "replace_numbers", "putmask": "replace_numbers", "place": "replace_numbers", "mask": "replace_numbers",
+    "replace": "replace_each_number_that", "replace_values": "replace_each_number_that", "where": "replace_each_number_that",
+    "clip": "replace_each_number_that", "putmask": "replace_each_number_that", "place": "replace_each_number_that", "mask": "replace_each_number_that",
     "keep_rows_by_position": "keep_numbers_by_position", "remove_rows_by_position": "remove_numbers_by_position",
+    # the table words as they are written now
+    "keep_rows_where": "keep_each_number_that", "remove_rows_where": "remove_each_number_that",
+    "remove_rows_with_empty_cells_in": "remove_empty_numbers", "count_empty_cells_in": "count_empty_numbers",
+    "fill_empty_cells_in": "fill_empty_numbers", "get_column_names": "count_columns", "find_average_of": "find_average",
 }
 
 
@@ -254,7 +258,14 @@ class BaseNumbers:
     _name = "nums"  # the name used in examples
     _noun = "numbers"
     # Old names that still work for one release (with a note the first time): old -> new.
-    _OLD_WORDS = {"count_empty": "count_empty_numbers", "done": "as_numpy"}
+    _OLD_WORDS = {"count_empty": "count_empty_numbers", "done": "as_numpy",
+                  "number_at": "get_number_at", "power": "raise_to_power", "square_root": "take_square_root",
+                  "absolute_value": "take_absolute_value", "log": "take_log", "exp": "take_exp",
+                  "replace_numbers": "replace_each_number_that", "average": "find_average",
+                  "median": "find_median", "total": "find_total", "smallest": "find_smallest",
+                  "biggest": "find_biggest", "standard_deviation": "find_standard_deviation",
+                  "percentile": "find_percentile", "table": "turn_into_table", "chart": "start_chart",
+                  "steps": "show_steps",}
     _HINTS: dict = {}  # extra names -> words for one kind (grids), looked at before HINTS
     _POINTERS: dict = {}  # names that cannot work here -> the whole explanation
 
@@ -364,8 +375,8 @@ class BaseNumbers:
         return self
 
     @friendly
-    def steps(self):
-        """List every step you did, in order. nums.steps()"""
+    def show_steps(self):
+        """List every step you did, in order. nums.show_steps()"""
         if not self._history:
             print("No steps yet.")
         else:
@@ -406,15 +417,15 @@ class BaseNumbers:
         return self._values.copy()
 
     @friendly
-    def table(self, name="value"):
-        """Turn the numbers into a simplydata table. nums.table(name="marks")"""
+    def turn_into_table(self, name="value"):
+        """Turn the numbers into a simplydata table. nums.turn_into_table(name="marks")"""
         from ..table import Table
 
         return Table(self._as_pandas(name=name))
 
     @friendly
-    def chart(self):
-        """Start a chart from these numbers. chart = nums.chart()"""
+    def start_chart(self):
+        """Start a chart from these numbers. chart = nums.start_chart()"""
         from ..chart import chart
 
         return chart(self)
@@ -434,7 +445,7 @@ class BaseNumbers:
             return self
         if time_step is not None or bits != 32:
             raise SimplydataError("time_step= and bits= go with a .wav file, such as nums.save(\"tone.wav\", time_step=1/44100).")
-        self.table().save(file_name)
+        self.turn_into_table().save(file_name)
         return self
 
     def _save_wav(self, file_name, time_step, bits):
@@ -504,7 +515,7 @@ class BaseNumbers:
     def __matmul__(self, other):
         raise SimplydataError(
             "Matrix multiplication (@) is planned for a later version of simplydata (v0.7, with "
-            "matrices and linear algebra).\nFor now use done() to get a NumPy array: "
+            "matrices and linear algebra).\nFor now use as_numpy() to get a NumPy array: "
             f"{self._name}.as_numpy() @ other.as_numpy()"
         )
 
@@ -615,7 +626,7 @@ def check_whole(step: str, option: str, value, example: str, smallest: int = 0) 
 def check_seed(seed, example: str):
     if seed is not None and (not isinstance(seed, _nb.Integral) or isinstance(seed, (bool, np.bool_)) or seed < 0):
         raise SimplydataError(
-            "seed= needs a whole number, like seed=1. The same seed gives the same random numbers again."
+            "with_seed= needs a whole number, like with_seed=1. The same seed gives the same random numbers again."
             f"\nFor example:  {example}"
         )
     return None if seed is None else int(seed)

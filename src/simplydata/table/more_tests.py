@@ -4,19 +4,19 @@ Like stat_tests.py, these words never change the table: they print the answer in
 the test used and why, and give back a one-row result table. Every number comes from SciPy,
 statsmodels or R (through simplydata[r]); simplydata only checks the input and words the answer.
 
-* compare_matched("week_0", "week_4", "week_8"): the same rows measured three or more times.
+* compare_matched_columns("week_0", "week_4", "week_8"): the same rows measured three or more times.
   Numbers: the Friedman test (R friedman.test(), SciPy friedmanchisquare), with Kendall's W from
   R effectsize::kendalls_w (its interval is a bootstrap interval, R seed 1); test="quade": the
   Quade test, run in R (stats::quade.test(); Python has none). Yes/no columns: Cochran's Q
   (statsmodels cochrans_q, as R DescTools::CochranQTest()). The kind of column decides, and the
-  sentence says so. With two columns it is compare_before_after (one door, printed).
-* compare_shapes("marks", for_each="class"): do the groups differ in their whole shape (where
+  sentence says so. With two columns it is compare_before_and_after (one door, printed).
+* compare_shapes_of("marks", for_each_group_in="class"): do the groups differ in their whole shape (where
   the values lie and how they spread), not only in their average? Two groups: the two-sample
   Kolmogorov-Smirnov test (SciPy ks_2samp, exact as R ks.test(); with tied values R's exact
   p-value, which SciPy does not give, comes from R). Three or more: the Anderson-Darling
   k-sample test (SciPy anderson_ksamp, the midrank version for ties, as R kSamples::ad.test()
-  version 2), with a p-value from shuffling the group labels (shuffles=9999, seed=1).
-* check_random_order("marks"): the runs test. Each value is above or below the median; a
+  version 2), with a p-value from shuffling the group labels (shuffles=9999, with_seed=1).
+* check_if_random_order("marks"): the runs test. Each value is above or below the median; a
   random order gives a usual number of runs (unbroken stretches on one side). Values equal to
   the median are left out, as R randtests::runs.test() does (printed); then statsmodels
   runstest_1samp(correction=False) gives R's numbers.
@@ -38,7 +38,7 @@ from .summaries import _p_sentence, _say_label
 MATCHED_TESTS = ("friedman", "quade", "cochran", "page")
 MATCHED_ALIASES = {"cochran's q": "cochran", "cochran q": "cochran", "cochrans q": "cochran",
                    "friedman test": "friedman", "quade test": "quade"}
-SHUFFLES = 9999  # compare_shapes, 3 or more groups: the group labels are shuffled this often
+SHUFFLES = 9999  # compare_shapes_of, 3 or more groups: the group labels are shuffled this often
 
 
 def _yes_no(column, values):
@@ -60,7 +60,7 @@ def _shares(values, at):
 
 
 class MoreTestWords:
-    # ------------------------------------------------------------------ compare_matched
+    # ------------------------------------------------------------------ compare_matched_columns
     def _matched_columns(self, step, columns, example):
         names = []
         for value in columns:
@@ -76,10 +76,10 @@ class MoreTestWords:
         return names
 
     @friendly
-    def compare_matched(self, *columns, based_on="ranks", test=None):
+    def compare_matched_columns(self, *columns, based_on="ranks", test=None):
         """Do three or more measurements of the same rows differ, such as pain at week 0, 4 and 8?
 
-        table.compare_matched("Maths", "Science", "English")   (one column per measurement)
+        table.compare_matched_columns("Maths", "Science", "English")   (one column per measurement)
         Each row is one person (or plant, or field) measured in every column. The kind of
         column decides the test, and the sentence says which:
         numbers: the Friedman test (R friedman.test(), SciPy friedmanchisquare), which compares
@@ -92,12 +92,12 @@ class MoreTestWords:
         the other way round.)
         yes/no columns (two values, such as "yes"/"no" or True/False): Cochran's Q test
         (statsmodels cochrans_q, as R DescTools::CochranQTest()).
-        With two columns it gives compare_before_after (Wilcoxon signed-rank). Rows with an
+        With two columns it gives compare_before_and_after (Wilcoxon signed-rank). Rows with an
         empty cell in any of the columns are skipped. based_on="averages" (the repeated-measures
         ANOVA) is not here yet. Gives back a one-row table.
         """
-        step = "compare_matched"
-        example = 'table.compare_matched("week_0", "week_4", "week_8")'
+        step = "compare_matched_columns"
+        example = 'table.compare_matched_columns("week_0", "week_4", "week_8")'
         names = self._matched_columns(step, columns, example)
         if based_on == "averages":
             raise SimplydataError(f"{step}() compares ranks for now (the Friedman test); the repeated-measures "
@@ -108,9 +108,9 @@ class MoreTestWords:
         if test is not None:
             self._check_choice(step, "test", test, MATCHED_TESTS)
         if len(names) == 2:
-            print(f'Note: with two columns, {step}() is compare_before_after("{names[0]}", "{names[1]}"), the '
+            print(f'Note: with two columns, {step}() is compare_before_and_after("{names[0]}", "{names[1]}"), the '
                   "test for one measurement before and one after.")
-            return self.compare_before_after(names[0], names[1], based_on="ranks")
+            return self.compare_before_and_after(names[0], names[1], based_on="ranks")
         if len(names) < 2:
             raise SimplydataError(f"{step}() needs at least 2 columns (3 or more for a test of matched measurements).\n"
                                   f"For example, {example}")
@@ -248,31 +248,31 @@ class MoreTestWords:
               f"(counted as yes: {yes_words}); as R DescTools::CochranQTest().")
         return self._result_table(row)
 
-    # ------------------------------------------------------------------ compare_shapes
-    @friendly
-    def compare_shapes(self, column=None, for_each=None, shuffles=SHUFFLES, seed=1):
+    # ------------------------------------------------------------------ compare_shapes_of
+    @friendly(renamed={"for_each": "for_each_group_in", "seed": "with_seed"})
+    def compare_shapes_of(self, column=None, for_each_group_in=None, shuffles=SHUFFLES, with_seed=1):
         """Do the groups differ in the whole shape of their values, not only in the average?
 
-        table.compare_shapes("marks", for_each="class")   (with sdata.example("marks"))
+        table.compare_shapes_of("marks", for_each_group_in="class")   (with sdata.get_example("marks"))
         Two groups: the two-sample Kolmogorov-Smirnov test, which looks for the biggest gap
         between the groups' cumulative shares (the share of values at or below each value);
         SciPy ks_2samp, exact as R ks.test(). With tied values R gives an exact p-value that
         SciPy does not, so that p-value comes from R (simplydata[r]).
         Three or more groups: the Anderson-Darling k-sample test (SciPy anderson_ksamp, the
         midrank version for ties, as R kSamples::ad.test() version 2), with its p-value from
-        shuffling the group labels shuffles=9999 times (seed=1, printed; the same seed gives the
+        shuffling the group labels shuffles=9999 times (with_seed=1, printed; the same seed gives the
         same p-value). Empty cells are skipped. Gives back a one-row table.
         """
-        step = "compare_shapes"
-        example = 'table.compare_shapes("marks", for_each="class")'
-        if isinstance(seed, bool) or not isinstance(seed, (int, np.integer)):
-            raise SimplydataError("seed= needs a whole number, such as seed=1 (the same seed gives the same p-value).")
+        step = "compare_shapes_of"
+        example = 'table.compare_shapes_of("marks", for_each_group_in="class")'
+        if isinstance(with_seed, bool) or not isinstance(with_seed, (int, np.integer)):
+            raise SimplydataError("with_seed= needs a whole number, such as with_seed=1 (the same seed gives the same p-value).")
         if isinstance(shuffles, bool) or not isinstance(shuffles, (int, np.integer)) or shuffles < 99:
             raise SimplydataError("shuffles= needs a whole number of 99 or more, such as shuffles=9999.")
-        groups = self._groups(step, column, for_each, example)
+        groups = self._groups(step, column, for_each_group_in, example)
         if len(groups) == 2:
-            return self._ks_two(column, for_each, groups)
-        return self._ad_many(column, for_each, groups, int(shuffles), int(seed))
+            return self._ks_two(column, for_each_group_in, groups)
+        return self._ad_many(column, for_each_group_in, groups, int(shuffles), int(with_seed))
 
     def _ks_two(self, column, for_each, groups):
         from scipy import stats
@@ -334,25 +334,25 @@ class MoreTestWords:
               f"the group labels {shuffles} times (seed {seed}); the same seed gives the same p-value.")
         return self._result_table(row)
 
-    # ------------------------------------------------------------------ check_random_order
+    # ------------------------------------------------------------------ check_if_random_order
     @friendly
-    def check_random_order(self, column=None, sorted_by=None):
+    def check_if_random_order(self, column=None, sorted_by=None):
         """Do the values come in a random order, or in clumps or waves?
 
-        table.check_random_order("marks")   (the rows in table order)
-        table.check_random_order("weight", sorted_by="date")
+        table.check_if_random_order("marks")   (the rows in table order)
+        table.check_if_random_order("weight", sorted_by="date")
         The runs test: each value is above or below the median, and a run is an unbroken
         stretch on one side. Too few runs means values clump together (a trend or waves); too
         many means they flip back and forth. Values equal to the median are left out, as R
         randtests::runs.test() does (printed). statsmodels runstest_1samp(correction=False),
         the same numbers as R. Empty cells are skipped. Gives back a one-row table.
         """
-        step = "check_random_order"
-        example = 'table.check_random_order("marks")'
+        step = "check_if_random_order"
+        example = 'table.check_if_random_order("marks")'
         self._need_name(step, "the column", column, example)
         frame = self._number_frame(step, [column])
         if sorted_by is not None:
-            self._need_name(step, "sorted_by=", sorted_by, f'table.check_random_order("{column}", '
+            self._need_name(step, "sorted_by=", sorted_by, f'table.check_if_random_order("{column}", '
                                                             'sorted_by="date")')
             self._need_columns(sorted_by)
             if sorted_by == column:

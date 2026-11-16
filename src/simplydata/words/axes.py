@@ -134,7 +134,7 @@ def _ticks(ctx, axis, values, labels):
 
 
 # ---------------------------------------------------------------- ticks every / how many
-# ticks_x(every="month") and friends: the matplotlib date locator for each time unit
+# put_ticks_x(every="month") and friends: the matplotlib date locator for each time unit
 TIME_UNITS = {"year": "years", "month": "months", "week": "weeks", "day": "days", "hour": "hours",
               "minute": "minutes"}
 _TOO_MANY_TICKS = 500
@@ -292,7 +292,7 @@ def _tick_format(ctx, axis_name, style, decimals, out_of, date_code):
         if not dates:
             raise SimplydataError(
                 f'.{step}("{style}") writes dates, but the {axis_name}-axis shows numbers or groups, not dates.\n'
-                f'Use .{step}("percent"), .{step}("thousands") or .{step}(decimals=1) for numbers.')
+                f'Use .{step}("percent"), .{step}("thousands") or .{step}(with_decimals=1) for numbers.')
         axis.set_major_formatter(DateFormatter(date_code))
         return
     if dates:
@@ -312,7 +312,7 @@ def _tick_format(ctx, axis_name, style, decimals, out_of, date_code):
     elif style == "plain" and decimals is None:
         formatter = ticker.ScalarFormatter(useOffset=False)
         formatter.set_scientific(False)
-    else:  # "thousands", "plain" with decimals, or decimals= alone
+    else:  # "thousands", "plain" with decimals, or with_decimals= alone
         comma = "," if style == "thousands" else ""
         places = decimals if decimals is not None else 0
         formatter = ticker.StrMethodFormatter("{x:" + comma + "." + str(places) + "f}")
@@ -381,13 +381,13 @@ def _draw_second_y(ctx, y, drawn_as, label, colour):
     last = ctx.last
     if last is None or last.get("x") is None:
         raise SimplydataError(
-            ".second_y() adds a second y-axis to a chart, so it needs a chart to sit on.\n"
-            'Draw one first, for example:\n  chart.lines(x="month", y="temperature")\n'
-            '  chart.second_y("rain", drawn_as="bars", label="Rain (mm)")'
+            ".add_second_y() adds a second y-axis to a chart, so it needs a chart to sit on.\n"
+            'Draw one first, for example:\n  chart.draw_lines(x="month", y="temperature")\n'
+            '  chart.add_second_y("rain", drawn_as="bars", labelled="Rain (mm)")'
         )
     if last.get("sideways"):
         raise SimplydataError(
-            ".second_y() cannot be used with sideways bars, because they have no y numbers to share.\n"
+            ".add_second_y() cannot be used with sideways bars, because they have no y numbers to share.\n"
             "Remove sideways=True, or draw the second column as its own chart."
         )
     ax = ctx.ax
@@ -397,7 +397,7 @@ def _draw_second_y(ctx, y, drawn_as, label, colour):
         values = list(y)
         if len(values) != len(table):
             raise SimplydataError(
-                f".second_y() got {len(values)} values, but the chart under it has {len(table)}.\n"
+                f".add_second_y() got {len(values)} values, but the chart under it has {len(table)}.\n"
                 "Give one value for each row."
             )
         order = last.get("row_order")
@@ -424,7 +424,7 @@ def _draw_second_y(ctx, y, drawn_as, label, colour):
             missing = [g for g in grouped.index if g not in names]
             if missing:
                 raise SimplydataError(
-                    f'.second_y() could not find "{missing[0]}" on the x-axis of the chart under it.')
+                    f'.add_second_y() could not find "{missing[0]}" on the x-axis of the chart under it.')
             pos = np.array([ticks[names.index(g)] for g in grouped.index], dtype=float)
         else:
             pos = np.arange(len(grouped), dtype=float)
@@ -435,7 +435,7 @@ def _draw_second_y(ctx, y, drawn_as, label, colour):
         px, py = xs.to_numpy(), table[ycol].to_numpy()
         width = None
     else:
-        grouped = table.groupby(x, sort=True)[ycol].mean()  # one value per x, like .lines()
+        grouped = table.groupby(x, sort=True)[ycol].mean()  # one value per x, like .draw_lines()
         px, py = grouped.index.to_numpy(), grouped.to_numpy()
         gaps = np.diff(np.unique(px)) if len(px) > 1 else np.array([])
         width = 0.8 * (gaps.min() if len(gaps) else 1)
@@ -509,7 +509,7 @@ def _points_in_axes(ax):
 
 
 def _emptiest_corner(axes):
-    """matplotlib's loc="best" only sees one axes; this looks at both sides of a second_y chart."""
+    """matplotlib's loc="best" only sees one axes; this looks at both sides of a add_second_y chart."""
     pts = np.concatenate([_points_in_axes(a) for a in axes])
     boxes = {
         "upper left": (0, 0.7, 0.4, 1), "upper right": (0.6, 0.7, 1, 1), "upper center": (0.3, 0.7, 0.7, 1),
@@ -555,18 +555,18 @@ class AxesWords:
         return self._replace(step, "axes", _range, axis=axis, low=low, high=high)
 
     @friendly
-    def range_x(self, low=None, high=None):
-        """From where to where the x-axis goes. chart.range_x(0, 10)
+    def set_range_x(self, low=None, high=None):
+        """From where to where the x-axis goes. chart.set_range_x(0, 10)
 
-        Use None to fix only one end: chart.range_x(0, None) starts at 0 and lets the top choose itself.
+        Use None to fix only one end: chart.set_range_x(0, None) starts at 0 and lets the top choose itself.
         """
         return self._range_word("x", low, high)
 
     @friendly
-    def range_y(self, low=None, high=None):
-        """From where to where the y-axis goes. chart.range_y(0, 100)
+    def set_range_y(self, low=None, high=None):
+        """From where to where the y-axis goes. chart.set_range_y(0, 100)
 
-        Use None to fix only one end: chart.range_y(None, 100) stops at 100.
+        Use None to fix only one end: chart.set_range_y(None, 100) stops at 100.
         """
         return self._range_word("y", low, high)
 
@@ -586,13 +586,13 @@ class AxesWords:
         return self._replace(f"log_scale_{axis}_check", "axes", _check_log, axis=axis)
 
     @friendly
-    def log_scale_x(self):
-        """A log scale on the x-axis: 1, 10, 100, 1000 are evenly spaced. chart.log_scale_x()"""
+    def use_log_scale_x(self):
+        """A log scale on the x-axis: 1, 10, 100, 1000 are evenly spaced. chart.use_log_scale_x()"""
         return self._log_word("x")
 
     @friendly
-    def log_scale_y(self):
-        """A log scale on the y-axis: 1, 10, 100, 1000 are evenly spaced. chart.log_scale_y()"""
+    def use_log_scale_y(self):
+        """A log scale on the y-axis: 1, 10, 100, 1000 are evenly spaced. chart.use_log_scale_y()"""
         return self._log_word("y")
 
     # -------------------------------------------------------------- ticks
@@ -619,7 +619,7 @@ class AxesWords:
                     f"how_many= in .{step}() should be a whole number from 2 to 50, such as how_many=5, "
                     f"not {how_many!r}.")
             parsed = parse_every(step, every) if every is not None else None
-            self._steps = [s for s in self._steps if s.name != step]  # replaces ticks_x(0, 10, 20)
+            self._steps = [s for s in self._steps if s.name != step]  # replaces put_ticks_x(0, 10, 20)
             return self._replace(f"{step}_spacing", "axes", _tick_spacing, axis_name=axis, every=parsed,
                                  how_many=None if how_many is None else int(how_many), whole_numbers=whole_numbers)
         if not values:
@@ -645,8 +645,8 @@ class AxesWords:
         return self._replace(step, "axes", _ticks, axis=axis, values=list(values), labels=labels)
 
     @friendly
-    def ticks_x(self, *values, labels=None, every=None, how_many=None, whole_numbers=False):
-        """Where the marks on the x-axis go. chart.ticks_x(1, 4, 7, 10)
+    def put_ticks_x(self, *values, labels=None, every=None, how_many=None, whole_numbers=False):
+        """Where the marks on the x-axis go. chart.put_ticks_x(1, 4, 7, 10)
 
         labels=["Jan", "Apr", "Jul", "Oct"] writes your own words at those places.
         every=5 puts a tick every 5 units; for dates every="month" (or "year", "week",
@@ -656,8 +656,8 @@ class AxesWords:
         return self._ticks_word("x", values, labels, every, how_many, whole_numbers)
 
     @friendly
-    def ticks_y(self, *values, labels=None, every=None, how_many=None, whole_numbers=False):
-        """Where the marks on the y-axis go. chart.ticks_y(0, 50, 100)
+    def put_ticks_y(self, *values, labels=None, every=None, how_many=None, whole_numbers=False):
+        """Where the marks on the y-axis go. chart.put_ticks_y(0, 50, 100)
 
         labels=["low", "mid", "high"] writes your own words at those places.
         every=10 puts a tick every 10 units (every="month" for dates); how_many=5 asks for
@@ -670,12 +670,12 @@ class AxesWords:
         step = f"tick_format_{axis}"
         if style is None and decimals is None:
             raise SimplydataError(
-                f'.{step}() needs a format, for example chart.{step}("percent"), chart.{step}(decimals=1)\n'
+                f'.{step}() needs a format, for example chart.{step}("percent"), chart.{step}(with_decimals=1)\n'
                 f'or, for dates, how a date should look: chart.{step}("Jan 2026").')
         if decimals is not None and (isinstance(decimals, bool) or not isinstance(decimals, (int, np.integer))
                                      or not 0 <= decimals <= 10):
             raise SimplydataError(
-                f"decimals= in .{step}() should be a whole number from 0 to 10, such as decimals=1, not {decimals!r}.")
+                f"with_decimals= in .{step}() should be a whole number from 0 to 10, such as with_decimals=1, not {decimals!r}.")
         if isinstance(out_of, bool) or not isinstance(out_of, numbers.Real) or not out_of > 0:
             raise SimplydataError(
                 f"out_of= in .{step}() should be the number that means 100 %, such as out_of=1 for shares, "
@@ -698,39 +698,39 @@ class AxesWords:
                     if guess:
                         lines.append(f'Did you mean "{guess[0]}"?')
                     lines.append("For numbers: " + ", ".join(f'"{f}"' for f in NUMBER_FORMATS)
-                                 + ", and decimals= for the number of decimals.")
+                                 + ", and with_decimals= for the number of decimals.")
                     lines.append(f"For dates: write how {_DATE_EXAMPLE} should look, such as \"Jan 2026\", "
                                  '"31.01.2026" or "2026-01-31".')
                     raise SimplydataError("\n".join(lines))
                 if decimals is not None:
-                    raise SimplydataError(f".{step}() got a date format, so decimals= has nothing to do. Leave it out.")
+                    raise SimplydataError(f".{step}() got a date format, so with_decimals= has nothing to do. Leave it out.")
             if style == "scientific" and decimals is not None:
                 raise SimplydataError(
-                    f'.{step}("scientific") chooses its own decimals; leave out decimals=.')
+                    f'.{step}("scientific") chooses its own decimals; leave out with_decimals=.')
         return self._replace(step, "axes", _tick_format, axis_name=axis, style=style, decimals=decimals,
                              out_of=out_of, date_code=date_code)
 
-    @friendly
-    def tick_format_x(self, style=None, decimals=None, out_of=100):
-        """How the numbers or dates under the x-axis are written. chart.tick_format_x("thousands")
+    @friendly(renamed={"decimals": "with_decimals"})
+    def write_ticks_x_as(self, style=None, with_decimals=None, out_of=100):
+        """How the numbers or dates under the x-axis are written. chart.write_ticks_x_as("thousands")
 
         "percent" adds a % sign (out_of=1 if your numbers are shares, so 0.25 shows as 25 %);
         "thousands" writes 12,500; "scientific" writes 1.2 × 10⁴; "plain" never uses 1e4.
-        decimals=1 sets the number of decimals.
+        with_decimals=1 sets the number of decimals.
         For dates, write how 31 January 2026 should look: "Jan 2026", "31.01.2026",
         "2026-01-31", "31 Jan" or "13:45" (or a code such as "%d %b").
         """
-        return self._tick_format_word("x", style, decimals, out_of)
+        return self._tick_format_word("x", style, with_decimals, out_of)
 
-    @friendly
-    def tick_format_y(self, style=None, decimals=None, out_of=100):
-        """How the numbers beside the y-axis are written. chart.tick_format_y("percent")
+    @friendly(renamed={"decimals": "with_decimals"})
+    def write_ticks_y_as(self, style=None, with_decimals=None, out_of=100):
+        """How the numbers beside the y-axis are written. chart.write_ticks_y_as("percent")
 
         "percent" adds a % sign (out_of=1 if your numbers are shares, so 0.25 shows as 25 %);
         "thousands" writes 12,500; "scientific" writes 1.2 × 10⁴; "plain" never uses 1e4.
-        decimals=1 sets the number of decimals. Dates work as in tick_format_x.
+        with_decimals=1 sets the number of decimals. Dates work as in write_ticks_x_as.
         """
-        return self._tick_format_word("y", style, decimals, out_of)
+        return self._tick_format_word("y", style, with_decimals, out_of)
 
     # -------------------------------------------------------------- rotate
     def _rotate_word(self, axis, angle):
@@ -739,7 +739,7 @@ class AxesWords:
                 f".rotate_labels_{axis}() needs an angle in degrees, for example chart.rotate_labels_{axis}(45).")
         if not -360 <= angle <= 360:
             raise SimplydataError(f"The angle should be between -360 and 360 degrees, not {angle}. Try 45 or 90.")
-        # "text" phase: runs after ticks_x/ticks_y, so the new tick labels are turned as well
+        # "text" phase: runs after put_ticks_x/put_ticks_y, so the new tick labels are turned as well
         return self._replace(f"rotate_labels_{axis}", "text", _rotate, axis=axis, angle=float(angle))
 
     @friendly
@@ -770,7 +770,7 @@ class AxesWords:
     @friendly
     def order_x(self, *names, biggest_first=None):
         """Put the groups along the x-axis in your order. chart.order_x("C", "B", "A")
-        (with chart.bars(x="class", y="marks") on sdata.example("marks"))
+        (with chart.draw_bars(x="class", y="marks") on sdata.get_example("marks"))
 
         Groups you leave out come after the ones you name. biggest_first=True puts the
         biggest bar (or box, or line point) first, biggest_first=False the smallest; the size
@@ -782,34 +782,34 @@ class AxesWords:
     @friendly
     def order_y(self, *names, biggest_first=None):
         """Put the groups along the y-axis in your order, the first at the top.
-        chart.order_y("C", "B", "A") (with chart.bars(x="class", y="marks", sideways=True)
-        on sdata.example("marks"))
+        chart.order_y("C", "B", "A") (with chart.draw_bars(x="class", y="marks", sideways=True)
+        on sdata.get_example("marks"))
 
         Works like order_x, for sideways bars, sideways boxes and heatmap rows.
         """
         return set_order(self, "y", names, biggest_first)
 
     # -------------------------------------------------------------- second y-axis
-    @friendly(renamed={"chart": "drawn_as"})
-    def second_y(self, y, drawn_as="lines", label=None, colour=None):
+    @friendly(renamed={"chart": "drawn_as", "label": "labelled"})
+    def add_second_y(self, y, drawn_as="lines", labelled=None, colour=None):
         """A second y-axis on the right, for a column measured in other units.
 
-        chart.lines(x="month", y="temperature")
-        chart.second_y("rain", drawn_as="bars", label="Rain (mm)")
-        (with sdata.example("weather"))
+        chart.draw_lines(x="month", y="temperature")
+        chart.add_second_y("rain", drawn_as="bars", labelled="Rain (mm)")
+        (with sdata.get_example("weather"))
 
         drawn_as= can be "lines", "bars" or "dots". It shares the x-axis with the chart before it.
         """
-        self._check_choice("second_y", "drawn_as", drawn_as, SECOND_KINDS)
+        self._check_choice("add_second_y", "drawn_as", drawn_as, SECOND_KINDS)
         if y is None or not (isinstance(y, str) or is_listlike(y)):
             raise SimplydataError(
-                f'.second_y() needs a column name, for example chart.second_y("rain"), not {y!r}.')
+                f'.add_second_y() needs a column name, for example chart.add_second_y("rain"), not {y!r}.')
         if isinstance(y, str):
             check(self._data, y=y)
-        if label is not None:
-            label = str(label)
+        if labelled is not None:
+            labelled = str(labelled)
         if colour is not None and not (isinstance(colour, str) and is_color_like(colour)):
             raise SimplydataError(
-                f'.second_y() needs one colour name for colour=, such as "red" or "green", not {colour!r}.')
-        return self._replace("second_y", "extra", _draw_second_y, y=y, drawn_as=drawn_as, label=label,
+                f'.add_second_y() needs one colour name for colour=, such as "red" or "green", not {colour!r}.')
+        return self._replace("second_y", "extra", _draw_second_y, y=y, drawn_as=drawn_as, label=labelled,
                              colour=colour)

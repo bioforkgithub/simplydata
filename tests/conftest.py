@@ -11,7 +11,7 @@ from simplydata import _errors
 
 @pytest.fixture(autouse=True)
 def progress_in_a_temporary_file(tmp_path, monkeypatch):
-    """sdata.start_30_days() and sdata.today() keep their progress in a temporary file, never in the home folder."""
+    """sdata.start_30_days() and sdata.show_today() keep their progress in a temporary file, never in the home folder."""
     monkeypatch.setenv("SIMPLYDATA_PROGRESS_FILE", str(tmp_path / "simplydata_progress" / "progress.json"))
     yield
 

@@ -10,11 +10,11 @@ simplydata._r.r_call:
 * "arima": R stats::arima(method = "ML") (statsmodels SARIMAX matches the estimates only to about
   2e-5), forecast by forecast::forecast() (the forecast +/- the normal quantile times predict()'s
   standard error);
-* check_on_last= / compare_forecasts: R forecast::accuracy() on the held-back readings (MASE scaled
+* check_on_last= / compare_forecasts_for: R forecast::accuracy() on the held-back readings (MASE scaled
   by the in-sample error of the seasonal naive forecast);
 * the leftover errors: R Box.test(residuals, lag, type = "Ljung-Box", fitdf = number of ARIMA
   estimates), lag as forecast::checkresiduals (2 cycles, or 10, at most a fifth of the readings);
-* find_change_points: R changepoint::cpt.mean (PELT) on the readings divided by
+* find_change_points_in: R changepoint::cpt.mean (PELT) on the readings divided by
   mad(diff(x)) / sqrt(2) (cpt.mean assumes noise with standard deviation 1), or cpt.meanvar. The
   scaling is simplydata's own choice of preprocessing (listed in tests/test_no_own_methods.py): the
   changepoint help and Killick and Eckley (2014, J. Stat. Softw. 58(3)) do not prescribe one.
@@ -249,7 +249,7 @@ def r_change_points(values, change, penalty):
                      penalty=PENALTIES[penalty])
     except SimplydataError as error:
         if "no_noise" in str(error):
-            raise SimplydataError("find_change_points() needs readings that vary from one to the next; here the "
+            raise SimplydataError("find_change_points_in() needs readings that vary from one to the next; here the "
                                   "differences are mostly 0.") from None
         raise
     return {"scale": float(np.asarray(out["scale"]).ravel()[0]),

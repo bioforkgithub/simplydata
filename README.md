@@ -14,21 +14,21 @@ Install: `pip install simplydata`
 ```python
 import simplydata as sdata
 
-table = sdata.table(sdata.example("marks"))   # a made-up table; your own: sdata.table("marks.xlsx")
-table.keep_rows("marks", above=50)
-table.average_of("marks", for_each="class")   # says the answer in a sentence
+table = sdata.table(sdata.get_example("marks"))            # a made-up table; your own: sdata.table("marks.xlsx")
+table.keep_rows_where("marks", is_above=50)
+table.find_average_of("marks", for_each_group_in="class")  # says the answer in a sentence
 table.save("good_marks.xlsx")
 
-chart = table.chart()                   # or sdata.chart(table)
-chart.bars(x="class", y="marks", error="standard error")
-chart.title_top("Good marks in each class")
+chart = table.start_chart()                                # or sdata.chart(table)
+chart.draw_bars(x="class", y="marks", error="standard error")
+chart.write_title_on_top("Good marks in each class")
 chart.label_y("Marks")
 chart.save("marks.png")
 ```
 
 Tables, charts and numbers are separate objects, as in pandas, Polars, NumPy and matplotlib:
 one cleaned table can feed many charts, and charts go side by side with
-`sdata.grid(a, b, letters=True)` (panels A, B, C ... as in papers).
+`sdata.put_in_rows_and_columns(a, b, with_letters=True)` (panels A, B, C ... as in papers).
 
 ## Install
 
@@ -52,7 +52,7 @@ simplydata teaches itself. Open Python and type:
 
 ```python
 import simplydata as sdata
-sdata.lesson(1)
+sdata.show_lesson(1)
 ```
 
 There are twenty-six short lessons. Lessons 1 to 8 teach charts, from your first chart to
@@ -73,12 +73,12 @@ lesson has an example you can run, says what every line does, explains the idea 
 (average or median, standard deviation or standard error, p-values) and ends with a small task
 to try yourself.
 
-- `sdata.lesson()` lists the lessons
-- `sdata.words()` lists every word, with an example (also in [docs/cheatsheet.md](https://github.com/bioforkgithub/simplydata/blob/main/docs/cheatsheet.md))
-- `sdata.help("bars")` explains one word: what it does, its options and an example
-  (table and number words too: `sdata.help("keep_rows")`, `sdata.help("average")`)
-- `sdata.example()` lists the made-up tables to practise with (marks, weather, fruit, growth, sensor, visitors, river, shop, school, meadow, trial, clinic, island; shop has dates and empty cells)
-- `sdata.lesson(3, solutions=True)` adds a worked solution to each "Try it yourself" task
+- `sdata.show_lesson()` lists the lessons
+- `sdata.show_all_words()` lists every word, with an example (also on the first pages of the [dictionary](https://github.com/bioforkgithub/simplydata/blob/main/docs/manual/simplydataDictionary.pdf))
+- `sdata.help("draw_bars")` explains one word: what it does, its options and an example
+  (table and number words too: `sdata.help("keep_rows_where")`, `sdata.help("find_average")`)
+- `sdata.get_example()` lists the made-up tables to practise with (marks, weather, fruit, growth, sensor, visitors, river, shop, school, meadow, trial, clinic, island; shop has dates and empty cells)
+- `sdata.show_lesson(3, solutions=True)` adds a worked solution to each "Try it yourself" task
 
 ## Or learn it in 30 days
 
@@ -86,9 +86,9 @@ Rather learn an hour a day? simplydata has a 30-day course built in:
 
 ```python
 import simplydata as sdata
-sdata.start_30_days()                    # you already write some Python
-sdata.start_30_days(track="beginner")    # you have never programmed: starts with just enough Python
-sdata.today()                            # every day: the day to do next
+sdata.start_30_days()                  # you already write some Python
+sdata.start_30_days(track="beginner")  # you have never programmed: starts with just enough Python
+sdata.show_today()                     # every day: the day to do next
 ```
 
 Each day starts with a 5-minute warm-up of questions on earlier days (answered from memory, which
@@ -97,8 +97,8 @@ to do without looking back. Review days mix the whole course, the last week is a
 own, and day 29 is a final test from memory. The 30 days teach the everyday work (tables, charts,
 summaries, tests, models, fitted curves and everyday time series); the manual is the complete
 reference, and a day points to it for the rest (forecasts, spectra and filters, systems, risks and
-diagnostic tests). Missed a day? `sdata.today()` carries on where you
-stopped. `sdata.answers()` gives the answers, `sdata.day()` the whole calendar, and `sdata.next_day()`
+diagnostic tests). Missed a day? `sdata.show_today()` carries on where you
+stopped. `sdata.show_answers()` gives the answers, `sdata.show_day()` the whole calendar, and `sdata.go_to_next_day()`
 goes on now. Your progress is kept only on your computer, in `~/.simplydata/progress.json`.
 
 **[30 days of simplydata (PDF)](https://github.com/bioforkgithub/simplydata/blob/main/docs/manual/simplydata_30_days.pdf)**
@@ -114,7 +114,7 @@ behind the numbers (average or median, standard deviation or standard error, con
 p-values, effect sizes, and which statistical test to use when), and a worked solution for every
 task.
 
-**[The simplydata dictionary (PDF)](https://github.com/bioforkgithub/simplydata/blob/main/docs/manual/simplydataDictionary.pdf)** lists every word A to Z, with its meaning, an example and the page of the manual that explains it, and turns names from other tools (`groupby`, `iloc`, `hist`, `curve_fit` ...) into simplydata words.
+**[The simplydata dictionary (PDF)](https://github.com/bioforkgithub/simplydata/blob/main/docs/manual/simplydataDictionary.pdf)** opens with every word at a glance, group by group, then lists every word A to Z, with its meaning, an example and the page of the manual that explains it, and turns names from other tools (`groupby`, `iloc`, `hist`, `curve_fit` ...) into simplydata words.
 
 The manual is made from the code by `python docs/make_manual.py` (it needs a LaTeX system with
 `pdflatex`), so it never goes out of date: a test fails if
@@ -126,14 +126,14 @@ with the page numbers of the manual it has just compiled.
 Plain words for looking at data, cleaning it and summing it up, on pandas or Polars:
 
 ```python
-table = sdata.table(sdata.example("marks"))      # or sdata.table("marks.xlsx")
-table.keep_rows("marks", above=50)
+table = sdata.table(sdata.get_example("marks"))                # or sdata.table("marks.xlsx")
+table.keep_rows_where("marks", is_above=50)
 table.sort_by("marks", biggest_first=True)
-table.average_of("marks", for_each="class")  # says the answer in a sentence
-table.compare_averages("marks", for_each="class")   # real difference, or chance?
-table.undo()                               # take the last step back
+table.find_average_of("marks", for_each_group_in="class")      # says the answer in a sentence
+table.compare_averages_of("marks", for_each_group_in="class")  # real difference, or chance?
+table.undo()                                                   # take the last step back
 table.save("good_marks.xlsx")
-chart = table.chart()                      # draw it
+chart = table.start_chart()                                    # draw it
 ```
 
 ## Numbers
@@ -142,12 +142,12 @@ Plain words over NumPy for lists and grids of numbers:
 
 ```python
 nums = sdata.numbers([12, 15, 9, 20, 14])
-bigger = nums * 2                          # symbols make new numbers
-nums.keep_numbers(above=10)                # words change the numbers you have ...
-nums.undo()                                # ... and can be taken back
-nums.average()
+bigger = nums * 2                        # symbols make new numbers
+nums.keep_each_number_that(is_above=10)  # words change the numbers you have ...
+nums.undo()                              # ... and can be taken back
+nums.find_average()
 grid = sdata.number_grid([[3, 5, 2], [8, 6, 4]])
-grid.total(for_each="row")
+grid.find_total(for_each="row")
 ```
 
 ## Choosing parts
@@ -156,15 +156,15 @@ Rows, columns and numbers by their place, counting from 1 the way the printed ro
 with both ends included:
 
 ```python
-table = sdata.table(sdata.example("marks"))
-table.keep_rows_by_position(10, to=20)       # rows 10 to 20 (pandas df.iloc[9:20])
-table.keep_rows_by_position(1, step=2)       # every 2nd row
-table.keep_columns("hours", to="height")     # a run of columns by name
-table.keep_columns(kind="number")            # every number column
-table.cell_at(row=3, column="marks")         # one cell
-table.replace_values("marks", above=90, with_value=90)
-grid = sdata.numbers(1, to=24).number_grid(columns=6)
-grid.keep_rows_by_position(2, to=3).keep_columns_by_position(1, to=3)   # a block
+table = sdata.table(sdata.get_example("marks"))
+table.keep_rows_by_position(10, to=20)                                 # rows 10 to 20 (pandas df.iloc[9:20])
+table.keep_rows_by_position(1, step=2)                                 # every 2nd row
+table.keep_columns("hours", to="height")                               # a run of columns by name
+table.keep_columns(of_kind="number")                                   # every number column
+table.get_cell_at(row=3, column="marks")                               # one cell
+table.replace_values_in("marks", is_above=90, with_value=90)
+grid = sdata.numbers(1, to=24).make_number_grid(columns=6)
+grid.keep_rows_by_position(2, to=3).keep_columns_by_position(1, to=3)  # a block
 ```
 
 ## More statistics
@@ -172,24 +172,24 @@ grid.keep_rows_by_position(2, to=3).keep_columns_by_position(1, to=3)   # a bloc
 Models, patterns across many columns, survival and planning a study, each checked against R:
 
 ```python
-school = sdata.table(sdata.example("school"))
-school.explain("marks", using=["hours", "sleep", "breakfast"])          # multiple regression
-school.explain("passed", using=["hours"], outcome="yes or no")          # logistic regression
-school.explain("marks", using=["hours"], grouped_by="school")           # mixed model
+school = sdata.table(sdata.get_example("school"))
+school.explain("marks", using=["hours", "sleep", "breakfast"])  # multiple regression
+school.explain("passed", using=["hours"], outcome="yes or no")  # logistic regression
+school.explain("marks", using=["hours"], grouped_by="school")   # mixed model
 
-meadow = sdata.table(sdata.example("meadow"))
-meadow.add_principal_components(how_many=2)                             # PCA
-meadow.add_nmds(measure="bray-curtis")                                  # NMDS map
-meadow.compare_profiles(for_each="grazed")                              # PERMANOVA
+meadow = sdata.table(sdata.get_example("meadow"))
+meadow.add_principal_components(how_many=2)                     # PCA
+meadow.add_nmds(measure="bray-curtis")                          # NMDS map
+meadow.compare_profiles_of(for_each_group_in="grazed")          # PERMANOVA
 
-trial = sdata.table(sdata.example("trial"))
-trial.compare_survival(time="days", event="died", for_each="treatment") # log-rank test
-trial.compare_risks("died", for_each="treatment", against="usual care") # risk ratio, NNT
-sdata.how_many_needed(effect_size=0.5)                                  # power analysis
+trial = sdata.table(sdata.get_example("trial"))
+trial.compare_survival(time="days", event="died", for_each_group_in="treatment") # log-rank test
+trial.compare_risks("died", for_each_group_in="treatment", against="usual care") # risk ratio, NNT
+sdata.find_how_many_needed(effect_size=0.5)                     # power analysis
 
-clinic = sdata.table(sdata.example("clinic"))
-clinic.compare_to_truth("rapid_test", truth="infected")                 # sensitivity, specificity
-clinic.compare_to_truth("crp", truth="infected")                        # ROC curve, AUC
+clinic = sdata.table(sdata.get_example("clinic"))
+clinic.compare_to_truth("rapid_test", truth="infected")         # sensitivity, specificity
+clinic.compare_to_truth("crp", truth="infected")                # ROC curve, AUC
 ```
 
 ## Fitting, finding and distributions
@@ -198,22 +198,22 @@ Fit a line, a curve or your own formula; find the best value; solve an equation;
 distribution for chances; estimate values between the points you measured:
 
 ```python
-growth = sdata.table(sdata.example("growth"))
-growth.fit_formula("population = a * exp(b * (year - 2000))", for_each="country")  # as R nls()
-growth.values_at("population", at={"year": [2001, 2011]}, for_each="country")    # as R approx()
+growth = sdata.table(sdata.get_example("growth"))
+growth.fit_formula("population = a * exp(b * (year - 2000))", for_each_group_in="country")  # as R nls()
+growth.values_at("population", at={"year": [2001, 2011]}, for_each_group_in="country")      # as R approx()
 
-sdata.find_smallest("x**2 - 4*x + 1", between=[0, 5])        # -3, at x = 2 (as R optimize())
-sdata.solve("x**3 - 2*x = 5", between=[0, 3])                # x = 2.09455 (as R uniroot())
+sdata.find_where_smallest("x**2 - 4*x + 1", between=[0, 5])                                 # -3, at x = 2 (as R optimize())
+sdata.solve("x**3 - 2*x = 5", between=[0, 3])                                               # x = 2.09455 (as R uniroot())
 
 dist = sdata.distribution("normal", average=50, standard_deviation=10)
-dist.chance(above=80)                                         # 0.135 %, and the R call: pnorm(...)
-school = sdata.table(sdata.example("school"))
-school.compare_distributions("days_absent", distributions=("poisson", "negative binomial"))
+dist.find_chance_that_value(is_above=80)                                                    # 0.135 %, and the R call: pnorm(...)
+school = sdata.table(sdata.get_example("school"))
+school.compare_distributions_for("days_absent", distributions=("poisson", "negative binomial"))
 ```
 
 Coming from another tool? Its names point to the simplydata word and never run:
-`sdata.minimize` says "In simplydata this is sdata.find_smallest(...)", `table.groupby` points to
-`for_each=`, `chart.hist` to `chart.histogram`.
+`sdata.minimize` says "In simplydata this is sdata.find_where_smallest(...)", `table.groupby` points to
+`for_each_group_in=`, `chart.hist` to `chart.draw_histogram`.
 
 ## How simplydata works
 
@@ -248,7 +248,7 @@ R packages, used where Python has no method of its own:
 | Statistics | car | ANOVA tables for each column of a model; variance inflation factors |
 | Statistics | effectsize | effect sizes with their 95 % intervals (Hedges' g, omega-squared, rank-biserial, Cramer's V, Kendall's W ...) and partial eta-squared |
 | Statistics | pwr | power and sample size for ANOVA, chi-square tests, correlations and two percents |
-| Statistics | TOSTER | power of two one-sided tests (`same_within=` in `how_many_needed`) |
+| Statistics | TOSTER | power of two one-sided tests (`same_within=` in `find_how_many_needed`) |
 | Statistics | presize | how many values give a confidence interval of a chosen width |
 | Statistics | Exact | Barnard's and Boschloo's tests of a 2 x 2 table |
 | Statistics | exact2x2 | the exact interval of the change in percent in McNemar's test |
@@ -298,13 +298,16 @@ a friendly message that says what to install.
 
 ## Ideas behind it
 
-- **Talk to the program.** Each step reads like a short sentence: `chart.title_top(...)`,
-  `chart.label_x(...)`, `chart.line_at_y(50)`.
+- **Talk to the program.** Each line reads like an instruction you say to the program: the thing,
+  what it should do, then the details: `table.keep_rows_where("marks", is_above=50)`,
+  `chart.write_title_on_top(...)`, `chart.draw_line_at_y(50)`.
 - **What + where.** A few place words repeat everywhere: `top`, `bottom`, `x`, `y`, `at`, `between`.
-- **Guess a word from its sibling.** `keep_rows` and `keep_first_rows`, `show_first_rows`;
-  `average_of` and `show="average"`; `label_x` and `label_colour_bar`.
-- **The word names the idea.** `error="standard error"`, `fit_line(confidence_band=True)`,
-  `compare_averages` (and the result says "Welch's t-test" for when you write it up).
+- **Old names keep working for one release.** A renamed word still runs and says, once, what it is
+  called now.
+- **Guess a word from its sibling.** `keep_rows_where` and `keep_first_rows`, `show_first_rows`;
+  `find_average_of` and `show="average"`; `label_x` and `label_colour_bar`.
+- **The word names the idea.** `error="standard error"`, `fit_line(with_confidence_band=True)`,
+  `compare_averages_of` (and the result says "Welch's t-test" for when you write it up).
 - **Order doesn't matter.** Write the steps in any order; simplydata draws them correctly.
 - **Friendly errors.** Misspell a column and simplydata tells you what you probably meant.
 - **Your old words still help.** Names from pandas, NumPy, SciPy, R and matplotlib (`groupby`,

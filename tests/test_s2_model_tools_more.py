@@ -1,7 +1,7 @@
 """S2: the model tools for grouped rows and for every outcome, and glmer with time=, out_of= and link=.
 
 R 4.6.2, lme4 2.1.0, emmeans 2.0.4, MASS, nnet, betareg, pscl, lmtest. s <- read.csv("school.csv")
-(sdata.example("school")); m, tr, g: sdata.example("meadow"), ("trial"), ("growth"); z: ZEROS below.
+(sdata.get_example("school")); m, tr, g: sdata.get_example("meadow"), ("trial"), ("growth"); z: ZEROS below.
 The R call is next to each value.
 """
 
@@ -18,7 +18,7 @@ from test_s2_more_outcomes import ZEROS, graded_school
 
 @pytest.fixture
 def school():
-    return make_table(sdata.example("school"))
+    return make_table(sdata.get_example("school"))
 
 
 def by_term(result, key="term"):
@@ -28,7 +28,7 @@ def by_term(result, key="term"):
 
 def school2():
     """The school table with a made-up time enrolled and a number right out of a number of tries."""
-    s = sdata.example("school")
+    s = sdata.get_example("school")
     i = np.arange(len(s))
     s["enrolled"] = 150 + (i * 37) % 60
     s["tries"] = 5 + i % 4
@@ -39,7 +39,7 @@ def school2():
 # ---------------------------------------------------------------- check_model(grouped_by=)
 def test_check_model_for_a_mixed_model_matches_lme4(school, capsys):
     # R: l <- lmer(marks ~ hours + breakfast + (1 | school), data = s)
-    page = school.check_model("marks", using=["hours", "breakfast"], grouped_by="school")
+    page = school.check_model_of("marks", using=["hours", "breakfast"], grouped_by="school")
     n = page._check_numbers
     # resid(l, scaled = TRUE)[1:3]
     assert n["scaled"][:3] == pytest.approx([-0.388112388273080, 0.715679939203338, 1.895614082262317], rel=1e-5)
@@ -56,7 +56,7 @@ def test_check_model_for_a_mixed_model_matches_lme4(school, capsys):
 
 def test_check_model_for_a_glmm_matches_glmer(school, capsys, needs_r, tmp_path):
     # R: gm <- glmer(y ~ hours + breakfast + (1 | school), family = binomial)
-    page = school.check_model("passed", using=["hours", "breakfast"], outcome="yes or no", grouped_by="school")
+    page = school.check_model_of("passed", using=["hours", "breakfast"], outcome="yes or no", grouped_by="school")
     n = page._check_numbers
     assert n["residual"][:3] == pytest.approx([-0.226589713182266, -0.215634882955150, 2.912815226306792],
                                               rel=1e-5)  # resid(gm, type = "pearson")
@@ -68,17 +68,17 @@ def test_check_model_for_a_glmm_matches_glmer(school, capsys, needs_r, tmp_path)
 
 def test_check_model_for_other_glms_matches_plot_glm(capsys):
     # R: n1 <- MASS::glm.nb(nettle ~ grazed + field, m); cooks.distance(n1)[1:3]; rstandard(n1, type = "pearson")
-    n = make_table(sdata.example("meadow")).check_model("nettle", using=["grazed", "field"],
+    n = make_table(sdata.get_example("meadow")).check_model_of("nettle", using=["grazed", "field"],
                                                         outcome="counts that vary a lot")._check_numbers
     assert n["cooks"][:3] == pytest.approx([7.36467749086892e-05, 9.90928961622743e-03, 7.36467749086891e-05], rel=1e-4)
     assert n["pearson"][:2] == pytest.approx([0.0512453396565338, -0.5944273319135019], rel=1e-5)
     # R: q1 <- glm(days_absent ~ hours + breakfast, quasipoisson); rstandard(q1, type = "deviance")[1:2]
-    n = make_table(sdata.example("school")).check_model("days_absent", using=["hours", "breakfast"],
+    n = make_table(sdata.get_example("school")).check_model_of("days_absent", using=["hours", "breakfast"],
                                                         outcome="counts (overdispersed)")._check_numbers
     assert n["standardised"][:2] == pytest.approx([-0.807931920708964, -0.329276595711568], rel=1e-6)
     assert n["cooks"][:2] == pytest.approx([3.04208995264717e-03, 3.86988725560222e-04], rel=1e-6)
     # R: d1 <- glm(days ~ treatment + age, Gamma(link = "log")); R glm() stops at epsilon = 1e-8, so 1e-3
-    n = make_table(sdata.example("trial")).check_model("days", using=["treatment", "age"],
+    n = make_table(sdata.get_example("trial")).check_model_of("days", using=["treatment", "age"],
                                                        outcome="positive numbers")._check_numbers
     assert n["cooks"][:2] == pytest.approx([2.17241039500616e-05, 6.53606091488464e-03], rel=1e-3)
     assert n["pearson"][:2] == pytest.approx([-0.0467223121931202, 1.0688425948755622], rel=1e-3)
@@ -87,7 +87,7 @@ def test_check_model_for_other_glms_matches_plot_glm(capsys):
 # ---------------------------------------------------------------- show_rows_that_pull(grouped_by=)
 def test_groups_that_pull_match_lme4_influence(school, capsys, needs_r):
     # R: cooks.distance(influence(l, groups = "school")): School D 0.16073893087278512 is the largest
-    school.show_rows_that_pull("marks", using=["hours", "breakfast"], grouped_by="school")
+    school.show_rows_that_pull_model("marks", using=["hours", "breakfast"], grouped_by="school")
     out = capsys.readouterr().out
     assert "0 of 12 groups" in out and "the largest: School D, 0.161" in out
     model, _ = school._one_model("x", "marks", ["hours", "breakfast"], "numbers", "school")
@@ -97,7 +97,7 @@ def test_groups_that_pull_match_lme4_influence(school, capsys, needs_r):
     assert list(got["cooks"][:3]) == pytest.approx([0.04572338909560377, 0.04627140571750372, 0.10979353520767073],
                                                    rel=1e-4)
     # R: cooks.distance(influence(gm, groups = "school")) for the glmer: School C 0.11019925496131416
-    school.show_rows_that_pull("passed", using=["hours", "breakfast"], outcome="yes or no", grouped_by="school")
+    school.show_rows_that_pull_model("passed", using=["hours", "breakfast"], outcome="yes or no", grouped_by="school")
     assert "the largest: School C, 0.110" in capsys.readouterr().out
 
 
@@ -131,13 +131,13 @@ def test_compare_models_for_other_outcomes(school, capsys, needs_r):
     assert got["p-value"][2] == pytest.approx(0.453748519762509, rel=1e-6)
     assert "no AIC or BIC" in capsys.readouterr().out
     # R: anova(MASS::glm.nb(nettle ~ grazed, m), MASS::glm.nb(nettle ~ grazed + field, m)): LR stat. 5.76721998734973
-    got = make_table(sdata.example("meadow")).compare_models("nettle", using=["grazed"], against=["grazed", "field"],
+    got = make_table(sdata.get_example("meadow")).compare_models("nettle", using=["grazed"], against=["grazed", "field"],
                                                              outcome="counts that vary a lot").as_pandas()
     assert got["statistic"][2] == pytest.approx(5.76721998734973, rel=1e-5)
     assert got["p-value"][2] == pytest.approx(0.0559324820312497, rel=1e-5)
     assert got["AIC"][:2].tolist() == pytest.approx([167.675782833008, 165.908562845658], rel=1e-7)
     # R: anova(glm(days ~ age, Gamma("log"), tr), glm(days ~ treatment + age, ...), test = "F"); AIC()
-    got = make_table(sdata.example("trial")).compare_models("days", using=["age"], against=["treatment", "age"],
+    got = make_table(sdata.get_example("trial")).compare_models("days", using=["age"], against=["treatment", "age"],
                                                             outcome="positive numbers").as_pandas()
     assert got["statistic"][2] == pytest.approx(0.00749887187355431, rel=1e-4)
     assert got["p-value"][2] == pytest.approx(0.931140649728849, rel=1e-5)
@@ -151,13 +151,13 @@ def test_compare_models_for_other_outcomes(school, capsys, needs_r):
     assert got["statistic"][2] == pytest.approx(3.16073851136383, rel=1e-4)
     assert got["AIC"][:2].tolist() == pytest.approx([301.641835744638, 300.481097233274], rel=1e-6)
     # R: anova(nnet::multinom(field ~ clover), nnet::multinom(field ~ clover + grazed)): 0.484643081133576, df 2
-    got = make_table(sdata.example("meadow")).compare_models("field", using=["clover"], against=["clover", "grazed"],
+    got = make_table(sdata.get_example("meadow")).compare_models("field", using=["clover"], against=["clover", "grazed"],
                                                              outcome="groups").as_pandas()
     assert got["statistic"][2] == pytest.approx(0.484643081133576, rel=1e-5)
     assert got["degrees of freedom"][2] == 2
     assert got["p-value"][2] == pytest.approx(0.784803790722016, rel=1e-5)
     # R: lmtest::lrtest(betareg(share ~ year, g), betareg(share ~ year + country, g)): 214.58739324085; AIC, BIC
-    growth = sdata.example("growth").assign(share=lambda d: d.forest / 100)
+    growth = sdata.get_example("growth").assign(share=lambda d: d.forest / 100)
     got = make_table(growth).compare_models("share", using=["year"], against=["year", "country"],
                                             outcome="shares").as_pandas()
     assert got["statistic"][2] == pytest.approx(214.58739324085, rel=1e-7)
@@ -173,35 +173,35 @@ def test_compare_models_for_other_outcomes(school, capsys, needs_r):
 # ---------------------------------------------------------------- model_averages_of for other outcomes
 def test_model_averages_for_counts_that_vary_a_lot_and_positive_numbers(needs_r):
     # R: emmeans(MASS::glm.nb(nettle ~ grazed + field, m), ~ field, type = "response"); pairs() (Tukey)
-    got = by_term(make_table(sdata.example("meadow")).model_averages_of(
-        "nettle", for_each="field", using=["grazed", "field"], outcome="counts that vary a lot"))
+    got = by_term(make_table(sdata.get_example("meadow")).find_model_averages_of(
+        "nettle", for_each_group_in="field", using=["grazed", "field"], outcome="counts that vary a lot"))
     assert got["River field"]["model average"] == pytest.approx(7.77946832000096, rel=1e-5)
     assert got["North field"]["standard error"] == pytest.approx(0.806951269786026, rel=1e-5)
     pair = got["North field / River field"]
     assert pair["rate ratio"] == pytest.approx(0.470673261200484, rel=1e-5)
     assert pair["p-value (Tukey)"] == pytest.approx(0.0217, abs=5e-5)
     # R: emmeans(glm(days ~ treatment + age, Gamma(link = "log"), tr), ~ treatment, type = "response")
-    got = by_term(make_table(sdata.example("trial")).model_averages_of(
-        "days", for_each="treatment", using=["treatment", "age"], outcome="positive numbers"))
+    got = by_term(make_table(sdata.get_example("trial")).find_model_averages_of(
+        "days", for_each_group_in="treatment", using=["treatment", "age"], outcome="positive numbers"))
     assert got["new medicine"]["model average"] == pytest.approx(471.711901757791, rel=1e-4)
     assert got["new medicine / usual care"]["ratio of averages"] == pytest.approx(1.00915310300603, rel=1e-4)
     assert got["new medicine / usual care"]["degrees of freedom"] == 117
     # R: emmeans(glm(days_absent ~ hours + breakfast, quasipoisson), ~ breakfast, type = "response")
-    got = by_term(make_table(sdata.example("school")).model_averages_of(
-        "days_absent", for_each="breakfast", using=["hours"], outcome="counts (overdispersed)"))
+    got = by_term(make_table(sdata.get_example("school")).find_model_averages_of(
+        "days_absent", for_each_group_in="breakfast", using=["hours"], outcome="counts (overdispersed)"))
     assert got["no / yes"]["95 % CI high"] == pytest.approx(1.27067667533494, rel=1e-6)
     assert got["no / yes"]["p-value (Tukey)"] == pytest.approx(0.4515, abs=5e-5)
 
 
 def test_model_averages_for_shares_and_many_zeros(needs_r):
     # R: emmeans(betareg::betareg(share ~ year + country, g), ~ country, type = "response"); pairs()
-    growth = sdata.example("growth").assign(share=lambda d: d.forest / 100)
-    got = by_term(make_table(growth).model_averages_of("share", for_each="country", using=["year", "country"],
+    growth = sdata.get_example("growth").assign(share=lambda d: d.forest / 100)
+    got = by_term(make_table(growth).find_model_averages_of("share", for_each_group_in="country", using=["year", "country"],
                                                        outcome="shares"))
     assert got["Applia"]["model average"] == pytest.approx(0.535206548322908, rel=1e-6)
     assert got["Cherria - Dateland"]["difference"] == pytest.approx(0.468554561127672, rel=1e-6)
     # R: emmeans(pscl::zeroinfl(count ~ depth + site | depth + site, z), ~ site); pairs()
-    got = by_term(make_table(ZEROS).model_averages_of("count", for_each="site", using=["depth", "site"],
+    got = by_term(make_table(ZEROS).find_model_averages_of("count", for_each_group_in="site", using=["depth", "site"],
                                                       outcome="counts with many zeros"))
     assert got["shore"]["model average"] == pytest.approx(1.814915017371868, rel=1e-5)
     assert got["deep - shore"]["difference"] == pytest.approx(-0.967983527321306, rel=1e-5)
@@ -210,8 +210,8 @@ def test_model_averages_for_shares_and_many_zeros(needs_r):
 
 def test_model_averages_for_ordered_groups_and_groups_are_chances(capsys, needs_r):
     # R: emmeans(MASS::polr(grade ~ hours + breakfast, Hess = TRUE), ~ breakfast | grade, mode = "prob"); pairs()
-    got = by_term(make_table(graded_school()).model_averages_of(
-        "grade", for_each="breakfast", using=["hours", "breakfast"], outcome="ordered groups",
+    got = by_term(make_table(graded_school()).find_model_averages_of(
+        "grade", for_each_group_in="breakfast", using=["hours", "breakfast"], outcome="ordered groups",
         in_order=["low", "middle", "high"]), key=("term", "grade group"))
     assert got[("no", "low")]["model chance"] == pytest.approx(0.164241312668601, rel=1e-4)
     assert got[("yes", "high")]["95 % CI high"] == pytest.approx(0.384045508990566, rel=1e-4)
@@ -219,8 +219,8 @@ def test_model_averages_for_ordered_groups_and_groups_are_chances(capsys, needs_
     out = capsys.readouterr().out
     assert 'mode = "prob"' in out and 'within each "grade" group' in out
     # R: emmeans(nnet::multinom(field ~ clover + grazed), ~ grazed | field, mode = "prob"): df 6
-    got = by_term(make_table(sdata.example("meadow")).model_averages_of(
-        "field", for_each="grazed", using=["clover", "grazed"], outcome="groups"), key=("term", "field group"))
+    got = by_term(make_table(sdata.get_example("meadow")).find_model_averages_of(
+        "field", for_each_group_in="grazed", using=["clover", "grazed"], outcome="groups"), key=("term", "field group"))
     assert got[("no", "North field")]["model chance"] == pytest.approx(0.348158013128585, rel=1e-4)
     assert got[("no - yes", "South field")]["p-value (Tukey)"] == pytest.approx(0.5382, abs=5e-4)
 
@@ -256,7 +256,7 @@ def test_friendly_errors_for_combinations_without_a_package(school):
         s.explain("days_absent", using=["hours"], outcome="counts", time="enrolled", grouped_by="school",
                   p_value_by="satterthwaite")
     with pytest.raises(SimplydataError, match="outcome"):
-        school.check_model("grade", using=["hours"], outcome="shares")
+        school.check_model_of("grade", using=["hours"], outcome="shares")
     with pytest.raises(SimplydataError, match="in_order="):
         school.compare_models("marks", using=["hours"], against=["hours", "sleep"], in_order=["a"])
 
@@ -314,7 +314,7 @@ def test_robust_errors_for_glms_match_sandwich(school, needs_r):
     assert got["breakfast (yes)"]["p-value"] == pytest.approx(0.25542, rel=1e-4)
     assert got["(intercept)"]["95 % CI low"] == pytest.approx(np.exp(-4.244554061363768), rel=1e-6)
     # R: ga <- glm(days ~ treatment + age, Gamma(link = "log"), tr); coeftest(ga, vcov. = vcovHC(ga, type = "HC3")): z
-    got = by_term(make_table(sdata.example("trial")).explain("days", using=["treatment", "age"],
+    got = by_term(make_table(sdata.get_example("trial")).explain("days", using=["treatment", "age"],
                                                             outcome="positive numbers", robust_errors=True))
     assert got["age"]["standard error"] == pytest.approx(0.003625833265235, rel=1e-4)
     assert got["treatment (usual care)"]["p-value"] == pytest.approx(0.93169233, rel=1e-4)
@@ -340,7 +340,7 @@ def test_old_name_robust_still_works_with_a_note(school, capsys):
 # ---------------------------------------------------------------- grouped_by=[outer, inner] (groups inside groups)
 def school3():
     """The school table with a made-up class (red, blue, green) inside each school."""
-    s = sdata.example("school")
+    s = sdata.get_example("school")
     i = np.arange(len(s))
     s["class"] = np.where((i * 7) % 3 == 0, "red", np.where((i * 7) % 3 == 1, "blue", "green"))
     return s
@@ -376,7 +376,7 @@ def test_groups_inside_groups_checks():
 
 # ---------------------------------------------------------------- groups inside groups in the model tools
 def test_model_averages_with_groups_inside_groups_match_emmeans(capsys, needs_r):
-    got = make_table(school3()).model_averages_of("marks", for_each="breakfast", using=["hours", "breakfast"],
+    got = make_table(school3()).find_model_averages_of("marks", for_each_group_in="breakfast", using=["hours", "breakfast"],
                                                   grouped_by=["school", "class"]).as_pandas()
     # R: m <- lmer(marks ~ hours + breakfast + (1 | school/class), data = s3); e <- emmeans(m, ~ breakfast)
     #    summary(e): emmean 46.6885080618374 49.4717128346135, SE 1.81102322437145 1.71286609064128,
@@ -392,7 +392,7 @@ def test_model_averages_with_groups_inside_groups_match_emmeans(capsys, needs_r)
 
 
 def test_model_averages_yes_or_no_with_groups_inside_groups(needs_r):
-    got = make_table(school3()).model_averages_of("passed", for_each="breakfast", using=["hours", "breakfast"],
+    got = make_table(school3()).find_model_averages_of("passed", for_each_group_in="breakfast", using=["hours", "breakfast"],
                                                   outcome="yes or no", grouped_by=["school", "class"]).as_pandas()
     # R: g1 <- glmer(y ~ hours + breakfast + (1 | school/class), family = binomial, data = s3)
     #    emmeans(g1, ~ breakfast, type = "response"): prob 0.305062172718965 0.422721124614989;
@@ -425,7 +425,7 @@ def test_compare_models_yes_or_no_with_groups_inside_groups(needs_r):
 
 
 def test_check_model_with_groups_inside_groups_shows_both_levels(capsys):
-    page = make_table(school3()).check_model("marks", using=["hours", "breakfast"], grouped_by=["school", "class"])
+    page = make_table(school3()).check_model_of("marks", using=["hours", "breakfast"], grouped_by=["school", "class"])
     numbers = page._check_numbers
     # R: ranef(m)$school[, 1]: School A -5.80439586418727, School B 0.607824236738937;
     #    ranef(m)$`class:school`: blue:School A 0.568054116114745, blue:School B -0.2456833465033,
@@ -439,7 +439,7 @@ def test_check_model_with_groups_inside_groups_shows_both_levels(capsys):
 
 
 def test_check_model_yes_or_no_with_groups_inside_groups(capsys, needs_r):
-    page = make_table(school3()).check_model("passed", using=["hours"], outcome="yes or no",
+    page = make_table(school3()).check_model_of("passed", using=["hours"], outcome="yes or no",
                                              grouped_by=["school", "class"])
     numbers = page._check_numbers
     # R: g <- glmer(y ~ hours + (1 | school/class), family = binomial); ranef(g)$school[, 1] -1.58543929640108
@@ -451,7 +451,7 @@ def test_check_model_yes_or_no_with_groups_inside_groups(capsys, needs_r):
 
 
 def test_groups_that_pull_with_groups_inside_groups(capsys, needs_r):
-    make_table(school3()).show_rows_that_pull("marks", using=["hours", "breakfast"], grouped_by=["school", "class"])
+    make_table(school3()).show_rows_that_pull_model("marks", using=["hours", "breakfast"], grouped_by=["school", "class"])
     # R: inf <- influence(m, groups = "school"); max(cooks.distance(inf)) 0.145212595135807
     out = capsys.readouterr().out
     assert "the largest: School D, 0.145" in out and "(1 | school/class)" in out
@@ -510,7 +510,7 @@ def test_gee_out_of_and_in_time_order_run_geepack(capsys, needs_r):
 # ---------------------------------------------------------------- variance inflation factors in check_model
 # R: s <- na.omit(school[, c("marks", "hours", "sleep", "breakfast", "school", "passed")]); car 3.1
 def test_check_model_vif_least_squares_matches_car(capsys):
-    page = make_table(sdata.example("school")).check_model("marks", using=["hours", "sleep", "breakfast"])
+    page = make_table(sdata.get_example("school")).check_model_of("marks", using=["hours", "sleep", "breakfast"])
     vif = page._check_numbers["vif"]
     # R: car::vif(lm(marks ~ hours + sleep + breakfast, data = s)): 1.00677016088655 1.00659219080555 1.00066265703536
     assert [vif[c][0] for c in ("hours", "sleep", "breakfast")] == pytest.approx(
@@ -520,14 +520,14 @@ def test_check_model_vif_least_squares_matches_car(capsys):
 
 
 def test_check_model_vif_group_column_and_glm_from_car(capsys, needs_r):
-    table = make_table(sdata.example("school"))
-    vif = table.check_model("marks", using=["hours", "sleep", "school"])._check_numbers["vif"]
+    table = make_table(sdata.get_example("school"))
+    vif = table.check_model_of("marks", using=["hours", "sleep", "school"])._check_numbers["vif"]
     # R: car::vif(lm(marks ~ hours + sleep + school, data = s)): GVIF 1.09843722228602 1.04708485508232
     #    1.13475290777979, Df 1 1 11, GVIF^(1/(2*Df)) for school 1.00576267363551
     assert vif["hours"][0] == pytest.approx(1.09843722228602, rel=1e-10)
     assert vif["school"] == pytest.approx((1.13475290777979, 11, 1.00576267363551), rel=1e-10)
     assert "(generalised, 11 df; 1.01 on the scale of one column)" in capsys.readouterr().out
-    vif = table.check_model("passed", using=["hours", "sleep", "breakfast"], outcome="yes or no")._check_numbers["vif"]
+    vif = table.check_model_of("passed", using=["hours", "sleep", "breakfast"], outcome="yes or no")._check_numbers["vif"]
     # R: car::vif(glm(y ~ hours + sleep + breakfast, family = binomial, data = s)): 1.06403521191058
     #    1.05054939802213 1.02141847706422
     assert [vif[c][0] for c in ("hours", "sleep", "breakfast")] == pytest.approx(
@@ -535,6 +535,6 @@ def test_check_model_vif_group_column_and_glm_from_car(capsys, needs_r):
 
 
 def test_check_model_vif_not_for_interactions(capsys):
-    page = make_table(sdata.example("school")).check_model("marks", using=["hours * breakfast"])
+    page = make_table(sdata.get_example("school")).check_model_of("marks", using=["hours * breakfast"])
     assert page._check_numbers["vif"] == {}
     assert "not given for a model with interactions" in capsys.readouterr().out

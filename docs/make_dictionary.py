@@ -1,12 +1,13 @@
 """Build the simplydata dictionary (docs/manual/simplydataDictionary.tex and .pdf) from the code.
 
-The dictionary lists every simplydata word A to Z, with what it means, a short example, its main
-options, the names other tools use for it, related words, and the page of the manual where it is
-explained (and the lesson that teaches it). A second part, "Coming from another tool?", lists every
-name from other tools (iloc, groupby, curve_fit, hist ...) and every old name, each pointing to the
-simplydata word.
+The dictionary opens with every word at a glance, group by group, as sdata.show_all_words() lists
+them (one line each: the word, a short example and what it does; this part was the cheat sheet).
+Then it lists every simplydata word A to Z, with what it means, a short example, its main options,
+the names other tools use for it, related words, and the page of the manual where it is explained
+(and the lesson that teaches it). A last part, "Coming from another tool?", lists every name from
+other tools (iloc, groupby, curve_fit, hist ...) and every old name, each pointing to the word.
 
-Everything comes from simplydata itself, as for the manual and the cheat sheet: the words, their
+Everything comes from simplydata itself, as for the manual: the words, their
 groups, summaries and examples from simplydata/learn.py, the options from each word's signature,
 the other names from simplydata/_other_names.py and the old names from the words themselves.
 Only the short texts on the first pages and the word families below are written by hand.
@@ -66,30 +67,44 @@ FAMILIES = [
      lambda w: w.startswith("remove_")),
     ("add_..._column", "adds a new column, made from the columns you have",
      lambda w: w.startswith("add_") and w.endswith("_column")),
-    ("add_...", "adds something else to a table: rows, groups, new axes",
+    ("add_...", "adds something else: rows, groups, a second axis, a zoom box",
      lambda w: w.startswith("add_") and not w.endswith("_column")),
-    ("make_...", "changes what a column holds: numbers, text, dates, small or capital letters",
+    ("draw_...", "draws a chart type, a line or a curve on a chart",
+     lambda w: w.startswith("draw_")),
+    ("write_...", "writes words or numbers on a chart: a title, a note, the numbers on bars",
+     lambda w: w.startswith("write_")),
+    ("put_...", "puts something in its place: the legend, the ticks, charts on a page",
+     lambda w: w.startswith("put_")),
+    ("set_... and use_...", "sets the size or a range, or chooses the colours, style, font or a log scale",
+     lambda w: w.startswith(("set_", "use_"))),
+    ("get_...", "takes one piece out: a column, a row, a cell, a number",
+     lambda w: w.startswith("get_")),
+    ("take_...", "does maths on every number: a log, a square root, a Fourier transform",
+     lambda w: w.startswith("take_")),
+    ("make_...", "makes something new: random numbers, a grid, a run of dates, a wave, a map",
      lambda w: w.startswith("make_")),
-    ("show_... and hide_...", "looks at the data, or a part of the chart, without changing anything",
+    ("turn_...", "gives the same data in another form: numbers, text, dates, a table, rows into columns",
+     lambda w: w.startswith("turn_")),
+    ("show_... and hide_...", "looks at the data, a part of the chart or the help, without changing anything",
      lambda w: w.startswith(("show_", "hide_"))),
     ("count_...", "counts rows, values, empty cells or numbers",
      lambda w: w.startswith("count_")),
-    ("..._of", "sums up one column in one number (or one number for each group)",
-     lambda w: w.endswith("_of")),
+    ("find_..._of", "sums up one column in one number (or one number for each group)",
+     lambda w: w.startswith("find_") and w.endswith("_of")),
+    ("find_... and solve", "works out an answer: an average, a chance, where a formula is smallest, what solves "
+     "an equation", lambda w: (w.startswith("find_") and not w.endswith("_of")) or w == "solve"),
     ("compare_...", "a statistical test: is the difference bigger than chance? It names the test and gives "
      "the p-value", lambda w: w.startswith("compare_")),
+    ("check_...", "checks a model, a series or an order before you trust it",
+     lambda w: w.startswith("check_")),
     ("fit_...", "finds the line, curve, formula or distribution that best matches the data",
      lambda w: w.startswith("fit_")),
-    ("find_... and solve", "finds where a formula is smallest or biggest, or where it equals something",
-     lambda w: w.startswith("find_") or w == "solve"),
     ("..._x and ..._y", "a chart word for one axis: x goes across, y goes up",
      lambda w: w.endswith(("_x", "_y"))),
-    ("legend_...", "where the legend goes", lambda w: w.startswith("legend_")),
-    ("line_... and shade_...", "draws a line or a shaded band across the chart",
-     lambda w: w.startswith(("line_at", "line_with", "shade_"))),
+    ("shade_...", "shades a band across the chart", lambda w: w.startswith("shade_")),
     ("as_...", "hands the data on to another library", lambda w: w.startswith("as_")),
-    ("undo, steps, start_again", "every change can be taken back",
-     lambda w: w in ("undo", "steps", "start_again")),
+    ("undo, show_steps, start_again", "every change can be taken back",
+     lambda w: w in ("undo", "show_steps", "start_again")),
 ]
 
 FRONT = r"""
@@ -103,7 +118,9 @@ FRONT = r"""
 \end{titleblock}
 
 \section*{How to use this dictionary}
-Keep it open next to the manual (\href{@MANUAL@}{@MANUALCODE@}).
+Keep it open next to the manual (\href{@MANUAL@}{@MANUALCODE@}). The first pages,
+\hyperref[glance]{\textbf{All the words at a glance}}, show every word group by group, one line
+each; the entries A to Z after them explain each word in full.
 \begin{enumerate}[leftmargin=1.6em]
   \item \textbf{Look up a word.} The words are in A to Z order. The words at the top of each page
     are the first and the last word on that page, as in a printed dictionary.
@@ -111,8 +128,8 @@ Keep it open next to the manual (\href{@MANUAL@}{@MANUALCODE@}).
     \code{sdata.help("word")}.
   \item \textbf{Try the example.} Every example runs as written. Most use a practice table, named
     in brackets after the example: \code{(marks)} means
-    \code{table = sdata.table(sdata.example("marks"))} for a table word, or
-    \code{chart = sdata.chart(sdata.example("marks"))} for a chart word.
+    \code{table = sdata.table(sdata.get\_example("marks"))} for a table word, or
+    \code{chart = sdata.chart(sdata.get\_example("marks"))} for a chart word.
   \item \textbf{Read the page.} \textbf{Manual p.} gives the page of the manual where the word is
     explained in full; the number is a link that opens the manual at that page. \textbf{Lesson}
     gives the lessons that teach it.
@@ -123,31 +140,36 @@ the word has one entry with a part for each, marked
 \begin{center}\small
 \begin{tabular}{@{}ll@{}}
 \kind{sdata} \code{sdata.chart(...)} & called on simplydata itself\\
-\kind{table} \code{table.keep\_rows(...)} & a step on a table\\
-\kind{chart} \code{chart.bars(...)} & a step on a chart\\
+\kind{table} \code{table.keep\_rows\_where(...)} & a step on a table\\
+\kind{chart} \code{chart.draw\_bars(...)} & a step on a chart\\
 \kind{option} \code{show="median"} & an option inside a chart step\\
-\kind{nums} \code{nums.average()} & a step on numbers: \code{nums = sdata.numbers([12, 15, 9])}\\
-\kind{grid} \code{grid.row(1)} & a step on a grid: \code{grid = sdata.number\_grid([[3, 5], [8, 6]])}\\
-\kind{dist} \code{dist.chance(above=60)} & a step on a distribution: \code{dist = sdata.distribution("normal")}\\
+\kind{nums} \code{nums.find\_average()} & a step on numbers: \code{nums = sdata.numbers([12, 15, 9])}\\
+\kind{grid} \code{grid.get\_row(1)} & a step on a grid: \code{grid = sdata.number\_grid([[3, 5], [8, 6]])}\\
+\kind{dist} \code{dist.find\_chance\_that\_value(is\_above=60)} & a step on a distribution: \code{dist = sdata.distribution("normal")}\\
 \end{tabular}
 \end{center}
 Know the name from pandas, R, NumPy or matplotlib (\code{groupby}, \code{iloc}, \code{hist},
 \code{curve\_fit})? Look it up in \hyperref[other:names]{\textbf{Coming from another tool?}} at the end.
 
 \section*{How the words are built}
+A line of simplydata reads like an instruction you say to the program: the thing, then what it
+should do, then the details: \code{table.keep\_rows\_where("marks", is\_above=50)},
+\code{chart.draw\_bars(x="class", y="marks")}.
 \begin{itemize}[leftmargin=1.2em]
-  \item \textbf{A word says what it does, in full English words}: \code{keep\_rows},
-    \code{average\_of}, \code{compare\_averages}. No short forms to remember.
-  \item \textbf{Words come in families.} Learn \code{keep\_rows} and you can guess \code{keep\_columns},
-    \code{keep\_numbers} and \code{keep\_first\_rows}. The next page lists the families.
-  \item \textbf{Steps on a table start with a verb} (\code{keep\_}, \code{remove\_}, \code{add\_},
-    \code{make\_}, \code{fill\_}); \textbf{chart types are nouns} (\code{bars}, \code{dots}, \code{histogram}).
+  \item \textbf{A word starts with what it does, in full English words}: \code{keep\_rows\_where},
+    \code{find\_average\_of}, \code{draw\_bars}, \code{write\_title\_on\_top}. No short forms to remember.
+  \item \textbf{Words come in families.} Learn \code{keep\_rows\_where} and you can guess
+    \code{keep\_columns}, \code{keep\_each\_number\_that} and \code{keep\_first\_rows}. \hyperref[families]{Word families}
+    lists them.
+  \item \textbf{A small word joins the first input}: \code{keep\_rows\_where("marks", ...)},
+    \code{fill\_empty\_cells\_in("price", ...)}, \code{find\_average\_of("marks")}.
   \item \textbf{Anything for one axis ends in \code{\_x} or \code{\_y}}: \code{label\_y},
-    \code{range\_x}, \code{log\_scale\_y}. x goes across, y goes up.
-  \item \textbf{One option name means one thing everywhere}: \code{for\_each=} (a result for each group),
-    \code{between=[low, high]}, \code{colour=}, \code{from\_column=}.
-  \item \textbf{Counting starts at 1}, as people count: \code{nums.number\_at(1)} is the first number,
-    \code{grid.row(1)} the top row.
+    \code{set\_range\_x}, \code{use\_log\_scale\_y}. x goes across, y goes up.
+  \item \textbf{One option name means one thing everywhere}: \code{for\_each\_group\_in=} (a result for each
+    group of a table), \code{in\_each="row"} (a result for each row of a grid), conditions start with \code{is\_} (\code{is\_above=}, \code{is\_between=[low, high]}),
+    \code{colour=}, \code{from\_column=}.
+  \item \textbf{Counting starts at 1}, as people count: \code{nums.get\_number\_at(1)} is the first number,
+    \code{grid.get\_row(1)} the top row.
   \item \textbf{Every change can be taken back} with \code{undo()}.
 \end{itemize}
 """
@@ -206,7 +228,7 @@ def fingerprint_in(tex: str) -> str | None:
 
 # ---------------------------------------------------------------- the words
 def headword(key: str) -> str:
-    """The word as it is looked up: "table.keep_rows" -> "keep_rows", "show=" -> "show"."""
+    """The word as it is looked up: "table.keep_rows_where" -> "keep_rows_where", "show=" -> "show"."""
     return learn._word(key).rstrip("=")
 
 
@@ -232,7 +254,7 @@ def sort_key(word: str) -> tuple:
 
 
 def _calls(written: str) -> list[str]:
-    """The words a pointer names: 'sdata.distribution("normal").chance(below=60)' -> ["dist.chance"]."""
+    """The words a pointer names: 'sdata.distribution("normal").find_chance_that_value(is_below=60)' -> ["dist.find_chance_that_value"]."""
     found = []
     for m in re.finditer(r"(?<![\w.)])(sdata|table|chart|nums|grid|dist)\.(\w+)\(", written):
         base = f"{m.group(1)}.{m.group(2)}"
@@ -254,7 +276,7 @@ def other_names() -> dict[str, list[str]]:
     """{name from another tool: [keys of the simplydata words it points to]}, A to Z.
 
     A name that is also a simplydata word is written with its object in front ("table.table",
-    "sdata.grid"), so it is not mistaken for the simplydata word.
+    "sdata.put_in_rows_and_columns"), so it is not mistaken for the simplydata word.
     """
     words = set(entries()) | {a for names in learn._aliases().values() for a in names}
     found: dict[str, list[str]] = {}
@@ -290,10 +312,10 @@ def old_names() -> list[tuple[str, str | None, list[str]]]:
         for name, _, key in learn._old_names(old):
             if not name.endswith("="):
                 found.setdefault((name, None), []).append(key)
-    for key in learn._all_keys():
+    for key, func in learn._words_with_options():
         if key in learn.OPTIONS:
             continue
-        for old, new in getattr(learn._function(key), "_renamed_options", {}).items():
+        for old, new in getattr(func, "_renamed_options", {}).items():
             found.setdefault((f"{old}=", f"{new}="), []).append(key)
     rows = [(old, new, sorted(dict.fromkeys(keys), key=lambda k: KIND_ORDER.index(learn._kind(k))))
             for (old, new), keys in found.items()]
@@ -412,9 +434,11 @@ def _words_part(pages) -> str:
 
 
 def _target(key: str, pages) -> str:
-    """A word as it is written, linked to its entry, and its manual page."""
-    return (f"\\hyperref[{dict_label(headword(key))}]{{{code(learn._call_form(key))}}}, "
-            f"{manual_page(make_manual.label(key), pages)}")
+    """A word as it is written, linked to its entry, and its manual page. A grid summary (grid.find_total)
+    shares the entry and the page of the number word (nums.find_total)."""
+    entry = key if key in learn._all_keys() else "nums." + key.partition(".")[2]
+    return (f"\\hyperref[{dict_label(headword(entry))}]{{{code(learn._call_form(key))}}}, "
+            f"{manual_page(make_manual.label(entry), pages)}")
 
 
 def _others_part(pages) -> str:
@@ -442,6 +466,63 @@ def _others_part(pages) -> str:
             where = f"{code(new)} in {where}"
         out.append(f"\\othername{{{esc(old)}}}{{{where}}}")
     out.append(r"\end{dictcolumns}")
+    return "\n".join(out)
+
+
+GLANCE = r"""
+\clearpage\section*{All the words at a glance}\label{glance}\markboth{At a glance}{At a glance}
+Every word, group by group, in the order \code{sdata.show\_all\_words()} prints them. Table words
+are steps on a table, for looking at data, cleaning it and summing it up; chart words are steps on
+a chart; number words are steps on a list (or a grid) of numbers:
+{\footnotesize\begin{verbatim}
+import simplydata as sdata
+table = sdata.table(sdata.get_example("marks"))   # or sdata.table("my_file.xlsx")
+table.keep_rows_where("marks", is_above=50)
+table.find_average_of("marks", for_each_group_in="class")   # says the answer in a sentence
+table.save("good_marks.xlsx")
+chart = table.start_chart()             # or sdata.chart(table), sdata.chart("my_file.xlsx")
+chart.draw_bars(x="class", y="marks", error="standard error")
+chart.write_title_on_top("Good marks")
+chart.save("marks.png")
+nums = sdata.numbers([12, 15, 9, 20, 14])
+bigger = nums * 2                       # symbols make new numbers
+nums.keep_each_number_that(is_above=10) # words change the numbers (undo() takes it back)
+nums.find_average()
+grid = sdata.number_grid([[3, 5, 2], [8, 6, 4]])
+\end{verbatim}}
+Every example runs as written on the practice table in brackets after it: \code{(weather)} means
+\code{weather = sdata.get\_example("weather")}, then \code{chart = sdata.chart(weather)} for a chart
+word or \code{table = sdata.table(weather)} for a table word. Number words use
+\code{nums = sdata.numbers([12, 15, 9, 20, 14])}, grid words
+\code{grid = sdata.number\_grid([[3, 5, 2], [8, 6, 4]])} and system words
+\code{system = sdata.system("1 / (s**2 + 2*s + 5)")}. Steps such as \code{fit\_line} or
+\code{write\_title\_on\_top} go after a chart step such as \code{chart.draw\_dots(...)}, and \code{a},
+\code{b} in \code{sdata.put\_side\_by\_side(a, b)} are charts you made first. Each word is a link to its
+entry, and \code{sdata.help("word")} shows its example ready to run.
+"""
+
+
+def glance_rows() -> list[tuple[str, list[str]]]:
+    """[(group, [key, ...])] in the order of sdata.show_all_words(): the words of the first pages."""
+    return [(group, list(keys)) for group, keys in learn.GROUPS]
+
+
+def _glance_part() -> str:
+    """Every word on a few pages, group by group (this part was the one-page cheat sheet)."""
+    aliases = learn._aliases()
+    out = [GLANCE.strip(), r"\begin{glancetable}"]
+    for group, keys in glance_rows():
+        out.append(f"\\glancegroup{{{esc(group)}}}")
+        for key in keys:
+            word = f"\\hyperref[{dict_label(headword(key))}]{{{code(learn._display(key))}}}"
+            if key in aliases:
+                word += " {\\color{inkgrey}(also " + ", ".join(code(a) for a in aliases[key]) + ")}"
+            example = code(learn._short_example(key))
+            table = learn._example_table(key)
+            if table:
+                example += f" \\practice{{{esc(table)}}}"
+            out.append(f"\\glanceword{{{word}}}{{{example}}}{{{rich(learn._summary(key))}}}")
+    out.append(r"\end{glancetable}")
     return "\n".join(out)
 
 
@@ -529,6 +610,13 @@ PREAMBLE = r"""
   >{\raggedright\arraybackslash}p{0.3\linewidth}>{\raggedright\arraybackslash}p{0.44\linewidth}@{}}
   \textbf{Family} & \textbf{What it does} & \textbf{Words}\\\hline\endhead}{\end{longtable}}
 \newcommand{\wordfamily}[3]{{\ttfamily\bfseries\color{brand}#1} & #2 & #3\\[0.35em]}
+% every word at a glance: one line each (the word, a short example, what it does)
+\newenvironment{glancetable}{\par\scriptsize\setlength{\LTpre}{0.3em}\begin{longtable}{@{}%
+  >{\raggedright\arraybackslash}p{0.24\linewidth}>{\raggedright\arraybackslash}p{0.38\linewidth}%
+  >{\raggedright\arraybackslash}p{0.32\linewidth}@{}}
+  \textbf{Word} & \textbf{Example} & \textbf{What it does}\\\hline\endhead}{\end{longtable}}
+\newcommand{\glancegroup}[1]{\multicolumn{3}{@{}l}{\rule{0pt}{1.6em}\sffamily\small\bfseries\color{brand}#1}\\*[0.15em]}
+\newcommand{\glanceword}[3]{#1 & #2 & #3\\[0.1em]}
 
 % running heads: the first and the last word on the page, as in a printed dictionary
 \pagestyle{fancy}
@@ -562,6 +650,7 @@ def make(pages: dict[str, tuple[str, str]], fingerprint: str) -> str:
         r"\begin{document}",
         r"\thispagestyle{plain}",
         front,
+        _glance_part(),
         _families_part(),
         r"\clearpage",
         _words_part(pages),

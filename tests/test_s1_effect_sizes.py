@@ -1,7 +1,7 @@
 """S1: effect sizes and their 95 % intervals come from R effectsize (or a Python package that gives
 the same number), never from a formula in simplydata.
 
-Reference values: R 4.6.2, effectsize 1.0.3, on sdata.example("marks") (m <- read.csv(".../marks.csv");
+Reference values: R 4.6.2, effectsize 1.0.3, on sdata.get_example("marks") (m <- read.csv(".../marks.csv");
 a, b = the marks of classes A and B; w = one row per child, a column per subject) and the counts
 written next to each value. Every interval is two-sided (alternative = "two.sided").
 """
@@ -42,7 +42,7 @@ def check(got, value, low, high, rel=REL):
 
 @pytest.fixture
 def marks():
-    return sdata.example("marks")
+    return sdata.get_example("marks")
 
 
 def wide(marks):
@@ -51,14 +51,14 @@ def wide(marks):
 
 def test_hedges_g(marks, engine, capsys, needs_r):
     ab = marks[marks["class"].isin(["A", "B"])].reset_index(drop=True)
-    got = row(make(ab, engine).compare_averages("marks", for_each="class"))
+    got = row(make(ab, engine).compare_averages_of("marks", for_each_group_in="class"))
     # R: hedges_g(a, b)
     check(got, 0.51610559576354, -0.137916399718482, 1.162824300438)
     assert "Hedges' g = 0.516 (95 % CI -0.138 to 1.16)" in capsys.readouterr().out
 
 
 def test_omega_squared(marks, engine, capsys, needs_r):
-    got = row(make(marks, engine).compare_averages("marks", for_each="class"))
+    got = row(make(marks, engine).compare_averages_of("marks", for_each_group_in="class"))
     # R: omega_squared(aov(marks ~ class, data = m), partial = FALSE, alternative = "two.sided")
     check(got, 0.0966893251462588, 0.0, 0.25505950656041)
     assert "Omega-squared = 0.0967 (95 % CI 0 to 0.255)" in capsys.readouterr().out
@@ -66,13 +66,13 @@ def test_omega_squared(marks, engine, capsys, needs_r):
 
 def test_rank_biserial_two_groups(marks, engine, needs_r):
     ab = marks[marks["class"].isin(["A", "B"])].reset_index(drop=True)
-    got = row(make(ab, engine).compare_averages("marks", for_each="class", based_on="ranks"))
+    got = row(make(ab, engine).compare_averages_of("marks", for_each_group_in="class", based_on="ranks"))
     # R: rank_biserial(a, b)
     check(got, 0.317901234567901, -0.053037711867011, 0.611747283108239)
 
 
 def test_rank_epsilon_squared_is_seeded(marks, engine, capsys, needs_r):
-    got = row(make(marks, engine).compare_averages("marks", for_each="class", based_on="ranks"))
+    got = row(make(marks, engine).compare_averages_of("marks", for_each_group_in="class", based_on="ranks"))
     # R: set.seed(1); rank_epsilon_squared(marks ~ factor(class), data = m, alternative = "two.sided")
     # (its interval is a bootstrap interval, so the seed matters)
     check(got, 0.142220101781171, 0.0365679234841254, 0.358476382847193)
@@ -82,9 +82,9 @@ def test_rank_epsilon_squared_is_seeded(marks, engine, capsys, needs_r):
 def test_paired_d_z_and_rank_biserial(marks, engine, needs_r):
     t = make(wide(marks), engine)
     # R: cohens_d(w$marks.Science, w$marks.Maths, paired = TRUE)  (d_z)
-    check(row(t.compare_before_after("Maths", "Science")), 0.343140520876757, -0.137518864396722, 0.814356210703588)
+    check(row(t.compare_before_and_after("Maths", "Science")), 0.343140520876757, -0.137518864396722, 0.814356210703588)
     # R: rank_biserial(w$marks.Science, w$marks.Maths, paired = TRUE)
-    check(row(t.compare_before_after("Maths", "Science", based_on="ranks")),
+    check(row(t.compare_before_and_after("Maths", "Science", based_on="ranks")),
           0.415204678362573, -0.0842847502564112, 0.747935458117184)
 
 
@@ -108,13 +108,13 @@ def test_cohens_w_interval(engine, needs_r):
 
 def test_cramers_v_interval(marks, engine, needs_r):
     data = marks.assign(result=np.where(marks["marks"] >= 60, "pass", "fail"))
-    got = row(make(data, engine).compare_counts("result", for_each="class"))
+    got = row(make(data, engine).compare_counts_of("result", for_each_group_in="class"))
     # R: cramers_v(matrix(c(14, 4, 11, 7, 8, 10), 2), adjust = FALSE, alternative = "two.sided")
     check(got, 0.279145263119541, 0.0, 0.521471238299739)
 
 
 def test_each_pair_rank_biserial(marks, engine, needs_r):
-    table = make(marks, engine).compare_each_pair("marks", for_each="class", based_on="ranks")
+    table = make(marks, engine).compare_each_pair_of("marks", for_each_group_in="class", based_on="ranks")
     rows = table._frame.to_pandas()
     # R: rank_biserial(a, b); rank_biserial(a, c); rank_biserial(b, c)
     want = [(0.317901234567901, -0.053037711867011, 0.611747283108239),
@@ -131,7 +131,7 @@ def test_without_r_the_test_runs_and_a_note_says_how_to_add_the_effect_size(mark
 
     monkeypatch.setattr(_r, "_STATE", {"error": "no R", "missing": "rpy2"})
     ab = marks[marks["class"].isin(["A", "B"])].reset_index(drop=True)
-    got = row(make_table(ab).compare_averages("marks", for_each="class"))
+    got = row(make_table(ab).compare_averages_of("marks", for_each_group_in="class"))
     out = capsys.readouterr().out
     assert 0 < got["p-value"] < 1 and got["test"] == "Welch's t-test"  # the test itself still runs
     assert math.isnan(got["effect size"]) and math.isnan(got["effect size 95 % CI low"])
@@ -140,7 +140,7 @@ def test_without_r_the_test_runs_and_a_note_says_how_to_add_the_effect_size(mark
             'them: pip install "simplydata[r]", install R, then in R install.packages("effectsize").') in out
     # Cramer's V still comes from SciPy; only its interval needs R
     data = marks.assign(result=np.where(marks["marks"] >= 60, "pass", "fail"))
-    got = row(make_table(data).compare_counts("result", for_each="class"))
+    got = row(make_table(data).compare_counts_of("result", for_each_group_in="class"))
     assert got["effect size"] == pytest.approx(0.279145263119541, rel=REL)
     assert math.isnan(got["effect size 95 % CI low"])
     assert "the 95 % CI of Cramer's V comes from the R package effectsize" in capsys.readouterr().out

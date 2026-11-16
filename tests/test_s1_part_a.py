@@ -2,7 +2,7 @@
 Bowker and the sign test in compare_before_after, more tests in compare_shape_to, percent
 intervals (method=), and tests from summary numbers (sdata.compare_averages / compare_counts).
 
-Reference values: R 4.6.2. m <- read.csv(".../marks.csv") (sdata.example("marks"));
+Reference values: R 4.6.2. m <- read.csv(".../marks.csv") (sdata.get_example("marks"));
 w <- reshape(m[, c("name", "subject", "marks")], idvar = "name", timevar = "subject",
 direction = "wide"); mm <- as.matrix(w[, -1]) (columns Maths, Science, English);
 a, b, cc = the marks of classes A, B and C.
@@ -37,7 +37,7 @@ def row(result):
 
 @pytest.fixture
 def marks():
-    return sdata.example("marks")
+    return sdata.get_example("marks")
 
 
 @pytest.fixture
@@ -56,7 +56,7 @@ def wide_yes_no(marks, engine):
 
 # ---------------------------------------------------------------------------- compare_matched
 def test_friedman(wide, capsys, needs_r):
-    got = row(wide.compare_matched("Maths", "Science", "English"))
+    got = row(wide.compare_matched_columns("Maths", "Science", "English"))
     # R: friedman.test(mm)
     assert got["statistic"] == pytest.approx(5.77777777778, rel=REL)
     assert got["p-value"] == pytest.approx(0.0556379982778, rel=REL)
@@ -78,14 +78,14 @@ def test_friedman_without_r_still_tests(wide, capsys, monkeypatch):
         raise _r.RMissing("no R")
 
     monkeypatch.setattr(_r, "r_call", missing)
-    got = row(wide.compare_matched(["Maths", "Science", "English"]))
+    got = row(wide.compare_matched_columns(["Maths", "Science", "English"]))
     assert got["p-value"] == pytest.approx(0.0556379982778, rel=REL)
     assert np.isnan(got["effect size"])
     assert 'install.packages("effectsize")' in capsys.readouterr().out
 
 
 def test_quade(wide, needs_r):
-    got = row(wide.compare_matched("Maths", "Science", "English", test="quade"))
+    got = row(wide.compare_matched_columns("Maths", "Science", "English", test="quade"))
     # R: quade.test(mm)
     assert got["statistic"] == pytest.approx(1.67488109114, rel=REL)
     assert got["p-value"] == pytest.approx(0.202417611028, rel=REL)
@@ -93,7 +93,7 @@ def test_quade(wide, needs_r):
 
 
 def test_cochran(wide_yes_no, capsys):
-    got = row(wide_yes_no.compare_matched("Maths", "Science", "English"))
+    got = row(wide_yes_no.compare_matched_columns("Maths", "Science", "English"))
     # R: y <- mm > 60; DescTools::CochranQTest(y)
     assert got["statistic"] == pytest.approx(1.846153846, rel=1e-9)
     assert got["p-value"] == pytest.approx(0.397294713, rel=1e-8)
@@ -103,27 +103,27 @@ def test_cochran(wide_yes_no, capsys):
 
 
 def test_matched_two_columns_is_before_after(wide, capsys):
-    got = row(wide.compare_matched("Maths", "Science"))
+    got = row(wide.compare_matched_columns("Maths", "Science"))
     assert got["test"] == "Wilcoxon signed-rank test"
-    assert 'is compare_before_after("Maths", "Science")' in capsys.readouterr().out
+    assert 'is compare_before_and_after("Maths", "Science")' in capsys.readouterr().out
 
 
 def test_matched_errors(wide):
     with pytest.raises(SimplydataError, match="comes later"):
-        wide.compare_matched("Maths", "Science", "English", based_on="averages")
+        wide.compare_matched_columns("Maths", "Science", "English", based_on="averages")
     with pytest.raises(SimplydataError, match='Did you mean test="quade"'):
-        wide.compare_matched("Maths", "Science", "English", test="quad")
+        wide.compare_matched_columns("Maths", "Science", "English", test="quad")
     with pytest.raises(SimplydataError, match="yes/no columns"):
-        wide.compare_matched("Maths", "Science", "English", test="cochran")
+        wide.compare_matched_columns("Maths", "Science", "English", test="cochran")
     with pytest.raises(SimplydataError, match="same column twice"):
-        wide.compare_matched("Maths", "Maths", "English")
+        wide.compare_matched_columns("Maths", "Maths", "English")
 
 
 # ---------------------------------------------------------------------------- compare_shapes
 def test_shapes_two_groups_without_ties(engine, capsys):
     data = pd.DataFrame({"group": ["x"] * 8 + ["y"] * 8,
                          "value": [3.1, 4.7, 5.2, 6.8, 7.3, 8.9, 9.4, 10.6, 5.9, 7.7, 8.1, 9.8, 11.2, 12.5, 13.3, 14.0]})
-    got = row(make(data, engine).compare_shapes("value", for_each="group"))
+    got = row(make(data, engine).compare_shapes_of("value", for_each_group_in="group"))
     # R: ks.test(c(3.1, 4.7, 5.2, 6.8, 7.3, 8.9, 9.4, 10.6), c(5.9, 7.7, 8.1, 9.8, 11.2, 12.5, 13.3, 14.0))
     assert got["statistic"] == pytest.approx(0.5)
     assert got["p-value"] == pytest.approx(0.282672882673, rel=1e-9)
@@ -134,14 +134,14 @@ def test_shapes_two_groups_without_ties(engine, capsys):
 
 def test_shapes_two_groups_with_ties_from_r(marks, engine, needs_r):
     ab = make(marks[marks["class"].isin(["A", "B"])].reset_index(drop=True), engine)
-    got = row(ab.compare_shapes("marks", for_each="class"))
+    got = row(ab.compare_shapes_of("marks", for_each_group_in="class"))
     # R: ks.test(a, b) (exact, with ties)
     assert got["statistic"] == pytest.approx(1 / 3)
     assert got["p-value"] == pytest.approx(0.246938074, rel=1e-8)
 
 
 def test_shapes_three_groups(marks, engine, capsys):
-    got = row(make(marks, engine).compare_shapes("marks", for_each="class"))
+    got = row(make(marks, engine).compare_shapes_of("marks", for_each_group_in="class"))
     # R: kSamples::ad.test(a, b, cc) version 2 (midrank): T.AD 2.3389; set.seed(1);
     # ad.test(a, b, cc, method = "simulated", Nsim = 100000): sim. p 0.03516 (Monte Carlo, SE about 0.0018)
     assert got["statistic"] == pytest.approx(2.338929394250999, rel=1e-9)
@@ -152,7 +152,7 @@ def test_shapes_three_groups(marks, engine, capsys):
 
 # ---------------------------------------------------------------------------- check_random_order
 def test_runs(marks, engine, capsys):
-    got = row(make(marks, engine).check_random_order("marks"))
+    got = row(make(marks, engine).check_if_random_order("marks"))
     # R: randtests::runs.test(m$marks)
     assert got["statistic"] == pytest.approx(-1.648620247, rel=1e-9)
     assert got["p-value"] == pytest.approx(0.0992254582, rel=1e-8)
@@ -161,7 +161,7 @@ def test_runs(marks, engine, capsys):
 
 
 def test_runs_leaves_out_the_median(marks, engine, capsys):
-    got = row(make(marks.iloc[:53], engine).check_random_order("marks"))
+    got = row(make(marks.iloc[:53], engine).check_if_random_order("marks"))
     # R: randtests::runs.test(m$marks[1:53]) (one value equals the median, 68, and is left out)
     assert got["statistic"] == pytest.approx(-1.680659211, rel=1e-9)
     assert got["p-value"] == pytest.approx(0.0928291276, rel=1e-8)
@@ -170,7 +170,7 @@ def test_runs_leaves_out_the_median(marks, engine, capsys):
 
 
 def test_runs_sorted_by(marks, engine):
-    by_height = row(make(marks, engine).check_random_order("marks", sorted_by="height"))
+    by_height = row(make(marks, engine).check_if_random_order("marks", sorted_by="height"))
     assert by_height["what it compares"].startswith('the order of "marks" (order of "height")')
 
 
@@ -183,7 +183,7 @@ def pain(engine):
 
 
 def test_mcnemar(pain, capsys, needs_r):
-    got = row(pain.compare_before_after("pain_before", "pain_after"))
+    got = row(pain.compare_before_and_after("pain_before", "pain_after"))
     # R: tab <- table(before, after) (yes/no first: 9 13 / 1 7); mcnemar.test(tab)
     assert got["statistic"] == pytest.approx(8.64285714286, rel=REL)
     assert got["p-value"] == pytest.approx(0.00328346098607, rel=REL)
@@ -196,7 +196,7 @@ def test_mcnemar(pain, capsys, needs_r):
 
 
 def test_mcnemar_exact(pain, needs_r):
-    got = row(pain.compare_before_after("pain_before", "pain_after", p_value_by="exact"))
+    got = row(pain.compare_before_and_after("pain_before", "pain_after", p_value_by="exact"))
     # R: exact2x2::exact2x2(tab, paired = TRUE)$p.value = binom.test(13, 14)$p.value
     assert got["p-value"] == pytest.approx(0.0018310546875, rel=REL)
 
@@ -208,14 +208,14 @@ def test_mcnemar_without_r(pain, capsys, monkeypatch):
         raise _r.RMissing("no R")
 
     monkeypatch.setattr(_r, "r_call", missing)
-    got = row(pain.compare_before_after("pain_before", "pain_after"))
+    got = row(pain.compare_before_and_after("pain_before", "pain_after"))
     assert got["p-value"] == pytest.approx(0.00328346098607, rel=REL)
     assert 'install.packages("exact2x2")' in capsys.readouterr().out
 
 
 def test_mcnemar_on_zero_one_numbers(engine, needs_r):
     data = pd.DataFrame({"b": [1] * 22 + [0] * 8, "a": [1] * 9 + [0] * 13 + [1] + [0] * 7})
-    got = row(make(data, engine).compare_before_after("b", "a"))
+    got = row(make(data, engine).compare_before_and_after("b", "a"))
     assert got["test"] == "McNemar's test with continuity correction"
     assert got["p-value"] == pytest.approx(0.00328346098607, rel=REL)
 
@@ -225,7 +225,7 @@ def test_bowker(engine, capsys):
           "mild severe moderate mild moderate severe mild").split()
     r2 = ("mild moderate moderate severe mild mild severe severe moderate moderate moderate mild severe severe mild "
           "moderate moderate moderate mild mild mild severe").split()
-    got = row(make(pd.DataFrame({"r1": r1, "r2": r2}), engine).compare_before_after("r1", "r2"))
+    got = row(make(pd.DataFrame({"r1": r1, "r2": r2}), engine).compare_before_and_after("r1", "r2"))
     # R: mcnemar.test(table(factor(r1, lev), factor(r2, lev)))
     assert got["statistic"] == pytest.approx(0.2, rel=REL)
     assert got["p-value"] == pytest.approx(0.977589297762, rel=REL)
@@ -236,11 +236,11 @@ def test_bowker(engine, capsys):
 def test_bowker_empty_pair(engine):
     data = pd.DataFrame({"r1": ["a", "a", "b", "c", "a", "b", "c"], "r2": ["a", "b", "b", "c", "b", "a", "c"]})
     with pytest.raises(SimplydataError, match="Merge categories"):
-        make(data, engine).compare_before_after("r1", "r2")
+        make(data, engine).compare_before_and_after("r1", "r2")
 
 
 def test_sign_test(wide):
-    got = row(wide.compare_before_after("Maths", "Science", test="sign"))
+    got = row(wide.compare_before_and_after("Maths", "Science", test="sign"))
     # R: DescTools::SignTest(Science, Maths): S = 13 of 18, p 0.0962524414
     assert got["p-value"] == pytest.approx(0.09625244140625, rel=REL)
     assert got["rows that went up"] == 13 and got["rows that went down"] == 5
@@ -248,11 +248,11 @@ def test_sign_test(wide):
 
 def test_before_after_errors(pain, wide):
     with pytest.raises(SimplydataError, match="leave out sides="):
-        pain.compare_before_after("pain_before", "pain_after", sides=1, higher="after")
+        pain.compare_before_and_after("pain_before", "pain_after", sides=1, higher="after")
     with pytest.raises(SimplydataError, match="for yes/no columns"):
-        wide.compare_before_after("Maths", "Science", p_value_by="exact")
+        wide.compare_before_and_after("Maths", "Science", p_value_by="exact")
     with pytest.raises(SimplydataError, match='Did you mean test="sign"'):
-        wide.compare_before_after("Maths", "Science", test="sing")
+        wide.compare_before_and_after("Maths", "Science", test="sing")
 
 
 # ---------------------------------------------------------------------------- compare_shape_to(test=)
@@ -306,7 +306,7 @@ def test_shape_test_errors(marks, engine):
     ("agresti-coull", 0.363068525819, 0.506384207238),
 ])
 def test_percent_to_intervals(engine, method, low, high):
-    school = make(sdata.example("school"), engine)
+    school = make(sdata.get_example("school"), engine)
     got = row(school.compare_percent_to("passed", value="yes", percent=50, interval_by=method))
     assert got["percent 95 % CI low"] == pytest.approx(low * 100, rel=1e-9)
     assert got["percent 95 % CI high"] == pytest.approx(high * 100, rel=1e-9)
@@ -315,7 +315,7 @@ def test_percent_to_intervals(engine, method, low, high):
 
 
 def test_percent_to_one_sided_wilson(engine):
-    school = make(sdata.example("school"), engine)
+    school = make(sdata.get_example("school"), engine)
     got = row(school.compare_percent_to("passed", value="yes", percent=50, interval_by="wilson", sides=1,
                                         higher="percent"))
     # R: DescTools::BinomCI(78, 180, method = "wilson", sides = "left")
@@ -327,15 +327,15 @@ def test_percent_to_one_sided_wilson(engine):
 
 def test_percent_of_methods(marks, engine, capsys):
     t = make(marks, engine)
-    t.percent_of("marks", above=60, interval_by="wilson")
+    t.find_percent_of_rows_where("marks", is_above=60, interval_by="wilson")
     # R: DescTools::BinomCI(33, 54, method = "wilson"): 0.477882985382 to 0.729580661709
     assert "95 % CI 47.8 % to 73.0 %, Wilson score interval" in capsys.readouterr().out
-    got = t.percent_of("marks", above=60, for_each="class", interval_by="agresti-coull")._frame.to_pandas()
+    got = t.find_percent_of_rows_where("marks", is_above=60, for_each_group_in="class", interval_by="agresti-coull")._frame.to_pandas()
     # R: DescTools::BinomCI(c(14, 11, 8), 18, method = "agresti-coull")
     assert got["percent 95 % CI low"].tolist() == pytest.approx([54.2501488614, 38.5425626440, 24.5406689603],
                                                                 rel=1e-9)
     with pytest.raises(SimplydataError, match='Did you mean interval_by="wilson"'):
-        t.percent_of("marks", above=60, interval_by="wilsn")
+        t.find_percent_of_rows_where("marks", is_above=60, interval_by="wilsn")
 
 
 # ---------------------------------------------------------------------------- summary numbers
@@ -381,7 +381,7 @@ def test_sdata_compare_counts(capsys):
 
 
 def test_summary_errors():
-    with pytest.raises(SimplydataError, match="table.compare_averages"):
+    with pytest.raises(SimplydataError, match="table.compare_averages_of"):
         sdata.compare_averages(averages=[1, 2])
     with pytest.raises(SimplydataError, match="whole numbers of 2 or more"):
         sdata.compare_averages(averages=[1, 2], standard_deviations=[1, 1], counts=[2.5, 3])

@@ -5,7 +5,7 @@ back a result table, one row per measure. Every number comes from statsmodels or
 few that Python does not give come from R (simplydata[r]); simplydata only counts the rows,
 calls the package and words the answer.
 
-* compare_risks("died", for_each="treatment", against="usual care"): the risk (share with the
+* compare_risks("died", for_each_group_in="treatment", against="usual care"): the risk (share with the
   event) in each group with its exact Clopper-Pearson interval (statsmodels proportion_confint
   "beta", as R binom.test()); the risk difference with Newcombe's score interval (statsmodels
   confint_proportions_2indep(method="newcomb"), as R DescTools::BinomDiffCI(method = "score"));
@@ -20,13 +20,13 @@ calls the package and words the answer.
   pooled risk ratio comes from R epiR, which Python lacks).
   same_within=10 (percentage points): two one-sided tests (statsmodels tost_proportions_2indep,
   Wald, as R TOSTER::twoprop_test()); with not_lower= or not_higher=, non-inferiority.
-* compare_rates("infections", time="patient_days", for_each="ward"): events per time. Each rate
+* compare_rates("infections", time="patient_days", for_each_group_in="ward"): events per time. Each rate
   with its exact interval (statsmodels confint_poisson "exact-c", as R poisson.test()); the rate
   ratio with the exact conditional test (statsmodels test_poisson_2indep "exact-cond", as R
   poisson.test(c(x1, x2), c(t1, t2))) and R's exact interval of the ratio (poisson.test; Python
   has only other intervals). same_within= takes a ratio margin ([0.8, 1.25], or 1.25 for the same):
   statsmodels tost_poisson_2indep("exact-cond"), as two one-sided R poisson.test(r =).
-* rate_of("infections", time="patient_days", for_each="ward"): the rates and their intervals.
+* rate_of("infections", time="patient_days", for_each_group_in="ward"): the rates and their intervals.
 
 Display arithmetic, allowed by the owner and marked [D]: "out of 100" (the difference times 100),
 the number needed for one event fewer or more (1 / the difference, its interval from the
@@ -689,13 +689,13 @@ class RiskWords:
         return _rows_table(lambda d: self._new_table(nw.from_dict(d, backend=backend)), rows)
 
     # ------------------------------------------------------------------ compare_risks
-    @friendly(renamed={"outcome": "column"}, others={"positive": "value"})
-    def compare_risks(self, column=None, for_each=None, against=None, value=None, allowing_for=None, interval=95,
+    @friendly(renamed={"outcome": "column", "for_each": "for_each_group_in"}, others={"positive": "value"})
+    def compare_risks(self, column=None, for_each_group_in=None, against=None, value=None, allowing_for=None, interval=95,
                       p_value_by="formula", same_within=None, not_lower=None, not_higher=None, sides=2, higher=None,
                       lower=None, alternative=None):
         """How much more (or less) often does something happen in one group than in another?
 
-        table.compare_risks("died", for_each="treatment", against="usual care")   (with sdata.example("trial"))
+        table.compare_risks("died", for_each_group_in="treatment", against="usual care")   (with sdata.get_example("trial"))
         column: a column with two values (an event or not, such as "yes"/"no"); value= says
         which value is the event when it is not clear (positive= is accepted too). against= is the
         group the others are compared with (default: the first in sorted order, as R).
@@ -716,35 +716,35 @@ class RiskWords:
         the interval of the Mantel-Haenszel risk ratio.
         """
         step = "compare_risks"
-        example = 'table.compare_risks("died", for_each="treatment", against="usual care")'
+        example = 'table.compare_risks("died", for_each_group_in="treatment", against="usual care")'
         outcome = column
-        for option, value_given in (("the column", outcome), ("for_each=", for_each)):
+        for option, value_given in (("the column", outcome), ("for_each_group_in=", for_each_group_in)):
             self._need_name(step, option, value_given, example)
         if allowing_for is not None:
             self._need_name(step, "allowing_for=", allowing_for, example)
         level = _level(step, interval, example)
         self._check_choice(step, "p_value_by", p_value_by, ("formula", "exact"))
-        names = [outcome, for_each] + ([allowing_for] if allowing_for else [])
+        names = [outcome, for_each_group_in] + ([allowing_for] if allowing_for else [])
         if len(set(names)) != len(names):
-            raise SimplydataError(f"{step}() needs different columns for the outcome, for_each= and allowing_for=.\n"
+            raise SimplydataError(f"{step}() needs different columns for the outcome, for_each_group_in= and allowing_for=.\n"
                                   f"For example, {example}")
         kept = self._two_columns_frame(step, names, example)
         outcomes = kept[outcome].to_list()
         event, event_words = _event_value(step, outcome, outcomes, value, option="value")
-        keys = kept[for_each].to_list()
+        keys = kept[for_each_group_in].to_list()
         groups = sorted(set(keys), key=lambda k: (str(type(k)), k))
         if len(groups) < 2:
-            raise SimplydataError(f'{step}() needs at least 2 groups in "{for_each}".')
+            raise SimplydataError(f'{step}() needs at least 2 groups in "{for_each_group_in}".')
         ref = pick_against(step, groups, against, example)
         alt, up, claim = check_sides(step, sides, higher, lower, alternative, ref, groups, example, same_within,
                                      not_lower, not_higher)
         if same_within is not None and len(groups) != 2:
-            raise SimplydataError(f"same_within= compares two groups; \"{for_each}\" has {len(groups)}. Keep two "
-                                  "groups first, for example with table.keep_rows(...).")
+            raise SimplydataError(f"same_within= compares two groups; \"{for_each_group_in}\" has {len(groups)}. Keep two "
+                                  "groups first, for example with table.keep_rows_where(...).")
         if same_within is not None and (allowing_for or p_value_by != "formula"):
             raise SimplydataError("same_within= works on its own; leave out allowing_for= and p_value_by=.")
         if allowing_for is not None and len(groups) != 2:
-            raise SimplydataError(f'allowing_for= works with two groups; "{for_each}" has {len(groups)}.')
+            raise SimplydataError(f'allowing_for= works with two groups; "{for_each_group_in}" has {len(groups)}.')
         if alt != "two-sided" and allowing_for is not None:
             raise SimplydataError("allowing_for= gives a two-sided analysis; leave out sides=/higher=/lower=.")
         is_event = np.array([v == event for v in outcomes])
@@ -772,9 +772,9 @@ class RiskWords:
         self._need_name(step, "time=", time, example)
         names = [events, time] + ([for_each] if for_each is not None else [])
         if for_each is not None:
-            self._need_name(step, "for_each=", for_each, example)
+            self._need_name(step, "for_each_group_in=", for_each, example)
         if len(set(names)) != len(names):
-            raise SimplydataError(f"{step}() needs different columns for the events, time= and for_each=.\n"
+            raise SimplydataError(f"{step}() needs different columns for the events, time= and for_each_group_in=.\n"
                                   f"For example, {example}")
         self._need_columns(*names)
         for c in (events, time):
@@ -793,36 +793,36 @@ class RiskWords:
         groups = sorted(set(keys.tolist()), key=lambda k: (str(type(k)), k))
         return {_label(g): (float(ev[keys == g].sum()), float(tm[keys == g].sum())) for g in groups}, groups
 
-    @friendly
-    def rate_of(self, events=None, time=None, for_each=None, per=1000, interval=95):
+    @friendly(renamed={"for_each": "for_each_group_in"})
+    def rate_of(self, events=None, time=None, for_each_group_in=None, per=1000, interval=95):
         """How often do events happen per unit of time, such as infections per 1000 patient-days?
 
-        table.rate_of("infections", time="patient_days", for_each="ward")   (with sdata.example("clinic"))
+        table.rate_of("infections", time="patient_days", for_each_group_in="ward")   (with sdata.get_example("clinic"))
         Adds up the events and the time (in each group), and gives the rate per 1000 units of
         time (per= changes it) with its exact 95 % interval (statsmodels confint_poisson
         "exact-c", as R poisson.test()). Gives back one row per group, with the columns "rate",
         "rate 95 % CI low/high" and "per" (such as "1000 patient_days").
         """
         step = "rate_of"
-        example = 'table.rate_of("infections", time="patient_days", for_each="ward")'
+        example = 'table.rate_of("infections", time="patient_days", for_each_group_in="ward")'
         level = _level(step, interval, example)
         if isinstance(per, bool) or not isinstance(per, (int, float)) or per <= 0:
             raise SimplydataError(f"per= is the amount of time the rate is given for, such as per=1000.\n"
                                   f"For example, {example}")
-        counts, _ = self._rate_counts(step, events, time, for_each, example)
+        counts, _ = self._rate_counts(step, events, time, for_each_group_in, example)
         rows, listed = rate_rows(counts, level, per, time)
         print(f'"{events}" per {per:g} "{time}": {listed}.')
         print("Method: exact Poisson intervals (statsmodels confint_poisson, as R poisson.test()).")
         return self._many_rows_table(rows)
 
-    @friendly
-    def compare_rates(self, events=None, time=None, for_each=None, against=None, per=1000, interval=95,
+    @friendly(renamed={"for_each": "for_each_group_in"})
+    def compare_rates(self, events=None, time=None, for_each_group_in=None, against=None, per=1000, interval=95,
                       same_within=None, not_lower=None, not_higher=None, sides=2, higher=None, lower=None,
                       alternative=None):
         """Do events happen more often per unit of time in one group than in another?
 
-        table.compare_rates("infections", time="patient_days", for_each="ward", against="ward A")
-        (with sdata.example("clinic")). events: a column of counts; time=: the time each row was
+        table.compare_rates("infections", time="patient_days", for_each_group_in="ward", against="ward A")
+        (with sdata.get_example("clinic")). events: a column of counts; time=: the time each row was
         followed (days, years). Adds them up per group and prints each rate per 1000 units of time
         (per=) with its exact interval, then the rate ratio with the exact conditional test
         (statsmodels test_poisson_2indep, as R poisson.test()) and R's exact interval of the ratio
@@ -833,20 +833,20 @@ class RiskWords:
         (columns "rate", its interval, and "per"), then the rate ratio.
         """
         step = "compare_rates"
-        example = 'table.compare_rates("infections", time="patient_days", for_each="ward", against="ward A")'
+        example = 'table.compare_rates("infections", time="patient_days", for_each_group_in="ward", against="ward A")'
         level = _level(step, interval, example)
         if isinstance(per, bool) or not isinstance(per, (int, float)) or per <= 0:
             raise SimplydataError(f"per= is the amount of time the rate is given for, such as per=1000.\n"
                                   f"For example, {example}")
-        if for_each is None:
-            raise SimplydataError(f"{step}() compares groups, so it needs for_each=; for one rate use rate_of().\n"
+        if for_each_group_in is None:
+            raise SimplydataError(f"{step}() compares groups, so it needs for_each_group_in=; for one rate use rate_of().\n"
                                   f"For example, {example}")
-        counts, groups = self._rate_counts(step, events, time, for_each, example)
+        counts, groups = self._rate_counts(step, events, time, for_each_group_in, example)
         if len(groups) < 2:
-            raise SimplydataError(f'{step}() needs at least 2 groups in "{for_each}".')
+            raise SimplydataError(f'{step}() needs at least 2 groups in "{for_each_group_in}".')
         ref = pick_against(step, groups, against, example)
         if same_within is not None and len(groups) != 2:
-            raise SimplydataError(f'same_within= compares two groups; "{for_each}" has {len(groups)}.')
+            raise SimplydataError(f'same_within= compares two groups; "{for_each_group_in}" has {len(groups)}.')
         alt, up, claim = check_sides(step, sides, higher, lower, alternative, ref, groups, example, same_within,
                                      not_lower, not_higher)
         order = [_label(g) for g in groups if g != ref] + [_label(ref)]

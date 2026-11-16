@@ -35,7 +35,7 @@ def aic_bic(line):
 
 
 def test_least_squares_aic_bic(capsys):
-    make_table(sdata.example("school")).explain("marks", using=["hours", "breakfast"])
+    make_table(sdata.get_example("school")).explain("marks", using=["hours", "breakfast"])
     line = fit_line(capsys)
     # R: m <- lm(marks ~ hours + breakfast, data = s); AIC(m) 1292.49254833665; BIC(m) 1305.26437574021
     assert aic_bic(line) == (1292, 1305)
@@ -44,7 +44,7 @@ def test_least_squares_aic_bic(capsys):
 
 
 def test_logistic_mcfadden(capsys):
-    make_table(sdata.example("school")).explain("passed", using=["hours", "breakfast"], outcome="yes or no")
+    make_table(sdata.get_example("school")).explain("passed", using=["hours", "breakfast"], outcome="yes or no")
     line = fit_line(capsys)
     # R: m <- glm(y ~ hours + breakfast, data = s, family = binomial); performance::r2_mcfadden(m) 0.192269138384149
     #    AIC 204.963040749707; BIC 214.541911302378
@@ -64,7 +64,7 @@ def test_successes_out_of_tries_mcfadden(capsys):
 
 
 def test_negative_binomial_mcfadden(capsys):
-    make_table(sdata.example("meadow")).explain("nettle", using=["grazed", "field"], outcome="counts that vary a lot")
+    make_table(sdata.get_example("meadow")).explain("nettle", using=["grazed", "field"], outcome="counts that vary a lot")
     line = fit_line(capsys)
     # R: m <- MASS::glm.nb(nettle ~ grazed + field, data = meadow); performance::r2_mcfadden(m) 0.131935806298581
     #    (the model with no columns refitted with its own theta, glm.nb(nettle ~ 1)); AIC 165.908562845658;
@@ -73,7 +73,7 @@ def test_negative_binomial_mcfadden(capsys):
 
 
 def test_gamma_aic_bic(capsys):
-    make_table(sdata.example("trial")).explain("days", using=["treatment", "age"], outcome="positive numbers")
+    make_table(sdata.get_example("trial")).explain("days", using=["treatment", "age"], outcome="positive numbers")
     line = fit_line(capsys)
     # R: m <- glm(days ~ treatment + age, data = trial, family = Gamma(link = "log"))
     #    AIC(m) 1688.47620194811; BIC(m) 1699.62616891924 (dispersion deviance / n, as R logLik())
@@ -81,7 +81,7 @@ def test_gamma_aic_bic(capsys):
 
 
 def test_quasi_poisson_and_gee_say_there_is_no_likelihood(capsys):
-    school = make_table(sdata.example("school"))
+    school = make_table(sdata.get_example("school"))
     school.explain("days_absent", using="hours", outcome="counts (overdispersed)")
     assert "Quasi-Poisson has no likelihood, so there is no AIC, BIC or pseudo R squared" in capsys.readouterr().out
     school.explain("marks", using=["hours"], grouped_by="school", effects="for the whole population")
@@ -89,7 +89,7 @@ def test_quasi_poisson_and_gee_say_there_is_no_likelihood(capsys):
 
 
 def test_mixed_model_nakagawa_and_reml_aic(capsys, needs_r):
-    make_table(sdata.example("school")).explain("marks", using=["hours", "breakfast"], grouped_by="school")
+    make_table(sdata.get_example("school")).explain("marks", using=["hours", "breakfast"], grouped_by="school")
     line = fit_line(capsys)
     # R: m <- lmer(marks ~ hours + breakfast + (1 | school), data = s); performance::r2_nakagawa(m):
     #    conditional 0.629324749460017, marginal 0.390814395007836; AIC(m) 1234.78852020829; BIC(m) 1250.75330446274
@@ -113,7 +113,7 @@ def test_mixed_model_without_r_keeps_aic_and_leaves_nakagawa_out(capsys, monkeyp
     from simplydata import _r
 
     monkeypatch.setattr(_r, "_STATE", {"error": "no R", "missing": "rpy2"})
-    make_table(sdata.example("school")).explain("marks", using=["hours", "breakfast"], grouped_by="school")
+    make_table(sdata.get_example("school")).explain("marks", using=["hours", "breakfast"], grouped_by="school")
     out = capsys.readouterr().out
     line = [row for row in out.splitlines() if row.startswith("How well it fits:")]
     assert len(line) == 1 and "Nakagawa" not in line[0]
@@ -132,7 +132,7 @@ def test_own_slopes_nakagawa_from_r(capsys, needs_r):
 
 
 def test_glmer_nakagawa_from_r(capsys, needs_r):
-    make_table(sdata.example("school")).explain("passed", using=["hours"], outcome="yes or no", grouped_by="school")
+    make_table(sdata.get_example("school")).explain("passed", using=["hours"], outcome="yes or no", grouped_by="school")
     line = fit_line(capsys)
     # R: m <- glmer(y ~ hours + (1 | school), data = s, family = binomial); performance::r2_nakagawa(m):
     #    conditional 0.590535726400666, marginal 0.324197445162453; AIC 183.438326768241; BIC 193.017197320912
@@ -147,7 +147,7 @@ def test_ordered_and_groups_mcfadden(capsys):
     # R: o <- MASS::polr(grade ~ hours + breakfast, data = s, Hess = TRUE, control = list(reltol = 1e-14,
     #    maxit = 10000)); performance::r2_mcfadden(o) 0.209120925129079; AIC 300.481089131691; BIC 313.252916535252
     assert "pseudo R squared 0.209" in line and aic_bic(line) == (300, 313)
-    make_table(sdata.example("meadow")).explain("field", using=["clover", "nettle"], outcome="groups")
+    make_table(sdata.get_example("meadow")).explain("field", using=["clover", "nettle"], outcome="groups")
     line = fit_line(capsys)
     # R: mn <- nnet::multinom(field ~ clover + nettle, data = meadow, reltol = 1e-12, maxit = 1000)
     #    performance::r2_mcfadden(mn) 0.107239283471619; AIC 70.8478736410936; BIC 79.2550579310665
@@ -155,7 +155,7 @@ def test_ordered_and_groups_mcfadden(capsys):
 
 
 def test_shares_and_zeros_fit_lines(capsys, needs_r):
-    growth = sdata.example("growth").assign(share=lambda d: d.forest / 100)
+    growth = sdata.get_example("growth").assign(share=lambda d: d.forest / 100)
     make_table(growth).explain("share", using=["year", "country"], outcome="shares")
     line = fit_line(capsys)
     # R: b <- betareg::betareg(share ~ year + country, data = g); b$pseudo.r.squared 0.982552259439924
@@ -186,7 +186,7 @@ def test_one_row_per_group_is_refused_before_fitting(capsys):
 
     from simplydata import SimplydataError
 
-    school = sdata.example("school")
+    school = sdata.get_example("school")
     # R: s$pid <- s$pupil; lmer(marks ~ hours + (1 | pid), data = s): Error: number of levels of each grouping
     #    factor must be < number of observations (problems: pid)
     with pytest.raises(SimplydataError, match='grouped_by="pid" has 180 groups for 180 rows'):
@@ -209,7 +209,7 @@ def test_r_refusing_the_nakagawa_refit_gives_a_plain_note(capsys, monkeypatch, n
     from simplydata.table.models import ModelWords
 
     monkeypatch.setattr(ModelWords, "_check_group_sizes", staticmethod(lambda *args: None))
-    school = sdata.example("school")
+    school = sdata.get_example("school")
     make_table(school.assign(pid=school.pupil)).explain("marks", using=["hours"], grouped_by="pid")
     assert "How well it fits: no R squared for this model." in fit_line(capsys)
 
@@ -224,7 +224,7 @@ def test_r_stopping_in_nakagawa_is_caught_in_the_fit_block(capsys, monkeypatch):
                               "observations")
 
     monkeypatch.setattr(models_r, "nakagawa_r", stopped)
-    make_table(sdata.example("school")).explain("marks", using=["hours", "breakfast"], grouped_by="school")
+    make_table(sdata.get_example("school")).explain("marks", using=["hours", "breakfast"], grouped_by="school")
     line = fit_line(capsys)
     # R: AIC(lmer(marks ~ hours + breakfast + (1 | school), data = s)) 1234.78852020829; BIC 1250.75330446274
     assert "no R squared" in line and aic_bic(line) == (1235, 1251)

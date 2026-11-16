@@ -2,17 +2,17 @@
 
 The names follow tables, with "numbers" in place of "rows", so they can be guessed:
 
-    table.keep_rows("marks", above=50)    ->  nums.keep_numbers(above=50)
+    table.keep_rows_where("marks", is_above=50)    ->  nums.keep_each_number_that(is_above=50)
     table.keep_first_rows(10)             ->  nums.keep_first_numbers(10)
     table.show_first_rows(5)              ->  nums.show_first_numbers(5)
-    table.remove_rows_with_empty_cells()  ->  nums.remove_empty_numbers()
-    table.count_empty_cells()             ->  nums.count_empty_numbers()
-    table.fill_empty_cells("marks", with_the="average")  ->  nums.fill_empty_numbers(with_the="average")
+    table.remove_rows_with_empty_cells_in()  ->  nums.remove_empty_numbers()
+    table.count_empty_cells_in()             ->  nums.count_empty_numbers()
+    table.fill_empty_cells_in("marks", with_the="average")  ->  nums.fill_empty_numbers(with_the="average")
 
-Conditions are the same as keep_rows (without the text ones), and empty values never
+Conditions are the same as keep_rows_where (without the text ones), and empty values never
 match a condition except is_empty=True.
 
-Positions count from 1: nums.number_at(1) is the first number.
+Positions count from 1: nums.get_number_at(1) is the first number.
 """
 
 from __future__ import annotations
@@ -30,29 +30,34 @@ CONDITIONS = ("above", "below", "at_least", "at_most", "equal_to", "not_equal_to
 FILL_CHOICES = ("average", "median", "value above", "value below", "line between neighbours")
 
 
+
+def _is(key: str) -> str:
+    """The condition option as it is written now: above -> is_above (the old names still work)."""
+    return key if key.startswith("is_") or key in ("contains", "starts_with", "ends_with") else f"is_{key}"
+
 class ReplacingWords:
-    """Shared by numbers and grids: one condition on the numbers, and replace_numbers()."""
+    """Shared by numbers and grids: one condition on the numbers, and replace_each_number_that()."""
 
     def _condition(self, step: str, options: dict, extra: tuple):
         """Which numbers match one condition. Gives (True/False for each number, words)."""
-        example = f"{step}(above=50)"
+        example = f"{step}(is_above=50)"
         if extra:
             raise SimplydataError(
-                f".{step}() needs one plain word saying which numbers, like above=50 or between=[40, 60]."
+                f".{step}() needs one plain word saying which numbers, like is_above=50 or is_between=[40, 60]."
                 + self._example(example)
             )
         given = {k: v for k, v in options.items() if v is not NOT_GIVEN}
         if not given:
             raise SimplydataError(
                 f".{step}() needs one condition saying which numbers. You can use: "
-                + ", ".join(f"{c}=" for c in CONDITIONS) + self._example(example)
+                + ", ".join(f"{_is(c)}=" for c in CONDITIONS) + self._example(example)
             )
         if len(given) > 1:
             names = " and ".join(f"{c}=" for c in given)
             raise SimplydataError(
                 f".{step}() takes one condition at a time, but you gave {names}. "
-                "Write one step per condition, or use between=[low, high]."
-                + self._example(f"{step}(at_least=40)   then   nums.{step}(at_most=80)")
+                "Write one step per condition, or use is_between=[low, high]."
+                + self._example(f"{step}(is_at_least=40)   then   nums.{step}(is_at_most=80)")
             )
         option, value = next(iter(given.items()))
         v = self._values
@@ -69,10 +74,10 @@ class ReplacingWords:
             if isinstance(x, str):
                 try:
                     float(x)
-                    hint = f" Write the number without quotes: {option}={x.strip()}."
+                    hint = f" Write the number without quotes: {_is(option)}={x.strip()}."
                 except ValueError:
                     pass
-            raise SimplydataError(f"{option}= needs a number (you gave {x!r}).{hint}" + self._example(example_code))
+            raise SimplydataError(f"{_is(option)}= needs a number (you gave {x!r}).{hint}" + self._example(example_code))
 
         with np.errstate(invalid="ignore"):
             if option in ("above", "below", "at_least", "at_most"):
@@ -80,62 +85,64 @@ class ReplacingWords:
                 cond = {"above": v > x, "below": v < x, "at_least": v >= x, "at_most": v <= x}[option]
                 words = f"{option.replace('_', ' ')} {say(x)}"
             elif option == "between":
-                ex = f"{step}(between=[40, 60])"
+                ex = f"{step}(is_between=[40, 60])"
                 if isinstance(value, (str, bytes)) or not isinstance(value, (list, tuple)) or len(value) != 2:
                     raise SimplydataError(
-                        "between= needs two numbers in square brackets: the lowest and the highest."
+                        "is_between= needs two numbers in square brackets: the lowest and the highest."
                         + self._example(ex)
                     )
                 low, high = sorted(number(x, ex) for x in value)
                 cond, words = (v >= low) & (v <= high), f"between {say(low)} and {say(high)}"
             elif option == "one_of":
-                ex = f"{step}(one_of=[1, 2, 3])"
+                ex = f"{step}(is_one_of=[1, 2, 3])"
                 if isinstance(value, (str, bytes)) or not isinstance(value, (list, tuple, set)) or not value:
                     raise SimplydataError(
-                        "one_of= needs a list of numbers in square brackets. For a single number use equal_to="
+                        "is_one_of= needs a list of numbers in square brackets. For a single number use is_equal_to="
                         + self._example(ex)
                     )
                 values = [number(x, ex) for x in value]
                 cond, words = np.isin(v, values), "one of " + ", ".join(say(x) for x in values)
             else:  # equal_to, not_equal_to
-                x = number(value, f"{step}(equal_to=5)")
+                x = number(value, f"{step}(is_equal_to=5)")
                 if option == "equal_to":
                     cond, words = v == x, f"equal to {say(x)}"
                 else:
                     cond, words = v != x, f"not equal to {say(x)}"
         return cond & ~empty, words
 
-    @friendly
-    def replace_numbers(self, old=NOT_GIVEN, with_value=NOT_GIVEN, *, above=NOT_GIVEN, below=NOT_GIVEN,
-                        at_least=NOT_GIVEN, at_most=NOT_GIVEN, equal_to=NOT_GIVEN, not_equal_to=NOT_GIVEN,
-                        between=NOT_GIVEN, one_of=NOT_GIVEN, is_empty=NOT_GIVEN):
+    @friendly(renamed={"above": "is_above", "below": "is_below", "at_least": "is_at_least", "at_most": "is_at_most",
+                       "equal_to": "is_equal_to", "not_equal_to": "is_not_equal_to", "between": "is_between",
+                       "one_of": "is_one_of"})
+    def replace_each_number_that(self, old=NOT_GIVEN, with_value=NOT_GIVEN, *, is_above=NOT_GIVEN, is_below=NOT_GIVEN,
+                                 is_at_least=NOT_GIVEN, is_at_most=NOT_GIVEN, is_equal_to=NOT_GIVEN, is_not_equal_to=NOT_GIVEN,
+                                 is_between=NOT_GIVEN, is_one_of=NOT_GIVEN, is_empty=NOT_GIVEN):
         """Replace a number, or every number that meets one condition; with_value=None makes them empty.
 
-        nums.replace_numbers(-999, with_value=None)   a code for "missing" becomes empty
-        nums.replace_numbers(above=100, with_value=100)   every number above 100 becomes 100
-        The conditions are keep_numbers' (one at a time): above, below, at_least, at_most, equal_to,
-        not_equal_to, between, one_of, is_empty. A grid keeps its rows and columns.
+        nums.replace_each_number_that(-999, with_value=None)   a code for "missing" becomes empty
+        nums.replace_each_number_that(is_above=100, with_value=100)   every number above 100 becomes 100
+        The conditions are those of keep_each_number_that (one at a time): is_above, is_below,
+        is_at_least, is_at_most, is_equal_to, is_not_equal_to, is_between, is_one_of, is_empty. A grid keeps its rows and columns.
         As NumPy np.where(a > 100, 100, a) and pandas s.mask(s > 100, 100).
         """
         name = self._name
-        example = f"{name}.replace_numbers(above=100, with_value=100)"
-        options = dict(above=above, below=below, at_least=at_least, at_most=at_most, equal_to=equal_to,
-                       not_equal_to=not_equal_to, between=between, one_of=one_of, is_empty=is_empty)
+        example = f"{name}.replace_each_number_that(is_above=100, with_value=100)"
+        options = dict(above=is_above, below=is_below, at_least=is_at_least, at_most=is_at_most, equal_to=is_equal_to,
+                       not_equal_to=is_not_equal_to, between=is_between, one_of=is_one_of, is_empty=is_empty)
         given = [k for k, v in options.items() if v is not NOT_GIVEN]
         if old is NOT_GIVEN and not given:
             raise SimplydataError(
-                ".replace_numbers() needs the number to replace, or one condition saying which numbers ("
-                + ", ".join(f"{c}=" for c in CONDITIONS) + "), and with_value= the new number."
-                + f"\nFor example:  {name}.replace_numbers(-999, with_value=None)\nFor example:  {example}"
+                ".replace_each_number_that() needs the number to replace, or one condition saying which numbers ("
+                + ", ".join(f"{_is(c)}=" for c in CONDITIONS) + "), and with_value= the new number."
+                + f"\nFor example:  {name}.replace_each_number_that(-999, with_value=None)\nFor example:  {example}"
             )
         if old is not NOT_GIVEN and given:
             raise SimplydataError(
-                f".replace_numbers() takes either the old number or one condition ({given[0]}=), not both."
-                + f"\nFor example:  {name}.replace_numbers(-999, with_value=None)\nFor example:  {example}"
+                f".replace_each_number_that() takes either the old number or one condition ({_is(given[0])}=), not both."
+                + f"\nFor example:  {name}.replace_each_number_that(-999, with_value=None)\nFor example:  {example}"
             )
         if with_value is NOT_GIVEN:
             raise SimplydataError(
-                ".replace_numbers() needs with_value=, the new number (None makes them empty)."
+                ".replace_each_number_that() needs with_value=, the new number (None makes them empty)."
                 + f"\nFor example:  {example}"
             )
         if with_value is not None and not is_number(with_value):
@@ -146,17 +153,17 @@ class ReplacingWords:
         if old is not NOT_GIVEN:
             if old is None or (is_number(old) and old != old):
                 raise SimplydataError(
-                    f"For the empty numbers write {name}.replace_numbers(is_empty=True, with_value=0) "
+                    f"For the empty numbers write {name}.replace_each_number_that(is_empty=True, with_value=0) "
                     f"or {name}.fill_empty_numbers(with_value=0)." if name == "nums" else
-                    f"For the empty numbers write {name}.replace_numbers(is_empty=True, with_value=0)."
+                    f"For the empty numbers write {name}.replace_each_number_that(is_empty=True, with_value=0)."
                 )
             olds = list(old) if isinstance(old, (list, tuple, set, np.ndarray)) else [old]
             for x in olds:
                 if not is_number(x):
                     raise SimplydataError(f"The old value needs to be a number (you gave {x!r})."
-                                          + f"\nFor example:  {name}.replace_numbers(-999, with_value=None)")
+                                          + f"\nFor example:  {name}.replace_each_number_that(-999, with_value=None)")
             options = {"one_of": olds} if len(olds) > 1 else {"equal_to": olds[0]}
-        cond, words = self._condition("replace_numbers", options, ())
+        cond, words = self._condition("replace_each_number_that", options, ())
         n, total = int(cond.sum()), self._values.size
         if words.startswith("are "):
             words = "that were " + words[4:]
@@ -199,14 +206,14 @@ class PickingWords(ReplacingWords):
 
     # ================================================================== looking
     @friendly
-    def number_at(self, position=None):
-        """The number at a position, counting from 1: number_at(1) is the first number.
+    def get_number_at(self, position=None):
+        """The number at a position, counting from 1: get_number_at(1) is the first number.
 
-        nums.number_at(1)
+        nums.get_number_at(1)
         Positions count from 1, the way people count and the way charts number the x axis.
-        number_at("last") is the last number.
+        get_number_at("last") is the last number.
         """
-        return plain(self._values[self._check_position("number_at", position)])
+        return plain(self._values[self._check_position("get_number_at", position)])
 
     @friendly
     def show_first_numbers(self, how_many=5):
@@ -229,7 +236,7 @@ class PickingWords(ReplacingWords):
             step, positions, to, step_size, self._values.size, noun="position", count_noun="numbers",
             owner="There are", example=example, last_hint="nums.keep_last_numbers(3)",
             after_hint="to turn the order round use nums.reverse()", name="nums",
-            other_hint=lambda v: ("To keep numbers by their values use nums.keep_numbers(above=50)."
+            other_hint=lambda v: ("To keep numbers by their values use nums.keep_each_number_that(is_above=50)."
                                   if isinstance(v, str) else None),
         )
 
@@ -237,12 +244,12 @@ class PickingWords(ReplacingWords):
         if not conditions:
             return
         key = next(iter(conditions))
-        if key in CONDITIONS:
+        if key in CONDITIONS or key[3:] in CONDITIONS:
             verb = step.split("_")[0]
             raise SimplydataError(
                 f".{step}() chooses numbers by their place in the list, not by their values.\n"
-                f"For numbers whose values meet a condition write nums.{verb}_numbers({key}=...).\n"
-                "For example:  nums.keep_numbers(above=50)"
+                f"For numbers whose values meet a condition write nums.{verb}_each_number_that({_is(key)}=...).\n"
+                "For example:  nums.keep_each_number_that(is_above=50)"
             )
         raise option_error(step, key, ["positions", "to", "step"])
 
@@ -253,7 +260,7 @@ class PickingWords(ReplacingWords):
         nums.keep_numbers_by_position(2, to=4)
         Both ends are included. to="last" goes to the end; step=2 keeps every 2nd number; a list
         such as [1, 4] keeps those numbers in that order. As NumPy a[1:4] (positions, not values:
-        keep_numbers(between=[2, 4]) keeps the values from 2 to 4).
+        keep_each_number_that(is_between=[2, 4]) keeps the values from 2 to 4).
         """
         example = "nums.keep_numbers_by_position(3, to=8)"
         self._no_value_conditions("keep_numbers_by_position", conditions)
@@ -287,33 +294,37 @@ class PickingWords(ReplacingWords):
         return self._change(f"remove {what} {picked.short_words()}", new)
 
     # ================================================================== keeping and removing
-    @friendly
-    def keep_numbers(self, *extra, above=NOT_GIVEN, below=NOT_GIVEN, at_least=NOT_GIVEN, at_most=NOT_GIVEN,
-                     equal_to=NOT_GIVEN, not_equal_to=NOT_GIVEN, between=NOT_GIVEN, one_of=NOT_GIVEN,
-                     is_empty=NOT_GIVEN):
-        """Keep only the numbers that match one condition. nums.keep_numbers(above=50)
+    @friendly(renamed={"above": "is_above", "below": "is_below", "at_least": "is_at_least", "at_most": "is_at_most",
+                       "equal_to": "is_equal_to", "not_equal_to": "is_not_equal_to", "between": "is_between",
+                       "one_of": "is_one_of"})
+    def keep_each_number_that(self, *extra, is_above=NOT_GIVEN, is_below=NOT_GIVEN, is_at_least=NOT_GIVEN, is_at_most=NOT_GIVEN,
+                              is_equal_to=NOT_GIVEN, is_not_equal_to=NOT_GIVEN, is_between=NOT_GIVEN, is_one_of=NOT_GIVEN,
+                              is_empty=NOT_GIVEN):
+        """Keep only the numbers that match one condition. nums.keep_each_number_that(is_above=50)
 
-        Conditions (the same as table.keep_rows): above, below, at_least, at_most, equal_to,
-        not_equal_to, between=[low, high] (both ends included), one_of=[...], is_empty=True.
+        Conditions (the same as table.keep_rows_where): is_above, is_below, is_at_least, is_at_most, is_equal_to,
+        is_not_equal_to, is_between=[low, high] (both ends included), is_one_of=[...], is_empty=True.
         Empty values only match is_empty.
         """
-        options = dict(above=above, below=below, at_least=at_least, at_most=at_most, equal_to=equal_to,
-                       not_equal_to=not_equal_to, between=between, one_of=one_of, is_empty=is_empty)
-        cond, words = self._condition("keep_numbers", options, extra)
+        options = dict(above=is_above, below=is_below, at_least=is_at_least, at_most=is_at_most, equal_to=is_equal_to,
+                       not_equal_to=is_not_equal_to, between=is_between, one_of=is_one_of, is_empty=is_empty)
+        cond, words = self._condition("keep_each_number_that", options, extra)
         return self._keep(f"keep numbers {words}", cond)
 
-    @friendly
-    def remove_numbers(self, *extra, above=NOT_GIVEN, below=NOT_GIVEN, at_least=NOT_GIVEN, at_most=NOT_GIVEN,
-                       equal_to=NOT_GIVEN, not_equal_to=NOT_GIVEN, between=NOT_GIVEN, one_of=NOT_GIVEN,
-                       is_empty=NOT_GIVEN):
-        """Remove the numbers that match one condition (the opposite of keep_numbers).
+    @friendly(renamed={"above": "is_above", "below": "is_below", "at_least": "is_at_least", "at_most": "is_at_most",
+                       "equal_to": "is_equal_to", "not_equal_to": "is_not_equal_to", "between": "is_between",
+                       "one_of": "is_one_of"})
+    def remove_each_number_that(self, *extra, is_above=NOT_GIVEN, is_below=NOT_GIVEN, is_at_least=NOT_GIVEN, is_at_most=NOT_GIVEN,
+                                is_equal_to=NOT_GIVEN, is_not_equal_to=NOT_GIVEN, is_between=NOT_GIVEN, is_one_of=NOT_GIVEN,
+                                is_empty=NOT_GIVEN):
+        """Remove the numbers that match one condition (the opposite of keep_each_number_that).
 
-        nums.remove_numbers(below=0)
-        Same conditions as keep_numbers; between=[low, high] includes both ends.
+        nums.remove_each_number_that(is_below=0)
+        Same conditions as keep_each_number_that; is_between=[low, high] includes both ends.
         """
-        options = dict(above=above, below=below, at_least=at_least, at_most=at_most, equal_to=equal_to,
-                       not_equal_to=not_equal_to, between=between, one_of=one_of, is_empty=is_empty)
-        cond, words = self._condition("remove_numbers", options, extra)
+        options = dict(above=is_above, below=is_below, at_least=is_at_least, at_most=is_at_most, equal_to=is_equal_to,
+                       not_equal_to=is_not_equal_to, between=is_between, one_of=is_one_of, is_empty=is_empty)
+        cond, words = self._condition("remove_each_number_that", options, extra)
         return self._keep(f"remove numbers {words}", ~cond, kept_word=False)
 
     @friendly
@@ -330,23 +341,23 @@ class PickingWords(ReplacingWords):
         mask = np.arange(self._values.size) >= self._values.size - n
         return self._keep(f"keep the last {amount(n)}", mask)
 
-    @friendly
-    def keep_random_numbers(self, how_many=5, seed=None):
+    @friendly(renamed={"seed": "with_seed"})
+    def keep_random_numbers(self, how_many=5, with_seed=None):
         """Keep some numbers picked at random (they keep their order); a seed gives the same pick every time.
 
-        nums.keep_random_numbers(10, seed=1)
+        nums.keep_random_numbers(10, with_seed=1)
         """
-        example = "nums.keep_random_numbers(10, seed=1)"
+        example = "nums.keep_random_numbers(10, with_seed=1)"
         n = check_whole("keep_random_numbers", "keep_random_numbers()", how_many, example)
-        seed = check_seed(seed, example)
+        with_seed = check_seed(with_seed, example)
         size = self._values.size
         if n > size:
             print(f"There are only {amount(size)}, so all of them are kept.")
             n = size
-        picked = np.random.default_rng(seed).choice(size, size=n, replace=False)
+        picked = np.random.default_rng(with_seed).choice(size, size=n, replace=False)
         mask = np.zeros(size, dtype=bool)
         mask[picked] = True
-        what = f"keep {n} random numbers" + (f" (seed {seed})" if seed is not None else "")
+        what = f"keep {n} random numbers" + (f" (seed {with_seed})" if with_seed is not None else "")
         return self._keep(what, mask)
 
     @friendly
@@ -436,10 +447,10 @@ class PickingWords(ReplacingWords):
         return self._change("reverse", self._values[::-1].copy())
 
     @friendly
-    def running_total(self):
+    def turn_into_running_total(self):
         """Each number becomes the total so far (the cumulative sum): 1, 2, 3 becomes 1, 3, 6.
 
-        nums.running_total()
+        nums.turn_into_running_total()
         Empty values stay empty and are skipped in the total, like pandas cumsum().
         """
         empty = self._empty_mask()
@@ -450,8 +461,8 @@ class PickingWords(ReplacingWords):
 
     # ================================================================== into a grid
     @friendly
-    def number_grid(self, rows=None, columns=None):
-        """Make a NEW grid from these numbers, filled row by row. grid = nums.number_grid(columns=3)
+    def make_number_grid(self, rows=None, columns=None):
+        """Make a NEW grid from these numbers, filled row by row. grid = nums.make_number_grid(columns=3)
 
         Give rows= or columns= (or both); the numbers must fill the grid exactly.
         """

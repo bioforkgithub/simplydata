@@ -7,8 +7,8 @@ right calculation and say which one it used. Decisions:
 * empty cells are skipped
 * error="confidence interval" is a 95 % confidence interval of the mean from the t
   distribution (same as R's t.test). It gives the same answer every time, unlike bootstrapping.
-* measure names are the same everywhere: show="biggest" on a chart is table.biggest_of,
-  error="standard deviation" is table.standard_deviation_of.
+* measure names are the same everywhere: show="biggest" on a chart is table.find_biggest_of,
+  error="standard deviation" is table.find_standard_deviation_of.
 """
 
 from __future__ import annotations
@@ -19,7 +19,7 @@ from scipy import stats
 from ._errors import SimplydataError, choice_error
 
 # show= on bars and lines: the name people write -> the calculation pandas/seaborn does.
-# The taught names match the table words (average_of, median_of ...); "mean" and "sum" also work.
+# The taught names match the table words (find_average_of, find_median_of ...); "mean" and "sum" also work.
 SHOW = {
     "average": "mean",
     "mean": "mean",
@@ -33,7 +33,7 @@ SHOW = {
 }
 SHOW_NAMES = ("average", "median", "total", "count", "smallest", "biggest", "standard deviation")
 
-# error= and error_bars(): the long names are taught; "sd", "se" and "ci" are the usual
+# error= and draw_error_bars(): the long names are taught; "sd", "se" and "ci" are the usual
 # abbreviations and keep working.
 ERRORS = {
     "standard deviation": "sd",

@@ -26,7 +26,7 @@ def engine(request):
 
 @pytest.fixture
 def marks_df():
-    return sdata.example("marks")
+    return sdata.get_example("marks")
 
 
 @pytest.fixture
@@ -99,15 +99,15 @@ WRITTEN = [
 @pytest.mark.parametrize("text, mask", WRITTEN)
 def test_written_conditions_match_pandas(marks, marks_df, text, mask, capsys):
     expected = marks_df[mask(marks_df)]
-    marks.keep_rows(text)
+    marks.keep_rows_where(text)
     same(marks, expected)
     out = capsys.readouterr().out
     assert f"Kept {len(expected)} of 54 rows." in out
-    marks.steps()
+    marks.show_steps()
     assert f"keep rows where {text}" in capsys.readouterr().out
     marks.undo()
     same(marks, marks_df)
-    marks.remove_rows(text)
+    marks.remove_rows_where(text)
     same(marks, marks_df[~mask(marks_df)])
     marks.undo()
     same(marks, marks_df)
@@ -115,67 +115,67 @@ def test_written_conditions_match_pandas(marks, marks_df, text, mask, capsys):
 
 def test_written_conditions_and_empty_cells(messy, messy_df):
     # a comparison with an empty cell is never true, and "not" does not bring it back
-    messy.keep_rows("marks > 50")
+    messy.keep_rows_where("marks > 50")
     assert len(messy) == 3
     messy.undo()
-    messy.keep_rows("not (marks > 50)")
+    messy.keep_rows_where("not (marks > 50)")
     assert list(plain(messy)["marks"]) == [45.0, 45.0]
     messy.undo()
-    messy.remove_rows("marks > 50")  # the empty mark is not above 50, so it stays
+    messy.remove_rows_where("marks > 50")  # the empty mark is not above 50, so it stays
     assert len(messy) == 3 and plain(messy)["marks"].isna().sum() == 1
     messy.undo()
-    messy.keep_rows("marks is empty")
+    messy.keep_rows_where("marks is empty")
     assert len(messy) == 1
     messy.undo()
-    messy.keep_rows("name is empty")  # None and a cell of only spaces
+    messy.keep_rows_where("name is empty")  # None and a cell of only spaces
     assert len(messy) == 2
     messy.undo()
-    messy.keep_rows("name is not empty and marks is not empty")
+    messy.keep_rows_where("name is not empty and marks is not empty")
     assert len(messy) == 3
     messy.undo()
     # "or" still finds the row when the other part is true
-    messy.keep_rows("marks > 75 or not passed")
+    messy.keep_rows_where("marks > 75 or not passed")
     assert list(plain(messy)["marks"].fillna(-1)) == [-1.0, 80.0, 45.0]
     messy.undo()
-    messy.keep_rows("passed")
+    messy.keep_rows_where("passed")
     same(messy, messy_df[messy_df["passed"]])
     messy.undo()
-    messy.keep_rows("passed == False")
+    messy.keep_rows_where("passed == False")
     same(messy, messy_df[~messy_df["passed"]])
     messy.undo()
     # a sum with an empty cell, or a division by zero, is not known either
-    messy.keep_rows("marks / hours > 0")
+    messy.keep_rows_where("marks / hours > 0")
     assert list(plain(messy)["name"].fillna("?")) == ["Asha", "?", "  "]
     messy.undo()
-    messy.keep_rows("not (marks / hours > 0)")
+    messy.keep_rows_where("not (marks / hours > 0)")
     assert len(messy) == 0
 
 
 def test_written_conditions_on_dates(messy):
-    messy.make_dates("when")
-    messy.keep_rows("when > '2026-03-14'")
+    messy.turn_into_dates("when")
+    messy.keep_rows_where("when > '2026-03-14'")
     assert len(messy) == 4
     messy.undo()
-    messy.keep_rows("when >= '2026-03-15' and when < '2026-12-01'")
+    messy.keep_rows_where("when >= '2026-03-15' and when < '2026-12-01'")
     assert len(messy) == 3
     messy.undo()
-    messy.keep_rows("when == '2026-01-01' or when is empty")
+    messy.keep_rows_where("when == '2026-01-01' or when is empty")
     assert len(messy) == 2
     messy.undo()
     with pytest.raises(SimplydataError, match="year-month-day"):
-        messy.keep_rows("when > '15 March'")
+        messy.keep_rows_where("when > '15 March'")
     with pytest.raises(SimplydataError, match="year-month-day"):
-        messy.keep_rows("when > 2026")
+        messy.keep_rows_where("when > 2026")
 
 
 def test_written_condition_with_keyword_and_spaces(engine):
     df = pd.DataFrame({"class": ["A", "B", "A"], "max temp": [10.0, 20.0, 30.0]})
     t = _engine_table(df, engine)
-    t.keep_rows("class == 'A' and `max temp` > 15")
+    t.keep_rows_where("class == 'A' and `max temp` > 15")
     same(t, df[(df["class"] == "A") & (df["max temp"] > 15)])
     t.undo()
-    t.replace_values("class", {"B": "class B"})
-    t.keep_rows("class == 'class B'")  # a column name inside quotes stays text
+    t.replace_values_in("class", {"B": "class B"})
+    t.keep_rows_where("class == 'class B'")  # a column name inside quotes stays text
     assert len(t) == 1
 
 
@@ -214,42 +214,42 @@ WRITTEN_ERRORS = [
 @pytest.mark.parametrize("text, message", WRITTEN_ERRORS)
 def test_written_condition_errors(marks, text, message):
     with pytest.raises(SimplydataError) as error:
-        marks.keep_rows(text)
+        marks.keep_rows_where(text)
     assert message in str(error.value)
     assert len(marks) == 54 and not marks._history  # errors never change the table
 
 
 def test_written_condition_errors_list_what_is_allowed(marks):
     with pytest.raises(SimplydataError, match="A condition can use") as error:
-        marks.keep_rows("marks = 50")
+        marks.keep_rows_where("marks = 50")
     assert "formula" not in str(error.value)
     with pytest.raises(SimplydataError, match="not both"):
-        marks.keep_rows("marks > 50", above=3)
+        marks.keep_rows_where("marks > 50", is_above=3)
     with pytest.raises(SimplydataError, match="write the whole condition"):
-        marks.keep_rows("marks")
+        marks.keep_rows_where("marks")
     with pytest.raises(SimplydataError, match="very long"):
-        marks.keep_rows(" or ".join(["marks > 1"] * 100))
+        marks.keep_rows_where(" or ".join(["marks > 1"] * 100))
 
 
 def test_true_false_column_alone(messy, messy_df):
-    messy.remove_rows("passed")
+    messy.remove_rows_where("passed")
     same(messy, messy_df[~messy_df["passed"]])
 
 
 # ---------------------------------------------------------------------- after= / before=
 def test_after_before_on_days(messy):
-    messy.make_dates("when")  # 2026-03-15 (3 times), 2026-12-25, empty, 2026-01-01
-    messy.keep_rows("when", after="2026-03-15")
+    messy.turn_into_dates("when")  # 2026-03-15 (3 times), 2026-12-25, empty, 2026-01-01
+    messy.keep_rows_where("when", is_after="2026-03-15")
     assert len(messy) == 1
     messy.undo()
-    messy.keep_rows("when", before="2026-03-15")
+    messy.keep_rows_where("when", is_before="2026-03-15")
     assert len(messy) == 1
     messy.undo()
-    messy.remove_rows("when", after="2026-03-14")  # the empty date stays
+    messy.remove_rows_where("when", is_after="2026-03-14")  # the empty date stays
     assert len(messy) == 2
-    messy.steps()
+    messy.show_steps()
     messy.undo()
-    messy.keep_rows("when", after=dt.date(2026, 3, 14))
+    messy.keep_rows_where("when", is_after=dt.date(2026, 3, 14))
     assert len(messy) == 4
 
 
@@ -257,40 +257,40 @@ def test_after_before_with_times(engine):
     df = pd.DataFrame({"when": pd.to_datetime(["2026-03-01 10:00", "2026-03-02 00:00", "2026-02-28 23:00",
                                                "2026-03-01 00:00"])})
     t = _engine_table(df, engine)
-    t.keep_rows("when", after="2026-03-01")  # a whole day: after 1 March is from 2 March
+    t.keep_rows_where("when", is_after="2026-03-01")  # a whole day: after 1 March is from 2 March
     assert list(plain(t)["when"]) == [pd.Timestamp("2026-03-02")]
     t.undo()
-    t.keep_rows("when", before="2026-03-01")  # before 1 March ends on 28 February
+    t.keep_rows_where("when", is_before="2026-03-01")  # before 1 March ends on 28 February
     assert list(plain(t)["when"]) == [pd.Timestamp("2026-02-28 23:00")]
     t.undo()
-    t.keep_rows("when", after="2026-03-01 09:00")  # with a time: after that moment
+    t.keep_rows_where("when", is_after="2026-03-01 09:00")  # with a time: after that moment
     assert len(t) == 2
     t.undo()
-    t.keep_rows("when > '2026-03-01'")  # a sign compares with midnight, like pandas
+    t.keep_rows_where("when > '2026-03-01'")  # a sign compares with midnight, like pandas
     assert len(t) == 2
 
 
 def test_after_before_on_polars_dates():
     pl = pytest.importorskip("polars")
     t = make_table(pl.DataFrame({"day": [dt.date(2026, 3, d) for d in (1, 2, 3)]}))
-    t.keep_rows("day", after="2026-03-01")
+    t.keep_rows_where("day", is_after="2026-03-01")
     assert len(t) == 2
     t.undo()
-    t.keep_rows("day", before="2026-03-02")
+    t.keep_rows_where("day", is_before="2026-03-02")
     assert len(t) == 1
     t.undo()
-    t.keep_rows("day <= '2026-03-02'")
+    t.keep_rows_where("day <= '2026-03-02'")
     assert len(t) == 2
 
 
 def test_after_before_errors(marks, messy):
     with pytest.raises(SimplydataError, match="for dates.*For numbers use above="):
-        marks.keep_rows("marks", after=50)
-    messy.make_dates("when")
+        marks.keep_rows_where("marks", is_after=50)
+    messy.turn_into_dates("when")
     with pytest.raises(SimplydataError, match="year-month-day"):
-        messy.keep_rows("when", after="March")
+        messy.keep_rows_where("when", is_after="March")
     with pytest.raises(SimplydataError, match="one condition at a time"):
-        messy.keep_rows("when", after="2026-01-01", before="2026-12-01")
+        messy.keep_rows_where("when", is_after="2026-01-01", is_before="2026-12-01")
 
 
 # ---------------------------------------------------------------------- biggest and smallest
@@ -308,17 +308,17 @@ def test_keep_biggest_and_smallest(marks, marks_df, capsys):
 
 
 def test_keep_biggest_for_each(marks, marks_df, capsys):
-    marks.keep_biggest_rows(2, by="marks", for_each="subject")
+    marks.keep_biggest_rows(2, by="marks", for_each_group_in="subject")
     expected = (marks_df.sort_values("marks", ascending=False, kind="stable")
                 .groupby("subject", sort=False).head(2)
                 .sort_values("subject", kind="stable"))
     same(marks, expected)
     out = capsys.readouterr().out
     assert "for each subject: 6 of 54 rows" in out
-    marks.steps()
+    marks.show_steps()
     assert "keep the 2 rows with the biggest marks for each subject" in capsys.readouterr().out
     marks.undo()
-    marks.keep_smallest_rows(1, by="marks", for_each=["class", "subject"])
+    marks.keep_smallest_rows(1, by="marks", for_each_group_in=["class", "subject"])
     expected = (marks_df.sort_values("marks", kind="stable")
                 .groupby(["class", "subject"], sort=False).head(1)
                 .sort_values(["class", "subject"], kind="stable"))
@@ -350,7 +350,7 @@ def test_keep_biggest_errors(marks):
     with pytest.raises(SimplydataError, match='Did you mean "marks"'):
         marks.keep_biggest_rows(3, by="mark")
     with pytest.raises(SimplydataError, match="both the column"):
-        marks.keep_biggest_rows(3, by="marks", for_each="marks")
+        marks.keep_biggest_rows(3, by="marks", for_each_group_in="marks")
     with pytest.raises(SimplydataError, match="no option called of="):
         marks.keep_biggest_rows(3, of="marks")
     assert len(marks) == 54 and not marks._history
@@ -387,7 +387,7 @@ def test_outliers_tukey_whole_column(engine, wild_df, capsys):
     t.remove_rows_with_outliers("hours")
     same(t, wild_df[~mask])
     assert f"Removed {int(mask.sum())} of 54 rows." in capsys.readouterr().out
-    t.steps()
+    t.show_steps()
     assert "remove rows with outliers in hours (1.5 x IQR)" in capsys.readouterr().out
     t.undo()
     same(t, wild_df)
@@ -399,7 +399,7 @@ def test_outliers_for_each_group(engine, wild_df, capsys):
     for _, part in wild_df.groupby("subject"):
         low, high = _tukey(part["hours"])
         keep[part.index] = ~((part["hours"] < low) | (part["hours"] > high))
-    t.remove_rows_with_outliers("hours", for_each="subject")
+    t.remove_rows_with_outliers("hours", for_each_group_in="subject")
     same(t, wild_df[keep])
     out = capsys.readouterr().out
     assert "For each subject:" in out and "Maths: below" in out
@@ -427,10 +427,10 @@ def test_outliers_three_iqr_and_sd(engine, capsys):
 
 
 def test_outliers_sd_rule_warns_for_small_groups(marks, capsys):
-    marks.show_rows_with_outliers("marks", for_each="subject", rule="3 standard deviations")
+    marks.show_rows_with_outliers("marks", for_each_group_in="subject", rule="3 standard deviations")
     # 18 marks per subject: (18 - 1) / sqrt(18) = 4.0 > 3, so no note
     assert "Note: with" not in capsys.readouterr().out
-    marks.show_rows_with_outliers("marks", for_each=["class", "subject"], rule="3 standard deviations")
+    marks.show_rows_with_outliers("marks", for_each_group_in=["class", "subject"], rule="3 standard deviations")
     # 6 marks per group: (6 - 1) / sqrt(6) = 2.04, so 3 standard deviations can never be reached
     assert "Note: with 6 numbers in a group no value can be more than 3" in capsys.readouterr().out
 
@@ -443,7 +443,7 @@ def test_outlier_errors(marks):
     with pytest.raises(SimplydataError, match="does not know"):
         marks.remove_rows_with_outliers("marks", rule="0 IQR")
     with pytest.raises(SimplydataError, match="both the column"):
-        marks.remove_rows_with_outliers("marks", for_each="marks")
+        marks.remove_rows_with_outliers("marks", for_each_group_in="marks")
     with pytest.raises(SimplydataError, match='Did you mean "marks"'):
         marks.remove_rows_with_outliers("mark")
     with pytest.raises(SimplydataError, match="column name in quotes"):
@@ -453,23 +453,23 @@ def test_outlier_errors(marks):
 
 # ---------------------------------------------------------------------- replace_values with {old: new}
 def test_replace_values_with_pairs(marks, marks_df, capsys):
-    marks.replace_values("class", {"A": "B", "B": "A"})  # a swap: every cell looked up once
+    marks.replace_values_in("class", {"A": "B", "B": "A"})  # a swap: every cell looked up once
     expected = marks_df.copy()
     expected["class"] = marks_df["class"].replace({"A": "B", "B": "A"})
     same(marks, expected)
     out = capsys.readouterr().out
     assert 'Replaced 36 cells in class: "A" became "B" (18 cells), "B" became "A" (18 cells).' in out
     marks.undo()
-    marks.replace_values("subject", {"Maths": "Math", "Art": "Arts", "English": None})
+    marks.replace_values_in("subject", {"Maths": "Math", "Art": "Arts", "English": None})
     expected = marks_df.copy()
     expected["subject"] = marks_df["subject"].replace({"Maths": "Math"}).where(marks_df["subject"] != "English")
     same(marks, expected)
     out = capsys.readouterr().out
     assert 'Note: "Art" was not found in subject.' in out
-    marks.steps()
+    marks.show_steps()
     assert 'replace "Maths" with "Math", "Art" with "Arts", "English" with empty in subject' in capsys.readouterr().out
     marks.undo()
-    marks.replace_values("marks", {61: 60, 66: 65})
+    marks.replace_values_in("marks", {61: 60, 66: 65})
     expected = marks_df.copy()
     expected["marks"] = marks_df["marks"].replace({61: 60, 66: 65})
     same(marks, expected)
@@ -477,27 +477,27 @@ def test_replace_values_with_pairs(marks, marks_df, capsys):
 
 def test_replace_values_pair_errors(marks):
     with pytest.raises(SimplydataError, match="leave out with_value="):
-        marks.replace_values("class", {"A": "B"}, with_value="C")
+        marks.replace_values_in("class", {"A": "B"}, with_value="C")
     with pytest.raises(SimplydataError, match="brackets are empty"):
-        marks.replace_values("class", {})
+        marks.replace_values_in("class", {})
     with pytest.raises(SimplydataError, match="same kind"):
-        marks.replace_values("class", {"A": 1})
+        marks.replace_values_in("class", {"A": 1})
     with pytest.raises(SimplydataError, match="needs text in quotes"):
-        marks.replace_values("class", {1: "A"})
+        marks.replace_values_in("class", {1: "A"})
     with pytest.raises(SimplydataError, match="old: new"):
-        marks.replace_values("class", "A")
+        marks.replace_values_in("class", "A")
     assert len(marks) == 54 and not marks._history
 
 
 # ---------------------------------------------------------------------- round_to and show
 def test_round_to(marks, marks_df, capsys):
-    marks.round_to("hours", 0)
+    marks.round_numbers_in("hours", 0)
     expected = marks_df.copy()
     expected["hours"] = np.round(marks_df["hours"].to_numpy(), 0)
     same(marks, expected)
     assert "Rounded hours to 0 decimal places." in capsys.readouterr().out
     marks.undo()
-    marks.round_to(-1)  # every number column, to the nearest 10
+    marks.round_numbers_in(-1)  # every number column, to the nearest 10
     expected = marks_df.copy()
     for c in ("hours", "marks", "height"):
         expected[c] = np.round(marks_df[c].to_numpy(), -1)
@@ -505,7 +505,7 @@ def test_round_to(marks, marks_df, capsys):
     assert plain(marks)["marks"].dtype.kind == "i"  # whole numbers stay whole numbers
     assert "to the nearest 10" in capsys.readouterr().out
     marks.undo()
-    marks.round_to(["hours"], decimals=1)
+    marks.round_numbers_in(["hours"], with_decimals=1)
     same(marks, marks_df)  # already one decimal place
     marks.undo()
     same(marks, marks_df)
@@ -514,22 +514,22 @@ def test_round_to(marks, marks_df, capsys):
 def test_round_to_halves_go_to_even(engine):
     df = pd.DataFrame({"x": [0.5, 1.5, 2.5, -2.5, 3.5, 0.125, 2.675]})
     t = _engine_table(df, engine)
-    t.round_to("x")
+    t.round_numbers_in("x")
     assert list(plain(t)["x"]) == list(np.round(df["x"].to_numpy(), 0)) == [0, 2, 2, -2, 4, 0, 3]
     t.undo()
-    t.round_to(2)
+    t.round_numbers_in(2)
     assert np.allclose(plain(t)["x"], np.round(df["x"].to_numpy(), 2))
 
 
 def test_round_to_errors(marks):
     with pytest.raises(SimplydataError, match="rounds numbers"):
-        marks.round_to("name", 1)
+        marks.round_numbers_in("name", 1)
     with pytest.raises(SimplydataError, match="whole number of decimal places"):
-        marks.round_to("hours", 1.5)
+        marks.round_numbers_in("hours", 1.5)
     with pytest.raises(SimplydataError, match='Did you mean "hours"'):
-        marks.round_to("hour", 1)
+        marks.round_numbers_in("hour", 1)
     with pytest.raises(SimplydataError, match="no columns of numbers"):
-        make_table(pd.DataFrame({"a": ["x"]})).round_to(1)
+        make_table(pd.DataFrame({"a": ["x"]})).round_numbers_in(1)
     assert not marks._history
 
 
@@ -557,7 +557,7 @@ def test_show_long_table(engine, capsys):
 
 def test_summary_words_are_refused_for_now(marks):
     with pytest.raises(SimplydataError, match="add_column"):
-        marks.keep_rows("marks > average(marks)")
+        marks.keep_rows_where("marks > average(marks)")
     assert not marks._history
 
 
@@ -565,13 +565,13 @@ def test_summary_words_are_refused_for_now(marks):
 def test_fill_with_the_line_between_neighbours_matches_pandas(engine, capsys):
     data = pd.DataFrame({"v": [np.nan, 2.0, np.nan, np.nan, 8.0, np.nan], "w": [1, 2, 3, 4, 5, 6]})
     t = _engine_table(data, engine)
-    t.fill_empty_cells("v", with_the="line between neighbours")
+    t.fill_empty_cells_in("v", with_the="line between neighbours")
     expected = data["v"].interpolate(method="linear", limit_area="inside")
     assert np.allclose(plain(t)["v"], expected, equal_nan=True)
     out = capsys.readouterr().out
     assert "Filled 2 cells in v on the line between neighbours in table order." in out
     assert "Note: 2 cells stayed empty: they are at the start or end" in out
-    t.steps()
+    t.show_steps()
     assert "with the line between neighbours" in capsys.readouterr().out
 
 
@@ -584,7 +584,7 @@ def test_fill_with_the_line_follows_dates_and_groups(engine, capsys):
         "sales": [60.0, 5.0, 10.0, np.nan, 7.0, np.nan, np.nan],
     })
     t = _engine_table(data, engine)
-    t.fill_empty_cells("sales", with_the="line between neighbours", sorted_by="date", for_each="shop")
+    t.fill_empty_cells_in("sales", with_the="line between neighbours", sorted_by="date", for_each_group_in="shop")
     # pandas: per shop, by date, spaced by the dates (method="time")
     expected = (data.set_index("date").groupby("shop")["sales"]
                 .transform(lambda s: s.sort_index().interpolate(method="time", limit_area="inside")
@@ -598,10 +598,10 @@ def test_fill_with_the_line_follows_dates_and_groups(engine, capsys):
 
 def test_fill_with_the_line_errors(marks):
     with pytest.raises(SimplydataError, match="needs numbers"):
-        marks.fill_empty_cells("name", with_the="line between neighbours")
+        marks.fill_empty_cells_in("name", with_the="line between neighbours")
     with pytest.raises(SimplydataError, match="numbers or dates"):
-        marks.fill_empty_cells("marks", with_the="line between neighbours", sorted_by="name")
+        marks.fill_empty_cells_in("marks", with_the="line between neighbours", sorted_by="name")
     with pytest.raises(SimplydataError, match='go with with_the="line between neighbours"'):
-        marks.fill_empty_cells("marks", with_the="average", for_each="class")
+        marks.fill_empty_cells_in("marks", with_the="average", for_each_group_in="class")
     with pytest.raises(SimplydataError, match="line between neighbours"):
-        marks.fill_empty_cells("marks", with_the="nearest")
+        marks.fill_empty_cells_in("marks", with_the="nearest")

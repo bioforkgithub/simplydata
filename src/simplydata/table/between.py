@@ -100,11 +100,11 @@ SAID = {
     "periodic": 'a periodic cubic spline (as R splinefun(method = "periodic"))',
 }
 MIN_SMOOTHING_POINTS = 5  # SciPy make_smoothing_spline needs 5 (R smooth.spline needs 4)
-MAP_LIMIT = 1_000_000  # map_of: places at most
+MAP_LIMIT = 1_000_000  # make_map_of: places at most
 
 
 def _example(code: str, name: str = "growth") -> str:
-    return f'\nFor example:  {code}   (with sdata.example("{name}"))'
+    return f'\nFor example:  {code}   (with sdata.get_example("{name}"))'
 
 
 def _plain_choice(value) -> str:
@@ -405,7 +405,7 @@ def _inside(points, at, axes):
         return np.zeros(len(at), dtype=bool)
 
 
-# ------------------------------------------------------------------ fill_empty_cells(with_the="curve ...")
+# ------------------------------------------------------------------ fill_empty_cells_in(with_the="curve ...")
 def curve_between_neighbours(values, x=None, groups=None, how="smooth curve"):
     """Fill empty values (NaN) on a curve through the filled ones, as line_between_neighbours.
 
@@ -469,7 +469,7 @@ def _dates_from_days(days) -> np.ndarray:
 
 
 class BetweenWords:
-    """values_at() and map_of(): values between known points (see the module notes)."""
+    """values_at() and make_map_of(): values between known points (see the module notes)."""
 
     # ------------------------------------------------------------ helpers
     def _direction_values(self, step, name, example):
@@ -508,11 +508,11 @@ class BetweenWords:
             return []
         keys = [for_each] if isinstance(for_each, str) else _as_list(for_each)
         if not keys or not all(isinstance(k, str) for k in keys):
-            raise SimplydataError(f'for_each= should be a column name, such as for_each="country".{example}')
+            raise SimplydataError(f'for_each_group_in= should be a column name, such as for_each_group_in="country".{example}')
         self._need_columns(*keys)
         clash = [k for k in keys if k in used]
         if clash:
-            raise SimplydataError(f'"{clash[0]}" cannot be both in at= (or the column) and in for_each=.{example}')
+            raise SimplydataError(f'"{clash[0]}" cannot be both in at= (or the column) and in for_each_group_in=.{example}')
         return keys
 
     def _between_frame(self, step, column, directions, keys, example):
@@ -704,16 +704,16 @@ class BetweenWords:
         return self._new_table(frame)
 
     # ------------------------------------------------------------ values_at
-    @friendly
-    def values_at(self, column=None, at=None, joined_by="straight lines", smoothness=0, for_each=None,
+    @friendly(renamed={"for_each": "for_each_group_in"})
+    def values_at(self, column=None, at=None, joined_by="straight lines", smoothness=0, for_each_group_in=None,
                   outside="empty"):
         """Estimate a column at places between the known points, by joining the dots.
 
-        table.values_at("population", at={"year": [2001, 2003, 2011]}, for_each="country")   (with sdata.example("growth"))
+        table.values_at("population", at={"year": [2001, 2003, 2011]}, for_each_group_in="country")   (with sdata.get_example("growth"))
         at= names the column(s) that place the points and the places wanted. One column joins
         the points along a line; two or more (at={"east": [1.5, 2.5], "north": [3, 4.5]},
-        sdata.example("island")) join them across a surface: the lists are read as pairs,
-        (1.5, 3) and (2.5, 4.5); table.map_of() gives every combination.
+        sdata.get_example("island")) join them across a surface: the lists are read as pairs,
+        (1.5, 3) and (2.5, 4.5); table.make_map_of() gives every combination.
         joined_by= says how the points are joined (one column): "straight lines" (default,
         linear interpolation, R approx()), "smooth curve" (natural cubic spline, R
         splinefun(method = "natural")), "curve without overshoot" (PCHIP), "steps", "nearest";
@@ -725,12 +725,12 @@ class BetweenWords:
         "auto" lets R itself choose the smoothness and needs R (pip install "simplydata[r]");
         a number needs no R.
         outside= is what happens beyond the known points: "empty" (default), "nearest end" or
-        "extend" (curves only; guesswork). for_each="country" joins each group on its own.
+        "extend" (curves only; guesswork). for_each_group_in="country" joins each group on its own.
         Rows with an empty cell are skipped. Gives back a new table: the at= columns, the
-        for_each= columns and the estimated column.
+        for_each_group_in= columns and the estimated column.
         """
         step = "values_at"
-        example = _example('table.values_at("population", at={"year": [2001, 2003]}, for_each="country")')
+        example = _example('table.values_at("population", at={"year": [2001, 2003]}, for_each_group_in="country")')
         if not isinstance(column, str):
             raise SimplydataError(f"values_at() needs the column to estimate, in quotes.{example}")
         self._need_columns(column)
@@ -748,14 +748,14 @@ class BetweenWords:
         outside = outside_choice(step, outside)
         self._check_smoothness(how, smoothness, directions)
         self._check_extend(how, smoothness, outside, directions)
-        keys = self._between_group_keys(step, for_each, [column, *directions], example)
+        keys = self._between_group_keys(step, for_each_group_in, [column, *directions], example)
         dates = [self._kind_of(d) == "date" for d in directions]
         places = [self._wanted_places(step, d, at[d], is_date, example) for d, is_date in zip(directions, dates)]
         sizes = {len(p) for p in places if len(p) != 1}
         if len(sizes) > 1:
             lengths = ", ".join(f'{len(p)} for "{d}"' for d, p in zip(directions, places))
             raise SimplydataError(f"at= gives places as pairs, so each list needs the same length ({lengths}). "
-                                  "For every combination of the values use table.map_of(...)."
+                                  "For every combination of the values use table.make_map_of(...)."
                                   + _example('table.values_at("height", at={"east": [1.5, 2.5], "north": [3, 4.5]})',
                                              "island"))
         n = max(len(p) for p in places)
@@ -787,12 +787,12 @@ class BetweenWords:
                 raise SimplydataError('smoothness="auto" works in one direction. For a surface give a number, such as '
                                       'smoothness=0.1 (bigger is smoother).')
 
-    # ------------------------------------------------------------ map_of
+    # ------------------------------------------------------------ make_map_of
     @friendly
-    def map_of(self, column=None, across=None, steps=50, joined_by="straight lines", smoothness=0):
+    def make_map_of(self, column=None, across=None, steps=50, joined_by="straight lines", smoothness=0):
         """Estimate a column at evenly spaced places across one or more columns (a map), ready for a contour or heatmap.
 
-        table.map_of("height", across=["east", "north"], steps=100)   (with sdata.example("island"))
+        table.make_map_of("height", across=["east", "north"], steps=100)   (with sdata.get_example("island"))
         The map runs from the smallest to the biggest known value of each across= column,
         with steps= places along each (a number, or one per column). The points are joined
         as in table.values_at() (same joined_by= and smoothness=; smoothness="auto" needs R,
@@ -800,13 +800,13 @@ class BetweenWords:
         of the known points stay empty, with a note. Gives back a new long table: one row per
         place, with the across= columns and the estimated column.
         """
-        step = "map_of"
-        example = _example('table.map_of("height", across=["east", "north"], steps=100)', "island")
+        step = "make_map_of"
+        example = _example('table.make_map_of("height", across=["east", "north"], steps=100)', "island")
         if not isinstance(column, str):
-            raise SimplydataError(f"map_of() needs the column to estimate, in quotes.{example}")
+            raise SimplydataError(f"make_map_of() needs the column to estimate, in quotes.{example}")
         self._need_columns(column)
         if across is None:
-            raise SimplydataError(f"map_of() needs across= with the columns that place the points.{example}")
+            raise SimplydataError(f"make_map_of() needs across= with the columns that place the points.{example}")
         directions = [across] if isinstance(across, str) else _as_list(across)
         if not directions or not all(isinstance(d, str) for d in directions):
             raise SimplydataError(f"across= should be a column name or a list of column names.{example}")

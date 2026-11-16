@@ -2,7 +2,7 @@
 
 Every number runs in R itself (simplydata[r]); these tests check that simplydata asks R the right
 question and reads the answer back correctly. Reference values: R 4.6.2 with forecast 9.0.2 and
-changepoint 2.3, on sdata.example("visitors") and sdata.example("river") (scripts ref_phase3b.R and
+changepoint 2.3, on sdata.get_example("visitors") and sdata.get_example("river") (scripts ref_phase3b.R and
 ref_phase3b_more.R in the v0.6 scratch folder):
 library(forecast); library(changepoint); v <- read.csv("visitors.csv")
 h <- v$visitors[v$museum == "Harbour Museum"]; x <- ts(h, frequency = 12)
@@ -33,7 +33,7 @@ def make(data, engine):
 
 
 def harbour(engine):
-    data = sdata.example("visitors")
+    data = sdata.get_example("visitors")
     return make(data[data.museum == "Harbour Museum"].reset_index(drop=True), engine)
 
 
@@ -169,7 +169,7 @@ def test_check_on_last_matches_r_accuracy(engine, needs_r, capsys):
 
 
 def test_compare_forecasts_matches_r_accuracy(engine, needs_r, capsys):
-    result = harbour(engine).compare_forecasts("visitors", sorted_by="month", repeats_every="year")
+    result = harbour(engine).compare_forecasts_for("visitors", sorted_by="month", repeats_every="year")
     frame = result._frame
     assert frame["method"].to_list() == ["exponential smoothing", "same season last time", "straight on",
                                          "last value"]
@@ -183,7 +183,7 @@ def test_compare_forecasts_matches_r_accuracy(engine, needs_r, capsys):
 
 
 def test_compare_forecasts_without_a_season_matches_r(needs_r, capsys):
-    result = harbour("pandas").compare_forecasts("visitors", methods=["average", "last value"])
+    result = harbour("pandas").compare_forecasts_for("visitors", methods=["average", "last value"])
     # R: y1 <- ts(h[1:132]); accuracy(meanf(y1, 12), h[133:144])["Test set", c("MAE", "RMSE", "MAPE", "MASE")]
     frame = result._frame.to_pandas()
     row = frame[frame["method"] == "average"].iloc[0]
@@ -193,14 +193,14 @@ def test_compare_forecasts_without_a_season_matches_r(needs_r, capsys):
 
 
 def test_forecast_for_each_group(engine, needs_r):
-    result = make(sdata.example("visitors"), engine).forecast("visitors", sorted_by="month", steps_ahead=2,
-                                                              method="last value", for_each="museum")
+    result = make(sdata.get_example("visitors"), engine).forecast("visitors", sorted_by="month", steps_ahead=2,
+                                                              method="last value", for_each_group_in="museum")
     assert result._frame["museum"].to_list() == ["Harbour Museum"] * 2 + ["Hill Gallery"] * 2
     assert col(result, "forecast")[:2] == pytest.approx([2072, 2072])
 
 
 def test_nums_forecast_matches_r(needs_r, capsys):
-    nums = sdata.numbers(sdata.example("visitors")["visitors"][:144])
+    nums = sdata.numbers(sdata.get_example("visitors")["visitors"][:144])
     result = nums.forecast(steps_ahead=3, method="same season last time", repeats_every=12)
     assert col(result, "forecast") == pytest.approx([1871, 1925, 1930])  # R snaive(x, h = 3)$mean
     assert "for the next 3 steps" in capsys.readouterr().out
@@ -229,16 +229,16 @@ def test_forecast_errors(engine):
     with pytest.raises(SimplydataError, match="too few readings"):
         h.forecast("visitors", sorted_by="month", check_on_last=142)
     with pytest.raises(SimplydataError, match="at least two methods"):
-        h.compare_forecasts("visitors", sorted_by="month", methods=["naive"])
-    river = make(sdata.example("river"), engine)
+        h.compare_forecasts_for("visitors", sorted_by="month", methods=["naive"])
+    river = make(sdata.get_example("river"), engine)
     with pytest.raises(SimplydataError, match="evenly spaced"):
-        river.forecast("nitrate", sorted_by="date", for_each="station")
+        river.forecast("nitrate", sorted_by="date", for_each_group_in="station")
 
 
 # ---------------------------------------------------------------- change points
 def test_change_points_match_r(needs_r, capsys):
     y = np.concatenate([np.full(40, 10.0), np.full(40, 14.0), np.full(40, 9.0)]) + np.sin(np.arange(1, 121)) * 1.5
-    result = make_table({"y": y}).find_change_points("y")
+    result = make_table({"y": y}).find_change_points_in("y")
     # R: cm <- cpt.mean(y / (mad(diff(y)) / sqrt(2)), method = "PELT", penalty = "MBIC"); cpts(cm) = 40, 80
     assert result._frame["from"].to_list() == [1, 41, 81]
     assert result._frame["to"].to_list() == [40, 80, 120]
@@ -249,14 +249,14 @@ def test_change_points_match_r(needs_r, capsys):
            "reading 81 on." in out
     assert "Dividing by s is simplydata's choice, not part of changepoint" in out
     # R: cpts(cpt.meanvar(y, method = "PELT", penalty = "MBIC")) = 40, 80
-    result = make_table({"y": y}).find_change_points("y", change="average and spread")
+    result = make_table({"y": y}).find_change_points_in("y", change="average and spread")
     assert result._frame["to"].to_list() == [40, 80, 120]
     # R: cpts(cpt.mean(y / s, method = "PELT", penalty = "AIC")) = 40, 80
-    assert make_table({"y": y}).find_change_points("y", penalty="aic")._frame["to"].to_list() == [40, 80, 120]
+    assert make_table({"y": y}).find_change_points_in("y", penalty="aic")._frame["to"].to_list() == [40, 80, 120]
 
 
 def test_change_points_on_river_match_r(engine, needs_r, capsys):
-    result = make(sdata.example("river"), engine).find_change_points("nitrate", sorted_by="date", for_each="station")
+    result = make(sdata.get_example("river"), engine).find_change_points_in("nitrate", sorted_by="date", for_each_group_in="station")
     frame = result._frame
     assert frame["station"].to_list() == ["Station A", "Station B", "Station B"]
     # R: xb <- r$nitrate[r$station == "Station B"]; cpts(cpt.mean(xb / (mad(diff(xb)) / sqrt(2)), ...)) = 453
@@ -271,13 +271,13 @@ def test_change_points_on_river_match_r(engine, needs_r, capsys):
 
 
 def test_change_point_errors(engine):
-    river = make(sdata.example("river"), engine)
+    river = make(sdata.get_example("river"), engine)
     with pytest.raises(SimplydataError, match="change"):
-        river.find_change_points("nitrate", change="slope")
+        river.find_change_points_in("nitrate", change="slope")
     with pytest.raises(SimplydataError, match="penalty"):
-        river.find_change_points("nitrate", penalty="big")
+        river.find_change_points_in("nitrate", penalty="big")
     with pytest.raises(SimplydataError, match="empty cell"):
-        river.find_change_points("level", sorted_by="date", for_each="station")
+        river.find_change_points_in("level", sorted_by="date", for_each_group_in="station")
 
 
 def test_straight_on_other_spellings(needs_r):

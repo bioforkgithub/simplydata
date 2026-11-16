@@ -4,7 +4,7 @@ A table holds its data in a narwhals frame, so every word is written once and ru
 both pandas (normal files) and Polars (big files, Polars tables, fast=True).
 
 Every step that changes the table goes through self._change(...), which remembers the
-table as it was before. That gives undo(), steps() and start_again() for free.
+table as it was before. That gives undo(), show_steps() and start_again() for free.
 Summaries never change the table; they return a new, small table.
 """
 
@@ -92,14 +92,40 @@ class BaseTable:
 
     # Old names that still work for one release (with a note the first time): old -> new.
     _OLD_WORDS = {
-        "show_first": "show_first_rows",
-        "show_last": "show_last_rows",
-        "count_empty": "count_empty_cells",
-        "remove_empty_rows": "remove_rows_with_empty_cells",
-        "fill_empty": "fill_empty_cells",
         "done": ("as_pandas", "_done"),  # done() gave back Polars for Polars tables, so it still does
-        "fit_straight_line": "fit_line",  # the same word as chart.fit_line
-        "compare_to_random_order": "check_random_order",  # next to check_steady (review 2026-11-15)
+        # renamed 2026-11-15 (fit_straight_line, compare_to_random_order) and 2026-11-16 (talking rewrite)
+        "show_first": "show_first_rows", "show_last": "show_last_rows", "count_empty": "count_empty_cells_in",
+        "remove_empty_rows": "remove_rows_with_empty_cells_in", "fill_empty": "fill_empty_cells_in",
+        "fit_straight_line": "fit_line", "compare_to_random_order": "check_if_random_order",
+        "column_names": "get_column_names", "column": "get_column", "row": "get_row", "cell_at": "get_cell_at",
+        "keep_rows": "keep_rows_where", "remove_rows": "remove_rows_where",
+        "count_empty_cells": "count_empty_cells_in",
+        "remove_rows_with_empty_cells": "remove_rows_with_empty_cells_in",
+        "fill_empty_cells": "fill_empty_cells_in", "remove_extra_spaces": "remove_extra_spaces_in",
+        "replace_values": "replace_values_in", "add_date_part_column": "add_column_with_part_of_date",
+        "add_text_part_column": "add_column_with_part_of_text", "replace_text": "replace_text_in",
+        "average_of": "find_average_of", "median_of": "find_median_of", "total_of": "find_total_of",
+        "smallest_of": "find_smallest_of", "biggest_of": "find_biggest_of",
+        "standard_deviation_of": "find_standard_deviation_of", "summary_of": "find_summary_of",
+        "percent_of": "find_percent_of_rows_where", "count_different_values": "count_different_values_in",
+        "percentile_of": "find_percentile_of", "most_common_of": "find_most_common_of",
+        "correlation_between": "find_correlation_between", "interval_of": "find_interval_of",
+        "chart": "start_chart", "compare_averages": "compare_averages_of",
+        "compare_each_pair": "compare_each_pair_of", "compare_before_after": "compare_before_and_after",
+        "compare_counts": "compare_counts_of", "compare_spreads": "compare_spreads_of",
+        "compare_shapes": "compare_shapes_of", "check_random_order": "check_if_random_order",
+        "compare_matched": "compare_matched_columns", "model_averages_of": "find_model_averages_of",
+        "check_model": "check_model_of", "show_rows_that_pull": "show_rows_that_pull_model",
+        "principal_components_of": "find_principal_components_of",
+        "distances_between_rows": "find_distances_between_rows", "compare_profiles": "compare_profiles_of",
+        "survival_over_time": "find_survival_over_time", "spectrum_of": "find_spectrum_of",
+        "check_steady": "check_steady_over_time", "autocorrelation_of": "find_autocorrelation_of",
+        "trend_of": "find_trend_of", "compare_forecasts": "compare_forecasts_for",
+        "find_change_points": "find_change_points_in", "find_peaks": "find_each_peak_that",
+        "find_dips": "find_each_dip_that", "map_of": "make_map_of", "fit_distribution": "fit_distribution_to",
+        "compare_distributions": "compare_distributions_for", "make_numbers": "turn_into_numbers",
+        "make_text": "turn_into_text", "make_dates": "turn_into_dates", "make_lowercase": "turn_into_lowercase",
+        "make_uppercase": "turn_into_uppercase", "round_to": "round_numbers_in", "steps": "show_steps",
     }
 
     def __init__(self, data=None, sheet=None, fast: bool = False, _frame=None, _reading=None):
@@ -169,8 +195,8 @@ class BaseTable:
         return self
 
     @friendly
-    def steps(self):
-        """List every step you did to this table, in order. table.steps()"""
+    def show_steps(self):
+        """List every step you did to this table, in order. table.show_steps()"""
         if not self._history:
             print("No steps yet.")
         else:
@@ -213,8 +239,8 @@ class BaseTable:
         return self._frame.to_native()
 
     @friendly
-    def chart(self):
-        """Start a chart from this table. chart = table.chart()"""
+    def start_chart(self):
+        """Start a chart from this table. chart = table.start_chart()"""
         from ..chart import chart
 
         return chart(self)
@@ -255,13 +281,13 @@ class BaseTable:
         """Show the whole table, every row and column. table.show()
 
         rows=10 shows only the first 10 rows. A table with more than 1000 rows shows its
-        first 1000; give rows= to see more. Try it: sdata.table(sdata.example("marks")).show()
+        first 1000; give rows= to see more. Try it: sdata.table(sdata.get_example("marks")).show()
         """
         total = len(self._frame)
         if rows is not None and (isinstance(rows, bool) or not isinstance(rows, int) or rows < 0):
             raise SimplydataError(
                 f"rows= is how many rows to show: a whole number, not {rows!r}.\n"
-                'For example:  sdata.table(sdata.example("marks")).show(rows=10)'
+                'For example:  sdata.table(sdata.get_example("marks")).show(rows=10)'
             )
         if rows is None:
             rows = min(total, SHOW_LIMIT)
@@ -294,8 +320,8 @@ class BaseTable:
         return None
 
     @friendly
-    def column_names(self):
-        """The names of all columns. table.column_names()"""
+    def get_column_names(self):
+        """The names of all columns. table.get_column_names()"""
         return self._columns
 
     # ------------------------------------------------------------------ Python details
@@ -324,7 +350,7 @@ class BaseTable:
     def __iter__(self):
         raise PickingError(
             "A table is not gone through row by row with a loop: simplydata words work on every row at once.\n"
-            "To look at one row write table.row(3) (rows count from 1); for one column, table.column(\"marks\")."
+            "To look at one row write table.get_row(3) (rows count from 1); for one column, table.get_column(\"marks\")."
         )
 
     def _picking_help(self, key) -> str:
@@ -332,17 +358,17 @@ class BaseTable:
         columns = self._columns
         lines = []
         if isinstance(key, str) and key in columns:
-            lines.append(f'For the column "{key}" on its own write table.column("{key}").')
+            lines.append(f'For the column "{key}" on its own write table.get_column("{key}").')
         elif isinstance(key, str):
             guess = suggest(key, columns, n=1)
-            lines.append(f'There is no column "{key}".' + (f' Did you mean table.column("{guess[0]}")?' if guess else ""))
+            lines.append(f'There is no column "{key}".' + (f' Did you mean table.get_column("{guess[0]}")?' if guess else ""))
         elif isinstance(key, (list, tuple)) and key and all(isinstance(k, str) for k in key):
             lines.append("To keep these columns write table.keep_columns("
                          + ", ".join(f'"{k}"' for k in key) + ").")
         elif isinstance(key, int) and not isinstance(key, bool) and key >= 0:
-            lines.append(f"In Python [{key}] is row {key + 1} counting from 1: table.row({key + 1}) shows it.")
+            lines.append(f"In Python [{key}] is row {key + 1} counting from 1: table.get_row({key + 1}) shows it.")
         elif isinstance(key, int) and key == -1:
-            lines.append('In Python [-1] is the last row: table.row("last") shows it.')
+            lines.append('In Python [-1] is the last row: table.get_row("last") shows it.')
         elif isinstance(key, slice) and key.step in (None, 1) and all(
                 v is None or (isinstance(v, int) and not isinstance(v, bool) and v >= 0) for v in (key.start, key.stop)):
             first = (key.start or 0) + 1
@@ -353,11 +379,11 @@ class BaseTable:
                              f"table.keep_rows_by_position({first}, to={shown}).")
         lines.append(
             'Parts of a table are chosen with words, and positions count from 1:\n'
-            '    table.column("marks")                     one column, as numbers\n'
+            '    table.get_column("marks")                     one column, as numbers\n'
             '    table.keep_columns("name", "marks")       some columns\n'
-            '    table.keep_rows("marks > 50")             rows that meet a condition\n'
+            '    table.keep_rows_where("marks > 50")             rows that meet a condition\n'
             '    table.keep_rows_by_position(10, to=20)    rows 10 to 20\n'
-            '    table.cell_at(row=3, column="marks")      one cell\n'
+            '    table.get_cell_at(row=3, column="marks")      one cell\n'
             "Python's [ ] counts from 0, so simplydata does not use it. For a pandas table, use table.as_pandas()."
         )
         return "\n".join(lines)
@@ -374,11 +400,11 @@ class BaseTable:
         frame = self.__dict__.get("_frame")
         if frame is not None and name in frame.columns:
             if frame.schema[name].is_numeric():
-                what, rows = "its numbers", f'table.keep_rows("{name} > 50")'
+                what, rows = "its numbers", f'table.keep_rows_where("{name} > 50")'
             else:
-                what, rows = "its values", f'table.keep_rows("{name}", equal_to="...")'
+                what, rows = "its values", f'table.keep_rows_where("{name}", is_equal_to="...")'
             raise MissingWordError(
-                f'{name} is a column. For {what} write table.column("{name}"); to choose rows write {rows}.\n'
+                f'{name} is a column. For {what} write table.get_column("{name}"); to choose rows write {rows}.\n'
                 "Columns are named in quotes inside a word, never after a dot."
             )
         raise other_name_error("table", name, self._word_names()) or missing_word_error(name, self._word_names())

@@ -1,4 +1,4 @@
-"""Numbers words: fourier_transform, envelope, convolve_with, deconvolve_by, change_time_step (to merge)."""
+"""Numbers words: take_fourier_transform, envelope, convolve_with, deconvolve_by, change_time_step (to merge)."""
 
 from __future__ import annotations
 
@@ -29,14 +29,14 @@ def envelope_values(x, show, step):
 
 class FourierNumberWords:
     @friendly
-    def fourier_transform(self, time_step=None, show="half", sampling_rate=None, fs=None):
+    def take_fourier_transform(self, time_step=None, show="half", sampling_rate=None, fs=None):
         """The numbers as a sum of waves: the size and phase of each frequency (the Fourier transform).
 
-        nums.fourier_transform(time_step=0.005)
+        nums.take_fourier_transform(time_step=0.005)
         Gives back a table: frequency, size, phase (degrees), real part, imaginary part. show="half" (0 up
         to the highest frequency the readings can show, SciPy rfft) or "all" (every frequency, negative
         ones too, SciPy fft). The sizes are R's Mod(fft(x)) and the phases Arg(fft(x)) in degrees.
-        sdata.inverse_fourier_transform(table) turns the table back into the numbers.
+        sdata.find_inverse_fourier_transform(table) turns the table back into the numbers.
         """
         import pandas as pd
         from scipy import fft
@@ -44,12 +44,12 @@ class FourierNumberWords:
         from ..table import Table
 
         if show not in FOURIER_SHOWS:
-            raise choice_error("fourier_transform", "show", show, list(FOURIER_SHOWS))
+            raise choice_error("take_fourier_transform", "show", show, list(FOURIER_SHOWS))
         x = np.asarray(self._values, dtype=float).ravel()
         if np.isnan(x).any():
-            raise SimplydataError("fourier_transform() needs a value at every step; fill the empty ones first.")
+            raise SimplydataError("take_fourier_transform() needs a value at every step; fill the empty ones first.")
         step, words = read_time_step(time_step, sampling_rate, fs, getattr(self, "_time_step", None),
-                                     "fourier_transform")
+                                     "take_fourier_transform")
         n = len(x)
         if show == "half":
             z, freq = fft.rfft(x), fft.rfftfreq(n, d=step)
@@ -64,10 +64,10 @@ class FourierNumberWords:
         return table
 
     @friendly
-    def envelope(self, show="envelope", time_step=None, sampling_rate=None, fs=None):
+    def find_envelope(self, show="envelope", time_step=None, sampling_rate=None, fs=None):
         """The envelope of the numbers: how big the wave is at each moment (from the Hilbert transform).
 
-        nums.envelope()
+        nums.find_envelope()
         show="envelope" (the size of the analytic signal), "phase" (in degrees, unwrapped) or "frequency"
         (how fast the phase turns, cycles per unit of time; the last value is empty). SciPy
         signal.hilbert, as R gsignal::hilbert. Undo with nums.undo().
@@ -76,7 +76,7 @@ class FourierNumberWords:
             raise choice_error("envelope", "show", show, list(ENVELOPE_SHOWS))
         x = np.asarray(self._values, dtype=float).ravel()
         if np.isnan(x).any():
-            raise SimplydataError("envelope() needs a value at every step; fill the empty ones first.")
+            raise SimplydataError("find_envelope() needs a value at every step; fill the empty ones first.")
         step, _ = read_time_step(time_step, sampling_rate, fs, getattr(self, "_time_step", None), "envelope")
         out = envelope_values(x, show, step)
         print(f"The {show} of the numbers, from the analytic signal (SciPy signal.hilbert, as R gsignal::hilbert).")

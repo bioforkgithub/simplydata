@@ -1,7 +1,7 @@
 """30 days of simplydata: the days, their warm-up questions, tasks and answers.
 
-This file is the one source for both sdata.today() (and its family: start_30_days, day, answers,
-next_day) and the printable guide docs/manual/simplydata_30_days.pdf (made by
+This file is the one source for both sdata.show_today() (and its family: start_30_days, day, answers,
+go_to_next_day) and the printable guide docs/manual/simplydata_30_days.pdf (made by
 docs/make_30_days.py). The tests run every piece of code in it and check that the guide matches.
 
 There are two tracks of 30 days, about an hour a day:
@@ -10,7 +10,7 @@ There are two tracks of 30 days, about an hour a day:
   "beginner"  for people who have never programmed: three days of just enough Python first, then
               about one lesson a day and a small project.
 
-A day is made of units (UNITS below). A unit belongs to a lesson (sdata.lesson(n)) or is a day of
+A day is made of units (UNITS below). A unit belongs to a lesson (sdata.show_lesson(n)) or is a day of
 its own (Python first steps, review, project, final test). Each unit has recall questions about its
 own words. The warm-up of a day is not written by hand: it asks one question from yesterday, one
 from about three days ago, one from about a week ago (and two weeks ago, later on). Taking a short
@@ -33,7 +33,7 @@ TRACK_NAMES = ("python", "beginner")
 DAYS_IN_A_TRACK = 30
 
 # The 30 days teach everyday work; the manual is the complete reference. These lessons are left to the
-# manual (and sdata.lesson(n)): the days that come near them end with a "More in the manual" line.
+# manual (and sdata.show_lesson(n)): the days that come near them end with a "More in the manual" line.
 # Lessons 19, 20 and 25 are taught in part (see the units "fitting", "distributions" and "time_series").
 # The reasons: design_evidence_private/thirty_days_everyday_2026-11-15.md.
 MANUAL_ONLY_LESSONS = (RISKS_LESSON, FORECASTS_LESSON, SYSTEMS_LESSON)
@@ -63,11 +63,11 @@ def _code(text: str) -> str:
 def _lesson_do(number: int, which: str = "", tasks: bool = True) -> str:
     """tasks=False leaves out the lesson's tasks, for a unit whose lesson tasks are set on another day."""
     part = f", {which}" if which else ""
-    text = (f"Work through sdata.lesson({number}){part}: type each example yourself (do not copy and paste), "
+    text = (f"Work through sdata.show_lesson({number}){part}: type each example yourself (do not copy and paste), "
             f"run it and read what each line does.")
     if tasks:
         text += (f" Then do the lesson's tasks and check them with "
-                 f"sdata.lesson({number}, solutions=True).")
+                 f"sdata.show_lesson({number}, solutions=True).")
     return text
 
 
@@ -77,7 +77,7 @@ def _more(*parts: str) -> str:
 
 
 # ---------------------------------------------------------------- the units
-# Each unit: lessons (sdata.lesson numbers), manual (extra sections: (label in the manual, title)),
+# Each unit: lessons (sdata.show_lesson numbers), manual (extra sections: (label in the manual, title)),
 # words (keys of learn.GROUPS to look up with sdata.help), do (what to do), examples (blocks of
 # (code, what it does) that run on their own), errors ((code that fails on purpose, what the error
 # says, what it means)), recall ((question, answer)), spaced ((question, answer) about a core word:
@@ -123,11 +123,11 @@ UNITS = {
     "py_lists": dict(
         lessons=[],
         manual=[("start:install", "Install and first steps")],
-        words=["sdata.numbers", "nums.average", "nums.keep_numbers"],
+        words=["sdata.numbers", "nums.find_average", "nums.keep_each_number_that"],
         do=["Type and run the example below, one line at a time.",
             "Look closely at the brackets: square brackets [ ] make a list, round brackets ( ) call a "
             "word, and curly brackets { } make a table by hand.",
-            'Then type sdata.help("average") and read what it says.'],
+            'Then type sdata.help("find_average") and read what it says.'],
         examples=[[
             ("marks = [48, 71, 55, 88, 62]", "A list: values in square brackets, with commas between."),
             ("print(len(marks))", "len is a word of Python that counts: 5. A word is called with round "
@@ -137,9 +137,9 @@ UNITS = {
             ("import simplydata as sdata", 'Load simplydata. From now on we call it by its short name, sdata.'),
             ("nums = sdata.numbers(marks)", "numbers is a word of sdata: the point joins a thing and its "
                                             "word. We call the result nums."),
-            ("nums.average()", "A step on the numbers: it prints the answer in a sentence. Empty brackets "
+            ("nums.find_average()", "A step on the numbers: it prints the answer in a sentence. Empty brackets "
                                "still have to be there."),
-            ("nums.keep_numbers(above=50)", "above=50 is an option with a name: the name, =, the value."),
+            ("nums.keep_each_number_that(is_above=50)", "is_above=50 is an option with a name: the name, =, the value."),
             ("nums.show()", "Show the numbers that are left."),
             ('kids = {"name": ["Asha", "Ben"], "height": [144, 152]}', "A table typed by hand: each column "
                                                                       "name with its list of values."),
@@ -148,10 +148,10 @@ UNITS = {
         ]],
         recall=[
             ("How do you write a list of the numbers 3, 5 and 2?", "[3, 5, 2]: square brackets, commas between."),
-            ("In nums.keep_numbers(above=50), what is above=50?",
+            ("In nums.keep_each_number_that(is_above=50), what is is_above=50?",
              "An option with a name: the name, =, and the value, inside the round brackets."),
             ("What does every simplydata program start with?", "import simplydata as sdata"),
-            ("Which word gives the average of numbers called nums?", "nums.average()"),
+            ("Which word gives the average of numbers called nums?", "nums.find_average()"),
         ],
         task=["Make a list of five temperatures, turn it into simplydata numbers, and find the biggest one "
               "and the median."],
@@ -159,8 +159,8 @@ UNITS = {
             import simplydata as sdata
             temperatures = [4, 9, 13, 17, 20]
             nums = sdata.numbers(temperatures)
-            nums.biggest()
-            nums.median()'''),
+            nums.find_biggest()
+            nums.find_median()'''),
             "The biggest is 20 and the median (the middle value when they are in order) is 13.")],
     ),
     "py_errors": dict(
@@ -177,9 +177,9 @@ UNITS = {
             ('print("Asha)', "unterminated string",
              "SyntaxError: a quote mark or a bracket is not closed. Every opening quote mark needs a closing "
              "one, and so does every bracket."),
-            ('sdata.example("wether")', 'Did you mean sdata.example("weather")',
+            ('sdata.get_example("wether")', 'Did you mean sdata.get_example("weather")',
              "simplydata's own errors say what went wrong and suggest the word you probably meant."),
-            ("nums = sdata.numbers([3, 5, 2])\nnums.avrage()", "Did you mean .average()",
+            ("nums = sdata.numbers([3, 5, 2])\nnums.find_avrage()", "Did you mean .find_average()",
              "A misspelt step: simplydata lists the steps you can use and the nearest one."),
         ],
         recall=[
@@ -195,237 +195,237 @@ UNITS = {
         solutions=[(_code('''
             import simplydata as sdata
             nums = sdata.numbers([4, 8, 6])
-            nums.average()'''),
+            nums.find_average()'''),
             "The list needs its closing ] before the ), and the word is average. The average is 6.")],
     ),
     # ------------------------------------------------------------ charts (lessons 1 to 8)
     "lesson1": dict(
         lessons=[1],
-        words=["sdata.example", "sdata.chart", "bars", "save"],
+        words=["sdata.get_example", "sdata.chart", "draw_bars", "save"],
         recall=[
-            ("Which word lists the practice tables?", 'sdata.example(); sdata.example("marks") gets one of them.'),
+            ("Which word lists the practice tables?", 'sdata.get_example(); sdata.get_example("marks") gets one of them.'),
             ("How do you start a chart of a table called marks?", "chart = sdata.chart(marks)"),
-            ("Which word draws one bar for each name, as tall as the marks?", 'chart.bars(x="name", y="marks")'),
+            ("Which word draws one bar for each name, as tall as the marks?", 'chart.draw_bars(x="name", y="marks")'),
             ("How do you save a chart as a PDF?",
              'chart.save("my_chart.pdf"): the end of the file name decides the type.'),
         ],
         task=['Make a bar chart of the "weather" table with x="city" and y="rain", and save it as "rain.png".'],
         solutions=[(_code('''
             import simplydata as sdata
-            weather = sdata.example("weather")
+            weather = sdata.get_example("weather")
             chart = sdata.chart(weather)
-            chart.bars(x="city", y="rain")
+            chart.draw_bars(x="city", y="rain")
             chart.save("rain.png")'''),
             "One bar for each city, as tall as its average rain over the 12 months.")],
     ),
     "lesson2": dict(
         lessons=[2],
-        words=["title_top", "label_x", "label_y", "rotate_labels_x", "caption_bottom", "font_size"],
+        words=["write_title_on_top", "label_x", "label_y", "rotate_labels_x", "write_caption_at_bottom", "use_font_size"],
         recall=[
-            ("Which word puts a title above the chart?", 'chart.title_top("My title")'),
+            ("Which word puts a title above the chart?", 'chart.write_title_on_top("My title")'),
             ("How do you name the y-axis?", 'chart.label_y("Marks out of 100")'),
             ("The names under the bars bump into each other. Which word helps?", "chart.rotate_labels_x(45)"),
-            ("Which word makes all the text on a chart bigger or smaller?", "chart.font_size(14)"),
+            ("Which word makes all the text on a chart bigger or smaller?", "chart.use_font_size(14)"),
         ],
         task=['Draw dots of "hours" (x) against "marks" (y) from the marks table, with a title, a name for '
               "each axis and a caption at the bottom."],
         solutions=[(_code('''
             import simplydata as sdata
-            marks = sdata.example("marks")
+            marks = sdata.get_example("marks")
             chart = sdata.chart(marks)
-            chart.dots(x="hours", y="marks")
-            chart.title_top("More study, better marks?")
+            chart.draw_dots(x="hours", y="marks")
+            chart.write_title_on_top("More study, better marks?")
             chart.label_x("Hours of study")
             chart.label_y("Mark (out of 100)")
-            chart.caption_bottom("Made-up data")
+            chart.write_caption_at_bottom("Made-up data")
             chart.save("hours_and_marks.png")'''),
             "First draw, then add the words; the order of the word steps does not matter.")],
     ),
     "first_table": dict(
         lessons=[],
         manual=[("start:welcome", "Welcome")],
-        words=["sdata.table", "table.keep_rows", "table.average_of", "table.chart"],
+        words=["sdata.table", "table.keep_rows_where", "table.find_average_of", "table.start_chart"],
         do=["Run the example below: your first table. A table and a chart are separate things: one clean "
             "table can feed many charts. Tables get their own lessons on day 6."],
         examples=[[
             ("import simplydata as sdata", "Load simplydata."),
-            ('table = sdata.table(sdata.example("marks"))', "Start a table from the marks practice table."),
-            ('table.keep_rows("marks", above=50)', "Keep only the rows with marks above 50. It says how many "
+            ('table = sdata.table(sdata.get_example("marks"))', "Start a table from the marks practice table."),
+            ('table.keep_rows_where("marks", is_above=50)', "Keep only the rows with marks above 50. It says how many "
                                                     "rows are left."),
-            ('table.average_of("marks", for_each="class")', "The average mark of each class, in a sentence."),
-            ("chart = table.chart()", "Start a chart from the table as it is now."),
-            ('chart.bars(x="class", y="marks")', "One bar for each class."),
+            ('table.find_average_of("marks", for_each_group_in="class")', "The average mark of each class, in a sentence."),
+            ("chart = table.start_chart()", "Start a chart from the table as it is now."),
+            ('chart.draw_bars(x="class", y="marks")', "One bar for each class."),
             ('chart.save("good_marks.png")', "Save it."),
         ]],
         recall=[
-            ("How do you start a table from the marks practice table?", 'table = sdata.table(sdata.example("marks"))'),
-            ("Which word keeps only the rows with marks above 50?", 'table.keep_rows("marks", above=50)'),
-            ("Which word gives the average mark of each class?", 'table.average_of("marks", for_each="class")'),
+            ("How do you start a table from the marks practice table?", 'table = sdata.table(sdata.get_example("marks"))'),
+            ("Which word keeps only the rows with marks above 50?", 'table.keep_rows_where("marks", is_above=50)'),
+            ("Which word gives the average mark of each class?", 'table.find_average_of("marks", for_each_group_in="class")'),
         ],
         task=['Start a table of the weather, keep the rows with "temperature" above 15, and give the '
               'average "rain" for each city.'],
         solutions=[(_code('''
             import simplydata as sdata
-            table = sdata.table(sdata.example("weather"))
-            table.keep_rows("temperature", above=15)
-            table.average_of("rain", for_each="city")'''),
-            "keep_rows says how many warm months are left; average_of gives one average for each city.")],
+            table = sdata.table(sdata.get_example("weather"))
+            table.keep_rows_where("temperature", is_above=15)
+            table.find_average_of("rain", for_each_group_in="city")'''),
+            "keep_rows_where says how many warm months are left; find_average_of gives one average for each city.")],
     ),
     "lesson3": dict(
         lessons=[3],
-        words=["colour", "colours", "legend_bottom", "order_x", "style"],
+        words=["use_colour", "use_colours", "put_legend_at_bottom", "order_x", "use_style"],
         recall=[
             ("How do you give each class its own colour in a bar chart?",
-             'colour="class" inside the chart step: chart.bars(x="subject", y="marks", colour="class")'),
-            ("Which word moves the legend below the chart?", "chart.legend_bottom()"),
-            ("Which word lets you choose the colours of the groups?", 'chart.colours("orange", "teal", "purple")'),
+             'colour="class" inside the chart step: chart.draw_bars(x="subject", y="marks", colour="class")'),
+            ("Which word moves the legend below the chart?", "chart.put_legend_at_bottom()"),
+            ("Which word lets you choose the colours of the groups?", 'chart.use_colours("orange", "teal", "purple")'),
             ("How do you put the bars in your own order?", 'chart.order_x("C", "B", "A")'),
         ],
         task=['Weather table: draw lines of "temperature" over "month", one colour for each city. Put the '
               'legend on top and use the style "paper".'],
         solutions=[(_code('''
             import simplydata as sdata
-            weather = sdata.example("weather")
+            weather = sdata.get_example("weather")
             chart = sdata.chart(weather)
-            chart.lines(x="month", y="temperature", colour="city")
-            chart.legend_top()
-            chart.style("paper")
+            chart.draw_lines(x="month", y="temperature", colour="city")
+            chart.put_legend_at_top()
+            chart.use_style("paper")
             chart.save("temperature.png")'''),
             'colour="city" draws one line for each city and adds a legend; the style changes the whole look.')],
     ),
     "families_saving": dict(
         lessons=[],
         manual=[("start:grammar", "How the words are built")],
-        words=["save", "hide_legend", "legend_left", "sdata.words"],
+        words=["save", "hide_legend", "put_legend_on_left", "sdata.show_all_words"],
         do=['Read "How the words are built" in the manual (two pages). It is the key to guessing words you '
             "have never seen.",
-            "Type sdata.words() and look for the families: keep_ and remove_, ..._x and ..._y, add_..._column, "
+            "Type sdata.show_all_words() and look for the families: keep_ and remove_, ..._x and ..._y, add_..._column, "
             "..._of.",
             "Then do the task: guess first, check with sdata.help after."],
         recall=[
-            ("If keep_rows keeps rows, what would you guess takes columns away?",
+            ("If keep_rows_where keeps rows, what would you guess takes columns away?",
              "remove_columns: verb + thing. keep_ and remove_ work on rows, columns and numbers."),
-            ("A word for one axis ends in ...?", "_x or _y: label_y, range_x, log_scale_y."),
+            ("A word for one axis ends in ...?", "_x or _y: label_y, set_range_x, use_log_scale_y."),
             ("Which file endings give a picture that stays sharp at any size?", ".pdf and .svg"),
         ],
         task=["Save one chart as .png, .pdf and .svg. Then guess, before you look anything up: which word hides "
               "the legend, and which puts it on the left? Try your guesses on a chart with colour=."],
         solutions=[(_code('''
             import simplydata as sdata
-            marks = sdata.example("marks")
+            marks = sdata.get_example("marks")
             chart = sdata.chart(marks)
-            chart.bars(x="subject", y="marks", colour="class")
+            chart.draw_bars(x="subject", y="marks", colour="class")
             chart.save("subjects.png")
             chart.save("subjects.pdf")
             chart.save("subjects.svg")
-            chart.legend_left()
+            chart.put_legend_on_left()
             chart.hide_legend()
             chart.save("no_legend.png")'''),
-            "legend_left follows legend_bottom and legend_top; hide_legend follows show_ and hide_. A family "
+            "put_legend_on_left follows put_legend_at_bottom and put_legend_at_top; hide_legend follows show_ and hide_. A family "
             "is learned once.")],
     ),
     "lesson4": dict(
         lessons=[4],
-        words=["lines", "dots", "histogram", "boxes", "all_dots", "violins"],
+        words=["draw_lines", "draw_dots", "draw_histogram", "draw_boxes", "draw_all_dots", "draw_violins"],
         recall=[
-            ("Which chart shows how the values of one column are spread, in bins?", 'chart.histogram(x="marks", bins=8)'),
+            ("Which chart shows how the values of one column are spread, in bins?", 'chart.draw_histogram(x="marks", with_bins=8)'),
             ("Which two words show the spread of each group, with every value as a dot on top?",
-             'chart.boxes(x="class", y="marks") and chart.all_dots(x="class", y="marks")'),
-            ("Which word draws one dot for each row, x against y?", 'chart.dots(x="hours", y="marks")'),
-            ("Which word draws a line with a dot at each point?", 'chart.lines(x="month", y="temperature", dots=True)'),
+             'chart.draw_boxes(x="class", y="marks") and chart.draw_all_dots(x="class", y="marks")'),
+            ("Which word draws one dot for each row, x against y?", 'chart.draw_dots(x="hours", y="marks")'),
+            ("Which word draws a line with a dot at each point?", 'chart.draw_lines(x="month", y="temperature", with_dots=True)'),
         ],
         task=['Draw violins of "temperature" for each city in the weather table, with all the dots on top.'],
         solutions=[(_code('''
             import simplydata as sdata
-            weather = sdata.example("weather")
+            weather = sdata.get_example("weather")
             chart = sdata.chart(weather)
-            chart.violins(x="city", y="temperature")
-            chart.all_dots(x="city", y="temperature")
+            chart.draw_violins(x="city", y="temperature")
+            chart.draw_all_dots(x="city", y="temperature")
             chart.save("violins.png")'''),
             "A violin shows the shape of the spread; the dots show every month.")],
     ),
     "lesson5": dict(
         lessons=[5],
         manual=[("ideas:sd-se", "Standard deviation or standard error?")],
-        words=["show=", "error=", "numbers_on_bars", "fit_line", "qq_dots"],
+        words=["show=", "error=", "write_numbers_on_bars", "fit_line", "draw_qq_dots"],
         recall=[
             ("Which option makes a bar show the median instead of the average?", 'show="median"'),
             ("Which option adds error bars that say how sure we are of the average?",
              'error="standard error", or error="confidence interval" for the 95 % interval.'),
-            ("Which word draws a straight line through the dots?", "chart.fit_line(), after chart.dots(...)"),
-            ("Which word checks by eye whether values are bell-shaped?", 'chart.qq_dots("marks")'),
+            ("Which word draws a straight line through the dots?", "chart.fit_line(), after chart.draw_dots(...)"),
+            ("Which word checks by eye whether values are bell-shaped?", 'chart.draw_qq_dots("marks")'),
         ],
         task=['Weather table: draw bars of the average "rain" for each city with 95 % confidence intervals, '
               "and write the numbers on the bars."],
         solutions=[(_code('''
             import simplydata as sdata
-            weather = sdata.example("weather")
+            weather = sdata.get_example("weather")
             chart = sdata.chart(weather)
-            chart.bars(x="city", y="rain", error="confidence interval")
-            chart.numbers_on_bars()
+            chart.draw_bars(x="city", y="rain", error="confidence interval")
+            chart.write_numbers_on_bars()
             chart.save("rain_ci.png")'''),
             "A line is printed saying which error bars were drawn, so the caption can say it too.")],
     ),
     "lesson6": dict(
         lessons=[6],
-        words=["range_y", "line_at_y", "shade_between_y", "log_scale_y", "line_at_x", "tick_format_y"],
+        words=["set_range_y", "draw_line_at_y", "shade_between_y", "use_log_scale_y", "draw_line_at_x", "write_ticks_y_as"],
         recall=[
-            ("Which word sets the y-axis from 0 to 100?", "chart.range_y(0, 100)"),
-            ("Which word draws a line across at y = 50, with a label?", 'chart.line_at_y(50, label="pass mark")'),
-            ("A few values are much bigger than the rest. Which word helps?", "chart.log_scale_y()"),
-            ("Which word shows the numbers on the y-axis as percents?", 'chart.tick_format_y("percent")'),
+            ("Which word sets the y-axis from 0 to 100?", "chart.set_range_y(0, 100)"),
+            ("Which word draws a line across at y = 50, with a label?", 'chart.draw_line_at_y(50, labelled="pass mark")'),
+            ("A few values are much bigger than the rest. Which word helps?", "chart.use_log_scale_y()"),
+            ("Which word shows the numbers on the y-axis as percents?", 'chart.write_ticks_y_as("percent")'),
         ],
         task=['Growth table: draw lines of "population" over "year", one for each country, with a line at '
               'x = 2010 and the y-axis starting at 0.'],
         solutions=[(_code('''
             import simplydata as sdata
-            growth = sdata.example("growth")
+            growth = sdata.get_example("growth")
             chart = sdata.chart(growth)
-            chart.lines(x="year", y="population", colour="country")
-            chart.line_at_x(2010, label="2010")
-            chart.range_y(0, 60)
+            chart.draw_lines(x="year", y="population", colour="country")
+            chart.draw_line_at_x(2010, labelled="2010")
+            chart.set_range_y(0, 60)
             chart.save("growth.png")'''),
-            "range_y takes the lowest and the highest value of the axis; line_at_x draws a line going up.")],
+            "set_range_y takes the lowest and the highest value of the axis; draw_line_at_x draws a line going up.")],
     ),
     "lesson7": dict(
         lessons=[7],
-        words=["one_chart_per", "sdata.side_by_side", "sdata.one_above_other", "sdata.grid", "sdata.pairs"],
+        words=["draw_one_chart_for_each_group_in", "sdata.put_side_by_side", "sdata.put_one_above_other", "sdata.put_in_rows_and_columns", "sdata.draw_all_pairs"],
         recall=[
-            ("Which word draws one small chart for each class?", 'chart.one_chart_per("class")'),
-            ("Which word puts two charts next to each other on one page?", "sdata.side_by_side(a, b)"),
+            ("Which word draws one small chart for each class?", 'chart.draw_one_chart_for_each_group_in("class")'),
+            ("Which word puts two charts next to each other on one page?", "sdata.put_side_by_side(a, b)"),
             ("How do you put four charts in two rows, with the letters A to D?",
-             "sdata.grid(a, b, c, d, per_row=2, letters=True)"),
+             "sdata.put_in_rows_and_columns(a, b, c, d, per_row=2, with_letters=True)"),
         ],
         task=["Make a histogram and a box chart of the marks, and put them one above the other on one page."],
         solutions=[(_code('''
             import simplydata as sdata
-            marks = sdata.example("marks")
-            a = sdata.chart(marks).histogram(x="marks")
-            b = sdata.chart(marks).boxes(x="class", y="marks")
-            page = sdata.one_above_other(a, b)
+            marks = sdata.get_example("marks")
+            a = sdata.chart(marks).draw_histogram(x="marks")
+            b = sdata.chart(marks).draw_boxes(x="class", y="marks")
+            page = sdata.put_one_above_other(a, b)
             page.save("two_charts.png")'''),
-            "Each chart is made first; one_above_other puts them on one page.")],
+            "Each chart is made first; put_one_above_other puts them on one page.")],
     ),
     "lesson8": dict(
         lessons=[8],
-        words=["second_y", "size", "style", "note", "heatmap", "animate"],
+        words=["add_second_y", "set_size", "use_style", "write_note", "draw_heatmap", "animate"],
         recall=[
-            ("Which word adds a second y-axis on the right?", 'chart.second_y("rain")'),
-            ("Which word sets the size of a figure in cm?", 'chart.size(width=17, height=8, unit="cm")'),
+            ("Which word adds a second y-axis on the right?", 'chart.add_second_y("rain")'),
+            ("Which word sets the size of a figure in cm?", 'chart.set_size(width=17, height=8, unit="cm")'),
             ("How do you save a picture sharp enough for a journal?",
              'chart.save("figure.tif", resolution=600), or save it as .pdf'),
-            ("Which word writes a note with an arrow on the chart?", 'chart.note("X marks the spot", x=10, y=4, arrow=True)'),
+            ("Which word writes a note with an arrow on the chart?", 'chart.write_note("X marks the spot", x=10, y=4, with_arrow=True)'),
         ],
         task=['A figure for a journal: dots of "hours" against "marks", style "paper", 8.5 cm wide and 7 cm '
               "high, font size 8, saved as a .tif with 600 dpi."],
         solutions=[(_code('''
             import simplydata as sdata
-            marks = sdata.example("marks")
+            marks = sdata.get_example("marks")
             chart = sdata.chart(marks)
-            chart.dots(x="hours", y="marks")
-            chart.style("paper")
-            chart.size(width=8.5, height=7, unit="cm")
-            chart.font_size(8)
+            chart.draw_dots(x="hours", y="marks")
+            chart.use_style("paper")
+            chart.set_size(width=8.5, height=7, unit="cm")
+            chart.use_font_size(8)
             chart.save("figure1.tif", resolution=600)'''),
             "Journals often ask for 8.5 cm (one column) or 17 cm (two columns) and 300 to 600 dpi.")],
     ),
@@ -443,7 +443,7 @@ UNITS = {
         task=['Open the "shop" practice table. How many rows does it have, and how many rows does each shop have?'],
         solutions=[(_code('''
             import simplydata as sdata
-            table = sdata.table(sdata.example("shop"))
+            table = sdata.table(sdata.get_example("shop"))
             table.count_rows()
             table.count_each("shop")
             table.describe_columns()'''),
@@ -452,37 +452,37 @@ UNITS = {
     ),
     "lesson10": dict(
         lessons=[10],
-        words=["table.keep_rows", "table.keep_columns", "table.sort_by", "table.undo", "table.steps",
+        words=["table.keep_rows_where", "table.keep_columns", "table.sort_by", "table.undo", "table.show_steps",
                "table.keep_rows_by_position"],
         recall=[
-            ("Which word keeps only the rows where subject is Maths?", 'table.keep_rows("subject", equal_to="Maths")'),
+            ("Which word keeps only the rows where subject is Maths?", 'table.keep_rows_where("subject", is_equal_to="Maths")'),
             ("Which word sorts with the biggest marks first?", 'table.sort_by("marks", biggest_first=True)'),
             ("You made a mistake in the last step. Which word takes it back?",
              "table.undo(); table.start_again() goes back to the start."),
             ("Which word keeps rows 10 to 20, by their place in the table?", "table.keep_rows_by_position(10, to=20)"),
-            ("Which word lists every step you did to a table?", "table.steps()"),
+            ("Which word lists every step you did to a table?", "table.show_steps()"),
         ],
         task=['Weather table: keep the city "Sunnyvale", keep only the columns month, temperature and rain, '
               'sort by rain with the biggest first, and save it as "sunny.csv".'],
         solutions=[(_code('''
             import simplydata as sdata
-            table = sdata.table(sdata.example("weather"))
-            table.keep_rows("city", equal_to="Sunnyvale")
+            table = sdata.table(sdata.get_example("weather"))
+            table.keep_rows_where("city", is_equal_to="Sunnyvale")
             table.keep_columns("month", "temperature", "rain")
             table.sort_by("rain", biggest_first=True)
             table.save("sunny.csv")
-            table.steps()'''),
-            "Each step prints what it did; steps() lists them all, in order.")],
+            table.show_steps()'''),
+            "Each step prints what it did; show_steps() lists them all, in order.")],
     ),
     "lesson11": dict(
         lessons=[11],
         manual=[("ideas:missing", "Missing values and imputation")],
-        words=["table.count_empty_cells", "table.fill_empty_cells", "table.make_numbers", "table.add_column",
+        words=["table.count_empty_cells_in", "table.fill_empty_cells_in", "table.turn_into_numbers", "table.add_column",
                "table.add_group_column"],
         recall=[
-            ("Which word counts the empty cells in each column?", "table.count_empty_cells()"),
-            ("How do you fill the empty marks with the median?", 'table.fill_empty_cells("marks", with_the="median")'),
-            ('Which word turns a column of text such as "144" into numbers?', 'table.make_numbers("height")'),
+            ("Which word counts the empty cells in each column?", "table.count_empty_cells_in()"),
+            ("How do you fill the empty marks with the median?", 'table.fill_empty_cells_in("marks", with_the="median")'),
+            ('Which word turns a column of text such as "144" into numbers?', 'table.turn_into_numbers("height")'),
             ("Which word adds a new column made from other columns?",
              'table.add_column("total", "Maths + Science"), or table.add_column("per_hour", by_dividing=["marks", "hours"])'),
             ("Which word cuts a column of numbers into named groups?",
@@ -492,73 +492,73 @@ UNITS = {
               'each shop (sorted by "date"), and add a column "weekday" with the name of the weekday.'],
         solutions=[(_code('''
             import simplydata as sdata
-            table = sdata.table(sdata.example("shop"))
-            table.count_empty_cells()
-            table.fill_empty_cells("sales", with_the="line between neighbours", sorted_by="date", for_each="shop")
-            table.add_date_part_column("weekday", from_column="date", part="weekday name")
+            table = sdata.table(sdata.get_example("shop"))
+            table.count_empty_cells_in()
+            table.fill_empty_cells_in("sales", with_the="line between neighbours", sorted_by="date", for_each_group_in="shop")
+            table.add_column_with_part_of_date("weekday", from_column="date", part="weekday name")
             table.show_first_rows()'''),
-            "for_each= keeps the two shops apart, so a gap is never filled from the other shop's days.")],
+            "for_each_group_in= keeps the two shops apart, so a gap is never filled from the other shop's days.")],
     ),
     "lesson12": dict(
         lessons=[12],
-        words=["table.average_of", "table.summary_of", "table.correlation_between", "table.join_with",
-               "table.total_of", "table.add_z_score_column"],
+        words=["table.find_average_of", "table.find_summary_of", "table.find_correlation_between", "table.join_with",
+               "table.find_total_of", "table.add_z_score_column"],
         recall=[
-            ("Which word gives the average of a column for each group?", 'table.average_of("marks", for_each="class")'),
-            ("Which word tells whether two columns go up and down together?", 'table.correlation_between("hours", "marks")'),
+            ("Which word gives the average of a column for each group?", 'table.find_average_of("marks", for_each_group_in="class")'),
+            ("Which word tells whether two columns go up and down together?", 'table.find_correlation_between("hours", "marks")'),
             ("Which word joins two tables on a column they share?", 'table.join_with(ages, using="name")'),
             ("Which word gives several summaries at once?",
-             'table.summary_of("sales", for_each="shop", show=["average", "median", "count"])'),
+             'table.find_summary_of("sales", for_each_group_in="shop", show=["average", "median", "count"])'),
         ],
         spaced=[
             ("Which word adds a column that says how many standard deviations each value lies above or below "
              "the average of its group?",
-             'table.add_z_score_column("marks_z", from_column="marks", for_each="subject")'),
+             'table.add_z_score_column("marks_z", from_column="marks", for_each_group_in="subject")'),
         ],
         task=['Fruit table: the total "count" of each fruit, drawn as bars with the numbers on the bars.'],
         solutions=[(_code('''
             import simplydata as sdata
-            table = sdata.table(sdata.example("fruit"))
-            totals = table.total_of("count", for_each="fruit")
-            chart = totals.chart()
-            chart.bars(x="fruit", y="total of count")
-            chart.numbers_on_bars()
+            table = sdata.table(sdata.get_example("fruit"))
+            totals = table.find_total_of("count", for_each_group_in="fruit")
+            chart = totals.start_chart()
+            chart.draw_bars(x="fruit", y="total of count")
+            chart.write_numbers_on_bars()
             chart.save("fruit_totals.png")'''),
             'A summary gives back a new table, with a column called "total of count", ready for a chart.')],
     ),
     "lesson13": dict(
         lessons=[13],
-        words=["sdata.numbers", "sdata.random_numbers", "nums.median", "nums.percentile", "sdata.number_grid"],
+        words=["sdata.numbers", "sdata.make_random_numbers", "nums.find_median", "nums.find_percentile", "sdata.number_grid"],
         recall=[
             ("How do you make simplydata numbers from a list?", "nums = sdata.numbers([12, 15, 9, 20, 14])"),
-            ("Which word gives the middle value of numbers?", "nums.median()"),
+            ("Which word gives the middle value of numbers?", "nums.find_median()"),
             ("How do you make 100 random numbers with average 50 and standard deviation 10, the same every time?",
-             "sdata.random_numbers(how_many=100, average=50, standard_deviation=10, seed=1)"),
-            ("How do you get the number in row 1, column 2 of a grid?", "grid.number_at(row=1, column=2)"),
+             "sdata.make_random_numbers(how_many=100, average=50, standard_deviation=10, with_seed=1)"),
+            ("How do you get the number in row 1, column 2 of a grid?", "grid.get_number_at(row=1, column=2)"),
         ],
-        task=["Make 200 random heights with average 150 and standard deviation 8 (seed=1). What is their 90th "
+        task=["Make 200 random heights with average 150 and standard deviation 8 (with_seed=1). What is their 90th "
               "percentile? Draw them as a histogram."],
         solutions=[(_code('''
             import simplydata as sdata
-            heights = sdata.random_numbers(how_many=200, average=150, standard_deviation=8, seed=1)
-            heights.percentile(90)
-            chart = heights.chart()
-            chart.histogram(x="value")
+            heights = sdata.make_random_numbers(how_many=200, average=150, standard_deviation=8, with_seed=1)
+            heights.find_percentile(90)
+            chart = heights.start_chart()
+            chart.draw_histogram(x="value")
             chart.save("heights.png")'''),
-            "About 157: nine heights in ten are below it. seed=1 gives the same numbers every time.")],
+            "About 157: nine heights in ten are below it. with_seed=1 gives the same numbers every time.")],
     ),
     # ------------------------------------------------------------ tests (lessons 14 and 15)
     "tests_a": dict(
         lessons=[14],
         manual=[("ideas:p-value", "The null hypothesis and the p-value"),
                 ("ideas:effect-size", "Effect sizes: how big is the difference?")],
-        words=["table.compare_averages", "table.compare_each_pair", "table.fit_line", "table.average_of"],
+        words=["table.compare_averages_of", "table.compare_each_pair_of", "table.fit_line", "table.find_average_of"],
         do=[_lesson_do(14, "examples 1, 2, 3 and 5"),
             'Read "The null hypothesis and the p-value" and "Effect sizes" in the manual.'],
         recall=[
             ("Which word tests whether the average marks differ between the classes?",
-             'table.compare_averages("marks", for_each="class")'),
-            ("Which word says which pairs of groups differ?", 'table.compare_each_pair("marks", for_each="class")'),
+             'table.compare_averages_of("marks", for_each_group_in="class")'),
+            ("Which word says which pairs of groups differ?", 'table.compare_each_pair_of("marks", for_each_group_in="class")'),
             ('A p-value says how often a difference this big would turn up if there were truly none. '
              'What says "how big is it?"',
              "The effect size: the difference in averages, Cohen's d or Hedges' g, omega-squared."),
@@ -566,59 +566,59 @@ UNITS = {
              'based_on="ranks"'),
         ],
         spaced=[
-            ("Which option adds a 95 % confidence interval to average_of or median_of?",
-             'interval=95, as in table.average_of("sleep", for_each="passed", interval=95)'),
+            ("Which option adds a 95 % confidence interval to find_average_of or find_median_of?",
+             'interval=95, as in table.find_average_of("sleep", for_each_group_in="passed", interval=95)'),
             ("Which option gets the p-value by shuffling the group labels, and what does that p-value count?",
-             'p_value_by="shuffling", as in table.compare_averages("sleep", for_each="passed", '
+             'p_value_by="shuffling", as in table.compare_averages_of("sleep", for_each_group_in="passed", '
              'p_value_by="shuffling"): how often shuffled labels give a difference as big as the real one.'),
         ],
         task=['School table: do the average marks differ between pupils who had breakfast and pupils who did '
               "not? Write down the difference with its interval first, then the effect size and the p-value."],
         solutions=[(_code('''
             import simplydata as sdata
-            table = sdata.table(sdata.example("school"))
-            table.average_of("marks", for_each="breakfast")
-            table.compare_averages("marks", for_each="breakfast")'''),
+            table = sdata.table(sdata.get_example("school"))
+            table.find_average_of("marks", for_each_group_in="breakfast")
+            table.compare_averages_of("marks", for_each_group_in="breakfast")'''),
             "Two groups, so it is Welch's t-test; the sentence gives the difference, Hedges' g and the p-value.")],
     ),
     "tests_b": dict(
         lessons=[14],
         manual=[("ideas:multiple", "Many tests at once")],
-        words=["table.compare_counts", "table.show_rows_with_outliers", "table.compare_matched",
-               "table.compare_shape_to", "table.add_adjusted_p_value_column", "table.compare_spreads"],
+        words=["table.compare_counts_of", "table.show_rows_with_outliers", "table.compare_matched_columns",
+               "table.compare_shape_to", "table.add_adjusted_p_value_column", "table.compare_spreads_of"],
         do=[_lesson_do(14, "examples 4, 6, 7 and 8"),
             'Read "Many tests at once" in the manual.'],
         recall=[
             ("Which word tests whether the counts of categories differ between groups?",
-             'table.compare_counts("result", for_each="class")'),
-            ("Which word shows the rows with outliers?", 'table.show_rows_with_outliers("marks", for_each="class")'),
+             'table.compare_counts_of("result", for_each_group_in="class")'),
+            ("Which word shows the rows with outliers?", 'table.show_rows_with_outliers("marks", for_each_group_in="class")'),
             ("Which word checks whether values are bell-shaped (normal)?", 'table.compare_shape_to("marks", "normal")'),
             ("You did many tests at once. Which word corrects the p-values?",
              'add_adjusted_p_value_column(method="holm"), on the table of results'),
         ],
         spaced=[
             ("Each patient was measured at week 0, 4 and 8. Which word compares the three measurements?",
-             'table.compare_matched("pain_week_0", "pain_week_4", "pain_week_8")'),
+             'table.compare_matched_columns("pain_week_0", "pain_week_4", "pain_week_8")'),
         ],
         task=['School table: is the share of pupils who "passed" different with and without breakfast?'],
         solutions=[(_code('''
             import simplydata as sdata
-            table = sdata.table(sdata.example("school"))
-            table.count_rows(for_each="breakfast", across="passed")
-            table.compare_counts("passed", for_each="breakfast")'''),
+            table = sdata.table(sdata.get_example("school"))
+            table.count_rows(for_each_group_in="breakfast", across="passed")
+            table.compare_counts_of("passed", for_each_group_in="breakfast")'''),
             "passed is a category (yes or no), so the test compares counts: the chi-square test, with "
             "Cramer's V as the effect size.")],
     ),
     "choose_test": dict(
         lessons=[],
         manual=[("ideas:which-test", "Which test when?"), ("ideas:report", "Writing it up")],
-        words=["table.compare_average_to", "table.compare_before_after", "table.compare_percent_to"],
+        words=["table.compare_average_to", "table.compare_before_and_after", "table.compare_percent_to"],
         do=['Read "Which test when?" and "Writing it up" in the manual. Answer its four questions for each '
             "task below before you run anything.",
-            'Run sdata.help("compare_before_after") and sdata.help("compare_average_to") and type their examples.'],
+            'Run sdata.help("compare_before_and_after") and sdata.help("compare_average_to") and type their examples.'],
         recall=[
             ("The same children were measured twice. Which word compares the two?",
-             'table.compare_before_after("before", "after"): the paired test.'),
+             'table.compare_before_and_after("before", "after"): the paired test.'),
             ("Which word compares one average with a number you choose?", 'table.compare_average_to("marks", 60)'),
             ("What should a results sentence give?",
              "The summary of each group with n, the effect size (with its interval), the name of the test and "
@@ -629,37 +629,37 @@ UNITS = {
               'School table: is the average "sleep" different from 8 hours?'],
         solutions=[(_code('''
             import simplydata as sdata
-            table = sdata.table(sdata.example("marks"))
+            table = sdata.table(sdata.get_example("marks"))
             table.keep_columns("name", "subject", "marks")
             table.turn_rows_into_columns(names_from="subject", values_from="marks")
-            table.compare_before_after("Maths", "Science")'''),
+            table.compare_before_and_after("Maths", "Science")'''),
             "The same children twice, so the test must be paired. First one row per child, with a Maths and "
             "a Science column."),
             (_code('''
             import simplydata as sdata
-            table = sdata.table(sdata.example("school"))
+            table = sdata.table(sdata.get_example("school"))
             table.compare_average_to("sleep", 8)'''),
              "One average against a number you choose: the one-sample t-test. Empty sleep cells are skipped, "
              "with a note.")],
     ),
     "lesson15": dict(
         lessons=[15],
-        words=["table.steps", "sdata.grid", "table.save", "table.as_pandas"],
+        words=["table.show_steps", "sdata.put_in_rows_and_columns", "table.save", "table.as_pandas"],
         recall=[
-            ("Which word lists every change you made to a table, for your methods?", "table.steps()"),
+            ("Which word lists every change you made to a table, for your methods?", "table.show_steps()"),
             ("How do you give the panels of a figure the letters A and B?",
-             "letters=True in sdata.grid(...) or sdata.side_by_side(...)"),
+             "with_letters=True in sdata.put_in_rows_and_columns(...) or sdata.put_side_by_side(...)"),
             ("Which word hands a table on to pandas?", "table.as_pandas()"),
         ],
         task=['From memory: weather table, compare the average "temperature" of the cities, draw boxes with '
               'all the dots, and save the figure as a PDF and the table as "weather.xlsx".'],
         solutions=[(_code('''
             import simplydata as sdata
-            table = sdata.table(sdata.example("weather"))
-            table.compare_averages("temperature", for_each="city")
-            chart = table.chart()
-            chart.boxes(x="city", y="temperature")
-            chart.all_dots(x="city", y="temperature")
+            table = sdata.table(sdata.get_example("weather"))
+            table.compare_averages_of("temperature", for_each_group_in="city")
+            chart = table.start_chart()
+            chart.draw_boxes(x="city", y="temperature")
+            chart.draw_all_dots(x="city", y="temperature")
             chart.save("temperature.pdf")
             table.save("weather.xlsx")'''),
             "Question, test, figure, saved table: the whole analysis in eight lines.")],
@@ -679,32 +679,32 @@ UNITS = {
               "Does breakfast matter?"],
         solutions=[(_code('''
             import simplydata as sdata
-            table = sdata.table(sdata.example("school"))
+            table = sdata.table(sdata.get_example("school"))
             table.explain("days_absent", using=["sleep", "breakfast"], outcome="counts")'''),
             "Counts of days call for Poisson regression; read the line for breakfast and its p-value.")],
     ),
     "lesson21": dict(
         lessons=[21],
-        words=["table.check_model", "table.compare_models", "table.add_predicted_column", "table.show_rows_that_pull"],
+        words=["table.check_model_of", "table.compare_models", "table.add_predicted_column", "table.show_rows_that_pull_model"],
         do=[_lesson_do(21, "examples 1 to 4"),
-            "Example 5 (model_averages_of) needs R: do it only if you have R, or come back to it later."],
+            "Example 5 (find_model_averages_of) needs R: do it only if you have R, or come back to it later."],
         recall=[
             ("Which word draws four pictures to check a model from explain()?",
-             'table.check_model("marks", using=["hours", "breakfast"])'),
+             'table.check_model_of("marks", using=["hours", "breakfast"])'),
             ("Which word asks whether adding a column helps a model?",
              'table.compare_models("marks", using=["hours"], against=["hours", "breakfast"])'),
             ("Which options of add_predicted_column add a 95 % interval, and make it the interval for one new row?",
              'interval=95, and for_new_rows=True: '
              'table.add_predicted_column("marks", using=["hours"], interval=95, for_new_rows=True)'),
             ("Which word lists the rows that pull a model the most?",
-             'table.show_rows_that_pull("marks", using=["hours", "breakfast"])'),
+             'table.show_rows_that_pull_model("marks", using=["hours", "breakfast"])'),
         ],
         task=['School table: does "sleep" help a yes-or-no model of "passed" that already has "hours"? Check the '
               "model with its pictures first."],
         solutions=[(_code('''
             import simplydata as sdata
-            table = sdata.table(sdata.example("school"))
-            page = table.check_model("passed", using=["hours", "sleep"], outcome="yes or no")
+            table = sdata.table(sdata.get_example("school"))
+            page = table.check_model_of("passed", using=["hours", "sleep"], outcome="yes or no")
             page.save("passed_checks.png")
             table.compare_models("passed", using=["hours"], against=["hours", "sleep"], outcome="yes or no")'''),
             "The first picture shows two bands, as every yes/no model does, and its smooth line stays close to 0. "
@@ -712,53 +712,53 @@ UNITS = {
     ),
     "lesson17": dict(
         lessons=[17],
-        needs_r="add_clusters() with k-means, add_nmds() and compare_profiles()",
-        words=["table.add_principal_components", "table.add_clusters", "table.add_nmds", "table.compare_profiles"],
+        needs_r="add_clusters() with k-means, add_nmds() and compare_profiles_of()",
+        words=["table.add_principal_components", "table.add_clusters", "table.add_nmds", "table.compare_profiles_of"],
         recall=[
             ("Which word adds the principal components PC1 and PC2?", "table.add_principal_components(how_many=2)"),
             ("Which word puts rows that are alike into groups?", "table.add_clusters(how_many=2)"),
             ("Which word tests whether groups differ in their make-up across many columns (PERMANOVA)?",
-             'table.compare_profiles(for_each="grazed")'),
+             'table.compare_profiles_of(for_each_group_in="grazed")'),
         ],
         task=['Meadow table: add 3 clusters and count the rows of each cluster across "field".'],
         solutions=[(_code('''
             import simplydata as sdata
-            table = sdata.table(sdata.example("meadow"))
+            table = sdata.table(sdata.get_example("meadow"))
             table.add_clusters(how_many=3)
-            table.count_rows(for_each="cluster", across="field")'''),
+            table.count_rows(for_each_group_in="cluster", across="field")'''),
             "If each cluster is mostly one field, the fields have different plants.")],
     ),
     "lesson18": dict(
         lessons=[18],
         manual=[("ideas:errors", "Two kinds of mistake, and power")],
-        words=["table.survival_over_time", "survival_curves", "table.compare_survival", "sdata.how_many_needed"],
-        more=_more(f"sdata.lesson({lesson_number(RISKS_LESSON)}), risks, diagnostic tests and agreement (for the "
+        words=["table.find_survival_over_time", "draw_survival_curves", "table.compare_survival", "sdata.find_how_many_needed"],
+        more=_more(f"sdata.show_lesson({lesson_number(RISKS_LESSON)}), risks, diagnostic tests and agreement (for the "
                    "life sciences): risks out of 100, how many of 1000 people a test finds, and how well two raters "
                    "agree"),
         recall=[
-            ("Which word draws survival curves?", 'chart.survival_curves(time="days", event="died", colour="treatment")'),
+            ("Which word draws survival curves?", 'chart.draw_survival_curves(time="days", event="died", colour="treatment")'),
             ("Which word tests whether survival differs between groups?",
-             'table.compare_survival(time="days", event="died", for_each="treatment")'),
-            ("Which word says how many values you need in each group?", "sdata.how_many_needed(effect_size=0.5, power=0.8)"),
+             'table.compare_survival(time="days", event="died", for_each_group_in="treatment")'),
+            ("Which word says how many values you need in each group?", "sdata.find_how_many_needed(effect_size=0.5, power=0.8)"),
         ],
         task=["How many values does each group need to find a large difference (effect_size=0.8) with power "
               "0.8? And with a small one (0.2)?"],
         solutions=[(_code('''
             import simplydata as sdata
-            sdata.how_many_needed(effect_size=0.8, power=0.8)
-            sdata.how_many_needed(effect_size=0.2, power=0.8)'''),
+            sdata.find_how_many_needed(effect_size=0.8, power=0.8)
+            sdata.find_how_many_needed(effect_size=0.2, power=0.8)'''),
             "About 26 for a large difference but about 394 for a small one: small effects need big studies.")],
     ),
     "fitting": dict(
         lessons=[19],
         manual=[("ideas:regression", "Fitting a line or a formula")],
         words=["table.fit_line", "table.fit_curve", "table.fit_formula", "fit_formula"],
-        do=["Work through sdata.lesson(19), examples 1 and 2: type each example yourself (do not copy and paste), "
+        do=["Work through sdata.show_lesson(19), examples 1 and 2: type each example yourself (do not copy and paste), "
             "run it and read what each line does. Then do tasks 1 and 2 of the lesson and check them with "
-            "sdata.lesson(19, solutions=True)."],
+            "sdata.show_lesson(19, solutions=True)."],
         recall=[
             ("Which word fits a straight line on a table?", 'table.fit_line(x="hours", y="marks")'),
-            ("How do you fit a curve with x and x squared?", 'table.fit_curve(x="hours", y="marks", degree=2)'),
+            ("How do you fit a curve with x and x squared?", 'table.fit_curve(x="hours", y="marks", of_degree=2)'),
             ("Which word fits a formula of your own, such as growth?",
              'table.fit_formula("population = a * exp(b * (year - 2000))")'),
         ],
@@ -766,196 +766,196 @@ UNITS = {
               "loses forest fastest?"],
         solutions=[(_code('''
             import simplydata as sdata
-            table = sdata.table(sdata.example("growth"))
-            table.fit_formula("forest = a + b * (year - 2000)", for_each="country")'''),
+            table = sdata.table(sdata.get_example("growth"))
+            table.fit_formula("forest = a + b * (year - 2000)", for_each_group_in="country")'''),
             "b is the change in forest each year: the country with the most negative b loses forest fastest.")],
     ),
     "distributions": dict(
         lessons=[20],
         manual=[("ideas:distribution", "The shape of the values: distributions")],
-        words=["sdata.distribution", "dist.chance", "dist.percentile", "table.fit_distribution"],
-        do=["Work through sdata.lesson(20), examples 1 and 2: type each example yourself (do not copy and paste), "
+        words=["sdata.distribution", "dist.find_chance_that_value", "dist.find_percentile", "table.fit_distribution_to"],
+        do=["Work through sdata.show_lesson(20), examples 1 and 2: type each example yourself (do not copy and paste), "
             "run it and read what each line does. Then do tasks 1 and 2 of the lesson and check them with "
-            "sdata.lesson(20, solutions=True)."],
-        more=_more("sdata.lesson(19), example 3: where a formula is smallest or biggest, and solving an equation "
-                   "(sdata.find_smallest, sdata.find_biggest, sdata.solve)",
-                   "sdata.lesson(20), example 3: values between the points you measured, and maps "
-                   "(values_at, map_of)"),
+            "sdata.show_lesson(20, solutions=True)."],
+        more=_more("sdata.show_lesson(19), example 3: where a formula is smallest or biggest, and solving an equation "
+                   "(sdata.find_where_smallest, sdata.find_where_biggest, sdata.solve)",
+                   "sdata.show_lesson(20), example 3: values between the points you measured, and maps "
+                   "(values_at, make_map_of)"),
         recall=[
             ("How do you make a normal distribution with average 50 and standard deviation 10?",
              'sdata.distribution("normal", average=50, standard_deviation=10)'),
-            ("Which word gives the chance of a value above 80?", "dist.chance(above=80)"),
-            ("Which word fits a distribution to a column?", 'table.fit_distribution("days_absent", "negative binomial")'),
+            ("Which word gives the chance of a value above 80?", "dist.find_chance_that_value(is_above=80)"),
+            ("Which word fits a distribution to a column?", 'table.fit_distribution_to("days_absent", "negative binomial")'),
         ],
         task=["Heights are normal with average 150 and standard deviation 8. What share is taller than 165? "
               "Which height do 95 % of them stay below?"],
         solutions=[(_code('''
             import simplydata as sdata
             heights = sdata.distribution("normal", average=150, standard_deviation=8)
-            heights.chance(above=165)
-            heights.percentile(95)'''),
+            heights.find_chance_that_value(is_above=165)
+            heights.find_percentile(95)'''),
             "About 3 % are taller than 165, and 95 % are below about 163.")],
     ),
     "time_series": dict(
         lessons=[lesson_number(TIME_SERIES_LESSON), lesson_number(CYCLES_LESSON)],
-        needs_r="trend_of()",
+        needs_r="find_trend_of()",
         r_packages=("trend",),
-        words=["table.add_missing_dates", "sdata.dates", "table.add_smoothed_column", "table.trend_of",
-               "table.add_rolling_column", "table.find_peaks"],
+        words=["table.add_missing_dates", "sdata.make_run_of_dates", "table.add_smoothed_column", "table.find_trend_of",
+               "table.add_rolling_column", "table.find_each_peak_that"],
         do=[_lesson_do(lesson_number(TIME_SERIES_LESSON)),
-            f"Then work through sdata.lesson({lesson_number(CYCLES_LESSON)}), example 3 only (peaks and dips), "
+            f"Then work through sdata.show_lesson({lesson_number(CYCLES_LESSON)}), example 3 only (peaks and dips), "
             f"and do its task 3.",
             ],
-        more=_more(f"sdata.lesson({lesson_number(FORECASTS_LESSON)}), forecasts (needs R)",
-                   f"the rest of sdata.lesson({lesson_number(CYCLES_LESSON)}): spectra, filters and steady or not",
-                   f"sdata.lesson({lesson_number(SYSTEMS_LESSON)}), systems"),
+        more=_more(f"sdata.show_lesson({lesson_number(FORECASTS_LESSON)}), forecasts (needs R)",
+                   f"the rest of sdata.show_lesson({lesson_number(CYCLES_LESSON)}): spectra, filters and steady or not",
+                   f"sdata.show_lesson({lesson_number(SYSTEMS_LESSON)}), systems"),
         recall=[
             ("Which word adds the days that are missing from a daily table?",
-             'table.add_missing_dates("date", every="day", for_each="station")'),
+             'table.add_missing_dates("date", every="day", for_each_group_in="station")'),
             ("Which word smooths a column with a moving average over its neighbours in time?",
              'table.add_smoothed_column("nitrate_smoothed", from_column="nitrate", window=31, sorted_by="date")'),
             ('Why does window="7 days" still work when days are missing?',
              "It counts days of time, not rows: a window holds whatever readings fall in those 7 days."),
             ("Which word finds the readings higher than both neighbours?",
-             'table.find_peaks("signal", sorted_by="time", at_least=1)'),
+             'table.find_each_peak_that("signal", sorted_by="time", is_at_least=1)'),
             ("Which word makes a run of dates, one for every day of March 2026?",
-             'sdata.dates("2026-03-01", to="2026-03-31", every="day")'),
+             'sdata.make_run_of_dates("2026-03-01", to="2026-03-31", every="day")'),
         ],
         spaced=[
             ("Which word adds a column with the average of the last 7 days of time (not the last 7 rows)?",
              'table.add_rolling_column("week_level", from_column="level", window="7 days", sorted_by="date")'),
             ("Which word tests whether a series has a real trend (Mann-Kendall) and gives its slope?",
-             'table.trend_of("nitrate", sorted_by="date")'),
+             'table.find_trend_of("nitrate", sorted_by="date")'),
         ],
         task=['River table: add the missing days, fill the empty "level" cells, and test whether the level of '
               "each station has a trend."],
         solutions=[(_code('''
             import simplydata as sdata
-            table = sdata.table(sdata.example("river"))
-            table.add_missing_dates("date", every="day", for_each="station")
-            table.fill_empty_cells("level", with_the="line between neighbours", sorted_by="date", for_each="station")
-            table.trend_of("level", sorted_by="date", for_each="station")'''),
-            "trend_of prints Sen's slope (per day and per year) and the Mann-Kendall p-value for each station.")],
+            table = sdata.table(sdata.get_example("river"))
+            table.add_missing_dates("date", every="day", for_each_group_in="station")
+            table.fill_empty_cells_in("level", with_the="line between neighbours", sorted_by="date", for_each_group_in="station")
+            table.find_trend_of("level", sorted_by="date", for_each_group_in="station")'''),
+            "find_trend_of prints Sen's slope (per day and per year) and the Mann-Kendall p-value for each station.")],
     ),
     # ------------------------------------------------------------ review days
     "review_p7": dict(
         lessons=[],
         do=["Answer the warm-up on paper, from memory, before you look anything up.",
-            "For each question you could not answer, open its day with sdata.day(n) and run its example again.",
+            "For each question you could not answer, open its day with sdata.show_day(n) and run its example again.",
             "Then do the mixed task without looking back. It uses words from the whole week."],
         task=['Marks table: keep only class "A", draw bars of the average "marks" for each subject with '
               "standard error bars, give the chart a title and save it as a PDF."],
         solutions=[(_code('''
             import simplydata as sdata
-            table = sdata.table(sdata.example("marks"))
-            table.keep_rows("class", equal_to="A")
-            chart = table.chart()
-            chart.bars(x="subject", y="marks", error="standard error")
-            chart.title_top("Class A")
+            table = sdata.table(sdata.get_example("marks"))
+            table.keep_rows_where("class", is_equal_to="A")
+            chart = table.start_chart()
+            chart.draw_bars(x="subject", y="marks", error="standard error")
+            chart.write_title_on_top("Class A")
             chart.save("class_a.pdf")'''),
-            "Day 1 (bars, save), day 4 (error=) and day 6 (keep_rows) in one small program.")],
+            "Day 1 (bars, save), day 4 (error=) and day 6 (keep_rows_where) in one small program.")],
     ),
     "review_p14": dict(
         lessons=[],
         do=["Answer the warm-up on paper, from memory, before you look anything up.",
-            "For each question you could not answer, open its day with sdata.day(n) and run its example again.",
+            "For each question you could not answer, open its day with sdata.show_day(n) and run its example again.",
             "Then do the mixed task without looking back."],
         task=['School table: count the empty cells, remove the rows with an empty "sleep", give the average '
               'sleep for each value of "passed", test the difference, and draw boxes with all the dots.'],
         solutions=[(_code('''
             import simplydata as sdata
-            table = sdata.table(sdata.example("school"))
-            table.count_empty_cells()
-            table.remove_rows_with_empty_cells("sleep")
-            table.average_of("sleep", for_each="passed")
-            table.compare_averages("sleep", for_each="passed")
-            chart = table.chart()
-            chart.boxes(x="passed", y="sleep")
-            chart.all_dots(x="passed", y="sleep")
+            table = sdata.table(sdata.get_example("school"))
+            table.count_empty_cells_in()
+            table.remove_rows_with_empty_cells_in("sleep")
+            table.find_average_of("sleep", for_each_group_in="passed")
+            table.compare_averages_of("sleep", for_each_group_in="passed")
+            chart = table.start_chart()
+            chart.draw_boxes(x="passed", y="sleep")
+            chart.draw_all_dots(x="passed", y="sleep")
             chart.save("sleep.png")'''),
             "Clean, sum up, test, draw: the order of every analysis.")],
     ),
     "review_p21": dict(
         lessons=[],
         do=["Answer the warm-up on paper, from memory, before you look anything up.",
-            "For each question you could not answer, open its day with sdata.day(n) and run its example again."],
+            "For each question you could not answer, open its day with sdata.show_day(n) and run its example again."],
         task=['Trial table: test whether survival differs between the treatments, then explain the risk of '
               'dying from "treatment" and "age" together.'],
         solutions=[(_code('''
             import simplydata as sdata
-            table = sdata.table(sdata.example("trial"))
-            table.compare_survival(time="days", event="died", for_each="treatment")
+            table = sdata.table(sdata.get_example("trial"))
+            table.compare_survival(time="days", event="died", for_each_group_in="treatment")
             table.explain_survival(time="days", event="died", using=["treatment", "age"])'''),
             "The log-rank test compares the curves; the Cox model gives a hazard ratio for each column.")],
     ),
     "review_p28": dict(
         lessons=[],
         do=["Answer the warm-up on paper, from memory, before you look anything up.",
-            "For each question you could not answer, open its day with sdata.day(n) and run its example again."],
+            "For each question you could not answer, open its day with sdata.show_day(n) and run its example again."],
         task=["Without looking back: which word fits a formula of your own, and which gives the chance of a value "
               'above a number? Use both: in the growth table, fit the formula "forest = a + b * (year - 2000)" '
               "for each country, and find the share of marks above 70 when they are normal with average 50 and "
               "standard deviation 10."],
         solutions=[(_code('''
             import simplydata as sdata
-            table = sdata.table(sdata.example("growth"))
-            table.fit_formula("forest = a + b * (year - 2000)", for_each="country")
+            table = sdata.table(sdata.get_example("growth"))
+            table.fit_formula("forest = a + b * (year - 2000)", for_each_group_in="country")
             dist = sdata.distribution("normal", average=50, standard_deviation=10)
-            dist.chance(above=70)'''),
+            dist.find_chance_that_value(is_above=70)'''),
             "fit_formula and chance: the fit_ family on a table, and the distribution words. About 2 % of marks "
             "are above 70.")],
     ),
     "review_b7": dict(
         lessons=[],
         do=["Answer the warm-up on paper, from memory, before you look anything up.",
-            "For each question you could not answer, open its day with sdata.day(n) and run its example again.",
+            "For each question you could not answer, open its day with sdata.show_day(n) and run its example again.",
             "Then do the mixed task without looking back."],
         task=["Make numbers of five marks and give their average. Then draw bars of the marks table with "
               'x="subject", y="marks", one colour for each class, and a title. Save it.'],
         solutions=[(_code('''
             import simplydata as sdata
             nums = sdata.numbers([48, 71, 55, 88, 62])
-            nums.average()
-            marks = sdata.example("marks")
+            nums.find_average()
+            marks = sdata.get_example("marks")
             chart = sdata.chart(marks)
-            chart.bars(x="subject", y="marks", colour="class")
-            chart.title_top("Marks in each subject")
+            chart.draw_bars(x="subject", y="marks", colour="class")
+            chart.write_title_on_top("Marks in each subject")
             chart.save("subjects.png")'''),
             "Python lists (day 2), bars and save (day 3), titles (day 4) and colours (day 5).")],
     ),
     "review_b14": dict(
         lessons=[],
         do=["Answer the warm-up on paper, from memory, before you look anything up.",
-            "For each question you could not answer, open its day with sdata.day(n) and run its example again.",
+            "For each question you could not answer, open its day with sdata.show_day(n) and run its example again.",
             "Then do the mixed task without looking back."],
         task=['Weather table: keep the city "Frostby", sort by "temperature", and draw a line of the temperature '
               "over the month, with a line at y = 0 and the label \"freezing\"."],
         solutions=[(_code('''
             import simplydata as sdata
-            table = sdata.table(sdata.example("weather"))
-            table.keep_rows("city", equal_to="Frostby")
+            table = sdata.table(sdata.get_example("weather"))
+            table.keep_rows_where("city", is_equal_to="Frostby")
             table.sort_by("temperature")
             table.show_first_rows(3)
-            chart = table.chart()
-            chart.lines(x="month_number", y="temperature")
-            chart.line_at_y(0, label="freezing")
+            chart = table.start_chart()
+            chart.draw_lines(x="month_number", y="temperature")
+            chart.draw_line_at_y(0, labelled="freezing")
             chart.save("frostby.png")'''),
             "Tables (days 12 and 13) feed charts (days 3 to 11).")],
     ),
     "review_b21": dict(
         lessons=[],
         do=["Answer the warm-up on paper, from memory, before you look anything up.",
-            "For each question you could not answer, open its day with sdata.day(n) and run its example again.",
+            "For each question you could not answer, open its day with sdata.show_day(n) and run its example again.",
             "Then do the mixed task without looking back."],
         task=['School table: the average "marks" for each value of "breakfast", a test of the difference, and '
               "boxes of the marks for each group."],
         solutions=[(_code('''
             import simplydata as sdata
-            table = sdata.table(sdata.example("school"))
-            table.average_of("marks", for_each="breakfast")
-            table.compare_averages("marks", for_each="breakfast")
-            chart = table.chart()
-            chart.boxes(x="breakfast", y="marks")
+            table = sdata.table(sdata.get_example("school"))
+            table.find_average_of("marks", for_each_group_in="breakfast")
+            table.compare_averages_of("marks", for_each_group_in="breakfast")
+            chart = table.start_chart()
+            chart.draw_boxes(x="breakfast", y="marks")
             chart.save("breakfast.png")'''),
             "A summary, a test and a chart of the same question.")],
     ),
@@ -974,7 +974,7 @@ UNITS = {
               "columns it has, and which columns have empty cells."],
         solutions=[(_code('''
             import simplydata as sdata
-            sdata.table(sdata.example("school")).save("school_raw.csv")
+            sdata.table(sdata.get_example("school")).save("school_raw.csv")
             table = sdata.table("school_raw.csv")
             table.count_rows()
             table.describe_columns()'''),
@@ -983,65 +983,65 @@ UNITS = {
     ),
     "proj_clean": dict(
         lessons=[11],
-        words=["table.count_empty_cells", "table.remove_extra_spaces", "table.replace_values",
-               "table.fill_empty_cells", "table.rename_column"],
+        words=["table.count_empty_cells_in", "table.remove_extra_spaces_in", "table.replace_values_in",
+               "table.fill_empty_cells_in", "table.rename_column"],
         do=["Project day 2: clean. Go column by column through what describe_columns showed you.",
             "Fix text with spaces or mixed capitals, numbers stored as text, odd codes such as -999, and "
             "decide what to do with empty cells (remove, fill, or keep and let the tests skip them).",
-            "Save the clean table under a new name, and keep the steps()."],
+            "Save the clean table under a new name, and keep the show_steps()."],
         task=["Clean your table and save it as a new file. Write one line for each decision you made about "
               "empty cells."],
         solutions=[(_code('''
             import simplydata as sdata
-            table = sdata.table(sdata.example("school"))
-            table.count_empty_cells()
+            table = sdata.table(sdata.get_example("school"))
+            table.count_empty_cells_in()
             table.add_is_empty_column("sleep_was_empty", from_column="sleep")
             table.rename_column("days_absent", to="absent")
             table.save("school_clean.csv")
-            table.steps()'''),
+            table.show_steps()'''),
             "Here the empty sleep cells are kept (tests skip them, and models can use multiple imputation); "
             "a column remembers which were empty.")],
     ),
     "proj_explore": dict(
         lessons=[9, 12],
-        words=["table.count_each", "table.summary_of", "table.correlation_between", "histogram", "sdata.pairs"],
+        words=["table.count_each", "table.find_summary_of", "table.find_correlation_between", "draw_histogram", "sdata.draw_all_pairs"],
         do=["Project day 3: explore. Draw before you test: charts show odd values, skew and outliers that a "
             "single number hides.",
-            "Count each category, sum up the numbers for each group, look at histograms and at sdata.pairs."],
+            "Count each category, sum up the numbers for each group, look at histograms and at sdata.draw_all_pairs."],
         task=["Make three summaries and two charts of your table that help to answer your question."],
         solutions=[(_code('''
             import simplydata as sdata
-            table = sdata.table(sdata.example("school"))
+            table = sdata.table(sdata.get_example("school"))
             table.count_each("breakfast")
-            table.summary_of("marks", for_each="breakfast", show=["average", "median", "standard deviation", "count"])
-            table.correlation_between("sleep", "marks")
-            chart = table.chart()
-            chart.histogram(x="marks", colour="breakfast")
+            table.find_summary_of("marks", for_each_group_in="breakfast", show=["average", "median", "standard deviation", "count"])
+            table.find_correlation_between("sleep", "marks")
+            chart = table.start_chart()
+            chart.draw_histogram(x="marks", colour="breakfast")
             chart.save("marks_histogram.png")
-            sdata.pairs(table, colour="breakfast").save("pairs.png")'''),
+            sdata.draw_all_pairs(table, colour="breakfast").save("pairs.png")'''),
             "Each summary and chart is a small answer; the test comes later.")],
     ),
     "proj_figures": dict(
         lessons=[7, 8, 15],
-        words=["sdata.grid", "style", "size", "save"],
+        words=["sdata.put_in_rows_and_columns", "use_style", "set_size", "save"],
         do=["Project day 4: figures. Make the one figure that answers your question best, with two panels "
             "(A and B), axis names with units, and a caption that says what the error bars or bands show.",
             'Use style "paper", a size of 17 cm wide, and save it as .pdf and as a 600 dpi .tif.'],
         task=["Make your main figure with two panels and save it ready for a journal."],
         solutions=[(_code('''
             import simplydata as sdata
-            table = sdata.table(sdata.example("school"))
-            a = table.chart()
-            a.boxes(x="breakfast", y="marks")
-            a.all_dots(x="breakfast", y="marks")
+            table = sdata.table(sdata.get_example("school"))
+            a = table.start_chart()
+            a.draw_boxes(x="breakfast", y="marks")
+            a.draw_all_dots(x="breakfast", y="marks")
             a.label_y("Mark (out of 100)")
-            b = table.chart()
-            b.dots(x="sleep", y="marks", colour="breakfast")
-            b.fit_line(confidence_band=True)
+            b = table.start_chart()
+            b.draw_dots(x="sleep", y="marks", colour="breakfast")
+            b.fit_line(with_confidence_band=True)
             b.label_x("Sleep (hours)")
-            figure = sdata.grid(a, b, per_row=2, letters=True)
-            figure.style("paper")
-            figure.size(width=17, height=8, unit="cm")
+            figure = sdata.put_in_rows_and_columns(a, b, per_row=2, with_letters=True)
+            figure.use_style("paper")
+            figure.set_size(width=17, height=8, unit="cm")
             figure.save("figure1.pdf")
             figure.save("figure1.tif", resolution=600)'''),
             "Panel A shows the groups, panel B the link with sleep; the band is the 95 % confidence interval.")],
@@ -1049,7 +1049,7 @@ UNITS = {
     "proj_tests": dict(
         lessons=[14],
         manual=[("ideas:which-test", "Which test when?")],
-        words=["table.compare_averages", "table.compare_counts", "table.correlation_between",
+        words=["table.compare_averages_of", "table.compare_counts_of", "table.find_correlation_between",
                "table.compare_shape_to"],
         do=["Project day 5: tests. Choose the test with the four questions of \"Which test when?\" before "
             "you run it, and run one test per question.",
@@ -1058,10 +1058,10 @@ UNITS = {
         task=["Run the test that answers your question. Write down the test's name, the effect size and the p-value."],
         solutions=[(_code('''
             import simplydata as sdata
-            table = sdata.table(sdata.example("school"))
-            table.compare_shape_to("marks", "normal", for_each="breakfast")
-            table.compare_averages("marks", for_each="breakfast")
-            table.correlation_between("sleep", "marks")'''),
+            table = sdata.table(sdata.get_example("school"))
+            table.compare_shape_to("marks", "normal", for_each_group_in="breakfast")
+            table.compare_averages_of("marks", for_each_group_in="breakfast")
+            table.find_correlation_between("sleep", "marks")'''),
             "Two groups of numbers: Welch's t-test. Two columns of numbers: Pearson's correlation.")],
     ),
     "proj_model": dict(
@@ -1075,7 +1075,7 @@ UNITS = {
               "compared with the single test."],
         solutions=[(_code('''
             import simplydata as sdata
-            table = sdata.table(sdata.example("school"))
+            table = sdata.table(sdata.get_example("school"))
             table.explain("marks", using=["hours", "sleep", "breakfast"])
             table.fit_line(x="sleep", y="marks")'''),
             "Each line of the model is the effect of one column with the others held the same.")],
@@ -1083,10 +1083,10 @@ UNITS = {
     "proj_text": dict(
         lessons=[],
         manual=[("ideas:report", "Writing it up")],
-        words=["table.steps"],
+        words=["table.show_steps"],
         do=["Project day 7: write. Turn the printed answers into a results paragraph: for each finding, the "
             "summary of each group with n, the effect size, the name of the test and the exact p-value.",
-            "Write the methods from table.steps(): what you removed or filled, and which tests you used.",
+            "Write the methods from table.show_steps(): what you removed or filled, and which tests you used.",
             "Write the caption of your figure: what each panel shows, what the bars or bands are, and n."],
         task=["Write a results paragraph, a methods paragraph and a figure caption for your project."],
         solutions=[("", 'For example: "Pupils who had breakfast scored on average 3.4 marks more than pupils '
@@ -1099,27 +1099,27 @@ UNITS = {
     ),
     "proj_finish": dict(
         lessons=[],
-        words=["table.steps", "table.save"],
+        words=["table.show_steps", "table.save"],
         do=["Project day 8: finish. Put every step of your project in one script, from the raw file to the "
             "figure, and run it from the top in a fresh session. It must run without errors.",
-            "Read steps() out loud: would someone else understand what you did?"],
+            "Read show_steps() out loud: would someone else understand what you did?"],
         task=["Run your whole project script from the top. Check that it makes the clean table, the figure "
               "and the numbers in your text."],
         solutions=[(_code('''
             import simplydata as sdata
-            table = sdata.table(sdata.example("school"))
+            table = sdata.table(sdata.get_example("school"))
             table.add_is_empty_column("sleep_was_empty", from_column="sleep")
-            table.compare_averages("marks", for_each="breakfast")
-            chart = table.chart()
-            chart.boxes(x="breakfast", y="marks")
+            table.compare_averages_of("marks", for_each_group_in="breakfast")
+            chart = table.start_chart()
+            chart.draw_boxes(x="breakfast", y="marks")
             chart.save("figure1.pdf")
             table.save("school_clean.csv")
-            table.steps()'''),
+            table.show_steps()'''),
             "One script from the raw file to the figure: anyone can run it again and get the same answers.")],
     ),
     "bproj_a": dict(
         lessons=[9, 11, 12],
-        words=["sdata.table", "table.describe_columns", "table.count_empty_cells", "table.summary_of"],
+        words=["sdata.table", "table.describe_columns", "table.count_empty_cells_in", "table.find_summary_of"],
         do=["Your small project, day 1. Choose data of your own (a file from school, work or a public data "
             'set), or use the "school" practice table.',
             "Write your question in one sentence. Open the file, look at it, clean what needs cleaning and "
@@ -1128,28 +1128,28 @@ UNITS = {
               "two summaries for each group."],
         solutions=[(_code('''
             import simplydata as sdata
-            table = sdata.table(sdata.example("school"))
+            table = sdata.table(sdata.get_example("school"))
             table.describe_columns()
-            table.count_empty_cells()
-            table.remove_rows_with_empty_cells("sleep")
-            table.average_of("marks", for_each="breakfast")
-            table.summary_of("sleep", for_each="breakfast", show=["average", "count"])'''),
+            table.count_empty_cells_in()
+            table.remove_rows_with_empty_cells_in("sleep")
+            table.find_average_of("marks", for_each_group_in="breakfast")
+            table.find_summary_of("sleep", for_each_group_in="breakfast", show=["average", "count"])'''),
             "Question: do pupils who eat breakfast get better marks? Look, clean, sum up.")],
     ),
     "bproj_b": dict(
         lessons=[14, 15],
         manual=[("ideas:report", "Writing it up")],
-        words=["table.compare_averages", "boxes", "save"],
+        words=["table.compare_averages_of", "draw_boxes", "save"],
         do=["Your small project, day 2. Test the difference, make one clear figure, and write two sentences "
             "with the numbers as they were printed."],
         task=["Test your question, draw one figure and save it, and write two sentences of results."],
         solutions=[(_code('''
             import simplydata as sdata
-            table = sdata.table(sdata.example("school"))
-            table.compare_averages("marks", for_each="breakfast")
-            chart = table.chart()
-            chart.boxes(x="breakfast", y="marks")
-            chart.all_dots(x="breakfast", y="marks")
+            table = sdata.table(sdata.get_example("school"))
+            table.compare_averages_of("marks", for_each_group_in="breakfast")
+            chart = table.start_chart()
+            chart.draw_boxes(x="breakfast", y="marks")
+            chart.draw_all_dots(x="breakfast", y="marks")
             chart.label_y("Mark (out of 100)")
             chart.save("breakfast.png")'''),
             "Two sentences: the averages of both groups, then the test's name, the difference and the p-value.")],
@@ -1157,9 +1157,9 @@ UNITS = {
     # ------------------------------------------------------------ the last two days
     "final_test": dict(
         lessons=[],
-        words=["sdata.words", "sdata.help"],
+        words=["sdata.show_all_words", "sdata.help"],
         do=["Today's warm-up is the final test: answer every question on paper, from memory. Then check "
-            "your answers with sdata.answers().",
+            "your answers with sdata.show_answers().",
             "Then write the whole program of the task in an empty file, without looking anything up. Only "
             "when it is finished, check it with sdata.help."],
         task=['From memory, in an empty file: open the "marks" table, remove the rows with empty cells, give '
@@ -1169,52 +1169,52 @@ UNITS = {
               'pictures, then ask whether "sleep" helps it.'],
         solutions=[(_code('''
             import simplydata as sdata
-            table = sdata.table(sdata.example("marks"))
-            table.remove_rows_with_empty_cells()
-            table.average_of("marks", for_each="class")
-            table.compare_averages("marks", for_each="class")
-            a = table.chart()
-            a.boxes(x="class", y="marks")
-            b = table.chart()
-            b.dots(x="hours", y="marks")
+            table = sdata.table(sdata.get_example("marks"))
+            table.remove_rows_with_empty_cells_in()
+            table.find_average_of("marks", for_each_group_in="class")
+            table.compare_averages_of("marks", for_each_group_in="class")
+            a = table.start_chart()
+            a.draw_boxes(x="class", y="marks")
+            b = table.start_chart()
+            b.draw_dots(x="hours", y="marks")
             b.fit_line()
-            figure = sdata.grid(a, b, per_row=2, letters=True)
+            figure = sdata.put_in_rows_and_columns(a, b, per_row=2, with_letters=True)
             figure.save("final.pdf")'''),
             "If you wrote this from memory, you know the core of simplydata. Words you missed: run their "
             "sdata.help again tomorrow."),
             (_code('''
             import simplydata as sdata
-            table = sdata.table(sdata.example("school"))
-            page = table.check_model("marks", using=["hours", "breakfast"])
+            table = sdata.table(sdata.get_example("school"))
+            page = table.check_model_of("marks", using=["hours", "breakfast"])
             page.save("marks_checks.png")
             table.compare_models("marks", using=["hours", "breakfast"], against=["hours", "breakfast", "sleep"])'''),
-            "check_model, then compare_models: on the 161 rows with every value, sleep helps (p = 0.002).")],
+            "check_model_of, then compare_models: on the 161 rows with every value, sleep helps (p = 0.002).")],
     ),
     "compare_pandas": dict(
         lessons=[15],
-        words=["table.as_pandas", "table.as_polars", "table.steps"],
+        words=["table.as_pandas", "table.as_polars", "table.show_steps"],
         do=["Today: the same work in pandas and matplotlib, the libraries simplydata uses underneath. Each "
             "word of the manual's dictionary says which one does the work (\"Underneath\").",
             "Run the simplydata version and the pandas version of the task. Compare them line by line.",
-            "Look back at the calendar with sdata.day() and choose three days to do again next month."],
+            "Look back at the calendar with sdata.show_day() and choose three days to do again next month."],
         task=["In simplydata: keep classes A and B of the marks table, give the average marks of each class, "
               "test the difference and draw it as bars.",
               "Write the same analysis with pandas, SciPy and matplotlib, then compare the two line by line."],
         solutions=[(_code('''
             import simplydata as sdata
-            table = sdata.table(sdata.example("marks"))
-            table.keep_rows("class", one_of=["A", "B"])
-            table.average_of("marks", for_each="class")
-            table.compare_averages("marks", for_each="class")
-            chart = table.chart()
-            chart.bars(x="class", y="marks")
+            table = sdata.table(sdata.get_example("marks"))
+            table.keep_rows_where("class", is_one_of=["A", "B"])
+            table.find_average_of("marks", for_each_group_in="class")
+            table.compare_averages_of("marks", for_each_group_in="class")
+            chart = table.start_chart()
+            chart.draw_bars(x="class", y="marks")
             chart.save("simplydata_bars.png")'''),
             "The simplydata version: one word per step, and each answer printed in a sentence."),
             (_code('''
             import matplotlib.pyplot as plt
             import simplydata as sdata
             from scipy import stats
-            df = sdata.example("marks")
+            df = sdata.get_example("marks")
             df = df[df["class"].isin(["A", "B"])]
             print(df.groupby("class")["marks"].mean())
             a = df.loc[df["class"] == "A", "marks"]
@@ -1229,8 +1229,8 @@ UNITS = {
     ),
     "look_back": dict(
         lessons=[],
-        words=["sdata.day", "sdata.words", "table.as_pandas"],
-        do=["Look back over the 30 days with sdata.day(): it lists every day.",
+        words=["sdata.show_day", "sdata.show_all_words", "table.as_pandas"],
+        do=["Look back over the 30 days with sdata.show_day(): it lists every day.",
             "Choose the three days you found hardest and do their tasks again, without looking back.",
             "Take a first look at pandas, the library underneath simplydata tables: table.as_pandas() hands "
             "your table over, and the manual's dictionary says which library does the work of each word."],
@@ -1238,7 +1238,7 @@ UNITS = {
               "print its first rows with pandas' own word head()."],
         solutions=[(_code('''
             import simplydata as sdata
-            table = sdata.table(sdata.example("marks"))
+            table = sdata.table(sdata.get_example("marks"))
             df = table.as_pandas()
             print(df.head())'''),
             "head() is pandas' word for show_first_rows(). simplydata knows many such names: "
@@ -1680,7 +1680,7 @@ def _day_number(number, word: str) -> int:
     if isinstance(number, bool) or not isinstance(number, int) or not 1 <= number <= DAYS_IN_A_TRACK:
         raise SimplydataError(
             f"There are days 1 to {DAYS_IN_A_TRACK}, so sdata.{word}({number!r}) does not exist.\n"
-            f"Write the day as a whole number, such as sdata.{word}(5); sdata.day() lists all {DAYS_IN_A_TRACK} days.")
+            f"Write the day as a whole number, such as sdata.{word}(5); sdata.show_day() lists all {DAYS_IN_A_TRACK} days.")
     return number
 
 
@@ -1694,7 +1694,7 @@ def _wrap(text: str, indent: str = "", first: str | None = None) -> str:
 
 
 def help_name(key: str) -> str:
-    """How a word is written in sdata.help("..."): "table.keep_rows", "bars", "show=", "today"."""
+    """How a word is written in sdata.help("..."): "table.keep_rows_where", "bars", "show=", "today"."""
     return key[len("sdata."):] if key.startswith("sdata.") else key
 
 
@@ -1713,7 +1713,7 @@ def _print_day(p: dict, footer: str) -> None:
     if p["warm_up"]:
         for i, (question, _, source) in enumerate(p["warm_up"], start=1):
             print(_wrap(f"(day {source}) {question}", "       ", f"   {i:>2}. "))
-        print(f"   Then check: sdata.answers({number})")
+        print(f"   Then check: sdata.show_answers({number})")
     else:
         print("   Nothing to remember yet on day 1: just start.")
     print()
@@ -1748,7 +1748,7 @@ def _print_day(p: dict, footer: str) -> None:
     print("3. Try it yourself, without looking back")
     for i, task in enumerate(p["task"], start=1):
         print(_wrap(task, "       ", f"   {i:>2}. "))
-    print(f"   Stuck, or done? Worked answers: sdata.answers({number})")
+    print(f"   Stuck, or done? Worked answers: sdata.show_answers({number})")
     print()
     print(_wrap(footer))
 
@@ -1778,12 +1778,12 @@ def _print_answers(p: dict) -> None:
 
 def _next_footer(track: str, number: int, browsing: bool) -> str:
     if number >= DAYS_IN_A_TRACK:
-        return ("This is the last day. Well done for getting here! Go back to any day with sdata.day(n), "
+        return ("This is the last day. Well done for getting here! Go back to any day with sdata.show_day(n), "
                 "and keep using sdata.help() as you work.")
     title = DAYS[track][number][0]
     if browsing:
-        return f"Next: sdata.day({number + 1})  {title}"
-    return (f"Tomorrow: day {number + 1}, {title}. Type sdata.today() tomorrow, or sdata.next_day() to go on "
+        return f"Next: sdata.show_day({number + 1})  {title}"
+    return (f"Tomorrow: day {number + 1}, {title}. Type sdata.show_today() tomorrow, or sdata.go_to_next_day() to go on "
             "now.")
 
 
@@ -1799,7 +1799,7 @@ def _print_not_started() -> None:
 def _print_finished(progress: dict) -> None:
     track = progress["track"]
     print(_wrap(f"You have opened all {DAYS_IN_A_TRACK} days of the {_track_title(track)}. Well done!"))
-    print(_wrap("Look back at any day with sdata.day(n) and its answers with sdata.answers(n). To go "
+    print(_wrap("Look back at any day with sdata.show_day(n) and its answers with sdata.show_answers(n). To go "
                 f'through them again from day 1, type sdata.start_30_days(track="{track}", start_again=True).'))
 
 
@@ -1824,7 +1824,7 @@ def start_30_days(track="python", start_again=False) -> None:
 
     track="python" (the normal choice) is for people who already write some Python; track="beginner"
     starts with three days of just enough Python. The day you start is kept in a small file on this
-    computer (nothing is sent anywhere), so that sdata.today() knows which day comes next. If you have
+    computer (nothing is sent anywhere), so that sdata.show_today() knows which day comes next. If you have
     started already, it says so and changes nothing; start_again=True starts again from day 1:
     sdata.start_30_days(track="beginner", start_again=True).
     """
@@ -1832,7 +1832,7 @@ def start_30_days(track="python", start_again=False) -> None:
     old = _read_progress()
     if old is not None and not start_again:
         print(_wrap(f"You started the 30 days ({_track_title(old['track'])}) on {_when(old['started'])} and have "
-                    f"opened {len(old['opened'])} of the {DAYS_IN_A_TRACK} days. Type sdata.today() to carry on."))
+                    f"opened {len(old['opened'])} of the {DAYS_IN_A_TRACK} days. Type sdata.show_today() to carry on."))
         again = old["track"]
         other = next(t for t in TRACK_NAMES if t != again)
         print(_wrap(f'To start the {_track_title(again)} again from day 1, type '
@@ -1848,12 +1848,12 @@ def start_30_days(track="python", start_again=False) -> None:
                 "from memory: trying to remember is what makes words stick), a lesson or two, and a task to do "
                 "without looking back."))
     print()
-    print("  sdata.today()       shows the day to do next; type it every day")
-    print("  sdata.answers()     the answers to the warm-up and the task")
-    print("  sdata.day()         all 30 days, with the ones you have opened ticked")
-    print("  sdata.next_day()    goes on to the next day now, to do two in one go")
+    print("  sdata.show_today()       shows the day to do next; type it every day")
+    print("  sdata.show_answers()     the answers to the warm-up and the task")
+    print("  sdata.show_day()         all 30 days, with the ones you have opened ticked")
+    print("  sdata.go_to_next_day()    goes on to the next day now, to do two in one go")
     print()
-    print(_wrap("Missed a few days? That is fine: sdata.today() carries on where you stopped."))
+    print(_wrap("Missed a few days? That is fine: sdata.show_today() carries on where you stopped."))
     print(_wrap(f"Your progress is kept only on this computer, in {progress_file()}."))
     print(_wrap(f"The printable guide, with every day and a calendar to tick: {GUIDE_URL}"))
     print()
@@ -1861,13 +1861,13 @@ def start_30_days(track="python", start_again=False) -> None:
     return None
 
 
-def today(follow_calendar=False) -> None:
-    """Show today's day of the 30 days of simplydata: warm-up questions, what to do and a task. sdata.today()
+def show_today(follow_calendar=False) -> None:
+    """Show today's day of the 30 days of simplydata: warm-up questions, what to do and a task. sdata.show_today()
 
-    The day after the one you last opened comes next, so a day you miss is never lost: today() carries
+    The day after the one you last opened comes next, so a day you miss is never lost: show_today() carries
     on where you stopped (on the same date it shows the same day again). If you have fallen more than
     a day behind the calendar it says so; follow_calendar=True jumps to the calendar's day instead:
-    sdata.today(follow_calendar=True). Not started yet? It shows how to start, and day 1.
+    sdata.show_today(follow_calendar=True). Not started yet? It shows how to start, and day 1.
     """
     progress = _read_progress()
     if progress is None:
@@ -1883,7 +1883,7 @@ def today(follow_calendar=False) -> None:
         number = max(min(calendar, DAYS_IN_A_TRACK), 1)
         if number > last + 1:
             skipped = f"Day {last + 1} was" if number == last + 2 else f"Days {last + 1} to {number - 1} were"
-            notes.append(f"Following the calendar: day {number}. {skipped} not opened; sdata.day(n) shows any day.")
+            notes.append(f"Following the calendar: day {number}. {skipped} not opened; sdata.show_day(n) shows any day.")
     elif last == 0:
         number = 1
     elif opened[last] == date:
@@ -1894,7 +1894,7 @@ def today(follow_calendar=False) -> None:
             notes.append(f"By the calendar it is day {min(calendar, DAYS_IN_A_TRACK)}. You last opened day {last}, "
                          f"on {_when(opened[last])}. The days build on each other, so today carries on with day "
                          f"{number}: nothing is lost by taking a break. To follow the calendar instead, type "
-                         "sdata.today(follow_calendar=True).")
+                         "sdata.show_today(follow_calendar=True).")
     if number > DAYS_IN_A_TRACK:
         _print_finished(progress)
         return None
@@ -1902,11 +1902,11 @@ def today(follow_calendar=False) -> None:
     return None
 
 
-def next_day() -> None:
-    """Go on to the next day now, without waiting for tomorrow. sdata.next_day()
+def go_to_next_day() -> None:
+    """Go on to the next day now, without waiting for tomorrow. sdata.go_to_next_day()
 
     It opens the day after the last one you opened, so two days can be done in one go. Tomorrow,
-    sdata.today() carries on from there.
+    sdata.show_today() carries on from there.
     """
     progress = _read_progress()
     if progress is None:
@@ -1928,11 +1928,11 @@ def _chosen_track(track) -> str:
     return progress["track"] if progress else "python"
 
 
-def day(number=None, track=None) -> None:
-    """Show any day of the 30 days, without changing where you are. sdata.day(5)
+def show_day(number=None, track=None) -> None:
+    """Show any day of the 30 days, without changing where you are. sdata.show_day(5)
 
-    sdata.day() on its own lists all 30 days, with a tick for each day you have opened. The track is
-    the one you started, else "python": sdata.day(1, track="beginner") shows the other one.
+    sdata.show_day() on its own lists all 30 days, with a tick for each day you have opened. The track is
+    the one you started, else "python": sdata.show_day(1, track="beginner") shows the other one.
     """
     track = _chosen_track(track)
     if number is not None:
@@ -1955,16 +1955,16 @@ def day(number=None, track=None) -> None:
         print(_wrap('Not started yet: sdata.start_30_days() starts the Python track, '
                     'sdata.start_30_days(track="beginner") the beginner track.'))
     else:
-        print(_wrap(f"Started on {_when(progress['started'])}. Type sdata.today() for the day to do next, "
-                    "or sdata.day(n) to look at any day."))
+        print(_wrap(f"Started on {_when(progress['started'])}. Type sdata.show_today() for the day to do next, "
+                    "or sdata.show_day(n) to look at any day."))
     return None
 
 
-def answers(number=None, track=None) -> None:
-    """The answers to a day's warm-up questions, and a worked answer to its task. sdata.answers(5)
+def show_answers(number=None, track=None) -> None:
+    """The answers to a day's warm-up questions, and a worked answer to its task. sdata.show_answers(5)
 
-    sdata.answers() on its own gives the answers to the day you opened last. The track is the one you
-    started, else "python": sdata.answers(5, track="beginner").
+    sdata.show_answers() on its own gives the answers to the day you opened last. The track is the one you
+    started, else "python": sdata.show_answers(5, track="beginner").
     """
     track = _chosen_track(track)
     if number is None:

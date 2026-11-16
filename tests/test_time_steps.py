@@ -1,4 +1,4 @@
-"""sdata.dates, add_missing_dates, add_rolling_column (time windows, "all", centre=, new show= values),
+"""sdata.make_run_of_dates, add_missing_dates, add_rolling_column (time windows, "all", centre=, new show= values),
 smoothing (nums.smooth, add_smoothed_column) and nums.remove_trend, checked against R.
 
 Reference values: R 4.6.2 with signal 1.8.1 and zoo 1.9.1 (ref_partA.R in the v0.6 scratch folder):
@@ -35,11 +35,11 @@ def col(t, name):
 
 
 def signal60():
-    return sdata.numbers(sdata.example("sensor")["signal"][:60])
+    return sdata.numbers(sdata.get_example("sensor")["signal"][:60])
 
 
 def station_a(engine):
-    data = sdata.example("river")
+    data = sdata.get_example("river")
     return make(data[data.station == "Station A"].reset_index(drop=True), engine)
 
 
@@ -47,40 +47,40 @@ def as_dates(values):
     return [v.date() if isinstance(v, datetime.datetime) else v for v in values]
 
 
-# ---------------------------------------------------------------- sdata.dates
+# ---------------------------------------------------------------- sdata.make_run_of_dates
 def test_dates_by_day_match_r(capsys):
-    t = sdata.dates("2026-01-01", to="2026-12-31", every="day")
+    t = sdata.make_run_of_dates("2026-01-01", to="2026-12-31", every="day")
     # R: length(seq(as.Date("2026-01-01"), as.Date("2026-12-31"), by = "day")) = 365
     assert len(t._frame) == 365
     assert "365 dates from 2026-01-01 to 2026-12-31, one every day." in capsys.readouterr().out
 
 
 def test_dates_month_ends_and_weeks_match_r():
-    t = sdata.dates("2026-01-31", how_many=3, every="month")
+    t = sdata.make_run_of_dates("2026-01-31", how_many=3, every="month")
     # R: seq(as.Date("2026-02-01"), by = "month", length.out = 3) - 1
     assert as_dates(t._frame["date"].to_list()) == [datetime.date(2026, 1, 31), datetime.date(2026, 2, 28),
                                                     datetime.date(2026, 3, 31)]
-    t = sdata.dates("2026-01-01", to="2026-02-01", every="week", fast=True)
+    t = sdata.make_run_of_dates("2026-01-01", to="2026-02-01", every="week", fast=True)
     # R: seq(as.Date("2026-01-01"), as.Date("2026-02-01"), by = "week")
     assert as_dates(t._frame["date"].to_list()) == [datetime.date(2026, 1, d) for d in (1, 8, 15, 22, 29)]
     assert t._frame.implementation.is_polars()
-    t = sdata.dates("2026-01-01 00:00", how_many=3, every="15 minutes")
+    t = sdata.make_run_of_dates("2026-01-01 00:00", how_many=3, every="15 minutes")
     assert [str(v)[11:16] for v in t._frame["date"].to_list()] == ["00:00", "00:15", "00:30"]
 
 
 def test_dates_errors():
     with pytest.raises(SimplydataError, match="either to="):
-        sdata.dates("2026-01-01")
+        sdata.make_run_of_dates("2026-01-01")
     with pytest.raises(SimplydataError, match="every"):
-        sdata.dates("2026-01-01", how_many=3, every="fortnight")
+        sdata.make_run_of_dates("2026-01-01", how_many=3, every="fortnight")
     with pytest.raises(SimplydataError, match="a date such as"):
-        sdata.dates("someday", how_many=3)
+        sdata.make_run_of_dates("someday", how_many=3)
 
 
 # ---------------------------------------------------------------- add_missing_dates
 def test_add_missing_dates_matches_r(engine, capsys):
-    t = make(sdata.example("river"), engine)
-    t.add_missing_dates("date", every="day", for_each="station")
+    t = make(sdata.get_example("river"), engine)
+    t.add_missing_dates("date", every="day", for_each_group_in="station")
     # R: merge(data.frame(date = seq(min(d), max(d), by = "day")), x, all.x = TRUE): 6 days added for
     #    Station A (the first 2024-03-17), 9 for Station B (the first 2024-01-18)
     assert len(t._frame) == 2 * 731
@@ -94,8 +94,8 @@ def test_add_missing_dates_matches_r(engine, capsys):
 
 
 def test_add_missing_dates_finds_the_step(engine, capsys):
-    t = make(sdata.example("river"), engine)
-    t.add_missing_dates("date", for_each="station")
+    t = make(sdata.get_example("river"), engine)
+    t.add_missing_dates("date", for_each_group_in="station")
     assert "(every day: the most common step)" in capsys.readouterr().out
 
 
@@ -106,7 +106,7 @@ def test_add_missing_dates_between(capsys):
 
 
 def test_add_missing_dates_errors(engine):
-    t = make(sdata.example("river"), engine)
+    t = make(sdata.get_example("river"), engine)
     with pytest.raises(SimplydataError, match="does not hold dates"):
         t.add_missing_dates("level")
     with pytest.raises(SimplydataError, match="same date"):
@@ -170,7 +170,7 @@ def test_rolling_new_summaries_match_r(engine, show, kwargs, expected):
 
 def test_rolling_correlation_matches_r(engine):
     t = station_a(engine)
-    t.fill_empty_cells("level", with_the="line between neighbours", sorted_by="date")
+    t.fill_empty_cells_in("level", with_the="line between neighbours", sorted_by="date")
     t.add_rolling_column("r", from_column=["nitrate", "level"], window=10, show="correlation", sorted_by="date")
     t.add_rolling_column("c", from_column=["nitrate", "level"], window=10, show="covariance", sorted_by="date")
     # R: cor(y[91:100], a$level[91:100]); cov(...) (no empty level cells in rows 91 to 100)
@@ -247,7 +247,7 @@ def test_moving_average_empty_ends_and_undo(capsys):
 
 
 def test_add_smoothed_column(engine, capsys):
-    t = make(sdata.example("sensor"), engine)
+    t = make(sdata.get_example("sensor"), engine)
     t.add_smoothed_column("smooth", from_column="signal", method="savitzky-golay", window=11, sorted_by="time")
     # R: signal::sgolayfilt(x, 2, 11)[c(1, 2, 30)] (the first 60 readings give the same first values)
     assert col(t, "smooth")[[0, 1]] == pytest.approx([0.167486713286713, 0.309181958041956], rel=1e-9)
@@ -265,7 +265,7 @@ def test_smoothing_errors():
     with pytest.raises(SimplydataError, match="ends"):
         nums.smooth(method="savitzky-golay", window=7, ends="empty")
     with pytest.raises(SimplydataError, match="does not take"):
-        nums.smooth(method="median", degree=2)
+        nums.smooth(method="median", of_degree=2)
     with pytest.raises(SimplydataError, match="method"):
         nums.smooth(method="kalman")
     with pytest.raises(SimplydataError, match="newest_weight="):
@@ -274,12 +274,12 @@ def test_smoothing_errors():
 
 # ---------------------------------------------------------------- remove_trend
 def test_remove_trend_matches_r(capsys):
-    nums = sdata.numbers(sdata.example("sensor")["signal"])
+    nums = sdata.numbers(sdata.get_example("sensor")["signal"])
     nums.remove_trend()
     # R: t <- seq_along(xx); residuals(lm(xx ~ t))[1:2]
     assert np.asarray(nums._values, dtype=float)[:2] == pytest.approx([-0.306456172827175, 0.595261418309621],
                                                                        rel=1e-9)
-    nums = sdata.numbers(sdata.example("sensor")["signal"])
+    nums = sdata.numbers(sdata.get_example("sensor")["signal"])
     nums.remove_trend(breaks=[200])
     # R: residuals(lm(xx[1:200] ~ t[1:200]))[1]; residuals(lm(xx[201:1000] ~ t[201:1000]))[1]
     values = np.asarray(nums._values, dtype=float)
@@ -335,7 +335,7 @@ def test_dates_with_a_time_zone_keep_their_clock(engine, capsys):
     s = series_of(make(data, engine), "x", "date")[0]
     assert (s.unit, s.step, s.regular, s.gaps) == ("days", 1.0, True, [])
     assert s.shown_times[:2] == ["2023-03-20", "2023-03-21"]
-    make(data, engine).autocorrelation_of("x", sorted_by="date", rows_back=3)  # evenly spaced: no error
+    make(data, engine).find_autocorrelation_of("x", sorted_by="date", rows_back=3)  # evenly spaced: no error
     gappy = data.drop(index=3).reset_index(drop=True)
     t = make(gappy, engine).add_missing_dates("date", every="day")
     assert len(t._frame) == 15
@@ -344,4 +344,4 @@ def test_dates_with_a_time_zone_keep_their_clock(engine, capsys):
     shown = [str(v) for v in t._frame["date"].to_list()]
     assert shown[0].startswith("2023-03-01 00:00:00") and shown[-1].startswith("2023-04-10 00:00:00")
     with pytest.raises(SimplydataError, match="evenly spaced"):
-        make(gappy, engine).autocorrelation_of("x", sorted_by="date", rows_back=3)
+        make(gappy, engine).find_autocorrelation_of("x", sorted_by="date", rows_back=3)

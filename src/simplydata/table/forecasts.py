@@ -1,5 +1,5 @@
-"""Table words for forecasts and change points: table.forecast(...), table.compare_forecasts(...) and
-table.find_change_points(...). Every number comes from R itself (simplydata[r]); see
+"""Table words for forecasts and change points: table.forecast(...), table.compare_forecasts_for(...) and
+table.find_change_points_in(...). Every number comes from R itself (simplydata[r]); see
 simplydata._forecast for the R calls and why Python's packages are not used.
 """
 
@@ -102,14 +102,14 @@ class ForecastWords:
                 need_regular(one, step_name, sorted_by)
         return series
 
-    @friendly
+    @friendly(renamed={"for_each": "for_each_group_in"})
     def forecast(self, column=None, sorted_by=None, steps_ahead=12, method="exponential smoothing",
                  repeats_every=None, trend=True, season="added", order=None, seasonal_order=None, interval=95,
-                 check_on_last=None, show="forecast", for_each=None):
+                 check_on_last=None, show="forecast", for_each_group_in=None):
         """Forecast the next values of a column, with an interval for each.
 
-        table.forecast("visitors", sorted_by="month", steps_ahead=12, repeats_every="year", for_each="museum")
-        (with sdata.example("visitors")). Gives back one row per future step: the sorted_by column carried
+        table.forecast("visitors", sorted_by="month", steps_ahead=12, repeats_every="year", for_each_group_in="museum")
+        (with sdata.get_example("visitors")). Gives back one row per future step: the sorted_by column carried
         on (months stay months), the forecast and its interval= (95 %) low and high. method=
         "exponential smoothing" (the default: Holt-Winters, a level, a trend unless trend=False, and a
         season with repeats_every=, season "added" or "multiplied"; R HoltWinters), "last value" (R
@@ -138,11 +138,11 @@ class ForecastWords:
         order = fc.read_order(order, "order", step_name)
         seasonal_order = fc.read_order(seasonal_order, "seasonal_order", step_name)
         held = None if check_on_last is None else fc.read_whole(check_on_last, "check_on_last", step_name)
-        groups = self._group_columns(step_name, for_each, [column]) if for_each is not None else []
+        groups = self._group_columns(step_name, for_each_group_in, [column]) if for_each_group_in is not None else []
         from .. import _trend_season as ts
 
         rows, how = [], None
-        for one in self._forecast_series(step_name, column, sorted_by, for_each, chosen, example):
+        for one in self._forecast_series(step_name, column, sorted_by, for_each_group_in, chosen, example):
             period = ts.read_repeats_every(repeats_every, one, step_name, needed=False)
             n = len(one.values)
             if held is not None and held > n - 3:
@@ -200,13 +200,13 @@ class ForecastWords:
         data = {key: [r[key] for r in rows] for key in rows[0]}
         return self._new_table(nw.from_dict(data, backend=self._frame.implementation))
 
-    @friendly
-    def compare_forecasts(self, column=None, sorted_by=None, methods=None, check_on_last=12, repeats_every=None,
-                          order=None, seasonal_order=None, for_each=None):
+    @friendly(renamed={"for_each": "for_each_group_in"})
+    def compare_forecasts_for(self, column=None, sorted_by=None, methods=None, check_on_last=12, repeats_every=None,
+                              order=None, seasonal_order=None, for_each_group_in=None):
         """Which forecast method would have done best on the last rows? (R forecast::accuracy)
 
-        table.compare_forecasts("visitors", sorted_by="month", repeats_every="year", for_each="museum")
-        (with sdata.example("visitors")). Each method in methods= is fitted on all but the last
+        table.compare_forecasts_for("visitors", sorted_by="month", repeats_every="year", for_each_group_in="museum")
+        (with sdata.get_example("visitors")). Each method in methods= is fitted on all but the last
         check_on_last= rows (12) and forecasts them; the methods are ranked by MASE, the average error
         divided by the average error of the simplest forecast inside the fitted rows (the same season
         last time with repeats_every=, otherwise the last value): below 1 is better than that. Also MAE
@@ -215,8 +215,8 @@ class ForecastWords:
         "straight on" and "exponential smoothing"; "arima" needs order=. Runs in R itself (simplydata[r]).
         Gives back one row per method.
         """
-        step_name = "compare_forecasts"
-        example = 'table.compare_forecasts("visitors", sorted_by="month", repeats_every="year")'
+        step_name = "compare_forecasts_for"
+        example = 'table.compare_forecasts_for("visitors", sorted_by="month", repeats_every="year")'
         self._need_name(step_name, "the column", column, example)
         if methods is None:
             chosen = None
@@ -230,12 +230,12 @@ class ForecastWords:
         held = fc.read_whole(check_on_last, "check_on_last", step_name)
         order = fc.read_order(order, "order", step_name)
         seasonal_order = fc.read_order(seasonal_order, "seasonal_order", step_name)
-        groups = self._group_columns(step_name, for_each, [column]) if for_each is not None else []
+        groups = self._group_columns(step_name, for_each_group_in, [column]) if for_each_group_in is not None else []
         from .. import _trend_season as ts
 
         any_arima = chosen is not None and "arima" in chosen
         rows, scale = [], None
-        for one in self._forecast_series(step_name, column, sorted_by, for_each, "arima" if any_arima else "", example):
+        for one in self._forecast_series(step_name, column, sorted_by, for_each_group_in, "arima" if any_arima else "", example):
             period = ts.read_repeats_every(repeats_every, one, step_name, needed=False)
             seasonal = bool(period and period > 1)
             these = chosen or ["last value", "same season last time" if seasonal else "average", "straight on",
@@ -272,11 +272,11 @@ class ForecastWords:
         data = {key: [r[key] for r in rows] for key in rows[0]}
         return self._new_table(nw.from_dict(data, backend=self._frame.implementation))
 
-    @friendly
-    def find_change_points(self, column=None, sorted_by=None, change="average", penalty="mbic", for_each=None):
+    @friendly(renamed={"for_each": "for_each_group_in"})
+    def find_change_points_in(self, column=None, sorted_by=None, change="average", penalty="mbic", for_each_group_in=None):
         """Find the points where the average of a column jumps to a new level (R changepoint, PELT).
 
-        table.find_change_points("nitrate", sorted_by="date", for_each="station")   (with sdata.example("river"))
+        table.find_change_points_in("nitrate", sorted_by="date", for_each_group_in="station")   (with sdata.get_example("river"))
         Splits the readings, in the order of sorted_by=, into pieces with their own average, and gives
         back one row per piece: where it starts and ends, how many readings, its average (and its
         standard deviation). change="average" (R changepoint::cpt.mean, after dividing the readings by
@@ -287,15 +287,15 @@ class ForecastWords:
         as "aic", finds more points). The readings are taken in order; they need no empty cells. Runs
         in R itself (simplydata[r]).
         """
-        step_name = "find_change_points"
-        example = 'table.find_change_points("nitrate", sorted_by="date", for_each="station")'
+        step_name = "find_change_points_in"
+        example = 'table.find_change_points_in("nitrate", sorted_by="date", for_each_group_in="station")'
         self._need_name(step_name, "the column", column, example)
         kind = fc.read_change(change, step_name)
         chosen_penalty = fc.read_penalty(penalty, step_name)
-        groups = self._group_columns(step_name, for_each, [column]) if for_each is not None else []
+        groups = self._group_columns(step_name, for_each_group_in, [column]) if for_each_group_in is not None else []
         raw = self._frame[sorted_by].to_numpy() if sorted_by is not None else None
         rows = []
-        for one in series_of(self, column, sorted_by, for_each, step_name, example):
+        for one in series_of(self, column, sorted_by, for_each_group_in, step_name, example):
             need_filled(one, column, step_name, sorted_by)
             if len(one.values) < 4:
                 raise SimplydataError(f"{step_name}() needs at least 4 readings; there are {len(one.values)}.")

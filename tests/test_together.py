@@ -7,9 +7,9 @@ import simplydata as sdata
 
 def test_second_y_with_legend_bottom_keeps_both_series(marks):
     chart = sdata.chart(marks)
-    chart.lines(x="test", y="marks", colour="class")
-    chart.second_y("height", drawn_as="lines", label="Height (cm)")
-    chart.legend_bottom()
+    chart.draw_lines(x="test", y="marks", colour="class")
+    chart.add_second_y("height", drawn_as="lines", labelled="Height (cm)")
+    chart.put_legend_at_bottom()
     fig = chart._render()
     labels = [t.get_text() for leg in fig.legends for t in leg.get_texts()]
     assert "A" in labels and "B" in labels
@@ -19,58 +19,58 @@ def test_second_y_with_legend_bottom_keeps_both_series(marks):
 
 def test_full_sentence_renders(marks, tmp_path):
     chart = sdata.chart(marks)
-    chart.bars(x="name", y="marks", colour="class", error="sd")
-    chart.title_top("My class marks")
+    chart.draw_bars(x="name", y="marks", colour="class", error="sd")
+    chart.write_title_on_top("My class marks")
     chart.label_x("Student")
     chart.label_y("Marks")
-    chart.line_at_y(50)
+    chart.draw_line_at_y(50)
     chart.shade_between_y(40, 60)
-    chart.range_y(0, 110)
-    chart.numbers_on_bars()
-    chart.caption_bottom("Made-up data")
-    chart.legend_right()
-    chart.style("school")
+    chart.set_range_y(0, 110)
+    chart.write_numbers_on_bars()
+    chart.write_caption_at_bottom("Made-up data")
+    chart.put_legend_on_right()
+    chart.use_style("school")
     chart.save(tmp_path / "all.png")
     assert (tmp_path / "all.png").stat().st_size > 0
 
 
 def test_page_of_different_charts(marks, tmp_path):
-    a = sdata.chart(marks).bars(x="name", y="marks").title_top("Bars")
-    b = sdata.chart(marks).dots(x="height", y="marks").fit_line(confidence_band=True).title_top("Fit")
-    c = sdata.chart(marks).histogram(x="marks").title_top("Spread")
-    d = sdata.chart(marks).heatmap(x="name", y="test", value="marks", numbers=True)
-    sdata.grid(a, b, c, d, per_row=2).title_top("Everything").save(tmp_path / "page.png")
+    a = sdata.chart(marks).draw_bars(x="name", y="marks").write_title_on_top("Bars")
+    b = sdata.chart(marks).draw_dots(x="height", y="marks").fit_line(with_confidence_band=True).write_title_on_top("Fit")
+    c = sdata.chart(marks).draw_histogram(x="marks").write_title_on_top("Spread")
+    d = sdata.chart(marks).draw_heatmap(x="name", y="test", value="marks", with_numbers=True)
+    sdata.put_in_rows_and_columns(a, b, c, d, per_row=2).write_title_on_top("Everything").save(tmp_path / "page.png")
     assert (tmp_path / "page.png").stat().st_size > 0
 
 
 def test_grid_with_letters_labels_each_chart(tmp_path):
-    marks, weather = sdata.example("marks"), sdata.example("weather")
-    a = sdata.chart(marks).bars(x="class", y="marks")
-    b = sdata.chart(weather).lines(x="month", y="rain")
-    c = sdata.chart(marks).histogram(x="marks")
-    page = sdata.grid(a, b, c, per_row=2, letters=True)
+    marks, weather = sdata.get_example("marks"), sdata.get_example("weather")
+    a = sdata.chart(marks).draw_bars(x="class", y="marks")
+    b = sdata.chart(weather).draw_lines(x="month", y="rain")
+    c = sdata.chart(marks).draw_histogram(x="marks")
+    page = sdata.put_in_rows_and_columns(a, b, c, per_row=2, with_letters=True)
     fig = page._render()
     assert [ax.get_title(loc="left") for ax in fig.axes if ax.get_title(loc="left")] == ["A", "B", "C"]
     page.save(tmp_path / "grid.png")
     assert (tmp_path / "grid.png").stat().st_size > 0
-    fig = sdata.side_by_side(a, b)._render()
+    fig = sdata.put_side_by_side(a, b)._render()
     assert not [ax for ax in fig.axes if ax.get_title(loc="left")]  # no letters unless asked
 
 
 def test_one_above_other_with_letters(tmp_path):
-    marks = sdata.example("marks")
-    a = sdata.chart(marks).boxes(x="class", y="marks")
-    b = sdata.chart(marks).dots(x="hours", y="marks")
-    fig = sdata.one_above_other(a, b, letters=True)._render()
+    marks = sdata.get_example("marks")
+    a = sdata.chart(marks).draw_boxes(x="class", y="marks")
+    b = sdata.chart(marks).draw_dots(x="hours", y="marks")
+    fig = sdata.put_one_above_other(a, b, with_letters=True)._render()
     assert [ax.get_title(loc="left") for ax in fig.axes if ax.get_title(loc="left")] == ["A", "B"]
 
 
 def test_page_letters_must_be_true_or_false():
-    a = sdata.chart(sdata.example("marks")).bars(x="class", y="marks")
+    a = sdata.chart(sdata.get_example("marks")).draw_bars(x="class", y="marks")
     with pytest.raises(sdata.SimplydataError, match="letters=True or letters=False"):
-        sdata.side_by_side(a, a, letters="yes")
+        sdata.put_side_by_side(a, a, with_letters="yes")
     with pytest.raises(sdata.SimplydataError, match="letters=True or letters=False"):
-        sdata.grid(a, a, letters=1)
+        sdata.put_in_rows_and_columns(a, a, with_letters=1)
 
 
 def _overlaps(a, b):
@@ -79,12 +79,12 @@ def _overlaps(a, b):
 
 @pytest.mark.parametrize("title", [None, "Marks per class"])
 def test_letter_does_not_cover_the_panel_titles_of_a_split_chart(title):
-    marks = sdata.example("marks")
-    split = sdata.chart(marks).bars(x="name", y="marks").one_chart_per("class")
+    marks = sdata.get_example("marks")
+    split = sdata.chart(marks).draw_bars(x="name", y="marks").draw_one_chart_for_each_group_in("class")
     if title:
-        split.title_top(title)
-    single = sdata.chart(marks).dots(x="hours", y="marks")
-    page = sdata.side_by_side(split, single, letters=True).size(8, 3)
+        split.write_title_on_top(title)
+    single = sdata.chart(marks).draw_dots(x="hours", y="marks")
+    page = sdata.put_side_by_side(split, single, with_letters=True).set_size(8, 3)
     from matplotlib.backends.backend_agg import FigureCanvasAgg
 
     fig = page._render()
@@ -102,7 +102,7 @@ def test_letter_does_not_cover_the_panel_titles_of_a_split_chart(title):
 
 
 def test_page_cannot_be_saved_as_gif(tmp_path):
-    marks = sdata.example("marks")
-    a = sdata.chart(marks).bars(x="class", y="marks")
+    marks = sdata.get_example("marks")
+    a = sdata.chart(marks).draw_bars(x="class", y="marks")
     with pytest.raises(sdata.SimplydataError, match="cannot be saved as .gif"):
-        sdata.side_by_side(a, a).save(tmp_path / "page.gif")
+        sdata.put_side_by_side(a, a).save(tmp_path / "page.gif")

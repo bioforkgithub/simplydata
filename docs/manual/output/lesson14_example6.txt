@@ -17,7 +17,7 @@ Correlations between 3 columns (Pearson, 3 pairs; each pair uses the rows where 
   "hours" and "marks": r = 0.83 (54 rows), very strong, going up; fewer than 1 in 1000 studies would show this much if there were truly no link (p < 0.0001).
   "hours" and "height": r = 0.06 (54 rows), very weak, going up; about 67 of 100 studies would show this much if there were truly no link (p = 0.667).
   "marks" and "height": r = 0.03 (54 rows), very weak, going up; about 83 of 100 studies would show this much if there were truly no link (p = 0.826).
-Note: these p-values are not adjusted for testing 3 pairs. To adjust them: results = table.correlation_between("hours", "marks", "height", show="each pair"), then results.add_adjusted_p_value_column(from_column="p-value").
+Note: these p-values are not adjusted for testing 3 pairs. To adjust them: results = table.find_correlation_between("hours", "marks", "height", show="each pair"), then results.add_adjusted_p_value_column(from_column="p-value").
 Added "p-value (Holm)": 3 p-values from "p-value" adjusted with Holm's method (as R p.adjust(method = "holm")): the chance of even one false alarm among all the tests stays at 5 %. Below 0.05: 1 of 3 after adjusting (1 before).
   column 1 column 2   method         r       p-value  rows               strength  p-value (Holm)
 1    hours    marks  Pearson  0.831290  7.176542e-15    54  very strong, going up    2.152963e-14

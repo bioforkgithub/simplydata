@@ -10,7 +10,7 @@ simplydata does not resample by itself. Both helpers hand the data and the summa
 * bootstrap_interval(): SciPy stats.bootstrap (BCa by default, as R boot::boot.ci(type = "bca")),
   resampling the rows with replacement resamples= times.
 
-Both take seed= so the same seed gives the same answer; the sentences print the number of
+Both take with_seed= so the same seed gives the same answer; the sentences print the number of
 shuffles or resamples and the seed (the wording rule: say physically what was done).
 """
 
@@ -30,9 +30,9 @@ BOOTSTRAP_METHODS = {"bca": "BCa", "percentile": "percentile", "basic": "basic"}
 
 
 def check_seed_and_count(seed, count, option):
-    """seed= a whole number; shuffles= / resamples= a whole number of 99 or more."""
+    """with_seed= a whole number; shuffles= / resamples= a whole number of 99 or more."""
     if isinstance(seed, bool) or not isinstance(seed, (int, np.integer)):
-        raise SimplydataError("seed= needs a whole number, such as seed=1 (the same seed gives the same answer).")
+        raise SimplydataError("with_seed= needs a whole number, such as with_seed=1 (the same seed gives the same answer).")
     if isinstance(count, bool) or not isinstance(count, (int, np.integer)) or count < 99:
         raise SimplydataError(f"{option}= needs a whole number of 99 or more, such as {option}=9999.")
 
