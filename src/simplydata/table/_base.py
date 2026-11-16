@@ -4,7 +4,7 @@ A table holds its data in a narwhals frame, so every word is written once and ru
 both pandas (normal files) and Polars (big files, Polars tables, fast=True).
 
 Every step that changes the table goes through self._change(...), which remembers the
-table as it was before. That gives undo(), steps() and start_again() for free.
+table as it was before. That gives undo(), show_steps() and start_again() for free.
 Summaries never change the table; they return a new, small table.
 """
 

@@ -377,7 +377,7 @@ def _no_ranks(step, based_on):
 
 
 def _interval_width_needed(step, width, spread, significance):
-    """how_many_needed(interval_width=, spread=): R presize::prec_mean (Python has none)."""
+    """find_how_many_needed(interval_width=, spread=): R presize::prec_mean (Python has none)."""
     width = _number(step, "interval_width", width, "interval_width=4")
     if spread is None:
         raise SimplydataError(f"{step}() with interval_width= needs spread= (the standard deviation you expect), "

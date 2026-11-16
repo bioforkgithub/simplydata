@@ -13,9 +13,9 @@ from .._time_axis import read_time_step
 def peak_columns(values, step, dips, at_least, at_most, apart, stands_out_by, wide_at_least, experts, step_name):
     """(got, columns dict) for one series; positions count from 1."""
     if dips and at_least is not None:
-        raise SimplydataError("find_dips() takes is_at_most= (how low a dip must reach), not is_at_least=.")
+        raise SimplydataError("find_each_dip_that() takes is_at_most= (how low a dip must reach), not is_at_least=.")
     if not dips and at_most is not None:
-        raise SimplydataError("find_peaks() takes is_at_least= (how high a peak must reach), not is_at_most=.")
+        raise SimplydataError("find_each_peak_that() takes is_at_least= (how high a peak must reach), not is_at_most=.")
     got = _peaks.find(values, at_least if not dips else at_most, apart, stands_out_by, wide_at_least, step, dips,
                       step_name, experts)
     columns = {"position": [int(p) + 1 for p in got["positions"]], "value": got["heights"].astype(float),

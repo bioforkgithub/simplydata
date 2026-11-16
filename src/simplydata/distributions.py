@@ -808,8 +808,9 @@ HINT_EXAMPLES = {"find_density_at": "dist.find_density_at(60)", "find_chance_tha
 class Distribution:
     """A distribution with its parameters. Make one with sdata.distribution("normal", average=50, standard_deviation=10).
 
-    Words: chance, find_density_at, percentile, cut_off, find_middle_range, average, median,
-    standard_deviation, variance, summary, make_random_numbers, chart, table, parameters.
+    Words: find_chance_that_value, find_density_at, find_percentile, find_cut_off, find_middle_range,
+    find_average, find_median, find_standard_deviation, find_variance, show_summary, make_random_numbers,
+    draw_chart, turn_into_table, show_parameters.
     """
 
     # Old names that still work for one release (with a note the first time): old -> new.
@@ -873,12 +874,12 @@ class Distribution:
             return self._frozen.pdf(np.asarray(x, dtype=float))
 
     def _pmf(self, k):
-        """Chance of exactly k (counts); for people the word is chance(k)."""
+        """Chance of exactly k (counts); for people the word is find_chance_that_value(k)."""
         with np.errstate(all="ignore"):
             return self._frozen.pmf(np.asarray(k, dtype=float))
 
     def _cdf(self, x):
-        """Chance of a value at or below x; for people the word is chance(is_at_most=x)."""
+        """Chance of a value at or below x; for people the word is find_chance_that_value(is_at_most=x)."""
         with np.errstate(all="ignore"):
             return self._frozen.cdf(np.asarray(x, dtype=float))
 
@@ -1184,7 +1185,7 @@ class Distribution:
             raise SimplydataError(
                 "A count distribution has no density curve: use dist.find_chance_that_value(3) for the chance of exactly 3.")
         if value is None:
-            raise SimplydataError("density_at() needs a value.\nFor example:  dist.find_density_at(60)")
+            raise SimplydataError("find_density_at() needs a value.\nFor example:  dist.find_density_at(60)")
         xs, many = self._numbers_in("find_density_at", "the value", value, "dist.find_density_at(60)")
         with np.errstate(all="ignore"):
             heights = np.asarray(self._frozen.pdf(xs), dtype=float)
@@ -1208,18 +1209,18 @@ class Distribution:
 
     @friendly
     def find_percentile(self, percent=None):
-        """The value that this percent of the distribution is below: percentile(95).
+        """The value that this percent of the distribution is below: find_percentile(95).
 
-        dist.find_percentile(95)   (R qnorm(0.95, mean = 50, sd = 10)). percentile(50) is the median.
+        dist.find_percentile(95)   (R qnorm(0.95, mean = 50, sd = 10)). find_percentile(50) is the median.
         For counts: the smallest count with at least that percent at or below it (R qbinom).
         A list of percents gives Numbers.
         """
         example = "dist.find_percentile(95)"
         if percent is None:
-            raise SimplydataError(f"percentile() needs a percent from 0 to 100.\nFor example:  {example}")
+            raise SimplydataError(f"find_percentile() needs a percent from 0 to 100.\nFor example:  {example}")
         ps, many = self._numbers_in("find_percentile", "a percent", percent, example)
         if np.any((ps < 0) | (ps > 100)):
-            raise SimplydataError("percentile() needs a percent from 0 to 100: percentile(95) is the value 95 % of "
+            raise SimplydataError("find_percentile() needs a percent from 0 to 100: find_percentile(95) is the value 95 % of "
                                   f"the distribution is below.\nFor example:  {example}")
         shares = ps / 100
         values = self._quantile(shares, upper=False)
@@ -2079,7 +2080,7 @@ def compare_fits(x, names, column=None):
     """Fit each distribution and rank by AIC. Gives (rows sorted by AIC, notes)."""
     names = list(names) if not isinstance(names, str) else [names]
     if not names:
-        raise SimplydataError('compare_distributions() needs some names, like ("normal", "gamma").')
+        raise SimplydataError('compare_distributions_for() needs some names, like ("normal", "gamma").')
     families = [_find_family(n, "compare_distributions") for n in names]
     kinds = {(f.discrete if isinstance(f, Family) else False) for f in families}
     if len(kinds) > 1:

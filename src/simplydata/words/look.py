@@ -177,7 +177,7 @@ class LookWords:
 
         "paper" (default), "school", "presentation" or "dark".
         """
-        self._check_choice("style", "name", name, list(STYLES))
+        self._check_choice("use_style", "name", name, list(STYLES))
         return self._set(style=name)
 
     @friendly
@@ -187,9 +187,9 @@ class LookWords:
         unit= is "inches" (normal), "cm", "mm" or "pixels". A saved file is exactly this size.
         In pixels, the saved picture has exactly that many pixels at any resolution=.
         """
-        unit = check_unit(unit, "size")
-        width = check_number(width, "width", "size")
-        height = check_number(height, "height", "size")
+        unit = check_unit(unit, "set_size")
+        width = check_number(width, "width", "set_size")
+        height = check_number(height, "height", "set_size")
         if unit == "pixels":
             # kept in pixels: the inches depend on the resolution the chart is saved at
             pixels = (width, height)
@@ -204,7 +204,7 @@ class LookWords:
     @friendly
     def use_colour(self, name):
         """One colour for the whole chart. chart.use_colour("blue") or chart.use_colour("#0072B2")"""
-        return self._set(colour=check_colour(name, "colour"))
+        return self._set(colour=check_colour(name, "use_colour"))
 
     use_color = use_colour  # American spelling, same word
 
@@ -215,7 +215,7 @@ class LookWords:
             names = tuple(names[0])
         if not names:
             raise SimplydataError('.use_colours() needs at least one colour, for example chart.use_colours("blue", "orange").')
-        return self._set(colours=[check_colour(n, "colours") for n in names])
+        return self._set(colours=[check_colour(n, "use_colours") for n in names])
 
     use_colors = use_colours  # American spelling, same word
 

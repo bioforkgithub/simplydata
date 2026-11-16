@@ -51,9 +51,9 @@ class MathsWords:
 
     @friendly
     def raise_to_power(self, number=None):
-        """Raise every number to a power: power(2) squares, power(3) cubes. nums.raise_to_power(2)
+        """Raise every number to a power: raise_to_power(2) squares, raise_to_power(3) cubes. nums.raise_to_power(2)
 
-        power(0.5) is the same as the square root. For new numbers, write squares = nums ** 2.
+        raise_to_power(0.5) is the same as the square root. For new numbers, write squares = nums ** 2.
         """
         return self._sum_word("power", number)
 
@@ -101,13 +101,13 @@ class MathsWords:
         """The logarithm of every number: natural (base e) unless you give base=10 or base=2.
 
         nums.take_log()  nums.take_log(base=10)  nums.take_log(base=2)
-        log(base=10) of 1000 is 3, because 10 x 10 x 10 = 1000. The log only exists for
+        take_log(base=10) of 1000 is 3, because 10 x 10 x 10 = 1000. The log only exists for
         numbers above 0, so 0 and negative numbers become empty.
         """
         if not (base == "e" or (is_number(base) and base > 0 and base != 1)):
             raise SimplydataError(
-                '.log() needs base= as a number above 0 (but not 1), such as base=10 or base=2, or base="e" '
-                "(the natural log, the default)." + self._example("log(base=10)")
+                '.take_log() needs base= as a number above 0 (but not 1), such as base=10 or base=2, or base="e" '
+                "(the natural log, the default)." + self._example("take_log(base=10)")
             )
         v = self._values.astype(float)
         bad = v <= 0
@@ -125,7 +125,7 @@ class MathsWords:
 
     @friendly
     def take_exp(self):
-        """e (about 2.718) to the power of every number; it undoes log(). nums.take_exp()"""
+        """e (about 2.718) to the power of every number; it undoes take_log(). nums.take_exp()"""
         with np.errstate(all="ignore"):
             result = np.exp(self._values.astype(float))
         too_big = int((np.isinf(result) & np.isfinite(self._values)).sum())

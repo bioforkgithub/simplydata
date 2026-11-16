@@ -268,7 +268,7 @@ SMOOTH_METHODS = {"lowess": "lowess", "loess": "lowess", "spline": "spline", "sm
 # ====================================================================== drawing
 def _not_average_error(show):
     return SimplydataError(
-        f'.error_bars() shows spread around the average, but your lines show the {show}.\n'
+        f'.draw_error_bars() shows spread around the average, but your lines show the {show}.\n'
         'Use chart.draw_lines(..., show="average") with error bars.'
     )
 
@@ -292,9 +292,9 @@ def _draw_error_bars(ctx, kind, column, dodge=True):
                 raise column_error(column, table.columns)
             values, name = table[column], f'"{column}"'
         if not _is_number_column(values):
-            raise SimplydataError(f".error_bars() needs numbers in {name} for the size of each error bar.")
+            raise SimplydataError(f".draw_error_bars() needs numbers in {name} for the size of each error bar.")
         if (values < 0).any():
-            raise SimplydataError(f".error_bars(): error sizes cannot be below 0, but {name} has negative values.")
+            raise SimplydataError(f".draw_error_bars(): error sizes cannot be below 0, but {name} has negative values.")
         keys = [x] + ([group] if group else [])
         if last["kind"] == "lines" and table.duplicated(subset=keys).any():
             raise SimplydataError(
@@ -312,11 +312,11 @@ def _draw_error_bars(ctx, kind, column, dodge=True):
         if last.get("show", "average") not in ("average", "mean"):
             raise _not_average_error(last["show"])
         if not _is_number_column(table[y]):
-            raise SimplydataError(f'.error_bars() needs numbers on y, but "{y}" holds {_kind_of(table[y])}.')
+            raise SimplydataError(f'.draw_error_bars() needs numbers on y, but "{y}" holds {_kind_of(table[y])}.')
         summary = group_errors(table, x, y, group, kind)
         if summary["half"].isna().all():
             raise SimplydataError(
-                f'.error_bars("{ERROR_LONG[kind]}") needs at least 2 values for an x value, but every x has only one.\n'
+                f'.draw_error_bars("{ERROR_LONG[kind]}") needs at least 2 values for an x value, but every x has only one.\n'
                 'If your table has its own error sizes, use chart.draw_error_bars(column="your error column").'
             )
         for level, part, colour in _groups(ctx, summary, group):
@@ -755,8 +755,8 @@ class StatsWords:
 
         thickness=3 draws a thicker line (normal is 1.5).
         """
-        _check_position("line_at_x", "value", value, "line_at_x(10)")
-        _fixed_colour("line_at_x", colour)
+        _check_position("draw_line_at_x", "value", value, "draw_line_at_x(10)")
+        _fixed_colour("draw_line_at_x", colour)
         thickness = check_thickness("draw_line_at_x", thickness)
         return self._add("line_at_x", "extra", _draw_line_at, axis="x", value=value, dashed=bool(dashed),
                          colour=colour, label=None if labelled is None else str(labelled), thickness=thickness)
@@ -767,8 +767,8 @@ class StatsWords:
 
         thickness=3 draws a thicker line (normal is 1.5).
         """
-        _check_position("line_at_y", "value", value, "line_at_y(50)")
-        _fixed_colour("line_at_y", colour)
+        _check_position("draw_line_at_y", "value", value, "draw_line_at_y(50)")
+        _fixed_colour("draw_line_at_y", colour)
         thickness = check_thickness("draw_line_at_y", thickness)
         return self._add("line_at_y", "extra", _draw_line_at, axis="y", value=value, dashed=bool(dashed),
                          colour=colour, label=None if labelled is None else str(labelled), thickness=thickness)
@@ -787,25 +787,25 @@ class StatsWords:
         if isinstance(slope, bool) or not isinstance(slope, (int, float, np.integer, np.floating)) \
                 or not np.isfinite(slope):
             raise SimplydataError(
-                f".line_with_slope() needs a number for the slope, not {slope!r}.\n"
+                f".draw_line_with_slope() needs a number for the slope, not {slope!r}.\n"
                 "For example chart.draw_line_with_slope(1) for the 1:1 line (y = x).")
         if through is not None and intercept is not None:
             raise SimplydataError(
                 ".draw_line_with_slope() takes through= or intercept=, not both: both say where the line goes.\n"
                 "For example chart.draw_line_with_slope(2, intercept=5) or chart.draw_line_with_slope(2, through=(1, 7)).")
         if intercept is not None:
-            _check_position("line_with_slope", "intercept", intercept, "line_with_slope(2, intercept=5)")
+            _check_position("draw_line_with_slope", "intercept", intercept, "draw_line_with_slope(2, intercept=5)")
             through = (0, intercept)
         elif through is None:
             through = (0.0, 0.0)
         else:
             if isinstance(through, str) or not is_listlike(through) or len(through) != 2:
                 raise SimplydataError(
-                    f".line_with_slope() needs through= as a point (x, y), such as through=(0, 0), not {through!r}.")
+                    f".draw_line_with_slope() needs through= as a point (x, y), such as through=(0, 0), not {through!r}.")
             for v in through:
-                _check_position("line_with_slope", "through", v, "line_with_slope(1, through=(0, 0))")
+                _check_position("draw_line_with_slope", "through", v, "draw_line_with_slope(1, through=(0, 0))")
             through = (through[0], through[1])
-        _fixed_colour("line_with_slope", colour)
+        _fixed_colour("draw_line_with_slope", colour)
         thickness = check_thickness("draw_line_with_slope", thickness)
         self._add("line_with_slope", "extra", _draw_line_with_slope, slope=slope, through=through,
                   dashed=bool(dashed), colour=colour, label=None if labelled is None else str(labelled),

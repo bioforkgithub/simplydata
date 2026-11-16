@@ -361,7 +361,7 @@ OLD_BOOTSTRAP_KINDS = {"basic bootstrap": "reverse percentile bootstrap", "basic
 
 
 def _one_number(step, name):
-    """interval_of(summary=): the find_summary_of measure as a function of one group's numbers (NumPy / SciPy)."""
+    """find_interval_of(summary=): the find_summary_of measure as a function of one group's numbers (NumPy / SciPy)."""
     from scipy import stats
 
     plain = {"average": np.mean, "median": np.median, "total": np.sum, "smallest": np.min, "biggest": np.max,
@@ -380,7 +380,7 @@ PERCENTILE_RULES = ("inverted_cdf", "averaged_inverted_cdf", "closest_observatio
 
 
 def _percentile_rule(step, method):
-    """percentile_of(method=): R's type number (1 to 9) or NumPy's name, as the NumPy name."""
+    """find_percentile_of(method=): R's type number (1 to 9) or NumPy's name, as the NumPy name."""
     if isinstance(method, (int, np.integer)) and not isinstance(method, bool) and 1 <= method <= 9:
         return PERCENTILE_RULES[int(method) - 1]
     if isinstance(method, str) and method.strip().lower().replace(" ", "_") in PERCENTILE_RULES:
@@ -745,7 +745,7 @@ class SummaryWords:
         return result
 
     def _weighted(self, step, column, weights, for_each, every, across, interval, kind="frequency"):
-        """average_of / find_standard_deviation_of with weights=: statsmodels DescrStatsW (frequency weights) or
+        """find_average_of / find_standard_deviation_of with weights=: statsmodels DescrStatsW (frequency weights) or
         NumPy cov(aweights=) (analytic weights), as R weighted.mean() and Hmisc::wtd.var()."""
         import numpy as np
         from statsmodels.stats.weightstats import DescrStatsW
@@ -808,7 +808,7 @@ class SummaryWords:
         return table
 
     def _summary_interval(self, step, column, for_each, every, across, interval, share=None):
-        """average_of / find_median_of / find_percentile_of / find_standard_deviation_of with interval=: one row per group with
+        """find_average_of / find_median_of / find_percentile_of / find_standard_deviation_of with interval=: one row per group with
         the value, its interval and the count. Each interval comes from a package (SciPy, or R DescTools)."""
         from scipy import stats
 
@@ -1085,7 +1085,7 @@ class SummaryWords:
         return self._percentile_by_rule(step, column, number, for_each_group_in, every, across, rule)
 
     def _percentile_by_rule(self, step, column, number, for_each, every, across, rule):
-        """percentile_of(method=) other than the linear rule: NumPy percentile(method=), as R quantile(type =)."""
+        """find_percentile_of(method=) other than the linear rule: NumPy percentile(method=), as R quantile(type =)."""
         if every is not None or across is not None or not isinstance(column, str):
             raise SimplydataError("method= works with one column and for_each_group_in=; leave out every= and across=.")
         groups = self._group_columns(step, for_each, [column]) if for_each is not None else []
@@ -1529,7 +1529,7 @@ class SummaryWords:
         groups = self._group_columns(step, for_each_group_in, columns) if for_each_group_in is not None else []
         if "column" in groups:
             raise SimplydataError(
-                'summary_of() makes a column called "column", so a for_each_group_in= column cannot have that name.\n'
+                'find_summary_of() makes a column called "column", so a for_each_group_in= column cannot have that name.\n'
                 'Rename it first, for example table.rename_column("column", to="group").'
             )
         frame = self._number_frame(step, columns)
@@ -1695,7 +1695,7 @@ class SummaryWords:
         """
         if not isinstance(name, str):
             raise SimplydataError(
-                "column() needs one column name in quotes.\n"
+                "get_column() needs one column name in quotes.\n"
                 'For example:  marks = table.get_column("marks")   (with sdata.get_example("marks"))'
             )
         self._need_columns(name)

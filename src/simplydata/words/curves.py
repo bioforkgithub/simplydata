@@ -1,6 +1,6 @@
 """Curves on charts: a formula, a fitted formula, a fitted distribution, and lines joined by curves.
 
-* curve(): any formula of one name (x), worked out with the shared safe formula reader
+* draw_curve(): any formula of one name (x), worked out with the shared safe formula reader
   (_maths_formula.read_formula, never run), at steps= evenly spaced places over between=
   (or the x range of the chart). Or a distribution: its density curve (continuous) or the
   chance of each whole number (discrete); show="cumulative" draws the chance of a value at
@@ -12,8 +12,8 @@
   values found, over each group's x range.
 * chart.fit_distribution(): the maximum-likelihood fit of the distributions engine (as R
   MASS::fitdistr()) on the values of a histogram or density chart, per colour group, scaled
-  as curve() scales a density.
-* lines(joined_by=) and draw_qq_dots(distribution=) use the helpers at the end of this file;
+  as draw_curve() scales a density.
+* draw_lines(joined_by=) and draw_qq_dots(distribution=) use the helpers at the end of this file;
   the joining itself is table/between.py (the engine of table.values_at()).
 """
 
@@ -93,7 +93,7 @@ def read_curve_formula(word, text):
     """(function of one name, the y name or None, the name, the formula text) from "y = 100 * exp(-0.3 * x)"."""
     from .._maths_formula import read_formula
 
-    example = 'curve("y = 100 * exp(-0.3 * x)", between=[0, 10])'
+    example = 'draw_curve("y = 100 * exp(-0.3 * x)", between=[0, 10])'
     if not isinstance(text, str) or not text.strip():
         raise SimplydataError(f".{word}() needs a formula in quotes or a distribution.\nFor example chart.{example}")
     left = None
@@ -227,6 +227,10 @@ _HISTOGRAM_EXAMPLE = 'chart.draw_histogram(x="marks", show="density")'
 
 
 def _histogram_layer_error(found):
+    from .._core import BaseChart
+
+    if found is not None:
+        found = BaseChart._public_name(found)  # steps keep their inner names (histogram, density)
     if found is None:
         return SimplydataError(".fit_distribution() works on histogram or density, but your chart has none yet.\n"
                                f"Add one first, for example {_HISTOGRAM_EXAMPLE}")
@@ -244,7 +248,7 @@ def _draw_curve(ctx, thing, between, steps, dashed, colour, label, thickness, sh
         formula, left, name, text = thing
         span = between or _x_range_of_chart(ctx)
         if span is None:
-            raise SimplydataError(f'.curve("{text}") needs between=[low, high] to know where to draw, because the '
+            raise SimplydataError(f'.draw_curve("{text}") needs between=[low, high] to know where to draw, because the '
                                   "chart has nothing else on it yet.\nFor example chart.draw_curve(\"y = 100 * exp(-0.3 * x)\", "
                                   "between=[0, 10])")
         xs = np.linspace(span[0], span[1], steps)
@@ -404,10 +408,10 @@ class CurveWords:
         steps= is how many points make the curve (normally 200); dashed=True, colour="red",
         thickness=3 and labelled="model" (shown in the legend) change how it looks.
         """
-        word = "curve"
+        word = "draw_curve"  # for messages; the step keeps its inner name, curve
         thickness = check_thickness(word, thickness)
         _check_colour(word, colour)
-        span = _check_between(word, between, 'curve("y = 100 * exp(-0.3 * x)", between=[0, 10])')
+        span = _check_between(word, between, 'draw_curve("y = 100 * exp(-0.3 * x)", between=[0, 10])')
         if isinstance(steps, bool) or not isinstance(steps, (int, np.integer)) or not 2 <= steps <= CURVE_STEPS_MOST:
             raise SimplydataError(f"steps= should be a whole number from 2 to {CURVE_STEPS_MOST:,}, such as steps=200, "
                                   f"not {steps!r}.")
@@ -420,7 +424,7 @@ class CurveWords:
                 raise SimplydataError('show="cumulative" is for a distribution, such as '
                                       'chart.draw_curve(sdata.distribution("normal"), show="cumulative").')
             thing = read_curve_formula(word, formula_or_distribution)
-        self._add(word, "extra", _draw_curve, thing=thing, between=span, steps=int(steps), dashed=bool(dashed),
+        self._add("curve", "extra", _draw_curve, thing=thing, between=span, steps=int(steps), dashed=bool(dashed),
                   colour=colour, label=None if labelled is None else str(labelled), thickness=thickness, show=show,
                   said={})
         if labelled is not None:
@@ -482,7 +486,7 @@ class CurveWords:
 
 # ====================================================================== helpers for lines() and draw_qq_dots()
 def draw_joined_lines(ctx, table, n, estimator, joined_by, dots, dashed, transparency, thickness, colours):
-    """lines(joined_by=...) with a curve: each group's points (one per x, by show=) joined by that curve."""
+    """draw_lines(joined_by=...) with a curve: each group's points (one per x, by show=) joined by that curve."""
     from ..table.between import join_one_direction, unique_mean
 
     ax = ctx.ax
@@ -490,7 +494,7 @@ def draw_joined_lines(ctx, table, n, estimator, joined_by, dots, dashed, transpa
     for role, column in (("x", x), ("y", y)):
         series = table[column]
         if not pd.api.types.is_numeric_dtype(series) or pd.api.types.is_bool_dtype(series):
-            raise SimplydataError(f'.lines(joined_by="{joined_by}") needs numbers on {role}, but "{column}" does not '
+            raise SimplydataError(f'.draw_lines(joined_by="{joined_by}") needs numbers on {role}, but "{column}" does not '
                                   'hold numbers. Use joined_by="straight lines" there.')
     parts = [(None, table)] if group is None else [(g, table[table[group] == g]) for g in pd.unique(table[group].dropna())]
     for (name, part), colour in zip(parts, colours):

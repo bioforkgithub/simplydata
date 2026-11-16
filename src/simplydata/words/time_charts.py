@@ -438,7 +438,7 @@ class TimeChartWords:
 
 def spectrum_over_time(values, step, window, window_shape="hann"):
     """(frequencies, times, power) from SciPy signal.spectrogram: pieces of window readings, half overlap,
-    window_shape weights (periodic), each piece's mean removed, one-sided density."""
+    window_shape= weights (periodic), each piece's mean removed, one-sided density."""
     from scipy import signal
 
     return signal.spectrogram(np.asarray(values, dtype=float), fs=1 / step, window=window_shape, nperseg=int(window),

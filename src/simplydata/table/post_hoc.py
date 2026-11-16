@@ -1,4 +1,4 @@
-"""compare_each_pair(test=...) beyond Welch, Mann-Whitney and Tukey: the usual follow-up tests.
+"""compare_each_pair_of(test=...) beyond Welch, Mann-Whitney and Tukey: the usual follow-up tests.
 
 Each comes from the package that defines it; simplydata only puts the pairs in order and words them:
 

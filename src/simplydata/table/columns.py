@@ -707,7 +707,7 @@ class ColumnWords:
     def _work_out(self, step, name, formula=None, by_adding=None, by_subtracting=None, by_multiplying=None,
                   by_dividing=None, by_joining_text=None, separator=None, by_running=None, for_each=None,
                   from_column=None, plus=None, minus=None, times=None, divide_by=None, value=None):
-        """The new values for add_column() and change_column(): (frame with the column, words for steps())."""
+        """The new values for add_column() and change_column(): (frame with the column, words for show_steps())."""
         lists = {"by_adding": by_adding, "by_subtracting": by_subtracting,
                  "by_multiplying": by_multiplying, "by_dividing": by_dividing}
         numbers_given = {"plus": plus, "minus": minus, "times": times, "divide_by": divide_by}
@@ -1224,7 +1224,7 @@ class ColumnWords:
         self._need_columns(from_column)
         if part is None:
             raise SimplydataError(
-                "add_date_part_column() needs part= to say which part of the date, such as part=\"month\".\n"
+                "add_column_with_part_of_date() needs part= to say which part of the date, such as part=\"month\".\n"
                 "You can use: " + ", ".join(f'"{p}"' for p in DATE_PARTS)
             )
         self._check_choice(step, "part", part, DATE_PARTS)
@@ -1344,7 +1344,7 @@ class ColumnWords:
         step = "replace_text_in"
         example = 'For example: table.replace_text_in("shop", " shop", with_value="")   (with sdata.get_example("fruit"))'
         if not isinstance(column, str):
-            raise SimplydataError(f".replace_text() needs the column first.\n{example}")
+            raise SimplydataError(f".replace_text_in() needs the column first.\n{example}")
         self._need_columns(column)
         text = self._text_of(step, column, example)
         if (old is None) == (matches_pattern is None):
@@ -1352,7 +1352,7 @@ class ColumnWords:
                 ".replace_text_in() needs the old text, or matches_pattern= for a regular expression (one of the two).\n" + example
             )
         if with_value is None:
-            raise SimplydataError(f'.replace_text() needs with_value= the new text (with_value="" removes it).\n{example}')
+            raise SimplydataError(f'.replace_text_in() needs with_value= the new text (with_value="" removes it).\n{example}')
         if not isinstance(with_value, str):
             raise SimplydataError(f'with_value= should be text in quotes, like with_value="{with_value}".')
         if old is not None:

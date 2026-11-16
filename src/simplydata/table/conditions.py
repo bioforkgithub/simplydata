@@ -71,7 +71,7 @@ def _count_in(frame, expr) -> int:
 
 
 def _say(value) -> str:
-    """A value written the way steps() shows it."""
+    """A value written the way show_steps() shows it."""
     if isinstance(value, str):
         return f'"{value}"'
     if hasattr(value, "to_pydatetime"):  # pandas Timestamp
@@ -156,10 +156,10 @@ class _ConditionReader(_FormulaReader):
     keep_rows_where keeps only "surely true" rows and "not" cannot bring empty cells back.
     """
 
-    def __init__(self, text, frame, where="keep_rows() or remove_rows_where()"):
+    def __init__(self, text, frame, where="keep_rows_where() or remove_rows_where()"):
         super().__init__(text, frame.columns)
         self.frame = frame
-        self.where = where  # named in messages: "keep_rows() or remove_rows_where()", "rules="
+        self.where = where  # named in messages: "keep_rows_where() or remove_rows_where()", "rules="
         self.in_sum = False
 
     # messages from the formula reader speak of a condition and list what a condition can use

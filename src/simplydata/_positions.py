@@ -71,7 +71,7 @@ class Picked:
         return f"{noun} {listed[0]}" if len(listed) == 1 else f"{noun}s {_listed(listed)}"
 
     def short_words(self) -> str:
-        """For steps(): the same without the list of every n-th position."""
+        """For show_steps(): the same without the list of every n-th position."""
         if self.kind == "every":
             return f"every {ordinal(self.step)} {self.noun} from {self.noun} {self.start} to {self.noun} {self.end}"
         return self.words()

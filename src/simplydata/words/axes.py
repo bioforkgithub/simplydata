@@ -397,7 +397,7 @@ def _draw_second_y(ctx, y, drawn_as, label, colour):
         values = list(y)
         if len(values) != len(table):
             raise SimplydataError(
-                f".second_y() got {len(values)} values, but the chart under it has {len(table)}.\n"
+                f".add_second_y() got {len(values)} values, but the chart under it has {len(table)}.\n"
                 "Give one value for each row."
             )
         order = last.get("row_order")
@@ -424,7 +424,7 @@ def _draw_second_y(ctx, y, drawn_as, label, colour):
             missing = [g for g in grouped.index if g not in names]
             if missing:
                 raise SimplydataError(
-                    f'.second_y() could not find "{missing[0]}" on the x-axis of the chart under it.')
+                    f'.add_second_y() could not find "{missing[0]}" on the x-axis of the chart under it.')
             pos = np.array([ticks[names.index(g)] for g in grouped.index], dtype=float)
         else:
             pos = np.arange(len(grouped), dtype=float)
@@ -803,13 +803,13 @@ class AxesWords:
         self._check_choice("add_second_y", "drawn_as", drawn_as, SECOND_KINDS)
         if y is None or not (isinstance(y, str) or is_listlike(y)):
             raise SimplydataError(
-                f'.second_y() needs a column name, for example chart.add_second_y("rain"), not {y!r}.')
+                f'.add_second_y() needs a column name, for example chart.add_second_y("rain"), not {y!r}.')
         if isinstance(y, str):
             check(self._data, y=y)
         if labelled is not None:
             labelled = str(labelled)
         if colour is not None and not (isinstance(colour, str) and is_color_like(colour)):
             raise SimplydataError(
-                f'.second_y() needs one colour name for colour=, such as "red" or "green", not {colour!r}.')
+                f'.add_second_y() needs one colour name for colour=, such as "red" or "green", not {colour!r}.')
         return self._replace("second_y", "extra", _draw_second_y, y=y, drawn_as=drawn_as, label=labelled,
                              colour=colour)

@@ -30,7 +30,7 @@ def installed_font(name):
     lower = name.lower()
     close = [f for f in fonts if lower in f.lower() or f.lower() in lower]
     close += [by_lower[g] for g in suggest(lower, list(by_lower), n=5, cutoff=0.5) if by_lower[g] not in close]
-    lines = [f'.font_name() cannot find the font "{name}" on this computer.']
+    lines = [f'.use_font() cannot find the font "{name}" on this computer.']
     if close:
         lines.append("Installed fonts with a similar name: " + ", ".join(f'"{f}"' for f in close[:8]))
     else:
@@ -240,7 +240,7 @@ def _names_on_dots(ctx, column, colour):
         names = list(column)
         if len(names) != len(table):
             raise SimplydataError(
-                f".names_on_dots() got {len(names)} names, but the chart has {len(table)} rows of dots.\n"
+                f".write_names_on_dots() got {len(names)} names, but the chart has {len(table)} rows of dots.\n"
                 "Give one name for each dot.")
         order = last.get("row_order")
         if order is not None and len(order) == len(names):
@@ -327,7 +327,7 @@ class TextWords:
     @friendly
     def write_caption_at_bottom(self, text):
         """A small line of text under the whole chart. chart.write_caption_at_bottom("Data from 2026")"""
-        text = _check_text("caption_bottom", text, 'chart.write_caption_at_bottom("Data from 2026")')
+        text = _check_text("write_caption_at_bottom", text, 'chart.write_caption_at_bottom("Data from 2026")')
         # "finish": runs after label_x, so it knows whether there is a shared x label to go under
         return self._replace("caption_bottom", "finish", _caption_bottom, scope="figure", text=text)
 
@@ -338,7 +338,7 @@ class TextWords:
         with_arrow=True puts the note a little away, with an arrow pointing at x, y.
         On bar charts x can be a name: chart.write_note("Best", x="Ben", y=90) on bars of names.
         """
-        text = _check_text("note", text, 'chart.write_note("Highest!", x=5, y=98)')
+        text = _check_text("write_note", text, 'chart.write_note("Highest!", x=5, y=98)')
         if x is None or y is None:
             raise SimplydataError(
                 '.write_note() needs a place: x= and y=, for example chart.write_note("Highest!", x=5, y=98).')
@@ -346,7 +346,7 @@ class TextWords:
             ok = isinstance(v, (numbers.Real, str)) or hasattr(v, "year")  # numbers, names, dates
             if isinstance(v, bool) or not ok:
                 raise SimplydataError(
-                    f'.note() needs a number for {name}=, not {v!r}. For example chart.write_note("Highest!", x=5, y=98).')
+                    f'.write_note() needs a number for {name}=, not {v!r}. For example chart.write_note("Highest!", x=5, y=98).')
         if not isinstance(with_arrow, bool):
             raise SimplydataError(".write_note() needs with_arrow=True or with_arrow=False.")
         return self._add("note", "extra", _note, text=text, x=x, y=y, arrow=with_arrow)
@@ -373,16 +373,16 @@ class TextWords:
         """
         if column is None or isinstance(column, bool) or not (isinstance(column, str) or is_listlike(column)):
             raise SimplydataError(
-                f'.names_on_dots() needs a column of names, for example chart.write_names_on_dots("name"), not {column!r}.')
+                f'.write_names_on_dots() needs a column of names, for example chart.write_names_on_dots("name"), not {column!r}.')
         if isinstance(column, str) and column not in self._data.columns:
             raise column_error(column, self._data.columns)
         if colour is not None and not (isinstance(colour, str) and mpl.colors.is_color_like(colour)):
             raise SimplydataError(
-                f'.names_on_dots() does not know the colour {colour!r}. Use a name such as "grey" or "black".')
+                f'.write_names_on_dots() does not know the colour {colour!r}. Use a name such as "grey" or "black".')
         draws = [s for s in self._steps if s.phase == PHASES["draw"] and s.name != "band"]
         if draws and draws[-1].name != "dots":
             raise SimplydataError(
-                f".names_on_dots() writes a name next to each dot, but the last chart type is {draws[-1].name}.\n"
+                f".write_names_on_dots() writes a name next to each dot, but the last chart type is {draws[-1].name}.\n"
                 'Use it after chart.draw_dots(x="hours", y="marks").')
         # "text" phase: after set_range_x/set_range_y, so free places are found on the final axes
         return self._replace("names_on_dots", "text", _names_on_dots, column=column, colour=colour)
@@ -392,7 +392,7 @@ class TextWords:
         """Make all the text bigger or smaller. chart.use_font_size(14) (normal is 12)"""
         if isinstance(size, bool) or not isinstance(size, numbers.Real) or size <= 0:
             raise SimplydataError(
-                f".font_size() needs a number bigger than 0, not {size!r}. For example chart.use_font_size(14).")
+                f".use_font_size() needs a number bigger than 0, not {size!r}. For example chart.use_font_size(14).")
         if not 4 <= size <= 60:
             raise SimplydataError(
                 f"Font size {size} is very {'small' if size < 4 else 'big'}. "
@@ -409,6 +409,6 @@ class TextWords:
         """
         if not isinstance(name, str) or not name.strip():
             raise SimplydataError(
-                f'.font_name() needs the name of a font, for example chart.use_font("Arial"), not {name!r}.')
+                f'.use_font() needs the name of a font, for example chart.use_font("Arial"), not {name!r}.')
         return self._set(font_name=installed_font(name.strip()))
 

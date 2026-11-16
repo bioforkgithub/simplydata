@@ -124,6 +124,8 @@ def test_number_other_names_and_grids():
 
 def test_unknown_sdata_names_get_did_you_mean():
     with pytest.raises(MissingWordError, match=r"Did you mean sdata\.find_where_smallest\(\)"):
+        sdata.find_smalest  # a typo of the old name still finds the word as it is written now
+    with pytest.raises(MissingWordError, match=r"Did you mean sdata\.find_where_smallest\(\)"):
         sdata.find_where_smalest
     with pytest.raises(AttributeError):
         sdata.__not_there__

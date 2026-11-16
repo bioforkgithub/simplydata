@@ -31,7 +31,7 @@ def make_wave(shape="sine", frequency=1, time_step=None, how_many=None, high_sha
     if shape not in SHAPES:
         raise choice_error("wave", "shape", shape, list(SHAPES))
     if isinstance(how_many, bool) or not isinstance(how_many, int) or how_many < 1:
-        raise SimplydataError('wave() needs how_many= as the number of readings, such as sdata.make_wave("sine", '
+        raise SimplydataError('make_wave() needs how_many= as the number of readings, such as sdata.make_wave("sine", '
                               "frequency=5, time_step=0.01, how_many=100).")
     step, words = read_time_step(time_step, sampling_rate, fs, None, "wave")
     t = np.arange(how_many) * step
@@ -48,7 +48,7 @@ def make_wave(shape="sine", frequency=1, time_step=None, how_many=None, high_sha
                               method=sweep)
     else:
         if isinstance(frequency, bool) or not isinstance(frequency, (int, float)) or frequency <= 0:
-            raise SimplydataError("wave() needs frequency= as a number above 0 (cycles per unit of time).")
+            raise SimplydataError("make_wave() needs frequency= as a number above 0 (cycles per unit of time).")
         angle = 2 * np.pi * float(frequency) * t
         if shape == "sine":
             values = np.sin(angle)
@@ -77,11 +77,11 @@ def make_window_shape(name="hann", how_many=64, periodic=False):
     from .numbers import numbers
 
     if isinstance(how_many, bool) or not isinstance(how_many, int) or how_many < 1:
-        raise SimplydataError("window_shape() needs how_many= as a whole number of weights, such as how_many=64.")
+        raise SimplydataError("make_window_shape() needs how_many= as a whole number of weights, such as how_many=64.")
     try:
         values = signal.get_window(name, how_many, fftbins=bool(periodic))
     except (ValueError, TypeError) as error:
-        raise SimplydataError(f'window_shape() does not know the window {name!r} ({error}). Try "hann", "hamming", '
+        raise SimplydataError(f'make_window_shape() does not know the window {name!r} ({error}). Try "hann", "hamming", '
                               '"blackman" or ("kaiser", 5).') from None
     print(f"{how_many} weights of a {'periodic' if periodic else 'symmetric'} {name} window (SciPy get_window).")
     return numbers(values)
@@ -100,7 +100,7 @@ def find_inverse_fourier_transform(table=None):
 
     info = getattr(table, "_fourier", None)
     if info is None:
-        raise SimplydataError("inverse_fourier_transform() needs the table that nums.take_fourier_transform() gave back.")
+        raise SimplydataError("find_inverse_fourier_transform() needs the table that nums.take_fourier_transform() gave back.")
     frame = table._frame
     z = np.asarray(frame["real part"].to_numpy(), dtype=float) + 1j * np.asarray(frame["imaginary part"].to_numpy(),
                                                                                     dtype=float)

@@ -127,7 +127,7 @@ def _kind_choice(step: str, kind) -> str:
 
 
 def _past(words: str, n: int) -> str:
-    """keep_rows condition words in the past: "is above 100" -> "were above 100", "contains" -> "contained"."""
+    """keep_rows_where condition words in the past: "is above 100" -> "were above 100", "contains" -> "contained"."""
     if words.startswith("is "):
         return ("was " if n == 1 else "were ") + words[3:]
     for now, then in (("contains", "contained"), ("starts with", "started with"), ("ends with", "ended with")):
@@ -504,7 +504,7 @@ class RowWords:
     def _columns_chosen(self, step: str, names: tuple, to, kind, starts_with, ends_with, contains, pattern):
         """The columns keep_columns()/remove_columns() mean, in table order or the order given.
 
-        Gives (names, words for steps(), plain): plain is True for a list of names (the old way).
+        Gives (names, words for show_steps(), plain): plain is True for a list of names (the old way).
         """
         verb = step.split("_")[0]
         example = f'table.{step}("height")' if verb == "remove" else f'table.{step}("name", "marks")'
@@ -894,7 +894,7 @@ class RowWords:
         return self._change(f"fill empty cells in {column} with {how}", new)
 
     def _fill_by_line(self, column, sorted_by, for_each, choice="line between neighbours"):
-        """fill_empty_cells(with_the="line between neighbours"): see line_between_neighbours().
+        """fill_empty_cells_in(with_the="line between neighbours"): see line_between_neighbours().
 
         with_the="curve between neighbours" / "curve without overshoot": see
         between.curve_between_neighbours() (natural cubic spline / PCHIP through the filled cells).
@@ -985,7 +985,7 @@ class RowWords:
         if kind == "true/false":
             new = self._frame.with_columns(col.cast(nw.Int64))
             print(f"{column} is now numbers: True is 1 and False is 0.")
-            return self._change(f"make {column} into numbers", new)
+            return self._change(f"turn {column} into numbers", new)
         if kind == "date":
             raise SimplydataError(f'"{column}" is a date column, so it cannot become numbers.' + _example(example))
         text = col.cast(nw.String).str.replace_all(r"\s", "", literal=False)
@@ -1000,7 +1000,7 @@ class RowWords:
         values = self._frame.select(number.alias(column))[column]
         self._report_failed(column, "numbers", values)
         print(f"{column} is now numbers.")
-        return self._change(f"make {column} into numbers", self._frame.with_columns(values))
+        return self._change(f"turn {column} into numbers", self._frame.with_columns(values))
 
     @friendly
     def turn_into_dates(self, column=None, order=None):
@@ -1041,7 +1041,7 @@ class RowWords:
         self._report_failed(column, "dates", values)
         read_as = "" if order is None else f" (read as {order})"
         print(f"{column} is now dates{read_as}.")
-        what = f"make {column} into dates" + ("" if order is None else f', order="{order}"')
+        what = f"turn {column} into dates" + ("" if order is None else f', order="{order}"')
         return self._change(what, self._frame.with_columns(values))
 
     @friendly
@@ -1073,7 +1073,7 @@ class RowWords:
             text = col.cast(nw.String)
         new = self._frame.with_columns(nw.when(~empty).then(text).alias(column))
         print(f"{column} is now text.")
-        return self._change(f"make {column} into text", new)
+        return self._change(f"turn {column} into text", new)
 
     def _text_step(self, step: str, column, what: str, change):
         text = self._need_text(step, column, f'table.{step}("name")')
@@ -1085,7 +1085,7 @@ class RowWords:
 
         table.turn_into_lowercase("name")   (with sdata.get_example("marks"))
         """
-        return self._text_step("turn_into_lowercase", column, f"make {column} lowercase", lambda t: t.str.to_lowercase())
+        return self._text_step("turn_into_lowercase", column, f"turn {column} into lowercase", lambda t: t.str.to_lowercase())
 
     @friendly
     def turn_into_uppercase(self, column=None):
@@ -1093,7 +1093,7 @@ class RowWords:
 
         table.turn_into_uppercase("name")   (with sdata.get_example("marks"))
         """
-        return self._text_step("turn_into_uppercase", column, f"make {column} uppercase", lambda t: t.str.to_uppercase())
+        return self._text_step("turn_into_uppercase", column, f"turn {column} into uppercase", lambda t: t.str.to_uppercase())
 
     @friendly
     def remove_extra_spaces_in(self, column=None):
@@ -1156,12 +1156,12 @@ class RowWords:
         return self._change(f"replace {olds_words} in {column} with {_say(with_value)}", new)
 
     def _replace_where(self, column, old, with_value, options: dict):
-        """replace_values(column, is_above=100, with_value=100): the cells that meet one keep_rows_where condition."""
+        """replace_values_in(column, is_above=100, with_value=100): the cells that meet one keep_rows_where condition."""
         given = [k for k, v in options.items() if v is not _NOT_GIVEN]
         example = f'table.replace_values_in("marks", is_above=90, with_value=90)'
         if old is not _NOT_GIVEN:
             raise SimplydataError(
-                f".replace_values() takes either the old value or one condition ({given[0]}=), not both."
+                f".replace_values_in() takes either the old value or one condition ({given[0]}=), not both."
                 + _example('table.replace_values_in("subject", "Maths", with_value="Math")') + _example(example)
             )
         if with_value is _NOT_GIVEN:

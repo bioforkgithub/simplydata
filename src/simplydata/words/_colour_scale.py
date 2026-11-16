@@ -185,7 +185,7 @@ def scale_for(ctx, values, word, diverge_at_zero=False):
     if log:
         if lo_data <= 0:
             raise SimplydataError(
-                f".colour_scale(log=True) cannot colour zero or negative numbers, and .{word}() has some "
+                f".use_colour_scale(log=True) cannot colour zero or negative numbers, and .{word}() has some "
                 f"(smallest: {lo_data:g}).\nA log scale only works when every value is bigger than 0. "
                 "Leave out log=True, or remove those values from the table first.")
         norm = mcolors.LogNorm(lo, hi)

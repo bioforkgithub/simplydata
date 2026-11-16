@@ -190,7 +190,7 @@ class PositionWords:
         """
         example = 'table.get_row(3)   (with sdata.get_example("marks"))'
         if position is None:
-            raise SimplydataError('.row() needs which row, counting from 1, like table.get_row(3) or table.get_row("last").'
+            raise SimplydataError('.get_row() needs which row, counting from 1, like table.get_row(3) or table.get_row("last").'
                                   f"\nFor example:  {example}")
         i = self._one_row("row", position, example)
         values = self._frame.row(i)
@@ -207,7 +207,7 @@ class PositionWords:
         example = 'table.get_cell_at(row=3, column="marks")   (with sdata.get_example("marks"))'
         if row is None or column is None:
             missing = " and ".join(o for o, v in (("row=", row), ("column=", column)) if v is None)
-            raise SimplydataError(f".cell_at() needs {missing}: a row counting from 1 and a column name.\n"
+            raise SimplydataError(f".get_cell_at() needs {missing}: a row counting from 1 and a column name.\n"
                                   f"For example:  {example}")
         if not isinstance(column, str):
             raise SimplydataError(

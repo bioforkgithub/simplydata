@@ -1130,7 +1130,7 @@ class StatTestWords:
         return self._new_table(frame)
 
     def _pair_letters(self, column, for_each, pairs):
-        """compare_each_pair(show="letters"): R multcompView::multcompLetters() on the pairs' p-values."""
+        """compare_each_pair_of(show="letters"): R multcompView::multcompLetters() on the pairs' p-values."""
         rows = pairs._frame.to_pandas().to_dict("records")
         import contextlib
         import io
@@ -1246,7 +1246,7 @@ class StatTestWords:
                   f"{'higher' if diff > 0 else 'lower'}{interval}; {adjusted}{_p_shown(row[p_name])}.")
 
     def _r_pairs(self, column, for_each, groups, test):
-        """compare_each_pair(test="games-howell" | "scheffe" | "lsd" | "dunn" | "conover"), run in R."""
+        """compare_each_pair_of(test="games-howell" | "scheffe" | "lsd" | "dunn" | "conover"), run in R."""
         rows = r_pairs(test, groups)
         title, based_on, r_name, meaning = R_PAIR_TESTS[test]
         pairs = "pair" if len(rows) == 1 else "pairs"
@@ -1259,7 +1259,7 @@ class StatTestWords:
         return self._new_table(frame)
 
     def _dunnett(self, column, for_each, groups, against, seed):
-        """compare_each_pair(against=): Dunnett's test, SciPy stats.dunnett."""
+        """compare_each_pair_of(against=): Dunnett's test, SciPy stats.dunnett."""
         rows = dunnett_pairs(groups, against, seed)
         others = "group" if len(rows) == 1 else "groups"
         print(f'Each "{for_each}" group compared on "{column}" with the control group "{against}" ({len(rows)} {others}) '
@@ -1271,7 +1271,7 @@ class StatTestWords:
         return self._new_table(frame)
 
     def _tukey_pairs(self, column, for_each, groups):
-        """compare_each_pair(test="tukey"): Tukey HSD (Tukey-Kramer for unequal sizes), as R TukeyHSD()."""
+        """compare_each_pair_of(test="tukey"): Tukey HSD (Tukey-Kramer for unequal sizes), as R TukeyHSD()."""
         from scipy import stats
 
         names = [g[0] for g in groups]
@@ -1551,7 +1551,7 @@ class StatTestWords:
         return ("yes/no" if len(values) <= 2 else "categories"), kept
 
     def _paired_counts(self, step, before, after, kind, kept, p_value_by, side_given):
-        """compare_before_after on yes/no columns (McNemar) or categories (Bowker), as R mcnemar.test()."""
+        """compare_before_and_after on yes/no columns (McNemar) or categories (Bowker), as R mcnemar.test()."""
         from statsmodels.stats.contingency_tables import SquareTable, mcnemar
 
         from .models import YES_NO_PAIRS, _sort_key
@@ -1652,7 +1652,7 @@ class StatTestWords:
         return self._result_table(row)
 
     def _sign_test(self, step, before, after, sides, higher, lower, alternative):
-        """compare_before_after(test="sign"): statsmodels sign_test, as R DescTools::SignTest()."""
+        """compare_before_and_after(test="sign"): statsmodels sign_test, as R DescTools::SignTest()."""
         from statsmodels.stats.descriptivestats import sign_test
 
         if sides != 2 or higher is not None or lower is not None or alternative not in (None, "two-sided"):

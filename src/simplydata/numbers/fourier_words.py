@@ -47,7 +47,7 @@ class FourierNumberWords:
             raise choice_error("take_fourier_transform", "show", show, list(FOURIER_SHOWS))
         x = np.asarray(self._values, dtype=float).ravel()
         if np.isnan(x).any():
-            raise SimplydataError("fourier_transform() needs a value at every step; fill the empty ones first.")
+            raise SimplydataError("take_fourier_transform() needs a value at every step; fill the empty ones first.")
         step, words = read_time_step(time_step, sampling_rate, fs, getattr(self, "_time_step", None),
                                      "take_fourier_transform")
         n = len(x)
@@ -76,7 +76,7 @@ class FourierNumberWords:
             raise choice_error("envelope", "show", show, list(ENVELOPE_SHOWS))
         x = np.asarray(self._values, dtype=float).ravel()
         if np.isnan(x).any():
-            raise SimplydataError("envelope() needs a value at every step; fill the empty ones first.")
+            raise SimplydataError("find_envelope() needs a value at every step; fill the empty ones first.")
         step, _ = read_time_step(time_step, sampling_rate, fs, getattr(self, "_time_step", None), "envelope")
         out = envelope_values(x, show, step)
         print(f"The {show} of the numbers, from the analytic signal (SciPy signal.hilbert, as R gsignal::hilbert).")

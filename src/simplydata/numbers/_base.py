@@ -1,7 +1,7 @@
 """The heart of simplydata numbers: a list of numbers, or a grid of them.
 
 Numbers live in a NumPy array. Every step that changes them goes through self._change(...),
-which remembers the numbers as they were before. That gives undo(), steps() and
+which remembers the numbers as they were before. That gives undo(), show_steps() and
 start_again() for free, exactly like tables.
 
 Two ways to do maths, on purpose:
@@ -515,7 +515,7 @@ class BaseNumbers:
     def __matmul__(self, other):
         raise SimplydataError(
             "Matrix multiplication (@) is planned for a later version of simplydata (v0.7, with "
-            "matrices and linear algebra).\nFor now use done() to get a NumPy array: "
+            "matrices and linear algebra).\nFor now use as_numpy() to get a NumPy array: "
             f"{self._name}.as_numpy() @ other.as_numpy()"
         )
 

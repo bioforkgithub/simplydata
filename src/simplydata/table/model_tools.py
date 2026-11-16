@@ -668,7 +668,7 @@ class ModelToolWords:
         return None
 
     def _groups_that_pull(self, model, pieces, grouped_by):
-        """show_rows_that_pull(grouped_by=): Cook's distance of each whole group, R lme4 influence()."""
+        """show_rows_that_pull_model(grouped_by=): Cook's distance of each whole group, R lme4 influence()."""
         from .models_r import group_influence
 
         out = group_influence(model)

@@ -112,15 +112,15 @@ def make_run_of_dates(start=None, to=None, every="day", how_many=None, fast=Fals
     from .table import Table
 
     if start is None:
-        raise SimplydataError(f"dates() needs a first date.\nFor example, {EXAMPLE}")
+        raise SimplydataError(f"make_run_of_dates() needs a first date.\nFor example, {EXAMPLE}")
     first = read_date(start, "start")
     count, unit = read_every(every)
     if (to is None) == (how_many is None):
-        raise SimplydataError(f"dates() needs either to= (the last date) or how_many= (how many dates), not "
+        raise SimplydataError(f"make_run_of_dates() needs either to= (the last date) or how_many= (how many dates), not "
                               f"{'both' if to is not None else 'neither'}.\nFor example, {EXAMPLE}")
     if how_many is not None:
         if isinstance(how_many, bool) or not isinstance(how_many, int) or not 1 <= how_many <= MAX_DATES:
-            raise SimplydataError("dates() needs how_many= as a whole number of at least 1, such as how_many=24.")
+            raise SimplydataError("make_run_of_dates() needs how_many= as a whole number of at least 1, such as how_many=24.")
         made = date_steps(first, count, unit, how_many=how_many)
     else:
         last = read_date(to, "to")

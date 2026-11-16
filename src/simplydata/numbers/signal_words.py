@@ -47,7 +47,7 @@ class SignalNumberWords:
                 raise SimplydataError('time_points= is for method="lomb-scargle"; other methods need evenly '
                                       "spaced readings and take time_step=.")
             if np.isnan(values).any():
-                raise SimplydataError(f"spectrum_of() needs a value at every step, but {int(np.isnan(values).sum())} "
+                raise SimplydataError(f"find_spectrum() needs a value at every step, but {int(np.isnan(values).sum())} "
                                       "numbers are empty. Fill them first, for example "
                                       'nums.fill_empty_numbers(with_the="line between neighbours").')
             step, words = read_time_step(time_step, sampling_rate, fs, getattr(self, "_time_step", None), step_name)
@@ -78,7 +78,7 @@ class TimeSeriesNumberWords:
         step_name = "find_autocorrelation"
         values = np.asarray(self._values, dtype=float).ravel()
         if np.isnan(values).any():
-            raise SimplydataError(f"autocorrelation_of() needs a value at every place, but {int(np.isnan(values).sum())} "
+            raise SimplydataError(f"find_autocorrelation() needs a value at every place, but {int(np.isnan(values).sum())} "
                                   'numbers are empty. Fill them first: nums.fill_empty_numbers(with_the="line between '
                                   'neighbours").')
         got = _time_series.autocorrelation(values, rows_back, show, band, step_name)

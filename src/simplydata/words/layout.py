@@ -172,17 +172,17 @@ class LayoutWords:
         for axis, span in spans.items():
             name = f"{axis}_between"
             if span is None:
-                raise SimplydataError(f".zoom_box() needs {name}=[low, high].\nFor example {example}")
+                raise SimplydataError(f".add_zoom_box() needs {name}=[low, high].\nFor example {example}")
             if isinstance(span, (str, bytes)) or not is_listlike(span) or len(span) != 2:
-                raise SimplydataError(f".zoom_box() needs two numbers in {name}=[low, high], not {span!r}.\n"
+                raise SimplydataError(f".add_zoom_box() needs two numbers in {name}=[low, high], not {span!r}.\n"
                                       f"For example {example}")
             for value in span:
                 if isinstance(value, bool) or not isinstance(value, numbers.Real):
-                    raise SimplydataError(f".zoom_box() needs numbers in {name}=, not {value!r}.\n"
+                    raise SimplydataError(f".add_zoom_box() needs numbers in {name}=, not {value!r}.\n"
                                           f"For example {example}")
             low, high = sorted(float(v) for v in span)
             if low == high:
-                raise SimplydataError(f".zoom_box() needs two different numbers in {name}=.\nFor example {example}")
+                raise SimplydataError(f".add_zoom_box() needs two different numbers in {name}=.\nFor example {example}")
             spans[axis] = (low, high)
         return self._replace("zoom_box", "finish", _zoom_box, chart=self, x_between=spans["x"],
                              y_between=spans["y"], where=where)

@@ -175,7 +175,7 @@ class NumberGrid(ReplacingWords, GridSummaryWords, MathsWords, BaseNumbers):
 
     @friendly
     def get_row(self, position=None):
-        """One row of the grid as new numbers, counting from 1: row(1) is the top row. grid.get_row(1)
+        """One row of the grid as new numbers, counting from 1: get_row(1) is the top row. grid.get_row(1)
 
         grid.get_row("last") is the bottom row.
         """
@@ -183,7 +183,7 @@ class NumberGrid(ReplacingWords, GridSummaryWords, MathsWords, BaseNumbers):
 
     @friendly
     def get_column(self, position=None):
-        """One column of the grid as new numbers, counting from 1: column(1) is the left one. grid.get_column(1)
+        """One column of the grid as new numbers, counting from 1: get_column(1) is the left one. grid.get_column(1)
 
         grid.get_column("last") is the right one.
         """
@@ -308,7 +308,7 @@ class NumberGrid(ReplacingWords, GridSummaryWords, MathsWords, BaseNumbers):
 
     @friendly
     def start_chart(self):
-        """Start a chart from this grid, for example a heatmap. grid.start_chart().heatmap(with_numbers=True)"""
+        """Start a chart from this grid, for example a heatmap. grid.start_chart().draw_heatmap(with_numbers=True)"""
         from ..chart import chart
 
         return chart(self)

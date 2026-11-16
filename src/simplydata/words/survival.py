@@ -132,7 +132,7 @@ class SurvivalChartWords:
         example = 'chart.draw_survival_curves(time="days", event="died", colour="treatment")'
         for option, value in (("time", time), ("event", event)):
             if not isinstance(value, str):
-                raise SimplydataError(f".survival_curves() needs {option}= as a column name in quotes.\n"
+                raise SimplydataError(f".draw_survival_curves() needs {option}= as a column name in quotes.\n"
                                       f"For example {example} (with sdata.get_example(\"trial\")).")
         if time == event:
             raise SimplydataError(f'"{time}" cannot be both time= and event=.\nFor example {example}.')
@@ -144,16 +144,16 @@ class SurvivalChartWords:
         thickness = check_thickness("draw_survival_curves", thickness)
         group, _ = colour_role(self._data, colour)
         if group is not None and not isinstance(group, str):
-            raise SimplydataError(f'.survival_curves() needs colour= as a column name or a colour.\nFor example {example}.')
+            raise SimplydataError(f'.draw_survival_curves() needs colour= as a column name or a colour.\nFor example {example}.')
         if group in (time, event):
             raise SimplydataError(f'"{group}" cannot be both colour= and time= or event=.')
         check(self._data, x=time, y=event, colour=group)
         rows = _rows_used(self._data, time, event, group)
         if not len(rows):
-            raise SimplydataError(f'.survival_curves() found no rows with "{time}" and "{event}" filled in.')
+            raise SimplydataError(f'.draw_survival_curves() found no rows with "{time}" and "{event}" filled in.')
         check_time(rows[time].tolist(), time)  # say what is wrong on the user's line
         read_event(rows[event].tolist(), event)
-        self._need_axes("survival_curves")
+        self._need_axes("draw_survival_curves")
         # x= and y= so the chart notes count the rows left out because of empty cells
         self._add("survival_curves", "draw", _draw_survival, x=time, y=event, colour=colour,
                   confidence_band=with_confidence_band, censor_marks=with_censor_marks, transparency=transparency,

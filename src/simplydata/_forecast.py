@@ -249,7 +249,7 @@ def r_change_points(values, change, penalty):
                      penalty=PENALTIES[penalty])
     except SimplydataError as error:
         if "no_noise" in str(error):
-            raise SimplydataError("find_change_points() needs readings that vary from one to the next; here the "
+            raise SimplydataError("find_change_points_in() needs readings that vary from one to the next; here the "
                                   "differences are mostly 0.") from None
         raise
     return {"scale": float(np.asarray(out["scale"]).ravel()[0]),

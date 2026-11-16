@@ -125,7 +125,7 @@ class ReplacingWords:
         As NumPy np.where(a > 100, 100, a) and pandas s.mask(s > 100, 100).
         """
         name = self._name
-        example = f"{name}.replace_numbers(is_above=100, with_value=100)"
+        example = f"{name}.replace_each_number_that(is_above=100, with_value=100)"
         options = dict(above=is_above, below=is_below, at_least=is_at_least, at_most=is_at_most, equal_to=is_equal_to,
                        not_equal_to=is_not_equal_to, between=is_between, one_of=is_one_of, is_empty=is_empty)
         given = [k for k, v in options.items() if v is not NOT_GIVEN]
@@ -133,12 +133,12 @@ class ReplacingWords:
             raise SimplydataError(
                 ".replace_each_number_that() needs the number to replace, or one condition saying which numbers ("
                 + ", ".join(f"{_is(c)}=" for c in CONDITIONS) + "), and with_value= the new number."
-                + f"\nFor example:  {name}.replace_numbers(-999, with_value=None)\nFor example:  {example}"
+                + f"\nFor example:  {name}.replace_each_number_that(-999, with_value=None)\nFor example:  {example}"
             )
         if old is not NOT_GIVEN and given:
             raise SimplydataError(
-                f".replace_numbers() takes either the old number or one condition ({given[0]}=), not both."
-                + f"\nFor example:  {name}.replace_numbers(-999, with_value=None)\nFor example:  {example}"
+                f".replace_each_number_that() takes either the old number or one condition ({given[0]}=), not both."
+                + f"\nFor example:  {name}.replace_each_number_that(-999, with_value=None)\nFor example:  {example}"
             )
         if with_value is NOT_GIVEN:
             raise SimplydataError(
@@ -153,15 +153,15 @@ class ReplacingWords:
         if old is not NOT_GIVEN:
             if old is None or (is_number(old) and old != old):
                 raise SimplydataError(
-                    f"For the empty numbers write {name}.replace_numbers(is_empty=True, with_value=0) "
+                    f"For the empty numbers write {name}.replace_each_number_that(is_empty=True, with_value=0) "
                     f"or {name}.fill_empty_numbers(with_value=0)." if name == "nums" else
-                    f"For the empty numbers write {name}.replace_numbers(is_empty=True, with_value=0)."
+                    f"For the empty numbers write {name}.replace_each_number_that(is_empty=True, with_value=0)."
                 )
             olds = list(old) if isinstance(old, (list, tuple, set, np.ndarray)) else [old]
             for x in olds:
                 if not is_number(x):
                     raise SimplydataError(f"The old value needs to be a number (you gave {x!r})."
-                                          + f"\nFor example:  {name}.replace_numbers(-999, with_value=None)")
+                                          + f"\nFor example:  {name}.replace_each_number_that(-999, with_value=None)")
             options = {"one_of": olds} if len(olds) > 1 else {"equal_to": olds[0]}
         cond, words = self._condition("replace_each_number_that", options, ())
         n, total = int(cond.sum()), self._values.size

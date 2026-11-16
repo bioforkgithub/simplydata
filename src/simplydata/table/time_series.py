@@ -344,7 +344,7 @@ class TimeSeriesWords:
 
     # ------------------------------------------------------------------ find_correlation_between(rows_back=)
     def _cross_correlation(self, step, names, rows_back, sorted_by):
-        """correlation_between(a, b, rows_back=k): the cross-correlation for shifts -k to k."""
+        """find_correlation_between(a, b, rows_back=k): the cross-correlation for shifts -k to k."""
         from .. import _trend_season as ts
         from .._time_series import read_rows_back
 
