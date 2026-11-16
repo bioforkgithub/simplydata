@@ -70,7 +70,7 @@ _TARGET = re.compile(r"(?:sdata|table|chart|nums|grid|dist)\.(\w+)\(")
 
 
 def other_name_target(written: str) -> str:
-    """The word a pointer names: "sdata.find_where_smallest(...)" -> "find_smallest"."""
+    """The word a pointer names: "sdata.find_where_smallest(...)" -> "find_where_smallest"."""
     found = _TARGET.search(written)
     return found.group(1) if found else written
 
@@ -143,7 +143,7 @@ def choice_error(step: str, option: str, value, choices) -> SimplydataError:
 # ---------------------------------------------------------------- old names
 # When a word or option gets a better name, the old one keeps working for one release.
 # The first time it is used in a session, one gentle line says what it is called now.
-_NOTED: set[str] = set()
+_NOTED: set = set()
 
 
 def _quoted(name: str) -> str:
@@ -151,10 +151,15 @@ def _quoted(name: str) -> str:
 
 
 def renamed_note(old: str, new: str) -> None:
-    """Print, once per session, that an old word or option now has a new name."""
-    if old in _NOTED:
+    """Print, once per session, that an old word or option now has a new name.
+
+    The note is remembered for the pair (old, new): the same old name can stand for different new
+    words on different objects (table.chart is start_chart, dist.chart is draw_chart), and each
+    of them gets its own note.
+    """
+    if (old, new) in _NOTED:
         return
-    _NOTED.add(old)
+    _NOTED.add((old, new))
     print(f"Note: {_quoted(old)} is now called {_quoted(new)}. "
           "The old name will stop working in a later version.")
 

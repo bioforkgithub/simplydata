@@ -31,7 +31,7 @@ from ._dates import make_run_of_dates
 from ._waves import find_inverse_fourier_transform, make_wave, make_window_shape
 from .systems import System, frequency_filter, system
 
-# Last, on purpose: the old name sdata.show_all_words (below) must win over the subpackage simplydata.words
+# Last, on purpose: the old name sdata.words (defined below) must win over the subpackage simplydata.words
 # (sdata.table and sdata.numbers win over their subpackages the same way, by being imported after them).
 from .learn import help, show_all_words, show_lesson  # noqa: E402
 from .learn_days import go_to_next_day, show_answers, show_day, show_today, start_30_days  # noqa: E402
