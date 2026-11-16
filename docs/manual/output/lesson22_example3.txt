@@ -1,13 +1,13 @@
 Counted as positive: "rapid_test" = "positive"; as having it: "infected" = "yes".
 Of 1000 people like these (25.0 % have it in this table), 250 have it: the test finds 195 (sensitivity 78.0 %, 95 % CI 64.0 to 88.5 %) and misses 55. Of the 750 without it, 700 test negative (specificity 93.3 %, 95 % CI 88.1 to 96.8 %) and 50 test positive by mistake.
 So of the 245 positive results, 195 (79.6 %, 95 % CI 65.7 to 89.8 %) really have it; of the 755 negative results, 700 (92.7 %, 95 % CI 87.3 to 96.3 %) really do not.
-A positive result is 11.7 times more common in people who have it than in people who do not (positive likelihood ratio, 95 % CI 6.32 to 21.7); a negative result is 0.236 times as common (negative likelihood ratio, 0.140 to 0.398).
 The share of positives that are real depends on how common the condition is: give prevalence=1 to see it for a group where 1 % have it.
 Method: exact Clopper-Pearson intervals (statsmodels proportion_confint), likelihood ratios from R epiR::epi.tests(method = "exact"); "rapid_test" against "infected" = "yes". The counts of 1000 are the shares written as numbers of people.
+Note: the likelihood ratios and the diagnostic odds ratio with their intervals come from the R package epiR, which is not ready here; to add them: pip install "simplydata[r]", install R, then in R install.packages("epiR").
 Counted as positive: "rapid_test" = "positive"; as having it: "infected" = "yes".
 Of 1000 people like these (25.0 % have it in this table), 250 have it: the test finds 195 (sensitivity 78.0 %, 95 % CI 64.0 to 88.5 %) and misses 55. Of the 750 without it, 700 test negative (specificity 93.3 %, 95 % CI 88.1 to 96.8 %) and 50 test positive by mistake.
 So of the 245 positive results, 195 (79.6 %, 95 % CI 65.7 to 89.8 %) really have it; of the 755 negative results, 700 (92.7 %, 95 % CI 87.3 to 96.3 %) really do not.
-A positive result is 11.7 times more common in people who have it than in people who do not (positive likelihood ratio, 95 % CI 6.32 to 21.7); a negative result is 0.236 times as common (negative likelihood ratio, 0.140 to 0.398).
 Of 1000 people like these (1.00 % have it), 10 have it: the test finds 8 (sensitivity 78.0 %) and misses 2. Of the 990 without it, 924 test negative (specificity 93.3 %) and 66 test positive by mistake.
 So of the 74 positive results, 8 (10.8 %) really have it; of the 926 negative results, 924 (99.8 %) really do not.
 Method: exact Clopper-Pearson intervals (statsmodels proportion_confint), likelihood ratios from R epiR::epi.tests(method = "exact"); "rapid_test" against "infected" = "yes". The counts of 1000 are the shares written as numbers of people.
+Note: the likelihood ratios and the diagnostic odds ratio with their intervals come from the R package epiR, which is not ready here; to add them: pip install "simplydata[r]", install R, then in R install.packages("epiR").

@@ -1,3 +1,4 @@
-The average "marks" is 62.3 in English, 62.8 in Maths and 69.7 in Science. Omega-squared = 0.0138 (95 % CI 0 to 0.104): the groups explain about 1 % of the differences in "marks".
+The average "marks" is 62.3 in English, 62.8 in Maths and 69.7 in Science.
 If the groups were truly alike, differences this big or bigger between them would turn up in about 26 of 100 studies like this one (p = 0.264). This does not show that the groups are alike.
-Test: Welch's one-way ANOVA (F = 1.39, df = 2 and 33.8), the usual test for three or more averages; it does not assume the groups have the same spread. To see which groups differ: table.compare_each_pair("marks", for_each="subject").
+Test: Welch's one-way ANOVA (F = 1.39, df = 2 and 33.8), the usual test for three or more averages; it does not assume the groups have the same spread. To see which groups differ: table.compare_each_pair_of("marks", for_each_group_in="subject").
+Note: omega-squared and its 95 % CI come from the R package effectsize, which is not ready here; to add them: pip install "simplydata[r]", install R, then in R install.packages("effectsize").

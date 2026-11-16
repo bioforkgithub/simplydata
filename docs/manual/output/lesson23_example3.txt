@@ -1,4 +1,4 @@
-Added 15 missing days to "date" (6 for Station A, 9 for Station B); the new rows have empty cells. Fill them next: table.fill_empty_cells("<column>", with_the="line between neighbours", sorted_by="date", for_each="station").
+Added 15 missing days to "date" (6 for Station A, 9 for Station B); the new rows have empty cells. Fill them next: table.fill_empty_cells_in("<column>", with_the="line between neighbours", sorted_by="date", for_each_group_in="station").
 Filled 15 cells in nitrate on the line between neighbours in order of date, for each station on its own.
 Each "week_average" is the average of nitrate in the 7 days up to and including this row's date (empty cells left out) (separately for each station), in order of date.
 Smoothed "nitrate" with a moving average over 31 readings centred on each one; the first and last 15 readings have no full window, so they are empty, for each station in order of "date". Added "nitrate_smoothed".

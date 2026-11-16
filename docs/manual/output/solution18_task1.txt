@@ -3,3 +3,8 @@ Hazard ratios from 120 rows with 59 events (above 1: a higher risk of the event 
   each 1 more "age": hazard ratio 1.05 (95 % CI 1.03 to 1.08); fewer than 1 in 1000 studies would show this much if there were truly none (p < 0.0001).
 The model as a whole (likelihood-ratio test, chi-square = 20.4, df = 1): fewer than 1 in 1000 studies would show this much if none of the columns truly mattered (p < 0.0001).
 Method: Cox proportional hazards model, Efron's method for tied times, as R coxph(Surv(days, died == "yes") ~ age).
+Note: the proportional-hazards check was left out. The proportional-hazards check (R survival::cox.zph()) is done by R (the same code R users run), and R is not ready here.
+  - R did not start: list index out of range
+  - install R from https://cran.r-project.org if it is not installed; if it is, set the R_HOME environment variable to its folder and restart Python
+  - in R: install.packages(c("survival"))
+(lifelines proportional_hazard_test is a similar check but gives different numbers)

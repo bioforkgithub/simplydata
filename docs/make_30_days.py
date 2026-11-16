@@ -1,6 +1,6 @@
 """Build the printable guide "30 days of simplydata" (docs/manual/simplydata_30_days.tex and .pdf).
 
-The guide has the same days as sdata.today(): both are made from simplydata/learn_days.py. For each
+The guide has the same days as sdata.show_today(): both are made from simplydata/learn_days.py. For each
 of the two tracks (python and beginner) it has a one-page calendar to tick, then each day on its own
 page (the warm-up questions with lines to write the answers on, what to do with the page of the
 manual for each lesson, section and word, and the task), and the answers at the back.
@@ -55,8 +55,8 @@ The same 30 days are in Python. Start once, then type one word each day:
 import simplydata as sdata
 sdata.start_30_days()                    # the Python track: you already write some Python
 sdata.start_30_days(track="beginner")    # the beginner track: you have never programmed
-sdata.today()                            # every day: the day to do next
-sdata.answers()                          # the answers to the warm-up and the task
+sdata.show_today()                            # every day: the day to do next
+sdata.show_answers()                          # the answers to the warm-up and the task
 \end{lstlisting}
 This guide is the paper version, to keep next to the manual (\href{@MANUAL@}{@MANUALCODE@}): every
 page number is a link that opens the manual at that page. Each day has three parts and takes about
@@ -64,8 +64,8 @@ an hour:
 \begin{enumerate}[leftmargin=1.6em]
   \item \textbf{Warm-up, 5 minutes.} A few questions about words from earlier days. Answer them
     \emph{from memory}, on the lines, before you look anything up. Then check the answers at the
-    back of the guide (each day has a link to them) or with \code{sdata.answers(n)}.
-  \item \textbf{What to do, about 45 minutes.} The lesson to work through (\code{sdata.lesson(n)}),
+    back of the guide (each day has a link to them) or with \code{sdata.show\_answers(n)}.
+  \item \textbf{What to do, about 45 minutes.} The lesson to work through (\code{sdata.show\_lesson(n)}),
     the pages of the manual to read and the words to look up with \code{sdata.help("word")}. Type every
     example yourself: typing it, and getting it wrong, teaches more than copying.
   \item \textbf{Try it yourself, 10 minutes.} A task to do without looking back. If yours runs and
@@ -81,7 +81,7 @@ values between points). The days that come near them end with a line ``More in t
 names the lesson, for when your own work needs it.
 
 \textbf{Missed a day, or a week?} That is fine. Carry on where you stopped: the days build on each
-other, and nothing is lost by taking a break. In Python, \code{sdata.today()} does the same.
+other, and nothing is lost by taking a break. In Python, \code{sdata.show\_today()} does the same.
 
 \section*{Why a warm-up from memory?}
 Trying to remember something fixes it in memory better than reading it again: in experiments,
@@ -277,7 +277,7 @@ def _warm_up(p: dict) -> str:
         out.append(r"\end{enumerate}")
         out.append(f"{{\\small Answers: \\hyperref[{answers_label(p['track'], p['number'])}]"
                    f"{{page~\\pageref*{{{answers_label(p['track'], p['number'])}}}}}, "
-                   f"or {code('sdata.answers(' + str(p['number']) + ')')}.}}")
+                   f"or {code('sdata.show_answers(' + str(p['number']) + ')')}.}}")
     out.append(r"\end{warmup}")
     return "\n".join(out)
 
@@ -317,7 +317,7 @@ def _tryit(p: dict) -> str:
     out.append(r"\end{enumerate}")
     label = answers_label(p["track"], p["number"])
     out.append(f"{{\\small Worked answers: \\hyperref[{label}]{{page~\\pageref*{{{label}}}}}, or "
-               f"{code('sdata.answers(' + str(p['number']) + ')')}.}}")
+               f"{code('sdata.show_answers(' + str(p['number']) + ')')}.}}")
     out.append(r"\end{tryit}")
     return "\n".join(out)
 

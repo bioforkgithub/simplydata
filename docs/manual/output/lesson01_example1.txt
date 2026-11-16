@@ -1,38 +1,38 @@
 Example tables you can use (all made up, for practice):
 
-  sdata.example("marks")
+  sdata.get_example("marks")
       Test marks of 18 made-up children in three classes.
       Columns: name, class, subject, hours, marks, height
 
-  sdata.example("weather")
+  sdata.get_example("weather")
       Weather in three made-up cities, month by month.
       Columns: month, month_number, city, temperature, rain, wind_direction, wind_speed
 
-  sdata.example("fruit")
+  sdata.get_example("fruit")
       Fruit sold by two made-up shops in one week. One row is one sale.
       Columns: day, shop, fruit, count, price
 
-  sdata.example("growth")
+  sdata.get_example("growth")
       Population of four made-up countries, every two years from 2000 to 2024.
       Columns: year, country, population, forest
 
-  sdata.example("sensor")
+  sdata.get_example("sensor")
       Five seconds of a made-up sensor, 200 readings per second: cycles, a hum, a drift, noise and spikes.
       Columns: time, signal, vibration
 
-  sdata.example("visitors")
+  sdata.get_example("visitors")
       Monthly visitors to two made-up museums, 2014 to 2025: a rising trend, a yearly season and noise.
       Columns: month, museum, visitors
 
-  sdata.example("river")
+  sdata.get_example("river")
       Daily water level and nitrate at two made-up river stations, 2024 to 2025. Some days and cells are missing.
       Columns: date, station, level, nitrate
 
-  sdata.example("shop")
+  sdata.get_example("shop")
       Daily sales of two made-up shops from January to March 2026. Some cells are empty.
       Columns: date, shop, sales, customers
 
-  sdata.example("school")
+  sdata.get_example("school")
       Made-up pupils in 12 schools, three classes in each: study, sleep and test marks. Some sleep cells are empty.
       Columns: school, pupil, class, hours, sleep, breakfast, marks, passed, days_absent
 
