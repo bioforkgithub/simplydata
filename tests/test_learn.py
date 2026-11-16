@@ -1,4 +1,4 @@
-"""The learning tools: example tables, sdata.show_all_words(), sdata.help(), sdata.show_lesson() and the cheat sheet."""
+"""The learning tools: example tables, sdata.show_all_words(), sdata.help(), sdata.show_lesson() and the dictionary."""
 
 import contextlib
 import importlib.util
@@ -175,11 +175,11 @@ def test_help_understands_ways_of_writing_a_word(typed, capsys):
     assert capsys.readouterr().out.startswith("chart.draw_bars()")
 
 
-@pytest.mark.parametrize("typed, old", [("bars", "bars"), ("bars()", "bars"), ("bar", "bar"), ("sdata.bars", "bars")])
-def test_help_for_an_old_way_of_writing_a_word_points_to_the_new_one(typed, old, capsys):
+@pytest.mark.parametrize("typed", ["bars", "bars()", "chart.bars", "sdata.bars"])
+def test_help_for_an_old_way_of_writing_a_word_points_to_the_new_one(typed, capsys):
     sdata.help(typed)
     out = capsys.readouterr().out
-    assert out.startswith(f'"{old}" is now called "draw_bars"') and "\nchart.draw_bars()\n" in out
+    assert out.startswith('"chart.bars" is now called "chart.draw_bars"') and "\nchart.draw_bars()\n" in out
 
 
 @pytest.mark.parametrize("typed, expected", [
@@ -266,7 +266,7 @@ def test_every_help_example_runs(key, tmp_path, monkeypatch, capsys):
 
 # ---------------------------------------------------------------- docstring examples
 def _doc_example_code(key):
-    """The word's own short example (from its docstring, as sdata.show_all_words() and the cheat sheet show
+    """The word's own short example (from its docstring, as sdata.show_all_words() and the dictionary show
     it), after the lines of its help example that come before it: the example table and, for
     steps such as fit_line, the chart step they go on."""
     word = learn._word(key)
@@ -378,13 +378,21 @@ def test_wrong_lesson_number_is_explained(bad):
         sdata.show_lesson(bad)
 
 
-# ---------------------------------------------------------------- cheat sheet
-def test_cheatsheet_is_up_to_date():
-    spec = importlib.util.spec_from_file_location("make_cheatsheet", ROOT / "docs" / "make_cheatsheet.py")
-    module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
-    written = (ROOT / "docs" / "cheatsheet.md").read_text(encoding="utf-8")
-    assert written == module.make(), "Run: python docs/make_cheatsheet.py"
+# ---------------------------------------------------------------- every word at a glance
+def _glance_text() -> str:
+    """The first pages of the dictionary .tex (every word at a glance; this was the cheat sheet)."""
+    written = DICTIONARY.read_text(encoding="utf-8")
+    start, end = written.index(r"\label{glance}"), written.index(r"\end{glancetable}")
+    return written[start:end]
+
+
+def test_dictionary_front_pages_list_every_word_in_order():
+    """The words at a glance are the words of sdata.show_all_words(), group by group, in its order."""
+    glance = _glance_text()
+    groups = re.findall(r"\\glancegroup\{([^}]*)\}", glance)
+    assert groups == [_tex_plain(group) for group, _ in learn.GROUPS]
+    shown = [_tex_plain(m) for m in re.findall(r"\\glanceword\{\\hyperref\[[^]]*\]\{\\code\{([^}]*)\}", glance)]
+    assert shown == [learn._display(k) for _, keys in learn.GROUPS for k in keys]
 
 
 # ---------------------------------------------------------------- solutions and the manual
@@ -495,6 +503,11 @@ def test_lesson_count_is_not_typed_by_hand():
 DICTIONARY =ROOT / "docs" / "manual" / "simplydataDictionary.tex"
 
 
+def _tex_plain(text: str) -> str:
+    """LaTeX as plain text for the checks: no \\allowbreak{} and no escaped underscores."""
+    return text.replace(r"\allowbreak{}", "").replace(r"\_", "_").replace(r"\&", "&")
+
+
 def _make_dictionary():
     spec = importlib.util.spec_from_file_location("make_dictionary", ROOT / "docs" / "make_dictionary.py")
     module = importlib.util.module_from_spec(spec)
@@ -590,7 +603,8 @@ OLD_WORDS = {  # old name -> what sdata.help shows instead
 def test_help_for_an_old_name_points_to_the_new_one(old, new, capsys):
     sdata.help(old)
     out = capsys.readouterr().out
-    assert out.startswith(f'"{old}" is now called "{_new_word(new)}"')
+    where = new.split(".")[0]
+    assert out.startswith(f'"{where}.{old}" is now called "{where}.{_new_word(new)}"')
     assert f"\n{new}\n" in out  # and the help of the new word follows
 
 
@@ -609,7 +623,8 @@ def test_help_for_an_old_option_points_to_the_new_one(old, new, where, capsys):
     if new is None:  # a new option name is not a word of its own
         assert "no word called" in out
     else:
-        assert f'is now called "{new}" in {where}' in out
+        line = next(x for x in out.splitlines() if x.startswith(f'"{old}" is now called "{new}" in '))
+        assert where in line or line.endswith(" more.")  # an old option of many words lists the first few
 
 
 def test_old_names_are_not_listed(capsys):
@@ -619,10 +634,10 @@ def test_old_names_are_not_listed(capsys):
         assert f"  {old} " not in out and f".{old}(" not in out
     for keys in [k for _, keys in learn.GROUPS for k in keys]:
         assert learn._word(keys) not in OLD_WORDS
-    cheat = (ROOT / "docs" / "cheatsheet.md").read_text(encoding="utf-8")
+    glance = _tex_plain(_glance_text())
     for old in ("all_points", "colour_bar_label", "remove_empty_rows", "big_data", "one_per(", "x_from",
                 ".done()", "show_first(", "band="):
-        assert not re.search(r"(?<![a-z_])" + re.escape(old), cheat), old
+        assert not re.search(r"(?<![a-z_])" + re.escape(old), glance), old
     lessons = "\n".join(code + explain for les in learn.LESSONS for _, steps in les["parts"]
                         for code, explain in steps)
     for old in ("all_points", "colour_bar_label", "remove_empty_rows", "big_data", "one_per(", "x_from",

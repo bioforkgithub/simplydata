@@ -36,10 +36,11 @@ python -m pytest -q
 
 - Each new word needs tests. Statistical results are checked against a second tool (R, SciPy
   or statsmodels) with the reference values written in the test.
-- Each new word needs an entry in `src/simplydata/learn.py` (for `sdata.words()` and
+- Each new word needs an entry in `src/simplydata/learn.py` (for `sdata.show_all_words()` and
   `sdata.help()`); the tests fail until it has one.
-- If you change words or lessons, rebuild the cheat sheet with `python docs/make_cheatsheet.py`
-  and, if you have LaTeX, the manual with `python docs/make_manual.py`.
+- If you change words or lessons and you have LaTeX, rebuild the three documents (the manual, the
+  dictionary, whose first pages list every word at a glance, and the 30-day guide) with
+  `python docs/make_manual.py`.
 - Tests must pass on Python 3.10 to 3.13; GitHub runs them on Windows, macOS and Linux for
   every pull request.
 

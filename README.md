@@ -74,7 +74,7 @@ lesson has an example you can run, says what every line does, explains the idea 
 to try yourself.
 
 - `sdata.show_lesson()` lists the lessons
-- `sdata.show_all_words()` lists every word, with an example (also in [docs/cheatsheet.md](https://github.com/bioforkgithub/simplydata/blob/main/docs/cheatsheet.md))
+- `sdata.show_all_words()` lists every word, with an example (also on the first pages of the [dictionary](https://github.com/bioforkgithub/simplydata/blob/main/docs/manual/simplydataDictionary.pdf))
 - `sdata.help("draw_bars")` explains one word: what it does, its options and an example
   (table and number words too: `sdata.help("keep_rows_where")`, `sdata.help("find_average")`)
 - `sdata.get_example()` lists the made-up tables to practise with (marks, weather, fruit, growth, sensor, visitors, river, shop, school, meadow, trial, clinic, island; shop has dates and empty cells)
@@ -114,7 +114,7 @@ behind the numbers (average or median, standard deviation or standard error, con
 p-values, effect sizes, and which statistical test to use when), and a worked solution for every
 task.
 
-**[The simplydata dictionary (PDF)](https://github.com/bioforkgithub/simplydata/blob/main/docs/manual/simplydataDictionary.pdf)** lists every word A to Z, with its meaning, an example and the page of the manual that explains it, and turns names from other tools (`groupby`, `iloc`, `hist`, `curve_fit` ...) into simplydata words.
+**[The simplydata dictionary (PDF)](https://github.com/bioforkgithub/simplydata/blob/main/docs/manual/simplydataDictionary.pdf)** opens with every word at a glance, group by group, then lists every word A to Z, with its meaning, an example and the page of the manual that explains it, and turns names from other tools (`groupby`, `iloc`, `hist`, `curve_fit` ...) into simplydata words.
 
 The manual is made from the code by `python docs/make_manual.py` (it needs a LaTeX system with
 `pdflatex`), so it never goes out of date: a test fails if
