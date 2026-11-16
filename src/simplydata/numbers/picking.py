@@ -137,7 +137,7 @@ class ReplacingWords:
             )
         if old is not NOT_GIVEN and given:
             raise SimplydataError(
-                f".replace_each_number_that() takes either the old number or one condition ({given[0]}=), not both."
+                f".replace_each_number_that() takes either the old number or one condition ({_is(given[0])}=), not both."
                 + f"\nFor example:  {name}.replace_each_number_that(-999, with_value=None)\nFor example:  {example}"
             )
         if with_value is NOT_GIVEN:

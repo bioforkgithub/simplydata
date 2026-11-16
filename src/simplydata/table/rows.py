@@ -1161,7 +1161,7 @@ class RowWords:
         example = f'table.replace_values_in("marks", is_above=90, with_value=90)'
         if old is not _NOT_GIVEN:
             raise SimplydataError(
-                f".replace_values_in() takes either the old value or one condition ({given[0]}=), not both."
+                f".replace_values_in() takes either the old value or one condition ({_is(given[0])}=), not both."
                 + _example('table.replace_values_in("subject", "Maths", with_value="Math")') + _example(example)
             )
         if with_value is _NOT_GIVEN:
