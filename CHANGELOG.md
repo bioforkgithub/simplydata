@@ -15,7 +15,7 @@ saying what it should do, then the details as options. Most words start with a v
 first input is joined by a small word (`_where`, `_in`, `_of`, `_that`). Every old name and old
 option keeps working for one release and prints one line, once per session (`Note: "bars" is now
 called "draw_bars". ...`); `sdata.help("old_name")` points to the new word, and old names are not
-listed in `sdata.show_all_words()`, the cheat sheet or the lessons. Old names from other tools
+listed in `sdata.show_all_words()`, the dictionary's word list or the lessons. Old names from other tools
 point to the new words.
 
 - Charts: `chart.bars` -> `draw_bars`, `chart.lines` -> `draw_lines`, `chart.dots` -> `draw_dots`,
@@ -42,9 +42,11 @@ point to the new words.
   `draw_survival_curves`, `chart.line_at_x` -> `draw_line_at_x`, `chart.line_at_y` -> `draw_line_at_y`,
   `chart.line_with_slope` -> `draw_line_with_slope`.
 - Chart spellings: `chart.color` -> `use_color`, `chart.colors` -> `use_colors`, `chart.color_scale` ->
-  `use_color_scale`; the other names `chart.scatter`, `chart.bar`, `chart.line`, `chart.box`,
-  `chart.violin` now point to `draw_dots`, `draw_bars`, `draw_lines`, `draw_boxes`, `draw_violins` with
-  the same note. The legend words accept the other spelling too (`put_legend_on_top`,
+  `use_color_scale`. The American spellings of the new words (`use_color`, `use_colors`,
+  `use_color_scale`, `label_color_bar`) stay for good, with no note, as `color=` does for options.
+  `chart.scatter`, `chart.bar`, `chart.line`, `chart.box` and `chart.violin` are names from other tools
+  now, like `hist` and `boxplot`: they never run, and say "In simplydata this is chart.draw_dots(...)"
+  (and so on), for good. The legend words accept the other spelling too (`put_legend_on_top`,
   `put_legend_on_bottom`, `put_legend_at_left`, `put_legend_at_right`). A page of charts has
   `write_title_on_top`, `use_style` and `set_size`.
 - Tables: `table.column_names` -> `get_column_names`, `table.column` -> `get_column`, `table.row` ->
@@ -124,9 +126,20 @@ point to the new words.
   `keep_each_frequency_that`, `remove_each_frequency_that`, `find_each_peak_that`, `find_each_dip_that`,
   `chart.peak_dots` and `dist.find_chance_that_value`. `between=` stays for every span (axes, search
   ranges, random numbers, colour scales); `after=` and `before=` stay on `compare_before_and_after` (two
-  columns) and `add_column_with_part_of_text` (the text around a mark); `kind=` stays on
-  `agreement_between`; a grid's `for_each="row"` / `"column"` stays. `labeled=` is accepted as well as
-  `labelled=`.
+  columns) and `add_column_with_part_of_text` (the text around a mark); a grid's summaries take
+  `in_each="row"` / `"column"` (was `for_each=`) and `agreement_between` takes `checking_for="agreement"` /
+  `"consistency"` (was `kind=`), so `for_each_group_in=` and `of_kind=` each keep one meaning; the old
+  spellings work for one release with the usual note. `labeled=` is accepted as well as `labelled=`.
+- The note for an old name is given once for each new name, so `table.chart` and `dist.chart` (now
+  `start_chart` and `draw_chart`), or `above=` in `keep_rows_where` and in `find_cut_off`, each get their own
+  note. `sdata.help("dist.chart")` honours the object written in front and names the object on each line
+  (`"dist.chart" is now called "dist.draw_chart".`); an old option lists its words on one line.
+- Error messages, step descriptions (`turn marks into text`), docstrings and the lessons use the new names
+  throughout.
+- The one-page cheat sheet is now the first pages of the dictionary, "All the words at a glance" (every
+  word, group by group, with its example and what it does). `docs/cheatsheet.md` and
+  `docs/make_cheatsheet.py` are gone: the three documents are the manual, the dictionary and the 30-day
+  guide, all built by `python docs/make_manual.py`.
 - `dist.find_cut_off(with_chance_above=0.05)` / `with_chance_below=` (was `cut_off(above=)` / `below=`):
   the option says it is a chance, so it does not look like the `is_above=` condition.
 - `table.round_numbers_in("price", with_decimals=2)` (was `round_to("price", 2)`); `nums.round_to(2)`

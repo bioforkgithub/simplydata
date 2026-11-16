@@ -48,7 +48,7 @@ grammar.
 | Spelling | Both `colour` and `color`, `grey` and `gray` |
 | Errors | Friendly message, "did you mean …?", list of columns, link to request a missing word on GitHub |
 | Learning | Built-in lessons `sdata.show_lesson(1)` … `sdata.show_lesson(20)`, `sdata.help("draw_bars")`, `sdata.show_all_words()` |
-| Renaming | A renamed word or option keeps working for one release and prints one line, once per session: `Note: "remove_rows_with_empty_cells" is now called "remove_rows_with_empty_cells_in".` Old names are never listed in `sdata.show_all_words()`, the cheat sheet or the lessons; `sdata.help("old_name")` points to the new one |
+| Renaming | A renamed word or option keeps working for one release and prints one line, once per session: `Note: "remove_rows_with_empty_cells" is now called "remove_rows_with_empty_cells_in".` Old names are never listed in `sdata.show_all_words()`, the dictionary's word list or the lessons; `sdata.help("old_name")` points to the new one |
 
 ## 4. Grammar rules
 
@@ -79,11 +79,13 @@ A user who knows one word of a pattern should be able to guess the others.
 | 5 | **`show_` / `hide_` + thing** to look at something without changing it; the help words join it | `show_first_rows`, `show_grid`/`hide_grid`, `show_legend`/`hide_legend`, `show_steps`, `show_lesson`, `show_today` |
 | 6 | **`as_` + library** hands the data to another Python tool; **`save`** writes a file, its type from the file name | `as_pandas`, `as_polars`, `as_numpy`; `table.save("clean.xlsx")`, `chart.save("marks.png")` |
 
-**One option name, one meaning, everywhere:** `for_each_group_in=` (groups), `colour=` (one colour,
+**One option name, one meaning, everywhere:** `for_each_group_in=` (groups of a table), `in_each="row"` /
+`"column"` (a grid's rows or columns), `colour=` (one colour,
 or a colour per group), conditions start with `is_` (`is_above=`, `is_below=`, `is_at_least=`,
 `is_at_most=`, `is_equal_to=`, `is_not_equal_to=`, `is_one_of=`, `is_between=[low, high]`,
 `is_after=`, `is_before=`), `between=[low, high]` and `x_between=`/`y_between=` (every span),
-switches start with `with_` (`with_dots=True`, `with_arrow=True`, `with_seed=1`), `of_kind=`,
+switches start with `with_` (`with_dots=True`, `with_arrow=True`, `with_seed=1`), `of_kind=` (the kind of
+data in a column), `checking_for=` (what agreement means: `"agreement"` or `"consistency"`),
 `of_degree=`, `from_column=`, `with_value=`, `biggest_first=`, `per_row=` (charts in a row),
 `columns=` (table columns only), `labelled=` (text on a line or band; `labeled=` works too),
 `fast=`, `drawn_as=`. Measure names are the same wherever they appear: `"average"`, `"median"`,

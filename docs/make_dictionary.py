@@ -434,9 +434,11 @@ def _words_part(pages) -> str:
 
 
 def _target(key: str, pages) -> str:
-    """A word as it is written, linked to its entry, and its manual page."""
-    return (f"\\hyperref[{dict_label(headword(key))}]{{{code(learn._call_form(key))}}}, "
-            f"{manual_page(make_manual.label(key), pages)}")
+    """A word as it is written, linked to its entry, and its manual page. A grid summary (grid.find_total)
+    shares the entry and the page of the number word (nums.find_total)."""
+    entry = key if key in learn._all_keys() else "nums." + key.partition(".")[2]
+    return (f"\\hyperref[{dict_label(headword(entry))}]{{{code(learn._call_form(key))}}}, "
+            f"{manual_page(make_manual.label(entry), pages)}")
 
 
 def _others_part(pages) -> str:
@@ -610,7 +612,7 @@ PREAMBLE = r"""
 \newcommand{\wordfamily}[3]{{\ttfamily\bfseries\color{brand}#1} & #2 & #3\\[0.35em]}
 % every word at a glance: one line each (the word, a short example, what it does)
 \newenvironment{glancetable}{\par\scriptsize\setlength{\LTpre}{0.3em}\begin{longtable}{@{}%
-  >{\raggedright\arraybackslash}p{0.25\linewidth}>{\raggedright\arraybackslash}p{0.39\linewidth}%
+  >{\raggedright\arraybackslash}p{0.24\linewidth}>{\raggedright\arraybackslash}p{0.38\linewidth}%
   >{\raggedright\arraybackslash}p{0.32\linewidth}@{}}
   \textbf{Word} & \textbf{Example} & \textbf{What it does}\\\hline\endhead}{\end{longtable}}
 \newcommand{\glancegroup}[1]{\multicolumn{3}{@{}l}{\rule{0pt}{1.6em}\sffamily\small\bfseries\color{brand}#1}\\*[0.15em]}

@@ -391,7 +391,7 @@ def test_dictionary_front_pages_list_every_word_in_order():
     glance = _glance_text()
     groups = re.findall(r"\\glancegroup\{([^}]*)\}", glance)
     assert groups == [_tex_plain(group) for group, _ in learn.GROUPS]
-    shown = [_tex_plain(m) for m in re.findall(r"\\glanceword\{\\hyperref\[[^]]*\]\{\\code\{([^}]*)\}", glance)]
+    shown = re.findall(r"\\glanceword\{\\hyperref\[[^]]*\]\{\\code\{([^}]*)\}", _tex_plain(glance))
     assert shown == [learn._display(k) for _, keys in learn.GROUPS for k in keys]
 
 
@@ -623,7 +623,8 @@ def test_help_for_an_old_option_points_to_the_new_one(old, new, where, capsys):
     if new is None:  # a new option name is not a word of its own
         assert "no word called" in out
     else:
-        line = next(x for x in out.splitlines() if x.startswith(f'"{old}" is now called "{new}" in '))
+        option = old if old.endswith("=") else f"{old}="
+        line = next(x for x in out.splitlines() if x.startswith(f'"{option}" is now called "{new}" in '))
         assert where in line or line.endswith(" more.")  # an old option of many words lists the first few
 
 

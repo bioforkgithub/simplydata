@@ -314,12 +314,13 @@ def test_surface_draws_on_3d(grid):
 
 # ---------------------------------------------------------------- standard names
 def test_standard_name_aliases(marks):
-    """bar, line, box and violin were other spellings; now they are old names of the draw_ words."""
+    """bar, line, box and violin are names from other tools: they point to the draw_ words and never run."""
+    from simplydata._errors import MissingWordError
+
     chart = sdata.chart(marks)
-    assert chart.bar.__func__ is chart.draw_bars.__func__
-    assert chart.line.__func__ is chart.draw_lines.__func__
-    assert chart.box.__func__ is chart.draw_boxes.__func__
-    assert chart.violin.__func__ is chart.draw_violins.__func__
+    for name, word in (("bar", "draw_bars"), ("line", "draw_lines"), ("box", "draw_boxes"), ("violin", "draw_violins")):
+        with pytest.raises(MissingWordError, match=f"In simplydata this is chart.{word}"):
+            getattr(chart, name)
 
 
 def test_every_new_word_saves(marks, grid, tmp_path):

@@ -504,7 +504,7 @@ def test_no_old_name_in_the_built_documents():
         if name == "simplydataDictionary.tex":  # the list of old names is there on purpose
             start = text.index(r"\section*{Old names}")
             text = text[:start] + text[text.index(r"\end{dictcolumns}", start):]
-        plain = text.replace(r"\allowbreak{}", "").replace(r"\_", "_")
+        plain = text.replace(r"\allowbreak{}", "").replace(r"\_", "_").replace(r"\textquotedbl{}", '"')
         for number, line in enumerate(plain.splitlines(), 1):
             if any(mark in line for mark in _ON_PURPOSE):
                 continue

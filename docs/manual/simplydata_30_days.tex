@@ -4,7 +4,7 @@
 % change simplydata/learn_days.py, then run
 %     python docs/make_manual.py --no-run
 % ---------------------------------------------------------------------------------------------
-% Page numbers from simplydata_manual.tex f1cd76c5241d1867
+% Page numbers from simplydata_manual.tex 9d5e6f86f9c8156b
 
 \documentclass[10pt,a4paper]{article}
 % no dates or random IDs in the PDF, so it only changes when the guide changes
@@ -197,7 +197,7 @@ days (7, 14, 21 and 28) ask about the whole course, and the questions change eac
 \kind{sdata}\,\code{sdata.\allowbreak{}start\_\allowbreak{}30\_\allowbreak{}days()}~\manualpage{word:sdata.start-30-days}{337}{section*.427} & Start 30 days of simplydata: an hour a day of warm-up questions, lessons and tasks.\\[0.3em]
 \kind{sdata}\,\code{sdata.\allowbreak{}show\_\allowbreak{}today()}~\manualpage{word:sdata.show-today}{338}{section*.428} & Show today's day of the 30 days of simplydata: warm-up questions, what to do and a task.\\[0.3em]
 \kind{sdata}\,\code{sdata.\allowbreak{}show\_\allowbreak{}day()}~\manualpage{word:sdata.show-day}{338}{section*.429} & Show any day of the 30 days, without changing where you are.\\[0.3em]
-\kind{sdata}\,\code{sdata.\allowbreak{}show\_\allowbreak{}answers()}~\manualpage{word:sdata.show-answers}{338}{section*.430} & The answers to a day's warm-up questions, and a worked answer to its task.\\[0.3em]
+\kind{sdata}\,\code{sdata.\allowbreak{}show\_\allowbreak{}answers()}~\manualpage{word:sdata.show-answers}{339}{section*.430} & The answers to a day's warm-up questions, and a worked answer to its task.\\[0.3em]
 \kind{sdata}\,\code{sdata.\allowbreak{}go\_\allowbreak{}to\_\allowbreak{}next\_\allowbreak{}day()}~\manualpage{word:sdata.go-to-next-day}{339}{section*.431} & Go on to the next day now, without waiting for tomorrow.\\[0.3em]
 \end{tabular}\end{center}
 Your progress is kept only on your computer, in a small file (\code{\textasciitilde{}/.\allowbreak{}simplydata/progress.\allowbreak{}json}). Nothing is sent anywhere.
@@ -794,7 +794,7 @@ chart.save("good_marks.png")
 \end{itemize}
 \field{In the manual}{lesson~23, \manualpage{lesson:23}{129}{chapter.II.23}; lesson~25, \manualpage{lesson:25}{139}{chapter.II.25}.}
 \field{Words to look up}{\kind{table}\,\code{table.\allowbreak{}add\_\allowbreak{}missing\_\allowbreak{}dates()}~\manualpage{word:table.add-missing-dates}{274}{section*.273}; \kind{sdata}\,\code{sdata.\allowbreak{}make\_\allowbreak{}run\_\allowbreak{}of\_\allowbreak{}dates()}~\manualpage{word:sdata.make-run-of-dates}{273}{section*.272}; \kind{table}\,\code{table.\allowbreak{}add\_\allowbreak{}smoothed\_\allowbreak{}column()}~\manualpage{word:table.add-smoothed-column}{275}{section*.275}; \kind{table}\,\code{table.\allowbreak{}find\_\allowbreak{}trend\_\allowbreak{}of()}~\manualpage{word:table.find-trend-of}{276}{section*.277}.}
-\field{Needs R}{\code{trend\_\allowbreak{}of()} run R's own code, the same code R users run. Install it once: pip install \code{\textquotedbl{}simplydata[r]\textquotedbl{}}, then R from https://cran.r-project.org, then in R: \code{install.\allowbreak{}packages(c(\textquotedbl{}trend\textquotedbl{}))}. Without R these words print a message that says what to install.}
+\field{Needs R}{\code{find\_\allowbreak{}trend\_\allowbreak{}of()} run R's own code, the same code R users run. Install it once: pip install \code{\textquotedbl{}simplydata[r]\textquotedbl{}}, then R from https://cran.r-project.org, then in R: \code{install.\allowbreak{}packages(c(\textquotedbl{}trend\textquotedbl{}))}. Without R these words print a message that says what to install.}
 \end{todo}
 \begin{tryit}
 \begin{enumerate}
@@ -854,7 +854,7 @@ chart.save("good_marks.png")
 \begin{itemize}
   \item Project day 2: clean. Go column by column through what \code{describe\_\allowbreak{}columns} showed you.
   \item Fix text with spaces or mixed capitals, numbers stored as text, odd codes such as -999, and decide what to do with empty cells (remove, fill, or keep and let the tests skip them).
-  \item Save the clean table under a new name, and keep the \code{steps()}.
+  \item Save the clean table under a new name, and keep the \code{show\_\allowbreak{}steps()}.
 \end{itemize}
 \field{In the manual}{lesson~11, \manualpage{lesson:11}{59}{chapter.II.11}.}
 \field{Words to look up}{\kind{table}\,\code{table.\allowbreak{}count\_\allowbreak{}empty\_\allowbreak{}cells\_\allowbreak{}in()}~\manualpage{word:table.count-empty-cells-in}{206}{section*.144}; \kind{table}\,\code{table.\allowbreak{}remove\_\allowbreak{}extra\_\allowbreak{}spaces\_\allowbreak{}in()}~\manualpage{word:table.remove-extra-spaces-in}{210}{section*.154}; \kind{table}\,\code{table.\allowbreak{}replace\_\allowbreak{}values\_\allowbreak{}in()}~\manualpage{word:table.replace-values-in}{210}{section*.155}; \kind{table}\,\code{table.\allowbreak{}fill\_\allowbreak{}empty\_\allowbreak{}cells\_\allowbreak{}in()}~\manualpage{word:table.fill-empty-cells-in}{207}{section*.146}.}
@@ -1023,7 +1023,7 @@ chart.save("good_marks.png")
   \item Answer the warm-up on paper, from memory, before you look anything up.
   \item For each question you could not answer, open its day with \code{sdata.\allowbreak{}show\_\allowbreak{}day(n)} and run its example again.
   \item Project day 8: finish. Put every step of your project in one script, from the raw file to the figure, and run it from the top in a fresh session. It must run without errors.
-  \item Read \code{steps()} out loud: would someone else understand what you did?
+  \item Read \code{show\_\allowbreak{}steps()} out loud: would someone else understand what you did?
 \end{itemize}
 \field{Words to look up}{\kind{table}\,\code{table.\allowbreak{}show\_\allowbreak{}steps()}~\manualpage{word:table.show-steps}{300}{section*.321}; \kind{table}\,\code{table.\allowbreak{}save()}~\manualpage{word:table.save}{301}{section*.323}.}
 \end{todo}
@@ -1902,7 +1902,7 @@ nums.find_avrage()
 \end{itemize}
 \field{In the manual}{lesson~23, \manualpage{lesson:23}{129}{chapter.II.23}; lesson~25, \manualpage{lesson:25}{139}{chapter.II.25}.}
 \field{Words to look up}{\kind{table}\,\code{table.\allowbreak{}add\_\allowbreak{}missing\_\allowbreak{}dates()}~\manualpage{word:table.add-missing-dates}{274}{section*.273}; \kind{sdata}\,\code{sdata.\allowbreak{}make\_\allowbreak{}run\_\allowbreak{}of\_\allowbreak{}dates()}~\manualpage{word:sdata.make-run-of-dates}{273}{section*.272}; \kind{table}\,\code{table.\allowbreak{}add\_\allowbreak{}smoothed\_\allowbreak{}column()}~\manualpage{word:table.add-smoothed-column}{275}{section*.275}; \kind{table}\,\code{table.\allowbreak{}find\_\allowbreak{}trend\_\allowbreak{}of()}~\manualpage{word:table.find-trend-of}{276}{section*.277}.}
-\field{Needs R}{\code{trend\_\allowbreak{}of()} run R's own code, the same code R users run. Install it once: pip install \code{\textquotedbl{}simplydata[r]\textquotedbl{}}, then R from https://cran.r-project.org, then in R: \code{install.\allowbreak{}packages(c(\textquotedbl{}trend\textquotedbl{}))}. Without R these words print a message that says what to install.}
+\field{Needs R}{\code{find\_\allowbreak{}trend\_\allowbreak{}of()} run R's own code, the same code R users run. Install it once: pip install \code{\textquotedbl{}simplydata[r]\textquotedbl{}}, then R from https://cran.r-project.org, then in R: \code{install.\allowbreak{}packages(c(\textquotedbl{}trend\textquotedbl{}))}. Without R these words print a message that says what to install.}
 \end{todo}
 \begin{tryit}
 \begin{enumerate}
@@ -2051,7 +2051,7 @@ table = sdata.table(sdata.get_example("weather"))
 table.keep_rows_where("temperature", is_above=15)
 table.find_average_of("rain", for_each_group_in="city")
 \end{lstlisting}
-\begin{answerbox}\code{keep\_\allowbreak{}rows} says how many warm months are left; \code{find\_\allowbreak{}average\_\allowbreak{}of} gives one average for each city.\end{answerbox}
+\begin{answerbox}\code{keep\_\allowbreak{}rows\_\allowbreak{}where} says how many warm months are left; \code{find\_\allowbreak{}average\_\allowbreak{}of} gives one average for each city.\end{answerbox}
 {\small\hyperref[day:python:1]{Back to day 1}}
 \answerday{2}{Colours, word families and saving}{answers:python:2}
 \begin{enumerate}
@@ -2128,7 +2128,7 @@ chart.draw_line_at_x(2010, labelled="2010")
 chart.set_range_y(0, 60)
 chart.save("growth.png")
 \end{lstlisting}
-\begin{answerbox}\code{range\_\allowbreak{}y} takes the lowest and the highest value of the axis; \code{draw\_\allowbreak{}line\_\allowbreak{}at\_\allowbreak{}x} draws a line going up.\end{answerbox}
+\begin{answerbox}\code{set\_\allowbreak{}range\_\allowbreak{}y} takes the lowest and the highest value of the axis; \code{draw\_\allowbreak{}line\_\allowbreak{}at\_\allowbreak{}x} draws a line going up.\end{answerbox}
 {\small\hyperref[day:python:4]{Back to day 4}}
 \answerday{5}{Several charts, and a figure for a journal}{answers:python:5}
 \begin{enumerate}
@@ -2184,7 +2184,7 @@ table.sort_by("rain", biggest_first=True)
 table.save("sunny.csv")
 table.show_steps()
 \end{lstlisting}
-\begin{answerbox}Each step prints what it did; \code{steps()} lists them all, in order.\end{answerbox}
+\begin{answerbox}Each step prints what it did; \code{show\_\allowbreak{}steps()} lists them all, in order.\end{answerbox}
 {\small\hyperref[day:python:6]{Back to day 6}}
 \answerday{7}{Review of the first week}{answers:python:7}
 \begin{enumerate}
@@ -2459,7 +2459,7 @@ table.add_missing_dates("date", every="day", for_each_group_in="station")
 table.fill_empty_cells_in("level", with_the="line between neighbours", sorted_by="date", for_each_group_in="station")
 table.find_trend_of("level", sorted_by="date", for_each_group_in="station")
 \end{lstlisting}
-\begin{answerbox}\code{trend\_\allowbreak{}of} prints Sen's slope (per day and per year) and the Mann-Kendall p-value for each station.\end{answerbox}
+\begin{answerbox}\code{find\_\allowbreak{}trend\_\allowbreak{}of} prints Sen's slope (per day and per year) and the Mann-Kendall p-value for each station.\end{answerbox}
 {\small\hyperref[day:python:20]{Back to day 20}}
 \answerday{21}{Review, and the question of your project}{answers:python:21}
 \begin{enumerate}
@@ -2688,7 +2688,7 @@ page = table.check_model_of("marks", using=["hours", "breakfast"])
 page.save("marks_checks.png")
 table.compare_models("marks", using=["hours", "breakfast"], against=["hours", "breakfast", "sleep"])
 \end{lstlisting}
-\begin{answerbox}\code{check\_\allowbreak{}model}, then \code{compare\_\allowbreak{}models}: on the 161 rows with every value, sleep helps (p = 0.002).\end{answerbox}
+\begin{answerbox}\code{check\_\allowbreak{}model\_\allowbreak{}of}, then \code{compare\_\allowbreak{}models}: on the 161 rows with every value, sleep helps (p = 0.002).\end{answerbox}
 {\small\hyperref[day:python:29]{Back to day 29}}
 \answerday{30}{The same work in pandas and matplotlib}{answers:python:30}
 \begin{enumerate}
@@ -2888,7 +2888,7 @@ chart.draw_line_at_x(2010, labelled="2010")
 chart.set_range_y(0, 60)
 chart.save("growth.png")
 \end{lstlisting}
-\begin{answerbox}\code{range\_\allowbreak{}y} takes the lowest and the highest value of the axis; \code{draw\_\allowbreak{}line\_\allowbreak{}at\_\allowbreak{}x} draws a line going up.\end{answerbox}
+\begin{answerbox}\code{set\_\allowbreak{}range\_\allowbreak{}y} takes the lowest and the highest value of the axis; \code{draw\_\allowbreak{}line\_\allowbreak{}at\_\allowbreak{}x} draws a line going up.\end{answerbox}
 {\small\hyperref[day:beginner:9]{Back to day 9}}
 \answerday{10}{Several charts together}{answers:beginner:10}
 \begin{enumerate}
@@ -2972,7 +2972,7 @@ table.sort_by("rain", biggest_first=True)
 table.save("sunny.csv")
 table.show_steps()
 \end{lstlisting}
-\begin{answerbox}Each step prints what it did; \code{steps()} lists them all, in order.\end{answerbox}
+\begin{answerbox}Each step prints what it did; \code{show\_\allowbreak{}steps()} lists them all, in order.\end{answerbox}
 {\small\hyperref[day:beginner:13]{Back to day 13}}
 \answerday{14}{Review of the second week}{answers:beginner:14}
 \begin{enumerate}
@@ -3255,7 +3255,7 @@ table.add_missing_dates("date", every="day", for_each_group_in="station")
 table.fill_empty_cells_in("level", with_the="line between neighbours", sorted_by="date", for_each_group_in="station")
 table.find_trend_of("level", sorted_by="date", for_each_group_in="station")
 \end{lstlisting}
-\begin{answerbox}\code{trend\_\allowbreak{}of} prints Sen's slope (per day and per year) and the Mann-Kendall p-value for each station.\end{answerbox}
+\begin{answerbox}\code{find\_\allowbreak{}trend\_\allowbreak{}of} prints Sen's slope (per day and per year) and the Mann-Kendall p-value for each station.\end{answerbox}
 {\small\hyperref[day:beginner:27]{Back to day 27}}
 \answerday{28}{Small project: look, clean and sum up}{answers:beginner:28}
 \begin{enumerate}
@@ -3332,7 +3332,7 @@ page = table.check_model_of("marks", using=["hours", "breakfast"])
 page.save("marks_checks.png")
 table.compare_models("marks", using=["hours", "breakfast"], against=["hours", "breakfast", "sleep"])
 \end{lstlisting}
-\begin{answerbox}\code{check\_\allowbreak{}model}, then \code{compare\_\allowbreak{}models}: on the 161 rows with every value, sleep helps (p = 0.002).\end{answerbox}
+\begin{answerbox}\code{check\_\allowbreak{}model\_\allowbreak{}of}, then \code{compare\_\allowbreak{}models}: on the 161 rows with every value, sleep helps (p = 0.002).\end{answerbox}
 {\small\hyperref[day:beginner:29]{Back to day 29}}
 \answerday{30}{Small project: test, figure and results, and a look back}{answers:beginner:30}
 \begin{enumerate}

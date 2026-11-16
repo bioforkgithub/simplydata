@@ -947,7 +947,7 @@ chart.save("lesson4_pie.png")
 \begin{goodtoknow}
 \begin{itemize}
   \item Chart types on the same chart are layers of one chart. Lesson 7 shows how to make several charts and put them on one page.
-  \item There are more chart types: area, violins, heatmap, polar, contour, surface and \code{dots\_\allowbreak{}3d}. Type \code{sdata.\allowbreak{}show\_\allowbreak{}all\_\allowbreak{}words()} to see them all and \code{sdata.\allowbreak{}help(\textquotedbl{}draw\_\allowbreak{}violins\textquotedbl{})} to learn one.
+  \item There are more chart types: \code{draw\_\allowbreak{}area}, \code{draw\_\allowbreak{}violins}, \code{draw\_\allowbreak{}heatmap}, \code{draw\_\allowbreak{}polar}, \code{draw\_\allowbreak{}contour}, \code{draw\_\allowbreak{}surface} and \code{draw\_\allowbreak{}dots\_\allowbreak{}3d}. Type \code{sdata.\allowbreak{}show\_\allowbreak{}all\_\allowbreak{}words()} to see them all and \code{sdata.\allowbreak{}help(\textquotedbl{}draw\_\allowbreak{}violins\textquotedbl{})} to learn one.
 \end{itemize}
 \end{goodtoknow}
 \begin{tryit}
@@ -1069,7 +1069,7 @@ shares.save("lesson5_cumulative.png")
 \begin{goodtoknow}
 \begin{itemize}
   \item Average or median? The median is the middle value when the values are put in order. One very big or very small value pulls the average towards it, but hardly moves the median, so the median is safer when a few values are far from the rest (outliers).
-  \item \code{show=} can be \code{\textquotedbl{}average\textquotedbl{}}, \code{\textquotedbl{}median\textquotedbl{}}, \code{\textquotedbl{}total\textquotedbl{}} (all added up), \code{\textquotedbl{}count\textquotedbl{}} (how many rows), \code{\textquotedbl{}smallest\textquotedbl{}}, \code{\textquotedbl{}biggest\textquotedbl{}} or \code{\textquotedbl{}standard deviation\textquotedbl{}}: the same names as the table words \code{average\_\allowbreak{}of}, \code{find\_\allowbreak{}median\_\allowbreak{}of} and so on.
+  \item \code{show=} can be \code{\textquotedbl{}average\textquotedbl{}}, \code{\textquotedbl{}median\textquotedbl{}}, \code{\textquotedbl{}total\textquotedbl{}} (all added up), \code{\textquotedbl{}count\textquotedbl{}} (how many rows), \code{\textquotedbl{}smallest\textquotedbl{}}, \code{\textquotedbl{}biggest\textquotedbl{}} or \code{\textquotedbl{}standard deviation\textquotedbl{}}: the same names as the table words \code{find\_\allowbreak{}average\_\allowbreak{}of}, \code{find\_\allowbreak{}median\_\allowbreak{}of} and so on.
   \item Standard deviation or standard error? The standard deviation describes the values: how spread out they are. The standard error describes the average: how sure we are of it. It gets smaller as you collect more values, even when the values spread just as much.
   \item \code{error=\textquotedbl{}confidence interval\textquotedbl{}} draws the 95 \% confidence interval: the range the true average is very likely to be in. The short forms \code{\textquotedbl{}sd\textquotedbl{}}, \code{\textquotedbl{}se\textquotedbl{}} and \code{\textquotedbl{}ci\textquotedbl{}} work too. Always say in your caption which error bars you drew.
   \item \code{fit\_\allowbreak{}curve(of\_\allowbreak{}degree=2)} fits a curve with one bend; \code{draw\_\allowbreak{}smooth\_\allowbreak{}line()} follows the dots freely.
@@ -1216,7 +1216,7 @@ check.save("lesson6_one_to_one.png")
 \begin{goodtoknow}
 \begin{itemize}
   \item Every axis word ends in \_x or \_y: \code{set\_\allowbreak{}range\_\allowbreak{}x}, \code{put\_\allowbreak{}ticks\_\allowbreak{}x}, \code{use\_\allowbreak{}log\_\allowbreak{}scale\_\allowbreak{}x}, \code{draw\_\allowbreak{}line\_\allowbreak{}at\_\allowbreak{}x}, \code{shade\_\allowbreak{}between\_\allowbreak{}x}, \code{flip\_\allowbreak{}x} ...
-  \item \code{range\_\allowbreak{}y(0,\allowbreak{} None)} fixes only the bottom and lets the top choose itself.
+  \item \code{set\_\allowbreak{}range\_\allowbreak{}y(0,\allowbreak{} None)} fixes only the bottom and lets the top choose itself.
   \item Bars should start at 0: a bar is read by its length, so a y-axis that starts at 40 makes small differences look big.
 \end{itemize}
 \end{goodtoknow}
@@ -1240,7 +1240,7 @@ Worked solutions: page~\pageref{solutions:6}, or type \code{sdata.\allowbreak{}s
 \end{itemize}
 \end{learnbox}
 \section*{Example 1}
-\code{one\_\allowbreak{}chart\_\allowbreak{}per} draws the same chart once for each group.
+\code{draw\_\allowbreak{}one\_\allowbreak{}chart\_\allowbreak{}for\_\allowbreak{}each\_\allowbreak{}group\_\allowbreak{}in} draws the same chart once for each group.
 \begin{lstlisting}[style=py]
 import simplydata as sdata
 marks = sdata.get_example("marks")
@@ -1675,7 +1675,7 @@ print(table)
 \end{lineexplain}
 \printedoutput{output/lesson10_example1.txt}
 \section*{Example 2}
-\code{keep\_\allowbreak{}rows} and \code{remove\_\allowbreak{}rows\_\allowbreak{}where} know many conditions. Then save what you made.
+\code{keep\_\allowbreak{}rows\_\allowbreak{}where} and \code{remove\_\allowbreak{}rows\_\allowbreak{}where} know many conditions. Then save what you made.
 \begin{lstlisting}[style=py]
 import simplydata as sdata
 table = sdata.table(sdata.get_example("weather"))
@@ -1690,7 +1690,7 @@ table.save("lesson10_summer.xlsx")
 \begin{lineexplain}
   \item[1] Load simplydata.
   \item[2] Make a table of the weather.
-  \item[3] Keep the summer months: 6, 7 and 8. \code{between=} keeps both ends.
+  \item[3] Keep the summer months: 6, 7 and 8. \code{is\_\allowbreak{}between=} keeps both ends.
   \item[4] Remove the rows of the city Frostby.
   \item[5] Remove two columns we do not need.
   \item[6] Give the column \code{\textquotedbl{}temperature\textquotedbl{}} the shorter name \code{\textquotedbl{}temp\textquotedbl{}}.
@@ -1760,7 +1760,7 @@ table.show_first_rows(3)
   \item Your file is never changed: only \code{table.\allowbreak{}save(.\allowbreak{}.\allowbreak{}.\allowbreak{})} writes a file.
   \item Written conditions use == != \textless{} \textless{}= \textgreater{} \textgreater{}=, and, or, not, brackets, in [...] and is empty. An empty cell never meets a condition, and not does not change that: \code{\textquotedbl{}not (marks \textgreater{} 50)\textquotedbl{}} leaves out empty marks too. To find them, write \code{\textquotedbl{}marks is empty\textquotedbl{}}. A note says how many rows had an empty cell.
   \item Dates go in quotes as year-month-day: \code{table.\allowbreak{}keep\_\allowbreak{}rows\_\allowbreak{}where(\textquotedbl{}date \textgreater{} '2026-03-01'\textquotedbl{})}, or \code{table.\allowbreak{}keep\_\allowbreak{}rows\_\allowbreak{}where(\textquotedbl{}date\textquotedbl{},\allowbreak{} is\_\allowbreak{}after=\textquotedbl{}2026-03-01\textquotedbl{})}.
-  \item \code{keep\_\allowbreak{}rows} chooses rows by their values, \code{keep\_\allowbreak{}rows\_\allowbreak{}by\_\allowbreak{}position} by their place. Positions count from 1 and both ends are included, so rows 10 to 20 are 11 rows. \code{to=\textquotedbl{}last\textquotedbl{}} goes to the end, and a list such as [1, 5, 9] keeps those rows in that order.
+  \item \code{keep\_\allowbreak{}rows\_\allowbreak{}where} chooses rows by their values, \code{keep\_\allowbreak{}rows\_\allowbreak{}by\_\allowbreak{}position} by their place. Positions count from 1 and both ends are included, so rows 10 to 20 are 11 rows. \code{to=\textquotedbl{}last\textquotedbl{}} goes to the end, and a list such as [1, 5, 9] keeps those rows in that order.
   \item Coming from pandas or NumPy, which count from 0 and leave out the end: df.iloc[9:20] is \code{table.\allowbreak{}keep\_\allowbreak{}rows\_\allowbreak{}by\_\allowbreak{}position(10,\allowbreak{} to=20)}, df.iloc[::2] is \code{keep\_\allowbreak{}rows\_\allowbreak{}by\_\allowbreak{}position(1,\allowbreak{} step=2)}, df.iloc[[0, 4]] is \code{keep\_\allowbreak{}rows\_\allowbreak{}by\_\allowbreak{}position([1,\allowbreak{} 5])}, df.iloc[:, 0:3] is \code{keep\_\allowbreak{}columns\_\allowbreak{}by\_\allowbreak{}position(1,\allowbreak{} to=3)}, df.loc[:, \code{\textquotedbl{}hours\textquotedbl{}}:\code{\textquotedbl{}height\textquotedbl{}}] is \code{keep\_\allowbreak{}columns(\textquotedbl{}hours\textquotedbl{},\allowbreak{} to=\textquotedbl{}height\textquotedbl{})}, \code{df.\allowbreak{}select\_\allowbreak{}dtypes(\textquotedbl{}number\textquotedbl{})} is \code{keep\_\allowbreak{}columns(of\_\allowbreak{}kind=\textquotedbl{}number\textquotedbl{})}, df.at[2, \code{\textquotedbl{}marks\textquotedbl{}}] is \code{get\_\allowbreak{}cell\_\allowbreak{}at(row=3,\allowbreak{} column=\textquotedbl{}marks\textquotedbl{})} and df.iloc[::-1] is \code{reverse\_\allowbreak{}rows()}. For numbers, a[2:8] is \code{nums.\allowbreak{}keep\_\allowbreak{}numbers\_\allowbreak{}by\_\allowbreak{}position(3,\allowbreak{} to=8)}, and for a grid, g[1:5, 0:3] is \code{grid.\allowbreak{}keep\_\allowbreak{}rows\_\allowbreak{}by\_\allowbreak{}position(2,\allowbreak{} to=5)}.keep\_columns\_by\_position(1, \code{to=3}).
 \end{itemize}
 \end{goodtoknow}
@@ -1942,7 +1942,7 @@ table.show()
   \item Formulas know more maths than + - * /: sqrt, log, exp, sin, cos, tan, pi, and special functions such as erf, gamma, lgamma, beta and besselJ: \code{table.\allowbreak{}add\_\allowbreak{}column(\textquotedbl{}z\textquotedbl{},\allowbreak{} formula=\textquotedbl{}erf(marks / 100)\textquotedbl{})}.
   \item Long or wide? A long table has one row for each measurement: the marks table has a row for each child in each subject. A wide table puts the measurements of one child side by side, one column per subject. Charts and tests like long tables (also called tidy data); sums across columns, like the total above, need wide ones.
   \item Filling empty cells is called imputation. Filling with the average makes the values look less spread out than they really are, so say in your report how you filled them. \code{with\_\allowbreak{}the=\textquotedbl{}median\textquotedbl{}}, \code{\textquotedbl{}value above\textquotedbl{}} or \code{\textquotedbl{}value below\textquotedbl{}} and \code{with\_\allowbreak{}value=0} work too.
-  \item \code{remove\_\allowbreak{}rows\_\allowbreak{}with\_\allowbreak{}empty\_\allowbreak{}cells()} with nothing in the brackets removes every row that has an empty cell in any column.
+  \item \code{remove\_\allowbreak{}rows\_\allowbreak{}with\_\allowbreak{}empty\_\allowbreak{}cells\_\allowbreak{}in()} with nothing in the brackets removes every row that has an empty cell in any column.
   \item More fixing words: \code{turn\_\allowbreak{}into\_\allowbreak{}text}, \code{turn\_\allowbreak{}into\_\allowbreak{}dates}, \code{turn\_\allowbreak{}into\_\allowbreak{}lowercase} and \code{turn\_\allowbreak{}into\_\allowbreak{}uppercase}.
   \item Plain words for new columns: \code{by\_\allowbreak{}adding=}, \code{by\_\allowbreak{}subtracting=}, \code{by\_\allowbreak{}multiplying=} and \code{by\_\allowbreak{}dividing=}, or \code{from\_\allowbreak{}column=} with \code{plus=}, \code{minus=}, \code{times=} or \code{divide\_\allowbreak{}by=}.
   \item In a maths-style column, a column name with spaces goes in backticks: \code{\textquotedbl{}`max temp` - 2\textquotedbl{}}.
@@ -2098,7 +2098,7 @@ chart.save("lesson12_tests.png")
 \captionof{figure}{Lesson 12, example 5: \code{lesson12\_\allowbreak{}tests.\allowbreak{}png}.}
 \end{minipage}\end{center}
 \section*{Example 6}
-\code{summary\_\allowbreak{}of} gives several measures at once, and \code{every=} sums up dates by week, month or year.
+\code{find\_\allowbreak{}summary\_\allowbreak{}of} gives several measures at once, and \code{every=} sums up dates by week, month or year.
 \begin{lstlisting}[style=py]
 import simplydata as sdata
 table = sdata.table(sdata.get_example("shop"))
@@ -2274,8 +2274,8 @@ A grid holds numbers in rows and columns. Positions count from 1.
 import simplydata as sdata
 grid = sdata.number_grid([[3, 5, 2], [8, 6, 4]])
 print(grid.get_number_at(row=1, column=2))
-grid.find_total(for_each="row")
-grid.find_average(for_each="column")
+grid.find_total(in_each="row")
+grid.find_average(in_each="column")
 grid.swap_rows_and_columns()
 print(grid)
 chart = grid.start_chart()
@@ -2310,7 +2310,7 @@ chart.save("lesson13_grid.png")
 \end{goodtoknow}
 \begin{tryit}
 \begin{enumerate}
-  \item Make the numbers 1 to 10, then square them in two ways: with ** 2 and with \code{power(2)}.
+  \item Make the numbers 1 to 10, then square them in two ways: with ** 2 and with \code{raise\_\allowbreak{}to\_\allowbreak{}power(2)}.
   \item Make 6 dice throws with \code{sdata.\allowbreak{}make\_\allowbreak{}random\_\allowbreak{}numbers(how\_\allowbreak{}many=6,\allowbreak{} between=[1,\allowbreak{} 6],\allowbreak{} whole\_\allowbreak{}numbers=True,\allowbreak{} with\_\allowbreak{}seed=1)}. What is their total?
   \item Make a grid of 3 rows and 4 columns filled with 0: \code{sdata.\allowbreak{}number\_\allowbreak{}grid(rows=3,\allowbreak{} columns=4,\allowbreak{} filled\_\allowbreak{}with=0)}.
 \end{enumerate}
@@ -2466,7 +2466,7 @@ clinic.compare_matched_columns("pain_week_0", "pain_week_4", "pain_week_8")
 \begin{lineexplain}
   \item[1] Load simplydata.
   \item[2] A table of patients.
-  \item[3] Each patient scored the pain at week 0, 4 and 8, one column each. \code{compare\_\allowbreak{}matched\_\allowbreak{}columns} compares the three columns within each patient (the Friedman test, on ranks): the median pain falls from 6 to 5 to 4, far more than chance would give (p \textless{} 0.0001). For two columns, \code{compare\_\allowbreak{}before\_\allowbreak{}after} does the same.
+  \item[3] Each patient scored the pain at week 0, 4 and 8, one column each. \code{compare\_\allowbreak{}matched\_\allowbreak{}columns} compares the three columns within each patient (the Friedman test, on ranks): the median pain falls from 6 to 5 to 4, far more than chance would give (p \textless{} 0.0001). For two columns, \code{compare\_\allowbreak{}before\_\allowbreak{}and\_\allowbreak{}after} does the same.
 \end{lineexplain}
 \printedoutput{output/lesson14_example8.txt}
 \begin{goodtoknow}
@@ -2496,7 +2496,7 @@ Worked solutions: page~\pageref{solutions:14}, or type \code{sdata.\allowbreak{}
 \begin{itemize}
   \item how to put all the lessons together: open, look, clean, sum up, test, draw and save
   \item how to make a figure with panels A and B, ready for a report or a paper
-  \item how \code{steps()} writes down what you did, in plain words
+  \item how \code{show\_\allowbreak{}steps()} writes down what you did, in plain words
   \item how to hand your table to pandas or Polars, and back
 \end{itemize}
 \end{learnbox}
@@ -2635,7 +2635,7 @@ chart.save("lesson15_rain.png")
 \begin{enumerate}
   \item Do a whole analysis of \code{sdata.\allowbreak{}get\_\allowbreak{}example(\textquotedbl{}weather\textquotedbl{})}: look at it, compare the average rain \code{for\_\allowbreak{}each\_\allowbreak{}group\_\allowbreak{}in=\textquotedbl{}city\textquotedbl{}}, draw the rain of each city as boxes, and save the chart and the table.
   \item Make a second chart of the temperature, then put the two charts together with \code{sdata.\allowbreak{}put\_\allowbreak{}side\_\allowbreak{}by\_\allowbreak{}side(.\allowbreak{}.\allowbreak{}.\allowbreak{},\allowbreak{} with\_\allowbreak{}letters=True)}.
-  \item Read the \code{steps()} of your table out loud. Would someone else understand what you did?
+  \item Read the \code{show\_\allowbreak{}steps()} of your table out loud. Would someone else understand what you did?
 \end{enumerate}
 Worked solutions: page~\pageref{solutions:15}, or type \code{sdata.\allowbreak{}show\_\allowbreak{}lesson(15,\allowbreak{} solutions=True)}.
 \end{tryit}
@@ -2809,7 +2809,7 @@ table.count_rows(for_each_group_in="cluster", across="grazed")
   \item \code{same\_\allowbreak{}scale=True} (the normal choice for PCA and clusters) puts every column on the same scale first, so a column with big numbers does not drown the others.
   \item The signs and the rotation of PC and NMDS axes are arbitrary; only the distances between the dots mean something.
   \item Clarke's rule for NMDS stress: below 0.05 excellent, below 0.1 good, below 0.2 usable, above 0.2 hard to trust. Try \code{dimensions=3} if the stress is high.
-  \item PERMANOVA can mistake a difference in spread for a difference in make-up, so \code{compare\_\allowbreak{}profiles} also checks the spread of each group and says if it differs.
+  \item PERMANOVA can mistake a difference in spread for a difference in make-up, so \code{compare\_\allowbreak{}profiles\_\allowbreak{}of} also checks the spread of each group and says if it differs.
   \item Clusters always appear, even in data without groups: check them against what you know.
   \item \code{method=\textquotedbl{}hierarchical\textquotedbl{}} clusters step by step (Ward linkage) instead of k-means.
 \end{itemize}
@@ -2999,8 +2999,8 @@ sdata.solve("a * exp(b * (year - 2000)) = 20", between=[2000, 2050], known=fit)
   \item Fitting is the same idea every time: a line, a curve or a formula is moved until it is as close to the points as it can be (least squares). The printed sentence says how sure each value is (its 95 \% confidence interval).
   \item A curve with a high \code{of\_\allowbreak{}degree=} can wiggle through every point and still say nothing true. Choose the simplest line or formula that follows the data, and a formula whose values mean something (here b is a growth rate).
   \item If a formula fit fails, give start values near the answer: \code{start=}\{\code{\textquotedbl{}a\textquotedbl{}}: 10, \code{\textquotedbl{}b\textquotedbl{}}: 0.03\}.
-  \item \code{find\_\allowbreak{}smallest} with \code{between=} finds one lowest point; when the curve has several dips it says so, and \code{search=\textquotedbl{}whole range\textquotedbl{}} looks everywhere. solve with \code{between=} finds every crossing.
-  \item Names from other tools point to these words: minimize, optimise and argmin to \code{find\_\allowbreak{}smallest}, fsolve, brentq and uniroot to solve, \code{curve\_\allowbreak{}fit} and nls to \code{fit\_\allowbreak{}formula}, polyfit to \code{fit\_\allowbreak{}curve}.
+  \item \code{sdata.\allowbreak{}find\_\allowbreak{}where\_\allowbreak{}smallest} with \code{between=} finds one lowest point; when the curve has several dips it says so, and \code{search=\textquotedbl{}whole range\textquotedbl{}} looks everywhere. solve with \code{between=} finds every crossing.
+  \item Names from other tools point to these words: minimize, optimise and argmin to \code{find\_\allowbreak{}where\_\allowbreak{}smallest}, fsolve, brentq and uniroot to solve, \code{curve\_\allowbreak{}fit} and nls to \code{fit\_\allowbreak{}formula}, polyfit to \code{fit\_\allowbreak{}curve}.
 \end{itemize}
 \end{goodtoknow}
 \begin{tryit}
@@ -3112,7 +3112,7 @@ chart.save("lesson20_map.png")
 \begin{goodtoknow}
 \begin{itemize}
   \item \code{find\_\allowbreak{}chance\_\allowbreak{}that\_\allowbreak{}value()} gives back a share from 0 to 1 and prints it as a percent. \code{is\_\allowbreak{}above=} and \code{is\_\allowbreak{}below=} leave the value itself out, \code{is\_\allowbreak{}at\_\allowbreak{}least=} and \code{is\_\allowbreak{}at\_\allowbreak{}most=} keep it in, as in \code{keep\_\allowbreak{}rows\_\allowbreak{}where}. For counts that matters: \code{is\_\allowbreak{}at\_\allowbreak{}most=3} means 3 or fewer.
-  \item \code{density\_\allowbreak{}at()} is the height of the curve, not a chance: a chance is an area under the curve, so ask \code{find\_\allowbreak{}chance\_\allowbreak{}that\_\allowbreak{}value(is\_\allowbreak{}between=[.\allowbreak{}.\allowbreak{}.\allowbreak{}])}.
+  \item \code{find\_\allowbreak{}density\_\allowbreak{}at()} is the height of the curve, not a chance: a chance is an area under the curve, so ask \code{find\_\allowbreak{}chance\_\allowbreak{}that\_\allowbreak{}value(is\_\allowbreak{}between=[.\allowbreak{}.\allowbreak{}.\allowbreak{}])}.
   \item A fitted distribution is only as good as its fit. Compare a few with \code{compare\_\allowbreak{}distributions\_\allowbreak{}for}, and test the shape with \code{table.\allowbreak{}compare\_\allowbreak{}shape\_\allowbreak{}to(\textquotedbl{}column\textquotedbl{},\allowbreak{} \textquotedbl{}gamma\textquotedbl{})}.
   \item Values between points are estimates. Straight lines are the safe choice; a smooth curve can swing above or below the points (\code{joined\_\allowbreak{}by=\textquotedbl{}curve without overshoot\textquotedbl{}} never does). Outside the measured range the cells stay empty unless you ask for \code{outside=}.
   \item Names from other tools point to these words: pnorm and cdf to chance, qnorm and ppf to percentile, dnorm and pdf to \code{find\_\allowbreak{}density\_\allowbreak{}at}, interpolate and approx to \code{values\_\allowbreak{}at}.
@@ -3140,7 +3140,7 @@ Worked solutions: page~\pageref{solutions:20}, or type \code{sdata.\allowbreak{}
 \end{learnbox}
 \begin{needsr}Only example 5, which you may leave out, needs R: \code{find\_\allowbreak{}model\_\allowbreak{}averages\_\allowbreak{}of()} (R emmeans). The rest of the lesson needs no R. \code{find\_\allowbreak{}model\_\allowbreak{}averages\_\allowbreak{}of()} and the other R words run R's own code, the same code R users run. Install it once: pip install \code{\textquotedbl{}simplydata[r]\textquotedbl{}}, then R from https://cran.r-project.org, then in R: \code{install.\allowbreak{}packages(c(\textquotedbl{}vegan\textquotedbl{},\allowbreak{} \textquotedbl{}survival\textquotedbl{},\allowbreak{} \textquotedbl{}mice\textquotedbl{},\allowbreak{} \textquotedbl{}emmeans\textquotedbl{}))}. Without R these words print a message that says what to install.\end{needsr}
 \section*{Example 1}
-\code{explain()} gives the effects, but they can only be trusted if the model suits the data. \code{check\_\allowbreak{}model} draws the four pictures R users look at first.
+\code{explain()} gives the effects, but they can only be trusted if the model suits the data. \code{check\_\allowbreak{}model\_\allowbreak{}of} draws the four pictures R users look at first.
 \begin{lstlisting}[style=py]
 import simplydata as sdata
 table = sdata.table(sdata.get_example("school"))
@@ -3433,7 +3433,7 @@ Worked solutions: page~\pageref{solutions:22}, or type \code{sdata.\allowbreak{}
   \item how to smooth a noisy series, and test whether it has a trend
 \end{itemize}
 \end{learnbox}
-\begin{needsr}\code{trend\_\allowbreak{}of()} and its test run R's own code, the same code R users run. Install it once: pip install \code{\textquotedbl{}simplydata[r]\textquotedbl{}}, then R from https://cran.r-project.org, then in R: \code{install.\allowbreak{}packages(c(\textquotedbl{}trend\textquotedbl{}))}. Without R these words print a message that says what to install.\end{needsr}
+\begin{needsr}\code{find\_\allowbreak{}trend\_\allowbreak{}of()} and its test run R's own code, the same code R users run. Install it once: pip install \code{\textquotedbl{}simplydata[r]\textquotedbl{}}, then R from https://cran.r-project.org, then in R: \code{install.\allowbreak{}packages(c(\textquotedbl{}trend\textquotedbl{}))}. Without R these words print a message that says what to install.\end{needsr}
 \section*{Example 1}
 Time series are readings in time order: one a day, a month or a second. A run of dates is the backbone of such a table.
 \begin{lstlisting}[style=py]
@@ -3514,7 +3514,7 @@ table.find_trend_of("nitrate", sorted_by="date", for_each_group_in="station")
 \begin{itemize}
   \item \code{sorted\_\allowbreak{}by=} is the time column: it gives the order and the time between readings. \code{for\_\allowbreak{}each\_\allowbreak{}group\_\allowbreak{}in=} gives one series per group, here one per station.
   \item \code{window=7} is 7 rows; \code{window=\textquotedbl{}7 days\textquotedbl{}} is 7 days of time, whatever the number of rows.
-  \item \code{trend\_\allowbreak{}of} needs no even steps and no filling: empty cells are left out.
+  \item \code{find\_\allowbreak{}trend\_\allowbreak{}of} needs no even steps and no filling: empty cells are left out.
 \end{itemize}
 \end{goodtoknow}
 \begin{tryit}
@@ -3741,7 +3741,7 @@ chart.save("peaks.png")
   \item[1] Load simplydata.
   \item[2] The sensor table.
   \item[3] One peak is at least 2.5 high: 3.48 at time 3.885, a spike. R's pracma::\code{findpeaks()} finds the same.
-  \item[4] \code{find\_\allowbreak{}dips} is \code{find\_\allowbreak{}each\_\allowbreak{}peak\_\allowbreak{}that} upside down: one dip goes down to -2 or lower, -2.36 at time 0.94.
+  \item[4] \code{find\_\allowbreak{}each\_\allowbreak{}dip\_\allowbreak{}that} is \code{find\_\allowbreak{}each\_\allowbreak{}peak\_\allowbreak{}that} upside down: one dip goes down to -2 or lower, -2.36 at time 0.94.
   \item[5] Start a chart.
   \item[6] The signal.
   \item[7] A mark on the peak.
@@ -4008,7 +4008,7 @@ In Jupyter, VS Code and Spyder charts appear by themselves.
 
 \wordfield{Options}{none: just write the empty brackets.}
 
-\wordfield{Good to know}{Not the same as the \code{show=} option inside bars and lines: for that, type \code{sdata.\allowbreak{}help(\textquotedbl{}show=\textquotedbl{})}.}
+\wordfield{Good to know}{Not the same as the \code{show=} option inside \code{draw\_\allowbreak{}bars} and \code{draw\_\allowbreak{}lines}: for that, type \code{sdata.\allowbreak{}help(\textquotedbl{}show=\textquotedbl{})}.}
 
 \wordfield{Underneath}{matplotlib (pyplot.show)}
 \wordfield{Example you can run}{}\par\nopagebreak
@@ -8083,7 +8083,7 @@ chart.save("trade_off_curve.png")
 How well do two or more raters (or devices) agree on the same rows?
 
 \codeline{table.agreement\_between(\textquotedbl{}nurse\_rating\textquotedbl{}, \textquotedbl{}doctor\_rating\textquotedbl{})   (with sdata.get\_example(\textquotedbl{}clinic\textquotedbl{}))}\\
-Each column holds one rater's answers for the same rows. The kind of column decides, and the sentence says which: categories, 2 columns: Cohen's kappa (statsmodels, as R irr::\code{kappa2()}), with the raw agreement beside it; \code{near\_\allowbreak{}misses=\textquotedbl{}linear\textquotedbl{}} or \code{\textquotedbl{}quadratic\textquotedbl{}} counts near misses as partly right (ordered categories: give \code{in\_\allowbreak{}order=[\textquotedbl{}mild\textquotedbl{},\allowbreak{} \textquotedbl{}moderate\textquotedbl{},\allowbreak{} \textquotedbl{}severe\textquotedbl{}]}); categories, 3 or more columns: Fleiss' kappa (statsmodels; its p-value from R irr); numbers: the intraclass correlation (ICC) from R irr::\code{icc()}: by default two-way, absolute agreement, one rater, the raters a sample of many possible raters (\code{raters=\textquotedbl{}these only\textquotedbl{}} or \code{\textquotedbl{}different per row\textquotedbl{}}, \code{kind=\textquotedbl{}consistency\textquotedbl{}}, \code{of=\textquotedbl{}average of raters\textquotedbl{}} choose another form, and the form is always named). \code{method=\textquotedbl{}krippendorff\textquotedbl{}}: Krippendorff's alpha (R irr::\code{kripp.\allowbreak{}alpha()}); \code{method=\textquotedbl{}lin\textquotedbl{}}: Lin's concordance correlation for two columns of numbers (R DescTools::\code{CCC()}). Rows with an empty cell are skipped. Gives back a one-row table.
+Each column holds one rater's answers for the same rows. The kind of column decides, and the sentence says which: categories, 2 columns: Cohen's kappa (statsmodels, as R irr::\code{kappa2()}), with the raw agreement beside it; \code{near\_\allowbreak{}misses=\textquotedbl{}linear\textquotedbl{}} or \code{\textquotedbl{}quadratic\textquotedbl{}} counts near misses as partly right (ordered categories: give \code{in\_\allowbreak{}order=[\textquotedbl{}mild\textquotedbl{},\allowbreak{} \textquotedbl{}moderate\textquotedbl{},\allowbreak{} \textquotedbl{}severe\textquotedbl{}]}); categories, 3 or more columns: Fleiss' kappa (statsmodels; its p-value from R irr); numbers: the intraclass correlation (ICC) from R irr::\code{icc()}: by default two-way, absolute agreement, one rater, the raters a sample of many possible raters (\code{raters=\textquotedbl{}these only\textquotedbl{}} or \code{\textquotedbl{}different per row\textquotedbl{}}, \code{checking\_\allowbreak{}for=\textquotedbl{}consistency\textquotedbl{}}, \code{of=\textquotedbl{}average of raters\textquotedbl{}} choose another form, and the form is always named). \code{method=\textquotedbl{}krippendorff\textquotedbl{}}: Krippendorff's alpha (R irr::\code{kripp.\allowbreak{}alpha()}); \code{method=\textquotedbl{}lin\textquotedbl{}}: Lin's concordance correlation for two columns of numbers (R DescTools::\code{CCC()}). Rows with an empty cell are skipped. Gives back a one-row table.
 
 \wordfield{Options}{}\par\nopagebreak
 \begin{optiontable}
@@ -8093,7 +8093,7 @@ Each column holds one rater's answers for the same rows. The kind of column deci
 \code{in\_\allowbreak{}order=} & \\
 \code{interval=} & normally \code{95}\\
 \code{raters=} & normally \code{\textquotedbl{}a sample\textquotedbl{}}\\
-\code{kind=} & normally \code{\textquotedbl{}agreement\textquotedbl{}}\\
+\code{checking\_\allowbreak{}for=} & normally \code{\textquotedbl{}agreement\textquotedbl{}}\\
 \code{of=} & normally \code{\textquotedbl{}one rater\textquotedbl{}}\\
 \end{optiontable}
 
@@ -8498,9 +8498,9 @@ dist = sdata.distribution("normal", average=50, standard_deviation=10)
 dist.find_density_at(60)
 \end{lstlisting}
 \wordentry{dist.find\_percentile()}{word:dist.find-percentile}
-The value that this percent of the distribution is below: \code{percentile(95)}.
+The value that this percent of the distribution is below: \code{find\_\allowbreak{}percentile(95)}.
 
-\codeline{dist.find\_percentile(95)}\enspace (R \code{qnorm(0.\allowbreak{}95,\allowbreak{} mean = 50,\allowbreak{} sd = 10)}). \code{percentile(50)} is the median.\\
+\codeline{dist.find\_percentile(95)}\enspace (R \code{qnorm(0.\allowbreak{}95,\allowbreak{} mean = 50,\allowbreak{} sd = 10)}). \code{find\_\allowbreak{}percentile(50)} is the median.\\
 For counts: the smallest count with at least that percent at or below it (R qbinom). A list of percents gives Numbers.
 
 \wordfield{Options}{}\par\nopagebreak
@@ -10451,9 +10451,9 @@ nums.divide_by(4)
 nums.show()
 \end{lstlisting}
 \wordentry{nums.raise\_to\_power()}{word:nums.raise-to-power}
-Raise every number to a power: \code{power(2)} squares, \code{power(3)} cubes. \code{nums.\allowbreak{}raise\_\allowbreak{}to\_\allowbreak{}power(2)}
+Raise every number to a power: \code{raise\_\allowbreak{}to\_\allowbreak{}power(2)} squares, \code{raise\_\allowbreak{}to\_\allowbreak{}power(3)} cubes. \code{nums.\allowbreak{}raise\_\allowbreak{}to\_\allowbreak{}power(2)}
 
-\code{power(0.\allowbreak{}5)} is the same as the square root. For new numbers, write squares = nums ** 2.
+\code{raise\_\allowbreak{}to\_\allowbreak{}power(0.\allowbreak{}5)} is the same as the square root. For new numbers, write squares = nums ** 2.
 
 \wordfield{Options}{}\par\nopagebreak
 \begin{optiontable}
@@ -10518,7 +10518,7 @@ nums.show()
 The logarithm of every number: natural (base e) unless you give \code{base=10} or \code{base=2}.
 
 \codeline{nums.take\_log()  nums.take\_log(base=10)  nums.take\_log(base=2)}\\
-\code{log(base=10)} of 1000 is 3, because 10 x 10 x 10 = 1000. The log only exists for numbers above 0, so 0 and negative numbers become empty.
+\code{take\_\allowbreak{}log(base=10)} of 1000 is 3, because 10 x 10 x 10 = 1000. The log only exists for numbers above 0, so 0 and negative numbers become empty.
 
 \wordfield{Options}{}\par\nopagebreak
 \begin{optiontable}
@@ -10534,7 +10534,7 @@ nums.take_log(base=10)
 nums.show()
 \end{lstlisting}
 \wordentry{nums.take\_exp()}{word:nums.take-exp}
-e (about 2.718) to the power of every number; it undoes \code{log()}. \code{nums.\allowbreak{}take\_\allowbreak{}exp()}
+e (about 2.718) to the power of every number; it undoes \code{take\_\allowbreak{}log()}. \code{nums.\allowbreak{}take\_\allowbreak{}exp()}
 
 \wordfield{Options}{none: just write the empty brackets.}
 
@@ -10905,7 +10905,7 @@ nums = sdata.numbers([12, 15, 9, 20, 14])
 nums.find_standard_deviation()
 \end{lstlisting}
 \wordentry{nums.find\_percentile()}{word:nums.find-percentile}
-The number that this percent of the numbers are below: \code{percentile(50)} is the median.
+The number that this percent of the numbers are below: \code{find\_\allowbreak{}percentile(50)} is the median.
 
 \codeline{nums.find\_percentile(90)}\\
 Uses NumPy's usual \code{\textquotedbl{}linear\textquotedbl{}} method, the same as pandas and R. Empty values are skipped.
@@ -11065,7 +11065,7 @@ grid = sdata.number_grid([[3, 5, 2], [8, 6, 4]])
 print(grid.get_number_at(row=1, column=2))
 \end{lstlisting}
 \wordentry{grid.get\_row()}{word:grid.get-row}
-One row of the grid as new numbers, counting from 1: \code{row(1)} is the top row. \code{grid.\allowbreak{}get\_\allowbreak{}row(1)}
+One row of the grid as new numbers, counting from 1: \code{get\_\allowbreak{}row(1)} is the top row. \code{grid.\allowbreak{}get\_\allowbreak{}row(1)}
 
 \codeline{grid.get\_row(\textquotedbl{}last\textquotedbl{}) is the bottom row.}
 
@@ -11083,7 +11083,7 @@ top = grid.get_row(1)
 top.show()
 \end{lstlisting}
 \wordentry{grid.get\_column()}{word:grid.get-column}
-One column of the grid as new numbers, counting from 1: \code{column(1)} is the left one. \code{grid.\allowbreak{}get\_\allowbreak{}column(1)}
+One column of the grid as new numbers, counting from 1: \code{get\_\allowbreak{}column(1)} is the left one. \code{grid.\allowbreak{}get\_\allowbreak{}column(1)}
 
 \codeline{grid.get\_column(\textquotedbl{}last\textquotedbl{}) is the right one.}
 
@@ -11801,7 +11801,7 @@ sdata.start_30_days(track="python")
 \wordentry{sdata.show\_today()}{word:sdata.show-today}
 Show today's day of the 30 days of simplydata: warm-up questions, what to do and a task. \code{sdata.\allowbreak{}show\_\allowbreak{}today()}
 
-The day after the one you last opened comes next, so a day you miss is never lost: \code{today()} carries on where you stopped (on the same date it shows the same day again). If you have fallen more than a day behind the calendar it says so; \code{follow\_\allowbreak{}calendar=True} jumps to the calendar's day instead:\\
+The day after the one you last opened comes next, so a day you miss is never lost: \code{show\_\allowbreak{}today()} carries on where you stopped (on the same date it shows the same day again). If you have fallen more than a day behind the calendar it says so; \code{follow\_\allowbreak{}calendar=True} jumps to the calendar's day instead:\\
 \codeline{sdata.show\_today(follow\_calendar=True). Not started yet? It shows how to start, and day 1.}
 
 \wordfield{Options}{}\par\nopagebreak
@@ -11939,7 +11939,7 @@ chart.save("lesson2_my_title.png")
 \includegraphics[width=0.52\textwidth,height=0.30\textheight,keepaspectratio]{figures/solution02_task1_lesson2_my_title.pdf}
 \captionof*{figure}{Lesson 2, task 1: \code{lesson2\_\allowbreak{}my\_\allowbreak{}title.\allowbreak{}png}.}
 \end{minipage}\end{center}
-\solutionanswer{\code{title\_\allowbreak{}top} writes any title you like, and \code{label\_\allowbreak{}y} names the y-axis.}
+\solutionanswer{\code{write\_\allowbreak{}title\_\allowbreak{}on\_\allowbreak{}top} writes any title you like, and \code{label\_\allowbreak{}y} names the y-axis.}
 \solutiontask{2}{Try \code{chart.\allowbreak{}use\_\allowbreak{}font\_\allowbreak{}size(20)}. Then try 9. Which is easier to read?}
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -12005,7 +12005,7 @@ chart.save("lesson3_legend_top.png")
 \includegraphics[width=0.52\textwidth,height=0.30\textheight,keepaspectratio]{figures/solution03_task2_lesson3_legend_top.pdf}
 \captionof*{figure}{Lesson 3, task 2: \code{lesson3\_\allowbreak{}legend\_\allowbreak{}top.\allowbreak{}png}.}
 \end{minipage}\end{center}
-\solutionanswer{\code{legend\_\allowbreak{}top} puts the legend above the chart, in place of \code{put\_\allowbreak{}legend\_\allowbreak{}at\_\allowbreak{}bottom}.}
+\solutionanswer{\code{put\_\allowbreak{}legend\_\allowbreak{}at\_\allowbreak{}top} puts the legend above the chart, in place of \code{put\_\allowbreak{}legend\_\allowbreak{}at\_\allowbreak{}bottom}.}
 \solutiontask{3}{Try \code{chart.\allowbreak{}use\_\allowbreak{}style(\textquotedbl{}dark\textquotedbl{})} and choose three colours that look good on it.}
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -12132,7 +12132,7 @@ chart.save("lesson6_pass_60.png")
 \includegraphics[width=0.52\textwidth,height=0.30\textheight,keepaspectratio]{figures/solution06_task1_lesson6_pass_60.pdf}
 \captionof*{figure}{Lesson 6, task 1: \code{lesson6\_\allowbreak{}pass\_\allowbreak{}60.\allowbreak{}png}.}
 \end{minipage}\end{center}
-\solutionanswer{\code{line\_\allowbreak{}at\_\allowbreak{}y(60)} moves the line; \code{shade\_\allowbreak{}between\_\allowbreak{}y(0,\allowbreak{} 40)} shades the band from 0 to 40.}
+\solutionanswer{\code{draw\_\allowbreak{}line\_\allowbreak{}at\_\allowbreak{}y(60)} moves the line; \code{shade\_\allowbreak{}between\_\allowbreak{}y(0,\allowbreak{} 40)} shades the band from 0 to 40.}
 \solutiontask{2}{Take away \code{chart.\allowbreak{}use\_\allowbreak{}log\_\allowbreak{}scale\_\allowbreak{}y()}. Which countries look different?}
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -12435,7 +12435,7 @@ table.find_average_of("marks", for_each_group_in="subject", across="class")
 \solutionanswer{Class A, with an average of 79.2 in Science, against 67.5 for B and 62.3 for C.}
 \par\noindent{\small\sffamily\hyperref[lesson:12]{Back to lesson 12}}
 \unsection{Lesson 13: Numbers: lists and grids of numbers}{solutions:13}
-\solutiontask{1}{Make the numbers 1 to 10, then square them in two ways: with ** 2 and with \code{power(2)}.}
+\solutiontask{1}{Make the numbers 1 to 10, then square them in two ways: with ** 2 and with \code{raise\_\allowbreak{}to\_\allowbreak{}power(2)}.}
 \begin{lstlisting}[style=py]
 import simplydata as sdata
 nums = sdata.numbers(1, to=10)
@@ -12445,7 +12445,7 @@ nums.raise_to_power(2)
 nums.show()
 \end{lstlisting}
 \printedoutput{output/solution13_task1.txt}
-\solutionanswer{Both give 1, 4, 9 ... 100. ** 2 makes new numbers and leaves nums alone; \code{power(2)} changes nums itself (and \code{undo()} can take it back).}
+\solutionanswer{Both give 1, 4, 9 ... 100. ** 2 makes new numbers and leaves nums alone; \code{raise\_\allowbreak{}to\_\allowbreak{}power(2)} changes nums itself (and \code{undo()} can take it back).}
 \solutiontask{2}{Make 6 dice throws with \code{sdata.\allowbreak{}make\_\allowbreak{}random\_\allowbreak{}numbers(how\_\allowbreak{}many=6,\allowbreak{} between=[1,\allowbreak{} 6],\allowbreak{} whole\_\allowbreak{}numbers=True,\allowbreak{} with\_\allowbreak{}seed=1)}. What is their total?}
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -12542,7 +12542,7 @@ page.save("lesson15_weather_page.png")
 \captionof*{figure}{Lesson 15, task 2: \code{lesson15\_\allowbreak{}weather\_\allowbreak{}page.\allowbreak{}png}.}
 \end{minipage}\end{center}
 \solutionanswer{Two charts of one table, side by side, with A and B so a report can point to each.}
-\solutiontask{3}{Read the \code{steps()} of your table out loud. Would someone else understand what you did?}
+\solutiontask{3}{Read the \code{show\_\allowbreak{}steps()} of your table out loud. Would someone else understand what you did?}
 \begin{lstlisting}[style=py]
 import simplydata as sdata
 table = sdata.table(sdata.get_example("weather"))
@@ -12552,7 +12552,7 @@ table.sort_by("rain", biggest_first=True)
 table.show_steps()
 \end{lstlisting}
 \printedoutput{output/solution15_task3.txt}
-\solutionanswer{\code{steps()} lists each change in plain words, in order; those lines are a first draft of the methods part of a report.}
+\solutionanswer{\code{show\_\allowbreak{}steps()} lists each change in plain words, in order; those lines are a first draft of the methods part of a report.}
 \par\noindent{\small\sffamily\hyperref[lesson:15]{Back to lesson 15}}
 \unsection{Lesson 16: Models: explain one column from several others}{solutions:16}
 \solutiontask{1}{Explain \code{\textquotedbl{}marks\textquotedbl{}} using \code{\textquotedbl{}hours\textquotedbl{}} and \code{\textquotedbl{}school\textquotedbl{}} (school as a column of groups). Which schools differ from School A, and is school as a whole important?}
@@ -12627,7 +12627,7 @@ table.explain_survival(time="days", event="died", using="age")
 \solutiontask{2}{How many pairs does a before/after study need to find a small change (\code{effect\_\allowbreak{}size=0.\allowbreak{}3})?}
 \begin{lstlisting}[style=py]
 import simplydata as sdata
-sdata.find_how_many_needed(test="compare_before_after", effect_size=0.3)
+sdata.find_how_many_needed(test="compare_before_and_after", effect_size=0.3)
 \end{lstlisting}
 \printedoutput{output/solution18_task2.txt}
 \solutionanswer{90 pairs, each with a before and an after value.}
@@ -12828,7 +12828,7 @@ table.keep_rows_where("museum", is_equal_to="Hill Gallery")
 table.forecast("visitors", sorted_by="month", steps_ahead=12, method="straight on", check_on_last=12)
 \end{lstlisting}
 \printedoutput{output/solution24_task2.txt}
-\solutionanswer{It follows the rise but not the season: far worse than exponential smoothing (MASE 2.08 in \code{compare\_\allowbreak{}forecasts}).}
+\solutionanswer{It follows the rise but not the season: far worse than exponential smoothing (MASE 2.08 in \code{compare\_\allowbreak{}forecasts\_\allowbreak{}for}).}
 \par\noindent{\small\sffamily\hyperref[lesson:24]{Back to lesson 24}}
 \unsection{Lesson 25: Cycles: spectra, filters, peaks, and steady or not}{solutions:25}
 \solutiontask{1}{Which cycle is strongest in the \code{\textquotedbl{}vibration\textquotedbl{}} column? Is it the same as in \code{\textquotedbl{}signal\textquotedbl{}}?}
