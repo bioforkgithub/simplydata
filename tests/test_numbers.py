@@ -287,7 +287,7 @@ def test_one_at_a_time_words(capsys):
     assert "a negative number has no square root, so 1 number is now empty" in out
     assert "the log only exists for numbers above 0, so 2 numbers are now empty" in out
     with pytest.raises(SimplydataError, match="base="):
-        numbers(v).log(base=1)
+        numbers(v).take_log(base=1)
 
 
 def test_round_half_to_even():

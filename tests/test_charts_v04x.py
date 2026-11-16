@@ -212,7 +212,7 @@ def test_colour_scale_on_a_chart_without_number_colours_is_explained(marks):
 
 
 def test_colour_scale_american_spelling(weather):
-    ctx = draw(rain_heatmap(weather).color_scale("magma"))
+    ctx = draw(rain_heatmap(weather).use_color_scale("magma"))
     assert mesh_of(ctx).get_cmap().name == "magma"
 
 

@@ -136,7 +136,7 @@ def _dot_colours(ax, before):
     return {to_hex(c) for coll in ax.collections[before:] for c in coll.get_facecolors()}
 
 
-@pytest.mark.parametrize("shapes", ["boxes", "violins"])
+@pytest.mark.parametrize("shapes", ["draw_boxes", "draw_violins"])
 def test_all_dots_over_boxes_stand_out(marks, shapes):
     """Dots on top of boxes or violins are dark grey, not the boxes' own colour."""
     from matplotlib.colors import to_hex
@@ -314,6 +314,7 @@ def test_surface_draws_on_3d(grid):
 
 # ---------------------------------------------------------------- standard names
 def test_standard_name_aliases(marks):
+    """bar, line, box and violin were other spellings; now they are old names of the draw_ words."""
     chart = sdata.chart(marks)
     assert chart.bar.__func__ is chart.draw_bars.__func__
     assert chart.line.__func__ is chart.draw_lines.__func__
