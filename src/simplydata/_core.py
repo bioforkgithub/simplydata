@@ -147,8 +147,7 @@ class BaseChart:
         "one_chart_per": "draw_one_chart_for_each_group_in", "zoom_box": "add_zoom_box",
         "survival_curves": "draw_survival_curves", "line_at_x": "draw_line_at_x", "line_at_y": "draw_line_at_y",
         "line_with_slope": "draw_line_with_slope", "color": "use_color", "colors": "use_colors",
-        "color_scale": "use_color_scale", "scatter": "draw_dots", "bar": "draw_bars", "line": "draw_lines",
-        "box": "draw_boxes", "violin": "draw_violins", "all_points": "draw_all_dots",
+        "color_scale": "use_color_scale", "all_points": "draw_all_dots",
         "colour_bar_label": "label_colour_bar", "color_bar_label": "label_colour_bar",
         "one_per": "draw_one_chart_for_each_group_in",
     }

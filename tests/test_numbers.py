@@ -385,18 +385,18 @@ def test_summary_names_and_hints():
 
 
 # ====================================================================== grids
-def test_grid_summaries_for_each():
+def test_grid_summaries_in_each():
     g = np.array([[1.0, 2.0, NAN], [4.0, 5.0, 6.0]])
     grid = number_grid(g)
     assert grid.find_average() == pytest.approx(np.nanmean(g))
-    same(grid.find_average(for_each="row"), np.nanmean(g, axis=1))
-    same(grid.find_total(for_each="column"), np.nansum(g, axis=0))
-    same(grid.find_biggest(for_each="row"), np.nanmax(g, axis=1))
-    same(grid.find_standard_deviation(for_each="column"), [np.std([1, 4], ddof=1), np.std([2, 5], ddof=1), NAN])
-    same(grid.find_percentile(50, for_each="row"), np.nanmedian(g, axis=1))
-    assert isinstance(grid.find_median(for_each="row"), Numbers)
-    with pytest.raises(SimplydataError, match='Did you mean for_each="row"'):
-        grid.find_average(for_each="rows")
+    same(grid.find_average(in_each="row"), np.nanmean(g, axis=1))
+    same(grid.find_total(in_each="column"), np.nansum(g, axis=0))
+    same(grid.find_biggest(in_each="row"), np.nanmax(g, axis=1))
+    same(grid.find_standard_deviation(in_each="column"), [np.std([1, 4], ddof=1), np.std([2, 5], ddof=1), NAN])
+    same(grid.find_percentile(50, in_each="row"), np.nanmedian(g, axis=1))
+    assert isinstance(grid.find_median(in_each="row"), Numbers)
+    with pytest.raises(SimplydataError, match='Did you mean in_each="row"'):
+        grid.find_average(in_each="rows")
 
 
 def test_grid_maths_and_swap():

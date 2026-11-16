@@ -230,16 +230,16 @@ _TABLE = [
 
 # chart.<name>
 _CHART = [
-    ('chart.draw_lines(x="year", y="population")', "plot geom_line"),
+    ('chart.draw_lines(x="year", y="population")', "plot geom_line line"),
     ('chart.trade_off_curve(score="crp", truth="infected")', "roc_curve roc plot_roc ggroc roc_plot"),
     ('chart.difference_dots(first="device_a", second="device_b")', "bland_altman mean_diff_plot bland_altman_plot"),
     ('chart.forest_plot(x="estimate", y="measure")', "forestplot interval_dots coefplot"),
-    ('chart.draw_dots(x="hours", y="marks")', "geom_point scatterplot"),
-    ('chart.draw_bars(x="class", y="marks")', "barplot geom_bar geom_col"),
+    ('chart.draw_dots(x="hours", y="marks")', "geom_point scatterplot scatter"),
+    ('chart.draw_bars(x="class", y="marks")', "barplot geom_bar geom_col bar"),
     ('chart.draw_bars(x="class", y="marks", sideways=True)', "barh"),
     ('chart.draw_histogram(x="marks")', "hist geom_histogram histplot"),
-    ('chart.draw_boxes(x="class", y="marks")', "boxplot geom_boxplot"),
-    ('chart.draw_violins(x="class", y="marks")', "violinplot geom_violin"),
+    ('chart.draw_boxes(x="class", y="marks")', "boxplot geom_boxplot box"),
+    ('chart.draw_violins(x="class", y="marks")', "violinplot geom_violin violin"),
     ('chart.draw_density(x="marks")', "kdeplot geom_density kde"),
     ('chart.draw_cumulative_share(x="marks")', "ecdfplot ecdf stat_ecdf"),
     ("chart.fit_line()", "regplot lmplot geom_smooth"),

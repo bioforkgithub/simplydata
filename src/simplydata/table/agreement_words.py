@@ -10,7 +10,7 @@ every row. These words measure agreement itself. Every number comes from statsmo
   kappa2(weight = "equal" / "squared"). The raw agreement is shown beside kappa, because kappa can be low
   when one category is rare. Three or more columns: Fleiss' kappa (statsmodels fleiss_kappa), its z and p
   from R irr::kappam.fleiss(). Columns of numbers: the intraclass correlation, R irr::icc() (two-way,
-  absolute agreement, one rater by default; raters=, kind=, of= choose the form, which is always named:
+  absolute agreement, one rater by default; raters=, checking_for=, of= choose the form, which is always named:
   raters="a sample" (McGraw and Wong's "random"), "these only" ("fixed") or "different per row" ("different")).
   method="krippendorff": R irr::kripp.alpha(); method="lin": Lin's concordance correlation, R
   DescTools::CCC().
@@ -80,9 +80,9 @@ class AgreementWords:
         return names, kept
 
     # ------------------------------------------------------------------ agreement_between
-    @friendly(renamed={"weights": "near_misses"}, others={"weight": "near_misses", "wt": "near_misses"})
+    @friendly(renamed={"weights": "near_misses", "kind": "checking_for"}, others={"weight": "near_misses", "wt": "near_misses"})
     def agreement_between(self, *columns, method=None, near_misses=None, in_order=None, interval=95,
-                          raters="a sample", kind="agreement", of="one rater"):
+                          raters="a sample", checking_for="agreement", of="one rater"):
         """How well do two or more raters (or devices) agree on the same rows?
 
         table.agreement_between("nurse_rating", "doctor_rating")   (with sdata.get_example("clinic"))
@@ -94,7 +94,7 @@ class AgreementWords:
         categories, 3 or more columns: Fleiss' kappa (statsmodels; its p-value from R irr);
         numbers: the intraclass correlation (ICC) from R irr::icc(): by default two-way, absolute
         agreement, one rater, the raters a sample of many possible raters (raters="these only" or
-        "different per row", kind="consistency", of="average of raters" choose another form, and
+        "different per row", checking_for="consistency", of="average of raters" choose another form, and
         the form is always named).
         method="krippendorff": Krippendorff's alpha (R irr::kripp.alpha()); method="lin": Lin's
         concordance correlation for two columns of numbers (R DescTools::CCC()).
@@ -113,7 +113,7 @@ class AgreementWords:
             other_value_note("raters", raters, RATERS_OTHERS[raters])
             raters = RATERS_OTHERS[raters]
         self._check_choice(step, "raters", raters, tuple(RATERS))
-        self._check_choice(step, "kind", kind, KINDS)
+        self._check_choice(step, "checking_for", checking_for, KINDS)
         self._check_choice(step, "of", of, tuple(OF))
         numeric = all(self._frame.schema[n].is_numeric() for n in names)
         if method is None:
@@ -129,7 +129,7 @@ class AgreementWords:
                 raise SimplydataError('method="lin" compares two columns of numbers.')
             return self._lin(names, kept, level)
         if method == "icc":
-            return self._icc(names, kept, level, raters, kind, of)
+            return self._icc(names, kept, level, raters, checking_for, of)
         values = {n: kept[n].to_list() for n in names}
         order = self._category_order(step, names, values, in_order, weights is not None or method == "krippendorff")
         codes = np.column_stack([[order.index(v) for v in values[n]] for n in names]).astype(float)
