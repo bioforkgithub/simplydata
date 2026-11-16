@@ -47,18 +47,24 @@ grammar.
 | Saving | `chart.save("x.png")` or `chart.save("x.pdf")`, format from the file name |
 | Spelling | Both `colour` and `color`, `grey` and `gray` |
 | Errors | Friendly message, "did you mean …?", list of columns, link to request a missing word on GitHub |
-| Learning | Built-in lessons `sdata.lesson(1)` … `sdata.lesson(20)`, `sdata.help("bars")`, `sdata.words()` |
-| Renaming | A renamed word or option keeps working for one release and prints one line, once per session: `Note: "remove_empty_rows" is now called "remove_rows_with_empty_cells".` Old names are never listed in `sdata.words()`, the cheat sheet or the lessons; `sdata.help("old_name")` points to the new one |
+| Learning | Built-in lessons `sdata.show_lesson(1)` … `sdata.show_lesson(20)`, `sdata.help("draw_bars")`, `sdata.show_all_words()` |
+| Renaming | A renamed word or option keeps working for one release and prints one line, once per session: `Note: "remove_rows_with_empty_cells" is now called "remove_rows_with_empty_cells_in".` Old names are never listed in `sdata.show_all_words()`, the cheat sheet or the lessons; `sdata.help("old_name")` points to the new one |
 
 ## 4. Grammar rules
 
-1. **What + where**: `title_top`, `caption_bottom`, `legend_bottom`, `line_at_y`.
+A line of simplydata reads like an instruction said to the program: the object, then a verb
+saying what it should do, then the details as options (`chart.draw_bars(x="name", y="marks")`,
+`table.keep_rows_where("marks", is_above=50)`).
+
+1. **Verb + what + where**: `write_title_on_top`, `write_caption_at_bottom`, `put_legend_at_bottom`,
+   `draw_line_at_y`.
 2. **Axes are `x` and `y`** (the words children learn in school maths).
-3. Anything that belongs to one axis **ends in `_x` or `_y`**: `label_y`, `range_y`,
-   `log_scale_y`, `ticks_x`.
-4. **Mathematical terms keep their names**: log, histogram, density, polar.
-5. Other jargon becomes plain words: `dots` (scatter), `sideways=True` (horizontal bars).
-6. Calling two chart types on the same chart puts them on top of each other.
+3. Anything that belongs to one axis **ends in `_x` or `_y`**: `label_y`, `set_range_y`,
+   `use_log_scale_y`, `put_ticks_x`.
+4. **Mathematical terms keep their names**: log, histogram, density, polar (`take_log`,
+   `draw_histogram`, `draw_density`, `draw_polar`).
+5. Other jargon becomes plain words: `draw_dots` (scatter), `sideways=True` (horizontal bars).
+6. Drawing two chart types on the same chart puts them on top of each other.
 
 ### Six patterns for the whole vocabulary
 
@@ -66,21 +72,24 @@ A user who knows one word of a pattern should be able to guess the others.
 
 | # | Pattern | Examples |
 |---|---|---|
-| 1 | **verb + thing** changes a table or numbers: `keep_`, `remove_`, `add_`, `make_`, `fill_`, `turn_`, `rename_`, `sort_` + rows / columns / cells / numbers | `keep_rows`, `remove_columns`, `fill_empty_cells`, `remove_rows_with_empty_cells`, `fill_empty_numbers` |
-| 2 | **chart types are nouns on a chart**: `chart.bars(...)` | `bars`, `histogram`, `dots`, `all_dots` |
-| 3 | **thing + where** places something on a chart; where = `top`/`bottom`/`left`/`right`/`x`/`y`/`at`/`between` | `title_top`, `label_y`, `label_colour_bar`, `line_at_y`, `legend_bottom`, `zoom_box(where="top right")` |
-| 4 | **measure + `_of`(column, `for_each=`)** for one column; **relation + `_between`(a, b)** for two; **`compare_` + measure** for tests | `median_of`, `correlation_between`, `compare_averages` |
-| 5 | **`show_` / `hide_` + thing** to look at something without changing it | `show_first_rows`, `show_grid`/`hide_grid`, `show_legend`/`hide_legend` |
+| 1 | **verb + thing** changes a table or numbers: `keep_`, `remove_`, `add_`, `fill_`, `turn_`, `rename_`, `sort_` + rows / columns / cells / numbers, with a **glue word at the end** for the first input (`_where`, `_in`, `_that`); **`get_`** takes one piece out; **`take_`** does maths on every number; **`make_`** only makes something new; **`turn_into_`** gives the same data as another kind | `keep_rows_where`, `remove_columns`, `fill_empty_cells_in`, `remove_rows_with_empty_cells_in`, `fill_empty_numbers`, `keep_each_number_that`, `get_column`, `take_log`, `make_random_numbers`, `turn_into_numbers`, `turn_into_table` |
+| 2 | **`draw_` + chart type**: `chart.draw_bars(...)` | `draw_bars`, `draw_histogram`, `draw_dots`, `draw_all_dots` |
+| 3 | **verb + thing + where** places or sets something on a chart (`write_`, `put_`, `set_`, `use_`, `add_`); where = `top`/`bottom`/`left`/`right`/`x`/`y`/`at`/`between` | `write_title_on_top`, `label_y`, `label_colour_bar`, `draw_line_at_y`, `put_legend_at_bottom`, `set_range_y`, `use_colour("blue")`, `add_zoom_box(where="top right")` |
+| 4 | **`find_` + measure + `_of`**(column, `for_each_group_in=`) for one column; **`find_` + relation + `_between`**(a, b) for two; **`compare_` + measure + `_of`** for tests between groups, **`compare_` + measure + `_to`** against one value | `find_median_of`, `find_correlation_between`, `compare_averages_of`, `compare_average_to` |
+| 5 | **`show_` / `hide_` + thing** to look at something without changing it; the help words join it | `show_first_rows`, `show_grid`/`hide_grid`, `show_legend`/`hide_legend`, `show_steps`, `show_lesson`, `show_today` |
 | 6 | **`as_` + library** hands the data to another Python tool; **`save`** writes a file, its type from the file name | `as_pandas`, `as_polars`, `as_numpy`; `table.save("clean.xlsx")`, `chart.save("marks.png")` |
 
-**One option name, one meaning, everywhere:** `for_each=` (groups), `colour=` (one colour, or a
-colour per group), `between=[low, high]` and `x_between=`/`y_between=` (every span),
-`from_column=`, `with_value=`, `biggest_first=`, `per_row=` (charts in a row), `columns=` (table
-columns only), `label=` (text on a line or band), `fast=`, `drawn_as=`. Measure names are the same
-wherever they appear: `"average"`, `"median"`, `"total"`, `"count"`, `"smallest"`, `"biggest"`,
-`"standard deviation"`, `"standard error"`, `"confidence interval"` (in `show=`, `error=`,
-`error_bars` and the `_of` words). Summary words print their answer as one sentence, so a program
-needs no `print()`.
+**One option name, one meaning, everywhere:** `for_each_group_in=` (groups), `colour=` (one colour,
+or a colour per group), conditions start with `is_` (`is_above=`, `is_below=`, `is_at_least=`,
+`is_at_most=`, `is_equal_to=`, `is_not_equal_to=`, `is_one_of=`, `is_between=[low, high]`,
+`is_after=`, `is_before=`), `between=[low, high]` and `x_between=`/`y_between=` (every span),
+switches start with `with_` (`with_dots=True`, `with_arrow=True`, `with_seed=1`), `of_kind=`,
+`of_degree=`, `from_column=`, `with_value=`, `biggest_first=`, `per_row=` (charts in a row),
+`columns=` (table columns only), `labelled=` (text on a line or band; `labeled=` works too),
+`fast=`, `drawn_as=`. Measure names are the same wherever they appear: `"average"`, `"median"`,
+`"total"`, `"count"`, `"smallest"`, `"biggest"`, `"standard deviation"`, `"standard error"`,
+`"confidence interval"` (in `show=`, `error=`, `draw_error_bars` and the `find_..._of` words).
+Summary words print their answer as one sentence, so a program needs no `print()`.
 
 **The word names the idea.** The word says the question in plain words; help and the printed
 result name the technical term ("Welch's t-test", "linear regression"), so a learner can follow
@@ -89,17 +98,19 @@ a paper's Methods section.
 **Checklist for a new word:** can a user who has never seen it guess it from one sibling? If
 not, rename it before it is released.
 
+**Talking to the program.** A line of simplydata should read like an instruction you say to the program. A longer name is fine when it makes the line clearer read aloud. It is still Python code: the object, then what it should do, then the details as options. Old names keep working as other names for one release.
+
 ```python
 import simplydata as sdata
 
 chart = sdata.chart("marks.xlsx")
-chart.bars(x="name", y="marks")
-chart.title_top("My class marks")
+chart.draw_bars(x="name", y="marks")
+chart.write_title_on_top("My class marks")
 chart.label_x("Student")
 chart.label_y("Marks")
-chart.line_at_y(50)                  # pass mark
+chart.draw_line_at_y(50, labelled="pass mark")
 chart.shade_between_y(40, 60)
-chart.legend_bottom()
+chart.put_legend_at_bottom()
 chart.save("marks.png")
 ```
 
@@ -115,85 +126,85 @@ chart.save("marks.png")
 ### 5.2 Chart types
 | Word | Example |
 |---|---|
-| `bars` | `chart.bars(x="name", y="marks")` · `stacked=True` · `sideways=True` |
-| `lines` | `chart.lines(x="day", y="temp", colour="city")` |
-| `dots` | `chart.dots(x="height", y="weight", size="age", shape="type")` |
-| `area` | `chart.area(x="year", y="sales")` |
-| `histogram` | `chart.histogram(x="marks", bins=10)` |
-| `boxes` | `chart.boxes(x="class", y="marks")` |
-| `violins` | `chart.violins(x="class", y="marks")` |
-| `heatmap` | `chart.heatmap(numbers=True)` · `cluster=True` |
-| `pie` | `chart.pie(labels="fruit", values="count")` |
-| `polar` | `chart.polar(angle="direction", distance="speed")` |
-| `contour` | `chart.contour(x="lon", y="lat", z="depth")` |
-| `surface` | `chart.surface(x="lon", y="lat", z="depth")` |
-| `dots_3d` | `chart.dots_3d(x="a", y="b", z="c")` |
+| `draw_bars` | `chart.draw_bars(x="name", y="marks")` · `stacked=True` · `sideways=True` |
+| `draw_lines` | `chart.draw_lines(x="day", y="temp", colour="city")` |
+| `draw_dots` | `chart.draw_dots(x="height", y="weight", size="age", shape="type")` |
+| `draw_area` | `chart.draw_area(x="year", y="sales")` |
+| `draw_histogram` | `chart.draw_histogram(x="marks", with_bins=10)` |
+| `draw_boxes` | `chart.draw_boxes(x="class", y="marks")` |
+| `draw_violins` | `chart.draw_violins(x="class", y="marks")` |
+| `draw_heatmap` | `chart.draw_heatmap(with_numbers=True)` · `cluster=True` |
+| `draw_pie` | `chart.draw_pie(labels="fruit", values="count")` |
+| `draw_polar` | `chart.draw_polar(angle="direction", distance="speed")` |
+| `draw_contour` | `chart.draw_contour(x="lon", y="lat", z="depth")` |
+| `draw_surface` | `chart.draw_surface(x="lon", y="lat", z="depth")` |
+| `draw_dots_3d` | `chart.draw_dots_3d(x="a", y="b", z="c")` |
 
 ### 5.3 Statistics
 | Word | Example |
 |---|---|
-| `show=` | `chart.bars(x="class", y="marks", show="average")` · `"median"` · `"total"` · `"count"` · `"smallest"` · `"biggest"` · `"standard deviation"` |
+| `show=` | `chart.draw_bars(x="class", y="marks", show="average")` · `"median"` · `"total"` · `"count"` · `"smallest"` · `"biggest"` · `"standard deviation"` |
 | `error=` | `error="standard deviation"` · `"standard error"` · `"confidence interval"` (`"sd"`, `"se"`, `"ci"` also work) |
-| `error_bars` | `chart.error_bars("standard error")` · `chart.error_bars(column="error")` |
-| `fit_line` | `chart.fit_line()` · `confidence_band=True` · `show_equation=True` |
-| `fit_curve` | `chart.fit_curve(degree=2)` |
-| `smooth_line` | `chart.smooth_line()` |
-| `density` | `chart.density(x="marks", colour="class")` |
-| `count_bars` | `chart.count_bars(x="fruit")` |
-| `all_dots` | `chart.all_dots(x="class", y="marks")` |
-| `side_histograms` | `chart.side_histograms()` |
-| `sdata.pairs` | `sdata.pairs(table)` |
+| `draw_error_bars` | `chart.draw_error_bars("standard error")` · `chart.draw_error_bars(column="error")` |
+| `fit_line` | `chart.fit_line()` · `with_confidence_band=True` · `show_equation=True` |
+| `fit_curve` | `chart.fit_curve(of_degree=2)` |
+| `draw_smooth_line` | `chart.draw_smooth_line()` |
+| `draw_density` | `chart.draw_density(x="marks", colour="class")` |
+| `draw_count_bars` | `chart.draw_count_bars(x="fruit")` |
+| `draw_all_dots` | `chart.draw_all_dots(x="class", y="marks")` |
+| `draw_side_histograms` | `chart.draw_side_histograms()` |
+| `sdata.draw_all_pairs` | `sdata.draw_all_pairs(table)` |
 
 ### 5.4 Lines, shading, words
 | Word | Example |
 |---|---|
-| `line_at_x` / `line_at_y` | `chart.line_at_y(50)` |
+| `draw_line_at_x` / `draw_line_at_y` | `chart.draw_line_at_y(50, labelled="pass mark")` |
 | `shade_between_x` / `shade_between_y` | `chart.shade_between_y(40, 60)` |
-| `title_top` | `chart.title_top("My class marks")` |
-| `caption_bottom` | `chart.caption_bottom("Data from 2026")` |
+| `write_title_on_top` | `chart.write_title_on_top("My class marks")` |
+| `write_caption_at_bottom` | `chart.write_caption_at_bottom("Data from 2026")` |
 | `label_x` / `label_y` | `chart.label_y("Marks")` |
-| `note` | `chart.note("Highest!", x=5, y=98, arrow=True)` |
-| `numbers_on_bars` | `chart.numbers_on_bars()` |
-| `font_size` | `chart.font_size(14)` |
+| `write_note` | `chart.write_note("Highest!", x=5, y=98, with_arrow=True)` |
+| `write_numbers_on_bars` | `chart.write_numbers_on_bars()` |
+| `use_font_size` | `chart.use_font_size(14)` |
 
 ### 5.5 Axes
 | Word | Example |
 |---|---|
-| `range_x` / `range_y` | `chart.range_y(0, 100)` |
-| `log_scale_x` / `log_scale_y` | `chart.log_scale_y()` |
-| `ticks_x` / `ticks_y` | `chart.ticks_x(0, 10, 20, 30)` |
+| `set_range_x` / `set_range_y` | `chart.set_range_y(0, 100)` |
+| `use_log_scale_x` / `use_log_scale_y` | `chart.use_log_scale_y()` |
+| `put_ticks_x` / `put_ticks_y` | `chart.put_ticks_x(0, 10, 20, 30)` |
 | `rotate_labels_x` | `chart.rotate_labels_x(45)` |
-| `second_y` | `chart.second_y("rain", drawn_as="bars", label="Rain (mm)")` |
+| `add_second_y` | `chart.add_second_y("rain", drawn_as="bars", labelled="Rain (mm)")` |
 | `flip_y` | `chart.flip_y()` |
 
 ### 5.6 Colours and look
 | Word | Example |
 |---|---|
-| `colour` / `color` | `chart.colour("blue")` · inside a chart: `colour="site"` |
-| `colours` | `chart.colours("blue", "orange", "green")` |
-| `style` | `chart.style("paper")` · `"school"` · `"dark"` · `"presentation"` |
-| `size` | `chart.size(width=8, height=6)` |
+| `use_colour` / `use_color` | `chart.use_colour("blue")` · inside a chart: `colour="site"` |
+| `use_colours` | `chart.use_colours("blue", "orange", "green")` |
+| `use_style` | `chart.use_style("paper")` · `"school"` · `"dark"` · `"presentation"` |
+| `set_size` | `chart.set_size(width=8, height=6)` |
 | `show_grid` / `hide_grid` | `chart.hide_grid()` |
-| `legend_top` / `_bottom` / `_left` / `_right` | `chart.legend_bottom()` |
+| `put_legend_at_top` / `_at_bottom` / `_on_left` / `_on_right` | `chart.put_legend_at_bottom()` |
 | `hide_legend` / `show_legend` | `chart.hide_legend()` |
 | `label_colour_bar` | `chart.label_colour_bar("Depth (m)")` |
 
 ### 5.7 Several charts and hard tricks
 | Word | Example |
 |---|---|
-| `sdata.side_by_side` | `sdata.side_by_side(a, b).save("both.png")` |
-| `sdata.one_above_other` | `sdata.one_above_other(a, b)` |
-| `sdata.grid` | `sdata.grid(a, b, c, d, per_row=2, same_y=True, letters=True)` (`letters=True` writes A, B, C … on the panels; all three page words take it) |
-| `one_chart_per` | `chart.one_chart_per("site", per_row=3)` · `one_chart_per(down="site", across="year")` |
-| `zoom_box` | `chart.zoom_box(x_between=[2, 4], y_between=[10, 20], where="top right")` |
+| `sdata.put_side_by_side` | `sdata.put_side_by_side(a, b).save("both.png")` |
+| `sdata.put_one_above_other` | `sdata.put_one_above_other(a, b)` |
+| `sdata.put_in_rows_and_columns` | `sdata.put_in_rows_and_columns(a, b, c, d, per_row=2, same_y=True, with_letters=True)` (`with_letters=True` writes A, B, C … on the panels; all three page words take it) |
+| `draw_one_chart_for_each_group_in` | `chart.draw_one_chart_for_each_group_in("site", per_row=3)` · `draw_one_chart_for_each_group_in(down="site", across="year")` |
+| `add_zoom_box` | `chart.add_zoom_box(x_between=[2, 4], y_between=[10, 20], where="top right")` |
 | `animate` | `chart.animate(over="year")` then `chart.save("growth.gif")` |
 
 ### 5.8 Help and learning
 | Word | Example |
 |---|---|
-| `sdata.lesson` | `sdata.lesson(1)` … `sdata.lesson(20)` |
-| `sdata.help` | `sdata.help("bars")` |
-| `sdata.words` | `sdata.words()` prints the whole list |
+| `sdata.show_lesson` | `sdata.show_lesson(1)` … `sdata.show_lesson(20)` |
+| `sdata.help` | `sdata.help("draw_bars")` |
+| `sdata.show_all_words` | `sdata.show_all_words()` prints the whole list |
 
 ## 6. Libraries underneath
 

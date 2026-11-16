@@ -7,6 +7,132 @@ working for one release and prints a one-line note with its new name.
 
 More statistics, each checked against R.
 
+### Talking syntax: every line reads as an instruction to the program
+
+A line of simplydata now reads like an instruction you say to the program: the object, a verb
+saying what it should do, then the details as options. Most words start with a verb (`draw_`,
+`write_`, `put_`, `set_`, `use_`, `find_`, `get_`, `take_`, `make_`, `turn_into_`, `show_`) and the
+first input is joined by a small word (`_where`, `_in`, `_of`, `_that`). Every old name and old
+option keeps working for one release and prints one line, once per session (`Note: "bars" is now
+called "draw_bars". ...`); `sdata.help("old_name")` points to the new word, and old names are not
+listed in `sdata.show_all_words()`, the cheat sheet or the lessons. Old names from other tools
+point to the new words.
+
+- Charts: `chart.bars` -> `draw_bars`, `chart.lines` -> `draw_lines`, `chart.dots` -> `draw_dots`,
+  `chart.area` -> `draw_area`, `chart.histogram` -> `draw_histogram`, `chart.boxes` -> `draw_boxes`,
+  `chart.violins` -> `draw_violins`, `chart.heatmap` -> `draw_heatmap`, `chart.pie` -> `draw_pie`,
+  `chart.polar` -> `draw_polar`, `chart.contour` -> `draw_contour`, `chart.surface` -> `draw_surface`,
+  `chart.dots_3d` -> `draw_dots_3d`, `chart.band` -> `draw_band`, `chart.empty_cells` ->
+  `draw_map_of_empty_cells`, `chart.error_bars` -> `draw_error_bars`, `chart.curve` -> `draw_curve`,
+  `chart.smooth_line` -> `draw_smooth_line`, `chart.density` -> `draw_density`, `chart.count_bars` ->
+  `draw_count_bars`, `chart.all_dots` -> `draw_all_dots`, `chart.side_histograms` ->
+  `draw_side_histograms`, `chart.qq_dots` -> `draw_qq_dots`, `chart.cumulative_share` ->
+  `draw_cumulative_share`, `chart.title_top` -> `write_title_on_top`, `chart.caption_bottom` ->
+  `write_caption_at_bottom`, `chart.note` -> `write_note`, `chart.numbers_on_bars` ->
+  `write_numbers_on_bars`, `chart.names_on_dots` -> `write_names_on_dots`, `chart.font_size` ->
+  `use_font_size`, `chart.font_name` -> `use_font`, `chart.range_x` -> `set_range_x`, `chart.range_y` ->
+  `set_range_y`, `chart.log_scale_x` -> `use_log_scale_x`, `chart.log_scale_y` -> `use_log_scale_y`,
+  `chart.ticks_x` -> `put_ticks_x`, `chart.ticks_y` -> `put_ticks_y`, `chart.tick_format_x` ->
+  `write_ticks_x_as`, `chart.tick_format_y` -> `write_ticks_y_as`, `chart.second_y` -> `add_second_y`,
+  `chart.colour` -> `use_colour`, `chart.colours` -> `use_colours`, `chart.colour_scale` ->
+  `use_colour_scale`, `chart.style` -> `use_style`, `chart.size` -> `set_size`, `chart.legend_top` ->
+  `put_legend_at_top`, `chart.legend_bottom` -> `put_legend_at_bottom`, `chart.legend_left` ->
+  `put_legend_on_left`, `chart.legend_right` -> `put_legend_on_right`, `chart.one_chart_per` ->
+  `draw_one_chart_for_each_group_in`, `chart.zoom_box` -> `add_zoom_box`, `chart.survival_curves` ->
+  `draw_survival_curves`, `chart.line_at_x` -> `draw_line_at_x`, `chart.line_at_y` -> `draw_line_at_y`,
+  `chart.line_with_slope` -> `draw_line_with_slope`.
+- Chart spellings: `chart.color` -> `use_color`, `chart.colors` -> `use_colors`, `chart.color_scale` ->
+  `use_color_scale`; the other names `chart.scatter`, `chart.bar`, `chart.line`, `chart.box`,
+  `chart.violin` now point to `draw_dots`, `draw_bars`, `draw_lines`, `draw_boxes`, `draw_violins` with
+  the same note. The legend words accept the other spelling too (`put_legend_on_top`,
+  `put_legend_on_bottom`, `put_legend_at_left`, `put_legend_at_right`). A page of charts has
+  `write_title_on_top`, `use_style` and `set_size`.
+- Tables: `table.column_names` -> `get_column_names`, `table.column` -> `get_column`, `table.row` ->
+  `get_row`, `table.cell_at` -> `get_cell_at`, `table.keep_rows` -> `keep_rows_where`,
+  `table.remove_rows` -> `remove_rows_where`, `table.count_empty_cells` -> `count_empty_cells_in`,
+  `table.remove_rows_with_empty_cells` -> `remove_rows_with_empty_cells_in`, `table.fill_empty_cells` ->
+  `fill_empty_cells_in`, `table.remove_extra_spaces` -> `remove_extra_spaces_in`, `table.replace_values`
+  -> `replace_values_in`, `table.add_date_part_column` -> `add_column_with_part_of_date`,
+  `table.add_text_part_column` -> `add_column_with_part_of_text`, `table.replace_text` ->
+  `replace_text_in`, `table.average_of` -> `find_average_of`, `table.median_of` -> `find_median_of`,
+  `table.total_of` -> `find_total_of`, `table.smallest_of` -> `find_smallest_of`, `table.biggest_of` ->
+  `find_biggest_of`, `table.standard_deviation_of` -> `find_standard_deviation_of`, `table.summary_of` ->
+  `find_summary_of`, `table.percent_of` -> `find_percent_of_rows_where`, `table.count_different_values`
+  -> `count_different_values_in`, `table.percentile_of` -> `find_percentile_of`, `table.most_common_of`
+  -> `find_most_common_of`, `table.correlation_between` -> `find_correlation_between`,
+  `table.interval_of` -> `find_interval_of`, `table.chart` -> `start_chart`, `table.compare_averages` ->
+  `compare_averages_of`, `table.compare_each_pair` -> `compare_each_pair_of`,
+  `table.compare_before_after` -> `compare_before_and_after`, `table.compare_counts` ->
+  `compare_counts_of`, `table.compare_spreads` -> `compare_spreads_of`, `table.compare_shapes` ->
+  `compare_shapes_of`, `table.check_random_order` -> `check_if_random_order`, `table.compare_matched` ->
+  `compare_matched_columns`, `table.model_averages_of` -> `find_model_averages_of`, `table.check_model`
+  -> `check_model_of`, `table.show_rows_that_pull` -> `show_rows_that_pull_model`,
+  `table.principal_components_of` -> `find_principal_components_of`, `table.distances_between_rows` ->
+  `find_distances_between_rows`, `table.compare_profiles` -> `compare_profiles_of`,
+  `table.survival_over_time` -> `find_survival_over_time`, `table.spectrum_of` -> `find_spectrum_of`,
+  `table.check_steady` -> `check_steady_over_time`, `table.autocorrelation_of` ->
+  `find_autocorrelation_of`, `table.trend_of` -> `find_trend_of`, `table.compare_forecasts` ->
+  `compare_forecasts_for`, `table.find_change_points` -> `find_change_points_in`, `table.find_peaks` ->
+  `find_each_peak_that`, `table.find_dips` -> `find_each_dip_that`, `table.map_of` -> `make_map_of`,
+  `table.fit_distribution` -> `fit_distribution_to`, `table.compare_distributions` ->
+  `compare_distributions_for`, `table.make_numbers` -> `turn_into_numbers`, `table.make_text` ->
+  `turn_into_text`, `table.make_dates` -> `turn_into_dates`, `table.make_lowercase` ->
+  `turn_into_lowercase`, `table.make_uppercase` -> `turn_into_uppercase`, `table.round_to` ->
+  `round_numbers_in`, `table.steps` -> `show_steps`.
+- Numbers: `nums.number_at` -> `get_number_at`, `nums.power` -> `raise_to_power`, `nums.square_root` ->
+  `take_square_root`, `nums.absolute_value` -> `take_absolute_value`, `nums.log` -> `take_log`,
+  `nums.exp` -> `take_exp`, `nums.running_total` -> `turn_into_running_total`, `nums.keep_numbers` ->
+  `keep_each_number_that`, `nums.remove_numbers` -> `remove_each_number_that`, `nums.replace_numbers` ->
+  `replace_each_number_that`, `nums.average` -> `find_average`, `nums.median` -> `find_median`,
+  `nums.total` -> `find_total`, `nums.smallest` -> `find_smallest`, `nums.biggest` -> `find_biggest`,
+  `nums.standard_deviation` -> `find_standard_deviation`, `nums.percentile` -> `find_percentile`,
+  `nums.number_grid` -> `make_number_grid`, `nums.table` -> `turn_into_table`, `nums.chart` ->
+  `start_chart`, `nums.spectrum_of` -> `find_spectrum`, `nums.autocorrelation_of` ->
+  `find_autocorrelation`, `nums.keep_frequencies` -> `keep_each_frequency_that`,
+  `nums.remove_frequencies` -> `remove_each_frequency_that`, `nums.find_peaks` -> `find_each_peak_that`,
+  `nums.find_dips` -> `find_each_dip_that`, `nums.fourier_transform` -> `take_fourier_transform`,
+  `nums.envelope` -> `find_envelope`, `nums.steps` -> `show_steps`.
+- Grids of numbers (with the number words above that they share): `grid.shape` -> `find_shape`,
+  `grid.number_at` -> `get_number_at`, `grid.row` -> `get_row`, `grid.column` -> `get_column`,
+  `grid.numbers` -> `get_all_numbers`, `grid.replace_numbers` -> `replace_each_number_that`, `grid.steps`
+  -> `show_steps`.
+- Distributions: `dist.chance` -> `find_chance_that_value`, `dist.density_at` -> `find_density_at`,
+  `dist.percentile` -> `find_percentile`, `dist.cut_off` -> `find_cut_off`, `dist.middle_range` ->
+  `find_middle_range`, `dist.average` -> `find_average`, `dist.median` -> `find_median`,
+  `dist.standard_deviation` -> `find_standard_deviation`, `dist.variance` -> `find_variance`,
+  `dist.summary` -> `show_summary`, `dist.random_numbers` -> `make_random_numbers`, `dist.chart` ->
+  `draw_chart`, `dist.table` -> `turn_into_table`, `dist.parameters` -> `show_parameters`.
+- sdata words: `sdata.example` -> `get_example`, `sdata.pairs` -> `draw_all_pairs`, `sdata.side_by_side`
+  -> `put_side_by_side`, `sdata.one_above_other` -> `put_one_above_other`, `sdata.grid` ->
+  `put_in_rows_and_columns`, `sdata.random_numbers` -> `make_random_numbers`, `sdata.how_many_needed` ->
+  `find_how_many_needed`, `sdata.chance_to_find` -> `find_chance_of_finding`, `sdata.dates` ->
+  `make_run_of_dates`, `sdata.inverse_fourier_transform` -> `find_inverse_fourier_transform`,
+  `sdata.wave` -> `make_wave`, `sdata.window_shape` -> `make_window_shape`, `sdata.find_smallest` ->
+  `find_where_smallest`, `sdata.find_biggest` -> `find_where_biggest`, `sdata.words` -> `show_all_words`,
+  `sdata.lesson` -> `show_lesson`, `sdata.today` -> `show_today`, `sdata.day` -> `show_day`,
+  `sdata.answers` -> `show_answers`, `sdata.next_day` -> `go_to_next_day`.
+- Options: `above=` -> `is_above=`, `below=` -> `is_below=`, `at_least=` -> `is_at_least=`, `at_most=` ->
+  `is_at_most=`, `equal_to=` -> `is_equal_to=`, `not_equal_to=` -> `is_not_equal_to=`, `one_of=` ->
+  `is_one_of=`, `after=` -> `is_after=`, `before=` -> `is_before=`, `between=` -> `is_between=`,
+  `pattern=` -> `matches_pattern=`, `for_each=` -> `for_each_group_in=`, `arrow=` -> `with_arrow=`,
+  `at_risk_table=` -> `with_at_risk_table=`, `censor_marks=` -> `with_censor_marks=`, `confidence_band=`
+  -> `with_confidence_band=`, `dots=` -> `with_dots=`, `letters=` -> `with_letters=`, `numbers=` ->
+  `with_numbers=`, `bins=` -> `with_bins=`, `decimals=` -> `with_decimals=`, `seed=` -> `with_seed=`,
+  `degree=` -> `of_degree=`, `kind=` -> `of_kind=`, `label=` -> `labelled=`.
+- Where they apply: the `is_` conditions are on `keep_rows_where`, `remove_rows_where`,
+  `replace_values_in`, `find_percent_of_rows_where`, the `each_..._that` words of numbers and grids,
+  `keep_each_frequency_that`, `remove_each_frequency_that`, `find_each_peak_that`, `find_each_dip_that`,
+  `chart.peak_dots` and `dist.find_chance_that_value`. `between=` stays for every span (axes, search
+  ranges, random numbers, colour scales); `after=` and `before=` stay on `compare_before_and_after` (two
+  columns) and `add_column_with_part_of_text` (the text around a mark); `kind=` stays on
+  `agreement_between`; a grid's `for_each="row"` / `"column"` stays. `labeled=` is accepted as well as
+  `labelled=`.
+- `dist.find_cut_off(with_chance_above=0.05)` / `with_chance_below=` (was `cut_off(above=)` / `below=`):
+  the option says it is a chance, so it does not look like the `is_above=` condition.
+- `table.round_numbers_in("price", with_decimals=2)` (was `round_to("price", 2)`); `nums.round_to(2)`
+  keeps its name. `draw_one_chart_for_each_group_in("class")` keeps `down=`, `across=` and `per_row=`.
+- PLAN section 4 has the new patterns and a rule, "Talking to the program".
+
 ### 30 days: everyday work only
 
 - The 30-day guide now teaches only the work people do with data most days; the manual stays the
