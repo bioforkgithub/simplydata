@@ -82,7 +82,7 @@ R_ENTRY_POINTS = {
     ("table/patterns.py", "_r_kmeans"), ("table/patterns.py", "_r_nmds"), ("table/patterns.py", "_r_permanova"),
     ("table/survival.py", "cox_zph"), ("table/between.py", "__init__"), ("table/models.py", "_explain_imputed"),
     ("table/post_hoc.py", "pair_letters"), ("table/summaries.py", "_summary_interval"),
-    ("power.py", "how_many_needed"), ("power.py", "_interval_width_needed"), ("power.py", "call"),
+    ("power.py", "find_how_many_needed"), ("power.py", "_interval_width_needed"), ("power.py", "call"),
     ("table/accuracy_words.py", "roc_engine"), ("table/accuracy_words.py", "compare_accuracy"),
     ("table/risk_words.py", "_prop_test_one_sided"), ("table/agreement_words.py", "_icc"),
     ("table/agreement_words.py", "_krippendorff"), ("table/agreement_words.py", "_ccc"),
@@ -98,7 +98,7 @@ R_ENTRY_POINTS = {
     ("table/models_r.py", "emmeans_table"), ("table/models_r.py", "lmer_r"), ("table/models_r.py", "geeglm_r"),
     ("table/models_r.py", "repeated_anova"), ("table/models_r.py", "group_influence"), ("table/models_r.py", "robust_cov"),
     ("table/models_r.py", "vif_r"), ("table/models_r.py", "gam_r"), ("table/models_r.py", "nakagawa_r"),
-    ("table/time_series.py", "check_steady"), ("_signals.py", "_lomb_scargle"),
+    ("table/time_series.py", "check_steady_over_time"), ("_signals.py", "_lomb_scargle"),
     ("_trend_season.py", "_r_stl_periodic"), ("_trend_season.py", "_r_mann_kendall"),
     ("_forecast.py", "r_forecast"), ("_forecast.py", "r_change_points"), ("_smoothing.py", "smooth"),
 }
