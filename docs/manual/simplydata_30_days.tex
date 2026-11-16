@@ -4,7 +4,7 @@
 % change simplydata/learn_days.py, then run
 %     python docs/make_manual.py --no-run
 % ---------------------------------------------------------------------------------------------
-% Page numbers from simplydata_manual.tex 430f27de7e823fb2
+% Page numbers from simplydata_manual.tex 01154b89d95a70e0
 
 \documentclass[10pt,a4paper]{article}
 % no dates or random IDs in the PDF, so it only changes when the guide changes
@@ -171,6 +171,7 @@ time windows, smoothing and trend). The manual is the complete reference: some l
 only there (risks and diagnostic tests, forecasts, spectra and filters, systems, finding and solving,
 values between points). The days that come near them end with a line ``More in the manual'' that
 names the lesson, for when your own work needs it.
+
 \textbf{Missed a day, or a week?} That is fine. Carry on where you stopped: the days build on each
 other, and nothing is lost by taking a break. In Python, \code{sdata.today()} does the same.
 
@@ -185,7 +186,7 @@ days (7, 14, 21 and 28) ask about the whole course, and the questions change eac
 \section*{Which track?}
 \begin{center}\small
 \begin{tabular}{@{}>{\raggedright\arraybackslash}p{0.17\linewidth}>{\raggedright\arraybackslash}p{0.75\linewidth}@{}}
-\hyperref[track:python]{\textbf{Python track}} & For people who already write some Python. About two lessons a day for 20 days, with review days on days 7, 14, 21 and 28, then an eight-day project of your own (days 21 to 28), a final test from memory and a look at the same work in pandas and matplotlib. Start: \code{sdata.\allowbreak{}start\_\allowbreak{}30\_\allowbreak{}days()}.\\[0.4em]
+\hyperref[track:python]{\textbf{Python track}} & For people who already write some Python. One or two lessons a day for 20 days, with review days on days 7 and 14, then an eight-day project of your own (days 21 to 28, which start and end with a review), a final test from memory (day 29) and a look at the same work in pandas and matplotlib (day 30). Start: \code{sdata.\allowbreak{}start\_\allowbreak{}30\_\allowbreak{}days()}.\\[0.4em]
 \hyperref[track:beginner]{\textbf{Beginner track}} & For people who have never programmed. Three days of just enough Python first, then about one lesson a day, with review days on days 7, 14 and 21, a small project of your own (days 28 and 30), a final test from memory (day 29) and a look back. Start: \code{sdata.\allowbreak{}start\_\allowbreak{}30\_\allowbreak{}days(track=\textquotedbl{}beginner\textquotedbl{})}.\\[0.4em]
 \end{tabular}
 \end{center}
@@ -220,7 +221,7 @@ tasks: a review and quantitative synthesis. \emph{Psychological Bulletin}, 132(3
 \url{https://doi.org/10.1037/0033-2909.132.3.354}\par}
 
 \trackstart{Python track}{For people who already write some Python}{track:python}
-About two lessons a day for 20 days, with review days on days 7, 14, 21 and 28, then an eight-day project of your own (days 21 to 28), a final test from memory and a look at the same work in pandas and matplotlib. Tick each day when you have done it; the day's number is a link to its page.
+One or two lessons a day for 20 days, with review days on days 7 and 14, then an eight-day project of your own (days 21 to 28, which start and end with a review), a final test from memory (day 29) and a look at the same work in pandas and matplotlib (day 30). Tick each day when you have done it; the day's number is a link to its page.
 \begin{center}\small
 \begin{longtable}{@{}c r >{\raggedright\arraybackslash}p{0.56\linewidth} >{\raggedright\arraybackslash}p{0.14\linewidth} r@{}}
 \toprule & \textbf{Day} & \textbf{What you do} & \textbf{Lesson} & \textbf{Page}\\\midrule\endhead
@@ -761,7 +762,7 @@ chart.save("good_marks.png")
 \begin{itemize}
   \item Work through \code{sdata.\allowbreak{}lesson(19)}, examples 1 and 2: type each example yourself (do not copy and paste), run it and read what each line does. Then do tasks 1 and 2 of the lesson and check them with \code{sdata.\allowbreak{}lesson(19,\allowbreak{} solutions=True)}.
   \item Work through \code{sdata.\allowbreak{}lesson(20)}, examples 1 and 2: type each example yourself (do not copy and paste), run it and read what each line does. Then do tasks 1 and 2 of the lesson and check them with \code{sdata.\allowbreak{}lesson(20,\allowbreak{} solutions=True)}.
-  \item More in the manual: \code{sdata.\allowbreak{}lesson(19)}, example 3: where a formula is smallest or biggest, and solving an equation (\code{find\_\allowbreak{}smallest}, \code{find\_\allowbreak{}biggest}, solve); \code{sdata.\allowbreak{}lesson(20)}, example 3: values between the points you measured, and maps (\code{values\_\allowbreak{}at}, \code{map\_\allowbreak{}of}). Do them when your own work needs them.
+  \item More in the manual: \code{sdata.\allowbreak{}lesson(19)}, example 3: where a formula is smallest or biggest, and solving an equation (\code{sdata.\allowbreak{}find\_\allowbreak{}smallest}, \code{sdata.\allowbreak{}find\_\allowbreak{}biggest}, \code{sdata.\allowbreak{}solve}); \code{sdata.\allowbreak{}lesson(20)}, example 3: values between the points you measured, and maps (\code{values\_\allowbreak{}at}, \code{map\_\allowbreak{}of}). Do them when your own work needs them.
 \end{itemize}
 \field{In the manual}{lesson~19, \manualpage{lesson:19}{103}{chapter.II.19}; lesson~20, \manualpage{lesson:20}{108}{chapter.II.20}; ``Fitting a line or a formula'', \manualpage{ideas:regression}{345}{section*.452}; ``The shape of the values: distributions'', \manualpage{ideas:distribution}{341}{section*.436}.}
 \field{Words to look up}{\kind{table}\,\code{table.\allowbreak{}fit\_\allowbreak{}line()}~\manualpage{word:table.fit-line}{247}{section*.223}; \kind{table}\,\code{table.\allowbreak{}fit\_\allowbreak{}curve()}~\manualpage{word:table.fit-curve}{248}{section*.224}; \kind{table}\,\code{table.\allowbreak{}fit\_\allowbreak{}formula()}~\manualpage{word:table.fit-formula}{248}{section*.225}; \kind{chart}\,\code{chart.\allowbreak{}fit\_\allowbreak{}formula()}~\manualpage{word:fit-formula}{165}{section*.42}; \kind{sdata}\,\code{sdata.\allowbreak{}distribution()}~\manualpage{word:sdata.distribution}{252}{section*.234}; \kind{dist}\,\code{dist.\allowbreak{}chance()}~\manualpage{word:dist.chance}{255}{section*.238}; \kind{dist}\,\code{dist.\allowbreak{}percentile()}~\manualpage{word:dist.percentile}{256}{section*.240}; \kind{table}\,\code{table.\allowbreak{}fit\_\allowbreak{}distribution()}~\manualpage{word:table.fit-distribution}{253}{section*.235}.}
@@ -792,7 +793,7 @@ chart.save("good_marks.png")
   \item More in the manual: \code{sdata.\allowbreak{}lesson(24)}, forecasts (needs R); the rest of \code{sdata.\allowbreak{}lesson(25)}: spectra, filters and steady or not; \code{sdata.\allowbreak{}lesson(26)}, systems. Do them when your own work needs them.
 \end{itemize}
 \field{In the manual}{lesson~23, \manualpage{lesson:23}{128}{chapter.II.23}; lesson~25, \manualpage{lesson:25}{138}{chapter.II.25}.}
-\field{Words to look up}{\kind{table}\,\code{table.\allowbreak{}add\_\allowbreak{}missing\_\allowbreak{}dates()}~\manualpage{word:table.add-missing-dates}{272}{section*.273}; \kind{table}\,\code{table.\allowbreak{}add\_\allowbreak{}rolling\_\allowbreak{}column()}~\manualpage{word:table.add-rolling-column}{217}{section*.170}; \kind{table}\,\code{table.\allowbreak{}trend\_\allowbreak{}of()}~\manualpage{word:table.trend-of}{274}{section*.277}; \kind{table}\,\code{table.\allowbreak{}find\_\allowbreak{}peaks()}~\manualpage{word:table.find-peaks}{283}{section*.294}.}
+\field{Words to look up}{\kind{table}\,\code{table.\allowbreak{}add\_\allowbreak{}missing\_\allowbreak{}dates()}~\manualpage{word:table.add-missing-dates}{272}{section*.273}; \kind{sdata}\,\code{sdata.\allowbreak{}dates()}~\manualpage{word:sdata.dates}{271}{section*.272}; \kind{table}\,\code{table.\allowbreak{}add\_\allowbreak{}smoothed\_\allowbreak{}column()}~\manualpage{word:table.add-smoothed-column}{273}{section*.275}; \kind{table}\,\code{table.\allowbreak{}trend\_\allowbreak{}of()}~\manualpage{word:table.trend-of}{274}{section*.277}.}
 \field{Needs R}{\code{trend\_\allowbreak{}of()} run R's own code, the same code R users run. Install it once: pip install \code{\textquotedbl{}simplydata[r]\textquotedbl{}}, then R from https://cran.r-project.org, then in R: \code{install.\allowbreak{}packages(c(\textquotedbl{}trend\textquotedbl{}))}. Without R these words print a message that says what to install.}
 \end{todo}
 \begin{tryit}
@@ -1028,7 +1029,7 @@ chart.save("good_marks.png")
 \end{todo}
 \begin{tryit}
 \begin{enumerate}
-  \item Without looking back: which word fits a formula of your own, and which gives the chance of a value above a number? Use both: the growth of each country's forest, and marks above 70 when they are normal with average 50 and standard deviation 10.
+  \item Without looking back: which word fits a formula of your own, and which gives the chance of a value above a number? Use both: in the growth table, fit the formula \code{\textquotedbl{}forest = a + b * (year - 2000)\textquotedbl{}} for each country, and find the share of marks above 70 when they are normal with average 50 and standard deviation 10.
   \item Run your whole project script from the top. Check that it makes the clean table, the figure and the numbers in your text.
 \end{enumerate}
 {\small Worked answers: \hyperref[answers:python:28]{page~\pageref*{answers:python:28}}, or \code{sdata.\allowbreak{}answers(28)}.}
@@ -1800,7 +1801,7 @@ nums.avrage()
 \end{tryit}
 
 \daystart{24}{Patterns across many columns}{Beginner track}{day:beginner:24}
-\goal{Find patterns across many columns with principal components and clusters. About an hour.}
+\goal{Find patterns across many columns with principal components, clusters, NMDS and PERMANOVA. About an hour.}
 \begin{warmup}
 \begin{enumerate}
   \item Which word draws four pictures to check a model from \code{explain()}? \fromday{23}\writeline
@@ -1869,7 +1870,7 @@ nums.avrage()
 \begin{itemize}
   \item Work through \code{sdata.\allowbreak{}lesson(19)}, examples 1 and 2: type each example yourself (do not copy and paste), run it and read what each line does. Then do tasks 1 and 2 of the lesson and check them with \code{sdata.\allowbreak{}lesson(19,\allowbreak{} solutions=True)}.
   \item Work through \code{sdata.\allowbreak{}lesson(20)}, examples 1 and 2: type each example yourself (do not copy and paste), run it and read what each line does. Then do tasks 1 and 2 of the lesson and check them with \code{sdata.\allowbreak{}lesson(20,\allowbreak{} solutions=True)}.
-  \item More in the manual: \code{sdata.\allowbreak{}lesson(19)}, example 3: where a formula is smallest or biggest, and solving an equation (\code{find\_\allowbreak{}smallest}, \code{find\_\allowbreak{}biggest}, solve); \code{sdata.\allowbreak{}lesson(20)}, example 3: values between the points you measured, and maps (\code{values\_\allowbreak{}at}, \code{map\_\allowbreak{}of}). Do them when your own work needs them.
+  \item More in the manual: \code{sdata.\allowbreak{}lesson(19)}, example 3: where a formula is smallest or biggest, and solving an equation (\code{sdata.\allowbreak{}find\_\allowbreak{}smallest}, \code{sdata.\allowbreak{}find\_\allowbreak{}biggest}, \code{sdata.\allowbreak{}solve}); \code{sdata.\allowbreak{}lesson(20)}, example 3: values between the points you measured, and maps (\code{values\_\allowbreak{}at}, \code{map\_\allowbreak{}of}). Do them when your own work needs them.
 \end{itemize}
 \field{In the manual}{lesson~19, \manualpage{lesson:19}{103}{chapter.II.19}; lesson~20, \manualpage{lesson:20}{108}{chapter.II.20}; ``Fitting a line or a formula'', \manualpage{ideas:regression}{345}{section*.452}; ``The shape of the values: distributions'', \manualpage{ideas:distribution}{341}{section*.436}.}
 \field{Words to look up}{\kind{table}\,\code{table.\allowbreak{}fit\_\allowbreak{}line()}~\manualpage{word:table.fit-line}{247}{section*.223}; \kind{table}\,\code{table.\allowbreak{}fit\_\allowbreak{}curve()}~\manualpage{word:table.fit-curve}{248}{section*.224}; \kind{table}\,\code{table.\allowbreak{}fit\_\allowbreak{}formula()}~\manualpage{word:table.fit-formula}{248}{section*.225}; \kind{chart}\,\code{chart.\allowbreak{}fit\_\allowbreak{}formula()}~\manualpage{word:fit-formula}{165}{section*.42}; \kind{sdata}\,\code{sdata.\allowbreak{}distribution()}~\manualpage{word:sdata.distribution}{252}{section*.234}; \kind{dist}\,\code{dist.\allowbreak{}chance()}~\manualpage{word:dist.chance}{255}{section*.238}; \kind{dist}\,\code{dist.\allowbreak{}percentile()}~\manualpage{word:dist.percentile}{256}{section*.240}; \kind{table}\,\code{table.\allowbreak{}fit\_\allowbreak{}distribution()}~\manualpage{word:table.fit-distribution}{253}{section*.235}.}
@@ -1900,7 +1901,7 @@ nums.avrage()
   \item More in the manual: \code{sdata.\allowbreak{}lesson(24)}, forecasts (needs R); the rest of \code{sdata.\allowbreak{}lesson(25)}: spectra, filters and steady or not; \code{sdata.\allowbreak{}lesson(26)}, systems. Do them when your own work needs them.
 \end{itemize}
 \field{In the manual}{lesson~23, \manualpage{lesson:23}{128}{chapter.II.23}; lesson~25, \manualpage{lesson:25}{138}{chapter.II.25}.}
-\field{Words to look up}{\kind{table}\,\code{table.\allowbreak{}add\_\allowbreak{}missing\_\allowbreak{}dates()}~\manualpage{word:table.add-missing-dates}{272}{section*.273}; \kind{table}\,\code{table.\allowbreak{}add\_\allowbreak{}rolling\_\allowbreak{}column()}~\manualpage{word:table.add-rolling-column}{217}{section*.170}; \kind{table}\,\code{table.\allowbreak{}trend\_\allowbreak{}of()}~\manualpage{word:table.trend-of}{274}{section*.277}; \kind{table}\,\code{table.\allowbreak{}find\_\allowbreak{}peaks()}~\manualpage{word:table.find-peaks}{283}{section*.294}.}
+\field{Words to look up}{\kind{table}\,\code{table.\allowbreak{}add\_\allowbreak{}missing\_\allowbreak{}dates()}~\manualpage{word:table.add-missing-dates}{272}{section*.273}; \kind{sdata}\,\code{sdata.\allowbreak{}dates()}~\manualpage{word:sdata.dates}{271}{section*.272}; \kind{table}\,\code{table.\allowbreak{}add\_\allowbreak{}smoothed\_\allowbreak{}column()}~\manualpage{word:table.add-smoothed-column}{273}{section*.275}; \kind{table}\,\code{table.\allowbreak{}trend\_\allowbreak{}of()}~\manualpage{word:table.trend-of}{274}{section*.277}.}
 \field{Needs R}{\code{trend\_\allowbreak{}of()} run R's own code, the same code R users run. Install it once: pip install \code{\textquotedbl{}simplydata[r]\textquotedbl{}}, then R from https://cran.r-project.org, then in R: \code{install.\allowbreak{}packages(c(\textquotedbl{}trend\textquotedbl{}))}. Without R these words print a message that says what to install.}
 \end{todo}
 \begin{tryit}
@@ -2617,7 +2618,7 @@ table.fit_line(x="sleep", y="marks")
   \item Which option makes a bar show the median instead of the average? \fromday{4}\\ $\rightarrow$ \code{show=\textquotedbl{}median\textquotedbl{}}
   \item Which word draws four pictures to check a model from \code{explain()}? \fromday{16}\\ $\rightarrow$ \code{table.\allowbreak{}check\_\allowbreak{}model(\textquotedbl{}marks\textquotedbl{},\allowbreak{} using=[\textquotedbl{}hours\textquotedbl{},\allowbreak{} \textquotedbl{}breakfast\textquotedbl{}])}
 \end{enumerate}
-\par\noindent{\sffamily\small\bfseries\color{tryframe}Task 1.} Without looking back: which word fits a formula of your own, and which gives the chance of a value above a number? Use both: the growth of each country's forest, and marks above 70 when they are normal with average 50 and standard deviation 10.\par
+\par\noindent{\sffamily\small\bfseries\color{tryframe}Task 1.} Without looking back: which word fits a formula of your own, and which gives the chance of a value above a number? Use both: in the growth table, fit the formula \code{\textquotedbl{}forest = a + b * (year - 2000)\textquotedbl{}} for each country, and find the share of marks above 70 when they are normal with average 50 and standard deviation 10.\par
 \begin{lstlisting}[style=py]
 import simplydata as sdata
 table = sdata.table(sdata.example("growth"))

@@ -1463,7 +1463,7 @@ LESSONS = [
             "In Jupyter, VS Code or Spyder, write chart on the last line of a cell and the chart "
             "appears by itself. In a script, chart.show() opens it in a window.",
             "Are the names under the bars bumping into each other? Lesson 2 shows how to turn them.",
-            "Learning on your own? sdata.start_30_days() turns the lessons into 30 days of about an hour: "
+            "Learning on your own? sdata.start_30_days() turns the everyday lessons into 30 days of about an hour: "
             "each day starts with a few questions on earlier days and ends with a task. Then type "
             'sdata.today() each day (or sdata.start_30_days(track="beginner") if you have never programmed).',
         ],

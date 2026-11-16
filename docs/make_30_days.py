@@ -79,6 +79,7 @@ time windows, smoothing and trend). The manual is the complete reference: some l
 only there (risks and diagnostic tests, forecasts, spectra and filters, systems, finding and solving,
 values between points). The days that come near them end with a line ``More in the manual'' that
 names the lesson, for when your own work needs it.
+
 \textbf{Missed a day, or a week?} That is fine. Carry on where you stopped: the days build on each
 other, and nothing is lost by taking a break. In Python, \code{sdata.today()} does the same.
 

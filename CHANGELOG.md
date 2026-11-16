@@ -21,8 +21,9 @@ More statistics, each checked against R.
   23 working with a model, 24 patterns, 25 survival, 26 fitting and distributions, 27 time series.
   Reviews, project days and the final test stay where they were.
 - The time-series day sets all of lesson 23 (with a question on `sdata.dates`), and
-  `add_rolling_column(window="7 days")` and `trend_of` come back 3 and 7 days later and in the final
-  test. Lessons 19 and 20 set only their tasks 1 and 2 (task 3 is about the part left to the manual).
+  `add_rolling_column(window="7 days")` and `trend_of` come back 3 and 7 days later (when the track
+  has those days) and in the final test. Lessons 19 and 20 set only their tasks 1 and 2 (task 3 is
+  about the part left to the manual).
 - The final test also asks every question of a day that has not come up yet, so the words of the
   last learning days of the beginner track are asked from memory too.
 

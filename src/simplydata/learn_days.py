@@ -42,9 +42,9 @@ TRACKS = {
     "python": dict(
         title="Python track",
         who="for people who already write some Python",
-        about="About two lessons a day for 20 days, with review days on days 7, 14, 21 and 28, then an "
-              "eight-day project of your own (days 21 to 28), a final test from memory and a look at the "
-              "same work in pandas and matplotlib.",
+        about="One or two lessons a day for 20 days, with review days on days 7 and 14, then an eight-day "
+              "project of your own (days 21 to 28, which start and end with a review), a final test from memory "
+              "(day 29) and a look at the same work in pandas and matplotlib (day 30).",
     ),
     "beginner": dict(
         title="Beginner track",
@@ -778,7 +778,7 @@ UNITS = {
             "run it and read what each line does. Then do tasks 1 and 2 of the lesson and check them with "
             "sdata.lesson(20, solutions=True)."],
         more=_more("sdata.lesson(19), example 3: where a formula is smallest or biggest, and solving an equation "
-                   "(find_smallest, find_biggest, solve)",
+                   "(sdata.find_smallest, sdata.find_biggest, sdata.solve)",
                    "sdata.lesson(20), example 3: values between the points you measured, and maps "
                    "(values_at, map_of)"),
         recall=[
@@ -800,8 +800,8 @@ UNITS = {
         lessons=[lesson_number(TIME_SERIES_LESSON), lesson_number(CYCLES_LESSON)],
         needs_r="trend_of()",
         r_packages=("trend",),
-        words=["table.add_missing_dates", "table.add_rolling_column", "table.trend_of", "table.find_peaks",
-               "sdata.dates", "table.add_smoothed_column"],
+        words=["table.add_missing_dates", "sdata.dates", "table.add_smoothed_column", "table.trend_of",
+               "table.add_rolling_column", "table.find_peaks"],
         do=[_lesson_do(lesson_number(TIME_SERIES_LESSON)),
             f"Then work through sdata.lesson({lesson_number(CYCLES_LESSON)}), example 3 only (peaks and dips), "
             f"and do its task 3.",
@@ -893,8 +893,9 @@ UNITS = {
         do=["Answer the warm-up on paper, from memory, before you look anything up.",
             "For each question you could not answer, open its day with sdata.day(n) and run its example again."],
         task=["Without looking back: which word fits a formula of your own, and which gives the chance of a value "
-              "above a number? Use both: the growth of each country's forest, and marks above 70 when they are "
-              "normal with average 50 and standard deviation 10."],
+              'above a number? Use both: in the growth table, fit the formula "forest = a + b * (year - 2000)" '
+              "for each country, and find the share of marks above 70 when they are normal with average 50 and "
+              "standard deviation 10."],
         solutions=[(_code('''
             import simplydata as sdata
             table = sdata.table(sdata.example("growth"))
@@ -1412,7 +1413,7 @@ _BEGINNER = [
      "Check a model with its pictures, ask whether a column helps, and say how sure a prediction is.",
      ["lesson21"], "learn"),
     ("Patterns across many columns",
-     "Find patterns across many columns with principal components and clusters.",
+     "Find patterns across many columns with principal components, clusters, NMDS and PERMANOVA.",
      ["lesson17"], "learn"),
     ("Survival, and planning a study",
      "Draw survival curves, and work out how many values a study needs.",
