@@ -173,7 +173,7 @@ def test_empty_numbers_never_match_but_is_empty_does():
     (lambda n: n.replace_each_number_that(is_above=5, is_below=2, with_value=1), "one condition at a time"),
     (lambda n: n.replace_each_number_that(is_above=5, with_value="x"), "with_value= needs a number, or None"),
     (lambda n: n.replace_each_number_that("5", with_value=1), "The old value needs to be a number"),
-    (lambda n: n.replace_each_number_that(None, with_value=1), "replace_numbers(is_empty=True, with_value=0)"),
+    (lambda n: n.replace_each_number_that(None, with_value=1), "replace_each_number_that(is_empty=True, with_value=0)"),
     (lambda n: n.replace_each_number_that(abuve=5, with_value=1), "Did you mean is_above=?"),
 ])
 def test_replace_numbers_errors(nums, call, message):
