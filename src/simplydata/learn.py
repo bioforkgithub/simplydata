@@ -186,7 +186,7 @@ EXTRA_NOTES = {
         'colour (and a legend), and colour="red" makes that one step red.'
     ),
     "show": (
-        'Not the same as the show= option inside bars and lines: for that, type '
+        'Not the same as the show= option inside draw_bars and draw_lines: for that, type '
         'sdata.help("show=").'
     ),
     "draw_error_bars": (
@@ -1012,7 +1012,7 @@ def _word(key: str) -> str:
 
 
 def _display(key: str) -> str:
-    """How a key is shown in sdata.show_all_words() and the cheat sheet: table and number words without
+    """How a key is shown in sdata.show_all_words() and the dictionary: table and number words without
     "table." or "nums." (their group says what they belong to)."""
     return _word(key) if _kind(key) in _PREFIX else key
 
@@ -1227,15 +1227,28 @@ def _lookup_all(word) -> list[str]:
     return [k for k in dict.fromkeys(found) if k is not None]
 
 
+# How an object is written before a word, and the kind of object it is: "dist.chart" names the
+# chart word of a distribution only. "sdata." is written in front of anything (sdata.help("sdata.bars")),
+# so it narrows nothing.
+_TYPED_KINDS = {"chart": {"chart"}, "page": {"chart"}, "table": {"table"}, "nums": {"numbers"},
+                "grid": {"grid", "numbers"}, "dist": {"dist"}, "system": {"system"}}
+
+
 def _old_names(word) -> list[tuple[str, str, str]]:
     """What an old name is called now: [(old, new, key of the new word), ...].
 
     Old words come from each object's _OLD_WORDS, old options from the renamed= of
     @friendly. Both still work for one release, but sdata.show_all_words() never lists them.
+    A prefix is honoured: "dist.chart" gives only dist.draw_chart, and no options.
     """
-    w = _normalise(str(word))
+    raw = str(word).strip()
+    head = raw.split(".", 1)[0] if "." in raw.rstrip("()") else None
+    kinds = _TYPED_KINDS.get(head)
+    w = _normalise(raw)
     found = []
     for cls, kind in _classes():
+        if kinds is not None and kind not in kinds:
+            continue
         new = cls._OLD_WORDS.get(w)
         if new is None:
             continue
@@ -1243,16 +1256,59 @@ def _old_names(word) -> list[tuple[str, str, str]]:
         key = new if kind == "chart" else f"{_PREFIX[kind]}.{new}"
         if key in _all_keys():
             found.append((w, new, key))
-    new = _ps()._OLD_WORDS.get(w[len("sdata."):] if w.startswith("sdata.") else w)
-    if new and f"sdata.{new}" in _all_keys():
-        found.append((w[len("sdata."):] if w.startswith("sdata.") else w, new, f"sdata.{new}"))
-    option = w[:-1] if w.endswith("=") else w
-    for key in _all_keys():
-        func = _function(key)
-        new = getattr(func, "_renamed_options", {}).get(option)
-        if new:
-            found.append((f"{option}=", f"{new}=", key))
+    new = _ps()._OLD_WORDS.get(w)
+    if new and f"sdata.{new}" in _all_keys() and kinds is None:
+        found.append((w, new, f"sdata.{new}"))
+    if kinds is None:
+        option = w[:-1] if w.endswith("=") else w
+        for key, func in _words_with_options():
+            new = getattr(func, "_renamed_options", {}).get(option)
+            if new:
+                found.append((f"{option}=", f"{new}=", key))
     return list(dict.fromkeys(found))
+
+
+def _words_with_options():
+    """(key, function) of every word, and of the grid summaries (grid.find_total ...), which share
+    their entry with the number words but have options of their own (in_each=)."""
+    pairs = [(key, _function(key)) for key in _all_keys()]
+    grid = _grid_class()
+    for name in grid._word_names():
+        key = f"grid.{name}"
+        if key not in _all_keys() and f"nums.{name}" in _all_keys():
+            func = getattr(grid, name)
+            if getattr(func, "_renamed_options", None):
+                pairs.append((key, func))
+    return pairs
+
+
+def _old_name_lines(old, typed: str | None = None) -> tuple[list[str], list[str]]:
+    """The lines sdata.help() prints for old names, each naming its object, and the keys to explain.
+
+    One line per old word ("table.chart" is now called "table.start_chart"); an old option gets one
+    line per new name, with the words it is in, and its new option is explained when it has an entry.
+    typed is the object the user wrote ("grid" in "grid.average"), named in place of the one of the key.
+    """
+    lines, keys, options = [], [], {}
+    for name, new, key in old:
+        if name.endswith("="):
+            options.setdefault((name, new), []).append(key)
+            continue
+        where = typed or (key.rsplit(".", 1)[0] if "." in key else "chart")
+        line = f'"{where}.{name}" is now called "{where}.{new}".'
+        if line not in lines:
+            lines.append(line)
+            keys.append(key)
+    for (name, new), in_keys in options.items():
+        calls = list(dict.fromkeys(_call_form(k) for k in in_keys))
+        shown = ", ".join(calls[:4]) + (f" and {len(calls) - 4} more" if len(calls) > 4 else "")
+        lines.append(f'"{name}" is now called "{new}" in {shown}.')
+        if new in _all_keys():
+            keys.append(new)
+        elif len(calls) <= 3:
+            keys.extend(k for k in in_keys if k in _all_keys())
+    lines.append("The old names still work for now, but will stop working in a later version.")
+    return lines, list(dict.fromkeys(keys))
 
 
 def _lookup(word) -> str | None:
@@ -1380,12 +1436,14 @@ def help(word=None) -> None:  # noqa: A001 - meant to be sdata.help
     old = _old_names(word)
     # "band=" is an old option (now with_confidence_band= in fit_line), although band is also a word
     if old and (not keys or str(word).strip().endswith("=")):
-        for name, new, key in old:
-            where = f" in {_call_form(key)}" if name.endswith("=") else ""
-            print(f'"{name}" is now called "{new}"{where}. The old name still works for now, but will '
-                  "stop working in a later version.")
+        typed = str(word).strip().split(".", 1)[0] if "." in str(word).strip().rstrip("()") else None
+        lines, keys = _old_name_lines(old, typed if typed in _TYPED_KINDS and typed != "page" else None)
+        if not keys:  # an old option of many words: say where to read more, not every word
+            lines.append(f'To learn more, type sdata.help("{_call_form(old[0][2])[:-2]}").')
+        print("\n".join(lines))
+        if not keys:
+            return None
         print()
-        keys = list(dict.fromkeys(key for _, _, key in old))
     if not keys and _print_other_names(word):
         return None
     if not keys:
@@ -1563,7 +1621,7 @@ LESSONS = [
                 chart.label_y("Marks out of 100")
                 chart.rotate_labels_x(45)
                 chart.save("lesson2_my_title.png")"""),
-             "title_top writes any title you like, and label_y names the y-axis."),
+             "write_title_on_top writes any title you like, and label_y names the y-axis."),
             (_sx("""\
                 import simplydata as sdata
                 marks = sdata.get_example("marks")
@@ -1682,7 +1740,7 @@ LESSONS = [
                 chart.use_colours("orange", "teal", "purple")
                 chart.put_legend_at_top()
                 chart.save("lesson3_legend_top.png")"""),
-             "legend_top puts the legend above the chart, in place of put_legend_at_bottom."),
+             "put_legend_at_top puts the legend above the chart, in place of put_legend_at_bottom."),
             (_sx("""\
                 import simplydata as sdata
                 marks = sdata.get_example("marks")
@@ -1756,8 +1814,8 @@ LESSONS = [
         notes=[
             "Chart types on the same chart are layers of one chart. Lesson 7 shows how to make "
             "several charts and put them on one page.",
-            "There are more chart types: area, violins, heatmap, polar, contour, surface and "
-            "dots_3d. Type sdata.show_all_words() to see them all and sdata.help(\"draw_violins\") to learn one.",
+            "There are more chart types: draw_area, draw_violins, draw_heatmap, draw_polar, draw_contour, draw_surface and "
+            "draw_dots_3d. Type sdata.show_all_words() to see them all and sdata.help(\"draw_violins\") to learn one.",
         ],
         task=[
             'Draw chart.draw_violins(x="class", y="marks") instead of boxes. What is different?',
@@ -1853,7 +1911,7 @@ LESSONS = [
             "median, so the median is safer when a few values are far from the rest (outliers).",
             'show= can be "average", "median", "total" (all added up), "count" (how many rows), '
             '"smallest", "biggest" or "standard deviation": the same names as the table words '
-            "average_of, find_median_of and so on.",
+            "find_average_of, find_median_of and so on.",
             "Standard deviation or standard error? The standard deviation describes the values: how "
             "spread out they are. The standard error describes the average: how sure we are of it. "
             "It gets smaller as you collect more values, even when the values spread just as much.",
@@ -1966,7 +2024,7 @@ LESSONS = [
         notes=[
             "Every axis word ends in _x or _y: set_range_x, put_ticks_x, use_log_scale_x, draw_line_at_x, "
             "shade_between_x, flip_x ...",
-            "range_y(0, None) fixes only the bottom and lets the top choose itself.",
+            "set_range_y(0, None) fixes only the bottom and lets the top choose itself.",
             "Bars should start at 0: a bar is read by its length, so a y-axis that starts at 40 "
             "makes small differences look big.",
         ],
@@ -1986,7 +2044,7 @@ LESSONS = [
                 chart.shade_between_y(0, 40)
                 chart.rotate_labels_x()
                 chart.save("lesson6_pass_60.png")"""),
-             "line_at_y(60) moves the line; shade_between_y(0, 40) shades the band from 0 to 40."),
+             "draw_line_at_y(60) moves the line; shade_between_y(0, 40) shades the band from 0 to 40."),
             (_sx("""\
                 import simplydata as sdata
                 growth = sdata.get_example("growth")
@@ -2019,7 +2077,7 @@ LESSONS = [
             "how to compare every number column with every other",
         ],
         parts=[
-            ("one_chart_per draws the same chart once for each group.", [
+            ("draw_one_chart_for_each_group_in draws the same chart once for each group.", [
                 ("import simplydata as sdata", "Load simplydata."),
                 ('marks = sdata.get_example("marks")', "Get the marks table."),
                 ("chart = sdata.chart(marks)", "Start a chart."),
@@ -2350,11 +2408,11 @@ LESSONS = [
                 ("table.start_again()", "Go back to the whole table, as it was at the start."),
                 ("print(table)", "All 54 rows and 6 columns are back."),
             ]),
-            ("keep_rows and remove_rows_where know many conditions. Then save what you made.", [
+            ("keep_rows_where and remove_rows_where know many conditions. Then save what you made.", [
                 ("import simplydata as sdata", "Load simplydata."),
                 ('table = sdata.table(sdata.get_example("weather"))', "Make a table of the weather."),
                 ('table.keep_rows_where("month_number", is_between=[6, 8])', "Keep the summer months: 6, 7 and "
-                                                                     "8. between= keeps both ends."),
+                                                                     "8. is_between= keeps both ends."),
                 ('table.remove_rows_where("city", is_equal_to="Frostby")', "Remove the rows of the city "
                                                                   "Frostby."),
                 ('table.remove_columns("wind_direction", "wind_speed")', "Remove two columns we do "
@@ -2413,7 +2471,7 @@ LESSONS = [
             "rows had an empty cell.",
             'Dates go in quotes as year-month-day: table.keep_rows_where("date > \'2026-03-01\'"), or '
             'table.keep_rows_where("date", is_after="2026-03-01").',
-            "keep_rows chooses rows by their values, keep_rows_by_position by their place. Positions count "
+            "keep_rows_where chooses rows by their values, keep_rows_by_position by their place. Positions count "
             "from 1 and both ends are included, so rows 10 to 20 are 11 rows. to=\"last\" goes to the end, "
             "and a list such as [1, 5, 9] keeps those rows in that order.",
             "Coming from pandas or NumPy, which count from 0 and leave out the end: df.iloc[9:20] is "
@@ -2601,7 +2659,7 @@ LESSONS = [
             "Filling empty cells is called imputation. Filling with the average makes the values "
             "look less spread out than they really are, so say in your report how you filled them. "
             'with_the="median", "value above" or "value below" and with_value=0 work too.',
-            "remove_rows_with_empty_cells() with nothing in the brackets removes every row that has "
+            "remove_rows_with_empty_cells_in() with nothing in the brackets removes every row that has "
             "an empty cell in any column.",
             "More fixing words: turn_into_text, turn_into_dates, turn_into_lowercase and turn_into_uppercase.",
             "Plain words for new columns: by_adding=, by_subtracting=, by_multiplying= and "
@@ -2743,7 +2801,7 @@ LESSONS = [
                                                                   "child."),
                 ('chart.save("lesson12_tests.png")', "Save it."),
             ]),
-            ("summary_of gives several measures at once, and every= sums up dates by week, month or "
+            ("find_summary_of gives several measures at once, and every= sums up dates by week, month or "
              "year.", [
                 ("import simplydata as sdata", "Load simplydata."),
                 ('table = sdata.table(sdata.get_example("shop"))', "Daily sales of two shops."),
@@ -2905,8 +2963,8 @@ LESSONS = [
                 ("grid = sdata.number_grid([[3, 5, 2], [8, 6, 4]])", "A grid with 2 rows and 3 columns: one "
                                                                   "list for each row."),
                 ("print(grid.get_number_at(row=1, column=2))", "The number in row 1, column 2: 5."),
-                ('grid.find_total(for_each="row")', "The total of each row: 10 and 18."),
-                ('grid.find_average(for_each="column")', "The average of each column."),
+                ('grid.find_total(in_each="row")', "The total of each row: 10 and 18."),
+                ('grid.find_average(in_each="column")', "The average of each column."),
                 ("grid.swap_rows_and_columns()", "Rows become columns (in maths: the transpose)."),
                 ("print(grid)", "Now 3 rows and 2 columns."),
                 ("chart = grid.start_chart()", "Start a chart from the grid."),
@@ -2926,7 +2984,7 @@ LESSONS = [
             "if another Python tool needs one.",
         ],
         task=[
-            "Make the numbers 1 to 10, then square them in two ways: with ** 2 and with power(2).",
+            "Make the numbers 1 to 10, then square them in two ways: with ** 2 and with raise_to_power(2).",
             "Make 6 dice throws with sdata.make_random_numbers(how_many=6, between=[1, 6], whole_numbers=True, "
             "with_seed=1). What is their total?",
             "Make a grid of 3 rows and 4 columns filled with 0: sdata.number_grid(rows=3, columns=4, "
@@ -2940,7 +2998,7 @@ LESSONS = [
                 print(squares)
                 nums.raise_to_power(2)
                 nums.show()"""),
-             "Both give 1, 4, 9 ... 100. ** 2 makes new numbers and leaves nums alone; power(2) "
+             "Both give 1, 4, 9 ... 100. ** 2 makes new numbers and leaves nums alone; raise_to_power(2) "
              "changes nums itself (and undo() can take it back)."),
             (_sx("""\
                 import simplydata as sdata
@@ -3073,7 +3131,7 @@ LESSONS = [
                  "Each patient scored the pain at week 0, 4 and 8, one column each. compare_matched_columns compares "
                  "the three columns within each patient (the Friedman test, on ranks): the median pain falls "
                  "from 6 to 5 to 4, far more than chance would give (p < 0.0001). For two columns, "
-                 "compare_before_after does the same."),
+                 "compare_before_and_after does the same."),
             ]),
         ],
         notes=[
@@ -3143,7 +3201,7 @@ LESSONS = [
         learn=[
             "how to put all the lessons together: open, look, clean, sum up, test, draw and save",
             "how to make a figure with panels A and B, ready for a report or a paper",
-            "how steps() writes down what you did, in plain words",
+            "how show_steps() writes down what you did, in plain words",
             "how to hand your table to pandas or Polars, and back",
         ],
         parts=[
@@ -3229,7 +3287,7 @@ LESSONS = [
             'for_each_group_in="city", draw the rain of each city as boxes, and save the chart and the table.',
             "Make a second chart of the temperature, then put the two charts together with "
             "sdata.put_side_by_side(..., with_letters=True).",
-            "Read the steps() of your table out loud. Would someone else understand what you did?",
+            "Read the show_steps() of your table out loud. Would someone else understand what you did?",
         ],
         solutions=[
             (_sx("""\
@@ -3267,7 +3325,7 @@ LESSONS = [
                 table.keep_rows_where("month_number", is_between=[6, 8])
                 table.sort_by("rain", biggest_first=True)
                 table.show_steps()"""),
-             "steps() lists each change in plain words, in order; those lines are a first draft of "
+             "show_steps() lists each change in plain words, in order; those lines are a first draft of "
              "the methods part of a report."),
         ],
         words=["sdata.table", "table.describe_columns", "table.remove_rows_with_empty_cells_in",
@@ -3434,7 +3492,7 @@ LESSONS = [
             "Clarke's rule for NMDS stress: below 0.05 excellent, below 0.1 good, below 0.2 usable, "
             "above 0.2 hard to trust. Try dimensions=3 if the stress is high.",
             "PERMANOVA can mistake a difference in spread for a difference in make-up, so "
-            "compare_profiles also checks the spread of each group and says if it differs.",
+            "compare_profiles_of also checks the spread of each group and says if it differs.",
             "Clusters always appear, even in data without groups: check them against what you know.",
             'method="hierarchical" clusters step by step (Ward linkage) instead of k-means.',
         ],
@@ -3544,7 +3602,7 @@ LESSONS = [
              "Each year of age multiplies the risk by 1.05 (95 % CI 1.03 to 1.08), p < 0.0001."),
             (_sx("""\
                 import simplydata as sdata
-                sdata.find_how_many_needed(test="compare_before_after", effect_size=0.3)"""),
+                sdata.find_how_many_needed(test="compare_before_and_after", effect_size=0.3)"""),
              "90 pairs, each with a before and an after value."),
             (_sx("""\
                 import simplydata as sdata
@@ -3618,9 +3676,9 @@ LESSONS = [
             "the simplest line or formula that follows the data, and a formula whose values mean something "
             "(here b is a growth rate).",
             'If a formula fit fails, give start values near the answer: start={"a": 10, "b": 0.03}.',
-            "find_smallest with between= finds one lowest point; when the curve has several dips it says "
+            "sdata.find_where_smallest with between= finds one lowest point; when the curve has several dips it says "
             'so, and search="whole range" looks everywhere. solve with between= finds every crossing.',
-            "Names from other tools point to these words: minimize, optimise and argmin to find_smallest, "
+            "Names from other tools point to these words: minimize, optimise and argmin to find_where_smallest, "
             "fsolve, brentq and uniroot to solve, curve_fit and nls to fit_formula, polyfit to fit_curve.",
         ],
         task=[
@@ -3715,7 +3773,7 @@ LESSONS = [
             "find_chance_that_value() gives back a share from 0 to 1 and prints it as a percent. is_above= and is_below= leave "
             "the value itself out, is_at_least= and is_at_most= keep it in, as in keep_rows_where. For counts that "
             "matters: is_at_most=3 means 3 or fewer.",
-            "density_at() is the height of the curve, not a chance: a chance is an area under the curve, "
+            "find_density_at() is the height of the curve, not a chance: a chance is an area under the curve, "
             "so ask find_chance_that_value(is_between=[...]).",
             "A fitted distribution is only as good as its fit. Compare a few with compare_distributions_for, "
             'and test the shape with table.compare_shape_to("column", "gamma").',
@@ -3771,7 +3829,7 @@ LESSONS = [
         ],
         parts=[
             ("explain() gives the effects, but they can only be trusted if the model suits the data. "
-             "check_model draws the four pictures R users look at first.", [
+             "check_model_of draws the four pictures R users look at first.", [
                 ("import simplydata as sdata", "Load simplydata."),
                 ('table = sdata.table(sdata.get_example("school"))', "The pupils of lesson 16."),
                 ('table.explain("marks", using=["hours", "breakfast"])',
@@ -4045,7 +4103,7 @@ LESSONS = [
             "how to average over a window of time, such as the last 7 days",
             "how to smooth a noisy series, and test whether it has a trend",
         ],
-        needs_r=needs_r_text("trend_of() and its test", packages=("trend",)),
+        needs_r=needs_r_text("find_trend_of() and its test", packages=("trend",)),
         parts=[
             ("Time series are readings in time order: one a day, a month or a second. A run of dates is the "
              "backbone of such a table.", [
@@ -4100,7 +4158,7 @@ LESSONS = [
             "sorted_by= is the time column: it gives the order and the time between readings. for_each_group_in= gives "
             "one series per group, here one per station.",
             "window=7 is 7 rows; window=\"7 days\" is 7 days of time, whatever the number of rows.",
-            "trend_of needs no even steps and no filling: empty cells are left out.",
+            "find_trend_of needs no even steps and no filling: empty cells are left out.",
         ],
         task=[
             "Make a run of dates for every day of March 2026.",
@@ -4230,7 +4288,7 @@ LESSONS = [
                 table.keep_rows_where("museum", is_equal_to="Hill Gallery")
                 table.forecast("visitors", sorted_by="month", steps_ahead=12, method="straight on", check_on_last=12)"""),
              "It follows the rise but not the season: far worse than exponential smoothing (MASE 2.08 in "
-             "compare_forecasts)."),
+             "compare_forecasts_for)."),
         ],
         words=["draw_lines", "table.add_column_with_part_of_date", "table.forecast", "table.compare_forecasts_for", "forecast"],
     ),
@@ -4282,7 +4340,7 @@ LESSONS = [
                  "One peak is at least 2.5 high: 3.48 at time 3.885, a spike. R's pracma::findpeaks() finds the "
                  "same."),
                 ('table.find_each_dip_that("signal", sorted_by="time", is_at_most=-2)',
-                 "find_dips is find_each_peak_that upside down: one dip goes down to -2 or lower, -2.36 at time 0.94."),
+                 "find_each_dip_that is find_each_peak_that upside down: one dip goes down to -2 or lower, -2.36 at time 0.94."),
                 ("chart = table.start_chart()", "Start a chart."),
                 ('chart.draw_lines(x="time", y="signal")', "The signal."),
                 ("chart.peak_dots(is_at_least=2.5)", "A mark on the peak."),

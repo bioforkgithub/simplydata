@@ -269,7 +269,7 @@ UNITS = {
             table = sdata.table(sdata.get_example("weather"))
             table.keep_rows_where("temperature", is_above=15)
             table.find_average_of("rain", for_each_group_in="city")'''),
-            "keep_rows says how many warm months are left; find_average_of gives one average for each city.")],
+            "keep_rows_where says how many warm months are left; find_average_of gives one average for each city.")],
     ),
     "lesson3": dict(
         lessons=[3],
@@ -385,7 +385,7 @@ UNITS = {
             chart.draw_line_at_x(2010, labelled="2010")
             chart.set_range_y(0, 60)
             chart.save("growth.png")'''),
-            "range_y takes the lowest and the highest value of the axis; draw_line_at_x draws a line going up.")],
+            "set_range_y takes the lowest and the highest value of the axis; draw_line_at_x draws a line going up.")],
     ),
     "lesson7": dict(
         lessons=[7],
@@ -472,7 +472,7 @@ UNITS = {
             table.sort_by("rain", biggest_first=True)
             table.save("sunny.csv")
             table.show_steps()'''),
-            "Each step prints what it did; steps() lists them all, in order.")],
+            "Each step prints what it did; show_steps() lists them all, in order.")],
     ),
     "lesson11": dict(
         lessons=[11],
@@ -798,7 +798,7 @@ UNITS = {
     ),
     "time_series": dict(
         lessons=[lesson_number(TIME_SERIES_LESSON), lesson_number(CYCLES_LESSON)],
-        needs_r="trend_of()",
+        needs_r="find_trend_of()",
         r_packages=("trend",),
         words=["table.add_missing_dates", "sdata.make_run_of_dates", "table.add_smoothed_column", "table.find_trend_of",
                "table.add_rolling_column", "table.find_each_peak_that"],
@@ -835,7 +835,7 @@ UNITS = {
             table.add_missing_dates("date", every="day", for_each_group_in="station")
             table.fill_empty_cells_in("level", with_the="line between neighbours", sorted_by="date", for_each_group_in="station")
             table.find_trend_of("level", sorted_by="date", for_each_group_in="station")'''),
-            "trend_of prints Sen's slope (per day and per year) and the Mann-Kendall p-value for each station.")],
+            "find_trend_of prints Sen's slope (per day and per year) and the Mann-Kendall p-value for each station.")],
     ),
     # ------------------------------------------------------------ review days
     "review_p7": dict(
@@ -988,7 +988,7 @@ UNITS = {
         do=["Project day 2: clean. Go column by column through what describe_columns showed you.",
             "Fix text with spaces or mixed capitals, numbers stored as text, odd codes such as -999, and "
             "decide what to do with empty cells (remove, fill, or keep and let the tests skip them).",
-            "Save the clean table under a new name, and keep the steps()."],
+            "Save the clean table under a new name, and keep the show_steps()."],
         task=["Clean your table and save it as a new file. Write one line for each decision you made about "
               "empty cells."],
         solutions=[(_code('''
@@ -1102,7 +1102,7 @@ UNITS = {
         words=["table.show_steps", "table.save"],
         do=["Project day 8: finish. Put every step of your project in one script, from the raw file to the "
             "figure, and run it from the top in a fresh session. It must run without errors.",
-            "Read steps() out loud: would someone else understand what you did?"],
+            "Read show_steps() out loud: would someone else understand what you did?"],
         task=["Run your whole project script from the top. Check that it makes the clean table, the figure "
               "and the numbers in your text."],
         solutions=[(_code('''
@@ -1188,7 +1188,7 @@ UNITS = {
             page = table.check_model_of("marks", using=["hours", "breakfast"])
             page.save("marks_checks.png")
             table.compare_models("marks", using=["hours", "breakfast"], against=["hours", "breakfast", "sleep"])'''),
-            "check_model, then compare_models: on the 161 rows with every value, sleep helps (p = 0.002).")],
+            "check_model_of, then compare_models: on the 161 rows with every value, sleep helps (p = 0.002).")],
     ),
     "compare_pandas": dict(
         lessons=[15],
@@ -1864,7 +1864,7 @@ def start_30_days(track="python", start_again=False) -> None:
 def show_today(follow_calendar=False) -> None:
     """Show today's day of the 30 days of simplydata: warm-up questions, what to do and a task. sdata.show_today()
 
-    The day after the one you last opened comes next, so a day you miss is never lost: today() carries
+    The day after the one you last opened comes next, so a day you miss is never lost: show_today() carries
     on where you stopped (on the same date it shows the same day again). If you have fallen more than
     a day behind the calendar it says so; follow_calendar=True jumps to the calendar's day instead:
     sdata.show_today(follow_calendar=True). Not started yet? It shows how to start, and day 1.

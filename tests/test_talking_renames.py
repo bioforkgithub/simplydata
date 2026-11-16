@@ -6,6 +6,7 @@ lost or undone shows up here.
 """
 
 import re
+from pathlib import Path
 
 import numpy as np
 import pandas as pd
@@ -35,10 +36,12 @@ CHART = {
     "one_chart_per": "draw_one_chart_for_each_group_in", "zoom_box": "add_zoom_box",
     "survival_curves": "draw_survival_curves", "line_at_x": "draw_line_at_x", "line_at_y": "draw_line_at_y",
     "line_with_slope": "draw_line_with_slope",
-    # American spellings and other names that were the same word
-    "color": "use_color", "colors": "use_colors", "color_scale": "use_color_scale", "scatter": "draw_dots",
-    "bar": "draw_bars", "line": "draw_lines", "box": "draw_boxes", "violin": "draw_violins",
+    # the old American spellings (the new words have American twins for good: use_color ...)
+    "color": "use_color", "colors": "use_colors", "color_scale": "use_color_scale",
 }
+# Names from other tools that were the same word as a chart type: now pointers, never run, never expire.
+POINTERS = {"scatter": "draw_dots", "bar": "draw_bars", "line": "draw_lines", "box": "draw_boxes",
+            "violin": "draw_violins"}
 TABLE = {
     "column_names": "get_column_names", "column": "get_column", "row": "get_row", "cell_at": "get_cell_at",
     "keep_rows": "keep_rows_where", "remove_rows": "remove_rows_where", "count_empty_cells": "count_empty_cells_in",
@@ -231,9 +234,8 @@ def test_cut_off_options_say_chance(capsys):
 
 
 def test_kept_options_keep_their_old_meaning(marks):
-    # between= stays for spans, after=/before= stay for two columns, a grid keeps for_each="row"
+    # between= stays for spans, after=/before= stay for two columns
     sdata.chart(marks).draw_dots(x="height", y="marks").draw_curve("y = x / 2", between=[130, 170])
-    assert sdata.number_grid([[1, 2], [3, 4]]).find_total(for_each="row").as_numpy().tolist() == [3, 7]
     wide = pd.DataFrame({"before": [1.0, 2, 3, 4, 5], "after": [2.0, 3, 5, 4, 7]})
     sdata.table(wide).compare_before_and_after(before="before", after="after")
 
@@ -246,25 +248,84 @@ def test_legend_words_take_both_spellings(marks):
 
 
 # ---------------------------------------------------------------- what a learner reads
+def _listed_words(out: str) -> set[str]:
+    """Every word sdata.show_all_words() lists: the first name on each line ("  draw_bars   chart.draw_bars(...)"),
+    with the object in front when it has one, and the words of its examples."""
+    listed = set()
+    for line in out.splitlines():
+        first = line.strip().split(" ")[0] if line.startswith("  ") else ""
+        if re.fullmatch(r"[\w.]+", first):
+            listed.add(first.rpartition(".")[2])
+        listed |= set(re.findall(r"(?<![\w.])(?:chart|table|nums|grid|dist|sdata|system)\.(\w+)\(", line))
+    return listed
+
+
 def test_show_all_words_lists_no_old_name(capsys):
     sdata.show_all_words()
-    out = capsys.readouterr().out
-    listed = set(re.findall(r"(?:chart|table|nums|grid|dist|sdata)\.(\w+)\(", out))
-    for old, new in [*CHART.items(), *TABLE.items(), *NUMS.items(), *GRID.items(), *DIST.items(), *SDATA.items()]:
-        assert new in listed or new in out, new
-    keys = {learn._word(k) for k in learn._all_keys()}
+    listed = _listed_words(capsys.readouterr().out)
+    current = set()
+    for cls in (sdata.Chart, sdata.Table, sdata.Numbers, sdata.NumberGrid, type(sdata.distribution("normal"))):
+        current |= set(cls._word_names())
+    current |= set(sdata.__all__)
+    for kind, old, new in [*[("chart", o, n) for o, n in CHART.items()], *ALL[len(CHART):],
+                           *[("sdata", o, n) for o, n in SDATA.items()]]:
+        twins = {a for names in learn._aliases().values() for a in names}  # use_color: listed with use_colour
+        assert new in listed or new in twins, new  # exact names, not parts of longer ones
+        if old not in current:  # an old name that is no word of any object now
+            assert old not in listed, f"{kind}.{old}"
+    for old in CHART:  # the bare chart keys: draw_bars is listed as "draw_bars", never as "bars"
+        assert old not in learn._all_keys()
     for kind, old, new in ALL:
-        assert f"{kind}.{old}" not in learn._all_keys()
+        assert f"{kind}.{old}" not in learn._all_keys() and f"{'nums' if kind == 'grid' else kind}.{old}" \
+            not in learn._all_keys()
     for old in SDATA:
         assert f"sdata.{old}" not in learn._all_keys()
+    keys = {learn._word(k) for k in learn._all_keys()}
     assert "draw_bars" in keys and "bars" not in keys
 
 
-@pytest.mark.parametrize("old, new", [("bars", "draw_bars"), ("keep_rows", "keep_rows_where"), ("lesson", "show_lesson"),
-                                      ("average_of", "find_average_of"), ("for_each=", "for_each_group_in=")])
+@pytest.mark.parametrize("old, new", [("bars", "chart.draw_bars"), ("keep_rows", "table.keep_rows_where"),
+                                      ("lesson", "sdata.show_lesson"), ("average_of", "table.find_average_of")])
 def test_help_for_an_old_name_points_to_the_new_one(old, new, capsys):
     sdata.help(old)
-    assert capsys.readouterr().out.startswith(f'"{old}" is now called "{new}"')
+    where = new.split(".")[0]
+    assert capsys.readouterr().out.startswith(f'"{where}.{old}" is now called "{new}".')
+
+
+def test_help_for_an_old_option_lists_its_words_on_one_line(capsys):
+    sdata.help("for_each=")
+    out = capsys.readouterr().out
+    lines = [line for line in out.splitlines() if line.startswith('"for_each=" is now called')]
+    assert len(lines) == 2  # for_each_group_in= on tables and charts, in_each= on grids
+    assert lines[0].startswith('"for_each=" is now called "for_each_group_in=" in ') and "more." in lines[0]
+    assert lines[1].startswith('"for_each=" is now called "in_each=" in grid.find_average()')
+    assert len(out.splitlines()) < 10  # not every word explained in full
+
+
+@pytest.mark.parametrize("typed, line, not_said", [
+    ("dist.chart", '"dist.chart" is now called "dist.draw_chart".', "start_chart"),
+    ("table.chart", '"table.chart" is now called "table.start_chart".', "draw_chart"),
+    ("nums.chart", '"nums.chart" is now called "nums.start_chart".', "draw_chart"),
+    ("nums.average", '"nums.average" is now called "nums.find_average".', "dist."),
+    ("grid.average", '"grid.average" is now called "grid.find_average".', "dist."),
+    ("table.spectrum_of", '"table.spectrum_of" is now called "table.find_spectrum_of".', "nums."),
+])
+def test_help_honours_the_object_written_in_front(typed, line, not_said, capsys):
+    sdata.help(typed)
+    out = capsys.readouterr().out
+    notes_ = [x for x in out.splitlines() if "is now called" in x]
+    assert notes_ == [line]  # one line, for that object only, no options with the same name
+    assert not_said not in " ".join(notes_)
+
+
+def test_help_without_an_object_names_each_object_once(capsys):
+    sdata.help("chart")  # sdata.chart is a word: it is explained, with no old-name lines
+    assert "is now called" not in capsys.readouterr().out
+    sdata.help("average")
+    out = capsys.readouterr().out
+    said = [x for x in out.splitlines() if "is now called" in x]
+    assert said == ['"nums.average" is now called "nums.find_average".',
+                    '"dist.average" is now called "dist.find_average".']
 
 
 def test_lessons_and_help_examples_use_no_old_name():
@@ -277,3 +338,175 @@ def test_lessons_and_help_examples_use_no_old_name():
             else:
                 kinds = {"chart": CHART, "table": TABLE, "nums": NUMS, "grid": {**NUMS, **GRID}, "dist": DIST}
                 assert name not in kinds[prefix], (prefix, name, text)
+
+
+def test_same_old_name_on_two_objects_gets_a_note_for_each(marks, capsys):
+    # conftest clears the remembered notes before each test, so both objects are used in this one test
+    table, dist, nums = sdata.table(marks), sdata.distribution("normal"), sdata.numbers([1.0, 2, 3, 4, 5, 6, 7, 8])
+    assert table.chart == table.start_chart and dist.chart == dist.draw_chart
+    nums.chart  # the same new name as table.chart: no second note
+    table.keep_rows_where("marks", above=50)
+    dist.find_cut_off(above=0.05)
+    table.compare_averages_of("marks", between="class")
+    table.keep_rows_where("marks", between=[40, 60])
+    nums.spectrum_of
+    table.spectrum_of
+    said = notes(capsys.readouterr().out)
+    for old, new in (("chart", "start_chart"), ("chart", "draw_chart"), ("above=", "is_above="),
+                     ("above=", "with_chance_above="), ("between=", "for_each_group_in="), ("between=", "is_between="),
+                     ("spectrum_of", "find_spectrum"), ("spectrum_of", "find_spectrum_of")):
+        assert said.count(note(old, new)) == 1, (old, new)
+    assert len([n for n in said if "is now called" in n]) == 8
+
+
+def test_grid_summaries_take_in_each(capsys):
+    grid = sdata.number_grid([[1, 2], [3, 4]])
+    assert grid.find_total(in_each="row").as_numpy().tolist() == [3, 7]
+    assert grid.find_average(in_each="column").as_numpy().tolist() == [2, 3]
+    assert grid.find_percentile(50, in_each="row").as_numpy().tolist() == [1.5, 3.5]
+    assert grid.find_total(for_each="row").as_numpy().tolist() == [3, 7]  # the old spelling, with a note
+    assert notes(capsys.readouterr().out) == [note("for_each=", "in_each=")]
+    with pytest.raises(sdata.SimplydataError, match='find_total\\(\\) does not know in_each="rows"'):
+        grid.find_total(in_each="rows")
+
+
+def test_agreement_between_takes_checking_for(capsys):
+    import inspect
+
+    params = inspect.signature(sdata.Table.agreement_between).parameters
+    assert "checking_for" in params and "kind" not in params
+    assert sdata.Table.agreement_between._renamed_options["kind"] == "checking_for"
+    with pytest.raises(sdata.SimplydataError, match='checking_for='):
+        sdata.table(pd.DataFrame({"a": [1.0, 2, 3, 4], "b": [1.0, 2, 4, 4]})).agreement_between(
+            "a", "b", checking_for="same")
+
+
+@pytest.mark.parametrize("name, new", list(POINTERS.items()))
+def test_other_tool_chart_names_point_and_never_run(name, new, marks, capsys):
+    from simplydata._errors import MissingWordError
+
+    with pytest.raises(MissingWordError, match=rf"In simplydata this is chart\.{new}\("):
+        getattr(sdata.chart(marks), name)
+    assert "will stop working" not in capsys.readouterr().out
+    assert name not in sdata.Chart._OLD_WORDS
+    sdata.help(name)
+    out = capsys.readouterr().out
+    assert "a name from other tools" in out and f"chart.{new}(" in out and "stop working" not in out
+
+
+def test_american_spellings_of_the_new_words_stay(marks, capsys):
+    chart = sdata.chart(marks)
+    for american, british in (("use_color", "use_colour"), ("use_colors", "use_colours"),
+                              ("use_color_scale", "use_colour_scale"), ("label_color_bar", "label_colour_bar")):
+        assert getattr(sdata.Chart, american) is getattr(sdata.Chart, british)
+        getattr(chart, american)
+        assert american in learn._aliases()[british]
+    assert "Note" not in capsys.readouterr().out  # a spelling, not an old name: no note, no end date
+
+
+def test_step_descriptions_use_the_new_words(marks, capsys):
+    table = sdata.table(marks)
+    table.turn_into_text("marks")
+    table.turn_into_numbers("marks")
+    table.turn_into_uppercase("name")
+    table.turn_into_lowercase("name")
+    capsys.readouterr()
+    table.show_steps()
+    out = capsys.readouterr().out
+    assert "turn marks into text" in out and "turn marks into numbers" in out
+    assert "turn name into uppercase" in out and "turn name into lowercase" in out
+    assert "make marks" not in out and "make name" not in out
+
+
+# ---------------------------------------------------------------- no old name anywhere a learner reads
+_CURRENT = {"chart": set(sdata.Chart._word_names()), "table": set(sdata.Table._word_names()),
+            "nums": set(sdata.Numbers._word_names()), "grid": set(sdata.NumberGrid._word_names()),
+            "dist": set(type(sdata.distribution("normal"))._word_names()), "sdata": set(sdata.__all__),
+            "system": set(n for n in dir(sdata.System) if not n.startswith("_"))}
+_CURRENT["page"] = _CURRENT["chart"]
+_ANY_CURRENT = set().union(*_CURRENT.values())
+_OLDS = {"chart": CHART, "page": CHART, "table": TABLE, "nums": NUMS, "grid": {**NUMS, **GRID}, "dist": DIST,
+         "sdata": SDATA}
+_ANY_OLD = {o for olds in _OLDS.values() for o in olds} - _ANY_CURRENT
+_WITH_OBJECT = re.compile(r"(?<![\w.])(chart|page|table|nums|grid|dist|sdata)\.(\w+)\(")
+_AFTER_DOT = re.compile(r"(?<![\w.])\.(\w+)\(")
+_LONG = sorted((o for o in _ANY_OLD if "_" in o), key=len, reverse=True)
+_UNDERSCORED = re.compile(r"(?<![\w.=\"'/-])(%s)(?![\w=]|\.\w)" % "|".join(map(re.escape, _LONG)))
+_SHORT_CALLS = re.compile(r"(?<![\w.])(steps|lesson|today|answers|words|example|wave|dates|envelope|chance)\(\)")
+
+
+def _old_names_in(text: str, prose: bool = True) -> list[str]:
+    """Old names written as code in a text: obj.old(...), .old(...), and in prose old_name or old()."""
+    found = [m.group(0) for m in _WITH_OBJECT.finditer(text)
+             if m.group(2) in _OLDS[m.group(1)] and m.group(2) not in _CURRENT[m.group(1)]]
+    found += [m.group(0) for m in _AFTER_DOT.finditer(text) if m.group(1) in _ANY_OLD]
+    if prose:
+        found += [m.group(0) for m in _UNDERSCORED.finditer(text)]
+        found += [m.group(0) for m in _SHORT_CALLS.finditer(text)]
+    return found
+
+
+def _strings_in(value):
+    if isinstance(value, str):
+        yield value
+    elif isinstance(value, dict):
+        for v in value.values():
+            yield from _strings_in(v)
+    elif isinstance(value, (list, tuple, set)):
+        for v in value:
+            yield from _strings_in(v)
+
+
+def test_no_old_name_in_the_lessons_and_the_30_days():
+    from simplydata import learn_days
+
+    texts = list(_strings_in(learn.LESSONS)) + list(_strings_in(learn.HELP_EXAMPLES))
+    texts += [s for name, value in vars(learn_days).items() if name.isupper() for s in _strings_in(value)]
+    hits = [(hit, text[:80]) for text in texts for hit in _old_names_in(text)]
+    assert not hits, hits[:10]
+
+
+def _src_strings():
+    """(file, line, text, is a docstring) for every string in src/simplydata."""
+    import ast
+
+    root = Path(sdata.__file__).parent
+    for path in sorted(root.rglob("*.py")):
+        tree = ast.parse(path.read_text(encoding="utf-8"))
+        docs = {id(node.body[0].value) for node in ast.walk(tree)
+                if isinstance(node, (ast.Module, ast.ClassDef, ast.FunctionDef, ast.AsyncFunctionDef))
+                and node.body and isinstance(node.body[0], ast.Expr) and isinstance(node.body[0].value, ast.Constant)}
+        for node in ast.walk(tree):
+            if isinstance(node, ast.Constant) and isinstance(node.value, str):
+                yield path.relative_to(root), node.lineno, node.value, id(node) in docs
+
+
+# Strings that name old names on purpose: the notes and help for old names, and how chart steps keep
+# their inner names.
+_ON_PURPOSE = ("is now called", "old name", "Old name", "inner name", "The old done()")
+
+
+def test_no_old_name_in_docstrings_and_messages():
+    hits = []
+    for path, line, text, is_doc in _src_strings():
+        if any(mark in text for mark in _ON_PURPOSE):
+            continue
+        for hit in _old_names_in(text, prose=is_doc):
+            hits.append(f"{path}:{line}: {hit}")
+    assert not hits, hits[:15]
+
+
+def test_no_old_name_in_the_built_documents():
+    manual = Path(__file__).resolve().parents[1] / "docs" / "manual"
+    hits = []
+    for name in ("simplydata_manual.tex", "simplydata_30_days.tex", "simplydataDictionary.tex"):
+        text = (manual / name).read_text(encoding="utf-8")
+        if name == "simplydataDictionary.tex":  # the list of old names is there on purpose
+            start = text.index(r"\section*{Old names}")
+            text = text[:start] + text[text.index(r"\end{dictcolumns}", start):]
+        plain = text.replace(r"\allowbreak{}", "").replace(r"\_", "_")
+        for number, line in enumerate(plain.splitlines(), 1):
+            if any(mark in line for mark in _ON_PURPOSE):
+                continue
+            hits += [f"{name}:{number}: {hit}" for hit in _old_names_in(line)]
+    assert not hits, hits[:15]
