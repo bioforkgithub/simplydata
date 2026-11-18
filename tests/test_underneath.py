@@ -228,3 +228,47 @@ def test_rename_table_comes_from_the_old_names():
     assert all(new in learn._all_keys() for new in words.values())
     assert isinstance(options, dict)
     assert pd.Series(list(words)).is_unique
+
+
+# ---------------------------------------------------------------- the manual and the dictionary are made from the entries
+def _docs_module(name):
+    spec = importlib.util.spec_from_file_location(name, ROOT / "docs" / f"{name}.py")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+def test_manual_shows_each_entry_in_a_grey_box_after_its_example():
+    manual = _docs_module("make_manual")
+    tex = (ROOT / "docs" / "manual" / "simplydata_manual.tex").read_text(encoding="utf-8")
+    for key in learn._all_keys():
+        start = tex.index("}{" + manual.label(key) + "}\n")
+        end = tex.find("\\wordentry{", start)
+        part = tex[start:end if end > 0 else len(tex)]
+        if key not in UNDERNEATH:
+            assert "underneathbox" not in part, key
+            continue
+        entry = UNDERNEATH[key]
+        assert part.index("Example you can run") < part.index(r"\begin{underneathbox}"), key
+        for library, language, source in entry.blocks():
+            assert source in part, f"{key}: the {library} code in the manual is the tested code"
+        if entry.uses_r:
+            assert manual.esc(R_LABEL) in part
+        if entry.compare == "chart":
+            assert "Both programs draw this chart." in part
+            assert (ROOT / "docs" / "manual" / manual.underneath_figure(key)).is_file(), key
+        assert r"\wordfield{Underneath}{" + manual.underneath_name(key) + "}" in part
+
+
+def test_table_boxes_show_pandas_then_polars():
+    for entry in ENTRIES:
+        if entry.word.startswith("table.") and "Polars" in entry.code:
+            assert list(entry.code)[:2] == ["pandas", "Polars"], entry.word
+
+
+def test_dictionary_underneath_line_comes_from_the_entries():
+    manual = _docs_module("make_manual")
+    tex = (ROOT / "docs" / "manual" / "simplydataDictionary.tex").read_text(encoding="utf-8")
+    for key in UNDERNEATH:
+        assert r"\field{Underneath}{" + manual.underneath_name(key) + "}" in tex, key
+    assert tex.count(r"\field{Underneath}{") == len(learn._all_keys())

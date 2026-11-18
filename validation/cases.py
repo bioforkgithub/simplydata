@@ -41,26 +41,26 @@ DATASETS = {d.name: d for d in [
             "36 observations of ozone monitor calibration; certified straight-line fit (NIST StRD, lower difficulty)",
             "Norris, J., NIST. Calibration of Ozone Monitors. In: NIST Statistical Reference Datasets (StRD), "
             "Linear Regression, dataset Norris. National Institute of Standards and Technology.",
-            "Public domain in the United States (a work of the US Government, 17 U.S.C. 105); stored unchanged.",
+            "Public domain in the United States (a work of the US Government, 17 U.S.C. 105); numbers stored unchanged.",
             "https://www.itl.nist.gov/div898/strd/lls/data/Norris.shtml"),
     Dataset("NIST Michelso", "nist/Michelso.dat",
             "100 measurements of the speed of light in air by Michelson (1879); certified mean and standard deviation",
             "Dorsey, E. N. (1944). The Velocity of Light. Transactions of the American Philosophical Society 34(1), "
             "1-110, Table 22. In: NIST StRD, Univariate Summary Statistics, dataset Michelso.",
-            "Public domain in the United States (a work of the US Government, 17 U.S.C. 105); stored unchanged.",
+            "Public domain in the United States (a work of the US Government, 17 U.S.C. 105); numbers stored unchanged.",
             "https://www.itl.nist.gov/div898/strd/univ/michelso.html"),
     Dataset("NIST Mavro", "nist/Mavro.dat",
             "50 filter transmittance measurements by R. Mavrodineanu (NIST); certified mean and standard deviation",
             "Mavrodineanu, R., NIST. Filter transmittance data. In: NIST StRD, Univariate Summary Statistics, "
             "dataset Mavro.",
-            "Public domain in the United States (a work of the US Government, 17 U.S.C. 105); stored unchanged.",
+            "Public domain in the United States (a work of the US Government, 17 U.S.C. 105); numbers stored unchanged.",
             "https://www.itl.nist.gov/div898/strd/univ/mavro.html"),
     Dataset("NIST NumAcc4", "nist/NumAcc4.dat",
             "1001 nine-digit numbers that differ only in the last digit; constructed by NIST to test accuracy "
             "(higher difficulty); certified mean 10000000.2 exactly",
             "Simon, S. D. & Lesage, J. P. (1989). Assessing the accuracy of ANOVA calculations in statistical "
             "software. Computational Statistics & Data Analysis 8, 325-332. In: NIST StRD, dataset NumAcc4.",
-            "Public domain in the United States (a work of the US Government, 17 U.S.C. 105); stored unchanged.",
+            "Public domain in the United States (a work of the US Government, 17 U.S.C. 105); numbers stored unchanged.",
             "https://www.itl.nist.gov/div898/strd/univ/numacc4.html"),
     Dataset("Student's sleep data", "sleep.csv",
             "extra hours of sleep for 10 patients with each of two drugs",
@@ -336,7 +336,7 @@ CASES = [
              ax = sdata.chart(data).trade_off_curve(score="s100b", truth="outcome",
                                                     positive="Poor")._render().axes[0]
              x, y = chart_facts(ax)["lines"][0]
-             {"points": len(x), "area under the drawn curve": float(np.trapezoid(y, x))}
+             {"points": len(x), "area under the drawn curve": float(np.sum(np.diff(x) * (y[1:] + y[:-1]) / 2))}
          """,
          r="""
              r <- pROC::roc(as.numeric(outcome == "Poor"), s100b, levels = c(0, 1), direction = "<", quiet = TRUE)

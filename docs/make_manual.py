@@ -9,6 +9,13 @@ library each word uses) and docs/manual/ideas.tex (the data science ideas).
     python docs/make_manual.py            # write the .tex, run every example, compile the PDF
     python docs/make_manual.py --tex      # only write the .tex (fast; no LaTeX needed)
     python docs/make_manual.py --no-run   # write the .tex and compile, without running the examples again
+    python docs/make_manual.py --no-run --underneath-figures   # the same, but draw the pictures of the
+                                          # "same underneath" boxes first (R words need R)
+
+Each word with a tested entry in simplydata._underneath gets a grey box "The same underneath" after its
+example: the same job in the package underneath, made from that entry, with one picture for chart words.
+The one-line "Underneath" field is read from the entry's code; words without an entry yet keep the name
+in GROUP_UNDERNEATH / UNDERNEATH below.
 
 Compiling the manual also builds the dictionary (docs/manual/simplydataDictionary.pdf, made by
 docs/make_dictionary.py) and the guide "30 days of simplydata" (docs/manual/simplydata_30_days.pdf,
@@ -884,12 +891,85 @@ def _doc_text(doc: str) -> str:
 
 
 def _underneath(key: str) -> str:
+    """The library a word uses, in words, from the tables above: for words without a tested entry in
+    simplydata._underneath yet (until phase U3 every word has one)."""
     if key in UNDERNEATH:
         return UNDERNEATH[key]
     group = learn._group_of(key)
     if group in GROUP_UNDERNEATH:
         return GROUP_UNDERNEATH[group]
     raise KeyError(f'Say which library "{key}" uses: add it to UNDERNEATH in docs/make_manual.py')
+
+
+# ---------------------------------------------------------------- the same underneath (tested entries)
+def underneath_entry(key: str):
+    """The tested entry of a word in simplydata._underneath, or None."""
+    from simplydata._underneath import UNDERNEATH as TESTED
+
+    return TESTED.get(key)
+
+
+def underneath_name(key: str) -> str:
+    """The one-line "Underneath" field as LaTeX: read from the tested code where the word has an entry
+    ("seaborn barplot()"), else the name from the tables above."""
+    from simplydata._underneath import library_calls
+
+    entry = underneath_entry(key)
+    if entry is None:
+        return rich(_underneath(key))
+    if entry.compare == "none":
+        return rich(entry.note)
+    parts = [esc(library) + " " + ", ".join(code(c) for c in calls) for library, calls in library_calls(entry) if calls]
+    return r" \textperiodcentered{} ".join(parts)
+
+
+def underneath_figure(key: str) -> str:
+    """The file (relative to docs/manual) of the one picture a chart word's box shows."""
+    return f"figures/underneath_{key.replace('.', '_')}.pdf"
+
+
+_HOW = {"value": "the number", "table": "the table", "result": "the numbers of the result table",
+        "chart": "the chart's bars, dots, lines and labels (its data, not its pixels)"}
+
+
+def _same_underneath(key: str) -> str:
+    """The grey box "The same underneath" (and, for a chart word, the one picture both programs draw)."""
+    from simplydata._underneath import R_LABEL
+
+    entry = underneath_entry(key)
+    if entry is None:
+        return ""
+    if entry.compare == "none":
+        return r"\undertext{\textit{Nothing underneath:} " + rich(entry.note) + "}"
+    out = []
+    if entry.compare == "chart":
+        out.append(r"\begin{center}\begin{minipage}{\linewidth}\centering" + "\n"
+                   + r"\includegraphics[width=0.52\textwidth,height=0.26\textheight,keepaspectratio]"
+                   + "{" + underneath_figure(key) + "}\n"
+                   + r"\captionof*{figure}{Both programs draw this chart.}" + "\n" + r"\end{minipage}\end{center}")
+    badges = "".join(r"\libbadge{" + esc(library) + "}" for library in entry.code)
+    out.append(r"\needspace{10\baselineskip}\begin{underneathbox}{" + badges + "}")
+    for library, language, source in entry.blocks():
+        if language == "r":
+            out.append(r"\underlib{" + esc(R_LABEL) + "}")
+            out.append(listing(source, "underr"))
+        else:
+            shown = library + (" (with what R gives back)" if entry.uses_r else "")
+            out.append(r"\underlib{" + esc(shown) + "}")
+            out.append(listing(source, "under"))
+    if entry.choices:
+        out.append(r"\undertext{\textbf{simplydata chooses}}")
+        for number, choice in enumerate(entry.choices, start=1):
+            out.append(r"\undertext{" + f"({number}) " + rich(choice) + "}")
+    if entry.python_note:
+        out.append(r"\undertext{\textit{In Python only:} " + rich(entry.python_note) + "}")
+    if entry.also:
+        out.append(r"\undertext{" + rich(entry.also) + "}")
+    engines = " (on a pandas and on a Polars table)" if key.startswith("table.") else ""
+    out.append(r"\undertext{\textit{Checked:} a test runs both and compares " + esc(_HOW[entry.compare] + engines)
+               + ".}")
+    out.append(r"\end{underneathbox}")
+    return "\n".join(out)
 
 
 def _word_entry(key: str, aliases: dict) -> str:
@@ -915,11 +995,14 @@ def _word_entry(key: str, aliases: dict) -> str:
         out.append("")
         out.append(r"\wordfield{Good to know}{" + rich(learn.EXTRA_NOTES[key]) + "}")
     out.append("")
-    out.append(r"\wordfield{Underneath}{" + rich(_underneath(key)) + "}")
+    out.append(r"\wordfield{Underneath}{" + underneath_name(key) + "}")
     table = learn._example_table(key)
     where = f"(it uses the practice table {code(table)})" if table else ""
     out.append(r"\wordfield{Example you can run}{" + where + "}\\par\\nopagebreak")
     out.append(listing(learn.HELP_EXAMPLES[key]))
+    box = _same_underneath(key)
+    if box:
+        out.append(box)
     return "\n".join(out)
 
 
@@ -1034,6 +1117,15 @@ def make() -> str:
         "The same entries are in Python: " + code('sdata.help("draw_bars")') + ". The words come in the same "
         "groups as " + code("sdata.show_all_words()") + "; the \\hyperref[index]{index of words} at the end of the "
         "book lists them A to Z.",
+        "Some entries end with a grey box, \\textbf{The same underneath}. It shows the same job written in the "
+        "package simplydata uses: pandas and then Polars for tables, NumPy for numbers, seaborn or matplotlib "
+        "for charts, SciPy or statsmodels for statistics, and R where simplydata runs R for you. The box is for "
+        "readers who know one of these packages or want to learn it; if you are learning simplydata, you can "
+        "skip it. Each setting that simplydata chooses for you is marked in the code with a number, (1), (2) "
+        "and so on, and explained under the code. A test runs the code in each box next to the simplydata word "
+        "and checks that both give the same result, so the box cannot drift from simplydata. simplydata runs "
+        "its table steps on pandas and Polars through narwhals; narwhals is only the link between the two and "
+        "is not shown.",
         _dictionary(aliases),
         r"\part{Data science ideas}\label{part:ideas}",
         r"\input{ideas}",
@@ -1125,6 +1217,31 @@ def run_examples() -> None:
             else:
                 shutil.copyfile(folder / f"{stem}.pdf", MANUAL / target)
         print(f"  ran {prefix}")
+    run_underneath_figures()
+
+
+def run_underneath_figures() -> None:
+    """Draw the one picture of each chart word's "same underneath" box, from simplydata's side (the test
+    checks that the library code draws the same chart). R words need R."""
+    import matplotlib
+
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+
+    from simplydata._underneath import UNDERNEATH as TESTED
+    from simplydata._underneath.check import run_ours
+
+    os.environ["SOURCE_DATE_EPOCH"] = "0"
+    FIGURES.mkdir(parents=True, exist_ok=True)
+    for key, entry in TESTED.items():
+        if entry.compare != "chart":
+            continue
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            chart, _ = run_ours(entry)
+            chart.save(str(MANUAL / underneath_figure(key)))
+        plt.close("all")
+        print(f"  drew {underneath_figure(key)}")
 
 
 def latex_folder() -> Path:
@@ -1158,6 +1275,8 @@ def main(argv: list[str]) -> None:
     if "--no-run" not in argv:  # --no-run: compile with the pictures and output already there
         print("Running every lesson example and solution ...")
         run_examples()
+    elif "--underneath-figures" in argv:  # --no-run --underneath-figures: draw only the boxes' pictures
+        run_underneath_figures()
     print("Compiling the PDF ...")
     build = compile_pdf()
     print(f"Wrote {PDF}")

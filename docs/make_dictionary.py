@@ -3,6 +3,7 @@
 The dictionary opens with every word at a glance, group by group, as sdata.show_all_words() lists
 them (one line each: the word, a short example and what it does; this part was the cheat sheet).
 Then it lists every simplydata word A to Z, with what it means, a short example, its main options,
+the package underneath (read from the tested code of simplydata._underneath where a word has it),
 the names other tools use for it, related words, and the page of the manual where it is explained
 (and the lesson that teaches it). A last part, "Coming from another tool?", lists every name from
 other tools (iloc, groupby, curve_fit, hist ...) and every old name, each pointing to the word.
@@ -130,6 +131,9 @@ each; the entries A to Z after them explain each word in full.
     in brackets after the example: \code{(marks)} means
     \code{table = sdata.table(sdata.get\_example("marks"))} for a table word, or
     \code{chart = sdata.chart(sdata.get\_example("marks"))} for a chart word.
+  \item \textbf{See what runs underneath.} \textbf{Underneath} names the package that does the work
+    (pandas, Polars, NumPy, seaborn, SciPy, R ...). Where the manual has a grey box ``The same
+    underneath'', the line is read from its tested code, and the box shows the full code.
   \item \textbf{Read the page.} \textbf{Manual p.} gives the page of the manual where the word is
     explained in full; the number is a link that opens the manual at that page. \textbf{Lesson}
     gives the lessons that teach it.
@@ -396,6 +400,9 @@ def _sense(key: str, pages, turned, lessons) -> str:
         out.append(f"\\field{{Also written}}{{{', '.join(code(a) for a in aliases)}}}")
     if key in turned:
         out.append(f"\\field{{Other tools}}{{{', '.join(code(n) for n in turned[key])}}}")
+    # read from the tested code of simplydata._underneath; words without an entry yet (until U3) keep
+    # the library named in docs/make_manual.py
+    out.append(f"\\field{{Underneath}}{{{make_manual.underneath_name(key)}}}")
     related = see_also(key)
     if related:
         out.append(f"\\field{{See also}}{{{', '.join(word_link(w) for w in related)}}}")
