@@ -11,28 +11,28 @@ SENTENCE = "simplydata also writes the result as a sentence and names the test."
 ENTRIES = [
     Entry(
         word="table.compare_averages_of",
-        data="marks",
+        data="trial",
         ours="""
-            table = sdata.table(sdata.get_example("marks"))
-            table.compare_averages_of("marks", for_each_group_in="class")
+            table = sdata.table(sdata.get_example("trial"))
+            table.compare_averages_of("days", for_each_group_in="treatment")
         """,
-        code={"statsmodels": """
-            from statsmodels.stats.oneway import anova_oneway
-            df = sdata.get_example("marks")
-            # the core of compare_averages_of("marks", for_each_group_in="class")
-            groups = [rows["marks"] for _, rows in df.groupby("class", sort=False)]
-            res = anova_oneway(groups, use_var="unequal")      # (1)
-            {"statistic": res.statistic, "degrees of freedom 1": res.df_num,
-             "degrees of freedom 2": res.df_denom, "p-value": res.pvalue}
+        code={"SciPy": """
+            from scipy import stats
+            df = sdata.get_example("trial")
+            # the core of compare_averages_of("days", for_each_group_in="treatment")
+            a, b = [rows["days"] for _, rows in df.groupby("treatment", sort=False)]
+            res = stats.ttest_ind(a, b, equal_var=False)       # (1)
+            {"statistic": res.statistic, "degrees of freedom": res.df,
+             "p-value": res.pvalue, "difference": a.mean() - b.mean()}
         """},
         compare="result",
-        fields=("statistic", "degrees of freedom 1", "degrees of freedom 2", "p-value"),
+        fields=("statistic", "degrees of freedom", "p-value", "difference"),
         tolerance=1e-9,
-        choices=("Welch's one-way ANOVA, which does not assume the groups have the same spread; with two groups "
-                 "simplydata uses Welch's t-test (SciPy stats.ttest_ind with equal_var=False). SciPy's and "
-                 "statsmodels' own defaults assume equal spreads.",),
-        also="simplydata also chooses the test from the number of groups, adds an effect size (R effectsize, "
-             "when R is there) and the averages of the groups. " + SENTENCE,
+        choices=("Welch's t-test, which does not assume both groups have the same spread; SciPy's own default "
+                 "(equal_var=True) is Student's t-test, which does.",),
+        also="With three or more groups simplydata uses Welch's one-way ANOVA (statsmodels anova_oneway, whose "
+             "own default is Welch too). simplydata also chooses the test from the number of groups, adds an "
+             "effect size (R effectsize, when R is there) and the averages of the groups. " + SENTENCE,
     ),
     Entry(
         word="table.fit_line",
@@ -74,7 +74,7 @@ ENTRIES = [
         """},
         compare="value",
         tolerance=1e-12,
-        choices=("the chance above a value is the survival function sf(), not 1 - cdf(): it stays exact far "
+        choices=("the chance above a value is the survival function sf(), not 1 - cdf(): it stays accurate far "
                  "out in the tail.",),
         also="simplydata also says the chance in a sentence, with the same call in R "
              "(pnorm(80, mean = 50, sd = 10, lower.tail = FALSE)).",

@@ -4,7 +4,7 @@ Made by `python validation/make_report.py` on 2026-11-18. Generated: do not edit
 
 Each simplydata word is run on real, published data and compared with the published answer, with the package simplydata uses underneath called directly, and with R. Each "same underneath" box of the manual is run next to its word and compared too. How it works, and the datasets with their licences: [validation/README.md](README.md).
 
-**139 checks passed, 0 failed, 0 skipped** (skipped: R or an R package is not installed on this computer).
+**147 checks passed, 0 failed, 0 skipped** (skipped: R or an R package is not installed on this computer).
 
 ## Setup
 
@@ -12,7 +12,7 @@ Each simplydata word is run on real, published data and compared with the publis
 |---|---|
 | system | Windows 11 (AMD64) |
 | Python | 3.12.10 |
-| simplydata | 0.1.0.dev0 |
+| simplydata | 0.1.0 (imported from src/simplydata of this copy) |
 | pandas | 3.1.1 |
 | polars | 2.1.0 |
 | narwhals | 2.28.0 |
@@ -196,7 +196,24 @@ Note: NIST certifies no median; the median is checked against NumPy and R on the
 | degrees of freedom | R | 17.7764735161785 | 17.7764735161785 | relative 1e-09 | pass |
 | p-value | R | 0.0793941401873583 | 0.0793941401873582 | relative 1e-09 | pass |
 
-Note: Student printed the standard deviations with n in the divisor (1.70 and 1.90); simplydata, NumPy with ddof=1, and R use n - 1 (1.79 and 2.00). This is a documented choice, not a difference in the data. simplydata's difference is drug 1 minus drug 2, so Student's +1.58 is -1.58 here.
+Note: These data are paired: each patient took both drugs, and Student (1908) analysed the difference within each patient (the paired case below). This case treats the two drugs as two separate groups only to check the arithmetic of the two-group (Welch) test against SciPy and R; it is not the right analysis of these data. Student printed the standard deviations with n in the divisor (1.70 and 1.90); simplydata, NumPy with ddof=1, and R use n - 1 (1.79 and 2.00), a documented choice. simplydata's difference is drug 1 minus drug 2, so Student's +1.58 is -1.58 here.
+
+### `table.compare_before_and_after`
+
+**two drugs in the same 10 patients (paired t-test, as Student analysed them)** (published; data: Student's sleep data)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| average change | Student (1908) | 1.58 | 1.58 | within 0.005 (printed rounding) | pass |
+| average change | SciPy stats.ttest_rel | 1.58 | 1.58 | relative 1e-09 | pass |
+| t | SciPy stats.ttest_rel | 4.06212768338204 | 4.06212768338204 | relative 1e-09 | pass |
+| degrees of freedom | SciPy stats.ttest_rel | 9 | 9 | relative 1e-09 | pass |
+| p-value | SciPy stats.ttest_rel | 0.00283289019738427 | 0.00283289019738427 | relative 1e-09 | pass |
+| t | R | 4.06212768338204 | 4.06212768338204 | relative 1e-09 | pass |
+| degrees of freedom | R | 9 | 9 | relative 1e-09 | pass |
+| p-value | R | 0.00283289019738427 | 0.00283289019738427 | relative 1e-09 | pass |
+
+Note: Student also printed the standard deviation of the differences, 1.17, with n in the divisor; with n - 1 it is 1.23. simplydata does not print it, so it is not compared.
 
 ### `draw_bars`
 
@@ -311,8 +328,8 @@ Each box's library code is run next to the simplydata word and compared. Table w
 | `table.find_average_of` | pandas | polars | table | relative 1e-09 | pass |
 | `table.find_average_of` | Polars | polars | table | relative 1e-09 | pass |
 | `nums.find_median` | NumPy | pandas | value | relative 1e-12 | pass |
-| `table.compare_averages_of` | statsmodels | pandas | result | relative 1e-09 | pass |
-| `table.compare_averages_of` | statsmodels | polars | result | relative 1e-09 | pass |
+| `table.compare_averages_of` | SciPy | pandas | result | relative 1e-09 | pass |
+| `table.compare_averages_of` | SciPy | polars | result | relative 1e-09 | pass |
 | `table.fit_line` | SciPy | pandas | result | relative 1e-09 | pass |
 | `table.fit_line` | SciPy | polars | result | relative 1e-09 | pass |
 | `dist.find_chance_that_value` | SciPy | pandas | value | relative 1e-12 | pass |
@@ -336,9 +353,9 @@ Where simplydata's default differs from the package underneath, it is listed her
 - `table.keep_rows_where` (1): is_above= means strictly above (>); use is_at_least= for >=. Rows with an empty cell in "marks" are left out, as in pandas and Polars.
 - `table.find_average_of` (1): groups stay in the order they first appear (sort=False, maintain_order=True); empty cells are skipped, as pandas and Polars do (NumPy's mean would give nan).
 - `nums.find_median` (1): empty values are skipped (np.nanmedian); NumPy's np.median would give nan.
-- `table.compare_averages_of` (1): Welch's one-way ANOVA, which does not assume the groups have the same spread; with two groups simplydata uses Welch's t-test (SciPy stats.ttest_ind with equal_var=False). SciPy's and statsmodels' own defaults assume equal spreads.
+- `table.compare_averages_of` (1): Welch's t-test, which does not assume both groups have the same spread; SciPy's own default (equal_var=True) is Student's t-test, which does.
 - `table.fit_line` (1): the 95 % interval of the slope uses the t distribution with n - 2 degrees of freedom, as R's confint(lm(...)).
-- `dist.find_chance_that_value` (1): the chance above a value is the survival function sf(), not 1 - cdf(): it stays exact far out in the tail.
+- `dist.find_chance_that_value` (1): the chance above a value is the survival function sf(), not 1 - cdf(): it stays accurate far out in the tail.
 
 ## Datasets
 

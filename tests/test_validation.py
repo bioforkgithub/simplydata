@@ -6,7 +6,6 @@ answer, the parent package and R (skipped where R is missing, except in CI with 
 
 import importlib.util
 import os
-import sys
 from pathlib import Path
 
 import pytest
@@ -16,14 +15,10 @@ VALIDATION = ROOT / "validation"
 
 
 def _load(name):
-    sys.path.insert(0, str(VALIDATION))
-    try:
-        spec = importlib.util.spec_from_file_location(name, VALIDATION / f"{name}.py")
-        module = importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(module)
-        return module
-    finally:
-        sys.path.remove(str(VALIDATION))
+    spec = importlib.util.spec_from_file_location(name, VALIDATION / f"{name}.py")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
 
 
 report = _load("make_report")
@@ -105,3 +100,38 @@ def test_committed_report_exists_and_names_every_trial_word():
     for word in UNDERNEATH:
         assert f"`{word}`" in text, word
     assert "**FAIL**" not in text
+
+
+def test_a_reference_number_without_a_simplydata_number_fails_the_case():
+    """A misspelt name on either side must fail, not drop the comparison silently."""
+    case = study.Case("nums.find_median", "a misspelt name", "made-up", "made-up",
+                      ours="""
+                          {"median": sdata.numbers([1, 2, 3]).find_median()}
+                      """,
+                      published={"mediann": (2.0, 1e-12, "exact")},
+                      parent="""
+                          {"median": 2.0, "the middle": 2.0}
+                      """, parent_label="NumPy")
+    rows = report.check_case(case)
+    missing = [r for r in rows if not r["passed"]]
+    assert {r["name"] for r in missing} == {"mediann", "the middle"}
+    assert all("no number with this name" in r["note"] for r in missing)
+
+
+def test_check_writes_no_tracked_report_and_require_r_counts_skips(tmp_path, monkeypatch):
+    calls = {}
+
+    def fake_build(require_r=False):
+        calls["require_r"] = require_r
+        return "# report\n", (1 if require_r else 0), 1
+
+    monkeypatch.setattr(report, "build", fake_build)
+    monkeypatch.setattr("tempfile.gettempdir", lambda: str(tmp_path))
+    before = (VALIDATION / "report.md").read_text(encoding="utf-8")
+    monkeypatch.delenv("SIMPLYDATA_REQUIRE_R", raising=False)
+    assert report.main(["--check"]) == 0
+    assert (tmp_path / "simplydata_reliability_report.md").is_file()
+    assert (VALIDATION / "report.md").read_text(encoding="utf-8") == before
+    assert report.main(["--check", "--require-r"]) == 1 and calls["require_r"] is True
+    monkeypatch.setenv("SIMPLYDATA_REQUIRE_R", "1")
+    assert report.main(["--check", "--out", str(tmp_path / "x.md")]) == 1

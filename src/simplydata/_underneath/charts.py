@@ -87,13 +87,14 @@ ENTRIES = [
                 # infected (1 = yes, 0 = no) and crp: two columns of sdata.get_example("clinic")
                 r <- pROC::roc(infected, crp, levels = c(0, 1),
                                direction = "<", quiet = TRUE)      # (1)
-                auc <- pROC::ci.auc(r, method = "delong")          # (2)
+                ci <- pROC::ci.auc(r, method = "delong")           # (2)
                 p <- pROC::coords(r, "all", ret = c("specificity", "sensitivity"),
                                   transpose = FALSE)
                 b <- pROC::coords(r, "best", best.method = "youden",
                                   ret = c("specificity", "sensitivity"), transpose = FALSE)
                 list(x = 1 - p$specificity, y = p$sensitivity,
-                     best_x = 1 - b$specificity[1], best_y = b$sensitivity[1])
+                     best_x = 1 - b$specificity[1], best_y = b$sensitivity[1],
+                     auc = ci[2], auc_low = ci[1], auc_high = ci[3])
             """,
             "matplotlib": """
                 import matplotlib.pyplot as plt
@@ -113,6 +114,8 @@ ENTRIES = [
         r_packages=("pROC",),
         compare="chart",
         check=("lines",),
+        legend_pattern=r"AUC (\S+) \(95 % CI (\S+) to (\S+)\)",
+        legend_numbers=("auc", "auc_low", "auc_high"),
         choices=(
             "higher scores count as positive (direction = \"<\"); positive_when=\"lower\" turns it round.",
             "the AUC and its 95 % interval by DeLong's method, written in the legend.",

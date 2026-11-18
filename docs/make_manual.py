@@ -928,8 +928,23 @@ def underneath_figure(key: str) -> str:
     return f"figures/underneath_{key.replace('.', '_')}.pdf"
 
 
-_HOW = {"value": "the number", "table": "the table", "result": "the numbers of the result table",
-        "chart": "the chart's bars, dots, lines and labels (its data, not its pixels)"}
+_HOW = {"value": "the number", "table": "the table", "result": "the numbers of the result table"}
+# what each chart fact is, in words, for the "Checked:" line
+_FACT_WORDS = {"bars": "the bars", "bar_colour_groups": "which bars share a colour", "dots": "the dots",
+               "dot_size_shares": "the dot sizes", "dot_colour_groups": "which dots share a colour",
+               "lines": "the lines", "labels": "the axis labels", "ticks": "the tick labels", "legend": "the legend",
+               "limits": "the axis ranges", "scales": "the axis scales", "panels": "the number of panels"}
+
+
+def _checked(entry) -> str:
+    """What the test compares, in words, built from the entry itself."""
+    if entry.compare != "chart":
+        return _HOW[entry.compare]
+    facts = [_FACT_WORDS[f] for f in entry.check]
+    if entry.legend_numbers:
+        facts.append("the numbers in the legend")
+    listed = facts[0] if len(facts) == 1 else ", ".join(facts[:-1]) + " and " + facts[-1]
+    return listed + " (the chart's data, not its pixels)"
 
 
 def _same_underneath(key: str) -> str:
@@ -946,7 +961,8 @@ def _same_underneath(key: str) -> str:
         out.append(r"\begin{center}\begin{minipage}{\linewidth}\centering" + "\n"
                    + r"\includegraphics[width=0.52\textwidth,height=0.26\textheight,keepaspectratio]"
                    + "{" + underneath_figure(key) + "}\n"
-                   + r"\captionof*{figure}{Both programs draw this chart.}" + "\n" + r"\end{minipage}\end{center}")
+                   + r"\captionof*{figure}{The chart simplydata draws. The code below draws the same "
+                   + esc(_FACT_WORDS[entry.check[0]].replace("the ", "", 1)) + ", without simplydata's paper look.}" + "\n" + r"\end{minipage}\end{center}")
     badges = "".join(r"\libbadge{" + esc(library) + "}" for library in entry.code)
     out.append(r"\needspace{10\baselineskip}\begin{underneathbox}{" + badges + "}")
     for library, language, source in entry.blocks():
@@ -966,7 +982,7 @@ def _same_underneath(key: str) -> str:
     if entry.also:
         out.append(r"\undertext{" + rich(entry.also) + "}")
     engines = " (on a pandas and on a Polars table)" if key.startswith("table.") else ""
-    out.append(r"\undertext{\textit{Checked:} a test runs both and compares " + esc(_HOW[entry.compare] + engines)
+    out.append(r"\undertext{\textit{Checked:} a test runs both and compares " + esc(_checked(entry) + engines)
                + ".}")
     out.append(r"\end{underneathbox}")
     return "\n".join(out)

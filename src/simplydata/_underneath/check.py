@@ -102,8 +102,10 @@ def engines(entry: Entry) -> list[str]:
 
 
 # ---------------------------------------------------------------- what a chart shows
-def _axes_of(value):
-    """The Axes a result stands for: a simplydata chart, a Figure, an Axes, or the current figure."""
+def _axes_of(value, library_side: bool = False):
+    """The Axes a result stands for: a simplydata chart, a Figure or an Axes. Only the library side may
+    fall back to the current figure (seaborn and matplotlib draw on it); a simplydata word that gives
+    back anything else is an error, so a chart is never compared with itself."""
     import matplotlib.pyplot as plt
     from matplotlib.axes import Axes
     from matplotlib.figure import Figure
@@ -114,6 +116,11 @@ def _axes_of(value):
         return value.axes[0]
     if hasattr(value, "_render"):
         return value._render().axes[0]
+    if not library_side:
+        raise TypeError(f"the simplydata code gave back {type(value).__name__}, not a chart: end ours= with the "
+                        "chart (chart.draw_bars(...) gives it back)")
+    if not plt.get_fignums():
+        raise TypeError("the library code drew no chart")
     return plt.gcf().axes[0]
 
 
@@ -274,8 +281,8 @@ def compare_values(ours, theirs, tol: float) -> list[str]:
 
 def compare(entry: Entry, ours, theirs) -> list[str]:
     if entry.compare == "chart":
-        return compare_charts(chart_facts(_axes_of(ours)), chart_facts(_axes_of(theirs)), entry.check,
-                              entry.tolerance)
+        return compare_charts(chart_facts(_axes_of(ours)), chart_facts(_axes_of(theirs, library_side=True)),
+                              entry.check, entry.tolerance)
     if entry.compare == "table":
         return compare_tables(ours, theirs, entry.names, entry.tolerance)
     if entry.compare == "result":
@@ -309,7 +316,28 @@ def _run_with_r(entry: Entry):
             seen_r = True
         elif seen_r:
             value, _, namespace = run_python(source, namespace)
-    return value
+    return value, namespace
+
+
+def compare_legend_numbers(entry: Entry, ours, found: dict) -> list[str]:
+    """The numbers simplydata writes in its legend (such as the AUC and its interval) against what R gave,
+    to the digits printed (half a unit of the last printed digit)."""
+    import re
+
+    if not entry.legend_numbers:
+        return []
+    texts = chart_facts(_axes_of(ours))["legend"][1:]
+    m = next((re.search(entry.legend_pattern, t) for t in texts if re.search(entry.legend_pattern, t)), None)
+    if m is None:
+        return [f"legend: no text matching {entry.legend_pattern!r} in {texts!r}"]
+    out = []
+    for name, shown in zip(entry.legend_numbers, m.groups()):
+        decimals = len(shown.split(".")[1]) if "." in shown else 0
+        if name not in found:
+            out.append(f"legend: R gave no {name}")
+        elif abs(float(shown) - float(found[name])) > 0.5 * 10 ** -decimals + 1e-12:
+            out.append(f"legend {name}: simplydata shows {shown} | R {found[name]!r}")
+    return out
 
 
 def check_entry(entry: Entry) -> list[Outcome]:
@@ -331,8 +359,8 @@ def check_entry(entry: Entry) -> list[Outcome]:
                                                     + " are not installed"))
                     continue
                 ours, printed = run_ours(entry, engine)
-                theirs = _run_with_r(entry)
-                differences = compare(entry, ours, theirs)
+                theirs, found = _run_with_r(entry)
+                differences = compare(entry, ours, theirs) + compare_legend_numbers(entry, ours, found)
                 if OLD_NAME_NOTE in printed:
                     differences.append("the simplydata code uses an old name: " + printed.strip())
                 library = " + ".join(lib for lib, _, _ in entry.blocks())

@@ -56,6 +56,9 @@ class Entry:
     fields:   for compare="result": the columns of simplydata's result table that are compared (the
               library code ends with a dict that has the same keys)
     check:    for compare="chart": which CHART_FACTS are compared
+    legend_pattern, legend_numbers: for R chart words, a regular expression that finds numbers in the first
+              legend entry of simplydata's chart, and the names of the R results they must equal (to the
+              digits printed)
     r_inputs: Python code that makes the values the R block uses (from the practice table)
     r_packages: R packages the R block loads
     python_note: for R words, a line on what Python alone gives
@@ -73,6 +76,8 @@ class Entry:
     names: dict = field(default_factory=dict)
     fields: tuple = ()
     check: tuple = ()
+    legend_pattern: str = ""
+    legend_numbers: tuple = ()
     r_inputs: str = ""
     r_packages: tuple = ()
     python_note: str = ""

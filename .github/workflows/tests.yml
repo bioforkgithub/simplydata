@@ -65,6 +65,7 @@ jobs:
         run: python validation/make_report.py --check --out reliability-report.md
         env:
           MPLBACKEND: Agg
+          SIMPLYDATA_REQUIRE_R: "1"  # R is installed here: a skipped R part fails the report
       - name: Keep the reliability report
         if: always()
         uses: actions/upload-artifact@v4

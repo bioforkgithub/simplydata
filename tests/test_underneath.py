@@ -19,7 +19,8 @@ import pytest
 import simplydata as sdata
 from simplydata import learn
 from simplydata._underneath import CHART_FACTS, COMPARE_KINDS, R_LABEL, UNDERNEATH, Entry, underneath_line
-from simplydata._underneath.check import chart_facts, check_entry, compare_charts, run_ours, run_python
+from simplydata._underneath.check import (chart_facts, check_entry, compare_charts, compare_legend_numbers, run_ours,
+                                          run_python)
 
 ROOT = Path(__file__).resolve().parents[1]
 ENTRIES = list(UNDERNEATH.values())
@@ -117,6 +118,7 @@ def test_r_label_says_simplydata_runs_it():
     ("draw_bars", "errorbar=None, "),
     ("draw_histogram", "bins=10, "),
     ("nums.find_median", "nan"),
+    ("table.compare_averages_of", ", equal_var=False"),
 ])
 def test_leaving_out_a_simplydata_choice_makes_the_comparison_fail(word, setting):
     entry = UNDERNEATH[word]
@@ -126,8 +128,8 @@ def test_leaving_out_a_simplydata_choice_makes_the_comparison_fail(word, setting
         entry = Entry(**{**entry.__dict__, "ours": "sdata.numbers([12, None, 9, 20, 14]).find_median()"})
         changed = {library: entry.code[library].replace("[12, 15, 9, 20, 14]", "[12, np.nan, 9, 20, 14]")
                    .replace("nanmedian", "median")}
-    outcome, = check_entry(Entry(**{**entry.__dict__, "code": changed}))
-    assert not outcome.passed, f"{word}: the comparison should fail without {setting}"
+    outcomes = check_entry(Entry(**{**entry.__dict__, "code": changed}))
+    assert outcomes and not any(o.passed for o in outcomes), f"{word}: the comparison should fail without {setting}"
 
 
 # ---------------------------------------------------------------- chart_facts
@@ -255,7 +257,7 @@ def test_manual_shows_each_entry_in_a_grey_box_after_its_example():
         if entry.uses_r:
             assert manual.esc(R_LABEL) in part
         if entry.compare == "chart":
-            assert "Both programs draw this chart." in part
+            assert "The chart simplydata draws." in part
             assert (ROOT / "docs" / "manual" / manual.underneath_figure(key)).is_file(), key
         assert r"\wordfield{Underneath}{" + manual.underneath_name(key) + "}" in part
 
@@ -272,3 +274,26 @@ def test_dictionary_underneath_line_comes_from_the_entries():
     for key in UNDERNEATH:
         assert r"\field{Underneath}{" + manual.underneath_name(key) + "}" in tex, key
     assert tex.count(r"\field{Underneath}{") == len(learn._all_keys())
+
+
+def test_a_simplydata_side_that_gives_no_chart_is_an_error_not_a_match():
+    """The library side may draw on the current figure; the simplydata side must give its chart back, or the
+    library's chart would be compared with itself."""
+    entry = UNDERNEATH["draw_bars"]
+    broken = Entry(**{**entry.__dict__, "ours": "chart = sdata.chart(sdata.get_example('marks'))\nNone"})
+    with pytest.raises(TypeError, match="not a chart"):
+        check_entry(broken)
+    plt.close("all")
+
+
+def test_legend_numbers_are_compared_to_the_printed_digits():
+    entry = Entry(word="trade_off_curve", ours="", compare="chart", check=("lines",),
+                  legend_pattern=UNDERNEATH["trade_off_curve"].legend_pattern,
+                  legend_numbers=("auc", "auc_low", "auc_high"))
+    fig, ax = plt.subplots()
+    ax.plot([0, 1], [0, 1], label="crp: AUC 0.831 (95 % CI 0.750 to 0.912)")
+    ax.legend()
+    assert compare_legend_numbers(entry, ax, {"auc": 0.8312, "auc_low": 0.7504, "auc_high": 0.9116}) == []
+    assert compare_legend_numbers(entry, ax, {"auc": 0.84, "auc_low": 0.7504, "auc_high": 0.9116})
+    assert compare_legend_numbers(entry, ax, {"auc": 0.8312, "auc_low": 0.7504})  # R gave no auc_high
+    plt.close("all")

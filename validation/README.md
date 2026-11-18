@@ -13,11 +13,14 @@ whether it passed, plus the system, Python, package and R versions it was run wi
 From a copy of the repository (`pip install -e ".[test]"` first; add `".[test,r]"` and R for the R parts):
 
 ```
-python validation/make_report.py            # writes validation/report.md
-python validation/make_report.py --check    # the same, and exit code 1 if any check fails
+python validation/make_report.py                       # writes validation/report.md
+python validation/make_report.py --check               # checks only: exit code 1 if any check fails
+                                                       # (the report goes to the temporary folder, or --out)
+python validation/make_report.py --check --require-r   # and a skipped R part counts as a failure
 ```
 
-Where R, rpy2 or an R package is missing, the R parts are skipped and the report says so. The test suite
+Where R, rpy2 or an R package is missing, the R parts are skipped and the report says so. CI runs the
+report on every setup with `SIMPLYDATA_REQUIRE_R=1`, so there a missing R fails instead. The test suite
 runs the same checks (`tests/test_underneath.py`, `tests/test_validation.py`) on Windows, macOS and Linux
 with Python 3.11 to 3.13 for every change.
 
@@ -41,12 +44,13 @@ with Python 3.11 to 3.13 for every change.
    and charts by their data (bars, dots, lines, labels, limits), never by pixels.
 
 3. **Choices simplydata makes.** Where simplydata's default differs from the package underneath (for
-   example Welch's test, or 10 histogram bins), the report lists it, so a difference is never hidden.
+   example Welch's t-test where SciPy's `ttest_ind` assumes equal spreads, or 10 histogram bins), the report lists it, so a difference is never hidden.
 
 This first version covers ten words, one of each kind: `draw_bars`, `draw_histogram`, `draw_dots`,
 `table.keep_rows_where`, `table.find_average_of`, `table.compare_averages_of`, `table.fit_line`,
 `nums.find_median`, `dist.find_chance_that_value` and the R word `trade_off_curve`. More words are
-added with each release; a word counts as done only when its checks pass.
+added with each release; a word counts as done only when its checks pass. The sleep data also check
+`table.compare_before_and_after`, the paired test Student himself used for them.
 
 ## Datasets
 

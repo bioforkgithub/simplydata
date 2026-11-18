@@ -2,7 +2,11 @@
 
     python validation/make_report.py                 # write validation/report.md
     python validation/make_report.py --out x.md      # write it somewhere else
-    python validation/make_report.py --check         # and stop with exit code 1 if any check fails
+    python validation/make_report.py --check         # check only: exit code 1 if any check fails; the
+                                                     # report goes to the system's temporary folder (or --out)
+    python validation/make_report.py --check --require-r   # and a skipped R part counts as a failure
+
+SIMPLYDATA_REQUIRE_R=1 does the same as --require-r (CI sets it on the setups that have R).
 
 Two kinds of check go into the report:
 
@@ -20,6 +24,7 @@ from __future__ import annotations
 import argparse
 import datetime as _dt
 import importlib.metadata
+import importlib.util
 import math
 import os
 import platform
@@ -28,22 +33,26 @@ import textwrap
 import warnings
 from pathlib import Path
 
+import numpy as np
+import pandas as pd
+
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parent
-sys.path.insert(0, str(HERE))
-try:
-    import simplydata  # noqa: F401  (installed, or run from a checkout below)
-except ImportError:  # pragma: no cover - a checkout without pip install -e
-    sys.path.insert(0, str(ROOT / "src"))
 
-import matplotlib  # noqa: E402
 
-matplotlib.use("Agg")
+def _load_cases():
+    """validation/cases.py, loaded by its path under a name of its own (nothing is added to sys.path)."""
+    name = "simplydata_validation_cases"
+    if name in sys.modules:
+        return sys.modules[name]
+    spec = importlib.util.spec_from_file_location(name, HERE / "cases.py")
+    module = importlib.util.module_from_spec(spec)
+    sys.modules[name] = module  # dataclasses look the module up while it loads
+    spec.loader.exec_module(module)
+    return module
 
-import numpy as np  # noqa: E402
-import pandas as pd  # noqa: E402
 
-import cases as study  # noqa: E402  (validation/cases.py)
+study = _load_cases()
 
 PACKAGES = ("simplydata", "pandas", "polars", "narwhals", "numpy", "scipy", "statsmodels", "matplotlib", "seaborn",
             "rpy2")
@@ -51,8 +60,14 @@ PACKAGES = ("simplydata", "pandas", "polars", "narwhals", "numpy", "scipy", "sta
 
 # ---------------------------------------------------------------- the setup
 def versions() -> dict[str, str]:
-    found = {}
-    for name in PACKAGES:
+    """The versions the report ran with: simplydata's from the module that was imported (and where it is),
+    the others from their installed metadata."""
+    import simplydata
+
+    here = Path(simplydata.__file__).resolve().parent
+    where = "src/simplydata of this copy" if here == (ROOT / "src" / "simplydata").resolve() else "the installed package"
+    found = {"simplydata": f"{simplydata.__version__} (imported from {where})"}
+    for name in PACKAGES[1:]:
         try:
             found[name] = importlib.metadata.version(name)
         except importlib.metadata.PackageNotFoundError:
@@ -124,7 +139,7 @@ def lre(value: float, reference: float) -> float:
     return min(15.0, -math.log10(abs(value - reference) / abs(reference)))
 
 
-MIN_LRE = 9.0  # digits that must agree with a NIST certified value (lower and average difficulty sets)
+MIN_LRE = 9.0  # digits that must agree with a NIST certified value (every set used, NumAcc4's higher difficulty too)
 
 
 def check_case(case) -> list[dict]:
@@ -141,6 +156,9 @@ def check_case(case) -> list[dict]:
                      reference="simplydata", ours=float("nan"), theirs=float("nan"), tolerance="runs",
                      passed=False, skipped="", note=f"simplydata stopped: {error}")]
     for name, (value, tolerance, source) in case.published.items():
+        if name not in ours:
+            rows.append(_missing(case, name, source))
+            continue
         got = ours[name]
         if tolerance == "lre":
             digits = lre(got, value)
@@ -153,18 +171,22 @@ def check_case(case) -> list[dict]:
     if case.parent:
         theirs = run(case.parent, data)
         for name, value in theirs.items():
-            if name in ours:
-                rows.append(_row(case, name, case.parent_label, ours[name], value,
-                                 _relative(case.parent_tolerance), _close(ours[name], value, case.parent_tolerance)))
+            if name not in ours:
+                rows.append(_missing(case, name, case.parent_label))
+                continue
+            rows.append(_row(case, name, case.parent_label, ours[name], value,
+                             _relative(case.parent_tolerance), _close(ours[name], value, case.parent_tolerance)))
     if case.r:
         if not r_ready(case.r_packages):
             rows.append(_skipped(case, "R" + (" with " + ", ".join(case.r_packages) if case.r_packages else "")))
         else:
             theirs = run_r(case.r, data, case.r_packages)
             for name, value in theirs.items():
-                if name in ours:
-                    rows.append(_row(case, name, "R", ours[name], value, _relative(case.r_tolerance),
-                                     _close(ours[name], value, case.r_tolerance)))
+                if name not in ours:
+                    rows.append(_missing(case, name, "R"))
+                    continue
+                rows.append(_row(case, name, "R", ours[name], value, _relative(case.r_tolerance),
+                                 _close(ours[name], value, case.r_tolerance)))
     return rows
 
 
@@ -180,6 +202,13 @@ def _row(case, name, reference, ours, theirs, tolerance, passed) -> dict:
     return dict(word=case.word, case=case.title, dataset=case.dataset, kind=case.kind, name=name,
                 reference=reference, ours=float(ours), theirs=float(theirs), tolerance=tolerance,
                 passed=bool(passed), skipped="", note="")
+
+
+def _missing(case, name: str, reference: str) -> dict:
+    """A reference gives a number the simplydata side does not: a failed check, never a silent gap."""
+    row = _row(case, name, reference, float("nan"), float("nan"), "", False)
+    row["note"] = "the simplydata code gives no number with this name"
+    return row
 
 
 def _skipped(case, what: str) -> dict:
@@ -308,23 +337,45 @@ def report(case_rows: list[dict], box_rows: list[dict], setup: dict, when: str) 
     return "\n".join(out) + "\n"
 
 
-def build() -> tuple[str, int]:
+def build(require_r: bool = False) -> tuple[str, int, int]:
+    """(report text, failed checks, skipped checks); with require_r a skipped R part also counts as failed."""
     case_rows = [row for case in study.CASES for row in check_case(case)]
     box_rows = underneath_rows()
     when = _dt.date.today().isoformat()
     text = report(case_rows, box_rows, versions(), when)
-    failed = sum(1 for r in case_rows + box_rows if not r["passed"] and not r["skipped"])
-    return text, failed
+    rows = case_rows + box_rows
+    failed = sum(1 for r in rows if not r["passed"] and not r["skipped"])
+    skipped = sum(1 for r in rows if r["skipped"])
+    return text, failed + (skipped if require_r else 0), skipped
 
 
 def main(argv=None) -> int:
     parser = argparse.ArgumentParser(description="Build simplydata's reliability report.")
-    parser.add_argument("--out", default=str(HERE / "report.md"), help="where to write the report (Markdown)")
+    parser.add_argument("--out", help="where to write the report (normally validation/report.md; with --check, "
+                                      "the system's temporary folder)")
     parser.add_argument("--check", action="store_true", help="exit with code 1 if any check fails")
+    parser.add_argument("--require-r", action="store_true", help="a skipped R part counts as a failure")
     args = parser.parse_args(argv)
-    text, failed = build()
-    Path(args.out).write_text(text, encoding="utf-8", newline="\n")
-    print(f"Wrote {args.out}: {failed} failed" if failed else f"Wrote {args.out}: every check passed or was skipped")
+    try:
+        import simplydata  # noqa: F401  (installed, or run from a checkout)
+    except ImportError:  # pragma: no cover - a checkout without pip install -e
+        sys.path.insert(0, str(ROOT / "src"))
+    import tempfile
+
+    import matplotlib
+
+    matplotlib.use("Agg")
+    require_r = args.require_r or os.environ.get("SIMPLYDATA_REQUIRE_R") == "1"
+    if args.out:
+        out = Path(args.out)
+    elif args.check:
+        out = Path(tempfile.gettempdir()) / "simplydata_reliability_report.md"
+    else:
+        out = HERE / "report.md"
+    text, failed, skipped = build(require_r)
+    out.write_text(text, encoding="utf-8", newline="\n")
+    note = f" ({skipped} skipped, counted as failed because R is required)" if require_r and skipped else ""
+    print(f"Wrote {out}: {failed} failed{note}" if failed else f"Wrote {out}: every check passed or was skipped")
     return 1 if (failed and args.check) else 0
 
 

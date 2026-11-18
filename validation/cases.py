@@ -279,9 +279,36 @@ CASES = [
              t <- t.test(extra[group == "drug 1"], extra[group == "drug 2"])
              list(t = unname(t$statistic), `degrees of freedom` = unname(t$parameter), `p-value` = t$p.value)
          """,
-         note="Student printed the standard deviations with n in the divisor (1.70 and 1.90); simplydata, NumPy "
-              "with ddof=1, and R use n - 1 (1.79 and 2.00). This is a documented choice, not a difference in "
-              "the data. simplydata's difference is drug 1 minus drug 2, so Student's +1.58 is -1.58 here."),
+         note="These data are paired: each patient took both drugs, and Student (1908) analysed the difference "
+              "within each patient (the paired case below). This case treats the two drugs as two separate groups "
+              "only to check the arithmetic of the two-group (Welch) test against SciPy and R; it is not the right "
+              "analysis of these data. Student printed the standard deviations with n in the divisor (1.70 and "
+              "1.90); simplydata, NumPy with ddof=1, and R use n - 1 (1.79 and 2.00), a documented choice. "
+              "simplydata's difference is drug 1 minus drug 2, so Student's +1.58 is -1.58 here."),
+    Case("table.compare_before_and_after", "two drugs in the same 10 patients (paired t-test, as Student analysed "
+                                           "them)", "Student's sleep data", "published",
+         ours="""
+             wide = data.pivot(index="ID", columns="group", values="extra").reset_index()
+             r = sdata.table(wide).compare_before_and_after("drug 1", "drug 2").as_pandas().iloc[0]
+             {"average change": r["average change"], "t": r["statistic"],
+              "degrees of freedom": r["degrees of freedom"], "p-value": r["p-value"]}
+         """,
+         # Student (1908) prints the average difference within patients, +1.58 hours (drug 2 minus drug 1)
+         published={"average change": (1.58, 0.005, "Student (1908)")},
+         parent="""
+             from scipy import stats
+             wide = data.pivot(index="ID", columns="group", values="extra")
+             t = stats.ttest_rel(wide["drug 2"], wide["drug 1"])
+             {"average change": (wide["drug 2"] - wide["drug 1"]).mean(), "t": t.statistic,
+              "degrees of freedom": t.df, "p-value": t.pvalue}
+         """, parent_label="SciPy stats.ttest_rel",
+         r="""
+             t <- t.test(extra[group == "drug 2"][order(ID[group == "drug 2"])],
+                         extra[group == "drug 1"][order(ID[group == "drug 1"])], paired = TRUE)
+             list(t = unname(t$statistic), `degrees of freedom` = unname(t$parameter), `p-value` = t$p.value)
+         """,
+         note="Student also printed the standard deviation of the differences, 1.17, with n in the divisor; with "
+              "n - 1 it is 1.23. simplydata does not print it, so it is not compared."),
     # ---- the chart words, on real data: the drawn numbers against the parent package
     Case("draw_bars", "bar heights are Student's two averages", "Student's sleep data", "published",
          ours="""

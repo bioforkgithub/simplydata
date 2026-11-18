@@ -4094,7 +4094,7 @@ chart.save("draw_bars.png")
 \end{lstlisting}
 \begin{center}\begin{minipage}{\linewidth}\centering
 \includegraphics[width=0.52\textwidth,height=0.26\textheight,keepaspectratio]{figures/underneath_draw_bars.pdf}
-\captionof*{figure}{Both programs draw this chart.}
+\captionof*{figure}{The chart simplydata draws. The code below draws the same bars, without simplydata's paper look.}
 \end{minipage}\end{center}
 \needspace{10\baselineskip}\begin{underneathbox}{\libbadge{seaborn}}
 \underlib{seaborn}
@@ -4110,7 +4110,7 @@ sns.barplot(df, x="name", y="marks", hue="class",
 \undertext{\textbf{simplydata chooses}}
 \undertext{(1) simplydata draws no error bars unless you ask (\code{error=}); seaborn's own default draws a bootstrap 95 \% interval on each bar.}
 \undertext{Each bar is the average of its rows, as in seaborn. simplydata also gives the chart its paper look (fonts, colours, no top and right lines); that is left out here.}
-\undertext{\textit{Checked:} a test runs both and compares the chart's bars, dots, lines and labels (its data, not its pixels).}
+\undertext{\textit{Checked:} a test runs both and compares the bars, which bars share a colour, the lines, the axis labels, the tick labels, the legend and the axis ranges (the chart's data, not its pixels).}
 \end{underneathbox}
 \wordentry{chart.draw\_lines()}{word:draw-lines}
 Lines. \code{chart.\allowbreak{}draw\_\allowbreak{}lines(x=\textquotedbl{}month\textquotedbl{},\allowbreak{} y=\textquotedbl{}temperature\textquotedbl{},\allowbreak{} colour=\textquotedbl{}city\textquotedbl{})} (with \code{sdata.\allowbreak{}get\_\allowbreak{}example(\textquotedbl{}weather\textquotedbl{})})
@@ -4166,7 +4166,7 @@ chart.save("draw_dots.png")
 \end{lstlisting}
 \begin{center}\begin{minipage}{\linewidth}\centering
 \includegraphics[width=0.52\textwidth,height=0.26\textheight,keepaspectratio]{figures/underneath_draw_dots.pdf}
-\captionof*{figure}{Both programs draw this chart.}
+\captionof*{figure}{The chart simplydata draws. The code below draws the same dots, without simplydata's paper look.}
 \end{minipage}\end{center}
 \needspace{10\baselineskip}\begin{underneathbox}{\libbadge{seaborn}}
 \underlib{seaborn}
@@ -4180,7 +4180,7 @@ sns.scatterplot(df, x="hours", y="marks", hue="class",
                 size="height", ax=ax)
 \end{lstlisting}
 \undertext{simplydata's paper look draws every dot a little bigger; the sizes keep the same proportions. simplydata also gives the chart its paper look (fonts, colours, no top and right lines); that is left out here.}
-\undertext{\textit{Checked:} a test runs both and compares the chart's bars, dots, lines and labels (its data, not its pixels).}
+\undertext{\textit{Checked:} a test runs both and compares the dots, the dot sizes, which dots share a colour, the axis labels, the legend and the axis ranges (the chart's data, not its pixels).}
 \end{underneathbox}
 \wordentry{chart.draw\_area()}{word:draw-area}
 A line with the space under it coloured in.\\
@@ -4237,7 +4237,7 @@ chart.save("draw_histogram.png")
 \end{lstlisting}
 \begin{center}\begin{minipage}{\linewidth}\centering
 \includegraphics[width=0.52\textwidth,height=0.26\textheight,keepaspectratio]{figures/underneath_draw_histogram.pdf}
-\captionof*{figure}{Both programs draw this chart.}
+\captionof*{figure}{The chart simplydata draws. The code below draws the same bars, without simplydata's paper look.}
 \end{minipage}\end{center}
 \needspace{10\baselineskip}\begin{underneathbox}{\libbadge{seaborn}}
 \underlib{seaborn}
@@ -4252,7 +4252,7 @@ sns.histplot(df, x="marks", bins=10, ax=ax)   # (1)
 \undertext{\textbf{simplydata chooses}}
 \undertext{(1) simplydata makes 10 bins unless you say \code{with\_\allowbreak{}bins=}; seaborn's own default chooses the number of bins from the data.}
 \undertext{simplydata writes the y label in small letters (count). simplydata also gives the chart its paper look (fonts, colours, no top and right lines); that is left out here.}
-\undertext{\textit{Checked:} a test runs both and compares the chart's bars, dots, lines and labels (its data, not its pixels).}
+\undertext{\textit{Checked:} a test runs both and compares the bars, the tick labels and the axis ranges (the chart's data, not its pixels).}
 \end{underneathbox}
 \wordentry{chart.draw\_boxes()}{word:draw-boxes}
 Boxes that show the middle half of the values and the median.\\
@@ -7580,7 +7580,7 @@ Two groups: Welch's t-test (the R \code{t.\allowbreak{}test()} default). Three o
 \code{matched\_\allowbreak{}by=} & \\
 \end{optiontable}
 
-\wordfield{Underneath}{statsmodels \code{groupby()}, \code{anova\_\allowbreak{}oneway()}}
+\wordfield{Underneath}{SciPy \code{groupby()}, \code{ttest\_\allowbreak{}ind()}, \code{mean()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -7590,20 +7590,20 @@ table.compare_averages_of("marks", for_each_group_in="class", based_on="ranks")
 table.compare_averages_of("marks", for_each_group_in="subject", matched_by="name")
 result.save("marks_test.csv")
 \end{lstlisting}
-\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{statsmodels}}
-\underlib{statsmodels}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{SciPy}}
+\underlib{SciPy}
 \begin{lstlisting}[style=under]
-from statsmodels.stats.oneway import anova_oneway
-df = sdata.get_example("marks")
-# the core of compare_averages_of("marks", for_each_group_in="class")
-groups = [rows["marks"] for _, rows in df.groupby("class", sort=False)]
-res = anova_oneway(groups, use_var="unequal")      # (1)
-{"statistic": res.statistic, "degrees of freedom 1": res.df_num,
- "degrees of freedom 2": res.df_denom, "p-value": res.pvalue}
+from scipy import stats
+df = sdata.get_example("trial")
+# the core of compare_averages_of("days", for_each_group_in="treatment")
+a, b = [rows["days"] for _, rows in df.groupby("treatment", sort=False)]
+res = stats.ttest_ind(a, b, equal_var=False)       # (1)
+{"statistic": res.statistic, "degrees of freedom": res.df,
+ "p-value": res.pvalue, "difference": a.mean() - b.mean()}
 \end{lstlisting}
 \undertext{\textbf{simplydata chooses}}
-\undertext{(1) Welch's one-way ANOVA, which does not assume the groups have the same spread; with two groups simplydata uses Welch's t-test (SciPy stats.ttest\_ind with \code{equal\_\allowbreak{}var=False}). SciPy's and statsmodels' own defaults assume equal spreads.}
-\undertext{simplydata also chooses the test from the number of groups, adds an effect size (R effectsize, when R is there) and the averages of the groups. simplydata also writes the result as a sentence and names the test.}
+\undertext{(1) Welch's t-test, which does not assume both groups have the same spread; SciPy's own default (\code{equal\_\allowbreak{}var=True}) is Student's t-test, which does.}
+\undertext{With three or more groups simplydata uses Welch's one-way ANOVA (statsmodels \code{anova\_\allowbreak{}oneway}, whose own default is Welch too). simplydata also chooses the test from the number of groups, adds an effect size (R effectsize, when R is there) and the averages of the groups. simplydata also writes the result as a sentence and names the test.}
 \undertext{\textit{Checked:} a test runs both and compares the numbers of the result table (on a pandas and on a Polars table).}
 \end{underneathbox}
 \wordentry{table.compare\_each\_pair\_of()}{word:table.compare-each-pair-of}
@@ -8209,7 +8209,7 @@ chart.save("trade_off_curve.png")
 \end{lstlisting}
 \begin{center}\begin{minipage}{\linewidth}\centering
 \includegraphics[width=0.52\textwidth,height=0.26\textheight,keepaspectratio]{figures/underneath_trade_off_curve.pdf}
-\captionof*{figure}{Both programs draw this chart.}
+\captionof*{figure}{The chart simplydata draws. The code below draws the same lines, without simplydata's paper look.}
 \end{minipage}\end{center}
 \needspace{10\baselineskip}\begin{underneathbox}{\libbadge{R}\libbadge{matplotlib}}
 \underlib{R (simplydata runs this in R for you, through rpy2)}
@@ -8218,13 +8218,14 @@ chart.save("trade_off_curve.png")
 # infected (1 = yes, 0 = no) and crp: two columns of sdata.get_example("clinic")
 r <- pROC::roc(infected, crp, levels = c(0, 1),
                direction = "<", quiet = TRUE)      # (1)
-auc <- pROC::ci.auc(r, method = "delong")          # (2)
+ci <- pROC::ci.auc(r, method = "delong")           # (2)
 p <- pROC::coords(r, "all", ret = c("specificity", "sensitivity"),
                   transpose = FALSE)
 b <- pROC::coords(r, "best", best.method = "youden",
                   ret = c("specificity", "sensitivity"), transpose = FALSE)
 list(x = 1 - p$specificity, y = p$sensitivity,
-     best_x = 1 - b$specificity[1], best_y = b$sensitivity[1])
+     best_x = 1 - b$specificity[1], best_y = b$sensitivity[1],
+     auc = ci[2], auc_low = ci[1], auc_high = ci[3])
 \end{lstlisting}
 \underlib{matplotlib (with what R gives back)}
 \begin{lstlisting}[style=under]
@@ -8242,7 +8243,7 @@ ax.plot([0, 1], [0, 1], linestyle="--")             # no better than chance
 \undertext{(3) the best cut-off by Youden's index (the most found cases minus false alarms) is marked with a dot.}
 \undertext{\textit{In Python only:} Python's stack (SciPy, statsmodels) has no ROC analysis with DeLong's interval, so the numbers come from R.}
 \undertext{simplydata also writes the AUC and the cut-off on the chart and labels both axes in words. simplydata also gives the chart its paper look (fonts, colours, no top and right lines); that is left out here.}
-\undertext{\textit{Checked:} a test runs both and compares the chart's bars, dots, lines and labels (its data, not its pixels).}
+\undertext{\textit{Checked:} a test runs both and compares the lines and the numbers in the legend (the chart's data, not its pixels).}
 \end{underneathbox}
 \unsection{Agreement and reliability}{group:Agreement-and-reliability}
 \wordentry{table.agreement\_between()}{word:table.agreement-between}
@@ -8672,7 +8673,7 @@ dist = stats.norm(loc=50, scale=10)
 dist.sf(80)                     # (1)
 \end{lstlisting}
 \undertext{\textbf{simplydata chooses}}
-\undertext{(1) the chance above a value is the survival function \code{sf()}, not 1 - \code{cdf()}: it stays exact far out in the tail.}
+\undertext{(1) the chance above a value is the survival function \code{sf()}, not 1 - \code{cdf()}: it stays accurate far out in the tail.}
 \undertext{simplydata also says the chance in a sentence, with the same call in R (\code{pnorm(80,\allowbreak{} mean = 50,\allowbreak{} sd = 10,\allowbreak{} lower.\allowbreak{}tail = FALSE)}).}
 \undertext{\textit{Checked:} a test runs both and compares the number.}
 \end{underneathbox}
