@@ -18,8 +18,9 @@ grammar.
   translates simple words into those calls.
 - simplydata's job is the **translation**: each word must map to the right call with the
   right settings. That is what we test.
-- Users never see the libraries underneath. There is **no bridge** to raw matplotlib
-  (no `show_code()`, no `.matplotlib()`).
+- Users never need the libraries underneath; the manual shows the same work in them for anyone
+  who wants to learn them ("The same underneath", tested against each word). There is still
+  **no bridge** in the code (no `show_code()`, no `.matplotlib()`).
 
 ## 2. Goals
 
