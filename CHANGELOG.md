@@ -5,7 +5,9 @@ working for one release and prints a one-line note with its new name.
 
 ## Unreleased
 
-More statistics, each checked against R.
+## 0.2.0 (2026-11-20)
+
+More statistics (S1 tests, S2 models), signals and time series (v0.6), the 30-day course, the talking syntax, the same-underneath boxes and the public reliability study. Every printed statistical result is checked against R.
 
 ### The same underneath, and a public reliability study
 
