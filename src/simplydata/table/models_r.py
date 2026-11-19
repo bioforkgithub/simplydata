@@ -252,10 +252,11 @@ def geeglm_r(model, corstr, exposure=None, trials=None, link=None):
                   **values)
 
 
-def repeated_anova(y, ids, within, between):
+def repeated_anova(y, ids, within, between, note_words=None):
     """R afex::aov_ez() itself: a repeated-measures (or mixed) ANOVA with the Greenhouse-Geisser
     correction and generalised eta-squared, anova(correction = "GG", es = "ges"); Mauchly's test and
-    the GG epsilons from summary(). within= and between= map safe names to their values."""
+    the GG epsilons from summary(). within= and between= map safe names to their values; note_words= puts
+    afex's notes back into the user's words (the groups go to R as codes)."""
     from .._r import r_call
 
     values = {"y": np.asarray(y, dtype=float), "id": np.asarray(ids, dtype=object)}
@@ -283,7 +284,7 @@ def repeated_anova(y, ids, within, between):
     out = r_call(code, packages=("afex",), source="afex::aov_ez",
                  what="A repeated-measures ANOVA (R afex::aov_ez())",
                  python_note="statsmodels AnovaRM has no Greenhouse-Geisser correction and no between-subject "
-                             "columns", **values)
+                             "columns", note_words=note_words, **values)
     return out
 
 

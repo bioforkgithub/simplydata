@@ -33,6 +33,22 @@ More statistics, each checked against R.
   versions it ran with. Made-up data are used only for edge cases and labelled. The README links to it
   under "How we check simplydata".
 
+### Fixed
+
+- The note on bell shape names what it checked once: `table.compare_before_and_after` says "the
+  changes don't look bell-shaped" (it said "the changes in the changes"), and `compare_average_to`,
+  `fit_line` and `explain` read the same way.
+- `table.compare_averages_of(..., matched_by=)` shows the groups by the names in the table ("1, 2"),
+  not by the names afex makes for R ("X1, X2"), in its averages and in afex's notes; number names
+  are in order of value (1, 2, ..., 10). Groups that are one name for R, such as "a b" and "a.b"
+  ("a.b" and "a.b.1"), had their averages printed under each other's names; each now keeps its
+  own. The numbers are unchanged.
+- `table.compare_averages_of(..., matched_by=)` says "(Greenhouse-Geisser corrected)" only when the
+  correction was applied. It claimed one for every term: for two matched groups, for independent
+  groups and their interactions with two matched groups, and where afex could not estimate the
+  epsilon (for example with fewer people than groups). Each line, and the Method line, now says
+  which of these it is.
+
 ### Talking syntax: every line reads as an instruction to the program
 
 A line of simplydata now reads like an instruction you say to the program: the object, a verb

@@ -235,19 +235,22 @@ def _from_r(value):
     return array
 
 
-def _say_warnings(messages, source) -> None:
-    """Each distinct R warning once, as a plain note: Note from R (vegan::betadisper): ... ."""
+def _say_warnings(messages, source, note_words=None) -> None:
+    """Each distinct R warning once, as a plain note: Note from R (vegan::betadisper): ... ; note_words=,
+    if given, rewrites each one (such as codes sent to R back into the names in the table)."""
     for message in dict.fromkeys(" ".join(str(m).split()) for m in messages):
+        message = note_words(message) if note_words else message
         if message:
             print(f"Note from R ({source}): {message if message.endswith('.') else message + '.'}")
 
 
-def r_call(code: str, packages=(), what="This", python_note=None, source=None, **values):
+def r_call(code: str, packages=(), what="This", python_note=None, source=None, note_words=None, **values):
     """Run R code with values put in as R variables; give back the code's result as NumPy/Python.
 
     The last expression of code is the result; a named R list comes back as a dict. R's printing
     and messages stay silent; each warning R gives is passed on once as a plain note, labelled
-    with source= (such as "vegan::betadisper"), or with what= when no source is given."""
+    with source= (such as "vegan::betadisper"), or with what= when no source is given; note_words= (a
+    function of the note) rewrites each note first."""
     need_r(packages, what, python_note)
     with _LOCK:
         ro = _STATE["r"]
@@ -274,5 +277,5 @@ def r_call(code: str, packages=(), what="This", python_note=None, source=None, *
             raise SimplydataError(f"R stopped with: {str(error).strip()}") from None
         found = _from_r(result)
     warnings = found.get("warnings")
-    _say_warnings([] if warnings is None else np.atleast_1d(warnings).tolist(), source or what)
+    _say_warnings([] if warnings is None else np.atleast_1d(warnings).tolist(), source or what, note_words)
     return found.get("value")

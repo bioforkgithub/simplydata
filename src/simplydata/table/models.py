@@ -1219,7 +1219,7 @@ class ModelWords:
         effects = X.shape[1] - 1
         if kind == "lm":
             residuals = model["y"] - fit["fitted"]
-            for note in _shape_notes([("this model", residuals)], what="the residuals (distances from the model)"):
+            for note in _shape_notes([(None, residuals)], what="the residuals (distances from the model)"):
                 notes.append(note.replace('a safer test here: based_on="ranks".',
                                           "the p-values and confidence intervals may be off."))
         if kind == "binomial":

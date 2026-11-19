@@ -401,14 +401,19 @@ def _signed_rank(changes, alternative="two-sided"):
 
 
 def _shape_notes(named_values, what="the values") -> list[str]:
-    """Shapiro-Wilk check of each group; plain notes, never a switch."""
+    """Shapiro-Wilk check of each group; plain notes, never a switch. Each name is a group ('group "a"'),
+    giving "the values in group "a" ..."; a name of None checks one set of values on its own, and then
+    what= says all of it ("the changes", "the residuals"), giving "the changes don't look ..."."""
     from scipy import stats
 
     notes = []
     for name, values in named_values:
         n = len(values)
+        subject = what if name is None else f"{what} in {name}"
         if n < 3:
-            notes.append(f"Note: {name} has only {n} values: too few to check whether {what} are bell-shaped.")
+            notes.append(f"Note: there are only {n} {what.removeprefix('the ')}: too few to check whether they "
+                         "are bell-shaped." if name is None else
+                         f"Note: {name} has only {n} values: too few to check whether {what} are bell-shaped.")
             continue
         if n > SHAPIRO_LIMIT or np.ptp(values) == 0:
             continue
@@ -418,12 +423,12 @@ def _shape_notes(named_values, what="the values") -> list[str]:
         shown = "p < 0.0001" if p < 0.0001 else f"p = {p:.3f}" if p >= 0.001 else f"p = {p:.4f}"
         if n < CLT_SIZE:
             notes.append(
-                f"Note: {what} in {name} don't look bell-shaped (Shapiro-Wilk {shown}); "
+                f"Note: {subject} don't look bell-shaped (Shapiro-Wilk {shown}); "
                 'a safer test here: based_on="ranks".'
             )
         else:
             notes.append(
-                f"Note: {what} in {name} don't look bell-shaped (Shapiro-Wilk {shown}), but with {n} values "
+                f"Note: {subject} don't look bell-shaped (Shapiro-Wilk {shown}), but with {n} values "
                 "the average is close to bell-shaped anyway (the central limit theorem), so this test is "
                 "usually still fine."
             )
@@ -1526,7 +1531,7 @@ class StatTestWords:
             return row, dict(t=t, p=p, df=df, low=float(low), high=float(high), d=es["value"], d_low=es["low"],
                              d_high=es["high"], d_text=interval_text(es["low"], es["high"]), have_d=not es["note"],
                              notes=([es["note"]] if es["note"] else [])
-                             + _shape_notes([(notes_label, values)], what=f"the {label}s"))
+                             + _shape_notes([(None, values)], what=notes_label))
         found = _signed_rank(values - against, alternative)
         if found is None:
             raise SimplydataError(f"Every {label} is exactly {_num(against)}, so there is nothing to test.")
@@ -1864,7 +1869,7 @@ class StatTestWords:
             self._check_choice(step, "test", test, ("z",))
             return self._z_test(step, column, values, float(value), standard_deviation, based_on, alt, up, shown)
         row, r = self._one_sample(step, values, f'value of "{column}"', float(value), based_on, what,
-                                  f'"{column}"', alt)
+                                  f'the values of "{column}"', alt)
         mean = float(values.mean())
         if based_on == "averages":
             diff = mean - value

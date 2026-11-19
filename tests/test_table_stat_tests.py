@@ -486,6 +486,40 @@ def test_tiny_group_note_and_error(capsys):
         make_table(single).compare_averages_of("v", for_each_group_in="g")
 
 
+# Student's sleep data, R datasets::sleep: extra hours of sleep on drug 1 and drug 2, the same 10 patients
+SLEEP_1 = [0.7, -1.6, -0.2, -1.2, -0.1, 3.4, 3.7, 0.8, 0.0, 2.0]
+SLEEP_2 = [1.9, 0.8, 1.1, 0.1, -0.1, 4.4, 5.5, 1.6, 4.6, 3.4]
+
+
+def test_bell_shape_note_names_each_word_once(capsys):
+    # R: shapiro.test(sleep$extra[11:20] - sleep$extra[1:10])$p.value 0.03334406 (the reliability study found
+    #    "the changes in the changes don't look bell-shaped")
+    make_table(pd.DataFrame({"drug 1": SLEEP_1, "drug 2": SLEEP_2})).compare_before_and_after("drug 1", "drug 2")
+    out = capsys.readouterr().out
+    assert ("Note: the changes don't look bell-shaped (Shapiro-Wilk p = 0.033); a safer test here: "
+            'based_on="ranks".') in out
+    assert "the changes in the changes" not in out
+    skewed = pd.DataFrame({"x": [1, 1, 1, 1, 1, 1, 1, 2, 9, 30.0]})
+    make_table(skewed).compare_average_to("x", 0)
+    out = capsys.readouterr().out
+    assert ("Note: the values of \"x\" don't look bell-shaped (Shapiro-Wilk p < 0.0001); a safer test here: "
+            'based_on="ranks".') in out
+    curve = pd.DataFrame({"x": np.arange(12.0), "y": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 30.0]})
+    make_table(curve).fit_line("x", "y")
+    out = capsys.readouterr().out
+    assert "Note: the distances from the line don't look bell-shaped (Shapiro-Wilk" in out
+    assert "in the line" not in out
+    make_table(curve).explain("y", using="x")
+    out = capsys.readouterr().out
+    assert "Note: the residuals (distances from the model) don't look bell-shaped (Shapiro-Wilk" in out
+    assert "in this model" not in out
+
+
+def test_too_few_changes_note(capsys):
+    make_table(pd.DataFrame({"a": [1.0, 2.0], "b": [2.0, 4.5]})).compare_before_and_after("a", "b")
+    assert "Note: there are only 2 changes: too few to check whether they are bell-shaped." in capsys.readouterr().out
+
+
 def test_ranks_give_no_bell_shape_note(capsys):
     data = pd.DataFrame({"g": ["a"] * 10 + ["b"] * 10,
                          "v": [1, 1, 1, 1, 1, 1, 1, 2, 2, 40] + list(range(10, 20))})

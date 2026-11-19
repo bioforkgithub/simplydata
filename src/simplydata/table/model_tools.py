@@ -23,6 +23,7 @@ from __future__ import annotations
 
 import itertools
 import math
+import re
 import warnings
 
 import narwhals as nw
@@ -69,6 +70,74 @@ def model_call(model, pieces, grouped_by=None) -> str:
             "zeros": f'pscl::zeroinfl({formula}, dist = "poisson")', "ordered": f"MASS::polr({formula})",
             "multinom": f"nnet::multinom({formula})", "mixed": f"lme4::lmer({formula} + (1 | {g}))",
             "glmm": f"lme4::glmer({formula} + (1 | {g}), family = {family})"}[model["kind"]]
+
+
+def _correction_kind(term, gg, levels):
+    """How Greenhouse-Geisser applies to one ANOVA term: None (only independent groups), "corrected" (afex
+    applied it: epsilon finite and below 1), "two" (every repeated column in the term has two groups: nothing
+    to correct), "unknown" (more groups, but afex gave no epsilon: the df are not corrected) or "one"
+    (epsilon 1: nothing to correct). levels: the number of groups of each repeated column."""
+    repeated = [part for part in term.split(" : ") if part in levels]
+    if not repeated:
+        return None
+    epsilon = gg.get(term, math.nan)
+    if math.isfinite(epsilon) and epsilon < 1:
+        return "corrected"
+    if all(levels[c] == 2 for c in repeated):
+        return "two"
+    return "unknown" if math.isnan(epsilon) else "one"
+
+
+CORRECTION_WORDS = {None: "", "corrected": " (Greenhouse-Geisser corrected)",
+                    "two": " (two matched groups, so no correction is needed)",
+                    "unknown": " (afex could not estimate Greenhouse-Geisser's epsilon, so the degrees of freedom "
+                               "are not corrected)",
+                    "one": " (Greenhouse-Geisser epsilon 1, so no correction is needed)"}
+
+
+def _correction_method(kinds) -> str:
+    """The Method sentence's words on Greenhouse-Geisser, true for each repeated term (kinds: term -> kind)."""
+    by_kind = {}
+    for term, kind in kinds.items():
+        if kind:
+            by_kind.setdefault(kind, []).append(term)
+    every = len(by_kind) == 1
+    corrected = ("Greenhouse-Geisser's epsilon (anova(correction = \"GG\")), which allows for repeated values being "
+                 "more alike in some pairs of groups than others")
+    if every and "corrected" in by_kind:
+        return "the degrees of freedom of the repeated groups are corrected with " + corrected
+    if every and "two" in by_kind:
+        return ("with two matched groups each person has one difference, so there is nothing for "
+                "Greenhouse-Geisser's correction to correct and the degrees of freedom are left as they are")
+    if every and "one" in by_kind:
+        return ("Greenhouse-Geisser's epsilon is 1 (anova(correction = \"GG\")), so the degrees of freedom need "
+                "no correction")
+
+    def named(terms):
+        return _list_words(_quoted(t) for t in terms)
+
+    parts = []
+    if "corrected" in by_kind:
+        parts.append(f"the degrees of freedom of {named(by_kind['corrected'])} are corrected with {corrected}")
+    if "two" in by_kind:
+        parts.append(f"{named(by_kind['two'])} {'has' if len(by_kind['two']) == 1 else 'have'} two matched groups, "
+                     "so there is nothing for Greenhouse-Geisser's correction to correct")
+    if "one" in by_kind:
+        parts.append(f"Greenhouse-Geisser's epsilon is 1 for {named(by_kind['one'])}, so no correction is needed")
+    if "unknown" in by_kind:
+        parts.append(f"afex could not estimate Greenhouse-Geisser's epsilon for {named(by_kind['unknown'])} (for "
+                     "example with fewer people than groups, or with no spread in the differences), so "
+                     f"{'its' if len(by_kind['unknown']) == 1 else 'their'} degrees of freedom are not corrected")
+    return "; ".join(parts)
+
+
+def _group_order(labels):
+    """Group names in order: by value when every name is a number (1, 2, ..., 10), else alphabetically."""
+    labels = sorted(set(labels))
+    try:
+        return sorted(labels, key=float)
+    except ValueError:
+        return labels
 
 
 class ModelToolWords:
@@ -288,7 +357,20 @@ class ModelToolWords:
         safe = {c: f"f{i}" for i, c in enumerate(columns)}
         from .models_r import repeated_anova
 
-        out = repeated_anova(y, ids, {safe[c]: groups[c] for c in within}, {safe[c]: groups[c] for c in between})
+        # each group goes to R as a plain code (L1, L2, ...) and comes back by name: afex makes R names of the
+        # groups (make.names: "1" becomes "X1", "a b" becomes "a.b"), which are not the names in the table
+        # (codes differ between columns, L0x1 and L1x1, so a note from afex can be put back into names)
+        codes = {c: {g: f"L{k}x{i + 1}" for i, g in enumerate(_group_order(groups[c]))}
+                 for k, c in enumerate(columns)}
+        named = {c: {code: g for g, code in codes[c].items()} for c in columns}
+        coded = {c: [codes[c][g] for g in groups[c]] for c in columns}
+        every_code = {code: g for c in columns for code, g in named[c].items()}
+
+        def say_names(note):
+            return re.sub(r"(?<![A-Za-z0-9])L\d+x\d+(?!\d)", lambda m: every_code.get(m.group(0), m.group(0)), note)
+
+        out = repeated_anova(y, ids, {safe[c]: coded[c] for c in within}, {safe[c]: coded[c] for c in between},
+                             note_words=say_names)
         back = {v: k for k, v in safe.items()}
 
         def name(term):
@@ -311,12 +393,13 @@ class ModelToolWords:
         long_y = np.atleast_1d(out["long_y"]).astype(float)
         for c in columns:  # the averages of the rows afex analysed (a$data$long), so people it left out are not in
             averages = {}
-            for g, v in zip((str(x) for x in np.atleast_1d(out[f"long_{safe[c]}"])), long_y):
+            for g, v in zip((named[c][str(x)] for x in np.atleast_1d(out[f"long_{safe[c]}"])), long_y):
                 averages.setdefault(g, []).append(v)
-            ordered = sorted(averages)
+            ordered = _group_order(averages)
             print(f'  average "{column}" for each "{c}": '
                   + ", ".join(f"{g} {_num(float(np.mean(averages[g])))}" for g in ordered))
-        rows = []
+        rows, kinds = [], {}
+        levels = {c: len(set(groups[c])) for c in within}
         for i, term in enumerate(terms):
             f, df1, df2 = float(out["f"][i]), float(out["numdf"][i]), float(out["dendf"][i])
             p, ges = float(out["p"][i]), float(out["ges"][i])
@@ -324,7 +407,8 @@ class ModelToolWords:
             what = "the interaction " + term if interaction else f'"{term}"'
             null = ("the differences were truly the same in every group" if interaction
                     else "the averages truly did not differ")
-            corrected = " (Greenhouse-Geisser corrected)" if term in gg else ""
+            kinds[term] = _correction_kind(term, gg, levels)
+            corrected = CORRECTION_WORDS[kinds[term]]
             print(f"  {what}: F = {_num(f)}, df = {_num(df1)} and {_num(df2)}{corrected}, generalised eta-squared "
                   f"{_num(ges)}; {_p_clause(p, null)}.")
             row = {"term": term, "statistic name": "F", "statistic": f, "degrees of freedom 1": df1,
@@ -338,10 +422,9 @@ class ModelToolWords:
                   "Greenhouse-Geisser epsilon "
                   f"{_num(gg.get(term, math.nan))}.")
         b = f", between = {_list_words(_quoted(c) for c in between)}" if between else ""
+        how = _correction_method(kinds)
         print(f'Method: R afex::aov_ez(id = "{matched_by}", dv = "{column}", within = '
-              f"{_list_words(_quoted(c) for c in within)}{b}) with type 3 tests; the degrees of freedom of the "
-              "repeated groups are corrected with Greenhouse-Geisser's epsilon (anova(correction = \"GG\")), which "
-              "allows for repeated values being more alike in some pairs of groups than others. Generalised "
+              f"{_list_words(_quoted(c) for c in within)}{b}) with type 3 tests; {how}. Generalised "
               "eta-squared: the share of the differences explained.")
         if any(len(set(groups[c])) > 2 for c in within):
             first = within[0]

@@ -604,7 +604,7 @@ class FittingWords:
         print(f"Line: {y} = {num(slope)} * {x} + {num(intercept)}, by least squares over {n} rows. "
               "A link does not show that one thing causes the other.")
         residuals = ys - (intercept + slope * xs)
-        for note in st._shape_notes([("the line", residuals)], what="the distances from the line"):
+        for note in st._shape_notes([(None, residuals)], what="the distances from the line"):
             print(note.replace('a safer test here: based_on="ranks".',
                                "the p-value and confidence intervals may be off."))
         return self._result_table(row)
