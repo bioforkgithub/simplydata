@@ -288,7 +288,12 @@ class ModelToolWords:
         safe = {c: f"f{i}" for i, c in enumerate(columns)}
         from .models_r import repeated_anova
 
-        out = repeated_anova(y, ids, {safe[c]: groups[c] for c in within}, {safe[c]: groups[c] for c in between})
+        # each group goes to R as a plain code (L1, L2, ...) and comes back by name: afex makes R names of the
+        # groups (make.names: "1" becomes "X1", "a b" becomes "a.b"), which are not the names in the table
+        codes = {c: {g: f"L{i + 1}" for i, g in enumerate(sorted(set(groups[c])))} for c in columns}
+        named = {c: {code: g for g, code in codes[c].items()} for c in columns}
+        coded = {c: [codes[c][g] for g in groups[c]] for c in columns}
+        out = repeated_anova(y, ids, {safe[c]: coded[c] for c in within}, {safe[c]: coded[c] for c in between})
         back = {v: k for k, v in safe.items()}
 
         def name(term):
@@ -311,7 +316,7 @@ class ModelToolWords:
         long_y = np.atleast_1d(out["long_y"]).astype(float)
         for c in columns:  # the averages of the rows afex analysed (a$data$long), so people it left out are not in
             averages = {}
-            for g, v in zip((str(x) for x in np.atleast_1d(out[f"long_{safe[c]}"])), long_y):
+            for g, v in zip((named[c][str(x)] for x in np.atleast_1d(out[f"long_{safe[c]}"])), long_y):
                 averages.setdefault(g, []).append(v)
             ordered = sorted(averages)
             print(f'  average "{column}" for each "{c}": '

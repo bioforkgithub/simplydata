@@ -38,6 +38,8 @@ More statistics, each checked against R.
 - The note on bell shape names what it checked once: `table.compare_before_and_after` says "the
   changes don't look bell-shaped" (it said "the changes in the changes"), and `compare_average_to`,
   `fit_line` and `explain` read the same way.
+- `table.compare_averages_of(..., matched_by=)` shows the groups by the names in the table ("1, 2"),
+  not by the names afex makes for R ("X1, X2"); the numbers are unchanged.
 
 ### Talking syntax: every line reads as an instruction to the program
 
