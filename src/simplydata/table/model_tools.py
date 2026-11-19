@@ -71,6 +71,19 @@ def model_call(model, pieces, grouped_by=None) -> str:
             "glmm": f"lme4::glmer({formula} + (1 | {g}), family = {family})"}[model["kind"]]
 
 
+def _correction_words(term, gg, within):
+    """What the ANOVA line says about Greenhouse-Geisser: claimed only when afex applied it (epsilon finite
+    and below 1). A repeated column with two groups has no epsilon (NaN): nothing to correct."""
+    if not any(part in within for part in term.split(" : ")):
+        return ""  # only independent groups in this term
+    epsilon = gg.get(term, math.nan)
+    if math.isfinite(epsilon) and epsilon < 1:
+        return " (Greenhouse-Geisser corrected)"
+    if math.isnan(epsilon):
+        return " (two matched groups, so no correction is needed)"
+    return " (Greenhouse-Geisser epsilon 1, so no correction is needed)"
+
+
 class ModelToolWords:
     # ------------------------------------------------------------------ one checked model
     def _groups_inside(self, step, grouped_by):
@@ -329,7 +342,7 @@ class ModelToolWords:
             what = "the interaction " + term if interaction else f'"{term}"'
             null = ("the differences were truly the same in every group" if interaction
                     else "the averages truly did not differ")
-            corrected = " (Greenhouse-Geisser corrected)" if term in gg else ""
+            corrected = _correction_words(term, gg, within)
             print(f"  {what}: F = {_num(f)}, df = {_num(df1)} and {_num(df2)}{corrected}, generalised eta-squared "
                   f"{_num(ges)}; {_p_clause(p, null)}.")
             row = {"term": term, "statistic name": "F", "statistic": f, "degrees of freedom 1": df1,
@@ -343,10 +356,18 @@ class ModelToolWords:
                   "Greenhouse-Geisser epsilon "
                   f"{_num(gg.get(term, math.nan))}.")
         b = f", between = {_list_words(_quoted(c) for c in between)}" if between else ""
+        if any(math.isfinite(e) and e < 1 for e in gg.values()):
+            how = ("the degrees of freedom of the repeated groups are corrected with Greenhouse-Geisser's epsilon "
+                   "(anova(correction = \"GG\")), which allows for repeated values being more alike in some pairs "
+                   "of groups than others")
+        elif all(len(set(groups[c])) == 2 for c in within):
+            how = ("with two matched groups each person has one difference, so there is nothing for "
+                   "Greenhouse-Geisser's correction to correct and the degrees of freedom are left as they are")
+        else:
+            how = ("Greenhouse-Geisser's epsilon is 1 (anova(correction = \"GG\")), so the degrees of freedom need "
+                   "no correction")
         print(f'Method: R afex::aov_ez(id = "{matched_by}", dv = "{column}", within = '
-              f"{_list_words(_quoted(c) for c in within)}{b}) with type 3 tests; the degrees of freedom of the "
-              "repeated groups are corrected with Greenhouse-Geisser's epsilon (anova(correction = \"GG\")), which "
-              "allows for repeated values being more alike in some pairs of groups than others. Generalised "
+              f"{_list_words(_quoted(c) for c in within)}{b}) with type 3 tests; {how}. Generalised "
               "eta-squared: the share of the differences explained.")
         if any(len(set(groups[c])) > 2 for c in within):
             first = within[0]

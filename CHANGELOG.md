@@ -40,6 +40,8 @@ More statistics, each checked against R.
   `fit_line` and `explain` read the same way.
 - `table.compare_averages_of(..., matched_by=)` shows the groups by the names in the table ("1, 2"),
   not by the names afex makes for R ("X1, X2"); the numbers are unchanged.
+- `table.compare_averages_of(..., matched_by=)` says "(Greenhouse-Geisser corrected)" only when the
+  correction was applied; with two matched groups it says no correction is needed (it claimed one).
 
 ### Talking syntax: every line reads as an instruction to the program
 

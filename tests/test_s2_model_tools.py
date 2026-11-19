@@ -309,3 +309,36 @@ def test_repeated_measures_keep_the_group_names_of_the_table(capsys, needs_r):
     assert 'for each "arm": 2nd drug ' in out and ", drug A " in out
     assert "week.1" not in out and "X2nd" not in out and "drug.A" not in out
     assert set(result.as_pandas()["term"]) == {"when", "arm", "arm : when"}
+
+
+def test_greenhouse_geisser_is_claimed_only_when_applied(capsys, needs_r):
+    import pandas as pd
+
+    # R: anova(afex::aov_ez(id = "ID", dv = "extra", data = sleep, within = "group"), correction = "GG"):
+    #    with two levels summary(a)$pval.adjustments gives GG eps NaN and the df stay 1 and 9, so nothing was
+    #    corrected (the line used to say "(Greenhouse-Geisser corrected)")
+    extra = [0.7, -1.6, -0.2, -1.2, -0.1, 3.4, 3.7, 0.8, 0.0, 2.0, 1.9, 0.8, 1.1, 0.1, -0.1, 4.4, 5.5, 1.6, 4.6, 3.4]
+    sleep = pd.DataFrame({"extra": extra, "group": [1] * 10 + [2] * 10, "ID": list(range(1, 11)) * 2})
+    make_table(sleep).compare_averages_of("extra", for_each_group_in="group", matched_by="ID")
+    out = capsys.readouterr().out
+    assert '"group": F = 16.5, df = 1.00 and 9.00 (two matched groups, so no correction is needed), ' in out
+    assert "corrected" not in out and "are corrected with Greenhouse-Geisser" not in out
+    assert "with two matched groups each person has one difference" in out
+    # mixed, two repeated groups: neither the independent "arm" nor the repeated terms are corrected
+    frame = pd.DataFrame([{"id": f"s{s}", "when": w, "arm": "drug A" if s < 6 else "2nd drug"}
+                          for s in range(12) for w in ("week 1", "week-2")])
+    frame["y"] = [float((7 * i) % 11) + (row.when == "week-2") * 2 for i, row in enumerate(frame.itertuples())]
+    make_table(frame).compare_averages_of("y", for_each_group_in=["when", "arm"], matched_by="id")
+    out = capsys.readouterr().out
+    assert '"arm": F = 0.300, df = 1.00 and 10.0, generalised' in out
+    assert '"when": F = 2.34, df = 1.00 and 10.0 (two matched groups, so no correction is needed)' in out
+    assert "the interaction arm : when: F = 0.294, df = 1.00 and 10.0 (two matched groups, so no correction" in out
+    assert "corrected" not in out
+    # three repeated groups (epsilon 0.909): the correction is applied and said, in the mixed design too
+    marks = make_table(sdata.get_example("marks"))
+    marks.compare_averages_of("marks", for_each_group_in=["subject", "class"], matched_by="name")
+    out = capsys.readouterr().out
+    assert '"class": F = 3.33, df = 2.00 and 15.0, generalised' in out
+    assert '"subject": F = 1.55, df = 1.82 and 27.3 (Greenhouse-Geisser corrected)' in out
+    assert "df = 3.64 and 27.3 (Greenhouse-Geisser corrected)" in out
+    assert "are corrected with Greenhouse-Geisser's epsilon" in out
