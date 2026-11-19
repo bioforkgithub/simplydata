@@ -33,6 +33,12 @@ More statistics, each checked against R.
   versions it ran with. Made-up data are used only for edge cases and labelled. The README links to it
   under "How we check simplydata".
 
+### Fixed
+
+- The note on bell shape names what it checked once: `table.compare_before_and_after` says "the
+  changes don't look bell-shaped" (it said "the changes in the changes"), and `compare_average_to`,
+  `fit_line` and `explain` read the same way.
+
 ### Talking syntax: every line reads as an instruction to the program
 
 A line of simplydata now reads like an instruction you say to the program: the object, a verb
