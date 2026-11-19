@@ -7,6 +7,32 @@ working for one release and prints a one-line note with its new name.
 
 More statistics, each checked against R.
 
+### The same underneath, and a public reliability study
+
+- The manual now shows, after a word's example, a grey box **The same underneath**: the same job
+  written in the package simplydata uses (pandas and then Polars for tables, NumPy for numbers,
+  seaborn or matplotlib for charts, SciPy or statsmodels for statistics, R where simplydata runs R
+  for you). Each setting where simplydata's default differs from the package's own is marked (1),
+  (2) ... and explained, such as Welch's t-test where SciPy's `ttest_ind` assumes equal spreads, or 10
+  histogram bins where seaborn chooses the number itself. Chart words show one picture: the chart
+  simplydata draws, which the code in the box draws too, without simplydata's paper look.
+  Beginners can skip the box. This release has it for ten words, one of each kind: `draw_bars`,
+  `draw_histogram`, `draw_dots`, `trade_off_curve` (R pROC), `table.keep_rows_where`,
+  `table.find_average_of`, `table.compare_averages_of`, `table.fit_line`, `nums.find_median` and
+  `dist.find_chance_that_value`; more words follow in the next releases.
+- Each box is kept once in `simplydata/_underneath/` and a test runs it next to its word: numbers
+  to a stated tolerance, tables on a pandas and on a Polars table, charts by their data (bars, dots,
+  lines, labels), never by pixels. If pandas, seaborn or SciPy change, or a word is renamed, a test
+  fails before a reader sees wrong code.
+- The dictionary has a new line for every word, **Underneath**: the package that does the work,
+  read from the tested code for the words that have a box.
+- A public reliability study, `validation/`: `python validation/make_report.py` runs words on real,
+  published data and compares them with the published answers (NIST Statistical Reference Datasets
+  for the straight-line fit and averages, Student's sleep data, Anscombe's quartet), with the package
+  underneath and with R, and writes `validation/report.md` with the tolerance of every check and the
+  versions it ran with. Made-up data are used only for edge cases and labelled. The README links to it
+  under "How we check simplydata".
+
 ### Talking syntax: every line reads as an instruction to the program
 
 A line of simplydata now reads like an instruction you say to the program: the object, a verb

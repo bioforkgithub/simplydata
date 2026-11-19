@@ -223,6 +223,16 @@ others), and R packages through rpy2 where Python has none. simplydata translate
 into those calls, with the right settings, and says in the result which method was used. What we
 test is that translation: each answer is checked against the package underneath and against R.
 
+### How we check simplydata
+
+The [reliability report](https://github.com/bioforkgithub/simplydata/blob/main/validation/report.md) runs simplydata words on real, published data (NIST
+certified values, Student's sleep data, Anscombe's quartet ...) and compares each answer with the
+published one, with the package underneath called directly, and with R. It lists the tolerance of
+every check, the package versions it ran with, and every setting where simplydata's default differs
+from the package's own. Anyone can rerun it with one command: `python validation/make_report.py`
+([how it works and the datasets](https://github.com/bioforkgithub/simplydata/blob/main/validation/README.md)). For the words that have it, the manual also
+shows the same job written in the package underneath, in a grey box that a test runs and checks.
+
 ## What simplydata covers
 
 These are the packages simplydata gives plain words for, and every R package it calls.

@@ -123,6 +123,22 @@
   title={\color{tryframe}Try it yourself\par}}
 \newtcolorbox{needsr}{boxbase,colback=white,colframe=tryframe,
   title={\color{tryframe}Needs R\par}}
+% "The same underneath": the same job in the package underneath, set apart in grey (optional reading)
+\definecolor{underbg}{HTML}{F1F1F1}
+\definecolor{underframe}{HTML}{8C8C8C}
+\definecolor{undercode}{HTML}{FAFAFA}
+\newtcolorbox{underneathbox}[1]{boxbase,colback=underbg,colframe=underframe,
+  title={\color{inkgrey}The same underneath\hfill #1\par}}
+\newcommand{\libbadge}[1]{\hspace{0.3em}\fcolorbox{underframe}{white}{\sffamily\scriptsize\color{inkgrey}#1}}
+\newcommand{\underlib}[1]{\par\vspace{0.2em}\noindent{\sffamily\footnotesize\bfseries\color{inkgrey}#1}\par\nopagebreak}
+\newcommand{\undertext}[1]{\par\noindent{\small #1}\par}
+\lstdefinestyle{under}{
+  language=Python,
+  keywordstyle=\color{codekw}\bfseries, stringstyle=\color{codestr}, commentstyle=\color{codecom},
+  backgroundcolor=\color{undercode}, frame=single, rulecolor=\color{coderule}, framerule=0.4pt,
+  framesep=4pt, xleftmargin=4pt, xrightmargin=4pt, aboveskip=0.3em, belowskip=0.3em,
+}
+\lstdefinestyle{underr}{style=under, language=R}
 \setlist[itemize]{itemsep=0.2em,parsep=0pt,topsep=0.3em}
 \setlist[enumerate]{itemsep=0.2em,parsep=0pt,topsep=0.3em}
 

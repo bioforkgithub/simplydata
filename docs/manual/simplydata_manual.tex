@@ -128,6 +128,22 @@
   title={\color{tryframe}Try it yourself\par}}
 \newtcolorbox{needsr}{boxbase,colback=white,colframe=tryframe,
   title={\color{tryframe}Needs R\par}}
+% "The same underneath": the same job in the package underneath, set apart in grey (optional reading)
+\definecolor{underbg}{HTML}{F1F1F1}
+\definecolor{underframe}{HTML}{8C8C8C}
+\definecolor{undercode}{HTML}{FAFAFA}
+\newtcolorbox{underneathbox}[1]{boxbase,colback=underbg,colframe=underframe,
+  title={\color{inkgrey}The same underneath\hfill #1\par}}
+\newcommand{\libbadge}[1]{\hspace{0.3em}\fcolorbox{underframe}{white}{\sffamily\scriptsize\color{inkgrey}#1}}
+\newcommand{\underlib}[1]{\par\vspace{0.2em}\noindent{\sffamily\footnotesize\bfseries\color{inkgrey}#1}\par\nopagebreak}
+\newcommand{\undertext}[1]{\par\noindent{\small #1}\par}
+\lstdefinestyle{under}{
+  language=Python,
+  keywordstyle=\color{codekw}\bfseries, stringstyle=\color{codestr}, commentstyle=\color{codecom},
+  backgroundcolor=\color{undercode}, frame=single, rulecolor=\color{coderule}, framerule=0.4pt,
+  framesep=4pt, xleftmargin=4pt, xrightmargin=4pt, aboveskip=0.3em, belowskip=0.3em,
+}
+\lstdefinestyle{underr}{style=under, language=R}
 \setlist[itemize]{itemsep=0.2em,parsep=0pt,topsep=0.3em}
 \setlist[enumerate]{itemsep=0.2em,parsep=0pt,topsep=0.3em}
 
@@ -3954,6 +3970,8 @@ Worked solutions: page~\pageref{solutions:26}, or type \code{sdata.\allowbreak{}
 
 Each entry gives the word as you type it, what it does (in the words of \code{sdata.\allowbreak{}help(\textquotedbl{}word\textquotedbl{})}), the options you can put in its brackets and what they normally are, the library that does the work underneath, and an example you can run as it is. The same entries are in Python: \code{sdata.\allowbreak{}help(\textquotedbl{}draw\_\allowbreak{}bars\textquotedbl{})}. The words come in the same groups as \code{sdata.\allowbreak{}show\_\allowbreak{}all\_\allowbreak{}words()}; the \hyperref[index]{index of words} at the end of the book lists them A to Z.
 
+Some entries end with a grey box, \textbf{The same underneath}. It shows the same job written in the package simplydata uses: pandas and then Polars for tables, NumPy for numbers, seaborn or matplotlib for charts, SciPy or statsmodels for statistics, and R where simplydata runs R for you. The box is for readers who know one of these packages or want to learn it; if you are learning simplydata, you can skip it. Each setting that simplydata chooses for you is marked in the code with a number, (1), (2) and so on, and explained under the code. A test runs the code in each box next to the simplydata word and checks that both give the same result, so the box cannot drift from simplydata. simplydata runs its table steps on pandas and Polars through narwhals; narwhals is only the link between the two and is not shown.
+
 \unchapter{Chart words}{family:chart}
 Steps on a chart: \code{chart = sdata.chart(table)}, then \code{chart.draw\_bars(...)}. Words that start with \code{sdata.} are called on simplydata itself, and words that end in \code{=} are options inside a chart step.
 \unsection{Start, show and save}{group:Start-show-and-save}
@@ -4064,7 +4082,7 @@ Bars. \code{chart.\allowbreak{}draw\_\allowbreak{}bars(x=\textquotedbl{}name\tex
 \code{transparency=} & \\
 \end{optiontable}
 
-\wordfield{Underneath}{seaborn (barplot; countplot for \code{show=\textquotedbl{}count\textquotedbl{}})}
+\wordfield{Underneath}{seaborn \code{barplot()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -4074,6 +4092,26 @@ chart.draw_bars(x="name", y="marks", colour="class")
 chart.rotate_labels_x()
 chart.save("draw_bars.png")
 \end{lstlisting}
+\begin{center}\begin{minipage}{\linewidth}\centering
+\includegraphics[width=0.52\textwidth,height=0.26\textheight,keepaspectratio]{figures/underneath_draw_bars.pdf}
+\captionof*{figure}{The chart simplydata draws. The code below draws the same bars, without simplydata's paper look.}
+\end{minipage}\end{center}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{seaborn}}
+\underlib{seaborn}
+\begin{lstlisting}[style=under]
+import matplotlib.pyplot as plt
+import seaborn as sns
+df = sdata.get_example("marks")
+fig, ax = plt.subplots()
+# draw_bars(x="name", y="marks", colour="class")
+sns.barplot(df, x="name", y="marks", hue="class",
+            errorbar=None, ax=ax)           # (1)
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) simplydata draws no error bars unless you ask (\code{error=}); seaborn's own default draws a bootstrap 95 \% interval on each bar.}
+\undertext{Each bar is the average of its rows, as in seaborn. simplydata also gives the chart its paper look (fonts, colours, no top and right lines); that is left out here.}
+\undertext{\textit{Checked:} a test runs both and compares the bars, which bars share a colour, the lines, the axis labels, the tick labels, the legend and the axis ranges (the chart's data, not its pixels).}
+\end{underneathbox}
 \wordentry{chart.draw\_lines()}{word:draw-lines}
 Lines. \code{chart.\allowbreak{}draw\_\allowbreak{}lines(x=\textquotedbl{}month\textquotedbl{},\allowbreak{} y=\textquotedbl{}temperature\textquotedbl{},\allowbreak{} colour=\textquotedbl{}city\textquotedbl{})} (with \code{sdata.\allowbreak{}get\_\allowbreak{}example(\textquotedbl{}weather\textquotedbl{})})
 
@@ -4117,7 +4155,7 @@ Dots (a scatter chart). \code{chart.\allowbreak{}draw\_\allowbreak{}dots(x=\text
 \code{transparency=} & \\
 \end{optiontable}
 
-\wordfield{Underneath}{seaborn (scatterplot)}
+\wordfield{Underneath}{seaborn \code{scatterplot()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -4126,6 +4164,24 @@ chart = sdata.chart(marks)
 chart.draw_dots(x="hours", y="marks", colour="class", size="height")
 chart.save("draw_dots.png")
 \end{lstlisting}
+\begin{center}\begin{minipage}{\linewidth}\centering
+\includegraphics[width=0.52\textwidth,height=0.26\textheight,keepaspectratio]{figures/underneath_draw_dots.pdf}
+\captionof*{figure}{The chart simplydata draws. The code below draws the same dots, without simplydata's paper look.}
+\end{minipage}\end{center}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{seaborn}}
+\underlib{seaborn}
+\begin{lstlisting}[style=under]
+import matplotlib.pyplot as plt
+import seaborn as sns
+df = sdata.get_example("marks")
+fig, ax = plt.subplots()
+# draw_dots(x="hours", y="marks", colour="class", size="height")
+sns.scatterplot(df, x="hours", y="marks", hue="class",
+                size="height", ax=ax)
+\end{lstlisting}
+\undertext{simplydata's paper look draws every dot a little bigger; the sizes keep the same proportions. simplydata also gives the chart its paper look (fonts, colours, no top and right lines); that is left out here.}
+\undertext{\textit{Checked:} a test runs both and compares the dots, the dot sizes, which dots share a colour, the axis labels, the legend and the axis ranges (the chart's data, not its pixels).}
+\end{underneathbox}
 \wordentry{chart.draw\_area()}{word:draw-area}
 A line with the space under it coloured in.\\
 \codeline{chart.draw\_area(x=\textquotedbl{}year\textquotedbl{}, y=\textquotedbl{}population\textquotedbl{}, colour=\textquotedbl{}country\textquotedbl{}) (with sdata.get\_example(\textquotedbl{}growth\textquotedbl{}))}
@@ -4170,7 +4226,7 @@ Bars that count how many values fall in each range. \code{chart.\allowbreak{}dra
 \code{thickness=} & \\
 \end{optiontable}
 
-\wordfield{Underneath}{seaborn (histplot)}
+\wordfield{Underneath}{seaborn \code{histplot()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -4179,6 +4235,25 @@ chart = sdata.chart(marks)
 chart.draw_histogram(x="marks", with_bins=10)
 chart.save("draw_histogram.png")
 \end{lstlisting}
+\begin{center}\begin{minipage}{\linewidth}\centering
+\includegraphics[width=0.52\textwidth,height=0.26\textheight,keepaspectratio]{figures/underneath_draw_histogram.pdf}
+\captionof*{figure}{The chart simplydata draws. The code below draws the same bars, without simplydata's paper look.}
+\end{minipage}\end{center}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{seaborn}}
+\underlib{seaborn}
+\begin{lstlisting}[style=under]
+import matplotlib.pyplot as plt
+import seaborn as sns
+df = sdata.get_example("marks")
+fig, ax = plt.subplots()
+# draw_histogram(x="marks")
+sns.histplot(df, x="marks", bins=10, ax=ax)   # (1)
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) simplydata makes 10 bins unless you say \code{with\_\allowbreak{}bins=}; seaborn's own default chooses the number of bins from the data.}
+\undertext{simplydata writes the y label in small letters (count). simplydata also gives the chart its paper look (fonts, colours, no top and right lines); that is left out here.}
+\undertext{\textit{Checked:} a test runs both and compares the bars, the tick labels and the axis ranges (the chart's data, not its pixels).}
+\end{underneathbox}
 \wordentry{chart.draw\_boxes()}{word:draw-boxes}
 Boxes that show the middle half of the values and the median.\\
 \codeline{chart.draw\_boxes(x=\textquotedbl{}class\textquotedbl{}, y=\textquotedbl{}marks\textquotedbl{}) (with sdata.get\_example(\textquotedbl{}marks\textquotedbl{}))}
@@ -6205,7 +6280,7 @@ Plain words: \code{is\_\allowbreak{}above}, \code{is\_\allowbreak{}below}, \code
 \code{is\_\allowbreak{}before=} & \\
 \end{optiontable}
 
-\wordfield{Underneath}{narwhals, which runs the step in pandas or Polars (whichever holds the table)}
+\wordfield{Underneath}{pandas \code{boolean indexing} \textperiodcentered{} Polars \code{filter()}, \code{col()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -6215,6 +6290,25 @@ table.keep_rows_where("subject", is_one_of=["Maths", "Science"])
 table.keep_rows_where("hours > 5 and class != 'C'")
 table.show_first_rows()
 \end{lstlisting}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{pandas}\libbadge{Polars}}
+\underlib{pandas}
+\begin{lstlisting}[style=under]
+df = sdata.get_example("marks")
+# keep_rows_where("marks", is_above=50)
+df[df["marks"] > 50]                 # (1)
+\end{lstlisting}
+\underlib{Polars}
+\begin{lstlisting}[style=under]
+import polars as pl
+df = pl.from_pandas(sdata.get_example("marks"))
+# keep_rows_where("marks", is_above=50)
+df.filter(pl.col("marks") > 50)      # (1)
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) \code{is\_\allowbreak{}above=} means strictly above (\textgreater{}); use \code{is\_\allowbreak{}at\_\allowbreak{}least=} for \textgreater{}=. Rows with an empty cell in \code{\textquotedbl{}marks\textquotedbl{}} are left out, as in pandas and Polars.}
+\undertext{simplydata also says how many rows it kept, and keeps the table before the step (undo).}
+\undertext{\textit{Checked:} a test runs both and compares the table (on a pandas and on a Polars table).}
+\end{underneathbox}
 \wordentry{table.remove\_rows\_where()}{word:table.remove-rows-where}
 Remove the rows that match a condition (the opposite of \code{keep\_\allowbreak{}rows\_\allowbreak{}where}).
 
@@ -7139,7 +7233,7 @@ The average (mean) of a column; empty cells are skipped.
 \code{weights=} & \\
 \end{optiontable}
 
-\wordfield{Underneath}{narwhals (group means); SciPy (stats.ttest\_1samp \code{confidence\_\allowbreak{}interval} for \code{interval=}); statsmodels (DescrStatsW for \code{weights=})}
+\wordfield{Underneath}{pandas \code{groupby().\allowbreak{}mean().\allowbreak{}reset\_\allowbreak{}index()} \textperiodcentered{} Polars \code{group\_\allowbreak{}by().\allowbreak{}agg()}, \code{col().\allowbreak{}mean()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -7148,6 +7242,25 @@ table.find_average_of("marks")
 by_class = table.find_average_of("marks", for_each_group_in="class")
 print(by_class)
 \end{lstlisting}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{pandas}\libbadge{Polars}}
+\underlib{pandas}
+\begin{lstlisting}[style=under]
+df = sdata.get_example("marks")
+# find_average_of("marks", for_each_group_in="class")
+df.groupby("class", sort=False)["marks"].mean().reset_index()   # (1)
+\end{lstlisting}
+\underlib{Polars}
+\begin{lstlisting}[style=under]
+import polars as pl
+df = pl.from_pandas(sdata.get_example("marks"))
+# find_average_of("marks", for_each_group_in="class")
+df.group_by("class", maintain_order=True).agg(pl.col("marks").mean())   # (1)
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) groups stay in the order they first appear (\code{sort=False}, \code{maintain\_\allowbreak{}order=True}); empty cells are skipped, as pandas and Polars do (NumPy's mean would give nan).}
+\undertext{simplydata also names the column \code{\textquotedbl{}average of marks\textquotedbl{}} and writes the averages in a sentence.}
+\undertext{\textit{Checked:} a test runs both and compares the table (on a pandas and on a Polars table).}
+\end{underneathbox}
 \wordentry{table.find\_median\_of()}{word:table.find-median-of}
 The middle number of a column once it is sorted; empty cells are skipped.
 
@@ -7467,7 +7580,7 @@ Two groups: Welch's t-test (the R \code{t.\allowbreak{}test()} default). Three o
 \code{matched\_\allowbreak{}by=} & \\
 \end{optiontable}
 
-\wordfield{Underneath}{SciPy (stats.ttest\_ind with \code{equal\_\allowbreak{}var=False}; mannwhitneyu, kruskal) and statsmodels (stats.oneway.anova\_oneway for Welch's ANOVA; weightstats.ttost\_ind and CompareMeans for \code{same\_\allowbreak{}within=}; nonparametric.jonckheere\_terpstra); SciPy \code{permutation\_\allowbreak{}test} for \code{p\_\allowbreak{}value\_\allowbreak{}by=\textquotedbl{}shuffling\textquotedbl{}}; R wilcox.test for the Hodges-Lehmann shift (simplydata[r]); R afex::\code{aov\_\allowbreak{}ez} for \code{matched\_\allowbreak{}by=} (repeated measures, Greenhouse-Geisser; needs R)}
+\wordfield{Underneath}{SciPy \code{groupby()}, \code{ttest\_\allowbreak{}ind()}, \code{mean()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -7477,6 +7590,22 @@ table.compare_averages_of("marks", for_each_group_in="class", based_on="ranks")
 table.compare_averages_of("marks", for_each_group_in="subject", matched_by="name")
 result.save("marks_test.csv")
 \end{lstlisting}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{SciPy}}
+\underlib{SciPy}
+\begin{lstlisting}[style=under]
+from scipy import stats
+df = sdata.get_example("trial")
+# the core of compare_averages_of("days", for_each_group_in="treatment")
+a, b = [rows["days"] for _, rows in df.groupby("treatment", sort=False)]
+res = stats.ttest_ind(a, b, equal_var=False)       # (1)
+{"statistic": res.statistic, "degrees of freedom": res.df,
+ "p-value": res.pvalue, "difference": a.mean() - b.mean()}
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) Welch's t-test, which does not assume both groups have the same spread; SciPy's own default (\code{equal\_\allowbreak{}var=True}) is Student's t-test, which does.}
+\undertext{With three or more groups simplydata uses Welch's one-way ANOVA (statsmodels \code{anova\_\allowbreak{}oneway}, whose own default is Welch too). simplydata also chooses the test from the number of groups, adds an effect size (R effectsize, when R is there) and the averages of the groups. simplydata also writes the result as a sentence and names the test.}
+\undertext{\textit{Checked:} a test runs both and compares the numbers of the result table (on a pandas and on a Polars table).}
+\end{underneathbox}
 \wordentry{table.compare\_each\_pair\_of()}{word:table.compare-each-pair-of}
 Which pairs of groups differ? Every pair is compared, with Holm's correction.
 
@@ -8069,7 +8198,7 @@ Each possible cut-off of the score gives a point: along, the share of those with
 \code{thickness=} & \\
 \end{optiontable}
 
-\wordfield{Underneath}{R pROC (roc, coords, ci.auc; simplydata[r]), drawn with matplotlib}
+\wordfield{Underneath}{R \code{pROC::roc()}, \code{pROC::ci.\allowbreak{}auc()}, \code{pROC::coords()} \textperiodcentered{} matplotlib \code{plot()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -8078,6 +8207,44 @@ chart = sdata.chart(clinic)
 chart.trade_off_curve(score=["crp", "procalcitonin"], truth="infected")
 chart.save("trade_off_curve.png")
 \end{lstlisting}
+\begin{center}\begin{minipage}{\linewidth}\centering
+\includegraphics[width=0.52\textwidth,height=0.26\textheight,keepaspectratio]{figures/underneath_trade_off_curve.pdf}
+\captionof*{figure}{The chart simplydata draws. The code below draws the same lines, without simplydata's paper look.}
+\end{minipage}\end{center}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{R}\libbadge{matplotlib}}
+\underlib{R (simplydata runs this in R for you, through rpy2)}
+\begin{lstlisting}[style=underr]
+# trade_off_curve(score="crp", truth="infected")
+# infected (1 = yes, 0 = no) and crp: two columns of sdata.get_example("clinic")
+r <- pROC::roc(infected, crp, levels = c(0, 1),
+               direction = "<", quiet = TRUE)      # (1)
+ci <- pROC::ci.auc(r, method = "delong")           # (2)
+p <- pROC::coords(r, "all", ret = c("specificity", "sensitivity"),
+                  transpose = FALSE)
+b <- pROC::coords(r, "best", best.method = "youden",
+                  ret = c("specificity", "sensitivity"), transpose = FALSE)
+list(x = 1 - p$specificity, y = p$sensitivity,
+     best_x = 1 - b$specificity[1], best_y = b$sensitivity[1],
+     auc = ci[2], auc_low = ci[1], auc_high = ci[3])
+\end{lstlisting}
+\underlib{matplotlib (with what R gives back)}
+\begin{lstlisting}[style=under]
+import matplotlib.pyplot as plt
+import numpy as np
+fig, ax = plt.subplots()
+order = np.lexsort((y, x))
+ax.plot(x[order], y[order])                         # the curve
+ax.plot([best_x], [best_y], marker="o")             # (3)
+ax.plot([0, 1], [0, 1], linestyle="--")             # no better than chance
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) higher scores count as positive (direction = \code{\textquotedbl{}\textless{}\textquotedbl{}}); \code{positive\_\allowbreak{}when=\textquotedbl{}lower\textquotedbl{}} turns it round.}
+\undertext{(2) the AUC and its 95 \% interval by DeLong's method, written in the legend.}
+\undertext{(3) the best cut-off by Youden's index (the most found cases minus false alarms) is marked with a dot.}
+\undertext{\textit{In Python only:} Python's stack (SciPy, statsmodels) has no ROC analysis with DeLong's interval, so the numbers come from R.}
+\undertext{simplydata also writes the AUC and the cut-off on the chart and labels both axes in words. simplydata also gives the chart its paper look (fonts, colours, no top and right lines); that is left out here.}
+\undertext{\textit{Checked:} a test runs both and compares the lines and the numbers in the legend (the chart's data, not its pixels).}
+\end{underneathbox}
 \unsection{Agreement and reliability}{group:Agreement-and-reliability}
 \wordentry{table.agreement\_between()}{word:table.agreement-between}
 How well do two or more raters (or devices) agree on the same rows?
@@ -8180,13 +8347,31 @@ Ordinary least squares (the same as R \code{lm(y \textasciitilde{} x)}). Prints 
 \code{y=} & \\
 \end{optiontable}
 
-\wordfield{Underneath}{SciPy (stats.linregress)}
+\wordfield{Underneath}{SciPy \code{linregress()}, \code{t.\allowbreak{}ppf()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
 table = sdata.table(sdata.get_example("marks"))
 table.fit_line(x="hours", y="marks")
 \end{lstlisting}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{SciPy}}
+\underlib{SciPy}
+\begin{lstlisting}[style=under]
+from scipy import stats
+df = sdata.get_example("marks")
+# fit_line(x="hours", y="marks")
+fit = stats.linregress(df["hours"], df["marks"])
+t = stats.t.ppf(0.975, len(df) - 2)                 # (1)
+{"slope": fit.slope, "intercept": fit.intercept,
+ "slope standard error": fit.stderr, "intercept standard error": fit.intercept_stderr,
+ "slope 95 % CI low": fit.slope - t * fit.stderr,
+ "R squared": fit.rvalue ** 2, "p-value": fit.pvalue}
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) the 95 \% interval of the slope uses the t distribution with n - 2 degrees of freedom, as R's \code{confint(lm(.\allowbreak{}.\allowbreak{}.\allowbreak{}))}.}
+\undertext{Rows with an empty cell in x or y are left out first. simplydata also writes the result as a sentence and names the test.}
+\undertext{\textit{Checked:} a test runs both and compares the numbers of the result table (on a pandas and on a Polars table).}
+\end{underneathbox}
 \wordentry{table.fit\_curve()}{word:table.fit-curve}
 Fit a curve y = b0 + b1 * x + b2 * x**2 ... that best follows the points.
 
@@ -8469,7 +8654,7 @@ The chance of a value in a range, as a share from 0 to 1 (printed as a percent).
 \code{is\_\allowbreak{}between=} & \\
 \end{optiontable}
 
-\wordfield{Underneath}{SciPy (scipy.stats frozen distributions: cdf, sf, ppf, isf, pdf, pmf, stats, rvs)}
+\wordfield{Underneath}{SciPy \code{norm()}, \code{sf()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -8479,6 +8664,19 @@ dist.find_chance_that_value(is_between=[40, 60])
 dice = sdata.distribution("whole number uniform", between=[1, 6])
 dice.find_chance_that_value(6)
 \end{lstlisting}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{SciPy}}
+\underlib{SciPy}
+\begin{lstlisting}[style=under]
+from scipy import stats
+dist = stats.norm(loc=50, scale=10)
+# find_chance_that_value(is_above=80)
+dist.sf(80)                     # (1)
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) the chance above a value is the survival function \code{sf()}, not 1 - \code{cdf()}: it stays accurate far out in the tail.}
+\undertext{simplydata also says the chance in a sentence, with the same call in R (\code{pnorm(80,\allowbreak{} mean = 50,\allowbreak{} sd = 10,\allowbreak{} lower.\allowbreak{}tail = FALSE)}).}
+\undertext{\textit{Checked:} a test runs both and compares the number.}
+\end{underneathbox}
 \wordentry{dist.find\_density\_at()}{word:dist.find-density-at}
 The height of the density curve at a value (continuous distributions).
 
@@ -10839,13 +11037,26 @@ The middle number once the numbers are sorted; empty values are skipped.
 
 \wordfield{Options}{none: just write the empty brackets.}
 
-\wordfield{Underneath}{NumPy (functions that skip empty values, such as nanmean)}
+\wordfield{Underneath}{NumPy \code{nanmedian()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
 nums = sdata.numbers([12, 15, 9, 20, 14])
 nums.find_median()
 \end{lstlisting}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{NumPy}}
+\underlib{NumPy}
+\begin{lstlisting}[style=under]
+import numpy as np
+values = np.array([12, 15, 9, 20, 14])
+# find_median()
+np.nanmedian(values)                 # (1)
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) empty values are skipped (np.nanmedian); NumPy's np.median would give nan.}
+\undertext{simplydata also says the median in a sentence, with how many numbers it used.}
+\undertext{\textit{Checked:} a test runs both and compares the number.}
+\end{underneathbox}
 \wordentry{nums.find\_total()}{word:nums.find-total}
 All the numbers added up; empty values are skipped.
 
