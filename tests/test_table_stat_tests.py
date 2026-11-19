@@ -515,6 +515,11 @@ def test_bell_shape_note_names_each_word_once(capsys):
     assert "in this model" not in out
 
 
+def test_too_few_changes_note(capsys):
+    make_table(pd.DataFrame({"a": [1.0, 2.0], "b": [2.0, 4.5]})).compare_before_and_after("a", "b")
+    assert "Note: there are only 2 changes: too few to check whether they are bell-shaped." in capsys.readouterr().out
+
+
 def test_ranks_give_no_bell_shape_note(capsys):
     data = pd.DataFrame({"g": ["a"] * 10 + ["b"] * 10,
                          "v": [1, 1, 1, 1, 1, 1, 1, 2, 2, 40] + list(range(10, 20))})

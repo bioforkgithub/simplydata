@@ -342,3 +342,76 @@ def test_greenhouse_geisser_is_claimed_only_when_applied(capsys, needs_r):
     assert '"subject": F = 1.55, df = 1.82 and 27.3 (Greenhouse-Geisser corrected)' in out
     assert "df = 3.64 and 27.3 (Greenhouse-Geisser corrected)" in out
     assert "are corrected with Greenhouse-Geisser's epsilon" in out
+
+
+def _numbers(i):
+    return float((i * 7) % 11) / 2
+
+
+def test_greenhouse_geisser_without_an_epsilon_is_not_called_two_groups(capsys, needs_r):
+    import pandas as pd
+
+    # 3 people, 5 groups: afex gives no epsilon (summary(a)$pval.adjustments is NaN) and keeps df 4 and 8;
+    #    R: anova(aov_ez(id = "id", dv = "y", data = d, within = "t"), correction = "GG")$F 0.968
+    rows = [{"id": s, "t": t} for s in range(3) for t in "abcde"]
+    frame = pd.DataFrame(rows).assign(y=[_numbers(i) for i in range(len(rows))])
+    make_table(frame).compare_averages_of("y", for_each_group_in="t", matched_by="id")
+    out = capsys.readouterr().out
+    assert ('"t": F = 0.968, df = 4.00 and 8.00 (afex could not estimate Greenhouse-Geisser\'s epsilon, so the '
+            "degrees of freedom are not corrected)") in out
+    assert "two matched groups" not in out and "epsilon is 1" not in out
+    assert ("afex could not estimate Greenhouse-Geisser's epsilon for \"t\" (for example with fewer people than "
+            "groups, or with no spread in the differences), so its degrees of freedom are not corrected.") in out
+    # exactly built values, 6 people and 3 groups: no sphericity rows from afex either
+    rows = [{"id": s, "t": t, "y": float(s + i + (0.5 if (s + i) % 2 else -0.5))}
+            for s in range(6) for i, t in enumerate("abc")]
+    make_table(pd.DataFrame(rows)).compare_averages_of("y", for_each_group_in="t", matched_by="id")
+    out = capsys.readouterr().out
+    assert '"t": F = 15.0, df = 2.00 and 10.0 (afex could not estimate' in out and "two matched groups" not in out
+    # two repeated columns: "w" has two groups, "t" five with no epsilon
+    rows = [{"id": s, "t": t, "w": w} for s in range(3) for t in "abcde" for w in ("p", "q")]
+    frame = pd.DataFrame(rows).assign(y=[_numbers(i) for i in range(len(rows))])
+    make_table(frame).compare_averages_of("y", for_each_group_in=["t", "w"], matched_by="id")
+    out = capsys.readouterr().out
+    assert '"t": F = 0.554, df = 4.00 and 8.00 (afex could not estimate' in out
+    assert '"w": F = 0.0992, df = 1.00 and 2.00 (two matched groups, so no correction is needed)' in out
+    assert "the interaction t : w: F = 0.182, df = 4.00 and 8.00 (afex could not estimate" in out
+    assert ('"w" has two matched groups, so there is nothing for Greenhouse-Geisser\'s correction to correct; afex '
+            'could not estimate Greenhouse-Geisser\'s epsilon for "t" and "t : w"') in out
+    # mixed: an independent column and five repeated groups with no epsilon
+    rows = [{"id": s, "arm": "A" if s < 2 else "B", "t": t} for s in range(4) for t in "abcde"]
+    frame = pd.DataFrame(rows).assign(y=[_numbers(i) for i in range(len(rows))])
+    make_table(frame).compare_averages_of("y", for_each_group_in=["t", "arm"], matched_by="id")
+    out = capsys.readouterr().out
+    assert '"arm": F = 8.00, df = 1.00 and 2.00, generalised' in out
+    assert '"t": F = 0.564, df = 4.00 and 8.00 (afex could not estimate' in out
+    assert "the interaction arm : t: F = 1.75, df = 4.00 and 8.00 (afex could not estimate" in out
+    assert "two matched groups" not in out
+
+
+def test_repeated_measures_notes_and_order_use_the_group_names(capsys, needs_r):
+    import pandas as pd
+
+    # afex's note on people left out shows its wide table, whose columns are the codes sent to R
+    rows = [{"id": s, "t": t} for s in range(6) for t in ("first", "second", "third")]
+    frame = pd.DataFrame(rows).assign(y=[_numbers(i) for i in range(len(rows))]).drop(index=[2])
+    make_table(frame).compare_averages_of("y", for_each_group_in="t", matched_by="id")
+    out = capsys.readouterr().out
+    assert "Note from R (afex::aov_ez): Missing values for 1 ID(s)" in out
+    assert "id first second third" in out and "L0x" not in out
+    # "a b" and "a.b" are one name after R's make.names ("a.b", "a.b.1"): each keeps its own average
+    rows = [{"id": s, "t": t, "y": float(s % 2) * 2 + 10 * i}
+            for s in range(8) for i, t in enumerate(("a b", "a.b", "c"))]
+    frame = pd.DataFrame(rows)
+    means = frame.groupby("t")["y"].mean()  # a b 1.00, a.b 11.0, c 21.0
+    make_table(frame).compare_averages_of("y", for_each_group_in="t", matched_by="id")
+    out = capsys.readouterr().out
+    assert means["a b"] == 1.0 and means["a.b"] == 11.0
+    assert 'average "y" for each "t": a b 1.00, a.b 11.0, c 21.0' in out
+    # number names in order of their value, not as text (1, 2, ..., 10, not 1, 10, 2)
+    rows = [{"id": s, "t": t} for s in range(12) for t in range(1, 11)]
+    frame = pd.DataFrame(rows).assign(y=[_numbers(i) for i in range(len(rows))])
+    make_table(frame).compare_averages_of("y", for_each_group_in="t", matched_by="id")
+    out = capsys.readouterr().out
+    line = next(x for x in out.splitlines() if 'for each "t":' in x)
+    assert [part.split()[0] for part in line.split(": ", 1)[1].split(", ")] == [str(k) for k in range(1, 11)]
