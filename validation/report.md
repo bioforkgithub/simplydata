@@ -4,7 +4,7 @@ Made by `python validation/make_report.py` on 2026-11-20. Generated: do not edit
 
 Each simplydata word is run on real, published data and compared with the published answer, with the package simplydata uses underneath called directly, and with R. Each "same underneath" box of the manual is run next to its word and compared too. How it works, and the datasets with their licences: [validation/README.md](README.md).
 
-**632 checks passed, 0 failed, 0 skipped** (skipped: R or an R package is not installed on this computer).
+**773 checks passed, 0 failed, 0 skipped** (skipped: R or an R package is not installed on this computer).
 
 ## Setup
 
@@ -1360,6 +1360,308 @@ Note: metafor's Hedges' g (exact correction, large-sample variance) is the refer
 | first standard error | R | 0.137028776120449 | 0.137028776120449 | relative 1e-08 | pass |
 | last standard error | R | 0.257719821942313 | 0.257719821942313 | relative 1e-08 | pass |
 
+### `table.add_diversity_columns`
+
+**BCI: richness, Shannon and Simpson of the first three plots** (real data; data: BCI (vegan))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| richness plot 1 | R | 93 | 93 | relative 1e-12 | pass |
+| richness plot 2 | R | 84 | 84 | relative 1e-12 | pass |
+| richness plot 3 | R | 90 | 90 | relative 1e-12 | pass |
+| Shannon plot 1 | R | 4.01841166223236 | 4.01841166223236 | relative 1e-12 | pass |
+| Shannon plot 2 | R | 3.84847116819842 | 3.84847116819842 | relative 1e-12 | pass |
+| Shannon plot 3 | R | 3.81405950494229 | 3.81405950494229 | relative 1e-12 | pass |
+| Simpson plot 1 | R | 0.974629304846939 | 0.974629304846939 | relative 1e-12 | pass |
+| Simpson plot 2 | R | 0.968339278636544 | 0.968339278636544 | relative 1e-12 | pass |
+| Simpson plot 3 | R | 0.964607755785585 | 0.964607755785585 | relative 1e-12 | pass |
+
+Note: vegan's own help computes these on BCI (Shannon 4.018, 3.848 and 3.814; Simpson 0.975, 0.968 and 0.965 for the first three plots); the check is against vegan itself.
+
+### `table.add_diversity_columns at_total_count=`
+
+**at_total_count=: BCI, the expected richness in 20 trees** (real data; data: BCI (vegan))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| rarefied plot 1 | R | 16.3614744200566 | 16.3614744200566 | relative 1e-12 | pass |
+| rarefied plot 2 | R | 15.6698282771649 | 15.6698282771649 | relative 1e-12 | pass |
+| rarefied plot 3 | R | 15.3012286569057 | 15.3012286569057 | relative 1e-12 | pass |
+
+Note: vegan's rarefy help example: 16.361, 15.670 and 15.301 for the first three plots.
+
+### `table.add_diversity_columns show="chao1"`
+
+**show="chao1": BCI, the bias-corrected Chao1 of the first three plots** (real data; data: BCI (vegan))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| Chao1 plot 1 | R | 117.473684210526 | 117.473684210526 | relative 1e-12 | pass |
+| Chao1 plot 2 | R | 117.214285714286 | 117.214285714286 | relative 1e-12 | pass |
+| Chao1 plot 3 | R | 141.230769230769 | 141.230769230769 | relative 1e-12 | pass |
+| Chao1 SE plot 1 | R | 11.5837848486587 | 11.5837848486587 | relative 1e-12 | pass |
+| Chao1 SE plot 2 | R | 15.91895263909 | 15.91895263909 | relative 1e-12 | pass |
+| Chao1 SE plot 3 | R | 23.0014048932778 | 23.0014048932778 | relative 1e-12 | pass |
+
+### `table.add_diversity_columns show="hill numbers"`
+
+**show="hill numbers": BCI, Hill numbers of order 1 and 2** (real data; data: BCI (vegan))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| q1 plot 1 | R | 55.612703881371 | 55.612703881371 | relative 1e-12 | pass |
+| q1 plot 2 | R | 46.9212736331505 | 46.9212736331505 | relative 1e-12 | pass |
+| q1 plot 3 | R | 45.3340998301171 | 45.3340998301171 | relative 1e-12 | pass |
+| q2 plot 1 | R | 39.4155538098979 | 39.4155538098979 | relative 1e-12 | pass |
+| q2 plot 2 | R | 31.584877315974 | 31.584877315974 | relative 1e-12 | pass |
+| q2 plot 3 | R | 28.2547779095822 | 28.2547779095822 | relative 1e-12 | pass |
+
+Note: Hill number 1 is exp(Shannon) and 2 the inverse Simpson index (Jost 2006).
+
+### `draw_richness_curves`
+
+**BCI: the first plot's curve** (real data; data: BCI (vegan))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| second point | R | 7 | 7 | relative 1e-09 | pass |
+| richness there | R | 6.53946132072767 | 6.53946132072767 | relative 1e-09 | pass |
+| richness at the end | R | 93 | 93 | relative 1e-09 | pass |
+
+### `table.add_log_ratio_columns`
+
+**mite: clr of 35 mite species, zeros replaced by estimated small values** (real data; data: mite (vegan))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| clr row 1 first | R | 2.65706131913279 | 2.65706131913279 | relative 1e-09 | pass |
+| clr row 2 last | R | -0.55753809836574 | -0.55753809836574 | relative 1e-09 | pass |
+| clr row 70 first | R | 1.74464633225449 | 1.74464633225449 | relative 1e-09 | pass |
+
+### `table.add_log_ratio_columns method="alr"`
+
+**method="alr": mite, every species over the first one** (real data; data: mite (vegan))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| alr row 1 second | R | -1.22377543162212 | -1.22377543162212 | relative 1e-09 | pass |
+| alr row 5 last | R | -1.58699631979019 | -1.58699631979019 | relative 1e-09 | pass |
+
+### `table.add_log_ratio_columns method="ilr"`
+
+**method="ilr": mite, isometric log ratios** (real data; data: mite (vegan))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| ilr1 row 1 | R | -0.865339906349492 | -0.865339906349492 | relative 1e-09 | pass |
+| ilr34 row 3 | R | -0.207481584794687 | -0.207481584794687 | relative 1e-09 | pass |
+
+### `table.add_log_ratio_columns zeros_replaced_by="adding 1"`
+
+**zeros_replaced_by="adding 1": mite, clr after adding 1** (real data; data: mite (vegan))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| clr row 1 first | R | 1.97156110116333 | 1.97156110116333 | relative 1e-09 | pass |
+| clr row 9 fifth | R | -0.111212933047999 | -0.111212933047999 | relative 1e-09 | pass |
+
+### `table.add_principal_coordinates`
+
+**dune: PCoA of the Bray-Curtis distances** (real data; data: dune (vegan))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| PCo1 row 1 | R | -0.354731824459132 | -0.354731824459132 | relative 1e-09 | pass |
+| PCo2 row 20 | R | 0.157530053284472 | 0.157530053284472 | relative 1e-09 | pass |
+| PCo1 % of positive | R | 37.4 | 37.4 | relative 1e-09 | pass |
+| PCo1 % (vegan, ape) | R | 39.9 | 39.9 | relative 1e-09 | pass |
+| negative eigenvalues | R | 5 | 5 | relative 1e-09 | pass |
+
+Note: The shares are read from the printout (one decimal) and compared with R rounded the same way; the design check found 37.4 % of the positive eigenvalues, 39.9 % in vegan and ape, and 5 negative eigenvalues.
+
+### `table.add_principal_coordinates measure="aitchison"`
+
+**measure="aitchison": mite, PCoA of the Aitchison distances** (real data; data: mite (vegan))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| PCo1 row 1 | R | 2.69778157533697 | 2.69778157533697 | relative 1e-08 | pass |
+| PCo2 row 70 | R | 0.017998420475276 | 0.017998420475276 | relative 1e-08 | pass |
+
+### `table.explain_profiles_of`
+
+**varespec and varechem: db-RDA on Bray-Curtis with N, P and K** (real data; data: varespec and varechem (vegan))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| adjusted R squared | R | 0.0753000177198457 | 0.0753000177198457 | relative 1e-09 | pass |
+| R squared | R | 0.195913058886822 | 0.195913058886822 | relative 1e-09 | pass |
+| p N | R | 0.171 | 0.171 | relative 1e-09 | pass |
+| p P | R | 0.265 | 0.265 | relative 1e-09 | pass |
+| p K | R | 0.496 | 0.496 | relative 1e-09 | pass |
+| F N | R | 1.53157846888647 | 1.53157846888647 | relative 1e-09 | pass |
+
+Note: The design check found adjusted R squared 0.0753 and marginal p-values 0.171, 0.265 and 0.496.
+
+### `table.explain_profiles_of measure="hellinger"`
+
+**measure="hellinger": varespec and varechem, RDA with N, P and K** (real data; data: varespec and varechem (vegan))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| adjusted R squared | R | 0.0824713297170607 | 0.0824713297170607 | relative 1e-09 | pass |
+| F all | R | 1.68911219341243 | 1.68911219341243 | relative 1e-09 | pass |
+| p all | R | 0.048 | 0.048 | relative 1e-09 | pass |
+
+Note: The design check found adjusted R squared 0.0825.
+
+### `table.explain_profiles_of method="canonical correspondence"`
+
+**method="canonical correspondence": varespec, CCA with Al, P and K** (real data; data: varespec and varechem (vegan))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| R squared | R | 0.309204040714597 | 0.309204040714597 | relative 1e-09 | pass |
+| F all | R | 2.98403637676605 | 2.98403637676605 | relative 1e-09 | pass |
+| p Al | R | 0.001 | 0.001 | relative 1e-09 | pass |
+
+Note: The model of Oksanen's vegan tutorial (cca(varespec ~ Al + P + K, varechem)).
+
+### `table.explain_profiles_of allowing_for=`
+
+**allowing_for=: dune, management after allowing for the A1 horizon** (real data; data: dune (vegan))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| adjusted R squared | R | 0.173990481006338 | 0.173990481006338 | relative 1e-09 | pass |
+| F | R | 2.48275565065661 | 2.48275565065661 | relative 1e-09 | pass |
+| p | R | 0.004 | 0.004 | relative 1e-09 | pass |
+
+### `table.find_correlation_between_profiles`
+
+**varespec and varechem: Mantel test** (real data; data: varespec and varechem (vegan))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| Mantel r | R | 0.304745412697958 | 0.304745412697958 | relative 1e-09 | pass |
+| p | R | 0.001 | 0.001 | relative 1e-09 | pass |
+
+Note: The design check found r 0.305 (p 0.001).
+
+### `table.find_correlation_between_profiles method="procrustes"`
+
+**method="procrustes": varespec and varechem** (real data; data: varespec and varechem (vegan))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| Procrustes correlation | R | 0.616575031599296 | 0.616575031599296 | relative 1e-09 | pass |
+| p | R | 0.001 | 0.001 | relative 1e-09 | pass |
+
+### `table.compare_profiles_of method="anosim"`
+
+**method="anosim": dune by management** (real data; data: dune (vegan))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| ANOSIM R | R | 0.257870590096504 | 0.257870590096504 | relative 1e-09 | pass |
+| p | R | 0.011 | 0.011 | relative 1e-09 | pass |
+
+Note: The example of vegan's anosim help; the design check found R 0.258.
+
+### `table.compare_profiles_of show="contributions"`
+
+**show="contributions": dune by management (SIMPER)** (real data; data: dune (vegan))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| first average contribution | R | 0.0613738749701877 | 0.0613738749701877 | relative 1e-09 | pass |
+| first ratio | R | 1.79491078781329 | 1.79491078781329 | relative 1e-09 | pass |
+| first cumulative share | R | 0.0982427057995617 | 0.0982427057995617 | relative 1e-09 | pass |
+
+### `table.compare_profiles_of measure="aitchison"`
+
+**measure="aitchison": mite by microtopography (PERMANOVA)** (real data; data: mite (vegan))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| pseudo-F | R | 9.84780309008329 | 9.84780309008329 | relative 1e-09 | pass |
+| R squared | R | 0.126500719341915 | 0.126500719341915 | relative 1e-09 | pass |
+| p | R | 0.001 | 0.001 | relative 1e-09 | pass |
+
+### `table.find_distances_between_rows measure="aitchison"`
+
+**measure="aitchison": mite, cores 1, 2 and 70** (real data; data: mite (vegan))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| 1 to 2 | R | 7.52901680609539 | 7.52901680609539 | relative 1e-09 | pass |
+| 1 to 70 | R | 10.6620447965476 | 10.6620447965476 | relative 1e-09 | pass |
+
+### `table.add_clusters how_many="automatic"`
+
+**how_many="automatic": dune, Bray-Curtis, average linkage** (real data; data: dune (vegan))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| clusters | R | 2 | 2 | exact | pass |
+| size of cluster 1 | R | 16 | 16 | exact | pass |
+
+### `table.add_clusters measure=`
+
+**measure=: dune, Bray-Curtis, average linkage, 3 clusters** (real data; data: dune (vegan))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| average silhouette width | R | 0.285531716383304 | 0.285531716383304 | relative 1e-09 | pass |
+| width of row 1 | R | 0.328489278246084 | 0.328489278246084 | relative 1e-09 | pass |
+
+Note: The design check found an average width of 0.286.
+
+### `draw_cluster_tree`
+
+**dune: Bray-Curtis, average linkage** (real data; data: dune (vegan))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| top join | R | 0.786468856919626 | 0.786468856919626 | relative 1e-09 | pass |
+| lowest join | R | 0.227272727272727 | 0.227272727272727 | relative 1e-09 | pass |
+
+### `table.add_axes_that_separate_groups`
+
+**crabs: four groups (colour form and sex) from five measurements** (real data; data: crabs (MASS))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| LD1 % of trace | R | 68.6 | 68.6 | relative 0.004 | pass |
+| LD2 % of trace | R | 29.9 | 30 | relative 0.004 | pass |
+| leave-one-out % correct | R | 95 | 95 | relative 0.004 | pass |
+| LD1 row 1 size | R | 1.53886934430206 | 1.53886934430206 | relative 0.004 | pass |
+
+Note: The shares are read from the printout (one decimal; within one unit of the last printed digit, as simplydata reads MASS's own four-decimal print); R's side computes MASS's proportion of trace (svd squared over their sum, as print.lda does) rounded the same way. The design check found 0.686, 0.300 and 0.014, and 95 % correct.
+
+### `table.add_correspondence_axes`
+
+**varespec: correspondence analysis (CA)** (published; data: varespec and varechem (vegan))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| CA1 % | Oksanen (2015), vegan tutorial: CA eigenvalues 0.5249 and 0.3568 of total inertia 2.083 | 25.2 | 25.2 | within 0.05 (printed rounding) | pass |
+| CA2 % | Oksanen (2015), vegan tutorial: CA eigenvalues 0.5249 and 0.3568 of total inertia 2.083 | 17.1 | 17.1 | within 0.05 (printed rounding) | pass |
+| CA1 % | R | 25.2 | 25.2 | relative 1e-09 | pass |
+| CA2 % | R | 17.1 | 17.1 | relative 1e-09 | pass |
+| CA1 row 1 size | R | 0.108121658834308 | 0.108121658834308 | relative 1e-09 | pass |
+
+Note: The tutorial gives the eigenvalues (0.5249 and 0.3568 of 2.083); the printout gives their shares.
+
+**wg93: multiple correspondence analysis (MCA) of questions A to D** (published; data: wg93 (ca))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| axis 1 % | Nenadić & Greenacre (2007), JSS 20(3), and Greenacre (2007): adjusted inertia of wg93 A to D | 44.9 | 44.9 | within 0.05 (printed rounding) | pass |
+| axis 2 % | Nenadić & Greenacre (2007), JSS 20(3), and Greenacre (2007): adjusted inertia of wg93 A to D | 34.2 | 34.2 | within 0.05 (printed rounding) | pass |
+| axis 1 % | R | 44.9 | 44.9 | relative 1e-09 | pass |
+| axis 2 % | R | 34.2 | 34.2 | relative 1e-09 | pass |
+
 ## 2. The same underneath (the manual's boxes)
 
 Each box's library code is run next to the simplydata word and compared. Table words run on a pandas and on a Polars table.
@@ -1516,6 +1818,56 @@ Each box's library code is run next to the simplydata word and compared. Table w
 | `table.combine_studies for_each_group_in=` | R + Python | polars | result | relative 1e-09 | pass |
 | `table.combine_studies using=` | R + Python | pandas | result | relative 1e-09 | pass |
 | `table.combine_studies using=` | R + Python | polars | result | relative 1e-09 | pass |
+| `table.add_diversity_columns` | R + Python | pandas | table | relative 1e-09 | pass |
+| `table.add_diversity_columns` | R + Python | polars | table | relative 1e-09 | pass |
+| `table.add_diversity_columns at_total_count=` | R + Python | pandas | table | relative 1e-09 | pass |
+| `table.add_diversity_columns at_total_count=` | R + Python | polars | table | relative 1e-09 | pass |
+| `table.add_diversity_columns show="chao1"` | R + Python | pandas | table | relative 1e-09 | pass |
+| `table.add_diversity_columns show="chao1"` | R + Python | polars | table | relative 1e-09 | pass |
+| `table.add_diversity_columns show="hill numbers"` | R + Python | pandas | table | relative 1e-09 | pass |
+| `table.add_diversity_columns show="hill numbers"` | R + Python | polars | table | relative 1e-09 | pass |
+| `draw_richness_curves` | R + matplotlib | pandas | chart | relative 1e-09 | pass |
+| `table.add_log_ratio_columns` | R + Python | pandas | table | relative 1e-09 | pass |
+| `table.add_log_ratio_columns` | R + Python | polars | table | relative 1e-09 | pass |
+| `table.add_log_ratio_columns method="alr"` | R + Python | pandas | table | relative 1e-09 | pass |
+| `table.add_log_ratio_columns method="alr"` | R + Python | polars | table | relative 1e-09 | pass |
+| `table.add_log_ratio_columns method="ilr"` | R + Python | pandas | table | relative 1e-09 | pass |
+| `table.add_log_ratio_columns method="ilr"` | R + Python | polars | table | relative 1e-09 | pass |
+| `table.add_log_ratio_columns zeros_replaced_by="adding 1"` | R + Python | pandas | table | relative 1e-09 | pass |
+| `table.add_log_ratio_columns zeros_replaced_by="adding 1"` | R + Python | polars | table | relative 1e-09 | pass |
+| `table.add_principal_coordinates` | R + Python | pandas | table | relative 1e-09 | pass |
+| `table.add_principal_coordinates` | R + Python | polars | table | relative 1e-09 | pass |
+| `table.add_principal_coordinates measure="aitchison"` | R + Python | pandas | table | relative 1e-09 | pass |
+| `table.add_principal_coordinates measure="aitchison"` | R + Python | polars | table | relative 1e-09 | pass |
+| `table.explain_profiles_of` | R + Python | pandas | result | relative 1e-09 | pass |
+| `table.explain_profiles_of` | R + Python | polars | result | relative 1e-09 | pass |
+| `table.explain_profiles_of measure="hellinger"` | R + Python | pandas | result | relative 1e-09 | pass |
+| `table.explain_profiles_of measure="hellinger"` | R + Python | polars | result | relative 1e-09 | pass |
+| `table.explain_profiles_of method="canonical correspondence"` | R + Python | pandas | result | relative 1e-09 | pass |
+| `table.explain_profiles_of method="canonical correspondence"` | R + Python | polars | result | relative 1e-09 | pass |
+| `table.explain_profiles_of allowing_for=` | R + Python | pandas | result | relative 1e-09 | pass |
+| `table.explain_profiles_of allowing_for=` | R + Python | polars | result | relative 1e-09 | pass |
+| `table.find_correlation_between_profiles` | R + Python | pandas | result | relative 1e-09 | pass |
+| `table.find_correlation_between_profiles` | R + Python | polars | result | relative 1e-09 | pass |
+| `table.find_correlation_between_profiles method="procrustes"` | R + Python | pandas | result | relative 1e-09 | pass |
+| `table.find_correlation_between_profiles method="procrustes"` | R + Python | polars | result | relative 1e-09 | pass |
+| `table.compare_profiles_of method="anosim"` | R + Python | pandas | result | relative 1e-09 | pass |
+| `table.compare_profiles_of method="anosim"` | R + Python | polars | result | relative 1e-09 | pass |
+| `table.compare_profiles_of show="contributions"` | R + Python | pandas | result | relative 1e-09 | pass |
+| `table.compare_profiles_of show="contributions"` | R + Python | polars | result | relative 1e-09 | pass |
+| `table.compare_profiles_of measure="aitchison"` | R + Python | pandas | result | relative 1e-09 | pass |
+| `table.compare_profiles_of measure="aitchison"` | R + Python | polars | result | relative 1e-09 | pass |
+| `table.find_distances_between_rows measure="aitchison"` | R + Python | pandas | table | relative 1e-09 | pass |
+| `table.find_distances_between_rows measure="aitchison"` | R + Python | polars | table | relative 1e-09 | pass |
+| `table.add_clusters how_many="automatic"` | R + Python | pandas | table | relative 1e-09 | pass |
+| `table.add_clusters how_many="automatic"` | R + Python | polars | table | relative 1e-09 | pass |
+| `table.add_clusters measure=` | R + Python | pandas | table | relative 1e-09 | pass |
+| `table.add_clusters measure=` | R + Python | polars | table | relative 1e-09 | pass |
+| `draw_cluster_tree` | SciPy | pandas | chart | relative 1e-09 | pass |
+| `table.add_axes_that_separate_groups` | R + Python | pandas | table | relative 1e-09 | pass |
+| `table.add_axes_that_separate_groups` | R + Python | polars | table | relative 1e-09 | pass |
+| `table.add_correspondence_axes` | R + Python | pandas | table | relative 1e-09 | pass |
+| `table.add_correspondence_axes` | R + Python | polars | table | relative 1e-09 | pass |
 
 How each kind is compared:
 
@@ -1642,6 +1994,54 @@ Where simplydata's default differs from the package underneath, it is listed her
 - `table.combine_studies for_each_group_in=` (1): each subgroup its own random-effects model, with its own between-study spread; for this test each subgroup's estimate with its normal (z) standard error, as RevMan and R meta do (the subgroups' own intervals stay Hartung-Knapp).
 - `table.combine_studies for_each_group_in=` (2): the test of the difference between the subgroup estimates (a common-effect meta-regression on the subgroup), not metafor's rma(mods = ~ group), which assumes one spread for all.
 - `table.combine_studies using=` (1): a meta-regression: the slope of the log risk ratio per unit of each column, with Hartung-Knapp intervals; R-squared says how much of the between-study spread the columns account for.
+- `table.add_diversity_columns` (1): Shannon with the natural log (vegan's base = exp(1)); scikit-bio changed its default base from 2 to e in 0.6.1, so older numbers may be in bits.
+- `table.add_diversity_columns` (2): Simpson as 1 - the sum of squared shares (the Gini-Simpson index): the chance that two counts drawn at random are of different kinds.
+- `table.add_diversity_columns at_total_count=` (1): rarefaction as the expected richness in a sample of that many counts (Hurlbert 1971), not a random subsample, so the answer is the same every time.
+- `table.add_diversity_columns at_total_count=` (2): a row with fewer counts than that in all gets an empty cell (vegan gives its observed richness), and the printout names it.
+- `table.add_diversity_columns show="chao1"` (1): the bias-corrected Chao1 (Chao 1987) with its standard error, as vegan::estimateR gives it; it needs raw counts, because it leans on the kinds seen once or twice.
+- `table.add_diversity_columns show="hill numbers"` (1): Hill numbers of order 0, 1 and 2 (richness, exp(Shannon), inverse Simpson): each is a number of equally common kinds, so they can be compared directly (Jost 2006).
+- `draw_richness_curves` (1): about 50 points on the shortest curve: the step is a 50th of the smallest row total.
+- `draw_richness_curves` (2): the curves are vegan's own (rarecurve with tidy = TRUE): the expected richness of vegan::rarefy at each step, up to each row's total.
+- `draw_richness_curves` (3): a dotted line at the smallest row total: richness can be compared at or below it.
+- `table.add_log_ratio_columns` (1): zeros replaced by estimated small values: zCompositions' Bayesian-multiplicative replacement (GBM), which estimates each from the data and keeps the ratios of the other parts; only when there are zeros.
+- `table.add_log_ratio_columns` (2): z.delete = FALSE: no column is deleted (cmultRepl's default deletes columns that are more than 80 % zeros, with only a message); simplydata refuses columns with fewer than 2 values above 0 instead, with the line that merges them.
+- `table.add_log_ratio_columns` (3): clr: the log of each value over the row's geometric mean, R compositions::clr.
+- `table.add_log_ratio_columns method="alr"` (1): the reference is the column named in against= ("sul1", the 5th), R compositions::alr(ivar =).
+- `table.add_log_ratio_columns method="ilr"` (1): the default basis of R compositions::ilr(); another basis (scikit-bio's) gives other numbers but the same distances between rows, and the printout says so.
+- `table.add_log_ratio_columns zeros_replaced_by="adding 1"` (1): 1 added to every count before the logs (vegan's pseudocount), only when there are zeros; the printout says the answer depends on the 1 you added.
+- `table.add_principal_coordinates` (1): classical scaling of the Bray-Curtis distances, R stats::cmdscale with the eigenvalues, so the printout can say how many are negative.
+- `table.add_principal_coordinates` (2): each axis turned so its biggest value is positive: the sign of an axis is arbitrary, and this gives the same answer on every computer.
+- `table.add_principal_coordinates measure="aitchison"` (1): zeros replaced by estimated small values first (GBM, no column deleted), as vegdist refuses zeros for the Aitchison distance.
+- `table.add_principal_coordinates measure="aitchison"` (2): the Aitchison distance: the straight-line distance between the rows' clr log ratios.
+- `table.add_principal_coordinates measure="aitchison"` (3): each axis turned so its biggest value is positive.
+- `table.explain_profiles_of` (1): distance-based RDA on Bray-Curtis distances, the same distance as compare_profiles_of.
+- `table.explain_profiles_of` (2): the adjusted R squared first (Peres-Neto et al. 2006): the unadjusted one grows with every column.
+- `table.explain_profiles_of` (3): 999 permutations after set.seed(1).
+- `table.explain_profiles_of measure="hellinger"` (1): RDA on the Hellinger-transformed counts (square roots of the shares; Legendre & Gallagher 2001), never on raw counts.
+- `table.explain_profiles_of measure="hellinger"` (2): each column tested after all the others (by = "margin"), so the order of using= does not matter; anova's own default tests in sequence.
+- `table.explain_profiles_of method="canonical correspondence"` (1): CCA on the counts themselves (chi-square distances), so no measure=.
+- `table.explain_profiles_of method="canonical correspondence"` (2): CCA's adjusted R squared comes from permutations (vegan), after set.seed.
+- `table.explain_profiles_of allowing_for=` (1): a partial analysis: site is taken into account first (vegan Condition()) and not tested, the same meaning allowing_for= has on the other words.
+- `table.find_correlation_between_profiles` (1): measurements (not counts) in second= get straight-line distances after each column is put on the same scale; counts would get measure=.
+- `table.find_correlation_between_profiles` (2): the Pearson Mantel correlation with 999 permutations after set.seed(1).
+- `table.find_correlation_between_profiles method="procrustes"` (1): PROTEST on the first two principal coordinates of each set: the Procrustes correlation and its permutation p-value.
+- `table.compare_profiles_of method="anosim"` (1): Clarke's ANOSIM R from ranked distances, 999 permutations after set.seed(1).
+- `table.compare_profiles_of show="contributions"` (1): SIMPER without permutation p-values (permutations = 0): Warton et al. 2012 show they mislead; the table is a description, not a test.
+- `table.compare_profiles_of measure="aitchison"` (1): zeros replaced by estimated small values (GBM, no column deleted), then the Aitchison distance.
+- `table.find_distances_between_rows measure="aitchison"` (1): zeros replaced by estimated small values first (GBM, no column deleted); vegdist refuses zeros for this distance.
+- `table.find_distances_between_rows measure="aitchison"` (2): the Aitchison distance: the straight-line distance between the rows' clr log ratios.
+- `table.add_clusters how_many="automatic"` (1): average linkage, simplydata's choice for Bray-Curtis distances (Ward assumes straight lines).
+- `table.add_clusters how_many="automatic"` (2): the average silhouette width (R cluster::silhouette) for 2 to 10 clusters.
+- `table.add_clusters how_many="automatic"` (3): the number with the largest width; on a tie, the fewer clusters.
+- `table.add_clusters how_many="automatic"` (4): the clusters numbered 1, 2, 3 in the order they first appear in the table.
+- `table.add_clusters measure=` (1): the counts as they are (no rescaling) for Bray-Curtis distances.
+- `table.add_clusters measure=` (2): average linkage, chosen for Bray-Curtis (Ward is refused with it), the same as draw_cluster_tree.
+- `draw_cluster_tree` (1): average linkage for Bray-Curtis distances, the same choice as table.add_clusters, so the tree matches the clusters.
+- `table.add_axes_that_separate_groups` (1): MASS's default prior chances: the group shares in the data.
+- `table.add_axes_that_separate_groups` (2): each axis turned so its biggest value is positive.
+- `table.add_correspondence_axes` (1): correspondence analysis as ter Braak's CA in vegan (cca with no explaining columns).
+- `table.add_correspondence_axes` (2): row scores with scaling = "sites" (vegan's default is "species").
+- `table.add_correspondence_axes` (3): each axis turned so its biggest value is positive.
 
 ## Datasets
 
@@ -1698,3 +2098,9 @@ Where simplydata's default differs from the package underneath, it is listed her
 | [Curtis 1998 (metadat)](https://cran.r-project.org/package=metadat) | 102 experiments on the growth of woody plants under raised and ambient CO2: average biomass, its standard deviation and the plants in each group | Curtis, P. S. & Wang, X. (1998). A meta-analysis of elevated CO2 effects on woody plant mass, form, and physiology. Oecologia 113, 299-313; the log response ratio of Hedges, L. V., Gurevitch, J. & Curtis, P. S. (1999). Ecology 80, 1150-1156. Shipped with the R package metadat (dat.curtis1998). | The numbers are facts published in the paper; the metadat copy is GPL (>= 2). Read here from metadat (installed with metafor), so it needs R; the practice tables bcg and passive_smoking hold the same published numbers. |
 | [Hart 1999 (metadat)](https://cran.r-project.org/package=metadat) | 6 trials of warfarin against placebo in atrial fibrillation: strokes and patient-years in each group | Hart, R. G., Benavente, O., McBride, R. & Pearce, L. A. (1999). Antithrombotic therapy to prevent stroke in patients with atrial fibrillation: a meta-analysis. Annals of Internal Medicine 131, 492-501. Shipped with the R package metadat (dat.hart1999). | The numbers are facts published in the paper; the metadat copy is GPL (>= 2). Read here from metadat (installed with metafor), so it needs R; the practice tables bcg and passive_smoking hold the same published numbers. |
 | [McDaniel 1994 (metadat)](https://cran.r-project.org/package=metadat) | 160 studies of the correlation between employment interview ratings and job performance, with the number of people in each | McDaniel, M. A., Whetzel, D. L., Schmidt, F. L. & Maurer, S. D. (1994). The validity of employment interviews: a comprehensive review and meta-analysis. Journal of Applied Psychology 79, 599-616. Shipped with the R package metadat (dat.mcdaniel1994). | The numbers are facts published in the paper; the metadat copy is GPL (>= 2). Read here from metadat (installed with metafor), so it needs R; the practice tables bcg and passive_smoking hold the same published numbers. |
+| [BCI (vegan)](https://doi.org/10.1126/science.1066854) | Trees counted in 50 one-hectare plots of the Barro Colorado Island forest plot, Panama: 225 species | Condit, R. et al. (2002). Beta-diversity in tropical forest trees. Science 295, 666-669. Shipped with the R package vegan (BCI). | Shipped with the R package vegan (GPL-2); read from the installed package, so it needs R. |
+| [mite (vegan)](https://doi.org/10.1007/BF00714196) | Oribatid mites counted in 70 soil cores of a peat bog: 35 species (whole counts with many zeros), and the microtopography of each core (Topo: blanket or hummock) | Borcard, D. & Legendre, P. (1994). Environmental control and spatial structure in ecological communities: an example using oribatid mites (Acari, Oribatei). Environmental and Ecological Statistics 1, 37-61. Shipped with the R package vegan (mite, mite.env). | Shipped with the R package vegan (GPL-2); read from the installed package, so it needs R. |
+| [dune (vegan)](https://cran.r-project.org/package=vegan) | 20 meadow plots in the Netherlands: the cover of 30 plant species, and how each meadow was managed (Management) and the thickness of the soil's A1 horizon | Jongman, R. H., ter Braak, C. J. F. & van Tongeren, O. F. R. (1987, 1995). Data Analysis in Community and Landscape Ecology. Pudoc / Cambridge University Press. Shipped with the R package vegan (dune, dune.env). | Shipped with the R package vegan (GPL-2); read from the installed package, so it needs R. |
+| [varespec and varechem (vegan)](https://doi.org/10.2307/3236351) | 24 lichen pastures in Finnish Lapland: the cover of 44 plant and lichen species and 14 soil measurements (N, P, K ...) | Väre, H., Ohtonen, R. & Oksanen, J. (1995). Effects of reindeer grazing on understorey vegetation in dry Pinus sylvestris forests. Journal of Vegetation Science 6, 523-530. Shipped with the R package vegan (varespec, varechem); analysed in Oksanen, J. (2015). Multivariate analysis of ecological communities in R: vegan tutorial. | Shipped with the R package vegan (GPL-2); read from the installed package, so it needs R. |
+| [crabs (MASS)](https://doi.org/10.1071/ZO9740417) | 200 Leptograpsus crabs from Western Australia: five shell measurements, two colour forms and both sexes (four groups of 50) | Campbell, N. A. & Mahon, R. J. (1974). A multivariate study of variation in two species of rock crab of genus Leptograpsus. Australian Journal of Zoology 22, 417-425; Venables, W. N. & Ripley, B. D. (2002). Modern Applied Statistics with S, 4th ed., section 12.1. Shipped with the R package MASS. | GPL-2 \| GPL-3 (MASS, which comes with R); read from the installed package, so it needs R. |
+| [wg93 (ca)](https://doi.org/10.18637/jss.v020.i03) | 871 answers of the 1993 International Social Survey Programme (West Germany) to four questions on science and the environment (A to D, answers 1 to 5) | Greenacre, M. (2007). Correspondence Analysis in Practice, 2nd ed. Chapman & Hall/CRC; Nenadić, O. & Greenacre, M. (2007). Correspondence analysis in R, with two- and three-dimensional graphics: the ca package. Journal of Statistical Software 20(3) (CC BY). Shipped with the R package ca (wg93). | GPL (>= 2) (ca); read from the installed package, so it needs R. |

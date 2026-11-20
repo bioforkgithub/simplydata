@@ -291,3 +291,39 @@ def test_richness_curves_draw_one_line_per_row(needs_r, capsys):
     lines = fig.axes[0].get_lines()
     assert len(lines) == 24 + 1  # one curve per sample and the dotted line at the smallest total
     assert fig.axes[0].get_xlabel() == "Total count (reads, individuals)"
+
+
+# ---------------------------------------------------------------- review fixes
+def test_adding_one_is_refused_on_normalised_values():
+    frame = sdata.get_example("resistome")
+    frame[GENES] = frame[GENES].div(frame[GENES].sum(axis=1), axis=0)
+    with pytest.raises(SimplydataError, match="a 1 swamps the values"):
+        sdata.table(frame).add_log_ratio_columns(columns=GENES, zeros_replaced_by="adding 1")
+
+
+def test_a_total_count_above_every_row_is_refused():
+    with pytest.raises(SimplydataError, match="above every row's total"):
+        _table().add_diversity_columns(columns=GENES, at_total_count=10 ** 7)
+
+
+def test_pcoa_and_correspondence_axes_need_columns():
+    with pytest.raises(SimplydataError, match="needs columns="):
+        _table().add_principal_coordinates()
+    with pytest.raises(SimplydataError, match="needs columns="):
+        _table().add_correspondence_axes()
+
+
+def test_two_measurement_columns_are_never_read_as_counts(needs_r, capsys):
+    frame = sdata.get_example("resistome")
+    frame["depth"] = np.arange(len(frame)) % 7 + 1
+    frame["year"] = 2020 + np.arange(len(frame)) % 3
+    sdata.table(frame).find_correlation_between_profiles(first=GENES, second=["depth", "year"])
+    assert "read as measurements" in capsys.readouterr().out
+
+
+def test_two_groups_give_one_discriminant_axis(needs_r, capsys):
+    frame = sdata.get_example("resistome")
+    frame = frame[frame["site"].isin(["harbour", "fjord sediment"])]
+    sdata.table(frame).add_axes_that_separate_groups(columns=["temperature", "salinity"],
+                                                     for_each_group_in="site", how_many=1)
+    assert "LD1 is the only axis" in capsys.readouterr().out

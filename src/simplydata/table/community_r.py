@@ -150,9 +150,9 @@ def model_call(kind, measure, using, allowing_for):
     return f"vegan::dbrda(d ~ {rhs}, data = env)"
 
 
-def constrained(x, kind, measure, using, allowing_for, env, permutations, seed, axes):
-    """vegan rda / dbrda / cca with RsquareAdj, the overall test and each column tested after the others
-    (anova(by = "margin")), vif.cca and the site scores (scaling = "sites")."""
+def constrained(x, kind, measure, using, allowing_for, env, permutations, seed):
+    """vegan rda / dbrda / cca with RsquareAdj, the overall test, each column tested after the others
+    (anova(by = "margin")) and vif.cca."""
     names = [*using, *allowing_for]
     values = {f"v{i}": v for i, v in enumerate(env, 1)}
     if kind == "rda" and measure == "hellinger":
@@ -171,19 +171,14 @@ def constrained(x, kind, measure, using, allowing_for, env, permutations, seed, 
             f"set.seed({int(seed)}); all <- anova(m, permutations = {int(permutations)}); "
             f"set.seed({int(seed)}); each <- anova(m, by = \"margin\", permutations = {int(permutations)}); "
             "v <- tryCatch(vegan::vif.cca(m), error = function(e) NULL); "
-            f"s <- vegan::scores(m, display = \"sites\", scaling = \"sites\", choices = seq_len({int(axes)})); "
             "list(r2 = r2$r.squared, adj = r2$adj.r.squared, all_f = all$F[1], all_p = all[[\"Pr(>F)\"]][1], "
             "all_df = all$Df[1], resid_df = all$Df[2], "
             "terms = rownames(each)[seq_len(nrow(each) - 1)], f = each$F[seq_len(nrow(each) - 1)], "
             "p = each[[\"Pr(>F)\"]][seq_len(nrow(each) - 1)], df = each$Df[seq_len(nrow(each) - 1)], "
-            "vif = if (is.null(v)) NULL else v, vif_names = if (is.null(v)) NULL else names(v), "
-            "scores = unname(as.matrix(s)))")
+            "vif = if (is.null(v)) NULL else v, vif_names = if (is.null(v)) NULL else names(v))")
     packages = ("vegan", "zCompositions", "compositions") if measure == "aitchison" else ("vegan",)
     found = _call(code, "Constrained ordination (R vegan)", packages, source="vegan", x=x,
                   simplydata_env_names=np.array(names, dtype=object), **values)
-    scores = np.asarray(found["scores"], dtype=float)
-    if scores.ndim == 1:
-        scores = scores.reshape(len(x), -1, order="F")
     return {"r2": float(np.asarray(found["r2"]).reshape(-1)[0]),
             "adj": float(np.asarray(found["adj"], dtype=float).reshape(-1)[0]),
             "all_f": float(found["all_f"][0]), "all_p": float(found["all_p"][0]),
@@ -193,8 +188,7 @@ def constrained(x, kind, measure, using, allowing_for, env, permutations, seed, 
             "p": np.atleast_1d(np.asarray(found["p"], dtype=float)),
             "df": np.atleast_1d(np.asarray(found["df"], dtype=float)),
             "vif": None if found.get("vif") is None else np.atleast_1d(np.asarray(found["vif"], dtype=float)),
-            "vif_names": None if found.get("vif_names") is None else [str(n) for n in np.atleast_1d(found["vif_names"])],
-            "scores": scores}
+            "vif_names": None if found.get("vif_names") is None else [str(n) for n in np.atleast_1d(found["vif_names"])]}
 
 
 # ---------------------------------------------------------------- ANOSIM and SIMPER

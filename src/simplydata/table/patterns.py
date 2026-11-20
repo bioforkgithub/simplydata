@@ -81,7 +81,7 @@ KMEANS_STARTS = 25
 R_SEED_MAX = 2 ** 31 - 1  # the largest seed R set.seed() takes
 NMDS_TRIES_UP_TO = 100  # metaMDS trymax: more starts, until the best map repeats
 # columns these words add; columns=None leaves them out
-MADE_HERE = re.compile(r"^((PC|NMDS|PCo|CA|LD|RDA|CCA|ilr)\d+|(clr|alr)_.+)$")
+MADE_HERE = re.compile(r"^((PC|NMDS|PCo|CA|LD|ilr)\d+|(clr|alr)_.+)$")
 
 
 # ---------------------------------------------------------------------------- small helpers
@@ -507,6 +507,7 @@ class PatternWords:
             z = self._scaled(x, columns, same_scale)
         else:
             self._check_measure(measure, x, columns, step)
+            _depth_note(measure, x)
             z = x
         if method == "k-means":
             self._check_whole(step, "with_seed=", with_seed, 0, R_SEED_MAX, example)
@@ -774,6 +775,7 @@ class PatternWords:
             raise SimplydataError(f"{step}() needs more rows than groups.")
         labels = np.array(group_names, dtype=object)[codes]
         if show == "contributions":
+            _depth_note(measure, x)
             return self._simper(x, columns, labels, group_names, for_each_group_in)
         groups_text = ", ".join(group_names)
         what = (f'the make-up of {len(columns)} columns ({", ".join(map(str, columns))}) in each "{for_each_group_in}" '
@@ -783,13 +785,12 @@ class PatternWords:
 
             result = anosim(x, measure, labels, permutations, with_seed)
             r, p = result["r"], result["p"]
-            print(f'ANOSIM R = {_num(r)} for the groups of "{for_each_group_in}" ({groups_text}): 0 means the groups are '
+            print(f'ANOSIM R = {_num(r)} (the ANOSIM statistic, not R squared) for the groups of "{for_each_group_in}" ({groups_text}): 0 means the groups are '
                   "as different as the rows within them, 1 that they are completely apart "
                   f"({MEASURES[measure]} distances over {_columns_used(columns)}, ranked; {permutations} permutations).")
             print(_permutation_p_sentence(
                 p, permutations, "the groups did not differ in make-up (rows no more alike within groups than between "
-                "them)", "an R this big or bigger",
-                "that the groups have the same make-up, or which columns differ"))
+                "them)", "an ANOSIM R this big or bigger", "that the groups have the same make-up"))
             print(f"Test: ANOSIM (analysis of similarities, Clarke 1993), run in R: set.seed({with_seed}); "
                   f"vegan::anosim(distances, {for_each_group_in}, permutations = {permutations}) with distances = "
                   f"vegan::{MEASURE_R[measure]}.")
@@ -819,7 +820,7 @@ class PatternWords:
         _depth_note(measure, x)
         if method == "anosim":
             row = {"test": "ANOSIM", "what it compares": what, "distance": MEASURES[measure],
-                   "statistic name": "R", "statistic": float(r), "p-value": float(p)}
+                   "statistic name": "ANOSIM R", "statistic": float(r), "p-value": float(p)}
         else:
             row = {"test": "PERMANOVA", "what it compares": what, "distance": MEASURES[measure],
                    "statistic name": "pseudo-F", "statistic": float(f), "degrees of freedom 1": float(a - 1),
@@ -839,8 +840,9 @@ class PatternWords:
         data = {"first group": [], "second group": [], "column": [], "average contribution": [],
                 "standard deviation": [], "ratio": [], "average in first group": [], "average in second group": [],
                 "cumulative share": []}
-        print(f'SIMPER: how much each column adds to the Bray-Curtis difference between each pair of groups of '
-              f'"{group_column}" (R vegan::simper(x, {group_column}, permutations = 0)); the columns that add most:')
+        print(f'SIMPER: how much each column adds to the average Bray-Curtis difference between each pair of '
+              f'groups of "{group_column}" (R vegan::simper(x, {group_column}, permutations = 0)); the columns that '
+              "add most, with what each adds to the average difference (out of 1):")
         for pair, t in found.items():
             # vegan names each pair "first_second"; group names may hold "_" themselves
             first, _, second = pair.partition("_")

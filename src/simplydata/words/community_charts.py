@@ -161,6 +161,8 @@ class CommunityChartWords:
             print(f"Note: {len(x)} curves are drawn as thin lines; draw fewer rows to see each one.")
         if (totals == 0).any():
             print(f"Note: {int((totals == 0).sum())} rows with nothing in them are left out.")
+        if not keep.all():
+            print(f"Note: {int((~keep).sum())} rows with an empty cell in these columns are left out.")
         self._need_axes(word)
         return self._add("richness_curves", "draw", _draw_richness, columns=columns, names=names, colour=colour,
                          thin=thin)

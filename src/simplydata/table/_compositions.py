@@ -91,12 +91,18 @@ def check_zeros(step, x, columns, how, what, labels=None, measure_hint=True) -> 
     count = int(zeros.sum())
     if not count:
         return 0
+    lead = f"{step}() {what}".strip()
+    if how == ADDING_ONE and not whole_numbers(x):
+        raise SimplydataError(
+            f'{lead} with zeros_replaced_by="adding 1" needs raw counts: on numbers that are not whole (shares, '
+            "values per 16S or per million reads) a 1 swamps the values, and every log ratio comes out near 0. Give "
+            'the raw counts, or use measure="robust aitchison" on the distance words, which needs no replacement.')
     if how == ESTIMATED:
         if not whole_numbers(x):
             other = ('use measure="robust aitchison", which needs no replacement' if measure_hint else
-                     'give zeros_replaced_by="adding 1" (the answer then depends on the 1 you add)')
+                     'use measure="robust aitchison" on the distance words, which needs no replacement')
             raise SimplydataError(
-                f"{step}() {what} replaces zeros by estimated small values (multiplicative replacement, R "
+                f"{lead} replaces zeros by estimated small values (multiplicative replacement, R "
                 "zCompositions GBM), which needs raw counts; these columns hold numbers that are not whole "
                 "(normalised values, such as per 16S or per million reads?). GBM would run on them and give other "
                 f"values than on the counts. Give the raw counts, or {other}.")
@@ -104,10 +110,11 @@ def check_zeros(step, x, columns, how, what, labels=None, measure_hint=True) -> 
         sparse = [c for c, k in zip(columns, nonzero) if k < 2]
         if sparse:
             raise SimplydataError(
-                f"{step}() {what} cannot estimate small values for {quoted(sparse[:8])}"
+                f"{lead} cannot estimate small values for {quoted(sparse[:8])}"
                 f"{' and more' if len(sparse) > 8 else ''}: "
                 f"{'it has' if len(sparse) == 1 else 'they have'} fewer than 2 values above 0, and R "
-                "zCompositions GBM needs at least 2 in each column. Combine the rare columns into one first:\n"
+                "zCompositions GBM needs at least 2 in each column. Combine the rare columns into one first "
+                "(if the merged column still has fewer than 2, leave the rare columns out):\n"
                 + merging_line(sparse, columns))
     rows = x.shape[0]
     mostly = int((zeros.sum(axis=0) > MOSTLY_ZERO * rows).sum())

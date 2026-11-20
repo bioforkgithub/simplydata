@@ -137,7 +137,7 @@ class CommunityWords:
         columns = self._required_columns(step, columns, example, at_least=1)
         if isinstance(names, str) and names in columns:
             raise SimplydataError(f'"{names}" cannot be both a column to count and names=.')
-        x, keep = self._pattern_matrix(step, columns, least_rows=1)
+        x, keep = self._pattern_matrix(step, columns, least_rows=2)
         comp.check_not_negative(step, x, columns, "")
         whole = comp.whole_numbers(x)
         if not whole and ("chao1" in wanted or at_total_count):
@@ -150,6 +150,10 @@ class CommunityWords:
                 f'work:\n  table.add_diversity_columns(columns=[...], show=["richness", "shannon", "simpson"])')
         labels = self._row_labels(names, keep)
         filled = (x > 0).sum(axis=1) > 0
+        if at_total_count and not (x.sum(axis=1) >= at_total_count).any():
+            raise SimplydataError(f"at_total_count={at_total_count} is above every row's total count (the largest is "
+                                  f"{x.sum(axis=1).max():,.0f}), so no row can be compared there. Use a total at or "
+                                  f"below the smallest row total, {x[filled].sum(axis=1).min():,.0f}.")
         if not filled.any():
             raise SimplydataError(f"{step}() found nothing above 0 in any row of these columns.")
         used = x[filled]
@@ -328,8 +332,8 @@ class CommunityWords:
         stats::cmdscale on vegan::vegdist). It is the twin of add_nmds, and with straight-line
         distances the same as principal components. measure= takes the measures of
         find_distances_between_rows: "bray-curtis" (the default), "aitchison" (for counts that are
-        parts of a whole; then no eigenvalue is negative), "jaccard", "hellinger" ... how_many=
-        axes are added. Prints the share of the differences each axis shows (of the positive
+        parts of a whole; then no eigenvalue is negative), "jaccard", "hellinger" ... columns= is
+        required (the columns of counts). how_many= axes are added. Prints the share of the differences each axis shows (of the positive
         eigenvalues) and how many eigenvalues are negative: Bray-Curtis distances cannot be drawn
         exactly on a flat map. Signs are arbitrary. Rows with an empty cell get empty cells. Needs
         R (vegan).
@@ -337,7 +341,7 @@ class CommunityWords:
         step = "add_principal_coordinates"
         example = 'with sdata.get_example("resistome"): table.add_principal_coordinates(columns=["blaTEM", ...])'
         self._check_choice(step, "measure", measure, list(MEASURES))
-        columns = self._pattern_columns(step, columns, example)
+        columns = self._required_columns(step, columns, example, at_least=1)
         x, keep = self._pattern_matrix(step, columns, least_rows=3)
         self._check_whole(step, "how_many=", how_many, 1, len(x) - 1, example)
         self._check_measure(measure, x, columns, step)
@@ -395,8 +399,9 @@ class CommunityWords:
         the differences explained (adjusted R squared first), the test of all the columns
         together and each column tested after all the others (vegan anova(by = "margin"), so the
         order of using= does not matter), from permutations= shuffles (with_seed= makes them the
-        same every time). Gives back one row for all the columns together and one per column.
-        columns= is required. Needs R (vegan).
+        same every time). Gives back one row for all the columns together and one per column
+        (a test, like compare_profiles_of; for a map of the rows use add_principal_coordinates or
+        add_nmds). columns= is required. Needs R (vegan).
         """
         step = "explain_profiles_of"
         example = 'table.explain_profiles_of(["blaTEM", "blaCTXM", "sul1", "tetM"], using=["temperature", "salinity"])'
@@ -457,11 +462,12 @@ class CommunityWords:
                                   f"{terms} using= terms. Use fewer columns in using=.")
         from .community_r import constrained, model_call
 
-        found = constrained(x, kind, measure, using, allowing, env, permutations, with_seed, 1)
+        found = constrained(x, kind, measure, using, allowing, env, permutations, with_seed)
         said = _list_words(f'"{u}"' for u in using)
-        after = f", after allowing for {_list_words(chr(34) + a + chr(34) for a in allowing)}" if allowing else ""
+        beyond = f", beyond what {_list_words(chr(34) + a + chr(34) for a in allowing)} explains" if allowing else ""
         together = "together explain" if len(using) > 1 else "explains"
-        print(f"{said} {together} {_pct(found['adj'])} of the differences in make-up between the rows{after} "
+        share_of = "of all the differences" if allowing else "of the differences"
+        print(f"{said} {together} {_pct(found['adj'])} {share_of} in make-up between the rows{beyond} "
               f"(adjusted R squared; {_pct(found['r2'])} before adjustment).")
         print(_permutation_p_sentence(found["all_p"], permutations,
                                       f"{'these columns' if len(using) > 1 else said} had no link with the make-up",
@@ -487,8 +493,10 @@ class CommunityWords:
                                 'z.delete = FALSE)); ',
                    "euclidean": "y <- x; "}.get(measure, "") if kind == "rda" else (
             f"d <- vegan::{MEASURE_R[measure]}; " if kind == "dbrda" else "y <- x; ")
+        adjusted = (f"set.seed({with_seed}); vegan::RsquareAdj(m, permutations = {permutations}) (for CCA the "
+                    "adjusted R squared comes from permutations)" if kind == "cca" else "vegan::RsquareAdj(m)")
         print(f"Test: {names[kind]}, run in R: {prepare}m <- {model_call(kind, measure, using, allowing)}; "
-              f"vegan::RsquareAdj(m); set.seed({with_seed}); anova(m, permutations = {permutations}); "
+              f"{adjusted}; set.seed({with_seed}); anova(m, permutations = {permutations}); "
               f'set.seed({with_seed}); anova(m, by = "margin", permutations = {permutations}).')
         if chosen_measure:
             print("simplydata chooses distance-based RDA on Bray-Curtis distances (the distance of compare_profiles_of), "
@@ -543,7 +551,12 @@ class CommunityWords:
         x, keep = self._pattern_matrix(step, first, extra=second, least_rows=5)
         y = np.column_stack([self._frame[c].to_numpy().astype(float) for c in second])[keep]
         self._check_measure(measure, x, first, step)
-        counts = (y >= 0).all() and comp.whole_numbers(y) and measure in COUNT_MEASURES
+        # second= is read as counts only when it looks like a community table too: 3 or more columns of whole
+        # numbers from 0 (two columns such as depth and year are measurements); the choice is printed first
+        counts = (len(second) >= 3 and (y >= 0).all() and comp.whole_numbers(y) and measure in COUNT_MEASURES)
+        if len(second) < 2 and method == "procrustes":
+            raise SimplydataError("method=\"procrustes\" fits two maps with two axes each, so second= needs at "
+                                  "least 2 columns; for one column use method=\"mantel\".")
         if counts:
             self._check_measure(measure, y, second, step)
             second_measure = measure
@@ -553,6 +566,13 @@ class CommunityWords:
                 raise SimplydataError(f"{_quoted_list(flat)} has the same value in every row, so it cannot tell the "
                                       "rows apart; leave it out of second=.")
             second_measure = SCALED
+        if second_measure == SCALED:
+            print("second= is read as measurements: straight-line distances after putting each column on the same "
+                  "scale (R dist(scale(y))).")
+        else:
+            print(f"second= holds 3 or more columns of whole numbers from 0, so it is read as counts too, with "
+                  f"{MEASURES[measure]} distances. If they are measurements, they need other distances: compare them "
+                  "one at a time with find_correlation_between.")
         from .community_r import profile_correlation
 
         found = profile_correlation(x, y, measure, second_measure, method, permutations, with_seed)
@@ -584,9 +604,6 @@ class CommunityWords:
                   f"cmdscale(d2, k = 2), permutations = {permutations}), with d1 = {MEASURES[measure]} distances of "
                   f"first= and d2 = {how_second} of second=.")
             name = "Procrustes correlation"
-        if second_measure == SCALED:
-            print("second= holds measurements, not counts, so simplydata uses straight-line distances after putting "
-                  "each column on the same scale (R dist(scale(y))).")
         row = {"test": "Mantel" if method == "mantel" else "Procrustes (PROTEST)", "first": ", ".join(first),
                "second": ", ".join(second), "distance of first": MEASURES[measure],
                "distance of second": MEASURES.get(second_measure, "Euclidean, scaled"), "statistic name": name,
@@ -632,9 +649,14 @@ class CommunityWords:
         scores = _flip(found["scores"][:, :how_many])
         names = [f"LD{i}" for i in range(1, how_many + 1)]
         trace = found["trace"]
-        parts = [f"{n} {_pct(trace[i])}" for i, n in enumerate(names) if i < len(trace)]
-        print(f"Axes that separate the {len(kinds)} groups of \"{for_each_group_in}\" from {_columns_used(columns)}: "
-              f"{_list_words(parts)} of the separation (the proportion of trace, as R MASS prints it).")
+        if found["scores"].shape[1] == 1:
+            print(f"Axis that separates the {len(kinds)} groups of \"{for_each_group_in}\" from "
+                  f"{_columns_used(columns)}: with two groups LD1 is the only axis.")
+        else:
+            parts = [f"{n} {_pct(trace[i])}" for i, n in enumerate(names) if i < len(trace)]
+            print(f"Axes that separate the {len(kinds)} groups of \"{for_each_group_in}\" from "
+                  f"{_columns_used(columns)}: {_list_words(parts)} of the separation (the proportion of trace, as R "
+                  "MASS prints it).")
         import pandas as pd
 
         actual = pd.Series(groups, name="group")
@@ -665,8 +687,8 @@ class CommunityWords:
         "agree", "disagree") it runs multiple correspondence analysis instead: R
         ca::mjca(lambda = "adjusted"), with Greenacre's adjusted inertia. The first line printed
         says which ran. how_many= axes are added; the share of the inertia (the chi-square
-        differences) each shows is printed. columns=None uses every number column. Rows with an
-        empty cell get empty cells. Signs are arbitrary. Needs R (vegan; ca for text columns).
+        differences) each shows is printed. columns= is required. Rows with an empty cell get
+        empty cells. Signs are arbitrary. Needs R (vegan; ca for text columns).
         """
         step = "add_correspondence_axes"
         example = 'with sdata.get_example("resistome"): table.add_correspondence_axes(columns=["blaTEM", ...])'
@@ -680,7 +702,7 @@ class CommunityWords:
                                       f"{_quoted_list(text)} {'is' if len(text) == 1 else 'are'} text.")
             if text:
                 return self._mca(step, listed, how_many, example)
-        columns = self._pattern_columns(step, columns, example, at_least=2)
+        columns = self._required_columns(step, columns, example, at_least=2)
         x, keep = self._pattern_matrix(step, columns, least_rows=3)
         comp.check_not_negative(step, x, columns, "")
         comp.check_no_empty_rows(step, x, "")
