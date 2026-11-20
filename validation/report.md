@@ -4,7 +4,7 @@ Made by `python validation/make_report.py` on 2026-11-20. Generated: do not edit
 
 Each simplydata word is run on real, published data and compared with the published answer, with the package simplydata uses underneath called directly, and with R. Each "same underneath" box of the manual is run next to its word and compared too. How it works, and the datasets with their licences: [validation/README.md](README.md).
 
-**758 checks passed, 0 failed, 0 skipped** (skipped: R or an R package is not installed on this computer).
+**762 checks passed, 0 failed, 0 skipped** (skipped: R or an R package is not installed on this computer).
 
 ## Setup
 
@@ -1584,26 +1584,30 @@ Note: The oblimin rotation of GPArotation starts from random numbers, so both si
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
-| own part of x1 | statsmodels Factor (method="ml") | 0.512529527173443 | 0.512527533845996 | relative 0.0001 | pass |
-| own part of x2 | statsmodels Factor (method="ml") | 0.7487351603869 | 0.748735978339845 | relative 0.0001 | pass |
-| own part of x3 | statsmodels Factor (method="ml") | 0.542773290729761 | 0.542774671366893 | relative 0.0001 | pass |
-| own part of x4 | statsmodels Factor (method="ml") | 0.279193093920192 | 0.279192903856366 | relative 0.0001 | pass |
-| own part of x5 | statsmodels Factor (method="ml") | 0.242877320676015 | 0.242877317847798 | relative 0.0001 | pass |
-| own part of x6 | statsmodels Factor (method="ml") | 0.30521585555841 | 0.305215643093528 | relative 0.0001 | pass |
-| own part of x7 | statsmodels Factor (method="ml") | 0.502207221916071 | 0.502208616417302 | relative 0.0001 | pass |
-| own part of x8 | statsmodels Factor (method="ml") | 0.468550489794599 | 0.468549603891397 | relative 0.0001 | pass |
-| own part of x9 | statsmodels Factor (method="ml") | 0.543247686483436 | 0.543246728573268 | relative 0.0001 | pass |
-| own part of x1 | R | 0.512529527173443 | 0.512528169335274 | relative 0.0001 | pass |
-| own part of x2 | R | 0.7487351603869 | 0.74873504605719 | relative 0.0001 | pass |
-| own part of x3 | R | 0.542773290729761 | 0.542776785473323 | relative 0.0001 | pass |
-| own part of x4 | R | 0.279193093920192 | 0.279192584116344 | relative 0.0001 | pass |
-| own part of x5 | R | 0.242877320676015 | 0.24287665089173 | relative 0.0001 | pass |
-| own part of x6 | R | 0.30521585555841 | 0.305217102458505 | relative 0.0001 | pass |
-| own part of x7 | R | 0.502207221916071 | 0.502200184972686 | relative 0.0001 | pass |
-| own part of x8 | R | 0.468550489794599 | 0.468557846883046 | relative 0.0001 | pass |
-| own part of x9 | R | 0.543247686483436 | 0.543243558335436 | relative 0.0001 | pass |
+| own part of x1 | statsmodels Factor (method="ml") | 0.512529527173443 | 0.512528222891988 | relative 0.0001 | pass |
+| own part of x2 | statsmodels Factor (method="ml") | 0.7487351603869 | 0.748735783111496 | relative 0.0001 | pass |
+| own part of x3 | statsmodels Factor (method="ml") | 0.542773290729761 | 0.542774309198457 | relative 0.0001 | pass |
+| own part of x4 | statsmodels Factor (method="ml") | 0.279193093920192 | 0.279193040011801 | relative 0.0001 | pass |
+| own part of x5 | statsmodels Factor (method="ml") | 0.242877320676015 | 0.2428773211815 | relative 0.0001 | pass |
+| own part of x6 | statsmodels Factor (method="ml") | 0.30521585555841 | 0.305215927657921 | relative 0.0001 | pass |
+| own part of x7 | statsmodels Factor (method="ml") | 0.502207221916071 | 0.502208517685383 | relative 0.0001 | pass |
+| own part of x8 | statsmodels Factor (method="ml") | 0.468550489794599 | 0.468549423101213 | relative 0.0001 | pass |
+| own part of x9 | statsmodels Factor (method="ml") | 0.543247686483436 | 0.543246709639146 | relative 0.0001 | pass |
+| own part of x1 | R | 0.512529527173443 | 0.512528169335274 | relative 0.001 | pass |
+| own part of x2 | R | 0.7487351603869 | 0.74873504605719 | relative 0.001 | pass |
+| own part of x3 | R | 0.542773290729761 | 0.542776785473323 | relative 0.001 | pass |
+| own part of x4 | R | 0.279193093920192 | 0.279192584116344 | relative 0.001 | pass |
+| own part of x5 | R | 0.242877320676015 | 0.24287665089173 | relative 0.001 | pass |
+| own part of x6 | R | 0.30521585555841 | 0.305217102458505 | relative 0.001 | pass |
+| own part of x7 | R | 0.502207221916071 | 0.502200184972686 | relative 0.001 | pass |
+| own part of x8 | R | 0.468550489794599 | 0.468557846883046 | relative 0.001 | pass |
+| own part of x9 | R | 0.543247686483436 | 0.543243558335436 | relative 0.001 | pass |
+| x1 on factor 2 | R | 0.622657847373776 | 0.622659390988638 | relative 0.001 | pass |
+| x4 on factor 1 | R | 0.826999673867174 | 0.826999827739574 | relative 0.001 | pass |
+| x7 on factor 3 | R | 0.695873917746766 | 0.695878216611046 | relative 0.001 | pass |
+| x9 on factor 3 | R | 0.5236179828285 | 0.523619103747666 | relative 0.001 | pass |
 
-Note: The part of each column the factors do not share (the uniqueness) does not depend on the rotation, so psych's maximum likelihood is checked against base R factanal and statsmodels. The three optimisers stop at slightly different points (about 1 in 100,000).
+Note: The part of each column the factors do not share (the uniqueness) does not depend on the rotation and is checked against base R factanal and statsmodels; the varimax loadings are checked against factanal (the same factor order and signs here). The three optimisers stop at slightly different points (about 1 in 100,000 for the uniquenesses), so the check allows 1 in 1000.
 
 ### `table.check_hidden_factors`
 
@@ -1980,9 +1984,9 @@ Where simplydata's default differs from the package underneath, it is listed her
 - `table.find_hidden_factors_behind` (2): how_many="automatic": parallel analysis (Horn 1965) keeps the factors that stand out more than in random data of the same size; the 'eigenvalue above 1' rule finds too many (Zwick & Velicer 1986).
 - `table.find_hidden_factors_behind` (3): method="minres", psych's default: it gives an answer where maximum likelihood can fail (base R factanal uses maximum likelihood).
 - `table.find_hidden_factors_behind` (4): rotation="oblimin" (through GPArotation): the factors may correlate, as they usually do in real data (base R factanal uses varimax, which keeps them uncorrelated).
-- `table.find_hidden_factors_behind how_many=` (1): a number of factors chosen by you: no parallel analysis (and no seed needed).
+- `table.find_hidden_factors_behind how_many=` (1): a number of factors chosen by you: no parallel analysis (the seed is still set, for the oblimin rotation).
 - `table.find_hidden_factors_behind method=` (1): maximum likelihood, as base R factanal fits; "principal axis" is psych's fm = "pa".
-- `table.find_hidden_factors_behind rotation=` (1): varimax (through GPArotation) keeps the factors uncorrelated; "promax" lets them correlate, "none" leaves them unrotated.
+- `table.find_hidden_factors_behind rotation=` (1): varimax (stats::varimax, as R factanal uses) keeps the factors uncorrelated; "promax" lets them correlate, "none" leaves them unrotated.
 - `table.check_hidden_factors` (1): maximum likelihood; with empty cells simplydata adds missing = "ml", which uses every value given, where lavaan's own default ("listwise") would leave those rows out without a word.
 - `table.check_hidden_factors formula=` (1): formula= takes the model in lavaan's own syntax and runs lavaan::sem(), so hidden factors can explain each other (a structural equation model).
 - `table.check_hidden_factors formula=` (2): the paths are shown standardised (both sides on a scale of standard deviations), as the loadings are.
@@ -2048,4 +2052,4 @@ Where simplydata's default differs from the package underneath, it is listed her
 | [Stata power manuals](https://www.stata.com/manuals/pss-2powerlogrank.pdf) | worked examples of the Stata power manuals: the log-rank test by Schoenfeld's and by Freedman's formula, and two averages in clusters | StataCorp. Stata Power, Precision, and Sample-Size Reference Manual: [PSS-2] power logrank, examples 1, 2 and 5 (example 5 from Machin, D. et al. (2009). Sample Size Tables for Clinical Studies, 3rd ed., p. 91); [PSS-2] power twomeans, cluster, example 1 (from Ahn, C., Heo, M. & Zhang, S. (2015). Sample Size Calculations for Clustered and Longitudinal Outcomes in Clinical Research, p. 37). | No data: published worked examples (facts); only the numbers printed there are quoted, nothing is stored. |
 | [G*Power 3.1 manual](https://www.psychologie.hhu.de/arbeitsgruppen/allgemeine-psychologie-und-arbeitspsychologie/gpower) | worked examples of the G*Power manual: logistic regression with one normal column (chapter 29.4) and the multiple-regression F test (chapter 13.3.1, Cohen 1988 example 9.1) | Faul, F., Erdfelder, E., Buchner, A. & Lang, A.-G. G*Power 3.1 manual (2023), sections 13.3.1 and 29.4; Faul et al. (2009). Behavior Research Methods 41, 1149-1160; Cohen, J. (1988). Statistical Power Analysis for the Behavioral Sciences, 2nd ed., p. 424. | No data: published worked examples (facts); only the numbers printed there are quoted, nothing is stored. |
 | [Bland, sample size in cluster trials](https://www-users.york.ac.uk/~mb55/clust/bupa.htm) | the design effect of a cluster trial with 30 people in each cluster and ICC 0.05 | Bland, J. M. Sample size in guidelines trials (University of York), section "Sample size in cluster randomized studies"; Kerry, S. M. & Bland, J. M. (1998). BMJ 316, 549. | No data: published worked examples (facts); only the numbers printed there are quoted, nothing is stored. |
-| [Holzinger & Swineford 1939 (lavaan)](https://doi.org/10.18637/jss.v048.i02) | 301 seventh- and eighth-grade pupils of two schools near Chicago (Pasteur and Grant-White) in 1937: the scores of nine mental ability tests (visual perception, cubes, lozenges, paragraph comprehension, sentence completion, word meaning, speeded addition, speeded counting of dots, speeded discrimination of straight and curved capitals) | Holzinger, K. J. & Swineford, F. (1939). A study in factor analysis: the stability of a bi-factor solution. Supplementary Educational Monographs 48. University of Chicago. The nine-test version and the three-factor model with its fit are in Rosseel, Y. (2012). lavaan: an R package for structural equation modeling. Journal of Statistical Software 48(2), 1-36 (CC BY 3.0). Shipped with the R package lavaan (HolzingerSwineford1939); a copy is the practice table ability_tests. | Published test scores (1939); the lavaan copy is GPL (>= 2). Read here from lavaan, so it needs R. |
+| [Holzinger & Swineford 1939 (lavaan)](https://doi.org/10.18637/jss.v048.i02) | 301 seventh- and eighth-grade pupils of two schools near Chicago (Pasteur and Grant-White) in 1937: the scores of nine mental ability tests (visual perception, cubes, lozenges, paragraph comprehension, sentence completion, word meaning, speeded addition, speeded counting of dots, speeded discrimination of straight and curved capitals) | Holzinger, K. J. & Swineford, F. (1939). A study in factor analysis: the stability of a bi-factor solution. Supplementary Educational Monographs 48. University of Chicago. The nine-test version and the three-factor model with its fit are in Rosseel, Y. (2012). lavaan: an R package for structural equation modeling. Journal of Statistical Software 48(2), 1-36 (CC BY 3.0). Shipped with the R package lavaan (HolzingerSwineford1939); a copy is the practice table ability_tests. | Published test scores (1939, facts). Read here from R lavaan (its copy is GPL (>= 2)), so the cases need R; simplydata ships the same scores, with this citation, as the practice table ability_tests. |
