@@ -316,7 +316,7 @@ print("END OF SCRIPT")
 """
 
 
-def _run_script(tmp_path, before="", env_extra=None, args=()):
+def _run_script(tmp_path, before="", env_extra=None, args=(), stdin=None):
     script = tmp_path / "script.py"
     script.write_text(textwrap.dedent(SCRIPT.format(before=before)), encoding="utf-8")
     env = {k: v for k, v in os.environ.items() if k != _cite.OFF_VARIABLE}
@@ -325,7 +325,8 @@ def _run_script(tmp_path, before="", env_extra=None, args=()):
     env["PYTHONIOENCODING"] = "utf-8"
     env.update(env_extra or {})
     return subprocess.run([sys.executable, *args, str(script)], cwd=tmp_path, env=env, capture_output=True,
-                          text=True, encoding="utf-8", timeout=300, stdin=subprocess.DEVNULL)
+                          text=True, encoding="utf-8", timeout=300,
+                          **({"input": stdin} if stdin is not None else {"stdin": subprocess.DEVNULL}))
 
 
 def test_a_script_prints_the_short_list_at_the_end(tmp_path):
@@ -399,9 +400,17 @@ def test_r_without_a_reference_says_how_to_ask_r(monkeypatch):
 
 
 def test_silent_in_an_interactive_session(tmp_path):
-    result = _run_script(tmp_path, args=("-i",))
+    # python -i: the prompt waits for input; the plain prompt (PYTHON_BASIC_REPL, Python 3.13's new prompt can
+    # wait for a console on Windows) reads the end of the input and stops
+    result = _run_script(tmp_path, args=("-i",), env_extra={"PYTHON_BASIC_REPL": "1"}, stdin="")
     assert "END OF SCRIPT" in result.stdout
     assert "Packages simplydata used in this script" not in result.stdout
+
+
+def test_silent_when_python_says_it_is_interactive(tmp_path):
+    result = _run_script(tmp_path, before="import sys; sys.ps1 = '>>> '")
+    assert result.returncode == 0, result.stderr
+    assert "END OF SCRIPT" in result.stdout and "Packages simplydata used" not in result.stdout
 
 
 def test_silent_in_a_notebook_kernel(tmp_path):
