@@ -4,7 +4,7 @@ Made by `python validation/make_report.py` on 2026-11-20. Generated: do not edit
 
 Each simplydata word is run on real, published data and compared with the published answer, with the package simplydata uses underneath called directly, and with R. Each "same underneath" box of the manual is run next to its word and compared too. How it works, and the datasets with their licences: [validation/README.md](README.md).
 
-**446 checks passed, 0 failed, 0 skipped** (skipped: R or an R package is not installed on this computer).
+**537 checks passed, 0 failed, 0 skipped** (skipped: R or an R package is not installed on this computer).
 
 ## Setup
 
@@ -939,6 +939,215 @@ Note: The book's three-level table (rats, preparations, readings) tests treatmen
 | F | R | 71.8287954469352 | 71.8287954469326 | relative 1e-10 | pass |
 | Wilks | R | 0.0398783132489411 | 0.0398783132489476 | relative 1e-10 | pass |
 
+### `table.add_time_and_event_columns`
+
+**person-years and deaths in the UDCA trial, from its dates** (real data; data: udca (survival))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| person-years | R | 557.664613278576 | 557.664613278576 | relative 1e-12 | pass |
+| deaths | R | 11 | 11 | relative 1e-12 | pass |
+| rows | R | 170 | 170 | relative 1e-12 | pass |
+
+Note: Base R date arithmetic (difftime) with a year of 365.25 days, as R Epi cal.yr() and Stata stset scale(365.25). A death after the last follow-up date counts as no event.
+
+### `table.find_risk_over_time`
+
+**the chance of a plasma cell malignancy by 10 years, death competing (women)** (real data; data: mgus2 (survival))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| risk by 120 months | statsmodels CumIncidenceRight | 0.0738856643759262 | 0.0738856643759262 | relative 1e-09 | pass |
+| risk by 120 months | R | 0.0738856643759262 | 0.0738856643759262 | relative 1e-09 | pass |
+| low | R | 0.0555247328325098 | 0.0555247328325098 | relative 1e-09 | pass |
+
+### `draw_risk_curves`
+
+**the chance of death over time in the NCCTG lung cancer trial (women): 1 minus Kaplan-Meier** (real data; data: lung (survival))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| risk at the 11th step | R | 0.134830680747682 | 0.134830680747682 | relative 1e-12 | pass |
+| risk at the end | R | 0.916785556486642 | 0.916785556486642 | relative 1e-12 | pass |
+
+### `draw_risk_curves competing_with=`
+
+**competing_with=: the drawn risk of a plasma cell malignancy is R's Aalen-Johansen estimate** (real data; data: mgus2 (survival))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| risk at the 51st time | R | 0.0289632492410418 | 0.0289632492410418 | relative 1e-09 | pass |
+| time of the 51st step | R | 51 | 51 | relative 1e-09 | pass |
+
+### `table.find_survival_over_time at_time_points=`
+
+**at_time_points=: survival at 180 and 365 days in the NCCTG lung cancer trial** (real data; data: lung (survival))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| female at 180 | statsmodels SurvfuncRight | 0.842401705587783 | 0.842401705587783 | relative 1e-12 | pass |
+| female at 365 | statsmodels SurvfuncRight | 0.526463030185906 | 0.526463030185906 | relative 1e-12 | pass |
+| male at 365 | statsmodels SurvfuncRight | 0.336087834639378 | 0.336087834639378 | relative 1e-12 | pass |
+| female at 180 | R | 0.842401705587783 | 0.842401705587783 | relative 1e-09 | pass |
+| female at 365 | R | 0.526463030185906 | 0.526463030185906 | relative 1e-09 | pass |
+| male at 365 | R | 0.336087834639378 | 0.336087834639379 | relative 1e-09 | pass |
+| male at 365, low | R | 0.260900503789725 | 0.260900503789725 | relative 1e-09 | pass |
+
+### `table.find_survival_over_time method="life table"`
+
+**method="life table": the actuarial life table of breast feeding (Klein & Moeschberger section 5.4)** (real data; data: bfeed (KMsurv))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| survival at 7 weeks | R | 0.627647159449448 | 0.627647159449448 | relative 1e-12 | pass |
+| effective at risk | R | 561.5 | 561.5 | relative 1e-12 | pass |
+| hazard | R | 0.0537475345167653 | 0.0537475345167653 | relative 1e-12 | pass |
+
+Note: The intervals of the K&M example; lifetab gets the counts simplydata makes from the rows.
+
+### `table.find_survival_over_time allowing_for=`
+
+**allowing_for=: survival at one year by sex, adjusted for age and ECOG score (direct adjustment)** (real data; data: lung (survival))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| female | R | 0.524876838929801 | 0.524876838929801 | relative 1e-09 | pass |
+| male | R | 0.33744610511966 | 0.33744610511966 | relative 1e-09 | pass |
+
+Note: adjustedCurves' own default is conf_int = FALSE; simplydata asks for the intervals.
+
+### `table.find_survival_over_time followed_from=`
+
+**followed_from=: survival to age 80 of Channing House residents who entered at different ages (delayed entry)** (real data; data: Channing House (KMsurv))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| survival at 960 months | statsmodels SurvfuncRight(entry=) | 0.565869628031309 | 0.565869628031309 | relative 1e-12 | pass |
+| survival at 960 months | R | 0.565869628031309 | 0.565869628031309 | relative 1e-09 | pass |
+| at risk | R | 193 | 193 | relative 1e-09 | pass |
+
+### `table.find_survival_over_time average_time_up_to=`
+
+**average_time_up_to=: the average days alive in the first year, by sex** (real data; data: lung (survival))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| male | R | 241.495085192057 | 241.495085192057 | relative 1e-09 | pass |
+| male standard error | R | 10.3582264910969 | 10.3582264910969 | relative 1e-09 | pass |
+
+Note: survRM2::rmst2 gives the same per-group values (241.495, se 10.358 for men).
+
+### `table.compare_survival allowing_for=`
+
+**allowing_for=: chemotherapy compared within each cell type (stratified log-rank)** (real data; data: veteran (survival))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| chi-square | statsmodels survdiff(strata=) | 0.701743346844315 | 0.701743346844315 | relative 1e-12 | pass |
+| p | statsmodels survdiff(strata=) | 0.402198523780676 | 0.402198523780676 | relative 1e-12 | pass |
+| chi-square | R | 0.701743346844315 | 0.701743346844319 | relative 1e-09 | pass |
+| p | R | 0.402198523780676 | 0.402198523780674 | relative 1e-09 | pass |
+
+### `table.compare_survival followed_from=`
+
+**followed_from=: women and men of Channing House, followed from their age on entry** (real data; data: Channing House (KMsurv))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| chi-square | statsmodels survdiff(entry=) | 3.37646071064618 | 3.37646071064618 | relative 1e-12 | pass |
+| chi-square | R | 3.37646071064618 | 3.3538346973481 | relative 0.01 | pass |
+
+Note: R survdiff takes no start times, so the R check is the score test of coxph(..., ties = "breslow"), the nearest R test; here it differs from the log-rank test by 0.7 % (3.354 against 3.376). The log-rank test counted out step by step in R (observed minus expected events and their hypergeometric variance at each death, with a row at risk when its start < t <= its stop) gives statsmodels' number, so statsmodels is checked to 1e-12 and R's score test to 1e-2.
+
+### `table.compare_survival average_time_up_to=`
+
+**average_time_up_to=: the difference in average days alive in the first year, men minus women** (real data; data: lung (survival))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| difference | R | -55.9703243399798 | -55.9703243399798 | relative 1e-09 | pass |
+| low | R | -85.2877123026282 | -85.2877123026282 | relative 1e-09 | pass |
+| p | R | 0.000182706461311161 | 0.000182706461311161 | relative 1e-09 | pass |
+
+### `table.compare_survival competing_with=`
+
+**competing_with=: Gray's test of a plasma cell malignancy between women and men, death competing** (real data; data: mgus2 (survival))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| chi-square | R | 1.19450782507551 | 1.19450782507551 | relative 1e-09 | pass |
+| p | R | 0.274422156788004 | 0.274422156788004 | relative 1e-09 | pass |
+
+### `table.explain_survival allowing_for=`
+
+**allowing_for=: chemotherapy and Karnofsky score, each cell type with its own baseline (stratified Cox)** (real data; data: veteran (survival))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| test vs standard | statsmodels PHReg(strata=) | 0.232834676889496 | 0.232834676889496 | relative 1e-06 | pass |
+| karno | statsmodels PHReg(strata=) | -0.0358011230001631 | -0.0358011230001631 | relative 1e-06 | pass |
+| test vs standard | R | 0.232834676889496 | 0.232834676889496 | relative 1e-06 | pass |
+| karno | R | -0.0358011230001631 | -0.0358011230001631 | relative 1e-06 | pass |
+
+### `table.explain_survival followed_from=`
+
+**followed_from=: the Stanford heart transplant, start-stop rows split at the transplant** (real data; data: Stanford heart transplant (survival))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| age | R | 0.0305363149141718 | 0.0305363149141718 | relative 1e-06 | pass |
+| surgery | R | -0.773327645300477 | -0.773327645300477 | relative 1e-06 | pass |
+| transplant | R | 0.0160956052965218 | 0.0160956052965218 | relative 1e-06 | pass |
+
+Note: 36 rows start at a death time (each patient's second row starts at the transplant). R does not count such a row as at risk at that death, statsmodels PHReg(entry=) does (the patient would count twice), so simplydata fits these data with R coxph and says so.
+
+### `table.explain_survival competing_with=`
+
+**competing_with=: cause-specific hazard ratios of a plasma cell malignancy, death counted as the end of follow-up** (real data; data: mgus2 (survival))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| age | statsmodels PHReg | 0.0130385698370914 | 0.0130385698370916 | relative 1e-06 | pass |
+| men vs women | statsmodels PHReg | -0.0251377892665885 | -0.0251377892665881 | relative 1e-06 | pass |
+| age | R | 0.0130385698370914 | 0.0130385698249726 | relative 1e-06 | pass |
+| men vs women | R | -0.0251377892665885 | -0.025137789294278 | relative 1e-06 | pass |
+
+### `table.explain_survival method="fine-gray"`
+
+**method="fine-gray": subdistribution hazard ratios of a plasma cell malignancy, death competing** (real data; data: mgus2 (survival))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| age | R | -0.0173381534946792 | -0.0173381534946792 | relative 1e-07 | pass |
+| men vs women | R | -0.260038237884128 | -0.260038237884128 | relative 1e-07 | pass |
+
+Note: survival::finegray() with a weighted coxph agrees to about 3 digits (-0.0173, -0.2598), the check recorded in tests/test_s3b3_survival.py.
+
+### `table.explain_survival distribution=`
+
+**distribution=: a Weibull model of larynx cancer by stage and age (time ratios)** (real data; data: larynx (KMsurv))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| stage 4 | R | -1.54407608393946 | -1.54407608393946 | relative 1e-06 | pass |
+| age | R | -0.0174636707215005 | -0.0174636707215005 | relative 1e-06 | pass |
+
+### `draw_survival_curves followed_from=`
+
+**followed_from=: the drawn curve of Channing House is the delayed-entry Kaplan-Meier curve** (real data; data: Channing House (KMsurv))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| survival at the 41st death time | R | 0.583568706215935 | 0.583568706215935 | relative 1e-09 | pass |
+
+### `draw_survival_curves allowing_for=`
+
+**allowing_for=: the drawn curves by sex are adjusted for age and ECOG score** (real data; data: lung (survival))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| female, 21st point | R | 0.9121266265218 | 0.9121266265218 | relative 1e-09 | pass |
+
 ## 2. The same underneath (the manual's boxes)
 
 Each box's library code is run next to the simplydata word and compared. Table words run on a pandas and on a Polars table.
@@ -1042,6 +1251,42 @@ Each box's library code is run next to the simplydata word and compared. Table w
 | `table.compare_averages_of grouped_by=` | R + Python | polars | result | relative 1e-09 | pass |
 | `table.compare_averages_of for_each_group_in= with a list of columns` | statsmodels | pandas | result | relative 1e-09 | pass |
 | `table.compare_averages_of for_each_group_in= with a list of columns` | statsmodels | polars | result | relative 1e-09 | pass |
+| `table.add_time_and_event_columns` | pandas | pandas | table | relative 1e-09 | pass |
+| `table.add_time_and_event_columns` | pandas | polars | table | relative 1e-09 | pass |
+| `table.find_risk_over_time` | R + Python | pandas | result | relative 1e-09 | pass |
+| `table.find_risk_over_time` | R + Python | polars | result | relative 1e-09 | pass |
+| `draw_risk_curves` | matplotlib | pandas | chart | relative 1e-09 | pass |
+| `table.find_survival_over_time at_time_points=` | statsmodels | pandas | result | relative 1e-09 | pass |
+| `table.find_survival_over_time at_time_points=` | statsmodels | polars | result | relative 1e-09 | pass |
+| `table.find_survival_over_time method="life table"` | R + Python | pandas | result | relative 1e-09 | pass |
+| `table.find_survival_over_time method="life table"` | R + Python | polars | result | relative 1e-09 | pass |
+| `table.find_survival_over_time allowing_for=` | R + Python | pandas | result | relative 1e-08 | pass |
+| `table.find_survival_over_time allowing_for=` | R + Python | polars | result | relative 1e-08 | pass |
+| `table.find_survival_over_time followed_from=` | statsmodels | pandas | result | relative 1e-09 | pass |
+| `table.find_survival_over_time followed_from=` | statsmodels | polars | result | relative 1e-09 | pass |
+| `table.find_survival_over_time average_time_up_to=` | R + Python | pandas | result | relative 1e-09 | pass |
+| `table.find_survival_over_time average_time_up_to=` | R + Python | polars | result | relative 1e-09 | pass |
+| `table.compare_survival allowing_for=` | statsmodels | pandas | result | relative 1e-09 | pass |
+| `table.compare_survival allowing_for=` | statsmodels | polars | result | relative 1e-09 | pass |
+| `table.compare_survival followed_from=` | statsmodels | pandas | result | relative 1e-09 | pass |
+| `table.compare_survival followed_from=` | statsmodels | polars | result | relative 1e-09 | pass |
+| `table.compare_survival average_time_up_to=` | R + Python | pandas | result | relative 1e-09 | pass |
+| `table.compare_survival average_time_up_to=` | R + Python | polars | result | relative 1e-09 | pass |
+| `table.compare_survival competing_with=` | R + Python | pandas | result | relative 1e-09 | pass |
+| `table.compare_survival competing_with=` | R + Python | polars | result | relative 1e-09 | pass |
+| `table.explain_survival allowing_for=` | statsmodels | pandas | result | relative 1e-07 | pass |
+| `table.explain_survival allowing_for=` | statsmodels | polars | result | relative 1e-07 | pass |
+| `table.explain_survival followed_from=` | statsmodels | pandas | result | relative 1e-07 | pass |
+| `table.explain_survival followed_from=` | statsmodels | polars | result | relative 1e-07 | pass |
+| `table.explain_survival competing_with=` | statsmodels | pandas | result | relative 1e-07 | pass |
+| `table.explain_survival competing_with=` | statsmodels | polars | result | relative 1e-07 | pass |
+| `table.explain_survival method="fine-gray"` | R + Python | pandas | result | relative 1e-07 | pass |
+| `table.explain_survival method="fine-gray"` | R + Python | polars | result | relative 1e-07 | pass |
+| `table.explain_survival distribution=` | R + Python | pandas | result | relative 1e-07 | pass |
+| `table.explain_survival distribution=` | R + Python | polars | result | relative 1e-07 | pass |
+| `draw_survival_curves followed_from=` | matplotlib | pandas | chart | relative 1e-09 | pass |
+| `draw_survival_curves allowing_for=` | R + matplotlib | pandas | chart | relative 1e-08 | pass |
+| `draw_risk_curves competing_with=` | R + matplotlib | pandas | chart | relative 1e-09 | pass |
 
 How each kind is compared:
 
@@ -1127,6 +1372,31 @@ Where simplydata's default differs from the package underneath, it is listed her
 - `table.find_model_averages_of over_range_of=` (2): the other columns as emmeans holds them: numbers at their average, groups counted equally.
 - `table.compare_averages_of grouped_by=` (1): the treatment is tested against the variation between rats (Error(rat)), not between readings: the readings of one rat are not independent.
 - `table.compare_averages_of for_each_group_in= with a list of columns` (1): Pillai's trace first, the one R summary(manova()) prints by default and the safest when groups differ in size or spread.
+- `table.add_time_and_event_columns` (1): follow-up ends at the first of the end dates; an empty date does not end it.
+- `table.add_time_and_event_columns` (2): the event counts when its date came first or on the same day as the others.
+- `table.find_risk_over_time` (1): the first level of the factor is the censored state (followed without either event); the competing event is a state of its own, never counted as censored.
+- `table.find_risk_over_time` (2): survfit with a factor event gives the Aalen-Johansen estimate and its log-scale 95 % interval.
+- `draw_risk_curves` (1): with nothing competing, the chance of having had the event is 1 minus the Kaplan-Meier curve, from 0 at time 0 to the last time followed (R plot(survfit(...), fun = "event")).
+- `table.find_survival_over_time at_time_points=` (1): the curve is flat between event times, so the survival at 365 is the one of the last event time at or before 365 (R summary(survfit(), times =)).
+- `table.find_survival_over_time method="life table"` (1): the intervals start at the times given, and the last one is open (NA).
+- `table.find_survival_over_time method="life table"` (2): simplydata counts the rows lost and with the event in each interval; lifetab does the rest, with the actuarial assumption (lost rows count as followed for half the interval).
+- `table.find_survival_over_time allowing_for=` (1): direct adjustment: each row's curve is predicted as if in each group and averaged over all rows, never the curve of an "average" row; conf_int = TRUE (adjustedCurves' own default is FALSE).
+- `table.find_survival_over_time followed_from=` (1): each row is at risk only after its start (left truncation, R Surv(start, stop, event)).
+- `table.find_survival_over_time average_time_up_to=` (1): rmean = 700, the horizon you name: without it survival's print uses its own upper limit.
+- `table.compare_survival allowing_for=` (1): strata=: the groups are compared within each stratum and the results added up, as R survdiff(... + strata()).
+- `table.compare_survival followed_from=` (1): entry=: each row counts as at risk only after its start. R survdiff takes no start times; the nearest R check, the score test of coxph(Surv(start, stop, event) ~ group, ties = "breslow"), agrees closely but not always exactly (validation/report.md).
+- `table.compare_survival average_time_up_to=` (1): arm 1 is the second group in sorted order, so the difference is the second minus the first.
+- `table.compare_survival average_time_up_to=` (2): tau = 700, the horizon you name: survRM2's own default is the shortest of the groups' last times.
+- `table.compare_survival competing_with=` (1): the event asked about is code 1 and the competing event code 2; other values are censored (code 0).
+- `table.compare_survival competing_with=` (2): Gray's test of the chance of each event over time (cmprsk::cuminc), not a log-rank test with the competing event censored.
+- `table.explain_survival allowing_for=` (1): strata=: each treatment group has its own baseline risk (R coxph(... + strata(treatment))), so there is no hazard ratio for it.
+- `table.explain_survival followed_from=` (1): entry=: each row is at risk only after its start (R coxph(Surv(start, stop, event) ~ ...)). statsmodels counts a row as at risk at an event time equal to its start and R does not, so when a row starts at an event time (one person split into rows) simplydata fits the model with R coxph, and says so.
+- `table.explain_survival competing_with=` (1): cause-specific: a Cox model of the event asked about, with the competing event counted as the end of follow-up (the risk at any moment among those still free of both events).
+- `table.explain_survival method="fine-gray"` (1): Fine and Gray's model with crr's robust (sandwich) standard errors; failcode is the event asked about.
+- `table.explain_survival distribution=` (1): the accelerated failure time model of survreg: time ratios exp(coefficient), never hazard ratios.
+- `draw_survival_curves followed_from=` (1): entry=: each row is at risk only after its start (delayed entry).
+- `draw_survival_curves allowing_for=` (1): direct adjustment: each row's curve predicted in each group, then averaged over all rows.
+- `draw_risk_curves competing_with=` (1): the competing event is a state of its own (Aalen-Johansen), never counted as censored.
 
 ## Datasets
 
@@ -1169,3 +1439,11 @@ Where simplydata's default differs from the package underneath, it is listed her
 | [sleepstudy (lme4)](https://doi.org/10.18637/jss.v067.i01) | average reaction time of 18 truck drivers on each of 10 days of sleep deprivation (180 rows) | Belenky, G. et al. (2003). Patterns of performance degradation and restoration during sleep restriction and subsequent recovery. Journal of Sleep Research 12, 1-12. Analysed in Bates, D., Maechler, M., Bolker, B. & Walker, S. (2015). Fitting linear mixed-effects models using lme4. Journal of Statistical Software 67(1) (CC BY). Shipped with the R package lme4. | GPL (>= 2) (lme4). Not stored here: read from lme4, so it needs R. |
 | [rat liver glycogen](https://www.worldcat.org/title/biometry/oclc/7203719) | glycogen in the livers of 6 rats, 2 on each of 3 treatments (control, glucose, glucose and fructose), 3 preparations per liver and 2 readings per preparation (36 rows) | Sokal, R. R. & Rohlf, F. J. (1981). Biometry, 2nd ed. Freeman, Box 10.1 (nested ANOVA: treatments SS 1557.56 on 2 df, rats within treatments SS 797.67 on 3 df, F = 2.929); the same analysis in Crawley, M. J. (2007). The R Book. Wiley, chapter 11. | Facts published in the book (36 numbers), typed from it; not covered by copyright. |
 | [iris](https://stat.ethz.ch/R-manual/R-devel/library/datasets/html/iris.html) | sepal and petal length and width of 50 flowers of each of three iris species | Anderson, E. (1935). The irises of the Gaspe Peninsula. Bulletin of the American Iris Society 59, 2-5; Fisher, R. A. (1936). The use of multiple measurements in taxonomic problems. Annals of Eugenics 7, 179-188. Copy from R's datasets package (iris). | Published 1935 (public domain). The copy in R's datasets package is GPL-2 \| GPL-3. |
+| [udca (survival)](https://cran.r-project.org/package=survival) | 170 patients with primary biliary cirrhosis in a trial of ursodeoxycholic acid: dates of entry, last follow-up and death | Lindor, K. D. et al. (1994). Ursodeoxycholic acid in the treatment of primary biliary cirrhosis. Gastroenterology 106, 1284-1290. Shipped with R's survival package (udca). | LGPL (>= 2) (survival). Not stored here: read from survival, so it needs R. |
+| [mgus2 (survival)](https://cran.r-project.org/package=survival) | 1384 patients with monoclonal gammopathy: months to progression to a plasma cell malignancy (pcm) or death without it | Kyle, R. A. et al. (2002). A long-term study of prognosis in monoclonal gammopathy of undetermined significance. New England Journal of Medicine 346, 564-569; the competing-risks example of Therneau, T. M., "Multi-state models and competing risks" (survival vignette). Copy from R's survival package (Therneau, T. M.), which is LGPL (>= 2). | Published data in an LGPL package; stored with the first event of each patient (outcome pcm, death or censored, as the vignette builds it). |
+| [lung (survival)](https://cran.r-project.org/package=survival) | 228 patients with advanced lung cancer (NCCTG): days to death or the end of follow-up, age, sex and ECOG performance score | Loprinzi, C. L. et al. (1994). Prospective evaluation of prognostic variables from patient-completed questionnaires. Journal of Clinical Oncology 12, 601-607. Copy from R's survival package (Therneau, T. M.), which is LGPL (>= 2). | Published trial data in an LGPL package; stored with its numbers unchanged (status recoded to died yes/no, sex to male/female). |
+| [bfeed (KMsurv)](https://cran.r-project.org/package=KMsurv) | 927 first-born children of the National Longitudinal Survey of Youth: weeks of breast feeding and whether it was ended | Klein, J. P. & Moeschberger, M. L. (2003). Survival Analysis: Techniques for Censored and Truncated Data, 2nd ed. Springer, section 1.14 and the life table of section 5.4. Shipped with the R package KMsurv. | GPL-3 (KMsurv). Not stored here: read from KMsurv, so it needs R. |
+| [Channing House (KMsurv)](https://cran.r-project.org/package=KMsurv) | residents of Channing House, a retirement centre in Palo Alto: age (months) on entry and at death or the end of the study (the 4 rows that left on the day they came are left out) | Hyde, J. (1980). Testing survival with incomplete observations. In Biostatistics Casebook, Wiley; Klein & Moeschberger (2003), section 4.6 (delayed entry). Shipped with the R package KMsurv. | GPL-3 (KMsurv). Not stored here: read from KMsurv, so it needs R. |
+| [veteran (survival)](https://cran.r-project.org/package=survival) | 137 men in the Veterans' Administration lung cancer trial: standard or test chemotherapy, cell type, Karnofsky score, days to death | Kalbfleisch, J. D. & Prentice, R. L. (2002). The Statistical Analysis of Failure Time Data, 2nd ed. Wiley. Copy from R's survival package (Therneau, T. M.), which is LGPL (>= 2). | Published trial data in an LGPL package; stored (treatment 1/2 written as standard/test). |
+| [Stanford heart transplant (survival)](https://cran.r-project.org/package=survival) | 103 patients waiting for a heart transplant, as start-stop rows (one row before and one after a transplant): age, earlier surgery, transplant | Crowley, J. & Hu, M. (1977). Covariance analysis of heart transplant survival data. Journal of the American Statistical Association 72, 27-36; analysed in Therneau, T. M. & Grambsch, P. M. (2000). Modeling Survival Data. Springer, section 3.7. Copy from R's survival package (Therneau, T. M.), which is LGPL (>= 2). | Published data in an LGPL package; stored with its numbers unchanged. |
+| [larynx (KMsurv)](https://cran.r-project.org/package=KMsurv) | 90 men with cancer of the larynx: stage, age, months to death | Kardaun, O. (1983). Statistical survival analysis of male larynx-cancer patients: a case study. Statistica Neerlandica 37, 103-125; Klein & Moeschberger (2003), chapter 12 (parametric models). Shipped with the R package KMsurv. | GPL-3 (KMsurv). Not stored here: read from KMsurv, so it needs R. |

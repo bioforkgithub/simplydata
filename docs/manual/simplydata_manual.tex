@@ -271,7 +271,7 @@ can write it up in a report or a paper.
 
 \section*{How this manual is built}
 \begin{description}[style=nextline,leftmargin=1.2em]
-  \item[{\hyperref[part:lessons]{Part II: Lessons}}] Twenty-eight short lessons that teach the whole
+  \item[{\hyperref[part:lessons]{Part II: Lessons}}] Twenty-nine short lessons that teach the whole
     of simplydata in a day. Each lesson shows code you can run, says what every line does, shows
     the real chart and output it makes, and ends with tasks to try yourself.
   \item[{\hyperref[part:dictionary]{Part III: Dictionary of words}}] Every word, with what it does,
@@ -577,6 +577,19 @@ Bacteria growing in three made-up flasks, measured every hour for a day. \code{s
 flask & A, B or C\\
 hour & 0 to 24\\
 density & how cloudy the culture is (optical density at 600 nm)\\
+\bottomrule\end{tabularx}\end{center}
+\section*{admissions}
+300 made-up hospital admissions in 2024: when each patient came and left, and the first culture that grew ESBL-producing bacteria. Made up for practice, not real patients. \code{sdata.\allowbreak{}get\_\allowbreak{}example(\textquotedbl{}admissions\textquotedbl{})}
+\begin{center}\small
+\begin{tabularx}{\textwidth}{@{}>{\ttfamily}l>{\raggedright\arraybackslash}X@{}}
+\toprule \textrm{\textbf{Column}} & \textbf{What it holds}\\ \midrule
+patient & A001 to A300\\
+ward & surgery or intensive care\\
+age & age in years on admission\\
+admitted & date of admission\\
+discharged & date the patient left hospital, alive or dead\\
+died & yes (died in hospital) or no\\
+first\_esbl & date of the first culture with ESBL-producing bacteria during the stay (empty if none)\\
 \bottomrule\end{tabularx}\end{center}
 
 \part{Lessons}\label{part:lessons}
@@ -2951,6 +2964,7 @@ sdata.find_chance_of_finding(effect_size=0.5, values_per_group=20)
   \item A hazard ratio above 1 means a higher risk of the event at any moment; 1 means no difference. The Cox model assumes the ratio stays the same over time, and simplydata checks this and says so if it does not.
   \item A study that is too small often finds nothing even when there is something to find. Plan the size before collecting data, not after.
   \item \code{effect\_\allowbreak{}size=} is Cohen's d for averages, f for 3 or more groups, w for counts and r for a correlation. You can also give \code{difference=} and \code{spread=} in your own units.
+  \item More survival in the lesson \code{\textquotedbl{}More survival\textquotedbl{}}: \code{at\_\allowbreak{}time\_\allowbreak{}points=[365,\allowbreak{} 730]} reads the curves at chosen times, and \code{allowing\_\allowbreak{}for=} takes a column into account without estimating its effect.
 \end{itemize}
 \end{goodtoknow}
 \begin{tryit}
@@ -4205,6 +4219,83 @@ Worked solutions: page~\pageref{solutions:28}, or type \code{sdata.\allowbreak{}
 \end{tryit}
 \par\noindent{\small\sffamily\textbf{Words in this lesson:} \hyperref[word:draw-interaction-lines]{\code{chart.\allowbreak{}draw\_\allowbreak{}interaction\_\allowbreak{}lines()}}, \hyperref[word:table.explain]{\code{table.\allowbreak{}explain()}}, \hyperref[word:table.find-model-averages-of]{\code{table.\allowbreak{}find\_\allowbreak{}model\_\allowbreak{}averages\_\allowbreak{}of()}}.\par}
 
+\chapter{More survival: start times, competing events, adjusted curves}\label{lesson:29}
+\begin{learnbox}
+\begin{itemize}
+  \item how to turn dates into a time column and an event column (\code{add\_\allowbreak{}time\_\allowbreak{}and\_\allowbreak{}event\_\allowbreak{}columns}), and find the rate per patient-day
+  \item how to read survival at chosen times (\code{at\_\allowbreak{}time\_\allowbreak{}points=}) and take a column into account without estimating its effect (\code{allowing\_\allowbreak{}for=})
+  \item if you have R: the chance of an event when another event can come first (competing risks), and why 1 minus the survival curve is then too high
+\end{itemize}
+\end{learnbox}
+\begin{needsr}Examples 1 and 2 need no R (without R, \code{explain\_\allowbreak{}survival} leaves out its proportional-hazards check and Harrell's C, with a note). Example 3 finds the chance of an event when another can come first with R's survival package: \code{find\_\allowbreak{}risk\_\allowbreak{}over\_\allowbreak{}time()} with \code{competing\_\allowbreak{}with=} run R's own code, the same code R users run. Install it once: pip install \code{\textquotedbl{}simplydata[r]\textquotedbl{}}, then R from https://cran.r-project.org, then in R: \code{install.\allowbreak{}packages(c(\textquotedbl{}survival\textquotedbl{},\allowbreak{} \textquotedbl{}cmprsk\textquotedbl{}))}. Without R these words print a message that says what to install.\end{needsr}
+\section*{Example 1}
+Hospital records come as dates. \code{add\_\allowbreak{}time\_\allowbreak{}and\_\allowbreak{}event\_\allowbreak{}columns} turns them into the two columns the survival and rate words need: the time followed, and whether the event happened.
+\begin{lstlisting}[style=py]
+import simplydata as sdata
+table = sdata.table(sdata.get_example("admissions"))
+table.add_time_and_event_columns(from_date="admitted", to_date="discharged", event_date="first_esbl")
+table.rate_of("event", time="time", for_each_group_in="ward")
+\end{lstlisting}
+\whateachline
+\begin{lineexplain}
+  \item[1] Load simplydata.
+  \item[2] 300 made-up hospital admissions in 2024, with the date each patient came, left, and first grew ESBL-producing bacteria in a culture.
+  \item[3] Adds \code{\textquotedbl{}time\textquotedbl{}} (days from admission to the first of \code{first\_\allowbreak{}esbl} and discharged) and \code{\textquotedbl{}event\textquotedbl{}} (1 when \code{first\_\allowbreak{}esbl} came first): 22 of 300 patients, 2,338 patient-days in all.
+  \item[4] New ESBL carriage per 1000 patient-days: 12.7 in intensive care and 6.46 in surgery. Say in words what 12.7 per 1000 patient-days means for a ward with 20 patients for 50 days.
+\end{lineexplain}
+\printedoutput{output/lesson29_example1.txt}
+\section*{Example 2}
+At chosen times, and allowing for a column. Back to the trial of lesson 18, where nothing competes with death.
+\begin{lstlisting}[style=py]
+import simplydata as sdata
+table = sdata.table(sdata.get_example("trial"))
+table.find_survival_over_time(time="days", event="died", for_each_group_in="treatment", at_time_points=[365, 730])
+table.explain_survival(time="days", event="died", using=["age"], allowing_for="treatment")
+\end{lstlisting}
+\whateachline
+\begin{lineexplain}
+  \item[1] Load simplydata.
+  \item[2] The trial table of lesson 18.
+  \item[3] Survival read at one and two years: 76.0 \% of the new-medicine group and 64.3 \% with usual care were still alive after 365 days, each with its 95 \% interval and the number still followed.
+  \item[4] Each treatment group gets its own baseline risk, so there is no hazard ratio for treatment; each year of age still multiplies the risk at any moment by 1.05. With \code{using=} instead, treatment would get a hazard ratio of its own.
+\end{lineexplain}
+\printedoutput{output/lesson29_example2.txt}
+\section*{Example 3}
+If you have R: in hospital, leaving hospital stops a patient from acquiring ESBL there. It competes with the event, so it must not be counted as the end of follow-up.
+\begin{lstlisting}[style=py]
+import simplydata as sdata
+table = sdata.table(sdata.get_example("admissions"))
+table.add_time_and_event_columns(from_date="admitted", event_date="first_esbl", competing_with="discharged")
+table.find_risk_over_time(time="time", event="event", value="first_esbl", competing_with="discharged", for_each_group_in="ward", at_time_points=[30])
+\end{lstlisting}
+\whateachline
+\begin{lineexplain}
+  \item[1] Load simplydata.
+  \item[2] The admissions again.
+  \item[3] \code{competing\_\allowbreak{}with=} takes the date of the competing event: \code{\textquotedbl{}event\textquotedbl{}} now holds \code{\textquotedbl{}first\_\allowbreak{}esbl\textquotedbl{}} or \code{\textquotedbl{}discharged\textquotedbl{}}, whichever came first.
+  \item[4] By day 30, 13.1 \% of intensive-care patients had acquired ESBL (and 82.2 \% had left first). 1 minus Kaplan-Meier would say 35.8 \%: the printout shows it, beside the right answer. Say in words why 1 minus Kaplan-Meier is too high here.
+\end{lineexplain}
+\printedoutput{output/lesson29_example3.txt}
+\begin{goodtoknow}
+\begin{itemize}
+  \item \code{time=} and \code{event=} of \code{add\_\allowbreak{}time\_\allowbreak{}and\_\allowbreak{}event\_\allowbreak{}columns} name the columns it makes; give the same names to \code{rate\_\allowbreak{}of} and the survival words next.
+  \item A year here is 365.25 days and a month 30.4375 days (as R Epi and Stata); \code{unit=} chooses days, weeks, months or years.
+  \item When another event can come first and stop the event (leaving hospital, death before relapse), use \code{find\_\allowbreak{}risk\_\allowbreak{}over\_\allowbreak{}time} with \code{competing\_\allowbreak{}with=}. The survival words refuse an event column with three kinds and show the call.
+  \item \code{find\_\allowbreak{}risk\_\allowbreak{}over\_\allowbreak{}time} gives the chance of having had the event by a time; \code{explain\_\allowbreak{}survival}'s hazard ratio is about the risk at any moment.
+  \item More: \code{followed\_\allowbreak{}from=} (rows that join late), \code{average\_\allowbreak{}time\_\allowbreak{}up\_\allowbreak{}to=} (the average time without the event, easier to read than a hazard ratio), \code{distribution=} (time ratios), \code{method=\textquotedbl{}fine-gray\textquotedbl{}}, and \code{allowing\_\allowbreak{}for=} on the curve words (curves adjusted for other columns). The dictionary has them all.
+\end{itemize}
+\end{goodtoknow}
+\begin{tryit}
+\begin{enumerate}
+  \item Add the time in weeks instead (\code{unit=\textquotedbl{}weeks\textquotedbl{}}) and give the ESBL rate per 100 patient-weeks for each ward (\code{per=100}).
+  \item In the trial table, what share of each treatment group was still alive after 180 days?
+  \item If you have R: draw the curves of example 3: \code{chart.\allowbreak{}draw\_\allowbreak{}risk\_\allowbreak{}curves(.\allowbreak{}.\allowbreak{}.\allowbreak{})} with one curve per ward.
+  \item Try to remember without looking back: which option says which event can come first? Use it with \code{compare\_\allowbreak{}survival} to test whether the wards differ in the chance of ESBL (Gray's test).
+\end{enumerate}
+Worked solutions: page~\pageref{solutions:29}, or type \code{sdata.\allowbreak{}show\_\allowbreak{}lesson(29,\allowbreak{} solutions=True)}.
+\end{tryit}
+\par\noindent{\small\sffamily\textbf{Words in this lesson:} \hyperref[word:table.add-time-and-event-columns]{\code{table.\allowbreak{}add\_\allowbreak{}time\_\allowbreak{}and\_\allowbreak{}event\_\allowbreak{}columns()}}, \hyperref[word:table.rate-of]{\code{table.\allowbreak{}rate\_\allowbreak{}of()}}, \hyperref[word:table.find-survival-over-time]{\code{table.\allowbreak{}find\_\allowbreak{}survival\_\allowbreak{}over\_\allowbreak{}time()}}, \hyperref[word:table.explain-survival]{\code{table.\allowbreak{}explain\_\allowbreak{}survival()}}, \hyperref[word:table.find-risk-over-time]{\code{table.\allowbreak{}find\_\allowbreak{}risk\_\allowbreak{}over\_\allowbreak{}time()}}, \hyperref[word:draw-risk-curves]{\code{chart.\allowbreak{}draw\_\allowbreak{}risk\_\allowbreak{}curves()}}, \hyperref[word:table.compare-survival]{\code{table.\allowbreak{}compare\_\allowbreak{}survival()}}.\par}
+
 \otherchapters
 
 \part{Dictionary of words}\label{part:dictionary}
@@ -4247,7 +4338,7 @@ chart.save("my_chart.png")
 A small made-up table to practise with. \code{sdata.\allowbreak{}get\_\allowbreak{}example(\textquotedbl{}marks\textquotedbl{})}
 
 \codeline{sdata.get\_example() with no name lists every table and its columns.}\\
-The tables are: marks, weather, fruit, growth, sensor, visitors, river, shop, school, meadow, trial, clinic, island, toxicity, culture. \code{\textquotedbl{}shop\textquotedbl{}} has empty cells and a column of dates to practise with; \code{\textquotedbl{}school\textquotedbl{}} has empty cells too.
+The tables are: marks, weather, fruit, growth, sensor, visitors, river, shop, school, meadow, trial, clinic, island, toxicity, culture, admissions. \code{\textquotedbl{}shop\textquotedbl{}} has empty cells and a column of dates to practise with; \code{\textquotedbl{}school\textquotedbl{}} has empty cells too.
 
 \wordfield{Options}{}\par\nopagebreak
 \begin{optiontable}
@@ -10408,13 +10499,22 @@ table.compare_profiles_of(for_each_group_in="grazed")
 The share still without the event over time (Kaplan-Meier), with the median time.
 
 \codeline{table.find\_survival\_over\_time(time=\textquotedbl{}days\textquotedbl{}, event=\textquotedbl{}died\textquotedbl{}, for\_each\_group\_in=\textquotedbl{}treatment\textquotedbl{})   (with sdata.get\_example(\textquotedbl{}trial\textquotedbl{}))}\\
-\code{time=} is the time until the event or the end of follow-up; \code{event=} says whether the event happened (yes/no, True/False or 1/0). \code{for\_\allowbreak{}each\_\allowbreak{}group\_\allowbreak{}in=} gives one curve per group. Prints the median time (by when half have had the event) with its 95 \% CI per group, or says it was not reached, as R \code{print(survfit(Surv(days,\allowbreak{} died == \textquotedbl{}yes\textquotedbl{}) \textasciitilde{} treatment))}. Gives back a table with one row per event time: the group, time, at risk, events, censored (since the previous row), survival and its 95 \% CI (log scale, R's default), as R \code{summary(survfit(.\allowbreak{}.\allowbreak{}.\allowbreak{}))}. Draw the curves with \code{chart.\allowbreak{}draw\_\allowbreak{}survival\_\allowbreak{}curves(.\allowbreak{}.\allowbreak{}.\allowbreak{})}.
+\code{time=} is the time until the event or the end of follow-up; \code{event=} says whether the event happened (yes/no, True/False or 1/0; \code{value=\textquotedbl{}relapse\textquotedbl{}} names the value that is the event). \code{for\_\allowbreak{}each\_\allowbreak{}group\_\allowbreak{}in=} gives one curve per group. Prints the median time (by when half have had the event) with its 95 \% CI per group, or says it was not reached, as R \code{print(survfit(Surv(days,\allowbreak{} died == \textquotedbl{}yes\textquotedbl{}) \textasciitilde{} treatment))}. Gives back a table with one row per event time: the group, time, at risk, events, censored (since the previous row), survival and its 95 \% CI (log scale, R's default), as R \code{summary(survfit(.\allowbreak{}.\allowbreak{}.\allowbreak{}))}. Draw the curves with \code{chart.\allowbreak{}draw\_\allowbreak{}survival\_\allowbreak{}curves(.\allowbreak{}.\allowbreak{}.\allowbreak{})}. An event column with three or more kinds (relapse, death, alive) is refused: use\\
+\codeline{table.find\_risk\_over\_time(...) for the chance of one event when another can come first.}
+
+More: \code{at\_\allowbreak{}time\_\allowbreak{}points=[365,\allowbreak{} 730]} reads the survival at those times, one row per group and time (\code{at\_\allowbreak{}times=} works too); a time after a group's last follow-up is left empty (\code{\textquotedbl{}not followed that long\textquotedbl{}}). \code{method=\textquotedbl{}life table\textquotedbl{}} gives the actuarial life table, with \code{at\_\allowbreak{}time\_\allowbreak{}points=} as the starts of the intervals, beginning at 0 (R KMsurv::lifetab; rows lost in an interval count as followed for half of it). \code{average\_\allowbreak{}time\_\allowbreak{}up\_\allowbreak{}to=365} gives, per group, the average time spent without the event in the first 365 time units (the restricted mean survival time, R \code{summary(survfit(),\allowbreak{} rmean = 365)}). \code{allowing\_\allowbreak{}for=[\textquotedbl{}age\textquotedbl{},\allowbreak{} \textquotedbl{}sex\textquotedbl{}]} (with \code{for\_\allowbreak{}each\_\allowbreak{}group\_\allowbreak{}in=}) gives curves adjusted for those columns: each row's curve is predicted as if in each group, then averaged over all rows (direct adjustment, R adjustedCurves; needs R), never the curve of an \code{\textquotedbl{}average\textquotedbl{}} row. \code{followed\_\allowbreak{}from=\textquotedbl{}entry\_\allowbreak{}age\textquotedbl{}} gives each row the time its follow-up started (delayed entry: the row counts as at risk only after it).
 
 \wordfield{Options}{}\par\nopagebreak
 \begin{optiontable}
 \code{time=} & \\
 \code{event=} & \\
 \code{for\_\allowbreak{}each\_\allowbreak{}group\_\allowbreak{}in=} & \\
+\code{at\_\allowbreak{}time\_\allowbreak{}points=} & \\
+\code{method=} & normally \code{\textquotedbl{}kaplan-meier\textquotedbl{}}\\
+\code{allowing\_\allowbreak{}for=} & \\
+\code{followed\_\allowbreak{}from=} & \\
+\code{average\_\allowbreak{}time\_\allowbreak{}up\_\allowbreak{}to=} & \\
+\code{value=} & \\
 \end{optiontable}
 
 \wordfield{Underneath}{statsmodels (duration.SurvfuncRight, Kaplan-Meier with Greenwood errors)}
@@ -10424,17 +10524,119 @@ import simplydata as sdata
 table = sdata.table(sdata.get_example("trial"))
 table.find_survival_over_time(time="days", event="died", for_each_group_in="treatment")
 \end{lstlisting}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{statsmodels}}
+\undertext{\textbf{With \code{at\_\allowbreak{}time\_\allowbreak{}points=}}: the same job with this option.}
+\underlib{statsmodels}
+\begin{lstlisting}[style=under]
+import numpy as np
+from statsmodels.duration.survfunc import SurvfuncRight
+df = sdata.get_example("trial")
+g = df[df["treatment"] == "new medicine"]
+# find_survival_over_time(..., at_time_points=[365, 730])
+f = SurvfuncRight(g["days"], g["died"] == "yes")
+i = np.searchsorted(f.surv_times, 365, side="right") - 1      # (1)
+{"survival": f.surv_prob[i]}
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) the curve is flat between event times, so the survival at 365 is the one of the last event time at or before 365 (R \code{summary(survfit(),\allowbreak{} times =)}).}
+\undertext{simplydata also gives the 95 \% interval, the number still followed and the events by then, and leaves a time after a group's last follow-up empty.}
+\undertext{\textit{Checked:} a test runs both and compares the numbers of the result table (on a pandas and on a Polars table).}
+\end{underneathbox}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{R}\libbadge{Python}}
+\undertext{\textbf{With \code{method=\textquotedbl{}life table\textquotedbl{}}}: the same job with this option.}
+\underlib{R (simplydata runs this in R for you, through rpy2)}
+\begin{lstlisting}[style=underr]
+# find_survival_over_time(..., method="life table", at_time_points=[0, 365, 730])
+# days, ev: the new-medicine rows of sdata.get_example("trial")
+tis <- c(0, 365, 730, NA)                                             # (1)
+k <- findInterval(days, tis[1:3])
+t <- KMsurv::lifetab(tis, length(days), tabulate(k[!ev], 3), tabulate(k[ev], 3))  # (2)
+list(surv = t$surv[2], nrisk = t$nrisk[2], hazard = t$hazard[2])
+\end{lstlisting}
+\underlib{Python (with what R gives back)}
+\begin{lstlisting}[style=under]
+{"survival at the start": surv, "effective at risk": nrisk, "hazard": hazard}
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) the intervals start at the times given, and the last one is open (NA).}
+\undertext{(2) simplydata counts the rows lost and with the event in each interval; lifetab does the rest, with the actuarial assumption (lost rows count as followed for half the interval).}
+\undertext{\textit{In Python only:} no Python package gives it: statsmodels has none of these, so the numbers come from R.}
+\undertext{simplydata also checks that the first interval starts at 0 and prints the table interval by interval.}
+\undertext{\textit{Checked:} a test runs both and compares the numbers of the result table (on a pandas and on a Polars table).}
+\end{underneathbox}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{R}\libbadge{Python}}
+\undertext{\textbf{With \code{allowing\_\allowbreak{}for=}}: the same job with this option.}
+\underlib{R (simplydata runs this in R for you, through rpy2)}
+\begin{lstlisting}[style=underr]
+# find_survival_over_time(..., allowing_for=["age"], at_time_points=[365])
+d <- data.frame(time = days, event = as.numeric(ev), group = factor(treatment), age = age)
+m <- survival::coxph(survival::Surv(time, event) ~ group + age, data = d, x = TRUE)
+a <- adjustedCurves::adjustedsurv(data = d, variable = "group", ev_time = "time",
+  event = "event", method = "direct", outcome_model = m, conf_int = TRUE, times = 365)  # (1)
+list(surv = a$adj$surv[2], low = a$adj$ci_lower[2])
+\end{lstlisting}
+\underlib{Python (with what R gives back)}
+\begin{lstlisting}[style=under]
+{"survival": surv, "95 % CI low": low}
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) direct adjustment: each row's curve is predicted as if in each group and averaged over all rows, never the curve of an \code{\textquotedbl{}average\textquotedbl{}} row; \code{conf\_\allowbreak{}int} = TRUE (adjustedCurves' own default is FALSE).}
+\undertext{\textit{In Python only:} statsmodels PHReg predicts one row's curve; averaging them would be simplydata's own method, so the numbers come from R adjustedCurves.}
+\undertext{simplydata also prints the adjusted medians and says what direct adjustment means.}
+\undertext{\textit{Checked:} a test runs both and compares the numbers of the result table (on a pandas and on a Polars table).}
+\end{underneathbox}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{statsmodels}}
+\undertext{\textbf{With \code{followed\_\allowbreak{}from=}}: the same job with this option.}
+\underlib{statsmodels}
+\begin{lstlisting}[style=under]
+from statsmodels.duration.survfunc import SurvfuncRight
+df = sdata.get_example("trial")
+# find_survival_over_time(time="days", event="died", followed_from="joined")
+f = SurvfuncRight(df["days"], df["died"] == "yes", entry=df["days"] / 4 + 0.1)  # (1)
+{"survival": f.surv_prob[20], "at risk": f.n_risk[20]}
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) each row is at risk only after its start (left truncation, R \code{Surv(start,\allowbreak{} stop,\allowbreak{} event)}).}
+\undertext{simplydata also gives the 95 \% interval, the median and a note when few rows are followed at the start.}
+\undertext{\textit{Checked:} a test runs both and compares the numbers of the result table (on a pandas and on a Polars table).}
+\end{underneathbox}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{R}\libbadge{Python}}
+\undertext{\textbf{With \code{average\_\allowbreak{}time\_\allowbreak{}up\_\allowbreak{}to=}}: the same job with this option.}
+\underlib{R (simplydata runs this in R for you, through rpy2)}
+\begin{lstlisting}[style=underr]
+# find_survival_over_time(..., average_time_up_to=700)
+f <- survival::survfit(survival::Surv(days, ev) ~ treatment)
+t <- summary(f, rmean = 700)$table                                  # (1)
+list(rmean = t[2, "rmean"], se = t[2, "se(rmean)"])
+\end{lstlisting}
+\underlib{Python (with what R gives back)}
+\begin{lstlisting}[style=under]
+{"average time without the event": rmean, "standard error": se}
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) rmean = 700, the horizon you name: without it survival's print uses its own upper limit.}
+\undertext{\textit{In Python only:} statsmodels gives no restricted mean, so the numbers come from R survival.}
+\undertext{simplydata also refuses a horizon after the shortest follow-up of the groups.}
+\undertext{\textit{Checked:} a test runs both and compares the numbers of the result table (on a pandas and on a Polars table).}
+\end{underneathbox}
 \wordentry{table.compare\_survival()}{word:table.compare-survival}
 Do the groups really differ in the time until the event? (log-rank test)
 
 \codeline{table.compare\_survival(time=\textquotedbl{}days\textquotedbl{}, event=\textquotedbl{}died\textquotedbl{}, for\_each\_group\_in=\textquotedbl{}treatment\textquotedbl{})   (with sdata.get\_example(\textquotedbl{}trial\textquotedbl{}))}\\
 The log-rank test, as R \code{survdiff(Surv(days,\allowbreak{} died == \textquotedbl{}yes\textquotedbl{}) \textasciitilde{} treatment)}: at each event time the events are shared out over the groups by how many rows are at risk in each, and the observed events are compared with these expected ones over the whole follow-up. Prints the answer in words and the observed vs expected events per group; gives back a one-row table of results.
 
+More: \code{allowing\_\allowbreak{}for=\textquotedbl{}centre\textquotedbl{}} compares the groups within each centre and adds the results up (the stratified log-rank test, R \code{survdiff(.\allowbreak{}.\allowbreak{}.\allowbreak{} + strata(centre))}); a column of text only. \code{followed\_\allowbreak{}from=\textquotedbl{}entry\_\allowbreak{}day\textquotedbl{}} gives each row the time its follow-up started (R has no survdiff for this; the nearest R check is the score test of \code{coxph(Surv(entry\_\allowbreak{}day,\allowbreak{} days,\allowbreak{} died) \textasciitilde{} group,\allowbreak{} ties = \textquotedbl{}breslow\textquotedbl{})}, which agrees closely but not always exactly). \code{average\_\allowbreak{}time\_\allowbreak{}up\_\allowbreak{}to=365} adds the average time without the event in the first 365 time units in each group and, for two groups, their difference and ratio (R survRM2::rmst2): easier to read than a hazard ratio, and right when hazards are not proportional. \code{value=\textquotedbl{}relapse\textquotedbl{}}, \code{competing\_\allowbreak{}with=\textquotedbl{}death\textquotedbl{}} gives Gray's test of the chance of relapse when death can come first (R cmprsk::cuminc).
+
 \wordfield{Options}{}\par\nopagebreak
 \begin{optiontable}
 \code{time=} & \\
 \code{event=} & \\
 \code{for\_\allowbreak{}each\_\allowbreak{}group\_\allowbreak{}in=} & \\
+\code{allowing\_\allowbreak{}for=} & \\
+\code{followed\_\allowbreak{}from=} & \\
+\code{average\_\allowbreak{}time\_\allowbreak{}up\_\allowbreak{}to=} & \\
+\code{value=} & \\
+\code{competing\_\allowbreak{}with=} & \\
 \end{optiontable}
 
 \wordfield{Underneath}{statsmodels (duration.survdiff, the log-rank test)}
@@ -10444,17 +10646,99 @@ import simplydata as sdata
 table = sdata.table(sdata.get_example("trial"))
 table.compare_survival(time="days", event="died", for_each_group_in="treatment")
 \end{lstlisting}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{statsmodels}}
+\undertext{\textbf{With \code{allowing\_\allowbreak{}for=}}: the same job with this option.}
+\underlib{statsmodels}
+\begin{lstlisting}[style=under]
+from statsmodels.duration.survfunc import survdiff
+df = sdata.get_example("trial")
+# compare_survival(..., allowing_for="older")
+chi, p = survdiff(df["days"], df["died"] == "yes", df["treatment"],
+                  strata=df["age"] > 70)                              # (1)
+{"statistic": chi, "p-value": p}
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) \code{strata=}: the groups are compared within each stratum and the results added up, as R \code{survdiff(.\allowbreak{}.\allowbreak{}.\allowbreak{} + strata())}.}
+\undertext{simplydata also refuses a number column in \code{allowing\_\allowbreak{}for=} (one stratum per value) and prints the observed and expected events. simplydata also writes the result as sentences, with the p-value in words, and names the method.}
+\undertext{\textit{Checked:} a test runs both and compares the numbers of the result table (on a pandas and on a Polars table).}
+\end{underneathbox}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{statsmodels}}
+\undertext{\textbf{With \code{followed\_\allowbreak{}from=}}: the same job with this option.}
+\underlib{statsmodels}
+\begin{lstlisting}[style=under]
+from statsmodels.duration.survfunc import survdiff
+df = sdata.get_example("trial")
+# compare_survival(..., followed_from="joined")
+chi, p = survdiff(df["days"], df["died"] == "yes", df["treatment"],
+                  entry=df["days"] / 4 + 0.1)                               # (1)
+{"statistic": chi, "p-value": p}
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) \code{entry=}: each row counts as at risk only after its start. R survdiff takes no start times; the nearest R check, the score test of \code{coxph(Surv(start,\allowbreak{} stop,\allowbreak{} event) \textasciitilde{} group,\allowbreak{} ties = \textquotedbl{}breslow\textquotedbl{})}, agrees closely but not always exactly (validation/report.md).}
+\undertext{simplydata also writes the result as sentences, with the p-value in words, and names the method.}
+\undertext{\textit{Checked:} a test runs both and compares the numbers of the result table (on a pandas and on a Polars table).}
+\end{underneathbox}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{R}\libbadge{Python}}
+\undertext{\textbf{With \code{average\_\allowbreak{}time\_\allowbreak{}up\_\allowbreak{}to=}}: the same job with this option.}
+\underlib{R (simplydata runs this in R for you, through rpy2)}
+\begin{lstlisting}[style=underr]
+# compare_survival(..., average_time_up_to=700)
+arm <- as.numeric(treatment == "usual care")                      # (1)
+r <- survRM2::rmst2(days, as.numeric(ev), arm, tau = 700)         # (2)
+u <- r$unadjusted.result
+list(difference = u[1, 1], low = u[1, 2], p = u[1, 4], ratio = u[2, 1])
+\end{lstlisting}
+\underlib{Python (with what R gives back)}
+\begin{lstlisting}[style=under]
+{"difference in average time": difference, "difference 95 % CI low": low,
+ "difference p-value": p, "ratio of average times": ratio}
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) arm 1 is the second group in sorted order, so the difference is the second minus the first.}
+\undertext{(2) tau = 700, the horizon you name: survRM2's own default is the shortest of the groups' last times.}
+\undertext{\textit{In Python only:} no Python package gives the restricted mean survival time difference, so it comes from R survRM2.}
+\undertext{simplydata also runs the log-rank test first and prints each group's average time. simplydata also writes the result as sentences, with the p-value in words, and names the method.}
+\undertext{\textit{Checked:} a test runs both and compares the numbers of the result table (on a pandas and on a Polars table).}
+\end{underneathbox}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{R}\libbadge{Python}}
+\undertext{\textbf{With \code{competing\_\allowbreak{}with=}}: the same job with this option.}
+\underlib{R (simplydata runs this in R for you, through rpy2)}
+\begin{lstlisting}[style=underr]
+# compare_survival(..., value="first_esbl", competing_with="discharged")
+s <- match(state, c("first_esbl", "discharged"))                   # (1)
+t <- cmprsk::cuminc(time, s, ward, cencode = 0)$Tests             # (2)
+list(stat = t["1", "stat"], p = t["1", "pv"])
+\end{lstlisting}
+\underlib{Python (with what R gives back)}
+\begin{lstlisting}[style=under]
+{"statistic": stat, "p-value": p}
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) the event asked about is code 1 and the competing event code 2; other values are censored (code 0).}
+\undertext{(2) Gray's test of the chance of each event over time (cmprsk::cuminc), not a log-rank test with the competing event censored.}
+\undertext{\textit{In Python only:} no Python package gives Gray's test, so it comes from R cmprsk.}
+\undertext{simplydata also prints how every other value was counted and the competing event's own test. simplydata also writes the result as sentences, with the p-value in words, and names the method.}
+\undertext{\textit{Checked:} a test runs both and compares the numbers of the result table (on a pandas and on a Polars table).}
+\end{underneathbox}
 \wordentry{table.explain\_survival()}{word:table.explain-survival}
 Which columns go with a higher or lower risk of the event? (Cox model, hazard ratios)
 
 \codeline{table.explain\_survival(time=\textquotedbl{}days\textquotedbl{}, event=\textquotedbl{}died\textquotedbl{}, using=[\textquotedbl{}treatment\textquotedbl{}, \textquotedbl{}age\textquotedbl{}])   (with sdata.get\_example(\textquotedbl{}trial\textquotedbl{}))}\\
-The Cox proportional hazards model, as R \code{coxph(Surv(days,\allowbreak{} died == \textquotedbl{}yes\textquotedbl{}) \textasciitilde{} treatment + age)}, with Efron's method for tied times. A hazard ratio above 1 means a higher risk of the event at any moment (2 = twice the risk), below 1 a lower risk. Numbers count per 1 more; text columns are groups compared with the first group (A to Z). Prints each hazard ratio with its 95 \% CI and p-value, and the likelihood-ratio test of the whole model; a note says if a hazard ratio seems to change over time (the proportional-hazards check of R \code{cox.\allowbreak{}zph()}). Gives back a table with one row per term.
+The Cox proportional hazards model, as R \code{coxph(Surv(days,\allowbreak{} died == \textquotedbl{}yes\textquotedbl{}) \textasciitilde{} treatment + age)}, with Efron's method for tied times. A hazard ratio above 1 means a higher risk of the event at any moment (2 = twice the risk), below 1 a lower risk. Numbers count per 1 more; text columns are groups compared with the first group (A to Z). Prints each hazard ratio with its 95 \% CI and p-value, and the likelihood-ratio test of the whole model; a note says if a hazard ratio seems to change over time (the proportional-hazards check of R \code{cox.\allowbreak{}zph()}), and, with R, Harrell's C: how often the model ranks two rows the right way (measured on the rows it was fitted to, so likely too high for new rows). Gives back a table with one row per term.
+
+More: \code{allowing\_\allowbreak{}for=\textquotedbl{}centre\textquotedbl{}} gives each centre its own baseline risk (a stratified Cox model, R + \code{strata(centre)}): no hazard ratio for centre; \code{using=} would estimate one. A text column only. \code{followed\_\allowbreak{}from=\textquotedbl{}entry\_\allowbreak{}day\textquotedbl{}} gives each row the time its follow-up started (R \code{Surv(entry\_\allowbreak{}day,\allowbreak{} days,\allowbreak{} died)}). This is also how to avoid immortal time: a treatment that starts on day 40 becomes two rows, 0 to 40 untreated and 40 to the end treated, each with \code{followed\_\allowbreak{}from=} its start. \code{value=\textquotedbl{}relapse\textquotedbl{}}, \code{competing\_\allowbreak{}with=\textquotedbl{}death\textquotedbl{}} (the event column has kinds): the cause-specific hazard ratios of relapse, with death counted as the end of follow-up (\code{method=\textquotedbl{}cox\textquotedbl{}}, the default; \code{\textquotedbl{}cause-specific\textquotedbl{}} works too); \code{method=\textquotedbl{}fine-gray\textquotedbl{}} gives the Fine-Gray model of the chance of relapse by each time (subdistribution hazard ratios, R cmprsk::crr). \code{distribution=\textquotedbl{}weibull\textquotedbl{}} (\code{\textquotedbl{}exponential\textquotedbl{}}, \code{\textquotedbl{}lognormal\textquotedbl{}}, \code{\textquotedbl{}log-logistic\textquotedbl{}}) fits a parametric model instead (R survival::survreg) and gives time ratios: how many times as long the time until the event is.
 
 \wordfield{Options}{}\par\nopagebreak
 \begin{optiontable}
 \code{time=} & \\
 \code{event=} & \\
 \code{using=} & \\
+\code{allowing\_\allowbreak{}for=} & \\
+\code{followed\_\allowbreak{}from=} & \\
+\code{value=} & \\
+\code{competing\_\allowbreak{}with=} & \\
+\code{method=} & normally \code{\textquotedbl{}cox\textquotedbl{}}\\
+\code{distribution=} & \\
 \end{optiontable}
 
 \wordfield{Underneath}{statsmodels (duration.PHReg, the Cox model with Efron ties) and R survival::cox.zph for the proportional-hazards check (needs R)}
@@ -10464,12 +10748,101 @@ import simplydata as sdata
 table = sdata.table(sdata.get_example("trial"))
 table.explain_survival(time="days", event="died", using=["treatment", "age"])
 \end{lstlisting}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{statsmodels}}
+\undertext{\textbf{With \code{allowing\_\allowbreak{}for=}}: the same job with this option.}
+\underlib{statsmodels}
+\begin{lstlisting}[style=under]
+from statsmodels.duration.hazard_regression import PHReg
+df = sdata.get_example("trial")
+# explain_survival(time="days", event="died", using=["age"], allowing_for="treatment")
+m = PHReg(df["days"], df[["age"]], status=df["died"] == "yes", ties="efron",
+          strata=df["treatment"]).fit()                                   # (1)
+{"coefficient": m.params[0], "standard error": m.bse[0]}
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) \code{strata=}: each treatment group has its own baseline risk (R \code{coxph(.\allowbreak{}.\allowbreak{}.\allowbreak{} + strata(treatment))}), so there is no hazard ratio for it.}
+\undertext{simplydata also refuses a number column in \code{allowing\_\allowbreak{}for=}, adds Harrell's C and the proportional-hazards check with R. simplydata also writes the result as sentences, with the p-value in words, and names the method.}
+\undertext{\textit{Checked:} a test runs both and compares the numbers of the result table (on a pandas and on a Polars table).}
+\end{underneathbox}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{statsmodels}}
+\undertext{\textbf{With \code{followed\_\allowbreak{}from=}}: the same job with this option.}
+\underlib{statsmodels}
+\begin{lstlisting}[style=under]
+from statsmodels.duration.hazard_regression import PHReg
+df = sdata.get_example("trial")
+# explain_survival(time="days", event="died", using=["age"], followed_from="joined")
+m = PHReg(df["days"], df[["age"]], status=df["died"] == "yes", ties="efron",
+          entry=df["days"] / 4 + 0.1).fit()                                     # (1)
+{"coefficient": m.params[0], "standard error": m.bse[0]}
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) \code{entry=}: each row is at risk only after its start (R \code{coxph(Surv(start,\allowbreak{} stop,\allowbreak{} event) \textasciitilde{} .\allowbreak{}.\allowbreak{}.\allowbreak{})}). statsmodels counts a row as at risk at an event time equal to its start and R does not, so when a row starts at an event time (one person split into rows) simplydata fits the model with R coxph, and says so.}
+\undertext{simplydata also writes the result as sentences, with the p-value in words, and names the method.}
+\undertext{\textit{Checked:} a test runs both and compares the numbers of the result table (on a pandas and on a Polars table).}
+\end{underneathbox}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{statsmodels}}
+\undertext{\textbf{With \code{competing\_\allowbreak{}with=}}: the same job with this option.}
+\underlib{statsmodels}
+\begin{lstlisting}[style=under]
+from statsmodels.duration.hazard_regression import PHReg
+df = sdata.get_example("admissions")
+# explain_survival(..., value="first_esbl", competing_with="discharged", using=["age"])
+end = df[["first_esbl", "discharged"]].min(axis=1)
+had = df["first_esbl"] <= df["discharged"]                                # (1)
+m = PHReg((end - df["admitted"]).dt.days, df[["age"]], status=had, ties="efron").fit()
+{"coefficient": m.params[0], "standard error": m.bse[0]}
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) cause-specific: a Cox model of the event asked about, with the competing event counted as the end of follow-up (the risk at any moment among those still free of both events).}
+\undertext{simplydata also prints how every other value was counted and points to \code{method=\textquotedbl{}fine-gray\textquotedbl{}} for the chance of the event by each time. simplydata also writes the result as sentences, with the p-value in words, and names the method.}
+\undertext{\textit{Checked:} a test runs both and compares the numbers of the result table (on a pandas and on a Polars table).}
+\end{underneathbox}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{R}\libbadge{Python}}
+\undertext{\textbf{With \code{method=\textquotedbl{}fine-gray\textquotedbl{}}}: the same job with this option.}
+\underlib{R (simplydata runs this in R for you, through rpy2)}
+\begin{lstlisting}[style=underr]
+# explain_survival(..., value="first_esbl", competing_with="discharged", using=["age"],
+#                  method="fine-gray")
+s <- match(state, c("first_esbl", "discharged"))
+m <- cmprsk::crr(time, s, cbind(age), failcode = 1, cencode = 0)   # (1)
+list(coef = m$coef[1], se = sqrt(m$var[1, 1]))
+\end{lstlisting}
+\underlib{Python (with what R gives back)}
+\begin{lstlisting}[style=under]
+{"coefficient": coef, "standard error": se}
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) Fine and Gray's model with crr's robust (sandwich) standard errors; failcode is the event asked about.}
+\undertext{\textit{In Python only:} no Python package gives the Fine-Gray model, so it comes from R cmprsk.}
+\undertext{simplydata also says that a subdistribution hazard ratio gives the direction of the effect on the chance of the event, not its size. simplydata also writes the result as sentences, with the p-value in words, and names the method.}
+\undertext{\textit{Checked:} a test runs both and compares the numbers of the result table (on a pandas and on a Polars table).}
+\end{underneathbox}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{R}\libbadge{Python}}
+\undertext{\textbf{With \code{distribution=}}: the same job with this option.}
+\underlib{R (simplydata runs this in R for you, through rpy2)}
+\begin{lstlisting}[style=underr]
+# explain_survival(time="days", event="died", using=["age"], distribution="weibull")
+m <- survival::survreg(survival::Surv(days, ev) ~ age, dist = "weibull")  # (1)
+list(ratio = exp(coef(m)[2]), low = exp(confint(m)[2, 1]))
+\end{lstlisting}
+\underlib{Python (with what R gives back)}
+\begin{lstlisting}[style=under]
+{"time ratio": ratio, "95 % CI low": low}
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) the accelerated failure time model of survreg: time ratios \code{exp(coefficient)}, never hazard ratios.}
+\undertext{\textit{In Python only:} statsmodels has no parametric survival regression, so the numbers come from R survival.}
+\undertext{simplydata also prints the Weibull shape (1 / survreg's scale) in words and the AIC. simplydata also writes the result as sentences, with the p-value in words, and names the method.}
+\undertext{\textit{Checked:} a test runs both and compares the numbers of the result table (on a pandas and on a Polars table).}
+\end{underneathbox}
 \wordentry{chart.draw\_survival\_curves()}{word:draw-survival-curves}
 The share still without the event over time (Kaplan-Meier curves).\\
 \codeline{chart.draw\_survival\_curves(time=\textquotedbl{}days\textquotedbl{}, event=\textquotedbl{}died\textquotedbl{}, colour=\textquotedbl{}treatment\textquotedbl{}) (with sdata.get\_example(\textquotedbl{}trial\textquotedbl{}))}
 
-\code{time=} is the time until the event or the end of follow-up; \code{event=} says whether the event happened (yes/no, True/False or 1/0). \code{colour=\textquotedbl{}treatment\textquotedbl{}} draws one curve per group, or \code{colour=\textquotedbl{}blue\textquotedbl{}} one colour. Each curve starts at 1 and drops at each event; censored rows (followed without the event) are small ticks (\code{with\_\allowbreak{}censor\_\allowbreak{}marks=False} hides them). \code{with\_\allowbreak{}confidence\_\allowbreak{}band=True} shades the 95 \% confidence interval. \code{with\_\allowbreak{}at\_\allowbreak{}risk\_\allowbreak{}table=True} writes the number still at risk under the x-axis. \code{transparency=} (0 to 1) makes the curves see-through and \code{thickness=} sets their width in points. The numbers are those of\\
-\codeline{table.find\_survival\_over\_time() (as R survfit()).}
+\code{time=} is the time until the event or the end of follow-up; \code{event=} says whether the event happened (yes/no, True/False or 1/0; \code{value=\textquotedbl{}relapse\textquotedbl{}} names the value that is the event). \code{colour=\textquotedbl{}treatment\textquotedbl{}} draws one curve per group, or \code{colour=\textquotedbl{}blue\textquotedbl{}} one colour. Each curve starts at 1 and drops at each event; censored rows (followed without the event) are small ticks (\code{with\_\allowbreak{}censor\_\allowbreak{}marks=False} hides them). \code{with\_\allowbreak{}confidence\_\allowbreak{}band=True} shades the 95 \% confidence interval. \code{with\_\allowbreak{}at\_\allowbreak{}risk\_\allowbreak{}table=True} writes the number still at risk under the x-axis. \code{transparency=} (0 to 1) makes the curves see-through and \code{thickness=} sets their width in points. The numbers are those of\\
+\codeline{table.find\_survival\_over\_time() (as R survfit()). An event column with three or more kinds is refused:}\\
+\codeline{chart.draw\_risk\_curves(...) draws the chance of one event when another can come first.}\\
+More: \code{followed\_\allowbreak{}from=\textquotedbl{}entry\_\allowbreak{}age\textquotedbl{}} gives each row the time its follow-up started (delayed entry). \code{allowing\_\allowbreak{}for=[\textquotedbl{}age\textquotedbl{},\allowbreak{} \textquotedbl{}sex\textquotedbl{}]} (with \code{colour=} a column) draws curves adjusted for those columns by direct adjustment (each row's curve predicted in each group and averaged; R adjustedCurves); adjusted curves have no censored rows and no number at risk, so \code{with\_\allowbreak{}at\_\allowbreak{}risk\_\allowbreak{}table=} is refused with them.
 
 \wordfield{Options}{}\par\nopagebreak
 \begin{optiontable}
@@ -10481,6 +10854,9 @@ The share still without the event over time (Kaplan-Meier curves).\\
 \code{with\_\allowbreak{}at\_\allowbreak{}risk\_\allowbreak{}table=} & normally \code{False}\\
 \code{transparency=} & \\
 \code{thickness=} & \\
+\code{value=} & \\
+\code{allowing\_\allowbreak{}for=} & \\
+\code{followed\_\allowbreak{}from=} & \\
 \end{optiontable}
 
 \wordfield{Underneath}{statsmodels (Kaplan-Meier, as \code{table.\allowbreak{}find\_\allowbreak{}survival\_\allowbreak{}over\_\allowbreak{}time}), drawn with matplotlib}
@@ -10492,6 +10868,225 @@ chart = sdata.chart(trial)
 chart.draw_survival_curves(time="days", event="died", colour="treatment", with_confidence_band=True)
 chart.save("draw_survival_curves.png")
 \end{lstlisting}
+\begin{center}\begin{minipage}{\linewidth}\centering
+\includegraphics[width=0.52\textwidth,height=0.26\textheight,keepaspectratio]{figures/underneath_draw_survival_curves_followed_from.pdf}
+\captionof*{figure}{The chart simplydata draws. The code below draws the same lines, without simplydata's paper look.}
+\end{minipage}\end{center}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{matplotlib}}
+\undertext{\textbf{With \code{followed\_\allowbreak{}from=}}: the same job with this option.}
+\underlib{matplotlib}
+\begin{lstlisting}[style=under]
+import matplotlib.pyplot as plt
+import numpy as np
+from statsmodels.duration.survfunc import SurvfuncRight
+df = sdata.get_example("trial")
+# draw_survival_curves(time="days", event="died", followed_from="joined")
+f = SurvfuncRight(df["days"], df["died"] == "yes", entry=df["days"] / 4 + 0.1)   # (1)
+fig, ax = plt.subplots()
+ax.step(np.r_[0, f.surv_times, df["days"].max()], np.r_[1, f.surv_prob, f.surv_prob[-1]], where="post")
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) \code{entry=}: each row is at risk only after its start (delayed entry).}
+\undertext{simplydata also draws the censor marks, the 95 \% band and the number at risk counted from each row's start.}
+\undertext{\textit{Checked:} a test runs both and compares the lines (the chart's data, not its pixels).}
+\end{underneathbox}
+\begin{center}\begin{minipage}{\linewidth}\centering
+\includegraphics[width=0.52\textwidth,height=0.26\textheight,keepaspectratio]{figures/underneath_draw_survival_curves_allowing_for.pdf}
+\captionof*{figure}{The chart simplydata draws. The code below draws the same lines, without simplydata's paper look.}
+\end{minipage}\end{center}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{R}\libbadge{matplotlib}}
+\undertext{\textbf{With \code{allowing\_\allowbreak{}for=}}: the same job with this option.}
+\underlib{R (simplydata runs this in R for you, through rpy2)}
+\begin{lstlisting}[style=underr]
+# draw_survival_curves(time="days", event="died", colour="treatment", allowing_for=["age"])
+d <- data.frame(time = days, event = as.numeric(ev), group = factor(treatment), age = age)
+m <- survival::coxph(survival::Surv(time, event) ~ group + age, data = d, x = TRUE)
+a <- adjustedCurves::adjustedsurv(data = d, variable = "group", ev_time = "time",
+  event = "event", method = "direct", outcome_model = m, conf_int = TRUE)  # (1)
+list(t = a$adj$time, s = a$adj$surv, g = as.integer(a$adj$group))
+\end{lstlisting}
+\underlib{matplotlib (with what R gives back)}
+\begin{lstlisting}[style=under]
+import matplotlib.pyplot as plt
+fig, ax = plt.subplots()
+for k in (1, 2):
+    ax.step(t[g == k], s[g == k], where="post")
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) direct adjustment: each row's curve predicted in each group, then averaged over all rows.}
+\undertext{\textit{In Python only:} statsmodels PHReg predicts one row's curve; averaging them would be simplydata's own method, so the curves come from R adjustedCurves.}
+\undertext{simplydata also draws the 95 \% band with \code{with\_\allowbreak{}confidence\_\allowbreak{}band=True} and refuses the number-at-risk table (adjusted curves have none).}
+\undertext{\textit{Checked:} a test runs both and compares the lines (the chart's data, not its pixels).}
+\end{underneathbox}
+\wordentry{table.add\_time\_and\_event\_columns()}{word:table.add-time-and-event-columns}
+Add the time followed and whether the event happened, from date columns (person-time).
+
+\codeline{table.add\_time\_and\_event\_columns(from\_date=\textquotedbl{}admitted\textquotedbl{}, to\_date=\textquotedbl{}discharged\textquotedbl{}, event\_date=\textquotedbl{}first\_esbl\textquotedbl{})   (with sdata.get\_example(\textquotedbl{}admissions\textquotedbl{}))}\\
+Follow-up runs from \code{from\_\allowbreak{}date=} to the first of \code{event\_\allowbreak{}date=}, \code{to\_\allowbreak{}date=} and \code{until=} (a date for all rows, such as the end of the study). Adds two columns: \code{\textquotedbl{}time\textquotedbl{}} (from \code{from\_\allowbreak{}date=} to that first date, in \code{unit=} \code{\textquotedbl{}days\textquotedbl{}}, \code{\textquotedbl{}weeks\textquotedbl{}}, \code{\textquotedbl{}months\textquotedbl{}} or \code{\textquotedbl{}years\textquotedbl{}}) and \code{\textquotedbl{}event\textquotedbl{}}: 1 when \code{event\_\allowbreak{}date=} came first (on or before the others), else 0. An empty \code{to\_\allowbreak{}date=} or \code{event\_\allowbreak{}date=} means the row was still followed, up to \code{until=}. \code{time=} and \code{event=} name the new columns (here they name columns to be made, not columns that are there); give the same names to \code{rate\_\allowbreak{}of}, \code{find\_\allowbreak{}survival\_\allowbreak{}over\_\allowbreak{}time} and \code{explain\_\allowbreak{}survival} next. A week is 7 days, a month 30.4375 days and a year 365.25 days (as R Epi \code{cal.\allowbreak{}yr()} and Stata stset \code{scale(365.\allowbreak{}25)}). Rows whose \code{event\_\allowbreak{}date=} is before \code{from\_\allowbreak{}date=} had the event already (prevalent cases): their new cells stay empty, and the note names them. More: \code{competing\_\allowbreak{}with=[\textquotedbl{}discharged\textquotedbl{},\allowbreak{} \textquotedbl{}died\textquotedbl{}]} takes date columns of events that can come first and stop the event from happening (in hospital, discharge before an infection; Wolkewitz et al. 2014). The event column then holds the name of the column that came first, or \code{\textquotedbl{}still followed\textquotedbl{}}, ready for\\
+\codeline{table.find\_risk\_over\_time(time=\textquotedbl{}time\textquotedbl{}, event=\textquotedbl{}event\textquotedbl{}, value=\textquotedbl{}first\_esbl\textquotedbl{},}\\
+\code{competing\_\allowbreak{}with=[\textquotedbl{}discharged\textquotedbl{},\allowbreak{} \textquotedbl{}died\textquotedbl{}]}).
+
+\wordfield{Options}{}\par\nopagebreak
+\begin{optiontable}
+\code{from\_\allowbreak{}date=} & \\
+\code{to\_\allowbreak{}date=} & \\
+\code{event\_\allowbreak{}date=} & \\
+\code{until=} & \\
+\code{unit=} & normally \code{\textquotedbl{}days\textquotedbl{}}\\
+\code{time=} & normally \code{\textquotedbl{}time\textquotedbl{}}\\
+\code{event=} & normally \code{\textquotedbl{}event\textquotedbl{}}\\
+\code{competing\_\allowbreak{}with=} & \\
+\end{optiontable}
+
+\wordfield{Underneath}{pandas \code{min()}, \code{astype()}}
+\wordfield{Example you can run}{}\par\nopagebreak
+\begin{lstlisting}[style=py]
+import simplydata as sdata
+table = sdata.table(sdata.get_example("admissions"))
+table.add_time_and_event_columns(from_date="admitted", to_date="discharged", event_date="first_esbl")
+table.rate_of("event", time="time", for_each_group_in="ward")
+\end{lstlisting}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{pandas}}
+\underlib{pandas}
+\begin{lstlisting}[style=under]
+df = sdata.get_example("admissions")
+# add_time_and_event_columns(from_date="admitted", to_date="discharged", event_date="first_esbl")
+end = df[["first_esbl", "discharged"]].min(axis=1)                    # (1)
+df["time"] = (end - df["admitted"]).dt.days
+df["event"] = (df["first_esbl"] <= df["discharged"]).astype(int)      # (2)
+df[["time", "event"]]
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) follow-up ends at the first of the end dates; an empty date does not end it.}
+\undertext{(2) the event counts when its date came first or on the same day as the others.}
+\undertext{simplydata also counts weeks, months (30.4375 days) and years (365.25 days), leaves rows whose event came before the start empty (prevalent cases), takes \code{until=} (the end of the study) and competing dates (\code{competing\_\allowbreak{}with=}), and prints the person-time.}
+\undertext{\textit{Checked:} a test runs both and compares the table (on a pandas and on a Polars table).}
+\end{underneathbox}
+\wordentry{table.find\_risk\_over\_time()}{word:table.find-risk-over-time}
+The chance of having had the event by each time, when another event can come first (competing risks).
+
+\codeline{table.find\_risk\_over\_time(time=\textquotedbl{}time\textquotedbl{}, event=\textquotedbl{}event\textquotedbl{}, value=\textquotedbl{}first\_esbl\textquotedbl{}, competing\_with=\textquotedbl{}discharged\textquotedbl{}, for\_each\_group\_in=\textquotedbl{}ward\textquotedbl{})}\\
+(with \code{sdata.\allowbreak{}get\_\allowbreak{}example(\textquotedbl{}admissions\textquotedbl{})}, after \code{table.\allowbreak{}add\_\allowbreak{}time\_\allowbreak{}and\_\allowbreak{}event\_\allowbreak{}columns(from\_\allowbreak{}date=\textquotedbl{}admitted\textquotedbl{},\allowbreak{} event\_\allowbreak{}date=\textquotedbl{}first\_\allowbreak{}esbl\textquotedbl{},\allowbreak{} competing\_\allowbreak{}with=\textquotedbl{}discharged\textquotedbl{})}). \code{time=} is the time until the first event or the end of follow-up; \code{event=} is the column that says which event happened; \code{value=} is the event you ask about and \code{competing\_\allowbreak{}with=} the event (or a list) that can come first and stop it from happening. Every other value of \code{event=} counts as still followed without either event (censored), and the printout says how many rows each such value has. Prints, for each group of \code{for\_\allowbreak{}each\_\allowbreak{}group\_\allowbreak{}in=}, the chance of having had each event by the last event time (or by each time of \code{at\_\allowbreak{}time\_\allowbreak{}points=}); gives back one row per group, kind of event and time: at risk, events, risk and its 95 \% CI (Aalen-Johansen, as R \code{survfit(Surv(time,\allowbreak{} factor(event)) \textasciitilde{} group)}; needs R). This is the chance of having had relapse by a time (a risk by a time), not the risk at any moment of \code{explain\_\allowbreak{}survival}'s hazard ratios. With one kind of event (a yes/no column, or \code{value=} in a two-valued column) it is 1 minus the Kaplan-Meier survival and needs no R. A column with three or more kinds is refused without \code{competing\_\allowbreak{}with=}: counting death as the end of follow-up would make the risk of relapse too high (the printout shows by how much). Draw it with \code{chart.\allowbreak{}draw\_\allowbreak{}risk\_\allowbreak{}curves(.\allowbreak{}.\allowbreak{}.\allowbreak{})}.
+
+\wordfield{Options}{}\par\nopagebreak
+\begin{optiontable}
+\code{time=} & \\
+\code{event=} & \\
+\code{value=} & \\
+\code{competing\_\allowbreak{}with=} & \\
+\code{for\_\allowbreak{}each\_\allowbreak{}group\_\allowbreak{}in=} & \\
+\code{at\_\allowbreak{}time\_\allowbreak{}points=} & \\
+\end{optiontable}
+
+\wordfield{Underneath}{R \code{survival::survfit()}, \code{survival::Surv()}}
+\wordfield{Example you can run}{}\par\nopagebreak
+\begin{lstlisting}[style=py]
+import simplydata as sdata
+table = sdata.table(sdata.get_example("admissions"))
+table.add_time_and_event_columns(from_date="admitted", event_date="first_esbl", competing_with="discharged")
+table.find_risk_over_time(time="time", event="event", value="first_esbl", competing_with="discharged", for_each_group_in="ward")
+\end{lstlisting}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{R}\libbadge{Python}}
+\underlib{R (simplydata runs this in R for you, through rpy2)}
+\begin{lstlisting}[style=underr]
+# find_risk_over_time(time="time", event="event", value="first_esbl",
+#                     competing_with="discharged", for_each_group_in="ward", at_time_points=[30])
+st <- factor(state, levels = c("still followed", "first_esbl", "discharged"))  # (1)
+f <- survival::survfit(survival::Surv(time, st) ~ ward)                        # (2)
+s <- summary(f, times = 30, extend = TRUE)
+k <- match("first_esbl", f$states)
+list(risk = s$pstate[2, k], low = s$lower[2, k], high = s$upper[2, k])
+\end{lstlisting}
+\underlib{Python (with what R gives back)}
+\begin{lstlisting}[style=under]
+{"risk": risk, "95 % CI low": low, "95 % CI high": high}
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) the first level of the factor is the censored state (followed without either event); the competing event is a state of its own, never counted as censored.}
+\undertext{(2) survfit with a factor event gives the Aalen-Johansen estimate and its log-scale 95 \% interval.}
+\undertext{\textit{In Python only:} statsmodels CumIncidenceRight gives the same estimates without intervals, so the numbers come from R.}
+\undertext{simplydata also prints how many rows of every other value counted as still followed, and what 1 minus Kaplan-Meier would wrongly give.}
+\undertext{\textit{Checked:} a test runs both and compares the numbers of the result table (on a pandas and on a Polars table).}
+\end{underneathbox}
+\wordentry{chart.draw\_risk\_curves()}{word:draw-risk-curves}
+The chance of having had the event by each time, rising from 0 (cumulative incidence curves).\\
+\codeline{chart.draw\_risk\_curves(time=\textquotedbl{}time\textquotedbl{}, event=\textquotedbl{}event\textquotedbl{}, value=\textquotedbl{}first\_esbl\textquotedbl{}, competing\_with=\textquotedbl{}discharged\textquotedbl{}, colour=\textquotedbl{}ward\textquotedbl{})}\\
+(with \code{sdata.\allowbreak{}get\_\allowbreak{}example(\textquotedbl{}admissions\textquotedbl{})}, after \code{table.\allowbreak{}add\_\allowbreak{}time\_\allowbreak{}and\_\allowbreak{}event\_\allowbreak{}columns(from\_\allowbreak{}date=\textquotedbl{}admitted\textquotedbl{},\allowbreak{} event\_\allowbreak{}date=\textquotedbl{}first\_\allowbreak{}esbl\textquotedbl{},\allowbreak{} competing\_\allowbreak{}with=\textquotedbl{}discharged\textquotedbl{})} and chart = \code{table.\allowbreak{}start\_\allowbreak{}chart()})
+
+The twin of \code{draw\_\allowbreak{}survival\_\allowbreak{}curves}: the numbers of \code{table.\allowbreak{}find\_\allowbreak{}risk\_\allowbreak{}over\_\allowbreak{}time()}. \code{event=} says which event happened; \code{value=} is the event you ask about and \code{competing\_\allowbreak{}with=} the event (or list) that can come first and stop it (the Aalen-Johansen estimate, R survfit; needs R). With a yes/no event column and no \code{competing\_\allowbreak{}with=} the curve is 1 minus the Kaplan-Meier curve (no R). \code{colour=\textquotedbl{}treatment\textquotedbl{}} draws one curve per group; \code{with\_\allowbreak{}confidence\_\allowbreak{}band=True} shades the 95 \% interval; \code{transparency=} and \code{thickness=} as on the other line words. A column with three or more kinds is refused without \code{competing\_\allowbreak{}with=}.
+
+\wordfield{Options}{}\par\nopagebreak
+\begin{optiontable}
+\code{time=} & \\
+\code{event=} & \\
+\code{value=} & \\
+\code{competing\_\allowbreak{}with=} & \\
+\code{colour=} & \\
+\code{with\_\allowbreak{}confidence\_\allowbreak{}band=} & normally \code{False}\\
+\code{transparency=} & \\
+\code{thickness=} & \\
+\end{optiontable}
+
+\wordfield{Underneath}{matplotlib \code{groupby()}, \code{SurvfuncRight()}, \code{step()}, \code{max()}}
+\wordfield{Example you can run}{}\par\nopagebreak
+\begin{lstlisting}[style=py]
+import simplydata as sdata
+table = sdata.table(sdata.get_example("admissions"))
+table.add_time_and_event_columns(from_date="admitted", event_date="first_esbl", competing_with="discharged")
+chart = table.start_chart()
+chart.draw_risk_curves(time="time", event="event", value="first_esbl", competing_with="discharged", colour="ward")
+chart.save("draw_risk_curves.png")
+\end{lstlisting}
+\begin{center}\begin{minipage}{\linewidth}\centering
+\includegraphics[width=0.52\textwidth,height=0.26\textheight,keepaspectratio]{figures/underneath_draw_risk_curves.pdf}
+\captionof*{figure}{The chart simplydata draws. The code below draws the same lines, without simplydata's paper look.}
+\end{minipage}\end{center}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{matplotlib}}
+\underlib{matplotlib}
+\begin{lstlisting}[style=under]
+import matplotlib.pyplot as plt
+import numpy as np
+from statsmodels.duration.survfunc import SurvfuncRight
+df = sdata.get_example("trial")
+# draw_risk_curves(time="days", event="died", colour="treatment")
+fig, ax = plt.subplots()
+for name, g in df.groupby("treatment"):
+    f = SurvfuncRight(g["days"], g["died"] == "yes")
+    s = np.r_[1, f.surv_prob, f.surv_prob[-1]]
+    ax.step(np.r_[0, f.surv_times, g["days"].max()], 1 - s, where="post")  # (1)
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) with nothing competing, the chance of having had the event is 1 minus the Kaplan-Meier curve, from 0 at time 0 to the last time followed (R \code{plot(survfit(.\allowbreak{}.\allowbreak{}.\allowbreak{}),\allowbreak{} fun = \textquotedbl{}event\textquotedbl{})}).}
+\undertext{simplydata also draws the Aalen-Johansen curves of R survfit with \code{competing\_\allowbreak{}with=}, the 95 \% band with \code{with\_\allowbreak{}confidence\_\allowbreak{}band=True}, a legend and the axis labels.}
+\undertext{\textit{Checked:} a test runs both and compares the lines (the chart's data, not its pixels).}
+\end{underneathbox}
+\begin{center}\begin{minipage}{\linewidth}\centering
+\includegraphics[width=0.52\textwidth,height=0.26\textheight,keepaspectratio]{figures/underneath_draw_risk_curves_competing_with.pdf}
+\captionof*{figure}{The chart simplydata draws. The code below draws the same lines, without simplydata's paper look.}
+\end{minipage}\end{center}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{R}\libbadge{matplotlib}}
+\undertext{\textbf{With \code{competing\_\allowbreak{}with=}}: the same job with this option.}
+\underlib{R (simplydata runs this in R for you, through rpy2)}
+\begin{lstlisting}[style=underr]
+# draw_risk_curves(time="time", event="event", value="first_esbl", competing_with="discharged")
+st <- factor(state, levels = c("still followed", "first_esbl", "discharged"))  # (1)
+f <- survival::survfit(survival::Surv(time, st) ~ 1)
+s <- summary(f)
+list(t = s$time, r = s$pstate[, match("first_esbl", f$states)], end = max(time))
+\end{lstlisting}
+\underlib{matplotlib (with what R gives back)}
+\begin{lstlisting}[style=under]
+import matplotlib.pyplot as plt
+import numpy as np
+fig, ax = plt.subplots()
+ax.step(np.r_[0, t, end], np.r_[0, r, r[-1]], where="post")
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) the competing event is a state of its own (Aalen-Johansen), never counted as censored.}
+\undertext{\textit{In Python only:} statsmodels CumIncidenceRight gives the same estimates without intervals; simplydata draws R's, with the band.}
+\undertext{simplydata also draws one curve per group with \code{colour=}, the 95 \% band and a legend.}
+\undertext{\textit{Checked:} a test runs both and compares the lines (the chart's data, not its pixels).}
+\end{underneathbox}
 \unsection{Dates and time windows}{group:Dates-and-time-windows}
 \wordentry{sdata.make\_run\_of\_dates()}{word:sdata.make-run-of-dates}
 A table with one column, \code{\textquotedbl{}date\textquotedbl{}}: regular dates from start, every day (or week, month ...).
@@ -14440,6 +15035,55 @@ table.find_model_averages_of("marks", for_each_group_in="class", using=["hours",
 \printedoutput{output/solution28_task4.txt}
 \solutionanswer{\code{comparing=\textquotedbl{}each with the first\textquotedbl{}} compares each group with the first; \code{in\_\allowbreak{}order=} puts green first.}
 \par\noindent{\small\sffamily\hyperref[lesson:28]{Back to lesson 28}}
+\unsection{Lesson 29: More survival: start times, competing events, adjusted curves}{solutions:29}
+\solutiontask{1}{Add the time in weeks instead (\code{unit=\textquotedbl{}weeks\textquotedbl{}}) and give the ESBL rate per 100 patient-weeks for each ward (\code{per=100}).}
+\begin{lstlisting}[style=py]
+import simplydata as sdata
+table = sdata.table(sdata.get_example("admissions"))
+table.add_time_and_event_columns(from_date="admitted", to_date="discharged", event_date="first_esbl",
+                                 unit="weeks")
+table.rate_of("event", time="time", for_each_group_in="ward", per=100)
+\end{lstlisting}
+\printedoutput{output/solution29_task1.txt}
+\solutionanswer{8.91 per 100 patient-weeks in intensive care and 4.52 in surgery: the same rates as per 1000 patient-days, in other units.}
+\solutiontask{2}{In the trial table, what share of each treatment group was still alive after 180 days?}
+\begin{lstlisting}[style=py]
+import simplydata as sdata
+table = sdata.table(sdata.get_example("trial"))
+table.find_survival_over_time(time="days", event="died", for_each_group_in="treatment",
+                              at_time_points=180)
+\end{lstlisting}
+\printedoutput{output/solution29_task2.txt}
+\solutionanswer{90.0 \% of the new-medicine group and 81.7 \% with usual care.}
+\solutiontask{3}{If you have R: draw the curves of example 3: \code{chart.\allowbreak{}draw\_\allowbreak{}risk\_\allowbreak{}curves(.\allowbreak{}.\allowbreak{}.\allowbreak{})} with one curve per ward.}
+\begin{lstlisting}[style=py]
+import simplydata as sdata
+table = sdata.table(sdata.get_example("admissions"))
+table.add_time_and_event_columns(from_date="admitted", event_date="first_esbl",
+                                 competing_with="discharged")
+chart = table.start_chart()
+chart.draw_risk_curves(time="time", event="event", value="first_esbl", competing_with="discharged",
+                       colour="ward")
+chart.save("esbl_risk.png")
+\end{lstlisting}
+\printedoutput{output/solution29_task3.txt}
+\begin{center}\begin{minipage}{\linewidth}\centering
+\includegraphics[width=0.52\textwidth,height=0.30\textheight,keepaspectratio]{figures/solution29_task3_esbl_risk.pdf}
+\captionof*{figure}{Lesson 29, task 3: \code{esbl\_\allowbreak{}risk.\allowbreak{}png}.}
+\end{minipage}\end{center}
+\solutionanswer{Two rising curves: the chance of having acquired ESBL by each day, higher in intensive care.}
+\solutiontask{4}{Try to remember without looking back: which option says which event can come first? Use it with \code{compare\_\allowbreak{}survival} to test whether the wards differ in the chance of ESBL (Gray's test).}
+\begin{lstlisting}[style=py]
+import simplydata as sdata
+table = sdata.table(sdata.get_example("admissions"))
+table.add_time_and_event_columns(from_date="admitted", event_date="first_esbl",
+                                 competing_with="discharged")
+table.compare_survival(time="time", event="event", value="first_esbl", competing_with="discharged",
+                       for_each_group_in="ward")
+\end{lstlisting}
+\printedoutput{output/solution29_task4.txt}
+\solutionanswer{\code{competing\_\allowbreak{}with=}. Gray's test: chi-square 8.10, p = 0.004; differences this big would turn up in about 4 of 1000 studies if the wards truly had the same chance of ESBL.}
+\par\noindent{\small\sffamily\hyperref[lesson:29]{Back to lesson 29}}
 
 \backmatter
 
@@ -14468,6 +15112,7 @@ Every word and option, A to Z, with the page of its dictionary entry. Other spel
 \indexline{word:table.add-rows-from}{table.add\_rows\_from()}
 \indexline{word:add-second-y}{chart.add\_second\_y()}
 \indexline{word:table.add-smoothed-column}{table.add\_smoothed\_column()}
+\indexline{word:table.add-time-and-event-columns}{table.add\_time\_and\_event\_columns()}
 \indexline{word:table.add-trend-and-season}{table.add\_trend\_and\_season()}
 \indexline{word:table.add-z-score-column}{table.add\_z\_score\_column()}
 \indexline{word:add-zoom-box}{chart.add\_zoom\_box()}
@@ -14553,6 +15198,7 @@ Every word and option, A to Z, with the page of its dictionary entry. Other spel
 \indexline{word:draw-pie}{chart.draw\_pie()}
 \indexline{word:draw-polar}{chart.draw\_polar()}
 \indexline{word:draw-qq-dots}{chart.draw\_qq\_dots()}
+\indexline{word:draw-risk-curves}{chart.draw\_risk\_curves()}
 \indexline{word:draw-side-histograms}{chart.draw\_side\_histograms()}
 \indexline{word:draw-smooth-line}{chart.draw\_smooth\_line()}
 \indexline{word:draw-surface}{chart.draw\_surface()}
@@ -14599,6 +15245,7 @@ Every word and option, A to Z, with the page of its dictionary entry. Other spel
 \indexline{word:nums.find-percentile}{nums.find\_percentile()}
 \indexline{word:table.find-percentile-of}{table.find\_percentile\_of()}
 \indexline{word:table.find-principal-components-of}{table.find\_principal\_components\_of()}
+\indexline{word:table.find-risk-over-time}{table.find\_risk\_over\_time()}
 \indexline{word:grid.find-shape}{grid.find\_shape()}
 \indexline{word:nums.find-smallest}{nums.find\_smallest()}
 \indexline{word:table.find-smallest-of}{table.find\_smallest\_of()}

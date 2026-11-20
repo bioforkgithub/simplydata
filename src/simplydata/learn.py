@@ -102,7 +102,9 @@ GROUPS = [
                                  "table.add_clusters", "table.find_distances_between_rows", "table.add_nmds",
                                  "table.compare_profiles_of"]),
     ("Survival", ["table.find_survival_over_time", "table.compare_survival", "table.explain_survival",
-                  "draw_survival_curves"]),
+                  "draw_survival_curves",
+                  # S3b-3 (survival and person-time): core, then the chart twin
+                  "table.add_time_and_event_columns", "table.find_risk_over_time", "draw_risk_curves"]),
     # Time series and signals: the core words first in each group, then the "more" words.
     ("Dates and time windows", ["sdata.make_run_of_dates", "table.add_missing_dates"]),
     ("Smoothing and trend", ["table.add_smoothed_column", "nums.smooth", "table.find_trend_of", "nums.remove_trend",
@@ -825,6 +827,22 @@ HELP_EXAMPLES = {
                                            'using=["treatment", "age"])'),
     "draw_survival_curves": _ex("trial", 'chart.draw_survival_curves(time="days", event="died", colour="treatment", '
                                     'with_confidence_band=True)', "draw_survival_curves"),
+    # S3b-3 (survival and person-time)
+    "table.add_time_and_event_columns": _tx("admissions", 'table.add_time_and_event_columns(from_date="admitted", '
+                                                      'to_date="discharged", event_date="first_esbl")\n'
+                                                      'table.rate_of("event", time="time", for_each_group_in="ward")'),
+    "table.find_risk_over_time": _tx("admissions", 'table.add_time_and_event_columns(from_date="admitted", '
+                                                 'event_date="first_esbl", competing_with="discharged")\n'
+                                                 'table.find_risk_over_time(time="time", event="event", '
+                                                 'value="first_esbl", competing_with="discharged", '
+                                                 'for_each_group_in="ward")'),
+    "draw_risk_curves": "\n".join([
+        "import simplydata as sdata", 'table = sdata.table(sdata.get_example("admissions"))',
+        'table.add_time_and_event_columns(from_date="admitted", event_date="first_esbl", competing_with="discharged")',
+        "chart = table.start_chart()",
+        'chart.draw_risk_curves(time="time", event="event", value="first_esbl", competing_with="discharged", '
+        'colour="ward")',
+        'chart.save("draw_risk_curves.png")']),
     "trade_off_curve": _ex("clinic", 'chart.trade_off_curve(score=["crp", "procalcitonin"], truth="infected")',
                            "trade_off_curve"),
     "difference_dots": _ex("clinic", 'chart.difference_dots(first="device_a", second="device_b")', "difference_dots"),
@@ -1521,6 +1539,7 @@ SYSTEMS_LESSON = "Systems: a spring and damper, its response and a feedback loop
 OUTLIERS_LESSON = "Beyond the average line: percentiles and outliers"
 # S3a-3: the interaction lesson (lesson 28; found by title)
 INTERACTIONS_LESSON = "When one effect depends on another"
+MORE_SURVIVAL_LESSON = "More survival: start times, competing events, adjusted curves"  # S3b-3
 
 LESSONS = [
     dict(
@@ -3648,6 +3667,9 @@ LESSONS = [
             "the size before collecting data, not after.",
             "effect_size= is Cohen's d for averages, f for 3 or more groups, w for counts and r for a "
             "correlation. You can also give difference= and spread= in your own units.",
+            # S3b-3: one "more" line
+            "More survival in the lesson \"More survival\": at_time_points=[365, 730] reads the curves at chosen times, and "
+            "allowing_for= takes a column into account without estimating its effect.",
         ],
         task=[
             'Explain the risk of dying from "age" alone with explain_survival.',
@@ -4834,6 +4856,124 @@ LESSONS = [
         ],
         words=["draw_interaction_lines", "table.explain", "table.find_model_averages_of"],
     ),
+    # S3b-3 (survival and person-time): lesson 30 after S3b-1's lesson 29, found by title
+    dict(
+        title=MORE_SURVIVAL_LESSON,
+        needs_r=needs_r_text("Examples 1 and 2 need no R (without R, explain_survival leaves out its proportional-"
+                             "hazards check and Harrell's C, with a note). Example 3 finds the chance of an event when "
+                             "another can come first with R's survival package: find_risk_over_time() with "
+                             "competing_with=", packages=("survival", "cmprsk")),
+        learn=[
+            "how to turn dates into a time column and an event column (add_time_and_event_columns), and find the "
+            "rate per patient-day",
+            "how to read survival at chosen times (at_time_points=) and take a column into account without "
+            "estimating its effect (allowing_for=)",
+            "if you have R: the chance of an event when another event can come first (competing risks), and why 1 "
+            "minus the survival curve is then too high",
+        ],
+        parts=[
+            ("Hospital records come as dates. add_time_and_event_columns turns them into the two columns the "
+             "survival and rate words need: the time followed, and whether the event happened.", [
+                ("import simplydata as sdata", "Load simplydata."),
+                ('table = sdata.table(sdata.get_example("admissions"))',
+                 "300 made-up hospital admissions in 2024, with the date each patient came, left, and first grew "
+                 "ESBL-producing bacteria in a culture."),
+                ('table.add_time_and_event_columns(from_date="admitted", to_date="discharged", '
+                 'event_date="first_esbl")',
+                 'Adds "time" (days from admission to the first of first_esbl and discharged) and "event" (1 when '
+                 "first_esbl came first): 22 of 300 patients, 2,338 patient-days in all."),
+                ('table.rate_of("event", time="time", for_each_group_in="ward")',
+                 "New ESBL carriage per 1000 patient-days: 12.7 in intensive care and 6.46 in surgery. Say in words "
+                 "what 12.7 per 1000 patient-days means for a ward with 20 patients for 50 days."),
+            ]),
+            ("At chosen times, and allowing for a column. Back to the trial of lesson 18, where nothing competes "
+             "with death.", [
+                ("import simplydata as sdata", "Load simplydata."),
+                ('table = sdata.table(sdata.get_example("trial"))', "The trial table of lesson 18."),
+                ('table.find_survival_over_time(time="days", event="died", for_each_group_in="treatment", '
+                 "at_time_points=[365, 730])",
+                 "Survival read at one and two years: 76.0 % of the new-medicine group and 64.3 % with usual care "
+                 "were still alive after 365 days, each with its 95 % interval and the number still followed."),
+                ('table.explain_survival(time="days", event="died", using=["age"], allowing_for="treatment")',
+                 "Each treatment group gets its own baseline risk, so there is no hazard ratio for treatment; each "
+                 "year of age still multiplies the risk at any moment by 1.05. With using= instead, treatment would "
+                 "get a hazard ratio of its own."),
+            ]),
+            ("If you have R: in hospital, leaving hospital stops a patient from acquiring ESBL there. It competes with "
+             "the event, so it must not be counted as the end of follow-up.", [
+                ("import simplydata as sdata", "Load simplydata."),
+                ('table = sdata.table(sdata.get_example("admissions"))', "The admissions again."),
+                ('table.add_time_and_event_columns(from_date="admitted", event_date="first_esbl", '
+                 'competing_with="discharged")',
+                 'competing_with= takes the date of the competing event: "event" now holds "first_esbl" or '
+                 '"discharged", whichever came first.'),
+                ('table.find_risk_over_time(time="time", event="event", value="first_esbl", '
+                 'competing_with="discharged", for_each_group_in="ward", at_time_points=[30])',
+                 "By day 30, 13.1 % of intensive-care patients had acquired ESBL (and 82.2 % had left first). 1 "
+                 "minus Kaplan-Meier would say 35.8 %: the printout shows it, beside the right answer. Say in words "
+                 "why 1 minus Kaplan-Meier is too high here."),
+            ]),
+        ],
+        notes=[
+            "time= and event= of add_time_and_event_columns name the columns it makes; give the same names to "
+            "rate_of and the survival words next.",
+            "A year here is 365.25 days and a month 30.4375 days (as R Epi and Stata); unit= chooses days, weeks, "
+            "months or years.",
+            "When another event can come first and stop the event (leaving hospital, death before relapse), use "
+            "find_risk_over_time with competing_with=. The survival words refuse an event column with three kinds "
+            "and show the call.",
+            "find_risk_over_time gives the chance of having had the event by a time; explain_survival's hazard ratio "
+            "is about the risk at any moment.",
+            'More: followed_from= (rows that join late), average_time_up_to= (the average time without the event, '
+            'easier to read than a hazard ratio), distribution= (time ratios), method="fine-gray", and allowing_for= '
+            "on the curve words (curves adjusted for other columns). The dictionary has them all.",
+        ],
+        task=[
+            'Add the time in weeks instead (unit="weeks") and give the ESBL rate per 100 patient-weeks for each ward '
+            "(per=100).",
+            "In the trial table, what share of each treatment group was still alive after 180 days?",
+            "If you have R: draw the curves of example 3: chart.draw_risk_curves(...) with one curve per ward.",
+            "Try to remember without looking back: which option says which event can come first? Use it with "
+            "compare_survival to test whether the wards differ in the chance of ESBL (Gray's test).",
+        ],
+        solutions=[
+            (_sx("""\
+                import simplydata as sdata
+                table = sdata.table(sdata.get_example("admissions"))
+                table.add_time_and_event_columns(from_date="admitted", to_date="discharged", event_date="first_esbl",
+                                                 unit="weeks")
+                table.rate_of("event", time="time", for_each_group_in="ward", per=100)"""),
+             "8.91 per 100 patient-weeks in intensive care and 4.52 in surgery: the same rates as per 1000 "
+             "patient-days, in other units."),
+            (_sx("""\
+                import simplydata as sdata
+                table = sdata.table(sdata.get_example("trial"))
+                table.find_survival_over_time(time="days", event="died", for_each_group_in="treatment",
+                                              at_time_points=180)"""),
+             "90.0 % of the new-medicine group and 81.7 % with usual care."),
+            (_sx("""\
+                import simplydata as sdata
+                table = sdata.table(sdata.get_example("admissions"))
+                table.add_time_and_event_columns(from_date="admitted", event_date="first_esbl",
+                                                 competing_with="discharged")
+                chart = table.start_chart()
+                chart.draw_risk_curves(time="time", event="event", value="first_esbl", competing_with="discharged",
+                                       colour="ward")
+                chart.save("esbl_risk.png")"""),
+             "Two rising curves: the chance of having acquired ESBL by each day, higher in intensive care."),
+            (_sx("""\
+                import simplydata as sdata
+                table = sdata.table(sdata.get_example("admissions"))
+                table.add_time_and_event_columns(from_date="admitted", event_date="first_esbl",
+                                                 competing_with="discharged")
+                table.compare_survival(time="time", event="event", value="first_esbl", competing_with="discharged",
+                                       for_each_group_in="ward")"""),
+             "competing_with=. Gray's test: chi-square 8.10, p = 0.004; differences this big would turn up in about "
+             "4 of 1000 studies if the wards truly had the same chance of ESBL."),
+        ],
+        words=["table.add_time_and_event_columns", "table.rate_of", "table.find_survival_over_time",
+               "table.explain_survival", "table.find_risk_over_time", "draw_risk_curves", "table.compare_survival"],
+    ),
 ]
 
 
@@ -4867,7 +5007,8 @@ def _list_lessons() -> None:
     print(f"to a figure. Lessons 16 to {len(LESSONS)} go further: models, patterns across many columns,")
     print("survival and planning a study, fitting curves and finding answers, distributions, working")
     print("with a model, risks, diagnostic tests and agreement, time series, forecasts, cycles,")
-    print("(optional) systems, percentiles and outliers, and effects that depend on each other.\n")
+    print("(optional) systems, percentiles and outliers, effects that depend on each other, and more")
+    print("survival.\n")
     for i, les in enumerate(LESSONS, start=1):
         print(f"  sdata.show_lesson({i}){' ' * (5 - len(str(i)))}{les['title']}")
     print("\nStart with sdata.show_lesson(1). Each lesson ends with a small task to try yourself.")

@@ -380,6 +380,11 @@ UNDERNEATH = {
     "table.find_columns_that_predict": "R glmnet (cv.glmnet, coef at lambda.1se)",
     "table.find_group_levels_of": "R lme4 (ranef with condVar, coef)",
     "draw_interaction_lines": "pandas (averages), SciPy (t intervals), drawn with seaborn and matplotlib",
+    # S3b-3: survival and person-time (each also has a tested entry in simplydata._underneath)
+    "table.add_time_and_event_columns": "pandas and NumPy date arithmetic (a year of 365.25 days)",
+    "table.find_risk_over_time": "R survival (survfit with a factor event, Aalen-Johansen); statsmodels "
+                                 "(SurvfuncRight) with one kind of event",
+    "draw_risk_curves": "as table.find_risk_over_time, drawn with matplotlib",
 }
 
 # ---------------------------------------------------------------- hand-written text

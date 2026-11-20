@@ -2,4 +2,5 @@ The event is "died" = "yes" (59 of 120 rows); the other rows count as followed w
 Hazard ratios from 120 rows with 59 events (above 1: a higher risk of the event at any moment; below 1: a lower risk):
   each 1 more "age": hazard ratio 1.05 (95 % CI 1.03 to 1.08); fewer than 1 in 1000 studies would show this much if there were truly none (p < 0.0001).
 The model as a whole (likelihood-ratio test, chi-square = 20.4, df = 1): fewer than 1 in 1000 studies would show this much if none of the columns truly mattered (p < 0.0001).
+Harrell's C = 0.649 (standard error 0.0393): in 64.9 % of the pairs where one row had the event first, the model gave that row the higher risk; 0.5 is a coin toss. Measured on the rows the model was fitted to, so it is likely too high for new rows.
 Method: Cox proportional hazards model, Efron's method for tied times, as R coxph(Surv(days, died == "yes") ~ age).

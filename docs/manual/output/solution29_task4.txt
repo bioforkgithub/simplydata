@@ -1,0 +1,9 @@
+Added "time": the days from "admitted" to the first of "first_esbl" and "discharged".
+Added "event": the name of the event that came first ("first_esbl" 22 and "discharged" 278 of 300 rows), or "still followed" (0 rows). Next: table.find_risk_over_time(time="time", event="event", value="first_esbl", competing_with=["discharged"]).
+Person-time in all: 2,338 days over 300 rows.
+The events in "event": "first_esbl" (22 rows) and "discharged" (278 rows); "first_esbl" is the event asked about, "discharged" competes with it (can come first).
+Every row of "event" had one of these events.
+Gray's test for "first_esbl" between the "ward" groups (chi-square = 8.10, df = 1):
+If the groups truly had the same chance of "first_esbl" over time (with "discharged" as a competing event), differences this big or bigger would turn up in about 4 of 1000 studies like this one (p = 0.004).
+For "discharged" (the competing event) the same test gives chi-square = 18.4, df = 1, p < 0.0001.
+Test: Gray's test of the chance of each event over time (cumulative incidence), as R cmprsk::cuminc(ftime, fstatus, group, cencode = 0)$Tests, with fstatus 1 = "first_esbl", 2 = "discharged", 0 = every other value.

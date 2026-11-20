@@ -51,6 +51,8 @@ r = ["rpy2>=3.5"]  # the bridge to R for the methods only R gives (R itself: htt
 # S3a-3 (checking and comparing) calls the R packages nlme (explain(spread_changes_with=,
 # neighbours_alike_in_order_of=)), glmnet (find_columns_that_predict) and boot (compare_models(check_on_left_out_rows=)),
 # besides emmeans, lme4 and performance, listed already; lmtest and AICcmodavg are used by the reliability study only.
+# S3b-3 (survival and person-time) calls cmprsk (Gray's test, Fine-Gray), adjustedCurves with riskRegression (adjusted
+# curves), KMsurv (life table) and survRM2 (restricted mean survival time; CRAN only, like presize), besides survival.
 test = ["pytest>=7", "polars>=0.20", "pyarrow>=14", "statsmodels>=0.14"]
 
 [project.urls]

@@ -100,6 +100,17 @@ underneath" in the manual and a case on real, published data in the reliability 
 - Lesson 21 gains a three-model comparison line, an `over_range_of=` line and a note; new lesson 28 "When one effect depends on another" (picture first, then simple effects and contrasts).
 - Reliability study: 15 new cases on real data (swiss, iris, warpbreaks, Lake Huron, the rat liver glycogen of Sokal & Rohlf, and Dialyzer, sleepstudy and birthwt read from R packages); same-underneath entries for the three new words and nine new options.
 
+### Survival and person-time (S3b-3)
+
+- New: `table.add_time_and_event_columns` turns dates into a time column and an event column: from `from_date=` to the first of `event_date=`, `to_date=` and `until=`, in days, weeks, months (30.4375 days) or years (365.25 days, as R Epi and Stata), with the person-time printed and prevalent cases left empty. `competing_with=` takes the dates of competing events (in hospital, discharge before an infection); the event column then names the event that came first.
+- New: `table.find_risk_over_time` gives the chance of having had an event by each time when another event can come first (`value=`, `competing_with=`; Aalen-Johansen, R survival), prints how every other value was counted and what 1 minus Kaplan-Meier would wrongly give; with one kind of event it is 1 minus Kaplan-Meier (no R). New chart twin `chart.draw_risk_curves`.
+- The survival words refuse an event column with three or more kinds of outcome and show the `find_risk_over_time` call; `value=` names the event in a column of two other values.
+- `find_survival_over_time`: `at_time_points=` (survival at chosen times; `at_times=` works too), `method="life table"` (actuarial life table, R KMsurv), `average_time_up_to=` (the average time without the event up to a horizon, restricted mean survival time), `allowing_for=` (curves adjusted by direct adjustment, R adjustedCurves) and `followed_from=` (delayed entry). `draw_survival_curves` takes `allowing_for=` and `followed_from=` too.
+- `compare_survival`: `allowing_for=` (stratified log-rank), `followed_from=`, `average_time_up_to=` (difference and ratio of restricted mean survival times, R survRM2), and Gray's test with `value=`, `competing_with=` (R cmprsk).
+- `explain_survival`: `allowing_for=` (stratified Cox, text columns only), `followed_from=` (start-stop rows; rows that start at an event time are fitted by R coxph, as statsmodels would count them twice), cause-specific hazard ratios with `value=`, `competing_with=`, `method="fine-gray"` (R cmprsk crr), `distribution=` (Weibull, exponential, lognormal, log-logistic time ratios, R survreg), and with R Harrell's C in every Cox printout.
+- New practice table "admissions" (made up: hospital admissions with dates of discharge and first ESBL-positive culture); new lesson "More survival: start times, competing events, adjusted curves" and one "more" line in lesson 18.
+- Reliability study: 20 new cases on real data (lung, veteran, Stanford heart transplant and mgus2 from R survival; bfeed, Channing House and larynx from R KMsurv; the UDCA trial's dates); same-underneath entries for the three new words and seventeen new options. New R packages for the R extra: cmprsk, adjustedCurves (with riskRegression), KMsurv and survRM2.
+
 ## 0.2.0 (2026-11-20)
 
 More statistics (tests and models), signals and time series, the 30-day course, the talking syntax, the same-underneath boxes and the public reliability study. Every printed statistical result is checked against R.

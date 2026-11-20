@@ -1,0 +1,6 @@
+Added "time": the weeks from "admitted" to the first of "first_esbl" and "discharged".
+Added "event": 1 when "first_esbl" came first (on or before the other dates), else 0 (22 of 300 rows).
+Person-time in all: 334 weeks over 300 rows.
+Note: one week is 7 days here (as R Epi cal.yr() and Stata stset scale(365.25)); other tools may count calendar months or years.
+"event" per 100 "time": 8.91 in intensive care (95 % CI 4.87 to 14.9; 14 events in 157.143) and 4.52 in surgery (95 % CI 1.95 to 8.91; 8 events in 176.857).
+Method: exact Poisson intervals (statsmodels confint_poisson, as R poisson.test()).
