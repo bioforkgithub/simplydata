@@ -1,4 +1,6 @@
-Made 2 clusters of 30 rows from 10 columns (each put on the same scale first): sizes 15 and 15 (clusters 1 and 2, numbered in the order they first appear). 24.3 % of the spread lies between the clusters (between-cluster / total sum of squares); the rest is within them.
+Made 2 clusters of 30 rows from 10 columns (clover, daisy, buttercup, dandelion, nettle, thistle and 4 more) (each put on the same scale first): sizes 15 and 15 (clusters 1 and 2, numbered in the order they first appear). 24.3 % of the spread lies between the clusters (between-cluster / total sum of squares); the rest is within them.
+Average silhouette width 0.20: no real structure (Kaufman & Rousseeuw's guide: above 0.70 strong, 0.51 to 0.70 reasonable, 0.26 to 0.50 weak and could be made by the method, 0.25 or less no real structure; R cluster::silhouette). Clusters always appear, even in random data.
+simplydata chooses linkage="ward" for Euclidean distances (the same as chart.draw_cluster_tree).
 Method: hierarchical clustering on Euclidean distances with ward linkage, as R hclust(dist(x), method = "ward.D2") and cutree(k = 2). Added the column "cluster".
 Rows for each "cluster" (rows) and each "grazed" (columns):
   1: no 0, yes 15

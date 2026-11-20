@@ -47,7 +47,7 @@ jobs:
           "cmprsk", "adjustedCurves", "riskRegression", "KMsurv", "survRM2",
           "metafor", "metadat", "meta",
           "gsDesign", "powerSurvEpi", "pwrss",
-          "zCompositions", "compositions", "ca");
+          "zCompositions", "compositions", "ca", "cluster");
           install.packages(pkgs); for (p in pkgs) library(p, character.only = TRUE)'
       - name: Tell rpy2 where R is
         shell: bash

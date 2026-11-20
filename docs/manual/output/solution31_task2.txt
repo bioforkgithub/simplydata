@@ -1,0 +1,4 @@
+Diversity of 24 rows from 14 columns (blaTEM, blaCTXM, blaOXA48, blaNDM, sul1, sul2 and 8 more):
+  Hill numbers average 12.9 (q = 0, richness), 7.4 (q = 1, from Shannon) and 6.1 (q = 2, from Simpson): each is a number of equally common kinds, so they can be compared directly.
+Note: richness depends on how many counts each row has (from 1,285 to 59,389 here); compare richness at the same total count: at_total_count=1285.
+Method: R vegan::renyi(x, scales = c(0, 1, 2), hill = TRUE). simplydata chooses the natural log for Shannon, Simpson as 1 - D (the Gini-Simpson index), Chao1 bias-corrected and rarefaction as an expected value. Added hill number 0, hill number 1 and hill number 2.
