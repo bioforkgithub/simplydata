@@ -4,6 +4,8 @@
 
 **Learn basic Python, and simplydata takes you from your first table to publication-ready statistics, in plain words, with every number checked against the field's standard tools.**
 
+*simplydata is a package that is easy for a beginner, honest with a reviewer, and safe for patient data, all at once.*
+
 **Simple words for data science in Python.** One small vocabulary you can learn in a day,
 built on matplotlib, seaborn, pandas, Polars, NumPy, SciPy and statsmodels (with narwhals linking
 pandas and Polars), and on R through rpy2 for the methods only R has, so you don't have to learn
