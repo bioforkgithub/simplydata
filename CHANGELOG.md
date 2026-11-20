@@ -5,6 +5,22 @@ working for one release and prints a one-line note with its new name.
 
 ## Unreleased
 
+### New: how simplydata chooses methods, every default with its published basis
+
+- `docs/how_simplydata_chooses.md` answers a reviewer's question: "simplydata picks the method for the user; how
+  does it know which is correct?". It states the five principles simplydata follows (published guidelines first,
+  then method comparisons and the method that needs fewer assumptions, then the field's standard software, then
+  checks of the data, and openness throughout). For each word and option that chooses a method or setting, it
+  gives the default, the alternatives and the option that asks for them, why, the references, and what
+  simplydata checks in the data.
+- Each default says what kind of basis it has: a published guideline or method comparison, the convention of the
+  package named, or simplydata's own starting value (said as such, with the option that changes it).
+- Every reference was looked up before it was cited: DOIs in Crossref, the rest at their URL.
+- The registry is `src/simplydata/_method_basis.py`, and `docs/make_method_basis.py` writes the document. The
+  manual has it as a new last part, "How simplydata chooses methods", and each dictionary entry with a choice
+  points to it. A test fails when a "simplydata chooses" line has no basis, when an entry names a word or
+  option that no longer exists, or when the document is out of date. No word's behaviour changes.
+
 ### New: `sdata.show_packages_used()`, the packages that did the work and how to cite them
 
 - simplydata now remembers, during a session, every package that did work behind a word that finished without
