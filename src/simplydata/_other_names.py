@@ -226,6 +226,15 @@ _TABLE = [
      "accuracy forecast_accuracy mase backtest"),
     ('table.find_change_points_in("nitrate", sorted_by="date")',
      "cpt.mean cpt.meanvar changepoint change_points changepoints pelt breakpoints detect_changes"),
+    # S3a-2: lines and curves
+    ('table.fit_dose_response(x="concentration", y="root_length")', "drm drc dose_response ec50 ed50 ld50 lc50"),
+    ('table.find_best_power_of("days")', "boxcox box_cox powerTransform yeojohnson yeo_johnson"),
+    ('table.fit_line(x="hours", y="marks", method="standardised major axis")',
+     "sma lmodel2 model_ii deming mcreg passing_bablok siegelslopes"),
+    ('table.fit_line(x="hours", y="marks", with_bends=1)', "segmented piecewise_regression davies.test"),
+    ('table.explain("marks", using=["hours"], for_percentile=90)', "quantreg rq quantile_regression QuantReg"),
+    ('table.fit_curve(x="hour", y="density", of_kind="logistic growth")',
+     "SSlogis SSgompertz SSmicmen SSweibull getInitial selfStart"),
 ]
 
 # chart.<name>
@@ -247,7 +256,8 @@ _CHART = [
     ('chart.fit_formula("marks = a * hours ** b")', "curve_fit nls"),
     ('chart.fit_distribution("normal")', "fitdistr fitdist"),
     ('chart.draw_curve("y = 100 * exp(-0.3 * x)", between=[0, 10])', "stat_function geom_function fplot"),
-    ("chart.draw_smooth_line()", "lowess loess"),
+    ("chart.draw_smooth_line()", "lowess"),
+    ('chart.draw_smooth_line(method="loess")', "loess loess.smooth"),
     ('chart.draw_qq_dots("marks")', "probplot qqplot qqnorm"),
     ("chart.draw_line_with_slope(1, through=(0, 0))", "abline axline"),
     ("chart.draw_line_at_y(50)", "axhline geom_hline hline"),
