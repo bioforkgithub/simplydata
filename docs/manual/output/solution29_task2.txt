@@ -1,0 +1,5 @@
+The event is "died" = "yes" (59 of 120 rows); the other rows count as followed without the event until their "days" (censored).
+Survival (the share still without the event) at the times asked, with its 95 % CI:
+  new medicine, at "days" 180: 90.0 % still without the event (95 % CI 82.7 % to 97.9 %; 54 still followed).
+  usual care, at "days" 180: 81.7 % still without the event (95 % CI 72.4 % to 92.1 %; 49 still followed).
+Method: Kaplan-Meier estimate read at those times, with 95 % confidence intervals on the log scale (Greenwood), as R summary(survfit(Surv(days, died == "yes") ~ treatment), times = c(180), extend = TRUE).

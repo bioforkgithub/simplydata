@@ -1,0 +1,4 @@
+Added "time": the days from "admitted" to the first of "first_esbl" and "discharged".
+Added "event": the name of the event that came first ("first_esbl" 22 and "discharged" 278 of 300 rows), or "still followed" (0 rows). Next: table.find_risk_over_time(time="time", event="event", value="first_esbl", competing_with=["discharged"]).
+Person-time in all: 2,338 days over 300 rows.
+Note: 278 rows with empty "first_esbl" were left out of this chart.

@@ -1,0 +1,5 @@
+Added "time": the days from "admitted" to the first of "first_esbl" and "discharged".
+Added "event": 1 when "first_esbl" came first (on or before the other dates), else 0 (22 of 300 rows).
+Person-time in all: 2,338 days over 300 rows.
+"event" per 1000 "time": 12.7 in intensive care (95 % CI 6.96 to 21.4; 14 events in 1100) and 6.46 in surgery (95 % CI 2.79 to 12.7; 8 events in 1238).
+Method: exact Poisson intervals (statsmodels confint_poisson, as R poisson.test()).

@@ -1,0 +1,14 @@
+The event is "died" = "yes" (59 of 120 rows); the other rows count as followed without the event until their "days" (censored).
+Survival (the share still without the event) at the times asked, with its 95 % CI:
+  new medicine, at "days" 365: 76.0 % still without the event (95 % CI 65.8 % to 87.9 %; 37 still followed).
+  new medicine, at "days" 730: 50.0 % still without the event (95 % CI 36.8 % to 67.8 %; 13 still followed).
+  usual care, at "days" 365: 64.3 % still without the event (95 % CI 53.2 % to 77.9 %; 34 still followed).
+  usual care, at "days" 730: 39.0 % still without the event (95 % CI 27.1 % to 56.1 %; 12 still followed).
+Method: Kaplan-Meier estimate read at those times, with 95 % confidence intervals on the log scale (Greenwood), as R summary(survfit(Surv(days, died == "yes") ~ treatment), times = c(365, 730), extend = TRUE).
+The event is "died" = "yes" (59 of 120 rows); the other rows count as followed without the event until their "days" (censored).
+Hazard ratios from 120 rows with 59 events (above 1: a higher risk of the event at any moment; below 1: a lower risk):
+  each 1 more "age": hazard ratio 1.05 (95 % CI 1.03 to 1.08); fewer than 1 in 1000 studies would show this much if there were truly none (p < 0.0001).
+Allowing for "treatment": each of its 2 groups has its own baseline risk, so there is no hazard ratio for "treatment".
+The model as a whole (likelihood-ratio test, chi-square = 20.1, df = 1): fewer than 1 in 1000 studies would show this much if none of the columns truly mattered (p < 0.0001).
+Harrell's C = 0.647 (standard error 0.0404): in 64.7 % of the pairs where one row had the event first, the model gave that row the higher risk; 0.5 is a coin toss. Measured on the rows the model was fitted to, so it is likely too high for new rows.
+Method: Cox proportional hazards model, Efron's method for tied times, as R coxph(Surv(days, died == "yes") ~ age + strata(treatment)).

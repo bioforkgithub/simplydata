@@ -1,0 +1,11 @@
+Added "time": the days from "admitted" to the first of "first_esbl" and "discharged".
+Added "event": the name of the event that came first ("first_esbl" 22 and "discharged" 278 of 300 rows), or "still followed" (0 rows). Next: table.find_risk_over_time(time="time", event="event", value="first_esbl", competing_with=["discharged"]).
+Person-time in all: 2,338 days over 300 rows.
+The events in "event": "first_esbl" (22 rows) and "discharged" (278 rows); "first_esbl" is the event asked about, "discharged" competes with it (can come first).
+Every row of "event" had one of these events.
+The chance of having had each event by each time (Aalen-Johansen), with its 95 % CI:
+  intensive care, by "time" 30: 13.1 % had had "first_esbl" (95 % CI 8.0 % to 21.3 %), and 82.2 % had had "discharged" first.
+  intensive care, if "discharged" were wrongly counted as the end of follow-up (1 minus Kaplan-Meier), the chance of "first_esbl" by "time" 30 would come out as 35.8 %: too high, because rows that had "discharged" first are treated as if they could still have "first_esbl".
+  surgery, by "time" 30: 4.1 % had had "first_esbl" (95 % CI 2.1 % to 8.2 %), and 94.3 % had had "discharged" first.
+  surgery, if "discharged" were wrongly counted as the end of follow-up (1 minus Kaplan-Meier), the chance of "first_esbl" by "time" 30 would come out as 11.5 %: too high, because rows that had "discharged" first are treated as if they could still have "first_esbl".
+Method: Aalen-Johansen estimate with 95 % confidence intervals (log scale), as R summary(survfit(Surv(time, factor(event)) ~ ward), times = c(30), extend = TRUE); the risk is the column "pstate" of each event.
