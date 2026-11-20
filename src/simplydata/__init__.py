@@ -1,4 +1,4 @@
-"""simplydata: plain-English plotting and data for everyone.
+"""Learn basic Python, and simplydata takes you from your first table to publication-ready statistics, in plain words, with every number checked against the field's standard tools.
 
     import simplydata as sdata
 
