@@ -2160,7 +2160,7 @@ BASIS["sdata.frequency_filter"] = _b(
     "A Butterworth filter of order 4 run both ways, as table.add_filtered_column.", "As table.add_filtered_column.",
     "As table.add_filtered_column.", ("gustafsson1996",), "P5", "As table.add_filtered_column.", "starting value")
 BASIS["table.find_each_peak_that"] = _b(
-    "Every local maximum (SciPy find_peaks with no thresholds unless you give them); flat tops counted once; the "
+    "Every local maximum (SciPy signal.find_peaks() with no thresholds unless you give them); flat tops counted once; the "
     "prominence and the width at half prominence of each.",
     "is_at_least=, apart=, stands_out_by=, wide_at_least=.",
     "No threshold is a neutral start: which peaks matter is your question, and the conditions say it in words. "

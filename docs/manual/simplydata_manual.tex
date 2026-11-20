@@ -18578,7 +18578,7 @@ simplydata often chooses a method, an option value or a setting for you. This ap
 \wordfield{In the dictionary}{\hyperref[word:table.compare-forecasts-for]{page \pageref{word:table.compare-forecasts-for}}}
 \unsection{Cycles and filters}{basis-group:Cycles-and-filters}
 \par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:table.find-each-peak-that}\noindent{\sffamily\bfseries\color{brand}\code{table.\allowbreak{}find\_\allowbreak{}each\_\allowbreak{}peak\_\allowbreak{}that()}}\par\nopagebreak
-\wordfield{Default}{Every local maximum (SciPy \code{find\_\allowbreak{}peaks} with no thresholds unless you give them); flat tops counted once; the prominence and the width at half prominence of each.}
+\wordfield{Default}{Every local maximum (SciPy \code{signal.\allowbreak{}find\_\allowbreak{}peaks()} with no thresholds unless you give them); flat tops counted once; the prominence and the width at half prominence of each.}
 \wordfield{Alternatives}{\code{is\_\allowbreak{}at\_\allowbreak{}least=}, \code{apart=}, \code{stands\_\allowbreak{}out\_\allowbreak{}by=}, \code{wide\_\allowbreak{}at\_\allowbreak{}least=}.}
 \wordfield{Why (P3)}{No threshold is a neutral start: which peaks matter is your question, and the conditions say it in words. These are SciPy's defaults. \textit{Basis: convention.}}
 \wordfield{Checks}{Empty cells are never peaks; \code{apart=} and \code{wide\_\allowbreak{}at\_\allowbreak{}least=} need even spacing.}
