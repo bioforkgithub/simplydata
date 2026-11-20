@@ -310,11 +310,21 @@ sdata.help("draw_bars")                  # one word: what it does, its options a
 sdata.get_example()                     # the made-up tables you can practise with
 sdata.start_30_days()               # or learn it in 30 days of about an hour,
 sdata.show_today()                       # ... with sdata.show_today() each day
+sdata.show_packages_used()               # the packages that did the work, and how to cite them
 \end{lstlisting}
 Rather learn an hour a day? \code{sdata.start\_30\_days()} spreads the everyday lessons over 30 days, each with
 a warm-up of questions on earlier days and a task, and a project of your own at the end
 (\code{track="beginner"} starts with just enough Python). The printable guide,
 \href{simplydata_30_days.pdf}{\code{simplydata\_30\_days.pdf}}, has the same days on paper.
+
+\section*{Cite the packages underneath}
+simplydata does its work with pandas, Polars, NumPy, SciPy, statsmodels, matplotlib, seaborn and R,
+and their authors ask to be cited. At the end of a script simplydata prints a short list of the
+packages your words used, with their versions and references; \code{sdata.show\_packages\_used()}
+gives the full references and a sentence for your methods, and
+\code{sdata.show\_packages\_used(save\_as="references.bib")} saves them as BibTeX. The list is not
+printed in Jupyter or an interactive session; \code{sdata.show\_packages\_used(at\_end=False)} or the
+environment variable \code{SIMPLYDATA\_NO\_CITE\_LIST=1} switches it off.
 
 \section*{Your own data}
 \code{sdata.table("my\_file.xlsx")} and \code{sdata.chart("my\_file.xlsx")} read Excel, CSV, TSV,
@@ -14461,6 +14471,29 @@ import simplydata as sdata
 sdata.show_lesson()
 sdata.show_lesson(1)
 \end{lstlisting}
+\wordentry{sdata.show\_packages\_used()}{word:sdata.show-packages-used}
+List the packages that did the work behind your simplydata words, and how to cite them.\\
+\codeline{sdata.show\_packages\_used()}
+
+simplydata calls established packages (pandas, Polars, NumPy, SciPy, statsmodels, matplotlib, seaborn, and R with its packages); their authors ask to be cited. This prints each one with its version, language, where it comes from (PyPI, conda-forge, CRAN, Bioconductor) and its reference: R's own \code{citation()} for R packages, the package's own request for Python packages. Then a sentence for the methods section of a paper, and the packages you imported yourself (cite them if you used them). simplydata itself comes first.
+
+\code{save\_\allowbreak{}as=} a file name, such as \code{\textquotedbl{}references.\allowbreak{}bib\textquotedbl{}}, also writes the references as BibTeX. \code{at\_\allowbreak{}end=} True or False: whether a short list is printed when your script ends (normally True; never in an interactive session or a notebook). The environment variable \code{SIMPLYDATA\_\allowbreak{}NO\_\allowbreak{}CITE\_\allowbreak{}LIST}=1 switches it off too.
+
+\wordfield{Options}{}\par\nopagebreak
+\begin{optiontable}
+\code{save\_\allowbreak{}as=} & \\
+\code{at\_\allowbreak{}end=} & \\
+\end{optiontable}
+
+\wordfield{Underneath}{Python's importlib.metadata (versions and home pages) and each package's own requested reference; for R, utils::\code{citation()} and \code{packageVersion()} through rpy2}
+\wordfield{Example you can run}{}\par\nopagebreak
+\begin{lstlisting}[style=py]
+import simplydata as sdata
+table = sdata.table(sdata.get_example("marks"))
+table.find_average_of("marks", for_each_group_in="class")
+sdata.show_packages_used()
+sdata.show_packages_used(save_as="references.bib")
+\end{lstlisting}
 \unsection{30 days of simplydata}{group:30-days-of-simplydata}
 \wordentry{sdata.start\_30\_days()}{word:sdata.start-30-days}
 Start 30 days of simplydata: an hour a day of warm-up questions, lessons and tasks. \code{sdata.\allowbreak{}start\_\allowbreak{}30\_\allowbreak{}days()}
@@ -16077,6 +16110,7 @@ Every word and option, A to Z, with the page of its dictionary entry. Other spel
 \indexline{word:table.show-last-rows}{table.show\_last\_rows()}
 \indexline{word:show-legend}{chart.show\_legend()}
 \indexline{word:sdata.show-lesson}{sdata.show\_lesson()}
+\indexline{word:sdata.show-packages-used}{sdata.show\_packages\_used()}
 \indexline{word:dist.show-parameters}{dist.show\_parameters()}
 \indexline{word:table.show-rows-that-pull-model}{table.show\_rows\_that\_pull\_model()}
 \indexline{word:table.show-rows-with-outliers}{table.show\_rows\_with\_outliers()}

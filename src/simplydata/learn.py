@@ -154,7 +154,7 @@ GROUPS = [
                            "system.frequency_response", "system.poles", "system.zeros", "system.is_stable",
                            "system.steady_gain", "system.in_steps", "system.then", "system.add",
                            "system.with_feedback", "system.table", "system.chart"]),
-    ("Help", ["sdata.show_all_words", "sdata.help", "sdata.show_lesson"]),
+    ("Help", ["sdata.show_all_words", "sdata.help", "sdata.show_lesson", "sdata.show_packages_used"]),
     ("30 days of simplydata", ["sdata.start_30_days", "sdata.show_today", "sdata.show_day", "sdata.show_answers",
                                "sdata.go_to_next_day"]),
 ]
@@ -971,6 +971,9 @@ HELP_EXAMPLES = {
     "sdata.show_all_words": "import simplydata as sdata\nsdata.show_all_words()",
     "sdata.help": 'import simplydata as sdata\nsdata.help("draw_bars")\nsdata.help("show=")\nsdata.help("keep_rows_where")\nsdata.help("find_average")',
     "sdata.show_lesson": "import simplydata as sdata\nsdata.show_lesson()\nsdata.show_lesson(1)",
+    "sdata.show_packages_used": _tx("marks", 'table.find_average_of("marks", for_each_group_in="class")\n'
+                                             'sdata.show_packages_used()\n'
+                                             'sdata.show_packages_used(save_as="references.bib")'),
     # 30 days of simplydata
     "sdata.start_30_days": 'import simplydata as sdata\nsdata.start_30_days(track="python")',
     "sdata.show_today": "import simplydata as sdata\nsdata.show_today()",

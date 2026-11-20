@@ -76,6 +76,8 @@ _SDATA = [
     ("sdata.find_chance_of_finding(by_running=one_study, tries=1000)",
      "simulate_power power_simulation simulated_power monte_carlo_power simr"),
     ('sdata.start_30_days(track="python") once, then sdata.show_today() each day', "course tutorial"),
+    ('sdata.show_packages_used(), or sdata.show_packages_used(save_as="references.bib") for BibTeX',
+     "cite citation citations references cite_packages sessionInfo session_info bibtex"),
 ]
 
 # table.<name>
