@@ -2978,12 +2978,14 @@ Was the trial big enough? Power analysis tells you how many values you need befo
 import simplydata as sdata
 sdata.find_how_many_needed(effect_size=0.5, power=0.8)
 sdata.find_chance_of_finding(effect_size=0.5, values_per_group=20)
+sdata.find_how_many_needed(test="compare_survival", effect_size=0.7, percents=[30, 40])
 \end{lstlisting}
 \whateachline
 \begin{lineexplain}
   \item[1] Load simplydata.
   \item[2] To find a medium difference between two averages (half a standard deviation) with an 80 \% chance, you need 64 values in each group.
   \item[3] With only 20 values in each group, the chance to find it is just 34 \%.
+  \item[4] Survival is planned in events first: to find a hazard ratio of 0.7 you need 247 events; if 30 \% and 40 \% have the event during the study, that is 706 people (needs R).
 \end{lineexplain}
 \printedoutput{output/lesson18_example3.txt}
 \begin{goodtoknow}
@@ -12397,7 +12399,9 @@ back = sdata.find_inverse_fourier_transform(table)
 How many values (in each group) does a study need to find a real difference?
 
 \codeline{sdata.find\_how\_many\_needed(effect\_size=0.5)}\enspace (two groups, a medium difference: 64 in each)\\
-\code{test=} is the simplydata test the study will use: \code{\textquotedbl{}compare\_\allowbreak{}averages\textquotedbl{}} (2 groups: t-test; \code{groups=3} or more: ANOVA with Cohen's f), \code{\textquotedbl{}compare\_\allowbreak{}before\_\allowbreak{}after\textquotedbl{}} (paired, Cohen's d of the changes), \code{\textquotedbl{}compare\_\allowbreak{}average\_\allowbreak{}to\textquotedbl{}} (one sample), \code{\textquotedbl{}compare\_\allowbreak{}counts\textquotedbl{}} (chi-square with Cohen's w; \code{groups=}(groups, kinds of outcome)) or \code{\textquotedbl{}correlation\_\allowbreak{}between\textquotedbl{}} (r; the answer is pairs). The size of the difference: \code{effect\_\allowbreak{}size=} (Cohen's d, f, w or r, the sentence says which), or \code{difference=} and \code{spread=} (the standard deviation) for the t-tests. \code{power=} is the chance you want to find it (0.8 is usual); \code{significance=} is the p-value limit (0.05); \code{sides=1} looks only in the direction you expect. The t-tests use the usual equal-spread formula (R \code{power.\allowbreak{}t.\allowbreak{}test()}), very close to Welch's t-test when the groups are the same size; the others match R pwr. Numbers come from statsmodels (correlations: R pwr.r.test through simplydata[r]). The number is rounded UP to a whole number; the exact value is in the result. Gives back a one-row table. \code{test=\textquotedbl{}compare\_\allowbreak{}counts\textquotedbl{}}, \code{percents=[30,\allowbreak{} 15]}: two groups compared on a yes/no outcome, with the percents you expect (R \code{power.\allowbreak{}prop.\allowbreak{}test()}, run through simplydata[r]; \code{find\_\allowbreak{}chance\_\allowbreak{}of\_\allowbreak{}finding} gives the same power from statsmodels \code{power\_\allowbreak{}proportions\_\allowbreak{}2indep}). \code{same\_\allowbreak{}within=5}, \code{spread=10} (\code{difference=0} by default): the number needed to show the groups are the same within 5 with two one-sided tests (R TOSTER::\code{power\_\allowbreak{}t\_\allowbreak{}TOST()}). \code{interval\_\allowbreak{}width=4}, \code{spread=10}: the number needed for a 95 \% interval of an average that is 4 wide from end to end (R presize::\code{prec\_\allowbreak{}mean()}).
+\code{test=} is the simplydata test the study will use: \code{\textquotedbl{}compare\_\allowbreak{}averages\textquotedbl{}} (2 groups: t-test; \code{groups=3} or more: ANOVA with Cohen's f), \code{\textquotedbl{}compare\_\allowbreak{}before\_\allowbreak{}after\textquotedbl{}} (paired, Cohen's d of the changes), \code{\textquotedbl{}compare\_\allowbreak{}average\_\allowbreak{}to\textquotedbl{}} (one sample), \code{\textquotedbl{}compare\_\allowbreak{}counts\textquotedbl{}} (chi-square with Cohen's w; \code{groups=}(groups, kinds of outcome)) or \code{\textquotedbl{}correlation\_\allowbreak{}between\textquotedbl{}} (r; the answer is pairs). The size of the difference: \code{effect\_\allowbreak{}size=} (the first sentence always names its scale), or \code{difference=} and \code{spread=} (the standard deviation) for the t-tests. Plan with the smallest difference that matters, never with the one a finished study found (\code{\textquotedbl{}observed power\textquotedbl{}}). \code{power=} is the chance you want to find it (0.8 is usual); \code{significance=} is the p-value limit (0.05); \code{sides=1} looks only in the direction you expect. The t-tests use the usual equal-spread formula (R \code{power.\allowbreak{}t.\allowbreak{}test()}), very close to Welch's t-test when the groups are the same size; the others match R pwr. The number is rounded UP to a whole number; the exact value is in the result. Gives back a one-row table.
+
+More: \code{test=\textquotedbl{}compare\_\allowbreak{}counts\textquotedbl{}}, \code{percents=[30,\allowbreak{} 15]}: two percents (R \code{power.\allowbreak{}prop.\allowbreak{}test()}). \code{same\_\allowbreak{}within=5}, \code{spread=10}: show the groups are the same within 5 (R TOSTER::\code{power\_\allowbreak{}t\_\allowbreak{}TOST()}). \code{interval\_\allowbreak{}width=4}, \code{spread=10}: a 95 \% interval of an average 4 wide (R presize::\code{prec\_\allowbreak{}mean()}); \code{interval\_\allowbreak{}width=10}, \code{percents=[30]}: a percent's interval 10 points wide (R presize::\code{prec\_\allowbreak{}prop()}). \code{test=\textquotedbl{}compare\_\allowbreak{}survival\textquotedbl{}}, \code{effect\_\allowbreak{}size=0.\allowbreak{}7} (a hazard ratio), \code{percents=[30,\allowbreak{} 40]}: the events first (Schoenfeld, R gsDesign::\code{nEvents()}), then the people if 30 \% of the first group and 40 \% of the second have the event; \code{method=\textquotedbl{}freedman\textquotedbl{}} uses Freedman's formula (R powerSurvEpi). \code{test=\textquotedbl{}explain\textquotedbl{}}, \code{effect\_\allowbreak{}size=0.\allowbreak{}15}, \code{using=[\textquotedbl{}temperature\textquotedbl{},\allowbreak{} \textquotedbl{}salinity\textquotedbl{},\allowbreak{} \textquotedbl{}depth\textquotedbl{}]}: regression with Cohen's f\textsuperscript{2} (statsmodels FTestPowerF2, as R \code{pwr.\allowbreak{}f2.\allowbreak{}test()}); \code{test=\textquotedbl{}compare\_\allowbreak{}models\textquotedbl{}}, \code{using=}, \code{against=} (the columns of each model, as on \code{compare\_\allowbreak{}models}): the columns in one and not the other. \code{test=\textquotedbl{}explain\textquotedbl{}}, \code{outcome=\textquotedbl{}yes or no\textquotedbl{}}, \code{using=[\textquotedbl{}dose\textquotedbl{}]}, \code{percents=[20]}, \code{effect\_\allowbreak{}size=1.\allowbreak{}5}: logistic regression, 20 \% with the outcome at the average dose, odds ratio 1.5 per standard deviation of dose (R pwrss::\code{power.\allowbreak{}z.\allowbreak{}logistic()}, Demidenko with variance correction). \code{in\_\allowbreak{}clusters\_\allowbreak{}of=20}, \code{alike\_\allowbreak{}within\_\allowbreak{}clusters=0.\allowbreak{}05}: values come in clusters of 20 (wards, farms, tanks) that are alike (intracluster correlation 0.05); the answer is times the design effect. \code{based\_\allowbreak{}on=\textquotedbl{}ranks\textquotedbl{}}: rank tests (Mann-Whitney, Wilcoxon) by simulation (SciPy stats.power); \code{drawing\_\allowbreak{}from=[dist\_\allowbreak{}a,\allowbreak{} dist\_\allowbreak{}b]}: simulate from your own distributions (\code{sdata.\allowbreak{}distribution}); \code{tries=10000}, \code{with\_\allowbreak{}seed=1} set the simulation.
 
 \wordfield{Options}{}\par\nopagebreak
 \begin{optiontable}
@@ -12413,21 +12417,198 @@ How many values (in each group) does a study need to find a real difference?
 \code{same\_\allowbreak{}within=} & \\
 \code{interval\_\allowbreak{}width=} & \\
 \code{based\_\allowbreak{}on=} & normally \code{\textquotedbl{}averages\textquotedbl{}}\\
+\code{using=} & \\
+\code{against=} & \\
+\code{outcome=} & normally \code{\textquotedbl{}numbers\textquotedbl{}}\\
+\code{method=} & \\
+\code{in\_\allowbreak{}clusters\_\allowbreak{}of=} & \\
+\code{alike\_\allowbreak{}within\_\allowbreak{}clusters=} & \\
+\code{drawing\_\allowbreak{}from=} & \\
+\code{tries=} & normally \code{10000}\\
+\code{with\_\allowbreak{}seed=} & normally \code{1}\\
 \end{optiontable}
 
-\wordfield{Underneath}{statsmodels (stats.power: TTestIndPower, TTestPower, FTestAnovaPower, GofChisquarePower, \code{solve\_\allowbreak{}power}); R pwr::pwr.r.test, power.prop.test, TOSTER::\code{power\_\allowbreak{}t\_\allowbreak{}TOST} and presize::\code{prec\_\allowbreak{}mean} (simplydata[r])}
+\wordfield{Underneath}{statsmodels \code{TTestIndPower().\allowbreak{}solve\_\allowbreak{}power()}, \code{ceil()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
 sdata.find_how_many_needed(effect_size=0.5, power=0.8)
 sdata.find_how_many_needed(test="compare_averages", difference=5, spread=10)
 sdata.find_how_many_needed(test="compare_averages", effect_size=0.25, groups=3)
+sdata.find_how_many_needed(effect_size=0.5, in_clusters_of=20, alike_within_clusters=0.05)
+sdata.find_how_many_needed(test="explain", effect_size=0.15, using=["temperature", "salinity", "depth"])
 \end{lstlisting}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{statsmodels}}
+\underlib{statsmodels}
+\begin{lstlisting}[style=under]
+import math
+from statsmodels.stats.power import TTestIndPower
+# find_how_many_needed(effect_size=0.5, power=0.8)
+exact = TTestIndPower().solve_power(effect_size=0.5, power=0.8,
+                                    alpha=0.05 / 2,           # (1)
+                                    alternative="larger")
+{"values per group (exact)": exact,
+ "values per group": math.ceil(exact)}                     # (2)
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) a two-sided test counts only the chance of finding the difference in the right direction, as R \code{power.\allowbreak{}t.\allowbreak{}test()} (strict = FALSE): one side at half the significance level.}
+\undertext{(2) the number is rounded UP to a whole number.}
+\undertext{simplydata also says the answer in a sentence that names the effect's scale, and rounds the number UP. It also names Cohen's rough size and warns that \code{compare\_\allowbreak{}averages\_\allowbreak{}of} uses Welch's t-test.}
+\undertext{\textit{Checked:} a test runs both and compares the numbers of the result table.}
+\end{underneathbox}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{R}\libbadge{Python}}
+\undertext{\textbf{With \code{interval\_\allowbreak{}width=}}: the same job with this option.}
+\underlib{R (simplydata runs this in R for you, through rpy2)}
+\begin{lstlisting}[style=underr]
+# find_how_many_needed(interval_width=10, percents=[30])
+n <- presize::prec_prop(p = 0.3, conf.width = 0.10,
+                        method = "wilson")$n                # (1)
+list(exact = n, n = ceiling(n))
+\end{lstlisting}
+\underlib{Python (with what R gives back)}
+\begin{lstlisting}[style=under]
+{"values (exact)": exact, "values": n}
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) the Wilson interval, given by name: presize's \code{method=} is a list of four and it warns when none is chosen.}
+\undertext{\textit{In Python only:} Python has no function for the values needed for a percent's interval.}
+\undertext{simplydata also takes the width in percentage points and says the answer in a sentence.}
+\undertext{\textit{Checked:} a test runs both and compares the numbers of the result table.}
+\end{underneathbox}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{R}\libbadge{Python}}
+\undertext{\textbf{With \code{test=}}: the same job with this option.}
+\underlib{R (simplydata runs this in R for you, through rpy2)}
+\begin{lstlisting}[style=underr]
+# find_how_many_needed(test="compare_survival", effect_size=0.7, percents=[30, 40])
+d <- gsDesign::nEvents(hr = 0.7, alpha = 0.05, beta = 0.2,
+                       ratio = 1, sided = 2)                  # (1)
+n <- powerSurvEpi::ssizeEpi.default(power = 0.8, theta = 0.7,
+       p = 0.5, psi = mean(c(0.3, 0.4)), rho2 = 0)           # (2)
+list(d = d, events = ceiling(d), people = n)
+\end{lstlisting}
+\underlib{Python (with what R gives back)}
+\begin{lstlisting}[style=under]
+{"events (exact)": d, "events": events, "people in all": people}
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) events first, by Schoenfeld's (1983) formula for the log-rank test, two groups of the same size.}
+\undertext{(2) people = events / the share of everyone expected to have the event (Schoenfeld; Hsieh \& Lavori 2000), with the group a 0/1 column half of the people have (p = 0.5).}
+\undertext{\textit{In Python only:} Python has no power calculation for survival (statsmodels has none), so the numbers come from R.}
+\undertext{simplydata also says the hazard ratio in words, prints the events before the people, and notes that drop-out and recruitment time are not planned.}
+\undertext{\textit{Checked:} a test runs both and compares the numbers of the result table.}
+\end{underneathbox}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{R}\libbadge{Python}}
+\undertext{\textbf{With \code{method=}}: the same job with this option.}
+\underlib{R (simplydata runs this in R for you, through rpy2)}
+\begin{lstlisting}[style=underr]
+# find_how_many_needed(test="compare_survival", ..., method="freedman")
+n <- powerSurvEpi::ssizeCT.default(power = 0.8, k = 1, pE = 0.3,
+       pC = 0.4, RR = 0.7, alpha = 0.05)                      # (1)
+list(n = n[1])
+\end{lstlisting}
+\underlib{Python (with what R gives back)}
+\begin{lstlisting}[style=under]
+{"people per group": n}
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) Freedman's (1982) formula, two groups of the same size (k = 1); the first percent is the group whose hazard is \code{effect\_\allowbreak{}size=} times the second's.}
+\undertext{\textit{In Python only:} Python has no power calculation for survival (statsmodels has none), so the numbers come from R.}
+\undertext{simplydata also says the answer in a sentence and gives the power with that many people.}
+\undertext{\textit{Checked:} a test runs both and compares the numbers of the result table.}
+\end{underneathbox}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{statsmodels}}
+\undertext{\textbf{With \code{using=}}: the same job with this option.}
+\underlib{statsmodels}
+\begin{lstlisting}[style=under]
+import math
+from statsmodels.stats.power import FTestPowerF2
+# find_how_many_needed(test="explain", effect_size=0.15, using=[3 columns])
+v = FTestPowerF2().solve_power(effect_size=0.15, df_num=3,
+                               df_denom=None, alpha=0.05,
+                               power=0.8)                     # (1)
+rows = v + 3 + 1                                              # (2)
+{"rows (exact)": rows, "rows": math.ceil(rows)}
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) FTestPowerF2, statsmodels' class with the degrees of freedom named the right way round (as R pwr::\code{pwr.\allowbreak{}f2.\allowbreak{}test()}, Cohen 1988 chapter 9).}
+\undertext{(2) the rows are the denominator degrees of freedom plus the columns plus 1.}
+\undertext{simplydata also names the columns in the sentence, takes \code{against=} for the columns in one model and not the other (as \code{compare\_\allowbreak{}models}), and gives Cohen's rough size for f\textsuperscript{2}.}
+\undertext{\textit{Checked:} a test runs both and compares the numbers of the result table.}
+\end{underneathbox}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{R}\libbadge{Python}}
+\undertext{\textbf{With \code{outcome=}}: the same job with this option.}
+\underlib{R (simplydata runs this in R for you, through rpy2)}
+\begin{lstlisting}[style=underr]
+# find_how_many_needed(test="explain", outcome="yes or no", ...)
+r <- pwrss::power.z.logistic(base.prob = 0.5, odds.ratio = 1.5,
+       power = 0.95, alpha = 0.05, distribution = "normal",   # (1)
+       method = "demidenko(vc)",                               # (2)
+       ceil.n = FALSE, verbose = 0)
+list(n = r$n)
+\end{lstlisting}
+\underlib{Python (with what R gives back)}
+\begin{lstlisting}[style=under]
+{"values (exact)": n}
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) one bell-shaped (normal) column; the odds ratio is per standard deviation of it, and \code{percents=} is the percent with the outcome at its average.}
+\undertext{(2) Demidenko's (2007) formula with the variance correction: 337 in the G*Power manual's example, as G*Power gives (Hsieh's formula gives 317).}
+\undertext{\textit{In Python only:} Python has no power calculation for logistic regression.}
+\undertext{simplydata also says the odds ratio in words, shows how to turn an odds ratio per unit into one per standard deviation, and gives the power with that many values.}
+\undertext{\textit{Checked:} a test runs both and compares the numbers of the result table.}
+\end{underneathbox}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{statsmodels}}
+\undertext{\textbf{With \code{in\_\allowbreak{}clusters\_\allowbreak{}of=}}: the same job with this option.}
+\underlib{statsmodels}
+\begin{lstlisting}[style=under]
+import math
+from statsmodels.stats.power import TTestIndPower
+# find_how_many_needed(effect_size=0.5, in_clusters_of=20, alike_within_clusters=0.05)
+n = TTestIndPower().solve_power(effect_size=0.5, power=0.8,
+                                alpha=0.05 / 2, alternative="larger")
+design = 1 + (20 - 1) * 0.05                                  # (1)
+values = math.ceil(n * design)                                # (2)
+{"design effect": design, "values per group": values,
+ "clusters per group": math.ceil(values / 20)}
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) the design effect 1 + (m - 1) x ICC (Donner \& Klar 2000): simplydata's own arithmetic, the one line it adds to the package's answer.}
+\undertext{(2) the independent number times the design effect, rounded up; then whole clusters.}
+\undertext{simplydata also says what one cluster counts as, adds a note when there are fewer than about 10 clusters in each group, and works the same way on \code{compare\_\allowbreak{}counts} and \code{find\_\allowbreak{}chance\_\allowbreak{}of\_\allowbreak{}finding} (the values divided by the design effect).}
+\undertext{\textit{Checked:} a test runs both and compares the numbers of the result table.}
+\end{underneathbox}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{SciPy}}
+\undertext{\textbf{With \code{based\_\allowbreak{}on=}}: the same job with this option.}
+\underlib{SciPy}
+\begin{lstlisting}[style=under]
+import numpy as np
+from scipy import stats
+# find_how_many_needed(effect_size=0.5, based_on="ranks"): the power at 68
+rng = np.random.default_rng(1)                                # (1)
+def test(x, y, axis=-1):
+    return stats.mannwhitneyu(x, y, axis=axis, method="asymptotic",
+                              use_continuity=True).pvalue     # (2)
+r = stats.power(test, (rng.standard_normal, lambda size: rng.normal(0.5, 1, size)),
+                (68, 68), significance=0.05, n_resamples=10000,
+                batch=1000)                                   # (3)
+{"values per group": 68, "power with that many": r.power}
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) seeded (\code{with\_\allowbreak{}seed=1}), so the answer repeats.}
+\undertext{(2) the very test \code{compare\_\allowbreak{}averages\_\allowbreak{}of(based\_\allowbreak{}on=\textquotedbl{}ranks\textquotedbl{})} runs: Mann-Whitney, exact below 50 values in each group, else the normal approximation with continuity correction.}
+\undertext{(3) significance given (SciPy's default is 0.01), 10000 tries drawn 1000 at a time; simplydata reads such powers for a range of numbers and takes the smallest that reaches \code{power=} (here 68).}
+\undertext{simplydata also starts its search at the t-test answer, prints the Monte Carlo error as a 95 \% interval (statsmodels \code{proportion\_\allowbreak{}confint}, Wilson), and simulates Wilcoxon's signed-rank test for \code{compare\_\allowbreak{}before\_\allowbreak{}and\_\allowbreak{}after}.}
+\undertext{\textit{Checked:} a test runs both and compares the numbers of the result table.}
+\end{underneathbox}
 \wordentry{sdata.find\_chance\_of\_finding()}{word:sdata.find-chance-of-finding}
 What chance does a study have to find a real difference of a given size (its power)?
 
 \codeline{sdata.find\_chance\_of\_finding(effect\_size=0.5, values\_per\_group=30)}\enspace (two groups of 30: about 48 \%)\\
-The same options as \code{find\_\allowbreak{}how\_\allowbreak{}many\_\allowbreak{}needed()}, with \code{values\_\allowbreak{}per\_\allowbreak{}group=} instead of \code{power=}: the number in each group (pairs for \code{compare\_\allowbreak{}before\_\allowbreak{}and\_\allowbreak{}after} and \code{find\_\allowbreak{}correlation\_\allowbreak{}between}; all the values for \code{compare\_\allowbreak{}average\_\allowbreak{}to}). The t-tests use the usual equal-spread formula (R \code{power.\allowbreak{}t.\allowbreak{}test()}), very close to Welch's t-test when the groups are the same size; the others match R pwr. Gives back a one-row table. \code{test=\textquotedbl{}compare\_\allowbreak{}counts\textquotedbl{}}, \code{percents=[30,\allowbreak{} 15]}: two groups compared on a yes/no outcome (statsmodels \code{power\_\allowbreak{}proportions\_\allowbreak{}2indep}, as R \code{power.\allowbreak{}prop.\allowbreak{}test()}). \code{same\_\allowbreak{}within=5}, \code{spread=10}: the chance that two one-sided tests show the groups are the same within 5 (R TOSTER::\code{power\_\allowbreak{}t\_\allowbreak{}TOST()}).
+The same options as \code{find\_\allowbreak{}how\_\allowbreak{}many\_\allowbreak{}needed()}, with \code{values\_\allowbreak{}per\_\allowbreak{}group=} instead of \code{power=}: the number in each group (pairs for \code{compare\_\allowbreak{}before\_\allowbreak{}and\_\allowbreak{}after} and \code{find\_\allowbreak{}correlation\_\allowbreak{}between}; all the values for \code{compare\_\allowbreak{}average\_\allowbreak{}to}; rows for explain; people in each group for \code{compare\_\allowbreak{}survival}). The t-tests use the usual equal-spread formula (R \code{power.\allowbreak{}t.\allowbreak{}test()}), very close to Welch's t-test when the groups are the same size; the others match R pwr. Gives back a one-row table.
+
+More: \code{test=\textquotedbl{}compare\_\allowbreak{}counts\textquotedbl{}}, \code{percents=[30,\allowbreak{} 15]}: two percents (statsmodels \code{power\_\allowbreak{}proportions\_\allowbreak{}2indep}). \code{same\_\allowbreak{}within=5}, \code{spread=10}: two one-sided tests (R TOSTER::\code{power\_\allowbreak{}t\_\allowbreak{}TOST()}). \code{test=\textquotedbl{}compare\_\allowbreak{}survival\textquotedbl{}}, \code{effect\_\allowbreak{}size=0.\allowbreak{}7}, \code{values\_\allowbreak{}per\_\allowbreak{}group=353}, \code{percents=[30,\allowbreak{} 40]} (R powerSurvEpi). \code{test=\textquotedbl{}explain\textquotedbl{}}, \code{effect\_\allowbreak{}size=0.\allowbreak{}15}, \code{using=3}, \code{values\_\allowbreak{}per\_\allowbreak{}group=77} (Cohen's f\textsuperscript{2}); \code{outcome=\textquotedbl{}yes or no\textquotedbl{}}. \code{in\_\allowbreak{}clusters\_\allowbreak{}of=20}, \code{alike\_\allowbreak{}within\_\allowbreak{}clusters=0.\allowbreak{}05}: values in clusters (the design effect). \code{based\_\allowbreak{}on=\textquotedbl{}ranks\textquotedbl{}} or \code{drawing\_\allowbreak{}from=[dist\_\allowbreak{}a,\allowbreak{} dist\_\allowbreak{}b]}, \code{values\_\allowbreak{}per\_\allowbreak{}group=[10,\allowbreak{} 20,\allowbreak{} 30]}: simulated power, one row for each number (\code{tries=10000}, \code{with\_\allowbreak{}seed=1}; SciPy stats.power). \code{by\_\allowbreak{}running=one\_\allowbreak{}study}, \code{tries=1000}: your own simulation for any test. \code{one\_\allowbreak{}study(seed)} makes one study's data with that seed and gives back its p-value: def \code{one\_\allowbreak{}study(seed)}:\\
+\codeline{rng = np.random.default\_rng(seed)}\\
+... return \code{p\_\allowbreak{}value} simplydata runs it with seeds 1, 2, ... (so the answer repeats; everything it prints is silenced) and counts the p-values below \code{significance=}.
 
 \wordfield{Options}{}\par\nopagebreak
 \begin{optiontable}
@@ -12442,14 +12623,83 @@ The same options as \code{find\_\allowbreak{}how\_\allowbreak{}many\_\allowbreak
 \code{percents=} & \\
 \code{same\_\allowbreak{}within=} & \\
 \code{based\_\allowbreak{}on=} & normally \code{\textquotedbl{}averages\textquotedbl{}}\\
+\code{using=} & \\
+\code{against=} & \\
+\code{outcome=} & normally \code{\textquotedbl{}numbers\textquotedbl{}}\\
+\code{method=} & \\
+\code{in\_\allowbreak{}clusters\_\allowbreak{}of=} & \\
+\code{alike\_\allowbreak{}within\_\allowbreak{}clusters=} & \\
+\code{drawing\_\allowbreak{}from=} & \\
+\code{tries=} & normally \code{10000}\\
+\code{with\_\allowbreak{}seed=} & normally \code{1}\\
+\code{by\_\allowbreak{}running=} & \\
 \end{optiontable}
 
-\wordfield{Underneath}{statsmodels (stats.power classes; proportion.power\_proportions\_2indep for \code{percents=}); R pwr::pwr.r.test and TOSTER::\code{power\_\allowbreak{}t\_\allowbreak{}TOST} (simplydata[r])}
+\wordfield{Underneath}{statsmodels \code{TTestIndPower().\allowbreak{}solve\_\allowbreak{}power()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
 sdata.find_chance_of_finding(effect_size=0.5, values_per_group=20)
+sdata.find_chance_of_finding(effect_size=0.5, values_per_group=[20, 40], based_on="ranks")
 \end{lstlisting}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{statsmodels}}
+\underlib{statsmodels}
+\begin{lstlisting}[style=under]
+from statsmodels.stats.power import TTestIndPower
+# find_chance_of_finding(effect_size=0.5, values_per_group=30)
+power = TTestIndPower().solve_power(effect_size=0.5, nobs1=30, power=None,
+                                    alpha=0.05 / 2,           # (1)
+                                    alternative="larger")
+{"power": power}
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) one side at half the significance level, as R \code{power.\allowbreak{}t.\allowbreak{}test()} (strict = FALSE).}
+\undertext{simplydata also says the answer in a sentence that names the effect's scale, and rounds the number UP. Below 80 \% it points to \code{find\_\allowbreak{}how\_\allowbreak{}many\_\allowbreak{}needed}.}
+\undertext{\textit{Checked:} a test runs both and compares the numbers of the result table.}
+\end{underneathbox}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{SciPy}}
+\undertext{\textbf{With \code{drawing\_\allowbreak{}from=}}: the same job with this option.}
+\underlib{SciPy}
+\begin{lstlisting}[style=under]
+import numpy as np
+from scipy import stats
+# find_chance_of_finding(drawing_from=[a, b], values_per_group=20)
+rng = np.random.default_rng(1)                                # (1)
+a = stats.lognorm(s=1, scale=np.exp(0))
+b = stats.lognorm(s=1, scale=np.exp(0.5))
+def test(x, y, axis=-1):
+    return stats.ttest_ind(x, y, equal_var=False, axis=axis).pvalue  # (2)
+r = stats.power(test, (lambda size: a.rvs(size=size, random_state=rng),
+                       lambda size: b.rvs(size=size, random_state=rng)),
+                (20, 20), significance=0.05, n_resamples=10000, batch=1000)
+{"power": r.power}
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) seeded (\code{with\_\allowbreak{}seed=1}, \code{tries=10000}, drawn 1000 at a time), so the answer repeats.}
+\undertext{(2) the test \code{compare\_\allowbreak{}averages\_\allowbreak{}of} runs: Welch's t-test (\code{based\_\allowbreak{}on=\textquotedbl{}ranks\textquotedbl{}} gives Mann-Whitney).}
+\undertext{simplydata also gives a power curve for a list of \code{values\_\allowbreak{}per\_\allowbreak{}group=} (one row each), prints the Monte Carlo error as a 95 \% interval, and simulates \code{compare\_\allowbreak{}before\_\allowbreak{}and\_\allowbreak{}after} (one distribution of the changes) and \code{compare\_\allowbreak{}spreads\_\allowbreak{}of} (Levene's test).}
+\undertext{\textit{Checked:} a test runs both and compares the numbers of the result table.}
+\end{underneathbox}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{Python}}
+\undertext{\textbf{With \code{by\_\allowbreak{}running=}}: the same job with this option.}
+\underlib{Python}
+\begin{lstlisting}[style=under]
+import numpy as np
+from scipy import stats
+# find_chance_of_finding(by_running=one_study, tries=500)
+def one_study(seed):
+    rng = np.random.default_rng(seed)
+    return stats.ttest_ind(rng.normal(0, 1, 20), rng.normal(0.8, 1, 20)).pvalue
+p = [one_study(seed) for seed in range(1, 501)]               # (1)
+found = sum(v < 0.05 for v in p)                              # (2)
+{"p-values below significance": found, "power": found / 500}
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) your function, run once per seed: 1, 2, ... 500 (\code{with\_\allowbreak{}seed=1}, \code{tries=500}).}
+\undertext{(2) the p-values below \code{significance=} are counted, as SciPy stats.power counts them.}
+\undertext{simplydata also silences the printing of simplydata words inside your function, refuses a function that gives the same p-value every time (it ignores its seed), and prints the Monte Carlo error.}
+\undertext{\textit{Checked:} a test runs both and compares the numbers of the result table.}
+\end{underneathbox}
 \unsection{Join and reshape}{group:Join-and-reshape}
 \wordentry{table.join\_with()}{word:table.join-with}
 Bring in the columns of another table, matching rows on a column such as a name.
