@@ -48,10 +48,13 @@ def test_logistic_mcfadden(capsys):
     line = fit_line(capsys)
     # R: m <- glm(y ~ hours + breakfast, data = s, family = binomial); performance::r2_mcfadden(m) 0.192269138384149
     #    AIC 204.963040749707; BIC 214.541911302378
-    assert "How well it fits: pseudo R squared 0.192 (0 = no better than no columns). AIC 205, BIC 215" in line
+    #    performance::r2_nagelkerke(m) 0.310, r2_tjur(m) 0.243 (S3a: printed for yes/no rows)
+    assert ("How well it fits: pseudo R squared 0.192 (0 = no better than no columns); other pseudo R squared: "
+            "Nagelkerke 0.310, Tjur 0.243 (each measures something different; none is a share explained). AIC 205, "
+            "BIC 215") in line
     assert "explains" not in line and "performance::" not in line  # a pseudo R squared is not a share explained
     assert ("Method: McFadden's pseudo R squared (1 - log-likelihood / log-likelihood with no columns) as R "
-            "performance::r2_mcfadden(); AIC and BIC as R AIC(), BIC().") in line.out
+            "performance::r2_mcfadden(); Nagelkerke's") in line.out and "AIC and BIC as R AIC(), BIC()." in line.out
     assert aic_bic(line) == (205, 215)
 
 

@@ -5,6 +5,7 @@ Explaining "passed" from "hours" and "sleep" (161 rows). Each odds ratio below h
   sleep: each 1 more "sleep" multiplies the odds of yes by 1.98 (95 % CI 1.29 to 3.04); about 2 of 1000 studies would show this much if there were truly none (p = 0.002).
 Method: logistic regression, as R glm(passed ~ hours + sleep, family = binomial); counted as yes: "passed" = "yes". Wald 95 % intervals and z-tests, as R confint.default() and summary().
 Residual deviance 170 on 158 df (with no columns: 221 on 160 df). The model as a whole (likelihood-ratio chi-square = 51.5, df = 2): fewer than 1 in 1000 studies would show this much if none of the columns truly mattered (p < 0.0001).
-How well it fits: pseudo R squared 0.233 (0 = no better than no columns). AIC 176, BIC 185: smaller is better, but only to compare models of the same rows (compare_models).
-Method: McFadden's pseudo R squared (1 - log-likelihood / log-likelihood with no columns) as R performance::r2_mcfadden(); AIC and BIC as R AIC(), BIC().
+How well it fits: pseudo R squared 0.233 (0 = no better than no columns); other pseudo R squared: Nagelkerke 0.367, Tjur 0.285 (each measures something different; none is a share explained). AIC 176, BIC 185: smaller is better, but only to compare models of the same rows (compare_models).
+Method: McFadden's pseudo R squared (1 - log-likelihood / log-likelihood with no columns) as R performance::r2_mcfadden(); Nagelkerke's (Cox-Snell's, from statsmodels, scaled to reach 1) and Tjur's (the average chance among yes minus among no) as R performance::r2_nagelkerke() and r2_tjur(); AIC and BIC as R AIC(), BIC().
+Note: 45 % of the rows are yes, so an odds ratio is not a risk ratio here (it is further from 1); show="risk ratios" gives risk ratios.
 A link does not show that one thing causes the other.

@@ -1,15 +1,17 @@
-Model averages of "marks" for each "breakfast" (180 rows), within each "class":
-Does the effect of "breakfast" depend on "class"? The interaction breakfast : class: F = 1.48, df = 2 and 174; about 23 of 100 studies would show this much if the effect were truly the same in every group (p = 0.230).
-Compare the groups with the interaction test, not by which of the tests below have small p-values (Gelman & Stern 2006).
-  within "class" blue: "breakfast" F = 4.07, df = 1 and 174; about 5 of 100 studies would show this much if the averages truly did not differ there (p = 0.045).
-    averages: no 44.0 (95 % CI 39.5 to 48.4), yes 49.8 (95 % CI 46.2 to 53.5)
-  within "class" green: "breakfast" F = 2.08, df = 1 and 174; about 15 of 100 studies would show this much if the averages truly did not differ there (p = 0.151).
-    averages: no 46.4 (95 % CI 40.8 to 52.0), yes 51.2 (95 % CI 47.9 to 54.4)
-  within "class" red: "breakfast" F = 0.0710, df = 1 and 174; about 79 of 100 studies would show this much if the averages truly did not differ there (p = 0.790).
-    averages: no 48.4 (95 % CI 44.1 to 52.7), yes 47.6 (95 % CI 43.9 to 51.4)
-Each pair of groups (difference, no adjustment):
-  blue: no minus yes: difference -5.88 (95 % CI -11.6 to -0.130); about 5 of 100 studies would show this much if the groups truly did not differ (p = 0.045).
-  green: no minus yes: difference -4.76 (95 % CI -11.3 to 1.74); about 15 of 100 studies would show this much if the groups truly did not differ (p = 0.151).
-  red: no minus yes: difference 0.767 (95 % CI -4.91 to 6.45); about 79 of 100 studies would show this much if the groups truly did not differ (p = 0.790).
-Method: the model lm(marks ~ class * breakfast), then R emmeans::emmeans(m, ~ breakfast | class) and contrast(e, method = "pairwise"), with emmeans' own adjustment for this method (none); joint_tests(m) and joint_tests(m, by = "class") for the F tests.
-A large p-value does not show that there is no difference, only that the data cannot tell.
+Explaining "marks" from "hours" (180 rows). Each effect below holds the other columns fixed:
+  intercept: 34.3, the expected "marks" when every number column is 0.
+  hours: each 1 more "hours" goes with 2.85 more "marks" (95 % CI 2.31 to 3.39); fewer than 1 in 1000 studies would show this much if there were truly none (p < 0.0001).
+Method: robust regression by M-estimation with Huber's weights (k = 1.345, the scale by the median absolute deviation), as R MASS::rlm(marks ~ hours) (statsmodels RLM): rows far from the model are given less weight, so a few outliers in the column explained pull the effects less. Standard errors by Huber's H1 formula; R's summary(rlm) uses a slightly different small-sample correction, so its standard errors differ in the third digit. Wald 95 % intervals and z-tests. It does not resist unusual values in the using= columns (leverage): table.show_rows_that_pull_model() finds those.
+Scale (the typical distance of a row from the model, by the median absolute deviation): 8.26.
+How well it fits: robust regression has no likelihood or R squared to compare (as R MASS::rlm()).
+Rows given less weight (39 of 180; 1 is full weight): row 48 (weight 0.41), row 41 (weight 0.48), row 35 (weight 0.54), row 159 (weight 0.57), row 31 (weight 0.59), row 52 (weight 0.59), row 63 (weight 0.60), row 32 (weight 0.61), and 31 more.
+A link does not show that one thing causes the other.
+Explaining "marks" from "hours" (180 rows). Each effect below holds the other columns fixed:
+  intercept: 34.4, the expected "marks" when every number column is 0.
+  hours: each 1 more "hours" goes with 2.82 more "marks" (95 % CI 2.31 to 3.34); fewer than 1 in 1000 studies would show this much if there were truly none (p < 0.0001).
+Method: linear model by least squares, as R lm(marks ~ hours).
+R squared = 0.384 (adjusted 0.381): the model explains about 38 % of the differences in "marks". The model as a whole (Wald F with robust errors = 116, df = 1 and 178): fewer than 1 in 1000 studies would show this much if none of the columns truly mattered (p < 0.0001).
+How well it fits: AIC 1296, BIC 1306: smaller is better, but only to compare models of the same rows (compare_models).
+Method: AIC and BIC as R AIC(), BIC().
+Instead of the usual standard errors: robust ones (sandwich, HC3), as R sandwich::vcovHC(m, type = "HC3") with lmtest::coeftest() and coefci() (statsmodels OLS(cov_type="HC3")): t-tests and 95 % intervals that stay right when the spread is not the same everywhere. The effects themselves do not change.
+A link does not show that one thing causes the other.

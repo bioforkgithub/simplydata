@@ -172,6 +172,26 @@ EXAMPLES = {
             "height": "height of the ground in m (below 0 is under the sea)",
         },
     ),
+    # S3a-2 (lines and curves): a dose-response test and growth curves
+    "toxicity": (
+        "A made-up toxicity test: seedlings grown at eight concentrations of two chemicals, three dishes each.",
+        {
+            "chemical": "A or B",
+            "concentration": "0, 0.5, 1, 2, 4, 8, 16 or 32 (mg per litre)",
+            "dish": "1, 2 or 3",
+            "root_length": "average root length of the seedlings in the dish, in mm",
+            "seedlings": "seedlings in the dish (20)",
+            "dead": "how many of them died",
+        },
+    ),
+    "culture": (
+        "Bacteria growing in three made-up flasks, measured every hour for a day.",
+        {
+            "flask": "A, B or C",
+            "hour": "0 to 24",
+            "density": "how cloudy the culture is (optical density at 600 nm)",
+        },
+    ),
 }
 
 
@@ -190,7 +210,7 @@ def get_example(name: str | None = None):
 
     sdata.get_example() with no name lists every table and its columns.
     The tables are: marks, weather, fruit, growth, sensor, visitors, river, shop, school, meadow, trial, clinic,
-    island.
+    island, toxicity, culture.
     "shop" has empty cells and a column of dates to practise with; "school" has empty cells too.
     """
     if name is None:

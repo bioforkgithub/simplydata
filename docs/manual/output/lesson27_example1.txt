@@ -1,15 +1,28 @@
-Interaction picture: parallel lines, no sign that the effect of "class" depends on "breakfast"; lines that cross or spread apart: it depends on "breakfast" (check with table.explain("marks", using=["class * breakfast"])).
-Error bars: the 95 % confidence interval of the average (where the true average very likely is).
-Explaining "marks" from "class" and "breakfast" (180 rows). Each effect below holds the other columns fixed:
-  intercept: 44.0, the expected "marks" when every number column is 0 and every group column is at its baseline.
-  class "green" against "blue": "marks" is 2.44 higher (95 % CI -4.73 to 9.62); about 50 of 100 studies would show this much if there were truly none (p = 0.503).
-  class "red" against "blue": "marks" is 4.43 higher (95 % CI -1.74 to 10.6); about 16 of 100 studies would show this much if there were truly none (p = 0.159).
-  breakfast "yes" against "no": "marks" is 5.88 higher (95 % CI 0.130 to 11.6); about 5 of 100 studies would show this much if there were truly none (p = 0.045).
-  class (green) : breakfast (yes) (interaction): -1.12 (95 % CI -9.79 to 7.56), how much the effect of one changes with the other; about 80 of 100 studies would show this much if there were truly none (p = 0.799).
-  class (red) : breakfast (yes) (interaction): -6.64 (95 % CI -14.7 to 1.44), how much the effect of one changes with the other; about 11 of 100 studies would show this much if there were truly none (p = 0.106).
-  class : breakfast, all groups together: F test (F = 1.48, df = 2 and 174); about 23 of 100 studies would show this much if the groups truly did not differ (p = 0.230).
-Method: linear model by least squares, as R lm(marks ~ class * breakfast).
-R squared = 0.044 (adjusted 0.016): the model explains about 4 % of the differences in "marks". The model as a whole (F = 1.59, df = 5 and 174): about 17 of 100 studies would show this much if none of the columns truly mattered (p = 0.166).
-How well it fits: AIC 1383, BIC 1406: smaller is better, but only to compare models of the same rows (compare_models).
+Explaining "marks" from "hours" and "breakfast" (180 rows). Each effect below holds the other columns fixed:
+  intercept: 32.3, the expected "marks" when every number column is 0 and every group column is at its baseline.
+  hours: each 1 more "hours" goes with 2.82 more "marks" (95 % CI 2.29 to 3.34); fewer than 1 in 1000 studies would show this much if there were truly none (p < 0.0001).
+  breakfast "yes" against "no": "marks" is 3.21 higher (95 % CI 0.561 to 5.86); about 2 of 100 studies would show this much if there were truly none (p = 0.018).
+Method: linear model by least squares, as R lm(marks ~ hours + breakfast).
+R squared = 0.403 (adjusted 0.397): the model explains about 40 % of the differences in "marks". The model as a whole (F = 59.8, df = 2 and 177): fewer than 1 in 1000 studies would show this much if none of the columns truly mattered (p < 0.0001).
+How well it fits: AIC 1292, BIC 1305: smaller is better, but only to compare models of the same rows (compare_models).
 Method: AIC and BIC as R AIC(), BIC().
-A large p-value does not show that there is no effect, only that the data cannot tell. A link does not show that one thing causes the other.
+A link does not show that one thing causes the other.
+Explaining "marks" from "hours" and "breakfast" (180 rows). Each effect below holds the other columns fixed:
+  intercept: 32.2, the expected "marks" when every number column is 0 and every group column is at its baseline.
+  hours: each 1 more "hours" goes with 2.87 more "marks" (95 % CI 2.34 to 3.39); fewer than 1 in 1000 studies would show this much if there were truly none (p < 0.0001).
+  breakfast "yes" against "no": "marks" is 3.13 higher (95 % CI 0.454 to 5.81); about 2 of 100 studies would show this much if there were truly none (p = 0.022).
+Method: robust regression by M-estimation with Huber's weights (k = 1.345, the scale by the median absolute deviation), as R MASS::rlm(marks ~ hours + breakfast) (statsmodels RLM): rows far from the model are given less weight, so a few outliers in the column explained pull the effects less. Standard errors by Huber's H1 formula; R's summary(rlm) uses a slightly different small-sample correction, so its standard errors differ in the third digit. Wald 95 % intervals and z-tests. It does not resist unusual values in the using= columns (leverage): table.show_rows_that_pull_model() finds those.
+Scale (the typical distance of a row from the model, by the median absolute deviation): 8.29.
+How well it fits: robust regression has no likelihood or R squared to compare (as R MASS::rlm()).
+Rows given less weight (35 of 180; 1 is full weight): row 48 (weight 0.43), row 41 (weight 0.52), row 52 (weight 0.53), row 31 (weight 0.56), row 32 (weight 0.58), row 35 (weight 0.60), row 159 (weight 0.61), row 15 (weight 0.63), and 27 more.
+A link does not show that one thing causes the other.
+Explaining "marks" from "hours" and "breakfast" (180 rows). Each effect below holds the other columns fixed:
+  intercept: 32.3, the expected "marks" when every number column is 0 and every group column is at its baseline.
+  hours: each 1 more "hours" goes with 2.82 more "marks" (95 % CI 2.29 to 3.34); fewer than 1 in 1000 studies would show this much if there were truly none (p < 0.0001).
+  breakfast "yes" against "no": "marks" is 3.21 higher (95 % CI 0.526 to 5.89); about 2 of 100 studies would show this much if there were truly none (p = 0.019).
+Method: linear model by least squares, as R lm(marks ~ hours + breakfast).
+R squared = 0.403 (adjusted 0.397): the model explains about 40 % of the differences in "marks". The model as a whole (Wald F with robust errors = 57.8, df = 2 and 177): fewer than 1 in 1000 studies would show this much if none of the columns truly mattered (p < 0.0001).
+How well it fits: AIC 1292, BIC 1305: smaller is better, but only to compare models of the same rows (compare_models).
+Method: AIC and BIC as R AIC(), BIC().
+Instead of the usual standard errors: robust ones (sandwich, HC3), as R sandwich::vcovHC(m, type = "HC3") with lmtest::coeftest() and coefci() (statsmodels OLS(cov_type="HC3")): t-tests and 95 % intervals that stay right when the spread is not the same everywhere. The effects themselves do not change.
+A link does not show that one thing causes the other.

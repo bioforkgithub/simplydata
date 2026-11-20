@@ -1,58 +1,24 @@
-"""The same underneath for phase S3a-3 (checking and comparing): the new words' entries and one entry for each
-new option (simplydata._underneath.checking). Each runs its simplydata call next to the same job in the package
-underneath (statsmodels, seaborn, R) and both must give the same result. R entries are skipped where R is
-missing, except in CI (SIMPLYDATA_REQUIRE_R=1).
+"""The same underneath for phase S3a-3 (checking and comparing). tests/test_underneath.py runs every entry of
+UNDERNEATH, these included (the new words and their options, keyed "word option="); this file checks that each
+S3a-3 word and option has its entry, and that leaving out one of simplydata's choices makes a comparison fail.
 """
 
 import os
 
 import pytest
 
-from simplydata import learn
-from simplydata._underneath import UNDERNEATH, UNDERNEATH_OPTIONS, Entry, checking
+from simplydata._underneath import UNDERNEATH, Entry, checking
 from simplydata._underneath.check import check_entry
 
-OPTIONS = list(checking.OPTION_ENTRIES)
-WORDS = list(checking.ENTRIES)
 
-
-def _run(entry):
-    outcomes = check_entry(entry)
-    assert outcomes, entry.label
-    skipped = [o for o in outcomes if o.skipped]
-    if skipped:
-        if os.environ.get("SIMPLYDATA_REQUIRE_R") == "1":
-            pytest.fail(f"SIMPLYDATA_REQUIRE_R=1 but {entry.label} could not run: {skipped[0].skipped}")
-        pytest.skip(skipped[0].skipped)
-    failed = [f"{o.library} on a {o.engine} table: " + "; ".join(o.differences) for o in outcomes if not o.passed]
-    assert not failed, f"{entry.label}: " + "\n".join(failed)
-
-
-@pytest.mark.parametrize("entry", OPTIONS, ids=[e.label for e in OPTIONS])
-def test_the_option_and_the_library_give_the_same_result(entry):
-    _run(entry)
-
-
-@pytest.mark.parametrize("entry", OPTIONS, ids=[e.label for e in OPTIONS])
-def test_option_entry_is_complete_and_uses_the_option(entry):
-    from test_underneath import test_entry_is_complete
-
-    test_entry_is_complete(entry)
-    assert entry.word in learn._all_keys() and not learn._old_names(entry.word), entry.word
-    name = entry.option.split("=")[0] + "="
-    if not name.startswith(("using", "for_each")):
-        assert name in entry.ours_code(), f"{entry.label}: ours= uses the option"
-    assert f".{learn._word(entry.word)}(" in entry.ours_code()
-
-
-def test_the_new_words_have_entries_and_the_options_are_registered():
+def test_the_new_words_have_entries():
     for word in ("table.find_columns_that_predict", "table.find_group_levels_of", "draw_interaction_lines"):
         assert word in UNDERNEATH, word
-    assert all(e in UNDERNEATH_OPTIONS for e in OPTIONS)
+    assert all(e.key in UNDERNEATH for e in checking.ENTRIES)
 
 
 def test_every_s3a3_option_has_an_entry():
-    shown = {(e.word, e.option.split("=")[0]) for e in OPTIONS}
+    shown = {(e.word, e.option.split("=")[0]) for e in checking.ENTRIES if e.option}
     for word, option in [("table.explain", "spread_changes_with"), ("table.explain", "neighbours_alike_in_order_of"),
                          ("table.compare_models", "using"), ("table.compare_models", "check_on_left_out_rows"),
                          ("table.find_model_averages_of", "comparing"),
@@ -62,14 +28,20 @@ def test_every_s3a3_option_has_an_entry():
         assert (word, option) in shown, (word, option)
 
 
-@pytest.mark.parametrize("label, setting, replacement", [
-    ('table.compare_models (check_on_left_out_rows=True)', "K = 10", "K = 5"),
-    ('table.find_columns_that_predict', 's = "lambda.1se"', 's = "lambda.min"'),
-    ('table.explain (spread_changes_with="school")', "weights = nlme::varIdent(form = ~ 1 | school)",
-     "weights = NULL"),
+@pytest.mark.parametrize("entry", [e for e in checking.ENTRIES if e.option], ids=lambda e: e.key)
+def test_each_option_entry_uses_its_option(entry):
+    name = entry.option.split("=")[0] + "="
+    if not name.startswith(("using", "for_each")):  # a list of models, a list of columns: shown by the call itself
+        assert name in entry.ours_code(), f"{entry.key}: ours= uses the option"
+
+
+@pytest.mark.parametrize("key, setting, replacement", [
+    ("table.compare_models check_on_left_out_rows=True", "K = 10", "K = 5"),
+    ("table.find_columns_that_predict", 's = "lambda.1se"', 's = "lambda.min"'),
+    ("table.explain spread_changes_with=", "weights = nlme::varIdent(form = ~ 1 | school)", "weights = NULL"),
 ])
-def test_leaving_out_a_choice_makes_the_comparison_fail(label, setting, replacement):
-    entry = next(e for e in OPTIONS + WORDS if e.label == label)
+def test_leaving_out_a_choice_makes_the_comparison_fail(key, setting, replacement):
+    entry = UNDERNEATH[key]
     from simplydata._r import r_ready
 
     if entry.uses_r and not r_ready(entry.r_packages):
@@ -81,4 +53,4 @@ def test_leaving_out_a_choice_makes_the_comparison_fail(label, setting, replacem
     changed = dict(entry.code)
     changed[library] = entry.code[library].replace(setting, replacement)
     outcomes = check_entry(Entry(**{**entry.__dict__, "code": changed}))
-    assert outcomes and not any(o.passed for o in outcomes), f"{label}: should fail without {setting}"
+    assert outcomes and not any(o.passed for o in outcomes), f"{key}: should fail without {setting}"

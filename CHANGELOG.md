@@ -5,6 +5,80 @@ working for one release and prints a one-line note with its new name.
 
 ## Unreleased
 
+### explain() grows (S3a-1)
+
+New options of `table.explain`, each checked against the package underneath and R, with a box "The same
+underneath" in the manual and a case on real, published data in the reliability study:
+
+- `weights="precision"`: precision weights, as R `lm(weights =)` and `glm(weights =)` (statsmodels WLS and
+  `GLM(var_weights=)`); rows with weight 0 are left out first, as R does.
+- `outcome="yes or no (overdispersed)"` with `out_of=`: quasi-binomial regression (R `glm(family =
+  quasibinomial)`). A yes/no model with `out_of=` now notes when the yes counts vary more than the binomial
+  allows and points to it.
+- `matched_by="set"` with `outcome="yes or no"`: conditional logistic regression for matched sets
+  (statsmodels `ConditionalLogit`, as R `survival::clogit()`).
+- `show="risk ratios"`: risk ratios by modified Poisson regression (Zou 2004), or `method="log-binomial"`.
+  A yes/no model with odds ratios now notes when yes is common (more than 10 % of the rows), where an odds
+  ratio is not a risk ratio. `show="standardised effects"` (also "standardized effects"): each effect per
+  standard deviation, refitted on z-scores (R `effectsize::standardize_parameters(method = "refit")`), with
+  the warning that these depend on the sample's spread.
+- `giving_outliers_less_weight=True`: robust regression by Huber's M-estimation (statsmodels RLM, as R
+  `MASS::rlm()`); the printout lists the rows given less weight. Not the same as `robust_errors=True`.
+- `with_knots=3` with `curve_for=`: a natural cubic spline (patsy `cr()`, the same curves as R
+  `splines::ns()`), with a test of the whole curve; also with `grouped_by=` and `weights=`.
+- `interval_by="bootstrap"` (with `resamples=` and `with_seed=`): BCa intervals from SciPy, the rows drawn
+  again whole; `interval_by="profile"`: profile-likelihood intervals (R `confint()`, needs R);
+  `p_value_by="likelihood ratio"`: a likelihood-ratio test for each column (R `drop1(test = "LRT")`).
+- `crossed_with="item"` with `grouped_by=`: two crossed groupings, `(1 | subject) + (1 | item)` (R lme4).
+- `outcome="counts with many zeros that vary a lot"` (zero-inflated negative binomial) and `outcome="counts in
+  two steps"` (a hurdle model, also "hurdle"; "... that vary a lot" for a negative binomial second step), both
+  R pscl; `zero_part_using=` gives the zero part its own columns.
+- The fit line of a yes/no model also prints Nagelkerke's and Tjur's pseudo R squared (as R `performance`).
+- Lesson 16 has a part on risk ratios; a new lesson 27, "Beyond the average line: outliers", teaches
+  `giving_outliers_less_weight=` and how it differs from `robust_errors=`.
+- The reliability study adds 16 cases on eight real datasets (Galton's sweet peas, Crowder's Orobanche seeds,
+  infert, birthwt, stackloss, mtcars, VerbAgg and the NMES 1988 survey, whose published hurdle and
+  zero-inflated estimates (Zeileis, Kleiber & Jackman 2008) it reproduces). The registry of "The same
+  underneath" now has entries for options too ("table.explain weights="), each with its own box.
+
+### Lines and curves (S3a-2)
+
+- **New word `table.fit_dose_response(x=, y=)`** and its chart twin **`chart.fit_dose_response()`**: a
+  4 parameter log-logistic dose-response curve (R drc) with the ED50 (EC50) and its 95 % interval
+  (delta method). `doses_for_effect=[10, 50, 90]` gives more EDs; `of_kind=` "3 parameter
+  log-logistic", "5 parameter log-logistic" or "weibull" ("LL.4", "LL.3", "LL.5" accepted);
+  `outcome="yes or no", out_of=` gives the LD50 from deaths out of exposed (a 2 parameter
+  log-logistic curve from 0 to 100 %); `for_each_group_in=` compares the ED50s of groups (relative
+  potency, R drc::EDcomp()). Needs R with drc.
+- **New word `table.find_best_power_of(column)`**: the Box-Cox power (SciPy, with its 95 % interval) or
+  `method="yeo-johnson"`; with `using=` the power for a model's leftovers (R car::powerTransform()),
+  with likelihood-ratio tests of log and no change. Box-Cox with zeros points to Yeo-Johnson.
+- `fit_line(method=)`: "theil-sen" and "siegel" (SciPy), "standardised major axis" and "major axis"
+  (R smatr), "deming" with `y_error_over_x_error=` and "passing-bablok" (R mcr). Each printout says
+  which question the line answers. `y_error_over_x_error=` is y over x; R mcr's `error.ratio` is x
+  over y, so simplydata passes 1 / value (tested against R deming::deming as well).
+- `fit_line(with_bends=1)`: a line that bends where the data say (R segmented), with each bend's
+  interval and Davies' test of "no bend at all". `fit_line(changes_at=37)` and
+  `explain(..., changes_at={"month": 37})`: a jump and a change of slope at a point you know
+  (interrupted time series), with the lag-1 autocorrelation of the leftovers.
+- `fit_curve(of_kind=)`: "logistic growth", "4 parameter logistic", "michaelis-menten", "rise to a
+  limit", "rise or fall to a limit", "gompertz growth", "weibull growth" and "two exponentials" (R's
+  self-starting models; start values from R's getInitial() when R is there, else a search of the
+  whole range). "logistic" and "gompertz" are accepted for the growth curves.
+- `explain(..., for_percentile=90)`: percentile (quantile) lines by R quantreg, with standard errors
+  by "nid" for every number of rows (R's default below 1001 rows, "rank", gives intervals only).
+- `method="loess"` in `add_smoothed_column` (with `interval=95` for its confidence band),
+  `draw_smooth_line` (with `with_confidence_band=True`) and `nums.smooth`: R stats::loess() itself.
+  **Changed:** "loess" used to be another spelling of "lowess"; it is now its own method (local curves
+  of degree 2, no robustness steps), and the printout names which one ran.
+- Lesson 19 has a part on growth curves and an optional "if you have R" part on dose-response
+  curves, with two tasks. New practice tables `toxicity` and `culture` (made up).
+- The reliability study adds NIST Rat42, Misra1a and BoxBOD (certified nonlinear fits), Bliss's
+  beetles (1935), Box and Cox's poisons (1964), Bates and Watts's Puromycin, ryegrass (Ritz et al.
+  2015), the stagnant band, leaflife, creatinine, the British seat-belt law and Engel's food data.
+  Each new option has its own "same underneath" box (keyed by word and option, as for explain()).
+- New R packages for the R extra: drc, segmented, smatr, mcr and quantreg (deming for the study).
+
 ### Checking and comparing models (S3a-3)
 
 - New: `table.find_columns_that_predict` chooses the columns that predict a column with the lasso or the elastic net, with the penalty checked on left-out rows (R glmnet, the "one standard error" penalty). It prints no p-values and says why.
@@ -15,8 +89,8 @@ working for one release and prints a one-line note with its new name.
 - `check_model_of` prints the Breusch-Pagan and White tests of equal spread as notes under the scale-location picture, and for a yes/no model adds a calibration picture with the Hosmer-Lemeshow test (R performance) and the Brier score.
 - `find_model_averages_of(comparing=)`: each with the first, each with the next, each with the average of the ones before (Helmert), each with the average, trend, or your own weights, with emmeans' adjustment printed; `in_order=` orders the groups. `within_each_group_in=` gives simple effects after the interaction test; `over_range_of=` gives the model average across a number column, ready to draw.
 - `compare_averages_of(grouped_by=)`: a nested ANOVA (R `aov(y ~ group + Error(unit))`); `compare_averages_of([...], for_each_group_in=)`: a MANOVA with Pillai's trace (statsmodels).
-- Lesson 21 gains a three-model comparison line, an `over_range_of=` line and a note; new lesson "When one effect depends on another" (picture first, then simple effects and contrasts).
-- Reliability study: 14 new cases on real data (swiss, iris, warpbreaks, Lake Huron, the rat liver glycogen of Sokal & Rohlf, and Dialyzer, sleepstudy and birthwt read from R packages); same-underneath entries for the three new words and nine new options.
+- Lesson 21 gains a three-model comparison line, an `over_range_of=` line and a note; new lesson 28 "When one effect depends on another" (picture first, then simple effects and contrasts).
+- Reliability study: 15 new cases on real data (swiss, iris, warpbreaks, Lake Huron, the rat liver glycogen of Sokal & Rohlf, and Dialyzer, sleepstudy and birthwt read from R packages); same-underneath entries for the three new words and nine new options.
 
 ## 0.2.0 (2026-11-20)
 

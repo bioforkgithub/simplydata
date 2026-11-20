@@ -11,6 +11,8 @@
   "recursive", init = x[1]);
 * "gaussian": scipy.ndimage.gaussian_filter1d(sigma=width, truncate=4, mode="reflect");
 * "lowess": statsmodels lowess with R lowess()'s settings (3 robustness steps, delta 1 % of the range);
+* "loess": R stats::loess(degree = 2, span = smoothness=, normally 0.75) itself, with predict(se = TRUE) for its
+  confidence band (interval=); not lowess: loess fits local curves (degree 2) without robustness steps;
 * "spline": SciPy make_smoothing_spline as table.values_at(smoothness=) (R smooth.spline);
 * "whittaker": scipy.signal.whittaker_henderson(lamb=, order=2);
 * "wiener": scipy.signal.wiener(mysize=window);
@@ -26,19 +28,19 @@ import numpy as np
 
 from ._errors import SimplydataError, choice_error
 
-METHODS = ("moving average", "median", "savitzky-golay", "exponential", "gaussian", "lowess", "spline",
+METHODS = ("moving average", "median", "savitzky-golay", "exponential", "gaussian", "lowess", "loess", "spline",
            "whittaker", "wiener")
 ALIASES = {"moving_average": "moving average", "mean": "moving average", "average": "moving average",
            "rolling average": "moving average", "running median": "median", "runmed": "median",
            "savgol": "savitzky-golay", "savitzky golay": "savitzky-golay", "sgolay": "savitzky-golay",
            "ewm": "exponential", "ewma": "exponential", "exponential smoothing": "exponential",
-           "gauss": "gaussian", "loess": "lowess", "smoothing spline": "spline", "whittaker-henderson": "whittaker"}
+           "gauss": "gaussian", "local regression": "loess", "smoothing spline": "spline", "whittaker-henderson": "whittaker"}
 ENDS = {"moving average": ("empty", "shorter windows", "mirror"), "median": ("tukey", "keep", "constant"),
         "savitzky-golay": ("fitted curve",), "gaussian": ("mirror",)}
 WINDOW_METHODS = ("moving average", "median", "savitzky-golay", "wiener")
 OPTIONS = {"moving average": {"weights"}, "savitzky-golay": {"degree"},
            "exponential": {"newest_weight", "alpha", "span", "half_life", "com"}, "gaussian": {"width"},
-           "lowess": {"smoothness"}, "spline": {"smoothness"}, "whittaker": {"smoothness"}}
+           "lowess": {"smoothness"}, "loess": {"smoothness", "interval"}, "spline": {"smoothness"}, "whittaker": {"smoothness"}}
 R_ENDRULE = {"tukey": "median", "keep": "keep", "constant": "constant"}
 
 
@@ -47,6 +49,8 @@ class SmoothResult:
     values: np.ndarray
     sentence: str  # what was done, in words
     r_call: str  # the R call that gives the same numbers
+    low: np.ndarray | None = None  # method="loess" with interval=: the ends of the confidence band
+    high: np.ndarray | None = None
 
 
 def read_method(method, step_name):
@@ -112,7 +116,7 @@ def smooth(values, method="moving average", window=5, ends=None, times=None, ste
             raise choice_error(step_name, "ends", ends, list(ENDS[method]))
     elif ends is not None:
         raise SimplydataError(f'method="{method}" has no ends= choice (it needs none).')
-    if method != "lowess" and method != "spline" and np.isnan(x).any():
+    if method not in ("lowess", "loess", "spline") and np.isnan(x).any():
         raise SimplydataError(f"{step_name}() needs a value at every step, but {int(np.isnan(x).sum())} are empty. "
                               'Fill them first (fill_empty_cells_in(..., with_the="line between neighbours")).')
 
@@ -198,6 +202,8 @@ def smooth(values, method="moving average", window=5, ends=None, times=None, ste
                                  f"{radius} readings each side; at the ends the readings are mirrored",
                             "SciPy ndimage.gaussian_filter1d (in R: dnorm weights on the mirrored readings)")
 
+    if method == "loess":
+        return _loess(x, times, _opt(options, "smoothness", None), _opt(options, "interval", None))
     if method in ("lowess", "spline"):
         t = np.arange(1.0, n + 1.0) if times is None else np.asarray(times, dtype=float)
         keep = ~np.isnan(x)
@@ -250,6 +256,44 @@ def smooth(values, method="moving average", window=5, ends=None, times=None, ste
     out = np.asarray(signal.wiener(x, mysize=k), dtype=float)
     return SmoothResult(out, f"a Wiener filter over windows of {k} readings (it smooths more where the local spread "
                              "is close to the noise)", "SciPy signal.wiener (no R function; its formula in R by hand)")
+
+
+LOESS_SPAN = 0.75  # R loess()'s span
+
+
+def loess_span(smoothness, step_name) -> float:
+    """smoothness= of method="loess": the share of readings in each local fit (R loess span=, normally 0.75)."""
+    if smoothness is None or smoothness == "auto":
+        return LOESS_SPAN
+    if isinstance(smoothness, bool) or not isinstance(smoothness, (int, float, np.integer, np.floating)) \
+            or not 0 < smoothness <= 1:
+        raise SimplydataError('method="loess" takes smoothness= as the share of readings in each local fit, above 0 '
+                              "and up to 1 (R loess span=, normally 0.75).")
+    return float(smoothness)
+
+
+def _loess(x, times, smoothness, interval):
+    """R stats::loess(degree = 2) at every reading, with the ends of its confidence band when interval= is given."""
+    from .table.lines_r import loess
+
+    n = len(x)
+    t = np.arange(1.0, n + 1.0) if times is None else np.asarray(times, dtype=float)
+    keep = ~np.isnan(x) & ~np.isnan(t)
+    span = loess_span(smoothness, "smooth")
+    level = 0.95 if interval is None else interval / 100
+    if int(keep.sum()) < 5:
+        raise SimplydataError('method="loess" needs at least 5 readings.')
+    got = loess(t[keep], x[keep], span, t[keep], level)
+    out, low, high = np.full(n, np.nan), np.full(n, np.nan), np.full(n, np.nan)
+    out[keep] = np.atleast_1d(got["fit"]).astype(float)
+    low[keep] = np.atleast_1d(got["low"]).astype(float)
+    high[keep] = np.atleast_1d(got["high"]).astype(float)
+    share = f"{_g(span)}, R's default" if span == LOESS_SPAN and smoothness in (None, "auto") else _g(span)
+    sentence = (f"loess (R stats::loess: a local curve of degree 2 through the nearest share of the readings "
+                f"({share}), no robustness steps; not lowess, which fits local straight lines with 3 robustness "
+                "steps)")
+    return SmoothResult(out, sentence, f"loess(x ~ t, span = {_g(span)}, degree = 2)",
+                        low if interval is not None else None, high if interval is not None else None)
 
 
 TREND_METHODS = ("straight line", "average")

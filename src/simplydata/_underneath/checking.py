@@ -130,7 +130,7 @@ ENTRIES = [
 OPTION_ENTRIES = [
     Entry(
         word="table.explain",
-        option='spread_changes_with="school"',
+        option="spread_changes_with=",
         data="school",
         ours="""
             table = sdata.table(sdata.get_example("school"))
@@ -164,7 +164,7 @@ OPTION_ENTRIES = [
     ),
     Entry(
         word="table.explain",
-        option='neighbours_alike_in_order_of="year"',
+        option="neighbours_alike_in_order_of=",
         data="made-up",
         ours="""
             years = list(range(1, 41))
@@ -301,7 +301,7 @@ OPTION_ENTRIES = [
     ),
     Entry(
         word="table.find_model_averages_of",
-        option='within_each_group_in="breakfast"',
+        option="within_each_group_in=",
         data="school",
         ours="""
             table = sdata.table(sdata.get_example("school"))
@@ -335,7 +335,7 @@ OPTION_ENTRIES = [
     ),
     Entry(
         word="table.find_model_averages_of",
-        option='over_range_of="hours"',
+        option="over_range_of=",
         data="school",
         ours="""
             table = sdata.table(sdata.get_example("school"))
@@ -368,7 +368,7 @@ OPTION_ENTRIES = [
     ),
     Entry(
         word="table.compare_averages_of",
-        option='grouped_by="rat"',
+        option="grouped_by=",
         data="made-up",
         ours="""
             rats = {"treatment": ["control"] * 12 + ["glucose"] * 12 + ["glucose and fructose"] * 12,
@@ -427,3 +427,7 @@ OPTION_ENTRIES = [
              + SENTENCE,
     ),
 ]
+
+
+# main keeps option entries in UNDERNEATH itself, keyed "word option=": one list of entries
+ENTRIES = ENTRIES + OPTION_ENTRIES

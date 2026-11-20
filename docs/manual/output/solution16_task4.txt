@@ -1,0 +1,17 @@
+Explaining "caught_infection" from "ward" and "patient_days" (200 rows). Each odds ratio below holds the other columns fixed:
+  intercept: 0.00587, the odds of yes when every number column is 0 and every group column is at its baseline.
+  ward "ward B" against "ward A": the odds of yes is 5.80 times as high (95 % CI 1.81 to 18.6); about 3 of 1000 studies would show this much if there were truly none (p = 0.003).
+  patient_days: each 1 more "patient_days" multiplies the odds of yes by 1.10 (95 % CI 1.03 to 1.18); about 1 of 100 studies would show this much if there were truly none (p = 0.006).
+Method: logistic regression, as R glm(caught_infection ~ ward + patient_days, family = binomial); counted as yes: "caught_infection" = "yes". Wald 95 % intervals and z-tests, as R confint.default() and summary().
+Residual deviance 113 on 197 df (with no columns: 130 on 199 df). The model as a whole (likelihood-ratio chi-square = 17.2, df = 2): fewer than 1 in 1000 studies would show this much if none of the columns truly mattered (p = 0.0002).
+How well it fits: pseudo R squared 0.132 (0 = no better than no columns); other pseudo R squared: Nagelkerke 0.172, Tjur 0.093 (each measures something different; none is a share explained). AIC 119, BIC 129: smaller is better, but only to compare models of the same rows (compare_models).
+Method: McFadden's pseudo R squared (1 - log-likelihood / log-likelihood with no columns) as R performance::r2_mcfadden(); Nagelkerke's (Cox-Snell's, from statsmodels, scaled to reach 1) and Tjur's (the average chance among yes minus among no) as R performance::r2_nagelkerke() and r2_tjur(); AIC and BIC as R AIC(), BIC().
+A link does not show that one thing causes the other.
+Explaining "caught_infection" from "ward" and "patient_days" (200 rows). Each risk ratio below holds the other columns fixed:
+  intercept: 0.00773, the chance of yes when every number column is 0 and every group column is at its baseline.
+  ward "ward B" against "ward A": the chance of yes is 4.63 times as high (95 % CI 1.65 to 13.0); about 4 of 1000 studies would show this much if there were truly none (p = 0.004).
+  patient_days: each 1 more "patient_days" multiplies the chance of yes by 1.08 (95 % CI 1.03 to 1.15); about 4 of 1000 studies would show this much if there were truly none (p = 0.004).
+Method: risk ratios by modified Poisson regression (Zou 2004): a Poisson model for the yes/no column with robust (sandwich, HC0) standard errors, as R glm(caught_infection ~ ward + patient_days, family = poisson) with sandwich::vcovHC(m, type = "HC0") (statsmodels GLM, cov_type="HC0"); counted as yes: "caught_infection" = "yes". Wald 95 % intervals and z-tests.
+The model as a whole (Wald chi-square with robust errors = 19.1, df = 2): fewer than 1 in 1000 studies would show this much if none of the columns truly mattered (p < 0.0001).
+How well it fits: the Poisson model is used only to find risk ratios; it is not a model of the chance of yes, so it has no AIC, BIC or pseudo R squared to report.
+A link does not show that one thing causes the other.

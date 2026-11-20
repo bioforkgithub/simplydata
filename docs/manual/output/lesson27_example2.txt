@@ -1,17 +1,12 @@
-Model averages of "marks" for each "class" (180 rows), within each "breakfast":
-Does the effect of "class" depend on "breakfast"? The interaction class : breakfast: F = 1.48, df = 2 and 174; about 23 of 100 studies would show this much if the effect were truly the same in every group (p = 0.230).
-Compare the groups with the interaction test, not by which of the tests below have small p-values (Gelman & Stern 2006).
-  within "breakfast" no: "class" F = 1.00, df = 2 and 174; about 37 of 100 studies would show this much if the averages truly did not differ there (p = 0.369).
-    averages: blue 44.0 (95 % CI 39.5 to 48.4), green 46.4 (95 % CI 40.8 to 52.0), red 48.4 (95 % CI 44.1 to 52.7)
-  within "breakfast" yes: "class" F = 0.998, df = 2 and 174; about 37 of 100 studies would show this much if the averages truly did not differ there (p = 0.371).
-    averages: blue 49.8 (95 % CI 46.2 to 53.5), green 51.2 (95 % CI 47.9 to 54.4), red 47.6 (95 % CI 43.9 to 51.4)
-Each pair of groups (difference, Tukey's adjustment for 3 comparisons):
-  no: blue minus green: difference -2.44 (95 % CI -11.0 to 6.15); Tukey-adjusted p = 0.780.
-  no: blue minus red: difference -4.43 (95 % CI -11.8 to 2.96); Tukey-adjusted p = 0.335.
-  no: green minus red: difference -1.98 (95 % CI -10.5 to 6.48); Tukey-adjusted p = 0.844.
-  yes: blue minus green: difference -1.32 (95 % CI -7.16 to 4.52); Tukey-adjusted p = 0.854.
-  yes: blue minus red: difference 2.22 (95 % CI -4.03 to 8.46); Tukey-adjusted p = 0.679.
-  yes: green minus red: difference 3.54 (95 % CI -2.40 to 9.47); Tukey-adjusted p = 0.338.
-Method: the model lm(marks ~ class * breakfast), then R emmeans::emmeans(m, ~ class | breakfast) and contrast(e, method = "pairwise"), with emmeans' own adjustment for this method (tukey); joint_tests(m) and joint_tests(m, by = "breakfast") for the F tests.
-Adjusted p-values allow for making 3 comparisons: each says how often a difference this big would turn up among all of them if the groups truly did not differ.
-A large p-value does not show that there is no difference, only that the data cannot tell.
+A percentile line is the line under which a share of the values of "marks" fall, at each value of "hours": the 90th percentile line has 90 % of the values below it.
+At the 90th percentile of "marks":
+  hours: for each 1 more the line goes up by 3.03 (95 % CI 2.08 to 3.98); fewer than 1 in 1000 studies would show this much if there were truly none (p < 0.0001).
+Method: R quantreg::rq(marks ~ hours, tau = 0.9) (Koenker & Bassett 1978), standard errors by summary(se = "nid") (Hendricks-Koenker sandwich, which allows the spread to change with the other columns). simplydata chooses "nid" for every number of rows so that each line has an interval and a p-value; R's own default below 1001 rows is "rank" (intervals only).
+A percentile line is the line under which a share of the values of "marks" fall, at each value of "hours": the 90th percentile line has 90 % of the values below it.
+At the 10th percentile of "marks":
+  hours: for each 1 more the line goes up by 2.78 (95 % CI 1.83 to 3.73); fewer than 1 in 1000 studies would show this much if there were truly none (p < 0.0001).
+At the 50th percentile of "marks":
+  hours: for each 1 more the line goes up by 2.84 (95 % CI 2.32 to 3.36); fewer than 1 in 1000 studies would show this much if there were truly none (p < 0.0001).
+At the 90th percentile of "marks":
+  hours: for each 1 more the line goes up by 3.03 (95 % CI 2.08 to 3.98); fewer than 1 in 1000 studies would show this much if there were truly none (p < 0.0001).
+Method: R quantreg::rq(marks ~ hours, tau = 0.1, 0.5, 0.9) (Koenker & Bassett 1978), standard errors by summary(se = "nid") (Hendricks-Koenker sandwich, which allows the spread to change with the other columns). simplydata chooses "nid" for every number of rows so that each line has an interval and a p-value; R's own default below 1001 rows is "rank" (intervals only).

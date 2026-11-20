@@ -28,7 +28,7 @@ GROUPS = [
     ("Chart types", ["draw_bars", "draw_lines", "draw_dots", "draw_area", "draw_histogram", "draw_boxes", "draw_violins",
                      "draw_heatmap", "draw_pie", "draw_polar", "draw_contour", "draw_surface", "draw_dots_3d", "draw_band", "draw_map_of_empty_cells", "sticks"]),
     ("Statistics", ["show=", "error=", "draw_error_bars", "fit_line", "fit_curve", "fit_formula", "fit_distribution",
-                    "draw_curve", "draw_smooth_line",
+                    "fit_dose_response", "draw_curve", "draw_smooth_line",
                     # S3a-3 (checking and comparing)
                     "draw_interaction_lines",
                     "draw_density", "draw_count_bars", "draw_all_dots", "draw_side_histograms", "draw_qq_dots",
@@ -83,7 +83,9 @@ GROUPS = [
                           "trade_off_curve"]),
     ("Agreement and reliability", ["table.agreement_between", "table.limits_of_agreement", "table.reliability_of",
                                    "difference_dots"]),
-    ("Fitting", ["table.fit_line", "table.fit_curve", "table.fit_formula"]),
+    ("Fitting", ["table.fit_line", "table.fit_curve", "table.fit_formula",
+                # S3a-2 (lines and curves): core, then "more"
+                "table.fit_dose_response", "table.find_best_power_of"]),
     ("Finding and solving", ["sdata.find_where_smallest", "sdata.find_where_biggest", "sdata.solve"]),
     ("Values between points", ["table.values_at", "table.make_map_of"]),
     # "dist.name" is a step on a distribution: dist = sdata.distribution("normal"), then dist.find_chance_that_value(...).
@@ -700,7 +702,11 @@ HELP_EXAMPLES = {
         table.explain("marks", using=["hours", "breakfast"], grouped_by=["school", "class"])
         table.explain("marks", using=["hours", "breakfast"], grouped_by="school", effects="for the whole population")
         table.explain("marks", using=["hours", "breakfast"], curve_for="hours")
-        table.explain("marks", using=["hours", "breakfast"], robust_errors=True)"""),
+        table.explain("marks", using=["hours", "breakfast"], robust_errors=True)
+        table.explain("passed", using=["hours", "breakfast"], outcome="yes or no", show="risk ratios")
+        table.explain("marks", using=["hours", "breakfast"], giving_outliers_less_weight=True)
+        table.explain("marks", using=["hours", "breakfast"], curve_for="hours", with_knots=3)
+        table.explain("marks", using=["hours", "breakfast"], show="standardised effects")"""),
     "table.add_predicted_column": _tx("school", """\
         table.add_predicted_column("marks", using=["hours", "breakfast"], interval=95)
         table.show_first_rows(5)"""),
@@ -936,6 +942,15 @@ HELP_EXAMPLES = {
     "sdata.show_day": 'import simplydata as sdata\nsdata.show_day()\nsdata.show_day(5)\nsdata.show_day(1, track="beginner")',
     "sdata.show_answers": "import simplydata as sdata\nsdata.show_answers(5)",
     "sdata.go_to_next_day": "import simplydata as sdata\nsdata.start_30_days()\nsdata.go_to_next_day()",
+    # S3a-2: lines and curves (fit_dose_response needs R with drc)
+    "table.fit_dose_response": _tx("toxicity", 'table.fit_dose_response(x="concentration", y="root_length", '
+                                               'for_each_group_in="chemical")\n'
+                                               'table.fit_dose_response(x="concentration", y="dead", outcome="yes or no", '
+                                               'out_of="seedlings", doses_for_effect=[10, 50])'),
+    "table.find_best_power_of": _tx("trial", 'table.find_best_power_of("days")\n'
+                                             'table.find_best_power_of("days", method="yeo-johnson")'),
+    "fit_dose_response": _ex("toxicity", 'chart.draw_dots(x="concentration", y="root_length", colour="chemical")\n'
+                                         'chart.fit_dose_response()', "fit_dose_response"),
     # S3a-3: checking and comparing (the two table words need R)
     "table.find_columns_that_predict": _tx("school", """\
         table.find_columns_that_predict("marks", using=["hours", "sleep", "breakfast", "class"])
@@ -1497,12 +1512,14 @@ def _sx(code: str) -> str:
 # its own (the tests run every one), and sdata.show_lesson(3, solutions=True) prints them.
 # The lessons of v0.6, found by title (learn_days.py and the tests use lesson_number), so their numbers can
 # change when lessons are added before them. Agreed order across branches: S2's "Working with a model" is
-# lesson 21, S1's "Risks, diagnostic tests and agreement" 22, these four 23 to 26.
+# lesson 21, S1's "Risks, diagnostic tests and agreement" 22, these four 23 to 26, S3a's lesson 27.
 TIME_SERIES_LESSON = "Time series: dates, missing days, time windows and trend"
 FORECASTS_LESSON = "Forecasts: the next months, checked first"
 CYCLES_LESSON = "Cycles: spectra, filters, peaks, and steady or not"
 SYSTEMS_LESSON = "Systems: a spring and damper, its response and a feedback loop"
-# S3a-3: the interaction lesson (lesson 28 after S3a-1's lesson 27; found by title)
+# S3a: outliers (S3a-1) and percentile lines (S3a-2), the title of the name review of 2026-11-20
+OUTLIERS_LESSON = "Beyond the average line: percentiles and outliers"
+# S3a-3: the interaction lesson (lesson 28; found by title)
 INTERACTIONS_LESSON = "When one effect depends on another"
 
 LESSONS = [
@@ -3356,6 +3373,7 @@ LESSONS = [
             "how to explain a yes/no column (logistic regression) and a column of counts (Poisson regression)",
             "how to allow for groups such as schools (a mixed model)",
             "how to use rows with empty cells without guessing once (multiple imputation)",
+            "how to say how much a column changes the chance of yes (a risk ratio, not only an odds ratio)",
         ],
         parts=[
             ("Marks depend on more than one thing. explain() looks at several columns together, so each "
@@ -3400,6 +3418,18 @@ LESSONS = [
                  "imputation fills the empty cells 20 times, fits the model to each filled-in table and "
                  "pools the 20 answers (Rubin's rules), so the extra uncertainty is counted."),
             ]),
+            ("An odds ratio is not a risk ratio. When yes is common, the odds ratio is further from 1 than the "
+             "change in the chance itself, and readers often take it for the chance.", [
+                ("import simplydata as sdata", "Load simplydata."),
+                ('table = sdata.table(sdata.get_example("school"))', "The school table."),
+                ('table.explain("passed", using=["hours", "breakfast"], outcome="yes or no")',
+                 "Odds ratios, as in part 2. 43 % of the pupils passed, so the printout ends with a note: an "
+                 "odds ratio is not a risk ratio here, and show=\"risk ratios\" gives risk ratios."),
+                ('table.explain("passed", using=["hours", "breakfast"], outcome="yes or no", show="risk ratios")',
+                 'show="risk ratios" gives risk ratios (modified Poisson regression): each extra hour of study '
+                 "multiplies the chance of passing by 1.21, where the odds ratio was 1.66. Say in words what "
+                 "1.21 means: with one more hour of study, the chance of passing is about a fifth higher."),
+            ]),
         ],
         notes=[
             "Each effect in explain() holds the other columns fixed: the effect of sleep is the effect "
@@ -3416,6 +3446,11 @@ LESSONS = [
             "at random). Say in your report how many cells were empty and how they were handled.",
             "grouped_by= works out of the box (statsmodels comes with simplydata). Multiple "
             "imputation pools its results in R, so it needs R (see the box at the start).",
+            "A risk ratio of 1.21 means the chance of yes is 21 % higher. Report risk ratios when yes is common "
+            "(more than about 1 in 10 rows); simplydata says when that is the case.",
+            "More outcomes for later, all in the manual and the dictionary: \"yes or no (overdispersed)\" (yes "
+            "counts out of tries that vary a lot), \"counts with many zeros that vary a lot\" and \"counts in two "
+            "steps\" (first zero or not, then how many).",
         ],
         task=[
             'Explain "marks" using "hours" and "school" (school as a column of groups). Which schools '
@@ -3423,6 +3458,9 @@ LESSONS = [
             'Explain "passed" using "hours" and "sleep" with outcome="yes or no".',
             'Explain "days_absent" using "hours" and "breakfast" with outcome="counts". Does breakfast '
             "matter?",
+            'In the clinic table, explain "caught_infection" using "ward" and "patient_days" with '
+            'outcome="yes or no", first as odds ratios and then with show="risk ratios". Which is further '
+            "from 1?",
         ],
         solutions=[
             (_sx("""\
@@ -3446,6 +3484,14 @@ LESSONS = [
              "For breakfast the data cannot tell (rate ratio 0.94, p = 0.45: about 45 of 100 studies "
              "would show this much with truly no effect); study hours matter (rate "
              "ratio 0.86 for each hour)."),
+            (_sx("""\
+                import simplydata as sdata
+                table = sdata.table(sdata.get_example("clinic"))
+                table.explain("caught_infection", using=["ward", "patient_days"], outcome="yes or no")
+                table.explain("caught_infection", using=["ward", "patient_days"], outcome="yes or no",
+                              show="risk ratios")"""),
+             "Ward B: odds ratio 5.80, risk ratio 4.63. The odds ratio is further from 1, even with only 1 patient "
+             "in 10 infected; the rarer the outcome, the closer the two."),
         ],
         words=["table.explain", "table.add_predicted_column", "table.show_first_rows"],
     ),
@@ -3682,6 +3728,35 @@ LESSONS = [
                  "known=fit puts the fitted a and b into the equation: Applia reaches 20 million in about "
                  "2017 (year = 2017.24). A fitted curve answers questions, not only draws a line."),
             ]),
+            ("Growth curves: bacteria in a flask grow fast, then level off. Instead of writing that formula "
+             "yourself, name the curve with of_kind=: fit_curve then writes the formula and finds start values "
+             "for you (R's own self-starting models when R is there).", [
+                ("import simplydata as sdata", "Load simplydata."),
+                ('table = sdata.table(sdata.get_example("culture"))', "Three flasks, measured every hour."),
+                ('table.keep_rows_where("flask", is_equal_to="A")', "Keep flask A."),
+                ('table.fit_curve(x="hour", y="density", of_kind="logistic growth")',
+                 "Asym = 1.15 is where the culture levels off, xmid = 9.59 the hour it is half way up, and scal = "
+                 "2.02 how fast it rises. Say in words what xmid means for this flask."),
+                ('table.fit_curve(x="hour", y="density", of_kind="gompertz growth")',
+                 "The same data with another growth curve (one change in the call). Compare the levels the two "
+                 "curves give."),
+            ]),
+            ("If you have R: a dose-response curve. A toxicity test grows seedlings at eight concentrations. "
+             "fit_dose_response finds the dose that halves the effect (the ED50, or EC50) with its 95 % "
+             "interval, from the fitted curve, not from the raw averages.", [
+                ("import simplydata as sdata", "Load simplydata."),
+                ('table = sdata.table(sdata.get_example("toxicity"))', "Two chemicals, three dishes per dose."),
+                ('table.keep_rows_where("chemical", is_equal_to="A")', "Keep chemical A."),
+                ('table.fit_dose_response(x="concentration", y="root_length")',
+                 "A 4 parameter log-logistic curve (R drc): the ED50 is 3.92 mg per litre (95 % CI 3.11 to 4.73). "
+                 "Say in words what the ED50 means for the roots."),
+                ('table.fit_dose_response(x="concentration", y="dead", outcome="yes or no", out_of="seedlings")',
+                 "Deaths out of 20 seedlings: the LD50, the dose that kills half, is 4.94 mg per litre."),
+                ('chart = sdata.chart(sdata.get_example("toxicity"))', "A chart of both chemicals."),
+                ('chart.draw_dots(x="concentration", y="root_length", colour="chemical")', "The dishes."),
+                ("chart.fit_dose_response()", "One curve per chemical, with its ED50 in the legend."),
+                ('chart.save("lesson19_dose_response.png")', "Save it."),
+            ]),
         ],
         notes=[
             "Fitting is the same idea every time: a line, a curve or a formula is moved until it is as "
@@ -3695,6 +3770,9 @@ LESSONS = [
             'so, and search="whole range" looks everywhere. solve with between= finds every crossing.',
             "Names from other tools point to these words: minimize, optimise and argmin to find_where_smallest, "
             "fsolve, brentq and uniroot to solve, curve_fit and nls to fit_formula, polyfit to fit_curve.",
+            'More: fit_line(method=) draws other lines ("theil-sen", "standardised major axis", "deming"), '
+            "fit_line(with_bends=1) lets the line bend, and find_best_power_of finds the Box-Cox power of a "
+            "column. The manual and the dictionary have the rest.",
         ],
         task=[
             'Fit a curve of degree 3 to "marks" against "hours". Does R squared go up much from the straight '
@@ -3704,6 +3782,10 @@ LESSONS = [
             "Try to remember without looking back: which word finds where a formula is biggest, and which "
             'word finds where the two sides of an equation are equal? Use them on "x * (10 - x)" between 0 '
             'and 10, and on "x**2 = 2" between 0 and 2.',
+            'Fill in the call for chemical B of the toxicity table: table.fit_dose_response(x="...", y="...", '
+            "doses_for_effect=[10, 50]). Which dose gives 10 % of the effect? (Needs R.)",
+            "Without looking back: which word gives the EC50 of a toxicity test, and which of_kind= fits a growth "
+            "curve that levels off? Use the second on flask C of the culture table.",
         ],
         solutions=[
             (_sx("""\
@@ -3723,9 +3805,25 @@ LESSONS = [
                 sdata.find_where_biggest("x * (10 - x)", between=[0, 10])
                 sdata.solve("x**2 = 2", between=[0, 2])"""),
              "find_biggest gives 25 at x = 5, and solve gives x = 1.41421, the square root of 2."),
+            (_sx("""\
+                import simplydata as sdata
+                table = sdata.table(sdata.get_example("toxicity"))
+                table.keep_rows_where("chemical", is_equal_to="B")
+                table.fit_dose_response(x="concentration", y="root_length", doses_for_effect=[10, 50])"""),
+             "ED10 is 3.32 and ED50 9.35 mg per litre: chemical B needs more than twice the dose of A."),
+            (_sx("""\
+                import simplydata as sdata
+                table = sdata.table(sdata.get_example("culture"))
+                table.keep_rows_where("flask", is_equal_to="C")
+                table.fit_curve(x="hour", y="density", of_kind="logistic growth")"""),
+             'fit_dose_response gives the EC50; of_kind="logistic growth" levels off. Flask C levels off at '
+             "about 1.25, half way up at about hour 10.5."),
         ],
         words=["table.fit_line", "table.fit_curve", "table.fit_formula", "fit_line", "fit_curve", "fit_formula",
-               "sdata.find_where_smallest", "sdata.find_where_biggest", "sdata.solve"],
+               "sdata.find_where_smallest", "sdata.find_where_biggest", "sdata.solve",
+               "table.fit_dose_response", "fit_dose_response"],
+        needs_r=needs_r_text("Only the last example part and the fourth task (fit_dose_response, R drc)",
+                             packages=("drc",)),
     ),
     dict(
         title="Distributions, chances and values between points",
@@ -4548,6 +4646,87 @@ LESSONS = [
         words=["sdata.frequency_filter", "sdata.system", "system.poles", "system.chart", "system.step_response",
                "system.then", "system.with_feedback", "system.frequency_response", "system.in_steps"],
     ),
+    dict(
+        title=OUTLIERS_LESSON,
+        needs_r=needs_r_text("Only the second part and the third task (for_percentile=, R quantreg)",
+                             packages=("quantreg",)),
+        learn=[
+            "how a few rows far from the rest pull an ordinary model towards them",
+            "how to give those rows less weight (robust regression, Huber's method)",
+            "how giving_outliers_less_weight= differs from robust_errors=",
+            "how to fit the line under which 90 % (or 10 %) of the values fall: a percentile line",
+        ],
+        parts=[
+            ("A least-squares line counts every row the same, so a few rows far from the rest pull it towards "
+             "them. Robust regression gives those rows less weight, so they pull less.", [
+                ("import simplydata as sdata", "Load simplydata."),
+                ('table = sdata.table(sdata.get_example("school"))', "Pupils in 12 schools (lesson 16)."),
+                ('table.explain("marks", using=["hours", "breakfast"])',
+                 "The ordinary model (least squares, as in lesson 16): each extra hour of study goes with about "
+                 "2.8 more marks."),
+                ('table.explain("marks", using=["hours", "breakfast"], giving_outliers_less_weight=True)',
+                 "The same model with Huber's weights: rows far from the line count less. The effect of study "
+                 "hardly moves (2.87), and the printout lists the rows given less weight, by their row number. "
+                 "Say in words what that means: no few pupils decide the answer here."),
+                ('table.explain("marks", using=["hours", "breakfast"], robust_errors=True)',
+                 "Not the same thing: robust_errors=True keeps the effects of the ordinary model (2.82) and only "
+                 "changes their standard errors, so the intervals stay right when the spread is not the same "
+                 "everywhere. Outliers still pull."),
+            ]),
+            ("If you have R: the average line says nothing about the edges. A percentile line is the line under "
+             "which a share of the values fall: the 90th percentile line has 90 % of the marks below it, at each "
+             "number of hours. In ecology the edges are often the question (the most a habitat can hold).", [
+                ("import simplydata as sdata", "Load simplydata."),
+                ('table = sdata.table(sdata.get_example("school"))', "The school table again."),
+                ('table.explain("marks", using=["hours"], for_percentile=90)',
+                 "The 90th percentile line (R quantreg): each extra hour goes with 3.03 more marks at the top of "
+                 "the class. Say in words what that 3.03 means."),
+                ('table.explain("marks", using=["hours"], for_percentile=[10, 50, 90])',
+                 "One block per percentile: 2.78 at the bottom, 2.84 in the middle (the median line) and 3.03 at "
+                 "the top. Lines that are about parallel mean study helps the weak and the strong alike."),
+            ]),
+        ],
+        notes=[
+            "giving_outliers_less_weight=True changes the effects (rows far from the model count less); "
+            "robust_errors=True keeps the effects and changes only their standard errors. Choose by the problem: "
+            "outliers, or a spread that is not the same everywhere.",
+            "Huber's method resists outliers in the column you explain, not unusual values in the using= columns "
+            "(far-out hours, for example). table.show_rows_that_pull_model() finds those.",
+            "A row given less weight is not wrong: look at it before you decide anything. Say in your report that "
+            "you used robust regression (Huber's M-estimation, as R MASS::rlm()).",
+            "for_percentile= is the same idea as percent= in find_percentile_of, for a line instead of one number. "
+            "A percentile line is not the line through a group of rows: it uses every row.",
+        ],
+        task=[
+            'In the marks table, explain "marks" from "hours" with giving_outliers_less_weight=True. Which rows '
+            "get less weight?",
+            "Without looking back: which option changes the effects themselves, giving_outliers_less_weight= or "
+            "robust_errors=? Run both on the school table to check.",
+            'In the marks table, fit the 90th percentile line of "marks" against "hours". How many more marks '
+            "does one more hour bring at the top? (Needs R.)",
+        ],
+        solutions=[
+            (_sx("""\
+                import simplydata as sdata
+                table = sdata.table(sdata.get_example("marks"))
+                table.explain("marks", using=["hours"], giving_outliers_less_weight=True)"""),
+             "Four rows get less weight: row 22 (weight 0.59), then rows 45, 11 and 42. The printout lists them "
+             "with the lowest weight first."),
+            (_sx("""\
+                import simplydata as sdata
+                table = sdata.table(sdata.get_example("school"))
+                table.explain("marks", using=["hours"], giving_outliers_less_weight=True)
+                table.explain("marks", using=["hours"], robust_errors=True)"""),
+             "giving_outliers_less_weight= changes the effects (rows far from the model count less); "
+             "robust_errors= gives the same effects as the ordinary model, with other standard errors."),
+            (_sx("""\
+                import simplydata as sdata
+                table = sdata.table(sdata.get_example("marks"))
+                table.explain("marks", using=["hours"], for_percentile=90)"""),
+             "5.00 more marks per hour at the 90th percentile (95 % CI 2.98 to 7.02)."),
+        ],
+        words=["table.explain", "table.show_rows_that_pull_model"],
+    ),
     # S3a-3 (checking and comparing): lesson 28 after S3a's lesson 27, found by title
     dict(
         title=INTERACTIONS_LESSON,
@@ -4688,7 +4867,7 @@ def _list_lessons() -> None:
     print(f"to a figure. Lessons 16 to {len(LESSONS)} go further: models, patterns across many columns,")
     print("survival and planning a study, fitting curves and finding answers, distributions, working")
     print("with a model, risks, diagnostic tests and agreement, time series, forecasts, cycles,")
-    print("(optional) systems, and effects that depend on each other.\n")
+    print("(optional) systems, percentiles and outliers, and effects that depend on each other.\n")
     for i, les in enumerate(LESSONS, start=1):
         print(f"  sdata.show_lesson({i}){' ' * (5 - len(str(i)))}{les['title']}")
     print("\nStart with sdata.show_lesson(1). Each lesson ends with a small task to try yourself.")

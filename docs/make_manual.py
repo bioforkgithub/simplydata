@@ -321,7 +321,12 @@ UNDERNEATH = {
                      "R itself (needs R) for lme4::glmer, lme4::lmer with own_slope_for=, lmerTest for "
                      "p_value_by=\"satterthwaite\", geepack for within_groups=\"in time order\" and GEE with out_of=, car::Anova and "
                      "effectsize for test_type=, sandwich::vcovHC for robust_errors=True with yes/no and counts, and mice::pool for "
-                     "multiple imputation; R performance::r2_nakagawa for the R squared of every grouped_by= model",
+                     "multiple imputation; R performance::r2_nakagawa for the R squared of every grouped_by= model; "
+                     "statsmodels WLS and GLM(var_weights=) for weights=, RLM for giving_outliers_less_weight=, "
+                     "ConditionalLogit for matched_by=, GLM(cov_type=\"HC0\") for risk ratios; patsy cr for "
+                     "with_knots=; SciPy bootstrap for interval_by=\"bootstrap\"; R stats::confint for "
+                     "interval_by=\"profile\", lme4 for crossed_with=, pscl::zeroinfl and pscl::hurdle for the "
+                     "zero outcomes",
     "table.add_predicted_column": "statsmodels (the same model as table.explain; get_prediction for interval= and for_new_rows=)",
     "table.find_model_averages_of": "R emmeans (emmeans::emmeans and pairs, Tukey's adjustment; lme4 and pbkrtest for "
                                "grouped_by=; MASS, nnet, betareg and pscl for the other outcomes), on the model of "
@@ -367,6 +372,10 @@ UNDERNEATH = {
     "nums.save": "pandas (to_csv, to_excel ...)",
     "nums.keep_random_numbers": "NumPy (random.default_rng)",
     "nums.fill_empty_numbers": "NumPy (interp for the line between neighbours)",
+    # S3a-2: lines and curves (each also has a tested entry in simplydata._underneath)
+    "table.fit_dose_response": "R drc (drm, ED with delta-method intervals, EDcomp, noEffect)",
+    "fit_dose_response": "R drc (drm, ED), drawn with matplotlib",
+    "table.find_best_power_of": "SciPy (stats.boxcox, stats.yeojohnson); R car::powerTransform with using=",
     # S3a-3: checking and comparing (each also has a tested entry in simplydata._underneath)
     "table.find_columns_that_predict": "R glmnet (cv.glmnet, coef at lambda.1se)",
     "table.find_group_levels_of": "R lme4 (ranef with condVar, coef)",
@@ -928,8 +937,11 @@ def underneath_name(key: str) -> str:
 
 
 def underneath_figure(key: str) -> str:
-    """The file (relative to docs/manual) of the one picture a chart word's box shows."""
-    return f"figures/underneath_{key.replace('.', '_')}.pdf"
+    """The file (relative to docs/manual) of the one picture a chart word's box shows. An option entry's key
+    ('draw_smooth_line method="loess", ...') has spaces, quotes and commas: each run of them becomes one _."""
+    import re
+
+    return "figures/underneath_" + re.sub(r"[^A-Za-z0-9]+", "_", key).strip("_") + ".pdf"
 
 
 _HOW = {"value": "the number", "table": "the table", "result": "the numbers of the result table"}
@@ -951,11 +963,12 @@ def _checked(entry) -> str:
     return listed + " (the chart's data, not its pixels)"
 
 
-def _same_underneath(key: str) -> str:
-    """The grey box "The same underneath" (and, for a chart word, the one picture both programs draw)."""
+def _same_underneath(key: str, entry=None) -> str:
+    """The grey box "The same underneath" (and, for a chart word, the one picture both programs draw). entry= an
+    option's own entry: its box says which option it shows."""
     from simplydata._underneath import R_LABEL
 
-    entry = underneath_entry(key)
+    entry = entry or underneath_entry(key)
     if entry is None:
         return ""
     if entry.compare == "none":
@@ -964,11 +977,13 @@ def _same_underneath(key: str) -> str:
     if entry.compare == "chart":
         out.append(r"\begin{center}\begin{minipage}{\linewidth}\centering" + "\n"
                    + r"\includegraphics[width=0.52\textwidth,height=0.26\textheight,keepaspectratio]"
-                   + "{" + underneath_figure(key) + "}\n"
+                   + "{" + underneath_figure(entry.key) + "}\n"
                    + r"\captionof*{figure}{The chart simplydata draws. The code below draws the same "
                    + esc(_FACT_WORDS[entry.check[0]].replace("the ", "", 1)) + ", without simplydata's paper look.}" + "\n" + r"\end{minipage}\end{center}")
     badges = "".join(r"\libbadge{" + esc(library) + "}" for library in entry.code)
     out.append(r"\needspace{10\baselineskip}\begin{underneathbox}{" + badges + "}")
+    if entry.option:
+        out.append(r"\undertext{\textbf{With " + code(entry.option) + "}: the same job with this option.}")
     for library, language, source in entry.blocks():
         if language == "r":
             out.append(r"\underlib{" + esc(R_LABEL) + "}")
@@ -1023,6 +1038,10 @@ def _word_entry(key: str, aliases: dict) -> str:
     box = _same_underneath(key)
     if box:
         out.append(box)
+    from simplydata._underneath import option_entries
+
+    for entry in option_entries(key):  # an option that changes what the word calls underneath: a box of its own
+        out.append(_same_underneath(key, entry))
     return "\n".join(out)
 
 

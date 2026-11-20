@@ -1,0 +1,5 @@
+Kept 25 of 75 rows.
+Fitted a logistic growth curve, density = Asym / (1 + exp((xmid - hour) / scal)), to 25 rows:
+  Asym = 1.25 (95 % CI 1.24 to 1.26): the level the curve levels off at; xmid = 10.5 (95 % CI 10.4 to 10.6): the x where it is half way up; scal = 1.98 (95 % CI 1.90 to 2.06): the x it takes to go from half way to 73 % of the way (smaller is steeper).
+Residual standard error 0.0137 on 22 degrees of freedom; AIC -139; R squared = 1.00 (only a rough guide for a curve).
+Method: nonlinear least squares, as R nls(density ~ SSlogis(hour, Asym, xmid, scal)); start values from R's self-starting model SSlogis (stats::getInitial()), then Levenberg-Marquardt (SciPy least_squares), as R nls() would. Intervals are estimate +/- t x standard error.

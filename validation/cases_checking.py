@@ -356,18 +356,28 @@ def add_to(namespace) -> None:
     Dataset, Case = namespace["Dataset"], namespace["Case"]
     for d in _datasets(Dataset):
         namespace["DATASETS"][d.name] = d
-    cases = _cases(Case)
-    namespace["CASES"].extend(cases)
-    # cases whose simplydata side calls R: skipped without R (and failed with --require-r), as a missing R package
+    import dataclasses
+
+    # the R packages simplydata's own side calls (Case.ours_r: skipped without them, failed under --require-r),
+    # and the option each case checks (Case.option)
     needs = {"table.explain": ("nlme",), "table.find_columns_that_predict": ("glmnet",),
              "table.find_model_averages_of": ("emmeans",), "table.find_group_levels_of": ("lme4",)}
-    found = {(c.word, c.title): needs[c.word] for c in cases if c.word in needs}
-    found.update({(c.word, c.title): ("boot",) for c in cases if "check_on_left_out_rows" in c.ours})
-    found.update({(c.word, c.title): ("lme4",) for c in cases if "grouped_by=" in c.ours and
-                  c.word == "table.compare_averages_of"})
-    found.update({(c.word, c.title): ("performance",) for c in cases if 'outcome="yes or no"' in c.ours and
-                  c.word == "table.check_model_of"})
-    namespace.setdefault("OURS_NEEDS_R", {}).update(found)
+    cases = []
+    for c in _cases(Case):
+        ours_r = needs.get(c.word)
+        if "check_on_left_out_rows" in c.ours:
+            ours_r = ("boot",)
+        if c.word == "table.compare_averages_of" and "grouped_by=" in c.ours:
+            ours_r = ("lme4",)
+        if c.word == "table.check_model_of" and 'outcome="yes or no"' in c.ours:
+            ours_r = ("performance",)
+        option = c.title.split(":")[0] if "=" in c.title.split(":")[0] else ""
+        if option.startswith("using="):
+            option = "using=[[...], [...]]"  # the key of the underneath entry of a list of models
+        if c.word == "table.compare_averages_of" and "a list of columns" in c.title:
+            option = "for_each_group_in= with a list of columns"
+        cases.append(dataclasses.replace(c, ours_r=ours_r, option=option))
+    namespace["CASES"].extend(cases)
     namespace.setdefault("R_DATA", {}).update({name: packages for name, (packages, _) in R_DATA_CHECKING.items()})
     plain_load = namespace["load"]
 

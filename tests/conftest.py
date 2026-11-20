@@ -44,6 +44,8 @@ R_PACKAGES = ("survival", "vegan", "mice", "lme4", "betareg", "pscl", "car", "ef
               "pwr", "Exact", "exact2x2", "nortest", "BSDA", "rstatix", "DescTools", "FSA", "PMCMRplus",
               "multcompView", "TOSTER", "presize", "epiR", "pROC", "irr", "psych", "BlandAltmanLeh", "ppcor", "cocor",
               "outliers", "EnvStats",
+              # S3a-2 (lines and curves)
+              "drc", "segmented", "smatr", "mcr", "quantreg", "deming",
               # S3a-3 (checking and comparing)
               "nlme", "glmnet", "boot", "lmtest", "AICcmodavg")
 
@@ -100,9 +102,14 @@ R_ENTRY_POINTS = {
     ("table/models_r.py", "emmeans_table"), ("table/models_r.py", "lmer_r"), ("table/models_r.py", "geeglm_r"),
     ("table/models_r.py", "repeated_anova"), ("table/models_r.py", "group_influence"), ("table/models_r.py", "robust_cov"),
     ("table/models_r.py", "vif_r"), ("table/models_r.py", "gam_r"), ("table/models_r.py", "nakagawa_r"),
+    ("table/models_r.py", "profile_intervals"),
     ("table/time_series.py", "check_steady_over_time"), ("_signals.py", "_lomb_scargle"),
     ("_trend_season.py", "_r_stl_periodic"), ("_trend_season.py", "_r_mann_kendall"),
     ("_forecast.py", "r_forecast"), ("_forecast.py", "r_change_points"), ("_smoothing.py", "smooth"),
+    # S3a-2 (lines and curves)
+    ("table/lines_r.py", "dose_response"), ("table/lines_r.py", "dose_response_curve"), ("table/lines_r.py", "bends"),
+    ("table/lines_r.py", "two_error_line"), ("table/lines_r.py", "loess"), ("table/lines_r.py", "percentile_lines"),
+    ("table/lines_r.py", "self_start"), ("table/lines_r.py", "power_transform"),
     # S3a-3 (checking and comparing)
     ("table/checking_r.py", "gls"), ("table/checking_r.py", "lasso"), ("table/checking_r.py", "left_out_rows"),
     ("table/checking_r.py", "hosmer"), ("table/checking_r.py", "model_contrasts"),

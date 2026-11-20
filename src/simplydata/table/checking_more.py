@@ -116,7 +116,14 @@ def explain_gls(words, column, using, spread, order, others):
         raise SimplydataError("spread_changes_with= and neighbours_alike_in_order_of= cannot be used with grouped_by= "
                               "yet (that would be a mixed model with these parts, R nlme::lme()). Leave out "
                               "grouped_by=, or leave out these options for the mixed model.")
-    _default_given(step, [o for o in others if o[0] not in ("outcome=", "grouped_by=")])
+    given = [name for name, value, default in others if name not in ("outcome=", "grouped_by=")
+             and not (value is default or value == default)]
+    if given:
+        raise SimplydataError(
+            f"{_list_words(given)} cannot be used with spread_changes_with= or neighbours_alike_in_order_of= yet: "
+            "R nlme::gls() fits these as one linear model of numbers by REML, without row weights, resistant fitting, "
+            "crossed or nested groups, zero parts, percentile lines, change points, splines or other intervals. "
+            f"Leave out {_list_words(given)}, or leave out the gls options.")
     terms, pieces, variables, raw, missing, kinds = words._model_parts("explain", column, using, "numbers", None,
                                                                        "leave out")
     names = [column] + variables

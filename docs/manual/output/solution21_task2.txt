@@ -4,10 +4,6 @@ Checking the model of "marks" (180 rows) in four pictures, as R plot(lm(marks ~ 
   3. scale-location: a flat line means the spread is the same everywhere;
   4. residuals against leverage: rows beyond the dashed lines (Cook's distance 0.5 and 1) pull the model strongly.
 Numbers from statsmodels (OLSInfluence or GLMInfluence); the smooth lines are LOWESS, as R panel.smooth. Pictures help judge a model better than tests of the residuals.
-Under picture 3, two tests of equal spread (notes only: with many rows they flag even small, harmless differences, so judge by the picture):
-  Breusch-Pagan test (Koenker's studentised form, as R lmtest::bptest()): chi-square = 17.7, df = 12; about 13 of 100 studies would show this much if the spread were truly the same everywhere (p = 0.125).
-  White's test (the columns, their squares and products, as R lmtest::bptest(m, ~ the same)): chi-square = 24.3, df = 24; about 44 of 100 studies would show this much if the spread were truly the same everywhere (p = 0.444).
-  A large p-value does not show that the spread is the same everywhere, only that the test cannot tell.
 How strongly each column is linked with the others (variance inflation factor, R car::vif() itself): "hours" 1.08 and "school" 1.08 (generalised, 11 df; 1.00 on the scale of one column). Above 5 a column's effect is hard to tell apart from the others'.
 Found 8 of 180 rows with a Cook's distance above 4 / 180 = 0.0222:
   row 97: marks 59.0, hours 2.60, school "School G": Cook's distance 0.0457, leverage 0.0703, studentised residual 2.86

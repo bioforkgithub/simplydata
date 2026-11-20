@@ -457,3 +457,11 @@ def test_large_p_sentences_on_the_notes(school, needs_r, capsys):
 def test_no_singular_matrix_warning_from_whites_test(school, recwarn):
     school.check_model_of("marks", using=["hours", "breakfast"])
     assert not [w for w in recwarn if "Singular" in type(w.message).__name__ or "singular" in str(w.message).lower()]
+
+
+@pytest.mark.parametrize("extra", [dict(weights="hours"), dict(giving_outliers_less_weight=True),
+                                   dict(crossed_with="class"), dict(changes_at={"hours": 5}),
+                                   dict(for_percentile=90), dict(with_knots=3), dict(show="standardised effects")])
+def test_gls_refuses_the_other_explain_options_it_cannot_do(school, extra):
+    with pytest.raises(SimplydataError, match="cannot be used with spread_changes_with= or neighbours_alike_in_order_of="):
+        school.explain("marks", using=["hours"], spread_changes_with="school", **extra)
