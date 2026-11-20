@@ -384,3 +384,12 @@ def test_loess_is_no_longer_another_spelling_of_lowess(needs_r):
         sdata.chart(a).draw_dots(x="hour", y="density").draw_smooth_line(with_confidence_band=True)
     with pytest.raises(SimplydataError, match='method="loess"'):
         sdata.table(a).add_smoothed_column("s", from_column="density", sorted_by="hour", interval=95)
+
+
+def test_an_attached_drc_does_not_hide_gaussian_from_other_r_words(needs_r, capsys):
+    """drc has its own gaussian(); with drc attached (as the reliability study and the underneath boxes do),
+    mgcv's family must still be stats::gaussian."""
+    r("invisible(TRUE)", ("drc",))  # attaches drc, as a box with r_packages=("drc",) does
+    out = sdata.table(sdata.get_example("school")).explain("marks", using=["hours", "breakfast"],
+                                                           curve_for="hours").as_pandas()
+    assert len(out) > 0
