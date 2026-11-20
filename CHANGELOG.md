@@ -5,8 +5,6 @@ working for one release and prints a one-line note with its new name.
 
 ## Unreleased
 
-More statistics, each checked against R.
-
 ### explain() grows (S3a-1)
 
 New options of `table.explain`, each checked against the package underneath and R, with a box "The same
@@ -42,6 +40,10 @@ underneath" in the manual and a case on real, published data in the reliability 
   infert, birthwt, stackloss, mtcars, VerbAgg and the NMES 1988 survey, whose published hurdle and
   zero-inflated estimates (Zeileis, Kleiber & Jackman 2008) it reproduces). The registry of "The same
   underneath" now has entries for options too ("table.explain weights="), each with its own box.
+
+## 0.2.0 (2026-11-20)
+
+More statistics (tests and models), signals and time series, the 30-day course, the talking syntax, the same-underneath boxes and the public reliability study. Every printed statistical result is checked against R.
 
 ### The same underneath, and a public reliability study
 

@@ -36,7 +36,6 @@ one cleaned table can feed many charts, and charts go side by side with
 pip install simplydata            # needs Python 3.11 or newer
 pip install "simplydata[fast]"    # adds Polars, the fast engine for big data
 pip install "simplydata[files]"   # adds reading Word, SPSS and Stata files
-pip install "simplydata[stats]"   # adds statsmodels, for mixed models and multiple imputation
 pip install "simplydata[systems]" # adds python-control: rise time, settling time and margins of systems
 pip install "simplydata[r]"       # adds rpy2, the bridge from Python to R (install R itself from https://cran.r-project.org)
 ```

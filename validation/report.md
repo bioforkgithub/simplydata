@@ -12,7 +12,7 @@ Each simplydata word is run on real, published data and compared with the publis
 |---|---|
 | system | Windows 11 (AMD64) |
 | Python | 3.12.10 |
-| simplydata | 0.1.0 (imported from src/simplydata of this copy) |
+| simplydata | 0.2.0 (imported from src/simplydata of this copy) |
 | pandas | 3.1.1 |
 | polars | 2.1.0 |
 | narwhals | 2.28.0 |

@@ -786,7 +786,7 @@ class ModelWords:
         try:
             import statsmodels  # noqa: F401
         except ImportError:
-            raise SimplydataError('This needs the statsmodels package: pip install "simplydata[stats]"') from None
+            raise SimplydataError('This needs the statsmodels package, which comes with simplydata: pip install --upgrade simplydata') from None
 
     @staticmethod
     def _rank_problem(X, labels) -> str:

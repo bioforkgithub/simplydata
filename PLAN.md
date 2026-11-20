@@ -1,6 +1,6 @@
 # simplydata — design plan
 
-*Status: version 0.1.0 released; fitting, distributions and choosing parts by position are on main.*
+*Status: version 0.2.0 released (statistics S1 and S2, signals and time series, the 30-day course, the talking syntax, the same-underneath boxes and the reliability study); statistics S3 is being built.*
 
 ## 1. The idea
 
