@@ -1,0 +1,21 @@
+Model averages of "marks" for each "class" (180 rows), with "hours" held at its average (5.00):
+  blue: average 46.8 (95 % CI 44.6 to 49.0)
+  green: average 50.4 (95 % CI 48.2 to 52.6)
+  red: average 48.2 (95 % CI 46.0 to 50.4)
+Each group against the first, "blue" (difference, Dunnett's adjustment (emmeans' close form, dunnettx) for 2 comparisons):
+  green minus blue: difference 3.58 (95 % CI 0.0200 to 7.14); adjusted p = 0.048 (dunnettx).
+  red minus blue: difference 1.36 (95 % CI -2.19 to 4.92); adjusted p = 0.597 (dunnettx).
+Method: the model lm(marks ~ hours + class), then R emmeans::emmeans(m, ~ class) and contrast(e, method = "trt.vs.ctrl"), with emmeans' own adjustment for this method (dunnettx).
+The first group is "blue" (in sorted order). To compare each group with another one, put it first: in_order=['green', 'blue', 'red'].
+Adjusted p-values allow for making 2 comparisons: each says how often a difference this big would turn up among all of them if the groups truly did not differ.
+A large p-value does not show that there is no difference, only that the data cannot tell.
+Model averages of "marks" for each "class" (180 rows), with "hours" held at its average (5.00):
+  red: average 48.2 (95 % CI 46.0 to 50.4)
+  blue: average 46.8 (95 % CI 44.6 to 49.0)
+  green: average 50.4 (95 % CI 48.2 to 52.6)
+Each group against the first, "red" (difference, Dunnett's adjustment (emmeans' close form, dunnettx) for 2 comparisons):
+  blue minus red: difference -1.36 (95 % CI -4.92 to 2.19); adjusted p = 0.597 (dunnettx).
+  green minus red: difference 2.22 (95 % CI -1.34 to 5.77); adjusted p = 0.284 (dunnettx).
+Method: the model lm(marks ~ hours + class), then R emmeans::emmeans(m, ~ class) and contrast(e, method = "trt.vs.ctrl"), with emmeans' own adjustment for this method (dunnettx).
+Adjusted p-values allow for making 2 comparisons: each says how often a difference this big would turn up among all of them if the groups truly did not differ.
+A large p-value does not show that there is no difference, only that the data cannot tell.

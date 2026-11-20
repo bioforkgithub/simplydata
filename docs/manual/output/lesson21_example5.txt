@@ -5,3 +5,10 @@ Each pair of groups (difference, one pair, so nothing to adjust for):
   no minus yes: difference -2.95 (95 % CI -5.13 to -0.768); about 1 of 100 studies would show this much if the two groups truly did not differ (p = 0.008).
 Method: the model lm(marks ~ hours + school + breakfast), then R emmeans::emmeans(m, ~ breakfast) and pairs().
 Note: "breakfast" was not in using=, so it was added to the model.
+Model averages of "marks" across "hours" (50 values from 0.600 to 12.3; 180 rows), with the groups of "breakfast" counted equally:
+  hours 0.600: average 35.6 (95 % CI 33.0 to 38.3)
+  hours 6.57: average 52.4 (95 % CI 50.9 to 54.0)
+  hours 12.3: average 68.6 (95 % CI 64.5 to 72.6)
+  (all 50 rows are in the table that comes back)
+To draw them: chart = sdata.chart(result), then chart.draw_lines(x="hours", y="model average") and chart.draw_band(x="hours", between=["95 % CI low", "95 % CI high"]).
+Method: the model lm(marks ~ hours + breakfast), then R emmeans::emmeans(m, ~ hours, at = list(hours = 50 evenly spaced values)).
