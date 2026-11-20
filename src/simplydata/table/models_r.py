@@ -407,7 +407,8 @@ def profile_intervals(model):
     if fit.get("exposure") is not None:
         offset, values["t"] = " + offset(log(t))", np.asarray(fit["exposure"], dtype=float)
     link = fit.get("link")
-    family = {"binomial": f"binomial(link = '{link or 'logit'}')", "poisson": f"poisson(link = '{link or 'log'}')"}
+    family = {"binomial": f"stats::binomial(link = '{link or 'logit'}')",
+              "poisson": f"stats::poisson(link = '{link or 'log'}')"}
     if kind == "negbin":
         code = f"m <- MASS::glm.nb({left} ~ 0 + X{offset}); "
         packages = ("MASS",)

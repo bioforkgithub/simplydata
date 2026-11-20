@@ -479,11 +479,11 @@ Note: The two measures are printed with 3 decimals, so the check allows that rou
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
-| anger | R | 0.0574460971215786 | 0.0574458848078184 | relative 0.001 | pass |
-| anger standard error | R | 0.0168528280463522 | 0.0168451180133759 | relative 0.001 | pass |
-| gender | R | 0.320646326996743 | 0.320648193677949 | relative 0.001 | pass |
+| anger | R | 0.0574460971215786 | 0.0574460971215786 | relative 1e-06 | pass |
+| anger standard error | R | 0.0168528280463522 | 0.0168528280463522 | relative 1e-06 | pass |
+| gender | R | 0.320646326996743 | 0.320646326996743 | relative 1e-06 | pass |
 
-Note: simplydata runs lme4 itself (statsmodels cannot fit crossed groupings); this case checks the model R gets from explain() against R's own formula. lme4 works out a glmer's standard errors from a numerical Hessian, which moves in the fourth digit with how the columns are passed (a model matrix or a formula), hence 1e-3.
+Note: simplydata runs lme4 itself (statsmodels cannot fit crossed groupings); this case checks the model R gets from explain() against R's own formula. simplydata hands the groups to R as text, so their order is that of text ("1", "10", "100" ...); R's reference does the same. A user's own R run on the whole-number ids orders them as numbers, and its glmer standard errors (from a numerical Hessian) then differ in the fourth digit.
 
 ### `table.explain outcome="counts in two steps"`
 

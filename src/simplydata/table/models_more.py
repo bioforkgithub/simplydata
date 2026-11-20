@@ -294,7 +294,7 @@ def _explain_zeros(model, outcome, formula, variables, column, X, y, n):
     if hurdle:
         print(f'Explaining "{column}" from {variables} ({n} rows, {zeros} of them 0) in two steps: first whether '
               "the count is 0 or more than 0, then how many, among the counts above 0:")
-        print(f"Zero or not (the first step, from {zero_names}; odds of a count above 0):")
+        print(f"More than 0 or not (the first step, from {zero_names}; odds of a count above 0):")
         for j in range(1, len(zero_model["labels"])):
             print(_sentence(zero_model, j, fit["zero"][j], fit["zero_se"][j], "the odds of a count above 0")[0])
         print("How many, when not zero (the second step; each rate ratio holds the other columns fixed):")
@@ -323,7 +323,7 @@ def _explain_zeros(model, outcome, formula, variables, column, X, y, n):
         print(f"Method: zero-inflated {kind} regression, run in R: pscl::zeroinfl({formula}{zero_formula}, dist = "
               f"\"{dist}\"){same}. Wald 95 % intervals and z-tests.")
     print(fit_line(fit, "mcfadden"))
-    zero_part = "zero or not" if hurdle else "extra zeros"
+    zero_part = "more than 0" if hurdle else "extra zeros"
     return (_rows(model, fit["count"], fit["count_se"], "ratio", 0, {"part": "count"})
             + _rows(zero_model, fit["zero"], fit["zero_se"], "ratio", 0, {"part": zero_part}))
 

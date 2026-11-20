@@ -153,6 +153,9 @@ def check_case(case) -> list[dict]:
     needs_r_data = study.DATASETS[case.dataset].file == "" and case.dataset == "aSAH (pROC)"
     if needs_r_data and not r_ready(("pROC",)):
         return [_skipped(case, "R with pROC (the data come from pROC)")]
+    if case.ours_r is not None and not r_ready(case.ours_r):
+        return [_skipped(case, "R" + (" with " + ", ".join(case.ours_r) if case.ours_r else "")
+                         + " (simplydata runs R for this option)")]
     data = None if case.dataset in ("made-up", "standard normal table") else study.load(case.dataset)
     try:
         ours = run(case.ours, data)

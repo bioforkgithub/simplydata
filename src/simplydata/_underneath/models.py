@@ -271,8 +271,8 @@ ENTRIES = [
             "R": """
                 # explain("passed", using=["hours"], outcome="yes or no", interval_by="profile")
                 # passed (1 = yes) and hours: two columns of sdata.get_example("school")
-                m <- glm(passed ~ hours, family = binomial)
-                ci <- confint(m)                                    # (1)
+                m <- stats::glm(passed ~ hours, family = stats::binomial)
+                ci <- stats::confint(m)                             # (1)
                 list(low = ci[2, 1], high = ci[2, 2])
             """,
             "Python": """
@@ -285,7 +285,7 @@ ENTRIES = [
             passed = (school["passed"] == "yes").to_numpy(dtype=float)
             hours = school["hours"].to_numpy(dtype=float)
         """,
-        r_packages=("stats",),
+        r_packages=(),  # base R (stats) only
         compare="result", row="hours", fields=("95 % CI low", "95 % CI high"), tolerance=1e-7,
         choices=("profile-likelihood intervals, R's confint() of a glm (in stats since R 4.4; before, in MASS); "
                  "safer than Wald intervals with few rows or effects far from 1.",),

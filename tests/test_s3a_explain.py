@@ -489,7 +489,7 @@ def test_hurdle_gives_the_published_nmes_numbers(needs_r, capsys):
     zero = {"(intercept)": (0.043147, 0.139852), "hospital": (0.312449, 0.091437), "health (poor)": (-0.008716, 0.161024),
             "health (excellent)": (-0.289570, 0.142682), "chronic": (0.535213, 0.045378),
             "gender (male)": (-0.415658, 0.087608), "school": (0.058541, 0.011989), "insurance (yes)": (0.747120, 0.100880)}
-    for part, table in (("count", count), ("zero or not", zero)):
+    for part, table in (("count", count), ("more than 0", zero)):
         for term, (estimate, se) in table.items():
             assert got[(part, term)]["log ratio"] == pytest.approx(estimate, abs=5e-6), (part, term)
             assert got[(part, term)]["standard error"] == pytest.approx(se, abs=5e-6), (part, term)
@@ -507,7 +507,7 @@ def test_zero_part_using_gives_the_published_table_2(needs_r, capsys):
     # Table 2 of Zeileis, Kleiber & Jackman (2008): the zero parts of fm_hurdle and fm_zinb, 3 decimals
     for term, h, z in (("(intercept)", 0.016, -0.047), ("hospital", 0.318, -0.800), ("chronic", 0.548, -1.248),
                        ("insurance (yes)", 0.746, -1.176), ("school", 0.057, -0.084), ("gender (male)", -0.419, 0.648)):
-        assert hurdle[("zero or not", term)]["log ratio"] == pytest.approx(h, abs=5e-4), term
+        assert hurdle[("more than 0", term)]["log ratio"] == pytest.approx(h, abs=5e-4), term
         assert zinb[("extra zeros", term)]["log ratio"] == pytest.approx(z, abs=5e-4), term
     assert zinb[("count", "hospital")]["log ratio"] == pytest.approx(0.201, abs=5e-4)
     assert ("extra zeros", "health (poor)") not in zinb
@@ -535,3 +535,108 @@ def test_zero_outcomes_refuse_counts_without_zeros_and_zero_part_elsewhere():
         sdata.table(d).explain("n", using=["x"], outcome="counts in two steps")
     with pytest.raises(SimplydataError, match="zero_part_using= names the columns of the zero part"):
         sdata.table(d).explain("n", using=["x"], outcome="counts", zero_part_using=["x"])
+
+
+# ---------------------------------------------------------------- review fixes (PR #14)
+def rare_group_table():
+    # made-up edge case: group "b" has only 3 of 40 rows, so some resamples draw none of them
+    rng = np.random.default_rng(0)
+    g = np.array(["a"] * 37 + ["b"] * 3)
+    x = rng.normal(size=40)
+    y = 1 + 0.5 * x + (g == "b") * 2 + rng.normal(size=40)
+    return pd.DataFrame({"y": y, "x": x, "g": g, "yes": np.where(y > 1.5, "yes", "no")})
+
+
+@pytest.mark.parametrize("column, outcome", [("y", "numbers"), ("yes", "yes or no")])
+def test_bootstrap_refuses_a_group_too_rare_to_resample(column, outcome):
+    with pytest.raises(SimplydataError, match=r'"g \(b\)" \(3 of 40 rows\).*cannot be bootstrapped'):
+        sdata.table(rare_group_table()).explain(column, using=["x", "g"], outcome=outcome, interval_by="bootstrap",
+                                                resamples=999)
+
+
+def test_weighted_yes_or_no_prints_r_aic_for_whole_weights_and_none_otherwise(needs_r, capsys):
+    b = read("birthwt")
+    t = sdata.table(b.assign(w=b.ftv + 1, v=b.lwt / 100))
+    t.explain("low", using=["smoke", "age"], outcome="yes or no", weights="w")
+    whole = capsys.readouterr().out
+    found = r("list(aic = AIC(glm(y ~ s + a, family = binomial, weights = w)))", y=b.low.to_numpy(float),
+              s=b.smoke.to_numpy(float), a=b.age.to_numpy(float), w=(b.ftv + 1).to_numpy(float))
+    assert f"AIC {round(float(found['aic'][0]))}" in whole
+    t.explain("low", using=["smoke", "age"], outcome="yes or no", weights="v")
+    part = capsys.readouterr().out
+    assert "no AIC, BIC or pseudo R squared is printed" in part and "AIC 2" not in part
+
+
+def test_a_list_of_choices_is_refused_with_both_calls_in_mind():
+    t = sdata.table(sdata.get_example("school"))
+    with pytest.raises(SimplydataError, match="one choice at a time"):
+        t.explain("passed", using=["hours"], outcome="yes or no", show=["risk ratios", "standardised effects"])
+    with pytest.raises(SimplydataError, match="one choice at a time"):
+        t.explain("passed", using=["hours"], outcome="yes or no", interval_by=["profile"])
+    with pytest.raises(SimplydataError, match="method= is one of"):
+        t.explain("passed", using=["hours"], outcome="yes or no", show="risk ratios", method="poisson")
+
+
+def test_likelihood_ratio_rows_hold_the_chi_square_and_the_method_says_so(capsys):
+    import statsmodels.api as sm
+
+    b = read("birthwt")
+    got = rows(sdata.table(b).explain("low", using=["smoke", "age"], outcome="yes or no",
+                                      p_value_by="likelihood ratio", interval_by="bootstrap", resamples=199))
+    out = capsys.readouterr().out
+    y = b.low.to_numpy(float)
+    full = sm.GLM(y, X_of(b.smoke, b.age), family=sm.families.Binomial()).fit()
+    small = sm.GLM(y, X_of(b.age), family=sm.families.Binomial()).fit()
+    assert got["smoke"]["statistic name"] == "chi-square (likelihood ratio)"
+    assert got["smoke"]["statistic"] == pytest.approx(small.deviance - full.deviance, rel=1e-8)
+    assert got["smoke"]["degrees of freedom"] == 1 and got["(intercept)"]["statistic name"] == "z"
+    method = next(line for line in out.splitlines() if line.startswith("Method:"))
+    assert "95 % bootstrap intervals (BCa)" in method and "likelihood-ratio tests" in method
+    assert "Wald 95 % intervals" not in method and "The p-values are likelihood-ratio tests" in out
+
+
+def test_profile_method_line_and_odds_note_without_a_refused_suggestion(needs_r, capsys):
+    sdata.table(sdata.get_example("school")).explain("passed", using=["hours"], outcome="yes or no",
+                                                     interval_by="profile")
+    out = capsys.readouterr().out
+    method = next(line for line in out.splitlines() if line.startswith("Method:"))
+    assert "profile-likelihood 95 % intervals" in method
+    assert "an odds ratio is not a risk ratio here" in out and 'show="risk ratios"' not in out
+
+
+def test_standardised_effects_leave_out_aic_and_print_a_zero_intercept(capsys):
+    sdata.table(read("mtcars")).explain("mpg", using=["wt", "hp"], show="standardised effects")
+    out = capsys.readouterr().out
+    import re
+
+    assert "intercept: 0 standard deviations" in out and "on z-scores the AIC and BIC" in out
+    assert not re.search(r"AIC -?[0-9]", out)
+
+
+def test_nagelkerke_and_tjur_to_1e_10_of_r_performance(needs_r):
+    import statsmodels.api as sm
+
+    from simplydata.table.models_extra import other_pseudo
+
+    b = read("birthwt")
+    y = b.low.to_numpy(float)
+    fit = sm.GLM(y, X_of(b.smoke, b.age, b.lwt), family=sm.families.Binomial()).fit(tol=1e-12)
+    nagelkerke, tjur = other_pseudo(fit, y)
+    found = r("m <- glm(y ~ s + a + l, family = binomial, control = glm.control(epsilon = 1e-12)); "
+              "list(n = unname(unlist(performance::r2_nagelkerke(m))), t = unname(unlist(performance::r2_tjur(m))))",
+              packages=("performance",), y=y, s=b.smoke.to_numpy(float), a=b.age.to_numpy(float),
+              l=b.lwt.to_numpy(float))
+    assert nagelkerke == pytest.approx(float(found["n"][0]), rel=1e-10)
+    assert tjur == pytest.approx(float(found["t"][0]), rel=1e-10)
+
+
+def test_knots_with_zero_weight_rows_are_placed_as_r_ns(needs_r):
+    s = sdata.get_example("school")
+    w = np.where(np.arange(len(s)) % 7 == 0, 0.0, 1.0 + np.arange(len(s)) % 3)
+    got = rows(sdata.table(s.assign(w=w)).explain("marks", using=["hours", "breakfast"], curve_for="hours",
+                                                  with_knots=3, weights="w"))
+    found = r("d <- data.frame(m = m, h = h, b = b, w = w); f <- lm(m ~ splines::ns(h, df = 4) + b, data = d, "
+              "weights = w); list(b = coef(f), se = sqrt(diag(vcov(f))))",
+              m=s.marks.to_numpy(float), h=s.hours.to_numpy(float), b=s.breakfast.astype(str).to_numpy(object), w=w)
+    assert got["breakfast (yes)"]["effect"] == pytest.approx(found["b"][-1], rel=1e-9)
+    assert got["breakfast (yes)"]["standard error"] == pytest.approx(found["se"][-1], rel=1e-9)

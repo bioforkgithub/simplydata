@@ -226,6 +226,7 @@ class Case:
     r_tolerance: float = 1e-9
     note: str = ""
     option: str = ""              # the option the case checks ("weights="); empty for the word itself
+    ours_r: tuple | None = None   # R packages simplydata's own side runs (None: it needs no R); skipped without them
 
 
 def _cert(dataset: str, name: str, digits: str) -> tuple:
@@ -700,7 +701,7 @@ CASES += [
          note="R draws other random rows than SciPy, so R is a check of the same method within Monte Carlo error "
               "(5 %); SciPy with the same seed gives the same interval exactly."),
     Case("table.explain", "profile-likelihood intervals of a logistic regression of low birth weight", "birthwt",
-         "real data", option='interval_by="profile"',
+         "real data", option='interval_by="profile"', ours_r=(),
          ours="""
              r = _rows(sdata.table(data).explain("low", using=["smoke", "age", "lwt"], outcome="yes or no",
                                                          interval_by="profile"))
@@ -751,7 +752,7 @@ CASES += [
          """, r_packages=("performance",), r_tolerance=0.01,
          note="The two measures are printed with 3 decimals, so the check allows that rounding (1 % here)."),
     Case("table.explain", "people and items crossed: verbal aggression (yes or no) from anger and gender",
-         "VerbAgg", "real data", option="crossed_with=",
+         "VerbAgg", "real data", option="crossed_with=", ours_r=("lme4",),
          ours="""
              r = _rows(sdata.table(data).explain("r2", using=["anger", "gender", "btype"], outcome="yes or no",
                                                          grouped_by="id", crossed_with="item"))
@@ -759,20 +760,22 @@ CASES += [
               "gender": r["gender (M)"]["log odds ratio"]}
          """,
          r="""
+             id <- factor(as.character(id)); item <- factor(as.character(item))
              m <- lme4::glmer(r2 == "Y" ~ anger + gender + btype + (1 | id) + (1 | item), family = binomial)
              list(anger = lme4::fixef(m)[2], `anger standard error` = sqrt(diag(as.matrix(vcov(m))))[2],
                   gender = lme4::fixef(m)[3])
-         """, r_packages=("lme4",), r_tolerance=1e-3,
+         """, r_packages=("lme4",), r_tolerance=1e-6,
          note="simplydata runs lme4 itself (statsmodels cannot fit crossed groupings); this case checks the model "
-              "R gets from explain() against R's own formula. lme4 works out a glmer's standard errors from a "
-              "numerical Hessian, which moves in the fourth digit with how the columns are passed (a model matrix "
-              "or a formula), hence 1e-3."),
+              "R gets from explain() against R's own formula. simplydata hands the groups to R as text, so their "
+              "order is that of text (\"1\", \"10\", \"100\" ...); R's reference does the same. A user's own R "
+              "run on the whole-number ids orders them as numbers, and its glmer standard errors (from a numerical "
+              "Hessian) then differ in the fourth digit."),
     Case("table.explain", "two-step (hurdle) model of physician office visits", "NMES 1988", "published",
-         option='outcome="counts in two steps"',
+         option='outcome="counts in two steps"', ours_r=("pscl",),
          ours="""
              t = sdata.table(data).explain("visits", using=["hospital", "health", "chronic", "gender", "school",
                                                             "insurance"], outcome="counts in two steps that vary a lot")
-             c, z = _rows(t, "count"), _rows(t, "zero or not")
+             c, z = _rows(t, "count"), _rows(t, "more than 0")
              {"count: hospital": c["hospital"]["log ratio"], "count: health poor": c["health (poor)"]["log ratio"],
               "count: chronic": c["chronic"]["log ratio"], "count: chronic standard error": c["chronic"]["standard error"],
               "zero: chronic": z["chronic"]["log ratio"], "zero: insurance": z["insurance (yes)"]["log ratio"],
@@ -790,7 +793,7 @@ CASES += [
               "columns in both."),
     Case("table.explain", "zero-inflated negative binomial model of physician office visits, the zero part with its "
                           "own columns", "NMES 1988", "published",
-         option='outcome="counts with many zeros that vary a lot"',
+         option='outcome="counts with many zeros that vary a lot"', ours_r=("pscl",),
          ours="""
              t = sdata.table(data).explain("visits", using=["hospital", "health", "chronic", "gender", "school",
                                                             "insurance"], outcome="counts with many zeros that vary a lot",
@@ -822,12 +825,12 @@ CASES += [
          note="The paper's model fm_zinb (the zero part without health). simplydata runs R pscl itself, for its "
               "standard errors; statsmodels gives the same estimates."),
     Case("table.explain", "two-step (hurdle) model whose zero part has its own columns", "NMES 1988", "published",
-         option="zero_part_using=",
+         option="zero_part_using=", ours_r=("pscl",),
          ours="""
              t = sdata.table(data).explain("visits", using=["hospital", "health", "chronic", "gender", "school",
                                                             "insurance"], outcome="hurdle that vary a lot",
                                            zero_part_using=["hospital", "chronic", "insurance", "school", "gender"])
-             z = _rows(t, "zero or not")
+             z = _rows(t, "more than 0")
              {"zero: intercept": z["(intercept)"]["log ratio"], "zero: hospital": z["hospital"]["log ratio"],
               "zero: chronic": z["chronic"]["log ratio"], "zero: insurance": z["insurance (yes)"]["log ratio"],
               "zero: school": z["school"]["log ratio"], "zero: gender male": z["gender (male)"]["log ratio"]}

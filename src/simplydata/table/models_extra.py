@@ -53,8 +53,8 @@ SHOW_SPELLINGS = {"standardized effects": "standardised effects", "standardised"
                   "effects per standard deviation": "standardised effects"}
 # method=: how the model is worked out (for now: how risk ratios are found)
 METHODS = ("modified poisson", "log-binomial")
-METHOD_SPELLINGS = {"modified poisson": "modified poisson", "poisson": "modified poisson",
-                    "log binomial": "log-binomial", "log-binomial": "log-binomial"}
+METHOD_SPELLINGS = {"modified poisson": "modified poisson", "log binomial": "log-binomial",
+                    "log-binomial": "log-binomial"}
 # interval_by=: how the 95 % intervals of the effects are worked out
 INTERVAL_BY = ("wald", "profile", "bootstrap")
 INTERVAL_SPELLINGS = {"profile likelihood": "profile", "profile-likelihood": "profile", "wald": "wald",
@@ -70,7 +70,11 @@ def read_choice(option, value, choices, spellings, example):
     """A text option, with its other spellings; a friendly error with the choices otherwise."""
     if value is None:
         return None
-    text = value.strip().lower() if isinstance(value, str) else value
+    if not isinstance(value, str):
+        listed = ", ".join(f'"{c}"' for c in choices)
+        raise SimplydataError(f"{option}= takes one choice at a time, in quotes: {listed}, not {value!r}. For two "
+                              f"results, run explain() twice, once with each {option}=.\nFor example, {example}")
+    text = value.strip().lower()
     text = spellings.get(text, text)
     if text not in choices:
         listed = ", ".join(f'"{c}"' for c in choices)
@@ -103,7 +107,7 @@ def weights_line(name, zero):
 
 
 # ---------------------------------------------------------------------------- splines (with_knots=)
-def spline_basis(values, knots, name=""):
+def spline_basis(values, knots, name="", knot_values=None):
     """The natural cubic spline basis with knots inner knots at the quantiles of values, without its constant:
     patsy cr(x, knots=..., constraints="center"), whose curves are those of R splines::ns(x, df = knots + 1).
     The knots are placed as R ns() places them, at the quantiles of all the values (NumPy quantile, R's type 7);
@@ -111,7 +115,9 @@ def spline_basis(values, knots, name=""):
     from patsy import dmatrix
 
     x = np.asarray(values, dtype=float)
-    inner = np.quantile(x, np.linspace(0, 1, knots + 2)[1:-1])
+    # knot_values: the values R's ns() places its knots on (rows with weight 0 count there too, as in lm(weights =))
+    placed = x if knot_values is None else np.asarray(knot_values, dtype=float)
+    inner = np.quantile(placed, np.linspace(0, 1, knots + 2)[1:-1])
     if len(np.unique(inner)) < knots or inner.min() <= x.min() or inner.max() >= x.max():
         raise SimplydataError(f'"{name}" has too many repeated values to place {knots} different knots between its '
                               "smallest and largest value; use fewer, for example with_knots=2.")
@@ -249,9 +255,10 @@ def fit_risk_ratios(X, y, method):
     return out
 
 
-def common_yes_note(share):
+def common_yes_note(share, can_show=True):
+    hint = '; show="risk ratios" gives risk ratios' if can_show else ""
     return (f"Note: {round(share * 100)} % of the rows are yes, so an odds ratio is not a risk ratio here (it is "
-            "further from 1); show=\"risk ratios\" gives risk ratios.")
+            f"further from 1){hint}.")
 
 
 # ---------------------------------------------------------------------------- Nagelkerke and Tjur
@@ -270,19 +277,20 @@ def other_pseudo(result, y):
 def lr_p_values(model, refit):
     """A likelihood-ratio p-value for each one-column term not inside an interaction (as R drop1(m, test = "LRT"));
     NaN for the intercept, group columns with several columns and terms inside an interaction. refit(X) gives the
-    deviance of the model fitted to the columns of X."""
+    deviance of the model fitted to the columns of X. Gives back (p-values, chi-square statistics)."""
     from scipy import stats
 
     terms, owner, X = model["terms"], np.asarray(model["owner"]), model["X"]
-    out = np.full(X.shape[1], math.nan)
+    out, statistic = np.full(X.shape[1], math.nan), np.full(X.shape[1], math.nan)
     full = model["fit"]["deviance"]
     for index, term in enumerate(terms):
         columns = np.flatnonzero(owner == index)
         if len(columns) != 1 or any(set(term) < set(other) for other in terms):
             continue
-        change = refit(np.delete(X, columns, axis=1)) - full
-        out[columns[0]] = float(stats.chi2.sf(max(change, 0.0), 1))
-    return out
+        change = max(refit(np.delete(X, columns, axis=1)) - full, 0.0)
+        out[columns[0]] = float(stats.chi2.sf(change, 1))
+        statistic[columns[0]] = change
+    return out, statistic
 
 
 # ---------------------------------------------------------------------------- bootstrap intervals
@@ -299,22 +307,51 @@ def bootstrap_effects(model, refit, resamples, seed):
     def statistic(rows):
         return refit(np.asarray(rows, dtype=int))
 
-    with warnings.catch_warnings():
-        warnings.simplefilter("ignore")
-        with np.errstate(all="ignore"):
-            result = stats.bootstrap((np.arange(n),), statistic, n_resamples=int(resamples), confidence_level=0.95,
-                                     method="BCa", vectorized=False, rng=np.random.default_rng(int(seed)))
+    try:
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            with np.errstate(all="ignore"):
+                result = stats.bootstrap((np.arange(n),), statistic, n_resamples=int(resamples),
+                                         confidence_level=0.95, method="BCa", vectorized=False,
+                                         rng=np.random.default_rng(int(seed)))
+    except LostColumns as lost:
+        X = model["X"]
+        counts = _list_words(f'"{label}" ({int(np.count_nonzero(X[:, j]))} of {n} rows)'
+                             for j, label in zip(lost.columns, lost.labels))
+        raise SimplydataError(
+            f"A resample drew no row (or no varying row) for {counts}, so the model could not be fitted to it and "
+            "the bootstrap interval would be wrong. Groups this small cannot be bootstrapped: merge the rare group "
+            "with another, or leave out interval_by=\"bootstrap\" for the usual intervals.") from None
     return (np.asarray(result.confidence_interval.low, dtype=float),
             np.asarray(result.confidence_interval.high, dtype=float))
 
 
-def bootstrap_line(resamples, seed, n):
+class LostColumns(Exception):
+    """A resample in which some model columns cannot be estimated (a rare group drew no row)."""
+
+    def __init__(self, columns, labels):
+        super().__init__(labels)
+        self.columns, self.labels = columns, labels
+
+
+def lost_columns(X, labels):
+    """The columns of X a refit cannot estimate: constant columns other than the intercept (a group with no row
+    in the resample), and, if the rank is still short, all of them by the rank check."""
+    constant = [j for j in range(1, X.shape[1]) if np.ptp(X[:, j]) == 0]
+    if constant:
+        return constant, [labels[j] for j in constant]
+    if np.linalg.matrix_rank(X) < X.shape[1]:
+        return list(range(1, X.shape[1])), ["the columns of the model together"]
+    return [], []
+
+
+def bootstrap_line(resamples, seed, n, p_words="the model's usual tests"):
     few = (" With fewer than 20 rows the bootstrap interval is often too narrow; treat it as a rough guide."
            if n < 20 else "")
     return (f"Intervals: 95 % bootstrap intervals (bias-corrected and accelerated, BCa): the {n} rows were drawn "
             f"again at random, whole and with replacement, {int(resamples)} times (with_seed={int(seed)}), and the "
             "model was fitted to each new table (SciPy stats.bootstrap, as R boot::boot.ci(type = \"bca\") on "
-            "car::Boot()). The p-values are the model's usual ones." + few)
+            f"car::Boot()). The p-values are {p_words}, not from the resampling." + few)
 
 
 # ---------------------------------------------------------------------------- p-value sentences
@@ -322,7 +359,7 @@ def p_words(p, null):
     return _p_clause(p, null)
 
 
-__all__ = ["SHOW", "METHODS", "INTERVAL_BY", "read_choice", "read_weights", "weights_line", "spline_basis",
+__all__ = ["LostColumns", "lost_columns", "SHOW", "METHODS", "INTERVAL_BY", "read_choice", "read_weights", "weights_line", "spline_basis",
            "check_knots", "standardise", "standardised_lines", "fit_huber", "huber_lines", "fit_conditional_logit",
            "informative_sets", "constant_within_sets", "fit_risk_ratios", "common_yes_note", "other_pseudo",
            "lr_p_values", "bootstrap_effects", "bootstrap_line"]

@@ -715,7 +715,8 @@ class ModelWords:
         if splines:
             from .models_extra import spline_basis
 
-            bases = {name: spline_basis(data[name], knots, name) for name, knots in splines.items()}
+            placed = (grouping or {}).get("knot_values") or {}
+            bases = {name: spline_basis(data[name], knots, name, placed.get(name)) for name, knots in splines.items()}
         X, labels, owner, parts_of = _design(data, kinds, levels, terms, bases)
         p = X.shape[1]
         if n <= p:
@@ -827,7 +828,11 @@ class ModelWords:
             low, high = beta - Z95 * se, beta + Z95 * se
             name, dfs = "z", np.full(len(beta), math.nan)
         if fit.get("lr_p") is not None:  # p_value_by="likelihood ratio": R drop1(m, test = "LRT") where it gives one
-            p = np.where(np.isfinite(fit["lr_p"]), fit["lr_p"], p)
+            done = np.isfinite(fit["lr_p"])
+            p = np.where(done, fit["lr_p"], p)
+            stat = np.where(done, fit["lr_stat"], stat)
+            name = np.where(done, "chi-square (likelihood ratio)", name).astype(object)
+            dfs = np.where(done, 1.0, dfs)
         if fit.get("intervals") is not None:  # interval_by="profile" (R confint()) or "bootstrap" (SciPy)
             low, high = (np.asarray(v, dtype=float) for v in fit["intervals"])
         return dict(beta=beta, se=se, stat=stat, p=p, low=low, high=high, name=name, df=dfs)
@@ -900,6 +905,10 @@ class ModelWords:
             smaller = _glm(reduced, fit.get("endog", y), GLM_FAMILY.get(kind, "poisson"), exposure=fit.get("exposure"),
                            trials=fit.get("trials"), alpha=fit.get("alpha"), link=fit.get("link"),
                            var_weights=fit.get("var_weights"))
+            if kind == "logbinomial" and (not smaller.converged or
+                                          np.any(np.asarray(smaller.fittedvalues) >= 1 - 1e-9)):
+                fit.setdefault("untested", []).append(label)  # the smaller log-binomial model did not converge
+                continue
             change = float(smaller.deviance) - fit["deviance"]
             if kind in ("quasipoisson", "gamma", "quasibinomial"):
                 f = (change / k) / (fit["deviance"] / fit["df"])  # as R drop1(test = "F")
@@ -933,7 +942,8 @@ class ModelWords:
                             f"log {effect}": b})
             else:
                 row.update({effect: b, "95 % CI low": low, "95 % CI high": high})
-            row.update({"standard error": float(coef["se"][j]), "statistic name": coef["name"],
+            row.update({"standard error": float(coef["se"][j]),
+                        "statistic name": coef["name"] if isinstance(coef["name"], str) else str(coef["name"][j]),
                         "statistic": float(coef["stat"][j]), "degrees of freedom": float(coef["df"][j]),
                         "p-value": float(coef["p"][j])})
             if extra:
@@ -1028,6 +1038,7 @@ class ModelWords:
         numbers = outcome == "numbers"
         if model["labels"][j] == INTERCEPT:
             if numbers:
+                beta = 0.0 if abs(beta) < 1e-10 else beta  # 0 up to rounding: centred columns
                 return (f"  intercept: {_num(beta)} standard deviations, the expected \"{column}\" when every number "
                         "column is at its average (and every group column at its baseline).")
             return (f"  intercept: {_num(_exp(beta))}, when every number column is at its average (and every group "
@@ -1077,7 +1088,38 @@ class ModelWords:
         return any(part[1] is not None and part[1][0] == CURVE for part in model["parts_of"][j])
 
     def _report(self, model, pieces, grouped_by):
-        """Print everything about one fitted model; gives back (coefficients, whole-column tests)."""
+        """Print everything about one fitted model; gives back (coefficients, whole-column tests). The Method line is
+        held back until the fit lines, so that it can name the intervals and tests interval_by= and p_value_by=
+        chose (_method_words)."""
+        import contextlib
+
+        held = io.StringIO()
+        with contextlib.redirect_stdout(held):
+            coef, tests = self._report_terms(model, pieces, grouped_by)
+        first = True
+        for line in held.getvalue().splitlines():
+            if first and line.startswith("Method:"):
+                line, first = self._method_words(model, line), False
+            print(line)
+        return coef, tests
+
+    @staticmethod
+    def _method_words(model, line) -> str:
+        """The model's Method line with the intervals and tests that interval_by= and p_value_by= chose."""
+        options = model.get("options") or {}
+        interval = options.get("interval", "wald")
+        if interval == "profile":
+            line = line.replace("Wald 95 % intervals", "profile-likelihood 95 % intervals (R confint())")
+        elif interval == "bootstrap":
+            line = line.replace("Wald 95 % intervals", "95 % bootstrap intervals (BCa)")
+            if model["kind"] in ("lm",):
+                line = line.rstrip(".") + "; 95 % bootstrap intervals (BCa)."
+        if options.get("likelihood_ratio"):
+            line = line.replace(" and z-tests", " and likelihood-ratio tests (Wald z-tests where drop1() gives none)")
+        return line
+
+    def _report_terms(self, model, pieces, grouped_by):
+        """The printing of _report (see there)."""
         from scipy import stats
 
         coef = self._coefficients(model)
@@ -1099,6 +1141,9 @@ class ModelWords:
                 continue
             print(f'  {test["term"]}, all groups together: {test["test"]} ({test["name"]} = {_num(test["stat"])}, '
                   f"df = {_whole(test['df'])}{extra}); {_p_clause(test['p'], 'the groups truly did not differ')}.")
+        for label in fit.get("untested", []):
+            print(f'  {label}, all groups together: no test, because the log-binomial model without "{label}" did not '
+                  "converge (a predicted chance reaches 1).")
         if curves:
             right = [f"splines::ns({_r_name(x)}, df = {model['splines'][x] + 1})" if x in curves else x
                      for x in pieces]
@@ -1343,6 +1388,14 @@ class ModelWords:
         from .models_more import PSEUDO_WORDS, fit_line
 
         kind, fit, n, p = model["kind"], model["fit"], model["n"], model["X"].shape[1]
+        if model.get("standardised"):
+            return ("How well it fits: on z-scores the AIC and BIC are not those of the model on the columns' own "
+                    "scale, so they are left out; explain() without show= gives them (compare_models compares models).")
+        w = (model["fit"] or {}).get("weights")
+        if kind == "binomial" and w is not None and np.any(np.asarray(w) != np.round(np.asarray(w))):
+            return ("How well it fits: with weights that are not whole numbers a yes/no model has no log-likelihood "
+                    "that R and statsmodels agree on (R rounds the weights as numbers of tries), so no AIC, BIC or "
+                    "pseudo R squared is printed.")
         if kind == "quasipoisson":
             return "Quasi-Poisson has no likelihood, so there is no AIC, BIC or pseudo R squared (as R)."
         if kind == "quasibinomial":
@@ -1490,7 +1543,11 @@ class ModelWords:
             if not model.get("link") and trials is None and fit.get("weights") is None and share > COMMON_YES_SHARE:
                 from .models_extra import common_yes_note
 
-                notes.append(common_yes_note(share))
+                options = model.get("options") or {}
+                can_show = (not fit.get("robust") and options.get("interval", "wald") == "wald"
+                            and not options.get("likelihood_ratio") and not model.get("splines")
+                            and options.get("test_type") is None)
+                notes.append(common_yes_note(share, can_show))
         elif effects and n / effects < ROWS_PER_EFFECT:
             notes.append(f"Note: only {n} rows for {effects} effects; with fewer than {ROWS_PER_EFFECT} rows per "
                          "effect the results are unstable. Use fewer columns.")
@@ -1576,7 +1633,8 @@ class ModelWords:
         same as robust_errors=True, which keeps the effects and only changes their standard errors.
         curve_for="hours" with with_knots=3: "hours" follows a natural cubic spline whose pieces join
         at 3 knots, the points where the pieces of the curve join (R splines::ns(hours, df = 4); patsy
-        cr()); the printout gives the test of the whole curve.
+        cr()); the printout gives the test of the whole curve, which asks whether "hours" matters at all
+        (is the curve flat?), not whether it bends.
         interval_by="profile" (or "profile likelihood"): profile-likelihood 95 % intervals for yes or
         no and counts (R confint() of the glm; needs R); interval_by="bootstrap": BCa intervals from
         resamples=9999 resamples of the rows (with_seed=1; SciPy bootstrap, as R boot::boot.ci()).
@@ -1676,11 +1734,14 @@ class ModelWords:
             smooth = self._check_smooth(smooth_for, outcome, terms, kinds, raw, None, "leave out", False,
                                         None, None, None, None, in_order, keep, knots=True)
             splines = {name: options["knots"] for name in smooth}
-        w, zero = None, 0
+        w, zero, knot_values = None, 0, None
         if weights is not None:
             from .models_extra import read_weights
 
+            before = keep
             w, keep, zero = read_weights(weights, raw, kinds, keep)
+            if splines:  # R's ns() places the knots on every row of the model frame, weight 0 or not
+                knot_values = {name: raw[name][before].astype(float) for name in splines}
         if options["show"] == "standardised effects":
             from .models_extra import standardise
 
@@ -1695,8 +1756,9 @@ class ModelWords:
                                 list(own_slope_for or []))
         model = self._fit_model(step, column, outcome, grouped_by, terms, variables, raw, kinds, keep, time=time,
                                 out_of=out_of, link=None if link in (None, LINKS.get(outcome, (None,))[0]) else link,
-                                grouping=grouping, weights=w, splines=splines, kind=options["kind"])
-        model["options"] = dict(options, weights_name=weights, zero_weights=zero, seed=with_seed)
+                                grouping=dict(grouping or {}, knot_values=knot_values) if knot_values else grouping,
+                                weights=w, splines=splines, kind=options["kind"])
+        model["options"] = dict(options, weights_name=weights, zero_weights=zero, seed=with_seed, test_type=test_type)
         if options["show"] == "standardised effects":
             model["standardised"] = spread
         if options["show"] == "risk ratios":
@@ -1908,7 +1970,7 @@ class ModelWords:
                                   trials=fit.get("trials"), alpha=fit.get("alpha"), link=fit.get("link"),
                                   var_weights=fit.get("var_weights")).deviance)
 
-            fit["lr_p"] = lr_p_values(model, deviance)
+            fit["lr_p"], fit["lr_stat"] = lr_p_values(model, deviance)
         if options["interval"] == "profile":
             from .models_r import profile_intervals
 
@@ -1930,6 +1992,11 @@ class ModelWords:
             return None if values is None else np.asarray(values)[rows]
 
         def refit(rows):
+            from .models_extra import LostColumns, lost_columns
+
+            lost, labels = lost_columns(X[rows], model["labels"])
+            if lost:  # a rare group drew no row: refuse (bootstrap_effects says so), never a pinv answer
+                raise LostColumns(lost, labels)
             if kind == "lm":
                 return _least_squares(X[rows], y[rows], pick(w, rows))[0]
             if kind == "rlm":
@@ -1965,9 +2032,14 @@ class ModelWords:
         if options.get("interval") == "profile":
             lines.append("Intervals: 95 % profile-likelihood intervals (the values whose log-likelihood is within 1.92 "
                          "of the best), run in R: stats::confint() of the glm; safer than Wald intervals with few rows "
-                         "or effects far from 1. The p-values are the usual ones.")
+                         "or effects far from 1. The p-values are "
+                         + ("likelihood-ratio tests (Wald where drop1() gives none)." if options.get("likelihood_ratio")
+                            else "the model's Wald z-tests."))
         if options.get("interval") == "bootstrap":
-            lines.append(extra.bootstrap_line(options["resamples"], options["seed"], model["n"]))
+            tests = ("likelihood-ratio tests (Wald where drop1() gives none)" if options.get("likelihood_ratio")
+                     else "the model's t-tests" if model["kind"] in ("lm", "quasipoisson", "gamma", "quasibinomial")
+                     else "the model's Wald z-tests")
+            lines.append(extra.bootstrap_line(options["resamples"], options["seed"], model["n"], tests))
         if options.get("likelihood_ratio"):
             done = fit.get("lr_p")
             wald = []
@@ -1992,7 +2064,8 @@ class ModelWords:
             named = _list_words(_quoted(s) for s in model["splines"])
             lines.append(f"Curve: {named} follows a natural cubic spline, its pieces joined at knots (the points where "
                          "the pieces of the curve join) placed at the quantiles of the values, from patsy cr(), the "
-                         "same curve as R splines::ns(). Its own numbers mean little; a picture shows its shape: "
+                         "same curve as R splines::ns(). The test of the whole curve asks whether the column matters "
+                         "at all, not whether it bends. Its own numbers mean little; a picture shows its shape: "
                          "chart.draw_dots(...) with chart.draw_smooth_line().")
         return lines
 

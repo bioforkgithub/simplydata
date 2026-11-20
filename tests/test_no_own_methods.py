@@ -47,6 +47,8 @@ ALLOWED = {
     "table/models.py::ModelWords._more_model": "matrix_rank: the same column check before fitting",
     "table/models.py::ModelWords._explain_matched": "matrix_rank: the same column check before conditional logistic "
                                                     "regression (statsmodels ConditionalLogit)",
+    "table/models_extra.py::lost_columns": "matrix_rank: a bootstrap resample whose model columns lose rank is "
+                                           "refused (a rare group drew no row), never fitted with a pseudo-inverse",
     "table/models.py::ModelWords._explain_more": "matrix_rank: the same column check for the zero part's own columns "
                                                  "(zero_part_using=)",
     "table/models.py::ModelWords._rank_problem": "names the columns that repeat others, for the error message",

@@ -95,9 +95,20 @@ def test_entry_is_complete(entry):
     if entry.compare == "result":
         assert entry.fields, entry.word
     if entry.uses_r:
-        assert entry.r_inputs.strip() and entry.r_packages, entry.word
+        assert entry.r_inputs.strip(), entry.word
+        named = {call.split("::")[0] for call in underneath_r_calls(entry)} - BASE_R
+        assert named <= set(entry.r_packages), f"{entry.key}: list the R packages the code calls: {named}"
         assert entry.python_note.strip(), f"{entry.word}: say what Python alone gives"
     assert underneath_line(entry), entry.word
+
+
+BASE_R = {"stats", "utils", "methods", "graphics", "grDevices", "base"}  # ship with R, never installed
+
+
+def underneath_r_calls(entry):
+    from simplydata._underneath import _r_calls
+
+    return [c for lib, lang, src in entry.blocks() if lang == "r" for c in _r_calls(src)]
 
 
 def test_words_with_nothing_underneath_need_a_note():
