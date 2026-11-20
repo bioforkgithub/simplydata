@@ -165,30 +165,101 @@ def _other_level_rows(data, low, high, others):
     return empty & given
 
 
+NL = chr(10)
+ON = "combined on"  # combine_studies' result: "log scale (ratios)", "plain scale" or "Fisher's z scale"
+LOG_SCALE = "log scale (ratios)"
+KIND = "row kind"  # combine_studies' result: "study", "combined", "combined in subgroup", "prediction interval", ...
+COMBINED = ("combined", "combined in subgroup")
+
+
 def _draw_forest(ctx, x, y, low, high, level, line_at, ratios, colour=None, thickness=None, others=(),
-                 line_given=False):
+                 line_given=False, size=None):
     ax = ctx.ax
-    rows = ctx.data[[y, x, low, high] + [c for o in others for c in o[:2]]].copy()
+    kinds = KIND in ctx.data.columns
+    extra = [c for c in ([KIND] if kinds else []) + ([size] if size else []) if c not in (y, x, low, high)]
+    rows = ctx.data[[y, x, low, high] + extra + [c for o in others for c in o[:2]]].copy()
     if others:
         rows = rows[~_other_level_rows(rows, low, high, others)]
-    rows = rows[[y, x, low, high]]
+    rows = rows[[y, x, low, high] + extra]
+    if kinds:
+        rows = rows[rows[KIND].isin(("study",) + COMBINED + ("prediction interval",))]
     rows = rows[pd.to_numeric(rows[x], errors="coerce").notna()]
     est = pd.to_numeric(rows[x]).to_numpy(dtype=float)
     lo = pd.to_numeric(rows[low], errors="coerce").to_numpy(dtype=float)
     hi = pd.to_numeric(rows[high], errors="coerce").to_numpy(dtype=float)
     where = np.arange(len(rows))[::-1]  # the first row at the top, as in a table
     c = default_colour(ctx.settings, colour)
-    ax.errorbar(est, where, xerr=[est - np.where(np.isnan(lo), est, lo), np.where(np.isnan(hi), est, hi) - est],
-                fmt="o", color=c, ecolor=c, capsize=3, elinewidth=thickness or 1.5, markersize=6)
+    if not kinds and size is None:
+        ax.errorbar(est, where, xerr=[est - np.where(np.isnan(lo), est, lo), np.where(np.isnan(hi), est, hi) - est],
+                    fmt="o", color=c, ecolor=c, capsize=3, elinewidth=thickness or 1.5, markersize=6)
+    else:
+        kind = rows[KIND].to_numpy(dtype=object) if kinds else np.array(["study"] * len(rows), dtype=object)
+        study = kind == "study"
+        both = ~np.isnan(lo) & ~np.isnan(hi)
+        ax.hlines(where[study & both], lo[study & both], hi[study & both], color=c, linewidth=thickness or 1.5)
+        if size is not None:
+            weight = pd.to_numeric(rows[size], errors="coerce").to_numpy(dtype=float)
+            biggest = np.nanmax(weight[study]) if np.any(study & ~np.isnan(weight)) else 1.0
+            area = np.where(np.isnan(weight), 20.0, 20.0 + 180.0 * weight / biggest)  # [D] marker size only
+        else:
+            area = np.full(len(rows), 40.0)
+        ax.scatter(est[study], where[study], s=area[study], marker="s" if kinds else "o", color=c, zorder=3)
+        for i in np.flatnonzero(np.isin(kind, COMBINED) & both):
+            ax.fill([lo[i], est[i], hi[i], est[i]], [where[i], where[i] + 0.3, where[i], where[i] - 0.3], color=c,
+                    zorder=3)
+        for i in np.flatnonzero((kind == "prediction interval") & both):
+            ax.plot([lo[i], hi[i]], [where[i], where[i]], color=c, linewidth=1, linestyle="-", marker="|",
+                    markersize=8)
     ax.axvline(line_at, color="grey", linestyle="--", linewidth=1)
     ax.set_yticks(where)
     ax.set_yticklabels([str(v) for v in rows[y]])
-    if ratios:
+    if ratios and (kinds or size is not None):
+        _plain_log_axis(ax)
+    elif ratios:
         ax.set_xscale("log")
     if ax.get_xlabel() == "":
         meaning = "" if line_given else ", no effect"
         ax.set_xlabel(f"{x}, with its {level} confidence interval (the line: {line_at:g}{meaning})")
     _remember(ctx, "forest_plot", rows, {"x": x, "y": y, "colour": None})
+
+
+def _plain_log_axis(ax):
+    """A log x-axis whose ticks read 0.2, 0.5, 1, 2 (not 2 x 10^-1)."""
+    from matplotlib import ticker
+
+    ax.set_xscale("log")
+    ax.xaxis.set_major_formatter(ticker.FormatStrFormatter("%g"))
+    ax.xaxis.set_minor_formatter(ticker.FormatStrFormatter("%g"))
+
+
+def _draw_funnel(ctx, x, y, centre, on_log, ratios, colour=None):
+    from scipy import stats
+
+    ax = ctx.ax
+    rows = ctx.data[ctx.data[KIND] == "study"][[x, y]].apply(pd.to_numeric, errors="coerce").dropna()
+    est = rows[x].to_numpy(dtype=float)
+    se = rows[y].to_numpy(dtype=float)
+    c = default_colour(ctx.settings, colour)
+    ax.scatter(est, se, color=c, s=30, zorder=3)
+    top = float(np.max(se))
+    # the pseudo 95 % limits: SciPy's 95 % interval around the combined effect (lognorm when the effects were combined
+    # on the log scale); drawn on the axis of the same scale they are straight lines, so the ends are enough
+    steps = np.array([top]) if on_log == ratios else np.linspace(top / 50, top, 50)
+    if on_log:
+        left, right = stats.lognorm.interval(0.95, s=steps, scale=centre)
+    else:
+        left, right = stats.norm.interval(0.95, loc=centre, scale=steps)
+    ax.plot(np.concatenate([left[::-1], [centre], right]), np.concatenate([steps[::-1], [0.0], steps]), color="grey",
+            linestyle="--", linewidth=1)
+    ax.axvline(centre, color="grey", linewidth=1)
+    ax.set_ylim(top * 1.05, 0.0)
+    if ratios:
+        _plain_log_axis(ax)
+    if ax.get_xlabel() == "":
+        ax.set_xlabel(x)
+    if ax.get_ylabel() == "":
+        ax.set_ylabel(f"{y}" + (" (of the log ratio)" if on_log else "") + ", small studies at the bottom")
+    _remember(ctx, "draw_funnel_plot", rows, {"x": x, "y": y, "colour": None})
 
 
 class AgreementChartWords:
@@ -273,7 +344,7 @@ class AgreementChartWords:
                          transparency=transparency)
 
     @friendly(renamed={"ratios": "log_scale"})
-    def forest_plot(self, x="estimate", y=None, line_at=None, log_scale=None, colour=None, thickness=None):
+    def forest_plot(self, x="estimate", y=None, line_at=None, log_scale=None, colour=None, thickness=None, size=None):
         """Many results with their intervals, one line each (a forest plot).
         chart.forest_plot(x="difference", y="group 1")   (on a result table, such as compare_each_pair_of's)
 
@@ -283,6 +354,9 @@ class AgreementChartWords:
         effect), other results on a plain scale with the line at 0; log_scale=True or False and
         line_at= choose. When the table holds intervals of more than one level (such as 95 % and
         90 %), the first is drawn and a note names the rows left out. The first row is at the top.
+        On the result of table.combine_studies (it has a "row kind" column) the studies are squares, the
+        combined effects diamonds and the prediction interval a thin line: chart.forest_plot(x="estimate",
+        y="study", size="weight %") sizes each square by the study's weight (size= as on draw_dots).
         """
         example = 'chart.forest_plot(x="estimate", y="measure")'
         if not isinstance(x, str) or not isinstance(y, str):
@@ -304,10 +378,26 @@ class AgreementChartWords:
                   + (f", and left out {len(shown)} row{'s' if len(shown) != 1 else ''} with another level: "
                      + "; ".join(f'"{s}"' for s in shown) + "." if shown else "."))
         line_given = line_at is not None
+        if size is not None:
+            check(self._data, size=size)
+            if not pd.api.types.is_numeric_dtype(self._data[size]):
+                raise SimplydataError(f'.forest_plot() needs numbers for size= (such as size="weight %"); "{size}" '
+                                      "holds words or other things.")
         ratios = log_scale
         if ratios is None:
             labels = [str(v).lower() for v in self._data[y].dropna()]
-            ratios = "ratio" in x.lower() or (bool(labels) and all("ratio" in v for v in labels))
+            measures = []
+            if ON in self._data.columns and KIND in self._data.columns:
+                scales = self._data[self._data[KIND] == "study"][ON].dropna().astype(str).tolist()
+                measures = ["ratio" if s == LOG_SCALE else "plain" for s in scales]
+            elif "measure" in self._data.columns and KIND in self._data.columns:
+                studies = self._data[self._data[KIND] == "study"]["measure"].dropna()
+                measures = [str(v).lower() for v in studies]
+            if measures and ON in self._data.columns:
+                ratios = all(m == "ratio" for m in measures)
+            else:
+                ratios = ("ratio" in x.lower() or (bool(labels) and all("ratio" in v for v in labels))
+                          or (bool(measures) and all("ratio" in m for m in measures)))
         if not isinstance(ratios, bool):
             raise SimplydataError("log_scale= should be True or False.")
         if line_at is None:
@@ -318,4 +408,53 @@ class AgreementChartWords:
         self._need_axes("forest_plot")
         return self._add("forest_plot", "draw", _draw_forest, x=x, y=y, low=low, high=high, level=level,
                          line_at=float(line_at), ratios=ratios, colour=colour, thickness=thickness,
-                         others=others, line_given=line_given)
+                         others=others, line_given=line_given, size=size)
+
+    @friendly(renamed={"color": "colour"})
+    def draw_funnel_plot(self, x="estimate", y="standard error", log_scale=None, colour=None):
+        """A funnel plot: each study's effect against its standard error, to look for small-study effects.
+
+        chart.draw_funnel_plot(x="estimate", y="standard error")   (on the result of table.combine_studies)
+        Each dot is a study; small studies (big standard errors) are at the bottom. The solid line is
+        the combined effect and the dashed funnel its pseudo 95 % limits (where 95 % of the studies
+        would lie if they all measured that one effect). Dots missing from one lower corner suggest
+        small-study effects: publication bias is one cause, real differences between small and large
+        studies and chance are others. Ratios are drawn on a log scale (log_scale= chooses). The
+        tests are in combine_studies' printout (Peters' or Egger's test, and trim and fill), from
+        10 studies. Other names: funnel, funnel_plot, draw_funnel (R metafor funnel()).
+        """
+        example = 'chart.draw_funnel_plot(x="estimate", y="standard error")'
+        data = self._data
+        if KIND in data.columns and (data[KIND] == "meta-regression").any():
+            raise SimplydataError(".draw_funnel_plot() needs one combined effect; a meta-regression (using=) has none. "
+                                  "Combine the studies without using= first, then draw the funnel.")
+        if KIND not in data.columns or not (data[KIND] == "combined").any():
+            raise SimplydataError(".draw_funnel_plot() draws the result of table.combine_studies: it needs its \"row kind\" "
+                                  "column and the combined row. For example:" + NL + '  result = table.combine_studies(names="trial", '
+                                  "events=[...], out_of=[...])" + NL + "  chart = result.start_chart()" + NL + "  " + example)
+        if not isinstance(x, str) or not isinstance(y, str):
+            raise SimplydataError(f".draw_funnel_plot() needs x= (the estimate column) and y= (the standard errors)." + NL
+                                  + f"For example {example}")
+        check(data, x=x, y=y)
+        studies_on = data[data[KIND] == "study"].get(ON, pd.Series(dtype=object)).dropna().astype(str).tolist()
+        if studies_on and all(s == "Fisher's z scale" for s in studies_on):
+            raise SimplydataError(".draw_funnel_plot() cannot draw correlations: their standard errors are on Fisher's z "
+                                  "scale, not the scale of the correlations shown.")
+        if studies_on:
+            on_log = all(s == LOG_SCALE for s in studies_on)
+        else:
+            measures = [str(v).lower() for v in data[data[KIND] == "study"].get("measure", pd.Series(dtype=object)).dropna()]
+            on_log = bool(measures) and all("ratio" in m for m in measures)
+        ratios = on_log if log_scale is None else log_scale
+        if not isinstance(ratios, bool):
+            raise SimplydataError("log_scale= should be True or False.")
+        centre = float(pd.to_numeric(data[data[KIND] == "combined"][x], errors="coerce").iloc[0])
+        studies = data[data[KIND] == "study"][[x, y]].apply(pd.to_numeric, errors="coerce").dropna()
+        if len(studies) < 3:
+            raise SimplydataError(".draw_funnel_plot() needs at least 3 studies with an estimate and a standard error.")
+        print("Funnel plot: each dot is a study, small studies at the bottom; the line is the combined effect and the "
+              "dashed funnel where 95 % of the studies would lie if they all measured it. Dots missing from one lower "
+              "corner suggest small-study effects, which are not proof of publication bias.")
+        self._need_axes("draw_funnel_plot")
+        return self._add("draw_funnel_plot", "draw", _draw_funnel, x=x, y=y, centre=centre, on_log=on_log, ratios=ratios,
+                         colour=colour)

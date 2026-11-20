@@ -49,7 +49,9 @@ R_PACKAGES = ("survival", "vegan", "mice", "lme4", "betareg", "pscl", "car", "ef
               # S3a-3 (checking and comparing)
               "nlme", "glmnet", "boot", "lmtest", "AICcmodavg",
               # S3b-3 (survival and person-time)
-              "cmprsk", "adjustedCurves", "riskRegression", "KMsurv", "survRM2")
+              "cmprsk", "adjustedCurves", "riskRegression", "KMsurv", "survRM2",
+              # S3b-1 (combining studies): metafor (with its data package metadat); meta for the reliability study
+              "metafor", "metadat", "meta")
 
 
 @pytest.fixture
@@ -122,6 +124,8 @@ R_ENTRY_POINTS = {
     ("table/survival_r.py", "rmst_difference"), ("table/survival_r.py", "life_table"),
     ("table/survival_r.py", "adjusted_curves"), ("table/survival_r.py", "cox_start_stop"),
     ("words/survival.py", "draw_risk_curves"),
+    # S3b-1 (combining studies)
+    ("table/meta_r.py", "combine"),
 }
 
 

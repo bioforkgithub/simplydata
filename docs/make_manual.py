@@ -76,7 +76,7 @@ GROUP_UNDERNEATH = {
     "Dates and text": "narwhals, which runs the step in pandas or Polars (whichever holds the table)",
     "Row after row": "narwhals (shift, rolling_mean and over with order_by=, so each group keeps its own rows)",
     "Summaries": "narwhals, which runs the step in pandas or Polars (whichever holds the table)",
-    "Combine and reshape": "narwhals, which runs the step in pandas or Polars (whichever holds the table)",
+    "Join and reshape": "narwhals, which runs the step in pandas or Polars (whichever holds the table)",
     "Undo and finish": "simplydata itself: it keeps every version of the table",
     "Numbers: make and look": "NumPy",
     "Numbers: maths in words": "NumPy",
@@ -127,7 +127,8 @@ UNDERNEATH = {
     "trade_off_curve": "R pROC (roc, coords, ci.auc; simplydata[r]), drawn with matplotlib",
     "difference_dots": "statsmodels (graphics.agreement.mean_diff_plot) for the dots; R "
                        "BlandAltmanLeh::bland.altman.stats for the limits and their intervals (simplydata[r])",
-    "forest_plot": "matplotlib (errorbar), from the interval columns of a result table",
+    "forest_plot": "matplotlib (errorbar), from the interval columns of a result table; on combine_studies' result "
+                   "squares (scatter), diamonds (fill) and the prediction interval (plot)",
     "draw_qq_dots": "SciPy (stats.probplot, against a fitted scipy.stats distribution for distribution=) for the points "
                "and the line; matplotlib draws them",
     "draw_cumulative_share": "seaborn (ecdfplot)",
@@ -385,6 +386,11 @@ UNDERNEATH = {
     "table.find_risk_over_time": "R survival (survfit with a factor event, Aalen-Johansen); statsmodels "
                                  "(SurvfuncRight) with one kind of event",
     "draw_risk_curves": "as table.find_risk_over_time, drawn with matplotlib",
+    # S3b-1: combining studies (each also has a tested entry in simplydata._underneath)
+    "table.combine_studies": "R metafor (escalc or conv.wald, rma with REML and Hartung-Knapp, rma.mh, rma.peto, "
+                             "predict, confint, regtest, trimfill)",
+    "draw_funnel_plot": "matplotlib (scatter, plot), the funnel limits from SciPy (stats.norm / stats.lognorm "
+                        "interval)",
 }
 
 # ---------------------------------------------------------------- hand-written text
