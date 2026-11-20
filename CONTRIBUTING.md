@@ -1,5 +1,7 @@
 # Contributing to simplydata
 
+**Learn basic Python, and simplydata takes you from your first table to publication-ready statistics, in plain words, with every number checked against the field's standard tools.**
+
 Thank you for helping. simplydata is a dictionary of simple words over pandas, Polars, NumPy,
 SciPy, matplotlib and seaborn. The words are what matter most, so every contribution, big or
 small, is welcome.

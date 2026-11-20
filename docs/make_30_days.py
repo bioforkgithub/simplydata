@@ -45,6 +45,8 @@ FRONT = r"""
 \vspace{0.4em}
 {\large\sffamily An hour a day: a warm-up from memory, a lesson, and a task to do yourself\par}
 \vspace{0.3em}
+{\sffamily\bfseries Learn basic Python, and simplydata takes you from your first table to publication-ready statistics, in plain words, with every number checked against the field's standard tools.\par}
+\vspace{0.3em}
 {\sffamily\small\color{inkgrey} Version @VERSION@ \textbullet{} two tracks of 30 days \textbullet{} made from the code by
 \code{docs/make\_30\_days.py}\par}
 \end{titleblock}
