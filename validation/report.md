@@ -4,7 +4,7 @@ Made by `python validation/make_report.py` on 2026-11-20. Generated: do not edit
 
 Each simplydata word is run on real, published data and compared with the published answer, with the package simplydata uses underneath called directly, and with R. Each "same underneath" box of the manual is run next to its word and compared too. How it works, and the datasets with their licences: [validation/README.md](README.md).
 
-**242 checks passed, 0 failed, 0 skipped** (skipped: R or an R package is not installed on this computer).
+**367 checks passed, 0 failed, 0 skipped** (skipped: R or an R package is not installed on this computer).
 
 ## Setup
 
@@ -117,68 +117,6 @@ Note: The paper prints the fit rounded (3 + 0.5 x); its sets agree with it to wi
 | slope | exact | 2 | 2 | within 1e-12 | pass |
 | intercept | exact | 1 | 1 | within 1e-12 | pass |
 | R squared | exact | 1 | 1 | within 1e-12 | pass |
-
-**leaf lifespan against leaf mass per area: standardised major axis (log10)** (real data; data: leaflife (smatr))
-
-| number | compared with | simplydata | reference | tolerance | result |
-|---|---|---|---|---|---|
-| slope | R | 1.31503061916202 | 1.31503061916202 | relative 1e-09 | pass |
-| intercept | R | -2.69880047584921 | -2.69880047584921 | relative 1e-09 | pass |
-| slope 95 % CI low | R | 1.09626126001275 | 1.09626126001275 | relative 1e-09 | pass |
-
-Note: Warton et al. (2006) fit these data on log scales; the slope is about 1.3.
-
-**creatinine in plasma against serum: Deming line with y_error_over_x_error=4** (real data; data: creatinine (mcr))
-
-| number | compared with | simplydata | reference | tolerance | result |
-|---|---|---|---|---|---|
-| slope | R | 1.01786319565374 | 1.01786319565374 | relative 1e-09 | pass |
-| slope standard error | R | 0.0341143809499105 | 0.0341143809499105 | relative 1e-09 | pass |
-
-Note: mcr's error.ratio is the error variance of x over that of y, so 4 here is 1 / 4 there. tests/test_s3a2_lines.py checks the direction against R deming::deming(xstd =, ystd =) too.
-
-**creatinine in plasma against serum: Passing-Bablok line** (real data; data: creatinine (mcr))
-
-| number | compared with | simplydata | reference | tolerance | result |
-|---|---|---|---|---|---|
-| slope | R | 1.08800890272179 | 1.08800890272179 | relative 1e-09 | pass |
-| intercept | R | -0.11717286443298 | -0.11717286443298 | relative 1e-09 | pass |
-| slope 95 % CI high | R | 1.17300462437155 | 1.17300462437155 | relative 1e-09 | pass |
-
-**Anscombe's set 3 (one outlier): the Theil-Sen line** (real data; data: Anscombe's quartet)
-
-| number | compared with | simplydata | reference | tolerance | result |
-|---|---|---|---|---|---|
-| slope | SciPy stats.theilslopes | 0.345555555555556 | 0.345555555555556 | relative 1e-12 | pass |
-| intercept | SciPy stats.theilslopes | 4 | 4 | relative 1e-12 | pass |
-| slope 95 % CI low | SciPy stats.theilslopes | 0.345 | 0.345 | relative 1e-12 | pass |
-| slope | R | 0.345555555555556 | 0.345555555555556 | relative 1e-09 | pass |
-
-Note: The outlier pulls the least-squares slope to 0.500; the Theil-Sen slope stays near 0.345, the slope of the other ten points.
-
-**Bacon and Watts's stagnant band: a line with one bend** (real data; data: stagnant (segmented))
-
-| number | compared with | simplydata | reference | tolerance | result |
-|---|---|---|---|---|---|
-| bend 1 | R | 0.0411057845664149 | 0.0411057845664149 | relative 1e-09 | pass |
-| slope 1 | R | -0.422076814406333 | -0.422076814406333 | relative 1e-09 | pass |
-| slope 2 | R | -1.02056754500006 | -1.02056754500006 | relative 1e-09 | pass |
-| Davies p-value | R | 1.29088012334937e-17 | 1.29088012334937e-17 | relative 1e-09 | pass |
-
-Note: Bacon and Watts fit a smooth transition; segmented fits the sharp bend, so R is the reference.
-
-**drivers killed or seriously injured: the line changes at the seat-belt law** (real data; data: Seatbelts)
-
-| number | compared with | simplydata | reference | tolerance | result |
-|---|---|---|---|---|---|
-| level change | statsmodels OLS with the two change columns | -457.768100628468 | -457.768100628468 | relative 1e-09 | pass |
-| slope change | statsmodels OLS with the two change columns | 19.2016179865776 | 19.2016179865776 | relative 1e-09 | pass |
-| level change standard error | statsmodels OLS with the two change columns | 107.180651134372 | 107.180651134372 | relative 1e-09 | pass |
-| level change | R | -457.768100628468 | -457.768100628468 | relative 1e-09 | pass |
-| slope change | R | 19.2016179865776 | 19.2016179865777 | relative 1e-09 | pass |
-| level change standard error | R | 107.180651134372 | 107.180651134372 | relative 1e-09 | pass |
-
-Note: A plain interrupted time series without the season, to check the arithmetic; Harvey and Durbin model the season and the trend too.
 
 ### `table.find_average_of`
 
@@ -371,6 +309,236 @@ Note: The area under the drawn curve (trapezoids) must equal pROC's AUC: the cur
 
 Note: No data: the published value is the standard normal table (5 decimals).
 
+### `table.explain weights=`
+
+**weighted least squares: offspring diameter from the parent's, each row weighted by 1 / its variance** (real data; data: Galton's sweet peas)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| slope | statsmodels WLS | 0.204801163243055 | 0.204801163243055 | relative 1e-09 | pass |
+| slope standard error | statsmodels WLS | 0.0381548260706374 | 0.0381548260706378 | relative 1e-09 | pass |
+| intercept | statsmodels WLS | 12.7964165214901 | 12.7964165214901 | relative 1e-09 | pass |
+| slope | R | 0.204801163243055 | 0.204801163243058 | relative 1e-09 | pass |
+| slope standard error | R | 0.0381548260706374 | 0.0381548260706375 | relative 1e-09 | pass |
+| intercept | R | 12.7964165214901 | 12.7964165214901 | relative 1e-09 | pass |
+
+Note: Weisberg (2014, section 7.1) fits this weighted line; the numbers are checked against statsmodels and R rather than the book's printed table.
+
+### `table.explain outcome="yes or no (overdispersed)"`
+
+**quasi-binomial: seeds that germinated out of seeds, by variety and root extract** (real data; data: Orobanche seeds)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| extract | statsmodels GLM (Binomial, scale X2) | 0.540078166603429 | 0.540078166603428 | relative 1e-07 | pass |
+| extract standard error | statsmodels GLM (Binomial, scale X2) | 0.340867231336386 | 0.340867231336386 | relative 1e-07 | pass |
+| interaction standard error | statsmodels GLM (Binomial, scale X2) | 0.418124932214023 | 0.418124932214023 | relative 1e-07 | pass |
+| extract | R | 0.540078166603429 | 0.540078166603428 | relative 1e-06 | pass |
+| extract standard error | R | 0.340867231336386 | 0.340867231340939 | relative 1e-06 | pass |
+| interaction standard error | R | 0.418124932214023 | 0.418124932215663 | relative 1e-06 | pass |
+| interaction p-value | R | 0.0801390217137065 | 0.080139021714788 | relative 1e-06 | pass |
+
+Note: Crowder (1978) fitted a beta-binomial model; the quasi-binomial fit of the same data (Collett 2003, Modelling Binary Data) is checked here against statsmodels and R.
+
+### `table.explain matched_by=`
+
+**conditional logistic regression: infertility and earlier abortions in matched sets** (real data; data: infert)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| spontaneous | statsmodels ConditionalLogit | 1.98587551668241 | 1.98587551668241 | relative 1e-07 | pass |
+| induced | statsmodels ConditionalLogit | 1.40901163187936 | 1.40901163187936 | relative 1e-07 | pass |
+| spontaneous standard error | statsmodels ConditionalLogit | 0.352443539729635 | 0.352443543187006 | relative 1e-07 | pass |
+| induced standard error | statsmodels ConditionalLogit | 0.360712432546398 | 0.360712438256113 | relative 1e-07 | pass |
+| spontaneous | R | 1.98587551668241 | 1.98587551667772 | relative 1e-06 | pass |
+| induced | R | 1.40901163187936 | 1.40901163187514 | relative 1e-06 | pass |
+| spontaneous standard error | R | 0.352443539729635 | 0.35244353980717 | relative 1e-06 | pass |
+| induced standard error | R | 0.360712432546398 | 0.360712436248923 | relative 1e-06 | pass |
+
+Note: The model of R's ?clogit example; R and statsmodels both use the exact conditional likelihood.
+
+### `table.explain show="risk ratios"`
+
+**risk ratio of low birth weight for smokers equals the 2 x 2 table's** (real data; data: birthwt)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| risk ratio, smoking alone | statsmodels Table2x2 and GLM (Poisson, HC0) | 1.6076421248835 | 1.6076421248835 | relative 1e-06 | pass |
+| log risk ratio with age | statsmodels Table2x2 and GLM (Poisson, HC0) | 0.460730395503193 | 0.460730395503193 | relative 1e-06 | pass |
+| standard error with age | statsmodels Table2x2 and GLM (Poisson, HC0) | 0.213624213081043 | 0.213624213081042 | relative 1e-06 | pass |
+| log risk ratio with age | R | 0.460730395503193 | 0.460730390124031 | relative 1e-06 | pass |
+| standard error with age | R | 0.213624213081043 | 0.213624320441299 | relative 1e-06 | pass |
+
+Note: With one yes/no column, the modified Poisson risk ratio is the risk ratio of the 2 x 2 table (Zou 2004), here from statsmodels' Table2x2.
+
+### `table.explain method="log-binomial"`
+
+**log-binomial risk ratio of low birth weight** (real data; data: birthwt)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| log risk ratio | R | 0.444051519404953 | 0.444052356626726 | relative 1e-05 | pass |
+| standard error | R | 0.2125706249025 | 0.212571063773311 | relative 1e-05 | pass |
+
+### `table.explain giving_outliers_less_weight=`
+
+**Huber's robust regression of stack loss** (real data; data: stackloss)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| air flow | statsmodels RLM (HuberT) | 0.829384334599657 | 0.829384334599655 | relative 1e-09 | pass |
+| water temperature | statsmodels RLM (HuberT) | 0.926065966198336 | 0.926065966198341 | relative 1e-09 | pass |
+| acid concentration | statsmodels RLM (HuberT) | -0.127846724945884 | -0.127846724945884 | relative 1e-09 | pass |
+| intercept | statsmodels RLM (HuberT) | -41.0264983523996 | -41.0264983523997 | relative 1e-09 | pass |
+| air flow standard error | statsmodels RLM (HuberT) | 0.11100521335458 | 0.11100521335458 | relative 1e-09 | pass |
+| air flow | R | 0.829384334599657 | 0.829385770253742 | relative 1e-05 | pass |
+| water temperature | R | 0.926065966198336 | 0.926059415549027 | relative 1e-05 | pass |
+| acid concentration | R | -0.127846724945884 | -0.12784631796544 | relative 1e-05 | pass |
+| intercept | R | -41.0264983523996 | -41.0264853732949 | relative 1e-05 | pass |
+
+Note: Venables & Ripley (2002, chapter 6) fit rlm() to these data. The estimates agree with R to the stopping rules of the two fits; the standard errors are statsmodels' (Huber's H1), which differ from R's summary(rlm) in the third digit, so R's are not compared.
+
+### `table.explain with_knots=`
+
+**a natural spline with 3 knots through the 36 Norris calibration points** (real data; data: NIST Norris)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| F of the whole curve | patsy cr() and statsmodels OLS | 1309424.66989213 | 1309424.66989214 | relative 1e-09 | pass |
+| F of the whole curve | R | 1309424.66989213 | 1309424.66989228 | relative 1e-08 | pass |
+
+Note: The spline's own coefficients differ between patsy and R's ns() (another basis of the same curves); the test of the whole curve and the fitted values are the same, so those are compared.
+
+### `table.explain show="standardised effects"`
+
+**standardised effects of weight, horsepower and gearbox on fuel use** (real data; data: mtcars)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| weight | statsmodels OLS on z-scores | -0.467328325133065 | -0.467328325133064 | relative 1e-09 | pass |
+| horsepower | statsmodels OLS on z-scores | -0.426359898323383 | -0.426359898323383 | relative 1e-09 | pass |
+| gearbox | statsmodels OLS on z-scores | 0.17251723761303 | 0.17251723761303 | relative 1e-09 | pass |
+| weight 95 % CI low | statsmodels OLS on z-scores | -0.768278926188221 | -0.768278926188221 | relative 1e-09 | pass |
+| weight | R | -0.467328325133065 | -0.467328325133065 | relative 1e-08 | pass |
+| horsepower | R | -0.426359898323383 | -0.426359898323383 | relative 1e-08 | pass |
+| gearbox | R | 0.17251723761303 | 0.17251723761303 | relative 1e-08 | pass |
+| weight 95 % CI low | R | -0.768278926188221 | -0.768278926188221 | relative 1e-08 | pass |
+
+### `table.explain interval_by="bootstrap"`
+
+**bootstrap intervals of the air-flow effect on stack loss** (real data; data: stackloss)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| 95 % CI low | SciPy stats.bootstrap (BCa) | 0.638744784688276 | 0.638744784688276 | relative 1e-09 | pass |
+| 95 % CI high | SciPy stats.bootstrap (BCa) | 1.17896864783934 | 1.17896864783934 | relative 1e-09 | pass |
+| 95 % CI low | R | 0.638744784688276 | 0.650788189386304 | relative 0.05 | pass |
+| 95 % CI high | R | 1.17896864783934 | 1.17581758089783 | relative 0.05 | pass |
+
+Note: R draws other random rows than SciPy, so R is a check of the same method within Monte Carlo error (5 %); SciPy with the same seed gives the same interval exactly.
+
+### `table.explain interval_by="profile"`
+
+**profile-likelihood intervals of a logistic regression of low birth weight** (real data; data: birthwt)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| smoke low | R | 0.0326710772426011 | 0.0326710772426011 | relative 1e-06 | pass |
+| smoke high | R | 1.31383593363347 | 1.31383593363347 | relative 1e-06 | pass |
+| lwt low | R | -0.0249706001060748 | -0.0249706001060748 | relative 1e-06 | pass |
+
+Note: simplydata runs R's confint() itself (statsmodels has no profile intervals); this case checks that the model R gets is the model explain() fits, from the formula side.
+
+### `table.explain p_value_by="likelihood ratio"`
+
+**likelihood-ratio tests in a logistic regression of low birth weight** (real data; data: birthwt)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| smoke | statsmodels GLM refits and SciPy chi2 | 0.0393884378670746 | 0.0393884378670746 | relative 1e-08 | pass |
+| age | statsmodels GLM refits and SciPy chi2 | 0.226723754237082 | 0.226723754237073 | relative 1e-08 | pass |
+| lwt | statsmodels GLM refits and SciPy chi2 | 0.036003504929209 | 0.036003504929209 | relative 1e-08 | pass |
+| smoke | R | 0.0393884378670746 | 0.0393884378670747 | relative 1e-07 | pass |
+| age | R | 0.226723754237082 | 0.226723754237081 | relative 1e-07 | pass |
+| lwt | R | 0.036003504929209 | 0.0360035049292096 | relative 1e-07 | pass |
+
+### `table.explain`
+
+**Nagelkerke's and Tjur's pseudo R squared of a logistic regression of low birth weight** (real data; data: birthwt)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| Nagelkerke | R | 0.085 | 0.085063735572079 | relative 0.01 | pass |
+| Tjur | R | 0.058 | 0.058487286125848 | relative 0.01 | pass |
+
+Note: The two measures are printed with 3 decimals, so the check allows that rounding (1 % here).
+
+### `table.explain crossed_with=`
+
+**people and items crossed: verbal aggression (yes or no) from anger and gender** (real data; data: VerbAgg)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| anger | R | 0.0574460971215786 | 0.0574460971215786 | relative 1e-06 | pass |
+| anger standard error | R | 0.0168528280463522 | 0.0168528280463522 | relative 1e-06 | pass |
+| gender | R | 0.320646326996743 | 0.320646326996743 | relative 1e-06 | pass |
+
+Note: simplydata runs lme4 itself (statsmodels cannot fit crossed groupings); this case checks the model R gets from explain() against R's own formula. simplydata hands the groups to R as text, so their order is that of text ("1", "10", "100" ...); R's reference does the same. A user's own R run on the whole-number ids orders them as numbers, and its glmer standard errors (from a numerical Hessian) then differ in the fourth digit.
+
+### `table.explain outcome="counts in two steps"`
+
+**two-step (hurdle) model of physician office visits** (published; data: NMES 1988)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| count: hospital | Zeileis et al. (2008) | 0.211898197949242 | 0.211898 | within 5e-07 (printed rounding) | pass |
+| count: health poor | Zeileis et al. (2008) | 0.315957574199259 | 0.315958 | within 5e-07 (printed rounding) | pass |
+| count: chronic | Zeileis et al. (2008) | 0.126420588812089 | 0.126421 | within 5e-07 (printed rounding) | pass |
+| count: chronic standard error | Zeileis et al. (2008) | 0.012452306903594 | 0.012452 | within 5e-07 (printed rounding) | pass |
+| zero: chronic | Zeileis et al. (2008) | 0.535212638440467 | 0.535213 | within 5e-07 (printed rounding) | pass |
+| zero: insurance | Zeileis et al. (2008) | 0.747119812959578 | 0.74712 | within 5e-07 (printed rounding) | pass |
+| zero: insurance standard error | Zeileis et al. (2008) | 0.100879503174147 | 0.10088 | within 5e-07 (printed rounding) | pass |
+
+Note: The paper's model fm_hurdle0: a negative binomial count part and a logistic zero hurdle, the same columns in both.
+
+### `table.explain outcome="counts with many zeros that vary a lot"`
+
+**zero-inflated negative binomial model of physician office visits, the zero part with its own columns** (published; data: NMES 1988)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| count: hospital | Zeileis et al. (2008), Table 2 | 0.201476829498611 | 0.201 | within 0.0005 (printed rounding) | pass |
+| count: health poor | Zeileis et al. (2008), Table 2 | 0.285132769246968 | 0.285 | within 0.0005 (printed rounding) | pass |
+| zero: hospital | Zeileis et al. (2008), Table 2 | -0.800464995130227 | -0.8 | within 0.0005 (printed rounding) | pass |
+| zero: chronic | Zeileis et al. (2008), Table 2 | -1.24789708597442 | -1.248 | within 0.0005 (printed rounding) | pass |
+| zero: gender male | Zeileis et al. (2008), Table 2 | 0.647660217015313 | 0.648 | within 0.0005 (printed rounding) | pass |
+| count: hospital | statsmodels ZeroInflatedNegativeBinomialP | 0.201476829498611 | 0.201476841187623 | relative 0.0001 | pass |
+| zero: hospital | statsmodels ZeroInflatedNegativeBinomialP | -0.800464995130227 | -0.800490700364435 | relative 0.0001 | pass |
+| zero: chronic | statsmodels ZeroInflatedNegativeBinomialP | -1.24789708597442 | -1.24793581168842 | relative 0.0001 | pass |
+
+Note: The paper's model fm_zinb (the zero part without health). simplydata runs R pscl itself, for its standard errors; statsmodels gives the same estimates.
+
+### `table.explain zero_part_using=`
+
+**two-step (hurdle) model whose zero part has its own columns** (published; data: NMES 1988)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| zero: intercept | Zeileis et al. (2008), Table 2 | 0.015940173828489 | 0.016 | within 0.0005 (printed rounding) | pass |
+| zero: hospital | Zeileis et al. (2008), Table 2 | 0.318434481481659 | 0.318 | within 0.0005 (printed rounding) | pass |
+| zero: chronic | Zeileis et al. (2008), Table 2 | 0.54783250793305 | 0.548 | within 0.0005 (printed rounding) | pass |
+| zero: insurance | Zeileis et al. (2008), Table 2 | 0.745720049336331 | 0.746 | within 0.0005 (printed rounding) | pass |
+| zero: school | Zeileis et al. (2008), Table 2 | 0.0570728152414011 | 0.057 | within 0.0005 (printed rounding) | pass |
+| zero: gender male | Zeileis et al. (2008), Table 2 | -0.419147791025234 | -0.419 | within 0.0005 (printed rounding) | pass |
+| zero: intercept | statsmodels Logit (the first step on its own) | 0.015940173828489 | 0.0159401718063211 | relative 1e-06 | pass |
+| zero: hospital | statsmodels Logit (the first step on its own) | 0.318434481481659 | 0.318434494004322 | relative 1e-06 | pass |
+| zero: chronic | statsmodels Logit (the first step on its own) | 0.54783250793305 | 0.547832508738329 | relative 1e-06 | pass |
+| zero: insurance | statsmodels Logit (the first step on its own) | 0.745720049336331 | 0.745720049922439 | relative 1e-06 | pass |
+| zero: school | statsmodels Logit (the first step on its own) | 0.0570728152414011 | 0.0570728147518849 | relative 1e-06 | pass |
+| zero: gender male | statsmodels Logit (the first step on its own) | -0.419147791025234 | -0.419147791543225 | relative 1e-06 | pass |
+
+Note: The first step of a hurdle model is a logistic regression of zero or not, so statsmodels' Logit gives the same numbers as pscl's zero hurdle.
+
 ### `table.fit_dose_response`
 
 **ryegrass root length and ferulic acid: LL.4 curve and ED10, ED50, ED90** (real data; data: ryegrass (drc))
@@ -386,6 +554,8 @@ Note: No data: the published value is the standard normal table (5 decimals).
 | ED50 95 % CI low | R | 2.67052620764518 | 2.67052620764518 | relative 1e-09 | pass |
 
 Note: Python has no dose-response package with drc's ED intervals, so R drc itself is the second calculation. Ritz et al. (2015) analyse these data with the same LL.4 model.
+
+### `table.fit_dose_response outcome="yes or no"`
 
 **Bliss's beetles: LD50 from the logistic curve on log dose (yes or no)** (published; data: Bliss beetles)
 
@@ -407,7 +577,7 @@ Note: The 2 parameter log-logistic curve with binomial errors is logistic regres
 | curve at the highest dose | R | 0.48946869915202 | 0.48946869915202 | relative 1e-09 | pass |
 | curve at dose 0 | R | 7.79295829369992 | 7.79295829369992 | relative 1e-09 | pass |
 
-### `table.find_best_power_of`
+### `table.find_best_power_of using=`
 
 **Box and Cox's poisons: the power for the two-way model** (published; data: poisons (boot))
 
@@ -421,6 +591,8 @@ Note: The 2 parameter log-logistic curve with binomial errors is logistic regres
 
 Note: Box and Cox print a power of about -0.75 and suggest the reciprocal (power -1), the rate of dying.
 
+### `table.find_best_power_of`
+
 **the power of the poisons survival times on their own** (real data; data: poisons (boot))
 
 | number | compared with | simplydata | reference | tolerance | result |
@@ -431,7 +603,7 @@ Note: Box and Cox print a power of about -0.75 and suggest the reciprocal (power
 
 Note: car::powerTransform maximises the same likelihood with another optimiser (to about 1e-5).
 
-### `table.fit_curve`
+### `table.fit_curve of_kind="logistic growth"`
 
 **Rat42: a logistic growth curve (NIST certified)** (published; data: NIST Rat42)
 
@@ -443,6 +615,8 @@ Note: car::powerTransform maximises the same likelihood with another optimiser (
 | residual sum of squares | NIST certified | 8.05652293381132 | 8.0565229338 | at least 6 digits (LRE 11.9) | pass |
 
 Note: NIST writes the curve as b1 / (1 + exp(b2 - b3 x)): b1 is Asym, b2 is xmid / scal and b3 is 1 / scal of R's SSlogis.
+
+### `table.fit_curve of_kind="rise to a limit"`
 
 **Misra1a: a rise to a limit (NIST certified)** (published; data: NIST Misra1a)
 
@@ -464,6 +638,8 @@ Note: NIST writes the curve as b1 (1 - exp(-b2 x)): b1 is Asym and b2 is exp(lrc
 
 Note: NIST writes the curve as b1 (1 - exp(-b2 x)): b1 is Asym and b2 is exp(lrc) of R's SSasympOrig.
 
+### `table.fit_curve of_kind="michaelis-menten"`
+
 **Puromycin (treated): a Michaelis-Menten curve** (published; data: Puromycin (treated))
 
 | number | compared with | simplydata | reference | tolerance | result |
@@ -475,7 +651,81 @@ Note: NIST writes the curve as b1 (1 - exp(-b2 x)): b1 is Asym and b2 is exp(lrc
 
 Note: R nls() stops at a relative offset of 1e-5, so it agrees to about 1e-5.
 
-### `table.explain`
+### `table.fit_line method="standardised major axis"`
+
+**leaf lifespan against leaf mass per area: standardised major axis (log10)** (real data; data: leaflife (smatr))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| slope | R | 1.31503061916202 | 1.31503061916202 | relative 1e-09 | pass |
+| intercept | R | -2.69880047584921 | -2.69880047584921 | relative 1e-09 | pass |
+| slope 95 % CI low | R | 1.09626126001275 | 1.09626126001275 | relative 1e-09 | pass |
+
+Note: Warton et al. (2006) fit these data on log scales; the slope is about 1.3.
+
+### `table.fit_line method="deming", y_error_over_x_error=`
+
+**creatinine in plasma against serum: Deming line with y_error_over_x_error=4** (real data; data: creatinine (mcr))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| slope | R | 1.01786319565374 | 1.01786319565374 | relative 1e-09 | pass |
+| slope standard error | R | 0.0341143809499105 | 0.0341143809499105 | relative 1e-09 | pass |
+
+Note: mcr's error.ratio is the error variance of x over that of y, so 4 here is 1 / 4 there. tests/test_s3a2_lines.py checks the direction against R deming::deming(xstd =, ystd =) too.
+
+### `table.fit_line method="passing-bablok"`
+
+**creatinine in plasma against serum: Passing-Bablok line** (real data; data: creatinine (mcr))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| slope | R | 1.08800890272179 | 1.08800890272179 | relative 1e-09 | pass |
+| intercept | R | -0.11717286443298 | -0.11717286443298 | relative 1e-09 | pass |
+| slope 95 % CI high | R | 1.17300462437155 | 1.17300462437155 | relative 1e-09 | pass |
+
+### `table.fit_line method="theil-sen"`
+
+**Anscombe's set 3 (one outlier): the Theil-Sen line** (real data; data: Anscombe's quartet)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| slope | SciPy stats.theilslopes | 0.345555555555556 | 0.345555555555556 | relative 1e-12 | pass |
+| intercept | SciPy stats.theilslopes | 4 | 4 | relative 1e-12 | pass |
+| slope 95 % CI low | SciPy stats.theilslopes | 0.345 | 0.345 | relative 1e-12 | pass |
+| slope | R | 0.345555555555556 | 0.345555555555556 | relative 1e-09 | pass |
+
+Note: The outlier pulls the least-squares slope to 0.500; the Theil-Sen slope stays near 0.345, the slope of the other ten points.
+
+### `table.fit_line with_bends=`
+
+**Bacon and Watts's stagnant band: a line with one bend** (real data; data: stagnant (segmented))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| bend 1 | R | 0.0411057845664149 | 0.0411057845664149 | relative 1e-09 | pass |
+| slope 1 | R | -0.422076814406333 | -0.422076814406333 | relative 1e-09 | pass |
+| slope 2 | R | -1.02056754500006 | -1.02056754500006 | relative 1e-09 | pass |
+| Davies p-value | R | 1.29088012334937e-17 | 1.29088012334937e-17 | relative 1e-09 | pass |
+
+Note: Bacon and Watts fit a smooth transition; segmented fits the sharp bend, so R is the reference.
+
+### `table.fit_line changes_at=`
+
+**drivers killed or seriously injured: the line changes at the seat-belt law** (real data; data: Seatbelts)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| level change | statsmodels OLS with the two change columns | -457.768100628468 | -457.768100628468 | relative 1e-09 | pass |
+| slope change | statsmodels OLS with the two change columns | 19.2016179865776 | 19.2016179865776 | relative 1e-09 | pass |
+| level change standard error | statsmodels OLS with the two change columns | 107.180651134372 | 107.180651134372 | relative 1e-09 | pass |
+| level change | R | -457.768100628468 | -457.768100628468 | relative 1e-09 | pass |
+| slope change | R | 19.2016179865776 | 19.2016179865777 | relative 1e-09 | pass |
+| level change standard error | R | 107.180651134372 | 107.180651134372 | relative 1e-09 | pass |
+
+Note: A plain interrupted time series without the season, to check the arithmetic; Harvey and Durbin model the season and the trend too.
+
+### `table.explain changes_at=`
 
 **drivers killed (counts): the rate ratio of the jump at the seat-belt law** (real data; data: Seatbelts)
 
@@ -485,6 +735,8 @@ Note: R nls() stops at a relative offset of 1e-5, so it agrees to about 1e-5.
 | slope change | statsmodels GLM (Poisson) with the two change columns | 1.0154100777643 | 1.0154100777643 | relative 1e-07 | pass |
 | jump | R | 0.724689274189852 | 0.724689274189851 | relative 1e-07 | pass |
 | slope change | R | 1.0154100777643 | 1.0154100777643 | relative 1e-07 | pass |
+
+### `table.explain for_percentile=`
 
 **Engel's food expenditure: the 90th percentile line** (real data; data: Engel food expenditure)
 
@@ -498,7 +750,17 @@ Note: R nls() stops at a relative offset of 1e-5, so it agrees to about 1e-5.
 
 Note: statsmodels solves by iteratively reweighted least squares and R quantreg by the exact simplex; the lines agree to about 1e-7.
 
-### `table.add_smoothed_column`
+### `draw_smooth_line method="loess", with_confidence_band=`
+
+**the drawn loess curve of drivers killed or seriously injured is R's** (real data; data: Seatbelts)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| points | R | 200 | 200 | relative 1e-09 | pass |
+| curve at the first month | R | 1644.03914048406 | 1644.03914048406 | relative 1e-09 | pass |
+| curve at the last month | R | 1323.4857369989 | 1323.4857369989 | relative 1e-09 | pass |
+
+### `table.add_smoothed_column method="loess", interval=`
 
 **drivers killed or seriously injured, smoothed by loess with its band** (real data; data: Seatbelts)
 
@@ -532,32 +794,62 @@ Each box's library code is run next to the simplydata word and compared. Table w
 | `table.fit_line` | SciPy | pandas | result | relative 1e-09 | pass |
 | `table.fit_line` | SciPy | polars | result | relative 1e-09 | pass |
 | `dist.find_chance_that_value` | SciPy | pandas | value | relative 1e-12 | pass |
+| `table.explain weights=` | statsmodels | pandas | result | relative 1e-09 | pass |
+| `table.explain weights=` | statsmodels | polars | result | relative 1e-09 | pass |
+| `table.explain outcome="yes or no (overdispersed)"` | statsmodels | pandas | result | relative 1e-08 | pass |
+| `table.explain outcome="yes or no (overdispersed)"` | statsmodels | polars | result | relative 1e-08 | pass |
+| `table.explain matched_by=` | statsmodels | pandas | result | relative 1e-06 | pass |
+| `table.explain matched_by=` | statsmodels | polars | result | relative 1e-06 | pass |
+| `table.explain show="risk ratios"` | statsmodels | pandas | result | relative 1e-06 | pass |
+| `table.explain show="risk ratios"` | statsmodels | polars | result | relative 1e-06 | pass |
+| `table.explain method="log-binomial"` | statsmodels | pandas | result | relative 1e-06 | pass |
+| `table.explain method="log-binomial"` | statsmodels | polars | result | relative 1e-06 | pass |
+| `table.explain giving_outliers_less_weight=` | statsmodels | pandas | result | relative 1e-09 | pass |
+| `table.explain giving_outliers_less_weight=` | statsmodels | polars | result | relative 1e-09 | pass |
+| `table.explain with_knots=` | patsy and statsmodels | pandas | result | relative 1e-09 | pass |
+| `table.explain with_knots=` | patsy and statsmodels | polars | result | relative 1e-09 | pass |
+| `table.explain show="standardised effects"` | statsmodels | pandas | result | relative 1e-09 | pass |
+| `table.explain show="standardised effects"` | statsmodels | polars | result | relative 1e-09 | pass |
+| `table.explain interval_by="bootstrap"` | SciPy and statsmodels | pandas | result | relative 1e-09 | pass |
+| `table.explain interval_by="bootstrap"` | SciPy and statsmodels | polars | result | relative 1e-09 | pass |
+| `table.explain interval_by="profile"` | R + Python | pandas | result | relative 1e-07 | pass |
+| `table.explain interval_by="profile"` | R + Python | polars | result | relative 1e-07 | pass |
+| `table.explain p_value_by="likelihood ratio"` | statsmodels and SciPy | pandas | result | relative 1e-08 | pass |
+| `table.explain p_value_by="likelihood ratio"` | statsmodels and SciPy | polars | result | relative 1e-08 | pass |
+| `table.explain crossed_with=` | R + Python | pandas | result | relative 1e-06 | pass |
+| `table.explain crossed_with=` | R + Python | polars | result | relative 1e-06 | pass |
+| `table.explain outcome="counts with many zeros that vary a lot"` | R + Python | pandas | result | relative 1e-05 | pass |
+| `table.explain outcome="counts with many zeros that vary a lot"` | R + Python | polars | result | relative 1e-05 | pass |
+| `table.explain outcome="counts in two steps"` | R + Python | pandas | result | relative 1e-05 | pass |
+| `table.explain outcome="counts in two steps"` | R + Python | polars | result | relative 1e-05 | pass |
+| `table.explain zero_part_using=` | R + Python | pandas | result | relative 1e-05 | pass |
+| `table.explain zero_part_using=` | R + Python | polars | result | relative 1e-05 | pass |
 | `table.fit_dose_response` | R + Python | pandas | result | relative 1e-09 | pass |
 | `table.fit_dose_response` | R + Python | polars | result | relative 1e-09 | pass |
 | `fit_dose_response` | R + matplotlib | pandas | chart | relative 1e-06 | pass |
 | `table.find_best_power_of` | SciPy | pandas | result | relative 1e-09 | pass |
 | `table.find_best_power_of` | SciPy | polars | result | relative 1e-09 | pass |
-| `table.fit_line (method="theil-sen")` | SciPy | pandas | result | relative 1e-09 | pass |
-| `table.fit_line (method="theil-sen")` | SciPy | polars | result | relative 1e-09 | pass |
-| `table.fit_line (method="standardised major axis")` | R + Python | pandas | result | relative 1e-09 | pass |
-| `table.fit_line (method="standardised major axis")` | R + Python | polars | result | relative 1e-09 | pass |
-| `table.fit_line (method="deming", y_error_over_x_error=)` | R + Python | pandas | result | relative 1e-09 | pass |
-| `table.fit_line (method="deming", y_error_over_x_error=)` | R + Python | polars | result | relative 1e-09 | pass |
-| `table.fit_line (method="passing-bablok")` | R + Python | pandas | result | relative 1e-09 | pass |
-| `table.fit_line (method="passing-bablok")` | R + Python | polars | result | relative 1e-09 | pass |
-| `table.fit_line (with_bends=)` | R + Python | pandas | result | relative 1e-09 | pass |
-| `table.fit_line (with_bends=)` | R + Python | polars | result | relative 1e-09 | pass |
-| `table.fit_line (changes_at=)` | statsmodels | pandas | result | relative 1e-09 | pass |
-| `table.fit_line (changes_at=)` | statsmodels | polars | result | relative 1e-09 | pass |
-| `table.fit_curve (of_kind="logistic growth")` | SciPy | pandas | result | relative 1e-05 | pass |
-| `table.fit_curve (of_kind="logistic growth")` | SciPy | polars | result | relative 1e-05 | pass |
-| `table.explain (for_percentile=)` | R + Python | pandas | result | relative 1e-09 | pass |
-| `table.explain (for_percentile=)` | R + Python | polars | result | relative 1e-09 | pass |
-| `table.explain (changes_at=)` | statsmodels | pandas | result | relative 1e-09 | pass |
-| `table.explain (changes_at=)` | statsmodels | polars | result | relative 1e-09 | pass |
-| `table.add_smoothed_column (method="loess", interval=)` | R + Python | pandas | result | relative 1e-09 | pass |
-| `table.add_smoothed_column (method="loess", interval=)` | R + Python | polars | result | relative 1e-09 | pass |
-| `draw_smooth_line (method="loess", with_confidence_band=)` | R + matplotlib | pandas | chart | relative 1e-09 | pass |
+| `table.fit_line method="theil-sen"` | SciPy | pandas | result | relative 1e-09 | pass |
+| `table.fit_line method="theil-sen"` | SciPy | polars | result | relative 1e-09 | pass |
+| `table.fit_line method="standardised major axis"` | R + Python | pandas | result | relative 1e-09 | pass |
+| `table.fit_line method="standardised major axis"` | R + Python | polars | result | relative 1e-09 | pass |
+| `table.fit_line method="deming", y_error_over_x_error=` | R + Python | pandas | result | relative 1e-09 | pass |
+| `table.fit_line method="deming", y_error_over_x_error=` | R + Python | polars | result | relative 1e-09 | pass |
+| `table.fit_line method="passing-bablok"` | R + Python | pandas | result | relative 1e-09 | pass |
+| `table.fit_line method="passing-bablok"` | R + Python | polars | result | relative 1e-09 | pass |
+| `table.fit_line with_bends=` | R + Python | pandas | result | relative 1e-09 | pass |
+| `table.fit_line with_bends=` | R + Python | polars | result | relative 1e-09 | pass |
+| `table.fit_line changes_at=` | statsmodels | pandas | result | relative 1e-09 | pass |
+| `table.fit_line changes_at=` | statsmodels | polars | result | relative 1e-09 | pass |
+| `table.fit_curve of_kind="logistic growth"` | SciPy | pandas | result | relative 1e-05 | pass |
+| `table.fit_curve of_kind="logistic growth"` | SciPy | polars | result | relative 1e-05 | pass |
+| `table.explain for_percentile=` | R + Python | pandas | result | relative 1e-09 | pass |
+| `table.explain for_percentile=` | R + Python | polars | result | relative 1e-09 | pass |
+| `table.explain changes_at=` | statsmodels | pandas | result | relative 1e-09 | pass |
+| `table.explain changes_at=` | statsmodels | polars | result | relative 1e-09 | pass |
+| `table.add_smoothed_column method="loess", interval=` | R + Python | pandas | result | relative 1e-09 | pass |
+| `table.add_smoothed_column method="loess", interval=` | R + Python | polars | result | relative 1e-09 | pass |
+| `draw_smooth_line method="loess", with_confidence_band=` | R + matplotlib | pandas | chart | relative 1e-09 | pass |
 
 How each kind is compared:
 
@@ -581,27 +873,47 @@ Where simplydata's default differs from the package underneath, it is listed her
 - `table.compare_averages_of` (1): Welch's t-test, which does not assume both groups have the same spread; SciPy's own default (equal_var=True) is Student's t-test, which does.
 - `table.fit_line` (1): the 95 % interval of the slope uses the t distribution with n - 2 degrees of freedom, as R's confint(lm(...)).
 - `dist.find_chance_that_value` (1): the chance above a value is the survival function sf(), not 1 - cdf(): it stays accurate far out in the tail.
+- `table.explain weights=` (1): precision weights, as R lm(weights =): statsmodels WLS; for the other outcomes GLM(var_weights=). Not freq_weights, which would change the degrees of freedom.
+- `table.explain outcome="yes or no (overdispersed)"` (1): quasi-binomial as R glm(family = quasibinomial): the shares, with the tries as var_weights and the Pearson dispersion (scale="X2"). A two-column endog would give statsmodels another dispersion.
+- `table.explain matched_by=` (1): conditional logistic regression with the exact conditional likelihood, as R survival::clogit() (its default method = "exact"); no intercept, each pair compared only with itself.
+- `table.explain matched_by=` (2): fitted by Newton's method to the end; statsmodels' default (BFGS) stops a little short of the best estimates.
+- `table.explain show="risk ratios"` (1): modified Poisson regression (Zou 2004): a Poisson model for the 0/1 column with robust (HC0) standard errors, as R glm(family = poisson) with sandwich::vcovHC(type = "HC0"); it always converges, where log-binomial (method="log-binomial") often does not.
+- `table.explain method="log-binomial"` (1): a binomial model with a log link, as R glm(family = binomial(link = "log")); when it does not converge (a predicted chance reaches 1), simplydata says so and points to the default modified Poisson regression.
+- `table.explain giving_outliers_less_weight=` (1): Huber's weights with k = 1.345, the default of statsmodels and of R MASS::rlm().
+- `table.explain giving_outliers_less_weight=` (2): the scale by the median absolute deviation and Huber's H1 covariance; R's summary(rlm) uses a slightly different small-sample correction, so its standard errors differ in the third digit.
+- `table.explain with_knots=` (1): the knots at the quantiles of all the values, as R splines::ns() places them; patsy's own df= would take the quantiles of the distinct values (mgcv's rule) and give another curve.
+- `table.explain with_knots=` (2): a natural cubic spline without its constant (constraints="center"): the same curves as R lm(marks ~ splines::ns(hours, df = 4) + breakfast), so the fitted values and the other effects are R's.
+- `table.explain show="standardised effects"` (1): z-scores with the standard deviation of n - 1 (pandas' std(), R's sd()), on the rows the model uses.
+- `table.explain show="standardised effects"` (2): the model fitted again on the z-scores, as R effectsize::standardize_parameters(method = "refit"); group columns stay as they are, and the outcome is standardised only for numbers.
+- `table.explain interval_by="bootstrap"` (1): the rows are drawn again whole (case resampling), and the same model is fitted to each new table.
+- `table.explain interval_by="bootstrap"` (2): BCa intervals (bias-corrected and accelerated), as R boot::boot.ci(type = "bca"); with_seed= fixes the random draws.
+- `table.explain interval_by="profile"` (1): profile-likelihood intervals, R's confint() of a glm (in stats since R 4.4; before, in MASS); safer than Wald intervals with few rows or effects far from 1.
+- `table.explain p_value_by="likelihood ratio"` (1): each column left out in turn and the deviances compared (chi-square, 1 df), as R drop1(m, test = "LRT"); a group column is tested whole, and a column inside an interaction is not tested alone.
+- `table.explain crossed_with=` (1): two groupings crossed with each other, (1 \| school) + (1 \| class), fitted by REML as lme4's default; statsmodels MixedLM takes one grouping (or groups inside groups), so R fits it.
+- `table.explain outcome="counts with many zeros that vary a lot"` (1): zero-inflated negative binomial regression with a logistic zero part and the same columns in both parts, pscl::zeroinfl(dist = "negbin")'s defaults.
+- `table.explain outcome="counts in two steps"` (1): a hurdle model: a logistic part for zero or not (pscl's binomial zero part, the textbook form) and a Poisson part cut off at 1 for the counts above 0.
+- `table.explain zero_part_using=` (1): the zero part gets its own columns, pscl's y ~ x \| z; without zero_part_using= both parts use the columns of using=.
 - `table.fit_dose_response` (1): the 4 parameter log-logistic curve, the usual one in ecotoxicology (drc's LL.4); of_kind= chooses another.
 - `table.fit_dose_response` (2): the ED50 with its delta-method interval: drc's ED() gives no interval unless asked (interval = "none" is its default).
 - `fit_dose_response` (1): the 4 parameter log-logistic curve (drc's LL.4), as table.fit_dose_response.
 - `fit_dose_response` (2): the curve is drawn over 300 doses spaced evenly on a log scale (and dose 0), so it stays smooth on a log dose axis too; the ED50 and its delta-method interval go in the legend.
 - `table.find_best_power_of` (1): the power's 95 % interval from the profile likelihood (alpha=0.05); without alpha= SciPy gives no interval.
-- `table.fit_line (method="theil-sen")` (1): SciPy's alpha= is the confidence level (0.95), not the error rate.
-- `table.fit_line (method="theil-sen")` (2): the intercept is median(y) - slope * median(x) (Conover; SciPy's default); R mblm takes the median of y - slope * x instead.
-- `table.fit_line (method="standardised major axis")` (1): smatr's own 95 % intervals (Warton et al. 2006); method="major axis" is method = "MA".
-- `table.fit_line (method="deming", y_error_over_x_error=)` (1): mcr's error.ratio is the error variance of x over that of y, the other way round from y_error_over_x_error=, so it gets 1 / 4.
-- `table.fit_line (method="deming", y_error_over_x_error=)` (2): mcr's analytical intervals; its default (bootstrap) is random and differs from run to run.
-- `table.fit_line (method="passing-bablok")` (1): Passing and Bablok's own rank-based intervals (mcr's "analytical" for PaBa); mcr's default bootstrap is random.
-- `table.fit_line (with_bends=)` (1): a continuous line: it bends, it does not jump (segmented's model); seed 1 fixes segmented's random restarts.
-- `table.fit_line (with_bends=)` (2): Davies' test of "no bend at all": the bend's own p-value is not valid, because the data chose where it is.
-- `table.fit_line (changes_at=)` (1): the change starts at the point itself: rows at 10 or later count as after.
-- `table.fit_curve (of_kind="logistic growth")` (1): start values: simplydata takes them from R's self-starting model (stats::getInitial()), or searches the whole range without R; the least-squares answer is the same.
-- `table.explain (for_percentile=)` (1): R quantreg's exact simplex (Barrodale-Roberts); statsmodels QuantReg gives the same line to about 1e-7 but none of R's standard errors.
-- `table.explain (for_percentile=)` (2): standard errors by "nid" for every number of rows (R's default below 1001 rows is "rank", intervals only).
-- `table.explain (changes_at=)` (1): the change starts at the point itself: rows at 10 or later count as after.
-- `table.add_smoothed_column (method="loess", interval=)` (1): R loess's own defaults: span 0.75 (smoothness=), local curves of degree 2, no robustness steps.
-- `table.add_smoothed_column (method="loess", interval=)` (2): the band uses loess's own degrees of freedom, as R's predict.loess intervals do.
-- `draw_smooth_line (method="loess", with_confidence_band=)` (1): R loess's own defaults: span 0.75, local curves of degree 2, no robustness steps (not lowess).
+- `table.fit_line method="theil-sen"` (1): SciPy's alpha= is the confidence level (0.95), not the error rate.
+- `table.fit_line method="theil-sen"` (2): the intercept is median(y) - slope * median(x) (Conover; SciPy's default); R mblm takes the median of y - slope * x instead.
+- `table.fit_line method="standardised major axis"` (1): smatr's own 95 % intervals (Warton et al. 2006); method="major axis" is method = "MA".
+- `table.fit_line method="deming", y_error_over_x_error=` (1): mcr's error.ratio is the error variance of x over that of y, the other way round from y_error_over_x_error=, so it gets 1 / 4.
+- `table.fit_line method="deming", y_error_over_x_error=` (2): mcr's analytical intervals; its default (bootstrap) is random and differs from run to run.
+- `table.fit_line method="passing-bablok"` (1): Passing and Bablok's own rank-based intervals (mcr's "analytical" for PaBa); mcr's default bootstrap is random.
+- `table.fit_line with_bends=` (1): a continuous line: it bends, it does not jump (segmented's model); seed 1 fixes segmented's random restarts.
+- `table.fit_line with_bends=` (2): Davies' test of "no bend at all": the bend's own p-value is not valid, because the data chose where it is.
+- `table.fit_line changes_at=` (1): the change starts at the point itself: rows at 10 or later count as after.
+- `table.fit_curve of_kind="logistic growth"` (1): start values: simplydata takes them from R's self-starting model (stats::getInitial()), or searches the whole range without R; the least-squares answer is the same.
+- `table.explain for_percentile=` (1): R quantreg's exact simplex (Barrodale-Roberts); statsmodels QuantReg gives the same line to about 1e-7 but none of R's standard errors.
+- `table.explain for_percentile=` (2): standard errors by "nid" for every number of rows (R's default below 1001 rows is "rank", intervals only).
+- `table.explain changes_at=` (1): the change starts at the point itself: rows at 10 or later count as after.
+- `table.add_smoothed_column method="loess", interval=` (1): R loess's own defaults: span 0.75 (smoothness=), local curves of degree 2, no robustness steps.
+- `table.add_smoothed_column method="loess", interval=` (2): the band uses loess's own degrees of freedom, as R's predict.loess intervals do.
+- `draw_smooth_line method="loess", with_confidence_band=` (1): R loess's own defaults: span 0.75, local curves of degree 2, no robustness steps (not lowess).
 
 ## Datasets
 
@@ -616,6 +928,14 @@ Where simplydata's default differs from the package underneath, it is listed her
 | [aSAH (pROC)](https://cran.r-project.org/package=pROC) | 113 patients with aneurysmal subarachnoid haemorrhage: outcome and the biomarker s100b | Turck, N. et al. (2010). A multiparameter panel method for outcome prediction following aneurysmal subarachnoid hemorrhage. Intensive Care Medicine 36, 107-115. Shipped with R's pROC package (Robin, X. et al. (2011). BMC Bioinformatics 12, 77). | GPL-3 or later (pROC). Not stored here: read from the installed pROC package, so it needs R. |
 | made-up | small made-up tables for edge cases (empty cells, no rows left, an exact line) | simplydata's validation/cases.py. | Same as simplydata (see LICENSE). |
 | [standard normal table](https://www.itl.nist.gov/div898/handbook/eda/section3/eda3671.htm) | the area under the standard normal curve from 0 to z, to 5 decimals (no data: a published table) | NIST/SEMATECH e-Handbook of Statistical Methods, section 1.3.6.7.1, Cumulative Distribution Function of the Standard Normal Distribution. | Public domain in the United States (a work of the US Government); one number is quoted, nothing stored. |
+| [Galton's sweet peas](https://cran.r-project.org/package=alr4) | 7 parent sweet-pea seed diameters (hundredths of an inch), each with the average and the standard deviation of the diameters of its offspring seeds | Galton, F. (1877). Typical laws of heredity. Nature 15, 492-495, 512-514, 532-533. Used for weighted least squares in Weisberg, S. (2014). Applied Linear Regression, 4th ed., Wiley, section 7.1. Copy from the R package alr4 (galtonpeas). | Published 1877 (public domain); the alr4 copy is GPL (>= 2). |
+| [Orobanche seeds](https://cran.r-project.org/package=agridat) | 21 plates of seeds of two Orobanche varieties (O73, O75) on bean or cucumber root extract: the seeds that germinated, out of the seeds on the plate | Crowder, M. J. (1978). Beta-binomial anova for proportions. Applied Statistics 27(1), 34-37. Copy from the R package agridat (crowder.seeds; Wright, K.), through Rdatasets. | The published counts (facts from a 1978 paper); the agridat copy is MIT licensed. |
+| [infert](https://stat.ethz.ch/R-manual/R-devel/library/datasets/html/infert.html) | 248 women in 83 matched sets (1 or 2 cases of secondary infertility, each with 2 controls matched on age, parity and education): earlier spontaneous and induced abortions | Trichopoulos, D., Handanos, N., Danezis, J., Kalandidi, A. & Kalapothaki, V. (1976). Induced abortion and secondary infertility. British Journal of Obstetrics and Gynaecology 83, 645-650. Copy from R's datasets package (infert). | Published 1976; R's datasets copy is GPL-2 \| GPL-3. |
+| [birthwt](https://cran.r-project.org/package=MASS) | 189 births at Baystate Medical Center, Springfield, Massachusetts (1986): low birth weight (below 2.5 kg) and the mother's age, weight, smoking, race and history | Hosmer, D. W. & Lemeshow, S. (1989). Applied Logistic Regression. Wiley. Copy from the R package MASS (birthwt; Venables, W. N. & Ripley, B. D. (2002). Modern Applied Statistics with S, 4th ed. Springer). | The MASS copy is GPL-2 \| GPL-3. |
+| [stackloss](https://stat.ethz.ch/R-manual/R-devel/library/datasets/html/stackloss.html) | 21 days of a plant oxidising ammonia to nitric acid: air flow, cooling water temperature, acid concentration and the ammonia lost (stack loss) | Brownlee, K. A. (1965). Statistical Theory and Methodology in Science and Engineering, 2nd ed. Wiley, pp. 491-500. Copy from R's datasets package (stackloss). | Published 1960/1965; R's datasets copy is GPL-2 \| GPL-3. |
+| [mtcars](https://stat.ethz.ch/R-manual/R-devel/library/datasets/html/mtcars.html) | 32 cars (1973-74 models): fuel use (miles per gallon) and 10 design and performance measures | Henderson, H. V. & Velleman, P. F. (1981). Building multiple regression models interactively. Biometrics 37, 391-411 (data from Motor Trend, 1974). Copy from R's datasets package (mtcars). | Published 1974 and 1981; R's datasets copy is GPL-2 \| GPL-3. |
+| [VerbAgg](https://cran.r-project.org/package=lme4) | verbal aggression: 316 people each answered 24 items (would they curse, scold or shout in a frustrating situation?), yes or no; people and items are crossed | De Boeck, P. & Wilson, M. (2004). Explanatory Item Response Models. Springer (data collected by Vansteelandt, 2000). Copy from the R package lme4 (VerbAgg). | The lme4 copy is GPL (>= 2). |
+| [NMES 1988](https://www.jstatsoft.org/v027/i08) | 4406 people aged 66 and over in the US National Medical Expenditure Survey 1987/88: physician office visits, hospital stays, self-rated health, chronic conditions, gender, years of school and private insurance (7 of the 19 columns) | Deb, P. & Trivedi, P. K. (1997). Demand for medical care by the elderly: a finite mixture approach. Journal of Applied Econometrics 12, 313-336. Analysed with hurdle and zero-inflated models in Zeileis, A., Kleiber, C. & Jackman, S. (2008). Regression models for count data in R. Journal of Statistical Software 27(8), 1-25. Copy from the R package AER (NMES1988), through Rdatasets. | A US Government survey (public domain); the AER copy is GPL-2 \| GPL-3; the JSS article is CC BY. |
 | [ryegrass (drc)](https://doi.org/10.1371/journal.pone.0146021) | root length of perennial ryegrass at 7 concentrations of ferulic acid (24 rows) | Inderjit, Streibig, J. C. & Olofsdotter, M. (2002). Joint action of phenolic acid mixtures and its significance in allelopathy research. Physiologia Plantarum 114, 422-428. Analysed in Ritz, C., Baty, F., Streibig, J. C. & Gerhard, D. (2015). Dose-response analysis using R. PLoS ONE 10, e0146021. Shipped with the R package drc. | The article (Ritz et al. 2015) is CC BY 4.0; the data are shipped with drc (GPL-2 or later). Not stored here: read from the installed drc package, so it needs R. |
 | [Bliss beetles](https://doi.org/10.1111/j.1744-7348.1935.tb07713.x) | flour beetles killed after five hours of carbon disulphide at 8 doses (log10 mg per litre) | Bliss, C. I. (1935). The calculation of the dosage-mortality curve. Annals of Applied Biology 22, 134-167. Logistic fit printed in Dobson, A. J. & Barnett, A. G. (2008). An Introduction to Generalized Linear Models, 3rd ed., section 7.3. | Facts published in 1935 (24 numbers), typed from the paper; not covered by copyright. |
 | [poisons (boot)](https://doi.org/10.1111/j.2517-6161.1964.tb00553.x) | survival times of 48 animals: 3 poisons x 4 treatments, 4 animals each | Box, G. E. P. & Cox, D. R. (1964). An analysis of transformations. Journal of the Royal Statistical Society B 26, 211-252 (Table 1; the power found is about -0.75, the reciprocal suggested). Shipped with the R package boot. | Facts published in 1964; the copy in boot is GPL (Unlimited). Not stored here: read from boot, so it needs R. |

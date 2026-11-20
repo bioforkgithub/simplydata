@@ -5,6 +5,42 @@ working for one release and prints a one-line note with its new name.
 
 ## Unreleased
 
+### explain() grows (S3a-1)
+
+New options of `table.explain`, each checked against the package underneath and R, with a box "The same
+underneath" in the manual and a case on real, published data in the reliability study:
+
+- `weights="precision"`: precision weights, as R `lm(weights =)` and `glm(weights =)` (statsmodels WLS and
+  `GLM(var_weights=)`); rows with weight 0 are left out first, as R does.
+- `outcome="yes or no (overdispersed)"` with `out_of=`: quasi-binomial regression (R `glm(family =
+  quasibinomial)`). A yes/no model with `out_of=` now notes when the yes counts vary more than the binomial
+  allows and points to it.
+- `matched_by="set"` with `outcome="yes or no"`: conditional logistic regression for matched sets
+  (statsmodels `ConditionalLogit`, as R `survival::clogit()`).
+- `show="risk ratios"`: risk ratios by modified Poisson regression (Zou 2004), or `method="log-binomial"`.
+  A yes/no model with odds ratios now notes when yes is common (more than 10 % of the rows), where an odds
+  ratio is not a risk ratio. `show="standardised effects"` (also "standardized effects"): each effect per
+  standard deviation, refitted on z-scores (R `effectsize::standardize_parameters(method = "refit")`), with
+  the warning that these depend on the sample's spread.
+- `giving_outliers_less_weight=True`: robust regression by Huber's M-estimation (statsmodels RLM, as R
+  `MASS::rlm()`); the printout lists the rows given less weight. Not the same as `robust_errors=True`.
+- `with_knots=3` with `curve_for=`: a natural cubic spline (patsy `cr()`, the same curves as R
+  `splines::ns()`), with a test of the whole curve; also with `grouped_by=` and `weights=`.
+- `interval_by="bootstrap"` (with `resamples=` and `with_seed=`): BCa intervals from SciPy, the rows drawn
+  again whole; `interval_by="profile"`: profile-likelihood intervals (R `confint()`, needs R);
+  `p_value_by="likelihood ratio"`: a likelihood-ratio test for each column (R `drop1(test = "LRT")`).
+- `crossed_with="item"` with `grouped_by=`: two crossed groupings, `(1 | subject) + (1 | item)` (R lme4).
+- `outcome="counts with many zeros that vary a lot"` (zero-inflated negative binomial) and `outcome="counts in
+  two steps"` (a hurdle model, also "hurdle"; "... that vary a lot" for a negative binomial second step), both
+  R pscl; `zero_part_using=` gives the zero part its own columns.
+- The fit line of a yes/no model also prints Nagelkerke's and Tjur's pseudo R squared (as R `performance`).
+- Lesson 16 has a part on risk ratios; a new lesson 27, "Beyond the average line: outliers", teaches
+  `giving_outliers_less_weight=` and how it differs from `robust_errors=`.
+- The reliability study adds 16 cases on eight real datasets (Galton's sweet peas, Crowder's Orobanche seeds,
+  infert, birthwt, stackloss, mtcars, VerbAgg and the NMES 1988 survey, whose published hurdle and
+  zero-inflated estimates (Zeileis, Kleiber & Jackman 2008) it reproduces). The registry of "The same
+  underneath" now has entries for options too ("table.explain weights="), each with its own box.
+
 ### Lines and curves (S3a-2)
 
 - **New word `table.fit_dose_response(x=, y=)`** and its chart twin **`chart.fit_dose_response()`**: a
@@ -40,8 +76,7 @@ working for one release and prints a one-line note with its new name.
 - The reliability study adds NIST Rat42, Misra1a and BoxBOD (certified nonlinear fits), Bliss's
   beetles (1935), Box and Cox's poisons (1964), Bates and Watts's Puromycin, ryegrass (Ritz et al.
   2015), the stagnant band, leaflife, creatinine, the British seat-belt law and Engel's food data.
-  "The same underneath" now has entries for single options too (`UNDERNEATH_OPTIONS`), run by
-  `tests/test_underneath_options.py` and listed in the report.
+  Each new option has its own "same underneath" box (keyed by word and option, as for explain()).
 - New R packages for the R extra: drc, segmented, smatr, mcr and quantreg (deming for the study).
 
 

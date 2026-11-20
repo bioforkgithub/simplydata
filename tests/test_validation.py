@@ -50,11 +50,11 @@ def test_every_case_uses_a_known_dataset_and_a_current_word():
         assert case.published or case.parent or case.r, case.title
 
 
-def test_the_ten_trial_words_have_a_case_on_real_data():
+def test_every_underneath_entry_has_a_case_on_real_data():
     from simplydata._underneath import UNDERNEATH
 
-    real = {c.word for c in study.CASES if c.kind != "made-up"}
-    assert set(UNDERNEATH) <= real
+    real = {f"{c.word} {c.option}" if c.option else c.word for c in study.CASES if c.kind != "made-up"}
+    assert set(UNDERNEATH) <= real, set(UNDERNEATH) - real
 
 
 def test_nist_files_are_read_with_their_certified_values():

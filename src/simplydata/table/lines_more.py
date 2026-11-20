@@ -271,7 +271,8 @@ class LinesMoreWords:
 
     # ------------------------------------------------------------------ fit_line(changes_at=)
     def _change_column(self, step, column, at, example):
-        """The values of column as numbers (dates as days since the first one) and at on the same scale."""
+        """The values of column as numbers (dates as days since the first one), at on the same scale, the words
+        saying how dates were turned into numbers, and the first date (None for a column of numbers)."""
         import pandas as pd
 
         self._need_columns(column)
@@ -285,7 +286,8 @@ class LinesMoreWords:
                 raise SimplydataError(f'changes_at= should be a date like "2005-01-01" when "{column}" holds dates.\n'
                                       f"For example, {example}") from None
             days = ((when - first).dt.total_seconds() / 86400).to_numpy(dtype=float)
-            return days, float((at_time - first).total_seconds() / 86400), f" (dates as days since {first.date()})"
+            return (days, float((at_time - first).total_seconds() / 86400), f" (dates as days since {first.date()})",
+                    first.date())
         if not dtype.is_numeric():
             raise SimplydataError(f'changes_at= needs "{column}" to hold numbers or dates (the time of each row).')
         st = _st()
@@ -293,7 +295,7 @@ class LinesMoreWords:
             raise SimplydataError(f'changes_at= is the value of "{column}" where the change happens, a number.\n'
                                   f"For example, {example}")
         values = self._frame[column].cast(nw.Float64).to_numpy().astype(float)
-        return values, float(at), ""
+        return values, float(at), "", None
 
     def _fit_line_changes(self, x, y, at):
         from statsmodels.regression.linear_model import OLS
@@ -302,7 +304,7 @@ class LinesMoreWords:
         step = "fit_line"
         example = f'table.fit_line(x="{x}", y="{y}", changes_at=37)'
         self._need_columns(x, y)
-        xs_all, at_value, how = self._change_column(step, x, at, example)
+        xs_all, at_value, how, _ = self._change_column(step, x, at, example)
         frame = self._number_frame(step, [y])
         ys_all = np.array([math.nan if v is None else float(v) for v in frame[y].to_list()])
         keep = np.isfinite(xs_all) & np.isfinite(ys_all)
@@ -1000,7 +1002,7 @@ def explain_changes(table, column, using, changes_at, call):
                               f"For example, {example}")
     (time_column, at), = changes_at.items()
     table._need_columns(time_column)
-    values, at_value, how = table._change_column(step, time_column, at, example)
+    values, at_value, how, first = table._change_column(step, time_column, at, example)
     after_name, since_name = f"after {time_column} {at}", f"{time_column} since {at}"
     for name in (after_name, since_name):
         if name in table._columns:
@@ -1014,7 +1016,7 @@ def explain_changes(table, column, using, changes_at, call):
     items = [using] if isinstance(using, str) else list(using or [])
     if table._frame.schema[time_column].is_temporal():
         # dates cannot go into a model: the time trend is the number of days since the first date
-        days_name = f"{time_column} in days since {how[len(' (dates as days since '):-1]}"
+        days_name = f"{time_column} in days since {first}"
         if days_name in table._columns:
             raise SimplydataError(f'The table already has a column "{days_name}"; rename it first.')
         frame = frame.with_columns(nw.new_series(days_name, values, nw.Float64, backend=base.implementation))

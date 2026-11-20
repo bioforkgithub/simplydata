@@ -108,7 +108,7 @@ def run(code: str, data):
 
     from simplydata._underneath.check import run_python
 
-    namespace = {"data": data, "np": np, "pd": pd}
+    namespace = {"data": data, "np": np, "pd": pd, "_rows": study._rows}
     with contextlib.redirect_stdout(io.StringIO()), warnings.catch_warnings():
         warnings.simplefilter("ignore")
         value, _, _ = run_python(textwrap.dedent(code).strip("\n"), namespace)
@@ -145,6 +145,11 @@ def lre(value: float, reference: float) -> float:
 MIN_LRE = 9.0  # digits that must agree with a NIST certified value (every set used, NumAcc4's higher difficulty too)
 
 
+def _key(case) -> str:
+    """The word, or the word and the option a case checks ("table.explain weights=")."""
+    return f"{case.word} {case.option}" if case.option else case.word
+
+
 def check_case(case) -> list[dict]:
     """One row per number compared: simplydata against each reference."""
     rows = []
@@ -152,11 +157,14 @@ def check_case(case) -> list[dict]:
     if case.dataset in r_data and not r_ready(r_data[case.dataset]):
         packages = ", ".join(r_data[case.dataset])
         return [_skipped(case, f"R with {packages} (the data come from {packages})")]
+    if case.ours_r is not None and not r_ready(case.ours_r):
+        return [_skipped(case, "R" + (" with " + ", ".join(case.ours_r) if case.ours_r else "")
+                         + " (simplydata runs R for this option)")]
     data = None if case.dataset in ("made-up", "standard normal table") else study.load(case.dataset)
     try:
         ours = run(case.ours, data)
     except Exception as error:  # noqa: BLE001 - a crash is a failed check, reported
-        return [dict(word=case.word, case=case.title, dataset=case.dataset, kind=case.kind, name="(run)",
+        return [dict(word=_key(case), case=case.title, dataset=case.dataset, kind=case.kind, name="(run)",
                      reference="simplydata", ours=float("nan"), theirs=float("nan"), tolerance="runs",
                      passed=False, skipped="", note=f"simplydata stopped: {error}")]
     for name, (value, tolerance, source) in case.published.items():
@@ -206,7 +214,7 @@ def _close(a: float, b: float, tol: float) -> bool:
 
 
 def _row(case, name, reference, ours, theirs, tolerance, passed) -> dict:
-    return dict(word=case.word, case=case.title, dataset=case.dataset, kind=case.kind, name=name,
+    return dict(word=_key(case), case=case.title, dataset=case.dataset, kind=case.kind, name=name,
                 reference=reference, ours=float(ours), theirs=float(theirs), tolerance=tolerance,
                 passed=bool(passed), skipped="", note="")
 
@@ -219,25 +227,19 @@ def _missing(case, name: str, reference: str) -> dict:
 
 
 def _skipped(case, what: str) -> dict:
-    return dict(word=case.word, case=case.title, dataset=case.dataset, kind=case.kind, name="(all)",
+    return dict(word=_key(case), case=case.title, dataset=case.dataset, kind=case.kind, name="(all)",
                 reference=what, ours=float("nan"), theirs=float("nan"), tolerance="", passed=False,
                 skipped=f"needs {what}, which is not installed here", note="")
 
 
-def _entries() -> list:
-    """The words' entries, then the entries of single options (S3a-2 on: UNDERNEATH_OPTIONS)."""
-    from simplydata._underneath import UNDERNEATH, UNDERNEATH_OPTIONS
-
-    return list(UNDERNEATH.values()) + list(UNDERNEATH_OPTIONS)
-
-
 def underneath_rows() -> list[dict]:
+    from simplydata._underneath import UNDERNEATH
     from simplydata._underneath.check import check_entry
 
     rows = []
-    for entry in _entries():
+    for entry in UNDERNEATH.values():
         if entry.uses_r and not r_ready(entry.r_packages):
-            rows.append(dict(word=entry.label, library=" + ".join(entry.code), engine="-", compare=entry.compare,
+            rows.append(dict(word=entry.key, library=" + ".join(entry.code), engine="-", compare=entry.compare,
                              tolerance=entry.tolerance, passed=False,
                              skipped="needs R with " + ", ".join(entry.r_packages), differences=[]))
             continue
@@ -248,7 +250,7 @@ def underneath_rows() -> list[dict]:
             warnings.simplefilter("ignore")
             outcomes = check_entry(entry)
         for o in outcomes:
-            rows.append(dict(word=entry.label, library=o.library, engine=o.engine, compare=o.compare,
+            rows.append(dict(word=entry.key, library=o.library, engine=o.engine, compare=o.compare,
                              tolerance=o.tolerance, passed=o.passed, skipped=o.skipped, differences=o.differences))
     return rows
 
@@ -316,7 +318,7 @@ def report(case_rows: list[dict], box_rows: list[dict], setup: dict, when: str) 
                 result = _status(r) + (f" ({_md(r['note'])})" if r["note"] else "")
                 out.append(f"| {_md(r['name'])} | {_md(r['reference'])} | {_fmt(r['ours'])} | {_fmt(r['theirs'])} "
                            f"| {r['tolerance']} | {result} |")
-            case = next(c for c in study.CASES if c.word == word and c.title == title)
+            case = next(c for c in study.CASES if _key(c) == word and c.title == title)
             if case.note:
                 out += ["", f"Note: {_md(case.note)}"]
             out.append("")
@@ -338,9 +340,9 @@ def report(case_rows: list[dict], box_rows: list[dict], setup: dict, when: str) 
     out += ["", "## Choices simplydata makes", "",
             "Where simplydata's default differs from the package underneath, it is listed here, so a difference "
             "is never hidden. The manual shows each one as a numbered mark in the code.", ""]
-    for entry in _entries():
+    for entry in UNDERNEATH.values():
         for i, choice in enumerate(entry.choices, start=1):
-            out.append(f"- `{entry.label}` ({i}): {_md(choice)}")
+            out.append(f"- `{entry.key}` ({i}): {_md(choice)}")
     out += ["", "## Datasets", "", "| dataset | what | source | licence |", "|---|---|---|---|"]
     used = list(dict.fromkeys(c.dataset for c in study.CASES))
     for name in used:

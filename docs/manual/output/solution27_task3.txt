@@ -1,0 +1,5 @@
+Note from R (quantreg::rq): 1 non-positive fis: the nid standard errors may be unreliable here.
+A percentile line is the line under which a share of the values of "marks" fall, at each value of "hours": the 90th percentile line has 90 % of the values below it.
+At the 90th percentile of "marks":
+  hours: for each 1 more the line goes up by 5.00 (95 % CI 2.98 to 7.02); fewer than 1 in 1000 studies would show this much if there were truly none (p < 0.0001).
+Method: R quantreg::rq(marks ~ hours, tau = 0.9) (Koenker & Bassett 1978), standard errors by summary(se = "nid") (Hendricks-Koenker sandwich, which allows the spread to change with the other columns). simplydata chooses "nid" for every number of rows so that each line has an interval and a p-value; R's own default below 1001 rows is "rank" (intervals only).

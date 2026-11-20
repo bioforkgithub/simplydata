@@ -1,6 +1,6 @@
 """Lines and curves (phase S3a-2): the new words fit_dose_response (table and chart) and find_best_power_of, and
 one entry for each new option of fit_line, fit_curve, explain, add_smoothed_column and draw_smooth_line
-(OPTION_ENTRIES, keyed by word and option).
+(keyed by word and option, as in models.py: "table.fit_line with_bends=").
 """
 
 from . import Entry
@@ -440,3 +440,5 @@ OPTION_ENTRIES = [
         also="simplydata also draws one line per colour group.",
     ),
 ]
+
+ENTRIES = ENTRIES + OPTION_ENTRIES

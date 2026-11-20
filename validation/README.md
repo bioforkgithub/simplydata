@@ -53,6 +53,14 @@ This first version covers ten words, one of each kind: `draw_bars`, `draw_histog
 added with each release; a word counts as done only when its checks pass. The sleep data also check
 `table.compare_before_and_after`, the paired test Student himself used for them.
 
+An option that changes what a word calls underneath is checked on its own, with its own box and case:
+`table.explain` with `weights=`, `outcome="yes or no (overdispersed)"`, `matched_by=`, `show="risk ratios"`,
+`method="log-binomial"`, `giving_outliers_less_weight=`, `with_knots=`, `show="standardised effects"`,
+`interval_by="bootstrap"`, `interval_by="profile"`, `p_value_by="likelihood ratio"`, `crossed_with=`,
+`outcome="counts with many zeros that vary a lot"`, `outcome="counts in two steps"` and `zero_part_using=`
+(S3a-1), and its Nagelkerke and Tjur pseudo R squared. The hurdle and zero-inflated models reproduce the
+published estimates of Zeileis, Kleiber & Jackman (2008) on the NMES 1988 data.
+
 ## Datasets
 
 Only openly licensed data are stored in `data/`; the rest are read from where they are published.
@@ -65,6 +73,14 @@ Only openly licensed data are stored in `data/`; the rest are read from where th
 | NIST StRD NumAcc4 (1001 constructed values) | `data/nist/NumAcc4.dat` | Simon, S. D. & Lesage, J. P. (1989). Assessing the accuracy of ANOVA calculations in statistical software. Computational Statistics & Data Analysis 8, 325-332. NIST StRD. https://www.itl.nist.gov/div898/strd/univ/numacc4.html | Public domain in the US; stored with its numbers unchanged |
 | Student's sleep data | `data/sleep.csv` | Cushny, A. R. & Peebles, A. R. (1905). The action of optical isomers. II. Hyoscines. Journal of Physiology 32, 501-510; analysed by Student (1908). The probable error of a mean. Biometrika 6(1), 1-25. Copy from R's `datasets::sleep` | Public domain (published 1905 and 1908); R's copy is GPL-2 \| GPL-3 |
 | Anscombe's quartet | `data/anscombe.csv` | Anscombe, F. J. (1973). Graphs in statistical analysis. The American Statistician 27(1), 17-21. Copy from R's `datasets::anscombe` | The published numbers, as in R's datasets package (GPL-2 \| GPL-3) |
+| Galton's sweet peas | `data/galton_peas.csv` | Galton, F. (1877). Typical laws of heredity. Nature 15, 492-495, 512-514, 532-533; weighted least squares in Weisberg, S. (2014). Applied Linear Regression, 4th ed., section 7.1. Copy from the R package alr4 (`galtonpeas`) | Published 1877 (public domain); the alr4 copy is GPL (>= 2) |
+| Orobanche seeds | `data/crowder_seeds.csv` | Crowder, M. J. (1978). Beta-binomial anova for proportions. Applied Statistics 27(1), 34-37. Copy from the R package agridat (`crowder.seeds`), through Rdatasets | The published counts (facts from a 1978 paper); the agridat copy is MIT licensed |
+| infert | `data/infert.csv` | Trichopoulos, D. et al. (1976). Induced abortion and secondary infertility. British Journal of Obstetrics and Gynaecology 83, 645-650. Copy from R's `datasets::infert` | Published 1976; R's copy is GPL-2 \| GPL-3 |
+| birthwt | `data/birthwt.csv` | Hosmer, D. W. & Lemeshow, S. (1989). Applied Logistic Regression. Wiley. Copy from the R package MASS (`birthwt`) | The MASS copy is GPL-2 \| GPL-3 |
+| stackloss | `data/stackloss.csv` | Brownlee, K. A. (1965). Statistical Theory and Methodology in Science and Engineering, 2nd ed. Wiley. Copy from R's `datasets::stackloss` | Published 1960/1965; R's copy is GPL-2 \| GPL-3 |
+| mtcars | `data/mtcars.csv` | Henderson, H. V. & Velleman, P. F. (1981). Building multiple regression models interactively. Biometrics 37, 391-411 (data from Motor Trend, 1974). Copy from R's `datasets::mtcars` | Published 1974 and 1981; R's copy is GPL-2 \| GPL-3 |
+| VerbAgg | `data/verbagg.csv` | De Boeck, P. & Wilson, M. (2004). Explanatory Item Response Models. Springer. Copy from the R package lme4 (`VerbAgg`) | The lme4 copy is GPL (>= 2) |
+| NMES 1988 (7 of 19 columns) | `data/nmes1988.csv` | Deb, P. & Trivedi, P. K. (1997). Journal of Applied Econometrics 12, 313-336; analysed in Zeileis, A., Kleiber, C. & Jackman, S. (2008). Regression models for count data in R. Journal of Statistical Software 27(8). Copy from the R package AER (`NMES1988`), through Rdatasets | A US Government survey (public domain); the AER copy is GPL-2 \| GPL-3; the JSS article is CC BY |
 | aSAH | not stored | Turck, N. et al. (2010). Intensive Care Medicine 36, 107-115; shipped with the R package pROC (Robin, X. et al. (2011). BMC Bioinformatics 12, 77) | GPL-3 or later (pROC); read from the installed pROC package, so it needs R |
 | NIST StRD Rat42 (logistic growth, 9 points) | `data/nist/Rat42.dat` | Ratkowsky, D. A. (1983). Nonlinear Regression Modeling. NIST StRD, Nonlinear Regression. https://www.itl.nist.gov/div898/strd/nls/data/ratkowsky2.shtml | Public domain in the US; stored with its numbers unchanged |
 | NIST StRD Misra1a (rise to a limit, 14 points) | `data/nist/Misra1a.dat` | Misra, D., NIST (1978). Dental research monomolecular adsorption study. NIST StRD, Nonlinear Regression. https://www.itl.nist.gov/div898/strd/nls/data/misra1a.shtml | Public domain in the US; stored with its numbers unchanged |

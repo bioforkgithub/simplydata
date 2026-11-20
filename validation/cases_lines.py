@@ -139,7 +139,7 @@ def _cases(Case, data_dir):
     cases = [
         # ---- fit_dose_response: ryegrass (Ritz et al. 2015) against R drc; Bliss (1935) against the published fit
         Case("table.fit_dose_response", "ryegrass root length and ferulic acid: LL.4 curve and ED10, ED50, ED90",
-             "ryegrass (drc)", "real data",
+             "ryegrass (drc)", "real data", ours_r=("drc",),
              ours="""
                  r = sdata.table(data).fit_dose_response(x="conc", y="rootl", doses_for_effect=[10, 50, 90])
                  t = r.as_pandas().set_index("term")["estimate"]
@@ -156,7 +156,7 @@ def _cases(Case, data_dir):
              note="Python has no dose-response package with drc's ED intervals, so R drc itself is the second "
                   "calculation. Ritz et al. (2015) analyse these data with the same LL.4 model."),
         Case("table.fit_dose_response", "Bliss's beetles: LD50 from the logistic curve on log dose (yes or no)",
-             "Bliss beetles", "published",
+             "Bliss beetles", "published", option='outcome="yes or no"', ours_r=("drc",),
              ours="""
                  data = data.assign(dose=10 ** data["log10_dose"])
                  r = sdata.table(data).fit_dose_response(x="dose", y="killed", outcome="yes or no", out_of="beetles")
@@ -177,7 +177,7 @@ def _cases(Case, data_dir):
              """, r_tolerance=1e-6,
              note="The 2 parameter log-logistic curve with binomial errors is logistic regression on log dose, so "
                   "its LD50 is the published fit's; the tolerance allows the printed 3 decimals of the fit."),
-        Case("fit_dose_response", "the drawn ryegrass curve is drc's", "ryegrass (drc)", "real data",
+        Case("fit_dose_response", "the drawn ryegrass curve is drc's", "ryegrass (drc)", "real data", ours_r=("drc",),
              ours="""
                  from simplydata._underneath.check import chart_facts
                  ax = sdata.chart(data).draw_dots(x="conc", y="rootl").fit_dose_response()._render().axes[0]
@@ -191,7 +191,7 @@ def _cases(Case, data_dir):
              """, r_packages=("drc",), r_tolerance=1e-9),
         # ---- find_best_power_of: Box & Cox (1964) poisons
         Case("table.find_best_power_of", "Box and Cox's poisons: the power for the two-way model", "poisons (boot)",
-             "published",
+             "published", option="using=", ours_r=("car",),
              ours="""
                  r = sdata.table(data).find_best_power_of("time", using=["poison", "treat"]).as_pandas().iloc[0]
                  {"power": r["power"], "95 % CI low": r["95 % CI low"], "simple power": r["simple power"]}
@@ -218,7 +218,7 @@ def _cases(Case, data_dir):
              """, r_packages=("car",), r_tolerance=1e-4,
              note="car::powerTransform maximises the same likelihood with another optimiser (to about 1e-5)."),
         # ---- fit_curve(of_kind=): NIST certified nonlinear fits and Bates & Watts's Puromycin
-        Case("table.fit_curve", "Rat42: a logistic growth curve (NIST certified)", "NIST Rat42", "published",
+        Case("table.fit_curve", "Rat42: a logistic growth curve (NIST certified)", "NIST Rat42", "published", option='of_kind="logistic growth"',
              ours="""
                  r = sdata.table(data).fit_curve(x="x", y="y", of_kind="logistic growth").as_pandas().set_index("term")
                  e = r["estimate"]
@@ -228,7 +228,7 @@ def _cases(Case, data_dir):
              published={n: cert(rat42, n) for n in ("b1", "b2", "b3", "residual sum of squares")},
              note="NIST writes the curve as b1 / (1 + exp(b2 - b3 x)): b1 is Asym, b2 is xmid / scal and b3 is "
                   "1 / scal of R's SSlogis."),
-        *[Case("table.fit_curve", f"{name}: a rise to a limit (NIST certified)", f"NIST {name}", "published",
+        *[Case("table.fit_curve", f"{name}: a rise to a limit (NIST certified)", f"NIST {name}", "published", option='of_kind="rise to a limit"',
                ours="""
                    r = sdata.table(data).fit_curve(x="x", y="y", of_kind="rise to a limit").as_pandas().set_index("term")
                    e = r["estimate"]
@@ -238,7 +238,7 @@ def _cases(Case, data_dir):
                published={n: cert(file, n) for n in ("b1", "b2", "residual sum of squares")},
                note="NIST writes the curve as b1 (1 - exp(-b2 x)): b1 is Asym and b2 is exp(lrc) of R's SSasympOrig.")
           for name, file in (("Misra1a", misra), ("BoxBOD", boxbod))],
-        Case("table.fit_curve", "Puromycin (treated): a Michaelis-Menten curve", "Puromycin (treated)", "published",
+        Case("table.fit_curve", "Puromycin (treated): a Michaelis-Menten curve", "Puromycin (treated)", "published", option='of_kind="michaelis-menten"',
              ours="""
                  r = sdata.table(data).fit_curve(x="conc", y="rate", of_kind="michaelis-menten").as_pandas()
                  e = r.set_index("term")["estimate"]
@@ -252,7 +252,7 @@ def _cases(Case, data_dir):
              note="R nls() stops at a relative offset of 1e-5, so it agrees to about 1e-5."),
         # ---- fit_line(method=): leaflife (SMA), creatinine (Deming, Passing-Bablok), Anscombe (Theil-Sen)
         Case("table.fit_line", "leaf lifespan against leaf mass per area: standardised major axis (log10)",
-             "leaflife (smatr)", "real data",
+             "leaflife (smatr)", "real data", option='method="standardised major axis"', ours_r=("smatr",),
              ours="""
                  r = sdata.table(data).fit_line(x="lma", y="longev", method="standardised major axis").as_pandas().iloc[0]
                  {"slope": r["slope"], "intercept": r["intercept"], "slope 95 % CI low": r["slope 95 % CI low"]}
@@ -263,7 +263,7 @@ def _cases(Case, data_dir):
              """, r_packages=("smatr",), r_tolerance=1e-9,
              note="Warton et al. (2006) fit these data on log scales; the slope is about 1.3."),
         Case("table.fit_line", "creatinine in plasma against serum: Deming line with y_error_over_x_error=4",
-             "creatinine (mcr)", "real data",
+             "creatinine (mcr)", "real data", option='method="deming", y_error_over_x_error=', ours_r=("mcr",),
              ours="""
                  r = sdata.table(data).fit_line(x="serum", y="plasma", method="deming",
                                                 y_error_over_x_error=4).as_pandas().iloc[0]
@@ -276,7 +276,7 @@ def _cases(Case, data_dir):
              note="mcr's error.ratio is the error variance of x over that of y, so 4 here is 1 / 4 there. "
                   "tests/test_s3a2_lines.py checks the direction against R deming::deming(xstd =, ystd =) too."),
         Case("table.fit_line", "creatinine in plasma against serum: Passing-Bablok line", "creatinine (mcr)",
-             "real data",
+             "real data", option='method="passing-bablok"', ours_r=("mcr",),
              ours="""
                  r = sdata.table(data).fit_line(x="serum", y="plasma", method="passing-bablok").as_pandas().iloc[0]
                  {"slope": r["slope"], "intercept": r["intercept"], "slope 95 % CI high": r["slope 95 % CI high"]}
@@ -286,7 +286,7 @@ def _cases(Case, data_dir):
                  list(slope = m@para[2, "EST"], intercept = m@para[1, "EST"], `slope 95 % CI high` = m@para[2, "UCI"])
              """, r_packages=("mcr",), r_tolerance=1e-9),
         Case("table.fit_line", "Anscombe's set 3 (one outlier): the Theil-Sen line", "Anscombe's quartet",
-             "real data",
+             "real data", option='method="theil-sen"',
              ours="""
                  r = sdata.table(data).fit_line(x="x3", y="y3", method="theil-sen").as_pandas().iloc[0]
                  {"slope": r["slope"], "intercept": r["intercept"], "slope 95 % CI low": r["slope 95 % CI low"]}
@@ -304,7 +304,7 @@ def _cases(Case, data_dir):
                   "slope of the other ten points."),
         # ---- fit_line(with_bends=): Bacon & Watts (1971)
         Case("table.fit_line", "Bacon and Watts's stagnant band: a line with one bend", "stagnant (segmented)",
-             "real data",
+             "real data", option="with_bends=", ours_r=("segmented",),
              ours="""
                  r = sdata.table(data).fit_line(x="x", y="y", with_bends=1).as_pandas().iloc[0]
                  {"bend 1": r["bend 1"], "slope 1": r["slope 1"], "slope 2": r["slope 2"],
@@ -320,7 +320,7 @@ def _cases(Case, data_dir):
              note="Bacon and Watts fit a smooth transition; segmented fits the sharp bend, so R is the reference."),
         # ---- changes_at=: the British seat-belt law (Harvey & Durbin 1986)
         Case("table.fit_line", "drivers killed or seriously injured: the line changes at the seat-belt law",
-             "Seatbelts", "real data",
+             "Seatbelts", "real data", option="changes_at=",
              ours="""
                  r = sdata.table(data).fit_line(x="month", y="drivers", changes_at=170).as_pandas().iloc[0]
                  {"level change": r["level change"], "slope change": r["slope change"],
@@ -342,7 +342,7 @@ def _cases(Case, data_dir):
              note="A plain interrupted time series without the season, to check the arithmetic; Harvey and Durbin "
                   "model the season and the trend too."),
         Case("table.explain", "drivers killed (counts): the rate ratio of the jump at the seat-belt law",
-             "Seatbelts", "real data",
+             "Seatbelts", "real data", option="changes_at=",
              ours="""
                  r = sdata.table(data).explain("DriversKilled", using=["month"], outcome="counts",
                                                changes_at={"month": 170}).as_pandas().set_index("term")
@@ -364,7 +364,7 @@ def _cases(Case, data_dir):
              """, r_tolerance=1e-7),
         # ---- explain(for_percentile=): Engel's food expenditure
         Case("table.explain", "Engel's food expenditure: the 90th percentile line", "Engel food expenditure",
-             "real data",
+             "real data", option="for_percentile=", ours_r=("quantreg",),
              ours="""
                  r = sdata.table(data).explain("foodexp", using=["income"], for_percentile=90).as_pandas()
                  r = r.set_index("term")
@@ -384,8 +384,22 @@ def _cases(Case, data_dir):
              note="statsmodels solves by iteratively reweighted least squares and R quantreg by the exact simplex; "
                   "the lines agree to about 1e-7."),
         # ---- method="loess"
+        Case("draw_smooth_line", "the drawn loess curve of drivers killed or seriously injured is R's", "Seatbelts",
+             "real data", option='method="loess", with_confidence_band=', ours_r=(),
+             ours="""
+                 from simplydata._underneath.check import chart_facts
+                 ax = (sdata.chart(data).draw_dots(x="month", y="drivers")
+                       .draw_smooth_line(method="loess", with_confidence_band=True)._render().axes[0])
+                 x, y = chart_facts(ax)["lines"][0]
+                 {"points": len(x), "curve at the first month": y[0], "curve at the last month": y[-1]}
+             """,
+             r="""
+                 m <- stats::loess(drivers ~ month, span = 0.75, degree = 2)
+                 list(points = 200, `curve at the first month` = stats::predict(m, data.frame(month = min(month))),
+                      `curve at the last month` = stats::predict(m, data.frame(month = max(month))))
+             """, r_tolerance=1e-9),
         Case("table.add_smoothed_column", "drivers killed or seriously injured, smoothed by loess with its band",
-             "Seatbelts", "real data",
+             "Seatbelts", "real data", option='method="loess", interval=', ours_r=(),
              ours="""
                  r = sdata.table(data).add_smoothed_column("trend", from_column="drivers", sorted_by="month",
                                                            method="loess", interval=95).as_pandas()

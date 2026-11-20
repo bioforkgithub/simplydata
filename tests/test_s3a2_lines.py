@@ -444,6 +444,8 @@ def test_attached_packages_hide_nothing_the_r_words_need(needs_r, capsys):
     (getInitial, gaussian) attached first: a getInitial-based word and a word with base matrix code in R still
     give R's answers."""
     r("invisible(TRUE)", ("drc", "quantreg", "mcr", "segmented"))
+    where = r("list(e = environmentName(environment(get('getInitial'))))")["e"]
+    assert str(np.atleast_1d(where)[0]) == "drc"  # getInitial is drc's now: the words must not rely on it
     culture = sdata.get_example("culture")
     a = culture[culture["flask"] == "A"]
     fit = sdata.table(a).fit_curve(x="hour", y="density", of_kind="logistic growth").as_pandas()

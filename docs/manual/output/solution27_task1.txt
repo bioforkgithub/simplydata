@@ -1,0 +1,8 @@
+Explaining "marks" from "hours" (54 rows). Each effect below holds the other columns fixed:
+  intercept: 37.0, the expected "marks" when every number column is 0.
+  hours: each 1 more "hours" goes with 5.21 more "marks" (95 % CI 4.29 to 6.13); fewer than 1 in 1000 studies would show this much if there were truly none (p < 0.0001).
+Method: robust regression by M-estimation with Huber's weights (k = 1.345, the scale by the median absolute deviation), as R MASS::rlm(marks ~ hours) (statsmodels RLM): rows far from the model are given less weight, so a few outliers in the column explained pull the effects less. Standard errors by Huber's H1 formula; R's summary(rlm) uses a slightly different small-sample correction, so its standard errors differ in the third digit. Wald 95 % intervals and z-tests. It does not resist unusual values in the using= columns (leverage): table.show_rows_that_pull_model() finds those.
+Scale (the typical distance of a row from the model, by the median absolute deviation): 9.76.
+How well it fits: robust regression has no likelihood or R squared to compare (as R MASS::rlm()).
+Rows given less weight (4 of 54; 1 is full weight): row 22 (weight 0.59), row 45 (weight 0.68), row 11 (weight 0.71), row 42 (weight 0.89).
+A link does not show that one thing causes the other.

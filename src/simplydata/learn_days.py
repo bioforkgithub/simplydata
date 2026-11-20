@@ -27,7 +27,8 @@ import textwrap
 from pathlib import Path
 
 from ._errors import SimplydataError, suggest
-from .learn import CYCLES_LESSON, FORECASTS_LESSON, RISKS_LESSON, SYSTEMS_LESSON, TIME_SERIES_LESSON, lesson_number
+from .learn import (CYCLES_LESSON, FORECASTS_LESSON, OUTLIERS_LESSON, RISKS_LESSON, SYSTEMS_LESSON, TIME_SERIES_LESSON,
+                    lesson_number)
 
 TRACK_NAMES = ("python", "beginner")
 DAYS_IN_A_TRACK = 30
@@ -36,7 +37,7 @@ DAYS_IN_A_TRACK = 30
 # manual (and sdata.show_lesson(n)): the days that come near them end with a "More in the manual" line.
 # Lessons 19, 20 and 25 are taught in part (see the units "fitting", "distributions" and "time_series").
 # The reasons: design_evidence_private/thirty_days_everyday_2026-11-15.md.
-MANUAL_ONLY_LESSONS = (RISKS_LESSON, FORECASTS_LESSON, SYSTEMS_LESSON)
+MANUAL_ONLY_LESSONS = (RISKS_LESSON, FORECASTS_LESSON, SYSTEMS_LESSON, OUTLIERS_LESSON)
 
 TRACKS = {
     "python": dict(
@@ -734,7 +735,8 @@ UNITS = {
         words=["table.find_survival_over_time", "draw_survival_curves", "table.compare_survival", "sdata.find_how_many_needed"],
         more=_more(f"sdata.show_lesson({lesson_number(RISKS_LESSON)}), risks, diagnostic tests and agreement (for the "
                    "life sciences): risks out of 100, how many of 1000 people a test finds, and how well two raters "
-                   "agree"),
+                   f"agree; sdata.show_lesson({lesson_number(OUTLIERS_LESSON)}), a model that gives outliers less "
+                   "weight"),
         recall=[
             ("Which word draws survival curves?", 'chart.draw_survival_curves(time="days", event="died", colour="treatment")'),
             ("Which word tests whether survival differs between groups?",

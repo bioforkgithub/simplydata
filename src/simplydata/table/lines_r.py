@@ -40,6 +40,13 @@ def _call(code, packages, **options):
     return r_call(code, **options)
 
 
+def _quantreg_note(note: str) -> str:
+    """quantreg's "non-positive fis" (the local density it estimates came out 0 or below at some rows), explained."""
+    if "non-positive fis" in note:
+        return note.rstrip(".") + ": the nid standard errors may be unreliable here"
+    return note
+
+
 def _drop_quiet(note: str) -> str:
     return "" if any(q in note for q in _QUIET_NOTES) else note
 
@@ -191,7 +198,7 @@ def percentile_lines(X, y, taus):
     return _call(code, ("quantreg",), source="quantreg::rq",
                   what="Percentile lines (R quantreg::rq())",
                   python_note="statsmodels QuantReg gives the same lines up to about 1e-7, but none of the standard "
-                              "errors R's quantreg gives",
+                              "errors R's quantreg gives", note_words=_quantreg_note,
                   X=np.asarray(X, dtype=float), y=np.asarray(y, dtype=float), taus=np.asarray(taus, dtype=float))
 
 
