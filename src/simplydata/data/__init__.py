@@ -209,6 +209,33 @@ EXAMPLES = {
             "first_esbl": "date of the first culture with ESBL-producing bacteria during the stay (empty if none)",
         },
     ),
+    # S3c-1 (communities and resistomes): made up, labelled
+    "resistome": (
+        "MADE-UP DATA: antibiotic resistance genes counted in 24 made-up samples from a hospital effluent, a "
+        "treatment plant, a harbour and a fjord sediment (6 each): the reads that matched each gene. Invented for "
+        "practice; the numbers are not from any real study.",
+        {
+            "sample": "a short name for the sample, such as HE1 (hospital effluent 1)",
+            "site": "hospital effluent, treatment plant, harbour or fjord sediment",
+            "temperature": "water temperature in °C",
+            "salinity": "salt in the water (practical salinity units; sea water is about 35)",
+            "reads": "how many sequencing reads the sample got, in millions (its sequencing depth)",
+            "blaTEM": "reads that matched TEM beta-lactamase genes",
+            "blaCTXM": "reads that matched CTX-M extended-spectrum beta-lactamase genes",
+            "blaOXA48": "reads that matched OXA-48 carbapenemase genes",
+            "blaNDM": "reads that matched NDM carbapenemase genes",
+            "sul1": "reads that matched sulfonamide resistance gene sul1",
+            "sul2": "reads that matched sulfonamide resistance gene sul2",
+            "tetA": "reads that matched tetracycline efflux gene tetA",
+            "tetM": "reads that matched tetracycline ribosomal protection gene tetM",
+            "qnrS": "reads that matched quinolone resistance gene qnrS",
+            "ermB": "reads that matched macrolide resistance gene ermB",
+            "aadA": "reads that matched aminoglycoside resistance gene aadA",
+            "mphA": "reads that matched macrolide resistance gene mphA",
+            "vanA": "reads that matched vancomycin resistance gene vanA",
+            "mcr1": "reads that matched colistin resistance gene mcr-1",
+        },
+    ),
     # S3b-1 (combining studies): real, published study results (the only tables that are not made up)
     "bcg": (
         "REAL DATA: 13 trials of the BCG vaccine against tuberculosis, one row per trial (Colditz et al. 1994, "
@@ -258,8 +285,8 @@ def get_example(name: str | None = None):
 
     sdata.get_example() with no name lists every table and its columns.
     The tables are: marks, weather, fruit, growth, sensor, visitors, river, shop, school, meadow, trial, clinic,
-    island, toxicity, culture, admissions, and, for combining studies, bcg and passive_smoking (real published
-    studies).
+    island, toxicity, culture, admissions, resistome, and, for combining studies, bcg and passive_smoking (real
+    published studies).
     "shop" has empty cells and a column of dates to practise with; "school" has empty cells too.
     """
     if name is None:

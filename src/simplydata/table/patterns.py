@@ -30,7 +30,20 @@ statsmodels and SciPy; k-means, NMDS and PERMANOVA from R itself (simplydata[r])
 * compare_profiles_of: PERMANOVA, R vegan::adonis2(distances ~ group) itself, then the spread
   check vegan::betadisper() with vegan::permutest(), run through rpy2 after set.seed(seed),
   so pseudo-F, R squared and both permutation p-values are R's for the same seed. A note is
-  printed when the spreads differ. Needs simplydata[r], R and vegan.
+  printed when the spreads differ. Needs simplydata[r], R and vegan. method="anosim" runs
+  vegan::anosim() with the same spread check; show="contributions" runs vegan::simper()
+  (permutations = 0: Warton et al. 2012 show its p-values mislead) and gives no test.
+
+S3c-1 (communities and resistomes) adds measure="aitchison" (zeros replaced by estimated small values,
+R zCompositions::cmultRepl(method = "GBM", z.delete = FALSE), then vegan::vegdist("aitchison"), the
+straight-line distance between the clr columns), "robust aitchison" (vegdist("robust.aitchison"), on
+the values above 0 only) and "hellinger" (vegdist("hellinger")) to every distance word; these three
+need R. A note says when Bray-Curtis is used on raw counts whose row totals differ more than two-fold
+(the distances then partly measure sequencing depth). add_clusters gains measure= (hierarchical only),
+how_many="automatic" (the largest average silhouette width, R cluster::silhouette, from 2 to 10
+clusters), show="silhouette", and a linkage chosen by the measure ("ward" for straight-line
+measures, "average" for the others; Ward is refused with Bray-Curtis, as it assumes straight-line
+distances). The average silhouette width is printed whenever R is there.
 """
 
 from __future__ import annotations
@@ -42,18 +55,33 @@ import narwhals as nw
 import numpy as np
 
 from .._errors import SimplydataError, friendly
+from . import _compositions as comp
+from .community_r import R_ONLY_MEASURES, distance_code, packages_for
 from .stat_tests import _list_words, _num, _p_sentence, _p_shown, _skipped_note
 
 CLUSTER_METHODS = ("k-means", "hierarchical")
 LINKAGES = {"ward": "ward.D2", "average": "average", "complete": "complete", "single": "single"}
 MEASURES = {"bray-curtis": "Bray-Curtis", "euclidean": "Euclidean", "jaccard": "Jaccard",
-            "manhattan": "Manhattan"}
+            "manhattan": "Manhattan", "aitchison": "Aitchison", "robust aitchison": "robust Aitchison",
+            "hellinger": "Hellinger"}
 MEASURE_R = {"bray-curtis": 'vegdist(x, "bray")', "euclidean": 'vegdist(x, "euclidean")',
-             "jaccard": 'vegdist(x, "jaccard", binary = TRUE)', "manhattan": 'vegdist(x, "manhattan")'}
+             "jaccard": 'vegdist(x, "jaccard", binary = TRUE)', "manhattan": 'vegdist(x, "manhattan")',
+             "aitchison": 'vegdist(x, "aitchison")', "robust aitchison": 'vegdist(x, "robust.aitchison")',
+             "hellinger": 'vegdist(x, "hellinger")'}
+# measures that are straight-line (Euclidean) distances of some transform of the columns: Ward's linkage
+# assumes these
+STRAIGHT = ("euclidean", "aitchison", "hellinger")
+CLUSTER_SHOW = ("silhouette",)
+AUTOMATIC = "automatic"
+MOST_AUTOMATIC = 10  # how_many="automatic" tries 2 to 10 clusters
+PROFILE_METHODS = ("permanova", "anosim")
+PROFILE_SHOW = ("contributions",)
+DEPTH_FOLD = 2  # row totals more than two-fold apart: the depth note
 KMEANS_STARTS = 25
 R_SEED_MAX = 2 ** 31 - 1  # the largest seed R set.seed() takes
 NMDS_TRIES_UP_TO = 100  # metaMDS trymax: more starts, until the best map repeats
-MADE_HERE = re.compile(r"^(PC|NMDS)\d+$")  # columns these words add; columns=None leaves them out
+# columns these words add; columns=None leaves them out
+MADE_HERE = re.compile(r"^((PC|NMDS|PCo|CA|LD|ilr)\d+|(clr|alr)_.+)$")
 
 
 # ---------------------------------------------------------------------------- small helpers
@@ -66,9 +94,14 @@ def _quoted_list(names) -> str:
 
 
 def _distances(x, measure):
-    """Condensed distances between the rows of x, as R vegan::vegdist()."""
+    """Condensed distances between the rows of x, as R vegan::vegdist() (the Aitchison, robust Aitchison and
+    Hellinger distances come from vegdist itself, through R)."""
     from scipy.spatial.distance import pdist
 
+    if measure in R_ONLY_MEASURES:
+        from .community_r import r_distances
+
+        return r_distances(x, measure)
     if measure == "euclidean":
         return pdist(x, "euclidean")
     if measure == "manhattan":
@@ -101,9 +134,35 @@ def _sum_squares(x, labels):
     return within, total
 
 
+def _depth_note(measure, x):
+    """Bray-Curtis on raw counts whose row totals differ more than two-fold partly measures sequencing depth."""
+    if measure != "bray-curtis" or not comp.whole_numbers(x):
+        return
+    totals = x.sum(axis=1)
+    if totals.min() > 0 and totals.max() > DEPTH_FOLD * totals.min():
+        print(f"Note: the rows have very different totals (from {totals.min():,.0f} to {totals.max():,.0f}); "
+              "Bray-Curtis on raw counts mixes those totals (such as sequencing depth) with the make-up. Turn the "
+              'counts into shares first, or use measure="aitchison".')
+
+
+def _permutation_p_sentence(p, permutations, if_none, this, not_shown):
+    """The W2 sentence for a permutation p-value; at the floor (no shuffle as extreme) it says "at most", so
+    p = 0.001 from 999 shuffles is not read as an exact number (independent review 6.1)."""
+    if p * (permutations + 1) <= 1 + 1e-9:
+        return (f"If {if_none}, {this} would turn up in at most about 1 of {permutations + 1} studies like this "
+                f"one ({_p_shown(p)}, the smallest p that {permutations:,} shuffles can give).")
+    return _p_sentence(p, if_none, this, not_shown)
+
+
+def _columns_used(columns) -> str:
+    return f"{len(columns)} columns ({comp.short_list(columns)})"
+
+
 # ---------------------------------------------------------------------------- R (simplydata[r])
 R_DISTANCE = {"bray-curtis": 'method = "bray"', "euclidean": 'method = "euclidean"',
-              "manhattan": 'method = "manhattan"', "jaccard": 'method = "jaccard", binary = TRUE'}
+              "manhattan": 'method = "manhattan"', "jaccard": 'method = "jaccard", binary = TRUE',
+              "aitchison": 'method = "aitchison"', "robust aitchison": 'method = "robust.aitchison"',
+              "hellinger": 'method = "hellinger"'}
 
 
 def _r_kmeans(z, k, seed):
@@ -129,7 +188,10 @@ def _r_nmds(x, measure, dimensions, tries, seed):
     """R vegan::metaMDS on vegdist distances, set.seed(seed): (points, stress, best repeated?)."""
     from .._r import r_call
 
-    out = r_call(f"set.seed({int(seed)}); d <- vegan::vegdist(x, {R_DISTANCE[measure]}); "
+    from .._r import need_r
+
+    need_r(packages_for(measure), "NMDS (R vegan::metaMDS())")
+    out = r_call(f"set.seed({int(seed)}); " + distance_code(measure, x) +
                  f"fit <- vegan::metaMDS(d, k = {int(dimensions)}, try = {_nmds_tries(tries)[0]}, "
                  f"trymax = {_nmds_tries(tries)[1]}, "
                  "autotransform = FALSE, trace = 0); "
@@ -147,7 +209,10 @@ def _r_permanova(x, measure, groups, permutations, seed):
     """R vegan::adonis2, then betadisper and permutest, after set.seed(seed), as an R user runs them."""
     from .._r import r_call
 
-    out = r_call(f"set.seed({int(seed)}); d <- vegan::vegdist(x, {R_DISTANCE[measure]}); g <- factor(g); "
+    from .._r import need_r
+
+    need_r(packages_for(measure), "PERMANOVA (R vegan::adonis2())")
+    out = r_call(f"set.seed({int(seed)}); " + distance_code(measure, x) + "g <- factor(g); "
                  f"a <- vegan::adonis2(d ~ g, permutations = {int(permutations)}); "
                  f"b <- vegan::betadisper(d, g); t <- vegan::permutest(b, permutations = {int(permutations)}); "
                  "list(f = a$F[1], r2 = a$R2[1], p = a[['Pr(>F)']][1], spread_f = t$tab$F[1], "
@@ -225,6 +290,8 @@ class PatternWords:
         for name, values in named_values:
             full = [None] * len(keep)
             for i, v in zip(rows, values):
+                if v is None or (isinstance(v, float) and math.isnan(v)):
+                    continue  # an empty cell (such as a row with nothing to count)
                 full[i] = int(v) if dtype == nw.Int64 else float(v)
             if dtype == nw.Int64 and not keep.all() and base.implementation.is_pandas():
                 import pandas as pd  # whole numbers with empty cells need pandas' own "Int64"
@@ -237,7 +304,14 @@ class PatternWords:
         return self._change(what, base.with_columns(*series))
 
     @staticmethod
-    def _check_measure(measure, x, columns):
+    def _check_measure(measure, x, columns, step="this word"):
+        if measure == "aitchison":
+            comp.check_zeros(step, x, columns, comp.ESTIMATED, 'with measure="aitchison"')
+            return
+        if measure in ("robust aitchison", "hellinger"):
+            comp.check_not_negative(step, x, columns, f'with measure="{measure}"')
+            comp.check_no_empty_rows(step, x, f'with measure="{measure}"')
+            return
         if measure not in ("bray-curtis", "jaccard"):
             return
         if (x < 0).any():
@@ -349,62 +423,185 @@ class PatternWords:
         return self._new_table(nw.from_dict(data, backend=self._frame.implementation))
 
     # ------------------------------------------------------------------ clusters
+    def _cluster_choices(self, step, method, measure, linkage, example):
+        """The linkage: given, or chosen by the measure ("ward" for straight-line measures, else "average"), the
+        same rule as chart.draw_cluster_tree. Ward with a measure that is not a straight-line distance is refused,
+        and so is any measure= with k-means."""
+        if measure is not None:
+            self._check_choice(step, "measure", measure, list(MEASURES))
+            if method == "k-means":
+                raise SimplydataError(
+                    f'{step}() with method="k-means" works with straight-line distances to each cluster\'s '
+                    f'average, so it takes no measure=. For {MEASURES[measure]} distances use '
+                    f'method="hierarchical":\n  table.add_clusters(how_many=3, method="hierarchical", '
+                    f'measure="{measure}")')
+        if method != "hierarchical":
+            return None, False
+        straight = (measure or "euclidean") in STRAIGHT
+        chosen = linkage if linkage is not None else ("ward" if straight else "average")
+        self._check_choice(step, "linkage", chosen, list(LINKAGES))
+        if chosen == "ward" and not straight:
+            raise SimplydataError(
+                f'linkage="ward" assumes straight-line (Euclidean) distances, and {MEASURES[measure]} distances are '
+                'not. Use linkage="average" (simplydata\'s choice for them), "complete" or "single":\n'
+                f'  table.add_clusters(how_many=3, method="hierarchical", measure="{measure}", linkage="average")')
+        return chosen, linkage is None
+
+    @staticmethod
+    def _silhouette_reading(width):
+        if width > 0.70:
+            return "strong structure"
+        if width > 0.50:
+            return "reasonable structure"
+        if width > 0.25:
+            return "weak structure that could be made by the method"
+        return "no real structure"
+
     @friendly(renamed={"seed": "with_seed"})
     def add_clusters(self, columns=None, how_many=3, method="k-means", same_scale=True, with_seed=1, name="cluster",
-                     linkage="ward"):
+                     linkage=None, measure=None, show=None):
         """Sort the rows into groups of similar rows (clusters), in a new column.
 
         table.add_clusters(how_many=3)   (with sdata.get_example("meadow"))
         method="k-means" (the default) finds how_many clusters whose rows are as close as
         possible to their cluster's average, from 25 random starts (as R kmeans(nstart = 25));
         with_seed= makes the result the same every time. method="hierarchical" joins the closest
-        rows step by step and cuts the tree into how_many clusters; linkage="ward" (the
-        default, R hclust(method = "ward.D2")), "average", "complete" or "single".
-        same_scale=True (the default) puts each column on the same scale first (R scale()).
-        The clusters are numbered 1, 2, 3 in the order they first appear in the table. Prints
-        the size of each cluster and the share of the spread that lies between clusters (R
-        kmeans: between_SS / total_SS). Rows with an empty cell get an empty cluster cell.
+        rows step by step and cuts the tree into how_many clusters; linkage="ward" (R
+        hclust(method = "ward.D2")), "average", "complete" or "single". measure= (hierarchical
+        only) takes the measures of find_distances_between_rows, such as "bray-curtis" for counts;
+        without it the distances are straight-line ones. simplydata chooses linkage="ward" for
+        straight-line distances and "average" for the others (Ward assumes straight lines, so
+        it is refused with Bray-Curtis); chart.draw_cluster_tree() makes the same choice.
+        same_scale=True (the default) puts each column on the same scale first (R scale()) for
+        straight-line distances. how_many="automatic" tries 2 to 10 clusters and keeps the number
+        with the largest average silhouette width (needs R). The clusters are numbered 1, 2, 3
+        in the order they first appear in the table. Prints the size of each cluster, the share
+        of the spread that lies between clusters (straight-line distances), and the average
+        silhouette width (R cluster::silhouette, when R is there) with Kaufman and Rousseeuw's
+        guide: clusters always appear, even in random data, and the width says whether they are
+        real. show="silhouette" gives each row's width instead of the table. Rows with an empty
+        cell get an empty cluster cell.
         """
         step = "add_clusters"
         example = 'with sdata.get_example("meadow"): table.add_clusters(how_many=3)'
         self._check_choice(step, "method", method, CLUSTER_METHODS)
-        if method == "hierarchical":
-            self._check_choice(step, "linkage", linkage, list(LINKAGES))
+        if show is not None:
+            self._check_choice(step, "show", show, CLUSTER_SHOW)
+        linkage, chose_linkage = self._cluster_choices(step, method, measure, linkage, example)
         if not isinstance(name, str) or not name.strip():
             raise SimplydataError(f"{step}() needs name= as the new column's name in quotes.\nFor example, {example}")
         columns = self._pattern_columns(step, columns, example, leave_out=(name,))
         x, keep = self._pattern_matrix(step, columns)
-        self._check_whole(step, "how_many=", how_many, 2, len(x) - 1, example)
-        z = self._scaled(x, columns, same_scale)
+        automatic = how_many == AUTOMATIC
+        if automatic:
+            if len(x) < 4:
+                raise SimplydataError(f'how_many="automatic" needs at least 4 rows to compare numbers of clusters; '
+                                      f"there are {len(x)}.")
+        elif isinstance(how_many, str):
+            raise SimplydataError(f'{step}() needs how_many= as a whole number, or how_many="automatic" (the number '
+                                  f"with the largest average silhouette width).\nFor example, {example}")
+        else:
+            self._check_whole(step, "how_many=", how_many, 2, len(x) - 1, example)
+        plain = measure in (None, "euclidean")
+        if plain:
+            z = self._scaled(x, columns, same_scale)
+        else:
+            self._check_measure(measure, x, columns, step)
+            _depth_note(measure, x)
+            z = x
         if method == "k-means":
             self._check_whole(step, "with_seed=", with_seed, 0, R_SEED_MAX, example)
-            if len(np.unique(z, axis=0)) < how_many:
-                raise SimplydataError(f"There are only {len(np.unique(z, axis=0))} different rows, so they cannot "
-                                      f"make {how_many} clusters.")
-            labels, between = _r_kmeans(z, how_many, with_seed)
-            how = (f"k-means (Hartigan-Wong) with {KMEANS_STARTS} random starts, run in R: set.seed({with_seed}); "
-                   f"kmeans(x, {how_many}, nstart = {KMEANS_STARTS})")
-        else:
-            from scipy.cluster.hierarchy import fcluster
+        tree = None
+        if method == "hierarchical":
             from scipy.cluster.hierarchy import linkage as make_tree
 
-            labels = fcluster(make_tree(z, method=linkage, metric="euclidean"), how_many, criterion="maxclust")
+            tree = (make_tree(z, method=linkage, metric="euclidean") if plain
+                    else make_tree(_distances(x, measure), method=linkage))
+
+        def cut(k):
+            if method == "k-means":
+                if len(np.unique(z, axis=0)) < k:
+                    raise SimplydataError(f"There are only {len(np.unique(z, axis=0))} different rows, so they cannot "
+                                          f"make {k} clusters.")
+                return _r_kmeans(z, k, with_seed)
+            from scipy.cluster.hierarchy import fcluster
+
+            return fcluster(tree, k, criterion="maxclust"), None
+
+        from .community_r import silhouettes
+
+        sil_measure = None if plain else measure
+        if automatic:
+            tried = []
+            for k in range(2, min(MOST_AUTOMATIC, len(x) - 1) + 1):
+                labels_k, between_k = cut(k)
+                if len(np.unique(labels_k)) < 2:
+                    continue
+                tried.append((k, labels_k, between_k, silhouettes(_first_appearance(labels_k), z, sil_measure)))
+            if not tried:
+                raise SimplydataError("The rows could not be cut into 2 or more clusters.")
+            best = max(tried, key=lambda t: (t[3]["average"], -t[0]))  # the largest width; on a tie, fewer clusters
+            how_many, labels, between, sil = best[0], best[1], best[2], best[3]
+            print("Average silhouette width for each number of clusters: "
+                  + ", ".join(f"{t[0]}: {t[3]['average']:.2f}" for t in tried)
+                  + f'. how_many="automatic": simplydata chooses the number with the largest, {how_many}.')
+        else:
+            labels, between = cut(how_many)
+            sil = None
+        if method == "k-means":
+            how = (f"k-means (Hartigan-Wong) with {KMEANS_STARTS} random starts, run in R: set.seed({with_seed}); "
+                   f"kmeans(x, {how_many}, nstart = {KMEANS_STARTS})")
+        elif plain:
             how = (f"hierarchical clustering on Euclidean distances with {linkage} linkage, as R "
                    f'hclust(dist(x), method = "{LINKAGES[linkage]}") and cutree(k = {how_many})')
+        else:
+            how = (f"hierarchical clustering on {MEASURES[measure]} distances with {linkage} linkage, as R "
+                   f'hclust(vegan::{MEASURE_R[measure]}, method = "{LINKAGES[linkage]}") and cutree(k = {how_many})')
         labels = _first_appearance(labels)
         found = int(labels.max())
-        if method != "k-means":
-            within, total = _sum_squares(z, labels)
-            between = 1 - within / total if total > 0 else 0.0
         sizes = np.bincount(labels)[1:]
-        scale_words = " (each put on the same scale first)" if same_scale else ""
-        print(f"Made {found} clusters of {len(x)} rows from {len(columns)} columns{scale_words}: sizes "
-              f"{_list_words(str(s) for s in sizes)} (clusters {_list_words(str(i) for i in range(1, found + 1))}, "
-              f"numbered in the order they first appear). {_pct(between)} of the spread lies between the clusters "
-              "(between-cluster / total sum of squares); the rest is within them.")
+        scale_words = " (each put on the same scale first)" if same_scale and plain else ""
+        line = (f"Made {found} clusters of {len(x)} rows from {_columns_used(columns)}{scale_words}: sizes "
+                f"{_list_words(str(s) for s in sizes)} (clusters {_list_words(str(i) for i in range(1, found + 1))}, "
+                "numbered in the order they first appear).")
+        if plain:
+            if method != "k-means":
+                within, total = _sum_squares(z, labels)
+                between = 1 - within / total if total > 0 else 0.0
+            line += (f" {_pct(between)} of the spread lies between the clusters (between-cluster / total sum of "
+                     "squares); the rest is within them.")
+        print(line)
         if found < how_many:
             print(f"Note: the tree could only be cut into {found} clusters, not {how_many}, because of tied heights.")
+        if sil is None:
+            from .._r import r_ready
+
+            ready = r_ready(("cluster",) + (packages_for(measure) if not plain else ()))
+            if ready and found >= 2:
+                sil = silhouettes(labels, z, sil_measure)
+            elif show is not None:
+                from .._r import need_r
+
+                need_r(("cluster",), "The silhouette widths (R cluster::silhouette())")
+        if sil is not None:
+            print(f"Average silhouette width {sil['average']:.2f}: {self._silhouette_reading(sil['average'])} "
+                  "(Kaufman & Rousseeuw's guide: above 0.70 strong, 0.51 to 0.70 reasonable, 0.26 to 0.50 weak and "
+                  "could be made by the method, 0.25 or less no real structure; R cluster::silhouette). Clusters "
+                  "always appear, even in random data.")
+        else:
+            print("Note: the silhouette width, which says whether the clusters are real, needs R (cluster package).")
+        if chose_linkage:
+            print(f'simplydata chooses linkage="{linkage}" for {MEASURES[measure or "euclidean"]} distances (the same '
+                  "as chart.draw_cluster_tree).")
         print(f'Method: {how}. Added the column "{name}".')
+        if show == "silhouette":
+            rows = np.flatnonzero(keep) + 1
+            data = {"row": [int(r) for r in rows], name: [int(v) for v in labels],
+                    "next best cluster": [int(v) for v in sil["neighbour"]],
+                    "silhouette width": [float(v) for v in sil["width"]]}
+            print("Gave back each row's silhouette width (near 1: well inside its cluster; near 0: between two; below "
+                  "0: probably in the wrong one) and the cluster it is next closest to.")
+            return self._new_table(nw.from_dict(data, backend=self._frame.implementation))
         return self._with_new_columns(f'add clusters "{name}" ({method}, {found}) of {", ".join(map(str, columns))}',
                                       [(name, labels)], keep, dtype=nw.Int64)
 
@@ -435,7 +632,14 @@ class PatternWords:
         "jaccard" uses only present / absent (a count above 0 is present), as
         vegan::vegdist(binary = TRUE): the share of the species found in either row that are
         found in only one. "euclidean" is the straight-line distance and "manhattan" the sum
-        of the differences. names= is a column whose values label the rows and columns.
+        of the differences.
+        "aitchison" (needs R) is for counts that are parts of a whole, such as a resistome
+        or microbiome table: the straight-line distance between the log ratios (clr) of the rows,
+        after zeros are replaced by estimated small values (R zCompositions, then
+        vegan::vegdist("aitchison")); "robust aitchison" uses the values above 0 only and needs no
+        replacement; "hellinger" is the straight-line distance between the square roots of the
+        rows' shares.
+        names= is a column whose values label the rows and columns.
         """
         step = "find_distances_between_rows"
         example = 'with sdata.get_example("meadow"): table.find_distances_between_rows(names="plot")'
@@ -443,14 +647,15 @@ class PatternWords:
         columns = self._pattern_columns(step, columns, example,
                                         leave_out=(names,) if isinstance(names, str) else ())
         x, keep = self._pattern_matrix(step, columns, least_rows=2)
-        self._check_measure(measure, x, columns)
+        self._check_measure(measure, x, columns, step)
         first, labels = self._labels(step, names, keep, example)
         square = _square(_distances(x, measure))
         data = {first: labels}
         for j, lab in enumerate(labels):
             data[lab] = [float(v) for v in square[:, j]]
-        print(f"{MEASURES[measure]} distances between {len(x)} rows from {len(columns)} columns, as R vegan::"
+        print(f"{MEASURES[measure]} distances between {len(x)} rows from {_columns_used(columns)}, as R vegan::"
               f"{MEASURE_R[measure]}. 0 means the same; the bigger, the more different.")
+        _depth_note(measure, x)
         return self._new_table(nw.from_dict(data, backend=self._frame.implementation))
 
     # ------------------------------------------------------------------ NMDS
@@ -466,7 +671,8 @@ class PatternWords:
         100, until the best map has been found twice; it keeps the map with the lowest stress
         (Kruskal's stress-1: how badly the map fits). Clarke's (1993) rule of thumb: below 0.05
         excellent, below 0.1 good, below 0.2 usable, above 0.2 hard to trust. The axes have no units; their rotation and signs are
-        arbitrary. Rows with an empty cell get empty NMDS cells.
+        arbitrary. Rows with an empty cell get empty NMDS cells. measure= takes the measures of
+        find_distances_between_rows, "aitchison" for counts that are parts of a whole among them.
         """
         step = "add_nmds"
         example = 'with sdata.get_example("meadow"): table.add_nmds()'
@@ -476,7 +682,7 @@ class PatternWords:
         self._check_whole(step, "with_seed=", with_seed, 0, R_SEED_MAX, example)
         columns = self._pattern_columns(step, columns, example)
         x, keep = self._pattern_matrix(step, columns, least_rows=dimensions + 3)
-        self._check_measure(measure, x, columns)
+        self._check_measure(measure, x, columns, step)
         delta = _distances(x, measure)
         if not (delta > 0).any():
             raise SimplydataError("Every row is the same in these columns, so there is nothing to draw.")
@@ -491,37 +697,56 @@ class PatternWords:
         else:
             reading = f"hard to trust; try dimensions={dimensions + 1}"
         names = [f"NMDS{i}" for i in range(1, dimensions + 1)]
-        print(f"NMDS map of {len(x)} rows from {len(columns)} columns ({MEASURES[measure]} distances, {dimensions} "
+        print(f"NMDS map of {len(x)} rows from {_columns_used(columns)} ({MEASURES[measure]} distances, {dimensions} "
               f"dimensions): stress = {stress:.3f}, {reading} (Clarke's rule of thumb: below 0.05 excellent, below 0.1 "
               "good, below 0.2 usable, above 0.2 hard to trust).")
         print(f"Method: non-metric multidimensional scaling, run in R: set.seed({with_seed}); vegan::metaMDS("
               f"vegdist(x, {R_DISTANCE[measure]}), k = {dimensions}, try = {first}, trymax = {most}, "
               f"autotransform = FALSE) (Kruskal's stress-1). Added {_list_words(names)}; the axes have no units and "
               "their rotation and signs are arbitrary.")
+        _depth_note(measure, x)
         if not repeated:
             print('Note: the best map was found only once (R: "Best solution was not repeated"), so a better map '
                   f"may exist even after {most} starts.")
         return self._with_new_columns(f"add NMDS {', '.join(names)} of {', '.join(map(str, columns))} ({measure})",
                                       [(n, points[:, i]) for i, n in enumerate(names)], keep)
 
-    # ------------------------------------------------------------------ PERMANOVA
+    # ------------------------------------------------------------------ PERMANOVA, ANOSIM, SIMPER
     @friendly(renamed={"for_each": "for_each_group_in", "seed": "with_seed"})
-    def compare_profiles_of(self, columns=None, for_each_group_in=None, measure="bray-curtis", permutations=999, with_seed=1):
+    def compare_profiles_of(self, columns=None, for_each_group_in=None, measure="bray-curtis", permutations=999,
+                            with_seed=1, method="permanova", show=None):
         """Do the groups really differ in their make-up across many columns (PERMANOVA)?
 
         table.compare_profiles_of(for_each_group_in="grazed")   (with sdata.get_example("meadow"))
         Compares whole profiles, such as the counts of all plant species in a plot, between
         the groups in for_each_group_in=. PERMANOVA, as R vegan::adonis2(distances ~ group): R squared
         is the share of the differences between rows (measure= distances, Bray-Curtis by
-        default) that the groups explain, and pseudo-F compares the differences between
-        groups with those within groups. The p-value comes from shuffling the rows
-        permutations= times (with_seed= makes it the same every time). It also checks whether the
-        groups differ in spread (vegan::betadisper and permutest), because PERMANOVA can then
-        mistake a difference in spread for a difference in make-up. Gives back a one-row table.
+        default; "aitchison" for counts that are parts of a whole) that the groups explain, and
+        pseudo-F compares the differences between groups with those within groups. The p-value
+        comes from shuffling the rows permutations= times (with_seed= makes it the same every
+        time). It also checks whether the groups differ in spread (vegan::betadisper and
+        permutest), because PERMANOVA can then mistake a difference in spread for a difference
+        in make-up. Gives back a one-row table. method="anosim" gives Clarke's ANOSIM R instead
+        (vegan::anosim: 0 = groups as different as rows within them, 1 = completely apart), with
+        the same spread check. show="contributions" gives SIMPER (vegan::simper): how much each
+        column adds to the Bray-Curtis difference between each pair of groups, one row per pair
+        and column, and no test: columns with large and variable counts rise to the top even
+        when they do not differ.
         """
         step = "compare_profiles_of"
         example = 'with sdata.get_example("meadow"): table.compare_profiles_of(for_each_group_in="grazed")'
         self._check_choice(step, "measure", measure, list(MEASURES))
+        self._check_choice(step, "method", method, PROFILE_METHODS)
+        if show is not None:
+            self._check_choice(step, "show", show, PROFILE_SHOW)
+            if method != "permanova":
+                raise SimplydataError(f'show="contributions" (SIMPER) is a description, not a test, so it does not go '
+                                      f'with method="{method}". Run them one at a time:\n'
+                                      f'  table.compare_profiles_of(for_each_group_in=..., method="{method}")\n'
+                                      '  table.compare_profiles_of(for_each_group_in=..., show="contributions")')
+            if measure != "bray-curtis":
+                raise SimplydataError('show="contributions" (SIMPER, R vegan::simper) splits the Bray-Curtis difference '
+                                      f'between groups into its columns; it has no version for measure="{measure}".')
         self._need_name(step, "for_each_group_in=", for_each_group_in, example)
         self._need_columns(for_each_group_in)
         self._check_whole(step, "permutations=", permutations, 1, None, example)
@@ -531,7 +756,7 @@ class PatternWords:
             raise SimplydataError(f'"{for_each_group_in}" cannot be both a column to compare and the for_each_group_in= column.\n'
                                   f"For example, {example}")
         x, keep = self._pattern_matrix(step, columns, extra=(for_each_group_in,), least_rows=3)
-        self._check_measure(measure, x, columns)
+        self._check_measure(measure, x, columns, step)
         every = self._frame[for_each_group_in].to_list()
         keys = [every[i] for i in np.flatnonzero(keep)]
         order = sorted(set(keys), key=lambda k: (str(type(k)), k))
@@ -548,33 +773,98 @@ class PatternWords:
         n = len(x)
         if n <= a:
             raise SimplydataError(f"{step}() needs more rows than groups.")
-        result = _r_permanova(x, measure, np.array(group_names, dtype=object)[codes], permutations, with_seed)
-        f, r2, p = result["f"], result["r2"], result["p"]
-        spread_f, spread_p, z = result["spread_f"], result["spread_p"], result["distances"]
-        spreads = [float(z[codes == g].mean()) for g in range(a)]
+        labels = np.array(group_names, dtype=object)[codes]
+        if show == "contributions":
+            _depth_note(measure, x)
+            return self._simper(x, columns, labels, group_names, for_each_group_in)
         groups_text = ", ".join(group_names)
         what = (f'the make-up of {len(columns)} columns ({", ".join(map(str, columns))}) in each "{for_each_group_in}" '
                 f"({groups_text})")
-        print(f'The groups of "{for_each_group_in}" ({groups_text}) explain {_pct(r2)} of the differences between the rows '
-              f"(R squared = {_num(r2)}; {MEASURES[measure]} distances over {len(columns)} columns; pseudo-F = "
-              f"{_num(f)}, from {permutations} permutations).")
-        print(_p_sentence(p, "the groups truly had the same make-up", "a difference in make-up this big or bigger",
-                          "that the groups have the same make-up"))
-        print(f"Test: PERMANOVA (permutational analysis of variance on distances), run in R: set.seed({with_seed}); "
-              f"vegan::adonis2(distances ~ {for_each_group_in}, permutations = {permutations}) with distances = "
-              f"vegan::{MEASURE_R[measure]}.")
+        if method == "anosim":
+            from .community_r import anosim
+
+            result = anosim(x, measure, labels, permutations, with_seed)
+            r, p = result["r"], result["p"]
+            print(f'ANOSIM R = {_num(r)} (the ANOSIM statistic, not R squared) for the groups of "{for_each_group_in}" ({groups_text}): 0 means the groups are '
+                  "as different as the rows within them, 1 that they are completely apart "
+                  f"({MEASURES[measure]} distances over {_columns_used(columns)}, ranked; {permutations} permutations).")
+            print(_permutation_p_sentence(
+                p, permutations, "the groups did not differ in make-up (rows no more alike within groups than between "
+                "them)", "an ANOSIM R this big or bigger", "that the groups have the same make-up"))
+            print(f"Test: ANOSIM (analysis of similarities, Clarke 1993), run in R: set.seed({with_seed}); "
+                  f"vegan::anosim(distances, {for_each_group_in}, permutations = {permutations}) with distances = "
+                  f"vegan::{MEASURE_R[measure]}.")
+            print("This does not show which columns differ, or whether the groups differ in spread rather than "
+                  "centre (see the spread check).")
+        else:
+            result = _r_permanova(x, measure, labels, permutations, with_seed)
+            f, r2, p = result["f"], result["r2"], result["p"]
+            print(f'The groups of "{for_each_group_in}" ({groups_text}) explain {_pct(r2)} of the differences between the '
+                  f"rows (R squared = {_num(r2)}; {MEASURES[measure]} distances over {_columns_used(columns)}; pseudo-F "
+                  f"= {_num(f)}, from {permutations} permutations).")
+            print(_permutation_p_sentence(p, permutations, "the groups truly had the same make-up",
+                                          "a difference in make-up this big or bigger",
+                                          "that the groups have the same make-up"))
+            print(f"Test: PERMANOVA (permutational analysis of variance on distances), run in R: set.seed({with_seed}); "
+                  f"vegan::adonis2(distances ~ {for_each_group_in}, permutations = {permutations}) with distances = "
+                  f"vegan::{MEASURE_R[measure]}.")
+        spread_f, spread_p, z = result["spread_f"], result["spread_p"], result["distances"]
+        spreads = [float(z[codes == g].mean()) for g in range(a)]
         print("Spread check: the average distance to the group centre is "
               f"{_list_words(f'{_num(s)} in {g}' for g, s in zip(group_names, spreads))} (as vegan::betadisper and "
               f"permutest: F = {_num(spread_f)}, {_p_shown(spread_p)}).")
         if spread_p < 0.05:
-            print("Note: the groups differ in spread, and PERMANOVA can then mistake a difference in spread for a "
-                  "difference in make-up. Look at a picture (table.add_nmds()) before reading the result.")
-        row = {"test": "PERMANOVA", "what it compares": what, "distance": MEASURES[measure],
-               "statistic name": "pseudo-F", "statistic": float(f), "degrees of freedom 1": float(a - 1),
-               "degrees of freedom 2": float(n - a), "R squared": float(r2), "p-value": float(p),
-               "permutations": int(permutations), "spread check F": float(spread_f),
-               "spread check p-value": float(spread_p)}
+            print(f"Note: the groups differ in spread, and {'ANOSIM' if method == 'anosim' else 'PERMANOVA'} can then "
+                  "mistake a difference in spread for a difference in make-up. Look at a picture (table.add_nmds()) "
+                  "before reading the result.")
+        _depth_note(measure, x)
+        if method == "anosim":
+            row = {"test": "ANOSIM", "what it compares": what, "distance": MEASURES[measure],
+                   "statistic name": "ANOSIM R", "statistic": float(r), "p-value": float(p)}
+        else:
+            row = {"test": "PERMANOVA", "what it compares": what, "distance": MEASURES[measure],
+                   "statistic name": "pseudo-F", "statistic": float(f), "degrees of freedom 1": float(a - 1),
+                   "degrees of freedom 2": float(n - a), "R squared": float(r2), "p-value": float(p)}
+        row.update({"permutations": int(permutations), "spread check F": float(spread_f),
+                    "spread check p-value": float(spread_p)})
         for g, s, size in zip(group_names, spreads, sizes):
             row[f"count in {g}"] = int(size)
             row[f"distance to centre in {g}"] = s
         return self._result_table(row)
+
+    def _simper(self, x, columns, labels, group_names, group_column):
+        """SIMPER (R vegan::simper, permutations = 0): one row per pair of groups and column, largest first."""
+        from .community_r import simper
+
+        found = simper(x, labels, columns)
+        data = {"first group": [], "second group": [], "column": [], "average contribution": [],
+                "standard deviation": [], "ratio": [], "average in first group": [], "average in second group": [],
+                "cumulative share": []}
+        print(f'SIMPER: how much each column adds to the average Bray-Curtis difference between each pair of '
+              f'groups of "{group_column}" (R vegan::simper(x, {group_column}, permutations = 0)); the columns that '
+              "add most, with what each adds to the average difference (out of 1):")
+        for pair, t in found.items():
+            # vegan names each pair "first_second"; group names may hold "_" themselves
+            first, _, second = pair.partition("_")
+            for g in group_names:
+                if pair.startswith(f"{g}_") and pair[len(g) + 1:] in group_names:
+                    first, second = g, pair[len(g) + 1:]
+                    break
+            top = ", ".join(f'"{c}" ({a:.3f})' for c, a in zip(t["column"][:3], t["average"][:3]))
+            print(f"  {first} and {second}: {top}")
+            for i, c in enumerate(t["column"]):
+                data["first group"].append(first)
+                data["second group"].append(second)
+                data["column"].append(c)
+                data["average contribution"].append(float(t["average"][i]))
+                data["standard deviation"].append(float(t["sd"][i]))
+                data["ratio"].append(float(t["ratio"][i]))
+                data["average in first group"].append(float(t["ava"][i]))
+                data["average in second group"].append(float(t["avb"][i]))
+                data["cumulative share"].append(float(t["cumsum"][i]))
+        print("Note: SIMPER mixes a difference between groups with how variable a column is: columns with large and "
+              "variable counts rise to the top even when they do not differ (Warton, Wright & Wang 2012). Check them "
+              "one by one (compare_averages_of), and use compare_profiles_of without show= for the test.")
+        print("The ratio is the average contribution over its standard deviation; a column that adds steadily has a "
+              "ratio above 1.")
+        return self._new_table(nw.from_dict(data, backend=self._frame.implementation))

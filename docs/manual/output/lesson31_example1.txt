@@ -1,0 +1,1 @@
+Richness curves of 24 rows from 14 columns: the expected number of kinds present at each total count (R vegan::rarecurve, the expected values of vegan::rarefy). The dotted line marks the smallest total, 1,285: compare richness at or below it (table.add_diversity_columns(at_total_count=1285)). Curves that still climb at their end would find more kinds with more counts.

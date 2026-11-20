@@ -1,0 +1,9 @@
+"temperature" and "salinity" together explain 35.9 % of the differences in make-up between the rows (adjusted R squared; 41.5 % before adjustment).
+If these columns had no link with the make-up, a link at least this strong would turn up in at most about 1 of 1000 studies like this one (p = 0.001, the smallest p that 999 shuffles can give).
+Each column tested after all the others (so the order of using= does not matter):
+  "temperature": pseudo-F = 0.922. If "temperature" had no link with the make-up once the other columns are allowed for, a link at least this strong would turn up in about 41 of 100 studies like this one (p = 0.413). This does not show that "temperature" has no link with the make-up.
+  "salinity": pseudo-F = 2.56. If "salinity" had no link with the make-up once the other columns are allowed for, a link at least this strong would turn up in about 6 of 100 studies like this one (p = 0.061). This does not show that "salinity" has no link with the make-up.
+Test: distance-based redundancy analysis (db-RDA), run in R: d <- vegan::vegdist(x, "bray"); m <- vegan::dbrda(d ~ `temperature` + `salinity`, data = env); vegan::RsquareAdj(m); set.seed(1); anova(m, permutations = 999); set.seed(1); anova(m, by = "margin", permutations = 999).
+simplydata chooses distance-based RDA on Bray-Curtis distances (the distance of compare_profiles_of), each column tested after the others and the adjusted R squared first.
+A link is not proof that a column changes the make-up: the data are observational.
+Note: the rows have very different totals (from 1,285 to 59,389); Bray-Curtis on raw counts mixes those totals (such as sequencing depth) with the make-up. Turn the counts into shares first, or use measure="aitchison".

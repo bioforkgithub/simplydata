@@ -348,10 +348,12 @@ UNDERNEATH = {
     "table.add_principal_components": "statsmodels (multivariate.pca.PCA, by singular value decomposition)",
     "table.find_principal_components_of": "statsmodels (multivariate.pca.PCA, by singular value decomposition)",
     "table.add_clusters": "R stats::kmeans (k-means; needs R) or SciPy (cluster.hierarchy, for "
-                          "method=\"hierarchical\")",
-    "table.find_distances_between_rows": "SciPy (spatial.distance.pdist)",
+                          "method=\"hierarchical\"); the silhouette width from R cluster::silhouette",
+    "table.find_distances_between_rows": "SciPy (spatial.distance.pdist); R vegan::vegdist for the Aitchison, "
+                                         "robust Aitchison and Hellinger distances",
     "table.add_nmds": "R vegan::metaMDS on vegan::vegdist distances (needs R)",
-    "table.compare_profiles_of": "R vegan::adonis2, betadisper and permutest (needs R)",
+    "table.compare_profiles_of": "R vegan::adonis2 or anosim, betadisper and permutest; simper for "
+                                 "show=\"contributions\" (needs R)",
     # survival
     "table.find_survival_over_time": "statsmodels (duration.SurvfuncRight, Kaplan-Meier with Greenwood errors)",
     "table.compare_survival": "statsmodels (duration.survdiff, the log-rank test)",
@@ -394,6 +396,18 @@ UNDERNEATH = {
                              "predict, confint, regtest, trimfill)",
     "draw_funnel_plot": "matplotlib (scatter, plot), the funnel limits from SciPy (stats.norm / stats.lognorm "
                         "interval)",
+    # S3c-1: communities and resistomes (each also has a tested entry in simplydata._underneath)
+    "table.add_diversity_columns": "R vegan (specnumber, diversity, renyi, estimateR, rarefy; needs R)",
+    "table.add_log_ratio_columns": "R zCompositions (cmultRepl, GBM) and compositions (clr, alr, ilr); vegan "
+                                   "decostand for a pseudocount (needs R)",
+    "table.add_principal_coordinates": "R stats::cmdscale on vegan::vegdist distances (needs R)",
+    "table.explain_profiles_of": "R vegan (dbrda, rda, cca, RsquareAdj, anova by margin; needs R)",
+    "table.find_correlation_between_profiles": "R vegan (mantel, protest; needs R)",
+    "table.add_axes_that_separate_groups": "R MASS (lda, predict, lda with CV = TRUE; needs R)",
+    "table.add_correspondence_axes": "R vegan::cca (CA) or ca::mjca (MCA; needs R)",
+    "draw_richness_curves": "R vegan::rarecurve (needs R), drawn with matplotlib",
+    "draw_cluster_tree": "SciPy (cluster.hierarchy linkage, dendrogram, cophenet), drawn with matplotlib; vegan "
+                         "vegdist for the Aitchison and Hellinger distances",
 }
 
 # ---------------------------------------------------------------- hand-written text
@@ -581,7 +595,7 @@ _UNICODE = {
     "°": r"\textdegree{}", "²": r"\textsuperscript{2}", "³": r"\textsuperscript{3}", "⁴": r"\textsuperscript{4}", "·": r"\textperiodcentered{}",
     "×": r"\texttimes{}", "−": r"\textminus{}", "±": r"\textpm{}", "–": "--", "—": "---", "…": r"\dots{}",
     "≈": r"$\approx$", "µ": r"\textmu{}", "é": r"\'e", "’": "'", "‘": "`", "“": "``", "”": "''",
-    "á": r"\'a", "ä": r"\"a", "ö": r"\"o", "ü": r"\"u", "ñ": r"\~n", "ß": r"\ss{}", "Ø": r"\O{}", "χ": r"$\chi$",
+    "á": r"\'a", "í": r"\'{\i}", "ä": r"\"a", "ö": r"\"o", "ü": r"\"u", "ñ": r"\~n", "ß": r"\ss{}", "Ø": r"\O{}", "χ": r"$\chi$",
 }
 _SPECIAL = {
     "\\": r"\textbackslash{}", "{": r"\{", "}": r"\}", "$": r"\$", "&": r"\&", "#": r"\#",

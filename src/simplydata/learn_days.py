@@ -31,6 +31,7 @@ from .learn import (CYCLES_LESSON, FORECASTS_LESSON, OUTLIERS_LESSON, RISKS_LESS
                     lesson_number)
 from .learn import COMBINING_LESSON, INTERACTIONS_LESSON
 from .learn import MORE_SURVIVAL_LESSON  # S3b-3
+from .learn import DIVERSITY_LESSON, MAKEUP_LESSON  # S3c-1
 
 TRACK_NAMES = ("python", "beginner")
 DAYS_IN_A_TRACK = 30
@@ -44,7 +45,9 @@ MANUAL_ONLY_LESSONS = (RISKS_LESSON, FORECASTS_LESSON, SYSTEMS_LESSON, OUTLIERS_
                        INTERACTIONS_LESSON,
                        MORE_SURVIVAL_LESSON,
                        # S3b-1: combining studies (meta-analysis), with R
-                       COMBINING_LESSON)
+                       COMBINING_LESSON,
+                       # S3c-1: communities and resistomes, with R
+                       DIVERSITY_LESSON, MAKEUP_LESSON)
 
 TRACKS = {
     "python": dict(
@@ -746,7 +749,9 @@ UNITS = {
                    f"weight; sdata.show_lesson({lesson_number(INTERACTIONS_LESSON)}), effects that depend on each "
                    f"other; sdata.show_lesson({lesson_number(MORE_SURVIVAL_LESSON)}), more survival: dates, chosen "
                    f"times and competing events; sdata.show_lesson({lesson_number(COMBINING_LESSON)}), combining "
-                   "studies"),
+                   f"studies; sdata.show_lesson({lesson_number(DIVERSITY_LESSON)}) and "
+                   f"sdata.show_lesson({lesson_number(MAKEUP_LESSON)}), the diversity and make-up of communities "
+                   "(resistomes)"),
         recall=[
             ("Which word draws survival curves?", 'chart.draw_survival_curves(time="days", event="died", colour="treatment")'),
             ("Which word tests whether survival differs between groups?",
