@@ -160,9 +160,9 @@ Note: The outlier pulls the least-squares slope to 0.500; the Theil-Sen slope st
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
-| bend 1 | R | 0.0411057840039521 | 0.0411057840039521 | relative 1e-09 | pass |
-| slope 1 | R | -0.422076814237938 | -0.422076814237938 | relative 1e-09 | pass |
-| slope 2 | R | -1.02056754477954 | -1.02056754477954 | relative 1e-09 | pass |
+| bend 1 | R | 0.0411057845664149 | 0.0411057845664149 | relative 1e-09 | pass |
+| slope 1 | R | -0.422076814406333 | -0.422076814406333 | relative 1e-09 | pass |
+| slope 2 | R | -1.02056754500006 | -1.02056754500006 | relative 1e-09 | pass |
 | Davies p-value | R | 1.29088012334937e-17 | 1.29088012334937e-17 | relative 1e-09 | pass |
 
 Note: Bacon and Watts fit a smooth transition; segmented fits the sharp bend, so R is the reference.
@@ -587,12 +587,12 @@ Where simplydata's default differs from the package underneath, it is listed her
 - `fit_dose_response` (2): the curve is drawn over 300 doses spaced evenly on a log scale (and dose 0), so it stays smooth on a log dose axis too; the ED50 and its delta-method interval go in the legend.
 - `table.find_best_power_of` (1): the power's 95 % interval from the profile likelihood (alpha=0.05); without alpha= SciPy gives no interval.
 - `table.fit_line (method="theil-sen")` (1): SciPy's alpha= is the confidence level (0.95), not the error rate.
-- `table.fit_line (method="theil-sen")` (2): the intercept is the median of y - slope * x (Conover; SciPy's default); R mblm takes the median of the pair intercepts instead.
+- `table.fit_line (method="theil-sen")` (2): the intercept is median(y) - slope * median(x) (Conover; SciPy's default); R mblm takes the median of y - slope * x instead.
 - `table.fit_line (method="standardised major axis")` (1): smatr's own 95 % intervals (Warton et al. 2006); method="major axis" is method = "MA".
 - `table.fit_line (method="deming", y_error_over_x_error=)` (1): mcr's error.ratio is the error variance of x over that of y, the other way round from y_error_over_x_error=, so it gets 1 / 4.
 - `table.fit_line (method="deming", y_error_over_x_error=)` (2): mcr's analytical intervals; its default (bootstrap) is random and differs from run to run.
 - `table.fit_line (method="passing-bablok")` (1): Passing and Bablok's own rank-based intervals (mcr's "analytical" for PaBa); mcr's default bootstrap is random.
-- `table.fit_line (with_bends=)` (1): a continuous line: it bends, it does not jump (segmented's model).
+- `table.fit_line (with_bends=)` (1): a continuous line: it bends, it does not jump (segmented's model); seed 1 fixes segmented's random restarts.
 - `table.fit_line (with_bends=)` (2): Davies' test of "no bend at all": the bend's own p-value is not valid, because the data chose where it is.
 - `table.fit_line (changes_at=)` (1): the change starts at the point itself: rows at 10 or later count as after.
 - `table.fit_curve (of_kind="logistic growth")` (1): start values: simplydata takes them from R's self-starting model (stats::getInitial()), or searches the whole range without R; the least-squares answer is the same.
