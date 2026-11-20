@@ -83,6 +83,7 @@ to try yourself.
   (table and number words too: `sdata.help("keep_rows_where")`, `sdata.help("find_average")`)
 - `sdata.get_example()` lists the made-up tables to practise with (marks, weather, fruit, growth, sensor, visitors, river, shop, school, meadow, trial, clinic, island; shop has dates and empty cells)
 - `sdata.show_lesson(3, solutions=True)` adds a worked solution to each "Try it yourself" task
+- `sdata.show_packages_used()` lists the packages that did the work behind your words (pandas, SciPy, R packages ...), with versions and the references their authors ask for; a short list is also printed at the end of a script
 
 ## Or learn it in 30 days
 
