@@ -367,6 +367,10 @@ UNDERNEATH = {
     "nums.save": "pandas (to_csv, to_excel ...)",
     "nums.keep_random_numbers": "NumPy (random.default_rng)",
     "nums.fill_empty_numbers": "NumPy (interp for the line between neighbours)",
+    # S3a-2: lines and curves (each also has a tested entry in simplydata._underneath)
+    "table.fit_dose_response": "R drc (drm, ED with delta-method intervals, EDcomp, noEffect)",
+    "fit_dose_response": "R drc (drm, ED), drawn with matplotlib",
+    "table.find_best_power_of": "SciPy (stats.boxcox, stats.yeojohnson); R car::powerTransform with using=",
 }
 
 # ---------------------------------------------------------------- hand-written text

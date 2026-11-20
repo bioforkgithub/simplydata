@@ -1,0 +1,7 @@
+Kept 24 of 48 rows.
+Fitted a 4 parameter log-logistic (R LL.4) dose-response curve of "root_length" against the dose "concentration" (24 rows).
+The dose for 10 % of the effect (ED10) is 3.32 (95 % CI 2.37 to 4.26); the dose for 50 % of the effect (ED50) is 9.35 (95 % CI 7.29 to 11.4).
+The curve: upper limit 39.9 (95 % CI 38.3 to 41.5), lower limit 2.85 (95 % CI -2.50 to 8.20), steepness b = 2.12.
+"Effect" is the share of the way from the upper limit (no dose) to the lower limit (very high doses); b is drc's steepness (how fast the response changes around the ED50 on a log dose scale).
+Dose effect: If the dose truly had no effect, a change with dose this big would turn up in fewer than 1 in 1000 studies like this one (p < 0.0001). (drc::noEffect, a likelihood-ratio test)
+Method: R drc::drm(root_length ~ concentration, fct = LL.4()) (Ritz et al. 2015); drc::ED(m, c(10, 50), interval = "delta"). simplydata chooses the 4 parameter log-logistic curve and delta-method intervals (drc's ED() gives none unless asked).
