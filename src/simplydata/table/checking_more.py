@@ -53,12 +53,13 @@ ADJUST_WORDS = {"tukey": "Tukey's adjustment", "dunnettx": "Dunnett's adjustment
 TREND_WORDS = {"linear": "straight (linear)", "quadratic": "curved (quadratic)", "cubic": "S-shaped (cubic)",
                "quartic": "degree 4 (quartic)"}
 TREND_NULLS = {"straight (linear)": "there were truly no straight trend", "curved (quadratic)": "there were truly no "
-               "curve", "S-shaped (cubic)": "there were truly no S-shape"}
+               "curve", "S-shaped (cubic)": "there were truly no S-shape", "degree 4 (quartic)": "there were truly no "
+               "wavy part (degree 4)"}
 # the p-value column of each emmeans adjustment (the R short name stays in the method line)
-P_COLUMNS = {"tukey": "adjusted p-value (Tukey)", "dunnettx": "adjusted p-value (Dunnett)",
-             "mvt": "adjusted p-value (multivariate t)", "fdr": "adjusted p-value (false discovery rate)",
-             "sidak": "adjusted p-value (Sidak)", "bonferroni": "adjusted p-value (Bonferroni)",
-             "holm": "adjusted p-value (Holm)", "none": "p-value"}
+# the same pattern as find_model_averages_of's released "p-value (Tukey)", so one word gives one set of names
+P_COLUMNS = {"tukey": "p-value (Tukey)", "dunnettx": "p-value (Dunnett)", "mvt": "p-value (multivariate t)",
+             "fdr": "p-value (false discovery rate)", "sidak": "p-value (Sidak)", "bonferroni": "p-value (Bonferroni)",
+             "holm": "p-value (Holm)", "none": "p-value"}
 LEFT_OUT_PARTS = 10
 LEAST_ROWS = 20
 AICC_LIMIT = 40  # Burnham & Anderson (2002): AICc when rows per value estimated are fewer than 40
@@ -666,7 +667,7 @@ def averages_compared(words, column, for_each, using, outcome, grouped_by, in_or
     contrasts = [str(c) for c in out["contrast"]]
     n_contrasts = len(contrasts) // (len(set(out["contrast_by"])) if within is not None else 1)
     rows = []
-    print(f'Model {what}s of "{column}" for each "{for_each}" ({model["n"]} rows){how_text}'
+    print(f'Model {_plural(what)} of "{column}" for each "{for_each}" ({model["n"]} rows){how_text}'
           + (f', within each "{within}"' if within is not None else "") + ":")
     if within is not None:
         _print_within(words, model, out, for_each, within, rows)
@@ -680,6 +681,8 @@ def averages_compared(words, column, for_each, using, outcome, grouped_by, in_or
                "each with the average": "Each group against the average of all the groups",
                "trend": "The trend across the groups in order",
                "own weights": "Your comparisons"}[name]
+    if n_contrasts == 1:  # as the default route: one comparison has nothing to adjust for
+        adjust = "one pair, so nothing to adjust for" if name == "each pair" else "one comparison, so nothing to adjust for"
     print(f"{heading} ({pair_what}, {adjust}" + (f" for {n_contrasts} comparisons" if n_contrasts > 1 and
                                                  adjust_key != "none" else "") + "):")
     by_list = [str(b) for b in out["contrast_by"]] if within is not None else [None] * len(contrasts)
@@ -691,14 +694,14 @@ def averages_compared(words, column, for_each, using, outcome, grouped_by, in_or
             words_p = f"{ADJUST_WORDS.get(adjust_key, adjust_key).split(chr(39))[0].strip()}-adjusted {_p_shown(p)}" \
                 if adjust_key in ("tukey", "sidak", "bonferroni", "holm") else f"adjusted {_p_shown(p)} ({adjust_key})"
         else:
-            words_p = _p_clause(p, TREND_NULLS.get(shown, f"there were truly no part of {shown}") if name == "trend"
+            words_p = _p_clause(p, TREND_NULLS.get(shown, f"there were truly no wavier part ({shown})") if name == "trend"
                                 else "the groups truly did not differ")
         print(f"  {where}{shown}: {pair_what} {_num(out['difference'][i])} (95 % CI {_num(out['plow'][i])} to "
               f"{_num(out['phigh'][i])}); {words_p}.")
         row = {"term": shown + (f" (within {by_list[i]})" if within is not None else ""), pair_what:
                float(out["difference"][i]), "95 % CI low": float(out["plow"][i]), "95 % CI high": float(out["phigh"][i]),
                "standard error": float(out["pse"][i]), "degrees of freedom": float(out["pdf"][i]),
-               "statistic": float(out["stat"][i]), P_COLUMNS.get(adjust_key, f"adjusted p-value ({adjust_key})"): p}
+               "statistic": float(out["stat"][i]), P_COLUMNS.get(adjust_key, f"p-value ({adjust_key})"): p}
         rows.append(row)
     spec = f"~ {_r_name(for_each)}" + (f" | {_r_name(within)}" if within is not None else "")
     scale = "" if outcome == "numbers" else ', type = "response"'
@@ -726,10 +729,16 @@ def averages_compared(words, column, for_each, using, outcome, grouped_by, in_or
         print("A large p-value does not show that there is no difference, only that the data cannot tell.")
     for i, level in enumerate(out["level"]):
         rows.insert(i, {"term": str(level) + (f" (within {out['level_by'][i]})" if within is not None else ""),
-                        f"model {what}": float(out["average"][i]), "95 % CI low": float(out["low"][i]),
+                        "model average": float(out["average"][i]), "95 % CI low": float(out["low"][i]),
                         "95 % CI high": float(out["high"][i]), "standard error": float(out["se"][i]),
                         "degrees of freedom": float(out["df"][i])})
     return _new_rows_table(words, rows)
+
+
+def _plural(what):
+    """"average" -> "averages", "chance of yes" -> "chances of yes", "average count" -> "average counts"."""
+    first, _, rest = what.partition(" of ")
+    return f"{first}s of {rest}" if rest else f"{what}s"
 
 
 def _contrast_label(label, name):
@@ -794,7 +803,7 @@ def _averages_over_range(words, model, column, for_each, over_range, how_text, c
     x = np.asarray(out["x"], dtype=float)
     groups = [str(g) for g in out["group"]] if for_each is not None else [None] * len(x)
     lines = f', one line for each "{for_each}"' if for_each is not None else ""
-    print(f'Model {what}s of "{column}" across "{over_range}" ({RANGE_POINTS} values from {_num(grid[0])} to '
+    print(f'Model {_plural(what)} of "{column}" across "{over_range}" ({RANGE_POINTS} values from {_num(grid[0])} to '
           f'{_num(grid[-1])}; {model["n"]} rows){how_text}{lines}:')
     for g in dict.fromkeys(groups):
         idx = [i for i in range(len(x)) if groups[i] == g]
@@ -805,7 +814,7 @@ def _averages_over_range(words, model, column, for_each, over_range, how_text, c
                   f"(95 % CI {_num(out['low'][i])} to {_num(out['high'][i])})")
     print(f"  (all {len(x)} rows are in the table that comes back)")
     colour = f', colour="{for_each}"' if for_each is not None else ""
-    print(f'To draw them: chart = sdata.chart(result), then chart.draw_lines(x="{over_range}", y="model {what}"{colour}) '
+    print(f'To draw them: chart = sdata.chart(result), then chart.draw_lines(x="{over_range}", y="model average"{colour}) '
           f'and chart.draw_band(x="{over_range}", between=["95 % CI low", "95 % CI high"]{colour}).')
     spec = f"~ {_r_name(over_range)}" + (f" | {_r_name(for_each)}" if for_each is not None else "")
     print(f"Method: the model {call}, then R emmeans::emmeans(m, {spec}, at = list({_r_name(over_range)} = "
@@ -816,7 +825,7 @@ def _averages_over_range(words, model, column, for_each, over_range, how_text, c
         row = {over_range: float(x[i])}
         if for_each is not None:
             row[for_each] = groups[i]
-        row.update({f"model {what}": float(out["average"][i]), "95 % CI low": float(out["low"][i]),
+        row.update({"model average": float(out["average"][i]), "95 % CI low": float(out["low"][i]),
                     "95 % CI high": float(out["high"][i]), "standard error": float(out["se"][i]),
                     "degrees of freedom": float(out["df"][i])})
         rows.append(row)
@@ -964,7 +973,7 @@ def manova(words, columns, for_each):
     print(f'Comparing the averages of {named} together for each "{for_each}" ({len(Y)} rows, {len(order)} groups): a '
           "MANOVA, one test for all the columns at once.")
     for g in order:
-        means = Y[np.array(groups) == g].mean(axis=0)
+        means = Y[np.array(groups) == g].mean(axis=0)  # [D] each group's averages, for the printout
         print(f"  {g}: " + ", ".join(f"{c} {_num(m)}" for c, m in zip(columns, means)))
     print(f"  Pillai's trace = {_num(value)}, approximate F = {_num(f)}, df = {_whole(d1)} and {_whole(d2)}; "
           f"{_p_clause(p, 'the averages truly did not differ in any of the columns')}.")

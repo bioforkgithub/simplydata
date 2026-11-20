@@ -285,13 +285,13 @@ OPTION_ENTRIES = [
                 list(d = s$estimate[1], p = s$p.value[1])                         # (2)
             """,
             "Python": """
-                {"difference": d, "adjusted p-value (Dunnett)": p}
+                {"difference": d, "p-value (Dunnett)": p}
             """,
         },
         r_inputs=SCHOOL.replace('"breakfast", "sleep"', '"class"'),
         r_packages=("emmeans",),
         compare="result",
-        fields=("difference", "adjusted p-value (Dunnett)"),
+        fields=("difference", "p-value (Dunnett)"),
         tolerance=1e-6,
         choices=("each group against the first group (in sorted order, or the first of in_order=).",
                  "emmeans' own adjustment for this method (dunnettx), printed by simplydata."),
@@ -391,7 +391,8 @@ OPTION_ENTRIES = [
             """,
         },
         r_inputs=RATS,
-        r_packages=("lme4",),
+        r_packages=(),  # base R (stats) only
+        ours_r=("lme4",),  # simplydata's side also gives the variances, from lme4
         compare="result",
         fields=("statistic", "p-value"),
         tolerance=1e-9,

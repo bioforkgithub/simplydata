@@ -238,7 +238,7 @@ def _cases(Case):
                      using=["wool * tension"], comparing="each with the first", in_order=["L", "M", "H"])
                  r = r.as_pandas().set_index("term")
                  {"M minus L": r.loc["M minus L", "difference"], "H minus L": r.loc["H minus L", "difference"],
-                  "p H minus L": r.loc["H minus L", "adjusted p-value (Dunnett)"]}
+                  "p H minus L": r.loc["H minus L", "p-value (Dunnett)"]}
              """,
              r="""
                  d <- data.frame(y = breaks, w = factor(wool), t = factor(tension, levels = c("L", "M", "H")))

@@ -199,7 +199,7 @@ class ModelToolWords:
         step = "find_model_averages_of"
         # S3a-3 (checking and comparing): contrasts, simple effects and averages across a range (checking_more.py)
         if (comparing != "each pair" or within_each_group_in is not None or over_range_of is not None
-                or (in_order is not None and outcome != "ordered groups")):
+                or (in_order is not None and outcome not in ("ordered groups", "groups"))):
             from .checking_more import averages_compared
 
             return averages_compared(self, column, for_each_group_in, using, outcome, grouped_by, in_order, comparing,

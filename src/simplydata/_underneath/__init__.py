@@ -69,6 +69,8 @@ class Entry:
               digits printed)
     r_inputs: Python code that makes the values the R block uses (from the practice table)
     r_packages: R packages the R block loads
+    ours_r:   R packages simplydata's own side needs (as Case.ours_r) when the R block needs none or others: the
+              comparison is skipped without them too (S3a-3: the nested ANOVA's variances come from lme4)
     python_note: for R words, a line on what Python alone gives
     note:     for compare="none": what simplydata does on its own, and how you would do it yourself
     """
@@ -90,6 +92,7 @@ class Entry:
     legend_numbers: tuple = ()
     r_inputs: str = ""
     r_packages: tuple = ()
+    ours_r: tuple = ()
     python_note: str = ""
     note: str = ""
 

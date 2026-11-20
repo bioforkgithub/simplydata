@@ -82,7 +82,7 @@ underneath" in the manual and a case on real, published data in the reliability 
 ### Checking and comparing models (S3a-3)
 
 - New: `table.find_columns_that_predict` chooses the columns that predict a column with the lasso or the elastic net, with the penalty checked on left-out rows (R glmnet, the "one standard error" penalty). It prints no p-values and says why.
-- New: `table.find_group_levels_of` shows each group's own starting level (and own slope) of a mixed model with a 95 % interval (R lme4 `ranef(condVar = TRUE)`), with the warning, printed and in a "warning" column, that the levels are not data for later tests.
+- New: `table.find_group_levels_of` shows each group's own starting level (and own slope) of a mixed model with a 95 % interval (R lme4 `ranef(condVar = TRUE)`), with the note, printed and in a "note" column, that the levels are not data for later tests.
 - New: `chart.draw_interaction_lines` draws one line per group through the averages, with 95 % t intervals (an interaction plot).
 - `explain(spread_changes_with=, neighbours_alike_in_order_of=)`: generalised least squares, a spread that changes by group or with a number column, and neighbouring rows that are alike (AR(1), or continuous-time AR(1) for uneven gaps), R nlme `gls()`. `neighbors_alike_in_order_of=` works too.
 - `compare_models(using=[[...], [...], ...])` compares several models by AICc (or AIC with 40 or more rows per value estimated) with Akaike weights; `check_on_left_out_rows=True` checks each model on rows it did not see (10 parts, R boot `cv.glm`). A flat `using=` without `against=` now shows the list-of-lists form in its message.

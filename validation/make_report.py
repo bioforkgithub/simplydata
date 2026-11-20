@@ -238,10 +238,11 @@ def underneath_rows() -> list[dict]:
 
     rows = []
     for entry in UNDERNEATH.values():
-        if entry.uses_r and not r_ready(entry.r_packages):
+        needed = tuple(dict.fromkeys(entry.r_packages + entry.ours_r))
+        if entry.uses_r and not r_ready(needed):
             rows.append(dict(word=entry.key, library=" + ".join(entry.code), engine="-", compare=entry.compare,
                              tolerance=entry.tolerance, passed=False,
-                             skipped="needs R with " + ", ".join(entry.r_packages), differences=[]))
+                             skipped="needs R with " + ", ".join(needed), differences=[]))
             continue
         import contextlib
         import io

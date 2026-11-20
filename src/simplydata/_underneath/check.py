@@ -363,9 +363,10 @@ def check_entry(entry: Entry) -> list[Outcome]:
             if entry.uses_r:
                 from .._r import r_ready
 
-                if not r_ready(entry.r_packages):
+                needed = tuple(dict.fromkeys(entry.r_packages + entry.ours_r))
+                if not r_ready(needed):
                     outcomes.append(Outcome(entry.key, "R", engine, entry.compare, entry.tolerance, False,
-                                            skipped="R, rpy2 or the R packages " + ", ".join(entry.r_packages)
+                                            skipped="R, rpy2 or the R packages " + ", ".join(needed)
                                                     + " are not installed"))
                     continue
                 ours, printed = run_ours(entry, engine)

@@ -259,7 +259,7 @@ def test_each_with_the_first_matches_emmeans_trt_vs_ctrl(warp, needs_r, capsys):
     frame = result.as_pandas()
     pairs = frame[frame["term"].str.contains("minus")]
     assert pairs["difference"].to_numpy(float) == pytest.approx(np.asarray(found["est"], float), rel=1e-10)
-    assert pairs["adjusted p-value (Dunnett)"].to_numpy(float) == pytest.approx(np.asarray(found["p"], float), rel=1e-6)
+    assert pairs["p-value (Dunnett)"].to_numpy(float) == pytest.approx(np.asarray(found["p"], float), rel=1e-6)
     assert "Dunnett" in printed
 
 
@@ -465,3 +465,33 @@ def test_no_singular_matrix_warning_from_whites_test(school, recwarn):
 def test_gls_refuses_the_other_explain_options_it_cannot_do(school, extra):
     with pytest.raises(SimplydataError, match="cannot be used with spread_changes_with= or neighbours_alike_in_order_of="):
         school.explain("marks", using=["hours"], spread_changes_with="school", **extra)
+
+
+# ---------------------------------------------------------------- re-check fixes
+def test_both_routes_of_find_model_averages_of_give_the_same_column_names(school, needs_r, capsys):
+    plain = school.find_model_averages_of("passed", for_each_group_in="class", using=["class"], outcome="yes or no")
+    ordered = school.find_model_averages_of("passed", for_each_group_in="class", using=["class"], outcome="yes or no",
+                                            in_order=["red", "blue", "green"])
+    printed = capsys.readouterr().out
+    assert set(plain.as_pandas().columns) == set(ordered.as_pandas().columns)
+    assert "p-value (Tukey)" in ordered.as_pandas().columns and "model average" in ordered.as_pandas().columns
+    assert "Model chances of yes" in printed and "chance of yess" not in printed
+
+
+def test_two_groups_say_one_pair_on_both_routes(school, needs_r, capsys):
+    school.find_model_averages_of("marks", for_each_group_in="breakfast", using=["breakfast"], in_order=["yes", "no"])
+    assert "one pair, so nothing to adjust for" in capsys.readouterr().out
+
+
+def test_in_order_with_outcome_groups_does_not_talk_about_comparing(school, needs_r, capsys):
+    """outcome="groups" keeps the released route (in_order= orders the outcome's groups there)."""
+    school.find_model_averages_of("class", for_each_group_in="breakfast", using=["breakfast"], outcome="groups",
+                                  in_order=["blue", "green", "red"])
+    assert "comparing=" not in capsys.readouterr().out
+
+
+def test_the_rat_glycogen_box_lists_no_package_for_base_r():
+    from simplydata._underneath import UNDERNEATH
+
+    entry = UNDERNEATH["table.compare_averages_of grouped_by="]
+    assert entry.r_packages == () and entry.ours_r == ("lme4",)

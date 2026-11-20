@@ -109,6 +109,8 @@ ALLOWED_ARITHMETIC = {
                                            "each tenth's average chance and share of yes for the picture",
     "table/checking_more.py::nested_averages": "the raw group averages, and the share of lme4's two variances that "
                                                "lies between units",
+    "table/checking_more.py::manova": "each group's averages of the compared columns, for the printout (the test "
+                                      "itself is statsmodels MANOVA)",
 }
 
 
