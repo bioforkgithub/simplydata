@@ -57,8 +57,8 @@ def test_power_additions_errors():
         sdata.find_chance_of_finding(percents=[30, 15], values_per_group=50)
     with pytest.raises(SimplydataError, match="two percents"):
         sdata.find_chance_of_finding(test="compare_counts", percents=[30], values_per_group=50)
-    with pytest.raises(SimplydataError, match="rank tests is not offered"):
-        sdata.find_how_many_needed(effect_size=0.5, based_on="ranks")
+    with pytest.raises(SimplydataError, match="based_on=\"ranks\" goes with"):  # S3b-2: ranks are simulated now
+        sdata.find_how_many_needed(test="compare_counts", effect_size=0.3, based_on="ranks")
     with pytest.raises(SimplydataError, match="spread="):
         sdata.find_how_many_needed(same_within=5)
     with pytest.raises(SimplydataError, match="inside the margin"):
