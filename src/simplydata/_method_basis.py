@@ -35,8 +35,8 @@ PRINCIPLES = {
           "gives it.",
     "P4": "Check the data: refuse or warn when the chosen method does not fit, and say what to use instead.",
     "P5": "Be open: the printout names the method; every default can be changed with an option; the manual "
-          "shows the code underneath; the reliability study checks the numbers; two independent reviews checked "
-          "the defaults and their references before publication (November 2026).",
+          "shows the code underneath; the reliability study checks the numbers; independent reviewers checked "
+          "every default and its references (see 'How the defaults were reviewed').",
 }
 
 # The references behind the principles themselves (shown with them at the top of the document)
@@ -182,7 +182,7 @@ REFERENCES: dict[str, Reference] = {
     "davies1987": _ref("Davies 1987", "Davies RB (1987). Hypothesis testing when a nuisance parameter is present only under the alternative. Biometrika 74:33-43.", doi="10.1093/biomet/74.1.33"),
     "muggeo2003": _ref("Muggeo 2003", "Muggeo VMR (2003). Estimating regression models with unknown break-points. Statistics in Medicine 22:3055-3071.", doi="10.1002/sim.1545"),
     "warton2006": _ref("Warton et al. 2006", "Warton DI, Wright IJ, Falster DS et al. (2006). Bivariate line-fitting methods for allometry. Biological Reviews 81:259-291.", doi="10.1017/S1464793106007007"),
-    "warton2012smatr": _ref("Warton et al. 2012a", "Warton DI, Duursma RA, Falster DS et al. (2012). smatr 3– an R package for estimation and inference about allometric lines. Methods in Ecology and Evolution 3:257-259.", doi="10.1111/j.2041-210X.2011.00153.x"),
+    "warton2012smatr": _ref("Warton et al. 2012 (smatr)", "Warton DI, Duursma RA, Falster DS et al. (2012). smatr 3– an R package for estimation and inference about allometric lines. Methods in Ecology and Evolution 3:257-259.", doi="10.1111/j.2041-210X.2011.00153.x"),
     "passing1983": _ref("Passing & Bablok 1983", "Passing H, Bablok W (1983). A New Biometrical Procedure for Testing the Equality of Measurements from Two Different Analytical Methods. Application of linear regression procedures for method comparison studies in Clinical Chemistry, Part I. cclm 21:709-720.", doi="10.1515/cclm.1983.21.11.709"),
     "sen1968": _ref("Sen 1968", "Sen PK (1968). Estimates of the Regression Coefficient Based on Kendall's Tau. Journal of the American Statistical Association 63:1379-1389.", doi="10.1080/01621459.1968.10480934"),
     "siegel1982": _ref("Siegel 1982", "Siegel AF (1982). Robust regression using repeated medians. Biometrika 69:242-244.", doi="10.1093/biomet/69.1.242"),
@@ -282,7 +282,7 @@ REFERENCES: dict[str, Reference] = {
     "hartigan1979": _ref("Hartigan & Wong 1979", "Hartigan JA, Wong MA (1979). Algorithm AS 136: A K-Means Clustering Algorithm. Applied Statistics 28:100.", doi="10.2307/2346830"),
     "faith1987": _ref("Faith et al. 1987", "Faith DP, Minchin PR, Belbin L (1987). Compositional dissimilarity as a robust measure of ecological distance. Vegetatio 69:57-68.", doi="10.1007/BF00038687"),
     "anderson2006": _ref("Anderson 2006", "Anderson MJ (2006). Distance-Based Tests for Homogeneity of Multivariate Dispersions. Biometrics 62:245-253.", doi="10.1111/j.1541-0420.2005.00440.x"),
-    "warton2012": _ref("Warton et al. 2012b", "Warton DI, Wright ST, Wang Y (2012). Distance-based multivariate analyses confound location and dispersion effects. Methods in Ecology and Evolution 3:89-101.", doi="10.1111/j.2041-210X.2011.00127.x"),
+    "warton2012": _ref("Warton, Wright & Wang 2012", "Warton DI, Wright ST, Wang Y (2012). Distance-based multivariate analyses confound location and dispersion effects. Methods in Ecology and Evolution 3:89-101.", doi="10.1111/j.2041-210X.2011.00127.x"),
     "feldt1965": _ref("Feldt 1965", "Feldt LS (1965). The Approximate Sampling Distribution of Kuder-Richardson Reliability Coefficient Twenty. Psychometrika 30:357-370.", doi="10.1007/BF02289499"),
     "cronbach1951": _ref("Cronbach 1951", "Cronbach LJ (1951). Coefficient Alpha and the Internal Structure of Tests. Psychometrika 16:297-334.", doi="10.1007/BF02310555"),
     "fleiss1971": _ref("Fleiss 1971", "Fleiss JL (1971). Measuring nominal scale agreement among many raters. Psychological Bulletin 76:378-382.", doi="10.1037/h0031619"),
@@ -399,6 +399,14 @@ REFERENCES: dict[str, Reference] = {
     "gum2008": _ref("JCGM 100:2008 (GUM)", "Joint Committee for Guides in Metrology (2008). JCGM 100:2008. Evaluation of measurement data: guide to the expression of uncertainty in measurement.", url="https://www.bipm.org/documents/20126/2071204/JCGM_100_2008_E.pdf"),
     "fpp3": _ref("Hyndman & Athanasopoulos 2021", "Hyndman RJ, Athanasopoulos G (2021). Forecasting: Principles and Practice (3rd ed.). OTexts.", url="https://otexts.com/fpp3/"),
     "emmeans": _ref("Lenth (emmeans)", "Lenth RV. emmeans: Estimated Marginal Means, aka Least-Squares Means. R package.", url="https://CRAN.R-project.org/package=emmeans"),
+    "mcardle2001": _ref("McArdle & Anderson 2001", "McArdle BH, Anderson MJ (2001). Fitting multivariate models to community data: a comment on distance-based redundancy analysis. Ecology 82:290-297.", doi="10.1890/0012-9658(2001)082[0290:FMMTCD]2.0.CO;2"),
+    "kaufman1990": _ref("Kaufman & Rousseeuw 1990", "Kaufman L, Rousseeuw PJ (1990). Finding Groups in Data. Wiley Series in Probability and Statistics.", doi="10.1002/9780470316801"),
+    "milligan1985": _ref("Milligan & Cooper 1985", "Milligan GW, Cooper MC (1985). An Examination of Procedures for Determining the Number of Clusters in a Data Set. Psychometrika 50:159-179.", doi="10.1007/BF02294245"),
+    "borcard2018": _ref("Borcard et al. 2018", "Borcard D, Gillet F, Legendre P (2018). Numerical Ecology with R. Use R!.", doi="10.1007/978-3-319-71404-2"),
+    "murtagh2014": _ref("Murtagh & Legendre 2014", "Murtagh F, Legendre P (2014). Ward's Hierarchical Agglomerative Clustering Method: Which Algorithms Implement Ward's Criterion?. Journal of Classification 31:274-295.", doi="10.1007/s00357-014-9161-z"),
+    "chao2005": _ref("Chao 2005", "Chao A (2005). Species Estimation and Applications. Encyclopedia of Statistical Sciences.", doi="10.1002/0471667196.ess5051"),
+    "lubbe2021": _ref("Lubbe et al. 2021", "Lubbe S, Filzmoser P, Templ M (2021). Comparison of zero replacement strategies for compositional data with large numbers of zeros. Chemometrics and Intelligent Laboratory Systems 210:104248.", doi="10.1016/j.chemolab.2021.104248"),
+    "terbraak1985": _ref("ter Braak 1985", "ter Braak CJF (1985). Correspondence Analysis of Incidence and Abundance Data: Properties in Terms of a Unimodal Response Model. Biometrics 41:859.", doi="10.2307/2530959"),
     "hurlbert1971": _ref("Hurlbert 1971", "Hurlbert SH (1971). The Nonconcept of Species Diversity: A Critique and Alternative Parameters. Ecology 52:577-586.", doi="10.2307/1934145"),
     "chao1987": _ref("Chao 1987", "Chao A (1987). Estimating the Population Size for Capture-Recapture Data with Unequal Catchability. Biometrics 43:783.", doi="10.2307/2531532"),
     "jost2006": _ref("Jost 2006", "Jost L (2006). Entropy and diversity. Oikos 113:363-375.", doi="10.1111/j.2006.0030-1299.14714.x"),
@@ -414,7 +422,6 @@ REFERENCES: dict[str, Reference] = {
     "legendre1999": _ref("Legendre & Anderson 1999", "Legendre P, Anderson MJ (1999). Distance-based redundancy analysis: testing multispecies responses in multifactorial ecological experiments. Ecological Monographs 69:1-24.", doi="10.1890/0012-9615(1999)069[0001:DBRATM]2.0.CO;2"),
     "peresneto2006": _ref("Peres-Neto et al. 2006", "Peres-Neto PR, Legendre P, Dray S et al. (2006). Variation partitioning of species data matrices: estimation and comparison of fractions. Ecology 87:2614-2625.", doi="10.1890/0012-9658(2006)87[2614:VPOSDM]2.0.CO;2"),
     "terbraak1986": _ref("ter Braak 1986", "ter Braak CJF (1986). Canonical Correspondence Analysis: A New Eigenvector Technique for Multivariate Direct Gradient Analysis. Ecology 67:1167-1179.", doi="10.2307/1938672"),
-    "legendre2011": _ref("Legendre et al. 2011", "Legendre P, Oksanen J, ter Braak CJF (2011). Testing the significance of canonical axes in redundancy analysis. Methods in Ecology and Evolution 2:269-277.", doi="10.1111/j.2041-210X.2010.00078.x"),
     "legendre2015": _ref("Legendre et al. 2015", "Legendre P, Fortin M, Borcard D (2015). Should the Mantel test be used in spatial analysis?. Methods in Ecology and Evolution 6:1239-1247.", doi="10.1111/2041-210X.12425"),
     "peresneto2001": _ref("Peres-Neto & Jackson 2001", "Peres-Neto PR, Jackson DA (2001). How well do multivariate data sets match? The advantages of a Procrustean superimposition approach over the Mantel test. Oecologia 129:169-178.", doi="10.1007/s004420100720"),
     "fisher1936": _ref("Fisher 1936", "Fisher RA (1936). The use of multiple measurements in taxonomic problems. Annals of Eugenics 7:179-188.", doi="10.1111/j.1469-1809.1936.tb02137.x"),
@@ -2245,52 +2252,60 @@ BASIS["table.add_diversity_columns"] = _b(
     "Richness, Shannon with the natural log (as vegan, base e) and Simpson as 1 - the sum of squared shares (the "
     "Gini-Simpson index: the chance that two counts drawn at random are of different kinds).",
     "show=\"inverse simpson\", \"chao1\", \"evenness\", \"hill numbers\"; at_total_count= for rarefaction.",
-    "These are vegan's definitions (Shannon 1948; Simpson 1949), and the printout names the log base because "
-    "scikit-bio used base 2 before version 0.6.1. Indices are not diversities: a 10 % drop in Shannon is not a 10 % "
-    "drop in diversity, so the printout also gives the number of equally common kinds (Jost 2006).",
+    "These are vegan's definitions: Shannon's entropy (Shannon 1948) with the natural log, and 1 - the sum of squared "
+    "shares, the Gini-Simpson form of Simpson's concentration (Simpson 1949 defined the concentration itself, drawing "
+    "without replacement). The printout names the log base because scikit-bio used base 2 before version 0.6.1. "
+    "Indices are not diversities: a 10 % drop in Shannon is not a 10 % drop in diversity, so the printout also gives "
+    "the number of equally common kinds (Jost 2006).",
     ("shannon1948", "simpson1949", "jost2006"), "P3",
-    "Negative values are refused; a row of zeros gets empty cells and a note; richness depends on the number of "
-    "counts, which a note says, pointing to at_total_count=.", "convention")
+    "Negative values are refused; a row of zeros gets empty cells and a note; when row totals differ more than "
+    "two-fold, a note says richness depends on the number of counts and points to at_total_count=.", "convention")
 BASIS["table.add_diversity_columns at_total_count="] = _b(
     "Rarefaction as the expected richness in a sample of that many counts (Hurlbert 1971, vegan rarefy()), not a "
     "random subsample, so the answer is the same every time.",
     "Leave it out for observed richness.",
-    "The expected value avoids throwing counts away at random (McMurdie & Holmes 2014). Coverage-based "
-    "standardisation is the newer alternative (Chao & Jost 2012), which simplydata does not yet offer.",
-    ("hurlbert1971", "mcmurdie2014", "chao2012"), "P2",
+    "The expected value (Hurlbert 1971) gives the same answer every time, where a random subsample would change from "
+    "run to run; rarefying of any kind still discards the extra depth of deeper samples (McMurdie & Holmes 2014). "
+    "Method comparisons prefer coverage-based standardisation for comparing richness (Chao & Jost 2012), which "
+    "simplydata does not yet offer.",
+    ("hurlbert1971", "mcmurdie2014", "chao2012"), "P3",
     "Non-whole numbers are refused (rarefaction needs raw counts); a row with fewer counts than asked gets an empty "
-    "cell (vegan gives its observed richness), and the printout names it.")
-BASIS['table.add_diversity_columns show="chao1"'] = _b(
+    "cell (vegan gives its observed richness), and the printout names it.", "convention")
+BASIS["table.add_diversity_columns show=\"chao1\""] = _b(
     "The bias-corrected Chao1 with its standard error, as vegan::estimateR().",
     "show=\"richness\" for observed richness.",
-    "Chao1 estimates the kinds not seen from those seen once or twice (Chao 1987); the bias-corrected form stays "
-    "finite when no kind is seen twice.",
-    ("chao1987",), "P3", "Non-whole numbers are refused: Chao1 needs raw counts.", "convention")
-BASIS['table.add_diversity_columns show="hill numbers"'] = _b(
+    "Chao1 is a lower bound for the number of kinds, estimated from the kinds seen once or twice (Chao 1987); the "
+    "bias-corrected form (Chao 2005) stays finite when no kind is seen twice. It is meaningless when singletons were "
+    "removed (as some amplicon pipelines do), which simplydata does not check yet.",
+    ("chao1987", "chao2005"), "P3", "Non-whole numbers are refused: Chao1 needs raw counts.", "convention")
+BASIS["table.add_diversity_columns show=\"hill numbers\""] = _b(
     "Hill numbers of order 0, 1 and 2 (richness, exp(Shannon), inverse Simpson).",
     "show= the single indices.",
-    "Hill numbers are numbers of equally common kinds, so they can be compared directly and doubled diversity "
-    "means double (Hill 1973; Jost 2006; Chao et al. 2014).",
+    "Hill numbers are numbers of equally common kinds, so a doubling means doubled diversity (Hill 1973; Jost 2006); "
+    "comparing samples still needs the same depth or coverage, especially for orders 0 and 1 (Chao et al. 2014).",
     ("hill1973", "jost2006", "chao2014"), "P2", "")
 BASIS["draw_richness_curves"] = _b(
     "vegan's rarefaction curves (rarecurve()) for each row, about 50 points on the shortest curve, with a dotted "
     "line at the smallest row total.",
     "colour= to colour the rows by a group.",
     "Richness can only be compared at the same number of counts (Hurlbert 1971); the dotted line marks the largest "
-    "such number. 50 points is a starting value for a smooth curve.",
-    ("hurlbert1971", "chao2012"), "P2", "Non-whole numbers are refused.")
+    "such number. The curves are vegan's; 50 points is a starting value for a smooth curve. Coverage-based curves "
+    "(Chao & Jost 2012) are not yet offered.",
+    ("hurlbert1971", "chao2012"), "P3", "Non-whole numbers are refused.", "convention")
 BASIS["table.add_log_ratio_columns"] = _b(
     "The centred log ratio (clr, R compositions::clr()); zeros, when there are any, replaced first by "
     "zCompositions' Bayesian-multiplicative method (GBM), with no column deleted.",
     "method=\"alr\" (against= the reference) or \"ilr\"; zeros_replaced_by=\"adding 1\".",
-    "Counts that are shares of a total are compositional and must be analysed as log ratios (Aitchison 1982; "
-    "Gloor et al. 2017). The Bayesian-multiplicative replacement estimates each zero from the data and keeps the "
-    "ratios of the other parts (Martín-Fernández et al. 2015; Palarea-Albaladejo & Martín-Fernández 2015). "
-    "cmultRepl's own default deletes columns that are more than 80 % zeros with only a message; simplydata keeps "
-    "them.",
-    ("aitchison1982", "gloor2017", "martinfernandez2015", "palarea2015"), "P2",
-    "Negative values and a single column are refused; a column with fewer than 2 values above 0 is refused, with "
-    "the line that merges it with others.")
+    "Counts that are shares of a total are compositional, and log ratios are the analysis that respects that "
+    "(Aitchison 1982; Gloor et al. 2017). The Bayesian-multiplicative replacement estimates each zero from the data "
+    "and keeps the ratios of the other parts (Martín-Fernández et al. 2015; Palarea-Albaladejo & Martín-Fernández "
+    "2015). cmultRepl's own default deletes columns that are more than 80 % zeros with only a message; keeping them "
+    "is simplydata's choice, and their log ratios then rest mostly on replaced values (Lubbe, Filzmoser & Templ 2021 "
+    "compare replacements when zeros are many).",
+    ("aitchison1982", "gloor2017", "martinfernandez2015", "palarea2015", "lubbe2021"), "P2",
+    "Negative values, a single column and rows of zeros are refused; with the multiplicative replacement, non-whole "
+    "numbers are refused; a column with fewer than 2 values above 0 is refused, with the line that merges it with "
+    "others.")
 BASIS['table.add_log_ratio_columns method="alr"'] = _b(
     "Each part over the part named in against= (R compositions::alr(ivar =)).",
     "method=\"clr\" (the default) or \"ilr\".",
@@ -2302,21 +2317,22 @@ BASIS['table.add_log_ratio_columns method="ilr"'] = _b(
     "ilr coordinates depend on the basis chosen (Egozcue et al. 2003): another basis (scikit-bio's) gives other "
     "numbers but the same distances between rows, which the printout says.",
     ("egozcue2003",), "P3", "", "convention")
-BASIS['table.add_log_ratio_columns zeros_replaced_by="adding 1"'] = _b(
-    "1 added to every count before the logs, only when there are zeros (vegan's pseudocount).",
+BASIS["table.add_log_ratio_columns zeros_replaced_by=\"adding 1\""] = _b(
+    "1 added to every count before the logs (as vegan::decostand(pseudocount = 1)), only when there are zeros.",
     "Leave it out for the Bayesian-multiplicative replacement.",
     "A pseudocount is simple but the answer depends on the number added, which the printout says; model-based "
-    "replacement does not have that problem (Martín-Fernández et al. 2015).",
-    ("martinfernandez2015",), "P3", "", "convention")
+    "replacement does not have that problem (Martín-Fernández et al. 2015). The 1 is simplydata's value.",
+    ("martinfernandez2015",), "P3", "Non-whole numbers are refused; ilr with adding 1 is refused.", "starting value")
 BASIS["table.add_principal_coordinates"] = _b(
-    "Classical scaling (PCoA) of the Bray-Curtis distances (R stats::cmdscale(eig = TRUE)), 2 axes, each turned so "
-    "its biggest value is positive; the share of each axis out of the positive eigenvalues.",
+    "Classical scaling (PCoA) of the Bray-Curtis distances on the counts as given (R stats::cmdscale(eig = TRUE)), 2 "
+    "axes, each turned so its value of largest size is positive; the share of the first axis and the running total, "
+    "out of the positive eigenvalues.",
     "measure=, how_many=.",
-    "Principal coordinates show any distance in a few axes (Gower 1966). Bray-Curtis is not a straight-line "
-    "distance, so some eigenvalues are negative, and the printout says how many and how large. Turning the axes "
-    "gives the same answer on every computer.",
-    ("gower1966", "faith1987"), "P3", "Fewer than 3 rows are refused; identical rows are kept, with a note.",
-    "convention")
+    "Principal coordinates show any distance in a few axes (Gower 1966). Bray-Curtis is the convention for counts "
+    "and held up well in simulated gradients (Faith et al. 1987); it is not a straight-line distance, so some "
+    "eigenvalues are negative, and the printout says how many and how large. Turning the axes gives the same answer "
+    "on every computer.",
+    ("gower1966", "faith1987"), "P3", "Fewer than 3 rows are refused.", "convention")
 BASIS['table.add_principal_coordinates measure="aitchison"'] = _b(
     "Zeros replaced first (GBM, no column deleted), then the Aitchison distance: the straight-line distance between "
     "the rows' clr log ratios.",
@@ -2335,19 +2351,21 @@ BASIS["table.explain_profiles_of"] = _b(
     "adjusted R squared first; each column tested after all the others (by = \"margin\"); 999 permutations after "
     "set.seed(1).",
     "measure=, method=\"canonical correspondence\", allowing_for=, permutations=, with_seed=.",
-    "db-RDA tests how columns explain differences in make-up on any distance (Legendre & Anderson 1999). The "
-    "unadjusted R squared grows with every column, so the adjusted one is printed first (Peres-Neto et al. 2006); "
-    "marginal tests do not depend on the order of using=, unlike vegan's sequential default (Legendre, Oksanen & "
-    "ter Braak 2011).",
-    ("legendre1999", "peresneto2006", "legendre2011"), "P2",
-    "More columns than rows - 2 are refused; collinear columns get a note.")
-BASIS['table.explain_profiles_of measure="hellinger"'] = _b(
+    "db-RDA tests how columns explain differences in make-up on any distance (Legendre & Anderson 1999; vegan's "
+    "dbrda follows McArdle & Anderson 2001, which keeps non-Euclidean distances without correction). The unadjusted "
+    "R squared grows with every column, so the adjusted one is printed first (Peres-Neto et al. 2006). Each column "
+    "is tested after all the others, so the order of using= does not matter; vegan's own default tests only the "
+    "whole model, and by = \"terms\" would test in order. Marginal tests lose power when columns overlap and skip "
+    "main effects that also appear in an interaction. Bray-Curtis and marginal tests are simplydata's choices.",
+    ("legendre1999", "mcardle2001", "peresneto2006"), "P3",
+    "More columns than rows - 2 are refused; collinear columns get a note.", "convention")
+BASIS["table.explain_profiles_of measure=\"hellinger\""] = _b(
     "RDA on the Hellinger-transformed counts (square roots of the shares), never on raw counts; each column tested "
     "after all the others.",
     "measure=\"bray-curtis\" (the default).",
-    "Raw abundances give Euclidean-based RDA the problems of Euclidean distance; the Hellinger transformation "
-    "fixes them (Legendre & Gallagher 2001).",
-    ("legendre2001", "legendre2011"), "P2", "")
+    "Raw abundances give Euclidean-based RDA the problems of Euclidean distance; the Hellinger transformation reduces "
+    "them, removing the double-zero problem and the dominance of abundant kinds (Legendre & Gallagher 2001).",
+    ("legendre2001",), "P2", "")
 BASIS['table.explain_profiles_of method="canonical correspondence"'] = _b(
     "CCA on the counts themselves (chi-square distances), so no measure=; its adjusted R squared from permutations "
     "(vegan), after set.seed.",
@@ -2361,25 +2379,29 @@ BASIS["table.explain_profiles_of allowing_for="] = _b(
     "meaning on the other words.",
     ("peresneto2006",), "P3", "", "convention")
 BASIS["table.find_correlation_between_profiles"] = _b(
-    "The Pearson Mantel correlation between the two sets of distances, 999 permutations after set.seed(1); "
-    "measurements in second= get straight-line distances after each column is put on the same scale.",
+    "The Pearson Mantel correlation between the two sets of distances, 999 permutations after set.seed(1); second= "
+    "with 3 or more columns of whole numbers from 0 is read as counts and gets measure=, other measurements get "
+    "straight-line distances after each column is put on the same scale.",
     "method=\"procrustes\"; measure=, permutations=, with_seed=.",
-    "The Mantel test is the classic comparison of two distance matrices; it answers a question about distances, "
-    "not about the columns themselves, and has low power, which the printout says (Legendre, Fortin & Borcard 2015).",
-    ("legendre2015",), "P3", "Different rows in the two sets and fewer than 5 rows are refused.", "convention")
-BASIS['table.find_correlation_between_profiles method="procrustes"'] = _b(
+    "The Mantel test is the classic comparison of two distance matrices. It answers a question about distances, not "
+    "about the columns themselves, which the printout says, and it has low power (Legendre, Fortin & Borcard 2015); "
+    "Peres-Neto & Jackson 2001 found Procrustes more powerful, which method= gives.",
+    ("legendre2015", "peresneto2001"), "P3", "Different rows in the two sets and fewer than 5 rows are refused.",
+    "convention")
+BASIS["table.find_correlation_between_profiles method=\"procrustes\""] = _b(
     "PROTEST on the first two principal coordinates of each set: the Procrustes correlation and its permutation "
     "p-value.",
     "Leave method= out for the Mantel test.",
     "Peres-Neto & Jackson 2001 found Procrustes analysis more powerful than the Mantel test for matching two data "
-    "sets.",
+    "sets. Two axes per set is simplydata's starting value.",
     ("peresneto2001",), "P2", "As the Mantel test.")
-BASIS['table.compare_profiles_of method="anosim"'] = _b(
-    "Clarke's ANOSIM R from ranked distances, 999 permutations after set.seed(1), with the spread check.",
+BASIS["table.compare_profiles_of method=\"anosim\""] = _b(
+    "Clarke's ANOSIM R from ranked distances, 999 permutations after set.seed(1), with the spread check "
+    "(betadisper).",
     "Leave method= out for PERMANOVA.",
     "ANOSIM is Clarke's rank-based test (Clarke 1993). Like PERMANOVA it mixes a difference in spread with a "
-    "difference in place, and ANOSIM more so (Anderson & Walsh 2013), so the spread check is printed.",
-    ("clarke1993", "anderson2013"), "P3", "As compare_profiles_of.", "convention")
+    "difference in place, and ANOSIM more so (Anderson & Walsh 2013), so the spread check is printed (Anderson 2006).",
+    ("clarke1993", "anderson2013", "anderson2006"), "P3", "As compare_profiles_of.", "convention")
 BASIS['table.compare_profiles_of show="contributions"'] = _b(
     "SIMPER: each column's average contribution to the Bray-Curtis difference between each pair of groups, without "
     "permutation p-values.",
@@ -2392,40 +2414,48 @@ BASIS['table.compare_profiles_of measure="aitchison"'] = _b(
     "measure=\"bray-curtis\" (the default).",
     "As add_principal_coordinates(measure=\"aitchison\") (Aitchison 1982; Gloor et al. 2017).",
     ("aitchison1982", "gloor2017"), "P2", "As add_log_ratio_columns.")
-BASIS['table.add_clusters how_many="automatic"'] = _b(
+BASIS["table.add_clusters how_many=\"automatic\""] = _b(
     "Average linkage on the distances, and the number of clusters (2 to 10) with the largest average silhouette "
     "width (R cluster::silhouette); on a tie, the fewer clusters.",
     "how_many= a number.",
-    "The average silhouette width measures how well each row sits in its cluster (Rousseeuw 1987). Average linkage "
-    "is simplydata's choice for Bray-Curtis distances, because Ward's method assumes straight-line distances.",
-    ("rousseeuw1987", "ward1963"), "P2", "Fewer than 4 rows are refused.")
+    "Choosing the number by the largest average silhouette is a common rule (Rousseeuw 1987; Kaufman & Rousseeuw "
+    "1990), not the winner of a method comparison (Milligan & Cooper 1985 found other rules better); 2 to 10 and "
+    "'fewer on a tie' are simplydata's starting values. Average linkage is chosen for Bray-Curtis distances, because "
+    "Ward's method assumes straight-line distances (Ward 1963).",
+    ("rousseeuw1987", "kaufman1990", "milligan1985", "ward1963"), "P5", "Fewer than 4 rows are refused.",
+    "starting value")
 BASIS["table.add_clusters measure="] = _b(
     "The counts as they are (no rescaling) for Bray-Curtis distances, with average linkage (Ward is refused with "
     "it), the same as draw_cluster_tree.",
     "linkage=\"complete\" or \"single\"; measure=\"euclidean\".",
-    "Ward's method minimises squared Euclidean distances (Ward 1963), so it does not fit Bray-Curtis; average "
-    "linkage (UPGMA) is the usual choice for ecological distances.",
-    ("ward1963", "faith1987"), "P2", "Ward with Bray-Curtis is refused.")
+    "Ward's method minimises squared Euclidean distances (Ward 1963), so it does not fit Bray-Curtis itself; average "
+    "linkage (UPGMA) is the common choice for ecological distances and usually keeps the distances best (highest "
+    "cophenetic correlation; Borcard, Gillet & Legendre 2018). Ward on the square roots of Bray-Curtis distances is "
+    "a valid alternative (Murtagh & Legendre 2014), not offered.",
+    ("ward1963", "borcard2018", "murtagh2014"), "P3", "Ward with Bray-Curtis is refused.", "convention")
 BASIS["draw_cluster_tree"] = _b(
     "Average linkage for Bray-Curtis distances, the same choice as table.add_clusters, so the tree matches the "
     "clusters; the cophenetic correlation as a note.",
     "measure=, linkage=.",
-    "As table.add_clusters(measure=) (Ward 1963 for why Ward does not fit Bray-Curtis).",
-    ("ward1963",), "P2", "")
+    "As table.add_clusters(measure=): average linkage is the common choice for ecological distances (Borcard, Gillet "
+    "& Legendre 2018), and Ward's method does not fit Bray-Curtis (Ward 1963).",
+    ("borcard2018", "ward1963"), "P3", "", "convention")
 BASIS["table.add_axes_that_separate_groups"] = _b(
     "Linear discriminant analysis (R MASS::lda()) with MASS's default prior chances, the group shares in the data; "
     "each axis turned so its biggest value is positive; leave-one-out classification.",
     "how_many=.",
     "Fisher's discriminant axes (Fisher 1936) as MASS fits them (Venables & Ripley 2002); the prior is printed, "
-    "because equal priors would classify differently. Leave-one-out accuracy is honest where in-sample accuracy is "
-    "not.",
+    "because equal priors would classify differently. Leave-one-out accuracy is nearly unbiased, unlike in-sample "
+    "accuracy, as long as the columns were not chosen on the same data.",
     ("fisher1936", "venables2002"), "P3",
-    "A group smaller than the number of columns, constant columns within groups and text columns are refused.",
-    "convention")
+    "Fewer than 2 groups, and a group with fewer than 2 rows, are refused; how_many= is at most the smaller of "
+    "groups - 1 and the number of columns.", "convention")
 BASIS["table.add_correspondence_axes"] = _b(
     "Correspondence analysis as vegan's cca() with no explaining columns, row scores with scaling = \"sites\" "
     "(vegan's default is \"species\"); each axis turned so its biggest value is positive.",
     "how_many=.",
-    "Correspondence analysis (reciprocal averaging; Hill 1973) is the standard ordination of counts with unimodal "
-    "responses (ter Braak 1986); site scaling is chosen because the axes are added to the rows.",
-    ("hill1973b", "terbraak1986"), "P3", "", "convention")
+    "Correspondence analysis (reciprocal averaging; Hill 1973b) fits counts with unimodal responses (ter Braak "
+    "1985); it weights rare kinds heavily (Legendre & Gallagher 2001). Site scaling keeps the chi-square distances "
+    "between rows, which is why it is chosen for axes added to the rows.",
+    ("hill1973b", "terbraak1985", "legendre2001"), "P3",
+    "Negative values, empty rows and columns of zeros are refused.", "convention")

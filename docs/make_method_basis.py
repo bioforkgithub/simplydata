@@ -53,6 +53,17 @@ Every reference was checked before it was cited: each DOI was looked up in Cross
 the few references without a DOI were checked at their URL. The numbers themselves are checked against the
 packages underneath in the reliability study (`validation/`), and every default can be changed with an option.
 
+## How the defaults were reviewed
+
+The defaults of the later batches (S3a, S3b and S3c) were set in design briefs, and each brief was read by an
+independent reviewer before it was built; the defaults of the earlier releases follow the rules of `PLAN.md`
+(state every choice; match R and SciPy) and the docstrings. Then, in November 2026, every entry of this document
+was read again by independent reviewers acting as hostile statistical referees. They checked each reason against
+the literature, looked every reference up in Crossref to confirm that it exists and supports the claim it is
+attached to, and compared about 50 entries with the code. Their findings were applied: misattributed references
+were replaced, overstated reasons were toned down, and the kind of basis was corrected. Where the evidence favours
+another default than the one simplydata uses, the entry now says so; changing a default is a separate decision.
+
 This document is made from `src/simplydata/_method_basis.py` by `docs/make_method_basis.py`; a test fails when
 a word that chooses a method has no entry, or when this file is out of date.
 """

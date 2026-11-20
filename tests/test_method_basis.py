@@ -83,3 +83,9 @@ def test_every_entry_belongs_to_a_group():
 def test_the_document_is_up_to_date():
     text = (ROOT / "docs" / "how_simplydata_chooses.md").read_text(encoding="utf-8")
     assert text == _script().make(), "run python docs/make_method_basis.py"
+
+
+def test_the_readme_gives_the_count_and_the_link():
+    readme = (ROOT / "README.md").read_text(encoding="utf-8")
+    assert "(docs/how_simplydata_chooses.md)" in readme
+    assert f"gives all {len(BASIS)} defaults" in readme, "update the count in the README's 'How simplydata chooses methods'"

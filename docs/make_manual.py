@@ -798,6 +798,8 @@ def _title_page() -> str:
 \vspace{0.4cm}
 {\large The manual: lessons, every word, the ideas behind them, and solutions\par}}
 \vspace{3.2cm}
+{\sffamily\Large\bfseries\color{brand} Learn basic Python, and simplydata takes you from your first table to publication-ready statistics, in plain words, with every number checked against the field's standard tools.\par}
+\vspace{1.2cm}
 \begin{lstlisting}[style=title]
 import simplydata as sdata
 
@@ -1132,8 +1134,11 @@ def _method_basis() -> str:
            f"{counts['published']} defaults rest on published guidelines or method comparisons, "
            f"{counts['convention']} follow the convention of the package named so that results match it, and "
            f"{counts['starting value']} are simplydata's own starting values, each changed with the option named. "
-           "Every DOI was looked up in Crossref; references without a DOI were checked at their URL. The same text "
-           "is in " + code("docs/how_simplydata_chooses.md") + ".",
+           "Every DOI was looked up in Crossref; references without a DOI were checked at their URL. The defaults of "
+           "the later batches were read by an independent reviewer when they were designed, and in November 2026 "
+           "every entry, with its references, was checked again by independent reviewers acting as hostile "
+           "statistical referees; their findings were applied. The same text is in "
+           + code("docs/how_simplydata_chooses.md") + ".",
            r"\unsection{The five principles}{basis:principles}",
            r"\begin{enumerate}"]
     for key, text in PRINCIPLES.items():
