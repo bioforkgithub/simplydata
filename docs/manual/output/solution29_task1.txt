@@ -1,11 +1,6 @@
-Combining 37 studies (random effects, REML, Hartung-Knapp): "odds ratio" (ratios, combined on the log scale and shown back as ratios; estimates_are_ratios=False says they are not).
-Combined odds ratio 1.24 (95 % CI 1.13 to 1.38, Hartung-Knapp; 37 studies).
-If there were truly no effect on average (an odds ratio of 1), a combined effect this far from 1 or further would turn up in fewer than 1 in 1000 sets of studies like these (p < 0.0001).
-In a new setting like these studies, the true odds ratio would lie between 0.904 and 1.71 (95 % prediction interval, t with 36 degrees of freedom, as metafor uses with Hartung-Knapp; Higgins et al. 2009 use 35).
-The true odds ratios typically differ from the average by a factor of about 1.16 up or down (tau = 0.150 on the log scale; tau-squared = 0.0224, 95 % CI 0 to 0.0664).
-I-squared = 30 % (95 % CI 0 to 55 %): the share of the spread in the study results that is beyond chance; it says how much of the spread is real, not how big it is.
-If every study truly measured the same effect, differences between the studies this big or bigger would turn up in about 10 of 100 sets of studies like these (Q = 47.5, 36 degrees of freedom, p = 0.095). This does not show that the studies measured the same effect.
-Small-study effects (Egger's regression test): If small and large studies truly showed the same effect, a link between study size and effect this strong or stronger would turn up in about 2 of 100 sets of studies like these (t = 2.38, 35 degrees of freedom, p = 0.023). Small-study effects are not proof of publication bias: they can also come from real differences between small and large studies, or from chance, and this test does not say which.
-Trim and fill (a what-if, not a correction): 7 studies might be missing on the left; with them the combined odds ratio would be 1.19 (95 % CI 1.08 to 1.31, normal interval, as metafor trimfill() refits).
-Method: R metafor::conv.wald(out, ci.lb, ci.ub, level = 95, transf = log), then metafor::rma(yi, vi, method = "REML", test = "adhoc"); predict() for the combined effect and the prediction interval, confint() for the intervals of tau-squared and I-squared; Hartung-Knapp (for the interval and the p-value) with the ad hoc rule, so it is never narrower than the normal interval; small-study effects by metafor::regtest(model = "lm", predictor = "sei") and metafor::trimfill().
-simplydata chooses: random effects with REML, Hartung-Knapp intervals for random effects (never narrower than the normal interval), the prediction interval from 3 studies, and the notes on small-study effects from 10 studies (Peters' test for risk and odds ratios from counts, Egger's test for the rest); method= and interval_by= change them.
+Added "time": the weeks from "admitted" to the first of "first_esbl" and "discharged".
+Added "event": 1 when "first_esbl" came first (on or before the other dates), else 0 (22 of 300 rows).
+Person-time in all: 334 weeks over 300 rows.
+Note: one week is 7 days here (as R Epi cal.yr() and Stata stset scale(365.25)); other tools may count calendar months or years.
+"event" per 100 "time": 8.91 in intensive care (95 % CI 4.87 to 14.9; 14 events in 157.143) and 4.52 in surgery (95 % CI 1.95 to 8.91; 8 events in 176.857).
+Method: exact Poisson intervals (statsmodels confint_poisson, as R poisson.test()).

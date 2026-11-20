@@ -15,7 +15,8 @@ from .._errors import SimplydataError, suggest
 
 # name -> (what it is, what each column means)
 # Columns read as dates (the files keep them as year-month-day text).
-DATE_COLUMNS = {"shop": ["date"], "visitors": ["month"], "river": ["date"]}
+DATE_COLUMNS = {"shop": ["date"], "visitors": ["month"], "river": ["date"],
+                "admissions": ["admitted", "discharged", "first_esbl"]}
 EXAMPLES = {
     "marks": (
         "Test marks of 18 made-up children in three classes.",
@@ -194,6 +195,20 @@ EXAMPLES = {
             "density": "how cloudy the culture is (optical density at 600 nm)",
         },
     ),
+    # S3b-3 (survival and person-time): dates to turn into time and event columns
+    "admissions": (
+        "300 made-up hospital admissions in 2024: when each patient came and left, and the first culture that grew "
+        "ESBL-producing bacteria. Made up for practice, not real patients.",
+        {
+            "patient": "A001 to A300",
+            "ward": "surgery or intensive care",
+            "age": "age in years on admission",
+            "admitted": "date of admission",
+            "discharged": "date the patient left hospital, alive or dead",
+            "died": "yes (died in hospital) or no",
+            "first_esbl": "date of the first culture with ESBL-producing bacteria during the stay (empty if none)",
+        },
+    ),
     # S3b-1 (combining studies): real, published study results (the only tables that are not made up)
     "bcg": (
         "REAL DATA: 13 trials of the BCG vaccine against tuberculosis, one row per trial (Colditz et al. 1994, "
@@ -243,7 +258,8 @@ def get_example(name: str | None = None):
 
     sdata.get_example() with no name lists every table and its columns.
     The tables are: marks, weather, fruit, growth, sensor, visitors, river, shop, school, meadow, trial, clinic,
-    island, toxicity, culture, and, for combining studies, bcg and passive_smoking (real published studies).
+    island, toxicity, culture, admissions, and, for combining studies, bcg and passive_smoking (real published
+    studies).
     "shop" has empty cells and a column of dates to practise with; "school" has empty cells too.
     """
     if name is None:

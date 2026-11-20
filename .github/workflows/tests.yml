@@ -44,6 +44,7 @@ jobs:
           "outliers", "EnvStats",
           "drc", "segmented", "smatr", "mcr", "quantreg", "deming",
           "nlme", "glmnet", "boot", "lmtest", "AICcmodavg",
+          "cmprsk", "adjustedCurves", "riskRegression", "KMsurv", "survRM2",
           "metafor", "metadat", "meta");
           install.packages(pkgs); for (p in pkgs) library(p, character.only = TRUE)'
       - name: Tell rpy2 where R is

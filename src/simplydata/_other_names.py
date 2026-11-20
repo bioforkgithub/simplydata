@@ -224,6 +224,23 @@ _TABLE = [
     ('table.find_survival_over_time(time="days", event="died")', "survfit kaplan_meier"),
     ('table.compare_survival(time="days", event="died", for_each_group_in="treatment")', "survdiff logrank_test"),
     ('table.explain_survival(time="days", event="died", using=["age"])', "coxph cox"),
+    # S3b-3: survival and person-time (the words, and the field's names for the new options)
+    ('table.find_risk_over_time(time="time", event="event", value="first_esbl", competing_with="discharged")',
+     "cuminc cumulative_incidence competing_risks aalen_johansen cif CumIncidenceRight"),
+    ('table.add_time_and_event_columns(from_date="admitted", to_date="discharged", event_date="first_esbl")',
+     "stset lexis Lexis person_years follow_up survSplit"),
+    ('table.find_survival_over_time(time="days", event="died", average_time_up_to=365)', "rmst rmst2 rmean restricted_mean"),
+    ('table.explain_survival(time="days", event="died", using=["age"], allowing_for="treatment")', "strata stratified_cox"),
+    ('table.explain_survival(time="months", event="outcome", value="relapse", competing_with="death", using=["age"], '
+     'method="fine-gray")', "fine_gray finegray crr subdistribution"),
+    ('table.explain_survival(time="days", event="died", using=["age"]) (with R it prints Harrell\'s C)',
+     "c_index harrell harrells_c concordance_index"),
+    ('table.explain_survival(time="days", event="died", using=["age"], distribution="weibull")',
+     "aft survreg weibull_aft accelerated_failure_time"),
+    ('table.find_survival_over_time(time="days", event="died", method="life table", at_time_points=[0, 365, 730])',
+     "lifetab life_table actuarial"),
+    ('table.find_survival_over_time(time="days", event="died", followed_from="entry_day")',
+     "delayed_entry left_truncation counting_process"),
     ('table.find_principal_components_of()', "pca prcomp"),
     ('table.add_clusters(how_many=3)', "kmeans hclust"),
     ('table.find_distances_between_rows(measure="bray-curtis")', "pdist vegdist"),
@@ -346,6 +363,9 @@ _CHART = [
     ("chart.peak_dots(is_at_least=1)", "mark_peaks plot_peaks"),
     # S3a-3
     ('chart.draw_interaction_lines(x="class", y="marks", colour="breakfast")', "interaction.plot interaction_plot pointplot"),
+    # S3b-3
+    ('chart.draw_risk_curves(time="time", event="event", value="first_esbl", competing_with="discharged")',
+     "ggcuminc cumulative_incidence_plot plot_cuminc"),
     # S3b-1
     ('chart.draw_funnel_plot(x="estimate", y="standard error")', "funnel funnel_plot draw_funnel"),
 ]

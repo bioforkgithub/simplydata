@@ -7,4 +7,5 @@ Hazard ratios from 120 rows with 59 events (above 1: a higher risk of the event 
   "treatment" usual care vs new medicine: hazard ratio 1.33 (95 % CI 0.795 to 2.24); about 28 of 100 studies would show this much if there were truly none (p = 0.275).
   each 1 more "age": hazard ratio 1.05 (95 % CI 1.03 to 1.08); fewer than 1 in 1000 studies would show this much if there were truly none (p < 0.0001).
 The model as a whole (likelihood-ratio test, chi-square = 21.6, df = 2): fewer than 1 in 1000 studies would show this much if none of the columns truly mattered (p < 0.0001).
+Harrell's C = 0.656 (standard error 0.0387): in 65.6 % of the pairs where one row had the event first, the model gave that row the higher risk; 0.5 is a coin toss. Measured on the rows the model was fitted to, so it is likely too high for new rows.
 Method: Cox proportional hazards model, Efron's method for tied times, as R coxph(Surv(days, died == "yes") ~ treatment + age).

@@ -4,7 +4,7 @@ Made by `python validation/make_report.py` on 2026-11-20. Generated: do not edit
 
 Each simplydata word is run on real, published data and compared with the published answer, with the package simplydata uses underneath called directly, and with R. Each "same underneath" box of the manual is run next to its word and compared too. How it works, and the datasets with their licences: [validation/README.md](README.md).
 
-**541 checks passed, 0 failed, 0 skipped** (skipped: R or an R package is not installed on this computer).
+**537 checks passed, 0 failed, 0 skipped** (skipped: R or an R package is not installed on this computer).
 
 ## Setup
 
@@ -939,217 +939,214 @@ Note: The book's three-level table (rats, preparations, readings) tests treatmen
 | F | R | 71.8287954469352 | 71.8287954469326 | relative 1e-10 | pass |
 | Wilks | R | 0.0398783132489411 | 0.0398783132489476 | relative 1e-10 | pass |
 
-### `table.combine_studies`
+### `table.add_time_and_event_columns`
 
-**BCG trials: risk ratios, random effects (REML) with Hartung-Knapp** (published; data: BCG trials (metadat))
-
-| number | compared with | simplydata | reference | tolerance | result |
-|---|---|---|---|---|---|
-| log estimate | Viechtbauer (2010), JSS 36(3) | -0.714532348365101 | -0.7145 | within 5e-05 (printed rounding) | pass |
-| tau squared | Viechtbauer (2010), JSS 36(3) | 0.313243325980895 | 0.3132 | within 5e-05 (printed rounding) | pass |
-| I squared % | Viechtbauer (2010), JSS 36(3) | 92.2213860749656 | 92.22 | within 0.005 (printed rounding) | pass |
-| Q | Viechtbauer (2010), JSS 36(3) | 152.233008082373 | 152.233 | within 5e-05 (printed rounding) | pass |
-| estimate | R | 0.489420936788213 | 0.489420936788213 | relative 1e-08 | pass |
-| low | R | 0.330072245409142 | 0.330072245409142 | relative 1e-08 | pass |
-| high | R | 0.725698257573092 | 0.725698257573092 | relative 1e-08 | pass |
-| p-value | R | 0.00192001508513394 | 0.00192001508513394 | relative 1e-08 | pass |
-| tau squared | R | 0.313243325980895 | 0.313243325980895 | relative 1e-08 | pass |
-| I squared % | R | 92.2213860749656 | 92.2213860749656 | relative 1e-08 | pass |
-| Q | R | 152.233008082373 | 152.233008082373 | relative 1e-08 | pass |
-
-Note: The published numbers are the estimate, tau-squared, I-squared and Q, which Hartung-Knapp does not change; its interval is checked against R metafor itself.
-
-**BCG trials: Peters' test of small-study effects (risk ratios from counts)** (real data; data: BCG trials (metadat))
+**person-years and deaths in the UDCA trial, from its dates** (real data; data: udca (survival))
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
-| t | R | -1.27018944288669 | -1.27018944288669 | relative 1e-06 | pass |
-| p-value | R | 0.230226874722668 | 0.230226874722668 | relative 1e-06 | pass |
+| person-years | R | 557.664613278576 | 557.664613278576 | relative 1e-12 | pass |
+| deaths | R | 11 | 11 | relative 1e-12 | pass |
+| rows | R | 170 | 170 | relative 1e-12 | pass |
 
-Note: R meta's Peters test (Peters et al. 2006), a second package: simplydata runs metafor::regtest() with Peters' weights and 1 / n as the predictor.
+Note: Base R date arithmetic (difftime) with a year of 365.25 days, as R Epi cal.yr() and Stata stset scale(365.25). A death after the last follow-up date counts as no event.
 
-**passive smoking: Egger's test and trim and fill** (real data; data: passive smoking (metadat))
+### `table.find_risk_over_time`
 
-| number | compared with | simplydata | reference | tolerance | result |
-|---|---|---|---|---|---|
-| t | R | 2.38241441660256 | 2.38241441660256 | relative 1e-06 | pass |
-| p-value | R | 0.0227641997034067 | 0.0227641997034067 | relative 1e-06 | pass |
-| studies added | R | 7 | 7 | relative 1e-06 | pass |
-| filled odds ratio | R | 1.19061641886529 | 1.19061641886529 | relative 1e-06 | pass |
-
-Note: Egger's test from R meta (metabias, method "Egger"), a second package; trim and fill from metafor (estimator L0, side estimated).
-
-### `table.combine_studies interval_by=`
-
-**interval_by=: BCG trials, the normal (z) interval** (published; data: BCG trials (metadat))
+**the chance of a plasma cell malignancy by 10 years, death competing (women)** (real data; data: mgus2 (survival))
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
-| log low | Viechtbauer (2010), JSS 36(3) | -1.06689767574005 | -1.0669 | within 5e-05 (printed rounding) | pass |
-| log high | Viechtbauer (2010), JSS 36(3) | -0.36216702099015 | -0.3622 | within 5e-05 (printed rounding) | pass |
-| estimate | R | 0.489420936788213 | 0.489420936788213 | relative 1e-08 | pass |
-| low | R | 0.344074293400216 | 0.344074293400216 | relative 1e-08 | pass |
-| high | R | 0.69616608378248 | 0.69616608378248 | relative 1e-08 | pass |
-| p-value | R | 7.05426734852055e-05 | 7.05426734852055e-05 | relative 1e-08 | pass |
+| risk by 120 months | statsmodels CumIncidenceRight | 0.0738856643759262 | 0.0738856643759262 | relative 1e-09 | pass |
+| risk by 120 months | R | 0.0738856643759262 | 0.0738856643759262 | relative 1e-09 | pass |
+| low | R | 0.0555247328325098 | 0.0555247328325098 | relative 1e-09 | pass |
 
-### `table.combine_studies method=`
+### `draw_risk_curves`
 
-**method=: BCG trials, DerSimonian-Laird** (published; data: BCG trials (metadat))
+**the chance of death over time in the NCCTG lung cancer trial (women): 1 minus Kaplan-Meier** (real data; data: lung (survival))
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
-| tau squared | Viechtbauer (2010), JSS 36(3) | 0.308760262862376 | 0.3088 | within 5e-05 (printed rounding) | pass |
-| estimate | statsmodels combine_effects (DerSimonian-Laird) | 0.489624150463619 | 0.489624150463619 | relative 1e-08 | pass |
-| low | statsmodels combine_effects (DerSimonian-Laird) | 0.344919135222476 | 0.344919135222476 | relative 1e-08 | pass |
-| high | statsmodels combine_effects (DerSimonian-Laird) | 0.695037718225147 | 0.695037718225147 | relative 1e-08 | pass |
-| estimate | R | 0.489624150463619 | 0.489624150463619 | relative 1e-08 | pass |
-| low | R | 0.344919135222476 | 0.344919135222476 | relative 1e-08 | pass |
-| high | R | 0.695037718225147 | 0.695037718225147 | relative 1e-08 | pass |
-| p-value | R | 6.462924304704e-05 | 6.462924304704e-05 | relative 1e-08 | pass |
-| tau squared | R | 0.308760262862376 | 0.308760262862376 | relative 1e-08 | pass |
+| risk at the 11th step | R | 0.134830680747682 | 0.134830680747682 | relative 1e-12 | pass |
+| risk at the end | R | 0.916785556486642 | 0.916785556486642 | relative 1e-12 | pass |
 
-Note: The study's log risk ratios are written out for statsmodels (the parent check), which has no escalc; simplydata itself takes them from R metafor.
+### `draw_risk_curves competing_with=`
 
-**method=: BCG trials, Paule-Mandel** (real data; data: BCG trials (metadat))
+**competing_with=: the drawn risk of a plasma cell malignancy is R's Aalen-Johansen estimate** (real data; data: mgus2 (survival))
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
-| estimate | R | 0.489206589341719 | 0.489206589341719 | relative 1e-06 | pass |
-| low | R | 0.329851325671957 | 0.329851325671957 | relative 1e-06 | pass |
-| high | R | 0.725548355968616 | 0.725548355968616 | relative 1e-06 | pass |
-| p-value | R | 0.00191966702866362 | 0.00191966702866362 | relative 1e-06 | pass |
-| tau squared | R | 0.318093711863015 | 0.318093711863015 | relative 1e-06 | pass |
+| risk at the 51st time | R | 0.0289632492410418 | 0.0289632492410418 | relative 1e-09 | pass |
+| time of the 51st step | R | 51 | 51 | relative 1e-09 | pass |
 
-Note: Paule-Mandel is found by iteration, so the numbers agree to metafor's own tolerance.
+### `table.find_survival_over_time at_time_points=`
 
-**method=: BCG trials, a common effect** (real data; data: BCG trials (metadat))
+**at_time_points=: survival at 180 and 365 days in the NCCTG lung cancer trial** (real data; data: lung (survival))
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
-| estimate | R | 0.650323619619482 | 0.650323619619482 | relative 1e-08 | pass |
-| low | R | 0.600699026085764 | 0.600699026085764 | relative 1e-08 | pass |
-| high | R | 0.704047770795957 | 0.704047770795957 | relative 1e-08 | pass |
-| p-value | R | 2.28862930697324e-26 | 2.28862930697324e-26 | relative 1e-08 | pass |
+| female at 180 | statsmodels SurvfuncRight | 0.842401705587783 | 0.842401705587783 | relative 1e-12 | pass |
+| female at 365 | statsmodels SurvfuncRight | 0.526463030185906 | 0.526463030185906 | relative 1e-12 | pass |
+| male at 365 | statsmodels SurvfuncRight | 0.336087834639378 | 0.336087834639378 | relative 1e-12 | pass |
+| female at 180 | R | 0.842401705587783 | 0.842401705587783 | relative 1e-09 | pass |
+| female at 365 | R | 0.526463030185906 | 0.526463030185906 | relative 1e-09 | pass |
+| male at 365 | R | 0.336087834639378 | 0.336087834639379 | relative 1e-09 | pass |
+| male at 365, low | R | 0.260900503789725 | 0.260900503789725 | relative 1e-09 | pass |
 
-### `table.combine_studies method="Mantel-Haenszel"`
+### `table.find_survival_over_time method="life table"`
 
-**method="Mantel-Haenszel": BCG trials, risk ratios** (real data; data: BCG trials (metadat))
-
-| number | compared with | simplydata | reference | tolerance | result |
-|---|---|---|---|---|---|
-| estimate | statsmodels StratifiedTable (riskratio_pooled) | 0.635267185077769 | 0.635267185077769 | relative 1e-08 | pass |
-| estimate | R | 0.635267185077769 | 0.635267185077769 | relative 1e-08 | pass |
-| low | R | 0.588128729691417 | 0.588128729691417 | relative 1e-08 | pass |
-| high | R | 0.686183782670126 | 0.686183782670126 | relative 1e-08 | pass |
-| p-value | R | 8.91137967074168e-31 | 8.91137967074168e-31 | relative 1e-08 | pass |
-
-### `table.combine_studies method="Peto"`
-
-**method="Peto": BCG trials, odds ratios** (real data; data: BCG trials (metadat))
+**method="life table": the actuarial life table of breast feeding (Klein & Moeschberger section 5.4)** (real data; data: bfeed (KMsurv))
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
-| estimate | R | 0.622229482760703 | 0.622229482760703 | relative 1e-08 | pass |
-| low | R | 0.574568103455868 | 0.574568103455868 | relative 1e-08 | pass |
-| high | R | 0.673844452707929 | 0.673844452707929 | relative 1e-08 | pass |
-| p-value | R | 1.83807338632167e-31 | 1.83807338632167e-31 | relative 1e-08 | pass |
+| survival at 7 weeks | R | 0.627647159449448 | 0.627647159449448 | relative 1e-12 | pass |
+| effective at risk | R | 561.5 | 561.5 | relative 1e-12 | pass |
+| hazard | R | 0.0537475345167653 | 0.0537475345167653 | relative 1e-12 | pass |
 
-### `table.combine_studies for_each_group_in=`
+Note: The intervals of the K&M example; lifetab gets the counts simplydata makes from the rows.
 
-**for_each_group_in=: BCG trials by how people were allocated** (real data; data: BCG trials (metadat))
+### `table.find_survival_over_time allowing_for=`
 
-| number | compared with | simplydata | reference | tolerance | result |
-|---|---|---|---|---|---|
-| Q between | R | 1.86144614123119 | 1.86144614123119 | relative 1e-08 | pass |
-| p between | R | 0.394268523294979 | 0.39426852329498 | relative 1e-08 | pass |
-| random | R | 0.378717597960143 | 0.378717597960143 | relative 1e-08 | pass |
-| random tau2 | R | 0.392526549118408 | 0.392526549118408 | relative 1e-08 | pass |
-
-Note: Each subgroup has its own between-study variance; the test of their difference uses each subgroup's estimate with its normal (z) standard error, as RevMan and R meta do (the next case checks it against meta), not metafor's rma(mods = ~ alloc), which shares one variance.
-
-**for_each_group_in=: BCG trials by allocation, against R meta's test of subgroup differences** (real data; data: BCG trials (metadat))
+**allowing_for=: survival at one year by sex, adjusted for age and ECOG score (direct adjustment)** (real data; data: lung (survival))
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
-| Q between | R | 1.86144614123119 | 1.86144614123119 | relative 0.0001 | pass |
-| p between | R | 0.394268523294979 | 0.394268523294979 | relative 0.0001 | pass |
+| female | R | 0.524876838929801 | 0.524876838929801 | relative 1e-09 | pass |
+| male | R | 0.33744610511966 | 0.33744610511966 | relative 1e-09 | pass |
 
-Note: R meta (each subgroup its own between-study variance, REML) is a second package; meta's REML stops at its own tolerance, so the numbers agree to about 1e-5.
+Note: adjustedCurves' own default is conf_int = FALSE; simplydata asks for the intervals.
 
-### `table.combine_studies using=`
+### `table.find_survival_over_time followed_from=`
 
-**using=: BCG trials, meta-regression on latitude** (real data; data: BCG trials (metadat))
-
-| number | compared with | simplydata | reference | tolerance | result |
-|---|---|---|---|---|---|
-| slope | R | -0.0291016609280148 | -0.0291016609280148 | relative 1e-08 | pass |
-| low | R | -0.0471531327109005 | -0.0471531327109005 | relative 1e-08 | pass |
-| p-value | R | 0.00456554558895661 | 0.00456554558895661 | relative 1e-08 | pass |
-
-### `table.combine_studies estimates=`
-
-**estimates=: passive smoking, odds ratios with their 95 % intervals** (published; data: passive smoking (metadat))
+**followed_from=: survival to age 80 of Channing House residents who entered at different ages (delayed entry)** (real data; data: Channing House (KMsurv))
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
-| estimate | Hackshaw et al. (1997), BMJ 315:980 | 1.23848509565452 | 1.24 | within 0.005 (printed rounding) | pass |
-| low | Hackshaw et al. (1997), BMJ 315:980 | 1.12922353518157 | 1.13 | within 0.005 (printed rounding) | pass |
-| high | Hackshaw et al. (1997), BMJ 315:980 | 1.35831860067612 | 1.36 | within 0.005 (printed rounding) | pass |
-| estimate | R | 1.23848509565452 | 1.23848509565452 | relative 1e-08 | pass |
-| low | R | 1.12922353518157 | 1.12922353518157 | relative 1e-08 | pass |
-| high | R | 1.35831860067612 | 1.35831860067612 | relative 1e-08 | pass |
+| survival at 960 months | statsmodels SurvfuncRight(entry=) | 0.565869628031309 | 0.565869628031309 | relative 1e-12 | pass |
+| survival at 960 months | R | 0.565869628031309 | 0.565869628031309 | relative 1e-09 | pass |
+| at risk | R | 193 | 193 | relative 1e-09 | pass |
 
-Note: The paper's excess risk of 24 % (95 % CI 13 % to 36 %) is the pooled odds ratio 1.24 (1.13 to 1.36).
+### `table.find_survival_over_time average_time_up_to=`
 
-### `table.combine_studies averages=`
-
-**averages=: Normand 1999, standardised differences (Hedges' g)** (real data; data: Normand 1999 (metadat))
+**average_time_up_to=: the average days alive in the first year, by sex** (real data; data: lung (survival))
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
-| estimate | R | -0.537108258566786 | -0.537108258566786 | relative 1e-08 | pass |
-| low | R | -1.25032220922694 | -1.25032220922694 | relative 1e-08 | pass |
-| first study | R | -0.355169640940107 | -0.355169640940107 | relative 1e-08 | pass |
+| male | R | 241.495085192057 | 241.495085192057 | relative 1e-09 | pass |
+| male standard error | R | 10.3582264910969 | 10.3582264910969 | relative 1e-09 | pass |
 
-Note: metafor's Hedges' g (exact correction, large-sample variance) is the reference; statsmodels' effectsize_smd uses an approximate correction and another variance, so it differs slightly.
+Note: survRM2::rmst2 gives the same per-group values (241.495, se 10.358 for men).
 
-### `table.combine_studies show="ratios of averages"`
+### `table.compare_survival allowing_for=`
 
-**show="ratios of averages": Curtis 1998, the log response ratio of plant mass under raised CO2** (real data; data: Curtis 1998 (metadat))
-
-| number | compared with | simplydata | reference | tolerance | result |
-|---|---|---|---|---|---|
-| estimate | R | 1.28912315941624 | 1.28912315941624 | relative 1e-06 | pass |
-| tau squared | R | 0.0257714790311439 | 0.0257714790311439 | relative 1e-06 | pass |
-
-### `table.combine_studies time=`
-
-**time=: Hart 1999, rate ratios of stroke with warfarin** (real data; data: Hart 1999 (metadat))
+**allowing_for=: chemotherapy compared within each cell type (stratified log-rank)** (real data; data: veteran (survival))
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
-| estimate | R | 0.361745007398934 | 0.361745007398934 | relative 1e-08 | pass |
-| low | R | 0.237639349238557 | 0.237639349238557 | relative 1e-08 | pass |
-| high | R | 0.55066406635666 | 0.55066406635666 | relative 1e-08 | pass |
+| chi-square | statsmodels survdiff(strata=) | 0.701743346844315 | 0.701743346844315 | relative 1e-12 | pass |
+| p | statsmodels survdiff(strata=) | 0.402198523780676 | 0.402198523780676 | relative 1e-12 | pass |
+| chi-square | R | 0.701743346844315 | 0.701743346844319 | relative 1e-09 | pass |
+| p | R | 0.402198523780676 | 0.402198523780674 | relative 1e-09 | pass |
 
-### `table.combine_studies correlations=`
+### `table.compare_survival followed_from=`
 
-**correlations=: McDaniel 1994, interview ratings and job performance** (real data; data: McDaniel 1994 (metadat))
-
-| number | compared with | simplydata | reference | tolerance | result |
-|---|---|---|---|---|---|
-| estimate | R | 0.233032270431239 | 0.233032270431239 | relative 1e-08 | pass |
-| low | R | 0.199562768428072 | 0.199562768428072 | relative 1e-08 | pass |
-
-### `draw_funnel_plot`
-
-**passive smoking: each study's odds ratio and standard error** (real data; data: passive smoking (metadat))
+**followed_from=: women and men of Channing House, followed from their age on entry** (real data; data: Channing House (KMsurv))
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
-| first odds ratio | R | 1.18 | 1.18 | relative 1e-08 | pass |
-| first standard error | R | 0.137028776120449 | 0.137028776120449 | relative 1e-08 | pass |
-| last standard error | R | 0.257719821942313 | 0.257719821942313 | relative 1e-08 | pass |
+| chi-square | statsmodels survdiff(entry=) | 3.37646071064618 | 3.37646071064618 | relative 1e-12 | pass |
+| chi-square | R | 3.37646071064618 | 3.3538346973481 | relative 0.01 | pass |
+
+Note: R survdiff takes no start times, so the R check is the score test of coxph(..., ties = "breslow"), the nearest R test; here it differs from the log-rank test by 0.7 % (3.354 against 3.376). The log-rank test counted out step by step in R (observed minus expected events and their hypergeometric variance at each death, with a row at risk when its start < t <= its stop) gives statsmodels' number, so statsmodels is checked to 1e-12 and R's score test to 1e-2.
+
+### `table.compare_survival average_time_up_to=`
+
+**average_time_up_to=: the difference in average days alive in the first year, men minus women** (real data; data: lung (survival))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| difference | R | -55.9703243399798 | -55.9703243399798 | relative 1e-09 | pass |
+| low | R | -85.2877123026282 | -85.2877123026282 | relative 1e-09 | pass |
+| p | R | 0.000182706461311161 | 0.000182706461311161 | relative 1e-09 | pass |
+
+### `table.compare_survival competing_with=`
+
+**competing_with=: Gray's test of a plasma cell malignancy between women and men, death competing** (real data; data: mgus2 (survival))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| chi-square | R | 1.19450782507551 | 1.19450782507551 | relative 1e-09 | pass |
+| p | R | 0.274422156788004 | 0.274422156788004 | relative 1e-09 | pass |
+
+### `table.explain_survival allowing_for=`
+
+**allowing_for=: chemotherapy and Karnofsky score, each cell type with its own baseline (stratified Cox)** (real data; data: veteran (survival))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| test vs standard | statsmodels PHReg(strata=) | 0.232834676889496 | 0.232834676889496 | relative 1e-06 | pass |
+| karno | statsmodels PHReg(strata=) | -0.0358011230001631 | -0.0358011230001631 | relative 1e-06 | pass |
+| test vs standard | R | 0.232834676889496 | 0.232834676889496 | relative 1e-06 | pass |
+| karno | R | -0.0358011230001631 | -0.0358011230001631 | relative 1e-06 | pass |
+
+### `table.explain_survival followed_from=`
+
+**followed_from=: the Stanford heart transplant, start-stop rows split at the transplant** (real data; data: Stanford heart transplant (survival))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| age | R | 0.0305363149141718 | 0.0305363149141718 | relative 1e-06 | pass |
+| surgery | R | -0.773327645300477 | -0.773327645300477 | relative 1e-06 | pass |
+| transplant | R | 0.0160956052965218 | 0.0160956052965218 | relative 1e-06 | pass |
+
+Note: 36 rows start at a death time (each patient's second row starts at the transplant). R does not count such a row as at risk at that death, statsmodels PHReg(entry=) does (the patient would count twice), so simplydata fits these data with R coxph and says so.
+
+### `table.explain_survival competing_with=`
+
+**competing_with=: cause-specific hazard ratios of a plasma cell malignancy, death counted as the end of follow-up** (real data; data: mgus2 (survival))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| age | statsmodels PHReg | 0.0130385698370914 | 0.0130385698370916 | relative 1e-06 | pass |
+| men vs women | statsmodels PHReg | -0.0251377892665885 | -0.0251377892665881 | relative 1e-06 | pass |
+| age | R | 0.0130385698370914 | 0.0130385698249726 | relative 1e-06 | pass |
+| men vs women | R | -0.0251377892665885 | -0.025137789294278 | relative 1e-06 | pass |
+
+### `table.explain_survival method="fine-gray"`
+
+**method="fine-gray": subdistribution hazard ratios of a plasma cell malignancy, death competing** (real data; data: mgus2 (survival))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| age | R | -0.0173381534946792 | -0.0173381534946792 | relative 1e-07 | pass |
+| men vs women | R | -0.260038237884128 | -0.260038237884128 | relative 1e-07 | pass |
+
+Note: survival::finegray() with a weighted coxph agrees to about 3 digits (-0.0173, -0.2598), the check recorded in tests/test_s3b3_survival.py.
+
+### `table.explain_survival distribution=`
+
+**distribution=: a Weibull model of larynx cancer by stage and age (time ratios)** (real data; data: larynx (KMsurv))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| stage 4 | R | -1.54407608393946 | -1.54407608393946 | relative 1e-06 | pass |
+| age | R | -0.0174636707215005 | -0.0174636707215005 | relative 1e-06 | pass |
+
+### `draw_survival_curves followed_from=`
+
+**followed_from=: the drawn curve of Channing House is the delayed-entry Kaplan-Meier curve** (real data; data: Channing House (KMsurv))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| survival at the 41st death time | R | 0.583568706215935 | 0.583568706215935 | relative 1e-09 | pass |
+
+### `draw_survival_curves allowing_for=`
+
+**allowing_for=: the drawn curves by sex are adjusted for age and ECOG score** (real data; data: lung (survival))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| female, 21st point | R | 0.9121266265218 | 0.9121266265218 | relative 1e-09 | pass |
 
 ## 2. The same underneath (the manual's boxes)
 
@@ -1254,23 +1251,42 @@ Each box's library code is run next to the simplydata word and compared. Table w
 | `table.compare_averages_of grouped_by=` | R + Python | polars | result | relative 1e-09 | pass |
 | `table.compare_averages_of for_each_group_in= with a list of columns` | statsmodels | pandas | result | relative 1e-09 | pass |
 | `table.compare_averages_of for_each_group_in= with a list of columns` | statsmodels | polars | result | relative 1e-09 | pass |
-| `table.combine_studies` | R + Python | pandas | result | relative 1e-09 | pass |
-| `table.combine_studies` | R + Python | polars | result | relative 1e-09 | pass |
-| `draw_funnel_plot` | R + matplotlib | pandas | chart | relative 1e-09 | pass |
-| `table.combine_studies estimates=` | R + Python | pandas | result | relative 1e-09 | pass |
-| `table.combine_studies estimates=` | R + Python | polars | result | relative 1e-09 | pass |
-| `table.combine_studies method=` | R + Python | pandas | result | relative 1e-09 | pass |
-| `table.combine_studies method=` | R + Python | polars | result | relative 1e-09 | pass |
-| `table.combine_studies method="Mantel-Haenszel"` | R + Python | pandas | result | relative 1e-09 | pass |
-| `table.combine_studies method="Mantel-Haenszel"` | R + Python | polars | result | relative 1e-09 | pass |
-| `table.combine_studies method="Peto"` | R + Python | pandas | result | relative 1e-09 | pass |
-| `table.combine_studies method="Peto"` | R + Python | polars | result | relative 1e-09 | pass |
-| `table.combine_studies interval_by=` | R + Python | pandas | result | relative 1e-09 | pass |
-| `table.combine_studies interval_by=` | R + Python | polars | result | relative 1e-09 | pass |
-| `table.combine_studies for_each_group_in=` | R + Python | pandas | result | relative 1e-09 | pass |
-| `table.combine_studies for_each_group_in=` | R + Python | polars | result | relative 1e-09 | pass |
-| `table.combine_studies using=` | R + Python | pandas | result | relative 1e-09 | pass |
-| `table.combine_studies using=` | R + Python | polars | result | relative 1e-09 | pass |
+| `table.add_time_and_event_columns` | pandas | pandas | table | relative 1e-09 | pass |
+| `table.add_time_and_event_columns` | pandas | polars | table | relative 1e-09 | pass |
+| `table.find_risk_over_time` | R + Python | pandas | result | relative 1e-09 | pass |
+| `table.find_risk_over_time` | R + Python | polars | result | relative 1e-09 | pass |
+| `draw_risk_curves` | matplotlib | pandas | chart | relative 1e-09 | pass |
+| `table.find_survival_over_time at_time_points=` | statsmodels | pandas | result | relative 1e-09 | pass |
+| `table.find_survival_over_time at_time_points=` | statsmodels | polars | result | relative 1e-09 | pass |
+| `table.find_survival_over_time method="life table"` | R + Python | pandas | result | relative 1e-09 | pass |
+| `table.find_survival_over_time method="life table"` | R + Python | polars | result | relative 1e-09 | pass |
+| `table.find_survival_over_time allowing_for=` | R + Python | pandas | result | relative 1e-08 | pass |
+| `table.find_survival_over_time allowing_for=` | R + Python | polars | result | relative 1e-08 | pass |
+| `table.find_survival_over_time followed_from=` | statsmodels | pandas | result | relative 1e-09 | pass |
+| `table.find_survival_over_time followed_from=` | statsmodels | polars | result | relative 1e-09 | pass |
+| `table.find_survival_over_time average_time_up_to=` | R + Python | pandas | result | relative 1e-09 | pass |
+| `table.find_survival_over_time average_time_up_to=` | R + Python | polars | result | relative 1e-09 | pass |
+| `table.compare_survival allowing_for=` | statsmodels | pandas | result | relative 1e-09 | pass |
+| `table.compare_survival allowing_for=` | statsmodels | polars | result | relative 1e-09 | pass |
+| `table.compare_survival followed_from=` | statsmodels | pandas | result | relative 1e-09 | pass |
+| `table.compare_survival followed_from=` | statsmodels | polars | result | relative 1e-09 | pass |
+| `table.compare_survival average_time_up_to=` | R + Python | pandas | result | relative 1e-09 | pass |
+| `table.compare_survival average_time_up_to=` | R + Python | polars | result | relative 1e-09 | pass |
+| `table.compare_survival competing_with=` | R + Python | pandas | result | relative 1e-09 | pass |
+| `table.compare_survival competing_with=` | R + Python | polars | result | relative 1e-09 | pass |
+| `table.explain_survival allowing_for=` | statsmodels | pandas | result | relative 1e-07 | pass |
+| `table.explain_survival allowing_for=` | statsmodels | polars | result | relative 1e-07 | pass |
+| `table.explain_survival followed_from=` | statsmodels | pandas | result | relative 1e-07 | pass |
+| `table.explain_survival followed_from=` | statsmodels | polars | result | relative 1e-07 | pass |
+| `table.explain_survival competing_with=` | statsmodels | pandas | result | relative 1e-07 | pass |
+| `table.explain_survival competing_with=` | statsmodels | polars | result | relative 1e-07 | pass |
+| `table.explain_survival method="fine-gray"` | R + Python | pandas | result | relative 1e-07 | pass |
+| `table.explain_survival method="fine-gray"` | R + Python | polars | result | relative 1e-07 | pass |
+| `table.explain_survival distribution=` | R + Python | pandas | result | relative 1e-07 | pass |
+| `table.explain_survival distribution=` | R + Python | polars | result | relative 1e-07 | pass |
+| `draw_survival_curves followed_from=` | matplotlib | pandas | chart | relative 1e-09 | pass |
+| `draw_survival_curves allowing_for=` | R + matplotlib | pandas | chart | relative 1e-08 | pass |
+| `draw_risk_curves competing_with=` | R + matplotlib | pandas | chart | relative 1e-09 | pass |
 
 How each kind is compared:
 
@@ -1356,22 +1372,31 @@ Where simplydata's default differs from the package underneath, it is listed her
 - `table.find_model_averages_of over_range_of=` (2): the other columns as emmeans holds them: numbers at their average, groups counted equally.
 - `table.compare_averages_of grouped_by=` (1): the treatment is tested against the variation between rats (Error(rat)), not between readings: the readings of one rat are not independent.
 - `table.compare_averages_of for_each_group_in= with a list of columns` (1): Pillai's trace first, the one R summary(manova()) prints by default and the safest when groups differ in size or spread.
-- `table.combine_studies` (1): risk ratios for counts, and a study with no events in either group left out (drop00 = TRUE), as Cochrane reviews do; show= chooses odds ratios or risk differences.
-- `table.combine_studies` (2): random effects with REML, metafor's default and the best of the usual estimators of the between-study spread (Veroniki et al. 2016).
-- `table.combine_studies` (3): Hartung-Knapp intervals and p-values with the ad hoc rule: never narrower than the normal (z) interval; interval_by="normal" gives the classic interval.
-- `table.combine_studies` (4): the result shown back as a ratio, with the prediction interval (t with k - 1 degrees of freedom under Hartung-Knapp).
-- `draw_funnel_plot` (1): the pseudo 95 % limits: SciPy's 95 % interval around the combined effect at the largest standard error (lognorm for ratios, so on the log scale); with the top of the funnel at the combined effect both limits are straight lines, as metafor funnel() draws them.
-- `draw_funnel_plot` (2): the line is the combined effect of combine_studies (random effects, REML).
-- `draw_funnel_plot` (3): ratios on a log scale, with the standard error of the log ratio downwards (0 at the top).
-- `table.combine_studies estimates=` (1): a column with "ratio" in its name is combined on the log scale; metafor conv.wald() turns each estimate and its 95 % interval into a log ratio and its variance (estimates_are_ratios= decides otherwise).
-- `table.combine_studies estimates=` (2): the combined effect shown back as a ratio.
-- `table.combine_studies method=` (1): DerSimonian-Laird's between-study spread (metafor "DL"); "Paule-Mandel" is "PM" and "common effect" is "EE" (metafor 4 renamed "FE").
-- `table.combine_studies method="Mantel-Haenszel"` (1): Mantel-Haenszel weights, a common-effect method: there is no between-study spread and no prediction interval (compare_risks(allowing_for=) gives the same from raw rows).
-- `table.combine_studies method="Peto"` (1): Peto's one-step odds ratio, a common-effect method for rare events; it gives odds ratios only.
-- `table.combine_studies interval_by=` (1): the normal (z) interval and p-value, as in older meta-analyses; the default is Hartung-Knapp (test = "adhoc").
-- `table.combine_studies for_each_group_in=` (1): each subgroup its own random-effects model, with its own between-study spread; for this test each subgroup's estimate with its normal (z) standard error, as RevMan and R meta do (the subgroups' own intervals stay Hartung-Knapp).
-- `table.combine_studies for_each_group_in=` (2): the test of the difference between the subgroup estimates (a common-effect meta-regression on the subgroup), not metafor's rma(mods = ~ group), which assumes one spread for all.
-- `table.combine_studies using=` (1): a meta-regression: the slope of the log risk ratio per unit of each column, with Hartung-Knapp intervals; R-squared says how much of the between-study spread the columns account for.
+- `table.add_time_and_event_columns` (1): follow-up ends at the first of the end dates; an empty date does not end it.
+- `table.add_time_and_event_columns` (2): the event counts when its date came first or on the same day as the others.
+- `table.find_risk_over_time` (1): the first level of the factor is the censored state (followed without either event); the competing event is a state of its own, never counted as censored.
+- `table.find_risk_over_time` (2): survfit with a factor event gives the Aalen-Johansen estimate and its log-scale 95 % interval.
+- `draw_risk_curves` (1): with nothing competing, the chance of having had the event is 1 minus the Kaplan-Meier curve, from 0 at time 0 to the last time followed (R plot(survfit(...), fun = "event")).
+- `table.find_survival_over_time at_time_points=` (1): the curve is flat between event times, so the survival at 365 is the one of the last event time at or before 365 (R summary(survfit(), times =)).
+- `table.find_survival_over_time method="life table"` (1): the intervals start at the times given, and the last one is open (NA).
+- `table.find_survival_over_time method="life table"` (2): simplydata counts the rows lost and with the event in each interval; lifetab does the rest, with the actuarial assumption (lost rows count as followed for half the interval).
+- `table.find_survival_over_time allowing_for=` (1): direct adjustment: each row's curve is predicted as if in each group and averaged over all rows, never the curve of an "average" row; conf_int = TRUE (adjustedCurves' own default is FALSE).
+- `table.find_survival_over_time followed_from=` (1): each row is at risk only after its start (left truncation, R Surv(start, stop, event)).
+- `table.find_survival_over_time average_time_up_to=` (1): rmean = 700, the horizon you name: without it survival's print uses its own upper limit.
+- `table.compare_survival allowing_for=` (1): strata=: the groups are compared within each stratum and the results added up, as R survdiff(... + strata()).
+- `table.compare_survival followed_from=` (1): entry=: each row counts as at risk only after its start. R survdiff takes no start times; the nearest R check, the score test of coxph(Surv(start, stop, event) ~ group, ties = "breslow"), agrees closely but not always exactly (validation/report.md).
+- `table.compare_survival average_time_up_to=` (1): arm 1 is the second group in sorted order, so the difference is the second minus the first.
+- `table.compare_survival average_time_up_to=` (2): tau = 700, the horizon you name: survRM2's own default is the shortest of the groups' last times.
+- `table.compare_survival competing_with=` (1): the event asked about is code 1 and the competing event code 2; other values are censored (code 0).
+- `table.compare_survival competing_with=` (2): Gray's test of the chance of each event over time (cmprsk::cuminc), not a log-rank test with the competing event censored.
+- `table.explain_survival allowing_for=` (1): strata=: each treatment group has its own baseline risk (R coxph(... + strata(treatment))), so there is no hazard ratio for it.
+- `table.explain_survival followed_from=` (1): entry=: each row is at risk only after its start (R coxph(Surv(start, stop, event) ~ ...)). statsmodels counts a row as at risk at an event time equal to its start and R does not, so when a row starts at an event time (one person split into rows) simplydata fits the model with R coxph, and says so.
+- `table.explain_survival competing_with=` (1): cause-specific: a Cox model of the event asked about, with the competing event counted as the end of follow-up (the risk at any moment among those still free of both events).
+- `table.explain_survival method="fine-gray"` (1): Fine and Gray's model with crr's robust (sandwich) standard errors; failcode is the event asked about.
+- `table.explain_survival distribution=` (1): the accelerated failure time model of survreg: time ratios exp(coefficient), never hazard ratios.
+- `draw_survival_curves followed_from=` (1): entry=: each row is at risk only after its start (delayed entry).
+- `draw_survival_curves allowing_for=` (1): direct adjustment: each row's curve predicted in each group, then averaged over all rows.
+- `draw_risk_curves competing_with=` (1): the competing event is a state of its own (Aalen-Johansen), never counted as censored.
 
 ## Datasets
 
@@ -1414,9 +1439,11 @@ Where simplydata's default differs from the package underneath, it is listed her
 | [sleepstudy (lme4)](https://doi.org/10.18637/jss.v067.i01) | average reaction time of 18 truck drivers on each of 10 days of sleep deprivation (180 rows) | Belenky, G. et al. (2003). Patterns of performance degradation and restoration during sleep restriction and subsequent recovery. Journal of Sleep Research 12, 1-12. Analysed in Bates, D., Maechler, M., Bolker, B. & Walker, S. (2015). Fitting linear mixed-effects models using lme4. Journal of Statistical Software 67(1) (CC BY). Shipped with the R package lme4. | GPL (>= 2) (lme4). Not stored here: read from lme4, so it needs R. |
 | [rat liver glycogen](https://www.worldcat.org/title/biometry/oclc/7203719) | glycogen in the livers of 6 rats, 2 on each of 3 treatments (control, glucose, glucose and fructose), 3 preparations per liver and 2 readings per preparation (36 rows) | Sokal, R. R. & Rohlf, F. J. (1981). Biometry, 2nd ed. Freeman, Box 10.1 (nested ANOVA: treatments SS 1557.56 on 2 df, rats within treatments SS 797.67 on 3 df, F = 2.929); the same analysis in Crawley, M. J. (2007). The R Book. Wiley, chapter 11. | Facts published in the book (36 numbers), typed from it; not covered by copyright. |
 | [iris](https://stat.ethz.ch/R-manual/R-devel/library/datasets/html/iris.html) | sepal and petal length and width of 50 flowers of each of three iris species | Anderson, E. (1935). The irises of the Gaspe Peninsula. Bulletin of the American Iris Society 59, 2-5; Fisher, R. A. (1936). The use of multiple measurements in taxonomic problems. Annals of Eugenics 7, 179-188. Copy from R's datasets package (iris). | Published 1935 (public domain). The copy in R's datasets package is GPL-2 \| GPL-3. |
-| [BCG trials (metadat)](https://doi.org/10.18637/jss.v036.i03) | 13 trials of the BCG vaccine against tuberculosis: cases among the vaccinated and the unvaccinated, the absolute latitude of the place and how people were put into the groups | Colditz, G. A. et al. (1994). Efficacy of BCG vaccine in the prevention of tuberculosis: meta-analysis of the published literature. JAMA 271, 698-702. Analysed in Viechtbauer, W. (2010). Conducting meta-analyses in R with the metafor package. Journal of Statistical Software 36(3), 1-48 (CC BY 3.0). Shipped with the R package metadat (dat.bcg); a copy is the practice table bcg. | The numbers are facts published in the paper; the metadat copy is GPL (>= 2). Read here from metadat (installed with metafor), so it needs R; the practice tables bcg and passive_smoking hold the same published numbers. |
-| [passive smoking (metadat)](https://doi.org/10.1136/bmj.315.7114.980) | 37 studies of lung cancer in non-smoking women whose husbands smoked: the odds ratio of each study with its 95 % interval | Hackshaw, A. K., Law, M. R. & Wald, N. J. (1997). The accumulated evidence on lung cancer and environmental tobacco smoke. BMJ 315, 980-988 (pooled excess risk 24 %, 95 % CI 13 % to 36 %). Shipped with the R package metadat (dat.hackshaw1998); a copy is the practice table passive_smoking. | The numbers are facts published in the paper; the metadat copy is GPL (>= 2). Read here from metadat (installed with metafor), so it needs R; the practice tables bcg and passive_smoking hold the same published numbers. |
-| [Normand 1999 (metadat)](https://cran.r-project.org/package=metadat) | 9 trials of specialist stroke rehabilitation: average length of hospital stay (days), its standard deviation and the patients in each group | Normand, S.-L. T. (1999). Meta-analysis: formulating, evaluating, combining, and reporting. Statistics in Medicine 18, 321-359. Shipped with the R package metadat (dat.normand1999). | The numbers are facts published in the paper; the metadat copy is GPL (>= 2). Read here from metadat (installed with metafor), so it needs R; the practice tables bcg and passive_smoking hold the same published numbers. |
-| [Curtis 1998 (metadat)](https://cran.r-project.org/package=metadat) | 102 experiments on the growth of woody plants under raised and ambient CO2: average biomass, its standard deviation and the plants in each group | Curtis, P. S. & Wang, X. (1998). A meta-analysis of elevated CO2 effects on woody plant mass, form, and physiology. Oecologia 113, 299-313; the log response ratio of Hedges, L. V., Gurevitch, J. & Curtis, P. S. (1999). Ecology 80, 1150-1156. Shipped with the R package metadat (dat.curtis1998). | The numbers are facts published in the paper; the metadat copy is GPL (>= 2). Read here from metadat (installed with metafor), so it needs R; the practice tables bcg and passive_smoking hold the same published numbers. |
-| [Hart 1999 (metadat)](https://cran.r-project.org/package=metadat) | 6 trials of warfarin against placebo in atrial fibrillation: strokes and patient-years in each group | Hart, R. G., Benavente, O., McBride, R. & Pearce, L. A. (1999). Antithrombotic therapy to prevent stroke in patients with atrial fibrillation: a meta-analysis. Annals of Internal Medicine 131, 492-501. Shipped with the R package metadat (dat.hart1999). | The numbers are facts published in the paper; the metadat copy is GPL (>= 2). Read here from metadat (installed with metafor), so it needs R; the practice tables bcg and passive_smoking hold the same published numbers. |
-| [McDaniel 1994 (metadat)](https://cran.r-project.org/package=metadat) | 160 studies of the correlation between employment interview ratings and job performance, with the number of people in each | McDaniel, M. A., Whetzel, D. L., Schmidt, F. L. & Maurer, S. D. (1994). The validity of employment interviews: a comprehensive review and meta-analysis. Journal of Applied Psychology 79, 599-616. Shipped with the R package metadat (dat.mcdaniel1994). | The numbers are facts published in the paper; the metadat copy is GPL (>= 2). Read here from metadat (installed with metafor), so it needs R; the practice tables bcg and passive_smoking hold the same published numbers. |
+| [udca (survival)](https://cran.r-project.org/package=survival) | 170 patients with primary biliary cirrhosis in a trial of ursodeoxycholic acid: dates of entry, last follow-up and death | Lindor, K. D. et al. (1994). Ursodeoxycholic acid in the treatment of primary biliary cirrhosis. Gastroenterology 106, 1284-1290. Shipped with R's survival package (udca). | LGPL (>= 2) (survival). Not stored here: read from survival, so it needs R. |
+| [mgus2 (survival)](https://cran.r-project.org/package=survival) | 1384 patients with monoclonal gammopathy: months to progression to a plasma cell malignancy (pcm) or death without it | Kyle, R. A. et al. (2002). A long-term study of prognosis in monoclonal gammopathy of undetermined significance. New England Journal of Medicine 346, 564-569; the competing-risks example of Therneau, T. M., "Multi-state models and competing risks" (survival vignette). Copy from R's survival package (Therneau, T. M.), which is LGPL (>= 2). | Published data in an LGPL package; stored with the first event of each patient (outcome pcm, death or censored, as the vignette builds it). |
+| [lung (survival)](https://cran.r-project.org/package=survival) | 228 patients with advanced lung cancer (NCCTG): days to death or the end of follow-up, age, sex and ECOG performance score | Loprinzi, C. L. et al. (1994). Prospective evaluation of prognostic variables from patient-completed questionnaires. Journal of Clinical Oncology 12, 601-607. Copy from R's survival package (Therneau, T. M.), which is LGPL (>= 2). | Published trial data in an LGPL package; stored with its numbers unchanged (status recoded to died yes/no, sex to male/female). |
+| [bfeed (KMsurv)](https://cran.r-project.org/package=KMsurv) | 927 first-born children of the National Longitudinal Survey of Youth: weeks of breast feeding and whether it was ended | Klein, J. P. & Moeschberger, M. L. (2003). Survival Analysis: Techniques for Censored and Truncated Data, 2nd ed. Springer, section 1.14 and the life table of section 5.4. Shipped with the R package KMsurv. | GPL-3 (KMsurv). Not stored here: read from KMsurv, so it needs R. |
+| [Channing House (KMsurv)](https://cran.r-project.org/package=KMsurv) | residents of Channing House, a retirement centre in Palo Alto: age (months) on entry and at death or the end of the study (the 4 rows that left on the day they came are left out) | Hyde, J. (1980). Testing survival with incomplete observations. In Biostatistics Casebook, Wiley; Klein & Moeschberger (2003), section 4.6 (delayed entry). Shipped with the R package KMsurv. | GPL-3 (KMsurv). Not stored here: read from KMsurv, so it needs R. |
+| [veteran (survival)](https://cran.r-project.org/package=survival) | 137 men in the Veterans' Administration lung cancer trial: standard or test chemotherapy, cell type, Karnofsky score, days to death | Kalbfleisch, J. D. & Prentice, R. L. (2002). The Statistical Analysis of Failure Time Data, 2nd ed. Wiley. Copy from R's survival package (Therneau, T. M.), which is LGPL (>= 2). | Published trial data in an LGPL package; stored (treatment 1/2 written as standard/test). |
+| [Stanford heart transplant (survival)](https://cran.r-project.org/package=survival) | 103 patients waiting for a heart transplant, as start-stop rows (one row before and one after a transplant): age, earlier surgery, transplant | Crowley, J. & Hu, M. (1977). Covariance analysis of heart transplant survival data. Journal of the American Statistical Association 72, 27-36; analysed in Therneau, T. M. & Grambsch, P. M. (2000). Modeling Survival Data. Springer, section 3.7. Copy from R's survival package (Therneau, T. M.), which is LGPL (>= 2). | Published data in an LGPL package; stored with its numbers unchanged. |
+| [larynx (KMsurv)](https://cran.r-project.org/package=KMsurv) | 90 men with cancer of the larynx: stage, age, months to death | Kardaun, O. (1983). Statistical survival analysis of male larynx-cancer patients: a case study. Statistica Neerlandica 37, 103-125; Klein & Moeschberger (2003), chapter 12 (parametric models). Shipped with the R package KMsurv. | GPL-3 (KMsurv). Not stored here: read from KMsurv, so it needs R. |
