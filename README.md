@@ -388,7 +388,10 @@ R packages, used where Python has no method of its own:
 | Models | sandwich | robust standard errors |
 | Models | mice | pooling the filled-in tables of multiple imputation |
 | Survival | survival | the proportional-hazards check of a Cox model |
-| Patterns across many columns | vegan | NMDS, PERMANOVA and its spread check (the distances are SciPy `pdist`) |
+| Patterns across many columns | vegan | NMDS, PERMANOVA and its spread check, ANOSIM, SIMPER, diversity (richness, Shannon, Simpson, Chao1, rarefaction), PCoA distances, RDA and CCA, Mantel and Procrustes, Aitchison and Hellinger distances (other distances are SciPy `pdist`) |
+| Patterns across many columns | zCompositions, compositions | log ratios (clr, alr, ilr) with zeros replaced by estimated small values |
+| Patterns across many columns | cluster, MASS (both come with R) | silhouette widths of clusters; axes that separate groups (LDA) |
+| Patterns across many columns | ca | multiple correspondence analysis of text columns |
 | Time series | stats (comes with R) | the seasonal split of a series (STL) and the running median |
 | Time series | trend | the Mann-Kendall trend test and Sen's slope |
 | Time series | tseries | whether a series stays steady (ADF and KPSS tests) |
