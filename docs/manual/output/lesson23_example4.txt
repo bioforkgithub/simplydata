@@ -1,8 +1,3 @@
-"nitrate" for Station A rises by 0.000194 per day (0.0708 a year) (Sen's slope; 95 % CI 6.54e-05 to 0.000319).
-"nitrate" for Station B falls by 0.00254 per day (0.927 a year) (Sen's slope; 95 % CI -0.00274 to -0.00233).
-Note: the Mann-Kendall test was left out. The Mann-Kendall trend test (R trend::mk.test()) is done by R (the same code R users run), and R is not ready here.
-  - R did not start: list index out of range
-  - install R from https://cran.r-project.org if it is not installed; if it is, set the R_HOME environment variable to its folder and restart Python
-  - in R: install.packages(c("trend"))
-(SciPy kendalltau gives a similar test without R's continuity correction, so its p-value differs)
+"nitrate" for Station A rises by 0.000194 per day (0.0708 a year) (Sen's slope; 95 % CI 6.54e-05 to 0.000319). If there were truly no trend, a trend this steady or steadier would turn up in about 3 of 1000 studies like this one (Mann-Kendall, p = 0.003).
+"nitrate" for Station B falls by 0.00254 per day (0.927 a year) (Sen's slope; 95 % CI -0.00274 to -0.00233). If there were truly no trend, a trend this steady or steadier would turn up in fewer than 1 in 1000 studies like this one (Mann-Kendall, p < 0.0001).
 Method: Sen's slope with its 95 % interval, as R trend::sens.slope() (SciPy theilslopes); Mann-Kendall test with continuity correction, as R trend::mk.test() (run in R).
