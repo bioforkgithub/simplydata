@@ -1,0 +1,4 @@
+27 of 336 cells are zero; they were replaced by estimated small values first (multiplicative replacement, R zCompositions GBM), so the logs exist.
+Each value is now the log of its share over the row's geometric mean (clr, the centred log ratio), for 14 columns (blaTEM, blaCTXM, blaOXA48, blaNDM, sul1, sul2 and 8 more). A clr value above 0 means more than the row's typical kind; below 0, less.
+Method: run in R: x <- zCompositions::cmultRepl(x, method = "GBM", output = "p-counts", z.delete = FALSE); compositions::clr(x). Added clr_blaTEM, clr_blaCTXM, clr_blaOXA48, clr_blaNDM and 10 more; the counts are kept.
+Next: measure="aitchison" on find_distances_between_rows, add_principal_coordinates, compare_profiles_of and explain_profiles_of works on these log ratios itself.

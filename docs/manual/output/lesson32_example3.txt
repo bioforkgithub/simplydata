@@ -1,0 +1,8 @@
+27 of 336 cells are zero; they were replaced by estimated small values first (multiplicative replacement, R zCompositions GBM), so the logs exist.
+"temperature" and "salinity" together explain 38.6 % of the differences in make-up between the rows (adjusted R squared; 44.0 % before adjustment).
+If these columns had no link with the make-up, a link at least this strong would turn up in at most about 1 of 1000 studies like this one (p = 0.001, the smallest p that 999 shuffles can give).
+Each column tested after all the others (so the order of using= does not matter):
+  "temperature": pseudo-F = 7.26. If "temperature" had no link with the make-up once the other columns are allowed for, a link at least this strong would turn up in at most about 1 of 1000 studies like this one (p = 0.001, the smallest p that 999 shuffles can give).
+  "salinity": pseudo-F = 5.09. If "salinity" had no link with the make-up once the other columns are allowed for, a link at least this strong would turn up in at most about 1 of 1000 studies like this one (p = 0.001, the smallest p that 999 shuffles can give).
+Test: redundancy analysis (RDA), run in R: y <- compositions::clr(zCompositions::cmultRepl(x, method = "GBM", z.delete = FALSE)); m <- vegan::rda(y ~ `temperature` + `salinity`, data = env); vegan::RsquareAdj(m); set.seed(1); anova(m, permutations = 999); set.seed(1); anova(m, by = "margin", permutations = 999).
+A link is not proof that a column changes the make-up: the data are observational.

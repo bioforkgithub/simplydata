@@ -1,0 +1,2 @@
+The correlation between "blaTEM" and "reads" is r = 0.52 (Pearson, 24 rows): medium, going up; values from 0.152 to 0.765 fit the data (95 % CI).
+If there were truly no link, a link this strong or stronger would turn up in about 1 of 100 studies like this one (p = 0.009).

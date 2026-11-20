@@ -312,6 +312,29 @@ _TABLE = [
      "trim_and_fill"),
     ('table.combine_studies(..., interval_by="Hartung-Knapp")', "hksj knha hartung_knapp knapp_hartung"),
     ('table.combine_studies(..., method="Mantel-Haenszel")', "rma_mh mantel_haenszel_meta peto rma_peto"),
+    # S3c-1: communities and resistomes
+    ('table.add_diversity_columns(columns=["blaTEM", "sul1"])',
+     "diversity shannon simpson invsimpson chao1 estimateR specnumber alpha_diversity hill hill_numbers renyi "
+     "richness species_richness"),
+    ('table.add_diversity_columns(columns=[...], at_total_count=1000)',
+     "rarefy rrarefy rarefaction_depth subsample rarefied_richness"),
+    ('table.add_log_ratio_columns(columns=["blaTEM", "sul1"])',
+     "clr ilr alr cmultRepl multiplicative_replacement log_ratio centred_log_ratio centered_log_ratio "
+     "compositional"),
+    ('table.add_log_ratio_columns(columns=[...], zeros_replaced_by="adding 1")', "pseudocount pseudo_count"),
+    ('table.add_principal_coordinates(columns=["blaTEM", "sul1"])',
+     "pcoa cmdscale wcmdscale principal_coordinates mds ordination beta_diversity"),
+    ('table.explain_profiles_of(["blaTEM", "sul1"], using=["temperature", "salinity"])',
+     "rda cca dbrda capscale constrained_ordination redundancy_analysis envfit varpart"),
+    ('table.explain_profiles_of(..., measure="hellinger")', "hellinger decostand"),
+    ('table.find_correlation_between_profiles(first=["blaTEM", "sul1"], second=["temperature", "salinity"])',
+     "mantel protest procrustes mantel_test"),
+    ('table.compare_profiles_of(..., method="anosim")', "anosim betadisper"),
+    ('table.compare_profiles_of(..., show="contributions")', "simper"),
+    ('table.add_clusters(how_many="automatic")', "silhouette elbow optimal_clusters"),
+    ('table.add_axes_that_separate_groups(columns=["temperature", "salinity"], for_each_group_in="site")',
+     "lda discriminant linear_discriminant discriminant_analysis"),
+    ('table.add_correspondence_axes(columns=["blaTEM", "sul1"])', "ca mca mjca correspondence_analysis decorana"),
 ]
 
 # chart.<name>
@@ -382,6 +405,11 @@ _CHART = [
      "ggcuminc cumulative_incidence_plot plot_cuminc"),
     # S3b-1
     ('chart.draw_funnel_plot(x="estimate", y="standard error")', "funnel funnel_plot draw_funnel"),
+    # S3c-1
+    ('chart.draw_richness_curves(columns=["blaTEM", "sul1"])',
+     "rarecurve rarefaction rarefaction_curves draw_rarefaction_curves iNEXT accumulation species_accumulation "
+     "draw_species_curves"),
+    ('chart.draw_cluster_tree(columns=["blaTEM", "sul1"])', "dendrogram plot_dendrogram draw_dendrogram draw_tree"),
 ]
 
 # nums.<name> (numbers). Older ones (mean, sum, min ...) are in numbers/_base.py HINTS.

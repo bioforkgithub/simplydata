@@ -1,0 +1,4 @@
+Diversity of 24 rows from 14 columns (blaTEM, blaCTXM, blaOXA48, blaNDM, sul1, sul2 and 8 more):
+  Chao1 averages 12.9 kinds: the number there would be if sampling went on (bias-corrected; it leans on the kinds seen once or twice), against 12.9 seen.
+Note: richness depends on how many counts each row has (from 1,285 to 59,389 here); compare richness at the same total count: at_total_count=1285.
+Method: R vegan::estimateR(x). simplydata chooses the natural log for Shannon, Simpson as 1 - D (the Gini-Simpson index), Chao1 bias-corrected and rarefaction as an expected value. Added chao1 and chao1 standard error.

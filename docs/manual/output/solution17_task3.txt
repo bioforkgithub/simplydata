@@ -1,4 +1,5 @@
-The groups of "field" (North field, River field, South field) explain 11.8 % of the differences between the rows (R squared = 0.118; Bray-Curtis distances over 10 columns; pseudo-F = 1.81, from 999 permutations).
+The groups of "field" (North field, River field, South field) explain 11.8 % of the differences between the rows (R squared = 0.118; Bray-Curtis distances over 10 columns (clover, daisy, buttercup, dandelion, nettle, thistle and 4 more); pseudo-F = 1.81, from 999 permutations).
 If the groups truly had the same make-up, a difference in make-up this big or bigger would turn up in about 5 of 100 studies like this one (p = 0.053). This does not show that the groups have the same make-up.
 Test: PERMANOVA (permutational analysis of variance on distances), run in R: set.seed(1); vegan::adonis2(distances ~ field, permutations = 999) with distances = vegan::vegdist(x, "bray").
 Spread check: the average distance to the group centre is 0.287 in North field, 0.266 in River field and 0.296 in South field (as vegan::betadisper and permutest: F = 0.625, p = 0.531).
+Note: the rows have very different totals (from 60 to 136); Bray-Curtis on raw counts mixes those totals (such as sequencing depth) with the make-up. Turn the counts into shares first, or use measure="aitchison".
