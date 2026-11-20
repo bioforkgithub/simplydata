@@ -63,6 +63,8 @@ class Entry:
     r_packages: R packages the R block loads
     python_note: for R words, a line on what Python alone gives
     note:     for compare="none": what simplydata does on its own, and how you would do it yourself
+    option:   for an entry of one option of a word (UNDERNEATH_OPTIONS), the option it shows, such as
+              'method="theil-sen"'; empty for the word's own entry (UNDERNEATH)
     """
 
     word: str
@@ -82,6 +84,12 @@ class Entry:
     r_packages: tuple = ()
     python_note: str = ""
     note: str = ""
+    option: str = ""
+
+    @property
+    def label(self) -> str:
+        """The word, with the option of an option entry: table.fit_line (method="theil-sen")."""
+        return f"{self.word} ({self.option})" if self.option else self.word
 
     @property
     def uses_r(self) -> bool:
@@ -101,10 +109,10 @@ class Entry:
 
 
 def _join() -> dict[str, Entry]:
-    from . import charts, numbers, statistics, tables
+    from . import charts, lines, numbers, statistics, tables
 
     found: dict[str, Entry] = {}
-    for module in (charts, tables, numbers, statistics):
+    for module in (charts, tables, numbers, statistics, lines):
         for entry in module.ENTRIES:
             if entry.word in found:
                 raise ValueError(f"{entry.word} has two underneath entries")
@@ -113,6 +121,21 @@ def _join() -> dict[str, Entry]:
 
 
 UNDERNEATH: dict[str, Entry] = _join()
+
+
+def _join_options() -> list[Entry]:
+    """The entries of single options of a word (S3a-2 on): the same job with that option, in the package
+    underneath. tests/test_underneath_options.py runs each, and the reliability report lists them."""
+    from . import lines
+
+    found = list(lines.OPTION_ENTRIES)
+    labels = [e.label for e in found]
+    if len(labels) != len(set(labels)) or not all(e.option for e in found):
+        raise ValueError("each option entry needs its own option=")
+    return found
+
+
+UNDERNEATH_OPTIONS: list[Entry] = _join_options()
 
 
 # ---------------------------------------------------------------- the one-line "Underneath" name

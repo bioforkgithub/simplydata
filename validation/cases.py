@@ -434,3 +434,16 @@ CASES = [
          """, r_tolerance=1e-14,
          note="No data: the published value is the standard normal table (5 decimals)."),
 ]
+
+
+# ---------------------------------------------------------------- S3a-2: lines and curves (validation/cases_lines.py)
+def _add_lines_and_curves():
+    import importlib.util
+
+    spec = importlib.util.spec_from_file_location("simplydata_validation_lines", HERE / "cases_lines.py")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    module.add_to(globals())
+
+
+_add_lines_and_curves()
