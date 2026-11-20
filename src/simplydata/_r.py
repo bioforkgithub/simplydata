@@ -185,7 +185,9 @@ def _to_r(ro, value):
         return ro.StrVector([value])
     if isinstance(value, (int, float, np.integer, np.floating)):
         value = [value]
-    array = np.asarray(value)
+    # A copy, never a view: np.asarray on an rpy2 vector points straight into R's memory without keeping
+    # the R object alive, so after R collects it the array would silently fill with other data.
+    array = np.array(value, copy=True)
     if array.dtype.kind in "iu" and array.size and np.abs(array).max() > BIGGEST_EXACT:
         raise SimplydataError("A whole number is too big to pass to R exactly (above 2**53).")
     if array.dtype == bool:
@@ -222,9 +224,11 @@ def _from_r(value):
         return {name: _from_r(item) for name, item in zip(names, value)}
     if kind == "FactorVector":
         levels = [str(level) for level in value.levels]
-        codes = np.asarray(value).astype(np.int64)  # R's NA code is the smallest integer
+        codes = np.array(value, copy=True).astype(np.int64)  # R's NA code is the smallest integer
         return np.array([levels[c - 1] if 1 <= c <= len(levels) else None for c in codes], dtype=object)
-    array = np.asarray(value)
+    # A copy, never a view: np.asarray on an rpy2 vector points straight into R's memory without keeping
+    # the R object alive, so after R collects it the array would silently fill with other data.
+    array = np.array(value, copy=True)
     dim = getattr(value, "dim", None)
     try:
         dims = tuple(int(d) for d in dim) if dim is not None else ()
