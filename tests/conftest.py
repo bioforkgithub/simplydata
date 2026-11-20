@@ -60,6 +60,8 @@ R_PACKAGES = ("survival", "vegan", "mice", "lme4", "betareg", "pscl", "car", "ef
               "metafor", "metadat", "meta",
               # S3b-2 (planning a study): gsDesign, powerSurvEpi and pwrss (pwrss is CRAN only, like presize)
               "gsDesign", "powerSurvEpi", "pwrss",
+              # S3c-1 (communities and resistomes): zero replacement and log ratios; MCA; silhouettes and LDA
+              "zCompositions", "compositions", "ca", "cluster", "MASS",
               # S3c-2 (hidden factors): GPArotation (the rotations of psych::fa) and lavaan; psych is listed above
               "GPArotation", "lavaan")
 
@@ -138,6 +140,23 @@ R_ENTRY_POINTS = {
     ("table/meta_r.py", "combine"),
     # S3b-2 (planning a study)
     ("power_r.py", "_r"),
+    # S3c-1 (communities and resistomes)
+    ("table/community_r.py", "_need"),
+    ("table/community_r.py", "_call"),
+    ("table/community_r.py", "r_distances"),
+    ("table/community_r.py", "diversity"),
+    ("table/community_r.py", "richness_curves"),
+    ("table/community_r.py", "log_ratios"),
+    ("table/community_r.py", "principal_coordinates"),
+    ("table/community_r.py", "constrained"),
+    ("table/community_r.py", "anosim"),
+    ("table/community_r.py", "simper"),
+    ("table/community_r.py", "profile_correlation"),
+    ("table/community_r.py", "silhouettes"),
+    ("table/community_r.py", "discriminant"),
+    ("table/community_r.py", "correspondence"),
+    ("table/community_r.py", "multiple_correspondence"),
+    ("words/community_charts.py", "draw_richness_curves"), ("words/community_charts.py", "_draw_richness"),
     # S3c-2 (hidden factors)
     ("table/factor_r.py", "explore"), ("table/factor_r.py", "confirm"),
 }

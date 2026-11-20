@@ -9,6 +9,7 @@ from .accuracy_words import AccuracyWords
 from .agreement_words import AgreementWords
 from .between import BetweenWords
 from .checking_more import CheckingMoreWords
+from .communities import CommunityWords
 from .columns import ColumnWords
 from .correlation_words import CorrelationWords
 from .distribution_words import DistributionTableWords
@@ -37,7 +38,7 @@ from .time_steps import TimeStepWords
 class Table(PositionWords, RowWords, ColumnWords, SummaryWords, StatTestWords, MoreTestWords, RiskWords, AccuracyWords,
             AgreementWords, CorrelationWords, FittingWords, LinesMoreWords, ModelWords, ModelToolWords, PatternWords, SurvivalWords, SurvivalMoreWords,
             TimeSeriesWords, TimeStepWords, ForecastWords, SignalTableWords, SignalMoreTableWords, BetweenWords,
-            DistributionTableWords, CheckingMoreWords, MetaWords, HiddenFactorWords, BaseTable):
+            DistributionTableWords, CheckingMoreWords, MetaWords, CommunityWords, HiddenFactorWords, BaseTable):
     """A table. Make one with sdata.table(...), then add steps: table.keep_rows_where(...), table.sort_by(...)."""
 
 

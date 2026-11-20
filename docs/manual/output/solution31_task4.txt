@@ -1,0 +1,5 @@
+Diversity of 24 rows from 14 columns (blaTEM, blaCTXM, blaOXA48, blaNDM, sul1, sul2 and 8 more):
+  Richness (the number of kinds present) averages 12.9 (from 11 to 14).
+  Expected richness in a sample of 2,000 counts averages 12.3 (rarefaction: the expected value, Hurlbert 1971; not a random subsample).
+Note: 2 rows have fewer than 2,000 counts in all (row 21, row 22), so their expected richness at that total is left empty.
+Method: R vegan::specnumber(x), rarefy(x, sample = 2000). simplydata chooses the natural log for Shannon, Simpson as 1 - D (the Gini-Simpson index), Chao1 bias-corrected and rarefaction as an expected value. Added richness and expected richness at 2000.

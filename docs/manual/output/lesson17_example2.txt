@@ -1,14 +1,17 @@
-Bray-Curtis distances between 30 rows from 10 columns, as R vegan::vegdist(x, "bray"). 0 means the same; the bigger, the more different.
+Bray-Curtis distances between 30 rows from 10 columns (clover, daisy, buttercup, dandelion, nettle, thistle and 4 more), as R vegan::vegdist(x, "bray"). 0 means the same; the bigger, the more different.
+Note: the rows have very different totals (from 60 to 136); Bray-Curtis on raw counts mixes those totals (such as sequencing depth) with the make-up. Turn the counts into shares first, or use measure="aitchison".
   plot       NG1       NG2  ...       RU3       RU4       RU5
 1  NG1  0.000000  0.336493  ...  0.328947  0.474286  0.351351
 2  NG2  0.336493  0.000000  ...  0.502347  0.601695  0.479675
 3  NG3  0.280576  0.400000  ...  0.460993  0.597561  0.436782
 
 [3 rows x 31 columns]
-NMDS map of 30 rows from 10 columns (Bray-Curtis distances, 2 dimensions): stress = 0.195, usable, but do not read too much into small details (Clarke's rule of thumb: below 0.05 excellent, below 0.1 good, below 0.2 usable, above 0.2 hard to trust).
+NMDS map of 30 rows from 10 columns (clover, daisy, buttercup, dandelion, nettle, thistle and 4 more) (Bray-Curtis distances, 2 dimensions): stress = 0.195, usable, but do not read too much into small details (Clarke's rule of thumb: below 0.05 excellent, below 0.1 good, below 0.2 usable, above 0.2 hard to trust).
 Method: non-metric multidimensional scaling, run in R: set.seed(1); vegan::metaMDS(vegdist(x, method = "bray"), k = 2, try = 20, trymax = 100, autotransform = FALSE) (Kruskal's stress-1). Added NMDS1 and NMDS2; the axes have no units and their rotation and signs are arbitrary.
+Note: the rows have very different totals (from 60 to 136); Bray-Curtis on raw counts mixes those totals (such as sequencing depth) with the make-up. Turn the counts into shares first, or use measure="aitchison".
 Note: left out NMDS1 and NMDS2 (made by an earlier pattern word); give columns= to use them.
-The groups of "grazed" (no, yes) explain 24.6 % of the differences between the rows (R squared = 0.246; Bray-Curtis distances over 10 columns; pseudo-F = 9.14, from 999 permutations).
-If the groups truly had the same make-up, a difference in make-up this big or bigger would turn up in about 1 of 1000 studies like this one (p = 0.001).
+The groups of "grazed" (no, yes) explain 24.6 % of the differences between the rows (R squared = 0.246; Bray-Curtis distances over 10 columns (clover, daisy, buttercup, dandelion, nettle, thistle and 4 more); pseudo-F = 9.14, from 999 permutations).
+If the groups truly had the same make-up, a difference in make-up this big or bigger would turn up in at most about 1 of 1000 studies like this one (p = 0.001, the smallest p that 999 shuffles can give).
 Test: PERMANOVA (permutational analysis of variance on distances), run in R: set.seed(1); vegan::adonis2(distances ~ grazed, permutations = 999) with distances = vegan::vegdist(x, "bray").
 Spread check: the average distance to the group centre is 0.240 in no and 0.278 in yes (as vegan::betadisper and permutest: F = 2.53, p = 0.124).
+Note: the rows have very different totals (from 60 to 136); Bray-Curtis on raw counts mixes those totals (such as sequencing depth) with the make-up. Turn the counts into shares first, or use measure="aitchison".
