@@ -111,6 +111,13 @@ ALLOWED_ARITHMETIC = {
                                                "lies between units",
     "table/checking_more.py::manova": "each group's averages of the compared columns, for the printout (the test "
                                       "itself is statsmodels MANOVA)",
+    # S3b-2 (decision 14 of the S3b design). PENDING MANISH'S APPROVAL before release; the alternative is R epiR at
+    # run time (epi.sscompc(design = DE)), whose base answer uses the normal (z) formula and differs from
+    # find_how_many_needed's t-test answer. The reliability study checks it against epiR.
+    "power_more.py::clustered": "the design effect 1 + (m - 1) x ICC (Donner & Klar 2000), the values needed = the "
+                                "independent number (statsmodels or R) times it, rounded up, whole clusters of m, "
+                                "m / design effect (what one cluster counts as) and a given number / design effect "
+                                "(the independent values it counts as)",
 }
 
 

@@ -4,7 +4,7 @@ Made by `python validation/make_report.py` on 2026-11-20. Generated: do not edit
 
 Each simplydata word is run on real, published data and compared with the published answer, with the package simplydata uses underneath called directly, and with R. Each "same underneath" box of the manual is run next to its word and compared too. How it works, and the datasets with their licences: [validation/README.md](README.md).
 
-**632 checks passed, 0 failed, 0 skipped** (skipped: R or an R package is not installed on this computer).
+**681 checks passed, 0 failed, 0 skipped** (skipped: R or an R package is not installed on this computer).
 
 ## Setup
 
@@ -1360,6 +1360,175 @@ Note: metafor's Hedges' g (exact correction, large-sample variance) is the refer
 | first standard error | R | 0.137028776120449 | 0.137028776120449 | relative 1e-08 | pass |
 | last standard error | R | 0.257719821942313 | 0.257719821942313 | relative 1e-08 | pass |
 
+### `sdata.find_how_many_needed`
+
+**two averages, a medium difference (d = 0.5), 80 % power** (real data; data: checks against R (no published example))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| values per group (exact) | statsmodels TTestIndPower | 63.7657641232832 | 63.7657641232832 | relative 1e-09 | pass |
+| values per group (exact) | R | 63.7657641232832 | 63.7657637142739 | relative 1e-06 | pass |
+
+Note: The formula route of before S3b-2, checked against R power.t.test() (whose root search stops at about 6 digits).
+
+### `sdata.find_chance_of_finding`
+
+**two averages, d = 0.5, 30 values in each group** (real data; data: checks against R (no published example))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| power | R | 0.477840985940913 | 0.47784098594094 | relative 1e-09 | pass |
+
+### `sdata.find_how_many_needed using=`
+
+**using=: rows for a model of 3 columns, f squared 0.15** (real data; data: pwr manual and vignette)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| rows (exact) | R | 76.7058265578061 | 76.7058265599653 | relative 1e-06 | pass |
+| rows | R | 77 | 77 | relative 1e-06 | pass |
+
+### `sdata.find_how_many_needed based_on=`
+
+**based_on=: Mann-Whitney, d = 0.5, the values needed by simulation** (real data; data: checks against R (no published example))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| values per group | SciPy stats.power at 68 (the same seed) | 68 | 68 | relative 1e-12 | pass |
+| power with that many | SciPy stats.power at 68 (the same seed) | 0.8099 | 0.8099 | relative 1e-12 | pass |
+
+Note: SciPy with the same seed gives the same power at the number found; the t-test needs 64, and the Mann-Whitney test about 5 % more (asymptotic relative efficiency 0.955).
+
+### `sdata.find_how_many_needed interval_width=`
+
+**interval_width=: a 95 % Wilson interval of a percent near 15 % that is 5 points wide** (published; data: presize paper (JOSS))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| values (exact) | Haynes et al. (2021), JOSS | 783.489733552826 | 783.4897 | within 5e-05 (printed rounding) | pass |
+| values | Haynes et al. (2021), JOSS | 784 | 784 | within 0 (printed rounding) | pass |
+| values (exact) | R | 783.489733552826 | 783.489733552826 | relative 1e-09 | pass |
+| values | R | 784 | 784 | relative 1e-09 | pass |
+
+### `sdata.find_how_many_needed test=`
+
+**test=: events for a hazard ratio of 0.5 (log-rank, Schoenfeld)** (published; data: Stata power manuals)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| events | Stata [PSS-2] power logrank, example 2 | 66 | 66 | within 0 (printed rounding) | pass |
+| events (exact) | R | 65.3456592588709 | 65.3456592588709 | relative 1e-09 | pass |
+| events | R | 66 | 66 | relative 1e-09 | pass |
+
+**test=: events for survival 50 % against 60 % (hazard ratio log 0.5 / log 0.6 = 1.36), one-sided** (published; data: Stata power manuals)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| events | Stata [PSS-2] power logrank, example 5 (Machin et al. 2009, p. 91) | 266 | 266 | within 0 (printed rounding) | pass |
+| events (exact) | R | 265.472189653188 | 265.472189653188 | relative 1e-09 | pass |
+| events | R | 266 | 266 | relative 1e-09 | pass |
+
+**test=: events and people for a hazard ratio of 0.7, 30 % and 40 % with the event** (real data; data: Stata power manuals)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| events (exact) | R | 246.787104547358 | 246.787104547358 | relative 1e-09 | pass |
+| people in all | R | 706 | 706 | relative 1e-09 | pass |
+| power with that many | R | 0.800338066556873 | 0.800338066556873 | relative 1e-09 | pass |
+
+Note: No published example with people was found for a hazard ratio of 0.7; R gsDesign and powerSurvEpi are called directly.
+
+### `sdata.find_how_many_needed method=`
+
+**method=: Freedman's formula, hazard ratio 0.5, everyone followed to the event** (published; data: Stata power manuals)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| people per group | Stata [PSS-2] power logrank, example 1 | 36 | 36 | within 0 (printed rounding) | pass |
+| people per group | R | 36 | 36 | relative 1e-09 | pass |
+
+### `sdata.find_chance_of_finding using=`
+
+**using=: power of the F test for 5 columns, R squared 0.10, 95 rows** (published; data: G*Power 3.1 manual)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| power | G*Power manual 13.3.1 (Cohen 1988, example 9.1) | 0.673585770818647 | 0.673586 | within 5e-07 (printed rounding) | pass |
+| power | statsmodels FTestPowerF2 | 0.673585770818647 | 0.673585770818647 | relative 1e-12 | pass |
+| power | R | 0.673585770818647 | 0.673585770914399 | relative 1e-09 | pass |
+
+### `sdata.find_how_many_needed against=`
+
+**against=: rows for 2 columns added to 1, R squared 0.3, significance 0.001** (published; data: pwr manual and vignette)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| rows (exact) | pwr vignette, pwr.f2.test (v = 49.88971) | 53.8897053377435 | 53.88971 | within 5e-05 (printed rounding) | pass |
+| rows (exact) | R | 53.8897053377435 | 53.8897050419808 | relative 1e-06 | pass |
+
+Note: The rows are pwr's v (the denominator degrees of freedom) plus the 3 columns of the bigger model plus 1; pwr's root search stops at about 6 digits.
+
+### `sdata.find_how_many_needed outcome=`
+
+**outcome=: logistic regression, odds ratio 1.5 per standard deviation, 50 % at the average, power 0.95** (published; data: G*Power 3.1 manual)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| values | G*Power manual 29.4 (Demidenko 2007 with variance correction) | 337 | 337 | within 0 (printed rounding) | pass |
+| values (exact) | R | 336.86477920999 | 336.86477920999 | relative 1e-09 | pass |
+| values | R | 337 | 337 | relative 1e-09 | pass |
+
+Note: The G*Power manual prints 337 with the variance correction, 355 without it and 317 by Hsieh et al. (1998); simplydata uses the first, as G*Power does.
+
+### `sdata.find_how_many_needed in_clusters_of=`
+
+**in_clusters_of=: two averages in clusters of 20, ICC 0.025** (published; data: Stata power manuals)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| clusters per group | Stata [PSS-2] power twomeans, cluster, example 1 | 13 | 13 | within 0 (printed rounding) | pass |
+| values in whole clusters | Stata [PSS-2] power twomeans, cluster, example 1 | 260 | 260 | within 0 (printed rounding) | pass |
+| values per group (before rounding) | R | 259.160977758531 | 257.736809875392 | relative 0.01 | pass |
+
+Note: epiR multiplies by the same design effect but starts from the normal (z) formula, which needs a little less than the t-test (257.7 against 259.2 values per group); the check allows 1 %. This design effect is simplydata's own arithmetic, pending the owner's approval.
+
+**in_clusters_of=: the design effect of clusters of 30 with ICC 0.05** (published; data: Bland, sample size in cluster trials)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| design effect | Bland, Sample size in guidelines trials | 2.45 | 2.45 | within 0.005 (printed rounding) | pass |
+
+### `sdata.find_chance_of_finding based_on=`
+
+**based_on=: Mann-Whitney power, d = 0.5, 64 values in each group, by simulation** (real data; data: checks against R (no published example))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| power | SciPy stats.power (the same seed) | 0.7792 | 0.7792 | relative 1e-12 | pass |
+| power | R | 0.7792 | 0.7843 | relative 0.03 | pass |
+
+Note: R draws its own random numbers, so the check allows the Monte Carlo error of both (about 0.8 percentage points each); SciPy with the same seed gives the same number.
+
+### `sdata.find_chance_of_finding drawing_from=`
+
+**drawing_from=: Welch's t-test on two lognormal groups of 20, by simulation** (real data; data: checks against R (no published example))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| power | R | 0.2213 | 0.2182 | relative 0.06 | pass |
+
+Note: R draws its own random numbers; at a power near 23 % the Monte Carlo error of each is about 0.8 percentage points, so the check allows 6 % of the power.
+
+### `sdata.find_chance_of_finding by_running=`
+
+**by_running=: logistic regression simulated with statsmodels, against R pwrss** (real data; data: checks against R (no published example))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| power | R | 0.6675 | 0.657955359447415 | relative 0.06 | pass |
+
+Note: 2000 simulated studies (Wald test of statsmodels Logit) against the formula of R pwrss: the Monte Carlo error is about 1 percentage point, and the formula is an approximation, so the check allows 6 % of the power.
+
 ## 2. The same underneath (the manual's boxes)
 
 Each box's library code is run next to the simplydata word and compared. Table words run on a pandas and on a Polars table.
@@ -1516,6 +1685,17 @@ Each box's library code is run next to the simplydata word and compared. Table w
 | `table.combine_studies for_each_group_in=` | R + Python | polars | result | relative 1e-09 | pass |
 | `table.combine_studies using=` | R + Python | pandas | result | relative 1e-09 | pass |
 | `table.combine_studies using=` | R + Python | polars | result | relative 1e-09 | pass |
+| `sdata.find_how_many_needed` | statsmodels | pandas | result | relative 1e-09 | pass |
+| `sdata.find_chance_of_finding` | statsmodels | pandas | result | relative 1e-09 | pass |
+| `sdata.find_how_many_needed interval_width=` | R + Python | pandas | result | relative 1e-09 | pass |
+| `sdata.find_how_many_needed test=` | R + Python | pandas | result | relative 1e-09 | pass |
+| `sdata.find_how_many_needed method=` | R + Python | pandas | result | relative 1e-09 | pass |
+| `sdata.find_how_many_needed using=` | statsmodels | pandas | result | relative 1e-09 | pass |
+| `sdata.find_how_many_needed outcome=` | R + Python | pandas | result | relative 1e-09 | pass |
+| `sdata.find_how_many_needed in_clusters_of=` | statsmodels | pandas | result | relative 1e-09 | pass |
+| `sdata.find_how_many_needed based_on=` | SciPy | pandas | result | relative 1e-09 | pass |
+| `sdata.find_chance_of_finding drawing_from=` | SciPy | pandas | result | relative 1e-09 | pass |
+| `sdata.find_chance_of_finding by_running=` | Python | pandas | result | relative 1e-12 | pass |
 
 How each kind is compared:
 
@@ -1642,6 +1822,26 @@ Where simplydata's default differs from the package underneath, it is listed her
 - `table.combine_studies for_each_group_in=` (1): each subgroup its own random-effects model, with its own between-study spread; for this test each subgroup's estimate with its normal (z) standard error, as RevMan and R meta do (the subgroups' own intervals stay Hartung-Knapp).
 - `table.combine_studies for_each_group_in=` (2): the test of the difference between the subgroup estimates (a common-effect meta-regression on the subgroup), not metafor's rma(mods = ~ group), which assumes one spread for all.
 - `table.combine_studies using=` (1): a meta-regression: the slope of the log risk ratio per unit of each column, with Hartung-Knapp intervals; R-squared says how much of the between-study spread the columns account for.
+- `sdata.find_how_many_needed` (1): a two-sided test counts only the chance of finding the difference in the right direction, as R power.t.test() (strict = FALSE): one side at half the significance level.
+- `sdata.find_how_many_needed` (2): the number is rounded UP to a whole number.
+- `sdata.find_chance_of_finding` (1): one side at half the significance level, as R power.t.test() (strict = FALSE).
+- `sdata.find_how_many_needed interval_width=` (1): the Wilson interval, given by name: presize's method= is a list of four and it warns when none is chosen.
+- `sdata.find_how_many_needed test=` (1): events first, by Schoenfeld's (1983) formula for the log-rank test, two groups of the same size.
+- `sdata.find_how_many_needed test=` (2): people = events / the share of everyone expected to have the event (Schoenfeld; Hsieh & Lavori 2000), with the group a 0/1 column half of the people have (p = 0.5).
+- `sdata.find_how_many_needed method=` (1): Freedman's (1982) formula, two groups of the same size (k = 1); the first percent is the group whose hazard is effect_size= times the second's.
+- `sdata.find_how_many_needed using=` (1): FTestPowerF2, statsmodels' class with the degrees of freedom named the right way round (as R pwr::pwr.f2.test(), Cohen 1988 chapter 9).
+- `sdata.find_how_many_needed using=` (2): the rows are the denominator degrees of freedom plus the columns plus 1.
+- `sdata.find_how_many_needed outcome=` (1): one bell-shaped (normal) column; the odds ratio is per standard deviation of it, and percents= is the percent with the outcome at its average.
+- `sdata.find_how_many_needed outcome=` (2): Demidenko's (2007) formula with the variance correction: 337 in the G*Power manual's example, as G*Power gives (Hsieh's formula gives 317).
+- `sdata.find_how_many_needed in_clusters_of=` (1): the design effect 1 + (m - 1) x ICC (Donner & Klar 2000): simplydata's own arithmetic, the one line it adds to the package's answer.
+- `sdata.find_how_many_needed in_clusters_of=` (2): the independent number times the design effect, rounded up; then whole clusters.
+- `sdata.find_how_many_needed based_on=` (1): seeded (with_seed=1), so the answer repeats.
+- `sdata.find_how_many_needed based_on=` (2): the very test compare_averages_of(based_on="ranks") runs: Mann-Whitney, exact below 50 values in each group, else the normal approximation with continuity correction.
+- `sdata.find_how_many_needed based_on=` (3): significance given (SciPy's default is 0.01), 10000 tries drawn 1000 at a time; simplydata reads such powers for a range of numbers and takes the smallest that reaches power= (here 68).
+- `sdata.find_chance_of_finding drawing_from=` (1): seeded (with_seed=1, tries=10000, drawn 1000 at a time), so the answer repeats.
+- `sdata.find_chance_of_finding drawing_from=` (2): the test compare_averages_of runs: Welch's t-test (based_on="ranks" gives Mann-Whitney).
+- `sdata.find_chance_of_finding by_running=` (1): your function, run once per seed: 1, 2, ... 500 (with_seed=1, tries=500).
+- `sdata.find_chance_of_finding by_running=` (2): the p-values below significance= are counted, as SciPy stats.power counts them.
 
 ## Datasets
 
@@ -1698,3 +1898,9 @@ Where simplydata's default differs from the package underneath, it is listed her
 | [Curtis 1998 (metadat)](https://cran.r-project.org/package=metadat) | 102 experiments on the growth of woody plants under raised and ambient CO2: average biomass, its standard deviation and the plants in each group | Curtis, P. S. & Wang, X. (1998). A meta-analysis of elevated CO2 effects on woody plant mass, form, and physiology. Oecologia 113, 299-313; the log response ratio of Hedges, L. V., Gurevitch, J. & Curtis, P. S. (1999). Ecology 80, 1150-1156. Shipped with the R package metadat (dat.curtis1998). | The numbers are facts published in the paper; the metadat copy is GPL (>= 2). Read here from metadat (installed with metafor), so it needs R; the practice tables bcg and passive_smoking hold the same published numbers. |
 | [Hart 1999 (metadat)](https://cran.r-project.org/package=metadat) | 6 trials of warfarin against placebo in atrial fibrillation: strokes and patient-years in each group | Hart, R. G., Benavente, O., McBride, R. & Pearce, L. A. (1999). Antithrombotic therapy to prevent stroke in patients with atrial fibrillation: a meta-analysis. Annals of Internal Medicine 131, 492-501. Shipped with the R package metadat (dat.hart1999). | The numbers are facts published in the paper; the metadat copy is GPL (>= 2). Read here from metadat (installed with metafor), so it needs R; the practice tables bcg and passive_smoking hold the same published numbers. |
 | [McDaniel 1994 (metadat)](https://cran.r-project.org/package=metadat) | 160 studies of the correlation between employment interview ratings and job performance, with the number of people in each | McDaniel, M. A., Whetzel, D. L., Schmidt, F. L. & Maurer, S. D. (1994). The validity of employment interviews: a comprehensive review and meta-analysis. Journal of Applied Psychology 79, 599-616. Shipped with the R package metadat (dat.mcdaniel1994). | The numbers are facts published in the paper; the metadat copy is GPL (>= 2). Read here from metadat (installed with metafor), so it needs R; the practice tables bcg and passive_smoking hold the same published numbers. |
+| [checks against R (no published example)](https://doi.org/10.1186/1471-2288-11-94) | no data: the inputs are written in the code, and R (or SciPy with the same seed) is the reference; used where no published worked example was read | simplydata's reliability study. Simulation checks follow Arnold, B. F., Hogan, D. R., Colford, J. M. & Hubbard, A. E. (2011). Simulation methods to estimate design power. BMC Medical Research Methodology 11, 94. | No data: published worked examples (facts); only the numbers printed there are quoted, nothing is stored. |
+| [pwr manual and vignette](https://cran.r-project.org/package=pwr) | the pwr.f2.test example of the pwr vignette (Kutner et al., exercise 8.43): two columns added, R squared 0.3, significance 0.001 | Champely, S. et al. pwr: Basic Functions for Power Analysis, vignette (pwr.f2.test); Kutner, M. H., Nachtsheim, C. J., Neter, J. & Li, W. (2005). Applied Linear Statistical Models, 5th ed., exercise 8.43. | No data: published worked examples (facts); only the numbers printed there are quoted, nothing is stored. |
+| [presize paper (JOSS)](https://doi.org/10.21105/joss.03118) | the worked example of presize's paper: the values needed for a 95 % Wilson interval of a percent near 15 % that is 5 points wide | Haynes, A. G., Lenz, A., Stalder, O. & Limacher, A. (2021). presize: An R-package for precision-based sample size calculation in clinical research. Journal of Open Source Software 6(60), 3118 (CC BY 4.0). | No data: published worked examples (facts); only the numbers printed there are quoted, nothing is stored. |
+| [Stata power manuals](https://www.stata.com/manuals/pss-2powerlogrank.pdf) | worked examples of the Stata power manuals: the log-rank test by Schoenfeld's and by Freedman's formula, and two averages in clusters | StataCorp. Stata Power, Precision, and Sample-Size Reference Manual: [PSS-2] power logrank, examples 1, 2 and 5 (example 5 from Machin, D. et al. (2009). Sample Size Tables for Clinical Studies, 3rd ed., p. 91); [PSS-2] power twomeans, cluster, example 1 (from Ahn, C., Heo, M. & Zhang, S. (2015). Sample Size Calculations for Clustered and Longitudinal Outcomes in Clinical Research, p. 37). | No data: published worked examples (facts); only the numbers printed there are quoted, nothing is stored. |
+| [G*Power 3.1 manual](https://www.psychologie.hhu.de/arbeitsgruppen/allgemeine-psychologie-und-arbeitspsychologie/gpower) | worked examples of the G*Power manual: logistic regression with one normal column (chapter 29.4) and the multiple-regression F test (chapter 13.3.1, Cohen 1988 example 9.1) | Faul, F., Erdfelder, E., Buchner, A. & Lang, A.-G. G*Power 3.1 manual (2023), sections 13.3.1 and 29.4; Faul et al. (2009). Behavior Research Methods 41, 1149-1160; Cohen, J. (1988). Statistical Power Analysis for the Behavioral Sciences, 2nd ed., p. 424. | No data: published worked examples (facts); only the numbers printed there are quoted, nothing is stored. |
+| [Bland, sample size in cluster trials](https://www-users.york.ac.uk/~mb55/clust/bupa.htm) | the design effect of a cluster trial with 30 people in each cluster and ICC 0.05 | Bland, J. M. Sample size in guidelines trials (University of York), section "Sample size in cluster randomized studies"; Kerry, S. M. & Bland, J. M. (1998). BMJ 316, 549. | No data: published worked examples (facts); only the numbers printed there are quoted, nothing is stored. |
