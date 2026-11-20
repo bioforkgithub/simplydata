@@ -399,7 +399,7 @@ OPTION_ENTRIES = [
             """,
         },
         r_inputs=FLASK_A,
-        r_packages=("stats",),
+        r_packages=(),  # base R (stats) only
         compare="result",
         fields=("smooth", "smooth 95 % CI low"),
         choices=("R loess's own defaults: span 0.75 (smoothness=), local curves of degree 2, no robustness steps.",
@@ -431,7 +431,7 @@ OPTION_ENTRIES = [
             """,
         },
         r_inputs=FLASK_A,
-        r_packages=("stats",),
+        r_packages=(),  # base R (stats) only
         compare="chart",
         check=("lines",),
         tolerance=1e-9,
