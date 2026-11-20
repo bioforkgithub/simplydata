@@ -20,6 +20,10 @@ SPELLINGS = {
     "gray": "grey",
     "labeled": "labelled",
 }
+# Words people may type in either spelling at the start of an option name (neighbors_alike_in_order_of=)
+FIRST_WORD_SPELLINGS = {
+    "neighbors": "neighbours",
+}
 
 
 class SimplydataError(Exception):
@@ -248,6 +252,9 @@ def friendly(func=None, *, renamed: dict | None = None, others: dict | None = No
                     if candidate in params:
                         key = candidate
                     break
+            for us, uk in FIRST_WORD_SPELLINGS.items():
+                if key.startswith(us + "_") and uk + key[len(us):] in params:
+                    key = uk + key[len(us):]
             if key in renamed and key not in params:
                 new = renamed[key]
                 renamed_note(f"{key}=", f"{new}=")

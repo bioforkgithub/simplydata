@@ -170,7 +170,7 @@ class ModelToolWords:
     # ------------------------------------------------------------------ find_model_averages_of
     @friendly(renamed={"for_each": "for_each_group_in"})
     def find_model_averages_of(self, column=None, for_each_group_in=None, using=None, outcome="numbers", grouped_by=None,
-                               in_order=None):
+                               in_order=None, comparing="each pair", within_each_group_in=None, over_range_of=None):
         """The average the model gives for each group, once the other columns are allowed for.
 
         table.find_model_averages_of("marks", for_each_group_in="school", using=["hours", "breakfast"])
@@ -187,8 +187,21 @@ class ModelToolWords:
         the mixed model (grouped_by=["school", "class"] for classes inside schools). Done by R emmeans::emmeans() and pairs() (needs R: pip install
         "simplydata[r]"). Gives back a table with one row per group and one per pair. Other name:
         marginal means (R emmeans).
+        comparing="each with the first" compares each group with the first (a control) instead of
+        every pair; also "each with the next", "each with the average of the ones before"
+        (Helmert), "each with the average", "trend" (groups in order) or your own weights as a dict
+        (R emmeans contrast(), with emmeans' adjustment for each, printed). in_order=[...] gives the
+        order of the groups. within_each_group_in="sex" compares the groups within each sex (simple
+        effects), after the interaction test (R emmeans joint_tests()). over_range_of="hours" gives
+        the model average at 50 evenly spaced values of hours, ready to draw (R emmeans(at =)).
         """
         step = "find_model_averages_of"
+        # S3a-3 (checking and comparing): contrasts, simple effects and averages across a range (checking_more.py)
+        if comparing != "each pair" or within_each_group_in is not None or over_range_of is not None:
+            from .checking_more import averages_compared
+
+            return averages_compared(self, column, for_each_group_in, using, outcome, grouped_by, in_order, comparing,
+                                     within_each_group_in, over_range_of)
         grouped_by, inner = self._groups_inside(step, grouped_by)
         self._need_name(step, "the column to explain", column, AVERAGES_EXAMPLE)
         self._need_name(step, "for_each_group_in=", for_each_group_in, AVERAGES_EXAMPLE)
@@ -564,7 +577,8 @@ class ModelToolWords:
             d = d.set_range_y(-reach, reach)
         d = d.write_title_on_top("Residuals against leverage")
         column = model["column"]
-        print(f'Checking the model of "{column}" ({n} rows) in four pictures, as R plot({model_call(model, pieces)}):')
+        count = "five" if model["kind"] == "binomial" else "four"
+        print(f'Checking the model of "{column}" ({n} rows) in {count} pictures, as R plot({model_call(model, pieces)}):')
         print("  1. residuals against fitted values: an even band around 0, with no curve, means the form fits;")
         print("  2. normal Q-Q: dots on the line mean the residuals follow a bell curve;")
         print("  3. scale-location: a flat line means the spread is the same everywhere;")
@@ -579,10 +593,19 @@ class ModelToolWords:
                   "smooth line, which should stay near 0.")
         print("Numbers from statsmodels (OLSInfluence or GLMInfluence); the smooth lines are LOWESS, as R "
               "panel.smooth. Pictures help judge a model better than tests of the residuals.")
+        # S3a-3: tests of equal spread as notes (numbers); a calibration picture, Hosmer-Lemeshow and Brier (yes/no)
+        from .checking_more import calibration, spread_tests
+
+        charts, more = [a, b, c, d], {}
+        if model["kind"] == "lm":
+            more = spread_tests(model, numbers)
+        elif model["kind"] == "binomial":
+            picture, more = calibration(model)
+            charts.append(picture)
         vif = self._vif_table(model)
-        page = put_in_rows_and_columns(a, b, c, d, per_row=2)
+        page = put_in_rows_and_columns(*charts, per_row=2)
         page._check_numbers = dict(numbers, theoretical=qq["theoretical"], ordered=qq["ordered"], slope=qq["slope"],
-                                   intercept=qq["intercept"], vif=vif)
+                                   intercept=qq["intercept"], vif=vif, **more)
         return page
 
     @staticmethod
@@ -828,7 +851,7 @@ class ModelToolWords:
 
     @friendly
     def compare_models(self, column=None, using=None, against=None, outcome="numbers", grouped_by=None,
-                       in_order=None):
+                       in_order=None, check_on_left_out_rows=False, with_seed=1):
         """Does a bigger model explain the column better than a smaller one?
 
         table.compare_models("marks", using=["hours"], against=["hours", "breakfast"])
@@ -842,6 +865,11 @@ class ModelToolWords:
         grouped_by=["school", "class"], groups inside groups). It also prints
         AIC and BIC for each model (smaller is better; a difference under about 2 means little).
         Gives back a table with one row per model and one for the test.
+        using=[["hours"], ["hours", "breakfast"], ["hours * breakfast"]] (a list of models) compares
+        several models by AICc (AIC corrected for few rows) with Akaike weights, as R
+        AICcmodavg::aictab(). check_on_left_out_rows=True checks each model on rows it did not see:
+        the rows are split into 10 parts at random (with_seed=1), each left out once and predicted
+        by a model fitted to the rest, R boot::cv.glm(K = 10) (needs R).
         """
         from scipy import stats
         import statsmodels.tools.eval_measures as measures
@@ -850,8 +878,18 @@ class ModelToolWords:
         example = ('with sdata.get_example("school"): table.compare_models("marks", using=["hours"], '
                    'against=["hours", "breakfast"])')
         self._check_kind(step, outcome, AVERAGE_OUTCOMES)
+        # S3a-3 (checking and comparing): several models (AICc) and checks on left-out rows (checking_more.py)
+        many = isinstance(using, (list, tuple)) and bool(using) and all(isinstance(u, (list, tuple)) for u in using)
+        if many or check_on_left_out_rows is not False:
+            from .checking_more import compare_many
+
+            return compare_many(self, column, using, against, outcome, grouped_by, in_order, check_on_left_out_rows,
+                                with_seed)
         if against is None:
-            raise SimplydataError(f"{step}() needs against= with the columns of the other model.\nFor example, {example}")
+            first = list(using) if isinstance(using, (list, tuple)) else [using]
+            raise SimplydataError(f"{step}() needs against= with the columns of the other model, or several models as "
+                                  f"a list of lists in using=, for example:\n  table.compare_models(\"{column}\", "
+                                  f"using=[{first!r}, [...]])\nFor example, {example}")
         grouped_by, inner = self._groups_inside(step, grouped_by)
         first = self._model_parts(step, column, using, outcome, grouped_by, "leave out")
         second = self._model_parts(step, column, against, outcome, grouped_by, "leave out")

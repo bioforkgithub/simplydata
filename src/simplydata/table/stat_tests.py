@@ -640,7 +640,8 @@ class StatTestWords:
     @friendly(renamed={"between": "for_each_group_in", "for_each": "for_each_group_in", "seed": "with_seed"})
     def compare_averages_of(self, column=None, for_each_group_in=None, based_on="averages", test=None, sides=2, higher=None,
                             lower=None, alternative=None, p_value_by="formula", shuffles=9999, with_seed=1,
-                            same_within=None, not_lower=None, not_higher=None, in_order=None, matched_by=None):
+                            same_within=None, not_lower=None, not_higher=None, in_order=None, matched_by=None,
+                            grouped_by=None):
         """Are the averages of the groups really different?
 
         table.compare_averages_of("marks", for_each_group_in="class")   (with sdata.get_example("marks"))
@@ -681,8 +682,31 @@ class StatTestWords:
         matched_by="name"). It runs a repeated-measures ANOVA with the Greenhouse-Geisser
         correction, R afex::aov_ez() (needs R). for_each_group_in=["subject", "class"] with one column that
         changes within a person and one that does not gives the mixed ANOVA.
+        grouped_by="tank" is for several rows from each tank, each tank in one group (nested): a
+        nested ANOVA that tests the groups against the differences between tanks, R aov(length ~
+        diet + Error(tank)) (needs R). A list of columns, compare_averages_of(["length", "width"],
+        for_each_group_in="species"), compares them all at once: a MANOVA with Pillai's trace
+        (statsmodels MANOVA, as R summary(manova())).
         """
         step = "compare_averages_of"
+        # S3a-3 (checking and comparing): nested ANOVA and MANOVA (table/checking_more.py)
+        if grouped_by is not None or isinstance(column, (list, tuple)):
+            from .checking_more import manova, nested_averages
+
+            given = [name for name, value, default in (
+                ("based_on=", based_on, "averages"), ("test=", test, None), ("sides=", sides, 2),
+                ("higher=", higher, None), ("lower=", lower, None), ("alternative=", alternative, None),
+                ("p_value_by=", p_value_by, "formula"), ("same_within=", same_within, None),
+                ("not_lower=", not_lower, None), ("not_higher=", not_higher, None), ("in_order=", in_order, None),
+                ("matched_by=", matched_by, None)) if value != default]
+            if given:
+                what = "grouped_by= (a nested ANOVA)" if grouped_by is not None else "a list of columns (a MANOVA)"
+                raise SimplydataError(f"{_list_words(given)} cannot be used with {what}.")
+            if isinstance(column, (list, tuple)):
+                if grouped_by is not None:
+                    raise SimplydataError("A list of columns (a MANOVA) cannot be used with grouped_by= yet.")
+                return manova(self, list(column), for_each_group_in)
+            return nested_averages(self, column, for_each_group_in, grouped_by)
         if matched_by is not None:
             if based_on != "averages" or test is not None:
                 raise SimplydataError('matched_by= runs a repeated-measures ANOVA on averages; leave out based_on= '

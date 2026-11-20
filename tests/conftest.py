@@ -43,7 +43,9 @@ R_PACKAGES = ("survival", "vegan", "mice", "lme4", "betareg", "pscl", "car", "ef
               "tseries", "lomb", "trend", "forecast", "changepoint",
               "pwr", "Exact", "exact2x2", "nortest", "BSDA", "rstatix", "DescTools", "FSA", "PMCMRplus",
               "multcompView", "TOSTER", "presize", "epiR", "pROC", "irr", "psych", "BlandAltmanLeh", "ppcor", "cocor",
-              "outliers", "EnvStats")
+              "outliers", "EnvStats",
+              # S3a-3 (checking and comparing)
+              "nlme", "glmnet", "boot", "lmtest", "AICcmodavg")
 
 
 @pytest.fixture
@@ -101,6 +103,10 @@ R_ENTRY_POINTS = {
     ("table/time_series.py", "check_steady_over_time"), ("_signals.py", "_lomb_scargle"),
     ("_trend_season.py", "_r_stl_periodic"), ("_trend_season.py", "_r_mann_kendall"),
     ("_forecast.py", "r_forecast"), ("_forecast.py", "r_change_points"), ("_smoothing.py", "smooth"),
+    # S3a-3 (checking and comparing)
+    ("table/checking_r.py", "gls"), ("table/checking_r.py", "lasso"), ("table/checking_r.py", "left_out_rows"),
+    ("table/checking_r.py", "hosmer"), ("table/checking_r.py", "model_contrasts"),
+    ("table/checking_r.py", "group_levels"), ("table/checking_r.py", "nested_anova"),
 }
 
 

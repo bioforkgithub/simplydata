@@ -1266,7 +1266,7 @@ class ModelWords:
     def explain(self, column=None, using=None, outcome="numbers", grouped_by=None, empty_cells="leave out", with_seed=1,
                 time=None, out_of=None, in_order=None, link=None, test_type=None, own_slope_for=None,
                 robust_errors=False, p_value_by="wald", effects="for the average group", within_groups="alike",
-                curve_for=None):
+                curve_for=None, spread_changes_with=None, neighbours_alike_in_order_of=None):
         """Explain one column from several others with a model, and say how big each effect is.
 
         table.explain("marks", using=["hours", "breakfast"])   (with sdata.get_example("school"))
@@ -1315,8 +1315,22 @@ class ModelWords:
         (yes or no, counts, groups) or Nakagawa's R squared (grouped_by=, R performance, needs R), with
         AIC and BIC (R AIC(), BIC()). Gives back a table with one row per term.
         A link does not show that one thing causes the other.
+        spread_changes_with="site" lets each site have its own spread (a number column: the spread
+        grows as a power of it), and neighbours_alike_in_order_of="date" lets rows next to each
+        other in date order be alike (AR(1)): generalised least squares, R nlme::gls() (needs R).
         """
         step = "explain"
+        # S3a-3 (checking and comparing): generalised least squares (table/checking_more.py)
+        if spread_changes_with is not None or neighbours_alike_in_order_of is not None:
+            from .checking_more import explain_gls
+
+            return explain_gls(self, column, using, spread_changes_with, neighbours_alike_in_order_of, [
+                ("outcome=", outcome, "numbers"), ("grouped_by=", grouped_by, None),
+                ("empty_cells=", empty_cells, "leave out"), ("time=", time, None), ("out_of=", out_of, None),
+                ("in_order=", in_order, None), ("link=", link, None), ("test_type=", test_type, None),
+                ("own_slope_for=", own_slope_for, None), ("robust_errors=", robust_errors, False),
+                ("p_value_by=", p_value_by, "wald"), ("effects=", effects, "for the average group"),
+                ("within_groups=", within_groups, "alike"), ("curve_for=", curve_for, None)])
         robust, smooth_for = robust_errors, curve_for
         if isinstance(with_seed, bool) or not isinstance(with_seed, int):
             raise SimplydataError("with_seed= is a whole number that fixes the random filling-in, for example with_seed=1.")
