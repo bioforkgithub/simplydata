@@ -43,7 +43,10 @@ def _saved_files(code):
 def test_example_tables_load_with_the_columns_described(name):
     table = sdata.get_example(name)
     assert isinstance(table, pd.DataFrame)
-    assert len(table) >= 20
+    if name == "bcg":  # real data: the 13 BCG trials (Colditz et al. 1994)
+        assert len(table) == 13
+    else:
+        assert len(table) >= 20
     assert list(table.columns) == list(EXAMPLES[name][1])
     if name == "shop":  # the one table made for practising empty cells and dates
         assert table.isna().any().any() and pd.api.types.is_datetime64_any_dtype(table["date"])
@@ -317,14 +320,14 @@ def test_every_docstring_example_runs_and_draws(key, tmp_path, monkeypatch, caps
 
 
 # ---------------------------------------------------------------- sdata.show_lesson()
-LESSON_NUMBERS = range(1, 29)
+LESSON_NUMBERS = range(1, 30)
 
 
-def test_there_are_twenty_eight_lessons(capsys):
-    assert len(learn.LESSONS) == 28
+def test_there_are_twenty_nine_lessons(capsys):
+    assert len(learn.LESSONS) == 29
     sdata.show_lesson()
     out = capsys.readouterr().out
-    assert "28 lessons" in out
+    assert "29 lessons" in out
     for i in LESSON_NUMBERS:
         assert f"sdata.show_lesson({i})" in out
 
@@ -372,9 +375,9 @@ def test_lessons_use_tables_and_charts(number):
         assert gone not in code, f"lesson {number} uses {gone}"
 
 
-@pytest.mark.parametrize("bad", [0, 29, "1", 1.0, True])
+@pytest.mark.parametrize("bad", [0, 30, "1", 1.0, True])
 def test_wrong_lesson_number_is_explained(bad):
-    with pytest.raises(sdata.SimplydataError, match="lessons 1 to 28"):
+    with pytest.raises(sdata.SimplydataError, match="lessons 1 to 29"):
         sdata.show_lesson(bad)
 
 

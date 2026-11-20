@@ -100,6 +100,17 @@ underneath" in the manual and a case on real, published data in the reliability 
 - Lesson 21 gains a three-model comparison line, an `over_range_of=` line and a note; new lesson 28 "When one effect depends on another" (picture first, then simple effects and contrasts).
 - Reliability study: 15 new cases on real data (swiss, iris, warpbreaks, Lake Huron, the rat liver glycogen of Sokal & Rohlf, and Dialyzer, sleepstudy and birthwt read from R packages); same-underneath entries for the three new words and nine new options.
 
+### Combining studies (S3b-1)
+
+- New: `table.combine_studies` combines the results of several studies (a meta-analysis) with R metafor. Ways in: counts (`events=`, `out_of=`; risk ratios, odds ratios, risk differences), estimates with their intervals or `standard_errors=` (`estimates=`; ratios combined on the log scale, `estimates_are_ratios=` decides), averages (`averages=`, `standard_deviations=`, `counts=`; Hedges' g, differences or ratios of averages), events and time (rate ratios) and correlations. Random effects with REML and Hartung-Knapp intervals by default (`method=` "DerSimonian-Laird", "Paule-Mandel", "common effect", "Mantel-Haenszel", "Peto"; `interval_by="normal"`). It always prints the prediction interval (from 3 studies) as "the true effect in a new setting", tau (as a factor for ratios) and I-squared in words; from 10 studies, Peters' test (counts) or Egger's test and trim and fill as a what-if, worded as small-study effects. `for_each_group_in=` gives subgroups, each with its own spread, with the test of their difference first; `using=` a meta-regression. p-values are said as "in about X of 100 sets of studies like these".
+- New: `chart.draw_funnel_plot` draws each study's effect against its standard error with the combined effect and the pseudo 95 % funnel (`funnel_plot` and `draw_funnel` point to it).
+- `forest_plot` draws the result of `combine_studies` with squares sized by `size="weight %"`, diamonds for the combined effects and a line for the prediction interval; other result tables draw as before.
+- The word-list group "Combine and reshape" is now "Join and reshape" (join_with, add_rows_from, ...), so "combine" means only combining studies; a new group "Combining studies" holds combine_studies, forest_plot and draw_funnel_plot.
+- New practice tables `bcg` (13 BCG vaccine trials, Colditz et al. 1994) and `passive_smoking` (37 studies, Hackshaw et al. 1997): real published data, said in their descriptions.
+- New lesson 29 "Combining studies (meta-analysis)": the forest plot first, then how much the studies differ, then subgroups and the funnel plot; the task is a faded call on the estimates route.
+- Reliability study: 15 new cases on real data read from R metadat (BCG trials with Viechtbauer's published numbers, passive smoking with Hackshaw's published pooled odds ratio, Normand, Curtis, Hart and McDaniel), checked against R metafor and, for DerSimonian-Laird and Mantel-Haenszel, statsmodels; same-underneath entries for the two new words and seven options.
+- New R package for the R extra: metafor (with metadat); meta for the reliability study.
+
 ## 0.2.0 (2026-11-20)
 
 More statistics (tests and models), signals and time series, the 30-day course, the talking syntax, the same-underneath boxes and the public reliability study. Every printed statistical result is checked against R.

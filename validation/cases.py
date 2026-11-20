@@ -880,3 +880,16 @@ def _add_checking_and_comparing():
 
 
 _add_checking_and_comparing()
+
+
+# ---------------------------------------------------------------- S3b-1: combining studies (validation/cases_combining.py)
+def _add_combining_studies():
+    import importlib.util
+
+    spec = importlib.util.spec_from_file_location("simplydata_validation_combining", HERE / "cases_combining.py")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    module.add_to(globals())
+
+
+_add_combining_studies()

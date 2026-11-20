@@ -1,6 +1,8 @@
-"""Small made-up tables to practise with: sdata.get_example("marks").
+"""Small tables to practise with: sdata.get_example("marks").
 
-Every number in these tables is invented. They are not real people, places or countries.
+Every number in these tables is invented (they are not real people, places or countries), except in "bcg" and
+"passive_smoking": the published results of real studies, for combining studies (meta-analysis), each with its
+source in its description.
 """
 
 from __future__ import annotations
@@ -192,11 +194,42 @@ EXAMPLES = {
             "density": "how cloudy the culture is (optical density at 600 nm)",
         },
     ),
+    # S3b-1 (combining studies): real, published study results (the only tables that are not made up)
+    "bcg": (
+        "REAL DATA: 13 trials of the BCG vaccine against tuberculosis, one row per trial (Colditz et al. 1994, "
+        "JAMA 271:698-702: the counts published in the paper, facts; the same numbers as R metadat's dat.bcg).",
+        {
+            "trial": "the first author and the year of the trial",
+            "year": "the year the trial was published",
+            "tb_vaccinated": "vaccinated people who got tuberculosis",
+            "vaccinated": "people vaccinated",
+            "tb_unvaccinated": "unvaccinated people who got tuberculosis",
+            "unvaccinated": "people not vaccinated",
+            "latitude": "how far the trial's place is from the equator, in degrees",
+            "allocation": "how people were put into the groups: random, alternate or systematic",
+        },
+    ),
+    "passive_smoking": (
+        "REAL DATA: 37 studies of lung cancer in non-smoking women whose husbands smoked, one row per study "
+        "(Hackshaw, Law & Wald 1997, BMJ 315:980-988: the odds ratios and intervals published in the paper, facts; "
+        "the same numbers as R metadat's dat.hackshaw1998).",
+        {
+            "study": "the first author and the year of the study",
+            "year": "the year the study was published",
+            "country": "where the study was done",
+            "design": "cohort or case-control",
+            "cases": "the number of women with lung cancer in the study",
+            "odds ratio": "the odds of lung cancer with a smoking husband against a non-smoking husband",
+            "odds ratio 95 % CI low": "the lower end of its 95 % confidence interval",
+            "odds ratio 95 % CI high": "the upper end of its 95 % confidence interval",
+        },
+    ),
 }
 
 
 def _list_examples() -> None:
-    print("Example tables you can use (all made up, for practice):\n")
+    print("Example tables you can use (made up for practice, except bcg and passive_smoking: real published "
+          "studies):\n")
     for name, (about, columns) in EXAMPLES.items():
         print(f'  sdata.get_example("{name}")')
         print(f"      {about}")
@@ -206,11 +239,11 @@ def _list_examples() -> None:
 
 
 def get_example(name: str | None = None):
-    """A small made-up table to practise with. sdata.get_example("marks")
+    """A small table to practise with. sdata.get_example("marks")
 
     sdata.get_example() with no name lists every table and its columns.
     The tables are: marks, weather, fruit, growth, sensor, visitors, river, shop, school, meadow, trial, clinic,
-    island, toxicity, culture.
+    island, toxicity, culture, and, for combining studies, bcg and passive_smoking (real published studies).
     "shop" has empty cells and a column of dates to practise with; "school" has empty cells too.
     """
     if name is None:

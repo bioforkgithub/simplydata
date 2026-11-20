@@ -47,7 +47,9 @@ R_PACKAGES = ("survival", "vegan", "mice", "lme4", "betareg", "pscl", "car", "ef
               # S3a-2 (lines and curves)
               "drc", "segmented", "smatr", "mcr", "quantreg", "deming",
               # S3a-3 (checking and comparing)
-              "nlme", "glmnet", "boot", "lmtest", "AICcmodavg")
+              "nlme", "glmnet", "boot", "lmtest", "AICcmodavg",
+              # S3b-1 (combining studies): metafor (with its data package metadat); meta for the reliability study
+              "metafor", "metadat", "meta")
 
 
 @pytest.fixture
@@ -114,6 +116,8 @@ R_ENTRY_POINTS = {
     ("table/checking_r.py", "gls"), ("table/checking_r.py", "lasso"), ("table/checking_r.py", "left_out_rows"),
     ("table/checking_r.py", "hosmer"), ("table/checking_r.py", "model_contrasts"),
     ("table/checking_r.py", "group_levels"), ("table/checking_r.py", "nested_anova"),
+    # S3b-1 (combining studies)
+    ("table/meta_r.py", "combine"),
 }
 
 

@@ -32,7 +32,7 @@ GROUPS = [
                     # S3a-3 (checking and comparing)
                     "draw_interaction_lines",
                     "draw_density", "draw_count_bars", "draw_all_dots", "draw_side_histograms", "draw_qq_dots",
-                    "draw_cumulative_share", "forest_plot", "sdata.draw_all_pairs"]),
+                    "draw_cumulative_share", "sdata.draw_all_pairs"]),
     ("Lines and shading", ["draw_line_at_x", "draw_line_at_y", "draw_line_with_slope", "shade_between_x", "shade_between_y"]),
     ("Words on the chart", ["write_title_on_top", "write_caption_at_bottom", "label_x", "label_y", "write_note",
                             "write_numbers_on_bars", "write_names_on_dots", "use_font_size", "use_font"]),
@@ -103,6 +103,9 @@ GROUPS = [
                                  "table.compare_profiles_of"]),
     ("Survival", ["table.find_survival_over_time", "table.compare_survival", "table.explain_survival",
                   "draw_survival_curves"]),
+    # S3b-1: combining studies (meta-analysis); forest_plot draws any result table with intervals, and the combined
+    # effect of combine_studies as a diamond
+    ("Combining studies", ["table.combine_studies", "forest_plot", "draw_funnel_plot"]),
     # Time series and signals: the core words first in each group, then the "more" words.
     ("Dates and time windows", ["sdata.make_run_of_dates", "table.add_missing_dates"]),
     ("Smoothing and trend", ["table.add_smoothed_column", "nums.smooth", "table.find_trend_of", "nums.remove_trend",
@@ -116,7 +119,7 @@ GROUPS = [
                             "sdata.frequency_filter", "nums.find_envelope", "table.add_envelope_column",
                             "nums.take_fourier_transform", "sdata.find_inverse_fourier_transform"]),
     ("Planning a study", ["sdata.find_how_many_needed", "sdata.find_chance_of_finding"]),
-    ("Combine and reshape", ["table.join_with", "table.add_rows_from", "table.turn_columns_into_rows",
+    ("Join and reshape", ["table.join_with", "table.add_rows_from", "table.turn_columns_into_rows",
                              "table.turn_rows_into_columns"]),
     ("Undo and finish", ["table.undo", "table.show_steps", "table.start_again", "table.save",
                          "table.start_chart", "table.as_pandas", "table.as_polars"]),
@@ -835,6 +838,17 @@ HELP_EXAMPLES = {
         chart = pairs.start_chart()
         chart.forest_plot(x="difference", y="group 1")
         chart.save("forest_plot.png")"""),
+    # combining studies (S3b-1)
+    "table.combine_studies": _tx("bcg", 'table.combine_studies(names="trial", events=["tb_vaccinated", '
+                                        '"tb_unvaccinated"], out_of=["vaccinated", "unvaccinated"])'),
+    "draw_funnel_plot": textwrap.dedent("""\
+        import simplydata as sdata
+        table = sdata.table(sdata.get_example("bcg"))
+        result = table.combine_studies(names="trial", events=["tb_vaccinated", "tb_unvaccinated"],
+                                       out_of=["vaccinated", "unvaccinated"])
+        chart = result.start_chart()
+        chart.draw_funnel_plot(x="estimate", y="standard error")
+        chart.save("draw_funnel_plot.png")"""),
     # planning a study
     "sdata.find_how_many_needed": textwrap.dedent("""\
         import simplydata as sdata
@@ -1521,6 +1535,10 @@ SYSTEMS_LESSON = "Systems: a spring and damper, its response and a feedback loop
 OUTLIERS_LESSON = "Beyond the average line: percentiles and outliers"
 # S3a-3: the interaction lesson (lesson 28; found by title)
 INTERACTIONS_LESSON = "When one effect depends on another"
+# S3b-1: combining studies (lesson 29; found by title)
+COMBINING_LESSON = "Combining studies (meta-analysis)"
+COMBINE_CALL = ('table.combine_studies(names="trial", events=["tb_vaccinated", "tb_unvaccinated"], '
+                'out_of=["vaccinated", "unvaccinated"])')
 
 LESSONS = [
     dict(
@@ -4834,6 +4852,108 @@ LESSONS = [
         ],
         words=["draw_interaction_lines", "table.explain", "table.find_model_averages_of"],
     ),
+    # S3b-1 (combining studies): lesson 29, found by title
+    dict(
+        title=COMBINING_LESSON,
+        needs_r=needs_r_text("Every example of this lesson combines studies with R metafor: combine_studies()",
+                             packages=("metafor",)),
+        learn=[
+            "how to combine the results of several studies into one (a meta-analysis), and draw them as a forest plot",
+            "how to read how much the studies differ: the prediction interval, tau and I-squared",
+            "more: subgroups, and the funnel plot for small-study effects",
+        ],
+        parts=[
+            ("Picture first. 13 trials tested the BCG vaccine against tuberculosis (real data, Colditz et al. 1994). "
+             "combine_studies puts their results together, and forest_plot draws each trial and the combined effect.", [
+                ("import simplydata as sdata", "Load simplydata."),
+                ('table = sdata.table(sdata.get_example("bcg"))', "One row per trial: the vaccinated and unvaccinated "
+                                                                 "people, and how many of each got tuberculosis."),
+                ("result = " + COMBINE_CALL,
+                 "events= and out_of= each name two columns: the first group (vaccinated), then the group it is "
+                 "compared with. Read the first lines: the combined risk ratio is 0.49 (95 % CI 0.33 to 0.73): on "
+                 "average the vaccine about halves the risk."),
+                ("chart = result.start_chart()", "A chart of the result table."),
+                ('chart.forest_plot(x="estimate", y="study", size="weight %")',
+                 "One square per trial, as big as its weight, with its 95 % interval; the diamond is the combined "
+                 "effect. The line at 1 is no effect."),
+                ('chart.save("lesson29_forest.png")', "Save the picture."),
+            ]),
+            ("How much do the studies differ? The combined effect is an average; the trials themselves found anything "
+             "from a big benefit to none. Run the same call and read the lines after the p-value.", [
+                ("import simplydata as sdata", "Load simplydata."),
+                ('table = sdata.table(sdata.get_example("bcg"))', "The same trials."),
+                (COMBINE_CALL,
+                 "The prediction interval, 0.14 to 1.76, is where the true risk ratio of a new setting like these "
+                 "would lie: from a big benefit to none at all. Tau says the true risk ratios differ from the average "
+                 "by a factor of about 1.75 up or down. I-squared, 92 %, is the share of the spread that is beyond "
+                 "chance, not how big it is. Say in words why the prediction interval is wider than the confidence "
+                 "interval."),
+            ]),
+            ("More: do groups of studies differ, and are small studies different? for_each_group_in= gives each group "
+             "its own combined effect, with the test of their difference first; the funnel plot shows each study's "
+             "effect against its standard error.", [
+                ("import simplydata as sdata", "Load simplydata."),
+                ('table = sdata.table(sdata.get_example("bcg"))', "The same trials."),
+                ('result = table.combine_studies(names="trial", events=["tb_vaccinated", "tb_unvaccinated"], '
+                 'out_of=["vaccinated", "unvaccinated"], for_each_group_in="allocation")',
+                 'One change: for_each_group_in="allocation" (how people were put into the groups). The test of the '
+                 "difference comes first (p = 0.39): the data cannot tell the three kinds of trial apart."),
+                ("chart = result.start_chart()", "A chart of the result."),
+                ('chart.draw_funnel_plot(x="estimate", y="standard error")',
+                 "Each dot is a trial, small trials at the bottom. Dots missing from one lower corner would suggest "
+                 "small-study effects, which are not proof of publication bias."),
+                ('chart.save("lesson29_funnel.png")', "Save the picture."),
+            ]),
+        ],
+        notes=[
+            "Random or common effect is chosen before looking at the data, never by the Q test. simplydata uses random "
+            "effects (REML) with Hartung-Knapp intervals; method= and interval_by= change them.",
+            "The prediction interval is printed from 3 studies: it shows what a new setting could find, which the "
+            "confidence interval of the average does not.",
+            "Compare subgroups with the test of their difference, not by which subgroup's interval leaves out 1.",
+            "Small-study effects (Peters' or Egger's test, trim and fill) are judged only from 10 studies.",
+            "Other ways in: estimates= with their intervals (or standard_errors=), averages= with "
+            "standard_deviations= and counts=, events= with time=, correlations=.",
+        ],
+        task=[
+            "37 studies of passive smoking and lung cancer give an odds ratio with its 95 % interval (real data, "
+            'Hackshaw et al. 1997). Fill in the blank: table = sdata.table(sdata.get_example("passive_smoking")), '
+            'then table.combine_studies(names="study", estimates=____). What is the combined odds ratio?',
+            'In the BCG trials, change only show=: combine odds ratios (show="odds ratios") instead of risk ratios. '
+            "Is the answer close?",
+            "Say in words why the prediction interval of the BCG trials is wider than the confidence interval.",
+            "Try to remember without looking back: which number tells you where the true effect of a new setting "
+            "could lie? Find it in the printout of the passive smoking studies.",
+        ],
+        solutions=[
+            (_sx("""\
+                import simplydata as sdata
+                table = sdata.table(sdata.get_example("passive_smoking"))
+                table.combine_studies(names="study", estimates="odds ratio")"""),
+             'estimates="odds ratio": simplydata finds the columns "odds ratio 95 % CI low" and "... high" next to it '
+             "and combines the odds ratios on the log scale: about 1.24 (95 % CI 1.13 to 1.38)."),
+            (_sx("""\
+                import simplydata as sdata
+                table = sdata.table(sdata.get_example("bcg"))
+                table.combine_studies(names="trial", events=["tb_vaccinated", "tb_unvaccinated"],
+                                      out_of=["vaccinated", "unvaccinated"], show="odds ratios")"""),
+             "The combined odds ratio is close to the risk ratio, because tuberculosis was rare in every trial."),
+            (_sx("""\
+                import simplydata as sdata
+                table = sdata.table(sdata.get_example("bcg"))
+                table.combine_studies(names="trial", events=["tb_vaccinated", "tb_unvaccinated"],
+                                      out_of=["vaccinated", "unvaccinated"])"""),
+             "The confidence interval is about the average effect; the prediction interval is about the true effect "
+             "in one new setting, so it also holds the between-study spread (tau)."),
+            (_sx("""\
+                import simplydata as sdata
+                table = sdata.table(sdata.get_example("passive_smoking"))
+                table.combine_studies(names="study", estimates="odds ratio")"""),
+             "The prediction interval: in a new setting like these studies, the true odds ratio would lie between "
+             "about 0.90 and 1.71."),
+        ],
+        words=["table.combine_studies", "forest_plot", "draw_funnel_plot"],
+    ),
 ]
 
 
@@ -4867,7 +4987,8 @@ def _list_lessons() -> None:
     print(f"to a figure. Lessons 16 to {len(LESSONS)} go further: models, patterns across many columns,")
     print("survival and planning a study, fitting curves and finding answers, distributions, working")
     print("with a model, risks, diagnostic tests and agreement, time series, forecasts, cycles,")
-    print("(optional) systems, percentiles and outliers, and effects that depend on each other.\n")
+    print("(optional) systems, percentiles and outliers, effects that depend on each other, and combining")
+    print("studies (meta-analysis).\n")
     for i, les in enumerate(LESSONS, start=1):
         print(f"  sdata.show_lesson({i}){' ' * (5 - len(str(i)))}{les['title']}")
     print("\nStart with sdata.show_lesson(1). Each lesson ends with a small task to try yourself.")

@@ -14,8 +14,8 @@ The library code holds no simplydata names except sdata.get_example(), so a rena
 key and the ours= line; docs/rename_underneath_keys.py rewrites both.
 
 The entries are split by area: charts.py, tables.py, numbers.py, statistics.py, models.py (the options of
-explain()), lines.py (the lines-and-curves words and their options) and checking.py (the checking-and-comparing
-words and their options).
+explain()), lines.py (the lines-and-curves words and their options), checking.py (the checking-and-comparing
+words and their options) and combining.py (combining studies, S3b-1).
 """
 
 from __future__ import annotations
@@ -119,10 +119,10 @@ class Entry:
 
 
 def _join() -> dict[str, Entry]:
-    from . import charts, checking, lines, models, numbers, statistics, tables
+    from . import charts, checking, combining, lines, models, numbers, statistics, tables
 
     found: dict[str, Entry] = {}
-    for module in (charts, tables, numbers, statistics, models, lines, checking):
+    for module in (charts, tables, numbers, statistics, models, lines, checking, combining):
         for entry in module.ENTRIES:
             if entry.key in found:
                 raise ValueError(f"{entry.key} has two underneath entries")

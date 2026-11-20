@@ -275,7 +275,7 @@ def _studies(p: float) -> str:
 
 def _p_sentence(p: float, if_none: str = "there were truly no difference",
                 this: str = "a difference this big or bigger", not_shown: str | None = "that there is no difference",
-                shown: str | None = None) -> str:
+                shown: str | None = None, like: str = "studies like this one") -> str:
     """The one p-value sentence of every word (owner decision O7, wording rule W2):
 
     "If there were truly no difference, a difference this big or bigger would turn up in about 3
@@ -285,11 +285,12 @@ def _p_sentence(p: float, if_none: str = "there were truly no difference",
     truly not higher", ...); this: what would turn up. From p = 0.05 a second sentence says that a
     large p-value does not show there is nothing ("This does not show that there is no
     difference."; not_shown=None leaves it out). shown: the p-value as printed, when not "p = ..."
-    (e.g. "Holm-adjusted p = 0.010")."""
+    (e.g. "Holm-adjusted p = 0.010"). like: what the p-value counts, "studies like this one"; combine_studies says
+    "sets of studies like these", because its rows are studies."""
     if p is None or math.isnan(p):
         return "The p-value cannot be worked out with these numbers (it is NaN), so this test gives no answer."
     shown = shown or _p_shown(p)
-    sentence = f"If {if_none}, {this} would turn up in {_studies(p)} studies like this one ({shown})."
+    sentence = f"If {if_none}, {this} would turn up in {_studies(p)} {like} ({shown})."
     if p >= 0.05 and not_shown:
         sentence += f" This does not show {not_shown}."
     return sentence
