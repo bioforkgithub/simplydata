@@ -7,6 +7,65 @@ built on matplotlib, seaborn, pandas, Polars, NumPy, SciPy and statsmodels (with
 pandas and Polars), and on R through rpy2 for the methods only R has, so you don't have to learn
 them first.
 
+## Why simplydata exists: the learning philosophy
+
+Learning to program is hard for many people, and data science adds a second hurdle: the names. In a study across
+several countries, first-year students averaged 22.9 out of 110 on a programming task (McCracken et al. 2001), and
+about one in three students still fails a first programming course (Watson & Li 2014). Even experienced data
+scientists say they must "know all the function names and class names correctly and have another browser open to
+search for help" (Chattopadhyay et al. 2020). For a researcher who wants to analyse data, much of the effort goes into
+remembering how each library spells things, not into the science. simplydata was written to remove that effort.
+
+The design follows what the research on learning and on programming languages says:
+
+- **Everyday words are easier than invented ones.** Novices find common English words with a known meaning the most
+  intuitive, and languages with English-like keywords are learned more accurately than ones with arbitrary keywords
+  (Stefik & Siebert 2013). Full words are understood faster than abbreviations (Lawrie et al. 2007; Hofmeister et al.
+  2017). So simplydata uses words such as `keep_rows_where`, `find_average_of` and `draw_bars`.
+- **People describe tasks on whole sets of data, as queries** ("the rows where marks are above 50"), not as loops
+  (Pane, Ratanamahatana & Myers 2001). simplydata's words follow that way of speaking.
+- **No one guesses a name nobody told them.** Two people pick the same name for the same thing less than one time in
+  five (Furnas et al. 1987). So every word is built from a short list of verbs and glue words that can be learned once,
+  every name is scored for how familiar its words are, and typing a name from another tool (or a near miss) points
+  to the right word.
+- **Working memory is small** (Miller 1956; Cowan 2001), and effort spent searching for the means competes with
+  learning (Sweller 1988). One small, consistent vocabulary with sensible defaults lowers that load; most people keep
+  the default they are given (Johnson & Goldstein 2003), so the defaults are the recommended methods.
+- **Worked examples teach better than problem solving alone** (Sweller & Cooper 1985). The lessons and the 30-day
+  guide start from a worked example, then fade it, then ask for your own call.
+- **Readable error messages shorten debugging** (Becker et al. 2019; Denny, Prather & Becker 2020). simplydata's
+  messages say what went wrong, how to fix it, and give the corrected call.
+- **English-like code can mislead**: AppleScript was easy to read but hard to write, because its English hid fixed
+  rules (Cook 2007), and novices tend to believe the computer understands what they mean (Pea 1986). simplydata
+  therefore stays plain Python (object, dot, word, options) with a closed set of words, and it is a bridge, not a
+  wall: like Hedy, which leads learners step by step to real Python (Hermans 2020), every simplydata word shows the
+  pandas, Polars, NumPy, SciPy, statsmodels or R code it runs underneath, so you can move on to those libraries
+  whenever you want.
+- **Trust comes from checking.** simplydata does not compute statistics itself: every number comes from the
+  established package, and a public reliability study compares each word with that package, with R and with
+  published certified values.
+
+### References
+
+- Becker, B. A., et al. (2019). Compiler error messages considered unhelpful. *ITiCSE Working Group Reports*. https://doi.org/10.1145/3344429.3372508
+- Chattopadhyay, S., Prasad, I., Henley, A. Z., Sarma, A., & Barik, T. (2020). What's wrong with computational notebooks? *CHI '20*. https://doi.org/10.1145/3313831.3376729
+- Cook, W. R. (2007). AppleScript. *Proceedings of the third ACM SIGPLAN conference on History of Programming Languages (HOPL III)*. https://doi.org/10.1145/1238844.1238845
+- Cowan, N. (2001). The magical number 4 in short-term memory. *Behavioral and Brain Sciences*, 24(1), 87-114. https://doi.org/10.1017/S0140525X01003922
+- Denny, P., Prather, J., & Becker, B. A. (2020). Error message readability and novice debugging performance. *ITiCSE '20*. https://doi.org/10.1145/3341525.3387384
+- Furnas, G. W., Landauer, T. K., Gomez, L. M., & Dumais, S. T. (1987). The vocabulary problem in human-system communication. *Communications of the ACM*, 30(11), 964-971. https://doi.org/10.1145/32206.32212
+- Hermans, F. (2020). Hedy: a gradual language for programming education. *ICER '20*, 259-270. https://doi.org/10.1145/3372782.3406262
+- Hofmeister, J., Siegmund, J., & Holt, D. V. (2017). Shorter identifier names take longer to comprehend. *SANER 2017*. https://doi.org/10.1109/SANER.2017.7884623
+- Johnson, E. J., & Goldstein, D. (2003). Do defaults save lives? *Science*, 302, 1338-1339. https://doi.org/10.1126/science.1091721
+- Lawrie, D., Morrell, C., Feild, H., & Binkley, D. (2007). Effective identifier names for comprehension and memory. *Innovations in Systems and Software Engineering*, 3(4), 303-318. https://doi.org/10.1007/s11334-007-0031-2
+- McCracken, M., et al. (2001). A multi-national, multi-institutional study of assessment of programming skills of first-year CS students. *ACM SIGCSE Bulletin*, 33(4), 125-180. https://doi.org/10.1145/572139.572181
+- Miller, G. A. (1956). The magical number seven, plus or minus two. *Psychological Review*, 63(2), 81-97. https://doi.org/10.1037/h0043158
+- Pane, J. F., Ratanamahatana, C. A., & Myers, B. A. (2001). Studying the language and structure in non-programmers' solutions to programming problems. *International Journal of Human-Computer Studies*, 54(2), 237-264. https://doi.org/10.1006/ijhc.2000.0410
+- Pea, R. D. (1986). Language-independent conceptual "bugs" in novice programming. *Journal of Educational Computing Research*, 2(1), 25-36. https://doi.org/10.2190/689T-1R2A-X4W4-29J2
+- Stefik, A., & Siebert, S. (2013). An empirical investigation into programming language syntax. *ACM Transactions on Computing Education*, 13(4), 19. https://doi.org/10.1145/2534973
+- Sweller, J. (1988). Cognitive load during problem solving: effects on learning. *Cognitive Science*, 12(2), 257-285. https://doi.org/10.1207/s15516709cog1202_4
+- Sweller, J., & Cooper, G. A. (1985). The use of worked examples as a substitute for problem solving in learning algebra. *Cognition and Instruction*, 2(1), 59-89. https://doi.org/10.1207/s1532690xci0201_3
+- Watson, C., & Li, F. W. B. (2014). Failure rates in introductory programming revisited. *ITiCSE '14*, 39-44. https://doi.org/10.1145/2591708.2591749
+
 > Status: early development (charts, tables, numbers, statistical tests, fitting and distributions ready). The word list may still change: an old word keeps working for one release and prints a one-line note with its new name.
 
 Install: `pip install simplydata`
@@ -339,7 +398,7 @@ What changed in each release is in [CHANGELOG.md](https://github.com/bioforkgith
 
 If simplydata helps your work, please cite the archived software:
 
-> Victor, M. P. simplydata: simple words for data science in Python. Zenodo. https://doi.org/10.5281/zenodo.24210045
+> bioforkgithub. simplydata: simple words for data science in Python. Zenodo. https://doi.org/10.5281/zenodo.24210045
 
 This DOI always points to the latest version; each release also has its own DOI on Zenodo. GitHub's "Cite this repository" button gives the same citation in other formats.
 
