@@ -1,6 +1,6 @@
 # simplydata reliability report
 
-Made by `python validation/make_report.py` on 2026-11-18. Generated: do not edit by hand.
+Made by `python validation/make_report.py` on 2026-11-20. Generated: do not edit by hand.
 
 Each simplydata word is run on real, published data and compared with the published answer, with the package simplydata uses underneath called directly, and with R. Each "same underneath" box of the manual is run next to its word and compared too. How it works, and the datasets with their licences: [validation/README.md](README.md).
 
@@ -12,7 +12,7 @@ Each simplydata word is run on real, published data and compared with the publis
 |---|---|
 | system | Windows 11 (AMD64) |
 | Python | 3.12.10 |
-| simplydata | 0.1.0 (imported from src/simplydata of this copy) |
+| simplydata | 0.2.0 (imported from src/simplydata of this copy) |
 | pandas | 3.1.1 |
 | polars | 2.1.0 |
 | narwhals | 2.28.0 |
