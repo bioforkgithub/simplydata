@@ -294,8 +294,8 @@ EXAMPLES = {
 
 
 def _list_examples() -> None:
-    print("Example tables you can use (made up for practice, except bcg and passive_smoking: real published "
-          "studies):\n")
+    print("Example tables you can use (made up for practice, except bcg and passive_smoking, real published "
+          "studies, and ability_tests, real published test scores):\n")
     for name, (about, columns) in EXAMPLES.items():
         print(f'  sdata.get_example("{name}")')
         print(f"      {about}")
