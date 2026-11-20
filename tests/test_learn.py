@@ -317,14 +317,14 @@ def test_every_docstring_example_runs_and_draws(key, tmp_path, monkeypatch, caps
 
 
 # ---------------------------------------------------------------- sdata.show_lesson()
-LESSON_NUMBERS = range(1, 28)
+LESSON_NUMBERS = range(1, 29)
 
 
-def test_there_are_twenty_seven_lessons(capsys):
-    assert len(learn.LESSONS) == 27
+def test_there_are_twenty_eight_lessons(capsys):
+    assert len(learn.LESSONS) == 28
     sdata.show_lesson()
     out = capsys.readouterr().out
-    assert "27 lessons" in out
+    assert "28 lessons" in out
     for i in LESSON_NUMBERS:
         assert f"sdata.show_lesson({i})" in out
 
@@ -372,9 +372,9 @@ def test_lessons_use_tables_and_charts(number):
         assert gone not in code, f"lesson {number} uses {gone}"
 
 
-@pytest.mark.parametrize("bad", [0, 28, "1", 1.0, True])
+@pytest.mark.parametrize("bad", [0, 29, "1", 1.0, True])
 def test_wrong_lesson_number_is_explained(bad):
-    with pytest.raises(sdata.SimplydataError, match="lessons 1 to 27"):
+    with pytest.raises(sdata.SimplydataError, match="lessons 1 to 28"):
         sdata.show_lesson(bad)
 
 

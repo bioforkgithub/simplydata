@@ -45,7 +45,9 @@ R_PACKAGES = ("survival", "vegan", "mice", "lme4", "betareg", "pscl", "car", "ef
               "multcompView", "TOSTER", "presize", "epiR", "pROC", "irr", "psych", "BlandAltmanLeh", "ppcor", "cocor",
               "outliers", "EnvStats",
               # S3a-2 (lines and curves)
-              "drc", "segmented", "smatr", "mcr", "quantreg", "deming")
+              "drc", "segmented", "smatr", "mcr", "quantreg", "deming",
+              # S3a-3 (checking and comparing)
+              "nlme", "glmnet", "boot", "lmtest", "AICcmodavg")
 
 
 @pytest.fixture
@@ -108,6 +110,10 @@ R_ENTRY_POINTS = {
     ("table/lines_r.py", "dose_response"), ("table/lines_r.py", "dose_response_curve"), ("table/lines_r.py", "bends"),
     ("table/lines_r.py", "two_error_line"), ("table/lines_r.py", "loess"), ("table/lines_r.py", "percentile_lines"),
     ("table/lines_r.py", "self_start"), ("table/lines_r.py", "power_transform"),
+    # S3a-3 (checking and comparing)
+    ("table/checking_r.py", "gls"), ("table/checking_r.py", "lasso"), ("table/checking_r.py", "left_out_rows"),
+    ("table/checking_r.py", "hosmer"), ("table/checking_r.py", "model_contrasts"),
+    ("table/checking_r.py", "group_levels"), ("table/checking_r.py", "nested_anova"),
 }
 
 

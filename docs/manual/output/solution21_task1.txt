@@ -4,6 +4,10 @@ Checking the model of "marks" (180 rows) in four pictures, as R plot(lm(marks ~ 
   3. scale-location: a flat line means the spread is the same everywhere;
   4. residuals against leverage: rows beyond the dashed lines (Cook's distance 0.5 and 1) pull the model strongly.
 Numbers from statsmodels (OLSInfluence or GLMInfluence); the smooth lines are LOWESS, as R panel.smooth. Pictures help judge a model better than tests of the residuals.
+Under picture 3, two tests of equal spread (notes only: with many rows they flag even small, harmless differences, so judge by the picture):
+  Breusch-Pagan test (Koenker's studentised form, as R lmtest::bptest()): chi-square = 0.490, df = 2; about 78 of 100 studies would show this much if the spread were truly the same everywhere (p = 0.783).
+  White's test (the columns, their squares and products, as R lmtest::bptest(m, ~ the same)): chi-square = 1.63, df = 4; about 80 of 100 studies would show this much if the spread were truly the same everywhere (p = 0.804).
+  A large p-value does not show that the spread is the same everywhere, only that the test cannot tell.
 How strongly each column is linked with the others (variance inflation factor, statsmodels variance_inflation_factor, as R car::vif()): "hours" 1.00 and "breakfast" 1.00. Above 5 a column's effect is hard to tell apart from the others'.
 Note: 19 rows with an empty cell in "marks" or "hours" or "breakfast" or "sleep" were skipped.
 Comparing two models of "marks" on the same 161 rows:

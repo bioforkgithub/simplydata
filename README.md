@@ -54,7 +54,7 @@ import simplydata as sdata
 sdata.show_lesson(1)
 ```
 
-There are twenty-seven short lessons. Lessons 1 to 8 teach charts, from your first chart to
+There are twenty-eight short lessons. Lessons 1 to 8 teach charts, from your first chart to
 animations. Lessons 9 to 12 teach tables: looking at your data, choosing rows and columns,
 cleaning it, and summing it up. Lesson 13 teaches numbers (lists and grids of numbers), and
 lesson 14 the statistical tests: is a difference real, and how big is it? Lesson 15 puts it
@@ -68,7 +68,8 @@ models and predicting with an interval), and risks, diagnostic tests and agreeme
 days, time windows, smoothing and trend), forecasts checked on held-back months, cycles in a
 recording (spectra, filters, peaks, and whether a series stays steady) and, optional, linear
 systems (step and frequency responses, feedback). Lesson 27 goes beyond the average line: a model
-that gives outliers less weight. Each
+that gives outliers less weight. Lesson 28 shows effects that depend on each other: the interaction picture
+first, then comparisons within groups and against a control. Each
 lesson has an example you can run, says what every line does, explains the idea behind it
 (average or median, standard deviation or standard error, p-values) and ends with a small task
 to try yourself.
@@ -108,7 +109,7 @@ the manual for each lesson and word, and the answers at the back.
 ## Manual
 
 **[The simplydata manual (PDF)](https://github.com/bioforkgithub/simplydata/blob/main/docs/manual/simplydata_manual.pdf)** has everything in one book:
-all twenty-seven lessons with the real charts and output they make, every word explained (its options,
+all twenty-eight lessons with the real charts and output they make, every word explained (its options,
 an example you can run and the library that does the work underneath), the data science ideas
 behind the numbers (average or median, standard deviation or standard error, confidence intervals,
 p-values, effect sizes, and which statistical test to use when), and a worked solution for every

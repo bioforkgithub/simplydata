@@ -271,7 +271,7 @@ can write it up in a report or a paper.
 
 \section*{How this manual is built}
 \begin{description}[style=nextline,leftmargin=1.2em]
-  \item[{\hyperref[part:lessons]{Part II: Lessons}}] Twenty-seven short lessons that teach the whole
+  \item[{\hyperref[part:lessons]{Part II: Lessons}}] Twenty-eight short lessons that teach the whole
     of simplydata in a day. Each lesson shows code you can run, says what every line does, shows
     the real chart and output it makes, and ends with tasks to try yourself.
   \item[{\hyperref[part:dictionary]{Part III: Dictionary of words}}] Every word, with what it does,
@@ -3290,12 +3290,14 @@ Does a column help? \code{compare\_\allowbreak{}models} fits the model with and 
 import simplydata as sdata
 table = sdata.table(sdata.get_example("school"))
 table.compare_models("marks", using=["hours"], against=["hours", "breakfast"])
+table.compare_models("marks", using=[["hours"], ["hours", "breakfast"], ["hours * breakfast"]])
 \end{lstlisting}
 \whateachline
 \begin{lineexplain}
   \item[1] Load simplydata.
   \item[2] The school table.
   \item[3] Does breakfast help a model that already has hours? The F test: about 2 of 100 studies would show this much if breakfast truly did not help (p = 0.018), and the AIC is 3.72 lower with breakfast: keep it.
+  \item[4] Three models at once, as a list of lists (each inner list is one model): sorted by AICc, with Akaike weights. Breakfast without the interaction comes first (weight 0.57); the interaction is 1.07 higher, under 2, so about as good.
 \end{lineexplain}
 \printedoutput{output/lesson21_example3.txt}
 \section*{Example 4}
@@ -3324,12 +3326,14 @@ If you have R (you may leave this example out): \code{find\_\allowbreak{}model\_
 import simplydata as sdata
 table = sdata.table(sdata.get_example("school"))
 table.find_model_averages_of("marks", for_each_group_in="breakfast", using=["hours", "school"])
+table.find_model_averages_of("marks", over_range_of="hours", using=["hours", "breakfast"])
 \end{lstlisting}
 \whateachline
 \begin{lineexplain}
   \item[1] Load simplydata.
   \item[2] The school table.
   \item[3] With hours held at their average (5.00) and the 12 schools counted equally, pupils without breakfast average 46.6 marks and pupils with breakfast 49.5. If the two groups truly did not differ, a difference of -2.95 or bigger would turn up in about 1 of 100 studies like this one (p = 0.008). This is R emmeans.
+  \item[4] One change: \code{over\_\allowbreak{}range\_\allowbreak{}of=} gives the model average at 50 values of hours, a table ready to draw (the printout shows the two chart lines).
 \end{lineexplain}
 \printedoutput{output/lesson21_example5.txt}
 \begin{goodtoknow}
@@ -3338,6 +3342,7 @@ table.find_model_averages_of("marks", for_each_group_in="breakfast", using=["hou
   \item For a yes/no or count model the first picture always shows bands of dots, one for each value; look at the smooth line, which should stay near 0.
   \item AIC and BIC compare models of the same rows only. sleep has 19 empty cells, so a model with sleep uses fewer rows; \code{compare\_\allowbreak{}models} fits both models on the rows they share.
   \item A pseudo R squared (yes/no, counts) is not a share explained: 0 means no better than no columns.
+  \item \code{check\_\allowbreak{}model\_\allowbreak{}of} also prints two tests of equal spread under picture 3 (notes only: judge by the picture), and for a yes/no model it adds a fifth picture, calibration, with the Hosmer-Lemeshow test and the Brier score.
   \item Remove a row that pulls only for a reason, such as a typing mistake, and say so in your report.
   \item The confidence interval (\code{interval=95}) is about the average of many pupils like this one; the prediction interval (\code{for\_\allowbreak{}new\_\allowbreak{}rows=True}) is about one pupil. The second is always wider.
 \end{itemize}
@@ -4116,6 +4121,89 @@ table.explain("marks", using=["hours"], for_percentile=[10, 50, 90])
 Worked solutions: page~\pageref{solutions:27}, or type \code{sdata.\allowbreak{}show\_\allowbreak{}lesson(27,\allowbreak{} solutions=True)}.
 \end{tryit}
 \par\noindent{\small\sffamily\textbf{Words in this lesson:} \hyperref[word:table.explain]{\code{table.\allowbreak{}explain()}}, \hyperref[word:table.show-rows-that-pull-model]{\code{table.\allowbreak{}show\_\allowbreak{}rows\_\allowbreak{}that\_\allowbreak{}pull\_\allowbreak{}model()}}.\par}
+
+\chapter{When one effect depends on another}\label{lesson:28}
+\begin{learnbox}
+\begin{itemize}
+  \item how to draw an interaction picture: one line per group through the averages (\code{draw\_\allowbreak{}interaction\_\allowbreak{}lines})
+  \item how to test whether one effect depends on another column (an interaction in explain)
+  \item if you have R: how to compare groups within each group of another column, after the interaction test (\code{within\_\allowbreak{}each\_\allowbreak{}group\_\allowbreak{}in=})
+  \item if you have R: how to compare each group with a control, or in another planned way (\code{comparing=})
+\end{itemize}
+\end{learnbox}
+\begin{needsr}Example 1 needs no R. Examples 2 and 3 compare model averages with R emmeans: \code{find\_\allowbreak{}model\_\allowbreak{}averages\_\allowbreak{}of()} with \code{within\_\allowbreak{}each\_\allowbreak{}group\_\allowbreak{}in=} and \code{comparing=} run R's own code, the same code R users run. Install it once: pip install \code{\textquotedbl{}simplydata[r]\textquotedbl{}}, then R from https://cran.r-project.org, then in R: \code{install.\allowbreak{}packages(c(\textquotedbl{}emmeans\textquotedbl{}))}. Without R these words print a message that says what to install.\end{needsr}
+\section*{Example 1}
+Picture first. Do pupils who eat breakfast do better in every class, or only in some? \code{draw\_\allowbreak{}interaction\_\allowbreak{}lines} draws one line per breakfast group through the average marks of each class.
+\begin{lstlisting}[style=py]
+import simplydata as sdata
+chart = sdata.chart(sdata.get_example("school"))
+chart.draw_interaction_lines(x="class", y="marks", colour="breakfast")
+chart.save("lesson28_interaction.png")
+table = sdata.table(sdata.get_example("school"))
+table.explain("marks", using=["class * breakfast"])
+\end{lstlisting}
+\whateachline
+\begin{lineexplain}
+  \item[1] Load simplydata.
+  \item[2] The pupils of lesson 16.
+  \item[3] Each dot is an average with its 95 \% confidence interval. Parallel lines would mean breakfast adds the same in every class; here the lines cross at the red class.
+  \item[4] Save the picture.
+  \item[5] The same pupils as a table.
+  \item[6] The test of the crossing (lesson 16): \code{\textquotedbl{}class * breakfast\textquotedbl{}} adds both columns and their interaction. Read the line \code{\textquotedbl{}class : breakfast,\allowbreak{} all groups together\textquotedbl{}}: p = 0.230, so the data cannot tell whether the lines truly cross. Say in words what the picture shows and what the test adds.
+\end{lineexplain}
+\printedoutput{output/lesson28_example1.txt}
+\begin{center}\begin{minipage}{\linewidth}\centering
+\includegraphics[width=0.72\textwidth,height=0.36\textheight,keepaspectratio]{figures/lesson28_example1_lesson28_interaction.pdf}
+\captionof{figure}{Lesson 28, example 1: \code{lesson28\_\allowbreak{}interaction.\allowbreak{}png}.}
+\end{minipage}\end{center}
+\section*{Example 2}
+If you have R: within each breakfast group, do the classes differ? \code{within\_\allowbreak{}each\_\allowbreak{}group\_\allowbreak{}in=} compares the groups of \code{for\_\allowbreak{}each\_\allowbreak{}group\_\allowbreak{}in=} inside each group of another column (simple effects). It always prints the interaction test first.
+\begin{lstlisting}[style=py]
+import simplydata as sdata
+table = sdata.table(sdata.get_example("school"))
+table.find_model_averages_of("marks", for_each_group_in="class", using=["class * breakfast"], within_each_group_in="breakfast")
+\end{lstlisting}
+\whateachline
+\begin{lineexplain}
+  \item[1] Load simplydata.
+  \item[2] The school table.
+  \item[3] \code{for\_\allowbreak{}each\_\allowbreak{}group\_\allowbreak{}in=} names the groups that are compared (the classes); \code{within\_\allowbreak{}each\_\allowbreak{}group\_\allowbreak{}in=} the groups inside which they are compared (breakfast no, breakfast yes). First the interaction test (p = 0.230), then the classes within each breakfast group and every pair there. Say in words why the two p-values within the groups do not tell you that the breakfast groups differ.
+\end{lineexplain}
+\printedoutput{output/lesson28_example2.txt}
+\section*{Example 3}
+If you have R: planned comparisons. Often one group is a control and the question is how each other group differs from it. \code{comparing=} chooses the comparisons; emmeans' own adjustment for making several of them is printed.
+\begin{lstlisting}[style=py]
+import simplydata as sdata
+table = sdata.table(sdata.get_example("school"))
+table.find_model_averages_of("marks", for_each_group_in="class", using=["hours", "class"], comparing="each with the first")
+table.find_model_averages_of("marks", for_each_group_in="class", using=["hours", "class"], comparing="each with the first", in_order=["red", "blue", "green"])
+\end{lstlisting}
+\whateachline
+\begin{lineexplain}
+  \item[1] Load simplydata.
+  \item[2] The school table.
+  \item[3] Each class against blue, the first in sorted order, with Dunnett's adjustment: green is 3.58 marks higher (adjusted p = 0.048), red 1.36 (p = 0.597).
+  \item[4] One change: \code{in\_\allowbreak{}order=} puts red first, so each class is compared with red.
+\end{lineexplain}
+\printedoutput{output/lesson28_example3.txt}
+\begin{goodtoknow}
+\begin{itemize}
+  \item Picture first, then the test: the interaction picture shows what the interaction test is about.
+  \item Compare the groups with the interaction test, not by which simple effects have small p-values: \code{\textquotedbl{}significant in one group but not the other\textquotedbl{}} is not a difference between the groups (Gelman \& Stern 2006).
+  \item \code{for\_\allowbreak{}each\_\allowbreak{}group\_\allowbreak{}in=} names the groups that are compared; \code{within\_\allowbreak{}each\_\allowbreak{}group\_\allowbreak{}in=} the groups inside which they are compared. Swap them and you ask another question.
+  \item \code{comparing=} takes \code{\textquotedbl{}each pair\textquotedbl{}} (the default), \code{\textquotedbl{}each with the first\textquotedbl{}}, \code{\textquotedbl{}each with the next\textquotedbl{}}, \code{\textquotedbl{}each with the average of the ones before\textquotedbl{}}, \code{\textquotedbl{}each with the average\textquotedbl{}}, \code{\textquotedbl{}trend\textquotedbl{}} (groups in order) or your own weights; the dictionary has them all.
+\end{itemize}
+\end{goodtoknow}
+\begin{tryit}
+\begin{enumerate}
+  \item Draw the interaction picture the other way round: breakfast along the bottom (\code{x=\textquotedbl{}breakfast\textquotedbl{}}) and one line per class. Is the question it shows the same?
+  \item If you have R: change only \code{for\_\allowbreak{}each\_\allowbreak{}group\_\allowbreak{}in=}: compare the breakfast groups within each class (\code{for\_\allowbreak{}each\_\allowbreak{}group\_\allowbreak{}in=\textquotedbl{}breakfast\textquotedbl{}}, \code{within\_\allowbreak{}each\_\allowbreak{}group\_\allowbreak{}in=\textquotedbl{}class\textquotedbl{}}, \code{using=[\textquotedbl{}class * breakfast\textquotedbl{}]}). What does it compare now?
+  \item If you have R: keep \code{for\_\allowbreak{}each\_\allowbreak{}group\_\allowbreak{}in=\textquotedbl{}class\textquotedbl{}} and change only \code{within\_\allowbreak{}each\_\allowbreak{}group\_\allowbreak{}in=} to \code{\textquotedbl{}school\textquotedbl{}}, with \code{using=[\textquotedbl{}class * school\textquotedbl{}]}. How many groups are the classes compared in now?
+  \item Try to remember without looking back: which option compares each group with a control group, and which option puts the control first? Use them to compare each class with \code{\textquotedbl{}green\textquotedbl{}}, allowing for \code{\textquotedbl{}hours\textquotedbl{}}.
+\end{enumerate}
+Worked solutions: page~\pageref{solutions:28}, or type \code{sdata.\allowbreak{}show\_\allowbreak{}lesson(28,\allowbreak{} solutions=True)}.
+\end{tryit}
+\par\noindent{\small\sffamily\textbf{Words in this lesson:} \hyperref[word:draw-interaction-lines]{\code{chart.\allowbreak{}draw\_\allowbreak{}interaction\_\allowbreak{}lines()}}, \hyperref[word:table.explain]{\code{table.\allowbreak{}explain()}}, \hyperref[word:table.find-model-averages-of]{\code{table.\allowbreak{}find\_\allowbreak{}model\_\allowbreak{}averages\_\allowbreak{}of()}}.\par}
 
 \otherchapters
 
@@ -4960,6 +5048,52 @@ ax.plot(at, fitted)     # the band is predict(se = TRUE) +/- t x se, shaded
 \undertext{\textit{In Python only:} statsmodels lowess has no confidence band, so loess comes from R.}
 \undertext{simplydata also draws one line per colour group.}
 \undertext{\textit{Checked:} a test runs both and compares the lines (the chart's data, not its pixels).}
+\end{underneathbox}
+\wordentry{chart.draw\_interaction\_lines()}{word:draw-interaction-lines}
+An interaction picture: one line per colour group through the averages, with 95 \% intervals.
+
+\codeline{chart.draw\_interaction\_lines(x=\textquotedbl{}class\textquotedbl{}, y=\textquotedbl{}marks\textquotedbl{}, colour=\textquotedbl{}breakfast\textquotedbl{})}\\
+(with \code{sdata.\allowbreak{}get\_\allowbreak{}example(\textquotedbl{}school\textquotedbl{})}) Parallel lines: no sign that the effect of x depends on the colour groups. Lines that cross or spread apart: the effect of x depends on them, an interaction (test it with\\
+\codeline{table.explain(\textquotedbl{}marks\textquotedbl{}, using=[\textquotedbl{}class * breakfast\textquotedbl{}])). Each dot is a group average with its}\\
+95 \% confidence interval (t distribution); the groups are moved a little apart so they do not hide each other. Other names: interaction plot (R interaction.plot), pointplot (seaborn).
+
+\wordfield{Options}{}\par\nopagebreak
+\begin{optiontable}
+\code{x=} & \\
+\code{y=} & \\
+\code{colour=} & \\
+\end{optiontable}
+
+\wordfield{Underneath}{seaborn \code{t.\allowbreak{}interval()}, \code{mean()}, \code{sem()}, \code{pointplot()}}
+\wordfield{Example you can run}{}\par\nopagebreak
+\begin{lstlisting}[style=py]
+import simplydata as sdata
+school = sdata.get_example("school")
+chart = sdata.chart(school)
+chart.draw_interaction_lines(x="class", y="marks", colour="breakfast")
+chart.save("draw_interaction_lines.png")
+\end{lstlisting}
+\begin{center}\begin{minipage}{\linewidth}\centering
+\includegraphics[width=0.52\textwidth,height=0.26\textheight,keepaspectratio]{figures/underneath_draw_interaction_lines.pdf}
+\captionof*{figure}{The chart simplydata draws. The code below draws the same axis labels, without simplydata's paper look.}
+\end{minipage}\end{center}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{seaborn}}
+\underlib{seaborn}
+\begin{lstlisting}[style=under]
+import seaborn as sns
+from scipy import stats
+df = sdata.get_example("school")
+# draw_interaction_lines(x="class", y="marks", colour="breakfast")
+def t95(v):                                                       # (1)
+    return stats.t.interval(0.95, len(v) - 1, loc=v.mean(), scale=stats.sem(v))
+sns.pointplot(data=df, x="class", y="marks", hue="breakfast",
+              errorbar=t95, dodge=0.15, capsize=0.1)               # (2)
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) 95 \% t intervals of each average, as R \code{t.\allowbreak{}test()}; seaborn's own default is a bootstrap interval, which changes from run to run.}
+\undertext{(2) the groups are moved a little apart (dodged) so their bars do not hide each other.}
+\undertext{simplydata also prints how to read the picture (parallel lines or not) and the \code{explain()} call that tests the interaction. Its averages and intervals are checked against pandas and SciPy in the tests.}
+\undertext{\textit{Checked:} a test runs both and compares the axis labels, the legend and the dots (the chart's data, not its pixels).}
 \end{underneathbox}
 \wordentry{chart.draw\_density()}{word:draw-density}
 A smooth curve that is high where many values are. \code{chart.\allowbreak{}draw\_\allowbreak{}density(x=\textquotedbl{}marks\textquotedbl{},\allowbreak{} colour=\textquotedbl{}class\textquotedbl{})} (with \code{sdata.\allowbreak{}get\_\allowbreak{}example(\textquotedbl{}marks\textquotedbl{})})
@@ -7789,7 +7923,7 @@ Are the averages of the groups really different?
 \codeline{table.compare\_averages\_of(\textquotedbl{}marks\textquotedbl{}, for\_each\_group\_in=\textquotedbl{}class\textquotedbl{})   (with sdata.get\_example(\textquotedbl{}marks\textquotedbl{}))}\\
 Two groups: Welch's t-test (the R \code{t.\allowbreak{}test()} default). Three or more: Welch's one-way ANOVA (the R \code{oneway.\allowbreak{}test()} default). Neither needs the groups to have the same spread. \code{based\_\allowbreak{}on=\textquotedbl{}ranks\textquotedbl{}} uses ranks instead (Mann-Whitney U or Kruskal-Wallis): safer when groups are small and their values are not bell-shaped. \code{test=} chooses another test: \code{\textquotedbl{}welch\textquotedbl{}}, \code{\textquotedbl{}student\textquotedbl{}}, \code{\textquotedbl{}welch anova\textquotedbl{}}, \code{\textquotedbl{}anova\textquotedbl{}}, \code{\textquotedbl{}mann-whitney\textquotedbl{}} or \code{\textquotedbl{}kruskal-wallis\textquotedbl{}}; and \code{\textquotedbl{}yuen\textquotedbl{}} (Yuen's test of 20 \% trimmed averages, R WRS2::yuen, SciPy \code{ttest\_\allowbreak{}ind(trim=0.\allowbreak{}2)}), \code{\textquotedbl{}brunner-munzel\textquotedbl{}} (R brunnermunzel.test, SciPy brunnermunzel), \code{\textquotedbl{}alexander-govern\textquotedbl{}} (3 or more groups with different spreads, R onewaytests::ag.test, SciPy alexandergovern) or \code{\textquotedbl{}median\textquotedbl{}} (Mood's median test, SciPy \code{median\_\allowbreak{}test}, as R chisq.test on the counts above and not above the overall median). Prints the answer in words (with the test used and why) and gives back a one-row table of results. The effect size says how big the difference is: Hedges' g (the difference in standard deviations) for 2 groups, omega-squared (the share of the differences explained by the groups) for 3 or more. Each group is checked for a bell shape (Shapiro-Wilk) and a note says if it does not look like one; with 30 or more values that matters little (the central limit theorem). To see which groups differ, use \code{compare\_\allowbreak{}each\_\allowbreak{}pair\_\allowbreak{}of()}. \code{sides=1}, \code{higher=\textquotedbl{}B\textquotedbl{}} (or \code{lower=\textquotedbl{}A\textquotedbl{}}) tests in one direction only (2 groups): that B is higher, as decided before seeing the data (R \code{t.\allowbreak{}test(alternative = .\allowbreak{}.\allowbreak{}.\allowbreak{})}, wilcox.test(\\
 \codeline{alternative = ...)); the 95 \% interval is then one-sided too. R's and SciPy's}\\
-\code{alternative=} is accepted. \code{p\_\allowbreak{}value\_\allowbreak{}by=\textquotedbl{}shuffling\textquotedbl{}} (2 groups, averages): the p-value comes from shuffling the group labels \code{shuffles=9999} times (\code{with\_\allowbreak{}seed=1}) and counting how often the difference in averages is as big as the one in the data (SciPy \code{permutation\_\allowbreak{}test}, as R perm::\code{permTS()}). When there are no more arrangements than shuffles, every one is counted and the p-value is exact. \code{same\_\allowbreak{}within=5} (2 groups) asks whether the averages are the same within 5 (or within [-3, 5]): two one-sided tests (TOST, Welch; statsmodels \code{ttost\_\allowbreak{}ind}, as R TOSTER::\code{t\_\allowbreak{}TOST()}), with the 90 \% interval. The answer is one of three: the same within the margin, different, or the data cannot tell. \code{same\_\allowbreak{}within=5}, \code{not\_\allowbreak{}lower=\textquotedbl{}B\textquotedbl{}} is a non-inferiority test: is B lower than A by no more than 5? (one-sided; as R TOSTER::\code{t\_\allowbreak{}TOST(hypothesis = \textquotedbl{}MET\textquotedbl{})}). \code{not\_\allowbreak{}higher=\textquotedbl{}B\textquotedbl{}} asks whether B is higher by no more than 5, for outcomes where lower is better, such as pain. \code{matched\_\allowbreak{}by=\textquotedbl{}name\textquotedbl{}} is for repeated measures: the same person (or plot, animal ...) in every group of \code{for\_\allowbreak{}each\_\allowbreak{}group\_\allowbreak{}in=}, for example \code{compare\_\allowbreak{}averages\_\allowbreak{}of(\textquotedbl{}marks\textquotedbl{},\allowbreak{} for\_\allowbreak{}each\_\allowbreak{}group\_\allowbreak{}in=\textquotedbl{}subject\textquotedbl{},\allowbreak{} matched\_\allowbreak{}by=\textquotedbl{}name\textquotedbl{})}. It runs a repeated-measures ANOVA with the Greenhouse-Geisser correction, R afex::\code{aov\_\allowbreak{}ez()} (needs R). \code{for\_\allowbreak{}each\_\allowbreak{}group\_\allowbreak{}in=[\textquotedbl{}subject\textquotedbl{},\allowbreak{} \textquotedbl{}class\textquotedbl{}]} with one column that changes within a person and one that does not gives the mixed ANOVA.
+\code{alternative=} is accepted. \code{p\_\allowbreak{}value\_\allowbreak{}by=\textquotedbl{}shuffling\textquotedbl{}} (2 groups, averages): the p-value comes from shuffling the group labels \code{shuffles=9999} times (\code{with\_\allowbreak{}seed=1}) and counting how often the difference in averages is as big as the one in the data (SciPy \code{permutation\_\allowbreak{}test}, as R perm::\code{permTS()}). When there are no more arrangements than shuffles, every one is counted and the p-value is exact. \code{same\_\allowbreak{}within=5} (2 groups) asks whether the averages are the same within 5 (or within [-3, 5]): two one-sided tests (TOST, Welch; statsmodels \code{ttost\_\allowbreak{}ind}, as R TOSTER::\code{t\_\allowbreak{}TOST()}), with the 90 \% interval. The answer is one of three: the same within the margin, different, or the data cannot tell. \code{same\_\allowbreak{}within=5}, \code{not\_\allowbreak{}lower=\textquotedbl{}B\textquotedbl{}} is a non-inferiority test: is B lower than A by no more than 5? (one-sided; as R TOSTER::\code{t\_\allowbreak{}TOST(hypothesis = \textquotedbl{}MET\textquotedbl{})}). \code{not\_\allowbreak{}higher=\textquotedbl{}B\textquotedbl{}} asks whether B is higher by no more than 5, for outcomes where lower is better, such as pain. \code{matched\_\allowbreak{}by=\textquotedbl{}name\textquotedbl{}} is for repeated measures: the same person (or plot, animal ...) in every group of \code{for\_\allowbreak{}each\_\allowbreak{}group\_\allowbreak{}in=}, for example \code{compare\_\allowbreak{}averages\_\allowbreak{}of(\textquotedbl{}marks\textquotedbl{},\allowbreak{} for\_\allowbreak{}each\_\allowbreak{}group\_\allowbreak{}in=\textquotedbl{}subject\textquotedbl{},\allowbreak{} matched\_\allowbreak{}by=\textquotedbl{}name\textquotedbl{})}. It runs a repeated-measures ANOVA with the Greenhouse-Geisser correction, R afex::\code{aov\_\allowbreak{}ez()} (needs R). \code{for\_\allowbreak{}each\_\allowbreak{}group\_\allowbreak{}in=[\textquotedbl{}subject\textquotedbl{},\allowbreak{} \textquotedbl{}class\textquotedbl{}]} with one column that changes within a person and one that does not gives the mixed ANOVA. \code{grouped\_\allowbreak{}by=\textquotedbl{}tank\textquotedbl{}} is for several rows from each tank, each tank in one group (nested): a nested ANOVA that tests the groups against the differences between tanks, R \code{aov(length \textasciitilde{} diet + Error(tank))} (needs R). A list of columns, \code{compare\_\allowbreak{}averages\_\allowbreak{}of([\textquotedbl{}length\textquotedbl{},\allowbreak{} \textquotedbl{}width\textquotedbl{}],\allowbreak{} for\_\allowbreak{}each\_\allowbreak{}group\_\allowbreak{}in=\textquotedbl{}species\textquotedbl{})}, compares them all at once: a MANOVA with Pillai's trace (statsmodels MANOVA, as R \code{summary(manova())}).
 
 \wordfield{Options}{}\par\nopagebreak
 \begin{optiontable}
@@ -7809,6 +7943,7 @@ Two groups: Welch's t-test (the R \code{t.\allowbreak{}test()} default). Three o
 \code{not\_\allowbreak{}higher=} & \\
 \code{in\_\allowbreak{}order=} & \\
 \code{matched\_\allowbreak{}by=} & \\
+\code{grouped\_\allowbreak{}by=} & \\
 \end{optiontable}
 
 \wordfield{Underneath}{SciPy \code{groupby()}, \code{ttest\_\allowbreak{}ind()}, \code{mean()}}
@@ -7835,6 +7970,42 @@ res = stats.ttest_ind(a, b, equal_var=False)       # (1)
 \undertext{\textbf{simplydata chooses}}
 \undertext{(1) Welch's t-test, which does not assume both groups have the same spread; SciPy's own default (\code{equal\_\allowbreak{}var=True}) is Student's t-test, which does.}
 \undertext{With three or more groups simplydata uses Welch's one-way ANOVA (statsmodels \code{anova\_\allowbreak{}oneway}, whose own default is Welch too). simplydata also chooses the test from the number of groups, adds an effect size (R effectsize, when R is there) and the averages of the groups. simplydata also writes the result as a sentence and names the test.}
+\undertext{\textit{Checked:} a test runs both and compares the numbers of the result table (on a pandas and on a Polars table).}
+\end{underneathbox}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{R}\libbadge{Python}}
+\undertext{\textbf{With \code{grouped\_\allowbreak{}by=}}: the same job with this option.}
+\underlib{R (simplydata runs this in R for you, through rpy2)}
+\begin{lstlisting}[style=underr]
+# compare_averages_of("glycogen", for_each_group_in="treatment", grouped_by="rat")
+# the rat liver glycogen data of Sokal & Rohlf (Box 10.1), 6 readings per rat
+a <- summary(stats::aov(glycogen ~ treatment + Error(rat)))      # (1)
+top <- a[["Error: rat"]][[1]]
+list(f = top[["F value"]][1], p = top[["Pr(>F)"]][1])
+\end{lstlisting}
+\underlib{Python (with what R gives back)}
+\begin{lstlisting}[style=under]
+{"statistic": f, "p-value": p}
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) the treatment is tested against the variation between rats (\code{Error(rat)}), not between readings: the readings of one rat are not independent.}
+\undertext{\textit{In Python only:} statsmodels has no \code{Error()} strata, so the table comes from R \code{aov()}.}
+\undertext{simplydata also prints the averages and the variances between and within rats (R lme4::lmer), and a note when the design is unbalanced. simplydata also writes the result as sentences, with the p-value in words, and names the method.}
+\undertext{\textit{Checked:} a test runs both and compares the numbers of the result table (on a pandas and on a Polars table).}
+\end{underneathbox}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{statsmodels}}
+\undertext{\textbf{With \code{for\_\allowbreak{}each\_\allowbreak{}group\_\allowbreak{}in= with a list of columns}}: the same job with this option.}
+\underlib{statsmodels}
+\begin{lstlisting}[style=under]
+from statsmodels.multivariate.manova import MANOVA
+df = sdata.get_example("school").dropna(subset=["marks", "hours"])
+# compare_averages_of(["marks", "hours"], for_each_group_in="class")
+test = MANOVA.from_formula("marks + hours ~ C(Q('class'))", data=df).mv_test()
+row = test.results["C(Q('class'))"]["stat"].loc["Pillai's trace"]   # (1)
+{"statistic": row["Value"], "F": row["F Value"], "p-value": row["Pr > F"]}
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) Pillai's trace first, the one R \code{summary(manova())} prints by default and the safest when groups differ in size or spread.}
+\undertext{simplydata also prints each group's averages and keeps Wilks, Hotelling-Lawley and Roy in the table. simplydata also writes the result as sentences, with the p-value in words, and names the method.}
 \undertext{\textit{Checked:} a test runs both and compares the numbers of the result table (on a pandas and on a Polars table).}
 \end{underneathbox}
 \wordentry{table.compare\_each\_pair\_of()}{word:table.compare-each-pair-of}
@@ -9336,7 +9507,7 @@ print(dist.show_parameters())
 Explain one column from several others with a model, and say how big each effect is.
 
 \codeline{table.explain(\textquotedbl{}marks\textquotedbl{}, using=[\textquotedbl{}hours\textquotedbl{}, \textquotedbl{}breakfast\textquotedbl{}])   (with sdata.get\_example(\textquotedbl{}school\textquotedbl{}))}\\
-\code{outcome=\textquotedbl{}numbers\textquotedbl{}} (the default): linear model by least squares (R \code{lm()}). \code{outcome=\textquotedbl{}yes or no\textquotedbl{}}: logistic regression, odds ratios (R \code{glm(family = binomial)}). \code{outcome=\textquotedbl{}counts\textquotedbl{}}: Poisson regression, rate ratios (R \code{glm(family = poisson)}); \code{outcome=\textquotedbl{}counts (overdispersed)\textquotedbl{}}: quasi-Poisson (R \code{glm(family = quasipoisson)}); \code{outcome=\textquotedbl{}counts that vary a lot\textquotedbl{}}: negative binomial (R MASS::\code{glm.\allowbreak{}nb()}). \code{outcome=\textquotedbl{}positive numbers\textquotedbl{}}: Gamma regression with a log link, for positive, skewed numbers such as times or amounts (R \code{glm(family = Gamma(link = \textquotedbl{}log\textquotedbl{}))}); effects multiply the average. \code{time=\textquotedbl{}years\textquotedbl{}} with counts: rates, the count per unit of time (R offset = \code{log(years)}). \code{out\_\allowbreak{}of=\textquotedbl{}tries\textquotedbl{}} with \code{outcome=\textquotedbl{}yes or no\textquotedbl{}}: the column holds the number of yes out of that many tries (R \code{glm(cbind(yes,\allowbreak{} tries - yes) \textasciitilde{} .\allowbreak{}.\allowbreak{}.\allowbreak{},\allowbreak{} family = binomial)}). With \code{out\_\allowbreak{}of=}, \code{outcome=\textquotedbl{}yes or no (overdispersed)\textquotedbl{}} is quasi-binomial (R \code{glm(family = quasibinomial)}), for yes counts that vary more than the binomial allows. \code{outcome=\textquotedbl{}ordered groups\textquotedbl{}}: ordered logistic regression (R MASS::\code{polr()}); give the order of text groups, lowest first, with \code{in\_\allowbreak{}order=[\textquotedbl{}low\textquotedbl{},\allowbreak{} \textquotedbl{}middle\textquotedbl{},\allowbreak{} \textquotedbl{}high\textquotedbl{}]}. \code{outcome=\textquotedbl{}groups\textquotedbl{}}: multinomial logistic regression, each group against the first (R nnet::\code{multinom()}). \code{outcome=\textquotedbl{}shares\textquotedbl{}}: beta regression for shares between 0 and 1 (R betareg). \code{outcome=\textquotedbl{}counts with many zeros\textquotedbl{}}: zero-inflated Poisson regression (R pscl::\code{zeroinfl()}); \code{\textquotedbl{}counts with many zeros that vary a lot\textquotedbl{}}: zero-inflated negative binomial (pscl::\code{zeroinfl(dist = \textquotedbl{}negbin\textquotedbl{})}). \code{outcome=\textquotedbl{}counts in two steps\textquotedbl{}} (a hurdle model; \code{\textquotedbl{}hurdle\textquotedbl{}} works too): first zero or not, then how many among the counts above 0 (R pscl::\code{hurdle()}); \code{\textquotedbl{}counts in two steps that vary a lot\textquotedbl{}} with a negative binomial second step. \code{zero\_\allowbreak{}part\_\allowbreak{}using=[\textquotedbl{}distance\textquotedbl{}]} gives the zero part its own columns (R pscl's y \textasciitilde{} x \textbar{} z). \code{link=} (experts): \code{\textquotedbl{}probit\textquotedbl{}} or \code{\textquotedbl{}cloglog\textquotedbl{}} for yes or no, \code{\textquotedbl{}identity\textquotedbl{}} or \code{\textquotedbl{}sqrt\textquotedbl{}} for counts, \code{\textquotedbl{}inverse\textquotedbl{}} or \code{\textquotedbl{}identity\textquotedbl{}} for positive numbers; the effects are then on that scale, not ratios. \code{test\_\allowbreak{}type=\textquotedbl{}type 2\textquotedbl{}} adds a table with one test for each column (an ANOVA table): \code{\textquotedbl{}type 2\textquotedbl{}} (the usual choice, R car::\code{Anova(type = 2)}), \code{\textquotedbl{}type 3\textquotedbl{}} (sum-to-zero coding, R car::\code{Anova(type = 3)}) or \code{\textquotedbl{}in order\textquotedbl{}} (R \code{anova()}; the order of \code{using=} matters), with partial eta-squared for numbers (R effectsize). A text column in \code{using=} is a group column: each group is compared with the first group in sorted order (the baseline). \code{\textquotedbl{}hours * breakfast\textquotedbl{}} adds both columns and their interaction (does the effect of hours depend on breakfast?). \code{weights=\textquotedbl{}precision\textquotedbl{}}: each row counts as much as its weight says (precision weights, R \code{lm(weights =)} and \code{glm(weights =)}; statsmodels WLS and \code{GLM(var\_\allowbreak{}weights=)}); rows with weight 0 are left out, as R does. \code{show=\textquotedbl{}risk ratios\textquotedbl{}} with \code{outcome=\textquotedbl{}yes or no\textquotedbl{}}: risk ratios instead of odds ratios, by modified Poisson regression (Zou 2004; R \code{glm(family = poisson)} with sandwich::\code{vcovHC(type = \textquotedbl{}HC0\textquotedbl{})}); \code{method=\textquotedbl{}log-binomial\textquotedbl{}} fits a log-binomial model instead (R \code{glm(family = binomial(link = \textquotedbl{}log\textquotedbl{}))}, which may not converge). \code{show=\textquotedbl{}standardised effects\textquotedbl{}} (also \code{\textquotedbl{}standardized effects\textquotedbl{}}): each effect per standard deviation, from the model fitted again on z-scores (R effectsize::\code{standardize\_\allowbreak{}parameters(method = \textquotedbl{}refit\textquotedbl{})}). \code{matched\_\allowbreak{}by=\textquotedbl{}set\textquotedbl{}} with \code{outcome=\textquotedbl{}yes or no\textquotedbl{}}: conditional logistic regression for matched case-control sets (R survival::\code{clogit()}; statsmodels ConditionalLogit). \code{giving\_\allowbreak{}outliers\_\allowbreak{}less\_\allowbreak{}weight=True}: robust regression (Huber's M-estimation, R MASS::\code{rlm()}; statsmodels RLM), so a few outliers in the column explained pull the effects less. Not the same as \code{robust\_\allowbreak{}errors=True}, which keeps the effects and only changes their standard errors. \code{curve\_\allowbreak{}for=\textquotedbl{}hours\textquotedbl{}} with \code{with\_\allowbreak{}knots=3}: \code{\textquotedbl{}hours\textquotedbl{}} follows a natural cubic spline whose pieces join at 3 knots, the points where the pieces of the curve join (R splines::\code{ns(hours,\allowbreak{} df = 4)}; patsy \code{cr()}); the printout gives the test of the whole curve, which asks whether \code{\textquotedbl{}hours\textquotedbl{}} matters at all (is the curve flat?), not whether it bends. \code{interval\_\allowbreak{}by=\textquotedbl{}profile\textquotedbl{}} (or \code{\textquotedbl{}profile likelihood\textquotedbl{}}): profile-likelihood 95 \% intervals for yes or no and counts (R \code{confint()} of the glm; needs R); \code{interval\_\allowbreak{}by=\textquotedbl{}bootstrap\textquotedbl{}}: BCa intervals from \code{resamples=9999} resamples of the rows (\code{with\_\allowbreak{}seed=1}; SciPy bootstrap, as R boot::\code{boot.\allowbreak{}ci()}). A group with only a few rows can be missing from a resample; \code{explain()} then stops, and whether that happens depends on \code{with\_\allowbreak{}seed=}. Fewer resamples are not the fix: merge the rare group, or use \code{interval\_\allowbreak{}by=\textquotedbl{}profile\textquotedbl{}} (yes or no and counts). \code{p\_\allowbreak{}value\_\allowbreak{}by=\textquotedbl{}likelihood ratio\textquotedbl{}}: a likelihood-ratio test for each column (R \code{drop1(m,\allowbreak{} test = \textquotedbl{}LRT\textquotedbl{})}) instead of the Wald z-test. \code{grouped\_\allowbreak{}by=\textquotedbl{}school\textquotedbl{}}: a mixed model with its own starting level for each school (R lme4::\code{lmer()}), for rows that belong together; \code{grouped\_\allowbreak{}by=[\textquotedbl{}school\textquotedbl{},\allowbreak{} \textquotedbl{}class\textquotedbl{}]} for classes inside schools ((1 \textbar{} school/class)). \code{own\_\allowbreak{}slope\_\allowbreak{}for=\textquotedbl{}hours\textquotedbl{}} gives each school its own slope for hours too (R lme4::\code{lmer()} itself, (1 + hours \textbar{} school)). \code{crossed\_\allowbreak{}with=\textquotedbl{}item\textquotedbl{}} with \code{grouped\_\allowbreak{}by=\textquotedbl{}subject\textquotedbl{}}: a second grouping crossed with the first, (1 \textbar{} subject) + (1 \textbar{} item) (R lme4 itself), when each subject meets several items. \code{p\_\allowbreak{}value\_\allowbreak{}by=\textquotedbl{}satterthwaite\textquotedbl{}} (or \code{\textquotedbl{}few groups\textquotedbl{}}) gives t-tests with Satterthwaite degrees of freedom (R lmerTest) instead of Wald z-tests. \code{effects=\textquotedbl{}for the whole population\textquotedbl{}} fits GEE instead (statsmodels, as R geepack::\code{geeglm()}): effects averaged over all groups, with \code{within\_\allowbreak{}groups=\textquotedbl{}alike\textquotedbl{}} (the default), \code{\textquotedbl{}in time order\textquotedbl{}} (rows in table order, R geepack) or \code{\textquotedbl{}independent\textquotedbl{}}; GEE takes \code{time=}, \code{out\_\allowbreak{}of=} (R geepack) and \code{link=} for yes or no too. \code{curve\_\allowbreak{}for=\textquotedbl{}hours\textquotedbl{}} lets \code{\textquotedbl{}hours\textquotedbl{}} follow a curve instead of a straight line (a generalised additive model with a smooth term \code{s(hours)}, R mgcv::\code{gam(marks \textasciitilde{} s(hours) + .\allowbreak{}.\allowbreak{}.\allowbreak{},\allowbreak{} method = \textquotedbl{}REML\textquotedbl{})}). \code{robust\_\allowbreak{}errors=True} (experts) gives robust standard errors (sandwich, HC3, as R sandwich::\code{vcovHC()}), which stay right when the spread is not the same everywhere; it does not make the model resistant to outliers (\code{giving\_\allowbreak{}outliers\_\allowbreak{}less\_\allowbreak{}weight=True} does). \code{empty\_\allowbreak{}cells=\textquotedbl{}multiple imputation\textquotedbl{}} fills in empty cells 20 times (R \code{mice()}) instead of leaving those rows out; \code{with\_\allowbreak{}seed=} fixes the random filling. Prints each effect with its 95 \% confidence interval and p-value in words, and how well the model fits: R squared (numbers), McFadden's pseudo R squared (yes or no, counts, groups; for yes or no also Nagelkerke's and Tjur's) or Nakagawa's R squared (\code{grouped\_\allowbreak{}by=}, R performance, needs R), with AIC and BIC (R \code{AIC()}, \code{BIC()}). Gives back a table with one row per term. A link does not show that one thing causes the other. \code{for\_\allowbreak{}percentile=90} (\code{outcome=\textquotedbl{}numbers\textquotedbl{}}) fits the line under which 90 \% of the values fall instead of the average line (quantile regression, R quantreg::\code{rq(tau = 0.\allowbreak{}9)}, needs R); a list such as [10, 50, 90] gives one block per percentile. \code{changes\_\allowbreak{}at=}\{\code{\textquotedbl{}month\textquotedbl{}}: 37\} adds a jump in level and a change of slope at month 37 (an interrupted time series), with the lag-1 autocorrelation of the leftovers.
+\code{outcome=\textquotedbl{}numbers\textquotedbl{}} (the default): linear model by least squares (R \code{lm()}). \code{outcome=\textquotedbl{}yes or no\textquotedbl{}}: logistic regression, odds ratios (R \code{glm(family = binomial)}). \code{outcome=\textquotedbl{}counts\textquotedbl{}}: Poisson regression, rate ratios (R \code{glm(family = poisson)}); \code{outcome=\textquotedbl{}counts (overdispersed)\textquotedbl{}}: quasi-Poisson (R \code{glm(family = quasipoisson)}); \code{outcome=\textquotedbl{}counts that vary a lot\textquotedbl{}}: negative binomial (R MASS::\code{glm.\allowbreak{}nb()}). \code{outcome=\textquotedbl{}positive numbers\textquotedbl{}}: Gamma regression with a log link, for positive, skewed numbers such as times or amounts (R \code{glm(family = Gamma(link = \textquotedbl{}log\textquotedbl{}))}); effects multiply the average. \code{time=\textquotedbl{}years\textquotedbl{}} with counts: rates, the count per unit of time (R offset = \code{log(years)}). \code{out\_\allowbreak{}of=\textquotedbl{}tries\textquotedbl{}} with \code{outcome=\textquotedbl{}yes or no\textquotedbl{}}: the column holds the number of yes out of that many tries (R \code{glm(cbind(yes,\allowbreak{} tries - yes) \textasciitilde{} .\allowbreak{}.\allowbreak{}.\allowbreak{},\allowbreak{} family = binomial)}). With \code{out\_\allowbreak{}of=}, \code{outcome=\textquotedbl{}yes or no (overdispersed)\textquotedbl{}} is quasi-binomial (R \code{glm(family = quasibinomial)}), for yes counts that vary more than the binomial allows. \code{outcome=\textquotedbl{}ordered groups\textquotedbl{}}: ordered logistic regression (R MASS::\code{polr()}); give the order of text groups, lowest first, with \code{in\_\allowbreak{}order=[\textquotedbl{}low\textquotedbl{},\allowbreak{} \textquotedbl{}middle\textquotedbl{},\allowbreak{} \textquotedbl{}high\textquotedbl{}]}. \code{outcome=\textquotedbl{}groups\textquotedbl{}}: multinomial logistic regression, each group against the first (R nnet::\code{multinom()}). \code{outcome=\textquotedbl{}shares\textquotedbl{}}: beta regression for shares between 0 and 1 (R betareg). \code{outcome=\textquotedbl{}counts with many zeros\textquotedbl{}}: zero-inflated Poisson regression (R pscl::\code{zeroinfl()}); \code{\textquotedbl{}counts with many zeros that vary a lot\textquotedbl{}}: zero-inflated negative binomial (pscl::\code{zeroinfl(dist = \textquotedbl{}negbin\textquotedbl{})}). \code{outcome=\textquotedbl{}counts in two steps\textquotedbl{}} (a hurdle model; \code{\textquotedbl{}hurdle\textquotedbl{}} works too): first zero or not, then how many among the counts above 0 (R pscl::\code{hurdle()}); \code{\textquotedbl{}counts in two steps that vary a lot\textquotedbl{}} with a negative binomial second step. \code{zero\_\allowbreak{}part\_\allowbreak{}using=[\textquotedbl{}distance\textquotedbl{}]} gives the zero part its own columns (R pscl's y \textasciitilde{} x \textbar{} z). \code{link=} (experts): \code{\textquotedbl{}probit\textquotedbl{}} or \code{\textquotedbl{}cloglog\textquotedbl{}} for yes or no, \code{\textquotedbl{}identity\textquotedbl{}} or \code{\textquotedbl{}sqrt\textquotedbl{}} for counts, \code{\textquotedbl{}inverse\textquotedbl{}} or \code{\textquotedbl{}identity\textquotedbl{}} for positive numbers; the effects are then on that scale, not ratios. \code{test\_\allowbreak{}type=\textquotedbl{}type 2\textquotedbl{}} adds a table with one test for each column (an ANOVA table): \code{\textquotedbl{}type 2\textquotedbl{}} (the usual choice, R car::\code{Anova(type = 2)}), \code{\textquotedbl{}type 3\textquotedbl{}} (sum-to-zero coding, R car::\code{Anova(type = 3)}) or \code{\textquotedbl{}in order\textquotedbl{}} (R \code{anova()}; the order of \code{using=} matters), with partial eta-squared for numbers (R effectsize). A text column in \code{using=} is a group column: each group is compared with the first group in sorted order (the baseline). \code{\textquotedbl{}hours * breakfast\textquotedbl{}} adds both columns and their interaction (does the effect of hours depend on breakfast?). \code{weights=\textquotedbl{}precision\textquotedbl{}}: each row counts as much as its weight says (precision weights, R \code{lm(weights =)} and \code{glm(weights =)}; statsmodels WLS and \code{GLM(var\_\allowbreak{}weights=)}); rows with weight 0 are left out, as R does. \code{show=\textquotedbl{}risk ratios\textquotedbl{}} with \code{outcome=\textquotedbl{}yes or no\textquotedbl{}}: risk ratios instead of odds ratios, by modified Poisson regression (Zou 2004; R \code{glm(family = poisson)} with sandwich::\code{vcovHC(type = \textquotedbl{}HC0\textquotedbl{})}); \code{method=\textquotedbl{}log-binomial\textquotedbl{}} fits a log-binomial model instead (R \code{glm(family = binomial(link = \textquotedbl{}log\textquotedbl{}))}, which may not converge). \code{show=\textquotedbl{}standardised effects\textquotedbl{}} (also \code{\textquotedbl{}standardized effects\textquotedbl{}}): each effect per standard deviation, from the model fitted again on z-scores (R effectsize::\code{standardize\_\allowbreak{}parameters(method = \textquotedbl{}refit\textquotedbl{})}). \code{matched\_\allowbreak{}by=\textquotedbl{}set\textquotedbl{}} with \code{outcome=\textquotedbl{}yes or no\textquotedbl{}}: conditional logistic regression for matched case-control sets (R survival::\code{clogit()}; statsmodels ConditionalLogit). \code{giving\_\allowbreak{}outliers\_\allowbreak{}less\_\allowbreak{}weight=True}: robust regression (Huber's M-estimation, R MASS::\code{rlm()}; statsmodels RLM), so a few outliers in the column explained pull the effects less. Not the same as \code{robust\_\allowbreak{}errors=True}, which keeps the effects and only changes their standard errors. \code{curve\_\allowbreak{}for=\textquotedbl{}hours\textquotedbl{}} with \code{with\_\allowbreak{}knots=3}: \code{\textquotedbl{}hours\textquotedbl{}} follows a natural cubic spline whose pieces join at 3 knots, the points where the pieces of the curve join (R splines::\code{ns(hours,\allowbreak{} df = 4)}; patsy \code{cr()}); the printout gives the test of the whole curve, which asks whether \code{\textquotedbl{}hours\textquotedbl{}} matters at all (is the curve flat?), not whether it bends. \code{interval\_\allowbreak{}by=\textquotedbl{}profile\textquotedbl{}} (or \code{\textquotedbl{}profile likelihood\textquotedbl{}}): profile-likelihood 95 \% intervals for yes or no and counts (R \code{confint()} of the glm; needs R); \code{interval\_\allowbreak{}by=\textquotedbl{}bootstrap\textquotedbl{}}: BCa intervals from \code{resamples=9999} resamples of the rows (\code{with\_\allowbreak{}seed=1}; SciPy bootstrap, as R boot::\code{boot.\allowbreak{}ci()}). A group with only a few rows can be missing from a resample; \code{explain()} then stops, and whether that happens depends on \code{with\_\allowbreak{}seed=}. Fewer resamples are not the fix: merge the rare group, or use \code{interval\_\allowbreak{}by=\textquotedbl{}profile\textquotedbl{}} (yes or no and counts). \code{p\_\allowbreak{}value\_\allowbreak{}by=\textquotedbl{}likelihood ratio\textquotedbl{}}: a likelihood-ratio test for each column (R \code{drop1(m,\allowbreak{} test = \textquotedbl{}LRT\textquotedbl{})}) instead of the Wald z-test. \code{grouped\_\allowbreak{}by=\textquotedbl{}school\textquotedbl{}}: a mixed model with its own starting level for each school (R lme4::\code{lmer()}), for rows that belong together; \code{grouped\_\allowbreak{}by=[\textquotedbl{}school\textquotedbl{},\allowbreak{} \textquotedbl{}class\textquotedbl{}]} for classes inside schools ((1 \textbar{} school/class)). \code{own\_\allowbreak{}slope\_\allowbreak{}for=\textquotedbl{}hours\textquotedbl{}} gives each school its own slope for hours too (R lme4::\code{lmer()} itself, (1 + hours \textbar{} school)). \code{crossed\_\allowbreak{}with=\textquotedbl{}item\textquotedbl{}} with \code{grouped\_\allowbreak{}by=\textquotedbl{}subject\textquotedbl{}}: a second grouping crossed with the first, (1 \textbar{} subject) + (1 \textbar{} item) (R lme4 itself), when each subject meets several items. \code{p\_\allowbreak{}value\_\allowbreak{}by=\textquotedbl{}satterthwaite\textquotedbl{}} (or \code{\textquotedbl{}few groups\textquotedbl{}}) gives t-tests with Satterthwaite degrees of freedom (R lmerTest) instead of Wald z-tests. \code{effects=\textquotedbl{}for the whole population\textquotedbl{}} fits GEE instead (statsmodels, as R geepack::\code{geeglm()}): effects averaged over all groups, with \code{within\_\allowbreak{}groups=\textquotedbl{}alike\textquotedbl{}} (the default), \code{\textquotedbl{}in time order\textquotedbl{}} (rows in table order, R geepack) or \code{\textquotedbl{}independent\textquotedbl{}}; GEE takes \code{time=}, \code{out\_\allowbreak{}of=} (R geepack) and \code{link=} for yes or no too. \code{curve\_\allowbreak{}for=\textquotedbl{}hours\textquotedbl{}} lets \code{\textquotedbl{}hours\textquotedbl{}} follow a curve instead of a straight line (a generalised additive model with a smooth term \code{s(hours)}, R mgcv::\code{gam(marks \textasciitilde{} s(hours) + .\allowbreak{}.\allowbreak{}.\allowbreak{},\allowbreak{} method = \textquotedbl{}REML\textquotedbl{})}). \code{robust\_\allowbreak{}errors=True} (experts) gives robust standard errors (sandwich, HC3, as R sandwich::\code{vcovHC()}), which stay right when the spread is not the same everywhere; it does not make the model resistant to outliers (\code{giving\_\allowbreak{}outliers\_\allowbreak{}less\_\allowbreak{}weight=True} does). \code{empty\_\allowbreak{}cells=\textquotedbl{}multiple imputation\textquotedbl{}} fills in empty cells 20 times (R \code{mice()}) instead of leaving those rows out; \code{with\_\allowbreak{}seed=} fixes the random filling. Prints each effect with its 95 \% confidence interval and p-value in words, and how well the model fits: R squared (numbers), McFadden's pseudo R squared (yes or no, counts, groups; for yes or no also Nagelkerke's and Tjur's) or Nakagawa's R squared (\code{grouped\_\allowbreak{}by=}, R performance, needs R), with AIC and BIC (R \code{AIC()}, \code{BIC()}). Gives back a table with one row per term. A link does not show that one thing causes the other. \code{for\_\allowbreak{}percentile=90} (\code{outcome=\textquotedbl{}numbers\textquotedbl{}}) fits the line under which 90 \% of the values fall instead of the average line (quantile regression, R quantreg::\code{rq(tau = 0.\allowbreak{}9)}, needs R); a list such as [10, 50, 90] gives one block per percentile. \code{changes\_\allowbreak{}at=}\{\code{\textquotedbl{}month\textquotedbl{}}: 37\} adds a jump in level and a change of slope at month 37 (an interrupted time series), with the lag-1 autocorrelation of the leftovers. \code{spread\_\allowbreak{}changes\_\allowbreak{}with=\textquotedbl{}site\textquotedbl{}} lets each site have its own spread (a number column: the spread grows as a power of it), and \code{neighbours\_\allowbreak{}alike\_\allowbreak{}in\_\allowbreak{}order\_\allowbreak{}of=\textquotedbl{}date\textquotedbl{}} lets rows next to each other in date order be alike (\code{AR(1)}): generalised least squares, R nlme::\code{gls()} (needs R).
 
 \wordfield{Options}{}\par\nopagebreak
 \begin{optiontable}
@@ -9369,6 +9540,8 @@ Explain one column from several others with a model, and say how big each effect
 \code{zero\_\allowbreak{}part\_\allowbreak{}using=} & \\
 \code{for\_\allowbreak{}percentile=} & \\
 \code{changes\_\allowbreak{}at=} & \\
+\code{spread\_\allowbreak{}changes\_\allowbreak{}with=} & \\
+\code{neighbours\_\allowbreak{}alike\_\allowbreak{}in\_\allowbreak{}order\_\allowbreak{}of=} & \\
 \end{optiontable}
 
 \wordfield{Underneath}{statsmodels (OLS; GLM for yes/no and counts, as R glm; MixedLM for \code{grouped\_\allowbreak{}by=}; GEE for \code{effects=\textquotedbl{}for the whole population\textquotedbl{}}, as R geepack::geeglm; MICEData to fill in empty cells; \code{eval\_\allowbreak{}measures} aic and bic and McFadden's pseudo R squared, as R AIC, BIC and performance::\code{r2\_\allowbreak{}mcfadden}); R mgcv::gam for \code{curve\_\allowbreak{}for=} (needs R); R itself (needs R) for lme4::glmer, lme4::lmer with \code{own\_\allowbreak{}slope\_\allowbreak{}for=}, lmerTest for \code{p\_\allowbreak{}value\_\allowbreak{}by=\textquotedbl{}satterthwaite\textquotedbl{}}, geepack for \code{within\_\allowbreak{}groups=\textquotedbl{}in time order\textquotedbl{}} and GEE with \code{out\_\allowbreak{}of=}, car::Anova and effectsize for \code{test\_\allowbreak{}type=}, sandwich::vcovHC for \code{robust\_\allowbreak{}errors=True} with yes/no and counts, and mice::pool for multiple imputation; R performance::\code{r2\_\allowbreak{}nakagawa} for the R squared of every \code{grouped\_\allowbreak{}by=} model; statsmodels WLS and \code{GLM(var\_\allowbreak{}weights=)} for \code{weights=}, RLM for \code{giving\_\allowbreak{}outliers\_\allowbreak{}less\_\allowbreak{}weight=}, ConditionalLogit for \code{matched\_\allowbreak{}by=}, \code{GLM(cov\_\allowbreak{}type=\textquotedbl{}HC0\textquotedbl{})} for risk ratios; patsy cr for \code{with\_\allowbreak{}knots=}; SciPy bootstrap for \code{interval\_\allowbreak{}by=\textquotedbl{}bootstrap\textquotedbl{}}; R stats::confint for \code{interval\_\allowbreak{}by=\textquotedbl{}profile\textquotedbl{}}, lme4 for \code{crossed\_\allowbreak{}with=}, pscl::zeroinfl and pscl::hurdle for the zero outcomes}
@@ -9719,6 +9892,48 @@ fit = smf.ols("density ~ hour + after + since", df).fit()
 \undertext{simplydata also works for counts (\code{outcome=\textquotedbl{}counts\textquotedbl{}}, \code{time=}) and prints the lag-1 autocorrelation of the leftovers. simplydata also writes the result as sentences, with the p-value in words, and names the method.}
 \undertext{\textit{Checked:} a test runs both and compares the numbers of the result table (on a pandas and on a Polars table).}
 \end{underneathbox}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{R}\libbadge{Python}}
+\undertext{\textbf{With \code{spread\_\allowbreak{}changes\_\allowbreak{}with=}}: the same job with this option.}
+\underlib{R (simplydata runs this in R for you, through rpy2)}
+\begin{lstlisting}[style=underr]
+# explain("marks", using=["hours"], spread_changes_with="school")
+m <- nlme::gls(marks ~ hours, method = "REML",                      # (1)
+               weights = nlme::varIdent(form = ~ 1 | school))     # (2)
+t <- summary(m)$tTable
+list(effect = t[2, 1], se = t[2, 2], p = t[2, 4])
+\end{lstlisting}
+\underlib{Python (with what R gives back)}
+\begin{lstlisting}[style=under]
+{"effect": effect, "standard error": se, "p-value": p}
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) REML, nlme's default, for the effects.}
+\undertext{(2) a group column gives each group its own spread (varIdent); a number column would give a spread that grows as a power of it (varPower).}
+\undertext{\textit{In Python only:} statsmodels has GLSAR (iterated, not likelihood) and no variance functions, so the model comes from R nlme.}
+\undertext{simplydata also prints each group's spread against the first, the AIC with and without the spread part and the likelihood-ratio test between them. simplydata also writes the result as sentences, with the p-value in words, and names the method.}
+\undertext{\textit{Checked:} a test runs both and compares the numbers of the result table (on a pandas and on a Polars table).}
+\end{underneathbox}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{R}\libbadge{Python}}
+\undertext{\textbf{With \code{neighbours\_\allowbreak{}alike\_\allowbreak{}in\_\allowbreak{}order\_\allowbreak{}of=}}: the same job with this option.}
+\underlib{R (simplydata runs this in R for you, through rpy2)}
+\begin{lstlisting}[style=underr]
+# explain("level", using=["year"], neighbours_alike_in_order_of="year")
+year <- 1:40
+level <- 10 + 0.1 * year + ifelse(year %% 7 < 3, 1.5, -1) + ifelse(year %% 3 != 0, 0.5, -0.4)
+m <- nlme::gls(level ~ year, method = "REML",
+               correlation = nlme::corAR1(form = ~ year))         # (1)
+list(effect = coef(m)[2], se = sqrt(vcov(m)[2, 2]))
+\end{lstlisting}
+\underlib{Python (with what R gives back)}
+\begin{lstlisting}[style=under]
+{"effect": effect, "standard error": se}
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) evenly spaced values give the \code{AR(1)} correlation (corAR1), each step one step apart; uneven gaps give corCAR1, which allows for the size of each gap.}
+\undertext{\textit{In Python only:} statsmodels GLSAR iterates instead of maximising the likelihood, so the model comes from R nlme.}
+\undertext{simplydata also prints the correlation of neighbours with its interval and the comparison with the model without it. simplydata also writes the result as sentences, with the p-value in words, and names the method.}
+\undertext{\textit{Checked:} a test runs both and compares the numbers of the result table (on a pandas and on a Polars table).}
+\end{underneathbox}
 \wordentry{table.add\_predicted\_column()}{word:table.add-predicted-column}
 Add a column with the value the model predicts for each row.
 
@@ -9756,7 +9971,7 @@ table.show_first_rows(5)
 The average the model gives for each group, once the other columns are allowed for.
 
 \codeline{table.find\_model\_averages\_of(\textquotedbl{}marks\textquotedbl{}, for\_each\_group\_in=\textquotedbl{}school\textquotedbl{}, using=[\textquotedbl{}hours\textquotedbl{}, \textquotedbl{}breakfast\textquotedbl{}])}\\
-(with \code{sdata.\allowbreak{}get\_\allowbreak{}example(\textquotedbl{}school\textquotedbl{})}) The model is the one \code{explain()} fits from \code{using=} (\code{for\_\allowbreak{}each\_\allowbreak{}group\_\allowbreak{}in=} is added if it is not in \code{using=}). Number columns are held at their averages and the other group columns are counted equally, so the groups are compared on an equal footing (adjusted averages, also called estimated marginal means). Then every pair of groups is compared, with Tukey's adjustment for making many comparisons. \code{outcome=\textquotedbl{}yes or no\textquotedbl{}} gives the chance of yes in each group and odds ratios for the pairs; the count outcomes the average count and rate ratios; \code{\textquotedbl{}positive numbers\textquotedbl{}} the average and ratios; \code{\textquotedbl{}shares\textquotedbl{}} the average share; \code{\textquotedbl{}ordered groups\textquotedbl{}} and \code{\textquotedbl{}groups\textquotedbl{}} the chance of each of the outcome's groups (column \code{\textquotedbl{}model chance\textquotedbl{}} instead of \code{\textquotedbl{}model average\textquotedbl{}}). \code{grouped\_\allowbreak{}by=} uses the mixed model (\code{grouped\_\allowbreak{}by=[\textquotedbl{}school\textquotedbl{},\allowbreak{} \textquotedbl{}class\textquotedbl{}]} for classes inside schools). Done by R emmeans::\code{emmeans()} and \code{pairs()} (needs R: pip install \code{\textquotedbl{}simplydata[r]\textquotedbl{}}). Gives back a table with one row per group and one per pair. Other name: marginal means (R emmeans).
+(with \code{sdata.\allowbreak{}get\_\allowbreak{}example(\textquotedbl{}school\textquotedbl{})}) The model is the one \code{explain()} fits from \code{using=} (\code{for\_\allowbreak{}each\_\allowbreak{}group\_\allowbreak{}in=} is added if it is not in \code{using=}). Number columns are held at their averages and the other group columns are counted equally, so the groups are compared on an equal footing (adjusted averages, also called estimated marginal means). Then every pair of groups is compared, with Tukey's adjustment for making many comparisons. \code{outcome=\textquotedbl{}yes or no\textquotedbl{}} gives the chance of yes in each group and odds ratios for the pairs; the count outcomes the average count and rate ratios; \code{\textquotedbl{}positive numbers\textquotedbl{}} the average and ratios; \code{\textquotedbl{}shares\textquotedbl{}} the average share; \code{\textquotedbl{}ordered groups\textquotedbl{}} and \code{\textquotedbl{}groups\textquotedbl{}} the chance of each of the outcome's groups (column \code{\textquotedbl{}model chance\textquotedbl{}} instead of \code{\textquotedbl{}model average\textquotedbl{}}). \code{grouped\_\allowbreak{}by=} uses the mixed model (\code{grouped\_\allowbreak{}by=[\textquotedbl{}school\textquotedbl{},\allowbreak{} \textquotedbl{}class\textquotedbl{}]} for classes inside schools). Done by R emmeans::\code{emmeans()} and \code{pairs()} (needs R: pip install \code{\textquotedbl{}simplydata[r]\textquotedbl{}}). Gives back a table with one row per group and one per pair. Other name: marginal means (R emmeans). \code{comparing=\textquotedbl{}each with the first\textquotedbl{}} compares each group with the first (a control) instead of every pair; also \code{\textquotedbl{}each with the next\textquotedbl{}}, \code{\textquotedbl{}each with the average of the ones before\textquotedbl{}} (Helmert), \code{\textquotedbl{}each with the average\textquotedbl{}}, \code{\textquotedbl{}trend\textquotedbl{}} (groups in order) or your own weights as a dict (R emmeans \code{contrast()}, with emmeans' adjustment for each, printed). \code{in\_\allowbreak{}order=[.\allowbreak{}.\allowbreak{}.\allowbreak{}]} gives the order of the \code{for\_\allowbreak{}each\_\allowbreak{}group\_\allowbreak{}in=} groups (the first is the control of \code{\textquotedbl{}each with the first\textquotedbl{}}); for \code{outcome=\textquotedbl{}ordered groups\textquotedbl{}} it keeps its meaning there, the order of the outcome's groups. \code{within\_\allowbreak{}each\_\allowbreak{}group\_\allowbreak{}in=\textquotedbl{}sex\textquotedbl{}} compares the groups within each sex (simple effects), after the interaction test (R emmeans \code{joint\_\allowbreak{}tests()}). \code{over\_\allowbreak{}range\_\allowbreak{}of=\textquotedbl{}hours\textquotedbl{}} gives the model average at 50 evenly spaced values of hours, ready to draw (R \code{emmeans(at =)}).
 
 \wordfield{Options}{}\par\nopagebreak
 \begin{optiontable}
@@ -9766,6 +9981,9 @@ The average the model gives for each group, once the other columns are allowed f
 \code{outcome=} & normally \code{\textquotedbl{}numbers\textquotedbl{}}\\
 \code{grouped\_\allowbreak{}by=} & \\
 \code{in\_\allowbreak{}order=} & \\
+\code{comparing=} & normally \code{\textquotedbl{}each pair\textquotedbl{}}\\
+\code{within\_\allowbreak{}each\_\allowbreak{}group\_\allowbreak{}in=} & \\
+\code{over\_\allowbreak{}range\_\allowbreak{}of=} & \\
 \end{optiontable}
 
 \wordfield{Underneath}{R emmeans (emmeans::emmeans and pairs, Tukey's adjustment; lme4 and pbkrtest for \code{grouped\_\allowbreak{}by=}; MASS, nnet, betareg and pscl for the other outcomes), on the model of \code{table.\allowbreak{}explain} (needs R)}
@@ -9776,6 +9994,70 @@ table = sdata.table(sdata.get_example("school"))
 table.find_model_averages_of("marks", for_each_group_in="breakfast", using=["hours", "school"])
 table.find_model_averages_of("passed", for_each_group_in="breakfast", using=["hours"], outcome="yes or no")
 \end{lstlisting}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{R}\libbadge{Python}}
+\undertext{\textbf{With \code{comparing=\textquotedbl{}each with the first\textquotedbl{}}}: the same job with this option.}
+\underlib{R (simplydata runs this in R for you, through rpy2)}
+\begin{lstlisting}[style=underr]
+# find_model_averages_of(..., comparing="each with the first")
+m <- lm(marks ~ hours + group)
+e <- emmeans::emmeans(m, ~ group)
+s <- summary(emmeans::contrast(e, method = "trt.vs.ctrl"),       # (1)
+             infer = c(TRUE, TRUE))
+list(d = s$estimate[1], p = s$p.value[1])                         # (2)
+\end{lstlisting}
+\underlib{Python (with what R gives back)}
+\begin{lstlisting}[style=under]
+{"difference": d, "p-value (Dunnett)": p}
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) each group against the first group (in sorted order, or the first of \code{in\_\allowbreak{}order=}).}
+\undertext{(2) emmeans' own adjustment for this method (dunnettx), printed by simplydata.}
+\undertext{\textit{In Python only:} no Python package gives emmeans' averages over a reference grid.}
+\undertext{simplydata also prints the model averages, which adjustment was used, and how to put another group first. simplydata also writes the result as sentences, with the p-value in words, and names the method.}
+\undertext{\textit{Checked:} a test runs both and compares the numbers of the result table (on a pandas and on a Polars table).}
+\end{underneathbox}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{R}\libbadge{Python}}
+\undertext{\textbf{With \code{within\_\allowbreak{}each\_\allowbreak{}group\_\allowbreak{}in=}}: the same job with this option.}
+\underlib{R (simplydata runs this in R for you, through rpy2)}
+\begin{lstlisting}[style=underr]
+# find_model_averages_of(..., within_each_group_in="breakfast")
+m <- lm(marks ~ group * breakfast)
+j <- as.data.frame(emmeans::joint_tests(m))                  # (1)
+i <- j[[1]] == "group:breakfast"
+list(f = j$F.ratio[i], p = j$p.value[i])
+\end{lstlisting}
+\underlib{Python (with what R gives back)}
+\begin{lstlisting}[style=under]
+{"statistic": f, "p-value": p}
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) the interaction test comes first (emmeans \code{joint\_\allowbreak{}tests()}), and the comparisons within each group after it: compare the groups with the interaction test, not by which simple effects have small p-values (Gelman \& Stern 2006).}
+\undertext{\textit{In Python only:} no Python package gives emmeans' joint tests and simple effects.}
+\undertext{simplydata also prints the F test of class within each breakfast group (\code{joint\_\allowbreak{}tests(m,\allowbreak{} by =)}) and each pair of classes there. simplydata also writes the result as sentences, with the p-value in words, and names the method.}
+\undertext{\textit{Checked:} a test runs both and compares the numbers of the result table (on a pandas and on a Polars table).}
+\end{underneathbox}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{R}\libbadge{Python}}
+\undertext{\textbf{With \code{over\_\allowbreak{}range\_\allowbreak{}of=}}: the same job with this option.}
+\underlib{R (simplydata runs this in R for you, through rpy2)}
+\begin{lstlisting}[style=underr]
+# find_model_averages_of("marks", over_range_of="hours", using=["hours", "breakfast"])
+m <- lm(marks ~ hours + breakfast)
+grid <- seq(min(hours), max(hours), length.out = 50)            # (1)
+e <- emmeans::emmeans(m, ~ hours, at = list(hours = grid))      # (2)
+a <- as.data.frame(summary(e))
+list(first = a$emmean[1], low = a$lower.CL[1])
+\end{lstlisting}
+\underlib{Python (with what R gives back)}
+\begin{lstlisting}[style=under]
+{"model average": first, "95 % CI low": low}
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) 50 evenly spaced values from the smallest to the largest hours.}
+\undertext{(2) the other columns as emmeans holds them: numbers at their average, groups counted equally.}
+\undertext{\textit{In Python only:} no Python package gives emmeans' averages over a reference grid; \code{add\_\allowbreak{}predicted\_\allowbreak{}column(interval=95)} gives the predictions at the rows' own values without R.}
+\undertext{simplydata also prints the chart recipe (\code{draw\_\allowbreak{}lines} and \code{draw\_\allowbreak{}band}) for the table it gives back.}
+\undertext{\textit{Checked:} a test runs both and compares the numbers of the result table (on a pandas and on a Polars table).}
+\end{underneathbox}
 \wordentry{table.check\_model\_of()}{word:table.check-model-of}
 Four pictures to check a model from \code{explain()}, as R \code{plot(lm(.\allowbreak{}.\allowbreak{}.\allowbreak{}))}.
 
@@ -9824,7 +10106,7 @@ table.show_rows_that_pull_model("marks", using=["hours", "breakfast"])
 Does a bigger model explain the column better than a smaller one?
 
 \codeline{table.compare\_models(\textquotedbl{}marks\textquotedbl{}, using=[\textquotedbl{}hours\textquotedbl{}], against=[\textquotedbl{}hours\textquotedbl{}, \textquotedbl{}breakfast\textquotedbl{}])}\\
-(with \code{sdata.\allowbreak{}get\_\allowbreak{}example(\textquotedbl{}school\textquotedbl{})}) Fits both models on the same rows (those with a value in every column of either model). When one model holds every column of the other (nested models), it tests whether the extra columns help, as R \code{anova(m0,\allowbreak{} m1)}: an F test for \code{outcome=\textquotedbl{}numbers\textquotedbl{}} (statsmodels \code{compare\_\allowbreak{}f\_\allowbreak{}test}), \code{\textquotedbl{}counts (overdispersed)\textquotedbl{}} and \code{\textquotedbl{}positive numbers\textquotedbl{}} (R \code{anova(test = \textquotedbl{}F\textquotedbl{})}), and a likelihood-ratio test for the other outcomes. With \code{grouped\_\allowbreak{}by=} both mixed models are fitted by maximum likelihood for the test, as R \code{anova()} refits lme4 models (also with \code{grouped\_\allowbreak{}by=[\textquotedbl{}school\textquotedbl{},\allowbreak{} \textquotedbl{}class\textquotedbl{}]}, groups inside groups). It also prints AIC and BIC for each model (smaller is better; a difference under about 2 means little). Gives back a table with one row per model and one for the test.
+(with \code{sdata.\allowbreak{}get\_\allowbreak{}example(\textquotedbl{}school\textquotedbl{})}) Fits both models on the same rows (those with a value in every column of either model). When one model holds every column of the other (nested models), it tests whether the extra columns help, as R \code{anova(m0,\allowbreak{} m1)}: an F test for \code{outcome=\textquotedbl{}numbers\textquotedbl{}} (statsmodels \code{compare\_\allowbreak{}f\_\allowbreak{}test}), \code{\textquotedbl{}counts (overdispersed)\textquotedbl{}} and \code{\textquotedbl{}positive numbers\textquotedbl{}} (R \code{anova(test = \textquotedbl{}F\textquotedbl{})}), and a likelihood-ratio test for the other outcomes. With \code{grouped\_\allowbreak{}by=} both mixed models are fitted by maximum likelihood for the test, as R \code{anova()} refits lme4 models (also with \code{grouped\_\allowbreak{}by=[\textquotedbl{}school\textquotedbl{},\allowbreak{} \textquotedbl{}class\textquotedbl{}]}, groups inside groups). It also prints AIC and BIC for each model (smaller is better; a difference under about 2 means little). Gives back a table with one row per model and one for the test. \code{using=[[\textquotedbl{}hours\textquotedbl{}],\allowbreak{} [\textquotedbl{}hours\textquotedbl{},\allowbreak{} \textquotedbl{}breakfast\textquotedbl{}],\allowbreak{} [\textquotedbl{}hours * breakfast\textquotedbl{}]]} (a list of models) compares several models by AICc (AIC corrected for few rows) with Akaike weights, as R AICcmodavg::\code{aictab()}. \code{check\_\allowbreak{}on\_\allowbreak{}left\_\allowbreak{}out\_\allowbreak{}rows=True} checks each model on rows it did not see: the rows are split into 10 parts at random (\code{with\_\allowbreak{}seed=1}), each left out once and predicted by a model fitted to the rest, R boot::\code{cv.\allowbreak{}glm(K = 10)} (needs R).
 
 \wordfield{Options}{}\par\nopagebreak
 \begin{optiontable}
@@ -9834,6 +10116,8 @@ Does a bigger model explain the column better than a smaller one?
 \code{outcome=} & normally \code{\textquotedbl{}numbers\textquotedbl{}}\\
 \code{grouped\_\allowbreak{}by=} & \\
 \code{in\_\allowbreak{}order=} & \\
+\code{check\_\allowbreak{}on\_\allowbreak{}left\_\allowbreak{}out\_\allowbreak{}rows=} & normally \code{False}\\
+\code{with\_\allowbreak{}seed=} & normally \code{1}\\
 \end{optiontable}
 
 \wordfield{Underneath}{statsmodels (OLS \code{compare\_\allowbreak{}f\_\allowbreak{}test}; GLM deviances and log-likelihoods with SciPy's chi-square and F; MixedLM refitted by maximum likelihood; \code{eval\_\allowbreak{}measures} aic and bic), as R \code{anova(m0,\allowbreak{} m1)}, lmtest::lrtest, AIC and BIC; R for glmer, betareg and zeroinfl models}
@@ -9845,6 +10129,143 @@ table.compare_models("marks", using=["hours"], against=["hours", "breakfast"])
 table.compare_models("passed", using=["hours"], against=["hours", "breakfast"], outcome="yes or no")
 table.compare_models("marks", using=["hours"], against=["hours", "breakfast"], grouped_by="school")
 \end{lstlisting}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{statsmodels}}
+\undertext{\textbf{With \code{using=[[.\allowbreak{}.\allowbreak{}.\allowbreak{}],\allowbreak{} [.\allowbreak{}.\allowbreak{}.\allowbreak{}]]}}: the same job with this option.}
+\underlib{statsmodels}
+\begin{lstlisting}[style=under]
+import numpy as np
+import statsmodels.formula.api as smf
+from statsmodels.tools import eval_measures
+df = sdata.get_example("school").dropna(subset=["marks", "hours", "breakfast"])
+# compare_models("marks", using=[["hours"], ["hours", "breakfast"]])
+fits = [smf.ols(f, df).fit() for f in ("marks ~ hours", "marks ~ hours + breakfast")]
+k = [len(f.params) + 1 for f in fits]                                 # (1)
+aic = [eval_measures.aic(f.llf, f.nobs, kk) for f, kk in zip(fits, k)]
+aicc = [eval_measures.aicc(f.llf, f.nobs, kk) for f, kk in zip(fits, k)]
+use = aicc if len(df) / max(k) < 40 else aic                          # (2)
+w = np.exp(-(np.array(use) - min(use)) / 2)
+{"AICc": aicc[0], "Akaike weight": (w / w.sum())[0]}
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) every value estimated counts, the residual spread too, as R \code{logLik()}; statsmodels' own aic leaves it out (a difference of 2).}
+\undertext{(2) AICc when there are fewer than 40 rows per value estimated (Burnham \& Anderson 2002), else AIC.}
+\undertext{simplydata also fits every model on the same rows, sorts them and prints the differences and weights in words.}
+\undertext{\textit{Checked:} a test runs both and compares the numbers of the result table (on a pandas and on a Polars table).}
+\end{underneathbox}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{R}\libbadge{Python}}
+\undertext{\textbf{With \code{check\_\allowbreak{}on\_\allowbreak{}left\_\allowbreak{}out\_\allowbreak{}rows=True}}: the same job with this option.}
+\underlib{R (simplydata runs this in R for you, through rpy2)}
+\begin{lstlisting}[style=underr]
+# compare_models("marks", using=["hours"], check_on_left_out_rows=True)
+d <- data.frame(marks = marks, hours = hours)
+m <- glm(marks ~ hours, data = d)
+set.seed(1)                                                   # (1)
+cv <- boot::cv.glm(d, m, K = 10)                              # (2)
+list(left_out = cv$delta[1], bias_corrected = cv$delta[2])
+\end{lstlisting}
+\underlib{Python (with what R gives back)}
+\begin{lstlisting}[style=under]
+{"mean squared error on left-out rows": left_out,
+ "mean squared error on left-out rows (bias-corrected)": bias_corrected}
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) \code{with\_\allowbreak{}seed=1} is \code{set.\allowbreak{}seed(1)} in R, so R's own random numbers make the parts.}
+\undertext{(2) K = 10 parts: cv.glm's own default leaves out one row at a time.}
+\undertext{\textit{In Python only:} statsmodels has no k-fold cross-validation, so it comes from R boot.}
+\undertext{simplydata also prints the error on the rows the model was fitted to, for comparison.}
+\undertext{\textit{Checked:} a test runs both and compares the numbers of the result table (on a pandas and on a Polars table).}
+\end{underneathbox}
+\wordentry{table.find\_columns\_that\_predict()}{word:table.find-columns-that-predict}
+Choose the columns that predict a column, with the lasso and a penalty checked on left-out rows.
+
+\codeline{table.find\_columns\_that\_predict(\textquotedbl{}marks\textquotedbl{}, using=[\textquotedbl{}hours\textquotedbl{}, \textquotedbl{}sleep\textquotedbl{}, \textquotedbl{}breakfast\textquotedbl{}, \textquotedbl{}class\textquotedbl{}])}\\
+(with \code{sdata.\allowbreak{}get\_\allowbreak{}example(\textquotedbl{}school\textquotedbl{})}) The lasso shrinks every effect towards 0 and sets the weakest to exactly 0, so only some columns are kept. How strongly it shrinks (the penalty) is chosen by cross-validation: the rows are split into 10 parts at random (\code{with\_\allowbreak{}seed=1} fixes the split), each part is left out once and predicted by models fitted to the other nine, and simplydata takes the largest penalty within one standard error of the best (fewer columns, steadier). \code{method=\textquotedbl{}elastic net\textquotedbl{}} is half lasso, half ridge (it keeps groups of linked columns together). \code{outcome=\textquotedbl{}yes or no\textquotedbl{}} and \code{\textquotedbl{}counts\textquotedbl{}} work too. Text columns are turned into 0/1 columns. No p-values: the columns were chosen by the data. Done by R glmnet::\code{cv.\allowbreak{}glmnet()} (needs R: pip install \code{\textquotedbl{}simplydata[r]\textquotedbl{}}). Gives back a table with one row per column: its shrunk effect, and whether it was kept. Other names: lasso, glmnet, elastic net.
+
+\wordfield{Options}{}\par\nopagebreak
+\begin{optiontable}
+\code{column=} & \\
+\code{using=} & \\
+\code{method=} & normally \code{\textquotedbl{}lasso\textquotedbl{}}\\
+\code{outcome=} & normally \code{\textquotedbl{}numbers\textquotedbl{}}\\
+\code{with\_\allowbreak{}seed=} & normally \code{1}\\
+\end{optiontable}
+
+\wordfield{Underneath}{R \code{glmnet::cv.\allowbreak{}glmnet()}}
+\wordfield{Example you can run}{}\par\nopagebreak
+\begin{lstlisting}[style=py]
+import simplydata as sdata
+table = sdata.table(sdata.get_example("school"))
+table.find_columns_that_predict("marks", using=["hours", "sleep", "breakfast", "class"])
+table.find_columns_that_predict("passed", using=["hours", "sleep", "breakfast", "class"], outcome="yes or no")
+\end{lstlisting}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{R}\libbadge{Python}}
+\underlib{R (simplydata runs this in R for you, through rpy2)}
+\begin{lstlisting}[style=underr]
+# find_columns_that_predict("marks", using=["hours", "sleep"])
+# marks, hours, sleep: the rows of sdata.get_example("school") with every cell given
+set.seed(1)                                                         # (1)
+fit <- glmnet::cv.glmnet(cbind(hours, sleep), marks, alpha = 1, nfolds = 10)  # (2)
+b <- as.numeric(coef(fit, s = "lambda.1se"))                         # (3)
+list(hours = b[2])
+\end{lstlisting}
+\underlib{Python (with what R gives back)}
+\begin{lstlisting}[style=under]
+{"effect": hours}
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) the random split into 10 parts is made in R itself (\code{with\_\allowbreak{}seed=1} is \code{set.\allowbreak{}seed(1)}), so R's own random numbers give the same parts.}
+\undertext{(2) the lasso (alpha = 1) with 10 parts; \code{method=\textquotedbl{}elastic net\textquotedbl{}} is alpha = 0.5.}
+\undertext{(3) the penalty is lambda.1se, the largest within one standard error of the best (fewer columns, steadier); simplydata names it, so a change of glmnet's default cannot change the answer.}
+\undertext{\textit{In Python only:} Python has no cross-validated lasso for these models outside scikit-learn, which simplydata leaves out, so the numbers come from R glmnet.}
+\undertext{simplydata also turns text columns into 0/1 columns, prints the cross-validated error and says why there are no p-values.}
+\undertext{\textit{Checked:} a test runs both and compares the numbers of the result table (on a pandas and on a Polars table).}
+\end{underneathbox}
+\wordentry{table.find\_group\_levels\_of()}{word:table.find-group-levels-of}
+Each group's own starting level (and own slope) in a mixed model.
+
+\codeline{table.find\_group\_levels\_of(\textquotedbl{}marks\textquotedbl{}, using=[\textquotedbl{}hours\textquotedbl{}], grouped\_by=\textquotedbl{}school\textquotedbl{})   (with sdata.get\_example(\textquotedbl{}school\textquotedbl{}))}\\
+The mixed model of \code{explain(.\allowbreak{}.\allowbreak{}.\allowbreak{},\allowbreak{} grouped\_\allowbreak{}by=\textquotedbl{}school\textquotedbl{})} gives each school its own starting level around the average one. This word shows each school's level (its distance from the average starting level, a BLUP: best linear unbiased prediction) with a 95 \% interval, and the school's own line. \code{own\_\allowbreak{}slope\_\allowbreak{}for=\textquotedbl{}hours\textquotedbl{}} adds each school's own slope. The levels are shrunk towards the average and carry uncertainty: they are for pictures and reports, not data for a later test (Houslay \& Wilson 2017); the table that comes back says so in its \code{\textquotedbl{}note\textquotedbl{}} column. Done by R lme4::\code{ranef(condVar = TRUE)} and \code{coef()} (needs R: pip install \code{\textquotedbl{}simplydata[r]\textquotedbl{}}). Other names: ranef, BLUP, random effects.
+
+\wordfield{Options}{}\par\nopagebreak
+\begin{optiontable}
+\code{column=} & \\
+\code{using=} & \\
+\code{grouped\_\allowbreak{}by=} & \\
+\code{outcome=} & normally \code{\textquotedbl{}numbers\textquotedbl{}}\\
+\code{own\_\allowbreak{}slope\_\allowbreak{}for=} & \\
+\end{optiontable}
+
+\wordfield{Underneath}{R \code{lme4::lmer()}, \code{lme4::ranef()}}
+\wordfield{Example you can run}{}\par\nopagebreak
+\begin{lstlisting}[style=py]
+import simplydata as sdata
+table = sdata.table(sdata.get_example("school"))
+levels = table.find_group_levels_of("marks", using=["hours"], grouped_by="school")
+levels.show()
+\end{lstlisting}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{R}\libbadge{Python}}
+\underlib{R (simplydata runs this in R for you, through rpy2)}
+\begin{lstlisting}[style=underr]
+# find_group_levels_of("marks", using=["hours"], grouped_by="school")
+m <- lme4::lmer(marks ~ hours + (1 | school), REML = TRUE)
+re <- lme4::ranef(m, condVar = TRUE)$school                    # (1)
+sd <- sqrt(attr(re, "postVar")[1, 1, ])
+a <- rownames(re) == "School A"
+list(level = re[a, 1], low = re[a, 1] - 1.959964 * sd[a],      # (2)
+     own = coef(m)$school[a, 1])
+\end{lstlisting}
+\underlib{Python (with what R gives back)}
+\begin{lstlisting}[style=under]
+{"starting level (distance from the average)": level,
+ "starting level 95 % interval low": low, "own starting level": own}
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) condVar = TRUE: each level comes with its conditional variance; without it \code{ranef()} gives no uncertainty.}
+\undertext{(2) the 95 \% interval is the level plus and minus 1.96 conditional standard deviations, as lattice::\code{dotplot(ranef(m,\allowbreak{} condVar = TRUE))} draws it.}
+\undertext{\textit{In Python only:} statsmodels MixedLM gives the same levels for random intercepts (\code{random\_\allowbreak{}effects}), but its conditional variances differ from lme4's, so the intervals come from R.}
+\undertext{simplydata also sorts the groups, adds own slopes with \code{own\_\allowbreak{}slope\_\allowbreak{}for=}, and prints and stores the warning that the levels are not data for later tests.}
+\undertext{\textit{Checked:} a test runs both and compares the numbers of the result table (on a pandas and on a Polars table).}
+\end{underneathbox}
 \unsection{Patterns across columns}{group:Patterns-across-columns}
 \wordentry{table.add\_principal\_components()}{word:table.add-principal-components}
 Add principal components: a few new columns that hold most of the spread of many columns.
@@ -13977,6 +14398,48 @@ table.explain("marks", using=["hours"], for_percentile=90)
 \printedoutput{output/solution27_task3.txt}
 \solutionanswer{5.00 more marks per hour at the 90th percentile (95 \% CI 2.98 to 7.02).}
 \par\noindent{\small\sffamily\hyperref[lesson:27]{Back to lesson 27}}
+\unsection{Lesson 28: When one effect depends on another}{solutions:28}
+\solutiontask{1}{Draw the interaction picture the other way round: breakfast along the bottom (\code{x=\textquotedbl{}breakfast\textquotedbl{}}) and one line per class. Is the question it shows the same?}
+\begin{lstlisting}[style=py]
+import simplydata as sdata
+chart = sdata.chart(sdata.get_example("school"))
+chart.draw_interaction_lines(x="breakfast", y="marks", colour="class")
+chart.save("interaction_other_way.png")
+\end{lstlisting}
+\printedoutput{output/solution28_task1.txt}
+\begin{center}\begin{minipage}{\linewidth}\centering
+\includegraphics[width=0.52\textwidth,height=0.30\textheight,keepaspectratio]{figures/solution28_task1_interaction_other_way.pdf}
+\captionof*{figure}{Lesson 28, task 1: \code{interaction\_\allowbreak{}other\_\allowbreak{}way.\allowbreak{}png}.}
+\end{minipage}\end{center}
+\solutionanswer{The same averages, drawn the other way: lines that are not parallel here show the same interaction, seen from breakfast's side.}
+\solutiontask{2}{If you have R: change only \code{for\_\allowbreak{}each\_\allowbreak{}group\_\allowbreak{}in=}: compare the breakfast groups within each class (\code{for\_\allowbreak{}each\_\allowbreak{}group\_\allowbreak{}in=\textquotedbl{}breakfast\textquotedbl{}}, \code{within\_\allowbreak{}each\_\allowbreak{}group\_\allowbreak{}in=\textquotedbl{}class\textquotedbl{}}, \code{using=[\textquotedbl{}class * breakfast\textquotedbl{}]}). What does it compare now?}
+\begin{lstlisting}[style=py]
+import simplydata as sdata
+table = sdata.table(sdata.get_example("school"))
+table.find_model_averages_of("marks", for_each_group_in="breakfast", using=["class * breakfast"],
+                             within_each_group_in="class")
+\end{lstlisting}
+\printedoutput{output/solution28_task2.txt}
+\solutionanswer{Now breakfast yes and no are compared within each class: the same interaction test first, then one comparison per class.}
+\solutiontask{3}{If you have R: keep \code{for\_\allowbreak{}each\_\allowbreak{}group\_\allowbreak{}in=\textquotedbl{}class\textquotedbl{}} and change only \code{within\_\allowbreak{}each\_\allowbreak{}group\_\allowbreak{}in=} to \code{\textquotedbl{}school\textquotedbl{}}, with \code{using=[\textquotedbl{}class * school\textquotedbl{}]}. How many groups are the classes compared in now?}
+\begin{lstlisting}[style=py]
+import simplydata as sdata
+table = sdata.table(sdata.get_example("school"))
+table.find_model_averages_of("marks", for_each_group_in="class", using=["class * school"],
+                             within_each_group_in="school")
+\end{lstlisting}
+\printedoutput{output/solution28_task3.txt}
+\solutionanswer{The classes are compared within each of the 12 schools, after the interaction test of class and school.}
+\solutiontask{4}{Try to remember without looking back: which option compares each group with a control group, and which option puts the control first? Use them to compare each class with \code{\textquotedbl{}green\textquotedbl{}}, allowing for \code{\textquotedbl{}hours\textquotedbl{}}.}
+\begin{lstlisting}[style=py]
+import simplydata as sdata
+table = sdata.table(sdata.get_example("school"))
+table.find_model_averages_of("marks", for_each_group_in="class", using=["hours", "class"],
+                             comparing="each with the first", in_order=["green", "blue", "red"])
+\end{lstlisting}
+\printedoutput{output/solution28_task4.txt}
+\solutionanswer{\code{comparing=\textquotedbl{}each with the first\textquotedbl{}} compares each group with the first; \code{in\_\allowbreak{}order=} puts green first.}
+\par\noindent{\small\sffamily\hyperref[lesson:28]{Back to lesson 28}}
 
 \backmatter
 
@@ -14080,6 +14543,7 @@ Every word and option, A to Z, with the page of its dictionary entry. Other spel
 \indexline{word:draw-error-bars}{chart.draw\_error\_bars()}
 \indexline{word:draw-heatmap}{chart.draw\_heatmap()}
 \indexline{word:draw-histogram}{chart.draw\_histogram()}
+\indexline{word:draw-interaction-lines}{chart.draw\_interaction\_lines()}
 \indexline{word:draw-line-at-x}{chart.draw\_line\_at\_x()}
 \indexline{word:draw-line-at-y}{chart.draw\_line\_at\_y()}
 \indexline{word:draw-line-with-slope}{chart.draw\_line\_with\_slope()}
@@ -14110,6 +14574,7 @@ Every word and option, A to Z, with the page of its dictionary entry. Other spel
 \indexline{word:sdata.find-chance-of-finding}{sdata.find\_chance\_of\_finding()}
 \indexline{word:dist.find-chance-that-value}{dist.find\_chance\_that\_value()}
 \indexline{word:table.find-change-points-in}{table.find\_change\_points\_in()}
+\indexline{word:table.find-columns-that-predict}{table.find\_columns\_that\_predict()}
 \indexline{word:table.find-correlation-between}{table.find\_correlation\_between()}
 \indexline{word:dist.find-cut-off}{dist.find\_cut\_off()}
 \indexline{word:dist.find-density-at}{dist.find\_density\_at()}
@@ -14119,6 +14584,7 @@ Every word and option, A to Z, with the page of its dictionary entry. Other spel
 \indexline{word:nums.find-each-peak-that}{nums.find\_each\_peak\_that()}
 \indexline{word:table.find-each-peak-that}{table.find\_each\_peak\_that()}
 \indexline{word:nums.find-envelope}{nums.find\_envelope()}
+\indexline{word:table.find-group-levels-of}{table.find\_group\_levels\_of()}
 \indexline{word:sdata.find-how-many-needed}{sdata.find\_how\_many\_needed()}
 \indexline{word:table.find-interval-of}{table.find\_interval\_of()}
 \indexline{word:sdata.find-inverse-fourier-transform}{sdata.find\_inverse\_fourier\_transform()}

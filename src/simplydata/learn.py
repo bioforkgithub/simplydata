@@ -29,6 +29,8 @@ GROUPS = [
                      "draw_heatmap", "draw_pie", "draw_polar", "draw_contour", "draw_surface", "draw_dots_3d", "draw_band", "draw_map_of_empty_cells", "sticks"]),
     ("Statistics", ["show=", "error=", "draw_error_bars", "fit_line", "fit_curve", "fit_formula", "fit_distribution",
                     "fit_dose_response", "draw_curve", "draw_smooth_line",
+                    # S3a-3 (checking and comparing)
+                    "draw_interaction_lines",
                     "draw_density", "draw_count_bars", "draw_all_dots", "draw_side_histograms", "draw_qq_dots",
                     "draw_cumulative_share", "forest_plot", "sdata.draw_all_pairs"]),
     ("Lines and shading", ["draw_line_at_x", "draw_line_at_y", "draw_line_with_slope", "shade_between_x", "shade_between_y"]),
@@ -93,7 +95,9 @@ GROUPS = [
                        "dist.find_variance", "dist.show_summary", "dist.make_random_numbers", "dist.draw_chart", "dist.turn_into_table",
                        "dist.show_parameters"]),
     ("Models", ["table.explain", "table.add_predicted_column", "table.find_model_averages_of", "table.check_model_of",
-                "table.show_rows_that_pull_model", "table.compare_models"]),
+                "table.show_rows_that_pull_model", "table.compare_models",
+                # S3a-3 (checking and comparing): "more"
+                "table.find_columns_that_predict", "table.find_group_levels_of"]),
     ("Patterns across columns", ["table.add_principal_components", "table.find_principal_components_of",
                                  "table.add_clusters", "table.find_distances_between_rows", "table.add_nmds",
                                  "table.compare_profiles_of"]),
@@ -947,6 +951,15 @@ HELP_EXAMPLES = {
                                              'table.find_best_power_of("days", method="yeo-johnson")'),
     "fit_dose_response": _ex("toxicity", 'chart.draw_dots(x="concentration", y="root_length", colour="chemical")\n'
                                          'chart.fit_dose_response()', "fit_dose_response"),
+    # S3a-3: checking and comparing (the two table words need R)
+    "table.find_columns_that_predict": _tx("school", """\
+        table.find_columns_that_predict("marks", using=["hours", "sleep", "breakfast", "class"])
+        table.find_columns_that_predict("passed", using=["hours", "sleep", "breakfast", "class"], outcome="yes or no")"""),
+    "table.find_group_levels_of": _tx("school", """\
+        levels = table.find_group_levels_of("marks", using=["hours"], grouped_by="school")
+        levels.show()"""),
+    "draw_interaction_lines": _ex("school", 'chart.draw_interaction_lines(x="class", y="marks", colour="breakfast")',
+                                  "draw_interaction_lines"),
 }
 
 
@@ -1506,6 +1519,8 @@ CYCLES_LESSON = "Cycles: spectra, filters, peaks, and steady or not"
 SYSTEMS_LESSON = "Systems: a spring and damper, its response and a feedback loop"
 # S3a: outliers (S3a-1) and percentile lines (S3a-2), the title of the name review of 2026-11-20
 OUTLIERS_LESSON = "Beyond the average line: percentiles and outliers"
+# S3a-3: the interaction lesson (lesson 28; found by title)
+INTERACTIONS_LESSON = "When one effect depends on another"
 
 LESSONS = [
     dict(
@@ -3958,6 +3973,10 @@ LESSONS = [
                  "Does breakfast help a model that already has hours? The F test: about 2 of 100 studies would "
                  "show this much if breakfast truly did not help (p = 0.018), and the AIC is 3.72 lower "
                  "with breakfast: keep it."),
+                ('table.compare_models("marks", using=[["hours"], ["hours", "breakfast"], ["hours * breakfast"]])',
+                 "Three models at once, as a list of lists (each inner list is one model): sorted by AICc, with "
+                 "Akaike weights. Breakfast without the interaction comes first (weight 0.57); the interaction "
+                 "is 1.07 higher, under 2, so about as good."),
             ]),
             ("A prediction is never exact. interval=95 says how sure the model is about the average; "
              "for_new_rows=True says where one new pupil would fall, which is much wider.", [
@@ -3983,6 +4002,9 @@ LESSONS = [
                  "breakfast average 46.6 marks and pupils with breakfast 49.5. If the two groups truly did not "
                  "differ, a difference of -2.95 or bigger would turn up in about 1 of 100 studies like this one "
                  "(p = 0.008). This is R emmeans."),
+                ('table.find_model_averages_of("marks", over_range_of="hours", using=["hours", "breakfast"])',
+                 "One change: over_range_of= gives the model average at 50 values of hours, a table ready to draw "
+                 "(the printout shows the two chart lines)."),
             ]),
         ],
         notes=[
@@ -3992,6 +4014,9 @@ LESSONS = [
             "AIC and BIC compare models of the same rows only. sleep has 19 empty cells, so a model with sleep "
             "uses fewer rows; compare_models fits both models on the rows they share.",
             "A pseudo R squared (yes/no, counts) is not a share explained: 0 means no better than no columns.",
+            "check_model_of also prints two tests of equal spread under picture 3 (notes only: judge by the "
+            "picture), and for a yes/no model it adds a fifth picture, calibration, with the Hosmer-Lemeshow test "
+            "and the Brier score.",
             "Remove a row that pulls only for a reason, such as a typing mistake, and say so in your report.",
             "The confidence interval (interval=95) is about the average of many pupils like this one; the "
             "prediction interval (for_new_rows=True) is about one pupil. The second is always wider.",
@@ -4702,6 +4727,113 @@ LESSONS = [
         ],
         words=["table.explain", "table.show_rows_that_pull_model"],
     ),
+    # S3a-3 (checking and comparing): lesson 28 after S3a's lesson 27, found by title
+    dict(
+        title=INTERACTIONS_LESSON,
+        needs_r=needs_r_text("Example 1 needs no R. Examples 2 and 3 compare model averages with R emmeans: "
+                             "find_model_averages_of() with within_each_group_in= and comparing=", packages=("emmeans",)),
+        learn=[
+            "how to draw an interaction picture: one line per group through the averages (draw_interaction_lines)",
+            "how to test whether one effect depends on another column (an interaction in explain)",
+            "if you have R: how to compare groups within each group of another column, after the interaction test "
+            "(within_each_group_in=)",
+            "if you have R: how to compare each group with a control, or in another planned way (comparing=)",
+        ],
+        parts=[
+            ("Picture first. Do pupils who eat breakfast do better in every class, or only in some? "
+             "draw_interaction_lines draws one line per breakfast group through the average marks of each class.", [
+                ("import simplydata as sdata", "Load simplydata."),
+                ('chart = sdata.chart(sdata.get_example("school"))', "The pupils of lesson 16."),
+                ('chart.draw_interaction_lines(x="class", y="marks", colour="breakfast")',
+                 "Each dot is an average with its 95 % confidence interval. Parallel lines would mean breakfast "
+                 "adds the same in every class; here the lines cross at the red class."),
+                ('chart.save("lesson28_interaction.png")', "Save the picture."),
+                ('table = sdata.table(sdata.get_example("school"))', "The same pupils as a table."),
+                ('table.explain("marks", using=["class * breakfast"])',
+                 'The test of the crossing (lesson 16): "class * breakfast" adds both columns and their '
+                 "interaction. Read the line \"class : breakfast, all groups together\": p = 0.230, so the data "
+                 "cannot tell whether the lines truly cross. Say in words what the picture shows and what the test "
+                 "adds."),
+            ]),
+            ("If you have R: within each breakfast group, do the classes differ? within_each_group_in= "
+             "compares the groups of for_each_group_in= inside each group of another column (simple effects). "
+             "It always prints the interaction test first.", [
+                ("import simplydata as sdata", "Load simplydata."),
+                ('table = sdata.table(sdata.get_example("school"))', "The school table."),
+                ('table.find_model_averages_of("marks", for_each_group_in="class", using=["class * breakfast"], '
+                 'within_each_group_in="breakfast")',
+                 "for_each_group_in= names the groups that are compared (the classes); within_each_group_in= the "
+                 "groups inside which they are compared (breakfast no, breakfast yes). First the interaction test "
+                 "(p = 0.230), then the classes within each breakfast group and every pair there. Say in words why "
+                 "the two p-values within the groups do not tell you that the breakfast groups differ."),
+            ]),
+            ("If you have R: planned comparisons. Often one group is a control and the question is how each "
+             "other group differs from it. comparing= chooses the comparisons; emmeans' own adjustment for "
+             "making several of them is printed.", [
+                ("import simplydata as sdata", "Load simplydata."),
+                ('table = sdata.table(sdata.get_example("school"))', "The school table."),
+                ('table.find_model_averages_of("marks", for_each_group_in="class", using=["hours", "class"], '
+                 'comparing="each with the first")',
+                 "Each class against blue, the first in sorted order, with Dunnett's adjustment: green is 3.58 "
+                 "marks higher (adjusted p = 0.048), red 1.36 (p = 0.597)."),
+                ('table.find_model_averages_of("marks", for_each_group_in="class", using=["hours", "class"], '
+                 'comparing="each with the first", in_order=["red", "blue", "green"])',
+                 "One change: in_order= puts red first, so each class is compared with red."),
+            ]),
+        ],
+        notes=[
+            "Picture first, then the test: the interaction picture shows what the interaction test is about.",
+            "Compare the groups with the interaction test, not by which simple effects have small p-values: "
+            '"significant in one group but not the other" is not a difference between the groups (Gelman & Stern '
+            "2006).",
+            "for_each_group_in= names the groups that are compared; within_each_group_in= the groups inside which "
+            "they are compared. Swap them and you ask another question.",
+            'comparing= takes "each pair" (the default), "each with the first", "each with the next", "each with the '
+            'average of the ones before", "each with the average", "trend" (groups in order) or your own weights; '
+            "the dictionary has them all.",
+        ],
+        task=[
+            'Draw the interaction picture the other way round: breakfast along the bottom (x="breakfast") and one '
+            "line per class. Is the question it shows the same?",
+            'If you have R: change only for_each_group_in=: compare the breakfast groups within each class '
+            '(for_each_group_in="breakfast", within_each_group_in="class", using=["class * breakfast"]). What does '
+            "it compare now?",
+            'If you have R: keep for_each_group_in="class" and change only within_each_group_in= to "school", with '
+            'using=["class * school"]. How many groups are the classes compared in now?',
+            "Try to remember without looking back: which option compares each group with a control group, and "
+            'which option puts the control first? Use them to compare each class with "green", allowing for "hours".',
+        ],
+        solutions=[
+            (_sx("""\
+                import simplydata as sdata
+                chart = sdata.chart(sdata.get_example("school"))
+                chart.draw_interaction_lines(x="breakfast", y="marks", colour="class")
+                chart.save("interaction_other_way.png")"""),
+             "The same averages, drawn the other way: lines that are not parallel here show the same interaction, "
+             "seen from breakfast's side."),
+            (_sx("""\
+                import simplydata as sdata
+                table = sdata.table(sdata.get_example("school"))
+                table.find_model_averages_of("marks", for_each_group_in="breakfast", using=["class * breakfast"],
+                                             within_each_group_in="class")"""),
+             "Now breakfast yes and no are compared within each class: the same interaction test first, then one "
+             "comparison per class."),
+            (_sx("""\
+                import simplydata as sdata
+                table = sdata.table(sdata.get_example("school"))
+                table.find_model_averages_of("marks", for_each_group_in="class", using=["class * school"],
+                                             within_each_group_in="school")"""),
+             "The classes are compared within each of the 12 schools, after the interaction test of class and "
+             "school."),
+            (_sx("""\
+                import simplydata as sdata
+                table = sdata.table(sdata.get_example("school"))
+                table.find_model_averages_of("marks", for_each_group_in="class", using=["hours", "class"],
+                                             comparing="each with the first", in_order=["green", "blue", "red"])"""),
+             'comparing="each with the first" compares each group with the first; in_order= puts green first.'),
+        ],
+        words=["draw_interaction_lines", "table.explain", "table.find_model_averages_of"],
+    ),
 ]
 
 
@@ -4734,8 +4866,8 @@ def _list_lessons() -> None:
     print("lesson 14 teaches statistical tests and lesson 15 puts it all together, from a question")
     print(f"to a figure. Lessons 16 to {len(LESSONS)} go further: models, patterns across many columns,")
     print("survival and planning a study, fitting curves and finding answers, distributions, working")
-    print("with a model, risks, diagnostic tests and agreement, time series, forecasts, cycles and")
-    print("(optional) systems.\n")
+    print("with a model, risks, diagnostic tests and agreement, time series, forecasts, cycles,")
+    print("(optional) systems, percentiles and outliers, and effects that depend on each other.\n")
     for i, les in enumerate(LESSONS, start=1):
         print(f"  sdata.show_lesson({i}){' ' * (5 - len(str(i)))}{les['title']}")
     print("\nStart with sdata.show_lesson(1). Each lesson ends with a small task to try yourself.")

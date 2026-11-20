@@ -4,3 +4,9 @@ Comparing two models of "marks" on the same 180 rows:
 Lower AIC: the against= model (by 3.72).
 Does "breakfast" help? F test (F = 5.72, df = 1 and 177): about 2 of 100 studies would show this much if the extra columns truly did not help (p = 0.018).
 Method: both models fitted as lm(marks ~ hours + breakfast) and the smaller one, then an F test, as R anova(m0, m1) (statsmodels compare_f_test); AIC and BIC as R AIC() and BIC().
+Comparing 3 models of "marks" on the same 180 rows, by AICc (AIC corrected for few rows: 180 rows for up to 5 values estimated, fewer than 40 per value (Burnham & Anderson 2002)):
+  1. marks ~ hours + breakfast: AICc 1293, difference 0, weight 0.57 (4 values estimated)
+  2. marks ~ hours * breakfast: AICc 1294, difference 1.07, weight 0.33 (5 values estimated)
+  3. marks ~ hours: AICc 1296, difference 3.63, weight 0.09 (3 values estimated)
+A difference under 2 means the models fit about equally well. The weight (Akaike weight) is how strongly the data favour each model among these; it is not the chance that a model is true.
+Method: each model fitted on the same rows as lm(marks ~ hours) and the others; AIC as R AIC() (every value estimated counts, the spread of a least-squares model too), AICc = AIC + 2k(k + 1) / (n - k - 1) (statsmodels eval_measures.aicc), Akaike weights exp(-difference / 2) scaled to add up to 1, as R AICcmodavg::aictab().

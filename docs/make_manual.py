@@ -376,6 +376,10 @@ UNDERNEATH = {
     "table.fit_dose_response": "R drc (drm, ED with delta-method intervals, EDcomp, noEffect)",
     "fit_dose_response": "R drc (drm, ED), drawn with matplotlib",
     "table.find_best_power_of": "SciPy (stats.boxcox, stats.yeojohnson); R car::powerTransform with using=",
+    # S3a-3: checking and comparing (each also has a tested entry in simplydata._underneath)
+    "table.find_columns_that_predict": "R glmnet (cv.glmnet, coef at lambda.1se)",
+    "table.find_group_levels_of": "R lme4 (ranef with condVar, coef)",
+    "draw_interaction_lines": "pandas (averages), SciPy (t intervals), drawn with seaborn and matplotlib",
 }
 
 # ---------------------------------------------------------------- hand-written text

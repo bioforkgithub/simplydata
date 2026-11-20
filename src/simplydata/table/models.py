@@ -1585,7 +1585,8 @@ class ModelWords:
                 robust_errors=False, p_value_by="wald", effects="for the average group", within_groups="alike",
                 curve_for=None, weights=None, show=None, method=None, matched_by=None,
                 giving_outliers_less_weight=False, with_knots=None, interval_by="wald", resamples=None,
-                crossed_with=None, zero_part_using=None, for_percentile=None, changes_at=None):
+                crossed_with=None, zero_part_using=None, for_percentile=None, changes_at=None,
+                spread_changes_with=None, neighbours_alike_in_order_of=None):
         """Explain one column from several others with a model, and say how big each effect is.
 
         table.explain("marks", using=["hours", "breakfast"])   (with sdata.get_example("school"))
@@ -1675,8 +1676,27 @@ class ModelWords:
         list such as [10, 50, 90] gives one block per percentile. changes_at={"month": 37} adds a
         jump in level and a change of slope at month 37 (an interrupted time series), with the
         lag-1 autocorrelation of the leftovers.
+        spread_changes_with="site" lets each site have its own spread (a number column: the spread
+        grows as a power of it), and neighbours_alike_in_order_of="date" lets rows next to each
+        other in date order be alike (AR(1)): generalised least squares, R nlme::gls() (needs R).
         """
         step = "explain"
+        # S3a-3 (checking and comparing): generalised least squares (table/checking_more.py)
+        if spread_changes_with is not None or neighbours_alike_in_order_of is not None:
+            from .checking_more import explain_gls
+
+            return explain_gls(self, column, using, spread_changes_with, neighbours_alike_in_order_of, [
+                ("outcome=", outcome, "numbers"), ("grouped_by=", grouped_by, None),
+                ("empty_cells=", empty_cells, "leave out"), ("time=", time, None), ("out_of=", out_of, None),
+                ("in_order=", in_order, None), ("link=", link, None), ("test_type=", test_type, None),
+                ("own_slope_for=", own_slope_for, None), ("robust_errors=", robust_errors, False),
+                ("p_value_by=", p_value_by, "wald"), ("effects=", effects, "for the average group"),
+                ("within_groups=", within_groups, "alike"), ("curve_for=", curve_for, None),
+                ("weights=", weights, None), ("show=", show, None), ("method=", method, None),
+                ("matched_by=", matched_by, None), ("giving_outliers_less_weight=", giving_outliers_less_weight, False),
+                ("with_knots=", with_knots, None), ("interval_by=", interval_by, "wald"), ("resamples=", resamples, None),
+                ("crossed_with=", crossed_with, None), ("zero_part_using=", zero_part_using, None),
+                ("for_percentile=", for_percentile, None), ("changes_at=", changes_at, None)])
         # S3a-2 (lines and curves): percentile lines and a change at a known point (table/lines_more.py)
         if changes_at is not None:
             from .lines_more import explain_changes

@@ -48,6 +48,9 @@ r = ["rpy2>=3.5"]  # the bridge to R for the methods only R gives (R itself: htt
 # R packages the [r] words call are installed in R itself (tests/conftest.py R_PACKAGES). S3a-2 (lines and curves)
 # adds drc (fit_dose_response), segmented (fit_line(with_bends=)), smatr and mcr (fit_line(method=)) and quantreg
 # (explain(for_percentile=)); stats::loess and car come with R or are listed already. All are on CRAN and conda-forge.
+# S3a-3 (checking and comparing) calls the R packages nlme (explain(spread_changes_with=,
+# neighbours_alike_in_order_of=)), glmnet (find_columns_that_predict) and boot (compare_models(check_on_left_out_rows=)),
+# besides emmeans, lme4 and performance, listed already; lmtest and AICcmodavg are used by the reliability study only.
 test = ["pytest>=7", "polars>=0.20", "pyarrow>=14", "statsmodels>=0.14"]
 
 [project.urls]
