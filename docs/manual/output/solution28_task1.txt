@@ -1,0 +1,2 @@
+Interaction picture: parallel lines, no sign that the effect of "breakfast" depends on "class"; lines that cross or spread apart: it depends on "class" (check with table.explain("marks", using=["breakfast * class"])).
+Error bars: the 95 % confidence interval of the average (where the true average very likely is).
