@@ -75,7 +75,7 @@ ENTRIES = [
                        rotate = "oblimin")
         L <- unclass(f$loadings)
         list(f1 = L[1, 1], f2 = L[1, 2], f3 = L[1, 3], h2 = f$communality[1])
-    """, ("a number of factors chosen by you: no parallel analysis (and no seed needed).",)),
+    """, ("a number of factors chosen by you: no parallel analysis (the seed is still set, for the oblimin rotation).",)),
     _explore_entry("method=", ', how_many=3, method="ml"', """
         # find_hidden_factors_behind([...], how_many=3, method="ml")
         x <- as.data.frame(x)
@@ -93,8 +93,8 @@ ENTRIES = [
                        rotate = "varimax")                            # (1)
         L <- unclass(f$loadings)
         list(f1 = L[1, 1], f2 = L[1, 2], f3 = L[1, 3], h2 = f$communality[1])
-    """, ("varimax (through GPArotation) keeps the factors uncorrelated; \"promax\" lets them correlate, \"none\" "
-          "leaves them unrotated.",)),
+    """, ("varimax (stats::varimax, as R factanal uses) keeps the factors uncorrelated; \"promax\" lets them "
+          "correlate, \"none\" leaves them unrotated.",)),
     Entry(
         word="table.check_hidden_factors",
         data="ability_tests",

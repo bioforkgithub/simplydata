@@ -1,12 +1,16 @@
 """The reliability study for phase S3c-2, hidden factors: table.find_hidden_factors_behind (R psych) and
 table.check_hidden_factors (R lavaan).
 
-The data are the nine mental ability tests of Holzinger & Swineford (1939), read from R lavaan, where they are
-published (not stored here: lavaan's copy is GPL; the practice table ability_tests holds the same numbers). The
+The data are the nine mental ability tests of Holzinger & Swineford (1939), published test scores (facts). The
+cases read them from R lavaan, where the nine-test version is published; the same numbers ship with simplydata,
+with their citation, as the practice table ability_tests (not copied again into validation/data). The
 confirmatory model is the three-factor model of the lavaan paper (Rosseel 2012, Journal of Statistical Software
 48(2)), whose fit is printed there; the exploratory cases are checked against R psych itself and, for maximum
 likelihood, against base R factanal and statsmodels Factor (the parts each column does not share do not depend on
-the rotation). cases.py loads this file at its end and calls add_to().
+the rotation). The design (section 6) named Harman's 24 tests (Harman74.cor) and ability.cov for the exploratory
+cases; both are correlation or covariance matrices, and find_hidden_factors_behind takes rows, not a matrix, so they
+cannot be run through the word: an owner decision recorded in the PR. cases.py loads this file at its end and calls
+add_to().
 """
 
 from __future__ import annotations
@@ -39,7 +43,9 @@ def _datasets(Dataset):
                 "the three-factor model with its fit are in Rosseel, Y. (2012). lavaan: an R package for structural "
                 "equation modeling. Journal of Statistical Software 48(2), 1-36 (CC BY 3.0). Shipped with the R "
                 "package lavaan (HolzingerSwineford1939); a copy is the practice table ability_tests.",
-                "Published test scores (1939); the lavaan copy is GPL (>= 2). Read here from lavaan, so it needs R.",
+                "Published test scores (1939, facts). Read here from R lavaan (its copy is GPL (>= 2)), so the "
+                "cases need R; simplydata ships the same scores, with this citation, as the practice table "
+                "ability_tests.",
                 "https://doi.org/10.18637/jss.v048.i02"),
     ]
 
@@ -62,7 +68,10 @@ def _cases(Case):
     own = """
         r = sdata.table(data).find_hidden_factors_behind(""" + COLUMNS + """, how_many=3, method="ml",
                                                          rotation="varimax").as_pandas()
-        {f"own part of x{i}": v for i, v in enumerate(r["own part"], 1)}
+        out = {f"own part of x{i}": v for i, v in enumerate(r["own part"], 1)}
+        out.update({"x1 on factor 2": r["factor 2"][0], "x4 on factor 1": r["factor 1"][3],
+                    "x7 on factor 3": r["factor 3"][6], "x9 on factor 3": r["factor 3"][8]})
+        out
     """
     fit = """
         r = sdata.table(data).check_hidden_factors({call}).as_pandas().set_index("term")
@@ -114,12 +123,15 @@ def _cases(Case):
              """, parent_label="statsmodels Factor (method=\"ml\")", parent_tolerance=1e-4,
              r=FRAME + """
                  f <- stats::factanal(d, factors = 3, rotation = "varimax")
-                 u <- as.numeric(f$uniquenesses)
-                 stats::setNames(as.list(u), paste("own part of", names(f$uniquenesses)))
-             """, r_tolerance=1e-4,
+                 u <- as.numeric(f$uniquenesses); L <- unclass(f$loadings)
+                 c(stats::setNames(as.list(u), paste("own part of", names(f$uniquenesses))),
+                   list(`x1 on factor 2` = L[1, 2], `x4 on factor 1` = L[4, 1], `x7 on factor 3` = L[7, 3],
+                        `x9 on factor 3` = L[9, 3]))
+             """, r_tolerance=1e-3,
              note="The part of each column the factors do not share (the uniqueness) does not depend on the "
-                  "rotation, so psych's maximum likelihood is checked against base R factanal and statsmodels. The "
-                  "three optimisers stop at slightly different points (about 1 in 100,000)."),
+                  "rotation and is checked against base R factanal and statsmodels; the varimax loadings are checked "
+                  "against factanal (the same factor order and signs here). The three optimisers stop at slightly "
+                  "different points (about 1 in 100,000 for the uniquenesses), so the check allows 1 in 1000."),
         Case("table.check_hidden_factors", "the three-factor model of the lavaan paper", HS, "published",
              ours=fit.format(call="measured_by=" + MEASURED_BY, more=""),
              published={"chi-square": (85.306, 5e-4, ROSSEEL), "degrees of freedom": (24, 0, "exact"),

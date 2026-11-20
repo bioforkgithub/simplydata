@@ -7,8 +7,9 @@ psych::fa, lavaan::cfa), so they cannot hide a function of another package.
 * explore(): find_hidden_factors_behind. After set.seed(with_seed) (parallel analysis simulates data, and the
   oblimin rotation of GPArotation starts from random numbers too: unseeded, its loadings change in the sixth
   digit from run to run, checked with psych 2.6.9 and GPArotation 2026.8.2),
-  psych::fa.parallel(fa = "fa") chooses how many factors (Horn's parallel analysis) when how_many="automatic"; psych::fa() fits them (minres, ml or principal axis) and
-  rotates them (oblimin and promax through GPArotation and psych, varimax through GPArotation); psych::KMO()
+  psych::fa.parallel(fa = "fa") chooses how many factors (Horn's parallel analysis) when how_many="automatic";
+  psych::fa() fits them (minres, ml or principal axis) and rotates them (oblimin through GPArotation, varimax
+  through stats::varimax, promax psych's own); psych::KMO()
   gives the Kaiser-Meyer-Olkin measure.
 * confirm(): check_hidden_factors. lavaan::cfa() for measured_by= and lavaan::sem() for formula=, maximum
   likelihood, with missing = "ml" (every value given is used) when the rows have empty cells;
@@ -20,13 +21,14 @@ from __future__ import annotations
 import numpy as np
 
 EXPLORE = r"""
-# psych::fa() rotates through GPArotation::oblimin() and GPArotation::Varimax() (promax is psych's own)
+# psych::fa() rotates through GPArotation::oblimin(); varimax is stats::varimax() and promax psych's own
 x <- as.data.frame(x); colnames(x) <- cols
 k <- how_many
 suggested <- NA_real_
 set.seed(seed)  # parallel analysis simulates data, and the oblimin rotation starts from random numbers too
 if (how_many == 0) {
-  pa <- psych::fa.parallel(x, fm = fm, fa = "fa", plot = FALSE)
+  # its warnings are about fits to simulated data, not the learner's: they are not passed on
+  pa <- suppressWarnings(psych::fa.parallel(x, fm = fm, fa = "fa", plot = FALSE))
   suggested <- as.numeric(pa$nfact)
   k <- suggested
 }
@@ -100,11 +102,10 @@ def confirm(x, columns, model, route, missing):
 
 
 def _psych_words(note):
-    """psych's warnings said plainly; its messages about loading GPArotation are not repeated."""
+    """psych's warnings, less the ones the word says itself (Heywood cases) and the loading of GPArotation."""
     lower = note.lower()
     if "heywood" in lower:
-        return ("a column's shared part reached 1 or more (a Heywood case): the fit is not to be trusted. Try "
-                "fewer factors, or leave out the column with the largest shared part.")
+        return ""  # the word prints its own Heywood note, from the shared parts
     if "loading required namespace" in lower:
         return ""
     return note

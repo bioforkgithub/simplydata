@@ -62,7 +62,8 @@ def test_defaults_parallel_analysis_minres_oblimin(tests_table, needs_r, capsys)
     assert "Correlations between the factors: factor 1 with factor 2 0.32" in out
     assert '"x9" goes with more than one factor' in out
     assert 'psych::fa(x, nfactors = 3, fm = "minres", rotate = "oblimin")' in out
-    assert "set.seed(1)" in out and "simplydata chooses" in out
+    assert "set.seed(1)" in out and "simplydata chooses: minres" in out and "You chose" not in out
+    assert "KMO" not in out.split("Method:")[1].split("\n", 1)[1]  # KMO 0.75: no note
     for word in ("significant", "good fit", "true factors"):
         assert word not in out
 
@@ -82,7 +83,14 @@ def test_maximum_likelihood_varimax_matches_factanal(tests_table, needs_r, capsy
     # base R stats::factanal(x, 3, rotation = "varimax")$uniquenesses
     factanal = [0.5125282, 0.7487350, 0.5427768, 0.2791926, 0.2428767, 0.3052171, 0.5022002, 0.4685578, 0.5432436]
     assert np.allclose(own, factanal, rtol=1e-4)
+    # the rotation too: base R stats::factanal(x, 3, rotation = "varimax")$loadings (same order and signs here)
+    loadings = result.as_pandas()[["factor 1", "factor 2", "factor 3"]].to_numpy()
+    assert loadings[0] == pytest.approx([0.277, 0.623, 0.151], abs=1e-3)
+    assert loadings[8] == pytest.approx([0.132, 0.406, 0.524], abs=1e-3)
     assert "Parallel analysis" not in out and "maximum likelihood, varimax rotation" in out
+    assert "stats::varimax" in out and "GPArotation" not in out.split("Method:")[1].split("\n")[0]
+    assert "You chose method='ml', rotation='varimax' and how_many=3" in out
+    assert "simplydata chooses" not in out
     assert "Correlations between the factors" not in out  # varimax keeps them uncorrelated
 
 
@@ -101,6 +109,18 @@ def test_notes_for_few_rows(needs_r, capsys):
     table.find_hidden_factors_behind(COLUMNS, how_many=2)
     out = capsys.readouterr().out
     assert "40 rows for 9 columns (fewer than 5 rows for each column)" in out
+
+
+def test_a_factor_with_few_columns_gets_a_note(tests_table, needs_r, capsys):
+    tests_table.find_hidden_factors_behind(COLUMNS, how_many=4)
+    assert "fewer than 3 columns of 0.3 or more that go mainly with" in capsys.readouterr().out
+
+
+def test_promax_prints_factor_correlations(tests_table, needs_r, capsys):
+    tests_table.find_hidden_factors_behind(COLUMNS, how_many=3, rotation="promax")
+    out = capsys.readouterr().out
+    assert "Correlations between the factors: factor 1 with factor 2" in out
+    assert "simplydata chooses: minres" in out and "You chose rotation='promax' and how_many=3." in out
 
 
 def test_columns_that_share_little_get_the_kmo_note(needs_r, capsys):
@@ -147,10 +167,12 @@ def test_the_published_three_factor_model(tests_table, needs_r, capsys):
     assert terms.loc["visual with textual", "estimate"] == pytest.approx(0.459, abs=5e-4)
     assert terms.loc["visual with textual", "row kind"] == "correlation"
     assert "If the model were exactly right" in out and "fewer than 1 in 1000 studies like this one" in out
-    assert "a small one is expected with 300 or more rows even for a useful model" in out
+    assert "a small one is expected with many rows (300 or more) even for a useful model" in out
     assert "treat them as guides, not pass marks" in out and "Hu & Bentler 1999" in out
     assert "visual: x1 0.77, x2 0.42 and x3 0.58." in out
-    assert "x9 may also be measured by visual (36.4)" in out
+    assert "visual may also be measured by x9 (36.4)" in out
+    assert "how much the chi-square would drop" in out
+    assert "CFI and TLI 0.95 or more" in out
     assert "Change the model only for a reason you can defend" in out
     assert "visual =~ x1 + x2 + x3; textual =~ x4 + x5 + x6; speed =~ x7 + x8 + x9" in out
     assert 'missing = "ml"' not in out.split("Method:")[1].split(")")[0]
@@ -164,9 +186,33 @@ def test_empty_cells_keep_every_row(tests_table, needs_r, capsys):
     result = sdata.table(data).check_hidden_factors(measured_by=MEASURED_BY)
     out = capsys.readouterr().out
     assert "30 rows have empty cells; lavaan uses every value given" in out
+    assert "missing at random" in out
     assert "(301 rows)" in out
     assert 'lavaan::cfa(model, data, estimator = "ML", missing = "ml")' in out
     assert _by(result, "term").loc["chi-square", "estimate"] != pytest.approx(85.306, abs=5e-4)
+
+
+def test_a_row_with_nothing_is_left_out_with_a_note(needs_r, capsys):
+    data = sdata.get_example("ability_tests")
+    data.loc[0, COLUMNS] = np.nan
+    data.loc[1:5, "x1"] = np.nan
+    sdata.table(data).check_hidden_factors(measured_by=MEASURED_BY)
+    out = capsys.readouterr().out
+    assert "1 row has no value in any of these columns and is left out" in out
+    assert "(300 rows)" in out and "5 rows have empty cells" in out
+
+
+def test_check_hidden_factors_on_a_polars_table(needs_r):
+    pl = pytest.importorskip("polars")
+    result = sdata.table(pl.from_pandas(sdata.get_example("ability_tests"))).check_hidden_factors(
+        measured_by=MEASURED_BY)
+    assert result.as_pandas().set_index("term").loc["chi-square", "estimate"] == pytest.approx(85.306, abs=5e-4)
+
+
+def test_formula_with_comments_labels_and_constraints(tests_table, needs_r):
+    result = tests_table.check_hidden_factors(formula="# two factors\nvisual =~ x1 + a*x2 + a*x3\n"
+                                                      "speed =~ x7 + x8 + x9  # speeded tests\nvisual ~~ speed")
+    assert "visual measured by x2" in set(result.as_pandas()["term"])
 
 
 def test_formula_in_lavaan_syntax_gives_paths(tests_table, needs_r, capsys):
@@ -195,7 +241,7 @@ def test_a_model_that_is_not_identified_is_refused(tests_table, needs_r):
 def test_a_column_in_two_factors_is_a_cross_loading(tests_table, needs_r, capsys):
     tests_table.check_hidden_factors(measured_by={"visual": ["x1", "x2", "x3", "x9"], "speed": ["x7", "x8", "x9"]})
     out = capsys.readouterr().out
-    assert '"x9" is measured by more than one factor (visual and speed): a cross-loading' in out
+    assert '"x9" measures more than one factor (visual and speed): a cross-loading' in out
 
 
 # ---------------------------------------------------------------- input checks (no R needed)
@@ -204,12 +250,13 @@ def test_a_column_in_two_factors_is_a_cross_loading(tests_table, needs_r, capsys
     (dict(columns="x1"), "needs columns as a list"),
     (dict(columns=["x1", "x2"]), "at least 3 columns"),
     (dict(columns=COLUMNS, how_many=0), 'how_many= as "automatic"'),
-    (dict(columns=COLUMNS, how_many=9), "from 1 to 8"),
+    (dict(columns=COLUMNS, how_many=6), "from 1 to 5 \\(9 columns can pin down at most 5 factors\\)"),
+    (dict(columns=["x1", "x2", "x3"], how_many=2), "from 1 to 1"),
     (dict(columns=COLUMNS, how_many=True), 'how_many= as "automatic"'),
-    (dict(columns=COLUMNS, rotation="quartimax"), "does not know rotation='quartimax'"),
+    (dict(columns=COLUMNS, rotation="quartimax"), "does not know rotation='quartimax'.*\n.*rotation=\"oblimin\""),
     (dict(columns=COLUMNS, method="wls"), "does not know method='wls'"),
     (dict(columns=COLUMNS, with_seed=-1), "with_seed= as a whole number"),
-    (dict(columns=["x1", "x2", "school"]), "school"),
+    (dict(columns=["x1", "x2", "school"]), '"school" does not hold numbers.*\n.*ability_tests'),
 ])
 def test_find_hidden_factors_behind_explains_wrong_input(tests_table, call, message):
     with pytest.raises(SimplydataError, match=message):
@@ -230,7 +277,8 @@ def test_a_column_with_one_value_is_refused(tests_table):
     (dict(measured_by={"visual": "x1"}), 'The hidden factor "visual" has 1 column'),
     (dict(measured_by={"x1": ["x2", "x3"]}), '"x1" is the name of a column'),
     (dict(measured_by={"visual": ["x1", "x99"]}), "x99"),
-    (dict(measured_by={"visual": ["x1", "school"]}), "school"),
+    (dict(measured_by={"visual": ["x1", "school"]}), '"school" does not hold numbers'),
+    (dict(formula="visual =~ x1 + x2 + x3; visual ~~ nothing_here"), "nothing_here"),
     (dict(formula="x1 = a * x2 + b"), "not a formula like those of fit_formula"),
     (dict(formula="x1 ~ x2 + x3"), "needs at least one hidden factor"),
     (dict(formula="visual =~ x1 + x2 + x99"), "x99"),

@@ -63,7 +63,8 @@ def _choice(value, spellings, choices, option, step):
         if key in spellings:
             return spellings[key]
     listed = ", ".join(f'"{c}"' for c in choices)
-    raise SimplydataError(f"{step}() does not know {option}={value!r}. It takes {listed}.")
+    example = EXPLORE_EXAMPLE.replace('"x9"])', f'"x9"], {option}="{choices[0]}")')
+    raise SimplydataError(f"{step}() does not know {option}={value!r}. It takes {listed}.\nFor example, {example}")
 
 
 def _two(x) -> str:
@@ -109,7 +110,7 @@ class HiddenFactorWords:
         what the columns share. More: rotation="oblimin" (default; the factors may correlate),
         "varimax" (kept uncorrelated), "promax" or "none"; method="minres" (default), "ml"
         (maximum likelihood, as R factanal) or "principal axis"; with_seed=1 makes the
-        parallel analysis and the rotation repeat. To check a model you wrote down beforehand, use
+        parallel analysis and the oblimin rotation repeat. To check a model you wrote down beforehand, use
         check_hidden_factors. Needs R psych and GPArotation (pip install "simplydata[r]").
         Other names: factor analysis, efa, fa, factanal, scree, parallel analysis.
         """
@@ -128,19 +129,23 @@ class HiddenFactorWords:
         if len(columns) < 3:
             raise SimplydataError(f"{step}() needs at least 3 columns to find a factor behind them; it got "
                                   f"{len(columns)}.\nFor example, {EXPLORE_EXAMPLE}")
+        p = len(columns)
+        # the most factors p columns can pin down: (p - k)^2 >= p + k (a count, not a statistic)
+        most = max(k for k in range(1, p) if (p - k) ** 2 >= p + k)
         if isinstance(how_many, str) and how_many.strip().lower() in AUTOMATIC_SPELLINGS:
             automatic, wanted = True, 0
-        elif isinstance(how_many, (int, np.integer)) and not isinstance(how_many, bool) and 1 <= how_many < len(
-                columns):
+        elif isinstance(how_many, (int, np.integer)) and not isinstance(how_many, bool) and 1 <= how_many <= most:
             automatic, wanted = False, int(how_many)
         else:
             raise SimplydataError(f'{step}() needs how_many= as "automatic" (chosen by parallel analysis) or a whole '
-                                  f"number from 1 to {len(columns) - 1} (fewer factors than columns), not {how_many!r}.")
+                                  f"number from 1 to {most} ({p} columns can pin down at most {most} "
+                                  f"{'factor' if most == 1 else 'factors'}), not {how_many!r}.")
         rotation_name = _choice(rotation, ROTATION_SPELLINGS, tuple(ROTATIONS), "rotation", step)
         method_name = _choice(method, METHOD_SPELLINGS, tuple(METHODS), "method", step)
         if isinstance(with_seed, bool) or not isinstance(with_seed, (int, np.integer)) or not 0 <= with_seed < 2 ** 31:
             raise SimplydataError(f"{step}() needs with_seed= as a whole number from 0 (for example with_seed=1), "
                                   f"not {with_seed!r}.")
+        self._factor_numbers(step, columns, EXPLORE_EXAMPLE)
         x, _ = self._pattern_matrix(step, columns, least_rows=len(columns) + 2)
         flat = [c for c, same in zip(columns, (x == x[0]).all(axis=0)) if same]
         if flat:
@@ -173,7 +178,7 @@ class HiddenFactorWords:
               "(add_principal_components) only sum the columns up.")
         # the loadings
         width = max(len(str(c)) for c in columns)
-        print(f"Loadings (how strongly each column goes with each factor, -1 to 1; below {SHOWN_FROM} left blank "
+        print(f"Loadings (how strongly each column goes with each factor, usually -1 to 1; below {SHOWN_FROM} left blank "
               "here, all of them in the table given back), and each column's shared part (communality):")
         print("  " + " " * width + "".join(f"{n:>10}" for n in names) + f"{'shared part':>13}")
         for i, c in enumerate(columns):
@@ -189,14 +194,26 @@ class HiddenFactorWords:
         # the method
         how = (f'set.seed({int(with_seed)}), psych::fa.parallel(x, fm = "{fm}", fa = "fa") chose {k}, then '
                if automatic else f"set.seed({int(with_seed)}), then ")
-        rotated = {"oblimin": "GPArotation::oblimin", "varimax": "GPArotation::Varimax",
+        rotated = {"oblimin": "GPArotation::oblimin", "varimax": "stats::varimax",
                    "promax": "psych's promax", "none": ""}[rotation_name]
         print(f'Method: R {how}psych::fa(x, nfactors = {k}, fm = "{fm}", rotate = "{rotate}")'
               + (f" (the rotation by {rotated})" if rotated and k > 1 else "") + "; psych::KMO(x) for the KMO.")
-        print("simplydata chooses: minres (psych's default; it gives an answer where maximum likelihood can fail), "
-              "oblimin (factors in real data usually correlate) and parallel analysis to choose how many (the "
-              "'eigenvalue above 1' rule finds too many). The signs of a factor are arbitrary: flipping one changes "
-              "nothing.")
+        chosen, yours = [], []
+        (chosen if method_name == "minres" else yours).append(
+            "minres (psych's default; it gives an answer where maximum likelihood can fail)" if method_name == "minres"
+            else f"method={method_name!r}")
+        if k > 1:
+            (chosen if rotation_name == "oblimin" else yours).append(
+                "oblimin (factors in real data usually correlate)" if rotation_name == "oblimin"
+                else f"rotation={rotation_name!r}")
+        (chosen if automatic else yours).append(
+            "parallel analysis to choose how many (the 'eigenvalue above 1' rule finds too many)" if automatic
+            else f"how_many={k}")
+        if chosen:
+            print(f"simplydata chooses: {_list_words(chosen)}." + (f" You chose {_list_words(yours)}." if yours else ""))
+        else:
+            print(f"You chose {_list_words(yours)}; simplydata's own choice is minres, oblimin and parallel analysis.")
+        print("The signs of a factor are arbitrary: flipping one changes nothing.")
         # notes
         if kmo < KMO_GUIDE:
             print(f"Note: the columns share little (KMO = {_two(kmo)}, below Kaiser's guide of {KMO_GUIDE}), so "
@@ -204,10 +221,13 @@ class HiddenFactorWords:
         if rows_used < ROWS_PER_COLUMN * len(columns):
             print(f"Note: {rows_used} rows for {len(columns)} columns (fewer than {ROWS_PER_COLUMN} rows for each "
                   "column): the factors may not repeat in new data.")
-        if len(columns) < COLUMNS_PER_FACTOR * k:
-            print(f"Note: fewer than {COLUMNS_PER_FACTOR} columns for each factor: a factor with only one or two "
-                  "columns is weakly pinned down.")
         strong = np.abs(loadings) >= SHOWN_FROM
+        main = np.abs(loadings).argmax(axis=1)
+        weak = [names[j] for j in range(k) if int((strong[:, j] & (main == j)).sum()) < COLUMNS_PER_FACTOR]
+        if weak:
+            print(f"Note: {_list_words(weak)} {'has' if len(weak) == 1 else 'have'} fewer than {COLUMNS_PER_FACTOR} "
+                  f"columns of {SHOWN_FROM} or more that go mainly with {'it' if len(weak) == 1 else 'them'}: a factor "
+                  "with only one or two columns is weakly pinned down.")
         none = [c for c, s in zip(columns, strong) if not s.any()]
         several = [c for c, s in zip(columns, strong) if s.sum() > 1]
         if none:
@@ -251,8 +271,8 @@ class HiddenFactorWords:
         paths between the factors (a structural equation model), for example formula="visual
         =~ x1 + x2 + x3; speed =~ x7 + x8 + x9; speed ~ visual"; it is not the formula of
         fit_formula. To find the factors first, use find_hidden_factors_behind. Needs R lavaan
-        (pip install "simplydata[r]"). Other names: cfa, sem, lavaan, confirmatory factor
-        analysis, structural equation model.
+        (pip install "simplydata[r]"). Other names: cfa, lavaan, confirmatory factor analysis,
+        structural equation model.
         """
         from .factor_r import confirm
 
@@ -268,9 +288,19 @@ class HiddenFactorWords:
             factors, used, model, rename = self._formula_model(step, formula)
             shown_model = model
             route = "sem"
-        self._need_columns(*used)
+        self._factor_numbers(step, used, CONFIRM_EXAMPLE)
         frame = self._number_frame(step, used)
         x = np.column_stack([frame[c].to_pandas().astype("float64").to_numpy() for c in used])
+        nothing = np.isnan(x).all(axis=1)
+        if nothing.any():
+            gone = int(nothing.sum())
+            print(f"Note: {gone} {'row has' if gone == 1 else 'rows have'} no value in any of these columns and "
+                  f"{'is' if gone == 1 else 'are'} left out.")
+            x = x[~nothing]
+        same = [c for c, col in zip(used, x.T) if np.unique(col[~np.isnan(col)]).size < 2]
+        if same:
+            raise SimplydataError(f"{_list_words(chr(34) + c + chr(34) for c in same)} has the same value in every "
+                                  "row, so it cannot measure a hidden factor. Leave it out of the model.")
         empty_rows = int(np.isnan(x).any(axis=1).sum())
         missing = "ml" if empty_rows else "listwise"
         out = confirm(x, [rename.get(c, c) for c in used], model, route, missing)
@@ -294,14 +324,15 @@ class HiddenFactorWords:
                   f"{parts}.")
             twice = [c for c in used if sum(c in cols for cols in factors.values()) > 1]
             for c in twice:
-                print(f'Note: "{c}" is measured by more than one factor '
+                print(f'Note: "{c}" measures more than one factor '
                       f"({_list_words(f for f, cols in factors.items() if c in cols)}): a cross-loading.")
         else:
             print(f"A model with {len(factors)} hidden {'factor' if len(factors) == 1 else 'factors'} "
                   f"({_list_words(factors)}) in lavaan's syntax, fitted to {n} rows.")
         if empty_rows:
             print(f"Note: {empty_rows} {'row has' if empty_rows == 1 else 'rows have'} empty cells; lavaan uses every "
-                  'value given (full-information maximum likelihood, missing = "ml"), so no row is left out.')
+                  'value given (full-information maximum likelihood, missing = "ml"), so these rows are kept. This '
+                  "assumes the cells are empty for reasons the other columns can explain (missing at random).")
         # the test and the fit
         if df < 0.5:
             print("With 0 degrees of freedom the model matches the data exactly by its make-up, so how well it fits "
@@ -310,8 +341,8 @@ class HiddenFactorWords:
             print(_p_sentence(p, if_none="the model were exactly right",
                               this="a gap between the model and the data this big or bigger", not_shown=None,
                               shown=f"chi-square {chisq:.1f} with {int(round(df))} degrees of freedom, {_p_shown(p)}"))
-            print("A large p-value does not show the model is right; a small one is expected with 300 or more rows "
-                  "even for a useful model. Read the guides below.")
+            print("A large p-value does not show the model is right; a small one is expected with many rows (300 or "
+                  "more) even for a useful model. Read the guides below.")
             print(f"  CFI {_three(cfi)}: how much better the model matches the data than a model in which the columns "
                   "are unrelated (1 = as well as possible).")
             print(f"  TLI {_three(tli)}: the same idea, with a penalty for each extra value the model estimates.")
@@ -319,8 +350,8 @@ class HiddenFactorWords:
                   "of freedom (0 = none).")
             print(f"  SRMR {_three(srmr)}: the average gap between the correlations the model implies and those in "
                   "the data.")
-            print("  Commonly used guides: CFI 0.95 or more, RMSEA 0.06 or less, SRMR 0.08 or less (Hu & Bentler "
-                  "1999); treat them as guides, not pass marks.")
+            print("  Commonly used guides: CFI and TLI 0.95 or more, RMSEA 0.06 or less, SRMR 0.08 or less (Hu & "
+                  "Bentler 1999); treat them as guides, not pass marks.")
         # the parts of the model
         lhs, op, rhs = _texts(out["lhs"]), _texts(out["op"]), _texts(out["rhs"])
         est, se, pv, low, high = (_floats(out[k]) for k in ("est", "se", "p", "low", "high"))
@@ -346,7 +377,7 @@ class HiddenFactorWords:
             rows.append({"term": term, "row kind": kind, "estimate": float(est[i]), "standard error": float(se[i]),
                          "95 % CI low": float(low[i]), "95 % CI high": float(high[i]), "p-value": float(pv[i])})
         if loadings:
-            print("Standardised loadings (how strongly each column goes with its hidden factor, -1 to 1):")
+            print("Standardised loadings (how strongly each column goes with its hidden factor, usually -1 to 1):")
             for f, items in loadings.items():
                 print(f"  {f}: {_list_words(items)}.")
         if correlations:
@@ -409,7 +440,8 @@ class HiddenFactorWords:
         if not isinstance(formula, str) or not formula.strip():
             raise SimplydataError(f"{step}() needs formula= as text in lavaan's syntax, such as formula=\"visual =~ x1 "
                                   "+ x2 + x3; speed =~ x7 + x8 + x9; speed ~ visual\".")
-        model = "\n".join(part.strip() for part in re.split(r"[;\n]", formula) if part.strip())
+        uncommented = "\n".join(re.split(r"[#!]", line)[0] for line in formula.splitlines())
+        model = "\n".join(part.strip() for part in re.split(r"[;\n]", uncommented) if part.strip())
         if "=~" not in model:
             if re.search(r"(?<![<>=!~:])=(?![~=])", model):
                 raise SimplydataError(f"{step}(formula=) takes a model in lavaan's syntax (hidden =~ columns), not a "
@@ -419,21 +451,35 @@ class HiddenFactorWords:
                                   "measured by\"). A model of columns only is table.explain(...).")
         factors = list(dict.fromkeys(line.split("=~")[0].strip() for line in model.splitlines() if "=~" in line))
         columns = self._frame.columns
-        found = []
+        found, labels = [], set()
         for line in model.splitlines():
+            if re.search(r":=|==|<|>", line):
+                if ":=" in line:
+                    labels.update(m.group() for m in NAME.finditer(line.split(":=")[0]))
+                continue  # a defined value or a constraint: it names labels, not columns
             for m in NAME.finditer(line):
                 after = line[m.end():].lstrip()
                 if after.startswith(("*", "(")) or m.group() == "NA":
+                    labels.add(m.group())
                     continue  # a label, a fixed value or a function such as start()
                 found.append(m.group())
         used = [c for c in dict.fromkeys(found) if c in columns and c not in factors]
-        if ":=" not in model:
-            unknown = [t for t in dict.fromkeys(found) if t not in columns and t not in factors]
-            if unknown:
-                raise column_error(unknown[0], columns)
+        unknown = [t for t in dict.fromkeys(found) if t not in columns and t not in factors and t not in labels]
+        if unknown:
+            raise column_error(unknown[0], columns)
         if not used:
             raise SimplydataError(f"{step}(formula=) names no column of the table.")
         return factors, used, model, {}
+
+    def _factor_numbers(self, step, columns, example):
+        """The columns exist and hold numbers; the error shows this word's own example."""
+        self._need_columns(*columns)
+        text = [c for c in columns if not self._frame.schema[c].is_numeric()]
+        if text:
+            raise SimplydataError(f"{step}() needs columns of numbers (scores, answers on a scale), but "
+                                  f"{_list_words(chr(34) + str(c) + chr(34) for c in text)} "
+                                  f"{'does' if len(text) == 1 else 'do'} not hold numbers. Leave "
+                                  f"{'it' if len(text) == 1 else 'them'} out.\nFor example, {example}")
 
     @staticmethod
     def _modification_notes(out, name):
@@ -448,11 +494,14 @@ class HiddenFactorWords:
         for i in big:
             a, b = name(lhs[i]), name(rhs[i])
             if op[i] == "=~":
-                said.append(f"{b} may also be measured by {a} ({mi[i]:.1f})")
+                said.append(f"{a} may also be measured by {b} ({mi[i]:.1f})")
             elif op[i] == "~~":
                 said.append(f"{a} and {b} may share something the model leaves out ({mi[i]:.1f})")
+            elif op[i] == "~":
+                said.append(f"{a} may also be explained by {b} ({mi[i]:.1f})")
             else:
                 said.append(f"{a} {op[i]} {b} ({mi[i]:.1f})")
-        print(f"Note: where the model and the data disagree most (modification indices above {MODIFICATION_GUIDE}): "
+        print(f"Note: where the model and the data disagree most (modification indices above {MODIFICATION_GUIDE}, "
+              "each about how much the chi-square would drop if that were added): "
               f"{_list_words(said)}. Change the model only for a reason you can defend: a change fitted to these "
               "data makes the fit look better than it will be in new data.")
