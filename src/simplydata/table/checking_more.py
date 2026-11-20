@@ -67,7 +67,12 @@ def _default_given(step, others):
 
 def _new_rows_table(words, rows):
     keys = list(dict.fromkeys(k for r in rows for k in r))
-    data = {key: [r.get(key, math.nan) for r in rows] for key in keys}
+    data = {}
+    for key in keys:
+        given = [r[key] for r in rows if key in r]
+        # a column of True/False or text has empty cells, not NaN, where a row has no value (Polars needs one kind)
+        empty = None if all(isinstance(v, (bool, str, np.bool_)) for v in given) else math.nan
+        data[key] = [r.get(key, empty) for r in rows]
     return words._new_table(nw.from_dict(data, backend=words._frame.implementation))
 
 
@@ -239,6 +244,8 @@ def explain_gls(words, column, using, spread, order, others):
     more.append({"term": "test: with these parts against without", "statistic name": "chi-square", "statistic": lr,
                  "degrees of freedom": lr_df, "p-value": lr_p})
     words._closing(coef["p"][1:])
+    for m in more:  # text columns get an empty cell, not NaN (a Polars column holds one kind of value)
+        m.setdefault("statistic name", None)
     return words._term_table(model, coef, [], more_rows=more)
 
 
@@ -444,9 +451,12 @@ def spread_tests(model, numbers):
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
             white, white_p, _, _ = het_white(residual, X)
+        from statsmodels.regression.linear_model import OLS
+
         i0, i1 = np.triu_indices(X.shape[1])
-        products = X[:, i0] * X[:, i1]
-        white_df = float(np.linalg.matrix_rank(products) - 1)
+        # the degrees of freedom of White's test: those of the regression het_white runs (statsmodels counts the
+        # columns that are not repeats, as R lm drops aliased ones)
+        white_df = float(OLS(residual ** 2, X[:, i0] * X[:, i1]).fit().df_model)
         found["white"] = (float(white), white_df, float(white_p))
         print(f"  White's test (the columns, their squares and products, as R lmtest::bptest(m, ~ the same)): "
               f"chi-square = {_num(white)}, df = {_whole(white_df)}; "
@@ -942,8 +952,8 @@ class CheckingMoreWords:
     def find_columns_that_predict(self, column=None, using=None, method="lasso", outcome="numbers", with_seed=1):
         """Choose the columns that predict a column, with the lasso and a penalty checked on left-out rows.
 
-        table.find_columns_that_predict("Fertility", using=["Agriculture", "Examination", "Education", "Catholic",
-        "Infant.Mortality"])   (with a table of the Swiss provinces)
+        table.find_columns_that_predict("marks", using=["hours", "sleep", "breakfast", "class"])
+        (with sdata.get_example("school"))
         The lasso shrinks every effect towards 0 and sets the weakest to exactly 0, so only some
         columns are kept. How strongly it shrinks (the penalty) is chosen by cross-validation: the
         rows are split into 10 parts at random (with_seed=1 fixes the split), each part is left out

@@ -20,11 +20,11 @@ class InteractionChartWords:
     def draw_interaction_lines(self, x=None, y=None, colour=None):
         """An interaction picture: one line per colour group through the averages, with 95 % intervals.
 
-        chart.draw_interaction_lines(x="tension", y="breaks", colour="wool")
-        (with a table of the number of breaks of yarn of two wools at three tensions)
+        chart.draw_interaction_lines(x="class", y="marks", colour="breakfast")
+        (with sdata.get_example("school"))
         Parallel lines: no sign that the effect of x depends on the colour groups. Lines that
         cross or spread apart: the effect of x depends on them, an interaction (test it with
-        table.explain("breaks", using=["tension * wool"])). Each dot is a group average with its
+        table.explain("marks", using=["class * breakfast"])). Each dot is a group average with its
         95 % confidence interval (t distribution); the groups are moved a little apart so they
         do not hide each other. Other names: interaction plot (R interaction.plot), pointplot
         (seaborn).

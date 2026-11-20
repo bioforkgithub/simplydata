@@ -145,9 +145,13 @@ MIN_LRE = 9.0  # digits that must agree with a NIST certified value (every set u
 def check_case(case) -> list[dict]:
     """One row per number compared: simplydata against each reference."""
     rows = []
-    needs_r_data = study.DATASETS[case.dataset].file == "" and case.dataset == "aSAH (pROC)"
-    if needs_r_data and not r_ready(("pROC",)):
-        return [_skipped(case, "R with pROC (the data come from pROC)")]
+    r_data = {"aSAH (pROC)": ("pROC",), **getattr(study, "R_DATA", {})}  # datasets read from an R package
+    if case.dataset in r_data and not r_ready(r_data[case.dataset]):
+        packages = ", ".join(r_data[case.dataset])
+        return [_skipped(case, f"R with {packages} (the data come from {packages})")]
+    ours_r = getattr(study, "OURS_NEEDS_R", {}).get((case.word, case.title))  # the simplydata side calls R (S3a-3 on)
+    if ours_r and not r_ready(ours_r):
+        return [_skipped(case, "R with " + ", ".join(ours_r) + " (simplydata calls R for this)")]
     data = None if case.dataset in ("made-up", "standard normal table") else study.load(case.dataset)
     try:
         ours = run(case.ours, data)
@@ -160,10 +164,13 @@ def check_case(case) -> list[dict]:
             rows.append(_missing(case, name, source))
             continue
         got = ours[name]
-        if tolerance == "lre":
+        if isinstance(tolerance, str) and tolerance.startswith("lre"):
+            # "lre": MIN_LRE digits; "lre:6": 6 digits (NIST StRD nonlinear problems, judged at 6 digits as in
+            # McCullough (1999), "Assessing the reliability of statistical software", The American Statistician 53)
+            least = float(tolerance.split(":")[1]) if ":" in tolerance else MIN_LRE
             digits = lre(got, value)
-            rows.append(_row(case, name, source, got, value, f"at least {MIN_LRE:.0f} digits (LRE {digits:.1f})",
-                             digits >= MIN_LRE))
+            rows.append(_row(case, name, source, got, value, f"at least {least:.0f} digits (LRE {digits:.1f})",
+                             digits >= least))
         else:
             why = "" if source == "exact" else " (printed rounding)"
             rows.append(_row(case, name, source, got, value, f"within {tolerance:g}{why}",
@@ -217,14 +224,20 @@ def _skipped(case, what: str) -> dict:
                 skipped=f"needs {what}, which is not installed here", note="")
 
 
+def _entries() -> list:
+    """The words' entries, then the entries of single options (S3a-2 on: UNDERNEATH_OPTIONS)."""
+    from simplydata._underneath import UNDERNEATH, UNDERNEATH_OPTIONS
+
+    return list(UNDERNEATH.values()) + list(UNDERNEATH_OPTIONS)
+
+
 def underneath_rows() -> list[dict]:
-    from simplydata._underneath import UNDERNEATH
     from simplydata._underneath.check import check_entry
 
     rows = []
-    for entry in UNDERNEATH.values():
+    for entry in _entries():
         if entry.uses_r and not r_ready(entry.r_packages):
-            rows.append(dict(word=entry.word, library=" + ".join(entry.code), engine="-", compare=entry.compare,
+            rows.append(dict(word=entry.label, library=" + ".join(entry.code), engine="-", compare=entry.compare,
                              tolerance=entry.tolerance, passed=False,
                              skipped="needs R with " + ", ".join(entry.r_packages), differences=[]))
             continue
@@ -235,7 +248,7 @@ def underneath_rows() -> list[dict]:
             warnings.simplefilter("ignore")
             outcomes = check_entry(entry)
         for o in outcomes:
-            rows.append(dict(word=o.word, library=o.library, engine=o.engine, compare=o.compare,
+            rows.append(dict(word=entry.label, library=o.library, engine=o.engine, compare=o.compare,
                              tolerance=o.tolerance, passed=o.passed, skipped=o.skipped, differences=o.differences))
     return rows
 
@@ -325,9 +338,9 @@ def report(case_rows: list[dict], box_rows: list[dict], setup: dict, when: str) 
     out += ["", "## Choices simplydata makes", "",
             "Where simplydata's default differs from the package underneath, it is listed here, so a difference "
             "is never hidden. The manual shows each one as a numbered mark in the code.", ""]
-    for entry in UNDERNEATH.values():
+    for entry in _entries():
         for i, choice in enumerate(entry.choices, start=1):
-            out.append(f"- `{entry.word}` ({i}): {_md(choice)}")
+            out.append(f"- `{entry.label}` ({i}): {_md(choice)}")
     out += ["", "## Datasets", "", "| dataset | what | source | licence |", "|---|---|---|---|"]
     used = list(dict.fromkeys(c.dataset for c in study.CASES))
     for name in used:

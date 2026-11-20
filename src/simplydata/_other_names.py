@@ -226,6 +226,19 @@ _TABLE = [
      "accuracy forecast_accuracy mase backtest"),
     ('table.find_change_points_in("nitrate", sorted_by="date")',
      "cpt.mean cpt.meanvar changepoint change_points changepoints pelt breakpoints detect_changes"),
+    # S3a-3: checking and comparing
+    ('table.find_columns_that_predict("marks", using=["hours", "sleep", "breakfast"])',
+     "lasso glmnet cv.glmnet cv_glmnet elastic_net elasticnet LassoCV ElasticNetCV"),
+    ('table.find_group_levels_of("marks", using=["hours"], grouped_by="school")', "ranef blup blups random_effects"),
+    ('table.explain("marks", using=["hours"], spread_changes_with="school")', "gls varIdent varPower corAR1 corCAR1 GLSAR"),
+    ('table.compare_models("marks", using=[["hours"], ["hours", "breakfast"]])', "aictab model.sel AICc aicc akaike_weights"),
+    ('table.compare_models("marks", using=["hours"], check_on_left_out_rows=True)',
+     "cv.glm cross_validation cross_validate k_fold kfold cross_val_score"),
+    ('table.check_model_of("marks", using=["hours", "breakfast"])',
+     "bptest het_breuschpagan het_white breusch_pagan hosmer_lemeshow hoslem.test performance_hosmer brier"),
+    ('table.find_model_averages_of("marks", for_each_group_in="class", using=["class"], comparing="each with the first")',
+     "contrast trt.vs.ctrl joint_tests simple_effects dunnett helmert"),
+    ('table.compare_averages_of(["marks", "hours"], for_each_group_in="class")', "manova MANOVA summary.manova"),
 ]
 
 # chart.<name>
@@ -288,6 +301,8 @@ _CHART = [
     ('chart.spectrum("signal", sorted_by="time")', "psd magnitude_spectrum plot_spectrum periodogram"),
     ('chart.spectrum_over_time("signal", sorted_by="time")', "spectrogram specgram stft"),
     ("chart.peak_dots(is_at_least=1)", "mark_peaks plot_peaks"),
+    # S3a-3
+    ('chart.draw_interaction_lines(x="class", y="marks", colour="breakfast")', "interaction.plot interaction_plot pointplot"),
 ]
 
 # nums.<name> (numbers). Older ones (mean, sum, min ...) are in numbers/_base.py HINTS.

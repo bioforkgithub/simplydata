@@ -5,6 +5,19 @@ working for one release and prints a one-line note with its new name.
 
 ## Unreleased
 
+### Checking and comparing models (S3a-3)
+
+- New: `table.find_columns_that_predict` chooses the columns that predict a column with the lasso or the elastic net, with the penalty checked on left-out rows (R glmnet, the "one standard error" penalty). It prints no p-values and says why.
+- New: `table.find_group_levels_of` shows each group's own starting level (and own slope) of a mixed model with a 95 % interval (R lme4 `ranef(condVar = TRUE)`), with the warning, printed and in a "warning" column, that the levels are not data for later tests.
+- New: `chart.draw_interaction_lines` draws one line per group through the averages, with 95 % t intervals (an interaction plot).
+- `explain(spread_changes_with=, neighbours_alike_in_order_of=)`: generalised least squares, a spread that changes by group or with a number column, and neighbouring rows that are alike (AR(1), or continuous-time AR(1) for uneven gaps), R nlme `gls()`. `neighbors_alike_in_order_of=` works too.
+- `compare_models(using=[[...], [...], ...])` compares several models by AICc (or AIC with 40 or more rows per value estimated) with Akaike weights; `check_on_left_out_rows=True` checks each model on rows it did not see (10 parts, R boot `cv.glm`). A flat `using=` without `against=` now shows the list-of-lists form in its message.
+- `check_model_of` prints the Breusch-Pagan and White tests of equal spread as notes under the scale-location picture, and for a yes/no model adds a calibration picture with the Hosmer-Lemeshow test (R performance) and the Brier score.
+- `find_model_averages_of(comparing=)`: each with the first, each with the next, each with the average of the ones before (Helmert), each with the average, trend, or your own weights, with emmeans' adjustment printed; `in_order=` orders the groups. `within_each_group_in=` gives simple effects after the interaction test; `over_range_of=` gives the model average across a number column, ready to draw.
+- `compare_averages_of(grouped_by=)`: a nested ANOVA (R `aov(y ~ group + Error(unit))`); `compare_averages_of([...], for_each_group_in=)`: a MANOVA with Pillai's trace (statsmodels).
+- Lesson 21 gains a three-model comparison line, an `over_range_of=` line and a note; new lesson "When one effect depends on another" (picture first, then simple effects and contrasts).
+- Reliability study: 14 new cases on real data (swiss, iris, warpbreaks, Lake Huron, the rat liver glycogen of Sokal & Rohlf, and Dialyzer, sleepstudy and birthwt read from R packages); same-underneath entries for the three new words and nine new options.
+
 ## 0.2.0 (2026-11-20)
 
 More statistics (tests and models), signals and time series, the 30-day course, the talking syntax, the same-underneath boxes and the public reliability study. Every printed statistical result is checked against R.

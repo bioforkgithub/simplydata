@@ -367,6 +367,10 @@ UNDERNEATH = {
     "nums.save": "pandas (to_csv, to_excel ...)",
     "nums.keep_random_numbers": "NumPy (random.default_rng)",
     "nums.fill_empty_numbers": "NumPy (interp for the line between neighbours)",
+    # S3a-3: checking and comparing (each also has a tested entry in simplydata._underneath)
+    "table.find_columns_that_predict": "R glmnet (cv.glmnet, coef at lambda.1se)",
+    "table.find_group_levels_of": "R lme4 (ranef with condVar, coef)",
+    "draw_interaction_lines": "pandas (averages), SciPy (t intervals), drawn with seaborn and matplotlib",
 }
 
 # ---------------------------------------------------------------- hand-written text

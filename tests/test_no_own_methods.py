@@ -48,6 +48,8 @@ ALLOWED = {
     "table/models.py::ModelWords._rank_problem": "names the columns that repeat others, for the error message",
     "table/models.py::ModelWords._whole_column_tests": "Wald chi-square b' V^-1 b from the fitted covariance",
     "table/models.py::ModelWords._model_notes": "variance inflation factors from the correlation matrix",
+    # S3a-3
+    "table/checking_more.py::manova": "matrix_rank: refuses columns that repeat others before statsmodels MANOVA",
     # our own choices of preprocessing, written in R code (no building block to find; listed so they stay visible)
     "_forecast.py::r_change_points": "find_change_points divides the readings by mad(diff(x)) / sqrt(2) before "
                                      "changepoint::cpt.mean, which assumes noise with standard deviation 1. "
