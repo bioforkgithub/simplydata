@@ -185,9 +185,7 @@ def _to_r(ro, value):
         return ro.StrVector([value])
     if isinstance(value, (int, float, np.integer, np.floating)):
         value = [value]
-    # A copy, never a view: np.asarray on an rpy2 vector points straight into R's memory without keeping
-    # the R object alive, so after R collects it the array would silently fill with other data.
-    array = np.array(value, copy=True)
+    array = np.asarray(value)
     if array.dtype.kind in "iu" and array.size and np.abs(array).max() > BIGGEST_EXACT:
         raise SimplydataError("A whole number is too big to pass to R exactly (above 2**53).")
     if array.dtype == bool:
