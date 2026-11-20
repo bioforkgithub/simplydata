@@ -271,7 +271,7 @@ can write it up in a report or a paper.
 
 \section*{How this manual is built}
 \begin{description}[style=nextline,leftmargin=1.2em]
-  \item[{\hyperref[part:lessons]{Part II: Lessons}}] Twenty-nine short lessons that teach the whole
+  \item[{\hyperref[part:lessons]{Part II: Lessons}}] Thirty short lessons that teach the whole
     of simplydata in a day. Each lesson shows code you can run, says what every line does, shows
     the real chart and output it makes, and ends with tasks to try yourself.
   \item[{\hyperref[part:dictionary]{Part III: Dictionary of words}}] Every word, with what it does,
@@ -590,6 +590,34 @@ admitted & date of admission\\
 discharged & date the patient left hospital, alive or dead\\
 died & yes (died in hospital) or no\\
 first\_esbl & date of the first culture with ESBL-producing bacteria during the stay (empty if none)\\
+\bottomrule\end{tabularx}\end{center}
+\section*{bcg}
+REAL DATA: 13 trials of the BCG vaccine against tuberculosis, one row per trial (Colditz et al. 1994, JAMA 271:698-702: the counts published in the paper, facts; the same numbers as R metadat's dat.bcg). \code{sdata.\allowbreak{}get\_\allowbreak{}example(\textquotedbl{}bcg\textquotedbl{})}
+\begin{center}\small
+\begin{tabularx}{\textwidth}{@{}>{\ttfamily}l>{\raggedright\arraybackslash}X@{}}
+\toprule \textrm{\textbf{Column}} & \textbf{What it holds}\\ \midrule
+trial & the first author and the year of the trial\\
+year & the year the trial was published\\
+tb\_vaccinated & vaccinated people who got tuberculosis\\
+vaccinated & people vaccinated\\
+tb\_unvaccinated & unvaccinated people who got tuberculosis\\
+unvaccinated & people not vaccinated\\
+latitude & how far the trial's place is from the equator, in degrees\\
+allocation & how people were put into the groups: random, alternate or systematic\\
+\bottomrule\end{tabularx}\end{center}
+\section*{passive\_smoking}
+REAL DATA: 37 studies of lung cancer in non-smoking women whose husbands smoked, one row per study (Hackshaw, Law \& Wald 1997, BMJ 315:980-988: the odds ratios and intervals published in the paper, facts; the same numbers as R metadat's dat.hackshaw1998). \code{sdata.\allowbreak{}get\_\allowbreak{}example(\textquotedbl{}passive\_\allowbreak{}smoking\textquotedbl{})}
+\begin{center}\small
+\begin{tabularx}{\textwidth}{@{}>{\ttfamily}l>{\raggedright\arraybackslash}X@{}}
+\toprule \textrm{\textbf{Column}} & \textbf{What it holds}\\ \midrule
+study & the first author and the year of the study\\
+year & the year the study was published\\
+country & where the study was done\\
+design & cohort or case-control\\
+cases & the number of women with lung cancer in the study\\
+odds ratio & the odds of lung cancer with a smoking husband against a non-smoking husband\\
+odds ratio 95 \% CI low & the lower end of its 95 \% confidence interval\\
+odds ratio 95 \% CI high & the upper end of its 95 \% confidence interval\\
 \bottomrule\end{tabularx}\end{center}
 
 \part{Lessons}\label{part:lessons}
@@ -4296,6 +4324,97 @@ Worked solutions: page~\pageref{solutions:29}, or type \code{sdata.\allowbreak{}
 \end{tryit}
 \par\noindent{\small\sffamily\textbf{Words in this lesson:} \hyperref[word:table.add-time-and-event-columns]{\code{table.\allowbreak{}add\_\allowbreak{}time\_\allowbreak{}and\_\allowbreak{}event\_\allowbreak{}columns()}}, \hyperref[word:table.rate-of]{\code{table.\allowbreak{}rate\_\allowbreak{}of()}}, \hyperref[word:table.find-survival-over-time]{\code{table.\allowbreak{}find\_\allowbreak{}survival\_\allowbreak{}over\_\allowbreak{}time()}}, \hyperref[word:table.explain-survival]{\code{table.\allowbreak{}explain\_\allowbreak{}survival()}}, \hyperref[word:table.find-risk-over-time]{\code{table.\allowbreak{}find\_\allowbreak{}risk\_\allowbreak{}over\_\allowbreak{}time()}}, \hyperref[word:draw-risk-curves]{\code{chart.\allowbreak{}draw\_\allowbreak{}risk\_\allowbreak{}curves()}}, \hyperref[word:table.compare-survival]{\code{table.\allowbreak{}compare\_\allowbreak{}survival()}}.\par}
 
+\chapter{Combining studies (meta-analysis)}\label{lesson:30}
+\begin{learnbox}
+\begin{itemize}
+  \item how to combine the results of several studies into one (a meta-analysis), and draw them as a forest plot
+  \item how to read how much the studies differ: the prediction interval, tau and I-squared
+  \item more: subgroups, and the funnel plot for small-study effects
+\end{itemize}
+\end{learnbox}
+\begin{needsr}Every example of this lesson combines studies with R metafor: \code{combine\_\allowbreak{}studies()} run R's own code, the same code R users run. Install it once: pip install \code{\textquotedbl{}simplydata[r]\textquotedbl{}}, then R from https://cran.r-project.org, then in R: \code{install.\allowbreak{}packages(c(\textquotedbl{}metafor\textquotedbl{}))}. Without R these words print a message that says what to install.\end{needsr}
+\section*{Example 1}
+Picture first. 13 trials tested the BCG vaccine against tuberculosis (real data, Colditz et al. 1994). \code{combine\_\allowbreak{}studies} puts their results together, and \code{forest\_\allowbreak{}plot} draws each trial and the combined effect.
+\begin{lstlisting}[style=py]
+import simplydata as sdata
+table = sdata.table(sdata.get_example("bcg"))
+result = table.combine_studies(names="trial", events=["tb_vaccinated", "tb_unvaccinated"], out_of=["vaccinated", "unvaccinated"])
+chart = result.start_chart()
+chart.forest_plot(x="estimate", y="study", size="weight %")
+chart.save("lesson30_forest.png")
+\end{lstlisting}
+\whateachline
+\begin{lineexplain}
+  \item[1] Load simplydata.
+  \item[2] One row per trial: the vaccinated and unvaccinated people, and how many of each got tuberculosis.
+  \item[3] \code{events=} and \code{out\_\allowbreak{}of=} each name two columns: the first group (vaccinated), then the group it is compared with. Read the first lines: the combined risk ratio is 0.49 (95 \% CI 0.33 to 0.73): on average the vaccine about halves the risk.
+  \item[4] A chart of the result table.
+  \item[5] One square per trial, as big as its weight, with its 95 \% interval; the diamond is the combined effect. The line at 1 is no effect.
+  \item[6] Save the picture.
+\end{lineexplain}
+\printedoutput{output/lesson30_example1.txt}
+\begin{center}\begin{minipage}{\linewidth}\centering
+\includegraphics[width=0.72\textwidth,height=0.36\textheight,keepaspectratio]{figures/lesson30_example1_lesson30_forest.pdf}
+\captionof{figure}{Lesson 30, example 1: \code{lesson30\_\allowbreak{}forest.\allowbreak{}png}.}
+\end{minipage}\end{center}
+\section*{Example 2}
+How much do the studies differ? The combined effect is an average; the trials themselves found anything from a big benefit to none. Run the same call and read the lines after the p-value.
+\begin{lstlisting}[style=py]
+import simplydata as sdata
+table = sdata.table(sdata.get_example("bcg"))
+table.combine_studies(names="trial", events=["tb_vaccinated", "tb_unvaccinated"], out_of=["vaccinated", "unvaccinated"])
+\end{lstlisting}
+\whateachline
+\begin{lineexplain}
+  \item[1] Load simplydata.
+  \item[2] The same trials.
+  \item[3] The prediction interval, 0.14 to 1.76, is where the true risk ratio of a new setting like these would lie: from a big benefit to none at all. Tau says the true risk ratios differ from the average by a factor of about 1.75 up or down. I-squared, 92 \%, is the share of the spread that is beyond chance, not how big it is. Say in words why the prediction interval is wider than the confidence interval.
+\end{lineexplain}
+\printedoutput{output/lesson30_example2.txt}
+\section*{Example 3}
+More: do groups of studies differ, and are small studies different? \code{for\_\allowbreak{}each\_\allowbreak{}group\_\allowbreak{}in=} gives each group its own combined effect, with the test of their difference first; the funnel plot shows each study's effect against its standard error.
+\begin{lstlisting}[style=py]
+import simplydata as sdata
+table = sdata.table(sdata.get_example("bcg"))
+result = table.combine_studies(names="trial", events=["tb_vaccinated", "tb_unvaccinated"], out_of=["vaccinated", "unvaccinated"], for_each_group_in="allocation")
+chart = result.start_chart()
+chart.draw_funnel_plot(x="estimate", y="standard error")
+chart.save("lesson30_funnel.png")
+\end{lstlisting}
+\whateachline
+\begin{lineexplain}
+  \item[1] Load simplydata.
+  \item[2] The same trials.
+  \item[3] One change: \code{for\_\allowbreak{}each\_\allowbreak{}group\_\allowbreak{}in=\textquotedbl{}allocation\textquotedbl{}} (how people were put into the groups). The test of the difference comes first (p = 0.39): the data cannot tell the three kinds of trial apart.
+  \item[4] A chart of the result.
+  \item[5] Each dot is a trial, small trials at the bottom. Dots missing from one lower corner would suggest small-study effects, which are not proof of publication bias.
+  \item[6] Save the picture.
+\end{lineexplain}
+\printedoutput{output/lesson30_example3.txt}
+\begin{center}\begin{minipage}{\linewidth}\centering
+\includegraphics[width=0.72\textwidth,height=0.36\textheight,keepaspectratio]{figures/lesson30_example3_lesson30_funnel.pdf}
+\captionof{figure}{Lesson 30, example 3: \code{lesson30\_\allowbreak{}funnel.\allowbreak{}png}.}
+\end{minipage}\end{center}
+\begin{goodtoknow}
+\begin{itemize}
+  \item Random or common effect is chosen before looking at the data, never by the Q test. simplydata uses random effects (REML) with Hartung-Knapp intervals; \code{method=} and \code{interval\_\allowbreak{}by=} change them.
+  \item The prediction interval is printed from 3 studies: it shows what a new setting could find, which the confidence interval of the average does not.
+  \item Compare subgroups with the test of their difference, not by which subgroup's interval leaves out 1.
+  \item Small-study effects (Peters' or Egger's test, trim and fill) are judged only from 10 studies.
+  \item Other ways in: \code{estimates=} with their intervals (or \code{standard\_\allowbreak{}errors=}), \code{averages=} with \code{standard\_\allowbreak{}deviations=} and \code{counts=}, \code{events=} with \code{time=}, \code{correlations=}.
+\end{itemize}
+\end{goodtoknow}
+\begin{tryit}
+\begin{enumerate}
+  \item 37 studies of passive smoking and lung cancer give an odds ratio with its 95 \% interval (real data, Hackshaw et al. 1997). Fill in the blank: table = \code{sdata.\allowbreak{}table(sdata.\allowbreak{}get\_\allowbreak{}example(\textquotedbl{}passive\_\allowbreak{}smoking\textquotedbl{}))}, then \code{table.\allowbreak{}combine\_\allowbreak{}studies(names=\textquotedbl{}study\textquotedbl{},\allowbreak{} estimates=\_\allowbreak{}\_\allowbreak{}\_\allowbreak{}\_\allowbreak{})}. What is the combined odds ratio?
+  \item In the BCG trials, change only \code{show=}: combine odds ratios (\code{show=\textquotedbl{}odds ratios\textquotedbl{}}) instead of risk ratios. Is the answer close?
+  \item Say in words why the prediction interval of the BCG trials is wider than the confidence interval.
+  \item Try to remember without looking back: which number tells you where the true effect of a new setting could lie? Find it in the printout of the passive smoking studies.
+\end{enumerate}
+Worked solutions: page~\pageref{solutions:30}, or type \code{sdata.\allowbreak{}show\_\allowbreak{}lesson(30,\allowbreak{} solutions=True)}.
+\end{tryit}
+\par\noindent{\small\sffamily\textbf{Words in this lesson:} \hyperref[word:table.combine-studies]{\code{table.\allowbreak{}combine\_\allowbreak{}studies()}}, \hyperref[word:forest-plot]{\code{chart.\allowbreak{}forest\_\allowbreak{}plot()}}, \hyperref[word:draw-funnel-plot]{\code{chart.\allowbreak{}draw\_\allowbreak{}funnel\_\allowbreak{}plot()}}.\par}
+
 \otherchapters
 
 \part{Dictionary of words}\label{part:dictionary}
@@ -4335,10 +4454,10 @@ chart.draw_dots(x="hours", y="marks")
 chart.save("my_chart.png")
 \end{lstlisting}
 \wordentry{sdata.get\_example()}{word:sdata.get-example}
-A small made-up table to practise with. \code{sdata.\allowbreak{}get\_\allowbreak{}example(\textquotedbl{}marks\textquotedbl{})}
+A small table to practise with. \code{sdata.\allowbreak{}get\_\allowbreak{}example(\textquotedbl{}marks\textquotedbl{})}
 
 \codeline{sdata.get\_example() with no name lists every table and its columns.}\\
-The tables are: marks, weather, fruit, growth, sensor, visitors, river, shop, school, meadow, trial, clinic, island, toxicity, culture, admissions. \code{\textquotedbl{}shop\textquotedbl{}} has empty cells and a column of dates to practise with; \code{\textquotedbl{}school\textquotedbl{}} has empty cells too.
+The tables are: marks, weather, fruit, growth, sensor, visitors, river, shop, school, meadow, trial, clinic, island, toxicity, culture, admissions, and, for combining studies, bcg and \code{passive\_\allowbreak{}smoking} (real published studies). \code{\textquotedbl{}shop\textquotedbl{}} has empty cells and a column of dates to practise with; \code{\textquotedbl{}school\textquotedbl{}} has empty cells too.
 
 \wordfield{Options}{}\par\nopagebreak
 \begin{optiontable}
@@ -5315,32 +5434,6 @@ marks = sdata.get_example("marks")
 chart = sdata.chart(marks)
 chart.draw_cumulative_share(x="marks", colour="class")
 chart.save("draw_cumulative_share.png")
-\end{lstlisting}
-\wordentry{chart.forest\_plot()}{word:forest-plot}
-Many results with their intervals, one line each (a forest plot).\\
-\codeline{chart.forest\_plot(x=\textquotedbl{}difference\textquotedbl{}, y=\textquotedbl{}group 1\textquotedbl{})}\enspace (on a result table, such as \code{compare\_\allowbreak{}each\_\allowbreak{}pair\_\allowbreak{}of}'s)
-
-Draws each row's x as a dot and its interval as a line, from a result table with the columns \code{\textquotedbl{}\textless{}x\textgreater{} 95 \% CI low\textquotedbl{}} and \code{\textquotedbl{}\textless{}x\textgreater{} 95 \% CI high\textquotedbl{}} (any level). y names the rows. Ratios (x or every row label says \code{\textquotedbl{}ratio\textquotedbl{}}) are drawn on a log scale with a dashed line at 1 (no effect), other results on a plain scale with the line at 0; \code{log\_\allowbreak{}scale=True} or False and \code{line\_\allowbreak{}at=} choose. When the table holds intervals of more than one level (such as 95 \% and 90 \%), the first is drawn and a note names the rows left out. The first row is at the top.
-
-\wordfield{Options}{}\par\nopagebreak
-\begin{optiontable}
-\code{x=} & normally \code{\textquotedbl{}estimate\textquotedbl{}}\\
-\code{y=} & \\
-\code{line\_\allowbreak{}at=} & \\
-\code{log\_\allowbreak{}scale=} & \\
-\code{colour=} & \\
-\code{thickness=} & \\
-\end{optiontable}
-
-\wordfield{Underneath}{matplotlib (errorbar), from the interval columns of a result table}
-\wordfield{Example you can run}{}\par\nopagebreak
-\begin{lstlisting}[style=py]
-import simplydata as sdata
-table = sdata.table(sdata.get_example("marks"))
-pairs = table.compare_each_pair_of("marks", for_each_group_in="class", test="tukey")
-chart = pairs.start_chart()
-chart.forest_plot(x="difference", y="group 1")
-chart.save("forest_plot.png")
 \end{lstlisting}
 \wordentry{sdata.draw\_all\_pairs()}{word:sdata.draw-all-pairs}
 Every number column against every other. \code{sdata.\allowbreak{}draw\_\allowbreak{}all\_\allowbreak{}pairs(sdata.\allowbreak{}get\_\allowbreak{}example(\textquotedbl{}marks\textquotedbl{}),\allowbreak{} colour=\textquotedbl{}class\textquotedbl{})}
@@ -11087,6 +11180,297 @@ ax.step(np.r_[0, t, end], np.r_[0, r, r[-1]], where="post")
 \undertext{simplydata also draws one curve per group with \code{colour=}, the 95 \% band and a legend.}
 \undertext{\textit{Checked:} a test runs both and compares the lines (the chart's data, not its pixels).}
 \end{underneathbox}
+\unsection{Combining studies}{group:Combining-studies}
+\wordentry{table.combine\_studies()}{word:table.combine-studies}
+Combine the results of several studies into one (a meta-analysis), with how much they differ.
+
+\codeline{table.combine\_studies(names=\textquotedbl{}trial\textquotedbl{}, events=[\textquotedbl{}tb\_vaccinated\textquotedbl{}, \textquotedbl{}tb\_unvaccinated\textquotedbl{}],}\\
+\code{out\_\allowbreak{}of=[\textquotedbl{}vaccinated\textquotedbl{},\allowbreak{} \textquotedbl{}unvaccinated\textquotedbl{}]})   (with \code{sdata.\allowbreak{}get\_\allowbreak{}example(\textquotedbl{}bcg\textquotedbl{})}) One row per study. Give one way in, each as columns of the table: counts: \code{events=[first,\allowbreak{} second]} and \code{out\_\allowbreak{}of=[first,\allowbreak{} second]}, the events and the people in the two groups of each study; \code{show=\textquotedbl{}risk ratios\textquotedbl{}} (default), \code{\textquotedbl{}odds ratios\textquotedbl{}} or \code{\textquotedbl{}risk differences\textquotedbl{}}. estimates: \code{estimates=\textquotedbl{}odds ratio\textquotedbl{}} with the columns \code{\textquotedbl{}odds ratio 95 \% CI low\textquotedbl{}} and \code{\textquotedbl{}.\allowbreak{}.\allowbreak{}.\allowbreak{} high\textquotedbl{}} next to it (any level), or with \code{standard\_\allowbreak{}errors=\textquotedbl{}se\textquotedbl{}}. Ratios (a name with \code{\textquotedbl{}ratio\textquotedbl{}}, or \code{estimates\_\allowbreak{}are\_\allowbreak{}ratios=True}) are combined on the log scale and shown back as ratios; with \code{standard\_\allowbreak{}errors=}, give the standard errors of the log ratios, as a model reports them. averages: \code{averages=[first,\allowbreak{} second]}, \code{standard\_\allowbreak{}deviations=[.\allowbreak{}.\allowbreak{}.\allowbreak{}]}, \code{counts=[.\allowbreak{}.\allowbreak{}.\allowbreak{}]}; \code{show=} \code{\textquotedbl{}standardised differences\textquotedbl{}} (Hedges' g, default), \code{\textquotedbl{}differences in averages\textquotedbl{}} (the same units in every study) or \code{\textquotedbl{}ratios of averages\textquotedbl{}} (the log response ratio of ecology). \code{names=\textquotedbl{}trial\textquotedbl{}} names the rows. Prints the combined effect with its 95 \% interval and p-value, the prediction interval (where the true effect of a new setting like these would lie), tau (how much the true effects differ, as a factor for ratios) and I-squared (the share of the spread that is beyond chance), and from 10 studies the notes on small-study effects (Peters' test for risk and odds ratios from counts, Egger's test for the rest, and trim and fill as a what-if). Gives back one row per study (estimate, interval, standard error, weight \%) and the combined rows (\code{\textquotedbl{}row kind\textquotedbl{}}), ready for \code{forest\_\allowbreak{}plot} and \code{draw\_\allowbreak{}funnel\_\allowbreak{}plot}. More: \code{events=} with \code{time=} (rate ratios); \code{correlations=\textquotedbl{}r\textquotedbl{}} with \code{counts=\textquotedbl{}n\textquotedbl{}}; \code{method=\textquotedbl{}REML\textquotedbl{}} (default), \code{\textquotedbl{}DerSimonian-Laird\textquotedbl{}}, \code{\textquotedbl{}Paule-Mandel\textquotedbl{}}, \code{\textquotedbl{}common effect\textquotedbl{}}, \code{\textquotedbl{}Mantel-Haenszel\textquotedbl{}}, \code{\textquotedbl{}Peto\textquotedbl{}}; \code{interval\_\allowbreak{}by=\textquotedbl{}Hartung-Knapp\textquotedbl{}} (default for random effects; it changes the p-value too) or \code{\textquotedbl{}normal\textquotedbl{}}; \code{for\_\allowbreak{}each\_\allowbreak{}group\_\allowbreak{}in=\textquotedbl{}region\textquotedbl{}} (subgroups, each with its own spread, and the test of their difference first); \code{using=[\textquotedbl{}latitude\textquotedbl{}]} (meta-regression). Needs R metafor (pip install \code{\textquotedbl{}simplydata[r]\textquotedbl{}}). Other names: meta-analysis, rma, metagen, metabin, hksj, egger, trimfill, i2.
+
+\wordfield{Options}{}\par\nopagebreak
+\begin{optiontable}
+\code{names=} & \\
+\code{events=} & \\
+\code{out\_\allowbreak{}of=} & \\
+\code{estimates=} & \\
+\code{standard\_\allowbreak{}errors=} & \\
+\code{averages=} & \\
+\code{standard\_\allowbreak{}deviations=} & \\
+\code{counts=} & \\
+\code{time=} & \\
+\code{correlations=} & \\
+\code{show=} & \\
+\code{method=} & normally \code{\textquotedbl{}REML\textquotedbl{}}\\
+\code{interval\_\allowbreak{}by=} & \\
+\code{for\_\allowbreak{}each\_\allowbreak{}group\_\allowbreak{}in=} & \\
+\code{using=} & \\
+\code{estimates\_\allowbreak{}are\_\allowbreak{}ratios=} & \\
+\end{optiontable}
+
+\wordfield{Underneath}{R \code{metafor::escalc()}, \code{metafor::rma()}}
+\wordfield{Example you can run}{}\par\nopagebreak
+\begin{lstlisting}[style=py]
+import simplydata as sdata
+table = sdata.table(sdata.get_example("bcg"))
+table.combine_studies(names="trial", events=["tb_vaccinated", "tb_unvaccinated"], out_of=["vaccinated", "unvaccinated"])
+\end{lstlisting}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{R}\libbadge{Python}}
+\underlib{R (simplydata runs this in R for you, through rpy2)}
+\begin{lstlisting}[style=underr]
+# combine_studies(names="trial", events=[...], out_of=[...])
+e <- metafor::escalc(measure = "RR", ai = e1, n1i = n1, ci = e2,
+                     n2i = n2, drop00 = TRUE)                    # (1)
+f <- metafor::rma(yi, vi, data = e, method = "REML",          # (2)
+                  test = "adhoc")                              # (3)
+p <- predict(f, transf = exp)                                  # (4)
+list(b = p$pred, low = p$ci.lb, high = p$ci.ub, p = f$pval,
+     tau2 = f$tau2, I2 = f$I2, pi_low = p$pi.lb, pi_high = p$pi.ub)
+\end{lstlisting}
+\underlib{Python (with what R gives back)}
+\begin{lstlisting}[style=under]
+{"estimate": b, "estimate 95 % CI low": low, "estimate 95 % CI high": high, "p-value": p}
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) risk ratios for counts, and a study with no events in either group left out (drop00 = TRUE), as Cochrane reviews do; \code{show=} chooses odds ratios or risk differences.}
+\undertext{(2) random effects with REML, metafor's default and the best of the usual estimators of the between-study spread (Veroniki et al. 2016).}
+\undertext{(3) Hartung-Knapp intervals and p-values with the ad hoc rule: never narrower than the normal (z) interval; \code{interval\_\allowbreak{}by=\textquotedbl{}normal\textquotedbl{}} gives the classic interval.}
+\undertext{(4) the result shown back as a ratio, with the prediction interval (t with k - 1 degrees of freedom under Hartung-Knapp).}
+\undertext{\textit{In Python only:} statsmodels has fixed and random effects (DerSimonian-Laird, Paule-Mandel) but no REML, no prediction interval, no Egger or trim-and-fill, no meta-regression and no Peto, so the numbers come from R metafor.}
+\undertext{simplydata also says the combined effect, the prediction interval, tau (as a factor for ratios) and I-squared in words, gives each p-value as a count of sets of studies, and adds the notes on small-study effects from 10 studies.}
+\undertext{\textit{Checked:} a test runs both and compares the numbers of the result table (on a pandas and on a Polars table).}
+\end{underneathbox}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{R}\libbadge{Python}}
+\undertext{\textbf{With \code{estimates=}}: the same job with this option.}
+\underlib{R (simplydata runs this in R for you, through rpy2)}
+\begin{lstlisting}[style=underr]
+# combine_studies(names="study", estimates="odds ratio")
+e <- metafor::conv.wald(out = est, ci.lb = lo, ci.ub = hi,
+                        level = 95, transf = log)                 # (1)
+f <- metafor::rma(yi, vi, data = e, method = "REML", test = "adhoc")
+p <- predict(f, transf = exp)                                      # (2)
+list(b = p$pred, low = p$ci.lb, high = p$ci.ub, p = f$pval)
+\end{lstlisting}
+\underlib{Python (with what R gives back)}
+\begin{lstlisting}[style=under]
+{"estimate": b, "estimate 95 % CI low": low, "estimate 95 % CI high": high, "p-value": p}
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) a column with \code{\textquotedbl{}ratio\textquotedbl{}} in its name is combined on the log scale; metafor \code{conv.\allowbreak{}wald()} turns each estimate and its 95 \% interval into a log ratio and its variance (\code{estimates\_\allowbreak{}are\_\allowbreak{}ratios=} decides otherwise).}
+\undertext{(2) the combined effect shown back as a ratio.}
+\undertext{\textit{In Python only:} statsmodels has fixed and random effects (DerSimonian-Laird, Paule-Mandel) but no REML, no prediction interval, no Egger or trim-and-fill, no meta-regression and no Peto, so the numbers come from R metafor.}
+\undertext{simplydata also says the combined effect, the prediction interval, tau (as a factor for ratios) and I-squared in words, gives each p-value as a count of sets of studies, and adds the notes on small-study effects from 10 studies.}
+\undertext{\textit{Checked:} a test runs both and compares the numbers of the result table (on a pandas and on a Polars table).}
+\end{underneathbox}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{R}\libbadge{Python}}
+\undertext{\textbf{With \code{method=}}: the same job with this option.}
+\underlib{R (simplydata runs this in R for you, through rpy2)}
+\begin{lstlisting}[style=underr]
+# combine_studies(..., method="DerSimonian-Laird")
+e <- metafor::escalc(measure = "RR", ai = e1, n1i = n1, ci = e2, n2i = n2)
+f <- metafor::rma(yi, vi, data = e, method = "DL",                # (1)
+                  test = "adhoc")
+p <- predict(f, transf = exp)
+list(b = p$pred, low = p$ci.lb, high = p$ci.ub, p = f$pval)
+\end{lstlisting}
+\underlib{Python (with what R gives back)}
+\begin{lstlisting}[style=under]
+{"estimate": b, "estimate 95 % CI low": low, "estimate 95 % CI high": high, "p-value": p}
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) DerSimonian-Laird's between-study spread (metafor \code{\textquotedbl{}DL\textquotedbl{}}); \code{\textquotedbl{}Paule-Mandel\textquotedbl{}} is \code{\textquotedbl{}PM\textquotedbl{}} and \code{\textquotedbl{}common effect\textquotedbl{}} is \code{\textquotedbl{}EE\textquotedbl{}} (metafor 4 renamed \code{\textquotedbl{}FE\textquotedbl{}}).}
+\undertext{\textit{In Python only:} statsmodels has fixed and random effects (DerSimonian-Laird, Paule-Mandel) but no REML, no prediction interval, no Egger or trim-and-fill, no meta-regression and no Peto, so the numbers come from R metafor.}
+\undertext{simplydata also says the combined effect, the prediction interval, tau (as a factor for ratios) and I-squared in words, gives each p-value as a count of sets of studies, and adds the notes on small-study effects from 10 studies.}
+\undertext{\textit{Checked:} a test runs both and compares the numbers of the result table (on a pandas and on a Polars table).}
+\end{underneathbox}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{R}\libbadge{Python}}
+\undertext{\textbf{With \code{method=\textquotedbl{}Mantel-Haenszel\textquotedbl{}}}: the same job with this option.}
+\underlib{R (simplydata runs this in R for you, through rpy2)}
+\begin{lstlisting}[style=underr]
+# combine_studies(..., method="Mantel-Haenszel")
+f <- metafor::rma.mh(ai = e1, n1i = n1, ci = e2, n2i = n2,
+                     measure = "RR")                              # (1)
+p <- predict(f, transf = exp)
+list(b = p$pred, low = p$ci.lb, high = p$ci.ub, p = f$pval)
+\end{lstlisting}
+\underlib{Python (with what R gives back)}
+\begin{lstlisting}[style=under]
+{"estimate": b, "estimate 95 % CI low": low, "estimate 95 % CI high": high, "p-value": p}
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) Mantel-Haenszel weights, a common-effect method: there is no between-study spread and no prediction interval (\code{compare\_\allowbreak{}risks(allowing\_\allowbreak{}for=)} gives the same from raw rows).}
+\undertext{\textit{In Python only:} statsmodels has fixed and random effects (DerSimonian-Laird, Paule-Mandel) but no REML, no prediction interval, no Egger or trim-and-fill, no meta-regression and no Peto, so the numbers come from R metafor.}
+\undertext{simplydata also says the combined effect, the prediction interval, tau (as a factor for ratios) and I-squared in words, gives each p-value as a count of sets of studies, and adds the notes on small-study effects from 10 studies.}
+\undertext{\textit{Checked:} a test runs both and compares the numbers of the result table (on a pandas and on a Polars table).}
+\end{underneathbox}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{R}\libbadge{Python}}
+\undertext{\textbf{With \code{method=\textquotedbl{}Peto\textquotedbl{}}}: the same job with this option.}
+\underlib{R (simplydata runs this in R for you, through rpy2)}
+\begin{lstlisting}[style=underr]
+# combine_studies(..., method="Peto")
+f <- metafor::rma.peto(ai = e1, n1i = n1, ci = e2, n2i = n2)       # (1)
+p <- predict(f, transf = exp)
+list(b = p$pred, low = p$ci.lb, high = p$ci.ub, p = f$pval)
+\end{lstlisting}
+\underlib{Python (with what R gives back)}
+\begin{lstlisting}[style=under]
+{"estimate": b, "estimate 95 % CI low": low, "estimate 95 % CI high": high, "p-value": p}
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) Peto's one-step odds ratio, a common-effect method for rare events; it gives odds ratios only.}
+\undertext{\textit{In Python only:} statsmodels has fixed and random effects (DerSimonian-Laird, Paule-Mandel) but no REML, no prediction interval, no Egger or trim-and-fill, no meta-regression and no Peto, so the numbers come from R metafor.}
+\undertext{simplydata also says the combined effect, the prediction interval, tau (as a factor for ratios) and I-squared in words, gives each p-value as a count of sets of studies, and adds the notes on small-study effects from 10 studies.}
+\undertext{\textit{Checked:} a test runs both and compares the numbers of the result table (on a pandas and on a Polars table).}
+\end{underneathbox}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{R}\libbadge{Python}}
+\undertext{\textbf{With \code{interval\_\allowbreak{}by=}}: the same job with this option.}
+\underlib{R (simplydata runs this in R for you, through rpy2)}
+\begin{lstlisting}[style=underr]
+# combine_studies(..., interval_by="normal")
+e <- metafor::escalc(measure = "RR", ai = e1, n1i = n1, ci = e2, n2i = n2)
+f <- metafor::rma(yi, vi, data = e, method = "REML", test = "z")    # (1)
+p <- predict(f, transf = exp)
+list(b = p$pred, low = p$ci.lb, high = p$ci.ub, p = f$pval)
+\end{lstlisting}
+\underlib{Python (with what R gives back)}
+\begin{lstlisting}[style=under]
+{"estimate": b, "estimate 95 % CI low": low, "estimate 95 % CI high": high, "p-value": p}
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) the normal (z) interval and p-value, as in older meta-analyses; the default is Hartung-Knapp (test = \code{\textquotedbl{}adhoc\textquotedbl{}}).}
+\undertext{\textit{In Python only:} statsmodels has fixed and random effects (DerSimonian-Laird, Paule-Mandel) but no REML, no prediction interval, no Egger or trim-and-fill, no meta-regression and no Peto, so the numbers come from R metafor.}
+\undertext{simplydata also says the combined effect, the prediction interval, tau (as a factor for ratios) and I-squared in words, gives each p-value as a count of sets of studies, and adds the notes on small-study effects from 10 studies.}
+\undertext{\textit{Checked:} a test runs both and compares the numbers of the result table (on a pandas and on a Polars table).}
+\end{underneathbox}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{R}\libbadge{Python}}
+\undertext{\textbf{With \code{for\_\allowbreak{}each\_\allowbreak{}group\_\allowbreak{}in=}}: the same job with this option.}
+\underlib{R (simplydata runs this in R for you, through rpy2)}
+\begin{lstlisting}[style=underr]
+# combine_studies(..., for_each_group_in="allocation")
+e <- metafor::escalc(measure = "RR", ai = e1, n1i = n1, ci = e2, n2i = n2)
+g <- c("alternate", "random", "systematic")
+f <- lapply(g, function(x) metafor::rma(yi, vi, data = e,
+            subset = allocation == x, test = "z"))                # (1)
+b <- sapply(f, function(m) m$b[1]); s <- sapply(f, function(m) m$se)
+q <- metafor::rma(b, sei = s, mods = ~ factor(g), method = "EE")  # (2)
+list(Q = q$QM, p = q$QMp)
+\end{lstlisting}
+\underlib{Python (with what R gives back)}
+\begin{lstlisting}[style=under]
+{"Q": Q, "p-value": p}
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) each subgroup its own random-effects model, with its own between-study spread; for this test each subgroup's estimate with its normal (z) standard error, as RevMan and R meta do (the subgroups' own intervals stay Hartung-Knapp).}
+\undertext{(2) the test of the difference between the subgroup estimates (a common-effect meta-regression on the subgroup), not metafor's \code{rma(mods = \textasciitilde{} group)}, which assumes one spread for all.}
+\undertext{\textit{In Python only:} statsmodels has fixed and random effects (DerSimonian-Laird, Paule-Mandel) but no REML, no prediction interval, no Egger or trim-and-fill, no meta-regression and no Peto, so the numbers come from R metafor.}
+\undertext{simplydata also says the combined effect, the prediction interval, tau (as a factor for ratios) and I-squared in words, gives each p-value as a count of sets of studies, and adds the notes on small-study effects from 10 studies.}
+\undertext{\textit{Checked:} a test runs both and compares the numbers of the result table (on a pandas and on a Polars table).}
+\end{underneathbox}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{R}\libbadge{Python}}
+\undertext{\textbf{With \code{using=}}: the same job with this option.}
+\underlib{R (simplydata runs this in R for you, through rpy2)}
+\begin{lstlisting}[style=underr]
+# combine_studies(..., using=["latitude"])
+e <- metafor::escalc(measure = "RR", ai = e1, n1i = n1, ci = e2, n2i = n2)
+f <- metafor::rma(yi, vi, mods = ~ latitude, data = e,            # (1)
+                  method = "REML", test = "adhoc")
+list(b = f$b[2], low = f$ci.lb[2], high = f$ci.ub[2], p = f$pval[2])
+\end{lstlisting}
+\underlib{Python (with what R gives back)}
+\begin{lstlisting}[style=under]
+{"estimate": b, "estimate 95 % CI low": low, "estimate 95 % CI high": high, "p-value": p}
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) a meta-regression: the slope of the log risk ratio per unit of each column, with Hartung-Knapp intervals; R-squared says how much of the between-study spread the columns account for.}
+\undertext{\textit{In Python only:} statsmodels has fixed and random effects (DerSimonian-Laird, Paule-Mandel) but no REML, no prediction interval, no Egger or trim-and-fill, no meta-regression and no Peto, so the numbers come from R metafor.}
+\undertext{simplydata also says the combined effect, the prediction interval, tau (as a factor for ratios) and I-squared in words, gives each p-value as a count of sets of studies, and adds the notes on small-study effects from 10 studies.}
+\undertext{\textit{Checked:} a test runs both and compares the numbers of the result table (on a pandas and on a Polars table).}
+\end{underneathbox}
+\wordentry{chart.forest\_plot()}{word:forest-plot}
+Many results with their intervals, one line each (a forest plot).\\
+\codeline{chart.forest\_plot(x=\textquotedbl{}difference\textquotedbl{}, y=\textquotedbl{}group 1\textquotedbl{})}\enspace (on a result table, such as \code{compare\_\allowbreak{}each\_\allowbreak{}pair\_\allowbreak{}of}'s)
+
+Draws each row's x as a dot and its interval as a line, from a result table with the columns \code{\textquotedbl{}\textless{}x\textgreater{} 95 \% CI low\textquotedbl{}} and \code{\textquotedbl{}\textless{}x\textgreater{} 95 \% CI high\textquotedbl{}} (any level). y names the rows. Ratios (x or every row label says \code{\textquotedbl{}ratio\textquotedbl{}}) are drawn on a log scale with a dashed line at 1 (no effect), other results on a plain scale with the line at 0; \code{log\_\allowbreak{}scale=True} or False and \code{line\_\allowbreak{}at=} choose. When the table holds intervals of more than one level (such as 95 \% and 90 \%), the first is drawn and a note names the rows left out. The first row is at the top. On the result of \code{table.\allowbreak{}combine\_\allowbreak{}studies} (it has a \code{\textquotedbl{}row kind\textquotedbl{}} column) the studies are squares, the combined effects diamonds and the prediction interval a thin line: \code{chart.\allowbreak{}forest\_\allowbreak{}plot(x=\textquotedbl{}estimate\textquotedbl{},\allowbreak{} y=\textquotedbl{}study\textquotedbl{},\allowbreak{} size=\textquotedbl{}weight \%\textquotedbl{})} sizes each square by the study's weight (\code{size=} as on \code{draw\_\allowbreak{}dots}).
+
+\wordfield{Options}{}\par\nopagebreak
+\begin{optiontable}
+\code{x=} & normally \code{\textquotedbl{}estimate\textquotedbl{}}\\
+\code{y=} & \\
+\code{line\_\allowbreak{}at=} & \\
+\code{log\_\allowbreak{}scale=} & \\
+\code{colour=} & \\
+\code{thickness=} & \\
+\code{size=} & \\
+\end{optiontable}
+
+\wordfield{Underneath}{matplotlib (errorbar), from the interval columns of a result table; on \code{combine\_\allowbreak{}studies}' result squares (scatter), diamonds (fill) and the prediction interval (plot)}
+\wordfield{Example you can run}{}\par\nopagebreak
+\begin{lstlisting}[style=py]
+import simplydata as sdata
+table = sdata.table(sdata.get_example("marks"))
+pairs = table.compare_each_pair_of("marks", for_each_group_in="class", test="tukey")
+chart = pairs.start_chart()
+chart.forest_plot(x="difference", y="group 1")
+chart.save("forest_plot.png")
+\end{lstlisting}
+\wordentry{chart.draw\_funnel\_plot()}{word:draw-funnel-plot}
+A funnel plot: each study's effect against its standard error, to look for small-study effects.
+
+\codeline{chart.draw\_funnel\_plot(x=\textquotedbl{}estimate\textquotedbl{}, y=\textquotedbl{}standard error\textquotedbl{})}\enspace (on the result of \code{table.\allowbreak{}combine\_\allowbreak{}studies})\\
+Each dot is a study; small studies (big standard errors) are at the bottom. The solid line is the combined effect and the dashed funnel its pseudo 95 \% limits (where 95 \% of the studies would lie if they all measured that one effect). Dots missing from one lower corner suggest small-study effects: publication bias is one cause, real differences between small and large studies and chance are others. Ratios are drawn on a log scale (\code{log\_\allowbreak{}scale=} chooses). The tests are in \code{combine\_\allowbreak{}studies}' printout (Peters' or Egger's test, and trim and fill), from 10 studies. Other names: funnel, \code{funnel\_\allowbreak{}plot}, \code{draw\_\allowbreak{}funnel} (R metafor \code{funnel()}).
+
+\wordfield{Options}{}\par\nopagebreak
+\begin{optiontable}
+\code{x=} & normally \code{\textquotedbl{}estimate\textquotedbl{}}\\
+\code{y=} & normally \code{\textquotedbl{}standard error\textquotedbl{}}\\
+\code{log\_\allowbreak{}scale=} & \\
+\code{colour=} & \\
+\end{optiontable}
+
+\wordfield{Underneath}{R \code{metafor::escalc()}, \code{metafor::rma()} \textperiodcentered{} matplotlib \code{scatter()}, \code{max()}, \code{lognorm.\allowbreak{}interval()}, \code{plot()}, \code{axvline()}, \code{set\_\allowbreak{}ylim()}, \code{set\_\allowbreak{}xscale()}}
+\wordfield{Example you can run}{}\par\nopagebreak
+\begin{lstlisting}[style=py]
+import simplydata as sdata
+table = sdata.table(sdata.get_example("bcg"))
+result = table.combine_studies(names="trial", events=["tb_vaccinated", "tb_unvaccinated"],
+                               out_of=["vaccinated", "unvaccinated"])
+chart = result.start_chart()
+chart.draw_funnel_plot(x="estimate", y="standard error")
+chart.save("draw_funnel_plot.png")
+\end{lstlisting}
+\begin{center}\begin{minipage}{\linewidth}\centering
+\includegraphics[width=0.52\textwidth,height=0.26\textheight,keepaspectratio]{figures/underneath_draw_funnel_plot.pdf}
+\captionof*{figure}{The chart simplydata draws. The code below draws the same dots, without simplydata's paper look.}
+\end{minipage}\end{center}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{R}\libbadge{matplotlib}}
+\underlib{R (simplydata runs this in R for you, through rpy2)}
+\begin{lstlisting}[style=underr]
+# draw_funnel_plot(x="estimate", y="standard error"), after combine_studies
+e <- metafor::escalc(measure = "RR", ai = e1, n1i = n1, ci = e2,
+                     n2i = n2, drop00 = TRUE)
+f <- metafor::rma(yi, vi, data = e, test = "adhoc")
+list(rr = exp(e$yi), se = sqrt(e$vi), centre = exp(f$b[1]))
+\end{lstlisting}
+\underlib{matplotlib (with what R gives back)}
+\begin{lstlisting}[style=under]
+import matplotlib.pyplot as plt
+from scipy import stats
+fig, ax = plt.subplots()
+ax.scatter(rr, se)                                         # each study
+top = float(se.max())
+low, high = stats.lognorm.interval(0.95, s=top, scale=centre)  # (1)
+ax.plot([low, centre, high], [top, 0.0, top], linestyle="--")
+ax.axvline(centre)                                       # (2)
+ax.set_ylim(top * 1.05, 0.0)
+ax.set_xscale("log")                                        # (3)
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) the pseudo 95 \% limits: SciPy's 95 \% interval around the combined effect at the largest standard error (lognorm for ratios, so on the log scale); with the top of the funnel at the combined effect both limits are straight lines, as metafor \code{funnel()} draws them.}
+\undertext{(2) the line is the combined effect of \code{combine\_\allowbreak{}studies} (random effects, REML).}
+\undertext{(3) ratios on a log scale, with the standard error of the log ratio downwards (0 at the top).}
+\undertext{\textit{In Python only:} matplotlib draws it; the studies' effects come from \code{combine\_\allowbreak{}studies}, which needs R metafor.}
+\undertext{simplydata also prints how to read the funnel, and why missing corners are not proof of publication bias.}
+\undertext{\textit{Checked:} a test runs both and compares the dots and the lines (the chart's data, not its pixels).}
+\end{underneathbox}
 \unsection{Dates and time windows}{group:Dates-and-time-windows}
 \wordentry{sdata.make\_run\_of\_dates()}{word:sdata.make-run-of-dates}
 A table with one column, \code{\textquotedbl{}date\textquotedbl{}}: regular dates from start, every day (or week, month ...).
@@ -12066,7 +12450,7 @@ The same options as \code{find\_\allowbreak{}how\_\allowbreak{}many\_\allowbreak
 import simplydata as sdata
 sdata.find_chance_of_finding(effect_size=0.5, values_per_group=20)
 \end{lstlisting}
-\unsection{Combine and reshape}{group:Combine-and-reshape}
+\unsection{Join and reshape}{group:Join-and-reshape}
 \wordentry{table.join\_with()}{word:table.join-with}
 Bring in the columns of another table, matching rows on a column such as a name.
 
@@ -15084,6 +15468,42 @@ table.compare_survival(time="time", event="event", value="first_esbl", competing
 \printedoutput{output/solution29_task4.txt}
 \solutionanswer{\code{competing\_\allowbreak{}with=}. Gray's test: chi-square 8.10, p = 0.004; differences this big would turn up in about 4 of 1000 studies if the wards truly had the same chance of ESBL.}
 \par\noindent{\small\sffamily\hyperref[lesson:29]{Back to lesson 29}}
+\unsection{Lesson 30: Combining studies (meta-analysis)}{solutions:30}
+\solutiontask{1}{37 studies of passive smoking and lung cancer give an odds ratio with its 95 \% interval (real data, Hackshaw et al. 1997). Fill in the blank: table = \code{sdata.\allowbreak{}table(sdata.\allowbreak{}get\_\allowbreak{}example(\textquotedbl{}passive\_\allowbreak{}smoking\textquotedbl{}))}, then \code{table.\allowbreak{}combine\_\allowbreak{}studies(names=\textquotedbl{}study\textquotedbl{},\allowbreak{} estimates=\_\allowbreak{}\_\allowbreak{}\_\allowbreak{}\_\allowbreak{})}. What is the combined odds ratio?}
+\begin{lstlisting}[style=py]
+import simplydata as sdata
+table = sdata.table(sdata.get_example("passive_smoking"))
+table.combine_studies(names="study", estimates="odds ratio")
+\end{lstlisting}
+\printedoutput{output/solution30_task1.txt}
+\solutionanswer{\code{estimates=\textquotedbl{}odds ratio\textquotedbl{}}: simplydata finds the columns \code{\textquotedbl{}odds ratio 95 \% CI low\textquotedbl{}} and \code{\textquotedbl{}.\allowbreak{}.\allowbreak{}.\allowbreak{} high\textquotedbl{}} next to it and combines the odds ratios on the log scale: about 1.24 (95 \% CI 1.13 to 1.38).}
+\solutiontask{2}{In the BCG trials, change only \code{show=}: combine odds ratios (\code{show=\textquotedbl{}odds ratios\textquotedbl{}}) instead of risk ratios. Is the answer close?}
+\begin{lstlisting}[style=py]
+import simplydata as sdata
+table = sdata.table(sdata.get_example("bcg"))
+table.combine_studies(names="trial", events=["tb_vaccinated", "tb_unvaccinated"],
+                      out_of=["vaccinated", "unvaccinated"], show="odds ratios")
+\end{lstlisting}
+\printedoutput{output/solution30_task2.txt}
+\solutionanswer{The combined odds ratio is close to the risk ratio, because tuberculosis was rare in every trial.}
+\solutiontask{3}{Say in words why the prediction interval of the BCG trials is wider than the confidence interval.}
+\begin{lstlisting}[style=py]
+import simplydata as sdata
+table = sdata.table(sdata.get_example("bcg"))
+table.combine_studies(names="trial", events=["tb_vaccinated", "tb_unvaccinated"],
+                      out_of=["vaccinated", "unvaccinated"])
+\end{lstlisting}
+\printedoutput{output/solution30_task3.txt}
+\solutionanswer{The confidence interval is about the average effect; the prediction interval is about the true effect in one new setting, so it also holds the between-study spread (tau).}
+\solutiontask{4}{Try to remember without looking back: which number tells you where the true effect of a new setting could lie? Find it in the printout of the passive smoking studies.}
+\begin{lstlisting}[style=py]
+import simplydata as sdata
+table = sdata.table(sdata.get_example("passive_smoking"))
+table.combine_studies(names="study", estimates="odds ratio")
+\end{lstlisting}
+\printedoutput{output/solution30_task4.txt}
+\solutionanswer{The prediction interval: in a new setting like these studies, the true odds ratio would lie between about 0.90 and 1.71.}
+\par\noindent{\small\sffamily\hyperref[lesson:30]{Back to lesson 30}}
 
 \backmatter
 
@@ -15129,6 +15549,7 @@ Every word and option, A to Z, with the page of its dictionary entry. Other spel
 \indexline{word:table.check-if-random-order}{table.check\_if\_random\_order()}
 \indexline{word:table.check-model-of}{table.check\_model\_of()}
 \indexline{word:table.check-steady-over-time}{table.check\_steady\_over\_time()}
+\indexline{word:table.combine-studies}{table.combine\_studies()}
 \indexline{word:table.compare-accuracy}{table.compare\_accuracy()}
 \indexline{word:table.compare-average-to}{table.compare\_average\_to()}
 \indexline{word:sdata.compare-averages}{sdata.compare\_averages()}
@@ -15186,6 +15607,7 @@ Every word and option, A to Z, with the page of its dictionary entry. Other spel
 \indexline{word:draw-dots}{chart.draw\_dots()}
 \indexline{word:draw-dots-3d}{chart.draw\_dots\_3d()}
 \indexline{word:draw-error-bars}{chart.draw\_error\_bars()}
+\indexline{word:draw-funnel-plot}{chart.draw\_funnel\_plot()}
 \indexline{word:draw-heatmap}{chart.draw\_heatmap()}
 \indexline{word:draw-histogram}{chart.draw\_histogram()}
 \indexline{word:draw-interaction-lines}{chart.draw\_interaction\_lines()}

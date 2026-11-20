@@ -1,4 +1,4 @@
-Example tables you can use (all made up, for practice):
+Example tables you can use (made up for practice, except bcg and passive_smoking: real published studies):
 
   sdata.get_example("marks")
       Test marks of 18 made-up children in three classes.
@@ -37,4 +37,4 @@ Example tables you can use (all made up, for practice):
       Columns: school, pupil, class, hours, sleep, breakfast, marks, passed, days_absent
 
 
-... (84 more lines)
+... (92 more lines)
