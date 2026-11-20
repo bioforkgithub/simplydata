@@ -68,7 +68,7 @@ The design follows what the research on learning and on programming languages sa
 
 > Status: early development (charts, tables, numbers, statistical tests, fitting and distributions ready). The word list may still change: an old word keeps working for one release and prints a one-line note with its new name.
 
-Install: `pip install simplydata`
+Install (recommended): `conda install -c conda-forge simplydata` (or `mamba` / `micromamba` in place of `conda`); also `pip install simplydata`. See [Install](#install).
 
 ```python
 import simplydata as sdata
@@ -91,18 +91,48 @@ one cleaned table can feed many charts, and charts go side by side with
 
 ## Install
 
+**Recommended: conda, mamba or micromamba** (from conda-forge). They install Python, simplydata and, when you want
+them, R and its packages in one environment, which is the easiest way on Windows, macOS and Linux alike. All three
+read the same conda-forge packages; use whichever you have.
+
 ```
-pip install simplydata            # needs Python 3.11 or newer
+conda create -n simplydata -c conda-forge simplydata        # a new environment called "simplydata"
+conda activate simplydata
+
+mamba create -n simplydata -c conda-forge simplydata        # the same with mamba (faster)
+micromamba create -n simplydata -c conda-forge simplydata   # the same with micromamba (small, no base install)
+```
+
+Extras, in the same environment (replace `conda` with `mamba` or `micromamba` if you use those):
+
+```
+conda install -c conda-forge polars pyarrow           # Polars, the fast engine for big data
+conda install -c conda-forge python-docx pyreadstat   # reading Word, SPSS and Stata files
+conda install -c conda-forge control                  # rise time, settling time and margins of systems
+conda install -c conda-forge rpy2 r-base              # R and the bridge to it, for the methods only R has
+```
+
+> The conda-forge package is in review (submitted 2026-11-20). Until `conda install -c conda-forge simplydata`
+> finds it, create the environment with conda and install simplydata into it with pip:
+> `conda create -n simplydata -c conda-forge python=3.12 rpy2 r-base` then `conda activate simplydata` and
+> `pip install simplydata`.
+
+**Also possible: pip** (needs Python 3.11 or newer):
+
+```
+pip install simplydata
 pip install "simplydata[fast]"    # adds Polars, the fast engine for big data
 pip install "simplydata[files]"   # adds reading Word, SPSS and Stata files
 pip install "simplydata[systems]" # adds python-control: rise time, settling time and margins of systems
 pip install "simplydata[r]"       # adds rpy2, the bridge from Python to R (install R itself from https://cran.r-project.org)
 ```
 
-The `[r]` extra also needs R (https://cran.r-project.org) and, in R,
+With pip, the `[r]` extra also needs R (https://cran.r-project.org) and, in R,
 `install.packages(...)` with the R packages listed under "What simplydata covers" below. On Windows with
 Python 3.13, rpy2 has no ready-made wheel; set `RPY2_CFFI_MODE=ABI` first (in PowerShell:
-`$env:RPY2_CFFI_MODE = "ABI"`, in cmd: `set RPY2_CFFI_MODE=ABI`), then run the pip line.
+`$env:RPY2_CFFI_MODE = "ABI"`, in cmd: `set RPY2_CFFI_MODE=ABI`), then run the pip line. With conda, mamba or
+micromamba this step is not needed: rpy2 and R come ready-built from conda-forge, and the R packages too
+(for example `conda install -c conda-forge r-vegan r-metafor r-lme4`).
 
 ## Learn it in a day
 
