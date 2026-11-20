@@ -1001,6 +1001,15 @@ def explain_changes(table, column, using, changes_at, call):
                               f'changes_at={{"{name}": {changes_at if _st()._is_number(changes_at) else 37}}}.\n'
                               f"For example, {example}")
     (time_column, at), = changes_at.items()
+    unsupported = [name for name, value, default in (
+        ("curve_for=", call.get("curve_for"), None), ("zero_part_using=", call.get("zero_part_using"), None),
+        ("empty_cells=", call.get("empty_cells"), "leave out")) if value != default]
+    if call.get("outcome") in ("ordered groups", "groups", "shares", "counts with many zeros", "counts in two steps",
+                               "counts in two steps that vary a lot", "counts with many zeros that vary a lot"):
+        unsupported.append(f'outcome="{call.get("outcome")}"')
+    if unsupported:
+        raise SimplydataError(f"changes_at= cannot be used with {unsupported[0]} yet: that model has no single set of "
+                              "fitted values for the lag-1 autocorrelation of its leftovers.")
     table._need_columns(time_column)
     values, at_value, how, first = table._change_column(step, time_column, at, example)
     after_name, since_name = f"after {time_column} {at}", f"{time_column} since {at}"
@@ -1027,17 +1036,29 @@ def explain_changes(table, column, using, changes_at, call):
     elif time_column not in items:
         items = [time_column] + items
     items = items + [after_name, since_name]
-    result = bigger.explain(column, using=items, **call)
-    # the leftovers, in time order, for the lag-1 autocorrelation (Bernal et al. 2017)
-    with contextlib.redirect_stdout(io.StringIO()):
-        terms, pieces, variables, raw, missing, kinds = bigger._model_parts(
-            step, column, items, call.get("outcome", "numbers"), None, "leave out", time=call.get("time"),
-            out_of=call.get("out_of"))
-        names = [column] + variables + [v for v in (call.get("time"), call.get("out_of")) if v is not None]
-        keep = ~np.any([missing[nm] for nm in names], axis=0)
-        model = bigger._fit_model(step, column, call.get("outcome", "numbers"), None, terms, variables, raw, kinds,
-                                  keep, time=call.get("time"), out_of=call.get("out_of"))
-    leftovers = np.asarray(model["y"], dtype=float) - np.asarray(model["fit"]["fitted"], dtype=float)
+    # the leftovers must come from the model explain() fits and prints (weighted, robust, mixed ...): the fitted
+    # model is taken where explain() turns it into its result table
+    captured = {}
+    to_table = bigger._term_table
+
+    def keep_the_model(model, *args, **kwargs):
+        captured.setdefault("model", model)
+        return to_table(model, *args, **kwargs)
+
+    bigger._term_table = keep_the_model
+    with contextlib.redirect_stdout(io.StringIO()) as quiet:
+        result = bigger.explain(column, using=items, **call)
+    model = captured.get("model")
+    fitted = (model or {}).get("fit", {}).get("fitted") if isinstance((model or {}).get("fit"), dict) else None
+    if model is None or fitted is None or model.get("keep") is None or len(np.atleast_1d(fitted)) != int(
+            np.sum(model["keep"])):
+        raise SimplydataError(
+            "changes_at= cannot be used with these options yet: the model they fit does not give simplydata its "
+            "fitted values, so the lag-1 autocorrelation of its leftovers (which an interrupted time series must "
+            "check) cannot be worked out. Leave out the other options, or add the two change columns yourself.")
+    print(quiet.getvalue(), end="")
+    keep = np.asarray(model["keep"], dtype=bool)
+    leftovers = np.asarray(model["y"], dtype=float) - np.asarray(fitted, dtype=float)
     order = np.argsort(values[keep], kind="stable")
     lag1 = float(acf(leftovers[order], nlags=1, fft=False)[1])
     print(f'Interrupted time series: "{after_name}" is the jump in level at {at} and "{since_name}" the change of '

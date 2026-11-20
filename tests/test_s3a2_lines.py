@@ -455,3 +455,66 @@ def test_attached_packages_hide_nothing_the_r_words_need(needs_r, capsys):
     school = sdata.table(sdata.get_example("school"))
     out = school.explain("marks", using=["hours"], grouped_by="school", p_value_by="satterthwaite").as_pandas()
     assert out["p-value"].notna().all()
+
+
+def _printed_lag1(text):
+    import re
+
+    return float(re.search(r"Lag-1 autocorrelation of the leftovers \(observed minus fitted.*?\): (-?\d+\.\d+)",
+                           text).group(1))
+
+
+def _its_rows(seed=4):
+    rng = np.random.default_rng(seed)
+    month = np.arange(1.0, 49.0)
+    noise = np.cumsum(rng.normal(0, 1, 48)) * 0.6 + rng.normal(0, 1, 48)  # leftovers that are alike in order
+    cases = 30 + 0.4 * month - 6 * (month >= 25) + noise
+    cases[[5, 30]] += 25  # two outliers, so a robust fit differs from least squares
+    w = np.ones(48)
+    w[[5, 30]] = 40.0  # the outliers count a lot in the weighted fit
+    df = pd.DataFrame({"month": month, "cases": cases, "w": w})
+    df["after"] = (df["month"] >= 25).astype(float)
+    df["since"] = df["after"] * (df["month"] - 25)
+    return df
+
+
+def _acf1(values):
+    from statsmodels.tsa.stattools import acf
+
+    return float(acf(values, nlags=1, fft=False)[1])
+
+
+def test_explain_changes_at_takes_the_leftovers_of_the_weighted_model(capsys):
+    import statsmodels.api as sm
+
+    df = _its_rows()
+    sdata.table(df[["month", "cases", "w"]]).explain("cases", using=["month"], changes_at={"month": 25}, weights="w")
+    printed = _printed_lag1(capsys.readouterr().out)
+    X = sm.add_constant(df[["month", "after", "since"]])
+    weighted = sm.WLS(df["cases"], X, weights=df["w"]).fit()
+    plain = sm.OLS(df["cases"], X).fit()
+    expected = _acf1(df["cases"] - weighted.fittedvalues)
+    assert printed == pytest.approx(expected, abs=0.006)
+    assert abs(expected - _acf1(df["cases"] - plain.fittedvalues)) > 0.01  # the two differ, so the test can tell
+
+
+def test_explain_changes_at_takes_the_leftovers_of_the_robust_model(capsys):
+    import statsmodels.api as sm
+
+    df = _its_rows()
+    sdata.table(df[["month", "cases"]]).explain("cases", using=["month"], changes_at={"month": 25},
+                                                giving_outliers_less_weight=True)
+    printed = _printed_lag1(capsys.readouterr().out)
+    X = sm.add_constant(df[["month", "after", "since"]])
+    robust = sm.RLM(df["cases"], X, M=sm.robust.norms.HuberT()).fit(scale_est="mad")
+    plain = sm.OLS(df["cases"], X).fit()
+    expected = _acf1(df["cases"] - robust.fittedvalues)
+    assert printed == pytest.approx(expected, abs=0.006)
+    assert abs(expected - _acf1(df["cases"] - plain.fittedvalues)) > 0.01
+
+
+def test_explain_changes_at_refuses_options_without_one_set_of_fitted_values(capsys):
+    table = sdata.table(_its_rows()[["month", "cases"]])
+    with pytest.raises(SimplydataError, match="curve_for="):
+        table.explain("cases", using=["month"], changes_at={"month": 25}, curve_for="month")
+    assert "Interrupted time series" not in capsys.readouterr().out
