@@ -5,6 +5,14 @@ working for one release and prints a one-line note with its new name.
 
 ## Unreleased
 
+### Fixed: results from R could change after they were returned
+
+- Numbers coming back from R were NumPy views into R's memory that did not keep the R object alive. When R
+  later cleaned up and reused that memory, a result could silently fill with other numbers (seen once on CI,
+  where a column turned into one repeated value). Every result from R is now a copy that Python owns. This
+  affects every word that runs R; results already printed were right at the time, but numbers kept and used
+  later could change.
+
 ### explain() grows (S3a-1)
 
 New options of `table.explain`, each checked against the package underneath and R, with a box "The same
