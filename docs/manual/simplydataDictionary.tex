@@ -3,7 +3,7 @@
 % code and the page numbers of the compiled manual. Do not edit it by hand: run
 %     python docs/make_manual.py --no-run
 % ---------------------------------------------------------------------------------------------
-% Page numbers from simplydata_manual.tex c540fa9ec87da1cf
+% Page numbers from simplydata_manual.tex 4ab2993fad198a41
 
 \documentclass[10pt,a4paper]{article}
 % no dates or random IDs in the PDF, so it only changes when the dictionary changes
@@ -101,7 +101,7 @@
 \vspace{0.4em}
 {\large\sffamily Every word, A to Z, with the page of the manual that explains it\par}
 \vspace{0.3em}
-{\sffamily\small\color{inkgrey} Version 0.2.0 \textbullet{} 370 words \textbullet{} 789 names from other tools
+{\sffamily\small\color{inkgrey} Version 0.2.0 \textbullet{} 370 words \textbullet{} 791 names from other tools
 \textbullet{} made from the code by \code{docs/make\_dictionary.py}\par}
 \end{titleblock}
 
@@ -1836,7 +1836,7 @@ A family is learned once and used again and again: the start or the end of a wor
 \means{Each group's own starting level (and own slope) in a mixed model.}
 \eg{\code{table.\allowbreak{}find\_\allowbreak{}group\_\allowbreak{}levels\_\allowbreak{}of(\textquotedbl{}marks\textquotedbl{},\allowbreak{} using=[\textquotedbl{}hours\textquotedbl{}],\allowbreak{} grouped\_\allowbreak{}by=\textquotedbl{}school\textquotedbl{})}}
 \field{Options}{\code{column=}, \code{using=}, \code{grouped\_\allowbreak{}by=}, \code{outcome=}, \code{own\_\allowbreak{}slope\_\allowbreak{}for=}}
-\field{Other tools}{\code{blup}, \code{blups}, \code{random\_\allowbreak{}effects}, \code{ranef}}
+\field{Other tools}{\code{blup}, \code{blups}, \code{group\_\allowbreak{}levels}, \code{levels}, \code{random\_\allowbreak{}effects}, \code{ranef}}
 \field{Underneath}{R \code{lme4::lmer()}, \code{lme4::ranef()}}
 \field{See also}{\hyperref[dict:find-columns-that-predict]{\code{find\_\allowbreak{}columns\_\allowbreak{}that\_\allowbreak{}predict}}, \hyperref[dict:find-model-averages-of]{\code{find\_\allowbreak{}model\_\allowbreak{}averages\_\allowbreak{}of}}, \hyperref[dict:compare-models]{\code{compare\_\allowbreak{}models}}, \hyperref[dict:show-rows-that-pull-model]{\code{show\_\allowbreak{}rows\_\allowbreak{}that\_\allowbreak{}pull\_\allowbreak{}model}}, \hyperref[dict:check-model-of]{\code{check\_\allowbreak{}model\_\allowbreak{}of}}}
 \where{Manual \manualpage{word:table.find-group-levels-of}{279}{section*.261}}
@@ -4105,6 +4105,7 @@ Names from pandas, Polars, R, NumPy, SciPy, matplotlib and seaborn, and everyday
 \othername{grid}{\hyperref[dict:show-grid]{\code{chart.\allowbreak{}show\_\allowbreak{}grid()}}, \manualpage{word:show-grid}{195}{section*.91}}
 \othername{griddata}{\hyperref[dict:make-map-of]{\code{table.\allowbreak{}make\_\allowbreak{}map\_\allowbreak{}of()}}, \manualpage{word:table.make-map-of}{264}{section*.233}}
 \othername{group\_by}{\hyperref[dict:find-average-of]{\code{table.\allowbreak{}find\_\allowbreak{}average\_\allowbreak{}of()}}, \manualpage{word:table.find-average-of}{230}{section*.177}}
+\othername{group\_levels}{\hyperref[dict:find-group-levels-of]{\code{table.\allowbreak{}find\_\allowbreak{}group\_\allowbreak{}levels\_\allowbreak{}of()}}, \manualpage{word:table.find-group-levels-of}{279}{section*.261}}
 \othername{groupby}{\hyperref[dict:find-average-of]{\code{table.\allowbreak{}find\_\allowbreak{}average\_\allowbreak{}of()}}, \manualpage{word:table.find-average-of}{230}{section*.177}}
 \othername{grubbs\_test}{\hyperref[dict:show-rows-with-outliers]{\code{table.\allowbreak{}show\_\allowbreak{}rows\_\allowbreak{}with\_\allowbreak{}outliers()}}, \manualpage{word:table.show-rows-with-outliers}{214}{section*.142}}
 \letterhead{H}
@@ -4195,6 +4196,7 @@ Names from pandas, Polars, R, NumPy, SciPy, matplotlib and seaborn, and everyday
 \othername{left\_join}{\hyperref[dict:join-with]{\code{table.\allowbreak{}join\_\allowbreak{}with()}}, \manualpage{word:table.join-with}{310}{section*.318}}
 \othername{legend}{\hyperref[dict:put-legend-on-right]{\code{chart.\allowbreak{}put\_\allowbreak{}legend\_\allowbreak{}on\_\allowbreak{}right()}}, \manualpage{word:put-legend-on-right}{196}{section*.96}}
 \othername{len}{\hyperref[dict:count-rows]{\code{table.\allowbreak{}count\_\allowbreak{}rows()}}, \manualpage{word:table.count-rows}{229}{section*.175}}
+\othername{levels}{\hyperref[dict:find-group-levels-of]{\code{table.\allowbreak{}find\_\allowbreak{}group\_\allowbreak{}levels\_\allowbreak{}of()}}, \manualpage{word:table.find-group-levels-of}{279}{section*.261}}
 \othername{lfilter}{\hyperref[dict:keep-each-frequency-that]{\code{nums.\allowbreak{}keep\_\allowbreak{}each\_\allowbreak{}frequency\_\allowbreak{}that()}}, \manualpage{word:nums.keep-each-frequency-that}{303}{section*.306}}
 \othername{likelihood\_ratio}{\hyperref[dict:compare-to-truth]{\code{table.\allowbreak{}compare\_\allowbreak{}to\_\allowbreak{}truth()}}, \manualpage{word:table.compare-to-truth}{253}{section*.214}}
 \othername{limits\_agreement}{\hyperref[dict:limits-of-agreement]{\code{table.\allowbreak{}limits\_\allowbreak{}of\_\allowbreak{}agreement()}}, \manualpage{word:table.limits-of-agreement}{258}{section*.220}}

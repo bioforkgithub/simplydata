@@ -4,7 +4,7 @@ Made by `python validation/make_report.py` on 2026-11-20. Generated: do not edit
 
 Each simplydata word is run on real, published data and compared with the published answer, with the package simplydata uses underneath called directly, and with R. Each "same underneath" box of the manual is run next to its word and compared too. How it works, and the datasets with their licences: [validation/README.md](README.md).
 
-**223 checks passed, 0 failed, 0 skipped** (skipped: R or an R package is not installed on this computer).
+**226 checks passed, 0 failed, 0 skipped** (skipped: R or an R package is not installed on this computer).
 
 ## Setup
 
@@ -345,6 +345,14 @@ Note: No data: the published value is the standard normal table (5 decimals).
 
 Note: R nlme::gls() is the reference: statsmodels has no variance functions. nlme's optimiser stops at its own tolerance, so the numbers agree to about 1e-6.
 
+**spread_changes_with=: a spread of its own for each blood flow rate (varIdent), with its interval** (real data; data: Dialyzer (nlme))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| ratio | R | 0.923535209227047 | 0.923535209227047 | relative 1e-05 | pass |
+| ratio low | R | 0.673968669673266 | 0.673968669673266 | relative 1e-05 | pass |
+| ratio high | R | 1.26551473541868 | 1.26551473541868 | relative 1e-05 | pass |
+
 **neighbours_alike_in_order_of=: the level of Lake Huron, a linear trend with AR(1) errors** (real data; data: Lake Huron)
 
 | number | compared with | simplydata | reference | tolerance | result |
@@ -371,9 +379,9 @@ Note: R glmnet with the same seed is the reference (the random split is made in 
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
-| AICc smallest | statsmodels OLS and eval_measures.aicc | 348.980436348024 | 348.980436348024 | relative 1e-09 | pass |
+| AICc of Fertility ~ Education | statsmodels OLS and eval_measures.aicc | 348.980436348024 | 348.980436348024 | relative 1e-09 | pass |
 | weight of the biggest | statsmodels OLS and eval_measures.aicc | 0.98503186334779 | 0.98503186334779 | relative 1e-09 | pass |
-| AICc smallest | R | 348.980436348024 | 348.980436348024 | relative 1e-09 | pass |
+| AICc of Fertility ~ Education | R | 348.980436348024 | 348.980436348024 | relative 1e-09 | pass |
 | weight of the biggest | R | 0.98503186334779 | 0.985031863347791 | relative 1e-09 | pass |
 
 **check_on_left_out_rows=True: low birth weight from age, weight and smoking (Brier score in 10 parts)** (real data; data: birthwt (MASS))
@@ -381,7 +389,7 @@ Note: R glmnet with the same seed is the reference (the random split is made in 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
 | left out | R | 0.212566042141893 | 0.212566042141893 | relative 1e-10 | pass |
-| adjusted | R | 0.212082848900463 | 0.212082848900463 | relative 1e-10 | pass |
+| bias-corrected | R | 0.212082848900463 | 0.212082848900463 | relative 1e-10 | pass |
 
 Note: R boot::cv.glm with the same seed is the reference: the split is made by R's own random numbers.
 
