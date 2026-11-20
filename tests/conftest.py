@@ -47,7 +47,9 @@ R_PACKAGES = ("survival", "vegan", "mice", "lme4", "betareg", "pscl", "car", "ef
               # S3a-2 (lines and curves)
               "drc", "segmented", "smatr", "mcr", "quantreg", "deming",
               # S3a-3 (checking and comparing)
-              "nlme", "glmnet", "boot", "lmtest", "AICcmodavg")
+              "nlme", "glmnet", "boot", "lmtest", "AICcmodavg",
+              # S3b-3 (survival and person-time)
+              "cmprsk", "adjustedCurves", "riskRegression", "KMsurv", "survRM2")
 
 
 @pytest.fixture
@@ -114,6 +116,12 @@ R_ENTRY_POINTS = {
     ("table/checking_r.py", "gls"), ("table/checking_r.py", "lasso"), ("table/checking_r.py", "left_out_rows"),
     ("table/checking_r.py", "hosmer"), ("table/checking_r.py", "model_contrasts"),
     ("table/checking_r.py", "group_levels"), ("table/checking_r.py", "nested_anova"),
+    # S3b-3 (survival and person-time)
+    ("table/survival_r.py", "risk_curves"), ("table/survival_r.py", "grays_test"), ("table/survival_r.py", "fine_gray"),
+    ("table/survival_r.py", "survival_regression"), ("table/survival_r.py", "restricted_means"),
+    ("table/survival_r.py", "rmst_difference"), ("table/survival_r.py", "life_table"),
+    ("table/survival_r.py", "adjusted_curves"), ("table/survival_r.py", "cox_start_stop"),
+    ("words/survival.py", "draw_risk_curves"),
 }
 
 

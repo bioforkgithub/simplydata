@@ -880,3 +880,16 @@ def _add_checking_and_comparing():
 
 
 _add_checking_and_comparing()
+
+
+# ---------------------------------------------------------------- S3b-3: survival and person-time (validation/cases_survival.py)
+def _add_survival_and_person_time():
+    import importlib.util
+
+    spec = importlib.util.spec_from_file_location("simplydata_validation_survival", HERE / "cases_survival.py")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    module.add_to(globals())
+
+
+_add_survival_and_person_time()
