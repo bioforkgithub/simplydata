@@ -113,7 +113,7 @@ import simplydata as sdata
 sdata.show_lesson(1)
 ```
 
-There are thirty short lessons. Lessons 1 to 8 teach charts, from your first chart to
+There are thirty-two short lessons. Lessons 1 to 8 teach charts, from your first chart to
 animations. Lessons 9 to 12 teach tables: looking at your data, choosing rows and columns,
 cleaning it, and summing it up. Lesson 13 teaches numbers (lists and grids of numbers), and
 lesson 14 the statistical tests: is a difference real, and how big is it? Lesson 15 puts it
@@ -131,7 +131,8 @@ that gives outliers less weight. Lesson 28 shows effects that depend on each oth
 first, then comparisons within groups and against a control. Lesson 29 is more survival: dates turned
 into time and event columns, survival at chosen times, and the chance of an event when another can come
 first. Lesson 30 combines studies (a meta-analysis): the combined effect, how much the
-studies differ, and the forest and funnel plots. Each
+studies differ, and the forest and funnel plots. Lessons 31 and 32 read a community or resistome table:
+diversity at the same total count, then log ratios, PCoA and how much temperature and salinity explain. Each
 lesson has an example you can run, says what every line does, explains the idea behind it
 (average or median, standard deviation or standard error, p-values) and ends with a small task
 to try yourself.
@@ -172,7 +173,7 @@ the manual for each lesson and word, and the answers at the back.
 ## Manual
 
 **[The simplydata manual (PDF)](https://github.com/bioforkgithub/simplydata/blob/main/docs/manual/simplydata_manual.pdf)** has everything in one book:
-all thirty lessons with the real charts and output they make, every word explained (its options,
+all thirty-two lessons with the real charts and output they make, every word explained (its options,
 an example you can run and the library that does the work underneath), the data science ideas
 behind the numbers (average or median, standard deviation or standard error, confidence intervals,
 p-values, effect sizes, and which statistical test to use when), and a worked solution for every

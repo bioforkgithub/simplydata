@@ -15,8 +15,8 @@ key and the ours= line; docs/rename_underneath_keys.py rewrites both.
 
 The entries are split by area: charts.py, tables.py, numbers.py, statistics.py, models.py (the options of
 explain()), lines.py (the lines-and-curves words and their options), checking.py (the checking-and-comparing
-words and their options), survival.py (S3b-3: the survival and person-time words and options) and
-combining.py (S3b-1: combining studies).
+words and their options), survival.py (S3b-3: the survival and person-time words and options),
+combining.py (S3b-1: combining studies) and communities.py (S3c-1: communities and resistomes).
 """
 
 from __future__ import annotations
@@ -120,10 +120,10 @@ class Entry:
 
 
 def _join() -> dict[str, Entry]:
-    from . import charts, checking, combining, lines, models, numbers, statistics, survival, tables
+    from . import charts, checking, combining, communities, lines, models, numbers, statistics, survival, tables
 
     found: dict[str, Entry] = {}
-    for module in (charts, tables, numbers, statistics, models, lines, checking, survival, combining):
+    for module in (charts, tables, numbers, statistics, models, lines, checking, survival, combining, communities):
         for entry in module.ENTRIES:
             if entry.key in found:
                 raise ValueError(f"{entry.key} has two underneath entries")

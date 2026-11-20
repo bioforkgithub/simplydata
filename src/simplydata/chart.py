@@ -7,6 +7,7 @@ from ._errors import SimplydataError, friendly
 from .words.agreement_charts import AgreementChartWords
 from .words.axes import AxesWords
 from .words.charts import ChartWords
+from .words.community_charts import CommunityChartWords
 from .words.curves import CurveWords
 from .words.interaction_charts import InteractionChartWords
 from .words.layout import LayoutWords
@@ -17,7 +18,8 @@ from .words.text import TextWords
 from .words.time_charts import TimeChartWords
 
 
-class Chart(ChartWords, StatsWords, CurveWords, InteractionChartWords, SurvivalChartWords, AgreementChartWords, TimeChartWords, TextWords,
+class Chart(ChartWords, StatsWords, CurveWords, InteractionChartWords, SurvivalChartWords, AgreementChartWords,
+            CommunityChartWords, TimeChartWords, TextWords,
             AxesWords, LookWords, LayoutWords, BaseChart):
     """A chart. Make one with sdata.chart(...), then add steps: chart.draw_bars(...), chart.write_title_on_top(...)."""
 

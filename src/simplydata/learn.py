@@ -31,6 +31,8 @@ GROUPS = [
                     "fit_dose_response", "draw_curve", "draw_smooth_line",
                     # S3a-3 (checking and comparing)
                     "draw_interaction_lines",
+                    # S3c-1 (communities and resistomes)
+                    "draw_richness_curves", "draw_cluster_tree",
                     "draw_density", "draw_count_bars", "draw_all_dots", "draw_side_histograms", "draw_qq_dots",
                     "draw_cumulative_share", "sdata.draw_all_pairs"]),
     ("Lines and shading", ["draw_line_at_x", "draw_line_at_y", "draw_line_with_slope", "shade_between_x", "shade_between_y"]),
@@ -100,7 +102,12 @@ GROUPS = [
                 "table.find_columns_that_predict", "table.find_group_levels_of"]),
     ("Patterns across columns", ["table.add_principal_components", "table.find_principal_components_of",
                                  "table.add_clusters", "table.find_distances_between_rows", "table.add_nmds",
-                                 "table.compare_profiles_of"]),
+                                 "table.compare_profiles_of",
+                                 # S3c-1 (communities and resistomes): core, then "more"
+                                 "table.add_diversity_columns", "table.add_log_ratio_columns",
+                                 "table.add_principal_coordinates", "table.explain_profiles_of",
+                                 "table.find_correlation_between_profiles", "table.add_axes_that_separate_groups",
+                                 "table.add_correspondence_axes"]),
     ("Survival", ["table.find_survival_over_time", "table.compare_survival", "table.explain_survival",
                   "draw_survival_curves",
                   # S3b-3 (survival and person-time): core, then the chart twin
@@ -281,6 +288,9 @@ def _bx(body: str) -> str:
     lines += textwrap.dedent(body).strip().splitlines()
     return "\n".join(lines)
 
+
+# S3c-1: six genes of the resistome practice table, for the short examples
+_SIX_GENES = '["blaTEM", "blaCTXM", "sul1", "sul2", "tetA", "tetM"]'
 
 HELP_EXAMPLES = {
     # start, show, save
@@ -749,6 +759,27 @@ HELP_EXAMPLES = {
         chart.draw_dots(x="NMDS1", y="NMDS2", colour="grazed")
         chart.save("meadow_nmds.png")"""),
     "table.compare_profiles_of": _tx("meadow", 'table.compare_profiles_of(for_each_group_in="grazed")'),
+    # S3c-1: communities and resistomes (sdata.get_example("resistome"), made up)
+    "table.add_diversity_columns": _tx("resistome", f"""\
+        table.add_diversity_columns(columns={_SIX_GENES})
+        table.compare_averages_of("shannon", for_each_group_in="site")"""),
+    "table.add_log_ratio_columns": _tx("resistome", f'table.add_log_ratio_columns(columns={_SIX_GENES})'),
+    "table.add_principal_coordinates": _tx("resistome", f"""\
+        table.add_principal_coordinates(columns={_SIX_GENES})
+        chart = table.start_chart()
+        chart.draw_dots(x="PCo1", y="PCo2", colour="site")
+        chart.save("resistome_pcoa.png")"""),
+    "table.explain_profiles_of": _tx("resistome", f'table.explain_profiles_of({_SIX_GENES}, using=["temperature", '
+                                                  '"salinity"])'),
+    "table.find_correlation_between_profiles": _tx("resistome", f'table.find_correlation_between_profiles(first={_SIX_GENES}, '
+                                                                'second=["temperature", "salinity"])'),
+    "table.add_axes_that_separate_groups": _tx("resistome", 'table.add_axes_that_separate_groups(columns=["temperature", '
+                                                            '"salinity"], for_each_group_in="site")'),
+    "table.add_correspondence_axes": _tx("resistome", f'table.add_correspondence_axes(columns={_SIX_GENES})'),
+    "draw_richness_curves": _ex("resistome", f'chart.draw_richness_curves(columns={_SIX_GENES}, colour="site")',
+                                "resistome_richness"),
+    "draw_cluster_tree": _ex("resistome", f'chart.draw_cluster_tree(columns={_SIX_GENES}, measure="bray-curtis", '
+                                          'names="sample")', "resistome_tree"),
     # signals and time series
     "table.find_spectrum_of": _tx("sensor", 'table.find_spectrum_of("signal", sorted_by="time")'),
     "nums.find_spectrum": _nx("nums.find_spectrum(time_step=0.005)", values='sdata.get_example("sensor")["signal"]'),
@@ -1559,6 +1590,9 @@ INTERACTIONS_LESSON = "When one effect depends on another"
 MORE_SURVIVAL_LESSON = "More survival: start times, competing events, adjusted curves"  # S3b-3
 # S3b-1: combining studies (lesson 30; found by title)
 COMBINING_LESSON = "Combining studies (meta-analysis)"
+DIVERSITY_LESSON = "Diversity of a community"  # S3c-1
+MAKEUP_LESSON = "Make-up of communities"  # S3c-1
+GENES_LINE = ('genes = ["blaTEM", "blaCTXM", "blaOXA48", "blaNDM", "sul1", "sul2", "tetA", "tetM", "qnrS", "ermB", "aadA", "mphA", "vanA", "mcr1"]')
 COMBINE_CALL = ('table.combine_studies(names="trial", events=["tb_vaccinated", "tb_unvaccinated"], '
                 'out_of=["vaccinated", "unvaccinated"])')
 
@@ -3594,6 +3628,10 @@ LESSONS = [
             "above 0.2 hard to trust. Try dimensions=3 if the stress is high.",
             "PERMANOVA can mistake a difference in spread for a difference in make-up, so "
             "compare_profiles_of also checks the spread of each group and says if it differs.",
+            'More: table.add_principal_coordinates() is the twin of add_nmds (a map from the distances, PCo1 and '
+            'PCo2); add_clusters(how_many="automatic") chooses the number of clusters by the silhouette width; '
+            "chart.draw_cluster_tree() draws the tree of hierarchical clusters. Lessons 31 and 32 use them on a "
+            "resistome.",
             "Clusters always appear, even in data without groups: check them against what you know.",
             'method="hierarchical" clusters step by step (Ward linkage) instead of k-means.',
         ],
@@ -5097,6 +5135,213 @@ LESSONS = [
         ],
         words=["table.combine_studies", "forest_plot", "draw_funnel_plot"],
     ),
+    # S3c-1 (communities and resistomes): lessons 31 and 32, found by title
+    dict(
+        title=DIVERSITY_LESSON,
+        needs_r=needs_r_text("Every example of this lesson counts kinds with R vegan: add_diversity_columns() and "
+                             "draw_richness_curves()", packages=("vegan",)),
+        learn=[
+            "how to read a community table: one row per sample, one column per kind (species, genes)",
+            "richness, Shannon and Simpson, and what \"as diverse as 7 equally common kinds\" means",
+            "why richness must be compared at the same total count (rarefaction)",
+        ],
+        parts=[
+            ("Picture first. The resistome table holds the reads that matched 14 antibiotic resistance genes in 24 "
+             "made-up samples from a hospital effluent, a treatment plant, a harbour and a fjord sediment. Each "
+             "curve shows how many genes a sample would show at each number of reads.", [
+                ("import simplydata as sdata", "Load simplydata."),
+                ('table = sdata.table(sdata.get_example("resistome"))', "One row per sample: its site, temperature, "
+                                                                        "salinity, reads, and one column per gene."),
+                (GENES_LINE, "The columns that hold counts of a kind. simplydata never guesses them: temperature or "
+                             "reads would otherwise be counted as genes."),
+                ("chart = table.start_chart()", "A chart of the table."),
+                ('chart.draw_richness_curves(columns=genes, colour="site")',
+                 "One curve per sample, coloured by site. The curves climb fast and then flatten: more reads find few "
+                 "new genes. The dotted line marks the smallest total, 1,285 reads."),
+                ('chart.save("lesson31_richness.png")', "Save the picture."),
+            ]),
+            ("How diverse is each sample? add_diversity_columns adds richness (the genes present), Shannon and "
+             "Simpson, one value per sample, and says each as a number of equally common genes.", [
+                ("import simplydata as sdata", "Load simplydata."),
+                ('table = sdata.table(sdata.get_example("resistome"))', "The same samples."),
+                (GENES_LINE, "The gene columns."),
+                ("table.add_diversity_columns(columns=genes)",
+                 "Shannon averages 1.99: as diverse as a sample of 7.4 equally common genes. That is the number to "
+                 "say in words; a 10 % drop in Shannon is not a 10 % drop in diversity."),
+                ('table.compare_averages_of("shannon", for_each_group_in="site")',
+                 "The new column is an ordinary column: Shannon is highest in the hospital effluent (2.15) and lowest "
+                 "in the fjord sediment (1.85)."),
+            ]),
+            ("Compare richness at the same total count. A sample with 59,389 reads shows more genes than one with "
+             "1,285, just because it was read more deeply. at_total_count= gives the richness expected in a sample "
+             "of that many reads (rarefaction, the expected value, not a random subsample).", [
+                ("import simplydata as sdata", "Load simplydata."),
+                ('table = sdata.table(sdata.get_example("resistome"))', "The same samples."),
+                (GENES_LINE, "The gene columns."),
+                ("table.add_diversity_columns(columns=genes, show=\"richness\", at_total_count=1285)",
+                 "One change: at_total_count=1285, the smallest total. A new column holds the expected richness in "
+                 "1,285 reads: 12.9 genes in the hospital effluent, 11.1 in the fjord sediment."),
+                ('table.compare_averages_of("expected richness at 1285", for_each_group_in="site")',
+                 "Now the sites are compared on the same footing."),
+            ]),
+        ],
+        notes=[
+            "Shannon uses the natural log here (scikit-bio's default changed from bits to the natural log in 0.6.1), "
+            "and Simpson is 1 - D, the chance that two reads are of different genes; papers differ, so say which.",
+            "Chao1 (show=\"chao1\") estimates how many genes would be found if sequencing went on; like "
+            "at_total_count= it needs raw counts. Richness, Shannon and Simpson also work on normalised values "
+            "(per 16S, per million reads), but richness then still depends on depth.",
+            "show=\"hill numbers\" gives all three as numbers of equally common kinds (q = 0, 1, 2), which can be "
+            "compared directly.",
+        ],
+        task=[
+            "Fill in the blank: table.add_diversity_columns(columns=genes, show=____) to add Chao1. How close is it "
+            "to the richness seen?",
+            "Change only show=: add show=\"hill numbers\" and say in words what \"hill number 1\" means.",
+            "Say in words: why must richness be compared at the same total count?",
+            "Try to remember without looking back: which option gives the richness expected in a sample of 2,000 "
+            "reads?",
+        ],
+        solutions=[
+            (_sx("""\
+                import simplydata as sdata
+                table = sdata.table(sdata.get_example("resistome"))
+                genes = ["blaTEM", "blaCTXM", "blaOXA48", "blaNDM", "sul1", "sul2", "tetA", "tetM", "qnrS", "ermB",
+                         "aadA", "mphA", "vanA", "mcr1"]
+                table.add_diversity_columns(columns=genes, show="chao1")"""),
+             "show=\"chao1\": it averages 12.9, the same as the genes seen: with so many reads per gene, no gene is "
+             "seen only once or twice, so Chao1 expects nothing more to find."),
+            (_sx("""\
+                import simplydata as sdata
+                table = sdata.table(sdata.get_example("resistome"))
+                genes = ["blaTEM", "blaCTXM", "blaOXA48", "blaNDM", "sul1", "sul2", "tetA", "tetM", "qnrS", "ermB",
+                         "aadA", "mphA", "vanA", "mcr1"]
+                table.add_diversity_columns(columns=genes, show="hill numbers")"""),
+             "Hill number 1 is the number of equally common genes that would give the same Shannon diversity: about "
+             "7.4 on average, against 12.9 genes present, because a few genes hold most of the reads."),
+            (_sx("""\
+                import simplydata as sdata
+                table = sdata.table(sdata.get_example("resistome"))
+                genes = ["blaTEM", "blaCTXM", "blaOXA48", "blaNDM", "sul1", "sul2", "tetA", "tetM", "qnrS", "ermB",
+                         "aadA", "mphA", "vanA", "mcr1"]
+                table.add_diversity_columns(columns=genes, show="richness", at_total_count=1285)"""),
+             "More reads find more of the rare genes, so a deeply sequenced sample looks richer even when it is not; "
+             "at the same total count the depth no longer decides."),
+            (_sx("""\
+                import simplydata as sdata
+                table = sdata.table(sdata.get_example("resistome"))
+                genes = ["blaTEM", "blaCTXM", "blaOXA48", "blaNDM", "sul1", "sul2", "tetA", "tetM", "qnrS", "ermB",
+                         "aadA", "mphA", "vanA", "mcr1"]
+                table.add_diversity_columns(columns=genes, show="richness", at_total_count=2000)"""),
+             "at_total_count=2000; the two samples with fewer than 2,000 reads get empty cells, and the printout "
+             "names them."),
+        ],
+        words=["table.add_diversity_columns", "draw_richness_curves", "table.compare_averages_of"],
+    ),
+    dict(
+        title=MAKEUP_LESSON,
+        needs_r=needs_r_text("Every example of this lesson runs R: add_log_ratio_columns() (zCompositions, "
+                             "compositions), add_principal_coordinates() and explain_profiles_of() (vegan)",
+                             packages=("vegan", "zCompositions", "compositions")),
+        learn=[
+            "why counts of genes or species are compositional: the totals are set by the sequencing depth",
+            "how log ratios (clr) and the Aitchison distance read the same table without the depth",
+            "how much of the make-up temperature and salinity explain (RDA)",
+        ],
+        parts=[
+            ("Counts are parts of a whole. Two genes can go up together only because a sample got more reads. "
+             "Compare the counts of blaTEM and sul1 with their log ratios.", [
+                ("import simplydata as sdata", "Load simplydata."),
+                ('table = sdata.table(sdata.get_example("resistome"))', "The resistome samples."),
+                (GENES_LINE, "The gene columns."),
+                ('table.find_correlation_between("blaTEM", "sul1")',
+                 "r = 0.51 on the counts. But blaTEM also goes with the number of reads (r = 0.52): deeper samples "
+                 "have more of everything."),
+                ("table.add_log_ratio_columns(columns=genes)",
+                 "clr_ columns: the log of each gene over the sample's geometric mean. 27 zeros are first replaced by "
+                 "estimated small values, and the printout says so."),
+                ('table.find_correlation_between("clr_blaTEM", "clr_sul1")',
+                 "On log ratios the positive link is gone (r = -0.35, p = 0.095): it came from the depth."),
+            ]),
+            ("The same table read two ways. PCoA draws the samples from their distances: Bray-Curtis on the counts, "
+             "then Aitchison (the distance between the log ratios).", [
+                ("import simplydata as sdata", "Load simplydata."),
+                ('table = sdata.table(sdata.get_example("resistome"))', "The same samples."),
+                (GENES_LINE, "The gene columns."),
+                ("table.add_principal_coordinates(columns=genes, measure=\"aitchison\")",
+                 "PCo1 shows 43.6 % of the differences between samples, and no eigenvalue is negative. With "
+                 "measure=\"bray-curtis\" (the default) PCo1 shows 52.8 %, 5 eigenvalues are negative, and a note "
+                 "warns that Bray-Curtis on raw counts mixes in the depth."),
+                ("chart = table.start_chart()", "A chart of the table with PCo1 and PCo2."),
+                ('chart.draw_dots(x="PCo1", y="PCo2", colour="site")',
+                 "The hospital effluent samples sit apart along PCo1; the treatment plant, harbour and fjord sediment "
+                 "follow each other along PCo2, from the sewage to the sea."),
+                ('chart.save("lesson32_pcoa.png")', "Save the picture."),
+            ]),
+            ("What explains the make-up? explain_profiles_of tests columns such as temperature and salinity against "
+             "the whole profile of genes: redundancy analysis (RDA).", [
+                ("import simplydata as sdata", "Load simplydata."),
+                ('table = sdata.table(sdata.get_example("resistome"))', "The same samples."),
+                (GENES_LINE, "The gene columns."),
+                ('table.explain_profiles_of(genes, using=["temperature", "salinity"], measure="aitchison")',
+                 "Temperature and salinity together explain 38.6 % of the differences in make-up (adjusted R "
+                 "squared); each is tested after the other, so their order does not matter."),
+            ]),
+        ],
+        notes=[
+            "Zeros: logs need values above 0. simplydata replaces zeros by estimated small values (R zCompositions "
+            "GBM) and never deletes a gene; zeros_replaced_by=\"adding 1\" adds 1 instead, and the answer then "
+            "depends on the 1.",
+            "PCoA percentages: simplydata gives the share of the positive eigenvalues; vegan and ape divide by the "
+            "sum of all of them, so their numbers are a little higher. The printout says both.",
+            "explain_profiles_of uses Bray-Curtis by default (distance-based RDA, as compare_profiles_of). With "
+            "Bray-Curtis the read depth itself explains part of the make-up: try using=[\"salinity\", \"reads\"].",
+            "More: compare_profiles_of(..., method=\"anosim\") gives ANOSIM; show=\"contributions\" (SIMPER) shows "
+            "which genes add most to the difference between two sites, with Warton's caveat; "
+            "find_correlation_between_profiles compares two sets of columns (Mantel, Procrustes); "
+            "chart.draw_cluster_tree draws the tree of clusters.",
+        ],
+        task=[
+            "Fill in the blank: table.add_principal_coordinates(columns=genes, measure=____) for the distance "
+            "between log ratios.",
+            "Change only measure=: run explain_profiles_of(genes, using=[\"temperature\", \"salinity\"]) with the "
+            "default Bray-Curtis. How much do they explain now?",
+            "Say in words why a correlation between two genes' counts can be false.",
+            "Try to remember without looking back: which word adds clr columns?",
+        ],
+        solutions=[
+            (_sx("""\
+                import simplydata as sdata
+                table = sdata.table(sdata.get_example("resistome"))
+                genes = ["blaTEM", "blaCTXM", "blaOXA48", "blaNDM", "sul1", "sul2", "tetA", "tetM", "qnrS", "ermB",
+                         "aadA", "mphA", "vanA", "mcr1"]
+                table.add_principal_coordinates(columns=genes, measure="aitchison")"""),
+             "measure=\"aitchison\": the straight-line distance between the samples' log ratios."),
+            (_sx("""\
+                import simplydata as sdata
+                table = sdata.table(sdata.get_example("resistome"))
+                genes = ["blaTEM", "blaCTXM", "blaOXA48", "blaNDM", "sul1", "sul2", "tetA", "tetM", "qnrS", "ermB",
+                         "aadA", "mphA", "vanA", "mcr1"]
+                table.explain_profiles_of(genes, using=["temperature", "salinity"])"""),
+             "With Bray-Curtis on the counts they explain 35.9 %, and the note warns that the totals differ a lot; "
+             "the log ratios (38.6 %) take the depth out."),
+            (_sx("""\
+                import simplydata as sdata
+                table = sdata.table(sdata.get_example("resistome"))
+                table.find_correlation_between("blaTEM", "reads")"""),
+             "Each count grows with the sequencing depth of its sample, so two genes rise and fall together even "
+             "when their shares do not change (Pearson's spurious correlation)."),
+            (_sx("""\
+                import simplydata as sdata
+                table = sdata.table(sdata.get_example("resistome"))
+                genes = ["blaTEM", "blaCTXM", "blaOXA48", "blaNDM", "sul1", "sul2", "tetA", "tetM", "qnrS", "ermB",
+                         "aadA", "mphA", "vanA", "mcr1"]
+                table.add_log_ratio_columns(columns=genes)"""),
+             "table.add_log_ratio_columns: method=\"clr\" is the default."),
+        ],
+        words=["table.add_log_ratio_columns", "table.add_principal_coordinates", "table.explain_profiles_of",
+               "table.find_correlation_between", "draw_dots"],
+    ),
 ]
 
 
@@ -5131,7 +5376,7 @@ def _list_lessons() -> None:
     print("survival and planning a study, fitting curves and finding answers, distributions, working")
     print("with a model, risks, diagnostic tests and agreement, time series, forecasts, cycles,")
     print("(optional) systems, percentiles and outliers, effects that depend on each other, more survival,")
-    print("and combining studies (meta-analysis).\n")
+    print("combining studies (meta-analysis), and the diversity and make-up of communities.\n")
     for i, les in enumerate(LESSONS, start=1):
         print(f"  sdata.show_lesson({i}){' ' * (5 - len(str(i)))}{les['title']}")
     print("\nStart with sdata.show_lesson(1). Each lesson ends with a small task to try yourself.")
