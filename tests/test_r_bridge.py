@@ -48,6 +48,21 @@ def test_values_come_back_from_r(needs_r):
     assert r_call("matrix(1:6, nrow = 2)").shape == (2, 3)
 
 
+def test_values_from_r_own_their_memory(needs_r):
+    """A result must not be a view into R's memory: once R collects the vector and reuses that memory, a view
+    silently fills with other data (seen on CI as a test whose x turned into one repeated number)."""
+    got = r_call("list(x = as.numeric(1:108) / 7, n = 1:5, m = matrix(as.numeric(1:6), nrow = 2))")
+    x, n, m = got["x"], got["n"], got["m"]
+    want_x, want_n, want_m = x.copy(), n.copy(), m.copy()
+    del got
+    for _ in range(5):
+        r_call("invisible(lapply(1:2000, function(i) rnorm(108))); invisible(gc())")
+    for array in (x, n, m):
+        owner = array if array.base is None else array.base
+        assert isinstance(owner, np.ndarray) and owner.flags.owndata, "an R result still points into R's memory"
+    assert np.array_equal(x, want_x) and np.array_equal(n, want_n) and np.array_equal(m, want_m)
+
+
 def test_too_big_whole_numbers_are_refused(needs_r):
     with pytest.raises(SimplydataError, match="too big to pass to R exactly"):
         r_call("x", x=np.array([2 ** 60], dtype=np.int64))
