@@ -124,14 +124,21 @@ def test_promax_prints_factor_correlations(tests_table, needs_r, capsys):
 
 
 def test_columns_that_share_little_get_the_kmo_note(needs_r, capsys):
+    # how_many=1: no parallel analysis, whose outcome on random columns differs between platforms (BLAS)
     rng = np.random.default_rng(3)
     noise = pd.DataFrame(rng.normal(size=(200, 6)), columns=list("abcdef"))
-    table = sdata.table(noise)
-    with pytest.raises(SimplydataError, match="Parallel analysis finds no hidden factor"):
-        table.find_hidden_factors_behind(list("abcdef"))
-    table.find_hidden_factors_behind(list("abcdef"), how_many=1)
+    sdata.table(noise).find_hidden_factors_behind(list("abcdef"), how_many=1)
     out = capsys.readouterr().out
     assert "the columns share little (KMO = " in out
+
+
+def test_parallel_analysis_that_finds_nothing_is_explained(tests_table, monkeypatch):
+    # R's answer is stood in for, so the refusal is tested the same way on every platform (and without R)
+    from simplydata.table import factor_r
+
+    monkeypatch.setattr(factor_r, "explore", lambda *args, **kwargs: {"suggested": np.nan, "kmo": 0.5})
+    with pytest.raises(SimplydataError, match="Parallel analysis finds no hidden factor.*how_many=1"):
+        tests_table.find_hidden_factors_behind(COLUMNS)
 
 
 def test_rows_with_empty_cells_are_skipped_with_a_note(needs_r, capsys):
