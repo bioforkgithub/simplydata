@@ -175,6 +175,8 @@ class SurvivalMoreWords:
                         out["events by then"].append(int(((states == k + 1) & rows & (times <= x)).sum()))
                     for c, key in (("risk", "risk"), ("95 % CI low", "low"), ("95 % CI high", "high")):
                         out[c].append(math.nan if gone else float(found[key][i, k]))
+            if not where:
+                print(f"  {who}no events of any kind, so every chance stays 0.")
             shown = where if points is not None else where[-1:]
             for i in shown:
                 x = float(found["time"][i])
@@ -238,6 +240,10 @@ class SurvivalMoreWords:
         for option, column in list(named.items()) + [("competing_with", c) for c in competing]:
             if column is not None and not isinstance(column, str):
                 raise SimplydataError(f"{option}= needs a column name in quotes.\nFor example, {example}")
+        if competing and event_date is None:
+            raise SimplydataError("competing_with= names the events that compete with event_date=, so it needs "
+                                  f"event_date= too.\nFor example, table.{step}(from_date=\"admitted\", "
+                                  'event_date="first_esbl", competing_with="discharged")')
         dates = [c for c in [from_date, to_date, event_date] + competing if c is not None]
         if len(set(dates)) < len(dates):
             raise SimplydataError("Each date column can have one job: from_date=, to_date=, event_date= and "
@@ -280,7 +286,7 @@ class SurvivalMoreWords:
             ends.append((to_date, day[to_date]))
         if end_day is not None:
             ends.append((str(until), np.full(n, end_day)))
-        self._check_follow_up_dates(start, to_date, day, end_day, until, from_date)
+        self._check_follow_up_dates(start, to_date, day, end_day, until, from_date, competing)
         prevalent = np.zeros(n, dtype=bool) if event_date is None else (day[event_date] < start)
         stacked = np.vstack([e for _, e in ends])
         filled = ~np.isnan(stacked)
@@ -346,16 +352,20 @@ class SurvivalMoreWords:
         return float(_days(np.array([stamp.to_datetime64()]))[0])
 
     @staticmethod
-    def _check_follow_up_dates(start, to_date, day, end_day, until, from_date):
-        if to_date is not None:
-            bad = np.flatnonzero(day[to_date] < start)
-            if len(bad):
-                shown = ", ".join(str(i + 1) for i in bad[:8]) + (" ..." if len(bad) > 8 else "")
-                raise SimplydataError(f'"{to_date}" is before "{from_date}" in {len(bad)} '
-                                      f"{'row' if len(bad) == 1 else 'rows'} (row {shown}, counting from 1). Check "
-                                      "those dates: follow-up cannot end before it starts.")
+    def _check_follow_up_dates(start, to_date, day, end_day, until, from_date, competing=()):
         if end_day is not None and np.all(np.isnan(start) | (end_day < start)):
             raise SimplydataError(f'until="{until}" is before every "{from_date}", so no row was followed.')
+        ends = [(f'"{c}"', day[c]) for c in ([to_date] if to_date is not None else []) + list(competing)]
+        if end_day is not None:
+            ends.append((f'until="{until}"', np.full(len(start), end_day)))
+        for name, values in ends:
+            bad = np.flatnonzero(values < start)
+            if len(bad):
+                shown = ", ".join(str(i + 1) for i in bad[:8]) + (" ..." if len(bad) > 8 else "")
+                raise SimplydataError(f'{name} is before "{from_date}" in {len(bad)} '
+                                      f"{'row' if len(bad) == 1 else 'rows'} (row {shown}, counting from 1). Check "
+                                      "those dates (or leave those rows out first): follow-up cannot end before it "
+                                      "starts.")
 
     @staticmethod
     def _time_event_sentences(step, time, event, unit, from_date, kinds, event_date, competing, until, event_values,
@@ -368,7 +378,7 @@ class SurvivalMoreWords:
                                  for k in [event_date] + competing if k is not None)
             still = sum(1 for v in event_values if v == STILL_FOLLOWED)
             print(f'Added "{event}": the name of the event that came first ({counts} of {used} rows), or '
-                  f'"{STILL_FOLLOWED}" ({still} rows). Next: table.find_risk_over_time(time="{time}", event="{event}", '
+                  f'"{STILL_FOLLOWED}" ({still} {"row" if still == 1 else "rows"}). Next: table.find_risk_over_time(time="{time}", event="{event}", '
                   f'value="{event_date}", competing_with=[{", ".join(chr(34) + c + chr(34) for c in competing)}]).')
         elif event_date is not None:
             had = sum(1 for v in event_values if v == 1)
@@ -380,7 +390,7 @@ class SurvivalMoreWords:
         total = float(np.nansum(span))
         print(f"Person-time in all: {total:,.6g} {unit} over {used} rows.")
         if unit != "days":
-            print(f"Note: one {unit[:-1]} is {_whole(UNITS[unit])} days here (as R Epi cal.yr() and Stata stset "
+            print(f"Note: one {unit[:-1]} is {UNITS[unit]:g} days here (as R Epi cal.yr() and Stata stset "
                   "scale(365.25)); other tools may count calendar months or years.")
         if prevalent.any():
             rows = np.flatnonzero(prevalent)

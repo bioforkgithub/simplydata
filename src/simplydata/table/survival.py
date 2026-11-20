@@ -279,7 +279,10 @@ def _choice(step, option, value, choices, spellings):
 
 def time_points(step, at, option="at_time_points"):
     """at_time_points=: one time or a list of times, numbers of 0 or more, sorted (said when they were not)."""
-    points = list(at) if isinstance(at, (list, tuple, np.ndarray)) else [at]
+    if isinstance(at, (str, bytes)) or not hasattr(at, "__iter__"):
+        points = [at]
+    else:
+        points = list(at.to_list() if hasattr(at, "to_list") else at)
     if not points or not all(_is_number(p) for p in points):
         raise SimplydataError(f"{option}= needs numbers on the time= clock, for example {option}=[365, 730].")
     values = np.asarray(points, dtype=float)
@@ -684,6 +687,11 @@ class SurvivalWords:
         group = for_each_group_in if for_each_group_in else "1"
         print(f"Method: Kaplan-Meier estimate with 95 % confidence intervals on the log scale (Greenwood), "
               f"as R survfit({_surv(time, event, yes, followed_from)} ~ {group}).")
+        if entries is not None and np.isin(entries[entries > 0], times).any():
+            print("Note: some rows start where other rows end, as when one person's follow-up is split into rows by "
+                  "a column that changes over time. Kaplan-Meier with start times is meant for rows that join late "
+                  "(delayed entry); curves of groups of a column that changes over time are not the survival of "
+                  "fixed groups. explain_survival(..., followed_from=) is the way to study such a column.")
         for name, n in shaky:
             who = f'"{name}": ' if name is not None else ""
             print(f"Note: {who}only {n} {'row was' if n == 1 else 'rows were'} followed at the first event, so the "
@@ -820,6 +828,16 @@ class SurvivalWords:
         from .survival_r import adjusted_curves
 
         columns = {c: (kept[c], not all(_is_number(v) for v in kept[c])) for c in allowing}
+        if points is not None:
+            late = points[points >= times.max()]
+            if len(late):
+                print(f"Note: {_list_words(_whole(p) for p in late)} {'is' if len(late) == 1 else 'are'} not before "
+                      f'the last "{time}" ({_whole(times.max())}); adjusted curves are not carried past it, so '
+                      f"{'it is' if len(late) == 1 else 'they are'} left out.")
+                points = points[points < times.max()]
+                if not len(points):
+                    raise SimplydataError(f'Every time in at_time_points= is at or after the last "{time}" '
+                                          f"({_whole(times.max())}); give earlier times.")
         found = adjusted_curves(times, events.astype(float), [names[c] for c in codes], names, columns, at=points)
         shown = _list_words(f'"{c}"' for c in allowing)
         print(f'Curves adjusted for {shown}: each row\'s curve was predicted as if it were in each "{for_each}" '
@@ -871,6 +889,11 @@ class SurvivalWords:
                 raise SimplydataError("competing_with= (Gray's test) works without followed_from= and "
                                       "average_time_up_to=.")
             return self._grays_test(step, time, event, value, competing_with, for_each_group_in, allowing, example)
+        if allowing and followed_from is not None:
+            raise SimplydataError("compare_survival() takes allowing_for= or followed_from=, not both at once: "
+                                  "statsmodels' stratified log-rank test cannot use start times. Compare within "
+                                  "each group with table.keep_rows_where(...) first, or use explain_survival(..., "
+                                  "allowing_for=, followed_from=).")
         if average_time_up_to is not None and (allowing or followed_from is not None):
             raise SimplydataError("average_time_up_to= works without allowing_for= and followed_from= (R survRM2 "
                                   "takes neither).")
@@ -1009,7 +1032,9 @@ class SurvivalWords:
                 print(f"For {kind} (the competing event) the same test gives chi-square = {_num(s2)}, df = {d2}, "
                       f"{_p_shown(p2)}.")
         print(f"Test: Gray's test of the chance of each event over time (cumulative incidence), as R "
-              f"cmprsk::cuminc(ftime, fstatus, group{', strata' if allowing else ''}, cencode = ...)$Tests.")
+              f"cmprsk::cuminc(ftime, fstatus, group{', strata' if allowing else ''}, cencode = 0)$Tests, with fstatus "
+              f"1 = {kinds[0]}, " + ", ".join(f"{i} = {k}" for i, k in enumerate(kinds[1:], start=2))
+              + ", 0 = every other value.")
         row = {"test": "Gray's test",
                "what it compares": f'the chance of "{event}" = {kinds[0]} over time in each "{for_each}" '
                                    f"({', '.join(names)}), with {rival} competing",
@@ -1260,7 +1285,8 @@ class SurvivalWords:
                          "95 % CI high": float(fit["high"][i]), "coefficient": float(fit["beta"][i]),
                          "standard error": float(fit["se"][i]), "z": float(fit["z"][i]), "p-value": float(fit["p"][i])})
         print(f"Method: Fine-Gray model with robust (sandwich) standard errors, as R cmprsk::crr(ftime, fstatus, "
-              f"cov1 = {' + '.join(using)}, failcode = {kinds[0]}).")
+              f"cov1 = {' + '.join(using)}, failcode = 1, cencode = 0), with fstatus 1 = {kinds[0]}, "
+              + ", ".join(f"{i} = {k}" for i, k in enumerate(kinds[1:], start=2)) + ", 0 = every other value.")
         print(f"Note: for the risk of {kinds[0]} at any moment among those still free of both events (the "
               'cause-specific hazard ratios, best for asking what causes it), leave out method="fine-gray".')
         if not fit["converged"]:

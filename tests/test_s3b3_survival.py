@@ -495,3 +495,60 @@ def test_new_columns_go_straight_into_rate_of_and_the_survival_words(capsys):
     t.rate_of("event", time="time")
     t.find_survival_over_time(time="time", event="event")
     assert "Note: 1 row with an empty cell" in capsys.readouterr().out
+
+
+# ---------------------------------------------------------------- review fixes
+def test_stratified_log_rank_with_start_times_is_refused_not_crashed(trial):
+    d = with_entry(trial).assign(older=np.where(trial["age"] > 60, "over 60", "60 or under"))
+    with pytest.raises(SimplydataError, match="not both"):
+        sdata.table(d).compare_survival(time="days", event="died", for_each_group_in="treatment",
+                                        allowing_for="older", followed_from="entry")
+
+
+def test_no_end_date_may_come_before_the_start():
+    early = ADMISSIONS.assign(died=pd.to_datetime("2023-06-01"))
+    with pytest.raises(SimplydataError, match="before"):
+        sdata.table(early).add_time_and_event_columns(from_date="admitted", event_date="first_esbl",
+                                                      competing_with="died", until="2024-12-31")
+    with pytest.raises(SimplydataError, match='until="2024-03-01" is before'):
+        sdata.table(ADMISSIONS).add_time_and_event_columns(from_date="admitted", event_date="first_esbl",
+                                                           until="2024-03-01")
+    with pytest.raises(SimplydataError, match="needs event_date="):
+        sdata.table(ADMISSIONS).add_time_and_event_columns(from_date="admitted", competing_with="discharged",
+                                                           until="2024-12-31")
+
+
+def test_fine_gray_p_values_are_not_rounded(mgus2):
+    from simplydata._r import r_call
+
+    out = frame(sdata.table(mgus2).explain_survival(time="etime", event="event", value="pcm", competing_with="death",
+                                                    using=["age", "sex"], method="fine-gray"))
+    want = r_call("2 * pnorm(-abs(c(-0.01733815, -0.26003824) / c(0.005737103, 0.185681035)))")
+    assert out["p-value"].tolist() == pytest.approx(list(want), rel=1e-5)
+
+
+def test_a_group_without_events_is_named_with_competing_events(mgus2, capsys):
+    data = pd.concat([mgus2, pd.DataFrame({"etime": [10.0, 20.0, 30.0], "event": ["alive"] * 3, "age": [60.0] * 3,
+                                           "sex": ["X"] * 3})], ignore_index=True)
+    sdata.table(data).find_risk_over_time(time="etime", event="event", value="pcm", competing_with="death",
+                                          for_each_group_in="sex")
+    assert "X, no events of any kind" in capsys.readouterr().out
+
+
+def test_adjusted_times_after_the_last_follow_up_are_left_out(trial, needs_r, capsys):
+    out = frame(sdata.table(trial).find_survival_over_time(time="days", event="died", for_each_group_in="treatment",
+                                                           allowing_for=["age"], at_time_points=[365, 5000]))
+    assert set(out["time"]) == {365.0}
+    assert "left out" in capsys.readouterr().out
+
+
+def test_time_points_can_be_a_column(trial):
+    out = frame(sdata.table(trial).find_survival_over_time(time="days", event="died",
+                                                           at_time_points=pd.Series([365, 730])))
+    assert out["time"].tolist() == [365.0, 730.0]
+
+
+def test_split_rows_get_the_delayed_entry_note(capsys):
+    data = pd.DataFrame({"start": [0, 40, 0, 0], "stop": [40, 90, 60, 80], "e": [0, 1, 1, 0]})
+    sdata.table(data).find_survival_over_time(time="stop", event="e", followed_from="start")
+    assert "split into rows" in capsys.readouterr().out

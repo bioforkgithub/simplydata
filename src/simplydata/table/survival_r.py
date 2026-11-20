@@ -99,7 +99,7 @@ def fine_gray(time, state, x):
     x = np.asarray(x, dtype=float)
     values = {"time": np.asarray(time, dtype=float), "state": np.asarray(state, dtype=float), "x": x}
     code = ("x <- matrix(x, ncol = " + str(x.shape[1]) + "); "
-            "m <- cmprsk::crr(time, state, x, failcode = 1, cencode = 0); s <- summary(m); "
+            "m <- cmprsk::crr(time, state, x, failcode = 1, cencode = 0); s <- summary(m, digits = 15); "
             "list(beta = unname(s$coef[, 1]), se = unname(s$coef[, 3]), z = unname(s$coef[, 4]), "
             "p = unname(s$coef[, 5]), ratio = unname(s$conf.int[, 1]), low = unname(s$conf.int[, 3]), "
             "high = unname(s$conf.int[, 4]), converged = isTRUE(m$converged), n = m$n)")
@@ -224,13 +224,19 @@ def cox_start_stop(time, event, x, entry, strata=None):
     code = ("x <- matrix(x, ncol = " + str(x.shape[1]) + "); "
             f"m <- survival::coxph(survival::Surv(start, time, event) ~ {rhs}, ties = 'efron'); "
             "list(beta = unname(stats::coef(m)), var = unname(stats::vcov(m)), loglik0 = m$loglik[1], "
-            "loglik = m$loglik[2], iter = m$iter)")
+            "loglik = m$loglik[2], converged = m$iter < survival::coxph.control()$iter.max)")
     out = _call(code, SURVIVAL, "The Cox model of rows that start at an event time (R survival::coxph)",
                 python_note="statsmodels PHReg counts a row as at risk at an event time equal to its start, which R "
                             "does not", **values)
     k = x.shape[1]
-    return dict(beta=np.atleast_1d(np.asarray(out["beta"], dtype=float)),
+    beta = np.atleast_1d(np.asarray(out["beta"], dtype=float))
+    if not np.all(np.isfinite(beta)):
+        from .._errors import SimplydataError
+
+        raise SimplydataError("The model cannot be fitted: two of the terms say the same thing "
+                              "(or a term has the same value in every row with an event).")
+    return dict(beta=beta,
                 var=np.asarray(out["var"], dtype=float).reshape(k, k),
                 loglik0=float(np.asarray(out["loglik0"]).reshape(-1)[0]),
                 loglik=float(np.asarray(out["loglik"]).reshape(-1)[0]),
-                converged=bool(float(np.asarray(out["iter"]).reshape(-1)[0]) < 20), x=x - x.mean(axis=0))
+                converged=bool(np.atleast_1d(out["converged"])[0]), x=x - x.mean(axis=0))
