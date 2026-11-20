@@ -44,6 +44,10 @@ def test_dose_response_matches_r_drc(ryegrass, capsys):
             " high = unname(e[, 4]))", ("drc",))
     params = out[out["term"].str.match(r"^[bcde] \(")]
     assert params["estimate"].to_numpy() == pytest.approx(ref["coef"], rel=1e-6)
+    ci = r("m <- drc::drm(rootl ~ conc, data = drc::ryegrass, fct = drc::LL.4()); "
+           "k <- confint(m); list(low = unname(k[, 1]), high = unname(k[, 2]))", ("drc",))
+    assert params["95 % CI low"].to_numpy() == pytest.approx(np.asarray(ci["low"], dtype=float), rel=1e-9)
+    assert params["95 % CI high"].to_numpy() == pytest.approx(np.asarray(ci["high"], dtype=float), rel=1e-9)
     assert params["standard error"].to_numpy() == pytest.approx(ref["se"], rel=1e-6)
     eds = out[out["term"].str.startswith("ED")]
     assert list(eds["term"]) == ["ED10", "ED50", "ED90"]
@@ -77,10 +81,32 @@ def test_dose_response_groups_give_drc_edcomp(needs_r, capsys):
                        "herbicide = as.character(drc::S.alba$Herbicide))", ("drc",)))
     out = sdata.table(d).fit_dose_response(x="dose", y="dm", for_each_group_in="herbicide").as_pandas()
     ref = r("m <- drc::drm(DryMatter ~ Dose, Herbicide, data = drc::S.alba, fct = drc::LL.4()); "
-            "e <- drc::EDcomp(m, c(50, 50), interval = 'delta', display = FALSE); list(ratio = e[1, 1])", ("drc",))
-    ratio = out[out["term"] == "ED50 ratio"]
-    assert one(ratio["estimate"]) == pytest.approx(one(ref["ratio"]), rel=1e-6)
+            "e <- drc::EDcomp(m, c(50, 50), interval = 'delta', display = FALSE); "
+            "t <- drc::EDcomp(m, c(50, 50), display = FALSE); "
+            "list(ratio = e[1, 1], low = e[1, 2], high = e[1, 3], se = t[1, 2], p = t[1, 4])", ("drc",))
+    ratio = out[out["term"] == "ED50 ratio"].iloc[0]
+    assert (ratio["estimate"], ratio["95 % CI low"], ratio["95 % CI high"], ratio["standard error"],
+            ratio["p-value"]) == pytest.approx((one(ref["ratio"]), one(ref["low"]), one(ref["high"]), one(ref["se"]),
+                                                one(ref["p"])), rel=1e-6)
     assert "relative potency" in capsys.readouterr().out
+
+
+def test_dose_response_that_rises_with_dose_says_so(needs_r, capsys):
+    """An increasing LL.4 curve (drc's b < 0): the sentence follows the sign of b, and the numbers are drc's."""
+    rng = np.random.default_rng(5)
+    dose = np.repeat([0.0, 0.5, 1, 2, 4, 8, 16, 32], 3)
+    mean = np.where(dose > 0, 2 + 18 / (1 + np.exp(-1.5 * (np.log(np.where(dose > 0, dose, 1)) - np.log(4)))), 2.0)
+    df = pd.DataFrame({"dose": dose, "growth": mean + rng.normal(0, 0.8, len(dose))})
+    out = sdata.table(df).fit_dose_response(x="dose", y="growth", doses_for_effect=[10, 50]).as_pandas()
+    printed = capsys.readouterr().out
+    assert "the response rises with dose" in printed and "falls with dose" not in printed
+    ref = r("m <- drc::drm(growth ~ dose, fct = drc::LL.4()); e <- drc::ED(m, c(10, 50), interval = 'delta', "
+            "display = FALSE); list(b = coef(m)[1], ed = unname(e[, 1]))", ("drc",), dose=dose,
+            growth=df["growth"].to_numpy())
+    assert one(ref["b"]) < 0
+    eds = out[out["term"].str.startswith("ED")]["estimate"].to_numpy()
+    assert eds == pytest.approx(np.asarray(ref["ed"], dtype=float), rel=1e-6)
+    assert eds[0] < eds[1]  # 10 % of the way up comes before 50 %
 
 
 def test_dose_response_edge_cases(needs_r, capsys):
@@ -189,7 +215,7 @@ def test_bends_are_r_segmented(needs_r, capsys):
     d = r("data(stagnant, package = 'segmented'); list(x = stagnant$x, y = stagnant$y)", ("segmented",))
     out = sdata.table(pd.DataFrame(d)).fit_line(x="x", y="y", with_bends=1).as_pandas().iloc[0]
     ref = r("data(stagnant, package = 'segmented'); o <- lm(y ~ x, data = stagnant); "
-            "s <- segmented::segmented(o, seg.Z = ~ x, npsi = 1); sl <- segmented::slope(s, digits = 15)$x; "
+            "s <- segmented::segmented(o, seg.Z = ~ x, npsi = 1, control = segmented::seg.control(seed = 1)); sl <- segmented::slope(s, digits = 15)$x; "
             "list(psi = s$psi[1, 'Est.'], s1 = sl[1, 1], s2 = sl[2, 1], p = segmented::davies.test(o, seg.Z = ~ x)$p.value)",
             ("segmented",))
     assert (out["bend 1"], out["slope 1"], out["slope 2"], out["Davies p-value"]) == pytest.approx(
@@ -223,6 +249,24 @@ def test_line_that_changes_at_a_point_is_statsmodels_ols(capsys):
     assert "Lag-1 autocorrelation" in capsys.readouterr().out
     exp = sdata.table(df[["month", "cases"]]).explain("cases", using=["month"], changes_at={"month": 37}).as_pandas()
     assert exp.set_index("term").loc["after month 37", "effect"] == pytest.approx(ref.params["after"], rel=1e-9)
+
+
+def test_explain_changes_at_with_dates_keeps_the_time_trend(capsys):
+    """Monthly dates with a true jump of -8 at 2023-01: explain keeps the trend before the change (days since the
+    first date), so its jump is fit_line's, not a jump that also has to carry the whole trend."""
+    rng = np.random.default_rng(11)
+    dates = pd.date_range("2020-01-01", periods=60, freq="MS")
+    month = np.arange(60.0)
+    after = (dates >= "2023-01-01").astype(float)
+    cases = 40 + 0.5 * month - 8 * after + rng.normal(0, 1, 60)
+    df = pd.DataFrame({"date": dates, "cases": cases})
+    line = sdata.table(df).fit_line(x="date", y="cases", changes_at="2023-01-01").as_pandas().iloc[0]
+    exp = sdata.table(df).explain("cases", using=["date"], changes_at={"date": "2023-01-01"}).as_pandas()
+    jump = exp.set_index("term").loc["after date 2023-01-01", "effect"]
+    assert jump == pytest.approx(line["level change"], rel=1e-9)
+    assert jump == pytest.approx(-8, abs=1.5)
+    printed = capsys.readouterr().out
+    assert '"date in days since 2020-01-01"' in printed
 
 
 def test_explain_changes_at_needs_a_dict():
@@ -389,7 +433,23 @@ def test_loess_is_no_longer_another_spelling_of_lowess(needs_r):
 def test_an_attached_drc_does_not_hide_gaussian_from_other_r_words(needs_r, capsys):
     """drc has its own gaussian(); with drc attached (as the reliability study and the underneath boxes do),
     mgcv's family must still be stats::gaussian."""
-    r("invisible(TRUE)", ("drc",))  # attaches drc, as a box with r_packages=("drc",) does
+    r("invisible(TRUE)", ("drc",))  # attaches drc, as r_call(packages=("drc",)) does
     out = sdata.table(sdata.get_example("school")).explain("marks", using=["hours", "breakfast"],
                                                            curve_for="hours").as_pandas()
     assert len(out) > 0
+
+
+def test_attached_packages_hide_nothing_the_r_words_need(needs_r, capsys):
+    """quantreg (SparseM masks base matrix functions), mcr (coef, summary), segmented (MASS, nlme) and drc
+    (getInitial, gaussian) attached first: a getInitial-based word and a word with base matrix code in R still
+    give R's answers."""
+    r("invisible(TRUE)", ("drc", "quantreg", "mcr", "segmented"))
+    culture = sdata.get_example("culture")
+    a = culture[culture["flask"] == "A"]
+    fit = sdata.table(a).fit_curve(x="hour", y="density", of_kind="logistic growth").as_pandas()
+    ref = r("f <- stats::nls(y ~ stats::SSlogis(x, Asym, xmid, scal)); list(b = unname(stats::coef(f)))",
+            x=a["hour"].to_numpy(dtype=float), y=a["density"].to_numpy(dtype=float))
+    assert fit["estimate"].to_numpy() == pytest.approx(np.asarray(ref["b"], dtype=float), rel=2e-4)
+    school = sdata.table(sdata.get_example("school"))
+    out = school.explain("marks", using=["hours"], grouped_by="school", p_value_by="satterthwaite").as_pandas()
+    assert out["p-value"].notna().all()

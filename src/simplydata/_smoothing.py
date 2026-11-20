@@ -265,7 +265,8 @@ def loess_span(smoothness, step_name) -> float:
     """smoothness= of method="loess": the share of readings in each local fit (R loess span=, normally 0.75)."""
     if smoothness is None or smoothness == "auto":
         return LOESS_SPAN
-    if isinstance(smoothness, bool) or not isinstance(smoothness, (int, float, np.integer, np.floating)) or             not 0 < smoothness <= 1:
+    if isinstance(smoothness, bool) or not isinstance(smoothness, (int, float, np.integer, np.floating)) \
+            or not 0 < smoothness <= 1:
         raise SimplydataError('method="loess" takes smoothness= as the share of readings in each local fit, above 0 '
                               "and up to 1 (R loess span=, normally 0.75).")
     return float(smoothness)
@@ -287,8 +288,10 @@ def _loess(x, times, smoothness, interval):
     out[keep] = np.atleast_1d(got["fit"]).astype(float)
     low[keep] = np.atleast_1d(got["low"]).astype(float)
     high[keep] = np.atleast_1d(got["high"]).astype(float)
-    sentence = (f"loess (R stats::loess: a local curve of degree 2 through the nearest {_g(span)} of the readings, "
-                "no robustness steps; not lowess, which fits local straight lines with 3 robustness steps)")
+    share = f"{_g(span)}, R's default" if span == LOESS_SPAN and smoothness in (None, "auto") else _g(span)
+    sentence = (f"loess (R stats::loess: a local curve of degree 2 through the nearest share of the readings "
+                f"({share}), no robustness steps; not lowess, which fits local straight lines with 3 robustness "
+                "steps)")
     return SmoothResult(out, sentence, f"loess(x ~ t, span = {_g(span)}, degree = 2)",
                         low if interval is not None else None, high if interval is not None else None)
 

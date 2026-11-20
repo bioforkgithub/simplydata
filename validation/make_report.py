@@ -119,10 +119,13 @@ def run(code: str, data):
 
 
 def run_r(code: str, data, packages) -> dict:
-    from simplydata._r import r_call
+    from simplydata._r import need_r, r_call
 
     columns = {} if data is None else {c: data[c].to_numpy() for c in data.columns}
-    found = r_call(textwrap.dedent(code).strip("\n"), packages=tuple(packages), what="a validation case", **columns)
+    # the packages are checked, not attached: the cases call them by name (drc::drm), and an attached package
+    # can hide base R functions from later calls (drc's gaussian(), SparseM's matrix functions, mcr's coef())
+    need_r(tuple(packages), "a validation case")
+    found = r_call(textwrap.dedent(code).strip("\n"), what="a validation case", **columns)
     return {k: _number(v) for k, v in found.items()}
 
 

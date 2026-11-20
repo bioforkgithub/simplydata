@@ -312,7 +312,7 @@ def _cases(Case, data_dir):
              """,
              r="""
                  o <- lm(y ~ x)
-                 s <- segmented::segmented(o, seg.Z = ~ x, npsi = 1)
+                 s <- segmented::segmented(o, seg.Z = ~ x, npsi = 1, control = segmented::seg.control(seed = 1))
                  sl <- segmented::slope(s, digits = 15)$x
                  list(`bend 1` = s$psi[1, 2], `slope 1` = sl[1, 1], `slope 2` = sl[2, 1],
                       `Davies p-value` = segmented::davies.test(o, seg.Z = ~ x)$p.value)

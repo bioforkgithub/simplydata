@@ -748,8 +748,9 @@ class StatsWords:
         The same curve as table.fit_dose_response(): a 4 parameter log-logistic curve by R
         drc::drm() (needs R with drc), with the ED50 and its 95 % interval (delta method) in the
         legend. of_kind= "3 parameter log-logistic", "5 parameter log-logistic" or "weibull".
-        Each colour group gets its own curve. Add .use_log_scale_x() for a log dose axis (dots
-        at dose 0 then fall off the axis).
+        Each colour group gets its own curve, fitted to that group alone (table.fit_dose_response(...,
+        for_each_group_in=) fits all groups in one model, so its intervals can differ a little).
+        Add .use_log_scale_x() for a log dose axis (dots at dose 0 then fall off the axis).
         """
         from ..table.lines_more import read_dose_kind
 

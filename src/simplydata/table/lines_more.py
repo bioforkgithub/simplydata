@@ -201,8 +201,9 @@ class LinesMoreWords:
         if method == "theil-sen":
             print('Method: SciPy stats.theilslopes(y, x, alpha=0.95, method="separate"): the slope is the median of '
                   "the slopes between every pair of points (pairs with the same x are left out, as R does); its 95 % "
-                  "interval by Sen's method; the intercept is the median of y - slope * x (R mblm takes the median "
-                  "of the pair intercepts, so its intercept can differ a little). No p-value.")
+                  "interval by Sen's method; the intercept is median(y) - slope * median(x) (Conover; SciPy's default; "
+                  "R mblm takes the median of y - slope * x instead, so its intercept can differ a little). No "
+                  "p-value.")
         else:
             print('Method: SciPy stats.siegelslopes(y, x, method="hierarchical"): for each point the median of its '
                   "slopes to the others, then the median of those; no interval and no p-value.")
@@ -223,14 +224,14 @@ class LinesMoreWords:
                                   f"and needs at least 5 rows for each, so {need} rows; there are {n}.")
         if np.ptp(xs) == 0:
             raise SimplydataError(f'Every number in "{x}" is the same, so no line can be fitted.')
-        from .lines_r import bends
+        from .lines_r import SEGMENTED_SEED, bends
 
         out = bends(xs, ys, how_many)
         davies_p = float(np.atleast_1d(out["davies_p"])[0])
         if not bool(np.atleast_1d(out["found"])[0]):
             print(f"R segmented found no bend in the line of \"{y}\" against \"{x}\"; here is the straight line.")
             print(_p_sentence(davies_p, "the line truly had no bend", "a change of slope this big",
-                              "that there is no bend") + " (Davies' test)")
+                              "that there is no bend") + " (Davies' test: no bend against at least one)")
             return self.fit_line(x=x, y=y)
         psi = np.atleast_1d(out["psi"]).astype(float)
         psi_low, psi_high = np.atleast_1d(out["psi_low"]).astype(float), np.atleast_1d(out["psi_high"]).astype(float)
@@ -260,11 +261,12 @@ class LinesMoreWords:
         print(f"R squared = {r2:.2f}. The line is continuous: it bends, it does not jump (for a jump at a point you "
               "know, use changes_at=).")
         print(_p_sentence(davies_p, "the line truly had no bend", "a change of slope this big",
-                          "that there is no bend") + " (Davies' test)")
-        print(f"Method: R segmented::segmented(lm({y} ~ {x}), seg.Z = ~ {x}, npsi = {how_many}); the bend's 95 % "
+                          "that there is no bend") + " (Davies' test: no bend against at least one)")
+        print(f"Method: R segmented::segmented(lm({y} ~ {x}), seg.Z = ~ {x}, npsi = {how_many}, control = "
+              f"seg.control(seed = {SEGMENTED_SEED})) (the seed fixes segmented's random restarts); the bend's 95 % "
               "interval by the delta method (confint), the slopes by segmented::slope(). The data chose where the "
               "bend is, so the ordinary p-value of the bend is not valid; Davies' test (segmented::davies.test) asks "
-              "whether there is a bend at all.")
+              "whether there is a bend at all (no bend against at least one).")
         return self._result_table(row)
 
     # ------------------------------------------------------------------ fit_line(changes_at=)
@@ -318,6 +320,9 @@ class LinesMoreWords:
         low, high = np.asarray(fit.conf_int(0.05)).T
         b, se, p = np.asarray(fit.params), np.asarray(fit.bse), np.asarray(fit.pvalues)
         lag1 = float(acf(ys - np.asarray(fit.fittedvalues), nlags=1, fft=False)[1])
+        later = fit.t_test(np.array([[0.0, 1.0, 0.0, 1.0]]))  # the slope after: slope before + slope change
+        after_slope = float(np.asarray(later.effect).ravel()[0])
+        after_low, after_high = (float(v) for v in np.asarray(later.conf_int(0.05)).ravel())
         n = len(xs)
         names = ["intercept", "slope before", "level change", "slope change"]
         row = {"test": "line that changes at a known point (least squares)", "what it compares": f'"{y}" against "{x}"',
@@ -325,12 +330,13 @@ class LinesMoreWords:
         for j, name in enumerate(names):
             row.update({name: float(b[j]), f"{name} standard error": float(se[j]), f"{name} 95 % CI low": float(low[j]),
                         f"{name} 95 % CI high": float(high[j]), f"{name} p-value": float(p[j])})
-        row.update({"slope after": float(b[1] + b[3]), "lag-1 autocorrelation of the leftovers": lag1,
+        row.update({"slope after": after_slope, "slope after 95 % CI low": after_low,
+                    "slope after 95 % CI high": after_high, "lag-1 autocorrelation of the leftovers": lag1,
                     "R squared": float(fit.rsquared), "rows": n})
         print(f'Before {at}: "{y}" goes {"up" if b[1] >= 0 else "down"} by {_num(abs(b[1]))} for each 1 more "{x}"'
               f"{how} ({_ci(low[1], high[1])}).")
         print(f"At {at} the level jumps by {_num(b[2])} ({_ci(low[2], high[2])}) and the slope changes by "
-              f"{_num(b[3])} ({_ci(low[3], high[3])}), to {_num(b[1] + b[3])} after.")
+              f"{_num(b[3])} ({_ci(low[3], high[3])}), to {_num(after_slope)} after ({_ci(after_low, after_high)}).")
         print("Level change: " + _p_sentence(p[2], "there were truly no jump", "a jump this big or bigger",
                                              "that there is no jump"))
         print("Slope change: " + _p_sentence(p[3], "the slope truly stayed the same", "a change of slope this big",
@@ -586,7 +592,8 @@ DOSE_SPELLINGS = {"ll.4": "4 parameter log-logistic", "ll4": "4 parameter log-lo
                   "ll.5": "5 parameter log-logistic", "ll5": "5 parameter log-logistic",
                   "ll.2": "2 parameter log-logistic", "ll2": "2 parameter log-logistic",
                   "log-logistic": "4 parameter log-logistic", "log logistic": "4 parameter log-logistic",
-                  "w1.4": "weibull", "weibull 4 parameters": "weibull"}
+                  "w1.4": "weibull", "weibull 4 parameters": "weibull",
+                  "logit": "2 parameter log-logistic", "logistic regression on log dose": "2 parameter log-logistic"}
 DOSE_VALUES = {"4 parameter log-logistic": 4, "3 parameter log-logistic": 3, "5 parameter log-logistic": 5,
                "weibull": 4, "2 parameter log-logistic": 2}
 DOSE_OUTCOMES = ("numbers", "yes or no")
@@ -672,26 +679,24 @@ def dose_response_word(table, x, y, doses_for_effect, of_kind, outcome, out_of, 
                                   f'.draw_dots(x="{x}", y="{y}").\n({str(error).splitlines()[0]})') from None
         raise
     arr = {k: np.atleast_1d(v) for k, v in out.items()}
-    df = float(arr["df"][0])
     binomial = trials is not None
-    from scipy import stats
 
-    q = float(stats.norm.ppf(0.975)) if binomial else float(stats.t.ppf(0.975, df))
     rows = []
     shown = {}
-    for name, est, se, t, p in zip(arr["names"], arr["estimate"], arr["se"], arr["t"], arr["p"]):
+    for name, est, se, t, p, lo, hi in zip(arr["names"], arr["estimate"], arr["se"], arr["t"], arr["p"], arr["low"],
+                                          arr["high"]):
         letter, _, group = str(name).partition(":")
         group = None if group == "(Intercept)" else group
         word = PARAMETER_WORDS.get(letter, letter)
         if letter == "e" and kind in ("5 parameter log-logistic", "weibull"):
-            word = "turning point (not the ED50 for this curve)"
+            word = "a location value (not the ED50 for this curve)"
         row = {} if for_each is None else {for_each: group}
         row.update({"term": f"{letter} ({word})", "estimate": float(est), "standard error": float(se),
-                    "statistic": float(t), "p-value": float(p), "95 % CI low": float(est - q * se),
-                    "95 % CI high": float(est + q * se)})
+                    "statistic": float(t), "p-value": float(p), "95 % CI low": float(lo), "95 % CI high": float(hi)})
         rows.append(row)
-        shown[(group, letter)] = (float(est), float(est - q * se), float(est + q * se))
+        shown[(group, letter)] = (float(est), float(lo), float(hi))
     eds = {}
+    below_zero = []
     for name, est, se, lo, hi in zip(arr["ed_names"], arr["ed"], arr["ed_se"], arr["ed_low"], arr["ed_high"]):
         parts = str(name).split(":")
         group = None if for_each is None else parts[1]
@@ -701,6 +706,8 @@ def dose_response_word(table, x, y, doses_for_effect, of_kind, outcome, out_of, 
                     "statistic": math.nan, "p-value": math.nan, "95 % CI low": float(lo), "95 % CI high": float(hi)})
         rows.append(row)
         eds[(group, percent)] = (float(est), float(lo), float(hi))
+        if lo < 0:
+            below_zero.append(f"ED{_p_word(percent)}" + ("" if group is None else f" of {group}"))
     n = int(arr["n"][0])
     for row in rows:
         row["rows"] = n
@@ -741,11 +748,18 @@ def dose_response_word(table, x, y, doses_for_effect, of_kind, outcome, out_of, 
         if not binomial:
             print(("    " if g is not None else "") + "The curve: " + ", ".join(limits) + ".")
     if not binomial:
-        print('"Effect" is the share of the way from the upper limit (no dose) to the lower limit (very high doses); '
-              "b is drc's steepness (how fast the response changes around the ED50 on a log dose scale).")
+        b_values = [v[0] for (g, letter), v in shown.items() if letter == "b"]
+        if b_values and all(b > 0 for b in b_values):
+            way = "the response falls with dose: from the upper limit (no dose) to the lower limit (very high doses)"
+        elif b_values and all(b < 0 for b in b_values):
+            way = "the response rises with dose: from the lower limit (no dose) to the upper limit (very high doses)"
+        else:
+            way = "from the level at no dose to the level at very high doses (the curves run different ways)"
+        print(f'"Effect" is the share of the way {way}; b is drc\'s steepness (how fast the response changes around '
+              "the ED50 on a log dose scale; above 0 it falls, below 0 it rises).")
     if "ratio" in arr:
-        for name, ratio, lo, hi, p in zip(arr["ratio_names"], arr["ratio"], arr["ratio_low"], arr["ratio_high"],
-                                           arr["ratio_p"]):
+        for name, ratio, lo, hi, p, rse in zip(arr["ratio_names"], arr["ratio"], arr["ratio_low"], arr["ratio_high"],
+                                                arr["ratio_p"], arr["ratio_se"]):
             pair = str(name).split(":")[0]
             a, _, b = pair.partition("/")
             print(f"ED50 of {a} / ED50 of {b} = {_num(ratio)} ({_ci(lo, hi)}): {a} needs {_num(ratio)} times the dose "
@@ -753,7 +767,7 @@ def dose_response_word(table, x, y, doses_for_effect, of_kind, outcome, out_of, 
             print("  " + _p_sentence(float(p), "the two ED50s were truly equal", "a ratio this far from 1",
                                      "that they are equal"))
             rows.append({for_each: pair, "term": "ED50 ratio", "estimate": float(ratio),
-                         "standard error": math.nan, "statistic": math.nan, "p-value": float(p),
+                         "standard error": float(rse), "statistic": math.nan, "p-value": float(p),
                          "95 % CI low": float(lo), "95 % CI high": float(hi), "rows": n})
     print("Dose effect: " + _p_sentence(float(arr["no_effect_p"][0]), "the dose truly had no effect",
                                         "a change with dose this big", "that the dose has no effect")
@@ -767,6 +781,9 @@ def dose_response_word(table, x, y, doses_for_effect, of_kind, outcome, out_of, 
           f"{'2 parameter log-logistic curve (from 0 to 100 %)' if binomial and kind == '2 parameter log-logistic' else kind + ' curve'} "
           "and delta-method intervals (drc's ED() gives none unless asked)"
           + ("; one model for all groups, with one residual spread" if for_each and not binomial else "") + ".")
+    if below_zero:
+        print(f"Note: the 95 % interval of {st._list_words(below_zero)} reaches below 0, which no dose can be: the "
+              "delta-method interval is symmetric and only a rough guide here (more doses near it would help).")
     if outside:
         print(f"Note: {st._list_words(outside)} {'is' if len(outside) == 1 else 'are'} outside the doses tested "
               f"({_num(tested[0])} to {_num(tested[1])}): an extrapolation.")
@@ -818,7 +835,7 @@ def best_power_word(table, column, using, method):
         if key == "box-cox":
             _, power, (low, high) = stats.boxcox(values, alpha=0.05)
             how = ('SciPy stats.boxcox(x, alpha=0.05): the power by maximum likelihood, its 95 % interval from the '
-                   "profile likelihood (as R car::powerTransform(x ~ 1) and MASS::boxcox)")
+                   "profile likelihood (as R MASS::boxcox)")
         else:
             _, power = stats.yeojohnson(values)
             low = high = math.nan
@@ -901,7 +918,10 @@ def read_percentiles(for_percentile) -> list[float]:
 
 
 def explain_percentile(table, column, using, outcome, percents, others):
-    """explain(column, using=, for_percentile=): R quantreg::rq() and summary(se = "nid")."""
+    """explain(column, using=, for_percentile=): R quantreg::rq() and summary(se = "nid").
+
+    [D] The 95 % interval is estimate +/- t(n - p) x quantreg's "nid" standard error: the Wald interval that
+    goes with the t-test summary.rq prints (quantreg prints no interval for se = "nid")."""
     from scipy import stats
 
     from .lines_r import percentile_lines
@@ -992,7 +1012,17 @@ def explain_changes(table, column, using, changes_at, call):
                               nw.new_series(since_name, since, nw.Float64, backend=base.implementation))
     bigger = table._new_table(frame)
     items = [using] if isinstance(using, str) else list(using or [])
-    if time_column not in items and not table._frame.schema[time_column].is_temporal():
+    if table._frame.schema[time_column].is_temporal():
+        # dates cannot go into a model: the time trend is the number of days since the first date
+        days_name = f"{time_column} in days since {how[len(' (dates as days since '):-1]}"
+        if days_name in table._columns:
+            raise SimplydataError(f'The table already has a column "{days_name}"; rename it first.')
+        frame = frame.with_columns(nw.new_series(days_name, values, nw.Float64, backend=base.implementation))
+        bigger = table._new_table(frame)
+        items = [days_name] + [i for i in items if i != time_column]
+        print(f'"{time_column}" holds dates, so the time trend before the change is "{days_name}" (the dates as '
+              "numbers of days).")
+    elif time_column not in items:
         items = [time_column] + items
     items = items + [after_name, since_name]
     result = bigger.explain(column, using=items, **call)

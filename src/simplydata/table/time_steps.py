@@ -201,7 +201,8 @@ class TimeStepWords:
         groups = self._group_columns(step_name, for_each_group_in, [from_column]) if for_each_group_in is not None else []
         each = f", for each {', '.join(groups)}" if groups else ""
         order = f' in order of "{sorted_by}"' if sorted_by else ""
-        added = f'"{name}"' if interval is None else f'"{name}" with its {interval:g} % confidence band '                                                        f'("{band[0]}", "{band[1]}")'
+        band_text = "" if interval is None else f' with its {interval:g} % confidence band ("{band[0]}", "{band[1]}")'
+        added = f'"{name}"{band_text}'
         print(f'Smoothed "{from_column}" with {got.sentence}{each}{order}. Added {added}.')
         print(f"Method: as R {got.r_call}" + (f"; the band is predict(m, se = TRUE)$fit +/- t x se.fit, with t from "
                                                "loess's own degrees of freedom (as R's predict.loess intervals)."

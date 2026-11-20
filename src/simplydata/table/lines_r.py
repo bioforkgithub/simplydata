@@ -68,13 +68,13 @@ def dose_response(dose, response, kind, percents, trials=None, groups=None):
             f"m <- drc::drm({left} ~ x{curve}, data = d, fct = drc::{fct}(){extra}); "
             "s <- summary(m)$coefficients; "
             "e <- drc::ED(m, p, interval = 'delta', display = FALSE); "
-            "ne <- drc::noEffect(m); "
+            "ne <- drc::noEffect(m); ci <- stats::confint(m); "
             "rse <- if (is.null(summary(m)$rseMat)) NA_real_ else summary(m)$rseMat[1, 1]; "
             "out <- list(names = rownames(s), estimate = unname(s[, 1]), se = unname(s[, 2]), t = unname(s[, 3]), "
             "p = unname(s[, 4]), ed_names = rownames(e), ed = unname(e[, 1]), ed_se = unname(e[, 2]), "
             "ed_low = unname(e[, 3]), ed_high = unname(e[, 4]), df = stats::df.residual(m), rse = rse, "
             "no_effect = unname(ne[1]), no_effect_df = unname(ne[2]), no_effect_p = unname(ne[3]), "
-            "loglik = as.numeric(stats::logLik(m)), n = nrow(d)); ")
+            "loglik = as.numeric(stats::logLik(m)), n = nrow(d), low = unname(ci[, 1]), high = unname(ci[, 2])); ")
     if groups is not None:
         code += ("if (nlevels(d$g) > 1) { r1 <- drc::EDcomp(m, c(50, 50), interval = 'delta', display = FALSE); "
                  "r2 <- drc::EDcomp(m, c(50, 50), display = FALSE); "
@@ -107,6 +107,9 @@ def dose_response_curve(dose, response, kind, at, trials=None):
                   note_words=_drop_quiet, **values)
 
 
+SEGMENTED_SEED = 1  # segmented restarts its search from bootstrap samples; this seed makes it the same every time
+
+
 def bends(x, y, how_many):
     """R segmented::segmented(lm(y ~ x), seg.Z = ~ x, npsi = how_many): the bend points with confint()
     (delta method), the slopes of each piece with slope(), the line's intercept, and
@@ -114,7 +117,8 @@ def bends(x, y, how_many):
 
     code = ("d <- data.frame(x = x, y = y); o <- stats::lm(y ~ x, data = d); "
             "dv <- segmented::davies.test(o, seg.Z = ~ x); "
-            f"s <- segmented::segmented(o, seg.Z = ~ x, npsi = {int(how_many)}); "
+            f"s <- segmented::segmented(o, seg.Z = ~ x, npsi = {int(how_many)}, "
+            f"control = segmented::seg.control(seed = {SEGMENTED_SEED})); "
             "if (!inherits(s, 'segmented')) { list(found = FALSE, davies_p = dv$p.value, "
             "davies_at = unname(dv$statistic)) } else { "
             "ci <- stats::confint(s, digits = 15); sl <- segmented::slope(s, digits = 15)$x; it <- segmented::intercept(s, digits = 15)$x; "
@@ -181,7 +185,7 @@ def percentile_lines(X, y, taus):
     t, p for each tau."""
 
     code = ("out <- list(); for (i in seq_along(taus)) { f <- quantreg::rq(y ~ 0 + X, tau = taus[i]); "
-            "s <- suppressWarnings(summary(f, se = 'nid'))$coefficients; "
+            "s <- summary(f, se = 'nid')$coefficients; "
             "out[[paste0('t', i)]] <- list(beta = unname(s[, 1]), se = unname(s[, 2]), t = unname(s[, 3]), "
             "p = unname(s[, 4]), df = length(y) - ncol(X), unique = !isTRUE(attr(f, 'nonunique'))) }; out")
     return _call(code, ("quantreg",), source="quantreg::rq",
@@ -224,8 +228,8 @@ def power_transform(X, y, family):
     code = (f"m <- stats::lm(y ~ 0 + X); f <- car::powerTransform(m, family = '{family}'); "
             "s <- summary(f)$result; t0 <- car::testTransform(f, 0); t1 <- car::testTransform(f, 1); "
             "list(power = unname(s[1, 1]), rounded = unname(s[1, 2]), low = unname(s[1, 3]), high = unname(s[1, 4]), "
-            "lr0 = unname(t0[1, 1]), p0 = stats::pchisq(t0[1, 1], t0[1, 2], lower.tail = FALSE), "
-            "lr1 = unname(t1[1, 1]), p1 = stats::pchisq(t1[1, 1], t1[1, 2], lower.tail = FALSE))")
+            "lr0 = unname(t0[1, 1]), p0 = as.numeric(t0[1, 'pval']), "
+            "lr1 = unname(t1[1, 1]), p1 = as.numeric(t1[1, 'pval']))")
     return _call(code, ("car",), source="car::powerTransform",
                   what="The best power for a model's outcome (R car::powerTransform())",
                   python_note="SciPy stats.boxcox finds the power for one column on its own (without using=)",

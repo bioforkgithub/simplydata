@@ -76,6 +76,9 @@ ALLOWED_ARITHMETIC = {
     "table/accuracy_words.py::_per_1000": "natural frequencies: each share times 1000, rounded",
     "table/agreement_words.py::AgreementWords._cohen": "the chance agreement read back from statsmodels' unweighted "
                                                        "kappa: (raw - kappa) / (1 - kappa)",
+    "table/lines_more.py::explain_percentile": "the Wald 95 % interval estimate +/- t x quantreg's \"nid\" standard "
+                                               "error, which goes with the t-test summary.rq prints (quantreg prints "
+                                               "no interval for se = \"nid\")",
 }
 
 

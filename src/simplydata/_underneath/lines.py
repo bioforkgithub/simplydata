@@ -143,8 +143,8 @@ OPTION_ENTRIES = [
         compare="result",
         fields=("slope", "intercept", "slope 95 % CI low", "slope 95 % CI high"),
         choices=("SciPy's alpha= is the confidence level (0.95), not the error rate.",
-                 "the intercept is the median of y - slope * x (Conover; SciPy's default); R mblm takes the median "
-                 "of the pair intercepts instead."),
+                 "the intercept is median(y) - slope * median(x) (Conover; SciPy's default); R mblm takes the "
+                 "median of y - slope * x instead."),
         also="method=\"siegel\" is SciPy stats.siegelslopes(method=\"hierarchical\") in the same way. " + SENTENCE,
     ),
     Entry(
@@ -244,7 +244,8 @@ OPTION_ENTRIES = [
             "R": """
                 # fit_line(x="hour", y="density", with_bends=1)
                 o <- lm(density ~ hour)
-                s <- segmented::segmented(o, seg.Z = ~ hour, npsi = 1)        # (1)
+                s <- segmented::segmented(o, seg.Z = ~ hour, npsi = 1,
+                                          control = segmented::seg.control(seed = 1))   # (1)
                 sl <- segmented::slope(s, digits = 15)$hour
                 list(bend = s$psi[1, "Est."], before = sl[1, 1], after = sl[2, 1],
                      davies = segmented::davies.test(o, seg.Z = ~ hour)$p.value)   # (2)
@@ -258,7 +259,8 @@ OPTION_ENTRIES = [
         compare="result",
         fields=("bend 1", "slope 1", "slope 2", "Davies p-value"),
         tolerance=1e-9,
-        choices=("a continuous line: it bends, it does not jump (segmented's model).",
+        choices=("a continuous line: it bends, it does not jump (segmented's model); seed 1 fixes segmented's "
+                 "random restarts.",
                  "Davies' test of \"no bend at all\": the bend's own p-value is not valid, because the data chose "
                  "where it is."),
         python_note="Python has no segmented regression with the bend's interval and Davies' test, so the numbers "

@@ -301,14 +301,17 @@ def _r_values(entry: Entry) -> dict:
 
 def _run_with_r(entry: Entry):
     """Blocks as one program: R gets its values, the Python block after R carries on with R's answer."""
-    from .._r import r_call
+    from .._r import need_r, r_call
 
     namespace: dict = {}
     value = None
     seen_r = False
     for library, language, source in entry.blocks():
         if language == "r":
-            found = r_call(source, packages=entry.r_packages, what=f"the underneath code of {entry.word}",
+            # checked, not attached: the boxes call R packages by name (pROC::roc, drc::drm), and an attached
+            # package can hide base R functions from later calls (drc's gaussian(), SparseM's matrix functions)
+            need_r(entry.r_packages, f"the underneath code of {entry.word}")
+            found = r_call(source, what=f"the underneath code of {entry.word}",
                            **_r_values(entry))
             for k, v in (found or {}).items():
                 arr = np.asarray(v, dtype=float)
