@@ -43,7 +43,9 @@ R_PACKAGES = ("survival", "vegan", "mice", "lme4", "betareg", "pscl", "car", "ef
               "tseries", "lomb", "trend", "forecast", "changepoint",
               "pwr", "Exact", "exact2x2", "nortest", "BSDA", "rstatix", "DescTools", "FSA", "PMCMRplus",
               "multcompView", "TOSTER", "presize", "epiR", "pROC", "irr", "psych", "BlandAltmanLeh", "ppcor", "cocor",
-              "outliers", "EnvStats")
+              "outliers", "EnvStats",
+              # S3a-2 (lines and curves)
+              "drc", "segmented", "smatr", "mcr", "quantreg", "deming")
 
 
 @pytest.fixture
@@ -101,6 +103,10 @@ R_ENTRY_POINTS = {
     ("table/time_series.py", "check_steady_over_time"), ("_signals.py", "_lomb_scargle"),
     ("_trend_season.py", "_r_stl_periodic"), ("_trend_season.py", "_r_mann_kendall"),
     ("_forecast.py", "r_forecast"), ("_forecast.py", "r_change_points"), ("_smoothing.py", "smooth"),
+    # S3a-2 (lines and curves)
+    ("table/lines_r.py", "dose_response"), ("table/lines_r.py", "dose_response_curve"), ("table/lines_r.py", "bends"),
+    ("table/lines_r.py", "two_error_line"), ("table/lines_r.py", "loess"), ("table/lines_r.py", "percentile_lines"),
+    ("table/lines_r.py", "self_start"), ("table/lines_r.py", "power_transform"),
 }
 
 

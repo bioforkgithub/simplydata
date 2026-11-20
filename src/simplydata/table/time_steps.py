@@ -143,7 +143,7 @@ class TimeStepWords:
     @friendly(renamed={"for_each": "for_each_group_in", "degree": "of_degree"})
     def add_smoothed_column(self, name=None, from_column=None, method="moving average", window=5, sorted_by=None,
                             for_each_group_in=None, ends=None, weights=None, of_degree=None, newest_weight=None, width=None,
-                            smoothness=None, alpha=None, span=None, half_life=None, com=None):
+                            smoothness=None, alpha=None, span=None, half_life=None, com=None, interval=None):
         """Add a smoothed copy of a column: each value becomes a summary of its neighbours in time.
 
         table.add_smoothed_column("signal_smoothed", from_column="signal", method="savitzky-golay", window=11, sorted_by="time")
@@ -153,6 +153,9 @@ class TimeStepWords:
         "spline" (smoothness=; these two use the sorted_by values as x and allow uneven steps and empty
         cells), "whittaker" (smoothness=) or "wiener". The other methods need evenly spaced readings
         (sorted_by=) and no empty cells. for_each_group_in= smooths each group on its own. Undo with table.undo().
+        method="loess" is R stats::loess() itself (needs R): a local curve of degree 2 through the
+        nearest smoothness=0.75 of the readings (not lowess, which fits local straight lines with
+        robustness steps); interval=95 adds two more columns, the ends of its 95 % confidence band.
         """
         from .. import _smoothing
         from .._time_axis import need_filled, need_regular, series_of
@@ -167,24 +170,47 @@ class TimeStepWords:
             raise SimplydataError(f"{step_name}() needs name= as the new column's name.\nFor example, {example}")
         if name in self._columns:
             raise SimplydataError(f'"{name}" is already a column; give another name.')
+        if interval is not None:
+            if chosen != "loess":
+                raise SimplydataError(f'interval= (a confidence band) goes with method="loess", not "{chosen}".\n'
+                                      'For example table.add_smoothed_column("trend", from_column="signal", '
+                                      'sorted_by="time", method="loess", interval=95)')
+            if isinstance(interval, bool) or not isinstance(interval, (int, float)) or not 50 <= interval < 100:
+                raise SimplydataError("interval= is the confidence level in percent, for example interval=95.")
+            band = [f"{name} {interval:g} % CI low", f"{name} {interval:g} % CI high"]
+            taken = [c for c in band if c in self._columns]
+            if taken:
+                raise SimplydataError(f'"{taken[0]}" is already a column; give another name.')
         series = series_of(self, from_column, sorted_by, for_each_group_in, step_name, example)
         filled = np.full(len(self._frame), np.nan)
+        lows, highs = np.full(len(self._frame), np.nan), np.full(len(self._frame), np.nan)
         got = None
+        extra = {"interval": interval} if chosen == "loess" else {}
         for one in series:
-            if chosen not in ("lowess", "spline"):
+            if chosen not in ("lowess", "loess", "spline"):
                 need_filled(one, from_column, step_name, sorted_by)
                 if sorted_by is not None:
                     need_regular(one, step_name, sorted_by)
             got = _smoothing.smooth(one.values, chosen, window, ends, times=one.times, step_name=step_name,
                                     weights=weights, of_degree=of_degree, newest_weight=newest_weight, width=width,
-                                    smoothness=smoothness, alpha=alpha, span=span, half_life=half_life, com=com)
+                                    smoothness=smoothness, alpha=alpha, span=span, half_life=half_life, com=com,
+                                    **extra)
             filled[one.rows] = got.values
+            if got.low is not None:
+                lows[one.rows], highs[one.rows] = got.low, got.high
         groups = self._group_columns(step_name, for_each_group_in, [from_column]) if for_each_group_in is not None else []
         each = f", for each {', '.join(groups)}" if groups else ""
         order = f' in order of "{sorted_by}"' if sorted_by else ""
-        print(f'Smoothed "{from_column}" with {got.sentence}{each}{order}. Added "{name}".')
-        print(f"Method: as R {got.r_call}.")
+        added = f'"{name}"' if interval is None else f'"{name}" with its {interval:g} % confidence band '                                                        f'("{band[0]}", "{band[1]}")'
+        print(f'Smoothed "{from_column}" with {got.sentence}{each}{order}. Added {added}.')
+        print(f"Method: as R {got.r_call}" + (f"; the band is predict(m, se = TRUE)$fit +/- t x se.fit, with t from "
+                                               "loess's own degrees of freedom (as R's predict.loess intervals)."
+                                               if interval is not None else "."))
         base = nw.maybe_reset_index(self._frame)
-        new = nw.new_series(name, [None if np.isnan(v) else float(v) for v in filled], nw.Float64,
-                            backend=base.implementation)
-        return self._change(f'add smoothed column "{name}"', base.with_columns(new))
+        columns = [nw.new_series(name, [None if np.isnan(v) else float(v) for v in filled], nw.Float64,
+                                 backend=base.implementation)]
+        if interval is not None:
+            for label, values in zip(band, (lows, highs)):
+                columns.append(nw.new_series(label, [None if np.isnan(v) else float(v) for v in values], nw.Float64,
+                                             backend=base.implementation))
+        return self._change(f'add smoothed column "{name}"', base.with_columns(*columns))

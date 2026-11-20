@@ -261,8 +261,8 @@ def _fixed_colour(word, colour):
 
 
 # draw_smooth_line(method=): the plain names first, other spellings accepted
-SMOOTH_METHODS = {"lowess": "lowess", "loess": "lowess", "spline": "spline", "smoothing spline": "spline",
-                  "smooth.spline": "spline"}
+SMOOTH_METHODS = {"lowess": "lowess", "loess": "loess", "local regression": "loess", "spline": "spline",
+                  "smoothing spline": "spline", "smooth.spline": "spline"}
 
 
 # ====================================================================== drawing
@@ -501,6 +501,64 @@ def _draw_smooth_line(ctx, colour, thickness=None, method="lowess", smoothness="
         ctx.ax.plot(xv, got.values, color=col, zorder=3, linewidth=thickness)
 
 
+def _draw_loess(ctx, colour, thickness=None, span=0.75, band=False):
+    """R stats::loess(degree = 2) through each colour group's dots, over 200 points of its x range, with the 95 %
+    confidence band of predict(se = TRUE) when band=True."""
+    from ..table.lines_r import loess
+
+    last = _layer(ctx, "smooth_line", {"dots"})
+    table, x, y, group = last["table"], last["x"], last["y"], last["colour"]
+    _numeric_xy("draw_smooth_line", table, x, y)
+    drawn = 0
+    for _, part, col in _groups(ctx, table, group, colour):
+        xv, yv = _numeric_xy("draw_smooth_line", part, x, y)
+        if len(np.unique(xv)) < 5:
+            continue
+        xs = np.linspace(xv.min(), xv.max(), 200)
+        got = loess(xv, yv, span, xs)
+        ctx.ax.plot(xs, np.asarray(got["fit"], dtype=float), color=col, zorder=3, linewidth=thickness)
+        if band:
+            ctx.ax.fill_between(xs, np.asarray(got["low"], dtype=float), np.asarray(got["high"], dtype=float),
+                                color=col, alpha=0.2, linewidth=0, zorder=2.5)
+        drawn += 1
+    if not drawn:
+        raise SimplydataError('.draw_smooth_line(method="loess") needs dots at 5 or more different x values'
+                              + (" in at least one colour group." if group else "."))
+
+
+def _draw_dose_response(ctx, kind, colour, thickness=None):
+    """R drc::drm() through each colour group's dots, drawn over 300 doses from the smallest to the largest
+    (spaced evenly on a log scale, plus dose 0 when there is one); the ED50 and its interval in the legend."""
+    from ..table.lines_r import dose_response_curve
+    from ..table.lines_more import DOSE_VALUES, _ci, _num
+
+    last = _layer(ctx, "fit_dose_response", {"dots"})
+    table, x, y, group = last["table"], last["x"], last["y"], last["colour"]
+    _numeric_xy("fit_dose_response", table, x, y)
+    drawn = 0
+    for name, part, col in _groups(ctx, table, group, colour):
+        xv, yv = _numeric_xy("fit_dose_response", part, x, y)
+        if len(np.unique(xv)) < DOSE_VALUES[kind] + 1:
+            continue
+        if np.any(xv < 0):
+            raise SimplydataError(f'.fit_dose_response() needs doses of 0 or more; "{x}" has negative values.')
+        positive = xv[xv > 0]
+        xs = np.geomspace(positive.min(), xv.max(), 300) if len(positive) else np.linspace(0, xv.max(), 300)
+        if np.any(xv == 0):
+            xs = np.concatenate([[0.0], xs])
+        got = dose_response_curve(xv, yv, kind, xs)
+        ed = (float(np.atleast_1d(got[k])[0]) for k in ("ed50", "ed50_low", "ed50_high"))
+        est, low, high = ed
+        label = f"ED50 {_num(est)} ({_ci(low, high)})"
+        ctx.ax.plot(xs, np.asarray(got["fitted"], dtype=float), color=col, zorder=3, linewidth=thickness,
+                    label=label if name is None else f"{name}: {label}")
+        drawn += 1
+    if not drawn:
+        raise SimplydataError(f".fit_dose_response() needs dots at {DOSE_VALUES[kind] + 1} or more different doses"
+                              + (" in at least one colour group." if group else "."))
+    ctx.ax.legend(fontsize="small")
+
+
 def _draw_side_histograms(ctx):
     last = _layer(ctx, "side_histograms", {"dots"})
     table, x, y, group = last["table"], last["x"], last["y"], last["colour"]
@@ -683,9 +741,28 @@ class StatsWords:
         return self._add("fit_curve", "extra", _draw_fit_curve, degree=int(of_degree),
                          show_equation=bool(show_equation), colour=colour, thickness=thickness)
 
+    @friendly
+    def fit_dose_response(self, of_kind=None, colour=None, thickness=None):
+        """A dose-response curve through the dots, with its ED50 in the legend. chart.fit_dose_response()
+
+        The same curve as table.fit_dose_response(): a 4 parameter log-logistic curve by R
+        drc::drm() (needs R with drc), with the ED50 and its 95 % interval (delta method) in the
+        legend. of_kind= "3 parameter log-logistic", "5 parameter log-logistic" or "weibull".
+        Each colour group gets its own curve. Add .use_log_scale_x() for a log dose axis (dots
+        at dose 0 then fall off the axis).
+        """
+        from ..table.lines_more import read_dose_kind
+
+        kind = read_dose_kind(of_kind, "numbers")
+        thickness = check_thickness("fit_dose_response", thickness)
+        _fixed_colour("fit_dose_response", colour)
+        self._check_layer_now("fit_dose_response", {"dots"})
+        return self._add("fit_dose_response", "extra", _draw_dose_response, kind=kind, colour=colour,
+                         thickness=thickness)
+
     @friendly(renamed={"degree": "of_degree"})
     def draw_smooth_line(self, colour=None, thickness=None, method="lowess", smoothness="auto", window=5, ends=None,
-                         weights=None, of_degree=None, newest_weight=None, width=None):
+                         weights=None, of_degree=None, newest_weight=None, width=None, with_confidence_band=False):
         """A smooth line that follows the dots (LOWESS). chart.draw_smooth_line()
 
         Good for seeing a trend that is not straight. Each colour group gets its own line.
@@ -698,12 +775,18 @@ class StatsWords:
         "moving average" (window=, weights=, ends=), "median" (needs R), "savitzky-golay"
         (of_degree=), "exponential" (newest_weight=), "gaussian" (width=), "whittaker" (smoothness=)
         and "wiener". The line goes through the x values of the dots, as table.add_smoothed_column.
+        method="loess" draws R stats::loess() itself (needs R): local curves of degree 2 through the
+        nearest smoothness=0.75 of the dots, without robustness steps (lowess fits local straight
+        lines with 3 robustness steps, so the two lines differ); with_confidence_band=True shades
+        its 95 % confidence band (R predict(se = TRUE)).
         """
         from .. import _smoothing
         from .._errors import choice_error
 
         _fixed_colour("smooth_line", colour)
         thickness = check_thickness("draw_smooth_line", thickness)
+        if not isinstance(with_confidence_band, bool):
+            raise SimplydataError("with_confidence_band= is True or False.")
         key = method.strip().lower() if isinstance(method, str) else method
         if key in SMOOTH_METHODS:
             method = SMOOTH_METHODS[key]
@@ -714,6 +797,18 @@ class StatsWords:
                 raise choice_error("draw_smooth_line", "method", method, list(_smoothing.METHODS)) from None
         options = {k: v for k, v in (("weights", weights), ("degree", of_degree), ("newest_weight", newest_weight),
                                      ("width", width)) if v is not None}
+        if with_confidence_band and method != "loess":
+            raise SimplydataError(f'with_confidence_band=True goes with method="loess" (R loess gives the band), not '
+                                  f'"{method}".\nFor example chart.draw_smooth_line(method="loess", '
+                                  "with_confidence_band=True)")
+        if method == "loess":
+            if options or ends is not None or window != 5:
+                raise SimplydataError('window=, ends=, weights=, of_degree=, newest_weight= and width= go with the '
+                                      'window methods, not with method="loess".')
+            span = _smoothing.loess_span(smoothness, "draw_smooth_line")
+            self._check_layer_now("draw_smooth_line", {"dots"})
+            return self._add("smooth_line", "extra", _draw_loess, colour=colour, thickness=thickness, span=span,
+                             band=with_confidence_band)
         if method not in ("lowess", "spline"):
             if method == "whittaker" and smoothness != "auto":
                 options["smoothness"] = smoothness
