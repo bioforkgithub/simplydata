@@ -55,6 +55,8 @@ r = ["rpy2>=3.5"]  # the bridge to R for the methods only R gives (R itself: htt
 # curves), KMsurv (life table) and survRM2 (restricted mean survival time; CRAN only, like presize), besides survival.
 # S3b-1 (combining studies) calls the R package metafor (with its data package metadat); meta is used by the
 # reliability study only. Both are on CRAN and conda-forge.
+# S3b-2 (planning a study) calls gsDesign (events for survival, Schoenfeld), powerSurvEpi (people for survival; Freedman)
+# and pwrss (logistic regression; CRAN only, like presize), besides presize, listed already.
 # S3c-1 (communities and resistomes) calls vegan, zCompositions, compositions and ca, and the recommended packages
 # cluster and MASS that come with R; all are on CRAN and conda-forge.
 test = ["pytest>=7", "polars>=0.20", "pyarrow>=14", "statsmodels>=0.14"]

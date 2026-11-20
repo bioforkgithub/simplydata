@@ -58,6 +58,8 @@ R_PACKAGES = ("survival", "vegan", "mice", "lme4", "betareg", "pscl", "car", "ef
               "cmprsk", "adjustedCurves", "riskRegression", "KMsurv", "survRM2",
               # S3b-1 (combining studies): metafor (with its data package metadat); meta for the reliability study
               "metafor", "metadat", "meta",
+              # S3b-2 (planning a study): gsDesign, powerSurvEpi and pwrss (pwrss is CRAN only, like presize)
+              "gsDesign", "powerSurvEpi", "pwrss",
               # S3c-1 (communities and resistomes): zero replacement and log ratios; MCA; silhouettes and LDA
               "zCompositions", "compositions", "ca", "cluster", "MASS")
 
@@ -134,6 +136,8 @@ R_ENTRY_POINTS = {
     ("words/survival.py", "draw_risk_curves"),
     # S3b-1 (combining studies)
     ("table/meta_r.py", "combine"),
+    # S3b-2 (planning a study)
+    ("power_r.py", "_r"),
     # S3c-1 (communities and resistomes)
     ("table/community_r.py", "_need"),
     ("table/community_r.py", "_call"),

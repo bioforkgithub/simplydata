@@ -903,10 +903,13 @@ HELP_EXAMPLES = {
         import simplydata as sdata
         sdata.find_how_many_needed(effect_size=0.5, power=0.8)
         sdata.find_how_many_needed(test="compare_averages", difference=5, spread=10)
-        sdata.find_how_many_needed(test="compare_averages", effect_size=0.25, groups=3)"""),
+        sdata.find_how_many_needed(test="compare_averages", effect_size=0.25, groups=3)
+        sdata.find_how_many_needed(effect_size=0.5, in_clusters_of=20, alike_within_clusters=0.05)
+        sdata.find_how_many_needed(test="explain", effect_size=0.15, using=["temperature", "salinity", "depth"])"""),
     "sdata.find_chance_of_finding": textwrap.dedent("""\
         import simplydata as sdata
-        sdata.find_chance_of_finding(effect_size=0.5, values_per_group=20)"""),
+        sdata.find_chance_of_finding(effect_size=0.5, values_per_group=20)
+        sdata.find_chance_of_finding(effect_size=0.5, values_per_group=[20, 40], based_on="ranks")"""),
     # numbers: make and look
     "sdata.numbers": textwrap.dedent("""\
         import simplydata as sdata
@@ -3714,6 +3717,10 @@ LESSONS = [
                  "80 % chance, you need 64 values in each group."),
                 ("sdata.find_chance_of_finding(effect_size=0.5, values_per_group=20)",
                  "With only 20 values in each group, the chance to find it is just 34 %."),
+                # S3b-2: one line, events first
+                ('sdata.find_how_many_needed(test="compare_survival", effect_size=0.7, percents=[30, 40])',
+                 "Survival is planned in events first: to find a hazard ratio of 0.7 you need 247 events; if 30 % "
+                 "and 40 % have the event during the study, that is 706 people (needs R)."),
             ]),
         ],
         notes=[

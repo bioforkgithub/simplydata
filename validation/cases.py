@@ -908,6 +908,19 @@ def _add_combining_studies():
 _add_combining_studies()
 
 
+# ---------------------------------------------------------------- S3b-2: planning a study (validation/cases_planning.py)
+def _add_planning_a_study():
+    import importlib.util
+
+    spec = importlib.util.spec_from_file_location("simplydata_validation_planning", HERE / "cases_planning.py")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    module.add_to(globals())
+
+
+_add_planning_a_study()
+
+
 # ---------------------------------------------------------------- S3c-1: communities and resistomes (validation/cases_communities.py)
 def _add_communities_and_resistomes():
     import importlib.util

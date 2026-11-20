@@ -46,6 +46,7 @@ jobs:
           "nlme", "glmnet", "boot", "lmtest", "AICcmodavg",
           "cmprsk", "adjustedCurves", "riskRegression", "KMsurv", "survRM2",
           "metafor", "metadat", "meta",
+          "gsDesign", "powerSurvEpi", "pwrss",
           "zCompositions", "compositions", "ca");
           install.packages(pkgs); for (p in pkgs) library(p, character.only = TRUE)'
       - name: Tell rpy2 where R is
