@@ -1,0 +1,4 @@
+27 of 336 cells are zero; they were replaced by estimated small values first (multiplicative replacement, R zCompositions GBM), so the logs exist.
+Principal coordinates (PCoA) of the Aitchison distances between 24 rows from 14 columns (blaTEM, blaCTXM, blaOXA48, blaNDM, sul1, sul2 and 8 more): PCo1 shows 43.6 % of the differences between rows, PCo1 to PCo2 together 66.1 % (shares of the positive eigenvalues, R cmdscale's goodness of fit).
+No eigenvalue is negative: Aitchison distances are straight-line distances between the clr log ratios, so this map is the principal components of those columns (add_log_ratio_columns, then add_principal_components(same_scale=False)).
+Method: R stats::cmdscale(vegan::vegdist(x, "aitchison"), k = 2, eig = TRUE). Added PCo1 and PCo2; the axes have the units of the distances, and their signs are arbitrary (each is turned so its biggest value is positive).

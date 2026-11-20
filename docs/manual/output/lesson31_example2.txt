@@ -1,0 +1,10 @@
+Diversity of 24 rows from 14 columns (blaTEM, blaCTXM, blaOXA48, blaNDM, sul1, sul2 and 8 more):
+  Richness (the number of kinds present) averages 12.9 (from 11 to 14).
+  Shannon diversity averages 1.99 (natural log): as diverse as a sample of 7.4 equally common kinds, on average (its effective number, Hill number q = 1).
+  Simpson's index averages 0.83: the chance that two counts drawn at random are of different kinds (1 - the sum of squared shares); as diverse as 6.1 equally common kinds (inverse Simpson, Hill number q = 2).
+Note: richness depends on how many counts each row has (from 1,285 to 59,389 here); compare richness at the same total count: at_total_count=1285.
+Method: R vegan::specnumber(x), diversity(x, "shannon"), diversity(x, "simpson"), renyi(x, scales = c(0, 1, 2), hill = TRUE). simplydata chooses the natural log for Shannon, Simpson as 1 - D (the Gini-Simpson index), Chao1 bias-corrected and rarefaction as an expected value. Added richness, shannon and simpson.
+The average "shannon" is 1.85 in fjord sediment, 1.98 in harbour, 2.15 in hospital effluent and 1.98 in treatment plant. Omega-squared = 0.342 (95 % CI 0 to 0.571): the groups explain about 34 % of the differences in "shannon".
+If the groups were truly alike, differences this big or bigger between them would turn up in about 1 of 1000 studies like this one (p = 0.001).
+Test: Welch's one-way ANOVA (F = 11.7, df = 3 and 10.3), the usual test for three or more averages; it does not assume the groups have the same spread. To see which groups differ: table.compare_each_pair_of("shannon", for_each_group_in="site").
+Note: the values in group "treatment plant" don't look bell-shaped (Shapiro-Wilk p = 0.021); a safer test here: based_on="ranks".
