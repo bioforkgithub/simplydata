@@ -289,6 +289,7 @@ def website(tmp_path, marks):
     server.server_close()
 
 
+@pytest.mark.network  # a local server on 127.0.0.1 only (tests/conftest.py)
 @pytest.mark.parametrize("name", ["marks.csv", "marks.xlsx", "marks.parquet", "marks.json"])
 def test_read_from_web_address(website, marks, name, fast, capsys):
     table = sdata.table(f"{website}/{name}", fast=fast)
@@ -297,6 +298,7 @@ def test_read_from_web_address(website, marks, name, fast, capsys):
     pd.testing.assert_frame_equal(as_pandas(table), marks, check_dtype=False)
 
 
+@pytest.mark.network  # a local server on 127.0.0.1 only (tests/conftest.py)
 def test_web_address_without_file_type(website, marks, capsys):
     got = as_pandas(sdata.table(f"{website}/export"))
     assert "reads it as CSV text" in capsys.readouterr().out
@@ -305,6 +307,7 @@ def test_web_address_without_file_type(website, marks, capsys):
     assert len(got) == len(marks)
 
 
+@pytest.mark.network  # a local server on 127.0.0.1 only (tests/conftest.py)
 def test_web_address_not_found(website):
     with pytest.raises(SimplydataError, match="404"):
         sdata.table(f"{website}/nothing.csv")

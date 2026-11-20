@@ -33,6 +33,29 @@ class RMissing(SimplydataError):
     """R, rpy2 or an R package is not there."""
 
 
+# Privacy: the R code simplydata runs never reaches the internet, installs anything or writes a file. R does its
+# own networking (libcurl, sockets) and file writing, out of Python's sight, so r_call() refuses code that could;
+# tests/test_privacy.py checks the same list against every R code string in the source.
+R_NOT_ALLOWED = re.compile(
+    r"://"  # any web, ftp or file address
+    r"|(?<![\w.])(?:download\.file|download\.packages|install\.packages|update\.packages|available\.packages|"
+    r"url|gzcon|file|socketConnection|socketAccept|serverSocket|make\.socket|browseURL|curlGetHeaders|"
+    r"system|system2|shell|shell\.exec|pdf|png|jpeg|tiff|bmp|svg|postscript|sink|saveRDS|save|save\.image|"
+    r"writeLines|writeBin|writeChar|write\.csv|write\.csv2|write\.table|write|dput|dump|file\.create|file\.copy|"
+    r"dir\.create|Rprof)\s*\("
+    r"|(?<![\w.])(?:curl|httr|httr2|RCurl|httpuv|websocket|remotes|devtools|pak|BiocManager|pins|piggyback|"
+    r"googledrive|googlesheets4|aws\.s3|DBI|odbc|RPostgres|RMySQL|mongolite|redux)::")
+
+
+def refuse_unsafe_r_code(code: str) -> None:
+    """Raise SimplydataError when R code could reach the internet, install a package or write a file."""
+    found = R_NOT_ALLOWED.search(code)
+    if found:
+        raise SimplydataError(
+            f"simplydata does not run R code that could reach the internet or write a file ({found.group(0)!r}).\n"
+            "This is a promise for people who work with sensitive data: your data stays on your computer.")
+
+
 def _install_text(packages, what, python_note=None) -> str:
     listed = ", ".join(f'"{p}"' for p in packages)
     missing = _STATE.get("missing", "package")
@@ -257,7 +280,9 @@ def r_call(code: str, packages=(), what="This", python_note=None, source=None, n
     and messages stay silent; each warning R gives is passed on once as a plain note, labelled
     with source= (such as "vegan::betadisper"), or with what= when no source is given; note_words= (a
     function of the note) rewrites each note first. Once R has answered, R, the packages and the pkg:: names in
-    code are remembered for sdata.show_packages_used() (not with _cite=False)."""
+    code are remembered for sdata.show_packages_used() (not with _cite=False). Code that could reach the internet
+    or write a file is refused (refuse_unsafe_r_code)."""
+    refuse_unsafe_r_code(code)
     need_r(packages, what, python_note)
     with _LOCK:
         ro = _STATE["r"]

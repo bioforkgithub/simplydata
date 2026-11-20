@@ -8,11 +8,94 @@ matplotlib.use("Agg")
 # scripts of its own)
 os.environ.setdefault("SIMPLYDATA_NO_CITE_LIST", "1")
 
-import numpy as np
-import pandas as pd
-import pytest
+import socket
 
-from simplydata import _errors
+# ---------------------------------------------------------------- privacy: no test may reach the network
+# simplydata promises that it never sends data anywhere (README, "Privacy"; tests/test_privacy.py). This guard is
+# switched on before simplydata is imported and stays on for the whole run: every outgoing connection and every
+# name lookup is refused and recorded, and a test that tried one fails, even if the code under test caught the
+# error. Only tests marked @pytest.mark.network (reading a table from a web address the user gives) may connect,
+# and only to a local server on this computer (127.0.0.1). R does its own networking, out of Python's sight: it
+# gets a proxy that leads nowhere (port 9 on this computer), and simplydata._r.r_call() refuses R code that could
+# reach the internet; tests/test_privacy.py scans every R code string for it.
+DEAD_PROXY = "http://127.0.0.1:9"
+for _name in ("http_proxy", "https_proxy", "ftp_proxy", "all_proxy"):
+    os.environ[_name] = os.environ[_name.upper()] = DEAD_PROXY
+os.environ["no_proxy"] = os.environ["NO_PROXY"] = "127.0.0.1,localhost"
+
+NETWORK = {"loopback allowed": False, "attempts": []}
+_LOOPBACK = {"127.0.0.1", "::1", "localhost"}
+
+
+class NetworkBlocked(RuntimeError):
+    """Not an OSError, so that "except OSError" in the code under test cannot hide it (it is recorded anyway)."""
+
+
+def _check(what, address):
+    if not (isinstance(address, tuple) and address):
+        return  # a local (Unix) socket: not the network
+    host, port = str(address[0]).lower(), (address[1] if len(address) > 1 else None)
+    if host in _LOOPBACK and port != 9 and NETWORK["loopback allowed"]:
+        return
+    NETWORK["attempts"].append(f"{what} {address!r}")
+    raise NetworkBlocked(f"the tests do not allow network access: {what} {address!r}")
+
+
+_real_connect, _real_connect_ex, _real_sendto = socket.socket.connect, socket.socket.connect_ex, socket.socket.sendto
+_real_getaddrinfo = socket.getaddrinfo
+
+
+def _guarded_connect(self, address):
+    _check("connect to", address)
+    return _real_connect(self, address)
+
+
+def _guarded_connect_ex(self, address):
+    _check("connect to", address)
+    return _real_connect_ex(self, address)
+
+
+def _guarded_sendto(self, data, *rest):
+    _check("send to", rest[-1] if rest else None)
+    return _real_sendto(self, data, *rest)
+
+
+def _guarded_getaddrinfo(host, port, *args, **kwargs):
+    name = host.decode() if isinstance(host, bytes) else host
+    if name is not None and str(name).lower() not in _LOOPBACK:
+        NETWORK["attempts"].append(f"look up {name!r}")
+        raise NetworkBlocked(f"the tests do not allow network access: look up {name!r}")
+    return _real_getaddrinfo(host, port, *args, **kwargs)
+
+
+socket.socket.connect, socket.socket.connect_ex, socket.socket.sendto = (
+    _guarded_connect, _guarded_connect_ex, _guarded_sendto)
+socket.getaddrinfo = _guarded_getaddrinfo
+
+import numpy as np  # noqa: E402
+import pandas as pd  # noqa: E402
+import pytest  # noqa: E402
+
+from simplydata import _errors  # noqa: E402
+
+
+def pytest_configure(config):
+    config.addinivalue_line("markers", "network: reads a table from a local web server on 127.0.0.1 (the only "
+                                       "network use simplydata has: a web address the user gives)")
+
+
+@pytest.fixture(autouse=True)
+def no_network(request):
+    """Every test runs without network access; a test marked network may reach 127.0.0.1 only. A test that tried
+    to connect anywhere else fails here, even if the code it ran caught the error."""
+    NETWORK["loopback allowed"] = request.node.get_closest_marker("network") is not None
+    before = len(NETWORK["attempts"])
+    yield
+    NETWORK["loopback allowed"] = False
+    tried = NETWORK["attempts"][before:]
+    if tried:
+        pytest.fail("This test tried to reach the network, which simplydata never does:\n  " + "\n  ".join(tried),
+                    pytrace=False)
 
 
 @pytest.fixture(autouse=True)
