@@ -1,6 +1,12 @@
+import os
+
 import matplotlib
 
 matplotlib.use("Agg")
+
+# The test run is a script that uses many words: no list of packages at its end (tests/test_cite.py checks it in
+# scripts of its own)
+os.environ.setdefault("SIMPLYDATA_NO_CITE_LIST", "1")
 
 import numpy as np
 import pandas as pd

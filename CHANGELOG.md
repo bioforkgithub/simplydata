@@ -5,6 +5,25 @@ working for one release and prints a one-line note with its new name.
 
 ## Unreleased
 
+### New: `sdata.show_packages_used()`, the packages that did the work and how to cite them
+
+- simplydata now remembers, during a session, every package that did work behind a word that finished without
+  an error: Python packages (pandas or Polars, whichever holds the table, narwhals, NumPy, SciPy, statsmodels,
+  matplotlib, seaborn ...) and R with each R package it called. Asked for by the owner: "this should happen for
+  any package the user uses even for pandas or polars or scipy anything".
+- At the end of a script a short list is printed: name, version, language, source (PyPI, conda-forge, CRAN,
+  Bioconductor) and a one-line reference. Not in Jupyter or an interactive session. Switch it off with
+  `sdata.show_packages_used(at_end=False)` or the environment variable `SIMPLYDATA_NO_CITE_LIST=1`.
+- `sdata.show_packages_used()` prints the full references, a sentence for your methods, and the packages you
+  loaded yourself (cite them if you used them); `save_as="references.bib"` also writes them as BibTeX.
+  simplydata itself comes first, with its Zenodo DOI.
+- The references are the packages' own: R's `citation()` and `packageVersion()` for R and its packages, and for
+  Python packages the citation each package asks for (a package that asks for none is listed with its name,
+  version and home page). No reference is made up, and nothing is computed: results and printouts of the
+  other words are unchanged.
+- `sdata.help("cite")`, and citation, citations, references, cite_packages, sessionInfo, session_info and bibtex,
+  point to the new word.
+
 ### Fixed: results from R could change after they were returned
 
 - Numbers coming back from R were NumPy views into R's memory that did not keep the R object alive. When R

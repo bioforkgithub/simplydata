@@ -92,6 +92,9 @@ GROUP_UNDERNEATH = {
                              "JSON file on your computer (json, pathlib)",
 }
 UNDERNEATH = {
+    # help
+    "sdata.show_packages_used": "Python's importlib.metadata (versions and home pages) and each package's own "
+                                "requested reference; for R, utils::citation() and packageVersion() through rpy2",
     # start, show and save
     "sdata.chart": "pandas reads the file (Polars for big files); the chart is drawn with matplotlib and seaborn",
     "sdata.get_example": "pandas (read_csv of a small file inside simplydata)",
@@ -462,11 +465,21 @@ sdata.help("draw_bars")                  # one word: what it does, its options a
 sdata.get_example()                     # the made-up tables you can practise with
 sdata.start_30_days()               # or learn it in 30 days of about an hour,
 sdata.show_today()                       # ... with sdata.show_today() each day
+sdata.show_packages_used()               # the packages that did the work, and how to cite them
 \end{lstlisting}
 Rather learn an hour a day? \code{sdata.start\_30\_days()} spreads the everyday lessons over 30 days, each with
 a warm-up of questions on earlier days and a task, and a project of your own at the end
 (\code{track="beginner"} starts with just enough Python). The printable guide,
 \href{simplydata_30_days.pdf}{\code{simplydata\_30\_days.pdf}}, has the same days on paper.
+
+\section*{Cite the packages underneath}
+simplydata does its work with pandas, Polars, NumPy, SciPy, statsmodels, matplotlib, seaborn and R,
+and their authors ask to be cited. At the end of a script simplydata prints a short list of the
+packages your words used, with their versions and references; \code{sdata.show\_packages\_used()}
+gives the full references and a sentence for your methods, and
+\code{sdata.show\_packages\_used(save\_as="references.bib")} saves them as BibTeX. The list is not
+printed in Jupyter or an interactive session; \code{sdata.show\_packages\_used(at\_end=False)} or the
+environment variable \code{SIMPLYDATA\_NO\_CITE\_LIST=1} switches it off.
 
 \section*{Your own data}
 \code{sdata.table("my\_file.xlsx")} and \code{sdata.chart("my\_file.xlsx")} read Excel, CSV, TSV,

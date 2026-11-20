@@ -64,6 +64,8 @@ _SDATA = [
     ('table.compare_shape_to("marks", "normal"), on a table', "shapiro shapiro_test normaltest anderson"),
     ("sdata.find_how_many_needed(effect_size=0.5, power=0.8)", "power_t_test solve_power pwr"),
     ('sdata.start_30_days(track="python") once, then sdata.show_today() each day', "course tutorial"),
+    ('sdata.show_packages_used(), or sdata.show_packages_used(save_as="references.bib") for BibTeX',
+     "cite citation citations references cite_packages sessionInfo session_info bibtex"),
 ]
 
 # table.<name>

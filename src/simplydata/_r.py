@@ -132,6 +132,9 @@ def _start():
                 ro.r("invisible(utils::capture.output(suppressMessages(suppressWarnings(for (p in c('stats', 'utils', "
                      "'methods', 'graphics', 'grDevices')) library(p, character.only = TRUE)))))")
             _STATE["r"] = ro
+            from ._cite import register_at_exit
+
+            register_at_exit()  # the list of packages used is printed before rpy2 shuts R down
         except Exception as error:  # noqa: BLE001 - any failure means "R is not ready"
             _STATE["error"] = str(error) or type(error).__name__
             _STATE["missing"] = "rpy2" if isinstance(error, ImportError) else "R"
@@ -246,13 +249,15 @@ def _say_warnings(messages, source, note_words=None) -> None:
             print(f"Note from R ({source}): {message if message.endswith('.') else message + '.'}")
 
 
-def r_call(code: str, packages=(), what="This", python_note=None, source=None, note_words=None, **values):
+def r_call(code: str, packages=(), what="This", python_note=None, source=None, note_words=None, _cite=True,
+           **values):
     """Run R code with values put in as R variables; give back the code's result as NumPy/Python.
 
     The last expression of code is the result; a named R list comes back as a dict. R's printing
     and messages stay silent; each warning R gives is passed on once as a plain note, labelled
     with source= (such as "vegan::betadisper"), or with what= when no source is given; note_words= (a
-    function of the note) rewrites each note first."""
+    function of the note) rewrites each note first. Once R has answered, R, the packages and the pkg:: names in
+    code are remembered for sdata.show_packages_used() (not with _cite=False)."""
     need_r(packages, what, python_note)
     with _LOCK:
         ro = _STATE["r"]
@@ -278,6 +283,71 @@ def r_call(code: str, packages=(), what="This", python_note=None, source=None, n
         except Exception as error:  # noqa: BLE001
             raise SimplydataError(f"R stopped with: {str(error).strip()}") from None
         found = _from_r(result)
+    if _cite:
+        from ._cite import record_r
+
+        record_r(packages, code)
     warnings = found.get("warnings")
     _say_warnings([] if warnings is None else np.atleast_1d(warnings).tolist(), source or what, note_words)
     return found.get("value")
+
+
+_FACTS_CODE = r"""
+local({
+  one <- function(p) {
+    x <- tryCatch(suppressWarnings(utils::citation(p)), error = function(e) NULL)
+    d <- suppressWarnings(utils::packageDescription(p))
+    source <- if (p == "base") "R" else if (!is.null(d$Priority) && d$Priority == "base") "R" else
+      if (!is.null(d$biocViews)) "Bioconductor" else if (is.null(d$Repository)) "unknown" else
+      if (d$Repository %in% c("CRAN", "RSPM", "P3M")) "CRAN" else
+      if (grepl("r-universe", d$Repository, fixed = TRUE)) "R-universe" else d$Repository
+    version <- if (p == "base") paste(R.version$major, R.version$minor, sep = ".") else
+      as.character(utils::packageVersion(p))
+    first <- ""; many <- FALSE; year <- ""; title <- ""; link <- ""
+    if (length(x)) {
+      e <- unclass(x)[[1]]
+      a <- e$author
+      if (length(a)) {
+        fam <- a[[1]]$family; giv <- a[[1]]$given
+        first <- paste(if (length(fam)) fam else giv, collapse = " ")
+        many <- length(a) > 1
+      }
+      if (!is.null(e$year)) year <- as.character(e$year)
+      if (!is.null(e$title)) title <- gsub("[{}]", "", as.character(e$title))
+      link <- if (!is.null(e$doi)) paste0("doi:", e$doi) else if (!is.null(e$url)) as.character(e$url) else ""
+    }
+    list(version = version, source = source, first = first, many = many, year = year, title = title,
+         link = link,
+         text = if (length(x)) paste(gsub("\\s+", " ", format(x, style = "text")), collapse = " ") else "",
+         bibtex = if (length(x)) paste(as.character(utils::toBibtex(x)), collapse = "\n") else "")
+  }
+  out <- lapply(simplydata_wanted, function(p) tryCatch(one(p), error = function(e) list(version = "")))
+  names(out) <- simplydata_wanted
+  out
+})
+"""
+
+
+def r_package_facts(packages) -> dict:
+    """{package: facts} for sdata.show_packages_used(): version (packageVersion()), source (CRAN, Bioconductor,
+    R for R's own packages) and references (utils::citation(): as text and as toBibtex()). "base" is R itself."""
+    found = r_call(_FACTS_CODE, _cite=False, simplydata_wanted=list(packages)) or {}
+    out = {}
+    for package, raw in found.items():
+        def one(name, default=""):
+            value = raw.get(name)
+            if value is None or not np.size(value):
+                return default
+            return np.atleast_1d(value).tolist()[0]
+
+        version = str(one("version"))
+        if not version:
+            continue
+        first, year, title, link = str(one("first")), str(one("year")), str(one("title")), str(one("link"))
+        who = (first + (" et al." if bool(one("many", False)) else "")).strip() or package
+        short = f"{who} ({year})" if year else who
+        out[package] = dict(name=package, version=version, language="R", source=str(one("source")),
+                            one_line=", ".join(p for p in (short, title, link) if p),
+                            text=str(one("text")) or f'type citation("{package}") in R',
+                            bibtex=str(one("bibtex")), cite=f"{who} {year}".strip())
+    return out
