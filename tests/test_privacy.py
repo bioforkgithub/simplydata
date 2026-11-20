@@ -27,7 +27,9 @@ import pytest
 import simplydata as sdata
 from simplydata._r import R_NOT_ALLOWED, refuse_unsafe_r_code
 
-PACKAGE = Path(sdata.__file__).resolve().parent
+# The source next to these tests (the checkout), else the simplydata that is imported
+_CHECKOUT = Path(__file__).resolve().parents[1] / "src" / "simplydata"
+PACKAGE = _CHECKOUT if _CHECKOUT.is_dir() else Path(sdata.__file__).resolve().parent
 SRC = PACKAGE.parent
 SOURCE_FILES = sorted(PACKAGE.rglob("*.py"))
 
@@ -75,16 +77,19 @@ NETWORK_MODULES = {
 NETWORK_CALLS = {
     "load_dataset", "get_dataset_names", "get_rdataset", "webuse", "urlopen", "urlretrieve", "read_html",
     "system", "popen", "startfile", "spawnl", "spawnv", "execv", "execl", "execvp", "execlp", "open_connection",
-    "create_connection", "check_output", "check_call", "Popen",
+    "create_connection", "check_output", "check_call", "Popen", "build_opener", "install_opener", "OpenerDirector",
 }
+OS_CALLS = {"system", "popen", "startfile"}  # os.system(...), not platform.system()
 # The one place simplydata reaches the network: sdata.table("https://...") with a web address the user gives
 ALLOWED_IMPORTS = {("_data.py", "<module>", "urllib.error"), ("_data.py", "<module>", "urllib.parse"),
                    ("_data.py", "<module>", "urllib.request")}
 ALLOWED_USES = {  # (file, function) where urllib.<part>.<name> may be used
     "urllib.request": {("_data.py", "_download")},
     "urllib.error": {("_data.py", "_download")},
-    "urllib.parse": {("_data.py", "_read_web")},
+    "urllib.parse": {("_data.py", "_read_web"), ("_data.py", "_redirect_allowed")},
 }
+ALLOWED_EXACT = {("_data.py", "<module>", "urllib.request.HTTPRedirectHandler")}  # class _SafeRedirect(...)
+ALLOWED_CALLS = {("_data.py", "_download")}
 
 
 def _network_code(files=None, base=PACKAGE) -> list[str]:
@@ -100,19 +105,30 @@ def _network_code(files=None, base=PACKAGE) -> list[str]:
             elif (isinstance(node, ast.Call) and isinstance(node.func, ast.Name) and node.func.id == "__import__"
                   or isinstance(node, ast.Call) and _dotted(node.func).endswith("import_module")):
                 modules = [a.value for a in node.args if isinstance(a, ast.Constant) and isinstance(a.value, str)]
+                if any(not (isinstance(a, ast.Constant) and isinstance(a.value, str)) for a in node.args[:1]):
+                    found.append(f"{name}:{node.lineno} ({function}) imports a module by a name made at run time")
             for module in modules:
                 if module.split(".")[0] in NETWORK_MODULES and (name, function, module) not in ALLOWED_IMPORTS:
                     if not (isinstance(node, ast.ImportFrom) and module != node.module):
                         found.append(f"{name}:{node.lineno} ({function}) imports {module}")
+            if isinstance(node, ast.Import) and any(a.asname and a.name.split(".")[0] in NETWORK_MODULES
+                                                    for a in node.names):
+                found.append(f"{name}:{node.lineno} ({function}) imports a network module under another name")
             if isinstance(node, ast.Attribute):
                 dotted = _dotted(node)
                 for prefix, places in ALLOWED_USES.items():
-                    if dotted.startswith(prefix + ".") and (name, function) not in places:
+                    if (dotted.startswith(prefix + ".") and (name, function) not in places
+                            and (name, function, dotted) not in ALLOWED_EXACT):
                         found.append(f"{name}:{node.lineno} ({function}) uses {dotted}")
             if isinstance(node, ast.Call):
                 called = node.func.attr if isinstance(node.func, ast.Attribute) else getattr(node.func, "id", "")
-                if called in NETWORK_CALLS and not (name, function) in ALLOWED_USES["urllib.request"]:
-                    found.append(f"{name}:{node.lineno} ({function}) calls {_dotted(node.func) or called}()")
+                dotted = _dotted(node.func) or called
+                if called == "getattr" and len(node.args) > 1 and isinstance(node.args[1], ast.Constant):
+                    called = dotted = str(node.args[1].value)  # getattr(module, "urlopen")
+                network = called in NETWORK_CALLS - OS_CALLS or (
+                    called in OS_CALLS and (dotted == called or dotted.startswith("os.")))
+                if network and (name, function) not in ALLOWED_CALLS:
+                    found.append(f"{name}:{node.lineno} ({function}) calls {dotted}()")
     return found
 
 
@@ -128,13 +144,78 @@ def test_the_scan_finds_network_code(tmp_path):
         import requests
         import seaborn as sns
         from urllib.request import urlopen
+        import socket as s
+        import platform
         def chart():
             sns.load_dataset("tips")
             os.system("curl https://example.org")
+            getattr(s, "create_connection")(("example.org", 80))
+            importlib.import_module(name)
+            platform.system()
     """), encoding="utf-8")
     found = "\n".join(_network_code([probe], tmp_path))
-    for what in ("imports requests", "imports urllib.request", "calls sns.load_dataset()", "calls os.system()"):
+    for what in ("imports requests", "imports urllib.request", "calls sns.load_dataset()", "calls os.system()",
+                 "under another name", "calls create_connection()", "made at run time"):
         assert what in found, what
+    assert "platform.system" not in found
+
+
+def test_the_python_code_of_the_manual_boxes_has_no_network_code(tmp_path):
+    """The underneath registry's Python blocks are run by the tests and the reliability report (exec)."""
+    from simplydata._underneath import UNDERNEATH
+
+    files = []
+    for i, entry in enumerate(UNDERNEATH.values()):
+        for j, (library, language, source) in enumerate(entry.blocks()):
+            if language == "python":
+                path = tmp_path / f"{i}_{j}.py"
+                path.write_text(source, encoding="utf-8")
+                files.append(path)
+    assert files
+    found = _network_code(files, tmp_path)
+    assert not found, found
+
+
+def _calls_of(function_name: str) -> set[tuple[str, str]]:
+    """(file, function) of every call of a function by this name anywhere in the source."""
+    found = set()
+    for path in SOURCE_FILES:
+        for node, function in _with_functions(_tree(path)):
+            if isinstance(node, ast.Call):
+                called = node.func.attr if isinstance(node.func, ast.Attribute) else getattr(node.func, "id", "")
+                if called == function_name:
+                    found.add((_name(path), function))
+    return found
+
+
+def test_the_web_reader_is_reached_only_from_reading_a_table():
+    """No other code can borrow the downloader with an address it makes up: _download is called only by
+    _read_web, and _read_web only by read_file, which reads what the user gave sdata.table or sdata.chart."""
+    assert _calls_of("_download") == {("_data.py", "_read_web")}
+    assert _calls_of("_read_web") == {("_data.py", "read_file")}
+
+
+def test_only_the_r_bridge_imports_rpy2():
+    """All R goes through simplydata._r, where r_call() refuses unsafe R code."""
+    found = [f"{_name(p)}:{n.lineno}" for p in SOURCE_FILES if _name(p) != "_r.py" for n in ast.walk(_tree(p))
+             if isinstance(n, (ast.Import, ast.ImportFrom))
+             and any(((n.module if isinstance(n, ast.ImportFrom) else a.name) or "").split(".")[0] == "rpy2"
+                     for a in n.names)]
+    assert not found, found
+
+
+@pytest.mark.parametrize("address", ["s3://bucket/patients.csv", "ftp://example.org/patients.csv",
+                                     "file:///tmp/patients.csv", "hf://datasets/x/patients.csv",
+                                     "gs://bucket/patients.csv", "smb://server/share/patients.csv"])
+def test_other_kinds_of_address_are_not_fetched(address):
+    """Only http(s) addresses are downloaded; anything else is a file name on this computer, and no fsspec,
+    cloud or ftp reader is started for it."""
+    before = set(sys.modules)
+    with pytest.raises(sdata.SimplydataError):
+        sdata.table(address)
+    started = {m for m in set(sys.modules) - before
+               if m.split(".")[0] in ("fsspec", "s3fs", "gcsfs", "ftplib", "huggingface_hub", "smbclient")}
+    assert not started
 
 
 def test_a_web_address_sends_nothing_but_the_request_for_the_file():
@@ -148,9 +229,50 @@ def test_a_web_address_sends_nothing_but_the_request_for_the_file():
     assert [ast.unparse(a) for a in request.args] == ["url"]
     assert [k.arg for k in request.keywords] == ["headers"]
     assert ast.literal_eval(request.keywords[0].value) == {"User-Agent": "simplydata"}
-    opens = [n for n in ast.walk(download) if isinstance(n, ast.Call) and _dotted(n.func) == "urllib.request.urlopen"]
+    opens = [n for n in ast.walk(download) if isinstance(n, ast.Call) and _dotted(n.func) == "opener.open"]
     assert len(opens) == 1 and [ast.unparse(a) for a in opens[0].args] == ["request"]
     assert {k.arg for k in opens[0].keywords} == {"timeout"}
+    openers = [n for n in ast.walk(download) if isinstance(n, ast.Call)
+               and _dotted(n.func) == "urllib.request.build_opener"]
+    assert len(openers) == 1 and [ast.unparse(a) for a in openers[0].args] == ["_SafeRedirect"]
+
+
+@pytest.mark.parametrize("old, new, allowed", [
+    ("https://a.org/x.csv", "https://b.org/x.csv", True),
+    ("http://a.org/x.csv", "https://a.org/x.csv", True),
+    ("http://a.org/x.csv", "http://b.org/x.csv", True),
+    ("https://a.org/x.csv?key=1", "http://a.org/x.csv?key=1", False),  # the address would travel unencrypted
+    ("https://a.org/x.csv", "ftp://a.org/x.csv", False),
+    ("http://a.org/x.csv", "file:///etc/passwd", False),
+])
+def test_a_web_address_is_followed_only_to_safe_addresses(old, new, allowed):
+    from simplydata._data import _redirect_allowed
+
+    assert _redirect_allowed(old, new) is allowed
+
+
+@pytest.mark.network  # a local server on 127.0.0.1 only (tests/conftest.py)
+def test_an_unsafe_onward_address_is_refused():
+    import http.server
+    import threading
+
+    class SendOn(http.server.BaseHTTPRequestHandler):
+        def do_GET(self):
+            self.send_response(302)
+            self.send_header("Location", "ftp://127.0.0.1/patients.csv")
+            self.end_headers()
+
+        def log_message(self, *args):
+            pass
+
+    server = http.server.ThreadingHTTPServer(("127.0.0.1", 0), SendOn)
+    threading.Thread(target=server.serve_forever, daemon=True).start()
+    try:
+        with pytest.raises(sdata.SimplydataError, match="not safe to follow"):
+            sdata.table(f"http://127.0.0.1:{server.server_address[1]}/patients.csv")
+    finally:
+        server.shutdown()
+        server.server_close()
 
 
 def test_only_a_web_address_reaches_the_reader_of_web_addresses():
@@ -262,6 +384,20 @@ def test_every_written_out_r_call_is_clean():
     "pdf('Rplots.pdf')",
     "system('curl example.org')",
     "browseURL('https://example.org')",
+    "`download.file`(u, f)",
+    'get("download.file")(u, f)',
+    'do.call("write.csv", list(d, f))',
+    "lapply(x, saveRDS, f)",
+    'pipe("curl example.org")',
+    "cat(x, file = f)",
+    "utils::capture.output(print(d), file = f)",
+    "gzfile(f, 'w')",
+    "serialize(d, con)",
+    "curl :: curl(u)",
+    "ggplot2::ggsave(f)",
+    "dev.copy(png, f)",
+    ".Internal(foo(x))",
+    "pdf('patients.pdf')",
 ])
 def test_r_call_refuses_r_code_that_could_leak(code):
     from simplydata._r import r_call
@@ -273,7 +409,9 @@ def test_r_call_refuses_r_code_that_could_leak(code):
 @pytest.mark.parametrize("code", [
     "stats::median(x)", "list(p = t.test(x)$p.value)", "m <- lme4::lmer(y ~ x + (1 | g)); summary(m)",
     "utils::capture.output(print(x))", "vegan::vegdist(x, 'bray')", "suppressWarnings(stats::cor.test(x, y))",
-    "fit$fitted.values", "k <- ncol(X); profile(m)",
+    "fit$fitted.values", "k <- ncol(X); profile(m)", "options(device = function(...) grDevices::pdf(file = NULL))",
+    "pdf(NULL)", "sapply(res, `[[`, 'qbar')", "utils::capture.output(x <- f(y), type = 'message')",
+    "lapply(simplydata_wanted, function(p) tryCatch(one(p), error = function(e) NULL))",
 ])
 def test_ordinary_r_code_is_not_refused(code):
     refuse_unsafe_r_code(code)  # no error
@@ -324,12 +462,21 @@ GUARD = textwrap.dedent('''
         return _real(self, address)
     socket.socket.connect = _connect
     socket.socket.connect_ex = _connect
-    _lookup = socket.getaddrinfo
-    def _getaddrinfo(host, *args, **kwargs):
-        if host not in (None, "localhost", "127.0.0.1", "::1", b"localhost"):
-            _refuse("look up " + repr(host))
-        return _lookup(host, *args, **kwargs)
-    socket.getaddrinfo = _getaddrinfo
+    _real_sendto = socket.socket.sendto
+    def _sendto(self, data, *rest):
+        if rest and isinstance(rest[-1], tuple):
+            _refuse("send to " + repr(rest[-1]))
+        return _real_sendto(self, data, *rest)
+    socket.socket.sendto = _sendto
+    def _guard(real):
+        def lookup(host, *args, **kwargs):
+            name = host[0] if isinstance(host, tuple) else host
+            if name not in (None, "localhost", "127.0.0.1", "::1", b"localhost", b"127.0.0.1"):
+                _refuse("look up " + repr(name))
+            return real(host, *args, **kwargs)
+        return lookup
+    for _name in ("getaddrinfo", "gethostbyname", "gethostbyname_ex", "gethostbyaddr", "getnameinfo"):
+        setattr(socket, _name, _guard(getattr(socket, _name)))
     def _report():
         if _tried:
             sys.stderr.write("NETWORK ATTEMPTS: " + "; ".join(_tried) + "\\n")
@@ -339,8 +486,9 @@ GUARD = textwrap.dedent('''
 
 def _run(tmp_path, body, env_extra=None):
     """Run a script in an empty folder, with an empty home folder; give back (result, folder, home)."""
-    work, home, elsewhere = tmp_path / "work", tmp_path / "home", tmp_path / "elsewhere"
-    for folder in (work, home, elsewhere):
+    work, home, elsewhere, temp = (tmp_path / "work", tmp_path / "home", tmp_path / "elsewhere",
+                                   tmp_path / "temp")
+    for folder in (work, home, elsewhere, temp):
         folder.mkdir()
     script = elsewhere / "script.py"
     script.write_text(GUARD + textwrap.dedent(body), encoding="utf-8")
@@ -348,7 +496,8 @@ def _run(tmp_path, body, env_extra=None):
     env.pop("SIMPLYDATA_PROGRESS_FILE", None)
     env.update(PYTHONPATH=str(SRC) + os.pathsep + env.get("PYTHONPATH", ""), MPLBACKEND="Agg",
                PYTHONIOENCODING="utf-8", HOME=str(home), USERPROFILE=str(home),
-               MPLCONFIGDIR=str(elsewhere / "mpl"), XDG_CACHE_HOME=str(elsewhere / "cache"))
+               MPLCONFIGDIR=str(elsewhere / "mpl"), XDG_CACHE_HOME=str(elsewhere / "cache"),
+               TMP=str(temp), TEMP=str(temp), TMPDIR=str(temp))
     env.update(env_extra or {})
     result = subprocess.run([sys.executable, str(script)], cwd=work, env=env, capture_output=True, text=True,
                             encoding="utf-8", timeout=600, stdin=subprocess.DEVNULL)
@@ -382,6 +531,7 @@ def test_the_list_of_packages_never_holds_your_data(tmp_path):
         table.save("asked.csv")
         {'big = sdata.table(school); big.explain("marks", using=["hours", "breakfast"], grouped_by="' + MARK_COLUMN
          + '", p_value_by="satterthwaite")' if use_r else ''}
+        {'from simplydata._r import r_call; r_call("graphics::plot(x); 1", x=[1.0, 2.0])' if use_r else ''}
         print("=== FULL LIST ===")
         sdata.show_packages_used(save_as="asked.bib")
         print("=== END OF SCRIPT ===")
@@ -397,6 +547,9 @@ def test_the_list_of_packages_never_holds_your_data(tmp_path):
     for text in (full, at_end, (work / "asked.bib").read_text(encoding="utf-8"), result.stderr):
         assert MARK_VALUE not in text and MARK_COLUMN not in text
         assert "ZQX" not in text
+    # only the files asked for: with R, no Rplots.pdf of a drawing either
+    assert sorted(p.name for p in work.iterdir()) == ["asked.bib", "asked.csv", "asked.png"]
+    assert list(home.iterdir()) == []
 
 
 def test_a_script_writes_only_the_files_it_asks_for(tmp_path):
@@ -410,6 +563,7 @@ def test_a_script_writes_only_the_files_it_asks_for(tmp_path):
     assert result.returncode == 0, result.stderr
     assert sorted(p.name for p in work.iterdir()) == ["chart.png", "clean.csv"]
     assert list(home.iterdir()) == []  # nothing in your home folder
+    assert list((tmp_path / "temp").iterdir()) == []  # and no temporary file left behind
 
 
 # ---------------------------------------------------------------- (e) no log files, nothing written on import

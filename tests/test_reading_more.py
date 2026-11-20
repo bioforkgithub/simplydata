@@ -320,7 +320,7 @@ def test_offline_is_friendly(monkeypatch):
     def offline(*args, **kwargs):
         raise urllib.error.URLError("no internet")
 
-    monkeypatch.setattr(urllib.request, "urlopen", offline)
+    monkeypatch.setattr(urllib.request.OpenerDirector, "open", offline)
     with pytest.raises(SimplydataError, match="Check that you are online"):
         sdata.table("https://example.org/data.csv")
 

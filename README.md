@@ -141,15 +141,18 @@ simplydata is made for sensitive data too, such as patient records and surveilla
 - **Nothing is sent anywhere.** simplydata has no telemetry, no analytics, no update checks and no crash reports.
   It never uploads, sends or logs your data.
 - **The only network use is one you ask for:** `sdata.table("https://...")` downloads the table at a web address
-  you give, and sends nothing but the request for that file. Everything else, R included, runs fully offline.
+  you give: one request for that file, with none of your data. It follows the address on only to another https
+  address. Everything else, R included, runs fully offline.
 - **Files are written only where you ask:** `table.save(...)`, `chart.save(...)`, `nums.save(...)` and
-  `save_as=`. The one exception holds no data: `sdata.start_30_days()` keeps the dates of your learning days in
-  `.simplydata/progress.json` in your home folder.
+  `save_as=`. R draws into nothing, never into an `Rplots.pdf`. `sdata.start_30_days()` keeps the dates of your
+  learning days in `.simplydata/progress.json` in your home folder (no data). Temporary files are deleted at once:
+  an SPSS file read from a web address, and R's own session folder when Python ends.
 - **What simplydata prints goes to your own screen.** The list of packages at the end of a script names packages
   and versions only, never a value or a column name.
 - **Checked on every change.** [tests/test_privacy.py](https://github.com/bioforkgithub/simplydata/blob/main/tests/test_privacy.py)
-  scans the source for network code and for R code that could reach the internet or write files (simplydata also
-  refuses to run such R code), and the whole test suite runs with the network switched off.
+  scans the source for network code and for R code that names a network, install or file-writing function
+  (simplydata also refuses to run such R code), and the whole test suite runs with Python's network connections
+  blocked.
 
 The packages underneath keep their own caches, such as matplotlib's list of fonts; these hold no data. To report a
 security or privacy problem, see [SECURITY.md](https://github.com/bioforkgithub/simplydata/blob/main/SECURITY.md).

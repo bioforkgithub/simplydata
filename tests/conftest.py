@@ -15,9 +15,10 @@ import socket
 # switched on before simplydata is imported and stays on for the whole run: every outgoing connection and every
 # name lookup is refused and recorded, and a test that tried one fails, even if the code under test caught the
 # error. Only tests marked @pytest.mark.network (reading a table from a web address the user gives) may connect,
-# and only to a local server on this computer (127.0.0.1). R does its own networking, out of Python's sight: it
-# gets a proxy that leads nowhere (port 9 on this computer), and simplydata._r.r_call() refuses R code that could
-# reach the internet; tests/test_privacy.py scans every R code string for it.
+# and only to a local server on this computer (127.0.0.1). The guard sees Python's own sockets. Code outside Python
+# (R, C or Rust libraries) is not seen by it: R gets a proxy that leads nowhere (port 9 on this computer),
+# simplydata._r.r_call() refuses R code that names a network function, and tests/test_privacy.py scans every R
+# code string for them.
 DEAD_PROXY = "http://127.0.0.1:9"
 for _name in ("http_proxy", "https_proxy", "ftp_proxy", "all_proxy"):
     os.environ[_name] = os.environ[_name.upper()] = DEAD_PROXY
@@ -68,9 +69,31 @@ def _guarded_getaddrinfo(host, port, *args, **kwargs):
     return _real_getaddrinfo(host, port, *args, **kwargs)
 
 
+def _guarded_sendmsg(self, buffers, *rest):
+    _check("send to", rest[-1] if len(rest) >= 3 else None)
+    return _real_sendmsg(self, buffers, *rest)
+
+
+def _guard_lookup(real):
+    def lookup(host, *args, **kwargs):
+        name = host[0] if isinstance(host, tuple) else host  # getnameinfo((address, port), flags)
+        name = name.decode() if isinstance(name, bytes) else name
+        if name is not None and str(name).lower() not in _LOOPBACK:
+            NETWORK["attempts"].append(f"look up {name!r}")
+            raise NetworkBlocked(f"the tests do not allow network access: look up {name!r}")
+        return real(host, *args, **kwargs)
+    return lookup
+
+
+_real_sendmsg = socket.socket.sendmsg if hasattr(socket.socket, "sendmsg") else None
 socket.socket.connect, socket.socket.connect_ex, socket.socket.sendto = (
     _guarded_connect, _guarded_connect_ex, _guarded_sendto)
+if _real_sendmsg is not None:
+    socket.socket.sendmsg = _guarded_sendmsg
 socket.getaddrinfo = _guarded_getaddrinfo
+# a name lookup is itself a way to send something out (a lookup of "<value>.example.org")
+for _lookup in ("gethostbyname", "gethostbyname_ex", "gethostbyaddr", "getnameinfo"):
+    setattr(socket, _lookup, _guard_lookup(getattr(socket, _lookup)))
 
 import numpy as np  # noqa: E402
 import pandas as pd  # noqa: E402
