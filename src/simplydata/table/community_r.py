@@ -252,7 +252,7 @@ def discriminant(x, groups):
     """MASS::lda (prior = the group shares, MASS's default), predict()$x, leave-one-out classes (CV = TRUE), and
     the proportion of trace as MASS prints it."""
     code = ("f <- MASS::lda(x, g); s <- predict(f)$x; cv <- MASS::lda(x, g, CV = TRUE)$class; "
-            "o <- local({ op <- options(width = 200, digits = 7); on.exit(options(op)); utils::capture.output(print(f)) }); i <- grep(\"Proportion of trace\", o, fixed = TRUE); "
+            "o <- local({ op <- options(width = 200, digits = 7); on.exit(options(op)); utils::capture.output(MASS:::print.lda(f)) }); i <- grep(\"Proportion of trace\", o, fixed = TRUE); "
             "v <- if (length(i)) o[(i[1] + 1):length(o)] else character(0); v <- v[!grepl(\"LD\", v)]; "
             "trace <- suppressWarnings(as.numeric(unlist(strsplit(trimws(paste(v, collapse = \" \")), \"\\\\s+\")))); "
             "list(scores = unname(as.matrix(s)), loo = as.character(cv), prior = unname(f$prior), "
