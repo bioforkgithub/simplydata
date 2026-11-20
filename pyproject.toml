@@ -57,6 +57,8 @@ r = ["rpy2>=3.5"]  # the bridge to R for the methods only R gives (R itself: htt
 # reliability study only. Both are on CRAN and conda-forge.
 # S3b-2 (planning a study) calls gsDesign (events for survival, Schoenfeld), powerSurvEpi (people for survival; Freedman)
 # and pwrss (logistic regression; CRAN only, like presize), besides presize, listed already.
+# S3c-2 (hidden factors) calls psych (listed already) with GPArotation for the rotations, and lavaan; both on CRAN
+# and conda-forge.
 test = ["pytest>=7", "polars>=0.20", "pyarrow>=14", "statsmodels>=0.14"]
 
 [project.urls]

@@ -59,7 +59,9 @@ R_PACKAGES = ("survival", "vegan", "mice", "lme4", "betareg", "pscl", "car", "ef
               # S3b-1 (combining studies): metafor (with its data package metadat); meta for the reliability study
               "metafor", "metadat", "meta",
               # S3b-2 (planning a study): gsDesign, powerSurvEpi and pwrss (pwrss is CRAN only, like presize)
-              "gsDesign", "powerSurvEpi", "pwrss")
+              "gsDesign", "powerSurvEpi", "pwrss",
+              # S3c-2 (hidden factors): GPArotation (the rotations of psych::fa) and lavaan; psych is listed above
+              "GPArotation", "lavaan")
 
 
 @pytest.fixture
@@ -136,6 +138,8 @@ R_ENTRY_POINTS = {
     ("table/meta_r.py", "combine"),
     # S3b-2 (planning a study)
     ("power_r.py", "_r"),
+    # S3c-2 (hidden factors)
+    ("table/factor_r.py", "explore"), ("table/factor_r.py", "confirm"),
 }
 
 

@@ -58,6 +58,8 @@ def test_example_tables_load_with_the_columns_described(name):
     elif name == "admissions":  # S3b-3: dates for add_time_and_event_columns; most first_esbl cells are empty
         assert table["first_esbl"].isna().any() and not table.drop(columns="first_esbl").isna().any().any()
         assert all(pd.api.types.is_datetime64_any_dtype(table[c]) for c in ("admitted", "discharged", "first_esbl"))
+    elif name == "ability_tests":  # S3c-2: real data (Holzinger & Swineford 1939); one grade is empty in the source
+        assert table["grade"].isna().sum() == 1 and not table.drop(columns="grade").isna().any().any()
     else:
         assert not table.isna().any().any()
 

@@ -100,7 +100,9 @@ GROUPS = [
                 "table.find_columns_that_predict", "table.find_group_levels_of"]),
     ("Patterns across columns", ["table.add_principal_components", "table.find_principal_components_of",
                                  "table.add_clusters", "table.find_distances_between_rows", "table.add_nmds",
-                                 "table.compare_profiles_of"]),
+                                 "table.compare_profiles_of",
+                                 # S3c-2 (hidden factors): "more"
+                                 "table.find_hidden_factors_behind", "table.check_hidden_factors"]),
     ("Survival", ["table.find_survival_over_time", "table.compare_survival", "table.explain_survival",
                   "draw_survival_curves",
                   # S3b-3 (survival and person-time): core, then the chart twin
@@ -749,6 +751,10 @@ HELP_EXAMPLES = {
         chart.draw_dots(x="NMDS1", y="NMDS2", colour="grazed")
         chart.save("meadow_nmds.png")"""),
     "table.compare_profiles_of": _tx("meadow", 'table.compare_profiles_of(for_each_group_in="grazed")'),
+    # S3c-2: hidden factors
+    "table.find_hidden_factors_behind": _tx("ability_tests", """        table.find_hidden_factors_behind(["x1", "x2", "x3", "x4", "x5", "x6", "x7", "x8", "x9"])"""),
+    "table.check_hidden_factors": _tx("ability_tests", 'table.check_hidden_factors(measured_by={"visual": ["x1", "x2", '
+                                                       '"x3"], "textual": ["x4", "x5", "x6"], "speed": ["x7", "x8", "x9"]})'),
     # signals and time series
     "table.find_spectrum_of": _tx("sensor", 'table.find_spectrum_of("signal", sorted_by="time")'),
     "nums.find_spectrum": _nx("nums.find_spectrum(time_step=0.005)", values='sdata.get_example("sensor")["signal"]'),
@@ -4070,6 +4076,11 @@ LESSONS = [
             "Remove a row that pulls only for a reason, such as a typing mistake, and say so in your report.",
             "The confidence interval (interval=95) is about the average of many pupils like this one; the "
             "prediction interval (for_new_rows=True) is about one pupil. The second is always wider.",
+            # S3c-2: one "more" line (factor analysis stays in the manual, design 7.4)
+            "More, with R: when many columns (the answers to a questionnaire, the scores of several tests) may "
+            "measure a few hidden things, table.find_hidden_factors_behind([...]) finds how many and which columns "
+            "go with which, and table.check_hidden_factors(measured_by={...}) checks a model you wrote down "
+            "beforehand; read its fit guides as guides, not pass marks. Try them on sdata.get_example(\"ability_tests\").",
         ],
         task=[
             'Partly done for you: after import simplydata as sdata, the next two lines are '

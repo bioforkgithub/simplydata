@@ -394,6 +394,10 @@ UNDERNEATH = {
                              "predict, confint, regtest, trimfill)",
     "draw_funnel_plot": "matplotlib (scatter, plot), the funnel limits from SciPy (stats.norm / stats.lognorm "
                         "interval)",
+    # S3c-2: hidden factors (each also has a tested entry in simplydata._underneath)
+    "table.find_hidden_factors_behind": "R psych (fa.parallel, fa with minres and oblimin, KMO) with GPArotation",
+    "table.check_hidden_factors": "R lavaan (cfa or sem with maximum likelihood, fitMeasures, standardizedSolution, "
+                                  "modindices)",
 }
 
 # ---------------------------------------------------------------- hand-written text

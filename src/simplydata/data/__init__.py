@@ -1,8 +1,8 @@
 """Small tables to practise with: sdata.get_example("marks").
 
 Every number in these tables is invented (they are not real people, places or countries), except in "bcg" and
-"passive_smoking": the published results of real studies, for combining studies (meta-analysis), each with its
-source in its description.
+"passive_smoking" (the published results of real studies, for combining studies) and "ability_tests" (the published
+test scores of Holzinger & Swineford 1939, for hidden factors), each with its source in its description.
 """
 
 from __future__ import annotations
@@ -239,6 +239,30 @@ EXAMPLES = {
             "odds ratio 95 % CI high": "the upper end of its 95 % confidence interval",
         },
     ),
+    # S3c-2 (hidden factors): real, published test scores
+    "ability_tests": (
+        "REAL DATA: nine mental ability tests taken by 301 pupils of two schools near Chicago in 1937 (Holzinger & "
+        "Swineford 1939, Supplementary Educational Monographs 48: the scores as R lavaan ships them, "
+        "HolzingerSwineford1939). The classic table for hidden factors: x1 to x3 are visual, x4 to x6 verbal, "
+        "x7 to x9 speeded tests.",
+        {
+            "id": "the pupil's number",
+            "sex": "1 or 2 (the source does not say which is which)",
+            "ageyr": "age, the years",
+            "agemo": "age, the months on top of the years",
+            "school": "Pasteur or Grant-White",
+            "grade": "7 or 8 (one empty cell)",
+            "x1": "visual perception",
+            "x2": "cubes",
+            "x3": "lozenges",
+            "x4": "paragraph comprehension",
+            "x5": "sentence completion",
+            "x6": "word meaning",
+            "x7": "speeded addition",
+            "x8": "speeded counting of dots",
+            "x9": "speeded discrimination of straight and curved capitals",
+        },
+    ),
 }
 
 
@@ -259,7 +283,7 @@ def get_example(name: str | None = None):
     sdata.get_example() with no name lists every table and its columns.
     The tables are: marks, weather, fruit, growth, sensor, visitors, river, shop, school, meadow, trial, clinic,
     island, toxicity, culture, admissions, and, for combining studies, bcg and passive_smoking (real published
-    studies).
+    studies), and, for hidden factors, ability_tests (real published test scores).
     "shop" has empty cells and a column of dates to practise with; "school" has empty cells too.
     """
     if name is None:
