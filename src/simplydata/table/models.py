@@ -1114,6 +1114,9 @@ class ModelWords:
             line = line.replace("Wald 95 % intervals", "95 % bootstrap intervals (BCa)")
             if model["kind"] in ("lm",):
                 line = line.rstrip(".") + "; 95 % bootstrap intervals (BCa)."
+        if interval != "wald":  # the line names only what was used: no confint.default() beside other intervals
+            line = line.replace("as R confint.default() and summary()", "as R summary()")
+            line = line.replace(" as R confint.default()", "")
         if options.get("likelihood_ratio"):
             line = line.replace(" and z-tests", " and likelihood-ratio tests (Wald z-tests where drop1() gives none)")
         return line
@@ -1546,7 +1549,7 @@ class ModelWords:
                 options = model.get("options") or {}
                 can_show = (not fit.get("robust") and options.get("interval", "wald") == "wald"
                             and not options.get("likelihood_ratio") and not model.get("splines")
-                            and options.get("test_type") is None)
+                            and options.get("test_type") is None and not model.get("standardised"))
                 notes.append(common_yes_note(share, can_show))
         elif effects and n / effects < ROWS_PER_EFFECT:
             notes.append(f"Note: only {n} rows for {effects} effects; with fewer than {ROWS_PER_EFFECT} rows per "
@@ -1637,7 +1640,10 @@ class ModelWords:
         (is the curve flat?), not whether it bends.
         interval_by="profile" (or "profile likelihood"): profile-likelihood 95 % intervals for yes or
         no and counts (R confint() of the glm; needs R); interval_by="bootstrap": BCa intervals from
-        resamples=9999 resamples of the rows (with_seed=1; SciPy bootstrap, as R boot::boot.ci()).
+        resamples=9999 resamples of the rows (with_seed=1; SciPy bootstrap, as R boot::boot.ci()). A
+        group with only a few rows can be missing from a resample; explain() then stops, and whether that
+        happens depends on with_seed=. Fewer resamples are not the fix: merge the rare group, or use
+        interval_by="profile" (yes or no and counts).
         p_value_by="likelihood ratio": a likelihood-ratio test for each column (R drop1(m, test =
         "LRT")) instead of the Wald z-test.
         grouped_by="school": a mixed model with its own starting level for each school

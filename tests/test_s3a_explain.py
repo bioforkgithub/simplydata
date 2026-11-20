@@ -640,3 +640,38 @@ def test_knots_with_zero_weight_rows_are_placed_as_r_ns(needs_r):
               m=s.marks.to_numpy(float), h=s.hours.to_numpy(float), b=s.breakfast.astype(str).to_numpy(object), w=w)
     assert got["breakfast (yes)"]["effect"] == pytest.approx(found["b"][-1], rel=1e-9)
     assert got["breakfast (yes)"]["standard error"] == pytest.approx(found["se"][-1], rel=1e-9)
+
+
+def _method_line(**options):
+    import contextlib
+    import io
+
+    printed = io.StringIO()
+    with contextlib.redirect_stdout(printed):
+        sdata.table(sdata.get_example("school")).explain(using=["hours"], **options)
+    return next(line for line in printed.getvalue().splitlines() if line.startswith("Method:"))
+
+
+def test_method_lines_name_only_the_intervals_used():
+    assert _method_line(column="marks", outcome="positive numbers", interval_by="bootstrap", resamples=199) == (
+        'Method: Gamma regression with a log link for positive, skewed numbers, as R glm(marks ~ hours, family = '
+        'Gamma(link = "log")): each effect multiplies the average (dispersion 0.0356); t-tests as R summary(), 95 % '
+        "bootstrap intervals (BCa).")
+    assert _method_line(column="days_absent", outcome="counts (overdispersed)", interval_by="bootstrap",
+                        resamples=199) == (
+        "Method: quasi-Poisson regression, as R glm(days_absent ~ hours, family = quasipoisson): Poisson rate ratios "
+        "with standard errors widened for counts that vary more than Poisson allows (dispersion 1.02); t-tests as R "
+        "summary(), 95 % bootstrap intervals (BCa).")
+
+
+def test_profile_method_line_for_counts(needs_r):
+    assert _method_line(column="days_absent", outcome="counts", interval_by="profile") == (
+        "Method: Poisson regression, as R glm(days_absent ~ hours, family = poisson). profile-likelihood 95 % "
+        "intervals (R confint()) and z-tests, as R summary().")
+
+
+def test_no_risk_ratio_suggestion_beside_standardised_effects(capsys):
+    sdata.table(sdata.get_example("school")).explain("passed", using=["hours"], outcome="yes or no",
+                                                     show="standardised effects")
+    out = capsys.readouterr().out
+    assert "an odds ratio is not a risk ratio here" in out and 'show="risk ratios"' not in out
