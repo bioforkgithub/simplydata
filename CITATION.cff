@@ -2,6 +2,7 @@ cff-version: 1.2.0
 message: "If you use simplydata, please cite it as below."
 title: "simplydata: simple words for data science in Python"
 abstract: >-
+  Learn basic Python, and simplydata takes you from your first table to publication-ready statistics, in plain words, with every number checked against the field's standard tools.
   simplydata gives simple, readable English words over pandas, Polars, NumPy,
   SciPy, matplotlib and seaborn for tables, charts, numbers and statistics.
   Every printed statistical result is tested against R.
