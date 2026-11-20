@@ -272,7 +272,7 @@ def test_manual_shows_each_entry_in_a_grey_box_after_its_example():
                 assert r"\textbf{With " + manual.code(entry.option) + "}" in part, entry.key
             if entry.compare == "chart":
                 assert "The chart simplydata draws." in part
-                assert (ROOT / "docs" / "manual" / manual.underneath_figure(key)).is_file(), key
+                assert (ROOT / "docs" / "manual" / manual.underneath_figure(entry.key)).is_file(), entry.key
         assert r"\wordfield{Underneath}{" + manual.underneath_name(key) + "}" in part
 
 
@@ -312,3 +312,32 @@ def test_legend_numbers_are_compared_to_the_printed_digits():
     assert compare_legend_numbers(entry, ax, {"auc": 0.84, "auc_low": 0.7504, "auc_high": 0.9116})
     assert compare_legend_numbers(entry, ax, {"auc": 0.8312, "auc_low": 0.7504})  # R gave no auc_high
     plt.close("all")
+
+
+# ---------------------------------------------------------------- S3a-2: the options of the lines-and-curves words
+def test_every_s3a2_option_has_an_entry():
+    shown = {(e.word, e.option.split("=")[0]) for e in ENTRIES if e.option}
+    for word, option in [("table.fit_line", "method"), ("table.fit_line", "with_bends"),
+                         ("table.fit_line", "changes_at"), ("table.fit_curve", "of_kind"),
+                         ("table.explain", "for_percentile"), ("table.explain", "changes_at"),
+                         ("table.add_smoothed_column", "method"), ("draw_smooth_line", "method")]:
+        assert (word, option) in shown, (word, option)
+
+
+@pytest.mark.parametrize("key, setting, replacement", [
+    ('table.fit_line method="deming", y_error_over_x_error=', "error.ratio = 1 / 4", "error.ratio = 4"),
+    ('table.fit_line method="theil-sen"', 'method="separate"', 'method="joint"'),
+])
+def test_leaving_out_a_choice_makes_an_option_comparison_fail(key, setting, replacement):
+    entry = UNDERNEATH[key]
+    if entry.uses_r:
+        from simplydata._r import r_ready
+
+        if not r_ready(entry.r_packages):
+            pytest.skip("needs R")
+    library = next(iter(entry.code))
+    assert setting in entry.code[library]
+    changed = dict(entry.code)
+    changed[library] = entry.code[library].replace(setting, replacement)
+    outcomes = check_entry(Entry(**{**entry.__dict__, "code": changed}))
+    assert outcomes and not any(o.passed for o in outcomes), f"{key}: should fail without {setting}"

@@ -28,7 +28,7 @@ GROUPS = [
     ("Chart types", ["draw_bars", "draw_lines", "draw_dots", "draw_area", "draw_histogram", "draw_boxes", "draw_violins",
                      "draw_heatmap", "draw_pie", "draw_polar", "draw_contour", "draw_surface", "draw_dots_3d", "draw_band", "draw_map_of_empty_cells", "sticks"]),
     ("Statistics", ["show=", "error=", "draw_error_bars", "fit_line", "fit_curve", "fit_formula", "fit_distribution",
-                    "draw_curve", "draw_smooth_line",
+                    "fit_dose_response", "draw_curve", "draw_smooth_line",
                     "draw_density", "draw_count_bars", "draw_all_dots", "draw_side_histograms", "draw_qq_dots",
                     "draw_cumulative_share", "forest_plot", "sdata.draw_all_pairs"]),
     ("Lines and shading", ["draw_line_at_x", "draw_line_at_y", "draw_line_with_slope", "shade_between_x", "shade_between_y"]),
@@ -81,7 +81,9 @@ GROUPS = [
                           "trade_off_curve"]),
     ("Agreement and reliability", ["table.agreement_between", "table.limits_of_agreement", "table.reliability_of",
                                    "difference_dots"]),
-    ("Fitting", ["table.fit_line", "table.fit_curve", "table.fit_formula"]),
+    ("Fitting", ["table.fit_line", "table.fit_curve", "table.fit_formula",
+                # S3a-2 (lines and curves): core, then "more"
+                "table.fit_dose_response", "table.find_best_power_of"]),
     ("Finding and solving", ["sdata.find_where_smallest", "sdata.find_where_biggest", "sdata.solve"]),
     ("Values between points", ["table.values_at", "table.make_map_of"]),
     # "dist.name" is a step on a distribution: dist = sdata.distribution("normal"), then dist.find_chance_that_value(...).
@@ -936,6 +938,15 @@ HELP_EXAMPLES = {
     "sdata.show_day": 'import simplydata as sdata\nsdata.show_day()\nsdata.show_day(5)\nsdata.show_day(1, track="beginner")',
     "sdata.show_answers": "import simplydata as sdata\nsdata.show_answers(5)",
     "sdata.go_to_next_day": "import simplydata as sdata\nsdata.start_30_days()\nsdata.go_to_next_day()",
+    # S3a-2: lines and curves (fit_dose_response needs R with drc)
+    "table.fit_dose_response": _tx("toxicity", 'table.fit_dose_response(x="concentration", y="root_length", '
+                                               'for_each_group_in="chemical")\n'
+                                               'table.fit_dose_response(x="concentration", y="dead", outcome="yes or no", '
+                                               'out_of="seedlings", doses_for_effect=[10, 50])'),
+    "table.find_best_power_of": _tx("trial", 'table.find_best_power_of("days")\n'
+                                             'table.find_best_power_of("days", method="yeo-johnson")'),
+    "fit_dose_response": _ex("toxicity", 'chart.draw_dots(x="concentration", y="root_length", colour="chemical")\n'
+                                         'chart.fit_dose_response()', "fit_dose_response"),
 }
 
 
@@ -1493,9 +1504,8 @@ TIME_SERIES_LESSON = "Time series: dates, missing days, time windows and trend"
 FORECASTS_LESSON = "Forecasts: the next months, checked first"
 CYCLES_LESSON = "Cycles: spectra, filters, peaks, and steady or not"
 SYSTEMS_LESSON = "Systems: a spring and damper, its response and a feedback loop"
-# S3a: the percentile part (for_percentile=) joins this lesson in S3a-2, and the title becomes
-# "Beyond the average line: percentiles and outliers" (the name review of 2026-11-20)
-OUTLIERS_LESSON = "Beyond the average line: outliers"
+# S3a: outliers (S3a-1) and percentile lines (S3a-2), the title of the name review of 2026-11-20
+OUTLIERS_LESSON = "Beyond the average line: percentiles and outliers"
 
 LESSONS = [
     dict(
@@ -3703,6 +3713,35 @@ LESSONS = [
                  "known=fit puts the fitted a and b into the equation: Applia reaches 20 million in about "
                  "2017 (year = 2017.24). A fitted curve answers questions, not only draws a line."),
             ]),
+            ("Growth curves: bacteria in a flask grow fast, then level off. Instead of writing that formula "
+             "yourself, name the curve with of_kind=: fit_curve then writes the formula and finds start values "
+             "for you (R's own self-starting models when R is there).", [
+                ("import simplydata as sdata", "Load simplydata."),
+                ('table = sdata.table(sdata.get_example("culture"))', "Three flasks, measured every hour."),
+                ('table.keep_rows_where("flask", is_equal_to="A")', "Keep flask A."),
+                ('table.fit_curve(x="hour", y="density", of_kind="logistic growth")',
+                 "Asym = 1.15 is where the culture levels off, xmid = 9.59 the hour it is half way up, and scal = "
+                 "2.02 how fast it rises. Say in words what xmid means for this flask."),
+                ('table.fit_curve(x="hour", y="density", of_kind="gompertz growth")',
+                 "The same data with another growth curve (one change in the call). Compare the levels the two "
+                 "curves give."),
+            ]),
+            ("If you have R: a dose-response curve. A toxicity test grows seedlings at eight concentrations. "
+             "fit_dose_response finds the dose that halves the effect (the ED50, or EC50) with its 95 % "
+             "interval, from the fitted curve, not from the raw averages.", [
+                ("import simplydata as sdata", "Load simplydata."),
+                ('table = sdata.table(sdata.get_example("toxicity"))', "Two chemicals, three dishes per dose."),
+                ('table.keep_rows_where("chemical", is_equal_to="A")', "Keep chemical A."),
+                ('table.fit_dose_response(x="concentration", y="root_length")',
+                 "A 4 parameter log-logistic curve (R drc): the ED50 is 3.92 mg per litre (95 % CI 3.11 to 4.73). "
+                 "Say in words what the ED50 means for the roots."),
+                ('table.fit_dose_response(x="concentration", y="dead", outcome="yes or no", out_of="seedlings")',
+                 "Deaths out of 20 seedlings: the LD50, the dose that kills half, is 4.94 mg per litre."),
+                ('chart = sdata.chart(sdata.get_example("toxicity"))', "A chart of both chemicals."),
+                ('chart.draw_dots(x="concentration", y="root_length", colour="chemical")', "The dishes."),
+                ("chart.fit_dose_response()", "One curve per chemical, with its ED50 in the legend."),
+                ('chart.save("lesson19_dose_response.png")', "Save it."),
+            ]),
         ],
         notes=[
             "Fitting is the same idea every time: a line, a curve or a formula is moved until it is as "
@@ -3716,6 +3755,9 @@ LESSONS = [
             'so, and search="whole range" looks everywhere. solve with between= finds every crossing.',
             "Names from other tools point to these words: minimize, optimise and argmin to find_where_smallest, "
             "fsolve, brentq and uniroot to solve, curve_fit and nls to fit_formula, polyfit to fit_curve.",
+            'More: fit_line(method=) draws other lines ("theil-sen", "standardised major axis", "deming"), '
+            "fit_line(with_bends=1) lets the line bend, and find_best_power_of finds the Box-Cox power of a "
+            "column. The manual and the dictionary have the rest.",
         ],
         task=[
             'Fit a curve of degree 3 to "marks" against "hours". Does R squared go up much from the straight '
@@ -3725,6 +3767,10 @@ LESSONS = [
             "Try to remember without looking back: which word finds where a formula is biggest, and which "
             'word finds where the two sides of an equation are equal? Use them on "x * (10 - x)" between 0 '
             'and 10, and on "x**2 = 2" between 0 and 2.',
+            'Fill in the call for chemical B of the toxicity table: table.fit_dose_response(x="...", y="...", '
+            "doses_for_effect=[10, 50]). Which dose gives 10 % of the effect? (Needs R.)",
+            "Without looking back: which word gives the EC50 of a toxicity test, and which of_kind= fits a growth "
+            "curve that levels off? Use the second on flask C of the culture table.",
         ],
         solutions=[
             (_sx("""\
@@ -3744,9 +3790,25 @@ LESSONS = [
                 sdata.find_where_biggest("x * (10 - x)", between=[0, 10])
                 sdata.solve("x**2 = 2", between=[0, 2])"""),
              "find_biggest gives 25 at x = 5, and solve gives x = 1.41421, the square root of 2."),
+            (_sx("""\
+                import simplydata as sdata
+                table = sdata.table(sdata.get_example("toxicity"))
+                table.keep_rows_where("chemical", is_equal_to="B")
+                table.fit_dose_response(x="concentration", y="root_length", doses_for_effect=[10, 50])"""),
+             "ED10 is 3.32 and ED50 9.35 mg per litre: chemical B needs more than twice the dose of A."),
+            (_sx("""\
+                import simplydata as sdata
+                table = sdata.table(sdata.get_example("culture"))
+                table.keep_rows_where("flask", is_equal_to="C")
+                table.fit_curve(x="hour", y="density", of_kind="logistic growth")"""),
+             'fit_dose_response gives the EC50; of_kind="logistic growth" levels off. Flask C levels off at '
+             "about 1.25, half way up at about hour 10.5."),
         ],
         words=["table.fit_line", "table.fit_curve", "table.fit_formula", "fit_line", "fit_curve", "fit_formula",
-               "sdata.find_where_smallest", "sdata.find_where_biggest", "sdata.solve"],
+               "sdata.find_where_smallest", "sdata.find_where_biggest", "sdata.solve",
+               "table.fit_dose_response", "fit_dose_response"],
+        needs_r=needs_r_text("Only the last example part and the fourth task (fit_dose_response, R drc)",
+                             packages=("drc",)),
     ),
     dict(
         title="Distributions, chances and values between points",
@@ -4561,11 +4623,13 @@ LESSONS = [
     ),
     dict(
         title=OUTLIERS_LESSON,
-        needs_r=None,
+        needs_r=needs_r_text("Only the second part and the third task (for_percentile=, R quantreg)",
+                             packages=("quantreg",)),
         learn=[
             "how a few rows far from the rest pull an ordinary model towards them",
             "how to give those rows less weight (robust regression, Huber's method)",
             "how giving_outliers_less_weight= differs from robust_errors=",
+            "how to fit the line under which 90 % (or 10 %) of the values fall: a percentile line",
         ],
         parts=[
             ("A least-squares line counts every row the same, so a few rows far from the rest pull it towards "
@@ -4584,6 +4648,18 @@ LESSONS = [
                  "changes their standard errors, so the intervals stay right when the spread is not the same "
                  "everywhere. Outliers still pull."),
             ]),
+            ("If you have R: the average line says nothing about the edges. A percentile line is the line under "
+             "which a share of the values fall: the 90th percentile line has 90 % of the marks below it, at each "
+             "number of hours. In ecology the edges are often the question (the most a habitat can hold).", [
+                ("import simplydata as sdata", "Load simplydata."),
+                ('table = sdata.table(sdata.get_example("school"))', "The school table again."),
+                ('table.explain("marks", using=["hours"], for_percentile=90)',
+                 "The 90th percentile line (R quantreg): each extra hour goes with 3.03 more marks at the top of "
+                 "the class. Say in words what that 3.03 means."),
+                ('table.explain("marks", using=["hours"], for_percentile=[10, 50, 90])',
+                 "One block per percentile: 2.78 at the bottom, 2.84 in the middle (the median line) and 3.03 at "
+                 "the top. Lines that are about parallel mean study helps the weak and the strong alike."),
+            ]),
         ],
         notes=[
             "giving_outliers_less_weight=True changes the effects (rows far from the model count less); "
@@ -4593,12 +4669,16 @@ LESSONS = [
             "(far-out hours, for example). table.show_rows_that_pull_model() finds those.",
             "A row given less weight is not wrong: look at it before you decide anything. Say in your report that "
             "you used robust regression (Huber's M-estimation, as R MASS::rlm()).",
+            "for_percentile= is the same idea as percent= in find_percentile_of, for a line instead of one number. "
+            "A percentile line is not the line through a group of rows: it uses every row.",
         ],
         task=[
             'In the marks table, explain "marks" from "hours" with giving_outliers_less_weight=True. Which rows '
             "get less weight?",
             "Without looking back: which option changes the effects themselves, giving_outliers_less_weight= or "
             "robust_errors=? Run both on the school table to check.",
+            'In the marks table, fit the 90th percentile line of "marks" against "hours". How many more marks '
+            "does one more hour bring at the top? (Needs R.)",
         ],
         solutions=[
             (_sx("""\
@@ -4614,6 +4694,11 @@ LESSONS = [
                 table.explain("marks", using=["hours"], robust_errors=True)"""),
              "giving_outliers_less_weight= changes the effects (rows far from the model count less); "
              "robust_errors= gives the same effects as the ordinary model, with other standard errors."),
+            (_sx("""\
+                import simplydata as sdata
+                table = sdata.table(sdata.get_example("marks"))
+                table.explain("marks", using=["hours"], for_percentile=90)"""),
+             "5.00 more marks per hour at the 90th percentile (95 % CI 2.98 to 7.02)."),
         ],
         words=["table.explain", "table.show_rows_that_pull_model"],
     ),

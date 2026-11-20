@@ -372,6 +372,10 @@ UNDERNEATH = {
     "nums.save": "pandas (to_csv, to_excel ...)",
     "nums.keep_random_numbers": "NumPy (random.default_rng)",
     "nums.fill_empty_numbers": "NumPy (interp for the line between neighbours)",
+    # S3a-2: lines and curves (each also has a tested entry in simplydata._underneath)
+    "table.fit_dose_response": "R drc (drm, ED with delta-method intervals, EDcomp, noEffect)",
+    "fit_dose_response": "R drc (drm, ED), drawn with matplotlib",
+    "table.find_best_power_of": "SciPy (stats.boxcox, stats.yeojohnson); R car::powerTransform with using=",
 }
 
 # ---------------------------------------------------------------- hand-written text
@@ -929,8 +933,11 @@ def underneath_name(key: str) -> str:
 
 
 def underneath_figure(key: str) -> str:
-    """The file (relative to docs/manual) of the one picture a chart word's box shows."""
-    return f"figures/underneath_{key.replace('.', '_')}.pdf"
+    """The file (relative to docs/manual) of the one picture a chart word's box shows. An option entry's key
+    ('draw_smooth_line method="loess", ...') has spaces, quotes and commas: each run of them becomes one _."""
+    import re
+
+    return "figures/underneath_" + re.sub(r"[^A-Za-z0-9]+", "_", key).strip("_") + ".pdf"
 
 
 _HOW = {"value": "the number", "table": "the table", "result": "the numbers of the result table"}
@@ -966,7 +973,7 @@ def _same_underneath(key: str, entry=None) -> str:
     if entry.compare == "chart":
         out.append(r"\begin{center}\begin{minipage}{\linewidth}\centering" + "\n"
                    + r"\includegraphics[width=0.52\textwidth,height=0.26\textheight,keepaspectratio]"
-                   + "{" + underneath_figure(key) + "}\n"
+                   + "{" + underneath_figure(entry.key) + "}\n"
                    + r"\captionof*{figure}{The chart simplydata draws. The code below draws the same "
                    + esc(_FACT_WORDS[entry.check[0]].replace("the ", "", 1)) + ", without simplydata's paper look.}" + "\n" + r"\end{minipage}\end{center}")
     badges = "".join(r"\libbadge{" + esc(library) + "}" for library in entry.code)

@@ -557,6 +557,27 @@ east & how far east, 0 to 14 (km)\\
 north & how far north, 0 to 14 (km)\\
 height & height of the ground in m (below 0 is under the sea)\\
 \bottomrule\end{tabularx}\end{center}
+\section*{toxicity}
+A made-up toxicity test: seedlings grown at eight concentrations of two chemicals, three dishes each. \code{sdata.\allowbreak{}get\_\allowbreak{}example(\textquotedbl{}toxicity\textquotedbl{})}
+\begin{center}\small
+\begin{tabularx}{\textwidth}{@{}>{\ttfamily}l>{\raggedright\arraybackslash}X@{}}
+\toprule \textrm{\textbf{Column}} & \textbf{What it holds}\\ \midrule
+chemical & A or B\\
+concentration & 0, 0.5, 1, 2, 4, 8, 16 or 32 (mg per litre)\\
+dish & 1, 2 or 3\\
+root\_length & average root length of the seedlings in the dish, in mm\\
+seedlings & seedlings in the dish (20)\\
+dead & how many of them died\\
+\bottomrule\end{tabularx}\end{center}
+\section*{culture}
+Bacteria growing in three made-up flasks, measured every hour for a day. \code{sdata.\allowbreak{}get\_\allowbreak{}example(\textquotedbl{}culture\textquotedbl{})}
+\begin{center}\small
+\begin{tabularx}{\textwidth}{@{}>{\ttfamily}l>{\raggedright\arraybackslash}X@{}}
+\toprule \textrm{\textbf{Column}} & \textbf{What it holds}\\ \midrule
+flask & A, B or C\\
+hour & 0 to 24\\
+density & how cloudy the culture is (optical density at 600 nm)\\
+\bottomrule\end{tabularx}\end{center}
 
 \part{Lessons}\label{part:lessons}
 
@@ -2950,6 +2971,7 @@ Worked solutions: page~\pageref{solutions:18}, or type \code{sdata.\allowbreak{}
   \item how to solve an equation, also one made from a fitted formula
 \end{itemize}
 \end{learnbox}
+\begin{needsr}Only the last example part and the fourth task (\code{fit\_\allowbreak{}dose\_\allowbreak{}response}, R drc) run R's own code, the same code R users run. Install it once: pip install \code{\textquotedbl{}simplydata[r]\textquotedbl{}}, then R from https://cran.r-project.org, then in R: \code{install.\allowbreak{}packages(c(\textquotedbl{}drc\textquotedbl{}))}. Without R these words print a message that says what to install.\end{needsr}
 \section*{Example 1}
 Start with something you know: a straight line through the dots. \code{fit\_\allowbreak{}line}, \code{fit\_\allowbreak{}curve} and \code{fit\_\allowbreak{}formula} are the same words on a table (the numbers) and on a chart (the picture).
 \begin{lstlisting}[style=py]
@@ -3030,6 +3052,54 @@ sdata.solve("a * exp(b * (year - 2000)) = 20", between=[2000, 2050], known=fit)
   \item[8] \code{known=fit} puts the fitted a and b into the equation: Applia reaches 20 million in about 2017 (year = 2017.24). A fitted curve answers questions, not only draws a line.
 \end{lineexplain}
 \printedoutput{output/lesson19_example3.txt}
+\section*{Example 4}
+Growth curves: bacteria in a flask grow fast, then level off. Instead of writing that formula yourself, name the curve with \code{of\_\allowbreak{}kind=}: \code{fit\_\allowbreak{}curve} then writes the formula and finds start values for you (R's own self-starting models when R is there).
+\begin{lstlisting}[style=py]
+import simplydata as sdata
+table = sdata.table(sdata.get_example("culture"))
+table.keep_rows_where("flask", is_equal_to="A")
+table.fit_curve(x="hour", y="density", of_kind="logistic growth")
+table.fit_curve(x="hour", y="density", of_kind="gompertz growth")
+\end{lstlisting}
+\whateachline
+\begin{lineexplain}
+  \item[1] Load simplydata.
+  \item[2] Three flasks, measured every hour.
+  \item[3] Keep flask A.
+  \item[4] Asym = 1.15 is where the culture levels off, xmid = 9.59 the hour it is half way up, and scal = 2.02 how fast it rises. Say in words what xmid means for this flask.
+  \item[5] The same data with another growth curve (one change in the call). Compare the levels the two curves give.
+\end{lineexplain}
+\printedoutput{output/lesson19_example4.txt}
+\section*{Example 5}
+If you have R: a dose-response curve. A toxicity test grows seedlings at eight concentrations. \code{fit\_\allowbreak{}dose\_\allowbreak{}response} finds the dose that halves the effect (the ED50, or EC50) with its 95 \% interval, from the fitted curve, not from the raw averages.
+\begin{lstlisting}[style=py]
+import simplydata as sdata
+table = sdata.table(sdata.get_example("toxicity"))
+table.keep_rows_where("chemical", is_equal_to="A")
+table.fit_dose_response(x="concentration", y="root_length")
+table.fit_dose_response(x="concentration", y="dead", outcome="yes or no", out_of="seedlings")
+chart = sdata.chart(sdata.get_example("toxicity"))
+chart.draw_dots(x="concentration", y="root_length", colour="chemical")
+chart.fit_dose_response()
+chart.save("lesson19_dose_response.png")
+\end{lstlisting}
+\whateachline
+\begin{lineexplain}
+  \item[1] Load simplydata.
+  \item[2] Two chemicals, three dishes per dose.
+  \item[3] Keep chemical A.
+  \item[4] A 4 parameter log-logistic curve (R drc): the ED50 is 3.92 mg per litre (95 \% CI 3.11 to 4.73). Say in words what the ED50 means for the roots.
+  \item[5] Deaths out of 20 seedlings: the LD50, the dose that kills half, is 4.94 mg per litre.
+  \item[6] A chart of both chemicals.
+  \item[7] The dishes.
+  \item[8] One curve per chemical, with its ED50 in the legend.
+  \item[9] Save it.
+\end{lineexplain}
+\printedoutput{output/lesson19_example5.txt}
+\begin{center}\begin{minipage}{\linewidth}\centering
+\includegraphics[width=0.72\textwidth,height=0.36\textheight,keepaspectratio]{figures/lesson19_example5_lesson19_dose_response.pdf}
+\captionof{figure}{Lesson 19, example 5: \code{lesson19\_\allowbreak{}dose\_\allowbreak{}response.\allowbreak{}png}.}
+\end{minipage}\end{center}
 \begin{goodtoknow}
 \begin{itemize}
   \item Fitting is the same idea every time: a line, a curve or a formula is moved until it is as close to the points as it can be (least squares). The printed sentence says how sure each value is (its 95 \% confidence interval).
@@ -3037,6 +3107,7 @@ sdata.solve("a * exp(b * (year - 2000)) = 20", between=[2000, 2050], known=fit)
   \item If a formula fit fails, give start values near the answer: \code{start=}\{\code{\textquotedbl{}a\textquotedbl{}}: 10, \code{\textquotedbl{}b\textquotedbl{}}: 0.03\}.
   \item \code{sdata.\allowbreak{}find\_\allowbreak{}where\_\allowbreak{}smallest} with \code{between=} finds one lowest point; when the curve has several dips it says so, and \code{search=\textquotedbl{}whole range\textquotedbl{}} looks everywhere. solve with \code{between=} finds every crossing.
   \item Names from other tools point to these words: minimize, optimise and argmin to \code{find\_\allowbreak{}where\_\allowbreak{}smallest}, fsolve, brentq and uniroot to solve, \code{curve\_\allowbreak{}fit} and nls to \code{fit\_\allowbreak{}formula}, polyfit to \code{fit\_\allowbreak{}curve}.
+  \item More: \code{fit\_\allowbreak{}line(method=)} draws other lines (\code{\textquotedbl{}theil-sen\textquotedbl{}}, \code{\textquotedbl{}standardised major axis\textquotedbl{}}, \code{\textquotedbl{}deming\textquotedbl{}}), \code{fit\_\allowbreak{}line(with\_\allowbreak{}bends=1)} lets the line bend, and \code{find\_\allowbreak{}best\_\allowbreak{}power\_\allowbreak{}of} finds the Box-Cox power of a column. The manual and the dictionary have the rest.
 \end{itemize}
 \end{goodtoknow}
 \begin{tryit}
@@ -3044,10 +3115,12 @@ sdata.solve("a * exp(b * (year - 2000)) = 20", between=[2000, 2050], known=fit)
   \item Fit a curve of degree 3 to \code{\textquotedbl{}marks\textquotedbl{}} against \code{\textquotedbl{}hours\textquotedbl{}}. Does R squared go up much from the straight line?
   \item With the weather table, keep the city Sunnyvale and fit \code{\textquotedbl{}temperature = a + b * cos(2 * pi * (month\_\allowbreak{}number - c) / 12)\textquotedbl{}} with \code{start=}\{\code{\textquotedbl{}a\textquotedbl{}}: 15, \code{\textquotedbl{}b\textquotedbl{}}: 8, \code{\textquotedbl{}c\textquotedbl{}}: 7\}. In which month is it warmest (c)?
   \item Try to remember without looking back: which word finds where a formula is biggest, and which word finds where the two sides of an equation are equal? Use them on \code{\textquotedbl{}x * (10 - x)\textquotedbl{}} between 0 and 10, and on \code{\textquotedbl{}x**2 = 2\textquotedbl{}} between 0 and 2.
+  \item Fill in the call for chemical B of the toxicity table: \code{table.\allowbreak{}fit\_\allowbreak{}dose\_\allowbreak{}response(x=\textquotedbl{}.\allowbreak{}.\allowbreak{}.\allowbreak{}\textquotedbl{},\allowbreak{} y=\textquotedbl{}.\allowbreak{}.\allowbreak{}.\allowbreak{}\textquotedbl{},\allowbreak{} doses\_\allowbreak{}for\_\allowbreak{}effect=[10,\allowbreak{} 50])}. Which dose gives 10 \% of the effect? (Needs R.)
+  \item Without looking back: which word gives the EC50 of a toxicity test, and which \code{of\_\allowbreak{}kind=} fits a growth curve that levels off? Use the second on flask C of the culture table.
 \end{enumerate}
 Worked solutions: page~\pageref{solutions:19}, or type \code{sdata.\allowbreak{}show\_\allowbreak{}lesson(19,\allowbreak{} solutions=True)}.
 \end{tryit}
-\par\noindent{\small\sffamily\textbf{Words in this lesson:} \hyperref[word:table.fit-line]{\code{table.\allowbreak{}fit\_\allowbreak{}line()}}, \hyperref[word:table.fit-curve]{\code{table.\allowbreak{}fit\_\allowbreak{}curve()}}, \hyperref[word:table.fit-formula]{\code{table.\allowbreak{}fit\_\allowbreak{}formula()}}, \hyperref[word:fit-line]{\code{chart.\allowbreak{}fit\_\allowbreak{}line()}}, \hyperref[word:fit-curve]{\code{chart.\allowbreak{}fit\_\allowbreak{}curve()}}, \hyperref[word:fit-formula]{\code{chart.\allowbreak{}fit\_\allowbreak{}formula()}}, \hyperref[word:sdata.find-where-smallest]{\code{sdata.\allowbreak{}find\_\allowbreak{}where\_\allowbreak{}smallest()}}, \hyperref[word:sdata.find-where-biggest]{\code{sdata.\allowbreak{}find\_\allowbreak{}where\_\allowbreak{}biggest()}}, \hyperref[word:sdata.solve]{\code{sdata.\allowbreak{}solve()}}.\par}
+\par\noindent{\small\sffamily\textbf{Words in this lesson:} \hyperref[word:table.fit-line]{\code{table.\allowbreak{}fit\_\allowbreak{}line()}}, \hyperref[word:table.fit-curve]{\code{table.\allowbreak{}fit\_\allowbreak{}curve()}}, \hyperref[word:table.fit-formula]{\code{table.\allowbreak{}fit\_\allowbreak{}formula()}}, \hyperref[word:fit-line]{\code{chart.\allowbreak{}fit\_\allowbreak{}line()}}, \hyperref[word:fit-curve]{\code{chart.\allowbreak{}fit\_\allowbreak{}curve()}}, \hyperref[word:fit-formula]{\code{chart.\allowbreak{}fit\_\allowbreak{}formula()}}, \hyperref[word:sdata.find-where-smallest]{\code{sdata.\allowbreak{}find\_\allowbreak{}where\_\allowbreak{}smallest()}}, \hyperref[word:sdata.find-where-biggest]{\code{sdata.\allowbreak{}find\_\allowbreak{}where\_\allowbreak{}biggest()}}, \hyperref[word:sdata.solve]{\code{sdata.\allowbreak{}solve()}}, \hyperref[word:table.fit-dose-response]{\code{table.\allowbreak{}fit\_\allowbreak{}dose\_\allowbreak{}response()}}, \hyperref[word:fit-dose-response]{\code{chart.\allowbreak{}fit\_\allowbreak{}dose\_\allowbreak{}response()}}.\par}
 
 \chapter{Distributions, chances and values between points}\label{lesson:20}
 \begin{learnbox}
@@ -3982,15 +4055,17 @@ Worked solutions: page~\pageref{solutions:26}, or type \code{sdata.\allowbreak{}
 \end{tryit}
 \par\noindent{\small\sffamily\textbf{Words in this lesson:} \hyperref[word:sdata.frequency-filter]{\code{sdata.\allowbreak{}frequency\_\allowbreak{}filter()}}, \hyperref[word:sdata.system]{\code{sdata.\allowbreak{}system()}}, \hyperref[word:system.poles]{\code{system.\allowbreak{}poles()}}, \hyperref[word:system.chart]{\code{system.\allowbreak{}chart()}}, \hyperref[word:system.step-response]{\code{system.\allowbreak{}step\_\allowbreak{}response()}}, \hyperref[word:system.then]{\code{system.\allowbreak{}then()}}, \hyperref[word:system.with-feedback]{\code{system.\allowbreak{}with\_\allowbreak{}feedback()}}, \hyperref[word:system.frequency-response]{\code{system.\allowbreak{}frequency\_\allowbreak{}response()}}, \hyperref[word:system.in-steps]{\code{system.\allowbreak{}in\_\allowbreak{}steps()}}.\par}
 
-\chapter{Beyond the average line: outliers}\label{lesson:27}
+\chapter{Beyond the average line: percentiles and outliers}\label{lesson:27}
 \begin{learnbox}
 \begin{itemize}
   \item how a few rows far from the rest pull an ordinary model towards them
   \item how to give those rows less weight (robust regression, Huber's method)
   \item how \code{giving\_\allowbreak{}outliers\_\allowbreak{}less\_\allowbreak{}weight=} differs from \code{robust\_\allowbreak{}errors=}
+  \item how to fit the line under which 90 \% (or 10 \%) of the values fall: a percentile line
 \end{itemize}
 \end{learnbox}
-\section*{Example}
+\begin{needsr}Only the second part and the third task (\code{for\_\allowbreak{}percentile=}, R quantreg) run R's own code, the same code R users run. Install it once: pip install \code{\textquotedbl{}simplydata[r]\textquotedbl{}}, then R from https://cran.r-project.org, then in R: \code{install.\allowbreak{}packages(c(\textquotedbl{}quantreg\textquotedbl{}))}. Without R these words print a message that says what to install.\end{needsr}
+\section*{Example 1}
 A least-squares line counts every row the same, so a few rows far from the rest pull it towards them. Robust regression gives those rows less weight, so they pull less.
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -4008,17 +4083,35 @@ table.explain("marks", using=["hours", "breakfast"], robust_errors=True)
   \item[5] Not the same thing: \code{robust\_\allowbreak{}errors=True} keeps the effects of the ordinary model (2.82) and only changes their standard errors, so the intervals stay right when the spread is not the same everywhere. Outliers still pull.
 \end{lineexplain}
 \printedoutput{output/lesson27_example1.txt}
+\section*{Example 2}
+If you have R: the average line says nothing about the edges. A percentile line is the line under which a share of the values fall: the 90th percentile line has 90 \% of the marks below it, at each number of hours. In ecology the edges are often the question (the most a habitat can hold).
+\begin{lstlisting}[style=py]
+import simplydata as sdata
+table = sdata.table(sdata.get_example("school"))
+table.explain("marks", using=["hours"], for_percentile=90)
+table.explain("marks", using=["hours"], for_percentile=[10, 50, 90])
+\end{lstlisting}
+\whateachline
+\begin{lineexplain}
+  \item[1] Load simplydata.
+  \item[2] The school table again.
+  \item[3] The 90th percentile line (R quantreg): each extra hour goes with 3.03 more marks at the top of the class. Say in words what that 3.03 means.
+  \item[4] One block per percentile: 2.78 at the bottom, 2.84 in the middle (the median line) and 3.03 at the top. Lines that are about parallel mean study helps the weak and the strong alike.
+\end{lineexplain}
+\printedoutput{output/lesson27_example2.txt}
 \begin{goodtoknow}
 \begin{itemize}
   \item \code{giving\_\allowbreak{}outliers\_\allowbreak{}less\_\allowbreak{}weight=True} changes the effects (rows far from the model count less); \code{robust\_\allowbreak{}errors=True} keeps the effects and changes only their standard errors. Choose by the problem: outliers, or a spread that is not the same everywhere.
   \item Huber's method resists outliers in the column you explain, not unusual values in the \code{using=} columns (far-out hours, for example). \code{table.\allowbreak{}show\_\allowbreak{}rows\_\allowbreak{}that\_\allowbreak{}pull\_\allowbreak{}model()} finds those.
   \item A row given less weight is not wrong: look at it before you decide anything. Say in your report that you used robust regression (Huber's M-estimation, as R MASS::\code{rlm()}).
+  \item \code{for\_\allowbreak{}percentile=} is the same idea as \code{percent=} in \code{find\_\allowbreak{}percentile\_\allowbreak{}of}, for a line instead of one number. A percentile line is not the line through a group of rows: it uses every row.
 \end{itemize}
 \end{goodtoknow}
 \begin{tryit}
 \begin{enumerate}
   \item In the marks table, explain \code{\textquotedbl{}marks\textquotedbl{}} from \code{\textquotedbl{}hours\textquotedbl{}} with \code{giving\_\allowbreak{}outliers\_\allowbreak{}less\_\allowbreak{}weight=True}. Which rows get less weight?
   \item Without looking back: which option changes the effects themselves, \code{giving\_\allowbreak{}outliers\_\allowbreak{}less\_\allowbreak{}weight=} or \code{robust\_\allowbreak{}errors=}? Run both on the school table to check.
+  \item In the marks table, fit the 90th percentile line of \code{\textquotedbl{}marks\textquotedbl{}} against \code{\textquotedbl{}hours\textquotedbl{}}. How many more marks does one more hour bring at the top? (Needs R.)
 \end{enumerate}
 Worked solutions: page~\pageref{solutions:27}, or type \code{sdata.\allowbreak{}show\_\allowbreak{}lesson(27,\allowbreak{} solutions=True)}.
 \end{tryit}
@@ -4066,7 +4159,7 @@ chart.save("my_chart.png")
 A small made-up table to practise with. \code{sdata.\allowbreak{}get\_\allowbreak{}example(\textquotedbl{}marks\textquotedbl{})}
 
 \codeline{sdata.get\_example() with no name lists every table and its columns.}\\
-The tables are: marks, weather, fruit, growth, sensor, visitors, river, shop, school, meadow, trial, clinic, island. \code{\textquotedbl{}shop\textquotedbl{}} has empty cells and a column of dates to practise with; \code{\textquotedbl{}school\textquotedbl{}} has empty cells too.
+The tables are: marks, weather, fruit, growth, sensor, visitors, river, shop, school, meadow, trial, clinic, island, toxicity, culture. \code{\textquotedbl{}shop\textquotedbl{}} has empty cells and a column of dates to practise with; \code{\textquotedbl{}school\textquotedbl{}} has empty cells too.
 
 \wordfield{Options}{}\par\nopagebreak
 \begin{optiontable}
@@ -4734,6 +4827,56 @@ chart.draw_histogram(x="marks", show="density")
 chart.fit_distribution("normal")
 chart.save("fit_distribution.png")
 \end{lstlisting}
+\wordentry{chart.fit\_dose\_response()}{word:fit-dose-response}
+A dose-response curve through the dots, with its ED50 in the legend. \code{chart.\allowbreak{}fit\_\allowbreak{}dose\_\allowbreak{}response()}
+
+The same curve as \code{table.\allowbreak{}fit\_\allowbreak{}dose\_\allowbreak{}response()}: a 4 parameter log-logistic curve by R drc::\code{drm()} (needs R with drc), with the ED50 and its 95 \% interval (delta method) in the legend. \code{of\_\allowbreak{}kind=} \code{\textquotedbl{}3 parameter log-logistic\textquotedbl{}}, \code{\textquotedbl{}5 parameter log-logistic\textquotedbl{}} or \code{\textquotedbl{}weibull\textquotedbl{}}. Each colour group gets its own curve, fitted to that group alone (\code{table.\allowbreak{}fit\_\allowbreak{}dose\_\allowbreak{}response(.\allowbreak{}.\allowbreak{}.\allowbreak{},\allowbreak{} for\_\allowbreak{}each\_\allowbreak{}group\_\allowbreak{}in=)} fits all groups in one model, so its intervals can differ a little). Add .use\_log\_scale\_x() for a log dose axis (dots at dose 0 then fall off the axis).
+
+\wordfield{Options}{}\par\nopagebreak
+\begin{optiontable}
+\code{of\_\allowbreak{}kind=} & \\
+\code{colour=} & \\
+\code{thickness=} & \\
+\end{optiontable}
+
+\wordfield{Underneath}{R \code{drc::drm()}, \code{drc::LL.\allowbreak{}4()}, \code{drc::ED()} \textperiodcentered{} matplotlib \code{plot()}}
+\wordfield{Example you can run}{}\par\nopagebreak
+\begin{lstlisting}[style=py]
+import simplydata as sdata
+toxicity = sdata.get_example("toxicity")
+chart = sdata.chart(toxicity)
+chart.draw_dots(x="concentration", y="root_length", colour="chemical")
+chart.fit_dose_response()
+chart.save("fit_dose_response.png")
+\end{lstlisting}
+\begin{center}\begin{minipage}{\linewidth}\centering
+\includegraphics[width=0.52\textwidth,height=0.26\textheight,keepaspectratio]{figures/underneath_fit_dose_response.pdf}
+\captionof*{figure}{The chart simplydata draws. The code below draws the same lines, without simplydata's paper look.}
+\end{minipage}\end{center}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{R}\libbadge{matplotlib}}
+\underlib{R (simplydata runs this in R for you, through rpy2)}
+\begin{lstlisting}[style=underr]
+# fit_dose_response()
+m <- drc::drm(root_length ~ concentration, fct = drc::LL.4())    # (1)
+low_dose <- min(concentration[concentration > 0])
+at <- c(0, exp(seq(log(low_dose), log(max(concentration)), length.out = 300)))  # (2)
+e <- drc::ED(m, 50, interval = "delta", display = FALSE)
+list(at = at, fitted = unname(predict(m, newdata = data.frame(concentration = at))),
+     ed50 = e[1, 1], low = e[1, 3], high = e[1, 4])
+\end{lstlisting}
+\underlib{matplotlib (with what R gives back)}
+\begin{lstlisting}[style=under]
+import matplotlib.pyplot as plt
+fig, ax = plt.subplots()
+ax.plot(at, fitted)          # the fitted curve
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) the 4 parameter log-logistic curve (drc's LL.4), as \code{table.\allowbreak{}fit\_\allowbreak{}dose\_\allowbreak{}response}.}
+\undertext{(2) the curve is drawn over 300 doses spaced evenly on a log scale (and dose 0), so it stays smooth on a log dose axis too; the ED50 and its delta-method interval go in the legend.}
+\undertext{\textit{In Python only:} Python has no dose-response package with drc's ED intervals, so the curve comes from R.}
+\undertext{simplydata also fits one curve per colour group and labels each with its ED50.}
+\undertext{\textit{Checked:} a test runs both and compares the lines and the numbers in the legend (the chart's data, not its pixels).}
+\end{underneathbox}
 \wordentry{chart.draw\_curve()}{word:draw-curve}
 Draw a formula, or a distribution, as a curve. \code{chart.\allowbreak{}draw\_\allowbreak{}curve(\textquotedbl{}y = 100 * exp(-0.\allowbreak{}3 * x)\textquotedbl{},\allowbreak{} between=[0,\allowbreak{} 10])}
 
@@ -4766,7 +4909,7 @@ chart.save("draw_curve.png")
 \wordentry{chart.draw\_smooth\_line()}{word:draw-smooth-line}
 A smooth line that follows the dots (LOWESS). \code{chart.\allowbreak{}draw\_\allowbreak{}smooth\_\allowbreak{}line()}
 
-Good for seeing a trend that is not straight. Each colour group gets its own line. \code{thickness=3} draws a thicker line (normal is 2). \code{method=\textquotedbl{}spline\textquotedbl{}} draws a smoothing spline instead (as \code{table.\allowbreak{}values\_\allowbreak{}at(.\allowbreak{}.\allowbreak{}.\allowbreak{},\allowbreak{} smoothness=)} and R \code{smooth.\allowbreak{}spline()}): \code{smoothness=\textquotedbl{}auto\textquotedbl{}} lets R choose how smooth by generalised cross-validation, which needs R (pip install \code{\textquotedbl{}simplydata[r]\textquotedbl{}}); a number is R's \code{lambda=} (bigger is smoother) and needs no R. The smoothing methods of \code{nums.\allowbreak{}smooth} work too, on dots or lines with evenly spaced x: \code{\textquotedbl{}moving average\textquotedbl{}} (\code{window=}, \code{weights=}, \code{ends=}), \code{\textquotedbl{}median\textquotedbl{}} (needs R), \code{\textquotedbl{}savitzky-golay\textquotedbl{}} (\code{of\_\allowbreak{}degree=}), \code{\textquotedbl{}exponential\textquotedbl{}} (\code{newest\_\allowbreak{}weight=}), \code{\textquotedbl{}gaussian\textquotedbl{}} (\code{width=}), \code{\textquotedbl{}whittaker\textquotedbl{}} (\code{smoothness=}) and \code{\textquotedbl{}wiener\textquotedbl{}}. The line goes through the x values of the dots, as \code{table.\allowbreak{}add\_\allowbreak{}smoothed\_\allowbreak{}column}.
+Good for seeing a trend that is not straight. Each colour group gets its own line. \code{thickness=3} draws a thicker line (normal is 2). \code{method=\textquotedbl{}spline\textquotedbl{}} draws a smoothing spline instead (as \code{table.\allowbreak{}values\_\allowbreak{}at(.\allowbreak{}.\allowbreak{}.\allowbreak{},\allowbreak{} smoothness=)} and R \code{smooth.\allowbreak{}spline()}): \code{smoothness=\textquotedbl{}auto\textquotedbl{}} lets R choose how smooth by generalised cross-validation, which needs R (pip install \code{\textquotedbl{}simplydata[r]\textquotedbl{}}); a number is R's \code{lambda=} (bigger is smoother) and needs no R. The smoothing methods of \code{nums.\allowbreak{}smooth} work too, on dots or lines with evenly spaced x: \code{\textquotedbl{}moving average\textquotedbl{}} (\code{window=}, \code{weights=}, \code{ends=}), \code{\textquotedbl{}median\textquotedbl{}} (needs R), \code{\textquotedbl{}savitzky-golay\textquotedbl{}} (\code{of\_\allowbreak{}degree=}), \code{\textquotedbl{}exponential\textquotedbl{}} (\code{newest\_\allowbreak{}weight=}), \code{\textquotedbl{}gaussian\textquotedbl{}} (\code{width=}), \code{\textquotedbl{}whittaker\textquotedbl{}} (\code{smoothness=}) and \code{\textquotedbl{}wiener\textquotedbl{}}. The line goes through the x values of the dots, as \code{table.\allowbreak{}add\_\allowbreak{}smoothed\_\allowbreak{}column}. \code{method=\textquotedbl{}loess\textquotedbl{}} draws R stats::\code{loess()} itself (needs R): local curves of degree 2 through the nearest \code{smoothness=0.\allowbreak{}75} of the dots, without robustness steps (lowess fits local straight lines with 3 robustness steps, so the two lines differ); \code{with\_\allowbreak{}confidence\_\allowbreak{}band=True} shades its 95 \% confidence band (R \code{predict(se = TRUE)}).
 
 \wordfield{Options}{}\par\nopagebreak
 \begin{optiontable}
@@ -4780,6 +4923,7 @@ Good for seeing a trend that is not straight. Each colour group gets its own lin
 \code{of\_\allowbreak{}degree=} & \\
 \code{newest\_\allowbreak{}weight=} & \\
 \code{width=} & \\
+\code{with\_\allowbreak{}confidence\_\allowbreak{}band=} & normally \code{False}\\
 \end{optiontable}
 
 \wordfield{Underneath}{statsmodels (lowess, which follows R's \code{lowess()}) or SciPy (\code{make\_\allowbreak{}smoothing\_\allowbreak{}spline}, for \code{method=\textquotedbl{}spline\textquotedbl{}}; \code{smoothness=\textquotedbl{}auto\textquotedbl{}} lets R smooth.spline choose it and needs R); the other methods as \code{nums.\allowbreak{}smooth} (SciPy, pandas; \code{\textquotedbl{}median\textquotedbl{}} R runmed); drawn with matplotlib}
@@ -4792,6 +4936,31 @@ chart.draw_dots(x="month_number", y="rain", colour="city")
 chart.draw_smooth_line()
 chart.save("draw_smooth_line.png")
 \end{lstlisting}
+\begin{center}\begin{minipage}{\linewidth}\centering
+\includegraphics[width=0.52\textwidth,height=0.26\textheight,keepaspectratio]{figures/underneath_draw_smooth_line_method_loess_with_confidence_band.pdf}
+\captionof*{figure}{The chart simplydata draws. The code below draws the same lines, without simplydata's paper look.}
+\end{minipage}\end{center}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{R}\libbadge{matplotlib}}
+\undertext{\textbf{With \code{method=\textquotedbl{}loess\textquotedbl{},\allowbreak{} with\_\allowbreak{}confidence\_\allowbreak{}band=}}: the same job with this option.}
+\underlib{R (simplydata runs this in R for you, through rpy2)}
+\begin{lstlisting}[style=underr]
+# draw_smooth_line(method="loess", with_confidence_band=True)
+m <- stats::loess(density ~ hour, span = 0.75, degree = 2)          # (1)
+at <- seq(min(hour), max(hour), length.out = 200)
+list(at = at, fitted = unname(stats::predict(m, newdata = data.frame(hour = at))))
+\end{lstlisting}
+\underlib{matplotlib (with what R gives back)}
+\begin{lstlisting}[style=under]
+import matplotlib.pyplot as plt
+fig, ax = plt.subplots()
+ax.plot(at, fitted)     # the band is predict(se = TRUE) +/- t x se, shaded
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) R loess's own defaults: span 0.75, local curves of degree 2, no robustness steps (not lowess).}
+\undertext{\textit{In Python only:} statsmodels lowess has no confidence band, so loess comes from R.}
+\undertext{simplydata also draws one line per colour group.}
+\undertext{\textit{Checked:} a test runs both and compares the lines (the chart's data, not its pixels).}
+\end{underneathbox}
 \wordentry{chart.draw\_density()}{word:draw-density}
 A smooth curve that is high where many values are. \code{chart.\allowbreak{}draw\_\allowbreak{}density(x=\textquotedbl{}marks\textquotedbl{},\allowbreak{} colour=\textquotedbl{}class\textquotedbl{})} (with \code{sdata.\allowbreak{}get\_\allowbreak{}example(\textquotedbl{}marks\textquotedbl{})})
 
@@ -8401,12 +8570,16 @@ chart.save("difference_dots.png")
 Fit the straight line y = slope * x + intercept that best follows the points.
 
 \codeline{table.fit\_line(x=\textquotedbl{}hours\textquotedbl{}, y=\textquotedbl{}marks\textquotedbl{})   (with sdata.get\_example(\textquotedbl{}marks\textquotedbl{}))}\\
-Ordinary least squares (the same as R \code{lm(y \textasciitilde{} x)}). Prints how much y goes up for each 1 more of x, with its 95 \% confidence interval and p-value, and R squared: the share of the differences in y that the line explains. Rows with an empty cell in x or y are skipped. A link does not show that x causes y. Gives back a one-row table. The same line as \code{chart.\allowbreak{}fit\_\allowbreak{}line()}; its old name \code{fit\_\allowbreak{}straight\_\allowbreak{}line} still works. For a curve use \code{fit\_\allowbreak{}curve()}, for any formula \code{fit\_\allowbreak{}formula()}.
+Ordinary least squares (the same as R \code{lm(y \textasciitilde{} x)}). Prints how much y goes up for each 1 more of x, with its 95 \% confidence interval and p-value, and R squared: the share of the differences in y that the line explains. Rows with an empty cell in x or y are skipped. A link does not show that x causes y. Gives back a one-row table. The same line as \code{chart.\allowbreak{}fit\_\allowbreak{}line()}; its old name \code{fit\_\allowbreak{}straight\_\allowbreak{}line} still works. For a curve use \code{fit\_\allowbreak{}curve()}, for any formula \code{fit\_\allowbreak{}formula()}. \code{method=} (experts) other lines, each answering its own question: \code{\textquotedbl{}theil-sen\textquotedbl{}} or \code{\textquotedbl{}siegel\textquotedbl{}} (outliers pull them little; SciPy theilslopes, siegelslopes); \code{\textquotedbl{}standardised major axis\textquotedbl{}} or \code{\textquotedbl{}major axis\textquotedbl{}} for two measures that both carry error (R smatr::\code{sma()}); \code{\textquotedbl{}deming\textquotedbl{}} (with \code{y\_\allowbreak{}error\_\allowbreak{}over\_\allowbreak{}x\_\allowbreak{}error=}, the variance of the errors in y over that in x, normally 1) or \code{\textquotedbl{}passing-bablok\textquotedbl{}} to compare two measurement methods (R mcr::\code{mcreg()}). \code{with\_\allowbreak{}bends=1} lets the line bend (1 to 3 times) where the data say (R segmented::\code{segmented()}, with Davies' test of \code{\textquotedbl{}no bend at all\textquotedbl{}}). \code{changes\_\allowbreak{}at=37} lets the line jump and change its slope at a point you know (an interrupted time series).
 
 \wordfield{Options}{}\par\nopagebreak
 \begin{optiontable}
 \code{x=} & \\
 \code{y=} & \\
+\code{method=} & normally \code{\textquotedbl{}least squares\textquotedbl{}}\\
+\code{y\_\allowbreak{}error\_\allowbreak{}over\_\allowbreak{}x\_\allowbreak{}error=} & \\
+\code{with\_\allowbreak{}bends=} & \\
+\code{changes\_\allowbreak{}at=} & \\
 \end{optiontable}
 
 \wordfield{Underneath}{SciPy \code{linregress()}, \code{t.\allowbreak{}ppf()}}
@@ -8434,11 +8607,128 @@ t = stats.t.ppf(0.975, len(df) - 2)                 # (1)
 \undertext{Rows with an empty cell in x or y are left out first. simplydata also writes the result as a sentence and names the test.}
 \undertext{\textit{Checked:} a test runs both and compares the numbers of the result table (on a pandas and on a Polars table).}
 \end{underneathbox}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{SciPy}}
+\undertext{\textbf{With \code{method=\textquotedbl{}theil-sen\textquotedbl{}}}: the same job with this option.}
+\underlib{SciPy}
+\begin{lstlisting}[style=under]
+from scipy import stats
+df = sdata.get_example("marks")
+# fit_line(x="hours", y="marks", method="theil-sen")
+fit = stats.theilslopes(df["marks"], df["hours"], alpha=0.95,      # (1)
+                        method="separate")                        # (2)
+{"slope": fit.slope, "intercept": fit.intercept,
+ "slope 95 % CI low": fit.low_slope, "slope 95 % CI high": fit.high_slope}
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) SciPy's \code{alpha=} is the confidence level (0.95), not the error rate.}
+\undertext{(2) the intercept is \code{median(y)} - slope * \code{median(x)} (Conover; SciPy's default); R mblm takes the median of y - slope * x instead.}
+\undertext{\code{method=\textquotedbl{}siegel\textquotedbl{}} is SciPy \code{stats.\allowbreak{}siegelslopes(method=\textquotedbl{}hierarchical\textquotedbl{})} in the same way. simplydata also writes the result as sentences, with the p-value in words, and names the method.}
+\undertext{\textit{Checked:} a test runs both and compares the numbers of the result table (on a pandas and on a Polars table).}
+\end{underneathbox}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{R}\libbadge{Python}}
+\undertext{\textbf{With \code{method=\textquotedbl{}standardised major axis\textquotedbl{}}}: the same job with this option.}
+\underlib{R (simplydata runs this in R for you, through rpy2)}
+\begin{lstlisting}[style=underr]
+# fit_line(x="hours", y="marks", method="standardised major axis")
+f <- smatr::sma(marks ~ hours, method = "SMA")       # (1)
+k <- f$coef[[1]]
+list(slope = k[2, 1], low = k[2, 2], high = k[2, 3], intercept = k[1, 1])
+\end{lstlisting}
+\underlib{Python (with what R gives back)}
+\begin{lstlisting}[style=under]
+{"slope": slope, "slope 95 % CI low": low, "slope 95 % CI high": high, "intercept": intercept}
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) smatr's own 95 \% intervals (Warton et al. 2006); \code{method=\textquotedbl{}major axis\textquotedbl{}} is method = \code{\textquotedbl{}MA\textquotedbl{}}.}
+\undertext{\textit{In Python only:} Python has no standardised major axis line with smatr's intervals, so the numbers come from R.}
+\undertext{simplydata also says which question the line answers and tests the correlation. simplydata also writes the result as sentences, with the p-value in words, and names the method.}
+\undertext{\textit{Checked:} a test runs both and compares the numbers of the result table (on a pandas and on a Polars table).}
+\end{underneathbox}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{R}\libbadge{Python}}
+\undertext{\textbf{With \code{method=\textquotedbl{}deming\textquotedbl{},\allowbreak{} y\_\allowbreak{}error\_\allowbreak{}over\_\allowbreak{}x\_\allowbreak{}error=}}: the same job with this option.}
+\underlib{R (simplydata runs this in R for you, through rpy2)}
+\begin{lstlisting}[style=underr]
+# fit_line(x="hours", y="marks", method="deming", y_error_over_x_error=4)
+m <- mcr::mcreg(hours, marks, error.ratio = 1 / 4,          # (1)
+                method.reg = "Deming", method.ci = "analytical")   # (2)
+list(slope = m@para[2, "EST"], se = m@para[2, "SE"], intercept = m@para[1, "EST"])
+\end{lstlisting}
+\underlib{Python (with what R gives back)}
+\begin{lstlisting}[style=under]
+{"slope": slope, "slope standard error": se, "intercept": intercept}
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) mcr's error.ratio is the error variance of x over that of y, the other way round from \code{y\_\allowbreak{}error\_\allowbreak{}over\_\allowbreak{}x\_\allowbreak{}error=}, so it gets 1 / 4.}
+\undertext{(2) mcr's analytical intervals; its default (bootstrap) is random and differs from run to run.}
+\undertext{\textit{In Python only:} Python has no Deming line with mcr's intervals, so the numbers come from R.}
+\undertext{simplydata also says which question the line answers. simplydata also writes the result as sentences, with the p-value in words, and names the method.}
+\undertext{\textit{Checked:} a test runs both and compares the numbers of the result table (on a pandas and on a Polars table).}
+\end{underneathbox}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{R}\libbadge{Python}}
+\undertext{\textbf{With \code{method=\textquotedbl{}passing-bablok\textquotedbl{}}}: the same job with this option.}
+\underlib{R (simplydata runs this in R for you, through rpy2)}
+\begin{lstlisting}[style=underr]
+# fit_line(x="hours", y="marks", method="passing-bablok")
+m <- mcr::mcreg(hours, marks, method.reg = "PaBa",
+                method.ci = "analytical")          # (1)
+list(slope = m@para[2, "EST"], low = m@para[2, "LCI"], intercept = m@para[1, "EST"])
+\end{lstlisting}
+\underlib{Python (with what R gives back)}
+\begin{lstlisting}[style=under]
+{"slope": slope, "slope 95 % CI low": low, "intercept": intercept}
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) Passing and Bablok's own rank-based intervals (mcr's \code{\textquotedbl{}analytical\textquotedbl{}} for PaBa); mcr's default bootstrap is random.}
+\undertext{\textit{In Python only:} Python has no Passing-Bablok line with mcr's intervals, so the numbers come from R.}
+\undertext{simplydata also warns below 30 pairs and refuses fewer than 10. simplydata also writes the result as sentences, with the p-value in words, and names the method.}
+\undertext{\textit{Checked:} a test runs both and compares the numbers of the result table (on a pandas and on a Polars table).}
+\end{underneathbox}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{R}\libbadge{Python}}
+\undertext{\textbf{With \code{with\_\allowbreak{}bends=}}: the same job with this option.}
+\underlib{R (simplydata runs this in R for you, through rpy2)}
+\begin{lstlisting}[style=underr]
+# fit_line(x="hour", y="density", with_bends=1)
+o <- lm(density ~ hour)
+s <- segmented::segmented(o, seg.Z = ~ hour, npsi = 1,
+                          control = segmented::seg.control(seed = 1))   # (1)
+sl <- segmented::slope(s, digits = 15)$hour
+list(bend = s$psi[1, "Est."], before = sl[1, 1], after = sl[2, 1],
+     davies = segmented::davies.test(o, seg.Z = ~ hour)$p.value)   # (2)
+\end{lstlisting}
+\underlib{Python (with what R gives back)}
+\begin{lstlisting}[style=under]
+{"bend 1": bend, "slope 1": before, "slope 2": after, "Davies p-value": davies}
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) a continuous line: it bends, it does not jump (segmented's model); seed 1 fixes segmented's random restarts.}
+\undertext{(2) Davies' test of \code{\textquotedbl{}no bend at all\textquotedbl{}}: the bend's own p-value is not valid, because the data chose where it is.}
+\undertext{\textit{In Python only:} Python has no segmented regression with the bend's interval and Davies' test, so the numbers come from R.}
+\undertext{simplydata also prints the bend's 95 \% interval and each slope's. simplydata also writes the result as sentences, with the p-value in words, and names the method.}
+\undertext{\textit{Checked:} a test runs both and compares the numbers of the result table (on a pandas and on a Polars table).}
+\end{underneathbox}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{statsmodels}}
+\undertext{\textbf{With \code{changes\_\allowbreak{}at=}}: the same job with this option.}
+\underlib{statsmodels}
+\begin{lstlisting}[style=under]
+import statsmodels.formula.api as smf
+df = sdata.get_example("culture").query("flask == 'A'")
+# fit_line(x="hour", y="density", changes_at=10)
+df = df.assign(after=(df["hour"] >= 10) * 1.0)               # (1)
+df = df.assign(since=df["after"] * (df["hour"] - 10))
+fit = smf.ols("density ~ hour + after + since", df).fit()
+{"level change": fit.params["after"], "slope change": fit.params["since"],
+ "level change p-value": fit.pvalues["after"]}
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) the change starts at the point itself: rows at 10 or later count as after.}
+\undertext{simplydata also prints the lag-1 autocorrelation of the leftovers (statsmodels acf), which an interrupted time series must check (Bernal et al. 2017). simplydata also writes the result as sentences, with the p-value in words, and names the method.}
+\undertext{\textit{Checked:} a test runs both and compares the numbers of the result table (on a pandas and on a Polars table).}
+\end{underneathbox}
 \wordentry{table.fit\_curve()}{word:table.fit-curve}
 Fit a curve y = b0 + b1 * x + b2 * x**2 ... that best follows the points.
 
 \codeline{table.fit\_curve(x=\textquotedbl{}hours\textquotedbl{}, y=\textquotedbl{}marks\textquotedbl{}, of\_degree=2)   (with sdata.get\_example(\textquotedbl{}marks\textquotedbl{}))}\\
-\code{of\_\allowbreak{}degree=2} is a curve with one bend, \code{of\_\allowbreak{}degree=3} can bend twice, and so on (up to 10), the same curve as \code{chart.\allowbreak{}fit\_\allowbreak{}curve(of\_\allowbreak{}degree=)}. Least squares on the powers of x, as R \code{lm(y \textasciitilde{} poly(x,\allowbreak{} 2,\allowbreak{} raw = TRUE))}. Prints the curve and R squared; gives back one row per term (the intercept, x, x**2 ...) with its estimate, standard error, t, p-value and 95 \% confidence interval. \code{weights=\textquotedbl{}column\textquotedbl{}} counts some rows more (as R \code{lm(weights =)}); \code{for\_\allowbreak{}each\_\allowbreak{}group\_\allowbreak{}in=\textquotedbl{}column\textquotedbl{}} fits each group on its own. Rows with an empty cell are skipped.
+\code{of\_\allowbreak{}degree=2} is a curve with one bend, \code{of\_\allowbreak{}degree=3} can bend twice, and so on (up to 10), the same curve as \code{chart.\allowbreak{}fit\_\allowbreak{}curve(of\_\allowbreak{}degree=)}. Least squares on the powers of x, as R \code{lm(y \textasciitilde{} poly(x,\allowbreak{} 2,\allowbreak{} raw = TRUE))}. Prints the curve and R squared; gives back one row per term (the intercept, x, x**2 ...) with its estimate, standard error, t, p-value and 95 \% confidence interval. \code{weights=\textquotedbl{}column\textquotedbl{}} counts some rows more (as R \code{lm(weights =)}); \code{for\_\allowbreak{}each\_\allowbreak{}group\_\allowbreak{}in=\textquotedbl{}column\textquotedbl{}} fits each group on its own. Rows with an empty cell are skipped. \code{of\_\allowbreak{}kind=\textquotedbl{}logistic growth\textquotedbl{}} fits a named curve instead of powers of x, by nonlinear least squares as R \code{nls()} with R's self-starting models (start values from R when it is there): \code{\textquotedbl{}logistic growth\textquotedbl{}} (SSlogis), \code{\textquotedbl{}4 parameter logistic\textquotedbl{}} (SSfpl), \code{\textquotedbl{}michaelis-menten\textquotedbl{}} (SSmicmen), \code{\textquotedbl{}rise to a limit\textquotedbl{}} (SSasympOrig), \code{\textquotedbl{}rise or fall to a limit\textquotedbl{}} (SSasymp), \code{\textquotedbl{}gompertz growth\textquotedbl{}} (SSgompertz), \code{\textquotedbl{}weibull growth\textquotedbl{}} (SSweibull) or \code{\textquotedbl{}two exponentials\textquotedbl{}} (SSbiexp). Prints each value with what it means and its 95 \% interval.
 
 \wordfield{Options}{}\par\nopagebreak
 \begin{optiontable}
@@ -8447,6 +8737,7 @@ Fit a curve y = b0 + b1 * x + b2 * x**2 ... that best follows the points.
 \code{of\_\allowbreak{}degree=} & normally \code{2}\\
 \code{weights=} & \\
 \code{for\_\allowbreak{}each\_\allowbreak{}group\_\allowbreak{}in=} & \\
+\code{of\_\allowbreak{}kind=} & \\
 \end{optiontable}
 
 \wordfield{Underneath}{statsmodels (WLS by QR on the powers of x, as R \code{lm(y \textasciitilde{} poly(x,\allowbreak{} raw = TRUE))})}
@@ -8456,6 +8747,25 @@ import simplydata as sdata
 table = sdata.table(sdata.get_example("marks"))
 table.fit_curve(x="hours", y="marks", of_degree=2)
 \end{lstlisting}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{SciPy}}
+\undertext{\textbf{With \code{of\_\allowbreak{}kind=\textquotedbl{}logistic growth\textquotedbl{}}}: the same job with this option.}
+\underlib{SciPy}
+\begin{lstlisting}[style=under]
+import numpy as np
+from scipy import optimize
+df = sdata.get_example("culture").query("flask == 'A'")
+# fit_curve(x="hour", y="density", of_kind="logistic growth")
+def logistic(x, Asym, xmid, scal):                  # R's SSlogis
+    return Asym / (1 + np.exp((xmid - x) / scal))
+found, cov = optimize.curve_fit(logistic, df["hour"], df["density"],
+                                p0=[1, 10, 2], method="lm")    # (1)
+{"estimate": found[0], "standard error": np.sqrt(cov[0, 0])}
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) start values: simplydata takes them from R's self-starting model (stats::\code{getInitial()}), or searches the whole range without R; the least-squares answer is the same.}
+\undertext{simplydata also writes the formula, says what each value means and gives its 95 \% interval. simplydata also writes the result as sentences, with the p-value in words, and names the method.}
+\undertext{\textit{Checked:} a test runs both and compares the numbers of the result table (on a pandas and on a Polars table).}
+\end{underneathbox}
 \wordentry{table.fit\_formula()}{word:table.fit-formula}
 Find the values in a formula that make it follow the data best.
 
@@ -8482,6 +8792,86 @@ table.fit_formula("population = a * exp(b * (year - 2000))", for_each_group_in="
 table.keep_rows_where("country", is_equal_to="Applia")
 table.fit_formula("population = a * exp(b * (year - 2000))")
 \end{lstlisting}
+\wordentry{table.fit\_dose\_response()}{word:table.fit-dose-response}
+Fit a dose-response curve and find the dose for 50 \% of the effect (ED50, EC50, LD50).
+
+\codeline{table.fit\_dose\_response(x=\textquotedbl{}concentration\textquotedbl{}, y=\textquotedbl{}root\_length\textquotedbl{})   (with sdata.get\_example(\textquotedbl{}toxicity\textquotedbl{}))}\\
+Fits a 4 parameter log-logistic curve (R drc::\code{drm(fct = LL.\allowbreak{}4())}, the usual curve in ecotoxicology) and prints the ED50 with its 95 \% interval (delta method, R drc::\code{ED()}), the upper and lower limits and the steepness. \code{doses\_\allowbreak{}for\_\allowbreak{}effect=[10,\allowbreak{} 50,\allowbreak{} 90]} gives ED10, ED50 and ED90: the doses where the response has moved 10, 50 and 90 \% of the way from the upper limit to the lower one. \code{of\_\allowbreak{}kind=} \code{\textquotedbl{}4 parameter log-logistic\textquotedbl{}} (the default), \code{\textquotedbl{}3 parameter log-logistic\textquotedbl{}} (lower limit 0), \code{\textquotedbl{}5 parameter log-logistic\textquotedbl{}} (not symmetric) or \code{\textquotedbl{}weibull\textquotedbl{}}. \code{outcome=\textquotedbl{}yes or no\textquotedbl{}}, \code{out\_\allowbreak{}of=\textquotedbl{}exposed\textquotedbl{}}: y holds how many died (or answered yes) out of \code{out\_\allowbreak{}of} in each row: LD50, with a 2 parameter log-logistic curve from 0 to 100 \% (R \code{drm(type = \textquotedbl{}binomial\textquotedbl{})}). \code{for\_\allowbreak{}each\_\allowbreak{}group\_\allowbreak{}in=\textquotedbl{}chemical\textquotedbl{}} fits one curve per group in one model and compares their ED50s (relative potency, R drc::\code{EDcomp()}). Needs R with drc (pip install \code{\textquotedbl{}simplydata[r]\textquotedbl{}}; in R: \code{install.\allowbreak{}packages(\textquotedbl{}drc\textquotedbl{})}). Gives back one row per value of the curve and per ED. The same curve on a chart: \code{chart.\allowbreak{}fit\_\allowbreak{}dose\_\allowbreak{}response()}.
+
+\wordfield{Options}{}\par\nopagebreak
+\begin{optiontable}
+\code{x=} & \\
+\code{y=} & \\
+\code{doses\_\allowbreak{}for\_\allowbreak{}effect=} & \\
+\code{of\_\allowbreak{}kind=} & \\
+\code{outcome=} & normally \code{\textquotedbl{}numbers\textquotedbl{}}\\
+\code{out\_\allowbreak{}of=} & \\
+\code{for\_\allowbreak{}each\_\allowbreak{}group\_\allowbreak{}in=} & \\
+\end{optiontable}
+
+\wordfield{Underneath}{R \code{drc::drm()}, \code{drc::LL.\allowbreak{}4()}, \code{drc::ED()}}
+\wordfield{Example you can run}{}\par\nopagebreak
+\begin{lstlisting}[style=py]
+import simplydata as sdata
+table = sdata.table(sdata.get_example("toxicity"))
+table.fit_dose_response(x="concentration", y="root_length", for_each_group_in="chemical")
+table.fit_dose_response(x="concentration", y="dead", outcome="yes or no", out_of="seedlings", doses_for_effect=[10, 50])
+\end{lstlisting}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{R}\libbadge{Python}}
+\underlib{R (simplydata runs this in R for you, through rpy2)}
+\begin{lstlisting}[style=underr]
+# fit_dose_response(x="concentration", y="root_length")
+# concentration and root_length: chemical A of sdata.get_example("toxicity")
+m <- drc::drm(root_length ~ concentration, fct = drc::LL.4())   # (1)
+e <- drc::ED(m, 50, interval = "delta", display = FALSE)       # (2)
+list(estimate = e[1, 1], se = e[1, 2], low = e[1, 3], high = e[1, 4])
+\end{lstlisting}
+\underlib{Python (with what R gives back)}
+\begin{lstlisting}[style=under]
+{"estimate": estimate, "standard error": se, "95 % CI low": low, "95 % CI high": high}
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) the 4 parameter log-logistic curve, the usual one in ecotoxicology (drc's LL.4); \code{of\_\allowbreak{}kind=} chooses another.}
+\undertext{(2) the ED50 with its delta-method interval: drc's \code{ED()} gives no interval unless asked (interval = \code{\textquotedbl{}none\textquotedbl{}} is its default).}
+\undertext{\textit{In Python only:} Python has no dose-response package with drc's ED intervals: SciPy \code{curve\_\allowbreak{}fit} fits the curve but gives no ED50 interval, so the numbers come from R.}
+\undertext{simplydata also prints the upper and lower limits, a test of no dose effect (drc::noEffect) and a note when an ED lies outside the doses tested. simplydata also writes the result as sentences, with the p-value in words, and names the method.}
+\undertext{\textit{Checked:} a test runs both and compares the numbers of the result table (on a pandas and on a Polars table).}
+\end{underneathbox}
+\wordentry{table.find\_best\_power\_of()}{word:table.find-best-power-of}
+Find the power to raise a column to that brings it closest to a normal shape (Box-Cox).
+
+\codeline{table.find\_best\_power\_of(\textquotedbl{}days\textquotedbl{})   (with sdata.get\_example(\textquotedbl{}trial\textquotedbl{}))}\\
+Box-Cox finds the power by maximum likelihood (SciPy stats.boxcox), with its 95 \% interval: power 1 is no change, 0.5 the square root, 0 the log, -1 one over the value. It names the simple power inside the interval nearest to the best one, and says whether log (0) and no change (1) are inside it. \code{using=[\textquotedbl{}treatment\textquotedbl{}]} finds the power that brings the leftovers of the model \code{explain(column,\allowbreak{} using=)} closest to a normal shape (R car::\code{powerTransform()}, needs R), with likelihood-ratio tests of power 0 and 1. \code{method=\textquotedbl{}yeo-johnson\textquotedbl{}} (SciPy stats.yeojohnson) works with zeros and negative values too. Box-Cox needs values above 0. For counts or shares, a model made for them (\code{explain(.\allowbreak{}.\allowbreak{}.\allowbreak{},\allowbreak{} outcome=)}) is usually better than a power. Gives back one row.
+
+\wordfield{Options}{}\par\nopagebreak
+\begin{optiontable}
+\code{column=} & \\
+\code{using=} & \\
+\code{method=} & normally \code{\textquotedbl{}box-cox\textquotedbl{}}\\
+\end{optiontable}
+
+\wordfield{Underneath}{SciPy \code{boxcox()}, \code{dropna()}}
+\wordfield{Example you can run}{}\par\nopagebreak
+\begin{lstlisting}[style=py]
+import simplydata as sdata
+table = sdata.table(sdata.get_example("trial"))
+table.find_best_power_of("days")
+table.find_best_power_of("days", method="yeo-johnson")
+\end{lstlisting}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{SciPy}}
+\underlib{SciPy}
+\begin{lstlisting}[style=under]
+from scipy import stats
+df = sdata.get_example("trial")
+# find_best_power_of("days")
+_, power, (low, high) = stats.boxcox(df["days"].dropna(), alpha=0.05)   # (1)
+{"power": power, "95 % CI low": low, "95 % CI high": high}
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) the power's 95 \% interval from the profile likelihood (\code{alpha=0.\allowbreak{}05}); without \code{alpha=} SciPy gives no interval.}
+\undertext{simplydata also names the simple power inside the interval (such as the square root), says whether log and no change are inside it, and with \code{using=} asks R car::\code{powerTransform()} for the model's power. simplydata also writes the result as sentences, with the p-value in words, and names the method.}
+\undertext{\textit{Checked:} a test runs both and compares the numbers of the result table (on a pandas and on a Polars table).}
+\end{underneathbox}
 \unsection{Finding and solving}{group:Finding-and-solving}
 \wordentry{sdata.find\_where\_smallest()}{word:sdata.find-where-smallest}
 Find where a formula is smallest, and its value there.
@@ -8946,7 +9336,7 @@ print(dist.show_parameters())
 Explain one column from several others with a model, and say how big each effect is.
 
 \codeline{table.explain(\textquotedbl{}marks\textquotedbl{}, using=[\textquotedbl{}hours\textquotedbl{}, \textquotedbl{}breakfast\textquotedbl{}])   (with sdata.get\_example(\textquotedbl{}school\textquotedbl{}))}\\
-\code{outcome=\textquotedbl{}numbers\textquotedbl{}} (the default): linear model by least squares (R \code{lm()}). \code{outcome=\textquotedbl{}yes or no\textquotedbl{}}: logistic regression, odds ratios (R \code{glm(family = binomial)}). \code{outcome=\textquotedbl{}counts\textquotedbl{}}: Poisson regression, rate ratios (R \code{glm(family = poisson)}); \code{outcome=\textquotedbl{}counts (overdispersed)\textquotedbl{}}: quasi-Poisson (R \code{glm(family = quasipoisson)}); \code{outcome=\textquotedbl{}counts that vary a lot\textquotedbl{}}: negative binomial (R MASS::\code{glm.\allowbreak{}nb()}). \code{outcome=\textquotedbl{}positive numbers\textquotedbl{}}: Gamma regression with a log link, for positive, skewed numbers such as times or amounts (R \code{glm(family = Gamma(link = \textquotedbl{}log\textquotedbl{}))}); effects multiply the average. \code{time=\textquotedbl{}years\textquotedbl{}} with counts: rates, the count per unit of time (R offset = \code{log(years)}). \code{out\_\allowbreak{}of=\textquotedbl{}tries\textquotedbl{}} with \code{outcome=\textquotedbl{}yes or no\textquotedbl{}}: the column holds the number of yes out of that many tries (R \code{glm(cbind(yes,\allowbreak{} tries - yes) \textasciitilde{} .\allowbreak{}.\allowbreak{}.\allowbreak{},\allowbreak{} family = binomial)}). With \code{out\_\allowbreak{}of=}, \code{outcome=\textquotedbl{}yes or no (overdispersed)\textquotedbl{}} is quasi-binomial (R \code{glm(family = quasibinomial)}), for yes counts that vary more than the binomial allows. \code{outcome=\textquotedbl{}ordered groups\textquotedbl{}}: ordered logistic regression (R MASS::\code{polr()}); give the order of text groups, lowest first, with \code{in\_\allowbreak{}order=[\textquotedbl{}low\textquotedbl{},\allowbreak{} \textquotedbl{}middle\textquotedbl{},\allowbreak{} \textquotedbl{}high\textquotedbl{}]}. \code{outcome=\textquotedbl{}groups\textquotedbl{}}: multinomial logistic regression, each group against the first (R nnet::\code{multinom()}). \code{outcome=\textquotedbl{}shares\textquotedbl{}}: beta regression for shares between 0 and 1 (R betareg). \code{outcome=\textquotedbl{}counts with many zeros\textquotedbl{}}: zero-inflated Poisson regression (R pscl::\code{zeroinfl()}); \code{\textquotedbl{}counts with many zeros that vary a lot\textquotedbl{}}: zero-inflated negative binomial (pscl::\code{zeroinfl(dist = \textquotedbl{}negbin\textquotedbl{})}). \code{outcome=\textquotedbl{}counts in two steps\textquotedbl{}} (a hurdle model; \code{\textquotedbl{}hurdle\textquotedbl{}} works too): first zero or not, then how many among the counts above 0 (R pscl::\code{hurdle()}); \code{\textquotedbl{}counts in two steps that vary a lot\textquotedbl{}} with a negative binomial second step. \code{zero\_\allowbreak{}part\_\allowbreak{}using=[\textquotedbl{}distance\textquotedbl{}]} gives the zero part its own columns (R pscl's y \textasciitilde{} x \textbar{} z). \code{link=} (experts): \code{\textquotedbl{}probit\textquotedbl{}} or \code{\textquotedbl{}cloglog\textquotedbl{}} for yes or no, \code{\textquotedbl{}identity\textquotedbl{}} or \code{\textquotedbl{}sqrt\textquotedbl{}} for counts, \code{\textquotedbl{}inverse\textquotedbl{}} or \code{\textquotedbl{}identity\textquotedbl{}} for positive numbers; the effects are then on that scale, not ratios. \code{test\_\allowbreak{}type=\textquotedbl{}type 2\textquotedbl{}} adds a table with one test for each column (an ANOVA table): \code{\textquotedbl{}type 2\textquotedbl{}} (the usual choice, R car::\code{Anova(type = 2)}), \code{\textquotedbl{}type 3\textquotedbl{}} (sum-to-zero coding, R car::\code{Anova(type = 3)}) or \code{\textquotedbl{}in order\textquotedbl{}} (R \code{anova()}; the order of \code{using=} matters), with partial eta-squared for numbers (R effectsize). A text column in \code{using=} is a group column: each group is compared with the first group in sorted order (the baseline). \code{\textquotedbl{}hours * breakfast\textquotedbl{}} adds both columns and their interaction (does the effect of hours depend on breakfast?). \code{weights=\textquotedbl{}precision\textquotedbl{}}: each row counts as much as its weight says (precision weights, R \code{lm(weights =)} and \code{glm(weights =)}; statsmodels WLS and \code{GLM(var\_\allowbreak{}weights=)}); rows with weight 0 are left out, as R does. \code{show=\textquotedbl{}risk ratios\textquotedbl{}} with \code{outcome=\textquotedbl{}yes or no\textquotedbl{}}: risk ratios instead of odds ratios, by modified Poisson regression (Zou 2004; R \code{glm(family = poisson)} with sandwich::\code{vcovHC(type = \textquotedbl{}HC0\textquotedbl{})}); \code{method=\textquotedbl{}log-binomial\textquotedbl{}} fits a log-binomial model instead (R \code{glm(family = binomial(link = \textquotedbl{}log\textquotedbl{}))}, which may not converge). \code{show=\textquotedbl{}standardised effects\textquotedbl{}} (also \code{\textquotedbl{}standardized effects\textquotedbl{}}): each effect per standard deviation, from the model fitted again on z-scores (R effectsize::\code{standardize\_\allowbreak{}parameters(method = \textquotedbl{}refit\textquotedbl{})}). \code{matched\_\allowbreak{}by=\textquotedbl{}set\textquotedbl{}} with \code{outcome=\textquotedbl{}yes or no\textquotedbl{}}: conditional logistic regression for matched case-control sets (R survival::\code{clogit()}; statsmodels ConditionalLogit). \code{giving\_\allowbreak{}outliers\_\allowbreak{}less\_\allowbreak{}weight=True}: robust regression (Huber's M-estimation, R MASS::\code{rlm()}; statsmodels RLM), so a few outliers in the column explained pull the effects less. Not the same as \code{robust\_\allowbreak{}errors=True}, which keeps the effects and only changes their standard errors. \code{curve\_\allowbreak{}for=\textquotedbl{}hours\textquotedbl{}} with \code{with\_\allowbreak{}knots=3}: \code{\textquotedbl{}hours\textquotedbl{}} follows a natural cubic spline whose pieces join at 3 knots, the points where the pieces of the curve join (R splines::\code{ns(hours,\allowbreak{} df = 4)}; patsy \code{cr()}); the printout gives the test of the whole curve, which asks whether \code{\textquotedbl{}hours\textquotedbl{}} matters at all (is the curve flat?), not whether it bends. \code{interval\_\allowbreak{}by=\textquotedbl{}profile\textquotedbl{}} (or \code{\textquotedbl{}profile likelihood\textquotedbl{}}): profile-likelihood 95 \% intervals for yes or no and counts (R \code{confint()} of the glm; needs R); \code{interval\_\allowbreak{}by=\textquotedbl{}bootstrap\textquotedbl{}}: BCa intervals from \code{resamples=9999} resamples of the rows (\code{with\_\allowbreak{}seed=1}; SciPy bootstrap, as R boot::\code{boot.\allowbreak{}ci()}). A group with only a few rows can be missing from a resample; \code{explain()} then stops, and whether that happens depends on \code{with\_\allowbreak{}seed=}. Fewer resamples are not the fix: merge the rare group, or use \code{interval\_\allowbreak{}by=\textquotedbl{}profile\textquotedbl{}} (yes or no and counts). \code{p\_\allowbreak{}value\_\allowbreak{}by=\textquotedbl{}likelihood ratio\textquotedbl{}}: a likelihood-ratio test for each column (R \code{drop1(m,\allowbreak{} test = \textquotedbl{}LRT\textquotedbl{})}) instead of the Wald z-test. \code{grouped\_\allowbreak{}by=\textquotedbl{}school\textquotedbl{}}: a mixed model with its own starting level for each school (R lme4::\code{lmer()}), for rows that belong together; \code{grouped\_\allowbreak{}by=[\textquotedbl{}school\textquotedbl{},\allowbreak{} \textquotedbl{}class\textquotedbl{}]} for classes inside schools ((1 \textbar{} school/class)). \code{own\_\allowbreak{}slope\_\allowbreak{}for=\textquotedbl{}hours\textquotedbl{}} gives each school its own slope for hours too (R lme4::\code{lmer()} itself, (1 + hours \textbar{} school)). \code{crossed\_\allowbreak{}with=\textquotedbl{}item\textquotedbl{}} with \code{grouped\_\allowbreak{}by=\textquotedbl{}subject\textquotedbl{}}: a second grouping crossed with the first, (1 \textbar{} subject) + (1 \textbar{} item) (R lme4 itself), when each subject meets several items. \code{p\_\allowbreak{}value\_\allowbreak{}by=\textquotedbl{}satterthwaite\textquotedbl{}} (or \code{\textquotedbl{}few groups\textquotedbl{}}) gives t-tests with Satterthwaite degrees of freedom (R lmerTest) instead of Wald z-tests. \code{effects=\textquotedbl{}for the whole population\textquotedbl{}} fits GEE instead (statsmodels, as R geepack::\code{geeglm()}): effects averaged over all groups, with \code{within\_\allowbreak{}groups=\textquotedbl{}alike\textquotedbl{}} (the default), \code{\textquotedbl{}in time order\textquotedbl{}} (rows in table order, R geepack) or \code{\textquotedbl{}independent\textquotedbl{}}; GEE takes \code{time=}, \code{out\_\allowbreak{}of=} (R geepack) and \code{link=} for yes or no too. \code{curve\_\allowbreak{}for=\textquotedbl{}hours\textquotedbl{}} lets \code{\textquotedbl{}hours\textquotedbl{}} follow a curve instead of a straight line (a generalised additive model with a smooth term \code{s(hours)}, R mgcv::\code{gam(marks \textasciitilde{} s(hours) + .\allowbreak{}.\allowbreak{}.\allowbreak{},\allowbreak{} method = \textquotedbl{}REML\textquotedbl{})}). \code{robust\_\allowbreak{}errors=True} (experts) gives robust standard errors (sandwich, HC3, as R sandwich::\code{vcovHC()}), which stay right when the spread is not the same everywhere; it does not make the model resistant to outliers (\code{giving\_\allowbreak{}outliers\_\allowbreak{}less\_\allowbreak{}weight=True} does). \code{empty\_\allowbreak{}cells=\textquotedbl{}multiple imputation\textquotedbl{}} fills in empty cells 20 times (R \code{mice()}) instead of leaving those rows out; \code{with\_\allowbreak{}seed=} fixes the random filling. Prints each effect with its 95 \% confidence interval and p-value in words, and how well the model fits: R squared (numbers), McFadden's pseudo R squared (yes or no, counts, groups; for yes or no also Nagelkerke's and Tjur's) or Nakagawa's R squared (\code{grouped\_\allowbreak{}by=}, R performance, needs R), with AIC and BIC (R \code{AIC()}, \code{BIC()}). Gives back a table with one row per term. A link does not show that one thing causes the other.
+\code{outcome=\textquotedbl{}numbers\textquotedbl{}} (the default): linear model by least squares (R \code{lm()}). \code{outcome=\textquotedbl{}yes or no\textquotedbl{}}: logistic regression, odds ratios (R \code{glm(family = binomial)}). \code{outcome=\textquotedbl{}counts\textquotedbl{}}: Poisson regression, rate ratios (R \code{glm(family = poisson)}); \code{outcome=\textquotedbl{}counts (overdispersed)\textquotedbl{}}: quasi-Poisson (R \code{glm(family = quasipoisson)}); \code{outcome=\textquotedbl{}counts that vary a lot\textquotedbl{}}: negative binomial (R MASS::\code{glm.\allowbreak{}nb()}). \code{outcome=\textquotedbl{}positive numbers\textquotedbl{}}: Gamma regression with a log link, for positive, skewed numbers such as times or amounts (R \code{glm(family = Gamma(link = \textquotedbl{}log\textquotedbl{}))}); effects multiply the average. \code{time=\textquotedbl{}years\textquotedbl{}} with counts: rates, the count per unit of time (R offset = \code{log(years)}). \code{out\_\allowbreak{}of=\textquotedbl{}tries\textquotedbl{}} with \code{outcome=\textquotedbl{}yes or no\textquotedbl{}}: the column holds the number of yes out of that many tries (R \code{glm(cbind(yes,\allowbreak{} tries - yes) \textasciitilde{} .\allowbreak{}.\allowbreak{}.\allowbreak{},\allowbreak{} family = binomial)}). With \code{out\_\allowbreak{}of=}, \code{outcome=\textquotedbl{}yes or no (overdispersed)\textquotedbl{}} is quasi-binomial (R \code{glm(family = quasibinomial)}), for yes counts that vary more than the binomial allows. \code{outcome=\textquotedbl{}ordered groups\textquotedbl{}}: ordered logistic regression (R MASS::\code{polr()}); give the order of text groups, lowest first, with \code{in\_\allowbreak{}order=[\textquotedbl{}low\textquotedbl{},\allowbreak{} \textquotedbl{}middle\textquotedbl{},\allowbreak{} \textquotedbl{}high\textquotedbl{}]}. \code{outcome=\textquotedbl{}groups\textquotedbl{}}: multinomial logistic regression, each group against the first (R nnet::\code{multinom()}). \code{outcome=\textquotedbl{}shares\textquotedbl{}}: beta regression for shares between 0 and 1 (R betareg). \code{outcome=\textquotedbl{}counts with many zeros\textquotedbl{}}: zero-inflated Poisson regression (R pscl::\code{zeroinfl()}); \code{\textquotedbl{}counts with many zeros that vary a lot\textquotedbl{}}: zero-inflated negative binomial (pscl::\code{zeroinfl(dist = \textquotedbl{}negbin\textquotedbl{})}). \code{outcome=\textquotedbl{}counts in two steps\textquotedbl{}} (a hurdle model; \code{\textquotedbl{}hurdle\textquotedbl{}} works too): first zero or not, then how many among the counts above 0 (R pscl::\code{hurdle()}); \code{\textquotedbl{}counts in two steps that vary a lot\textquotedbl{}} with a negative binomial second step. \code{zero\_\allowbreak{}part\_\allowbreak{}using=[\textquotedbl{}distance\textquotedbl{}]} gives the zero part its own columns (R pscl's y \textasciitilde{} x \textbar{} z). \code{link=} (experts): \code{\textquotedbl{}probit\textquotedbl{}} or \code{\textquotedbl{}cloglog\textquotedbl{}} for yes or no, \code{\textquotedbl{}identity\textquotedbl{}} or \code{\textquotedbl{}sqrt\textquotedbl{}} for counts, \code{\textquotedbl{}inverse\textquotedbl{}} or \code{\textquotedbl{}identity\textquotedbl{}} for positive numbers; the effects are then on that scale, not ratios. \code{test\_\allowbreak{}type=\textquotedbl{}type 2\textquotedbl{}} adds a table with one test for each column (an ANOVA table): \code{\textquotedbl{}type 2\textquotedbl{}} (the usual choice, R car::\code{Anova(type = 2)}), \code{\textquotedbl{}type 3\textquotedbl{}} (sum-to-zero coding, R car::\code{Anova(type = 3)}) or \code{\textquotedbl{}in order\textquotedbl{}} (R \code{anova()}; the order of \code{using=} matters), with partial eta-squared for numbers (R effectsize). A text column in \code{using=} is a group column: each group is compared with the first group in sorted order (the baseline). \code{\textquotedbl{}hours * breakfast\textquotedbl{}} adds both columns and their interaction (does the effect of hours depend on breakfast?). \code{weights=\textquotedbl{}precision\textquotedbl{}}: each row counts as much as its weight says (precision weights, R \code{lm(weights =)} and \code{glm(weights =)}; statsmodels WLS and \code{GLM(var\_\allowbreak{}weights=)}); rows with weight 0 are left out, as R does. \code{show=\textquotedbl{}risk ratios\textquotedbl{}} with \code{outcome=\textquotedbl{}yes or no\textquotedbl{}}: risk ratios instead of odds ratios, by modified Poisson regression (Zou 2004; R \code{glm(family = poisson)} with sandwich::\code{vcovHC(type = \textquotedbl{}HC0\textquotedbl{})}); \code{method=\textquotedbl{}log-binomial\textquotedbl{}} fits a log-binomial model instead (R \code{glm(family = binomial(link = \textquotedbl{}log\textquotedbl{}))}, which may not converge). \code{show=\textquotedbl{}standardised effects\textquotedbl{}} (also \code{\textquotedbl{}standardized effects\textquotedbl{}}): each effect per standard deviation, from the model fitted again on z-scores (R effectsize::\code{standardize\_\allowbreak{}parameters(method = \textquotedbl{}refit\textquotedbl{})}). \code{matched\_\allowbreak{}by=\textquotedbl{}set\textquotedbl{}} with \code{outcome=\textquotedbl{}yes or no\textquotedbl{}}: conditional logistic regression for matched case-control sets (R survival::\code{clogit()}; statsmodels ConditionalLogit). \code{giving\_\allowbreak{}outliers\_\allowbreak{}less\_\allowbreak{}weight=True}: robust regression (Huber's M-estimation, R MASS::\code{rlm()}; statsmodels RLM), so a few outliers in the column explained pull the effects less. Not the same as \code{robust\_\allowbreak{}errors=True}, which keeps the effects and only changes their standard errors. \code{curve\_\allowbreak{}for=\textquotedbl{}hours\textquotedbl{}} with \code{with\_\allowbreak{}knots=3}: \code{\textquotedbl{}hours\textquotedbl{}} follows a natural cubic spline whose pieces join at 3 knots, the points where the pieces of the curve join (R splines::\code{ns(hours,\allowbreak{} df = 4)}; patsy \code{cr()}); the printout gives the test of the whole curve, which asks whether \code{\textquotedbl{}hours\textquotedbl{}} matters at all (is the curve flat?), not whether it bends. \code{interval\_\allowbreak{}by=\textquotedbl{}profile\textquotedbl{}} (or \code{\textquotedbl{}profile likelihood\textquotedbl{}}): profile-likelihood 95 \% intervals for yes or no and counts (R \code{confint()} of the glm; needs R); \code{interval\_\allowbreak{}by=\textquotedbl{}bootstrap\textquotedbl{}}: BCa intervals from \code{resamples=9999} resamples of the rows (\code{with\_\allowbreak{}seed=1}; SciPy bootstrap, as R boot::\code{boot.\allowbreak{}ci()}). A group with only a few rows can be missing from a resample; \code{explain()} then stops, and whether that happens depends on \code{with\_\allowbreak{}seed=}. Fewer resamples are not the fix: merge the rare group, or use \code{interval\_\allowbreak{}by=\textquotedbl{}profile\textquotedbl{}} (yes or no and counts). \code{p\_\allowbreak{}value\_\allowbreak{}by=\textquotedbl{}likelihood ratio\textquotedbl{}}: a likelihood-ratio test for each column (R \code{drop1(m,\allowbreak{} test = \textquotedbl{}LRT\textquotedbl{})}) instead of the Wald z-test. \code{grouped\_\allowbreak{}by=\textquotedbl{}school\textquotedbl{}}: a mixed model with its own starting level for each school (R lme4::\code{lmer()}), for rows that belong together; \code{grouped\_\allowbreak{}by=[\textquotedbl{}school\textquotedbl{},\allowbreak{} \textquotedbl{}class\textquotedbl{}]} for classes inside schools ((1 \textbar{} school/class)). \code{own\_\allowbreak{}slope\_\allowbreak{}for=\textquotedbl{}hours\textquotedbl{}} gives each school its own slope for hours too (R lme4::\code{lmer()} itself, (1 + hours \textbar{} school)). \code{crossed\_\allowbreak{}with=\textquotedbl{}item\textquotedbl{}} with \code{grouped\_\allowbreak{}by=\textquotedbl{}subject\textquotedbl{}}: a second grouping crossed with the first, (1 \textbar{} subject) + (1 \textbar{} item) (R lme4 itself), when each subject meets several items. \code{p\_\allowbreak{}value\_\allowbreak{}by=\textquotedbl{}satterthwaite\textquotedbl{}} (or \code{\textquotedbl{}few groups\textquotedbl{}}) gives t-tests with Satterthwaite degrees of freedom (R lmerTest) instead of Wald z-tests. \code{effects=\textquotedbl{}for the whole population\textquotedbl{}} fits GEE instead (statsmodels, as R geepack::\code{geeglm()}): effects averaged over all groups, with \code{within\_\allowbreak{}groups=\textquotedbl{}alike\textquotedbl{}} (the default), \code{\textquotedbl{}in time order\textquotedbl{}} (rows in table order, R geepack) or \code{\textquotedbl{}independent\textquotedbl{}}; GEE takes \code{time=}, \code{out\_\allowbreak{}of=} (R geepack) and \code{link=} for yes or no too. \code{curve\_\allowbreak{}for=\textquotedbl{}hours\textquotedbl{}} lets \code{\textquotedbl{}hours\textquotedbl{}} follow a curve instead of a straight line (a generalised additive model with a smooth term \code{s(hours)}, R mgcv::\code{gam(marks \textasciitilde{} s(hours) + .\allowbreak{}.\allowbreak{}.\allowbreak{},\allowbreak{} method = \textquotedbl{}REML\textquotedbl{})}). \code{robust\_\allowbreak{}errors=True} (experts) gives robust standard errors (sandwich, HC3, as R sandwich::\code{vcovHC()}), which stay right when the spread is not the same everywhere; it does not make the model resistant to outliers (\code{giving\_\allowbreak{}outliers\_\allowbreak{}less\_\allowbreak{}weight=True} does). \code{empty\_\allowbreak{}cells=\textquotedbl{}multiple imputation\textquotedbl{}} fills in empty cells 20 times (R \code{mice()}) instead of leaving those rows out; \code{with\_\allowbreak{}seed=} fixes the random filling. Prints each effect with its 95 \% confidence interval and p-value in words, and how well the model fits: R squared (numbers), McFadden's pseudo R squared (yes or no, counts, groups; for yes or no also Nagelkerke's and Tjur's) or Nakagawa's R squared (\code{grouped\_\allowbreak{}by=}, R performance, needs R), with AIC and BIC (R \code{AIC()}, \code{BIC()}). Gives back a table with one row per term. A link does not show that one thing causes the other. \code{for\_\allowbreak{}percentile=90} (\code{outcome=\textquotedbl{}numbers\textquotedbl{}}) fits the line under which 90 \% of the values fall instead of the average line (quantile regression, R quantreg::\code{rq(tau = 0.\allowbreak{}9)}, needs R); a list such as [10, 50, 90] gives one block per percentile. \code{changes\_\allowbreak{}at=}\{\code{\textquotedbl{}month\textquotedbl{}}: 37\} adds a jump in level and a change of slope at month 37 (an interrupted time series), with the lag-1 autocorrelation of the leftovers.
 
 \wordfield{Options}{}\par\nopagebreak
 \begin{optiontable}
@@ -8977,6 +9367,8 @@ Explain one column from several others with a model, and say how big each effect
 \code{resamples=} & \\
 \code{crossed\_\allowbreak{}with=} & \\
 \code{zero\_\allowbreak{}part\_\allowbreak{}using=} & \\
+\code{for\_\allowbreak{}percentile=} & \\
+\code{changes\_\allowbreak{}at=} & \\
 \end{optiontable}
 
 \wordfield{Underneath}{statsmodels (OLS; GLM for yes/no and counts, as R glm; MixedLM for \code{grouped\_\allowbreak{}by=}; GEE for \code{effects=\textquotedbl{}for the whole population\textquotedbl{}}, as R geepack::geeglm; MICEData to fill in empty cells; \code{eval\_\allowbreak{}measures} aic and bic and McFadden's pseudo R squared, as R AIC, BIC and performance::\code{r2\_\allowbreak{}mcfadden}); R mgcv::gam for \code{curve\_\allowbreak{}for=} (needs R); R itself (needs R) for lme4::glmer, lme4::lmer with \code{own\_\allowbreak{}slope\_\allowbreak{}for=}, lmerTest for \code{p\_\allowbreak{}value\_\allowbreak{}by=\textquotedbl{}satterthwaite\textquotedbl{}}, geepack for \code{within\_\allowbreak{}groups=\textquotedbl{}in time order\textquotedbl{}} and GEE with \code{out\_\allowbreak{}of=}, car::Anova and effectsize for \code{test\_\allowbreak{}type=}, sandwich::vcovHC for \code{robust\_\allowbreak{}errors=True} with yes/no and counts, and mice::pool for multiple imputation; R performance::\code{r2\_\allowbreak{}nakagawa} for the R squared of every \code{grouped\_\allowbreak{}by=} model; statsmodels WLS and \code{GLM(var\_\allowbreak{}weights=)} for \code{weights=}, RLM for \code{giving\_\allowbreak{}outliers\_\allowbreak{}less\_\allowbreak{}weight=}, ConditionalLogit for \code{matched\_\allowbreak{}by=}, \code{GLM(cov\_\allowbreak{}type=\textquotedbl{}HC0\textquotedbl{})} for risk ratios; patsy cr for \code{with\_\allowbreak{}knots=}; SciPy bootstrap for \code{interval\_\allowbreak{}by=\textquotedbl{}bootstrap\textquotedbl{}}; R stats::confint for \code{interval\_\allowbreak{}by=\textquotedbl{}profile\textquotedbl{}}, lme4 for \code{crossed\_\allowbreak{}with=}, pscl::zeroinfl and pscl::hurdle for the zero outcomes}
@@ -9288,6 +9680,43 @@ list(b = coef(z, model = "count")[2], se = sqrt(diag(vcov(z)))[2])
 \undertext{(1) the zero part gets its own columns, pscl's y \textasciitilde{} x \textbar{} z; without \code{zero\_\allowbreak{}part\_\allowbreak{}using=} both parts use the columns of \code{using=}.}
 \undertext{\textit{In Python only:} statsmodels ZeroInflatedPoisson takes \code{exog\_\allowbreak{}infl=} for the zero part too, with other standard errors.}
 \undertext{simplydata also writes each effect as a sentence with its interval and p-value, and names the method.}
+\undertext{\textit{Checked:} a test runs both and compares the numbers of the result table (on a pandas and on a Polars table).}
+\end{underneathbox}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{R}\libbadge{Python}}
+\undertext{\textbf{With \code{for\_\allowbreak{}percentile=}}: the same job with this option.}
+\underlib{R (simplydata runs this in R for you, through rpy2)}
+\begin{lstlisting}[style=underr]
+# explain("marks", using=["hours"], for_percentile=90)
+f <- quantreg::rq(marks ~ hours, tau = 0.9)           # (1)
+s <- summary(f, se = "nid")$coefficients             # (2)
+list(estimate = s[1, 1], se = s[1, 2], p = s[1, 4])
+\end{lstlisting}
+\underlib{Python (with what R gives back)}
+\begin{lstlisting}[style=under]
+{"estimate": estimate, "standard error": se, "p-value": p}
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) R quantreg's exact simplex (Barrodale-Roberts); statsmodels QuantReg gives the same line to about 1e-7 but none of R's standard errors.}
+\undertext{(2) standard errors by \code{\textquotedbl{}nid\textquotedbl{}} for every number of rows (R's default below 1001 rows is \code{\textquotedbl{}rank\textquotedbl{}}, intervals only).}
+\undertext{\textit{In Python only:} statsmodels QuantReg gives the same lines but other standard errors, so the numbers come from R.}
+\undertext{simplydata also says what a percentile line is and gives one block per percentile. simplydata also writes the result as sentences, with the p-value in words, and names the method.}
+\undertext{\textit{Checked:} a test runs both and compares the numbers of the result table (on a pandas and on a Polars table).}
+\end{underneathbox}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{statsmodels}}
+\undertext{\textbf{With \code{changes\_\allowbreak{}at=}}: the same job with this option.}
+\underlib{statsmodels}
+\begin{lstlisting}[style=under]
+import statsmodels.formula.api as smf
+df = sdata.get_example("culture").query("flask == 'A'")
+# explain("density", using=["hour"], changes_at={"hour": 10})
+df = df.assign(after=(df["hour"] >= 10) * 1.0)               # (1)
+df = df.assign(since=df["after"] * (df["hour"] - 10))
+fit = smf.ols("density ~ hour + after + since", df).fit()
+{"effect": fit.params["after"], "standard error": fit.bse["after"], "p-value": fit.pvalues["after"]}
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) the change starts at the point itself: rows at 10 or later count as after.}
+\undertext{simplydata also works for counts (\code{outcome=\textquotedbl{}counts\textquotedbl{}}, \code{time=}) and prints the lag-1 autocorrelation of the leftovers. simplydata also writes the result as sentences, with the p-value in words, and names the method.}
 \undertext{\textit{Checked:} a test runs both and compares the numbers of the result table (on a pandas and on a Polars table).}
 \end{underneathbox}
 \wordentry{table.add\_predicted\_column()}{word:table.add-predicted-column}
@@ -9695,7 +10124,7 @@ table.fill_empty_cells_in("nitrate", with_the="line between neighbours", sorted_
 Add a smoothed copy of a column: each value becomes a summary of its neighbours in time.
 
 \codeline{table.add\_smoothed\_column(\textquotedbl{}signal\_smoothed\textquotedbl{}, from\_column=\textquotedbl{}signal\textquotedbl{}, method=\textquotedbl{}savitzky-golay\textquotedbl{}, window=11, sorted\_by=\textquotedbl{}time\textquotedbl{})}\\
-(with \code{sdata.\allowbreak{}get\_\allowbreak{}example(\textquotedbl{}sensor\textquotedbl{})}). The methods and their options are those of \code{nums.\allowbreak{}smooth}: \code{\textquotedbl{}moving average\textquotedbl{}} (\code{weights=}, \code{ends=}), \code{\textquotedbl{}median\textquotedbl{}} (R runmed, needs simplydata[r]), \code{\textquotedbl{}savitzky-golay\textquotedbl{}} (\code{of\_\allowbreak{}degree=}), \code{\textquotedbl{}exponential\textquotedbl{}} (\code{newest\_\allowbreak{}weight=}), \code{\textquotedbl{}gaussian\textquotedbl{}} (\code{width=}), \code{\textquotedbl{}lowess\textquotedbl{}} and \code{\textquotedbl{}spline\textquotedbl{}} (\code{smoothness=}; these two use the \code{sorted\_\allowbreak{}by} values as x and allow uneven steps and empty cells), \code{\textquotedbl{}whittaker\textquotedbl{}} (\code{smoothness=}) or \code{\textquotedbl{}wiener\textquotedbl{}}. The other methods need evenly spaced readings (\code{sorted\_\allowbreak{}by=}) and no empty cells. \code{for\_\allowbreak{}each\_\allowbreak{}group\_\allowbreak{}in=} smooths each group on its own. Undo with \code{table.\allowbreak{}undo()}.
+(with \code{sdata.\allowbreak{}get\_\allowbreak{}example(\textquotedbl{}sensor\textquotedbl{})}). The methods and their options are those of \code{nums.\allowbreak{}smooth}: \code{\textquotedbl{}moving average\textquotedbl{}} (\code{weights=}, \code{ends=}), \code{\textquotedbl{}median\textquotedbl{}} (R runmed, needs simplydata[r]), \code{\textquotedbl{}savitzky-golay\textquotedbl{}} (\code{of\_\allowbreak{}degree=}), \code{\textquotedbl{}exponential\textquotedbl{}} (\code{newest\_\allowbreak{}weight=}), \code{\textquotedbl{}gaussian\textquotedbl{}} (\code{width=}), \code{\textquotedbl{}lowess\textquotedbl{}} and \code{\textquotedbl{}spline\textquotedbl{}} (\code{smoothness=}; these two use the \code{sorted\_\allowbreak{}by} values as x and allow uneven steps and empty cells), \code{\textquotedbl{}whittaker\textquotedbl{}} (\code{smoothness=}) or \code{\textquotedbl{}wiener\textquotedbl{}}. The other methods need evenly spaced readings (\code{sorted\_\allowbreak{}by=}) and no empty cells. \code{for\_\allowbreak{}each\_\allowbreak{}group\_\allowbreak{}in=} smooths each group on its own. Undo with \code{table.\allowbreak{}undo()}. \code{method=\textquotedbl{}loess\textquotedbl{}} is R stats::\code{loess()} itself (needs R): a local curve of degree 2 through the nearest \code{smoothness=0.\allowbreak{}75} of the readings (not lowess, which fits local straight lines with robustness steps); \code{interval=95} adds two more columns, the ends of its 95 \% confidence band.
 
 \wordfield{Options}{}\par\nopagebreak
 \begin{optiontable}
@@ -9715,6 +10144,7 @@ Add a smoothed copy of a column: each value becomes a summary of its neighbours 
 \code{span=} & \\
 \code{half\_\allowbreak{}life=} & \\
 \code{com=} & \\
+\code{interval=} & \\
 \end{optiontable}
 
 \wordfield{Underneath}{SciPy (ndimage.convolve1d, \code{gaussian\_\allowbreak{}filter1d}, signal.savgol\_filter, \code{whittaker\_\allowbreak{}henderson}, wiener), pandas (rolling, ewm), statsmodels (lowess); R stats::runmed for the median (simplydata[r])}
@@ -9724,6 +10154,27 @@ import simplydata as sdata
 table = sdata.table(sdata.get_example("sensor"))
 table.add_smoothed_column("signal_smoothed", from_column="signal", method="savitzky-golay", window=11, sorted_by="time")
 \end{lstlisting}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{R}\libbadge{Python}}
+\undertext{\textbf{With \code{method=\textquotedbl{}loess\textquotedbl{},\allowbreak{} interval=}}: the same job with this option.}
+\underlib{R (simplydata runs this in R for you, through rpy2)}
+\begin{lstlisting}[style=underr]
+# add_smoothed_column("smooth", from_column="density", method="loess", interval=95)
+m <- stats::loess(density ~ hour, span = 0.75, degree = 2)     # (1)
+p <- stats::predict(m, se = TRUE)
+q <- stats::qt(0.975, m$one.delta^2 / m$two.delta)            # (2)
+list(fit = p$fit[1], low = p$fit[1] - q * p$se.fit[1])
+\end{lstlisting}
+\underlib{Python (with what R gives back)}
+\begin{lstlisting}[style=under]
+{"smooth": fit, "smooth 95 % CI low": low}
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) R loess's own defaults: span 0.75 (\code{smoothness=}), local curves of degree 2, no robustness steps.}
+\undertext{(2) the band uses loess's own degrees of freedom, as R's predict.loess intervals do.}
+\undertext{\textit{In Python only:} statsmodels lowess has no standard errors and fits local straight lines with robustness steps, so loess comes from R.}
+\undertext{simplydata also adds the band's high end and says how loess differs from lowess.}
+\undertext{\textit{Checked:} a test runs both and compares the numbers of the result table (on a pandas and on a Polars table).}
+\end{underneathbox}
 \wordentry{nums.smooth()}{word:nums.smooth}
 Smooth the numbers: each one becomes a summary of its neighbours, so noise and spikes shrink.
 
@@ -13257,6 +13708,24 @@ sdata.solve("x**2 = 2", between=[0, 2])
 \end{lstlisting}
 \printedoutput{output/solution19_task3.txt}
 \solutionanswer{\code{find\_\allowbreak{}biggest} gives 25 at x = 5, and solve gives x = 1.41421, the square root of 2.}
+\solutiontask{4}{Fill in the call for chemical B of the toxicity table: \code{table.\allowbreak{}fit\_\allowbreak{}dose\_\allowbreak{}response(x=\textquotedbl{}.\allowbreak{}.\allowbreak{}.\allowbreak{}\textquotedbl{},\allowbreak{} y=\textquotedbl{}.\allowbreak{}.\allowbreak{}.\allowbreak{}\textquotedbl{},\allowbreak{} doses\_\allowbreak{}for\_\allowbreak{}effect=[10,\allowbreak{} 50])}. Which dose gives 10 \% of the effect? (Needs R.)}
+\begin{lstlisting}[style=py]
+import simplydata as sdata
+table = sdata.table(sdata.get_example("toxicity"))
+table.keep_rows_where("chemical", is_equal_to="B")
+table.fit_dose_response(x="concentration", y="root_length", doses_for_effect=[10, 50])
+\end{lstlisting}
+\printedoutput{output/solution19_task4.txt}
+\solutionanswer{ED10 is 3.32 and ED50 9.35 mg per litre: chemical B needs more than twice the dose of A.}
+\solutiontask{5}{Without looking back: which word gives the EC50 of a toxicity test, and which \code{of\_\allowbreak{}kind=} fits a growth curve that levels off? Use the second on flask C of the culture table.}
+\begin{lstlisting}[style=py]
+import simplydata as sdata
+table = sdata.table(sdata.get_example("culture"))
+table.keep_rows_where("flask", is_equal_to="C")
+table.fit_curve(x="hour", y="density", of_kind="logistic growth")
+\end{lstlisting}
+\printedoutput{output/solution19_task5.txt}
+\solutionanswer{\code{fit\_\allowbreak{}dose\_\allowbreak{}response} gives the EC50; \code{of\_\allowbreak{}kind=\textquotedbl{}logistic growth\textquotedbl{}} levels off. Flask C levels off at about 1.25, half way up at about hour 10.5.}
 \par\noindent{\small\sffamily\hyperref[lesson:19]{Back to lesson 19}}
 \unsection{Lesson 20: Distributions, chances and values between points}{solutions:20}
 \solutiontask{1}{Ten coins are thrown. With \code{sdata.\allowbreak{}distribution(\textquotedbl{}binomial\textquotedbl{},\allowbreak{} tries=10,\allowbreak{} chance=0.\allowbreak{}5)}, what is the chance of 8 heads or more?}
@@ -13481,7 +13950,7 @@ chart.save("loop_poles.png")
 \end{minipage}\end{center}
 \solutionanswer{Three poles, all left of the imaginary axis (stable), and one zero at -1.}
 \par\noindent{\small\sffamily\hyperref[lesson:26]{Back to lesson 26}}
-\unsection{Lesson 27: Beyond the average line: outliers}{solutions:27}
+\unsection{Lesson 27: Beyond the average line: percentiles and outliers}{solutions:27}
 \solutiontask{1}{In the marks table, explain \code{\textquotedbl{}marks\textquotedbl{}} from \code{\textquotedbl{}hours\textquotedbl{}} with \code{giving\_\allowbreak{}outliers\_\allowbreak{}less\_\allowbreak{}weight=True}. Which rows get less weight?}
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -13499,6 +13968,14 @@ table.explain("marks", using=["hours"], robust_errors=True)
 \end{lstlisting}
 \printedoutput{output/solution27_task2.txt}
 \solutionanswer{\code{giving\_\allowbreak{}outliers\_\allowbreak{}less\_\allowbreak{}weight=} changes the effects (rows far from the model count less); \code{robust\_\allowbreak{}errors=} gives the same effects as the ordinary model, with other standard errors.}
+\solutiontask{3}{In the marks table, fit the 90th percentile line of \code{\textquotedbl{}marks\textquotedbl{}} against \code{\textquotedbl{}hours\textquotedbl{}}. How many more marks does one more hour bring at the top? (Needs R.)}
+\begin{lstlisting}[style=py]
+import simplydata as sdata
+table = sdata.table(sdata.get_example("marks"))
+table.explain("marks", using=["hours"], for_percentile=90)
+\end{lstlisting}
+\printedoutput{output/solution27_task3.txt}
+\solutionanswer{5.00 more marks per hour at the 90th percentile (95 \% CI 2.98 to 7.02).}
 \par\noindent{\small\sffamily\hyperref[lesson:27]{Back to lesson 27}}
 
 \backmatter
@@ -13627,6 +14104,7 @@ Every word and option, A to Z, with the page of its dictionary entry. Other spel
 \indexline{word:dist.find-average}{dist.find\_average()}
 \indexline{word:nums.find-average}{nums.find\_average()}
 \indexline{word:table.find-average-of}{table.find\_average\_of()}
+\indexline{word:table.find-best-power-of}{table.find\_best\_power\_of()}
 \indexline{word:nums.find-biggest}{nums.find\_biggest()}
 \indexline{word:table.find-biggest-of}{table.find\_biggest\_of()}
 \indexline{word:sdata.find-chance-of-finding}{sdata.find\_chance\_of\_finding()}
@@ -13676,6 +14154,8 @@ Every word and option, A to Z, with the page of its dictionary entry. Other spel
 \indexline{word:fit-distribution}{chart.fit\_distribution()}
 \indexline{word:nums.fit-distribution}{nums.fit\_distribution()}
 \indexline{word:table.fit-distribution-to}{table.fit\_distribution\_to()}
+\indexline{word:fit-dose-response}{chart.fit\_dose\_response()}
+\indexline{word:table.fit-dose-response}{table.fit\_dose\_response()}
 \indexline{word:fit-formula}{chart.fit\_formula()}
 \indexline{word:table.fit-formula}{table.fit\_formula()}
 \indexline{word:fit-line}{chart.fit\_line()}

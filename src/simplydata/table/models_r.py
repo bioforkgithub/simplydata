@@ -240,7 +240,7 @@ def geeglm_r(model, corstr, exposure=None, trials=None, link=None):
 
     values = {"y": np.asarray(model["y"], dtype=float), "X": np.asarray(model["X"], dtype=float),
               "g": np.asarray(model["groups"], dtype=object)}
-    family = {"numbers": "gaussian", "yes or no": "binomial", "counts": "poisson"}[model["outcome"]]
+    family = {"numbers": "stats::gaussian", "yes or no": "stats::binomial", "counts": "stats::poisson"}[model["outcome"]]
     if link:
         family = f"{family}(link = '{link}')"
     left, offset, extra = "y", "", ""
@@ -328,7 +328,8 @@ def gam_r(model, smooth):
     values, code = r_data(model, safe)
     rhs = " + ".join(f"s({safe[term[0]]})" if len(term) == 1 and term[0] in smooth else ":".join(safe[v] for v in term)
                      for term in model["terms"])
-    family = {"numbers": "gaussian", "yes or no": "binomial", "counts": "poisson"}[model["outcome"]]
+    # stats:: so that an attached package with its own gaussian() (drc) cannot take its place
+    family = {"numbers": "stats::gaussian", "yes or no": "stats::binomial", "counts": "stats::poisson"}[model["outcome"]]
     code += (f"m <- mgcv::gam(y ~ {rhs}, data = d, family = {family}, method = 'REML'); s <- summary(m); "
              "list(beta = unname(s$p.table[, 1]), se = unname(s$p.table[, 2]), stat = unname(s$p.table[, 3]), "
              "p = unname(s$p.table[, 4]), edf = unname(s$s.table[, 1]), sstat = unname(s$s.table[, 3]), "

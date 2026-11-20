@@ -555,7 +555,8 @@ class FittingWords:
 
     # ------------------------------------------------------------------ fit_line
     @friendly
-    def fit_line(self, x=None, y=None):
+    def fit_line(self, x=None, y=None, method="least squares", y_error_over_x_error=None, with_bends=None,
+                 changes_at=None):
         """Fit the straight line y = slope * x + intercept that best follows the points.
 
         table.fit_line(x="hours", y="marks")   (with sdata.get_example("marks"))
@@ -565,7 +566,37 @@ class FittingWords:
         are skipped. A link does not show that x causes y. Gives back a one-row table.
         The same line as chart.fit_line(); its old name fit_straight_line still works.
         For a curve use fit_curve(), for any formula fit_formula().
+        method= (experts) other lines, each answering its own question: "theil-sen" or
+        "siegel" (outliers pull them little; SciPy theilslopes, siegelslopes); "standardised
+        major axis" or "major axis" for two measures that both carry error (R smatr::sma());
+        "deming" (with y_error_over_x_error=, the variance of the errors in y over that in x,
+        normally 1) or "passing-bablok" to compare two measurement methods (R mcr::mcreg()).
+        with_bends=1 lets the line bend (1 to 3 times) where the data say (R
+        segmented::segmented(), with Davies' test of "no bend at all"). changes_at=37 lets the
+        line jump and change its slope at a point you know (an interrupted time series).
         """
+        if method is None:
+            method = "least squares"
+        from .lines_more import read_line_method
+
+        method = read_line_method(method)
+        if y_error_over_x_error is not None:
+            st = _st()
+            if method != "deming":
+                raise SimplydataError('y_error_over_x_error= goes with method="deming": the variance of the errors in '
+                                      'y divided by that in x.\nFor example table.fit_line(x="reference", y="new", '
+                                      'method="deming", y_error_over_x_error=1)')
+            if not st._is_number(y_error_over_x_error) or isinstance(y_error_over_x_error, bool) or \
+                    not 0 < y_error_over_x_error < math.inf:
+                raise SimplydataError("y_error_over_x_error= is the variance of the errors in y divided by the variance "
+                                      "of the errors in x, a number above 0 (1 when both are measured equally well).")
+        if with_bends is not None and changes_at is not None:
+            raise SimplydataError(
+                "with_bends= and changes_at= cannot go together: with_bends= lets the data find where the line bends "
+                "(and the line stays joined), changes_at= is a point you know, where the line may jump and change "
+                "its slope. Choose one.")
+        if (with_bends is not None or changes_at is not None) and method != "least squares":
+            raise SimplydataError(f'with_bends= and changes_at= work with least squares, not method="{method}".')
         st = _st()
         step = "fit_line"
         example = 'with sdata.get_example("marks"): table.fit_line(x="hours", y="marks")'
@@ -573,6 +604,13 @@ class FittingWords:
         self._need_name(step, "y=", y, example)
         if x == y:
             raise SimplydataError(f"{step}() needs two different columns, for example {example}.")
+        if method != "least squares":
+            return self._fit_line_other(x, y, method, 1.0 if y_error_over_x_error is None else
+                                        float(y_error_over_x_error))
+        if with_bends is not None:
+            return self._fit_line_bends(x, y, with_bends)
+        if changes_at is not None:
+            return self._fit_line_changes(x, y, changes_at)
         xs, ys = self._number_values(step, [x, y])
         if len(xs) < 3:
             raise SimplydataError(f'{step}() needs at least 3 rows with a number in both "{x}" and "{y}".')
@@ -611,7 +649,7 @@ class FittingWords:
 
     # ------------------------------------------------------------------ fit_curve
     @friendly(renamed={"degree": "of_degree", "for_each": "for_each_group_in"})
-    def fit_curve(self, x=None, y=None, of_degree=2, weights=None, for_each_group_in=None):
+    def fit_curve(self, x=None, y=None, of_degree=2, weights=None, for_each_group_in=None, of_kind=None):
         """Fit a curve y = b0 + b1 * x + b2 * x**2 ... that best follows the points.
 
         table.fit_curve(x="hours", y="marks", of_degree=2)   (with sdata.get_example("marks"))
@@ -622,6 +660,12 @@ class FittingWords:
         and 95 % confidence interval. weights="column" counts some rows more (as R
         lm(weights =)); for_each_group_in="column" fits each group on its own. Rows with an empty
         cell are skipped.
+        of_kind="logistic growth" fits a named curve instead of powers of x, by nonlinear least
+        squares as R nls() with R's self-starting models (start values from R when it is there):
+        "logistic growth" (SSlogis), "4 parameter logistic" (SSfpl), "michaelis-menten"
+        (SSmicmen), "rise to a limit" (SSasympOrig), "rise or fall to a limit" (SSasymp),
+        "gompertz growth" (SSgompertz), "weibull growth" (SSweibull) or "two exponentials"
+        (SSbiexp). Prints each value with what it means and its 95 % interval.
         """
         st = _st()
         step = "fit_curve"
@@ -630,6 +674,13 @@ class FittingWords:
         self._need_name(step, "y=", y, example)
         if x == y:
             raise SimplydataError(f"{step}() needs two different columns, for example {example}.")
+        if of_kind is not None:
+            from .lines_more import read_curve_kind
+
+            if of_degree != 2:
+                raise SimplydataError("of_kind= and of_degree= cannot be given together: of_degree= fits powers of x "
+                                      "(a polynomial), of_kind= a named curve such as \"logistic growth\".")
+            return self._fit_curve_kind(x, y, read_curve_kind(of_kind), weights, for_each_group_in)
         if isinstance(of_degree, bool) or not isinstance(of_degree, (int, np.integer)) or not 1 <= of_degree <= MAX_DEGREE:
             raise SimplydataError(
                 f"of_degree= should be a whole number from 1 to {MAX_DEGREE}, not {of_degree!r}.\n"

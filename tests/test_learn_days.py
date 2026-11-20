@@ -464,7 +464,8 @@ def test_lesson_tasks_are_asked_on_the_day_they_are_taught():
         do = learn_days.UNITS[unit]["do"][0]
         assert "examples 1 and 2" in do and "tasks 1 and 2" in do and f"sdata.show_lesson({n}, solutions=True)" in do
         assert "lesson's tasks" not in do
-        assert len(learn.LESSONS[n - 1]["task"]) == 3
+        # lesson 19 also has tasks 4 and 5 (S3a-2: growth curves and dose-response, manual only)
+        assert len(learn.LESSONS[n - 1]["task"]) == {19: 5, 20: 3}[n]
     cycles = learn.lesson_number(learn.CYCLES_LESSON)
     do = " ".join(learn_days.UNITS["time_series"]["do"])
     assert f"sdata.show_lesson({cycles}), example 3 only" in do and "task 3" in do

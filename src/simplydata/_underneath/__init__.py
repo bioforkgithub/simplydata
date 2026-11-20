@@ -13,8 +13,8 @@ keyed by the word and the option ("table.explain weights="): its box follows the
 The library code holds no simplydata names except sdata.get_example(), so a rename only touches the
 key and the ours= line; docs/rename_underneath_keys.py rewrites both.
 
-The entries are split by area: charts.py, tables.py, numbers.py, statistics.py and models.py (the options of
-explain()).
+The entries are split by area: charts.py, tables.py, numbers.py, statistics.py, models.py (the options of
+explain()) and lines.py (the lines-and-curves words and their options).
 """
 
 from __future__ import annotations
@@ -115,10 +115,10 @@ class Entry:
 
 
 def _join() -> dict[str, Entry]:
-    from . import charts, models, numbers, statistics, tables
+    from . import charts, lines, models, numbers, statistics, tables
 
     found: dict[str, Entry] = {}
-    for module in (charts, tables, numbers, statistics, models):
+    for module in (charts, tables, numbers, statistics, models, lines):
         for entry in module.ENTRIES:
             if entry.key in found:
                 raise ValueError(f"{entry.key} has two underneath entries")

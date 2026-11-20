@@ -1585,7 +1585,7 @@ class ModelWords:
                 robust_errors=False, p_value_by="wald", effects="for the average group", within_groups="alike",
                 curve_for=None, weights=None, show=None, method=None, matched_by=None,
                 giving_outliers_less_weight=False, with_knots=None, interval_by="wald", resamples=None,
-                crossed_with=None, zero_part_using=None):
+                crossed_with=None, zero_part_using=None, for_percentile=None, changes_at=None):
         """Explain one column from several others with a model, and say how big each effect is.
 
         table.explain("marks", using=["hours", "breakfast"])   (with sdata.get_example("school"))
@@ -1670,8 +1670,39 @@ class ModelWords:
         squared (grouped_by=, R performance, needs R), with AIC and BIC (R AIC(), BIC()). Gives back
         a table with one row per term.
         A link does not show that one thing causes the other.
+        for_percentile=90 (outcome="numbers") fits the line under which 90 % of the values fall
+        instead of the average line (quantile regression, R quantreg::rq(tau = 0.9), needs R); a
+        list such as [10, 50, 90] gives one block per percentile. changes_at={"month": 37} adds a
+        jump in level and a change of slope at month 37 (an interrupted time series), with the
+        lag-1 autocorrelation of the leftovers.
         """
         step = "explain"
+        # S3a-2 (lines and curves): percentile lines and a change at a known point (table/lines_more.py)
+        if changes_at is not None:
+            from .lines_more import explain_changes
+
+            if for_percentile is not None:
+                raise SimplydataError("changes_at= and for_percentile= cannot be used together yet.")
+            return explain_changes(self, column, using, changes_at, dict(
+                outcome=outcome, grouped_by=grouped_by, empty_cells=empty_cells, with_seed=with_seed, time=time,
+                out_of=out_of, in_order=in_order, link=link, test_type=test_type, own_slope_for=own_slope_for,
+                robust_errors=robust_errors, p_value_by=p_value_by, effects=effects, within_groups=within_groups,
+                curve_for=curve_for, weights=weights, show=show, method=method, matched_by=matched_by,
+                giving_outliers_less_weight=giving_outliers_less_weight, with_knots=with_knots,
+                interval_by=interval_by, resamples=resamples, crossed_with=crossed_with,
+                zero_part_using=zero_part_using))
+        if for_percentile is not None:
+            from .lines_more import explain_percentile, read_percentiles
+
+            return explain_percentile(self, column, using, outcome, read_percentiles(for_percentile), [
+                ("grouped_by=", grouped_by, None), ("empty_cells=", empty_cells, "leave out"), ("time=", time, None),
+                ("out_of=", out_of, None), ("link=", link, None), ("test_type=", test_type, None),
+                ("own_slope_for=", own_slope_for, None), ("robust_errors=", robust_errors, False),
+                ("p_value_by=", p_value_by, "wald"), ("curve_for=", curve_for, None), ("weights=", weights, None),
+                ("show=", show, None), ("method=", method, None), ("matched_by=", matched_by, None),
+                ("giving_outliers_less_weight=", giving_outliers_less_weight, False), ("with_knots=", with_knots, None),
+                ("interval_by=", interval_by, "wald"), ("resamples=", resamples, None),
+                ("crossed_with=", crossed_with, None), ("zero_part_using=", zero_part_using, None)])
         robust, smooth_for = robust_errors, curve_for
         if isinstance(with_seed, bool) or not isinstance(with_seed, int):
             raise SimplydataError("with_seed= is a whole number that fixes the random filling-in or resampling, for "

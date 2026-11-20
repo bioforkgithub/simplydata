@@ -88,6 +88,9 @@ ALLOWED_ARITHMETIC = {
     "table/models_extra.py::standardise": "z-scores (value - average) / standard deviation of the rows used, before "
                                           "the statsmodels refit, as R effectsize::standardize_parameters(method = "
                                           "\"refit\")",
+    "table/lines_more.py::explain_percentile": "the Wald 95 % interval estimate +/- t x quantreg's \"nid\" standard "
+                                               "error, which goes with the t-test summary.rq prints (quantreg prints "
+                                               "no interval for se = \"nid\")",
 }
 
 

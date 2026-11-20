@@ -1,0 +1,9 @@
+Kept 25 of 75 rows.
+Fitted a logistic growth curve, density = Asym / (1 + exp((xmid - hour) / scal)), to 25 rows:
+  Asym = 1.15 (95 % CI 1.14 to 1.17): the level the curve levels off at; xmid = 9.59 (95 % CI 9.46 to 9.71): the x where it is half way up; scal = 2.02 (95 % CI 1.92 to 2.13): the x it takes to go from half way to 73 % of the way (smaller is steeper).
+Residual standard error 0.0169 on 22 degrees of freedom; AIC -128; R squared = 1.00 (only a rough guide for a curve).
+Method: nonlinear least squares, as R nls(density ~ SSlogis(hour, Asym, xmid, scal)); start values from R's self-starting model SSlogis (stats::getInitial()), then Levenberg-Marquardt (SciPy least_squares), as R nls() would. Intervals are estimate +/- t x standard error.
+Fitted a gompertz growth curve, density = Asym * exp(-b2 * b3 ** hour), to 25 rows:
+  Asym = 1.18 (95 % CI 1.16 to 1.21): the level the curve levels off at; b2 = 14.9 (95 % CI 11.0 to 18.8): how far below the level it starts; b3 = 0.723 (95 % CI 0.700 to 0.745): how slowly it grows (between 0 and 1; smaller is faster).
+Residual standard error 0.0282 on 22 degrees of freedom; AIC -103; R squared = 1.00 (only a rough guide for a curve).
+Method: nonlinear least squares, as R nls(density ~ SSgompertz(hour, Asym, b2, b3)); start values from R's self-starting model SSgompertz (stats::getInitial()), then Levenberg-Marquardt (SciPy least_squares), as R nls() would. Intervals are estimate +/- t x standard error.

@@ -41,7 +41,8 @@ jobs:
           "tseries", "lomb", "trend", "forecast", "changepoint",
           "pwr", "Exact", "exact2x2", "nortest", "BSDA", "rstatix", "DescTools", "FSA", "PMCMRplus",
           "multcompView", "TOSTER", "presize", "epiR", "pROC", "irr", "psych", "BlandAltmanLeh", "ppcor", "cocor",
-          "outliers", "EnvStats");
+          "outliers", "EnvStats",
+          "drc", "segmented", "smatr", "mcr", "quantreg", "deming");
           install.packages(pkgs); for (p in pkgs) library(p, character.only = TRUE)'
       - name: Tell rpy2 where R is
         shell: bash

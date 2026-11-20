@@ -119,10 +119,13 @@ def run(code: str, data):
 
 
 def run_r(code: str, data, packages) -> dict:
-    from simplydata._r import r_call
+    from simplydata._r import need_r, r_call
 
     columns = {} if data is None else {c: data[c].to_numpy() for c in data.columns}
-    found = r_call(textwrap.dedent(code).strip("\n"), packages=tuple(packages), what="a validation case", **columns)
+    # the packages are checked, not attached: the cases call them by name (drc::drm), and an attached package
+    # can hide base R functions from later calls (drc's gaussian(), SparseM's matrix functions, mcr's coef())
+    need_r(tuple(packages), "a validation case")
+    found = r_call(textwrap.dedent(code).strip("\n"), what="a validation case", **columns)
     return {k: _number(v) for k, v in found.items()}
 
 
@@ -150,9 +153,10 @@ def _key(case) -> str:
 def check_case(case) -> list[dict]:
     """One row per number compared: simplydata against each reference."""
     rows = []
-    needs_r_data = study.DATASETS[case.dataset].file == "" and case.dataset == "aSAH (pROC)"
-    if needs_r_data and not r_ready(("pROC",)):
-        return [_skipped(case, "R with pROC (the data come from pROC)")]
+    r_data = {"aSAH (pROC)": ("pROC",), **getattr(study, "R_DATA", {})}  # datasets read from an R package
+    if case.dataset in r_data and not r_ready(r_data[case.dataset]):
+        packages = ", ".join(r_data[case.dataset])
+        return [_skipped(case, f"R with {packages} (the data come from {packages})")]
     if case.ours_r is not None and not r_ready(case.ours_r):
         return [_skipped(case, "R" + (" with " + ", ".join(case.ours_r) if case.ours_r else "")
                          + " (simplydata runs R for this option)")]
@@ -168,10 +172,13 @@ def check_case(case) -> list[dict]:
             rows.append(_missing(case, name, source))
             continue
         got = ours[name]
-        if tolerance == "lre":
+        if isinstance(tolerance, str) and tolerance.startswith("lre"):
+            # "lre": MIN_LRE digits; "lre:6": 6 digits (NIST StRD nonlinear problems, judged at 6 digits as in
+            # McCullough (1999), "Assessing the reliability of statistical software", The American Statistician 53)
+            least = float(tolerance.split(":")[1]) if ":" in tolerance else MIN_LRE
             digits = lre(got, value)
-            rows.append(_row(case, name, source, got, value, f"at least {MIN_LRE:.0f} digits (LRE {digits:.1f})",
-                             digits >= MIN_LRE))
+            rows.append(_row(case, name, source, got, value, f"at least {least:.0f} digits (LRE {digits:.1f})",
+                             digits >= least))
         else:
             why = "" if source == "exact" else " (printed rounding)"
             rows.append(_row(case, name, source, got, value, f"within {tolerance:g}{why}",
@@ -243,7 +250,7 @@ def underneath_rows() -> list[dict]:
             warnings.simplefilter("ignore")
             outcomes = check_entry(entry)
         for o in outcomes:
-            rows.append(dict(word=o.word, library=o.library, engine=o.engine, compare=o.compare,
+            rows.append(dict(word=entry.key, library=o.library, engine=o.engine, compare=o.compare,
                              tolerance=o.tolerance, passed=o.passed, skipped=o.skipped, differences=o.differences))
     return rows
 

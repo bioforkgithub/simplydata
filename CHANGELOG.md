@@ -41,6 +41,45 @@ underneath" in the manual and a case on real, published data in the reliability 
   zero-inflated estimates (Zeileis, Kleiber & Jackman 2008) it reproduces). The registry of "The same
   underneath" now has entries for options too ("table.explain weights="), each with its own box.
 
+### Lines and curves (S3a-2)
+
+- **New word `table.fit_dose_response(x=, y=)`** and its chart twin **`chart.fit_dose_response()`**: a
+  4 parameter log-logistic dose-response curve (R drc) with the ED50 (EC50) and its 95 % interval
+  (delta method). `doses_for_effect=[10, 50, 90]` gives more EDs; `of_kind=` "3 parameter
+  log-logistic", "5 parameter log-logistic" or "weibull" ("LL.4", "LL.3", "LL.5" accepted);
+  `outcome="yes or no", out_of=` gives the LD50 from deaths out of exposed (a 2 parameter
+  log-logistic curve from 0 to 100 %); `for_each_group_in=` compares the ED50s of groups (relative
+  potency, R drc::EDcomp()). Needs R with drc.
+- **New word `table.find_best_power_of(column)`**: the Box-Cox power (SciPy, with its 95 % interval) or
+  `method="yeo-johnson"`; with `using=` the power for a model's leftovers (R car::powerTransform()),
+  with likelihood-ratio tests of log and no change. Box-Cox with zeros points to Yeo-Johnson.
+- `fit_line(method=)`: "theil-sen" and "siegel" (SciPy), "standardised major axis" and "major axis"
+  (R smatr), "deming" with `y_error_over_x_error=` and "passing-bablok" (R mcr). Each printout says
+  which question the line answers. `y_error_over_x_error=` is y over x; R mcr's `error.ratio` is x
+  over y, so simplydata passes 1 / value (tested against R deming::deming as well).
+- `fit_line(with_bends=1)`: a line that bends where the data say (R segmented), with each bend's
+  interval and Davies' test of "no bend at all". `fit_line(changes_at=37)` and
+  `explain(..., changes_at={"month": 37})`: a jump and a change of slope at a point you know
+  (interrupted time series), with the lag-1 autocorrelation of the leftovers.
+- `fit_curve(of_kind=)`: "logistic growth", "4 parameter logistic", "michaelis-menten", "rise to a
+  limit", "rise or fall to a limit", "gompertz growth", "weibull growth" and "two exponentials" (R's
+  self-starting models; start values from R's getInitial() when R is there, else a search of the
+  whole range). "logistic" and "gompertz" are accepted for the growth curves.
+- `explain(..., for_percentile=90)`: percentile (quantile) lines by R quantreg, with standard errors
+  by "nid" for every number of rows (R's default below 1001 rows, "rank", gives intervals only).
+- `method="loess"` in `add_smoothed_column` (with `interval=95` for its confidence band),
+  `draw_smooth_line` (with `with_confidence_band=True`) and `nums.smooth`: R stats::loess() itself.
+  **Changed:** "loess" used to be another spelling of "lowess"; it is now its own method (local curves
+  of degree 2, no robustness steps), and the printout names which one ran.
+- Lesson 19 has a part on growth curves and an optional "if you have R" part on dose-response
+  curves, with two tasks. New practice tables `toxicity` and `culture` (made up).
+- The reliability study adds NIST Rat42, Misra1a and BoxBOD (certified nonlinear fits), Bliss's
+  beetles (1935), Box and Cox's poisons (1964), Bates and Watts's Puromycin, ryegrass (Ritz et al.
+  2015), the stagnant band, leaflife, creatinine, the British seat-belt law and Engel's food data.
+  Each new option has its own "same underneath" box (keyed by word and option, as for explain()).
+- New R packages for the R extra: drc, segmented, smatr, mcr and quantreg (deming for the study).
+
+
 ## 0.2.0 (2026-11-20)
 
 More statistics (tests and models), signals and time series, the 30-day course, the talking syntax, the same-underneath boxes and the public reliability study. Every printed statistical result is checked against R.
