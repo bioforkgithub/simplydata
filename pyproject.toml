@@ -53,6 +53,8 @@ r = ["rpy2>=3.5"]  # the bridge to R for the methods only R gives (R itself: htt
 # besides emmeans, lme4 and performance, listed already; lmtest and AICcmodavg are used by the reliability study only.
 # S3b-3 (survival and person-time) calls cmprsk (Gray's test, Fine-Gray), adjustedCurves with riskRegression (adjusted
 # curves), KMsurv (life table) and survRM2 (restricted mean survival time; CRAN only, like presize), besides survival.
+# S3b-1 (combining studies) calls the R package metafor (with its data package metadat); meta is used by the
+# reliability study only. Both are on CRAN and conda-forge.
 test = ["pytest>=7", "polars>=0.20", "pyarrow>=14", "statsmodels>=0.14"]
 
 [project.urls]

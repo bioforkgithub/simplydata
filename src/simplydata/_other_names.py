@@ -291,6 +291,15 @@ _TABLE = [
     ('table.find_model_averages_of("marks", for_each_group_in="class", using=["class"], comparing="each with the first")',
      "contrast trt.vs.ctrl joint_tests simple_effects dunnett helmert"),
     ('table.compare_averages_of(["marks", "hours"], for_each_group_in="class")', "manova MANOVA summary.manova"),
+    # S3b-1: combining studies
+    ('table.combine_studies(names="trial", events=["tb_vaccinated", "tb_unvaccinated"], out_of=["vaccinated", '
+     '"unvaccinated"])',
+     "meta_analysis metaanalysis meta_analyse meta_analyze rma rma_uni metagen metabin metacont metacor metainc "
+     "escalc pool_studies pooled_effect combine_effects heterogeneity random_effects_meta tau2 i2 i_squared "
+     "publication_bias small_study small_study_effects egger regtest peters trimfill "
+     "trim_and_fill"),
+    ('table.combine_studies(..., interval_by="Hartung-Knapp")', "hksj knha hartung_knapp knapp_hartung"),
+    ('table.combine_studies(..., method="Mantel-Haenszel")', "rma_mh mantel_haenszel_meta peto rma_peto"),
 ]
 
 # chart.<name>
@@ -359,6 +368,8 @@ _CHART = [
     # S3b-3
     ('chart.draw_risk_curves(time="time", event="event", value="first_esbl", competing_with="discharged")',
      "ggcuminc cumulative_incidence_plot plot_cuminc"),
+    # S3b-1
+    ('chart.draw_funnel_plot(x="estimate", y="standard error")', "funnel funnel_plot draw_funnel"),
 ]
 
 # nums.<name> (numbers). Older ones (mean, sum, min ...) are in numbers/_base.py HINTS.
