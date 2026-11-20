@@ -59,7 +59,13 @@ performance::r2_mcfadden()) for yes or no, counts and negative binomial, and Nak
 
 Notes, never silent switches: residuals not bell-shaped (least squares), strongly linked
 columns (variance inflation factor above 5), too few rows (or too few yes/no events) per
-effect, complete separation (logistic), overdispersion (Poisson).
+effect, complete separation (logistic), overdispersion (Poisson, and yes/no out of tries), an odds
+ratio when yes is common (more than 10 % of the rows).
+
+The options added in S3a (weights=, matched_by=, show=, method=, giving_outliers_less_weight=,
+with_knots=, interval_by=, p_value_by="likelihood ratio", crossed_with=, zero_part_using= and the
+outcomes "yes or no (overdispersed)", "counts with many zeros that vary a lot" and "counts in two
+steps") are described in table/models_extra.py and table/models_more.py.
 """
 
 from __future__ import annotations
@@ -74,19 +80,30 @@ import narwhals as nw
 import numpy as np
 
 from .._errors import SimplydataError, column_error, friendly
+from .models_more import MORE_OUTCOMES, ZERO_OUTCOMES
 from .stat_tests import _label, _list_words, _num, _shape_notes, _skipped_note, _whole
 from .summaries import _p_clause
 
 OUTCOMES = ("numbers", "yes or no", "counts", "counts (overdispersed)", "counts that vary a lot", "positive numbers")
 COUNT_OUTCOMES = ("counts", "counts (overdispersed)", "counts that vary a lot")
-OUTCOMES = OUTCOMES + ("ordered groups", "groups", "shares", "counts with many zeros")
+OUTCOMES = OUTCOMES + ("yes or no (overdispersed)", "ordered groups", "groups", "shares", "counts with many zeros",
+                       "counts with many zeros that vary a lot", "counts in two steps",
+                       "counts in two steps that vary a lot")
+# marks a column of a natural spline (with_knots=) in the parts of a model column
+CURVE = "\x00curve"
+# outcomes only explain() fits (not add_predicted_column)
+EXPLAIN_ONLY = ("yes or no (overdispersed)",)
+OUTCOME_SPELLINGS = {"hurdle": "counts in two steps", "hurdle that vary a lot": "counts in two steps that vary a lot",
+                     "two steps": "counts in two steps", "quasibinomial": "yes or no (overdispersed)",
+                     "quasi-binomial": "yes or no (overdispersed)"}
 # link=: the first link of each outcome is the default (R's default for that family)
 LINKS = {"yes or no": ("logit", "probit", "cloglog"), "counts": ("log", "identity", "sqrt"),
          "positive numbers": ("log", "inverse", "identity")}
 EMPTY_CELLS = ("leave out", "multiple imputation")
 # options for grouped_by=: p-values of a mixed model, the kind of effects, the correlation within groups (GEE)
 P_VALUE_BY = {"wald": "wald", "wald z": "wald", "z": "wald", "satterthwaite": "satterthwaite",
-              "few groups": "satterthwaite"}
+              "few groups": "satterthwaite", "likelihood ratio": "likelihood ratio",
+              "likelihood-ratio": "likelihood ratio", "lr": "likelihood ratio", "lrt": "likelihood ratio"}
 EFFECTS = ("for the average group", "for the whole population")
 EFFECT_SPELLINGS = {"average group": "for the average group", "mixed": "for the average group",
                     "whole population": "for the whole population", "population": "for the whole population",
@@ -100,14 +117,19 @@ BURN_IN, BETWEEN = 10, 3  # imputation cycles before the first filled-in table, 
 VIF_LIMIT = 5.0
 ROWS_PER_EFFECT = 10
 OVERDISPERSION = 1.5
+COMMON_YES_SHARE = 0.10  # above this share of yes, the odds ratio note (S3a-L6)
 Z95 = 1.959963984540054
 YES_NO_PAIRS = (("yes", "no"), ("true", "false"), ("1", "0"), ("1.0", "0.0"), ("y", "n"))
 EXAMPLE = 'with sdata.get_example("school"): table.explain("marks", using=["hours", "breakfast"])'
 INTERCEPT = "(intercept)"
 KINDS = {"numbers": "lm", "yes or no": "binomial", "counts": "poisson", "counts (overdispersed)": "quasipoisson",
-         "counts that vary a lot": "negbin", "positive numbers": "gamma"}
+         "counts that vary a lot": "negbin", "positive numbers": "gamma", "yes or no (overdispersed)": "quasibinomial"}
 RATIO_WORDS = {"yes or no": "odds ratio", "counts": "rate ratio", "counts (overdispersed)": "rate ratio",
-               "counts that vary a lot": "rate ratio", "positive numbers": "ratio of averages"}
+               "counts that vary a lot": "rate ratio", "positive numbers": "ratio of averages",
+               "yes or no (overdispersed)": "odds ratio"}
+# the kinds of model that a GLM refit (drop1, the bootstrap) fits with statsmodels GLM, and their family
+GLM_FAMILY = {"binomial": "binomial", "poisson": "poisson", "quasipoisson": "poisson", "negbin": "negbin",
+              "gamma": "gamma", "quasibinomial": "binomial", "logbinomial": "binomial", "riskratio": "poisson"}
 
 
 def _exp(x) -> float:
@@ -181,17 +203,22 @@ def _read_using(step: str, using, columns) -> tuple[list[tuple], list[str]]:
     return unique, pieces
 
 
-def _design(data: dict, kinds: dict, levels: dict, terms: list[tuple]):
+def _design(data: dict, kinds: dict, levels: dict, terms: list[tuple], bases: dict | None = None):
     """The model matrix exactly as R model.matrix() with treatment contrasts.
 
     Gives back X, the column labels, which term owns each column (-1 for the intercept)
-    and, per column, its parts (label, (group column, group) or None) for the sentences."""
+    and, per column, its parts (label, (group column, group) or None) for the sentences.
+    bases= {column: spline basis} puts a column's natural-spline columns in its place (with_knots=)."""
     n = len(next(iter(data.values()))) if data else 0
     term_set = {frozenset(t) for t in terms}
     columns, labels, owner, parts_of = [np.ones(n)], [INTERCEPT], [-1], [[]]
     for index, term in enumerate(terms):
         pieces = []
         for name in term:
+            if bases and name in bases:  # with_knots=: the curve's columns, one term together
+                pieces.append([(f"{name} (curve part {i + 1})", bases[name][:, i], (CURVE, name))
+                               for i in range(bases[name].shape[1])])
+                continue
             if kinds[name] == "number":
                 pieces.append([(name, data[name], None)])
                 continue
@@ -213,20 +240,22 @@ def _design(data: dict, kinds: dict, levels: dict, terms: list[tuple]):
 
 
 # ---------------------------------------------------------------------------- the fits
-def _least_squares(X, y):
-    """Least squares (R lm()) with statsmodels OLS: beta, unscaled covariance, fitted values, RSS, log-likelihood."""
-    from statsmodels.regression.linear_model import OLS
+def _least_squares(X, y, weights=None):
+    """Least squares (R lm()) with statsmodels OLS, or WLS with precision weights (R lm(weights =)): beta,
+    unscaled covariance, fitted values, RSS (weighted), log-likelihood (as R logLik())."""
+    from statsmodels.regression.linear_model import OLS, WLS
 
-    result = OLS(y, X).fit(method="qr")
+    result = OLS(y, X).fit(method="qr") if weights is None else WLS(y, X, weights=weights).fit(method="qr")
     return (np.asarray(result.params), np.asarray(result.normalized_cov_params), np.asarray(result.fittedvalues),
             float(result.ssr), float(result.llf))
 
 
-def _glm(X, y, kind, scale=None, exposure=None, trials=None, alpha=None, link=None):
+def _glm(X, y, kind, scale=None, exposure=None, trials=None, alpha=None, link=None, var_weights=None):
     """A GLM with statsmodels GLM, fitted by IRLS as R glm.fit(): binomial (logit), Poisson (log),
     negative binomial with a known alpha = 1 / theta (log), or Gamma (log). exposure= is the
     person-time (R offset = log(time)); trials= the number of tries for successes out of trials
-    (R cbind(successes, failures))."""
+    (R cbind(successes, failures)); var_weights= the precision weights (R glm(weights =)), or the tries when y
+    holds shares (quasi-binomial)."""
     import statsmodels.api as sm
 
     links = sm.families.links
@@ -248,8 +277,8 @@ def _glm(X, y, kind, scale=None, exposure=None, trials=None, alpha=None, link=No
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")  # perfect separation and step warnings: the notes say it in words
         with np.errstate(all="ignore"):
-            return sm.GLM(endog, X, family=family, exposure=exposure).fit(method="IRLS", tol=1e-10, maxiter=50,
-                                                                         scale=scale)
+            return sm.GLM(endog, X, family=family, exposure=exposure, var_weights=var_weights).fit(
+                method="IRLS", tol=1e-10, maxiter=50, scale=scale)
 
 
 def _negative_binomial(X, y, exposure=None):
@@ -268,7 +297,7 @@ def _negative_binomial(X, y, exposure=None):
     return alpha, full
 
 
-def _glmer(X, y, groups, family, slopes=(), exposure=None, trials=None, link=None, inner=None):
+def _glmer(X, y, groups, family, slopes=(), exposure=None, trials=None, link=None, inner=None, crossed=None):
     """A generalised linear mixed model with a random intercept per group: R lme4::glmer() itself
     (Laplace approximation, R's defaults), on the same model matrix as explain() builds. exposure=
     adds offset(log(time)), trials= fits cbind(yes, tries - yes), link= another link than R's default."""
@@ -296,11 +325,17 @@ def _glmer(X, y, groups, family, slopes=(), exposure=None, trials=None, link=Non
         inner_code = ("inner = as.numeric(lme4::VarCorr(m)[['h:g']][1]), "
                       "inner_ranef = unname(lme4::ranef(m)[['h:g']][, 1]), "
                       "inner_ranef_groups = rownames(lme4::ranef(m)[['h:g']]), ")
+    crossed_code = "crossed = NULL, "
+    if crossed is not None:  # crossed_with=: (1 | g) + (1 | c); VarCorr() rows put in the order g, c
+        random += " + (1 | c)"
+        extra["c"] = np.asarray(crossed, dtype=object)
+        crossed_code = "crossed = as.numeric(lme4::VarCorr(m)$c[1]), "
     out = r_call(
         f"m <- lme4::glmer({left} ~ 0 + X{offset} + {random}, family = {chosen}); "
-        "vc <- as.data.frame(lme4::VarCorr(m)); "
+        "vc <- as.data.frame(lme4::VarCorr(m)); vc <- rbind(vc[vc$grp == 'g', ], vc[vc$grp != 'g', ]); "
         "list(beta = unname(lme4::fixef(m)), cov = unname(as.matrix(stats::vcov(m))), "
-        f"between = as.numeric(lme4::VarCorr(m)$g[1]), {inner_code}is_cor = !is.na(vc$var2), vcov = vc$vcov, "
+        f"between = as.numeric(lme4::VarCorr(m)$g[1]), {inner_code}{crossed_code}is_cor = !is.na(vc$var2), "
+        "vcov = vc$vcov, "
         "sdcor = vc$sdcor, loglik = as.numeric(stats::logLik(m)), "
         "aic = stats::AIC(m), bic = stats::BIC(m), fitted = unname(stats::fitted(m)), singular = lme4::isSingular(m), "
         f"nakagawa = {nakagawa}, "
@@ -320,6 +355,7 @@ def _glmer(X, y, groups, family, slopes=(), exposure=None, trials=None, link=Non
             "singular": bool(out["singular"][0]), "trouble": bool(out["trouble"][0]),
             "converged": not bool(out["trouble"][0]), "parts": _variance_parts(out, len(slopes)),
             "inner": float(np.atleast_1d(out["inner"])[0]) if out.get("inner") is not None else None,
+            "crossed": float(np.atleast_1d(out["crossed"])[0]) if out.get("crossed") is not None else None,
             "pearson": np.asarray(out["pearson"], dtype=float), "ranef": np.atleast_1d(out["ranef"]).astype(float),
             "ranef_groups": [str(g) for g in np.atleast_1d(out["ranef_groups"])],
             "inner_ranef": np.atleast_1d(out["inner_ranef"]).astype(float) if inner is not None else None,
@@ -397,8 +433,10 @@ def _gee(X, y, groups, outcome, corr, exposure=None, link=None):
 # ---------------------------------------------------------------------------- the words
 class ModelWords:
     # ------------------------------------------------------------------ gathering the data
-    def _model_parts(self, step, column, using, outcome, grouped_by, empty_cells, time=None, out_of=None):
-        """Check every input and gather the columns (empty cells kept, as masks)."""
+    def _model_parts(self, step, column, using, outcome, grouped_by, empty_cells, time=None, out_of=None, extra=()):
+        """Check every input and gather the columns (empty cells kept, as masks). extra= [(option, column)] are
+        more columns to read: weights=, matched_by=, crossed_with= (one column each, not explained or in using=)
+        and the columns of zero_part_using= (which may also be in using=)."""
         self._need_name(step, "the column to explain", column, EXAMPLE)
         self._need_columns(column)
         self._check_choice(step, "outcome", outcome, OUTCOMES)
@@ -434,7 +472,16 @@ class ModelWords:
         if time is not None and outcome not in COUNT_OUTCOMES:
             raise SimplydataError(f'time= (the time each row was followed) is for counts: outcome="counts", '
                                   f'"counts (overdispersed)" or "counts that vary a lot", not "{outcome}".')
-        if out_of is not None and outcome != "yes or no":
+        for option, value in extra:
+            self._need_columns(value)
+            if option == "zero_part_using=":
+                if value == column:
+                    raise SimplydataError(f'"{value}" cannot both be explained and be in zero_part_using=.')
+                continue
+            if value == column or value in variables or value in (grouped_by, time, out_of):
+                raise SimplydataError(f'"{value}" cannot be {option} and also be explained, in using=, grouped_by=, '
+                                      "time= or out_of=.")
+        if out_of is not None and not outcome.startswith("yes or no"):
             raise SimplydataError('out_of= (the number of tries in each row) goes with outcome="yes or no": the '
                                   'column to explain then holds the number of yes out of that many tries.')
         if (time is not None or out_of is not None) and empty_cells != "leave out":
@@ -443,6 +490,7 @@ class ModelWords:
         frame = self._frame
         names = [column] + variables + ([grouped_by] if grouped_by is not None else [])
         names += [v for v in (time, out_of) if v is not None]
+        names += [v for _, v in extra if v not in names]
         raw, missing, kinds = {}, {}, {}
         for name in names:
             dtype = frame.schema[name]
@@ -458,6 +506,9 @@ class ModelWords:
                 raw[name], missing[name], kinds[name] = np.array(values, dtype=object), gone, "group"
         if grouped_by is not None:
             kinds[grouped_by] = "group"
+        for option, value in extra:
+            if option in ("matched_by=", "crossed_with="):
+                kinds[value] = "group"
         return terms, pieces, variables, raw, missing, kinds
 
     @staticmethod
@@ -513,8 +564,17 @@ class ModelWords:
 
     # ------------------------------------------------------------------ fitting one model
     @staticmethod
-    def _fit_one(kind, X, y, groups=None, family="binomial", exposure=None, trials=None, link=None, grouping=None):
+    def _fit_one(kind, X, y, groups=None, family="binomial", exposure=None, trials=None, link=None, grouping=None,
+                 weights=None, method=None):
         grouping = grouping or {}
+        if kind == "rlm":
+            from .models_extra import fit_huber
+
+            return fit_huber(X, y)
+        if kind in ("riskratio", "logbinomial"):
+            from .models_extra import fit_risk_ratios
+
+            return fit_risk_ratios(X, y, "modified poisson" if kind == "riskratio" else "log-binomial")
         if kind == "gee":
             from .models_r import geeglm_r
 
@@ -532,7 +592,8 @@ class ModelWords:
             return _gee(X, y, groups, grouping["outcome"], grouping["corr"], exposure=exposure, link=link)
         if kind == "mixed" and grouping.get("inner"):
             return _nested_mixed(X, y, groups, grouping["inner_groups"])
-        if kind == "mixed" and (grouping.get("slope_cols") or grouping.get("satterthwaite")):
+        if kind == "mixed" and (grouping.get("slope_cols") or grouping.get("satterthwaite")
+                                or grouping.get("crossed_groups") is not None):
             from .models_r import lmer_r
 
             out = lmer_r(grouping["model"], grouping.get("slope_cols", ()), grouping.get("satterthwaite"),
@@ -547,14 +608,21 @@ class ModelWords:
                    "singular": bool(np.atleast_1d(out["singular"])[0]), "parts": parts, "by_r": True,
                    "loglik": float(np.atleast_1d(out["loglik"])[0]), "values": int(np.atleast_1d(out["values"])[0]),
                    "nakagawa": np.atleast_1d(out["nakagawa"]).astype(float) if "nakagawa" in out else None}
+            if out.get("crossed") is not None:
+                fit["crossed"] = float(np.atleast_1d(out["crossed"])[0])
             if grouping.get("satterthwaite"):
                 fit["satt"] = {key: np.atleast_1d(out[key]).astype(float) for key in
                                ("df", "low", "high", "p", "f", "numdf", "dendf", "fp")}
             return fit
         if kind == "lm":
-            beta, unscaled, fitted, rss, llf = _least_squares(X, y)
+            beta, unscaled, fitted, rss, llf = _least_squares(X, y, weights)
             df = len(y) - X.shape[1]
-            return {"beta": beta, "cov": unscaled * (rss / df), "fitted": fitted, "rss": rss, "df": df, "loglik": llf}
+            out = {"beta": beta, "cov": unscaled * (rss / df), "fitted": fitted, "rss": rss, "df": df, "loglik": llf}
+            if weights is not None:  # R summary.lm() with weights: the weighted R squared (statsmodels WLS)
+                from statsmodels.regression.linear_model import WLS
+
+                out.update(weights=weights, r2=float(WLS(y, X, weights=weights).fit(method="qr").rsquared))
+            return out
         if kind == "mixed":
             from statsmodels.regression.mixed_linear_model import MixedLM
             from statsmodels.tools.sm_exceptions import ConvergenceWarning
@@ -578,7 +646,7 @@ class ModelWords:
                     "ranef": np.array([float(np.asarray(result.random_effects[g])[0]) for g in levels])}
         if kind == "glmm":
             return _glmer(X, y, groups, family, grouping.get("slope_cols", ()), exposure=exposure, trials=trials,
-                          link=link, inner=grouping.get("inner_groups"))
+                          link=link, inner=grouping.get("inner_groups"), crossed=grouping.get("crossed_groups"))
         alpha, full = (None, None)
         if kind == "negbin":
             alpha, full = _negative_binomial(X, y, exposure)
@@ -587,27 +655,37 @@ class ModelWords:
                     "These counts do not vary more than a Poisson model allows, so the negative binomial theta grows "
                     'without limit (R MASS::glm.nb() stops with "iteration limit reached"). Use outcome="counts" '
                     "(Poisson regression) instead.")
-        family = {"binomial": "binomial", "negbin": "negbin", "gamma": "gamma"}.get(kind, "poisson")
-        result = _glm(X, y, family, scale="X2" if kind in ("quasipoisson", "gamma") else None, exposure=exposure,
-                      trials=trials, alpha=alpha, link=link)
+        family = GLM_FAMILY.get(kind, "poisson")
+        endog, var_weights, glm_trials = y, weights, trials
+        if kind == "quasibinomial":  # the shares, with the tries as weights: R's Pearson dispersion (see models_extra)
+            endog, var_weights, glm_trials = y / trials, trials, None
+        result = _glm(X, endog, family, scale="X2" if kind in ("quasipoisson", "gamma", "quasibinomial") else None,
+                      exposure=exposure, trials=glm_trials, alpha=alpha, link=link, var_weights=var_weights)
         df = len(y) - X.shape[1]
         out = {"beta": np.asarray(result.params), "cov": np.asarray(result.cov_params()),
                "fitted": np.asarray(result.fittedvalues), "deviance": float(result.deviance),
                "null_deviance": float(result.null_deviance), "df": df, "converged": bool(result.converged),
-               "loglik": float(result.llf), "aic": float(result.aic), "llnull": float(result.llnull)}
-        if kind in ("quasipoisson", "gamma"):
+               "loglik": float(result.llf), "aic": float(result.aic), "llnull": float(result.llnull),
+               "result": result}
+        if kind == "quasibinomial":
+            out.update(endog=endog, var_weights=var_weights)
+        elif weights is not None:
+            out.update(var_weights=weights, weights=weights)
+        if kind in ("quasipoisson", "gamma", "quasibinomial"):
             out["dispersion"] = float(result.scale)
         if kind == "negbin":  # as R glm.nb: the log-likelihood and AIC count theta as one more value
             # the model with no columns refitted with its own theta, as R glm.nb(y ~ 1) for McFadden's R squared
             null = _negative_binomial(np.ones((len(y), 1)), y, exposure)[1]
             out.update(alpha=alpha, theta=1 / alpha, loglik=float(full.llf), llnull=float(null.llf),
                        aic=float(-2 * full.llf + 2 * (X.shape[1] + 1)))
-        out.update(exposure=exposure, trials=trials, link=link)
+        out.update(exposure=exposure, trials=trials if kind != "quasibinomial" else None, link=link)
         return out
 
     def _fit_model(self, step, column, outcome, grouped_by, terms, variables, raw, kinds, keep, time=None,
-                   out_of=None, link=None, grouping=None):
-        """Fit the model on the rows in keep; a dict with everything the printing needs."""
+                   out_of=None, link=None, grouping=None, weights=None, splines=None, kind=None):
+        """Fit the model on the rows in keep; a dict with everything the printing needs. weights= the precision
+        weights of the rows kept, splines= {column: inner knots} for with_knots=, kind= another kind of model than
+        the outcome's own (robust regression, risk ratios)."""
         n = int(keep.sum())
         if n == 0:
             raise SimplydataError(f"{step}() found no rows with a value in every column it needs.")
@@ -633,14 +711,20 @@ class ModelWords:
                     raise SimplydataError(f'The group column "{name}" has only one group{which} in the rows used, so '
                                           "it cannot explain anything. Leave it out of using=.")
                 levels[name] = found
-        X, labels, owner, parts_of = _design(data, kinds, levels, terms)
+        bases = None
+        if splines:
+            from .models_extra import spline_basis
+
+            bases = {name: spline_basis(data[name], knots, name) for name, knots in splines.items()}
+        X, labels, owner, parts_of = _design(data, kinds, levels, terms, bases)
         p = X.shape[1]
         if n <= p:
             raise SimplydataError(f"{step}() needs more rows ({n}) than values to estimate ({p}). "
                                   "Use fewer columns in using=, or groups with more rows.")
         if np.linalg.matrix_rank(X) < p:
             raise SimplydataError(self._rank_problem(X, labels))
-        kind, groups = KINDS[outcome], None
+        given_kind = kind
+        kind, groups = (given_kind or KINDS[outcome]), None
         if grouped_by is not None:
             kind = "mixed" if outcome == "numbers" else "glmm"
             groups = np.array([_label(g) for g in raw[grouped_by][keep]], dtype=object)
@@ -649,7 +733,8 @@ class ModelWords:
             self._need_statsmodels()
         model = dict(kind=kind, X=X, y=y, labels=labels, owner=owner, parts_of=parts_of, terms=terms, levels=levels,
                      kinds=kinds, n=n, yes_words=yes_words, groups=groups, keep=keep, outcome=outcome,
-                     variables=variables, column=column, time=time, out_of=out_of, link=link, data=data)
+                     variables=variables, column=column, time=time, out_of=out_of, link=link, data=data,
+                     weights=weights, splines=splines)
         grouping = dict(grouping or {})
         if grouped_by is not None and grouping:
             if grouping.get("effects") == "for the whole population":
@@ -663,12 +748,17 @@ class ModelWords:
             grouping["slope_cols"] = [labels.index(name) for name in slopes]
             if grouping.get("inner"):
                 grouping["inner_groups"] = np.array([_label(g) for g in raw[grouping["inner"]][keep]], dtype=object)
+            if grouping.get("crossed"):
+                grouping["crossed_groups"] = np.array([_label(g) for g in raw[grouping["crossed"]][keep]],
+                                                      dtype=object)
             grouping.update(model=model, outcome=outcome, tested=self._tested_terms(terms, owner))
             model["grouping"] = {key: value for key, value in grouping.items() if key != "model"}
         if kind in ("mixed", "glmm"):
             self._check_group_sizes(grouped_by, groups, grouping.get("inner"), grouping.get("inner_groups"), n)
+            if grouping.get("crossed_groups") is not None:
+                self._check_group_sizes(grouping["crossed"], grouping["crossed_groups"], None, None, n)
         model["fit"] = self._fit_one(kind, X, y, groups, family="binomial" if outcome == "yes or no" else "poisson",
-                                     exposure=exposure, trials=trials, link=link, grouping=grouping)
+                                     exposure=exposure, trials=trials, link=link, grouping=grouping, weights=weights)
         return model
 
     @staticmethod
@@ -726,7 +816,7 @@ class ModelWords:
             satt = fit["satt"]
             return dict(beta=beta, se=se, stat=stat, p=satt["p"], low=satt["low"], high=satt["high"], name="t",
                         df=satt["df"])
-        if kind == "lm" or (kind in ("quasipoisson", "gamma") and not fit.get("robust")):
+        if kind == "lm" or (kind in ("quasipoisson", "gamma", "quasibinomial") and not fit.get("robust")):
             df = float(fit["df"])
             p = 2 * stats.t.sf(np.abs(stat), df)
             q = float(stats.t.ppf(0.975, df)) if kind == "lm" else Z95  # quasi-Poisson: R confint.default()
@@ -736,6 +826,10 @@ class ModelWords:
             p = 2 * stats.norm.sf(np.abs(stat))
             low, high = beta - Z95 * se, beta + Z95 * se
             name, dfs = "z", np.full(len(beta), math.nan)
+        if fit.get("lr_p") is not None:  # p_value_by="likelihood ratio": R drop1(m, test = "LRT") where it gives one
+            p = np.where(np.isfinite(fit["lr_p"]), fit["lr_p"], p)
+        if fit.get("intervals") is not None:  # interval_by="profile" (R confint()) or "bootstrap" (SciPy)
+            low, high = (np.asarray(v, dtype=float) for v in fit["intervals"])
         return dict(beta=beta, se=se, stat=stat, p=p, low=low, high=high, name=name, df=dfs)
 
     @staticmethod
@@ -789,7 +883,7 @@ class ModelWords:
                     out.append(dict(term=label, name="chi-square", stat=chi, df=float(k), p=float(stats.chi2.sf(chi, k)),
                                     test="Wald chi-square test (robust errors)"))
                 continue
-            if kind in ("mixed", "glmm", "gee"):
+            if kind in ("mixed", "glmm", "gee", "rlm"):
                 b = fit["beta"][columns]
                 chi = float(b @ np.linalg.solve(fit["cov"][np.ix_(columns, columns)], b))
                 out.append(dict(term=label, name="chi-square", stat=chi, df=float(k), p=float(stats.chi2.sf(chi, k)),
@@ -797,17 +891,17 @@ class ModelWords:
                 continue
             reduced = np.delete(X, columns, axis=1)
             if kind == "lm":
-                rss0 = _least_squares(reduced, y)[3]
+                rss0 = _least_squares(reduced, y, fit.get("weights"))[3]
                 f = ((rss0 - fit["rss"]) / k) / (fit["rss"] / fit["df"])
                 out.append(dict(term=label, name="F", stat=f, df=float(k), df2=float(fit["df"]),
                                 p=float(stats.f.sf(f, k, fit["df"])), test="F test"))
                 continue
-            family = {"binomial": "binomial", "negbin": "negbin", "gamma": "gamma"}.get(kind, "poisson")
             # as R drop1(): the smaller model refitted with the same family (glm.nb: theta held)
-            smaller = _glm(reduced, y, family, exposure=fit.get("exposure"), trials=fit.get("trials"),
-                           alpha=fit.get("alpha"), link=fit.get("link"))
+            smaller = _glm(reduced, fit.get("endog", y), GLM_FAMILY.get(kind, "poisson"), exposure=fit.get("exposure"),
+                           trials=fit.get("trials"), alpha=fit.get("alpha"), link=fit.get("link"),
+                           var_weights=fit.get("var_weights"))
             change = float(smaller.deviance) - fit["deviance"]
-            if kind in ("quasipoisson", "gamma"):
+            if kind in ("quasipoisson", "gamma", "quasibinomial"):
                 f = (change / k) / (fit["deviance"] / fit["df"])  # as R drop1(test = "F")
                 out.append(dict(term=label, name="F", stat=f, df=float(k), df2=float(fit["df"]),
                                 p=float(stats.f.sf(f, k, fit["df"])), test="F test"))
@@ -825,9 +919,13 @@ class ModelWords:
         effect = self._effect_name(model["outcome"])
         if model.get("link"):
             effect = f"effect ({model['link']} scale)"
+        if model.get("thing") == "the chance of yes":
+            effect = "risk ratio"
         ratio = effect != "effect" and not model.get("link")
         rows = []
         for j, label in enumerate(model["labels"]):
+            if self._is_curve(model, j):  # with_knots=: the curve's own columns mean little; its whole test is below
+                continue
             b, low, high = (float(coef["beta"][j]), float(coef["low"][j]), float(coef["high"][j]))
             row = {"term": label}
             if ratio:
@@ -843,7 +941,8 @@ class ModelWords:
             rows.append(row)
         for test in tests:
             row = {key: math.nan for key in rows[0]}
-            row.update({"term": f"{test['term']} (whole column)", "statistic name": test["name"],
+            whole = "whole curve" if test["term"] in (model.get("splines") or {}) else "whole column"
+            row.update({"term": f"{test['term']} ({whole})", "statistic name": test["name"],
                         "statistic": test["stat"], "degrees of freedom": test["df"], "p-value": test["p"]})
             rows.append(row)
         for more in more_rows:
@@ -860,6 +959,9 @@ class ModelWords:
         column, outcome = model["column"], model["outcome"]
         parts = model["parts_of"][j]
         words = _p_clause(p)
+        spread = model.get("standardised") or {}
+        if spread:  # show="standardised effects": each number column per standard deviation
+            return ModelWords._standardised_sentence(model, j, beta, low, high, words)
         has_groups = any(model["kinds"][v] == "group" for v in model["variables"])
         at_base = " and every group column is at its baseline" if has_groups else ""
         if model["labels"][j] == INTERCEPT and model.get("link"):
@@ -868,8 +970,10 @@ class ModelWords:
         if model["labels"][j] == INTERCEPT:
             if outcome == "numbers":
                 return f'  intercept: {_num(beta)}, the expected "{column}" when every number column is 0{at_base}.'
-            what = ("odds of yes" if outcome == "yes or no" else f'expected "{column}"' if
+            what = ("odds of yes" if outcome.startswith("yes or no") else f'expected "{column}"' if
                     outcome == "positive numbers" else "expected count")
+            if model.get("thing"):  # risk ratios: the chance of yes
+                what = model["thing"].replace("the ", "", 1)
             if model.get("time"):
                 what += f' per 1 of "{model["time"]}"'
             return f"  intercept: {_num(_exp(beta))}, the {what} when every number column is 0{at_base}."
@@ -887,8 +991,10 @@ class ModelWords:
                         f"{_num(abs(beta))} {way} ({interval}); {words}.")
             return (f"  {model['labels'][j]} (interaction): {_num(beta)} ({interval}), how much the effect of one "
                     f"changes with the other; {words}.")
-        thing = ("the odds of yes" if outcome == "yes or no" else f'the expected "{column}"' if
+        thing = ("the odds of yes" if outcome.startswith("yes or no") else f'the expected "{column}"' if
                  outcome == "positive numbers" else "the expected count")
+        if model.get("thing"):
+            thing = model["thing"]
         if model.get("link"):  # another link than the default: effects add on that scale
             scale = {"probit": "the probit of yes", "cloglog": "the complementary log-log of yes",
                      "identity": f'the expected "{column}"', "sqrt": "the square root of the expected count",
@@ -913,18 +1019,62 @@ class ModelWords:
         return (f"  {model['labels'][j]} (interaction): {_num(ratio)} ({interval}), how many times the effect of one "
                 f"is multiplied by the other; {words}.")
 
+    @staticmethod
+    def _standardised_sentence(model, j, beta, low, high, words) -> str:
+        """A sentence of show="standardised effects": per standard deviation of each number column (and of the
+        outcome, for numbers)."""
+        column, outcome = model["column"], model["outcome"]
+        parts = model["parts_of"][j]
+        numbers = outcome == "numbers"
+        if model["labels"][j] == INTERCEPT:
+            if numbers:
+                return (f"  intercept: {_num(beta)} standard deviations, the expected \"{column}\" when every number "
+                        "column is at its average (and every group column at its baseline).")
+            return (f"  intercept: {_num(_exp(beta))}, when every number column is at its average (and every group "
+                    "column at its baseline).")
+        thing = ("the odds of yes" if outcome.startswith("yes or no") else f'the expected "{column}"' if
+                 outcome == "positive numbers" else "the expected count")
+        if len(parts) == 1 and parts[0][1] is None:
+            who = f'each 1 standard deviation more "{parts[0][0]}"'
+        elif len(parts) == 1:
+            var, level = parts[0][1]
+            who = f'{var} "{_label(level)}" against "{_label(model["levels"][var][0])}"'
+        else:
+            who = f"{model['labels'][j]} (interaction, per standard deviation of each number column)"
+        name = parts[0][0] if len(parts) == 1 and parts[0][1] is None else model["labels"][j]
+        if numbers:
+            more = "more" if beta >= 0 else "less"
+            if len(parts) == 1 and parts[0][1] is not None:
+                way = "higher" if beta >= 0 else "lower"
+                return (f'  {who}: "{column}" is {_num(abs(beta))} standard deviations {way} (95 % CI {_num(low)} to '
+                        f"{_num(high)}); {words}.")
+            return (f'  {name}: {who} goes with {_num(abs(beta))} standard deviations {more} "{column}" (95 % CI '
+                    f"{_num(low)} to {_num(high)}); {words}.")
+        interval = f"95 % CI {_num(_exp(low))} to {_num(_exp(high))}"
+        return f"  {name}: {who} multiplies {thing} by {_num(_exp(beta))} ({interval}); {words}."
+
     def _print_terms(self, model, coef, rows_text):
         what = {"lm": "effect", "mixed": "effect", "binomial": "odds ratio", "poisson": "rate ratio",
                 "quasipoisson": "rate ratio", "negbin": "rate ratio", "gamma": "ratio of averages",
                 "glmm": "odds ratio" if model["outcome"] == "yes or no" else "rate ratio",
-                "gee": RATIO_WORDS.get(model["outcome"], "effect")}[model["kind"]]
+                "gee": RATIO_WORDS.get(model["outcome"], "effect"), "quasibinomial": "odds ratio",
+                "rlm": "effect", "riskratio": "risk ratio", "logbinomial": "risk ratio"}[model["kind"]]
         if model.get("link"):
             what = f"effect ({model['link']} scale)"
+        if model.get("standardised"):
+            what = "standardised effect" if model["outcome"] == "numbers" else f"{what} per standard deviation"
         variables = _list_words(_quoted(v) for v in model["variables"])
         print(f'Explaining "{model["column"]}" from {variables} ({rows_text}). Each {what} below holds the other '
               "columns fixed:")
         for j in range(len(model["labels"])):
+            if self._is_curve(model, j):
+                continue
             print(self._term_sentence(model, j, coef["beta"][j], coef["low"][j], coef["high"][j], coef["p"][j]))
+
+    @staticmethod
+    def _is_curve(model, j) -> bool:
+        """A column of a natural spline (with_knots=): its own number means little, so it is not printed."""
+        return any(part[1] is not None and part[1][0] == CURVE for part in model["parts_of"][j])
 
     def _report(self, model, pieces, grouped_by):
         """Print everything about one fitted model; gives back (coefficients, whole-column tests)."""
@@ -939,12 +1089,46 @@ class ModelWords:
             formula = (f"cbind({_r_name(column)}, {_r_name(model['out_of'])} - {_r_name(column)}) ~ "
                        + " + ".join(pieces))
         self._print_terms(model, coef, f"{n} rows")
+        curves = {name for name in (model.get("splines") or {})}
         for test in tests:
             extra = f" and {_whole(test['df2'])}" if "df2" in test else ""
+            if test["term"] in curves:  # with_knots=: the whole curve, one test
+                print(f'  "{test["term"]}" as a curve with {model["splines"][test["term"]]} inner knots: is the curve '
+                      f"flat? {test['test']} ({test['name']} = {_num(test['stat'])}, df = {_whole(test['df'])}{extra}); "
+                      f"{_p_clause(test['p'], 'the curve were truly flat')}.")
+                continue
             print(f'  {test["term"]}, all groups together: {test["test"]} ({test["name"]} = {_num(test["stat"])}, '
                   f"df = {_whole(test['df'])}{extra}); {_p_clause(test['p'], 'the groups truly did not differ')}.")
+        if curves:
+            right = [f"splines::ns({_r_name(x)}, df = {model['splines'][x] + 1})" if x in curves else x
+                     for x in pieces]
+            formula = formula.split(" ~ ")[0] + " ~ " + " + ".join(right)
+        weights_name = (model.get("options") or {}).get("weights_name")
+        if weights_name:
+            formula += f", weights = {_r_name(weights_name)}"
         if kind == "lm":
             print(f"Method: linear model by least squares, as R lm({formula}).")
+        elif kind == "rlm":
+            print(f"Method: robust regression by M-estimation with Huber's weights (k = 1.345, the scale by the median "
+                  f"absolute deviation), as R MASS::rlm({formula}) (statsmodels RLM): rows far from the model are "
+                  "given less weight, so a few outliers in the column explained pull the effects less. Standard errors "
+                  "by Huber's H1 formula; R's summary(rlm) uses a slightly different small-sample correction, so its "
+                  "standard errors differ in the third digit. Wald 95 % intervals and z-tests. It does not resist "
+                  "unusual values in the using= columns (leverage): table.show_rows_that_pull_model() finds those.")
+        elif kind == "riskratio":
+            print(f"Method: risk ratios by modified Poisson regression (Zou 2004): a Poisson model for the yes/no "
+                  f"column with robust (sandwich, HC0) standard errors, as R glm({formula}, family = poisson) with "
+                  f'sandwich::vcovHC(m, type = "HC0") (statsmodels GLM, cov_type="HC0"); {model["yes_words"]}. '
+                  "Wald 95 % intervals and z-tests.")
+        elif kind == "logbinomial":
+            print(f"Method: risk ratios by log-binomial regression, as R glm({formula}, family = binomial(link = "
+                  f'"log")); {model["yes_words"]}. Wald 95 % intervals and z-tests, as R confint.default() and '
+                  "summary().")
+        elif kind == "quasibinomial":
+            print(f"Method: quasi-binomial regression, as R glm({formula}, family = quasibinomial): odds ratios with "
+                  "standard errors widened for yes counts that vary more than the binomial allows (dispersion "
+                  f"{_num(fit['dispersion'])}); {model['yes_words']}. t-tests as R summary(), Wald 95 % intervals as "
+                  "R confint.default().")
         elif kind == "binomial":
             family_text = f'binomial(link = "{model["link"]}")' if model.get("link") else "binomial"
             print(f"Method: {'logistic' if not model.get('link') else model['link']} regression, as R glm({formula}, "
@@ -1004,9 +1188,17 @@ class ModelWords:
             print(f'Method: linear mixed model with {own}, fitted by REML{by_r}, as R '
                   f"{fitter}({formula} + {random}).")
         k = model["X"].shape[1] - 1
-        if kind == "lm":
+        if kind == "rlm":
+            print(f"Scale (the typical distance of a row from the model, by the median absolute deviation): "
+                  f"{_num(fit['scale'])}.")
+        elif kind == "riskratio":
+            whole = fit.get("robust_whole")
+            if k > 0 and whole:
+                print(f"The model as a whole (Wald chi-square with robust errors = {_num(whole['stat'])}, df = {k}): "
+                      f"{_p_clause(whole['p'], 'none of the columns truly mattered')}.")
+        elif kind == "lm":
             y = model["y"]
-            r2 = 1 - fit["rss"] / float(((y - y.mean()) ** 2).sum())
+            r2 = fit["r2"] if "r2" in fit else 1 - fit["rss"] / float(((y - y.mean()) ** 2).sum())
             adj = 1 - (1 - r2) * (n - 1) / fit["df"]
             line = (f"R squared = {r2:.3f} (adjusted {adj:.3f}): the model explains about {round(r2 * 100)} % of the "
                     f'differences in "{column}".')
@@ -1036,7 +1228,17 @@ class ModelWords:
         elif kind == "glmm":
             groups = len(set(model["groups"].tolist()))
             scale = model.get("link") or ("log-odds" if fit["family"] == "binomial" else "log")
-            if fit.get("inner") is not None:
+            crossed = (model.get("grouping") or {}).get("crossed")
+            if crossed:
+                count = len(set(model["grouping"]["crossed_groups"].tolist()))
+                print(f'{groups} groups in "{grouped_by}" and {count} in "{crossed}" (crossed: each "{grouped_by}" '
+                      f'group meets several "{crossed}" groups). Variance between the "{grouped_by}" groups '
+                      f'{_num(fit["between"])}, between the "{crossed}" groups {_num(fit["crossed"])} (on the {scale} '
+                      "scale).")
+                if count < 5:
+                    print(f'Note: only {count} groups in "{crossed}"; with fewer than 5 its variance is poorly '
+                          "estimated.")
+            elif fit.get("inner") is not None:
                 inner = model["grouping"]["inner"]
                 print(f'{groups} groups in "{grouped_by}". Variance between them {_num(fit["between"])}, and between '
                       f'the "{inner}" groups inside them {_num(fit["inner"])} (on the {scale} scale).')
@@ -1060,7 +1262,7 @@ class ModelWords:
                 whole = fit["robust_whole"]
                 line += (f" The model as a whole (Wald chi-square with robust errors = {_num(whole['stat'])}, df = {k}): "
                          f"{_p_clause(whole['p'], 'none of the columns truly mattered')}.")
-            elif kind not in ("quasipoisson", "gamma") and k > 0:
+            elif kind not in ("quasipoisson", "gamma", "quasibinomial") and k > 0:
                 change = null - fit["deviance"]
                 p = float(stats.chi2.sf(change, k))
                 line += (f" The model as a whole (likelihood-ratio chi-square = {_num(change)}, df = {k}): "
@@ -1070,7 +1272,21 @@ class ModelWords:
             between, within = fit["between"], fit["within"]
             icc = between / (between + within)
             groups = len(set(model["groups"].tolist()))
-            if fit.get("inner") is not None:
+            crossed = (model.get("grouping") or {}).get("crossed")
+            if crossed:
+                count = len(set(model["grouping"]["crossed_groups"].tolist()))
+                total = between + fit["crossed"] + within
+                print(f'{groups} groups in "{grouped_by}" and {count} in "{crossed}" (crossed: each "{grouped_by}" '
+                      f'group meets several "{crossed}" groups). Variance between the "{grouped_by}" groups '
+                      f"{_num(between)}, between the \"{crossed}\" groups {_num(fit['crossed'])}, and within "
+                      f"{_num(within)}: about {round(between / total * 100)} % of the differences in \"{column}\" "
+                      f'that the columns do not explain lies between the "{grouped_by}" groups and '
+                      f'{round(fit["crossed"] / total * 100)} % between the "{crossed}" groups.')
+                if count < 5:
+                    print(f'Note: only {count} groups in "{crossed}"; with fewer than 5 its variance is poorly '
+                          "estimated.")
+                fit = dict(fit, singular=fit.get("singular", False))
+            elif fit.get("inner") is not None:
                 inner = model["grouping"]["inner"]
                 total = between + fit["inner"] + within
                 print(f'{groups} groups in "{grouped_by}". Variance between them {_num(between)}, between the "{inner}" '
@@ -1104,7 +1320,9 @@ class ModelWords:
                 print("Note: the fit did not settle fully (statsmodels warned about convergence); check the results "
                       "or use fewer columns.")
         print(self._fit_block(model))
-        if fit.get("robust"):
+        for line in self._option_lines(model):
+            print(line)
+        if fit.get("robust") and kind != "riskratio":
             how = "statsmodels OLS(cov_type=\"HC3\")" if kind == "lm" else "R sandwich itself"
             tests_words = "t-tests" if kind == "lm" else "z-tests"
             print("Instead of the usual standard errors: robust ones (sandwich, HC3), as R sandwich::vcovHC(m, type = \"HC3\") with "
@@ -1127,6 +1345,13 @@ class ModelWords:
         kind, fit, n, p = model["kind"], model["fit"], model["n"], model["X"].shape[1]
         if kind == "quasipoisson":
             return "Quasi-Poisson has no likelihood, so there is no AIC, BIC or pseudo R squared (as R)."
+        if kind == "quasibinomial":
+            return "Quasi-binomial has no likelihood, so there is no AIC, BIC or pseudo R squared (as R)."
+        if kind == "rlm":
+            return "How well it fits: robust regression has no likelihood or R squared to compare (as R MASS::rlm())."
+        if kind == "riskratio":
+            return ("How well it fits: the Poisson model is used only to find risk ratios; it is not a model of the "
+                    "chance of yes, so it has no AIC, BIC or pseudo R squared to report.")
         if kind == "gee":
             return "GEE has no likelihood, so there is no AIC, BIC or R squared."
         start, which, method = "", "", ""
@@ -1136,8 +1361,13 @@ class ModelWords:
             if kind == "lm":
                 llf, k = fit["loglik"], p + 1  # sigma counts, as R logLik()
             elif kind == "gamma":  # as R logLik() of a Gamma glm: the dispersion taken as deviance / n, one more value
-                llf = float(sm.families.Gamma().loglike(model["y"], np.asarray(fit["fitted"], dtype=float),
-                                                        scale=fit["deviance"] / n))
+                w = fit.get("weights")
+                if w is None:
+                    llf = float(sm.families.Gamma().loglike(model["y"], np.asarray(fit["fitted"], dtype=float),
+                                                            scale=fit["deviance"] / n))
+                else:  # with weights R takes deviance / sum(weights) and weights each row's log-likelihood
+                    llf = float(sm.families.Gamma().loglike(model["y"], np.asarray(fit["fitted"], dtype=float),
+                                                            freq_weights=w, scale=fit["deviance"] / float(np.sum(w))))
                 k = p + 1
             elif kind == "mixed":  # the REML log-likelihood, with the variances counted, as R logLik() of lmer
                 llf = fit["loglik"]
@@ -1147,6 +1377,16 @@ class ModelWords:
                 llf, k = fit["loglik"], p + (1 if kind == "negbin" else 0)
                 start, method = PSEUDO_WORDS["mcfadden"]
                 start = start.format(v=f"{1 - llf / fit['llnull']:.3f}")
+                if kind == "binomial" and fit.get("trials") is None and fit.get("weights") is None and \
+                        fit.get("result") is not None:  # yes/no rows: Nagelkerke's and Tjur's too
+                    from .models_extra import other_pseudo
+
+                    nagelkerke, tjur = other_pseudo(fit["result"], model["y"])
+                    start = (f"{start}; other pseudo R squared: Nagelkerke {nagelkerke:.3f}, Tjur {tjur:.3f} (each "
+                             "measures something different; none is a share explained)")
+                    method = (f"{method}; Nagelkerke's (Cox-Snell's, from statsmodels, scaled to reach 1) and "
+                              "Tjur's (the average chance among yes minus among no) as R performance::r2_nagelkerke() "
+                              "and r2_tjur()")
             aic, bic = float(measures.aic(llf, n, k)), float(measures.bic(llf, n, k))
             nakagawa = fit.get("nakagawa")
             if kind == "mixed" and nakagawa is None:  # random intercepts: R performance::r2_nakagawa() itself
@@ -1176,6 +1416,11 @@ class ModelWords:
         """The R random-effects term and its words: (1 | g), or (1 + x | g) with own slopes."""
         slopes = (model.get("grouping") or {}).get("slopes") or []
         inner = (model.get("grouping") or {}).get("inner")
+        crossed = (model.get("grouping") or {}).get("crossed")
+        if crossed:
+            first, words = ModelWords._random_words(dict(model, grouping={"slopes": slopes}), grouped_by)
+            return (f"{first} + (1 | {_r_name(crossed)})",
+                    f'{words}, and its own starting level for each "{crossed}" (crossed with "{grouped_by}")')
         if inner:
             return (f"(1 | {_r_name(grouped_by)}/{_r_name(inner)})",
                     f'its own starting level for each "{grouped_by}" and for each "{inner}" inside it')
@@ -1219,6 +1464,8 @@ class ModelWords:
         effects = X.shape[1] - 1
         if kind == "lm":
             residuals = model["y"] - fit["fitted"]
+            if fit.get("weights") is not None:  # the weighted residuals, as R plot(lm) shows them
+                residuals = residuals * np.sqrt(fit["weights"])
             for note in _shape_notes([(None, residuals)], what="the residuals (distances from the model)"):
                 notes.append(note.replace('a safer test here: based_on="ranks".',
                                           "the p-values and confidence intervals may be off."))
@@ -1234,6 +1481,16 @@ class ModelWords:
                 notes.append("Note: some rows are predicted as certainly yes or certainly no (complete separation; R "
                              'warns "fitted probabilities numerically 0 or 1 occurred"), so the odds ratios and their '
                              "intervals cannot be trusted. Use fewer columns or merge groups.")
+            if trials is not None and fit["df"] > 0 and fit["deviance"] / fit["df"] > OVERDISPERSION:
+                notes.append(f"Note: the yes counts vary more than the binomial allows (residual deviance / df = "
+                             f"{_num(fit['deviance'] / fit['df'])}, above {OVERDISPERSION}), so the intervals are too "
+                             'narrow and the p-values too small. Safer: outcome="yes or no (overdispersed)" '
+                             "(quasi-binomial).")
+            share = float(model["y"].sum()) / total
+            if not model.get("link") and trials is None and fit.get("weights") is None and share > COMMON_YES_SHARE:
+                from .models_extra import common_yes_note
+
+                notes.append(common_yes_note(share))
         elif effects and n / effects < ROWS_PER_EFFECT:
             notes.append(f"Note: only {n} rows for {effects} effects; with fewer than {ROWS_PER_EFFECT} rows per "
                          "effect the results are unstable. Use fewer columns.")
@@ -1244,7 +1501,7 @@ class ModelWords:
                              f"{_num(ratio)}, above {OVERDISPERSION}), so the intervals are too narrow and the "
                              'p-values too small. Safer: outcome="counts that vary a lot" (negative binomial) or '
                              'outcome="counts (overdispersed)" (quasi-Poisson).')
-        main = [j for j in range(1, X.shape[1]) if len(model["parts_of"][j]) == 1]
+        main = [j for j in range(1, X.shape[1]) if len(model["parts_of"][j]) == 1 and not ModelWords._is_curve(model, j)]
         if len(main) >= 2:
             with np.errstate(all="ignore"):
                 corr = np.corrcoef(X[:, main], rowvar=False)
@@ -1266,7 +1523,9 @@ class ModelWords:
     def explain(self, column=None, using=None, outcome="numbers", grouped_by=None, empty_cells="leave out", with_seed=1,
                 time=None, out_of=None, in_order=None, link=None, test_type=None, own_slope_for=None,
                 robust_errors=False, p_value_by="wald", effects="for the average group", within_groups="alike",
-                curve_for=None):
+                curve_for=None, weights=None, show=None, method=None, matched_by=None,
+                giving_outliers_less_weight=False, with_knots=None, interval_by="wald", resamples=None,
+                crossed_with=None, zero_part_using=None):
         """Explain one column from several others with a model, and say how big each effect is.
 
         table.explain("marks", using=["hours", "breakfast"])   (with sdata.get_example("school"))
@@ -1279,12 +1538,19 @@ class ModelWords:
         such as times or amounts (R glm(family = Gamma(link = "log"))); effects multiply the average.
         time="years" with counts: rates, the count per unit of time (R offset = log(years)).
         out_of="tries" with outcome="yes or no": the column holds the number of yes out of that many
-        tries (R glm(cbind(yes, tries - yes) ~ ..., family = binomial)).
+        tries (R glm(cbind(yes, tries - yes) ~ ..., family = binomial)). With out_of=,
+        outcome="yes or no (overdispersed)" is quasi-binomial (R glm(family = quasibinomial)), for
+        yes counts that vary more than the binomial allows.
         outcome="ordered groups": ordered logistic regression (R MASS::polr()); give the order of
         text groups, lowest first, with in_order=["low", "middle", "high"]. outcome="groups":
         multinomial logistic regression, each group against the first (R nnet::multinom()).
         outcome="shares": beta regression for shares between 0 and 1 (R betareg). outcome="counts
-        with many zeros": zero-inflated Poisson regression (R pscl::zeroinfl()). link= (experts):
+        with many zeros": zero-inflated Poisson regression (R pscl::zeroinfl()); "counts with many
+        zeros that vary a lot": zero-inflated negative binomial (pscl::zeroinfl(dist = "negbin")).
+        outcome="counts in two steps" (a hurdle model; "hurdle" works too): first zero or not, then
+        how many among the counts above 0 (R pscl::hurdle()); "counts in two steps that vary a lot"
+        with a negative binomial second step. zero_part_using=["distance"] gives the zero part its own
+        columns (R pscl's y ~ x | z). link= (experts):
         "probit" or "cloglog" for yes or no, "identity" or "sqrt" for counts, "inverse" or
         "identity" for positive numbers; the effects are then on that scale, not ratios.
         test_type="type 2" adds a table with one test for each column (an ANOVA table): "type 2"
@@ -1294,10 +1560,34 @@ class ModelWords:
         A text column in using= is a group column: each group is compared with the first group
         in sorted order (the baseline). "hours * breakfast" adds both columns and their
         interaction (does the effect of hours depend on breakfast?).
+        weights="precision": each row counts as much as its weight says (precision weights, R
+        lm(weights =) and glm(weights =); statsmodels WLS and GLM(var_weights=)); rows with weight 0
+        are left out, as R does.
+        show="risk ratios" with outcome="yes or no": risk ratios instead of odds ratios, by modified
+        Poisson regression (Zou 2004; R glm(family = poisson) with sandwich::vcovHC(type = "HC0"));
+        method="log-binomial" fits a log-binomial model instead (R glm(family = binomial(link =
+        "log")), which may not converge). show="standardised effects" (also "standardized effects"):
+        each effect per standard deviation, from the model fitted again on z-scores (R
+        effectsize::standardize_parameters(method = "refit")).
+        matched_by="set" with outcome="yes or no": conditional logistic regression for matched
+        case-control sets (R survival::clogit(); statsmodels ConditionalLogit).
+        giving_outliers_less_weight=True: robust regression (Huber's M-estimation, R MASS::rlm();
+        statsmodels RLM), so a few outliers in the column explained pull the effects less. Not the
+        same as robust_errors=True, which keeps the effects and only changes their standard errors.
+        curve_for="hours" with with_knots=3: "hours" follows a natural cubic spline whose pieces join
+        at 3 knots, the points where the pieces of the curve join (R splines::ns(hours, df = 4); patsy
+        cr()); the printout gives the test of the whole curve.
+        interval_by="profile" (or "profile likelihood"): profile-likelihood 95 % intervals for yes or
+        no and counts (R confint() of the glm; needs R); interval_by="bootstrap": BCa intervals from
+        resamples=9999 resamples of the rows (with_seed=1; SciPy bootstrap, as R boot::boot.ci()).
+        p_value_by="likelihood ratio": a likelihood-ratio test for each column (R drop1(m, test =
+        "LRT")) instead of the Wald z-test.
         grouped_by="school": a mixed model with its own starting level for each school
         (R lme4::lmer()), for rows that belong together; grouped_by=["school", "class"] for
         classes inside schools ((1 | school/class)). own_slope_for="hours" gives each school
         its own slope for hours too (R lme4::lmer() itself, (1 + hours | school)).
+        crossed_with="item" with grouped_by="subject": a second grouping crossed with the first,
+        (1 | subject) + (1 | item) (R lme4 itself), when each subject meets several items.
         p_value_by="satterthwaite" (or "few groups") gives t-tests with Satterthwaite degrees of
         freedom (R lmerTest) instead of Wald z-tests. effects="for the whole population" fits
         GEE instead (statsmodels, as R geepack::geeglm()): effects averaged over all groups, with
@@ -1307,27 +1597,39 @@ class ModelWords:
         additive model with a smooth term s(hours), R mgcv::gam(marks ~ s(hours) + ..., method =
         "REML")). robust_errors=True (experts) gives robust standard errors (sandwich, HC3, as R
         sandwich::vcovHC()), which stay right when the spread is not the same everywhere; it does
-        not make the model resistant to outliers.
+        not make the model resistant to outliers (giving_outliers_less_weight=True does).
         empty_cells="multiple imputation"
         fills in empty cells 20 times (R mice()) instead of leaving those rows out; with_seed= fixes
         the random filling. Prints each effect with its 95 % confidence interval and p-value in
         words, and how well the model fits: R squared (numbers), McFadden's pseudo R squared
-        (yes or no, counts, groups) or Nakagawa's R squared (grouped_by=, R performance, needs R), with
-        AIC and BIC (R AIC(), BIC()). Gives back a table with one row per term.
+        (yes or no, counts, groups; for yes or no also Nagelkerke's and Tjur's) or Nakagawa's R
+        squared (grouped_by=, R performance, needs R), with AIC and BIC (R AIC(), BIC()). Gives back
+        a table with one row per term.
         A link does not show that one thing causes the other.
         """
         step = "explain"
         robust, smooth_for = robust_errors, curve_for
         if isinstance(with_seed, bool) or not isinstance(with_seed, int):
-            raise SimplydataError("with_seed= is a whole number that fixes the random filling-in, for example with_seed=1.")
+            raise SimplydataError("with_seed= is a whole number that fixes the random filling-in or resampling, for "
+                                  "example with_seed=1.")
+        if isinstance(outcome, str):
+            outcome = OUTCOME_SPELLINGS.get(outcome.strip().lower(), outcome)
+        options = self._read_options(step, outcome, grouped_by, empty_cells, time, out_of, link, test_type,
+                                     own_slope_for, robust, p_value_by, effects, curve_for, weights, show, method,
+                                     matched_by, giving_outliers_less_weight, with_knots, interval_by, resamples,
+                                     crossed_with, zero_part_using, with_seed)
+        if options["likelihood_ratio"]:
+            p_value_by = "wald"
         grouped_by, inner = self._read_nested(step, grouped_by, own_slope_for, p_value_by, effects, robust, test_type)
         terms, pieces, variables, raw, missing, kinds = self._model_parts(
-            step, column, using, outcome, grouped_by, empty_cells, time=time, out_of=out_of)
+            step, column, using, outcome, grouped_by, empty_cells, time=time, out_of=out_of,
+            extra=options["columns"])
         if inner is not None:
             self._model_parts(step, column, using, outcome, inner, empty_cells)  # the same checks for the inner column
             raw[inner], missing[inner], kinds[inner] = self._inner_column(inner)
         names = [column] + variables + ([grouped_by] if grouped_by is not None else [])
         names += [v for v in (time, out_of, inner) if v is not None]
+        names += [v for _, v in options["columns"] if v not in names]
         self._check_link(step, outcome, link, grouped_by, empty_cells)
         grouping = self._check_grouping(step, outcome, grouped_by, own_slope_for, p_value_by, effects, within_groups,
                                         variables, kinds)
@@ -1339,38 +1641,69 @@ class ModelWords:
             if grouped_by is not None:
                 raise SimplydataError("test_type= is not available with grouped_by= yet; the whole-column Wald tests "
                                       "are printed instead.")
-            if outcome in ("ordered groups", "groups", "shares", "counts with many zeros") or                     empty_cells != "leave out":
+            if outcome in MORE_OUTCOMES + EXPLAIN_ONLY or empty_cells != "leave out":
                 raise SimplydataError(f'test_type= cannot be used with outcome="{outcome}" or multiple imputation '
                                       "yet.")
             if time is not None or out_of is not None or link not in (None, LINKS.get(outcome, (None,))[0]):
                 raise SimplydataError("test_type= cannot be used with time=, out_of= or link= yet.")
-        if smooth_for is not None:
+        if matched_by is not None:
+            keep = ~np.any([missing[nm] for nm in names], axis=0)
+            _skipped_note(int((~keep).sum()), names)
+            return self._explain_matched(step, column, matched_by, terms, pieces, variables, raw, kinds, keep)
+        if smooth_for is not None and options["knots"] is None:
             keep = ~np.any([missing[nm] for nm in names], axis=0)
             smooth = self._check_smooth(smooth_for, outcome, terms, kinds, raw, grouped_by, empty_cells, robust,
                                         test_type, time, out_of, link, in_order, keep)
             _skipped_note(int((~keep).sum()), names)
             model = self._fit_model(step, column, outcome, None, terms, variables, raw, kinds, keep)
             return self._explain_gam(model, pieces, smooth)
-        if outcome in ("ordered groups", "groups", "shares", "counts with many zeros"):
+        if outcome in MORE_OUTCOMES:
             if grouped_by is not None or empty_cells != "leave out":
                 raise SimplydataError(f'outcome="{outcome}" cannot be used with grouped_by= or multiple imputation '
                                       "yet.")
             keep = ~np.any([missing[nm] for nm in names], axis=0)
             _skipped_note(int((~keep).sum()), names)
-            return self._explain_more(step, column, outcome, terms, pieces, variables, raw, kinds, keep, in_order)
+            return self._explain_more(step, column, outcome, terms, pieces, variables, raw, kinds, keep, in_order,
+                                      options)
         if in_order is not None:
             raise SimplydataError('in_order= gives the order of the groups for outcome="ordered groups".')
         if empty_cells == "multiple imputation":
             return self._explain_imputed(step, column, outcome, terms, pieces, variables, raw, missing, kinds, with_seed)
         keep = ~np.any([missing[nm] for nm in names], axis=0)
         _skipped_note(int((~keep).sum()), names)
+        splines = None
+        if options["knots"] is not None:
+            smooth = self._check_smooth(smooth_for, outcome, terms, kinds, raw, None, "leave out", False,
+                                        None, None, None, None, in_order, keep, knots=True)
+            splines = {name: options["knots"] for name in smooth}
+        w, zero = None, 0
+        if weights is not None:
+            from .models_extra import read_weights
+
+            w, keep, zero = read_weights(weights, raw, kinds, keep)
+        if options["show"] == "standardised effects":
+            from .models_extra import standardise
+
+            numbers = [v for v in variables if kinds[v] == "number"]
+            raw, spread = standardise(raw, keep, numbers + ([column] if outcome == "numbers" else []))
         if inner is not None:
             grouping = {"inner": inner}
+        if crossed_with is not None:
+            grouping = dict(grouping or {}, crossed=crossed_with)
+            grouping.setdefault("effects", EFFECTS[0])
+            grouping.setdefault("slopes", [own_slope_for] if isinstance(own_slope_for, str) else
+                                list(own_slope_for or []))
         model = self._fit_model(step, column, outcome, grouped_by, terms, variables, raw, kinds, keep, time=time,
                                 out_of=out_of, link=None if link in (None, LINKS.get(outcome, (None,))[0]) else link,
-                                grouping=grouping)
+                                grouping=grouping, weights=w, splines=splines, kind=options["kind"])
+        model["options"] = dict(options, weights_name=weights, zero_weights=zero, seed=with_seed)
+        if options["show"] == "standardised effects":
+            model["standardised"] = spread
+        if options["show"] == "risk ratios":
+            model["thing"] = "the chance of yes"
         if robust:
             self._make_robust(model)
+        self._after_fit(model, options, with_seed)
         if test_type is not None:
             from .anova_tables import need_r_for
 
@@ -1382,6 +1715,376 @@ class ModelWords:
 
             more = report(model, test_type)
         return self._term_table(model, coef, tests, more_rows=more)
+
+    # ------------------------------------------------------------------ the S3a options
+    def _read_options(self, step, outcome, grouped_by, empty_cells, time, out_of, link, test_type, own_slope_for,
+                      robust, p_value_by, effects, curve_for, weights, show, method, matched_by, less_weight,
+                      with_knots, interval_by, resamples, crossed_with, zero_part_using, seed):
+        """Check the options added in S3a and how they combine, before anything is fitted or printed. Gives back
+        a dict: the kind of model to fit (None: the outcome's own), the extra columns to read, and the choices."""
+        from .models_extra import (INTERVAL_BY, INTERVAL_SPELLINGS, LR_SPELLINGS, METHOD_SPELLINGS, METHODS, SHOW,
+                                   SHOW_SPELLINGS, check_knots, read_choice)
+
+        show = read_choice("show", show, SHOW, SHOW_SPELLINGS,
+                           'table.explain("passed", using=["hours", "breakfast"], outcome="yes or no", '
+                           'show="risk ratios")')
+        method = read_choice("method", method, METHODS, METHOD_SPELLINGS,
+                             'table.explain("passed", using=["hours"], outcome="yes or no", show="risk ratios", '
+                             'method="log-binomial")')
+        interval = read_choice("interval_by", interval_by, INTERVAL_BY, INTERVAL_SPELLINGS,
+                               'table.explain("passed", using=["hours"], outcome="yes or no", interval_by="profile")')
+        likelihood_ratio = isinstance(p_value_by, str) and p_value_by.strip().lower() in LR_SPELLINGS
+        knots = check_knots(with_knots, curve_for)
+        if not isinstance(less_weight, bool):
+            raise SimplydataError(f"giving_outliers_less_weight= is True or False, not {less_weight!r}.")
+        multiple = empty_cells != "leave out"
+        nested = isinstance(grouped_by, (list, tuple)) and len(grouped_by) > 1
+        basic = ("numbers", "yes or no", "counts", "counts (overdispersed)", "counts that vary a lot",
+                 "positive numbers")
+        kind = None
+        columns = []
+        for option, value in (("weights=", weights), ("matched_by=", matched_by), ("crossed_with=", crossed_with)):
+            if value is not None:
+                if not isinstance(value, str) or not value.strip():
+                    raise SimplydataError(f"{option} names one column, in quotes.")
+                columns.append((option, value))
+        if zero_part_using is not None:
+            zero_terms, _ = _read_using(step, zero_part_using, self._columns)
+            columns += [("zero_part_using=", name) for name in dict.fromkeys(n for term in zero_terms for n in term)]
+
+        def refuse(text):
+            raise SimplydataError(text)
+
+        # ---- show= and method=
+        if show == "odds ratios" and not outcome.startswith("yes or no"):
+            refuse('show="odds ratios" is the usual result for outcome="yes or no".')
+        if method is not None and show != "risk ratios":
+            refuse('method= says how risk ratios are found: method="log-binomial" goes with show="risk ratios", for '
+                   'example table.explain("passed", using=["hours"], outcome="yes or no", show="risk ratios", '
+                   'method="log-binomial").')
+        if show == "risk ratios":
+            if outcome != "yes or no":
+                refuse('show="risk ratios" is for outcome="yes or no": the risk ratio compares chances of yes.')
+            if grouped_by is not None or out_of is not None or link is not None or multiple or curve_for is not None \
+                    or test_type is not None or robust or weights is not None or interval != "wald" or \
+                    likelihood_ratio or less_weight:
+                refuse('show="risk ratios" works on its own for now: leave out grouped_by=, out_of=, link=, '
+                       "multiple imputation, curve_for=, test_type=, robust_errors= (modified Poisson regression "
+                       "already uses robust standard errors), weights=, interval_by= and p_value_by=.")
+            kind = "riskratio" if method in (None, "modified poisson") else "logbinomial"
+        if show == "standardised effects":
+            if outcome not in basic:
+                refuse(f'show="standardised effects" works with outcome="numbers", "yes or no", the count outcomes '
+                       f'and "positive numbers", not "{outcome}".')
+            if grouped_by is not None or weights is not None or multiple or curve_for is not None or \
+                    link is not None or test_type is not None:
+                refuse('show="standardised effects" cannot be used with grouped_by=, weights=, multiple imputation, '
+                       "curve_for=, link= or test_type= yet.")
+        # ---- the new outcome values
+        if outcome == "yes or no (overdispersed)":
+            if out_of is None:
+                refuse('outcome="yes or no (overdispersed)" is for yes counts out of a number of tries, which can vary '
+                       "more than the binomial allows; 0/1 rows cannot show that. Give the tries with out_of=, for "
+                       'example table.explain("germinated", using=["extract"], outcome="yes or no (overdispersed)", '
+                       'out_of="seeds").')
+            if grouped_by is not None or link is not None or multiple or curve_for is not None or interval != "wald" \
+                    or likelihood_ratio or robust or test_type is not None:
+                refuse('outcome="yes or no (overdispersed)" cannot be used with grouped_by=, link=, multiple '
+                       "imputation, curve_for=, interval_by=, p_value_by=, robust_errors= or test_type= yet "
+                       "(quasi-binomial has no likelihood).")
+        if zero_part_using is not None and outcome not in ZERO_OUTCOMES:
+            refuse('zero_part_using= names the columns of the zero part, for outcome="counts with many zeros", '
+                   '"counts with many zeros that vary a lot", "counts in two steps" or "counts in two steps that vary '
+                   'a lot".')
+        # ---- weights=
+        if weights is not None:
+            if grouped_by is not None:
+                refuse('weights= cannot be used with grouped_by= yet (R lme4 reads weights differently); fit without '
+                       "one of them.")
+            if out_of is not None and outcome.startswith("yes or no"):
+                refuse('weights= cannot be used with out_of=: R would read the weights as the number of tries. Use '
+                       "out_of= alone for yes counts out of tries.")
+            if outcome not in basic or outcome == "counts that vary a lot":
+                refuse(f'weights= works with outcome="numbers", "yes or no", "counts", "counts (overdispersed)" and '
+                       f'"positive numbers", not "{outcome}" yet.')
+            if multiple or (curve_for is not None and knots is None) or test_type is not None or robust or \
+                    less_weight or matched_by is not None or interval == "profile":
+                refuse("weights= cannot be used with multiple imputation, curve_for= (without with_knots=), "
+                       "test_type=, robust_errors=, giving_outliers_less_weight=, matched_by= or "
+                       'interval_by="profile" yet.')
+        # ---- giving_outliers_less_weight=
+        if less_weight:
+            if outcome != "numbers":
+                refuse(f'giving_outliers_less_weight=True is for outcome="numbers" (Huber\'s robust regression), not '
+                       f'"{outcome}".')
+            if grouped_by is not None or multiple or curve_for is not None or robust or test_type is not None or \
+                    show is not None or interval == "profile" or likelihood_ratio or matched_by is not None:
+                refuse("giving_outliers_less_weight=True cannot be used with grouped_by=, multiple imputation, "
+                       "curve_for=, robust_errors=, test_type=, show=, interval_by=\"profile\" or p_value_by= yet.")
+            kind = "rlm"
+        # ---- with_knots=
+        if knots is not None:
+            if outcome not in basic:
+                refuse(f'with_knots= works with outcome="numbers", "yes or no", the count outcomes and "positive '
+                       f'numbers", not "{outcome}".')
+            if multiple or test_type is not None or show is not None or less_weight or matched_by is not None:
+                refuse("with_knots= cannot be used with multiple imputation, test_type=, show=, "
+                       "giving_outliers_less_weight= or matched_by= yet.")
+        # ---- interval_by= and resamples=
+        if resamples is not None and interval != "bootstrap":
+            refuse('resamples= is the number of resamples for interval_by="bootstrap", for example '
+                   'interval_by="bootstrap", resamples=9999.')
+        if interval == "profile":
+            if outcome not in ("yes or no", "counts", "counts that vary a lot"):
+                refuse(f'interval_by="profile" works with outcome="yes or no", "counts" and "counts that vary a lot" '
+                       f'(models with a likelihood); for outcome="{outcome}" the usual intervals are already exact or '
+                       "there is no likelihood.")
+            if grouped_by is not None or multiple or curve_for is not None or robust or test_type is not None:
+                refuse('interval_by="profile" cannot be used with grouped_by=, multiple imputation, curve_for=, '
+                       "robust_errors= or test_type= yet.")
+        if interval == "bootstrap":
+            if outcome not in basic or outcome == "counts that vary a lot":
+                refuse(f'interval_by="bootstrap" works with outcome="numbers", "yes or no", "counts", "counts '
+                       f'(overdispersed)" and "positive numbers", not "{outcome}" yet.')
+            if grouped_by is not None:
+                refuse('interval_by="bootstrap" cannot be used with grouped_by=: the rows of a group would have to be '
+                       "drawn together, which simplydata does not do yet.")
+            if multiple or (curve_for is not None and knots is None) or robust or test_type is not None:
+                refuse('interval_by="bootstrap" cannot be used with multiple imputation, curve_for= (without '
+                       "with_knots=), robust_errors= or test_type= yet.")
+        # ---- p_value_by="likelihood ratio"
+        if likelihood_ratio:
+            if outcome not in ("yes or no", "counts", "counts that vary a lot"):
+                refuse(f'p_value_by="likelihood ratio" works with outcome="yes or no", "counts" and "counts that vary '
+                       f'a lot"; for outcome="{outcome}" the t-tests and F tests are already the ones R gives.')
+            if grouped_by is not None:
+                refuse('p_value_by="likelihood ratio" cannot be used with grouped_by= yet; for mixed models '
+                       'p_value_by="satterthwaite" gives safer tests.')
+            if multiple or curve_for is not None or robust or test_type is not None:
+                refuse('p_value_by="likelihood ratio" cannot be used with multiple imputation, curve_for=, '
+                       "robust_errors= or test_type= yet.")
+        # ---- matched_by=
+        if matched_by is not None:
+            if outcome != "yes or no":
+                refuse('matched_by= (rows matched in sets, as in a matched case-control study) goes with outcome="yes '
+                       'or no": table.explain("case", using=["smoking"], outcome="yes or no", matched_by="set").')
+            if grouped_by is not None or weights is not None or out_of is not None or time is not None or \
+                    link is not None or show is not None or robust or test_type is not None or curve_for is not None \
+                    or interval != "wald" or likelihood_ratio or multiple:
+                refuse("matched_by= works on its own for now: leave out grouped_by=, weights=, out_of=, time=, link=, "
+                       "show=, robust_errors=, test_type=, curve_for=, interval_by=, p_value_by= and multiple "
+                       "imputation.")
+        # ---- crossed_with=
+        if crossed_with is not None:
+            if grouped_by is None:
+                refuse(f'crossed_with="{crossed_with}" is a second grouping, crossed with the first, so it needs '
+                       f'grouped_by= too: table.explain("reaction_time", using=["condition"], grouped_by="subject", '
+                       f'crossed_with="{crossed_with}").')
+            if nested:
+                refuse("crossed_with= cannot be used with groups inside groups (a list in grouped_by=) yet: give one "
+                       "grouped_by= column and one crossed_with= column.")
+            if (isinstance(effects, str) and effects.strip().lower() in ("for the whole population",
+                                                                         "whole population", "population", "gee")):
+                refuse('crossed_with= is for mixed models; effects="for the whole population" (GEE) takes one '
+                       "grouping.")
+            if multiple or test_type is not None or robust or (own_slope_for is not None and outcome != "numbers"):
+                refuse("crossed_with= cannot be used with multiple imputation, test_type= or robust_errors= yet (and "
+                       'own_slope_for= only with outcome="numbers").')
+            first = grouped_by[0] if isinstance(grouped_by, (list, tuple)) else grouped_by
+            if crossed_with == first:
+                refuse("crossed_with= names another column than grouped_by=.")
+        return {"kind": kind, "columns": columns, "show": show, "method": method, "interval": interval,
+                "likelihood_ratio": likelihood_ratio, "knots": knots, "resamples": resamples or 9999,
+                "zero_part_using": zero_part_using, "crossed_with": crossed_with, "matched_by": matched_by}
+
+    def _after_fit(self, model, options, seed):
+        """interval_by= and p_value_by="likelihood ratio": numbers that need the fitted model."""
+        fit, kind = model["fit"], model["kind"]
+        if options["likelihood_ratio"]:
+            from .models_extra import lr_p_values
+
+            def deviance(X):
+                return float(_glm(X, model["y"], GLM_FAMILY[kind], exposure=fit.get("exposure"),
+                                  trials=fit.get("trials"), alpha=fit.get("alpha"), link=fit.get("link"),
+                                  var_weights=fit.get("var_weights")).deviance)
+
+            fit["lr_p"] = lr_p_values(model, deviance)
+        if options["interval"] == "profile":
+            from .models_r import profile_intervals
+
+            fit["intervals"] = profile_intervals(model)
+        if options["interval"] == "bootstrap":
+            from .models_extra import bootstrap_effects
+
+            fit["intervals"] = bootstrap_effects(model, self._refitter(model), options["resamples"], seed)
+
+    @staticmethod
+    def _refitter(model):
+        """refit(rows): the same model fitted again to the rows given (for the bootstrap), its effects."""
+        fit, kind, X, y = model["fit"], model["kind"], model["X"], model["y"]
+        w, exposure, trials = fit.get("weights"), fit.get("exposure"), fit.get("trials")
+        if kind == "quasibinomial":
+            trials = np.asarray(model["fit"]["var_weights"], dtype=float)
+
+        def pick(values, rows):
+            return None if values is None else np.asarray(values)[rows]
+
+        def refit(rows):
+            if kind == "lm":
+                return _least_squares(X[rows], y[rows], pick(w, rows))[0]
+            if kind == "rlm":
+                from .models_extra import fit_huber
+
+                return fit_huber(X[rows], y[rows])["beta"]
+            if kind == "riskratio":
+                return _glm(X[rows], y[rows], "poisson").params
+            if kind == "quasibinomial":
+                return _glm(X[rows], y[rows] / trials[rows], "binomial", var_weights=trials[rows]).params
+            return np.asarray(_glm(X[rows], y[rows], GLM_FAMILY[kind], exposure=pick(exposure, rows),
+                                   trials=pick(trials, rows), link=fit.get("link"),
+                                   var_weights=pick(w, rows)).params)
+
+        return refit
+
+    @staticmethod
+    def _option_lines(model) -> list[str]:
+        """The lines that say what the S3a options did, after the fit block."""
+        from . import models_extra as extra
+
+        options, fit = model.get("options") or {}, model["fit"]
+        lines = []
+        if options.get("weights_name"):
+            lines.append(extra.weights_line(options["weights_name"], options.get("zero_weights", 0)))
+        if model.get("standardised"):
+            column = model["column"]
+            also = f' and "{column}"' if model["outcome"] == "numbers" else ""
+            lines.append(f"Standardised: every number column{also} was turned into z-scores (its average taken away, "
+                         "then divided by its standard deviation) and the model was fitted again, as R "
+                         'effectsize::standardize_parameters(m, method = "refit"); group columns stay as they are.')
+            lines += extra.standardised_lines(model)
+        if options.get("interval") == "profile":
+            lines.append("Intervals: 95 % profile-likelihood intervals (the values whose log-likelihood is within 1.92 "
+                         "of the best), run in R: stats::confint() of the glm; safer than Wald intervals with few rows "
+                         "or effects far from 1. The p-values are the usual ones.")
+        if options.get("interval") == "bootstrap":
+            lines.append(extra.bootstrap_line(options["resamples"], options["seed"], model["n"]))
+        if options.get("likelihood_ratio"):
+            done = fit.get("lr_p")
+            wald = []
+            for j in range(1, len(model["labels"])):
+                if done is not None and not np.isfinite(done[j]):
+                    parts = model["parts_of"][j]
+                    named = (f'the groups of "{parts[0][1][0]}"' if len(parts) == 1 and parts[0][1] is not None
+                             else _quoted(model["labels"][j]))
+                    if named not in wald:
+                        wald.append(named)
+            line = ("P-values: likelihood-ratio tests: each column was left out in turn and the fit compared "
+                    '(the change in deviance, chi-square with 1 df), as R drop1(m, test = "LRT").')
+            if wald:
+                line += (f" Wald z-tests for {_list_words(wald)}, which drop1() does not test one by one (a group "
+                         "column's whole test above is a likelihood-ratio test; a column inside an interaction is "
+                         "not tested alone).")
+            lines.append(line)
+        if model["kind"] == "rlm":
+            rows = np.flatnonzero(model["keep"])
+            lines += extra.huber_lines(model, rows)
+        if model.get("splines"):
+            named = _list_words(_quoted(s) for s in model["splines"])
+            lines.append(f"Curve: {named} follows a natural cubic spline, its pieces joined at knots (the points where "
+                         "the pieces of the curve join) placed at the quantiles of the values, from patsy cr(), the "
+                         "same curve as R splines::ns(). Its own numbers mean little; a picture shows its shape: "
+                         "chart.draw_dots(...) with chart.draw_smooth_line().")
+        return lines
+
+    def _explain_matched(self, step, column, matched_by, terms, pieces, variables, raw, kinds, keep):
+        """Conditional logistic regression for matched sets (statsmodels ConditionalLogit, R survival::clogit())."""
+        from scipy import stats
+
+        from .models_extra import constant_within_sets, fit_conditional_logit, informative_sets
+
+        self._need_statsmodels()
+        y_all, yes_words = self._outcome_values(column, "yes or no", raw[column][keep], kinds[column])
+        sets_all = np.array([_label(s) for s in raw[matched_by][keep]], dtype=object)
+        useful = informative_sets(y_all, sets_all)
+        dropped_sets = len(set(sets_all.tolist())) - len(set(sets_all[useful].tolist()))
+        if dropped_sets:
+            print(f'Note: {dropped_sets} sets of "{matched_by}" have no yes or no no, so they say nothing about the '
+                  f"effects and were left out ({int((~useful).sum())} rows), as R clogit() does.")
+        rows = np.flatnonzero(keep)[useful]
+        keep = np.zeros(len(keep), dtype=bool)
+        keep[rows] = True
+        y, sets = y_all[useful], sets_all[useful]
+        if not len(y) or len(set(sets.tolist())) < 2:
+            raise SimplydataError(f'matched_by="{matched_by}" needs at least 2 sets with both a yes and a no.')
+        data = {name: raw[name][keep] for name in variables}
+        levels = {}
+        for name in variables:
+            if kinds[name] == "group":
+                found = sorted(set(data[name].tolist()), key=_sort_key)
+                if len(found) < 2:
+                    raise SimplydataError(f'The group column "{name}" has only one group in the rows used, so it '
+                                          "cannot explain anything. Leave it out of using=.")
+                levels[name] = found
+        X, labels, owner, parts_of = _design(data, kinds, levels, terms)
+        X, labels, owner, parts_of = X[:, 1:], labels[1:], owner[1:], parts_of[1:]
+        flat = constant_within_sets(X, labels, sets)
+        if flat:
+            raise SimplydataError(f"{_list_words(_quoted(f) for f in flat)} {'does' if len(flat) == 1 else 'do'} not "
+                                  f'change within any set of "{matched_by}", so {"its" if len(flat) == 1 else "their"} '
+                                  "effect cannot be estimated: each set is compared only with itself. Leave "
+                                  f"{'it' if len(flat) == 1 else 'them'} out of using= (a matched design already "
+                                  "allows for it).")
+        if np.linalg.matrix_rank(X) < X.shape[1]:
+            raise SimplydataError(self._rank_problem(np.column_stack([np.ones(len(y)), X]), [INTERCEPT] + labels))
+        fit = fit_conditional_logit(X, y, sets)
+        model = dict(kind="clogit", X=X, y=y, labels=labels, owner=owner, parts_of=parts_of, terms=terms, levels=levels,
+                     kinds=kinds, n=len(y), yes_words=yes_words, groups=None, keep=keep, outcome="yes or no",
+                     variables=variables, column=column, data=data, fit=fit)
+        se = np.sqrt(np.diag(fit["cov"]))
+        beta = fit["beta"]
+        stat = beta / se
+        p = 2 * stats.norm.sf(np.abs(stat))
+        coef = dict(beta=beta, se=se, stat=stat, p=p, low=beta - Z95 * se, high=beta + Z95 * se, name="z",
+                    df=np.full(len(beta), math.nan))
+        count = len(set(sets.tolist()))
+        print(f'Explaining "{column}" from {_list_words(_quoted(v) for v in variables)} within {count} matched sets of '
+              f'"{matched_by}" ({len(y)} rows). Each odds ratio below compares rows of the same set and holds the other '
+              "columns fixed:")
+        for j in range(len(labels)):
+            print(self._term_sentence(model, j, beta[j], coef["low"][j], coef["high"][j], p[j]))
+        tests = []
+        for index, term in enumerate(terms):
+            columns = np.flatnonzero(owner == index)
+            if len(columns) < 2 or any(set(term) < set(other) for other in terms):
+                continue
+            smaller = fit_conditional_logit(np.delete(X, columns, axis=1), y, sets)
+            change = 2 * (fit["loglik"] - smaller["loglik"])
+            test = dict(term=" : ".join(term), name="chi-square", stat=change, df=float(len(columns)),
+                        p=float(stats.chi2.sf(change, len(columns))), test="likelihood-ratio test")
+            tests.append(test)
+            print(f'  {test["term"]}, all groups together: likelihood-ratio test (chi-square = {_num(change)}, df = '
+                  f"{len(columns)}); {_p_clause(test['p'], 'the groups truly did not differ')}.")
+        formula = f"{_r_name(column)} ~ " + " + ".join(pieces) + f" + strata({_r_name(matched_by)})"
+        print(f'Method: conditional logistic regression, as R survival::clogit({formula}, method = "exact") '
+              f"(statsmodels ConditionalLogit, the exact conditional likelihood); {yes_words}. Each set is compared "
+              "only with itself, so there is no intercept, and a column that does not change within sets cannot be "
+              "estimated. Wald 95 % intervals and z-tests, as R summary(clogit).")
+        k = X.shape[1]
+        change = 2 * (fit["loglik"] - fit["llnull"])
+        whole = float(stats.chi2.sf(change, k))
+        print(f"The model as a whole (likelihood-ratio chi-square = {_num(change)}, df = {k}): "
+              f"{_p_clause(whole, 'none of the columns truly mattered')}.")
+        from statsmodels.tools import eval_measures as measures
+
+        aic = float(measures.aic(fit["loglik"], len(y), k))
+        print(f"How well it fits: AIC {_num(aic)} of the conditional likelihood: smaller is better, but only to compare "
+              "models of the same rows and sets.\nMethod: AIC as R AIC(clogit).")
+        events = int(min(y.sum(), len(y) - y.sum()))
+        if k and events / k < ROWS_PER_EFFECT:
+            print(f"Note: only {events} rows in the smaller of yes and no for {k} effects; with fewer than "
+                  f"{ROWS_PER_EFFECT} per effect the results are unstable. Use fewer columns.")
+        self._closing(p)
+        return self._term_table(model, coef, tests)
 
     @staticmethod
     def _read_nested(step, grouped_by, own_slope_for, p_value_by, effects, robust, test_type):
@@ -1461,18 +2164,22 @@ class ModelWords:
 
     @staticmethod
     def _check_smooth(smooth_for, outcome, terms, kinds, raw, grouped_by, empty_cells, robust, test_type, time,
-                      out_of, link, in_order, keep):
-        """curve_for=: number columns of using= that get a smooth curve (R mgcv s()); gives the list."""
+                      out_of, link, in_order, keep, knots=False):
+        """curve_for=: number columns of using= that get a smooth curve (R mgcv s()), or with knots=True a natural
+        spline (with_knots=, whose other options are checked in _read_options); gives the list."""
         smooth = [smooth_for] if isinstance(smooth_for, str) else smooth_for
         if not isinstance(smooth, (list, tuple)) or not smooth or not all(isinstance(s, str) for s in smooth):
             raise SimplydataError('curve_for= names the number columns of using= that may follow a curve, for '
                                   'example curve_for="hours".')
-        if outcome not in ("numbers", "yes or no", "counts"):
-            raise SimplydataError('curve_for= works with outcome="numbers", "yes or no" and "counts".')
+        if outcome not in ("numbers", "yes or no", "counts") and not knots:
+            raise SimplydataError('curve_for= works with outcome="numbers", "yes or no" and "counts" (with with_knots=, '
+                                  'also with "counts (overdispersed)", "counts that vary a lot" and "positive '
+                                  'numbers").')
         if grouped_by is not None or empty_cells != "leave out" or robust or test_type is not None or \
                 time is not None or out_of is not None or link is not None or in_order is not None:
             raise SimplydataError("curve_for= cannot be used with grouped_by=, multiple imputation, robust_errors=, "
-                                  "test_type=, time=, out_of= or link= yet.")
+                                  "test_type=, time=, out_of= or link= yet; with with_knots=3 (a natural spline) it "
+                                  "can, except for multiple imputation and test_type=.")
         alone = {term[0] for term in terms if len(term) == 1}
         for name in smooth:
             if name not in alone or any(name in term for term in terms if len(term) > 1):
@@ -1558,7 +2265,7 @@ class ModelWords:
             raise SimplydataError('robust_errors=True is for models without grouped_by=. For rows in groups, '
                                   'effects="for the whole population" (GEE) gives robust standard errors that allow '
                                   'for the groups.')
-        if outcome in ("ordered groups", "groups", "shares", "counts with many zeros"):
+        if outcome in MORE_OUTCOMES + EXPLAIN_ONLY:
             raise SimplydataError(f'robust_errors=True works with outcome="numbers", "yes or no", the count outcomes and '
                                   f'"positive numbers", not "{outcome}".')
         if empty_cells != "leave out" or test_type is not None:
@@ -1595,11 +2302,30 @@ class ModelWords:
         if link != allowed[0] and grouped_by is not None and outcome == "positive numbers":
             raise SimplydataError('grouped_by= works with outcome="numbers", "yes or no" or "counts".')
 
-    def _explain_more(self, step, column, outcome, terms, pieces, variables, raw, kinds, keep, in_order):
-        """Ordered groups, groups, shares, counts with many zeros (table/models_more.py)."""
+    def _explain_more(self, step, column, outcome, terms, pieces, variables, raw, kinds, keep, in_order,
+                      options=None):
+        """Ordered groups, groups, shares, the zero-inflated and two-step counts (table/models_more.py)."""
         from .models_more import explain_more
 
         model = self._more_model(step, column, outcome, terms, variables, raw, kinds, keep, in_order)
+        zero = (options or {}).get("zero_part_using")
+        if zero is not None:
+            zero_terms, zero_pieces = _read_using(step, zero, self._columns)
+            zero_variables = list(dict.fromkeys(name for term in zero_terms for name in term))
+            data = {name: raw[name][keep] for name in zero_variables}
+            levels = {}
+            for name in zero_variables:
+                if kinds[name] == "group":
+                    levels[name] = sorted(set(data[name].tolist()), key=_sort_key)
+                    if len(levels[name]) < 2:
+                        raise SimplydataError(f'The group column "{name}" has only one group in the rows used, so it '
+                                              "cannot explain anything. Leave it out of zero_part_using=.")
+            X, labels, owner, parts_of = _design(data, kinds, levels, zero_terms)
+            if np.linalg.matrix_rank(X) < X.shape[1]:
+                raise SimplydataError(self._rank_problem(X, labels))
+            model["zero_model"] = dict(X=X, labels=labels, owner=owner, parts_of=parts_of, levels=levels,
+                                       variables=zero_variables, kinds=kinds)
+            model["zero_pieces"] = zero_pieces
         return explain_more(self, step, column, outcome, pieces, model)
 
     def _more_model(self, step, column, outcome, terms, variables, raw, kinds, keep, in_order):
@@ -1624,8 +2350,7 @@ class ModelWords:
             raise SimplydataError(f"{step}() needs more rows ({n}) than values to estimate ({X.shape[1]}).")
         if np.linalg.matrix_rank(X) < X.shape[1]:
             raise SimplydataError(self._rank_problem(X, labels))
-        kind = {"ordered groups": "ordered", "groups": "multinom", "shares": "shares",
-                "counts with many zeros": "zeros"}[outcome]
+        kind = {"ordered groups": "ordered", "groups": "multinom", "shares": "shares"}.get(outcome, "zeros")
         return dict(kind=kind, X=X, y=y, n=n, labels=labels, owner=owner, parts_of=parts_of, levels=levels,
                     kinds=kinds, variables=variables, groups_of_outcome=groups, terms=terms, column=column,
                     outcome=outcome, keep=keep, data=data, groups=None, yes_words=None)
@@ -1794,6 +2519,9 @@ class ModelWords:
                 'For a model from explain() use using= and grouped_by=, for example '
                 'table.add_predicted_column("marks", using=["hours", "breakfast"]).'
             )
+        if outcome not in KINDS or outcome in EXPLAIN_ONLY:
+            raise SimplydataError(f'add_predicted_column() fits outcome="numbers", "yes or no", the count outcomes and '
+                                  f'"positive numbers", not "{outcome}"; table.explain() fits that one.')
         terms, pieces, variables, raw, missing, kinds = self._model_parts(
             step, column, using, outcome, grouped_by, "leave out")
         names = [column] + variables + ([grouped_by] if grouped_by is not None else [])

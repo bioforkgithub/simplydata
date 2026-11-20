@@ -16,7 +16,15 @@ Choices (each checked against R in tests/test_s2_more_outcomes.py):
 * outcome="counts with many zeros": zero-inflated Poisson regression, R pscl::zeroinfl() itself
   (the same columns in both parts, logit zero part); statsmodels gives other standard errors.
   A zero can come two ways: an extra zero (the thing could not happen there) or a count that
-  happened to be 0. The printout has one block for each part.
+  happened to be 0. The printout has one block for each part. outcome="counts with many zeros
+  that vary a lot": the same with a negative binomial count part, pscl::zeroinfl(dist = "negbin").
+* outcome="counts in two steps" (a hurdle model; "hurdle" is another spelling): first zero or not
+  (a logistic part for "more than 0"), then how many among the counts above 0 (a Poisson count
+  part cut off at 1), R pscl::hurdle(dist = "poisson", zero.dist = "binomial") itself; "counts in
+  two steps that vary a lot" has a negative binomial count part (dist = "negbin"). pscl's
+  binomial zero part is the textbook form; statsmodels' HurdleCountModel has no logit zero part.
+* zero_part_using=["distance"]: the columns of the zero part (pscl's y ~ x | z) for the
+  zero-inflated and the two-step outcomes; without it, the same columns as using=.
 """
 
 from __future__ import annotations
@@ -32,11 +40,18 @@ from .stat_tests import _label, _list_words, _num, _skipped_note
 from .summaries import _p_clause
 
 Z95 = 1.959963984540054
-MORE_OUTCOMES = ("ordered groups", "groups", "shares", "counts with many zeros")
+ZERO_OUTCOMES = ("counts with many zeros", "counts with many zeros that vary a lot", "counts in two steps",
+                 "counts in two steps that vary a lot")
+MORE_OUTCOMES = ("ordered groups", "groups", "shares") + ZERO_OUTCOMES
 
 
 def _sort_key(value):
     return (str(type(value)), value)
+
+
+def _exp(x) -> float:
+    """exp() that gives infinity instead of an error for a huge value (a part that runs away)."""
+    return math.exp(x) if x < 709 else math.inf
 
 
 # ---------------------------------------------------------------------------- the outcome column
@@ -70,10 +85,13 @@ def outcome_codes(column, outcome, values, kind, in_order):
             raise SimplydataError(f'outcome="shares" needs shares above 0 and below 1 in "{column}".{hint}')
         return y, None
     if np.any(y < 0) or np.any(y != np.round(y)):
-        raise SimplydataError(f'outcome="counts with many zeros" needs whole numbers of 0 or more in "{column}".')
+        raise SimplydataError(f'outcome="{outcome}" needs whole numbers of 0 or more in "{column}".')
     if not np.any(y == 0):
-        raise SimplydataError(f'"{column}" has no zeros, so outcome="counts with many zeros" does not fit; use '
-                              'outcome="counts".')
+        other = "counts that vary a lot" if "vary a lot" in outcome else "counts"
+        raise SimplydataError(f'"{column}" has no zeros, so there are no zeros to model and outcome="{outcome}" does '
+                              f'not fit; use outcome="{other}".')
+    if outcome.startswith("counts in two steps") and np.all(y == 0):
+        raise SimplydataError(f'"{column}" holds only zeros, so there are no counts above 0 for the second step.')
     return y, None
 
 
@@ -127,20 +145,30 @@ def fit_shares(X, y):
             "bic": float(out["bic"][0]), "pseudo": float(out["pseudo"][0])}
 
 
-def fit_zeros(X, y):
-    """R pscl::zeroinfl(y ~ 0 + X | 0 + X, dist = "poisson") itself: count part and zero part."""
+def fit_zeros(X, y, Z=None, dist="poisson", hurdle=False):
+    """R pscl::zeroinfl(y ~ 0 + X | 0 + Z, dist = dist) itself, or pscl::hurdle(..., zero.dist = "binomial") with
+    hurdle=True: the count part, the zero part (Z = X when not given) and, for "negbin", theta."""
     from .._r import r_call
 
-    out = r_call("z <- pscl::zeroinfl(y ~ 0 + X | 0 + X, dist = 'poisson'); s <- summary(z)$coefficients; "
-                 "list(count = unname(s$count[, 1]), count_se = unname(s$count[, 2]), "
-                 "zero = unname(s$zero[, 1]), zero_se = unname(s$zero[, 2]), "
+    Z = X if Z is None else Z
+    fitter = "pscl::hurdle" if hurdle else "pscl::zeroinfl"
+    zero_dist = ", zero.dist = 'binomial'" if hurdle else ""
+    theta = "theta = unname(z$theta[1]), " if dist == "negbin" else "theta = NA_real_, "
+    out = r_call(f"z <- {fitter}(y ~ 0 + X | 0 + Z, dist = '{dist}'{zero_dist}); s <- summary(z)$coefficients; "
+                 "k <- ncol(X); "
+                 "list(count = unname(s$count[seq_len(k), 1]), count_se = unname(s$count[seq_len(k), 2]), "
+                 f"zero = unname(s$zero[, 1]), zero_se = unname(s$zero[, 2]), {theta}"
                  "loglik = as.numeric(stats::logLik(z)), aic = stats::AIC(z), bic = stats::BIC(z), "
-                 "null = as.numeric(stats::logLik(pscl::zeroinfl(y ~ 1 | 1, dist = 'poisson'))))",
-                 packages=("pscl",), what="Zero-inflated counts (R pscl::zeroinfl())",
-                 python_note="statsmodels ZeroInflatedPoisson gives the same estimates but other standard errors",
-                 y=np.asarray(y, dtype=float), X=np.asarray(X, dtype=float))
+                 f"null = as.numeric(stats::logLik({fitter}(y ~ 1 | 1, dist = '{dist}'{zero_dist}))))",
+                 packages=("pscl",), what=("Counts in two steps (R pscl::hurdle())" if hurdle else
+                                           "Zero-inflated counts (R pscl::zeroinfl())"),
+                 python_note=("statsmodels' HurdleCountModel has no logistic zero part (pscl's default)" if hurdle else
+                              "statsmodels ZeroInflatedPoisson and ZeroInflatedNegativeBinomialP give the same "
+                              "estimates but other standard errors"),
+                 y=np.asarray(y, dtype=float), X=np.asarray(X, dtype=float), Z=np.asarray(Z, dtype=float))
     return {key: np.asarray(out[key], dtype=float) for key in ("count", "count_se", "zero", "zero_se")} | {
         "loglik": float(out["loglik"][0]), "aic": float(out["aic"][0]), "bic": float(out["bic"][0]),
+        "theta": float(np.atleast_1d(out["theta"])[0]),
         "pseudo": 1 - float(out["loglik"][0]) / float(out["null"][0])}  # McFadden, as R performance::r2_mcfadden()
 
 
@@ -163,7 +191,7 @@ def _sentence(model, j, b, se, thing):
     from scipy import stats
 
     p = float(2 * stats.norm.sf(abs(b / se))) if se > 0 else math.nan
-    ratio, low, high = math.exp(b), math.exp(b - Z95 * se), math.exp(b + Z95 * se)
+    ratio, low, high = _exp(b), _exp(b - Z95 * se), _exp(b + Z95 * se)
     who, numeric = _who(model, j)
     interval = f"95 % CI {_num(low)} to {_num(high)}"
     if numeric:
@@ -186,8 +214,8 @@ def _rows(model, beta, se, effect, start, extra):
         b, s = float(beta[j - start] if start else beta[j]), float(se[j - start] if start else se[j])
         z = b / s if s > 0 else math.nan
         row = dict(extra)
-        row.update({"term": model["labels"][j], effect: math.exp(b), "95 % CI low": math.exp(b - Z95 * s),
-                    "95 % CI high": math.exp(b + Z95 * s), f"log {effect}": b, "standard error": s,
+        row.update({"term": model["labels"][j], effect: _exp(b), "95 % CI low": _exp(b - Z95 * s),
+                    "95 % CI high": _exp(b + Z95 * s), f"log {effect}": b, "standard error": s,
                     "statistic name": "z", "statistic": z, "p-value": float(2 * stats.norm.sf(abs(z)))})
         rows.append(row)
     return rows
@@ -246,25 +274,58 @@ def explain_more(words, step, column, outcome, pieces, model):
         print(fit_line(fit, "ferrari"))
         rows = _rows(model, fit["beta"], fit["se"], "odds ratio", 0, {})
     else:
-        fit = fit_zeros(X, y)
-        zeros = int((y == 0).sum())
+        rows = _explain_zeros(model, outcome, formula, variables, column, X, y, n)
+    keys = list(dict.fromkeys(k for r in rows for k in r))
+    data = {k: [r.get(k, math.nan) if k not in ("term", "group", "part") else r.get(k) for r in rows] for k in keys}
+    return words._new_table(nw.from_dict(data, backend=words._frame.implementation))
+
+
+def _explain_zeros(model, outcome, formula, variables, column, X, y, n):
+    """The zero-inflated and the two-step (hurdle) counts: two blocks, one per part, and the result rows."""
+    hurdle = outcome.startswith("counts in two steps")
+    dist = "negbin" if outcome.endswith("vary a lot") else "poisson"
+    zero_model = model.get("zero_model") or model
+    zero_formula = ""
+    if model.get("zero_model") is not None:
+        zero_formula = " | " + " + ".join(model["zero_pieces"])
+    fit = fit_zeros(X, y, zero_model["X"], dist=dist, hurdle=hurdle)
+    zeros = int((y == 0).sum())
+    zero_names = _list_words(f'"{v}"' for v in zero_model["variables"])
+    if hurdle:
+        print(f'Explaining "{column}" from {variables} ({n} rows, {zeros} of them 0) in two steps: first whether '
+              "the count is 0 or more than 0, then how many, among the counts above 0:")
+        print(f"Zero or not (the first step, from {zero_names}; odds of a count above 0):")
+        for j in range(1, len(zero_model["labels"])):
+            print(_sentence(zero_model, j, fit["zero"][j], fit["zero_se"][j], "the odds of a count above 0")[0])
+        print("How many, when not zero (the second step; each rate ratio holds the other columns fixed):")
+        for j in range(1, len(model["labels"])):
+            print(_sentence(model, j, fit["count"][j], fit["count_se"][j], "the expected count")[0])
+    else:
         print(f'Explaining "{column}" from {variables} ({n} rows, {zeros} of them 0). A 0 can come two ways: an '
               "extra zero (where it could not happen at all) or a count that happened to be 0, so the model has "
               "two parts:")
         print("How many, where it can happen (the count part; each rate ratio holds the other columns fixed):")
         for j in range(1, len(model["labels"])):
             print(_sentence(model, j, fit["count"][j], fit["count_se"][j], "the expected count")[0])
-        print("Extra zeros (the zero part; odds of being an extra zero):")
-        for j in range(1, len(model["labels"])):
-            print(_sentence(model, j, fit["zero"][j], fit["zero_se"][j], "the odds of an extra zero")[0])
-        print(f"Method: zero-inflated Poisson regression, run in R: pscl::zeroinfl({formula}, dist = \"poisson\") "
-              "(the same columns in both parts). Wald 95 % intervals and z-tests.")
-        print(fit_line(fit, "mcfadden"))
-        rows = (_rows(model, fit["count"], fit["count_se"], "ratio", 0, {"part": "count"})
-                + _rows(model, fit["zero"], fit["zero_se"], "ratio", 0, {"part": "extra zeros"}))
-    keys = list(dict.fromkeys(k for r in rows for k in r))
-    data = {k: [r.get(k, math.nan) if k not in ("term", "group", "part") else r.get(k) for r in rows] for k in keys}
-    return words._new_table(nw.from_dict(data, backend=words._frame.implementation))
+        print(f"Extra zeros (the zero part, from {zero_names}; odds of being an extra zero):")
+        for j in range(1, len(zero_model["labels"])):
+            print(_sentence(zero_model, j, fit["zero"][j], fit["zero_se"][j], "the odds of an extra zero")[0])
+    if dist == "negbin":
+        print(f"Theta {_num(fit['theta'])}: how much the counts vary beyond Poisson (the smaller, the more they vary; "
+              "a very large theta means they vary no more than Poisson allows).")
+    same = "" if model.get("zero_model") is not None else " (the same columns in both parts)"
+    kind = "negative binomial" if dist == "negbin" else "Poisson"
+    if hurdle:
+        print(f"Method: a two-step (hurdle) model, run in R: pscl::hurdle({formula}{zero_formula}, dist = \"{dist}\", "
+              f"zero.dist = \"binomial\"){same}: a logistic model for zero or not, and a {kind} model cut off at 1 "
+              "for the counts above 0. Wald 95 % intervals and z-tests.")
+    else:
+        print(f"Method: zero-inflated {kind} regression, run in R: pscl::zeroinfl({formula}{zero_formula}, dist = "
+              f"\"{dist}\"){same}. Wald 95 % intervals and z-tests.")
+    print(fit_line(fit, "mcfadden"))
+    zero_part = "zero or not" if hurdle else "extra zeros"
+    return (_rows(model, fit["count"], fit["count_se"], "ratio", 0, {"part": "count"})
+            + _rows(zero_model, fit["zero"], fit["zero_se"], "ratio", 0, {"part": zero_part}))
 
 
 # a measure of fit: (its words on the "How well it fits:" line, its method on the Method line)
@@ -299,4 +360,4 @@ def check_rows(step, n, p):
         raise SimplydataError(f"{step}() needs more rows ({n}) than values to estimate ({p}).")
 
 
-__all__ = ["MORE_OUTCOMES", "outcome_codes", "explain_more", "check_rows", "_skipped_note"]
+__all__ = ["MORE_OUTCOMES", "ZERO_OUTCOMES", "outcome_codes", "explain_more", "check_rows", "_skipped_note"]

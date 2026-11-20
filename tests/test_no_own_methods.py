@@ -45,6 +45,10 @@ ALLOWED = {
     "table/models.py::_nested_mixed": "inverts the fixed-effects block of statsmodels' MixedLM Hessian (lme4 vcov), groups inside groups",
     "table/models.py::ModelWords._fit_model": "matrix_rank: checks the columns before fitting",
     "table/models.py::ModelWords._more_model": "matrix_rank: the same column check before fitting",
+    "table/models.py::ModelWords._explain_matched": "matrix_rank: the same column check before conditional logistic "
+                                                    "regression (statsmodels ConditionalLogit)",
+    "table/models.py::ModelWords._explain_more": "matrix_rank: the same column check for the zero part's own columns "
+                                                 "(zero_part_using=)",
     "table/models.py::ModelWords._rank_problem": "names the columns that repeat others, for the error message",
     "table/models.py::ModelWords._whole_column_tests": "Wald chi-square b' V^-1 b from the fitted covariance",
     "table/models.py::ModelWords._model_notes": "variance inflation factors from the correlation matrix",
@@ -76,6 +80,12 @@ ALLOWED_ARITHMETIC = {
     "table/accuracy_words.py::_per_1000": "natural frequencies: each share times 1000, rounded",
     "table/agreement_words.py::AgreementWords._cohen": "the chance agreement read back from statsmodels' unweighted "
                                                        "kappa: (raw - kappa) / (1 - kappa)",
+    "table/models_extra.py::other_pseudo": "Nagelkerke's pseudo R squared = statsmodels' Cox-Snell divided by its "
+                                           "largest value, 1 - exp(2 llnull / n), and Tjur's = the average fitted "
+                                           "chance among yes minus among no (the definitions R performance uses)",
+    "table/models_extra.py::standardise": "z-scores (value - average) / standard deviation of the rows used, before "
+                                          "the statsmodels refit, as R effectsize::standardize_parameters(method = "
+                                          "\"refit\")",
 }
 
 

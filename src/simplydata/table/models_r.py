@@ -178,15 +178,25 @@ def lmer_r(model, slopes=(), satterthwaite=False, tested=()):
     if slopes:
         values["Z"] = X[:, list(slopes)]
         random = "(1 + Z | g)"
+    crossed = (model.get("grouping") or {}).get("crossed_groups")
+    if crossed is not None:  # crossed_with=: a second grouping, crossed with the first, (1 | g) + (1 | c)
+        values["c"] = np.asarray(crossed, dtype=object)
+        random += " + (1 | c)"
     fit = "lmerTest::lmer" if satterthwaite else "lme4::lmer"
-    code = f"g <- factor(g); m <- {fit}(y ~ 0 + X + {random}, REML = TRUE); "
-    code += ("vc <- as.data.frame(lme4::VarCorr(m)); "
+    code = f"g <- factor(g); {'c <- factor(c); ' if crossed is not None else ''}m <- {fit}(y ~ 0 + X + {random}, REML = TRUE); "
+    # VarCorr() lists the groupings by their number of groups; g's rows first, then c's, then the residual
+    code += ("vc <- as.data.frame(lme4::VarCorr(m)); vc <- rbind(vc[vc$grp == 'g', ], vc[vc$grp == 'c', ], "
+             "vc[vc$grp == 'Residual', ]); "
              "out <- list(beta = unname(lme4::fixef(m)), cov = unname(as.matrix(stats::vcov(m))), "
              "fitted = unname(stats::fitted(m)), is_cor = !is.na(vc$var2), vcov = vc$vcov, sdcor = vc$sdcor, "
              "loglik = as.numeric(stats::logLik(m)), values = attr(stats::logLik(m), 'df'), "
              "singular = lme4::isSingular(m), trouble = length(m@optinfo$conv$lme4$messages) > 0); ")
-    if slopes:  # R squared for mixed models with own slopes (Nakagawa, Johnson's extension): R performance itself
+    if slopes and crossed is None:  # R squared with own slopes (Nakagawa, Johnson's extension): R performance itself
         code += "out$nakagawa <- " + nakagawa_code(k, slopes, "lme4::lmer", ", REML = TRUE") + "; "
+    elif crossed is not None:  # crossed groups: performance::r2_nakagawa() of this fit
+        code += ("out$nakagawa <- tryCatch(suppressWarnings(suppressMessages(unname(unlist("
+                 "performance::r2_nakagawa(m))))), error = function(e) c(NA_real_, NA_real_)); "
+                 "out$crossed <- vc$vcov[vc$grp == 'c'][1]; ")
     if satterthwaite:
         code += ("ci <- t(sapply(seq_len(ncol(L)), function(i) unlist(lmerTest::contest(m, L[i, ], confint = TRUE, "
                  "joint = FALSE)[c('df', 'lower', 'upper', 'Pr(>|t|)')]))); "
@@ -205,10 +215,15 @@ def lmer_r(model, slopes=(), satterthwaite=False, tested=()):
             code = code.replace("for (t in unique(tested_term))", "for (t in integer(0))")
     code += "out"
     packages = ("lme4", "lmerTest") if satterthwaite else ("lme4",)
-    if slopes:
+    if slopes or crossed is not None:
         packages += ("performance",)
     what = ("Satterthwaite p-values for a mixed model (R lmerTest)" if satterthwaite else
+            "A mixed model with crossed groups (R lme4::lmer())" if crossed is not None else
             "A mixed model with its own slope for each group (R lme4::lmer())")
+    if crossed is not None and not satterthwaite:
+        note = "statsmodels MixedLM fits one grouping (or groups inside groups), not two crossed ones"
+        out = r_call(code, packages=packages, source="lme4", what=what, python_note=note, **values)
+        return out
     note = ("explain() without p_value_by= gives Wald z-tests from statsmodels without R" if satterthwaite else
             "statsmodels MixedLM(re_formula=) fits own slopes too, but does not reliably reach lme4's answer")
     out = r_call(code, packages=packages, source="lmerTest" if satterthwaite else "lme4", what=what,
@@ -377,3 +392,32 @@ def robust_cov(model):
                              "gives only HC0, which is smaller with few rows", **values)
     k = model["X"].shape[1]
     return np.asarray(out, dtype=float).reshape(k, k)
+
+
+def profile_intervals(model):
+    """R stats::confint() of the GLM explain() fitted (refitted in R on the same model matrix, offset and tries):
+    95 % profile-likelihood intervals of each effect, on the log scale (R 4.4 moved them from MASS into stats)."""
+    from .._r import r_call
+
+    fit, kind = model["fit"], model["kind"]
+    values = {"y": np.asarray(model["y"], dtype=float), "X": np.asarray(model["X"], dtype=float)}
+    left, offset = "y", ""
+    if fit.get("trials") is not None:
+        left, values["n"] = "cbind(y, n - y)", np.asarray(fit["trials"], dtype=float)
+    if fit.get("exposure") is not None:
+        offset, values["t"] = " + offset(log(t))", np.asarray(fit["exposure"], dtype=float)
+    link = fit.get("link")
+    family = {"binomial": f"binomial(link = '{link or 'logit'}')", "poisson": f"poisson(link = '{link or 'log'}')"}
+    if kind == "negbin":
+        code = f"m <- MASS::glm.nb({left} ~ 0 + X{offset}); "
+        packages = ("MASS",)
+    else:
+        code = f"m <- stats::glm({left} ~ 0 + X{offset}, family = {family[kind]}); "
+        packages = ()
+    code += "unname(as.matrix(suppressMessages(stats::confint(m, level = 0.95))))"
+    out = r_call(code, packages=packages, source="stats::confint",
+                 what="Profile-likelihood intervals (R stats::confint() of a glm)",
+                 python_note="statsmodels gives Wald intervals only (the default interval_by=\"wald\")", **values)
+    k = model["X"].shape[1]
+    out = np.asarray(out, dtype=float).reshape(k, 2)
+    return out[:, 0], out[:, 1]
