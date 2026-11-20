@@ -256,15 +256,22 @@ statistics are checked against SciPy, seaborn and R on reference data.
 | Statistics I | Tests: effect sizes with intervals, 2x2 tables, agreement between raters, diagnostic accuracy, bootstrap and permutation tests, equivalence tests, one-sided tests |
 | v0.6 | Signals, time series and control systems: smoothing, filtering, peaks, Fourier transforms, rolling averages, resampling dates; transfer functions and step responses |
 | Statistics II | The full model family: ANOVA tables, extensions of generalised linear models, mixed models for yes/no answers and counts, GEE, model diagnostics |
-| v0.7 | Multivariate statistics II, and Bayesian statistics (as an optional extra) |
-| Statistics III | Survival II, meta-analysis, power analysis II, design of experiments, survey weights |
-| v0.8 | Maths: areas under curves (integration), differential equations (ODEs), matrices and linear algebra, with SymPy |
-| v0.9 | Tables and data handling: the remaining pandas and Polars tasks (row summaries, ordered categories, date arithmetic, choosing columns by a rule ...); SQL queries on tables (DuckDB); labelled arrays (xarray) |
-| v0.10 | Numbers and arrays: the remaining NumPy tasks |
-| v0.11 | Charts II: page layouts, insets, polar and 3D in full, arrows, colour maps and norms, chart.undo; interactive charts (Plotly) and maps (GeoPandas, Cartopy) |
-| v0.12 | Images and networks: image processing with scikit-image (filters, labelling, measuring shapes) and graphs with NetworkX (shortest paths, connected parts) |
+| Statistics III | Survival II, meta-analysis, power and sample size II (done); communities and resistomes (done); hidden factors, directions, places and extremes, small additions; then study design, surveys, causal questions and Bayesian statistics (as an optional extra) |
 
-Goal: every task in pandas, Polars, NumPy, SciPy, matplotlib and seaborn has a simple simplydata word. Cells hold
+### Order from here (2026-11-20)
+
+One package group at a time, each to 100 % of its important tasks before the next. Optional extras use the same
+simple words, and plain words are added only where the package's own syntax is hard.
+
+| Step | Packages | Content |
+|---|---|---|
+| 1 | Statistics (in progress) | Importance 1 done; importance 2 being finished (Statistics III above) |
+| 2 | pandas, Polars, DuckDB | The remaining table and data-handling tasks; SQL queries on tables and files (DuckDB) |
+| 3 | matplotlib, seaborn, plotly, GeoPandas + Cartopy | Charts II (page layouts, insets, polar and 3D, colour maps); interactive charts with the same chart words (plotly); maps and geographic data (GeoPandas, Cartopy) |
+| 4 | NumPy, SciPy, xarray + netCDF, SymPy | The remaining array and maths tasks: integration, differential equations, linear algebra; labelled multi-dimensional data such as ocean and climate grids (xarray, netCDF); exact and symbolic maths (SymPy) |
+| 5 | NetworkX, scikit-image | Networks (shortest paths, connected parts) and images (filters, labelling, measuring shapes) |
+
+Goal: every important task in pandas, Polars, NumPy, SciPy, statsmodels, matplotlib and seaborn, and in the optional extras above, has a simple simplydata word. Cells hold
 one value each (lists inside cells are split into rows instead). Machine learning, deep learning and language models
 belong to a separate future package.
 
