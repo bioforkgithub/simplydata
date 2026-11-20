@@ -10,9 +10,9 @@ authors:
   - given-names: Manish Prakash
     family-names: Victor
     orcid: "https://orcid.org/0000-0002-1409-5894"
-version: 0.1.0
+version: 0.2.0
 doi: "10.5281/zenodo.24210045"
-date-released: "2026-11-14"
+date-released: "2026-11-20"
 license: MIT
 repository-code: "https://github.com/bioforkgithub/simplydata"
 url: "https://pypi.org/project/simplydata/"

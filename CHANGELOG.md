@@ -5,8 +5,6 @@ working for one release and prints a one-line note with its new name.
 
 ## Unreleased
 
-More statistics, each checked against R.
-
 ### Lines and curves (S3a-2)
 
 - **New word `table.fit_dose_response(x=, y=)`** and its chart twin **`chart.fit_dose_response()`**: a
@@ -45,6 +43,11 @@ More statistics, each checked against R.
   "The same underneath" now has entries for single options too (`UNDERNEATH_OPTIONS`), run by
   `tests/test_underneath_options.py` and listed in the report.
 - New R packages for the R extra: drc, segmented, smatr, mcr and quantreg (deming for the study).
+
+
+## 0.2.0 (2026-11-20)
+
+More statistics (tests and models), signals and time series, the 30-day course, the talking syntax, the same-underneath boxes and the public reliability study. Every printed statistical result is checked against R.
 
 ### The same underneath, and a public reliability study
 

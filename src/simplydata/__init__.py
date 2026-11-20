@@ -36,7 +36,7 @@ from .systems import System, frequency_filter, system
 from .learn import help, show_all_words, show_lesson  # noqa: E402
 from .learn_days import go_to_next_day, show_answers, show_day, show_today, start_30_days  # noqa: E402
 
-__version__ = "0.1.0"
+__version__ = "0.2.0"
 
 # Old names that still work for one release (with a note the first time): old -> new.
 # They are never listed in __all__, sdata.show_all_words() or the lessons.
