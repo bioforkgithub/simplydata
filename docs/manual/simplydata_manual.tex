@@ -271,7 +271,7 @@ can write it up in a report or a paper.
 
 \section*{How this manual is built}
 \begin{description}[style=nextline,leftmargin=1.2em]
-  \item[{\hyperref[part:lessons]{Part II: Lessons}}] Twenty-six short lessons that teach the whole
+  \item[{\hyperref[part:lessons]{Part II: Lessons}}] Twenty-seven short lessons that teach the whole
     of simplydata in a day. Each lesson shows code you can run, says what every line does, shows
     the real chart and output it makes, and ends with tasks to try yourself.
   \item[{\hyperref[part:dictionary]{Part III: Dictionary of words}}] Every word, with what it does,
@@ -2664,6 +2664,7 @@ Worked solutions: page~\pageref{solutions:15}, or type \code{sdata.\allowbreak{}
   \item how to explain a yes/no column (logistic regression) and a column of counts (Poisson regression)
   \item how to allow for groups such as schools (a mixed model)
   \item how to use rows with empty cells without guessing once (multiple imputation)
+  \item how to say how much a column changes the chance of yes (a risk ratio, not only an odds ratio)
 \end{itemize}
 \end{learnbox}
 \begin{needsr}Only \code{explain(.\allowbreak{}.\allowbreak{}.\allowbreak{},\allowbreak{} empty\_\allowbreak{}cells=\textquotedbl{}multiple imputation\textquotedbl{})} needs R: it pools its results with R (mice). The rest of the lesson needs no R. That option and the other R words run R's own code, the same code R users run. Install it once: pip install \code{\textquotedbl{}simplydata[r]\textquotedbl{}}, then R from https://cran.r-project.org, then in R: \code{install.\allowbreak{}packages(c(\textquotedbl{}vegan\textquotedbl{},\allowbreak{} \textquotedbl{}survival\textquotedbl{},\allowbreak{} \textquotedbl{}mice\textquotedbl{},\allowbreak{} \textquotedbl{}emmeans\textquotedbl{}))}. Without R these words print a message that says what to install.\end{needsr}
@@ -2719,6 +2720,22 @@ table.explain("marks", using=["hours", "sleep", "breakfast"], empty_cells="multi
   \item[4] 19 pupils did not say how long they slept. Instead of leaving them out, multiple imputation fills the empty cells 20 times, fits the model to each filled-in table and pools the 20 answers (Rubin's rules), so the extra uncertainty is counted.
 \end{lineexplain}
 \printedoutput{output/lesson16_example3.txt}
+\section*{Example 4}
+An odds ratio is not a risk ratio. When yes is common, the odds ratio is further from 1 than the change in the chance itself, and readers often take it for the chance.
+\begin{lstlisting}[style=py]
+import simplydata as sdata
+table = sdata.table(sdata.get_example("school"))
+table.explain("passed", using=["hours", "breakfast"], outcome="yes or no")
+table.explain("passed", using=["hours", "breakfast"], outcome="yes or no", show="risk ratios")
+\end{lstlisting}
+\whateachline
+\begin{lineexplain}
+  \item[1] Load simplydata.
+  \item[2] The school table.
+  \item[3] Odds ratios, as in part 2. 43 \% of the pupils passed, so the printout ends with a note: an odds ratio is not a risk ratio here, and \code{show=\textquotedbl{}risk ratios\textquotedbl{}} gives risk ratios.
+  \item[4] \code{show=\textquotedbl{}risk ratios\textquotedbl{}} gives risk ratios (modified Poisson regression): each extra hour of study multiplies the chance of passing by 1.21, where the odds ratio was 1.66. Say in words what 1.21 means: with one more hour of study, the chance of passing is about a fifth higher.
+\end{lineexplain}
+\printedoutput{output/lesson16_example4.txt}
 \begin{goodtoknow}
 \begin{itemize}
   \item Each effect in \code{explain()} holds the other columns fixed: the effect of sleep is the effect for pupils who study the same number of hours and have the same breakfast.
@@ -2728,6 +2745,8 @@ table.explain("marks", using=["hours", "sleep", "breakfast"], empty_cells="multi
   \item \code{grouped\_\allowbreak{}by=} is for rows that come in groups: pupils in schools, measurements on the same animal, samples from the same site. Without it, the p-values are too small.
   \item Multiple imputation needs the empty cells to be explainable by the other columns (missing at random). Say in your report how many cells were empty and how they were handled.
   \item \code{grouped\_\allowbreak{}by=} works out of the box (statsmodels comes with simplydata). Multiple imputation pools its results in R, so it needs R (see the box at the start).
+  \item A risk ratio of 1.21 means the chance of yes is 21 \% higher. Report risk ratios when yes is common (more than about 1 in 10 rows); simplydata says when that is the case.
+  \item More outcomes for later, all in the manual and the dictionary: \code{\textquotedbl{}yes or no (overdispersed)\textquotedbl{}} (yes counts out of tries that vary a lot), \code{\textquotedbl{}counts with many zeros that vary a lot\textquotedbl{}} and \code{\textquotedbl{}counts in two steps\textquotedbl{}} (first zero or not, then how many).
 \end{itemize}
 \end{goodtoknow}
 \begin{tryit}
@@ -2735,6 +2754,7 @@ table.explain("marks", using=["hours", "sleep", "breakfast"], empty_cells="multi
   \item Explain \code{\textquotedbl{}marks\textquotedbl{}} using \code{\textquotedbl{}hours\textquotedbl{}} and \code{\textquotedbl{}school\textquotedbl{}} (school as a column of groups). Which schools differ from School A, and is school as a whole important?
   \item Explain \code{\textquotedbl{}passed\textquotedbl{}} using \code{\textquotedbl{}hours\textquotedbl{}} and \code{\textquotedbl{}sleep\textquotedbl{}} with \code{outcome=\textquotedbl{}yes or no\textquotedbl{}}.
   \item Explain \code{\textquotedbl{}days\_\allowbreak{}absent\textquotedbl{}} using \code{\textquotedbl{}hours\textquotedbl{}} and \code{\textquotedbl{}breakfast\textquotedbl{}} with \code{outcome=\textquotedbl{}counts\textquotedbl{}}. Does breakfast matter?
+  \item In the clinic table, explain \code{\textquotedbl{}caught\_\allowbreak{}infection\textquotedbl{}} using \code{\textquotedbl{}ward\textquotedbl{}} and \code{\textquotedbl{}patient\_\allowbreak{}days\textquotedbl{}} with \code{outcome=\textquotedbl{}yes or no\textquotedbl{}}, first as odds ratios and then with \code{show=\textquotedbl{}risk ratios\textquotedbl{}}. Which is further from 1?
 \end{enumerate}
 Worked solutions: page~\pageref{solutions:16}, or type \code{sdata.\allowbreak{}show\_\allowbreak{}lesson(16,\allowbreak{} solutions=True)}.
 \end{tryit}
@@ -3961,6 +3981,48 @@ chart.save("spring_in_steps.png")
 Worked solutions: page~\pageref{solutions:26}, or type \code{sdata.\allowbreak{}show\_\allowbreak{}lesson(26,\allowbreak{} solutions=True)}.
 \end{tryit}
 \par\noindent{\small\sffamily\textbf{Words in this lesson:} \hyperref[word:sdata.frequency-filter]{\code{sdata.\allowbreak{}frequency\_\allowbreak{}filter()}}, \hyperref[word:sdata.system]{\code{sdata.\allowbreak{}system()}}, \hyperref[word:system.poles]{\code{system.\allowbreak{}poles()}}, \hyperref[word:system.chart]{\code{system.\allowbreak{}chart()}}, \hyperref[word:system.step-response]{\code{system.\allowbreak{}step\_\allowbreak{}response()}}, \hyperref[word:system.then]{\code{system.\allowbreak{}then()}}, \hyperref[word:system.with-feedback]{\code{system.\allowbreak{}with\_\allowbreak{}feedback()}}, \hyperref[word:system.frequency-response]{\code{system.\allowbreak{}frequency\_\allowbreak{}response()}}, \hyperref[word:system.in-steps]{\code{system.\allowbreak{}in\_\allowbreak{}steps()}}.\par}
+
+\chapter{Beyond the average line: outliers}\label{lesson:27}
+\begin{learnbox}
+\begin{itemize}
+  \item how a few rows far from the rest pull an ordinary model towards them
+  \item how to give those rows less weight (robust regression, Huber's method)
+  \item how \code{giving\_\allowbreak{}outliers\_\allowbreak{}less\_\allowbreak{}weight=} differs from \code{robust\_\allowbreak{}errors=}
+\end{itemize}
+\end{learnbox}
+\section*{Example}
+A least-squares line counts every row the same, so a few rows far from the rest pull it towards them. Robust regression gives those rows less weight, so they pull less.
+\begin{lstlisting}[style=py]
+import simplydata as sdata
+table = sdata.table(sdata.get_example("school"))
+table.explain("marks", using=["hours", "breakfast"])
+table.explain("marks", using=["hours", "breakfast"], giving_outliers_less_weight=True)
+table.explain("marks", using=["hours", "breakfast"], robust_errors=True)
+\end{lstlisting}
+\whateachline
+\begin{lineexplain}
+  \item[1] Load simplydata.
+  \item[2] Pupils in 12 schools (lesson 16).
+  \item[3] The ordinary model (least squares, as in lesson 16): each extra hour of study goes with about 2.8 more marks.
+  \item[4] The same model with Huber's weights: rows far from the line count less. The effect of study hardly moves (2.87), and the printout lists the rows given less weight, by their row number. Say in words what that means: no few pupils decide the answer here.
+  \item[5] Not the same thing: \code{robust\_\allowbreak{}errors=True} keeps the effects of the ordinary model (2.82) and only changes their standard errors, so the intervals stay right when the spread is not the same everywhere. Outliers still pull.
+\end{lineexplain}
+\printedoutput{output/lesson27_example1.txt}
+\begin{goodtoknow}
+\begin{itemize}
+  \item \code{giving\_\allowbreak{}outliers\_\allowbreak{}less\_\allowbreak{}weight=True} changes the effects (rows far from the model count less); \code{robust\_\allowbreak{}errors=True} keeps the effects and changes only their standard errors. Choose by the problem: outliers, or a spread that is not the same everywhere.
+  \item Huber's method resists outliers in the column you explain, not unusual values in the \code{using=} columns (far-out hours, for example). \code{table.\allowbreak{}show\_\allowbreak{}rows\_\allowbreak{}that\_\allowbreak{}pull\_\allowbreak{}model()} finds those.
+  \item A row given less weight is not wrong: look at it before you decide anything. Say in your report that you used robust regression (Huber's M-estimation, as R MASS::\code{rlm()}).
+\end{itemize}
+\end{goodtoknow}
+\begin{tryit}
+\begin{enumerate}
+  \item In the marks table, explain \code{\textquotedbl{}marks\textquotedbl{}} from \code{\textquotedbl{}hours\textquotedbl{}} with \code{giving\_\allowbreak{}outliers\_\allowbreak{}less\_\allowbreak{}weight=True}. Which rows get less weight?
+  \item Without looking back: which option changes the effects themselves, \code{giving\_\allowbreak{}outliers\_\allowbreak{}less\_\allowbreak{}weight=} or \code{robust\_\allowbreak{}errors=}? Run both on the school table to check.
+\end{enumerate}
+Worked solutions: page~\pageref{solutions:27}, or type \code{sdata.\allowbreak{}show\_\allowbreak{}lesson(27,\allowbreak{} solutions=True)}.
+\end{tryit}
+\par\noindent{\small\sffamily\textbf{Words in this lesson:} \hyperref[word:table.explain]{\code{table.\allowbreak{}explain()}}, \hyperref[word:table.show-rows-that-pull-model]{\code{table.\allowbreak{}show\_\allowbreak{}rows\_\allowbreak{}that\_\allowbreak{}pull\_\allowbreak{}model()}}.\par}
 
 \otherchapters
 
@@ -8884,7 +8946,7 @@ print(dist.show_parameters())
 Explain one column from several others with a model, and say how big each effect is.
 
 \codeline{table.explain(\textquotedbl{}marks\textquotedbl{}, using=[\textquotedbl{}hours\textquotedbl{}, \textquotedbl{}breakfast\textquotedbl{}])   (with sdata.get\_example(\textquotedbl{}school\textquotedbl{}))}\\
-\code{outcome=\textquotedbl{}numbers\textquotedbl{}} (the default): linear model by least squares (R \code{lm()}). \code{outcome=\textquotedbl{}yes or no\textquotedbl{}}: logistic regression, odds ratios (R \code{glm(family = binomial)}). \code{outcome=\textquotedbl{}counts\textquotedbl{}}: Poisson regression, rate ratios (R \code{glm(family = poisson)}); \code{outcome=\textquotedbl{}counts (overdispersed)\textquotedbl{}}: quasi-Poisson (R \code{glm(family = quasipoisson)}); \code{outcome=\textquotedbl{}counts that vary a lot\textquotedbl{}}: negative binomial (R MASS::\code{glm.\allowbreak{}nb()}). \code{outcome=\textquotedbl{}positive numbers\textquotedbl{}}: Gamma regression with a log link, for positive, skewed numbers such as times or amounts (R \code{glm(family = Gamma(link = \textquotedbl{}log\textquotedbl{}))}); effects multiply the average. \code{time=\textquotedbl{}years\textquotedbl{}} with counts: rates, the count per unit of time (R offset = \code{log(years)}). \code{out\_\allowbreak{}of=\textquotedbl{}tries\textquotedbl{}} with \code{outcome=\textquotedbl{}yes or no\textquotedbl{}}: the column holds the number of yes out of that many tries (R \code{glm(cbind(yes,\allowbreak{} tries - yes) \textasciitilde{} .\allowbreak{}.\allowbreak{}.\allowbreak{},\allowbreak{} family = binomial)}). \code{outcome=\textquotedbl{}ordered groups\textquotedbl{}}: ordered logistic regression (R MASS::\code{polr()}); give the order of text groups, lowest first, with \code{in\_\allowbreak{}order=[\textquotedbl{}low\textquotedbl{},\allowbreak{} \textquotedbl{}middle\textquotedbl{},\allowbreak{} \textquotedbl{}high\textquotedbl{}]}. \code{outcome=\textquotedbl{}groups\textquotedbl{}}: multinomial logistic regression, each group against the first (R nnet::\code{multinom()}). \code{outcome=\textquotedbl{}shares\textquotedbl{}}: beta regression for shares between 0 and 1 (R betareg). \code{outcome=\textquotedbl{}counts with many zeros\textquotedbl{}}: zero-inflated Poisson regression (R pscl::\code{zeroinfl()}). \code{link=} (experts): \code{\textquotedbl{}probit\textquotedbl{}} or \code{\textquotedbl{}cloglog\textquotedbl{}} for yes or no, \code{\textquotedbl{}identity\textquotedbl{}} or \code{\textquotedbl{}sqrt\textquotedbl{}} for counts, \code{\textquotedbl{}inverse\textquotedbl{}} or \code{\textquotedbl{}identity\textquotedbl{}} for positive numbers; the effects are then on that scale, not ratios. \code{test\_\allowbreak{}type=\textquotedbl{}type 2\textquotedbl{}} adds a table with one test for each column (an ANOVA table): \code{\textquotedbl{}type 2\textquotedbl{}} (the usual choice, R car::\code{Anova(type = 2)}), \code{\textquotedbl{}type 3\textquotedbl{}} (sum-to-zero coding, R car::\code{Anova(type = 3)}) or \code{\textquotedbl{}in order\textquotedbl{}} (R \code{anova()}; the order of \code{using=} matters), with partial eta-squared for numbers (R effectsize). A text column in \code{using=} is a group column: each group is compared with the first group in sorted order (the baseline). \code{\textquotedbl{}hours * breakfast\textquotedbl{}} adds both columns and their interaction (does the effect of hours depend on breakfast?). \code{grouped\_\allowbreak{}by=\textquotedbl{}school\textquotedbl{}}: a mixed model with its own starting level for each school (R lme4::\code{lmer()}), for rows that belong together; \code{grouped\_\allowbreak{}by=[\textquotedbl{}school\textquotedbl{},\allowbreak{} \textquotedbl{}class\textquotedbl{}]} for classes inside schools ((1 \textbar{} school/class)). \code{own\_\allowbreak{}slope\_\allowbreak{}for=\textquotedbl{}hours\textquotedbl{}} gives each school its own slope for hours too (R lme4::\code{lmer()} itself, (1 + hours \textbar{} school)). \code{p\_\allowbreak{}value\_\allowbreak{}by=\textquotedbl{}satterthwaite\textquotedbl{}} (or \code{\textquotedbl{}few groups\textquotedbl{}}) gives t-tests with Satterthwaite degrees of freedom (R lmerTest) instead of Wald z-tests. \code{effects=\textquotedbl{}for the whole population\textquotedbl{}} fits GEE instead (statsmodels, as R geepack::\code{geeglm()}): effects averaged over all groups, with \code{within\_\allowbreak{}groups=\textquotedbl{}alike\textquotedbl{}} (the default), \code{\textquotedbl{}in time order\textquotedbl{}} (rows in table order, R geepack) or \code{\textquotedbl{}independent\textquotedbl{}}; GEE takes \code{time=}, \code{out\_\allowbreak{}of=} (R geepack) and \code{link=} for yes or no too. \code{curve\_\allowbreak{}for=\textquotedbl{}hours\textquotedbl{}} lets \code{\textquotedbl{}hours\textquotedbl{}} follow a curve instead of a straight line (a generalised additive model with a smooth term \code{s(hours)}, R mgcv::\code{gam(marks \textasciitilde{} s(hours) + .\allowbreak{}.\allowbreak{}.\allowbreak{},\allowbreak{} method = \textquotedbl{}REML\textquotedbl{})}). \code{robust\_\allowbreak{}errors=True} (experts) gives robust standard errors (sandwich, HC3, as R sandwich::\code{vcovHC()}), which stay right when the spread is not the same everywhere; it does not make the model resistant to outliers. \code{empty\_\allowbreak{}cells=\textquotedbl{}multiple imputation\textquotedbl{}} fills in empty cells 20 times (R \code{mice()}) instead of leaving those rows out; \code{with\_\allowbreak{}seed=} fixes the random filling. Prints each effect with its 95 \% confidence interval and p-value in words, and how well the model fits: R squared (numbers), McFadden's pseudo R squared (yes or no, counts, groups) or Nakagawa's R squared (\code{grouped\_\allowbreak{}by=}, R performance, needs R), with AIC and BIC (R \code{AIC()}, \code{BIC()}). Gives back a table with one row per term. A link does not show that one thing causes the other.
+\code{outcome=\textquotedbl{}numbers\textquotedbl{}} (the default): linear model by least squares (R \code{lm()}). \code{outcome=\textquotedbl{}yes or no\textquotedbl{}}: logistic regression, odds ratios (R \code{glm(family = binomial)}). \code{outcome=\textquotedbl{}counts\textquotedbl{}}: Poisson regression, rate ratios (R \code{glm(family = poisson)}); \code{outcome=\textquotedbl{}counts (overdispersed)\textquotedbl{}}: quasi-Poisson (R \code{glm(family = quasipoisson)}); \code{outcome=\textquotedbl{}counts that vary a lot\textquotedbl{}}: negative binomial (R MASS::\code{glm.\allowbreak{}nb()}). \code{outcome=\textquotedbl{}positive numbers\textquotedbl{}}: Gamma regression with a log link, for positive, skewed numbers such as times or amounts (R \code{glm(family = Gamma(link = \textquotedbl{}log\textquotedbl{}))}); effects multiply the average. \code{time=\textquotedbl{}years\textquotedbl{}} with counts: rates, the count per unit of time (R offset = \code{log(years)}). \code{out\_\allowbreak{}of=\textquotedbl{}tries\textquotedbl{}} with \code{outcome=\textquotedbl{}yes or no\textquotedbl{}}: the column holds the number of yes out of that many tries (R \code{glm(cbind(yes,\allowbreak{} tries - yes) \textasciitilde{} .\allowbreak{}.\allowbreak{}.\allowbreak{},\allowbreak{} family = binomial)}). With \code{out\_\allowbreak{}of=}, \code{outcome=\textquotedbl{}yes or no (overdispersed)\textquotedbl{}} is quasi-binomial (R \code{glm(family = quasibinomial)}), for yes counts that vary more than the binomial allows. \code{outcome=\textquotedbl{}ordered groups\textquotedbl{}}: ordered logistic regression (R MASS::\code{polr()}); give the order of text groups, lowest first, with \code{in\_\allowbreak{}order=[\textquotedbl{}low\textquotedbl{},\allowbreak{} \textquotedbl{}middle\textquotedbl{},\allowbreak{} \textquotedbl{}high\textquotedbl{}]}. \code{outcome=\textquotedbl{}groups\textquotedbl{}}: multinomial logistic regression, each group against the first (R nnet::\code{multinom()}). \code{outcome=\textquotedbl{}shares\textquotedbl{}}: beta regression for shares between 0 and 1 (R betareg). \code{outcome=\textquotedbl{}counts with many zeros\textquotedbl{}}: zero-inflated Poisson regression (R pscl::\code{zeroinfl()}); \code{\textquotedbl{}counts with many zeros that vary a lot\textquotedbl{}}: zero-inflated negative binomial (pscl::\code{zeroinfl(dist = \textquotedbl{}negbin\textquotedbl{})}). \code{outcome=\textquotedbl{}counts in two steps\textquotedbl{}} (a hurdle model; \code{\textquotedbl{}hurdle\textquotedbl{}} works too): first zero or not, then how many among the counts above 0 (R pscl::\code{hurdle()}); \code{\textquotedbl{}counts in two steps that vary a lot\textquotedbl{}} with a negative binomial second step. \code{zero\_\allowbreak{}part\_\allowbreak{}using=[\textquotedbl{}distance\textquotedbl{}]} gives the zero part its own columns (R pscl's y \textasciitilde{} x \textbar{} z). \code{link=} (experts): \code{\textquotedbl{}probit\textquotedbl{}} or \code{\textquotedbl{}cloglog\textquotedbl{}} for yes or no, \code{\textquotedbl{}identity\textquotedbl{}} or \code{\textquotedbl{}sqrt\textquotedbl{}} for counts, \code{\textquotedbl{}inverse\textquotedbl{}} or \code{\textquotedbl{}identity\textquotedbl{}} for positive numbers; the effects are then on that scale, not ratios. \code{test\_\allowbreak{}type=\textquotedbl{}type 2\textquotedbl{}} adds a table with one test for each column (an ANOVA table): \code{\textquotedbl{}type 2\textquotedbl{}} (the usual choice, R car::\code{Anova(type = 2)}), \code{\textquotedbl{}type 3\textquotedbl{}} (sum-to-zero coding, R car::\code{Anova(type = 3)}) or \code{\textquotedbl{}in order\textquotedbl{}} (R \code{anova()}; the order of \code{using=} matters), with partial eta-squared for numbers (R effectsize). A text column in \code{using=} is a group column: each group is compared with the first group in sorted order (the baseline). \code{\textquotedbl{}hours * breakfast\textquotedbl{}} adds both columns and their interaction (does the effect of hours depend on breakfast?). \code{weights=\textquotedbl{}precision\textquotedbl{}}: each row counts as much as its weight says (precision weights, R \code{lm(weights =)} and \code{glm(weights =)}; statsmodels WLS and \code{GLM(var\_\allowbreak{}weights=)}); rows with weight 0 are left out, as R does. \code{show=\textquotedbl{}risk ratios\textquotedbl{}} with \code{outcome=\textquotedbl{}yes or no\textquotedbl{}}: risk ratios instead of odds ratios, by modified Poisson regression (Zou 2004; R \code{glm(family = poisson)} with sandwich::\code{vcovHC(type = \textquotedbl{}HC0\textquotedbl{})}); \code{method=\textquotedbl{}log-binomial\textquotedbl{}} fits a log-binomial model instead (R \code{glm(family = binomial(link = \textquotedbl{}log\textquotedbl{}))}, which may not converge). \code{show=\textquotedbl{}standardised effects\textquotedbl{}} (also \code{\textquotedbl{}standardized effects\textquotedbl{}}): each effect per standard deviation, from the model fitted again on z-scores (R effectsize::\code{standardize\_\allowbreak{}parameters(method = \textquotedbl{}refit\textquotedbl{})}). \code{matched\_\allowbreak{}by=\textquotedbl{}set\textquotedbl{}} with \code{outcome=\textquotedbl{}yes or no\textquotedbl{}}: conditional logistic regression for matched case-control sets (R survival::\code{clogit()}; statsmodels ConditionalLogit). \code{giving\_\allowbreak{}outliers\_\allowbreak{}less\_\allowbreak{}weight=True}: robust regression (Huber's M-estimation, R MASS::\code{rlm()}; statsmodels RLM), so a few outliers in the column explained pull the effects less. Not the same as \code{robust\_\allowbreak{}errors=True}, which keeps the effects and only changes their standard errors. \code{curve\_\allowbreak{}for=\textquotedbl{}hours\textquotedbl{}} with \code{with\_\allowbreak{}knots=3}: \code{\textquotedbl{}hours\textquotedbl{}} follows a natural cubic spline whose pieces join at 3 knots, the points where the pieces of the curve join (R splines::\code{ns(hours,\allowbreak{} df = 4)}; patsy \code{cr()}); the printout gives the test of the whole curve, which asks whether \code{\textquotedbl{}hours\textquotedbl{}} matters at all (is the curve flat?), not whether it bends. \code{interval\_\allowbreak{}by=\textquotedbl{}profile\textquotedbl{}} (or \code{\textquotedbl{}profile likelihood\textquotedbl{}}): profile-likelihood 95 \% intervals for yes or no and counts (R \code{confint()} of the glm; needs R); \code{interval\_\allowbreak{}by=\textquotedbl{}bootstrap\textquotedbl{}}: BCa intervals from \code{resamples=9999} resamples of the rows (\code{with\_\allowbreak{}seed=1}; SciPy bootstrap, as R boot::\code{boot.\allowbreak{}ci()}). A group with only a few rows can be missing from a resample; \code{explain()} then stops, and whether that happens depends on \code{with\_\allowbreak{}seed=}. Fewer resamples are not the fix: merge the rare group, or use \code{interval\_\allowbreak{}by=\textquotedbl{}profile\textquotedbl{}} (yes or no and counts). \code{p\_\allowbreak{}value\_\allowbreak{}by=\textquotedbl{}likelihood ratio\textquotedbl{}}: a likelihood-ratio test for each column (R \code{drop1(m,\allowbreak{} test = \textquotedbl{}LRT\textquotedbl{})}) instead of the Wald z-test. \code{grouped\_\allowbreak{}by=\textquotedbl{}school\textquotedbl{}}: a mixed model with its own starting level for each school (R lme4::\code{lmer()}), for rows that belong together; \code{grouped\_\allowbreak{}by=[\textquotedbl{}school\textquotedbl{},\allowbreak{} \textquotedbl{}class\textquotedbl{}]} for classes inside schools ((1 \textbar{} school/class)). \code{own\_\allowbreak{}slope\_\allowbreak{}for=\textquotedbl{}hours\textquotedbl{}} gives each school its own slope for hours too (R lme4::\code{lmer()} itself, (1 + hours \textbar{} school)). \code{crossed\_\allowbreak{}with=\textquotedbl{}item\textquotedbl{}} with \code{grouped\_\allowbreak{}by=\textquotedbl{}subject\textquotedbl{}}: a second grouping crossed with the first, (1 \textbar{} subject) + (1 \textbar{} item) (R lme4 itself), when each subject meets several items. \code{p\_\allowbreak{}value\_\allowbreak{}by=\textquotedbl{}satterthwaite\textquotedbl{}} (or \code{\textquotedbl{}few groups\textquotedbl{}}) gives t-tests with Satterthwaite degrees of freedom (R lmerTest) instead of Wald z-tests. \code{effects=\textquotedbl{}for the whole population\textquotedbl{}} fits GEE instead (statsmodels, as R geepack::\code{geeglm()}): effects averaged over all groups, with \code{within\_\allowbreak{}groups=\textquotedbl{}alike\textquotedbl{}} (the default), \code{\textquotedbl{}in time order\textquotedbl{}} (rows in table order, R geepack) or \code{\textquotedbl{}independent\textquotedbl{}}; GEE takes \code{time=}, \code{out\_\allowbreak{}of=} (R geepack) and \code{link=} for yes or no too. \code{curve\_\allowbreak{}for=\textquotedbl{}hours\textquotedbl{}} lets \code{\textquotedbl{}hours\textquotedbl{}} follow a curve instead of a straight line (a generalised additive model with a smooth term \code{s(hours)}, R mgcv::\code{gam(marks \textasciitilde{} s(hours) + .\allowbreak{}.\allowbreak{}.\allowbreak{},\allowbreak{} method = \textquotedbl{}REML\textquotedbl{})}). \code{robust\_\allowbreak{}errors=True} (experts) gives robust standard errors (sandwich, HC3, as R sandwich::\code{vcovHC()}), which stay right when the spread is not the same everywhere; it does not make the model resistant to outliers (\code{giving\_\allowbreak{}outliers\_\allowbreak{}less\_\allowbreak{}weight=True} does). \code{empty\_\allowbreak{}cells=\textquotedbl{}multiple imputation\textquotedbl{}} fills in empty cells 20 times (R \code{mice()}) instead of leaving those rows out; \code{with\_\allowbreak{}seed=} fixes the random filling. Prints each effect with its 95 \% confidence interval and p-value in words, and how well the model fits: R squared (numbers), McFadden's pseudo R squared (yes or no, counts, groups; for yes or no also Nagelkerke's and Tjur's) or Nakagawa's R squared (\code{grouped\_\allowbreak{}by=}, R performance, needs R), with AIC and BIC (R \code{AIC()}, \code{BIC()}). Gives back a table with one row per term. A link does not show that one thing causes the other.
 
 \wordfield{Options}{}\par\nopagebreak
 \begin{optiontable}
@@ -8905,9 +8967,19 @@ Explain one column from several others with a model, and say how big each effect
 \code{effects=} & normally \code{\textquotedbl{}for the average group\textquotedbl{}}\\
 \code{within\_\allowbreak{}groups=} & normally \code{\textquotedbl{}alike\textquotedbl{}}\\
 \code{curve\_\allowbreak{}for=} & \\
+\code{weights=} & \\
+\code{show=} & \\
+\code{method=} & \\
+\code{matched\_\allowbreak{}by=} & \\
+\code{giving\_\allowbreak{}outliers\_\allowbreak{}less\_\allowbreak{}weight=} & normally \code{False}\\
+\code{with\_\allowbreak{}knots=} & \\
+\code{interval\_\allowbreak{}by=} & normally \code{\textquotedbl{}wald\textquotedbl{}}\\
+\code{resamples=} & \\
+\code{crossed\_\allowbreak{}with=} & \\
+\code{zero\_\allowbreak{}part\_\allowbreak{}using=} & \\
 \end{optiontable}
 
-\wordfield{Underneath}{statsmodels (OLS; GLM for yes/no and counts, as R glm; MixedLM for \code{grouped\_\allowbreak{}by=}; GEE for \code{effects=\textquotedbl{}for the whole population\textquotedbl{}}, as R geepack::geeglm; MICEData to fill in empty cells; \code{eval\_\allowbreak{}measures} aic and bic and McFadden's pseudo R squared, as R AIC, BIC and performance::\code{r2\_\allowbreak{}mcfadden}); R mgcv::gam for \code{curve\_\allowbreak{}for=} (needs R); R itself (needs R) for lme4::glmer, lme4::lmer with \code{own\_\allowbreak{}slope\_\allowbreak{}for=}, lmerTest for \code{p\_\allowbreak{}value\_\allowbreak{}by=\textquotedbl{}satterthwaite\textquotedbl{}}, geepack for \code{within\_\allowbreak{}groups=\textquotedbl{}in time order\textquotedbl{}} and GEE with \code{out\_\allowbreak{}of=}, car::Anova and effectsize for \code{test\_\allowbreak{}type=}, sandwich::vcovHC for \code{robust\_\allowbreak{}errors=True} with yes/no and counts, and mice::pool for multiple imputation; R performance::\code{r2\_\allowbreak{}nakagawa} for the R squared of every \code{grouped\_\allowbreak{}by=} model}
+\wordfield{Underneath}{statsmodels (OLS; GLM for yes/no and counts, as R glm; MixedLM for \code{grouped\_\allowbreak{}by=}; GEE for \code{effects=\textquotedbl{}for the whole population\textquotedbl{}}, as R geepack::geeglm; MICEData to fill in empty cells; \code{eval\_\allowbreak{}measures} aic and bic and McFadden's pseudo R squared, as R AIC, BIC and performance::\code{r2\_\allowbreak{}mcfadden}); R mgcv::gam for \code{curve\_\allowbreak{}for=} (needs R); R itself (needs R) for lme4::glmer, lme4::lmer with \code{own\_\allowbreak{}slope\_\allowbreak{}for=}, lmerTest for \code{p\_\allowbreak{}value\_\allowbreak{}by=\textquotedbl{}satterthwaite\textquotedbl{}}, geepack for \code{within\_\allowbreak{}groups=\textquotedbl{}in time order\textquotedbl{}} and GEE with \code{out\_\allowbreak{}of=}, car::Anova and effectsize for \code{test\_\allowbreak{}type=}, sandwich::vcovHC for \code{robust\_\allowbreak{}errors=True} with yes/no and counts, and mice::pool for multiple imputation; R performance::\code{r2\_\allowbreak{}nakagawa} for the R squared of every \code{grouped\_\allowbreak{}by=} model; statsmodels WLS and \code{GLM(var\_\allowbreak{}weights=)} for \code{weights=}, RLM for \code{giving\_\allowbreak{}outliers\_\allowbreak{}less\_\allowbreak{}weight=}, ConditionalLogit for \code{matched\_\allowbreak{}by=}, \code{GLM(cov\_\allowbreak{}type=\textquotedbl{}HC0\textquotedbl{})} for risk ratios; patsy cr for \code{with\_\allowbreak{}knots=}; SciPy bootstrap for \code{interval\_\allowbreak{}by=\textquotedbl{}bootstrap\textquotedbl{}}; R stats::confint for \code{interval\_\allowbreak{}by=\textquotedbl{}profile\textquotedbl{}}, lme4 for \code{crossed\_\allowbreak{}with=}, pscl::zeroinfl and pscl::hurdle for the zero outcomes}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -8919,7 +8991,305 @@ table.explain("marks", using=["hours", "breakfast"], grouped_by=["school", "clas
 table.explain("marks", using=["hours", "breakfast"], grouped_by="school", effects="for the whole population")
 table.explain("marks", using=["hours", "breakfast"], curve_for="hours")
 table.explain("marks", using=["hours", "breakfast"], robust_errors=True)
+table.explain("passed", using=["hours", "breakfast"], outcome="yes or no", show="risk ratios")
+table.explain("marks", using=["hours", "breakfast"], giving_outliers_less_weight=True)
+table.explain("marks", using=["hours", "breakfast"], curve_for="hours", with_knots=3)
+table.explain("marks", using=["hours", "breakfast"], show="standardised effects")
 \end{lstlisting}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{statsmodels}}
+\undertext{\textbf{With \code{weights=}}: the same job with this option.}
+\underlib{statsmodels}
+\begin{lstlisting}[style=under]
+import statsmodels.api as sm
+df = sdata.get_example("fruit")
+# explain("price", using=["shop"], weights="count")
+X = sm.add_constant((df["shop"] == "Market stall").astype(float))
+fit = sm.WLS(df["price"], X, weights=df["count"]).fit()     # (1)
+{"effect": fit.params.iloc[1], "standard error": fit.bse.iloc[1],
+ "p-value": fit.pvalues.iloc[1]}
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) precision weights, as R \code{lm(weights =)}: statsmodels WLS; for the other outcomes \code{GLM(var\_\allowbreak{}weights=)}. Not \code{freq\_\allowbreak{}weights}, which would change the degrees of freedom.}
+\undertext{Rows with weight 0 are left out first, as R does (statsmodels would count them in the degrees of freedom); negative weights are refused. simplydata also writes each effect as a sentence with its interval and p-value, and names the method.}
+\undertext{\textit{Checked:} a test runs both and compares the numbers of the result table (on a pandas and on a Polars table).}
+\end{underneathbox}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{statsmodels}}
+\undertext{\textbf{With \code{outcome=\textquotedbl{}yes or no (overdispersed)\textquotedbl{}}}: the same job with this option.}
+\underlib{statsmodels}
+\begin{lstlisting}[style=under]
+import pandas as pd
+import statsmodels.api as sm
+seeds = pd.DataFrame({"extract": ["bean"] * 5 + ["cucumber"] * 6,
+                      "germinated": [10, 23, 23, 26, 17, 5, 53, 55, 32, 46, 10],
+                      "seeds": [39, 62, 81, 51, 39, 6, 74, 72, 51, 79, 13]})
+# explain("germinated", using=["extract"], outcome="yes or no (overdispersed)", out_of="seeds")
+X = sm.add_constant((seeds["extract"] == "cucumber").astype(float))
+share = seeds["germinated"] / seeds["seeds"]
+fit = sm.GLM(share, X, family=sm.families.Binomial(),
+             var_weights=seeds["seeds"]).fit(scale="X2")   # (1)
+{"log odds ratio": fit.params.iloc[1], "standard error": fit.bse.iloc[1]}
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) quasi-binomial as R \code{glm(family = quasibinomial)}: the shares, with the tries as \code{var\_\allowbreak{}weights} and the Pearson dispersion (\code{scale=\textquotedbl{}X2\textquotedbl{}}). A two-column endog would give statsmodels another dispersion.}
+\undertext{simplydata also gives t-based p-values with the residual degrees of freedom, as R \code{summary()}, and says that quasi-binomial has no AIC. The 11 plates are Crowder's (1978) Orobanche seeds. simplydata also writes each effect as a sentence with its interval and p-value, and names the method.}
+\undertext{\textit{Checked:} a test runs both and compares the numbers of the result table (on a pandas and on a Polars table).}
+\end{underneathbox}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{statsmodels}}
+\undertext{\textbf{With \code{matched\_\allowbreak{}by=}}: the same job with this option.}
+\underlib{statsmodels}
+\begin{lstlisting}[style=under]
+import pandas as pd
+from statsmodels.discrete.conditional_models import ConditionalLogit
+pairs = pd.DataFrame({"pair": [1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8, 8],
+                      "case": [1, 0] * 8,
+                      "smoker": [1, 0, 1, 1, 0, 0, 1, 0, 0, 1, 1, 0, 1, 0, 0, 0]})
+# explain("case", using=["smoker"], outcome="yes or no", matched_by="pair")
+model = ConditionalLogit(pairs["case"], pairs[["smoker"]],
+                         groups=pairs["pair"])          # (1)
+fit = model.fit(method="newton", disp=0)                  # (2)
+{"log odds ratio": fit.params.iloc[0], "standard error": fit.bse.iloc[0]}
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) conditional logistic regression with the exact conditional likelihood, as R survival::\code{clogit()} (its default method = \code{\textquotedbl{}exact\textquotedbl{}}); no intercept, each pair compared only with itself.}
+\undertext{(2) fitted by Newton's method to the end; statsmodels' default (BFGS) stops a little short of the best estimates.}
+\undertext{Pairs with no case or no control are left out first and counted (they add nothing); a column that does not change within any pair is refused. simplydata also writes each effect as a sentence with its interval and p-value, and names the method.}
+\undertext{\textit{Checked:} a test runs both and compares the numbers of the result table (on a pandas and on a Polars table).}
+\end{underneathbox}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{statsmodels}}
+\undertext{\textbf{With \code{show=\textquotedbl{}risk ratios\textquotedbl{}}}: the same job with this option.}
+\underlib{statsmodels}
+\begin{lstlisting}[style=under]
+import statsmodels.api as sm
+df = sdata.get_example("clinic")
+# explain("caught_infection", using=["ward", "patient_days"], outcome="yes or no", show="risk ratios")
+X = sm.add_constant(df[["patient_days"]].assign(b=(df["ward"] == "ward B") * 1.0))
+y = (df["caught_infection"] == "yes").astype(float)
+fit = sm.GLM(y, X, family=sm.families.Poisson()).fit(cov_type="HC0")   # (1)
+{"log risk ratio": fit.params.iloc[2], "standard error": fit.bse.iloc[2]}
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) modified Poisson regression (Zou 2004): a Poisson model for the 0/1 column with robust (HC0) standard errors, as R \code{glm(family = poisson)} with sandwich::\code{vcovHC(type = \textquotedbl{}HC0\textquotedbl{})}; it always converges, where log-binomial (\code{method=\textquotedbl{}log-binomial\textquotedbl{}}) often does not.}
+\undertext{simplydata also prints the risk ratios (exp of the effects) and their intervals, and leaves out the AIC: the Poisson model is used only for its ratios. simplydata also writes each effect as a sentence with its interval and p-value, and names the method.}
+\undertext{\textit{Checked:} a test runs both and compares the numbers of the result table (on a pandas and on a Polars table).}
+\end{underneathbox}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{statsmodels}}
+\undertext{\textbf{With \code{method=\textquotedbl{}log-binomial\textquotedbl{}}}: the same job with this option.}
+\underlib{statsmodels}
+\begin{lstlisting}[style=under]
+import statsmodels.api as sm
+df = sdata.get_example("school")
+# explain("passed", using=["breakfast"], outcome="yes or no", show="risk ratios", method="log-binomial")
+X = sm.add_constant((df["breakfast"] == "yes").astype(float))
+y = (df["passed"] == "yes").astype(float)
+log = sm.families.links.Log()
+fit = sm.GLM(y, X, family=sm.families.Binomial(link=log)).fit()   # (1)
+{"log risk ratio": fit.params.iloc[1], "standard error": fit.bse.iloc[1]}
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) a binomial model with a log link, as R \code{glm(family = binomial(link = \textquotedbl{}log\textquotedbl{}))}; when it does not converge (a predicted chance reaches 1), simplydata says so and points to the default modified Poisson regression.}
+\undertext{simplydata also writes each effect as a sentence with its interval and p-value, and names the method.}
+\undertext{\textit{Checked:} a test runs both and compares the numbers of the result table (on a pandas and on a Polars table).}
+\end{underneathbox}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{statsmodels}}
+\undertext{\textbf{With \code{giving\_\allowbreak{}outliers\_\allowbreak{}less\_\allowbreak{}weight=}}: the same job with this option.}
+\underlib{statsmodels}
+\begin{lstlisting}[style=under]
+import statsmodels.api as sm
+df = sdata.get_example("marks")
+# explain("marks", using=["hours"], giving_outliers_less_weight=True)
+X = sm.add_constant(df["hours"])
+huber = sm.robust.norms.HuberT()                          # (1)
+fit = sm.RLM(df["marks"], X, M=huber).fit(scale_est="mad", cov="H1",
+                                           maxiter=200, tol=1e-10)   # (2)
+{"effect": fit.params.iloc[1], "standard error": fit.bse.iloc[1],
+ "p-value": fit.pvalues.iloc[1]}
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) Huber's weights with k = 1.345, the default of statsmodels and of R MASS::\code{rlm()}.}
+\undertext{(2) the scale by the median absolute deviation and Huber's H1 covariance; R's \code{summary(rlm)} uses a slightly different small-sample correction, so its standard errors differ in the third digit.}
+\undertext{simplydata also lists the rows given less weight, by their row number, and names \code{show\_\allowbreak{}rows\_\allowbreak{}that\_\allowbreak{}pull\_\allowbreak{}model()} for unusual values in the \code{using=} columns, which Huber's method does not resist. simplydata also writes each effect as a sentence with its interval and p-value, and names the method.}
+\undertext{\textit{Checked:} a test runs both and compares the numbers of the result table (on a pandas and on a Polars table).}
+\end{underneathbox}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{patsy and statsmodels}}
+\undertext{\textbf{With \code{with\_\allowbreak{}knots=}}: the same job with this option.}
+\underlib{patsy and statsmodels}
+\begin{lstlisting}[style=under]
+import numpy as np
+import statsmodels.api as sm
+from patsy import dmatrix
+df = sdata.get_example("school")
+# explain("marks", using=["hours", "breakfast"], curve_for="hours", with_knots=3)
+knots = np.quantile(df["hours"], [0.25, 0.5, 0.75])               # (1)
+curve = dmatrix("cr(hours, knots=knots, constraints='center') - 1", df)   # (2)
+X = sm.add_constant(np.column_stack([curve, df["breakfast"] == "yes"]))
+fit = sm.OLS(df["marks"], X.astype(float)).fit()
+{"effect": fit.params.iloc[-1], "standard error": fit.bse.iloc[-1]}
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) the knots at the quantiles of all the values, as R splines::\code{ns()} places them; patsy's own \code{df=} would take the quantiles of the distinct values (mgcv's rule) and give another curve.}
+\undertext{(2) a natural cubic spline without its constant (\code{constraints=\textquotedbl{}center\textquotedbl{}}): the same curves as R \code{lm(marks \textasciitilde{} splines::ns(hours,\allowbreak{} df = 4) + breakfast)}, so the fitted values and the other effects are R's.}
+\undertext{simplydata also tests the whole curve (is it flat?) with an F test, and leaves the spline's own numbers out of the printout: they depend on the basis and mean little. simplydata also writes each effect as a sentence with its interval and p-value, and names the method.}
+\undertext{\textit{Checked:} a test runs both and compares the numbers of the result table (on a pandas and on a Polars table).}
+\end{underneathbox}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{statsmodels}}
+\undertext{\textbf{With \code{show=\textquotedbl{}standardised effects\textquotedbl{}}}: the same job with this option.}
+\underlib{statsmodels}
+\begin{lstlisting}[style=under]
+import statsmodels.api as sm
+df = sdata.get_example("school")
+# explain("marks", using=["hours", "breakfast"], show="standardised effects")
+def z(v):
+    return (v - v.mean()) / v.std()                       # (1)
+X = sm.add_constant(df[["hours"]].apply(z).assign(b=(df["breakfast"] == "yes") * 1.0))
+fit = sm.OLS(z(df["marks"]), X).fit()                     # (2)
+{"effect": fit.params.iloc[1], "standard error": fit.bse.iloc[1]}
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) z-scores with the standard deviation of n - 1 (pandas' \code{std()}, R's \code{sd()}), on the rows the model uses.}
+\undertext{(2) the model fitted again on the z-scores, as R effectsize::\code{standardize\_\allowbreak{}parameters(method = \textquotedbl{}refit\textquotedbl{})}; group columns stay as they are, and the outcome is standardised only for numbers.}
+\undertext{simplydata also prints what one standard deviation is in each column and the warning that standardised effects depend on the sample's spread (Greenland et al. 1986). simplydata also writes each effect as a sentence with its interval and p-value, and names the method.}
+\undertext{\textit{Checked:} a test runs both and compares the numbers of the result table (on a pandas and on a Polars table).}
+\end{underneathbox}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{SciPy and statsmodels}}
+\undertext{\textbf{With \code{interval\_\allowbreak{}by=\textquotedbl{}bootstrap\textquotedbl{}}}: the same job with this option.}
+\underlib{SciPy and statsmodels}
+\begin{lstlisting}[style=under]
+import numpy as np
+import statsmodels.api as sm
+from scipy import stats
+df = sdata.get_example("marks")
+# explain("marks", using=["hours"], interval_by="bootstrap", resamples=999, with_seed=1)
+X, y = sm.add_constant(df["hours"]).to_numpy(), df["marks"].to_numpy()
+def refit(rows):                                          # (1)
+    return sm.OLS(y[rows], X[rows]).fit().params
+res = stats.bootstrap((np.arange(len(y)),), refit, n_resamples=999, method="BCa",
+                      vectorized=False, rng=np.random.default_rng(1))   # (2)
+{"95 % CI low": res.confidence_interval.low[1], "95 % CI high": res.confidence_interval.high[1]}
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) the rows are drawn again whole (case resampling), and the same model is fitted to each new table.}
+\undertext{(2) BCa intervals (bias-corrected and accelerated), as R boot::\code{boot.\allowbreak{}ci(type = \textquotedbl{}bca\textquotedbl{})}; \code{with\_\allowbreak{}seed=} fixes the random draws.}
+\undertext{The p-values stay the model's usual ones; simplydata says so, and how many times the rows were drawn. simplydata also writes each effect as a sentence with its interval and p-value, and names the method.}
+\undertext{\textit{Checked:} a test runs both and compares the numbers of the result table (on a pandas and on a Polars table).}
+\end{underneathbox}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{R}\libbadge{Python}}
+\undertext{\textbf{With \code{interval\_\allowbreak{}by=\textquotedbl{}profile\textquotedbl{}}}: the same job with this option.}
+\underlib{R (simplydata runs this in R for you, through rpy2)}
+\begin{lstlisting}[style=underr]
+# explain("passed", using=["hours"], outcome="yes or no", interval_by="profile")
+# passed (1 = yes) and hours: two columns of sdata.get_example("school")
+m <- stats::glm(passed ~ hours, family = stats::binomial)
+ci <- stats::confint(m)                             # (1)
+list(low = ci[2, 1], high = ci[2, 2])
+\end{lstlisting}
+\underlib{Python (with what R gives back)}
+\begin{lstlisting}[style=under]
+import math
+{"95 % CI low": math.exp(low), "95 % CI high": math.exp(high)}   # odds ratios
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) profile-likelihood intervals, R's \code{confint()} of a glm (in stats since R 4.4; before, in MASS); safer than Wald intervals with few rows or effects far from 1.}
+\undertext{\textit{In Python only:} statsmodels gives Wald intervals only, so the profile intervals come from R.}
+\undertext{The p-values stay the usual ones. simplydata also writes each effect as a sentence with its interval and p-value, and names the method.}
+\undertext{\textit{Checked:} a test runs both and compares the numbers of the result table (on a pandas and on a Polars table).}
+\end{underneathbox}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{statsmodels and SciPy}}
+\undertext{\textbf{With \code{p\_\allowbreak{}value\_\allowbreak{}by=\textquotedbl{}likelihood ratio\textquotedbl{}}}: the same job with this option.}
+\underlib{statsmodels and SciPy}
+\begin{lstlisting}[style=under]
+import statsmodels.api as sm
+from scipy import stats
+df = sdata.get_example("school")
+# explain("passed", using=["hours", "breakfast"], outcome="yes or no", p_value_by="likelihood ratio")
+y = (df["passed"] == "yes").astype(float)
+X = sm.add_constant(df[["hours"]].assign(b=(df["breakfast"] == "yes") * 1.0))
+full = sm.GLM(y, X, family=sm.families.Binomial()).fit()
+small = sm.GLM(y, X.drop(columns="hours"), family=sm.families.Binomial()).fit()   # (1)
+{"p-value": stats.chi2.sf(small.deviance - full.deviance, 1)}
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) each column left out in turn and the deviances compared (chi-square, 1 df), as R \code{drop1(m,\allowbreak{} test = \textquotedbl{}LRT\textquotedbl{})}; a group column is tested whole, and a column inside an interaction is not tested alone.}
+\undertext{simplydata also writes each effect as a sentence with its interval and p-value, and names the method.}
+\undertext{\textit{Checked:} a test runs both and compares the numbers of the result table (on a pandas and on a Polars table).}
+\end{underneathbox}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{R}\libbadge{Python}}
+\undertext{\textbf{With \code{crossed\_\allowbreak{}with=}}: the same job with this option.}
+\underlib{R (simplydata runs this in R for you, through rpy2)}
+\begin{lstlisting}[style=underr]
+# explain("marks", using=["hours"], grouped_by="school", crossed_with="class")
+# marks, hours, school and class: four columns of sdata.get_example("school")
+m <- lme4::lmer(marks ~ hours + (1 | school) + (1 | class_))   # (1)
+list(b = lme4::fixef(m)[2], se = sqrt(diag(as.matrix(vcov(m))))[2])
+\end{lstlisting}
+\underlib{Python (with what R gives back)}
+\begin{lstlisting}[style=under]
+{"effect": b, "standard error": se}
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) two groupings crossed with each other, (1 \textbar{} school) + (1 \textbar{} class), fitted by REML as lme4's default; statsmodels MixedLM takes one grouping (or groups inside groups), so R fits it.}
+\undertext{\textit{In Python only:} statsmodels MixedLM fits one grouping or groups inside groups, not two crossed ones.}
+\undertext{simplydata also prints the variance of each grouping and of the rows, the share of each, and a note for a grouping with fewer than 5 groups. simplydata also writes each effect as a sentence with its interval and p-value, and names the method.}
+\undertext{\textit{Checked:} a test runs both and compares the numbers of the result table (on a pandas and on a Polars table).}
+\end{underneathbox}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{R}\libbadge{Python}}
+\undertext{\textbf{With \code{outcome=\textquotedbl{}counts with many zeros that vary a lot\textquotedbl{}}}: the same job with this option.}
+\underlib{R (simplydata runs this in R for you, through rpy2)}
+\begin{lstlisting}[style=underr]
+# explain("thistle", using=["grazed", "nettle"], outcome="counts with many zeros that vary a lot")
+# thistle, grazed and nettle: three columns of sdata.get_example("meadow")
+z <- pscl::zeroinfl(thistle ~ grazed + nettle, dist = "negbin")   # (1)
+list(b = coef(z, model = "count")[2], se = sqrt(diag(vcov(z)))[2])
+\end{lstlisting}
+\underlib{Python (with what R gives back)}
+\begin{lstlisting}[style=under]
+{"log ratio": b, "standard error": se}
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) zero-inflated negative binomial regression with a logistic zero part and the same columns in both parts, pscl::\code{zeroinfl(dist = \textquotedbl{}negbin\textquotedbl{})}'s defaults.}
+\undertext{\textit{In Python only:} statsmodels ZeroInflatedNegativeBinomialP gives the same estimates but other standard errors.}
+\undertext{The row compared is the count part; simplydata prints both parts in two blocks, and theta in words. simplydata also writes each effect as a sentence with its interval and p-value, and names the method.}
+\undertext{\textit{Checked:} a test runs both and compares the numbers of the result table (on a pandas and on a Polars table).}
+\end{underneathbox}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{R}\libbadge{Python}}
+\undertext{\textbf{With \code{outcome=\textquotedbl{}counts in two steps\textquotedbl{}}}: the same job with this option.}
+\underlib{R (simplydata runs this in R for you, through rpy2)}
+\begin{lstlisting}[style=underr]
+# explain("thistle", using=["grazed", "nettle"], outcome="counts in two steps")
+# thistle, grazed and nettle: three columns of sdata.get_example("meadow")
+h <- pscl::hurdle(thistle ~ grazed + nettle, dist = "poisson",
+                  zero.dist = "binomial")                 # (1)
+list(b = coef(h, model = "count")[2], se = sqrt(diag(vcov(h)))[2])
+\end{lstlisting}
+\underlib{Python (with what R gives back)}
+\begin{lstlisting}[style=under]
+{"log ratio": b, "standard error": se}
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) a hurdle model: a logistic part for zero or not (pscl's binomial zero part, the textbook form) and a Poisson part cut off at 1 for the counts above 0.}
+\undertext{\textit{In Python only:} statsmodels HurdleCountModel has no logistic zero part (its default zero part is Poisson).}
+\undertext{The row compared is the second step (how many, when not zero); simplydata prints both steps in two blocks. simplydata also writes each effect as a sentence with its interval and p-value, and names the method.}
+\undertext{\textit{Checked:} a test runs both and compares the numbers of the result table (on a pandas and on a Polars table).}
+\end{underneathbox}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{R}\libbadge{Python}}
+\undertext{\textbf{With \code{zero\_\allowbreak{}part\_\allowbreak{}using=}}: the same job with this option.}
+\underlib{R (simplydata runs this in R for you, through rpy2)}
+\begin{lstlisting}[style=underr]
+# explain("thistle", using=["grazed", "nettle"], outcome="counts with many zeros", zero_part_using=["grazed"])
+# thistle, grazed and nettle: three columns of sdata.get_example("meadow")
+z <- pscl::zeroinfl(thistle ~ grazed + nettle | grazed,
+                    dist = "poisson")                     # (1)
+list(b = coef(z, model = "count")[2], se = sqrt(diag(vcov(z)))[2])
+\end{lstlisting}
+\underlib{Python (with what R gives back)}
+\begin{lstlisting}[style=under]
+{"log ratio": b, "standard error": se}
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) the zero part gets its own columns, pscl's y \textasciitilde{} x \textbar{} z; without \code{zero\_\allowbreak{}part\_\allowbreak{}using=} both parts use the columns of \code{using=}.}
+\undertext{\textit{In Python only:} statsmodels ZeroInflatedPoisson takes \code{exog\_\allowbreak{}infl=} for the zero part too, with other standard errors.}
+\undertext{simplydata also writes each effect as a sentence with its interval and p-value, and names the method.}
+\undertext{\textit{Checked:} a test runs both and compares the numbers of the result table (on a pandas and on a Polars table).}
+\end{underneathbox}
 \wordentry{table.add\_predicted\_column()}{word:table.add-predicted-column}
 Add a column with the value the model predicts for each row.
 
@@ -12790,6 +13160,16 @@ table.explain("days_absent", using=["hours", "breakfast"], outcome="counts")
 \end{lstlisting}
 \printedoutput{output/solution16_task3.txt}
 \solutionanswer{For breakfast the data cannot tell (rate ratio 0.94, p = 0.45: about 45 of 100 studies would show this much with truly no effect); study hours matter (rate ratio 0.86 for each hour).}
+\solutiontask{4}{In the clinic table, explain \code{\textquotedbl{}caught\_\allowbreak{}infection\textquotedbl{}} using \code{\textquotedbl{}ward\textquotedbl{}} and \code{\textquotedbl{}patient\_\allowbreak{}days\textquotedbl{}} with \code{outcome=\textquotedbl{}yes or no\textquotedbl{}}, first as odds ratios and then with \code{show=\textquotedbl{}risk ratios\textquotedbl{}}. Which is further from 1?}
+\begin{lstlisting}[style=py]
+import simplydata as sdata
+table = sdata.table(sdata.get_example("clinic"))
+table.explain("caught_infection", using=["ward", "patient_days"], outcome="yes or no")
+table.explain("caught_infection", using=["ward", "patient_days"], outcome="yes or no",
+              show="risk ratios")
+\end{lstlisting}
+\printedoutput{output/solution16_task4.txt}
+\solutionanswer{Ward B: odds ratio 5.80, risk ratio 4.63. The odds ratio is further from 1, even with only 1 patient in 10 infected; the rarer the outcome, the closer the two.}
 \par\noindent{\small\sffamily\hyperref[lesson:16]{Back to lesson 16}}
 \unsection{Lesson 17: Patterns across many columns}{solutions:17}
 \solutiontask{1}{Add principal components of \code{\textquotedbl{}hours\textquotedbl{}}, \code{\textquotedbl{}sleep\textquotedbl{}}, \code{\textquotedbl{}marks\textquotedbl{}} and \code{\textquotedbl{}days\_\allowbreak{}absent\textquotedbl{}} in \code{sdata.\allowbreak{}get\_\allowbreak{}example(\textquotedbl{}school\textquotedbl{})}. Which columns weigh most in PC1?}
@@ -13101,6 +13481,25 @@ chart.save("loop_poles.png")
 \end{minipage}\end{center}
 \solutionanswer{Three poles, all left of the imaginary axis (stable), and one zero at -1.}
 \par\noindent{\small\sffamily\hyperref[lesson:26]{Back to lesson 26}}
+\unsection{Lesson 27: Beyond the average line: outliers}{solutions:27}
+\solutiontask{1}{In the marks table, explain \code{\textquotedbl{}marks\textquotedbl{}} from \code{\textquotedbl{}hours\textquotedbl{}} with \code{giving\_\allowbreak{}outliers\_\allowbreak{}less\_\allowbreak{}weight=True}. Which rows get less weight?}
+\begin{lstlisting}[style=py]
+import simplydata as sdata
+table = sdata.table(sdata.get_example("marks"))
+table.explain("marks", using=["hours"], giving_outliers_less_weight=True)
+\end{lstlisting}
+\printedoutput{output/solution27_task1.txt}
+\solutionanswer{Four rows get less weight: row 22 (weight 0.59), then rows 45, 11 and 42. The printout lists them with the lowest weight first.}
+\solutiontask{2}{Without looking back: which option changes the effects themselves, \code{giving\_\allowbreak{}outliers\_\allowbreak{}less\_\allowbreak{}weight=} or \code{robust\_\allowbreak{}errors=}? Run both on the school table to check.}
+\begin{lstlisting}[style=py]
+import simplydata as sdata
+table = sdata.table(sdata.get_example("school"))
+table.explain("marks", using=["hours"], giving_outliers_less_weight=True)
+table.explain("marks", using=["hours"], robust_errors=True)
+\end{lstlisting}
+\printedoutput{output/solution27_task2.txt}
+\solutionanswer{\code{giving\_\allowbreak{}outliers\_\allowbreak{}less\_\allowbreak{}weight=} changes the effects (rows far from the model count less); \code{robust\_\allowbreak{}errors=} gives the same effects as the ordinary model, with other standard errors.}
+\par\noindent{\small\sffamily\hyperref[lesson:27]{Back to lesson 27}}
 
 \backmatter
 

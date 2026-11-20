@@ -264,8 +264,15 @@ def compare_tables(ours, theirs, names: dict, tol: float) -> list[str]:
     return out
 
 
-def compare_result(ours, theirs: dict, fields, tol: float) -> list[str]:
-    row = _as_pandas(ours).iloc[0]
+def compare_result(ours, theirs: dict, fields, tol: float, row_name: str = "") -> list[str]:
+    frame = _as_pandas(ours)
+    if row_name:
+        found = frame[frame["term"] == row_name]
+        if not len(found):
+            return [f"no row {row_name!r} in simplydata's result"]
+        row = found.iloc[0]
+    else:
+        row = frame.iloc[0]
     out = []
     for name in fields:
         if name not in theirs:
@@ -286,7 +293,7 @@ def compare(entry: Entry, ours, theirs) -> list[str]:
     if entry.compare == "table":
         return compare_tables(ours, theirs, entry.names, entry.tolerance)
     if entry.compare == "result":
-        return compare_result(ours, theirs, entry.fields, entry.tolerance)
+        return compare_result(ours, theirs, entry.fields, entry.tolerance, entry.row)
     if entry.compare == "value":
         return compare_values(ours, theirs, entry.tolerance)
     raise ValueError(f"{entry.word}: compare={entry.compare!r} cannot be run")
@@ -346,7 +353,7 @@ def check_entry(entry: Entry) -> list[Outcome]:
 
     outcomes = []
     if entry.compare == "none":
-        return [Outcome(entry.word, "-", "-", "none", 0.0, bool(entry.note.strip()),
+        return [Outcome(entry.key, "-", "-", "none", 0.0, bool(entry.note.strip()),
                         [] if entry.note.strip() else ["a word with nothing underneath needs a note="])]
     for engine in engines(entry):
         try:
@@ -354,7 +361,7 @@ def check_entry(entry: Entry) -> list[Outcome]:
                 from .._r import r_ready
 
                 if not r_ready(entry.r_packages):
-                    outcomes.append(Outcome(entry.word, "R", engine, entry.compare, entry.tolerance, False,
+                    outcomes.append(Outcome(entry.key, "R", engine, entry.compare, entry.tolerance, False,
                                             skipped="R, rpy2 or the R packages " + ", ".join(entry.r_packages)
                                                     + " are not installed"))
                     continue
@@ -364,7 +371,7 @@ def check_entry(entry: Entry) -> list[Outcome]:
                 if OLD_NAME_NOTE in printed:
                     differences.append("the simplydata code uses an old name: " + printed.strip())
                 library = " + ".join(lib for lib, _, _ in entry.blocks())
-                outcomes.append(Outcome(entry.word, library, engine, entry.compare, entry.tolerance,
+                outcomes.append(Outcome(entry.key, library, engine, entry.compare, entry.tolerance,
                                         not differences, differences))
                 continue
             for library, _, source in entry.blocks():
@@ -373,7 +380,7 @@ def check_entry(entry: Entry) -> list[Outcome]:
                 differences = compare(entry, ours, theirs)
                 if OLD_NAME_NOTE in printed:
                     differences.append("the simplydata code uses an old name: " + printed.strip())
-                outcomes.append(Outcome(entry.word, library, engine, entry.compare, entry.tolerance,
+                outcomes.append(Outcome(entry.key, library, engine, entry.compare, entry.tolerance,
                                         not differences, differences))
                 plt.close("all")
         finally:

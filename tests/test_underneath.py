@@ -95,9 +95,20 @@ def test_entry_is_complete(entry):
     if entry.compare == "result":
         assert entry.fields, entry.word
     if entry.uses_r:
-        assert entry.r_inputs.strip() and entry.r_packages, entry.word
+        assert entry.r_inputs.strip(), entry.word
+        named = {call.split("::")[0] for call in underneath_r_calls(entry)} - BASE_R
+        assert named <= set(entry.r_packages), f"{entry.key}: list the R packages the code calls: {named}"
         assert entry.python_note.strip(), f"{entry.word}: say what Python alone gives"
     assert underneath_line(entry), entry.word
+
+
+BASE_R = {"stats", "utils", "methods", "graphics", "grDevices", "base"}  # ship with R, never installed
+
+
+def underneath_r_calls(entry):
+    from simplydata._underneath import _r_calls
+
+    return [c for lib, lang, src in entry.blocks() if lang == "r" for c in _r_calls(src)]
 
 
 def test_words_with_nothing_underneath_need_a_note():
@@ -247,18 +258,21 @@ def test_manual_shows_each_entry_in_a_grey_box_after_its_example():
         start = tex.index("}{" + manual.label(key) + "}\n")
         end = tex.find("\\wordentry{", start)
         part = tex[start:end if end > 0 else len(tex)]
-        if key not in UNDERNEATH:
+        mine = [e for e in ENTRIES if e.word == key]
+        if not mine:
             assert "underneathbox" not in part, key
             continue
-        entry = UNDERNEATH[key]
         assert part.index("Example you can run") < part.index(r"\begin{underneathbox}"), key
-        for library, language, source in entry.blocks():
-            assert source in part, f"{key}: the {library} code in the manual is the tested code"
-        if entry.uses_r:
-            assert manual.esc(R_LABEL) in part
-        if entry.compare == "chart":
-            assert "The chart simplydata draws." in part
-            assert (ROOT / "docs" / "manual" / manual.underneath_figure(key)).is_file(), key
+        for entry in mine:
+            for library, language, source in entry.blocks():
+                assert source in part, f"{entry.key}: the {library} code in the manual is the tested code"
+            if entry.uses_r:
+                assert manual.esc(R_LABEL) in part
+            if entry.option:
+                assert r"\textbf{With " + manual.code(entry.option) + "}" in part, entry.key
+            if entry.compare == "chart":
+                assert "The chart simplydata draws." in part
+                assert (ROOT / "docs" / "manual" / manual.underneath_figure(key)).is_file(), key
         assert r"\wordfield{Underneath}{" + manual.underneath_name(key) + "}" in part
 
 
@@ -271,8 +285,9 @@ def test_table_boxes_show_pandas_then_polars():
 def test_dictionary_underneath_line_comes_from_the_entries():
     manual = _docs_module("make_manual")
     tex = (ROOT / "docs" / "manual" / "simplydataDictionary.tex").read_text(encoding="utf-8")
-    for key in UNDERNEATH:
-        assert r"\field{Underneath}{" + manual.underneath_name(key) + "}" in tex, key
+    for key, entry in UNDERNEATH.items():
+        if not entry.option:
+            assert r"\field{Underneath}{" + manual.underneath_name(key) + "}" in tex, key
     assert tex.count(r"\field{Underneath}{") == len(learn._all_keys())
 
 

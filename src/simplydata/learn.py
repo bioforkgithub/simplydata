@@ -696,7 +696,11 @@ HELP_EXAMPLES = {
         table.explain("marks", using=["hours", "breakfast"], grouped_by=["school", "class"])
         table.explain("marks", using=["hours", "breakfast"], grouped_by="school", effects="for the whole population")
         table.explain("marks", using=["hours", "breakfast"], curve_for="hours")
-        table.explain("marks", using=["hours", "breakfast"], robust_errors=True)"""),
+        table.explain("marks", using=["hours", "breakfast"], robust_errors=True)
+        table.explain("passed", using=["hours", "breakfast"], outcome="yes or no", show="risk ratios")
+        table.explain("marks", using=["hours", "breakfast"], giving_outliers_less_weight=True)
+        table.explain("marks", using=["hours", "breakfast"], curve_for="hours", with_knots=3)
+        table.explain("marks", using=["hours", "breakfast"], show="standardised effects")"""),
     "table.add_predicted_column": _tx("school", """\
         table.add_predicted_column("marks", using=["hours", "breakfast"], interval=95)
         table.show_first_rows(5)"""),
@@ -1484,11 +1488,14 @@ def _sx(code: str) -> str:
 # its own (the tests run every one), and sdata.show_lesson(3, solutions=True) prints them.
 # The lessons of v0.6, found by title (learn_days.py and the tests use lesson_number), so their numbers can
 # change when lessons are added before them. Agreed order across branches: S2's "Working with a model" is
-# lesson 21, S1's "Risks, diagnostic tests and agreement" 22, these four 23 to 26.
+# lesson 21, S1's "Risks, diagnostic tests and agreement" 22, these four 23 to 26, S3a's lesson 27.
 TIME_SERIES_LESSON = "Time series: dates, missing days, time windows and trend"
 FORECASTS_LESSON = "Forecasts: the next months, checked first"
 CYCLES_LESSON = "Cycles: spectra, filters, peaks, and steady or not"
 SYSTEMS_LESSON = "Systems: a spring and damper, its response and a feedback loop"
+# S3a: the percentile part (for_percentile=) joins this lesson in S3a-2, and the title becomes
+# "Beyond the average line: percentiles and outliers" (the name review of 2026-11-20)
+OUTLIERS_LESSON = "Beyond the average line: outliers"
 
 LESSONS = [
     dict(
@@ -3341,6 +3348,7 @@ LESSONS = [
             "how to explain a yes/no column (logistic regression) and a column of counts (Poisson regression)",
             "how to allow for groups such as schools (a mixed model)",
             "how to use rows with empty cells without guessing once (multiple imputation)",
+            "how to say how much a column changes the chance of yes (a risk ratio, not only an odds ratio)",
         ],
         parts=[
             ("Marks depend on more than one thing. explain() looks at several columns together, so each "
@@ -3385,6 +3393,18 @@ LESSONS = [
                  "imputation fills the empty cells 20 times, fits the model to each filled-in table and "
                  "pools the 20 answers (Rubin's rules), so the extra uncertainty is counted."),
             ]),
+            ("An odds ratio is not a risk ratio. When yes is common, the odds ratio is further from 1 than the "
+             "change in the chance itself, and readers often take it for the chance.", [
+                ("import simplydata as sdata", "Load simplydata."),
+                ('table = sdata.table(sdata.get_example("school"))', "The school table."),
+                ('table.explain("passed", using=["hours", "breakfast"], outcome="yes or no")',
+                 "Odds ratios, as in part 2. 43 % of the pupils passed, so the printout ends with a note: an "
+                 "odds ratio is not a risk ratio here, and show=\"risk ratios\" gives risk ratios."),
+                ('table.explain("passed", using=["hours", "breakfast"], outcome="yes or no", show="risk ratios")',
+                 'show="risk ratios" gives risk ratios (modified Poisson regression): each extra hour of study '
+                 "multiplies the chance of passing by 1.21, where the odds ratio was 1.66. Say in words what "
+                 "1.21 means: with one more hour of study, the chance of passing is about a fifth higher."),
+            ]),
         ],
         notes=[
             "Each effect in explain() holds the other columns fixed: the effect of sleep is the effect "
@@ -3401,6 +3421,11 @@ LESSONS = [
             "at random). Say in your report how many cells were empty and how they were handled.",
             "grouped_by= works out of the box (statsmodels comes with simplydata). Multiple "
             "imputation pools its results in R, so it needs R (see the box at the start).",
+            "A risk ratio of 1.21 means the chance of yes is 21 % higher. Report risk ratios when yes is common "
+            "(more than about 1 in 10 rows); simplydata says when that is the case.",
+            "More outcomes for later, all in the manual and the dictionary: \"yes or no (overdispersed)\" (yes "
+            "counts out of tries that vary a lot), \"counts with many zeros that vary a lot\" and \"counts in two "
+            "steps\" (first zero or not, then how many).",
         ],
         task=[
             'Explain "marks" using "hours" and "school" (school as a column of groups). Which schools '
@@ -3408,6 +3433,9 @@ LESSONS = [
             'Explain "passed" using "hours" and "sleep" with outcome="yes or no".',
             'Explain "days_absent" using "hours" and "breakfast" with outcome="counts". Does breakfast '
             "matter?",
+            'In the clinic table, explain "caught_infection" using "ward" and "patient_days" with '
+            'outcome="yes or no", first as odds ratios and then with show="risk ratios". Which is further '
+            "from 1?",
         ],
         solutions=[
             (_sx("""\
@@ -3431,6 +3459,14 @@ LESSONS = [
              "For breakfast the data cannot tell (rate ratio 0.94, p = 0.45: about 45 of 100 studies "
              "would show this much with truly no effect); study hours matter (rate "
              "ratio 0.86 for each hour)."),
+            (_sx("""\
+                import simplydata as sdata
+                table = sdata.table(sdata.get_example("clinic"))
+                table.explain("caught_infection", using=["ward", "patient_days"], outcome="yes or no")
+                table.explain("caught_infection", using=["ward", "patient_days"], outcome="yes or no",
+                              show="risk ratios")"""),
+             "Ward B: odds ratio 5.80, risk ratio 4.63. The odds ratio is further from 1, even with only 1 patient "
+             "in 10 infected; the rarer the outcome, the closer the two."),
         ],
         words=["table.explain", "table.add_predicted_column", "table.show_first_rows"],
     ),
@@ -4522,6 +4558,64 @@ LESSONS = [
         ],
         words=["sdata.frequency_filter", "sdata.system", "system.poles", "system.chart", "system.step_response",
                "system.then", "system.with_feedback", "system.frequency_response", "system.in_steps"],
+    ),
+    dict(
+        title=OUTLIERS_LESSON,
+        needs_r=None,
+        learn=[
+            "how a few rows far from the rest pull an ordinary model towards them",
+            "how to give those rows less weight (robust regression, Huber's method)",
+            "how giving_outliers_less_weight= differs from robust_errors=",
+        ],
+        parts=[
+            ("A least-squares line counts every row the same, so a few rows far from the rest pull it towards "
+             "them. Robust regression gives those rows less weight, so they pull less.", [
+                ("import simplydata as sdata", "Load simplydata."),
+                ('table = sdata.table(sdata.get_example("school"))', "Pupils in 12 schools (lesson 16)."),
+                ('table.explain("marks", using=["hours", "breakfast"])',
+                 "The ordinary model (least squares, as in lesson 16): each extra hour of study goes with about "
+                 "2.8 more marks."),
+                ('table.explain("marks", using=["hours", "breakfast"], giving_outliers_less_weight=True)',
+                 "The same model with Huber's weights: rows far from the line count less. The effect of study "
+                 "hardly moves (2.87), and the printout lists the rows given less weight, by their row number. "
+                 "Say in words what that means: no few pupils decide the answer here."),
+                ('table.explain("marks", using=["hours", "breakfast"], robust_errors=True)',
+                 "Not the same thing: robust_errors=True keeps the effects of the ordinary model (2.82) and only "
+                 "changes their standard errors, so the intervals stay right when the spread is not the same "
+                 "everywhere. Outliers still pull."),
+            ]),
+        ],
+        notes=[
+            "giving_outliers_less_weight=True changes the effects (rows far from the model count less); "
+            "robust_errors=True keeps the effects and changes only their standard errors. Choose by the problem: "
+            "outliers, or a spread that is not the same everywhere.",
+            "Huber's method resists outliers in the column you explain, not unusual values in the using= columns "
+            "(far-out hours, for example). table.show_rows_that_pull_model() finds those.",
+            "A row given less weight is not wrong: look at it before you decide anything. Say in your report that "
+            "you used robust regression (Huber's M-estimation, as R MASS::rlm()).",
+        ],
+        task=[
+            'In the marks table, explain "marks" from "hours" with giving_outliers_less_weight=True. Which rows '
+            "get less weight?",
+            "Without looking back: which option changes the effects themselves, giving_outliers_less_weight= or "
+            "robust_errors=? Run both on the school table to check.",
+        ],
+        solutions=[
+            (_sx("""\
+                import simplydata as sdata
+                table = sdata.table(sdata.get_example("marks"))
+                table.explain("marks", using=["hours"], giving_outliers_less_weight=True)"""),
+             "Four rows get less weight: row 22 (weight 0.59), then rows 45, 11 and 42. The printout lists them "
+             "with the lowest weight first."),
+            (_sx("""\
+                import simplydata as sdata
+                table = sdata.table(sdata.get_example("school"))
+                table.explain("marks", using=["hours"], giving_outliers_less_weight=True)
+                table.explain("marks", using=["hours"], robust_errors=True)"""),
+             "giving_outliers_less_weight= changes the effects (rows far from the model count less); "
+             "robust_errors= gives the same effects as the ordinary model, with other standard errors."),
+        ],
+        words=["table.explain", "table.show_rows_that_pull_model"],
     ),
 ]
 

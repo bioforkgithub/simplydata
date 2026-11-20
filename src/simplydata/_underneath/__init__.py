@@ -8,10 +8,13 @@ bars, dots, lines and labels (data, not pixels). The manual's grey box "The same
 dictionary's "Underneath:" line and the reliability report in validation/ are all made from here.
 
 UNDERNEATH is keyed by the word's key in simplydata.learn ("draw_bars", "table.find_average_of",
-"nums.find_median"). The library code holds no simplydata names except sdata.get_example(), so a
-rename only touches the key and the ours= line; docs/rename_underneath_keys.py rewrites both.
+"nums.find_median"). An option that changes what a word calls underneath gets an entry of its own,
+keyed by the word and the option ("table.explain weights="): its box follows the word's in the manual.
+The library code holds no simplydata names except sdata.get_example(), so a rename only touches the
+key and the ours= line; docs/rename_underneath_keys.py rewrites both.
 
-The entries are split by area: charts.py, tables.py, numbers.py and statistics.py.
+The entries are split by area: charts.py, tables.py, numbers.py, statistics.py and models.py (the options of
+explain()).
 """
 
 from __future__ import annotations
@@ -41,6 +44,8 @@ class Entry:
     """One word and the same work in the package underneath.
 
     word:     the key in simplydata.learn (a current name: a test checks it is not an old one)
+    option:   for an entry of one option of the word: the option as written, "weights=" (its box shows the
+              same job with that option); empty for the word's own entry
     ours:     the simplydata code the test runs; its last line gives the result
     code:     the library code shown in the manual, {library: code}, in the order shown. Python blocks
               are separate ways to do the same job (pandas, then Polars), each compared with ours.
@@ -55,6 +60,8 @@ class Entry:
     names:    for compare="table": simplydata's column name -> the library's
     fields:   for compare="result": the columns of simplydata's result table that are compared (the
               library code ends with a dict that has the same keys)
+    row:      for compare="result": the row of the result table that is compared, by its "term" (the first
+              row when empty)
     check:    for compare="chart": which CHART_FACTS are compared
     legend_pattern, legend_numbers: for R chart words, a regular expression that finds numbers in the first
               legend entry of simplydata's chart, and the names of the R results they must equal (to the
@@ -68,6 +75,7 @@ class Entry:
     word: str
     ours: str
     code: dict = field(default_factory=dict)
+    option: str = ""
     compare: str = "value"
     data: str | None = None
     choices: tuple = ()
@@ -75,6 +83,7 @@ class Entry:
     tolerance: float = 1e-9
     names: dict = field(default_factory=dict)
     fields: tuple = ()
+    row: str = ""
     check: tuple = ()
     legend_pattern: str = ""
     legend_numbers: tuple = ()
@@ -86,6 +95,11 @@ class Entry:
     @property
     def uses_r(self) -> bool:
         return "R" in self.code
+
+    @property
+    def key(self) -> str:
+        """The key in UNDERNEATH: the word, or the word and the option ("table.explain weights=")."""
+        return f"{self.word} {self.option}" if self.option else self.word
 
     def blocks(self) -> list[tuple[str, str, str]]:
         """(library, language, code) of each block, in the order shown; code without its outer indent."""
@@ -101,15 +115,20 @@ class Entry:
 
 
 def _join() -> dict[str, Entry]:
-    from . import charts, numbers, statistics, tables
+    from . import charts, models, numbers, statistics, tables
 
     found: dict[str, Entry] = {}
-    for module in (charts, tables, numbers, statistics):
+    for module in (charts, tables, numbers, statistics, models):
         for entry in module.ENTRIES:
-            if entry.word in found:
-                raise ValueError(f"{entry.word} has two underneath entries")
-            found[entry.word] = entry
+            if entry.key in found:
+                raise ValueError(f"{entry.key} has two underneath entries")
+            found[entry.key] = entry
     return found
+
+
+def option_entries(word: str) -> list[Entry]:
+    """The entries of a word's options, in the order they are written."""
+    return [e for e in UNDERNEATH.values() if e.word == word and e.option]
 
 
 UNDERNEATH: dict[str, Entry] = _join()
