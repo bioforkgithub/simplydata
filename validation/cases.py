@@ -919,3 +919,16 @@ def _add_planning_a_study():
 
 
 _add_planning_a_study()
+
+
+# ---------------------------------------------------------------- S3c-1: communities and resistomes (validation/cases_communities.py)
+def _add_communities_and_resistomes():
+    import importlib.util
+
+    spec = importlib.util.spec_from_file_location("simplydata_validation_communities", HERE / "cases_communities.py")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    module.add_to(globals())
+
+
+_add_communities_and_resistomes()

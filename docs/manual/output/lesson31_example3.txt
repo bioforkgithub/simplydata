@@ -1,0 +1,8 @@
+Diversity of 24 rows from 14 columns (blaTEM, blaCTXM, blaOXA48, blaNDM, sul1, sul2 and 8 more):
+  Richness (the number of kinds present) averages 12.9 (from 11 to 14).
+  Expected richness in a sample of 1,285 counts averages 11.9 (rarefaction: the expected value, Hurlbert 1971; not a random subsample).
+Method: R vegan::specnumber(x), rarefy(x, sample = 1285). simplydata chooses the natural log for Shannon, Simpson as 1 - D (the Gini-Simpson index), Chao1 bias-corrected and rarefaction as an expected value. Added richness and expected richness at 1285.
+The average "expected richness at 1285" is 11.1 in fjord sediment, 11.6 in harbour, 12.9 in hospital effluent and 12.1 in treatment plant. Omega-squared = 0.820 (95 % CI 0.629 to 0.894): the groups explain about 82 % of the differences in "expected richness at 1285".
+If the groups were truly alike, differences this big or bigger between them would turn up in fewer than 1 in 1000 studies like this one (p < 0.0001).
+Test: Welch's one-way ANOVA (F = 57.0, df = 3 and 9.71), the usual test for three or more averages; it does not assume the groups have the same spread. To see which groups differ: table.compare_each_pair_of("expected richness at 1285", for_each_group_in="site").
+Note: the values in group "treatment plant" don't look bell-shaped (Shapiro-Wilk p = 0.016); a safer test here: based_on="ranks".
