@@ -51,7 +51,14 @@ ADJUST_WORDS = {"tukey": "Tukey's adjustment", "dunnettx": "Dunnett's adjustment
                 "sidak": "Sidak's adjustment", "bonferroni": "Bonferroni's adjustment", "holm": "Holm's adjustment",
                 "none": "no adjustment"}
 TREND_WORDS = {"linear": "straight (linear)", "quadratic": "curved (quadratic)", "cubic": "S-shaped (cubic)",
-               "quartic": "degree 4"}
+               "quartic": "degree 4 (quartic)"}
+TREND_NULLS = {"straight (linear)": "there were truly no straight trend", "curved (quadratic)": "there were truly no "
+               "curve", "S-shaped (cubic)": "there were truly no S-shape"}
+# the p-value column of each emmeans adjustment (the R short name stays in the method line)
+P_COLUMNS = {"tukey": "adjusted p-value (Tukey)", "dunnettx": "adjusted p-value (Dunnett)",
+             "mvt": "adjusted p-value (multivariate t)", "fdr": "adjusted p-value (false discovery rate)",
+             "sidak": "adjusted p-value (Sidak)", "bonferroni": "adjusted p-value (Bonferroni)",
+             "holm": "adjusted p-value (Holm)", "none": "p-value"}
 LEFT_OUT_PARTS = 10
 LEAST_ROWS = 20
 AICC_LIMIT = 40  # Burnham & Anderson (2002): AICc when rows per value estimated are fewer than 40
@@ -71,7 +78,7 @@ def _new_rows_table(words, rows):
     for key in keys:
         given = [r[key] for r in rows if key in r]
         # a column of True/False or text has empty cells, not NaN, where a row has no value (Polars needs one kind)
-        empty = None if all(isinstance(v, (bool, str, np.bool_)) for v in given) else math.nan
+        empty = None if all(v is None or isinstance(v, (bool, str, np.bool_)) for v in given) else math.nan
         data[key] = [r.get(key, empty) for r in rows]
     return words._new_table(nw.from_dict(data, backend=words._frame.implementation))
 
@@ -199,14 +206,15 @@ def explain_gls(words, column, using, spread, order, others):
             math.nan, math.nan)
         print(f'Spread: the standard deviation grows as "{spread}" to the power {_num(power)} (95 % CI {_num(lo)} to '
               f"{_num(hi)}); 0 would mean the same spread everywhere.")
-        more.append({"term": f'power of "{spread}" for the spread', "effect": power, "95 % CI low": lo,
+        more.append({"term": f'spread grows as "{spread}" to the power', "effect": power, "95 % CI low": lo,
                      "95 % CI high": hi})
     if order is not None:
         phi = float(out["phi"][0])
         lo, hi = float(out["phi_low"][0]), float(out["phi_high"][0])
         if order_kind == "even":
             print(f'Neighbours: rows next to each other in "{order}" order have a correlation of {_num(phi)} (95 % CI '
-                  f"{_num(lo)} to {_num(hi)}); rows two steps apart {_num(phi ** 2)}, and so on (AR(1)).")
+                  f"{_num(lo)} to {_num(hi)}); rows further apart are less alike (AR(1): the correlation to the "
+                  "power of the number of steps).")
         else:
             unit = "day" if (order is not None and words._frame.schema[order].is_temporal()) else f'unit of "{order}"'
             print(f'Neighbours: rows 1 {unit} apart in "{order}" have a correlation of {_num(phi)} (95 % CI {_num(lo)} '
@@ -225,6 +233,10 @@ def explain_gls(words, column, using, spread, order, others):
     print(f"Against the same model without {'these parts' if len(parts) > 1 else 'this part'}: AIC {_num(aic)} against "
           f"{_num(aic0)} (lower is better; a difference under 2 means little). Likelihood-ratio test (chi-square = "
           f"{_num(lr)}, df = {_whole(lr_df)}): {_p_clause(lr_p, null)}.")
+    if lr_p >= 0.05:
+        shown = " and ".join((["the spread is the same everywhere"] if spread is not None else [])
+                             + (["neighbouring rows are not alike"] if order is not None else []))
+        print(f"A large p-value here does not show that {shown}, only that the data cannot tell.")
     rhs = " + ".join(pieces)
     struct = []
     if spread is not None:
@@ -239,8 +251,8 @@ def explain_gls(words, column, using, spread, order, others):
     if order is not None and order_kind == "even":
         print(f'"{order}" is evenly spaced, so each step is one step of the AR(1) (corAR1); with uneven gaps simplydata '
               "would use corCAR1, which allows for the size of each gap.")
-    more.append({"term": "AIC of this model", "effect": aic})
-    more.append({"term": "AIC without these parts", "effect": aic0})
+    more.append({"term": "AIC (REML) of this model", "effect": aic})
+    more.append({"term": "AIC (REML) without these parts", "effect": aic0})
     more.append({"term": "test: with these parts against without", "statistic name": "chi-square", "statistic": lr,
                  "degrees of freedom": lr_df, "p-value": lr_p})
     words._closing(coef["p"][1:])
@@ -342,11 +354,14 @@ def compare_many(words, column, using, against, outcome, grouped_by, in_order, l
         formula = f"{_r_name(column)} ~ " + " + ".join(pieces)
         found.append(dict(formula=formula, llf=llf, k=k, aic=float(measures.aic(llf, n, k)),
                           aicc=float(measures.aicc(llf, n, k)) if n - k - 1 > 0 else math.inf))
+    if all(not math.isfinite(f["aicc"]) for f in found):
+        raise SimplydataError(f"With {n} rows every model estimates too many values for AICc (it needs more rows than "
+                              "values estimated plus 1). Use fewer columns, or more rows.")
     biggest = max(f["k"] for f in found)
     use_aicc = n / biggest < AICC_LIMIT
     key = "aicc" if use_aicc else "aic"
     best = min(f[key] for f in found)
-    for f in found:
+    for f in found:  # [D] differences and Akaike weights from the AIC(c) values (Burnham & Anderson 2002)
         f["delta"] = f[key] - best
     total = sum(math.exp(-f["delta"] / 2) for f in found)
     for f in found:
@@ -411,9 +426,10 @@ def _left_out_check(words, column, models, outcome, grouped_by, with_seed):
     for i, (model, pieces, _) in enumerate(fitted):
         formula = f"{_r_name(column)} ~ " + " + ".join(pieces)
         d1, d2, inside = float(out["delta1"][i]), float(out["delta2"][i]), float(out["inside"][i])
-        print(f"  {formula}: {error} {_num(d1)} on the left-out rows (adjusted {_num(d2)}), {_num(inside)} on the rows "
+        print(f"  {formula}: {error} {_num(d1)} on the left-out rows (bias-corrected {_num(d2)}), {_num(inside)} on "
+              "the rows "
               "it was fitted to")
-        rows.append({"term": formula, f"{error} on left-out rows": d1, f"{error} on left-out rows (adjusted)": d2,
+        rows.append({"term": formula, f"{error} on left-out rows": d1, f"{error} on left-out rows (bias-corrected)": d2,
                      f"{error} on the rows fitted": inside})
     print(f"{error.capitalize()}: {what}; lower is better. A model that does much better on its own rows than on the "
           "left-out rows follows chance details of these rows (overfitting).")
@@ -445,24 +461,28 @@ def spread_tests(model, numbers):
           "differences, so judge by the picture):")
     print(f"  Breusch-Pagan test (Koenker's studentised form, as R lmtest::bptest()): chi-square = {_num(bp)}, df = "
           f"{_whole(bp_df)}; {_p_clause(float(bp_p), 'the spread were truly the same everywhere')}.")
+    large = bp_p >= 0.05
     try:
         import warnings
 
-        with warnings.catch_warnings():
-            warnings.simplefilter("ignore")
-            white, white_p, _, _ = het_white(residual, X)
         from statsmodels.regression.linear_model import OLS
 
         i0, i1 = np.triu_indices(X.shape[1])
-        # the degrees of freedom of White's test: those of the regression het_white runs (statsmodels counts the
-        # columns that are not repeats, as R lm drops aliased ones)
-        white_df = float(OLS(residual ** 2, X[:, i0] * X[:, i1]).fit().df_model)
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            white, white_p, _, _ = het_white(residual, X)
+            # the degrees of freedom of White's test: those of the regression het_white runs (statsmodels counts the
+            # columns that are not repeats, as R lm drops aliased ones)
+            white_df = float(OLS(residual ** 2, X[:, i0] * X[:, i1]).fit().df_model)
         found["white"] = (float(white), white_df, float(white_p))
         print(f"  White's test (the columns, their squares and products, as R lmtest::bptest(m, ~ the same)): "
               f"chi-square = {_num(white)}, df = {_whole(white_df)}; "
               f"{_p_clause(float(white_p), 'the spread were truly the same everywhere')}.")
+        large = large or white_p >= 0.05
     except (ValueError, np.linalg.LinAlgError, AssertionError):
         print("  White's test is left out: there are too few rows for the squares and products of the columns.")
+    if large:
+        print("  A large p-value does not show that the spread is the same everywhere, only that the test cannot tell.")
     return found
 
 
@@ -479,13 +499,14 @@ def calibration(model):
     p = np.asarray(model["fit"]["fitted"], dtype=float)
     groups = pd.qcut(p, 10, duplicates="drop")
     frame = pd.DataFrame({"chance": p, "yes": y, "group": groups})
+    # [D] each group's average predicted chance and share of yes (pandas groupby), for the picture
     table = frame.groupby("group", observed=True).agg(predicted=("chance", "mean"), observed=("yes", "mean"),
                                                       rows=("yes", "size")).reset_index(drop=True)
     picture = pd.DataFrame({"predicted chance": table["predicted"], "share of yes": table["observed"]})
     chart = (make_chart(picture).draw_dots(x="predicted chance", y="share of yes").draw_line_with_slope(1, intercept=0)
              .set_range_x(0, 1).set_range_y(0, 1).write_title_on_top("Calibration"))
-    brier = float(np.mean((p - y) ** 2))
-    share = float(np.mean(y))
+    brier = float(np.mean((p - y) ** 2))  # [D] the Brier score, mean((p - y)^2), as R DescTools::BrierScore()
+    share = float(np.mean(y))  # [D] the share of yes, and share * (1 - share), the Brier score of always predicting it
     found = {"calibration_predicted": table["predicted"].to_numpy(), "calibration_observed": table["observed"].to_numpy(),
              "calibration_rows": table["rows"].to_numpy(), "brier": brier}
     bins = len(table)
@@ -500,6 +521,9 @@ def calibration(model):
         print(f"Hosmer-Lemeshow test with 10 groups (a note: its answer depends on the number of groups and it misses "
               f"much; the picture says more): chi-square = {_num(chi)}, df = {_whole(df)}; "
               f"{_p_clause(hp, 'the predicted chances truly matched what happened')}.")
+        if hp >= 0.05:
+            print("A large Hosmer-Lemeshow p-value does not show that the model fits well, only that this test found "
+                  "no misfit it can see.")
     except RMissing:
         print('The Hosmer-Lemeshow test comes from R performance::performance_hosmer() (needs R: pip install '
               '"simplydata[r]"); left out here.')
@@ -620,12 +644,15 @@ def averages_compared(words, column, for_each, using, outcome, grouped_by, in_or
         given = [str(v) for v in in_order] if isinstance(in_order, (list, tuple)) else None
         if given is None or sorted(given) != sorted(levels):
             raise SimplydataError(f'in_order= gives the groups of "{for_each}" in the order to compare them, each once: '
-                                  f"in_order={[*levels]}.")
+                                  f"in_order={[*levels]}. (For outcome=\"ordered groups\" it gives the order of the "
+                                  "outcome's groups instead.)")
         levels = given
     name, method, weights = _comparing_choice(comparing, levels)
     out = model_contrasts(model, for_each, levels, method, weights, by=within)
     ratio = bool(np.atleast_1d(out["ratio"])[0])
     pair_what = RATIO_PAIRS.get(outcome, "ratio") if ratio else "difference"
+    if name in ("trend", "own weights"):  # weighted sums of averages, not differences of two groups
+        pair_what = "contrast (ratio scale)" if ratio else "contrast"
     adjust_raw = str(np.atleast_1d(out["adjust"])[0])
     adjust_key = adjust_raw.split()[0].lower() if adjust_raw.strip() else "none"
     adjust = ADJUST_WORDS.get(adjust_key, adjust_raw)
@@ -657,13 +684,14 @@ def averages_compared(words, column, for_each, using, outcome, grouped_by, in_or
             words_p = f"{ADJUST_WORDS.get(adjust_key, adjust_key).split(chr(39))[0].strip()}-adjusted {_p_shown(p)}" \
                 if adjust_key in ("tukey", "sidak", "bonferroni", "holm") else f"adjusted {_p_shown(p)} ({adjust_key})"
         else:
-            words_p = _p_clause(p, "the groups truly did not differ" if name != "trend" else "there were truly no trend")
+            words_p = _p_clause(p, TREND_NULLS.get(shown, f"there were truly no part of {shown}") if name == "trend"
+                                else "the groups truly did not differ")
         print(f"  {where}{shown}: {pair_what} {_num(out['difference'][i])} (95 % CI {_num(out['plow'][i])} to "
               f"{_num(out['phigh'][i])}); {words_p}.")
         row = {"term": shown + (f" (within {by_list[i]})" if within is not None else ""), pair_what:
                float(out["difference"][i]), "95 % CI low": float(out["plow"][i]), "95 % CI high": float(out["phigh"][i]),
                "standard error": float(out["pse"][i]), "degrees of freedom": float(out["pdf"][i]),
-               "statistic": float(out["stat"][i]), f"p-value ({adjust_key})": p}
+               "statistic": float(out["stat"][i]), P_COLUMNS.get(adjust_key, f"adjusted p-value ({adjust_key})"): p}
         rows.append(row)
     spec = f"~ {_r_name(for_each)}" + (f" | {_r_name(within)}" if within is not None else "")
     scale = "" if outcome == "numbers" else ', type = "response"'
@@ -679,6 +707,9 @@ def averages_compared(words, column, for_each, using, outcome, grouped_by, in_or
     if name == "trend" and in_order is None:
         print(f"The trend follows the groups in the order {_list_words(_quoted(g) for g in levels)}; give in_order=[...] "
               "when that is not their natural order.")
+    if adjust_key == "mvt":
+        print("The multivariate t adjustment uses random numbers in R (mvtnorm); simplydata fixes them with "
+              "set.seed(1), so the p-values are the same every time.")
     if ratio:
         print(f"The comparisons are ratios: 1 means no difference ({pair_what}).")
     if adjust_key != "none" and n_contrasts > 1:
@@ -832,21 +863,21 @@ def nested_averages(words, column, for_each, grouped_by):
     per_group = {g: sorted({u for u, gs in seen.items() if g in gs}) for g in order}
     if len(order) < 2:
         raise SimplydataError(f'"{for_each}" needs at least 2 groups.')
-    if min(len(v) for v in per_group.values()) < 2 and len(seen) - len(order) < 1:
+    if min(len(v) for v in per_group.values()) < 2:
         raise SimplydataError(f'Each "{for_each}" group needs at least 2 "{grouped_by}" groups, so the differences '
                               f'between "{grouped_by}" groups can be measured.')
     out = nested_anova(y, groups, units)
     f, d1, d2, p = (float(out["f"][0]), float(out["df1"][0]), float(out["df2"][0]), float(out["p"][0]))
     v_units, v_within = float(out["var_units"][0]), float(out["var_within"][0])
     balanced = len(set(size.values())) == 1 and len({len(v) for v in per_group.values()}) == 1
-    averages = ", ".join(f"{g} {_num(float(np.mean(y[np.array(groups) == g])))}" for g in order)
+    averages = ", ".join(f"{g} {_num(float(np.mean(y[np.array(groups) == g])))}" for g in order)  # [D] raw averages
     print(f'Comparing the average "{column}" for each "{for_each}", with several rows from each "{grouped_by}" '
           f'({len(seen)} "{grouped_by}" groups inside {len(order)} "{for_each}" groups, {len(y)} rows): a nested ANOVA, '
           f'so "{for_each}" is tested against the differences between "{grouped_by}" groups, not between rows.')
     print(f"  averages: {averages}")
     print(f'  "{for_each}": F = {_num(f)}, df = {_whole(d1)} and {_whole(d2)}; '
           f"{_p_clause(p, 'the averages truly did not differ')}.")
-    share = v_units / (v_units + v_within) if v_units + v_within > 0 else math.nan
+    share = v_units / (v_units + v_within) if v_units + v_within > 0 else math.nan  # [D] share of lme4's variances
     print(f'  Variances (R lme4::lmer(), REML): between "{grouped_by}" groups {_num(v_units)}, between rows of a '
           f'"{grouped_by}" {_num(v_within)}: about {round(share * 100) if math.isfinite(share) else "?"} % of the '
           f'differences the groups do not explain lies between "{grouped_by}" groups.')
@@ -1027,8 +1058,8 @@ class CheckingMoreWords:
             print(f"  left out (effect 0): {_list_words(_quoted(labels[j]) for j in dropped)}")
         grouped = [v for v in variables if kinds[v] == "group"]
         if grouped:
-            print(f"  text columns turned into 0/1 columns (each group against the first): "
-                  f"{_list_words(_quoted(v) for v in grouped)}")
+            print(f"  text columns turned into 0/1 columns (each group against the first group, in sorted order; "
+                  f"which of them are kept can depend on that choice): {_list_words(_quoted(v) for v in grouped)}")
         lam, lam_min = float(out["lambda"][0]), float(out["lambda_min"][0])
         measure = str(np.atleast_1d(out["measure"])[0])
         print(f"How: the rows were split into {LEFT_OUT_PARTS} parts at random (with_seed={with_seed}); each part was "
@@ -1049,10 +1080,10 @@ class CheckingMoreWords:
             row = {"term": label, "effect": float(beta[j])}
             if ratio:
                 row[ratio] = _exp(float(beta[j]))
-            row["kept"] = bool(j == 0 or beta[j] != 0)
+            row["kept"] = None if j == 0 else bool(beta[j] != 0)
             rows.append(row)
-        rows.append({"term": "penalty chosen (lambda.1se)", "value": lam})
-        rows.append({"term": f"cross-validated {measure.lower()}", "value": float(out["cvm"][0])})
+        rows.append({"term": "penalty chosen (lambda.1se)", "penalty": lam,
+                     "error on left-out rows": float(out["cvm"][0])})
         return _new_rows_table(self, rows)
 
     @friendly
@@ -1066,7 +1097,7 @@ class CheckingMoreWords:
         95 % interval, and the school's own line. own_slope_for="hours" adds each school's own
         slope. The levels are shrunk towards the average and carry uncertainty: they are for
         pictures and reports, not data for a later test (Houslay & Wilson 2017); the table that
-        comes back says so in its "warning" column. Done by R lme4::ranef(condVar = TRUE) and
+        comes back says so in its "note" column. Done by R lme4::ranef(condVar = TRUE) and
         coef() (needs R: pip install "simplydata[r]"). Other names: ranef, BLUP, random effects.
         """
         from .checking_r import group_levels
@@ -1108,12 +1139,12 @@ class CheckingMoreWords:
         for i in order:
             pieces_text = []
             for k, name in enumerate(names):
-                lo, hi = level[i, k] - 1.959963984540054 * sd[i, k], level[i, k] + 1.959963984540054 * sd[i, k]
+                lo, hi = out["low"][i, k], out["high"][i, k]
                 label = "starting level" if name == "(Intercept)" else f'slope for "{name}"'
                 pieces_text.append(f"{label} {level[i, k]:+.3g} (95 % interval {_num(lo)} to {_num(hi)}), own "
                                    f"{_num(own[i, k])}")
             print(f"  {groups[i]}: " + "; ".join(pieces_text))
-        print(f"Note: {LEVELS_WARNING}. The table that comes back says this too, in its \"warning\" column.")
+        print(f"Note: {LEVELS_WARNING}. The table that comes back says this too, in its \"note\" column.")
         if bool(np.atleast_1d(out["singular"])[0]):
             print("Note: R calls this a singular fit (a variance of about 0, or a correlation of about 1 or -1 between "
                   "the starting levels and the slopes): the data cannot tell all these levels apart, so a simpler model "
@@ -1130,10 +1161,10 @@ class CheckingMoreWords:
             for k, name in enumerate(names):
                 label = "starting level" if name == "(Intercept)" else f"slope for {name}"
                 row.update({f"{label} (distance from the average)": float(level[i, k]),
-                            f"{label} 95 % interval low": float(level[i, k] - 1.959963984540054 * sd[i, k]),
-                            f"{label} 95 % interval high": float(level[i, k] + 1.959963984540054 * sd[i, k]),
+                            f"{label} 95 % interval low": float(out["low"][i, k]),
+                            f"{label} 95 % interval high": float(out["high"][i, k]),
                             f"{label} conditional standard deviation": float(sd[i, k]),
                             f"own {label}": float(own[i, k])})
-            row["warning"] = LEVELS_WARNING
+            row["note"] = LEVELS_WARNING
             rows.append(row)
         return _new_rows_table(self, rows)

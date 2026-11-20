@@ -215,7 +215,7 @@ def model_contrasts(model, for_each, levels, method=None, weights=None, by=None,
         values["wmatrix"] = np.array([[float(w) for w in weights[n]] for n in names], dtype=float)
         code += ("wl <- lapply(seq_len(nrow(wmatrix)), function(i) wmatrix[i, ]); names(wl) <- wnames; "
                  "cn <- emmeans::contrast(e, method = wl); ")
-    code += ("sc <- summary(cn, infer = c(TRUE, TRUE)); p <- as.data.frame(sc); "
+    code += ("set.seed(1); sc <- summary(cn, infer = c(TRUE, TRUE)); p <- as.data.frame(sc); "
              f"out <- list(level = as.character(a${v}), average = value(a, c('{v}'"
              + (f", '{safe[by]}'" if by is not None else "") + ")), se = a$SE, df = a$df, low = low(a), high = high(a), "
              "contrast = as.character(p$contrast), difference = value(p, c('contrast'"
@@ -254,7 +254,9 @@ def group_levels(model, slopes=()):
              "sds <- t(sapply(seq_len(dim(pv)[3]), function(i) sqrt(diag(as.matrix(pv[, , i]))))); "
              "if (ncol(r) == 1) sds <- matrix(sds, ncol = 1); "
              "cf <- stats::coef(m)$g; "
+             "half <- stats::qnorm(0.975) * sds; "
              "list(groups = rownames(r), names = colnames(r), level = unname(as.matrix(r)), sd = unname(sds), "
+             "low = unname(as.matrix(r)) - half, high = unname(as.matrix(r)) + half, "
              "own = unname(as.matrix(cf[, colnames(r), drop = FALSE])), "
              "fixed = unname(lme4::fixef(m)[colnames(r)]), singular = lme4::isSingular(m))")
     names = {"(Intercept)": "(Intercept)"}
@@ -266,7 +268,7 @@ def group_levels(model, slopes=()):
     found = _flat(out)
     found["names"] = [names.get(str(n), str(n)) for n in found["names"]]
     k = len(found["names"])
-    for key in ("level", "sd", "own"):
+    for key in ("level", "sd", "own", "low", "high"):
         found[key] = np.asarray(found[key], dtype=float).reshape(-1, k) if k > 1 else \
             np.asarray(found[key], dtype=float).reshape(-1, 1)
     return found

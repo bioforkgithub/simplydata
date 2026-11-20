@@ -248,17 +248,17 @@ OPTION_ENTRIES = [
                 m <- glm(marks ~ hours, data = d)
                 set.seed(1)                                                   # (1)
                 cv <- boot::cv.glm(d, m, K = 10)                              # (2)
-                list(left_out = cv$delta[1], adjusted = cv$delta[2])
+                list(left_out = cv$delta[1], bias_corrected = cv$delta[2])
             """,
             "Python": """
                 {"mean squared error on left-out rows": left_out,
-                 "mean squared error on left-out rows (adjusted)": adjusted}
+                 "mean squared error on left-out rows (bias-corrected)": bias_corrected}
             """,
         },
         r_inputs=SCHOOL.replace('"breakfast", "sleep"', '"hours"'),
         r_packages=("boot",),
         compare="result",
-        fields=("mean squared error on left-out rows", "mean squared error on left-out rows (adjusted)"),
+        fields=("mean squared error on left-out rows", "mean squared error on left-out rows (bias-corrected)"),
         tolerance=1e-9,
         choices=("with_seed=1 is set.seed(1) in R, so R's own random numbers make the parts.",
                  "K = 10 parts: cv.glm's own default leaves out one row at a time."),
@@ -285,13 +285,13 @@ OPTION_ENTRIES = [
                 list(d = s$estimate[1], p = s$p.value[1])                         # (2)
             """,
             "Python": """
-                {"difference": d, "p-value (dunnettx)": p}
+                {"difference": d, "adjusted p-value (Dunnett)": p}
             """,
         },
         r_inputs=SCHOOL.replace('"breakfast", "sleep"', '"class"'),
         r_packages=("emmeans",),
         compare="result",
-        fields=("difference", "p-value (dunnettx)"),
+        fields=("difference", "adjusted p-value (Dunnett)"),
         tolerance=1e-6,
         choices=("each group against the first group (in sorted order, or the first of in_order=).",
                  "emmeans' own adjustment for this method (dunnettx), printed by simplydata."),

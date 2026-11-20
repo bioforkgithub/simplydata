@@ -55,7 +55,7 @@ def test_spread_changes_with_a_group_column_matches_nlme(school, school_frame, n
     assert row(result, "hours")["standard error"] == pytest.approx(float(found["se"][1]), rel=1e-5)
     assert row(result, 'spread of "School C" against "School A"')["effect"] == pytest.approx(float(found["ratio"][0]),
                                                                                             rel=1e-5)
-    assert row(result, "AIC of this model")["effect"] == pytest.approx(float(found["aic"][0]), rel=1e-8)
+    assert row(result, "AIC (REML) of this model")["effect"] == pytest.approx(float(found["aic"][0]), rel=1e-8)
     assert "varIdent(form = ~ 1 | school)" in printed and "studies would show this much" in printed
 
 
@@ -113,7 +113,7 @@ def test_lasso_matches_glmnet_with_the_same_seed(needs_r, capsys):
     frame = result.as_pandas()
     effects = frame[frame["term"].isin(["(intercept)", *cols])]["effect"].to_numpy(float)
     assert effects == pytest.approx(np.asarray(found["b"], float), rel=1e-9, abs=1e-12)
-    assert row(result, "penalty chosen (lambda.1se)")["value"] == pytest.approx(float(found["lambda"][0]), rel=1e-12)
+    assert row(result, "penalty chosen (lambda.1se)")["penalty"] == pytest.approx(float(found["lambda"][0]), rel=1e-12)
     assert "No p-values" in printed and "p =" not in printed
 
 
@@ -124,7 +124,7 @@ def test_lasso_effects_are_a_penalised_least_squares_minimum_as_statsmodels(need
     swiss = pd.read_csv(DATA / "swiss.csv")
     cols = ["Agriculture", "Examination", "Education", "Catholic", "Infant.Mortality"]
     result = sdata.table(swiss).find_columns_that_predict("Fertility", using=cols).as_pandas()
-    lam = float(result.loc[result["term"] == "penalty chosen (lambda.1se)", "value"].iloc[0])
+    lam = float(result.loc[result["term"] == "penalty chosen (lambda.1se)", "penalty"].iloc[0])
     X = swiss[cols].to_numpy(float)
     y = swiss["Fertility"].to_numpy(float)
     sd = X.std(axis=0)  # glmnet standardises with n in the divisor
@@ -259,7 +259,7 @@ def test_each_with_the_first_matches_emmeans_trt_vs_ctrl(warp, needs_r, capsys):
     frame = result.as_pandas()
     pairs = frame[frame["term"].str.contains("minus")]
     assert pairs["difference"].to_numpy(float) == pytest.approx(np.asarray(found["est"], float), rel=1e-10)
-    assert pairs["p-value (dunnettx)"].to_numpy(float) == pytest.approx(np.asarray(found["p"], float), rel=1e-6)
+    assert pairs["adjusted p-value (Dunnett)"].to_numpy(float) == pytest.approx(np.asarray(found["p"], float), rel=1e-6)
     assert "Dunnett" in printed
 
 
@@ -340,7 +340,7 @@ def test_group_levels_match_lme4_ranef(school, school_frame, needs_r, capsys):
     assert frame["starting level conditional standard deviation"].to_numpy(float) == pytest.approx(
         np.asarray(found["sd"], float), rel=1e-6)
     assert frame["own starting level"].to_numpy(float) == pytest.approx(np.asarray(found["own"], float), rel=1e-6)
-    assert "Houslay & Wilson" in printed and (frame["warning"].str.contains("not use them as data")).all()
+    assert "Houslay & Wilson" in printed and (frame["note"].str.contains("not use them as data")).all()
 
 
 def test_group_levels_need_grouped_by(school):
@@ -410,3 +410,50 @@ def test_interaction_lines_are_group_averages_with_t_intervals(capsys):
 def test_interaction_lines_need_three_columns():
     with pytest.raises(SimplydataError, match="colour="):
         sdata.chart(sdata.get_example("school")).draw_interaction_lines(x="class", y="marks")
+
+
+# ---------------------------------------------------------------- review fixes
+def test_neighbours_alike_on_uneven_dates_matches_nlme_corcar1_on_days(needs_r):
+    river = sdata.get_example("river")
+    part = river[river["station"] == "Station A"].head(60).drop(index=river.index[4]).dropna(subset=["level", "nitrate"])
+    result = sdata.table(part).explain("level", using=["nitrate"], neighbours_alike_in_order_of="date")
+    days = ((pd.to_datetime(part["date"]) - pd.to_datetime(part["date"]).min()) / pd.Timedelta(days=1)).to_numpy(float)
+    found = r("m <- nlme::gls(level ~ nitrate, correlation = nlme::corCAR1(form = ~ days)); "
+              "list(b = unname(stats::coef(m)), phi = unname(stats::coef(m$modelStruct$corStruct, unconstrained = "
+              "FALSE)))", ("nlme",), level=part["level"].to_numpy(float), nitrate=part["nitrate"].to_numpy(float),
+              days=days)
+    assert row(result, "nitrate")["effect"] == pytest.approx(float(found["b"][1]), rel=1e-5)
+    assert row(result, 'correlation of neighbours in "date" order')["effect"] == pytest.approx(
+        float(found["phi"][0]), rel=1e-5)
+
+
+def test_in_order_orders_the_pairs_without_comparing(warp, needs_r, capsys):
+    result = warp.find_model_averages_of("breaks", for_each_group_in="tension", using=["tension"],
+                                         in_order=["L", "M", "H"])
+    terms = list(result.as_pandas()["term"])
+    assert terms[:3] == ["L", "M", "H"] and "L minus M" in terms
+
+
+def test_trend_parts_are_contrasts_with_their_own_null(warp, needs_r, capsys):
+    result = warp.find_model_averages_of("breaks", for_each_group_in="tension", using=["tension"], comparing="trend",
+                                         in_order=["L", "M", "H"])
+    printed = capsys.readouterr().out
+    assert "contrast" in result.as_pandas().columns
+    assert "no straight trend" in printed and "no curve" in printed
+
+
+def test_levels_points_to_find_group_levels_of(capsys):
+    sdata.help("levels")
+    assert "find_group_levels_of" in capsys.readouterr().out
+
+
+def test_large_p_sentences_on_the_notes(school, needs_r, capsys):
+    school.check_model_of("passed", using=["hours", "breakfast"], outcome="yes or no")
+    assert "does not show that the model fits well" in capsys.readouterr().out
+    school.check_model_of("marks", using=["hours", "breakfast"])
+    assert "does not show that the spread is the same" in capsys.readouterr().out
+
+
+def test_no_singular_matrix_warning_from_whites_test(school, recwarn):
+    school.check_model_of("marks", using=["hours", "breakfast"])
+    assert not [w for w in recwarn if "Singular" in type(w.message).__name__ or "singular" in str(w.message).lower()]

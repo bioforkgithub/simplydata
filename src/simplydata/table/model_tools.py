@@ -191,13 +191,15 @@ class ModelToolWords:
         every pair; also "each with the next", "each with the average of the ones before"
         (Helmert), "each with the average", "trend" (groups in order) or your own weights as a dict
         (R emmeans contrast(), with emmeans' adjustment for each, printed). in_order=[...] gives the
-        order of the groups. within_each_group_in="sex" compares the groups within each sex (simple
+        order of the for_each_group_in= groups (the first is the control of "each with the first");
+        for outcome="ordered groups" it keeps its meaning there, the order of the outcome's groups. within_each_group_in="sex" compares the groups within each sex (simple
         effects), after the interaction test (R emmeans joint_tests()). over_range_of="hours" gives
         the model average at 50 evenly spaced values of hours, ready to draw (R emmeans(at =)).
         """
         step = "find_model_averages_of"
         # S3a-3 (checking and comparing): contrasts, simple effects and averages across a range (checking_more.py)
-        if comparing != "each pair" or within_each_group_in is not None or over_range_of is not None:
+        if (comparing != "each pair" or within_each_group_in is not None or over_range_of is not None
+                or (in_order is not None and outcome != "ordered groups")):
             from .checking_more import averages_compared
 
             return averages_compared(self, column, for_each_group_in, using, outcome, grouped_by, in_order, comparing,

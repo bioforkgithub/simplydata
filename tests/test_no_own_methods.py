@@ -50,6 +50,10 @@ ALLOWED = {
     "table/models.py::ModelWords._model_notes": "variance inflation factors from the correlation matrix",
     # S3a-3
     "table/checking_more.py::manova": "matrix_rank: refuses columns that repeat others before statsmodels MANOVA",
+    "table/checking_r.py::left_out_rows": "the error on the rows each model was fitted to, mean((y - fitted)^2), "
+                                          "next to cv.glm's error on left-out rows (cv.glm's own cost function)",
+    "table/checking_r.py::group_levels": "the 95 % interval of each group level, level +/- qnorm(0.975) * the "
+                                         "conditional sd from ranef(condVar = TRUE), as lattice::dotplot draws it",
     # our own choices of preprocessing, written in R code (no building block to find; listed so they stay visible)
     "_forecast.py::r_change_points": "find_change_points divides the readings by mad(diff(x)) / sqrt(2) before "
                                      "changepoint::cpt.mean, which assumes noise with standard deviation 1. "
@@ -58,7 +62,10 @@ ALLOWED = {
                                      "size that the jumps do not inflate. Said in the printed method sentence.",
 }
 # ALLOWED places whose choice lives in R code: the text that must still be in the file
-IN_R_CODE = {"_forecast.py::r_change_points": "mad(diff(x)) / sqrt(2)"}
+IN_R_CODE = {"_forecast.py::r_change_points": "mad(diff(x)) / sqrt(2)",
+             # S3a-3
+             "table/checking_r.py::left_out_rows": "mean((y - stats::fitted(m))^2)",
+             "table/checking_r.py::group_levels": "stats::qnorm(0.975) * sds"}
 
 
 
@@ -78,6 +85,15 @@ ALLOWED_ARITHMETIC = {
     "table/accuracy_words.py::_per_1000": "natural frequencies: each share times 1000, rounded",
     "table/agreement_words.py::AgreementWords._cohen": "the chance agreement read back from statsmodels' unweighted "
                                                        "kappa: (raw - kappa) / (1 - kappa)",
+    # S3a-3 (proposed at build, for Manish's approval)
+    "table/checking_more.py::compare_many": "Akaike weights exp(-difference / 2) scaled to 1, and the differences, "
+                                            "from statsmodels' AIC / AICc (as R AICcmodavg::aictab; no Python package "
+                                            "gives the weights)",
+    "table/checking_more.py::calibration": "the Brier score mean((p - y)^2) of statsmodels' fitted chances (as R "
+                                           "DescTools::BrierScore), the no-skill reference share * (1 - share), and "
+                                           "each tenth's average chance and share of yes for the picture",
+    "table/checking_more.py::nested_averages": "the raw group averages, and the share of lme4's two variances that "
+                                               "lies between units",
 }
 
 

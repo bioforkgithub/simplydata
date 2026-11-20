@@ -97,7 +97,7 @@ def _cases(Case):
                  r = sdata.table(data).explain("rate", using=["pressure"], spread_changes_with="pressure").as_pandas()
                  r = r.set_index("term")
                  {"slope": r.loc["pressure", "effect"], "standard error": r.loc["pressure", "standard error"],
-                  "power": r.loc['power of "pressure" for the spread', "effect"]}
+                  "power": r.loc['spread grows as "pressure" to the power', "effect"]}
              """,
              r="""
                  m <- nlme::gls(rate ~ pressure, weights = nlme::varPower(form = ~ pressure))
@@ -106,6 +106,19 @@ def _cases(Case):
              """, r_packages=("nlme",), r_tolerance=1e-5,
              note="R nlme::gls() is the reference: statsmodels has no variance functions. nlme's optimiser stops at "
                   "its own tolerance, so the numbers agree to about 1e-6."),
+        Case("table.explain", 'spread_changes_with=: a spread of its own for each blood flow rate (varIdent), with '
+                              "its interval", "Dialyzer (nlme)", "real data",
+             ours="""
+                 r = sdata.table(data).explain("rate", using=["pressure"], spread_changes_with="QB").as_pandas()
+                 r = r.set_index("term")
+                 row = r.loc['spread of "300" against "200"']
+                 {"ratio": row["effect"], "ratio low": row["95 % CI low"], "ratio high": row["95 % CI high"]}
+             """,
+             r="""
+                 m <- nlme::gls(rate ~ pressure, weights = nlme::varIdent(form = ~ 1 | QB))
+                 v <- nlme::intervals(m, which = "var-cov")$varStruct
+                 list(ratio = v[1, 2], `ratio low` = v[1, 1], `ratio high` = v[1, 3])
+             """, r_packages=("nlme",), r_tolerance=1e-5),
         Case("table.explain", "neighbours_alike_in_order_of=: the level of Lake Huron, a linear trend with AR(1) "
                               "errors", "Lake Huron", "real data",
              ours="""
@@ -126,7 +139,7 @@ def _cases(Case):
                  r = sdata.table(data).find_columns_that_predict("Fertility", using={swiss_cols}).as_pandas()
                  r = r.set_index("term")
                  {{"Education": r.loc["Education", "effect"], "Infant.Mortality": r.loc["Infant.Mortality", "effect"],
-                  "penalty": r.loc["penalty chosen (lambda.1se)", "value"]}}
+                  "penalty": r.loc["penalty chosen (lambda.1se)", "penalty"]}}
              """,
              r=f"""
                  x <- cbind(Agriculture, Examination, Education, Catholic, Infant.Mortality)
@@ -145,7 +158,7 @@ def _cases(Case):
              ours="""
                  r = sdata.table(data).compare_models("Fertility", using=[["Education"], ["Education", "Catholic"],
                      ["Education", "Catholic", "Infant.Mortality"]]).as_pandas().set_index("term")
-                 {"AICc smallest": r.loc["Fertility ~ Education", "AICc"],
+                 {"AICc of Fertility ~ Education": r.loc["Fertility ~ Education", "AICc"],
                   "weight of the biggest": r.loc["Fertility ~ Education + Catholic + Infant.Mortality", "Akaike weight"]}
              """,
              parent="""
@@ -157,13 +170,13 @@ def _cases(Case):
                  fits = [smf.ols(f, data).fit() for f in fs]
                  a = np.array([eval_measures.aicc(f.llf, f.nobs, len(f.params) + 1) for f in fits])
                  w = np.exp(-(a - a.min()) / 2)
-                 {"AICc smallest": a[0], "weight of the biggest": (w / w.sum())[2]}
+                 {"AICc of Fertility ~ Education": a[0], "weight of the biggest": (w / w.sum())[2]}
              """, parent_label="statsmodels OLS and eval_measures.aicc",
              r="""
                  ms <- list(a = lm(Fertility ~ Education), b = lm(Fertility ~ Education + Catholic),
                             c = lm(Fertility ~ Education + Catholic + Infant.Mortality))
                  t <- AICcmodavg::aictab(ms, modnames = names(ms), sort = FALSE)
-                 list(`AICc smallest` = t$AICc[1], `weight of the biggest` = t$AICcWt[3])
+                 list(`AICc of Fertility ~ Education` = t$AICc[1], `weight of the biggest` = t$AICcWt[3])
              """, r_packages=("AICcmodavg",), r_tolerance=1e-9),
         # ---- O14: left-out rows
         Case("table.compare_models", "check_on_left_out_rows=True: low birth weight from age, weight and smoking "
@@ -171,14 +184,14 @@ def _cases(Case):
              ours="""
                  r = sdata.table(data).compare_models("low", using=["age", "lwt", "smoke"], outcome="yes or no",
                                                       check_on_left_out_rows=True).as_pandas().iloc[0]
-                 {"left out": r["Brier score on left-out rows"], "adjusted": r["Brier score on left-out rows (adjusted)"]}
+                 {"left out": r["Brier score on left-out rows"], "bias-corrected": r["Brier score on left-out rows (bias-corrected)"]}
              """,
              r="""
                  d <- data.frame(y = as.numeric(low == "yes"), age = age, lwt = lwt, smoke = smoke)
                  m <- glm(y ~ age + lwt + smoke, data = d, family = binomial)
                  set.seed(1)
                  cv <- boot::cv.glm(d, m, K = 10)
-                 list(`left out` = cv$delta[1], adjusted = cv$delta[2])
+                 list(`left out` = cv$delta[1], `bias-corrected` = cv$delta[2])
              """, r_packages=("boot",), r_tolerance=1e-10,
              note="R boot::cv.glm with the same seed is the reference: the split is made by R's own random numbers."),
         # ---- O05: Breusch-Pagan
@@ -225,7 +238,7 @@ def _cases(Case):
                      using=["wool * tension"], comparing="each with the first", in_order=["L", "M", "H"])
                  r = r.as_pandas().set_index("term")
                  {"M minus L": r.loc["M minus L", "difference"], "H minus L": r.loc["H minus L", "difference"],
-                  "p H minus L": r.loc["H minus L", "p-value (dunnettx)"]}
+                  "p H minus L": r.loc["H minus L", "adjusted p-value (Dunnett)"]}
              """,
              r="""
                  d <- data.frame(y = breaks, w = factor(wool), t = factor(tension, levels = c("L", "M", "H")))

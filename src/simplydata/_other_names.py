@@ -229,7 +229,7 @@ _TABLE = [
     # S3a-3: checking and comparing
     ('table.find_columns_that_predict("marks", using=["hours", "sleep", "breakfast"])',
      "lasso glmnet cv.glmnet cv_glmnet elastic_net elasticnet LassoCV ElasticNetCV"),
-    ('table.find_group_levels_of("marks", using=["hours"], grouped_by="school")', "ranef blup blups random_effects"),
+    ('table.find_group_levels_of("marks", using=["hours"], grouped_by="school")', "ranef blup blups random_effects levels group_levels"),
     ('table.explain("marks", using=["hours"], spread_changes_with="school")', "gls varIdent varPower corAR1 corCAR1 GLSAR"),
     ('table.compare_models("marks", using=[["hours"], ["hours", "breakfast"]])', "aictab model.sel AICc aicc akaike_weights"),
     ('table.compare_models("marks", using=["hours"], check_on_left_out_rows=True)',
