@@ -78,13 +78,13 @@ ENTRIES = [
         """},
         r_inputs=NUMBERS_IN_CODE, r_packages=("presize",), compare="result", fields=("values (exact)", "values"),
         tolerance=1e-9,
-        choices=("the Wilson interval, given by name: presize's test_method= is a list of four and it warns when none is "
+        choices=("the Wilson interval, given by name: presize's method= is a list of four and it warns when none is "
                  "chosen.",),
         python_note="Python has no function for the values needed for a percent's interval.",
         also="simplydata also takes the width in percentage points and says the answer in a sentence.",
     ),
     Entry(
-        word=NEEDED, option="test_method=",
+        word=NEEDED, option="for_test=",
         ours="""
             result = sdata.find_how_many_needed(for_test="compare_survival", effect_size=0.7, percents=[30, 40])
             result

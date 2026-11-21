@@ -412,7 +412,7 @@ def _route(step, test, based_on, drawing_from, by_running, interval_width, perce
              "percents": percents is not None}
     for option, is_given in given.items():
         if is_given and not uses[option]:
-            name = {"clusters": "in_clusters_of= and alike_within_clusters="}.get(option, option + "=")
+            name = {"clusters": "in_clusters_of= and alike_within_clusters=", "method": "test_method="}.get(option, option + "=")
             where = {"using": 'for_test="explain" or for_test="compare_models"', "against": 'for_test="compare_models"',
                      "outcome": 'for_test="explain"', "method": 'for_test="compare_survival"',
                      "clusters": 'the formula routes (compare_averages, compare_counts, compare_average_to, '

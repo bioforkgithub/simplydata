@@ -1153,7 +1153,7 @@ class SummaryWords:
         if kind == "analytic" and method_given and rule != "inverted_cdf":
             raise SimplydataError(
                 'With weight_kind="analytic" the rule is the weighted inverted CDF (NumPy percentile(weights=, '
-                'test_method="inverted_cdf")), the only rule NumPy has with weights, so test_method= cannot be changed. Leave '
+                'method="inverted_cdf")), the only rule NumPy has with weights, so test_method= cannot be changed. Leave '
                 'out test_method=, or use weight_kind="frequency" (whole-number weights) to keep test_method=.')
         groups = self._group_columns(step, for_each, [column, weights]) if for_each is not None else []
         frame = self._number_frame(step, [column, weights])

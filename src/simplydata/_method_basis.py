@@ -2060,7 +2060,7 @@ BASIS["sdata.find_how_many_needed"] = _b(
     "80 % power, significance 0.05, two-sided, two groups of equal size; the two-sample t-test formula (as R "
     "power.t.test(), counting only the right direction for a two-sided test); the answer rounded up. Three or "
     "more groups: one-way ANOVA (Cohen's f); counts: chi-square (Cohen's w), or two percents (R power.prop.test).",
-    "power=, significance=, sides=, groups=, test_method=, percents=, same_within=, interval_width=, based_on=, "
+    "power=, significance=, sides=, groups=, for_test=, percents=, same_within=, interval_width=, based_on=, "
     "using=, outcome=, test_method=, in_clusters_of=, drawing_from=.",
     "80 % power at a two-sided 5 % level is the convention of Cohen 1988 and G*Power (Faul et al. 2009); two-sided "
     "tests are the regulatory norm (ICH E9). The effect to plan for is the smallest that matters (Lenth 2001), "
@@ -2078,10 +2078,10 @@ BASIS["sdata.find_how_many_needed interval_width="] = _b(
     "presize::prec_mean.",
     "There is no other interval here.",
     "Wilson's interval keeps its coverage better than the Wald interval (Brown, Cai & DasGupta 2001); presize's "
-    "own test_method= is a list of four and warns when none is chosen (Haynes et al. 2021).",
+    "own method= is a list of four and warns when none is chosen (Haynes et al. 2021).",
     ("brown2001", "haynes2021"), "P2", "spread= is required for an average.")
-BASIS["sdata.find_how_many_needed test_method="] = _b(
-    "For test_method=\"compare_survival\": the events needed by Schoenfeld's formula for the log-rank test (R "
+BASIS["sdata.find_how_many_needed for_test="] = _b(
+    "For for_test=\"compare_survival\": the events needed by Schoenfeld's formula for the log-rank test (R "
     "gsDesign::nEvents()), then the people from the share expected to have the event.",
     "test_method=\"freedman\".",
     "Survival power depends on the number of events, not of people (Schoenfeld 1983; Hsieh & Lavori 2000), so the "
@@ -2097,7 +2097,7 @@ BASIS["sdata.find_how_many_needed test_method="] = _b(
 BASIS["sdata.find_how_many_needed using="] = _b(
     "Regression power on Cohen's f squared, statsmodels FTestPowerF2 (as R pwr::pwr.f2.test()); the rows are "
     "the denominator degrees of freedom plus the columns plus 1.",
-    "test_method=\"compare_models\" with against=.",
+    "for_test=\"compare_models\" with against=.",
     "Cohen 1988, chapter 9; the newer statsmodels class names the degrees of freedom the right way round.",
     ("cohen1988", "faul2009"), "P3", "One-sided tests are refused; each name counts as 1 degree of freedom, with "
     "a note.", "convention")

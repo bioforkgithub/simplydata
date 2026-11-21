@@ -1779,9 +1779,9 @@ class ModelWords:
                 raise SimplydataError("changes_at= and for_percentile= cannot be used together yet.")
             return explain_changes(self, column, using, changes_at, dict(
                 outcome=outcome, grouped_by=grouped_by, empty_cells=empty_cells, with_seed=with_seed, time=time,
-                out_of=out_of, in_order=in_order, link=link, test_type=table_of_tests, own_slope_for=own_slope_for,
+                out_of=out_of, in_order=in_order, link=link, table_of_tests=table_of_tests, own_slope_for=own_slope_for,
                 robust_errors=robust_errors, p_value_by=p_value_by, effects=effects, within_groups=within_groups,
-                curve_for=curve_for, weights=weights, show=show, method=test_method, matched_by=matched_by,
+                curve_for=curve_for, weights=weights, show=show, test_method=test_method, matched_by=matched_by,
                 giving_outliers_less_weight=giving_outliers_less_weight, with_knots=with_knots,
                 interval_by=interval_by, resamples=resamples, crossed_with=crossed_with,
                 zero_part_using=zero_part_using))

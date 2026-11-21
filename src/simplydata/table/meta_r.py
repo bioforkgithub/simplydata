@@ -172,6 +172,6 @@ def combine(route, values, measure, method, test, transform, drop00=True, group=
 def _note_words(note):
     """metafor's notes that combine_studies says in its own words (studies left out, the test chosen for one
     study) are not repeated."""
-    quiet = ("Studies with NAs omitted", "Some yi/vi values are NA", "Setting argument test_method=",
+    quiet = ("Studies with NAs omitted", "Some yi/vi values are NA", "Setting argument test=",
              "Cannot estimate tau^2", "Some yi/vi values")
     return "" if any(q in note for q in quiet) else note

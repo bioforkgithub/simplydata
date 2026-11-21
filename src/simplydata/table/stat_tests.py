@@ -2030,7 +2030,7 @@ class StatTestWords:
 
             bayes_words.check_bayes_options(step, [
                 ("based_on=", based_on, "averages"), ("sides=", sides, 2), ("higher=", higher, None),
-                ("lower=", lower, None), ("alternative=", alternative, None), ("test_method=", test_method, None),
+                ("lower=", lower, None), ("alternative=", alternative, None),
                 ("p_value_by=", p_value_by, "formula"), ("shuffles=", shuffles, 9999),
                 ("same_within=", same_within, None), ("not_lower=", not_lower, None),
                 ("not_higher=", not_higher, None)])
@@ -2172,7 +2172,7 @@ class StatTestWords:
             bayes_words.check_bayes_options(step, [
                 ("based_on=", based_on, "averages"), ("sides=", sides, 2), ("higher=", higher, None),
                 ("lower=", lower, None), ("alternative=", alternative, None), ("same_within=", same_within, None),
-                ("not_lower=", not_lower, None), ("not_higher=", not_higher, None), ("test_method=", test_method, None),
+                ("not_lower=", not_lower, None), ("not_higher=", not_higher, None),
                 ("standard_deviation=", standard_deviation, None)])
             seed = bayes_words.check_seed(with_seed)
             width = bayes_r.width_value(prior_width)

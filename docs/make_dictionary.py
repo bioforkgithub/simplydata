@@ -316,13 +316,13 @@ def old_names() -> list[tuple[str, str | None, list[str]]]:
         olds |= set(getattr(cls, "_OLD_WORDS", {}))
     for old in sorted(olds):
         for name, _, key in learn._old_names(old):
-            if not name.endswith("="):
+            if "=" not in name:
                 found.setdefault((name, None), []).append(key)
     for key, func in learn._words_with_options():
         if key in learn.OPTIONS:
             continue
-        for old, new in getattr(func, "_renamed_options", {}).items():
-            found.setdefault((f"{old}=", f"{new}="), []).append(key)
+        for old, new in learn._renamed_options_of(func):  # ("method=", "test_method="), ("bayesian=True", ...)
+            found.setdefault((old, new), []).append(key)
     rows = [(old, new, sorted(dict.fromkeys(keys), key=lambda k: KIND_ORDER.index(learn._kind(k))))
             for (old, new), keys in found.items()]
     return sorted(rows, key=lambda r: (sort_key(r[0]), r[1] or ""))
