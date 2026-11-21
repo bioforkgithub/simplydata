@@ -630,6 +630,16 @@ class StatTestWords:
     def _check_based_on(self, step, based_on):
         self._check_choice(step, "based_on", based_on, BASED_ON)
 
+    @staticmethod
+    def _check_bayesian(step, bayesian, prior_width="medium"):
+        """bayesian= is True or False; prior_width= goes with bayesian=True (S3d-3)."""
+        if bayesian not in (True, False) or not isinstance(bayesian, (bool, np.bool_)):
+            raise SimplydataError(f"{step}() takes bayesian=True (the Bayesian answer) or bayesian=False (the usual "
+                                  f"one); it got bayesian={bayesian!r}.")
+        if not bayesian and prior_width != "medium":
+            raise SimplydataError(f"prior_width= sets the prior of the Bayes factor; it goes with bayesian=True, such "
+                                  f'as {step}(..., bayesian=True, prior_width="wide").')
+
     def _number_values(self, step: str, columns: list[str]):
         """The columns as float arrays, rows with an empty cell in any of them skipped (with a note)."""
         frame = self._number_frame(step, columns)
@@ -668,11 +678,12 @@ class StatTestWords:
         return groups
 
     # ------------------------------------------------------------------ compare_averages_of
-    @friendly(renamed={"between": "for_each_group_in", "for_each": "for_each_group_in", "seed": "with_seed"})
+    @friendly(renamed={"between": "for_each_group_in", "for_each": "for_each_group_in", "seed": "with_seed"},
+              others={"rscale": "prior_width", "prior_scale": "prior_width"})
     def compare_averages_of(self, column=None, for_each_group_in=None, based_on="averages", test=None, sides=2, higher=None,
                             lower=None, alternative=None, p_value_by="formula", shuffles=9999, with_seed=1,
                             same_within=None, not_lower=None, not_higher=None, in_order=None, matched_by=None,
-                            grouped_by=None):
+                            grouped_by=None, bayesian=False, prior_width="medium"):
         """Are the averages of the groups really different?
 
         table.compare_averages_of("marks", for_each_group_in="class")   (with sdata.get_example("marks"))
@@ -720,11 +731,38 @@ class StatTestWords:
         (statsmodels MANOVA, as R summary(manova())).
         Under a survey design (table.use_survey_design) two groups are compared by the design-based t
         test, R survey::svyttest.
+        bayesian=True (two groups) gives the Bayes factor and a 95 % credible interval of the difference
+        instead of a p-value: R BayesFactor::ttestBF() with the JZS prior (Rouder et al. 2009), whose width
+        prior_width= sets: "medium" (0.707, the default), "wide" (1), "ultrawide" (1.414) or a number. The
+        interval comes from 10,000 posterior draws (with_seed=1). Needs R (BayesFactor).
         """
         if self._survey_on():
             self._survey_only("compare_averages_of", locals(), ("column", "for_each_group_in"))
             return self._survey_compare_averages(column, for_each_group_in)
         step = "compare_averages_of"
+        if bayesian is not False or prior_width != "medium":
+            from . import bayes_r, bayes_words
+
+            self._check_bayesian(step, bayesian, prior_width)
+            bayes_words.check_bayes_options(step, [
+                ("based_on=", based_on, "averages"), ("test=", test, None), ("sides=", sides, 2),
+                ("higher=", higher, None), ("lower=", lower, None), ("alternative=", alternative, None),
+                ("p_value_by=", p_value_by, "formula"), ("shuffles=", shuffles, 9999),
+                ("same_within=", same_within, None), ("not_lower=", not_lower, None),
+                ("not_higher=", not_higher, None), ("in_order=", in_order, None), ("matched_by=", matched_by, None),
+                ("grouped_by=", grouped_by, None)])
+            if isinstance(column, (list, tuple)):
+                raise SimplydataError("bayesian=True compares one column between two groups; give one column.")
+            seed = bayes_words.check_seed(with_seed)
+            width = bayes_r.width_value(prior_width)
+            groups = self._groups(step, column, for_each_group_in,
+                                  'with sdata.get_example("marks"): table.compare_averages_of("marks", '
+                                  'for_each_group_in="class", bayesian=True)')
+            if len(groups) != 2:
+                raise SimplydataError(f'bayesian=True compares the averages of 2 groups; "{for_each_group_in}" has '
+                                      f"{len(groups)}. Keep two groups first (table.keep_rows_where(...)), or leave "
+                                      "out bayesian=True for Welch's ANOVA.")
+            return bayes_words.two_groups(self, column, for_each_group_in, groups, width, seed)
         # S3a-3 (checking and comparing): nested ANOVA and MANOVA (table/checking_more.py)
         if grouped_by is not None or isinstance(column, (list, tuple)):
             from .checking_more import manova, nested_averages
@@ -1907,10 +1945,11 @@ class StatTestWords:
               "sign_test().")
         return self._result_table(row)
 
-    @friendly(renamed={"seed": "with_seed"})
+    @friendly(renamed={"seed": "with_seed"}, others={"rscale": "prior_width", "prior_scale": "prior_width"})
     def compare_before_and_after(self, before=None, after=None, based_on="averages", sides=2, higher=None, lower=None,
                                  alternative=None, test=None, p_value_by="formula", shuffles=9999, with_seed=1,
-                                 same_within=None, not_lower=None, not_higher=None):
+                                 same_within=None, not_lower=None, not_higher=None, bayesian=False,
+                                 prior_width="medium"):
         """Did the values really change from one column to the other, row by row?
 
         table.compare_before_and_after("Maths", "Science")   (with sdata.get_example("marks"))
@@ -1939,6 +1978,10 @@ class StatTestWords:
         two one-sided tests on the changes (statsmodels ttost_paired, as R TOSTER::t_TOST(paired =
         TRUE)); same_within=5, not_lower="after" is a non-inferiority test (the after values no more
         than 5 lower), and not_higher="after" its mirror (no more than 5 higher).
+        bayesian=True (numbers) gives the Bayes factor and a 95 % credible interval of the average change
+        instead of a p-value: R BayesFactor::ttestBF(after, before, paired = TRUE) with the JZS prior,
+        prior_width= "medium" (0.707, the default), "wide", "ultrawide" or a number; 10,000 posterior draws
+        (with_seed=1). Needs R (BayesFactor).
         """
         step = "compare_before_and_after"
         example = 'table.compare_before_and_after("before", "after")'
@@ -1947,6 +1990,26 @@ class StatTestWords:
         self._check_based_on(step, based_on)
         if before == after:
             raise SimplydataError(f"{step}() needs two different columns, for example {example}.")
+        if bayesian is not False or prior_width != "medium":
+            from . import bayes_r, bayes_words
+
+            self._check_bayesian(step, bayesian, prior_width)
+            bayes_words.check_bayes_options(step, [
+                ("based_on=", based_on, "averages"), ("sides=", sides, 2), ("higher=", higher, None),
+                ("lower=", lower, None), ("alternative=", alternative, None), ("test=", test, None),
+                ("p_value_by=", p_value_by, "formula"), ("shuffles=", shuffles, 9999),
+                ("same_within=", same_within, None), ("not_lower=", not_lower, None),
+                ("not_higher=", not_higher, None)])
+            seed = bayes_words.check_seed(with_seed)
+            width = bayes_r.width_value(prior_width)
+            self._need_columns(before, after)
+            if self._paired_kind(before, after)[0] != "numbers":
+                raise SimplydataError(f'bayesian=True compares two columns of numbers; "{before}" and "{after}" are '
+                                      "not both numbers.")
+            b, a = self._number_values(step, [before, after])
+            if len(a) < 2:
+                raise SimplydataError(f'{step}() needs at least 2 rows with a number in both "{before}" and "{after}".')
+            return bayes_words.matched(self, before, after, b, a, width, seed)
         sides, higher, lower, claim = _non_inferiority(
             step, same_within, sides, higher, lower, not_lower, not_higher, ["after", "before"],
             f'table.compare_before_and_after("{before}", "{after}", same_within=5, not_lower="after")')
@@ -2038,10 +2101,10 @@ class StatTestWords:
             print(note)
         return self._result_table(row)
 
-    @friendly
+    @friendly(renamed={"seed": "with_seed"}, others={"rscale": "prior_width", "prior_scale": "prior_width"})
     def compare_average_to(self, column=None, value=None, based_on="averages", sides=2, higher=None, lower=None,
                            alternative=None, same_within=None, not_lower=None, not_higher=None, test=None,
-                           standard_deviation=None):
+                           standard_deviation=None, bayesian=False, prior_width="medium", with_seed=1):
         """Is the average of a column really different from a number you choose?
 
         table.compare_average_to("marks", 60)   (with sdata.get_example("marks"))
@@ -2057,6 +2120,10 @@ class StatTestWords:
         (statsmodels DescrStatsW.ttost_mean, as R TOSTER::t_TOST(x - 60, eqb = 5));
         same_within=5, not_lower="average" is a non-inferiority test (the average no more than 5
         below the number), and not_higher="average" its mirror (no more than 5 above it).
+        bayesian=True gives the Bayes factor and a 95 % credible interval of the average minus the number
+        instead of a p-value: R BayesFactor::ttestBF() with the JZS prior, prior_width= "medium" (0.707,
+        the default), "wide", "ultrawide" or a number; 10,000 posterior draws (with_seed=1). Needs R
+        (BayesFactor).
         """
         step = "compare_average_to"
         example = 'with sdata.get_example("marks"): table.compare_average_to("marks", 60)'
@@ -2064,6 +2131,24 @@ class StatTestWords:
         if not _is_number(value) or not math.isfinite(value):
             raise SimplydataError(f"{step}() needs a number to compare with, for example {example}.")
         self._check_based_on(step, based_on)
+        if bayesian is not False or prior_width != "medium":
+            from . import bayes_r, bayes_words
+
+            self._check_bayesian(step, bayesian, prior_width)
+            bayes_words.check_bayes_options(step, [
+                ("based_on=", based_on, "averages"), ("sides=", sides, 2), ("higher=", higher, None),
+                ("lower=", lower, None), ("alternative=", alternative, None), ("same_within=", same_within, None),
+                ("not_lower=", not_lower, None), ("not_higher=", not_higher, None), ("test=", test, None),
+                ("standard_deviation=", standard_deviation, None)])
+            seed = bayes_words.check_seed(with_seed)
+            width = bayes_r.width_value(prior_width)
+            (values,) = self._number_values(step, [column])
+            if len(values) < 2:
+                raise SimplydataError(f'{step}() needs at least 2 numbers in "{column}".')
+            return bayes_words.one_column(self, column, float(value), values, width, seed)
+        if not isinstance(with_seed, (int, np.integer)) or isinstance(with_seed, bool) or with_seed != 1:
+            raise SimplydataError("with_seed= fixes the random draws of bayesian=True; the usual test has none, so "
+                                  "leave it out.")
         (values,) = self._number_values(step, [column])
         if len(values) < 2:
             raise SimplydataError(f'{step}() needs at least 2 numbers in "{column}".')
@@ -2179,7 +2264,7 @@ class StatTestWords:
     # ------------------------------------------------------------------ compare_counts_of
     @friendly(renamed={"between": "for_each_group_in", "for_each": "for_each_group_in", "seed": "with_seed"})
     def compare_counts_of(self, column=None, for_each_group_in=None, test=None, in_order=None, p_value_by="formula",
-                          shuffles=9999, with_seed=1, show=None):
+                          shuffles=9999, with_seed=1, show=None, bayesian=False):
         """Does how often each value turns up really differ between groups?
 
         table.add_group_column("result", from_column="marks", cut_at=[60], names=["below 60", "60 or more"])
@@ -2204,6 +2289,10 @@ class StatTestWords:
         strength of the link from 0 (none) to 1 (complete). Gives back a one-row table.
         Under a survey design (table.use_survey_design) it gives the Rao-Scott F test, R
         survey::svychisq.
+        bayesian=True gives the Bayes factor and each group's shares with 95 % credible intervals
+        instead of a p-value: R BayesFactor::contingencyTableBF(sampleType = "indepMulti", fixedMargin =
+        "rows"), each group's total fixed (the for_each_group_in= groups are the rows), with the
+        Gunel-Dickey prior (concentration 1); 10,000 posterior draws (with_seed=1). Needs R (BayesFactor).
         """
         if self._survey_on():
             self._survey_only("compare_counts_of", locals(), ("column", "for_each_group_in"))
@@ -2224,6 +2313,8 @@ class StatTestWords:
             raise SimplydataError("shuffles= needs a whole number of 99 or more, such as shuffles=9999.")
         if column == for_each_group_in:
             raise SimplydataError(f"{step}() needs two different columns, for example {example}.")
+        if bayesian is not False:
+            self._check_bayesian(step, bayesian)
         frame = self._frame
         floats = [c for c in (column, for_each_group_in) if frame.schema[c].is_float()]
         if floats:
@@ -2254,6 +2345,15 @@ class StatTestWords:
         ci = {k: i for i, k in enumerate(col_keys)}
         for r_, c_ in zip(rows_of, cols_of):
             observed[ri[r_], ci[c_]] += 1
+        if bayesian:
+            from . import bayes_words
+
+            bayes_words.check_bayes_options(step, [
+                ("test=", test, None), ("in_order=", in_order, None), ("p_value_by=", p_value_by, "formula"),
+                ("shuffles=", shuffles, 9999), ("show=", show, None)])
+            return bayes_words.counts(self, column, for_each_group_in, [_label(v) for v in rows_of],
+                                      [_label(v) for v in cols_of], [_label(k) for k in row_keys],
+                                      [_label(k) for k in col_keys], int(with_seed))
         if test == "trend":
             return self._trend_test(step, observed, column, for_each_group_in, row_keys, col_keys)
         result = self._counts_engine(observed, column, for_each_group_in, test, p_value_by=p_value_by, shuffles=int(shuffles),

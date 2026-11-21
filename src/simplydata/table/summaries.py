@@ -1915,10 +1915,11 @@ class SummaryWords:
         return [None if _missing(v) else _plain(v) for v in series.to_list()]
 
     # ------------------------------------------------------------------ correlation
-    @friendly(renamed={"seed": "with_seed"})
+    @friendly(renamed={"seed": "with_seed"}, others={"rscale": "prior_width", "prior_scale": "prior_width"})
     def find_correlation_between(self, *columns, method="pearson", show="r", sides=2, higher=None, lower=None,
                                  alternative=None, p_value_by="formula", interval_by=None, shuffles=9999, resamples=9999,
-                                 with_seed=1, allowing_for=None, rows_back=None, sorted_by=None):
+                                 with_seed=1, allowing_for=None, rows_back=None, sorted_by=None, bayesian=False,
+                                 prior_width="medium"):
         """How strongly columns of numbers go up or down together, from -1 to 1.
 
         table.find_correlation_between("hours", "marks")   (with sdata.get_example("marks"))
@@ -1951,6 +1952,10 @@ class SummaryWords:
         With rows_back=12 and two columns (sorted_by= the time column): the correlation for shifts
         -12 to 12 (cross-correlation, as R ccf with the sign of the lag reversed): shift 2 pairs the
         first column with the second 2 rows later. It says which column follows the other.
+        bayesian=True (two columns) gives the Bayes factor and a 95 % credible interval of the
+        correlation instead of a p-value: R BayesFactor::correlationBF() with a stretched beta prior
+        whose width prior_width= sets ("medium" 1/3, the default; "wide" 0.577; "ultrawide" 1; or a
+        number); 10,000 posterior draws (with_seed=1). Needs R (BayesFactor).
         A correlation does not show that one thing causes the other.
         """
         step = "find_correlation_between"
@@ -1962,6 +1967,13 @@ class SummaryWords:
                 f"{step}() needs two column names in quotes (or more, for a correlation table).\n"
                 f'For example, with sdata.get_example("marks"): table.{step}("hours", "marks")'
             )
+        if bayesian is not False or prior_width != "medium":
+            return self._bayesian_correlation(step, names, bayesian, prior_width, with_seed, [
+                ("method=", method, "pearson"), ("show=", show, "r"), ("sides=", sides, 2), ("higher=", higher, None),
+                ("lower=", lower, None), ("alternative=", alternative, None), ("p_value_by=", p_value_by, "formula"),
+                ("interval_by=", interval_by, None), ("shuffles=", shuffles, 9999), ("resamples=", resamples, 9999),
+                ("allowing_for=", allowing_for, None), ("rows_back=", rows_back, None),
+                ("sorted_by=", sorted_by, None)])
         if rows_back is not None or sorted_by is not None:
             if rows_back is None:
                 raise SimplydataError(f"{step}() uses sorted_by= with rows_back= (the cross-correlation); "
@@ -2040,6 +2052,29 @@ class SummaryWords:
                                          p_value_by=p_value_by, interval_by=interval_by, shuffles=shuffles,
                                          resamples=resamples, seed=with_seed)
         return self._correlation_table(step, frame, names, method, shown)
+
+    def _bayesian_correlation(self, step, names, bayesian, prior_width, with_seed, given):
+        """find_correlation_between(a, b, bayesian=True): the Bayes factor and the posterior of the correlation, R
+        BayesFactor::correlationBF() (table/bayes_words.py)."""
+        from . import bayes_r, bayes_words
+        from .stat_tests import _skipped_note
+
+        self._check_bayesian(step, bayesian, prior_width)
+        bayes_words.check_bayes_options(step, given)
+        if len(names) != 2 or names[0] == names[1]:
+            raise SimplydataError("bayesian=True gives the correlation of two different columns; give two column names, "
+                                  'such as table.find_correlation_between("hours", "marks", bayesian=True).')
+        seed = bayes_words.check_seed(with_seed)
+        width = bayes_r.width_value(prior_width)
+        frame = self._number_frame(step, names)
+        pairs = frame.select(names[0], names[1]).drop_nulls()
+        _skipped_note(len(frame) - len(pairs), names)
+        if len(pairs) < 3:
+            raise SimplydataError(f'{step}() needs at least 3 rows where both "{names[0]}" and "{names[1]}" have a '
+                                  f"number; this table has {len(pairs)}.")
+        a = pairs[names[0]].to_numpy().astype(float)
+        b = pairs[names[1]].to_numpy().astype(float)
+        return bayes_words.correlation(self, names[0], names[1], a, b, width, seed)
 
     @staticmethod
     def _correlate(step, frame, column_a, column_b, method, alternative="two-sided"):

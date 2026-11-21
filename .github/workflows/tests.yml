@@ -50,8 +50,15 @@ jobs:
           "zCompositions", "compositions", "ca", "cluster",
           "GPArotation", "lavaan",
           "circular", "spdep", "sf", "gstat", "extRemes", "ismev", "sp", "ape",
-          "agricolae", "blockrand", "survey");
+          "agricolae", "blockrand", "survey", "BayesFactor");
           install.packages(pkgs); for (p in pkgs) library(p, character.only = TRUE)'
+      # S3d-3: Bayesian models (explain(bayesian=True)) run on rstanarm, a large package (about 400 MB with Stan and
+      # its other packages). Ready-made builds come from CRAN (Windows, macOS) and Posit's public package manager
+      # (Linux), so nothing is compiled here; the posterior package gives R-hat and the effective draws.
+      - name: Install R packages for Bayesian models
+        run: >-
+          Rscript -e 'pkgs <- c("rstanarm", "rstan", "posterior"); install.packages(pkgs);
+          for (p in pkgs) library(p, character.only = TRUE)'
       # qvalue (Storey's q-values, add_adjusted_p_value_column(method="storey")) is on Bioconductor, not CRAN; it
       # has no compiled code. update = FALSE leaves the CRAN packages above as they are. Between a new R release and
       # the Bioconductor release for it (each spring), BiocManager refuses the release; then the devel branch is used.

@@ -177,7 +177,10 @@ R_PACKAGES = ("survival", "vegan", "mice", "lme4", "betareg", "pscl", "car", "ef
               # with BiocManager; see .github/workflows/tests.yml)
               "qvalue",
               # S3d-1 (planning and surveys): randomisation lists (blockrand, CRAN only), design tables, surveys
-              "blockrand", "agricolae", "survey")
+              "blockrand", "agricolae", "survey",
+              # S3d-3 (Bayesian methods): Bayes factors. rstanarm, rstan and posterior (Bayesian models) are checked
+              # by their own tests (tests/test_s3d3_bayesian.py needs_rstanarm), so a missing rstanarm skips only them
+              "BayesFactor")
 
 
 @pytest.fixture

@@ -21,7 +21,7 @@ communities.py (S3c-1: communities and resistomes), hidden_factors.py (S3c-2: th
 their options), places.py (S3c-3: directions, places and extremes) and small_additions.py (S3c-4: weighted
 percentiles, covariance, the automatic ARIMA order, q-values, pair tests after Friedman and pairs of percents) and
 planning_surveys.py (S3d-1: the design words, stratified random rows, patterns of empty cells, answers on a scale and
-the survey words).
+the survey words) and bayesian.py (S3d-3: bayesian=True on the tests, explain and check_model_of).
 """
 
 from __future__ import annotations
@@ -125,12 +125,12 @@ class Entry:
 
 
 def _join() -> dict[str, Entry]:
-    from . import (charts, checking, combining, communities, hidden_factors, lines, models, numbers, places,
+    from . import (bayesian, charts, checking, combining, communities, hidden_factors, lines, models, numbers, places,
                    planning, planning_surveys, small_additions, statistics, survival, tables)
 
     found: dict[str, Entry] = {}
     for module in (charts, tables, numbers, statistics, models, lines, checking, survival, combining, planning,
-                   communities, hidden_factors, places, small_additions, planning_surveys):
+                   communities, hidden_factors, places, small_additions, planning_surveys, bayesian):
         for entry in module.ENTRIES:
             if entry.key in found:
                 raise ValueError(f"{entry.key} has two underneath entries")

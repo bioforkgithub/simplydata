@@ -13,21 +13,21 @@ them first.
 
 ## What simplydata handles
 
-**397 words (commands) in 48 groups, with 366 different options, on top of 14 Python packages and
-77 R packages that it runs (plus R's own `stats`, and 8 more used only to check its answers), checked by 1193 reliability checks.** Every word hands the work to
+**397 words (commands) in 48 groups, with 368 different options, on top of 14 Python packages and
+81 R packages that it runs (plus R's own `stats`, and 8 more used only to check its answers), checked by 1193 reliability checks.** Every word hands the work to
 an established package; simplydata chooses the settings, prints the answer in words and names the
 method it used. Words that need an extra say so: `pip install "simplydata[fast]"`, `[files]`,
 `[systems]` or `[r]` (the R words also need R itself; see [Using the words that need R](#using-the-words-that-need-r)).
 
 ### How much simplydata reduces the problem
 
-Approximate, counted on 2026-11-20.
+Approximate, counted on 2026-11-21.
 
 | | With the packages underneath | With simplydata |
 |---|---|---|
-| Names to learn | about 10,650 functions: about 5,460 in the Python packages (SciPy about 1,750, pandas 850, Polars 815, matplotlib 745, NumPy 660, statsmodels 545, seaborn 100; each package's public API) and about 5,190 exported by the R packages simplydata ran that day, with R's `stats` (R `getNamespaceExports`; before the community packages were added) | 763 names: 397 commands and 366 options, about 93 % fewer |
+| Names to learn | about 10,650 functions: about 5,460 in the Python packages (SciPy about 1,750, pandas 850, Polars 815, matplotlib 745, NumPy 660, statsmodels 545, seaborn 100; each package's public API) and about 5,190 exported by the R packages simplydata ran that day, with R's `stats` (R `getNamespaceExports`; before the community packages were added) | 765 names: 397 commands and 368 options, about 93 % fewer |
 | Packages and languages | 86 packages (14 Python, 72 R), in Python and R | 1 package, in basic Python |
-| Code per task | 1041 lines and 1077 function calls in the 164 tasks of the manual's "same underneath" boxes (median 6 lines a task); this library code is the bare minimum, without the plain-sentence result or the checks | 484 lines and 586 calls (median 3 lines a task), about 54 % fewer lines; recount with `python validation/count_reduction.py` |
+| Code per task | 1096 lines and 1141 function calls in the 172 tasks of the manual's "same underneath" boxes (median 6 lines a task); this library code is the bare minimum, without the plain-sentence result or the checks | 500 lines and 610 calls (median 3 lines a task), about 54 % fewer lines; recount with `python validation/count_reduction.py` |
 | Choosing the method | you choose, from the package's documentation | the recommended default, with its published basis: see [How simplydata chooses methods](#how-simplydata-chooses-methods) |
 
 ### Packages underneath
@@ -82,6 +82,8 @@ R packages that simplydata runs, where Python has no method of its own or none t
 | agricolae | design tables for experiments: every combination in random order, randomised blocks, latin squares and split plots (`sdata.make_design_table`) | [r] |
 | blockrand | randomisation lists in random blocks, one list for each centre (`sdata.make_random_assignments`); CRAN only | [r] |
 | survey | survey-weighted averages, totals, percentiles, percents, population counts, models and tests with strata, clusters and population sizes (`table.use_survey_design`) | [r] |
+| BayesFactor | Bayes factors with credible intervals instead of p-values, for two averages, before and after, one average, a correlation and a table of counts (`bayesian=True`, `prior_width=`) | [r] |
+| rstanarm, rstan, posterior | Bayesian models and mixed models with their priors, credible intervals, R-hat and effective draws (`explain(bayesian=True)`), and the posterior and prior predictive checks (`check_model_of(bayesian=True)`, `show="prior check"`); rstanarm is large (about 400 MB with Stan) and comes ready-made for Windows, macOS and Linux (Posit's package manager) | [r] |
 | trend, tseries, urca, forecast, changepoint, lomb | the Mann-Kendall test and Sen's slope (`find_trend_of`); ADF and KPSS tests (`check_steady_over_time`); forecasts and their check on held-back readings (`forecast`, `compare_forecasts_for`), with the ARIMA order chosen by auto.arima (`order="automatic"`); change points (`find_change_points_in`); the Lomb-Scargle spectrum of uneven readings (`find_spectrum_of(method="lomb-scargle")`) | [r] |
 
 R packages used only to check simplydata's answers, in the tests and the
@@ -112,8 +114,8 @@ R users, not packages simplydata needs.
 | Reshaping and joining | join two tables, stack rows, turn columns into rows and back, undo any step | `join_with`, `add_rows_from`, `turn_columns_into_rows`, `turn_rows_into_columns`, `undo`, `show_steps` |
 | Summaries | counts, averages, medians, totals, percentiles, standard deviations (weighted too), intervals for any summary (bootstrap), correlations (Pearson, Spearman, Kendall, partial) and covariances; answers on a scale (Likert items) | `count_each`, `find_summary_of`, `find_percentile_of`, `find_interval_of`, `find_correlation_between` |
 | Charts | bars, lines, dots, area, histograms, boxes, violins, heatmaps, pie, polar, contour, surface, 3D dots, bands, sticks, density, Q-Q dots, all pairs, survival and risk curves, forest and funnel plots, richness curves, cluster trees, variograms, threshold checks, compass charts, diverging bars of answers on a scale, spectra; lines, labels, axes, colours, legends, side by side, animation | `draw_bars`, `draw_boxes`, `draw_heatmap`, `draw_contour`, `draw_qq_dots`, `sdata.draw_all_pairs`, `draw_richness_curves`, `draw_cluster_tree`, `draw_one_chart_for_each_group_in`, `animate` |
-| Comparing groups (tests) | two or more averages (Welch, Student, ANOVA, Yuen, Brunner-Munzel, rank tests), pairs of groups (Holm, Tukey, Games-Howell, Dunn, Dunnett, pairs of percents), before and after, repeated measures (Friedman with Nemenyi or Conover after it, repeated-measures ANOVA), spreads, shapes, counts (chi-square, Fisher, G-test, trend), percents, equivalence and non-inferiority, many tests at once (Holm, Benjamini-Hochberg, Storey's q-values) | `compare_averages_of`, `compare_each_pair_of`, `compare_before_and_after`, `compare_matched_columns`, `compare_spreads_of`, `compare_counts_of`, `compare_percent_to`, `add_adjusted_p_value_column` |
-| Relationships and models | linear, logistic, Poisson, negative binomial, Gamma, ordered, multinomial, beta, zero-inflated and hurdle models; mixed models and GEE; GAMs, splines, quantile and robust regression; GLS; interrupted time series; model averages, checks, comparisons and the lasso | `explain(outcome="yes or no")`, `explain(grouped_by="school")`, `explain(curve_for="hours")`, `explain(for_percentile=90)`, `find_model_averages_of`, `check_model_of`, `compare_models`, `find_columns_that_predict` |
+| Comparing groups (tests) | two or more averages (Welch, Student, ANOVA, Yuen, Brunner-Munzel, rank tests), pairs of groups (Holm, Tukey, Games-Howell, Dunn, Dunnett, pairs of percents), before and after, repeated measures (Friedman with Nemenyi or Conover after it, repeated-measures ANOVA), spreads, shapes, counts (chi-square, Fisher, G-test, trend), percents, equivalence and non-inferiority, many tests at once (Holm, Benjamini-Hochberg, Storey's q-values); Bayes factors and credible intervals (`bayesian=True`) | `compare_averages_of`, `compare_each_pair_of`, `compare_before_and_after`, `compare_matched_columns`, `compare_spreads_of`, `compare_counts_of`, `compare_percent_to`, `add_adjusted_p_value_column` |
+| Relationships and models | linear, logistic, Poisson, negative binomial, Gamma, ordered, multinomial, beta, zero-inflated and hurdle models; mixed models and GEE; GAMs, splines, quantile and robust regression; GLS; interrupted time series; Bayesian models with their priors and predictive checks; model averages, checks, comparisons and the lasso | `explain(outcome="yes or no")`, `explain(grouped_by="school")`, `explain(curve_for="hours")`, `explain(for_percentile=90)`, `find_model_averages_of`, `check_model_of`, `compare_models`, `find_columns_that_predict` |
 | Lines, curves and dose-response | straight lines (least squares, Theil-Sen, major axis, Deming, Passing-Bablok), lines that bend, polynomial and named curves (logistic growth, Michaelis-Menten, Gompertz ...), any formula, dose-response curves with ED50 | `fit_line`, `fit_line(with_bends=1)`, `fit_curve(of_kind="michaelis-menten")`, `fit_formula`, `fit_dose_response` |
 | Counts, yes/no, risks and rates | risk difference, risk and odds ratios, number needed to treat, Mantel-Haenszel; rates per 1000 person-days and rate ratios | `compare_risks`, `rate_of`, `compare_rates` |
 | Diagnostic tests | sensitivity, specificity, predictive values, likelihood ratios; ROC curves, AUC and the best cut-off; comparing two scores | `compare_to_truth`, `compare_accuracy`, `chart.trade_off_curve` |
@@ -312,7 +314,7 @@ import simplydata as sdata
 sdata.show_lesson(1)
 ```
 
-There are thirty-four short lessons. Lessons 1 to 8 teach charts, from your first chart to
+There are thirty-five short lessons. Lessons 1 to 8 teach charts, from your first chart to
 animations. Lessons 9 to 12 teach tables: looking at your data, choosing rows and columns,
 cleaning it, and summing it up. Lesson 13 teaches numbers (lists and grids of numbers), and
 lesson 14 the statistical tests: is a difference real, and how big is it? Lesson 15 puts it
@@ -335,7 +337,9 @@ diversity at the same total count, then log ratios, PCoA and how much temperatur
 33 follows a coastal station: the average direction of its currents, whether nearby stations have alike zinc
 (Moran's I), and the 100-year sea level at Port Pirie (real data). Lesson 34 plans an experiment and a
 survey: a design table in randomised blocks, a randomisation list in random blocks for each hospital, and
-a stratified random sample of real California schools. Each
+a stratified random sample of real California schools. Lesson 35 gives Bayesian answers: a Bayes
+factor for two wards, a credible interval for a change in pain, and a Bayesian model with its prior and its
+predictive check. Each
 lesson has an example you can run, says what every line does, explains the idea behind it
 (average or median, standard deviation or standard error, p-values) and ends with a small task
 to try yourself.
@@ -376,7 +380,7 @@ the manual for each lesson and word, and the answers at the back.
 ## Manual
 
 **[The simplydata manual (PDF)](https://github.com/bioforkgithub/simplydata/blob/main/docs/manual/simplydata_manual.pdf)** has everything in one book:
-all thirty-four lessons with the real charts and output they make, every word explained (its options,
+all thirty-five lessons with the real charts and output they make, every word explained (its options,
 an example you can run and the library that does the work underneath), the data science ideas
 behind the numbers (average or median, standard deviation or standard error, confidence intervals,
 p-values, effect sizes, and which statistical test to use when), and a worked solution for every
@@ -514,7 +518,7 @@ shows the same job written in the package underneath, in a grey box that a test 
 - The defaults of each batch were checked by an independent review when they were designed, and every entry of
   the table below, with its references, was checked again by independent hostile reviewers in November 2026.
 
-[How simplydata chooses methods](docs/how_simplydata_chooses.md) gives all 301 defaults: for each, the default,
+[How simplydata chooses methods](docs/how_simplydata_chooses.md) gives all 309 defaults: for each, the default,
 the alternatives, why it was chosen, what simplydata checks in the data, and its references (each DOI checked in
 Crossref). The manual has the same table as its last part.
 
