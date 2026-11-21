@@ -492,6 +492,16 @@ REFERENCES: dict[str, Reference] = {
     "gilleland2016": _ref("Gilleland & Katz 2016", "Gilleland E, Katz RW (2016). extRemes 2.0: An Extreme Value Analysis Package in R. Journal of Statistical Software 72(8).", doi="10.18637/jss.v072.i08"),
     "davison1990": _ref("Davison & Smith 1990", "Davison AC, Smith RL (1990). Models for Exceedances Over High Thresholds. Journal of the Royal Statistical Society Series B 52:393-425.", doi="10.1111/j.2517-6161.1990.tb01796.x"),
     "ferro2003": _ref("Ferro & Segers 2003", "Ferro CAT, Segers J (2003). Inference for Clusters of Extreme Values. Journal of the Royal Statistical Society Series B 65:545-556.", doi="10.1111/1467-9868.00401"),
+    # S3c-4: small additions (each DOI looked up in Crossref on 2026-11-21; the JMLR papers and the OSTI report at their URL)
+    "storey2003": _ref("Storey & Tibshirani 2003", "Storey JD, Tibshirani R (2003). Statistical significance for genomewide studies. Proceedings of the National Academy of Sciences 100:9440-9445.", doi="10.1073/pnas.1530509100"),
+    "storey2002": _ref("Storey 2002", "Storey JD (2002). A Direct Approach to False Discovery Rates. Journal of the Royal Statistical Society Series B: Statistical Methodology 64:479-498.", doi="10.1111/1467-9868.00346"),
+    "efron2001": _ref("Efron et al. 2001", "Efron B, Tibshirani R, Storey JD, Tusher V (2001). Empirical Bayes Analysis of a Microarray Experiment. Journal of the American Statistical Association 96:1151-1160.", doi="10.1198/016214501753382129"),
+    "hyndman2008auto": _ref("Hyndman & Khandakar 2008", "Hyndman RJ, Khandakar Y (2008). Automatic Time Series Forecasting: The forecast Package for R. Journal of Statistical Software 27(3).", doi="10.18637/jss.v027.i03"),
+    "lumley2004": _ref("Lumley 2004", "Lumley T (2004). Analysis of Complex Survey Samples. Journal of Statistical Software 9(8).", doi="10.18637/jss.v009.i08"),
+    "yates1934": _ref("Yates 1934", "Yates F (1934). Contingency Tables Involving Small Numbers and the χ2 Test. Supplement to the Journal of the Royal Statistical Society 1:217-235.", doi="10.2307/2983604"),
+    "demsar2006": _ref("Demšar 2006", "Demšar J (2006). Statistical Comparisons of Classifiers over Multiple Data Sets. Journal of Machine Learning Research 7:1-30.", url="https://jmlr.org/papers/v7/demsar06a.html"),
+    "benavoli2016": _ref("Benavoli et al. 2016", "Benavoli A, Corani G, Mangili F (2016). Should We Really Use Post-Hoc Tests Based on Mean-Ranks? Journal of Machine Learning Research 17(5):1-10.", url="https://jmlr.org/papers/v17/benavoli16a.html"),
+    "conover1979": _ref("Conover & Iman 1979", "Conover WJ, Iman RL (1979). On multiple-comparisons procedures. Technical Report LA-7677-MS, Los Alamos Scientific Laboratory.", url="https://www.osti.gov/biblio/6057803"),
 }
 
 
@@ -739,7 +749,7 @@ BASIS["table.find_standard_deviation_of"] = _b(
 BASIS["table.find_percentile_of"] = _b(
     "Linear interpolation between the values (method=\"linear\", R quantile(type = 7)), the default of R, NumPy "
     "and pandas; interval= gives the exact order-statistic interval.",
-    "method= 1 to 9 (Hyndman & Fan's types) or a NumPy method name.",
+    "method= 1 to 9 (Hyndman & Fan's types) or a NumPy method name; weights= with weight_kind=.",
     "Type 7 is the shared default of R, NumPy and pandas, so results match theirs. Hyndman & Fan 1996, who "
     "compared the nine definitions, recommend type 8; SPSS and Minitab use type 6. The help names both.",
     ("hyndman1996",), "P3", "percent= outside 0 to 100 is refused; interval= works with method=\"linear\" only.",
@@ -867,7 +877,7 @@ BASIS["table.compare_each_pair_of"] = _b(
     "Each pair by Welch's t-test, the p-values adjusted with Holm's method (as R pairwise.t.test(pool.sd = FALSE, "
     "p.adjust.method = \"holm\")).",
     "test=\"tukey\" (Tukey-Kramer), \"games-howell\", \"scheffe\", \"lsd\", \"dunn\", \"conover\"; "
-    "based_on=\"ranks\"; against= (Dunnett); show=\"letters\".",
+    "based_on=\"ranks\" or \"percents\"; against= (Dunnett); show=\"letters\".",
     "Holm's method keeps the chance of any false alarm at 5 % and is uniformly more powerful than Bonferroni (Holm "
     "1979; Aickin & Gensler 1996); multiplicity should be adjusted for and the method named (Bender & Lange 2001; "
     "ICH E9). Welch's test per pair keeps the error rate when spreads differ; it gives no simultaneous intervals, "
@@ -933,7 +943,8 @@ BASIS["table.compare_percent_to"] = _b(
     "percent= must lie between 0 and 100; below 1 a note asks whether you meant a share.", "convention")
 BASIS["table.add_adjusted_p_value_column"] = _b(
     "Holm's method (as R p.adjust(method = \"holm\")).",
-    "method=\"bonferroni\", \"benjamini-hochberg\", \"benjamini-yekutieli\", \"hochberg\", \"hommel\".",
+    "method=\"bonferroni\", \"benjamini-hochberg\", \"benjamini-yekutieli\", \"hochberg\", \"hommel\"; "
+    "\"storey\" (q-values) and \"local fdr\" (R qvalue).",
     "Holm's method controls the chance of any false alarm, like Bonferroni, but is uniformly more powerful (Holm "
     "1979; Aickin & Gensler 1996); it is R's default. Benjamini-Hochberg controls the share of false alarms "
     "instead, for screening many tests (Benjamini & Hochberg 1995).",
@@ -2158,8 +2169,8 @@ BASIS["table.forecast"] = _b(
     "2021), and damped trends usually forecast better than straight ones (Gardner & McKenzie 1985); simplydata "
     "offers neither yet. The residual check uses the lag rule of Hyndman & Athanasopoulos.",
     ("winters1960", "hyndman2002", "hyndman2008", "fpp3", "gardner1985", "ljung1978"), "P3",
-    "A season needs 2 full cycles; ARIMA orders are never chosen for you; residuals that still hold a pattern "
-    "get a note.", "convention")
+    "A season needs 2 full cycles; ARIMA orders are chosen only when asked (order=\"automatic\"), and the order "
+    "chosen is printed; residuals that still hold a pattern get a note.", "convention")
 BASIS["nums.forecast"] = _b(
     "As table.forecast.", "As table.forecast.", "As table.forecast.", ("winters1960", "fpp3"), "P3",
     "As table.forecast.", "convention")
@@ -2168,7 +2179,7 @@ BASIS["table.compare_forecasts_for"] = _b(
     "exponential smoothing compared by MASE.",
     "methods=, check_on_last=.",
     "MASE compares forecasts across series and is defined even with zeros (Hyndman & Koehler 2006).",
-    ("hyndman2006", "fpp3"), "P2", "At least 2 methods; ARIMA needs order=.")
+    ("hyndman2006", "fpp3"), "P2", "At least 2 methods; ARIMA needs order= (three numbers, or \"automatic\").")
 
 # ---- Cycles and filters
 BASIS["table.find_spectrum_of"] = _b(
@@ -2272,7 +2283,7 @@ BASIS["peak_dots"] = _b(
 BASIS["table.compare_each_pair_of matched_by="] = _b(
     "Paired t-tests (or Wilcoxon signed-rank with based_on=\"ranks\") for each pair, Holm's adjustment (as R "
     "pairwise.t.test(paired = TRUE)).",
-    "based_on=\"ranks\".",
+    "based_on=\"ranks\"; after Friedman's test test=\"nemenyi\" or \"conover\".",
     "As table.compare_each_pair_of: Holm's method (Holm 1979).", ("holm1979",), "P2",
     "Subjects not measured in every group are dropped (note); duplicate subject-group rows are refused.")
 
@@ -2669,3 +2680,93 @@ BASIS['table.fit_distribution_to distribution="generalised pareto"'] = _b(
     "Maximum likelihood is the standard fit of the generalised Pareto curve to the amounts above a threshold "
     "(Davison & Smith 1990; Coles 2001, 4.3); SciPy's genpareto and extRemes share the xi sign.",
     ("davison1990", "coles2001"), "P3", "", "convention")
+
+# ---- Small additions (S3c-4)
+BASIS["table.find_percentile_of weights="] = _b(
+    "Frequency weights (weight_kind=\"frequency\"): each row counts as often as its whole-number weight, the rows "
+    "repeated and the usual linear rule used, as R quantile(rep(x, w)) and Hmisc::wtd.quantile(normwt = FALSE).",
+    "weight_kind=\"analytic\" for sampling weights or precisions; method= as without weights.",
+    "Repeating the rows keeps the one rule of the unweighted word (Hyndman & Fan 1996, type 7), so weights of 1 change "
+    "nothing; NumPy's own weights= offers only the inverted CDF, a step, which gives another answer even with all "
+    "weights 1. No study fixes how frequency weights enter a sample quantile; this follows the packages named.",
+    ("hyndman1996",), "P3",
+    "Weights that are not whole numbers are refused (pointing to weight_kind=\"analytic\"), as are negative weights "
+    "and more than 10 million repeated rows; rows with an empty cell are skipped with a note.", "convention")
+BASIS['table.find_percentile_of weight_kind="analytic"'] = _b(
+    "The weighted inverted CDF (NumPy percentile(weights=, method=\"inverted_cdf\")), the rule of R "
+    "survey::svyquantile(qrule = \"math\").",
+    "weight_kind=\"frequency\" (whole-number weights, any method=).",
+    "For sampling weights the population quantile is read from the weighted distribution function (Lumley 2004, the "
+    "survey package; Hyndman & Fan 1996, definition 1); it is the only rule NumPy offers with weights.",
+    ("lumley2004", "hyndman1996"), "P3",
+    "method= other than the inverted CDF is refused with analytic weights; NumPy older than 2.0 is refused.",
+    "convention")
+BASIS["table.find_median_of weights="] = _b(
+    "As find_percentile_of(weights=) at 50 %: frequency weights repeat the rows.",
+    "weight_kind=\"analytic\".",
+    "As table.find_percentile_of weights=.", ("hyndman1996",), "P3", "As table.find_percentile_of weights=.",
+    "convention")
+BASIS['table.find_correlation_between show="covariance"'] = _b(
+    "The covariance table from pandas DataFrame.cov(): divide by n - 1, each pair on the rows where both columns "
+    "have a number, as R cov(use = \"pairwise.complete.obs\").",
+    "show=\"r\" (the correlation, without units).",
+    "n - 1 gives the unbiased covariance, the default of pandas and R; pairwise rows follow the correlation table of "
+    "the same word. R's own default (use = \"everything\") gives NA with any empty cell. No study is needed for "
+    "this convention.", (), "P3",
+    "Fewer than 2 rows for a pair is refused; method=, sides= and the test options are refused (a covariance has no "
+    "test).", "convention")
+BASIS['table.forecast order="automatic"'] = _b(
+    "R forecast::auto.arima chooses the order and the seasonal order by AICc, trying every order (stepwise = FALSE, "
+    "approximation = FALSE) for series of up to 1,000 readings.",
+    "order=(p, d, q) and seasonal_order= given by you; methods other than \"arima\".",
+    "auto.arima is the published automatic procedure (Hyndman & Khandakar 2008); its quicker stepwise search and the "
+    "approximation can pick another order, so simplydata searches fully where that is fast. An order chosen from "
+    "the data makes the intervals a little too narrow (Hyndman & Athanasopoulos 2021), which the printout says.",
+    ("hyndman2008auto", "fpp3"), "P2",
+    "seasonal_order= with order=\"automatic\" is refused; the chosen orders are printed; above 1,000 readings the "
+    "quicker search is used and said.")
+BASIS['table.add_adjusted_p_value_column method="storey"'] = _b(
+    "Storey's q-values from R qvalue::qvalue() with its defaults: the share of true nulls (pi0) estimated from the "
+    "p-values by the smoother over lambda = 0.05 to 0.95.",
+    "method=\"benjamini-hochberg\" (pi0 = 1); \"local fdr\".",
+    "Estimating pi0 makes the false discovery rate less conservative than Benjamini-Hochberg when many tests are "
+    "real (Storey 2002; Storey & Tibshirani 2003); qvalue is the authors' own package. The gain needs many p-values: "
+    "with few, pi0 is unstable.",
+    ("storey2002", "storey2003", "benjamini1995"), "P2",
+    "Fewer than 100 p-values get a note; when qvalue cannot estimate pi0 the word refuses and names "
+    "Benjamini-Hochberg; p-values outside 0 to 1 are refused and empty ones skipped.")
+BASIS['table.add_adjusted_p_value_column method="local fdr"'] = _b(
+    "Each test's local false discovery rate from R qvalue::qvalue()$lfdr (pi0 from the smoother), in a column "
+    "called \"local false discovery rate\".",
+    "method=\"storey\" (q-values: about all the results at least this small).",
+    "The local false discovery rate is the chance that one test is a false discovery (Efron et al. 2001); qvalue "
+    "gives it with the same pi0 as the q-values (Storey & Tibshirani 2003).",
+    ("efron2001", "storey2003"), "P2", "As method=\"storey\".")
+BASIS['table.compare_each_pair_of matched_by=, test="nemenyi"'] = _b(
+    "Nemenyi's test after Friedman's (R PMCMRplus::frdAllPairsNemenyiTest()), on the ranks within each matched row; "
+    "its studentized range allows for all the pairs, so there is no further adjustment.",
+    "The default (Wilcoxon signed-rank tests with Holm); test=\"conover\".",
+    "Nemenyi's test is the usual follow-up to Friedman's in method comparisons (Demšar 2006), but mean-rank tests "
+    "make each pair depend on the other groups in the study (Benavoli et al. 2016), so it is offered on request, "
+    "with that note, and Wilcoxon-Holm stays the default.",
+    ("demsar2006", "benavoli2016"), "P2",
+    "Fewer than 3 groups is refused; rows not measured in every group are left out with a note.")
+BASIS['table.compare_each_pair_of matched_by=, test="conover"'] = _b(
+    "Conover's test after Friedman's (R PMCMRplus::frdAllPairsConoverTest()), with Holm's adjustment.",
+    "test=\"nemenyi\"; the default Wilcoxon-Holm.",
+    "Conover's test on the ranks within blocks is more powerful than Nemenyi's (Conover & Iman 1979); Holm keeps the "
+    "chance of any false alarm at 5 % (Holm 1979), as for Conover after Kruskal-Wallis. PMCMRplus's default is "
+    "single-step and scikit-posthocs adjusts nothing, so the printout says why their numbers differ. The same "
+    "mean-rank caveat applies (Benavoli et al. 2016).",
+    ("conover1979", "holm1979", "benavoli2016"), "P2", "As test=\"nemenyi\".")
+BASIS['table.compare_each_pair_of based_on="percents"'] = _b(
+    "Each pair by the 2 x 2 chi-square test with Yates' correction that compare_counts_of uses, Holm's adjustment, "
+    "and the difference with Newcombe's interval: as R pairwise.prop.test() (whose default is the same).",
+    "test=\"fisher\" (Fisher's exact test for each pair).",
+    "Yates' correction (Yates 1934) makes the chi-square p-value closer to the exact one for small counts, at the cost "
+    "of being conservative (Haviland 1990); simplydata keeps it so that each pair agrees with compare_counts_of, "
+    "compare_risks and R. Holm controls the chance of any false alarm (Holm 1979); Newcombe's interval for the "
+    "difference keeps its coverage (Newcombe 1998).",
+    ("yates1934", "haviland1990", "holm1979", "newcombe1998"), "P3",
+    "Expected counts below 5 get a note pointing to test=\"fisher\"; a pair whose rows all have one value gets no "
+    "p-value (as R) and is left out of Holm's adjustment.", "convention")

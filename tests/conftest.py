@@ -172,7 +172,10 @@ R_PACKAGES = ("survival", "vegan", "mice", "lme4", "betareg", "pscl", "car", "ef
               "GPArotation", "lavaan",
               # S3c-3 (directions, places and extremes): Rayleigh, Moran's I (sf for the places), variogram, extremes;
               # ismev, sp and ape for the reliability study (Port Pirie, rain, meuse; ape::Moran.I as a check)
-              "circular", "spdep", "sf", "gstat", "extRemes", "ismev", "sp", "ape")
+              "circular", "spdep", "sf", "gstat", "extRemes", "ismev", "sp", "ape",
+              # S3c-4 (small additions): Storey's q-values and the local false discovery rate (Bioconductor, installed
+              # with BiocManager; see .github/workflows/tests.yml)
+              "qvalue")
 
 
 @pytest.fixture

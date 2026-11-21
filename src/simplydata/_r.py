@@ -72,8 +72,11 @@ def refuse_unsafe_r_code(code: str) -> None:
             "This is a promise for people who work with sensitive data: your data stays on your computer.")
 
 
+# R packages that come from Bioconductor (installed with BiocManager), not from CRAN
+BIOCONDUCTOR = ("qvalue",)
+
+
 def _install_text(packages, what, python_note=None) -> str:
-    listed = ", ".join(f'"{p}"' for p in packages)
     missing = _STATE.get("missing", "package")
     lines = [f"{what} is done by R (the same code R users run), and R is not ready here."]
     if missing == "rpy2":
@@ -87,8 +90,13 @@ def _install_text(packages, what, python_note=None) -> str:
         lines.append("  - R did not start: " + _STATE.get("error", "unknown error").strip().splitlines()[0][:300])
         lines.append("  - install R from https://cran.r-project.org if it is not installed; if it is, set the "
                      "R_HOME environment variable to its folder and restart Python")
-    if packages:
-        lines.append(f"  - in R: install.packages(c({listed}))")
+    cran = [p for p in packages if p not in BIOCONDUCTOR]
+    if cran:
+        lines.append("  - in R: install.packages(c(" + ", ".join(f'"{p}"' for p in cran) + "))")
+    for name in (p for p in packages if p in BIOCONDUCTOR):
+        lines.append(f'  - {name} is on Bioconductor, not CRAN: in R: install.packages("BiocManager"), then install '
+                     f'"{name}" with BiocManager (https://bioconductor.org/packages/{name}); with conda: '
+                     f"bioconductor-{name.lower()} from bioconda")
     if python_note:
         lines.append(f"({python_note})")
     return "\n".join(lines)

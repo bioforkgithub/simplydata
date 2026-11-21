@@ -3001,6 +3001,10 @@ LESSONS = [
             "real, and how big is it?",
             "Every summary skips empty cells and says how many it skipped. find_summary_of can also show "
             '"variance", "standard error", "confidence interval", "range" and "interquartile range".',
+            'More: find_percentile_of("price", 90, weights="count") and find_median_of(..., weights="count") count '
+            'each row as often as its weight (weight_kind="analytic" for sampling weights); '
+            'find_correlation_between("hours", "marks", "height", show="covariance") gives the covariances, the '
+            "correlations with units.",
         ],
         task=[
             'Make the fruit totals for_each_group_in="shop" instead. Which shop sold more?',
@@ -3281,6 +3285,10 @@ LESSONS = [
             "rows, and never remove a value only because it spoils the result.",
             'method="benjamini-hochberg" adjusts for many tests more gently: it controls the share of '
             "false alarms among your findings (the false discovery rate).",
+            'More: with hundreds of tests, such as genes, method="storey" gives q-values (sdata.get_example('
+            '"many_tests")); compare_each_pair_of(..., based_on="percents", value="yes") compares the percent of '
+            "each pair of groups; after Friedman's test, compare_each_pair_of(..., matched_by=, test=\"nemenyi\") or "
+            'test="conover".',
         ],
         task=[
             'Compare the average marks for_each_group_in="subject". Could the differences be chance?',
@@ -4503,6 +4511,9 @@ LESSONS = [
             "you look.",
             "check_on_last=12 holds back the last 12 readings: a forecast is only as good as its check on data "
             "it has not seen.",
+            'More: method="arima", order="automatic" lets R auto.arima choose the ARIMA order; the printout '
+            "names the order, and the intervals are a little too narrow because the order was chosen from the "
+            "same data.",
         ],
         task=[
             "Forecast the Harbour Museum with method=\"same season last time\". How does it compare with "

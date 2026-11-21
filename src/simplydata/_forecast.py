@@ -9,7 +9,9 @@ simplydata._r.r_call:
   uses R's predict(fit, prediction.interval = TRUE);
 * "arima": R stats::arima(method = "ML") (statsmodels SARIMAX matches the estimates only to about
   2e-5), forecast by forecast::forecast() (the forecast +/- the normal quantile times predict()'s
-  standard error);
+  standard error); with order="automatic", R forecast::auto.arima() chooses the order and the seasonal
+  order by AICc (Hyndman & Khandakar 2008), searching every order (stepwise = FALSE, approximation =
+  FALSE) for series of up to FULL_SEARCH_LIMIT readings and with its own quicker defaults above that;
 * check_on_last= / compare_forecasts_for: R forecast::accuracy() on the held-back readings (MASE scaled
   by the in-sample error of the seasonal naive forecast);
 * the leftover errors: R Box.test(residuals, lag, type = "Ljung-Box", fitdf = number of ARIMA
@@ -43,6 +45,8 @@ CHANGES = ("average", "average and spread")
 CHANGE_ALIASES = {"mean": "average", "mean and variance": "average and spread", "meanvar": "average and spread"}
 PENALTIES = {"mbic": "MBIC", "bic": "BIC", "aic": "AIC", "hannan-quinn": "Hannan-Quinn"}
 PENALTY_ALIASES = {"sic": "bic", "hq": "hannan-quinn"}
+AUTOMATIC = ("automatic", "auto", "auto.arima", "auto arima")  # order= spellings that ask auto.arima to choose
+FULL_SEARCH_LIMIT = 1000  # auto.arima searches every order (stepwise = FALSE) up to this many readings
 
 _R_FORECAST = """
 y <- stats::ts(x, frequency = m)
@@ -55,11 +59,14 @@ f <- switch(method,
   hw = { fit <- stats::HoltWinters(y, beta = if (with_trend) NULL else FALSE,
                                    gamma = if (m > 1) NULL else FALSE, seasonal = seasonal)
          forecast::forecast(fit, h = h, level = level) },
-  arima = { fit <- stats::arima(y, order = order, seasonal = list(order = sorder, period = m), method = "ML")
+  arima = { fit <- if (auto) forecast::auto.arima(y, stepwise = !full, approximation = !full)
+                   else stats::arima(y, order = order, seasonal = list(order = sorder, period = m), method = "ML")
             forecast::forecast(fit, h = h, level = level) })
+if (auto) fitdf <- sum(fit$arma[1:4])
 b <- stats::Box.test(stats::residuals(f), lag = box_lag, type = "Ljung-Box", fitdf = fitdf)
 out <- list(mean = as.numeric(f$mean), low = as.numeric(f$lower), high = as.numeric(f$upper),
             box = c(unname(b$statistic), b$p.value))
+if (auto) out$arma <- fit$arma
 if (method == "hw") {
   out$terms <- c("alpha", "beta", "gamma", "sum of squared errors")
   out$estimates <- c(fit$alpha, if (isFALSE(fit$beta)) NA else fit$beta,
@@ -120,6 +127,12 @@ def read_interval(interval, step_name):
 def read_order(order, name, step_name):
     if order is None:
         return None
+    if name == "order" and isinstance(order, str) and order.strip().lower() in AUTOMATIC:
+        return "automatic"
+    if isinstance(order, str):
+        extra = ' or order="automatic" (R forecast::auto.arima chooses it)' if name == "order" else ""
+        raise SimplydataError(f"{step_name}() needs {name}= as three whole numbers (past values, differences, past "
+                              f"errors), such as {name}=(0, 1, 1){extra}.")
     if not (isinstance(order, (list, tuple)) and len(order) == 3 and
             all(isinstance(v, (int, np.integer)) and not isinstance(v, bool) and v >= 0 for v in order)):
         raise SimplydataError(f"{step_name}() needs {name}= as three whole numbers (past values, differences, past "
@@ -136,7 +149,13 @@ def check_options(method, period, n, season, order, seasonal_order, step_name):
     if method == "arima":
         if order is None:
             raise SimplydataError('method="arima" needs order= : how many past values, differences and past errors, '
-                                  "such as order=(0, 1, 1). simplydata does not choose the order for you.")
+                                  'such as order=(0, 1, 1), or order="automatic" to let R forecast::auto.arima '
+                                  "choose it from the data (the printout names the order it chose).")
+        if order == "automatic" and seasonal_order is not None:
+            raise SimplydataError('order="automatic" lets auto.arima choose the seasonal order too, so leave out '
+                                  "seasonal_order= (or give both orders yourself).\n"
+                                  'For example:  table.forecast("visitors", sorted_by="month", method="arima", '
+                                  'order="automatic", repeats_every=12)')
         if seasonal_order is not None and period is None:
             raise SimplydataError("seasonal_order= needs repeats_every= (how many readings make one cycle).")
     elif order is not None or seasonal_order is not None:
@@ -160,7 +179,11 @@ def r_forecast(values, period, method, steps, interval, trend=True, season="adde
 
     x = np.asarray(values, dtype=float)
     m = int(period) if period else 1
-    fitdf = sum(order or (0, 0, 0)) - (order[1] if order else 0)
+    auto = order == "automatic"
+    if auto:
+        order, fitdf = None, 0  # auto.arima chooses; R counts the fitted terms of the order it chose
+    else:
+        fitdf = sum(order or (0, 0, 0)) - (order[1] if order else 0)
     if seasonal_order:
         fitdf += seasonal_order[0] + seasonal_order[2]
     out = r_call(_R_FORECAST, packages=("forecast",), what=f'The forecast by "{method}" (R forecast and stats)',
@@ -170,9 +193,15 @@ def r_forecast(values, period, method, steps, interval, trend=True, season="adde
                  with_trend=bool(trend), seasonal="multiplicative" if season == "multiplied" else "additive",
                  order=[float(v) for v in (order or (0, 0, 0))],
                  sorder=[float(v) for v in (seasonal_order or (0, 0, 0))],
-                 box_lag=float(box_lag(int((~np.isnan(x)).sum()), period)), fitdf=float(fitdf),
+                 box_lag=float(box_lag(int((~np.isnan(x)).sum()), period)), fitdf=float(fitdf), auto=auto,
+                 full=bool(int((~np.isnan(x)).sum()) <= FULL_SEARCH_LIMIT),
                  test=None if test is None else np.asarray(test, dtype=float))
     got = {key: np.asarray(out[key], dtype=float) for key in ("mean", "low", "high", "box")}
+    if auto:
+        p, q, sp, sq, period_used, d, sd = (int(v) for v in np.asarray(out["arma"], dtype=float))
+        got["order"] = (p, d, q)
+        got["seasonal_order"] = (sp, sd, sq) if period_used > 1 else None
+        got["full search"] = bool(int((~np.isnan(x)).sum()) <= FULL_SEARCH_LIMIT)
     for key in ("estimates", "errors", "accuracy"):
         if out.get(key) is not None:
             got[key] = np.asarray(out[key], dtype=float)
@@ -202,10 +231,31 @@ def method_words(method, period, trend, season, order, seasonal_order):
         return ("exponential smoothing", "Holt-Winters, with " + ", ".join(parts[:-1]) +
                 (" and " if len(parts) > 1 else "") + parts[-1],
                 f"{call} and forecast::forecast(fit, h), which uses predict(fit, h, prediction.interval = TRUE)")
+    if order == "automatic":
+        return ("ARIMA with the order chosen by auto.arima", "the order and the seasonal order chosen by AICc",
+                "forecast::auto.arima(x, stepwise = FALSE, approximation = FALSE) and forecast::forecast(fit, h)")
     p, d, q = order
     seasonal = f", seasonal = list(order = c({', '.join(map(str, seasonal_order))}), period = {period})"         if seasonal_order else ""
     return (f"ARIMA{arima_label(order, seasonal_order, period)}", arima_words(order, seasonal_order, period),
             f'arima(x, order = c({p}, {d}, {q}){seasonal}, method = "ML") and forecast::forecast(fit, h)')
+
+
+def chosen_words(got, period, terms=()):
+    """(name, words, R call, the sentence about the choice) for an order chosen by auto.arima."""
+    order, seasonal = got["order"], got["seasonal_order"]
+    label = arima_label(order, seasonal, period)
+    constant = [t for t in terms if t in ("drift", "intercept")]
+    extra = " with drift" if "drift" in constant else " with an average" if "intercept" in constant else ""
+    search = ("stepwise = FALSE, approximation = FALSE" if got["full search"]
+              else "its quicker stepwise search, as the series is long")
+    call = (f"forecast::auto.arima(x{', stepwise = FALSE, approximation = FALSE' if got['full search'] else ''}) "
+            "and forecast::forecast(fit, h)")
+    sentence = (f"auto.arima chose ARIMA{label}{extra}: the smallest AICc among the orders it tried ({search}). "
+                "The order was chosen from the data, so the intervals are a little too narrow.")
+    if not got["full search"]:
+        sentence += (f" With more than {FULL_SEARCH_LIMIT} readings auto.arima does not try every order; give order= "
+                     "yourself to check another.")
+    return f"ARIMA{label}{extra}", arima_words(order, seasonal, period), call, sentence
 
 
 def arima_label(order, seasonal_order, period):

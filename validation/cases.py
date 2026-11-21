@@ -956,3 +956,16 @@ def _add_directions_places_and_extremes():
 
 _add_hidden_factors()
 _add_directions_places_and_extremes()
+
+
+# ---------------------------------------------------------------- S3c-4: small additions (validation/cases_small.py)
+def _add_small_additions():
+    import importlib.util
+
+    spec = importlib.util.spec_from_file_location("simplydata_validation_small", HERE / "cases_small.py")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    module.add_to(globals())
+
+
+_add_small_additions()

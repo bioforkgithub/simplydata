@@ -65,6 +65,10 @@ r = ["rpy2>=3.5"]  # the bridge to R for the methods only R gives (R itself: htt
 # and extRemes (return levels); ismev, sp and ape are used by the reliability study only. All are on CRAN and
 # conda-forge. Moran's I runs in R spdep rather than Python esda/libpysal, which would add geopandas, pyproj, pyogrio,
 # shapely, scikit-learn and requests (about 110 MB of wheels) as new Python dependencies.
+# S3c-4 (small additions) calls qvalue (Storey's q-values and the local false discovery rate), which is on
+# Bioconductor, not CRAN or conda-forge: in R, install.packages("BiocManager") and then install qvalue with it; with
+# conda, bioconductor-qvalue from bioconda. PMCMRplus (Nemenyi and Conover after Friedman) and forecast
+# (auto.arima) are listed already.
 test = ["pytest>=7", "polars>=0.20", "pyarrow>=14", "statsmodels>=0.14"]
 
 [project.urls]

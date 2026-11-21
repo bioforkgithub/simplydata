@@ -116,7 +116,10 @@ class ForecastWords:
         forecast::naive), "same season last time" (R snaive), "average" (R meanf), "straight on" (the
         line from the first to the last reading carried on: R rwf(drift = TRUE)) or "arima" (R arima
         with order=(p, d, q): past values, differences, past errors; seasonal_order= the same for the
-        season; empty cells allowed). check_on_last=12 fits on all but the last 12 rows, forecasts them
+        season; empty cells allowed). order="automatic" lets R forecast::auto.arima choose both orders by
+        AICc, trying every order for series of up to 1,000 readings (Hyndman & Khandakar 2008); the
+        printout names the order it chose, and says the intervals are a little too narrow because the
+        order was chosen from the same data. check_on_last=12 fits on all but the last 12 rows, forecasts them
         and says how far off it was (R forecast::accuracy: MAE, RMSE, MAPE, MASE); the table gains the
         actual values and the errors. show="model" gives the fitted weights or estimates instead. All in
         R itself: needs simplydata[r] and R with the forecast package.
@@ -141,7 +144,7 @@ class ForecastWords:
         groups = self._group_columns(step_name, for_each_group_in, [column]) if for_each_group_in is not None else []
         from .. import _trend_season as ts
 
-        rows, how = [], None
+        rows, how, chosen_orders = [], None, []
         for one in self._forecast_series(step_name, column, sorted_by, for_each_group_in, chosen, example):
             period = ts.read_repeats_every(repeats_every, one, step_name, needed=False)
             n = len(one.values)
@@ -155,9 +158,14 @@ class ForecastWords:
             ahead = steps if held is None else held
             got = fc.r_forecast(fit_values, period, chosen, ahead, level, bool(trend), kind, order, seasonal_order,
                                 test=None if held is None else one.values[n - held:])
-            name, words, call = fc.method_words(chosen, period, bool(trend), kind, order, seasonal_order)
-            how = (name, words, call)
             what = f'"{column}"' + (f" for {one.label}" if one.label else "")
+            if order == "automatic":
+                name, words, call, choice = fc.chosen_words(got, period, got.get("terms", ()))
+                print(f"For {what}, {choice[0].lower() + choice[1:]}")
+                chosen_orders.append(name)
+            else:
+                name, words, call = fc.method_words(chosen, period, bool(trend), kind, order, seasonal_order)
+            how = (name, words, call)
             label = {", ".join(groups): one.label} if groups else {}
             if show == "model":
                 for term, estimate, error in zip(got["terms"], got["estimates"], got["errors"]):
@@ -191,12 +199,19 @@ class ForecastWords:
                 if held is not None:
                     actual = float(one.values[n - held + j])
                     row.update({"actual": actual, "error": actual - float(mean[j])})
-                row["method"] = chosen
+                row["method"] = chosen if order != "automatic" else name
                 rows.append(row)
         name, words, call = how
         extra = "; accuracy as R forecast::accuracy(f, held-back readings)" if held is not None else ""
         interval_words = f"; {level:g} % intervals" if show == "forecast" else ""
-        print(f"Method: {name} ({words}), as R {call}{interval_words}{extra} (run in R).")
+        if order == "automatic":
+            name = "ARIMA, each order chosen by auto.arima" if len(set(chosen_orders)) > 1 else name
+            print(f"Method: {name}, as R {call}{interval_words}{extra} (run in R).")
+            if "log" not in column.lower():
+                print("Note: when the swings grow with the level, the log of the column often forecasts better: add "
+                      f'it with table.add_column("log {column}", "log({column})") and forecast that column.')
+        else:
+            print(f"Method: {name} ({words}), as R {call}{interval_words}{extra} (run in R).")
         data = {key: [r[key] for r in rows] for key in rows[0]}
         return self._new_table(nw.from_dict(data, backend=self._frame.implementation))
 
@@ -212,7 +227,8 @@ class ForecastWords:
         last time with repeats_every=, otherwise the last value): below 1 is better than that. Also MAE
         (the average size of the errors), RMSE and MAPE (the average error in % of the actual values).
         methods= defaults to "last value", "same season last time" (with repeats_every=; else "average"),
-        "straight on" and "exponential smoothing"; "arima" needs order=. Runs in R itself (simplydata[r]).
+        "straight on" and "exponential smoothing"; "arima" needs order= (three numbers, or "automatic":
+        R forecast::auto.arima chooses the order on the fitted rows only). Runs in R itself (simplydata[r]).
         Gives back one row per method.
         """
         step_name = "compare_forecasts_for"
@@ -254,6 +270,12 @@ class ForecastWords:
                 got = fc.r_forecast(train, period, method, held, 95.0, True, "added",
                                     order if method == "arima" else None,
                                     seasonal_order if method == "arima" else None, test=test)
+                if method == "arima" and order == "automatic":
+                    label, _, _, _ = fc.chosen_words(got, period)
+                    where = f'"{column}"' + (f" for {one.label}" if one.label else "")
+                    print(f"For {where}, auto.arima chose {label} on the readings before the last {held} (the "
+                          "smallest AICc among the orders it tried).")
+                    method = f"arima ({label}, chosen by auto.arima)"
                 results.append((method, got["accuracy"]))
             ranked = sorted(results, key=lambda item: (math.isnan(item[1][3]), item[1][3]))
             what = f'"{column}"' + (f" for {one.label}" if one.label else "")

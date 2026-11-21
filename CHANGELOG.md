@@ -5,6 +5,41 @@ working for one release and prints a one-line note with its new name.
 
 ## Unreleased
 
+### New: small additions to known words (S3c-4)
+
+- `find_percentile_of("price", 90, weights="count")` and `find_median_of("price", weights="count")`: weighted
+  percentiles. `weight_kind="frequency"` (the default) repeats each row as often as its whole-number weight and keeps
+  `method=`, so weights of 1 change nothing (as R `quantile(rep(x, w))` and `Hmisc::wtd.quantile`);
+  `weight_kind="analytic"` is NumPy's weighted inverted CDF (as R `survey::svyquantile(qrule = "math")`). Weights that
+  are not whole numbers are refused as frequency weights, with the analytic line to copy.
+- `find_correlation_between("hours", "marks", "height", show="covariance")`: the covariance table (pandas
+  `DataFrame.cov()`, n - 1, each pair on its own complete rows, as R `cov(use = "pairwise.complete.obs")`), also for
+  two columns; the printout says covariances are in the units of the columns multiplied.
+- `forecast(..., method="arima", order="automatic")` (also on `compare_forecasts_for` and `chart.forecast`): R
+  `forecast::auto.arima` chooses the order and the seasonal order by AICc, trying every order (`stepwise = FALSE,
+  approximation = FALSE`) for series of up to 1,000 readings. The printout names the orders chosen and says the
+  intervals are a little too narrow because the order was chosen from the data; `seasonal_order=` with
+  `order="automatic"` is refused.
+- `add_adjusted_p_value_column(method="storey")` (`"q-values"` accepted): Storey's q-values, with the share of true
+  nulls (pi0) estimated from the p-values by R `qvalue::qvalue()` (Bioconductor); `method="local fdr"`: each test's
+  local false discovery rate, in a column called "local false discovery rate". A note below 100 p-values; a refusal
+  that names Benjamini-Hochberg when qvalue cannot estimate pi0. The install message names Bioconductor for qvalue.
+- `compare_each_pair_of(..., matched_by="player", test="nemenyi")` and `test="conover"`: Nemenyi's test (no further
+  adjustment: its studentized range allows for all pairs) and Conover's test with Holm after Friedman's test, R
+  PMCMRplus; the printout notes that mean-rank tests depend on the other groups (Benavoli et al. 2016). Wilcoxon-Holm
+  stays the default.
+- `compare_each_pair_of("infected", for_each_group_in="age_group", based_on="percents", value="yes")`: the percent of
+  each pair of groups, by the 2 x 2 chi-square test with Yates' correction that `compare_counts_of` uses (or
+  `test="fisher"`), Holm's adjustment and Newcombe's interval of the difference; the same as R
+  `pairwise.prop.test()`.
+- New practice table `many_tests` (made up): 2000 genes with their p-values, for q-values.
+- "More" lines in lessons 12, 14 and 24; other names (`auto_arima`, `qvalue`, `nemenyi`,
+  `pairwise_prop_test`, `weighted_quantile`, `cov` ...) point to the new options.
+- Same-underneath entries, "how simplydata chooses" entries and reliability cases for each: Quetelet's chest sizes,
+  mtcars, the air passengers (the airline model of Box and Jenkins), Hedenfalk's genes (pi0 0.67, Storey and
+  Tibshirani 2003), the rounding-first-base times (Hollander and Wolfe 1973) and Fleiss's smokers.
+- CI installs qvalue from Bioconductor (BiocManager, `update = FALSE`).
+
 ### New: directions, places and extremes (S3c-3)
 
 - `table.find_average_direction_of("current_direction", full_turn=360)`: the average direction of directions,

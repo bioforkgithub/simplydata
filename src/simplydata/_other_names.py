@@ -234,7 +234,7 @@ _TABLE = [
      "cohen_kappa cohens_kappa kappa kappa2 fleiss_kappa kappam_fleiss icc intraclass kripp_alpha krippendorff ccc concordance"),
     ('table.limits_of_agreement("device_a", "device_b")', "bland_altman_stats limits_agreement"),
     ('table.reliability_of(["item_1", "item_2", "item_3"])', "cronbach_alpha cronbach alpha internal_consistency"),
-    ('table.add_adjusted_p_value_column("q", method="benjamini-hochberg")', "p_adjust multipletests fdr"),
+    ('table.add_adjusted_p_value_column("p_adjusted", method="benjamini-hochberg")', "p_adjust multipletests fdr"),
     ('table.find_survival_over_time(time="days", event="died")', "survfit kaplan_meier"),
     ('table.compare_survival(time="days", event="died", for_each_group_in="treatment")', "survdiff logrank_test"),
     ('table.explain_survival(time="days", event="died", using=["age"])', "coxph cox"),
@@ -276,7 +276,7 @@ _TABLE = [
      "rolling_smooth savgol smooth_column add_smooth_column"),
     ('table.forecast("visitors", sorted_by="month", repeats_every="year")',
      "predict_future naive snaive meanf rwf HoltWinters holt_winters ExponentialSmoothing exponential_smoothing "
-     "arima ARIMA SARIMAX auto_arima"),
+     "arima ARIMA SARIMAX"),
     ('table.compare_forecasts_for("visitors", sorted_by="month", repeats_every="year")',
      "accuracy forecast_accuracy mase backtest"),
     ('table.find_change_points_in("nitrate", sorted_by="date")',
@@ -356,6 +356,20 @@ _TABLE = [
     ('table.find_return_levels_of("rain", once_in=[10, 100], values_above=30, sorted_by="date")',
      "pot peaks_over_threshold gpd_fit"),
     ('table.find_variogram_of("zinc", x="east", y="north")   (kriging is not offered)', "kriging krige"),
+    # S3c-4: small additions to known words
+    ('table.find_percentile_of("price", 90, weights="count"), or find_median_of("price", weights="count")',
+     "weighted_quantile wtd_quantile weighted_percentile weighted_median svyquantile"),
+    ('table.find_correlation_between("hours", "marks", "height", show="covariance")',
+     "cov covariance covariance_matrix"),
+    ('table.forecast("visitors", sorted_by="month", method="arima", order="automatic", repeats_every="year")',
+     "auto_arima autoarima"),
+    ('table.add_adjusted_p_value_column(method="storey"), or method="local fdr"',
+     "qvalue q_values qvalues storey lfdr local_fdr"),
+    ('table.compare_each_pair_of("time", for_each_group_in="method", matched_by="player", test="nemenyi"), or '
+     'test="conover"', "nemenyi posthoc_nemenyi_friedman frdAllPairsNemenyiTest posthoc_conover_friedman "
+                       "frdAllPairsConoverTest"),
+    ('table.compare_each_pair_of("infected", for_each_group_in="age_group", based_on="percents", value="yes")',
+     "pairwise_prop_test pairwise_fisher_test"),
 ]
 
 # chart.<name>
