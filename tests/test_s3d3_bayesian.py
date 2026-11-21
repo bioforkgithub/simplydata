@@ -252,7 +252,9 @@ def test_explain_matches_r_and_a_long_run(needs_rstanarm, capsys):
     mt = pd.read_csv(DATA / "mtcars.csv")
     r = sdata.table(mt).explain("mpg", using=["wt", "hp"], bayesian=True).as_pandas().set_index("term")
     out = capsys.readouterr().out
-    assert "Prior used" in out and "Adjusted prior" in out and "R-hat at most" in out
+    prior = out[out.index("Prior used"):out.index("Convergence:")]
+    assert "normal(location" in prior, out
+    assert "R-hat at most" in out
     assert "There are no p-values" in out and "seed = with_seed" in out
     _plain_rules(out)
     from simplydata._r import r_call
