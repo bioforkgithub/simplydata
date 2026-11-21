@@ -672,7 +672,7 @@ class StatTestWords:
     def compare_averages_of(self, column=None, for_each_group_in=None, based_on="averages", test=None, sides=2, higher=None,
                             lower=None, alternative=None, p_value_by="formula", shuffles=9999, with_seed=1,
                             same_within=None, not_lower=None, not_higher=None, in_order=None, matched_by=None,
-                            grouped_by=None):
+                            grouped_by=None, period=None, against=None):
         """Are the averages of the groups really different?
 
         table.compare_averages_of("marks", for_each_group_in="class")   (with sdata.get_example("marks"))
@@ -718,8 +718,39 @@ class StatTestWords:
         diet + Error(tank)) (needs R). A list of columns, compare_averages_of(["length", "width"],
         for_each_group_in="species"), compares them all at once: a MANOVA with Pillai's trace
         (statsmodels MANOVA, as R summary(manova())).
+        period="visit" with matched_by="subject" is the 2 x 2 crossover (bioequivalence): each subject had
+        both formulations of for_each_group_in=, one in each of two periods. The EMA model on the log scale
+        (statsmodels OLS of log(column) on sequence, subject, period and formulation, as R lm()) gives the
+        ratio of the geometric means with its 90 % interval and the within-subject CV; same_within=[0.8, 1.25]
+        says whether the interval lies inside the limits. against= names the reference formulation
+        (default: the first in sorted order).
         """
         step = "compare_averages_of"
+        # S3d-2 (epidemiology and cause and effect): the 2 x 2 crossover (table/crossover.py)
+        if period is not None:
+            from .crossover import crossover
+
+            given = [name for name, value, default in (
+                ("based_on=", based_on, "averages"), ("test=", test, None), ("sides=", sides, 2),
+                ("higher=", higher, None), ("lower=", lower, None), ("alternative=", alternative, None),
+                ("p_value_by=", p_value_by, "formula"), ("not_lower=", not_lower, None),
+                ("not_higher=", not_higher, None), ("in_order=", in_order, None), ("grouped_by=", grouped_by, None))
+                if value != default]
+            if given:
+                raise SimplydataError(f"period= gives the 2 x 2 crossover analysis; leave out {_list_words(given)}.")
+            if matched_by is None:
+                raise SimplydataError("period= is for a crossover, where each subject has every formulation: give "
+                                      'matched_by= the subject column.\nFor example, table.compare_averages_of("auc", '
+                                      'for_each_group_in="formulation", matched_by="subject", period="period", '
+                                      "same_within=[0.8, 1.25])")
+            rows = crossover(self, column, for_each_group_in, matched_by, period, same_within, against)
+            from .risk_words import _rows_table
+
+            backend = self._frame.implementation
+            return _rows_table(lambda d: self._new_table(nw.from_dict(d, backend=backend)), rows)
+        if against is not None:
+            raise SimplydataError("against= names the reference formulation of a 2 x 2 crossover, so it works with "
+                                  "period= (and matched_by=). Leave it out here.")
         # S3a-3 (checking and comparing): nested ANOVA and MANOVA (table/checking_more.py)
         if grouped_by is not None or isinstance(column, (list, tuple)):
             from .checking_more import manova, nested_averages

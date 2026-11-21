@@ -175,7 +175,10 @@ R_PACKAGES = ("survival", "vegan", "mice", "lme4", "betareg", "pscl", "car", "ef
               "circular", "spdep", "sf", "gstat", "extRemes", "ismev", "sp", "ape",
               # S3c-4 (small additions): Storey's q-values and the local false discovery rate (Bioconductor, installed
               # with BiocManager; see .github/workflows/tests.yml)
-              "qvalue")
+              "qvalue",
+              # S3d-2 (epidemiology and cause and effect): weighting, matching and balance tables; pooled correlations
+              # after multiple imputation; epitools for the reliability study (standardised rates)
+              "WeightIt", "MatchIt", "cobalt", "miceadds", "epitools")
 
 
 @pytest.fixture

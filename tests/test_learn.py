@@ -325,14 +325,14 @@ def test_every_docstring_example_runs_and_draws(key, tmp_path, monkeypatch, caps
 
 
 # ---------------------------------------------------------------- sdata.show_lesson()
-LESSON_NUMBERS = range(1, 34)
+LESSON_NUMBERS = range(1, 35)
 
 
-def test_there_are_thirty_three_lessons(capsys):
-    assert len(learn.LESSONS) == 33
+def test_there_are_thirty_four_lessons(capsys):
+    assert len(learn.LESSONS) == 34
     sdata.show_lesson()
     out = capsys.readouterr().out
-    assert "33 lessons" in out
+    assert "34 lessons" in out
     for i in LESSON_NUMBERS:
         assert f"sdata.show_lesson({i})" in out
 

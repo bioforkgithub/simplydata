@@ -493,6 +493,25 @@ REFERENCES: dict[str, Reference] = {
     "gilleland2016": _ref("Gilleland & Katz 2016", "Gilleland E, Katz RW (2016). extRemes 2.0: An Extreme Value Analysis Package in R. Journal of Statistical Software 72(8).", doi="10.18637/jss.v072.i08"),
     "davison1990": _ref("Davison & Smith 1990", "Davison AC, Smith RL (1990). Models for Exceedances Over High Thresholds. Journal of the Royal Statistical Society Series B 52:393-425.", doi="10.1111/j.2517-6161.1990.tb01796.x"),
     "ferro2003": _ref("Ferro & Segers 2003", "Ferro CAT, Segers J (2003). Inference for Clusters of Extreme Values. Journal of the Royal Statistical Society Series B 65:545-556.", doi="10.1111/1467-9868.00401"),
+    # S3d-2: epidemiology and cause and effect (each DOI looked up in Crossref on 2026-11-21; the EMA guideline and
+    # van Buuren's book at their URL)
+    "rosenbaum1983": _ref("Rosenbaum & Rubin 1983", "Rosenbaum PR, Rubin DB (1983). The central role of the propensity score in observational studies for causal effects. Biometrika 70:41-55.", doi="10.1093/biomet/70.1.41"),
+    "austin2009": _ref("Austin 2009", "Austin PC (2009). Balance diagnostics for comparing the distribution of baseline covariates between treatment groups in propensity-score matched samples. Statistics in Medicine 28:3083-3107.", doi="10.1002/sim.3697"),
+    "austin2011": _ref("Austin 2011", "Austin PC (2011). Optimal caliper widths for propensity-score matching when estimating differences in means and differences in proportions in observational studies. Pharmaceutical Statistics 10:150-161.", doi="10.1002/pst.433"),
+    "austin2015iptw": _ref("Austin & Stuart 2015", "Austin PC, Stuart EA (2015). Moving towards best practice when using inverse probability of treatment weighting (IPTW) using the propensity score to estimate causal treatment effects in observational studies. Statistics in Medicine 34:3661-3679.", doi="10.1002/sim.6607"),
+    "lunceford2004": _ref("Lunceford & Davidian 2004", "Lunceford JK, Davidian M (2004). Stratification and weighting via the propensity score in estimation of causal treatment effects: a comparative study. Statistics in Medicine 23:2937-2960.", doi="10.1002/sim.1903"),
+    "stuart2010": _ref("Stuart 2010", "Stuart EA (2010). Matching Methods for Causal Inference: A Review and a Look Forward. Statistical Science 25:1-21.", doi="10.1214/09-STS313"),
+    "ho2011": _ref("Ho et al. 2011", "Ho DE, Imai K, King G, Stuart EA (2011). MatchIt: Nonparametric Preprocessing for Parametric Causal Inference. Journal of Statistical Software 42(8).", doi="10.18637/jss.v042.i08"),
+    "imai2010": _ref("Imai et al. 2010", "Imai K, Keele L, Tingley D (2010). A general approach to causal mediation analysis. Psychological Methods 15:309-334.", doi="10.1037/a0020761"),
+    "tingley2014": _ref("Tingley et al. 2014", "Tingley D, Yamamoto T, Hirose K, Keele L, Imai K (2014). mediation: R Package for Causal Mediation Analysis. Journal of Statistical Software 59(5).", doi="10.18637/jss.v059.i05"),
+    "rockhill1998": _ref("Rockhill et al. 1998", "Rockhill B, Newman B, Weinberg C (1998). Use and misuse of population attributable fractions. American Journal of Public Health 88:15-19.", doi="10.2105/AJPH.88.1.15"),
+    "fay1997": _ref("Fay & Feuer 1997", "Fay MP, Feuer EJ (1997). Confidence intervals for directly standardized rates: a method based on the gamma distribution. Statistics in Medicine 16:791-801.", doi="10.1002/(SICI)1097-0258(19970415)16:7<791::AID-SIM500>3.0.CO;2-#"),
+    "ulm1990": _ref("Ulm 1990", "Ulm K (1990). Simple method to calculate the confidence interval of a standardized mortality ratio (SMR). American Journal of Epidemiology 131:373-375.", doi="10.1093/oxfordjournals.aje.a115507"),
+    "ema2010": _ref("EMA 2010", "European Medicines Agency, Committee for Medicinal Products for Human Use (2010). Guideline on the Investigation of Bioequivalence. CPMP/EWP/QWP/1401/98 Rev. 1/Corr**.", url="https://www.ema.europa.eu/en/documents/scientific-guideline/guideline-investigation-bioequivalence-rev1_en.pdf"),
+    "freeman1989": _ref("Freeman 1989", "Freeman PR (1989). The performance of the two-stage analysis of two-treatment, two-period crossover trials. Statistics in Medicine 8:1421-1432.", doi="10.1002/sim.4780081202"),
+    "schutz2014": _ref("Schütz et al. 2014", "Schütz H, Labes D, Fuglsang A (2014). Reference Datasets for 2-Treatment, 2-Sequence, 2-Period Bioequivalence Studies. The AAPS Journal 16:1292-1297.", doi="10.1208/s12248-014-9661-0"),
+    "white2009": _ref("White & Royston 2009", "White IR, Royston P (2009). Imputing missing covariate values for the Cox model. Statistics in Medicine 28:1982-1998.", doi="10.1002/sim.3618"),
+    "vanbuuren2018": _ref("van Buuren 2018", "van Buuren S (2018). Flexible Imputation of Missing Data, 2nd ed. Chapman & Hall/CRC (section 5.2.3, pooling correlations on Fisher's z).", url="https://stefvanbuuren.name/fimd/"),
     # S3c-4: small additions (each DOI looked up in Crossref on 2026-11-21; the JMLR papers and the OSTI report at their URL)
     "storey2003": _ref("Storey & Tibshirani 2003", "Storey JD, Tibshirani R (2003). Statistical significance for genomewide studies. Proceedings of the National Academy of Sciences 100:9440-9445.", doi="10.1073/pnas.1530509100"),
     "storey2002": _ref("Storey 2002", "Storey JD (2002). A Direct Approach to False Discovery Rates. Journal of the Royal Statistical Society Series B: Statistical Methodology 64:479-498.", doi="10.1111/1467-9868.00346"),
@@ -2787,3 +2806,106 @@ BASIS['table.compare_each_pair_of based_on="percents"'] = _b(
     ("yates1934", "haviland1990", "holm1979", "newcombe1998"), "P3",
     "Expected counts below 5 get a note pointing to test=\"fisher\"; a pair whose rows all have one value gets no "
     "p-value (as R) and is left out of Holm's adjustment.", "convention")
+
+# ---- Epidemiology and cause and effect (S3d-2)
+BASIS["table.compare_balanced_groups_of"] = _b(
+    "Weighting by the inverse of the propensity score (R WeightIt, method = \"glm\"), for everyone (ATE); the effect "
+    "from WeightIt::lm_weightit() with M-estimation standard errors that allow for the estimated weights; a balance "
+    "table of standardised differences before and after (R cobalt, every column, the guide 0.1).",
+    "method=\"matching\"; effect_for=\"<a group>\" for the effect among that group (ATT); show=\"balance\" or "
+    "\"propensity scores\".",
+    "The propensity score balances the measured columns between the groups (Rosenbaum & Rubin 1983). Weighting keeps "
+    "every row and gives the average effect for everyone; standard errors that ignore the estimated weights are "
+    "wrong, which M-estimation corrects (Lunceford & Davidian 2004). Balance is judged by standardised differences, "
+    "not by p-values, which depend on the number of rows (Austin 2009; Austin & Stuart 2015).",
+    ("rosenbaum1983", "lunceford2004", "austin2009", "austin2015iptw"), "P2",
+    "Two groups only; the overlap of the scores is printed with the rows outside it; columns still more than 0.1 "
+    "apart after balancing get a note; weights above 20 get a note; the assumptions (no unmeasured column affecting "
+    "both, overlap, a right propensity model) are printed every time.")
+BASIS['table.compare_balanced_groups_of method="matching"'] = _b(
+    "1:1 nearest-neighbour matching on the propensity score without replacement (R MatchIt's default), the effect "
+    "among the rows of the effect_for= group (ATT) from lm() on the matched rows with standard errors clustered on "
+    "the pairs (sandwich::vcovCL), as the MatchIt vignette does.",
+    "match_within=0.2 (a caliper of 0.2 standard deviations of the logit of the score); method=\"weighting\" for the "
+    "effect for everyone.",
+    "Nearest-neighbour matching is the most used and best studied matching method (Stuart 2010; Ho et al. 2011). A "
+    "caliper of 0.2 standard deviations of the logit of the score removes most of the bias in simulations (Austin "
+    "2011); it is offered, not the default, because it changes the group the effect is about (unmatched rows leave).",
+    ("stuart2010", "ho2011", "austin2011"), "P3",
+    "effect_for= must name a group (matching gives the effect among one group; asked otherwise, it says to use "
+    "weighting); rows left without a match are counted and named in a note.", "convention")
+BASIS['table.compare_risks show="attributable fractions"'] = _b(
+    "The attributable fraction among the exposed and in the whole population from R epiR::epi.2by2(method = "
+    "\"cohort.count\"), with Wald intervals from the risk ratio; for an exposure that goes with fewer events, the "
+    "preventable fraction among the exposed (epiR's fraction with the roles of the groups swapped).",
+    "compare_risks() without show= (the risk difference, the risk and odds ratios, the number needed to treat).",
+    "These are the standard definitions (Rockhill et al. 1998). The fractions here are crude: adjusting the "
+    "population fraction for confounders needs a model, and a fraction from a crude risk ratio is biased when "
+    "confounding is present (Rockhill et al. 1998), so the printout says \"crude\".",
+    ("rockhill1998",), "P5",
+    "Two groups only; the printout says that the risks must come from a cohort or cross-sectional study and that "
+    "the fractions are causal only if the exposure causes the events.", "convention")
+BASIS["table.rate_of standard_population="] = _b(
+    "Direct standardisation with R epiR::epi.directadj(): the rate each group would have with the standard "
+    "population's make-up, with Fay & Feuer's gamma interval (the same numbers as epitools::ageadjust.direct()).",
+    "standard_population=\"whole table\" (the pooled person-time) or a table of population sizes; "
+    "compare_rates(..., standard_rates=) for indirect standardisation.",
+    "Fay & Feuer's interval keeps its coverage when a few bands hold most of the weight, where the normal interval "
+    "fails (Fay & Feuer 1997).",
+    ("fay1997",), "P2",
+    "Bands missing from the standard or the table are refused and named; a group with no person-time in a band is "
+    "refused (pointing to indirect standardisation).")
+BASIS["table.compare_rates standard_rates="] = _b(
+    "Indirect standardisation with R epiR::epi.indirectadj(): the expected events from the standard rates (per per= "
+    "units of time), observed / expected (SMR) with its exact Poisson interval, and the p-value of R "
+    "poisson.test(observed, expected).",
+    "rate_of(..., standard_population=) for directly standardised rates.",
+    "The exact Poisson interval of the observed count, divided by the expected, is the standard interval of an SMR "
+    "(Ulm 1990). Indirect standardisation needs only the group's total events, so it works where some bands of a "
+    "group are small.",
+    ("ulm1990",), "P2",
+    "Bands without a standard rate are refused and named; groups without person-time are refused; the printout says "
+    "that two groups' ratios are each against the standard, not against each other.")
+BASIS["table.explain through="] = _b(
+    "Causal mediation analysis with statsmodels Mediation (Imai, Keele & Tingley's quasi-Bayesian algorithm, 1000 "
+    "simulations, with_seed=1, as R mediation::mediate()): the indirect effect, the direct effect, the total effect "
+    "and the share that goes through, averaged over the two exposure levels.",
+    "outcome=\"yes or no\" (logistic models); against= the starting value of the exposure; allowing_for= the "
+    "columns taken into account in both models.",
+    "The counterfactual definition of the indirect effect holds for any model and states its assumption (sequential "
+    "ignorability), unlike the Baron-Kenny steps (Imai, Keele & Tingley 2010); the quasi-Bayesian simulation is the "
+    "default of the authors' own package (Tingley et al. 2014).",
+    ("imai2010", "tingley2014"), "P2",
+    "using= must be one column with two values; through= cannot be the exposure or a column of allowing_for=; the "
+    "assumptions are printed every time; a share is said to mean little when the total effect is not clear.")
+BASIS["table.compare_averages_of period="] = _b(
+    "The EMA guideline's 2 x 2 crossover analysis with all effects fixed: statsmodels OLS of log(column) on sequence, "
+    "subject, period and formulation; the ratio of the geometric means with its 90 % interval and the within-subject "
+    "CV.",
+    "same_within=[0.8, 1.25] (or 1.25) for the bioequivalence decision; against= the reference formulation.",
+    "The 90 % interval on the log scale inside 80-125 % is the regulatory rule (EMA 2010), the same as two one-sided "
+    "tests at 5 % (Schuirmann 1987). No test for carry-over comes first: the two-stage procedure biases the result "
+    "(Freeman 1989). The model gives the published answers of the reference datasets (Schütz et al. 2014).",
+    ("ema2010", "schuirmann1987", "freeman1989", "schutz2014"), "P1",
+    "Two formulations in two periods only; subjects without both periods are left out and named; values of 0 or "
+    "less are refused (the log scale); all subjects in one order is refused.")
+BASIS['table.find_correlation_between empty_cells="multiple imputation"'] = _b(
+    "The empty cells filled in 20 times by chained equations (statsmodels MICEData, predictive mean matching, as "
+    "explain()), then Fisher's z of each table pooled with Rubin's rules and taken back to r by R "
+    "miceadds::micombine.cor().",
+    "empty_cells=\"leave out\" (the default: each pair on the rows where both columns have a number).",
+    "Correlations are not normal near -1 and 1, so they are pooled on Fisher's z scale (van Buuren 2018, section "
+    "5.2.3), with Rubin's rules (Rubin 1987).",
+    ("vanbuuren2018", "rubin1987"), "P2",
+    "method=\"pearson\" or \"spearman\" only; show=, sides=, p_value_by=, interval_by= and allowing_for= are refused "
+    "with it; rows where every column is empty are left out with a note.")
+BASIS['table.explain_survival empty_cells="multiple imputation"'] = _b(
+    "The empty cells of the number columns of using= filled in 20 times (statsmodels MICEData) from the event, the "
+    "Nelson-Aalen cumulative hazard (R mice::nelsonaalen()) and the other columns; R survival::coxph() on each "
+    "filled-in table, pooled by R mice::pool() (Barnard-Rubin degrees of freedom).",
+    "empty_cells=\"leave out\" (the default: rows with an empty cell are skipped).",
+    "To fill in a covariate of a Cox model, the event and the cumulative hazard should be in the imputation model, "
+    "not the time (White & Royston 2009); small-sample degrees of freedom follow Barnard & Rubin (1999).",
+    ("white2009", "barnard1999", "rubin1987"), "P2",
+    "A plain Cox model only (allowing_for=, followed_from=, competing_with=, distribution= and method=\"fine-gray\" "
+    "are refused); empty cells in text columns, the time or the event leave those rows out.")

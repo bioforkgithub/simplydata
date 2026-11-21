@@ -49,7 +49,8 @@ jobs:
           "gsDesign", "powerSurvEpi", "pwrss",
           "zCompositions", "compositions", "ca", "cluster",
           "GPArotation", "lavaan",
-          "circular", "spdep", "sf", "gstat", "extRemes", "ismev", "sp", "ape");
+          "circular", "spdep", "sf", "gstat", "extRemes", "ismev", "sp", "ape",
+          "WeightIt", "MatchIt", "cobalt", "miceadds", "epitools");
           install.packages(pkgs); for (p in pkgs) library(p, character.only = TRUE)'
       # qvalue (Storey's q-values, add_adjusted_p_value_column(method="storey")) is on Bioconductor, not CRAN; it
       # has no compiled code. update = FALSE leaves the CRAN packages above as they are. Between a new R release and

@@ -692,7 +692,7 @@ class RiskWords:
     @friendly(renamed={"outcome": "column", "for_each": "for_each_group_in"}, others={"positive": "value"})
     def compare_risks(self, column=None, for_each_group_in=None, against=None, value=None, allowing_for=None, interval=95,
                       p_value_by="formula", same_within=None, not_lower=None, not_higher=None, sides=2, higher=None,
-                      lower=None, alternative=None):
+                      lower=None, alternative=None, show=None):
         """How much more (or less) often does something happen in one group than in another?
 
         table.compare_risks("died", for_each_group_in="treatment", against="usual care")   (with sdata.get_example("trial"))
@@ -711,6 +711,10 @@ class RiskWords:
         not lower by more than 10 points; not_higher= for an event that is bad, such as "died").
         interval=95 sets the level of every interval. Gives back one row per measure (estimate,
         interval, p-value, method).
+        show="attributable fractions" (two groups; against= is the group without the exposure): the share
+        of the events among the exposed, and in the whole population, that goes with the exposure, with
+        their intervals (R epiR::epi.2by2(); crude, not adjusted for other columns); for an exposure
+        that goes with fewer events, the preventable fraction among the exposed.
         Routes: statsmodels proportion_confint, confint_proportions_2indep (Newcombe), Table2x2,
         StratifiedTable, tost_proportions_2indep; SciPy chi2_contingency, fisher_exact; R epiR for
         the interval of the Mantel-Haenszel risk ratio.
@@ -724,6 +728,15 @@ class RiskWords:
             self._need_name(step, "allowing_for=", allowing_for, example)
         level = _level(step, interval, example)
         self._check_choice(step, "p_value_by", p_value_by, ("formula", "exact"))
+        from .epi_words import read_show
+
+        show = read_show(step, show, example)
+        if show is not None and (allowing_for is not None or p_value_by != "formula" or same_within is not None
+                                 or sides != 2 or higher is not None or lower is not None
+                                 or alternative not in (None, "two-sided")):
+            raise SimplydataError('show="attributable fractions" gives the crude fractions of two groups; leave out '
+                                  "allowing_for=, p_value_by=, same_within=, sides=, higher= and lower=.\nFor example, "
+                                  f'{example.rstrip(")")}, show="attributable fractions")')
         names = [outcome, for_each_group_in] + ([allowing_for] if allowing_for else [])
         if len(set(names)) != len(names):
             raise SimplydataError(f"{step}() needs different columns for the outcome, for_each_group_in= and allowing_for=.\n"
@@ -735,6 +748,10 @@ class RiskWords:
         groups = sorted(set(keys), key=lambda k: (str(type(k)), k))
         if len(groups) < 2:
             raise SimplydataError(f'{step}() needs at least 2 groups in "{for_each_group_in}".')
+        if show is not None and len(groups) != 2:
+            raise SimplydataError(f'show="attributable fractions" compares two groups (exposed or not); '
+                                  f'"{for_each_group_in}" has {len(groups)}. Keep two groups first, for example with '
+                                  "table.keep_rows_where(...).")
         ref = pick_against(step, groups, against, example)
         alt, up, claim = check_sides(step, sides, higher, lower, alternative, ref, groups, example, same_within,
                                      not_lower, not_higher)
@@ -762,6 +779,10 @@ class RiskWords:
                                                    int((inside & (keys_arr == g)).sum())) for g in order}
             strata = (allowing_for, tables)
         what = f'"{outcome}" = {event_words}'
+        if show is not None:
+            from .epi_words import attributable_rows
+
+            return self._many_rows_table(attributable_rows(counts, _label(ref), level, what, for_each_group_in))
         rows = risk_engine(counts, _label(ref), level, what, p_value_by, strata, same_within,
                            None if up is None else _label(up), alt, claim=claim)
         return self._many_rows_table(rows)
@@ -794,7 +815,8 @@ class RiskWords:
         return {_label(g): (float(ev[keys == g].sum()), float(tm[keys == g].sum())) for g in groups}, groups
 
     @friendly(renamed={"for_each": "for_each_group_in"})
-    def rate_of(self, events=None, time=None, for_each_group_in=None, per=1000, interval=95):
+    def rate_of(self, events=None, time=None, for_each_group_in=None, per=1000, interval=95, allowing_for=None,
+                standard_population=None):
         """How often do events happen per unit of time, such as infections per 1000 patient-days?
 
         table.rate_of("infections", time="patient_days", for_each_group_in="ward")   (with sdata.get_example("clinic"))
@@ -802,6 +824,10 @@ class RiskWords:
         time (per= changes it) with its exact 95 % interval (statsmodels confint_poisson
         "exact-c", as R poisson.test()). Gives back one row per group, with the columns "rate",
         "rate 95 % CI low/high" and "per" (such as "1000 patient_days").
+        allowing_for="age_band", standard_population="whole table" (or a table with "age_band" and
+        one column of population sizes): directly standardised rates, the rate each group would have
+        with the standard population's make-up in age_band, with Fay & Feuer's interval, beside the
+        crude rate (R epiR::epi.directadj(), as epitools::ageadjust.direct()).
         """
         step = "rate_of"
         example = 'table.rate_of("infections", time="patient_days", for_each_group_in="ward")'
@@ -809,6 +835,17 @@ class RiskWords:
         if isinstance(per, bool) or not isinstance(per, (int, float)) or per <= 0:
             raise SimplydataError(f"per= is the amount of time the rate is given for, such as per=1000.\n"
                                   f"For example, {example}")
+        if (allowing_for is None) != (standard_population is None):
+            raise SimplydataError("allowing_for= and standard_population= go together: the rates are standardised "
+                                  "for the column of allowing_for= to the standard population.\nFor example, "
+                                  'table.rate_of("deaths", time="person_years", for_each_group_in="county", '
+                                  'allowing_for="age_band", standard_population="whole table")')
+        if allowing_for is not None:
+            from .epi_words import standardised_rates
+
+            self._need_name(step, "allowing_for=", allowing_for, example)
+            return self._many_rows_table(standardised_rates(self, events, time, for_each_group_in, allowing_for,
+                                                            standard_population, per, level))
         counts, _ = self._rate_counts(step, events, time, for_each_group_in, example)
         rows, listed = rate_rows(counts, level, per, time)
         print(f'"{events}" per {per:g} "{time}": {listed}.')
@@ -818,7 +855,7 @@ class RiskWords:
     @friendly(renamed={"for_each": "for_each_group_in"})
     def compare_rates(self, events=None, time=None, for_each_group_in=None, against=None, per=1000, interval=95,
                       same_within=None, not_lower=None, not_higher=None, sides=2, higher=None, lower=None,
-                      alternative=None):
+                      alternative=None, allowing_for=None, standard_rates=None):
         """Do events happen more often per unit of time in one group than in another?
 
         table.compare_rates("infections", time="patient_days", for_each_group_in="ward", against="ward A")
@@ -831,6 +868,10 @@ class RiskWords:
         same_within=1.25 means the same. With not_lower="ward B" (or not_higher=): non-inferiority,
         the rate ratio not below (or above) the margin. Gives back one row per measure: each rate
         (columns "rate", its interval, and "per"), then the rate ratio.
+        allowing_for="age_band", standard_rates=national (a table with "age_band" and one column of
+        rates per 1000 units of time, as per=): observed / expected, the standardised ratio (SMR) of each
+        group (for_each_group_in= is optional here) with its exact Poisson interval (R
+        epiR::epi.indirectadj(); p-value from R poisson.test()).
         """
         step = "compare_rates"
         example = 'table.compare_rates("infections", time="patient_days", for_each_group_in="ward", against="ward A")'
@@ -838,6 +879,24 @@ class RiskWords:
         if isinstance(per, bool) or not isinstance(per, (int, float)) or per <= 0:
             raise SimplydataError(f"per= is the amount of time the rate is given for, such as per=1000.\n"
                                   f"For example, {example}")
+        if (allowing_for is None) != (standard_rates is None):
+            raise SimplydataError("allowing_for= and standard_rates= go together on compare_rates(): the events are "
+                                  "compared with those the standard rates give for each band of allowing_for= "
+                                  "(observed / expected).\nFor example, table.compare_rates(\"deaths\", "
+                                  'time="person_years", allowing_for="age_band", standard_rates=national_rates)')
+        if standard_rates is not None:
+            given = [o for o, v, d in (("against=", against, None), ("same_within=", same_within, None),
+                                       ("not_lower=", not_lower, None), ("not_higher=", not_higher, None),
+                                       ("sides=", sides, 2), ("higher=", higher, None), ("lower=", lower, None),
+                                       ("alternative=", alternative, None)) if v != d]
+            if given:
+                raise SimplydataError(f"standard_rates= compares each group with the standard rates, not with each "
+                                      f"other; leave out {_list_words(given)}.")
+            from .epi_words import standardised_ratios
+
+            self._need_name(step, "allowing_for=", allowing_for, example)
+            return self._many_rows_table(standardised_ratios(self, events, time, for_each_group_in, allowing_for,
+                                                             standard_rates, per, level))
         if for_each_group_in is None:
             raise SimplydataError(f"{step}() compares groups, so it needs for_each_group_in=; for one rate use rate_of().\n"
                                   f"For example, {example}")

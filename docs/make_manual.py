@@ -183,7 +183,9 @@ UNDERNEATH = {
     "table.find_correlation_between": "SciPy (stats.pearsonr, spearmanr or kendalltau; permutation_test and bootstrap "
                                  "for p_value_by=\"shuffling\" and interval_by=\"bootstrap\"); R DescTools (SpearmanRho, "
                                  "KendallTauB, SomersDelta, GoodmanKruskalGamma) for intervals and ppcor::pcor.test for "
-                                 "allowing_for= (simplydata[r]); pandas DataFrame.cov for show=\"covariance\"",
+                                 "allowing_for= (simplydata[r]); pandas DataFrame.cov for show=\"covariance\"; "
+                                 "statsmodels MICEData and R miceadds::micombine.cor for empty_cells=\"multiple "
+                                 "imputation\"",
     "table.compare_correlations": "SciPy (stats.pearsonr); R cocor (cocor.indep.groups, cocor.dep.groups.overlap; "
                                   "simplydata[r])",
     "table.compare_averages_of": "SciPy (stats.ttest_ind with equal_var=False; mannwhitneyu, kruskal) and "
@@ -191,7 +193,8 @@ UNDERNEATH = {
                               "and CompareMeans for same_within=; nonparametric.jonckheere_terpstra); SciPy "
                               "permutation_test for p_value_by=\"shuffling\"; R wilcox.test for the Hodges-Lehmann "
                               "shift (simplydata[r]); R afex::aov_ez for matched_by= (repeated measures, "
-                              "Greenhouse-Geisser; needs R)",
+                              "Greenhouse-Geisser; needs R); statsmodels OLS on the log scale for period= (the "
+                              "2 x 2 crossover, EMA model)",
     "table.compare_each_pair_of": "SciPy (stats.ttest_ind or mannwhitneyu, tukey_hsd, dunnett), with Holm's correction "
                                "from statsmodels (multipletests); R rstatix::games_howell_test, "
                                "DescTools::ScheffeTest and PostHocTest, FSA::dunnTest, "
@@ -219,11 +222,15 @@ UNDERNEATH = {
     "table.compare_risks": "statsmodels (proportion_confint, confint_proportions_2indep with Newcombe's interval, "
                            "Table2x2, StratifiedTable for allowing_for=, tost_proportions_2indep for same_within=); "
                            "SciPy (chi2_contingency, fisher_exact, contingency.odds_ratio); R epiR::epi.2by2 for the "
-                           "interval of the Mantel-Haenszel risk ratio and prop.test for one-sided p-values "
-                           "(simplydata[r])",
+                           "interval of the Mantel-Haenszel risk ratio and prop.test for one-sided p-values, and "
+                           "epiR::epi.2by2 for show=\"attributable fractions\" (simplydata[r])",
     "table.compare_rates": "statsmodels (stats.rates: confint_poisson, test_poisson_2indep, tost_poisson_2indep); R "
-                           "poisson.test for the exact interval of the rate ratio (simplydata[r])",
-    "table.rate_of": "narwhals (sums per group); statsmodels (stats.rates.confint_poisson, exact)",
+                           "poisson.test for the exact interval of the rate ratio, and epiR::epi.indirectadj for "
+                           "standard_rates= (observed / expected; simplydata[r])",
+    "table.rate_of": "narwhals (sums per group); statsmodels (stats.rates.confint_poisson, exact); R "
+                     "epiR::epi.directadj for standard_population= (simplydata[r])",
+    "table.compare_balanced_groups_of": "R WeightIt (weightit, lm_weightit), MatchIt (matchit, match.data) with "
+                                        "sandwich::vcovCL and lmtest, and cobalt::bal.tab (simplydata[r])",
     "sdata.compare_risks": "statsmodels and SciPy, as table.compare_risks",
     "sdata.compare_rates": "statsmodels and R poisson.test, as table.compare_rates",
     "table.compare_to_truth": "statsmodels (proportion_confint, exact); R epiR::epi.tests for the likelihood ratios, "
@@ -339,7 +346,7 @@ UNDERNEATH = {
                      "ConditionalLogit for matched_by=, GLM(cov_type=\"HC0\") for risk ratios; patsy cr for "
                      "with_knots=; SciPy bootstrap for interval_by=\"bootstrap\"; R stats::confint for "
                      "interval_by=\"profile\", lme4 for crossed_with=, pscl::zeroinfl and pscl::hurdle for the "
-                     "zero outcomes",
+                     "zero outcomes; statsmodels stats.mediation.Mediation for through= (as R mediation::mediate)",
     "table.add_predicted_column": "statsmodels (the same model as table.explain; get_prediction for interval= and for_new_rows=)",
     "table.find_model_averages_of": "R emmeans (emmeans::emmeans and pairs, Tukey's adjustment; lme4 and pbkrtest for "
                                "grouped_by=; MASS, nnet, betareg and pscl for the other outcomes), on the model of "
@@ -367,7 +374,8 @@ UNDERNEATH = {
     "table.find_survival_over_time": "statsmodels (duration.SurvfuncRight, Kaplan-Meier with Greenwood errors)",
     "table.compare_survival": "statsmodels (duration.survdiff, the log-rank test)",
     "table.explain_survival": "statsmodels (duration.PHReg, the Cox model with Efron ties) and R "
-                              "survival::cox.zph for the proportional-hazards check (needs R)",
+                              "survival::cox.zph for the proportional-hazards check (needs R); statsmodels MICEData, "
+                              "R survival::coxph and mice::pool for empty_cells=\"multiple imputation\"",
     "draw_survival_curves": "statsmodels (Kaplan-Meier, as table.find_survival_over_time), drawn with matplotlib",
     # planning a study
     "sdata.find_how_many_needed": "statsmodels (stats.power: TTestIndPower, TTestPower, FTestAnovaPower, "

@@ -369,7 +369,24 @@ _TABLE = [
      'test="conover"', "nemenyi posthoc_nemenyi_friedman frdAllPairsNemenyiTest posthoc_conover_friedman "
                        "frdAllPairsConoverTest"),
     ('table.compare_each_pair_of("infected", for_each_group_in="age_group", based_on="percents", value="yes")',
-     "pairwise_prop_test pairwise_fisher_test"),
+     "pairwise_prop_test pairwise_fisher_test"),    # S3d-2: epidemiology and cause and effect
+    ('table.compare_balanced_groups_of("re78", for_each_group_in="treat", allowing_for=["age", "educ"])',
+     "propensity propensity_score propensity_scores matchit match_it weightit ipw iptw inverse_probability_weighting "
+     "ate att cobalt bal_tab balance_table psm"),
+    ('table.explain("depress2", using="treat", through="job_seek")',
+     "mediation mediate mediation_analysis acme indirect_effect"),
+    ('table.compare_risks("infected", for_each_group_in="ward", against="ward A", show="attributable fractions")',
+     "attributable_fraction attributable_fractions paf population_attributable_fraction preventable_fraction"),
+    ('table.rate_of("deaths", time="person_years", for_each_group_in="county", allowing_for="age_band", '
+     'standard_population="whole table")',
+     "ageadjust ageadjust_direct age_adjust age_standardise age_standardize direct_standardisation "
+     "direct_standardization epi_directadj standardised_rate standardized_rate"),
+    ('table.compare_rates("deaths", time="person_years", allowing_for="age_band", standard_rates=national)',
+     "smr standardised_mortality_ratio standardized_mortality_ratio sir ageadjust_indirect epi_indirectadj "
+     "indirect_standardisation indirect_standardization"),
+    ('table.compare_averages_of("auc", for_each_group_in="formulation", matched_by="subject", period="period", '
+     "same_within=[0.8, 1.25])", "bioequivalence crossover be_2x2 abe average_bioequivalence"),
+    ('table.find_correlation_between("bmi", "chl", empty_cells="multiple imputation")', "micombine_cor"),
 ]
 
 # chart.<name>
