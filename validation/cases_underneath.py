@@ -1413,5 +1413,14 @@ def _cases_batch_2(Case):
 
 
 def add_to(namespace) -> None:
-    """Add the underneath-phase cases to cases.py."""
+    """Add the underneath-phase cases to cases.py, and those of each later batch file (cases_underneath_<area>.py,
+    each with a function cases(Case) that gives its list)."""
+    import importlib.util
+    from pathlib import Path
+
     namespace["CASES"].extend(_cases(namespace["Case"]))
+    for path in sorted(Path(__file__).resolve().parent.glob("cases_underneath_*.py")):
+        spec = importlib.util.spec_from_file_location(f"simplydata_validation_{path.stem}", path)
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        namespace["CASES"].extend(module.cases(namespace["Case"]))
