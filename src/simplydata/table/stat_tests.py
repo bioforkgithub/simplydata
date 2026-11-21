@@ -1131,8 +1131,9 @@ class StatTestWords:
             if isinstance(test, str):
                 test = FRIEDMAN_PAIR_ALIASES.get(test.strip().lower(), test.strip().lower())
             if (test is not None and test not in FRIEDMAN_PAIR_TESTS) or against is not None or show != "pairs":
-                raise SimplydataError("matched_by= gives paired tests of each pair (Holm), or after Friedman's test "
-                                      'test="nemenyi" or test="conover"; leave out against= and show=.')
+                raise SimplydataError("matched_by= gives paired tests of each pair (Holm); after Friedman's test "
+                                      'test="nemenyi" or test="conover" are the other choices. Otherwise leave out '
+                                      "test=, and leave out against= and show=.")
             return self._matched_pairs(step, column, for_each_group_in, matched_by, based_on, test)
         if show == "letters" and against is not None:
             raise SimplydataError("show=\"letters\" compares every pair; against= compares each group with one "

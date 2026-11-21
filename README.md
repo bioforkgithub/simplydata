@@ -14,7 +14,7 @@ them first.
 ## What simplydata handles
 
 **393 words (commands) in 47 groups, with 358 different options, on top of 14 Python packages and
-74 R packages that it runs (plus R's own `stats`, and 8 more used only to check its answers), checked by 1009 reliability checks.** Every word hands the work to
+74 R packages that it runs (plus R's own `stats`, and 8 more used only to check its answers), checked by 1084 reliability checks.** Every word hands the work to
 an established package; simplydata chooses the settings, prints the answer in words and names the
 method it used. Words that need an extra say so: `pip install "simplydata[fast]"`, `[files]`,
 `[systems]` or `[r]` (the R words also need R itself; see [Using the words that need R](#using-the-words-that-need-r)).
@@ -27,7 +27,7 @@ Approximate, counted on 2026-11-20.
 |---|---|---|
 | Names to learn | about 10,650 functions: about 5,460 in the Python packages (SciPy about 1,750, pandas 850, Polars 815, matplotlib 745, NumPy 660, statsmodels 545, seaborn 100; each package's public API) and about 5,190 exported by the R packages simplydata ran that day, with R's `stats` (R `getNamespaceExports`; before the community packages were added) | 751 names: 393 commands and 358 options, about 93 % fewer |
 | Packages and languages | 86 packages (14 Python, 72 R), in Python and R | 1 package, in basic Python |
-| Code per task | 860 lines and 857 function calls in the 135 tasks of the manual's "same underneath" boxes (median 6 lines a task); this library code is the bare minimum, without the plain-sentence result or the checks | 415 lines and 498 calls (median 3 lines a task), about 52 % fewer lines; recount with `python validation/count_reduction.py` |
+| Code per task | 906 lines and 904 function calls in the 145 tasks of the manual's "same underneath" boxes (median 6 lines a task); this library code is the bare minimum, without the plain-sentence result or the checks | 438 lines and 530 calls (median 3 lines a task), about 52 % fewer lines; recount with `python validation/count_reduction.py` |
 | Choosing the method | you choose, from the package's documentation | the recommended default, with its published basis: see [How simplydata chooses methods](#how-simplydata-chooses-methods) |
 
 ### Packages underneath

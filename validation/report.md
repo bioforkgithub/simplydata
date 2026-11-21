@@ -1931,15 +1931,15 @@ Note: The oblimin rotation of GPArotation starts from random numbers, so both si
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
-| own part of x1 | statsmodels Factor (method="ml") | 0.512529527173443 | 0.512528254948961 | relative 0.0001 | pass |
-| own part of x2 | statsmodels Factor (method="ml") | 0.7487351603869 | 0.748735764465912 | relative 0.0001 | pass |
-| own part of x3 | statsmodels Factor (method="ml") | 0.542773290729761 | 0.542774058685269 | relative 0.0001 | pass |
-| own part of x4 | statsmodels Factor (method="ml") | 0.279193093920192 | 0.279193180394145 | relative 0.0001 | pass |
-| own part of x5 | statsmodels Factor (method="ml") | 0.242877320676015 | 0.242877309047942 | relative 0.0001 | pass |
-| own part of x6 | statsmodels Factor (method="ml") | 0.30521585555841 | 0.305215644455801 | relative 0.0001 | pass |
-| own part of x7 | statsmodels Factor (method="ml") | 0.502207221916071 | 0.502208446441646 | relative 0.0001 | pass |
-| own part of x8 | statsmodels Factor (method="ml") | 0.468550489794599 | 0.468549853494355 | relative 0.0001 | pass |
-| own part of x9 | statsmodels Factor (method="ml") | 0.543247686483436 | 0.543246532934036 | relative 0.0001 | pass |
+| own part of x1 | statsmodels Factor (method="ml") | 0.512529527173443 | 0.512527902744628 | relative 0.0001 | pass |
+| own part of x2 | statsmodels Factor (method="ml") | 0.7487351603869 | 0.748735708636197 | relative 0.0001 | pass |
+| own part of x3 | statsmodels Factor (method="ml") | 0.542773290729761 | 0.542774480504385 | relative 0.0001 | pass |
+| own part of x4 | statsmodels Factor (method="ml") | 0.279193093920192 | 0.279192936104611 | relative 0.0001 | pass |
+| own part of x5 | statsmodels Factor (method="ml") | 0.242877320676015 | 0.242877418887529 | relative 0.0001 | pass |
+| own part of x6 | statsmodels Factor (method="ml") | 0.30521585555841 | 0.305215610969285 | relative 0.0001 | pass |
+| own part of x7 | statsmodels Factor (method="ml") | 0.502207221916071 | 0.502208511070489 | relative 0.0001 | pass |
+| own part of x8 | statsmodels Factor (method="ml") | 0.468550489794599 | 0.468549715833731 | relative 0.0001 | pass |
+| own part of x9 | statsmodels Factor (method="ml") | 0.543247686483436 | 0.543246757748796 | relative 0.0001 | pass |
 | own part of x1 | R | 0.512529527173443 | 0.512528169335274 | relative 0.001 | pass |
 | own part of x2 | R | 0.7487351603869 | 0.74873504605719 | relative 0.001 | pass |
 | own part of x3 | R | 0.542773290729761 | 0.542776785473323 | relative 0.001 | pass |
@@ -2204,7 +2204,7 @@ Note: R quantile(rep(x, w)) is R's definition of frequency weights (as Hmisc::wt
 | 25th percentile | R | 38 | 38 | relative 1e-12 | pass |
 | 90th percentile | R | 42 | 42 | relative 1e-12 | pass |
 
-Note: R has no weighted quantile in base R; the R side writes out the inverted CDF (Hyndman & Fan 1996, definition 1, with weights), the rule of survey::svyquantile(qrule = "math").
+Note: R has no weighted quantile in base R; the R side writes out the inverted CDF (Hyndman & Fan 1996, definition 1, with weights), the rule survey::svyquantile(qrule = "math") documents (survey itself is not run here).
 
 ### `table.find_median_of weights=`
 
@@ -2297,7 +2297,7 @@ Note: pi0 is read back from the table as the q-value of the largest p-value divi
 | narrow angle vs wide angle | R | 0.0613707592551845 | 0.0613707592551845 | relative 1e-09 | pass |
 | round out vs wide angle | R | 0.00440982044545224 | 0.00440982044545224 | relative 1e-09 | pass |
 
-Note: The same p-values (0.637, 0.0044, 0.061) come from scikit-posthocs posthoc_nemenyi_friedman.
+Note: The same p-values (0.637, 0.061, 0.0044) come from scikit-posthocs posthoc_nemenyi_friedman.
 
 ### `table.compare_each_pair_of matched_by=, test="conover"`
 
