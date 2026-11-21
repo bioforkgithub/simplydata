@@ -1074,7 +1074,7 @@ class SurvivalWords:
 
     @friendly
     def explain_survival(self, time=None, event=None, using=None, allowing_for=None, followed_from=None, value=None,
-                         competing_with=None, method="cox", distribution=None):
+                         competing_with=None, method="cox", distribution=None, empty_cells="leave out", with_seed=1):
         """Which columns go with a higher or lower risk of the event? (Cox model, hazard ratios)
 
         table.explain_survival(time="days", event="died", using=["treatment", "age"])   (with sdata.get_example("trial"))
@@ -1099,6 +1099,10 @@ class SurvivalWords:
         (subdistribution hazard ratios, R cmprsk::crr). distribution="weibull" ("exponential", "lognormal",
         "log-logistic") fits a parametric model instead (R survival::survreg) and gives time ratios: how many
         times as long the time until the event is.
+        empty_cells="multiple imputation" fills in the empty cells of the number columns of using= 20 times (from the
+        event, the Nelson-Aalen cumulative hazard and the other columns; statsmodels MICEData, as explain()), fits R
+        survival::coxph() to each filled-in table and pools them with Rubin's rules (R mice::pool()); with_seed=
+        fixes the random filling.
         """
         step = "explain_survival"
         example = EXAMPLE.format(word=step, more=', using=["treatment", "age"]')
@@ -1111,6 +1115,27 @@ class SurvivalWords:
         if not using or not all(isinstance(u, str) for u in using):
             raise SimplydataError(f"{step}() needs using= with one or more column names.\nFor example, {example}")
         using = list(using)
+        twice = [u for i, u in enumerate(using) if u in using[:i]]
+        if twice:
+            raise SimplydataError(f'"{twice[0]}" is in using= twice. Give each column once.')
+        from .imputation_more import MULTIPLE, read_empty_cells
+
+        if read_empty_cells(step, empty_cells, example) == MULTIPLE:
+            others = [o for o, v in (("allowing_for=", allowing_for is not None), ("followed_from=", followed_from is not None),
+                                     ("competing_with=", competing_with is not None), ("distribution=", dist is not None),
+                                     ('method="fine-gray"', method == "fine-gray")) if v]
+            if others:
+                raise SimplydataError(f'empty_cells="multiple imputation" fills in a plain Cox model; leave out '
+                                      f"{_list_words(others)}.")
+            if isinstance(with_seed, bool) or not isinstance(with_seed, int):
+                raise SimplydataError("with_seed= is a whole number that fixes the random filling-in, such as "
+                                      "with_seed=1.")
+            self._need_columns(*using)
+            from .imputation_more import survival_imputed
+
+            found = survival_imputed(self, step, time, event, using, value, with_seed, example)
+            if found is not None:
+                return found
         repeated = [u for i, u in enumerate(using) if u in using[:i]]
         if repeated:
             raise SimplydataError(f'"{repeated[0]}" is in using= twice. Give each column once.')

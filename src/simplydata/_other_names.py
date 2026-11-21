@@ -390,6 +390,24 @@ _TABLE = [
                                                      "missing_data_pattern"),
     ('table.count_each(columns=["teaching", "pace"], in_order=["strongly disagree", "disagree", "neutral", "agree", '
      '"strongly agree"])', "likert likert_scale likert_summary top_two_box"),
+    # S3d-2: epidemiology and cause and effect
+    ('table.compare_balanced_groups_of("re78", for_each_group_in="treat", allowing_for=["age", "educ"])',
+     "propensity propensity_score propensity_scores matchit match_it weightit ipw iptw inverse_probability_weighting "
+     "ate att cobalt bal_tab balance_table psm"),
+    ('table.explain("depress2", using="treat", through="job_seek")',
+     "mediation mediate mediation_analysis acme indirect_effect"),
+    ('table.compare_risks("infected", for_each_group_in="ward", against="ward A", show="attributable fractions")',
+     "attributable_fraction attributable_fractions paf population_attributable_fraction preventable_fraction"),
+    ('table.rate_of("deaths", time="person_years", for_each_group_in="county", allowing_for="age_band", '
+     'standard_population="whole table")',
+     "ageadjust ageadjust_direct age_adjust age_standardise age_standardize direct_standardisation "
+     "direct_standardization epi_directadj standardised_rate standardized_rate"),
+    ('table.compare_rates("deaths", time="person_years", allowing_for="age_band", standard_rates=national)',
+     "smr standardised_mortality_ratio standardized_mortality_ratio sir ageadjust_indirect epi_indirectadj "
+     "indirect_standardisation indirect_standardization"),
+    ('table.compare_averages_of("auc", for_each_group_in="formulation", matched_by="subject", period="period", '
+     "same_within=[0.8, 1.25])", "bioequivalence crossover be_2x2 abe average_bioequivalence"),
+    ('table.find_correlation_between("bmi", "chl", empty_cells="multiple imputation")', "micombine_cor"),
     # S3d-3: Bayesian answers (R BayesFactor and rstanarm; brms and PyMC users land on the same option)
     ('table.compare_averages_of("crp", for_each_group_in="ward", bayesian=True) (also on compare_before_and_after, '
      'compare_average_to, find_correlation_between and compare_counts_of)',

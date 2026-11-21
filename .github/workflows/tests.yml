@@ -50,6 +50,7 @@ jobs:
           "zCompositions", "compositions", "ca", "cluster",
           "GPArotation", "lavaan",
           "circular", "spdep", "sf", "gstat", "extRemes", "ismev", "sp", "ape",
+          "WeightIt", "MatchIt", "cobalt", "miceadds", "epitools",
           "agricolae", "blockrand", "survey", "BayesFactor");
           install.packages(pkgs); for (p in pkgs) library(p, character.only = TRUE)'
       # S3d-3: Bayesian models (explain(bayesian=True)) run on rstanarm, a large package (about 400 MB with Stan and

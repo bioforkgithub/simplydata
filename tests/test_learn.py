@@ -332,10 +332,10 @@ LESSON_NUMBERS = range(1, len(learn.LESSONS) + 1)
 
 
 def test_the_lesson_count(capsys):
-    assert len(learn.LESSONS) == 35
+    assert len(learn.LESSONS) == 36
     sdata.show_lesson()
     out = capsys.readouterr().out
-    assert "35 lessons" in out
+    assert "36 lessons" in out
     for i in LESSON_NUMBERS:
         assert f"sdata.show_lesson({i})" in out
 
@@ -383,9 +383,9 @@ def test_lessons_use_tables_and_charts(number):
         assert gone not in code, f"lesson {number} uses {gone}"
 
 
-@pytest.mark.parametrize("bad", [0, 36, "1", 1.0, True])
+@pytest.mark.parametrize("bad", [0, 37, "1", 1.0, True])
 def test_wrong_lesson_number_is_explained(bad):
-    with pytest.raises(sdata.SimplydataError, match="lessons 1 to 35"):
+    with pytest.raises(sdata.SimplydataError, match="lessons 1 to 36"):
         sdata.show_lesson(bad)
 
 

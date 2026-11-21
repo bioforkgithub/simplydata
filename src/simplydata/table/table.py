@@ -8,6 +8,7 @@ from ._base import BaseTable
 from .accuracy_words import AccuracyWords
 from .agreement_words import AgreementWords
 from .between import BetweenWords
+from .causal_words import CausalWords
 from .checking_more import CheckingMoreWords
 from .communities import CommunityWords
 from .columns import ColumnWords
@@ -41,7 +42,7 @@ class Table(PositionWords, RowWords, ColumnWords, SummaryWords, StatTestWords, M
             AgreementWords, CorrelationWords, FittingWords, LinesMoreWords, ModelWords, ModelToolWords, PatternWords, SurvivalWords, SurvivalMoreWords,
             TimeSeriesWords, TimeStepWords, ForecastWords, SignalTableWords, SignalMoreTableWords, BetweenWords,
             DistributionTableWords, CheckingMoreWords, MetaWords, CommunityWords, HiddenFactorWords, PlaceWords,
-            SurveyWords, BaseTable):
+            CausalWords, SurveyWords, BaseTable):
     """A table. Make one with sdata.table(...), then add steps: table.keep_rows_where(...), table.sort_by(...)."""
 
 

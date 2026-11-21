@@ -69,6 +69,11 @@ r = ["rpy2>=3.5"]  # the bridge to R for the methods only R gives (R itself: htt
 # Bioconductor, not CRAN or conda-forge: in R, install.packages("BiocManager") and then install qvalue with it; with
 # conda, bioconductor-qvalue from bioconda. PMCMRplus (Nemenyi and Conover after Friedman) and forecast
 # (auto.arima) are listed already.
+# S3d-2 (epidemiology and cause and effect) calls WeightIt, MatchIt and cobalt (propensity scores, weighting, matching
+# and balance tables; with sandwich and lmtest, listed already), miceadds (correlations pooled after multiple
+# imputation) and epiR (attributable fractions and standardised rates, listed already); epitools is used by the
+# reliability study only. All are on CRAN and conda-forge. Mediation (statsmodels) and the 2 x 2 crossover
+# (statsmodels) need no R.
 # S3d-1 (planning and surveys) calls agricolae (design tables), blockrand (randomisation lists; CRAN only, not on
 # conda-forge) and survey (survey-weighted answers); agricolae and survey are on conda-forge. mice (patterns of empty
 # cells, in the reliability study) is listed already.
