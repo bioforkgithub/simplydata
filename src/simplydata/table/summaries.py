@@ -385,6 +385,8 @@ def _percentile_rule(step, method):
     """find_percentile_of(test_method=): R's type number (1 to 9) or NumPy's name, as the NumPy name."""
     if isinstance(method, (int, np.integer)) and not isinstance(method, bool) and 1 <= method <= 9:
         return PERCENTILE_RULES[int(method) - 1]
+    if isinstance(method, str) and method.strip() in [str(n) for n in range(1, 10)]:  # R's type as text, "8"
+        return PERCENTILE_RULES[int(method.strip()) - 1]
     if isinstance(method, str) and method.strip().lower().replace(" ", "_") in PERCENTILE_RULES:
         return method.strip().lower().replace(" ", "_")
     raise choice_error(step, "test_method", method, [r.replace("_", " ") for r in PERCENTILE_RULES]

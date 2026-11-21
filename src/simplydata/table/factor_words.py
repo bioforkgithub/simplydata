@@ -90,7 +90,7 @@ def _texts(x):
 class HiddenFactorWords:
     # ------------------------------------------------------------------ exploratory factor analysis
     @friendly(renamed={"method": "test_method"}, others={"nfactors": "how_many", "n_factors": "how_many", "factors": "how_many",
-                      "rotate": "rotation", "fm": "method", "seed": "with_seed", "items": "columns"})
+                      "rotate": "rotation", "fm": "test_method", "seed": "with_seed", "items": "columns"})
     def find_hidden_factors_behind(self, columns=None, how_many="automatic", rotation="oblimin", test_method="minres",
                                    with_seed=1):
         """Find the hidden factors behind many columns: how many there are, and which columns go with which.

@@ -1768,7 +1768,7 @@ class ModelWords:
                 ("own_slope_for=", own_slope_for, None), ("robust_errors=", robust_errors, False),
                 ("p_value_by=", p_value_by, "wald"), ("effects=", effects, "for the average group"),
                 ("within_groups=", within_groups, "alike"), ("curve_for=", curve_for, None),
-                ("weights=", weights, None), ("show=", show, None),
+                ("weights=", weights, None), ("show=", show, None), ("test_method=", test_method, None),
                 ("matched_by=", matched_by, None), ("giving_outliers_less_weight=", giving_outliers_less_weight, False),
                 ("with_knots=", with_knots, None), ("interval_by=", interval_by, "wald"), ("resamples=", resamples, None),
                 ("crossed_with=", crossed_with, None), ("zero_part_using=", zero_part_using, None),

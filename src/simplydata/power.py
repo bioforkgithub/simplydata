@@ -47,7 +47,7 @@ TESTS = ("compare_averages", "compare_before_after", "compare_average_to", "comp
          "correlation_between")
 # S3b-2: tests with routes of their own (power_more.py)
 MORE_TESTS = ("explain", "compare_models", "compare_survival", "compare_spreads")
-# test= may also name the table word as it is written now (2026-11-16 talking rewrite)
+# for_test= may also name the table word as it is written now (2026-11-16 talking rewrite)
 TEST_WORDS = {"compare_averages_of": "compare_averages", "compare_before_and_after": "compare_before_after",
               "compare_counts_of": "compare_counts", "find_correlation_between": "correlation_between",
               "compare_spreads_of": "compare_spreads"}

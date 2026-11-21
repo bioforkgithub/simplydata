@@ -271,3 +271,26 @@ def test_fisher_on_pairs_of_averages_says_what_it_means_now(marks):
     lsd = example.compare_each_pair_of("marks", for_each_group_in="class", test_method="fisher's lsd").as_pandas()
     same = example.compare_each_pair_of("marks", for_each_group_in="class", test_method="lsd").as_pandas()
     pd.testing.assert_frame_equal(lsd, same)
+
+
+# ---------------------------------------------------------------- review fixes: refusals kept, pointers current
+def test_test_method_is_still_refused_where_it_was(marks):
+    table = sdata.table(sdata.get_example("school"))
+    with pytest.raises(SimplydataError, match="test_method="):
+        table.compare_averages_of(["marks", "hours"], for_each_group_in="breakfast", test_method="kruskal-wallis")
+
+
+def test_fm_points_to_test_method(capsys):
+    func = learn._function("table.find_hidden_factors_behind")
+    assert func._other_options["fm"] == "test_method"
+
+
+def test_bayesian_false_beside_test_method_gives_the_note(marks, capsys):
+    sdata.table(marks).compare_averages_of("marks", for_each_group_in="class", test_method="student", bayesian=False)
+    assert notes(capsys.readouterr().out) == [note("bayesian=", "test_method=")]
+
+
+def test_percentile_rule_number_as_text(marks):
+    table = sdata.table(marks)
+    assert table.find_percentile_of("marks", 25, test_method="8") == table.find_percentile_of("marks", 25,
+                                                                                              test_method=8)

@@ -12,7 +12,7 @@ working for one release and prints a one-line note with its new name.
   `test_method="bayesian"`). `test_method=` chooses the method (the test, estimator or rule) the word uses; each word
   keeps its own choices and its own default, and every printout names the method it used. `sdata.help("test_method=")`
   lists the words. The old names still work and print a one-line note; giving an old name and `test_method=`
-  together is refused.
+  together is refused (`bayesian=False` is simply left out, with the note).
 - The values follow one rule: lower case, words separated by spaces, two person names joined by a hyphen.
   `combine_studies` values are now lower case (`"reml"`, `"dersimonian-laird"`, `"paule-mandel"`,
   `"mantel-haenszel"`, `"peto"`; the old spellings are accepted); `find_percentile_of` names its rules with spaces

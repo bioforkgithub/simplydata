@@ -774,7 +774,7 @@ class StatTestWords:
             from .crossover import crossover
 
             given = [name for name, value, default in (
-                ("based_on=", based_on, "averages"), ("sides=", sides, 2),
+                ("based_on=", based_on, "averages"), ("test_method=", test_method, None), ("sides=", sides, 2),
                 ("higher=", higher, None), ("lower=", lower, None), ("alternative=", alternative, None),
                 ("p_value_by=", p_value_by, "formula"), ("not_lower=", not_lower, None),
                 ("not_higher=", not_higher, None), ("in_order=", in_order, None), ("grouped_by=", grouped_by, None))
@@ -799,7 +799,7 @@ class StatTestWords:
             from .checking_more import manova, nested_averages
 
             given = [name for name, value, default in (
-                ("based_on=", based_on, "averages"), ("sides=", sides, 2),
+                ("based_on=", based_on, "averages"), ("test_method=", test_method, None), ("sides=", sides, 2),
                 ("higher=", higher, None), ("lower=", lower, None), ("alternative=", alternative, None),
                 ("p_value_by=", p_value_by, "formula"), ("same_within=", same_within, None),
                 ("not_lower=", not_lower, None), ("not_higher=", not_higher, None), ("in_order=", in_order, None),

@@ -293,8 +293,7 @@ def friendly(func=None, *, renamed: dict | None = None, others: dict | None = No
                 if isinstance(new, tuple):  # the old option was a switch that is now one value of the new one
                     new, value = _renamed_value(key, new, value)
                     if value is _LEAVE_OUT:  # bayesian=False: the usual answer, the new option's default
-                        if new not in kwargs and new not in fixed:
-                            renamed_note(f"{key}=", f"{new}=")
+                        renamed_note(f"{key}=", f"{new}=")
                         continue
                 else:
                     renamed_note(f"{key}=", f"{new}=")
