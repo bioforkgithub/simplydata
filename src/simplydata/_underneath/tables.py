@@ -99,7 +99,7 @@ ENTRIES += [
             # describe_columns()
             print(f"The table has {len(df)} rows and {df.shape[1]} columns.\\n")
             numbers = [c in df.select_dtypes("number") for c in df.columns]
-            nice = lambda v: str(round(v, 2)).removesuffix(".0")      # (1)
+            nice = lambda v: str(int(v)) if float(v).is_integer() else str(round(v, 2))   # (1)
             rows = [{"column": c, "kind": "number" if n else "text", "empty cells": df[c].isna().sum(),
                      "smallest": nice(df[c].min()) if n else "", "biggest": nice(df[c].max()) if n else "",
                      "average": nice(df[c].mean()) if n else "",
@@ -112,7 +112,8 @@ ENTRIES += [
                  "text columns get the number of different values (empty cells left out), number columns the "
                  "smallest, biggest and average (empty cells left out, as pandas does).",),
         also="Date columns get their first and last date, and true/false columns their number of different "
-             "values; this table has neither. pandas' own df.describe() gives the numbers in another layout.",
+             "values; this table has neither. Text that is blank or only spaces counts as an empty cell (isna() "
+             "would not count it). pandas' own df.describe() gives the numbers in another layout.",
     ),
     Entry(
         word="table.keep_columns",
@@ -243,12 +244,12 @@ ENTRIES += [
     Entry(
         word="table.turn_into_numbers",
         ours="""
-            table = sdata.table({"price": ["12.5", "1,200", " 3 ", "n/a", None]})
+            table = sdata.table({"price": ["12.5", "1,200", "12,5", " 3 ", "n/a", None]})
             table.turn_into_numbers("price")
         """,
         code={"pandas": """
             import pandas as pd
-            df = pd.DataFrame({"price": ["12.5", "1,200", " 3 ", "n/a", None]})
+            df = pd.DataFrame({"price": ["12.5", "1,200", "12,5", " 3 ", "n/a", None]})
             # turn_into_numbers("price")
             text = df["price"].str.replace(r"\\s", "", regex=True)
             thousands = text.str.fullmatch(r"[+-]?\\d{1,3}(,\\d{3})+(\\.\\d+)?", na=False)   # (1)
@@ -262,7 +263,7 @@ ENTRIES += [
         choices=("a comma between groups of three digits is a thousands mark: 1,200 is twelve hundred.",
                  "any other single comma is a decimal comma: 12,5 is twelve and a half.",
                  "a cell that is not a number after that becomes empty, as pd.to_numeric(errors=\"coerce\"); "
-                 "simplydata says how many and shows one.",),
+                 "simplydata says how many and shows up to 3 of them. Blank text is simply empty.",),
         also="Spaces inside a number are left out first (1 200). A true/false column becomes 1 and 0, and a "
              "column that is already numbers is left as it is.",
     ),
@@ -295,28 +296,28 @@ ENTRIES += [
         data="marks",
         ours="""
             table = sdata.table(sdata.get_example("marks"))
-            table.add_group_column("grade", from_column="marks", cut_at=[40, 60, 80], names=["D", "C", "B", "A"])
+            table.add_group_column("grade", from_column="marks", cut_at=[41, 61, 81], names=["D", "C", "B", "A"])
         """,
         code={
             "pandas": """
                 import numpy as np
                 import pandas as pd
                 df = sdata.get_example("marks")
-                # add_group_column("grade", from_column="marks", cut_at=[40, 60, 80], names=[...])
-                grade = pd.cut(df["marks"], [-np.inf, 40, 60, 80, np.inf],
+                # add_group_column("grade", from_column="marks", cut_at=[41, 61, 81], names=[...])
+                grade = pd.cut(df["marks"], [-np.inf, 41, 61, 81, np.inf],
                                labels=["D", "C", "B", "A"], right=False)       # (1)
                 df.assign(grade=grade)
             """,
             "Polars": """
                 import polars as pl
                 df = pl.from_pandas(sdata.get_example("marks"))
-                # add_group_column("grade", from_column="marks", cut_at=[40, 60, 80], names=[...])
-                df.with_columns(pl.col("marks").cut([40, 60, 80], labels=["D", "C", "B", "A"],
+                # add_group_column("grade", from_column="marks", cut_at=[41, 61, 81], names=[...])
+                df.with_columns(pl.col("marks").cut([41, 61, 81], labels=["D", "C", "B", "A"],
                                                     left_closed=True).alias("grade"))   # (1)
             """,
         },
         compare="table",
-        choices=("a value exactly on a cut goes into the higher group: a mark of 60 is a B (right=False, "
+        choices=("a value exactly on a cut goes into the higher group: a mark of 61 is a B (right=False, "
                  "left_closed=True); pandas and Polars put it in the lower group by default.",),
         also="simplydata makes a text column; pandas and Polars make a category column with the same values. "
              "Empty cells stay empty. " + SAID,
@@ -332,7 +333,7 @@ ENTRIES += [
             "pandas": """
                 df = sdata.get_example("marks")
                 # find_summary_of("marks", for_each_group_in="class", show=[...])
-                out = df.groupby("class")["marks"].agg(["mean", "std", "count"])   # (1) (2)
+                out = df.groupby("class", dropna=False)["marks"].agg(["mean", "std", "count"])   # (1) (2)
                 out.reset_index().assign(column="marks")[["column", "class", "mean", "std", "count"]]
             """,
             "Polars": """
@@ -347,7 +348,8 @@ ENTRIES += [
         },
         compare="table",
         names={"average": "mean", "standard deviation": "std"},
-        choices=("one row for each group, the groups sorted (A, B, C).",
+        choices=("one row for each group, the groups sorted (A, B, C); rows with an empty group cell form a group "
+                 "of their own, shown last (dropna=False).",
                  "the standard deviation of a sample (n - 1), as pandas, Polars and R sd(); NumPy's own default "
                  "is n.",),
         also="simplydata also writes the summary in a sentence; the result is a new table you can save or chart.",
@@ -372,13 +374,14 @@ ENTRIES += [
                 df = pl.from_pandas(sdata.get_example("marks"))
                 ages = pl.DataFrame({"name": ["Asha", "Ben"], "age": [12, 13]})
                 # join_with(ages, using="name", keep="all rows from this table")
-                df.join(ages, on="name", how="left", suffix="_other", maintain_order="left")   # (1)
+                df.join(ages, on="name", how="left", suffix="_other")   # (1)
             """,
         },
         compare="table",
         choices=("a column found in both tables (other than using=) keeps its name in this table and gets "
                  "\"_other\" in the other table's copy.",),
-        also="keep=\"matching rows\" (the default) is an inner join and \"all rows from both\" a full join. "
+        also="keep=\"matching rows\" (the default) is an inner join and \"all rows from both\" a full join. On a "
+             "Polars table the order of the rows is Polars' own (the join is given no maintain_order=). "
              "simplydata also says how many rows found a match, and warns when a name appears twice in the "
              "other table (rows would be repeated).",
     ),
@@ -394,7 +397,7 @@ ENTRIES += [
                 from scipy import stats
                 df = sdata.get_example("marks")
                 # add_z_score_column("marks_z", from_column="marks", for_each_group_in="subject")
-                z = df.groupby("subject")["marks"].transform(stats.zscore, ddof=1)   # (1)
+                z = df.groupby("subject")["marks"].transform(stats.zscore, ddof=1, nan_policy="omit")   # (1)
                 df.assign(marks_z=z)
             """,
             "Polars": """
@@ -559,7 +562,7 @@ ENTRIES += [
                 df = sdata.get_example("river")
                 # add_missing_dates("date", every="day", for_each_group_in="station")
                 parts = []
-                for station, rows in df.groupby("station", sort=True):                    # (1)
+                for station, rows in df.groupby("station", sort=True, dropna=False):      # (1)
                     days = pd.date_range(rows["date"].min(), rows["date"].max(), freq="D")  # (2)
                     full = rows.set_index("date").reindex(days).rename_axis("date").reset_index()
                     parts.append(full.assign(station=station))
@@ -575,7 +578,7 @@ ENTRIES += [
         },
         compare="table",
         choices=("the table comes back sorted by the groups, then the dates; the group's name is copied into "
-                 "the new rows.",
+                 "the new rows, and rows with an empty group cell are a group of their own (dropna=False).",
                  "each group's own run, from its first to its last date: no rows are added before or after "
                  "(between= adds them).",),
         also="Without every= simplydata uses the most common step between the dates and says so. It stops with "
@@ -623,7 +626,7 @@ ENTRIES += [
         code={"pandas": """
             df = sdata.get_example("marks")
             # show_rows_with_outliers("marks", for_each_group_in="class")
-            marks = df.groupby("class")["marks"]
+            marks = df.groupby("class", dropna=False)["marks"]
             q1, q3 = marks.transform("quantile", 0.25), marks.transform("quantile", 0.75)   # (1)
             far = 1.5 * (q3 - q1)
             found = df[(df["marks"] < q1 - far) | (df["marks"] > q3 + far)]                  # (2)
@@ -631,7 +634,8 @@ ENTRIES += [
             print(found)
         """},
         compare="printed",
-        choices=("the quartiles of each class by pandas' (and R's type 7) linear method.",
+        choices=("the quartiles of each class by pandas' (and R's type 7) linear method; rows with an empty class "
+                 "are a group of their own (dropna=False).",
                  "Tukey's rule, the one box plots use: below Q1 - 1.5 x IQR or above Q3 + 1.5 x IQR.",
                  "each row is shown with its place in the whole table, counted from 1, so "
                  "remove_rows_by_position() can follow.",),

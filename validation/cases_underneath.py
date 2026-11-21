@@ -192,7 +192,7 @@ def _cases(Case):
              """,
              parent="""
                  from scipy import stats
-                 z = data.groupby("Species")["Sepal.Length"].transform(stats.zscore, ddof=1)
+                 z = data.groupby("Species")["Sepal.Length"].transform(stats.zscore, ddof=1, nan_policy="omit")
                  {"first": z.iloc[0], "last": z.iloc[-1], "sum of squares": (z ** 2).sum()}
              """, parent_label="SciPy zscore(ddof=1)", parent_tolerance=1e-10,
              r="""
@@ -310,8 +310,13 @@ def _cases(Case):
                  {"rows": width.count(), "total petal width": width.find_total()}
              """,
              parent="""
-                 {"rows": len(data), "total petal width": data["Petal.Width"].sum()}
-             """, parent_label="pandas read_csv", parent_tolerance=1e-12),
+                 import os
+                 import tempfile
+                 with tempfile.TemporaryDirectory() as folder:
+                     data.to_csv(os.path.join(folder, "iris.csv"), index=False)
+                     t = pd.read_csv(os.path.join(folder, "iris.csv"), sep=None, engine="python")
+                 {"rows": len(t), "total petal width": t["Petal.Width"].sum()}
+             """, parent_label="pandas read_csv(sep=None)", parent_tolerance=1e-12),
         Case("sdata.get_example", "the practice table bcg against the published trials in R metadat (dat.bcg)",
              "BCG trials (metadat)", "real data",
              ours="""

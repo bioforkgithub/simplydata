@@ -89,13 +89,14 @@ ENTRIES = [
             from scipy import stats
             dist = stats.norm(loc=50, scale=10)
             # find_percentile(percent=95)
-            dist.ppf(0.95)                  # (1)
+            dist.isf(1 - 0.95)              # (1)
         """},
         compare="value",
         tolerance=1e-12,
-        choices=("the percent is turned into a share (95 % is 0.95) for the percent point function ppf(), the "
-                 "inverse of cdf(); for counts it is the smallest count with at least that share at or below it, "
-                 "as R qbinom().",),
+        choices=("the percent is turned into a share (95 % is 0.95). Above the middle simplydata asks for the value "
+                 "with 5 % above it (isf), which stays accurate far out in the upper tail; below the middle it uses "
+                 "ppf(). For counts it is the smallest count with at least that share at or below it, as R "
+                 "qbinom().",),
         also="simplydata also says the value in a sentence, with the same call in R (qnorm(0.95, mean = 50, "
              "sd = 10)). A list of percents gives one value for each.",
     ),
@@ -151,7 +152,8 @@ ENTRIES = [
                  "the exact (Clopper-Pearson) 95 % interval of the percent; interval_by= takes \"wilson\" or "
                  "\"agresti-coull\".",
                  "the effect size is Cohen's h, the difference between the two shares on the arcsine scale.",),
-        also="Percents go from 0 to 100 (SciPy takes shares from 0 to 1). sides=1 tests one direction. " + SENTENCE,
+        also="percent= is above 0 and below 100 (SciPy takes shares from 0 to 1). sides=1 with higher=\"percent\" "
+             "or lower=\"percent\" tests one direction. " + SENTENCE,
     ),
     Entry(
         word="table.add_principal_components",
@@ -162,44 +164,46 @@ ENTRIES = [
         """,
         code={"statsmodels": """
             import numpy as np
+            import pandas as pd
             from statsmodels.multivariate.pca import PCA
             df = sdata.get_example("meadow")
             # add_principal_components(how_many=2)
-            x = df.select_dtypes("number")
-            z = (x - x.mean()) / x.std()                                     # (1)
+            x = df.select_dtypes("number").dropna()                          # (1)
+            z = (x - x.mean()) / x.std()                                     # (2)
             pca = PCA(z, ncomp=2, standardize=False, demean=False, normalize=False, method="svd")
             w = np.asarray(pca.loadings)
-            w = w * np.sign(w[np.abs(w).argmax(axis=0), [0, 1]])             # (2)
-            scores = z.to_numpy() @ w
-            df.assign(PC1=scores[:, 0], PC2=scores[:, 1])
+            w = w * np.sign(w[np.abs(w).argmax(axis=0), [0, 1]])             # (3)
+            df.join(pd.DataFrame(z.to_numpy() @ w, index=x.index, columns=["PC1", "PC2"]))
         """},
         compare="table",
         tolerance=1e-9,
-        choices=("every number column is put on the same scale first (mean 0, standard deviation with n - 1), "
-                 "as R prcomp(scale. = TRUE); same_scale=False leaves the columns as they are.",
+        choices=("only rows with a number in every column are used; the other rows get empty PC cells.",
+                 "every number column is put on the same scale first (mean 0, standard deviation with n - 1), "
+                 "as R prcomp(scale. = TRUE); same_scale=False only centres them (mean 0), as prcomp(scale. = FALSE).",
                  "the sign of a component is arbitrary and differs between computers, so each one is turned so its "
                  "biggest weight is positive: the same scores on every computer.",),
         also="simplydata also prints how much of the spread each component holds and the columns it weighs most "
-             "on. Rows with an empty cell get empty PC cells.",
+             "on.",
     ),
     Entry(
         word="table.add_predicted_column",
         data="school",
         ours="""
             table = sdata.table(sdata.get_example("school"))
-            table.add_predicted_column("marks", using=["hours", "breakfast"])
+            table.add_predicted_column("marks", using=["hours", "sleep"])
         """,
         code={"statsmodels": """
             import statsmodels.formula.api as smf
             df = sdata.get_example("school")
-            # add_predicted_column("marks", using=["hours", "breakfast"])
-            fit = smf.ols("marks ~ hours + breakfast", data=df).fit()        # (1)
+            # add_predicted_column("marks", using=["hours", "sleep"])
+            fit = smf.ols("marks ~ hours + sleep", data=df).fit()            # (1)
             df.assign(**{"predicted marks": fit.fittedvalues})               # (2)
         """},
         compare="table",
         tolerance=1e-9,
-        choices=("the same model as explain(): least squares for numbers (R fitted(lm(...))); outcome=\"yes or "
-                 "no\" and the count outcomes fit a logistic or Poisson model.",
+        choices=("the same model as explain(): least squares for numbers (R fitted(lm(...))); outcome= chooses "
+                 "the others (logistic for yes or no; Poisson, quasi-Poisson or negative binomial for counts; Gamma for "
+                 "positive numbers).",
                  "rows with an empty cell in a column the model uses are left out of the fit and stay empty "
                  "(assign lines the fitted values up by row).",),
         also="interval=95 adds the ends of the 95 % confidence interval (for_new_rows=True: the prediction "
