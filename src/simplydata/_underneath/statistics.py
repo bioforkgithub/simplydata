@@ -79,4 +79,131 @@ ENTRIES = [
         also="simplydata also says the chance in a sentence, with the same call in R "
              "(pnorm(80, mean = 50, sd = 10, lower.tail = FALSE)).",
     ),
+    Entry(
+        word="dist.find_percentile",
+        ours="""
+            dist = sdata.distribution("normal", average=50, standard_deviation=10)
+            dist.find_percentile(95)
+        """,
+        code={"SciPy": """
+            from scipy import stats
+            dist = stats.norm(loc=50, scale=10)
+            # find_percentile(percent=95)
+            dist.ppf(0.95)                  # (1)
+        """},
+        compare="value",
+        tolerance=1e-12,
+        choices=("the percent is turned into a share (95 % is 0.95) for the percent point function ppf(), the "
+                 "inverse of cdf(); for counts it is the smallest count with at least that share at or below it, "
+                 "as R qbinom().",),
+        also="simplydata also says the value in a sentence, with the same call in R (qnorm(0.95, mean = 50, "
+             "sd = 10)). A list of percents gives one value for each.",
+    ),
+    Entry(
+        word="table.compare_spreads_of",
+        data="marks",
+        ours="""
+            table = sdata.table(sdata.get_example("marks"))
+            table.compare_spreads_of("marks", for_each_group_in="class")
+        """,
+        code={"SciPy": """
+            from scipy import stats
+            df = sdata.get_example("marks")
+            # compare_spreads_of("marks", for_each_group_in="class")
+            groups = [rows["marks"].dropna() for _, rows in df.groupby("class")]
+            res = stats.levene(*groups, center="median")                  # (1)
+            {"statistic": res.statistic, "p-value": res.pvalue,
+             "degrees of freedom 1": len(groups) - 1,
+             "degrees of freedom 2": sum(len(g) for g in groups) - len(groups)}
+        """},
+        compare="result",
+        fields=("statistic", "p-value", "degrees of freedom 1", "degrees of freedom 2"),
+        tolerance=1e-10,
+        choices=("Levene's test centred on each group's median (the Brown-Forsythe test), the default of SciPy "
+                 "and of R car::leveneTest(); it copes well with values that are not bell-shaped.",),
+        also="test_method= takes \"bartlett\", \"fligner\" and, for two groups, \"ansari\", \"mood\" and \"f\" "
+             "(R var.test()). simplydata also gives each group's standard deviation. " + SENTENCE,
+    ),
+    Entry(
+        word="table.compare_percent_to",
+        data="school",
+        ours="""
+            table = sdata.table(sdata.get_example("school"))
+            table.compare_percent_to("passed", value="yes", percent=50)
+        """,
+        code={"SciPy": """
+            from scipy import stats
+            from statsmodels.stats.proportion import proportion_effectsize
+            df = sdata.get_example("school")
+            # compare_percent_to("passed", value="yes", percent=50)
+            passed = df["passed"].dropna()
+            hits, n = int((passed == "yes").sum()), len(passed)
+            res = stats.binomtest(hits, n, 0.5)                               # (1)
+            ci = res.proportion_ci(confidence_level=0.95, method="exact")     # (2)
+            {"statistic": hits, "p-value": res.pvalue, "percent 95 % CI low": ci.low * 100,
+             "percent 95 % CI high": ci.high * 100,
+             "effect size": proportion_effectsize(hits / n, 0.5)}             # (3)
+        """},
+        compare="result",
+        fields=("statistic", "p-value", "percent 95 % CI low", "percent 95 % CI high", "effect size"),
+        tolerance=1e-10,
+        choices=("the exact binomial test, as R binom.test(); empty cells are left out first.",
+                 "the exact (Clopper-Pearson) 95 % interval of the percent; interval_by= takes \"wilson\" or "
+                 "\"agresti-coull\".",
+                 "the effect size is Cohen's h, the difference between the two shares on the arcsine scale.",),
+        also="Percents go from 0 to 100 (SciPy takes shares from 0 to 1). sides=1 tests one direction. " + SENTENCE,
+    ),
+    Entry(
+        word="table.add_principal_components",
+        data="meadow",
+        ours="""
+            table = sdata.table(sdata.get_example("meadow"))
+            table.add_principal_components(how_many=2)
+        """,
+        code={"statsmodels": """
+            import numpy as np
+            from statsmodels.multivariate.pca import PCA
+            df = sdata.get_example("meadow")
+            # add_principal_components(how_many=2)
+            x = df.select_dtypes("number")
+            z = (x - x.mean()) / x.std()                                     # (1)
+            pca = PCA(z, ncomp=2, standardize=False, demean=False, normalize=False, method="svd")
+            w = np.asarray(pca.loadings)
+            w = w * np.sign(w[np.abs(w).argmax(axis=0), [0, 1]])             # (2)
+            scores = z.to_numpy() @ w
+            df.assign(PC1=scores[:, 0], PC2=scores[:, 1])
+        """},
+        compare="table",
+        tolerance=1e-9,
+        choices=("every number column is put on the same scale first (mean 0, standard deviation with n - 1), "
+                 "as R prcomp(scale. = TRUE); same_scale=False leaves the columns as they are.",
+                 "the sign of a component is arbitrary and differs between computers, so each one is turned so its "
+                 "biggest weight is positive: the same scores on every computer.",),
+        also="simplydata also prints how much of the spread each component holds and the columns it weighs most "
+             "on. Rows with an empty cell get empty PC cells.",
+    ),
+    Entry(
+        word="table.add_predicted_column",
+        data="school",
+        ours="""
+            table = sdata.table(sdata.get_example("school"))
+            table.add_predicted_column("marks", using=["hours", "breakfast"])
+        """,
+        code={"statsmodels": """
+            import statsmodels.formula.api as smf
+            df = sdata.get_example("school")
+            # add_predicted_column("marks", using=["hours", "breakfast"])
+            fit = smf.ols("marks ~ hours + breakfast", data=df).fit()        # (1)
+            df.assign(**{"predicted marks": fit.fittedvalues})               # (2)
+        """},
+        compare="table",
+        tolerance=1e-9,
+        choices=("the same model as explain(): least squares for numbers (R fitted(lm(...))); outcome=\"yes or "
+                 "no\" and the count outcomes fit a logistic or Poisson model.",
+                 "rows with an empty cell in a column the model uses are left out of the fit and stay empty "
+                 "(assign lines the fitted values up by row).",),
+        also="interval=95 adds the ends of the 95 % confidence interval (for_new_rows=True: the prediction "
+             "interval), from statsmodels get_prediction(). simplydata also says which model it fitted on how many "
+             "rows.",
+    ),
 ]

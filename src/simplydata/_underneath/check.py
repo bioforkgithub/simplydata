@@ -282,6 +282,23 @@ def compare_result(ours, theirs: dict, fields, tol: float, row_name: str = "") -
     return out
 
 
+def compare_printed(ours: str, theirs: str) -> list[str]:
+    """Every line the library code printed appears, in the same order, in what simplydata printed (simplydata may
+    print more: a sentence before or after). Spaces at the ends of lines are left out."""
+    mine = [line.rstrip() for line in ours.splitlines()]
+    wanted = [line.rstrip() for line in theirs.splitlines() if line.strip()]
+    if not wanted:
+        return ["the library code printed nothing"]
+    at = 0
+    for line in wanted:
+        while at < len(mine) and mine[at] != line:
+            at += 1
+        if at == len(mine):
+            return [f"simplydata did not print the line {line!r} (in this order)"]
+        at += 1
+    return []
+
+
 def compare_values(ours, theirs, tol: float) -> list[str]:
     return [] if _same(ours, theirs, tol) else [f"simplydata {ours!r} | library {theirs!r}"]
 
@@ -380,8 +397,11 @@ def check_entry(entry: Entry) -> list[Outcome]:
                 continue
             for library, _, source in entry.blocks():
                 ours, printed = run_ours(entry, engine)
-                theirs, _, _ = run_python(source)
-                differences = compare(entry, ours, theirs)
+                theirs, their_print, _ = run_python(source)
+                if entry.compare == "printed":
+                    differences = compare_printed(printed, their_print)
+                else:
+                    differences = compare(entry, ours, theirs)
                 if OLD_NAME_NOTE in printed:
                     differences.append("the simplydata code uses an old name: " + printed.strip())
                 outcomes.append(Outcome(entry.key, library, engine, entry.compare, entry.tolerance,

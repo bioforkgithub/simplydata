@@ -1010,3 +1010,17 @@ def _add_bayesian():
 
 
 _add_bayesian()
+
+
+# ---------------------------------------------------------------- U1 to U3: the words that got their underneath box later
+# (validation/cases_underneath.py)
+def _add_underneath():
+    import importlib.util
+
+    spec = importlib.util.spec_from_file_location("simplydata_validation_underneath", HERE / "cases_underneath.py")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    module.add_to(globals())
+
+
+_add_underneath()
