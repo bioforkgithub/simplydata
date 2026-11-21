@@ -227,13 +227,15 @@ ENTRIES += [
             "pandas": """
                 df = sdata.get_example("shop")
                 # fill_empty_cells_in("customers", with_the="median")
-                df.assign(customers=df["customers"].fillna(df["customers"].median()))   # (1)
+                customers = df["customers"]
+                df.assign(customers=customers.fillna(customers.median()))   # (1)
             """,
             "Polars": """
                 import polars as pl
                 df = pl.from_pandas(sdata.get_example("shop"))
                 # fill_empty_cells_in("customers", with_the="median")
-                df.with_columns(pl.col("customers").fill_null(pl.col("customers").median()))   # (1)
+                customers = pl.col("customers")
+                df.with_columns(customers.fill_null(customers.median()))   # (1)
             """,
         },
         compare="table",
@@ -445,7 +447,7 @@ ENTRIES += [
                 import pandas as pd
                 df = sdata.get_example("marks")
                 with tempfile.TemporaryDirectory() as folder:
-                    # save("marks.csv")
+                    # save as marks.csv
                     df.to_csv(os.path.join(folder, "marks.csv"), index=False)   # (1)
                     saved = pd.read_csv(os.path.join(folder, "marks.csv"))
                 saved
@@ -457,7 +459,7 @@ ENTRIES += [
                 import polars as pl
                 df = pl.from_pandas(sdata.get_example("marks"))
                 with tempfile.TemporaryDirectory() as folder:
-                    # save("marks.csv")
+                    # save as marks.csv
                     df.write_csv(os.path.join(folder, "marks.csv"))
                     saved = pd.read_csv(os.path.join(folder, "marks.csv"))
                 saved

@@ -265,6 +265,10 @@ def test_manual_shows_each_entry_in_a_grey_box_after_its_example():
         if not mine:
             assert "underneathbox" not in part, key
             continue
+        if all(e.compare == "none" for e in mine):  # nothing underneath: one line after the example, no box
+            assert part.index("Example you can run") < part.index("Nothing underneath:"), key
+            assert "underneathbox" not in part, key
+            continue
         assert part.index("Example you can run") < part.index(r"\begin{underneathbox}"), key
         for entry in mine:
             for library, language, source in entry.blocks():

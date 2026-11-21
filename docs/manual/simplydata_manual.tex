@@ -5158,6 +5158,7 @@ The tables are: marks, weather, fruit, growth, sensor, visitors, river, shop, sc
 \code{name=} & \\
 \end{optiontable}
 
+\wordfield{Why this method}{\hyperref[basis:sdata.get-example]{How simplydata chooses methods}, page \pageref{basis:sdata.get-example}: the default, the evidence and the checks.}
 \wordfield{Underneath}{pandas \code{read\_\allowbreak{}csv()}, \code{files()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
@@ -7521,6 +7522,7 @@ Reading options, for files whose values are written differently:\\
 \code{table\_\allowbreak{}number=} & \\
 \end{optiontable}
 
+\wordfield{Why this method}{\hyperref[basis:sdata.table]{How simplydata chooses methods}, page \pageref{basis:sdata.table}: the default, the evidence and the checks.}
 \wordfield{Underneath}{pandas \code{str()}, \code{files()}, \code{read\_\allowbreak{}csv()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
@@ -7550,6 +7552,7 @@ Show the first rows, numbered from 1. \code{table.\allowbreak{}show\_\allowbreak
 \code{rows=} & normally \code{5}\\
 \end{optiontable}
 
+\wordfield{Why this method}{\hyperref[basis:table.show-first-rows]{How simplydata chooses methods}, page \pageref{basis:table.show-first-rows}: the default, the evidence and the checks.}
 \wordfield{Underneath}{pandas \code{head()}, \code{range()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
@@ -7627,6 +7630,7 @@ Describe every column: its kind, empty cells, smallest, biggest and average.
 
 \wordfield{Options}{none: just write the empty brackets.}
 
+\wordfield{Why this method}{\hyperref[basis:table.describe-columns]{How simplydata chooses methods}, page \pageref{basis:table.describe-columns}: the default, the evidence and the checks.}
 \wordfield{Underneath}{pandas \code{select\_\allowbreak{}dtypes()}, \code{str()}, \code{round()}, \code{isna().\allowbreak{}sum()}, \code{nice()}, \code{min()}, \code{max()}, \code{mean()}, \code{nunique()}, \code{zip()}, \code{DataFrame().\allowbreak{}to\_\allowbreak{}string()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
@@ -8010,6 +8014,7 @@ Both ends are included, so rows 10 to 20 are 11 rows. \code{to=\textquotedbl{}la
 \code{step=} & \\
 \end{optiontable}
 
+\wordfield{Why this method}{\hyperref[basis:table.keep-rows-by-position]{How simplydata chooses methods}, page \pageref{basis:table.keep-rows-by-position}: the default, the evidence and the checks.}
 \wordfield{Underneath}{pandas \code{iloc[]} \textperiodcentered{} Polars \code{slice()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
@@ -8322,7 +8327,8 @@ Fill the empty cells of a column with a value, or with the average, median, valu
 \code{for\_\allowbreak{}each\_\allowbreak{}group\_\allowbreak{}in=} & \\
 \end{optiontable}
 
-\wordfield{Underneath}{pandas \code{assign()}, \code{fillna()}, \code{median()} \textperiodcentered{} Polars \code{with\_\allowbreak{}columns()}, \code{col().\allowbreak{}fill\_\allowbreak{}null()}, \code{col().\allowbreak{}median()}}
+\wordfield{Why this method}{\hyperref[basis:table.fill-empty-cells-in]{How simplydata chooses methods}, page \pageref{basis:table.fill-empty-cells-in}: the default, the evidence and the checks.}
+\wordfield{Underneath}{pandas \code{assign()}, \code{fillna()}, \code{median()} \textperiodcentered{} Polars \code{col()}, \code{with\_\allowbreak{}columns()}, \code{fill\_\allowbreak{}null()}, \code{median()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -8336,14 +8342,16 @@ table.count_empty_cells_in()
 \begin{lstlisting}[style=under]
 df = sdata.get_example("shop")
 # fill_empty_cells_in("customers", with_the="median")
-df.assign(customers=df["customers"].fillna(df["customers"].median()))   # (1)
+customers = df["customers"]
+df.assign(customers=customers.fillna(customers.median()))   # (1)
 \end{lstlisting}
 \underlib{Polars}
 \begin{lstlisting}[style=under]
 import polars as pl
 df = pl.from_pandas(sdata.get_example("shop"))
 # fill_empty_cells_in("customers", with_the="median")
-df.with_columns(pl.col("customers").fill_null(pl.col("customers").median()))   # (1)
+customers = pl.col("customers")
+df.with_columns(customers.fill_null(customers.median()))   # (1)
 \end{lstlisting}
 \undertext{\textbf{simplydata chooses}}
 \undertext{(1) the median of the filled cells of the whole column (the empty cells left out).}
@@ -8384,6 +8392,7 @@ Understands 12.5, -3, 1e3, 1 200 and 1,200 (thousands) and 12,5 (decimal comma).
 \code{column=} & \\
 \end{optiontable}
 
+\wordfield{Why this method}{\hyperref[basis:table.turn-into-numbers]{How simplydata chooses methods}, page \pageref{basis:table.turn-into-numbers}: the default, the evidence and the checks.}
 \wordfield{Underneath}{pandas \code{DataFrame()}, \code{str.\allowbreak{}replace()}, \code{str.\allowbreak{}fullmatch()}, \code{where()}, \code{assign()}, \code{where().\allowbreak{}astype()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
@@ -8649,6 +8658,7 @@ Numbers go smallest first and text goes A to Z. \code{biggest\_\allowbreak{}firs
 \code{biggest\_\allowbreak{}first=} & normally \code{False}\\
 \end{optiontable}
 
+\wordfield{Why this method}{\hyperref[basis:table.sort-by]{How simplydata chooses methods}, page \pageref{basis:table.sort-by}: the default, the evidence and the checks.}
 \wordfield{Underneath}{pandas \code{sort\_\allowbreak{}values()} \textperiodcentered{} Polars \code{sort()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
@@ -8764,6 +8774,7 @@ With rules: each rule is a condition and the group name for rows that meet it. T
 \code{otherwise=} & \\
 \end{optiontable}
 
+\wordfield{Why this method}{\hyperref[basis:table.add-group-column]{How simplydata chooses methods}, page \pageref{basis:table.add-group-column}: the default, the evidence and the checks.}
 \wordfield{Underneath}{pandas \code{cut()}, \code{assign()} \textperiodcentered{} Polars \code{with\_\allowbreak{}columns()}, \code{col().\allowbreak{}cut().\allowbreak{}alias()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
@@ -8985,6 +8996,7 @@ Add a rolling (moving) summary: for each row, the average of this row and the ro
 \code{center=} & \\
 \end{optiontable}
 
+\wordfield{Why this method}{\hyperref[basis:table.add-rolling-column]{How simplydata chooses methods}, page \pageref{basis:table.add-rolling-column}: the default, the evidence and the checks.}
 \wordfield{Underneath}{pandas \code{sort\_\allowbreak{}values()}, \code{groupby().\allowbreak{}transform()}, \code{rolling().\allowbreak{}sum()}, \code{assign()} \textperiodcentered{} Polars \code{col().\allowbreak{}rolling\_\allowbreak{}sum().\allowbreak{}over()}, \code{with\_\allowbreak{}columns()}, \code{alias()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
@@ -11528,6 +11540,7 @@ then \code{dist.\allowbreak{}find\_\allowbreak{}chance\_\allowbreak{}that\_\allo
 \code{values.\allowbreak{}.\allowbreak{}.\allowbreak{}} & as many as you like, separated by commas\\
 \end{optiontable}
 
+\wordfield{Why this method}{\hyperref[basis:sdata.distribution]{How simplydata chooses methods}, page \pageref{basis:sdata.distribution}: the default, the evidence and the checks.}
 \wordfield{Underneath}{SciPy \code{binom()}, \code{cdf()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
@@ -11724,6 +11737,7 @@ For counts: the smallest count with at least that percent at or below it (R qbin
 \code{percent=} & \\
 \end{optiontable}
 
+\wordfield{Why this method}{\hyperref[basis:dist.find-percentile]{How simplydata chooses methods}, page \pageref{basis:dist.find-percentile}: the default, the evidence and the checks.}
 \wordfield{Underneath}{SciPy \code{norm()}, \code{isf()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
@@ -14917,6 +14931,7 @@ Give \code{to=} (the last date, included when a step lands on it) or \code{how\_
 \code{fast=} & normally \code{False}\\
 \end{optiontable}
 
+\wordfield{Why this method}{\hyperref[basis:sdata.make-run-of-dates]{How simplydata chooses methods}, page \pageref{basis:sdata.make-run-of-dates}: the default, the evidence and the checks.}
 \wordfield{Underneath}{pandas \code{Timestamp()}, \code{DateOffset()}, \code{range()}, \code{DataFrame()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
@@ -16530,6 +16545,7 @@ other can be a simplydata table, a pandas or Polars table, or a file name. A col
 \code{keep=} & normally \code{\textquotedbl{}matching rows\textquotedbl{}}\\
 \end{optiontable}
 
+\wordfield{Why this method}{\hyperref[basis:table.join-with]{How simplydata chooses methods}, page \pageref{basis:table.join-with}: the default, the evidence and the checks.}
 \wordfield{Underneath}{pandas \code{DataFrame()}, \code{merge()} \textperiodcentered{} Polars \code{DataFrame()}, \code{join()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
@@ -16677,6 +16693,7 @@ File types: \code{.\allowbreak{}xlsx} (Excel), \code{.\allowbreak{}csv}, \code{.
 \code{file\_\allowbreak{}name} & needed\\
 \end{optiontable}
 
+\wordfield{Why this method}{\hyperref[basis:table.save]{How simplydata chooses methods}, page \pageref{basis:table.save}: the default, the evidence and the checks.}
 \wordfield{Underneath}{pandas \code{TemporaryDirectory()}, \code{to\_\allowbreak{}csv()}, \code{path.\allowbreak{}join()}, \code{read\_\allowbreak{}csv()} \textperiodcentered{} Polars \code{TemporaryDirectory()}, \code{write\_\allowbreak{}csv()}, \code{path.\allowbreak{}join()}, \code{read\_\allowbreak{}csv()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
@@ -16694,7 +16711,7 @@ import tempfile
 import pandas as pd
 df = sdata.get_example("marks")
 with tempfile.TemporaryDirectory() as folder:
-    # save("marks.csv")
+    # save as marks.csv
     df.to_csv(os.path.join(folder, "marks.csv"), index=False)   # (1)
     saved = pd.read_csv(os.path.join(folder, "marks.csv"))
 saved
@@ -16707,7 +16724,7 @@ import pandas as pd
 import polars as pl
 df = pl.from_pandas(sdata.get_example("marks"))
 with tempfile.TemporaryDirectory() as folder:
-    # save("marks.csv")
+    # save as marks.csv
     df.write_csv(os.path.join(folder, "marks.csv"))
     saved = pd.read_csv(os.path.join(folder, "marks.csv"))
 saved
@@ -16828,6 +16845,7 @@ None or NaN in a list is an empty (missing) value.
 \code{channel=} & \\
 \end{optiontable}
 
+\wordfield{Why this method}{\hyperref[basis:sdata.numbers]{How simplydata chooses methods}, page \pageref{basis:sdata.numbers}: the default, the evidence and the checks.}
 \wordfield{Underneath}{NumPy \code{floor()}, \code{arange()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
@@ -16872,6 +16890,7 @@ numbers that bunch around the average in a bell shape (a normal distribution); a
 \code{columns=} & \\
 \end{optiontable}
 
+\wordfield{Why this method}{\hyperref[basis:sdata.make-random-numbers]{How simplydata chooses methods}, page \pageref{basis:sdata.make-random-numbers}: the default, the evidence and the checks.}
 \wordfield{Underneath}{NumPy \code{random.\allowbreak{}default\_\allowbreak{}rng()}, \code{integers()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
@@ -17184,6 +17203,7 @@ Conditions (the same as \code{table.\allowbreak{}keep\_\allowbreak{}rows\_\allow
 \code{is\_\allowbreak{}empty=} & \\
 \end{optiontable}
 
+\wordfield{Why this method}{\hyperref[basis:nums.keep-each-number-that]{How simplydata chooses methods}, page \pageref{basis:nums.keep-each-number-that}: the default, the evidence and the checks.}
 \wordfield{Underneath}{NumPy \code{boolean indexing}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
@@ -17441,6 +17461,7 @@ The average (mean) of the numbers; empty values are skipped.
 
 \wordfield{Options}{none: just write the empty brackets.}
 
+\wordfield{Why this method}{\hyperref[basis:nums.find-average]{How simplydata chooses methods}, page \pageref{basis:nums.find-average}: the default, the evidence and the checks.}
 \wordfield{Underneath}{NumPy \code{nanmean()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
@@ -17611,6 +17632,7 @@ Make a grid of numbers in rows and columns.
 \code{filled\_\allowbreak{}with=} & normally \code{0}\\
 \end{optiontable}
 
+\wordfield{Why this method}{\hyperref[basis:sdata.number-grid]{How simplydata chooses methods}, page \pageref{basis:sdata.number-grid}: the default, the evidence and the checks.}
 \wordfield{Underneath}{NumPy \code{array().\allowbreak{}reshape()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
@@ -19991,7 +20013,7 @@ table.check_model_of("marks", using=["hours"], test_method="bayesian", show="pri
 \part{How simplydata chooses methods}\label{part:basis}
 
 \unchapter{How simplydata chooses methods}{basis}
-simplydata often chooses a method, an option value or a setting for you. This appendix gives, for each of the 318 choices, what simplydata chooses, what else you can ask for, why (the principle and the published evidence), and what simplydata checks in your data before it uses the method. 142 defaults rest on published guidelines or method comparisons, 141 follow the convention of the package named so that results match it, and 35 are simplydata's own starting values, each changed with the option named. Every DOI was looked up in Crossref; references without a DOI were checked at their URL. The defaults of the later batches were read by an independent reviewer when they were designed, and in November 2026 every entry, with its references, was checked again by independent reviewers acting as hostile statistical referees; their findings were applied. The same text is in \code{docs/how\_\allowbreak{}simplydata\_\allowbreak{}chooses.\allowbreak{}md}.
+simplydata often chooses a method, an option value or a setting for you. This appendix gives, for each of the 339 choices, what simplydata chooses, what else you can ask for, why (the principle and the published evidence), and what simplydata checks in your data before it uses the method. 142 defaults rest on published guidelines or method comparisons, 158 follow the convention of the package named so that results match it, and 39 are simplydata's own starting values, each changed with the option named. Every DOI was looked up in Crossref; references without a DOI were checked at their URL. The defaults of the later batches were read by an independent reviewer when they were designed, and in November 2026 every entry, with its references, was checked again by independent reviewers acting as hostile statistical referees; their findings were applied. The same text is in \code{docs/how\_\allowbreak{}simplydata\_\allowbreak{}chooses.\allowbreak{}md}.
 \unsection{The five principles}{basis:principles}
 \begin{enumerate}
 \item \textbf{P1.} Follow published guidelines and consensus statements where they exist (for example the Cochrane Handbook, the ASA statement on p-values, the SAMPL guidelines, ICH E9 for clinical trials, the GUM for measurement). (Wasserstein \& Lazar 2016; Lang \& Altman 2015; ICH E9 1998; Deeks et al. (Cochrane Handbook, ch. 10); JCGM 100:2008 (GUM); Bland \& Altman 1994)
@@ -20000,6 +20022,12 @@ simplydata often chooses a method, an option value or a setting for you. This ap
 \item \textbf{P4.} Check the data: refuse or warn when the chosen method does not fit, and say what to use instead. (Zuur et al. 2010)
 \item \textbf{P5.} Be open: the printout names the method; every default can be changed with an option; the manual shows the code underneath; the reliability study checks the numbers; independent reviewers checked every default and its references (see 'How the defaults were reviewed').
 \end{enumerate}
+\unsection{Start, show and save}{basis-group:Start-show-and-save}
+\par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:sdata.get-example}\noindent{\sffamily\bfseries\color{brand}\code{sdata.\allowbreak{}get\_\allowbreak{}example()}}\par\nopagebreak
+\wordfield{Default}{Date columns are read as dates.}
+\wordfield{Alternatives}{\code{sdata.\allowbreak{}get\_\allowbreak{}example()} lists the tables.}
+\wordfield{Why (P5)}{Practice data: dates read as dates let the date words work at once. \textit{Basis: convention.}}
+\wordfield{In the dictionary}{\hyperref[word:sdata.get-example]{page \pageref{word:sdata.get-example}}}
 \unsection{Chart types}{basis-group:Chart-types}
 \par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:draw-bars}\noindent{\sffamily\bfseries\color{brand}\code{chart.\allowbreak{}draw\_\allowbreak{}bars()}}\par\nopagebreak
 \wordfield{Default}{Bars of the average with no error bars, unless \code{error=} asks for them.}
@@ -20193,12 +20221,33 @@ simplydata often chooses a method, an option value or a setting for you. This ap
 \wordfield{Checks}{\code{log=True} with values at or below 0 is refused; \code{middle=} with \code{log=} or \code{steps=} is refused; an unknown name is refused with a list of colour-blind-safe scales; a rainbow scale (jet, rainbow, hsv ...) gets a note (once).}
 \wordfield{References}{Liu \& Heer 2018; Nu\~nez et al. 2018; Crameri et al. 2020; Harrower \& Brewer 2003}
 \wordfield{In the dictionary}{\hyperref[word:use-colour-scale]{page \pageref{word:use-colour-scale}}}
+\unsection{Tables: start and look}{basis-group:Tables-start-and-look}
+\par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:sdata.table}\noindent{\sffamily\bfseries\color{brand}\code{sdata.\allowbreak{}table()}}\par\nopagebreak
+\wordfield{Default}{The separator of a text file is guessed from the file.}
+\wordfield{Alternatives}{\code{separator=}, \code{decimal\_\allowbreak{}mark=}, \code{thousands\_\allowbreak{}mark=}, \code{empty\_\allowbreak{}values=}, \code{skip\_\allowbreak{}rows=}, \code{encoding=}.}
+\wordfield{Why (P5)}{Reading data: files from other countries use ; or tabs; every guess can be set by hand. \textit{Basis: starting value.}}
+\wordfield{In the dictionary}{\hyperref[word:sdata.table]{page \pageref{word:sdata.table}}}
+\par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:table.show-first-rows}\noindent{\sffamily\bfseries\color{brand}\code{table.\allowbreak{}show\_\allowbreak{}first\_\allowbreak{}rows()}}\par\nopagebreak
+\wordfield{Default}{Rows numbered from 1, the way people count; only the display changes.}
+\wordfield{Alternatives}{\code{as\_\allowbreak{}pandas()} gives the table with pandas' own row labels (from 0).}
+\wordfield{Why (P5)}{Showing data, not a statistical method: numbering from 1 matches the row numbers the other position words use (\code{keep\_\allowbreak{}rows\_\allowbreak{}by\_\allowbreak{}position}, \code{remove\_\allowbreak{}rows\_\allowbreak{}by\_\allowbreak{}position}). \textit{Basis: convention.}}
+\wordfield{In the dictionary}{\hyperref[word:table.show-first-rows]{page \pageref{word:table.show-first-rows}}}
+\par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:table.describe-columns}\noindent{\sffamily\bfseries\color{brand}\code{table.\allowbreak{}describe\_\allowbreak{}columns()}}\par\nopagebreak
+\wordfield{Default}{Number columns get smallest, biggest and average; text columns the number of different values; empty cells (also blank text) are counted and left out; numbers are shown rounded to 2 decimals.}
+\wordfield{Alternatives}{\code{find\_\allowbreak{}summary\_\allowbreak{}of()} for more measures and full precision.}
+\wordfield{Why (P5)}{A first look at the data, not a statistical method; the rounding is only for reading. \textit{Basis: starting value.}}
+\wordfield{In the dictionary}{\hyperref[word:table.describe-columns]{page \pageref{word:table.describe-columns}}}
 \unsection{Choose rows}{basis-group:Choose-rows}
 \par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:table.keep-rows-where}\noindent{\sffamily\bfseries\color{brand}\code{table.\allowbreak{}keep\_\allowbreak{}rows\_\allowbreak{}where()}}\par\nopagebreak
 \wordfield{Default}{\code{is\_\allowbreak{}above=} means strictly above (\textgreater{}); rows with an empty cell in the column are left out, as pandas and Polars do.}
 \wordfield{Alternatives}{\code{is\_\allowbreak{}at\_\allowbreak{}least=} for \textgreater{}=; the other conditions (\code{is\_\allowbreak{}below=}, \code{is\_\allowbreak{}between=} ...).}
 \wordfield{Why (P3)}{The words say exactly which comparison is made; leaving out empty cells is what pandas, Polars and R's \code{subset()} do. \textit{Basis: convention.}}
 \wordfield{In the dictionary}{\hyperref[word:table.keep-rows-where]{page \pageref{word:table.keep-rows-where}}}
+\par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:table.keep-rows-by-position}\noindent{\sffamily\bfseries\color{brand}\code{table.\allowbreak{}keep\_\allowbreak{}rows\_\allowbreak{}by\_\allowbreak{}position()}}\par\nopagebreak
+\wordfield{Default}{Positions counted from 1, both ends kept.}
+\wordfield{Alternatives}{\code{step=} for every n-th row, a list for chosen rows, \code{to=\textquotedbl{}last\textquotedbl{}}.}
+\wordfield{Why (P5)}{Data preparation: counting from 1 with both ends kept is how people (and R) say \code{\textquotedbl{}rows 10 to 20\textquotedbl{}}. \textit{Basis: convention.}}
+\wordfield{In the dictionary}{\hyperref[word:table.keep-rows-by-position]{page \pageref{word:table.keep-rows-by-position}}}
 \par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:table.keep-random-rows-for-each-group-in-eq}\noindent{\sffamily\bfseries\color{brand}\code{table.\allowbreak{}keep\_\allowbreak{}random\_\allowbreak{}rows()} \code{for\_\allowbreak{}each\_\allowbreak{}group\_\allowbreak{}in=}}\par\nopagebreak
 \wordfield{Default}{The same number of random rows from each group (pandas \code{groupby()}.sample(\code{random\_\allowbreak{}state=})), rows kept in table order; a group with that many rows or fewer is kept whole, with a note.}
 \wordfield{Alternatives}{\code{percent=} for the same share of each group; without \code{for\_\allowbreak{}each\_\allowbreak{}group\_\allowbreak{}in=} the rows come from the whole table.}
@@ -20235,7 +20284,29 @@ simplydata often chooses a method, an option value or a setting for you. This ap
 \wordfield{Checks}{An empty cell is a missing value, NaN or text of only spaces, as everywhere in simplydata.}
 \wordfield{References}{van Buuren \& Groothuis-Oudshoorn 2011}
 \wordfield{In the dictionary}{\hyperref[word:table.count-empty-cells-in]{page \pageref{word:table.count-empty-cells-in}}}
+\par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:table.fill-empty-cells-in}\noindent{\sffamily\bfseries\color{brand}\code{table.\allowbreak{}fill\_\allowbreak{}empty\_\allowbreak{}cells\_\allowbreak{}in()}}\par\nopagebreak
+\wordfield{Default}{Fill with the value asked for: the average or median of the filled cells, the value above or below, or a line or curve between neighbours.}
+\wordfield{Alternatives}{\code{with\_\allowbreak{}value=}, \code{with\_\allowbreak{}the=}, \code{sorted\_\allowbreak{}by=}, \code{for\_\allowbreak{}each\_\allowbreak{}group\_\allowbreak{}in=}.}
+\wordfield{Why (P5)}{simplydata never fills on its own: the user chooses how, and the sentence says how many cells were filled. Filling with one value makes the spread look smaller; multiple imputation (\code{empty\_\allowbreak{}cells=\textquotedbl{}multiple imputation\textquotedbl{}} on the analysis words) keeps that uncertainty. \textit{Basis: convention.}}
+\wordfield{In the dictionary}{\hyperref[word:table.fill-empty-cells-in]{page \pageref{word:table.fill-empty-cells-in}}}
+\unsection{Fix columns}{basis-group:Fix-columns}
+\par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:table.turn-into-numbers}\noindent{\sffamily\bfseries\color{brand}\code{table.\allowbreak{}turn\_\allowbreak{}into\_\allowbreak{}numbers()}}\par\nopagebreak
+\wordfield{Default}{A comma between groups of three digits is a thousands mark, any other single comma a decimal comma; cells that are not numbers become empty and are reported.}
+\wordfield{Alternatives}{\code{sdata.\allowbreak{}table(.\allowbreak{}.\allowbreak{}.\allowbreak{},\allowbreak{} decimal\_\allowbreak{}mark=\textquotedbl{},\allowbreak{}\textquotedbl{},\allowbreak{} thousands\_\allowbreak{}mark=\textquotedbl{}.\allowbreak{}\textquotedbl{})} when reading a file.}
+\wordfield{Why (P4)}{Data preparation: the rule reads both English and European writing of numbers, and every cell that could not be read is reported, so nothing is lost silently. \textit{Basis: starting value.}}
+\wordfield{Checks}{Cells that do not read as numbers are counted and up to 3 are shown.}
+\wordfield{In the dictionary}{\hyperref[word:table.turn-into-numbers]{page \pageref{word:table.turn-into-numbers}}}
 \unsection{Sort and new columns}{basis-group:Sort-and-new-columns}
+\par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:table.sort-by}\noindent{\sffamily\bfseries\color{brand}\code{table.\allowbreak{}sort\_\allowbreak{}by()}}\par\nopagebreak
+\wordfield{Default}{A stable sort (rows that tie keep their order), empty cells last in both directions.}
+\wordfield{Alternatives}{\code{biggest\_\allowbreak{}first=True}; several columns for ties.}
+\wordfield{Why (P3)}{Data preparation, not a statistical method: a stable sort makes the result the same every time, and empty cells last keeps them out of the way, as R \code{order()} does by default. \textit{Basis: convention.}}
+\wordfield{In the dictionary}{\hyperref[word:table.sort-by]{page \pageref{word:table.sort-by}}}
+\par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:table.add-group-column}\noindent{\sffamily\bfseries\color{brand}\code{table.\allowbreak{}add\_\allowbreak{}group\_\allowbreak{}column()}}\par\nopagebreak
+\wordfield{Default}{A value exactly on a cut goes into the higher group (a mark of 60 with \code{cut\_\allowbreak{}at=[40,\allowbreak{} 60,\allowbreak{} 80]} is in the third group).}
+\wordfield{Alternatives}{\code{rules=} for groups by conditions.}
+\wordfield{Why (P5)}{Data preparation: \code{\textquotedbl{}60 and above\textquotedbl{}} is how grade bands are usually written; pandas \code{cut()} and R \code{cut()} put the value in the lower group unless told \code{right=FALSE}. \textit{Basis: starting value.}}
+\wordfield{In the dictionary}{\hyperref[word:table.add-group-column]{page \pageref{word:table.add-group-column}}}
 \par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:table.add-rank-column}\noindent{\sffamily\bfseries\color{brand}\code{table.\allowbreak{}add\_\allowbreak{}rank\_\allowbreak{}column()}}\par\nopagebreak
 \wordfield{Default}{Rank 1 for the biggest value; ties share the lowest rank (1, 2, 2, 4), as in sports.}
 \wordfield{Alternatives}{\code{biggest\_\allowbreak{}first=False}.}
@@ -20248,6 +20319,12 @@ simplydata often chooses a method, an option value or a setting for you. This ap
 \wordfield{Checks}{A group with fewer than 2 values gets empty z-scores.}
 \wordfield{References}{JCGM 100:2008 (GUM)}
 \wordfield{In the dictionary}{\hyperref[word:table.add-z-score-column]{page \pageref{word:table.add-z-score-column}}}
+\unsection{Row after row}{basis-group:Row-after-row}
+\par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:table.add-rolling-column}\noindent{\sffamily\bfseries\color{brand}\code{table.\allowbreak{}add\_\allowbreak{}rolling\_\allowbreak{}column()}}\par\nopagebreak
+\wordfield{Default}{A window of this row and the rows just before it, in the order of \code{sorted\_\allowbreak{}by=}, within each group; a window that is not full, or has an empty cell, gives an empty cell.}
+\wordfield{Alternatives}{\code{window=}, \code{show=}, \code{centre=True}, \code{window=\textquotedbl{}7 days\textquotedbl{}}.}
+\wordfield{Why (P3)}{As pandas \code{rolling()} and R zoo::\code{rollapply(align = \textquotedbl{}right\textquotedbl{})}: a trailing window uses only what is known at each row. \textit{Basis: convention.}}
+\wordfield{In the dictionary}{\hyperref[word:table.add-rolling-column]{page \pageref{word:table.add-rolling-column}}}
 \unsection{Summaries}{basis-group:Summaries}
 \par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:table.count-rows-after-use-survey-design}\noindent{\sffamily\bfseries\color{brand}\code{table.\allowbreak{}count\_\allowbreak{}rows()} \code{after use\_\allowbreak{}survey\_\allowbreak{}design()}}\par\nopagebreak
 \wordfield{Default}{The estimated number in the population: R survey::\code{svytotal()} of a column of ones (the sum of the weights); with \code{in\_\allowbreak{}percent=True} each group's share, \code{svymean(\textasciitilde{}factor(group))}.}
@@ -20922,6 +20999,11 @@ simplydata often chooses a method, an option value or a setting for you. This ap
 \wordfield{Checks}{At most 1 000 000 places.}
 \wordfield{In the dictionary}{\hyperref[word:table.make-map-of]{page \pageref{word:table.make-map-of}}}
 \unsection{Distributions}{basis-group:Distributions}
+\par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:sdata.distribution}\noindent{\sffamily\bfseries\color{brand}\code{sdata.\allowbreak{}distribution()}}\par\nopagebreak
+\wordfield{Default}{Parameters with plain names (\code{average=}, \code{standard\_\allowbreak{}deviation=}, \code{tries=}, \code{chance=}), turned into SciPy's.}
+\wordfield{Alternatives}{R's names (\code{mean=}, \code{sd=}, \code{size=}, \code{prob=}) work too; any SciPy distribution by its SciPy name.}
+\wordfield{Why (P3)}{The parameters are R's, so the answers match R's d/p/q/r functions, which each sentence names. \textit{Basis: convention.}}
+\wordfield{In the dictionary}{\hyperref[word:sdata.distribution]{page \pageref{word:sdata.distribution}}}
 \par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:table.fit-distribution-to}\noindent{\sffamily\bfseries\color{brand}\code{table.\allowbreak{}fit\_\allowbreak{}distribution\_\allowbreak{}to()}}\par\nopagebreak
 \wordfield{Default}{The normal distribution, fitted by maximum likelihood (as R MASS::\code{fitdistr()} or fitdistrplus).}
 \wordfield{Alternatives}{\code{distribution=} any name; \code{fixed=} to hold values; \code{\textquotedbl{}kernel density\textquotedbl{}}.}
@@ -20960,6 +21042,11 @@ simplydata often chooses a method, an option value or a setting for you. This ap
 \wordfield{Alternatives}{\code{is\_\allowbreak{}below=}, \code{is\_\allowbreak{}between=}.}
 \wordfield{Why (P3)}{1 - \code{cdf()} loses all its digits far out in the tail; \code{sf()} keeps them. This is numerical care, not a statistical choice. \textit{Basis: convention.}}
 \wordfield{In the dictionary}{\hyperref[word:dist.find-chance-that-value]{page \pageref{word:dist.find-chance-that-value}}}
+\par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:dist.find-percentile}\noindent{\sffamily\bfseries\color{brand}\code{dist.\allowbreak{}find\_\allowbreak{}percentile()}}\par\nopagebreak
+\wordfield{Default}{The value with that percent below it; for counts, the smallest count with at least that share at or below it.}
+\wordfield{Alternatives}{\code{find\_\allowbreak{}cut\_\allowbreak{}off()} and \code{find\_\allowbreak{}middle\_\allowbreak{}range()} for the other questions.}
+\wordfield{Why (P3)}{As R's q functions (qnorm, qbinom ...): the answer is written with the same call in R. \textit{Basis: convention.}}
+\wordfield{In the dictionary}{\hyperref[word:dist.find-percentile]{page \pageref{word:dist.find-percentile}}}
 \unsection{Models}{basis-group:Models}
 \par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:table.explain}\noindent{\sffamily\bfseries\color{brand}\code{table.\allowbreak{}explain()}}\par\nopagebreak
 \wordfield{Default}{A linear model by least squares (as R \code{lm()}), with t-based 95 \% intervals, R squared and the F test. Group columns are compared with their first level in sorted order. The outcome family is never switched by itself.}
@@ -21830,11 +21917,22 @@ simplydata often chooses a method, an option value or a setting for you. This ap
 \wordfield{References}{Sterne \& Egger 2001; Sterne et al. 2011}
 \wordfield{In the dictionary}{\hyperref[word:draw-funnel-plot]{page \pageref{word:draw-funnel-plot}}}
 \unsection{Dates and time windows}{basis-group:Dates-and-time-windows}
+\par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:sdata.make-run-of-dates}\noindent{\sffamily\bfseries\color{brand}\code{sdata.\allowbreak{}make\_\allowbreak{}run\_\allowbreak{}of\_\allowbreak{}dates()}}\par\nopagebreak
+\wordfield{Default}{Month, quarter and year steps are counted from the first date, staying on its day or on the month's last day when the month is shorter.}
+\wordfield{Alternatives}{\code{every=}, \code{to=} or \code{how\_\allowbreak{}many=}.}
+\wordfield{Why (P5)}{As pandas DateOffset and Polars \code{\textquotedbl{}1mo\textquotedbl{}} counted from the start; R's \code{seq(by = \textquotedbl{}month\textquotedbl{})} runs over into the next month instead. \textit{Basis: convention.}}
+\wordfield{In the dictionary}{\hyperref[word:sdata.make-run-of-dates]{page \pageref{word:sdata.make-run-of-dates}}}
 \par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:table.add-missing-dates-every-eq}\noindent{\sffamily\bfseries\color{brand}\code{table.\allowbreak{}add\_\allowbreak{}missing\_\allowbreak{}dates()} \code{every=}}\par\nopagebreak
 \wordfield{Default}{Without \code{every=}, the most common step between the dates (snapped to months, quarters or years when close), printed.}
 \wordfield{Alternatives}{\code{every=} the step.}
 \wordfield{Why (P5)}{Data preparation, not a statistical method: the step found is always printed so it can be checked. \textit{Basis: convention.}}
 \wordfield{Checks}{Dates with no nameable step are refused.}
+\wordfield{In the dictionary}{\hyperref[word:table.add-missing-dates]{page \pageref{word:table.add-missing-dates}}}
+\par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:table.add-missing-dates}\noindent{\sffamily\bfseries\color{brand}\code{table.\allowbreak{}add\_\allowbreak{}missing\_\allowbreak{}dates()}}\par\nopagebreak
+\wordfield{Default}{Each group gets its own run of dates from its first to its last date; the table comes back sorted by the groups and the dates; rows with an empty group cell are a group of their own.}
+\wordfield{Alternatives}{\code{between=} to add dates before and after; \code{every=} the step.}
+\wordfield{Why (P5)}{Data preparation: the new rows have empty cells, never made-up values, and the sentence says how many were added. \textit{Basis: convention.}}
+\wordfield{Checks}{Repeated dates and dates off the step are refused.}
 \wordfield{In the dictionary}{\hyperref[word:table.add-missing-dates]{page \pageref{word:table.add-missing-dates}}}
 \unsection{Smoothing and trend}{basis-group:Smoothing-and-trend}
 \par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:table.add-smoothed-column-test-method-eq-loess-interval-eq}\noindent{\sffamily\bfseries\color{brand}\code{table.\allowbreak{}add\_\allowbreak{}smoothed\_\allowbreak{}column()} \code{test\_\allowbreak{}method=\textquotedbl{}loess\textquotedbl{},\allowbreak{} interval=}}\par\nopagebreak
@@ -22182,7 +22280,42 @@ simplydata often chooses a method, an option value or a setting for you. This ap
 \wordfield{Checks}{Empty design cells and weights of 0 or less are refused; the printout says how the population sizes were read; a survey word refuses after rows were removed.}
 \wordfield{References}{Lumley 2010; Korn \& Graubard 1999; Lumley 2004}
 \wordfield{In the dictionary}{\hyperref[word:table.use-survey-design]{page \pageref{word:table.use-survey-design}}}
+\unsection{Join and reshape}{basis-group:Join-and-reshape}
+\par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:table.join-with}\noindent{\sffamily\bfseries\color{brand}\code{table.\allowbreak{}join\_\allowbreak{}with()}}\par\nopagebreak
+\wordfield{Default}{\code{keep=\textquotedbl{}matching rows\textquotedbl{}} (an inner join); a column in both tables gets \code{\textquotedbl{}\_\allowbreak{}other\textquotedbl{}} in the other table's copy.}
+\wordfield{Alternatives}{\code{keep=\textquotedbl{}all rows from this table\textquotedbl{}} or \code{\textquotedbl{}all rows from both\textquotedbl{}}.}
+\wordfield{Why (P4)}{Data preparation: the sentence says how many rows found a match and warns when a key is repeated in the other table, so rows are not doubled unnoticed. \textit{Basis: convention.}}
+\wordfield{Checks}{Keys of different kinds (text and numbers) are refused; repeated keys in the other table get a note.}
+\wordfield{In the dictionary}{\hyperref[word:table.join-with]{page \pageref{word:table.join-with}}}
+\unsection{Undo and finish}{basis-group:Undo-and-finish}
+\par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:table.save}\noindent{\sffamily\bfseries\color{brand}\code{table.\allowbreak{}save()}}\par\nopagebreak
+\wordfield{Default}{The file holds only the columns, without row labels.}
+\wordfield{Alternatives}{The end of the file name chooses the type (\code{.\allowbreak{}xlsx}, \code{.\allowbreak{}csv}, \code{.\allowbreak{}tsv}, \code{.\allowbreak{}parquet}, \code{.\allowbreak{}json}).}
+\wordfield{Why (P5)}{Data handling: row labels are pandas' own and not part of the data. \textit{Basis: convention.}}
+\wordfield{In the dictionary}{\hyperref[word:table.save]{page \pageref{word:table.save}}}
+\unsection{Numbers: make and look}{basis-group:Numbers-make-and-look}
+\par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:sdata.numbers}\noindent{\sffamily\bfseries\color{brand}\code{sdata.\allowbreak{}numbers()}}\par\nopagebreak
+\wordfield{Default}{With \code{to=}, the end is included; the count of steps allows a little room for rounding.}
+\wordfield{Alternatives}{\code{step=}, \code{how\_\allowbreak{}many=} (evenly spaced, as np.linspace).}
+\wordfield{Why (P5)}{Making numbers: \code{\textquotedbl{}1 to 10\textquotedbl{}} includes 10 in everyday speech and in R's \code{seq()}; NumPy's arange leaves the end out and can overshoot with a decimal step. \textit{Basis: convention.}}
+\wordfield{In the dictionary}{\hyperref[word:sdata.numbers]{page \pageref{word:sdata.numbers}}}
+\par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:sdata.make-random-numbers}\noindent{\sffamily\bfseries\color{brand}\code{sdata.\allowbreak{}make\_\allowbreak{}random\_\allowbreak{}numbers()}}\par\nopagebreak
+\wordfield{Default}{NumPy's random generator (\code{default\_\allowbreak{}rng}) with the seed given; whole numbers include both ends.}
+\wordfield{Alternatives}{\code{with\_\allowbreak{}seed=} for the same numbers every time.}
+\wordfield{Why (P3)}{NumPy recommends its Generator over the old global seed; \code{\textquotedbl{}between 1 and 6\textquotedbl{}} includes 6, like a dice. \textit{Basis: convention.}}
+\wordfield{In the dictionary}{\hyperref[word:sdata.make-random-numbers]{page \pageref{word:sdata.make-random-numbers}}}
+\unsection{Numbers: choose, sort and fill}{basis-group:Numbers-choose-sort-and-fill}
+\par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:nums.keep-each-number-that}\noindent{\sffamily\bfseries\color{brand}\code{nums.\allowbreak{}keep\_\allowbreak{}each\_\allowbreak{}number\_\allowbreak{}that()}}\par\nopagebreak
+\wordfield{Default}{\code{is\_\allowbreak{}above=} is strictly above; empty values match only \code{is\_\allowbreak{}empty=True}.}
+\wordfield{Alternatives}{\code{is\_\allowbreak{}at\_\allowbreak{}least=}, \code{is\_\allowbreak{}between=} (both ends included) and the other conditions.}
+\wordfield{Why (P5)}{The same conditions as \code{table.\allowbreak{}keep\_\allowbreak{}rows\_\allowbreak{}where}, so one rule holds everywhere. \textit{Basis: convention.}}
+\wordfield{In the dictionary}{\hyperref[word:nums.keep-each-number-that]{page \pageref{word:nums.keep-each-number-that}}}
 \unsection{Numbers: summaries}{basis-group:Numbers-summaries}
+\par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:nums.find-average}\noindent{\sffamily\bfseries\color{brand}\code{nums.\allowbreak{}find\_\allowbreak{}average()}}\par\nopagebreak
+\wordfield{Default}{The mean, empty values skipped.}
+\wordfield{Alternatives}{\code{remove\_\allowbreak{}empty\_\allowbreak{}numbers()} first, to see how many there were.}
+\wordfield{Why (P3)}{As R \code{mean(na.\allowbreak{}rm = TRUE)} and pandas: the sentence says how many numbers were used. \textit{Basis: convention.}}
+\wordfield{In the dictionary}{\hyperref[word:nums.find-average]{page \pageref{word:nums.find-average}}}
 \par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:nums.find-median}\noindent{\sffamily\bfseries\color{brand}\code{nums.\allowbreak{}find\_\allowbreak{}median()}}\par\nopagebreak
 \wordfield{Default}{The middle value, empty values skipped (np.nanmedian); NumPy's np.median would give nan.}
 \wordfield{Alternatives}{\code{remove\_\allowbreak{}empty\_\allowbreak{}numbers()} first if you want them gone for later steps too.}
@@ -22201,6 +22334,12 @@ simplydata often chooses a method, an option value or a setting for you. This ap
 \wordfield{Why (P3)}{As \code{table.\allowbreak{}find\_\allowbreak{}percentile\_\allowbreak{}of} (Hyndman \& Fan 1996). \textit{Basis: convention.}}
 \wordfield{References}{Hyndman \& Fan 1996}
 \wordfield{In the dictionary}{\hyperref[word:nums.find-percentile]{page \pageref{word:nums.find-percentile}}}
+\unsection{Grids of numbers}{basis-group:Grids-of-numbers}
+\par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:sdata.number-grid}\noindent{\sffamily\bfseries\color{brand}\code{sdata.\allowbreak{}number\_\allowbreak{}grid()}}\par\nopagebreak
+\wordfield{Default}{A list is cut into rows, row after row.}
+\wordfield{Alternatives}{\code{rows=} or \code{columns=}; a list of rows for a grid as it is.}
+\wordfield{Why (P3)}{As NumPy's reshape (order \code{\textquotedbl{}C\textquotedbl{}}), which reads a list the way text is read; R's \code{matrix()} fills by column unless byrow = TRUE. \textit{Basis: convention.}}
+\wordfield{In the dictionary}{\hyperref[word:sdata.number-grid]{page \pageref{word:sdata.number-grid}}}
 \unsection{References}{basis:references}
 \begingroup\small\raggedright
 \par\noindent\hangindent=1.5em Agresti A, Coull BA (1998). Approximate is Better than `{}`Exact'{}' for Interval Estimation of Binomial Proportions. The American Statistician 52:119-126. \href{https://doi.org/10.1080/00031305.1998.10480550}{doi:10.1080/00031305.1998.10480550}
