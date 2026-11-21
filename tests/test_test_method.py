@@ -267,6 +267,9 @@ def test_percentile_rules_with_spaces(marks, capsys):
 def test_fisher_on_pairs_of_averages_says_what_it_means_now(marks):
     with pytest.raises(SimplydataError, match='based_on="percents".*test_method="lsd"'):
         sdata.table(marks).compare_each_pair_of("marks", for_each_group_in="class", test_method="fisher")
+
+
+def test_fishers_lsd_keeps_both_spellings(needs_r):
     example = sdata.table(sdata.get_example("marks"))
     lsd = example.compare_each_pair_of("marks", for_each_group_in="class", test_method="fisher's lsd").as_pandas()
     same = example.compare_each_pair_of("marks", for_each_group_in="class", test_method="lsd").as_pandas()
