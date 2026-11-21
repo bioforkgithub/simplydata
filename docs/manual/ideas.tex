@@ -235,7 +235,7 @@ $-1$ (one always goes down when the other goes up) through $0$ (no straight-line
     sensitive to outliers, and can be near 0 for a strong curved link (a U shape).
   \item \textbf{Spearman's $\rho$} (rho) uses ranks: it measures any link that keeps going one way
     (always up, or always down), and is robust to outliers.
-    \code{table.find\_correlation\_between("hours", "marks", method="spearman")}.
+    \code{table.find\_correlation\_between("hours", "marks", test_method="spearman")}.
   \item $r^2$ is the share of the differences in one column that a straight line through the other
     explains. $r = 0.5$ explains only a quarter.
 \end{itemize}
@@ -365,8 +365,8 @@ Do \textbf{two} groups differ in their average? & \code{compare\_averages\_of("m
 Do \textbf{three or more} groups differ? & \code{compare\_averages\_of("marks", for\_each\_group\_in="class")} & Welch's one-way ANOVA & Kruskal--Wallis test\\
 \emph{Which} groups differ? & \code{compare\_each\_pair\_of("marks", for\_each\_group\_in="class")} & pairwise Welch $t$-tests, Holm's correction & pairwise Mann--Whitney tests, Holm's correction\\
 Did the values change, in the \textbf{same} rows measured twice? & \code{compare\_before\_and\_after("before", "after")} & paired $t$-test & Wilcoxon signed-rank test\\
-Do \textbf{counts} of categories differ between groups? & \code{compare\_counts\_of("result", for\_each\_group\_in="class")} & chi-square test of independence & --- (for a $2\times2$ table with small counts: \code{test="fisher"}, Fisher's exact test)\\
-Do two columns of numbers go up and down together? & \code{find\_correlation\_between("hours", "marks")} & Pearson's $r$ & \code{method="spearman"}: Spearman's $\rho$\\
+Do \textbf{counts} of categories differ between groups? & \code{compare\_counts\_of("result", for\_each\_group\_in="class")} & chi-square test of independence & --- (for a $2\times2$ table with small counts: \code{test_method="fisher"}, Fisher's exact test)\\
+Do two columns of numbers go up and down together? & \code{find\_correlation\_between("hours", "marks")} & Pearson's $r$ & \code{test_method="spearman"}: Spearman's $\rho$\\
 How much does $y$ change with $x$? & \code{fit\_line(x="hours", y="marks")} & linear regression (least squares) & ---\\
 Does the data follow a formula (growth, decay, saturation)? & \code{fit\_formula("y = a * exp(b * x)")} & nonlinear least squares & ---\\
 \bottomrule
@@ -377,7 +377,7 @@ Does the data follow a formula (growth, decay, saturation)? & \code{fit\_formula
 \begin{itemize}
   \item \textbf{Welch, not Student.} For averages simplydata uses Welch's versions, which do not
     assume that the groups have the same spread. They are R's defaults and lose almost nothing when
-    the spreads are equal. An expert can still choose: \code{test="student"} or \code{test="anova"}.
+    the spreads are equal. An expert can still choose: \code{test_method="student"} or \code{test_method="anova"}.
   \item \textbf{Paired or not?} If each row of one measurement belongs to a row of the other (the same
     child, the same site), the test must be paired: \code{compare\_before\_and\_after}. Treating paired
     data as independent groups throws away information.
