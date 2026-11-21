@@ -486,14 +486,20 @@ shows the same job written in the package underneath, in a grey box that a test 
 
 ### How simplydata chooses methods
 
-- Defaults follow published guidelines and method comparisons; the manual cites them for each word.
+- Defaults follow published guidelines and method comparisons where they exist; the manual cites them for each
+  word.
 - Where methods disagree, simplydata prefers the one that is valid under fewer assumptions (Welch's t-test
   rather than Student's, for example).
+- Where the evidence is balanced, simplydata matches the field's standard software, and says so; where studies
+  prefer another method, the table names it.
 - simplydata checks the data, and refuses or warns when a method does not fit it.
 - Every printout names the method used, and every default can be changed with an option.
-- Every default was checked by an independent review.
+- The defaults of each batch were checked by an independent review when they were designed, and every entry of
+  the table below, with its references, was checked again by independent hostile reviewers in November 2026.
 
-A full table of every default and its reference is being added.
+[How simplydata chooses methods](docs/how_simplydata_chooses.md) gives all 259 defaults: for each, the default,
+the alternatives, why it was chosen, what simplydata checks in the data, and its references (each DOI checked in
+Crossref). The manual has the same table as its last part.
 
 ## Using the words that need R
 
