@@ -26,7 +26,7 @@ Approximate, counted on 2026-11-21.
 | | With the packages underneath | With simplydata |
 |---|---|---|
 | Names to learn | about 10,650 functions: about 5,460 in the Python packages (SciPy about 1,750, pandas 850, Polars 815, matplotlib 745, NumPy 660, statsmodels 545, seaborn 100; each package's public API) and about 5,190 exported by the R packages simplydata ran that day, with R's `stats` (R `getNamespaceExports`; before the community packages were added) | 771 names: 398 commands and 373 options, about 93 % fewer |
-| Packages and languages | 86 packages (14 Python, 72 R), in Python and R | 1 package, in basic Python |
+| Packages and languages | 100 packages run by simplydata (14 Python, 86 R), plus 8 R ones that only check its answers, in Python and R | 1 package, in basic Python |
 | Code per task | 1163 lines and 1221 function calls in the 180 tasks of the manual's "same underneath" boxes (median 6 lines a task); this library code is the bare minimum, without the plain-sentence result or the checks | 520 lines and 634 calls (median 3 lines a task), about 55 % fewer lines; recount with `python validation/count_reduction.py` |
 | Choosing the method | you choose, from the package's documentation | the recommended default, with its published basis: see [How simplydata chooses methods](#how-simplydata-chooses-methods) |
 

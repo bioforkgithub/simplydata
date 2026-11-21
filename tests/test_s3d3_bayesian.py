@@ -329,3 +329,14 @@ def test_check_model_refuses_show_without_bayesian():
         t.check_model_of("marks", using=["hours"], show="prior check")
     with pytest.raises(SimplydataError):
         t.check_model_of("marks", using=["hours"], bayesian=True, show="posterior")
+
+
+def test_the_prior_is_printed_after_envstats_is_attached(needs_rstanarm, capsys):
+    # EnvStats exports its own print(), which hid rstanarm's print method for prior_summary() once an earlier word had
+    # attached EnvStats (found in the full suite); base::print() is used for that reason
+    from simplydata._r import r_call
+
+    r_call("1", packages=("EnvStats",))
+    sdata.table(sdata.get_example("school")).explain("marks", using=["hours"], bayesian=True)
+    out = capsys.readouterr().out
+    assert "Adjusted prior" in out and "$prior" not in out
