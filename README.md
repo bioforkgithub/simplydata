@@ -4,7 +4,7 @@
 
 **Learn basic Python, and simplydata takes you from your first table to publication-ready statistics, in plain words, with every number checked against the field's standard tools.**
 
-*simplydata is a package that is easy for a beginner, honest with a reviewer, and safe for patient data, all at once.*
+*simplydata is a package that is easy for a beginner, honest with a reviewer, and [safe for patient data](#privacy-your-data-stays-on-your-computer), all at once.*
 
 **Simple words for data science in Python.** One small vocabulary you can learn in a day,
 built on matplotlib, seaborn, pandas, Polars, NumPy, SciPy and statsmodels (with narwhals linking
@@ -263,6 +263,30 @@ Python 3.13, rpy2 has no ready-made wheel; set `RPY2_CFFI_MODE=ABI` first (in Po
 `$env:RPY2_CFFI_MODE = "ABI"`, in cmd: `set RPY2_CFFI_MODE=ABI`), then run the pip line. With conda, mamba or
 micromamba this step is not needed: rpy2 and R come ready-built from conda-forge, and the R packages too
 (for example `conda install -c conda-forge r-vegan r-metafor r-lme4`).
+
+## Privacy: your data stays on your computer
+
+simplydata is made for sensitive data too, such as patient records and surveillance data. "Safe for patient
+data" at the top of this page means the promises below, and automatic tests check each of them on every change.
+
+- **Nothing is sent anywhere.** simplydata has no telemetry, no analytics, no update checks and no crash reports.
+  It never uploads, sends or logs your data.
+- **The only network use is one you ask for:** `sdata.table("https://...")` downloads the table at a web address
+  you give: one request for that file, with none of your data. It follows the address on only to another https
+  address. Everything else, R included, runs fully offline.
+- **Files are written only where you ask:** `table.save(...)`, `chart.save(...)`, `nums.save(...)` and
+  `save_as=`. R draws into nothing, never into an `Rplots.pdf`. `sdata.start_30_days()` keeps the dates of your
+  learning days in `.simplydata/progress.json` in your home folder (no data). Temporary files are deleted at once:
+  an SPSS file read from a web address, and R's own session folder when Python ends.
+- **What simplydata prints goes to your own screen.** The list of packages at the end of a script names packages
+  and versions only, never a value or a column name.
+- **Checked on every change.** [tests/test_privacy.py](https://github.com/bioforkgithub/simplydata/blob/main/tests/test_privacy.py)
+  scans the source for network code and for R code that names a network, install or file-writing function
+  (simplydata also refuses to run such R code), and the whole test suite runs with Python's network connections
+  blocked.
+
+The packages underneath keep their own caches, such as matplotlib's list of fonts; these hold no data. To report a
+security or privacy problem, see [SECURITY.md](https://github.com/bioforkgithub/simplydata/blob/main/SECURITY.md).
 
 ## Learn it in a day
 

@@ -33,6 +33,45 @@ class RMissing(SimplydataError):
     """R, rpy2 or an R package is not there."""
 
 
+# Privacy: the R code simplydata runs never reaches the internet, installs anything or writes a file. R does its
+# own networking (libcurl, sockets) and file writing, out of Python's sight, so r_call() refuses code that names a
+# known network, install or file-writing function; tests/test_privacy.py checks every R code string in the source
+# against the same list. It is a check of simplydata's own R code (a second line of defence), not a sandbox.
+_R_FUNCTIONS_NOT_ALLOWED = (
+    # the internet, installs and other programs
+    "download.file", "download.packages", "install.packages", "update.packages", "available.packages", "url",
+    "gzcon", "socketConnection", "socketAccept", "serverSocket", "make.socket", "browseURL", "curlGetHeaders",
+    "system", "system2", "shell", "shell.exec", "pipe", ".Internal",
+    # files (reading by name too: file() and friends open any address)
+    "file", "gzfile", "bzfile", "xzfile", "unz", "fifo", "sink", "saveRDS", "save", "save.image", "serialize",
+    "writeLines", "writeBin", "writeChar", "write.csv", "write.csv2", "write.table", "write", "dput", "dump",
+    "file.create", "file.copy", "dir.create", "Rprof",
+    # pictures written to a file
+    "png", "jpeg", "tiff", "bmp", "svg", "postscript", "cairo_pdf", "cairo_ps", "ggsave", "dev.copy", "dev.print",
+)
+_R_PACKAGES_NOT_ALLOWED = ("curl", "httr", "httr2", "RCurl", "httpuv", "websocket", "remotes", "devtools", "pak",
+                           "BiocManager", "pins", "piggyback", "googledrive", "googlesheets4", "aws.s3", "DBI", "odbc",
+                           "RPostgres", "RMySQL", "mongolite", "redux", "svglite", "ggplot2")
+_NAMES = "|".join(re.escape(name) for name in _R_FUNCTIONS_NOT_ALLOWED)
+R_NOT_ALLOWED = re.compile(
+    r"://"  # any web, ftp or file address
+    rf"|(?<![\w.])(?:{_NAMES})\s*\("
+    rf"|(?<![\w.])(?:get|get0|mget|match\.fun|do\.call|Map|lapply|sapply|vapply)\s*\([^()]*[\"'`]?(?:{_NAMES})\b"
+    r"|(?<![\w.])pdf\s*\((?!\s*(?:file\s*=\s*)?NULL\s*\))"  # pdf(NULL) draws into nothing; pdf("x.pdf") is a file
+    r"|(?<![\w.])(?:cat|capture\.output|print)\s*\((?:[^()]|\([^()]*\))*(?<![\w.])file\s*="  # (one level inside)
+    r"|`[\w.]+`\s*\("  # a function called by its quoted name: `download.file`(...)
+    rf"|(?<![\w.])(?:{'|'.join(re.escape(p) for p in _R_PACKAGES_NOT_ALLOWED)})\s*::")
+
+
+def refuse_unsafe_r_code(code: str) -> None:
+    """Raise SimplydataError when R code could reach the internet, install a package or write a file."""
+    found = R_NOT_ALLOWED.search(code)
+    if found:
+        raise SimplydataError(
+            f"simplydata does not run R code that could reach the internet or write a file ({found.group(0)!r}).\n"
+            "This is a promise for people who work with sensitive data: your data stays on your computer.")
+
+
 def _install_text(packages, what, python_note=None) -> str:
     listed = ", ".join(f'"{p}"' for p in packages)
     missing = _STATE.get("missing", "package")
@@ -131,6 +170,9 @@ def _start():
                 # (on Windows it looks for "sh"); load them by name so every method finds them
                 ro.r("invisible(utils::capture.output(suppressMessages(suppressWarnings(for (p in c('stats', 'utils', "
                      "'methods', 'graphics', 'grDevices')) library(p, character.only = TRUE)))))")
+                # a method that draws (plot = TRUE by default somewhere) draws into nothing, never into an
+                # Rplots.pdf file in your folder
+                ro.r("options(device = function(...) grDevices::pdf(file = NULL))")
             _STATE["r"] = ro
             from ._cite import register_at_exit
 
@@ -257,7 +299,9 @@ def r_call(code: str, packages=(), what="This", python_note=None, source=None, n
     and messages stay silent; each warning R gives is passed on once as a plain note, labelled
     with source= (such as "vegan::betadisper"), or with what= when no source is given; note_words= (a
     function of the note) rewrites each note first. Once R has answered, R, the packages and the pkg:: names in
-    code are remembered for sdata.show_packages_used() (not with _cite=False)."""
+    code are remembered for sdata.show_packages_used() (not with _cite=False). Code that could reach the internet
+    or write a file is refused (refuse_unsafe_r_code)."""
+    refuse_unsafe_r_code(code)
     need_r(packages, what, python_note)
     with _LOCK:
         ro = _STATE["r"]
