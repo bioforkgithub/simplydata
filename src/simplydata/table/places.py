@@ -281,7 +281,7 @@ class PlaceWords:
 
     # ------------------------------------------------------------------ AC02: the Rayleigh test
     def _circle_shape_wanted(self, shape, test, full_turn) -> bool:
-        """compare_shape_to asks about a circle: an even-around-the-circle shape, test="rayleigh", or "uniform" with
+        """compare_shape_to asks about a circle: an even-around-the-circle shape, test_method="rayleigh", or "uniform" with
         full_turn= given (on directions a straight-line test of "uniform" depends on where 0 is)."""
         name = shape.strip().lower() if isinstance(shape, str) else None
         if name in CIRCLE_SHAPES or (isinstance(test, str) and test.strip().lower() == "rayleigh"):
@@ -295,12 +295,12 @@ class PlaceWords:
                    '(with sdata.get_example("stations"))')
         name = shape.strip().lower() if isinstance(shape, str) else shape
         if test is not None and not isinstance(test, str):
-            raise SimplydataError(f'test= is a name in quotes; on a circle it is test="rayleigh".\nFor example, {example}')
+            raise SimplydataError(f'test_method= is a name in quotes; on a circle it is test_method="rayleigh".\nFor example, {example}')
         if name not in CIRCLE_SHAPES and name not in ("uniform", "even", "evenly spread", "normal"):
             raise SimplydataError(f'On a circle (full_turn=) the shape to compare with is "even around the circle" (the '
                                   f"Rayleigh test); {shape!r} is not offered there.\nFor example, {example}")
         if test is not None and test.strip().lower() != "rayleigh":
-            raise SimplydataError(f'On a circle the test is "rayleigh" (test="{test}" is a test of a bell shape).\n'
+            raise SimplydataError(f'On a circle the test is "rayleigh" (test_method="{test}" is a test of a bell shape).\n'
                                   f"For example, {example}")
         turn = full_turn_of(step, full_turn, example)
         frame = self._number_frame(step, [column])

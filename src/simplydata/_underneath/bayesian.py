@@ -1,4 +1,4 @@
-"""Bayesian answers (phase S3d-3): one entry for each word that takes bayesian=True (keyed by word and option). The
+"""Bayesian answers (phase S3d-3): one entry for each word that takes test_method="bayesian" (keyed by word and option). The
 light route is R BayesFactor (ttestBF, correlationBF, contingencyTableBF, then posterior() after set.seed()); the heavy
 route is R rstanarm (stan_glm, stan_glmer) with the posterior package's convergence measures. Practice tables: "clinic"
 and "school" (made up).
@@ -34,13 +34,13 @@ def _bf(word, option, ours, r_code, r_inputs, fields, choices, also):
 
 ENTRIES = [
     # ------------------------------------------------------------------ Z01-Z02: Bayes factors and posteriors
-    _bf("table.compare_averages_of", "bayesian=True",
+    _bf("table.compare_averages_of", "test_method=\"bayesian\"",
         """
             table = sdata.table(sdata.get_example("clinic"))
-            table.compare_averages_of("crp", for_each_group_in="ward", bayesian=True)
+            table.compare_averages_of("crp", for_each_group_in="ward", test_method="bayesian")
         """,
         f"""
-            # compare_averages_of("crp", for_each_group_in="ward", bayesian=True)
+            # compare_averages_of("crp", for_each_group_in="ward", test_method="bayesian")
             b <- BayesFactor::ttestBF(x = a, y = b, rscale = "medium")       # (1)
             {SEED}
             p <- BayesFactor::posterior(b, iterations = 10000, progress = FALSE)                 # (2)
@@ -56,13 +56,13 @@ ENTRIES = [
          "BayesFactor's default; prior_width= changes it.", SEED_CHOICE),
         "simplydata also says the Bayes factor in words both ways round, prints the prior and what a credible "
         "interval means, gives the effect size's interval, refuses three or more groups, and prints no p-value."),
-    _bf("table.compare_before_and_after", "bayesian=True",
+    _bf("table.compare_before_and_after", "test_method=\"bayesian\"",
         """
             table = sdata.table(sdata.get_example("clinic"))
-            table.compare_before_and_after("pain_week_0", "pain_week_4", bayesian=True)
+            table.compare_before_and_after("pain_week_0", "pain_week_4", test_method="bayesian")
         """,
         f"""
-            # compare_before_and_after("pain_week_0", "pain_week_4", bayesian=True)
+            # compare_before_and_after("pain_week_0", "pain_week_4", test_method="bayesian")
             b <- BayesFactor::ttestBF(x = after, y = before, paired = TRUE, rscale = "medium")   # (1)
             {SEED}
             p <- BayesFactor::posterior(b, iterations = 10000, progress = FALSE)   # (2)
@@ -78,13 +78,13 @@ ENTRIES = [
          SEED_CHOICE),
         "simplydata also skips rows with an empty cell (with a note), refuses columns that are not numbers, and "
         "prints the prior and no p-value."),
-    _bf("table.compare_average_to", "bayesian=True",
+    _bf("table.compare_average_to", "test_method=\"bayesian\"",
         """
             table = sdata.table(sdata.get_example("clinic"))
-            table.compare_average_to("crp", 5, bayesian=True)
+            table.compare_average_to("crp", 5, test_method="bayesian")
         """,
         f"""
-            # compare_average_to("crp", 5, bayesian=True)
+            # compare_average_to("crp", 5, test_method="bayesian")
             b <- BayesFactor::ttestBF(x = x - 5, rscale = "medium")           # (1)
             {SEED}
             p <- BayesFactor::posterior(b, iterations = 10000, progress = FALSE)   # (2)
@@ -99,13 +99,13 @@ ENTRIES = [
          "its Bayes factor takes mu away inside; so the Bayes factor is the same and the posterior is that of the "
          "average minus 5.", SEED_CHOICE),
         "simplydata also prints the prior and what a credible interval means, and no p-value."),
-    _bf("table.find_correlation_between", "bayesian=True",
+    _bf("table.find_correlation_between", "test_method=\"bayesian\"",
         """
             table = sdata.table(sdata.get_example("clinic"))
-            table.find_correlation_between("crp", "procalcitonin", bayesian=True)
+            table.find_correlation_between("crp", "procalcitonin", test_method="bayesian")
         """,
         f"""
-            # find_correlation_between("crp", "procalcitonin", bayesian=True)
+            # find_correlation_between("crp", "procalcitonin", test_method="bayesian")
             b <- BayesFactor::correlationBF(y = a, x = b, rscale = "medium")  # (1)
             {SEED}
             p <- BayesFactor::posterior(b, iterations = 10000, progress = FALSE)   # (2)
@@ -120,13 +120,13 @@ ENTRIES = [
          "factors).", SEED_CHOICE),
         "simplydata also refuses more than two columns and every option of the usual correlation, and prints no "
         "p-value."),
-    _bf("table.compare_counts_of", "bayesian=True",
+    _bf("table.compare_counts_of", "test_method=\"bayesian\"",
         """
             table = sdata.table(sdata.get_example("clinic"))
-            table.compare_counts_of("infected", for_each_group_in="ward", bayesian=True)
+            table.compare_counts_of("infected", for_each_group_in="ward", test_method="bayesian")
         """,
         f"""
-            # compare_counts_of("infected", for_each_group_in="ward", bayesian=True)
+            # compare_counts_of("infected", for_each_group_in="ward", test_method="bayesian")
             tab <- table(g, v)
             b <- BayesFactor::contingencyTableBF(tab, sampleType = "indepMulti",
                                                  fixedMargin = "rows")         # (1)
@@ -145,15 +145,15 @@ ENTRIES = [
         "simplydata also gives every group's share of every value with its interval, and prints no p-value."),
     # ------------------------------------------------------------------ Z03-Z06: Bayesian models
     Entry(
-        word="table.explain", option="bayesian=True",
+        word="table.explain", option="test_method=\"bayesian\"",
         data="school",
         ours="""
             table = sdata.table(sdata.get_example("school"))
-            table.explain("marks", using=["hours", "breakfast"], bayesian=True)
+            table.explain("marks", using=["hours", "breakfast"], test_method="bayesian")
         """,
         code={
             "R": """
-                # explain("marks", using=["hours", "breakfast"], bayesian=True)
+                # explain("marks", using=["hours", "breakfast"], test_method="bayesian")
                 d <- data.frame(marks, hours, breakfast = factor(breakfast))
                 m <- rstanarm::stan_glm(marks ~ hours + breakfast, data = d, chains = 4,
                                         iter = 2000, seed = 1, refresh = 0, cores = 1)   # (1)
@@ -183,15 +183,15 @@ ENTRIES = [
              "yes/no and counts, and prints no p-value.",
     ),
     Entry(
-        word="table.explain", option="bayesian=True, grouped_by=",
+        word="table.explain", option="test_method=\"bayesian\", grouped_by=",
         data="school",
         ours="""
             table = sdata.table(sdata.get_example("school"))
-            table.explain("marks", using=["hours"], grouped_by="school", bayesian=True)
+            table.explain("marks", using=["hours"], grouped_by="school", test_method="bayesian")
         """,
         code={
             "R": """
-                # explain("marks", using=["hours"], grouped_by="school", bayesian=True)
+                # explain("marks", using=["hours"], grouped_by="school", test_method="bayesian")
                 d <- data.frame(marks, hours, school = factor(school))
                 m <- rstanarm::stan_glmer(marks ~ hours + (1 | school), data = d, chains = 4,
                                           iter = 2000, seed = 1, refresh = 0, cores = 1)  # (1)
@@ -211,21 +211,21 @@ ENTRIES = [
         r_packages=("rstanarm", "rstan", "posterior"), compare="result", row="hours",
         fields=("effect", "95 % credible interval low", "95 % credible interval high"), tolerance=1e-9,
         choices=("a mixed model with its own starting level for each school, (1 | school), rstanarm's decov prior "
-                 "for the group spread; otherwise as explain(bayesian=True).",),
+                 "for the group spread; otherwise as explain(test_method=\"bayesian\").",),
         python_note=STAN_NOTE,
         also="simplydata also prints the spread between the groups (rstanarm VarCorr()) and checks every group "
              "parameter for convergence, not only the effects.",
     ),
     Entry(
-        word="table.check_model_of", option="bayesian=True",
+        word="table.check_model_of", option="test_method=\"bayesian\"",
         data="school",
         ours="""
             table = sdata.table(sdata.get_example("school"))
-            table.check_model_of("marks", using=["hours", "breakfast"], bayesian=True)._check_numbers["observed"]
+            table.check_model_of("marks", using=["hours", "breakfast"], test_method="bayesian")._check_numbers["observed"]
         """,
         code={
             "R": """
-                # check_model_of("marks", using=["hours", "breakfast"], bayesian=True)
+                # check_model_of("marks", using=["hours", "breakfast"], test_method="bayesian")
                 d <- data.frame(marks, hours, breakfast = factor(breakfast))
                 m <- rstanarm::stan_glm(marks ~ hours + breakfast, data = d, chains = 4,
                                         iter = 2000, seed = 1, refresh = 0, cores = 1)

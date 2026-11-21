@@ -88,16 +88,16 @@ ENTRIES = [
              "effect rests on.",
     ),
     Entry(
-        word="table.compare_balanced_groups_of", option='method="matching"',
+        word="table.compare_balanced_groups_of", option='test_method="matching"',
         data="job_training",
         ours=f"""
             table = sdata.table(sdata.get_example("job_training"))
             table.compare_balanced_groups_of("re78", for_each_group_in="treat", allowing_for={COLUMNS},
-                                             method="matching", effect_for=1)
+                                             test_method="matching", effect_for=1)
         """,
         code={
             "R": f"""
-                # compare_balanced_groups_of(..., method="matching", effect_for=1)
+                # compare_balanced_groups_of(..., test_method="matching", effect_for=1)
                 {FRAME_R.replace(chr(10), chr(10) + '                ')}
                 mm <- MatchIt::matchit(f, data = d, method = "nearest", distance = "glm")   # (1)
                 md <- MatchIt::match.data(mm)

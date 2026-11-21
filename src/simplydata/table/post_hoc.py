@@ -1,4 +1,4 @@
-"""compare_each_pair_of(test=...) beyond Welch, Mann-Whitney and Tukey: the usual follow-up tests.
+"""compare_each_pair_of(test_method=...) beyond Welch, Mann-Whitney and Tukey: the usual follow-up tests.
 
 Each comes from the package that defines it; simplydata only puts the pairs in order and words them:
 
@@ -64,8 +64,8 @@ def r_pairs(test, groups):
     code, packages = _R_CODE[test]
     title, based_on, r_name, _ = R_PAIR_TESTS[test]
     found = r_call(code, packages=packages, what=f"{title} (R {r_name})",
-                   python_note=("without R, leave out test= for Welch's t-tests (or Mann-Whitney U with "
-                                'based_on="ranks") with Holm\'s correction, or use test="tukey"'),
+                   python_note=("without R, leave out test_method= for Welch's t-tests (or Mann-Whitney U with "
+                                'based_on="ranks") with Holm\'s correction, or use test_method="tukey"'),
                    y=y.astype(float), g=g, lv=np.array(names, dtype=object))
     pairs = [(i, j) for i in range(len(names)) for j in range(i + 1, len(names))]
     if test == "conover":

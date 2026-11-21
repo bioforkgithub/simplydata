@@ -12,7 +12,7 @@ every row. These words measure agreement itself. Every number comes from statsmo
   from R irr::kappam.fleiss(). Columns of numbers: the intraclass correlation, R irr::icc() (two-way,
   absolute agreement, one rater by default; raters=, checking_for=, of= choose the form, which is always named:
   raters="a sample" (McGraw and Wong's "random"), "these only" ("fixed") or "different per row" ("different")).
-  method="krippendorff": R irr::kripp.alpha(); method="lin": Lin's concordance correlation, R
+  test_method="krippendorff": R irr::kripp.alpha(); test_method="lin": Lin's concordance correlation, R
   DescTools::CCC().
 * limits_of_agreement("device_a", "device_b"): Bland-Altman: the average difference and the limits within
   which 95 % of differences lie, each with its interval (R BlandAltmanLeh::bland.altman.stats()), and
@@ -80,8 +80,8 @@ class AgreementWords:
         return names, kept
 
     # ------------------------------------------------------------------ agreement_between
-    @friendly(renamed={"weights": "near_misses", "kind": "checking_for"}, others={"weight": "near_misses", "wt": "near_misses"})
-    def agreement_between(self, *columns, method=None, near_misses=None, in_order=None, interval=95,
+    @friendly(renamed={"method": "test_method", "weights": "near_misses", "kind": "checking_for"}, others={"weight": "near_misses", "wt": "near_misses"})
+    def agreement_between(self, *columns, test_method=None, near_misses=None, in_order=None, interval=95,
                           raters="a sample", checking_for="agreement", of="one rater"):
         """How well do two or more raters (or devices) agree on the same rows?
 
@@ -96,7 +96,7 @@ class AgreementWords:
         agreement, one rater, the raters a sample of many possible raters (raters="these only" or
         "different per row", checking_for="consistency", of="average of raters" choose another form, and
         the form is always named).
-        method="krippendorff": Krippendorff's alpha (R irr::kripp.alpha()); method="lin": Lin's
+        test_method="krippendorff": Krippendorff's alpha (R irr::kripp.alpha()); test_method="lin": Lin's
         concordance correlation for two columns of numbers (R DescTools::CCC()).
         Rows with an empty cell are skipped. Gives back a one-row table.
         """
@@ -104,8 +104,8 @@ class AgreementWords:
         example = 'table.agreement_between("nurse_rating", "doctor_rating")'
         names, kept = self._agreement_columns(step, columns, example)
         level = _level(step, interval, example)
-        if method is not None:
-            self._check_choice(step, "method", method, METHODS)
+        if test_method is not None:
+            self._check_choice(step, "test_method", test_method, METHODS)
         weights = near_misses
         if weights is not None:
             self._check_choice(step, "near_misses", weights, tuple(WEIGHTS))
@@ -116,24 +116,24 @@ class AgreementWords:
         self._check_choice(step, "checking_for", checking_for, KINDS)
         self._check_choice(step, "of", of, tuple(OF))
         numeric = all(self._frame.schema[n].is_numeric() for n in names)
-        if method is None:
-            method = "icc" if numeric else "kappa"
-        if method in ("icc", "lin") and not numeric:
+        if test_method is None:
+            test_method = "icc" if numeric else "kappa"
+        if test_method in ("icc", "lin") and not numeric:
             text = next(n for n in names if not self._frame.schema[n].is_numeric())
-            raise SimplydataError(f'method="{method}" needs columns of numbers; "{text}" is not. For categories leave '
-                                  "out method= (Cohen's or Fleiss' kappa).")
-        if weights is not None and (method != "kappa" or len(names) != 2):
+            raise SimplydataError(f'test_method="{test_method}" needs columns of numbers; "{text}" is not. For categories leave '
+                                  "out test_method= (Cohen's or Fleiss' kappa).")
+        if weights is not None and (test_method != "kappa" or len(names) != 2):
             raise SimplydataError("near_misses= is for Cohen's kappa: two columns of categories.")
-        if method == "lin":
+        if test_method == "lin":
             if len(names) != 2:
-                raise SimplydataError('method="lin" compares two columns of numbers.')
+                raise SimplydataError('test_method="lin" compares two columns of numbers.')
             return self._lin(names, kept, level)
-        if method == "icc":
+        if test_method == "icc":
             return self._icc(names, kept, level, raters, checking_for, of)
         values = {n: kept[n].to_list() for n in names}
-        order = self._category_order(step, names, values, in_order, weights is not None or method == "krippendorff")
+        order = self._category_order(step, names, values, in_order, weights is not None or test_method == "krippendorff")
         codes = np.column_stack([[order.index(v) for v in values[n]] for n in names]).astype(float)
-        if method == "krippendorff":
+        if test_method == "krippendorff":
             if numeric and in_order is None:  # numbers: the values themselves, interval data
                 raw = np.column_stack([kept[n].to_numpy().astype(float) for n in names])
                 return self._krippendorff(names, raw, "interval")

@@ -1,6 +1,6 @@
-"""explain(..., test_type=): a table with one test for each column (an ANOVA table).
+"""explain(..., table_of_tests=): a table with one test for each column (an ANOVA table).
 
-* test_type="type 2" (the usual choice): each column tested after the others it does not
+* table_of_tests="type 2" (the usual choice): each column tested after the others it does not
   belong with (R car::Anova(type = 2)); "type 3": each column tested after all the others,
   with sum-to-zero coding done for the user (R car::Anova(type = 3) with contr.sum); "in order":
   each column after the ones before it in using= (R anova(), type 1), so the order matters.
@@ -35,7 +35,7 @@ def read_test_type(value):
     text = str(value).strip().lower()
     text = TEST_TYPE_SPELLINGS.get(text, text)
     if text not in TEST_TYPES:
-        raise SimplydataError(f'test_type= is "type 2" (the usual choice), "type 3" or "in order", not {value!r}.')
+        raise SimplydataError(f'table_of_tests= is "type 2" (the usual choice), "type 3" or "in order", not {value!r}.')
     return text
 
 
@@ -216,7 +216,7 @@ def report(model, test_type):
     from .._r import RMissing
 
     if model["kind"] in ("mixed", "glmm", "gee"):
-        raise SimplydataError("test_type= is not available with grouped_by= yet; the whole-column Wald tests are "
+        raise SimplydataError("table_of_tests= is not available with grouped_by= yet; the whole-column Wald tests are "
                               "printed instead.")
     out_rows = []
     if model["kind"] == "lm":

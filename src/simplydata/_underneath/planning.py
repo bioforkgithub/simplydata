@@ -78,19 +78,19 @@ ENTRIES = [
         """},
         r_inputs=NUMBERS_IN_CODE, r_packages=("presize",), compare="result", fields=("values (exact)", "values"),
         tolerance=1e-9,
-        choices=("the Wilson interval, given by name: presize's method= is a list of four and it warns when none is "
+        choices=("the Wilson interval, given by name: presize's test_method= is a list of four and it warns when none is "
                  "chosen.",),
         python_note="Python has no function for the values needed for a percent's interval.",
         also="simplydata also takes the width in percentage points and says the answer in a sentence.",
     ),
     Entry(
-        word=NEEDED, option="test=",
+        word=NEEDED, option="test_method=",
         ours="""
-            result = sdata.find_how_many_needed(test="compare_survival", effect_size=0.7, percents=[30, 40])
+            result = sdata.find_how_many_needed(for_test="compare_survival", effect_size=0.7, percents=[30, 40])
             result
         """,
         code={"R": """
-            # find_how_many_needed(test="compare_survival", effect_size=0.7, percents=[30, 40])
+            # find_how_many_needed(for_test="compare_survival", effect_size=0.7, percents=[30, 40])
             d <- gsDesign::nEvents(hr = 0.7, alpha = 0.05, beta = 0.2,
                                    ratio = 1, sided = 2)                  # (1)
             n <- powerSurvEpi::ssizeEpi.default(power = 0.8, theta = 0.7,
@@ -109,14 +109,14 @@ ENTRIES = [
              "drop-out and recruitment time are not planned.",
     ),
     Entry(
-        word=NEEDED, option="method=",
+        word=NEEDED, option="test_method=",
         ours="""
-            result = sdata.find_how_many_needed(test="compare_survival", effect_size=0.7, percents=[30, 40],
-                                                method="freedman")
+            result = sdata.find_how_many_needed(for_test="compare_survival", effect_size=0.7, percents=[30, 40],
+                                                test_method="freedman")
             result
         """,
         code={"R": """
-            # find_how_many_needed(test="compare_survival", ..., method="freedman")
+            # find_how_many_needed(for_test="compare_survival", ..., test_method="freedman")
             n <- powerSurvEpi::ssizeCT.default(power = 0.8, k = 1, pE = 0.3,
                    pC = 0.4, RR = 0.7, alpha = 0.05)                      # (1)
             list(n = n[1])
@@ -133,14 +133,14 @@ ENTRIES = [
     Entry(
         word=NEEDED, option="using=",
         ours="""
-            result = sdata.find_how_many_needed(test="explain", effect_size=0.15, using=["temperature", "salinity",
+            result = sdata.find_how_many_needed(for_test="explain", effect_size=0.15, using=["temperature", "salinity",
                                                 "depth"])
             result
         """,
         code={"statsmodels": """
             import math
             from statsmodels.stats.power import FTestPowerF2
-            # find_how_many_needed(test="explain", effect_size=0.15, using=[3 columns])
+            # find_how_many_needed(for_test="explain", effect_size=0.15, using=[3 columns])
             v = FTestPowerF2().solve_power(effect_size=0.15, df_num=3,
                                            df_denom=None, alpha=0.05,
                                            power=0.8)                     # (1)
@@ -157,12 +157,12 @@ ENTRIES = [
     Entry(
         word=NEEDED, option="outcome=",
         ours="""
-            result = sdata.find_how_many_needed(test="explain", outcome="yes or no", using=["dose"], percents=[50],
+            result = sdata.find_how_many_needed(for_test="explain", outcome="yes or no", using=["dose"], percents=[50],
                                                 effect_size=1.5, power=0.95)
             result
         """,
         code={"R": """
-            # find_how_many_needed(test="explain", outcome="yes or no", ...)
+            # find_how_many_needed(for_test="explain", outcome="yes or no", ...)
             r <- pwrss::power.z.logistic(base.prob = 0.5, odds.ratio = 1.5,
                    power = 0.95, alpha = 0.05, distribution = "normal",   # (1)
                    method = "demidenko(vc)",                               # (2)

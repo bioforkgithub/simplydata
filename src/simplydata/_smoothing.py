@@ -56,13 +56,13 @@ class SmoothResult:
 def read_method(method, step_name):
     chosen = ALIASES.get(method.strip().lower(), method.strip().lower()) if isinstance(method, str) else method
     if chosen not in METHODS:
-        raise choice_error(step_name, "method", method, list(METHODS))
+        raise choice_error(step_name, "test_method", method, list(METHODS))
     return chosen
 
 
 def _odd_window(window, step_name, method):
     if isinstance(window, bool) or not isinstance(window, (int, np.integer)) or window < 3 or window % 2 == 0:
-        raise SimplydataError(f'{step_name}() with method="{method}" needs window= as an odd whole number of readings, '
+        raise SimplydataError(f'{step_name}() with test_method="{method}" needs window= as an odd whole number of readings, '
                               "at least 3, such as window=5, so the window is centred on each reading. (For a "
                               "12-month season, use add_trend_and_season.)")
     return int(window)
@@ -107,7 +107,7 @@ def smooth(values, method="moving average", window=5, ends=None, times=None, ste
     extra = sorted(k for k, v in options.items() if v is not None and k not in allowed)
     if extra:
         hint = ", ".join(f"{k}=" for k in sorted(allowed)) or "no other options"
-        raise SimplydataError(f'{step_name}() with method="{method}" does not take {extra[0]}= (it takes {hint}).')
+        raise SimplydataError(f'{step_name}() with test_method="{method}" does not take {extra[0]}= (it takes {hint}).')
     x = np.asarray(values, dtype=float)
     n = len(x)
     if method in ENDS:
@@ -115,7 +115,7 @@ def smooth(values, method="moving average", window=5, ends=None, times=None, ste
         if ends not in ENDS[method]:
             raise choice_error(step_name, "ends", ends, list(ENDS[method]))
     elif ends is not None:
-        raise SimplydataError(f'method="{method}" has no ends= choice (it needs none).')
+        raise SimplydataError(f'test_method="{method}" has no ends= choice (it needs none).')
     if method not in ("lowess", "loess", "spline") and np.isnan(x).any():
         raise SimplydataError(f"{step_name}() needs a value at every step, but {int(np.isnan(x).sum())} are empty. "
                               'Fill them first (fill_empty_cells_in(..., with_the="line between neighbours")).')
@@ -213,7 +213,7 @@ def smooth(values, method="moving average", window=5, ends=None, times=None, ste
 
             frac = _opt(options, "smoothness", 2 / 3)
             if isinstance(frac, bool) or not isinstance(frac, (int, float, np.integer, np.floating)) or not 0 < frac <= 1:
-                raise SimplydataError('method="lowess" needs smoothness= as the share of readings in each local fit, '
+                raise SimplydataError('test_method="lowess" needs smoothness= as the share of readings in each local fit, '
                                       "above 0 and up to 1 (R lowess f=, normally 2/3).")
             tt, yy = t[keep], x[keep]
             xs, fitted = lowess(tt, yy, frac=float(frac), iterations=3, delta=0.01 * float(np.ptp(tt)))
@@ -237,13 +237,13 @@ def smooth(values, method="moving average", window=5, ends=None, times=None, ste
 
         lam = _opt(options, "smoothness", 100)
         if isinstance(lam, bool) or not isinstance(lam, (int, float, np.integer, np.floating)) or lam <= 0:
-            raise SimplydataError('method="whittaker" needs smoothness= as a number above 0 (bigger is smoother).')
+            raise SimplydataError('test_method="whittaker" needs smoothness= as a number above 0 (bigger is smoother).')
         if not hasattr(signal, "whittaker_henderson"):
             import scipy
 
-            raise SimplydataError(f'method="whittaker" needs SciPy 1.17 or newer (this computer has SciPy '
+            raise SimplydataError(f'test_method="whittaker" needs SciPy 1.17 or newer (this computer has SciPy '
                                   f"{scipy.__version__}): pip install --upgrade scipy. SciPy 1.17 needs Python 3.12 or "
-                                  'newer. The other methods work, such as method="savitzky-golay".')
+                                  'newer. The other methods work, such as test_method="savitzky-golay".')
         out =np.asarray(signal.whittaker_henderson(x, lamb=float(lam), order=2).x, dtype=float)
         return SmoothResult(out, f"a Whittaker-Henderson smoother (smoothness {_g(lam)}: closeness to the readings "
                                  "against the size of the second differences)",
@@ -262,12 +262,12 @@ LOESS_SPAN = 0.75  # R loess()'s span
 
 
 def loess_span(smoothness, step_name) -> float:
-    """smoothness= of method="loess": the share of readings in each local fit (R loess span=, normally 0.75)."""
+    """smoothness= of test_method="loess": the share of readings in each local fit (R loess span=, normally 0.75)."""
     if smoothness is None or smoothness == "auto":
         return LOESS_SPAN
     if isinstance(smoothness, bool) or not isinstance(smoothness, (int, float, np.integer, np.floating)) \
             or not 0 < smoothness <= 1:
-        raise SimplydataError('method="loess" takes smoothness= as the share of readings in each local fit, above 0 '
+        raise SimplydataError('test_method="loess" takes smoothness= as the share of readings in each local fit, above 0 '
                               "and up to 1 (R loess span=, normally 0.75).")
     return float(smoothness)
 
@@ -282,7 +282,7 @@ def _loess(x, times, smoothness, interval):
     span = loess_span(smoothness, "smooth")
     level = 0.95 if interval is None else interval / 100
     if int(keep.sum()) < 5:
-        raise SimplydataError('method="loess" needs at least 5 readings.')
+        raise SimplydataError('test_method="loess" needs at least 5 readings.')
     got = loess(t[keep], x[keep], span, t[keep], level)
     out, low, high = np.full(n, np.nan), np.full(n, np.nan), np.full(n, np.nan)
     out[keep] = np.atleast_1d(got["fit"]).astype(float)
@@ -306,7 +306,7 @@ def remove_trend(values, method="straight line", breaks=None, step_name="remove_
 
     chosen = TREND_ALIASES.get(method.strip().lower(), method.strip().lower()) if isinstance(method, str) else method
     if chosen not in TREND_METHODS:
-        raise choice_error(step_name, "method", method, list(TREND_METHODS))
+        raise choice_error(step_name, "test_method", method, list(TREND_METHODS))
     x = np.asarray(values, dtype=float)
     n = len(x)
     if np.isnan(x).any():
@@ -315,7 +315,7 @@ def remove_trend(values, method="straight line", breaks=None, step_name="remove_
         raise SimplydataError(f"{step_name}() needs at least 3 numbers.")
     if breaks is not None:
         if chosen != "straight line":
-            raise SimplydataError('breaks= goes with method="straight line".')
+            raise SimplydataError('breaks= goes with test_method="straight line".')
         if isinstance(breaks, (int, np.integer)) and not isinstance(breaks, bool):
             breaks = [breaks]
         if not (isinstance(breaks, (list, tuple)) and breaks and all(

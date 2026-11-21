@@ -206,18 +206,18 @@ TEST_RULES = ("grubbs", "dixon", "rosner")  # outlier tests, run in R (simplydat
 
 
 def _rule_of(step: str, rule, example: str):
-    """Read rule= for the outlier words: (how many, "IQR" or "standard deviations")."""
+    """Read test_method= for the outlier words: (how many, "IQR" or "standard deviations")."""
     text = str(rule).strip().lower().replace("×", "x") if isinstance(rule, str) else ""
     found = re.match(
         r"^(\d+(?:\.\d+)?)\s*(?:x|\*|times)?\s*(iqrs?|interquartile ranges?|standard deviations?|sds?|std)$", text
     )
     if not found or float(found.group(1)) <= 0:
         raise SimplydataError(
-            f'.{step}() does not know rule={_say(rule)}. You can use:\n'
-            '  rule="1.5 IQR"                 Tukey\'s rule, the usual one (the default)\n'
-            '  rule="3 IQR"                   only values very far out\n'
-            '  rule="3 standard deviations"   further than 3 standard deviations from the average\n'
-            '  rule="grubbs", "dixon" or "rosner"   outlier tests (R outliers, EnvStats)'
+            f'.{step}() does not know test_method={_say(rule)}. You can use:\n'
+            '  test_method="1.5 IQR"                 Tukey\'s rule, the usual one (the default)\n'
+            '  test_method="3 IQR"                   only values very far out\n'
+            '  test_method="3 standard deviations"   further than 3 standard deviations from the average\n'
+            '  test_method="grubbs", "dixon" or "rosner"   outlier tests (R outliers, EnvStats)'
             + _example(example)
         )
     how = "IQR" if found.group(2).startswith(("iqr", "inter")) else "standard deviations"
@@ -1581,14 +1581,14 @@ class RowWords:
             if small:
                 print(f"Note: with {min(small)} numbers{' in a group' if groups else ''} no value can be more than "
                       f"{kk} standard deviations from the average, because an outlier also makes the standard "
-                      f'deviation bigger. For small groups use rule="1.5 IQR".')
+                      f'deviation bigger. For small groups use test_method="1.5 IQR".')
         words = f"{kk} x IQR" if how == "IQR" else f"{kk} standard deviations"
         if groups:
             words += f", for each {', '.join(groups)}"
         return frame, frame.columns[len(self._columns):], words
 
     def _test_outliers(self, step, column, for_each, rule, example):
-        """rule="grubbs" / "dixon" / "rosner": outlier tests from R (outliers::grubbs.test, outliers::dixon.test,
+        """test_method="grubbs" / "dixon" / "rosner": outlier tests from R (outliers::grubbs.test, outliers::dixon.test,
         EnvStats::rosnerTest), group by group; the value tested is the one R outliers::outlier() names."""
         from .._r import r_call
         from .stat_tests import _num
@@ -1644,20 +1644,20 @@ class RowWords:
         words = f"{rule.capitalize()}'s test" + (f", for each {', '.join(groups)}" if groups else "")
         return frame, [_NEW], words
 
-    @friendly(renamed={"for_each": "for_each_group_in"})
-    def show_rows_with_outliers(self, column=None, for_each_group_in=None, rule="1.5 IQR"):
+    @friendly(renamed={"rule": "test_method", "for_each": "for_each_group_in"})
+    def show_rows_with_outliers(self, column=None, for_each_group_in=None, test_method="1.5 IQR"):
         """Show the rows whose value in a column is an outlier, and say why (the table does not change).
 
         table.show_rows_with_outliers("marks", for_each_group_in="subject")   (with sdata.get_example("marks"))
-        rule="1.5 IQR" (the default) is Tukey's rule, the one box plots use: below Q1 - 1.5 x IQR
-        or above Q3 + 1.5 x IQR. Also rule="3 IQR" or rule="3 standard deviations", or an
-        outlier test run in R (simplydata[r]): rule="grubbs" (outliers::grubbs.test(), the value
+        test_method="1.5 IQR" (the default) is Tukey's rule, the one box plots use: below Q1 - 1.5 x IQR
+        or above Q3 + 1.5 x IQR. Also test_method="3 IQR" or test_method="3 standard deviations", or an
+        outlier test run in R (simplydata[r]): test_method="grubbs" (outliers::grubbs.test(), the value
         farthest from the average), "dixon" (outliers::dixon.test(), 3 to 30 values) or "rosner"
         (EnvStats::rosnerTest(), up to 3 outliers), each at the 5 % level, group by group.
         Empty cells are never outliers. Each row is shown with its number in the whole table
         (counting from 1), so remove_rows_by_position() can follow.
         """
-        frame, helpers, _ = self._outliers("show_rows_with_outliers", column, for_each_group_in, rule)
+        frame, helpers, _ = self._outliers("show_rows_with_outliers", column, for_each_group_in, test_method)
         place = _NEW + "place"
         found = frame.with_row_index(place).filter(nw.col(_NEW))
         positions = found[place].to_list()
@@ -1669,20 +1669,20 @@ class RowWords:
                   f"table.remove_rows_by_position({_list_code(p + 1 for p in positions)}) would remove them.")
         return None
 
-    @friendly(renamed={"for_each": "for_each_group_in"})
-    def remove_rows_with_outliers(self, column=None, for_each_group_in=None, rule="1.5 IQR"):
+    @friendly(renamed={"rule": "test_method", "for_each": "for_each_group_in"})
+    def remove_rows_with_outliers(self, column=None, for_each_group_in=None, test_method="1.5 IQR"):
         """Remove the rows whose value in a column is an outlier, and say how many and why.
 
         table.remove_rows_with_outliers("marks", for_each_group_in="subject")   (with sdata.get_example("marks"))
-        rule="1.5 IQR" (the default) is Tukey's rule, the one box plots use: below Q1 - 1.5 x IQR
-        or above Q3 + 1.5 x IQR. Also rule="3 IQR" or rule="3 standard deviations", or an
-        outlier test run in R (simplydata[r]): rule="grubbs" (outliers::grubbs.test(), the value
+        test_method="1.5 IQR" (the default) is Tukey's rule, the one box plots use: below Q1 - 1.5 x IQR
+        or above Q3 + 1.5 x IQR. Also test_method="3 IQR" or test_method="3 standard deviations", or an
+        outlier test run in R (simplydata[r]): test_method="grubbs" (outliers::grubbs.test(), the value
         farthest from the average), "dixon" (outliers::dixon.test(), 3 to 30 values) or "rosner"
         (EnvStats::rosnerTest(), up to 3 outliers), each at the 5 % level, group by group.
         Rows with an empty cell stay. Look first with show_rows_with_outliers(), and say in your
         report which rule removed how many rows.
         """
-        frame, helpers, words = self._outliers("remove_rows_with_outliers", column, for_each_group_in, rule)
+        frame, helpers, words = self._outliers("remove_rows_with_outliers", column, for_each_group_in, test_method)
         new = frame.filter(~nw.col(_NEW)).drop(helpers)
         before = len(frame)
         print(f"Removed {before - len(new)} of {_rows(before)}. {_rows(len(new))} left.")

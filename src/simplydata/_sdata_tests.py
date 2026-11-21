@@ -8,9 +8,9 @@ table.compare_averages_of and table.compare_counts_of, from SciPy and statsmodel
   as R BSDA::tsum.test()); the 95 % interval of the difference comes from R BSDA::tsum.test()
   (SciPy gives none from summary numbers). Three or more groups: Welch's one-way ANOVA
   (statsmodels anova_generic(use_var="unequal"), the same numbers as R oneway.test() on the rows).
-  test="student" / "anova" assume equal spreads.
+  test_method="student" / "anova" assume equal spreads.
 * sdata.compare_counts([[20, 40], [30, 30]]): the chi-square test of independence on a table of
-  counts, as table.compare_counts_of (R chisq.test()); test="fisher", "g", "barnard", "boschloo" as there.
+  counts, as table.compare_counts_of (R chisq.test()); test_method="fisher", "g", "barnard", "boschloo" as there.
 """
 
 from __future__ import annotations
@@ -46,8 +46,8 @@ def _table():
     return table({"group": ["-"]})
 
 
-@friendly(renamed={"groups": "names"})
-def compare_averages(averages=None, standard_deviations=None, counts=None, names=None, test=None):
+@friendly(renamed={"test": "test_method", "groups": "names"})
+def compare_averages(averages=None, standard_deviations=None, counts=None, names=None, test_method=None):
     """Are the averages of the groups different? From the summary numbers of each group.
 
     sdata.compare_averages(averages=[63.2, 68.9], standard_deviations=[8.1, 9.0], counts=[20, 22])
@@ -55,7 +55,7 @@ def compare_averages(averages=None, standard_deviations=None, counts=None, names
     Welch's t-test (SciPy ttest_ind_from_stats, as R BSDA::tsum.test()), with the 95 % interval of
     the difference from R (BSDA::tsum.test(), simplydata[r]). Three or more groups: Welch's one-way
     ANOVA (statsmodels anova_generic, the same numbers as R oneway.test() on the rows).
-    test="student" (two groups) or test="anova" (three or more) assume the groups have the same
+    test_method="student" (two groups) or test_method="anova" (three or more) assume the groups have the same
     spread. names= names the groups (default "group 1", "group 2", ...). With the rows at hand use
     table.compare_averages_of(...), which also gives the effect size. Gives back a one-row table.
     """
@@ -80,9 +80,9 @@ def compare_averages(averages=None, standard_deviations=None, counts=None, names
     if len(names) != k or len(set(names)) != k:
         raise SimplydataError(f"names= needs {k} different names, one per group.")
     allowed = SUMMARY_TESTS_TWO if k == 2 else SUMMARY_TESTS_MANY
-    test = test or allowed[0]
-    if test not in allowed:
-        raise choice_error(step, "test", test, list(allowed))
+    test_method = test_method or allowed[0]
+    if test_method not in allowed:
+        raise choice_error(step, "test_method", test_method, list(allowed))
     from .table.stat_tests import ALIKE, _list_words, _num, _whole
     from .table.summaries import _p_sentence
 
@@ -94,7 +94,7 @@ def compare_averages(averages=None, standard_deviations=None, counts=None, names
 
         from ._r import RMissing, r_call
 
-        equal = test == "student"
+        equal = test_method == "student"
         result = stats.ttest_ind_from_stats(means[0], sds[0], ns[0], means[1], sds[1], ns[1], equal_var=equal)
         t, p = float(result.statistic), float(result.pvalue)
         name = "Student's t-test" if equal else "Welch's t-test"
@@ -119,7 +119,7 @@ def compare_averages(averages=None, standard_deviations=None, counts=None, names
               f"{_num(abs(diff))} {'higher' if diff > 0 else 'lower'}{interval}.")
         print(_p_sentence(p, "there were truly no difference"))
         why = ("it does not assume both groups have the same spread" if not equal else
-               "chosen with test=; it assumes both groups have the same spread")
+               "chosen with test_method=; it assumes both groups have the same spread")
         print(f"Test: {name} from summary numbers (t = {_num(t)}" + ("" if math.isnan(df) else f", df = {_whole(df)}")
               + f"), as R BSDA::tsum.test(); {why}.")
         if note:
@@ -127,7 +127,7 @@ def compare_averages(averages=None, standard_deviations=None, counts=None, names
     else:
         from statsmodels.stats.oneway import anova_generic
 
-        equal = test == "anova"
+        equal = test_method == "anova"
         result = anova_generic(np.array(means), np.array(sds) ** 2, np.array(ns),
                                use_var="equal" if equal else "unequal", welch_correction=True)
         f, p = float(result.statistic), float(result.pvalue)
@@ -138,20 +138,20 @@ def compare_averages(averages=None, standard_deviations=None, counts=None, names
         print(f"The average is {_list_words(f'{_num(m)} in {n}' for n, m in zip(names, means))}.")
         print(_p_sentence(p, *ALIKE))
         why = ("it does not assume the groups have the same spread" if not equal else
-               "chosen with test=; it assumes the groups have the same spread")
+               "chosen with test_method=; it assumes the groups have the same spread")
         print(f"Test: {name} from summary numbers (F = {_num(f)}, df = {_whole(df1)} and {_whole(df2)}), the same "
               f"numbers as R oneway.test({'var.equal = TRUE' if equal else ''}) on the rows; {why}.")
     return _table()._result_table(row)
 
 
-@friendly
-def compare_counts(counts=None, test=None):
+@friendly(renamed={"test": "test_method"})
+def compare_counts(counts=None, test_method=None):
     """Are the rows and columns of a table of counts linked? From the counts alone.
 
     sdata.compare_counts([[20, 40], [30, 30]])
     A table of counts: one list per row (or a pandas DataFrame of counts, whose row and column
     names are used). The chi-square test of independence (as R chisq.test(), with Yates'
-    continuity correction for 2 x 2 tables), with Cramer's V; test="fisher", "g", "barnard" or
+    continuity correction for 2 x 2 tables), with Cramer's V; test_method="fisher", "g", "barnard" or
     "boschloo" as in table.compare_counts_of(). With a table of rows use table.compare_counts_of(column,
     for_each_group_in=). Gives back a one-row table.
     """
@@ -171,9 +171,9 @@ def compare_counts(counts=None, test=None):
         raise SimplydataError("The counts must be whole numbers of 0 or more.")
     from .table.stat_tests import COUNT_TESTS
 
-    if test is not None and test not in COUNT_TESTS:
-        raise choice_error(step, "test", test, list(COUNT_TESTS))
+    if test_method is not None and test_method not in COUNT_TESTS:
+        raise choice_error(step, "test_method", test_method, list(COUNT_TESTS))
     shape = f"{observed.shape[0]} rows and {observed.shape[1]} columns"
-    return _table()._counts_engine(observed.astype(np.int64), "row", "column", test,
+    return _table()._counts_engine(observed.astype(np.int64), "row", "column", test_method,
                                    what=f"the counts in {shape}", unit="counted",
                                    unrelated="the rows and the columns were truly unrelated")

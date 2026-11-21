@@ -17,7 +17,7 @@ Choices (the same defaults as R, so results can be checked there):
     least-squares answer).
   - With between=: trust region reflective, which keeps every value inside its limits
     (curve_fit method "trf"), as R nls(algorithm = "port", lower =, upper =).
-  - method= lets an expert choose "levenberg-marquardt", "trust region" or "dogbox".
+  - test_method= lets an expert choose "levenberg-marquardt", "trust region" or "dogbox".
   - weights=: weighted least squares (curve_fit sigma = 1 / sqrt(weights)), as R
     nls(weights =).
   - search="whole range": differential evolution over the whole range of between= (SciPy
@@ -197,18 +197,18 @@ def _read_search(step, search) -> str:
 
 
 def _read_method(step, method, search, low, high) -> str:
-    """The curve_fit method: method= if given, else Levenberg-Marquardt, or trust region with limits."""
+    """The curve_fit method: test_method= if given, else Levenberg-Marquardt, or trust region with limits."""
     limited = bool(np.any(np.isfinite(low)) or np.any(np.isfinite(high)))
     if method is None:
         return "trf" if limited or search == "whole range" else "lm"
     key = method.strip().lower() if isinstance(method, str) else method
     key = METHOD_SPELLINGS.get(key, key)
     if key not in METHODS:
-        raise choice_error(step, "method", method, list(METHODS))
+        raise choice_error(step, "test_method", method, list(METHODS))
     if METHODS[key] == "lm" and (limited or search == "whole range"):
         raise SimplydataError(
-            "Levenberg-Marquardt cannot keep values between limits. With between= use method=\"trust region\" "
-            "(or leave method= out), or leave out between= to use Levenberg-Marquardt."
+            "Levenberg-Marquardt cannot keep values between limits. With between= use test_method=\"trust region\" "
+            "(or leave test_method= out), or leave out between= to use Levenberg-Marquardt."
         )
     return METHODS[key]
 
@@ -590,8 +590,8 @@ class FittingWords:
         return [(st._label(k), k, {c: a[keys == k] for c, a in arrays.items()}) for k in order]
 
     # ------------------------------------------------------------------ fit_line
-    @friendly
-    def fit_line(self, x=None, y=None, method="least squares", y_error_over_x_error=None, with_bends=None,
+    @friendly(renamed={"method": "test_method"})
+    def fit_line(self, x=None, y=None, test_method="least squares", y_error_over_x_error=None, with_bends=None,
                  changes_at=None):
         """Fit the straight line y = slope * x + intercept that best follows the points.
 
@@ -602,7 +602,7 @@ class FittingWords:
         are skipped. A link does not show that x causes y. Gives back a one-row table.
         The same line as chart.fit_line(); its old name fit_straight_line still works.
         For a curve use fit_curve(), for any formula fit_formula().
-        method= (experts) other lines, each answering its own question: "theil-sen" or
+        test_method= (experts) other lines, each answering its own question: "theil-sen" or
         "siegel" (outliers pull them little; SciPy theilslopes, siegelslopes); "standardised
         major axis" or "major axis" for two measures that both carry error (R smatr::sma());
         "deming" (with y_error_over_x_error=, the variance of the errors in y over that in x,
@@ -611,17 +611,17 @@ class FittingWords:
         segmented::segmented(), with Davies' test of "no bend at all"). changes_at=37 lets the
         line jump and change its slope at a point you know (an interrupted time series).
         """
-        if method is None:
-            method = "least squares"
+        if test_method is None:
+            test_method = "least squares"
         from .lines_more import read_line_method
 
-        method = read_line_method(method)
+        test_method = read_line_method(test_method)
         if y_error_over_x_error is not None:
             st = _st()
-            if method != "deming":
-                raise SimplydataError('y_error_over_x_error= goes with method="deming": the variance of the errors in '
+            if test_method != "deming":
+                raise SimplydataError('y_error_over_x_error= goes with test_method="deming": the variance of the errors in '
                                       'y divided by that in x.\nFor example table.fit_line(x="reference", y="new", '
-                                      'method="deming", y_error_over_x_error=1)')
+                                      'test_method="deming", y_error_over_x_error=1)')
             if not st._is_number(y_error_over_x_error) or isinstance(y_error_over_x_error, bool) or \
                     not 0 < y_error_over_x_error < math.inf:
                 raise SimplydataError("y_error_over_x_error= is the variance of the errors in y divided by the variance "
@@ -631,8 +631,8 @@ class FittingWords:
                 "with_bends= and changes_at= cannot go together: with_bends= lets the data find where the line bends "
                 "(and the line stays joined), changes_at= is a point you know, where the line may jump and change "
                 "its slope. Choose one.")
-        if (with_bends is not None or changes_at is not None) and method != "least squares":
-            raise SimplydataError(f'with_bends= and changes_at= work with least squares, not method="{method}".')
+        if (with_bends is not None or changes_at is not None) and test_method != "least squares":
+            raise SimplydataError(f'with_bends= and changes_at= work with least squares, not test_method="{test_method}".')
         st = _st()
         step = "fit_line"
         example = 'with sdata.get_example("marks"): table.fit_line(x="hours", y="marks")'
@@ -640,8 +640,8 @@ class FittingWords:
         self._need_name(step, "y=", y, example)
         if x == y:
             raise SimplydataError(f"{step}() needs two different columns, for example {example}.")
-        if method != "least squares":
-            return self._fit_line_other(x, y, method, 1.0 if y_error_over_x_error is None else
+        if test_method != "least squares":
+            return self._fit_line_other(x, y, test_method, 1.0 if y_error_over_x_error is None else
                                         float(y_error_over_x_error))
         if with_bends is not None:
             return self._fit_line_bends(x, y, with_bends)
@@ -800,9 +800,9 @@ class FittingWords:
             raise SimplydataError(f"{step}() could not fit the formula in any group. In the first: {fits[0][2]}")
         return parsed, fits
 
-    @friendly(renamed={"for_each": "for_each_group_in"})
+    @friendly(renamed={"method": "test_method", "for_each": "for_each_group_in"})
     def fit_formula(self, formula=None, start=None, between=None, weights=None, for_each_group_in=None,
-                    search="from start", method=None):
+                    search="from start", test_method=None):
         """Find the values in a formula that make it follow the data best.
 
         table.fit_formula("population = a * exp(b * (year - 2000))")   (with sdata.get_example("growth"))
@@ -814,7 +814,7 @@ class FittingWords:
         nls(algorithm = "port"); search="whole range" searches the whole range of between=
         before fitting (differential evolution, seed 1), for when start values are hard to
         guess. weights="column" counts some rows more (as R nls(weights =)). for_each_group_in="column"
-        fits each group on its own. method= lets an expert choose "levenberg-marquardt",
+        fits each group on its own. test_method= lets an expert choose "levenberg-marquardt",
         "trust region" or "dogbox".
         Prints each value with its 95 % confidence interval, the residual standard error and
         R squared (only a rough guide for a curve). Gives back one row (one per group) with
@@ -826,7 +826,7 @@ class FittingWords:
         st = _st()
         step = "fit_formula"
         example = 'with sdata.get_example("growth"): table.fit_formula("population = a * exp(b * (year - 2000))")'
-        parsed, fits = self._fit_formula_groups(step, formula, start, between, weights, for_each_group_in, search, method,
+        parsed, fits = self._fit_formula_groups(step, formula, start, between, weights, for_each_group_in, search, test_method,
                                                 example)
         rows = []
         num = st._num

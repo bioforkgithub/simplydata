@@ -125,22 +125,22 @@ ENTRIES = [
         compare="result", row="ward (ward B)", fields=("log risk ratio", "standard error"), tolerance=1e-6,
         choices=("modified Poisson regression (Zou 2004): a Poisson model for the 0/1 column with robust (HC0) "
                  "standard errors, as R glm(family = poisson) with sandwich::vcovHC(type = \"HC0\"); it always "
-                 "converges, where log-binomial (method=\"log-binomial\") often does not.",),
+                 "converges, where log-binomial (test_method=\"log-binomial\") often does not.",),
         also="simplydata also prints the risk ratios (exp of the effects) and their intervals, and leaves out the "
              "AIC: the Poisson model is used only for its ratios. " + SENTENCE,
     ),
     Entry(
-        word="table.explain", option='method="log-binomial"',
+        word="table.explain", option='test_method="log-binomial"',
         data="school",
         ours="""
             table = sdata.table(sdata.get_example("school"))
             table.explain("passed", using=["breakfast"], outcome="yes or no", show="risk ratios",
-                          method="log-binomial")
+                          test_method="log-binomial")
         """,
         code={"statsmodels": """
             import statsmodels.api as sm
             df = sdata.get_example("school")
-            # explain("passed", using=["breakfast"], outcome="yes or no", show="risk ratios", method="log-binomial")
+            # explain("passed", using=["breakfast"], outcome="yes or no", show="risk ratios", test_method="log-binomial")
             X = sm.add_constant((df["breakfast"] == "yes").astype(float))
             y = (df["passed"] == "yes").astype(float)
             log = sm.families.links.Log()

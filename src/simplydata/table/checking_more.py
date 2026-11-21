@@ -995,8 +995,8 @@ def manova(words, columns, for_each):
 
 # ---------------------------------------------------------------- the two new words
 class CheckingMoreWords:
-    @friendly
-    def find_columns_that_predict(self, column=None, using=None, method="lasso", outcome="numbers", with_seed=1):
+    @friendly(renamed={"method": "test_method"})
+    def find_columns_that_predict(self, column=None, using=None, test_method="lasso", outcome="numbers", with_seed=1):
         """Choose the columns that predict a column, with the lasso and a penalty checked on left-out rows.
 
         table.find_columns_that_predict("marks", using=["hours", "sleep", "breakfast", "class"])
@@ -1005,7 +1005,7 @@ class CheckingMoreWords:
         columns are kept. How strongly it shrinks (the penalty) is chosen by cross-validation: the
         rows are split into 10 parts at random (with_seed=1 fixes the split), each part is left out
         once and predicted by models fitted to the other nine, and simplydata takes the largest
-        penalty within one standard error of the best (fewer columns, steadier). method="elastic
+        penalty within one standard error of the best (fewer columns, steadier). test_method="elastic
         net" is half lasso, half ridge (it keeps groups of linked columns together). outcome="yes or
         no" and "counts" work too. Text columns are turned into 0/1 columns. No p-values: the
         columns were chosen by the data. Done by R glmnet::cv.glmnet() (needs R: pip install
@@ -1018,13 +1018,13 @@ class CheckingMoreWords:
         example = ('table.find_columns_that_predict("marks", using=["hours", "breakfast", "sleep"])   (with a table '
                    "of several columns)")
         self._need_name(step, "the column to predict", column, example)
-        method_text = method.strip().lower() if isinstance(method, str) else method
+        method_text = test_method.strip().lower() if isinstance(test_method, str) else test_method
         method_text = LASSO_SPELLINGS.get(method_text, method_text)
         if method_text == "ridge":
-            raise SimplydataError('method="ridge" keeps every column (it shrinks effects but never sets one to 0), so it '
-                                  'does not find columns. Use method="lasso" (the default) or method="elastic net".')
+            raise SimplydataError('test_method="ridge" keeps every column (it shrinks effects but never sets one to 0), so it '
+                                  'does not find columns. Use test_method="lasso" (the default) or test_method="elastic net".')
         if method_text not in LASSO_METHODS:
-            self._check_choice(step, "method", method, tuple(LASSO_METHODS))
+            self._check_choice(step, "test_method", test_method, tuple(LASSO_METHODS))
         if outcome not in LASSO_OUTCOMES:
             self._check_choice(step, "outcome", outcome, tuple(LASSO_OUTCOMES))
         if isinstance(with_seed, bool) or not isinstance(with_seed, int):

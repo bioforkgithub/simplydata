@@ -8,11 +8,11 @@ so no package can hide a function of another.
 * risk_curves: survival::survfit() with a factor event (Aalen-Johansen), for find_risk_over_time and
   draw_risk_curves with competing_with=.
 * grays_test: cmprsk::cuminc()$Tests, for compare_survival(value=, competing_with=).
-* fine_gray: cmprsk::crr(), for explain_survival(method="fine-gray").
+* fine_gray: cmprsk::crr(), for explain_survival(test_method="fine-gray").
 * survival_regression: survival::survreg(dist=), for explain_survival(distribution=).
 * restricted_means: summary(survival::survfit(), rmean=), and rmst_difference: survRM2::rmst2(), for
   average_time_up_to=.
-* life_table: KMsurv::lifetab(), for find_survival_over_time(method="life table").
+* life_table: KMsurv::lifetab(), for find_survival_over_time(test_method="life table").
 * adjusted_curves: adjustedCurves::adjustedsurv(method = "direct"), for allowing_for= on
   find_survival_over_time and draw_survival_curves.
 (The proportional-hazards check and Harrell's C of explain_survival are in survival.py, cox_zph.)

@@ -1,4 +1,4 @@
-"""Bayesian answers (phase S3d-3, design s3c_design.md Z01-Z06): bayesian=True on compare_averages_of (two groups),
+"""Bayesian answers (phase S3d-3, design s3c_design.md Z01-Z06): test_method="bayesian" on compare_averages_of (two groups),
 compare_before_and_after, compare_average_to, find_correlation_between and compare_counts_of (R BayesFactor), and on
 explain and check_model_of (R rstanarm). The R calls are in bayes_r.py; this file checks the inputs and says the
 answer in words.
@@ -36,13 +36,13 @@ OK_OPTIONS = "outcome=, grouped_by= and with_seed="
 
 
 def check_bayes_options(step, given, light=True):
-    """Refuse the options that do not go with bayesian=True (given: [(option, value, default)]), and check prior_width=."""
+    """Refuse the options that do not go with test_method="bayesian" (given: [(option, value, default)]), and check prior_width=."""
     used = [name for name, value, default in given if not _same(value, default)]
     if used:
-        what = ("a Bayes factor and a credible interval (no test=, sides=, p_value_by= ...)" if light else
+        what = ("a Bayes factor and a credible interval (no test_method=, sides=, p_value_by= ...)" if light else
                 f"a Bayesian model (it takes {OK_OPTIONS})")
-        raise SimplydataError(f"{_list_words(used)} cannot be used with bayesian=True, which gives {what}. "
-                              f"Leave {'it' if len(used) == 1 else 'them'} out, or leave out bayesian=True.")
+        raise SimplydataError(f"{_list_words(used)} cannot be used with test_method=\"bayesian\", which gives {what}. "
+                              f"Leave {'it' if len(used) == 1 else 'them'} out, or leave out test_method=\"bayesian\".")
 
 
 def _same(value, default):
@@ -99,7 +99,7 @@ def _interval_sentence(what, est, unit=""):
 
 # ---------------------------------------------------------------- the light route
 def two_groups(table, column, for_each, groups, width, seed):
-    """compare_averages_of(..., bayesian=True) with two groups: R BayesFactor::ttestBF(x, y)."""
+    """compare_averages_of(..., test_method="bayesian") with two groups: R BayesFactor::ttestBF(x, y)."""
     (n1, a), (n2, b) = groups
     if np.min(a) == np.max(a) and np.min(b) == np.max(b):
         raise SimplydataError(f'Every value is the same within each group of "{for_each}", so the spread cannot be '
@@ -127,7 +127,7 @@ def two_groups(table, column, for_each, groups, width, seed):
 
 
 def matched(table, before, after, b_values, a_values, width, seed):
-    """compare_before_and_after(..., bayesian=True): R BayesFactor::ttestBF(after, before, paired = TRUE)."""
+    """compare_before_and_after(..., test_method="bayesian"): R BayesFactor::ttestBF(after, before, paired = TRUE)."""
     found = bayes_r.t_test("matched", a_values, b_values, width=width, seed=seed)
     shown, name = _width_words(found["width"], width)
     prior = T_PRIOR.format(width=shown, name=name)
@@ -151,7 +151,7 @@ def matched(table, before, after, b_values, a_values, width, seed):
 
 
 def one_column(table, column, value, values, width, seed):
-    """compare_average_to(..., bayesian=True): R BayesFactor::ttestBF(x - value)."""
+    """compare_average_to(..., test_method="bayesian"): R BayesFactor::ttestBF(x - value)."""
     found = bayes_r.t_test("one", values, value=value, width=width, seed=seed)
     shown, name = _width_words(found["width"], width)
     prior = T_PRIOR.format(width=shown, name=name)
@@ -177,7 +177,7 @@ def one_column(table, column, value, values, width, seed):
 
 
 def correlation(table, a_name, b_name, a, b, width, seed):
-    """find_correlation_between(a, b, bayesian=True): R BayesFactor::correlationBF(a, b)."""
+    """find_correlation_between(a, b, test_method="bayesian"): R BayesFactor::correlationBF(a, b)."""
     found = bayes_r.correlation(a, b, width=width, seed=seed)
     shown, name = _width_words(found["width"], width)
     prior = R_PRIOR.format(width=shown, name=name)
@@ -195,7 +195,7 @@ def correlation(table, a_name, b_name, a, b, width, seed):
 
 
 def counts(table, column, for_each, values, groups, value_order, group_order, seed):
-    """compare_counts_of(..., bayesian=True): R BayesFactor::contingencyTableBF(indepMulti, rows fixed)."""
+    """compare_counts_of(..., test_method="bayesian"): R BayesFactor::contingencyTableBF(indepMulti, rows fixed)."""
     found = bayes_r.counts(values, groups, value_order, group_order, seed=seed)
     print(f'Comparing how often each "{column}" turns up in each "{for_each}", the Bayesian way ({len(values)} rows).')
     print(bf_sentence(found, f'the shares of "{column}" differ between the groups', "they do not differ",
@@ -227,10 +227,10 @@ def counts(table, column, for_each, values, groups, value_order, group_order, se
 # ---------------------------------------------------------------- the heavy route
 def _model_for(table, step, column, using, outcome, grouped_by):
     if outcome not in BAYES_OUTCOMES:
-        raise SimplydataError(f'bayesian=True fits outcome="numbers", "yes or no" or "counts" (R rstanarm stan_glm and '
+        raise SimplydataError(f'test_method="bayesian" fits outcome="numbers", "yes or no" or "counts" (R rstanarm stan_glm and '
                               f'stan_glmer); outcome="{outcome}" is not offered the Bayesian way yet.')
     if grouped_by is not None and not isinstance(grouped_by, str):
-        raise SimplydataError("bayesian=True takes one grouped_by= column (a mixed model with its own starting level "
+        raise SimplydataError("test_method=\"bayesian\" takes one grouped_by= column (a mixed model with its own starting level "
                               'for each group, R rstanarm::stan_glmer(... + (1 | group))), such as grouped_by="school".')
     bayes_r.need_heavy("A Bayesian model")
     model, pieces = table._one_model(step, column, using, outcome, grouped_by, fit=False)
@@ -290,7 +290,7 @@ def convergence(found):
 
 
 def explain(table, column, using, outcome, grouped_by, seed):
-    """explain(..., bayesian=True): R rstanarm stan_glm() or stan_glmer()."""
+    """explain(..., test_method="bayesian"): R rstanarm stan_glm() or stan_glmer()."""
     from .models import INTERCEPT, _quoted
 
     step = "explain"
@@ -402,7 +402,7 @@ def _draw_bar_check(ctx, numbers, column, title):
 
 
 def check(table, column, using, outcome, grouped_by, seed, show):
-    """check_model_of(..., bayesian=True): the posterior predictive picture; show="prior check" the prior one."""
+    """check_model_of(..., test_method="bayesian"): the posterior predictive picture; show="prior check" the prior one."""
     step = "check_model_of"
     prior_only = show is not None
     model, pieces = _model_for(table, step, column, using, outcome, grouped_by)

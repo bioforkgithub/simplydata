@@ -18,7 +18,7 @@ Methods (the same defaults as R's survival package, so results can be checked th
   read where the curve and the two edges of the band first reach 0.5 or below, with R's
   rule for a curve that sits exactly on 0.5 (the middle of that time and the next drop).
   at_time_points= reads the curve at chosen times (R summary(survfit(), times =, extend = TRUE), but empty
-  after a group's last follow-up); method="life table" gives the actuarial life table (R KMsurv::lifetab);
+  after a group's last follow-up); test_method="life table" gives the actuarial life table (R KMsurv::lifetab);
   average_time_up_to= the restricted mean survival time (R summary(survfit(), rmean =)); allowing_for= curves
   adjusted for other columns by direct adjustment (R adjustedCurves::adjustedsurv(method = "direct")).
 * compare_survival: the log-rank test (R survdiff(), rho = 0), from statsmodels survdiff.
@@ -37,7 +37,7 @@ Methods (the same defaults as R's survival package, so results can be checked th
   printed when a term has p < 0.05. The same R call gives Harrell's C (survival::concordance()). Without R the
   model is still fitted and a note says how to add the check.
   allowing_for= stratifies (PHReg(strata=)); followed_from= gives each row its start time (PHReg(entry=), R
-  Surv(start, stop, event)); competing_with= gives the cause-specific model; method="fine-gray" the Fine-Gray
+  Surv(start, stop, event)); competing_with= gives the cause-specific model; test_method="fine-gray" the Fine-Gray
   model (R cmprsk::crr); distribution= a parametric model with time ratios (R survival::survreg).
 """
 
@@ -589,9 +589,9 @@ class SurvivalWords:
         return np.array([place[k] for k in labels]), names
 
     # ------------------------------------------------------------------ find_survival_over_time
-    @friendly(renamed={"for_each": "for_each_group_in"}, others={"at_times": "at_time_points"})
+    @friendly(renamed={"method": "test_method", "for_each": "for_each_group_in"}, others={"at_times": "at_time_points"})
     def find_survival_over_time(self, time=None, event=None, for_each_group_in=None, at_time_points=None,
-                                method="kaplan-meier", allowing_for=None, followed_from=None,
+                                test_method="kaplan-meier", allowing_for=None, followed_from=None,
                                 average_time_up_to=None, value=None):
         """The share still without the event over time (Kaplan-Meier), with the median time.
 
@@ -609,7 +609,7 @@ class SurvivalWords:
 
         More: at_time_points=[365, 730] reads the survival at those times, one row per group and time
         (at_times= works too); a time after a group's last follow-up is left empty ("not followed that long").
-        method="life table" gives the actuarial life table, with at_time_points= as the starts of the
+        test_method="life table" gives the actuarial life table, with at_time_points= as the starts of the
         intervals, beginning at 0 (R KMsurv::lifetab; rows lost in an interval count as followed for half of
         it). average_time_up_to=365 gives, per group, the average time spent without the event in the first
         365 time units (the restricted mean survival time, R summary(survfit(), rmean = 365)).
@@ -620,21 +620,21 @@ class SurvivalWords:
         """
         step = "find_survival_over_time"
         example = EXAMPLE.format(word=step, more=', for_each_group_in="treatment"')
-        method = _choice(step, "method", method, METHODS, METHOD_SPELLINGS)
+        test_method = _choice(step, "test_method", test_method, METHODS, METHOD_SPELLINGS)
         if for_each_group_in is not None:
             self._check_for_each(step, for_each_group_in, time, event, example)
         points = time_points(step, at_time_points) if at_time_points is not None else None
         allowing = self._allowing(step, allowing_for, {time, event, for_each_group_in}, False, example)
-        asked = [o for o, v in (("method=\"life table\"", method == "life table"), ("allowing_for=", allowing),
+        asked = [o for o, v in (("test_method=\"life table\"", test_method == "life table"), ("allowing_for=", allowing),
                                 ("average_time_up_to=", average_time_up_to is not None),
                                 ("followed_from=", followed_from is not None)) if v]
         if len(asked) > 1:
             raise SimplydataError(f"{step}() answers one of these at a time: {_list_words(asked)}. Ask them in "
                                   "separate calls.")
-        if method == "life table" and points is None:
-            raise SimplydataError(f'method="life table" needs at_time_points=: the starts of the intervals, '
+        if test_method == "life table" and points is None:
+            raise SimplydataError(f'test_method="life table" needs at_time_points=: the starts of the intervals, '
                                   f'beginning at 0.\nFor example, table.{step}(time="days", event="died", '
-                                  'method="life table", at_time_points=[0, 365, 730])')
+                                  'test_method="life table", at_time_points=[0, 365, 730])')
         if average_time_up_to is not None and points is not None:
             raise SimplydataError("average_time_up_to= and at_time_points= ask different questions; give one.")
         if allowing and not for_each_group_in:
@@ -652,7 +652,7 @@ class SurvivalWords:
         if allowing:
             return self._adjusted_survival(time, event, yes, times, events, kept, names, codes, for_each_group_in,
                                            allowing, points)
-        if method == "life table":
+        if test_method == "life table":
             return self._life_table(time, event, yes, times, events, names, codes, for_each_group_in, points)
         if average_time_up_to is not None:
             return self._restricted_means(step, time, event, yes, times, events, names, codes, for_each_group_in,
@@ -744,7 +744,7 @@ class SurvivalWords:
         return self._new_table(nw.from_dict(out, backend=self._frame.implementation))
 
     def _life_table(self, time, event, yes, times, events, names, codes, for_each, points):
-        """find_survival_over_time(method="life table"): the actuarial life table of R KMsurv::lifetab. simplydata
+        """find_survival_over_time(test_method="life table"): the actuarial life table of R KMsurv::lifetab. simplydata
         counts the rows that start each interval, are lost (followed without the event to a time in it) or have
         the event in it; lifetab does the rest."""
         from .survival_r import life_table
@@ -1072,9 +1072,9 @@ class SurvivalWords:
             terms.append(cols)
         return np.column_stack(columns), names, terms
 
-    @friendly
+    @friendly(renamed={"method": "test_method"})
     def explain_survival(self, time=None, event=None, using=None, allowing_for=None, followed_from=None, value=None,
-                         competing_with=None, method="cox", distribution=None, empty_cells="leave out", with_seed=1):
+                         competing_with=None, test_method="cox", distribution=None, empty_cells="leave out", with_seed=1):
         """Which columns go with a higher or lower risk of the event? (Cox model, hazard ratios)
 
         table.explain_survival(time="days", event="died", using=["treatment", "age"])   (with sdata.get_example("trial"))
@@ -1094,8 +1094,8 @@ class SurvivalWords:
         died)). This is also how to avoid immortal time: a treatment that starts on day 40 becomes two rows,
         0 to 40 untreated and 40 to the end treated, each with followed_from= its start.
         value="relapse", competing_with="death" (the event column has kinds): the cause-specific hazard ratios
-        of relapse, with death counted as the end of follow-up (method="cox", the default; "cause-specific"
-        works too); method="fine-gray" gives the Fine-Gray model of the chance of relapse by each time
+        of relapse, with death counted as the end of follow-up (test_method="cox", the default; "cause-specific"
+        works too); test_method="fine-gray" gives the Fine-Gray model of the chance of relapse by each time
         (subdistribution hazard ratios, R cmprsk::crr). distribution="weibull" ("exponential", "lognormal",
         "log-logistic") fits a parametric model instead (R survival::survreg) and gives time ratios: how many
         times as long the time until the event is.
@@ -1106,8 +1106,8 @@ class SurvivalWords:
         """
         step = "explain_survival"
         example = EXAMPLE.format(word=step, more=', using=["treatment", "age"]')
-        asked_cause_specific = isinstance(method, str) and method.strip().lower().startswith("cause")
-        method = _choice(step, "method", method, MODEL_METHODS, MODEL_SPELLINGS)
+        asked_cause_specific = isinstance(test_method, str) and test_method.strip().lower().startswith("cause")
+        test_method = _choice(step, "test_method", test_method, MODEL_METHODS, MODEL_SPELLINGS)
         dist = (_choice(step, "distribution", distribution, DISTRIBUTIONS, DISTRIBUTION_SPELLINGS)
                 if distribution is not None else None)
         if isinstance(using, str):
@@ -1123,7 +1123,7 @@ class SurvivalWords:
         if read_empty_cells(step, empty_cells, example) == MULTIPLE:
             others = [o for o, v in (("allowing_for=", allowing_for is not None), ("followed_from=", followed_from is not None),
                                      ("competing_with=", competing_with is not None), ("distribution=", dist is not None),
-                                     ('method="fine-gray"', method == "fine-gray")) if v]
+                                     ('test_method="fine-gray"', test_method == "fine-gray")) if v]
             if others:
                 raise SimplydataError(f'empty_cells="multiple imputation" fills in a plain Cox model; leave out '
                                       f"{_list_words(others)}.")
@@ -1142,25 +1142,25 @@ class SurvivalWords:
         if time in using or event in using:
             raise SimplydataError(f"using= cannot hold the time= or event= column.\nFor example, {example}")
         allowing = self._allowing(step, allowing_for, {time, event, *using}, True, example)
-        if method == "fine-gray" and competing_with is None:
-            raise SimplydataError('method="fine-gray" needs value= and competing_with=: the Fine-Gray model is about '
+        if test_method == "fine-gray" and competing_with is None:
+            raise SimplydataError('test_method="fine-gray" needs value= and competing_with=: the Fine-Gray model is about '
                                   "the chance of one event when another can come first.\nFor example, "
                                   'table.explain_survival(time="months", event="outcome", value="relapse", '
-                                  'competing_with="death", using=["age"], method="fine-gray")')
+                                  'competing_with="death", using=["age"], test_method="fine-gray")')
         if asked_cause_specific and competing_with is None:
-            raise SimplydataError('method="cause-specific" needs value= and competing_with=: a cause-specific model '
+            raise SimplydataError('test_method="cause-specific" needs value= and competing_with=: a cause-specific model '
                                   "is a Cox model of one event with the competing event counted as the end of "
                                   "follow-up.\nFor example, table.explain_survival(time=\"months\", event=\"outcome\", "
                                   'value="relapse", competing_with="death", using=["age"])')
         if dist is not None:
-            others = [o for o, v in (("method=\"fine-gray\"", method == "fine-gray"),
+            others = [o for o, v in (("test_method=\"fine-gray\"", test_method == "fine-gray"),
                                      ("competing_with=", competing_with is not None), ("allowing_for=", allowing),
                                      ("followed_from=", followed_from is not None)) if v]
             if others:
                 raise SimplydataError(f"distribution= chooses a parametric model, which works without "
                                       f"{_list_words(others)}. Leave distribution= out for a Cox model.")
-        if method == "fine-gray" and (allowing or followed_from is not None):
-            raise SimplydataError('method="fine-gray" (R cmprsk::crr) works without allowing_for= and followed_from=.')
+        if test_method == "fine-gray" and (allowing or followed_from is not None):
+            raise SimplydataError('test_method="fine-gray" (R cmprsk::crr) works without allowing_for= and followed_from=.')
         if competing_with is not None:
             times, kept, entries, _ = self._survival_rows(step, time, event, using + allowing, example, followed_from)
             states, kinds, others = read_states(kept[event], event, value, competing_with, time, step)
@@ -1176,7 +1176,7 @@ class SurvivalWords:
             raise SimplydataError(f"{step}() needs more rows than terms: {len(times)} rows for {x.shape[1]} terms.")
         if dist is not None:
             return self._explain_parametric(time, event, yes, times, events, x, names, using, dist)
-        if method == "fine-gray":
+        if test_method == "fine-gray":
             return self._explain_fine_gray(time, event, times, states, kinds, others, x, names, using)
         return self._explain_cox(time, event, yes, times, events, kept, x, names, terms, using, allowing, entries,
                                  followed_from, kinds, others, states)
@@ -1252,7 +1252,7 @@ class SurvivalWords:
         print(f"Method: {label}, Efron's method for tied times, as R coxph({surv} ~ {rhs}).")
         if kinds:
             print(f'Note: these hazard ratios are about the risk of {kinds[0]} among those still free of both events. '
-                  f'For the chance of {kinds[0]} by each time, when {rival} can come first, use method="fine-gray" '
+                  f'For the chance of {kinds[0]} by each time, when {rival} can come first, use test_method="fine-gray" '
                   "here, and table.find_risk_over_time(...) for the curves.")
         if not fit["converged"]:
             print(f"Note: the model did not settle after {COX_STEPS} steps; a hazard ratio may be heading to 0 or "
@@ -1288,7 +1288,7 @@ class SurvivalWords:
         return self._new_table(frame)
 
     def _explain_fine_gray(self, time, event, times, states, kinds, others, x, names, using):
-        """explain_survival(method="fine-gray"): subdistribution hazard ratios, R cmprsk::crr."""
+        """explain_survival(test_method="fine-gray"): subdistribution hazard ratios, R cmprsk::crr."""
         from .survival_r import fine_gray
 
         fit = fine_gray(times, states, x)
@@ -1312,7 +1312,7 @@ class SurvivalWords:
               f"cov1 = {' + '.join(using)}, failcode = 1, cencode = 0), with fstatus 1 = {kinds[0]}, "
               + ", ".join(f"{i} = {k}" for i, k in enumerate(kinds[1:], start=2)) + ", 0 = every other value.")
         print(f"Note: for the risk of {kinds[0]} at any moment among those still free of both events (the "
-              'cause-specific hazard ratios, best for asking what causes it), leave out method="fine-gray".')
+              'cause-specific hazard ratios, best for asking what causes it), leave out test_method="fine-gray".')
         if not fit["converged"]:
             print("Note: cmprsk::crr did not settle; treat the numbers with care.")
         frame = nw.from_dict({key: [r[key] for r in rows] for key in rows[0]}, backend=self._frame.implementation)

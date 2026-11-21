@@ -2,10 +2,10 @@
 Bioconductor), and the pair tests after Friedman's test (R PMCMRplus). simplydata puts the numbers in and words the
 answer; every number comes from the R package.
 
-* add_adjusted_p_value_column(method="storey" | "local fdr"): R qvalue::qvalue(p) with its defaults (pi0 by the
+* add_adjusted_p_value_column(test_method="storey" | "local fdr"): R qvalue::qvalue(p) with its defaults (pi0 by the
   smoother over lambda = 0.05, 0.10, ..., 0.95; Storey & Tibshirani 2003), giving $qvalues, $lfdr and $pi0. No Python
   package gives Storey's pi0 with qvalue's smoother (statsmodels fdrcorrection_twostage is another estimator).
-* compare_each_pair_of(matched_by=, test="nemenyi" | "conover"): R PMCMRplus::frdAllPairsNemenyiTest(y, groups,
+* compare_each_pair_of(matched_by=, test_method="nemenyi" | "conover"): R PMCMRplus::frdAllPairsNemenyiTest(y, groups,
   blocks) (the studentized range, which allows for all pairs itself: no further adjustment) and
   frdAllPairsConoverTest(y, groups, blocks, p.adjust.method = "holm"). scikit-posthocs gives the same Nemenyi
   p-values, but it is not a simplydata dependency, and its Conover test is not adjusted by default.
@@ -49,7 +49,7 @@ def storey(p, method):
     try:
         found = r_call(_R_QVALUE, packages=("qvalue",),
                        what="Storey's q-values and the local false discovery rate (R qvalue::qvalue())",
-                       python_note=('without R, method="benjamini-hochberg" gives the false discovery rate with '
+                       python_note=('without R, test_method="benjamini-hochberg" gives the false discovery rate with '
                                     "pi0 = 1 (statsmodels)"),
                        source="qvalue::qvalue", p=np.asarray(p, dtype=float))
     except RMissing:
@@ -58,7 +58,7 @@ def storey(p, method):
         raise SimplydataError(
             f"R qvalue could not estimate the share of true nulls (pi0) from these {len(p)} p-value{'' if len(p) == 1 else 's'} "
             f"({' '.join(str(error).removeprefix('R stopped with: ').split())[:200]}). This happens with few p-values, "
-            'or when none lies near 1. Use method="benjamini-hochberg", the same idea with pi0 = 1.') from None
+            'or when none lies near 1. Use test_method="benjamini-hochberg", the same idea with pi0 = 1.') from None
     return {"q": np.asarray(found["q"], dtype=float), "lfdr": np.asarray(found["lfdr"], dtype=float),
             "pi0": float(np.asarray(found["pi0"], dtype=float).ravel()[0])}
 
@@ -75,7 +75,7 @@ def friedman_pairs(test, names, blocks, data):
     g = np.repeat(np.array([str(n) for n in names], dtype=object), len(blocks))
     b = np.tile(np.array([str(w) for w in blocks], dtype=object), len(names))
     found = r_call(_R_FRIEDMAN[test], packages=("PMCMRplus",), what=f"{title} (R {r_name})",
-                   python_note="without R, leave out test= for Wilcoxon signed-rank tests with Holm's correction",
+                   python_note="without R, leave out test_method= for Wilcoxon signed-rank tests with Holm's correction",
                    y=y, g=g, b=b, lv=np.array([str(n) for n in names], dtype=object))
     # lower triangle of R's matrix, column by column: (2, 1), (3, 1), ..., (3, 2), ... -> pairs (1, 2), (1, 3), (2, 3)
     order = [(j, i) for i in range(len(names) - 1) for j in range(i + 1, len(names))]

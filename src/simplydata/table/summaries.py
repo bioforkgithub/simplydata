@@ -382,12 +382,12 @@ PERCENTILE_RULES = ("inverted_cdf", "averaged_inverted_cdf", "closest_observatio
 
 
 def _percentile_rule(step, method):
-    """find_percentile_of(method=): R's type number (1 to 9) or NumPy's name, as the NumPy name."""
+    """find_percentile_of(test_method=): R's type number (1 to 9) or NumPy's name, as the NumPy name."""
     if isinstance(method, (int, np.integer)) and not isinstance(method, bool) and 1 <= method <= 9:
         return PERCENTILE_RULES[int(method) - 1]
     if isinstance(method, str) and method.strip().lower().replace(" ", "_") in PERCENTILE_RULES:
         return method.strip().lower().replace(" ", "_")
-    raise choice_error(step, "method", method, list(PERCENTILE_RULES) + [str(n) for n in range(1, 10)])
+    raise choice_error(step, "test_method", method, list(PERCENTILE_RULES) + [str(n) for n in range(1, 10)])
 
 
 def _check_percent(step: str, percent, option="percent", example=None) -> float:
@@ -885,8 +885,8 @@ class SummaryWords:
             print("Note: an end of the interval is empty where there are too few values to reach that level.")
         return table
 
-    @friendly(renamed={"for_each": "for_each_group_in", "seed": "with_seed"})
-    def find_interval_of(self, column=None, summary="average", for_each_group_in=None, interval=95, method="bootstrap",
+    @friendly(renamed={"method": "test_method", "for_each": "for_each_group_in", "seed": "with_seed"})
+    def find_interval_of(self, column=None, summary="average", for_each_group_in=None, interval=95, test_method="bootstrap",
                          resamples=9999, with_seed=1):
         """A confidence interval for any summary, from the bootstrap.
 
@@ -896,7 +896,7 @@ class SummaryWords:
         function of your own that gets the numbers (a NumPy array) and gives back one number.
         The bootstrap draws the rows again at random, with replacement, resamples=9999 times
         (with_seed=1, printed; the same seed gives the same interval) and works out the summary each
-        time; SciPy stats.bootstrap, as R boot::boot.ci(). method="bootstrap" is the
+        time; SciPy stats.bootstrap, as R boot::boot.ci(). test_method="bootstrap" is the
         bias-corrected and accelerated (BCa) interval, the usual choice; "percentile bootstrap"
         and "reverse percentile bootstrap" (R's "basic") are the other two. With fewer than 20
         values a note says the interval is often too narrow. Gives back one row per group: the
@@ -911,16 +911,16 @@ class SummaryWords:
         level = _check_percent(step, interval, "interval", example)
         if not 50 <= level < 100:
             raise SimplydataError(f"interval= is the level in percent, such as interval=95 (it is {level:g}).")
-        if method == "jackknife":
+        if test_method == "jackknife":
             raise SimplydataError("A jackknife interval is not offered: no established package gives one (R "
                                   "bootstrap::jackknife() gives only the standard error and the bias). Use "
-                                  'method="bootstrap".')
-        if method in OLD_BOOTSTRAP_KINDS:
+                                  'test_method="bootstrap".')
+        if test_method in OLD_BOOTSTRAP_KINDS:
             from .._errors import renamed_note
 
-            renamed_note(f'method="{method}"', f'method="{OLD_BOOTSTRAP_KINDS[method]}"')
-            method = OLD_BOOTSTRAP_KINDS[method]
-        self._check_choice(step, "method", method, tuple(BOOTSTRAP_KINDS))
+            renamed_note(f'test_method="{test_method}"', f'test_method="{OLD_BOOTSTRAP_KINDS[test_method]}"')
+            test_method = OLD_BOOTSTRAP_KINDS[test_method]
+        self._check_choice(step, "test_method", test_method, tuple(BOOTSTRAP_KINDS))
         if callable(summary):
             label, function = getattr(summary, "__name__", "your summary"), summary
         else:
@@ -935,12 +935,12 @@ class SummaryWords:
                 raise SimplydataError(f"{step}() needs at least 2 numbers in each group.")
             value = float(function(x))
             low, high, words, note = bootstrap_interval((x,), lambda v: float(function(v)), level,
-                                                        BOOTSTRAP_KINDS[method], resamples, with_seed, vectorized=False)
+                                                        BOOTSTRAP_KINDS[test_method], resamples, with_seed, vectorized=False)
             notes.add(note)
             if math.isnan(low) or math.isnan(high):
-                notes.add(f'Note: the {method} interval could not be worked out for '
+                notes.add(f'Note: the {test_method} interval could not be worked out for '
                           f'{" / ".join(_say_label(v) for v in key) or "the column"} (SciPy says the resampled '
-                          'summaries take too few different values); try method="percentile bootstrap".')
+                          'summaries take too few different values); try test_method="percentile bootstrap".')
             rows.append(list(key) + [value, low, high, len(x)])
         names = [f"{label} of {column}", f"{label} of {column} {level:g} % CI low",
                  f"{label} of {column} {level:g} % CI high", "count"]
@@ -1076,8 +1076,8 @@ class SummaryWords:
             return self._summary_interval("find_standard_deviation_of", column, for_each_group_in, every, across, interval)
         return self._summary("find_standard_deviation_of", column, for_each_group_in, every, across)
 
-    @friendly(renamed={"for_each": "for_each_group_in"})
-    def find_percentile_of(self, column=None, percent=None, for_each_group_in=None, every=None, across=None, method=None,
+    @friendly(renamed={"method": "test_method", "for_each": "for_each_group_in"})
+    def find_percentile_of(self, column=None, percent=None, for_each_group_in=None, every=None, across=None, test_method=None,
                            interval=None, weights=None, weight_kind="frequency"):
         """The value below which a given percent of the numbers lie; empty cells are skipped.
 
@@ -1085,7 +1085,7 @@ class SummaryWords:
         find_percentile_of("marks", 50) is the median, 25 and 75 the quartiles. Between two
         numbers it uses the usual linear rule (R quantile(type = 7), NumPy and pandas
         default). across= and every= work as in find_average_of.
-        method= picks one of R's nine rules, by R's number or NumPy's name: 1 "inverted_cdf",
+        test_method= picks one of R's nine rules, by R's number or NumPy's name: 1 "inverted_cdf",
         2 "averaged_inverted_cdf", 3 "closest_observation", 4 "interpolated_inverted_cdf",
         5 "hazen", 6 "weibull" (as SPSS and Minitab), 7 "linear" (the default), 8
         "median_unbiased" (recommended by Hyndman and Fan), 9 "normal_unbiased"; NumPy
@@ -1096,7 +1096,7 @@ class SummaryWords:
         percents); with few values an end can be empty.
         weights="n" gives the weighted percentile. weight_kind="frequency" (the default) reads
         each weight as how many times the row counts, so it needs whole numbers: the rows are
-        repeated and the usual method= is used (as R quantile(rep(x, w)) and Hmisc::wtd.quantile(x,
+        repeated and the usual test_method= is used (as R quantile(rep(x, w)) and Hmisc::wtd.quantile(x,
         w)); weights of 1 change nothing. weight_kind="analytic" reads any weight of 0 or more,
         such as a sampling weight: NumPy percentile(weights=, method="inverted_cdf"), the only
         weighted rule NumPy has (as R survey::svyquantile(qrule = "math")); it is a step, not a
@@ -1114,17 +1114,17 @@ class SummaryWords:
             return self._survey_summary(step, "quantile", column, for_each_group_in, percent=number,
                                         label=f"percentile {number:g}")
         share = number / 100
-        rule = _percentile_rule(step, "linear" if method is None else method)
+        rule = _percentile_rule(step, "linear" if test_method is None else test_method)
         if weights is not None:
             return self._weighted_percentile(step, column, number, weights, weight_kind, for_each_group_in, every,
-                                             across, interval, rule, method_given=method is not None)
+                                             across, interval, rule, method_given=test_method is not None)
         if weight_kind != "frequency":
             raise SimplydataError("weight_kind= says how to read weights=, so it goes with weights=.\n"
                                   f'For example:  table.{step}("length", 90, weights="n", weight_kind="analytic")')
         if interval is not None:
             if rule != "linear":
                 raise SimplydataError("interval= gives the interval of the percentile itself, the same for every "
-                                      "method=; leave out method=.")
+                                      "test_method=; leave out test_method=.")
             return self._summary_interval(step, column, for_each_group_in, every, across, interval, share=share)
         if rule == "linear":
             measure = (f"percentile {number:g}", lambda c: nw.col(c).quantile(share, interpolation="linear"),
@@ -1152,8 +1152,8 @@ class SummaryWords:
         if kind == "analytic" and method_given and rule != "inverted_cdf":
             raise SimplydataError(
                 'With weight_kind="analytic" the rule is the weighted inverted CDF (NumPy percentile(weights=, '
-                'method="inverted_cdf")), the only rule NumPy has with weights, so method= cannot be changed. Leave '
-                'out method=, or use weight_kind="frequency" (whole-number weights) to keep method=.')
+                'test_method="inverted_cdf")), the only rule NumPy has with weights, so test_method= cannot be changed. Leave '
+                'out test_method=, or use weight_kind="frequency" (whole-number weights) to keep test_method=.')
         groups = self._group_columns(step, for_each, [column, weights]) if for_each is not None else []
         frame = self._number_frame(step, [column, weights])
         both = frame.filter(~nw.col(column).is_null() & ~nw.col(weights).is_null())
@@ -1218,9 +1218,9 @@ class SummaryWords:
         return table
 
     def _percentile_by_rule(self, step, column, number, for_each, every, across, rule):
-        """find_percentile_of(method=) other than the linear rule: NumPy percentile(method=), as R quantile(type =)."""
+        """find_percentile_of(test_method=) other than the linear rule: NumPy percentile(method=), as R quantile(type =)."""
         if every is not None or across is not None or not isinstance(column, str):
-            raise SimplydataError("method= works with one column and for_each_group_in=; leave out every= and across=.")
+            raise SimplydataError("test_method= works with one column and for_each_group_in=; leave out every= and across=.")
         groups = self._group_columns(step, for_each, [column]) if for_each is not None else []
         frame = self._number_frame(step, [column])
         self._note_empty(frame, [column])
@@ -1915,15 +1915,15 @@ class SummaryWords:
         return [None if _missing(v) else _plain(v) for v in series.to_list()]
 
     # ------------------------------------------------------------------ correlation
-    @friendly(renamed={"seed": "with_seed"}, others={"rscale": "prior_width", "prior_scale": "prior_width"})
-    def find_correlation_between(self, *columns, method="pearson", show="r", sides=2, higher=None, lower=None,
+    @friendly(renamed={"method": "test_method", "bayesian": ("test_method", {True: "bayesian", False: None}), "seed": "with_seed"}, others={"rscale": "prior_width", "prior_scale": "prior_width"})
+    def find_correlation_between(self, *columns, test_method="pearson", show="r", sides=2, higher=None, lower=None,
                                  alternative=None, p_value_by="formula", interval_by=None, shuffles=9999, resamples=9999,
                                  with_seed=1, allowing_for=None, rows_back=None, sorted_by=None,
                                  empty_cells="leave out", bayesian=False, prior_width="medium"):
         """How strongly columns of numbers go up or down together, from -1 to 1.
 
         table.find_correlation_between("hours", "marks")   (with sdata.get_example("marks"))
-        method="pearson" (a straight-line link, the usual one), "spearman" (uses ranks,
+        test_method="pearson" (a straight-line link, the usual one), "spearman" (uses ranks,
         for any link that keeps going one way) or "kendall" (Kendall's tau-b, also ranks: the
         share of pairs of rows that agree in order minus the share that disagree; as R
         cor.test(method = "kendall"), SciPy kendalltau). Prints the strength in words and the
@@ -1955,7 +1955,7 @@ class SummaryWords:
         empty_cells="multiple imputation" fills in the empty cells 20 times from the other columns named
         (statsmodels MICEData, as explain()) and pools the correlations with Rubin's rules on Fisher's z (R
         miceadds::micombine.cor()); with_seed= fixes the random filling.
-        bayesian=True (two columns) gives the Bayes factor and a 95 % credible interval of the
+        test_method="bayesian" (two columns) gives the Bayes factor and a 95 % credible interval of the
         correlation instead of a p-value: R BayesFactor::correlationBF() with a stretched beta prior
         whose width prior_width= sets ("medium" 1/3, the default; "wide" 0.577; "ultrawide" 1; or a
         number); 10,000 posterior draws (with_seed=1). Needs R (BayesFactor).
@@ -1972,7 +1972,7 @@ class SummaryWords:
             )
         if self._check_bayesian(step, bayesian, prior_width):
             return self._bayesian_correlation(step, names, bayesian, prior_width, with_seed, [
-                ("method=", method, "pearson"), ("show=", show, "r"), ("sides=", sides, 2), ("higher=", higher, None),
+                ("test_method=", test_method, "pearson"), ("show=", show, "r"), ("sides=", sides, 2), ("higher=", higher, None),
                 ("lower=", lower, None), ("alternative=", alternative, None), ("p_value_by=", p_value_by, "formula"),
                 ("interval_by=", interval_by, None), ("shuffles=", shuffles, 9999), ("resamples=", resamples, 9999),
                 ("allowing_for=", allowing_for, None), ("rows_back=", rows_back, None),
@@ -1985,11 +1985,11 @@ class SummaryWords:
                     or p_value_by != "formula" or interval_by is not None or allowing_for is not None):
                 raise SimplydataError(f"{step}() with rows_back= gives the cross-correlation; leave out sides=, "
                                       "higher=, lower=, p_value_by=, interval_by= and allowing_for=.")
-            if _plain_name(method) != "pearson" or _plain_name(show) != "r":
+            if _plain_name(test_method) != "pearson" or _plain_name(show) != "r":
                 raise SimplydataError(f"{step}() with rows_back= gives the cross-correlation, which is "
-                                      'Pearson\'s r (as R ccf()); leave out method= and show=.')
+                                      'Pearson\'s r (as R ccf()); leave out test_method= and show=.')
             return self._cross_correlation(step, names, rows_back, sorted_by)
-        self._check_choice(step, "method", method, CORRELATION_METHODS)
+        self._check_choice(step, "test_method", test_method, CORRELATION_METHODS)
         from .imputation_more import MULTIPLE, read_empty_cells
 
         if read_empty_cells(step, empty_cells, f'table.{step}("{names[0]}", "{names[1]}")') == MULTIPLE:
@@ -2003,7 +2003,7 @@ class SummaryWords:
                 raise SimplydataError("Give each column once.")
             from .imputation_more import correlation_imputed
 
-            found = correlation_imputed(self, step, names, _plain_name(method), with_seed)
+            found = correlation_imputed(self, step, names, _plain_name(test_method), with_seed)
             if found is not None:
                 return found
         shown = _plain_name(show)
@@ -2013,11 +2013,11 @@ class SummaryWords:
             if len(set(names)) < len(names):
                 twice = next(n for n in names if names.count(n) > 1)
                 raise SimplydataError(f'"{twice}" is listed twice. Give each column once.')
-            if (_plain_name(method) != "pearson" or sides != 2 or higher is not None or lower is not None
+            if (_plain_name(test_method) != "pearson" or sides != 2 or higher is not None or lower is not None
                     or alternative not in (None, "two-sided") or p_value_by != "formula" or interval_by is not None
                     or allowing_for is not None):
                 raise SimplydataError('show="covariance" gives the covariance table (no test, no ranks); leave out '
-                                      "method=, sides=, higher=, p_value_by=, interval_by= and allowing_for=.\n"
+                                      "test_method=, sides=, higher=, p_value_by=, interval_by= and allowing_for=.\n"
                                       'For example:  table.find_correlation_between("hours", "marks", "height", '
                                       'show="covariance")')
             return self._covariance_table(step, self._number_frame(step, names), names)
@@ -2048,12 +2048,12 @@ class SummaryWords:
             self._check_choice(step, "interval_by", interval_by, ("bootstrap",))
         if len(names) > 2 and (p_value_by != "formula" or interval_by is not None):
             raise SimplydataError("p_value_by= and interval_by= work with two columns; give two column names.")
-        if (method in ORDINAL_METHODS or allowing_for is not None) and len(names) != 2:
-            raise SimplydataError(f'method="{method}" and allowing_for= work with two columns.' if allowing_for is None
+        if (test_method in ORDINAL_METHODS or allowing_for is not None) and len(names) != 2:
+            raise SimplydataError(f'test_method="{test_method}" and allowing_for= work with two columns.' if allowing_for is None
                                   else "allowing_for= works with two columns (and the one to allow for).")
-        if method in ORDINAL_METHODS and (alt != "two-sided" or p_value_by != "formula" or interval_by is not None
+        if test_method in ORDINAL_METHODS and (alt != "two-sided" or p_value_by != "formula" or interval_by is not None
                                           or allowing_for is not None):
-            raise SimplydataError(f'method="{method}" gives the measure with its 95 % interval; leave out sides=, '
+            raise SimplydataError(f'test_method="{test_method}" gives the measure with its 95 % interval; leave out sides=, '
                                   "p_value_by=, interval_by= and allowing_for=.")
         if allowing_for is not None:
             if not isinstance(allowing_for, str) or allowing_for in names:
@@ -2062,26 +2062,26 @@ class SummaryWords:
                 raise SimplydataError("allowing_for= gives the two-sided partial correlation; leave out sides=, "
                                       "p_value_by= and interval_by=.")
             return self._partial_correlation(step, self._number_frame(step, names + [allowing_for]), names[0],
-                                             names[1], allowing_for, method)
+                                             names[1], allowing_for, test_method)
         frame = self._number_frame(step, names)
-        if method in ORDINAL_METHODS:
-            return self._ordinal_association(step, frame, names[0], names[1], method)
+        if test_method in ORDINAL_METHODS:
+            return self._ordinal_association(step, frame, names[0], names[1], test_method)
         if len(names) == 2:
-            return self._one_correlation(step, frame, names[0], names[1], method, alt, up,
+            return self._one_correlation(step, frame, names[0], names[1], test_method, alt, up,
                                          p_value_by=p_value_by, interval_by=interval_by, shuffles=shuffles,
                                          resamples=resamples, seed=with_seed)
-        return self._correlation_table(step, frame, names, method, shown)
+        return self._correlation_table(step, frame, names, test_method, shown)
 
     def _bayesian_correlation(self, step, names, bayesian, prior_width, with_seed, given):
-        """find_correlation_between(a, b, bayesian=True): the Bayes factor and the posterior of the correlation, R
+        """find_correlation_between(a, b, test_method="bayesian"): the Bayes factor and the posterior of the correlation, R
         BayesFactor::correlationBF() (table/bayes_words.py)."""
         from . import bayes_r, bayes_words
         from .stat_tests import _skipped_note
 
         bayes_words.check_bayes_options(step, given)
         if len(names) != 2 or names[0] == names[1]:
-            raise SimplydataError("bayesian=True gives the correlation of two different columns; give two column names, "
-                                  'such as table.find_correlation_between("hours", "marks", bayesian=True).')
+            raise SimplydataError("test_method=\"bayesian\" gives the correlation of two different columns; give two column names, "
+                                  'such as table.find_correlation_between("hours", "marks", test_method="bayesian").')
         seed = bayes_words.check_seed(with_seed)
         width = bayes_r.width_value(prior_width)
         frame = self._number_frame(step, names)

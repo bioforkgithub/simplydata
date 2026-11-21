@@ -6,7 +6,7 @@ statsmodels or R (through simplydata[r]); simplydata only checks the input and w
 
 * compare_matched_columns("week_0", "week_4", "week_8"): the same rows measured three or more times.
   Numbers: the Friedman test (R friedman.test(), SciPy friedmanchisquare), with Kendall's W from
-  R effectsize::kendalls_w (its interval is a bootstrap interval, R seed 1); test="quade": the
+  R effectsize::kendalls_w (its interval is a bootstrap interval, R seed 1); test_method="quade": the
   Quade test, run in R (stats::quade.test(); Python has none). Yes/no columns: Cochran's Q
   (statsmodels cochrans_q, as R DescTools::CochranQTest()). The kind of column decides, and the
   sentence says so. With two columns it is compare_before_and_after (one door, printed).
@@ -75,8 +75,8 @@ class MoreTestWords:
         self._need_columns(*names)
         return names
 
-    @friendly
-    def compare_matched_columns(self, *columns, based_on="ranks", test=None):
+    @friendly(renamed={"test": "test_method"})
+    def compare_matched_columns(self, *columns, based_on="ranks", test_method=None):
         """Do three or more measurements of the same rows differ, such as pain at week 0, 4 and 8?
 
         table.compare_matched_columns("Maths", "Science", "English")   (one column per measurement)
@@ -85,9 +85,9 @@ class MoreTestWords:
         numbers: the Friedman test (R friedman.test(), SciPy friedmanchisquare), which compares
         the ranks within each row, so it needs no bell shape; effect size Kendall's W (0: the
         rows rank the columns in no common order, 1: every row ranks them the same), from R
-        effectsize::kendalls_w with a bootstrap 95 % interval (R seed 1). test="quade": the Quade
+        effectsize::kendalls_w with a bootstrap 95 % interval (R seed 1). test_method="quade": the Quade
         test, which also weighs how much each row varies, run in R (stats::quade.test()).
-        test="page": Page's test for a trend: do the values rise in the order the columns are
+        test_method="page": Page's test for a trend: do the values rise in the order the columns are
         given? (SciPy page_trend_test, as R crank::page.trend.test(); for a fall, give the columns
         the other way round.)
         yes/no columns (two values, such as "yes"/"no" or True/False): Cochran's Q test
@@ -103,10 +103,10 @@ class MoreTestWords:
             raise SimplydataError(f"{step}() compares ranks for now (the Friedman test); the repeated-measures "
                                   "ANOVA on averages comes later.\nUse based_on=\"ranks\" (the default).")
         self._check_choice(step, "based_on", based_on, ("ranks",))
-        if isinstance(test, str):
-            test = MATCHED_ALIASES.get(test.strip().lower(), test.strip().lower())
-        if test is not None:
-            self._check_choice(step, "test", test, MATCHED_TESTS)
+        if isinstance(test_method, str):
+            test_method = MATCHED_ALIASES.get(test_method.strip().lower(), test_method.strip().lower())
+        if test_method is not None:
+            self._check_choice(step, "test_method", test_method, MATCHED_TESTS)
         if len(names) == 2:
             print(f'Note: with two columns, {step}() is compare_before_and_after("{names[0]}", "{names[1]}"), the '
                   "test for one measurement before and one after.")
@@ -124,23 +124,23 @@ class MoreTestWords:
         two_values = all(len(set(raw[c])) <= 2 for c in names) and len(set().union(*map(set, raw.values()))) == 2
         numeric = all(frame.schema[c].is_numeric() for c in names)
         if two_values and (not numeric or set().union(*map(set, raw.values())) <= {0, 1}):
-            if test not in (None, "cochran"):
-                raise SimplydataError(f'test="{test}" compares numbers, but the columns are yes/no; for yes/no '
-                                      "columns the test is Cochran's Q (leave out test=).")
+            if test_method not in (None, "cochran"):
+                raise SimplydataError(f'test_method="{test_method}" compares numbers, but the columns are yes/no; for yes/no '
+                                      "columns the test is Cochran's Q (leave out test_method=).")
             return self._cochran(step, names, raw, len(kept))
         if not numeric:
             text = next(c for c in names if not frame.schema[c].is_numeric())
             raise SimplydataError(f'{step}() needs columns of numbers, or yes/no columns; "{text}" holds text with '
                                   "more than two different values.")
-        if test == "cochran":
-            raise SimplydataError("test=\"cochran\" is for yes/no columns; these columns hold numbers. Leave out test= "
+        if test_method == "cochran":
+            raise SimplydataError("test_method=\"cochran\" is for yes/no columns; these columns hold numbers. Leave out test_method= "
                                   "for the Friedman test.")
         matrix = np.column_stack([np.asarray(raw[c], dtype=float) for c in names])
         if len(matrix) < 2:
             raise SimplydataError(f"{step}() needs at least 2 rows with a number in every column.")
-        if test == "page":
+        if test_method == "page":
             return self._page(names, matrix)
-        return self._friedman(step, names, matrix, test or "friedman")
+        return self._friedman(step, names, matrix, test_method or "friedman")
 
     def _page(self, names, matrix):
         from scipy import stats
@@ -184,13 +184,13 @@ class MoreTestWords:
         else:
             found = r_call("r <- stats::quade.test(y); list(f = unname(r$statistic), df = unname(r$parameter), "
                            "p = r$p.value)", packages=(), what="the Quade test (R stats::quade.test())",
-                           python_note="Python has no Quade test; the Friedman test (leave out test=) needs no R",
+                           python_note="Python has no Quade test; the Friedman test (leave out test_method=) needs no R",
                            y=matrix)
             stat, p = float(np.asarray(found["f"])[0]), float(np.asarray(found["p"])[0])
             df1, df2 = (float(v) for v in np.asarray(found["df"]))
             row.update({"test": "Quade test", "statistic name": "F", "statistic": stat, "degrees of freedom 1": df1,
                         "degrees of freedom 2": df2, "p-value": p})
-            second = (f"Test: Quade test (F = {_num(stat)}, df = {_whole(df1)} and {_whole(df2)}), chosen with test=; "
+            second = (f"Test: Quade test (F = {_num(stat)}, df = {_whole(df1)} and {_whole(df2)}), chosen with test_method=; "
                       "like Friedman's it ranks within each row, and it gives more weight to rows that vary more. "
                       "Run in R: stats::quade.test().")
         try:

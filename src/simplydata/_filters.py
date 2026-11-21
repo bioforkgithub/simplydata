@@ -38,10 +38,10 @@ NAMES = {"butterworth": "Butterworth", "chebyshev": "Chebyshev (type 1)", "cheby
 def read_method(method, step_name):
     chosen = ALIASES.get(method.strip().lower(), method.strip().lower()) if isinstance(method, str) else method
     if chosen == "fir":
-        raise SimplydataError('method="fir" is not ready: SciPy firwin and R signal::fir1 give different weights. '
-                              'Use method="butterworth" (or another listed method).')
+        raise SimplydataError('test_method="fir" is not ready: SciPy firwin and R signal::fir1 give different weights. '
+                              'Use test_method="butterworth" (or another listed method).')
     if chosen not in METHODS:
-        raise choice_error(step_name, "method", method, list(METHODS))
+        raise choice_error(step_name, "test_method", method, list(METHODS))
     return chosen
 
 
@@ -67,7 +67,7 @@ def design(kind, cutoffs, step, method="butterworth", steepness=4, ripple=0.5, r
     w_r = _g(w[0]) if len(w) == 1 else f"c({_g(w[0])}, {_g(w[1])})"
     if method == "fir":
         if isinstance(window, bool) or not isinstance(window, (int, np.integer)) or window < 3 or window % 2 == 0:
-            raise SimplydataError('method="fir" needs window= as an odd number of weights, such as window=101.')
+            raise SimplydataError('test_method="fir" needs window= as an odd number of weights, such as window=101.')
         taps = signal.firwin(int(window), float(cut[0]) if len(cut) == 1 else cut, window=window_shape, pass_zero=kind in ("low", "stop"), fs=1 / step)
         return dict(ba=(taps, np.array([1.0])), words=f"FIR filter with {int(window)} weights ({window_shape} window)",
                     r_call=R_DESIGN["fir"].format(m=int(window) - 1, w=w_r, t=R_TYPE[kind]))

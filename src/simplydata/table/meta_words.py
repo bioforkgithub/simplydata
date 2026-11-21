@@ -146,12 +146,12 @@ def _pair(step, option, value):
 
 class MetaWords:
     # ------------------------------------------------------------------ combine_studies
-    @friendly(others={"slab": "names", "studlab": "names", "subgroup": "for_each_group_in", "byvar": "for_each_group_in",
+    @friendly(renamed={"method": "test_method"}, others={"slab": "names", "studlab": "names", "subgroup": "for_each_group_in", "byvar": "for_each_group_in",
                       "mods": "using", "moderators": "using", "sei": "standard_errors", "measure": "show",
                       "sm": "show", "test": "interval_by", "ri": "correlations"})
     def combine_studies(self, names=None, events=None, out_of=None, estimates=None, standard_errors=None,
                         averages=None, standard_deviations=None, counts=None, time=None, correlations=None,
-                        show=None, method="REML", interval_by=None, for_each_group_in=None, using=None,
+                        show=None, test_method="REML", interval_by=None, for_each_group_in=None, using=None,
                         estimates_are_ratios=None):
         """Combine the results of several studies into one (a meta-analysis), with how much they differ.
 
@@ -176,7 +176,7 @@ class MetaWords:
         for the rest, and trim and fill as a what-if). Gives back one row per study (estimate, interval, standard error,
         weight %) and the combined rows ("row kind"), ready for forest_plot and draw_funnel_plot.
         More: events= with time= (rate ratios); correlations="r" with counts="n";
-        method="REML" (default), "DerSimonian-Laird", "Paule-Mandel", "common effect",
+        test_method="REML" (default), "DerSimonian-Laird", "Paule-Mandel", "common effect",
         "Mantel-Haenszel", "Peto"; interval_by="Hartung-Knapp" (default for random effects; it
         changes the p-value too) or "normal"; for_each_group_in="region" (subgroups, each with
         its own spread, and the test of their difference first); using=["latitude"]
@@ -188,16 +188,16 @@ class MetaWords:
         step = "combine_studies"
         route, cols = self._meta_route(step, events, out_of, estimates, standard_errors, averages,
                                        standard_deviations, counts, time, correlations)
-        method_name = _text_choice(method if method is not None else "REML", METHOD_SPELLINGS, tuple(METHODS),
+        method_name = _text_choice(test_method if test_method is not None else "REML", METHOD_SPELLINGS, tuple(METHODS),
                                    "method")
         r_method, method_words, random = METHODS[method_name]
         interval_name = _text_choice(interval_by, INTERVAL_SPELLINGS, tuple(INTERVALS), "interval_by")
         if interval_name is None:
             interval_name = "Hartung-Knapp" if random else "normal"
         elif interval_name == "Hartung-Knapp" and not random:
-            raise SimplydataError(f'interval_by="Hartung-Knapp" is for random effects; method="{method_name}" assumes '
+            raise SimplydataError(f'interval_by="Hartung-Knapp" is for random effects; test_method="{method_name}" assumes '
                                   "one common effect and gives the normal interval. Leave out interval_by=, or use "
-                                  'method="REML".')
+                                  'test_method="REML".')
         test = INTERVALS[interval_name]
         if estimates_are_ratios is not None and not isinstance(estimates_are_ratios, bool):
             raise SimplydataError("estimates_are_ratios= is True or False.")
@@ -219,7 +219,7 @@ class MetaWords:
                 measure, words, transform = "GEN", estimates, ("exp" if ratio else "none")
         else:
             if method_name == "Peto" and route != "counts":
-                raise SimplydataError('method="Peto" combines counts: it needs events= and out_of=.')
+                raise SimplydataError('test_method="Peto" combines counts: it needs events= and out_of=.')
             if method_name == "Peto" and show_name is None:
                 show_name = "odds ratios"
             show_name = show_name or ROUTE_DEFAULT[route]
@@ -228,14 +228,14 @@ class MetaWords:
                 raise SimplydataError(self._show_error(show_name, route))
             measure, transform = r_measure, ("exp" if ratio else "none")
         if method_name == "Peto" and measure != "OR":
-            raise SimplydataError('method="Peto" gives odds ratios only. For example, table.combine_studies(names='
-                                  '"trial", events=[...], out_of=[...], show="odds ratios", method="Peto").')
+            raise SimplydataError('test_method="Peto" gives odds ratios only. For example, table.combine_studies(names='
+                                  '"trial", events=[...], out_of=[...], show="odds ratios", test_method="Peto").')
         if method_name == "Mantel-Haenszel" and route not in ("counts", "rates"):
-            raise SimplydataError('method="Mantel-Haenszel" combines counts: it needs events= with out_of= (or with '
-                                  "time=). For estimates, averages or correlations use the default method=\"REML\" or "
-                                  'method="common effect".')
+            raise SimplydataError('test_method="Mantel-Haenszel" combines counts: it needs events= with out_of= (or with '
+                                  "time=). For estimates, averages or correlations use the default test_method=\"REML\" or "
+                                  'test_method="common effect".')
         if method_name == "Peto" and route != "counts":
-            raise SimplydataError('method="Peto" combines counts: it needs events= and out_of=.')
+            raise SimplydataError('test_method="Peto" combines counts: it needs events= and out_of=.')
         if for_each_group_in is not None and using is not None:
             raise SimplydataError("Give for_each_group_in= (subgroups) or using= (meta-regression), not both.")
         mods_names = [] if using is None else ([using] if isinstance(using, str) else list(using))
@@ -243,8 +243,8 @@ class MetaWords:
             raise SimplydataError('using= takes the number columns that may explain the differences between studies, '
                                   'such as using=["latitude"].')
         if mods_names and method_name in ("Mantel-Haenszel", "Peto"):
-            raise SimplydataError(f'using= (meta-regression) needs the default method="REML" (or another '
-                                  f'inverse-variance method), not method="{method_name}".')
+            raise SimplydataError(f'using= (meta-regression) needs the default test_method="REML" (or another '
+                                  f'inverse-variance method), not test_method="{method_name}".')
         if for_each_group_in is not None:
             self._need_name(step, "for_each_group_in=", for_each_group_in, EXAMPLE)
         if names is not None:
@@ -301,7 +301,7 @@ class MetaWords:
             if "converge" not in str(error).lower():
                 raise
             raise SimplydataError(f"{error}" + NL + "REML did not settle on the between-study spread with these studies. Try "
-                                  'method="Paule-Mandel" or method="DerSimonian-Laird".') from None
+                                  'test_method="Paule-Mandel" or test_method="DerSimonian-Laird".') from None
         info = dict(step=step, route=route, cols=cols, measure=measure, words=words, ratio=ratio,
                     transform=transform, method_name=method_name, method_words=method_words, random=random,
                     interval_name=interval_name, test=test, labels=labels, k=k, peters=peters,
@@ -492,7 +492,7 @@ class MetaWords:
         print(self._meta_method_line(info))
         print("simplydata chooses: random effects with REML, Hartung-Knapp intervals for random effects (never narrower "
               "than the normal interval), the prediction interval from 3 studies, and the notes on small-study effects "
-              "from 10 studies (Peters' test for risk and odds ratios from counts, Egger's test for the rest); method= "
+              "from 10 studies (Peters' test for risk and odds ratios from counts, Egger's test for the rest); test_method= "
               "and interval_by= change them.")
         return rows
 
@@ -673,8 +673,8 @@ class MetaWords:
                  "estimate": _value(e["stat"]), "p-value": _value(e["p"])}]
         t = out.get("trimfill")
         if t is None:
-            print("Trim and fill needs an inverse-variance model (the default method=\"REML\"), so it is left out with "
-                  f'method="{info["method_name"]}".')
+            print("Trim and fill needs an inverse-variance model (the default test_method=\"REML\"), so it is left out with "
+                  f'test_method="{info["method_name"]}".')
             return rows
         k0 = int(_value(t["k0"]))
         side = str(np.atleast_1d(t["side"])[0])

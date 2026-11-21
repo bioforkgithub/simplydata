@@ -10,9 +10,9 @@ from .._time_axis import need_filled, need_regular, series_of
 
 
 class SignalMoreTableWords:
-    @friendly(renamed={"for_each": "for_each_group_in"})
+    @friendly(renamed={"method": "test_method", "for_each": "for_each_group_in"})
     def add_filtered_column(self, name=None, from_column=None, keep_below=None, keep_above=None, keep_between=None,
-                            remove_between=None, remove_at=None, sorted_by=None, for_each_group_in=None, method="butterworth",
+                            remove_between=None, remove_at=None, sorted_by=None, for_each_group_in=None, test_method="butterworth",
                             steepness=4, both_ways=True, ripple=0.5, removed_by=40, width=1, show_filter=False):
         """Add a filtered copy of a column: some frequencies kept or removed (low-pass, high-pass, band, notch).
 
@@ -20,7 +20,7 @@ class SignalMoreTableWords:
         One condition: keep_below=, keep_above=, keep_between=[low, high], remove_between=[low, high] or
         remove_at= one frequency (a notch, width= how wide). Frequencies are cycles per unit of the
         sorted_by column (per second for seconds, per day for dates). The options are those of
-        nums.keep_each_frequency_that (method=, steepness=, both_ways=, show_filter=True ...). The readings must be evenly
+        nums.keep_each_frequency_that (test_method=, steepness=, both_ways=, show_filter=True ...). The readings must be evenly
         spaced and filled in. for_each_group_in= filters each group on its own. Undo with table.undo().
         """
         from ..numbers.filter_words import filter_call, filter_numbers, show_filter_chart
@@ -51,7 +51,7 @@ class SignalMoreTableWords:
             need_filled(one, from_column, step_name, sorted_by)
             if sorted_by is not None:
                 need_regular(one, step_name, sorted_by)
-            out, sentence, method_line, made = filter_numbers(one.values, keep, condition, value, one.step, method,
+            out, sentence, method_line, made = filter_numbers(one.values, keep, condition, value, one.step, test_method,
                                                         steepness, both_ways, ripple, removed_by, 101,
                                                         "hamming", width, False, step_name)
             filled[one.rows] = out
@@ -59,7 +59,7 @@ class SignalMoreTableWords:
         print(method_line + f' Added "{name}".')
         if show_filter:
             step = series[-1].step
-            show_filter_chart(made, step, show_filter, filter_call(option, value, step, method, steepness, ripple,
+            show_filter_chart(made, step, show_filter, filter_call(option, value, step, test_method, steepness, ripple,
                                                                    removed_by, width))
         base = nw.maybe_reset_index(self._frame)
         new = nw.new_series(name, [float(v) for v in filled], nw.Float64, backend=base.implementation)

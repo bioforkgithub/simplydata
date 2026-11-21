@@ -4,11 +4,11 @@ from R.
 
 * the propensity score: R stats::glm(group ~ allowing_for columns, family = binomial), the model WeightIt and MatchIt
   fit themselves (method = "glm", distance = "glm").
-* method="weighting": R WeightIt::weightit(method = "glm", estimand = "ATE" or "ATT", focal =) and
+* test_method="weighting": R WeightIt::weightit(method = "glm", estimand = "ATE" or "ATT", focal =) and
   WeightIt::glm_weightit(outcome ~ group, family = stats::gaussian()) (= lm_weightit), whose M-estimation standard errors allow for the estimated weights
   (Greifer, the WeightIt documentation). statsmodels TreatmentEffect.ipw gives the same estimate on lalonde with a
   standard error 15 % larger (design decision 22), so the numbers come from WeightIt.
-* method="matching": R MatchIt::matchit(method = "nearest", distance = "glm", estimand = "ATT"), 1:1 nearest
+* test_method="matching": R MatchIt::matchit(method = "nearest", distance = "glm", estimand = "ATT"), 1:1 nearest
   neighbour without replacement (MatchIt's default); with match_within= a caliper in standard deviations of the
   logit of the propensity score (link = "linear.logit", Austin 2011). The effect is lm(outcome ~ group, weights =)
   on the matched rows with standard errors clustered on the matched pairs (sandwich::vcovCL(cluster = ~subclass),

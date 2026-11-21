@@ -149,14 +149,14 @@ class TimeSeriesWords:
         data = {key: [r[key] for r in rows] for key in rows[0]}
         return self._new_table(nw.from_dict(data, backend=self._frame.implementation))
 
-    @friendly(renamed={"for_each": "for_each_group_in"})
-    def check_steady_over_time(self, column=None, sorted_by=None, around="level", method="both", for_each_group_in=None):
+    @friendly(renamed={"method": "test_method", "for_each": "for_each_group_in"})
+    def check_steady_over_time(self, column=None, sorted_by=None, around="level", test_method="both", for_each_group_in=None):
         """Does a column stay steady over time, or does it wander? (ADF and KPSS tests, as R tseries)
 
         table.check_steady_over_time("signal", sorted_by="time")   (with sdata.get_example("sensor"))
         "Steady" (stationary) means the column keeps the same average and spread over time: it goes
         up and down around one level (around="level") or around one straight line (around="straight
-        line"). Two tests that start from opposite assumptions run together (method="both"; "adf" or
+        line"). Two tests that start from opposite assumptions run together (test_method="both"; "adf" or
         "kpss" for one), and both ask the question around= names: the augmented Dickey-Fuller test
         starts from "it wanders", so a small p-value says steady; the KPSS test starts from "steady",
         so a small p-value says it wanders. Both are R's own (around="level": urca::ur.df(type =
@@ -168,9 +168,9 @@ class TimeSeriesWords:
         self._need_name(step_name, "the column", column, EXAMPLE)
         if around not in AROUND:
             raise choice_error(step_name, "around", around, list(AROUND))
-        test = TEST_ALIASES.get(method.strip().lower(), method.strip().lower()) if isinstance(method, str) else method
+        test = TEST_ALIASES.get(test_method.strip().lower(), test_method.strip().lower()) if isinstance(test_method, str) else test_method
         if test not in TESTS:
-            raise choice_error(step_name, "method", method, list(TESTS))
+            raise choice_error(step_name, "test_method", test_method, list(TESTS))
         series = series_of(self, column, sorted_by, for_each_group_in, step_name, EXAMPLE)
         groups = self._group_columns(step_name, for_each_group_in, [column]) if for_each_group_in is not None else []
         from .._r import r_call
@@ -255,15 +255,15 @@ class TimeSeriesWords:
         return self._new_table(nw.from_dict(data, backend=self._frame.implementation))
 
     # ------------------------------------------------------------------ trend and season
-    @friendly(renamed={"for_each": "for_each_group_in"})
-    def add_trend_and_season(self, column=None, sorted_by=None, repeats_every=None, method="loess", season="added",
+    @friendly(renamed={"method": "test_method", "for_each": "for_each_group_in"})
+    def add_trend_and_season(self, column=None, sorted_by=None, repeats_every=None, test_method="loess", season="added",
                              season_window=7, robust=False, for_each_group_in=None, names=None):
         """Split a column into a trend, a season that repeats, and the rest, as three new columns.
 
         table.add_trend_and_season("visitors", sorted_by="month", repeats_every="year", for_each_group_in="museum")
         (with sdata.get_example("visitors")). Adds visitors_trend, visitors_season and visitors_rest (names=
         gives three other names); trend + season + rest = the column (season "added"). repeats_every= is
-        the number of readings in one cycle (12, or "year" for monthly readings). method="loess" (the
+        the number of readings in one cycle (12, or "year" for monthly readings). test_method="loess" (the
         default, R stl(): statsmodels STL with R's settings; season_window= odd number of cycles, at least
         7, or "fixed" for the same season every cycle, which runs R stl(s.window = "periodic") itself and
         needs simplydata[r]; robust=True keeps outliers from pulling the trend), "moving averages" (R
@@ -276,9 +276,9 @@ class TimeSeriesWords:
         step_name = "add_trend_and_season"
         example = 'table.add_trend_and_season("visitors", sorted_by="month", repeats_every="year")'
         self._need_name(step_name, "the column", column, example)
-        chosen = ts.TREND_ALIASES.get(method.strip().lower(), method.strip().lower()) if isinstance(method, str) else method
+        chosen = ts.TREND_ALIASES.get(test_method.strip().lower(), test_method.strip().lower()) if isinstance(test_method, str) else test_method
         if chosen not in ts.TREND_METHODS:
-            raise choice_error(step_name, "method", method, list(ts.TREND_METHODS))
+            raise choice_error(step_name, "test_method", test_method, list(ts.TREND_METHODS))
         kind = ts.SEASON_ALIASES.get(season, season) if isinstance(season, str) else season
         if kind not in ts.SEASONS:
             raise choice_error(step_name, "season", season, list(ts.SEASONS))

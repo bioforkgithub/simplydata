@@ -224,6 +224,32 @@ def other_value_note(option: str, other, own) -> None:
     print(f'Note: {option}="{other}" is {option}="{own}" in simplydata.')
 
 
+_LEAVE_OUT = object()  # in a value map of renamed=: the old value means "leave the new option out"
+
+
+def _value_text(value) -> str:
+    return f'"{value}"' if isinstance(value, str) else repr(value)
+
+
+def _renamed_value(old: str, new: tuple, value):
+    """The new option and its value for an old switch, with the note once: renamed={"bayesian":
+    ("test_method", {True: "bayesian", False: None})} turns bayesian=True into test_method="bayesian". An old
+    value that maps to None leaves the new option out (its default), so bayesian=False changes nothing."""
+    name, values = new
+    # the old values are switches: True or False (NumPy's too), nothing else
+    value_key = bool(value) if type(value).__name__ in ("bool", "bool_") else None
+    if value_key not in values:
+        shown = " or ".join(f"{old}={_value_text(v)}" for v in values)
+        raise SimplydataError(f"{old}= is now {name}= (it takes {shown}); it got {old}={value!r}.\n"
+                              + "".join(f"Write {name}={_value_text(n)} for {old}={_value_text(o)}. "
+                                        for o, n in values.items() if n is not None).rstrip())
+    now = values[value_key]
+    if now is None:
+        return name, _LEAVE_OUT
+    renamed_note(f"{old}={_value_text(value_key)}", f"{name}={_value_text(now)}")
+    return name, now
+
+
 _CALLS = threading.local()  # how deep inside words a call is: only the outermost word is checked by the survey guard
 
 
@@ -233,6 +259,9 @@ def friendly(func=None, *, renamed: dict | None = None, others: dict | None = No
     * accepts both spellings (color/colour, gray/grey) for option names
     * turns unknown options into a friendly message with a suggestion
     * renamed={"band": "confidence_band"}: an old option name still works, with a note once
+    * renamed={"bayesian": ("test_method", {True: "bayesian", False: None})}: an old switch is now one value of
+      a new option; bayesian=True becomes test_method="bayesian" (with a note once) and bayesian=False is
+      left out (the new option's default)
     * others={"tp": "found"}: an option name from another tool or field works too, with a pointer
       once per session ("Note: tp= is found= in simplydata."), as alternative= is translated
 
@@ -261,7 +290,14 @@ def friendly(func=None, *, renamed: dict | None = None, others: dict | None = No
                     key = uk + key[len(us):]
             if key in renamed and key not in params:
                 new = renamed[key]
-                renamed_note(f"{key}=", f"{new}=")
+                if isinstance(new, tuple):  # the old option was a switch that is now one value of the new one
+                    new, value = _renamed_value(key, new, value)
+                    if value is _LEAVE_OUT:  # bayesian=False: the usual answer, the new option's default
+                        if new not in kwargs and new not in fixed:
+                            renamed_note(f"{key}=", f"{new}=")
+                        continue
+                else:
+                    renamed_note(f"{key}=", f"{new}=")
                 if new in kwargs or new in fixed:
                     raise SimplydataError(f"Give {new}= only once ({key}= is its old name).")
                 key = new

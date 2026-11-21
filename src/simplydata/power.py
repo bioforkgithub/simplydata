@@ -2,7 +2,7 @@
 
 Before a study, two questions: how many values do I need (find_how_many_needed), and with the
 values I can get, what is the chance to find a real difference of the size I expect
-(find_chance_of_finding, the "power")? test= names the simplydata test the study will use.
+(find_chance_of_finding, the "power")? for_test= names the simplydata test the study will use.
 Numbers come from statsmodels' power classes (TTestIndPower, TTestPower, FTestAnovaPower,
 GofChisquarePower, with their solve_power for the number needed) and, for correlations, from
 R pwr::pwr.r.test through simplydata[r]; they match R, so results can be checked there:
@@ -103,7 +103,7 @@ def _plan(step, test, effect_size, difference, spread, significance, groups, sid
     if isinstance(test, str):
         test = TEST_WORDS.get(test, test)
     if not isinstance(test, str) or test not in TESTS:
-        raise choice_error(step, "test", test, TESTS)
+        raise choice_error(step, "for_test", test, TESTS)
     if isinstance(sides, bool) or sides not in (1, 2):
         raise SimplydataError(f"{step}() needs sides=2 (a difference in either direction, the usual) "
                               "or sides=1 (only in the direction you expect).")
@@ -130,7 +130,7 @@ def _plan(step, test, effect_size, difference, spread, significance, groups, sid
             df = k - 1
     else:
         if isinstance(groups, bool) or groups not in (1, 2):
-            raise SimplydataError(f'groups= is not used with test="{test}"; leave it out.')
+            raise SimplydataError(f'groups= is not used with for_test="{test}"; leave it out.')
         k = 1
         kind = "r" if test == "correlation_between" else "d"
     if kind in ("f", "w") and sides == 1:
@@ -296,7 +296,7 @@ def _plan(step, test, effect_size, difference, spread, significance, groups, sid
 def _percents(step, test, percents, sides, significance):
     """percents=[30, 15]: the two percents of a yes/no outcome the study expects (compare_counts, 2 groups)."""
     if test != "compare_counts":
-        raise SimplydataError('percents= goes with test="compare_counts" (two groups compared on a yes/no outcome).')
+        raise SimplydataError('percents= goes with for_test="compare_counts" (two groups compared on a yes/no outcome).')
     if (not isinstance(percents, (list, tuple)) or len(percents) != 2
             or not all(isinstance(v, (int, float)) and not isinstance(v, bool) and 0 < v < 100 for v in percents)):
         raise SimplydataError(f"{step}() needs percents= as two percents between 0 and 100, the percent with the "
@@ -331,7 +331,7 @@ def _equivalence_plan(step, test, same_within, difference, spread, significance)
 
     kinds = {"compare_averages": "two.sample", "compare_before_after": "paired", "compare_average_to": "one.sample"}
     if test not in kinds:
-        raise SimplydataError('same_within= in power works with test="compare_averages", "compare_before_after" '
+        raise SimplydataError('same_within= in power works with for_test="compare_averages", "compare_before_after" '
                               'or "compare_average_to".')
     if spread is None:
         raise SimplydataError(f"{step}() with same_within= needs spread= (the standard deviation), for example "
@@ -378,14 +378,14 @@ def _route(step, test, based_on, drawing_from, by_running, interval_width, perce
     if isinstance(test, str):
         test = TEST_WORDS.get(test, test)
     if not isinstance(test, str) or test not in TESTS + MORE_TESTS:
-        raise choice_error(step, "test", test, TESTS + MORE_TESTS)
+        raise choice_error(step, "for_test", test, TESTS + MORE_TESTS)
     if based_on not in ("averages", "ranks"):
         raise choice_error(step, "based_on", based_on, ("averages", "ranks"))
     if outcome not in ("numbers", "yes or no"):
         raise SimplydataError("outcome= in power is \"numbers\" (regression, with Cohen's f²) or \"yes or no\" "
-                              "(logistic regression), with test=\"explain\".")
+                              "(logistic regression), with for_test=\"explain\".")
     if based_on == "ranks" and test not in ("compare_averages", "compare_before_after"):
-        raise SimplydataError('based_on="ranks" goes with test="compare_averages" (Mann-Whitney) and '
+        raise SimplydataError('based_on="ranks" goes with for_test="compare_averages" (Mann-Whitney) and '
                               '"compare_before_and_after" (Wilcoxon signed-rank).')
     if by_running is not None:
         route = "by_running"
@@ -413,16 +413,16 @@ def _route(step, test, based_on, drawing_from, by_running, interval_width, perce
     for option, is_given in given.items():
         if is_given and not uses[option]:
             name = {"clusters": "in_clusters_of= and alike_within_clusters="}.get(option, option + "=")
-            where = {"using": 'test="explain" or test="compare_models"', "against": 'test="compare_models"',
-                     "outcome": 'test="explain"', "method": 'test="compare_survival"',
+            where = {"using": 'for_test="explain" or for_test="compare_models"', "against": 'for_test="compare_models"',
+                     "outcome": 'for_test="explain"', "method": 'for_test="compare_survival"',
                      "clusters": 'the formula routes (compare_averages, compare_counts, compare_average_to, '
                                  'compare_before_and_after)',
-                     "drawing_from": 'test="compare_averages", "compare_before_and_after" or "compare_spreads_of"',
-                     "percents": 'test="compare_counts", test="compare_survival", outcome="yes or no" or '
+                     "drawing_from": 'for_test="compare_averages", "compare_before_and_after" or "compare_spreads_of"',
+                     "percents": 'for_test="compare_counts", for_test="compare_survival", outcome="yes or no" or '
                                  'interval_width='}[option]
             raise SimplydataError(f"{name} goes with {where}; it does not apply to this call, so leave it out.")
     if route != "simulation" and based_on == "ranks":
-        raise SimplydataError('based_on="ranks" goes with test="compare_averages" (Mann-Whitney) and '
+        raise SimplydataError('based_on="ranks" goes with for_test="compare_averages" (Mann-Whitney) and '
                               '"compare_before_and_after" (Wilcoxon signed-rank).')
     if route == "simulation" and same_within is not None:
         raise SimplydataError("same_within= is worked out by formula; leave based_on= and drawing_from= out.")
@@ -522,16 +522,16 @@ def _clusters_of(step, in_clusters_of, alike_within_clusters):
     return check_clusters(step, in_clusters_of, alike_within_clusters)
 
 
-@friendly
-def find_how_many_needed(test="compare_averages", effect_size=None, difference=None, spread=None, power=0.8,
+@friendly(renamed={"method": "test_method", "test": "for_test"})
+def find_how_many_needed(for_test="compare_averages", effect_size=None, difference=None, spread=None, power=0.8,
                          significance=0.05, groups=2, sides=2, percents=None, same_within=None, interval_width=None,
-                         based_on="averages", using=None, against=None, outcome="numbers", method=None,
+                         based_on="averages", using=None, against=None, outcome="numbers", test_method=None,
                          in_clusters_of=None, alike_within_clusters=None, drawing_from=None, tries=10000,
                          with_seed=1):
     """How many values (in each group) does a study need to find a real difference?
 
     sdata.find_how_many_needed(effect_size=0.5)       (two groups, a medium difference: 64 in each)
-    test= is the simplydata test the study will use: "compare_averages" (2 groups: t-test;
+    for_test= is the simplydata test the study will use: "compare_averages" (2 groups: t-test;
     groups=3 or more: ANOVA with Cohen's f), "compare_before_after" (paired, Cohen's d of the
     changes), "compare_average_to" (one sample), "compare_counts" (chi-square with Cohen's w;
     groups=(groups, kinds of outcome)) or "correlation_between" (r; the answer is pairs).
@@ -545,17 +545,17 @@ def find_how_many_needed(test="compare_averages", effect_size=None, difference=N
     UP to a whole number; the exact value is in the result. Gives back a one-row table.
 
     More:
-    test="compare_counts", percents=[30, 15]: two percents (R power.prop.test()).
+    for_test="compare_counts", percents=[30, 15]: two percents (R power.prop.test()).
     same_within=5, spread=10: show the groups are the same within 5 (R TOSTER::power_t_TOST()).
     interval_width=4, spread=10: a 95 % interval of an average 4 wide (R presize::prec_mean());
     interval_width=10, percents=[30]: a percent's interval 10 points wide (R presize::prec_prop()).
-    test="compare_survival", effect_size=0.7 (a hazard ratio), percents=[30, 40]: the events
+    for_test="compare_survival", effect_size=0.7 (a hazard ratio), percents=[30, 40]: the events
     first (Schoenfeld, R gsDesign::nEvents()), then the people if 30 % of the first group and
-    40 % of the second have the event; method="freedman" uses Freedman's formula (R powerSurvEpi).
-    test="explain", effect_size=0.15, using=["temperature", "salinity", "depth"]: regression with
-    Cohen's f² (statsmodels FTestPowerF2, as R pwr.f2.test()); test="compare_models", using=,
+    40 % of the second have the event; test_method="freedman" uses Freedman's formula (R powerSurvEpi).
+    for_test="explain", effect_size=0.15, using=["temperature", "salinity", "depth"]: regression with
+    Cohen's f² (statsmodels FTestPowerF2, as R pwr.f2.test()); for_test="compare_models", using=,
     against= (the columns of each model, as on compare_models): the columns in one and not the other.
-    test="explain", outcome="yes or no", using=["dose"], percents=[20], effect_size=1.5: logistic
+    for_test="explain", outcome="yes or no", using=["dose"], percents=[20], effect_size=1.5: logistic
     regression, 20 % with the outcome at the average dose, odds ratio 1.5 per standard deviation
     of dose (R pwrss::power.z.logistic(), Demidenko with variance correction).
     in_clusters_of=20, alike_within_clusters=0.05: values come in clusters of 20 (wards, farms,
@@ -566,8 +566,8 @@ def find_how_many_needed(test="compare_averages", effect_size=None, difference=N
     """
     step = "find_how_many_needed"
     clusters = _clusters_of(step, in_clusters_of, alike_within_clusters)
-    test, route = _route(step, test, based_on, drawing_from, None, interval_width, percents, same_within, using,
-                         against, outcome, method, clusters)
+    for_test, route = _route(step, for_test, based_on, drawing_from, None, interval_width, percents, same_within, using,
+                         against, outcome, test_method, clusters)
     target = _number(step, "power", power, "power=0.8")
     if not 0 < target < 1:
         raise SimplydataError(f"{step}() needs power= between 0 and 1, for example 0.8 (an 80 % chance).")
@@ -578,14 +578,14 @@ def find_how_many_needed(test="compare_averages", effect_size=None, difference=N
             return power_more.percent_interval_needed(step, interval_width, percents, significance)
         return _interval_width_needed(step, interval_width, spread, significance)
     if route == "survival":
-        plan = power_more.survival_plan(step, effect_size, percents, method, groups, sides, significance, difference,
+        plan = power_more.survival_plan(step, effect_size, percents, test_method, groups, sides, significance, difference,
                                         spread)
         return power_more.survival_needed(step, plan, target)
     if route == "simulation":
-        return power_more.simulate_needed(step, test, effect_size, difference, spread, target, drawing_from, based_on,
+        return power_more.simulate_needed(step, for_test, effect_size, difference, spread, target, drawing_from, based_on,
                                           groups, sides, significance, tries, with_seed)
     if route == "logistic":
-        plan = power_more.logistic_plan(step, test, effect_size, using, against, percents, significance, sides)
+        plan = power_more.logistic_plan(step, for_test, effect_size, using, against, percents, significance, sides)
         if target <= plan["significance"]:
             raise SimplydataError("power= must be more than significance=: even with no real difference, a test "
                                   "finds one that often by chance.")
@@ -602,7 +602,7 @@ def find_how_many_needed(test="compare_averages", effect_size=None, difference=N
         row.update({"power wanted": target, "values (exact)": exact, "values": needed, "power with that many": reached})
         return _result(row)
     if route == "regression":
-        plan = power_more.regression_plan(step, test, effect_size, using, against, significance, sides)
+        plan = power_more.regression_plan(step, for_test, effect_size, using, against, significance, sides)
         if target <= plan["row"]["significance"]:
             raise SimplydataError("power= must be more than significance=: even with no real difference, a test "
                                   "finds one that often by chance.")
@@ -618,18 +618,18 @@ def find_how_many_needed(test="compare_averages", effect_size=None, difference=N
                     "power with that many": plan["power"](needed)})
         return _result(row)
     if route == "percents":
-        return _percents_needed(step, test, percents, sides, significance, target, clusters)
+        return _percents_needed(step, for_test, percents, sides, significance, target, clusters)
     if route == "same_within":
-        call, (effect, test_words), row = _equivalence_plan(step, test, same_within, difference, spread, significance)
+        call, (effect, test_words), row = _equivalence_plan(step, for_test, same_within, difference, spread, significance)
         exact = call(power=target)[0]
         needed = math.ceil(exact - 1e-9)
         print(f"To show {effect} with {_a(_percent(target))} {_percent(target)} chance, using {test_words}, you need "
-              f"{_equivalence_amount(test, needed)}. Method: power of two one-sided tests, as R "
+              f"{_equivalence_amount(for_test, needed)}. Method: power of two one-sided tests, as R "
               "TOSTER::power_t_TOST().")
         row.update({"power wanted": target, "values per group (exact)": exact, "values per group": needed,
                     "power with that many": call(n=needed)[1]})
         return _result(row)
-    plan = _plan(step, test, effect_size, difference, spread, significance, groups, sides)
+    plan = _plan(step, for_test, effect_size, difference, spread, significance, groups, sides)
     return _formula_needed(step, plan, target, clusters)
 
 
@@ -672,10 +672,10 @@ def _percents_needed(step, test, percents, sides, significance, target, clusters
     return _result(row)
 
 
-@friendly
-def find_chance_of_finding(test="compare_averages", effect_size=None, difference=None, spread=None,
+@friendly(renamed={"method": "test_method", "test": "for_test"})
+def find_chance_of_finding(for_test="compare_averages", effect_size=None, difference=None, spread=None,
                            values_per_group=None, significance=0.05, groups=2, sides=2, percents=None, same_within=None,
-                           based_on="averages", using=None, against=None, outcome="numbers", method=None,
+                           based_on="averages", using=None, against=None, outcome="numbers", test_method=None,
                            in_clusters_of=None, alike_within_clusters=None, drawing_from=None, tries=10000,
                            with_seed=1, by_running=None):
     """What chance does a study have to find a real difference of a given size (its power)?
@@ -688,10 +688,10 @@ def find_chance_of_finding(test="compare_averages", effect_size=None, difference
     t-test when the groups are the same size; the others match R pwr. Gives back a one-row table.
 
     More:
-    test="compare_counts", percents=[30, 15]: two percents (statsmodels power_proportions_2indep).
+    for_test="compare_counts", percents=[30, 15]: two percents (statsmodels power_proportions_2indep).
     same_within=5, spread=10: two one-sided tests (R TOSTER::power_t_TOST()).
-    test="compare_survival", effect_size=0.7, values_per_group=353, percents=[30, 40] (R powerSurvEpi).
-    test="explain", effect_size=0.15, using=3, values_per_group=77 (Cohen's f²); outcome="yes or no".
+    for_test="compare_survival", effect_size=0.7, values_per_group=353, percents=[30, 40] (R powerSurvEpi).
+    for_test="explain", effect_size=0.15, using=3, values_per_group=77 (Cohen's f²); outcome="yes or no".
     in_clusters_of=20, alike_within_clusters=0.05: values in clusters (the design effect).
     based_on="ranks" or drawing_from=[dist_a, dist_b], values_per_group=[10, 20, 30]: simulated
     power, one row for each number (tries=10000, with_seed=1; SciPy stats.power).
@@ -706,8 +706,8 @@ def find_chance_of_finding(test="compare_averages", effect_size=None, difference
     """
     step = "find_chance_of_finding"
     clusters = _clusters_of(step, in_clusters_of, alike_within_clusters)
-    test, route = _route(step, test, based_on, drawing_from, by_running, None, percents, same_within, using,
-                         against, outcome, method, clusters, values_per_group)
+    for_test, route = _route(step, for_test, based_on, drawing_from, by_running, None, percents, same_within, using,
+                         against, outcome, test_method, clusters, values_per_group)
     from . import power_more
 
     if route == "by_running":
@@ -719,18 +719,18 @@ def find_chance_of_finding(test="compare_averages", effect_size=None, difference
         raise SimplydataError(f"{step}() needs values_per_group=, the number of values in each group, "
                               "for example values_per_group=30.")
     if route == "simulation":
-        return power_more.simulate_chance(step, test, effect_size, difference, spread, values_per_group, drawing_from,
+        return power_more.simulate_chance(step, for_test, effect_size, difference, spread, values_per_group, drawing_from,
                                           based_on, groups, sides, significance, tries, with_seed)
     n = _number(step, "values_per_group", values_per_group, "values_per_group=30")
     if n <= 0:
         raise SimplydataError(f"{step}() needs values_per_group= as a number more than 0, for example "
                               "values_per_group=30.")
     if route == "survival":
-        plan = power_more.survival_plan(step, effect_size, percents, method, groups, sides, significance, difference,
+        plan = power_more.survival_plan(step, effect_size, percents, test_method, groups, sides, significance, difference,
                                         spread)
         return power_more.survival_chance(step, plan, n)
     if route == "logistic":
-        plan = power_more.logistic_plan(step, test, effect_size, using, against, percents, significance, sides)
+        plan = power_more.logistic_plan(step, for_test, effect_size, using, against, percents, significance, sides)
         from . import power_r
 
         _, chance = power_r.logistic(plan["percent"], plan["ratio"], plan["significance"], plan["sides"], n=n)
@@ -743,7 +743,7 @@ def find_chance_of_finding(test="compare_averages", effect_size=None, difference
         row.update({"values": n, "power": chance})
         return _result(row)
     if route == "regression":
-        plan = power_more.regression_plan(step, test, effect_size, using, against, significance, sides)
+        plan = power_more.regression_plan(step, for_test, effect_size, using, against, significance, sides)
         if n < plan["lowest"]:
             raise SimplydataError(f"{step}() needs at least {int(plan['lowest'])} rows for this model "
                                   "(values_per_group= is the rows here).")
@@ -764,7 +764,7 @@ def find_chance_of_finding(test="compare_averages", effect_size=None, difference
         f"{_num(found['design effect'])}), so these {_whole_or_num(n)} count as about {_num(effective)} independent "
         "values; the chance is worked out for those.")
     if route == "percents":
-        p1, p2, alpha = _percents(step, test, percents, sides, significance)
+        p1, p2, alpha = _percents(step, for_test, percents, sides, significance)
         if effective < 2:
             raise SimplydataError(f"{step}() needs values_per_group= worth at least 2 independent values in each group.")
         chance = _percents_power(p1, p2, effective, sides, alpha)
@@ -775,7 +775,7 @@ def find_chance_of_finding(test="compare_averages", effect_size=None, difference
               "power_proportions_2indep(), as R power.prop.test().")
         if cluster_words:
             print(cluster_words)
-        row = {"test": test, "method": "power for two percents", "R function": "power.prop.test()",
+        row = {"test": for_test, "method": "power for two percents", "R function": "power.prop.test()",
                "percent 1": p1 * 100, "percent 2": p2 * 100, "sides": sides, "significance": alpha,
                "values per group": n, "values in all": 2 * n}
         if found is not None:
@@ -783,16 +783,16 @@ def find_chance_of_finding(test="compare_averages", effect_size=None, difference
         row["power"] = chance
         return _result(row)
     if route == "same_within":
-        call, (effect, test_words), row = _equivalence_plan(step, test, same_within, difference, spread, significance)
+        call, (effect, test_words), row = _equivalence_plan(step, for_test, same_within, difference, spread, significance)
         chance = call(n=n)[1]
         shown = _percent(chance)
-        print(f"With {_equivalence_amount(test, n)}, a study has {_a(shown)} {shown} chance (power = {_num(chance)}) "
+        print(f"With {_equivalence_amount(for_test, n)}, a study has {_a(shown)} {shown} chance (power = {_num(chance)}) "
               f"to show {effect}, using {test_words}. Method: power of two one-sided tests, as R "
               "TOSTER::power_t_TOST().")
         row.update({"values per group": n, "power": chance})
         return _result(row)
-    plan = _plan(step, test, effect_size, difference, spread, significance, groups, sides)
-    least = 4 if test == "correlation_between" else 2
+    plan = _plan(step, for_test, effect_size, difference, spread, significance, groups, sides)
+    least = 4 if for_test == "correlation_between" else 2
     if n < least:
         raise SimplydataError(f"{step}() needs values_per_group= of at least {least}"
                               f"{' (pairs of values)' if least == 4 else ''}.")
@@ -810,7 +810,7 @@ def find_chance_of_finding(test="compare_averages", effect_size=None, difference
         if found["given clusters"] < 10:
             from .power_more import few_clusters_note
 
-            print(few_clusters_note(k > 1 or test == "compare_averages"))
+            print(few_clusters_note(k > 1 or for_test == "compare_averages"))
     if chance < 0.8:
         print("Note: this is below the usual 80 %; find_how_many_needed() tells you how many values you need.")
     for note in plan["notes"]:

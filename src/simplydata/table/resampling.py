@@ -91,7 +91,7 @@ def resample_p(samples, statistic, kind="independent", alternative="two-sided", 
 
 def bootstrap_interval(samples, statistic, level=95, method="bca", resamples=RESAMPLES, seed=1, paired=False,
                        vectorized=True):
-    """(low, high, words) from SciPy stats.bootstrap. method="bca" (default), "percentile" or "basic" (the
+    """(low, high, words) from SciPy stats.bootstrap. test_method="bca" (default), "percentile" or "basic" (the
     reverse percentile interval; SciPy and R call it "basic")."""
     from scipy import stats
 

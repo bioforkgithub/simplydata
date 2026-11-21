@@ -64,13 +64,13 @@ _SDATA = [
     ('table.compare_shape_to("marks", "normal"), on a table', "shapiro shapiro_test normaltest anderson"),
     ("sdata.find_how_many_needed(effect_size=0.5, power=0.8)", "power_t_test solve_power pwr"),
     # S3b-2: planning a study (the field's names for the new options)
-    ('sdata.find_how_many_needed(test="compare_survival", effect_size=0.7, percents=[30, 40])',
+    ('sdata.find_how_many_needed(for_test="compare_survival", effect_size=0.7, percents=[30, 40])',
      "nEvents schoenfeld freedman ssizeCT ssizeEpi power_logrank logrank_power survival_power hazard_ratio"),
     ("sdata.find_how_many_needed(effect_size=0.5, in_clusters_of=20, alike_within_clusters=0.05)",
      "design_effect cluster_size cluster_randomised cluster_randomized n4means intracluster_correlation"),
-    ('sdata.find_how_many_needed(test="explain", effect_size=0.15, using=["temperature", "salinity", "depth"])',
+    ('sdata.find_how_many_needed(for_test="explain", effect_size=0.15, using=["temperature", "salinity", "depth"])',
      "pwr_f2_test f2 FTestPowerF2 regression_power"),
-    ('sdata.find_how_many_needed(test="explain", outcome="yes or no", using=["dose"], percents=[20], effect_size=1.5)',
+    ('sdata.find_how_many_needed(for_test="explain", outcome="yes or no", using=["dose"], percents=[20], effect_size=1.5)',
      "power_z_logistic wp_logistic logistic_power"),
     ("sdata.find_how_many_needed(interval_width=10, percents=[30])", "prec_prop precision_proportion"),
     ("sdata.find_chance_of_finding(by_running=one_study, tries=1000)",
@@ -207,18 +207,18 @@ _TABLE = [
     ('table.fit_distribution_to("marks", "kernel density")', "gaussian_kde KDEUnivariate"),
     ('table.compare_correlations("hours", "marks", for_each_group_in="class")', "cocor cocor_indep_groups compare_correlation"),
     ('table.find_correlation_between("hours", "marks", allowing_for="height")', "pcor pcor_test partial_corr partial_cor"),
-    ('table.find_correlation_between("hours", "marks", method="somers") or method="gamma"',
+    ('table.find_correlation_between("hours", "marks", test_method="somers") or test_method="gamma"',
      "somersd SomersDelta GoodmanKruskalGamma goodman_kruskal_gamma"),
-    ('table.compare_average_to("marks", 60, test="z", standard_deviation=10)', "z_test ztest"),
-    ('table.compare_counts_of("passed", for_each_group_in="age_group", test="trend", in_order=[...])',
+    ('table.compare_average_to("marks", 60, test_method="z", standard_deviation=10)', "z_test ztest"),
+    ('table.compare_counts_of("passed", for_each_group_in="age_group", test_method="trend", in_order=[...])',
      "prop_trend_test cochran_armitage"),
-    ('table.compare_averages_of("marks", for_each_group_in="class", test="jonckheere", in_order=["A", "B", "C"])',
+    ('table.compare_averages_of("marks", for_each_group_in="class", test_method="jonckheere", in_order=["A", "B", "C"])',
      "jonckheere_test jonckheere_terpstra"),
-    ('table.compare_matched_columns("week_0", "week_4", "week_8", test="page")', "page_trend_test page_test"),
+    ('table.compare_matched_columns("week_0", "week_4", "week_8", test_method="page")', "page_trend_test page_test"),
     ('table.compare_each_pair_of("pain", for_each_group_in="week", matched_by="patient", based_on="ranks")',
      "pairwise_wilcox_test pairwise_t_test"),
     ('table.count_each("fruit", interval=95)', "MultinomCI multinomial_proportions_confint"),
-    ('table.show_rows_with_outliers("marks", rule="grubbs")', "grubbs_test dixon_test rosnerTest rosner_test"),
+    ('table.show_rows_with_outliers("marks", test_method="grubbs")', "grubbs_test dixon_test rosnerTest rosner_test"),
     ('table.compare_counts_of("result", for_each_group_in="class")', "chi2_contingency chisq_test fisher_exact crosstab"),
     ('table.compare_shape_to("marks", "normal")', "shapiro shapiro_test normaltest"),
     ('table.compare_risks("died", for_each_group_in="treatment", against="usual care")',
@@ -234,7 +234,7 @@ _TABLE = [
      "cohen_kappa cohens_kappa kappa kappa2 fleiss_kappa kappam_fleiss icc intraclass kripp_alpha krippendorff ccc concordance"),
     ('table.limits_of_agreement("device_a", "device_b")', "bland_altman_stats limits_agreement"),
     ('table.reliability_of(["item_1", "item_2", "item_3"])', "cronbach_alpha cronbach alpha internal_consistency"),
-    ('table.add_adjusted_p_value_column("p_adjusted", method="benjamini-hochberg")', "p_adjust multipletests fdr"),
+    ('table.add_adjusted_p_value_column("p_adjusted", test_method="benjamini-hochberg")', "p_adjust multipletests fdr"),
     ('table.find_survival_over_time(time="days", event="died")', "survfit kaplan_meier"),
     ('table.compare_survival(time="days", event="died", for_each_group_in="treatment")', "survdiff logrank_test"),
     ('table.explain_survival(time="days", event="died", using=["age"])', "coxph cox"),
@@ -249,12 +249,12 @@ _TABLE = [
      'sdata.make_random_assignments(how_many=40, for_each_of=["Bergen", "Oslo"]) for a list for each centre',
      "strata stratified_cox"),
     ('table.explain_survival(time="months", event="outcome", value="relapse", competing_with="death", using=["age"], '
-     'method="fine-gray")', "fine_gray finegray crr subdistribution"),
+     'test_method="fine-gray")', "fine_gray finegray crr subdistribution"),
     ('table.explain_survival(time="days", event="died", using=["age"]) (with R it prints Harrell\'s C)',
      "c_index harrell harrells_c concordance_index"),
     ('table.explain_survival(time="days", event="died", using=["age"], distribution="weibull")',
      "aft survreg weibull_aft accelerated_failure_time"),
-    ('table.find_survival_over_time(time="days", event="died", method="life table", at_time_points=[0, 365, 730])',
+    ('table.find_survival_over_time(time="days", event="died", test_method="life table", at_time_points=[0, 365, 730])',
      "lifetab life_table actuarial"),
     ('table.find_survival_over_time(time="days", event="died", followed_from="entry_day")',
      "delayed_entry left_truncation counting_process"),
@@ -287,7 +287,7 @@ _TABLE = [
     # S3a-2: lines and curves
     ('table.fit_dose_response(x="concentration", y="root_length")', "drm drc dose_response ec50 ed50 ld50 lc50"),
     ('table.find_best_power_of("days")', "boxcox box_cox powerTransform yeojohnson yeo_johnson"),
-    ('table.fit_line(x="hours", y="marks", method="standardised major axis")',
+    ('table.fit_line(x="hours", y="marks", test_method="standardised major axis")',
      "sma lmodel2 model_ii deming mcreg passing_bablok siegelslopes"),
     ('table.fit_line(x="hours", y="marks", with_bends=1)', "segmented piecewise_regression davies.test"),
     ('table.explain("marks", using=["hours"], for_percentile=90)', "quantreg rq quantile_regression QuantReg"),
@@ -314,7 +314,7 @@ _TABLE = [
      "publication_bias small_study small_study_effects egger regtest peters trimfill "
      "trim_and_fill"),
     ('table.combine_studies(..., interval_by="Hartung-Knapp")', "hksj knha hartung_knapp knapp_hartung"),
-    ('table.combine_studies(..., method="Mantel-Haenszel")', "rma_mh mantel_haenszel_meta peto rma_peto"),
+    ('table.combine_studies(..., test_method="Mantel-Haenszel")', "rma_mh mantel_haenszel_meta peto rma_peto"),
     # S3c-1: communities and resistomes
     ('table.add_diversity_columns(columns=["blaTEM", "sul1"])',
      "diversity shannon simpson invsimpson chao1 estimateR specnumber alpha_diversity hill hill_numbers renyi "
@@ -332,7 +332,7 @@ _TABLE = [
     ('table.explain_profiles_of(..., measure="hellinger")', "hellinger decostand"),
     ('table.find_correlation_between_profiles(first=["blaTEM", "sul1"], second=["temperature", "salinity"])',
      "mantel protest procrustes mantel_test"),
-    ('table.compare_profiles_of(..., method="anosim")', "anosim betadisper"),
+    ('table.compare_profiles_of(..., test_method="anosim")', "anosim betadisper"),
     ('table.compare_profiles_of(..., show="contributions")', "simper"),
     ('table.add_clusters(how_many="automatic")', "silhouette elbow optimal_clusters"),
     ('table.add_axes_that_separate_groups(columns=["temperature", "salinity"], for_each_group_in="site")',
@@ -364,12 +364,12 @@ _TABLE = [
      "weighted_quantile wtd_quantile weighted_percentile weighted_median svyquantile"),
     ('table.find_correlation_between("hours", "marks", "height", show="covariance")',
      "cov covariance covariance_matrix"),
-    ('table.forecast("visitors", sorted_by="month", method="arima", order="automatic", repeats_every="year")',
+    ('table.forecast("visitors", sorted_by="month", test_method="arima", order="automatic", repeats_every="year")',
      "auto_arima autoarima"),
-    ('table.add_adjusted_p_value_column(method="storey"), or method="local fdr"',
+    ('table.add_adjusted_p_value_column(test_method="storey"), or test_method="local fdr"',
      "qvalue q_values qvalues storey lfdr local_fdr"),
-    ('table.compare_each_pair_of("time", for_each_group_in="method", matched_by="player", test="nemenyi"), or '
-     'test="conover"', "nemenyi posthoc_nemenyi_friedman frdAllPairsNemenyiTest posthoc_conover_friedman "
+    ('table.compare_each_pair_of("time", for_each_group_in="method", matched_by="player", test_method="nemenyi"), or '
+     'test_method="conover"', "nemenyi posthoc_nemenyi_friedman frdAllPairsNemenyiTest posthoc_conover_friedman "
                        "frdAllPairsConoverTest"),
     ('table.compare_each_pair_of("infected", for_each_group_in="age_group", based_on="percents", value="yes")',
      "pairwise_prop_test pairwise_fisher_test"),
@@ -409,14 +409,14 @@ _TABLE = [
      "same_within=[0.8, 1.25])", "bioequivalence crossover be_2x2 abe average_bioequivalence"),
     ('table.find_correlation_between("bmi", "chl", empty_cells="multiple imputation")', "micombine_cor"),
     # S3d-3: Bayesian answers (R BayesFactor and rstanarm; brms and PyMC users land on the same option)
-    ('table.compare_averages_of("crp", for_each_group_in="ward", bayesian=True) (also on compare_before_and_after, '
+    ('table.compare_averages_of("crp", for_each_group_in="ward", test_method="bayesian") (also on compare_before_and_after, '
      'compare_average_to, find_correlation_between and compare_counts_of)',
      "ttestBF ttest_bf bayes_factor bayesfactor bayesian_t_test bf10 jzs correlationBF contingencyTableBF "
      "bayesian_correlation bayes_factor_ttest bayesfactor_ttest credible_interval"),
-    ('table.explain("marks", using=["hours", "breakfast"], bayesian=True)',
+    ('table.explain("marks", using=["hours", "breakfast"], test_method="bayesian")',
      "stan_glm stan_glmer stan_lmer rstanarm brm brms pymc bambi bayesian_regression bayesian_model "
      "posterior_interval prior_summary bayesian_mixed_model"),
-    ('table.check_model_of("marks", using=["hours"], bayesian=True) (show="prior check" for the prior)',
+    ('table.check_model_of("marks", using=["hours"], test_method="bayesian") (show="prior check" for the prior)',
      "pp_check ppc posterior_predictive_check prior_predictive_check ppc_dens_overlay rhat r_hat ess "
      "effective_sample_size"),
 ]
@@ -443,7 +443,7 @@ _CHART = [
     ('chart.fit_distribution("normal")', "fitdistr fitdist"),
     ('chart.draw_curve("y = 100 * exp(-0.3 * x)", between=[0, 10])', "stat_function geom_function fplot"),
     ("chart.draw_smooth_line()", "lowess"),
-    ('chart.draw_smooth_line(method="loess")', "loess loess.smooth"),
+    ('chart.draw_smooth_line(test_method="loess")', "loess loess.smooth"),
     ('chart.draw_qq_dots("marks")', "probplot qqplot qqnorm"),
     ("chart.draw_line_with_slope(1, through=(0, 0))", "abline axline"),
     ("chart.draw_line_at_y(50)", "axhline geom_hline hline"),
@@ -508,7 +508,7 @@ _NUMBERS = [
     ('nums.fit_distribution("gamma")', "fit fitdistr fitdist"),
     ("nums.find_spectrum(time_step=0.01)", "fft_power spectral_density"),
     ("nums.find_autocorrelation(rows_back=10)", "acf pacf"),
-    ('nums.smooth(method="median", window=5)',
+    ('nums.smooth(test_method="median", window=5)',
      "runmed medfilt median_filter savgol_filter sgolayfilt ewm ewma gaussian_filter1d whittaker_henderson wiener "
      "moving_average convolve1d"),
     ("nums.remove_trend()", "detrend"),

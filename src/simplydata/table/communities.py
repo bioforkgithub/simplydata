@@ -245,18 +245,18 @@ class CommunityWords:
         return self._with_new_columns(f"add diversity columns of {', '.join(map(str, columns))}", new, keep)
 
     # ------------------------------------------------------------------ log ratios
-    @friendly
-    def add_log_ratio_columns(self, columns=None, method="clr", zeros_replaced_by="estimated small values",
+    @friendly(renamed={"method": "test_method"})
+    def add_log_ratio_columns(self, columns=None, test_method="clr", zeros_replaced_by="estimated small values",
                               against=None):
         """Add log ratio columns: counts that are parts of a whole, turned into logs of ratios (clr, alr, ilr).
 
         table.add_log_ratio_columns(columns=["blaTEM", "blaCTXM", "sul1", "sul2", "tetA", "tetM"])   (with sdata.get_example("resistome"))
         Resistome and microbiome counts are compositional: each row's total is set by how deeply the
         sample was sequenced, so raw counts and percentages give false correlations. Log ratios
-        fix this (Aitchison 1986; Gloor et al. 2017). method="clr" (the default, the centred log
+        fix this (Aitchison 1986; Gloor et al. 2017). test_method="clr" (the default, the centred log
         ratio) adds clr_<column>: the log of each value over the row's geometric mean (above 0:
-        more than the row's typical kind). method="alr" with against="16S" adds alr_<column>: the
-        log of each column over the one named in against= (the reference). method="ilr" adds
+        more than the row's typical kind). test_method="alr" with against="16S" adds alr_<column>: the
+        log of each column over the one named in against= (the reference). test_method="ilr" adds
         ilr1, ilr2 ...: isometric log ratios on the default basis of R compositions::ilr().
         Logs need values above 0, so zeros are first replaced: zeros_replaced_by="estimated small
         values" (the default; "multiplicative" accepted) is R zCompositions::cmultRepl(method =
@@ -268,26 +268,26 @@ class CommunityWords:
         """
         step = "add_log_ratio_columns"
         example = 'table.add_log_ratio_columns(columns=["blaTEM", "blaCTXM", "sul1", "tetM"])'
-        if not isinstance(method, str) or method.strip().lower() not in LOG_RATIO_METHODS:
-            self._check_choice(step, "method", method, ["clr", "alr", "ilr"])
-        kind = LOG_RATIO_METHODS[method.strip().lower()]
+        if not isinstance(test_method, str) or test_method.strip().lower() not in LOG_RATIO_METHODS:
+            self._check_choice(step, "test_method", test_method, ["clr", "alr", "ilr"])
+        kind = LOG_RATIO_METHODS[test_method.strip().lower()]
         how = comp.ZERO_WAYS.get(zeros_replaced_by.strip().lower() if isinstance(zeros_replaced_by, str) else None)
         if how is None:
             self._check_choice(step, "zeros_replaced_by", zeros_replaced_by, [comp.ESTIMATED, comp.ADDING_ONE])
         columns = self._required_columns(step, columns, example, at_least=2)
         if kind == "alr":
             if not isinstance(against, str) or against not in columns:
-                raise SimplydataError(f'method="alr" needs against= as the name of one of the columns, the reference '
+                raise SimplydataError(f'test_method="alr" needs against= as the name of one of the columns, the reference '
                                       'that every other column is divided by:\n'
-                                      f'  table.add_log_ratio_columns(columns=[...], method="alr", against="{columns[-1]}")')
+                                      f'  table.add_log_ratio_columns(columns=[...], test_method="alr", against="{columns[-1]}")')
         elif against is not None:
-            raise SimplydataError(f'against= names the reference of method="alr"; method="{kind}" has none. Leave '
-                                  "against= out, or use method=\"alr\".")
+            raise SimplydataError(f'against= names the reference of test_method="alr"; test_method="{kind}" has none. Leave '
+                                  "against= out, or use test_method=\"alr\".")
         x, keep = self._pattern_matrix(step, columns, least_rows=1)
         zeros = comp.check_zeros(step, x, columns, how, "", measure_hint=False)
         if zeros and how == comp.ADDING_ONE and kind == "ilr":
-            raise SimplydataError('method="ilr" with zeros_replaced_by="adding 1" is not offered; use the default '
-                                  'zeros_replaced_by="estimated small values", or method="clr".')
+            raise SimplydataError('test_method="ilr" with zeros_replaced_by="adding 1" is not offered; use the default '
+                                  'zeros_replaced_by="estimated small values", or test_method="clr".')
         from .community_r import log_ratios
 
         reference = columns.index(against) + 1 if kind == "alr" else None
@@ -381,8 +381,8 @@ class CommunityWords:
                                       [(n, points[:, i]) for i, n in enumerate(names)], keep)
 
     # ------------------------------------------------------------------ constrained ordination
-    @friendly(renamed={"seed": "with_seed"})
-    def explain_profiles_of(self, columns=None, using=None, measure=None, method=None, allowing_for=None,
+    @friendly(renamed={"method": "test_method", "seed": "with_seed"})
+    def explain_profiles_of(self, columns=None, using=None, measure=None, test_method=None, allowing_for=None,
                             permutations=999, with_seed=1):
         """How much of the differences in make-up between rows do other columns explain (RDA, db-RDA, CCA)?
 
@@ -393,7 +393,7 @@ class CommunityWords:
         distance as compare_profiles_of; "hellinger" or "aitchison" give redundancy analysis on
         the transformed counts (vegan::rda); "jaccard", "manhattan" and "robust aitchison" go
         through dbrda too. measure="euclidean" on raw counts is refused (Legendre & Gallagher
-        2001: use "hellinger"). method="canonical correspondence" ("cca" accepted) gives CCA
+        2001: use "hellinger"). test_method="canonical correspondence" ("cca" accepted) gives CCA
         (vegan::cca, chi-square distances, no measure=). allowing_for= takes columns into account
         first, without testing them (a partial analysis, vegan Condition()). Prints the share of
         the differences explained (adjusted R squared first), the test of all the columns
@@ -412,13 +412,13 @@ class CommunityWords:
         allowing = [] if allowing_for is None else self._name_list(step, "allowing_for=", allowing_for, example)
         self._need_columns(*using, *allowing)
         kind_cca = False
-        if method is not None:
-            if not isinstance(method, str) or method.strip().lower() not in CANONICAL:
-                self._check_choice(step, "method", method, ["canonical correspondence"])
+        if test_method is not None:
+            if not isinstance(test_method, str) or test_method.strip().lower() not in CANONICAL:
+                self._check_choice(step, "test_method", test_method, ["canonical correspondence"])
             kind_cca = True
             if measure is not None:
-                raise SimplydataError('method="canonical correspondence" uses chi-square distances itself, so it '
-                                      "takes no measure=. Leave measure= out, or leave method= out for "
+                raise SimplydataError('test_method="canonical correspondence" uses chi-square distances itself, so it '
+                                      "takes no measure=. Leave measure= out, or leave test_method= out for "
                                       "distance-based RDA with that measure.")
         chosen_measure = measure is None and not kind_cca
         measure = "bray-curtis" if measure is None else measure
@@ -435,8 +435,8 @@ class CommunityWords:
             raise SimplydataError(f"{_quoted_list(twice)} cannot be in both using= and allowing_for=.")
         x, keep = self._pattern_matrix(step, columns, extra=(*using, *allowing), least_rows=4)
         if kind_cca:
-            comp.check_not_negative(step, x, columns, 'with method="canonical correspondence"')
-            comp.check_no_empty_rows(step, x, 'with method="canonical correspondence"')
+            comp.check_not_negative(step, x, columns, 'with test_method="canonical correspondence"')
+            comp.check_no_empty_rows(step, x, 'with test_method="canonical correspondence"')
             kind = "cca"
         else:
             if measure == "euclidean" and (x >= 0).all() and comp.whole_numbers(x):
@@ -517,16 +517,16 @@ class CommunityWords:
         return self._new_table(nw.from_dict(data, backend=self._frame.implementation))
 
     # ------------------------------------------------------------------ Mantel and Procrustes
-    @friendly(renamed={"seed": "with_seed"})
-    def find_correlation_between_profiles(self, first=None, second=None, measure="bray-curtis", method="mantel",
+    @friendly(renamed={"method": "test_method", "seed": "with_seed"})
+    def find_correlation_between_profiles(self, first=None, second=None, measure="bray-curtis", test_method="mantel",
                                           permutations=999, with_seed=1):
         """Do rows that differ in one set of columns also differ in another (Mantel, Procrustes)?
 
         table.find_correlation_between_profiles(first=["blaTEM", "blaCTXM", "sul1", "sul2", "tetA", "tetM"], second=["temperature", "salinity"])   (with sdata.get_example("resistome"))
         Compares two sets of columns measured on the same rows, such as the resistome and the
-        bacteria, or the genes and the water chemistry. method="mantel" (the default) correlates
+        bacteria, or the genes and the water chemistry. test_method="mantel" (the default) correlates
         the distances between rows in first= with those in second= (R vegan::mantel, Pearson);
-        method="procrustes" fits the two maps of the rows (their first two principal coordinates)
+        test_method="procrustes" fits the two maps of the rows (their first two principal coordinates)
         onto each other and gives their correlation (vegan::protest). measure= is used for first=,
         and for second= too when it also holds counts (whole numbers from 0); other number columns
         get straight-line distances after each column is put on the same scale. The p-value comes
@@ -537,7 +537,7 @@ class CommunityWords:
         step = "find_correlation_between_profiles"
         example = ('table.find_correlation_between_profiles(first=["blaTEM", "blaCTXM", "sul1"], '
                    'second=["temperature", "salinity"])')
-        self._check_choice(step, "method", method, CORRELATION_METHODS)
+        self._check_choice(step, "test_method", test_method, CORRELATION_METHODS)
         self._check_choice(step, "measure", measure, list(MEASURES))
         self._check_seed_and_permutations(step, permutations, with_seed, example)
         if first is None or second is None:
@@ -554,9 +554,9 @@ class CommunityWords:
         # second= is read as counts only when it looks like a community table too: 3 or more columns of whole
         # numbers from 0 (two columns such as depth and year are measurements); the choice is printed first
         counts = (len(second) >= 3 and (y >= 0).all() and comp.whole_numbers(y) and measure in COUNT_MEASURES)
-        if len(second) < 2 and method == "procrustes":
-            raise SimplydataError("method=\"procrustes\" fits two maps with two axes each, so second= needs at "
-                                  "least 2 columns; for one column use method=\"mantel\".")
+        if len(second) < 2 and test_method == "procrustes":
+            raise SimplydataError("test_method=\"procrustes\" fits two maps with two axes each, so second= needs at "
+                                  "least 2 columns; for one column use test_method=\"mantel\".")
         if counts:
             self._check_measure(measure, y, second, step)
             second_measure = measure
@@ -575,12 +575,12 @@ class CommunityWords:
                   "one at a time with find_correlation_between.")
         from .community_r import profile_correlation
 
-        found = profile_correlation(x, y, measure, second_measure, method, permutations, with_seed)
+        found = profile_correlation(x, y, measure, second_measure, test_method, permutations, with_seed)
         r, p = found["r"], found["p"]
         a, b = f"first= ({comp.short_list(first, 4)})", f"second= ({comp.short_list(second, 4)})"
         how_second = (f"{MEASURES[measure]} distances" if second_measure != SCALED else
                       "straight-line distances after each column is put on the same scale")
-        if method == "mantel":
+        if test_method == "mantel":
             if r > 0 and p < 0.05:
                 print(f"Rows that differ in {a} also tend to differ in {b}: Mantel r = {_num(r)}.")
             else:
@@ -604,7 +604,7 @@ class CommunityWords:
                   f"cmdscale(d2, k = 2), permutations = {permutations}), with d1 = {MEASURES[measure]} distances of "
                   f"first= and d2 = {how_second} of second=.")
             name = "Procrustes correlation"
-        row = {"test": "Mantel" if method == "mantel" else "Procrustes (PROTEST)", "first": ", ".join(first),
+        row = {"test": "Mantel" if test_method == "mantel" else "Procrustes (PROTEST)", "first": ", ".join(first),
                "second": ", ".join(second), "distance of first": MEASURES[measure],
                "distance of second": MEASURES.get(second_measure, "Euclidean, scaled"), "statistic name": name,
                "statistic": float(r), "p-value": float(p), "permutations": int(permutations), "rows": int(len(x))}

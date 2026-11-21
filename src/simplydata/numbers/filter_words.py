@@ -60,7 +60,7 @@ def filter_call(option, value, step, method="butterworth", steepness=4, ripple=0
         parts += ["and_multiples=True"] if and_multiples else []
     else:
         method_name = str(method).strip().lower()
-        parts += [f'method="{method}"'] if method_name != "butterworth" else []
+        parts += [f'test_method="{method}"'] if method_name != "butterworth" else []
         parts += [f"steepness={steepness}"] if steepness != 4 else []
         parts += [f"ripple={ripple:g}"] if ripple != 0.5 else []
         parts += [f"removed_by={removed_by:g}"] if removed_by != 40 else []
@@ -110,16 +110,16 @@ class FilterNumberWords:
                                                                    removed_by, width, and_multiples))
         return self._change(f"{'keep' if keep else 'remove'} frequencies {condition}", out)
 
-    @friendly(renamed={"below": "is_below", "above": "is_above", "between": "is_between", "equal_to": "is_equal_to"})
+    @friendly(renamed={"method": "test_method", "below": "is_below", "above": "is_above", "between": "is_between", "equal_to": "is_equal_to"})
     def keep_each_frequency_that(self, is_below=None, is_above=None, is_between=None, is_equal_to=None, time_step=None,
-                                 method="butterworth", steepness=4, both_ways=True, ripple=0.5, removed_by=40, width=1,
+                                 test_method="butterworth", steepness=4, both_ways=True, ripple=0.5, removed_by=40, width=1,
                                  show_filter=False, sampling_rate=None, fs=None):
         """Keep only some frequencies of the numbers (a low-pass, high-pass, band-pass or peak filter).
 
         nums.keep_each_frequency_that(is_below=5, time_step=0.01)
         One condition: is_below=5 keeps the slow cycles (low-pass), is_above=1 the fast ones (high-pass),
         is_between=[1, 5] a band, is_equal_to=10 one frequency (width= how wide). Frequencies are cycles per unit
-        of time: time_step= is the time between readings (sampling_rate= or fs= instead). method=
+        of time: time_step= is the time between readings (sampling_rate= or fs= instead). test_method=
         "butterworth" (flat where it keeps; R signal::butter), "chebyshev" (ripple= dB), "chebyshev 2"
         (removed_by= dB), "elliptic" or "bessel" (keeps the shape of pulses). steepness= is the filter order (4). both_ways=True
         runs the filter forwards and backwards so nothing moves in time (SciPy sosfiltfilt; the ends as
@@ -128,13 +128,13 @@ class FilterNumberWords:
         against frequency) and prints the line that saves it, sdata.frequency_filter(...).chart().save(...).
         Undo with nums.undo().
         """
-        return self._filter_word(True, is_below, is_above, is_between, is_equal_to, time_step, method, steepness, both_ways,
+        return self._filter_word(True, is_below, is_above, is_between, is_equal_to, time_step, test_method, steepness, both_ways,
                                  ripple, removed_by, 101, "hamming", width, False, sampling_rate, fs,
                                  "keep_each_frequency_that", show_filter)
 
-    @friendly(renamed={"below": "is_below", "above": "is_above", "between": "is_between", "equal_to": "is_equal_to"})
+    @friendly(renamed={"method": "test_method", "below": "is_below", "above": "is_above", "between": "is_between", "equal_to": "is_equal_to"})
     def remove_each_frequency_that(self, is_below=None, is_above=None, is_between=None, is_equal_to=None, time_step=None,
-                                   method="butterworth", steepness=4, both_ways=True, ripple=0.5, removed_by=40, width=1,
+                                   test_method="butterworth", steepness=4, both_ways=True, ripple=0.5, removed_by=40, width=1,
                                    and_multiples=False, show_filter=False, sampling_rate=None, fs=None):
         """Remove some frequencies from the numbers, such as a 50-per-second hum (band-stop or notch filter).
 
@@ -143,6 +143,6 @@ class FilterNumberWords:
         =True also removes 100, 150 ...: a comb); is_below= and is_above= remove the slow or the fast cycles.
         The options are those of keep_each_frequency_that (show_filter= too). Undo with nums.undo().
         """
-        return self._filter_word(False, is_below, is_above, is_between, is_equal_to, time_step, method, steepness, both_ways,
+        return self._filter_word(False, is_below, is_above, is_between, is_equal_to, time_step, test_method, steepness, both_ways,
                                  ripple, removed_by, 101, "hamming", width, and_multiples, sampling_rate, fs,
                                  "remove_each_frequency_that", show_filter)

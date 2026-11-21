@@ -617,7 +617,7 @@ UNITS = {
             ("Which word shows the rows with outliers?", 'table.show_rows_with_outliers("marks", for_each_group_in="class")'),
             ("Which word checks whether values are bell-shaped (normal)?", 'table.compare_shape_to("marks", "normal")'),
             ("You did many tests at once. Which word corrects the p-values?",
-             'add_adjusted_p_value_column(method="holm"), on the table of results'),
+             'add_adjusted_p_value_column(test_method="holm"), on the table of results'),
         ],
         spaced=[
             ("Each patient was measured at week 0, 4 and 8. Which word compares the three measurements?",
