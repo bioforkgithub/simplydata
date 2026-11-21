@@ -4,7 +4,7 @@ Made by `python validation/make_report.py` on 2026-11-21. Generated: do not edit
 
 Each simplydata word is run on real, published data and compared with the published answer, with the package simplydata uses underneath called directly, and with R. Each "same underneath" box of the manual is run next to its word and compared too. How it works, and the datasets with their licences: [validation/README.md](README.md).
 
-**1193 checks passed, 0 failed, 0 skipped** (skipped: R or an R package is not installed on this computer).
+**1263 checks passed, 0 failed, 0 skipped** (skipped: R or an R package is not installed on this computer).
 
 ## Setup
 
@@ -1931,15 +1931,15 @@ Note: The oblimin rotation of GPArotation starts from random numbers, so both si
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
-| own part of x1 | statsmodels Factor (method="ml") | 0.512529527173443 | 0.512528083004762 | relative 0.0001 | pass |
-| own part of x2 | statsmodels Factor (method="ml") | 0.7487351603869 | 0.748735002060787 | relative 0.0001 | pass |
-| own part of x3 | statsmodels Factor (method="ml") | 0.542773290729761 | 0.542774310007228 | relative 0.0001 | pass |
-| own part of x4 | statsmodels Factor (method="ml") | 0.279193093920192 | 0.27919283622274 | relative 0.0001 | pass |
-| own part of x5 | statsmodels Factor (method="ml") | 0.242877320676015 | 0.242877240130544 | relative 0.0001 | pass |
-| own part of x6 | statsmodels Factor (method="ml") | 0.30521585555841 | 0.305215778765838 | relative 0.0001 | pass |
-| own part of x7 | statsmodels Factor (method="ml") | 0.502207221916071 | 0.502208820617208 | relative 0.0001 | pass |
-| own part of x8 | statsmodels Factor (method="ml") | 0.468550489794599 | 0.468549247090109 | relative 0.0001 | pass |
-| own part of x9 | statsmodels Factor (method="ml") | 0.543247686483436 | 0.543246700275683 | relative 0.0001 | pass |
+| own part of x1 | statsmodels Factor (method="ml") | 0.512529527173443 | 0.512528082411245 | relative 0.0001 | pass |
+| own part of x2 | statsmodels Factor (method="ml") | 0.7487351603869 | 0.748735705804821 | relative 0.0001 | pass |
+| own part of x3 | statsmodels Factor (method="ml") | 0.542773290729761 | 0.542774019631796 | relative 0.0001 | pass |
+| own part of x4 | statsmodels Factor (method="ml") | 0.279193093920192 | 0.279192854635172 | relative 0.0001 | pass |
+| own part of x5 | statsmodels Factor (method="ml") | 0.242877320676015 | 0.242877555271918 | relative 0.0001 | pass |
+| own part of x6 | statsmodels Factor (method="ml") | 0.30521585555841 | 0.305215793395826 | relative 0.0001 | pass |
+| own part of x7 | statsmodels Factor (method="ml") | 0.502207221916071 | 0.50220849395195 | relative 0.0001 | pass |
+| own part of x8 | statsmodels Factor (method="ml") | 0.468550489794599 | 0.468549618554421 | relative 0.0001 | pass |
+| own part of x9 | statsmodels Factor (method="ml") | 0.543247686483436 | 0.543246728543192 | relative 0.0001 | pass |
 | own part of x1 | R | 0.512529527173443 | 0.512528169335274 | relative 0.001 | pass |
 | own part of x2 | R | 0.7487351603869 | 0.74873504605719 | relative 0.001 | pass |
 | own part of x3 | R | 0.542773290729761 | 0.542776785473323 | relative 0.001 | pass |
@@ -2561,6 +2561,172 @@ Note: Heiberger & Robbins (2014): diverging bars centred on the middle answer.
 | p-value | R | 2.08210867642847e-06 | 2.08210867642847e-06 | relative 1e-09 | pass |
 | design degrees of freedom | R | 371.371769351819 | 371.371769351819 | relative 1e-09 | pass |
 
+### `table.compare_balanced_groups_of`
+
+**lalonde: weighting, the effect for everyone (ATE)** (real data; data: lalonde)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| effect | R | 224.676308271439 | 224.676308271439 | relative 1e-09 | pass |
+| standard error | R | 876.193185532072 | 876.193185532072 | relative 1e-09 | pass |
+| p-value | R | 0.797624033422354 | 0.797624033422354 | relative 1e-09 | pass |
+
+Note: The randomised NSW experiment found 1794 dollars (Dehejia & Wahba 1999); the survey comparison group is very unlike the trained men, so balancing on these columns does not recover it fully.
+
+**lalonde: the balance table (standardised differences, cobalt)** (real data; data: lalonde)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| race black before | R | 1.67082635003592 | 1.67082635003592 | relative 1e-09 | pass |
+| race black after | R | 0.130249813461065 | 0.130249813461065 | relative 1e-09 | pass |
+| re74 after | R | -0.273989428670678 | -0.273989428670678 | relative 1e-09 | pass |
+
+### `table.compare_balanced_groups_of method="matching"`
+
+**method="matching": lalonde, 1:1 nearest neighbour, the effect among the trained men (ATT)** (real data; data: lalonde)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| effect | R | 894.367480270274 | 894.367480270274 | relative 1e-09 | pass |
+| standard error | R | 705.229764061618 | 705.229764061618 | relative 1e-09 | pass |
+
+Note: The MatchIt vignette's own analysis of lalonde: ATT 894, clustered standard error 705.
+
+**method="matching": lalonde, with a caliper of 0.2 standard deviations of the logit (match_within=0.2)** (real data; data: lalonde)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| effect | R | 1770.60290641026 | 1770.60290641026 | relative 1e-09 | pass |
+| standard error | R | 924.234347046261 | 924.234347046261 | relative 1e-09 | pass |
+
+### `table.compare_risks show="attributable fractions"`
+
+**show="attributable fractions": dry cat food and urinary disease (Willeberg 1977)** (real data; data: dry cat food and FLUTD)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| AF among the exposed | R | 0.750470161919178 | 0.750470161919178 | relative 1e-09 | pass |
+| AF low | R | 0.329128862567194 | 0.329128862567194 | relative 1e-09 | pass |
+| AF high | R | 0.907213547250137 | 0.907213547250137 | relative 1e-09 | pass |
+| PAF | R | 0.54200622805274 | 0.54200622805274 | relative 1e-09 | pass |
+
+Note: epiR's help prints 75.05 % (32.91 to 90.72) among the exposed and 54.20 % in the population.
+
+**show="attributable fractions": the preventable fraction is 1 minus the risk ratio (groups swapped)** (real data; data: dry cat food and FLUTD)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| preventable fraction | R | 0.750470161919178 | 0.750470161919178 | relative 1e-09 | pass |
+
+Note: The definition 1 - risk ratio (Rothman, Greenland & Lash 2008), in base R.
+
+### `table.rate_of standard_population=`
+
+**standard_population=: Down syndrome by birth order, adjusted for the mother's age** (real data; data: Down syndrome by birth order)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| adjusted, first born | R | 92.3045255331994 | 92.3045255331994 | relative 1e-09 | pass |
+| low, first born | R | 80.4417498507042 | 80.4417498507042 | relative 1e-09 | pass |
+| high, first born | R | 105.763345749261 | 105.763345749261 | relative 1e-09 | pass |
+| adjusted, fifth or later | R | 75.5290074452568 | 75.5290074452568 | relative 1e-09 | pass |
+| crude, fifth or later | R | 167.114186413617 | 167.114186413617 | relative 1e-09 | pass |
+
+Note: R epitools::ageadjust.direct is a separate package from epiR, which simplydata runs; the epitools help gives 92.3 (80.4 to 105.8) per 100,000 for the first born.
+
+### `table.compare_rates standard_rates=`
+
+**standard_rates=: Down syndrome by birth order against the pooled rates (SMR)** (real data; data: Down syndrome by birth order)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| observed / expected, first born | R | 1.89677486668325 | 1.89677486668325 | relative 1e-09 | pass |
+| expected, first born | R | 217.210807269096 | 217.210807269096 | relative 1e-09 | pass |
+| low, first born | R | 1.7180200935985 | 1.7180200935985 | relative 1e-09 | pass |
+| p, first born | R | 6.870289653213e-32 | 6.870289653213e-32 | relative 1e-09 | pass |
+| observed / expected, fifth or later | R | 1.75926671135108 | 1.75926671135108 | relative 1e-09 | pass |
+
+Note: The ratio and the expected count from R epitools::ageadjust.indirect (a separate package from epiR); its log-normal interval differs, so the exact interval and p-value come from R poisson.test(). The standard rates are the table's own pooled rates, worked out in the case code.
+
+### `table.explain through=`
+
+**through=: JOBS II, the workshop, job-search confidence and depression** (real data; data: JOBS II)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| indirect effect | statsmodels Mediation (with_seed=1) | -0.0163155082561465 | -0.0163155082561465 | relative 1e-09 | pass |
+| indirect low | statsmodels Mediation (with_seed=1) | -0.0457537091325961 | -0.0457537091325961 | relative 1e-09 | pass |
+| total effect | statsmodels Mediation (with_seed=1) | -0.0554964945177592 | -0.0554964945177592 | relative 1e-09 | pass |
+| indirect effect | R | -0.0163155082561465 | -0.0157446450289036 | relative 0.05 | pass |
+| total effect | R | -0.0554964945177592 | -0.0560093450307452 | relative 0.05 | pass |
+
+Note: For two linear models without an interaction the indirect effect is the product of the two coefficients and the total effect the coefficient of treat without job_seek (base R lm); the simulation (1000 draws) estimates them within a few percent. R mediation::mediate(sims = 1000) gave -0.0159 (-0.0422 to 0.0105) here; Tingley et al. (2014) analyse the same data.
+
+### `table.compare_averages_of period=`
+
+**period=: bioequivalence reference dataset A (18 subjects, balanced)** (published; data: bioequivalence reference datasets)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| ratio | Schütz, Labes & Fuglsang (2014), AAPS J 16:1292-1297, Table II | 0.950861580105716 | 0.9509 | within 5e-05 (printed rounding) | pass |
+| 90 % CI low | Schütz, Labes & Fuglsang (2014), AAPS J 16:1292-1297, Table II | 0.907620838999453 | 0.9076 | within 5e-05 (printed rounding) | pass |
+| 90 % CI high | Schütz, Labes & Fuglsang (2014), AAPS J 16:1292-1297, Table II | 0.99616239036319 | 0.9962 | within 5e-05 (printed rounding) | pass |
+| ratio | R | 0.950861580105716 | 0.950861580105717 | relative 1e-09 | pass |
+| 90 % CI low | R | 0.907620838999453 | 0.907620838999454 | relative 1e-09 | pass |
+| 90 % CI high | R | 0.99616239036319 | 0.996162390363191 | relative 1e-09 | pass |
+| within-subject CV | R | 0.0801020799341615 | 0.0801020799341615 | relative 1e-09 | pass |
+
+Note: R lm() gives NA for the sequence (subject lies within it), as the EMA model expects.
+
+**period=: bioequivalence reference dataset B (18 subjects, a large CV)** (published; data: bioequivalence reference datasets)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| ratio | Schütz, Labes & Fuglsang (2014), AAPS J 16:1292-1297, Table II | 0.711004943359077 | 0.711 | within 5e-05 (printed rounding) | pass |
+| 90 % CI low | Schütz, Labes & Fuglsang (2014), AAPS J 16:1292-1297, Table II | 0.514492394243995 | 0.5145 | within 5e-05 (printed rounding) | pass |
+| 90 % CI high | Schütz, Labes & Fuglsang (2014), AAPS J 16:1292-1297, Table II | 0.982576292937968 | 0.9826 | within 5e-05 (printed rounding) | pass |
+| ratio | R | 0.711004943359077 | 0.711004943359077 | relative 1e-09 | pass |
+| 90 % CI low | R | 0.514492394243995 | 0.514492394243995 | relative 1e-09 | pass |
+| 90 % CI high | R | 0.982576292937968 | 0.982576292937968 | relative 1e-09 | pass |
+| within-subject CV | R | 0.601714785969924 | 0.601714785969924 | relative 1e-09 | pass |
+
+Note: R lm() gives NA for the sequence (subject lies within it), as the EMA model expects.
+
+**period=: bioequivalence reference dataset C (13 subjects, unbalanced)** (published; data: bioequivalence reference datasets)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| ratio | Schütz, Labes & Fuglsang (2014), AAPS J 16:1292-1297, Table II | 0.585629337611626 | 0.5856 | within 5e-05 (printed rounding) | pass |
+| 90 % CI low | Schütz, Labes & Fuglsang (2014), AAPS J 16:1292-1297, Table II | 0.394078760827946 | 0.3941 | within 5e-05 (printed rounding) | pass |
+| 90 % CI high | Schütz, Labes & Fuglsang (2014), AAPS J 16:1292-1297, Table II | 0.870287250068694 | 0.8703 | within 5e-05 (printed rounding) | pass |
+| ratio | R | 0.585629337611626 | 0.585629337611626 | relative 1e-09 | pass |
+| 90 % CI low | R | 0.394078760827946 | 0.394078760827946 | relative 1e-09 | pass |
+| 90 % CI high | R | 0.870287250068694 | 0.870287250068695 | relative 1e-09 | pass |
+| within-subject CV | R | 0.556128827442006 | 0.556128827442006 | relative 1e-09 | pass |
+
+Note: R lm() gives NA for the sequence (subject lies within it), as the EMA model expects.
+
+### `table.find_correlation_between empty_cells="multiple imputation"`
+
+**empty_cells="multiple imputation": airquality, ozone and temperature (37 empty ozone cells)** (real data; data: airquality (R datasets))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| r | R | 0.666261392680928 | 0.668794611859579 | relative 0.03 | pass |
+
+Note: R mice fills in with its own random draws, so the two pooled correlations agree to the simulation error, not to many digits; the pooling itself is checked exactly in the same underneath.
+
+### `table.explain_survival empty_cells="multiple imputation"`
+
+**empty_cells="multiple imputation": lung cancer survival, with empty Karnofsky and weight-loss cells** (real data; data: lung with weight loss (survival))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| hazard ratio sex | R | 0.602376904402302 | 0.60223996887993 | relative 0.02 | pass |
+| hazard ratio ph.karno | R | 0.986281926886541 | 0.986397568832498 | relative 0.02 | pass |
+
+Note: R mice with the event and the Nelson-Aalen hazard as predictors (White & Royston 2009) and its own random draws: the pooled hazard ratios agree to the simulation error.
+
 ## 2. The same underneath (the manual's boxes)
 
 Each box's library code is run next to the simplydata word and compared. Table words run on a pandas and on a Polars table.
@@ -2864,6 +3030,22 @@ Each box's library code is run next to the simplydata word and compared. Table w
 | `table.compare_averages_of after use_survey_design()` | R + Python | polars | result | relative 1e-09 | pass |
 | `table.compare_counts_of after use_survey_design()` | R + Python | pandas | result | relative 1e-09 | pass |
 | `table.compare_counts_of after use_survey_design()` | R + Python | polars | result | relative 1e-09 | pass |
+| `table.compare_balanced_groups_of` | R + Python | pandas | result | relative 1e-09 | pass |
+| `table.compare_balanced_groups_of` | R + Python | polars | result | relative 1e-09 | pass |
+| `table.compare_balanced_groups_of method="matching"` | R + Python | pandas | result | relative 1e-09 | pass |
+| `table.compare_balanced_groups_of method="matching"` | R + Python | polars | result | relative 1e-09 | pass |
+| `table.compare_risks show="attributable fractions"` | R + Python | pandas | result | relative 1e-09 | pass |
+| `table.compare_risks show="attributable fractions"` | R + Python | polars | result | relative 1e-09 | pass |
+| `table.rate_of standard_population=` | R + Python | pandas | result | relative 1e-09 | pass |
+| `table.rate_of standard_population=` | R + Python | polars | result | relative 1e-09 | pass |
+| `table.compare_rates standard_rates=` | R + Python | pandas | result | relative 1e-09 | pass |
+| `table.compare_rates standard_rates=` | R + Python | polars | result | relative 1e-09 | pass |
+| `table.explain through=` | statsmodels | pandas | result | relative 1e-09 | pass |
+| `table.explain through=` | statsmodels | polars | result | relative 1e-09 | pass |
+| `table.compare_averages_of period=` | statsmodels | pandas | result | relative 1e-09 | pass |
+| `table.compare_averages_of period=` | statsmodels | polars | result | relative 1e-09 | pass |
+| `table.find_correlation_between empty_cells="multiple imputation"` | R + Python | pandas | value | relative 1e-09 | pass |
+| `table.find_correlation_between empty_cells="multiple imputation"` | R + Python | polars | value | relative 1e-09 | pass |
 
 How each kind is compared:
 
@@ -3121,6 +3303,22 @@ Where simplydata's default differs from the package underneath, it is listed her
 - `table.explain after use_survey_design()` (1): survey::svyglm with the family of outcome= (gaussian; quasibinomial for yes or no; quasipoisson for counts) and its own t tests and intervals on the model's residual degrees of freedom.
 - `table.compare_averages_of after use_survey_design()` (1): the design-based t test of survey::svyttest() for two groups; more groups go to explain().
 - `table.compare_counts_of after use_survey_design()` (1): the Rao-Scott corrected chi-square as an F test (survey::svychisq()'s default statistic = "F").
+- `table.compare_balanced_groups_of` (1): weighting by the inverse of the propensity score from logistic regression, for everyone (ATE), unless effect_for= names a group (ATT).
+- `table.compare_balanced_groups_of` (2): the effect from WeightIt's lm_weightit(), whose M-estimation standard errors allow for the estimated weights (statsmodels TreatmentEffect.ipw gives the same estimate with a larger error).
+- `table.compare_balanced_groups_of` (3): standardised differences for every column, text columns too (binary = "std"), with the guide 0.1; never p-values for balance (Austin 2009).
+- `table.compare_balanced_groups_of method="matching"` (1): 1:1 nearest-neighbour matching on the propensity score without replacement, MatchIt's default; match_within= adds a caliper in standard deviations of the logit of the score (Austin 2011).
+- `table.compare_balanced_groups_of method="matching"` (2): standard errors clustered on the matched pairs, as the MatchIt vignette does.
+- `table.compare_risks show="attributable fractions"` (1): the risk-based fractions of a cohort (method = "cohort.count"), with Wald intervals from the risk ratio; crude, not adjusted for other columns.
+- `table.rate_of standard_population=` (1): "whole table": the standard population is the person-time of all rows in each band.
+- `table.rate_of standard_population=` (2): direct standardisation with Fay & Feuer's gamma interval (epiR, the same as epitools::ageadjust.direct()).
+- `table.compare_rates standard_rates=` (1): the standard rates are read per per= units of time (1000 here) and divided by it for epiR, which wants rates per one unit.
+- `table.compare_rates standard_rates=` (2): observed / expected with the exact Poisson interval; the p-value from R poisson.test(observed, expected).
+- `table.explain through=` (1): least squares for a column of numbers, logistic regression for yes or no; the exposure coded 0 and 1 (against= is 0).
+- `table.explain through=` (2): 1000 quasi-Bayesian simulations, as R mediation::mediate(sims = 1000), with_seed=1; effects averaged over the two exposure levels.
+- `table.compare_averages_of period=` (1): the sequence is each subject's formulation in the first period.
+- `table.compare_averages_of period=` (2): the EMA (2010) model with all effects fixed, on the log scale.
+- `table.compare_averages_of period=` (3): the 90 % interval, the same as two one-sided tests at 5 % each; the ratio and its interval taken back from logs.
+- `table.find_correlation_between empty_cells="multiple imputation"` (1): Fisher's z of each filled-in table pooled with Rubin's rules and taken back to r (van Buuren 2018, section 5.2).
 
 ## Datasets
 
@@ -3208,3 +3406,10 @@ Where simplydata's default differs from the package underneath, it is listed her
 | [nhanes (mice)](https://doi.org/10.18637/jss.v045.i03) | 25 people of the US National Health and Nutrition Examination Survey: age group, body mass index, hypertension and cholesterol, with empty cells | Schafer, J. L. (1997). Analysis of Incomplete Multivariate Data. Chapman & Hall, p. 237; the nhanes data of R mice and its patterns in van Buuren, S. & Groothuis-Oudshoorn, K. (2011). mice: Multivariate Imputation by Chained Equations in R. Journal of Statistical Software 45(3). | A US Government survey (public domain); the mice copy is GPL-2 \| GPL-3. |
 | [professional challenges (HH)](https://doi.org/10.18637/jss.v057.i05) | 565 answers to a survey question on professional challenges, from strongly disagree to strongly agree, in total and by employment sector, race, gender and more (counts of each answer) | Heiberger, R. M. & Robbins, N. B. (2014). Design of Diverging Stacked Bar Charts for Likert Scales and Other Applications. Journal of Statistical Software 57(5); R HH (ProfChal). | The JSS article is CC BY; the HH copy is GPL (>= 2). Counts stored unchanged. |
 | [api cluster sample (survey)](https://cran.r-project.org/package=survey) | 183 California schools in 15 school districts sampled at random (a one-stage cluster sample): the Academic Performance Index of 2000, enrolment, the weight (pw) and the number of districts (fpc) | California Department of Education, Academic Performance Index 2000; R's survey package (apiclus1; Lumley 2010). | Public data of the California Department of Education; the survey package copy is GPL-2 \| GPL-3. |
+| [lalonde](https://doi.org/10.1080/01621459.1999.10473858) | 614 men: 185 in the National Supported Work job training and 429 from a population survey (PSID), with age, schooling, race, marriage, degree and earnings in 1974, 1975 and 1978 | LaLonde, R. J. (1986). Evaluating the econometric evaluations of training programs with experimental data. American Economic Review 76, 604-620; Dehejia, R. H. & Wahba, S. (1999). Journal of the American Statistical Association 94, 1053-1062. As shipped by the R package MatchIt (lalonde). | Public study data (US Department of Labor NSW); the MatchIt copy is GPL (>= 2). Also the practice table job_training. |
+| [dry cat food and FLUTD](https://cran.r-project.org/package=epiR) | a cross-sectional study of dry cat food and feline lower urinary tract disease: 13 of 2176 cats on dry food and 5 of 3354 on other food had the disease | Willeberg, P. (1977). Animal disease information processing: epidemiologic analyses of the feline urologic syndrome. Acta Veterinaria Scandinavica 18 (Suppl. 64), 1-48; the first example of R epiR::epi.2by2. | Published counts (facts); stored unchanged. |
+| [Down syndrome by birth order](https://cran.r-project.org/package=epitools) | Down syndrome cases and live births in Michigan by birth order and mother's age (6 x 6 bands) | Selvin, S. (2004). Statistical Analysis of Epidemiologic Data, 3rd ed. Oxford University Press; the example of R epitools::ageadjust.direct (Fay & Feuer 1997, Statistics in Medicine 16, 791-801). | Published counts (facts); stored unchanged. |
+| [JOBS II](https://doi.org/10.18637/jss.v059.i05) | 899 unemployed workers in a randomised job-search workshop: treatment, job-search confidence, depression six months later, economic hardship, sex, age and others | Vinokur, A. D., Price, R. H. & Schul, Y. (1995). American Journal of Community Psychology 23, 39-74; Tingley, D. et al. (2014). mediation: R Package for Causal Mediation Analysis. Journal of Statistical Software 59(5). As shipped by the R package mediation (jobs). | GPL (>= 2) (mediation); stored with its numbers unchanged. Also the practice table job_search. |
+| [bioequivalence reference datasets](https://doi.org/10.1208/s12248-014-9661-0) | three 2 x 2 crossover bioequivalence studies (AUC of a test and a reference formulation): A, 18 subjects (Sauter et al. 1992); B, 18 subjects (Clayton & Leslie 1981); C, 13 subjects (B with subjects removed, unbalanced) | Schütz, H., Labes, D. & Fuglsang, A. (2014). Reference Datasets for 2-Treatment, 2-Sequence, 2-Period Bioequivalence Studies. The AAPS Journal 16, 1292-1297 (supplementary data sets A, B and C; dataset A is also the practice table drug_levels). | Measured values from published studies (facts), stored unchanged; the article is (c) AAPS 2014. |
+| [airquality (R datasets)](https://stat.ethz.ch/R-manual/R-devel/library/datasets/html/airquality.html) | daily air quality in New York, May to September 1973: ozone (37 empty cells), solar radiation (7 empty), wind and temperature | Chambers, J. M. et al. (1983). Graphical Methods for Data Analysis. Wadsworth; data from the New York State Department of Conservation and the National Weather Service. R's datasets package. | Public data; R's datasets package is GPL-2 \| GPL-3; read from R, so it needs R. |
+| [lung with weight loss (survival)](https://doi.org/10.1200/JCO.1994.12.3.601) | 228 patients with advanced lung cancer: survival time, status, age, sex, Karnofsky score (empty cells) and weight loss (14 empty cells) | Loprinzi, C. L. et al. (1994). Journal of Clinical Oncology 12, 601-607. As shipped by the R package survival (lung). | LGPL (>= 2) (survival); read from the installed package, so it needs R. |
