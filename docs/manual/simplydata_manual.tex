@@ -273,7 +273,7 @@ can write it up in a report or a paper.
 
 \section*{How this manual is built}
 \begin{description}[style=nextline,leftmargin=1.2em]
-  \item[{\hyperref[part:lessons]{Part II: Lessons}}] Thirty-two short lessons that teach the whole
+  \item[{\hyperref[part:lessons]{Part II: Lessons}}] Thirty-three short lessons that teach the whole
     of simplydata in a day. Each lesson shows code you can run, says what every line does, shows
     the real chart and output it makes, and ends with tasks to try yourself.
   \item[{\hyperref[part:dictionary]{Part III: Dictionary of words}}] Every word, with what it does,
@@ -641,6 +641,36 @@ tb\_unvaccinated & unvaccinated people who got tuberculosis\\
 unvaccinated & people not vaccinated\\
 latitude & how far the trial's place is from the equator, in degrees\\
 allocation & how people were put into the groups: random, alternate or systematic\\
+\bottomrule\end{tabularx}\end{center}
+\section*{stations}
+MADE-UP DATA: 60 made-up sampling stations in a fjord on a coast: where each one is, how deep, the direction its current mostly flows to and the zinc in its sediment. Invented for practice; not from any real survey. \code{sdata.\allowbreak{}get\_\allowbreak{}example(\textquotedbl{}stations\textquotedbl{})}
+\begin{center}\small
+\begin{tabularx}{\textwidth}{@{}>{\ttfamily}l>{\raggedright\arraybackslash}X@{}}
+\toprule \textrm{\textbf{Column}} & \textbf{What it holds}\\ \midrule
+station & a short name for the station, S01 to S60\\
+east & metres east of the south-west corner of the area (0 to 6000)\\
+north & metres north of the south-west corner of the area (0 to 4000)\\
+lon & longitude in degrees (made-up place near 5.2\textdegree{} E)\\
+lat & latitude in degrees (made-up place near 60.4\textdegree{} N)\\
+depth & water depth in m\\
+current\_direction & the direction the current mostly flows to, in degrees (0 = north, 90 = east); most point a little west or east of north, so they lie on both sides of 0 and 360\\
+zinc & zinc in the sediment in mg/kg; higher near the old harbour and alike at nearby stations\\
+\bottomrule\end{tabularx}\end{center}
+\section*{rain}
+MADE-UP DATA: 10 years of daily rain at one made-up coastal station (2015 to 2024), with a few very wet days. Invented for practice; not from any real weather station. \code{sdata.\allowbreak{}get\_\allowbreak{}example(\textquotedbl{}rain\textquotedbl{})}
+\begin{center}\small
+\begin{tabularx}{\textwidth}{@{}>{\ttfamily}l>{\raggedright\arraybackslash}X@{}}
+\toprule \textrm{\textbf{Column}} & \textbf{What it holds}\\ \midrule
+date & every day from 2015-01-01 to 2024-12-31 (real dates)\\
+rain & rain that day in mm (0 on dry days)\\
+\bottomrule\end{tabularx}\end{center}
+\section*{sealevel}
+REAL DATA: the highest sea level of each year at Port Pirie, South Australia, 1923 to 1987 (Coles, S. 2001, An Introduction to Statistical Modeling of Extreme Values, Springer, section 3.4.1: the published yearly maxima, facts; the same numbers as R ismev's portpirie). \code{sdata.\allowbreak{}get\_\allowbreak{}example(\textquotedbl{}sealevel\textquotedbl{})}
+\begin{center}\small
+\begin{tabularx}{\textwidth}{@{}>{\ttfamily}l>{\raggedright\arraybackslash}X@{}}
+\toprule \textrm{\textbf{Column}} & \textbf{What it holds}\\ \midrule
+year & the year, 1923 to 1987\\
+sea\_level & the highest sea level reached that year, in metres\\
 \bottomrule\end{tabularx}\end{center}
 \section*{passive\_smoking}
 REAL DATA: 37 studies of lung cancer in non-smoking women whose husbands smoked, one row per study (Hackshaw, Law \& Wald 1997, BMJ 315:980-988: the odds ratios and intervals published in the paper, facts; the same numbers as R metadat's dat.hackshaw1998). \code{sdata.\allowbreak{}get\_\allowbreak{}example(\textquotedbl{}passive\_\allowbreak{}smoking\textquotedbl{})}
@@ -4654,6 +4684,92 @@ Worked solutions: page~\pageref{solutions:32}, or type \code{sdata.\allowbreak{}
 \end{tryit}
 \par\noindent{\small\sffamily\textbf{Words in this lesson:} \hyperref[word:table.add-log-ratio-columns]{\code{table.\allowbreak{}add\_\allowbreak{}log\_\allowbreak{}ratio\_\allowbreak{}columns()}}, \hyperref[word:table.add-principal-coordinates]{\code{table.\allowbreak{}add\_\allowbreak{}principal\_\allowbreak{}coordinates()}}, \hyperref[word:table.explain-profiles-of]{\code{table.\allowbreak{}explain\_\allowbreak{}profiles\_\allowbreak{}of()}}, \hyperref[word:table.find-correlation-between]{\code{table.\allowbreak{}find\_\allowbreak{}correlation\_\allowbreak{}between()}}, \hyperref[word:draw-dots]{\code{chart.\allowbreak{}draw\_\allowbreak{}dots()}}.\par}
 
+\chapter{A coastal station: currents, neighbours and storms}\label{lesson:33}
+\begin{learnbox}
+\begin{itemize}
+  \item why directions cannot be averaged as plain numbers, and how to average them
+  \item how to ask whether nearby places have alike values (Moran's I), and why the weights matter
+  \item what a 100-year sea level is, and how sure we can be of it
+\end{itemize}
+\end{learnbox}
+\begin{needsr}The Rayleigh test (R circular), Moran's I (R spdep) and the return levels (R extRemes) in this lesson run R's own code, the same code R users run. Install it once: pip install \code{\textquotedbl{}simplydata[r]\textquotedbl{}}, then R from https://cran.r-project.org, then in R: \code{install.\allowbreak{}packages(c(\textquotedbl{}circular\textquotedbl{},\allowbreak{} \textquotedbl{}spdep\textquotedbl{},\allowbreak{} \textquotedbl{}extRemes\textquotedbl{}))}. Without R these words print a message that says what to install.\end{needsr}
+\section*{Example 1}
+Currents. 60 made-up stations in a fjord each have the direction their current mostly flows to, in degrees (0 = north). First the mistake: the plain average.
+\begin{lstlisting}[style=py]
+import simplydata as sdata
+table = sdata.table(sdata.get_example("stations"))
+table.find_average_of("current_direction")
+table.find_average_direction_of("current_direction", full_turn=360)
+table.compare_shape_to("current_direction", shape="even around the circle", full_turn=360)
+\end{lstlisting}
+\whateachline
+\begin{lineexplain}
+  \item[1] Load simplydata.
+  \item[2] One row per station: where it is, its depth, its current and the zinc in its sediment.
+  \item[3] 222: south-west, yet almost every current flows to the north. The plain average of 350\textdegree{} and 10\textdegree{} is 180\textdegree{}, the opposite way; a note says so.
+  \item[4] 354\textdegree{}, a little west of north. The resultant length 0.93 says the directions are close together (1 = all the same, 0 = no average direction). \code{full\_\allowbreak{}turn=360} says the values are degrees.
+  \item[5] The Rayleigh test: if the currents flowed every way evenly, directions this close together would turn up in fewer than 1 in 1000 studies like this one.
+\end{lineexplain}
+\printedoutput{output/lesson33_example1.txt}
+\section*{Example 2}
+Neighbours. Is the zinc in the sediment alike at nearby stations? Moran's I is near 0 when the values are scattered at random and above 0 when nearby places are alike.
+\begin{lstlisting}[style=py]
+import simplydata as sdata
+table = sdata.table(sdata.get_example("stations"))
+table.find_autocorrelation_of("zinc", x="east", y="north")
+table.find_autocorrelation_of("zinc", x="east", y="north", nearest=6)
+\end{lstlisting}
+\whateachline
+\begin{lineexplain}
+  \item[1] Load simplydata.
+  \item[2] The same stations.
+  \item[3] Moran's I = 0.174 (no pattern gives about 0): nearby stations have more alike zinc. Every pair counts, nearer pairs more (weights 1 / distance); 999 shuffles give p = 0.001, the smallest they can.
+  \item[4] With only each station's 6 nearest neighbours Moran's I is 0.445: the weights change the answer, so say which you used.
+\end{lineexplain}
+\printedoutput{output/lesson33_example2.txt}
+\section*{Example 3}
+Storms. The highest sea level of each year at Port Pirie, South Australia, 1923 to 1987 (real data, Coles 2001). How high is the sea once in 100 years?
+\begin{lstlisting}[style=py]
+import simplydata as sdata
+table = sdata.table(sdata.get_example("sealevel"))
+chart = table.start_chart()
+chart.draw_dots(x="year", y="sea_level")
+chart.save("lesson33_sealevel.png")
+table.find_return_levels_of("sea_level", once_in=[10, 100], sorted_by="year")
+\end{lstlisting}
+\whateachline
+\begin{lineexplain}
+  \item[1] Load simplydata.
+  \item[2] One row per year: its highest sea level in m.
+  \item[3] Picture first.
+  \item[4] Each year's highest level: no year stands far apart.
+  \item[5] Save the picture.
+  \item[6] A level of 4.69 m is reached on average once in 100 years (a 1-in-100 chance in any one year); its 95 \% interval runs from 4.49 to 5.26, longer above than below. \code{sorted\_\allowbreak{}by=\textquotedbl{}year\textquotedbl{}} lets the word check that each row is one year.
+\end{lineexplain}
+\printedoutput{output/lesson33_example3.txt}
+\begin{center}\begin{minipage}{\linewidth}\centering
+\includegraphics[width=0.72\textwidth,height=0.36\textheight,keepaspectratio]{figures/lesson33_example3_lesson33_sealevel.pdf}
+\captionof{figure}{Lesson 33, example 3: \code{lesson33\_\allowbreak{}sealevel.\allowbreak{}png}.}
+\end{minipage}\end{center}
+\begin{goodtoknow}
+\begin{itemize}
+  \item \code{full\_\allowbreak{}turn=} has no default: a column in radians read as degrees gives a wrong answer without a word. Use \code{full\_\allowbreak{}turn=24} for hours of the day, 12 for months, \code{\textquotedbl{}radians\textquotedbl{}} for radians.
+  \item On longitude and latitude, add \code{on\_\allowbreak{}globe=True} to \code{find\_\allowbreak{}autocorrelation\_\allowbreak{}of}: straight-line distances on degrees are wrong away from the equator. A station sampled many times needs its values averaged first.
+  \item Return levels come with profile-likelihood intervals: for long return periods the usual symmetric interval is too narrow. Each row must be the largest value of one year; daily readings are refused.
+  \item More: \code{table.\allowbreak{}find\_\allowbreak{}variogram\_\allowbreak{}of(\textquotedbl{}zinc\textquotedbl{},\allowbreak{} x=\textquotedbl{}east\textquotedbl{},\allowbreak{} y=\textquotedbl{}north\textquotedbl{})} and \code{chart.\allowbreak{}draw\_\allowbreak{}variogram(.\allowbreak{}.\allowbreak{}.\allowbreak{})} show how different two stations are at each distance apart; on daily readings, \code{values\_\allowbreak{}above=20} with \code{sorted\_\allowbreak{}by=\textquotedbl{}date\textquotedbl{}} uses every reading above 20 (try \code{sdata.\allowbreak{}get\_\allowbreak{}example(\textquotedbl{}rain\textquotedbl{})}), and \code{chart.\allowbreak{}draw\_\allowbreak{}threshold\_\allowbreak{}check(x=\textquotedbl{}rain\textquotedbl{},\allowbreak{} between=[10,\allowbreak{} 30])} helps choose the 20; \code{chart.\allowbreak{}draw\_\allowbreak{}polar(.\allowbreak{}.\allowbreak{}.\allowbreak{},\allowbreak{} full\_\allowbreak{}turn=360)} draws directions as a compass.
+\end{itemize}
+\end{goodtoknow}
+\begin{tryit}
+\begin{enumerate}
+  \item Fill in the blank: \code{table.\allowbreak{}find\_\allowbreak{}average\_\allowbreak{}direction\_\allowbreak{}of(\textquotedbl{}current\_\allowbreak{}direction\textquotedbl{},\allowbreak{} full\_\allowbreak{}turn=\_\allowbreak{}\_\allowbreak{}\_\allowbreak{}\_\allowbreak{})} for degrees.
+  \item Change only \code{once\_\allowbreak{}in=}: find the 50-year sea level at Port Pirie.
+  \item Say in words what a 100-year level means. Is it certain to happen in the next 100 years?
+  \item Try to remember without looking back: which word tells whether nearby places have alike values?
+\end{enumerate}
+Worked solutions: page~\pageref{solutions:33}, or type \code{sdata.\allowbreak{}show\_\allowbreak{}lesson(33,\allowbreak{} solutions=True)}.
+\end{tryit}
+\par\noindent{\small\sffamily\textbf{Words in this lesson:} \hyperref[word:table.find-average-direction-of]{\code{table.\allowbreak{}find\_\allowbreak{}average\_\allowbreak{}direction\_\allowbreak{}of()}}, \hyperref[word:table.compare-shape-to]{\code{table.\allowbreak{}compare\_\allowbreak{}shape\_\allowbreak{}to()}}, \hyperref[word:table.find-autocorrelation-of]{\code{table.\allowbreak{}find\_\allowbreak{}autocorrelation\_\allowbreak{}of()}}, \hyperref[word:table.find-return-levels-of]{\code{table.\allowbreak{}find\_\allowbreak{}return\_\allowbreak{}levels\_\allowbreak{}of()}}, \hyperref[word:table.find-average-of]{\code{table.\allowbreak{}find\_\allowbreak{}average\_\allowbreak{}of()}}, \hyperref[word:draw-dots]{\code{chart.\allowbreak{}draw\_\allowbreak{}dots()}}.\par}
+
 \otherchapters
 
 \part{Dictionary of words}\label{part:dictionary}
@@ -4696,7 +4812,7 @@ chart.save("my_chart.png")
 A small table to practise with. \code{sdata.\allowbreak{}get\_\allowbreak{}example(\textquotedbl{}marks\textquotedbl{})}
 
 \codeline{sdata.get\_example() with no name lists every table and its columns.}\\
-The tables are: marks, weather, fruit, growth, sensor, visitors, river, shop, school, meadow, trial, clinic, island, toxicity, culture, admissions, resistome, and, for combining studies, bcg and \code{passive\_\allowbreak{}smoking} (real published studies), and, for hidden factors, \code{ability\_\allowbreak{}tests} (real published test scores). \code{\textquotedbl{}shop\textquotedbl{}} has empty cells and a column of dates to practise with; \code{\textquotedbl{}school\textquotedbl{}} has empty cells too.
+The tables are: marks, weather, fruit, growth, sensor, visitors, river, shop, school, meadow, trial, clinic, island, toxicity, culture, admissions, resistome, stations, rain, sealevel (real published sea levels), and, for combining studies, bcg and \code{passive\_\allowbreak{}smoking} (real published studies), and, for hidden factors, \code{ability\_\allowbreak{}tests} (real published test scores). \code{\textquotedbl{}shop\textquotedbl{}} has empty cells and a column of dates to practise with; \code{\textquotedbl{}school\textquotedbl{}} has empty cells too.
 
 \wordfield{Options}{}\par\nopagebreak
 \begin{optiontable}
@@ -5044,7 +5160,7 @@ chart.save("draw_pie.png")
 Dots on a round chart: how far round, and how far out.\\
 \codeline{chart.draw\_polar(angle=\textquotedbl{}wind\_direction\textquotedbl{}, distance=\textquotedbl{}wind\_speed\textquotedbl{}, colour=\textquotedbl{}city\textquotedbl{}) (with sdata.get\_example(\textquotedbl{}weather\textquotedbl{}))}
 
-Angles are in degrees (a full turn is 360), going round from the right, the way maths measures angles. Use \code{degrees=False} if your angles are in radians. \code{transparency=0.\allowbreak{}5} makes them half see-through (0 is solid).
+\code{full\_\allowbreak{}turn=} says how big a full turn of the angles is: 360 (degrees), 24 (hours of the day), 12 (months) or \code{\textquotedbl{}radians\textquotedbl{}}. With \code{full\_\allowbreak{}turn=}, or when the angle column is named like a direction (\code{wind\_\allowbreak{}direction}, bearing, heading), the chart is a compass: 0 at the top (north, or midnight), going round clockwise. Otherwise angles go round from the right, the way maths measures angles, in degrees (\code{degrees=False} for radians; \code{full\_\allowbreak{}turn=\textquotedbl{}radians\textquotedbl{}} says the same and is the new way). \code{transparency=0.\allowbreak{}5} makes them half see-through (0 is solid).
 
 \wordfield{Options}{}\par\nopagebreak
 \begin{optiontable}
@@ -5053,6 +5169,7 @@ Angles are in degrees (a full turn is 360), going round from the right, the way 
 \code{colour=} & \\
 \code{degrees=} & normally \code{True}\\
 \code{transparency=} & \\
+\code{full\_\allowbreak{}turn=} & \\
 \end{optiontable}
 
 \wordfield{Underneath}{matplotlib (polar axes)}
@@ -5646,6 +5763,106 @@ ax.set_xticks(range(5, 10 * len(x), 10), found["ivl"])
 \undertext{(1) average linkage for Bray-Curtis distances, the same choice as \code{table.\allowbreak{}add\_\allowbreak{}clusters}, so the tree matches the clusters.}
 \undertext{simplydata also prints the cophenetic correlation (SciPy cophenet): how well the tree keeps the distances.}
 \undertext{\textit{Checked:} a test runs both and compares the lines and the tick labels (the chart's data, not its pixels).}
+\end{underneathbox}
+\wordentry{chart.draw\_variogram()}{word:draw-variogram}
+A variogram: how different two values are, on average, at each distance apart, as dots and a curve.
+
+\codeline{chart.draw\_variogram(\textquotedbl{}zinc\textquotedbl{}, x=\textquotedbl{}east\textquotedbl{}, y=\textquotedbl{}north\textquotedbl{})   (with sdata.get\_example(\textquotedbl{}stations\textquotedbl{}))}\\
+Each dot is a bin of pairs of places: their distance apart (across) and the semivariance, half the average squared difference of their values (up). The curve is fitted through the dots (\code{of\_\allowbreak{}kind=\textquotedbl{}spherical\textquotedbl{}}, \code{\textquotedbl{}exponential\textquotedbl{}}, \code{\textquotedbl{}gaussian\textquotedbl{}} or \code{\textquotedbl{}matern\textquotedbl{}}); where it levels off, the values are unrelated. \code{between=[0,\allowbreak{} 1500]} sets the largest distance. The numbers are those of \code{table.\allowbreak{}find\_\allowbreak{}variogram\_\allowbreak{}of}, from R gstat. Needs R (gstat).
+
+\wordfield{Options}{}\par\nopagebreak
+\begin{optiontable}
+\code{column=} & \\
+\code{x=} & \\
+\code{y=} & \\
+\code{of\_\allowbreak{}kind=} & normally \code{\textquotedbl{}spherical\textquotedbl{}}\\
+\code{between=} & \\
+\end{optiontable}
+
+\wordfield{Underneath}{R \code{gstat::variogram()}, \code{gstat::fit.\allowbreak{}variogram()}, \code{gstat::vgm()}, \code{gstat::variogramLine()} \textperiodcentered{} matplotlib \code{scatter()}, \code{plot()}, \code{set\_\allowbreak{}xlabel()}, \code{set\_\allowbreak{}ylabel()}}
+\wordfield{Example you can run}{}\par\nopagebreak
+\begin{lstlisting}[style=py]
+import simplydata as sdata
+stations = sdata.get_example("stations")
+chart = sdata.chart(stations)
+chart.draw_variogram("zinc", x="east", y="north")
+chart.save("stations_variogram.png")
+\end{lstlisting}
+\begin{center}\begin{minipage}{\linewidth}\centering
+\includegraphics[width=0.52\textwidth,height=0.26\textheight,keepaspectratio]{figures/underneath_draw_variogram.pdf}
+\captionof*{figure}{The chart simplydata draws. The code below draws the same dots, without simplydata's paper look.}
+\end{minipage}\end{center}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{R}\libbadge{matplotlib}}
+\underlib{R (simplydata runs this in R for you, through rpy2)}
+\begin{lstlisting}[style=underr]
+# draw_variogram("zinc", x="east", y="north")
+v <- gstat::variogram(z ~ 1, locations = ~ x + y, data = data.frame(x = x, y = y, z = z))
+f <- gstat::fit.variogram(v, gstat::vgm("Sph"))
+l <- gstat::variogramLine(f, maxdist = max(v$dist), n = 200)     # (1)
+list(dist = v$dist, gamma = v$gamma, line_dist = l$dist, line_gamma = l$gamma)
+\end{lstlisting}
+\underlib{matplotlib (with what R gives back)}
+\begin{lstlisting}[style=under]
+import matplotlib.pyplot as plt
+fig, ax = plt.subplots()
+ax.scatter(dist, gamma)
+ax.plot(line_dist, line_gamma)
+ax.set_xlabel("Distance (in the units of x and y)")
+ax.set_ylabel("Semivariance (half the average squared difference)")
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) the fitted curve at 200 distances up to the largest bin, from gstat::variogramLine.}
+\undertext{\textit{In Python only:} scikit-gstat gives variograms in Python, but it is not a simplydata dependency and its bins and fitting differ from gstat's, so the numbers come from R gstat.}
+\undertext{simplydata also starts both axes at 0.}
+\undertext{\textit{Checked:} a test runs both and compares the dots, the lines and the axis labels (the chart's data, not its pixels).}
+\end{underneathbox}
+\wordentry{chart.draw\_threshold\_check()}{word:draw-threshold-check}
+The threshold check: two panels that help choose \code{values\_\allowbreak{}above=} for \code{find\_\allowbreak{}return\_\allowbreak{}levels\_\allowbreak{}of}.
+
+\codeline{chart.draw\_threshold\_check(x=\textquotedbl{}rain\textquotedbl{}, between=[10, 30])   (with sdata.get\_example(\textquotedbl{}rain\textquotedbl{}))}\\
+Top: the mean excess, the average amount by which the values pass each threshold, with its 95 \% interval (R extRemes::mrlplot); above a good threshold it runs along a straight line. Bottom: the shape (xi) of the generalised Pareto curve fitted above each of 10 thresholds, with its 95 \% interval (R extRemes::threshrange.plot); above a good threshold it stays level. Choose the lowest threshold above which both settle, and use it as \code{values\_\allowbreak{}above=} in \code{table.\allowbreak{}find\_\allowbreak{}return\_\allowbreak{}levels\_\allowbreak{}of}. \code{between=} gives the lowest and highest thresholds to look at. Needs R (extRemes). Other names: mean residual life plot, mrlplot, threshrange.plot.
+
+\wordfield{Options}{}\par\nopagebreak
+\begin{optiontable}
+\code{x=} & \\
+\code{between=} & \\
+\end{optiontable}
+
+\wordfield{Underneath}{R \code{extRemes::mrlplot()}, \code{extRemes::threshrange.\allowbreak{}plot()} \textperiodcentered{} matplotlib \code{set\_\allowbreak{}axis\_\allowbreak{}off()}, \code{inset\_\allowbreak{}axes()}}
+\wordfield{Example you can run}{}\par\nopagebreak
+\begin{lstlisting}[style=py]
+import simplydata as sdata
+rain = sdata.get_example("rain")
+chart = sdata.chart(rain)
+chart.draw_threshold_check(x="rain", between=[10, 30])
+chart.save("rain_threshold.png")
+\end{lstlisting}
+\begin{center}\begin{minipage}{\linewidth}\centering
+\includegraphics[width=0.52\textwidth,height=0.26\textheight,keepaspectratio]{figures/underneath_draw_threshold_check.pdf}
+\captionof*{figure}{The chart simplydata draws. The code below draws the same number of panels, without simplydata's paper look.}
+\end{minipage}\end{center}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{R}\libbadge{matplotlib}}
+\underlib{R (simplydata runs this in R for you, through rpy2)}
+\begin{lstlisting}[style=underr]
+# draw_threshold_check(x="rain", between=[10, 30])
+m <- extRemes::mrlplot(x, nint = 100)                                        # (1)
+tr <- extRemes::threshrange.plot(x, r = c(10, 30), nint = 10, type = "GP")   # (2)
+list(mean = m[, 2], shape = tr[, "shape"])
+\end{lstlisting}
+\underlib{matplotlib (with what R gives back)}
+\begin{lstlisting}[style=under]
+import matplotlib.pyplot as plt
+fig, ax = plt.subplots()
+ax.set_axis_off()
+top = ax.inset_axes([0, 0.56, 1, 0.42])
+bottom = ax.inset_axes([0, 0, 1, 0.42], sharex=top)
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) the mean excess at extRemes::mrlplot's own 100 thresholds, drawn from the lowest to the highest threshold asked for.}
+\undertext{(2) the shape at 10 thresholds from the lowest to the highest, as extRemes::threshrange.plot.}
+\undertext{\textit{In Python only:} Python has no threshold check in SciPy or statsmodels, so the numbers come from R extRemes; matplotlib draws them in two panels (the reliability study checks the numbers).}
+\undertext{simplydata also refuses a highest threshold with fewer than 10 values above it.}
+\undertext{\textit{Checked:} a test runs both and compares the number of panels (the chart's data, not its pixels).}
 \end{underneathbox}
 \wordentry{chart.draw\_density()}{word:draw-density}
 A smooth curve that is high where many values are. \code{chart.\allowbreak{}draw\_\allowbreak{}density(x=\textquotedbl{}marks\textquotedbl{},\allowbreak{} colour=\textquotedbl{}class\textquotedbl{})} (with \code{sdata.\allowbreak{}get\_\allowbreak{}example(\textquotedbl{}marks\textquotedbl{})})
@@ -8662,6 +8879,8 @@ gives the one-sample Kolmogorov-Smirnov test (SciPy \code{ks\_\allowbreak{}1samp
 
 Any other smooth shape works too: \code{table.\allowbreak{}compare\_\allowbreak{}shape\_\allowbreak{}to(\textquotedbl{}days\textquotedbl{},\allowbreak{} \textquotedbl{}gamma\textquotedbl{})} fits the distribution (as \code{table.\allowbreak{}fit\_\allowbreak{}distribution\_\allowbreak{}to}) and runs the Anderson-Darling test, with a p-value from \code{samples=9999} simulated samples that are each fitted again (\code{with\_\allowbreak{}seed=1}, printed; the same seed gives the same p-value). Most shapes take a second or two; t, Cauchy and F take minutes, and a note says so before a long run. \code{samples=999} is ten times quicker and gives a rougher p-value.
 
+Directions (or times of day) on a circle: \code{table.\allowbreak{}compare\_\allowbreak{}shape\_\allowbreak{}to(\textquotedbl{}current\_\allowbreak{}direction\textquotedbl{},\allowbreak{} shape=\textquotedbl{}even around the circle\textquotedbl{},\allowbreak{} full\_\allowbreak{}turn=360)} gives the Rayleigh test (\code{test=\textquotedbl{}rayleigh\textquotedbl{}}, R circular::\code{rayleigh.\allowbreak{}test()}, with the units always given): could the directions be spread evenly around the circle, or is there a preferred direction? \code{full\_\allowbreak{}turn=} says how big a full turn is (360 degrees, 24 hours, \code{\textquotedbl{}radians\textquotedbl{}}); with it, \code{shape=\textquotedbl{}uniform\textquotedbl{}} means even around the circle too.
+
 \wordfield{Options}{}\par\nopagebreak
 \begin{optiontable}
 \code{column=} & \\
@@ -8670,9 +8889,10 @@ Any other smooth shape works too: \code{table.\allowbreak{}compare\_\allowbreak{
 \code{with\_\allowbreak{}seed=} & normally \code{1}\\
 \code{samples=} & normally \code{9999}\\
 \code{test=} & \\
+\code{full\_\allowbreak{}turn=} & \\
 \end{optiontable}
 
-\wordfield{Underneath}{SciPy (stats.shapiro for normal, normaltest, \code{jarque\_\allowbreak{}bera}, \code{ks\_\allowbreak{}1samp}, cramervonmises; for other shapes stats.goodness\_of\_fit, Anderson-Darling with a Monte Carlo p-value); R nortest::lillie.test for \code{test=\textquotedbl{}lilliefors\textquotedbl{}} (simplydata[r])}
+\wordfield{Underneath}{SciPy (stats.shapiro for normal, normaltest, \code{jarque\_\allowbreak{}bera}, \code{ks\_\allowbreak{}1samp}, cramervonmises; for other shapes stats.goodness\_of\_fit, Anderson-Darling with a Monte Carlo p-value); R nortest::lillie.test for \code{test=\textquotedbl{}lilliefors\textquotedbl{}}; R circular::rayleigh.test on a circle (\code{full\_\allowbreak{}turn=}; simplydata[r])}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -8680,6 +8900,25 @@ table = sdata.table(sdata.get_example("marks"))
 table.compare_shape_to("marks", "normal", for_each_group_in="class")
 table.compare_shape_to("marks", "normal", test="jarque-bera")
 \end{lstlisting}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{R}\libbadge{Python}}
+\undertext{\textbf{With \code{shape=\textquotedbl{}even around the circle\textquotedbl{}}}: the same job with this option.}
+\underlib{R (simplydata runs this in R for you, through rpy2)}
+\begin{lstlisting}[style=underr]
+# compare_shape_to("current_direction", shape="even around the circle", full_turn=360)
+r <- circular::rayleigh.test(
+  circular::circular(direction, units = "degrees", template = "none"))   # (1)
+list(statistic = r$statistic, p = r$p.value)
+\end{lstlisting}
+\underlib{Python (with what R gives back)}
+\begin{lstlisting}[style=under]
+{"statistic": statistic, "p-value": p}
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) the units are always given to R circular, which reads plain numbers as radians without a word.}
+\undertext{\textit{In Python only:} SciPy has no Rayleigh test, so the p-value comes from R circular.}
+\undertext{simplydata also refuses fewer than 5 directions and notes that directions at two opposite sides can look even to the Rayleigh test.}
+\undertext{\textit{Checked:} a test runs both and compares the numbers of the result table (on a pandas and on a Polars table).}
+\end{underneathbox}
 \wordentry{table.add\_adjusted\_p\_value\_column()}{word:table.add-adjusted-p-value-column}
 Adjust p-values for testing many things at once, in a new column.
 
@@ -9747,6 +9986,44 @@ fit = table.fit_distribution_to("sales", "lognormal")
 fit.find_chance_that_value(is_above=600)
 fit.turn_into_table()
 \end{lstlisting}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{R}\libbadge{Python}}
+\undertext{\textbf{With \code{distribution=\textquotedbl{}gev\textquotedbl{}}}: the same job with this option.}
+\underlib{R (simplydata runs this in R for you, through rpy2)}
+\begin{lstlisting}[style=underr]
+# fit_distribution_to("sea_level", distribution="gev")
+f <- extRemes::fevd(x, type = "GEV", method = "MLE")   # (1)
+p <- f$results$par
+list(location = p[["location"]], scale = p[["scale"]], shape = p[["shape"]])
+\end{lstlisting}
+\underlib{Python (with what R gives back)}
+\begin{lstlisting}[style=under]
+{"location": location, "scale": scale, "shape": shape}
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) the shape kept in the sign of extRemes and Coles (xi); SciPy's genextreme, which simplydata uses for the numbers, takes c = -xi.}
+\undertext{\textit{In Python only:} simplydata fits it with SciPy (genextreme.fit, then a numerical polish of the likelihood); R extRemes is the check.}
+\undertext{simplydata also accepts \code{\textquotedbl{}generalised pareto\textquotedbl{}} (\code{\textquotedbl{}generalized pareto\textquotedbl{}}, \code{\textquotedbl{}gpd\textquotedbl{}}) for the amounts above a threshold, with the same sign as SciPy's genpareto.}
+\undertext{\textit{Checked:} a test runs both and compares the numbers of the result table (on a pandas and on a Polars table).}
+\end{underneathbox}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{R}\libbadge{Python}}
+\undertext{\textbf{With \code{distribution=\textquotedbl{}generalised pareto\textquotedbl{}}}: the same job with this option.}
+\underlib{R (simplydata runs this in R for you, through rpy2)}
+\begin{lstlisting}[style=underr]
+# fit_distribution_to("excess", distribution="generalised pareto") on the rain above 20
+f <- extRemes::fevd(x, threshold = 20, type = "GP", method = "MLE")   # (1)
+p <- f$results$par
+list(scale = p[["scale"]], shape = p[["shape"]])
+\end{lstlisting}
+\underlib{Python (with what R gives back)}
+\begin{lstlisting}[style=under]
+{"scale": scale, "shape": shape}
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) the shape in the sign of extRemes, Coles and SciPy's genpareto (xi), with the threshold at 0: the values are the amounts above a threshold.}
+\undertext{\textit{In Python only:} simplydata fits it with SciPy (genpareto.fit with loc = 0, then a numerical polish of the likelihood); R extRemes is the check.}
+\undertext{simplydata also names the classical \code{\textquotedbl{}pareto\textquotedbl{}} as another family in both printouts.}
+\undertext{\textit{Checked:} a test runs both and compares the numbers of the result table (on a pandas and on a Polars table).}
+\end{underneathbox}
 \wordentry{table.compare\_distributions\_for()}{word:table.compare-distributions-for}
 Fit several distributions to a column and rank them by AIC (smaller is better).
 
@@ -11784,6 +12061,159 @@ list(b = r$est.std, se = r$se, p = r$pvalue)
 \undertext{simplydata also gives the chi-square test as a count of studies, says what CFI, TLI, RMSEA and SRMR mean with the commonly used guides (as guides, not pass marks), and names the largest modification indices with a warning against changing the model only to fit these data.}
 \undertext{\textit{Checked:} a test runs both and compares the numbers of the result table (on a pandas and on a Polars table).}
 \end{underneathbox}
+\unsection{Directions, places and extremes}{group:Directions-places-and-extremes}
+\wordentry{table.find\_average\_direction\_of()}{word:table.find-average-direction-of}
+The average direction of a column of directions, angles or times of day, and how close together they are.
+
+\codeline{table.find\_average\_direction\_of(\textquotedbl{}current\_direction\textquotedbl{}, full\_turn=360)   (with sdata.get\_example(\textquotedbl{}stations\textquotedbl{}))}\\
+Directions cannot be averaged as plain numbers: the average of 350\textdegree{} and 10\textdegree{} is 0\textdegree{} (north), not 180\textdegree{}. \code{full\_\allowbreak{}turn=} is required and says how big a full turn of your values is: 360 (degrees), 24 (hours of the day), 12 (months), 365 (days of the year) or \code{\textquotedbl{}radians\textquotedbl{}}. Prints the average direction (from 0 up to the full turn), the resultant length (1 = all the same direction, 0 = no average direction) and the circular standard deviation, in the same units. Gives back one row per group (\code{for\_\allowbreak{}each\_\allowbreak{}group\_\allowbreak{}in=}): rows, average direction, resultant length, circular standard deviation and circular variance (1 - resultant length). Numbers from SciPy (circmean, circstd, circvar, \code{directional\_\allowbreak{}stats}), the same as R circular. To test whether the directions have a preferred direction at all: \code{compare\_\allowbreak{}shape\_\allowbreak{}to(.\allowbreak{}.\allowbreak{}.\allowbreak{},\allowbreak{} shape=\textquotedbl{}even around the circle\textquotedbl{},\allowbreak{} full\_\allowbreak{}turn=360)} (the Rayleigh test). Other names: circular mean, mean direction, circmean, mean.circular.
+
+\wordfield{Options}{}\par\nopagebreak
+\begin{optiontable}
+\code{column=} & \\
+\code{full\_\allowbreak{}turn=} & \\
+\code{for\_\allowbreak{}each\_\allowbreak{}group\_\allowbreak{}in=} & \\
+\end{optiontable}
+
+\wordfield{Underneath}{SciPy \code{to\_\allowbreak{}numpy()}, \code{deg2rad()}, \code{circmean()}, \code{directional\_\allowbreak{}stats()}, \code{column\_\allowbreak{}stack()}, \code{cos()}, \code{sin()}, \code{circstd()}, \code{circvar()}}
+\wordfield{Example you can run}{}\par\nopagebreak
+\begin{lstlisting}[style=py]
+import simplydata as sdata
+table = sdata.table(sdata.get_example("stations"))
+table.find_average_direction_of("current_direction", full_turn=360)
+\end{lstlisting}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{SciPy}}
+\underlib{SciPy}
+\begin{lstlisting}[style=under]
+import numpy as np
+from scipy import stats
+df = sdata.get_example("stations")
+# find_average_direction_of("current_direction", full_turn=360)
+d = df["current_direction"].to_numpy(dtype=float)
+t = np.deg2rad(d)
+{"average direction": stats.circmean(d, high=360, low=0),                      # (1)
+ "resultant length": stats.directional_stats(
+     np.column_stack([np.cos(t), np.sin(t)])).mean_resultant_length,
+ "circular standard deviation": stats.circstd(d, high=360, low=0),            # (2)
+ "circular variance": stats.circvar(d, high=360, low=0)}
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) the average from 0 up to the full turn; R circular::mean.circular gives the same direction from -180 to 180.}
+\undertext{(2) the circular standard deviation \code{sqrt(-2 ln R)}, in the units of the column, as R sd.circular (which gives radians).}
+\undertext{simplydata also requires \code{full\_\allowbreak{}turn=} (no default: radians read as degrees give a wrong answer without a word), reads values outside 0 to the full turn round the circle, and words the resultant length.}
+\undertext{\textit{Checked:} a test runs both and compares the numbers of the result table (on a pandas and on a Polars table).}
+\end{underneathbox}
+\wordentry{table.find\_return\_levels\_of()}{word:table.find-return-levels-of}
+Return levels: the level reached on average once in 10, 50 or 100 years (extreme values).
+
+\codeline{table.find\_return\_levels\_of(\textquotedbl{}sea\_level\textquotedbl{}, once\_in=[10, 50, 100])   (with sdata.get\_example(\textquotedbl{}sealevel\textquotedbl{}))}\\
+A return level is the level reached on average once in a given number of years: the 100-year level has a 1-in-100 chance of being reached in any one year (it can happen twice in a decade, or not in 200 years). Two ways: - each row is the largest value of one block, such as a year (block maxima): a GEV curve (generalised extreme value) is fitted to the rows. Give \code{sorted\_\allowbreak{}by=\textquotedbl{}year\textquotedbl{}} so the word can check there is one row per year; daily readings are refused (take the yearly largest first: \code{table.\allowbreak{}find\_\allowbreak{}biggest\_\allowbreak{}of(\textquotedbl{}sea\_\allowbreak{}level\textquotedbl{},\allowbreak{} for\_\allowbreak{}each\_\allowbreak{}group\_\allowbreak{}in=\textquotedbl{}date\textquotedbl{},\allowbreak{} every=\textquotedbl{}year\textquotedbl{})}). - \code{values\_\allowbreak{}above=30} uses every reading above 30 (peaks over a threshold): a generalised Pareto curve is fitted to the amounts above it. \code{sorted\_\allowbreak{}by=} (dates) is then needed, to know how many readings make a year. Choose the threshold with \code{chart.\allowbreak{}draw\_\allowbreak{}threshold\_\allowbreak{}check()}. Prints each return level with its 95 \% profile-likelihood interval (asymmetric, as return levels are), and the shape of the curve. Gives back one row per return period. For lows (low oxygen, low water), turn the column round first (\code{table.\allowbreak{}add\_\allowbreak{}column(\textquotedbl{}minus\_\allowbreak{}oxygen\textquotedbl{},\allowbreak{} \textquotedbl{}-oxygen\textquotedbl{})}). Numbers from R extRemes (fevd, return.level, ci). Needs R (extRemes). Other names: GEV, GPD, peaks over threshold, return period, fevd.
+
+\wordfield{Options}{}\par\nopagebreak
+\begin{optiontable}
+\code{column=} & \\
+\code{once\_\allowbreak{}in=} & normally \code{(10,\allowbreak{} 50,\allowbreak{} 100)}\\
+\code{values\_\allowbreak{}above=} & \\
+\code{sorted\_\allowbreak{}by=} & \\
+\end{optiontable}
+
+\wordfield{Underneath}{R \code{extRemes::fevd()}, \code{extRemes::return.\allowbreak{}level()}, \code{extRemes::ci.\allowbreak{}fevd()}}
+\wordfield{Example you can run}{}\par\nopagebreak
+\begin{lstlisting}[style=py]
+import simplydata as sdata
+table = sdata.table(sdata.get_example("sealevel"))
+table.find_return_levels_of("sea_level", once_in=[10, 100], sorted_by="year")
+\end{lstlisting}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{R}\libbadge{Python}}
+\underlib{R (simplydata runs this in R for you, through rpy2)}
+\begin{lstlisting}[style=underr]
+# find_return_levels_of("sea_level", once_in=[100], sorted_by="year")
+f <- extRemes::fevd(x, type = "GEV", method = "MLE")                       # (1)
+rl <- extRemes::return.level(f, return.period = 100, do.ci = TRUE)
+w <- rl[3] - rl[1]
+p <- extRemes::ci.fevd(f, type = "return.level", return.period = 100,
+                       method = "proflik", xrange = c(rl[1], rl[3] + 2 * w),
+                       nint = 200)                                         # (2)
+list(level = rl[2], low = p[1], high = p[3])
+\end{lstlisting}
+\underlib{Python (with what R gives back)}
+\begin{lstlisting}[style=under]
+{"level": level, "95 % CI low": low, "95 % CI high": high}
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) the GEV by maximum likelihood (extRemes's default method).}
+\undertext{(2) profile-likelihood intervals (Coles 2001, section 3.3.3): the normal approximation of \code{return.\allowbreak{}level()} is too narrow and too symmetric for long return periods; the search range starts at the normal interval (R extRemes needs one).}
+\undertext{\textit{In Python only:} SciPy fits the GEV (genextreme, with c = -xi) and the generalised Pareto curve, but gives no return levels and no profile-likelihood intervals, so the numbers come from R extRemes.}
+\undertext{simplydata also refuses daily readings (each row must be one block, such as a year), says the shape in the extRemes sign (xi) with its interval, widens the search range when an interval touches its end, and says a 100-year level as a 1-in-100 chance in any one year.}
+\undertext{\textit{Checked:} a test runs both and compares the numbers of the result table (on a pandas and on a Polars table).}
+\end{underneathbox}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{R}\libbadge{Python}}
+\undertext{\textbf{With \code{values\_\allowbreak{}above=}}: the same job with this option.}
+\underlib{R (simplydata runs this in R for you, through rpy2)}
+\begin{lstlisting}[style=underr]
+# find_return_levels_of("rain", once_in=[10], values_above=20, sorted_by="date")
+f <- extRemes::fevd(x, threshold = 20, type = "GP",
+                    time.units = "days")                                   # (1)
+rl <- extRemes::return.level(f, return.period = 10, do.ci = TRUE)
+w <- rl[3] - rl[1]
+p <- extRemes::ci.fevd(f, type = "return.level", return.period = 10,
+                       method = "proflik", xrange = c(rl[1], rl[3] + 2 * w),
+                       nint = 200)                                         # (2)
+list(level = rl[2], low = p[1], high = p[3])
+\end{lstlisting}
+\underlib{Python (with what R gives back)}
+\begin{lstlisting}[style=under]
+{"level": level, "95 % CI low": low, "95 % CI high": high}
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) the readings per year from the dates: daily readings are time.units = \code{\textquotedbl{}days\textquotedbl{}} (365.25 a year).}
+\undertext{(2) profile-likelihood intervals (Coles 2001, section 3.3.3): the normal approximation of \code{return.\allowbreak{}level()} is too narrow and too symmetric for long return periods; the search range starts at the normal interval (R extRemes needs one).}
+\undertext{\textit{In Python only:} SciPy fits the GEV (genextreme, with c = -xi) and the generalised Pareto curve, but gives no return levels and no profile-likelihood intervals, so the numbers come from R extRemes.}
+\undertext{simplydata also gives the extremal index (extRemes::extremalindex) and, below 0.7, says the values above come in runs; it does not decluster without asking.}
+\undertext{\textit{Checked:} a test runs both and compares the numbers of the result table (on a pandas and on a Polars table).}
+\end{underneathbox}
+\wordentry{table.find\_variogram\_of()}{word:table.find-variogram-of}
+A variogram: how different two values are, on average, at each distance apart.
+
+\codeline{table.find\_variogram\_of(\textquotedbl{}zinc\textquotedbl{}, x=\textquotedbl{}east\textquotedbl{}, y=\textquotedbl{}north\textquotedbl{})   (with sdata.get\_example(\textquotedbl{}stations\textquotedbl{}))}\\
+Places close together usually have alike values; further apart they differ more, until beyond some distance (the range) they are unrelated. The variogram shows this: the semivariance (half the average squared difference) of all pairs of places in bins of distance, with a curve fitted through them. Prints the range (in the units of x and y), the nugget (differences even between very close places: measurement error or variation at shorter distances than were sampled) and the partial sill (the rise from the nugget to the plateau). \code{of\_\allowbreak{}kind=\textquotedbl{}spherical\textquotedbl{}} (default), \code{\textquotedbl{}exponential\textquotedbl{}}, \code{\textquotedbl{}gaussian\textquotedbl{}} or \code{\textquotedbl{}matern\textquotedbl{}} chooses the curve; \code{between=[0,\allowbreak{} 1500]} sets the largest distance (default: a third of the diagonal of the area, as R gstat). Gives back one row per distance bin: distance, semivariance, pairs, the fitted semivariance, and the fitted nugget, partial sill and range. Numbers from R gstat (variogram, fit.variogram). The chart: \code{chart.\allowbreak{}draw\_\allowbreak{}variogram(.\allowbreak{}.\allowbreak{}.\allowbreak{})}. Needs R (gstat). Other names: semivariogram, gstat.
+
+\wordfield{Options}{}\par\nopagebreak
+\begin{optiontable}
+\code{column=} & \\
+\code{x=} & \\
+\code{y=} & \\
+\code{of\_\allowbreak{}kind=} & normally \code{\textquotedbl{}spherical\textquotedbl{}}\\
+\code{between=} & \\
+\end{optiontable}
+
+\wordfield{Underneath}{R \code{gstat::variogram()}, \code{gstat::fit.\allowbreak{}variogram()}, \code{gstat::vgm()}}
+\wordfield{Example you can run}{}\par\nopagebreak
+\begin{lstlisting}[style=py]
+import simplydata as sdata
+table = sdata.table(sdata.get_example("stations"))
+table.find_variogram_of("zinc", x="east", y="north")
+\end{lstlisting}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{R}\libbadge{Python}}
+\underlib{R (simplydata runs this in R for you, through rpy2)}
+\begin{lstlisting}[style=underr]
+# find_variogram_of("zinc", x="east", y="north")
+v <- gstat::variogram(z ~ 1, locations = ~ x + y,
+                      data = data.frame(x = x, y = y, z = z))     # (1)
+f <- gstat::fit.variogram(v, gstat::vgm("Sph"))                  # (2)
+list(d = v$dist[1], g = v$gamma[1], nugget = f$psill[1], psill = f$psill[2], range = f$range[2])
+\end{lstlisting}
+\underlib{Python (with what R gives back)}
+\begin{lstlisting}[style=under]
+{"distance": d, "semivariance": g, "nugget": nugget, "partial sill": psill, "range": range}
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) gstat's own bins: up to a third of the diagonal of the area, in 15 bins.}
+\undertext{(2) the spherical curve, fitted with gstat's own start values (vgm with no numbers) and its default weighted least squares (fit.method = 7).}
+\undertext{\textit{In Python only:} scikit-gstat gives variograms in Python, but it is not a simplydata dependency and its bins and fitting differ from gstat's, so the numbers come from R gstat.}
+\undertext{simplydata also says the range in words (for the exponential, Gaussian and Matern curves gstat's range is not where the curve levels off) and explains a fit that does not converge.}
+\undertext{\textit{Checked:} a test runs both and compares the numbers of the result table (on a pandas and on a Polars table).}
+\end{underneathbox}
 \unsection{Survival}{group:Survival}
 \wordentry{table.find\_survival\_over\_time()}{word:table.find-survival-over-time}
 The share still without the event over time (Kaplan-Meier), with the median time.
@@ -12869,10 +13299,14 @@ table.add_trend_and_season("visitors", sorted_by="month", repeats_every="year", 
 table.show_first_rows(3)
 \end{lstlisting}
 \wordentry{table.find\_autocorrelation\_of()}{word:table.find-autocorrelation-of}
-How much a column is like itself some rows back (autocorrelation), with a noise band.
+How much a column is like itself some rows back, or at nearby places (autocorrelation).
 
 \codeline{table.find\_autocorrelation\_of(\textquotedbl{}signal\textquotedbl{}, sorted\_by=\textquotedbl{}time\textquotedbl{}, rows\_back=40)   (with sdata.get\_example(\textquotedbl{}sensor\textquotedbl{}))}\\
 The correlation of the column with itself 1, 2, ... \code{rows\_\allowbreak{}back=} rows back (default as R: 10 x log10 of the number of readings). A pattern that repeats every 12 rows shows as a high correlation 12 rows back. \code{show=\textquotedbl{}correlation\textquotedbl{}} (R acf), \code{\textquotedbl{}partial\textquotedbl{}} (R pacf: each rows back with the shorter ones held fixed) or \code{\textquotedbl{}covariance\textquotedbl{}}. \code{band=\textquotedbl{}white noise\textquotedbl{}} (+/- 1.96 / \code{sqrt(n)}, the dashed lines of R plot.acf) or \code{\textquotedbl{}bartlett\textquotedbl{}} (wider further back, R ci.type = \code{\textquotedbl{}ma\textquotedbl{}}). The Ljung-Box test asks whether all these correlations together could be chance. The readings must be evenly spaced (\code{sorted\_\allowbreak{}by=}) and filled in. Numbers come from statsmodels with R's options. Gives back one row per rows back.
+
+Nearby places (spatial autocorrelation, Moran's I):\\
+\codeline{table.find\_autocorrelation\_of(\textquotedbl{}zinc\textquotedbl{}, x=\textquotedbl{}east\textquotedbl{}, y=\textquotedbl{}north\textquotedbl{})   (with sdata.get\_example(\textquotedbl{}stations\textquotedbl{}))}\\
+Are the values of nearby places more alike than those of distant ones? \code{x=} and \code{y=} say where each row is. Moran's I is near 0 when the values are scattered at random, above 0 when nearby places are alike. Every pair of places counts, nearer pairs more (weights 1 / distance, each row's weights summing to 1); \code{nearest=8} uses each place's 8 nearest places instead. The weights change the answer, so they are printed. \code{on\_\allowbreak{}globe=True} for longitude (\code{x=}) and latitude (\code{y=}): distances along the earth. The p-value comes from \code{permutations=999} shuffles of the values over the places (\code{with\_\allowbreak{}seed=1}). Numbers from R spdep (moran.mc). Needs R (spdep). Gives back one row.
 
 \wordfield{Options}{}\par\nopagebreak
 \begin{optiontable}
@@ -12882,15 +13316,91 @@ The correlation of the column with itself 1, 2, ... \code{rows\_\allowbreak{}bac
 \code{show=} & normally \code{\textquotedbl{}correlation\textquotedbl{}}\\
 \code{band=} & normally \code{\textquotedbl{}white noise\textquotedbl{}}\\
 \code{for\_\allowbreak{}each\_\allowbreak{}group\_\allowbreak{}in=} & \\
+\code{x=} & \\
+\code{y=} & \\
+\code{on\_\allowbreak{}globe=} & normally \code{False}\\
+\code{nearest=} & \\
+\code{permutations=} & normally \code{999}\\
+\code{with\_\allowbreak{}seed=} & normally \code{1}\\
 \end{optiontable}
 
-\wordfield{Underneath}{statsmodels (tsa.stattools acf, pacf method ywm, acovf, \code{acorr\_\allowbreak{}ljungbox}), as R acf, pacf, Box.test}
+\wordfield{Underneath}{statsmodels (tsa.stattools acf, pacf method ywm, acovf, \code{acorr\_\allowbreak{}ljungbox}), as R acf, pacf, Box.test; for nearby places (\code{x=}, \code{y=}) R spdep::moran.mc (needs R)}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
 table = sdata.table(sdata.get_example("sensor"))
 table.find_autocorrelation_of("signal", sorted_by="time", rows_back=10)
 \end{lstlisting}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{R}\libbadge{Python}}
+\undertext{\textbf{With \code{x=}}: the same job with this option.}
+\underlib{R (simplydata runs this in R for you, through rpy2)}
+\begin{lstlisting}[style=underr]
+# find_autocorrelation_of("zinc", x="east", y="north")
+pts <- sf::st_as_sf(data.frame(x = x, y = y), coords = c("x", "y"))
+nb <- spdep::dnearneigh(pts, 0, Inf)                                       # (1)
+lw <- spdep::nb2listwdist(nb, pts, type = "idw", alpha = 1, style = "W")  # (2)
+set.seed(1)
+m <- spdep::moran.mc(z, lw, nsim = 999)                                    # (3)
+t <- spdep::moran.test(z, lw)
+list(i = m$statistic, p = m$p.value, e = t$estimate[["Expectation"]])
+\end{lstlisting}
+\underlib{Python (with what R gives back)}
+\begin{lstlisting}[style=under]
+{"Moran's I": i, "p-value": p, "value with no pattern": e}
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) every pair of places is a neighbour (all pairs, not a distance band).}
+\undertext{(2) weights 1 / distance, each row's weights summing to 1 (row-standardised): nearer pairs count more.}
+\undertext{(3) a permutation p-value from 999 shuffles after \code{set.\allowbreak{}seed(1)}, one-sided (nearby places more alike), spdep's default.}
+\undertext{\textit{In Python only:} PySAL's esda gives Moran's I in Python, but it is not a simplydata dependency (it brings geopandas, pyproj, shapely and scikit-learn), so the numbers come from R spdep, the reference of Bivand \& Wong (2018).}
+\undertext{simplydata also prints the weights in words, refuses two rows at one place (with the line that averages them), notes longitude and latitude without \code{on\_\allowbreak{}globe=True} and gives the permutation floor.}
+\undertext{\textit{Checked:} a test runs both and compares the numbers of the result table (on a pandas and on a Polars table).}
+\end{underneathbox}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{R}\libbadge{Python}}
+\undertext{\textbf{With \code{nearest=}}: the same job with this option.}
+\underlib{R (simplydata runs this in R for you, through rpy2)}
+\begin{lstlisting}[style=underr]
+# find_autocorrelation_of("zinc", x="east", y="north", nearest=6)
+pts <- sf::st_as_sf(data.frame(x = x, y = y), coords = c("x", "y"))
+nb <- spdep::knn2nb(spdep::knearneigh(pts, k = 6))                         # (1)
+lw <- spdep::nb2listw(nb, style = "W")
+set.seed(1)
+m <- spdep::moran.mc(z, lw, nsim = 999)
+list(i = m$statistic, p = m$p.value)
+\end{lstlisting}
+\underlib{Python (with what R gives back)}
+\begin{lstlisting}[style=under]
+{"Moran's I": i, "p-value": p}
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) each place's k nearest places count alike, the others not at all, each row's weights summing to 1.}
+\undertext{\textit{In Python only:} PySAL's esda gives Moran's I in Python, but it is not a simplydata dependency (it brings geopandas, pyproj, shapely and scikit-learn), so the numbers come from R spdep, the reference of Bivand \& Wong (2018).}
+\undertext{simplydata also says that the weights change Moran's I, so the report must name them.}
+\undertext{\textit{Checked:} a test runs both and compares the numbers of the result table (on a pandas and on a Polars table).}
+\end{underneathbox}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{R}\libbadge{Python}}
+\undertext{\textbf{With \code{on\_\allowbreak{}globe=}}: the same job with this option.}
+\underlib{R (simplydata runs this in R for you, through rpy2)}
+\begin{lstlisting}[style=underr]
+# find_autocorrelation_of("zinc", x="lon", y="lat", on_globe=True)
+pts <- sf::st_as_sf(data.frame(x = lon, y = lat), coords = c("x", "y"),
+                    crs = 4326)                                            # (1)
+nb <- spdep::dnearneigh(pts, 0, Inf)
+lw <- spdep::nb2listwdist(nb, pts, type = "idw", alpha = 1, style = "W")
+set.seed(1)
+m <- spdep::moran.mc(z, lw, nsim = 999)
+list(i = m$statistic, p = m$p.value)
+\end{lstlisting}
+\underlib{Python (with what R gives back)}
+\begin{lstlisting}[style=under]
+{"Moran's I": i, "p-value": p}
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) longitude and latitude as places on the earth (crs 4326): great-circle distances in km.}
+\undertext{\textit{In Python only:} PySAL's esda gives Moran's I in Python, but it is not a simplydata dependency (it brings geopandas, pyproj, shapely and scikit-learn), so the numbers come from R spdep, the reference of Bivand \& Wong (2018).}
+\undertext{simplydata also refuses \code{on\_\allowbreak{}globe=True} on columns beyond -180 to 180 and -90 to 90.}
+\undertext{\textit{Checked:} a test runs both and compares the numbers of the result table (on a pandas and on a Polars table).}
+\end{underneathbox}
 \wordentry{nums.find\_autocorrelation()}{word:nums.find-autocorrelation}
 How much the numbers are like themselves some places back (autocorrelation), with a noise band.
 
@@ -17054,6 +17564,40 @@ table.add_log_ratio_columns(columns=genes)
 \printedoutput{output/solution32_task4.txt}
 \solutionanswer{\code{table.\allowbreak{}add\_\allowbreak{}log\_\allowbreak{}ratio\_\allowbreak{}columns}: \code{method=\textquotedbl{}clr\textquotedbl{}} is the default.}
 \par\noindent{\small\sffamily\hyperref[lesson:32]{Back to lesson 32}}
+\unsection{Lesson 33: A coastal station: currents, neighbours and storms}{solutions:33}
+\solutiontask{1}{Fill in the blank: \code{table.\allowbreak{}find\_\allowbreak{}average\_\allowbreak{}direction\_\allowbreak{}of(\textquotedbl{}current\_\allowbreak{}direction\textquotedbl{},\allowbreak{} full\_\allowbreak{}turn=\_\allowbreak{}\_\allowbreak{}\_\allowbreak{}\_\allowbreak{})} for degrees.}
+\begin{lstlisting}[style=py]
+import simplydata as sdata
+table = sdata.table(sdata.get_example("stations"))
+table.find_average_direction_of("current_direction", full_turn=360)
+\end{lstlisting}
+\printedoutput{output/solution33_task1.txt}
+\solutionanswer{\code{full\_\allowbreak{}turn=360}: a full turn is 360 degrees.}
+\solutiontask{2}{Change only \code{once\_\allowbreak{}in=}: find the 50-year sea level at Port Pirie.}
+\begin{lstlisting}[style=py]
+import simplydata as sdata
+table = sdata.table(sdata.get_example("sealevel"))
+table.find_return_levels_of("sea_level", once_in=[50], sorted_by="year")
+\end{lstlisting}
+\printedoutput{output/solution33_task2.txt}
+\solutionanswer{About 4.58 m once in 50 years (95 \% CI 4.42 to 4.98).}
+\solutiontask{3}{Say in words what a 100-year level means. Is it certain to happen in the next 100 years?}
+\begin{lstlisting}[style=py]
+import simplydata as sdata
+table = sdata.table(sdata.get_example("sealevel"))
+table.find_return_levels_of("sea_level", once_in=[100], sorted_by="year")
+\end{lstlisting}
+\printedoutput{output/solution33_task3.txt}
+\solutionanswer{A level with a 1-in-100 chance of being reached in any one year. It is not certain in the next 100 years: it can come twice in a decade, or not at all in 200 years (the chance of at least once in 100 years is about 63 \%).}
+\solutiontask{4}{Try to remember without looking back: which word tells whether nearby places have alike values?}
+\begin{lstlisting}[style=py]
+import simplydata as sdata
+table = sdata.table(sdata.get_example("stations"))
+table.find_autocorrelation_of("zinc", x="east", y="north")
+\end{lstlisting}
+\printedoutput{output/solution33_task4.txt}
+\solutionanswer{\code{table.\allowbreak{}find\_\allowbreak{}autocorrelation\_\allowbreak{}of} with \code{x=} and \code{y=}: Moran's I.}
+\par\noindent{\small\sffamily\hyperref[lesson:33]{Back to lesson 33}}
 
 \backmatter
 
@@ -17183,6 +17727,8 @@ Every word and option, A to Z, with the page of its dictionary entry. Other spel
 \indexline{word:draw-smooth-line}{chart.draw\_smooth\_line()}
 \indexline{word:draw-surface}{chart.draw\_surface()}
 \indexline{word:draw-survival-curves}{chart.draw\_survival\_curves()}
+\indexline{word:draw-threshold-check}{chart.draw\_threshold\_check()}
+\indexline{word:draw-variogram}{chart.draw\_variogram()}
 \indexline{word:draw-violins}{chart.draw\_violins()}
 \indexline{word:error-eq}{error=}
 \indexline{word:table.explain}{table.explain()}
@@ -17194,6 +17740,7 @@ Every word and option, A to Z, with the page of its dictionary entry. Other spel
 \indexline{word:table.find-autocorrelation-of}{table.find\_autocorrelation\_of()}
 \indexline{word:dist.find-average}{dist.find\_average()}
 \indexline{word:nums.find-average}{nums.find\_average()}
+\indexline{word:table.find-average-direction-of}{table.find\_average\_direction\_of()}
 \indexline{word:table.find-average-of}{table.find\_average\_of()}
 \indexline{word:table.find-best-power-of}{table.find\_best\_power\_of()}
 \indexline{word:nums.find-biggest}{nums.find\_biggest()}
@@ -17228,6 +17775,7 @@ Every word and option, A to Z, with the page of its dictionary entry. Other spel
 \indexline{word:nums.find-percentile}{nums.find\_percentile()}
 \indexline{word:table.find-percentile-of}{table.find\_percentile\_of()}
 \indexline{word:table.find-principal-components-of}{table.find\_principal\_components\_of()}
+\indexline{word:table.find-return-levels-of}{table.find\_return\_levels\_of()}
 \indexline{word:table.find-risk-over-time}{table.find\_risk\_over\_time()}
 \indexline{word:grid.find-shape}{grid.find\_shape()}
 \indexline{word:nums.find-smallest}{nums.find\_smallest()}
@@ -17243,6 +17791,7 @@ Every word and option, A to Z, with the page of its dictionary entry. Other spel
 \indexline{word:table.find-total-of}{table.find\_total\_of()}
 \indexline{word:table.find-trend-of}{table.find\_trend\_of()}
 \indexline{word:dist.find-variance}{dist.find\_variance()}
+\indexline{word:table.find-variogram-of}{table.find\_variogram\_of()}
 \indexline{word:sdata.find-where-biggest}{sdata.find\_where\_biggest()}
 \indexline{word:sdata.find-where-smallest}{sdata.find\_where\_smallest()}
 \indexline{word:fit-curve}{chart.fit\_curve()}

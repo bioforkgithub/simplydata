@@ -1,0 +1,8 @@
+Note: "current_direction" looks like directions. Directions cannot be averaged as plain numbers (the average of 350° and 10° is 180°, the opposite way); use table.find_average_direction_of("current_direction", full_turn=360).
+The average of "current_direction" is 222.33 (60 values).
+The average direction of "current_direction" is 354° (resultant length 0.93: the directions are close together; 1 = all the same direction, 0 = no average direction). Circular standard deviation 22° (60 values).
+Method: SciPy stats.circmean, circstd and circvar with low=0, high=360, and directional_stats for the resultant length; the same numbers as R circular's mean.circular, rho.circular, sd.circular and var.circular with the units given.
+simplydata chooses: the average from 0 up to 360 (R circular gives the same direction from -180 to 180, such as -43° for 317°), and the circular standard deviation sqrt(-2 ln(resultant length)), as R sd.circular, in the units of the column.
+The directions of "current_direction" have a preferred direction (Rayleigh test: resultant length 0.93, 60 values).
+If the directions were spread evenly around the circle, directions this close together or closer would turn up in fewer than 1 in 1000 studies like this one (p < 0.0001).
+Test: the Rayleigh test, R circular::rayleigh.test(circular::circular(x, units = "degrees", template = "none")) (the units are always given: R circular reads plain numbers as radians).

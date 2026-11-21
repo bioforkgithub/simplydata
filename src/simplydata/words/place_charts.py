@@ -138,7 +138,7 @@ class PlaceChartWords:
     def draw_threshold_check(self, x=None, between=None):
         """The threshold check: two panels that help choose values_above= for find_return_levels_of.
 
-        chart.draw_threshold_check(x="rain", between=[20, 40])   (with sdata.get_example("rain"))
+        chart.draw_threshold_check(x="rain", between=[10, 30])   (with sdata.get_example("rain"))
         Top: the mean excess, the average amount by which the values pass each threshold, with
         its 95 % interval (R extRemes::mrlplot); above a good threshold it runs along a straight
         line. Bottom: the shape (xi) of the generalised Pareto curve fitted above each of 10
@@ -150,7 +150,7 @@ class PlaceChartWords:
         """
         word = "draw_threshold_check"
         data = self._data
-        example = 'chart.draw_threshold_check(x="rain", between=[20, 40])'
+        example = 'chart.draw_threshold_check(x="rain", between=[10, 30])'
         if not isinstance(x, str):
             raise SimplydataError(f".{word}() needs x=, the column of values.\nFor example, {example}")
         _numbers(word, data, [x])

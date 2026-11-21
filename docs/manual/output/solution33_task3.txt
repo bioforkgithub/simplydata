@@ -1,0 +1,5 @@
+GEV (generalised extreme value) curve fitted to 65 block maxima of "sea_level" (each row the largest value of one year).
+A level of 4.69 is reached on average once in 100 years (a 1-in-100 chance in any one year); 95 % CI 4.49 to 5.26 (profile likelihood).
+Shape xi = -0.050 (95 % CI -0.243 to 0.142, normal approximation): its interval includes 0, so the upper tail is close to a Gumbel curve. Location 3.87, scale 0.198. (xi in the sign of extRemes and Coles 2001; SciPy's genextreme uses c = -xi.)
+Method: R extRemes::fevd(x, type = "GEV", method = "MLE"); extRemes::return.level(); extRemes::ci.fevd(type = "return.level", method = "proflik") for each interval.
+simplydata chooses: maximum likelihood; profile-likelihood intervals (Coles 2001, section 3.3.3: the normal approximation is too narrow and too symmetric for long return periods); no declustering. The levels are in the units of the column.
