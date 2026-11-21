@@ -142,8 +142,17 @@ def test_correlation_and_counts(needs_bayesfactor, capsys):
     c = sdata.table(pd.read_csv(DATA / "mtcars.csv").astype({"am": str, "vs": str}))
     r = c.compare_counts_of("am", for_each_group_in="vs", bayesian=True).as_pandas()
     assert r["Bayes factor"][0] == pytest.approx(0.6313164, rel=1e-6)
-    shares = r["share 0 in 0"][0] + r["share 1 in 0"][0]
-    assert 0.95 < shares < 1.05  # posterior medians of two shares that add up to 1 in every draw
+    from simplydata._r import r_call
+
+    mt = pd.read_csv(DATA / "mtcars.csv")
+    same = r_call("tab <- table(factor(vs), factor(am)); "
+                  "b <- BayesFactor::contingencyTableBF(tab, sampleType = 'indepMulti', fixedMargin = 'rows'); "
+                  "set.seed(1, kind = 'Mersenne-Twister', normal.kind = 'Inversion', sample.kind = 'Rejection'); "
+                  "q <- summary(BayesFactor::posterior(b, iterations = 10000, progress = FALSE))$quantiles; "
+                  "unname(q['omega[1,2]', c('2.5%', '50%', '97.5%')])", packages=("BayesFactor",),
+                  vs=mt["vs"].to_numpy(dtype=float), am=mt["am"].to_numpy(dtype=float))
+    assert [r["share 1 in 0 95 % credible interval low"][0], r["share 1 in 0"][0],
+            r["share 1 in 0 95 % credible interval high"][0]] == pytest.approx(list(same), rel=1e-12)
     out = capsys.readouterr().out
     assert "independent multinomial sampling" in out and "Gunel-Dickey" in out
     _plain_rules(out)
@@ -168,6 +177,22 @@ def test_wrong_bayesian_calls_are_explained(call, message):
     t = sdata.table(pd.read_csv(DATA / "sleep.csv").assign(group=lambda d: d["group"].astype(str)))
     with pytest.raises(SimplydataError, match=re.escape(message)):
         call(t)
+
+
+def test_numpy_false_keeps_the_usual_test(capsys):
+    t = sdata.table(pd.DataFrame({"x": [1.0, 2.0, 3.0, 4.0, 2.5, 3.5], "g": list("aaabbb")}))
+    r = t.compare_averages_of("x", for_each_group_in="g", bayesian=np.False_).as_pandas()
+    assert "p-value" in r.columns and "Bayes factor" not in r.columns
+
+
+def test_polars_tables_work_the_bayesian_way(needs_bayesfactor):
+    pl = pytest.importorskip("polars")
+    d = pd.read_csv(DATA / "sleep.csv")
+    pandas_answer = _sleep().compare_averages_of("extra", for_each_group_in="group", bayesian=True).as_pandas()
+    t = sdata.table(pl.from_pandas(d.assign(group=d["group"].map({1: "drug 1", 2: "drug 2"}))))
+    polars_answer = t.compare_averages_of("extra", for_each_group_in="group", bayesian=True).as_pandas()
+    assert polars_answer["Bayes factor"][0] == pytest.approx(pandas_answer["Bayes factor"][0], rel=1e-12)
+    assert polars_answer["difference"][0] == pytest.approx(pandas_answer["difference"][0], rel=1e-12)
 
 
 def test_three_groups_are_refused(needs_bayesfactor):
@@ -210,6 +235,17 @@ def test_warnings_come_before_the_estimates(needs_rstanarm, monkeypatch, capsys)
     sdata.table(sdata.get_example("school")).explain("marks", using=["hours"], bayesian=True)
     out = capsys.readouterr().out
     assert out.index("Warning: the 4 chains do not agree") < out.index("Explaining")
+    real_check = bayes_r.predictive_check
+
+    def troubled_check(model, seed, prior_only=False):
+        found = real_check(model, seed, prior_only)
+        found["divergent"] = 2
+        return found
+
+    monkeypatch.setattr(bayes_r, "predictive_check", troubled_check)
+    sdata.table(sdata.get_example("school")).check_model_of("marks", using=["hours"], bayesian=True)
+    out = capsys.readouterr().out
+    assert out.index("Warning: 2 divergent transitions") < out.index("Posterior predictive check")
 
 
 def test_explain_matches_r_and_a_long_run(needs_rstanarm, capsys):
@@ -245,7 +281,9 @@ def test_yes_or_no_gives_odds_ratios_and_the_mixed_model_runs(needs_rstanarm, ca
     assert "odds ratio" in capsys.readouterr().out
     g = sdata.table(sdata.get_example("school")).explain("marks", using=["hours"], grouped_by="school",
                                                         bayesian=True).as_pandas()
-    assert 'spread between the "school" groups (standard deviation)' in g["term"].tolist()
+    row = g.set_index("term").loc['variance between the "school" groups']
+    assert row["95 % credible interval low"] < row["effect"] < row["95 % credible interval high"]
+    assert row["R-hat"] < 1.01
     assert "stan_glmer(marks ~ hours + (1 | school)" in capsys.readouterr().out
 
 
@@ -263,6 +301,16 @@ def test_check_model_draws_the_predictive_checks(needs_rstanarm, capsys, tmp_pat
     chart = t.check_model_of("marks", using=["hours", "breakfast"], bayesian=True)
     numbers = chart._check_numbers
     assert numbers["made"].shape == (50, 256) and len(numbers["observed"]) == 256
+    from simplydata._r import r_call
+
+    d = sdata.get_example("school")
+    same = r_call("m <- rstanarm::stan_glm(marks ~ hours + breakfast, data = data.frame(marks, hours, breakfast = "
+                  "factor(breakfast)), seed = 1, refresh = 0, cores = 1); "
+                  "yrep <- rstanarm::posterior_predict(m, draws = 50, seed = 1); r <- range(c(marks, yrep)); "
+                  "stats::density(yrep[3, ], from = r[1], to = r[2], n = 256)$y", packages=bayes_r.HEAVY_PACKAGES,
+                  marks=d["marks"].to_numpy(dtype=float), hours=d["hours"].to_numpy(dtype=float),
+                  breakfast=d["breakfast"].to_numpy(dtype=str))
+    assert numbers["made"][2] == pytest.approx(np.asarray(same), rel=1e-9)
     out = capsys.readouterr().out
     assert "Posterior predictive check" in out and "posterior_predict(draws = 50" in out
     prior = t.check_model_of("marks", using=["hours", "breakfast"], bayesian=True, show="prior check")

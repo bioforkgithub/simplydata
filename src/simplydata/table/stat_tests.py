@@ -632,13 +632,15 @@ class StatTestWords:
 
     @staticmethod
     def _check_bayesian(step, bayesian, prior_width="medium"):
-        """bayesian= is True or False; prior_width= goes with bayesian=True (S3d-3)."""
-        if bayesian not in (True, False) or not isinstance(bayesian, (bool, np.bool_)):
+        """bayesian= is True or False (NumPy's too); prior_width= goes with bayesian=True (S3d-3). Gives back
+        True for the Bayesian route."""
+        if not isinstance(bayesian, (bool, np.bool_)):
             raise SimplydataError(f"{step}() takes bayesian=True (the Bayesian answer) or bayesian=False (the usual "
                                   f"one); it got bayesian={bayesian!r}.")
-        if not bayesian and prior_width != "medium":
+        if not bayesian and not (isinstance(prior_width, str) and prior_width == "medium"):
             raise SimplydataError(f"prior_width= sets the prior of the Bayes factor; it goes with bayesian=True, such "
                                   f'as {step}(..., bayesian=True, prior_width="wide").')
+        return bool(bayesian)
 
     def _number_values(self, step: str, columns: list[str]):
         """The columns as float arrays, rows with an empty cell in any of them skipped (with a note)."""
@@ -740,10 +742,9 @@ class StatTestWords:
             self._survey_only("compare_averages_of", locals(), ("column", "for_each_group_in"))
             return self._survey_compare_averages(column, for_each_group_in)
         step = "compare_averages_of"
-        if bayesian is not False or prior_width != "medium":
+        if self._check_bayesian(step, bayesian, prior_width):
             from . import bayes_r, bayes_words
 
-            self._check_bayesian(step, bayesian, prior_width)
             bayes_words.check_bayes_options(step, [
                 ("based_on=", based_on, "averages"), ("test=", test, None), ("sides=", sides, 2),
                 ("higher=", higher, None), ("lower=", lower, None), ("alternative=", alternative, None),
@@ -1990,10 +1991,9 @@ class StatTestWords:
         self._check_based_on(step, based_on)
         if before == after:
             raise SimplydataError(f"{step}() needs two different columns, for example {example}.")
-        if bayesian is not False or prior_width != "medium":
+        if self._check_bayesian(step, bayesian, prior_width):
             from . import bayes_r, bayes_words
 
-            self._check_bayesian(step, bayesian, prior_width)
             bayes_words.check_bayes_options(step, [
                 ("based_on=", based_on, "averages"), ("sides=", sides, 2), ("higher=", higher, None),
                 ("lower=", lower, None), ("alternative=", alternative, None), ("test=", test, None),
@@ -2004,8 +2004,9 @@ class StatTestWords:
             width = bayes_r.width_value(prior_width)
             self._need_columns(before, after)
             if self._paired_kind(before, after)[0] != "numbers":
-                raise SimplydataError(f'bayesian=True compares two columns of numbers; "{before}" and "{after}" are '
-                                      "not both numbers.")
+                raise SimplydataError(f'bayesian=True compares two columns of measurements; "{before}" and "{after}" '
+                                      "are yes/no (or only 0 and 1) or text columns. Leave out bayesian=True for "
+                                      "McNemar's or Bowker's test.")
             b, a = self._number_values(step, [before, after])
             if len(a) < 2:
                 raise SimplydataError(f'{step}() needs at least 2 rows with a number in both "{before}" and "{after}".')
@@ -2131,10 +2132,9 @@ class StatTestWords:
         if not _is_number(value) or not math.isfinite(value):
             raise SimplydataError(f"{step}() needs a number to compare with, for example {example}.")
         self._check_based_on(step, based_on)
-        if bayesian is not False or prior_width != "medium":
+        if self._check_bayesian(step, bayesian, prior_width):
             from . import bayes_r, bayes_words
 
-            self._check_bayesian(step, bayesian, prior_width)
             bayes_words.check_bayes_options(step, [
                 ("based_on=", based_on, "averages"), ("sides=", sides, 2), ("higher=", higher, None),
                 ("lower=", lower, None), ("alternative=", alternative, None), ("same_within=", same_within, None),
@@ -2313,8 +2313,7 @@ class StatTestWords:
             raise SimplydataError("shuffles= needs a whole number of 99 or more, such as shuffles=9999.")
         if column == for_each_group_in:
             raise SimplydataError(f"{step}() needs two different columns, for example {example}.")
-        if bayesian is not False:
-            self._check_bayesian(step, bayesian)
+        bayesian = self._check_bayesian(step, bayesian)
         frame = self._frame
         floats = [c for c in (column, for_each_group_in) if frame.schema[c].is_float()]
         if floats:
@@ -2353,7 +2352,7 @@ class StatTestWords:
                 ("shuffles=", shuffles, 9999), ("show=", show, None)])
             return bayes_words.counts(self, column, for_each_group_in, [_label(v) for v in rows_of],
                                       [_label(v) for v in cols_of], [_label(k) for k in row_keys],
-                                      [_label(k) for k in col_keys], int(with_seed))
+                                      [_label(k) for k in col_keys], bayes_words.check_seed(with_seed))
         if test == "trend":
             return self._trend_test(step, observed, column, for_each_group_in, row_keys, col_keys)
         result = self._counts_engine(observed, column, for_each_group_in, test, p_value_by=p_value_by, shuffles=int(shuffles),

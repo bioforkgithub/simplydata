@@ -1967,7 +1967,7 @@ class SummaryWords:
                 f"{step}() needs two column names in quotes (or more, for a correlation table).\n"
                 f'For example, with sdata.get_example("marks"): table.{step}("hours", "marks")'
             )
-        if bayesian is not False or prior_width != "medium":
+        if self._check_bayesian(step, bayesian, prior_width):
             return self._bayesian_correlation(step, names, bayesian, prior_width, with_seed, [
                 ("method=", method, "pearson"), ("show=", show, "r"), ("sides=", sides, 2), ("higher=", higher, None),
                 ("lower=", lower, None), ("alternative=", alternative, None), ("p_value_by=", p_value_by, "formula"),
@@ -2059,7 +2059,6 @@ class SummaryWords:
         from . import bayes_r, bayes_words
         from .stat_tests import _skipped_note
 
-        self._check_bayesian(step, bayesian, prior_width)
         bayes_words.check_bayes_options(step, given)
         if len(names) != 2 or names[0] == names[1]:
             raise SimplydataError("bayesian=True gives the correlation of two different columns; give two column names, "
@@ -2074,6 +2073,10 @@ class SummaryWords:
                                   f"number; this table has {len(pairs)}.")
         a = pairs[names[0]].to_numpy().astype(float)
         b = pairs[names[1]].to_numpy().astype(float)
+        for name, values in ((names[0], a), (names[1], b)):
+            if values.min() == values.max():
+                raise SimplydataError(f'Every value of "{name}" is the same in the rows used, so it cannot be '
+                                      "correlated with anything.")
         return bayes_words.correlation(self, names[0], names[1], a, b, width, seed)
 
     @staticmethod

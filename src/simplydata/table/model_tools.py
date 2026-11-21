@@ -546,11 +546,11 @@ class ModelToolWords:
         the prior allows only possible values. Gives back the chart.
         """
         step = "check_model_of"
-        if bayesian is not False or show is not None or with_seed != 1:
+        wants = self._check_bayesian(step, bayesian)
+        if wants or show is not None or with_seed != 1:
             from . import bayes_words
 
-            self._check_bayesian(step, bayesian)
-            if not bayesian:
+            if not wants:
                 raise SimplydataError('show= and with_seed= go with bayesian=True, such as table.check_model_of("marks", '
                                       'using=["hours"], bayesian=True, show="prior check").')
             if show is not None:

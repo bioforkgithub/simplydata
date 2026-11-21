@@ -331,7 +331,7 @@ def test_every_docstring_example_runs_and_draws(key, tmp_path, monkeypatch, caps
 LESSON_NUMBERS = range(1, len(learn.LESSONS) + 1)
 
 
-def test_there_are_thirty_three_lessons(capsys):
+def test_the_lesson_count(capsys):
     assert len(learn.LESSONS) == 35
     sdata.show_lesson()
     out = capsys.readouterr().out

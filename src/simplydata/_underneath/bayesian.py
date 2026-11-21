@@ -43,7 +43,7 @@ ENTRIES = [
             # compare_averages_of("crp", for_each_group_in="ward", bayesian=True)
             b <- BayesFactor::ttestBF(x = a, y = b, rscale = "medium")       # (1)
             {SEED}
-            p <- BayesFactor::posterior(b, iterations = 10000)                 # (2)
+            p <- BayesFactor::posterior(b, iterations = 10000, progress = FALSE)                 # (2)
             q <- summary(p)$quantiles["beta (x - y)", {QUANTILES}]
             list(bf = BayesFactor::extractBF(b)$bf, low = q[[1]], mid = q[[2]], high = q[[3]])
         """,
@@ -65,7 +65,7 @@ ENTRIES = [
             # compare_before_and_after("pain_week_0", "pain_week_4", bayesian=True)
             b <- BayesFactor::ttestBF(x = after, y = before, paired = TRUE, rscale = "medium")   # (1)
             {SEED}
-            p <- BayesFactor::posterior(b, iterations = 10000)
+            p <- BayesFactor::posterior(b, iterations = 10000, progress = FALSE)
             q <- summary(p)$quantiles["mu", {QUANTILES}]
             list(bf = BayesFactor::extractBF(b)$bf, low = q[[1]], mid = q[[2]], high = q[[3]])
         """,
@@ -87,7 +87,7 @@ ENTRIES = [
             # compare_average_to("crp", 5, bayesian=True)
             b <- BayesFactor::ttestBF(x = x - 5, rscale = "medium")           # (1)
             {SEED}
-            p <- BayesFactor::posterior(b, iterations = 10000)
+            p <- BayesFactor::posterior(b, iterations = 10000, progress = FALSE)
             q <- summary(p)$quantiles["mu", {QUANTILES}]
             list(bf = BayesFactor::extractBF(b)$bf, low = q[[1]], mid = q[[2]], high = q[[3]])
         """,
@@ -108,7 +108,7 @@ ENTRIES = [
             # find_correlation_between("crp", "procalcitonin", bayesian=True)
             b <- BayesFactor::correlationBF(y = a, x = b, rscale = "medium")  # (1)
             {SEED}
-            p <- BayesFactor::posterior(b, iterations = 10000)
+            p <- BayesFactor::posterior(b, iterations = 10000, progress = FALSE)
             q <- summary(p)$quantiles["rho", {QUANTILES}]
             list(bf = BayesFactor::extractBF(b)$bf, low = q[[1]], mid = q[[2]], high = q[[3]])
         """,
@@ -131,7 +131,7 @@ ENTRIES = [
             b <- BayesFactor::contingencyTableBF(tab, sampleType = "indepMulti",
                                                  fixedMargin = "rows")         # (1)
             {SEED}
-            p <- BayesFactor::posterior(b, iterations = 10000)
+            p <- BayesFactor::posterior(b, iterations = 10000, progress = FALSE)
             q <- summary(p)$quantiles["omega[1,2]", {QUANTILES}]
             list(bf = BayesFactor::extractBF(b)$bf, low = q[[1]], mid = q[[2]], high = q[[3]])
         """,

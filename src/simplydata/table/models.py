@@ -1698,10 +1698,9 @@ class ModelWords:
             self._survey_only("explain", locals(), ("column", "using", "outcome"))
             return self._survey_explain(column, using, outcome)
         step = "explain"
-        if bayesian is not False:
+        if self._check_bayesian(step, bayesian):
             from . import bayes_words
 
-            self._check_bayesian(step, bayesian)
             bayes_words.check_bayes_options(step, [
                 ("empty_cells=", empty_cells, "leave out"), ("time=", time, None), ("out_of=", out_of, None),
                 ("in_order=", in_order, None), ("link=", link, None), ("test_type=", test_type, None),

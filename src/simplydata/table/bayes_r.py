@@ -32,7 +32,7 @@ import numpy as np
 from .._errors import SimplydataError
 
 DRAWS = 10000  # BayesFactor posterior draws (design Z01-Z02)
-CHAINS, ITERATIONS, WARMUP = 4, 2000, 1000  # rstanarm's defaults, written out (design Z03-Z06); warm-up is half
+CHAINS, ITERATIONS, WARMUP, KEPT = 4, 2000, 1000, 1000  # rstanarm's defaults (design Z03-Z06): KEPT draws per chain after WARMUP
 PREDICTED_DRAWS = 50  # posterior predictive draws in the picture (bayesplot's pp_check shows 50 by default)
 LIGHT_PACKAGES = ("BayesFactor",)
 HEAVY_PACKAGES = ("rstanarm", "rstan", "posterior")
@@ -171,11 +171,14 @@ def stan_model(model, seed):
              + f"out <- list(names = fixed, est = unname({est}), low = unname({ci}[, 1]), high = unname({ci}[, 2]), "
              "par = s$variable, rhat = s$rhat, ess_bulk = s$ess_bulk, ess_tail = s$ess_tail, "
              "divergent = rstan::get_num_divergent(m$stanfit), treedepth = rstan::get_num_max_treedepth(m$stanfit), "
+             "max_treedepth = m$stanfit@stan_args[[1]]$control$max_treedepth, "
              "draws = rstanarm::nsamples(m), rows = stats::nobs(m), "
              "prior = utils::capture.output(print(rstanarm::prior_summary(m)))); "
              "if (stats::family(m)$family == 'gaussian') { out$sigma <- unname(stats::sigma(m)); "
              "out$sigma_ci <- unname(rstanarm::posterior_interval(m, prob = 0.95, pars = 'sigma')[1, ]) }; "
-             "if (!is.null(m$glmod)) { vc <- as.data.frame(rstanarm::VarCorr(m)); out$group_sd <- vc$sdcor[vc$grp == 'g'] }; "
+             "if (!is.null(m$glmod)) { v <- 'Sigma[g:(Intercept),(Intercept)]'; "
+             "out$group_var <- unname(stats::median(as.matrix(m, pars = v))); "
+             "out$group_var_ci <- unname(rstanarm::posterior_interval(m, prob = 0.95, pars = v)[1, ]) }; "
              "out")
     what = ("The Bayesian mixed model (R rstanarm::stan_glmer())" if model.get("groups") is not None
             else "The Bayesian model (R rstanarm::stan_glm())")
@@ -189,14 +192,16 @@ def _read_fit(found):
            "par": [str(n) for n in np.atleast_1d(found["par"])],
            "draws": int(np.ravel(found["draws"])[0]), "rows": int(np.ravel(found["rows"])[0]),
            "divergent": int(np.ravel(found["divergent"])[0]), "treedepth": int(np.ravel(found["treedepth"])[0]),
+           "max_treedepth": int(np.ravel(found["max_treedepth"])[0]),
            "prior": [str(line) for line in np.atleast_1d(found["prior"])]}
     for key in ("est", "low", "high", "rhat", "ess_bulk", "ess_tail"):
         out[key] = np.asarray(found[key], dtype=float).ravel()
     if found.get("sigma") is not None:
         out["sigma"] = float(np.ravel(found["sigma"])[0])
         out["sigma_ci"] = _three(found["sigma_ci"])
-    if found.get("group_sd") is not None:
-        out["group_sd"] = float(np.ravel(found["group_sd"])[0])
+    if found.get("group_var") is not None:
+        out["group_var"] = float(np.ravel(found["group_var"])[0])
+        out["group_var_ci"] = _three(found["group_var_ci"])
     return out
 
 
@@ -213,6 +218,7 @@ def predictive_check(model, seed, prior_only=False):
     code += (f"yrep <- rstanarm::posterior_predict(m, draws = {PREDICTED_DRAWS}L, seed = seed); " + _DIAGNOSTICS
              + "out <- list(par = s$variable, rhat = s$rhat, ess_bulk = s$ess_bulk, ess_tail = s$ess_tail, "
              "divergent = rstan::get_num_divergent(m$stanfit), treedepth = rstan::get_num_max_treedepth(m$stanfit), "
+             "max_treedepth = m$stanfit@stan_args[[1]]$control$max_treedepth, "
              "draws = rstanarm::nsamples(m), rows = stats::nobs(m), names = fixed, est = numeric(0), low = numeric(0), "
              "high = numeric(0), prior = utils::capture.output(print(rstanarm::prior_summary(m)))); "
              "if (stats::family(m)$family == 'gaussian') { "

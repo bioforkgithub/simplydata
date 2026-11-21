@@ -101,6 +101,9 @@ def _interval_sentence(what, est, unit=""):
 def two_groups(table, column, for_each, groups, width, seed):
     """compare_averages_of(..., bayesian=True) with two groups: R BayesFactor::ttestBF(x, y)."""
     (n1, a), (n2, b) = groups
+    if np.min(a) == np.max(a) and np.min(b) == np.max(b):
+        raise SimplydataError(f'Every value is the same within each group of "{for_each}", so the spread cannot be '
+                              "measured and the groups cannot be compared the Bayesian way.")
     found = bayes_r.t_test("two groups", a, b, width=width, seed=seed)
     shown, name = _width_words(found["width"], width)
     prior = T_PRIOR.format(width=shown, name=name)
@@ -111,7 +114,7 @@ def two_groups(table, column, for_each, groups, width, seed):
     print(_method("ttestBF(x, y)", width, seed))
     print(BF_NOTE)
     row = {"test": "Bayes factor t-test (JZS prior)", "what it compares": f'the average of "{column}" in each '
-           f'"{for_each}" ({n1}, {n2}): differ against do not differ', "Bayes factor": found["bf"],
+           f'"{for_each}" ({n1}, {n2}): differ against do not differ', "Bayes factor": found["bf"], "Bayes factor error": found["error"],
            "prior used": f"Cauchy on the effect size, width {shown}", "prior width": found["width"],
            "difference": found["est"][1], "difference 95 % credible interval low": found["est"][0],
            "difference 95 % credible interval high": found["est"][2],
@@ -137,7 +140,7 @@ def matched(table, before, after, b_values, a_values, width, seed):
     print(BF_NOTE)
     row = {"test": "Bayes factor paired t-test (JZS prior)",
            "what it compares": f'"{after}" minus "{before}", row by row: changed against did not change',
-           "Bayes factor": found["bf"], "prior used": f"Cauchy on the effect size, width {shown}",
+           "Bayes factor": found["bf"], "Bayes factor error": found["error"], "prior used": f"Cauchy on the effect size, width {shown}",
            "prior width": found["width"], "average change": found["est"][1],
            "average change 95 % credible interval low": found["est"][0],
            "average change 95 % credible interval high": found["est"][2],
@@ -162,7 +165,7 @@ def one_column(table, column, value, values, width, seed):
     print(BF_NOTE)
     row = {"test": "Bayes factor one-sample t-test (JZS prior)",
            "what it compares": f'the average of "{column}" against {shown_value}: differs against does not differ',
-           "Bayes factor": found["bf"], "prior used": f"Cauchy on the effect size, width {shown}",
+           "Bayes factor": found["bf"], "Bayes factor error": found["error"], "prior used": f"Cauchy on the effect size, width {shown}",
            "prior width": found["width"], "value": float(value), "difference": found["est"][1],
            "difference 95 % credible interval low": found["est"][0],
            "difference 95 % credible interval high": found["est"][2],
@@ -185,7 +188,7 @@ def correlation(table, a_name, b_name, a, b, width, seed):
     print(BF_NOTE)
     row = {"test": "Bayes factor for a correlation (stretched beta prior)",
            "what it compares": f'"{a_name}" and "{b_name}": correlated against not correlated',
-           "Bayes factor": found["bf"], "prior used": f"stretched beta on the correlation, width {shown}",
+           "Bayes factor": found["bf"], "Bayes factor error": found["error"], "prior used": f"stretched beta on the correlation, width {shown}",
            "prior width": found["width"], "r": found["rho"][1], "r 95 % credible interval low": found["rho"][0],
            "r 95 % credible interval high": found["rho"][2], "rows": len(a)}
     return table._result_table(row)
@@ -209,7 +212,7 @@ def counts(table, column, for_each, values, groups, value_order, group_order, se
     print(BF_NOTE.replace(" It depends on the prior width; prior_width=\"wide\" shows how much.", ""))
     row = {"test": "Bayes factor for a table of counts (independent multinomial)",
            "what it compares": f'"{column}" in each "{for_each}" ({", ".join(str(g) for g in group_order)}): differ '
-                               "against do not differ", "Bayes factor": found["bf"],
+                               "against do not differ", "Bayes factor": found["bf"], "Bayes factor error": found["error"],
            "prior used": "Gunel-Dickey, concentration 1, each group's total fixed"}
     for g in group_order:
         for v in value_order:
@@ -263,9 +266,9 @@ def convergence(found):
         warnings.append(f"Warning: the {bayes_r.CHAINS} chains do not agree (R-hat above {RHAT_GUIDE} for {high} of "
                         f"{total} parameters, largest {worst}), so the draws do not yet describe the posterior. "
                         + WHAT_TO_DO)
-    low_bulk, low_tail = int(np.sum(~(bulk >= ESS_GUIDE))), int(np.sum(~(tail >= ESS_GUIDE)))
-    if low_bulk or low_tail:
-        warnings.append(f"Warning: too few effective draws for {max(low_bulk, low_tail)} of {total} parameters "
+    low = int(np.sum(~((bulk >= ESS_GUIDE) & (tail >= ESS_GUIDE))))
+    if low:
+        warnings.append(f"Warning: too few effective draws for {low} of {total} parameters "
                         f"(smallest {_num(float(np.nanmin(bulk)))} in the middle and {_num(float(np.nanmin(tail)))} in "
                         f"the tails; at least {ESS_GUIDE} are needed for reliable medians and intervals, Vehtari et al. "
                         "2021). " + WHAT_TO_DO)
@@ -274,9 +277,11 @@ def convergence(found):
                         "after warm-up: the sampler could not follow the posterior everywhere, so the draws may be "
                         "biased. " + WHAT_TO_DO)
     if found["treedepth"]:
-        warnings.append(f"Note: {found['treedepth']} draws reached the largest tree depth (10): sampling was slow "
+        warnings.append(f"Note: {found['treedepth']} draws reached the largest tree depth "
+                        f"({found['max_treedepth']}): sampling was slow "
                         "there; this is about speed, not bias (Stan's guide).")
-    summary = (f"Convergence: R-hat at most {_num(float(np.nanmax(rhat)))} (rank-normalised; the guide is "
+    largest = _num(float(np.nanmax(rhat))) if len(finite) else "not available"
+    summary = (f"Convergence: R-hat at most {largest} (rank-normalised; the guide is "
                f"{RHAT_GUIDE} or below), at least {_num(float(np.nanmin(bulk)))} effective draws in the middle and "
                f"{_num(float(np.nanmin(tail)))} in the tails (the guide: {ESS_GUIDE} or more), "
                f"{found['divergent']} divergent transitions; over all {total} parameters and {found['draws']:,} "
@@ -304,8 +309,12 @@ def explain(table, column, using, outcome, grouped_by, seed):
     print(f'Explaining "{column}" from {names}{groups} the Bayesian way ({found["rows"]} rows). Each effect below '
           "holds the other columns fixed:")
     rows = []
-    for label, est, low, high, rhat, bulk, tail in zip(labels, found["est"], found["low"], found["high"],
-                                                       found["rhat"], found["ess_bulk"], found["ess_tail"]):
+    by_name = dict(zip(found["par"], zip(found["rhat"], found["ess_bulk"], found["ess_tail"])))
+    missing = [n for n in found["names"] if n not in by_name]
+    if missing:
+        raise SimplydataError(f"R rstanarm gave no convergence measures for {_list_words(missing)}.")
+    checks = [by_name[n] for n in found["names"]]
+    for label, est, low, high, (rhat, bulk, tail) in zip(labels, found["est"], found["low"], found["high"], checks):
         group = any(part[1] is not None for part in model["parts_of"][labels.index(label)])
         span = f"{_num(low)} to {_num(high)}"
         if label == INTERCEPT:
@@ -316,7 +325,8 @@ def explain(table, column, using, outcome, grouped_by, seed):
         elif ratio:
             thing = "the odds of yes" if outcome == "yes or no" else "the average count"
             step_words = "in this group than in the baseline group" if group else f'for each 1 more "{label}"'
-            print(f"  {label}: {ratio} {_num(est)} ({span}): {thing} {"are" if outcome == "yes or no" else "is"} {_num(est)} times as high {step_words}.")
+            verb = "are" if outcome == "yes or no" else "is"
+            print(f"  {label}: {ratio} {_num(est)} ({span}): {thing} {verb} {_num(est)} times as high {step_words}.")
         elif group:
             print(f'  {label} against the baseline group: "{column}" is {_num(est)} higher ({span}).')
         else:
@@ -324,7 +334,6 @@ def explain(table, column, using, outcome, grouped_by, seed):
         rows.append({"term": label, "effect": float(est), "95 % credible interval low": float(low),
                      "95 % credible interval high": float(high), "R-hat": float(rhat),
                      "effective draws (middle)": float(bulk), "effective draws (tails)": float(tail)})
-    by_name = dict(zip(found["par"], zip(found["rhat"], found["ess_bulk"], found["ess_tail"])))
     if "sigma" in found:
         low, _, high = found["sigma_ci"][0], None, found["sigma_ci"][1]
         print(f'  spread around the model (sigma): {_num(found["sigma"])} ({_num(low)} to {_num(high)}) in "{column}".')
@@ -332,23 +341,26 @@ def explain(table, column, using, outcome, grouped_by, seed):
         rows.append({"term": "spread around the model (sigma)", "effect": found["sigma"],
                      "95 % credible interval low": low, "95 % credible interval high": high, "R-hat": float(r),
                      "effective draws (middle)": float(b), "effective draws (tails)": float(t)})
-    if "group_sd" in found:
-        print(f'  spread between the "{grouped_by}" groups (standard deviation of their own starting levels): '
-              f'{_num(found["group_sd"])} (rstanarm VarCorr()).')
-        rows.append({"term": f'spread between the "{grouped_by}" groups (standard deviation)',
-                     "effect": found["group_sd"], "95 % credible interval low": np.nan,
-                     "95 % credible interval high": np.nan, "R-hat": np.nan, "effective draws (middle)": np.nan,
-                     "effective draws (tails)": np.nan})
-    scale = f" ({ratio}s)" if ratio else ""
-    print(f"Each effect{scale}: the posterior median with its {CREDIBLE_MEANING}. There are no p-values in a Bayesian "
-          "model.")
+    if "group_var" in found:
+        low, high = found["group_var_ci"]
+        scale = {"yes or no": " on the log-odds scale", "counts": " on the log scale of the counts"}.get(outcome, "")
+        print(f'  variance between the "{grouped_by}" groups (of their own starting levels{scale}): '
+              f'{_num(found["group_var"])} ({_num(low)} to {_num(high)}).')
+        r, b, t = by_name.get("Sigma[g:(Intercept),(Intercept)]", (np.nan, np.nan, np.nan))
+        rows.append({"term": f'variance between the "{grouped_by}" groups', "effect": found["group_var"],
+                     "95 % credible interval low": low, "95 % credible interval high": high, "R-hat": float(r),
+                     "effective draws (middle)": float(b), "effective draws (tails)": float(t)})
+    scale = f" (the effects as {ratio}s, the intercept as {'odds' if outcome == 'yes or no' else 'a count'})" \
+        if ratio else ""
+    print(f"Each number: the posterior median with its {CREDIBLE_MEANING}{scale}. There are no p-values in a "
+          "Bayesian model.")
     print("Prior used (rstanarm's default weakly informative priors, scaled to the spread of the data; R "
           "rstanarm::prior_summary()):")
     for line in _prior_lines(found):
         print(line)
     print(summary)
     print(f"Method: R {_formula(model, pieces, grouped_by)}: {bayes_r.CHAINS} chains of "
-          f"{bayes_r.WARMUP} draws after {bayes_r.WARMUP} warm-up, the posterior median and the "
+          f"{bayes_r.KEPT} draws after {bayes_r.WARMUP} warm-up, the posterior median and the "
           f"central 95 % interval (posterior_interval()); with_seed={seed} gives the same draws again on the same "
           "computer. The prior scales follow the spread of the data, so they change when the data change.")
     print("A link does not show that one thing causes the other.")
