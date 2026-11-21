@@ -2,7 +2,7 @@
 
 Every number in these tables is invented (they are not real people, places or countries), except in "bcg" and
 "passive_smoking" (the published results of real studies, for combining studies), "ability_tests" (the
-published test scores of Holzinger & Swineford 1939, for hidden factors) and "sealevel" (the yearly highest
+published test scores of Holzinger & Swineford 1939, for hidden factors) and "sea_levels" (the yearly highest
 sea levels at Port Pirie, published by Coles 2001), each with its source in its description.
 """
 
@@ -252,7 +252,7 @@ EXAMPLES = {
             "allocation": "how people were put into the groups: random, alternate or systematic",
         },
     ),
-    # S3c-3 (directions, places and extremes): stations and rain made up, sealevel real (published)
+    # S3c-3 (directions, places and extremes): stations and rain made up, sea_levels real (published)
     "stations": (
         "MADE-UP DATA: 60 made-up sampling stations in a fjord on a coast: where each one is, how deep, the direction "
         "its current mostly flows to and the zinc in its sediment. Invented for practice; not from any real survey.",
@@ -276,7 +276,7 @@ EXAMPLES = {
             "rain": "rain that day in mm (0 on dry days)",
         },
     ),
-    "sealevel": (
+    "sea_levels": (
         "REAL DATA: the highest sea level of each year at Port Pirie, South Australia, 1923 to 1987 (Coles, S. 2001, "
         "An Introduction to Statistical Modeling of Extreme Values, Springer, section 3.4.1: the published yearly "
         "maxima, facts; the same numbers as R ismev's portpirie).",
@@ -329,7 +329,7 @@ EXAMPLES = {
 
 def _list_examples() -> None:
     print("Example tables you can use (made up for practice, except bcg and passive_smoking, real published "
-          "studies, ability_tests, real published test scores, and sealevel, real published sea levels):\n")
+          "studies, ability_tests, real published test scores, and sea_levels, real published sea levels):\n")
     for name, (about, columns) in EXAMPLES.items():
         print(f'  sdata.get_example("{name}")')
         print(f"      {about}")
@@ -343,7 +343,7 @@ def get_example(name: str | None = None):
 
     sdata.get_example() with no name lists every table and its columns.
     The tables are: marks, weather, fruit, growth, sensor, visitors, river, shop, school, meadow, trial, clinic,
-    island, toxicity, culture, admissions, resistome, stations, rain, sealevel (real published sea levels), and,
+    island, toxicity, culture, admissions, resistome, stations, rain, sea_levels (real published sea levels), and,
     for combining studies, bcg and passive_smoking (real published studies), and, for hidden factors,
     ability_tests (real published test scores).
     "shop" has empty cells and a column of dates to practise with; "school" has empty cells too.

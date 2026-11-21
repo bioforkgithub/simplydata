@@ -1,10 +1,13 @@
-"""Tests for check_steady (R tseries::adf.test and kpss.test, run through rpy2).
+"""Tests for check_steady (R urca::ur.df or tseries::adf.test, and tseries::kpss.test, run through rpy2).
 
 The series come from a small integer generator that gives the same numbers in Python and R:
     lcg <- function(n, seed = 12345) { u <- numeric(n); s <- seed
       for (j in 1:n) { s <- (69069 * s + 1) %% 2^32; u[j] <- s / 2^32 - 0.5 }; u }
     noise <- lcg(150); walk <- cumsum(noise)
-Reference values from R 4.6.2, tseries 0.10.63; the R call is next to each value.
+Reference values from R 4.6.2, tseries 0.10.63, urca 1.3-4; the R call is next to each value. Around a
+level the ADF test has a constant only (tseries::adf.test always allows a trend), so it is urca's:
+    u <- urca::ur.df(x, type = "drift", lags = 5, selectlags = "Fixed")
+    urca::punitroot(u@teststat[1], N = length(u@res), trend = "c", statistic = "t")
 """
 
 import numpy as np
@@ -53,16 +56,17 @@ def test_steady_noise_with_p_values_outside_the_tables(engine, capsys, needs_r):
     got = rows(make(frame, engine).check_steady_over_time("level", sorted_by="time"))
     out = capsys.readouterr().out
     adf, kpss = got["augmented Dickey-Fuller"], got["KPSS"]
-    # tseries::adf.test(noise): stat -5.19599343506283, lag 5, p 0.01 ("p-value smaller than printed")
-    assert adf["statistic"] == pytest.approx(-5.19599343506283, rel=1e-10)
-    assert adf["rows back"] == 5 and adf["p-value"] == 0.01 and adf["p-value is"] == "below"
+    # urca::ur.df(noise, "drift", lags = 5): tau2 -5.18991318133887; punitroot(N = 144) 1.97423488320605e-05
+    assert adf["statistic"] == pytest.approx(-5.18991318133887, rel=1e-10)
+    assert adf["rows back"] == 5 and adf["p-value"] == pytest.approx(1.97423488320605e-05, rel=1e-8)
+    assert adf["p-value is"] == "exact"
     # tseries::kpss.test(noise, null = "Level"): stat 0.087157636332688, lag 4, p 0.1 ("greater")
     assert kpss["statistic"] == pytest.approx(0.087157636332688, rel=1e-10)
     assert kpss["rows back"] == 4 and kpss["p-value"] == 0.1 and kpss["p-value is"] == "above"
     assert adf["reading"] == "steady"
-    assert '"level" looks steady: it stays around a steady level (both tests agree: ADF p below 0.01, KPSS p ' \
+    assert '"level" looks steady: it stays around a steady level (both tests agree: ADF p < 0.0001, KPSS p ' \
            "above 0.1)." in out
-    assert "tseries::adf.test(x)" in out and 'tseries::kpss.test(x, null = "Level")' in out
+    assert 'urca::ur.df(x, type = "drift"' in out and 'tseries::kpss.test(x, null = "Level")' in out
     assert "Note from R" not in out  # the table-edge warnings become "below" / "above", not notes
 
 
@@ -71,9 +75,9 @@ def test_a_wandering_series(engine, capsys, needs_r):
     t = make(frame, engine)
     got = rows(t.check_steady_over_time("level", sorted_by="time"))
     out = capsys.readouterr().out
-    # tseries::adf.test(walk): stat -2.20574229670145, lag 5, p 0.490677791882187
-    assert got["augmented Dickey-Fuller"]["statistic"] == pytest.approx(-2.20574229670145, rel=1e-10)
-    assert got["augmented Dickey-Fuller"]["p-value"] == pytest.approx(0.490677791882187, rel=1e-10)
+    # urca::ur.df(walk, "drift", lags = 5): tau2 -2.11408908090633; punitroot(N = 144) 0.239533634696584
+    assert got["augmented Dickey-Fuller"]["statistic"] == pytest.approx(-2.11408908090633, rel=1e-10)
+    assert got["augmented Dickey-Fuller"]["p-value"] == pytest.approx(0.239533634696584, rel=1e-8)
     assert got["augmented Dickey-Fuller"]["p-value is"] == "exact"
     # tseries::kpss.test(walk, null = "Level"): stat 0.40588796556497, p 0.0746172562219957
     assert got["KPSS"]["statistic"] == pytest.approx(0.40588796556497, rel=1e-10)
@@ -82,6 +86,9 @@ def test_a_wandering_series(engine, capsys, needs_r):
     # around a straight line: tseries::kpss.test(walk, null = "Trend"): stat 0.324899635996193, p 0.01 (smaller)
     line = rows(t.check_steady_over_time("level", sorted_by="time", around="straight line"))
     assert line["KPSS"]["statistic"] == pytest.approx(0.324899635996193, rel=1e-10)
+    # with the trend in the ADF test too: tseries::adf.test(walk): stat -2.20574229670145, p 0.490677791882187
+    assert line["augmented Dickey-Fuller"]["statistic"] == pytest.approx(-2.20574229670145, rel=1e-10)
+    assert line["augmented Dickey-Fuller"]["p-value"] == pytest.approx(0.490677791882187, rel=1e-10)
     assert line["KPSS"]["p-value is"] == "below" and line["KPSS"]["reading"] == "wanders"
     assert "wanders: it does not stay around a steady straight line" in capsys.readouterr().out
 

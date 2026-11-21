@@ -152,7 +152,7 @@ def marks():
 # The R packages simplydata's words call (CI installs the same list: .github/workflows/tests.yml)
 R_PACKAGES = ("survival", "vegan", "mice", "lme4", "betareg", "pscl", "car", "effectsize", "emmeans", "pbkrtest",
               "lmerTest", "afex", "geepack", "sandwich", "performance", "mgcv", "MASS", "nnet",
-              "tseries", "lomb", "trend", "forecast", "changepoint",
+              "tseries", "urca", "lomb", "trend", "forecast", "changepoint",
               "pwr", "Exact", "exact2x2", "nortest", "BSDA", "rstatix", "DescTools", "FSA", "PMCMRplus",
               "multcompView", "TOSTER", "presize", "epiR", "pROC", "irr", "psych", "BlandAltmanLeh", "ppcor", "cocor",
               "outliers", "EnvStats",

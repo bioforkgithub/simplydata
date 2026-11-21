@@ -4,13 +4,17 @@ table.add_trend_and_season(...), table.find_trend_of(...) and find_correlation_b
 find_autocorrelation_of: statsmodels acf / pacf / acovf and acorr_ljungbox with R's options (see
 simplydata._time_series).
 
-check_steady_over_time runs R's own tests through rpy2 (simplydata[r]): the augmented Dickey-Fuller test as R
-tseries::adf.test(x) (a constant and a straight-line trend in the test regression, trunc((n - 1)^(1/3))
-rows back) and the KPSS test as R tseries::kpss.test(x, null = "Level" or "Trend"), with p-values read
-from the published tables exactly as tseries does (outside the tables tseries gives the edge value,
-0.01 or 0.1, and says the true p-value is smaller or greater; simplydata prints "below 0.01" or "above
-0.1"). statsmodels adfuller gives the same ADF statistic but another p-value (MacKinnon's surface), so
-it is not used.
+check_steady_over_time runs R's own tests through rpy2 (simplydata[r]), and both tests always ask the same
+question:
+* around="straight line" (steady around a straight line, possibly sloping): the augmented Dickey-Fuller
+  test as R tseries::adf.test(x) (a constant and a straight-line trend in the test regression,
+  trunc((n - 1)^(1/3)) rows back) and the KPSS test as R tseries::kpss.test(x, null = "Trend").
+* around="level" (steady around one level, the default): tseries::adf.test always allows a trend, so a
+  series that rises steadily would pass it as "steady"; the ADF test with a constant only runs instead, as
+  R urca::ur.df(x, type = "drift", lags = trunc((n - 1)^(1/3))), with MacKinnon's (1996) p-value from
+  urca::punitroot(); and the KPSS test as tseries::kpss.test(x, null = "Level").
+tseries reads its p-values from the published tables (outside the tables it gives the edge value, 0.01 or
+0.1, and says the true p-value is smaller or greater; simplydata prints "below 0.01" or "above 0.1").
 """
 
 from __future__ import annotations
@@ -27,6 +31,8 @@ from .. import _time_series
 
 EXAMPLE = 'table.check_steady_over_time("signal", sorted_by="time")'
 AROUND = {"level": "Level", "straight line": "Trend"}
+QUESTION = {"level": "one level", "straight line": "a straight line"}
+GROUPS_NOTED = 5  # find_trend_of: notes on correlated readings for at most this many groups
 TESTS = ("both", "adf", "kpss")
 TEST_ALIASES = {"augmented dickey-fuller": "adf", "dickey-fuller": "adf", "adf.test": "adf", "kpss.test": "kpss"}
 
@@ -35,11 +41,31 @@ caught <- character(0)
 catch <- function(expr) withCallingHandlers(expr, warning = function(c) {
   caught <<- c(caught, conditionMessage(c)); invokeRestart("muffleWarning") })
 flag <- function(w) if (any(grepl("smaller", w))) "below" else if (any(grepl("greater", w))) "above" else "exact"
-a <- catch(tseries::adf.test(x)); wa <- caught; caught <- character(0)
+if (!RUN_ADF) {
+  adf <- list(adf_stat = NA_real_, adf_lag = NA_real_, adf_p = NA_real_, adf_flag = "exact", adf_small = FALSE)
+} else if (NULL_KIND == "Trend") {
+  a <- catch(tseries::adf.test(x)); wa <- caught
+  adf <- list(adf_stat = unname(a$statistic), adf_lag = unname(a$parameter), adf_p = a$p.value, adf_flag = flag(wa),
+              adf_small = FALSE)
+} else {
+  lags <- trunc((length(x) - 1)^(1/3))
+  u <- catch(urca::ur.df(x, type = "drift", lags = lags, selectlags = "Fixed")); wa <- caught
+  stat <- unname(u@teststat[1])
+  # punitroot prints (not warns) "Specified sample size may be too small" below 20 rows: caught as text
+  said <- utils::capture.output(p <- urca::punitroot(stat, N = length(u@res), trend = "c", statistic = "t"))
+  adf <- list(adf_stat = stat, adf_lag = lags, adf_p = p, adf_flag = "exact",
+              adf_small = any(grepl("too small", said)))
+}
+caught <- character(0)
 k <- catch(tseries::kpss.test(x, null = NULL_KIND)); wk <- caught
-list(adf_stat = unname(a$statistic), adf_lag = unname(a$parameter), adf_p = a$p.value, adf_flag = flag(wa),
-     kpss_stat = unname(k$statistic), kpss_lag = unname(k$parameter), kpss_p = k$p.value, kpss_flag = flag(wk))
+c(adf, list(kpss_stat = unname(k$statistic), kpss_lag = unname(k$parameter), kpss_p = k$p.value,
+            kpss_flag = flag(wk)))
 """
+ADF_SAYS = {"level": "with a constant only (steady around one level), as R urca::ur.df(x, type = \"drift\", lags = "
+                     "trunc((n - 1)^(1/3))), with MacKinnon's p-value (urca::punitroot(), N = the rows of the test "
+                     "regression)",
+            "straight line": "with a constant and a straight-line trend (steady around a straight line), as R "
+                             "tseries::adf.test(x)"}
 
 
 def _list(names) -> str:
@@ -131,9 +157,11 @@ class TimeSeriesWords:
         "Steady" (stationary) means the column keeps the same average and spread over time: it goes
         up and down around one level (around="level") or around one straight line (around="straight
         line"). Two tests that start from opposite assumptions run together (method="both"; "adf" or
-        "kpss" for one): the augmented Dickey-Fuller test starts from "it wanders", so a small p-value
-        says steady; the KPSS test starts from "steady", so a small p-value says it wanders. Both are
-        R's own (tseries::adf.test, tseries::kpss.test), run through rpy2: needs simplydata[r] and R.
+        "kpss" for one), and both ask the question around= names: the augmented Dickey-Fuller test
+        starts from "it wanders", so a small p-value says steady; the KPSS test starts from "steady",
+        so a small p-value says it wanders. Both are R's own (around="level": urca::ur.df(type =
+        "drift") and tseries::kpss.test(null = "Level"); around="straight line": tseries::adf.test and
+        kpss.test(null = "Trend")), run through rpy2: needs simplydata[r] and R.
         The readings must be evenly spaced (sorted_by=) and filled in. Gives back one row per test.
         """
         step_name = "check_steady_over_time"
@@ -154,8 +182,11 @@ class TimeSeriesWords:
                 need_regular(one, step_name, sorted_by)
             if len(one.values) < 10:
                 raise SimplydataError(f"{step_name}() needs at least 10 readings; there are {len(one.values)}.")
-            out = r_call(_R_CODE.replace("NULL_KIND", f'"{AROUND[around]}"'), packages=("tseries",),
-                         what="The steady check (R tseries::adf.test() and kpss.test())",
+            run_adf = test in ("both", "adf")
+            out = r_call(_R_CODE.replace("NULL_KIND", f'"{AROUND[around]}"').replace("RUN_ADF",
+                                                                                     "TRUE" if run_adf else "FALSE"),
+                         packages=("tseries", "urca") if around == "level" and run_adf else ("tseries",),
+                         what="The steady check (R urca::ur.df() or tseries::adf.test(), and tseries::kpss.test())",
                          python_note="statsmodels adfuller and kpss are similar, but their p-values come from other "
                                      "tables, so they differ", source="tseries", x=one.values)
             got = {k: (v.tolist()[0] if hasattr(v, "tolist") else v) for k, v in out.items()}
@@ -173,7 +204,9 @@ class TimeSeriesWords:
                     reading = "wanders"
                     print(f"{what} wanders: it does not stay around {shape} (both tests agree: {adf_text}, "
                           f"{kpss_text}). The changes from one reading to the next are often steady: "
-                          "table.add_change_column(...), then check again.")
+                          "table.add_change_column(...), then check again"
+                          + (', or, if it rises or falls steadily, check around="straight line".' if around == "level"
+                             else "."))
                 else:
                     reading = "the tests disagree"
                     print(f"The two tests disagree about {what} ({adf_text}, {kpss_text}), a common sign of a "
@@ -185,22 +218,39 @@ class TimeSeriesWords:
             else:
                 reading = "wanders" if kpss_wanders else "could well be steady"
                 print(f"{what} {'wanders' if kpss_wanders else 'could well be steady'} ({kpss_text}).")
+            if got.get("adf_small"):
+                rows_used = len(one.values) - int(got["adf_lag"]) - 1
+                print(f"Note: the ADF test of {what} has only {rows_used} rows in its test regression, and "
+                      "urca::punitroot() warns that MacKinnon's p-values may be off below 20: read the ADF p-value "
+                      "as a rough guide.")
             for kind in (("adf", "kpss") if test == "both" else (test,)):
                 row = {}
                 if groups:
                     row[", ".join(groups)] = one.label
                 row.update({
                     "test": "augmented Dickey-Fuller" if kind == "adf" else "KPSS",
-                    "starting assumption": "it wanders (unit root)" if kind == "adf" else f"steady around {around}",
+                    "starting assumption": ("it wanders (unit root)" if kind == "adf" else
+                                            f"steady around {QUESTION[around]}"),
+                    "question": f"steady around {QUESTION[around]}?",
                     "statistic": float(got[f"{kind}_stat"]), "rows back": float(got[f"{kind}_lag"]),
                     "p-value": float(got[f"{kind}_p"]), "p-value is": got[f"{kind}_flag"], "reading": reading})
                 rows.append(row)
         null = f'"{AROUND[around]}"'
-        print("Method: " + ("augmented Dickey-Fuller test with a constant and a straight-line trend, as R "
-                            "tseries::adf.test(x)" if test in ("both", "adf") else "")
-              + ("; " if test == "both" else "")
-              + (f"KPSS test, as R tseries::kpss.test(x, null = {null})" if test in ("both", "kpss") else "")
-              + "; p-values from the published tables, as tseries (run in R).")
+        print(f"Question: does it stay steady around {QUESTION[around]}?" + (" Both tests ask it." if test == "both"
+                                                                              else ""))
+        parts = []
+        if test in ("both", "adf"):
+            parts.append("augmented Dickey-Fuller test " + ADF_SAYS[around])
+        if test in ("both", "kpss"):
+            parts.append(f"KPSS test, as R tseries::kpss.test(x, null = {null})")
+        if test == "adf":
+            tables = "" if around == "level" else "the p-value"
+        elif test == "kpss" or around == "level":
+            tables = "the KPSS p-value"
+        else:
+            tables = "p-values"
+        print("Method: " + "; ".join(parts) + (f"; {tables} from the published tables, as tseries" if tables else "")
+              + " (run in R).")
         data = {key: [r[key] for r in rows] for key in rows[0]}
         return self._new_table(nw.from_dict(data, backend=self._frame.implementation))
 
@@ -287,7 +337,11 @@ class TimeSeriesWords:
         seasonal slope compare each month only with the same month in other years (R trend::smk.test,
         trend::sea.sens.slope, both in R; the slope is per cycle, per year for 12 months; the readings
         must be evenly spaced). Without R the slope (not the seasonal one) is still given and
-        a note says how to add the test.
+        a note says how to add the test. The p-value and the interval assume independent readings:
+        the readings left after Sen's line are checked for lag-1 autocorrelation (statsmodels acf
+        and the Ljung-Box test at lag 1), and a note says when they are positively correlated,
+        since the Mann-Kendall p-value is then too small (simplydata has no modified Mann-Kendall
+        test). Lag 1 is the reading before, whatever the gap in time.
         """
         from scipy import stats
 
@@ -299,7 +353,7 @@ class TimeSeriesWords:
         series = series_of(self, column, sorted_by, for_each_group_in, step_name, example)
         groups = self._group_columns(step_name, for_each_group_in, [column]) if for_each_group_in is not None else []
         per_year = {"months": 12, "quarters": 4, "days": 365.25}
-        rows, missing_note, period = [], None, None
+        rows, missing_note, period, correlated = [], None, None, []
         for one in series:
             need_filled(one, column, step_name, sorted_by)
             if len(one.values) < 4:
@@ -352,6 +406,11 @@ class TimeSeriesWords:
                     "that there is no trend", shown=f"{test_name}, {_p_shown(test['p'])}"))
             else:
                 print(f"{what} {slope_words}.")
+            lag1 = None
+            if period is None:
+                lag1 = ts.lag1_after_sen_line(one.values, None if one.times is None or calendar else one.times)
+                if lag1["r"] > 0 and lag1["p"] < 0.05:  # negative autocorrelation makes the p-value too big
+                    correlated.append((what, lag1))
             row = {", ".join(groups): one.label} if groups else {}
             row.update({"slope": slope, "95 % CI low": low, "95 % CI high": high})
             if one.unit in per_year:
@@ -359,16 +418,30 @@ class TimeSeriesWords:
             row.update({"z": test["z"] if test else math.nan, "p-value": test["p"] if test else math.nan})
             if period is None:
                 row.update({"S": test["S"] if test else math.nan, "Kendall's tau": test["tau"] if test else math.nan})
+            if lag1 is not None:
+                row.update({"lag-1 autocorrelation": lag1["r"], "Ljung-Box p-value (lag 1)": lag1["p"]})
             row["rows"] = int(len(one.values))
             rows.append(row)
+        for what, lag1 in correlated[:GROUPS_NOTED]:
+            print(f"Note: the readings of {what} left after Sen's line are correlated with the one before (lag-1 "
+                  f"autocorrelation {_num(lag1['r'])}, Ljung-Box {_p_shown(lag1['p'])}). The Mann-Kendall test and "
+                  "the interval of the slope assume independent readings; with positive autocorrelation the p-value "
+                  "is too small and the interval too narrow. simplydata has no correction for this (the modified "
+                  "Mann-Kendall test of Hamed & Rao 1998 is in the R package modifiedmk); read them with care.")
+        if len(correlated) > GROUPS_NOTED:
+            print(f"Note: ... and {len(correlated) - GROUPS_NOTED} more groups with correlated readings (the table "
+                  "has the lag-1 autocorrelation of each).")
         if missing_note:
             print("Note: the Mann-Kendall test was left out. " + missing_note)
         if period is None:
             print("Method: Sen's slope with its 95 % interval, as R trend::sens.slope() (SciPy theilslopes); "
-                  "Mann-Kendall test with continuity correction, as R trend::mk.test() (run in R).")
+                  "Mann-Kendall test with continuity correction, as R trend::mk.test() (run in R). Both assume "
+                  "independent readings; checked with the lag-1 autocorrelation of the readings left after Sen's "
+                  "line (statsmodels acf, acorr_ljungbox(lags=[1])).")
         else:
             print(f"Method: seasonal Mann-Kendall test and seasonal Sen's slope over cycles of {period} readings, as R "
-                  "trend::smk.test() and trend::sea.sens.slope() (run in R).")
+                  "trend::smk.test() and trend::sea.sens.slope() (run in R). The p-value assumes the readings are "
+                  "independent from one cycle to the next (not checked).")
         keys = list(dict.fromkeys(k for r in rows for k in r))
         data = {key: [r.get(key, math.nan) for r in rows] for key in keys}
         return self._new_table(nw.from_dict(data, backend=self._frame.implementation))

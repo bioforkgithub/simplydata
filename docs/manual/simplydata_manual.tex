@@ -664,8 +664,8 @@ MADE-UP DATA: 10 years of daily rain at one made-up coastal station (2015 to 202
 date & every day from 2015-01-01 to 2024-12-31 (real dates)\\
 rain & rain that day in mm (0 on dry days)\\
 \bottomrule\end{tabularx}\end{center}
-\section*{sealevel}
-REAL DATA: the highest sea level of each year at Port Pirie, South Australia, 1923 to 1987 (Coles, S. 2001, An Introduction to Statistical Modeling of Extreme Values, Springer, section 3.4.1: the published yearly maxima, facts; the same numbers as R ismev's portpirie). \code{sdata.\allowbreak{}get\_\allowbreak{}example(\textquotedbl{}sealevel\textquotedbl{})}
+\section*{sea\_levels}
+REAL DATA: the highest sea level of each year at Port Pirie, South Australia, 1923 to 1987 (Coles, S. 2001, An Introduction to Statistical Modeling of Extreme Values, Springer, section 3.4.1: the published yearly maxima, facts; the same numbers as R ismev's portpirie). \code{sdata.\allowbreak{}get\_\allowbreak{}example(\textquotedbl{}sea\_\allowbreak{}levels\textquotedbl{})}
 \begin{center}\small
 \begin{tabularx}{\textwidth}{@{}>{\ttfamily}l>{\raggedright\arraybackslash}X@{}}
 \toprule \textrm{\textbf{Column}} & \textbf{What it holds}\\ \midrule
@@ -3915,7 +3915,7 @@ Worked solutions: page~\pageref{solutions:24}, or type \code{sdata.\allowbreak{}
   \item more, if you want it: a smoother spectrum (Welch), and whether a series stays steady
 \end{itemize}
 \end{learnbox}
-\begin{needsr}Only the last part, \code{check\_\allowbreak{}steady\_\allowbreak{}over\_\allowbreak{}time()} and its two tests, run R's own code, the same code R users run. Install it once: pip install \code{\textquotedbl{}simplydata[r]\textquotedbl{}}, then R from https://cran.r-project.org, then in R: \code{install.\allowbreak{}packages(c(\textquotedbl{}tseries\textquotedbl{}))}. Without R these words print a message that says what to install.\end{needsr}
+\begin{needsr}Only the last part, \code{check\_\allowbreak{}steady\_\allowbreak{}over\_\allowbreak{}time()} and its two tests, run R's own code, the same code R users run. Install it once: pip install \code{\textquotedbl{}simplydata[r]\textquotedbl{}}, then R from https://cran.r-project.org, then in R: \code{install.\allowbreak{}packages(c(\textquotedbl{}tseries\textquotedbl{},\allowbreak{} \textquotedbl{}urca\textquotedbl{}))}. Without R these words print a message that says what to install.\end{needsr}
 \section*{Example 1}
 A sensor gives 200 readings a second for 5 seconds. Which cycles does its signal hold? The spectrum splits a recording into its frequencies, like a prism splits light into colours.
 \begin{lstlisting}[style=py]
@@ -4025,7 +4025,7 @@ table.check_steady_over_time("signal", sorted_by="time")
 \begin{lineexplain}
   \item[1] Load simplydata.
   \item[2] The sensor table.
-  \item[3] The signal looks steady: it stays around a steady level (both tests agree: ADF p below 0.01, KPSS p = 0.095), as R tseries::\code{adf.\allowbreak{}test()} and \code{kpss.\allowbreak{}test()}.
+  \item[3] The signal looks steady: it stays around a steady level (both tests agree: ADF p \textless{} 0.0001, KPSS p = 0.095); both ask whether it stays around one level, as R urca::\code{ur.\allowbreak{}df(type = \textquotedbl{}drift\textquotedbl{})} and tseries::\code{kpss.\allowbreak{}test()}.
 \end{lineexplain}
 \printedoutput{output/lesson25_example5.txt}
 \begin{goodtoknow}
@@ -4731,10 +4731,10 @@ table.find_autocorrelation_of("zinc", x="east", y="north", nearest=6)
 Storms. The highest sea level of each year at Port Pirie, South Australia, 1923 to 1987 (real data, Coles 2001). How high is the sea once in 100 years?
 \begin{lstlisting}[style=py]
 import simplydata as sdata
-table = sdata.table(sdata.get_example("sealevel"))
+table = sdata.table(sdata.get_example("sea_levels"))
 chart = table.start_chart()
 chart.draw_dots(x="year", y="sea_level")
-chart.save("lesson33_sealevel.png")
+chart.save("lesson33_sea_levels.png")
 table.find_return_levels_of("sea_level", once_in=[10, 100], sorted_by="year")
 \end{lstlisting}
 \whateachline
@@ -4748,8 +4748,8 @@ table.find_return_levels_of("sea_level", once_in=[10, 100], sorted_by="year")
 \end{lineexplain}
 \printedoutput{output/lesson33_example3.txt}
 \begin{center}\begin{minipage}{\linewidth}\centering
-\includegraphics[width=0.72\textwidth,height=0.36\textheight,keepaspectratio]{figures/lesson33_example3_lesson33_sealevel.pdf}
-\captionof{figure}{Lesson 33, example 3: \code{lesson33\_\allowbreak{}sealevel.\allowbreak{}png}.}
+\includegraphics[width=0.72\textwidth,height=0.36\textheight,keepaspectratio]{figures/lesson33_example3_lesson33_sea_levels.pdf}
+\captionof{figure}{Lesson 33, example 3: \code{lesson33\_\allowbreak{}sea\_\allowbreak{}levels.\allowbreak{}png}.}
 \end{minipage}\end{center}
 \begin{goodtoknow}
 \begin{itemize}
@@ -4812,7 +4812,7 @@ chart.save("my_chart.png")
 A small table to practise with. \code{sdata.\allowbreak{}get\_\allowbreak{}example(\textquotedbl{}marks\textquotedbl{})}
 
 \codeline{sdata.get\_example() with no name lists every table and its columns.}\\
-The tables are: marks, weather, fruit, growth, sensor, visitors, river, shop, school, meadow, trial, clinic, island, toxicity, culture, admissions, resistome, stations, rain, sealevel (real published sea levels), and, for combining studies, bcg and \code{passive\_\allowbreak{}smoking} (real published studies), and, for hidden factors, \code{ability\_\allowbreak{}tests} (real published test scores). \code{\textquotedbl{}shop\textquotedbl{}} has empty cells and a column of dates to practise with; \code{\textquotedbl{}school\textquotedbl{}} has empty cells too.
+The tables are: marks, weather, fruit, growth, sensor, visitors, river, shop, school, meadow, trial, clinic, island, toxicity, culture, admissions, resistome, stations, rain, \code{sea\_\allowbreak{}levels} (real published sea levels), and, for combining studies, bcg and \code{passive\_\allowbreak{}smoking} (real published studies), and, for hidden factors, \code{ability\_\allowbreak{}tests} (real published test scores). \code{\textquotedbl{}shop\textquotedbl{}} has empty cells and a column of dates to practise with; \code{\textquotedbl{}school\textquotedbl{}} has empty cells too.
 
 \wordfield{Options}{}\par\nopagebreak
 \begin{optiontable}
@@ -6641,7 +6641,7 @@ chart.save("use_colours.png")
 The colours for numbers on a heatmap, contour map, surface or dots coloured by a number column.\\
 \codeline{chart.use\_colour\_scale(\textquotedbl{}magma\textquotedbl{}) (with chart.draw\_heatmap(x=\textquotedbl{}month\textquotedbl{}, y=\textquotedbl{}city\textquotedbl{}, value=\textquotedbl{}rain\textquotedbl{}) on sdata.get\_example(\textquotedbl{}weather\textquotedbl{}))}
 
-A name: \code{\textquotedbl{}viridis\textquotedbl{}} (normal), \code{\textquotedbl{}cividis\textquotedbl{}}, \code{\textquotedbl{}magma\textquotedbl{}}, \code{\textquotedbl{}blues\textquotedbl{}}, \code{\textquotedbl{}greens\textquotedbl{}} ..., \code{\textquotedbl{}blue to red\textquotedbl{}} or \code{\textquotedbl{}purple to orange\textquotedbl{}} for numbers on both sides of a middle; these are all safe for colour-blind readers. Any matplotlib colour map name works too (\code{\textquotedbl{}Blues\textquotedbl{}}, \code{\textquotedbl{}turbo\textquotedbl{}}, \code{\textquotedbl{}rocket\textquotedbl{}}), and two or more colours make your own: \code{chart.\allowbreak{}use\_\allowbreak{}colour\_\allowbreak{}scale(\textquotedbl{}white\textquotedbl{},\allowbreak{} \textquotedbl{}navy\textquotedbl{})}. \code{middle=0} puts the middle colour of a two-sided scale at 0 (or \code{middle=1} for ratios); the scale goes equally far on both sides, so a step of 1 is the same change of colour. \code{log=True} spreads the colours on a log scale (1, 10, 100 ... evenly), for counts that span many sizes. \code{steps=5} cuts the scale into 5 colours, or \code{steps=[0,\allowbreak{} 5,\allowbreak{} 10,\allowbreak{} 20]} sets where each colour starts. \code{between=[0,\allowbreak{} 30]} fixes the ends of the scale, so several charts can share it; values beyond them get the end colour (the colour bar shows an arrow).
+A name: \code{\textquotedbl{}viridis\textquotedbl{}} (normal), \code{\textquotedbl{}cividis\textquotedbl{}}, \code{\textquotedbl{}magma\textquotedbl{}}, \code{\textquotedbl{}blues\textquotedbl{}}, \code{\textquotedbl{}greens\textquotedbl{}} ..., \code{\textquotedbl{}blue to red\textquotedbl{}} or \code{\textquotedbl{}purple to orange\textquotedbl{}} for numbers on both sides of a middle; these are all safe for colour-blind readers. Any matplotlib colour map name works too (\code{\textquotedbl{}Blues\textquotedbl{}}, \code{\textquotedbl{}plasma\textquotedbl{}}, \code{\textquotedbl{}rocket\textquotedbl{}}), and two or more colours make your own: \code{chart.\allowbreak{}use\_\allowbreak{}colour\_\allowbreak{}scale(\textquotedbl{}white\textquotedbl{},\allowbreak{} \textquotedbl{}navy\textquotedbl{})}. \code{middle=0} puts the middle colour of a two-sided scale at 0 (or \code{middle=1} for ratios); the scale goes equally far on both sides, so a step of 1 is the same change of colour. \code{log=True} spreads the colours on a log scale (1, 10, 100 ... evenly), for counts that span many sizes. \code{steps=5} cuts the scale into 5 colours, or \code{steps=[0,\allowbreak{} 5,\allowbreak{} 10,\allowbreak{} 20]} sets where each colour starts. \code{between=[0,\allowbreak{} 30]} fixes the ends of the scale, so several charts can share it; values beyond them get the end colour (the colour bar shows an arrow).
 
 \wordfield{Options}{}\par\nopagebreak
 \begin{optiontable}
@@ -12213,7 +12213,7 @@ t = np.deg2rad(d)
 \wordentry{table.find\_return\_levels\_of()}{word:table.find-return-levels-of}
 Return levels: the level reached on average once in 10, 50 or 100 years (extreme values).
 
-\codeline{table.find\_return\_levels\_of(\textquotedbl{}sea\_level\textquotedbl{}, once\_in=[10, 50, 100])   (with sdata.get\_example(\textquotedbl{}sealevel\textquotedbl{}))}\\
+\codeline{table.find\_return\_levels\_of(\textquotedbl{}sea\_level\textquotedbl{}, once\_in=[10, 50, 100])   (with sdata.get\_example(\textquotedbl{}sea\_levels\textquotedbl{}))}\\
 A return level is the level reached on average once in a given number of years: the 100-year level has a 1-in-100 chance of being reached in any one year (it can happen twice in a decade, or not in 200 years). Two ways: - each row is the largest value of one block, such as a year (block maxima): a GEV curve (generalised extreme value) is fitted to the rows. Give \code{sorted\_\allowbreak{}by=\textquotedbl{}year\textquotedbl{}} so the word can check there is one row per year; daily readings are refused (take the yearly largest first: \code{table.\allowbreak{}find\_\allowbreak{}biggest\_\allowbreak{}of(\textquotedbl{}sea\_\allowbreak{}level\textquotedbl{},\allowbreak{} for\_\allowbreak{}each\_\allowbreak{}group\_\allowbreak{}in=\textquotedbl{}date\textquotedbl{},\allowbreak{} every=\textquotedbl{}year\textquotedbl{})}). - \code{values\_\allowbreak{}above=30} uses every reading above 30 (peaks over a threshold): a generalised Pareto curve is fitted to the amounts above it. \code{sorted\_\allowbreak{}by=} (dates) is then needed, to know how many readings make a year. Choose the threshold with \code{chart.\allowbreak{}draw\_\allowbreak{}threshold\_\allowbreak{}check()}. Prints each return level with its 95 \% profile-likelihood interval (asymmetric, as return levels are), and the shape of the curve. Gives back one row per return period. For lows (low oxygen, low water), turn the column round first (\code{table.\allowbreak{}add\_\allowbreak{}column(\textquotedbl{}minus\_\allowbreak{}oxygen\textquotedbl{},\allowbreak{} \textquotedbl{}-oxygen\textquotedbl{})}). Numbers from R extRemes (fevd, return.level, ci). Needs R (extRemes). Other names: GEV, GPD, peaks over threshold, return period, fevd.
 
 \wordfield{Options}{}\par\nopagebreak
@@ -12229,7 +12229,7 @@ A return level is the level reached on average once in a given number of years: 
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
-table = sdata.table(sdata.get_example("sealevel"))
+table = sdata.table(sdata.get_example("sea_levels"))
 table.find_return_levels_of("sea_level", once_in=[10, 100], sorted_by="year")
 \end{lstlisting}
 \needspace{10\baselineskip}\begin{underneathbox}{\libbadge{R}\libbadge{Python}}
@@ -12455,7 +12455,7 @@ Do the groups really differ in the time until the event? (log-rank test)
 \codeline{table.compare\_survival(time=\textquotedbl{}days\textquotedbl{}, event=\textquotedbl{}died\textquotedbl{}, for\_each\_group\_in=\textquotedbl{}treatment\textquotedbl{})   (with sdata.get\_example(\textquotedbl{}trial\textquotedbl{}))}\\
 The log-rank test, as R \code{survdiff(Surv(days,\allowbreak{} died == \textquotedbl{}yes\textquotedbl{}) \textasciitilde{} treatment)}: at each event time the events are shared out over the groups by how many rows are at risk in each, and the observed events are compared with these expected ones over the whole follow-up. Prints the answer in words and the observed vs expected events per group; gives back a one-row table of results.
 
-More: \code{allowing\_\allowbreak{}for=\textquotedbl{}centre\textquotedbl{}} compares the groups within each centre and adds the results up (the stratified log-rank test, R \code{survdiff(.\allowbreak{}.\allowbreak{}.\allowbreak{} + strata(centre))}); a column of text only. \code{followed\_\allowbreak{}from=\textquotedbl{}entry\_\allowbreak{}day\textquotedbl{}} gives each row the time its follow-up started (R has no survdiff for this; the nearest R check is the score test of \code{coxph(Surv(entry\_\allowbreak{}day,\allowbreak{} days,\allowbreak{} died) \textasciitilde{} group,\allowbreak{} ties = \textquotedbl{}breslow\textquotedbl{})}, which agrees closely but not always exactly). \code{average\_\allowbreak{}time\_\allowbreak{}up\_\allowbreak{}to=365} adds the average time without the event in the first 365 time units in each group and, for two groups, their difference and ratio (R survRM2::rmst2): easier to read than a hazard ratio, and right when hazards are not proportional. \code{value=\textquotedbl{}relapse\textquotedbl{}}, \code{competing\_\allowbreak{}with=\textquotedbl{}death\textquotedbl{}} gives Gray's test of the chance of relapse when death can come first (R cmprsk::cuminc).
+More: \code{allowing\_\allowbreak{}for=\textquotedbl{}centre\textquotedbl{}} compares the groups within each centre and adds the results up (the stratified log-rank test, R \code{survdiff(.\allowbreak{}.\allowbreak{}.\allowbreak{} + strata(centre))}); a column of text only. \code{followed\_\allowbreak{}from=\textquotedbl{}entry\_\allowbreak{}day\textquotedbl{}} gives each row the time its follow-up started (R has no survdiff for this; the same test in R is the score test of \code{coxph(Surv(entry\_\allowbreak{}day,\allowbreak{} days,\allowbreak{} died) \textasciitilde{} group,\allowbreak{} ties = \textquotedbl{}exact\textquotedbl{})}). \code{average\_\allowbreak{}time\_\allowbreak{}up\_\allowbreak{}to=365} adds the average time without the event in the first 365 time units in each group and, for two groups, their difference and ratio (R survRM2::rmst2): easier to read than a hazard ratio, and right when hazards are not proportional. \code{value=\textquotedbl{}relapse\textquotedbl{}}, \code{competing\_\allowbreak{}with=\textquotedbl{}death\textquotedbl{}} gives Gray's test of the chance of relapse when death can come first (R cmprsk::cuminc).
 
 \wordfield{Options}{}\par\nopagebreak
 \begin{optiontable}
@@ -12505,7 +12505,7 @@ chi, p = survdiff(df["days"], df["died"] == "yes", df["treatment"],
 {"statistic": chi, "p-value": p}
 \end{lstlisting}
 \undertext{\textbf{simplydata chooses}}
-\undertext{(1) \code{entry=}: each row counts as at risk only after its start. R survdiff takes no start times; the nearest R check, the score test of \code{coxph(Surv(start,\allowbreak{} stop,\allowbreak{} event) \textasciitilde{} group,\allowbreak{} ties = \textquotedbl{}breslow\textquotedbl{})}, agrees closely but not always exactly (validation/report.md).}
+\undertext{(1) \code{entry=}: each row counts as at risk only after its start. R survdiff takes no start times; the same test in R is the score test of \code{coxph(Surv(start,\allowbreak{} stop,\allowbreak{} event) \textasciitilde{} group,\allowbreak{} ties = \textquotedbl{}exact\textquotedbl{})} (\code{coxph()}\$score), which agrees to about 1e-11 (validation/report.md).}
 \undertext{simplydata also writes the result as sentences, with the p-value in words, and names the method.}
 \undertext{\textit{Checked:} a test runs both and compares the numbers of the result table (on a pandas and on a Polars table).}
 \end{underneathbox}
@@ -13357,7 +13357,7 @@ nums.smooth(method="median", window=5)
 Does a column keep rising or falling over time, and by how much? (Mann-Kendall test, Sen's slope)
 
 \codeline{table.find\_trend\_of(\textquotedbl{}visitors\textquotedbl{}, sorted\_by=\textquotedbl{}month\textquotedbl{}, for\_each\_group\_in=\textquotedbl{}museum\textquotedbl{})   (with sdata.get\_example(\textquotedbl{}visitors\textquotedbl{}))}\\
-Sen's slope is the middle (median) of the slopes between every pair of readings, so a few odd readings do not move it, with its 95 \% interval (SciPy theilslopes, as R trend::sens.slope): the change per reading in table order, per month (quarter, year) for dates one calendar step apart, and per day (or second, or unit of \code{sorted\_\allowbreak{}by}) otherwise, worked out on the times themselves so weekly readings and gaps count right; also per year. The Mann-Kendall test asks whether a rise or fall that keeps going one way could be chance; it runs in R itself (trend::mk.test, needs simplydata[r]). With \code{repeats\_\allowbreak{}every=} (12, or \code{\textquotedbl{}year\textquotedbl{}}) the seasonal test and seasonal slope compare each month only with the same month in other years (R trend::smk.test, trend::sea.sens.slope, both in R; the slope is per cycle, per year for 12 months; the readings must be evenly spaced). Without R the slope (not the seasonal one) is still given and a note says how to add the test.
+Sen's slope is the middle (median) of the slopes between every pair of readings, so a few odd readings do not move it, with its 95 \% interval (SciPy theilslopes, as R trend::sens.slope): the change per reading in table order, per month (quarter, year) for dates one calendar step apart, and per day (or second, or unit of \code{sorted\_\allowbreak{}by}) otherwise, worked out on the times themselves so weekly readings and gaps count right; also per year. The Mann-Kendall test asks whether a rise or fall that keeps going one way could be chance; it runs in R itself (trend::mk.test, needs simplydata[r]). With \code{repeats\_\allowbreak{}every=} (12, or \code{\textquotedbl{}year\textquotedbl{}}) the seasonal test and seasonal slope compare each month only with the same month in other years (R trend::smk.test, trend::sea.sens.slope, both in R; the slope is per cycle, per year for 12 months; the readings must be evenly spaced). Without R the slope (not the seasonal one) is still given and a note says how to add the test. The p-value and the interval assume independent readings: the readings left after Sen's line are checked for lag-1 autocorrelation (statsmodels acf and the Ljung-Box test at lag 1), and a note says when they are positively correlated, since the Mann-Kendall p-value is then too small (simplydata has no modified Mann-Kendall test). Lag 1 is the reading before, whatever the gap in time.
 
 \wordfield{Options}{}\par\nopagebreak
 \begin{optiontable}
@@ -13552,7 +13552,7 @@ nums.find_autocorrelation(rows_back=10)
 Does a column stay steady over time, or does it wander? (ADF and KPSS tests, as R tseries)
 
 \codeline{table.check\_steady\_over\_time(\textquotedbl{}signal\textquotedbl{}, sorted\_by=\textquotedbl{}time\textquotedbl{})   (with sdata.get\_example(\textquotedbl{}sensor\textquotedbl{}))}\\
-\code{\textquotedbl{}Steady\textquotedbl{}} (stationary) means the column keeps the same average and spread over time: it goes up and down around one level (\code{around=\textquotedbl{}level\textquotedbl{}}) or around one straight line (\code{around=\textquotedbl{}straight line\textquotedbl{}}). Two tests that start from opposite assumptions run together (\code{method=\textquotedbl{}both\textquotedbl{}}; \code{\textquotedbl{}adf\textquotedbl{}} or \code{\textquotedbl{}kpss\textquotedbl{}} for one): the augmented Dickey-Fuller test starts from \code{\textquotedbl{}it wanders\textquotedbl{}}, so a small p-value says steady; the KPSS test starts from \code{\textquotedbl{}steady\textquotedbl{}}, so a small p-value says it wanders. Both are R's own (tseries::adf.test, tseries::kpss.test), run through rpy2: needs simplydata[r] and R. The readings must be evenly spaced (\code{sorted\_\allowbreak{}by=}) and filled in. Gives back one row per test.
+\code{\textquotedbl{}Steady\textquotedbl{}} (stationary) means the column keeps the same average and spread over time: it goes up and down around one level (\code{around=\textquotedbl{}level\textquotedbl{}}) or around one straight line (\code{around=\textquotedbl{}straight line\textquotedbl{}}). Two tests that start from opposite assumptions run together (\code{method=\textquotedbl{}both\textquotedbl{}}; \code{\textquotedbl{}adf\textquotedbl{}} or \code{\textquotedbl{}kpss\textquotedbl{}} for one), and both ask the question \code{around=} names: the augmented Dickey-Fuller test starts from \code{\textquotedbl{}it wanders\textquotedbl{}}, so a small p-value says steady; the KPSS test starts from \code{\textquotedbl{}steady\textquotedbl{}}, so a small p-value says it wanders. Both are R's own (\code{around=\textquotedbl{}level\textquotedbl{}}: urca::\code{ur.\allowbreak{}df(type = \textquotedbl{}drift\textquotedbl{})} and tseries::\code{kpss.\allowbreak{}test(null = \textquotedbl{}Level\textquotedbl{})}; \code{around=\textquotedbl{}straight line\textquotedbl{}}: tseries::adf.test and \code{kpss.\allowbreak{}test(null = \textquotedbl{}Trend\textquotedbl{})}), run through rpy2: needs simplydata[r] and R. The readings must be evenly spaced (\code{sorted\_\allowbreak{}by=}) and filled in. Gives back one row per test.
 
 \wordfield{Options}{}\par\nopagebreak
 \begin{optiontable}
@@ -13564,7 +13564,7 @@ Does a column stay steady over time, or does it wander? (ADF and KPSS tests, as 
 \end{optiontable}
 
 \wordfield{Why this method}{\hyperref[basis:table.check-steady-over-time]{How simplydata chooses methods}, page \pageref{basis:table.check-steady-over-time}: the default, the evidence and the checks.}
-\wordfield{Underneath}{R (tseries::adf.test and kpss.test, through rpy2: simplydata[r])}
+\wordfield{Underneath}{R (urca::ur.df or tseries::adf.test, and tseries::kpss.test, through rpy2: simplydata[r])}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -17728,7 +17728,7 @@ table.find_average_direction_of("current_direction", full_turn=360)
 \solutiontask{2}{Change only \code{once\_\allowbreak{}in=}: find the 50-year sea level at Port Pirie.}
 \begin{lstlisting}[style=py]
 import simplydata as sdata
-table = sdata.table(sdata.get_example("sealevel"))
+table = sdata.table(sdata.get_example("sea_levels"))
 table.find_return_levels_of("sea_level", once_in=[50], sorted_by="year")
 \end{lstlisting}
 \printedoutput{output/solution33_task2.txt}
@@ -17736,7 +17736,7 @@ table.find_return_levels_of("sea_level", once_in=[50], sorted_by="year")
 \solutiontask{3}{Say in words what a 100-year level means. Is it certain to happen in the next 100 years?}
 \begin{lstlisting}[style=py]
 import simplydata as sdata
-table = sdata.table(sdata.get_example("sealevel"))
+table = sdata.table(sdata.get_example("sea_levels"))
 table.find_return_levels_of("sea_level", once_in=[100], sorted_by="year")
 \end{lstlisting}
 \printedoutput{output/solution33_task3.txt}
@@ -17939,14 +17939,14 @@ simplydata often chooses a method, an option value or a setting for you. This ap
 \wordfield{Default}{The Okabe-Ito colours for groups (blue, orange, green, vermilion, reddish purple, sky blue, yellow, black).}
 \wordfield{Alternatives}{\code{use\_\allowbreak{}colours(\textquotedbl{}a\textquotedbl{},\allowbreak{} \textquotedbl{}b\textquotedbl{},\allowbreak{} .\allowbreak{}.\allowbreak{}.\allowbreak{})} for your own; \code{use\_\allowbreak{}colour()} for one colour.}
 \wordfield{Why (P1)}{Readers with colour blindness can tell the Okabe-Ito colours apart, and they stay distinct in print (Okabe \& Ito 2008; Wong 2011).}
-\wordfield{Checks}{With more than 8 groups the colours repeat.}
+\wordfield{Checks}{With more groups than colours the colours repeat, and a note says so (once).}
 \wordfield{References}{Okabe \& Ito 2008; Wong 2011}
 \wordfield{In the dictionary}{\hyperref[word:use-colours]{page \pageref{word:use-colours}}}
 \par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:use-colour-scale}\noindent{\sffamily\bfseries\color{brand}\code{chart.\allowbreak{}use\_\allowbreak{}colour\_\allowbreak{}scale()}}\par\nopagebreak
 \wordfield{Default}{viridis for numbers; with \code{middle=}, a blue-to-red scale (RdBu) with the same change of colour per unit on both sides.}
 \wordfield{Alternatives}{Any named scale (cividis, magma, blues ...), your own colours, \code{log=True}, \code{steps=}, \code{between=}.}
 \wordfield{Why (P2)}{Rainbow scales distort the data and fail with colour blindness; perceptually uniform scales such as viridis and cividis do not (Liu \& Heer 2018; Nu\~nez et al. 2018; Crameri et al. 2020). Diverging scales belong to data with a meaningful middle (Harrower \& Brewer 2003).}
-\wordfield{Checks}{\code{log=True} with values at or below 0 is refused; \code{middle=} with \code{log=} or \code{steps=} is refused; an unknown name is refused with a list of colour-blind-safe scales.}
+\wordfield{Checks}{\code{log=True} with values at or below 0 is refused; \code{middle=} with \code{log=} or \code{steps=} is refused; an unknown name is refused with a list of colour-blind-safe scales; a rainbow scale (jet, rainbow, hsv ...) gets a note (once).}
 \wordfield{References}{Liu \& Heer 2018; Nu\~nez et al. 2018; Crameri et al. 2020; Harrower \& Brewer 2003}
 \wordfield{In the dictionary}{\hyperref[word:use-colour-scale]{page \pageref{word:use-colour-scale}}}
 \unsection{Choose rows}{basis-group:Choose-rows}
@@ -18379,7 +18379,7 @@ simplydata often chooses a method, an option value or a setting for you. This ap
 \wordfield{References}{Lopez Bernal et al. 2017}
 \wordfield{In the dictionary}{\hyperref[word:table.fit-line]{page \pageref{word:table.fit-line}}}
 \par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:table.fit-curve}\noindent{\sffamily\bfseries\color{brand}\code{table.\allowbreak{}fit\_\allowbreak{}curve()}}\par\nopagebreak
-\wordfield{Default}{A polynomial of degree 2 by least squares (raw powers, as R \code{lm(y \textasciitilde{} poly(x,\allowbreak{} 2,\allowbreak{} raw = TRUE))}).}
+\wordfield{Default}{A polynomial of degree 2 by least squares (raw powers, as R \code{lm(y \textasciitilde{} poly(x,\allowbreak{} 2,\allowbreak{} raw = TRUE))}), fitted on x mapped onto [-1, 1] and turned back into the raw powers by statsmodels \code{t\_\allowbreak{}test()}, so the standard errors keep their digits when the powers are nearly in proportion (NIST Filip).}
 \wordfield{Alternatives}{\code{of\_\allowbreak{}degree=} 1 to 10; \code{of\_\allowbreak{}kind=} a named curve; \code{fit\_\allowbreak{}formula()} for any formula.}
 \wordfield{Why (P5)}{Degree 2 is a starting value, not a published rule; from degree 4 a note says the curve wiggles and points to smoothing or a formula. \textit{Basis: starting value.}}
 \wordfield{Checks}{Degrees outside 1 to 10 and too few distinct x are refused.}
@@ -18395,7 +18395,7 @@ simplydata often chooses a method, an option value or a setting for you. This ap
 \wordfield{Default}{Nonlinear least squares by Levenberg-Marquardt (as minpack.lm::\code{nlsLM()}; R \code{nls()} uses Gauss-Newton and gives the same estimates when both converge), start values 1 (or the middle of \code{between=}), Wald t intervals as \code{summary(nls)}; AIC as R logLik.nls.}
 \wordfield{Alternatives}{\code{method=\textquotedbl{}trust region\textquotedbl{}} or \code{\textquotedbl{}dogbox\textquotedbl{}}; \code{search=\textquotedbl{}whole range\textquotedbl{}} (differential evolution first); \code{start=}, \code{between=}.}
 \wordfield{Why (P3)}{Least squares is what R \code{nls()} fits. The Wald intervals rest on a straight-line approximation; Bates \& Watts 1988 show they can be poor for strongly curved models and prefer profile-likelihood intervals (R \code{confint()}), which simplydata does not yet offer. \textit{Basis: convention.}}
-\wordfield{Checks}{Levenberg-Marquardt with limits, impossible start values and no convergence are refused; values the data do not pin down get infinite standard errors, with a note; a value at its limit gets a note.}
+\wordfield{Checks}{Levenberg-Marquardt with limits, impossible start values and a search that does not settle are refused; values the data do not pin down get infinite standard errors, a note and converged \code{\textquotedbl{}no\textquotedbl{}} (R \code{nls()} stops there); with R squared near 0 as well, the note says the search may have stopped in a flat region and suggests other start values or \code{search=\textquotedbl{}whole range\textquotedbl{}}; R squared below 0.01 alone gets the same hint; a value at its limit gets a note.}
 \wordfield{References}{Bates \& Watts 1988}
 \wordfield{In the dictionary}{\hyperref[word:table.fit-formula]{page \pageref{word:table.fit-formula}}}
 \par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:table.fit-dose-response}\noindent{\sffamily\bfseries\color{brand}\code{table.\allowbreak{}fit\_\allowbreak{}dose\_\allowbreak{}response()}}\par\nopagebreak
@@ -18995,7 +18995,7 @@ simplydata often chooses a method, an option value or a setting for you. This ap
 \wordfield{Default}{Linear discriminant analysis (R MASS::\code{lda()}) with MASS's default prior chances, the group shares in the data; each axis turned so its biggest value is positive; leave-one-out classification.}
 \wordfield{Alternatives}{\code{how\_\allowbreak{}many=}.}
 \wordfield{Why (P3)}{Fisher's discriminant axes (Fisher 1936) as MASS fits them (Venables \& Ripley 2002); the prior is printed, because equal priors would classify differently. Leave-one-out accuracy is nearly unbiased, unlike in-sample accuracy, as long as the columns were not chosen on the same data. \textit{Basis: convention.}}
-\wordfield{Checks}{Fewer than 2 groups, and a group with fewer than 2 rows, are refused; \code{how\_\allowbreak{}many=} is at most the smaller of groups - 1 and the number of columns.}
+\wordfield{Checks}{Fewer than 2 groups, a group with fewer than 2 rows, and no more rows - groups than columns (the pooled spread cannot be worked out) are refused; a group with no more rows than columns gets a note; a column constant within groups is refused with MASS's reason; \code{how\_\allowbreak{}many=} is at most the smaller of groups - 1 and the number of columns.}
 \wordfield{References}{Fisher 1936; Venables \& Ripley 2002}
 \wordfield{In the dictionary}{\hyperref[word:table.add-axes-that-separate-groups]{page \pageref{word:table.add-axes-that-separate-groups}}}
 \par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:table.add-correspondence-axes}\noindent{\sffamily\bfseries\color{brand}\code{table.\allowbreak{}add\_\allowbreak{}correspondence\_\allowbreak{}axes()}}\par\nopagebreak
@@ -19134,7 +19134,7 @@ simplydata often chooses a method, an option value or a setting for you. This ap
 \par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:table.compare-survival-followed-from-eq}\noindent{\sffamily\bfseries\color{brand}\code{table.\allowbreak{}compare\_\allowbreak{}survival()} \code{followed\_\allowbreak{}from=}}\par\nopagebreak
 \wordfield{Default}{The log-rank test with delayed entry: each row counts as at risk only after its start (statsmodels \code{survdiff(entry=)}).}
 \wordfield{Alternatives}{Leave it out when everyone was followed from time 0.}
-\wordfield{Why (P5)}{R survdiff takes no start times. The log-rank test with delayed entry equals the score test of a Cox model with exact ties (\code{coxph(Surv(start,\allowbreak{} stop,\allowbreak{} event) \textasciitilde{} group,\allowbreak{} ties = \textquotedbl{}exact\textquotedbl{})}); the printout and the reliability study compare with the Breslow-ties score test, which agrees closely but not exactly. \textit{Basis: starting value.}}
+\wordfield{Why (P5)}{R survdiff takes no start times. The log-rank test with delayed entry equals the score test of a Cox model with exact ties (\code{coxph(Surv(start,\allowbreak{} stop,\allowbreak{} event) \textasciitilde{} group,\allowbreak{} ties = \textquotedbl{}exact\textquotedbl{})}); the printout names that R call and the reliability study checks against it (Channing House: equal to 1.6e-11). \textit{Basis: starting value.}}
 \wordfield{Checks}{Refused with \code{allowing\_\allowbreak{}for=}.}
 \wordfield{References}{Klein \& Moeschberger 2003; Therneau \& Grambsch 2000}
 \wordfield{In the dictionary}{\hyperref[word:table.compare-survival]{page \pageref{word:table.compare-survival}}}
@@ -19343,8 +19343,8 @@ simplydata often chooses a method, an option value or a setting for you. This ap
 \par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:table.find-trend-of}\noindent{\sffamily\bfseries\color{brand}\code{table.\allowbreak{}find\_\allowbreak{}trend\_\allowbreak{}of()}}\par\nopagebreak
 \wordfield{Default}{Sen's slope with its 95 \% interval and the Mann-Kendall test with continuity correction (R trend); with \code{repeats\_\allowbreak{}every=}, the seasonal Mann-Kendall test and seasonal Sen slope.}
 \wordfield{Alternatives}{\code{repeats\_\allowbreak{}every=}.}
-\wordfield{Why (P2)}{Sen's slope and the Mann-Kendall test need no bell shape and resist outliers (Sen 1968; Mann 1945); the seasonal form compares the same season across years (Hirsch, Slack \& Smith 1982). The test assumes independent readings; autocorrelation inflates its false alarms (Hamed \& Rao 1998; Yue et al. 2002), and simplydata does not yet check for it or offer the modified test.}
-\wordfield{Checks}{Fewer than 4 readings are refused; without R only the slope is given, with a note.}
+\wordfield{Why (P2)}{Sen's slope and the Mann-Kendall test need no bell shape and resist outliers (Sen 1968; Mann 1945); the seasonal form compares the same season across years (Hirsch, Slack \& Smith 1982). The test assumes independent readings; autocorrelation inflates its false alarms (Hamed \& Rao 1998; Yue et al. 2002). simplydata checks for it but does not offer the modified test.}
+\wordfield{Checks}{Fewer than 4 readings are refused; without R only the slope is given, with a note. Without \code{repeats\_\allowbreak{}every=} the readings left after Sen's line are tested for lag-1 autocorrelation (statsmodels acf and Ljung-Box at lag 1, lag 1 being the reading before); when it is positive with p \textless{} 0.05 a note says the p-value is too small and names the modified test (R modifiedmk). With \code{repeats\_\allowbreak{}every=} the method line says independence is assumed, not checked.}
 \wordfield{References}{Sen 1968; Mann 1945; Hirsch et al. 1982; Hamed \& Ramachandra Rao 1998; Yue et al. 2002}
 \wordfield{In the dictionary}{\hyperref[word:table.find-trend-of]{page \pageref{word:table.find-trend-of}}}
 \par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:nums.remove-trend}\noindent{\sffamily\bfseries\color{brand}\code{nums.\allowbreak{}remove\_\allowbreak{}trend()}}\par\nopagebreak
@@ -19396,11 +19396,11 @@ simplydata often chooses a method, an option value or a setting for you. This ap
 \wordfield{References}{Bartlett 1946; Ljung \& Box 1978}
 \wordfield{In the dictionary}{\hyperref[word:nums.find-autocorrelation]{page \pageref{word:nums.find-autocorrelation}}}
 \par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:table.check-steady-over-time}\noindent{\sffamily\bfseries\color{brand}\code{table.\allowbreak{}check\_\allowbreak{}steady\_\allowbreak{}over\_\allowbreak{}time()}}\par\nopagebreak
-\wordfield{Default}{Both the ADF test (R tseries::\code{adf.\allowbreak{}test()}, which always includes a constant and a trend) and the KPSS test of a steady level (\code{kpss.\allowbreak{}test(null = \textquotedbl{}Level\textquotedbl{})}), read together.}
-\wordfield{Alternatives}{\code{method=\textquotedbl{}adf\textquotedbl{}} or \code{\textquotedbl{}kpss\textquotedbl{}}; \code{around=\textquotedbl{}straight line\textquotedbl{}} (KPSS null = \code{\textquotedbl{}Trend\textquotedbl{}}).}
-\wordfield{Why (P3)}{The two tests have opposite null hypotheses, so reading them together separates 'steady', 'wanders' and 'cannot tell' (Dickey \& Fuller 1979; Kwiatkowski et al. 1992). With \code{around=\textquotedbl{}level\textquotedbl{}} their deterministic parts differ (adf.test allows a trend, the KPSS level test does not), so a series steady around a sloping line can show as 'the tests disagree'; \code{around=\textquotedbl{}straight line\textquotedbl{}} matches them. \textit{Basis: convention.}}
-\wordfield{Checks}{Fewer than 10 readings are refused; needs R.}
-\wordfield{References}{Dickey \& Fuller 1979; Kwiatkowski et al. 1992}
+\wordfield{Default}{Steady around one level: the ADF test with a constant only (R urca::\code{ur.\allowbreak{}df(type = \textquotedbl{}drift\textquotedbl{})}, MacKinnon's p-value from urca::\code{punitroot()}) and the KPSS test of a steady level (tseries::\code{kpss.\allowbreak{}test(null = \textquotedbl{}Level\textquotedbl{})}), read together.}
+\wordfield{Alternatives}{\code{method=\textquotedbl{}adf\textquotedbl{}} or \code{\textquotedbl{}kpss\textquotedbl{}}; \code{around=\textquotedbl{}straight line\textquotedbl{}}: tseries::\code{adf.\allowbreak{}test()} (constant and trend) and \code{kpss.\allowbreak{}test(null = \textquotedbl{}Trend\textquotedbl{})}.}
+\wordfield{Why (P3)}{The two tests have opposite null hypotheses, so reading them together separates 'steady', 'wanders' and 'cannot tell' (Dickey \& Fuller 1979; Kwiatkowski et al. 1992); that only works when both ask the same question, so the ADF regression follows \code{around=} (tseries::adf.test always includes a trend, which would pass a steadily rising series as steady around a level). tseries has no constant-only ADF test, so that one is urca's, with MacKinnon's (1996) response-surface p-value. \textit{Basis: convention.}}
+\wordfield{Checks}{Fewer than 10 readings are refused; needs R; the printout says which question both tests ask.}
+\wordfield{References}{Dickey \& Fuller 1979; Kwiatkowski et al. 1992; MacKinnon 1996}
 \wordfield{In the dictionary}{\hyperref[word:table.check-steady-over-time]{page \pageref{word:table.check-steady-over-time}}}
 \par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:table.find-change-points-in}\noindent{\sffamily\bfseries\color{brand}\code{table.\allowbreak{}find\_\allowbreak{}change\_\allowbreak{}points\_\allowbreak{}in()}}\par\nopagebreak
 \wordfield{Default}{Changes in the average by PELT with the MBIC penalty (R changepoint::\code{cpt.\allowbreak{}mean(method = \textquotedbl{}PELT\textquotedbl{})}), after dividing by the noise estimated as the median absolute deviation of neighbouring differences / \code{sqrt(2)}.}
@@ -19880,6 +19880,7 @@ simplydata often chooses a method, an option value or a setting for you. This ap
 \par\noindent\hangindent=1.5em Lubbe S, Filzmoser P, Templ M (2021). Comparison of zero replacement strategies for compositional data with large numbers of zeros. Chemometrics and Intelligent Laboratory Systems 210:104248. \href{https://doi.org/10.1016/j.chemolab.2021.104248}{doi:10.1016/j.chemolab.2021.104248}
 \par\noindent\hangindent=1.5em Luke SG (2017). Evaluating significance in linear mixed-effects models in R. Behavior Research Methods 49:1494-1502. \href{https://doi.org/10.3758/s13428-016-0809-y}{doi:10.3758/s13428-016-0809-y}
 \par\noindent\hangindent=1.5em MacCallum RC, Widaman KF, Zhang S et al. (1999). Sample size in factor analysis.. Psychological Methods 4:84-99. \href{https://doi.org/10.1037/1082-989X.4.1.84}{doi:10.1037/1082-989X.4.1.84}
+\par\noindent\hangindent=1.5em MacKinnon JG (1996). Numerical distribution functions for unit root and cointegration tests. Journal of Applied Econometrics 11:601-618. \href{https://doi.org/10.1002/(SICI)1099-1255(199611)11:6\%3C601::AID-JAE417\%3E3.0.CO\%3B2-T}{doi:10.1002/(SICI)1099-1255(199611)11:6\textless{}601::AID-JAE417\textgreater{}3.0.CO;2-T}
 \par\noindent\hangindent=1.5em MacKinnon JG, White H (1985). Some heteroskedasticity-consistent covariance matrix estimators with improved finite sample properties. Journal of Econometrics 29:305-325. \href{https://doi.org/10.1016/0304-4076(85)90158-7}{doi:10.1016/0304-4076(85)90158-7}
 \par\noindent\hangindent=1.5em Mancl LA, DeRouen TA (2001). A Covariance Estimator for GEE with Improved Small-Sample Properties. Biometrics 57:126-134. \href{https://doi.org/10.1111/j.0006-341X.2001.00126.x}{doi:10.1111/j.0006-341X.2001.00126.x}
 \par\noindent\hangindent=1.5em Mann HB (1945). Nonparametric Tests Against Trend. Econometrica 13:245. \href{https://doi.org/10.2307/1907187}{doi:10.2307/1907187}

@@ -288,14 +288,14 @@ def _cases(Case):
                  {"chi-square": chi}
              """, parent_label="statsmodels survdiff(entry=)", parent_tolerance=1e-12,
              r="""
-                 m <- survival::coxph(survival::Surv(ageentry, age, death) ~ gender, ties = "breslow")
-                 list(`chi-square` = summary(m)$sctest[1])
-             """, r_packages=("survival",), r_tolerance=1e-2,
-             note="R survdiff takes no start times, so the R check is the score test of coxph(..., ties = "
-                  "\"breslow\"), the nearest R test; here it differs from the log-rank test by 0.7 % (3.354 against "
-                  "3.376). The log-rank test counted out step by step in R (observed minus expected events and "
-                  "their hypergeometric variance at each death, with a row at risk when its start < t <= its stop) "
-                  "gives statsmodels' number, so statsmodels is checked to 1e-12 and R's score test to 1e-2."),
+                 m <- survival::coxph(survival::Surv(ageentry, age, death) ~ gender, ties = "exact")
+                 list(`chi-square` = unname(m$score))
+             """, r_packages=("survival",), r_tolerance=1e-9,
+             note="R survdiff takes no start times. The log-rank test with delayed entry is the score test of a Cox "
+                  "model with exact ties, coxph(..., ties = \"exact\") (3.376460710701 against statsmodels' "
+                  "3.376460710646); with Breslow ties the score test differs by 0.7 % (3.354), so the exact one is "
+                  "the check, to 1e-9. summary() of an exact-ties fit has no score test, so it is read from "
+                  "coxph()$score."),
         Case("table.compare_survival", "average_time_up_to=: the difference in average days alive in the first "
                                        "year, men minus women", "lung (survival)", "real data",
              option="average_time_up_to=", ours_r=("survRM2",),
