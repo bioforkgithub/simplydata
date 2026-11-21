@@ -399,6 +399,24 @@ REFERENCES: dict[str, Reference] = {
     "gum2008": _ref("JCGM 100:2008 (GUM)", "Joint Committee for Guides in Metrology (2008). JCGM 100:2008. Evaluation of measurement data: guide to the expression of uncertainty in measurement.", url="https://www.bipm.org/documents/20126/2071204/JCGM_100_2008_E.pdf"),
     "fpp3": _ref("Hyndman & Athanasopoulos 2021", "Hyndman RJ, Athanasopoulos G (2021). Forecasting: Principles and Practice (3rd ed.). OTexts.", url="https://otexts.com/fpp3/"),
     "emmeans": _ref("Lenth (emmeans)", "Lenth RV. emmeans: Estimated Marginal Means, aka Least-Squares Means. R package.", url="https://CRAN.R-project.org/package=emmeans"),
+    "humphreys1969": _ref("Humphreys & Ilgen 1969", "Humphreys LG, Ilgen DR (1969). Note On a Criterion for the Number of Common Factors. Educational and Psychological Measurement 29:571-578.", doi="10.1177/001316446902900303"),
+    "crawford2010": _ref("Crawford et al. 2010", "Crawford AV, Green SB, Levy R et al. (2010). Evaluation of Parallel Analysis Methods for Determining the Number of Factors. Educational and Psychological Measurement 70:885-901.", doi="10.1177/0013164410379332"),
+    "lim2019": _ref("Lim & Jahng 2019", "Lim S, Jahng S (2019). Determining the number of factors using parallel analysis and its recent variants.. Psychological Methods 24:452-467.", doi="10.1037/met0000230"),
+    "briggs2003": _ref("Briggs & MacCallum 2003", "Briggs NE, MacCallum RC (2003). Recovery of Weak Common Factors by Maximum Likelihood and Ordinary Least Squares Estimation. Multivariate Behavioral Research 38:25-56.", doi="10.1207/S15327906MBR3801_2"),
+    "dewinter2012": _ref("de Winter & Dodou 2012", "de Winter JCF, Dodou D (2012). Factor recovery by principal axis factoring and maximum likelihood factor analysis as a function of factor pattern and sample size. Journal of Applied Statistics 39:695-710.", doi="10.1080/02664763.2011.610445"),
+    "sass2010": _ref("Sass & Schmitt 2010", "Sass DA, Schmitt TA (2010). A Comparative Investigation of Rotation Criteria Within Exploratory Factor Analysis. Multivariate Behavioral Research 45:73-103.", doi="10.1080/00273170903504810"),
+    "schafer2002": _ref("Schafer & Graham 2002", "Schafer JL, Graham JW (2002). Missing data: Our view of the state of the art.. Psychological Methods 7:147-177.", doi="10.1037/1082-989X.7.2.147"),
+    "hu1999": _ref("Hu & Bentler 1999", "Hu L, Bentler PM (1999). Cutoff criteria for fit indexes in covariance structure analysis: Conventional criteria versus new alternatives. Structural Equation Modeling: A Multidisciplinary Journal 6:1-55.", doi="10.1080/10705519909540118"),
+    "marsh2004": _ref("Marsh et al. 2004", "Marsh HW, Hau KT, Wen Z (2004). In Search of Golden Rules: Comment on Hypothesis-Testing Approaches to Setting Cutoff Values for Fit Indexes and Dangers in Overgeneralizing Hu and Bentler's (1999) Findings. Structural Equation Modeling: A Multidisciplinary Journal 11:320-341.", doi="10.1207/s15328007sem1103_2"),
+    "maccallum1999": _ref("MacCallum et al. 1999", "MacCallum RC, Widaman KF, Zhang S et al. (1999). Sample size in factor analysis.. Psychological Methods 4:84-99.", doi="10.1037/1082-989X.4.1.84"),
+    "horn1965": _ref("Horn 1965", "Horn JL (1965). A Rationale and Test for the Number of Factors in Factor Analysis. Psychometrika 30:179-185.", doi="10.1007/BF02289447"),
+    "zwick1986": _ref("Zwick & Velicer 1986", "Zwick WR, Velicer WF (1986). Comparison of five rules for determining the number of components to retain.. Psychological Bulletin 99:432-442.", doi="10.1037/0033-2909.99.3.432"),
+    "fabrigar1999": _ref("Fabrigar et al. 1999", "Fabrigar LR, Wegener DT, MacCallum RC et al. (1999). Evaluating the use of exploratory factor analysis in psychological research.. Psychological Methods 4:272-299.", doi="10.1037/1082-989X.4.3.272"),
+    "rosseel2012": _ref("Rosseel 2012", "Rosseel Y (2012). lavaan: An R Package for Structural Equation Modeling. Journal of Statistical Software 48.", doi="10.18637/jss.v048.i02"),
+    "enders2001": _ref("Enders & Bandalos 2001", "Enders C, Bandalos D (2001). The Relative Performance of Full Information Maximum Likelihood Estimation for Missing Data in Structural Equation Models. Structural Equation Modeling: A Multidisciplinary Journal 8:430-457.", doi="10.1207/S15328007SEM0803_5"),
+    "harman1966": _ref("Harman & Jones 1966", "Harman HH, Jones WH (1966). Factor Analysis by Minimizing Residuals (Minres). Psychometrika 31:351-368.", doi="10.1007/BF02289468"),
+    "bernaards2005": _ref("Bernaards & Jennrich 2005", "Bernaards CA, Jennrich RI (2005). Gradient Projection Algorithms and Software for Arbitrary Rotation Criteria in Factor Analysis. Educational and Psychological Measurement 65:676-696.", doi="10.1177/0013164404272507"),
+    "kaiser1958": _ref("Kaiser 1958", "Kaiser HF (1958). The Varimax Criterion for Analytic Rotation in Factor Analysis. Psychometrika 23:187-200.", doi="10.1007/BF02289233"),
     "mcardle2001": _ref("McArdle & Anderson 2001", "McArdle BH, Anderson MJ (2001). Fitting multivariate models to community data: a comment on distance-based redundancy analysis. Ecology 82:290-297.", doi="10.1890/0012-9658(2001)082[0290:FMMTCD]2.0.CO;2"),
     "kaufman1990": _ref("Kaufman & Rousseeuw 1990", "Kaufman L, Rousseeuw PJ (1990). Finding Groups in Data. Wiley Series in Probability and Statistics.", doi="10.1002/9780470316801"),
     "milligan1985": _ref("Milligan & Cooper 1985", "Milligan GW, Cooper MC (1985). An Examination of Procedures for Determining the Number of Clusters in a Data Set. Psychometrika 50:159-179.", doi="10.1007/BF02294245"),
@@ -2459,3 +2477,80 @@ BASIS["table.add_correspondence_axes"] = _b(
     "between rows, which is why it is chosen for axes added to the rows.",
     ("hill1973b", "terbraak1985", "legendre2001"), "P3",
     "Negative values, empty rows and columns of zeros are refused.", "convention")
+
+
+# ---- Hidden factors (S3c-2)
+BASIS["table.find_hidden_factors_behind"] = _b(
+    "Exploratory factor analysis by R psych::fa(): the number of factors by parallel analysis (psych fa.parallel(fa "
+    "= \"fa\")), minimum residuals (minres) fitting and an oblimin rotation (through GPArotation), with R's random "
+    "numbers seeded (with_seed=1); rows with any empty cell left out.",
+    "how_many= a number; method=\"ml\" or \"principal axis\"; rotation=\"varimax\", \"promax\", \"none\".",
+    "Parallel analysis keeps the factors whose eigenvalues stand out more than in random data of the same size "
+    "(Horn 1965; here psych's common-factor variant, Humphreys & Ilgen 1969); the 'eigenvalue above 1' rule keeps "
+    "too many (Zwick & Velicer 1986). Simulations disagree on whether the component or the factor variant is more "
+    "accurate (Crawford et al. 2010; Lim & Jahng 2019), and no variant is reliable enough to treat the number as "
+    "fixed, so try one factor fewer and one more; a different seed can change the number when it is borderline. "
+    "Oblique rotations let factors correlate, as they often do, and are usually recommended over varimax (Fabrigar "
+    "et al. 1999), though which rotation works best depends on the loading pattern (Sass & Schmitt 2010). Minres "
+    "(Harman & Jones 1966), a least-squares fit, recovers weak factors better than maximum likelihood in simulations "
+    "(Briggs & MacCallum 2003) and needs no bell shape; Fabrigar et al. 1999 prefer maximum likelihood for data close "
+    "to normal, so this is a judgement. Minres and oblimin are psych::fa()'s defaults; choosing the number by "
+    "parallel analysis is simplydata's choice (psych's default is one factor), and leaving out rows with empty "
+    "cells too (psych would use pairwise correlations). The items are treated as numbers: for items with few "
+    "categories, polychoric correlations are not yet offered.",
+    ("horn1965", "humphreys1969", "zwick1986", "crawford2010", "lim2019", "fabrigar1999", "sass2010", "harman1966",
+     "briggs2003", "bernaards2005", "maccallum1999"), "P2",
+    "Needs at least 3 number columns that vary, and at least columns + 2 complete rows; rows with empty cells are "
+    "left out, with a note; how_many= is at most the largest number of factors the columns can identify; refused "
+    "when parallel analysis finds no factor. Notes for: KMO below 0.6 (a later convention; Kaiser rated only below "
+    "0.5 unacceptable); few rows for this many columns (how many are enough depends on how strongly the columns share "
+    "factors: MacCallum et al. 1999); a factor with fewer than 3 loadings of 0.3 or more; a column loading on no "
+    "factor or on two; Heywood cases (communality of 1 or more).")
+BASIS["table.find_hidden_factors_behind how_many="] = _b(
+    "A number of factors chosen by you: no parallel analysis (the seed is still set, for the rotation).",
+    "how_many=\"automatic\" (the default, parallel analysis).",
+    "When theory fixes the number of factors, you name it; Fabrigar et al. 1999 advise also fitting one factor fewer "
+    "and one more.",
+    ("fabrigar1999",), "P3",
+    "how_many= must be a whole number from 1 to the largest number of factors the columns can identify.",
+    "convention")
+BASIS["table.find_hidden_factors_behind method="] = _b(
+    "With method=\"ml\": maximum likelihood, as base R factanal() fits; \"principal axis\" is psych's fm = \"pa\".",
+    "Leave method= out for minres.",
+    "Maximum likelihood assumes roughly bell-shaped data and is preferred then (Fabrigar et al. 1999); it is more "
+    "prone to improper solutions with small samples or weak factors, where least-squares methods (minres, principal "
+    "axis) recover factors as well or better (Briggs & MacCallum 2003; de Winter & Dodou 2012).",
+    ("fabrigar1999", "briggs2003", "dewinter2012"), "P3", "", "convention")
+BASIS["table.find_hidden_factors_behind rotation="] = _b(
+    "With rotation=\"varimax\" (as R factanal() uses): uncorrelated factors (Kaiser 1958); \"promax\" lets them "
+    "correlate; \"none\" leaves them unrotated.",
+    "Leave rotation= out for oblimin.",
+    "Varimax (Kaiser 1958) forces the factors to be uncorrelated, which psychological factors often are not "
+    "(Fabrigar et al. 1999); it is offered to match older analyses. Unrotated, more than one factor is seldom "
+    "interpretable.",
+    ("kaiser1958", "fabrigar1999"), "P3", "", "convention")
+BASIS["table.check_hidden_factors"] = _b(
+    "Confirmatory factor analysis by normal-theory maximum likelihood (R lavaan); with empty cells, missing = \"ml\" "
+    "(full information maximum likelihood), which uses every value given.",
+    "formula= for a model in lavaan's own syntax.",
+    "lavaan's default (\"listwise\") drops every row with an empty cell, reported only in its summary's row count. "
+    "Full information maximum likelihood (lavaan's missing = \"ml\"; Rosseel 2012) uses every value given, and is "
+    "unbiased and more efficient than listwise deletion when values are missing at random (Enders & Bandalos 2001; "
+    "Schafer & Graham 2002); it assumes missing at random and roughly bell-shaped data. Robust standard errors "
+    "(estimator MLR) and estimators for ordinal items are not yet offered. Fit guides are printed as guides, not "
+    "pass marks (Hu & Bentler 1999; Marsh, Hau & Wen 2004).",
+    ("rosseel2012", "enders2001", "schafer2002", "hu1999", "marsh2004"), "P2",
+    "Needs measured_by= or formula=, not both; each factor needs at least 2 columns (3 advised); a factor name may "
+    "not be a column name; columns must hold numbers and vary; rows with no value at all are left out, with a note; "
+    "refused when lavaan does not converge or the model has negative degrees of freedom. Notes for: 0 degrees of "
+    "freedom; a column measuring two factors; the 3 largest modification indices above 10, with a warning against "
+    "fitting the model to the data.")
+BASIS["table.check_hidden_factors formula="] = _b(
+    "The model in lavaan's own syntax, run with lavaan::sem(), so hidden factors can explain each other (a structural "
+    "equation model); paths shown standardised (lavaan's std.all, delta-method standard errors), as the loadings are.",
+    "measured_by= for a plain measurement model.",
+    "lavaan's syntax is the most widely used way to write structural equation models in R (Rosseel 2012); sem() and "
+    "cfa() have the same defaults, and sem() is used because the model may have paths.",
+    ("rosseel2012",), "P3",
+    "A formula in fit_formula's style is refused; it needs at least one name =~ columns; every column must exist and "
+    "hold numbers.", "convention")

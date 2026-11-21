@@ -13,8 +13,8 @@ them first.
 
 ## What simplydata handles
 
-**386 words (commands) in 46 groups, with 351 different options, on top of 14 Python packages and
-65 R packages that it runs (plus R's own `stats`, and 5 more used only to check its answers), checked by 822 reliability checks.** Every word hands the work to
+**388 words (commands) in 46 groups, with 353 different options, on top of 14 Python packages and
+67 R packages that it runs (plus R's own `stats`, and 5 more used only to check its answers), checked by 903 reliability checks.** Every word hands the work to
 an established package; simplydata chooses the settings, prints the answer in words and names the
 method it used. Words that need an extra say so: `pip install "simplydata[fast]"`, `[files]`,
 `[systems]` or `[r]` (the R words also need R itself; see [Using the words that need R](#using-the-words-that-need-r)).
@@ -25,9 +25,9 @@ Approximate, counted on 2026-11-20.
 
 | | With the packages underneath | With simplydata |
 |---|---|---|
-| Names to learn | about 10,650 functions: about 5,460 in the Python packages (SciPy about 1,750, pandas 850, Polars 815, matplotlib 745, NumPy 660, statsmodels 545, seaborn 100; each package's public API) and about 5,190 exported by the R packages simplydata ran that day, with R's `stats` (R `getNamespaceExports`; before the community packages were added) | 737 names: 386 commands and 351 options, about 93 % fewer |
+| Names to learn | about 10,650 functions: about 5,460 in the Python packages (SciPy about 1,750, pandas 850, Polars 815, matplotlib 745, NumPy 660, statsmodels 545, seaborn 100; each package's public API) and about 5,190 exported by the R packages simplydata ran that day, with R's `stats` (R `getNamespaceExports`; before the community packages were added) | 741 names: 388 commands and 353 options, about 93 % fewer |
 | Packages and languages | 79 packages (14 Python, 65 R), in Python and R | 1 package, in basic Python |
-| Code per task | 726 lines and 744 function calls in the 117 tasks of the manual's "same underneath" boxes (median 6 lines a task); this library code is the bare minimum, without the plain-sentence result or the checks | 375 lines and 439 calls (median 3 lines a task), about 48 % fewer lines; recount with `python validation/count_reduction.py` |
+| Code per task | 775 lines and 777 function calls in the 123 tasks of the manual's "same underneath" boxes (median 6 lines a task); this library code is the bare minimum, without the plain-sentence result or the checks | 388 lines and 457 calls (median 3 lines a task), about 50 % fewer lines; recount with `python validation/count_reduction.py` |
 | Choosing the method | you choose, from the package's documentation | the recommended default, with its published basis: see [How simplydata chooses methods](#how-simplydata-chooses-methods) |
 
 ### Packages underneath
@@ -67,7 +67,8 @@ R packages that simplydata runs, where Python has no method of its own or none t
 | DescTools, rstatix, FSA, PMCMRplus, multcompView | intervals of medians, quantiles and percents; Scheffe, Games-Howell, Dunn's and Conover's pair tests (`compare_each_pair_of(test=)`); letters for groups that do not differ (`show="letters"`); Somers', Goodman-Kruskal and Lin's measures | [r] |
 | ppcor, cocor, outliers, EnvStats | partial correlation (`find_correlation_between(allowing_for=)`); comparing two correlations (`compare_correlations`); Grubbs', Dixon's and Rosner's outlier tests (`show_rows_with_outliers(rule="grubbs")`) | [r] |
 | epiR, pROC | Mantel-Haenszel risk ratios (`compare_risks(allowing_for=)`) and likelihood ratios of a diagnostic test (`compare_to_truth`); ROC curves, AUC and DeLong's test (`compare_to_truth`, `compare_accuracy`, `chart.trade_off_curve`) | [r] |
-| irr, psych, BlandAltmanLeh | ICC, Krippendorff's alpha, Fleiss' kappa p-value (`agreement_between`); Cronbach's alpha (`reliability_of`); Bland-Altman limits (`limits_of_agreement`, `chart.difference_dots`) | [r] |
+| irr, psych, BlandAltmanLeh | ICC, Krippendorff's alpha, Fleiss' kappa p-value (`agreement_between`); Cronbach's alpha (`reliability_of`); exploratory factor analysis with parallel analysis and the KMO (`find_hidden_factors_behind`); Bland-Altman limits (`limits_of_agreement`, `chart.difference_dots`) | [r] |
+| GPArotation, lavaan | the oblimin rotation of psych's factor analysis (`find_hidden_factors_behind`); confirmatory factor analysis and models with paths between hidden factors, with CFI, TLI, RMSEA and SRMR (`check_hidden_factors`) | [r] |
 | survival, cmprsk, adjustedCurves, riskRegression, KMsurv, survRM2 | the Cox proportional-hazards check and Harrell's C, parametric survival models (`explain_survival(distribution="weibull")`), conditional logistic regression, Aalen-Johansen risks (`find_risk_over_time`); Gray's test and Fine-Gray models (`competing_with=`); adjusted survival curves (`find_survival_over_time(allowing_for=)`); life tables (`method="life table"`); restricted mean survival time (`compare_survival(average_time_up_to=)`) | [r] |
 | metafor | meta-analysis (`combine_studies`): random and common effects, Hartung-Knapp, subgroups, meta-regression, Egger's and Peters' tests, trim and fill; `chart.forest_plot`, `chart.draw_funnel_plot` | [r] |
 | vegan | NMDS (`add_nmds`); PERMANOVA and its spread check, ANOSIM and SIMPER (`compare_profiles_of(method="anosim")`, `show="contributions"`); diversity: richness, Shannon, Simpson, Chao1, Hill numbers and rarefaction (`add_diversity_columns`, `chart.draw_richness_curves`); Aitchison and Hellinger distances; PCoA (`add_principal_coordinates`); RDA, db-RDA and CCA (`explain_profiles_of`); Mantel and Procrustes (`find_correlation_between_profiles`); correspondence analysis (`add_correspondence_axes`) | [r] |
@@ -116,9 +117,10 @@ R users, not packages simplydata needs.
 | Systems | linear systems from a formula, poles and zeros or matrices; step, impulse and frequency responses, stability, margins, feedback | `sdata.system`, `step_response`, `frequency_response`, `is_stable`, `with_feedback` |
 | Fitting, finding and solving | the lowest or highest point of a function, solutions of equations, values between known points, maps across two columns | `sdata.find_where_smallest`, `sdata.solve`, `values_at`, `make_map_of` |
 | Patterns across many columns, communities and resistomes | principal components, clusters with silhouettes, distances (Bray-Curtis, Jaccard, Aitchison, Hellinger), diversity and rarefaction, log ratios, NMDS, PCoA, PERMANOVA, ANOSIM, SIMPER, RDA and CCA, Mantel and Procrustes, LDA, correspondence analysis | `add_principal_components`, `add_clusters`, `find_distances_between_rows`, `add_diversity_columns`, `add_log_ratio_columns`, `add_nmds`, `add_principal_coordinates`, `compare_profiles_of`, `explain_profiles_of`, `find_correlation_between_profiles`, `add_axes_that_separate_groups`, `add_correspondence_axes` |
+| Hidden factors (questionnaires, test batteries) | how many hidden factors lie behind many columns and which columns go with which (parallel analysis, minres, oblimin); whether a model of hidden factors written down beforehand fits the data, and paths between factors | `find_hidden_factors_behind`, `check_hidden_factors` |
 | Numbers and grids | lists and grids of numbers without a table: maths, choosing, sorting, filling, summaries | `sdata.numbers`, `nums.find_average`, `sdata.number_grid`, `grid.swap_rows_and_columns` |
 | Learning and citing | every word with an example, help for one word, lessons, the 30-day course, the packages to cite | `sdata.show_all_words`, `sdata.help`, `sdata.show_lesson`, `sdata.start_30_days`, `sdata.show_packages_used` |
-| Coming next (not on main yet) | factor analysis, and the next statistics phase (S3d) | planned |
+| Coming next (not on main yet) | the next statistics phase (S3d) | planned |
 
 ### Across the sciences
 
@@ -129,7 +131,7 @@ R users, not packages simplydata needs.
 | Physics and engineering | step and frequency responses, stability and margins of a system (`sdata.system`); filters, spectra, peaks and envelopes of a sensor signal (`add_filtered_column`, `find_spectrum_of`, `find_each_peak_that`); fitting any formula (`fit_formula`); solving equations (`sdata.solve`); calibration lines checked against NIST certified values |
 | Chemistry | calibration lines (`fit_line`); enzyme kinetics (`fit_curve(of_kind="michaelis-menten")`); EC50 and LD50 from dose-response curves (`fit_dose_response`); comparing two measurement methods (`fit_line(method="passing-bablok")`, `limits_of_agreement`) |
 | Earth and marine science | how much temperature and salinity explain the make-up of samples (`explain_profiles_of`), and whether genes and water chemistry vary together (`find_correlation_between_profiles`); trends with the Mann-Kendall test and Sen's slope, seasonal too (`find_trend_of`); trend and season split (`add_trend_and_season`); jumps in nitrate at river stations (`find_change_points_in`); spectra of unevenly spaced readings (`find_spectrum_of(method="lomb-scargle")`); maps and contours from scattered points (`make_map_of`, `draw_contour`); forecasts (`forecast`); models with AR(1) neighbours (`explain(neighbours_alike_in_order_of=)`) |
-| Social science and psychology | questionnaire reliability (`reliability_of`); agreement between raters (`agreement_between`); ordered answers (`explain(outcome="ordered groups")`); subjects crossed with items (`explain(crossed_with=)`); repeated measures (`compare_averages_of(matched_by=)`, `compare_matched_columns`); adjusted group averages (`find_model_averages_of`); power for a planned study (`find_chance_of_finding`) |
+| Social science and psychology | questionnaire reliability (`reliability_of`); hidden factors behind questionnaire items, explored and checked (`find_hidden_factors_behind`, `check_hidden_factors`); agreement between raters (`agreement_between`); ordered answers (`explain(outcome="ordered groups")`); subjects crossed with items (`explain(crossed_with=)`); repeated measures (`compare_averages_of(matched_by=)`, `compare_matched_columns`); adjusted group averages (`find_model_averages_of`); power for a planned study (`find_chance_of_finding`) |
 | Education | pupils in classes in schools (`explain(grouped_by=["school", "class"])`); comparing classes (`compare_averages_of`, `compare_each_pair_of`); the course itself: lessons, the 30-day course and plain words for teaching charts, tables and statistics (`sdata.show_lesson`, `sdata.start_30_days`) |
 
 Every number comes from the package named above, and is checked against it and against R in the public
@@ -495,7 +497,7 @@ shows the same job written in the package underneath, in a grey box that a test 
 - The defaults of each batch were checked by an independent review when they were designed, and every entry of
   the table below, with its references, was checked again by independent hostile reviewers in November 2026.
 
-[How simplydata chooses methods](docs/how_simplydata_chooses.md) gives all 253 defaults: for each, the default,
+[How simplydata chooses methods](docs/how_simplydata_chooses.md) gives all 259 defaults: for each, the default,
 the alternatives, why it was chosen, what simplydata checks in the data, and its references (each DOI checked in
 Crossref). The manual has the same table as its last part.
 

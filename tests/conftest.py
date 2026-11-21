@@ -167,7 +167,9 @@ R_PACKAGES = ("survival", "vegan", "mice", "lme4", "betareg", "pscl", "car", "ef
               # S3b-2 (planning a study): gsDesign, powerSurvEpi and pwrss (pwrss is CRAN only, like presize)
               "gsDesign", "powerSurvEpi", "pwrss",
               # S3c-1 (communities and resistomes): zero replacement and log ratios; MCA; silhouettes and LDA
-              "zCompositions", "compositions", "ca", "cluster", "MASS")
+              "zCompositions", "compositions", "ca", "cluster", "MASS",
+              # S3c-2 (hidden factors): GPArotation (the rotations of psych::fa) and lavaan; psych is listed above
+              "GPArotation", "lavaan")
 
 
 @pytest.fixture
@@ -261,6 +263,8 @@ R_ENTRY_POINTS = {
     ("table/community_r.py", "correspondence"),
     ("table/community_r.py", "multiple_correspondence"),
     ("words/community_charts.py", "draw_richness_curves"), ("words/community_charts.py", "_draw_richness"),
+    # S3c-2 (hidden factors)
+    ("table/factor_r.py", "explore"), ("table/factor_r.py", "confirm"),
 }
 
 

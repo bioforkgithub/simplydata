@@ -408,6 +408,10 @@ UNDERNEATH = {
     "draw_richness_curves": "R vegan::rarecurve (needs R), drawn with matplotlib",
     "draw_cluster_tree": "SciPy (cluster.hierarchy linkage, dendrogram, cophenet), drawn with matplotlib; vegan "
                          "vegdist for the Aitchison and Hellinger distances",
+    # S3c-2: hidden factors (each also has a tested entry in simplydata._underneath)
+    "table.find_hidden_factors_behind": "R psych (fa.parallel, fa with minres and oblimin, KMO) with GPArotation",
+    "table.check_hidden_factors": "R lavaan (cfa or sem with maximum likelihood, fitMeasures, standardizedSolution, "
+                                  "modindices)",
 }
 
 # ---------------------------------------------------------------- hand-written text
