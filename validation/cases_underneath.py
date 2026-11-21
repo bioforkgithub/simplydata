@@ -58,8 +58,9 @@ def _cases(Case):
              """, r_tolerance=1e-12),
         Case("table.keep_columns", "two of the 11 columns of mtcars", "mtcars", "real data",
              ours="""
-                 kept = sdata.table(data).keep_columns("mpg", "hp").as_pandas()
-                 {"columns": kept.shape[1], "total mpg": kept["mpg"].sum(), "total hp": kept["hp"].sum()}
+                 kept = sdata.table(data).keep_columns("mpg", "hp")
+                 {"columns": len(kept.get_column_names()), "total mpg": kept.get_column("mpg").find_total(),
+                  "total hp": kept.get_column("hp").find_total()}
              """,
              parent="""
                  kept = data[["mpg", "hp"]]
@@ -67,8 +68,8 @@ def _cases(Case):
              """, parent_label="pandas column selection", parent_tolerance=0.0),
         Case("table.rename_column", "mpg renamed in mtcars", "mtcars", "real data",
              ours="""
-                 renamed = sdata.table(data).rename_column("mpg", to="miles_per_gallon").as_pandas()
-                 {"total": renamed["miles_per_gallon"].sum(), "columns": renamed.shape[1]}
+                 renamed = sdata.table(data).rename_column("mpg", to="miles_per_gallon")
+                 {"total": renamed.get_column("miles_per_gallon").find_total(), "columns": len(renamed.get_column_names())}
              """,
              parent="""
                  renamed = data.rename(columns={"mpg": "miles_per_gallon"})
@@ -76,9 +77,10 @@ def _cases(Case):
              """, parent_label="pandas rename", parent_tolerance=0.0),
         Case("table.sort_by", "NHANES body mass index, biggest first, empty cells last", "nhanes (mice)", "real data",
              ours="""
-                 s = sdata.table(data).sort_by("bmi", biggest_first=True).as_pandas()
-                 {"first bmi": s["bmi"].iloc[0], "first empty row": int(s["bmi"].isna().to_numpy().argmax()),
-                  "age of the first row": s["age"].iloc[0]}
+                 s = sdata.table(data).sort_by("bmi", biggest_first=True)
+                 bmi = s.get_column("bmi")
+                 {"first bmi": s.get_cell_at(row=1, column="bmi"), "first empty row": bmi.count() - bmi.count_empty_numbers(),
+                  "age of the first row": s.get_cell_at(row=1, column="age")}
              """,
              parent="""
                  s = data.sort_values("bmi", ascending=False, kind="stable", na_position="last")
@@ -87,8 +89,8 @@ def _cases(Case):
              """, parent_label="pandas sort_values (stable)", parent_tolerance=0.0),
         Case("table.keep_rows_by_position", "rows 10 to 20 of mtcars", "mtcars", "real data",
              ours="""
-                 kept = sdata.table(data).keep_rows_by_position(10, to=20).as_pandas()
-                 {"rows": len(kept), "total mpg": kept["mpg"].sum()}
+                 mpg = sdata.table(data).keep_rows_by_position(10, to=20).get_column("mpg")
+                 {"rows": mpg.count(), "total mpg": mpg.find_total()}
              """,
              parent="""
                  kept = data.iloc[9:20]
@@ -100,8 +102,8 @@ def _cases(Case):
         Case("table.fill_empty_cells_in", "NHANES body mass index: the 9 empty cells filled with the median",
              "nhanes (mice)", "real data",
              ours="""
-                 filled = sdata.table(data).fill_empty_cells_in("bmi", with_the="median").as_pandas()
-                 {"total": filled["bmi"].sum(), "empty cells left": int(filled["bmi"].isna().sum())}
+                 bmi = sdata.table(data).fill_empty_cells_in("bmi", with_the="median").get_column("bmi")
+                 {"total": bmi.find_total(), "empty cells left": bmi.count_empty_numbers()}
              """,
              parent="""
                  filled = data["bmi"].fillna(data["bmi"].median())
@@ -115,16 +117,16 @@ def _cases(Case):
              "mtcars", "real data",
              ours="""
                  text = data.assign(mpg=data["mpg"].map(lambda v: f"{v:.1f}".replace(".", ",")))
-                 back = sdata.table(text).turn_into_numbers("mpg").as_pandas()
-                 {"total": back["mpg"].sum(), "empty cells": int(back["mpg"].isna().sum())}
+                 mpg = sdata.table(text).turn_into_numbers("mpg").get_column("mpg")
+                 {"total": mpg.find_total(), "empty cells": mpg.count_empty_numbers()}
              """,
              parent="""
                  {"total": data["mpg"].sum(), "empty cells": 0}
              """, parent_label="the published numbers themselves", parent_tolerance=1e-12),
         Case("table.add_column", "mtcars horsepower per 1000 lb", "mtcars", "real data",
              ours="""
-                 t = sdata.table(data).add_column("hp_per_wt", "hp / wt").as_pandas()
-                 {"total": t["hp_per_wt"].sum(), "first": t["hp_per_wt"].iloc[0]}
+                 t = sdata.table(data).add_column("hp_per_wt", "hp / wt")
+                 {"total": t.get_column("hp_per_wt").find_total(), "first": t.get_cell_at(row=1, column="hp_per_wt")}
              """,
              parent="""
                  x = data["hp"] / data["wt"]
@@ -138,8 +140,9 @@ def _cases(Case):
              "real data",
              ours="""
                  t = sdata.table(data).add_group_column("group", from_column="mpg", cut_at=[15, 20, 25],
-                                                        names=["D", "C", "B", "A"]).as_pandas()
-                 {g: int((t["group"] == g).sum()) for g in "ABCD"}
+                                                        names=["D", "C", "B", "A"])
+                 groups = t.get_column("group")
+                 {g: groups.count(g) for g in "ABCD"}
              """,
              parent="""
                  g = pd.cut(data["mpg"], [-np.inf, 15, 20, 25, np.inf], labels=["D", "C", "B", "A"], right=False)
@@ -153,9 +156,9 @@ def _cases(Case):
              "real data",
              ours="""
                  s = sdata.table(data).find_summary_of("Sepal.Length", for_each_group_in="Species",
-                                                       show=["average", "standard deviation", "count"]).as_pandas()
-                 s = s.set_index("Species")
-                 {f"{k} {sp}": s.loc[sp, m] for sp in ("setosa", "virginica")
+                                                       show=["average", "standard deviation", "count"])
+                 rows = {s.get_cell_at(row=i, column="Species"): i for i in (1, 2, 3)}
+                 {f"{k} {sp}": s.get_cell_at(row=rows[sp], column=m) for sp in ("setosa", "virginica")
                   for k, m in (("average", "average"), ("sd", "standard deviation"), ("count", "count"))}
              """,
              parent="""
@@ -172,8 +175,9 @@ def _cases(Case):
              "mtcars", "real data",
              ours="""
                  t = sdata.table(data).join_with({"cyl": [4, 6], "size": [1, 2]}, using="cyl",
-                                                 keep="all rows from this table").as_pandas()
-                 {"rows": len(t), "empty sizes": int(t["size"].isna().sum()), "total size": t["size"].sum()}
+                                                 keep="all rows from this table")
+                 size = t.get_column("size")
+                 {"rows": size.count(), "empty sizes": size.count_empty_numbers(), "total size": size.find_total()}
              """,
              parent="""
                  t = data.merge(pd.DataFrame({"cyl": [4, 6], "size": [1, 2]}), on="cyl", how="left")
@@ -182,8 +186,9 @@ def _cases(Case):
         Case("table.add_z_score_column", "z-scores of iris sepal length within each species", "iris", "real data",
              ours="""
                  t = sdata.table(data).add_z_score_column("z", from_column="Sepal.Length",
-                                                          for_each_group_in="Species").as_pandas()
-                 {"first": t["z"].iloc[0], "last": t["z"].iloc[-1], "sum of squares": (t["z"] ** 2).sum()}
+                                                          for_each_group_in="Species")
+                 {"first": t.get_cell_at(row=1, column="z"), "last": t.get_cell_at(row=150, column="z"),
+                  "sum of squares": t.get_column("z").raise_to_power(2).find_total()}
              """,
              parent="""
                  from scipy import stats
@@ -200,8 +205,9 @@ def _cases(Case):
                  import tempfile
                  with tempfile.TemporaryDirectory() as folder:
                      sdata.table(data).save(os.path.join(folder, "iris.csv"))
-                     back = pd.read_csv(os.path.join(folder, "iris.csv"))
-                 {"rows": len(back), "total petal length": back["Petal.Length"].sum(), "columns": back.shape[1]}
+                     back = sdata.table(os.path.join(folder, "iris.csv"))
+                 petals = back.get_column("Petal.Length")
+                 {"rows": petals.count(), "total petal length": petals.find_total(), "columns": len(back.get_column_names())}
              """,
              parent="""
                  import os
@@ -236,16 +242,16 @@ def _cases(Case):
              "mtcars", "real data",
              ours="""
                  spaced = data.assign(model="  " + data["model"].str.replace(" ", "   ") + " ")
-                 back = sdata.table(spaced).remove_extra_spaces_in("model").as_pandas()
-                 {"names as published": int((back["model"] == data["model"]).sum())}
+                 back = sdata.table(spaced).remove_extra_spaces_in("model").get_column("model")
+                 {"names as published": sum(a == b for a, b in zip(back, data["model"]))}
              """,
              parent="""
                  {"names as published": len(data)}
              """, parent_label="the published names themselves", parent_tolerance=0.0),
         Case("table.replace_values_in", "warpbreaks: wool A renamed", "warpbreaks", "real data",
              ours="""
-                 t = sdata.table(data).replace_values_in("wool", "A", with_value="wool A").as_pandas()
-                 {"wool A": int((t["wool"] == "wool A").sum()), "B": int((t["wool"] == "B").sum())}
+                 wool = sdata.table(data).replace_values_in("wool", "A", with_value="wool A").get_column("wool")
+                 {"wool A": wool.count("wool A"), "B": wool.count("B")}
              """,
              parent="""
                  w = data["wool"].mask(data["wool"] == "A", "wool A")
@@ -255,9 +261,8 @@ def _cases(Case):
              "real data",
              ours="""
                  gappy = data.assign(month=pd.to_datetime(data["month"])).drop(index=[10, 11, 50]).reset_index(drop=True)
-                 back = sdata.table(gappy).add_missing_dates("month", every="month").as_pandas()
-                 {"rows": len(back), "empty cells": int(back["passengers"].isna().sum()),
-                  "total": back["passengers"].sum()}
+                 passengers = sdata.table(gappy).add_missing_dates("month", every="month").get_column("passengers")
+                 {"rows": passengers.count(), "empty cells": passengers.count_empty_numbers(), "total": passengers.find_total()}
              """,
              parent="""
                  gappy = data.assign(month=pd.to_datetime(data["month"])).drop(index=[10, 11, 50])
@@ -269,9 +274,9 @@ def _cases(Case):
         Case("table.add_rolling_column", "AirPassengers: the total of the last 12 months", "AirPassengers", "real data",
              ours="""
                  t = sdata.table(data).add_rolling_column("year_total", from_column="passengers", window=12,
-                                                          show="total").as_pandas()
-                 {"last": t["year_total"].iloc[-1], "first full": t["year_total"].iloc[11],
-                  "empty": int(t["year_total"].isna().sum())}
+                                                          show="total")
+                 {"last": t.get_cell_at(row=144, column="year_total"), "first full": t.get_cell_at(row=12, column="year_total"),
+                  "empty": t.get_column("year_total").count_empty_numbers()}
              """,
              parent="""
                  r = data["passengers"].rolling(12).sum()
@@ -301,8 +306,8 @@ def _cases(Case):
                  import tempfile
                  with tempfile.TemporaryDirectory() as folder:
                      data.to_csv(os.path.join(folder, "iris.csv"), index=False)
-                     t = sdata.table(os.path.join(folder, "iris.csv")).as_pandas()
-                 {"rows": len(t), "total petal width": t["Petal.Width"].sum()}
+                     width = sdata.table(os.path.join(folder, "iris.csv")).get_column("Petal.Width")
+                 {"rows": width.count(), "total petal width": width.find_total()}
              """,
              parent="""
                  {"rows": len(data), "total petal width": data["Petal.Width"].sum()}
@@ -310,10 +315,11 @@ def _cases(Case):
         Case("sdata.get_example", "the practice table bcg against the published trials in R metadat (dat.bcg)",
              "BCG trials (metadat)", "real data",
              ours="""
-                 bcg = sdata.get_example("bcg")
-                 {"trials": len(bcg), "cases vaccinated": bcg["tb_vaccinated"].sum(),
-                  "vaccinated": bcg["vaccinated"].sum(), "cases unvaccinated": bcg["tb_unvaccinated"].sum(),
-                  "latitudes": bcg["latitude"].sum()}
+                 bcg = sdata.table(sdata.get_example("bcg"))
+                 {"trials": bcg.get_column("vaccinated").count(), "cases vaccinated": bcg.get_column("tb_vaccinated").find_total(),
+                  "vaccinated": bcg.get_column("vaccinated").find_total(),
+                  "cases unvaccinated": bcg.get_column("tb_unvaccinated").find_total(),
+                  "latitudes": bcg.get_column("latitude").find_total()}
              """,
              parent="""
                  {"trials": len(data), "cases vaccinated": data["tpos"].sum(), "vaccinated": data["vaccinated"].sum(),
@@ -355,7 +361,7 @@ def _cases(Case):
         Case("sdata.numbers", "Michelson's 100 measurements as numbers", "NIST Michelso", "published",
              ours="""
                  nums = sdata.numbers(data["y"].tolist())
-                 {"mean": float(np.mean(nums.as_numpy())), "count": len(nums.as_numpy())}
+                 {"mean": nums.find_total() / nums.count(), "count": nums.count()}
              """,
              published={"mean": (299.8524, 1e-9, "NIST certified")},
              parent="""
@@ -364,8 +370,9 @@ def _cases(Case):
         Case("sdata.number_grid", "the 600 iris measurements as a grid of 150 rows and 4 columns", "iris", "real data",
              ours="""
                  values = data[["Sepal.Length", "Sepal.Width", "Petal.Length", "Petal.Width"]].to_numpy().ravel()
-                 grid = sdata.number_grid(values.tolist(), columns=4).as_numpy()
-                 {"rows": grid.shape[0], "total of column 3": grid[:, 2].sum(), "row 2 column 1": grid[1, 0]}
+                 grid = sdata.number_grid(values.tolist(), columns=4)
+                 {"rows": grid.count_rows(), "total of column 3": grid.get_column(3).find_total(),
+                  "row 2 column 1": grid.get_number_at(row=2, column=1)}
              """,
              parent="""
                  grid = data[["Sepal.Length", "Sepal.Width", "Petal.Length", "Petal.Width"]].to_numpy()
@@ -392,8 +399,7 @@ def _cases(Case):
              ours="""
                  m, s = data["y"].mean(), data["y"].std()
                  nums = sdata.make_random_numbers(how_many=100, average=m, standard_deviation=s, with_seed=1)
-                 x = nums.as_numpy()
-                 {"first": x[0], "total": x.sum()}
+                 {"first": nums.get_number_at(1), "total": nums.find_total()}
              """,
              parent="""
                  m, s = data["y"].mean(), data["y"].std()
@@ -403,9 +409,8 @@ def _cases(Case):
              note="Random numbers have no published answer; the check is that the same seed gives NumPy's numbers."),
         Case("sdata.make_run_of_dates", "the 144 months of the AirPassengers series", "AirPassengers", "real data",
              ours="""
-                 run = sdata.make_run_of_dates("1949-01-01", how_many=144, every="month").as_pandas()
-                 {"dates": len(run), "same as the series": int((run["date"].to_numpy() ==
-                                                                pd.to_datetime(data["month"]).to_numpy()).sum())}
+                 dates = sdata.make_run_of_dates("1949-01-01", how_many=144, every="month").get_column("date")
+                 {"dates": len(dates), "same as the series": sum(a == b for a, b in zip(dates, pd.to_datetime(data["month"])))}
              """,
              parent="""
                  {"dates": len(data), "same as the series": len(data)}
@@ -435,8 +440,8 @@ def _cases(Case):
              """, r_tolerance=1e-14),
         Case("nums.keep_each_number_that", "Michelson's measurements above 299.9", "NIST Michelso", "real data",
              ours="""
-                 kept = sdata.numbers(data["y"].tolist()).keep_each_number_that(is_above=299.9).as_numpy()
-                 {"kept": len(kept), "total": kept.sum()}
+                 kept = sdata.numbers(data["y"].tolist()).keep_each_number_that(is_above=299.9)
+                 {"kept": kept.count(), "total": kept.find_total()}
              """,
              parent="""
                  y = data["y"].to_numpy()
@@ -465,8 +470,9 @@ def _cases(Case):
         Case("table.compare_spreads_of", "warpbreaks: do the breaks spread differently at the three tensions?",
              "warpbreaks", "real data",
              ours="""
-                 r = sdata.table(data).compare_spreads_of("breaks", for_each_group_in="tension").as_pandas().iloc[0]
-                 {"F": r["statistic"], "p-value": r["p-value"], "df 2": r["degrees of freedom 2"]}
+                 r = sdata.table(data).compare_spreads_of("breaks", for_each_group_in="tension")
+                 {"F": r.get_cell_at(row=1, column="statistic"), "p-value": r.get_cell_at(row=1, column="p-value"),
+                  "df 2": r.get_cell_at(row=1, column="degrees of freedom 2")}
              """,
              parent="""
                  from scipy import stats
@@ -484,9 +490,10 @@ def _cases(Case):
         Case("table.compare_percent_to", "birthwt: is the percent of low birth weights 30 %?", "birthwt", "real data",
              ours="""
                  t = data.assign(low=data["low"].map({1: "yes", 0: "no"}))
-                 r = sdata.table(t).compare_percent_to("low", value="yes", percent=30).as_pandas().iloc[0]
-                 {"low births": r["statistic"], "p-value": r["p-value"], "CI low": r["percent 95 % CI low"],
-                  "CI high": r["percent 95 % CI high"]}
+                 r = sdata.table(t).compare_percent_to("low", value="yes", percent=30)
+                 {name: r.get_cell_at(row=1, column=column) for name, column in (
+                     ("low births", "statistic"), ("p-value", "p-value"), ("CI low", "percent 95 % CI low"),
+                     ("CI high", "percent 95 % CI high"))}
              """,
              parent="""
                  from scipy import stats
@@ -502,8 +509,9 @@ def _cases(Case):
         Case("table.add_principal_components", "principal components of Fisher's four iris measurements", "iris",
              "real data",
              ours="""
-                 t = sdata.table(data).add_principal_components(how_many=2).as_pandas()
-                 {"PC1 of row 1": t["PC1"].iloc[0], "PC2 of row 1": t["PC2"].iloc[0], "PC1 of row 150": t["PC1"].iloc[-1]}
+                 t = sdata.table(data).add_principal_components(how_many=2)
+                 {"PC1 of row 1": t.get_cell_at(row=1, column="PC1"), "PC2 of row 1": t.get_cell_at(row=1, column="PC2"),
+                  "PC1 of row 150": t.get_cell_at(row=150, column="PC1")}
              """,
              parent="""
                  from statsmodels.multivariate.pca import PCA
@@ -524,8 +532,8 @@ def _cases(Case):
         Case("table.add_predicted_column", "mtcars: fuel use predicted from weight and horsepower", "mtcars",
              "real data",
              ours="""
-                 t = sdata.table(data).add_predicted_column("mpg", using=["wt", "hp"]).as_pandas()
-                 {"first": t["predicted mpg"].iloc[0], "last": t["predicted mpg"].iloc[-1]}
+                 t = sdata.table(data).add_predicted_column("mpg", using=["wt", "hp"])
+                 {"first": t.get_cell_at(row=1, column="predicted mpg"), "last": t.get_cell_at(row=32, column="predicted mpg")}
              """,
              parent="""
                  import statsmodels.formula.api as smf

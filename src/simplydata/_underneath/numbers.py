@@ -59,7 +59,7 @@ ENTRIES = [
         word="nums.keep_each_number_that",
         ours="""
             nums = sdata.numbers([12, 15, None, 9, 20, 14])
-            nums.keep_each_number_that(is_above=12).as_numpy()
+            nums.keep_each_number_that(is_above=12)
         """,
         code={"NumPy": """
             import numpy as np

@@ -88,8 +88,7 @@ ENTRIES = [
     Entry(
         word="sdata.numbers",
         ours="""
-            nums = sdata.numbers(0, to=100, step=25)
-            nums.as_numpy()
+            sdata.numbers(0, to=100, step=25)
         """,
         code={"NumPy": """
             import numpy as np
@@ -106,8 +105,7 @@ ENTRIES = [
     Entry(
         word="sdata.number_grid",
         ours="""
-            grid = sdata.number_grid([1, 2, 3, 4, 5, 6], columns=3)
-            grid.as_numpy()
+            sdata.number_grid([1, 2, 3, 4, 5, 6], columns=3)
         """,
         code={"NumPy": """
             import numpy as np
@@ -143,8 +141,7 @@ ENTRIES = [
     Entry(
         word="sdata.make_random_numbers",
         ours="""
-            dice = sdata.make_random_numbers(how_many=10, between=[1, 6], whole_numbers=True, with_seed=1)
-            dice.as_numpy()
+            sdata.make_random_numbers(how_many=10, between=[1, 6], whole_numbers=True, with_seed=1)
         """,
         code={"NumPy": """
             import numpy as np

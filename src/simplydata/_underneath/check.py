@@ -312,6 +312,8 @@ def compare(entry: Entry, ours, theirs) -> list[str]:
     if entry.compare == "result":
         return compare_result(ours, theirs, entry.fields, entry.tolerance, entry.row)
     if entry.compare == "value":
+        if hasattr(ours, "as_numpy"):  # simplydata numbers or a grid: ours ends with the word itself
+            ours = ours.as_numpy()
         return compare_values(ours, theirs, entry.tolerance)
     raise ValueError(f"{entry.word}: compare={entry.compare!r} cannot be run")
 

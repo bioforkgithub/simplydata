@@ -429,11 +429,10 @@ ENTRIES += [
         ours="""
             import os
             import tempfile
-            import pandas as pd
             table = sdata.table(sdata.get_example("marks"))
             with tempfile.TemporaryDirectory() as folder:
                 table.save(os.path.join(folder, "marks.csv"))
-                saved = pd.read_csv(os.path.join(folder, "marks.csv"))
+                saved = sdata.table(os.path.join(folder, "marks.csv"))
             saved
         """,
         code={
