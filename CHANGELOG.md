@@ -26,7 +26,7 @@ working for one release and prints a one-line note with its new name.
   maxima (GEV), or from every value above a threshold with `values_above=30` and dates in `sorted_by=` (generalised
   Pareto), R extRemes with profile-likelihood intervals; the shape in the extRemes and Coles sign (xi); daily readings
   are refused for block maxima; the extremal index, with a note below 0.7 (no silent declustering).
-- `chart.draw_threshold_check(x="rain", between=[20, 40])`: the mean excess and the shape against the threshold
+- `chart.draw_threshold_check(x="rain", between=[10, 30])`: the mean excess and the shape against the threshold
   (R extRemes mrlplot and threshrange.plot), to choose `values_above=`.
 - `fit_distribution_to(..., distribution="gev")` and `"generalised pareto"` (`"generalized pareto"`, `"gpd"`): two
   new families, fitted with SciPy and kept in the xi sign (SciPy's genextreme uses c = -xi); d/p/q calls name
@@ -40,6 +40,22 @@ working for one release and prints a one-line note with its new name.
 - New R packages at run time: circular, spdep with sf, gstat and extRemes; ismev, sp and ape for the checks only.
   Moran's I uses R spdep rather than Python esda/libpysal, which would add about 110 MB of new Python dependencies
   (geopandas, pyproj, shapely, scikit-learn, requests).
+
+### New: how simplydata chooses methods, every default with its published basis
+
+- `docs/how_simplydata_chooses.md` answers a reviewer's question: "simplydata picks the method for the user; how
+  does it know which is correct?". It states the five principles simplydata follows (published guidelines first,
+  then method comparisons and the method that needs fewer assumptions, then the field's standard software, then
+  checks of the data, and openness throughout). For each word and option that chooses a method or setting, it
+  gives the default, the alternatives and the option that asks for them, why, the references, and what
+  simplydata checks in the data.
+- Each default says what kind of basis it has: a published guideline or method comparison, the convention of the
+  package named, or simplydata's own starting value (said as such, with the option that changes it).
+- Every reference was looked up before it was cited: DOIs in Crossref, the rest at their URL.
+- The registry is `src/simplydata/_method_basis.py`, and `docs/make_method_basis.py` writes the document. The
+  manual has it as a new last part, "How simplydata chooses methods", and each dictionary entry with a choice
+  points to it. A test fails when a "simplydata chooses" line has no basis, when an entry names a word or
+  option that no longer exists, or when the document is out of date. No word's behaviour changes.
 
 ### Privacy: your data never leaves your computer, checked by tests
 

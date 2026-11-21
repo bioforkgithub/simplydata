@@ -608,6 +608,7 @@ _UNICODE = {
     "°": r"\textdegree{}", "²": r"\textsuperscript{2}", "³": r"\textsuperscript{3}", "⁴": r"\textsuperscript{4}", "·": r"\textperiodcentered{}",
     "×": r"\texttimes{}", "−": r"\textminus{}", "±": r"\textpm{}", "–": "--", "—": "---", "…": r"\dots{}",
     "≈": r"$\approx$", "µ": r"\textmu{}", "é": r"\'e", "’": "'", "‘": "`", "“": "``", "”": "''",
+    "á": r"\'a", "í": r"\'{\i}", "ä": r"\"a", "ö": r"\"o", "ü": r"\"u", "ñ": r"\~n", "ß": r"\ss{}", "Ø": r"\O{}", "χ": r"$\chi$",
 }
 _SPECIAL = {
     "\\": r"\textbackslash{}", "{": r"\{", "}": r"\}", "$": r"\$", "&": r"\&", "#": r"\#",
@@ -1083,6 +1084,10 @@ def _word_entry(key: str, aliases: dict) -> str:
         out.append("")
         out.append(r"\wordfield{Good to know}{" + rich(learn.EXTRA_NOTES[key]) + "}")
     out.append("")
+    basis = basis_keys(key)
+    if basis:
+        out.append(r"\wordfield{Why this method}{\hyperref[" + basis_label(basis[0]) + r"]{How simplydata chooses "
+                   r"methods}, page \pageref{" + basis_label(basis[0]) + "}: the default, the evidence and the checks.}")
     out.append(r"\wordfield{Underneath}{" + underneath_name(key) + "}")
     table = learn._example_table(key)
     where = f"(it uses the practice table {code(table)})" if table else ""
@@ -1095,6 +1100,90 @@ def _word_entry(key: str, aliases: dict) -> str:
 
     for entry in option_entries(key):  # an option that changes what the word calls underneath: a box of its own
         out.append(_same_underneath(key, entry))
+    return "\n".join(out)
+
+
+def basis_keys(key: str) -> list[str]:
+    """The entries of simplydata._method_basis for a word: its own, then its options'."""
+    from simplydata._method_basis import BASIS
+
+    return [k for k in BASIS if k == key or k.startswith(key + " ")]
+
+
+def basis_label(key: str) -> str:
+    """A LaTeX label for an entry of the appendix "How simplydata chooses methods"."""
+    return "basis:" + re.sub(r"[^A-Za-z0-9.:-]+", "-", key.replace("_", "-").replace("=", "-eq")).strip("-")
+
+
+def _link(ref) -> str:
+    """A reference's DOI or URL as a link, escaped for LaTeX."""
+    import urllib.parse
+
+    if ref.doi:
+        target = "https://doi.org/" + urllib.parse.quote(ref.doi, safe="/:().-_")
+        shown = "doi:" + esc(ref.doi)
+    else:
+        target, shown = ref.url, esc(ref.url)
+    target = target.replace("%", r"\%").replace("#", r"\#")
+    return r"\href{" + target + "}{" + shown + "}"
+
+
+def _method_basis() -> str:
+    """The appendix "How simplydata chooses methods", made from simplydata._method_basis, as
+    docs/how_simplydata_chooses.md is (docs/make_method_basis.py)."""
+    import importlib.util
+
+    from simplydata._method_basis import BASIS, EVIDENCE, PRINCIPLE_REFERENCES, PRINCIPLES, REFERENCES
+
+    spec = importlib.util.spec_from_file_location("make_method_basis", HERE / "make_method_basis.py")
+    make_method_basis = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(make_method_basis)
+
+    counts = {kind: sum(b.evidence == kind for b in BASIS.values()) for kind in EVIDENCE}
+    out = [r"\unchapter{How simplydata chooses methods}{basis}",
+           "simplydata often chooses a method, an option value or a setting for you. This appendix gives, for each "
+           f"of the {len(BASIS)} choices, what simplydata chooses, what else you can ask for, why (the principle and "
+           "the published evidence), and what simplydata checks in your data before it uses the method. "
+           f"{counts['published']} defaults rest on published guidelines or method comparisons, "
+           f"{counts['convention']} follow the convention of the package named so that results match it, and "
+           f"{counts['starting value']} are simplydata's own starting values, each changed with the option named. "
+           "Every DOI was looked up in Crossref; references without a DOI were checked at their URL. The defaults of "
+           "the later batches were read by an independent reviewer when they were designed, and in November 2026 "
+           "every entry, with its references, was checked again by independent reviewers acting as hostile "
+           "statistical referees; their findings were applied. The same text is in "
+           + code("docs/how_simplydata_chooses.md") + ".",
+           r"\unsection{The five principles}{basis:principles}",
+           r"\begin{enumerate}"]
+    for key, text in PRINCIPLES.items():
+        refs = "; ".join(esc(REFERENCES[r].short) for r in PRINCIPLE_REFERENCES[key])
+        out.append(r"\item \textbf{" + key + ".} " + rich(text) + (f" ({refs})" if refs else ""))
+    out.append(r"\end{enumerate}")
+    for group, keys in make_method_basis.grouped():
+        name = re.sub(r"[^A-Za-z0-9]+", "-", group)
+        out.append(f"\\unsection{{{esc(group)}}}{{basis-group:{name}}}")
+        for key in keys:
+            b = BASIS[key]
+            word, _, option = key.partition(" ")
+            title = code(word if word.endswith("=") else learn._call_form(word)) + (" " + code(option) if option else "")
+            out.append(r"\par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{" + basis_label(key) + "}"
+                       r"\noindent{\sffamily\bfseries\color{brand}" + title + r"}\par\nopagebreak")
+            out.append(r"\wordfield{Default}{" + rich(b.default) + "}")
+            out.append(r"\wordfield{Alternatives}{" + rich(b.alternatives) + "}")
+            kind = "" if b.evidence == "published" else r" \textit{Basis: " + esc(b.evidence) + ".}"
+            out.append(r"\wordfield{Why (" + b.principle + ")}{" + rich(b.why) + kind + "}")
+            if b.checks:
+                out.append(r"\wordfield{Checks}{" + rich(b.checks) + "}")
+            if b.references:
+                out.append(r"\wordfield{References}{" + "; ".join(esc(REFERENCES[r].short) for r in b.references) + "}")
+            out.append(r"\wordfield{In the dictionary}{\hyperref[" + label(word) + r"]{page \pageref{" + label(word)
+                       + "}}}")
+    out.append(r"\unsection{References}{basis:references}")
+    out.append(r"\begingroup\small\raggedright")
+    used = {r for b in BASIS.values() for r in b.references} | {r for v in PRINCIPLE_REFERENCES.values() for r in v}
+    for key in sorted(used, key=lambda k: (REFERENCES[k].text.lower(), k)):
+        ref = REFERENCES[key]
+        out.append(r"\par\noindent\hangindent=1.5em " + esc(ref.text) + " " + _link(ref))
+    out.append(r"\par\endgroup")
     return "\n".join(out)
 
 
@@ -1223,6 +1312,8 @@ def make() -> str:
         r"\input{ideas}",
         r"\part{Solutions}\label{part:solutions}",
         _solutions(),
+        r"\part{How simplydata chooses methods}\label{part:basis}",
+        _method_basis(),
         r"\backmatter",
         _index(aliases),
         r"\end{document}",
