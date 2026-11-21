@@ -150,6 +150,18 @@ def chart_facts(ax) -> dict:
     limits            (x limits, y limits)
     scales            ("linear" or "log", for x and y)
     panels            the number of charts in the figure
+    texts             the other words on the figure (titles above several panels, notes, captions, numbers on
+                      bars), sorted: (words on the figure, words on the chart)
+    font_sizes        the font sizes of the title, the x and y labels, the x and y tick labels and the legend
+    size              the figure's width and height in inches
+    legend_place      each legend: on the chart or on the figure, matplotlib's place code, the side outside the
+                      chart (empty inside it), its number of columns, its title and entries
+    colours           the colours themselves (as #rrggbbaa): of the bars (sorted as in bars), the dots and the lines
+    tick_angles       the angle and the alignment of each tick label, under the x axis and beside the y axis
+    shapes            the corners of every filled shape that is not a bar (violins, boxes, bands)
+    cells             the numbers behind each grid of coloured cells (a heatmap)
+    every_panel       for each set of axes in the figure (second y-axes too): its labels, title, dots, bars,
+                      lines and filled shapes
     """
     from matplotlib.patches import Rectangle
 
@@ -188,7 +200,111 @@ def chart_facts(ax) -> dict:
         "limits": (tuple(map(float, ax.get_xlim())), tuple(map(float, ax.get_ylim()))),
         "scales": (ax.get_xscale(), ax.get_yscale()),
         "panels": len([a for a in fig.axes if a.get_label() != "<colorbar>"]) if fig is not None else 1,
+        "texts": _texts(ax),
+        "font_sizes": _font_sizes(ax),
+        "size": tuple(map(float, _root(ax).get_size_inches())) if _root(ax) is not None else (),
+        "legend_place": _legend_places(ax),
+        "colours": ([_hex(b[4]) for b in bars], [_hex(c) for c in dot_colours],
+                    [_hex(line.get_color()) for line in ax.get_lines()]),
+        "tick_angles": ([(float(t.get_rotation()), t.get_ha()) for t in ax.get_xticklabels()],
+                        [(float(t.get_rotation()), t.get_ha()) for t in ax.get_yticklabels()]),
+        "shapes": _shapes(ax),
+        "cells": _cells(ax),
+        "every_panel": ([_panel(a) for a in _root(ax).axes if a.get_label() != "<colorbar>"]
+                        if _root(ax) is not None else []),
     }
+
+
+def _root(ax):
+    """The whole figure an Axes is on (not the part of a page it sits in)."""
+    try:
+        return ax.get_figure(root=True)
+    except TypeError:  # pragma: no cover - matplotlib before 3.10
+        return ax.get_figure()
+
+
+def _hex(colour) -> str:
+    from matplotlib.colors import to_hex
+
+    return to_hex(colour, keep_alpha=True)
+
+
+def _shown(text) -> str:
+    return text.get_text().strip() if text is not None and text.get_visible() else ""
+
+
+def _texts(ax) -> tuple:
+    """(words on the figure and the parts of a page, words on the chart): each sorted, empty ones left out."""
+    from matplotlib.text import Text
+
+    root = _root(ax)
+    on_figure = []
+    figures = [root] if root is not None else []
+    while figures:
+        f = figures.pop(0)
+        figures.extend(getattr(f, "subfigs", []))
+        found = [getattr(f, name, None) for name in ("_suptitle", "_supxlabel", "_supylabel")]
+        found += list(f.texts) + [a for a in f.artists if isinstance(a, Text)]
+        on_figure += found
+    on_figure = [_shown(t) for t in dict.fromkeys(t for t in on_figure if t is not None)]  # a title is in texts too
+    on_chart = [_shown(t) for t in ax.texts]
+    return sorted(t for t in on_figure if t), sorted(t for t in on_chart if t)
+
+
+def _font_sizes(ax) -> tuple:
+    def first(labels):
+        return float(labels[0].get_fontsize()) if labels else math.nan
+
+    root = _root(ax)
+    legend = ax.get_legend() or next(iter(root.legends if root is not None else []), None)
+    return (float(ax.title.get_fontsize()), float(ax.xaxis.label.get_fontsize()), float(ax.yaxis.label.get_fontsize()),
+            first(ax.get_xticklabels()), first(ax.get_yticklabels()),
+            first(legend.get_texts()) if legend is not None else math.nan)
+
+
+def _legend_places(ax) -> list:
+    root = _root(ax)
+    found = [("chart", ax.get_legend())] + [("figure", leg) for leg in (root.legends if root is not None else [])]
+    return [(owner, int(leg._loc), getattr(leg, "_outside_loc", None) or "", int(leg._ncols),
+             [leg.get_title().get_text()] + [t.get_text() for t in leg.get_texts()])
+            for owner, leg in found if leg is not None and leg.get_visible()]
+
+
+def _sized(points) -> tuple:
+    """(how many, the array): arrays of different lengths are then compared by their length first."""
+    points = np.asarray(points, dtype=float)
+    return (len(points), points)
+
+
+def _shapes(ax) -> list:
+    from matplotlib.patches import Rectangle
+
+    found = []
+    for coll in ax.collections:
+        if coll.__class__.__name__ in ("PathCollection", "QuadMesh", "LineCollection") or not hasattr(coll, "get_paths"):
+            continue
+        found += [_sized(path.vertices) for path in coll.get_paths()]
+    found += [_sized(p.get_path().vertices) for p in ax.patches if not isinstance(p, Rectangle)]
+    return found
+
+
+def _cells(ax) -> list:
+    grids = [c for c in ax.collections if c.__class__.__name__ == "QuadMesh"] + list(ax.images)
+    return [_sized(np.ma.filled(np.ma.asarray(g.get_array(), dtype=float), np.nan).ravel()) for g in grids]
+
+
+def _panel(ax) -> tuple:
+    """What one set of axes shows: labels, title, dots, bars, lines and filled shapes (for figures with several)."""
+    from matplotlib.patches import Rectangle
+
+    dots = [tuple(o) for c in ax.collections if c.__class__.__name__ == "PathCollection"
+            for o in np.asarray(c.get_offsets(), dtype=float).reshape(-1, 2)]
+    bars = sorted((float(r.get_x()), float(r.get_y()), float(r.get_width()), float(r.get_height()))
+                  for r in ax.patches if isinstance(r, Rectangle))
+    # lines with no points (seaborn adds them for legend entries) show nothing, so they are left out
+    lines = [(_sized(line.get_xdata()), _sized(line.get_ydata())) for line in ax.get_lines() if len(line.get_xdata())]
+    return (ax.get_xlabel(), ax.get_ylabel(), ax.get_title(), ax.get_title(loc="left"),
+            _sized(dots) if dots else (0,), _sized(bars) if bars else (0,), lines, _shapes(ax))
 
 
 def _same(a, b, tol: float) -> bool:

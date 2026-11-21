@@ -554,6 +554,861 @@ def _cases(Case):
                  f <- fitted(lm(mpg ~ wt + hp))
                  list(first = f[[1]], last = f[[length(f)]])
              """, r_tolerance=1e-10),
+    ] + _cases_batch_2(Case)
+
+
+# ---------------------------------------------------------------- U-batch 2: chart words read back as data
+# simplydata has no word that reads back what a chart drew, so the simplydata side reads its own chart with the same
+# chart_facts() the tests use (bars, dots, lines, labels, texts, sizes ...), as the sdata.chart case above does. The
+# library side draws the same chart with seaborn or matplotlib and reads it the same way; R gives the numbers the
+# chart should show (averages, medians, sums), where it is plain base R.
+CHART_FACTS_OF = "from simplydata._underneath.check import chart_facts\n"
+LIBRARY_CHART = ("import matplotlib.pyplot as plt\nimport seaborn as sns\n"
+                 "from simplydata._underneath.check import chart_facts\n")
+
+
+def _ours_chart(build: str, then: str, axes: str = "chart._render().axes[0]") -> str:
+    """simplydata code that builds a chart (ending in `chart`), reads its facts into f, then the code `then`."""
+    return (CHART_FACTS_OF + textwrap.dedent(build).strip("\n") + f"\nf = chart_facts({axes})\n"
+            + textwrap.dedent(then).strip("\n"))
+
+
+def _library_chart(build: str, then: str, axes: str = "ax") -> str:
+    """seaborn / matplotlib code that draws on `ax`, reads its facts into f, then the code `then`."""
+    return (LIBRARY_CHART + textwrap.dedent(build).strip("\n") + f"\nf = chart_facts({axes})\n"
+            + textwrap.dedent(then).strip("\n"))
+
+
+def _rgb(colour: str) -> str:
+    """Code for a dict of the red, green and blue (0 to 255) of a colour written as #rrggbbaa."""
+    return f'{{"red": int({colour}[1:3], 16), "green": int({colour}[3:5], 16), "blue": int({colour}[5:7], 16)}}'
+
+
+def _cases_batch_2(Case):
+    bars_cyl = 'sns.barplot(data, x="cyl", y="mpg", errorbar=None, ax=ax)'
+    lines_wool = 'sns.lineplot(data, x="tension", y="breaks", hue="wool", errorbar=None, ax=ax)'
+    return [
+        Case("save", "mtcars: average fuel use for 4, 6 and 8 cylinders, saved as a picture", "mtcars", "real data",
+             ours=_ours_chart("""
+                 import os
+                 import tempfile
+                 chart = sdata.chart(data).draw_bars(x="cyl", y="mpg")
+                 chart.save(os.path.join(tempfile.gettempdir(), "mtcars_save.png"))
+             """, """
+                 {"width (inches)": f["size"][0], "height (inches)": f["size"][1], "4 cylinders": f["bars"][0][3]}
+             """),
+             parent=_library_chart(f"""
+                 import os
+                 import tempfile
+                 fig, ax = plt.subplots(figsize=(8, 6))
+                 {bars_cyl}
+                 fig.savefig(os.path.join(tempfile.gettempdir(), "mtcars_save_mpl.png"), dpi=300, bbox_inches="tight")
+             """, """
+                 {"width (inches)": f["size"][0], "height (inches)": f["size"][1], "4 cylinders": f["bars"][0][3]}
+             """), parent_label="matplotlib savefig", parent_tolerance=1e-12,
+             r="""
+                 list(`4 cylinders` = mean(mpg[cyl == 4]))
+             """, r_tolerance=1e-12),
+        Case("write_title_on_top", "Fisher's iris: the average sepal length of each species, with a title", "iris",
+             "real data",
+             ours=_ours_chart("""
+                 chart = sdata.chart(data).draw_bars(x="Species", y="Sepal.Length")
+                 chart.write_title_on_top("Sepal length of three irises")
+             """, """
+                 {"title as written": float(f["labels"][2] == "Sepal length of three irises"), "setosa": f["bars"][0][3]}
+             """),
+             parent=_library_chart("""
+                 fig, ax = plt.subplots()
+                 sns.barplot(data, x="Species", y="Sepal.Length", errorbar=None, ax=ax)
+                 ax.set_title("Sepal length of three irises")
+             """, """
+                 {"title as written": float(f["labels"][2] == "Sepal length of three irises"), "setosa": f["bars"][0][3]}
+             """), parent_label="matplotlib set_title", parent_tolerance=1e-12,
+             r="""
+                 list(setosa = mean(Sepal.Length[Species == "setosa"]))
+             """, r_tolerance=1e-12),
+        *[Case(word, f"mtcars: fuel use against weight, the {axis} axis named", "mtcars", "real data",
+               ours=_ours_chart(f"""
+                   chart = sdata.chart(data).draw_dots(x="wt", y="mpg")
+                   chart.{word}("{text}")
+               """, f"""
+                   {{"label as written": float(f["labels"][{place}] == "{text}"), "dots": len(f["dots"])}}
+               """),
+               parent=_library_chart(f"""
+                   fig, ax = plt.subplots()
+                   sns.scatterplot(data, x="wt", y="mpg", ax=ax)
+                   ax.set_{axis}label("{text}")
+               """, f"""
+                   {{"label as written": float(f["labels"][{place}] == "{text}"), "dots": len(f["dots"])}}
+               """), parent_label=f"matplotlib set_{axis}label", parent_tolerance=0.0)
+          for word, axis, place, text in (("label_x", "x", 0, "Weight (1000 lb)"),
+                                          ("label_y", "y", 1, "Miles per gallon"))],
+        Case("rotate_labels_x", "mtcars: the 32 car names under their bars, stood up", "mtcars", "real data",
+             ours=_ours_chart("""
+                 chart = sdata.chart(data).draw_bars(x="model", y="mpg").rotate_labels_x(90)
+             """, """
+                 {"angle of the first name": f["tick_angles"][0][0][0], "names": len(f["ticks"][0]),
+                  "names lined up by their right end": sum(a[1] == "right" for a in f["tick_angles"][0])}
+             """),
+             parent=_library_chart("""
+                 fig, ax = plt.subplots()
+                 sns.barplot(data, x="model", y="mpg", errorbar=None, ax=ax)
+                 for label in ax.get_xticklabels():
+                     label.set_rotation(90)
+                     label.set_horizontalalignment("right")
+                     label.set_verticalalignment("center")
+                     label.set_rotation_mode("anchor")
+             """, """
+                 {"angle of the first name": f["tick_angles"][0][0][0], "names": len(f["ticks"][0]),
+                  "names lined up by their right end": sum(a[1] == "right" for a in f["tick_angles"][0])}
+             """), parent_label="matplotlib set_rotation", parent_tolerance=0.0),
+        Case("write_caption_at_bottom", "Fisher's iris: bars with the source written under them", "iris", "real data",
+             ours=_ours_chart("""
+                 chart = sdata.chart(data).draw_bars(x="Species", y="Petal.Length")
+                 chart.write_caption_at_bottom("Data: Fisher (1936)")
+             """, """
+                 {"caption written": float("Data: Fisher (1936)" in f["texts"][1]), "virginica": f["bars"][2][3]}
+             """),
+             parent=_library_chart("""
+                 fig, ax = plt.subplots(layout="constrained")
+                 sns.barplot(data, x="Species", y="Petal.Length", errorbar=None, ax=ax)
+                 ax.annotate("Data: Fisher (1936)", xy=(0.5, 0), xycoords=ax.xaxis.label, xytext=(0, -4),
+                             textcoords="offset points", ha="center", va="top")
+             """, """
+                 {"caption written": float("Data: Fisher (1936)" in f["texts"][1]), "virginica": f["bars"][2][3]}
+             """), parent_label="matplotlib annotate", parent_tolerance=1e-12,
+             r="""
+                 list(virginica = mean(Petal.Length[Species == "virginica"]))
+             """, r_tolerance=1e-12),
+        Case("use_font_size", "Fisher's iris: bars with all their words in size 16", "iris", "real data",
+             ours=_ours_chart("""
+                 chart = sdata.chart(data).draw_bars(x="Species", y="Sepal.Width")
+                 chart.write_title_on_top("Sepal width").use_font_size(16)
+             """, """
+                 {"title": f["font_sizes"][0], "x label": f["font_sizes"][1], "tick labels": f["font_sizes"][3]}
+             """),
+             published={"title": (14 * 16 / 12, 1e-9, "exact"), "x label": (13 * 16 / 12, 1e-9, "exact"),
+                        "tick labels": (11 * 16 / 12, 1e-9, "exact")},
+             parent=_library_chart("""
+                 scale = 16 / 12
+                 sizes = {"font.size": 16, "axes.titlesize": 14 * scale, "axes.labelsize": 13 * scale,
+                          "xtick.labelsize": 11 * scale, "ytick.labelsize": 11 * scale, "legend.fontsize": 11 * scale}
+                 with plt.rc_context(sizes):
+                     fig, ax = plt.subplots()
+                     sns.barplot(data, x="Species", y="Sepal.Width", errorbar=None, ax=ax)
+                     ax.set_title("Sepal width")
+             """, """
+                 {"title": f["font_sizes"][0], "x label": f["font_sizes"][1], "tick labels": f["font_sizes"][3]}
+             """), parent_label="matplotlib rc_context", parent_tolerance=1e-12,
+             note="simplydata's normal sizes are 12 (text), 14 (title), 13 (axis labels) and 11 (tick labels); "
+                  "use_font_size(16) multiplies each by 16 / 12."),
+        Case("use_colour", "Fisher's iris: every bar dark green", "iris", "real data",
+             ours=_ours_chart("""
+                 chart = sdata.chart(data).draw_bars(x="Species", y="Petal.Width").use_colour("darkgreen")
+             """, _rgb('f["colours"][0][0]')),
+             published={"red": (0, 0, "exact"), "green": (100, 0, "exact"), "blue": (0, 0, "exact")},
+             parent=_library_chart("""
+                 fig, ax = plt.subplots()
+                 sns.barplot(data, x="Species", y="Petal.Width", errorbar=None, color="darkgreen", saturation=1,
+                             ax=ax)
+             """, _rgb('f["colours"][0][0]')), parent_label="seaborn barplot(color=, saturation=1)",
+             parent_tolerance=0.0,
+             note="darkgreen is #006400 in the CSS colour names matplotlib uses."),
+        Case("use_colours", "warpbreaks: the two wools in navy and orange", "warpbreaks", "real data",
+             ours=_ours_chart("""
+                 chart = sdata.chart(data).draw_bars(x="tension", y="breaks", colour="wool")
+                 chart.use_colours("navy", "orange")
+             """, """
+                 {"navy bars": f["colours"][0].count("#000080ff"), "orange bars": f["colours"][0].count("#ffa500ff"),
+                  "first bar navy": float(f["colours"][0][0] == "#000080ff")}
+             """),
+             parent=_library_chart("""
+                 fig, ax = plt.subplots()
+                 sns.barplot(data, x="tension", y="breaks", hue="wool", palette=["navy", "orange"], errorbar=None,
+                             saturation=1, ax=ax)
+             """, """
+                 {"navy bars": f["colours"][0].count("#000080ff"), "orange bars": f["colours"][0].count("#ffa500ff"),
+                  "first bar navy": float(f["colours"][0][0] == "#000080ff")}
+             """), parent_label="seaborn barplot(palette=)", parent_tolerance=0.0),
+        *[Case(word, f"warpbreaks: lines of the two wools, the legend {where}", "warpbreaks", "real data",
+               ours=_ours_chart(f"""
+                   chart = sdata.chart(data).draw_lines(x="tension", y="breaks", colour="wool").{word}()
+               """, """
+                   {"legends on the figure": sum(p[0] == "figure" for p in f["legend_place"]),
+                    "legends on the chart": sum(p[0] == "chart" for p in f["legend_place"]),
+                    "place": f["legend_place"][0][1], "entries": len(f["legend_place"][0][4]) - 1}
+               """),
+               parent=_library_chart(f"""
+                   fig, ax = plt.subplots(layout="constrained")
+                   {lines_wool}
+                   handles, labels = ax.get_legend_handles_labels()
+                   ax.get_legend().remove()
+                   fig.legend(handles, labels, title="wool", loc="{loc}"{columns})
+               """, """
+                   {"legends on the figure": sum(p[0] == "figure" for p in f["legend_place"]),
+                    "legends on the chart": sum(p[0] == "chart" for p in f["legend_place"]),
+                    "place": f["legend_place"][0][1], "entries": len(f["legend_place"][0][4]) - 1}
+               """), parent_label="matplotlib fig.legend", parent_tolerance=0.0)
+          for word, where, loc, columns in (("put_legend_at_bottom", "below", "outside lower center", ", ncols=2"),
+                                            ("put_legend_on_left", "on the left", "outside center left", ""))],
+        Case("order_x", "warpbreaks: the tensions in the order high, medium, low", "warpbreaks", "real data",
+             ours=_ours_chart("""
+                 chart = sdata.chart(data).draw_bars(x="tension", y="breaks").order_x("H", "M", "L")
+             """, """
+                 {"first bar (H)": f["bars"][0][3], "last bar (L)": f["bars"][2][3],
+                  "first name": float(f["ticks"][0][0] == "H")}
+             """),
+             parent=_library_chart("""
+                 fig, ax = plt.subplots()
+                 sns.barplot(data, x="tension", y="breaks", order=["H", "M", "L"], errorbar=None, ax=ax)
+             """, """
+                 {"first bar (H)": f["bars"][0][3], "last bar (L)": f["bars"][2][3],
+                  "first name": float(f["ticks"][0][0] == "H")}
+             """), parent_label="seaborn barplot(order=)", parent_tolerance=1e-12,
+             r="""
+                 list(`first bar (H)` = mean(breaks[tension == "H"]), `last bar (L)` = mean(breaks[tension == "L"]))
+             """, r_tolerance=1e-12),
+        Case("use_style", "Fisher's iris: bars in the presentation style", "iris", "real data",
+             ours=_ours_chart("""
+                 chart = sdata.chart(data).draw_bars(x="Species", y="Sepal.Length").use_style("presentation")
+             """, """
+                 {"title": f["font_sizes"][0], "x label": f["font_sizes"][1], "tick labels": f["font_sizes"][3]}
+             """),
+             published={"title": (20, 0, "exact"), "x label": (18, 0, "exact"), "tick labels": (15, 0, "exact")},
+             parent=_library_chart("""
+                 look = {"font.size": 16, "axes.titlesize": 20, "axes.labelsize": 18, "xtick.labelsize": 15,
+                         "ytick.labelsize": 15, "legend.fontsize": 15, "lines.linewidth": 3.0}
+                 with plt.rc_context(look):
+                     fig, ax = plt.subplots()
+                     sns.barplot(data, x="Species", y="Sepal.Length", errorbar=None, ax=ax)
+             """, """
+                 {"title": f["font_sizes"][0], "x label": f["font_sizes"][1], "tick labels": f["font_sizes"][3]}
+             """), parent_label="matplotlib rc_context", parent_tolerance=0.0,
+             note="The sizes of simplydata's presentation style: 20 for titles, 18 for axis labels, 15 for tick "
+                  "labels."),
+        Case("hide_legend", "warpbreaks: lines of the two wools, without a legend", "warpbreaks", "real data",
+             ours=_ours_chart("""
+                 chart = sdata.chart(data).draw_lines(x="tension", y="breaks", colour="wool").hide_legend()
+             """, """
+                 {"legends": len(f["legend_place"]), "lines with points": sum(len(x) > 0 for x, _ in f["lines"])}
+             """),
+             parent=_library_chart(f"""
+                 fig, ax = plt.subplots()
+                 {lines_wool}
+                 ax.get_legend().remove()
+             """, """
+                 {"legends": len(f["legend_place"]), "lines with points": sum(len(x) > 0 for x, _ in f["lines"])}
+             """), parent_label="matplotlib Legend.remove", parent_tolerance=0.0),
+        Case("draw_lines", "warpbreaks: the average breaks at each tension, one line for each wool", "warpbreaks",
+             "real data",
+             ours=_ours_chart("""
+                 chart = sdata.chart(data).draw_lines(x="tension", y="breaks", colour="wool")
+             """, """
+                 {"wool A at L": f["lines"][0][1][0], "wool A at H": f["lines"][0][1][2], "wool B at M": f["lines"][1][1][1]}
+             """),
+             parent=_library_chart(f"""
+                 fig, ax = plt.subplots()
+                 {lines_wool}
+             """, """
+                 {"wool A at L": f["lines"][0][1][0], "wool A at H": f["lines"][0][1][2], "wool B at M": f["lines"][1][1][1]}
+             """), parent_label="seaborn lineplot(errorbar=None)", parent_tolerance=1e-12,
+             r="""
+                 m <- tapply(breaks, list(wool, tension), mean)
+                 list(`wool A at L` = m["A", "L"], `wool A at H` = m["A", "H"], `wool B at M` = m["B", "M"])
+             """, r_tolerance=1e-12),
+        Case("draw_boxes", "Fisher's iris: the sepal lengths of each species as boxes", "iris", "real data",
+             ours=_ours_chart("""
+                 chart = sdata.chart(data).draw_boxes(x="Species", y="Sepal.Length")
+             """, """
+                 {"boxes": len(f["shapes"]), "setosa median": f["lines"][4][1][0], "virginica median": f["lines"][16][1][0]}
+             """),
+             parent=_library_chart("""
+                 fig, ax = plt.subplots()
+                 sns.boxplot(data, x="Species", y="Sepal.Length", saturation=1, ax=ax)
+             """, """
+                 {"boxes": len(f["shapes"]), "setosa median": f["lines"][4][1][0], "virginica median": f["lines"][16][1][0]}
+             """), parent_label="seaborn boxplot", parent_tolerance=1e-12,
+             r="""
+                 list(boxes = 3, `setosa median` = median(Sepal.Length[Species == "setosa"]),
+                      `virginica median` = median(Sepal.Length[Species == "virginica"]))
+             """, r_tolerance=1e-12,
+             note="Each box is drawn as two whiskers, two caps, the median line and the far values, in that order, so "
+                  "the 5th line is the first median."),
+        Case("draw_all_dots", "Fisher's iris: all 150 petal lengths as dots over boxes", "iris", "real data",
+             ours=_ours_chart("""
+                 chart = sdata.chart(data).draw_boxes(x="Species", y="Petal.Length")
+                 chart.draw_all_dots(x="Species", y="Petal.Length")
+             """, """
+                 {"dots": len(f["dots"]), "total of the values": sum(y for _, y in f["dots"]),
+                  "dark grey dots": f["colours"][1].count("#333333ff")}
+             """),
+             parent=_library_chart("""
+                 from matplotlib.figure import Figure
+                 fig = Figure(figsize=(8, 6), layout="constrained")
+                 ax = fig.subplots()
+                 sns.boxplot(data, x="Species", y="Petal.Length", saturation=1, ax=ax)
+                 sns.swarmplot(data, x="Species", y="Petal.Length", color="#333333", ax=ax)
+             """, """
+                 {"dots": len(f["dots"]), "total of the values": sum(y for _, y in f["dots"]),
+                  "dark grey dots": f["colours"][1].count("#333333ff")}
+             """), parent_label="seaborn swarmplot", parent_tolerance=1e-12,
+             r="""
+                 list(dots = length(Petal.Length), `total of the values` = sum(Petal.Length))
+             """, r_tolerance=1e-12),
+        Case("draw_violins", "Fisher's iris: each violin stops at the longest sepal of its species", "iris", "real data",
+             ours=_ours_chart("""
+                 chart = sdata.chart(data).draw_violins(x="Species", y="Sepal.Length")
+             """, """
+                 {f"top of the {name} violin": max(v[1][:, 1]) for name, v in zip(("setosa", "versicolor", "virginica"),
+                                                                                 f["shapes"])}
+             """),
+             published={"top of the setosa violin": (5.8, 1e-12, "exact"),
+                        "top of the versicolor violin": (7.0, 1e-12, "exact"),
+                        "top of the virginica violin": (7.9, 1e-12, "exact")},
+             parent=_library_chart("""
+                 fig, ax = plt.subplots()
+                 sns.violinplot(data, x="Species", y="Sepal.Length", cut=0, saturation=1, ax=ax)
+             """, """
+                 {f"top of the {name} violin": max(v[1][:, 1]) for name, v in zip(("setosa", "versicolor", "virginica"),
+                                                                                 f["shapes"])}
+             """), parent_label="seaborn violinplot(cut=0)", parent_tolerance=1e-12,
+             r="""
+                 m <- tapply(Sepal.Length, Species, max)
+                 list(`top of the setosa violin` = m[["setosa"]], `top of the versicolor violin` = m[["versicolor"]],
+                      `top of the virginica violin` = m[["virginica"]])
+             """, r_tolerance=1e-12,
+             note="The longest sepals in Fisher's table are 5.8, 7.0 and 7.9 cm."),
+        Case("show=", "mtcars: the median fuel use for 4, 6 and 8 cylinders", "mtcars", "real data",
+             ours=_ours_chart("""
+                 chart = sdata.chart(data).draw_bars(x="cyl", y="mpg", show="median")
+             """, """
+                 {"4 cylinders": f["bars"][0][3], "6 cylinders": f["bars"][1][3], "8 cylinders": f["bars"][2][3]}
+             """),
+             parent=_library_chart("""
+                 fig, ax = plt.subplots()
+                 sns.barplot(data, x="cyl", y="mpg", estimator="median", errorbar=None, ax=ax)
+             """, """
+                 {"4 cylinders": f["bars"][0][3], "6 cylinders": f["bars"][1][3], "8 cylinders": f["bars"][2][3]}
+             """), parent_label="seaborn barplot(estimator=\"median\")", parent_tolerance=1e-12,
+             r="""
+                 m <- tapply(mpg, cyl, median)
+                 list(`4 cylinders` = m[["4"]], `6 cylinders` = m[["6"]], `8 cylinders` = m[["8"]])
+             """, r_tolerance=1e-12),
+        Case("error=", "mtcars: average fuel use with standard deviation bars", "mtcars", "real data",
+             ours=_ours_chart("""
+                 chart = sdata.chart(data).draw_bars(x="cyl", y="mpg", error="standard deviation")
+             """, """
+                 {"top of the 4-cylinder bar": max(f["lines"][0][1]), "bottom of it": min(f["lines"][0][1])}
+             """),
+             parent=_library_chart("""
+                 fig, ax = plt.subplots()
+                 sns.barplot(data, x="cyl", y="mpg", errorbar="sd", capsize=0.1, ax=ax)
+             """, """
+                 {"top of the 4-cylinder bar": max(f["lines"][0][1]), "bottom of it": min(f["lines"][0][1])}
+             """), parent_label="seaborn barplot(errorbar=\"sd\")", parent_tolerance=1e-12,
+             r="""
+                 m <- mpg[cyl == 4]
+                 list(`top of the 4-cylinder bar` = mean(m) + sd(m), `bottom of it` = mean(m) - sd(m))
+             """, r_tolerance=1e-12),
+        Case("write_numbers_on_bars", "warpbreaks: the total breaks at each tension written on the bars", "warpbreaks",
+             "real data",
+             ours=_ours_chart("""
+                 chart = sdata.chart(data).draw_bars(x="tension", y="breaks", show="total").write_numbers_on_bars()
+             """, """
+                 shown = [float(t.replace(",", "")) for t in f["texts"][1]]
+                 {"numbers written": len(shown), "biggest": max(shown), "smallest": min(shown)}
+             """),
+             parent=_library_chart("""
+                 fig, ax = plt.subplots()
+                 sns.barplot(data, x="tension", y="breaks", estimator="sum", errorbar=None, ax=ax)
+                 ax.bar_label(ax.containers[0], labels=[f"{v:,.0f}" for v in ax.containers[0].datavalues], padding=3)
+             """, """
+                 shown = [float(t.replace(",", "")) for t in f["texts"][1]]
+                 {"numbers written": len(shown), "biggest": max(shown), "smallest": min(shown)}
+             """), parent_label="matplotlib bar_label", parent_tolerance=0.0,
+             r="""
+                 s <- tapply(breaks, tension, sum)
+                 list(`numbers written` = length(s), biggest = max(s), smallest = min(s))
+             """, r_tolerance=0.0),
+        Case("fit_line", "mtcars: the straight line of fuel use on weight", "mtcars", "real data",
+             ours=_ours_chart("""
+                 chart = sdata.chart(data).draw_dots(x="wt", y="mpg").fit_line()
+             """, """
+                 {"line at the lightest car": f["lines"][0][1][0], "line at the heaviest car": f["lines"][0][1][-1]}
+             """),
+             parent=_library_chart("""
+                 from scipy import stats
+                 fig, ax = plt.subplots()
+                 sns.scatterplot(data, x="wt", y="mpg", ax=ax)
+                 fit = stats.linregress(data["wt"], data["mpg"])
+                 xs = np.linspace(data["wt"].min(), data["wt"].max(), 200)
+                 ax.plot(xs, fit.intercept + fit.slope * xs)
+             """, """
+                 {"line at the lightest car": f["lines"][0][1][0], "line at the heaviest car": f["lines"][0][1][-1]}
+             """), parent_label="SciPy linregress", parent_tolerance=1e-12,
+             r="""
+                 p <- predict(lm(mpg ~ wt), data.frame(wt = range(wt)))
+                 list(`line at the lightest car` = p[[1]], `line at the heaviest car` = p[[2]])
+             """, r_tolerance=1e-10),
+        Case("draw_qq_dots", "Michelson's 100 measurements of the speed of light against the normal curve",
+             "NIST Michelso", "published",
+             ours=_ours_chart("""
+                 chart = sdata.chart(data).draw_qq_dots("y")
+             """, """
+                 (x0, x1), (y0, y1) = f["lines"][0]
+                 {"dots": len(f["dots"]), "slope of the line": (y1 - y0) / (x1 - x0), "smallest value": f["dots"][0][1]}
+             """),
+             parent=_library_chart("""
+                 from scipy import stats
+                 (theory, ordered), (slope, intercept, r) = stats.probplot(data["y"], dist="norm")
+                 fig, ax = plt.subplots()
+             """, """
+                 {"dots": len(ordered), "slope of the line": slope, "smallest value": ordered[0]}
+             """), parent_label="SciPy probplot", parent_tolerance=1e-12,
+             r="""
+                 list(dots = length(y), `smallest value` = min(y))
+             """, r_tolerance=1e-12,
+             note="R's qqnorm() puts the dots at slightly different places (Blom's, not Filliben's), so only the count "
+                  "and the values themselves are checked against R."),
+        Case("set_range_y", "mtcars: average fuel use on an axis from 0 to 40", "mtcars", "real data",
+             ours=_ours_chart("""
+                 chart = sdata.chart(data).draw_bars(x="cyl", y="mpg").set_range_y(0, 40)
+             """, """
+                 {"bottom of the y axis": f["limits"][1][0], "top of the y axis": f["limits"][1][1]}
+             """),
+             published={"bottom of the y axis": (0, 0, "exact"), "top of the y axis": (40, 0, "exact")},
+             parent=_library_chart(f"""
+                 fig, ax = plt.subplots()
+                 {bars_cyl}
+                 ax.set_ylim(0, 40)
+             """, """
+                 {"bottom of the y axis": f["limits"][1][0], "top of the y axis": f["limits"][1][1]}
+             """), parent_label="matplotlib set_ylim", parent_tolerance=0.0),
+        Case("draw_line_at_y", "mtcars: a line at the average fuel use, 20.09 miles per gallon", "mtcars",
+             "real data",
+             ours=_ours_chart("""
+                 chart = sdata.chart(data).draw_dots(x="wt", y="mpg")
+                 chart.draw_line_at_y(20.090625, labelled="average")
+             """, """
+                 {"line at": f["lines"][0][1][0], "label written": float("average" in f["texts"][1])}
+             """),
+             parent=_library_chart("""
+                 fig, ax = plt.subplots()
+                 sns.scatterplot(data, x="wt", y="mpg", ax=ax)
+                 ax.axhline(20.090625, color="grey", linestyle="--", linewidth=1.5)
+                 ax.text(1.01, 20.090625, "average", transform=ax.get_yaxis_transform())
+             """, """
+                 {"line at": f["lines"][0][1][0], "label written": float("average" in f["texts"][1])}
+             """), parent_label="matplotlib axhline", parent_tolerance=0.0,
+             r="""
+                 list(`line at` = mean(mpg))
+             """, r_tolerance=1e-12),
+        Case("shade_between_y", "mtcars: the middle half of the fuel use shaded (the quartiles 15.425 and 22.8)",
+             "mtcars", "real data",
+             ours=_ours_chart("""
+                 chart = sdata.chart(data).draw_dots(x="wt", y="mpg").shade_between_y(15.425, 22.8)
+             """, """
+                 {"bottom of the band": f["bars"][0][1], "height of the band": f["bars"][0][3],
+                  "width (share of the chart)": f["bars"][0][2]}
+             """),
+             parent=_library_chart("""
+                 fig, ax = plt.subplots()
+                 sns.scatterplot(data, x="wt", y="mpg", ax=ax)
+                 ax.axhspan(15.425, 22.8, color="grey", alpha=0.2, linewidth=0, zorder=0)
+             """, """
+                 {"bottom of the band": f["bars"][0][1], "height of the band": f["bars"][0][3],
+                  "width (share of the chart)": f["bars"][0][2]}
+             """), parent_label="matplotlib axhspan", parent_tolerance=1e-12,
+             r="""
+                 q <- quantile(mpg, c(0.25, 0.75))
+                 list(`bottom of the band` = q[[1]], `height of the band` = q[[2]] - q[[1]])
+             """, r_tolerance=1e-12),
+        Case("use_log_scale_y", "warpbreaks: lines of the two wools on a log scale", "warpbreaks", "real data",
+             ours=_ours_chart("""
+                 chart = sdata.chart(data).draw_lines(x="tension", y="breaks", colour="wool").use_log_scale_y()
+             """, """
+                 {"log scale": float(f["scales"][1] == "log"), "bottom of the y axis": f["limits"][1][0],
+                  "top of the y axis": f["limits"][1][1]}
+             """),
+             parent=_library_chart(f"""
+                 fig, ax = plt.subplots()
+                 ax.set_yscale("log")
+                 {lines_wool}
+             """, """
+                 {"log scale": float(f["scales"][1] == "log"), "bottom of the y axis": f["limits"][1][0],
+                  "top of the y axis": f["limits"][1][1]}
+             """), parent_label="matplotlib set_yscale(\"log\")", parent_tolerance=1e-12),
+        Case("draw_line_at_x", "mtcars: a line at a weight of 3,500 lb", "mtcars", "real data",
+             ours=_ours_chart("""
+                 chart = sdata.chart(data).draw_dots(x="wt", y="mpg").draw_line_at_x(3.5, labelled="3,500 lb")
+             """, """
+                 {"line at": f["lines"][0][0][0], "label written": float("3,500 lb" in f["texts"][1])}
+             """),
+             published={"line at": (3.5, 0, "exact")},
+             parent=_library_chart("""
+                 fig, ax = plt.subplots()
+                 sns.scatterplot(data, x="wt", y="mpg", ax=ax)
+                 ax.axvline(3.5, color="grey", linestyle="--", linewidth=1.5)
+                 ax.text(3.5, 0.98, " 3,500 lb ", transform=ax.get_xaxis_transform(), rotation=90)
+             """, """
+                 {"line at": f["lines"][0][0][0], "label written": float("3,500 lb" in f["texts"][1])}
+             """), parent_label="matplotlib axvline", parent_tolerance=0.0),
+        Case("write_ticks_y_as", "birthwt: the share of low birth weights for each race, written as percents",
+             "birthwt", "real data",
+             ours=_ours_chart("""
+                 chart = sdata.chart(data).draw_bars(x="race", y="low").write_ticks_y_as("percent", out_of=1)
+             """, """
+                 shown = [t for t in f["ticks"][1] if t]
+                 {"labels with %": sum(t.endswith("%") for t in shown), "labels": len(shown),
+                  "race 1": f["bars"][0][3]}
+             """),
+             parent=_library_chart("""
+                 from matplotlib import ticker
+                 fig, ax = plt.subplots()
+                 sns.barplot(data, x="race", y="low", errorbar=None, ax=ax)
+                 ax.yaxis.set_major_formatter(ticker.PercentFormatter(xmax=1))
+             """, """
+                 shown = [t for t in f["ticks"][1] if t]
+                 {"labels with %": sum(t.endswith("%") for t in shown), "labels": len(shown),
+                  "race 1": f["bars"][0][3]}
+             """), parent_label="matplotlib PercentFormatter", parent_tolerance=1e-12,
+             r="""
+                 list(`race 1` = mean(low[race == 1]))
+             """, r_tolerance=1e-12),
+        Case("set_size", "mtcars: a chart 12 cm wide and 9 cm high", "mtcars", "real data",
+             ours=_ours_chart("""
+                 chart = sdata.chart(data).draw_dots(x="wt", y="mpg").set_size(width=12, height=9, unit="cm")
+             """, """
+                 {"width (inches)": f["size"][0], "height (inches)": f["size"][1]}
+             """),
+             published={"width (inches)": (12 / 2.54, 1e-12, "exact"), "height (inches)": (9 / 2.54, 1e-12, "exact")},
+             parent=_library_chart("""
+                 fig, ax = plt.subplots(figsize=(12 / 2.54, 9 / 2.54))
+                 sns.scatterplot(data, x="wt", y="mpg", ax=ax)
+             """, """
+                 {"width (inches)": f["size"][0], "height (inches)": f["size"][1]}
+             """), parent_label="matplotlib figsize", parent_tolerance=1e-12,
+             note="An inch is 2.54 cm."),
+        Case("write_note", "mtcars: the lightest car named on the chart", "mtcars", "real data",
+             ours=_ours_chart("""
+                 chart = sdata.chart(data).draw_dots(x="wt", y="mpg").write_note("Lotus Europa", x=1.513, y=30.4)
+             """, """
+                 {"note written": float("Lotus Europa" in f["texts"][1]), "dots": len(f["dots"])}
+             """),
+             parent=_library_chart("""
+                 fig, ax = plt.subplots()
+                 sns.scatterplot(data, x="wt", y="mpg", ax=ax)
+                 ax.annotate("Lotus Europa", xy=(1.513, 30.4), xytext=(0, 4), textcoords="offset points")
+             """, """
+                 {"note written": float("Lotus Europa" in f["texts"][1]), "dots": len(f["dots"])}
+             """), parent_label="matplotlib annotate", parent_tolerance=0.0),
+        Case("draw_heatmap", "warpbreaks: the average breaks for each wool and tension as coloured cells",
+             "warpbreaks", "real data",
+             ours=_ours_chart("""
+                 chart = sdata.chart(data).draw_heatmap(x="tension", y="wool", value="breaks", with_numbers=True)
+             """, """
+                 cells = f["cells"][0][1]
+                 {"cells": len(cells), "wool A, tension L": cells[0], "wool B, tension H": cells[5],
+                  "numbers written": len(f["texts"][1])}
+             """),
+             parent=_library_chart("""
+                 wide = data.pivot_table(index="wool", columns="tension", values="breaks", aggfunc="mean", sort=False)
+                 fig, ax = plt.subplots()
+                 sns.heatmap(wide, cmap="viridis", cbar=False, annot=True, fmt=".3g", ax=ax)
+             """, """
+                 cells = f["cells"][0][1]
+                 {"cells": len(cells), "wool A, tension L": cells[0], "wool B, tension H": cells[5],
+                  "numbers written": len(f["texts"][1])}
+             """), parent_label="seaborn heatmap", parent_tolerance=1e-12,
+             r="""
+                 m <- tapply(breaks, list(wool, tension), mean)
+                 list(cells = length(m), `wool A, tension L` = m["A", "L"], `wool B, tension H` = m["B", "H"])
+             """, r_tolerance=1e-12),
+        Case("draw_one_chart_for_each_group_in", "Fisher's iris: one small chart of petal against sepal length for "
+             "each species", "iris", "real data",
+             ours=_ours_chart("""
+                 chart = sdata.chart(data).draw_dots(x="Sepal.Length", y="Petal.Length")
+                 chart.draw_one_chart_for_each_group_in("Species")
+             """, """
+                 {"panels": f["panels"], "dots in the first": f["every_panel"][0][4][0],
+                  "dots in the last": f["every_panel"][2][4][0], "width (inches)": f["size"][0]}
+             """),
+             published={"panels": (3, 0, "exact"), "dots in the first": (50, 0, "exact"),
+                        "dots in the last": (50, 0, "exact")},
+             parent=_library_chart("""
+                 fig = plt.figure(figsize=(13, 4.5), layout="constrained")
+                 axes = fig.subplots(1, 3, sharex=True, sharey=True)
+                 for ax, (name, rows) in zip(axes, data.groupby("Species", sort=False)):
+                     sns.scatterplot(rows, x="Sepal.Length", y="Petal.Length", ax=ax)
+             """, """
+                 {"panels": f["panels"], "dots in the first": f["every_panel"][0][4][0],
+                  "dots in the last": f["every_panel"][2][4][0], "width (inches)": f["size"][0]}
+             """, axes="axes[0]"), parent_label="matplotlib subplots(sharex, sharey)", parent_tolerance=0.0),
+        Case("sdata.put_side_by_side", "mtcars: bars and boxes of fuel use side by side, on the same y range",
+             "mtcars", "real data",
+             ours=_ours_chart("""
+                 a = sdata.chart(data).draw_bars(x="cyl", y="mpg")
+                 b = sdata.chart(data).draw_boxes(x="cyl", y="mpg")
+                 chart = sdata.put_side_by_side(a, b, same_y=True)
+             """, """
+                 {"panels": len(f["every_panel"]), "width (inches)": f["size"][0], "top of the y axis": f["limits"][1][1],
+                  "4 cylinders": f["every_panel"][0][5][1][0][3]}
+             """),
+             parent=_library_chart(f"""
+                 fig = plt.figure(figsize=(12, 4.5), layout="constrained")
+                 ax, ax2 = (cell.add_subplot() for cell in fig.subfigures(1, 2))
+                 {bars_cyl}
+                 sns.boxplot(data, x="cyl", y="mpg", saturation=1, ax=ax2)
+                 ends = ax.get_ylim() + ax2.get_ylim()
+                 for one in (ax, ax2):
+                     one.set_ylim(min(ends), max(ends))
+             """, """
+                 {"panels": len(f["every_panel"]), "width (inches)": f["size"][0], "top of the y axis": f["limits"][1][1],
+                  "4 cylinders": f["every_panel"][0][5][1][0][3]}
+             """), parent_label="matplotlib subfigures", parent_tolerance=1e-12,
+             r="""
+                 list(`4 cylinders` = mean(mpg[cyl == 4]))
+             """, r_tolerance=1e-12),
+        Case("sdata.put_one_above_other", "Fisher's iris: dots above a histogram", "iris", "real data",
+             ours=_ours_chart("""
+                 a = sdata.chart(data).draw_dots(x="Sepal.Length", y="Petal.Length")
+                 b = sdata.chart(data).draw_histogram(x="Sepal.Length")
+                 chart = sdata.put_one_above_other(a, b)
+             """, """
+                 {"panels": len(f["every_panel"]), "height (inches)": f["size"][1], "dots": f["every_panel"][0][4][0],
+                  "bars": f["every_panel"][1][5][0]}
+             """),
+             parent=_library_chart("""
+                 fig = plt.figure(figsize=(6, 9), layout="constrained")
+                 ax, ax2 = (cell.add_subplot() for cell in fig.subfigures(2, 1))
+                 sns.scatterplot(data, x="Sepal.Length", y="Petal.Length", ax=ax)
+                 sns.histplot(data, x="Sepal.Length", bins=10, ax=ax2)
+             """, """
+                 {"panels": len(f["every_panel"]), "height (inches)": f["size"][1], "dots": f["every_panel"][0][4][0],
+                  "bars": f["every_panel"][1][5][0]}
+             """), parent_label="matplotlib subfigures", parent_tolerance=0.0),
+        Case("sdata.put_in_rows_and_columns", "Fisher's iris: histograms of the four measurements, two in a row",
+             "iris", "real data",
+             ours=_ours_chart("""
+                 names = ["Sepal.Length", "Sepal.Width", "Petal.Length", "Petal.Width"]
+                 charts = [sdata.chart(data).draw_histogram(x=name) for name in names]
+                 chart = sdata.put_in_rows_and_columns(*charts, per_row=2)
+             """, """
+                 {"panels": len(f["every_panel"]), "width (inches)": f["size"][0], "height (inches)": f["size"][1],
+                  "flowers in the last histogram": sum(b[3] for b in f["every_panel"][3][5][1])}
+             """),
+             published={"panels": (4, 0, "exact"), "flowers in the last histogram": (150, 0, "exact")},
+             parent=_library_chart("""
+                 names = ["Sepal.Length", "Sepal.Width", "Petal.Length", "Petal.Width"]
+                 fig = plt.figure(figsize=(12, 9), layout="constrained")
+                 axes = [cell.add_subplot() for cell in fig.subfigures(2, 2).flat]
+                 for one, name in zip(axes, names):
+                     sns.histplot(data, x=name, bins=10, ax=one)
+             """, """
+                 {"panels": len(f["every_panel"]), "width (inches)": f["size"][0], "height (inches)": f["size"][1],
+                  "flowers in the last histogram": sum(b[3] for b in f["every_panel"][3][5][1])}
+             """, axes="axes[0]"), parent_label="matplotlib subfigures", parent_tolerance=0.0),
+        Case("sdata.draw_all_pairs", "Fisher's iris: every measurement against every other, by species", "iris",
+             "real data",
+             ours=_ours_chart("""
+                 chart = sdata.draw_all_pairs(data, colour="Species")
+             """, """
+                 {"panels and diagonal axes": f["panels"], "dots in the second panel": f["every_panel"][1][4][0],
+                  "panels with dots": sum(p[4][0] > 0 for p in f["every_panel"])}
+             """),
+             published={"panels and diagonal axes": (20, 0, "exact"), "dots in the second panel": (150, 0, "exact"),
+                        "panels with dots": (12, 0, "exact")},
+             parent=_library_chart("""
+                 cols = ["Sepal.Length", "Sepal.Width", "Petal.Length", "Petal.Width"]
+                 fig, axes = plt.subplots(4, 4, sharex="col", sharey="row")
+                 for i, y in enumerate(cols):
+                     for j, x in enumerate(cols):
+                         if i == j:
+                             sns.kdeplot(data, x=x, hue="Species", fill=True, common_norm=False, legend=False,
+                                         ax=axes[i, j].twinx())
+                         else:
+                             sns.scatterplot(data, x=x, y=y, hue="Species", legend=False, ax=axes[i, j])
+             """, """
+                 {"panels and diagonal axes": f["panels"], "dots in the second panel": f["every_panel"][1][4][0],
+                  "panels with dots": sum(p[4][0] > 0 for p in f["every_panel"])}
+             """, axes="axes[0, 0]"), parent_label="seaborn scatterplot and kdeplot", parent_tolerance=0.0,
+             note="4 columns make 16 panels; each of the 4 on the diagonal also has a second y-axis for its curves."),
+        Case("add_second_y", "mtcars: fuel use as a line and horsepower as bars on a second y-axis", "mtcars",
+             "real data",
+             ours=_ours_chart("""
+                 chart = sdata.chart(data).draw_lines(x="cyl", y="mpg").add_second_y("hp", drawn_as="bars")
+             """, """
+                 bars = f["every_panel"][1][5][1]
+                 {"4 cylinders": bars[0][3], "6 cylinders": bars[1][3], "8 cylinders": bars[2][3]}
+             """),
+             parent=_library_chart("""
+                 fig, ax = plt.subplots()
+                 sns.lineplot(data, x="cyl", y="mpg", errorbar=None, ax=ax)
+                 hp = data.groupby("cyl")["hp"].mean()
+                 ax.twinx().bar(hp.index, hp, width=0.8 * 2, alpha=0.6)
+             """, """
+                 bars = f["every_panel"][1][5][1]
+                 {"4 cylinders": bars[0][3], "6 cylinders": bars[1][3], "8 cylinders": bars[2][3]}
+             """), parent_label="matplotlib twinx and bar", parent_tolerance=1e-12,
+             r="""
+                 m <- tapply(hp, cyl, mean)
+                 list(`4 cylinders` = m[["4"]], `6 cylinders` = m[["6"]], `8 cylinders` = m[["8"]])
+             """, r_tolerance=1e-12),
+        Case("animate", "mtcars: average fuel use by cylinders, one picture for each number of gears (the last: 5)",
+             "mtcars", "real data",
+             ours=_ours_chart("""
+                 chart = sdata.chart(data).draw_bars(x="cyl", y="mpg").animate(over="gear")
+             """, """
+                 {"4 cylinders": f["bars"][0][3], "8 cylinders": f["bars"][2][3],
+                  "named by its gear": float(f["labels"][2] == "gear: 5")}
+             """),
+             parent=_library_chart("""
+                 fig, ax = plt.subplots()
+                 sns.barplot(data[data["gear"] == 5], x="cyl", y="mpg", errorbar=None, ax=ax)
+                 ax.set_title("gear: 5")
+             """, """
+                 {"4 cylinders": f["bars"][0][3], "8 cylinders": f["bars"][2][3],
+                  "named by its gear": float(f["labels"][2] == "gear: 5")}
+             """), parent_label="seaborn barplot of the last frame", parent_tolerance=1e-12,
+             r="""
+                 five <- gear == 5
+                 list(`4 cylinders` = mean(mpg[five & cyl == 4]), `8 cylinders` = mean(mpg[five & cyl == 8]))
+             """, r_tolerance=1e-12,
+             note="Shown as a still picture, an animated chart is its last frame."),
+        Case("fit_formula", "Puromycin (treated): the Michaelis-Menten curve through the dots", "Puromycin (treated)",
+             "published",
+             ours=_ours_chart("""
+                 chart = sdata.chart(data).draw_dots(x="conc", y="rate")
+                 chart.fit_formula("rate = Vm * conc / (K + conc)", start={"Vm": 200, "K": 0.1})
+             """, """
+                 xs, ys = f["lines"][0]
+                 {"curve at the highest concentration": ys[-1], "curve at the lowest": ys[0]}
+             """),
+             parent=_library_chart("""
+                 from scipy import optimize
+                 (vm, k), _ = optimize.curve_fit(lambda c, vm, k: vm * c / (k + c), data["conc"], data["rate"],
+                                                 p0=[200, 0.1], method="lm", maxfev=20000, xtol=1e-12, ftol=1e-12)
+                 fig, ax = plt.subplots()
+                 xs = np.linspace(data["conc"].min(), data["conc"].max(), 200)
+                 ax.plot(xs, vm * xs / (k + xs))
+             """, """
+                 xs, ys = f["lines"][0]
+                 {"curve at the highest concentration": ys[-1], "curve at the lowest": ys[0]}
+             """), parent_label="SciPy curve_fit", parent_tolerance=1e-7,
+             r="""
+                 m <- nls(rate ~ Vm * conc / (K + conc), start = list(Vm = 200, K = 0.1), control = list(tol = 1e-8))
+                 p <- predict(m, data.frame(conc = range(conc)))
+                 list(`curve at the highest concentration` = p[[2]], `curve at the lowest` = p[[1]])
+             """, r_tolerance=1e-6),
+        # ---- statistics words of U-batch 2
+        Case("table.find_trend_of", "the level of Lake Huron, 1875-1972: Mann-Kendall test and Sen's slope",
+             "Lake Huron", "real data",
+             ours="""
+                 r = sdata.table(data).find_trend_of("level", sorted_by="year")
+                 {"slope per year": r.get_cell_at(row=1, column="slope"),
+                  "slope 95 % CI low": r.get_cell_at(row=1, column="95 % CI low"),
+                  "z": r.get_cell_at(row=1, column="z"), "p-value": r.get_cell_at(row=1, column="p-value")}
+             """,
+             parent="""
+                 from scipy import stats
+                 s = stats.theilslopes(data["level"], data["year"], alpha=0.95)
+                 {"slope per year": s.slope, "slope 95 % CI low": s.low_slope}
+             """, parent_label="SciPy theilslopes", parent_tolerance=1e-10,
+             r="""
+                 m <- trend::mk.test(level)
+                 s <- trend::sens.slope(level)
+                 list(`slope per year` = unname(s$estimates), `slope 95 % CI low` = s$conf.int[1],
+                      z = unname(m$statistic), `p-value` = m$p.value)
+             """, r_packages=("trend",), r_tolerance=1e-9, ours_r=("trend",),
+             note="The years run 1875 to 1972 without a gap, so the slope per year equals R's slope per reading."),
+        Case("table.find_each_peak_that", "the air passengers, 1949-1960: the peaks at least 6 months apart",
+             "AirPassengers", "real data",
+             ours="""
+                 r = sdata.table(data).find_each_peak_that("passengers", apart=6)
+                 {"peaks": r.count_rows(), "first peak (row)": r.get_cell_at(row=1, column="position"),
+                  "highest peak": r.get_column("value").find_biggest()}
+             """,
+             parent="""
+                 from scipy import signal
+                 peaks, _ = signal.find_peaks(data["passengers"].to_numpy(dtype=float), distance=6)
+                 {"peaks": len(peaks), "first peak (row)": peaks[0] + 1,
+                  "highest peak": data["passengers"].to_numpy()[peaks].max()}
+             """, parent_label="SciPy find_peaks(distance=6)", parent_tolerance=0.0,
+             published={"highest peak": (622, 0, "Box & Jenkins (1976): July 1960")}),
+        Case("table.add_nmds", "the dune meadows (vegan): an NMDS map of the 20 plots", "dune (vegan)", "real data",
+             ours="""
+                 species = [c for c in data.columns if c not in ("Management", "A1")]
+                 t = sdata.table(data).add_nmds(columns=species)
+                 {"NMDS1 of plot 1": t.get_cell_at(row=1, column="NMDS1"),
+                  "NMDS2 of plot 1": t.get_cell_at(row=1, column="NMDS2"),
+                  "NMDS1 of plot 20": t.get_cell_at(row=20, column="NMDS1")}
+             """,
+             r="""
+                 e <- new.env(); utils::data("dune", package = "vegan", envir = e)
+                 set.seed(1)
+                 fit <- vegan::metaMDS(vegan::vegdist(e$dune, method = "bray"), k = 2, try = 20, trymax = 100,
+                                       autotransform = FALSE, trace = 0)
+                 list(`NMDS1 of plot 1` = fit$points[1, 1], `NMDS2 of plot 1` = fit$points[1, 2],
+                      `NMDS1 of plot 20` = fit$points[20, 1])
+             """, r_packages=("vegan",), r_tolerance=1e-9, ours_r=("vegan",)),
+        Case("table.fit_formula", "Puromycin (treated): Vm and K of the Michaelis-Menten formula", "Puromycin (treated)",
+             "published",
+             ours="""
+                 r = sdata.table(data).fit_formula("rate = Vm * conc / (K + conc)", start={"Vm": 200, "K": 0.1})
+                 {"Vm": r.get_cell_at(row=1, column="Vm"), "K": r.get_cell_at(row=1, column="K"),
+                  "standard error of K": r.get_cell_at(row=1, column="standard error of K")}
+             """,
+             published={"Vm": (212.7, 0.05, "Bates & Watts (1988)"), "K": (0.06412, 0.000005, "Bates & Watts (1988)")},
+             parent="""
+                 from scipy import optimize
+                 (vm, k), cov = optimize.curve_fit(lambda c, vm, k: vm * c / (k + c), data["conc"], data["rate"],
+                                                   p0=[200, 0.1], method="lm", maxfev=20000, xtol=1e-12, ftol=1e-12)
+                 {"Vm": vm, "K": k, "standard error of K": np.sqrt(cov[1, 1])}
+             """, parent_label="SciPy curve_fit (Levenberg-Marquardt)", parent_tolerance=1e-7,
+             r="""
+                 m <- summary(nls(rate ~ Vm * conc / (K + conc), start = list(Vm = 200, K = 0.1), control = list(tol = 1e-8)))$coefficients
+                 list(Vm = m["Vm", 1], K = m["K", 1], `standard error of K` = m["K", 2])
+             """, r_tolerance=1e-6),
+        Case("table.compare_matched_columns", "rounding first base: 22 players, three routes (Friedman test)",
+             "rounding first base", "published",
+             ours="""
+                 r = sdata.table(data).compare_matched_columns("round_out", "narrow_angle", "wide_angle")
+                 {"chi-square": r.get_cell_at(row=1, column="statistic"),
+                  "degrees of freedom": r.get_cell_at(row=1, column="degrees of freedom"),
+                  "p-value": r.get_cell_at(row=1, column="p-value")}
+             """,
+             published={"chi-square": (11.143, 0.0005, "R friedman.test help (Hollander & Wolfe 1973)"),
+                        "p-value": (0.003805, 0.0000005, "R friedman.test help (Hollander & Wolfe 1973)")},
+             parent="""
+                 from scipy import stats
+                 res = stats.friedmanchisquare(data["round_out"], data["narrow_angle"], data["wide_angle"])
+                 {"chi-square": res.statistic, "degrees of freedom": 2, "p-value": res.pvalue}
+             """, parent_label="SciPy friedmanchisquare", parent_tolerance=1e-12,
+             r="""
+                 f <- friedman.test(cbind(round_out, narrow_angle, wide_angle))
+                 list(`chi-square` = unname(f$statistic), `degrees of freedom` = unname(f$parameter),
+                      `p-value` = f$p.value)
+             """, r_tolerance=1e-10),
+        Case("table.show_rows_that_pull_model", "mtcars: the cars that pull the line of fuel use on weight and "
+             "horsepower the most", "mtcars", "real data",
+             ours=_printed('sdata.table(data).show_rows_that_pull_model("mpg", using=["wt", "hp"])', """
+                 first = lines[0].split()
+                 {"rows above 4 / n": int(first[1]), "the row that pulls most": int(lines[1].split()[1].rstrip(":")),
+                  "its Cook's distance": float(lines[1].split("Cook's distance ")[1].split(",")[0])}
+             """),
+             parent="""
+                 import statsmodels.formula.api as smf
+                 s = smf.ols("mpg ~ wt + hp", data=data).fit().get_influence().summary_frame()
+                 {"rows above 4 / n": int((s["cooks_d"] > 4 / len(data)).sum()),
+                  "the row that pulls most": int(s["cooks_d"].to_numpy().argmax()) + 1,
+                  "its Cook's distance": float(f'{s["cooks_d"].max():.3g}')}
+             """, parent_label="statsmodels OLSInfluence (Cook's distance to the 3 digits printed)",
+             parent_tolerance=0.0,
+             r="""
+                 d <- cooks.distance(lm(mpg ~ wt + hp))
+                 list(`rows above 4 / n` = sum(d > 4 / length(d)), `the row that pulls most` = which.max(d)[[1]],
+                      `its Cook's distance` = signif(max(d), 3))
+             """, r_tolerance=0.0),
     ]
 
 
