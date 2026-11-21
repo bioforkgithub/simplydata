@@ -603,10 +603,10 @@ CASES += [
          note="With one yes/no column, the modified Poisson risk ratio is the risk ratio of the 2 x 2 table "
               "(Zou 2004), here from statsmodels' Table2x2."),
     Case("table.explain", "log-binomial risk ratio of low birth weight", "birthwt", "real data",
-         option='method="log-binomial"',
+         option='test_method="log-binomial"',
          ours="""
              r = _rows(sdata.table(data).explain("low", using=["smoke", "age"], outcome="yes or no",
-                                                         show="risk ratios", method="log-binomial"))
+                                                         show="risk ratios", test_method="log-binomial"))
              {"log risk ratio": r["smoke"]["log risk ratio"], "standard error": r["smoke"]["standard error"]}
          """,
          r="""

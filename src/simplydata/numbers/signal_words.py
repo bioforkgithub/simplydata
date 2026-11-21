@@ -108,7 +108,7 @@ class TimeSeriesNumberWords:
 
         values = np.asarray(self._values, dtype=float).ravel()
         return Table(pd.DataFrame({"numbers": values})).forecast(
-            "numbers", steps_ahead=steps_ahead, method=test_method, repeats_every=repeats_every, trend=trend,
+            "numbers", steps_ahead=steps_ahead, test_method=test_method, repeats_every=repeats_every, trend=trend,
             season=season, order=order, seasonal_order=seasonal_order, interval=interval,
             check_on_last=check_on_last, show=show)
 

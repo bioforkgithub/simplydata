@@ -158,7 +158,7 @@ def test_chance_to_find_sentence(capsys):
     (lambda: find_how_many_needed(effect_size=0.5, power=0.03), "more than significance"),
     (lambda: find_how_many_needed(effect_size=0.5, significance=5), "between 0 and 1"),
     (lambda: find_how_many_needed(effect_size=0), "can never be found"),
-    (lambda: find_how_many_needed("compare_avarages", effect_size=0.5), 'Did you mean test="compare_averages"'),
+    (lambda: find_how_many_needed("compare_avarages", effect_size=0.5), 'Did you mean for_test="compare_averages"'),
     (lambda: find_how_many_needed(effect_size=0.5, sides=3), "sides=2"),
     (lambda: find_how_many_needed(groups=3, effect_size=0.25, sides=1), "sides=1"),
     (lambda: find_how_many_needed(groups=3, difference=1, spread=2), "effect_size="),

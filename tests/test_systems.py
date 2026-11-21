@@ -203,19 +203,19 @@ def test_in_steps_matches_r(s1, capsys):
     assert zoh._num == pytest.approx([0.00466347320860461, 0.00436231268810872], rel=1e-9)
     assert zoh._den == pytest.approx([1, -1.77360182359442, 0.818730753077982], rel=1e-12)
     assert "z**2 - 1.7736*z + 0.818731" in capsys.readouterr().out
-    tustin = s1.in_steps(time_step=0.1, method="tustin")
+    tustin = s1.in_steps(time_step=0.1, test_method="tustin")
     # R: signal::bilinear(numeric(0), control::pole(s1), 1, 0.1), as.Arma, divided by a[1]
     assert tustin._num == pytest.approx([0.00224719101123596, 0.00449438202247191, 0.00224719101123596], rel=1e-10)
     assert tustin._den == pytest.approx([1, -1.7752808988764, 0.820224719101123], rel=1e-10)
     # R: s = (z - 1) / T and s = (z - 1) / (z T) put into 1 / (s^2 + 2 s + 5) (ref_systems.R)
-    euler = s1.in_steps(time_step=0.1, method="forward difference")
+    euler = s1.in_steps(time_step=0.1, test_method="forward difference")
     assert euler._den == pytest.approx([1, -1.8, 0.85]) and euler._num == pytest.approx([0.01])
-    back = s1.in_steps(time_step=0.1, method="backward difference")
+    back = s1.in_steps(time_step=0.1, test_method="backward difference")
     assert back._den == pytest.approx([1, -1.76, 0.8]) and back._num == pytest.approx([0.008, 0, 0])
     with pytest.raises(SimplydataError, match="already in steps"):
         zoh.in_steps(time_step=0.1)
     with pytest.raises(SimplydataError, match="method"):
-        s1.in_steps(time_step=0.1, method="magic")
+        s1.in_steps(time_step=0.1, test_method="magic")
 
 
 def test_joining_systems_matches_r(s1, capsys):

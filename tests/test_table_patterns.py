@@ -189,14 +189,14 @@ HCLUST = {
 
 @pytest.mark.parametrize("linkage", list(HCLUST))
 def test_hierarchical_matches_hclust(meadow, linkage, capsys):
-    meadow.add_clusters(method="hierarchical", linkage=linkage, name="group")
+    meadow.add_clusters(test_method="hierarchical", linkage=linkage, name="group")
     assert meadow._frame.to_pandas()["group"].tolist() == HCLUST[linkage]
     assert "hclust" in capsys.readouterr().out
 
 
 def test_hierarchical_school_ward(school):
     # R: head(cutree(hclust(dist(scale(sc)), method = "ward.D2"), 3), 20)
-    school.add_clusters(method="hierarchical")
+    school.add_clusters(test_method="hierarchical")
     _, kept = complete_school()
     labels = school._frame.to_pandas()["cluster"][kept].to_numpy(int)
     assert labels[:20].tolist() == [1, 1, 1, 2, 1, 3, 2, 3, 1, 1, 1, 1, 1, 1, 2, 1, 1, 1, 1, 1]
@@ -207,7 +207,7 @@ def test_clusters_leave_out_earlier_pattern_columns(meadow, capsys, needs_r):
     meadow.add_clusters()
     meadow.add_principal_components()
     capsys.readouterr()
-    meadow.add_clusters(method="hierarchical", name="h")
+    meadow.add_clusters(test_method="hierarchical", name="h")
     text = capsys.readouterr().out
     assert "left out cluster, PC1 and PC2" in text and "from 10 columns" in text
     assert meadow._frame.to_pandas()["h"].tolist() == HCLUST["ward"]
@@ -216,9 +216,9 @@ def test_clusters_leave_out_earlier_pattern_columns(meadow, capsys, needs_r):
 
 def test_cluster_errors(meadow):
     with pytest.raises(SimplydataError, match="k-means"):
-        meadow.add_clusters(method="kmeans")
+        meadow.add_clusters(test_method="kmeans")
     with pytest.raises(SimplydataError, match="ward"):
-        meadow.add_clusters(method="hierarchical", linkage="wards")
+        meadow.add_clusters(test_method="hierarchical", linkage="wards")
     with pytest.raises(SimplydataError, match="how_many="):
         meadow.add_clusters(how_many=1)
     with pytest.raises(SimplydataError, match="no option called"):

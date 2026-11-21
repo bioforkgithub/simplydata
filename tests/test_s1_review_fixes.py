@@ -232,7 +232,7 @@ def test_partial_correlation_whole_r_on_the_same_rows(needs_r, capsys):
 
 def test_kendall_interval_words(needs_r, capsys):
     t = make_table(sdata.get_example("marks"))
-    t.find_correlation_between("hours", "marks", method="kendall")
+    t.find_correlation_between("hours", "marks", test_method="kendall")
     # R: DescTools::KendallTauB(hours, marks, conf.level = 0.95): an asymptotic standard error, not Fisher's z
     out = capsys.readouterr().out
     assert "asymptotic standard error, R DescTools" in out and "Fisher's z" not in out

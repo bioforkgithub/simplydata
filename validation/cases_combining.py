@@ -121,8 +121,8 @@ def _cases(Case):
                  p <- predict(f, transf = exp)
                  list(estimate = p$pred, low = p$ci.lb, high = p$ci.ub, `p-value` = f$pval)
              """, r_packages=("metafor",), r_tolerance=1e-8),
-        Case("table.combine_studies", "method=: BCG trials, DerSimonian-Laird", "BCG trials (metadat)", "published",
-             ours=combined.format(call=BCG + ', method="DerSimonian-Laird", interval_by="normal"',
+        Case("table.combine_studies", "test_method=: BCG trials, DerSimonian-Laird", "BCG trials (metadat)", "published",
+             ours=combined.format(call=BCG + ', test_method="DerSimonian-Laird", interval_by="normal"',
                                   more=', "tau squared": c["tau squared"]'),
              published={"tau squared": (0.3088, 5e-5, viechtbauer)},
              parent="""
@@ -141,24 +141,24 @@ def _cases(Case):
              """, r_packages=("metafor",), r_tolerance=1e-8,
              note="The study's log risk ratios are written out for statsmodels (the parent check), which has no "
                   "escalc; simplydata itself takes them from R metafor."),
-        Case("table.combine_studies", "method=: BCG trials, Paule-Mandel", "BCG trials (metadat)", "real data",
-             ours=combined.format(call=BCG + ', method="Paule-Mandel"', more=', "tau squared": c["tau squared"]'),
+        Case("table.combine_studies", "test_method=: BCG trials, Paule-Mandel", "BCG trials (metadat)", "real data",
+             ours=combined.format(call=BCG + ', test_method="Paule-Mandel"', more=', "tau squared": c["tau squared"]'),
              r=RR + """
                  f <- metafor::rma(yi, vi, data = e, method = "PM", test = "adhoc")
                  p <- predict(f, transf = exp)
                  list(estimate = p$pred, low = p$ci.lb, high = p$ci.ub, `p-value` = f$pval, `tau squared` = f$tau2)
              """, r_packages=("metafor",), r_tolerance=1e-6,
              note="Paule-Mandel is found by iteration, so the numbers agree to metafor's own tolerance."),
-        Case("table.combine_studies", "method=: BCG trials, a common effect", "BCG trials (metadat)", "real data",
-             ours=combined.format(call=BCG + ', method="common effect"', more=""),
+        Case("table.combine_studies", "test_method=: BCG trials, a common effect", "BCG trials (metadat)", "real data",
+             ours=combined.format(call=BCG + ', test_method="common effect"', more=""),
              r=RR + """
                  f <- metafor::rma(yi, vi, data = e, method = "EE")
                  p <- predict(f, transf = exp)
                  list(estimate = p$pred, low = p$ci.lb, high = p$ci.ub, `p-value` = f$pval)
              """, r_packages=("metafor",), r_tolerance=1e-8),
-        Case("table.combine_studies", 'method="Mantel-Haenszel": BCG trials, risk ratios', "BCG trials (metadat)",
+        Case("table.combine_studies", 'test_method="Mantel-Haenszel": BCG trials, risk ratios', "BCG trials (metadat)",
              "real data",
-             ours=combined.format(call=BCG + ', method="Mantel-Haenszel"', more=""),
+             ours=combined.format(call=BCG + ', test_method="Mantel-Haenszel"', more=""),
              parent="""
                  from statsmodels.stats.contingency_tables import StratifiedTable
                  tables = [np.array([[a, b], [c_, d]]) for a, b, c_, d in
@@ -170,8 +170,8 @@ def _cases(Case):
                  p <- predict(f, transf = exp)
                  list(estimate = p$pred, low = p$ci.lb, high = p$ci.ub, `p-value` = f$pval)
              """, r_packages=("metafor",), r_tolerance=1e-8),
-        Case("table.combine_studies", 'method="Peto": BCG trials, odds ratios', "BCG trials (metadat)", "real data",
-             ours=combined.format(call=BCG + ', method="Peto"', more=""),
+        Case("table.combine_studies", 'test_method="Peto": BCG trials, odds ratios', "BCG trials (metadat)", "real data",
+             ours=combined.format(call=BCG + ', test_method="Peto"', more=""),
              r="""
                  f <- metafor::rma.peto(ai = tpos, bi = tneg, ci = cpos, di = cneg)
                  p <- predict(f, transf = exp)
@@ -214,7 +214,7 @@ def _cases(Case):
              "passive smoking (metadat)", "published",
              ours="""
                  r = sdata.table(data).combine_studies(names="study", estimates="odds ratio",
-                                                       method="DerSimonian-Laird", interval_by="normal").as_pandas()
+                                                       test_method="DerSimonian-Laird", interval_by="normal").as_pandas()
                  c = r[r["row kind"] == "combined"].iloc[0]
                  {"estimate": c["estimate"], "low": c["estimate 95 % CI low"], "high": c["estimate 95 % CI high"]}
              """,

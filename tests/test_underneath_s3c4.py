@@ -12,10 +12,10 @@ from simplydata._underneath.check import check_entry
 
 OPTIONS = ["table.find_percentile_of weights=", 'table.find_percentile_of weight_kind="analytic"',
            "table.find_median_of weights=", 'table.find_correlation_between show="covariance"',
-           'table.forecast order="automatic"', 'table.add_adjusted_p_value_column method="storey"',
-           'table.add_adjusted_p_value_column method="local fdr"',
-           'table.compare_each_pair_of matched_by=, test="nemenyi"',
-           'table.compare_each_pair_of matched_by=, test="conover"', 'table.compare_each_pair_of based_on="percents"']
+           'table.forecast order="automatic"', 'table.add_adjusted_p_value_column test_method="storey"',
+           'table.add_adjusted_p_value_column test_method="local fdr"',
+           'table.compare_each_pair_of matched_by=, test_method="nemenyi"',
+           'table.compare_each_pair_of matched_by=, test_method="conover"', 'table.compare_each_pair_of based_on="percents"']
 
 
 @pytest.mark.parametrize("key", OPTIONS)
@@ -34,8 +34,8 @@ def test_each_option_entry_uses_its_option(entry):
     ("table.find_percentile_of weights=", 'np.repeat(df["price"].to_numpy(), df["count"].to_numpy())',
      'df["price"].to_numpy()'),
     ('table.compare_each_pair_of based_on="percents"', "correction=True", "correction=False"),
-    ('table.add_adjusted_p_value_column method="storey"', "qvalue::qvalue(p)", "qvalue::qvalue(p, pi0 = 1)"),
-    ('table.compare_each_pair_of matched_by=, test="conover"', 'p.adjust.method = "holm"',
+    ('table.add_adjusted_p_value_column test_method="storey"', "qvalue::qvalue(p)", "qvalue::qvalue(p, pi0 = 1)"),
+    ('table.compare_each_pair_of matched_by=, test_method="conover"', 'p.adjust.method = "holm"',
      'p.adjust.method = "single-step"'),
 ])
 def test_leaving_out_a_choice_makes_the_comparison_fail(key, setting, replacement):

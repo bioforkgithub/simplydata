@@ -1,5 +1,5 @@
 """Tests for the curve chart words: curve, fit_formula, fit_distribution, lines(joined_by=),
-smooth_line(method="spline") and qq_dots(distribution=).
+smooth_line(test_method="spline") and qq_dots(distribution=).
 
 The drawn line data is checked against the formula, the fit engines and table.values_at
 (whose numbers are checked against R in test_between.py); the printed fit values against
@@ -219,21 +219,21 @@ def test_lines_steps_and_errors():
 # ====================================================================== smooth_line(method="spline")
 def test_smooth_line_spline(needs_r):
     marks = sdata.get_example("marks")
-    ax = drawn(Chart(marks).draw_dots(x="hours", y="marks").draw_smooth_line(method="spline"))
+    ax = drawn(Chart(marks).draw_dots(x="hours", y="marks").draw_smooth_line(test_method="spline"))
     line = long_lines(ax)[0]
     rows = marks.dropna(subset=["hours", "marks"])
     expected = smoothing_spline(rows["hours"], rows["marks"])(np.asarray(line.get_xdata()))
     assert np.allclose(line.get_ydata(), expected)
     # R: smooth.spline(m$hours, m$marks, all.knots = TRUE, lambda = 0.01); predict(f, 2)$y = 46.3672143365
-    ax = drawn(Chart(marks).draw_dots(x="hours", y="marks").draw_smooth_line(method="spline", smoothness=0.01))
+    ax = drawn(Chart(marks).draw_dots(x="hours", y="marks").draw_smooth_line(test_method="spline", smoothness=0.01))
     line = long_lines(ax)[0]
     spline = smoothing_spline(rows["hours"], rows["marks"], 0.01)
     assert np.allclose(line.get_ydata(), spline(np.asarray(line.get_xdata())))
     assert spline([2])[0] == pytest.approx(46.3672143365, abs=1e-4)
-    with pytest.raises(SimplydataError, match='method="spline"'):
+    with pytest.raises(SimplydataError, match='test_method="spline"'):
         Chart(marks).draw_dots(x="hours", y="marks").draw_smooth_line(smoothness=0.5)
-    with pytest.raises(SimplydataError, match='Did you mean method="spline"'):
-        Chart(marks).draw_dots(x="hours", y="marks").draw_smooth_line(method="splin")
+    with pytest.raises(SimplydataError, match='Did you mean test_method="spline"'):
+        Chart(marks).draw_dots(x="hours", y="marks").draw_smooth_line(test_method="splin")
 
 
 def test_smooth_line_lowess_unchanged():

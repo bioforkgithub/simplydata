@@ -85,7 +85,7 @@ def test_friedman_without_r_still_tests(wide, capsys, monkeypatch):
 
 
 def test_quade(wide, needs_r):
-    got = row(wide.compare_matched_columns("Maths", "Science", "English", test="quade"))
+    got = row(wide.compare_matched_columns("Maths", "Science", "English", test_method="quade"))
     # R: quade.test(mm)
     assert got["statistic"] == pytest.approx(1.67488109114, rel=REL)
     assert got["p-value"] == pytest.approx(0.202417611028, rel=REL)
@@ -111,10 +111,10 @@ def test_matched_two_columns_is_before_after(wide, capsys):
 def test_matched_errors(wide):
     with pytest.raises(SimplydataError, match="comes later"):
         wide.compare_matched_columns("Maths", "Science", "English", based_on="averages")
-    with pytest.raises(SimplydataError, match='Did you mean test="quade"'):
-        wide.compare_matched_columns("Maths", "Science", "English", test="quad")
+    with pytest.raises(SimplydataError, match='Did you mean test_method="quade"'):
+        wide.compare_matched_columns("Maths", "Science", "English", test_method="quad")
     with pytest.raises(SimplydataError, match="yes/no columns"):
-        wide.compare_matched_columns("Maths", "Science", "English", test="cochran")
+        wide.compare_matched_columns("Maths", "Science", "English", test_method="cochran")
     with pytest.raises(SimplydataError, match="same column twice"):
         wide.compare_matched_columns("Maths", "Maths", "English")
 
@@ -240,7 +240,7 @@ def test_bowker_empty_pair(engine):
 
 
 def test_sign_test(wide):
-    got = row(wide.compare_before_and_after("Maths", "Science", test="sign"))
+    got = row(wide.compare_before_and_after("Maths", "Science", test_method="sign"))
     # R: DescTools::SignTest(Science, Maths): S = 13 of 18, p 0.0962524414
     assert got["p-value"] == pytest.approx(0.09625244140625, rel=REL)
     assert got["rows that went up"] == 13 and got["rows that went down"] == 5
@@ -251,8 +251,8 @@ def test_before_after_errors(pain, wide):
         pain.compare_before_and_after("pain_before", "pain_after", sides=1, higher="after")
     with pytest.raises(SimplydataError, match="for yes/no columns"):
         wide.compare_before_and_after("Maths", "Science", p_value_by="exact")
-    with pytest.raises(SimplydataError, match='Did you mean test="sign"'):
-        wide.compare_before_and_after("Maths", "Science", test="sing")
+    with pytest.raises(SimplydataError, match='Did you mean test_method="sign"'):
+        wide.compare_before_and_after("Maths", "Science", test_method="sing")
 
 
 # ---------------------------------------------------------------------------- compare_shape_to(test=)
@@ -263,13 +263,13 @@ def test_before_after_errors(pain, wide):
     ("jarque-bera", 0.9517696535, 0.621335039, 1e-8),
 ])
 def test_shape_tests_python(marks, engine, test, statistic, p, rel):
-    got = row(make(marks, engine).compare_shape_to("marks", "normal", test=test))
+    got = row(make(marks, engine).compare_shape_to("marks", "normal", test_method=test))
     assert got["statistic"] == pytest.approx(statistic, rel=rel)
     assert got["p-value"] == pytest.approx(p, rel=rel)
 
 
 def test_lilliefors_from_r(marks, engine, needs_r):
-    got = row(make(marks, engine).compare_shape_to("marks", "normal", test="lilliefors"))
+    got = row(make(marks, engine).compare_shape_to("marks", "normal", test_method="lilliefors"))
     # R: nortest::lillie.test(m$marks)
     assert got["statistic"] == pytest.approx(0.1073207791, rel=1e-9)
     assert got["p-value"] == pytest.approx(0.125638638, rel=1e-8)
@@ -282,7 +282,7 @@ def test_shape_against_fixed_distribution(marks, engine, capsys):
     # R: ks.test(m$marks, "pnorm", 60, 15) (ties, so the asymptotic p-value, as R)
     assert got["statistic"] == pytest.approx(0.2257468822, rel=1e-9)
     assert got["p-value"] == pytest.approx(0.00814206366, rel=1e-8)
-    got = row(t.compare_shape_to("marks", dist, test="cramer-von-mises"))
+    got = row(t.compare_shape_to("marks", dist, test_method="cramer-von-mises"))
     # R: goftest::cvm.test(m$marks, "pnorm", mean = 60, sd = 15)
     assert got["statistic"] == pytest.approx(0.7205431156, rel=1e-9)
     assert got["p-value"] == pytest.approx(0.0110539382, rel=1e-8)
@@ -292,11 +292,11 @@ def test_shape_against_fixed_distribution(marks, engine, capsys):
 def test_shape_test_errors(marks, engine):
     t = make(marks, engine)
     with pytest.raises(SimplydataError, match="fixed numbers"):
-        t.compare_shape_to("marks", "normal", test="kolmogorov-smirnov")
-    with pytest.raises(SimplydataError, match='Did you mean test="jarque-bera"'):
-        t.compare_shape_to("marks", "normal", test="jarque-berra")
-    with pytest.raises(SimplydataError, match="leave out test="):
-        t.compare_shape_to("marks", "gamma", test="lilliefors")
+        t.compare_shape_to("marks", "normal", test_method="kolmogorov-smirnov")
+    with pytest.raises(SimplydataError, match='Did you mean test_method="jarque-bera"'):
+        t.compare_shape_to("marks", "normal", test_method="jarque-berra")
+    with pytest.raises(SimplydataError, match="leave out test_method="):
+        t.compare_shape_to("marks", "gamma", test_method="lilliefors")
 
 
 # ---------------------------------------------------------------------------- percent intervals
@@ -348,7 +348,7 @@ def test_sdata_compare_averages_two(capsys, needs_r):
     assert got["difference 95 % CI high"] == pytest.approx(-0.367139303829, rel=1e-8)
     assert got["degrees of freedom"] == pytest.approx(39.99765861, rel=1e-8)
     got = row(sdata.compare_averages(averages=[63.2, 68.9], standard_deviations=[8.1, 9.0], counts=[20, 22],
-                                     test="student"))
+                                     test_method="student"))
     # R: BSDA::tsum.test(63.2, 8.1, 20, 68.9, 9.0, 22, var.equal = TRUE)
     assert got["p-value"] == pytest.approx(0.0377245777462, rel=REL)
     assert got["difference 95 % CI low"] == pytest.approx(-11.060241569315, rel=REL)
@@ -364,7 +364,7 @@ def test_sdata_compare_averages_many():
     assert got["p-value"] == pytest.approx(0.0276731022463, rel=1e-9)
     got = row(sdata.compare_averages(averages=[71.8333333333333333, 64.2777777777777778, 58.6111111111111111],
                                      standard_deviations=[13.7423775663628, 14.8633206469347, 14.1800974396755],
-                                     counts=[18, 18, 18], test="anova"))
+                                     counts=[18, 18, 18], test_method="anova"))
     # R: oneway.test(marks ~ class, m, var.equal = TRUE)
     assert got["p-value"] == pytest.approx(0.0267711379274, rel=1e-9)
 
@@ -375,7 +375,7 @@ def test_sdata_compare_counts(capsys):
     assert got["statistic"] == pytest.approx(2.777142857, rel=1e-9)
     assert got["p-value"] == pytest.approx(0.0956186087806, rel=REL)
     assert "120 counted" in capsys.readouterr().out
-    got = row(sdata.compare_counts(pd.DataFrame([[20, 40], [30, 30]]), test="fisher"))
+    got = row(sdata.compare_counts(pd.DataFrame([[20, 40], [30, 30]]), test_method="fisher"))
     # R: fisher.test(matrix(c(20, 30, 40, 30), 2))
     assert got["p-value"] == pytest.approx(0.0951740873461, rel=1e-9)
 

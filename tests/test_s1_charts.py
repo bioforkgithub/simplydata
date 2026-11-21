@@ -58,7 +58,7 @@ def test_difference_dots(clinic, needs_r):
 
 
 def test_forest_plot():
-    pairs = sdata.table(sdata.get_example("marks")).compare_each_pair_of("marks", for_each_group_in="class", test="tukey")
+    pairs = sdata.table(sdata.get_example("marks")).compare_each_pair_of("marks", for_each_group_in="class", test_method="tukey")
     frame = pairs._frame.to_pandas()
     chart = pairs.start_chart()
     chart.forest_plot(x="difference", y="group 1")

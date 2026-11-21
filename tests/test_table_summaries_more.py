@@ -412,16 +412,16 @@ def test_correlation_table_matches_pandas(engine, gappy, method, capsys):
     t = make(data, engine)
     before = snapshot(t)
     names = ["marks", "hours", "extra"]
-    got = frame(t.find_correlation_between(*names, method=method))
+    got = frame(t.find_correlation_between(*names, test_method=method))
     want = data[names].corr(method=method)  # pairwise, like simplydata
     assert got["column"].tolist() == names
     np.testing.assert_allclose(got[names].to_numpy(), want.to_numpy())
-    p = frame(t.find_correlation_between(names, method=method, show="p-value"))
+    p = frame(t.find_correlation_between(names, test_method=method, show="p-value"))
     fn = stats.pearsonr if method == "pearson" else stats.spearmanr
     both = data[["marks", "extra"]].dropna()
     assert p["extra"][0] == pytest.approx(fn(both["marks"], both["extra"])[1])
     assert pd.isna(p["marks"][0])
-    pairs = frame(t.find_correlation_between(*names, method=method, show="each pair"))
+    pairs = frame(t.find_correlation_between(*names, test_method=method, show="each pair"))
     assert pairs[["column 1", "column 2"]].values.tolist() == [["marks", "hours"], ["marks", "extra"],
                                                                 ["hours", "extra"]]
     assert pairs["rows"].tolist() == [6, 7, 8]
@@ -517,7 +517,7 @@ P_VALUES = [0.01, 0.04, 0.03, 0.005, 0.2, 0.04, np.nan, 0.5]
 @pytest.mark.parametrize("method", list(R_ADJUSTED))
 def test_adjusted_p_values_match_r(engine, method, capsys):
     t = make(pd.DataFrame({"test": list("abcdefgh"), "p-value": P_VALUES}), engine)
-    t.add_adjusted_p_value_column("q", method=method)
+    t.add_adjusted_p_value_column("q", test_method=method)
     got = frame(t)["q"].tolist()
     want = R_ADJUSTED[method]
     for g, w in zip(got, want):
@@ -533,9 +533,9 @@ def test_adjusted_p_value_defaults_and_aliases(engine, capsys):
     t = make(pd.DataFrame({"p": [0.01, 0.02, 0.03]}), engine)
     t.add_adjusted_p_value_column(from_column="p")
     assert frame(t)["p (Holm)"].tolist() == pytest.approx([0.03, 0.04, 0.04])
-    t.add_adjusted_p_value_column("q", from_column="p", method="fdr")
+    t.add_adjusted_p_value_column("q", from_column="p", test_method="fdr")
     assert frame(t)["q"].tolist() == pytest.approx([0.03, 0.03, 0.03])
-    t.add_adjusted_p_value_column("q2", from_column="p", method="Benjamini-Hochberg")
+    t.add_adjusted_p_value_column("q2", from_column="p", test_method="Benjamini-Hochberg")
     assert frame(t)["q2"].tolist() == pytest.approx([0.03, 0.03, 0.03])
     assert t.show_steps() is t and len(t._history) == 3
     assert 'as R p.adjust(method = "BH")' in capsys.readouterr().out
@@ -543,11 +543,11 @@ def test_adjusted_p_value_defaults_and_aliases(engine, capsys):
 
 def test_adjusted_p_values_on_test_results(engine, marks):
     results = make(marks, engine).compare_each_pair_of("marks", for_each_group_in="test")
-    results.add_adjusted_p_value_column("again", method="holm")
+    results.add_adjusted_p_value_column("again", test_method="holm")
     got = frame(results)
     np.testing.assert_allclose(got["again"], got["p-value (Holm)"])  # the same Holm as compare_each_pair
     pairs = make(marks, engine).find_correlation_between("marks", "height", "test", show="each pair")
-    pairs.add_adjusted_p_value_column("q", method="bh")
+    pairs.add_adjusted_p_value_column("q", test_method="bh")
     np.testing.assert_allclose(frame(pairs)["q"], stats.false_discovery_control(frame(pairs)["p-value"]))
 
 
@@ -561,8 +561,8 @@ def test_adjusted_p_value_errors(engine, marks):
     t = make(pd.DataFrame({"p": [0.2, 1.5], "name": ["a", "b"]}), engine)
     with pytest.raises(SimplydataError, match="go from 0 to 1, but it has 1.50"):
         t.add_adjusted_p_value_column("q", from_column="p")
-    with pytest.raises(SimplydataError, match='Did you mean method="holm"'):
-        t.add_adjusted_p_value_column("q", from_column="p", method="hollm")
+    with pytest.raises(SimplydataError, match='Did you mean test_method="holm"'):
+        t.add_adjusted_p_value_column("q", from_column="p", test_method="hollm")
     with pytest.raises(SimplydataError, match='Column "p-value" not found'):
         t.add_adjusted_p_value_column("q")
     with pytest.raises(SimplydataError, match='"name" has text'):
@@ -603,7 +603,7 @@ def test_example_tables_run(capsys):
     t.count_different_values_in("name", for_each_group_in="class")
     t.compare_shape_to("marks", "normal", for_each_group_in="class")
     results = t.find_correlation_between("hours", "marks", "height", show="each pair")
-    results.add_adjusted_p_value_column("q", method="benjamini-hochberg")
+    results.add_adjusted_p_value_column("q", test_method="benjamini-hochberg")
     assert t.get_column("marks").find_average() == pytest.approx(sdata.get_example("marks")["marks"].mean())
     g = sdata.table(sdata.get_example("growth"))
     g.turn_into_dates("year")

@@ -1,4 +1,4 @@
-"""Tests for the v0.4.x statistics: compare_spreads, compare_each_pair(test="tukey"),
+"""Tests for the v0.4.x statistics: compare_spreads, compare_each_pair(test_method="tukey"),
 compare_counts_to, compare_percent_to, the new summary measures (summary_of show=,
 percentile_of, most_common_of) and the special functions in formulas.
 
@@ -82,18 +82,18 @@ def test_levene_brown_forsythe_matches_r(marks, engine, capsys):
             "91 of 100 studies like this one (p = 0.911). This does not show that the groups have the same spread.") in out
     assert "car::leveneTest()" in out and "Brown-Forsythe" in out
     unchanged(t, before)
-    assert t.compare_spreads_of("marks", for_each_group_in="class", test="Brown-Forsythe")._frame.to_pandas()["statistic"][0] \
+    assert t.compare_spreads_of("marks", for_each_group_in="class", test_method="Brown-Forsythe")._frame.to_pandas()["statistic"][0] \
         == pytest.approx(got["statistic"])
 
 
 def test_bartlett_and_fligner_match_r(marks, engine):
     t = make(marks, engine)
-    got = row(t.compare_spreads_of("marks", for_each_group_in="class", test="bartlett"))
+    got = row(t.compare_spreads_of("marks", for_each_group_in="class", test_method="bartlett"))
     # R: bartlett.test(marks ~ class, data = m)
     assert got["statistic"] == pytest.approx(0.103698845381851, rel=1e-9)
     assert got["degrees of freedom"] == 2
     assert got["p-value"] == pytest.approx(0.949471824991942, rel=1e-9)
-    got = row(t.compare_spreads_of("marks", for_each_group_in="class", test="fligner"))
+    got = row(t.compare_spreads_of("marks", for_each_group_in="class", test_method="fligner"))
     # R: fligner.test(marks ~ class, data = m)
     assert got["statistic"] == pytest.approx(0.282004280539934, rel=1e-9)
     assert got["p-value"] == pytest.approx(0.868487452898067, rel=1e-9)
@@ -108,11 +108,11 @@ def test_spreads_with_empty_cells_and_twelve_groups_match_r(school, engine, caps
     assert lev["statistic"] == pytest.approx(1.127607010742, rel=1e-9)
     assert lev["p-value"] == pytest.approx(0.343747588311, rel=1e-9)
     assert lev["degrees of freedom 1"] == 11 and lev["degrees of freedom 2"] == 149
-    bart = row(t.compare_spreads_of("sleep", for_each_group_in="school", test="bartlett"))
+    bart = row(t.compare_spreads_of("sleep", for_each_group_in="school", test_method="bartlett"))
     # R: bartlett.test(sleep ~ school, data = s)
     assert bart["statistic"] == pytest.approx(17.7445739625315, rel=1e-9)
     assert bart["p-value"] == pytest.approx(0.0876997805625571, rel=1e-9)
-    flig = row(t.compare_spreads_of("sleep", for_each_group_in="school", test="fligner"))
+    flig = row(t.compare_spreads_of("sleep", for_each_group_in="school", test_method="fligner"))
     # R: fligner.test(sleep ~ school, data = s)
     assert flig["statistic"] == pytest.approx(10.9594999689304, rel=1e-9)
     assert flig["p-value"] == pytest.approx(0.446662475634758, rel=1e-9)
@@ -123,18 +123,18 @@ def test_spreads_notes_and_errors(engine, capsys):
     skewed = np.round(rng.exponential(1.0, 40), 3)
     data = pd.DataFrame({"g": ["a"] * 40 + ["b"] * 40, "y": np.r_[skewed, np.round(rng.normal(0, 8, 40), 3)]})
     t = make(data, engine)
-    got = row(t.compare_spreads_of("y", for_each_group_in="g", test="bartlett"))
+    got = row(t.compare_spreads_of("y", for_each_group_in="g", test_method="bartlett"))
     out = capsys.readouterr().out
     assert got["p-value"] < 0.05
-    assert 'group "a" don\'t look bell-shaped' in out and 'test="levene"' in out
+    assert 'group "a" don\'t look bell-shaped' in out and 'test_method="levene"' in out
     assert "does not need equal spreads" in out
-    with pytest.raises(SimplydataError, match='did you mean|Did you mean test="levene"'):
-        t.compare_spreads_of("y", for_each_group_in="g", test="levine")
+    with pytest.raises(SimplydataError, match='did you mean|Did you mean test_method="levene"'):
+        t.compare_spreads_of("y", for_each_group_in="g", test_method="levine")
     with pytest.raises(SimplydataError, match="cannot be both"):
         t.compare_spreads_of("y", for_each_group_in="y")
     flat = make(pd.DataFrame({"g": list("aaabbb"), "y": [1, 1, 1, 2, 3, 5]}), engine)
     with pytest.raises(SimplydataError, match="Bartlett's test"):
-        flat.compare_spreads_of("y", for_each_group_in="g", test="bartlett")
+        flat.compare_spreads_of("y", for_each_group_in="g", test_method="bartlett")
     same = make(pd.DataFrame({"g": list("aabb"), "y": [1, 1, 2, 2]}), engine)
     with pytest.raises(SimplydataError, match="no spread"):
         same.compare_spreads_of("y", for_each_group_in="g")
@@ -143,7 +143,7 @@ def test_spreads_notes_and_errors(engine, capsys):
 # ================================================================ compare_each_pair(test="tukey")
 def test_tukey_matches_r(marks, engine, capsys):
     t = make(marks, engine)
-    got = rows(t.compare_each_pair_of("marks", for_each_group_in="class", test="tukey"))
+    got = rows(t.compare_each_pair_of("marks", for_each_group_in="class", test_method="tukey"))
     # R: TukeyHSD(aov(marks ~ class, data = m)); R gives B-A etc., here A minus B (sign turned)
     r = {("A", "B"): (-7.55555555555556, -19.0375599447001, 3.92644883358901, 0.2598051600910130),
          ("A", "C"): (-13.22222222222221, -24.7042266113668, -1.74021783307765, 0.0204169133370182),
@@ -161,7 +161,7 @@ def test_tukey_matches_r(marks, engine, capsys):
 
 def test_tukey_kramer_unequal_sizes_matches_r(school, engine, capsys):
     t = make(school, engine)
-    got = rows(t.compare_each_pair_of("sleep", for_each_group_in="school", test="tukey"))
+    got = rows(t.compare_each_pair_of("sleep", for_each_group_in="school", test_method="tukey"))
     out = capsys.readouterr().out
     assert len(got) == 66 and "Tukey-Kramer" in out
     # R: TukeyHSD(aov(sleep ~ school, data = ss))$school
@@ -180,16 +180,16 @@ def test_tukey_kramer_unequal_sizes_matches_r(school, engine, capsys):
 def test_each_pair_test_choices(marks, engine):
     t = make(marks, engine)
     default = rows(t.compare_each_pair_of("marks", for_each_group_in="class"))
-    welch = rows(t.compare_each_pair_of("marks", for_each_group_in="class", test="welch"))
+    welch = rows(t.compare_each_pair_of("marks", for_each_group_in="class", test_method="welch"))
     pd.testing.assert_frame_equal(default, welch)
     assert "p-value (Holm)" in default.columns
     ranks = rows(t.compare_each_pair_of("marks", for_each_group_in="class", based_on="ranks"))
-    mw = rows(t.compare_each_pair_of("marks", for_each_group_in="class", test="mann-whitney"))
+    mw = rows(t.compare_each_pair_of("marks", for_each_group_in="class", test_method="mann-whitney"))
     pd.testing.assert_frame_equal(ranks, mw)
     with pytest.raises(SimplydataError, match="based_on=\"ranks\" asks for ranks"):
-        t.compare_each_pair_of("marks", for_each_group_in="class", based_on="ranks", test="tukey")
-    with pytest.raises(SimplydataError, match='test="tukey"'):
-        t.compare_each_pair_of("marks", for_each_group_in="class", test="turkey")
+        t.compare_each_pair_of("marks", for_each_group_in="class", based_on="ranks", test_method="tukey")
+    with pytest.raises(SimplydataError, match='test_method="tukey"'):
+        t.compare_each_pair_of("marks", for_each_group_in="class", test_method="turkey")
 
 
 # ================================================================ compare_counts_to

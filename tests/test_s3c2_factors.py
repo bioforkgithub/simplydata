@@ -77,7 +77,7 @@ def test_loadings_below_three_tenths_are_blank_in_print_but_kept(tests_table, ne
 
 
 def test_maximum_likelihood_varimax_matches_factanal(tests_table, needs_r, capsys):
-    result = tests_table.find_hidden_factors_behind(COLUMNS, how_many=3, method="ml", rotation="varimax")
+    result = tests_table.find_hidden_factors_behind(COLUMNS, how_many=3, test_method="ml", rotation="varimax")
     out = capsys.readouterr().out
     own = result.as_pandas()["own part"].to_numpy()
     # base R stats::factanal(x, 3, rotation = "varimax")$uniquenesses
@@ -89,13 +89,13 @@ def test_maximum_likelihood_varimax_matches_factanal(tests_table, needs_r, capsy
     assert loadings[8] == pytest.approx([0.132, 0.406, 0.524], abs=1e-3)
     assert "Parallel analysis" not in out and "maximum likelihood, varimax rotation" in out
     assert "stats::varimax" in out and "GPArotation" not in out.split("Method:")[1].split("\n")[0]
-    assert "You chose method='ml', rotation='varimax' and how_many=3" in out
+    assert "You chose test_method='ml', rotation='varimax' and how_many=3" in out
     assert "simplydata chooses" not in out
     assert "Correlations between the factors" not in out  # varimax keeps them uncorrelated
 
 
 def test_one_factor_and_other_spellings(tests_table, needs_r, capsys):
-    result = tests_table.find_hidden_factors_behind(["x4", "x5", "x6"], how_many=1, method="Principal Axis",
+    result = tests_table.find_hidden_factors_behind(["x4", "x5", "x6"], how_many=1, test_method="Principal Axis",
                                                     rotation="no rotation")
     out = capsys.readouterr().out
     assert list(result.as_pandas().columns) == ["column", "factor 1", "shared part", "own part"]
@@ -261,7 +261,7 @@ def test_a_column_in_two_factors_is_a_cross_loading(tests_table, needs_r, capsys
     (dict(columns=["x1", "x2", "x3"], how_many=2), "from 1 to 1"),
     (dict(columns=COLUMNS, how_many=True), 'how_many= as "automatic"'),
     (dict(columns=COLUMNS, rotation="quartimax"), "does not know rotation='quartimax'.*\n.*rotation=\"oblimin\""),
-    (dict(columns=COLUMNS, method="wls"), "does not know method='wls'"),
+    (dict(columns=COLUMNS, method="wls"), "does not know test_method='wls'"),
     (dict(columns=COLUMNS, with_seed=-1), "with_seed= as a whole number"),
     (dict(columns=["x1", "x2", "school"]), '"school" does not hold numbers.*\n.*ability_tests'),
 ])

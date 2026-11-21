@@ -72,7 +72,7 @@ def test_interval_of(marks, capsys):
     again = frame(marks.find_interval_of("marks", "average"))
     assert again.equals(got)
     assert "9999 times (seed 1)" in capsys.readouterr().out
-    got = frame(marks.find_interval_of("marks", "median", for_each_group_in="class", method="percentile bootstrap"))
+    got = frame(marks.find_interval_of("marks", "median", for_each_group_in="class", test_method="percentile bootstrap"))
     assert got["count"].tolist() == [18, 18, 18]
     got = frame(marks.find_interval_of("marks", lambda v: v.max() - v.min()))
     assert got.columns[0] == "<lambda> of marks"
@@ -80,13 +80,13 @@ def test_interval_of(marks, capsys):
 
 def test_interval_errors(marks):
     with pytest.raises(SimplydataError, match="jackknife"):
-        marks.find_interval_of("marks", "average", method="jackknife")
+        marks.find_interval_of("marks", "average", test_method="jackknife")
     with pytest.raises(SimplydataError, match="one number"):
         marks.find_interval_of("marks", "count")
     with pytest.raises(SimplydataError, match="every= and across="):
         marks.find_average_of("marks", for_each_group_in="class", across="subject", interval=95)
-    with pytest.raises(SimplydataError, match="leave out method="):
-        marks.find_percentile_of("marks", 90, method=6, interval=95)
+    with pytest.raises(SimplydataError, match="leave out test_method="):
+        marks.find_percentile_of("marks", 90, test_method=6, interval=95)
 
 
 def test_harmonic_and_winsorized(marks, capsys):
@@ -103,10 +103,10 @@ def test_percentile_rules(marks):
     # R: quantile(m$marks, 0.9, type = 1 ... 9)
     expected = [81, 81, 81, 81, 81.5, 83.5, 81, 82.16666666667, 82]
     for r_type, value in enumerate(expected, start=1):
-        assert marks.find_percentile_of("marks", 90, method=r_type) == pytest.approx(value, rel=1e-10)
-    assert marks.find_percentile_of("marks", 90, method="weibull") == pytest.approx(83.5)
-    with pytest.raises(SimplydataError, match="method="):
-        marks.find_percentile_of("marks", 90, method=10)
+        assert marks.find_percentile_of("marks", 90, test_method=r_type) == pytest.approx(value, rel=1e-10)
+    assert marks.find_percentile_of("marks", 90, test_method="weibull") == pytest.approx(83.5)
+    with pytest.raises(SimplydataError, match="test_method="):
+        marks.find_percentile_of("marks", 90, test_method=10)
 
 
 def test_z_scores(marks):

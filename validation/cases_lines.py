@@ -1,6 +1,6 @@
 """The reliability study for phase S3a-2, lines and curves: fit_dose_response (table and chart),
-find_best_power_of, fit_line(method=, y_error_over_x_error=, with_bends=, changes_at=), fit_curve(of_kind=),
-explain(for_percentile=, changes_at=) and add_smoothed_column(method="loess").
+find_best_power_of, fit_line(test_method=, y_error_over_x_error=, with_bends=, changes_at=), fit_curve(of_kind=),
+explain(for_percentile=, changes_at=) and add_smoothed_column(test_method="loess").
 
 cases.py loads this file at its end and calls add_to(), which adds the datasets and cases below to its own
 DATASETS and CASES and teaches load() the datasets read from R packages or from statsmodels (not stored here:
@@ -298,9 +298,9 @@ def _cases(Case, data_dir):
              note="R nls() stops at a relative offset of 1e-5, so it agrees to about 1e-5."),
         # ---- fit_line(method=): leaflife (SMA), creatinine (Deming, Passing-Bablok), Anscombe (Theil-Sen)
         Case("table.fit_line", "leaf lifespan against leaf mass per area: standardised major axis (log10)",
-             "leaflife (smatr)", "real data", option='method="standardised major axis"', ours_r=("smatr",),
+             "leaflife (smatr)", "real data", option='test_method="standardised major axis"', ours_r=("smatr",),
              ours="""
-                 r = sdata.table(data).fit_line(x="lma", y="longev", method="standardised major axis").as_pandas().iloc[0]
+                 r = sdata.table(data).fit_line(x="lma", y="longev", test_method="standardised major axis").as_pandas().iloc[0]
                  {"slope": r["slope"], "intercept": r["intercept"], "slope 95 % CI low": r["slope 95 % CI low"]}
              """,
              r="""
@@ -309,9 +309,9 @@ def _cases(Case, data_dir):
              """, r_packages=("smatr",), r_tolerance=1e-9,
              note="Warton et al. (2006) fit these data on log scales; the slope is about 1.3."),
         Case("table.fit_line", "creatinine in plasma against serum: Deming line with y_error_over_x_error=4",
-             "creatinine (mcr)", "real data", option='method="deming", y_error_over_x_error=', ours_r=("mcr",),
+             "creatinine (mcr)", "real data", option='test_method="deming", y_error_over_x_error=', ours_r=("mcr",),
              ours="""
-                 r = sdata.table(data).fit_line(x="serum", y="plasma", method="deming",
+                 r = sdata.table(data).fit_line(x="serum", y="plasma", test_method="deming",
                                                 y_error_over_x_error=4).as_pandas().iloc[0]
                  {"slope": r["slope"], "slope standard error": r["slope standard error"]}
              """,
@@ -322,9 +322,9 @@ def _cases(Case, data_dir):
              note="mcr's error.ratio is the error variance of x over that of y, so 4 here is 1 / 4 there. "
                   "tests/test_s3a2_lines.py checks the direction against R deming::deming(xstd =, ystd =) too."),
         Case("table.fit_line", "creatinine in plasma against serum: Passing-Bablok line", "creatinine (mcr)",
-             "real data", option='method="passing-bablok"', ours_r=("mcr",),
+             "real data", option='test_method="passing-bablok"', ours_r=("mcr",),
              ours="""
-                 r = sdata.table(data).fit_line(x="serum", y="plasma", method="passing-bablok").as_pandas().iloc[0]
+                 r = sdata.table(data).fit_line(x="serum", y="plasma", test_method="passing-bablok").as_pandas().iloc[0]
                  {"slope": r["slope"], "intercept": r["intercept"], "slope 95 % CI high": r["slope 95 % CI high"]}
              """,
              r="""
@@ -332,9 +332,9 @@ def _cases(Case, data_dir):
                  list(slope = m@para[2, "EST"], intercept = m@para[1, "EST"], `slope 95 % CI high` = m@para[2, "UCI"])
              """, r_packages=("mcr",), r_tolerance=1e-9),
         Case("table.fit_line", "Anscombe's set 3 (one outlier): the Theil-Sen line", "Anscombe's quartet",
-             "real data", option='method="theil-sen"',
+             "real data", option='test_method="theil-sen"',
              ours="""
-                 r = sdata.table(data).fit_line(x="x3", y="y3", method="theil-sen").as_pandas().iloc[0]
+                 r = sdata.table(data).fit_line(x="x3", y="y3", test_method="theil-sen").as_pandas().iloc[0]
                  {"slope": r["slope"], "intercept": r["intercept"], "slope 95 % CI low": r["slope 95 % CI low"]}
              """,
              parent="""
@@ -431,11 +431,11 @@ def _cases(Case, data_dir):
                   "the lines agree to about 1e-7."),
         # ---- method="loess"
         Case("draw_smooth_line", "the drawn loess curve of drivers killed or seriously injured is R's", "Seatbelts",
-             "real data", option='method="loess", with_confidence_band=', ours_r=(),
+             "real data", option='test_method="loess", with_confidence_band=', ours_r=(),
              ours="""
                  from simplydata._underneath.check import chart_facts
                  ax = (sdata.chart(data).draw_dots(x="month", y="drivers")
-                       .draw_smooth_line(method="loess", with_confidence_band=True)._render().axes[0])
+                       .draw_smooth_line(test_method="loess", with_confidence_band=True)._render().axes[0])
                  x, y = chart_facts(ax)["lines"][0]
                  {"points": len(x), "curve at the first month": y[0], "curve at the last month": y[-1]}
              """,
@@ -445,10 +445,10 @@ def _cases(Case, data_dir):
                       `curve at the last month` = stats::predict(m, data.frame(month = max(month))))
              """, r_tolerance=1e-9),
         Case("table.add_smoothed_column", "drivers killed or seriously injured, smoothed by loess with its band",
-             "Seatbelts", "real data", option='method="loess", interval=', ours_r=(),
+             "Seatbelts", "real data", option='test_method="loess", interval=', ours_r=(),
              ours="""
                  r = sdata.table(data).add_smoothed_column("trend", from_column="drivers", sorted_by="month",
-                                                           method="loess", interval=95).as_pandas()
+                                                           test_method="loess", interval=95).as_pandas()
                  {"first": r["trend"].iloc[0], "last": r["trend"].iloc[-1],
                   "first band low": r["trend 95 % CI low"].iloc[0]}
              """,

@@ -202,21 +202,21 @@ def test_l_bfgs_b_with_limits(capsys):
 @pytest.mark.parametrize("method", ["bfgs", "l-bfgs-b", "powell", "trust region", "slsqp"])
 def test_expert_methods(method):
     # all should end near the exact minimum (1, 1); numerical slopes limit the gradient methods to ~1e-5
-    r = row(find_where_smallest(ROSENBROCK, start={"x": -1.2, "y": 1}, method=method))
+    r = row(find_where_smallest(ROSENBROCK, start={"x": -1.2, "y": 1}, test_method=method))
     assert r["x"] == pytest.approx(1, abs=1e-4) and r["y"] == pytest.approx(1, abs=1e-4)
 
 
 def test_cobyla():
     # COBYLA is slow on Rosenbrock's valley, so a simple bowl: the exact answer is (1, -2), value 3
-    r = row(find_where_smallest("(x - 1)**2 + 2*(y + 2)**2 + 3", start={"x": 0, "y": 0}, method="cobyla"))
+    r = row(find_where_smallest("(x - 1)**2 + 2*(y + 2)**2 + 3", start={"x": 0, "y": 0}, test_method="cobyla"))
     assert (r["x"], r["y"], r["smallest value"]) == pytest.approx((1, -2, 3), abs=1e-4)
 
 
 def test_method_spelling_and_errors():
-    r = row(find_where_smallest(ROSENBROCK, start={"x": -1.2, "y": 1}, method="Nelder Mead"))
+    r = row(find_where_smallest(ROSENBROCK, start={"x": -1.2, "y": 1}, test_method="Nelder Mead"))
     assert r["method"] == "Nelder-Mead"
-    with pytest.raises(SimplydataError, match='Did you mean method="nelder-mead"'):
-        find_where_smallest("x**2", between=[0, 5], method="nelder")
+    with pytest.raises(SimplydataError, match='Did you mean test_method="nelder-mead"'):
+        find_where_smallest("x**2", between=[0, 5], test_method="nelder")
 
 
 def test_several_names_need_start():
@@ -319,7 +319,7 @@ HIMMELBLAU_MINIMA = [(3, 2), (-2.805118, 3.131312), (-3.779310, -3.283186), (3.5
 def test_whole_range_methods_himmelblau(method):
     # the known answer: Himmelblau's function has four lowest points, all with value 0
     r = row(find_where_smallest("(x**2 + y - 11)**2 + (x + y**2 - 7)**2", between={"x": [-5, 5], "y": [-5, 5]},
-                          search="whole range", method=method, start={"x": 0, "y": 0}))
+                          search="whole range", test_method=method, start={"x": 0, "y": 0}))
     assert r["smallest value"] == pytest.approx(0, abs=1e-8)
     assert min(math.dist((r["x"], r["y"]), m) for m in HIMMELBLAU_MINIMA) < 1e-4
 

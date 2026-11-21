@@ -1,8 +1,8 @@
 """The reliability study for phase S3b-3, survival and person-time: add_time_and_event_columns, find_risk_over_time,
-draw_risk_curves, and the new options of find_survival_over_time (at_time_points=, method="life table",
+draw_risk_curves, and the new options of find_survival_over_time (at_time_points=, test_method="life table",
 allowing_for=, followed_from=, average_time_up_to=), compare_survival (allowing_for=, followed_from=,
 average_time_up_to=, competing_with=), explain_survival (allowing_for=, followed_from=, competing_with=,
-method="fine-gray", distribution=) and draw_survival_curves (followed_from=, allowing_for=).
+test_method="fine-gray", distribution=) and draw_survival_curves (followed_from=, allowing_for=).
 
 cases.py loads this file at its end and calls add_to(), which adds the datasets and cases below to its own
 DATASETS and CASES and teaches load() the datasets read from R packages (KMsurv's and survival's udca are read
@@ -192,11 +192,11 @@ def _cases(Case):
                  out
              """, parent_label="statsmodels SurvfuncRight", parent_tolerance=1e-12,
              r=lung_km, r_packages=("survival",), r_tolerance=1e-9),
-        Case("table.find_survival_over_time", 'method="life table": the actuarial life table of breast feeding '
+        Case("table.find_survival_over_time", 'test_method="life table": the actuarial life table of breast feeding '
                                               "(Klein & Moeschberger section 5.4)", "bfeed (KMsurv)", "real data",
-             option='method="life table"', ours_r=("KMsurv",),
+             option='test_method="life table"', ours_r=("KMsurv",),
              ours="""
-                 r = sdata.table(data).find_survival_over_time(time="duration", event="delta", method="life table",
+                 r = sdata.table(data).find_survival_over_time(time="duration", event="delta", test_method="life table",
                      at_time_points=[0, 2, 3, 5, 7, 11, 17, 25, 37, 53]).as_pandas()
                  r = r[r["interval start"] == 7].iloc[0]
                  {"survival at 7 weeks": r["survival at the start"], "effective at risk": r["effective at risk"],
@@ -377,12 +377,12 @@ def _cases(Case):
                  m <- survival::coxph(survival::Surv(etime, outcome == "pcm") ~ age + sex)
                  list(age = stats::coef(m)[1], `men vs women` = stats::coef(m)[2])
              """, r_packages=("survival",), r_tolerance=1e-6),
-        Case("table.explain_survival", 'method="fine-gray": subdistribution hazard ratios of a plasma cell '
+        Case("table.explain_survival", 'test_method="fine-gray": subdistribution hazard ratios of a plasma cell '
                                        "malignancy, death competing", "mgus2 (survival)", "real data",
-             option='method="fine-gray"', ours_r=("cmprsk",),
+             option='test_method="fine-gray"', ours_r=("cmprsk",),
              ours="""
                  r = sdata.table(data).explain_survival(time="etime", event="outcome", value="pcm",
-                     competing_with="death", using=["age", "sex"], method="fine-gray").as_pandas().set_index("term")
+                     competing_with="death", using=["age", "sex"], test_method="fine-gray").as_pandas().set_index("term")
                  {"age": r.loc["age", "coefficient"], "men vs women": r.loc["sex: M vs F", "coefficient"]}
              """,
              r="""

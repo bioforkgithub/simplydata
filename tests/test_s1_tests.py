@@ -63,7 +63,7 @@ def test_welch_one_sided(school, capsys):
     assert r["p-value"] == pytest.approx(0.974695985298063, rel=1e-8)
     assert r["difference 95 % CI low"] == pytest.approx(-6.26092072905395, rel=1e-8)
     # var.equal = TRUE: p 0.0243051559708369, CI high -0.569330601690158
-    r = one_row(school.compare_averages_of("marks", for_each_group_in="breakfast", test="student", sides=1, higher="yes"))
+    r = one_row(school.compare_averages_of("marks", for_each_group_in="breakfast", test_method="student", sides=1, higher="yes"))
     assert r["p-value"] == pytest.approx(0.0243051559708369, rel=1e-8)
     assert r["difference 95 % CI high"] == pytest.approx(-0.569330601690158, rel=1e-8)
 
@@ -153,10 +153,10 @@ def test_percent_to_one_sided(school, capsys):
 # ---------------------------------------------------------------------------- correlations
 def test_kendall_tau_b(school, capsys):
     # R: cor.test(hours, marks, method = "kendall", exact = FALSE): tau 0.431552246850169, p 3.06411038565608e-17
-    r = school.find_correlation_between("hours", "marks", method="kendall")
+    r = school.find_correlation_between("hours", "marks", test_method="kendall")
     assert r == pytest.approx(0.431552246850169, rel=1e-9)
     assert "Kendall's tau-b" in capsys.readouterr().out
-    table = school.find_correlation_between("hours", "marks", "sleep", method="kendall", show="each pair")
+    table = school.find_correlation_between("hours", "marks", "sleep", test_method="kendall", show="each pair")
     first = table._frame.to_pandas().iloc[0]
     assert first["method"] == "Kendall's tau-b" and first["r"] == pytest.approx(0.431552246850169, rel=1e-9)
     assert first["p-value"] == pytest.approx(3.06411038565608e-17, rel=1e-6)
@@ -168,7 +168,7 @@ def test_kendall_tau_b(school, capsys):
     ("kendall", 0.431552246850169),  # ..., method = "kendall", exact = FALSE: p 1.53205519282804e-17
 ])
 def test_correlation_one_sided(school, capsys, method, r_value):
-    r = school.find_correlation_between("hours", "marks", method=method, sides=1, higher="positive")
+    r = school.find_correlation_between("hours", "marks", test_method=method, sides=1, higher="positive")
     assert r == pytest.approx(r_value, rel=1e-9)
     out = capsys.readouterr().out
     assert "it only looks for a positive correlation" in out and 'alternative = "greater"' in out

@@ -212,7 +212,7 @@ def test_risk_ratios_match_r_sandwich_and_log_binomial(needs_r, capsys):
     b = read("birthwt")
     got = rows(sdata.table(b).explain("low", using=["smoke", "age"], outcome="yes or no", show="risk ratios"))
     lb = rows(sdata.table(b).explain("low", using=["smoke", "age"], outcome="yes or no", show="risk ratios",
-                                     method="log-binomial"))
+                                     test_method="log-binomial"))
     out = capsys.readouterr().out
     found = r("m <- glm(y ~ s + a, family = poisson); v <- sandwich::vcovHC(m, type = 'HC0'); "
               "l <- glm(y ~ s + a, family = binomial(link = 'log')); "
@@ -233,7 +233,7 @@ def test_odds_ratio_note_when_yes_is_common_and_risk_ratio_refusals(capsys):
         sdata.table(sdata.get_example("school")).explain("marks", using=["hours"], show="risk ratios")
     with pytest.raises(SimplydataError, match='goes with show="risk ratios"'):
         sdata.table(sdata.get_example("school")).explain("passed", using=["hours"], outcome="yes or no",
-                                                         method="log-binomial")
+                                                         test_method="log-binomial")
     with pytest.raises(SimplydataError, match="show= is one of"):
         sdata.table(sdata.get_example("school")).explain("passed", using=["hours"], outcome="yes or no",
                                                          show="hazard ratios")
@@ -573,8 +573,8 @@ def test_a_list_of_choices_is_refused_with_both_calls_in_mind():
         t.explain("passed", using=["hours"], outcome="yes or no", show=["risk ratios", "standardised effects"])
     with pytest.raises(SimplydataError, match="one choice at a time"):
         t.explain("passed", using=["hours"], outcome="yes or no", interval_by=["profile"])
-    with pytest.raises(SimplydataError, match="method= is one of"):
-        t.explain("passed", using=["hours"], outcome="yes or no", show="risk ratios", method="poisson")
+    with pytest.raises(SimplydataError, match="test_method= is one of"):
+        t.explain("passed", using=["hours"], outcome="yes or no", show="risk ratios", test_method="poisson")
 
 
 def test_likelihood_ratio_rows_hold_the_chi_square_and_the_method_says_so(capsys):

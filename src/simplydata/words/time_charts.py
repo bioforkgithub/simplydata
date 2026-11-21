@@ -321,7 +321,7 @@ class TimeChartWords:
                                   'y="visitors", repeats_every="year").')
         check(self._data, x=x, y=y)
         table = _table_of(self, [c for c in (x, y) if c is not None])
-        table.add_trend_and_season(y, sorted_by=x, repeats_every=repeats_every, method=test_method)
+        table.add_trend_and_season(y, sorted_by=x, repeats_every=repeats_every, test_method=test_method)
         got = _frame(table)
         if x is not None:
             got = got.sort_values(x, kind="stable")
@@ -340,7 +340,7 @@ class TimeChartWords:
         """
         x, y, colour = self._xy("forecast", x, y, 'chart.draw_lines(x="month", y="visitors").forecast(steps_ahead=12)')
         group = colour if isinstance(colour, str) and colour in self._data.columns else None
-        got = _frame(_table_of(self).forecast(y, sorted_by=x, steps_ahead=steps_ahead, method=test_method,
+        got = _frame(_table_of(self).forecast(y, sorted_by=x, steps_ahead=steps_ahead, test_method=test_method,
                                                repeats_every=repeats_every, trend=trend, season=season, order=order,
                                                seasonal_order=seasonal_order, interval=interval, for_each_group_in=group))
         return self._add("forecast", "extra", _draw_forecast, frame=got, x=x, group=group, interval=interval)
@@ -362,7 +362,7 @@ class TimeChartWords:
         last = self._last_layer("spectrum")
         colour = last.get("colour") if last.get("y") == y else None
         group = colour if isinstance(colour, str) and colour in self._data.columns else None
-        got = _frame(_table_of(self).find_spectrum_of(y, sorted_by=x, method=test_method, show=show, window=window,
+        got = _frame(_table_of(self).find_spectrum_of(y, sorted_by=x, test_method=test_method, show=show, window=window,
                                                  for_each_group_in=group))
         column = [c for c in got.columns if c not in ("frequency", "repeats every", "share of variance (%)")
                   and c != group][-1]

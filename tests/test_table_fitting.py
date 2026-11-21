@@ -205,9 +205,9 @@ def test_whole_range_finds_what_a_bad_start_misses():
 
 def test_method_choice_is_used_and_printed(capsys):
     t = make_table(applia())
-    got = rows(t.fit_formula(GROWTH, method="dogbox", between={"a": [0, 100], "b": [0, 1]}))[0]
+    got = rows(t.fit_formula(GROWTH, test_method="dogbox", between={"a": [0, 100], "b": [0, 1]}))[0]
     assert got["a"] == pytest.approx(11.977118347280268, rel=EST) and got["method"] == "dogbox"
-    got = rows(t.fit_formula(GROWTH, method="trf"))[0]  # SciPy's own name is accepted
+    got = rows(t.fit_formula(GROWTH, test_method="trf"))[0]  # SciPy's own name is accepted
     assert got["b"] == pytest.approx(0.029736184895048149, rel=EST)
     assert "(trust region reflective)" in capsys.readouterr().out
 
@@ -241,7 +241,7 @@ def test_empty_cells_are_skipped_with_a_note(engine, capsys):
     (dict(search="whole range"), 'search="whole range" needs a low and a high limit for every value'),
     (dict(search="whole range", between={"a": [0, 100]}), "b has none"),
     (dict(method="levenberg-marquardt", between={"b": [0, 1]}), "Levenberg-Marquardt cannot keep values"),
-    (dict(method="newton"), 'does not know method="newton"'),
+    (dict(method="newton"), 'does not know test_method="newton"'),
     (dict(search="everywhere"), 'does not know search="everywhere"'),
     (dict(between=[0, 1]), "between=\\[low, high\\] is for one value to find"),
     (dict(between={"c": [0, 1]}), "'c', which is not in the formula"),

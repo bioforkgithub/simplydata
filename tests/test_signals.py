@@ -82,7 +82,7 @@ def test_welch_matches_scipys_formula_written_in_r(capsys):
     # welch_r <- function(x, fs, m) { w <- 0.5 - 0.5 * cos(2 * pi * (0:(m - 1)) / m); pieces from
     #   seq(1, n - m + 1, by = m / 2), each mean removed, x w, Mod(fft)^2 / (fs * sum(w^2)), averaged,
     #   all but the first and last doubled };  W <- welch_r(x, 100, 64)
-    got = sdata.numbers(X.tolist()).find_spectrum(time_step=0.01, method="welch", window=64)
+    got = sdata.numbers(X.tolist()).find_spectrum(time_step=0.01, test_method="welch", window=64)
     power = column(got, "power")
     assert len(power) == 33
     assert power[3] == pytest.approx(0.202465540197663, rel=1e-10)  # W[4], freq 4.6875
@@ -95,7 +95,7 @@ def test_welch_matches_scipys_formula_written_in_r(capsys):
 # ---------------------------------------------------------------------------- lomb-scargle (R)
 def test_lomb_scargle_is_r_lsp(capsys, needs_r):
     # l <- lomb::lsp(yy, times = tt, type = "frequency", normalize = "standard", ofac = 1)
-    got = sdata.numbers(YY.tolist()).find_spectrum(method="lomb-scargle", time_points=TT.tolist())
+    got = sdata.numbers(YY.tolist()).find_spectrum(test_method="lomb-scargle", time_points=TT.tolist())
     freq, power = column(got, "frequency"), column(got, "power")
     assert len(freq) == 40
     assert freq[:3] == pytest.approx([0.126796120620927, 0.253592241241854, 0.380388361862780], rel=1e-12)
@@ -140,7 +140,7 @@ def test_spectrum_of_monthly_dates(engine, capsys):
 
 def test_spectrum_of_lomb_scargle_on_uneven_times(engine, needs_r):
     frame = pd.DataFrame({"t": TT, "y": YY})
-    got = make(frame, engine).find_spectrum_of("y", sorted_by="t", method="lomb-scargle")
+    got = make(frame, engine).find_spectrum_of("y", sorted_by="t", test_method="lomb-scargle")
     assert column(got, "power").max() == pytest.approx(0.453399963047636, rel=1e-10)
 
 
@@ -153,7 +153,7 @@ def test_spectrum_errors(engine):
     with pytest.raises(SimplydataError, match="empty cell"):
         gaps.find_spectrum_of("level", sorted_by="time")
     with pytest.raises(SimplydataError, match="method"):
-        t.find_spectrum_of("level", method="fourier")
+        t.find_spectrum_of("level", test_method="fourier")
     with pytest.raises(SimplydataError, match="between="):
         sdata.numbers(X.tolist()).find_spectrum(between=[5])
     with pytest.raises(SimplydataError, match="only one of"):

@@ -170,7 +170,7 @@ def test_by_running_refuses_a_function_that_ignores_its_seed():
     (lambda: find(test="compare_survival", effect_size=1), "of 1 means no difference"),
     (lambda: find(test="compare_survival", effect_size=-0.5), "cannot be 0 or below"),
     (lambda: find(test="compare_survival", effect_size=0.7, method="freedman"), "needs percents="),
-    (lambda: find(test="compare_survival", effect_size=0.7, method="cox"), "method="),
+    (lambda: find(test="compare_survival", effect_size=0.7, method="cox"), "test_method="),
     (lambda: find(test="compare_survival", effect_size=0.7, percents=[30, 40], sides=1), "two-sided only"),
     (lambda: chance(test="compare_survival", effect_size=0.7, values_per_group=100), "needs percents="),
     (lambda: find(test="explain", outcome="yes or no", using=["dose"], percents=[20], effect_size=0), "odds ratio"),
@@ -187,7 +187,7 @@ def test_by_running_refuses_a_function_that_ignores_its_seed():
     (lambda: find(test="compare_survival", effect_size=0.7, in_clusters_of=20, alike_within_clusters=0.05),
      "in_clusters_of= and alike_within_clusters= goes with"),
     (lambda: find(effect_size=0.5, using=["a"]), "using= goes with"),
-    (lambda: find(effect_size=0.5, method="schoenfeld"), "method= goes with"),
+    (lambda: find(effect_size=0.5, method="schoenfeld"), "test_method= goes with"),
     (lambda: find(test="compare_counts", effect_size=0.3, based_on="ranks"), 'based_on="ranks" goes with'),
     (lambda: find(test="compare_spreads", effect_size=0.5), "drawing_from="),
     (lambda: chance(drawing_from=[1, 2], values_per_group=20), "sdata.distribution"),
@@ -207,8 +207,8 @@ def test_every_s3b2_option_has_an_entry():
     from simplydata._underneath import UNDERNEATH
 
     for key in ("sdata.find_how_many_needed", "sdata.find_chance_of_finding",
-                "sdata.find_how_many_needed interval_width=", "sdata.find_how_many_needed test=",
-                "sdata.find_how_many_needed method=", "sdata.find_how_many_needed using=",
+                "sdata.find_how_many_needed interval_width=", "sdata.find_how_many_needed test_method=",
+                "sdata.find_how_many_needed test_method=", "sdata.find_how_many_needed using=",
                 "sdata.find_how_many_needed outcome=", "sdata.find_how_many_needed in_clusters_of=",
                 "sdata.find_how_many_needed based_on=", "sdata.find_chance_of_finding drawing_from=",
                 "sdata.find_chance_of_finding by_running="):

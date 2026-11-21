@@ -96,7 +96,7 @@ def test_correlation_with_shuffling_and_bootstrap(engine, capsys):
     out = capsys.readouterr().out
     assert "shuffled against the other 9999 times (seed 1)" in out
     assert "95 % bootstrap CI" in out and "often too narrow" in out
-    t.find_correlation_between("x", "y", method="spearman", p_value_by="shuffling")
+    t.find_correlation_between("x", "y", test_method="spearman", p_value_by="shuffling")
     assert "SciPy permutation_test" in capsys.readouterr().out
 
 

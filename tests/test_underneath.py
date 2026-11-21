@@ -325,8 +325,8 @@ def test_every_s3a2_option_has_an_entry():
 
 
 @pytest.mark.parametrize("key, setting, replacement", [
-    ('table.fit_line method="deming", y_error_over_x_error=', "error.ratio = 1 / 4", "error.ratio = 4"),
-    ('table.fit_line method="theil-sen"', 'method="separate"', 'method="joint"'),
+    ('table.fit_line test_method="deming", y_error_over_x_error=', "error.ratio = 1 / 4", "error.ratio = 4"),
+    ('table.fit_line test_method="theil-sen"', 'test_method="separate"', 'test_method="joint"'),
 ])
 def test_leaving_out_a_choice_makes_an_option_comparison_fail(key, setting, replacement):
     entry = UNDERNEATH[key]

@@ -57,7 +57,7 @@ SIMPLE = {
 
 @pytest.mark.parametrize("method", list(SIMPLE))
 def test_simple_methods_match_r_forecast(engine, method, needs_r, capsys):
-    result = harbour(engine).forecast("visitors", sorted_by="month", steps_ahead=3, method=method, repeats_every=12)
+    result = harbour(engine).forecast("visitors", sorted_by="month", steps_ahead=3, test_method=method, repeats_every=12)
     mean, low, high = SIMPLE[method]
     assert col(result, "forecast") == pytest.approx(mean, rel=1e-12)
     assert col(result, "forecast 95 % prediction low") == pytest.approx(low, rel=1e-12)
@@ -116,7 +116,7 @@ def test_holt_winters_options_match_r(needs_r):
 
 
 def test_arima_matches_r(engine, needs_r, capsys):
-    result = harbour(engine).forecast("visitors", sorted_by="month", steps_ahead=3, method="arima", order=(0, 1, 1),
+    result = harbour(engine).forecast("visitors", sorted_by="month", steps_ahead=3, test_method="arima", order=(0, 1, 1),
                                       seasonal_order=(0, 1, 1), repeats_every=12)
     # R: a <- arima(x, order = c(0, 1, 1), seasonal = list(order = c(0, 1, 1), period = 12), method = "ML")
     #    f <- forecast(a, h = 3, level = 95); f$mean; f$lower; f$upper
@@ -131,7 +131,7 @@ def test_arima_matches_r(engine, needs_r, capsys):
 
 
 def test_arima_model_table_matches_r(needs_r):
-    result = harbour("pandas").forecast("visitors", sorted_by="month", method="arima", order=(0, 1, 1),
+    result = harbour("pandas").forecast("visitors", sorted_by="month", test_method="arima", order=(0, 1, 1),
                                         seasonal_order=(0, 1, 1), repeats_every=12, show="model")
     assert result._frame["term"].to_list() == ["ma1", "sma1", "sigma^2", "log-likelihood", "AIC"]
     # R: coef(a); sqrt(diag(a$var.coef)); a$sigma2; a$loglik; a$aic
@@ -141,7 +141,7 @@ def test_arima_model_table_matches_r(needs_r):
 
 
 def test_arima_with_an_average_matches_r(needs_r, capsys):
-    result = harbour("pandas").forecast("visitors", steps_ahead=2, method="arima", order=(1, 0, 0), interval=80)
+    result = harbour("pandas").forecast("visitors", steps_ahead=2, test_method="arima", order=(1, 0, 0), interval=80)
     # R: a1 <- arima(x, order = c(1, 0, 0), method = "ML"); f1 <- forecast(a1, h = 2, level = 80)
     assert col(result, "forecast") == pytest.approx([2037.767447691, 2006.55675905573], rel=1e-7)
     assert col(result, "forecast 80 % prediction low") == pytest.approx([1829.12155420741, 1724.20996420578], rel=1e-7)
@@ -183,7 +183,7 @@ def test_compare_forecasts_matches_r_accuracy(engine, needs_r, capsys):
 
 
 def test_compare_forecasts_without_a_season_matches_r(needs_r, capsys):
-    result = harbour("pandas").compare_forecasts_for("visitors", methods=["average", "last value"])
+    result = harbour("pandas").compare_forecasts_for("visitors", test_method=["average", "last value"])
     # R: y1 <- ts(h[1:132]); accuracy(meanf(y1, 12), h[133:144])["Test set", c("MAE", "RMSE", "MAPE", "MASE")]
     frame = result._frame.to_pandas()
     row = frame[frame["method"] == "average"].iloc[0]
@@ -194,14 +194,14 @@ def test_compare_forecasts_without_a_season_matches_r(needs_r, capsys):
 
 def test_forecast_for_each_group(engine, needs_r):
     result = make(sdata.get_example("visitors"), engine).forecast("visitors", sorted_by="month", steps_ahead=2,
-                                                              method="last value", for_each_group_in="museum")
+                                                              test_method="last value", for_each_group_in="museum")
     assert result._frame["museum"].to_list() == ["Harbour Museum"] * 2 + ["Hill Gallery"] * 2
     assert col(result, "forecast")[:2] == pytest.approx([2072, 2072])
 
 
 def test_nums_forecast_matches_r(needs_r, capsys):
     nums = sdata.numbers(sdata.get_example("visitors")["visitors"][:144])
-    result = nums.forecast(steps_ahead=3, method="same season last time", repeats_every=12)
+    result = nums.forecast(steps_ahead=3, test_method="same season last time", repeats_every=12)
     assert col(result, "forecast") == pytest.approx([1871, 1925, 1930])  # R snaive(x, h = 3)$mean
     assert "for the next 3 steps" in capsys.readouterr().out
 
@@ -209,27 +209,27 @@ def test_nums_forecast_matches_r(needs_r, capsys):
 def test_forecast_errors(engine):
     h = harbour(engine)
     with pytest.raises(SimplydataError, match="needs order="):
-        h.forecast("visitors", sorted_by="month", method="arima")
-    with pytest.raises(SimplydataError, match='for method="arima"'):
+        h.forecast("visitors", sorted_by="month", test_method="arima")
+    with pytest.raises(SimplydataError, match='for test_method="arima"'):
         h.forecast("visitors", sorted_by="month", order=(0, 1, 1))
     with pytest.raises(SimplydataError, match="needs repeats_every="):
-        h.forecast("visitors", sorted_by="month", method="same season last time")
+        h.forecast("visitors", sorted_by="month", test_method="same season last time")
     with pytest.raises(SimplydataError, match='season="multiplied" is for'):
-        h.forecast("visitors", sorted_by="month", method="naive", season="multiplied")
+        h.forecast("visitors", sorted_by="month", test_method="naive", season="multiplied")
     with pytest.raises(SimplydataError, match="steps_ahead="):
         h.forecast("visitors", sorted_by="month", steps_ahead=0)
     with pytest.raises(SimplydataError, match="interval="):
         h.forecast("visitors", sorted_by="month", interval=0.95)
     with pytest.raises(SimplydataError, match='show="model"'):
-        h.forecast("visitors", sorted_by="month", method="naive", show="model")
+        h.forecast("visitors", sorted_by="month", test_method="naive", show="model")
     with pytest.raises(SimplydataError, match="three whole numbers"):
-        h.forecast("visitors", sorted_by="month", method="arima", order=(0, 1))
+        h.forecast("visitors", sorted_by="month", test_method="arima", order=(0, 1))
     with pytest.raises(SimplydataError, match="method"):
-        h.forecast("visitors", sorted_by="month", method="crystal ball")
+        h.forecast("visitors", sorted_by="month", test_method="crystal ball")
     with pytest.raises(SimplydataError, match="too few readings"):
         h.forecast("visitors", sorted_by="month", check_on_last=142)
     with pytest.raises(SimplydataError, match="at least two methods"):
-        h.compare_forecasts_for("visitors", sorted_by="month", methods=["naive"])
+        h.compare_forecasts_for("visitors", sorted_by="month", test_method=["naive"])
     river = make(sdata.get_example("river"), engine)
     with pytest.raises(SimplydataError, match="evenly spaced"):
         river.forecast("nitrate", sorted_by="date", for_each_group_in="station")

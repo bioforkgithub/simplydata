@@ -238,7 +238,7 @@ def test_count_each_numbers(engine, marks):
 def test_correlation_matches_scipy(engine, marks, method, capsys):
     t = make(marks, engine)
     before = snapshot(t)
-    r = t.find_correlation_between("marks", "height", method=method)
+    r = t.find_correlation_between("marks", "height", test_method=method)
     fn = stats.pearsonr if method == "pearson" else stats.spearmanr
     want_r, want_p = fn(marks["marks"], marks["height"])
     assert isinstance(r, float)
@@ -314,8 +314,8 @@ def test_friendly_errors(engine, gappy):
         t.find_median_of(5)
     with pytest.raises(SimplydataError, match="no option called"):
         t.find_average_of("marks", for_eech="class")
-    with pytest.raises(SimplydataError, match='Did you mean method="spearman"'):
-        t.find_correlation_between("marks", "hours", method="spearmen")
+    with pytest.raises(SimplydataError, match='Did you mean test_method="spearman"'):
+        t.find_correlation_between("marks", "hours", test_method="spearmen")
     with pytest.raises(SimplydataError, match="two different columns"):
         t.find_correlation_between("marks", "marks")
     with pytest.raises(SimplydataError, match='"name" has text'):
@@ -371,9 +371,9 @@ def test_sentence_numbers_are_short():
 def test_cross_correlation_refuses_options_it_does_not_use():
     # the cross-correlation is Pearson's r at each shift, as R ccf(); other options are refused, not ignored
     sensor = sdata.table(sdata.get_example("sensor"))
-    with pytest.raises(SimplydataError, match="method= and show="):
-        sensor.find_correlation_between("signal", "vibration", rows_back=10, sorted_by="time", method="spearman")
-    with pytest.raises(SimplydataError, match="method= and show="):
+    with pytest.raises(SimplydataError, match="test_method= and show="):
+        sensor.find_correlation_between("signal", "vibration", rows_back=10, sorted_by="time", test_method="spearman")
+    with pytest.raises(SimplydataError, match="test_method= and show="):
         sensor.find_correlation_between("signal", "vibration", rows_back=10, sorted_by="time", show="p")
     with pytest.raises(SimplydataError, match="higher="):
         sensor.find_correlation_between("signal", "vibration", rows_back=10, sorted_by="time", higher="signal")

@@ -201,13 +201,13 @@ def test_weighting_is_weightit_with_its_balance_table(needs_r, capsys):
 
 def test_matching_is_matchit_with_pair_clustered_errors(needs_r, capsys):
     t = sdata.table(sdata.get_example("job_training"))
-    r = t.compare_balanced_groups_of("re78", for_each_group_in="treat", allowing_for=COLUMNS, method="matching",
+    r = t.compare_balanced_groups_of("re78", for_each_group_in="treat", allowing_for=COLUMNS, test_method="matching",
                                      effect_for=1).as_pandas().iloc[0]
     assert r["estimate"] == pytest.approx(894.3675, abs=1e-3)  # the MatchIt vignette's 894, SE 705
     assert r["standard error"] == pytest.approx(705.2298, abs=1e-3)
     assert r["effect for"] == "1 (ATT)"
     caliper = t.compare_balanced_groups_of("re78", for_each_group_in="treat", allowing_for=COLUMNS,
-                                           method="matching", effect_for=1, match_within=0.2)
+                                           test_method="matching", effect_for=1, match_within=0.2)
     assert caliper.as_pandas()["estimate"][0] == pytest.approx(1770.6029, abs=1e-3)
     assert "68 rows of \"1\" had no match" in capsys.readouterr().out
 
@@ -243,11 +243,11 @@ def test_a_yes_or_no_outcome_gives_a_risk_difference(needs_r, capsys):
 
 @pytest.mark.parametrize("change, message", [
     (dict(method="matching"), "say which with effect_for="),
-    (dict(method="matching", effect_for="everyone"), 'use method="weighting"'),
-    (dict(match_within=0.2), 'add method="matching"'),
+    (dict(method="matching", effect_for="everyone"), 'use test_method="weighting"'),
+    (dict(match_within=0.2), 'add test_method="matching"'),
     (dict(allowing_for=None), "needs allowing_for="),
     (dict(effect_for=3), "is not one of the groups"),
-    (dict(method="stratification"), 'method= takes "weighting" or "matching"'),
+    (dict(method="stratification"), 'test_method= takes "weighting" or "matching"'),
 ])
 def test_balancing_refusals(change, message):
     call = dict(for_each_group_in="treat", allowing_for=COLUMNS)
@@ -448,7 +448,7 @@ def test_standardised_ratios_are_read_back_by_group_name(needs_r):
 
 def test_matching_with_fewer_rows_in_the_other_group_says_so(needs_r, capsys):
     t = sdata.table(sdata.get_example("job_training"))
-    t.compare_balanced_groups_of("re78", for_each_group_in="treat", allowing_for=COLUMNS, method="matching",
+    t.compare_balanced_groups_of("re78", for_each_group_in="treat", allowing_for=COLUMNS, test_method="matching",
                                  effect_for=0)
     assert 'no partner left ("1" has fewer rows)' in capsys.readouterr().out
 

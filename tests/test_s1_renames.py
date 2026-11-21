@@ -162,17 +162,17 @@ def test_not_lower_errors(groups):
 # ---------------------------------------------------------------------------- reverse percentile bootstrap
 def test_reverse_percentile_bootstrap(engine, capsys):
     t = make(sdata.get_example("marks"), engine)
-    new = t.find_interval_of("marks", "median", method="reverse percentile bootstrap")._frame.to_pandas()
+    new = t.find_interval_of("marks", "median", test_method="reverse percentile bootstrap")._frame.to_pandas()
     out = capsys.readouterr().out
     assert "bootstrap interval (reverse percentile)" in out and 'boot.ci(type = "basic")' in out
     # the reverse percentile interval is 2 x median minus the percentile interval, reversed
     # (R: boot.ci(type = "basic") is 2 * t0 - the percentile ends)
-    perc = t.find_interval_of("marks", "median", method="percentile bootstrap")._frame.to_pandas()
+    perc = t.find_interval_of("marks", "median", test_method="percentile bootstrap")._frame.to_pandas()
     median = new["median of marks"][0]
     assert new["median of marks 95 % CI low"][0] == pytest.approx(2 * median - perc["median of marks 95 % CI high"][0])
     assert new["median of marks 95 % CI high"][0] == pytest.approx(2 * median - perc["median of marks 95 % CI low"][0])
     capsys.readouterr()
-    old = t.find_interval_of("marks", "median", method="basic bootstrap")._frame.to_pandas()
+    old = t.find_interval_of("marks", "median", test_method="basic bootstrap")._frame.to_pandas()
     assert old.equals(new)
     assert notes(capsys.readouterr().out) == [
-        f'Note: method="basic bootstrap" is now called method="reverse percentile bootstrap". {NOTE_END}']
+        f'Note: test_method="basic bootstrap" is now called test_method="reverse percentile bootstrap". {NOTE_END}']

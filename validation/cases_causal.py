@@ -135,11 +135,11 @@ def _cases(Case):
                       `re74 after` = bb["re74", "Diff.Adj"])
              """), r_packages=("WeightIt", "cobalt"), r_tolerance=1e-9),
         Case("table.compare_balanced_groups_of",
-             'method="matching": lalonde, 1:1 nearest neighbour, the effect among the trained men (ATT)', "lalonde",
+             'test_method="matching": lalonde, 1:1 nearest neighbour, the effect among the trained men (ATT)', "lalonde",
              "real data",
              ours=f"""
                  r = sdata.table(data).compare_balanced_groups_of("re78", for_each_group_in="treat",
-                                                                  allowing_for={COLUMNS}, method="matching",
+                                                                  allowing_for={COLUMNS}, test_method="matching",
                                                                   effect_for=1).as_pandas().iloc[0]
                  {{"effect": r["estimate"], "standard error": r["standard error"]}}
              """,
@@ -152,11 +152,11 @@ def _cases(Case):
              """), r_packages=("MatchIt", "sandwich", "lmtest"), r_tolerance=1e-9,
              note="The MatchIt vignette's own analysis of lalonde: ATT 894, clustered standard error 705."),
         Case("table.compare_balanced_groups_of",
-             'method="matching": lalonde, with a caliper of 0.2 standard deviations of the logit (match_within=0.2)',
+             'test_method="matching": lalonde, with a caliper of 0.2 standard deviations of the logit (match_within=0.2)',
              "lalonde", "real data",
              ours=f"""
                  r = sdata.table(data).compare_balanced_groups_of("re78", for_each_group_in="treat",
-                                                                  allowing_for={COLUMNS}, method="matching",
+                                                                  allowing_for={COLUMNS}, test_method="matching",
                                                                   effect_for=1, match_within=0.2).as_pandas().iloc[0]
                  {{"effect": r["estimate"], "standard error": r["standard error"]}}
              """,

@@ -95,14 +95,14 @@ def test_negative_values_and_empty_rows_are_refused():
 
 def test_alr_needs_against_and_clr_takes_none():
     with pytest.raises(SimplydataError, match="against="):
-        _table().add_log_ratio_columns(columns=GENES, method="alr")
+        _table().add_log_ratio_columns(columns=GENES, test_method="alr")
     with pytest.raises(SimplydataError, match="against="):
         _table().add_log_ratio_columns(columns=GENES, against="sul1")
 
 
 def test_ward_is_refused_with_bray_curtis_and_kmeans_takes_no_measure():
     with pytest.raises(SimplydataError, match='linkage="ward" assumes straight-line'):
-        _table().add_clusters(columns=GENES, method="hierarchical", measure="bray-curtis", linkage="ward")
+        _table().add_clusters(columns=GENES, test_method="hierarchical", measure="bray-curtis", linkage="ward")
     with pytest.raises(SimplydataError, match="takes no measure="):
         _table().add_clusters(columns=GENES, measure="bray-curtis")
     with pytest.raises(SimplydataError, match='linkage="ward"'):
@@ -116,12 +116,12 @@ def test_euclidean_rda_on_raw_counts_is_refused_with_hellinger():
 
 def test_canonical_correspondence_takes_no_measure():
     with pytest.raises(SimplydataError, match="no measure="):
-        _table().explain_profiles_of(GENES, using=["temperature"], method="cca", measure="bray-curtis")
+        _table().explain_profiles_of(GENES, using=["temperature"], test_method="cca", measure="bray-curtis")
 
 
 def test_simper_goes_with_permanova_and_bray_curtis_only():
     with pytest.raises(SimplydataError, match="not a test"):
-        _table().compare_profiles_of(GENES, for_each_group_in="site", method="anosim", show="contributions")
+        _table().compare_profiles_of(GENES, for_each_group_in="site", test_method="anosim", show="contributions")
     with pytest.raises(SimplydataError, match="Bray-Curtis"):
         _table().compare_profiles_of(GENES, for_each_group_in="site", measure="jaccard", show="contributions")
 
@@ -147,7 +147,7 @@ def test_depth_note_on_bray_curtis_with_raw_counts(capsys):
 def test_hierarchical_clusters_with_bray_curtis_choose_average_linkage(capsys):
     from simplydata._r import r_ready
 
-    table = _table().add_clusters(columns=GENES, how_many=3, method="hierarchical", measure="bray-curtis")
+    table = _table().add_clusters(columns=GENES, how_many=3, test_method="hierarchical", measure="bray-curtis")
     out = capsys.readouterr().out
     assert 'simplydata chooses linkage="average" for Bray-Curtis' in out
     assert 'hclust(vegan::vegdist(x, "bray"), method = "average")' in out
@@ -238,7 +238,7 @@ def test_permutation_floor_says_at_most(needs_r, capsys):
 
 
 def test_anosim_and_simper(needs_r, capsys):
-    row = _table().compare_profiles_of(GENES, for_each_group_in="site", method="anosim").as_pandas().iloc[0]
+    row = _table().compare_profiles_of(GENES, for_each_group_in="site", test_method="anosim").as_pandas().iloc[0]
     assert row["test"] == "ANOSIM" and 0 <= row["statistic"] <= 1
     simper = _table().compare_profiles_of(GENES, for_each_group_in="site", show="contributions").as_pandas()
     out = capsys.readouterr().out
@@ -252,12 +252,12 @@ def test_mantel_and_procrustes(needs_r, capsys):
     assert row["test"][0] == "Mantel" and "not about the columns themselves" in out
     assert "dist(scale(y))" in out
     row = _table().find_correlation_between_profiles(first=GENES, second=["temperature", "salinity"],
-                                                     method="procrustes").as_pandas()
+                                                     test_method="procrustes").as_pandas()
     assert 0 <= row["statistic"][0] <= 1
 
 
 def test_automatic_clusters_print_each_width(needs_r, capsys):
-    _table().add_clusters(columns=GENES, how_many="automatic", method="hierarchical", measure="bray-curtis")
+    _table().add_clusters(columns=GENES, how_many="automatic", test_method="hierarchical", measure="bray-curtis")
     out = capsys.readouterr().out
     assert "Average silhouette width for each number of clusters: 2:" in out and "Kaufman & Rousseeuw" in out
 

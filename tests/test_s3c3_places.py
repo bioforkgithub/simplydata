@@ -119,7 +119,7 @@ def test_rayleigh_is_r_circular(needs_r, capsys):
     assert result["p-value"][0] == pytest.approx(found[1], rel=1e-9)
     out = capsys.readouterr().out
     assert "If the directions were spread evenly around the circle" in out and 'units = "degrees"' in out
-    again = table.compare_shape_to("current_direction", test="rayleigh", full_turn=360).as_pandas()
+    again = table.compare_shape_to("current_direction", test_method="rayleigh", full_turn=360).as_pandas()
     assert again["p-value"][0] == result["p-value"][0]
     default = table.compare_shape_to("current_direction", full_turn=360).as_pandas()  # Rayleigh with full_turn=
     assert default["p-value"][0] == result["p-value"][0]

@@ -1,6 +1,6 @@
-"""Tests for phase S3b-3, survival and person-time: at_time_points=, method="life table", allowing_for=,
+"""Tests for phase S3b-3, survival and person-time: at_time_points=, test_method="life table", allowing_for=,
 followed_from=, average_time_up_to=, value= and competing_with= on the survival words, distribution= and
-method="fine-gray" on explain_survival, Harrell's C, table.find_risk_over_time, chart.draw_risk_curves and
+test_method="fine-gray" on explain_survival, Harrell's C, table.find_risk_over_time, chart.draw_risk_curves and
 table.add_time_and_event_columns.
 
 Reference values come from R 4.6.2 with survival 3.8.12, cmprsk 2.2.12, survRM2 1.0.4, KMsurv 0.1.6 and
@@ -100,7 +100,7 @@ def test_time_points_are_checked(trial):
 # ---------------------------------------------------------------- method="life table"
 def test_life_table(trial, engine, capsys, needs_r):
     out = frame(make(trial, engine).find_survival_over_time(time="days", event="died", for_each_group_in="treatment",
-                                                            method="life table", at_time_points=[0, 365, 730]))
+                                                            test_method="life table", at_time_points=[0, 365, 730]))
     new = out[out["treatment"] == "new medicine"].reset_index(drop=True)
     assert new["at start"].tolist() == [60, 37, 13]
     assert new["lost"].tolist() == [9, 14, 12] and new["events"].tolist() == [14, 10, 1]
@@ -114,11 +114,11 @@ def test_life_table(trial, engine, capsys, needs_r):
 def test_life_table_needs_points_from_zero(trial):
     t = sdata.table(trial)
     with pytest.raises(SimplydataError, match="needs at_time_points="):
-        t.find_survival_over_time(time="days", event="died", method="life table")
+        t.find_survival_over_time(time="days", event="died", test_method="life table")
     with pytest.raises(SimplydataError, match="start at 0"):
-        t.find_survival_over_time(time="days", event="died", method="actuarial", at_time_points=[10, 365])
+        t.find_survival_over_time(time="days", event="died", test_method="actuarial", at_time_points=[10, 365])
     with pytest.raises(SimplydataError, match="does not know"):
-        t.find_survival_over_time(time="days", event="died", method="nelson")
+        t.find_survival_over_time(time="days", event="died", test_method="nelson")
 
 
 # ---------------------------------------------------------------- allowing_for= (strata)
@@ -318,7 +318,7 @@ def test_fine_gray_matches_crr_and_finegray(mgus2, capsys):
     from simplydata._r import r_call
 
     out = frame(sdata.table(mgus2).explain_survival(time="etime", event="event", value="pcm", competing_with="death",
-                                                    using=["age", "sex"], method="fine-gray"))
+                                                    using=["age", "sex"], test_method="fine-gray"))
     assert out["coefficient"].tolist() == pytest.approx([-0.01733815, -0.26003824], rel=1e-6)
     printed = capsys.readouterr().out
     assert "its size is not how many times higher" in printed and "subdistribution hazard ratio" in printed
@@ -334,7 +334,7 @@ def test_fine_gray_matches_crr_and_finegray(mgus2, capsys):
 def test_cause_specific_is_a_cox_model_with_the_competing_event_censored(mgus2, capsys):
     t = sdata.table(mgus2)
     cs = frame(t.explain_survival(time="etime", event="event", value="pcm", competing_with="death",
-                                  using=["age", "sex"], method="cause-specific"))
+                                  using=["age", "sex"], test_method="cause-specific"))
     plain = frame(sdata.table(mgus2.assign(pcm=(mgus2["event"] == "pcm").astype(int))).explain_survival(
         time="etime", event="pcm", using=["age", "sex"]))
     assert cs["coefficient"].tolist() == pytest.approx(plain["coefficient"].tolist(), rel=1e-12)
@@ -344,12 +344,12 @@ def test_cause_specific_is_a_cox_model_with_the_competing_event_censored(mgus2, 
 def test_model_choices_are_checked(trial, mgus2):
     t = sdata.table(trial)
     with pytest.raises(SimplydataError, match="needs value= and competing_with="):
-        t.explain_survival(time="days", event="died", using="age", method="fine-gray")
+        t.explain_survival(time="days", event="died", using="age", test_method="fine-gray")
     with pytest.raises(SimplydataError, match="cause-specific"):
-        t.explain_survival(time="days", event="died", using="age", method="cause-specific")
+        t.explain_survival(time="days", event="died", using="age", test_method="cause-specific")
     with pytest.raises(SimplydataError, match="parametric"):
         sdata.table(mgus2).explain_survival(time="etime", event="event", value="pcm", competing_with="death",
-                                            using=["age"], method="fine-gray", distribution="weibull")
+                                            using=["age"], test_method="fine-gray", distribution="weibull")
 
 
 # ---------------------------------------------------------------- distribution=
@@ -522,7 +522,7 @@ def test_fine_gray_p_values_are_not_rounded(mgus2):
     from simplydata._r import r_call
 
     out = frame(sdata.table(mgus2).explain_survival(time="etime", event="event", value="pcm", competing_with="death",
-                                                    using=["age", "sex"], method="fine-gray"))
+                                                    using=["age", "sex"], test_method="fine-gray"))
     want = r_call("2 * pnorm(-abs(c(-0.01733815, -0.26003824) / c(0.005737103, 0.185681035)))")
     assert out["p-value"].tolist() == pytest.approx(list(want), rel=1e-5)
 
