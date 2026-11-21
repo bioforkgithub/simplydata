@@ -22,7 +22,7 @@ R_DATA_CAUSAL = {
     # as.numeric(): an empty cell of an R whole-number column comes through as R's NA, not as a huge negative number
     "airquality (R datasets)": ((), "d <- datasets::airquality; lapply(d[c(\"Ozone\", \"Solar.R\", \"Temp\", "
                                     "\"Wind\")], as.numeric)"),
-    "lung (survival)": (("survival",), "d <- survival::lung; lapply(d[c(\"time\", \"status\", \"age\", \"sex\", "
+    "lung with weight loss (survival)": (("survival",), "d <- survival::lung; lapply(d[c(\"time\", \"status\", \"age\", \"sex\", "
                                         "\"ph.karno\", \"wt.loss\")], as.numeric)"),
 }
 OURS_R = {"table.compare_balanced_groups_of": ("WeightIt", "MatchIt", "cobalt", "sandwich", "lmtest"),
@@ -91,7 +91,7 @@ def _datasets(Dataset):
                 "York State Department of Conservation and the National Weather Service. R's datasets package.",
                 "Public data; R's datasets package is GPL-2 | GPL-3; read from R, so it needs R.",
                 "https://stat.ethz.ch/R-manual/R-devel/library/datasets/html/airquality.html"),
-        Dataset("lung (survival)", "",
+        Dataset("lung with weight loss (survival)", "",
                 "228 patients with advanced lung cancer: survival time, status, age, sex, Karnofsky score (empty "
                 "cells) and weight loss (14 empty cells)",
                 "Loprinzi, C. L. et al. (1994). Journal of Clinical Oncology 12, 601-607. As shipped by the R package "
@@ -335,7 +335,7 @@ def _cases(Case):
                   "underneath."),
         Case("table.explain_survival",
              'empty_cells="multiple imputation": lung cancer survival, with empty Karnofsky and weight-loss cells',
-             "lung (survival)", "real data",
+             "lung with weight loss (survival)", "real data",
              ours="""
                  r = sdata.table(data).explain_survival(time="time", event="status", value=2,
                                                         using=["age", "sex", "ph.karno", "wt.loss"],
