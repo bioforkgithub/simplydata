@@ -191,6 +191,12 @@ def _label(value) -> str:
     return str(value)
 
 
+def _looks_like_direction(name) -> bool:
+    from .places import looks_like_direction
+
+    return looks_like_direction(name)
+
+
 def _list_words(items) -> str:
     items = list(items)
     if len(items) <= 1:
@@ -2499,7 +2505,8 @@ class StatTestWords:
         return float(result.statistic), float(result.pvalue)
 
     @friendly(renamed={"for_each": "for_each_group_in", "seed": "with_seed"})
-    def compare_shape_to(self, column=None, shape="normal", for_each_group_in=None, with_seed=1, samples=9999, test=None):
+    def compare_shape_to(self, column=None, shape="normal", for_each_group_in=None, with_seed=1, samples=9999, test=None,
+                         full_turn=None):
         """Do the values look bell-shaped (normal), or are they too far from it?
 
         table.compare_shape_to("marks", "normal", for_each_group_in="class")   (with sdata.get_example("marks"))
@@ -2527,12 +2534,31 @@ class StatTestWords:
         printed; the same seed gives the same p-value). Most shapes take a second or two; t,
         Cauchy and F take minutes, and a note says so before a long run. samples=999 is ten
         times quicker and gives a rougher p-value.
+
+        Directions (or times of day) on a circle: table.compare_shape_to("current_direction",
+        shape="even around the circle", full_turn=360) gives the Rayleigh test (test="rayleigh",
+        R circular::rayleigh.test(), with the units always given): could the directions be
+        spread evenly around the circle, or is there a preferred direction? full_turn= says how
+        big a full turn is (360 degrees, 24 hours, "radians"); with it, shape="uniform" means
+        even around the circle too.
         """
         from ..distributions import Distribution
 
         step = "compare_shape_to"
         example = 'with sdata.get_example("marks"): table.compare_shape_to("marks", "normal", for_each_group_in="class")'
         self._need_name(step, "the column", column, example)
+        if full_turn is not None and isinstance(shape, Distribution):
+            raise SimplydataError("full_turn= says the values are directions on a circle; a distribution of fixed numbers "
+                                  "(sdata.distribution) is a shape on a line. Leave out one of them.")
+        if self._circle_shape_wanted(shape, test, full_turn) or full_turn is not None:
+            if isinstance(shape, str) and shape.strip().lower() == "normal" and test is None:
+                print('On a circle (full_turn=) the shape to compare with is "even around the circle": the Rayleigh '
+                      "test (review 3.1: the default with full_turn=).")
+            return self._compare_circle(step, column, shape, full_turn, for_each_group_in, test)
+        if isinstance(shape, str) and shape.strip().lower() in ("uniform", "even") and _looks_like_direction(column):
+            print(f'Note: "{column}" looks like directions. On a circle, "uniform" means even around the circle: '
+                  "add full_turn=360 (the Rayleigh test). Without it, the test below treats the values as a line, "
+                  "and its answer depends on where 0 is.")
         if isinstance(test, str):
             test = SHAPE_TEST_ALIASES.get(test.strip().lower(), test.strip().lower())
         dist = shape if isinstance(shape, Distribution) else None

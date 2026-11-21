@@ -17,8 +17,8 @@ The entries are split by area: charts.py, tables.py, numbers.py, statistics.py, 
 explain()), lines.py (the lines-and-curves words and their options), checking.py (the checking-and-comparing
 words and their options), survival.py (S3b-3: the survival and person-time words and options),
 combining.py (S3b-1: combining studies), planning.py (S3b-2: the power words and their options) and
-communities.py (S3c-1: communities and resistomes) and hidden_factors.py (S3c-2: the hidden-factor words and
-their options).
+communities.py (S3c-1: communities and resistomes), hidden_factors.py (S3c-2: the hidden-factor words and
+their options) and places.py (S3c-3: directions, places and extremes).
 """
 
 from __future__ import annotations
@@ -122,12 +122,12 @@ class Entry:
 
 
 def _join() -> dict[str, Entry]:
-    from . import (charts, checking, combining, communities, hidden_factors, lines, models, numbers, planning,
-                   statistics, survival, tables)
+    from . import (charts, checking, combining, communities, hidden_factors, lines, models, numbers, places,
+                   planning, statistics, survival, tables)
 
     found: dict[str, Entry] = {}
     for module in (charts, tables, numbers, statistics, models, lines, checking, survival, combining, planning,
-                   communities, hidden_factors):
+                   communities, hidden_factors, places):
         for entry in module.ENTRIES:
             if entry.key in found:
                 raise ValueError(f"{entry.key} has two underneath entries")

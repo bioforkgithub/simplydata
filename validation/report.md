@@ -4,7 +4,7 @@ Made by `python validation/make_report.py` on 2026-11-21. Generated: do not edit
 
 Each simplydata word is run on real, published data and compared with the published answer, with the package simplydata uses underneath called directly, and with R. Each "same underneath" box of the manual is run next to its word and compared too. How it works, and the datasets with their licences: [validation/README.md](README.md).
 
-**903 checks passed, 0 failed, 0 skipped** (skipped: R or an R package is not installed on this computer).
+**982 checks passed, 0 failed, 0 skipped** (skipped: R or an R package is not installed on this computer).
 
 ## Setup
 
@@ -1886,15 +1886,15 @@ Note: The oblimin rotation of GPArotation starts from random numbers, so both si
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
-| own part of x1 | statsmodels Factor (method="ml") | 0.512529527173443 | 0.512528080612116 | relative 0.0001 | pass |
-| own part of x2 | statsmodels Factor (method="ml") | 0.7487351603869 | 0.748735884831696 | relative 0.0001 | pass |
-| own part of x3 | statsmodels Factor (method="ml") | 0.542773290729761 | 0.542774191791768 | relative 0.0001 | pass |
-| own part of x4 | statsmodels Factor (method="ml") | 0.279193093920192 | 0.279193086492056 | relative 0.0001 | pass |
-| own part of x5 | statsmodels Factor (method="ml") | 0.242877320676015 | 0.242877142129642 | relative 0.0001 | pass |
-| own part of x6 | statsmodels Factor (method="ml") | 0.30521585555841 | 0.305216055411998 | relative 0.0001 | pass |
-| own part of x7 | statsmodels Factor (method="ml") | 0.502207221916071 | 0.502208401882765 | relative 0.0001 | pass |
-| own part of x8 | statsmodels Factor (method="ml") | 0.468550489794599 | 0.46854973892137 | relative 0.0001 | pass |
-| own part of x9 | statsmodels Factor (method="ml") | 0.543247686483436 | 0.543246540530905 | relative 0.0001 | pass |
+| own part of x1 | statsmodels Factor (method="ml") | 0.512529527173443 | 0.512528555498026 | relative 0.0001 | pass |
+| own part of x2 | statsmodels Factor (method="ml") | 0.7487351603869 | 0.748735223233346 | relative 0.0001 | pass |
+| own part of x3 | statsmodels Factor (method="ml") | 0.542773290729761 | 0.542774575591339 | relative 0.0001 | pass |
+| own part of x4 | statsmodels Factor (method="ml") | 0.279193093920192 | 0.279193222911674 | relative 0.0001 | pass |
+| own part of x5 | statsmodels Factor (method="ml") | 0.242877320676015 | 0.242877481515784 | relative 0.0001 | pass |
+| own part of x6 | statsmodels Factor (method="ml") | 0.30521585555841 | 0.305215561657905 | relative 0.0001 | pass |
+| own part of x7 | statsmodels Factor (method="ml") | 0.502207221916071 | 0.50220866419741 | relative 0.0001 | pass |
+| own part of x8 | statsmodels Factor (method="ml") | 0.468550489794599 | 0.468549487291311 | relative 0.0001 | pass |
+| own part of x9 | statsmodels Factor (method="ml") | 0.543247686483436 | 0.54324637962773 | relative 0.0001 | pass |
 | own part of x1 | R | 0.512529527173443 | 0.512528169335274 | relative 0.001 | pass |
 | own part of x2 | R | 0.7487351603869 | 0.74873504605719 | relative 0.001 | pass |
 | own part of x3 | R | 0.542773290729761 | 0.542776785473323 | relative 0.001 | pass |
@@ -1956,6 +1956,184 @@ Note: Real data with 30 cells emptied on purpose (the first 30 rows of x1): ever
 | its standard error | R | 0.0741697801385859 | 0.0741697801385859 | relative 1e-08 | pass |
 | chi-square | R | 47.4133581632698 | 47.4133581632698 | relative 1e-08 | pass |
 | CFI | R | 0.879367051234156 | 0.879367051234156 | relative 1e-08 | pass |
+
+### `table.find_average_direction_of`
+
+**turtles: the average direction of 10 homing turtles** (real data; data: turtles (circular))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| average direction | SciPy circmean, directional_stats, circstd | 317.235319509156 | 317.235319509156 | relative 1e-09 | pass |
+| resultant length | SciPy circmean, directional_stats, circstd | 0.818649629673879 | 0.818649629673878 | relative 1e-09 | pass |
+| circular standard deviation (degrees) | SciPy circmean, directional_stats, circstd | 36.2460083554047 | 36.2460083554047 | relative 1e-09 | pass |
+| average direction | R | 317.235319509156 | 317.235319509155 | relative 1e-09 | pass |
+| resultant length | R | 0.818649629673879 | 0.818649629673878 | relative 1e-09 | pass |
+| circular standard deviation (degrees) | R | 36.2460083554047 | 36.2460083554047 | relative 1e-09 | pass |
+
+Note: R circular gives the mean as -42.76 degrees; shown here from 0 to 360 (317.24), as simplydata gives it. R sd.circular gives radians; shown here in degrees.
+
+**ICU arrivals: the average time of day of 254 arrivals (full_turn=24)** (real data; data: ICU arrivals (circular))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| average hour | R | 17.2579169214614 | 17.2579169214614 | relative 1e-09 | pass |
+| resultant length | R | 0.317302854340033 | 0.317302854340033 | relative 1e-09 | pass |
+
+Note: R circular gives -6.74 hours, the same time of day as 17.26 (about 17:16).
+
+### `table.compare_shape_to shape="even around the circle"`
+
+**shape="even around the circle": turtles, the Rayleigh test** (real data; data: turtles (circular))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| resultant length | R | 0.818649629673878 | 0.818649629673878 | relative 1e-09 | pass |
+| p-value | R | 0.000305399546463319 | 0.000305399546463319 | relative 1e-09 | pass |
+
+Note: Without units = "degrees" R circular reads the degrees as radians and gives p = 0.15 instead of 0.0003 (the trap simplydata avoids by always giving the units).
+
+**shape="even around the circle": ICU arrivals by hour (full_turn=24)** (real data; data: ICU arrivals (circular))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| resultant length | R | 0.317302854340033 | 0.317302854340033 | relative 1e-09 | pass |
+| p-value | R | 7.83046086664025e-12 | 7.83046086664025e-12 | relative 1e-09 | pass |
+
+### `table.find_autocorrelation_of x=`
+
+**x=: meuse, Moran's I of log zinc with 1 / distance weights** (real data; data: meuse (sp))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| Moran's I | R | 0.11912624765924 | 0.11912624765924 | relative 1e-09 | pass |
+| p-value (999 shuffles, seed 1) | R | 0.001 | 0.001 | relative 1e-09 | pass |
+
+Note: Moran's I from ape::Moran.I on the 1 / distance weights (ape scales each row to 1 itself): 0.1191, the number of the design's check; the p-value from spdep::moran.mc.
+
+### `table.find_autocorrelation_of nearest=`
+
+**nearest=: meuse, Moran's I of log zinc with the 8 nearest samples** (real data; data: meuse (sp))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| Moran's I | R | 0.489606337219415 | 0.489606337219415 | relative 1e-09 | pass |
+
+Note: With only the 8 nearest neighbours Moran's I is 0.49 instead of 0.12: the weights change the answer.
+
+### `table.find_autocorrelation_of on_globe=`
+
+**on_globe=: meuse in longitude and latitude, great-circle 1 / distance** (real data; data: meuse in longitude and latitude (sp, sf))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| Moran's I | R | 0.116566169069248 | 0.116566169069248 | relative 1e-09 | pass |
+
+Note: Over 3 km great-circle and grid distances hardly differ, so Moran's I is close to the grid's 0.1191.
+
+### `table.find_variogram_of`
+
+**meuse: the spherical variogram of log zinc** (published; data: meuse (sp))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| nugget | gstat vignette (Pebesma) | 0.0506597095446436 | 0.0507 | within 5e-05 (printed rounding) | pass |
+| partial sill | gstat vignette (Pebesma) | 0.590605107555405 | 0.5906 | within 5e-05 (printed rounding) | pass |
+| range | gstat vignette (Pebesma) | 897.001083383488 | 897 | within 0.5 (printed rounding) | pass |
+| nugget | R | 0.0506597095446436 | 0.0506597095446436 | relative 1e-07 | pass |
+| partial sill | R | 0.590605107555405 | 0.590605107555405 | relative 1e-07 | pass |
+| range | R | 897.001083383488 | 897.001083383488 | relative 1e-07 | pass |
+| first bin semivariance | R | 0.123447934906159 | 0.123447934906159 | relative 1e-07 | pass |
+
+Note: The gstat vignette fits vgm(1, "Sph", 900, 1) and prints nugget 0.0507, partial sill 0.5906 and range 897; simplydata lets gstat choose its own start values and reaches the same fit.
+
+### `draw_variogram`
+
+**meuse: the dots and the curve of the variogram of log zinc** (real data; data: meuse (sp))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| last bin distance | R | 1543.20248199968 | 1543.20248199968 | relative 1e-07 | pass |
+| last bin semivariance | R | 0.574822734067877 | 0.574822734067877 | relative 1e-07 | pass |
+| curve at its end | R | 0.641264817100048 | 0.641264817100048 | relative 1e-07 | pass |
+
+### `table.find_return_levels_of`
+
+**Port Pirie: the 10- and 100-year sea levels** (published; data: Port Pirie (ismev))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| 10-year level | Coles (2001), An Introduction to Statistical Modeling of Extreme Values, 3.4.1 | 4.29621194427233 | 4.3 | within 0.005 (printed rounding) | pass |
+| 100-year level | Coles (2001), An Introduction to Statistical Modeling of Extreme Values, 3.4.1 | 4.68840379269535 | 4.69 | within 0.005 (printed rounding) | pass |
+| 100-year normal 95 % CI low | Coles (2001), An Introduction to Statistical Modeling of Extreme Values, 3.4.1 | 4.37712539022629 | 4.38 | within 0.005 (printed rounding) | pass |
+| 100-year normal 95 % CI high | Coles (2001), An Introduction to Statistical Modeling of Extreme Values, 3.4.1 | 4.9996821951644 | 5 | within 0.005 (printed rounding) | pass |
+| 10-year level | R | 4.29621194427233 | 4.29621194427233 | relative 1e-09 | pass |
+| 100-year level | R | 4.68840379269535 | 4.68840379269535 | relative 1e-09 | pass |
+| 100-year normal 95 % CI low | R | 4.37712539022629 | 4.37712539022629 | relative 1e-09 | pass |
+| 100-year normal 95 % CI high | R | 4.9996821951644 | 4.9996821951644 | relative 1e-09 | pass |
+
+**Port Pirie: the profile-likelihood interval of the 100-year level** (real data; data: Port Pirie (ismev))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| 100-year profile 95 % CI low | R | 4.49498373639485 | 4.49361874437251 | relative 0.002 | pass |
+| 100-year profile 95 % CI high | R | 5.25740791573094 | 5.25758975055457 | relative 0.002 | pass |
+
+Note: extRemes finds the profile interval on a grid of levels, so its ends move in the third decimal with the grid; the check is against a fine grid (1000 points over 4.2 to 6.5), to 0.2 %.
+
+### `table.fit_distribution_to distribution="gev"`
+
+**distribution="gev": Port Pirie, the GEV parameters** (published; data: Port Pirie (ismev))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| location | Coles (2001), An Introduction to Statistical Modeling of Extreme Values, 3.4.1 | 3.87474985624041 | 3.87 | within 0.005 (printed rounding) | pass |
+| scale | Coles (2001), An Introduction to Statistical Modeling of Extreme Values, 3.4.1 | 0.19804395808428 | 0.198 | within 0.0005 (printed rounding) | pass |
+| shape | Coles (2001), An Introduction to Statistical Modeling of Extreme Values, 3.4.1 | -0.0501095351295167 | -0.05 | within 0.0005 (printed rounding) | pass |
+| location | SciPy genextreme.fit (shape c = -xi) | 3.87474985624041 | 3.87475873062896 | relative 0.005 | pass |
+| scale | SciPy genextreme.fit (shape c = -xi) | 0.19804395808428 | 0.198038140236732 | relative 0.005 | pass |
+| shape | SciPy genextreme.fit (shape c = -xi) | -0.0501095351295167 | -0.0501053478532863 | relative 0.005 | pass |
+| location | R | 3.87474985624041 | 3.87474985211916 | relative 0.0001 | pass |
+| scale | R | 0.19804395808428 | 0.198043955135652 | relative 0.0001 | pass |
+| shape | R | -0.0501095351295167 | -0.0501095049100334 | relative 0.0001 | pass |
+
+Note: SciPy's own fit stops a little short of the maximum, so simplydata polishes it; R extRemes is the check to 1e-4.
+
+### `table.find_return_levels_of values_above=`
+
+**values_above=: Coles's daily rain above 30 mm, the 100-year level** (published; data: Coles rain (ismev))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| 100-year level | Coles (2001), An Introduction to Statistical Modeling of Extreme Values, 4.4.1 | 106.342311366491 | 106.3 | within 0.05 (printed rounding) | pass |
+| 100-year level | R | 106.342311366491 | 106.342311366491 | relative 1e-09 | pass |
+| 100-year normal 95 % CI low | R | 65.6223740224056 | 65.6223740224056 | relative 1e-09 | pass |
+| 100-year normal 95 % CI high | R | 147.062248710576 | 147.062248710576 | relative 1e-09 | pass |
+
+Note: Coles fits sigma 7.44 and xi 0.184 above 30 mm; simplydata gives them in its printout (7.44, 0.184).
+
+### `table.fit_distribution_to distribution="generalised pareto"`
+
+**distribution="generalised pareto": Coles rain, the amounts above 30 mm** (published; data: Coles rain (ismev))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| scale | Coles (2001), An Introduction to Statistical Modeling of Extreme Values, 4.4.1 | 7.44026894085537 | 7.44 | within 0.005 (printed rounding) | pass |
+| shape | Coles (2001), An Introduction to Statistical Modeling of Extreme Values, 4.4.1 | 0.18449906745455 | 0.184 | within 0.0005 (printed rounding) | pass |
+| scale | R | 7.44026894085537 | 7.44025220565683 | relative 0.0001 | pass |
+| shape | R | 0.18449906745455 | 0.184497962931526 | relative 0.0001 | pass |
+
+### `draw_threshold_check`
+
+**Coles's daily rain: the mean excess and the shape from 20 to 40 mm** (real data; data: Coles rain (ismev))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| first mean excess | R | 7.9434264827261 | 7.9434264827261 | relative 1e-09 | pass |
+| first threshold shown | R | 20.7515151515152 | 20.7515151515152 | relative 1e-09 | pass |
+| shape at 20 | R | 0.132361500062607 | 0.132361500062607 | relative 1e-09 | pass |
+| shape at 40 | R | 0.0133913561116982 | 0.0133913561116982 | relative 1e-09 | pass |
+
+Note: Coles (2001, 4.4.1, Figures 4.1 and 4.2) reads both panels as settling from about 30 mm.
 
 ## 2. The same underneath (the manual's boxes)
 
@@ -2186,6 +2364,28 @@ Each box's library code is run next to the simplydata word and compared. Table w
 | `table.check_hidden_factors` | R + Python | polars | result | relative 1e-06 | pass |
 | `table.check_hidden_factors formula=` | R + Python | pandas | result | relative 1e-06 | pass |
 | `table.check_hidden_factors formula=` | R + Python | polars | result | relative 1e-06 | pass |
+| `table.find_average_direction_of` | SciPy | pandas | result | relative 1e-09 | pass |
+| `table.find_average_direction_of` | SciPy | polars | result | relative 1e-09 | pass |
+| `table.compare_shape_to shape="even around the circle"` | R + Python | pandas | result | relative 1e-09 | pass |
+| `table.compare_shape_to shape="even around the circle"` | R + Python | polars | result | relative 1e-09 | pass |
+| `table.find_autocorrelation_of x=` | R + Python | pandas | result | relative 1e-09 | pass |
+| `table.find_autocorrelation_of x=` | R + Python | polars | result | relative 1e-09 | pass |
+| `table.find_autocorrelation_of nearest=` | R + Python | pandas | result | relative 1e-09 | pass |
+| `table.find_autocorrelation_of nearest=` | R + Python | polars | result | relative 1e-09 | pass |
+| `table.find_autocorrelation_of on_globe=` | R + Python | pandas | result | relative 1e-09 | pass |
+| `table.find_autocorrelation_of on_globe=` | R + Python | polars | result | relative 1e-09 | pass |
+| `table.find_variogram_of` | R + Python | pandas | result | relative 1e-07 | pass |
+| `table.find_variogram_of` | R + Python | polars | result | relative 1e-07 | pass |
+| `draw_variogram` | R + matplotlib | pandas | chart | relative 1e-07 | pass |
+| `table.find_return_levels_of` | R + Python | pandas | result | relative 1e-09 | pass |
+| `table.find_return_levels_of` | R + Python | polars | result | relative 1e-09 | pass |
+| `table.find_return_levels_of values_above=` | R + Python | pandas | result | relative 1e-09 | pass |
+| `table.find_return_levels_of values_above=` | R + Python | polars | result | relative 1e-09 | pass |
+| `draw_threshold_check` | R + matplotlib | pandas | chart | relative 1e-09 | pass |
+| `table.fit_distribution_to distribution="gev"` | R + Python | pandas | result | relative 0.0001 | pass |
+| `table.fit_distribution_to distribution="gev"` | R + Python | polars | result | relative 0.0001 | pass |
+| `table.fit_distribution_to distribution="generalised pareto"` | R + Python | pandas | result | relative 0.0001 | pass |
+| `table.fit_distribution_to distribution="generalised pareto"` | R + Python | polars | result | relative 0.0001 | pass |
 
 How each kind is compared:
 
@@ -2390,6 +2590,25 @@ Where simplydata's default differs from the package underneath, it is listed her
 - `table.check_hidden_factors` (1): maximum likelihood; with empty cells simplydata adds missing = "ml", which uses every value given, where lavaan's own default ("listwise") would leave those rows out without a word.
 - `table.check_hidden_factors formula=` (1): formula= takes the model in lavaan's own syntax and runs lavaan::sem(), so hidden factors can explain each other (a structural equation model).
 - `table.check_hidden_factors formula=` (2): the paths are shown standardised (both sides on a scale of standard deviations), as the loadings are.
+- `table.find_average_direction_of` (1): the average from 0 up to the full turn; R circular::mean.circular gives the same direction from -180 to 180.
+- `table.find_average_direction_of` (2): the circular standard deviation sqrt(-2 ln R), in the units of the column, as R sd.circular (which gives radians).
+- `table.compare_shape_to shape="even around the circle"` (1): the units are always given to R circular, which reads plain numbers as radians without a word.
+- `table.find_autocorrelation_of x=` (1): every pair of places is a neighbour (all pairs, not a distance band).
+- `table.find_autocorrelation_of x=` (2): weights 1 / distance, each row's weights summing to 1 (row-standardised): nearer pairs count more.
+- `table.find_autocorrelation_of x=` (3): a permutation p-value from 999 shuffles after set.seed(1), one-sided (nearby places more alike), spdep's default.
+- `table.find_autocorrelation_of nearest=` (1): each place's k nearest places count alike, the others not at all, each row's weights summing to 1.
+- `table.find_autocorrelation_of on_globe=` (1): longitude and latitude as places on the earth (crs 4326): great-circle distances in km.
+- `table.find_variogram_of` (1): gstat's own bins: up to a third of the diagonal of the area, in 15 bins.
+- `table.find_variogram_of` (2): the spherical curve, fitted with gstat's own start values (vgm with no numbers) and its default weighted least squares (fit.method = 7).
+- `draw_variogram` (1): the fitted curve at 200 distances up to the largest bin, from gstat::variogramLine.
+- `table.find_return_levels_of` (1): the GEV by maximum likelihood (extRemes's default method).
+- `table.find_return_levels_of` (2): profile-likelihood intervals (Coles 2001, section 3.3.3): the normal approximation of return.level() is too narrow and too symmetric for long return periods; the search range starts at the normal interval (R extRemes needs one).
+- `table.find_return_levels_of values_above=` (1): the readings per year from the dates: daily readings are time.units = "days" (365.25 a year).
+- `table.find_return_levels_of values_above=` (2): profile-likelihood intervals (Coles 2001, section 3.3.3): the normal approximation of return.level() is too narrow and too symmetric for long return periods; the search range starts at the normal interval (R extRemes needs one).
+- `draw_threshold_check` (1): the mean excess at extRemes::mrlplot's own 100 thresholds, drawn from the lowest to the highest threshold asked for.
+- `draw_threshold_check` (2): the shape at 10 thresholds from the lowest to the highest, as extRemes::threshrange.plot.
+- `table.fit_distribution_to distribution="gev"` (1): the shape kept in the sign of extRemes and Coles (xi); SciPy's genextreme, which simplydata uses for the numbers, takes c = -xi.
+- `table.fit_distribution_to distribution="generalised pareto"` (1): the shape in the sign of extRemes, Coles and SciPy's genpareto (xi), with the threshold at 0: the values are the amounts above a threshold.
 
 ## Datasets
 
@@ -2459,3 +2678,9 @@ Where simplydata's default differs from the package underneath, it is listed her
 | [crabs (MASS)](https://doi.org/10.1071/ZO9740417) | 200 Leptograpsus crabs from Western Australia: five shell measurements, two colour forms and both sexes (four groups of 50) | Campbell, N. A. & Mahon, R. J. (1974). A multivariate study of variation in two species of rock crab of genus Leptograpsus. Australian Journal of Zoology 22, 417-425; Venables, W. N. & Ripley, B. D. (2002). Modern Applied Statistics with S, 4th ed., section 12.1. Shipped with the R package MASS. | GPL-2 \| GPL-3 (MASS, which comes with R); read from the installed package, so it needs R. |
 | [wg93 (ca)](https://doi.org/10.18637/jss.v020.i03) | 871 answers of the 1993 International Social Survey Programme (West Germany) to four questions on science and the environment (A to D, answers 1 to 5) | Greenacre, M. (2007). Correspondence Analysis in Practice, 2nd ed. Chapman & Hall/CRC; Nenadić, O. & Greenacre, M. (2007). Correspondence analysis in R, with two- and three-dimensional graphics: the ca package. Journal of Statistical Software 20(3) (CC BY). Shipped with the R package ca (wg93). | GPL (>= 2) (ca); read from the installed package, so it needs R. |
 | [Holzinger & Swineford 1939 (lavaan)](https://doi.org/10.18637/jss.v048.i02) | 301 seventh- and eighth-grade pupils of two schools near Chicago (Pasteur and Grant-White) in 1937: the scores of nine mental ability tests (visual perception, cubes, lozenges, paragraph comprehension, sentence completion, word meaning, speeded addition, speeded counting of dots, speeded discrimination of straight and curved capitals) | Holzinger, K. J. & Swineford, F. (1939). A study in factor analysis: the stability of a bi-factor solution. Supplementary Educational Monographs 48. University of Chicago. The nine-test version and the three-factor model with its fit are in Rosseel, Y. (2012). lavaan: an R package for structural equation modeling. Journal of Statistical Software 48(2), 1-36 (CC BY 3.0). Shipped with the R package lavaan (HolzingerSwineford1939); a copy is the practice table ability_tests. | Published test scores (1939, facts). Read here from R lavaan (its copy is GPL (>= 2)), so the cases need R; simplydata ships the same scores, with this citation, as the practice table ability_tests. |
+| [turtles (circular)](https://doi.org/10.1007/s002650100396) | the directions from which 10 green sea turtles, displaced to the open sea, came back to Ascension Island (degrees) | Luschi, P. et al. (2001). Testing the navigational abilities of ocean migrants: displacement experiments on green sea turtles (Chelonia mydas). Behavioral Ecology and Sociobiology 50, 528-534. Shipped with the R package circular (turtles; Agostinelli & Lund). | GPL-2 (circular); read from the installed package, so it needs R. |
+| [ICU arrivals (circular)](https://cran.r-project.org/package=circular) | the time of day (24-hour clock) at which 254 patients arrived at an intensive care unit over about 12 months | Cox, D. R. & Lewis, P. A. W. (1966). The Statistical Analysis of Series of Events. Methuen, pp. 254-255; Fisher, N. I. (1993). Statistical Analysis of Circular Data. Cambridge University Press, data set B.1. Shipped with the R package circular (fisherB1c). | GPL-2 (circular); read from the installed package, so it needs R. |
+| [meuse (sp)](https://cran.r-project.org/package=sp) | 155 topsoil samples in the flood plain of the river Meuse near Stein (NL): where each was taken (x, y in metres, RD New) and its zinc in mg/kg | Rikken, M. G. J. & Van Rijn, R. P. G. (1993). Soil pollution with heavy metals: an inquiry into spatial variation, cost of mapping and the risk evaluation of copper, cadmium, lead and zinc in the floodplains of the Meuse west of Stein. Doctoraalveldwerkverslag, Utrecht University. Shipped with the R package sp (meuse); its variogram is the gstat vignette's example (Pebesma 2004, Computers & Geosciences 30, 683-691). | GPL-2 \| GPL-3 (sp); read from the installed package, so it needs R. |
+| [meuse in longitude and latitude (sp, sf)](https://doi.org/10.32614/RJ-2018-009) | the same 155 meuse samples, their places turned from the Dutch grid (RD New, EPSG 28992) into longitude and latitude (EPSG 4326) by R sf::st_transform | As meuse (sp) above; the transformation by PROJ through R sf (Pebesma, E. (2018). Simple Features for R. The R Journal 10(1), 439-446). | GPL-2 \| GPL-3 (sp); read from the installed package and transformed there, so it needs R. |
+| [Port Pirie (ismev)](https://doi.org/10.1007/978-1-4471-3675-0) | the highest sea level of each year at Port Pirie, South Australia, 1923-1987 (metres) | Coles (2001), An Introduction to Statistical Modeling of Extreme Values, Springer, section 3.4.1. Shipped with the R package ismev (portpirie); the same numbers are simplydata's practice table sealevel. | GPL (>= 2) (ismev); read from the installed package, so it needs R. |
+| [Coles rain (ismev)](https://doi.org/10.1007/978-1-4471-3675-0) | 17,531 daily rainfall totals at one site in south-west England, 1914-1962 (mm) | Coles (2001), An Introduction to Statistical Modeling of Extreme Values, Springer, section 4.4.1. Shipped with the R package ismev (rain). | GPL (>= 2) (ismev); read from the installed package, so it needs R. |

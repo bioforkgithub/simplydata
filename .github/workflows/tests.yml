@@ -48,7 +48,8 @@ jobs:
           "metafor", "metadat", "meta",
           "gsDesign", "powerSurvEpi", "pwrss",
           "zCompositions", "compositions", "ca", "cluster",
-          "GPArotation", "lavaan");
+          "GPArotation", "lavaan",
+          "circular", "spdep", "sf", "gstat", "extRemes", "ismev", "sp", "ape");
           install.packages(pkgs); for (p in pkgs) library(p, character.only = TRUE)'
       - name: Tell rpy2 where R is
         shell: bash

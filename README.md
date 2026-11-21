@@ -13,8 +13,8 @@ them first.
 
 ## What simplydata handles
 
-**388 words (commands) in 46 groups, with 353 different options, on top of 14 Python packages and
-67 R packages that it runs (plus R's own `stats`, and 5 more used only to check its answers), checked by 903 reliability checks.** Every word hands the work to
+**393 words (commands) in 47 groups, with 358 different options, on top of 14 Python packages and
+72 R packages that it runs (plus R's own `stats`, and 8 more used only to check its answers), checked by 982 reliability checks.** Every word hands the work to
 an established package; simplydata chooses the settings, prints the answer in words and names the
 method it used. Words that need an extra say so: `pip install "simplydata[fast]"`, `[files]`,
 `[systems]` or `[r]` (the R words also need R itself; see [Using the words that need R](#using-the-words-that-need-r)).
@@ -25,9 +25,9 @@ Approximate, counted on 2026-11-20.
 
 | | With the packages underneath | With simplydata |
 |---|---|---|
-| Names to learn | about 10,650 functions: about 5,460 in the Python packages (SciPy about 1,750, pandas 850, Polars 815, matplotlib 745, NumPy 660, statsmodels 545, seaborn 100; each package's public API) and about 5,190 exported by the R packages simplydata ran that day, with R's `stats` (R `getNamespaceExports`; before the community packages were added) | 741 names: 388 commands and 353 options, about 93 % fewer |
-| Packages and languages | 79 packages (14 Python, 65 R), in Python and R | 1 package, in basic Python |
-| Code per task | 775 lines and 777 function calls in the 123 tasks of the manual's "same underneath" boxes (median 6 lines a task); this library code is the bare minimum, without the plain-sentence result or the checks | 388 lines and 457 calls (median 3 lines a task), about 50 % fewer lines; recount with `python validation/count_reduction.py` |
+| Names to learn | about 10,650 functions: about 5,460 in the Python packages (SciPy about 1,750, pandas 850, Polars 815, matplotlib 745, NumPy 660, statsmodels 545, seaborn 100; each package's public API) and about 5,190 exported by the R packages simplydata ran that day, with R's `stats` (R `getNamespaceExports`; before the community packages were added) | 751 names: 393 commands and 358 options, about 93 % fewer |
+| Packages and languages | 86 packages (14 Python, 72 R), in Python and R | 1 package, in basic Python |
+| Code per task | 860 lines and 857 function calls in the 135 tasks of the manual's "same underneath" boxes (median 6 lines a task); this library code is the bare minimum, without the plain-sentence result or the checks | 415 lines and 498 calls (median 3 lines a task), about 52 % fewer lines; recount with `python validation/count_reduction.py` |
 | Choosing the method | you choose, from the package's documentation | the recommended default, with its published basis: see [How simplydata chooses methods](#how-simplydata-chooses-methods) |
 
 ### Packages underneath
@@ -41,7 +41,7 @@ Python packages:
 | pyarrow | Parquet files (`sdata.table("file.parquet")`, `table.save("clean.parquet")`) and passing tables between Polars and pandas | [fast] |
 | narwhals | lets every table word run on pandas or Polars alike | built in |
 | NumPy | the number words: `sdata.numbers`, `sdata.number_grid`, maths in words (`take_log`, `turn_into_running_total`), random numbers, `nums.as_numpy()` | built in |
-| SciPy | tests (t-tests, ANOVA, rank tests, chi-square, Fisher, Kolmogorov-Smirnov, Shapiro-Wilk), 26 named distributions and any other `scipy.stats` one (`sdata.distribution`), fitting and solving (`fit_formula`, `solve`, `find_where_smallest`), values between points (`values_at`, `make_map_of`), bootstrap intervals (`find_interval_of`), distances and clusters, spectra, filters, peaks, the Hilbert envelope and the Fourier transform (`find_spectrum_of`, `add_filtered_column`, `find_each_peak_that`, `find_envelope`), linear systems (`sdata.system`) | built in |
+| SciPy | tests (t-tests, ANOVA, rank tests, chi-square, Fisher, Kolmogorov-Smirnov, Shapiro-Wilk), 28 named distributions (with the GEV and generalised Pareto curves of extremes) and any other `scipy.stats` one (`sdata.distribution`), fitting and solving (`fit_formula`, `solve`, `find_where_smallest`), values between points (`values_at`, `make_map_of`), bootstrap intervals (`find_interval_of`), the average direction of directions or times of day (`find_average_direction_of`), distances and clusters, spectra, filters, peaks, the Hilbert envelope and the Fourier transform (`find_spectrum_of`, `add_filtered_column`, `find_each_peak_that`, `find_envelope`), linear systems (`sdata.system`) | built in |
 | statsmodels (with its formula helper patsy) | models in `explain`: linear, logistic, Poisson, negative binomial, Gamma, ordered, multinomial, mixed models, GEE, robust regression, conditional logistic; Welch's ANOVA, corrections for many tests, kappa, exact intervals of percents and rates (`rate_of`, `compare_to_truth`), PCA, lowess and STL (`add_trend_and_season`), power of regression and of two percents, multiple-imputation fits | built in |
 | matplotlib | every chart's canvas (`sdata.chart`), pie, polar, contour, surface and 3D charts, titles, axes, legends, several charts on one page, `animate` | built in |
 | seaborn | bars, lines, dots, histograms, boxes, violins, heatmaps, density curves, count bars and cumulative shares (`draw_bars`, `draw_lines`, `draw_boxes`, `draw_violins`, `draw_heatmap`, `draw_density`), with averages and error bars (`show="average", error="standard error"`) |
@@ -74,6 +74,10 @@ R packages that simplydata runs, where Python has no method of its own or none t
 | vegan | NMDS (`add_nmds`); PERMANOVA and its spread check, ANOSIM and SIMPER (`compare_profiles_of(method="anosim")`, `show="contributions"`); diversity: richness, Shannon, Simpson, Chao1, Hill numbers and rarefaction (`add_diversity_columns`, `chart.draw_richness_curves`); Aitchison and Hellinger distances; PCoA (`add_principal_coordinates`); RDA, db-RDA and CCA (`explain_profiles_of`); Mantel and Procrustes (`find_correlation_between_profiles`); correspondence analysis (`add_correspondence_axes`) | [r] |
 | zCompositions, compositions | zeros replaced by estimated small values, then log ratios: clr, alr, ilr (`add_log_ratio_columns`) | [r] |
 | cluster, ca | silhouette widths of clusters (`add_clusters(show="silhouette")`); multiple correspondence analysis of text columns (`add_correspondence_axes`) | [r] |
+| circular | the Rayleigh test: is there a preferred direction, or are the directions spread evenly around the circle (`compare_shape_to(shape="even around the circle", full_turn=360)`), always with the units given | [r] |
+| spdep, sf | Moran's I: are the values of nearby places alike, with 1 / distance or nearest-neighbour weights and a permutation p-value (`find_autocorrelation_of(x=, y=)`, `on_globe=True` for longitude and latitude) | [r] |
+| gstat | the variogram and its fitted curve: range, nugget and sill (`find_variogram_of`, `chart.draw_variogram`) | [r] |
+| extRemes | return levels with profile-likelihood intervals: GEV for yearly maxima, generalised Pareto above a threshold (`find_return_levels_of(once_in=[10, 100])`, `values_above=`); the extremal index; the threshold check (`chart.draw_threshold_check`) | [r] |
 | trend, tseries, forecast, changepoint, lomb | the Mann-Kendall test and Sen's slope (`find_trend_of`); ADF and KPSS tests (`check_steady_over_time`); forecasts and their check on held-back readings (`forecast`, `compare_forecasts_for`); change points (`find_change_points_in`); the Lomb-Scargle spectrum of uneven readings (`find_spectrum_of(method="lomb-scargle")`) | [r] |
 
 R packages used only to check simplydata's answers, in the tests and the
@@ -86,6 +90,8 @@ so you never need them:
 | lmtest | the Breusch-Pagan and White tests of equal spread that `check_model_of` is checked against |
 | AICcmodavg | the AICc table and Akaike weights that `compare_models(using=[[...], [...]])` is checked against |
 | meta, metadat | a second meta-analysis package, and the published study data (BCG vaccine, passive smoking), that `combine_studies` is checked against |
+| ismev, sp | the published data of Coles (2001: Port Pirie sea levels, daily rain) and the meuse soil samples that `find_return_levels_of`, `find_autocorrelation_of(x=, y=)` and `find_variogram_of` are checked against |
+| ape | a second Moran's I (`ape::Moran.I`) that `find_autocorrelation_of(x=, y=)` is checked against |
 
 Many printouts also name the R function that gives the same answer ("as R zoo::na.spline"); those are pointers for
 R users, not packages simplydata needs.
@@ -101,7 +107,7 @@ R users, not packages simplydata needs.
 | New columns, dates and text | groups from numbers, ranks, z-scores, parts of dates and text, rolling values, previous values and changes | `add_group_column`, `add_rank_column`, `add_z_score_column`, `add_column_with_part_of_date`, `split_column`, `add_rolling_column`, `add_change_column` |
 | Reshaping and joining | join two tables, stack rows, turn columns into rows and back, undo any step | `join_with`, `add_rows_from`, `turn_columns_into_rows`, `turn_rows_into_columns`, `undo`, `show_steps` |
 | Summaries | counts, averages, medians, totals, percentiles, standard deviations, intervals for any summary (bootstrap), correlations (Pearson, Spearman, Kendall, partial) | `count_each`, `find_summary_of`, `find_percentile_of`, `find_interval_of`, `find_correlation_between` |
-| Charts | bars, lines, dots, area, histograms, boxes, violins, heatmaps, pie, polar, contour, surface, 3D dots, bands, sticks, density, Q-Q dots, all pairs, survival and risk curves, forest and funnel plots, richness curves, cluster trees, spectra; lines, labels, axes, colours, legends, side by side, animation | `draw_bars`, `draw_boxes`, `draw_heatmap`, `draw_contour`, `draw_qq_dots`, `sdata.draw_all_pairs`, `draw_richness_curves`, `draw_cluster_tree`, `draw_one_chart_for_each_group_in`, `animate` |
+| Charts | bars, lines, dots, area, histograms, boxes, violins, heatmaps, pie, polar, contour, surface, 3D dots, bands, sticks, density, Q-Q dots, all pairs, survival and risk curves, forest and funnel plots, richness curves, cluster trees, variograms, threshold checks, compass charts, spectra; lines, labels, axes, colours, legends, side by side, animation | `draw_bars`, `draw_boxes`, `draw_heatmap`, `draw_contour`, `draw_qq_dots`, `sdata.draw_all_pairs`, `draw_richness_curves`, `draw_cluster_tree`, `draw_one_chart_for_each_group_in`, `animate` |
 | Comparing groups (tests) | two or more averages (Welch, Student, ANOVA, Yuen, Brunner-Munzel, rank tests), pairs of groups (Holm, Tukey, Games-Howell, Dunn, Dunnett), before and after, repeated measures (Friedman, repeated-measures ANOVA), spreads, shapes, counts (chi-square, Fisher, G-test, trend), percents, equivalence and non-inferiority | `compare_averages_of`, `compare_each_pair_of`, `compare_before_and_after`, `compare_matched_columns`, `compare_spreads_of`, `compare_counts_of`, `compare_percent_to` |
 | Relationships and models | linear, logistic, Poisson, negative binomial, Gamma, ordered, multinomial, beta, zero-inflated and hurdle models; mixed models and GEE; GAMs, splines, quantile and robust regression; GLS; interrupted time series; model averages, checks, comparisons and the lasso | `explain(outcome="yes or no")`, `explain(grouped_by="school")`, `explain(curve_for="hours")`, `explain(for_percentile=90)`, `find_model_averages_of`, `check_model_of`, `compare_models`, `find_columns_that_predict` |
 | Lines, curves and dose-response | straight lines (least squares, Theil-Sen, major axis, Deming, Passing-Bablok), lines that bend, polynomial and named curves (logistic growth, Michaelis-Menten, Gompertz ...), any formula, dose-response curves with ED50 | `fit_line`, `fit_line(with_bends=1)`, `fit_curve(of_kind="michaelis-menten")`, `fit_formula`, `fit_dose_response` |
@@ -111,13 +117,14 @@ R users, not packages simplydata needs.
 | Survival and competing risks | Kaplan-Meier curves and median times, log-rank tests, Cox models, parametric models, life tables, restricted mean time, competing risks (Aalen-Johansen, Gray, Fine-Gray), adjusted curves, delayed entry | `find_survival_over_time`, `compare_survival`, `explain_survival`, `find_risk_over_time`, `add_time_and_event_columns`, `draw_survival_curves` |
 | Combining studies (meta-analysis) | combine counts, estimates, averages, rates or correlations; heterogeneity, prediction interval, subgroups, meta-regression, small-study effects | `combine_studies`, `forest_plot`, `draw_funnel_plot` |
 | Planning a study | sample size and power for averages, counts, percents, correlations, regression, survival, equivalence, interval width and clustered designs; power by simulation | `sdata.find_how_many_needed`, `sdata.find_chance_of_finding` |
-| Distributions | 26 named distributions (normal to von Mises, binomial to hypergeometric) and any SciPy one: chances, percentiles, random numbers; fit one to a column and compare several by AIC | `sdata.distribution`, `find_chance_that_value`, `fit_distribution_to`, `compare_distributions_for` |
+| Distributions | 28 named distributions (normal to von Mises, GEV and generalised Pareto, binomial to hypergeometric) and any SciPy one: chances, percentiles, random numbers; fit one to a column and compare several by AIC | `sdata.distribution`, `find_chance_that_value`, `fit_distribution_to`, `compare_distributions_for` |
 | Time series and forecasting | runs of dates, smoothing, trend tests and Sen's slope, trend and season split, autocorrelation, steadiness tests, change points, forecasts and their checks | `make_run_of_dates`, `add_smoothed_column`, `find_trend_of`, `add_trend_and_season`, `check_steady_over_time`, `find_change_points_in`, `forecast` |
 | Signals, cycles and filters | peaks and dips, spectra (periodogram, Welch, Lomb-Scargle), spectrograms, low-, high- and band-pass and notch filters, envelopes, Fourier transforms, waves and windows, convolution | `find_each_peak_that`, `find_spectrum_of`, `spectrum_over_time`, `add_filtered_column`, `find_envelope`, `take_fourier_transform`, `sdata.make_wave` |
 | Systems | linear systems from a formula, poles and zeros or matrices; step, impulse and frequency responses, stability, margins, feedback | `sdata.system`, `step_response`, `frequency_response`, `is_stable`, `with_feedback` |
 | Fitting, finding and solving | the lowest or highest point of a function, solutions of equations, values between known points, maps across two columns | `sdata.find_where_smallest`, `sdata.solve`, `values_at`, `make_map_of` |
 | Patterns across many columns, communities and resistomes | principal components, clusters with silhouettes, distances (Bray-Curtis, Jaccard, Aitchison, Hellinger), diversity and rarefaction, log ratios, NMDS, PCoA, PERMANOVA, ANOSIM, SIMPER, RDA and CCA, Mantel and Procrustes, LDA, correspondence analysis | `add_principal_components`, `add_clusters`, `find_distances_between_rows`, `add_diversity_columns`, `add_log_ratio_columns`, `add_nmds`, `add_principal_coordinates`, `compare_profiles_of`, `explain_profiles_of`, `find_correlation_between_profiles`, `add_axes_that_separate_groups`, `add_correspondence_axes` |
 | Hidden factors (questionnaires, test batteries) | how many hidden factors lie behind many columns and which columns go with which (parallel analysis, minres, oblimin); whether a model of hidden factors written down beforehand fits the data, and paths between factors | `find_hidden_factors_behind`, `check_hidden_factors` |
+| Directions, places and extremes | the average direction of currents, winds or times of day, and the Rayleigh test; Moran's I for nearby places; variograms; return levels (the 100-year sea level) from yearly maxima or from values above a threshold, with profile-likelihood intervals, and the threshold check | `find_average_direction_of`, `compare_shape_to(shape="even around the circle")`, `find_autocorrelation_of(x=, y=)`, `find_variogram_of`, `find_return_levels_of`, `chart.draw_threshold_check` |
 | Numbers and grids | lists and grids of numbers without a table: maths, choosing, sorting, filling, summaries | `sdata.numbers`, `nums.find_average`, `sdata.number_grid`, `grid.swap_rows_and_columns` |
 | Learning and citing | every word with an example, help for one word, lessons, the 30-day course, the packages to cite | `sdata.show_all_words`, `sdata.help`, `sdata.show_lesson`, `sdata.start_30_days`, `sdata.show_packages_used` |
 | Coming next (not on main yet) | the next statistics phase (S3d) | planned |
@@ -126,11 +133,12 @@ R users, not packages simplydata needs.
 
 | Field | Examples of what simplydata does |
 |---|---|
-| Biology and ecology | growth curves (`fit_curve(of_kind="logistic growth")`); species diversity and rarefaction (`add_diversity_columns`, `chart.draw_richness_curves`); species make-up of plots: Bray-Curtis distances, NMDS, PCoA, PERMANOVA, ANOSIM, SIMPER and RDA (`find_distances_between_rows`, `add_nmds`, `add_principal_coordinates`, `compare_profiles_of`, `explain_profiles_of`); clusters and principal components; allometric lines (`fit_line(method="standardised major axis")`); mixed models for plots within sites (`explain(grouped_by=)`); the log response ratio across studies (`combine_studies(show="ratios of averages")`) |
+| Biology and ecology | growth curves (`fit_curve(of_kind="logistic growth")`); species diversity and rarefaction (`add_diversity_columns`, `chart.draw_richness_curves`); whether nearby plots are alike (Moran's I, `find_autocorrelation_of(x=, y=)`) and a variogram of it (`find_variogram_of`); animal headings and homing directions (`find_average_direction_of`, the Rayleigh test); species make-up of plots: Bray-Curtis distances, NMDS, PCoA, PERMANOVA, ANOSIM, SIMPER and RDA (`find_distances_between_rows`, `add_nmds`, `add_principal_coordinates`, `compare_profiles_of`, `explain_profiles_of`); clusters and principal components; allometric lines (`fit_line(method="standardised major axis")`); mixed models for plots within sites (`explain(grouped_by=)`); the log response ratio across studies (`combine_studies(show="ratios of averages")`) |
 | Medicine and epidemiology, including antimicrobial resistance | resistome gene counts: diversity, log ratios and PCoA (`add_diversity_columns`, `add_log_ratio_columns`, `add_principal_coordinates`, practice table "resistome"); risk and odds ratios, number needed to treat (`compare_risks`); infections per 1000 patient-days by ward (`rate_of`, `compare_rates`); time to first ESBL carriage with discharge as a competing event (`find_risk_over_time`, practice table "admissions"); Kaplan-Meier, Cox and Fine-Gray models; diagnostic accuracy and ROC curves (`compare_to_truth`, `compare_accuracy`); matched case-control sets (`explain(matched_by=)`); an interrupted time series around a change in practice (`explain(changes_at=)`); meta-analysis (`combine_studies`); sample size for a trial (`find_how_many_needed(test="compare_survival")`) |
 | Physics and engineering | step and frequency responses, stability and margins of a system (`sdata.system`); filters, spectra, peaks and envelopes of a sensor signal (`add_filtered_column`, `find_spectrum_of`, `find_each_peak_that`); fitting any formula (`fit_formula`); solving equations (`sdata.solve`); calibration lines checked against NIST certified values |
 | Chemistry | calibration lines (`fit_line`); enzyme kinetics (`fit_curve(of_kind="michaelis-menten")`); EC50 and LD50 from dose-response curves (`fit_dose_response`); comparing two measurement methods (`fit_line(method="passing-bablok")`, `limits_of_agreement`) |
-| Earth and marine science | how much temperature and salinity explain the make-up of samples (`explain_profiles_of`), and whether genes and water chemistry vary together (`find_correlation_between_profiles`); trends with the Mann-Kendall test and Sen's slope, seasonal too (`find_trend_of`); trend and season split (`add_trend_and_season`); jumps in nitrate at river stations (`find_change_points_in`); spectra of unevenly spaced readings (`find_spectrum_of(method="lomb-scargle")`); maps and contours from scattered points (`make_map_of`, `draw_contour`); forecasts (`forecast`); models with AR(1) neighbours (`explain(neighbours_alike_in_order_of=)`) |
+| Earth and marine science | the average current or wind direction and the Rayleigh test (`find_average_direction_of`, `compare_shape_to(shape="even around the circle", full_turn=360)`, practice table "stations"); whether metals in sediment are alike at nearby stations (`find_autocorrelation_of(x=, y=, on_globe=True)`); variograms (`find_variogram_of`, `chart.draw_variogram`); the 100-year sea level from yearly maxima (`find_return_levels_of`, the real Port Pirie data, practice table "sealevel"); how much temperature and salinity explain the make-up of samples (`explain_profiles_of`), and whether genes and water chemistry vary together (`find_correlation_between_profiles`); trends with the Mann-Kendall test and Sen's slope, seasonal too (`find_trend_of`); trend and season split (`add_trend_and_season`); jumps in nitrate at river stations (`find_change_points_in`); spectra of unevenly spaced readings (`find_spectrum_of(method="lomb-scargle")`); maps and contours from scattered points (`make_map_of`, `draw_contour`); forecasts (`forecast`); models with AR(1) neighbours (`explain(neighbours_alike_in_order_of=)`) |
+| Climate and hydrology | return levels of rain, floods, storm surges and heat from yearly maxima or from every value above a threshold, with profile-likelihood intervals (`find_return_levels_of(values_above=30, sorted_by="date")`, practice table "rain"); choosing the threshold (`chart.draw_threshold_check`); the extremal index for values that come in runs; times of day and seasons on a circle (`find_average_direction_of(full_turn=24)`) |
 | Social science and psychology | questionnaire reliability (`reliability_of`); hidden factors behind questionnaire items, explored and checked (`find_hidden_factors_behind`, `check_hidden_factors`); agreement between raters (`agreement_between`); ordered answers (`explain(outcome="ordered groups")`); subjects crossed with items (`explain(crossed_with=)`); repeated measures (`compare_averages_of(matched_by=)`, `compare_matched_columns`); adjusted group averages (`find_model_averages_of`); power for a planned study (`find_chance_of_finding`) |
 | Education | pupils in classes in schools (`explain(grouped_by=["school", "class"])`); comparing classes (`compare_averages_of`, `compare_each_pair_of`); the course itself: lessons, the 30-day course and plain words for teaching charts, tables and statistics (`sdata.show_lesson`, `sdata.start_30_days`) |
 
@@ -299,7 +307,7 @@ import simplydata as sdata
 sdata.show_lesson(1)
 ```
 
-There are thirty-two short lessons. Lessons 1 to 8 teach charts, from your first chart to
+There are thirty-three short lessons. Lessons 1 to 8 teach charts, from your first chart to
 animations. Lessons 9 to 12 teach tables: looking at your data, choosing rows and columns,
 cleaning it, and summing it up. Lesson 13 teaches numbers (lists and grids of numbers), and
 lesson 14 the statistical tests: is a difference real, and how big is it? Lesson 15 puts it
@@ -318,7 +326,9 @@ first, then comparisons within groups and against a control. Lesson 29 is more s
 into time and event columns, survival at chosen times, and the chance of an event when another can come
 first. Lesson 30 combines studies (a meta-analysis): the combined effect, how much the
 studies differ, and the forest and funnel plots. Lessons 31 and 32 read a community or resistome table:
-diversity at the same total count, then log ratios, PCoA and how much temperature and salinity explain. Each
+diversity at the same total count, then log ratios, PCoA and how much temperature and salinity explain. Lesson
+33 follows a coastal station: the average direction of its currents, whether nearby stations have alike zinc
+(Moran's I), and the 100-year sea level at Port Pirie (real data). Each
 lesson has an example you can run, says what every line does, explains the idea behind it
 (average or median, standard deviation or standard error, p-values) and ends with a small task
 to try yourself.
@@ -359,7 +369,7 @@ the manual for each lesson and word, and the answers at the back.
 ## Manual
 
 **[The simplydata manual (PDF)](https://github.com/bioforkgithub/simplydata/blob/main/docs/manual/simplydata_manual.pdf)** has everything in one book:
-all thirty-two lessons with the real charts and output they make, every word explained (its options,
+all thirty-three lessons with the real charts and output they make, every word explained (its options,
 an example you can run and the library that does the work underneath), the data science ideas
 behind the numbers (average or median, standard deviation or standard error, confidence intervals,
 p-values, effect sizes, and which statistical test to use when), and a worked solution for every
@@ -497,7 +507,7 @@ shows the same job written in the package underneath, in a grey box that a test 
 - The defaults of each batch were checked by an independent review when they were designed, and every entry of
   the table below, with its references, was checked again by independent hostile reviewers in November 2026.
 
-[How simplydata chooses methods](docs/how_simplydata_chooses.md) gives all 259 defaults: for each, the default,
+[How simplydata chooses methods](docs/how_simplydata_chooses.md) gives all 271 defaults: for each, the default,
 the alternatives, why it was chosen, what simplydata checks in the data, and its references (each DOI checked in
 Crossref). The manual has the same table as its last part.
 

@@ -241,7 +241,8 @@ UNDERNEATH = {
                         "interval=)",
     "table.compare_shape_to": "SciPy (stats.shapiro for normal, normaltest, jarque_bera, ks_1samp, cramervonmises; "
                               "for other shapes stats.goodness_of_fit, Anderson-Darling with a Monte Carlo p-value); "
-                              "R nortest::lillie.test for test=\"lilliefors\" (simplydata[r])",
+                              "R nortest::lillie.test for test=\"lilliefors\"; R circular::rayleigh.test on a "
+                              "circle (full_turn=; simplydata[r])",
     # fitting
     "table.fit_line": "SciPy (stats.linregress)",
     "table.fit_curve": "statsmodels (WLS by QR on the powers of x, as R lm(y ~ poly(x, raw = TRUE)))",
@@ -269,7 +270,8 @@ UNDERNEATH = {
     "nums.find_spectrum": "SciPy (signal.periodogram, signal.welch); R lomb::lsp for uneven times (simplydata[r])",
     "table.find_spectrum_of": "SciPy (signal.periodogram, signal.welch); R lomb::lsp for uneven times (simplydata[r])",
     "table.check_steady_over_time": "R (tseries::adf.test and kpss.test, through rpy2: simplydata[r])",
-    "table.find_autocorrelation_of": "statsmodels (tsa.stattools acf, pacf method ywm, acovf, acorr_ljungbox), as R acf, pacf, Box.test",
+    "table.find_autocorrelation_of": "statsmodels (tsa.stattools acf, pacf method ywm, acovf, acorr_ljungbox), as R acf, "
+                                     "pacf, Box.test; for nearby places (x=, y=) R spdep::moran.mc (needs R)",
     "table.add_trend_and_season": "statsmodels (STL with R's settings, seasonal_decompose, OLS with season effects); "
                                   "R stats::stl(s.window = \"periodic\") for a fixed season (simplydata[r])",
     "table.find_trend_of": "SciPy (stats.theilslopes); R trend::mk.test, smk.test, sea.sens.slope (simplydata[r])",
@@ -412,6 +414,13 @@ UNDERNEATH = {
     "table.find_hidden_factors_behind": "R psych (fa.parallel, fa with minres and oblimin, KMO) with GPArotation",
     "table.check_hidden_factors": "R lavaan (cfa or sem with maximum likelihood, fitMeasures, standardizedSolution, "
                                   "modindices)",
+    # S3c-3: directions, places and extremes (each also has a tested entry in simplydata._underneath)
+    "table.find_average_direction_of": "SciPy (stats.circmean, circstd, circvar, directional_stats)",
+    "table.find_variogram_of": "R gstat (variogram, fit.variogram, variogramLine; needs R)",
+    "table.find_return_levels_of": "R extRemes (fevd, return.level, ci.fevd with the profile likelihood, "
+                                   "extremalindex; needs R)",
+    "draw_variogram": "R gstat (variogram, fit.variogram, variogramLine; needs R), drawn with matplotlib",
+    "draw_threshold_check": "R extRemes (mrlplot, threshrange.plot; needs R), drawn with matplotlib",
 }
 
 # ---------------------------------------------------------------- hand-written text
