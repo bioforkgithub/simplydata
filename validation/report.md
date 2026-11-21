@@ -4,7 +4,7 @@ Made by `python validation/make_report.py` on 2026-11-21. Generated: do not edit
 
 Each simplydata word is run on real, published data and compared with the published answer, with the package simplydata uses underneath called directly, and with R. Each "same underneath" box of the manual is run next to its word and compared too. How it works, and the datasets with their licences: [validation/README.md](README.md).
 
-**1084 checks passed, 0 failed, 0 skipped** (skipped: R or an R package is not installed on this computer).
+**1193 checks passed, 0 failed, 0 skipped** (skipped: R or an R package is not installed on this computer).
 
 ## Setup
 
@@ -1931,15 +1931,15 @@ Note: The oblimin rotation of GPArotation starts from random numbers, so both si
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
-| own part of x1 | statsmodels Factor (method="ml") | 0.512529527173443 | 0.512527902744628 | relative 0.0001 | pass |
-| own part of x2 | statsmodels Factor (method="ml") | 0.7487351603869 | 0.748735708636197 | relative 0.0001 | pass |
-| own part of x3 | statsmodels Factor (method="ml") | 0.542773290729761 | 0.542774480504385 | relative 0.0001 | pass |
-| own part of x4 | statsmodels Factor (method="ml") | 0.279193093920192 | 0.279192936104611 | relative 0.0001 | pass |
-| own part of x5 | statsmodels Factor (method="ml") | 0.242877320676015 | 0.242877418887529 | relative 0.0001 | pass |
-| own part of x6 | statsmodels Factor (method="ml") | 0.30521585555841 | 0.305215610969285 | relative 0.0001 | pass |
-| own part of x7 | statsmodels Factor (method="ml") | 0.502207221916071 | 0.502208511070489 | relative 0.0001 | pass |
-| own part of x8 | statsmodels Factor (method="ml") | 0.468550489794599 | 0.468549715833731 | relative 0.0001 | pass |
-| own part of x9 | statsmodels Factor (method="ml") | 0.543247686483436 | 0.543246757748796 | relative 0.0001 | pass |
+| own part of x1 | statsmodels Factor (method="ml") | 0.512529527173443 | 0.512528083004762 | relative 0.0001 | pass |
+| own part of x2 | statsmodels Factor (method="ml") | 0.7487351603869 | 0.748735002060787 | relative 0.0001 | pass |
+| own part of x3 | statsmodels Factor (method="ml") | 0.542773290729761 | 0.542774310007228 | relative 0.0001 | pass |
+| own part of x4 | statsmodels Factor (method="ml") | 0.279193093920192 | 0.27919283622274 | relative 0.0001 | pass |
+| own part of x5 | statsmodels Factor (method="ml") | 0.242877320676015 | 0.242877240130544 | relative 0.0001 | pass |
+| own part of x6 | statsmodels Factor (method="ml") | 0.30521585555841 | 0.305215778765838 | relative 0.0001 | pass |
+| own part of x7 | statsmodels Factor (method="ml") | 0.502207221916071 | 0.502208820617208 | relative 0.0001 | pass |
+| own part of x8 | statsmodels Factor (method="ml") | 0.468550489794599 | 0.468549247090109 | relative 0.0001 | pass |
+| own part of x9 | statsmodels Factor (method="ml") | 0.543247686483436 | 0.543246700275683 | relative 0.0001 | pass |
 | own part of x1 | R | 0.512529527173443 | 0.512528169335274 | relative 0.001 | pass |
 | own part of x2 | R | 0.7487351603869 | 0.74873504605719 | relative 0.001 | pass |
 | own part of x3 | R | 0.542773290729761 | 0.542776785473323 | relative 0.001 | pass |
@@ -2331,6 +2331,236 @@ Note: R pairwise.prop.test() uses Yates' correction and Holm by default, as simp
 | 1 vs 4 | R | 0.0749681614262827 | 0.0749681614262828 | relative 1e-09 | pass |
 | 3 vs 4 | R | 0.0961238627259427 | 0.0961238627259427 | relative 1e-09 | pass |
 
+### `sdata.make_random_assignments`
+
+**permuted blocks: every block holds both groups equally often** (published; data: designs (no data))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| largest imbalance within a block | exact | 0 | 0 | within 0 | pass |
+| first group (A = 1) | R | 0 | 0 | exact | pass |
+| places in the first list | R | 60 | 60 | exact | pass |
+
+Note: Schulz & Grimes (2002): a permuted block holds every group equally often; R blockrand gives the same list for the same seed.
+
+### `sdata.make_design_table`
+
+**Yates' standard order of a 2 x 2 x 2 factorial** (published; data: designs (no data))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| standard order of ab | exact | 4 | 4 | within 0 | pass |
+| standard order of c | exact | 5 | 5 | within 0 | pass |
+| plots | exact | 16 | 16 | within 0 | pass |
+| first plot's a | R | 1 | 1 | exact | pass |
+| plots | R | 16 | 16 | exact | pass |
+
+Note: Montgomery (2017): (1), a, b, ab, c, ac, bc, abc, the order of R expand.grid().
+
+### `sdata.make_design_table of_kind="randomised blocks"`
+
+**of_kind="randomised blocks": each block holds every combination once** (published; data: designs (no data))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| largest count of a combination in a block | exact | 1 | 1 | within 0 | pass |
+| smallest count of a combination in a block | exact | 1 | 1 | within 0 | pass |
+| first plot's b | R | 0 | 0 | exact | pass |
+
+### `sdata.make_design_table of_kind="latin square"`
+
+**of_kind="latin square": each level once in every row and column** (published; data: designs (no data))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| levels in every row | exact | 4 | 4 | within 0 | pass |
+| levels in every column | exact | 4 | 4 | within 0 | pass |
+| first plot is A | R | 0 | 0 | exact | pass |
+
+### `sdata.make_design_table of_kind="split plot"`
+
+**of_kind="split plot": one irrigation per whole plot, every variety in it** (published; data: designs (no data))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| irrigations in a whole plot | exact | 1 | 1 | within 0 | pass |
+| varieties in a whole plot | exact | 3 | 3 | within 0 | pass |
+| first part is A | R | 0 | 0 | exact | pass |
+
+### `table.keep_random_rows for_each_group_in=`
+
+**for_each_group_in=: 10 schools of each type from the api sample** (real data; data: api stratified sample (survey))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| elementary schools | pandas groupby().sample() | 10 | 10 | exact | pass |
+| high schools | pandas groupby().sample() | 10 | 10 | exact | pass |
+| total score | pandas groupby().sample() | 19998 | 19998 | exact | pass |
+
+### `table.keep_random_rows percent=`
+
+**percent=: 10 % of each school type from the api sample** (real data; data: api stratified sample (survey))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| rows | pandas groupby().sample(frac=) | 20 | 20 | exact | pass |
+| middle schools | pandas groupby().sample(frac=) | 5 | 5 | exact | pass |
+| total score | pandas groupby().sample(frac=) | 13619 | 13619 | exact | pass |
+
+### `table.count_empty_cells_in show="patterns"`
+
+**show="patterns": nhanes, the patterns of van Buuren & Groothuis-Oudshoorn** (published; data: nhanes (mice))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| complete rows | exact | 13 | 13 | within 0 | pass |
+| rows with 3 empty cells | exact | 7 | 7 | within 0 | pass |
+| patterns | exact | 5 | 5 | within 0 | pass |
+| rows with 1 empty cell | exact | 4 | 4 | within 0 | pass |
+| complete rows | R | 13 | 13 | exact | pass |
+| rows with 3 empty cells | R | 7 | 7 | exact | pass |
+| patterns | R | 5 | 5 | exact | pass |
+| rows with 1 empty cell | R | 4 | 4 | exact | pass |
+
+### `table.count_each columns=, in_order=`
+
+**columns=, in_order=: the professional challenges survey, all 565 answers** (published; data: professional challenges (HH))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| agree | exact | 230 | 230 | within 0 | pass |
+| strongly agree | exact | 283 | 283 | within 0 | pass |
+| percent in top two | R | 90.7964601769911 | 90.7964601769912 | relative 1e-12 | pass |
+| percent no opinion | R | 4.7787610619469 | 4.7787610619469 | relative 1e-12 | pass |
+
+Note: Heiberger & Robbins (2014) publish the counts; the percents are R prop.table().
+
+### `draw_answer_bars`
+
+**the professional challenges survey: the middle answer split across 0** (published; data: professional challenges (HH))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| bars | exact | 5 | 5 | within 0 | pass |
+| left end | R | -6.8141592920354 | -6.8141592920354 | relative 1e-12 | pass |
+| middle bar starts at | R | -2.38938053097345 | -2.38938053097345 | relative 1e-12 | pass |
+
+Note: Heiberger & Robbins (2014): diverging bars centred on the middle answer.
+
+### `table.use_survey_design`
+
+**the stratified api sample: 197 degrees of freedom (200 schools, 3 strata)** (published; data: api stratified sample (survey))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| degrees of freedom | exact | 197 | 197 | within 0 | pass |
+| degrees of freedom | R | 197 | 197 | exact | pass |
+
+### `table.find_average_of after use_survey_design()`
+
+**the stratified api sample: the mean API 2000 (Lumley 2010)** (published; data: api stratified sample (survey))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| mean | Lumley (2010), Complex Surveys, and the R survey help (api) | 662.287363159321 | 662.29 | within 0.005 (printed rounding) | pass |
+| standard error | Lumley (2010), Complex Surveys, and the R survey help (api) | 9.40894080278458 | 9.4089 | within 5e-05 (printed rounding) | pass |
+| mean | R | 662.287363159321 | 662.287363159321 | relative 1e-09 | pass |
+| standard error | R | 9.40894080278458 | 9.40894080278458 | relative 1e-09 | pass |
+| 95 % CI low | R | 643.732188272086 | 643.732188272086 | relative 1e-09 | pass |
+
+**the one-stage cluster sample: the mean API 2000 (Lumley 2010)** (published; data: api cluster sample (survey))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| mean | Lumley (2010), Complex Surveys, and the R survey help (api) | 644.169398907104 | 644.17 | within 0.005 (printed rounding) | pass |
+| standard error | Lumley (2010), Complex Surveys, and the R survey help (api) | 23.542240693781 | 23.542 | within 0.0005 (printed rounding) | pass |
+| degrees of freedom | Lumley (2010), Complex Surveys, and the R survey help (api) | 14 | 14 | within 0 (printed rounding) | pass |
+| mean | R | 644.169398907104 | 644.169398907104 | relative 1e-09 | pass |
+| standard error | R | 23.542240693781 | 23.542240693781 | relative 1e-09 | pass |
+
+### `table.find_total_of after use_survey_design()`
+
+**the stratified api sample: the total enrolment (Lumley 2010)** (published; data: api stratified sample (survey))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| total | Lumley (2010), Complex Surveys, and the R survey help (api) | 3687177.53243828 | 3687178 | within 0.5 (printed rounding) | pass |
+| standard error | Lumley (2010), Complex Surveys, and the R survey help (api) | 114641.71610078 | 114642 | within 0.5 (printed rounding) | pass |
+| total | R | 3687177.53243828 | 3687177.53243828 | relative 1e-09 | pass |
+| standard error | R | 114641.71610078 | 114641.71610078 | relative 1e-09 | pass |
+| 95 % CI high | R | 3913260.05715702 | 3913260.05715702 | relative 1e-09 | pass |
+
+### `table.find_median_of after use_survey_design()`
+
+**the stratified api sample: the median API 2000 and Woodruff's interval** (real data; data: api stratified sample (survey))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| median | R | 668 | 668 | relative 1e-09 | pass |
+| 95 % CI low | R | 642 | 642 | relative 1e-09 | pass |
+| 95 % CI high | R | 694 | 694 | relative 1e-09 | pass |
+| standard error | R | 13.1840557881618 | 13.1840557881618 | relative 1e-09 | pass |
+
+### `table.find_percentile_of after use_survey_design()`
+
+**the stratified api sample: the 90th percentile of API 2000** (real data; data: api stratified sample (survey))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| percentile 90 | R | 836 | 836 | relative 1e-09 | pass |
+| 95 % CI low | R | 806 | 806 | relative 1e-09 | pass |
+
+### `table.find_percent_of_rows_where after use_survey_design()`
+
+**the stratified api sample: the percent of schools that met their target** (real data; data: api stratified sample (survey))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| percent | R | 82.7948011001957 | 82.7948011001957 | relative 1e-09 | pass |
+| 95 % CI low | R | 77.4539654351568 | 77.4539654351568 | relative 1e-09 | pass |
+| 95 % CI high | R | 87.0814854544508 | 87.0814854544508 | relative 1e-09 | pass |
+
+### `table.count_rows after use_survey_design()`
+
+**the stratified api sample: the schools with an award in California** (real data; data: api stratified sample (survey))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| schools with an award | R | 3957.56995391846 | 3957.56995391846 | relative 1e-09 | pass |
+| standard error | R | 213.110254631354 | 213.110254631354 | relative 1e-09 | pass |
+| percent with an award | R | 63.8936064050578 | 63.8936064050578 | relative 1e-09 | pass |
+
+### `table.explain after use_survey_design()`
+
+**the stratified api sample: API 2000 from English learners and free meals** (real data; data: api stratified sample (survey))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| meals | R | -3.11062899440932 | -3.11062899440932 | relative 1e-09 | pass |
+| meals standard error | R | 0.275765488815877 | 0.275765488815877 | relative 1e-09 | pass |
+| ell p-value | R | 0.193873946007252 | 0.193873946007252 | relative 1e-09 | pass |
+| intercept | R | 823.857925625165 | 823.857925625165 | relative 1e-09 | pass |
+
+### `table.compare_averages_of after use_survey_design()`
+
+**the stratified api sample: API 2000 with and without an award** (real data; data: api stratified sample (survey))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| difference | R | 44.6874939550245 | 44.6874939550245 | relative 1e-09 | pass |
+| t | R | 2.3036073198213 | 2.3036073198213 | relative 1e-09 | pass |
+| p-value | R | 0.0222935238150612 | 0.0222935238150613 | relative 1e-09 | pass |
+
+### `table.compare_counts_of after use_survey_design()`
+
+**the stratified api sample: awards by school type (Rao-Scott)** (real data; data: api stratified sample (survey))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| F | R | 14.1694081180078 | 14.1694081180078 | relative 1e-09 | pass |
+| p-value | R | 2.08210867642847e-06 | 2.08210867642847e-06 | relative 1e-09 | pass |
+| design degrees of freedom | R | 371.371769351819 | 371.371769351819 | relative 1e-09 | pass |
+
 ## 2. The same underneath (the manual's boxes)
 
 Each box's library code is run next to the simplydata word and compared. Table words run on a pandas and on a Polars table.
@@ -2602,6 +2832,38 @@ Each box's library code is run next to the simplydata word and compared. Table w
 | `table.compare_each_pair_of matched_by=, test="conover"` | R + Python | polars | result | relative 1e-09 | pass |
 | `table.compare_each_pair_of based_on="percents"` | SciPy and statsmodels | pandas | result | relative 1e-09 | pass |
 | `table.compare_each_pair_of based_on="percents"` | SciPy and statsmodels | polars | result | relative 1e-09 | pass |
+| `sdata.make_random_assignments` | R + Python | pandas | table | relative 1e-12 | pass |
+| `sdata.make_design_table` | R + Python | pandas | table | relative 1e-12 | pass |
+| `sdata.make_design_table of_kind="randomised blocks"` | R + Python | pandas | table | relative 1e-12 | pass |
+| `sdata.make_design_table of_kind="latin square"` | R + Python | pandas | table | relative 1e-12 | pass |
+| `sdata.make_design_table of_kind="split plot"` | R + Python | pandas | table | relative 1e-12 | pass |
+| `table.keep_random_rows for_each_group_in=` | pandas | pandas | table | relative 1e-12 | pass |
+| `table.keep_random_rows for_each_group_in=` | pandas | polars | table | relative 1e-12 | pass |
+| `table.keep_random_rows percent=` | pandas | pandas | table | relative 1e-12 | pass |
+| `table.keep_random_rows percent=` | pandas | polars | table | relative 1e-12 | pass |
+| `table.count_empty_cells_in show="patterns"` | pandas | pandas | table | relative 1e-12 | pass |
+| `table.count_empty_cells_in show="patterns"` | pandas | polars | table | relative 1e-12 | pass |
+| `table.count_each columns=, in_order=` | pandas and NumPy | pandas | result | relative 1e-12 | pass |
+| `table.count_each columns=, in_order=` | pandas and NumPy | polars | result | relative 1e-12 | pass |
+| `draw_answer_bars` | matplotlib | pandas | chart | relative 1e-09 | pass |
+| `table.find_average_of after use_survey_design()` | R + Python | pandas | result | relative 1e-09 | pass |
+| `table.find_average_of after use_survey_design()` | R + Python | polars | result | relative 1e-09 | pass |
+| `table.find_total_of after use_survey_design()` | R + Python | pandas | result | relative 1e-09 | pass |
+| `table.find_total_of after use_survey_design()` | R + Python | polars | result | relative 1e-09 | pass |
+| `table.find_median_of after use_survey_design()` | R + Python | pandas | result | relative 1e-09 | pass |
+| `table.find_median_of after use_survey_design()` | R + Python | polars | result | relative 1e-09 | pass |
+| `table.find_percentile_of after use_survey_design()` | R + Python | pandas | result | relative 1e-09 | pass |
+| `table.find_percentile_of after use_survey_design()` | R + Python | polars | result | relative 1e-09 | pass |
+| `table.find_percent_of_rows_where after use_survey_design()` | R + Python | pandas | result | relative 1e-09 | pass |
+| `table.find_percent_of_rows_where after use_survey_design()` | R + Python | polars | result | relative 1e-09 | pass |
+| `table.count_rows after use_survey_design()` | R + Python | pandas | result | relative 1e-09 | pass |
+| `table.count_rows after use_survey_design()` | R + Python | polars | result | relative 1e-09 | pass |
+| `table.explain after use_survey_design()` | R + Python | pandas | result | relative 1e-09 | pass |
+| `table.explain after use_survey_design()` | R + Python | polars | result | relative 1e-09 | pass |
+| `table.compare_averages_of after use_survey_design()` | R + Python | pandas | result | relative 1e-09 | pass |
+| `table.compare_averages_of after use_survey_design()` | R + Python | polars | result | relative 1e-09 | pass |
+| `table.compare_counts_of after use_survey_design()` | R + Python | pandas | result | relative 1e-09 | pass |
+| `table.compare_counts_of after use_survey_design()` | R + Python | polars | result | relative 1e-09 | pass |
 
 How each kind is compared:
 
@@ -2837,6 +3099,28 @@ Where simplydata's default differs from the package underneath, it is listed her
 - `table.compare_each_pair_of matched_by=, test="conover"` (1): Holm's adjustment, as for Conover's test after Kruskal-Wallis; PMCMRplus's own default is "single-step" and scikit-posthocs adjusts nothing, so their numbers differ.
 - `table.compare_each_pair_of based_on="percents"` (1): each pair gets the 2 x 2 chi-square test with Yates' correction that compare_counts_of uses (the default of R prop.test and pairwise.prop.test); test="fisher" gives Fisher's exact test.
 - `table.compare_each_pair_of based_on="percents"` (2): Holm's adjustment for the number of pairs, as R pairwise.prop.test().
+- `sdata.make_random_assignments` (1): R's generator named in full (Mersenne-Twister, Inversion, Rejection): sample() changed in R 3.6.0, so the same seed gives another list in older R.
+- `sdata.make_random_assignments` (2): real block sizes, divided by the number of groups for blockrand (which counts in multiples of it); without in_blocks_of= simplydata chooses 2 and 3 times the number of groups, of random sizes.
+- `sdata.make_design_table` (1): R's own generator (kinds = "Mersenne-Twister"), not agricolae's default "Super-Duper", so with_seed= gives the layout an R user gets after set.seed().
+- `sdata.make_design_table` (2): the standard order is R expand.grid() order: the first factor changes fastest (Yates' order).
+- `sdata.make_design_table of_kind="randomised blocks"` (1): each repeat is a block holding every combination once, in its own random order (agricolae design.ab(design = "rcbd")).
+- `sdata.make_design_table of_kind="latin square"` (1): agricolae design.lsd: each level once in every row and every column, rows and columns in random order.
+- `sdata.make_design_table of_kind="split plot"` (1): whole plots in randomised blocks (agricolae design.split(design = "rcbd")), the factor named in whole_plots= on the whole plots.
+- `table.keep_random_rows for_each_group_in=` (1): the rows keep their order in the table (sort_index()); a group with n rows or fewer is kept whole, with a note (pandas stops with an error).
+- `table.keep_random_rows percent=` (1): pandas rounds each group's share; a group whose share rounds to no row still gets one row (a stratified sample keeps every stratum).
+- `table.count_empty_cells_in show="patterns"` (1): an empty cell is a missing value, NaN or text of only spaces (as count_empty_cells_in); the patterns are sorted by how many cells they leave empty, then by how many rows have them (R mice::md.pattern() sorts by its own rule and turns the columns round).
+- `table.count_each columns=, in_order=` (1): percents out of the answers given (empty cells left out), and no averages of the answers: the steps between them need not be equal.
+- `table.count_each columns=, in_order=` (2): the median answer is a real answer, the inverted CDF (R quantile(type = 1)), never a value between two.
+- `draw_answer_bars` (1): diverging bars (Heiberger & Robbins 2014): the answers below the middle to the left of 0, the middle answer split half and half across 0, and the first question at the top.
+- `table.find_average_of after use_survey_design()` (1): the 95 % interval uses t on the design's degrees of freedom (degf(design), here 197), not survey's own normal-curve confint().
+- `table.find_total_of after use_survey_design()` (1): the 95 % interval uses t on the design's degrees of freedom (degf(design), here 197), not survey's own normal-curve confint().
+- `table.find_median_of after use_survey_design()` (1): the population median by the weighted inverted CDF (qrule = "math", as find_percentile_of(weight_kind="analytic")), with Woodruff's interval on the design's degrees of freedom.
+- `table.find_percentile_of after use_survey_design()` (1): as find_median_of under a survey design: qrule = "math" and Woodruff's interval on the design's degrees of freedom.
+- `table.find_percent_of_rows_where after use_survey_design()` (1): survey's logit interval (svyciprop(method = "logit")), which stays between 0 and 100 %, on the design's degrees of freedom; the share is shown in percent.
+- `table.count_rows after use_survey_design()` (1): the estimated number in the population is survey's total of a column of ones (the sum of the weights); in_percent=True gives each group's share, svymean(~factor(group)).
+- `table.explain after use_survey_design()` (1): survey::svyglm with the family of outcome= (gaussian; quasibinomial for yes or no; quasipoisson for counts) and its own t tests and intervals on the model's residual degrees of freedom.
+- `table.compare_averages_of after use_survey_design()` (1): the design-based t test of survey::svyttest() for two groups; more groups go to explain().
+- `table.compare_counts_of after use_survey_design()` (1): the Rao-Scott corrected chi-square as an F test (survey::svychisq()'s default statistic = "F").
 
 ## Datasets
 
@@ -2919,3 +3203,8 @@ Where simplydata's default differs from the package underneath, it is listed her
 | [hedenfalk (qvalue)](https://doi.org/10.1073/pnas.1530509100) | 3170 p-values of genes compared between BRCA1 and BRCA2 breast tumours | Hedenfalk, I. et al. (2001). Gene-expression profiles in hereditary breast cancer. New England Journal of Medicine 344, 539-548; the p-values of Storey & Tibshirani (2003), PNAS 100, 9440-9445, as R qvalue ships them (hedenfalk). | LGPL (qvalue); read from the installed package, so it needs R. |
 | [rounding first base](https://stat.ethz.ch/R-manual/R-devel/library/stats/html/friedman.test.html) | the times (seconds) of 22 baseball players running to second base by three routes (round out, narrow angle, wide angle): each player ran all three | Hollander, M. & Wolfe, D. A. (1973). Nonparametric Statistical Methods. Wiley, p. 140; the example of R's friedman.test help (RoundingTimes; Friedman chi-squared 11.143, which these numbers give). | Published 1973 (facts); numbers stored unchanged. |
 | [smokers (Fleiss)](https://stat.ethz.ch/R-manual/R-devel/library/stats/html/pairwise.prop.test.html) | smokers among patients with lung cancer in four groups: counts out of totals | Fleiss, J. L. (1981). Statistical Methods for Rates and Proportions, 2nd ed. Wiley, p. 139; the example of R's prop.test and pairwise.prop.test help. | Published 1981 (facts); numbers stored unchanged. |
+| [designs (no data)](https://doi.org/10.1016/S0140-6736(02)07683-3) | no data: a randomisation list and a design table are made, and their published properties checked (blocks hold every group equally often; Yates' standard order) | Schulz, K. F. & Grimes, D. A. (2002). Generation of allocation sequences in randomised trials: chance, not choice. The Lancet 359, 515-519; Montgomery, D. C. (2017). Design and Analysis of Experiments, 9th ed. Wiley, the standard order of a 2^k design. | No data stored (facts of the methods). |
+| [api stratified sample (survey)](https://cran.r-project.org/package=survey) | 200 California schools sampled at random within school type (100 elementary, 50 middle, 50 high): the Academic Performance Index of 2000 and 1999, enrolment, free meals, English learners, the sampling weight (pw) and the number of schools of each type (fpc) | California Department of Education, Academic Performance Index 2000; the stratified sample of R's survey package (apistrat; Lumley, T. (2010). Complex Surveys: A Guide to Analysis Using R. Wiley). | Public data of the California Department of Education; the survey package copy is GPL-2 \| GPL-3. Columns stored unchanged. |
+| [nhanes (mice)](https://doi.org/10.18637/jss.v045.i03) | 25 people of the US National Health and Nutrition Examination Survey: age group, body mass index, hypertension and cholesterol, with empty cells | Schafer, J. L. (1997). Analysis of Incomplete Multivariate Data. Chapman & Hall, p. 237; the nhanes data of R mice and its patterns in van Buuren, S. & Groothuis-Oudshoorn, K. (2011). mice: Multivariate Imputation by Chained Equations in R. Journal of Statistical Software 45(3). | A US Government survey (public domain); the mice copy is GPL-2 \| GPL-3. |
+| [professional challenges (HH)](https://doi.org/10.18637/jss.v057.i05) | 565 answers to a survey question on professional challenges, from strongly disagree to strongly agree, in total and by employment sector, race, gender and more (counts of each answer) | Heiberger, R. M. & Robbins, N. B. (2014). Design of Diverging Stacked Bar Charts for Likert Scales and Other Applications. Journal of Statistical Software 57(5); R HH (ProfChal). | The JSS article is CC BY; the HH copy is GPL (>= 2). Counts stored unchanged. |
+| [api cluster sample (survey)](https://cran.r-project.org/package=survey) | 183 California schools in 15 school districts sampled at random (a one-stage cluster sample): the Academic Performance Index of 2000, enrolment, the weight (pw) and the number of districts (fpc) | California Department of Education, Academic Performance Index 2000; R's survey package (apiclus1; Lumley 2010). | Public data of the California Department of Education; the survey package copy is GPL-2 \| GPL-3. |

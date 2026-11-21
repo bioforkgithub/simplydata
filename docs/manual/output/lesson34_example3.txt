@@ -1,0 +1,2 @@
+Kept 5 random rows from each group of "school_type" (15 of 200 rows; pandas groupby().sample()).
+Rows for each "school_type": elementary 5, high 5, middle 5.

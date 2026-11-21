@@ -13,8 +13,8 @@ them first.
 
 ## What simplydata handles
 
-**393 words (commands) in 47 groups, with 358 different options, on top of 14 Python packages and
-74 R packages that it runs (plus R's own `stats`, and 8 more used only to check its answers), checked by 1084 reliability checks.** Every word hands the work to
+**397 words (commands) in 48 groups, with 366 different options, on top of 14 Python packages and
+77 R packages that it runs (plus R's own `stats`, and 8 more used only to check its answers), checked by 1193 reliability checks.** Every word hands the work to
 an established package; simplydata chooses the settings, prints the answer in words and names the
 method it used. Words that need an extra say so: `pip install "simplydata[fast]"`, `[files]`,
 `[systems]` or `[r]` (the R words also need R itself; see [Using the words that need R](#using-the-words-that-need-r)).
@@ -25,9 +25,9 @@ Approximate, counted on 2026-11-20.
 
 | | With the packages underneath | With simplydata |
 |---|---|---|
-| Names to learn | about 10,650 functions: about 5,460 in the Python packages (SciPy about 1,750, pandas 850, Polars 815, matplotlib 745, NumPy 660, statsmodels 545, seaborn 100; each package's public API) and about 5,190 exported by the R packages simplydata ran that day, with R's `stats` (R `getNamespaceExports`; before the community packages were added) | 751 names: 393 commands and 358 options, about 93 % fewer |
+| Names to learn | about 10,650 functions: about 5,460 in the Python packages (SciPy about 1,750, pandas 850, Polars 815, matplotlib 745, NumPy 660, statsmodels 545, seaborn 100; each package's public API) and about 5,190 exported by the R packages simplydata ran that day, with R's `stats` (R `getNamespaceExports`; before the community packages were added) | 763 names: 397 commands and 366 options, about 93 % fewer |
 | Packages and languages | 86 packages (14 Python, 72 R), in Python and R | 1 package, in basic Python |
-| Code per task | 906 lines and 904 function calls in the 145 tasks of the manual's "same underneath" boxes (median 6 lines a task); this library code is the bare minimum, without the plain-sentence result or the checks | 438 lines and 530 calls (median 3 lines a task), about 52 % fewer lines; recount with `python validation/count_reduction.py` |
+| Code per task | 1041 lines and 1077 function calls in the 164 tasks of the manual's "same underneath" boxes (median 6 lines a task); this library code is the bare minimum, without the plain-sentence result or the checks | 484 lines and 586 calls (median 3 lines a task), about 54 % fewer lines; recount with `python validation/count_reduction.py` |
 | Choosing the method | you choose, from the package's documentation | the recommended default, with its published basis: see [How simplydata chooses methods](#how-simplydata-chooses-methods) |
 
 ### Packages underneath
@@ -79,6 +79,9 @@ R packages that simplydata runs, where Python has no method of its own or none t
 | gstat | the variogram and its fitted curve: range, nugget and sill (`find_variogram_of`, `chart.draw_variogram`) | [r] |
 | extRemes | return levels with profile-likelihood intervals: GEV for yearly maxima, generalised Pareto above a threshold (`find_return_levels_of(once_in=[10, 100])`, `values_above=`); the extremal index; the threshold check (`chart.draw_threshold_check`) | [r] |
 | qvalue | Storey's q-values and the local false discovery rate for many tests, such as genes (`add_adjusted_p_value_column(method="storey")`, `method="local fdr"`); from Bioconductor (in R: `install.packages("BiocManager")`, then install qvalue with it) | [r] |
+| agricolae | design tables for experiments: every combination in random order, randomised blocks, latin squares and split plots (`sdata.make_design_table`) | [r] |
+| blockrand | randomisation lists in random blocks, one list for each centre (`sdata.make_random_assignments`); CRAN only | [r] |
+| survey | survey-weighted averages, totals, percentiles, percents, population counts, models and tests with strata, clusters and population sizes (`table.use_survey_design`) | [r] |
 | trend, tseries, urca, forecast, changepoint, lomb | the Mann-Kendall test and Sen's slope (`find_trend_of`); ADF and KPSS tests (`check_steady_over_time`); forecasts and their check on held-back readings (`forecast`, `compare_forecasts_for`), with the ARIMA order chosen by auto.arima (`order="automatic"`); change points (`find_change_points_in`); the Lomb-Scargle spectrum of uneven readings (`find_spectrum_of(method="lomb-scargle")`) | [r] |
 
 R packages used only to check simplydata's answers, in the tests and the
@@ -102,13 +105,13 @@ R users, not packages simplydata needs.
 | Task | What you can do | Example words |
 |---|---|---|
 | Reading and saving tables | read Excel (one sheet or all), CSV, TSV, Parquet, JSON, Word, SPSS and Stata files, several files at once or a file on the web; save as Excel, CSV, TSV, Parquet or JSON | `sdata.table("data/*.csv")`, `sdata.table("file.xlsx", sheet="all")`, `table.save("clean.xlsx")` |
-| Looking and choosing | see the first rows and each column; keep or remove columns and rows by condition, position, random draw or biggest values | `show_first_rows`, `describe_columns`, `keep_rows_where`, `keep_columns`, `keep_random_rows`, `keep_biggest_rows` |
+| Looking and choosing | see the first rows and each column; keep or remove columns and rows by condition, position, random draw (within each group too) or biggest values | `show_first_rows`, `describe_columns`, `keep_rows_where`, `keep_columns`, `keep_random_rows`, `keep_biggest_rows` |
 | Cleaning | turn text into numbers or dates, fix spaces and case, replace values, round, remove duplicates, show or remove outliers | `turn_into_numbers`, `turn_into_dates`, `remove_extra_spaces_in`, `replace_values_in`, `remove_duplicate_rows`, `show_rows_with_outliers` |
-| Empty cells (missing data) | count them, map them, remove rows, fill with a value, average, median, neighbour, a straight line or a smooth curve; fill missing dates; multiple imputation in a model | `count_empty_cells_in`, `draw_map_of_empty_cells`, `fill_empty_cells_in(with_the="line between neighbours")`, `add_missing_dates`, `explain(empty_cells="multiple imputation")` |
+| Empty cells (missing data) | count them, find which are empty together (patterns), map them, remove rows, fill with a value, average, median, neighbour, a straight line or a smooth curve; fill missing dates; multiple imputation in a model | `count_empty_cells_in`, `draw_map_of_empty_cells`, `fill_empty_cells_in(with_the="line between neighbours")`, `add_missing_dates`, `explain(empty_cells="multiple imputation")` |
 | New columns, dates and text | groups from numbers, ranks, z-scores, parts of dates and text, rolling values, previous values and changes | `add_group_column`, `add_rank_column`, `add_z_score_column`, `add_column_with_part_of_date`, `split_column`, `add_rolling_column`, `add_change_column` |
 | Reshaping and joining | join two tables, stack rows, turn columns into rows and back, undo any step | `join_with`, `add_rows_from`, `turn_columns_into_rows`, `turn_rows_into_columns`, `undo`, `show_steps` |
-| Summaries | counts, averages, medians, totals, percentiles, standard deviations (weighted too), intervals for any summary (bootstrap), correlations (Pearson, Spearman, Kendall, partial) and covariances | `count_each`, `find_summary_of`, `find_percentile_of`, `find_interval_of`, `find_correlation_between` |
-| Charts | bars, lines, dots, area, histograms, boxes, violins, heatmaps, pie, polar, contour, surface, 3D dots, bands, sticks, density, Q-Q dots, all pairs, survival and risk curves, forest and funnel plots, richness curves, cluster trees, variograms, threshold checks, compass charts, spectra; lines, labels, axes, colours, legends, side by side, animation | `draw_bars`, `draw_boxes`, `draw_heatmap`, `draw_contour`, `draw_qq_dots`, `sdata.draw_all_pairs`, `draw_richness_curves`, `draw_cluster_tree`, `draw_one_chart_for_each_group_in`, `animate` |
+| Summaries | counts, averages, medians, totals, percentiles, standard deviations (weighted too), intervals for any summary (bootstrap), correlations (Pearson, Spearman, Kendall, partial) and covariances; answers on a scale (Likert items) | `count_each`, `find_summary_of`, `find_percentile_of`, `find_interval_of`, `find_correlation_between` |
+| Charts | bars, lines, dots, area, histograms, boxes, violins, heatmaps, pie, polar, contour, surface, 3D dots, bands, sticks, density, Q-Q dots, all pairs, survival and risk curves, forest and funnel plots, richness curves, cluster trees, variograms, threshold checks, compass charts, diverging bars of answers on a scale, spectra; lines, labels, axes, colours, legends, side by side, animation | `draw_bars`, `draw_boxes`, `draw_heatmap`, `draw_contour`, `draw_qq_dots`, `sdata.draw_all_pairs`, `draw_richness_curves`, `draw_cluster_tree`, `draw_one_chart_for_each_group_in`, `animate` |
 | Comparing groups (tests) | two or more averages (Welch, Student, ANOVA, Yuen, Brunner-Munzel, rank tests), pairs of groups (Holm, Tukey, Games-Howell, Dunn, Dunnett, pairs of percents), before and after, repeated measures (Friedman with Nemenyi or Conover after it, repeated-measures ANOVA), spreads, shapes, counts (chi-square, Fisher, G-test, trend), percents, equivalence and non-inferiority, many tests at once (Holm, Benjamini-Hochberg, Storey's q-values) | `compare_averages_of`, `compare_each_pair_of`, `compare_before_and_after`, `compare_matched_columns`, `compare_spreads_of`, `compare_counts_of`, `compare_percent_to`, `add_adjusted_p_value_column` |
 | Relationships and models | linear, logistic, Poisson, negative binomial, Gamma, ordered, multinomial, beta, zero-inflated and hurdle models; mixed models and GEE; GAMs, splines, quantile and robust regression; GLS; interrupted time series; model averages, checks, comparisons and the lasso | `explain(outcome="yes or no")`, `explain(grouped_by="school")`, `explain(curve_for="hours")`, `explain(for_percentile=90)`, `find_model_averages_of`, `check_model_of`, `compare_models`, `find_columns_that_predict` |
 | Lines, curves and dose-response | straight lines (least squares, Theil-Sen, major axis, Deming, Passing-Bablok), lines that bend, polynomial and named curves (logistic growth, Michaelis-Menten, Gompertz ...), any formula, dose-response curves with ED50 | `fit_line`, `fit_line(with_bends=1)`, `fit_curve(of_kind="michaelis-menten")`, `fit_formula`, `fit_dose_response` |
@@ -118,6 +121,7 @@ R users, not packages simplydata needs.
 | Survival and competing risks | Kaplan-Meier curves and median times, log-rank tests, Cox models, parametric models, life tables, restricted mean time, competing risks (Aalen-Johansen, Gray, Fine-Gray), adjusted curves, delayed entry | `find_survival_over_time`, `compare_survival`, `explain_survival`, `find_risk_over_time`, `add_time_and_event_columns`, `draw_survival_curves` |
 | Combining studies (meta-analysis) | combine counts, estimates, averages, rates or correlations; heterogeneity, prediction interval, subgroups, meta-regression, small-study effects | `combine_studies`, `forest_plot`, `draw_funnel_plot` |
 | Planning a study | sample size and power for averages, counts, percents, correlations, regression, survival, equivalence, interval width and clustered designs; power by simulation | `sdata.find_how_many_needed`, `sdata.find_chance_of_finding` |
+| Planning an experiment and surveys | design tables (full factorial, randomised blocks, latin square, split plot), randomisation lists in random blocks for each centre, stratified random samples; survey-weighted averages, totals, percentiles, percents, population counts, models and tests (strata, clusters, population sizes) | `sdata.make_design_table`, `sdata.make_random_assignments`, `keep_random_rows(for_each_group_in=)`, `use_survey_design` |
 | Distributions | 28 named distributions (normal to von Mises, GEV and generalised Pareto, binomial to hypergeometric) and any SciPy one: chances, percentiles, random numbers; fit one to a column and compare several by AIC | `sdata.distribution`, `find_chance_that_value`, `fit_distribution_to`, `compare_distributions_for` |
 | Time series and forecasting | runs of dates, smoothing, trend tests and Sen's slope, trend and season split, autocorrelation, steadiness tests, change points, forecasts (with the ARIMA order chosen automatically) and their checks | `make_run_of_dates`, `add_smoothed_column`, `find_trend_of`, `add_trend_and_season`, `check_steady_over_time`, `find_change_points_in`, `forecast` |
 | Signals, cycles and filters | peaks and dips, spectra (periodogram, Welch, Lomb-Scargle), spectrograms, low-, high- and band-pass and notch filters, envelopes, Fourier transforms, waves and windows, convolution | `find_each_peak_that`, `find_spectrum_of`, `spectrum_over_time`, `add_filtered_column`, `find_envelope`, `take_fourier_transform`, `sdata.make_wave` |
@@ -308,7 +312,7 @@ import simplydata as sdata
 sdata.show_lesson(1)
 ```
 
-There are thirty-three short lessons. Lessons 1 to 8 teach charts, from your first chart to
+There are thirty-four short lessons. Lessons 1 to 8 teach charts, from your first chart to
 animations. Lessons 9 to 12 teach tables: looking at your data, choosing rows and columns,
 cleaning it, and summing it up. Lesson 13 teaches numbers (lists and grids of numbers), and
 lesson 14 the statistical tests: is a difference real, and how big is it? Lesson 15 puts it
@@ -329,7 +333,9 @@ first. Lesson 30 combines studies (a meta-analysis): the combined effect, how mu
 studies differ, and the forest and funnel plots. Lessons 31 and 32 read a community or resistome table:
 diversity at the same total count, then log ratios, PCoA and how much temperature and salinity explain. Lesson
 33 follows a coastal station: the average direction of its currents, whether nearby stations have alike zinc
-(Moran's I), and the 100-year sea level at Port Pirie (real data). Each
+(Moran's I), and the 100-year sea level at Port Pirie (real data). Lesson 34 plans an experiment and a
+survey: a design table in randomised blocks, a randomisation list in random blocks for each hospital, and
+a stratified random sample of real California schools. Each
 lesson has an example you can run, says what every line does, explains the idea behind it
 (average or median, standard deviation or standard error, p-values) and ends with a small task
 to try yourself.
@@ -370,7 +376,7 @@ the manual for each lesson and word, and the answers at the back.
 ## Manual
 
 **[The simplydata manual (PDF)](https://github.com/bioforkgithub/simplydata/blob/main/docs/manual/simplydata_manual.pdf)** has everything in one book:
-all thirty-three lessons with the real charts and output they make, every word explained (its options,
+all thirty-four lessons with the real charts and output they make, every word explained (its options,
 an example you can run and the library that does the work underneath), the data science ideas
 behind the numbers (average or median, standard deviation or standard error, confidence intervals,
 p-values, effect sizes, and which statistical test to use when), and a worked solution for every
@@ -508,7 +514,7 @@ shows the same job written in the package underneath, in a grey box that a test 
 - The defaults of each batch were checked by an independent review when they were designed, and every entry of
   the table below, with its references, was checked again by independent hostile reviewers in November 2026.
 
-[How simplydata chooses methods](docs/how_simplydata_chooses.md) gives all 281 defaults: for each, the default,
+[How simplydata chooses methods](docs/how_simplydata_chooses.md) gives all 301 defaults: for each, the default,
 the alternatives, why it was chosen, what simplydata checks in the data, and its references (each DOI checked in
 Crossref). The manual has the same table as its last part.
 

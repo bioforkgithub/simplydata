@@ -69,6 +69,9 @@ r = ["rpy2>=3.5"]  # the bridge to R for the methods only R gives (R itself: htt
 # Bioconductor, not CRAN or conda-forge: in R, install.packages("BiocManager") and then install qvalue with it; with
 # conda, bioconductor-qvalue from bioconda. PMCMRplus (Nemenyi and Conover after Friedman) and forecast
 # (auto.arima) are listed already.
+# S3d-1 (planning and surveys) calls agricolae (design tables), blockrand (randomisation lists; CRAN only, not on
+# conda-forge) and survey (survey-weighted answers); agricolae and survey are on conda-forge. mice (patterns of empty
+# cells, in the reliability study) is listed already.
 test = ["pytest>=7", "polars>=0.20", "pyarrow>=14", "statsmodels>=0.14"]
 
 [project.urls]

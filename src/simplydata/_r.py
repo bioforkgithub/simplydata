@@ -210,7 +210,20 @@ def r_ready(packages=()) -> bool:
                     f'type = "message"), type = "output")); ok }})')[0])
             if not _STATE[key]:
                 return False
+            if package in ("agricolae", "AlgDesign") and not _STATE.get("model.matrix kept"):
+                _keep_base_model_matrix(ro)
         return True
+
+
+def _keep_base_model_matrix(ro) -> None:
+    """agricolae imports AlgDesign, whose namespace registers its own model.matrix.formula for the whole R session;
+    it stops with "data must be a data.frame" when no data are given, as R metafor's formulas do (combine_studies
+    with subgroups). simplydata uses no AlgDesign function, so the method is taken out again and R's own
+    model.matrix.default answers, as before agricolae was loaded."""
+    ro.r('local({ tbl <- get(".__S3MethodsTable__.", envir = asNamespace("stats")); '
+         'f <- tbl[["model.matrix.formula"]]; '
+         'if (!is.null(f) && environmentName(environment(f)) == "AlgDesign") rm("model.matrix.formula", envir = tbl) })')
+    _STATE["model.matrix kept"] = True
 
 
 def need_r(packages, what, python_note=None):

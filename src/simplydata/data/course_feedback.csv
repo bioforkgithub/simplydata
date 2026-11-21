@@ -1,0 +1,121 @@
+student,programme,teaching,materials,pace,workload,would_recommend
+S001,chemistry,strongly agree,disagree,strongly disagree,agree,agree
+S002,medicine,agree,agree,strongly agree,disagree,strongly disagree
+S003,medicine,agree,disagree,disagree,strongly disagree,disagree
+S004,medicine,neutral,disagree,agree,agree,agree
+S005,chemistry,agree,agree,disagree,strongly agree,strongly agree
+S006,biology,agree,agree,agree,neutral,strongly agree
+S007,chemistry,agree,strongly agree,strongly disagree,strongly agree,disagree
+S008,chemistry,neutral,neutral,neutral,strongly disagree,strongly agree
+S009,biology,strongly agree,disagree,neutral,strongly disagree,agree
+S010,chemistry,disagree,neutral,disagree,agree,strongly agree
+S011,chemistry,neutral,,disagree,disagree,neutral
+S012,biology,strongly agree,agree,agree,disagree,neutral
+S013,medicine,agree,strongly disagree,agree,agree,agree
+S014,chemistry,agree,agree,disagree,strongly disagree,neutral
+S015,biology,disagree,strongly agree,agree,disagree,strongly agree
+S016,biology,strongly agree,neutral,disagree,neutral,strongly agree
+S017,chemistry,agree,neutral,strongly disagree,strongly disagree,neutral
+S018,biology,agree,agree,agree,disagree,strongly agree
+S019,medicine,strongly agree,agree,strongly disagree,neutral,agree
+S020,biology,strongly disagree,strongly agree,neutral,disagree,agree
+S021,biology,disagree,agree,strongly agree,neutral,agree
+S022,medicine,neutral,neutral,strongly disagree,agree,agree
+S023,chemistry,agree,disagree,strongly disagree,disagree,agree
+S024,chemistry,strongly agree,strongly agree,disagree,strongly agree,strongly agree
+S025,biology,neutral,agree,strongly disagree,disagree,strongly agree
+S026,biology,neutral,agree,disagree,disagree,agree
+S027,chemistry,disagree,neutral,strongly agree,disagree,neutral
+S028,biology,agree,disagree,strongly disagree,strongly disagree,strongly agree
+S029,medicine,agree,agree,neutral,strongly agree,strongly agree
+S030,medicine,strongly agree,agree,strongly agree,disagree,agree
+S031,biology,agree,neutral,disagree,neutral,agree
+S032,medicine,agree,neutral,disagree,strongly agree,agree
+S033,biology,strongly agree,neutral,agree,disagree,neutral
+S034,medicine,strongly agree,strongly agree,strongly disagree,agree,agree
+S035,biology,agree,neutral,agree,agree,neutral
+S036,biology,strongly agree,neutral,strongly disagree,disagree,strongly agree
+S037,medicine,agree,neutral,agree,disagree,agree
+S038,biology,agree,agree,strongly agree,agree,agree
+S039,biology,agree,disagree,disagree,strongly disagree,strongly agree
+S040,biology,agree,strongly agree,disagree,disagree,disagree
+S041,chemistry,agree,agree,strongly disagree,disagree,strongly agree
+S042,biology,agree,agree,disagree,strongly disagree,strongly agree
+S043,chemistry,agree,disagree,disagree,agree,disagree
+S044,medicine,strongly disagree,,disagree,strongly disagree,neutral
+S045,biology,strongly agree,disagree,disagree,disagree,strongly agree
+S046,biology,strongly agree,agree,agree,disagree,agree
+S047,biology,neutral,agree,disagree,neutral,neutral
+S048,biology,strongly agree,agree,strongly disagree,neutral,agree
+S049,medicine,agree,neutral,disagree,disagree,agree
+S050,medicine,agree,strongly disagree,,agree,strongly disagree
+S051,medicine,disagree,agree,neutral,strongly disagree,agree
+S052,biology,neutral,agree,disagree,neutral,agree
+S053,chemistry,agree,strongly agree,agree,agree,neutral
+S054,biology,strongly agree,strongly agree,agree,strongly disagree,agree
+S055,medicine,strongly agree,agree,agree,disagree,strongly agree
+S056,chemistry,neutral,disagree,strongly agree,strongly disagree,agree
+S057,chemistry,agree,strongly agree,disagree,disagree,strongly agree
+S058,biology,agree,agree,agree,neutral,strongly agree
+S059,medicine,neutral,strongly agree,strongly agree,strongly agree,strongly agree
+S060,biology,neutral,neutral,agree,disagree,neutral
+S061,biology,neutral,neutral,disagree,strongly agree,strongly agree
+S062,chemistry,neutral,strongly agree,agree,disagree,strongly agree
+S063,medicine,disagree,neutral,agree,strongly disagree,neutral
+S064,biology,strongly agree,agree,strongly disagree,disagree,disagree
+S065,biology,agree,strongly agree,strongly agree,neutral,agree
+S066,biology,agree,neutral,disagree,disagree,strongly agree
+S067,chemistry,neutral,agree,strongly agree,strongly agree,disagree
+S068,biology,strongly agree,neutral,neutral,agree,disagree
+S069,chemistry,agree,agree,disagree,strongly disagree,neutral
+S070,medicine,strongly agree,strongly agree,disagree,disagree,strongly agree
+S071,chemistry,agree,agree,strongly disagree,neutral,agree
+S072,biology,strongly agree,disagree,,neutral,strongly agree
+S073,chemistry,strongly agree,agree,neutral,strongly disagree,agree
+S074,biology,strongly agree,agree,disagree,disagree,neutral
+S075,biology,agree,neutral,neutral,strongly disagree,strongly agree
+S076,chemistry,neutral,strongly disagree,disagree,neutral,neutral
+S077,chemistry,strongly agree,agree,strongly disagree,neutral,agree
+S078,medicine,strongly agree,disagree,disagree,strongly agree,agree
+S079,biology,agree,neutral,agree,strongly disagree,agree
+S080,biology,disagree,strongly agree,strongly disagree,neutral,strongly disagree
+S081,medicine,strongly agree,neutral,neutral,agree,agree
+S082,chemistry,strongly agree,agree,disagree,strongly agree,agree
+S083,medicine,strongly disagree,disagree,agree,disagree,strongly agree
+S084,chemistry,disagree,agree,strongly disagree,strongly disagree,strongly agree
+S085,chemistry,neutral,disagree,disagree,neutral,disagree
+S086,medicine,agree,disagree,disagree,strongly disagree,strongly disagree
+S087,chemistry,neutral,agree,agree,strongly agree,agree
+S088,chemistry,disagree,disagree,strongly disagree,agree,agree
+S089,biology,strongly agree,agree,agree,neutral,strongly agree
+S090,chemistry,strongly disagree,neutral,agree,neutral,neutral
+S091,biology,neutral,disagree,,disagree,disagree
+S092,biology,agree,disagree,disagree,disagree,strongly agree
+S093,chemistry,strongly agree,neutral,neutral,disagree,neutral
+S094,chemistry,agree,agree,agree,agree,agree
+S095,biology,disagree,strongly agree,agree,disagree,strongly agree
+S096,biology,strongly agree,agree,strongly disagree,disagree,strongly agree
+S097,medicine,strongly agree,agree,neutral,neutral,neutral
+S098,chemistry,agree,agree,neutral,neutral,agree
+S099,biology,neutral,strongly disagree,agree,neutral,agree
+S100,chemistry,strongly agree,agree,agree,strongly disagree,strongly agree
+S101,chemistry,strongly agree,agree,disagree,disagree,strongly agree
+S102,chemistry,disagree,neutral,disagree,disagree,strongly disagree
+S103,medicine,agree,agree,disagree,disagree,neutral
+S104,biology,strongly agree,agree,agree,agree,agree
+S105,medicine,strongly agree,strongly agree,strongly disagree,strongly disagree,agree
+S106,biology,agree,disagree,agree,strongly disagree,strongly agree
+S107,medicine,neutral,strongly agree,agree,agree,agree
+S108,medicine,strongly agree,strongly disagree,neutral,agree,agree
+S109,biology,agree,agree,agree,agree,strongly agree
+S110,medicine,agree,agree,agree,neutral,neutral
+S111,medicine,agree,agree,neutral,strongly disagree,agree
+S112,biology,strongly agree,,disagree,disagree,neutral
+S113,medicine,strongly agree,neutral,neutral,neutral,neutral
+S114,biology,neutral,disagree,agree,disagree,strongly agree
+S115,biology,agree,agree,agree,strongly disagree,neutral
+S116,medicine,agree,neutral,disagree,disagree,neutral
+S117,biology,strongly disagree,agree,neutral,disagree,agree
+S118,medicine,agree,strongly agree,disagree,agree,strongly agree
+S119,chemistry,agree,disagree,agree,strongly disagree,disagree
+S120,chemistry,strongly agree,agree,neutral,neutral,strongly agree

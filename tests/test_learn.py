@@ -58,6 +58,9 @@ def test_example_tables_load_with_the_columns_described(name):
     elif name == "admissions":  # S3b-3: dates for add_time_and_event_columns; most first_esbl cells are empty
         assert table["first_esbl"].isna().any() and not table.drop(columns="first_esbl").isna().any().any()
         assert all(pd.api.types.is_datetime64_any_dtype(table[c]) for c in ("admitted", "discharged", "first_esbl"))
+    elif name == "course_feedback":  # S3d-1: a few answers left empty, for count_each(columns=, in_order=)
+        assert table[["materials", "pace"]].isna().any().all()
+        assert not table.drop(columns=["materials", "pace"]).isna().any().any()
     elif name == "ability_tests":  # S3c-2: real data (Holzinger & Swineford 1939); one grade is empty in the source
         assert table["grade"].isna().sum() == 1 and not table.drop(columns="grade").isna().any().any()
     else:
@@ -329,10 +332,10 @@ LESSON_NUMBERS = range(1, 34)
 
 
 def test_there_are_thirty_three_lessons(capsys):
-    assert len(learn.LESSONS) == 33
+    assert len(learn.LESSONS) == 34
     sdata.show_lesson()
     out = capsys.readouterr().out
-    assert "33 lessons" in out
+    assert "34 lessons" in out
     for i in LESSON_NUMBERS:
         assert f"sdata.show_lesson({i})" in out
 
@@ -380,9 +383,9 @@ def test_lessons_use_tables_and_charts(number):
         assert gone not in code, f"lesson {number} uses {gone}"
 
 
-@pytest.mark.parametrize("bad", [0, 34, "1", 1.0, True])
+@pytest.mark.parametrize("bad", [0, 35, "1", 1.0, True])
 def test_wrong_lesson_number_is_explained(bad):
-    with pytest.raises(sdata.SimplydataError, match="lessons 1 to 33"):
+    with pytest.raises(sdata.SimplydataError, match="lessons 1 to 34"):
         sdata.show_lesson(bad)
 
 
