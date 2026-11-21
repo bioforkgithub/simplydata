@@ -1,0 +1,201 @@
+"school","district","school_type","score_2000","score_1999","free_meals","english_learners","pupils","met_target","award","weight","schools_of_type"
+"Open Magnet: Center for Individual (Char","Los Angeles Unified","elementary",840,816,33,25,276,"yes","no",44.2099990844727,4421
+"Belvedere Elementary","Los Angeles Unified","elementary",516,476,98,77,841,"yes","yes",44.2099990844727,4421
+"Altadena Elementary","Pasadena Unified","elementary",531,544,64,23,441,"no","no",44.2099990844727,4421
+"Soto Street Elementary","Los Angeles Unified","elementary",501,457,83,63,298,"yes","yes",44.2099990844727,4421
+"Walnut Canyon Elementary","Moorpark Unified","elementary",720,659,26,17,354,"yes","yes",44.2099990844727,4421
+"Atherwood Elementary","Simi Valley Unified","elementary",805,780,7,0,330,"yes","yes",44.2099990844727,4421
+"Township Elementary","Simi Valley Unified","elementary",778,787,9,2,385,"no","no",44.2099990844727,4421
+"Thorner (Dr. Juliet) Elementary","Bakersfield City Elem","elementary",731,731,45,2,583,"no","no",44.2099990844727,4421
+"Nicoloff (George) Elementary","South Bay Union Elem","elementary",592,508,75,58,763,"yes","yes",44.2099990844727,4421
+"Valle Lindo Elementary","Chula Vista Elementary","elementary",669,658,47,23,381,"yes","no",44.2099990844727,4421
+"Frisbie Middle","Rialto Unified","middle",496,479,69,25,1293,"yes","no",20.3600006103516,1018
+"Rivera (Tomas) Middle","Val Verde Unified","middle",505,499,60,10,1043,"no","no",20.3600006103516,1018
+"Roosevelt High","Fresno Unified","high",467,460,66,43,2165,"no","no",15.1000003814697,755
+"Frick Middle","Oakland Unified","middle",409,406,54,26,739,"no","no",20.3600006103516,1018
+"Rancho Verde High","Val Verde Unified","high",522,532,35,7,1894,"no","no",15.1000003814697,755
+"Corona Avenue Elementary","Los Angeles Unified","elementary",497,440,95,66,1112,"yes","yes",44.2099990844727,4421
+"Rosita Elementary","Garden Grove Unified","elementary",638,572,75,73,515,"yes","yes",44.2099990844727,4421
+"Cree (Raymond) Middle","Palm Springs Unified","middle",609,564,47,20,1116,"yes","yes",20.3600006103516,1018
+"Rancho San Joaquin Middle","Irvine Unified","middle",867,816,6,16,739,"yes","yes",20.3600006103516,1018
+"Orange Center Elementary","Orange Center Elementary","elementary",534,478,93,39,262,"yes","yes",44.2099990844727,4421
+"Pine Street Elementary","Bishop Union Elementary","elementary",705,685,38,6,528,"yes","yes",44.2099990844727,4421
+"Buchser Middle","Santa Clara Unified","middle",685,657,32,18,912,"yes","yes",20.3600006103516,1018
+"Frost (Earl) Elementary","Oak Grove Elementary","elementary",761,739,24,6,278,"yes","no",44.2099990844727,4421
+"Farmersville High","Farmersville Unified","high",455,403,89,59,357,"yes","yes",15.1000003814697,755
+"Fontana Miller (A.B.) High","Fontana Unified","high",509,504,44,18,2552,"no","no",15.1000003814697,755
+"Crocker Highlands Elementary","Oakland Unified","elementary",771,755,15,3,266,"yes","no",44.2099990844727,4421
+"South Hills High","Covina-Valley Unified","high",681,673,18,3,1105,"yes","no",15.1000003814697,755
+"Rancho Cotate High","Cotati-Rohnert Park Unif","high",666,690,9,5,1586,"no","no",15.1000003814697,755
+"Kentwood Elementary","Los Angeles Unified","elementary",751,687,35,7,256,"yes","yes",44.2099990844727,4421
+"La Presa Middle","La Mesa-Spring Valley","middle",647,642,60,23,1173,"no","no",20.3600006103516,1018
+"San Lorenzo Valley Junior High","San Lorenzo Valley Unif","middle",745,707,13,1,539,"yes","yes",20.3600006103516,1018
+"Tibby Elementary","Compton Unified","elementary",474,449,98,17,443,"yes","no",44.2099990844727,4421
+"Lowell Elementary","Long Beach Unified","elementary",832,835,25,10,450,"yes","no",44.2099990844727,4421
+"Centennial Elementary","Fresno Unified","elementary",559,525,78,27,553,"yes","yes",44.2099990844727,4421
+"Marshall Fundamental","Pasadena Unified","high",582,589,63,22,1527,"no","no",15.1000003814697,755
+"Miramonte Elementary","Clovis Unified","elementary",765,740,54,18,589,"yes","yes",44.2099990844727,4421
+"Sierra Ridge Middle","Pollock Pines Elementary","middle",694,679,21,0,363,"yes","yes",20.3600006103516,1018
+"Carquinez Middle","John Swett Unified","middle",676,641,24,14,475,"yes","yes",20.3600006103516,1018
+"Frazier Mountain High","El Tejon Unified","high",641,620,23,0,331,"yes","no",15.1000003814697,755
+"Sierra Vista Elementary","Vacaville Unified","elementary",744,701,34,2,312,"yes","no",44.2099990844727,4421
+"Hillview Middle","Menlo Park City Elem","middle",870,863,2,2,558,"yes","yes",20.3600006103516,1018
+"Gladstone High","Azusa Unified","high",510,485,31,30,983,"yes","no",15.1000003814697,755
+"Highland Ranch Elementary","Poway Unified","elementary",865,858,4,7,474,"yes","yes",44.2099990844727,4421
+"Overfelt (William C.) High","East Side Union High","high",527,523,37,37,1423,"no","no",15.1000003814697,755
+"Ophir Elementary","Ophir Elementary","elementary",782,780,14,0,184,"yes","yes",44.2099990844727,4421
+"Valley View Elementary","Westside Union Elem","elementary",745,691,31,3,446,"yes","yes",44.2099990844727,4421
+"Escalon High","Escalon Unified","high",681,665,20,4,682,"yes","no",15.1000003814697,755
+"Everett Middle","San Francisco Unified","middle",500,491,59,46,491,"no","no",20.3600006103516,1018
+"El Portal Middle","Escalon Unified","middle",679,677,31,13,715,"no","no",20.3600006103516,1018
+"Tustin Memorial Elementary","Tustin Unified","elementary",892,854,6,3,369,"yes","yes",44.2099990844727,4421
+"Johnson (Lloyd G.) Jr. High","Pierce Joint Unified","middle",552,475,66,42,179,"yes","yes",20.3600006103516,1018
+"Rocky Hill Elementary","Exeter Union Elementary","elementary",619,559,58,20,681,"yes","yes",44.2099990844727,4421
+"Lassen View Elementary","Enterprise Elementary","elementary",616,575,71,11,263,"yes","yes",44.2099990844727,4421
+"Broadacres Avenue Elementary","Los Angeles Unified","elementary",703,652,67,0,313,"yes","yes",44.2099990844727,4421
+"Kelley Elementary","Rialto Unified","elementary",509,470,75,32,522,"yes","yes",44.2099990844727,4421
+"Royal High","Simi Valley Unified","high",724,670,15,8,1820,"yes","yes",15.1000003814697,755
+"Benjamin Franklin Middle","San Francisco Unified","middle",559,554,78,27,598,"no","no",20.3600006103516,1018
+"Marston Middle","San Diego City Unified","middle",650,621,64,27,1162,"yes","yes",20.3600006103516,1018
+"Monroe (James) Elementary","Garden Grove Unified","elementary",806,803,40,43,339,"yes","no",44.2099990844727,4421
+"Condor Elementary","Morongo Unified","elementary",759,726,36,3,334,"yes","yes",44.2099990844727,4421
+"Vargas Elementary","Sunnyvale Elementary","elementary",740,703,42,37,323,"yes","yes",44.2099990844727,4421
+"Fairgrove Academy (K-8)","Hacienda la Puente Unif","elementary",642,579,69,22,655,"yes","yes",44.2099990844727,4421
+"Bursch Elementary","Compton Unified","elementary",565,526,99,35,388,"yes","no",44.2099990844727,4421
+"Doig (Leroy L.) Intermediate","Garden Grove Unified","middle",565,556,75,62,817,"no","no",20.3600006103516,1018
+"Muir High","Pasadena Unified","high",525,495,51,17,1033,"yes","yes",15.1000003814697,755
+"Faller Elementary","Sierra Sands Unified","elementary",726,689,45,8,342,"yes","yes",44.2099990844727,4421
+"Legette (Earl) Elementary","San Juan Unified","elementary",863,848,14,1,355,"yes","yes",44.2099990844727,4421
+"Highlands Elementary","Mt. Diablo Unified","elementary",765,703,13,3,537,"yes","yes",44.2099990844727,4421
+"Bancroft Elementary","Mt. Diablo Unified","elementary",893,845,7,4,382,"yes","yes",44.2099990844727,4421
+"Mt. Vernon Middle","Los Angeles Unified","middle",443,436,79,37,2039,"no","no",20.3600006103516,1018
+"La Mesa Jr. High","William S. Hart High","middle",774,787,4,4,1345,"no","no",20.3600006103516,1018
+"McKinley Elementary","Franklin-McKinley Elem","elementary",398,401,83,70,444,"no","no",44.2099990844727,4421
+"Walker Elementary","Santa Ana Unified","elementary",539,500,92,80,603,"yes","yes",44.2099990844727,4421
+"Navelencia Middle","Kings Canyon Unified","middle",668,603,51,15,390,"yes","yes",20.3600006103516,1018
+"Olson (Ione) Elementary","Monterey Peninsula Unif.","elementary",776,728,25,10,264,"yes","yes",44.2099990844727,4421
+"Dos Palos Elementary","Dos Palos Oro Loma Unif","elementary",580,554,74,22,158,"yes","no",44.2099990844727,4421
+"King (Martin Luther Jr) Middle","Hayward Unified","middle",581,563,52,33,618,"yes","no",20.3600006103516,1018
+"Edison Elementary","Santa Ana Unified","elementary",503,442,95,73,643,"yes","yes",44.2099990844727,4421
+"Kohn (Frank) Elementary","Tulare City Elementary","elementary",724,673,51,3,424,"yes","yes",44.2099990844727,4421
+"Myrtle Avenue Elementary","Lamont Elementary","elementary",476,409,96,38,541,"yes","yes",44.2099990844727,4421
+"McKinleyville High","Northern Humboldt High","high",712,694,3,0,532,"yes","no",15.1000003814697,755
+"Mark Twain Elementary","Corcoran Joint Unified","elementary",529,478,74,9,473,"yes","yes",44.2099990844727,4421
+"Stockdale Elementary","Panama Buena Vista Elem","elementary",870,852,7,2,337,"yes","yes",44.2099990844727,4421
+"Muir (John) Elementary","Lodi Unified","elementary",746,723,20,11,447,"yes","no",44.2099990844727,4421
+"Madrone Elementary","Rincon Valley Union Elem","elementary",836,798,24,3,334,"yes","yes",44.2099990844727,4421
+"San Diego School of Creative & Performin","San Diego City Unified","high",680,657,50,5,1115,"yes","yes",15.1000003814697,755
+"Redwood Elementary","San Lorenzo Valley Unif","elementary",756,766,20,0,290,"no","no",44.2099990844727,4421
+"Sinaloa Middle","Novato Unified","middle",878,874,4,2,767,"yes","yes",20.3600006103516,1018
+"El Toro High","Saddleback Valley Unif","high",784,760,8,7,1956,"yes","yes",15.1000003814697,755
+"Leavenworth (Ann B.) Elementary","Fresno Unified","elementary",423,403,100,62,660,"yes","no",44.2099990844727,4421
+"Annalee Avenue Elementary","Los Angeles Unified","elementary",588,538,61,1,285,"yes","yes",44.2099990844727,4421
+"Clarksburg Elementary","River Delta Joint Unif","elementary",606,566,48,28,143,"yes","yes",44.2099990844727,4421
+"Monroe Elementary","Riverside Unified","elementary",632,568,51,18,555,"yes","yes",44.2099990844727,4421
+"Pine Hollow Middle","Mt. Diablo Unified","middle",753,696,17,5,829,"yes","yes",20.3600006103516,1018
+"Merlinda Elementary","West Covina Unified","elementary",651,595,56,25,382,"yes","yes",44.2099990844727,4421
+"Amador County High","Amador County Unified","high",743,750,12,0,695,"no","no",15.1000003814697,755
+"Lewis (Mary B.) Elementary","Colton Joint Unified","elementary",553,499,80,33,571,"yes","yes",44.2099990844727,4421
+"Downtown Business High","Los Angeles Unified","high",593,595,72,21,637,"no","no",15.1000003814697,755
+"Jefferson (Thomas) Middle","Wasco Union Elementary","middle",528,524,77,32,529,"no","no",20.3600006103516,1018
+"Elliott (Brock) Elementary","Manteca Unified","elementary",676,678,18,1,619,"no","no",44.2099990844727,4421
+"Murwood Elementary","Walnut Creek Elementary","elementary",861,856,10,7,270,"yes","yes",44.2099990844727,4421
+"Benton (Reginald M.) Middle","Norwalk-La Mirada Unif","middle",678,669,18,13,775,"yes","no",20.3600006103516,1018
+"Bloomington High","Colton Joint Unified","high",518,535,39,22,1515,"no","no",15.1000003814697,755
+"Vernon Middle","Ontario-Montclair Elem","middle",535,495,64,46,954,"yes","yes",20.3600006103516,1018
+"Hemlock Elementary","Fontana Unified","elementary",588,533,54,24,441,"yes","yes",44.2099990844727,4421
+"Roosevelt Elementary","Dinuba Unified","elementary",597,527,76,18,387,"yes","yes",44.2099990844727,4421
+"Tamalpais High","Tamalpais Union High","high",770,817,1,1,633,"no","no",15.1000003814697,755
+"Thornhill Elementary","Oakland Unified","elementary",884,867,6,8,227,"yes","no",44.2099990844727,4421
+"Brannan (Sam) Middle","Sacramento City Unified","middle",667,633,45,16,893,"yes","yes",20.3600006103516,1018
+"Old Adobe Elementary","Old Adobe Union Elem","elementary",819,801,11,10,155,"yes","yes",44.2099990844727,4421
+"San Clemente High","Capistrano Unified","high",721,737,9,7,1771,"no","no",15.1000003814697,755
+"Fairview Middle","Gonzales Unified","middle",534,529,72,50,635,"no","no",20.3600006103516,1018
+"Summerville High","Summerville Union High","high",713,631,19,0,588,"yes","yes",15.1000003814697,755
+"King Elementary","Fresno Unified","elementary",542,524,100,40,325,"yes","no",44.2099990844727,4421
+"Palm Middle","Lemon Grove Elementary","middle",648,621,47,14,725,"yes","no",20.3600006103516,1018
+"San Ramon Valley High","San Ramon Valley Unified","high",816,812,1,1,1469,"yes","yes",15.1000003814697,755
+"Wilcox Elementary","Montebello Unified","elementary",509,495,72,37,437,"no","no",44.2099990844727,4421
+"Cantua Elementary","Golden Plains Unified","elementary",493,420,97,84,195,"yes","yes",44.2099990844727,4421
+"Shandin Hills Middle","San Bernardino City Unif","middle",551,491,67,17,1087,"yes","yes",20.3600006103516,1018
+"McFarland Middle","McFarland Unified","middle",485,430,85,33,554,"yes","yes",20.3600006103516,1018
+"Ridgeview Elementary","Eureka Union Elementary","elementary",893,890,1,1,445,"yes","yes",44.2099990844727,4421
+"Lone Pine High","Lone Pine Unified","high",641,660,6,6,119,"no","no",15.1000003814697,755
+"Meadow Lane Elementary","Cascade Union Elementary","elementary",709,584,77,2,292,"yes","yes",44.2099990844727,4421
+"Norman (Alyce) Elementary","Washington Unified","elementary",596,583,83,32,332,"yes","no",44.2099990844727,4421
+"Evergreen Middle","Evergreen Union Elem","middle",765,713,52,1,358,"yes","yes",20.3600006103516,1018
+"Elkhorn Elementary","North Monterey Co Unif","elementary",609,524,42,28,339,"yes","yes",44.2099990844727,4421
+"Lynhaven Elementary","Campbell Union Elem","elementary",671,641,38,22,386,"yes","yes",44.2099990844727,4421
+"Haynes Elementary","Los Angeles Unified","elementary",720,637,39,20,250,"yes","yes",44.2099990844727,4421
+"Sun Empire Elementary","Kerman Unified","elementary",669,536,100,50,587,"yes","yes",44.2099990844727,4421
+"Santiago High","Corona-Norco Unified","high",667,698,19,6,1989,"no","no",15.1000003814697,755
+"Goleta Valley Junior High","Santa Barbara High","middle",743,739,19,17,802,"yes","no",20.3600006103516,1018
+"Willowbrook Middle","Compton Unified","middle",403,384,99,5,608,"no","no",20.3600006103516,1018
+"Foothill High","Grant Joint Union High","high",610,634,34,11,1139,"no","no",15.1000003814697,755
+"Bryant Elementary","Long Beach Unified","elementary",650,631,78,33,262,"yes","no",44.2099990844727,4421
+"Olive Drive Elementary","Norris Elementary","elementary",836,772,10,1,304,"yes","yes",44.2099990844727,4421
+"Sierra Middle","Lincoln Unified","middle",695,651,36,14,525,"yes","no",20.3600006103516,1018
+"El Sereno Elementary","Los Angeles Unified","elementary",542,497,98,66,459,"yes","yes",44.2099990844727,4421
+"Delta High","River Delta Joint Unif","high",618,570,23,17,195,"yes","no",15.1000003814697,755
+"Myra Linn Elementary","Alvord Unified","elementary",578,535,69,41,492,"yes","yes",44.2099990844727,4421
+"Bryant Middle","Dos Palos Oro Loma Unif","middle",551,471,66,12,480,"yes","yes",20.3600006103516,1018
+"Twain Elementary","Long Beach Unified","elementary",814,783,28,9,615,"yes","no",44.2099990844727,4421
+"Wiltsey (Ray) Middle","Ontario-Montclair Elem","middle",467,455,73,54,892,"no","no",20.3600006103516,1018
+"Miller Elementary","Escondido Union Elem","elementary",777,750,25,8,437,"yes","yes",44.2099990844727,4421
+"Mira Loma High","San Juan Unified","high",717,694,29,16,1148,"yes","no",15.1000003814697,755
+"Willow Glen High","San Jose Unified","high",610,592,31,24,1032,"yes","yes",15.1000003814697,755
+"College View Elementary","Ocean View Elementary","elementary",719,671,33,17,390,"yes","yes",44.2099990844727,4421
+"La Canada High","La Canada Unified","high",868,858,0,2,1692,"yes","yes",15.1000003814697,755
+"Rancho Buena Vista High","Vista Unified","high",678,680,21,5,2247,"no","no",15.1000003814697,755
+"Cali Calmecac (Charter #162)","Windsor Unified","elementary",617,562,49,50,547,"yes","yes",44.2099990844727,4421
+"Dominguez High","Compton Unified","high",418,383,100,24,1068,"yes","yes",15.1000003814697,755
+"Douglass Junior High","Woodland Joint Unified","middle",669,650,24,18,1191,"yes","no",20.3600006103516,1018
+"Dunsmore Elementary","Glendale Unified","elementary",856,854,4,19,365,"yes","yes",44.2099990844727,4421
+"Joshua Hills Elementary","Palmdale Elementary","elementary",723,671,46,12,770,"yes","yes",44.2099990844727,4421
+"Cabrillo Middle","Ventura Unified","middle",773,732,24,6,934,"yes","yes",20.3600006103516,1018
+"Broad Avenue Elementary","Los Angeles Unified","elementary",609,541,82,33,678,"yes","yes",44.2099990844727,4421
+"Sisson Elementary","Mt. Shasta Union Elem","middle",780,774,29,0,348,"yes","yes",20.3600006103516,1018
+"Ralston (Dr. Walter C.) Intermediate","Garden Grove Unified","middle",693,688,46,33,714,"no","no",20.3600006103516,1018
+"Steinbeck Middle","San Jose Unified","middle",635,578,44,28,708,"yes","yes",20.3600006103516,1018
+"Beyer (Fred C.) High","Modesto City High","high",712,709,5,4,2018,"no","no",15.1000003814697,755
+"Franklin (Benjamin) Elementary","Glendale Unified","elementary",676,616,76,51,271,"yes","yes",44.2099990844727,4421
+"Silverado Middle","Napa Valley Unified","middle",660,622,36,8,895,"yes","no",20.3600006103516,1018
+"Bedell (Thelma B.) Elementary","Santa Paula Elementary","elementary",668,575,43,5,307,"yes","yes",44.2099990844727,4421
+"Trabuco Hills High","Saddleback Valley Unif","high",784,744,5,3,1788,"yes","yes",15.1000003814697,755
+"O'Connell (John A.) High","San Francisco Unified","high",472,497,20,25,216,"no","no",15.1000003814697,755
+"San Joaquin Elementary","Golden Plains Unified","elementary",421,398,98,69,620,"yes","yes",44.2099990844727,4421
+"Oak Ridge High","El Dorado Union High","high",764,760,1,0,1377,"yes","yes",15.1000003814697,755
+"South San Francisco High","South San Francisco Unif","high",646,636,20,10,1115,"yes","no",15.1000003814697,755
+"Hamilton (Alexander) Senior Hi","Los Angeles Unified","high",585,606,23,16,2181,"no","no",15.1000003814697,755
+"Antelope Valley High","Antelope Valley High","high",556,545,33,6,1783,"no","no",15.1000003814697,755
+"Rancho Milpitas Junior High","Milpitas Unified","middle",733,703,33,29,696,"yes","no",20.3600006103516,1018
+"Pinole Junior High","West Contra Costa Unified","middle",657,627,24,10,933,"yes","yes",20.3600006103516,1018
+"Big Pine Elementary","Big Pine Unified","elementary",667,607,41,7,153,"yes","yes",44.2099990844727,4421
+"Washington Middle","Vista Unified","middle",606,575,57,15,1524,"yes","yes",20.3600006103516,1018
+"Sacramento High","Sacramento City Unified","high",600,580,36,21,1389,"yes","no",15.1000003814697,755
+"El Sereno Middle","Los Angeles Unified","middle",522,509,91,34,2171,"no","no",20.3600006103516,1018
+"Burton (Phillip & Sala) Academic High","San Francisco Unified","high",599,574,21,18,1313,"yes","no",15.1000003814697,755
+"Mariposa County High","Mariposa County Unified","high",706,726,13,0,542,"no","no",15.1000003814697,755
+"Compton High","Compton Unified","high",409,410,98,49,1684,"no","no",15.1000003814697,755
+"Anderson Valley Elementary","Anderson Valley Unified","elementary",631,639,67,59,213,"no","no",44.2099990844727,4421
+"Ukiah High","Ukiah Unified","high",635,625,23,10,1520,"yes","yes",15.1000003814697,755
+"Workman (James) Middle","Palm Springs Unified","middle",601,574,38,0,1012,"yes","yes",20.3600006103516,1018
+"Garfield (James A.) Senior High","Los Angeles Unified","high",477,484,86,34,3156,"no","no",15.1000003814697,755
+"Del Lago Elementary","Saddleback Valley Unif","elementary",845,799,14,4,410,"yes","yes",44.2099990844727,4421
+"Meadowbrook Middle","Poway Unified","middle",819,790,13,6,1358,"yes","no",20.3600006103516,1018
+"Laurel Elementary","Oakland Unified","elementary",631,646,74,45,364,"no","no",44.2099990844727,4421
+"El Cerrito Elementary","La Habra City Elementary","elementary",696,642,72,50,169,"yes","yes",44.2099990844727,4421
+"Santa Susana Elementary","Simi Valley Unified","elementary",714,672,45,21,368,"yes","yes",44.2099990844727,4421
+"Fairwood Elementary","Sunnyvale Elementary","elementary",788,747,39,22,190,"yes","yes",44.2099990844727,4421
+"Pacific (K-8)","Lincoln Unified","elementary",667,601,38,14,368,"yes","yes",44.2099990844727,4421
+"Santa Susana High","Simi Valley Unified","high",710,706,8,3,763,"no","no",15.1000003814697,755
+"Machado Elementary","Lake Elsinore Unified","elementary",568,504,69,34,601,"yes","yes",44.2099990844727,4421
+"Delano High","Delano Joint Union High","high",453,447,47,37,2237,"no","no",15.1000003814697,755
+"Pittsburg Senior High","Pittsburg Unified","high",546,524,38,8,1602,"yes","yes",15.1000003814697,755
+"Emperor Elementary","Temple City Unified","elementary",847,814,34,12,420,"yes","yes",44.2099990844727,4421
+"Alvarado Elementary","New Haven Unified","elementary",679,664,36,39,613,"yes","yes",44.2099990844727,4421
+"One Hundred Twelfth Street Elementary","Los Angeles Unified","elementary",477,424,98,56,446,"yes","no",44.2099990844727,4421
+"Corona Senior High","Corona-Norco Unified","high",646,620,36,14,1754,"yes","yes",15.1000003814697,755
+"Sycamore Middle","Gridley Unified","middle",627,597,56,6,423,"yes","no",20.3600006103516,1018
+"Larsen (Ansgar) Elementary","Hueneme Elementary","elementary",521,500,88,69,482,"yes","yes",44.2099990844727,4421
+"Lincoln High (Char)","Western Placer Unified","high",624,609,28,4,599,"yes","yes",15.1000003814697,755

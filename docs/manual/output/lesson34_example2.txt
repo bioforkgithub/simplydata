@@ -1,20 +1,5 @@
-Groups made alike in age, educ, race, married, nodegree, re74 and re75 (matching), then compared: "re78" in "1" against "0" (614 rows: 185 and 429).
-Propensity score: each row's chance of being in "1" given age, educ, race, married, nodegree, re74 and re75, from logistic regression (R glm(family = binomial)).
-Overlap: the scores run from 0.0250 to 0.853 in "1" and from 0.00908 to 0.789 in "0"; 8 rows of "1" and 57 of "0" lie outside the other group's range (no row like them in the other group: their effect is guessed from the model).
-Balance (standardised differences, positive: higher in "1"; within 0.1 is the usual guide, Austin 2009):
-  column        before  after
-  age           -0.309  -0.047
-  educ           0.055   0.034
-  race: black    1.762   0.047
-  race: hispan  -0.350  -0.036
-  race: white   -1.882  -0.029
-  married       -0.826  -0.284
-  nodegree       0.245   0.263
-  re74          -0.721   0.011
-  re75          -0.290   0.017
-Note: married and nodegree are still more than 0.1 apart after matching: the groups are not fully alike, so the effect below may still mix in that difference; try a smaller match_within=, or add those columns' squares or groups.
-Note: 68 rows of "1" had no match within 0.200 standard deviations and were left out, so the effect is for the matched rows of that group only.
-Effect for those in "1" (the effect among them, ATT): the average of "re78" is 1771 higher in "1" than in "0" (95 % CI -50.4 to 3592), once the groups are made alike.
-If the groups, once made alike, truly did not differ, a difference this big or bigger would turn up in about 6 of 100 studies like this one (p = 0.057). This does not show that there is no difference.
-This is the effect of "treat" only if nothing that was not measured affects both "treat" and "re78" (the columns of allowing_for= are all that matter), every row could have been in either group (the scores overlap), and the propensity model is right. Balancing cannot make up for a column that was not measured.
-Method: 1:1 nearest-neighbour matching on the propensity score without replacement (R MatchIt::matchit(method = "nearest", distance = "glm", caliper 0.200 standard deviations of the logit of the score (link = "linear.logit"))), the effect from lm() on the matched rows with standard errors clustered on the pairs (sandwich::vcovCL, t test), as the MatchIt vignette does; balance from R cobalt::bal.tab().
+84 assignments to new and usual for each of Bergen and Oslo, in random blocks of 4 and 6 (R blockrand::blockrand()); each block holds every group equally often.
+Each list was 40 places long at least: the last block is completed, so a list can be a little longer (here 42). Use the places in order, from number 1.
+Keep the list away from the people who recruit, so nobody knows the next group in advance (allocation concealment).
+with_seed=1 makes the same list again with R 4.6.2 or newer (R's sample() changed in R 3.6.0).
+Rows for each "group": new 42, usual 42.

@@ -724,7 +724,12 @@ class StatTestWords:
         ratio of the geometric means with its 90 % interval and the within-subject CV; same_within=[0.8, 1.25]
         says whether the interval lies inside the limits. against= names the reference formulation
         (default: the first in sorted order).
+        Under a survey design (table.use_survey_design) two groups are compared by the design-based t
+        test, R survey::svyttest.
         """
+        if self._survey_on():
+            self._survey_only("compare_averages_of", locals(), ("column", "for_each_group_in"))
+            return self._survey_compare_averages(column, for_each_group_in)
         step = "compare_averages_of"
         # S3d-2 (epidemiology and cause and effect): the 2 x 2 crossover (table/crossover.py)
         if period is not None:
@@ -2228,7 +2233,12 @@ class StatTestWords:
         residual (statsmodels, as R chisq.test()$stdres): cells beyond 2 or -2 stand out.
         Empty cells are skipped. Effect size: Cramer's V, the
         strength of the link from 0 (none) to 1 (complete). Gives back a one-row table.
+        Under a survey design (table.use_survey_design) it gives the Rao-Scott F test, R
+        survey::svychisq.
         """
+        if self._survey_on():
+            self._survey_only("compare_counts_of", locals(), ("column", "for_each_group_in"))
+            return self._survey_compare_counts(column, for_each_group_in)
         step = "compare_counts_of"
         example = 'with sdata.get_example("fruit"): table.compare_counts_of("fruit", for_each_group_in="shop")'
         self._need_name(step, "the column", column, example)

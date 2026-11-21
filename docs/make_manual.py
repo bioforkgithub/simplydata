@@ -436,6 +436,13 @@ UNDERNEATH = {
                                    "extremalindex; needs R)",
     "draw_variogram": "R gstat (variogram, fit.variogram, variogramLine; needs R), drawn with matplotlib",
     "draw_threshold_check": "R extRemes (mrlplot, threshrange.plot; needs R), drawn with matplotlib",
+    # S3d-1: planning and surveys (each also has a tested entry in simplydata._underneath)
+    "sdata.make_design_table": "R agricolae (design.crd, design.rcbd, design.ab, design.lsd, design.split with "
+                               "kinds = \"Mersenne-Twister\"; needs R)",
+    "sdata.make_random_assignments": "R blockrand (blockrand, with set.seed(kind = \"Mersenne-Twister\"); needs R)",
+    "table.use_survey_design": "R survey (svydesign, degf; then svymean, svytotal, svyquantile, svyciprop, svyby, "
+                               "svyglm, svyttest, svychisq; needs R)",
+    "draw_answer_bars": "pandas (value_counts), drawn with matplotlib (barh)",
 }
 
 # ---------------------------------------------------------------- hand-written text

@@ -178,7 +178,9 @@ R_PACKAGES = ("survival", "vegan", "mice", "lme4", "betareg", "pscl", "car", "ef
               "qvalue",
               # S3d-2 (epidemiology and cause and effect): weighting, matching and balance tables; pooled correlations
               # after multiple imputation; epitools for the reliability study (standardised rates)
-              "WeightIt", "MatchIt", "cobalt", "miceadds", "epitools")
+              "WeightIt", "MatchIt", "cobalt", "miceadds", "epitools",
+              # S3d-1 (planning and surveys): randomisation lists (blockrand, CRAN only), design tables, surveys
+              "blockrand", "agricolae", "survey")
 
 
 @pytest.fixture
@@ -282,6 +284,9 @@ R_ENTRY_POINTS = {
     ("table/causal_r.py", "balance"), ("table/epi_r.py", "attributable"), ("table/epi_r.py", "direct"),
     ("table/epi_r.py", "indirect"), ("table/imputation_more.py", "fill_in"),
     ("table/imputation_more.py", "correlation_imputed"), ("table/imputation_more.py", "survival_imputed"),
+    # S3d-1 (planning and surveys)
+    ("designs.py", "make_random_assignments"), ("designs.py", "make_design_table"), ("designs.py", "_r_version"),
+    ("table/survey_r.py", "_call"),
 }
 
 

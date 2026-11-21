@@ -10,6 +10,7 @@ import difflib
 import functools
 import inspect
 import re
+import threading
 
 ISSUES_URL = "https://github.com/bioforkgithub/simplydata/issues"
 
@@ -223,6 +224,9 @@ def other_value_note(option: str, other, own) -> None:
     print(f'Note: {option}="{other}" is {option}="{own}" in simplydata.')
 
 
+_CALLS = threading.local()  # how deep inside words a call is: only the outermost word is checked by the survey guard
+
+
 def friendly(func=None, *, renamed: dict | None = None, others: dict | None = None):
     """Decorator for every public step.
 
@@ -270,6 +274,12 @@ def friendly(func=None, *, renamed: dict | None = None, others: dict | None = No
             if key not in params and not takes_any:
                 raise option_error(func.__name__, key, params)
             fixed[key] = value
+        outer = not getattr(_CALLS, "depth", 0)
+        if outer and args and "." in func.__qualname__:  # a table's word under a survey design (S3d-1)
+            guard = getattr(type(args[0]), "_survey_guard", None)
+            if guard is not None:
+                guard(args[0], func.__name__)
+        _CALLS.depth = getattr(_CALLS, "depth", 0) + 1
         try:
             return func(*args, **fixed)
         except SimplydataError as exc:
@@ -279,6 +289,8 @@ def friendly(func=None, *, renamed: dict | None = None, others: dict | None = No
                 if now != said:
                     exc.args = (now, *exc.args[1:])
             raise
+        finally:
+            _CALLS.depth -= 1
 
     wrapper._renamed_options = dict(renamed)
     wrapper._other_options = dict(others)

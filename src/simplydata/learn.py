@@ -35,6 +35,8 @@ GROUPS = [
                     "draw_richness_curves", "draw_cluster_tree",
                     # S3c-3 (directions, places and extremes): "more"
                     "draw_variogram", "draw_threshold_check",
+                    # S3d-1 (planning and surveys): answers on a scale
+                    "draw_answer_bars",
                     "draw_density", "draw_count_bars", "draw_all_dots", "draw_side_histograms", "draw_qq_dots",
                     "draw_cumulative_share", "sdata.draw_all_pairs"]),
     ("Lines and shading", ["draw_line_at_x", "draw_line_at_y", "draw_line_with_slope", "shade_between_x", "shade_between_y"]),
@@ -137,6 +139,8 @@ GROUPS = [
                             "sdata.frequency_filter", "nums.find_envelope", "table.add_envelope_column",
                             "nums.take_fourier_transform", "sdata.find_inverse_fourier_transform"]),
     ("Planning a study", ["sdata.find_how_many_needed", "sdata.find_chance_of_finding"]),
+    # S3d-1: planning an experiment and survey answers
+    ("Planning and surveys", ["sdata.make_design_table", "sdata.make_random_assignments", "table.use_survey_design"]),
     ("Join and reshape", ["table.join_with", "table.add_rows_from", "table.turn_columns_into_rows",
                              "table.turn_rows_into_columns"]),
     ("Undo and finish", ["table.undo", "table.show_steps", "table.start_again", "table.save",
@@ -922,6 +926,23 @@ HELP_EXAMPLES = {
         chart = result.start_chart()
         chart.draw_funnel_plot(x="estimate", y="standard error")
         chart.save("draw_funnel_plot.png")"""),
+    # S3d-1: planning an experiment and survey answers
+    "sdata.make_design_table": textwrap.dedent("""\
+        import simplydata as sdata
+        sdata.make_design_table({"temperature": [10, 20], "salinity": [30, 35]}, repeats=3, with_seed=1)
+        sdata.make_design_table({"temperature": [10, 20], "salinity": [30, 35]}, repeats=3, of_kind="randomised blocks", with_seed=2)
+        sdata.make_design_table({"variety": ["A", "B", "C", "D"]}, of_kind="latin square", with_seed=1)"""),
+    "sdata.make_random_assignments": textwrap.dedent("""\
+        import simplydata as sdata
+        sdata.make_random_assignments(how_many=60, groups=["A", "B"], in_blocks_of=[4, 6], with_seed=1)
+        sdata.make_random_assignments(how_many=40, groups=2, for_each_of=["Bergen", "Oslo"], with_seed=1)"""),
+    "table.use_survey_design": _tx("sampled_schools", """\
+        table.use_survey_design(weights="weight", strata="school_type", population_sizes="schools_of_type")
+        table.find_average_of("score_2000")
+        table.find_percent_of_rows_where("met_target", is_equal_to="yes")"""),
+    "draw_answer_bars": _ex("course_feedback", 'chart.draw_answer_bars(columns=["teaching", "materials", "pace"], '
+                                               'in_order=["strongly disagree", "disagree", "neutral", "agree", '
+                                               '"strongly agree"])', "answer_bars"),
     # planning a study
     "sdata.find_how_many_needed": textwrap.dedent("""\
         import simplydata as sdata
@@ -1620,6 +1641,7 @@ COMBINING_LESSON = "Combining studies (meta-analysis)"
 DIVERSITY_LESSON = "Diversity of a community"  # S3c-1
 MAKEUP_LESSON = "Make-up of communities"  # S3c-1
 COAST_LESSON = "A coastal station: currents, neighbours and storms"  # S3c-3
+PLANNING_LESSON = "Planning an experiment and a survey"  # S3d-1
 CAUSE_LESSON = "Cause and effect from observational data"  # S3d-2
 GENES_LINE = ('genes = ["blaTEM", "blaCTXM", "blaOXA48", "blaNDM", "sul1", "sul2", "tetA", "tetM", "qnrS", "ermB", "aadA", "mphA", "vanA", "mcr1"]')
 COMBINE_CALL = ('table.combine_studies(names="trial", events=["tb_vaccinated", "tb_unvaccinated"], '
@@ -5493,6 +5515,90 @@ LESSONS = [
         ],
         words=["table.find_average_direction_of", "table.compare_shape_to", "table.find_autocorrelation_of",
                "table.find_return_levels_of", "table.find_average_of", "draw_dots"],
+    ),
+    # S3d-1 (planning and surveys): plan the experiment first, then the random list, then a fair sample; found by title
+    dict(
+        title=PLANNING_LESSON,
+        needs_r=needs_r_text("The design table (R agricolae) and the random assignments (R blockrand) in this lesson",
+                             packages=("agricolae", "blockrand")),
+        learn=[
+            "how to lay out an experiment so that unknown differences spread evenly over the treatments",
+            "how to make a list that says which group each new participant joins, in random blocks",
+            "how to pick a fair sample from every group (a stratified random sample)",
+        ],
+        parts=[
+            ("An experiment in a greenhouse: 2 temperatures and 2 salinities, every combination 3 times. The benches "
+             "differ (light, draught), so each bench gets every combination once: randomised blocks.", [
+                ("import simplydata as sdata", "Load simplydata."),
+                ('design = sdata.make_design_table({"temperature": [10, 20], "salinity": [30, 35]}, repeats=3, '
+                 'of_kind="randomised blocks", with_seed=2)',
+                 "12 plots: the 2 x 2 = 4 combinations, once in each of 3 blocks (benches), each block in its own "
+                 "random order. \"plot\" is the order to work in; \"standard order\" numbers the combinations."),
+                ("design.show()", "The table to print and take to the greenhouse."),
+            ]),
+            ("A trial: each new patient gets the new dressing or the usual one. A list made in advance, in random "
+             "blocks, keeps the groups about the same size all the way through.", [
+                ("import simplydata as sdata", "Load simplydata."),
+                ('assignments = sdata.make_random_assignments(how_many=40, groups=["new", "usual"], '
+                 'in_blocks_of=[4, 6], for_each_of=["Bergen", "Oslo"], with_seed=1)',
+                 "One list for each hospital. Each block of 4 or 6 holds both groups equally often; the block sizes "
+                 "change at random, so nobody can guess the end of a block. The last block is completed, so a list "
+                 "can be a little longer than 40."),
+                ('assignments.count_rows(for_each_group_in="group")', "How many places each group has."),
+            ]),
+            ("A survey: 200 schools were sampled within each school type. To try a smaller sample by hand, pick the "
+             "same number from every type: a stratified random sample.", [
+                ("import simplydata as sdata", "Load simplydata."),
+                ('table = sdata.table(sdata.get_example("sampled_schools"))', "200 real California schools."),
+                ('table.keep_random_rows(5, for_each_group_in="school_type", with_seed=1)',
+                 "5 schools of each type, 15 in all, picked at random within each type."),
+                ('table.count_rows(for_each_group_in="school_type")', "5 elementary, 5 high and 5 middle schools."),
+            ]),
+        ],
+        notes=[
+            "with_seed= makes the same table or list again. A randomisation list must be made once, kept, and kept "
+            "away from the people who recruit (allocation concealment): if they can guess the next group, they can "
+            "choose who joins when.",
+            "Block sizes are multiples of the number of groups: with 2 groups, 4 and 6; with 3 groups, 3 and 6.",
+            "of_kind=\"latin square\" (one factor in rows and columns) and of_kind=\"split plot\" with whole_plots= "
+            "(a factor that is hard to change plot by plot, such as irrigation) are the other layouts.",
+            "More: a survey sample is analysed with its weights: table.use_survey_design(weights=\"weight\", "
+            "strata=\"school_type\", population_sizes=\"schools_of_type\"), then find_average_of, "
+            "find_percent_of_rows_where and explain describe the population (R survey). Answers on a scale: "
+            "table.count_each(columns=[...], in_order=[...]) and chart.draw_answer_bars(...) (try "
+            "sdata.get_example(\"course_feedback\")). Empty cells: table.count_empty_cells_in(show=\"patterns\").",
+        ],
+        task=[
+            "Fill in the blank: sdata.make_design_table({\"temperature\": [10, 20], \"salinity\": [30, 35]}, "
+            "repeats=3, of_kind=____, with_seed=1) when every plot can go anywhere.",
+            "Change only for_each_of=: make the dressing list for three hospitals, Bergen, Oslo and Trondheim.",
+            "Say in words why the block sizes should change at random.",
+            "Try to remember without looking back: which option of keep_random_rows picks rows within each group?",
+        ],
+        solutions=[
+            (_sx("""\
+                import simplydata as sdata
+                sdata.make_design_table({"temperature": [10, 20], "salinity": [30, 35]}, repeats=3,
+                                        of_kind="completely random", with_seed=1)"""),
+             "of_kind=\"completely random\" (the default): every plot in one random order, with no blocks."),
+            (_sx("""\
+                import simplydata as sdata
+                sdata.make_random_assignments(how_many=40, groups=["new", "usual"], in_blocks_of=[4, 6],
+                                              for_each_of=["Bergen", "Oslo", "Trondheim"], with_seed=1)"""),
+             "Three lists, one for each hospital, each in random blocks of 4 and 6."),
+            (_sx("""\
+                import simplydata as sdata
+                sdata.make_random_assignments(how_many=20, groups=["new", "usual"], in_blocks_of=[4], with_seed=1)"""),
+             "With one block size, a recruiter who knows it can work out the last group of every block (here the "
+             "4th place). Random sizes hide where a block ends (Schulz & Grimes 2002)."),
+            (_sx("""\
+                import simplydata as sdata
+                table = sdata.table(sdata.get_example("marks"))
+                table.keep_random_rows(2, for_each_group_in="class", with_seed=1)"""),
+             "for_each_group_in=: the same word as in the summaries, here meaning \"within each group\"."),
+        ],
+        words=["sdata.make_design_table", "sdata.make_random_assignments", "table.keep_random_rows",
+               "table.count_rows", "table.show"],
     ),
     # S3d-2 (epidemiology and cause and effect): a "more" lesson, found by title
     dict(

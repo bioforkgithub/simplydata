@@ -330,7 +330,9 @@ class BaseTable:
 
     def __repr__(self):
         rows, cols = self._frame.shape
-        return f"simplydata table: {rows} rows, {cols} columns\n{numbered(self._frame.head(10))!r}"
+        survey = self.__dict__.get("_survey")
+        mode = f" (a survey: {survey['said']})" if survey else ""
+        return f"simplydata table: {rows} rows, {cols} columns{mode}\n{numbered(self._frame.head(10))!r}"
 
     def _repr_html_(self):
         """The table in Jupyter and VS Code, with rows numbered from 1 (as everywhere in simplydata)."""

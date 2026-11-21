@@ -971,6 +971,20 @@ def _add_small_additions():
 _add_small_additions()
 
 
+# ---------------------------------------------------------------- S3d-1: planning and surveys (validation/cases_planning_surveys.py)
+def _add_planning_and_surveys():
+    import importlib.util
+
+    spec = importlib.util.spec_from_file_location("simplydata_validation_planning_surveys",
+                                                  HERE / "cases_planning_surveys.py")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    module.add_to(globals())
+
+
+_add_planning_and_surveys()
+
+
 # ---------------------------------------------------------------- S3d-2: epidemiology and cause and effect
 # (validation/cases_causal.py)
 def _add_causal():

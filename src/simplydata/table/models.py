@@ -1685,7 +1685,12 @@ class ModelWords:
         direct effect): causal mediation analysis (statsmodels Mediation, as R mediation::mediate()), with
         allowing_for= the columns to take into account in both models and against= the starting value of
         using=. The printout says what the answer rests on.
+        Under a survey design (table.use_survey_design) it fits a survey-weighted model, R
+        survey::svyglm (outcome= "numbers", "yes or no" or "counts").
         """
+        if self._survey_on():
+            self._survey_only("explain", locals(), ("column", "using", "outcome"))
+            return self._survey_explain(column, using, outcome)
         step = "explain"
         # S3d-2 (epidemiology and cause and effect): mediation (table/mediation.py)
         if through is not None or allowing_for is not None or against is not None:

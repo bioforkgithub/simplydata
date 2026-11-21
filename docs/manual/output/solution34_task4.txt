@@ -1,8 +1,1 @@
-How much of the effect of "treat" (1 against 0) on "depress2" goes through "job_seek" (899 rows):
-  indirect effect (through job_seek): -0.0154 (95 % interval -0.0470 to 0.0127)
-  direct effect: -0.0499 (95 % interval -0.141 to 0.0316)
-  total effect: -0.0654 (95 % interval -0.160 to 0.0239)
-  share through job_seek: 0.198 (95 % interval -1.44 to 1.87); the total effect is not clear here, so this share says little.
-If nothing went through "job_seek", an indirect effect this far from 0 would turn up in about 29 of 100 studies like this one (p = 0.294). This does not show that nothing goes through "job_seek".
-These are effects of "treat" only if nothing that was not measured affects both "treat" and "depress2", nor both "job_seek" and "depress2" (allowing_for= takes the measured ones into account), "treat" came before "job_seek", and "job_seek" came before "depress2". A randomised "treat" makes the first true for "treat", never for "job_seek".
-Method: causal mediation analysis (Imai, Keele & Tingley 2010), statsmodels Mediation with 1000 quasi-Bayesian simulations (with_seed=1), as R mediation::mediate(sims = 1000): the mediator by least squares (R lm()), the outcome by least squares (R lm()); effects averaged over the two exposure levels, percentile intervals and simulation p-values. Not the Baron-Kenny steps.
+Kept 2 random rows from each group of "class" (6 of 54 rows; pandas groupby().sample()).

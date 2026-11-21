@@ -161,6 +161,13 @@ def _as_list(names) -> list:
     return out
 
 
+def _say_key(key) -> str:
+    """A group's value (or tuple of values) for a printed sentence."""
+    if isinstance(key, tuple):
+        return " / ".join(str(k) for k in key)
+    return str(key)
+
+
 def _check_count(step: str, n, example: str) -> int:
     if not isinstance(n, numbers.Integral) or isinstance(n, bool) or n < 0:
         raise SimplydataError(f".{step}() needs a whole number of rows, like 5." + _example(example))
@@ -485,12 +492,21 @@ class RowWords:
         print(pd.DataFrame(rows_out).to_string(index=False))
         return None
 
-    @friendly
-    def count_empty_cells_in(self):
+    @friendly(others={"pattern": "show"})
+    def count_empty_cells_in(self, show=None):
         """Show how many empty cells each column has.
 
         table.count_empty_cells_in()   (with sdata.get_example("shop"))
+        show="patterns" gives one row for each pattern of empty cells (which columns are empty
+        together), with how many rows have it and how many cells it leaves empty, as R
+        mice::md.pattern(): table.count_empty_cells_in(show="patterns")
         """
+        if show is not None:
+            if not isinstance(show, str) or show.strip().lower() not in ("patterns", "pattern"):
+                from .._errors import choice_error
+
+                raise choice_error("count_empty_cells_in", "show", show, ["patterns"])
+            return self._empty_patterns()
         counts = {name: self._count(self._empty(name)) for name in self._columns}
         width = max((len(str(n)) for n in counts), default=0)
         print("Empty cells in each column:")
@@ -499,6 +515,42 @@ class RowWords:
         total = sum(counts.values())
         print(f"Total: {_cells(total)} empty." if total else "No empty cells.")
         return None
+
+    def _empty_patterns(self):
+        """count_empty_cells_in(show="patterns"): the rows grouped by which cells are empty (narwhals group_by and
+        len, as pandas df.isna().value_counts() and R mice::md.pattern())."""
+        import pandas as pd
+
+        columns = self._columns
+        if not columns or not len(self._frame):
+            print("The table has no rows, so there are no patterns of empty cells.")
+            return None
+        marks = [f"__empty_{i}" for i in range(len(columns))]
+        flags = self._frame.select(*[self._empty(c).fill_null(True).alias(m) for c, m in zip(columns, marks)])
+        found = (flags.group_by(marks).agg(nw.len().alias("__rows")).to_pandas()
+                 .reset_index(drop=True))
+        found["__cells"] = found[marks].sum(axis=1).astype("int64")
+        found = found.sort_values(["__cells", "__rows"], ascending=[True, False], kind="stable").reset_index(drop=True)
+        out = pd.DataFrame({"rows with this pattern": found["__rows"].astype("int64")})
+        for c, m in zip(columns, marks):
+            out[c] = found[m].map({True: "empty", False: "filled"})
+        out["empty cells"] = found["__cells"]
+        per_column = {c: self._count(self._empty(c)) for c in columns}
+        total = sum(per_column.values())
+        n = len(out)
+        complete = int(out.loc[out["empty cells"] == 0, "rows with this pattern"].sum())
+        print(f"{n} pattern{'s' * (n != 1)} of empty cells in {_rows(len(self._frame))} (one row each; \"empty\" marks "
+              f"the empty columns). {complete} row{'s have' if complete != 1 else ' has'} no empty cell.")
+        print("Empty cells in each column: " + ", ".join(f"{c} {k}" for c, k in per_column.items())
+              + f" ({_cells(total)} in all).")
+        if n > 1:
+            print("Why it matters: if the rows with empty cells differ from the others, leaving them out changes the "
+                  "answer; table.explain(..., empty_cells=\"multiple imputation\") keeps them.")
+        if self._frame.implementation.is_polars():
+            import polars as pl
+
+            out = pl.from_pandas(out)
+        return self._new_table(nw.from_native(out, eager_only=True))
 
     # ================================================================== choosing columns
     def _columns_chosen(self, step: str, names: tuple, to, kind, starts_with, ends_with, contains, pattern):
@@ -769,27 +821,109 @@ class RowWords:
         print(f"Kept {len(new)} of {_rows(before)}.")
         return self._change(f"keep the last {_rows(n)}", new)
 
-    @friendly(renamed={"seed": "with_seed"})
-    def keep_random_rows(self, n=5, with_seed=None):
+    @friendly(renamed={"seed": "with_seed"}, others={"strata": "for_each_group_in", "by": "for_each_group_in",
+                                                     "frac": "percent", "fraction": "percent"})
+    def keep_random_rows(self, n=None, for_each_group_in=None, percent=None, with_seed=None):
         """Keep some rows picked at random; give a seed to get the same rows every time.
 
         table.keep_random_rows(10, with_seed=1)   (with sdata.get_example("marks"))
+        for_each_group_in= picks the rows within each group (a stratified random sample):
+        table.keep_random_rows(2, for_each_group_in="class", with_seed=1)   2 rows from each class
+        percent=10 keeps 10 % of the rows (of each group, with for_each_group_in=), rounded as pandas
+        rounds (half to even), and at least 1 row of every group: table.keep_random_rows(percent=50, for_each_group_in="class", with_seed=1)
+        Underneath: pandas sample() and groupby().sample(), with random_state=with_seed.
         """
+        step = "keep_random_rows"
         example = "table.keep_random_rows(10, with_seed=1)"
-        n = _check_count("keep_random_rows", n, example)
+        percent_example = 'table.keep_random_rows(percent=10, for_each_group_in="class", with_seed=1)'
+        if n is not None and percent is not None:
+            raise SimplydataError("Give the number of rows or percent=, not both." + _example(percent_example))
+        if percent is not None:
+            if isinstance(percent, bool) or not isinstance(percent, numbers.Real) or not 0 < percent <= 100:
+                raise SimplydataError("percent= is the share of rows to keep, in percent: a number above 0 and up to "
+                                      f"100 (you gave {percent!r})." + _example(percent_example))
+        else:
+            n = _check_count(step, 5 if n is None else n, example)
         if with_seed is not None and (not isinstance(with_seed, numbers.Integral) or isinstance(with_seed, bool) or with_seed < 0):
             raise SimplydataError(
                 "with_seed= needs a whole number, like with_seed=1. The same seed picks the same rows again."
                 + _example(example)
             )
+        seed = None if with_seed is None else int(with_seed)
         before = len(self._frame)
-        if n > before:
-            print(f"The table has only {_rows(before)}, so all of them are kept.")
-            n = before
-        new = self._frame.sample(n=n, seed=None if with_seed is None else int(with_seed))
-        print(f"Kept {len(new)} of {_rows(before)}.")
-        what = f"keep {n} random rows" + (f" (seed {with_seed})" if with_seed is not None else "")
-        return self._change(what, new)
+        said_seed = f" (seed {with_seed})" if with_seed is not None else ""
+        if for_each_group_in is None:
+            if percent is not None:
+                # pandas sample(frac=) picks the rows, the same rule as with for_each_group_in= (rounded half to even)
+                picked = self._frame.with_row_index("__i").select("__i").to_pandas().reset_index(drop=True)
+                rows = sorted(int(i) for i in picked.sample(frac=percent / 100, random_state=seed).index)
+                new = (self._frame.with_row_index("__simplydata_row").filter(nw.col("__simplydata_row").is_in(rows))
+                       .drop("__simplydata_row"))
+                print(f"Kept {len(new)} of {_rows(before)} ({percent:g} %, rounded by pandas sample(frac=)).")
+                return self._change(f"keep {percent:g} % of the rows at random{said_seed}", new)
+            if n > before:
+                print(f"The table has only {_rows(before)}, so all of them are kept.")
+                n = before
+            new = self._frame.sample(n=n, seed=seed)
+            print(f"Kept {len(new)} of {_rows(before)}.")
+            return self._change(f"keep {n} random rows{said_seed}", new)
+        if isinstance(for_each_group_in, str):
+            groups = [for_each_group_in]
+        elif isinstance(for_each_group_in, (list, tuple)):
+            groups = list(for_each_group_in)
+        else:
+            groups = []
+        if not groups or not all(isinstance(g, str) for g in groups):
+            raise SimplydataError("for_each_group_in= needs a column name in quotes (or a list of them)."
+                                  + _example('table.keep_random_rows(2, for_each_group_in="class", with_seed=1)'))
+        self._need_columns(*groups)
+        import pandas as pd
+
+        df = self._frame.select(*groups).to_pandas().reset_index(drop=True)
+        key = groups if len(groups) > 1 else groups[0]
+        sizes = df.groupby(key, dropna=False).size()
+        none = []
+        whole = []
+        if percent is not None:
+            picked = df.groupby(key, dropna=False).sample(frac=percent / 100, random_state=seed)
+            got = picked.groupby(key, dropna=False).size().reindex(sizes.index, fill_value=0)
+            none = list(got.index[got == 0])
+            if none:  # at least one row of every group: one more pandas draw in each group left empty
+                rest = df[df.set_index(key).index.isin(none)]
+                picked = pd.concat([picked, rest.groupby(key, dropna=False).sample(n=1, random_state=seed)])
+        else:
+            small = df.groupby(key, dropna=False)[groups[0]].transform("size") <= n
+            picked = df[~small].groupby(key, dropna=False).sample(n=n, random_state=seed) \
+                if (~small).any() else df.iloc[0:0]
+            picked = pd.concat([picked, df[small]])
+            whole = list(sizes.index[sizes <= n])
+        rows = sorted(int(i) for i in picked.index)
+        new = (self._frame.with_row_index("__simplydata_row").filter(nw.col("__simplydata_row").is_in(rows))
+               .drop("__simplydata_row"))
+        kept = new.select(*groups).to_pandas().groupby(key, dropna=False).size()
+        label = ", ".join(f'"{g}"' for g in groups)
+        if percent is None:
+            print(f"Kept {n} random row{'s' * (n != 1)} from each group of {label} ({len(new)} of {_rows(before)}; "
+                  "pandas groupby().sample()).")
+            if whole:
+                shown = ", ".join(_say_key(w) for w in whole[:6]) + (" ..." if len(whole) > 6 else "")
+                print(f"Note: {len(whole)} group{'s have' if len(whole) != 1 else ' has'} {n} row{'s' * (n != 1)} or "
+                      "fewer, so all "
+                      f"{'their' if len(whole) != 1 else 'its'} rows are kept: {shown}.")
+        else:
+            got = kept.reindex(sizes.index, fill_value=0)  # by position: a group named by an empty cell has no label
+            parts = ", ".join(f"{_say_key(k)} {int(v)} of {int(n_rows)}"
+                              for k, v, n_rows in list(zip(sizes.index, got.to_numpy(), sizes.to_numpy()))[:8])
+            print(f"Kept {percent:g} % of each group of {label}, rounded, at least 1 row each ({len(new)} of "
+                  f"{_rows(before)}; pandas groupby().sample(frac=)): {parts}{' ...' if len(kept) > 8 else ''}.")
+            if none:
+                print(f"Note: {len(none)} group{'s were' if len(none) != 1 else ' was'} too small for {percent:g} % to "
+                      "give a row, so one row was picked from each.")
+        if percent is not None:
+            what = f"keep {percent:g} % of each group of {label} at random"
+        else:
+            what = f"keep {n} random rows from each group of {label}"
+        return self._change(what + said_seed, new)
 
     @friendly
     def remove_duplicate_rows(self, columns=None):

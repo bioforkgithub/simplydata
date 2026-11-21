@@ -1,26 +1,17 @@
-The average "re78" is 6984 in 0 and 6349 in 1: 0 is 635 higher (95 % CI of the difference -697 to 1967; Hedges' g = 0.0849 (95 % CI -0.0874 to 0.257), a difference of 0.0849 standard deviations).
-If there were truly no difference, a difference this big or bigger would turn up in about 35 of 100 studies like this one (p = 0.349). This does not show that there is no difference.
-Test: Welch's t-test (t = 0.938, df = 326.412), the usual test for two averages; it does not assume both groups have the same spread.
-Note: the values in group "0" don't look bell-shaped (Shapiro-Wilk p < 0.0001), but with 429 values the average is close to bell-shaped anyway (the central limit theorem), so this test is usually still fine.
-Note: the values in group "1" don't look bell-shaped (Shapiro-Wilk p < 0.0001), but with 185 values the average is close to bell-shaped anyway (the central limit theorem), so this test is usually still fine.
-Note: "1" compared against "0" (the first in sorted order, as R); choose another with against=.
-Groups made alike in age, educ, race, married, nodegree, re74 and re75 (weighting), then compared: "re78" in "1" against "0" (614 rows: 185 and 429).
-Propensity score: each row's chance of being in "1" given age, educ, race, married, nodegree, re74 and re75, from logistic regression (R glm(family = binomial)).
-Overlap: the scores run from 0.0250 to 0.853 in "1" and from 0.00908 to 0.789 in "0"; 8 rows of "1" and 57 of "0" lie outside the other group's range (no row like them in the other group: their effect is guessed from the model).
-Balance (standardised differences, positive: higher in "1"; within 0.1 is the usual guide, Austin 2009):
-  column        before  after
-  age           -0.242  -0.168
-  educ           0.045   0.130
-  race: black    1.671   0.130
-  race: hispan  -0.277   0.016
-  race: white   -1.408  -0.138
-  married       -0.721  -0.210
-  nodegree       0.235  -0.116
-  re74          -0.596  -0.274
-  re75          -0.287  -0.158
-Note: age, educ, race: black, race: white, married, nodegree, re74 and re75 are still more than 0.1 apart after weighting: the groups are not fully alike, so the effect below may still mix in that difference; add those columns' squares or groups to allowing_for=, or check the overlap.
-Note: 3 rows have a weight above 20 (largest 40.1): a few rows count for many, so the answer rests on them. Check the overlap.
-Effect for everyone (the average effect, ATE): the average of "re78" is 225 higher in "1" than in "0" (95 % CI -1493 to 1942), once the groups are made alike.
-If the groups, once made alike, truly did not differ, a difference this big or bigger would turn up in about 80 of 100 studies like this one (p = 0.798). This does not show that there is no difference.
-This is the effect of "treat" only if nothing that was not measured affects both "treat" and "re78" (the columns of allowing_for= are all that matter), every row could have been in either group (the scores overlap), and the propensity model is right. Balancing cannot make up for a column that was not measured.
-Method: inverse probability weighting (R WeightIt::weightit(method = "glm", estimand = "ATE")), the effect from WeightIt::glm_weightit(family = gaussian), as lm_weightit(), with standard errors that allow for the estimated weights (M-estimation, z test); balance from R cobalt::bal.tab().
+A design table of 12 plots: the 2 x 2 = 4 combinations of temperature and salinity; 3 randomised blocks: every combination once in each block, in its own random order (R agricolae::design.ab(design = "rcbd")).
+Work through the plots in the order of "plot"; the randomisation spreads unknown differences (soil, position, time of day) evenly over the treatments.
+"standard order" numbers the combinations as R expand.grid() lists them (the first factor changes fastest), the order of design textbooks.
+with_seed=2 makes the same table again (R's Mersenne-Twister generator, as after set.seed() in R 4.6.2; agricolae's own default generator, Super-Duper, gives another layout).
+    plot  block  temperature  salinity  standard order
+1      1      1           10        30               1
+2      2      1           20        30               2
+3      3      1           10        35               3
+4      4      1           20        35               4
+5      5      2           20        35               4
+6      6      2           10        30               1
+7      7      2           20        30               2
+8      8      2           10        35               3
+9      9      3           20        35               4
+10    10      3           10        30               1
+11    11      3           20        30               2
+12    12      3           10        35               3
