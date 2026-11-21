@@ -31,7 +31,7 @@ def test_percent_interval_width_matches_presize_paper(capsys):
 
 # ---------------------------------------------------------------- U13: survival, events first
 def test_schoenfeld_events_and_people(capsys):
-    got = row(find(test="compare_survival", effect_size=0.7, percents=[30, 40]))
+    got = row(find(for_test="compare_survival", effect_size=0.7, percents=[30, 40]))
     assert got["events (exact)"] == pytest.approx(246.7871, abs=5e-5)
     assert got["events"] == 247 and got["people per group"] == 353 and got["people in all"] == 706
     out = capsys.readouterr().out
@@ -45,34 +45,34 @@ def test_schoenfeld_events_and_people(capsys):
     (dict(effect_size=float(np.log(0.5) / np.log(0.6)), sides=1), 266),  # example 5 (Machin et al. 2009, p. 91)
 ])
 def test_schoenfeld_events_published(kwargs, events):
-    assert row(find(test="compare_survival", **kwargs))["events"] == events
+    assert row(find(for_test="compare_survival", **kwargs))["events"] == events
 
 
 def test_freedman_people():
-    assert row(find(test="compare_survival", effect_size=0.5, percents=[100, 100], method="freedman"))[
+    assert row(find(for_test="compare_survival", effect_size=0.5, percents=[100, 100], test_method="freedman"))[
         "people per group"] == 36  # Stata [PSS-2] power logrank, example 1
-    assert row(find(test="compare_survival", effect_size=0.7, percents=[30, 40], method="freedman"))[
+    assert row(find(for_test="compare_survival", effect_size=0.7, percents=[30, 40], test_method="freedman"))[
         "people per group"] == 361
 
 
 def test_survival_power_with_people():
-    got = row(chance(test="compare_survival", effect_size=0.7, values_per_group=353, percents=[30, 40]))
+    got = row(chance(for_test="compare_survival", effect_size=0.7, values_per_group=353, percents=[30, 40]))
     assert got["power"] == pytest.approx(0.8004967, abs=1e-6)
 
 
 # ---------------------------------------------------------------- U09: regression, Cohen's f²
 def test_regression_f2(capsys):
-    got = row(find(test="explain", effect_size=0.15, using=["temperature", "salinity", "depth"]))
+    got = row(find(for_test="explain", effect_size=0.15, using=["temperature", "salinity", "depth"]))
     assert got["rows (exact)"] == pytest.approx(72.70583 + 4, abs=1e-4)  # R pwr.f2.test v = 72.70583
     assert got["rows"] == 77
     assert "temperature, salinity and depth" in capsys.readouterr().out
     # G*Power manual 13.3.1 = Cohen (1988) example 9.1: power 0.673586
-    assert row(chance(test="explain", effect_size=0.1 / 0.9, using=5, values_per_group=95))["power"] == \
+    assert row(chance(for_test="explain", effect_size=0.1 / 0.9, using=5, values_per_group=95))["power"] == \
         pytest.approx(0.673586, abs=1e-6)
 
 
 def test_compare_models_tests_the_extra_columns():
-    got = row(find(test="compare_models", effect_size=0.4285714, using=["a"], against=["a", "b", "c"],
+    got = row(find(for_test="compare_models", effect_size=0.4285714, using=["a"], against=["a", "b", "c"],
                    significance=0.001))
     assert got["columns tested"] == 2 and got["columns in all"] == 3
     # pwr vignette (Kutner et al. 8.43): u = 2, f2 = 0.4285714, sig.level 0.001, power 0.8 -> v = 49.88971
@@ -81,11 +81,11 @@ def test_compare_models_tests_the_extra_columns():
 
 # ---------------------------------------------------------------- U11: logistic regression
 def test_logistic_matches_gpower_manual(capsys):
-    got = row(find(test="explain", outcome="yes or no", using=["dose"], percents=[50], effect_size=1.5, power=0.95))
+    got = row(find(for_test="explain", outcome="yes or no", using=["dose"], percents=[50], effect_size=1.5, power=0.95))
     assert got["values"] == 337  # G*Power 3.1 manual 29.4: Demidenko with variance correction
     out = capsys.readouterr().out
     assert "odds ratio of 1.5 per standard deviation of dose" in out and "Cohen" not in out
-    assert row(chance(test="explain", outcome="yes or no", using="dose", percents=[50], effect_size=1.5,
+    assert row(chance(for_test="explain", outcome="yes or no", using="dose", percents=[50], effect_size=1.5,
                       values_per_group=337))["power"] == pytest.approx(0.950077, abs=1e-6)
 
 
@@ -115,7 +115,7 @@ def test_clusters_on_chance_and_percents():
     got = row(chance(effect_size=0.5, values_per_group=140, in_clusters_of=20, alike_within_clusters=0.05))
     assert got["counts as independent values"] == pytest.approx(140 / 1.95)
     assert got["power"] == pytest.approx(row(chance(effect_size=0.5, values_per_group=140 / 1.95))["power"])
-    assert row(find(test="compare_counts", percents=[30, 15], in_clusters_of=10, alike_within_clusters=0.02))[
+    assert row(find(for_test="compare_counts", percents=[30, 15], in_clusters_of=10, alike_within_clusters=0.02))[
         "values per group"] == 143
 
 
@@ -167,29 +167,29 @@ def test_by_running_refuses_a_function_that_ignores_its_seed():
 
 # ---------------------------------------------------------------- errors
 @pytest.mark.parametrize("call, message", [
-    (lambda: find(test="compare_survival", effect_size=1), "of 1 means no difference"),
-    (lambda: find(test="compare_survival", effect_size=-0.5), "cannot be 0 or below"),
-    (lambda: find(test="compare_survival", effect_size=0.7, method="freedman"), "needs percents="),
-    (lambda: find(test="compare_survival", effect_size=0.7, method="cox"), "test_method="),
-    (lambda: find(test="compare_survival", effect_size=0.7, percents=[30, 40], sides=1), "two-sided only"),
-    (lambda: chance(test="compare_survival", effect_size=0.7, values_per_group=100), "needs percents="),
-    (lambda: find(test="explain", outcome="yes or no", using=["dose"], percents=[20], effect_size=0), "odds ratio"),
-    (lambda: find(test="explain", outcome="yes or no", using=["a", "b"], percents=[20], effect_size=1.5),
+    (lambda: find(for_test="compare_survival", effect_size=1), "of 1 means no difference"),
+    (lambda: find(for_test="compare_survival", effect_size=-0.5), "cannot be 0 or below"),
+    (lambda: find(for_test="compare_survival", effect_size=0.7, test_method="freedman"), "needs percents="),
+    (lambda: find(for_test="compare_survival", effect_size=0.7, test_method="cox"), "test_method="),
+    (lambda: find(for_test="compare_survival", effect_size=0.7, percents=[30, 40], sides=1), "two-sided only"),
+    (lambda: chance(for_test="compare_survival", effect_size=0.7, values_per_group=100), "needs percents="),
+    (lambda: find(for_test="explain", outcome="yes or no", using=["dose"], percents=[20], effect_size=0), "odds ratio"),
+    (lambda: find(for_test="explain", outcome="yes or no", using=["a", "b"], percents=[20], effect_size=1.5),
      "one number column"),
-    (lambda: find(test="explain", outcome="yes or no", using=["a"], effect_size=1.5), "percents="),
-    (lambda: find(test="explain", effect_size=0.15), "needs using="),
-    (lambda: find(test="compare_models", effect_size=0.15, using=["a"]), "using= and against="),
-    (lambda: find(test="compare_models", effect_size=0.15, using=["a", "b"], against=["c"]), "nested"),
-    (lambda: find(test="explain", effect_size=0.15, using=3, sides=1), "sides=1"),
+    (lambda: find(for_test="explain", outcome="yes or no", using=["a"], effect_size=1.5), "percents="),
+    (lambda: find(for_test="explain", effect_size=0.15), "needs using="),
+    (lambda: find(for_test="compare_models", effect_size=0.15, using=["a"]), "using= and against="),
+    (lambda: find(for_test="compare_models", effect_size=0.15, using=["a", "b"], against=["c"]), "nested"),
+    (lambda: find(for_test="explain", effect_size=0.15, using=3, sides=1), "sides=1"),
     (lambda: find(effect_size=0.5, in_clusters_of=20), "alike_within_clusters="),
     (lambda: find(effect_size=0.5, in_clusters_of=20, alike_within_clusters=1.5), "between 0 and 1"),
     (lambda: find(effect_size=0.5, in_clusters_of=1, alike_within_clusters=0.05), "2 or more"),
-    (lambda: find(test="compare_survival", effect_size=0.7, in_clusters_of=20, alike_within_clusters=0.05),
+    (lambda: find(for_test="compare_survival", effect_size=0.7, in_clusters_of=20, alike_within_clusters=0.05),
      "in_clusters_of= and alike_within_clusters= goes with"),
     (lambda: find(effect_size=0.5, using=["a"]), "using= goes with"),
-    (lambda: find(effect_size=0.5, method="schoenfeld"), "test_method= goes with"),
-    (lambda: find(test="compare_counts", effect_size=0.3, based_on="ranks"), 'based_on="ranks" goes with'),
-    (lambda: find(test="compare_spreads", effect_size=0.5), "drawing_from="),
+    (lambda: find(effect_size=0.5, test_method="schoenfeld"), "test_method= goes with"),
+    (lambda: find(for_test="compare_counts", effect_size=0.3, based_on="ranks"), 'based_on="ranks" goes with'),
+    (lambda: find(for_test="compare_spreads", effect_size=0.5), "drawing_from="),
     (lambda: chance(drawing_from=[1, 2], values_per_group=20), "sdata.distribution"),
     (lambda: chance(effect_size=0.5, values_per_group=[10, 20]), "power curve"),
     (lambda: chance(effect_size=0.5, values_per_group=20, based_on="ranks", tries=10), "at least 100"),
@@ -262,7 +262,7 @@ def test_by_running_refuses_a_function_that_does_not_repeat():
 
 
 @pytest.mark.parametrize("call", [
-    lambda: chance(test="compare_survival", effect_size=0.7, values_per_group=0, percents=[30, 40]),
+    lambda: chance(for_test="compare_survival", effect_size=0.7, values_per_group=0, percents=[30, 40]),
     lambda: chance(effect_size=0.5, values_per_group=-5),
 ])
 def test_values_per_group_must_be_more_than_0(call):
@@ -275,5 +275,5 @@ def test_numpy_whole_numbers_are_accepted():
 
 
 def test_first_sentences_name_the_scale(capsys):
-    find(test="explain", effect_size=0.15, using=3)
+    find(for_test="explain", effect_size=0.15, using=3)
     assert "times as much of the spread" in capsys.readouterr().out.splitlines()[0]

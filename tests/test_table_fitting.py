@@ -240,8 +240,8 @@ def test_empty_cells_are_skipped_with_a_note(engine, capsys):
 @pytest.mark.parametrize("options, message", [
     (dict(search="whole range"), 'search="whole range" needs a low and a high limit for every value'),
     (dict(search="whole range", between={"a": [0, 100]}), "b has none"),
-    (dict(method="levenberg-marquardt", between={"b": [0, 1]}), "Levenberg-Marquardt cannot keep values"),
-    (dict(method="newton"), 'does not know test_method="newton"'),
+    (dict(test_method="levenberg-marquardt", between={"b": [0, 1]}), "Levenberg-Marquardt cannot keep values"),
+    (dict(test_method="newton"), 'does not know test_method="newton"'),
     (dict(search="everywhere"), 'does not know search="everywhere"'),
     (dict(between=[0, 1]), "between=\\[low, high\\] is for one value to find"),
     (dict(between={"c": [0, 1]}), "'c', which is not in the formula"),

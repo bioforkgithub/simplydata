@@ -62,7 +62,7 @@ def test_normal_interval_matches_the_published_one(bcg, needs_r):
 def test_methods(bcg, needs_r, capsys):
     dl = _row(bcg.combine_studies(**CALL, test_method="DL"), "combined")
     assert dl["tau squared"] == pytest.approx(0.3088, abs=1e-4)
-    mh = _row(bcg.combine_studies(**CALL, test_method="Mantel-Haenszel"), "combined")
+    mh = _row(bcg.combine_studies(**CALL, test_method="mantel-haenszel"), "combined")
     assert mh["estimate"] == pytest.approx(0.6353, abs=1e-4)
     out = capsys.readouterr().out
     assert "common effect, Mantel-Haenszel" in out and "no prediction interval" in out
@@ -138,7 +138,7 @@ def test_mantel_haenszel_with_a_double_zero_study(needs_r, capsys):
     frame = pd.DataFrame({"trial": list("abcde"), "e1": [0, 3, 0, 5, 2], "n1": [20, 30, 25, 40, 30],
                           "e2": [2, 6, 0, 9, 4], "n2": [20, 30, 25, 40, 30]})
     r = sdata.table(frame).combine_studies(names="trial", events=["e1", "e2"], out_of=["n1", "n2"],
-                                           test_method="Mantel-Haenszel")
+                                           test_method="mantel-haenszel")
     out = capsys.readouterr().out
     row = _row(r, "combined")
     assert row["studies"] == 4 and row["Q degrees of freedom"] == 3
@@ -208,12 +208,12 @@ def test_double_zero_study_is_left_out_and_said(needs_r, capsys):
     (dict(events=["tb_vaccinated", "tb_unvaccinated"]), "needs out_of="),
     (dict(events="tb_vaccinated", out_of=["vaccinated", "unvaccinated"]), "list of two column names"),
     (dict(**CALL, show="ratios of averages"), "worked out from averages="),
-    (dict(**CALL, show="risk ratios", method="Peto"), "odds ratios only"),
-    (dict(**CALL, method="common effect", interval_by="Hartung-Knapp"), "is for random effects"),
-    (dict(**CALL, method="banana"), "does not know test_method="),
+    (dict(**CALL, show="risk ratios", test_method="peto"), "odds ratios only"),
+    (dict(**CALL, test_method="common effect", interval_by="Hartung-Knapp"), "is for random effects"),
+    (dict(**CALL, test_method="banana"), "does not know test_method="),
     (dict(**CALL, for_each_group_in="allocation", using=["latitude"]), "not both"),
     (dict(**CALL, using=["allocation"]), "For a text column, use for_each_group_in="),
-    (dict(**CALL, method="Peto", using=["latitude"]), "needs the default"),
+    (dict(**CALL, test_method="peto", using=["latitude"]), "needs the default"),
     (dict(names="trial", estimates="latitude"), "Two ways in"),
     (dict(**CALL, estimates_are_ratios=True), "goes with estimates="),
 ])
@@ -243,10 +243,10 @@ def test_spellings_of_methods_and_shows():
     from simplydata.table.meta_words import (INTERVAL_SPELLINGS, INTERVALS, METHOD_SPELLINGS, METHODS, SHOW,
                                              SHOW_SPELLINGS, _text_choice)
 
-    assert _text_choice("random effects", METHOD_SPELLINGS, tuple(METHODS), "method") == "REML"
+    assert _text_choice("random effects", METHOD_SPELLINGS, tuple(METHODS), "method") == "reml"
     assert _text_choice("fixed effect", METHOD_SPELLINGS, tuple(METHODS), "method") == "common effect"
-    assert _text_choice("reml", METHOD_SPELLINGS, tuple(METHODS), "method") == "REML"
-    assert _text_choice("MH", METHOD_SPELLINGS, tuple(METHODS), "method") == "Mantel-Haenszel"
+    assert _text_choice("reml", METHOD_SPELLINGS, tuple(METHODS), "method") == "reml"
+    assert _text_choice("MH", METHOD_SPELLINGS, tuple(METHODS), "method") == "mantel-haenszel"
     assert _text_choice("hksj", INTERVAL_SPELLINGS, tuple(INTERVALS), "interval_by") == "Hartung-Knapp"
     assert _text_choice("hedges g", SHOW_SPELLINGS, tuple(SHOW), "show") == "standardised differences"
     assert _text_choice("response ratios", SHOW_SPELLINGS, tuple(SHOW), "show") == "ratios of averages"
@@ -313,8 +313,8 @@ def test_the_new_words_and_options_have_entries():
     from simplydata._underneath import UNDERNEATH
 
     for key in ("table.combine_studies", "draw_funnel_plot", "table.combine_studies estimates=",
-                "table.combine_studies test_method=", 'table.combine_studies test_method="Mantel-Haenszel"',
-                'table.combine_studies test_method="Peto"', "table.combine_studies interval_by=",
+                "table.combine_studies test_method=", 'table.combine_studies test_method="mantel-haenszel"',
+                'table.combine_studies test_method="peto"', "table.combine_studies interval_by=",
                 "table.combine_studies for_each_group_in=", "table.combine_studies using="):
         assert key in UNDERNEATH, key
 

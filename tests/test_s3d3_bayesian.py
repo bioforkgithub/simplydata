@@ -159,8 +159,9 @@ def test_correlation_and_counts(needs_bayesfactor, capsys):
 
 
 @pytest.mark.parametrize("call, message", [
-    (lambda t: t.compare_averages_of("extra", for_each_group_in="group", bayesian=True, test_method="student"),
-     "test_method= cannot be used with test_method=\"bayesian\""),
+    (lambda t: t.compare_averages_of("extra", for_each_group_in="group", test_method="bayesian",
+                                     p_value_by="shuffling"),
+     "p_value_by= cannot be used with test_method=\"bayesian\""),
     (lambda t: t.compare_averages_of("extra", for_each_group_in="group", prior_width="wide"),
      "prior_width= sets the prior"),
     (lambda t: t.compare_averages_of("extra", for_each_group_in="group", bayesian="yes"), "test_method=\"bayesian\""),
@@ -171,7 +172,7 @@ def test_correlation_and_counts(needs_bayesfactor, capsys):
     (lambda t: t.compare_average_to("extra", 1, with_seed=3), "leave it out"),
     (lambda t: t.find_correlation_between("extra", "ID", "extra", test_method="bayesian"), "two different columns"),
     (lambda t: t.compare_counts_of("group", for_each_group_in="ID", bayesian=True, test_method="fisher"),
-     "test_method= cannot be used"),
+     "Give test_method= only once (bayesian= is its old name)"),
 ])
 def test_wrong_bayesian_calls_are_explained(call, message):
     t = sdata.table(pd.read_csv(DATA / "sleep.csv").assign(group=lambda d: d["group"].astype(str)))

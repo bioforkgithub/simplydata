@@ -66,7 +66,7 @@ def _cases(Case):
              `shared part of x9` = f$communality[[9]], factors = ncol(L))
     """
     own = """
-        r = sdata.table(data).find_hidden_factors_behind(""" + COLUMNS + """, how_many=3, test_method="ml",
+        r = sdata.table(data).find_hidden_factors_behind(""" + COLUMNS + """, how_many=3, test_method="maximum likelihood",
                                                          rotation="varimax").as_pandas()
         out = {f"own part of x{i}": v for i, v in enumerate(r["own part"], 1)}
         out.update({"x1 on factor 2": r["factor 2"][0], "x4 on factor 1": r["factor 1"][3],

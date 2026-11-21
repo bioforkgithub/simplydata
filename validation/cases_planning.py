@@ -119,7 +119,7 @@ def _cases(Case):
                  list(`values (exact)` = n, values = ceiling(n))
              """, r_packages=("presize",), r_tolerance=1e-9, ours_r=("presize",)),
         # ---- U13: survival
-        Case(needed, "test_method=: events for a hazard ratio of 0.5 (log-rank, Schoenfeld)", STATA, "published",
+        Case(needed, "for_test=: events for a hazard ratio of 0.5 (log-rank, Schoenfeld)", STATA, "published",
              ours=first.format(call='sdata.find_how_many_needed(for_test="compare_survival", effect_size=0.5)') + """
                  {"events (exact)": r["events (exact)"], "events": r["events"]}
              """,
@@ -128,7 +128,7 @@ def _cases(Case):
                  d <- gsDesign::nEvents(hr = 0.5, alpha = 0.05, beta = 0.2, ratio = 1, sided = 2)
                  list(`events (exact)` = d, events = ceiling(d))
              """, r_packages=("gsDesign",), r_tolerance=1e-9, ours_r=("gsDesign",)),
-        Case(needed, "test_method=: events for survival 50 % against 60 % (hazard ratio log 0.5 / log 0.6 = 1.36), one-sided", STATA,
+        Case(needed, "for_test=: events for survival 50 % against 60 % (hazard ratio log 0.5 / log 0.6 = 1.36), one-sided", STATA,
              "published",
              ours=first.format(call='sdata.find_how_many_needed(for_test="compare_survival", '
                                     'effect_size=float(np.log(0.5) / np.log(0.6)), sides=1)') + """
@@ -139,7 +139,7 @@ def _cases(Case):
                  d <- gsDesign::nEvents(hr = log(0.5) / log(0.6), alpha = 0.05, beta = 0.2, ratio = 1, sided = 1)
                  list(`events (exact)` = d, events = ceiling(d))
              """, r_packages=("gsDesign",), r_tolerance=1e-9, ours_r=("gsDesign",)),
-        Case(needed, "test_method=: events and people for a hazard ratio of 0.7, 30 % and 40 % with the event", STATA,
+        Case(needed, "for_test=: events and people for a hazard ratio of 0.7, 30 % and 40 % with the event", STATA,
              "real data",
              ours=first.format(call='sdata.find_how_many_needed(for_test="compare_survival", effect_size=0.7, '
                                     'percents=[30, 40])') + """

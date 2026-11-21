@@ -105,7 +105,7 @@ def test_weighted_percentile_skips_empty_cells(capsys):
 
 @pytest.mark.parametrize("options, words", [
     (dict(weights="w"), "whole numbers"),
-    (dict(weights="n", weight_kind="analytic", method=8), "test_method= cannot be changed"),
+    (dict(weights="n", weight_kind="analytic", test_method=8), "test_method= cannot be changed"),
     (dict(weight_kind="analytic"), "goes with weights="),
     (dict(weights="n", interval=95), "do not go together"),
     (dict(weights="length"), "column other than"),
@@ -141,7 +141,7 @@ def test_covariance_uses_the_rows_each_pair_has():
     assert result["mpg"][0] == pytest.approx(frame["mpg"].var(), rel=1e-12)  # the whole column for its variance
 
 
-@pytest.mark.parametrize("options", [dict(method="spearman"), dict(sides=1, higher="positive"),
+@pytest.mark.parametrize("options", [dict(test_method="spearman"), dict(sides=1, higher="positive"),
                                      dict(p_value_by="shuffling"), dict(allowing_for="height")])
 def test_covariance_refuses_test_options(options):
     with pytest.raises(SimplydataError, match="covariance"):
@@ -340,7 +340,7 @@ def test_a_pair_with_one_value_has_no_p_value(capsys):
 @pytest.mark.parametrize("options, words", [
     (dict(value="yes"), "goes with based_on"),
     (dict(based_on="percents", show="letters"), "leave out"),
-    (dict(based_on="percents", test="tukey"), "test"),
+    (dict(based_on="percents", test_method="tukey"), "test"),
 ])
 def test_percent_pair_refusals(options, words):
     with pytest.raises(SimplydataError, match=words):

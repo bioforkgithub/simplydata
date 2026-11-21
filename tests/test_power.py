@@ -29,18 +29,18 @@ def row(result):
     # power.t.test(delta = 5, sd = 10, power = 0.9, alternative = "one.sided")$n
     (dict(difference=5, spread=10, power=0.9, sides=1), 69.197821844886, 70, 140),
     # power.t.test(delta = 0.3, power = 0.8, type = "paired")$n
-    (dict(test="compare_before_after", effect_size=0.3), 89.149577266243, 90, 90),
+    (dict(for_test="compare_before_after", effect_size=0.3), 89.149577266243, 90, 90),
     # power.t.test(delta = 0.8, power = 0.9, sig.level = 0.01, type = "one.sample", alternative = "one.sided")$n
-    (dict(test="compare_average_to", effect_size=0.8, power=0.9, significance=0.01, sides=1),
+    (dict(for_test="compare_average_to", effect_size=0.8, power=0.9, significance=0.01, sides=1),
      23.138957670919, 24, 24),
     # power.t.test(delta = 3, power = 0.8)$n
     (dict(effect_size=3), 3.070009746949, 4, 8),
     # pwr.anova.test(k = 3, f = 0.25, power = 0.8)$n  (R's default answer: 52.3966016)
     (dict(groups=3, effect_size=0.25), 52.396597460113, 53, 159),
     # pwr.r.test(r = 0.3, power = 0.8)$n
-    (dict(test="correlation_between", effect_size=0.3), 84.073637744296, 85, 85),
+    (dict(for_test="correlation_between", effect_size=0.3), 84.073637744296, 85, 85),
     # pwr.r.test(r = 0.25, power = 0.9, alternative = "greater")$n
-    (dict(test="correlation_between", effect_size=0.25, power=0.9, sides=1), 133.280329608771, 134, 134),
+    (dict(for_test="correlation_between", effect_size=0.25, power=0.9, sides=1), 133.280329608771, 134, 134),
     # a negative difference is the same size
     (dict(difference=-5, spread=10), 63.765763724846, 64, 128),
 ])
@@ -112,24 +112,24 @@ def test_words_for_each_test(capsys):
     # power.t.test(n = 40, delta = 5, sd = 10, alternative = "one.sided")$power
     (dict(difference=5, spread=10, values_per_group=40, sides=1), 0.716254868650),
     # power.t.test(n = 30, delta = 0.3, type = "paired")$power
-    (dict(test="compare_before_after", effect_size=0.3, values_per_group=30), 0.355270660769),
+    (dict(for_test="compare_before_after", effect_size=0.3, values_per_group=30), 0.355270660769),
     # power.t.test(n = 15, delta = 0.8, sig.level = 0.01, type = "one.sample", alternative = "one.sided")$power
-    (dict(test="compare_average_to", effect_size=0.8, values_per_group=15, significance=0.01, sides=1),
+    (dict(for_test="compare_average_to", effect_size=0.8, values_per_group=15, significance=0.01, sides=1),
      0.680525774379),
     # power.t.test(n = 20, delta = 0.5, type = "one.sample")$power
-    (dict(test="compare_average_to", effect_size=0.5, values_per_group=20), 0.564482896679),
+    (dict(for_test="compare_average_to", effect_size=0.5, values_per_group=20), 0.564482896679),
     # power.t.test(n = 4, delta = 3)$power
     (dict(effect_size=3, values_per_group=4), 0.938935739925),
     # pwr.anova.test(k = 4, n = 30, f = 0.2)$power
     (dict(groups=4, effect_size=0.2, values_per_group=30), 0.411516309981),
     # pwr.chisq.test(w = 0.3, N = 100, df = 1)$power
-    (dict(test="compare_counts", effect_size=0.3, values_per_group=50), 0.850838768327),
+    (dict(for_test="compare_counts", effect_size=0.3, values_per_group=50), 0.850838768327),
     # pwr.chisq.test(w = 0.25, N = 150, df = 2)$power  (3 groups, yes/no outcome)
-    (dict(test="compare_counts", effect_size=0.25, groups=3, values_per_group=50), 0.788400516851),
+    (dict(for_test="compare_counts", effect_size=0.25, groups=3, values_per_group=50), 0.788400516851),
     # pwr.r.test(n = 50, r = 0.3)$power
-    (dict(test="correlation_between", effect_size=0.3, values_per_group=50), 0.571555841860),
+    (dict(for_test="correlation_between", effect_size=0.3, values_per_group=50), 0.571555841860),
     # pwr.r.test(n = 50, r = 0.3, alternative = "greater")$power
-    (dict(test="correlation_between", effect_size=0.3, values_per_group=50, sides=1), 0.691139485380),
+    (dict(for_test="correlation_between", effect_size=0.3, values_per_group=50, sides=1), 0.691139485380),
 ])
 def test_chance_to_find_matches_r(kwargs, power):
     assert row(find_chance_of_finding(**kwargs))["power"] == pytest.approx(power, abs=TOL)

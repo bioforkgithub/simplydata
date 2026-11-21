@@ -242,12 +242,12 @@ def test_a_yes_or_no_outcome_gives_a_risk_difference(needs_r, capsys):
 
 
 @pytest.mark.parametrize("change, message", [
-    (dict(method="matching"), "say which with effect_for="),
-    (dict(method="matching", effect_for="everyone"), 'use test_method="weighting"'),
+    (dict(test_method="matching"), "say which with effect_for="),
+    (dict(test_method="matching", effect_for="everyone"), 'use test_method="weighting"'),
     (dict(match_within=0.2), 'add test_method="matching"'),
     (dict(allowing_for=None), "needs allowing_for="),
     (dict(effect_for=3), "is not one of the groups"),
-    (dict(method="stratification"), 'test_method= takes "weighting" or "matching"'),
+    (dict(test_method="stratification"), 'test_method= takes "weighting" or "matching"'),
 ])
 def test_balancing_refusals(change, message):
     call = dict(for_each_group_in="treat", allowing_for=COLUMNS)
