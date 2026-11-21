@@ -482,3 +482,11 @@ def test_crossover_period_order_follows_the_values():
     r = sdata.table(named).compare_averages_of("auc", for_each_group_in="formulation", matched_by="subject",
                                                period="period").as_pandas().iloc[0]
     assert round(r["estimate"] * 100, 2) == 95.09
+
+
+def test_weighting_still_works_after_r_drc_is_attached(needs_r):
+    """fit_dose_response attaches R drc, whose gaussian() masks stats::gaussian(); lm_weightit asks for it by name."""
+    _r("invisible(1)", packages=("drc",))
+    t = sdata.table(sdata.get_example("job_training"))
+    r = t.compare_balanced_groups_of("re78", for_each_group_in="treat", allowing_for=COLUMNS)
+    assert r.as_pandas()["estimate"][0] == pytest.approx(224.6763, abs=1e-3)

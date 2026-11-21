@@ -237,7 +237,7 @@ class CausalWords:
         print(ASSUMPTIONS.format(g=f'"{for_each_group_in}"', y=f'"{column}"'))
         if method == "weighting":
             print(f"Method: inverse probability weighting (R WeightIt::weightit(method = \"glm\", estimand = "
-                  f"\"{'ATE' if effect == 'everyone' else 'ATT'}\")), the effect from WeightIt::lm_weightit() with "
+                  f"\"{'ATE' if effect == 'everyone' else 'ATT'}\")), the effect from WeightIt::glm_weightit(family = gaussian), as lm_weightit(), with "
                   "standard errors that allow for the estimated weights (M-estimation, z test); balance from R "
                   "cobalt::bal.tab().")
         else:

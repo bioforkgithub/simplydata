@@ -5,7 +5,7 @@ from R.
 * the propensity score: R stats::glm(group ~ allowing_for columns, family = binomial), the model WeightIt and MatchIt
   fit themselves (method = "glm", distance = "glm").
 * method="weighting": R WeightIt::weightit(method = "glm", estimand = "ATE" or "ATT", focal =) and
-  WeightIt::lm_weightit(outcome ~ group), whose M-estimation standard errors allow for the estimated weights
+  WeightIt::glm_weightit(outcome ~ group, family = stats::gaussian()) (= lm_weightit), whose M-estimation standard errors allow for the estimated weights
   (Greifer, the WeightIt documentation). statsmodels TreatmentEffect.ipw gives the same estimate on lalonde with a
   standard error 15 % larger (design decision 22), so the numbers come from WeightIt.
 * method="matching": R MatchIt::matchit(method = "nearest", distance = "glm", estimand = "ATT"), 1:1 nearest
@@ -34,7 +34,9 @@ _BALANCE = ("bt <- cobalt::bal.tab(fit_obj, un = TRUE, binary = \"std\", continu
 _R_WEIGHTING = (_FRAME +
                 "fit_obj <- WeightIt::weightit(f, data = d, method = \"glm\", estimand = est, "
                 "focal = if (est == \"ATT\") 1 else NULL); "
-                "m <- WeightIt::lm_weightit(y ~ t, data = d, weightit = fit_obj); "
+                # glm_weightit with the family named: lm_weightit asks for gaussian() by name, which R drc (attached by
+                # fit_dose_response) masks
+                "m <- WeightIt::glm_weightit(y ~ t, data = d, weightit = fit_obj, family = stats::gaussian()); "
                 "co <- summary(m)$coefficients; ci <- stats::confint(m, level = level); " + _BALANCE +
                 "list(estimate = co[\"t\", 1], se = co[\"t\", 2], stat = co[\"t\", 3], p = co[\"t\", 4], "
                 "low = ci[\"t\", 1], high = ci[\"t\", 2], ps = ps, weights = fit_obj$weights, "
@@ -63,7 +65,7 @@ def balance(method, effect, y, t, columns, level, caliper=None):
     names = list(columns)
     if method == "weighting":
         code, packages = _R_WEIGHTING, PACKAGES_WEIGHTING
-        what = "Weighting by the propensity score (R WeightIt::weightit(), lm_weightit(), cobalt::bal.tab())"
+        what = "Weighting by the propensity score (R WeightIt::weightit(), glm_weightit(), cobalt::bal.tab())"
     else:
         code, packages = _R_MATCHING, PACKAGES_MATCHING
         what = "Matching on the propensity score (R MatchIt::matchit(), cobalt::bal.tab())"

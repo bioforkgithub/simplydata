@@ -113,7 +113,7 @@ def _cases(Case):
              """,
              r=_join(LALONDE_R, """
                  W <- WeightIt::weightit(f, data = d, method = "glm", estimand = "ATE")
-                 co <- summary(WeightIt::lm_weightit(y ~ t, data = d, weightit = W))$coefficients
+                 co <- summary(WeightIt::glm_weightit(y ~ t, data = d, weightit = W, family = stats::gaussian()))$coefficients
                  list(effect = co["t", 1], `standard error` = co["t", 2], `p-value` = co["t", 4])
              """), r_packages=("WeightIt",), r_tolerance=1e-9,
              note="The randomised NSW experiment found 1794 dollars (Dehejia & Wahba 1999); the survey comparison "

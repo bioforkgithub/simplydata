@@ -61,7 +61,8 @@ ENTRIES = [
                 # compare_balanced_groups_of("re78", for_each_group_in="treat", allowing_for=[...])
                 {FRAME_R.replace(chr(10), chr(10) + '                ')}
                 W <- WeightIt::weightit(f, data = d, method = "glm", estimand = "ATE")   # (1)
-                m <- WeightIt::lm_weightit(y ~ t, data = d, weightit = W)                # (2)
+                m <- WeightIt::glm_weightit(y ~ t, data = d, weightit = W,              # (2)
+                                          family = stats::gaussian())
                 co <- summary(m)$coefficients; ci <- stats::confint(m)
                 b <- cobalt::bal.tab(W, un = TRUE, binary = "std", continuous = "std")   # (3)
                 list(estimate = co["t", 1], se = co["t", 2], p = co["t", 4], low = ci["t", 1], high = ci["t", 2])
