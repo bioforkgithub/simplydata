@@ -371,7 +371,7 @@ Note: The model of R's ?clogit example; R and statsmodels both use the exact con
 
 Note: With one yes/no column, the modified Poisson risk ratio is the risk ratio of the 2 x 2 table (Zou 2004), here from statsmodels' Table2x2.
 
-### `table.explain method="log-binomial"`
+### `table.explain test_method="log-binomial"`
 
 **log-binomial risk ratio of low birth weight** (real data; data: birthwt)
 
@@ -696,7 +696,7 @@ Note: arctan is NumPy's arctan in the formula reader.
 
 Note: R nls() stops at a relative offset of 1e-5, so it agrees to about 1e-5.
 
-### `table.fit_line method="standardised major axis"`
+### `table.fit_line test_method="standardised major axis"`
 
 **leaf lifespan against leaf mass per area: standardised major axis (log10)** (real data; data: leaflife (smatr))
 
@@ -708,7 +708,7 @@ Note: R nls() stops at a relative offset of 1e-5, so it agrees to about 1e-5.
 
 Note: Warton et al. (2006) fit these data on log scales; the slope is about 1.3.
 
-### `table.fit_line method="deming", y_error_over_x_error=`
+### `table.fit_line test_method="deming", y_error_over_x_error=`
 
 **creatinine in plasma against serum: Deming line with y_error_over_x_error=4** (real data; data: creatinine (mcr))
 
@@ -719,7 +719,7 @@ Note: Warton et al. (2006) fit these data on log scales; the slope is about 1.3.
 
 Note: mcr's error.ratio is the error variance of x over that of y, so 4 here is 1 / 4 there. tests/test_s3a2_lines.py checks the direction against R deming::deming(xstd =, ystd =) too.
 
-### `table.fit_line method="passing-bablok"`
+### `table.fit_line test_method="passing-bablok"`
 
 **creatinine in plasma against serum: Passing-Bablok line** (real data; data: creatinine (mcr))
 
@@ -729,7 +729,7 @@ Note: mcr's error.ratio is the error variance of x over that of y, so 4 here is 
 | intercept | R | -0.11717286443298 | -0.11717286443298 | relative 1e-09 | pass |
 | slope 95 % CI high | R | 1.17300462437155 | 1.17300462437155 | relative 1e-09 | pass |
 
-### `table.fit_line method="theil-sen"`
+### `table.fit_line test_method="theil-sen"`
 
 **Anscombe's set 3 (one outlier): the Theil-Sen line** (real data; data: Anscombe's quartet)
 
@@ -795,7 +795,7 @@ Note: A plain interrupted time series without the season, to check the arithmeti
 
 Note: statsmodels solves by iteratively reweighted least squares and R quantreg by the exact simplex; the lines agree to about 1e-7.
 
-### `draw_smooth_line method="loess", with_confidence_band=`
+### `draw_smooth_line test_method="loess", with_confidence_band=`
 
 **the drawn loess curve of drivers killed or seriously injured is R's** (real data; data: Seatbelts)
 
@@ -805,7 +805,7 @@ Note: statsmodels solves by iteratively reweighted least squares and R quantreg 
 | curve at the first month | R | 1644.03914048406 | 1644.03914048406 | relative 1e-09 | pass |
 | curve at the last month | R | 1323.4857369989 | 1323.4857369989 | relative 1e-09 | pass |
 
-### `table.add_smoothed_column method="loess", interval=`
+### `table.add_smoothed_column test_method="loess", interval=`
 
 **drivers killed or seriously injured, smoothed by loess with its band** (real data; data: Seatbelts)
 
@@ -1038,9 +1038,9 @@ Note: Base R date arithmetic (difftime) with a year of 365.25 days, as R Epi cal
 | male at 365 | R | 0.336087834639378 | 0.336087834639379 | relative 1e-09 | pass |
 | male at 365, low | R | 0.260900503789725 | 0.260900503789725 | relative 1e-09 | pass |
 
-### `table.find_survival_over_time method="life table"`
+### `table.find_survival_over_time test_method="life table"`
 
-**method="life table": the actuarial life table of breast feeding (Klein & Moeschberger section 5.4)** (real data; data: bfeed (KMsurv))
+**test_method="life table": the actuarial life table of breast feeding (Klein & Moeschberger section 5.4)** (real data; data: bfeed (KMsurv))
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
@@ -1157,9 +1157,9 @@ Note: 36 rows start at a death time (each patient's second row starts at the tra
 | age | R | 0.0130385698370914 | 0.0130385698249726 | relative 1e-06 | pass |
 | men vs women | R | -0.0251377892665885 | -0.025137789294278 | relative 1e-06 | pass |
 
-### `table.explain_survival method="fine-gray"`
+### `table.explain_survival test_method="fine-gray"`
 
-**method="fine-gray": subdistribution hazard ratios of a plasma cell malignancy, death competing** (real data; data: mgus2 (survival))
+**test_method="fine-gray": subdistribution hazard ratios of a plasma cell malignancy, death competing** (real data; data: mgus2 (survival))
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
@@ -1246,9 +1246,9 @@ Note: Egger's test from R meta (metabias, method "Egger"), a second package; tri
 | high | R | 0.69616608378248 | 0.69616608378248 | relative 1e-08 | pass |
 | p-value | R | 7.05426734852055e-05 | 7.05426734852055e-05 | relative 1e-08 | pass |
 
-### `table.combine_studies method=`
+### `table.combine_studies test_method=`
 
-**method=: BCG trials, DerSimonian-Laird** (published; data: BCG trials (metadat))
+**test_method=: BCG trials, DerSimonian-Laird** (published; data: BCG trials (metadat))
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
@@ -1264,7 +1264,7 @@ Note: Egger's test from R meta (metabias, method "Egger"), a second package; tri
 
 Note: The study's log risk ratios are written out for statsmodels (the parent check), which has no escalc; simplydata itself takes them from R metafor.
 
-**method=: BCG trials, Paule-Mandel** (real data; data: BCG trials (metadat))
+**test_method=: BCG trials, Paule-Mandel** (real data; data: BCG trials (metadat))
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
@@ -1276,7 +1276,7 @@ Note: The study's log risk ratios are written out for statsmodels (the parent ch
 
 Note: Paule-Mandel is found by iteration, so the numbers agree to metafor's own tolerance.
 
-**method=: BCG trials, a common effect** (real data; data: BCG trials (metadat))
+**test_method=: BCG trials, a common effect** (real data; data: BCG trials (metadat))
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
@@ -1285,9 +1285,9 @@ Note: Paule-Mandel is found by iteration, so the numbers agree to metafor's own 
 | high | R | 0.704047770795957 | 0.704047770795957 | relative 1e-08 | pass |
 | p-value | R | 2.28862930697324e-26 | 2.28862930697324e-26 | relative 1e-08 | pass |
 
-### `table.combine_studies method="Mantel-Haenszel"`
+### `table.combine_studies test_method="mantel-haenszel"`
 
-**method="Mantel-Haenszel": BCG trials, risk ratios** (real data; data: BCG trials (metadat))
+**test_method="mantel-haenszel": BCG trials, risk ratios** (real data; data: BCG trials (metadat))
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
@@ -1297,9 +1297,9 @@ Note: Paule-Mandel is found by iteration, so the numbers agree to metafor's own 
 | high | R | 0.686183782670126 | 0.686183782670126 | relative 1e-08 | pass |
 | p-value | R | 8.91137967074168e-31 | 8.91137967074168e-31 | relative 1e-08 | pass |
 
-### `table.combine_studies method="Peto"`
+### `table.combine_studies test_method="peto"`
 
-**method="Peto": BCG trials, odds ratios** (real data; data: BCG trials (metadat))
+**test_method="peto": BCG trials, odds ratios** (real data; data: BCG trials (metadat))
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
@@ -1455,9 +1455,9 @@ Note: SciPy with the same seed gives the same power at the number found; the t-t
 | values (exact) | R | 783.489733552826 | 783.489733552826 | relative 1e-09 | pass |
 | values | R | 784 | 784 | relative 1e-09 | pass |
 
-### `sdata.find_how_many_needed test=`
+### `sdata.find_how_many_needed for_test=`
 
-**test=: events for a hazard ratio of 0.5 (log-rank, Schoenfeld)** (published; data: Stata power manuals)
+**for_test=: events for a hazard ratio of 0.5 (log-rank, Schoenfeld)** (published; data: Stata power manuals)
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
@@ -1465,7 +1465,7 @@ Note: SciPy with the same seed gives the same power at the number found; the t-t
 | events (exact) | R | 65.3456592588709 | 65.3456592588709 | relative 1e-09 | pass |
 | events | R | 66 | 66 | relative 1e-09 | pass |
 
-**test=: events for survival 50 % against 60 % (hazard ratio log 0.5 / log 0.6 = 1.36), one-sided** (published; data: Stata power manuals)
+**for_test=: events for survival 50 % against 60 % (hazard ratio log 0.5 / log 0.6 = 1.36), one-sided** (published; data: Stata power manuals)
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
@@ -1473,7 +1473,7 @@ Note: SciPy with the same seed gives the same power at the number found; the t-t
 | events (exact) | R | 265.472189653188 | 265.472189653188 | relative 1e-09 | pass |
 | events | R | 266 | 266 | relative 1e-09 | pass |
 
-**test=: events and people for a hazard ratio of 0.7, 30 % and 40 % with the event** (real data; data: Stata power manuals)
+**for_test=: events and people for a hazard ratio of 0.7, 30 % and 40 % with the event** (real data; data: Stata power manuals)
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
@@ -1483,9 +1483,9 @@ Note: SciPy with the same seed gives the same power at the number found; the t-t
 
 Note: No published example with people was found for a hazard ratio of 0.7; R gsDesign and powerSurvEpi are called directly.
 
-### `sdata.find_how_many_needed method=`
+### `sdata.find_how_many_needed test_method=`
 
-**method=: Freedman's formula, hazard ratio 0.5, everyone followed to the event** (published; data: Stata power manuals)
+**test_method=: Freedman's formula, hazard ratio 0.5, everyone followed to the event** (published; data: Stata power manuals)
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
@@ -1652,18 +1652,18 @@ Note: Hill number 1 is exp(Shannon) and 2 the inverse Simpson index (Jost 2006).
 | clr row 2 last | R | -0.55753809836574 | -0.55753809836574 | relative 1e-09 | pass |
 | clr row 70 first | R | 1.74464633225449 | 1.74464633225449 | relative 1e-09 | pass |
 
-### `table.add_log_ratio_columns method="alr"`
+### `table.add_log_ratio_columns test_method="alr"`
 
-**method="alr": mite, every species over the first one** (real data; data: mite (vegan))
+**test_method="alr": mite, every species over the first one** (real data; data: mite (vegan))
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
 | alr row 1 second | R | -1.22377543162212 | -1.22377543162212 | relative 1e-09 | pass |
 | alr row 5 last | R | -1.58699631979019 | -1.58699631979019 | relative 1e-09 | pass |
 
-### `table.add_log_ratio_columns method="ilr"`
+### `table.add_log_ratio_columns test_method="ilr"`
 
-**method="ilr": mite, isometric log ratios** (real data; data: mite (vegan))
+**test_method="ilr": mite, isometric log ratios** (real data; data: mite (vegan))
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
@@ -1729,9 +1729,9 @@ Note: The design check found adjusted R squared 0.0753 and marginal p-values 0.1
 
 Note: The design check found adjusted R squared 0.0825.
 
-### `table.explain_profiles_of method="canonical correspondence"`
+### `table.explain_profiles_of test_method="canonical correspondence"`
 
-**method="canonical correspondence": varespec, CCA with Al, P and K** (real data; data: varespec and varechem (vegan))
+**test_method="canonical correspondence": varespec, CCA with Al, P and K** (real data; data: varespec and varechem (vegan))
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
@@ -1762,18 +1762,18 @@ Note: The model of Oksanen's vegan tutorial (cca(varespec ~ Al + P + K, varechem
 
 Note: The design check found r 0.305 (p 0.001).
 
-### `table.find_correlation_between_profiles method="procrustes"`
+### `table.find_correlation_between_profiles test_method="procrustes"`
 
-**method="procrustes": varespec and varechem** (real data; data: varespec and varechem (vegan))
+**test_method="procrustes": varespec and varechem** (real data; data: varespec and varechem (vegan))
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
 | Procrustes correlation | R | 0.616575031599296 | 0.616575031599296 | relative 1e-09 | pass |
 | p | R | 0.001 | 0.001 | relative 1e-09 | pass |
 
-### `table.compare_profiles_of method="anosim"`
+### `table.compare_profiles_of test_method="anosim"`
 
-**method="anosim": dune by management** (real data; data: dune (vegan))
+**test_method="anosim": dune by management** (real data; data: dune (vegan))
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
@@ -1925,21 +1925,21 @@ Note: The oblimin rotation of GPArotation starts from random numbers, so both si
 | shared part of x9 | R | 0.460820618036742 | 0.460820618036742 | relative 1e-08 | pass |
 | factors | R | 3 | 3 | relative 1e-08 | pass |
 
-### `table.find_hidden_factors_behind method=`
+### `table.find_hidden_factors_behind test_method=`
 
-**method=: maximum likelihood with varimax, as R factanal** (real data; data: Holzinger & Swineford 1939 (lavaan))
+**test_method=: maximum likelihood with varimax, as R factanal** (real data; data: Holzinger & Swineford 1939 (lavaan))
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
-| own part of x1 | statsmodels Factor (method="ml") | 0.512529527173443 | 0.512528315759705 | relative 0.0001 | pass |
-| own part of x2 | statsmodels Factor (method="ml") | 0.7487351603869 | 0.748735926767607 | relative 0.0001 | pass |
-| own part of x3 | statsmodels Factor (method="ml") | 0.542773290729761 | 0.542773834287079 | relative 0.0001 | pass |
-| own part of x4 | statsmodels Factor (method="ml") | 0.279193093920192 | 0.279192945665489 | relative 0.0001 | pass |
-| own part of x5 | statsmodels Factor (method="ml") | 0.242877320676015 | 0.242877231428987 | relative 0.0001 | pass |
-| own part of x6 | statsmodels Factor (method="ml") | 0.30521585555841 | 0.305215971553668 | relative 0.0001 | pass |
-| own part of x7 | statsmodels Factor (method="ml") | 0.502207221916071 | 0.502207843917038 | relative 0.0001 | pass |
-| own part of x8 | statsmodels Factor (method="ml") | 0.468550489794599 | 0.4685501793467 | relative 0.0001 | pass |
-| own part of x9 | statsmodels Factor (method="ml") | 0.543247686483436 | 0.543247024693676 | relative 0.0001 | pass |
+| own part of x1 | statsmodels Factor (method="ml") | 0.512529527173443 | 0.51252821161647 | relative 0.0001 | pass |
+| own part of x2 | statsmodels Factor (method="ml") | 0.7487351603869 | 0.748735819456267 | relative 0.0001 | pass |
+| own part of x3 | statsmodels Factor (method="ml") | 0.542773290729761 | 0.542774339234631 | relative 0.0001 | pass |
+| own part of x4 | statsmodels Factor (method="ml") | 0.279193093920192 | 0.279192979327485 | relative 0.0001 | pass |
+| own part of x5 | statsmodels Factor (method="ml") | 0.242877320676015 | 0.242877146936248 | relative 0.0001 | pass |
+| own part of x6 | statsmodels Factor (method="ml") | 0.30521585555841 | 0.305215802959664 | relative 0.0001 | pass |
+| own part of x7 | statsmodels Factor (method="ml") | 0.502207221916071 | 0.502208401698841 | relative 0.0001 | pass |
+| own part of x8 | statsmodels Factor (method="ml") | 0.468550489794599 | 0.468549769350948 | relative 0.0001 | pass |
+| own part of x9 | statsmodels Factor (method="ml") | 0.543247686483436 | 0.543246752777382 | relative 0.0001 | pass |
 | own part of x1 | R | 0.512529527173443 | 0.512528169335274 | relative 0.001 | pass |
 | own part of x2 | R | 0.7487351603869 | 0.74873504605719 | relative 0.001 | pass |
 | own part of x3 | R | 0.542773290729761 | 0.542776785473323 | relative 0.001 | pass |
@@ -2264,9 +2264,9 @@ Note: auto.arima chooses ARIMA(2,1,1)(0,1,0)[12] for the raw passengers (forecas
 
 Note: The order is Box and Jenkins's airline model; the two estimates are checked against R (exact maximum likelihood: ma1 -0.402, sma1 -0.557), as Box and Jenkins estimated them another way.
 
-### `table.add_adjusted_p_value_column method="storey"`
+### `table.add_adjusted_p_value_column test_method="storey"`
 
-**method="storey": Hedenfalk's 3170 genes, Storey's q-values** (published; data: hedenfalk (qvalue))
+**test_method="storey": Hedenfalk's 3170 genes, Storey's q-values** (published; data: hedenfalk (qvalue))
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
@@ -2277,9 +2277,9 @@ Note: The order is Box and Jenkins's airline model; the two estimates are checke
 
 Note: pi0 is read back from the table as the q-value of the largest p-value divided by that p-value (qvalue's last q-value is pi0 times it). The paper finds 160 genes at q < 0.05 on its own p-values; qvalue's copy of the p-values gives 162.
 
-### `table.add_adjusted_p_value_column method="local fdr"`
+### `table.add_adjusted_p_value_column test_method="local fdr"`
 
-**method="local fdr": Hedenfalk's 3170 genes, the local false discovery rate** (real data; data: hedenfalk (qvalue))
+**test_method="local fdr": Hedenfalk's 3170 genes, the local false discovery rate** (real data; data: hedenfalk (qvalue))
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
@@ -2287,9 +2287,9 @@ Note: pi0 is read back from the table as the q-value of the largest p-value divi
 | first | R | 0.168270194881541 | 0.168270194881541 | relative 1e-09 | pass |
 | smallest | R | 0.00656991586563179 | 0.00656991586563179 | relative 1e-09 | pass |
 
-### `table.compare_each_pair_of matched_by=, test="nemenyi"`
+### `table.compare_each_pair_of matched_by=, test_method="nemenyi"`
 
-**matched_by=, test="nemenyi": rounding first base, three routes** (real data; data: rounding first base)
+**matched_by=, test_method="nemenyi": rounding first base, three routes** (real data; data: rounding first base)
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
@@ -2299,9 +2299,9 @@ Note: pi0 is read back from the table as the q-value of the largest p-value divi
 
 Note: The same p-values (0.637, 0.061, 0.0044) come from scikit-posthocs posthoc_nemenyi_friedman.
 
-### `table.compare_each_pair_of matched_by=, test="conover"`
+### `table.compare_each_pair_of matched_by=, test_method="conover"`
 
-**matched_by=, test="conover": rounding first base, Holm-adjusted** (real data; data: rounding first base)
+**matched_by=, test_method="conover": rounding first base, Holm-adjusted** (real data; data: rounding first base)
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
@@ -2581,9 +2581,9 @@ Note: The randomised NSW experiment found 1794 dollars (Dehejia & Wahba 1999); t
 | race black after | R | 0.130249813461065 | 0.130249813461065 | relative 1e-09 | pass |
 | re74 after | R | -0.273989428670678 | -0.273989428670678 | relative 1e-09 | pass |
 
-### `table.compare_balanced_groups_of method="matching"`
+### `table.compare_balanced_groups_of test_method="matching"`
 
-**method="matching": lalonde, 1:1 nearest neighbour, the effect among the trained men (ATT)** (real data; data: lalonde)
+**test_method="matching": lalonde, 1:1 nearest neighbour, the effect among the trained men (ATT)** (real data; data: lalonde)
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
@@ -2592,7 +2592,7 @@ Note: The randomised NSW experiment found 1794 dollars (Dehejia & Wahba 1999); t
 
 Note: The MatchIt vignette's own analysis of lalonde: ATT 894, clustered standard error 705.
 
-**method="matching": lalonde, with a caliper of 0.2 standard deviations of the logit (match_within=0.2)** (real data; data: lalonde)
+**test_method="matching": lalonde, with a caliper of 0.2 standard deviations of the logit (match_within=0.2)** (real data; data: lalonde)
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
@@ -2727,9 +2727,9 @@ Note: R mice fills in with its own random draws, so the two pooled correlations 
 
 Note: R mice with the event and the Nelson-Aalen hazard as predictors (White & Royston 2009) and its own random draws: the pooled hazard ratios agree to the simulation error.
 
-### `table.compare_averages_of bayesian=True`
+### `table.compare_averages_of test_method="bayesian"`
 
-**bayesian=True: Student's sleep data, the two drugs as two groups** (real data; data: Student's sleep data)
+**test_method="bayesian": Student's sleep data, the two drugs as two groups** (real data; data: Student's sleep data)
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
@@ -2741,9 +2741,9 @@ Note: R mice with the event and the Nelson-Aalen hazard as predictors (White & R
 
 Note: BayesFactor's documentation gives 1.27 for this Bayes factor; the interval is checked with the same seed (same draws), its Monte Carlo error in the tests.
 
-### `table.compare_before_and_after bayesian=True`
+### `table.compare_before_and_after test_method="bayesian"`
 
-**bayesian=True: Student's sleep data, each patient on both drugs** (real data; data: Student's sleep data)
+**test_method="bayesian": Student's sleep data, each patient on both drugs** (real data; data: Student's sleep data)
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
@@ -2755,9 +2755,9 @@ Note: BayesFactor's documentation gives 1.27 for this Bayes factor; the interval
 
 Note: BayesFactor's documentation gives 17.26 for this paired Bayes factor (the example of ttestBF's help).
 
-### `table.compare_average_to bayesian=True`
+### `table.compare_average_to test_method="bayesian"`
 
-**bayesian=True: Student's sleep data, drug 1 against 1 extra hour** (real data; data: Student's sleep data)
+**test_method="bayesian": Student's sleep data, drug 1 against 1 extra hour** (real data; data: Student's sleep data)
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
@@ -2769,9 +2769,9 @@ Note: BayesFactor's documentation gives 17.26 for this paired Bayes factor (the 
 
 Note: The Bayes factor is R's own ttestBF(x, mu = 1); the interval is that of the average minus 1, from ttestBF(x - 1), because BayesFactor's posterior() leaves mu = out.
 
-### `table.find_correlation_between bayesian=True`
+### `table.find_correlation_between test_method="bayesian"`
 
-**bayesian=True: mtcars, fuel use and weight** (real data; data: mtcars)
+**test_method="bayesian": mtcars, fuel use and weight** (real data; data: mtcars)
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
@@ -2782,9 +2782,9 @@ Note: The Bayes factor is R's own ttestBF(x, mu = 1); the interval is that of th
 
 Note: The design check of 2026-11-20 gave a Bayes factor of 1.3 x 10^7 for this pair (BayesFactor 0.9.12-4.8).
 
-### `table.compare_counts_of bayesian=True`
+### `table.compare_counts_of test_method="bayesian"`
 
-**bayesian=True: mtcars, gearbox (automatic or manual) by engine shape** (real data; data: mtcars)
+**test_method="bayesian": mtcars, gearbox (automatic or manual) by engine shape** (real data; data: mtcars)
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
@@ -2795,9 +2795,9 @@ Note: The design check of 2026-11-20 gave a Bayes factor of 1.3 x 10^7 for this 
 
 Note: simplydata orders the groups as text ("V-shaped" before "straight"), so the R table lists them in that order too.
 
-### `table.explain bayesian=True`
+### `table.explain test_method="bayesian"`
 
-**bayesian=True: mtcars, fuel use from weight and horsepower (rstanarm stan_glm)** (real data; data: mtcars)
+**test_method="bayesian": mtcars, fuel use from weight and horsepower (rstanarm stan_glm)** (real data; data: mtcars)
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
@@ -2810,9 +2810,9 @@ Note: simplydata orders the groups as text ("V-shaped" before "straight"), so th
 
 Note: lm() gives -3.88 for wt and -0.0318 for hp; the posterior medians are close to them because rstanarm's priors are weak here.
 
-### `table.explain bayesian=True, grouped_by=`
+### `table.explain test_method="bayesian", grouped_by=`
 
-**bayesian=True, grouped_by=: sleepstudy, reaction time over days (rstanarm stan_glmer)** (real data; data: sleepstudy (lme4))
+**test_method="bayesian", grouped_by=: sleepstudy, reaction time over days (rstanarm stan_glmer)** (real data; data: sleepstudy (lme4))
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
@@ -2823,9 +2823,9 @@ Note: lm() gives -3.88 for wt and -0.0318 for hp; the posterior medians are clos
 
 Note: lme4's REML estimates are 251.4 and 10.47 (Bates et al. 2015); the posterior medians are close.
 
-### `table.check_model_of bayesian=True`
+### `table.check_model_of test_method="bayesian"`
 
-**bayesian=True: mtcars, the posterior predictive check of fuel use from weight** (real data; data: mtcars)
+**test_method="bayesian": mtcars, the posterior predictive check of fuel use from weight** (real data; data: mtcars)
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
@@ -2868,8 +2868,8 @@ Each box's library code is run next to the simplydata word and compared. Table w
 | `table.explain matched_by=` | statsmodels | polars | result | relative 1e-06 | pass |
 | `table.explain show="risk ratios"` | statsmodels | pandas | result | relative 1e-06 | pass |
 | `table.explain show="risk ratios"` | statsmodels | polars | result | relative 1e-06 | pass |
-| `table.explain method="log-binomial"` | statsmodels | pandas | result | relative 1e-06 | pass |
-| `table.explain method="log-binomial"` | statsmodels | polars | result | relative 1e-06 | pass |
+| `table.explain test_method="log-binomial"` | statsmodels | pandas | result | relative 1e-06 | pass |
+| `table.explain test_method="log-binomial"` | statsmodels | polars | result | relative 1e-06 | pass |
 | `table.explain giving_outliers_less_weight=` | statsmodels | pandas | result | relative 1e-09 | pass |
 | `table.explain giving_outliers_less_weight=` | statsmodels | polars | result | relative 1e-09 | pass |
 | `table.explain with_knots=` | patsy and statsmodels | pandas | result | relative 1e-09 | pass |
@@ -2895,14 +2895,14 @@ Each box's library code is run next to the simplydata word and compared. Table w
 | `fit_dose_response` | R + matplotlib | pandas | chart | relative 1e-06 | pass |
 | `table.find_best_power_of` | SciPy | pandas | result | relative 1e-09 | pass |
 | `table.find_best_power_of` | SciPy | polars | result | relative 1e-09 | pass |
-| `table.fit_line method="theil-sen"` | SciPy | pandas | result | relative 1e-09 | pass |
-| `table.fit_line method="theil-sen"` | SciPy | polars | result | relative 1e-09 | pass |
-| `table.fit_line method="standardised major axis"` | R + Python | pandas | result | relative 1e-09 | pass |
-| `table.fit_line method="standardised major axis"` | R + Python | polars | result | relative 1e-09 | pass |
-| `table.fit_line method="deming", y_error_over_x_error=` | R + Python | pandas | result | relative 1e-09 | pass |
-| `table.fit_line method="deming", y_error_over_x_error=` | R + Python | polars | result | relative 1e-09 | pass |
-| `table.fit_line method="passing-bablok"` | R + Python | pandas | result | relative 1e-09 | pass |
-| `table.fit_line method="passing-bablok"` | R + Python | polars | result | relative 1e-09 | pass |
+| `table.fit_line test_method="theil-sen"` | SciPy | pandas | result | relative 1e-09 | pass |
+| `table.fit_line test_method="theil-sen"` | SciPy | polars | result | relative 1e-09 | pass |
+| `table.fit_line test_method="standardised major axis"` | R + Python | pandas | result | relative 1e-09 | pass |
+| `table.fit_line test_method="standardised major axis"` | R + Python | polars | result | relative 1e-09 | pass |
+| `table.fit_line test_method="deming", y_error_over_x_error=` | R + Python | pandas | result | relative 1e-09 | pass |
+| `table.fit_line test_method="deming", y_error_over_x_error=` | R + Python | polars | result | relative 1e-09 | pass |
+| `table.fit_line test_method="passing-bablok"` | R + Python | pandas | result | relative 1e-09 | pass |
+| `table.fit_line test_method="passing-bablok"` | R + Python | polars | result | relative 1e-09 | pass |
 | `table.fit_line with_bends=` | R + Python | pandas | result | relative 1e-09 | pass |
 | `table.fit_line with_bends=` | R + Python | polars | result | relative 1e-09 | pass |
 | `table.fit_line changes_at=` | statsmodels | pandas | result | relative 1e-09 | pass |
@@ -2913,9 +2913,9 @@ Each box's library code is run next to the simplydata word and compared. Table w
 | `table.explain for_percentile=` | R + Python | polars | result | relative 1e-09 | pass |
 | `table.explain changes_at=` | statsmodels | pandas | result | relative 1e-09 | pass |
 | `table.explain changes_at=` | statsmodels | polars | result | relative 1e-09 | pass |
-| `table.add_smoothed_column method="loess", interval=` | R + Python | pandas | result | relative 1e-09 | pass |
-| `table.add_smoothed_column method="loess", interval=` | R + Python | polars | result | relative 1e-09 | pass |
-| `draw_smooth_line method="loess", with_confidence_band=` | R + matplotlib | pandas | chart | relative 1e-09 | pass |
+| `table.add_smoothed_column test_method="loess", interval=` | R + Python | pandas | result | relative 1e-09 | pass |
+| `table.add_smoothed_column test_method="loess", interval=` | R + Python | polars | result | relative 1e-09 | pass |
+| `draw_smooth_line test_method="loess", with_confidence_band=` | R + matplotlib | pandas | chart | relative 1e-09 | pass |
 | `table.find_columns_that_predict` | R + Python | pandas | result | relative 1e-09 | pass |
 | `table.find_columns_that_predict` | R + Python | polars | result | relative 1e-09 | pass |
 | `table.find_group_levels_of` | R + Python | pandas | result | relative 1e-06 | pass |
@@ -2946,8 +2946,8 @@ Each box's library code is run next to the simplydata word and compared. Table w
 | `draw_risk_curves` | matplotlib | pandas | chart | relative 1e-09 | pass |
 | `table.find_survival_over_time at_time_points=` | statsmodels | pandas | result | relative 1e-09 | pass |
 | `table.find_survival_over_time at_time_points=` | statsmodels | polars | result | relative 1e-09 | pass |
-| `table.find_survival_over_time method="life table"` | R + Python | pandas | result | relative 1e-09 | pass |
-| `table.find_survival_over_time method="life table"` | R + Python | polars | result | relative 1e-09 | pass |
+| `table.find_survival_over_time test_method="life table"` | R + Python | pandas | result | relative 1e-09 | pass |
+| `table.find_survival_over_time test_method="life table"` | R + Python | polars | result | relative 1e-09 | pass |
 | `table.find_survival_over_time allowing_for=` | R + Python | pandas | result | relative 1e-08 | pass |
 | `table.find_survival_over_time allowing_for=` | R + Python | polars | result | relative 1e-08 | pass |
 | `table.find_survival_over_time followed_from=` | statsmodels | pandas | result | relative 1e-09 | pass |
@@ -2968,8 +2968,8 @@ Each box's library code is run next to the simplydata word and compared. Table w
 | `table.explain_survival followed_from=` | statsmodels | polars | result | relative 1e-07 | pass |
 | `table.explain_survival competing_with=` | statsmodels | pandas | result | relative 1e-07 | pass |
 | `table.explain_survival competing_with=` | statsmodels | polars | result | relative 1e-07 | pass |
-| `table.explain_survival method="fine-gray"` | R + Python | pandas | result | relative 1e-07 | pass |
-| `table.explain_survival method="fine-gray"` | R + Python | polars | result | relative 1e-07 | pass |
+| `table.explain_survival test_method="fine-gray"` | R + Python | pandas | result | relative 1e-07 | pass |
+| `table.explain_survival test_method="fine-gray"` | R + Python | polars | result | relative 1e-07 | pass |
 | `table.explain_survival distribution=` | R + Python | pandas | result | relative 1e-07 | pass |
 | `table.explain_survival distribution=` | R + Python | polars | result | relative 1e-07 | pass |
 | `draw_survival_curves followed_from=` | matplotlib | pandas | chart | relative 1e-09 | pass |
@@ -2980,12 +2980,12 @@ Each box's library code is run next to the simplydata word and compared. Table w
 | `draw_funnel_plot` | R + matplotlib | pandas | chart | relative 1e-09 | pass |
 | `table.combine_studies estimates=` | R + Python | pandas | result | relative 1e-09 | pass |
 | `table.combine_studies estimates=` | R + Python | polars | result | relative 1e-09 | pass |
-| `table.combine_studies method=` | R + Python | pandas | result | relative 1e-09 | pass |
-| `table.combine_studies method=` | R + Python | polars | result | relative 1e-09 | pass |
-| `table.combine_studies method="Mantel-Haenszel"` | R + Python | pandas | result | relative 1e-09 | pass |
-| `table.combine_studies method="Mantel-Haenszel"` | R + Python | polars | result | relative 1e-09 | pass |
-| `table.combine_studies method="Peto"` | R + Python | pandas | result | relative 1e-09 | pass |
-| `table.combine_studies method="Peto"` | R + Python | polars | result | relative 1e-09 | pass |
+| `table.combine_studies test_method=` | R + Python | pandas | result | relative 1e-09 | pass |
+| `table.combine_studies test_method=` | R + Python | polars | result | relative 1e-09 | pass |
+| `table.combine_studies test_method="mantel-haenszel"` | R + Python | pandas | result | relative 1e-09 | pass |
+| `table.combine_studies test_method="mantel-haenszel"` | R + Python | polars | result | relative 1e-09 | pass |
+| `table.combine_studies test_method="peto"` | R + Python | pandas | result | relative 1e-09 | pass |
+| `table.combine_studies test_method="peto"` | R + Python | polars | result | relative 1e-09 | pass |
 | `table.combine_studies interval_by=` | R + Python | pandas | result | relative 1e-09 | pass |
 | `table.combine_studies interval_by=` | R + Python | polars | result | relative 1e-09 | pass |
 | `table.combine_studies for_each_group_in=` | R + Python | pandas | result | relative 1e-09 | pass |
@@ -2995,8 +2995,8 @@ Each box's library code is run next to the simplydata word and compared. Table w
 | `sdata.find_how_many_needed` | statsmodels | pandas | result | relative 1e-09 | pass |
 | `sdata.find_chance_of_finding` | statsmodels | pandas | result | relative 1e-09 | pass |
 | `sdata.find_how_many_needed interval_width=` | R + Python | pandas | result | relative 1e-09 | pass |
-| `sdata.find_how_many_needed test=` | R + Python | pandas | result | relative 1e-09 | pass |
-| `sdata.find_how_many_needed method=` | R + Python | pandas | result | relative 1e-09 | pass |
+| `sdata.find_how_many_needed for_test=` | R + Python | pandas | result | relative 1e-09 | pass |
+| `sdata.find_how_many_needed test_method=` | R + Python | pandas | result | relative 1e-09 | pass |
 | `sdata.find_how_many_needed using=` | statsmodels | pandas | result | relative 1e-09 | pass |
 | `sdata.find_how_many_needed outcome=` | R + Python | pandas | result | relative 1e-09 | pass |
 | `sdata.find_how_many_needed in_clusters_of=` | statsmodels | pandas | result | relative 1e-09 | pass |
@@ -3014,10 +3014,10 @@ Each box's library code is run next to the simplydata word and compared. Table w
 | `draw_richness_curves` | R + matplotlib | pandas | chart | relative 1e-09 | pass |
 | `table.add_log_ratio_columns` | R + Python | pandas | table | relative 1e-09 | pass |
 | `table.add_log_ratio_columns` | R + Python | polars | table | relative 1e-09 | pass |
-| `table.add_log_ratio_columns method="alr"` | R + Python | pandas | table | relative 1e-09 | pass |
-| `table.add_log_ratio_columns method="alr"` | R + Python | polars | table | relative 1e-09 | pass |
-| `table.add_log_ratio_columns method="ilr"` | R + Python | pandas | table | relative 1e-09 | pass |
-| `table.add_log_ratio_columns method="ilr"` | R + Python | polars | table | relative 1e-09 | pass |
+| `table.add_log_ratio_columns test_method="alr"` | R + Python | pandas | table | relative 1e-09 | pass |
+| `table.add_log_ratio_columns test_method="alr"` | R + Python | polars | table | relative 1e-09 | pass |
+| `table.add_log_ratio_columns test_method="ilr"` | R + Python | pandas | table | relative 1e-09 | pass |
+| `table.add_log_ratio_columns test_method="ilr"` | R + Python | polars | table | relative 1e-09 | pass |
 | `table.add_log_ratio_columns zeros_replaced_by="adding 1"` | R + Python | pandas | table | relative 1e-09 | pass |
 | `table.add_log_ratio_columns zeros_replaced_by="adding 1"` | R + Python | polars | table | relative 1e-09 | pass |
 | `table.add_principal_coordinates` | R + Python | pandas | table | relative 1e-09 | pass |
@@ -3028,16 +3028,16 @@ Each box's library code is run next to the simplydata word and compared. Table w
 | `table.explain_profiles_of` | R + Python | polars | result | relative 1e-09 | pass |
 | `table.explain_profiles_of measure="hellinger"` | R + Python | pandas | result | relative 1e-09 | pass |
 | `table.explain_profiles_of measure="hellinger"` | R + Python | polars | result | relative 1e-09 | pass |
-| `table.explain_profiles_of method="canonical correspondence"` | R + Python | pandas | result | relative 1e-09 | pass |
-| `table.explain_profiles_of method="canonical correspondence"` | R + Python | polars | result | relative 1e-09 | pass |
+| `table.explain_profiles_of test_method="canonical correspondence"` | R + Python | pandas | result | relative 1e-09 | pass |
+| `table.explain_profiles_of test_method="canonical correspondence"` | R + Python | polars | result | relative 1e-09 | pass |
 | `table.explain_profiles_of allowing_for=` | R + Python | pandas | result | relative 1e-09 | pass |
 | `table.explain_profiles_of allowing_for=` | R + Python | polars | result | relative 1e-09 | pass |
 | `table.find_correlation_between_profiles` | R + Python | pandas | result | relative 1e-09 | pass |
 | `table.find_correlation_between_profiles` | R + Python | polars | result | relative 1e-09 | pass |
-| `table.find_correlation_between_profiles method="procrustes"` | R + Python | pandas | result | relative 1e-09 | pass |
-| `table.find_correlation_between_profiles method="procrustes"` | R + Python | polars | result | relative 1e-09 | pass |
-| `table.compare_profiles_of method="anosim"` | R + Python | pandas | result | relative 1e-09 | pass |
-| `table.compare_profiles_of method="anosim"` | R + Python | polars | result | relative 1e-09 | pass |
+| `table.find_correlation_between_profiles test_method="procrustes"` | R + Python | pandas | result | relative 1e-09 | pass |
+| `table.find_correlation_between_profiles test_method="procrustes"` | R + Python | polars | result | relative 1e-09 | pass |
+| `table.compare_profiles_of test_method="anosim"` | R + Python | pandas | result | relative 1e-09 | pass |
+| `table.compare_profiles_of test_method="anosim"` | R + Python | polars | result | relative 1e-09 | pass |
 | `table.compare_profiles_of show="contributions"` | R + Python | pandas | result | relative 1e-09 | pass |
 | `table.compare_profiles_of show="contributions"` | R + Python | polars | result | relative 1e-09 | pass |
 | `table.compare_profiles_of measure="aitchison"` | R + Python | pandas | result | relative 1e-09 | pass |
@@ -3057,8 +3057,8 @@ Each box's library code is run next to the simplydata word and compared. Table w
 | `table.find_hidden_factors_behind` | R + Python | polars | result | relative 1e-06 | pass |
 | `table.find_hidden_factors_behind how_many=` | R + Python | pandas | result | relative 1e-06 | pass |
 | `table.find_hidden_factors_behind how_many=` | R + Python | polars | result | relative 1e-06 | pass |
-| `table.find_hidden_factors_behind method=` | R + Python | pandas | result | relative 1e-06 | pass |
-| `table.find_hidden_factors_behind method=` | R + Python | polars | result | relative 1e-06 | pass |
+| `table.find_hidden_factors_behind test_method=` | R + Python | pandas | result | relative 1e-06 | pass |
+| `table.find_hidden_factors_behind test_method=` | R + Python | polars | result | relative 1e-06 | pass |
 | `table.find_hidden_factors_behind rotation=` | R + Python | pandas | result | relative 1e-06 | pass |
 | `table.find_hidden_factors_behind rotation=` | R + Python | polars | result | relative 1e-06 | pass |
 | `table.check_hidden_factors` | R + Python | pandas | result | relative 1e-06 | pass |
@@ -3097,14 +3097,14 @@ Each box's library code is run next to the simplydata word and compared. Table w
 | `table.find_correlation_between show="covariance"` | pandas | polars | table | relative 1e-12 | pass |
 | `table.forecast order="automatic"` | R + Python | pandas | result | relative 1e-09 | pass |
 | `table.forecast order="automatic"` | R + Python | polars | result | relative 1e-09 | pass |
-| `table.add_adjusted_p_value_column method="storey"` | R + Python | pandas | table | relative 1e-09 | pass |
-| `table.add_adjusted_p_value_column method="storey"` | R + Python | polars | table | relative 1e-09 | pass |
-| `table.add_adjusted_p_value_column method="local fdr"` | R + Python | pandas | table | relative 1e-09 | pass |
-| `table.add_adjusted_p_value_column method="local fdr"` | R + Python | polars | table | relative 1e-09 | pass |
-| `table.compare_each_pair_of matched_by=, test="nemenyi"` | R + Python | pandas | result | relative 1e-09 | pass |
-| `table.compare_each_pair_of matched_by=, test="nemenyi"` | R + Python | polars | result | relative 1e-09 | pass |
-| `table.compare_each_pair_of matched_by=, test="conover"` | R + Python | pandas | result | relative 1e-09 | pass |
-| `table.compare_each_pair_of matched_by=, test="conover"` | R + Python | polars | result | relative 1e-09 | pass |
+| `table.add_adjusted_p_value_column test_method="storey"` | R + Python | pandas | table | relative 1e-09 | pass |
+| `table.add_adjusted_p_value_column test_method="storey"` | R + Python | polars | table | relative 1e-09 | pass |
+| `table.add_adjusted_p_value_column test_method="local fdr"` | R + Python | pandas | table | relative 1e-09 | pass |
+| `table.add_adjusted_p_value_column test_method="local fdr"` | R + Python | polars | table | relative 1e-09 | pass |
+| `table.compare_each_pair_of matched_by=, test_method="nemenyi"` | R + Python | pandas | result | relative 1e-09 | pass |
+| `table.compare_each_pair_of matched_by=, test_method="nemenyi"` | R + Python | polars | result | relative 1e-09 | pass |
+| `table.compare_each_pair_of matched_by=, test_method="conover"` | R + Python | pandas | result | relative 1e-09 | pass |
+| `table.compare_each_pair_of matched_by=, test_method="conover"` | R + Python | polars | result | relative 1e-09 | pass |
 | `table.compare_each_pair_of based_on="percents"` | SciPy and statsmodels | pandas | result | relative 1e-09 | pass |
 | `table.compare_each_pair_of based_on="percents"` | SciPy and statsmodels | polars | result | relative 1e-09 | pass |
 | `sdata.make_random_assignments` | R + Python | pandas | table | relative 1e-12 | pass |
@@ -3141,8 +3141,8 @@ Each box's library code is run next to the simplydata word and compared. Table w
 | `table.compare_counts_of after use_survey_design()` | R + Python | polars | result | relative 1e-09 | pass |
 | `table.compare_balanced_groups_of` | R + Python | pandas | result | relative 1e-09 | pass |
 | `table.compare_balanced_groups_of` | R + Python | polars | result | relative 1e-09 | pass |
-| `table.compare_balanced_groups_of method="matching"` | R + Python | pandas | result | relative 1e-09 | pass |
-| `table.compare_balanced_groups_of method="matching"` | R + Python | polars | result | relative 1e-09 | pass |
+| `table.compare_balanced_groups_of test_method="matching"` | R + Python | pandas | result | relative 1e-09 | pass |
+| `table.compare_balanced_groups_of test_method="matching"` | R + Python | polars | result | relative 1e-09 | pass |
 | `table.compare_risks show="attributable fractions"` | R + Python | pandas | result | relative 1e-09 | pass |
 | `table.compare_risks show="attributable fractions"` | R + Python | polars | result | relative 1e-09 | pass |
 | `table.rate_of standard_population=` | R + Python | pandas | result | relative 1e-09 | pass |
@@ -3155,22 +3155,22 @@ Each box's library code is run next to the simplydata word and compared. Table w
 | `table.compare_averages_of period=` | statsmodels | polars | result | relative 1e-09 | pass |
 | `table.find_correlation_between empty_cells="multiple imputation"` | R + Python | pandas | value | relative 1e-09 | pass |
 | `table.find_correlation_between empty_cells="multiple imputation"` | R + Python | polars | value | relative 1e-09 | pass |
-| `table.compare_averages_of bayesian=True` | R + Python | pandas | result | relative 1e-09 | pass |
-| `table.compare_averages_of bayesian=True` | R + Python | polars | result | relative 1e-09 | pass |
-| `table.compare_before_and_after bayesian=True` | R + Python | pandas | result | relative 1e-09 | pass |
-| `table.compare_before_and_after bayesian=True` | R + Python | polars | result | relative 1e-09 | pass |
-| `table.compare_average_to bayesian=True` | R + Python | pandas | result | relative 1e-09 | pass |
-| `table.compare_average_to bayesian=True` | R + Python | polars | result | relative 1e-09 | pass |
-| `table.find_correlation_between bayesian=True` | R + Python | pandas | result | relative 1e-09 | pass |
-| `table.find_correlation_between bayesian=True` | R + Python | polars | result | relative 1e-09 | pass |
-| `table.compare_counts_of bayesian=True` | R + Python | pandas | result | relative 1e-09 | pass |
-| `table.compare_counts_of bayesian=True` | R + Python | polars | result | relative 1e-09 | pass |
-| `table.explain bayesian=True` | R + Python | pandas | result | relative 1e-09 | pass |
-| `table.explain bayesian=True` | R + Python | polars | result | relative 1e-09 | pass |
-| `table.explain bayesian=True, grouped_by=` | R + Python | pandas | result | relative 1e-09 | pass |
-| `table.explain bayesian=True, grouped_by=` | R + Python | polars | result | relative 1e-09 | pass |
-| `table.check_model_of bayesian=True` | R + Python | pandas | value | relative 1e-09 | pass |
-| `table.check_model_of bayesian=True` | R + Python | polars | value | relative 1e-09 | pass |
+| `table.compare_averages_of test_method="bayesian"` | R + Python | pandas | result | relative 1e-09 | pass |
+| `table.compare_averages_of test_method="bayesian"` | R + Python | polars | result | relative 1e-09 | pass |
+| `table.compare_before_and_after test_method="bayesian"` | R + Python | pandas | result | relative 1e-09 | pass |
+| `table.compare_before_and_after test_method="bayesian"` | R + Python | polars | result | relative 1e-09 | pass |
+| `table.compare_average_to test_method="bayesian"` | R + Python | pandas | result | relative 1e-09 | pass |
+| `table.compare_average_to test_method="bayesian"` | R + Python | polars | result | relative 1e-09 | pass |
+| `table.find_correlation_between test_method="bayesian"` | R + Python | pandas | result | relative 1e-09 | pass |
+| `table.find_correlation_between test_method="bayesian"` | R + Python | polars | result | relative 1e-09 | pass |
+| `table.compare_counts_of test_method="bayesian"` | R + Python | pandas | result | relative 1e-09 | pass |
+| `table.compare_counts_of test_method="bayesian"` | R + Python | polars | result | relative 1e-09 | pass |
+| `table.explain test_method="bayesian"` | R + Python | pandas | result | relative 1e-09 | pass |
+| `table.explain test_method="bayesian"` | R + Python | polars | result | relative 1e-09 | pass |
+| `table.explain test_method="bayesian", grouped_by=` | R + Python | pandas | result | relative 1e-09 | pass |
+| `table.explain test_method="bayesian", grouped_by=` | R + Python | polars | result | relative 1e-09 | pass |
+| `table.check_model_of test_method="bayesian"` | R + Python | pandas | value | relative 1e-09 | pass |
+| `table.check_model_of test_method="bayesian"` | R + Python | polars | value | relative 1e-09 | pass |
 
 How each kind is compared:
 
@@ -3198,8 +3198,8 @@ Where simplydata's default differs from the package underneath, it is listed her
 - `table.explain outcome="yes or no (overdispersed)"` (1): quasi-binomial as R glm(family = quasibinomial): the shares, with the tries as var_weights and the Pearson dispersion (scale="X2"). A two-column endog would give statsmodels another dispersion.
 - `table.explain matched_by=` (1): conditional logistic regression with the exact conditional likelihood, as R survival::clogit() (its default method = "exact"); no intercept, each pair compared only with itself.
 - `table.explain matched_by=` (2): fitted by Newton's method to the end; statsmodels' default (BFGS) stops a little short of the best estimates.
-- `table.explain show="risk ratios"` (1): modified Poisson regression (Zou 2004): a Poisson model for the 0/1 column with robust (HC0) standard errors, as R glm(family = poisson) with sandwich::vcovHC(type = "HC0"); it always converges, where log-binomial (method="log-binomial") often does not.
-- `table.explain method="log-binomial"` (1): a binomial model with a log link, as R glm(family = binomial(link = "log")); when it does not converge (a predicted chance reaches 1), simplydata says so and points to the default modified Poisson regression.
+- `table.explain show="risk ratios"` (1): modified Poisson regression (Zou 2004): a Poisson model for the 0/1 column with robust (HC0) standard errors, as R glm(family = poisson) with sandwich::vcovHC(type = "HC0"); it always converges, where log-binomial (test_method="log-binomial") often does not.
+- `table.explain test_method="log-binomial"` (1): a binomial model with a log link, as R glm(family = binomial(link = "log")); when it does not converge (a predicted chance reaches 1), simplydata says so and points to the default modified Poisson regression.
 - `table.explain giving_outliers_less_weight=` (1): Huber's weights with k = 1.345, the default of statsmodels and of R MASS::rlm().
 - `table.explain giving_outliers_less_weight=` (2): the scale by the median absolute deviation and Huber's H1 covariance; R's summary(rlm) uses a slightly different small-sample correction, so its standard errors differ in the third digit.
 - `table.explain with_knots=` (1): the knots at the quantiles of all the values, as R splines::ns() places them; patsy's own df= would take the quantiles of the distinct values (mgcv's rule) and give another curve.
@@ -3219,12 +3219,12 @@ Where simplydata's default differs from the package underneath, it is listed her
 - `fit_dose_response` (1): the 4 parameter log-logistic curve (drc's LL.4), as table.fit_dose_response.
 - `fit_dose_response` (2): the curve is drawn over 300 doses spaced evenly on a log scale (and dose 0), so it stays smooth on a log dose axis too; the ED50 and its delta-method interval go in the legend.
 - `table.find_best_power_of` (1): the power's 95 % interval from the profile likelihood (alpha=0.05); without alpha= SciPy gives no interval.
-- `table.fit_line method="theil-sen"` (1): SciPy's alpha= is the confidence level (0.95), not the error rate.
-- `table.fit_line method="theil-sen"` (2): the intercept is median(y) - slope * median(x) (Conover; SciPy's default); R mblm takes the median of y - slope * x instead.
-- `table.fit_line method="standardised major axis"` (1): smatr's own 95 % intervals (Warton et al. 2006); method="major axis" is method = "MA".
-- `table.fit_line method="deming", y_error_over_x_error=` (1): mcr's error.ratio is the error variance of x over that of y, the other way round from y_error_over_x_error=, so it gets 1 / 4.
-- `table.fit_line method="deming", y_error_over_x_error=` (2): mcr's analytical intervals; its default (bootstrap) is random and differs from run to run.
-- `table.fit_line method="passing-bablok"` (1): Passing and Bablok's own rank-based intervals (mcr's "analytical" for PaBa); mcr's default bootstrap is random.
+- `table.fit_line test_method="theil-sen"` (1): SciPy's alpha= is the confidence level (0.95), not the error rate.
+- `table.fit_line test_method="theil-sen"` (2): the intercept is median(y) - slope * median(x) (Conover; SciPy's default); R mblm takes the median of y - slope * x instead.
+- `table.fit_line test_method="standardised major axis"` (1): smatr's own 95 % intervals (Warton et al. 2006); test_method="major axis" is method = "MA".
+- `table.fit_line test_method="deming", y_error_over_x_error=` (1): mcr's error.ratio is the error variance of x over that of y, the other way round from y_error_over_x_error=, so it gets 1 / 4.
+- `table.fit_line test_method="deming", y_error_over_x_error=` (2): mcr's analytical intervals; its default (bootstrap) is random and differs from run to run.
+- `table.fit_line test_method="passing-bablok"` (1): Passing and Bablok's own rank-based intervals (mcr's "analytical" for PaBa); mcr's default bootstrap is random.
 - `table.fit_line with_bends=` (1): a continuous line: it bends, it does not jump (segmented's model); seed 1 fixes segmented's random restarts.
 - `table.fit_line with_bends=` (2): Davies' test of "no bend at all": the bend's own p-value is not valid, because the data chose where it is.
 - `table.fit_line changes_at=` (1): the change starts at the point itself: rows at 10 or later count as after.
@@ -3232,11 +3232,11 @@ Where simplydata's default differs from the package underneath, it is listed her
 - `table.explain for_percentile=` (1): R quantreg's exact simplex (Barrodale-Roberts); statsmodels QuantReg gives the same line to about 1e-7 but none of R's standard errors.
 - `table.explain for_percentile=` (2): standard errors by "nid" for every number of rows (R's default below 1001 rows is "rank", intervals only).
 - `table.explain changes_at=` (1): the change starts at the point itself: rows at 10 or later count as after.
-- `table.add_smoothed_column method="loess", interval=` (1): R loess's own defaults: span 0.75 (smoothness=), local curves of degree 2, no robustness steps.
-- `table.add_smoothed_column method="loess", interval=` (2): the band uses loess's own degrees of freedom, as R's predict.loess intervals do.
-- `draw_smooth_line method="loess", with_confidence_band=` (1): R loess's own defaults: span 0.75, local curves of degree 2, no robustness steps (not lowess).
+- `table.add_smoothed_column test_method="loess", interval=` (1): R loess's own defaults: span 0.75 (smoothness=), local curves of degree 2, no robustness steps.
+- `table.add_smoothed_column test_method="loess", interval=` (2): the band uses loess's own degrees of freedom, as R's predict.loess intervals do.
+- `draw_smooth_line test_method="loess", with_confidence_band=` (1): R loess's own defaults: span 0.75, local curves of degree 2, no robustness steps (not lowess).
 - `table.find_columns_that_predict` (1): the random split into 10 parts is made in R itself (with_seed=1 is set.seed(1)), so R's own random numbers give the same parts.
-- `table.find_columns_that_predict` (2): the lasso (alpha = 1) with 10 parts; method="elastic net" is alpha = 0.5.
+- `table.find_columns_that_predict` (2): the lasso (alpha = 1) with 10 parts; test_method="elastic net" is alpha = 0.5.
 - `table.find_columns_that_predict` (3): the penalty is lambda.1se, the largest within one standard error of the best (fewer columns, steadier); simplydata names it, so a change of glmnet's default cannot change the answer.
 - `table.find_group_levels_of` (1): condVar = TRUE: each level comes with its conditional variance; without it ranef() gives no uncertainty.
 - `table.find_group_levels_of` (2): the 95 % interval is the level plus and minus 1.96 conditional standard deviations, as lattice::dotplot(ranef(m, condVar = TRUE)) draws it.
@@ -3262,8 +3262,8 @@ Where simplydata's default differs from the package underneath, it is listed her
 - `table.find_risk_over_time` (2): survfit with a factor event gives the Aalen-Johansen estimate and its log-scale 95 % interval.
 - `draw_risk_curves` (1): with nothing competing, the chance of having had the event is 1 minus the Kaplan-Meier curve, from 0 at time 0 to the last time followed (R plot(survfit(...), fun = "event")).
 - `table.find_survival_over_time at_time_points=` (1): the curve is flat between event times, so the survival at 365 is the one of the last event time at or before 365 (R summary(survfit(), times =)).
-- `table.find_survival_over_time method="life table"` (1): the intervals start at the times given, and the last one is open (NA).
-- `table.find_survival_over_time method="life table"` (2): simplydata counts the rows lost and with the event in each interval; lifetab does the rest, with the actuarial assumption (lost rows count as followed for half the interval).
+- `table.find_survival_over_time test_method="life table"` (1): the intervals start at the times given, and the last one is open (NA).
+- `table.find_survival_over_time test_method="life table"` (2): simplydata counts the rows lost and with the event in each interval; lifetab does the rest, with the actuarial assumption (lost rows count as followed for half the interval).
 - `table.find_survival_over_time allowing_for=` (1): direct adjustment: each row's curve is predicted as if in each group and averaged over all rows, never the curve of an "average" row; conf_int = TRUE (adjustedCurves' own default is FALSE).
 - `table.find_survival_over_time followed_from=` (1): each row is at risk only after its start (left truncation, R Surv(start, stop, event)).
 - `table.find_survival_over_time average_time_up_to=` (1): rmean = 700, the horizon you name: without it survival's print uses its own upper limit.
@@ -3276,7 +3276,7 @@ Where simplydata's default differs from the package underneath, it is listed her
 - `table.explain_survival allowing_for=` (1): strata=: each treatment group has its own baseline risk (R coxph(... + strata(treatment))), so there is no hazard ratio for it.
 - `table.explain_survival followed_from=` (1): entry=: each row is at risk only after its start (R coxph(Surv(start, stop, event) ~ ...)). statsmodels counts a row as at risk at an event time equal to its start and R does not, so when a row starts at an event time (one person split into rows) simplydata fits the model with R coxph, and says so.
 - `table.explain_survival competing_with=` (1): cause-specific: a Cox model of the event asked about, with the competing event counted as the end of follow-up (the risk at any moment among those still free of both events).
-- `table.explain_survival method="fine-gray"` (1): Fine and Gray's model with crr's robust (sandwich) standard errors; failcode is the event asked about.
+- `table.explain_survival test_method="fine-gray"` (1): Fine and Gray's model with crr's robust (sandwich) standard errors; failcode is the event asked about.
 - `table.explain_survival distribution=` (1): the accelerated failure time model of survreg: time ratios exp(coefficient), never hazard ratios.
 - `draw_survival_curves followed_from=` (1): entry=: each row is at risk only after its start (delayed entry).
 - `draw_survival_curves allowing_for=` (1): direct adjustment: each row's curve predicted in each group, then averaged over all rows.
@@ -3290,9 +3290,9 @@ Where simplydata's default differs from the package underneath, it is listed her
 - `draw_funnel_plot` (3): ratios on a log scale, with the standard error of the log ratio downwards (0 at the top).
 - `table.combine_studies estimates=` (1): a column with "ratio" in its name is combined on the log scale; metafor conv.wald() turns each estimate and its 95 % interval into a log ratio and its variance (estimates_are_ratios= decides otherwise).
 - `table.combine_studies estimates=` (2): the combined effect shown back as a ratio.
-- `table.combine_studies method=` (1): DerSimonian-Laird's between-study spread (metafor "DL"); "Paule-Mandel" is "PM" and "common effect" is "EE" (metafor 4 renamed "FE").
-- `table.combine_studies method="Mantel-Haenszel"` (1): Mantel-Haenszel weights, a common-effect method: there is no between-study spread and no prediction interval (compare_risks(allowing_for=) gives the same from raw rows).
-- `table.combine_studies method="Peto"` (1): Peto's one-step odds ratio, a common-effect method for rare events; it gives odds ratios only.
+- `table.combine_studies test_method=` (1): DerSimonian-Laird's between-study spread (metafor "DL"); "paule-mandel" is "PM" and "common effect" is "EE" (metafor 4 renamed "FE").
+- `table.combine_studies test_method="mantel-haenszel"` (1): Mantel-Haenszel weights, a common-effect method: there is no between-study spread and no prediction interval (compare_risks(allowing_for=) gives the same from raw rows).
+- `table.combine_studies test_method="peto"` (1): Peto's one-step odds ratio, a common-effect method for rare events; it gives odds ratios only.
 - `table.combine_studies interval_by=` (1): the normal (z) interval and p-value, as in older meta-analyses; the default is Hartung-Knapp (test = "adhoc").
 - `table.combine_studies for_each_group_in=` (1): each subgroup its own random-effects model, with its own between-study spread; for this test each subgroup's estimate with its normal (z) standard error, as RevMan and R meta do (the subgroups' own intervals stay Hartung-Knapp).
 - `table.combine_studies for_each_group_in=` (2): the test of the difference between the subgroup estimates (a common-effect meta-regression on the subgroup), not metafor's rma(mods = ~ group), which assumes one spread for all.
@@ -3301,9 +3301,9 @@ Where simplydata's default differs from the package underneath, it is listed her
 - `sdata.find_how_many_needed` (2): the number is rounded UP to a whole number.
 - `sdata.find_chance_of_finding` (1): one side at half the significance level, as R power.t.test() (strict = FALSE).
 - `sdata.find_how_many_needed interval_width=` (1): the Wilson interval, given by name: presize's method= is a list of four and it warns when none is chosen.
-- `sdata.find_how_many_needed test=` (1): events first, by Schoenfeld's (1983) formula for the log-rank test, two groups of the same size.
-- `sdata.find_how_many_needed test=` (2): people = events / the share of everyone expected to have the event (Schoenfeld; Hsieh & Lavori 2000), with the group a 0/1 column half of the people have (p = 0.5).
-- `sdata.find_how_many_needed method=` (1): Freedman's (1982) formula, two groups of the same size (k = 1); the first percent is the group whose hazard is effect_size= times the second's.
+- `sdata.find_how_many_needed for_test=` (1): events first, by Schoenfeld's (1983) formula for the log-rank test, two groups of the same size.
+- `sdata.find_how_many_needed for_test=` (2): people = events / the share of everyone expected to have the event (Schoenfeld; Hsieh & Lavori 2000), with the group a 0/1 column half of the people have (p = 0.5).
+- `sdata.find_how_many_needed test_method=` (1): Freedman's (1982) formula, two groups of the same size (k = 1); the first percent is the group whose hazard is effect_size= times the second's.
 - `sdata.find_how_many_needed using=` (1): FTestPowerF2, statsmodels' class with the degrees of freedom named the right way round (as R pwr::pwr.f2.test(), Cohen 1988 chapter 9).
 - `sdata.find_how_many_needed using=` (2): the rows are the denominator degrees of freedom plus the columns plus 1.
 - `sdata.find_how_many_needed outcome=` (1): one bell-shaped (normal) column; the odds ratio is per standard deviation of it, and percents= is the percent with the outcome at its average.
@@ -3329,8 +3329,8 @@ Where simplydata's default differs from the package underneath, it is listed her
 - `table.add_log_ratio_columns` (1): zeros replaced by estimated small values: zCompositions' Bayesian-multiplicative replacement (GBM), which estimates each from the data and keeps the ratios of the other parts; only when there are zeros.
 - `table.add_log_ratio_columns` (2): z.delete = FALSE: no column is deleted (cmultRepl's default deletes columns that are more than 80 % zeros, with only a message); simplydata refuses columns with fewer than 2 values above 0 instead, with the line that merges them.
 - `table.add_log_ratio_columns` (3): clr: the log of each value over the row's geometric mean, R compositions::clr.
-- `table.add_log_ratio_columns method="alr"` (1): the reference is the column named in against= ("sul1", the 5th), R compositions::alr(ivar =).
-- `table.add_log_ratio_columns method="ilr"` (1): the default basis of R compositions::ilr(); another basis (scikit-bio's) gives other numbers but the same distances between rows, and the printout says so.
+- `table.add_log_ratio_columns test_method="alr"` (1): the reference is the column named in against= ("sul1", the 5th), R compositions::alr(ivar =).
+- `table.add_log_ratio_columns test_method="ilr"` (1): the default basis of R compositions::ilr(); another basis (scikit-bio's) gives other numbers but the same distances between rows, and the printout says so.
 - `table.add_log_ratio_columns zeros_replaced_by="adding 1"` (1): 1 added to every count before the logs (vegan's pseudocount), only when there are zeros; the printout says the answer depends on the 1 you added.
 - `table.add_principal_coordinates` (1): classical scaling of the Bray-Curtis distances, R stats::cmdscale with the eigenvalues, so the printout can say how many are negative.
 - `table.add_principal_coordinates` (2): each axis turned so its biggest value is positive: the sign of an axis is arbitrary, and this gives the same answer on every computer.
@@ -3342,13 +3342,13 @@ Where simplydata's default differs from the package underneath, it is listed her
 - `table.explain_profiles_of` (3): 999 permutations after set.seed(1).
 - `table.explain_profiles_of measure="hellinger"` (1): RDA on the Hellinger-transformed counts (square roots of the shares; Legendre & Gallagher 2001), never on raw counts.
 - `table.explain_profiles_of measure="hellinger"` (2): each column tested after all the others (by = "margin"), so the order of using= does not matter; anova's own default tests in sequence.
-- `table.explain_profiles_of method="canonical correspondence"` (1): CCA on the counts themselves (chi-square distances), so no measure=.
-- `table.explain_profiles_of method="canonical correspondence"` (2): CCA's adjusted R squared comes from permutations (vegan), after set.seed.
+- `table.explain_profiles_of test_method="canonical correspondence"` (1): CCA on the counts themselves (chi-square distances), so no measure=.
+- `table.explain_profiles_of test_method="canonical correspondence"` (2): CCA's adjusted R squared comes from permutations (vegan), after set.seed.
 - `table.explain_profiles_of allowing_for=` (1): a partial analysis: site is taken into account first (vegan Condition()) and not tested, the same meaning allowing_for= has on the other words.
 - `table.find_correlation_between_profiles` (1): measurements (not counts) in second= get straight-line distances after each column is put on the same scale; counts would get measure=.
 - `table.find_correlation_between_profiles` (2): the Pearson Mantel correlation with 999 permutations after set.seed(1).
-- `table.find_correlation_between_profiles method="procrustes"` (1): PROTEST on the first two principal coordinates of each set: the Procrustes correlation and its permutation p-value.
-- `table.compare_profiles_of method="anosim"` (1): Clarke's ANOSIM R from ranked distances, 999 permutations after set.seed(1).
+- `table.find_correlation_between_profiles test_method="procrustes"` (1): PROTEST on the first two principal coordinates of each set: the Procrustes correlation and its permutation p-value.
+- `table.compare_profiles_of test_method="anosim"` (1): Clarke's ANOSIM R from ranked distances, 999 permutations after set.seed(1).
 - `table.compare_profiles_of show="contributions"` (1): SIMPER without permutation p-values (permutations = 0): Warton et al. 2012 show they mislead; the table is a description, not a test.
 - `table.compare_profiles_of measure="aitchison"` (1): zeros replaced by estimated small values (GBM, no column deleted), then the Aitchison distance.
 - `table.find_distances_between_rows measure="aitchison"` (1): zeros replaced by estimated small values first (GBM, no column deleted); vegdist refuses zeros for this distance.
@@ -3367,10 +3367,10 @@ Where simplydata's default differs from the package underneath, it is listed her
 - `table.add_correspondence_axes` (3): each axis turned so its biggest value is positive.
 - `table.find_hidden_factors_behind` (1): with_seed=1: parallel analysis compares the data with random data, and the oblimin rotation starts from random numbers too, so R's random numbers are seeded and the answer repeats.
 - `table.find_hidden_factors_behind` (2): how_many="automatic": parallel analysis (Horn 1965) keeps the factors that stand out more than in random data of the same size; the 'eigenvalue above 1' rule finds too many (Zwick & Velicer 1986).
-- `table.find_hidden_factors_behind` (3): method="minres", psych's default: it gives an answer where maximum likelihood can fail (base R factanal uses maximum likelihood).
+- `table.find_hidden_factors_behind` (3): test_method="minres", psych's default: it gives an answer where maximum likelihood can fail (base R factanal uses maximum likelihood).
 - `table.find_hidden_factors_behind` (4): rotation="oblimin" (through GPArotation): the factors may correlate, as they usually do in real data (base R factanal uses varimax, which keeps them uncorrelated).
 - `table.find_hidden_factors_behind how_many=` (1): a number of factors chosen by you: no parallel analysis (the seed is still set, for the oblimin rotation).
-- `table.find_hidden_factors_behind method=` (1): maximum likelihood, as base R factanal fits; "principal axis" is psych's fm = "pa".
+- `table.find_hidden_factors_behind test_method=` (1): maximum likelihood, as base R factanal fits; "principal axis" is psych's fm = "pa".
 - `table.find_hidden_factors_behind rotation=` (1): varimax (stats::varimax, as R factanal uses) keeps the factors uncorrelated; "promax" lets them correlate, "none" leaves them unrotated.
 - `table.check_hidden_factors` (1): maximum likelihood; with empty cells simplydata adds missing = "ml", which uses every value given, where lavaan's own default ("listwise") would leave those rows out without a word.
 - `table.check_hidden_factors formula=` (1): formula= takes the model in lavaan's own syntax and runs lavaan::sem(), so hidden factors can explain each other (a structural equation model).
@@ -3395,16 +3395,16 @@ Where simplydata's default differs from the package underneath, it is listed her
 - `table.fit_distribution_to distribution="gev"` (1): the shape kept in the sign of extRemes and Coles (xi); SciPy's genextreme, which simplydata uses for the numbers, takes c = -xi.
 - `table.fit_distribution_to distribution="generalised pareto"` (1): the shape in the sign of extRemes, Coles and SciPy's genpareto (xi), with the threshold at 0: the values are the amounts above a threshold.
 - `table.find_percentile_of weights=` (1): frequency weights: each row repeated as often as its weight, so weights of 1 change nothing (as R quantile(rep(x, w)) and Hmisc::wtd.quantile).
-- `table.find_percentile_of weights=` (2): the linear rule (R type 7), the same method= as without weights.
+- `table.find_percentile_of weights=` (2): the linear rule (R type 7), the same test_method= as without weights.
 - `table.find_percentile_of weight_kind="analytic"` (1): the weighted inverted CDF, the only NumPy rule with weights (as R survey::svyquantile(qrule = "math")): a step, not a line between values.
 - `table.find_median_of weights=` (1): frequency weights: each row repeated as often as its weight (weight_kind="analytic" gives the weighted inverted CDF instead).
 - `table.find_correlation_between show="covariance"` (1): divide by n - 1, each pair on the rows where both columns have a number (as R cov(use = "pairwise.complete.obs"); R's default gives NA with an empty cell, and NumPy cov reads rows as the variables).
 - `table.forecast order="automatic"` (1): every order is tried (stepwise = FALSE, approximation = FALSE) for series of up to 1,000 readings; auto.arima's own quicker defaults can choose another order on long or seasonal series.
-- `table.add_adjusted_p_value_column method="storey"` (1): qvalue's own defaults: the share of true nulls (pi0) estimated by the smoother over lambda = 0.05 to 0.95 (Storey & Tibshirani 2003), not set to 1 as in Benjamini-Hochberg.
-- `table.add_adjusted_p_value_column method="local fdr"` (1): qvalue's local false discovery rate with its defaults (pi0 from the smoother), in a column named "local false discovery rate", not "adjusted p": it belongs to one test.
-- `table.compare_each_pair_of matched_by=, test="nemenyi"` (1): Nemenyi's test allows for all the pairs itself (the studentized range): no Holm on top, and the printout says not to adjust again.
-- `table.compare_each_pair_of matched_by=, test="conover"` (1): Holm's adjustment, as for Conover's test after Kruskal-Wallis; PMCMRplus's own default is "single-step" and scikit-posthocs adjusts nothing, so their numbers differ.
-- `table.compare_each_pair_of based_on="percents"` (1): each pair gets the 2 x 2 chi-square test with Yates' correction that compare_counts_of uses (the default of R prop.test and pairwise.prop.test); test="fisher" gives Fisher's exact test.
+- `table.add_adjusted_p_value_column test_method="storey"` (1): qvalue's own defaults: the share of true nulls (pi0) estimated by the smoother over lambda = 0.05 to 0.95 (Storey & Tibshirani 2003), not set to 1 as in Benjamini-Hochberg.
+- `table.add_adjusted_p_value_column test_method="local fdr"` (1): qvalue's local false discovery rate with its defaults (pi0 from the smoother), in a column named "local false discovery rate", not "adjusted p": it belongs to one test.
+- `table.compare_each_pair_of matched_by=, test_method="nemenyi"` (1): Nemenyi's test allows for all the pairs itself (the studentized range): no Holm on top, and the printout says not to adjust again.
+- `table.compare_each_pair_of matched_by=, test_method="conover"` (1): Holm's adjustment, as for Conover's test after Kruskal-Wallis; PMCMRplus's own default is "single-step" and scikit-posthocs adjusts nothing, so their numbers differ.
+- `table.compare_each_pair_of based_on="percents"` (1): each pair gets the 2 x 2 chi-square test with Yates' correction that compare_counts_of uses (the default of R prop.test and pairwise.prop.test); test_method="fisher" gives Fisher's exact test.
 - `table.compare_each_pair_of based_on="percents"` (2): Holm's adjustment for the number of pairs, as R pairwise.prop.test().
 - `sdata.make_random_assignments` (1): R's generator named in full (Mersenne-Twister, Inversion, Rejection): sample() changed in R 3.6.0, so the same seed gives another list in older R.
 - `sdata.make_random_assignments` (2): real block sizes, divided by the number of groups for blockrand (which counts in multiples of it); without in_blocks_of= simplydata chooses 2 and 3 times the number of groups, of random sizes.
@@ -3431,8 +3431,8 @@ Where simplydata's default differs from the package underneath, it is listed her
 - `table.compare_balanced_groups_of` (1): weighting by the inverse of the propensity score from logistic regression, for everyone (ATE), unless effect_for= names a group (ATT).
 - `table.compare_balanced_groups_of` (2): the effect from WeightIt's lm_weightit(), whose M-estimation standard errors allow for the estimated weights (statsmodels TreatmentEffect.ipw gives the same estimate with a larger error).
 - `table.compare_balanced_groups_of` (3): standardised differences for every column, text columns too (binary = "std"), with the guide 0.1; never p-values for balance (Austin 2009).
-- `table.compare_balanced_groups_of method="matching"` (1): 1:1 nearest-neighbour matching on the propensity score without replacement, MatchIt's default; match_within= adds a caliper in standard deviations of the logit of the score (Austin 2011).
-- `table.compare_balanced_groups_of method="matching"` (2): standard errors clustered on the matched pairs, as the MatchIt vignette does.
+- `table.compare_balanced_groups_of test_method="matching"` (1): 1:1 nearest-neighbour matching on the propensity score without replacement, MatchIt's default; match_within= adds a caliper in standard deviations of the logit of the score (Austin 2011).
+- `table.compare_balanced_groups_of test_method="matching"` (2): standard errors clustered on the matched pairs, as the MatchIt vignette does.
 - `table.compare_risks show="attributable fractions"` (1): the risk-based fractions of a cohort (method = "cohort.count"), with Wald intervals from the risk ratio; crude, not adjusted for other columns.
 - `table.rate_of standard_population=` (1): "whole table": the standard population is the person-time of all rows in each band.
 - `table.rate_of standard_population=` (2): direct standardisation with Fay & Feuer's gamma interval (epiR, the same as epitools::ageadjust.direct()).
@@ -3444,21 +3444,21 @@ Where simplydata's default differs from the package underneath, it is listed her
 - `table.compare_averages_of period=` (2): the EMA (2010) model with all effects fixed, on the log scale.
 - `table.compare_averages_of period=` (3): the 90 % interval, the same as two one-sided tests at 5 % each; the ratio and its interval taken back from logs.
 - `table.find_correlation_between empty_cells="multiple imputation"` (1): Fisher's z of each filled-in table pooled with Rubin's rules and taken back to r (van Buuren 2018, section 5.2).
-- `table.compare_averages_of bayesian=True` (1): the JZS prior of medium width (a Cauchy prior on the effect size, r = 0.707; Rouder et al. 2009), BayesFactor's default; prior_width= changes it.
-- `table.compare_averages_of bayesian=True` (2): with_seed=1: R's set.seed() before BayesFactor::posterior() (10,000 draws), so the interval is the same on every run; the Bayes factor itself is worked out without random draws.
-- `table.compare_before_and_after bayesian=True` (1): the change is after minus before (x = after, y = before), with the JZS prior of medium width.
-- `table.compare_before_and_after bayesian=True` (2): with_seed=1: R's set.seed() before BayesFactor::posterior() (10,000 draws), so the interval is the same on every run; the Bayes factor itself is worked out without random draws.
-- `table.compare_average_to bayesian=True` (1): x - 5 rather than mu = 5: BayesFactor's posterior() leaves mu = out (its draws are those of mu = 0), while its Bayes factor takes mu away inside; so the Bayes factor is the same and the posterior is that of the average minus 5.
-- `table.compare_average_to bayesian=True` (2): with_seed=1: R's set.seed() before BayesFactor::posterior() (10,000 draws), so the interval is the same on every run; the Bayes factor itself is worked out without random draws.
-- `table.find_correlation_between bayesian=True` (1): the stretched beta prior of medium width 1/3 (BayesFactor's default; JASP's default of 1 gives other Bayes factors).
-- `table.find_correlation_between bayesian=True` (2): with_seed=1: R's set.seed() before BayesFactor::posterior() (10,000 draws), so the interval is the same on every run; the Bayes factor itself is worked out without random draws.
-- `table.compare_counts_of bayesian=True` (1): independent multinomial sampling with each group's total fixed: the groups are the rows (fixedMargin = "rows"), with the Gunel-Dickey prior of concentration 1 (BayesFactor's default).
-- `table.compare_counts_of bayesian=True` (2): with_seed=1: R's set.seed() before BayesFactor::posterior() (10,000 draws), so the interval is the same on every run; the Bayes factor itself is worked out without random draws.
-- `table.explain bayesian=True` (1): rstanarm's defaults written out: 4 chains of 2000 iterations (1000 warm-up), its weakly informative priors scaled to the data (printed from prior_summary()), seed = with_seed and cores = 1 (no worker processes).
-- `table.explain bayesian=True` (2): the posterior median and the central 95 % interval (posterior_interval()); R-hat, bulk and tail effective sample sizes from the posterior package (rank-normalised, Vehtari et al. 2021), not the older Rhat and n_eff of rstanarm's summary().
-- `table.explain bayesian=True, grouped_by=` (1): a mixed model with its own starting level for each school, (1 \| school), rstanarm's decov prior for the group spread; otherwise as explain(bayesian=True).
-- `table.check_model_of bayesian=True` (1): 50 sets of made-up values from the fitted model (posterior_predict(draws = 50)), as bayesplot's pp_check() shows by default.
-- `table.check_model_of bayesian=True` (2): each set and the data as a density on one grid from the smallest to the largest value, R stats::density() with its bw.nrd0 bandwidth, the rule bayesplot::ppc_dens_overlay uses through ggplot2; the lines are drawn with matplotlib.
+- `table.compare_averages_of test_method="bayesian"` (1): the JZS prior of medium width (a Cauchy prior on the effect size, r = 0.707; Rouder et al. 2009), BayesFactor's default; prior_width= changes it.
+- `table.compare_averages_of test_method="bayesian"` (2): with_seed=1: R's set.seed() before BayesFactor::posterior() (10,000 draws), so the interval is the same on every run; the Bayes factor itself is worked out without random draws.
+- `table.compare_before_and_after test_method="bayesian"` (1): the change is after minus before (x = after, y = before), with the JZS prior of medium width.
+- `table.compare_before_and_after test_method="bayesian"` (2): with_seed=1: R's set.seed() before BayesFactor::posterior() (10,000 draws), so the interval is the same on every run; the Bayes factor itself is worked out without random draws.
+- `table.compare_average_to test_method="bayesian"` (1): x - 5 rather than mu = 5: BayesFactor's posterior() leaves mu = out (its draws are those of mu = 0), while its Bayes factor takes mu away inside; so the Bayes factor is the same and the posterior is that of the average minus 5.
+- `table.compare_average_to test_method="bayesian"` (2): with_seed=1: R's set.seed() before BayesFactor::posterior() (10,000 draws), so the interval is the same on every run; the Bayes factor itself is worked out without random draws.
+- `table.find_correlation_between test_method="bayesian"` (1): the stretched beta prior of medium width 1/3 (BayesFactor's default; JASP's default of 1 gives other Bayes factors).
+- `table.find_correlation_between test_method="bayesian"` (2): with_seed=1: R's set.seed() before BayesFactor::posterior() (10,000 draws), so the interval is the same on every run; the Bayes factor itself is worked out without random draws.
+- `table.compare_counts_of test_method="bayesian"` (1): independent multinomial sampling with each group's total fixed: the groups are the rows (fixedMargin = "rows"), with the Gunel-Dickey prior of concentration 1 (BayesFactor's default).
+- `table.compare_counts_of test_method="bayesian"` (2): with_seed=1: R's set.seed() before BayesFactor::posterior() (10,000 draws), so the interval is the same on every run; the Bayes factor itself is worked out without random draws.
+- `table.explain test_method="bayesian"` (1): rstanarm's defaults written out: 4 chains of 2000 iterations (1000 warm-up), its weakly informative priors scaled to the data (printed from prior_summary()), seed = with_seed and cores = 1 (no worker processes).
+- `table.explain test_method="bayesian"` (2): the posterior median and the central 95 % interval (posterior_interval()); R-hat, bulk and tail effective sample sizes from the posterior package (rank-normalised, Vehtari et al. 2021), not the older Rhat and n_eff of rstanarm's summary().
+- `table.explain test_method="bayesian", grouped_by=` (1): a mixed model with its own starting level for each school, (1 \| school), rstanarm's decov prior for the group spread; otherwise as explain(test_method="bayesian").
+- `table.check_model_of test_method="bayesian"` (1): 50 sets of made-up values from the fitted model (posterior_predict(draws = 50)), as bayesplot's pp_check() shows by default.
+- `table.check_model_of test_method="bayesian"` (2): each set and the data as a density on one grid from the smallest to the largest value, R stats::density() with its bw.nrd0 bandwidth, the rule bayesplot::ppc_dens_overlay uses through ggplot2; the lines are drawn with matplotlib.
 
 ## Datasets
 
