@@ -1992,7 +1992,7 @@ class SummaryWords:
                 raise SimplydataError(f"{step}() with rows_back= gives the cross-correlation, which is "
                                       'Pearson\'s r (as R ccf()); leave out test_method= and show=.')
             return self._cross_correlation(step, names, rows_back, sorted_by)
-        self._check_choice(step, "test_method", test_method, CORRELATION_METHODS)
+        self._check_choice(step, "test_method", test_method, CORRELATION_METHODS + ("bayesian",))
         from .imputation_more import MULTIPLE, read_empty_cells
 
         if read_empty_cells(step, empty_cells, f'table.{step}("{names[0]}", "{names[1]}")') == MULTIPLE:

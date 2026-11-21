@@ -828,7 +828,7 @@ class StatTestWords:
         self._check_based_on(step, based_on)
         self._check_choice(step, "p_value_by", p_value_by, ("formula", "shuffling"))
         if test_method is not None:
-            self._check_choice(step, "test_method", test_method, AVERAGE_TESTS)
+            self._check_choice(step, "test_method", test_method, AVERAGE_TESTS + ("bayesian",))
             if based_on == "ranks" and test_method not in RANK_LIKE:
                 raise SimplydataError(
                     f'test_method="{test_method}" compares averages, but based_on="ranks" asks for ranks. '
@@ -2067,7 +2067,7 @@ class StatTestWords:
             raise SimplydataError('p_value_by="exact" is for yes/no columns (McNemar\'s exact test). For numbers, the '
                                   'Wilcoxon test (based_on="ranks") is already exact for small groups.')
         if test_method is not None:
-            self._check_choice(step, "test_method", test_method, ("sign",))
+            self._check_choice(step, "test_method", test_method, ("sign", "bayesian"))
             return self._sign_test(step, before, after, sides, higher, lower, alternative)
         b, a = self._number_values(step, [before, after])
         if len(a) < 2:
@@ -2212,7 +2212,7 @@ class StatTestWords:
                 raise SimplydataError(f'standard_deviation= is the known spread for the z-test, so it goes with '
                                       f'test_method="z": table.compare_average_to("{column}", {shown}, test_method="z", '
                                       f"standard_deviation={standard_deviation!r}).")
-            self._check_choice(step, "test_method", test_method, ("z",))
+            self._check_choice(step, "test_method", test_method, ("z", "bayesian"))
             return self._z_test(step, column, values, float(value), standard_deviation, based_on, alt, up, shown)
         row, r = self._one_sample(step, values, f'value of "{column}"', float(value), based_on, what,
                                   f'the values of "{column}"', alt)
@@ -2344,7 +2344,7 @@ class StatTestWords:
         self._need_columns(column, for_each_group_in)
         bayesian = self._check_bayesian(step, test_method)
         if test_method is not None and not bayesian:
-            self._check_choice(step, "test_method", test_method, COUNT_TESTS + ("trend",))
+            self._check_choice(step, "test_method", test_method, COUNT_TESTS + ("trend", "bayesian"))
         self._check_choice(step, "p_value_by", p_value_by, ("formula", "exact", "shuffling"))
         if show is not None:
             self._check_choice(step, "show", show, ("cells",))
