@@ -5121,7 +5121,7 @@ Start a chart. \code{sdata.\allowbreak{}chart(sdata.\allowbreak{}get\_\allowbrea
 \code{fast=} & normally \code{False}\\
 \end{optiontable}
 
-\wordfield{Underneath}{pandas reads the file (Polars for big files); the chart is drawn with matplotlib and seaborn}
+\wordfield{Underneath}{seaborn \code{scatterplot()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -5130,6 +5130,23 @@ chart = sdata.chart(marks)
 chart.draw_dots(x="hours", y="marks")
 chart.save("my_chart.png")
 \end{lstlisting}
+\begin{center}\begin{minipage}{\linewidth}\centering
+\includegraphics[width=0.52\textwidth,height=0.26\textheight,keepaspectratio]{figures/underneath_sdata_chart.pdf}
+\captionof*{figure}{The chart simplydata draws. The code below draws the same dots, without simplydata's paper look.}
+\end{minipage}\end{center}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{seaborn}}
+\underlib{seaborn}
+\begin{lstlisting}[style=under]
+import matplotlib.pyplot as plt
+import seaborn as sns
+df = sdata.get_example("marks")
+# chart(df): the figure and its axes
+fig, ax = plt.subplots()
+sns.scatterplot(df, x="hours", y="marks", ax=ax)
+\end{lstlisting}
+\undertext{\code{sdata.\allowbreak{}chart()} keeps the table (or reads a file with pandas) and makes the figure when the first chart word draws on it. simplydata's paper look (fonts, colours, no top and right lines) is left out here.}
+\undertext{\textit{Checked:} a test runs both and compares the dots, the axis labels and the axis ranges (the chart's data, not its pixels).}
+\end{underneathbox}
 \wordentry{sdata.get\_example()}{word:sdata.get-example}
 A small table to practise with. \code{sdata.\allowbreak{}get\_\allowbreak{}example(\textquotedbl{}marks\textquotedbl{})}
 
@@ -5141,7 +5158,7 @@ The tables are: marks, weather, fruit, growth, sensor, visitors, river, shop, sc
 \code{name=} & \\
 \end{optiontable}
 
-\wordfield{Underneath}{pandas (\code{read\_\allowbreak{}csv} of a small file inside simplydata)}
+\wordfield{Underneath}{pandas \code{read\_\allowbreak{}csv()}, \code{files()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -5149,6 +5166,19 @@ sdata.get_example()
 marks = sdata.get_example("marks")
 print(marks)
 \end{lstlisting}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{pandas}}
+\underlib{pandas}
+\begin{lstlisting}[style=under]
+from importlib.resources import files
+import pandas as pd
+# get_example("shop")
+pd.read_csv(files("simplydata.data") / "shop.csv", parse_dates=["date"])   # (1)
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) a column of dates is read as dates (\code{parse\_\allowbreak{}dates=}), so date words work on it at once.}
+\undertext{\code{sdata.\allowbreak{}get\_\allowbreak{}example()} with no name lists every practice table and its columns.}
+\undertext{\textit{Checked:} a test runs both and compares the table.}
+\end{underneathbox}
 \wordentry{chart.show()}{word:show}
 Show the chart in a window. \code{chart.\allowbreak{}show()}
 
@@ -6069,7 +6099,7 @@ The cluster tree (a dendrogram): which rows join first, and at what distance.
 \end{optiontable}
 
 \wordfield{Why this method}{\hyperref[basis:draw-cluster-tree]{How simplydata chooses methods}, page \pageref{basis:draw-cluster-tree}: the default, the evidence and the checks.}
-\wordfield{Underneath}{SciPy \code{iloc.\allowbreak{}to\_\allowbreak{}numpy()}, \code{linkage()}, \code{pdist()}, \code{dendrogram()}, \code{zip()}, \code{plot()}, \code{set\_\allowbreak{}xticks()}, \code{range()}}
+\wordfield{Underneath}{SciPy \code{iloc.\allowbreak{}to\_\allowbreak{}numpy()}, \code{iloc[]}, \code{linkage()}, \code{pdist()}, \code{dendrogram()}, \code{zip()}, \code{plot()}, \code{set\_\allowbreak{}xticks()}, \code{range()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -7491,13 +7521,27 @@ Reading options, for files whose values are written differently:\\
 \code{table\_\allowbreak{}number=} & \\
 \end{optiontable}
 
-\wordfield{Underneath}{pandas or Polars read the file; narwhals lets every table word run on both}
+\wordfield{Underneath}{pandas \code{str()}, \code{files()}, \code{read\_\allowbreak{}csv()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
 table = sdata.table(sdata.get_example("marks"))
 table.show_first_rows()
 \end{lstlisting}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{pandas}}
+\underlib{pandas}
+\begin{lstlisting}[style=under]
+from importlib.resources import files
+import pandas as pd
+path = str(files("simplydata.data") / "marks.csv")   # the practice file inside simplydata
+# table(path)
+pd.read_csv(path, sep=None, engine="python")         # (1)
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) the separator is guessed from the file (\code{sep=None}), so a file with ; or tabs between the values is read too; \code{separator=} sets it yourself.}
+\undertext{simplydata reads the file with pandas (\code{fast=True}: with Polars), finds the type from the end of the name (\code{.\allowbreak{}xlsx}, \code{.\allowbreak{}csv}, \code{.\allowbreak{}tsv}, \code{.\allowbreak{}parquet}, \code{.\allowbreak{}json}, Word, SPSS, Stata) and keeps it ready for table words. A pandas or Polars table you already have is used as it is.}
+\undertext{\textit{Checked:} a test runs both and compares the table.}
+\end{underneathbox}
 \wordentry{table.show\_first\_rows()}{word:table.show-first-rows}
 Show the first rows, numbered from 1. \code{table.\allowbreak{}show\_\allowbreak{}first\_\allowbreak{}rows(5)}
 
@@ -7506,13 +7550,27 @@ Show the first rows, numbered from 1. \code{table.\allowbreak{}show\_\allowbreak
 \code{rows=} & normally \code{5}\\
 \end{optiontable}
 
-\wordfield{Underneath}{narwhals, which runs the step in pandas or Polars (whichever holds the table)}
+\wordfield{Underneath}{pandas \code{head()}, \code{range()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
 table = sdata.table(sdata.get_example("marks"))
 table.show_first_rows(10)
 \end{lstlisting}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{pandas}}
+\underlib{pandas}
+\begin{lstlisting}[style=under]
+df = sdata.get_example("marks")
+# show_first_rows(rows=3)
+first = df.head(3)
+first.index = range(1, 4)        # (1)
+print(first)
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) the rows are numbered from 1, the way people count; pandas numbers them from 0. Only what is shown changes: \code{as\_\allowbreak{}pandas()} still gives the table with pandas' own row labels.}
+\undertext{A Polars table has no row labels, so simplydata shows it through pandas with the same numbers. In Jupyter or VS Code the rows are shown as a table instead of text.}
+\undertext{\textit{Checked:} a test runs both and compares what both print (each line the code prints appears in what simplydata prints) (on a pandas and on a Polars table).}
+\end{underneathbox}
 \wordentry{table.show\_last\_rows()}{word:table.show-last-rows}
 Show the last rows, with their row numbers in the whole table. \code{table.\allowbreak{}show\_\allowbreak{}last\_\allowbreak{}rows(5)}
 
@@ -7569,13 +7627,35 @@ Describe every column: its kind, empty cells, smallest, biggest and average.
 
 \wordfield{Options}{none: just write the empty brackets.}
 
-\wordfield{Underneath}{narwhals, which runs the step in pandas or Polars (whichever holds the table)}
+\wordfield{Underneath}{pandas \code{select\_\allowbreak{}dtypes()}, \code{str()}, \code{round()}, \code{isna().\allowbreak{}sum()}, \code{nice()}, \code{min()}, \code{max()}, \code{mean()}, \code{nunique()}, \code{zip()}, \code{DataFrame().\allowbreak{}to\_\allowbreak{}string()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
 table = sdata.table(sdata.get_example("marks"))
 table.describe_columns()
 \end{lstlisting}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{pandas}}
+\underlib{pandas}
+\begin{lstlisting}[style=under]
+import pandas as pd
+df = sdata.get_example("marks")
+# describe_columns()
+print(f"The table has {len(df)} rows and {df.shape[1]} columns.\n")
+numbers = [c in df.select_dtypes("number") for c in df.columns]
+nice = lambda v: str(int(v)) if float(v).is_integer() else str(round(v, 2))   # (1)
+rows = [{"column": c, "kind": "number" if n else "text", "empty cells": df[c].isna().sum(),
+         "smallest": nice(df[c].min()) if n else "", "biggest": nice(df[c].max()) if n else "",
+         "average": nice(df[c].mean()) if n else "",
+         "different values": "" if n else str(df[c].nunique())}           # (2)
+        for c, n in zip(df.columns, numbers)]
+print(pd.DataFrame(rows).to_string(index=False))
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) numbers are written for people: whole numbers without .0, others rounded to 2 decimals.}
+\undertext{(2) text columns get the number of different values (empty cells left out), number columns the smallest, biggest and average (empty cells left out, as pandas does).}
+\undertext{Date columns get their first and last date, and true/false columns their number of different values; this table has neither. Text that is blank or only spaces counts as an empty cell (\code{isna()} would not count it). pandas' own \code{df.\allowbreak{}describe()} gives the numbers in another layout.}
+\undertext{\textit{Checked:} a test runs both and compares what both print (each line the code prints appears in what simplydata prints) (on a pandas and on a Polars table).}
+\end{underneathbox}
 \wordentry{table.get\_column()}{word:table.get-column}
 One column on its own: a column of numbers becomes \code{sdata.\allowbreak{}numbers}, any other a plain list.
 
@@ -7655,7 +7735,7 @@ Keep only these columns: by name (in the order you list them), a run of names, o
 \code{matches\_\allowbreak{}pattern=} & \\
 \end{optiontable}
 
-\wordfield{Underneath}{narwhals, which runs the step in pandas or Polars (whichever holds the table)}
+\wordfield{Underneath}{Polars \code{select()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -7668,6 +7748,23 @@ table.start_again()
 table.keep_columns(of_kind="number")
 table.show_first_rows()
 \end{lstlisting}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{pandas}\libbadge{Polars}}
+\underlib{pandas}
+\begin{lstlisting}[style=under]
+df = sdata.get_example("marks")
+# keep_columns("name", "marks")
+df[["name", "marks"]]
+\end{lstlisting}
+\underlib{Polars}
+\begin{lstlisting}[style=under]
+import polars as pl
+df = pl.from_pandas(sdata.get_example("marks"))
+# keep_columns("name", "marks")
+df.select("name", "marks")
+\end{lstlisting}
+\undertext{The columns come in the order you list them. \code{to=}, \code{of\_\allowbreak{}kind=}, \code{starts\_\allowbreak{}with=} and the others choose columns by a run, a kind or their names. simplydata also says in a sentence what changed, and keeps the table before the step (undo).}
+\undertext{\textit{Checked:} a test runs both and compares the table (on a pandas and on a Polars table).}
+\end{underneathbox}
 \wordentry{table.remove\_columns()}{word:table.remove-columns}
 Remove these columns: by name, a run of names, or by kind.
 
@@ -7748,7 +7845,7 @@ Give a column a new name.
 \code{to=} & \\
 \end{optiontable}
 
-\wordfield{Underneath}{narwhals, which runs the step in pandas or Polars (whichever holds the table)}
+\wordfield{Underneath}{pandas \code{rename()} \textperiodcentered{} Polars \code{rename()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -7756,6 +7853,23 @@ table = sdata.table(sdata.get_example("marks"))
 table.rename_column("marks", to="score")
 table.show_first_rows()
 \end{lstlisting}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{pandas}\libbadge{Polars}}
+\underlib{pandas}
+\begin{lstlisting}[style=under]
+df = sdata.get_example("marks")
+# rename_column("marks", to="score")
+df.rename(columns={"marks": "score"})
+\end{lstlisting}
+\underlib{Polars}
+\begin{lstlisting}[style=under]
+import polars as pl
+df = pl.from_pandas(sdata.get_example("marks"))
+# rename_column("marks", to="score")
+df.rename({"marks": "score"})
+\end{lstlisting}
+\undertext{simplydata stops with a message when the new name is already a column (pandas would give two columns with one name). simplydata also says in a sentence what changed, and keeps the table before the step (undo).}
+\undertext{\textit{Checked:} a test runs both and compares the table (on a pandas and on a Polars table).}
+\end{underneathbox}
 \unsection{Choose rows}{group:Choose-rows}
 \wordentry{table.keep\_rows\_where()}{word:table.keep-rows-where}
 Keep only the rows that match a condition.
@@ -7896,7 +8010,7 @@ Both ends are included, so rows 10 to 20 are 11 rows. \code{to=\textquotedbl{}la
 \code{step=} & \\
 \end{optiontable}
 
-\wordfield{Underneath}{narwhals, which runs the step in pandas or Polars (whichever holds the table)}
+\wordfield{Underneath}{pandas \code{iloc[]} \textperiodcentered{} Polars \code{slice()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -7906,6 +8020,25 @@ table.keep_rows_by_position(10, to=20)
 table.keep_rows_by_position(1, step=2)
 table.show()
 \end{lstlisting}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{pandas}\libbadge{Polars}}
+\underlib{pandas}
+\begin{lstlisting}[style=under]
+df = sdata.get_example("marks")
+# keep_rows_by_position(10, to=20)
+df.iloc[9:20]                    # (1)
+\end{lstlisting}
+\underlib{Polars}
+\begin{lstlisting}[style=under]
+import polars as pl
+df = pl.from_pandas(sdata.get_example("marks"))
+# keep_rows_by_position(10, to=20)
+df.slice(9, 11)                  # (1)
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) rows are counted from 1 and both ends are kept, so rows 10 to 20 are 11 rows: Python's 9:20 (it counts from 0 and leaves out the end); in Polars, 11 rows from row 9.}
+\undertext{\code{step=} keeps every n-th row and a list keeps those rows in that order. simplydata also says in a sentence what changed, and keeps the table before the step (undo).}
+\undertext{\textit{Checked:} a test runs both and compares the table (on a pandas and on a Polars table).}
+\end{underneathbox}
 \wordentry{table.remove\_rows\_by\_position()}{word:table.remove-rows-by-position}
 Remove rows by their position, counting from 1: a run, every n-th row, or a list.
 
@@ -8069,13 +8202,32 @@ Show the rows whose value in a column is an outlier, and say why (the table does
 \end{optiontable}
 
 \wordfield{Why this method}{\hyperref[basis:table.show-rows-with-outliers]{How simplydata chooses methods}, page \pageref{basis:table.show-rows-with-outliers}: the default, the evidence and the checks.}
-\wordfield{Underneath}{narwhals (quartiles, average and standard deviation per group); R outliers::grubbs.test, dixon.test and EnvStats::rosnerTest for the test rules (simplydata[r])}
+\wordfield{Underneath}{pandas \code{groupby()}, \code{transform()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
 table = sdata.table(sdata.get_example("marks"))
 table.show_rows_with_outliers("marks", for_each_group_in="class")
 \end{lstlisting}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{pandas}}
+\underlib{pandas}
+\begin{lstlisting}[style=under]
+df = sdata.get_example("marks")
+# show_rows_with_outliers("marks", for_each_group_in="class")
+marks = df.groupby("class", dropna=False)["marks"]
+q1, q3 = marks.transform("quantile", 0.25), marks.transform("quantile", 0.75)   # (1)
+far = 1.5 * (q3 - q1)
+found = df[(df["marks"] < q1 - far) | (df["marks"] > q3 + far)]                  # (2)
+found.index = found.index + 1                                                   # (3)
+print(found)
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) the quartiles of each class by pandas' (and R's type 7) linear method; rows with an empty class are a group of their own (\code{dropna=False}).}
+\undertext{(2) Tukey's rule, the one box plots use: below Q1 - 1.5 x IQR or above Q3 + 1.5 x IQR.}
+\undertext{(3) each row is shown with its place in the whole table, counted from 1, so \code{remove\_\allowbreak{}rows\_\allowbreak{}by\_\allowbreak{}position()} can follow.}
+\undertext{simplydata also prints the limits of each group and how many rows it found; the table does not change. \code{test\_\allowbreak{}method=} takes \code{\textquotedbl{}3 IQR\textquotedbl{}}, \code{\textquotedbl{}3 standard deviations\textquotedbl{}} or a test run in R (Grubbs, Dixon, Rosner).}
+\undertext{\textit{Checked:} a test runs both and compares what both print (each line the code prints appears in what simplydata prints) (on a pandas and on a Polars table).}
+\end{underneathbox}
 \wordentry{table.remove\_rows\_with\_outliers()}{word:table.remove-rows-with-outliers}
 Remove the rows whose value in a column is an outlier, and say how many and why.
 
@@ -8170,7 +8322,7 @@ Fill the empty cells of a column with a value, or with the average, median, valu
 \code{for\_\allowbreak{}each\_\allowbreak{}group\_\allowbreak{}in=} & \\
 \end{optiontable}
 
-\wordfield{Underneath}{narwhals; NumPy (interp) for the line between neighbours; SciPy (CubicSpline, PchipInterpolator) for the curves}
+\wordfield{Underneath}{pandas \code{assign()}, \code{fillna()}, \code{median()} \textperiodcentered{} Polars \code{with\_\allowbreak{}columns()}, \code{col().\allowbreak{}fill\_\allowbreak{}null()}, \code{col().\allowbreak{}median()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -8179,6 +8331,25 @@ table.fill_empty_cells_in("customers", with_the="median")
 table.fill_empty_cells_in("sales", with_the="line between neighbours", sorted_by="date", for_each_group_in="shop")
 table.count_empty_cells_in()
 \end{lstlisting}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{pandas}\libbadge{Polars}}
+\underlib{pandas}
+\begin{lstlisting}[style=under]
+df = sdata.get_example("shop")
+# fill_empty_cells_in("customers", with_the="median")
+df.assign(customers=df["customers"].fillna(df["customers"].median()))   # (1)
+\end{lstlisting}
+\underlib{Polars}
+\begin{lstlisting}[style=under]
+import polars as pl
+df = pl.from_pandas(sdata.get_example("shop"))
+# fill_empty_cells_in("customers", with_the="median")
+df.with_columns(pl.col("customers").fill_null(pl.col("customers").median()))   # (1)
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) the median of the filled cells of the whole column (the empty cells left out).}
+\undertext{\code{with\_\allowbreak{}the=\textquotedbl{}value above\textquotedbl{}} and \code{\textquotedbl{}value below\textquotedbl{}} copy a neighbour (ffill, bfill), and \code{\textquotedbl{}line between neighbours\textquotedbl{}} draws a straight line across each gap. simplydata also says how many cells it filled.}
+\undertext{\textit{Checked:} a test runs both and compares the table (on a pandas and on a Polars table).}
+\end{underneathbox}
 \wordentry{table.add\_is\_empty\_column()}{word:table.add-is-empty-column}
 Add a true/false column: True where a cell of \code{from\_\allowbreak{}column} is empty.
 
@@ -8213,7 +8384,7 @@ Understands 12.5, -3, 1e3, 1 200 and 1,200 (thousands) and 12,5 (decimal comma).
 \code{column=} & \\
 \end{optiontable}
 
-\wordfield{Underneath}{narwhals, which runs the step in pandas or Polars (whichever holds the table)}
+\wordfield{Underneath}{pandas \code{DataFrame()}, \code{str.\allowbreak{}replace()}, \code{str.\allowbreak{}fullmatch()}, \code{where()}, \code{assign()}, \code{where().\allowbreak{}astype()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -8221,6 +8392,27 @@ table = sdata.table(sdata.get_example("marks"))
 table.turn_into_numbers("marks")
 table.describe_columns()
 \end{lstlisting}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{pandas}}
+\underlib{pandas}
+\begin{lstlisting}[style=under]
+import pandas as pd
+df = pd.DataFrame({"price": ["12.5", "1,200", "12,5", " 3 ", "n/a", None]})
+# turn_into_numbers("price")
+text = df["price"].str.replace(r"\s", "", regex=True)
+thousands = text.str.fullmatch(r"[+-]?\d{1,3}(,\d{3})+(\.\d+)?", na=False)   # (1)
+comma = text.str.fullmatch(r"[+-]?\d*,\d+", na=False) & ~thousands          # (2)
+text = text.where(~thousands, text.str.replace(",", ""))
+text = text.where(~comma, text.str.replace(",", "."))
+number = text.str.fullmatch(r"[+-]?(\d+(\.\d*)?|\.\d+)([eE][+-]?\d+)?", na=False)
+df.assign(price=text.where(number).astype(float))                          # (3)
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) a comma between groups of three digits is a thousands mark: 1,200 is twelve hundred.}
+\undertext{(2) any other single comma is a decimal comma: 12,5 is twelve and a half.}
+\undertext{(3) a cell that is not a number after that becomes empty, as \code{pd.\allowbreak{}to\_\allowbreak{}numeric(errors=\textquotedbl{}coerce\textquotedbl{})}; simplydata says how many and shows up to 3 of them. Blank text is simply empty.}
+\undertext{Spaces inside a number are left out first (1 200). A true/false column becomes 1 and 0, and a column that is already numbers is left as it is.}
+\undertext{\textit{Checked:} a test runs both and compares the table (on a pandas and on a Polars table).}
+\end{underneathbox}
 \wordentry{table.turn\_into\_text()}{word:table.turn-into-text}
 Turn a column into text.
 
@@ -8306,7 +8498,7 @@ Remove spaces at the start and end of the text, and double spaces inside it.
 \code{column=} & \\
 \end{optiontable}
 
-\wordfield{Underneath}{narwhals, which runs the step in pandas or Polars (whichever holds the table)}
+\wordfield{Underneath}{pandas \code{DataFrame()}, \code{assign()}, \code{str.\allowbreak{}replace().\allowbreak{}str.\allowbreak{}strip()} \textperiodcentered{} Polars \code{DataFrame()}, \code{with\_\allowbreak{}columns()}, \code{col().\allowbreak{}str.\allowbreak{}replace\_\allowbreak{}all().\allowbreak{}str.\allowbreak{}strip\_\allowbreak{}chars()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -8314,6 +8506,24 @@ table = sdata.table(sdata.get_example("marks"))
 table.remove_extra_spaces_in("name")
 table.show_first_rows()
 \end{lstlisting}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{pandas}\libbadge{Polars}}
+\underlib{pandas}
+\begin{lstlisting}[style=under]
+import pandas as pd
+df = pd.DataFrame({"name": ["  Asha ", "Ben   Lee", "Cara"]})
+# remove_extra_spaces_in("name")
+df.assign(name=df["name"].str.replace(r"\s+", " ", regex=True).str.strip())
+\end{lstlisting}
+\underlib{Polars}
+\begin{lstlisting}[style=under]
+import polars as pl
+df = pl.DataFrame({"name": ["  Asha ", "Ben   Lee", "Cara"]})
+# remove_extra_spaces_in("name")
+df.with_columns(pl.col("name").str.replace_all(r"\s+", " ").str.strip_chars())
+\end{lstlisting}
+\undertext{Any run of spaces, tabs or line breaks inside the text becomes one space. simplydata also says in a sentence what changed, and keeps the table before the step (undo).}
+\undertext{\textit{Checked:} a test runs both and compares the table (on a pandas and on a Polars table).}
+\end{underneathbox}
 \wordentry{table.replace\_values\_in()}{word:table.replace-values-in}
 Replace a value (or a list of values) in a column; \code{with\_\allowbreak{}value=None} makes those cells empty.
 
@@ -8342,7 +8552,7 @@ With \{old: new\}, every cell is looked up once in the original column, so \{\co
 \code{is\_\allowbreak{}before=} & \\
 \end{optiontable}
 
-\wordfield{Underneath}{narwhals, which runs the step in pandas or Polars (whichever holds the table)}
+\wordfield{Underneath}{pandas \code{assign()}, \code{mask()} \textperiodcentered{} Polars \code{col()}, \code{with\_\allowbreak{}columns()}, \code{when().\allowbreak{}then().\allowbreak{}otherwise().\allowbreak{}alias()}, \code{lit()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -8352,6 +8562,24 @@ table.count_each("subject")
 table.replace_values_in("marks", is_above=90, with_value=90)
 table.find_biggest_of("marks")
 \end{lstlisting}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{pandas}\libbadge{Polars}}
+\underlib{pandas}
+\begin{lstlisting}[style=under]
+df = sdata.get_example("marks")
+# replace_values_in("subject", "Maths", with_value="Math")
+df.assign(subject=df["subject"].mask(df["subject"] == "Maths", "Math"))
+\end{lstlisting}
+\underlib{Polars}
+\begin{lstlisting}[style=under]
+import polars as pl
+df = pl.from_pandas(sdata.get_example("marks"))
+# replace_values_in("subject", "Maths", with_value="Math")
+subject = pl.col("subject")
+df.with_columns(pl.when(subject == "Maths").then(pl.lit("Math")).otherwise(subject).alias("subject"))
+\end{lstlisting}
+\undertext{A dictionary \{old: new\} replaces several values at once, each cell looked up in the original column (so \{\code{\textquotedbl{}A\textquotedbl{}}: \code{\textquotedbl{}B\textquotedbl{}}, \code{\textquotedbl{}B\textquotedbl{}}: \code{\textquotedbl{}A\textquotedbl{}}\} swaps them); \code{is\_\allowbreak{}above=} and the other conditions replace every value that meets one. Empty cells never match. simplydata also says in a sentence what changed, and keeps the table before the step (undo).}
+\undertext{\textit{Checked:} a test runs both and compares the table (on a pandas and on a Polars table).}
+\end{underneathbox}
 \wordentry{table.round\_numbers\_in()}{word:table.round-numbers-in}
 Round numbers to this many decimal places: in one column, a list of columns, or every number column.
 
@@ -8421,7 +8649,7 @@ Numbers go smallest first and text goes A to Z. \code{biggest\_\allowbreak{}firs
 \code{biggest\_\allowbreak{}first=} & normally \code{False}\\
 \end{optiontable}
 
-\wordfield{Underneath}{narwhals, which runs the step in pandas or Polars (whichever holds the table)}
+\wordfield{Underneath}{pandas \code{sort\_\allowbreak{}values()} \textperiodcentered{} Polars \code{sort()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -8429,6 +8657,28 @@ table = sdata.table(sdata.get_example("marks"))
 table.sort_by("marks", biggest_first=True)
 table.show_first_rows()
 \end{lstlisting}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{pandas}\libbadge{Polars}}
+\underlib{pandas}
+\begin{lstlisting}[style=under]
+df = sdata.get_example("shop")
+# sort_by("sales", biggest_first=True)
+df.sort_values("sales", ascending=False, kind="stable",    # (1)
+               na_position="last")                         # (2)
+\end{lstlisting}
+\underlib{Polars}
+\begin{lstlisting}[style=under]
+import polars as pl
+df = pl.from_pandas(sdata.get_example("shop"))
+# sort_by("sales", biggest_first=True)
+df.sort("sales", descending=True, maintain_order=True,     # (1)
+        nulls_last=True)                                   # (2)
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) rows that tie keep the order they had (a stable sort); pandas' own default sort (quicksort) does not promise that.}
+\undertext{(2) empty cells go last, also when the biggest come first (Polars' own default puts them first).}
+\undertext{simplydata also says in a sentence what changed, and keeps the table before the step (undo).}
+\undertext{\textit{Checked:} a test runs both and compares the table (on a pandas and on a Polars table).}
+\end{underneathbox}
 \wordentry{table.add\_column()}{word:table.add-column}
 Add a new column, worked out from other columns in plain words or with a formula.
 
@@ -8469,7 +8719,7 @@ gives each mark as a percent of its class total (with \code{sdata.\allowbreak{}g
 \code{value=} & \\
 \end{optiontable}
 
-\wordfield{Underneath}{narwhals, which runs the step in pandas or Polars (whichever holds the table)}
+\wordfield{Underneath}{pandas \code{assign()} \textperiodcentered{} Polars \code{with\_\allowbreak{}columns()}, \code{alias()}, \code{col()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -8478,6 +8728,23 @@ table.add_column("study_and_marks", by_adding=["hours", "marks"])
 table.add_column("marks_per_hour", "marks / hours")
 table.show_first_rows()
 \end{lstlisting}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{pandas}\libbadge{Polars}}
+\underlib{pandas}
+\begin{lstlisting}[style=under]
+df = sdata.get_example("marks")
+# add_column("marks_per_hour", "marks / hours")
+df.assign(marks_per_hour=df["marks"] / df["hours"])
+\end{lstlisting}
+\underlib{Polars}
+\begin{lstlisting}[style=under]
+import polars as pl
+df = pl.from_pandas(sdata.get_example("marks"))
+# add_column("marks_per_hour", "marks / hours")
+df.with_columns((pl.col("marks") / pl.col("hours")).alias("marks_per_hour"))
+\end{lstlisting}
+\undertext{Dividing by zero gives an empty cell in simplydata (pandas gives inf); no hour is 0 here. The formula is read by simplydata itself, never run as Python code. simplydata also says in a sentence what changed, and keeps the table before the step (undo).}
+\undertext{\textit{Checked:} a test runs both and compares the table (on a pandas and on a Polars table).}
+\end{underneathbox}
 \wordentry{table.add\_group\_column()}{word:table.add-group-column}
 Add a column that puts each row into a group, like turning marks into grades.
 
@@ -8497,7 +8764,7 @@ With rules: each rule is a condition and the group name for rows that meet it. T
 \code{otherwise=} & \\
 \end{optiontable}
 
-\wordfield{Underneath}{narwhals, which runs the step in pandas or Polars (whichever holds the table)}
+\wordfield{Underneath}{pandas \code{cut()}, \code{assign()} \textperiodcentered{} Polars \code{with\_\allowbreak{}columns()}, \code{col().\allowbreak{}cut().\allowbreak{}alias()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -8505,6 +8772,30 @@ table = sdata.table(sdata.get_example("marks"))
 table.add_group_column("grade", from_column="marks", cut_at=[40, 60, 80], names=["D", "C", "B", "A"])
 table.count_each("grade")
 \end{lstlisting}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{pandas}\libbadge{Polars}}
+\underlib{pandas}
+\begin{lstlisting}[style=under]
+import numpy as np
+import pandas as pd
+df = sdata.get_example("marks")
+# add_group_column("grade", from_column="marks", cut_at=[41, 61, 81], names=[...])
+grade = pd.cut(df["marks"], [-np.inf, 41, 61, 81, np.inf],
+               labels=["D", "C", "B", "A"], right=False)       # (1)
+df.assign(grade=grade)
+\end{lstlisting}
+\underlib{Polars}
+\begin{lstlisting}[style=under]
+import polars as pl
+df = pl.from_pandas(sdata.get_example("marks"))
+# add_group_column("grade", from_column="marks", cut_at=[41, 61, 81], names=[...])
+df.with_columns(pl.col("marks").cut([41, 61, 81], labels=["D", "C", "B", "A"],
+                                    left_closed=True).alias("grade"))   # (1)
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) a value exactly on a cut goes into the higher group: a mark of 61 is a B (\code{right=False}, \code{left\_\allowbreak{}closed=True}); pandas and Polars put it in the lower group by default.}
+\undertext{simplydata makes a text column; pandas and Polars make a category column with the same values. Empty cells stay empty. simplydata also says in a sentence what changed, and keeps the table before the step (undo).}
+\undertext{\textit{Checked:} a test runs both and compares the table (on a pandas and on a Polars table).}
+\end{underneathbox}
 \wordentry{table.add\_rank\_column()}{word:table.add-rank-column}
 Add a column with each row's place, where 1 is the best.
 
@@ -8542,7 +8833,7 @@ A z-score of 2 is two standard deviations above the average, -1 one below. It pu
 \end{optiontable}
 
 \wordfield{Why this method}{\hyperref[basis:table.add-z-score-column]{How simplydata chooses methods}, page \pageref{basis:table.add-z-score-column}: the default, the evidence and the checks.}
-\wordfield{Underneath}{SciPy (stats.zscore with \code{ddof=1}, as R \code{scale()})}
+\wordfield{Underneath}{pandas \code{groupby().\allowbreak{}transform()}, \code{assign()} \textperiodcentered{} Polars \code{col()}, \code{with\_\allowbreak{}columns()}, \code{over().\allowbreak{}alias()}, \code{mean()}, \code{std()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -8550,6 +8841,28 @@ table = sdata.table(sdata.get_example("marks"))
 table.add_z_score_column("marks_z", from_column="marks", for_each_group_in="subject")
 table.show_first_rows()
 \end{lstlisting}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{pandas}\libbadge{Polars}}
+\underlib{pandas}
+\begin{lstlisting}[style=under]
+from scipy import stats
+df = sdata.get_example("marks")
+# add_z_score_column("marks_z", from_column="marks", for_each_group_in="subject")
+z = df.groupby("subject")["marks"].transform(stats.zscore, ddof=1, nan_policy="omit")   # (1)
+df.assign(marks_z=z)
+\end{lstlisting}
+\underlib{Polars}
+\begin{lstlisting}[style=under]
+import polars as pl
+df = pl.from_pandas(sdata.get_example("marks"))
+# add_z_score_column("marks_z", from_column="marks", for_each_group_in="subject")
+m = pl.col("marks")
+df.with_columns(((m - m.mean()) / m.std()).over("subject").alias("marks_z"))   # (1)
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) the standard deviation of a sample (n - 1, \code{ddof=1}), as R \code{scale()}; SciPy's zscore uses n unless told \code{ddof=1}.}
+\undertext{Empty cells stay empty, and a group with fewer than 2 numbers gets empty cells. simplydata also says in a sentence what changed, and keeps the table before the step (undo).}
+\undertext{\textit{Checked:} a test runs both and compares the table (on a pandas and on a Polars table).}
+\end{underneathbox}
 \unsection{Dates and text}{group:Dates-and-text}
 \wordentry{table.add\_column\_with\_part\_of\_date()}{word:table.add-column-with-part-of-date}
 Add a column with one part of each date, such as its year, month or weekday.
@@ -8672,7 +8985,7 @@ Add a rolling (moving) summary: for each row, the average of this row and the ro
 \code{center=} & \\
 \end{optiontable}
 
-\wordfield{Underneath}{narwhals (\code{rolling\_\allowbreak{}mean}, \code{rolling\_\allowbreak{}sum}, \code{rolling\_\allowbreak{}std} with \code{over(order\_\allowbreak{}by=)}); pandas or Polars rolling for median, smallest and biggest}
+\wordfield{Underneath}{pandas \code{sort\_\allowbreak{}values()}, \code{groupby().\allowbreak{}transform()}, \code{rolling().\allowbreak{}sum()}, \code{assign()} \textperiodcentered{} Polars \code{col().\allowbreak{}rolling\_\allowbreak{}sum().\allowbreak{}over()}, \code{with\_\allowbreak{}columns()}, \code{alias()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -8680,6 +8993,29 @@ table = sdata.table(sdata.get_example("weather"))
 table.add_rolling_column("rain_3_months", from_column="rain", window=3, show="total", for_each_group_in="city", sorted_by="month_number")
 table.show_first_rows()
 \end{lstlisting}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{pandas}\libbadge{Polars}}
+\underlib{pandas}
+\begin{lstlisting}[style=under]
+df = sdata.get_example("weather")
+# add_rolling_column("rain_3_months", from_column="rain", window=3, show="total", ...)
+ordered = df.sort_values("month_number", kind="stable")                    # (1)
+total = ordered.groupby("city")["rain"].transform(lambda s: s.rolling(3).sum())  # (2)
+df.assign(rain_3_months=total)
+\end{lstlisting}
+\underlib{Polars}
+\begin{lstlisting}[style=under]
+import polars as pl
+df = pl.from_pandas(sdata.get_example("weather"))
+# add_rolling_column("rain_3_months", from_column="rain", window=3, show="total", ...)
+total = pl.col("rain").rolling_sum(3).over("city", order_by="month_number")   # (1) (2)
+df.with_columns(total.alias("rain_3_months"))
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) the window follows \code{sorted\_\allowbreak{}by=}, but the rows keep their place in the table (assign lines the values up by row).}
+\undertext{(2) the window is this row and the 2 rows before it, within each city; the first 2 rows of each city stay empty until the window is full.}
+\undertext{\code{centre=True} centres the window, \code{window=\textquotedbl{}7 days\textquotedbl{}} makes it a span of time, and \code{show=} takes the median, standard deviation, a percentile and more. simplydata also says in a sentence what changed, and keeps the table before the step (undo).}
+\undertext{\textit{Checked:} a test runs both and compares the table (on a pandas and on a Polars table).}
+\end{underneathbox}
 \wordentry{table.add\_previous\_value\_column()}{word:table.add-previous-value-column}
 Add a column with the value from the row before (or \code{rows\_\allowbreak{}back=} rows before).
 
@@ -9081,13 +9417,37 @@ Several measures of one or more columns at once, in one tidy table.
 \end{optiontable}
 
 \wordfield{Why this method}{\hyperref[basis:table.find-summary-of]{How simplydata chooses methods}, page \pageref{basis:table.find-summary-of}: the default, the evidence and the checks.}
-\wordfield{Underneath}{narwhals (group summaries); SciPy (stats: gmean, variation, \code{median\_\allowbreak{}abs\_\allowbreak{}deviation}, \code{trim\_\allowbreak{}mean}, mode, skew, kurtosis, hmean, mstats.winsorize, and the t distribution for the confidence interval)}
+\wordfield{Underneath}{pandas \code{groupby().\allowbreak{}agg()}, \code{reset\_\allowbreak{}index().\allowbreak{}assign()} \textperiodcentered{} Polars \code{col()}, \code{group\_\allowbreak{}by().\allowbreak{}agg().\allowbreak{}sort()}, \code{mean().\allowbreak{}alias()}, \code{std().\allowbreak{}alias()}, \code{count().\allowbreak{}alias()}, \code{select()}, \code{lit().\allowbreak{}alias()}, \code{all()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
 table = sdata.table(sdata.get_example("marks"))
 table.find_summary_of("marks", for_each_group_in="class", show=["average", "standard deviation", "count"])
 \end{lstlisting}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{pandas}\libbadge{Polars}}
+\underlib{pandas}
+\begin{lstlisting}[style=under]
+df = sdata.get_example("marks")
+# find_summary_of("marks", for_each_group_in="class", show=[...])
+out = df.groupby("class", dropna=False)["marks"].agg(["mean", "std", "count"])   # (1) (2)
+out.reset_index().assign(column="marks")[["column", "class", "mean", "std", "count"]]
+\end{lstlisting}
+\underlib{Polars}
+\begin{lstlisting}[style=under]
+import polars as pl
+df = pl.from_pandas(sdata.get_example("marks"))
+# find_summary_of("marks", for_each_group_in="class", show=[...])
+m = pl.col("marks")
+out = df.group_by("class").agg(m.mean().alias("mean"), m.std().alias("std"),   # (2)
+                               m.count().alias("count")).sort("class")         # (1)
+out.select(pl.lit("marks").alias("column"), pl.all())
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) one row for each group, the groups sorted (A, B, C); rows with an empty group cell form a group of their own, shown last (\code{dropna=False}).}
+\undertext{(2) the standard deviation of a sample (n - 1), as pandas, Polars and R \code{sd()}; NumPy's own default is n.}
+\undertext{simplydata also writes the summary in a sentence; the result is a new table you can save or chart.}
+\undertext{\textit{Checked:} a test runs both and compares the table (on a pandas and on a Polars table).}
+\end{underneathbox}
 \wordentry{table.find\_percent\_of\_rows\_where()}{word:table.find-percent-of-rows-where}
 What percent of the rows meet a condition, or each group's share.
 
@@ -9946,13 +10306,30 @@ Do the groups really differ in how spread out their values are?
 \end{optiontable}
 
 \wordfield{Why this method}{\hyperref[basis:table.compare-spreads-of]{How simplydata chooses methods}, page \pageref{basis:table.compare-spreads-of}: the default, the evidence and the checks.}
-\wordfield{Underneath}{SciPy (stats.levene with \code{center=\textquotedbl{}median\textquotedbl{}}, stats.bartlett, stats.fligner)}
+\wordfield{Underneath}{SciPy \code{dropna()}, \code{groupby()}, \code{levene()}, \code{sum()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
 table = sdata.table(sdata.get_example("marks"))
 table.compare_spreads_of("marks", for_each_group_in="class")
 \end{lstlisting}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{SciPy}}
+\underlib{SciPy}
+\begin{lstlisting}[style=under]
+from scipy import stats
+df = sdata.get_example("marks")
+# compare_spreads_of("marks", for_each_group_in="class")
+groups = [rows["marks"].dropna() for _, rows in df.groupby("class")]
+res = stats.levene(*groups, center="median")                  # (1)
+{"statistic": res.statistic, "p-value": res.pvalue,
+ "degrees of freedom 1": len(groups) - 1,
+ "degrees of freedom 2": sum(len(g) for g in groups) - len(groups)}
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) Levene's test centred on each group's median (the Brown-Forsythe test), the default of SciPy and of R car::\code{leveneTest()}; it copes well with values that are not bell-shaped.}
+\undertext{\code{test\_\allowbreak{}method=} takes \code{\textquotedbl{}bartlett\textquotedbl{}}, \code{\textquotedbl{}fligner\textquotedbl{}} and, for two groups, \code{\textquotedbl{}ansari\textquotedbl{}}, \code{\textquotedbl{}mood\textquotedbl{}} and \code{\textquotedbl{}f\textquotedbl{}} (R \code{var.\allowbreak{}test()}). simplydata also gives each group's standard deviation. simplydata also writes the result as a sentence and names the test.}
+\undertext{\textit{Checked:} a test runs both and compares the numbers of the result table (on a pandas and on a Polars table).}
+\end{underneathbox}
 \wordentry{table.compare\_counts\_to()}{word:table.compare-counts-to}
 Does how often each value turns up really differ from the shares you expect?
 
@@ -9992,13 +10369,35 @@ The exact binomial test (as R \code{binom.\allowbreak{}test(x,\allowbreak{} n,\a
 \end{optiontable}
 
 \wordfield{Why this method}{\hyperref[basis:table.compare-percent-to]{How simplydata chooses methods}, page \pageref{basis:table.compare-percent-to}: the default, the evidence and the checks.}
-\wordfield{Underneath}{SciPy (stats.binomtest, the Clopper-Pearson exact interval)}
+\wordfield{Underneath}{SciPy \code{dropna()}, \code{sum()}, \code{binomtest()}, \code{proportion\_\allowbreak{}ci()}, \code{proportion\_\allowbreak{}effectsize()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
 table = sdata.table(sdata.get_example("school"))
 table.compare_percent_to("passed", value="yes", percent=50)
 \end{lstlisting}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{SciPy}}
+\underlib{SciPy}
+\begin{lstlisting}[style=under]
+from scipy import stats
+from statsmodels.stats.proportion import proportion_effectsize
+df = sdata.get_example("school")
+# compare_percent_to("passed", value="yes", percent=50)
+passed = df["passed"].dropna()
+hits, n = int((passed == "yes").sum()), len(passed)
+res = stats.binomtest(hits, n, 0.5)                               # (1)
+ci = res.proportion_ci(confidence_level=0.95, method="exact")     # (2)
+{"statistic": hits, "p-value": res.pvalue, "percent 95 % CI low": ci.low * 100,
+ "percent 95 % CI high": ci.high * 100,
+ "effect size": proportion_effectsize(hits / n, 0.5)}             # (3)
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) the exact binomial test, as R \code{binom.\allowbreak{}test()}; empty cells are left out first.}
+\undertext{(2) the exact (Clopper-Pearson) 95 \% interval of the percent; \code{interval\_\allowbreak{}by=} takes \code{\textquotedbl{}wilson\textquotedbl{}} or \code{\textquotedbl{}agresti-coull\textquotedbl{}}.}
+\undertext{(3) the effect size is Cohen's h, the difference between the two shares on the arcsine scale.}
+\undertext{\code{percent=} is above 0 and below 100 (SciPy takes shares from 0 to 1). \code{sides=1} with \code{higher=\textquotedbl{}percent\textquotedbl{}} or \code{lower=\textquotedbl{}percent\textquotedbl{}} tests one direction. simplydata also writes the result as a sentence and names the test.}
+\undertext{\textit{Checked:} a test runs both and compares the numbers of the result table (on a pandas and on a Polars table).}
+\end{underneathbox}
 \wordentry{table.compare\_matched\_columns()}{word:table.compare-matched-columns}
 Do three or more measurements of the same rows differ, such as pain at week 0, 4 and 8?
 
@@ -11129,7 +11528,7 @@ then \code{dist.\allowbreak{}find\_\allowbreak{}chance\_\allowbreak{}that\_\allo
 \code{values.\allowbreak{}.\allowbreak{}.\allowbreak{}} & as many as you like, separated by commas\\
 \end{optiontable}
 
-\wordfield{Underneath}{SciPy (scipy.stats frozen distributions)}
+\wordfield{Underneath}{SciPy \code{binom()}, \code{cdf()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -11139,6 +11538,19 @@ dist.find_chance_that_value(is_above=80)
 coins = sdata.distribution("binomial", tries=10, chance=0.5)
 coins.find_chance_that_value(is_at_most=3)
 \end{lstlisting}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{SciPy}}
+\underlib{SciPy}
+\begin{lstlisting}[style=under]
+from scipy import stats
+# distribution("binomial", tries=10, chance=0.5)
+coins = stats.binom(n=10, p=0.5)        # (1)
+coins.cdf(3)
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) the parameters have plain names (\code{tries=}, \code{chance=}), turned into SciPy's (n, p); R's names (\code{size=}, \code{prob=}) work too.}
+\undertext{Any other SciPy distribution works by its SciPy name and parameters. simplydata also writes each answer in a sentence with the same call in R (\code{pbinom(3,\allowbreak{} size = 10,\allowbreak{} prob = 0.\allowbreak{}5)}).}
+\undertext{\textit{Checked:} a test runs both and compares the number.}
+\end{underneathbox}
 \wordentry{table.fit\_distribution\_to()}{word:table.fit-distribution-to}
 Fit a distribution to a column by maximum likelihood; gives back the fitted distribution.
 
@@ -11312,7 +11724,7 @@ For counts: the smallest count with at least that percent at or below it (R qbin
 \code{percent=} & \\
 \end{optiontable}
 
-\wordfield{Underneath}{SciPy (scipy.stats frozen distributions: cdf, sf, ppf, isf, pdf, pmf, stats, rvs)}
+\wordfield{Underneath}{SciPy \code{norm()}, \code{isf()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -11320,6 +11732,19 @@ dist = sdata.distribution("normal", average=50, standard_deviation=10)
 dist.find_percentile(95)
 dist.find_percentile([5, 50, 95])
 \end{lstlisting}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{SciPy}}
+\underlib{SciPy}
+\begin{lstlisting}[style=under]
+from scipy import stats
+dist = stats.norm(loc=50, scale=10)
+# find_percentile(percent=95)
+dist.isf(1 - 0.95)              # (1)
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) the percent is turned into a share (95 \% is 0.95). Above the middle simplydata asks for the value with 5 \% above it (isf), which stays accurate far out in the upper tail; below the middle it uses \code{ppf()}. For counts it is the smallest count with at least that share at or below it, as R \code{qbinom()}.}
+\undertext{simplydata also says the value in a sentence, with the same call in R (\code{qnorm(0.\allowbreak{}95,\allowbreak{} mean = 50,\allowbreak{} sd = 10)}). A list of percents gives one value for each.}
+\undertext{\textit{Checked:} a test runs both and compares the number.}
+\end{underneathbox}
 \wordentry{dist.find\_cut\_off()}{word:dist.find-cut-off}
 The value with this chance above it (or below it): critical values.
 
@@ -12039,7 +12464,7 @@ A formula with one = sign is fitted as \code{table.\allowbreak{}fit\_\allowbreak
 \end{optiontable}
 
 \wordfield{Why this method}{\hyperref[basis:table.add-predicted-column]{How simplydata chooses methods}, page \pageref{basis:table.add-predicted-column}: the default, the evidence and the checks.}
-\wordfield{Underneath}{statsmodels (the same model as \code{table.\allowbreak{}explain}; \code{get\_\allowbreak{}prediction} for \code{interval=} and \code{for\_\allowbreak{}new\_\allowbreak{}rows=})}
+\wordfield{Underneath}{statsmodels \code{ols().\allowbreak{}fit()}, \code{assign()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -12047,6 +12472,21 @@ table = sdata.table(sdata.get_example("school"))
 table.add_predicted_column("marks", using=["hours", "breakfast"], interval=95)
 table.show_first_rows(5)
 \end{lstlisting}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{statsmodels}}
+\underlib{statsmodels}
+\begin{lstlisting}[style=under]
+import statsmodels.formula.api as smf
+df = sdata.get_example("school")
+# add_predicted_column("marks", using=["hours", "sleep"])
+fit = smf.ols("marks ~ hours + sleep", data=df).fit()            # (1)
+df.assign(**{"predicted marks": fit.fittedvalues})               # (2)
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) the same model as \code{explain()}: least squares for numbers (R \code{fitted(lm(.\allowbreak{}.\allowbreak{}.\allowbreak{}))}); \code{outcome=} chooses the others (logistic for yes or no; Poisson, quasi-Poisson or negative binomial for counts; Gamma for positive numbers).}
+\undertext{(2) rows with an empty cell in a column the model uses are left out of the fit and stay empty (assign lines the fitted values up by row).}
+\undertext{\code{interval=95} adds the ends of the 95 \% confidence interval (\code{for\_\allowbreak{}new\_\allowbreak{}rows=True}: the prediction interval), from statsmodels \code{get\_\allowbreak{}prediction()}. simplydata also says which model it fitted on how many rows.}
+\undertext{\textit{Checked:} a test runs both and compares the table (on a pandas and on a Polars table).}
+\end{underneathbox}
 \wordentry{table.find\_model\_averages\_of()}{word:table.find-model-averages-of}
 The average the model gives for each group, once the other columns are allowed for.
 
@@ -12393,7 +12833,7 @@ Principal component analysis turns many related columns into new columns PC1, PC
 \end{optiontable}
 
 \wordfield{Why this method}{\hyperref[basis:table.add-principal-components]{How simplydata chooses methods}, page \pageref{basis:table.add-principal-components}: the default, the evidence and the checks.}
-\wordfield{Underneath}{statsmodels (multivariate.pca.PCA, by singular value decomposition)}
+\wordfield{Underneath}{statsmodels \code{select\_\allowbreak{}dtypes().\allowbreak{}dropna()}, \code{mean()}, \code{std()}, \code{PCA()}, \code{sign()}, \code{abs().\allowbreak{}argmax()}, \code{join()}, \code{DataFrame()}, \code{to\_\allowbreak{}numpy()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -12403,6 +12843,28 @@ chart = table.start_chart()
 chart.draw_dots(x="PC1", y="PC2", colour="grazed")
 chart.save("meadow_pca.png")
 \end{lstlisting}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{statsmodels}}
+\underlib{statsmodels}
+\begin{lstlisting}[style=under]
+import numpy as np
+import pandas as pd
+from statsmodels.multivariate.pca import PCA
+df = sdata.get_example("meadow")
+# add_principal_components(how_many=2)
+x = df.select_dtypes("number").dropna()                          # (1)
+z = (x - x.mean()) / x.std()                                     # (2)
+pca = PCA(z, ncomp=2, standardize=False, demean=False, normalize=False, method="svd")
+w = np.asarray(pca.loadings)
+w = w * np.sign(w[np.abs(w).argmax(axis=0), [0, 1]])             # (3)
+df.join(pd.DataFrame(z.to_numpy() @ w, index=x.index, columns=["PC1", "PC2"]))
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) only rows with a number in every column are used; the other rows get empty PC cells.}
+\undertext{(2) every number column is put on the same scale first (mean 0, standard deviation with n - 1), as R \code{prcomp(scale.\allowbreak{} = TRUE)}; \code{same\_\allowbreak{}scale=False} only centres them (mean 0), as \code{prcomp(scale.\allowbreak{} = FALSE)}.}
+\undertext{(3) the sign of a component is arbitrary and differs between computers, so each one is turned so its biggest weight is positive: the same scores on every computer.}
+\undertext{simplydata also prints how much of the spread each component holds and the columns it weighs most on.}
+\undertext{\textit{Checked:} a test runs both and compares the table (on a pandas and on a Polars table).}
+\end{underneathbox}
 \wordentry{table.find\_principal\_components\_of()}{word:table.find-principal-components-of}
 A table of the principal components: how much spread each explains and the weight of each column.
 
@@ -14455,12 +14917,26 @@ Give \code{to=} (the last date, included when a step lands on it) or \code{how\_
 \code{fast=} & normally \code{False}\\
 \end{optiontable}
 
-\wordfield{Underneath}{pandas (Timestamp, DateOffset)}
+\wordfield{Underneath}{pandas \code{Timestamp()}, \code{DateOffset()}, \code{range()}, \code{DataFrame()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
 table = sdata.make_run_of_dates("2026-01-01", to="2026-12-31", every="day")
 \end{lstlisting}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{pandas}}
+\underlib{pandas}
+\begin{lstlisting}[style=under]
+import pandas as pd
+first = pd.Timestamp("2026-01-30")
+# make_run_of_dates("2026-01-30", how_many=4, every="month")
+dates = [first + pd.DateOffset(months=k) for k in range(4)]      # (1)
+pd.DataFrame({"date": dates})
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) each month is counted from the first date, so the dates stay on the 30th, or on the month's last day when it is shorter (30 January, 28 February, 30 March, 30 April). pandas' \code{date\_\allowbreak{}range(freq=DateOffset(months=1))} steps from the date before instead and stays on the 28th; R's \code{seq(by = \textquotedbl{}month\textquotedbl{})} runs over into March.}
+\undertext{simplydata also says how many dates it made. \code{to=} gives the last date instead of \code{how\_\allowbreak{}many=}, and \code{fast=True} gives a Polars table.}
+\undertext{\textit{Checked:} a test runs both and compares the table.}
+\end{underneathbox}
 \wordentry{table.add\_missing\_dates()}{word:table.add-missing-dates}
 Add a row for every date that is missing from a regular run of dates (other cells empty).
 
@@ -14478,7 +14954,7 @@ The table comes back sorted by the groups and the dates. As pandas reindex / Pol
 \end{optiontable}
 
 \wordfield{Why this method}{\hyperref[basis:table.add-missing-dates-every-eq]{How simplydata chooses methods}, page \pageref{basis:table.add-missing-dates-every-eq}: the default, the evidence and the checks.}
-\wordfield{Underneath}{pandas (dates by DateOffset; concat), as reindex / Polars upsample}
+\wordfield{Underneath}{pandas \code{groupby()}, \code{date\_\allowbreak{}range()}, \code{min()}, \code{max()}, \code{set\_\allowbreak{}index().\allowbreak{}reindex().\allowbreak{}rename\_\allowbreak{}axis().\allowbreak{}reset\_\allowbreak{}index()}, \code{append()}, \code{assign()}, \code{concat()} \textperiodcentered{} Polars \code{sort().\allowbreak{}upsample()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -14486,6 +14962,33 @@ table = sdata.table(sdata.get_example("river"))
 table.add_missing_dates("date", every="day", for_each_group_in="station")
 table.fill_empty_cells_in("nitrate", with_the="line between neighbours", sorted_by="date", for_each_group_in="station")
 \end{lstlisting}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{pandas}\libbadge{Polars}}
+\underlib{pandas}
+\begin{lstlisting}[style=under]
+import pandas as pd
+df = sdata.get_example("river")
+# add_missing_dates("date", every="day", for_each_group_in="station")
+parts = []
+for station, rows in df.groupby("station", sort=True, dropna=False):      # (1)
+    days = pd.date_range(rows["date"].min(), rows["date"].max(), freq="D")  # (2)
+    full = rows.set_index("date").reindex(days).rename_axis("date").reset_index()
+    parts.append(full.assign(station=station))
+pd.concat(parts, ignore_index=True)
+\end{lstlisting}
+\underlib{Polars}
+\begin{lstlisting}[style=under]
+import polars as pl
+df = pl.from_pandas(sdata.get_example("river"))
+# add_missing_dates("date", every="day", for_each_group_in="station")
+df.sort("station", "date").upsample("date", every="1d", group_by="station",   # (1) (2)
+                                    maintain_order=True)
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) the table comes back sorted by the groups, then the dates; the group's name is copied into the new rows, and rows with an empty group cell are a group of their own (\code{dropna=False}).}
+\undertext{(2) each group's own run, from its first to its last date: no rows are added before or after (\code{between=} adds them).}
+\undertext{Without \code{every=} simplydata uses the most common step between the dates and says so. It stops with a message when a date is repeated or does not fall on the steps. simplydata also says in a sentence what changed, and keeps the table before the step (undo).}
+\undertext{\textit{Checked:} a test runs both and compares the table (on a pandas and on a Polars table).}
+\end{underneathbox}
 \unsection{Smoothing and trend}{group:Smoothing-and-trend}
 \wordentry{table.add\_smoothed\_column()}{word:table.add-smoothed-column}
 Add a smoothed copy of a column: each value becomes a summary of its neighbours in time.
@@ -16027,7 +16530,7 @@ other can be a simplydata table, a pandas or Polars table, or a file name. A col
 \code{keep=} & normally \code{\textquotedbl{}matching rows\textquotedbl{}}\\
 \end{optiontable}
 
-\wordfield{Underneath}{narwhals, which runs the step in pandas or Polars (whichever holds the table)}
+\wordfield{Underneath}{pandas \code{DataFrame()}, \code{merge()} \textperiodcentered{} Polars \code{DataFrame()}, \code{join()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -16036,6 +16539,28 @@ ages = {"name": ["Asha", "Ben"], "age": [12, 13]}
 table.join_with(ages, using="name", keep="all rows from this table")
 table.show_first_rows()
 \end{lstlisting}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{pandas}\libbadge{Polars}}
+\underlib{pandas}
+\begin{lstlisting}[style=under]
+import pandas as pd
+df = sdata.get_example("marks")
+ages = pd.DataFrame({"name": ["Asha", "Ben"], "age": [12, 13]})
+# join_with(ages, using="name", keep="all rows from this table")
+df.merge(ages, on="name", how="left", suffixes=("", "_other"))   # (1)
+\end{lstlisting}
+\underlib{Polars}
+\begin{lstlisting}[style=under]
+import polars as pl
+df = pl.from_pandas(sdata.get_example("marks"))
+ages = pl.DataFrame({"name": ["Asha", "Ben"], "age": [12, 13]})
+# join_with(ages, using="name", keep="all rows from this table")
+df.join(ages, on="name", how="left", suffix="_other")   # (1)
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) a column found in both tables (other than \code{using=}) keeps its name in this table and gets \code{\textquotedbl{}\_\allowbreak{}other\textquotedbl{}} in the other table's copy.}
+\undertext{\code{keep=\textquotedbl{}matching rows\textquotedbl{}} (the default) is an inner join and \code{\textquotedbl{}all rows from both\textquotedbl{}} a full join. On a Polars table the order of the rows is Polars' own (the join is given no \code{maintain\_\allowbreak{}order=}). simplydata also says how many rows found a match, and warns when a name appears twice in the other table (rows would be repeated).}
+\undertext{\textit{Checked:} a test runs both and compares the table (on a pandas and on a Polars table).}
+\end{underneathbox}
 \wordentry{table.add\_rows\_from()}{word:table.add-rows-from}
 Put the rows of another table under this one; columns are matched by their names.
 
@@ -16102,7 +16627,7 @@ Take the last step back. \code{table.\allowbreak{}undo()}
 
 \wordfield{Options}{none: just write the empty brackets.}
 
-\wordfield{Underneath}{simplydata itself: it keeps every version of the table}
+\wordfield{Underneath}{simplydata's own: it keeps the table as it was before each step and puts back the last one. In pandas or Polars you keep a copy yourself before a step (before = \code{df.\allowbreak{}copy()}) and go back to it.}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -16111,12 +16636,13 @@ table.keep_rows_where("marks", is_above=50)
 table.undo()
 print(table)
 \end{lstlisting}
+\undertext{\textit{Nothing underneath:} simplydata's own: it keeps the table as it was before each step and puts back the last one. In pandas or Polars you keep a copy yourself before a step (before = \code{df.\allowbreak{}copy()}) and go back to it.}
 \wordentry{table.show\_steps()}{word:table.show-steps}
 List every step you did to this table, in order. \code{table.\allowbreak{}show\_\allowbreak{}steps()}
 
 \wordfield{Options}{none: just write the empty brackets.}
 
-\wordfield{Underneath}{simplydata itself: it keeps every version of the table}
+\wordfield{Underneath}{simplydata's own: it writes down each step as you do it and lists them. pandas and Polars keep no list of steps; your script is the record.}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -16125,6 +16651,7 @@ table.keep_rows_where("marks", is_above=50)
 table.sort_by("marks")
 table.show_steps()
 \end{lstlisting}
+\undertext{\textit{Nothing underneath:} simplydata's own: it writes down each step as you do it and lists them. pandas and Polars keep no list of steps; your script is the record.}
 \wordentry{table.start\_again()}{word:table.start-again}
 Go back to the table as it was at the start. \code{table.\allowbreak{}start\_\allowbreak{}again()}
 
@@ -16150,7 +16677,7 @@ File types: \code{.\allowbreak{}xlsx} (Excel), \code{.\allowbreak{}csv}, \code{.
 \code{file\_\allowbreak{}name} & needed\\
 \end{optiontable}
 
-\wordfield{Underneath}{pandas (\code{to\_\allowbreak{}excel}, \code{to\_\allowbreak{}csv} ...) or Polars, whichever holds the table}
+\wordfield{Underneath}{pandas \code{TemporaryDirectory()}, \code{to\_\allowbreak{}csv()}, \code{path.\allowbreak{}join()}, \code{read\_\allowbreak{}csv()} \textperiodcentered{} Polars \code{TemporaryDirectory()}, \code{write\_\allowbreak{}csv()}, \code{path.\allowbreak{}join()}, \code{read\_\allowbreak{}csv()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -16159,12 +16686,43 @@ table.keep_rows_where("marks", is_above=50)
 table.save("good_marks.xlsx")
 table.save("good_marks.csv")
 \end{lstlisting}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{pandas}\libbadge{Polars}}
+\underlib{pandas}
+\begin{lstlisting}[style=under]
+import os
+import tempfile
+import pandas as pd
+df = sdata.get_example("marks")
+with tempfile.TemporaryDirectory() as folder:
+    # save("marks.csv")
+    df.to_csv(os.path.join(folder, "marks.csv"), index=False)   # (1)
+    saved = pd.read_csv(os.path.join(folder, "marks.csv"))
+saved
+\end{lstlisting}
+\underlib{Polars}
+\begin{lstlisting}[style=under]
+import os
+import tempfile
+import pandas as pd
+import polars as pl
+df = pl.from_pandas(sdata.get_example("marks"))
+with tempfile.TemporaryDirectory() as folder:
+    # save("marks.csv")
+    df.write_csv(os.path.join(folder, "marks.csv"))
+    saved = pd.read_csv(os.path.join(folder, "marks.csv"))
+saved
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) no row labels are written (\code{index=False}): the file holds only your columns.}
+\undertext{The end of the file name chooses the type: \code{.\allowbreak{}xlsx} (pandas \code{to\_\allowbreak{}excel}), \code{.\allowbreak{}tsv}, \code{.\allowbreak{}parquet} and \code{.\allowbreak{}json} too. The test saves both files in a folder that is deleted afterwards and reads them back.}
+\undertext{\textit{Checked:} a test runs both and compares the table (on a pandas and on a Polars table).}
+\end{underneathbox}
 \wordentry{table.start\_chart()}{word:table.start-chart}
 Start a chart from this table. chart = \code{table.\allowbreak{}start\_\allowbreak{}chart()}
 
 \wordfield{Options}{none: just write the empty brackets.}
 
-\wordfield{Underneath}{matplotlib and seaborn (the chart is drawn from a pandas copy of the table)}
+\wordfield{Underneath}{seaborn \code{boolean indexing}, \code{barplot()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -16175,6 +16733,24 @@ chart.draw_bars(x="name", y="marks")
 chart.rotate_labels_x()
 chart.save("maths_marks.png")
 \end{lstlisting}
+\begin{center}\begin{minipage}{\linewidth}\centering
+\includegraphics[width=0.52\textwidth,height=0.26\textheight,keepaspectratio]{figures/underneath_table_start_chart.pdf}
+\captionof*{figure}{The chart simplydata draws. The code below draws the same bars, without simplydata's paper look.}
+\end{minipage}\end{center}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{seaborn}}
+\underlib{seaborn}
+\begin{lstlisting}[style=under]
+import matplotlib.pyplot as plt
+import seaborn as sns
+df = sdata.get_example("marks")
+maths = df[df["subject"] == "Maths"]
+# start_chart(): the figure and its axes, from the table as it is now
+fig, ax = plt.subplots()
+sns.barplot(maths, x="name", y="marks", errorbar=None, ax=ax)
+\end{lstlisting}
+\undertext{The chart uses the table after all the steps so far (here only the Maths rows). simplydata's paper look is left out here.}
+\undertext{\textit{Checked:} a test runs both and compares the bars, the axis labels and the tick labels (the chart's data, not its pixels) (on a pandas and on a Polars table).}
+\end{underneathbox}
 \wordentry{table.as\_pandas()}{word:table.as-pandas}
 Give back the table as a plain pandas table, for other Python tools. df = \code{table.\allowbreak{}as\_\allowbreak{}pandas()}
 
@@ -16182,7 +16758,7 @@ Only needed when another library wants pandas: simplydata words never need it.
 
 \wordfield{Options}{none: just write the empty brackets.}
 
-\wordfield{Underneath}{pandas}
+\wordfield{Underneath}{Polars \code{to\_\allowbreak{}pandas()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -16191,6 +16767,17 @@ table.keep_rows_where("marks", is_above=50)
 df = table.as_pandas()
 print(type(df))
 \end{lstlisting}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{Polars}}
+\underlib{Polars}
+\begin{lstlisting}[style=under]
+import polars as pl
+df = pl.from_pandas(sdata.get_example("marks"))
+# as_pandas()
+df.to_pandas()
+\end{lstlisting}
+\undertext{A table that is already pandas comes back as it is; a Polars table is turned into pandas.}
+\undertext{\textit{Checked:} a test runs both and compares the table (on a pandas and on a Polars table).}
+\end{underneathbox}
 \wordentry{table.as\_polars()}{word:table.as-polars}
 Give back the table as a plain Polars table, for other Python tools. df = \code{table.\allowbreak{}as\_\allowbreak{}polars()}
 
@@ -16198,7 +16785,7 @@ Needs Polars (pip install simplydata[fast]). simplydata words never need it.
 
 \wordfield{Options}{none: just write the empty brackets.}
 
-\wordfield{Underneath}{Polars}
+\wordfield{Underneath}{pandas \code{from\_\allowbreak{}pandas()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -16207,6 +16794,17 @@ table.keep_rows_where("marks", is_above=50)
 df = table.as_polars()
 print(type(df))
 \end{lstlisting}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{pandas}}
+\underlib{pandas}
+\begin{lstlisting}[style=under]
+import polars as pl
+df = sdata.get_example("marks")
+# as_polars()
+pl.from_pandas(df)
+\end{lstlisting}
+\undertext{A table that is already Polars comes back as it is; a pandas table is turned into Polars.}
+\undertext{\textit{Checked:} a test runs both and compares the table (on a pandas and on a Polars table).}
+\end{underneathbox}
 \unchapter{Number words}{family:numbers}
 Steps on numbers, \code{nums = sdata.numbers([12, 15, 9, 20, 14])}, on grids of numbers, \code{grid = sdata.number\_grid([[3, 5, 2], [8, 6, 4]])}, and on systems, \code{system = sdata.system("1 / (s**2 + 2*s + 5)")}.
 \unsection{Numbers: make and look}{group:Numbers-make-and-look}
@@ -16230,7 +16828,7 @@ None or NaN in a list is an empty (missing) value.
 \code{channel=} & \\
 \end{optiontable}
 
-\wordfield{Underneath}{NumPy}
+\wordfield{Underneath}{NumPy \code{floor()}, \code{arange()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -16239,6 +16837,19 @@ print(nums)
 print(sdata.numbers(1, to=10))
 print(sdata.numbers(0, to=1, how_many=5))
 \end{lstlisting}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{NumPy}}
+\underlib{NumPy}
+\begin{lstlisting}[style=under]
+import numpy as np
+# numbers(0, to=100, step=25)
+n = int(np.floor((100 - 0) / 25 + 1e-9)) + 1     # (1)
+0 + 25 * np.arange(n)
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) the end you give is included (0, 25, 50, 75, 100): simplydata counts how many steps fit (with a little room for rounding) and multiplies. \code{np.\allowbreak{}arange(0,\allowbreak{} 125,\allowbreak{} 25)} gives the same here, but with a decimal step np.arange can overshoot the end: \code{np.\allowbreak{}arange(1,\allowbreak{} 1.\allowbreak{}4,\allowbreak{} 0.\allowbreak{}1)} has 1.4 in it.}
+\undertext{\code{sdata.\allowbreak{}numbers([3,\allowbreak{} 5,\allowbreak{} 2,\allowbreak{} 8])} is \code{np.\allowbreak{}array([3,\allowbreak{} 5,\allowbreak{} 2,\allowbreak{} 8])}, and \code{how\_\allowbreak{}many=} is \code{np.\allowbreak{}linspace(0,\allowbreak{} 1,\allowbreak{} 5)}. None in a list becomes an empty value (nan).}
+\undertext{\textit{Checked:} a test runs both and compares the number.}
+\end{underneathbox}
 \wordentry{sdata.make\_random\_numbers()}{word:sdata.make-random-numbers}
 Make random numbers; give \code{with\_\allowbreak{}seed=} to get the same numbers every time.
 
@@ -16261,7 +16872,7 @@ numbers that bunch around the average in a bell shape (a normal distribution); a
 \code{columns=} & \\
 \end{optiontable}
 
-\wordfield{Underneath}{NumPy (random.default\_rng)}
+\wordfield{Underneath}{NumPy \code{random.\allowbreak{}default\_\allowbreak{}rng()}, \code{integers()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -16270,6 +16881,20 @@ dice.show()
 heights = sdata.make_random_numbers(how_many=100, average=150, standard_deviation=8, with_seed=1)
 heights.find_average()
 \end{lstlisting}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{NumPy}}
+\underlib{NumPy}
+\begin{lstlisting}[style=under]
+import numpy as np
+# make_random_numbers(how_many=10, between=[1, 6], whole_numbers=True, with_seed=1)
+rng = np.random.default_rng(1)                 # (1)
+rng.integers(1, 6, 10, endpoint=True)          # (2)
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) NumPy's random generator (\code{default\_\allowbreak{}rng}) with the seed you give, the way NumPy recommends; the old \code{np.\allowbreak{}random.\allowbreak{}seed()} gives other numbers.}
+\undertext{(2) both ends are included, like rolling a dice (\code{endpoint=True}); NumPy's own default leaves out 6.}
+\undertext{\code{average=} with \code{standard\_\allowbreak{}deviation=} is \code{rng.\allowbreak{}normal()}, and \code{between=} without \code{whole\_\allowbreak{}numbers=} is \code{rng.\allowbreak{}uniform()}. Without \code{with\_\allowbreak{}seed=} the numbers change every time.}
+\undertext{\textit{Checked:} a test runs both and compares the number.}
+\end{underneathbox}
 \wordentry{nums.show()}{word:nums.show}
 Show every number. \code{nums.\allowbreak{}show()}
 
@@ -16559,7 +17184,7 @@ Conditions (the same as \code{table.\allowbreak{}keep\_\allowbreak{}rows\_\allow
 \code{is\_\allowbreak{}empty=} & \\
 \end{optiontable}
 
-\wordfield{Underneath}{NumPy}
+\wordfield{Underneath}{NumPy \code{boolean indexing}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -16567,6 +17192,19 @@ nums = sdata.numbers([12, 15, 9, 20, 14])
 nums.keep_each_number_that(is_above=10)
 nums.show()
 \end{lstlisting}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{NumPy}}
+\underlib{NumPy}
+\begin{lstlisting}[style=under]
+import numpy as np
+values = np.array([12, 15, np.nan, 9, 20, 14])
+# keep_each_number_that(is_above=12)
+values[values > 12]                  # (1)
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) \code{is\_\allowbreak{}above=} means strictly above (\textgreater{}); \code{is\_\allowbreak{}at\_\allowbreak{}least=} is \textgreater{}=. An empty value is never above a number, so it goes too (only \code{is\_\allowbreak{}empty=True} keeps empty values).}
+\undertext{simplydata also says how many numbers it kept, and keeps the numbers before the step (undo).}
+\undertext{\textit{Checked:} a test runs both and compares the number.}
+\end{underneathbox}
 \wordentry{nums.remove\_each\_number\_that()}{word:nums.remove-each-number-that}
 Remove the numbers that match one condition (the opposite of \code{keep\_\allowbreak{}each\_\allowbreak{}number\_\allowbreak{}that}).
 
@@ -16803,13 +17441,26 @@ The average (mean) of the numbers; empty values are skipped.
 
 \wordfield{Options}{none: just write the empty brackets.}
 
-\wordfield{Underneath}{NumPy (functions that skip empty values, such as nanmean)}
+\wordfield{Underneath}{NumPy \code{nanmean()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
 nums = sdata.numbers([12, 15, 9, 20, 14])
 nums.find_average()
 \end{lstlisting}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{NumPy}}
+\underlib{NumPy}
+\begin{lstlisting}[style=under]
+import numpy as np
+values = np.array([12, np.nan, 9, 20, 14])
+# find_average()
+np.nanmean(values)                   # (1)
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) empty values are skipped (np.nanmean); NumPy's np.mean would give nan.}
+\undertext{simplydata also says the average in a sentence, with how many numbers it used.}
+\undertext{\textit{Checked:} a test runs both and compares the number.}
+\end{underneathbox}
 \wordentry{nums.find\_median()}{word:nums.find-median}
 The middle number once the numbers are sorted; empty values are skipped.
 
@@ -16909,13 +17560,26 @@ Uses NumPy's usual \code{\textquotedbl{}linear\textquotedbl{}} method, the same 
 \end{optiontable}
 
 \wordfield{Why this method}{\hyperref[basis:nums.find-percentile]{How simplydata chooses methods}, page \pageref{basis:nums.find-percentile}: the default, the evidence and the checks.}
-\wordfield{Underneath}{NumPy (nanpercentile, the usual \code{\textquotedbl{}linear\textquotedbl{}} method, as pandas and R)}
+\wordfield{Underneath}{NumPy \code{nanpercentile()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
 nums = sdata.numbers([12, 15, 9, 20, 14])
 nums.find_percentile(90)
 \end{lstlisting}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{NumPy}}
+\underlib{NumPy}
+\begin{lstlisting}[style=under]
+import numpy as np
+values = np.array([12, 15, 9, 20, 14])
+# find_percentile(percent=90)
+np.nanpercentile(values, 90)         # (1)
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) NumPy's usual \code{\textquotedbl{}linear\textquotedbl{}} method, the same as pandas' quantile and R's \code{quantile(type = 7)}; empty values are skipped (nanpercentile).}
+\undertext{simplydata also says the percentile in a sentence. \code{find\_\allowbreak{}percentile(50)} is the median.}
+\undertext{\textit{Checked:} a test runs both and compares the number.}
+\end{underneathbox}
 \wordentry{nums.count\_each()}{word:nums.count-each}
 Each different number, how many times it appears, and its percent, as a table.
 
@@ -16947,7 +17611,7 @@ Make a grid of numbers in rows and columns.
 \code{filled\_\allowbreak{}with=} & normally \code{0}\\
 \end{optiontable}
 
-\wordfield{Underneath}{NumPy (a two-dimensional array)}
+\wordfield{Underneath}{NumPy \code{array().\allowbreak{}reshape()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -16955,6 +17619,18 @@ grid = sdata.number_grid([[1, 2, 3], [4, 5, 6]])
 print(grid)
 print(sdata.number_grid(rows=2, columns=3, filled_with=0))
 \end{lstlisting}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{NumPy}}
+\underlib{NumPy}
+\begin{lstlisting}[style=under]
+import numpy as np
+# number_grid([1, 2, 3, 4, 5, 6], columns=3)
+np.array([1, 2, 3, 4, 5, 6]).reshape(-1, 3)    # (1)
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) the list is cut into rows, row after row (NumPy's order \code{\textquotedbl{}C\textquotedbl{}}): 1 2 3, then 4 5 6.}
+\undertext{\code{sdata.\allowbreak{}number\_\allowbreak{}grid([[1,\allowbreak{} 2,\allowbreak{} 3],\allowbreak{} [4,\allowbreak{} 5,\allowbreak{} 6]])} is \code{np.\allowbreak{}array([[1,\allowbreak{} 2,\allowbreak{} 3],\allowbreak{} [4,\allowbreak{} 5,\allowbreak{} 6]])}, and \code{rows=} with \code{columns=} and \code{filled\_\allowbreak{}with=} is \code{np.\allowbreak{}full()}. simplydata stops with a message when the numbers cannot fill the grid exactly.}
+\undertext{\textit{Checked:} a test runs both and compares the number.}
+\end{underneathbox}
 \wordentry{nums.make\_number\_grid()}{word:nums.make-number-grid}
 Make a NEW grid from these numbers, filled row by row. grid = \code{nums.\allowbreak{}make\_\allowbreak{}number\_\allowbreak{}grid(columns=3)}
 
@@ -17729,12 +18405,13 @@ For more about one word, type \code{sdata.\allowbreak{}help(\textquotedbl{}draw\
 
 \wordfield{Options}{none: just write the empty brackets.}
 
-\wordfield{Underneath}{plain Python: simplydata reads its own word list and docstrings}
+\wordfield{Underneath}{simplydata's own: it prints its own word list, group by group, with a short example of each.}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
 sdata.show_all_words()
 \end{lstlisting}
+\undertext{\textit{Nothing underneath:} simplydata's own: it prints its own word list, group by group, with a short example of each.}
 \wordentry{sdata.help()}{word:sdata.help}
 Explain one word: what it does, its options and an example you can run. \code{sdata.\allowbreak{}help(\textquotedbl{}draw\_\allowbreak{}bars\textquotedbl{})}
 
@@ -17745,7 +18422,7 @@ Explain one word: what it does, its options and an example you can run. \code{sd
 \code{word=} & \\
 \end{optiontable}
 
-\wordfield{Underneath}{plain Python: simplydata reads its own word list and docstrings}
+\wordfield{Underneath}{simplydata's own: it reads its own word list and the words' docstrings, in plain Python. Python's \code{help()} shows a function's docstring too.}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -17754,6 +18431,7 @@ sdata.help("show=")
 sdata.help("keep_rows_where")
 sdata.help("find_average")
 \end{lstlisting}
+\undertext{\textit{Nothing underneath:} simplydata's own: it reads its own word list and the words' docstrings, in plain Python. Python's \code{help()} shows a function's docstring too.}
 \wordentry{sdata.show\_lesson()}{word:sdata.show-lesson}
 A lesson: an example to run, what each line does, and a task. \code{sdata.\allowbreak{}show\_\allowbreak{}lesson(1)}
 
@@ -17844,7 +18522,7 @@ the one you started, else \code{\textquotedbl{}python\textquotedbl{}}: \code{sda
 \code{track=} & \\
 \end{optiontable}
 
-\wordfield{Underneath}{plain Python: the days are in simplydata/\code{learn\_\allowbreak{}days}.py, and the progress is a small JSON file on your computer (json, pathlib)}
+\wordfield{Underneath}{simplydata's own: the 30 days are written in simplydata (\code{learn\_\allowbreak{}days}.py) and printed in plain Python; nothing is computed.}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -17852,6 +18530,7 @@ sdata.show_day()
 sdata.show_day(5)
 sdata.show_day(1, track="beginner")
 \end{lstlisting}
+\undertext{\textit{Nothing underneath:} simplydata's own: the 30 days are written in simplydata (\code{learn\_\allowbreak{}days}.py) and printed in plain Python; nothing is computed.}
 \wordentry{sdata.show\_answers()}{word:sdata.show-answers}
 The answers to a day's warm-up questions, and a worked answer to its task. \code{sdata.\allowbreak{}show\_\allowbreak{}answers(5)}
 
