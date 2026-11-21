@@ -1586,7 +1586,8 @@ class ModelWords:
                 curve_for=None, weights=None, show=None, method=None, matched_by=None,
                 giving_outliers_less_weight=False, with_knots=None, interval_by="wald", resamples=None,
                 crossed_with=None, zero_part_using=None, for_percentile=None, changes_at=None,
-                spread_changes_with=None, neighbours_alike_in_order_of=None):
+                spread_changes_with=None, neighbours_alike_in_order_of=None, through=None, allowing_for=None,
+                against=None):
         """Explain one column from several others with a model, and say how big each effect is.
 
         table.explain("marks", using=["hours", "breakfast"])   (with sdata.get_example("school"))
@@ -1679,6 +1680,11 @@ class ModelWords:
         spread_changes_with="site" lets each site have its own spread (a number column: the spread
         grows as a power of it), and neighbours_alike_in_order_of="date" lets rows next to each
         other in date order be alike (AR(1)): generalised least squares, R nlme::gls() (needs R).
+        through="job_seeking" with using="treatment" (one column with two values) splits the effect of
+        treatment into the part that goes through job_seeking (the indirect effect) and the rest (the
+        direct effect): causal mediation analysis (statsmodels Mediation, as R mediation::mediate()), with
+        allowing_for= the columns to take into account in both models and against= the starting value of
+        using=. The printout says what the answer rests on.
         Under a survey design (table.use_survey_design) it fits a survey-weighted model, R
         survey::svyglm (outcome= "numbers", "yes or no" or "counts").
         """
@@ -1686,6 +1692,37 @@ class ModelWords:
             self._survey_only("explain", locals(), ("column", "using", "outcome"))
             return self._survey_explain(column, using, outcome)
         step = "explain"
+        # S3d-2 (epidemiology and cause and effect): mediation (table/mediation.py)
+        if through is not None or allowing_for is not None or against is not None:
+            if through is None:
+                raise SimplydataError("allowing_for= and against= on explain() go with through= (a mediation "
+                                      "analysis). Without it, put the columns to take into account in using=.\n"
+                                      'For example, table.explain("marks", using=["hours", "breakfast"])')
+            from .mediation import explain_through
+
+            if isinstance(outcome, str):
+                outcome = OUTCOME_SPELLINGS.get(outcome.strip().lower(), outcome)
+            if isinstance(with_seed, bool) or not isinstance(with_seed, int):
+                raise SimplydataError("with_seed= is a whole number that fixes the random simulation, for example "
+                                      "with_seed=1.")
+            rows = explain_through(self, column, using, through, allowing_for, outcome, with_seed, against, [
+                ("grouped_by=", grouped_by, None), ("empty_cells=", empty_cells, "leave out"), ("time=", time, None),
+                ("out_of=", out_of, None), ("in_order=", in_order, None), ("link=", link, None),
+                ("test_type=", test_type, None), ("own_slope_for=", own_slope_for, None),
+                ("robust_errors=", robust_errors, False), ("p_value_by=", p_value_by, "wald"),
+                ("effects=", effects, "for the average group"), ("within_groups=", within_groups, "alike"),
+                ("curve_for=", curve_for, None), ("weights=", weights, None), ("show=", show, None),
+                ("method=", method, None), ("matched_by=", matched_by, None),
+                ("giving_outliers_less_weight=", giving_outliers_less_weight, False), ("with_knots=", with_knots, None),
+                ("interval_by=", interval_by, "wald"), ("resamples=", resamples, None),
+                ("crossed_with=", crossed_with, None), ("zero_part_using=", zero_part_using, None),
+                ("for_percentile=", for_percentile, None), ("changes_at=", changes_at, None),
+                ("spread_changes_with=", spread_changes_with, None),
+                ("neighbours_alike_in_order_of=", neighbours_alike_in_order_of, None)])
+            from .risk_words import _rows_table
+
+            backend = self._frame.implementation
+            return _rows_table(lambda d: self._new_table(nw.from_dict(d, backend=backend)), rows)
         # S3a-3 (checking and comparing): generalised least squares (table/checking_more.py)
         if spread_changes_with is not None or neighbours_alike_in_order_of is not None:
             from .checking_more import explain_gls

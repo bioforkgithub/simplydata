@@ -84,7 +84,9 @@ GROUPS = [
                            "table.check_if_random_order", "table.compare_correlations", "sdata.compare_averages",
                            "sdata.compare_counts"]),
     ("Risks and rates", ["table.compare_risks", "table.compare_rates", "table.rate_of", "sdata.compare_risks",
-                         "sdata.compare_rates"]),
+                         "sdata.compare_rates",
+                         # S3d-2 (epidemiology and cause and effect): "more"
+                         "table.compare_balanced_groups_of"]),
     ("Diagnostic tests", ["table.compare_to_truth", "table.compare_accuracy", "sdata.compare_to_truth",
                           "trade_off_curve"]),
     ("Agreement and reliability", ["table.agreement_between", "table.limits_of_agreement", "table.reliability_of",
@@ -677,6 +679,9 @@ HELP_EXAMPLES = {
     "table.compare_rates": _tx("clinic", 'table.compare_rates("infections", time="patient_days", for_each_group_in="ward", '
                                          'against="ward A")'),
     "table.rate_of": _tx("clinic", 'table.rate_of("infections", time="patient_days", for_each_group_in="ward")'),
+    "table.compare_balanced_groups_of": _tx("job_training", 'table.compare_balanced_groups_of("re78", '
+                                                            'for_each_group_in="treat", allowing_for=["age", "educ", '
+                                                            '"race", "married", "nodegree", "re74", "re75"])'),
     "sdata.compare_risks": textwrap.dedent("""\
         import simplydata as sdata
         sdata.compare_risks(events=[20, 30], out_of=[60, 60], names=["new", "usual"], against="usual")"""),
@@ -1637,6 +1642,7 @@ DIVERSITY_LESSON = "Diversity of a community"  # S3c-1
 MAKEUP_LESSON = "Make-up of communities"  # S3c-1
 COAST_LESSON = "A coastal station: currents, neighbours and storms"  # S3c-3
 PLANNING_LESSON = "Planning an experiment and a survey"  # S3d-1
+CAUSE_LESSON = "Cause and effect from observational data"  # S3d-2
 GENES_LINE = ('genes = ["blaTEM", "blaCTXM", "blaOXA48", "blaNDM", "sul1", "sul2", "tetA", "tetM", "qnrS", "ermB", "aadA", "mphA", "vanA", "mcr1"]')
 COMBINE_CALL = ('table.combine_studies(names="trial", events=["tb_vaccinated", "tb_unvaccinated"], '
                 'out_of=["vaccinated", "unvaccinated"])')
@@ -4325,6 +4331,11 @@ LESSONS = [
             "on how common the condition is. Counts of 1000 people make this easy to see.",
             "Agreement is not correlation: two raters (or devices) can rise and fall together and still differ "
             "every time.",
+            'More: compare_risks(..., show="attributable fractions") gives the share of the events that goes with the '
+            'exposure; rate_of(..., allowing_for="age_band", standard_population="whole table") gives age-standardised '
+            'rates and compare_rates(..., allowing_for="age_band", standard_rates=...) observed / expected (SMR), '
+            'with sdata.get_example("deaths_by_age"); compare_averages_of(..., matched_by="subject", period="period", '
+            'same_within=[0.8, 1.25]) is the bioequivalence crossover (sdata.get_example("drug_levels")).',
         ],
         task=[
             'Compare the risk of "infected" between the wards, against "ward A". Does the interval of the '
@@ -5588,6 +5599,106 @@ LESSONS = [
         ],
         words=["sdata.make_design_table", "sdata.make_random_assignments", "table.keep_random_rows",
                "table.count_rows", "table.show"],
+    ),
+    # S3d-2 (epidemiology and cause and effect): a "more" lesson, found by title
+    dict(
+        title=CAUSE_LESSON,
+        needs_r=needs_r_text("Parts 1 and 2 run R WeightIt, MatchIt and cobalt (compare_balanced_groups_of); part 3 "
+                             "needs no R", packages=("WeightIt", "MatchIt", "cobalt", "sandwich", "lmtest")),
+        learn=[
+            "why a plain comparison of groups that chose themselves can mislead",
+            "how to make two groups alike in other columns (weighting and matching) and check that they are alike",
+            "how to split an effect into the part that goes through another column and the rest (mediation)",
+        ],
+        parts=[
+            ("A job-training study. The 185 trained men earned less in 1978 than 429 men from a survey. Did the "
+             "training lower earnings? First the plain comparison.", [
+                ("import simplydata as sdata", "Load simplydata."),
+                ('table = sdata.table(sdata.get_example("job_training"))',
+                 "Real data (LaLonde 1986): treat = 1 for the trained men, their age, schooling, race, marriage, "
+                 "degree and earnings in 1974, 1975 and 1978."),
+                ('table.compare_averages_of("re78", for_each_group_in="treat")',
+                 "The trained men earned 635 dollars less. But they differ before the training too: younger, more "
+                 "often black and unmarried, and with much lower earnings in 1974."),
+                ('table.compare_balanced_groups_of("re78", for_each_group_in="treat", allowing_for=["age", "educ", '
+                 '"race", "married", "nodegree", "re74", "re75"])',
+                 "Read the balance table first: before weighting, race (black) differs by 1.67 standard deviations; "
+                 "after, by 0.13. Some columns are still above 0.1, and a note says so. The effect for everyone: "
+                 "225 dollars more (95 % CI -1493 to 1942)."),
+            ]),
+            ("The same question, with matching: each trained man gets the man from the survey with the nearest "
+             "propensity score. Matching gives the effect among the trained men, so effect_for= names them.", [
+                ("import simplydata as sdata", "Load simplydata."),
+                ('table = sdata.table(sdata.get_example("job_training"))', "The same men."),
+                ('table.compare_balanced_groups_of("re78", for_each_group_in="treat", allowing_for=["age", "educ", '
+                 '"race", "married", "nodegree", "re74", "re75"], method="matching", effect_for=1, '
+                 "match_within=0.2)",
+                 "Pairs further apart than 0.2 standard deviations of the logit of the score are left out (68 "
+                 "trained men had no match). Race is now balanced; the effect among the matched trained men: 1771 "
+                 "dollars more (95 % CI -50.4 to 3592). The randomised experiment found 1794."),
+            ]),
+            ("Mediation. In the JOBS II study a job-search workshop was randomised. Did it lower depression by "
+             "raising the workers' confidence in searching for a job?", [
+                ("import simplydata as sdata", "Load simplydata."),
+                ('table = sdata.table(sdata.get_example("job_search"))',
+                 "Real data (Vinokur et al. 1995): treat = 1 for the workshop, job_seek = confidence in searching, "
+                 "depress2 = depression six months later."),
+                ('table.explain("depress2", using="treat", through="job_seek", allowing_for=["econ_hard", "sex", '
+                 '"age"])',
+                 "The indirect effect (through job_seek) is -0.016 and the total effect -0.055, both with intervals "
+                 "that include 0. The printout says what these rest on: nothing unmeasured that affects both "
+                 "job_seek and depression."),
+            ]),
+        ],
+        notes=[
+            "Balancing can only make groups alike in the columns you give it. A column that was not measured, such "
+            "as motivation, can still differ, which is why the printout always names the assumptions.",
+            "Judge balance by the standardised differences (within about 0.1), never by p-values: with many rows "
+            "a tiny difference has a small p-value, with few rows a big one does not.",
+            "effect_for=\"everyone\" (weighting) asks what would happen if everyone were trained rather than "
+            "no one; effect_for=1 asks what the training did for those who took it. They are different questions "
+            "and can have different answers.",
+            "More: compare_balanced_groups_of(..., show=\"balance\") gives the balance table and "
+            "show=\"propensity scores\" each row's score; explain(..., through=) also works with a yes or no "
+            "outcome (outcome=\"yes or no\").",
+        ],
+        task=[
+            "Fill in the blank: table.compare_balanced_groups_of(\"re78\", for_each_group_in=\"treat\", "
+            "allowing_for=[...], method=\"matching\", effect_for=____) for the effect among the trained men.",
+            "Change only one option of part 1: give the effect among the trained men with weighting "
+            "(effect_for=1). How does it compare with matching?",
+            "Say in words why the plain comparison of part 1 gave the wrong sign.",
+            "Try to remember without looking back: which option of explain() names the column the effect goes "
+            "through?",
+        ],
+        solutions=[
+            (_sx("""\
+                import simplydata as sdata
+                table = sdata.table(sdata.get_example("job_training"))
+                table.compare_balanced_groups_of("re78", for_each_group_in="treat", allowing_for=["age", "educ", "race",
+                                                 "married", "nodegree", "re74", "re75"], method="matching", effect_for=1)"""),
+             "effect_for=1: the group of the trained men (treat = 1). Without match_within= every trained man is "
+             "matched; race stays unbalanced (1.03), and a note says so."),
+            (_sx("""\
+                import simplydata as sdata
+                table = sdata.table(sdata.get_example("job_training"))
+                table.compare_balanced_groups_of("re78", for_each_group_in="treat", allowing_for=["age", "educ", "race",
+                                                 "married", "nodegree", "re74", "re75"], effect_for=1)"""),
+             "1214 dollars more among the trained men (95 % CI -350 to 2778): the same question as matching, a "
+             "little smaller, and now race is balanced."),
+            (_sx("""\
+                import simplydata as sdata
+                table = sdata.table(sdata.get_example("job_training"))
+                table.compare_averages_of("re74", for_each_group_in="treat")"""),
+             "The trained men earned much less already in 1974, before any training: the plain comparison mixes "
+             "the training with who took it."),
+            (_sx("""\
+                import simplydata as sdata
+                table = sdata.table(sdata.get_example("job_search"))
+                table.explain("depress2", using="treat", through="job_seek")"""),
+             "through=: the column the effect goes through (the mediator)."),
+        ],
+        words=["table.compare_balanced_groups_of", "table.compare_averages_of", "table.explain"],
     ),
 ]
 

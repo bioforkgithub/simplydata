@@ -37,4 +37,4 @@ Example tables you can use (made up for practice, except bcg and passive_smoking
       Columns: school, pupil, class, hours, sleep, breakfast, marks, passed, days_absent
 
 
-... (124 more lines)
+... (140 more lines)

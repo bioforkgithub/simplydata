@@ -5,6 +5,48 @@ working for one release and prints a one-line note with its new name.
 
 ## Unreleased
 
+### New: epidemiology and cause and effect (S3d-2)
+
+- `table.compare_balanced_groups_of("re78", for_each_group_in="treat", allowing_for=["age", "educ", "race", ...])`:
+  makes two groups alike in other columns, then compares them. The propensity score (R `glm`), the overlap of the
+  scores, the balance table (standardised differences before and after, R `cobalt::bal.tab`, the guide 0.1, never
+  p-values), the effect with its interval, and the assumptions it rests on, printed every time.
+  `method="weighting"` (the default; R `WeightIt::weightit` and `lm_weightit`, standard errors that allow for the
+  estimated weights) or `method="matching"` (R `MatchIt::matchit`, 1:1 nearest neighbour, standard errors clustered
+  on the pairs); `match_within=0.2` a caliper in standard deviations of the logit of the score; `effect_for=
+  "everyone"` (ATE, the default for weighting) or a group's name (ATT, needed for matching); `show="balance"` or
+  `show="propensity scores"`. Checked on lalonde: weighting 224.7 (SE 876), matching 894 (SE 705), as WeightIt and
+  MatchIt.
+- `explain("depress2", using="treat", through="job_seek", allowing_for=[...])`: causal mediation (statsmodels
+  `Mediation`, Imai, Keele and Tingley's quasi-Bayesian algorithm, 1000 simulations, as R `mediation::mediate`): the
+  indirect effect, the direct and total effects and the share that goes through, with the assumptions printed.
+  `against=` names the starting value of the exposure; a yes or no outcome or mediator gets logistic models.
+- `compare_risks(..., show="attributable fractions")`: the attributable fraction among the exposed and in the whole
+  population (R `epiR::epi.2by2`), labelled crude; for an exposure that goes with fewer events, the preventable
+  fraction among the exposed.
+- `rate_of(..., allowing_for="age_band", standard_population="whole table")` (or a table of population sizes):
+  directly standardised rates with Fay and Feuer's interval (R `epiR::epi.directadj`, the same numbers as
+  `epitools::ageadjust.direct`). `compare_rates(..., allowing_for="age_band", standard_rates=national)`: observed /
+  expected (SMR) with its exact Poisson interval (R `epiR::epi.indirectadj`; p-value from R `poisson.test`).
+- `compare_averages_of("auc", for_each_group_in="formulation", matched_by="subject", period="period",
+  same_within=[0.8, 1.25])`: the 2 x 2 crossover (bioequivalence), the EMA model with all effects fixed on the log
+  scale (statsmodels OLS), the ratio of geometric means with its 90 % interval and the within-subject CV; no
+  carry-over pre-test. `against=` names the reference formulation. Gives the published answers of the three
+  reference datasets of Schütz, Labes and Fuglsang (2014).
+- `empty_cells="multiple imputation"` on `explain_survival` (R `coxph` on each filled-in table, pooled by R
+  `mice::pool`; the filling uses the event and the Nelson-Aalen hazard, White and Royston 2009) and
+  `find_correlation_between` (Fisher's z pooled with Rubin's rules, R `miceadds::micombine.cor`), with `with_seed=`.
+  Not added to `compare_averages_of` and `compare_risks`: with two columns, filling one from the other gives on
+  average the same answer as leaving the rows out, so `explain()` with other columns is the way.
+- New practice tables: `job_training` (lalonde, real), `job_search` (JOBS II, real), `drug_levels` (a real crossover,
+  Schütz et al. reference dataset A) and `deaths_by_age` (made up).
+- New lesson 35, "Cause and effect from observational data" (a "more" lesson); a "more" line in the risks lesson.
+- Other names (`propensity`, `matchit`, `weightit`, `ipw`, `mediation`, `smr`, `ageadjust`, `bioequivalence`,
+  `attributable_fraction` ...) point to the new words and options.
+- Same-underneath entries, "how simplydata chooses" entries and reliability cases for each: lalonde, JOBS II, dry cat
+  food and FLUTD (Willeberg 1977), Down syndrome by birth order (Selvin 2004; epitools as a second package), the
+  bioequivalence reference datasets (published ratios and intervals), airquality and lung (against R mice).
+- CI installs WeightIt, MatchIt, cobalt, miceadds and epitools from CRAN.
 ### New: planning an experiment and survey answers (S3d-1)
 
 - `sdata.make_design_table({"temperature": [10, 20], "salinity": [30, 35]}, repeats=3, with_seed=1)`: the layout of

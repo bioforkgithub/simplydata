@@ -1918,7 +1918,8 @@ class SummaryWords:
     @friendly(renamed={"seed": "with_seed"})
     def find_correlation_between(self, *columns, method="pearson", show="r", sides=2, higher=None, lower=None,
                                  alternative=None, p_value_by="formula", interval_by=None, shuffles=9999, resamples=9999,
-                                 with_seed=1, allowing_for=None, rows_back=None, sorted_by=None):
+                                 with_seed=1, allowing_for=None, rows_back=None, sorted_by=None,
+                                 empty_cells="leave out"):
         """How strongly columns of numbers go up or down together, from -1 to 1.
 
         table.find_correlation_between("hours", "marks")   (with sdata.get_example("marks"))
@@ -1951,6 +1952,9 @@ class SummaryWords:
         With rows_back=12 and two columns (sorted_by= the time column): the correlation for shifts
         -12 to 12 (cross-correlation, as R ccf with the sign of the lag reversed): shift 2 pairs the
         first column with the second 2 rows later. It says which column follows the other.
+        empty_cells="multiple imputation" fills in the empty cells 20 times from the other columns named
+        (statsmodels MICEData, as explain()) and pools the correlations with Rubin's rules on Fisher's z (R
+        miceadds::micombine.cor()); with_seed= fixes the random filling.
         A correlation does not show that one thing causes the other.
         """
         step = "find_correlation_between"
@@ -1975,6 +1979,22 @@ class SummaryWords:
                                       'Pearson\'s r (as R ccf()); leave out method= and show=.')
             return self._cross_correlation(step, names, rows_back, sorted_by)
         self._check_choice(step, "method", method, CORRELATION_METHODS)
+        from .imputation_more import MULTIPLE, read_empty_cells
+
+        if read_empty_cells(step, empty_cells, f'table.{step}("{names[0]}", "{names[1]}")') == MULTIPLE:
+            if (_plain_name(show) != "r" or sides != 2 or higher is not None or lower is not None
+                    or alternative not in (None, "two-sided") or p_value_by != "formula" or interval_by is not None
+                    or allowing_for is not None):
+                raise SimplydataError('empty_cells="multiple imputation" gives the pooled correlations with their '
+                                      "intervals; leave out show=, sides=, higher=, p_value_by=, interval_by= and "
+                                      "allowing_for=.")
+            if len(set(names)) < len(names):
+                raise SimplydataError("Give each column once.")
+            from .imputation_more import correlation_imputed
+
+            found = correlation_imputed(self, step, names, _plain_name(method), with_seed)
+            if found is not None:
+                return found
         shown = _plain_name(show)
         if shown not in CORRELATION_SHOW:
             raise choice_error(step, "show", show, list(CORRELATION_SHOW))

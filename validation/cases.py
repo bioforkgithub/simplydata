@@ -983,3 +983,17 @@ def _add_planning_and_surveys():
 
 
 _add_planning_and_surveys()
+
+
+# ---------------------------------------------------------------- S3d-2: epidemiology and cause and effect
+# (validation/cases_causal.py)
+def _add_causal():
+    import importlib.util
+
+    spec = importlib.util.spec_from_file_location("simplydata_validation_causal", HERE / "cases_causal.py")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    module.add_to(globals())
+
+
+_add_causal()

@@ -3,8 +3,9 @@
 Every number in these tables is invented (they are not real people, places or countries), except in "bcg" and
 "passive_smoking" (the published results of real studies, for combining studies), "ability_tests" (the
 published test scores of Holzinger & Swineford 1939, for hidden factors), "sea_levels" (the yearly highest
-sea levels at Port Pirie, published by Coles 2001) and "sampled_schools" (a published survey sample of California
-schools, from the R survey package), each with its source in its description.
+sea levels at Port Pirie, published by Coles 2001), "sampled_schools" (a published survey sample of California
+schools, from the R survey package), and "job_training", "job_search" and "drug_levels" (real studies, for cause
+and effect and bioequivalence), each with its source in its description.
 """
 
 from __future__ import annotations
@@ -371,6 +372,66 @@ EXAMPLES = {
             "would_recommend": "\"I would recommend the course\" (same five answers)",
         },
     ),
+    # S3d-2 (epidemiology and cause and effect): two real studies, a real crossover, and made-up death counts
+    "job_training": (
+        "REAL DATA: 614 men in the National Supported Work job-training study (185 trained) and in a comparison "
+        "group drawn from a population survey (429 not trained): LaLonde (1986), as Dehejia & Wahba (1999) and the "
+        "R package MatchIt ship it (lalonde). The trained men differ from the others before the training, so a "
+        "plain comparison mixes the training with who took it. The randomised experiment found an effect of "
+        "about $1,794 on 1978 earnings.",
+        {
+            "treat": "1 = took part in the job training, 0 = from the comparison survey",
+            "age": "age in years",
+            "educ": "years of schooling",
+            "race": "black, hispan or white",
+            "married": "1 = married, 0 = not",
+            "nodegree": "1 = no high-school degree, 0 = has one",
+            "re74": "earnings in 1974 (US dollars)",
+            "re75": "earnings in 1975 (US dollars)",
+            "re78": "earnings in 1978, after the training (US dollars)",
+        },
+    ),
+    "job_search": (
+        "REAL DATA: 899 unemployed workers in the JOBS II study, a randomised job-search workshop (Vinokur, Price & "
+        "Schul 1995), as Tingley et al. (2014) and the R package mediation ship it (jobs). For mediation: did the "
+        "workshop lower depression through the workers' confidence in searching for a job?",
+        {
+            "treat": "1 = was offered the workshop, 0 = a booklet only (randomised)",
+            "econ_hard": "economic hardship before the study (1 to 5)",
+            "depress1": "depression before the study (1 to 5)",
+            "sex": "1 = female, 0 = male",
+            "age": "age in years",
+            "nonwhite": "white0 or non.white1",
+            "educ": "schooling: lt-hs, highsc, somcol, bach or gradwk",
+            "income": "household income: lt15k, 15t24k, 25t39k, 40t49k or 50k+",
+            "job_seek": "confidence in searching for a job, after the workshop (1 to 5)",
+            "depress2": "depression six months after the workshop (1 to 5)",
+            "work1": "psyemp (employed) or psyump (unemployed) six months after",
+        },
+    ),
+    "drug_levels": (
+        "REAL DATA: a 2 x 2 crossover bioequivalence study with 18 subjects: each had a test and a reference "
+        "formulation of a drug, one in each of two periods, and the area under the blood-level curve was measured "
+        "(Sauter et al. 1992; reference dataset A of Schütz, Labes & Fuglsang 2014, whose published ratio is 95.09 % "
+        "with 90 % CI 90.76 to 99.62 %).",
+        {
+            "subject": "the subject, 1 to 18",
+            "period": "1 or 2",
+            "formulation": "test or reference",
+            "auc": "area under the blood-level curve (the amount of drug that reached the blood)",
+        },
+    ),
+    "deaths_by_age": (
+        "MADE-UP DATA: deaths and person-years in six age bands of four made-up counties, for standardised rates. "
+        "Eastmere has many old people, Northvale few, so their crude death rates mislead. Invented for practice; "
+        "not from any real place.",
+        {
+            "county": "Northvale, Eastmere, Southby or Westford",
+            "age_band": "0-19, 20-39, 40-59, 60-69, 70-79 or 80+",
+            "deaths": "deaths in that county and age band",
+            "person_years": "person-years lived in that county and age band",
+        },
+    ),
 }
 
 
@@ -393,8 +454,10 @@ def get_example(name: str | None = None):
     The tables are: marks, weather, fruit, growth, sensor, visitors, river, shop, school, meadow, trial, clinic,
     island, toxicity, culture, admissions, resistome, stations, rain, sea_levels (real published sea levels), and,
     for combining studies, bcg and passive_smoking (real published studies), for hidden factors,
-    ability_tests (real published test scores), for q-values, many_tests (made up), and, for planning and
-    surveys, sampled_schools (a real survey sample) and course_feedback (made-up answers on a scale).
+    ability_tests (real published test scores), for q-values, many_tests (made up), for planning and
+    surveys, sampled_schools (a real survey sample) and course_feedback (made-up answers on a scale), and, for
+    cause and effect, job_training and job_search (real studies), drug_levels (a real crossover) and
+    deaths_by_age (made up).
     "shop" has empty cells and a column of dates to practise with; "school" has empty cells too.
     """
     if name is None:
