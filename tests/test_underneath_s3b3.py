@@ -19,11 +19,11 @@ def test_the_new_words_have_entries():
 
 def test_every_s3b3_option_has_an_entry():
     shown = {(e.word, e.option.split("=")[0]) for e in survival.ENTRIES if e.option}
-    for word, options in [("table.find_survival_over_time", ("at_time_points", "method", "allowing_for",
+    for word, options in [("table.find_survival_over_time", ("at_time_points", "test_method", "allowing_for",
                                                              "followed_from", "average_time_up_to")),
                           ("table.compare_survival", ("allowing_for", "followed_from", "average_time_up_to",
                                                       "competing_with")),
-                          ("table.explain_survival", ("allowing_for", "followed_from", "competing_with", "method",
+                          ("table.explain_survival", ("allowing_for", "followed_from", "competing_with", "test_method",
                                                       "distribution")),
                           ("draw_survival_curves", ("allowing_for", "followed_from")),
                           ("draw_risk_curves", ("competing_with",))]:
