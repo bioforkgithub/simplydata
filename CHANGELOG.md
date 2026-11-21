@@ -5,6 +5,36 @@ working for one release and prints a one-line note with its new name.
 
 ## Unreleased
 
+### New: Bayesian answers (S3d-3)
+
+- `bayesian=True` on `compare_averages_of` (two groups), `compare_before_and_after`, `compare_average_to`,
+  `find_correlation_between` (two columns) and `compare_counts_of`: a Bayes factor, said as "the data are 17.3 times
+  as likely if the values changed as if they did not", and a 95 % credible interval with its meaning, instead of a
+  p-value (R BayesFactor: `ttestBF`, `correlationBF`, `contingencyTableBF(sampleType = "indepMulti", fixedMargin =
+  "rows")`, then `posterior()` with 10,000 draws after `set.seed(with_seed)`). `prior_width="medium"` (the default),
+  `"wide"`, `"ultrawide"` or a number sets the width of the prior, which is always printed. No p-value and no verdict
+  words. The one-column test works on the values minus the number, because BayesFactor's `posterior()` leaves `mu =`
+  out (its Bayes factor is the same).
+- `explain(..., bayesian=True)`: a Bayesian model from R rstanarm (`stan_glm`, or `stan_glmer` with `grouped_by=`;
+  outcome `"numbers"`, `"yes or no"` or `"counts"`), 4 chains of 2000 iterations with `seed = with_seed`. It prints
+  the prior (rstanarm's `prior_summary()`), each effect as the posterior median with its 95 % credible interval (odds
+  or rate ratios for yes/no and counts), and rank-normalised R-hat and bulk and tail effective draws from the
+  posterior package. When R-hat is above 1.01, there are fewer than 400 effective draws or any divergent transition,
+  a warning with what to do comes before any estimate. The result table has the columns "R-hat", "effective draws
+  (middle)" and "effective draws (tails)".
+- `check_model_of(..., bayesian=True)`: the posterior predictive check, the data against 50 sets made up by the
+  fitted model (densities for numbers, bars for yes/no and counts, as bayesplot's `pp_check`); `show="prior check"`
+  draws the sets made up from the prior alone (`prior_PD = TRUE`).
+- rstanarm is a large optional R package (about 400 MB with Stan); its models are compiled when it is installed, so
+  nothing is compiled or written while simplydata runs, and simplydata runs the chains one after another
+  (`cores = 1`: no worker processes, no sockets).
+- Lesson 36 "Bayesian answers: how likely, given the data and the prior"; "more" lines in the lessons on tests and
+  on working with a model; other names (`ttestBF`, `correlationBF`, `contingencyTableBF`, `stan_glm`, `stan_glmer`,
+  `brm`, `brms`, `pymc`, `bambi`, `pp_check`, `rhat`, `ess`, ...); `rscale=` and `prior_scale=` point to
+  `prior_width=`; 8 same-underneath entries, 8 "how simplydata chooses" entries (9 new references, each checked in
+  Crossref) and 7 reliability cases on Student's sleep data, mtcars and sleepstudy, with the Bayes factors also
+  checked against SciPy versions of the published formulas (Rouder et al. 2009; Gunel and Dickey 1974).
+
 ### New: epidemiology and cause and effect (S3d-2)
 
 - `table.compare_balanced_groups_of("re78", for_each_group_in="treat", allowing_for=["age", "educ", "race", ...])`:

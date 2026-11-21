@@ -354,7 +354,8 @@ UNDERNEATH = {
     "table.check_model_of": "statsmodels (OLSInfluence, GLMInfluence, MixedLM, ProbPlot and lowess), the pictures of R "
                          "plot(lm), plot(glm) and plot(lmer) with qqnorm(ranef), drawn with matplotlib; R lme4::glmer "
                          "for yes/no and counts with grouped_by=; statsmodels variance_inflation_factor (least "
-                         "squares) or R car::vif (GLMs, group columns) for the variance inflation factors",
+                         "squares) or R car::vif (GLMs, group columns) for the variance inflation factors; with "
+                         "bayesian=True R rstanarm (posterior_predict, prior_PD) and stats::density",
     "table.show_rows_that_pull_model": "statsmodels (OLSInfluence, GLMInfluence), as R cooks.distance, hatvalues and "
                                  "rstudent; R lme4 influence() and cooks.distance() for whole groups with grouped_by=",
     "table.compare_models": "statsmodels (OLS compare_f_test; GLM deviances and log-likelihoods with SciPy's chi-square "

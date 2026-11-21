@@ -146,7 +146,7 @@ class ModelToolWords:
         """grouped_by="school" or ["school", "class"] (classes inside schools): gives (outer, inner or None)."""
         return self._read_nested(step, grouped_by, None, "wald", "for the average group", False, None)
 
-    def _one_model(self, step, column, using, outcome, grouped_by=None, in_order=None, inner=None):
+    def _one_model(self, step, column, using, outcome, grouped_by=None, in_order=None, inner=None, fit=True):
         """Check the inputs as explain() does and fit the model (the rows with every cell given); the
         ordered-groups, groups, shares and many-zeros models are only set up (R fits them). inner= is the
         inner group column of grouped_by=[outer, inner]."""
@@ -164,7 +164,7 @@ class ModelToolWords:
         if in_order is not None:
             raise SimplydataError('in_order= gives the order of the groups for outcome="ordered groups".')
         model = self._fit_model(step, column, outcome, grouped_by, terms, variables, raw, kinds, keep,
-                                grouping={"inner": inner} if inner is not None else None)
+                                grouping={"inner": inner} if inner is not None else None, fit=fit)
         return model, pieces
 
     # ------------------------------------------------------------------ find_model_averages_of
@@ -518,8 +518,9 @@ class ModelToolWords:
         return made.draw_line_with_slope(qq["slope"], intercept=qq["intercept"]).write_title_on_top(title)
 
     # ------------------------------------------------------------------ check_model_of
-    @friendly
-    def check_model_of(self, column=None, using=None, outcome="numbers", grouped_by=None):
+    @friendly(renamed={"seed": "with_seed"})
+    def check_model_of(self, column=None, using=None, outcome="numbers", grouped_by=None, bayesian=False, show=None,
+                       with_seed=1):
         """Four pictures to check a model from explain(), as R plot(lm(...)).
 
         table.check_model_of("marks", using=["hours", "breakfast"])   (with sdata.get_example("school"))
@@ -537,8 +538,28 @@ class ModelToolWords:
         grouped_by= it also prints each column's variance inflation factor (how strongly it is
         linked with the others, as R car::vif()).
         Gives back the page of charts: .show() or .save("checks.png").
+        bayesian=True checks the Bayesian model of explain(..., bayesian=True) (R rstanarm, seed =
+        with_seed): it prints R-hat and effective draws, warns about convergence problems, and draws the
+        posterior predictive check: the data against 50 sets of values made up by the fitted model (R
+        rstanarm::posterior_predict(), as bayesplot::pp_check). show="prior check" draws the prior
+        predictive check instead: 50 sets made up from the prior alone (prior_PD = TRUE), to see whether
+        the prior allows only possible values. Gives back the chart.
         """
         step = "check_model_of"
+        wants = self._check_bayesian(step, bayesian)
+        if wants or show is not None or with_seed != 1:
+            from . import bayes_words
+
+            if not wants:
+                raise SimplydataError('show= and with_seed= go with bayesian=True, such as table.check_model_of("marks", '
+                                      'using=["hours"], bayesian=True, show="prior check").')
+            if show is not None:
+                self._check_choice(step, "show", show, ("prior check",))
+            if isinstance(outcome, str):
+                from .models import OUTCOME_SPELLINGS
+
+                outcome = OUTCOME_SPELLINGS.get(outcome.strip().lower(), outcome)
+            return bayes_words.check(self, column, using, outcome, grouped_by, bayes_words.check_seed(with_seed), show)
         self._check_kind(step, outcome)
         grouped_by, inner = self._groups_inside(step, grouped_by)
         model, pieces = self._one_model(step, column, using, outcome, grouped_by, inner=inner)

@@ -77,6 +77,11 @@ r = ["rpy2>=3.5"]  # the bridge to R for the methods only R gives (R itself: htt
 # S3d-1 (planning and surveys) calls agricolae (design tables), blockrand (randomisation lists; CRAN only, not on
 # conda-forge) and survey (survey-weighted answers); agricolae and survey are on conda-forge. mice (patterns of empty
 # cells, in the reliability study) is listed already.
+# S3d-3 (Bayesian methods) calls BayesFactor (Bayes factors; on conda-forge as r-bayesfactor) and, for Bayesian models,
+# rstanarm, rstan and posterior (on conda-forge as r-rstanarm, r-rstan and r-posterior). rstanarm is large (about 400
+# MB with Stan); in R install it as a ready-made build: install.packages("rstanarm", type = "binary") on Windows and
+# macOS, or from Posit's public package manager on Linux. Without it only the bayesian=True model words stop, with
+# the install line.
 test = ["pytest>=7", "polars>=0.20", "pyarrow>=14", "statsmodels>=0.14"]
 
 [project.urls]

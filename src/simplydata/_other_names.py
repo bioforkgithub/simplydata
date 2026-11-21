@@ -408,6 +408,17 @@ _TABLE = [
     ('table.compare_averages_of("auc", for_each_group_in="formulation", matched_by="subject", period="period", '
      "same_within=[0.8, 1.25])", "bioequivalence crossover be_2x2 abe average_bioequivalence"),
     ('table.find_correlation_between("bmi", "chl", empty_cells="multiple imputation")', "micombine_cor"),
+    # S3d-3: Bayesian answers (R BayesFactor and rstanarm; brms and PyMC users land on the same option)
+    ('table.compare_averages_of("crp", for_each_group_in="ward", bayesian=True) (also on compare_before_and_after, '
+     'compare_average_to, find_correlation_between and compare_counts_of)',
+     "ttestBF ttest_bf bayes_factor bayesfactor bayesian_t_test bf10 jzs correlationBF contingencyTableBF "
+     "bayesian_correlation bayes_factor_ttest bayesfactor_ttest credible_interval"),
+    ('table.explain("marks", using=["hours", "breakfast"], bayesian=True)',
+     "stan_glm stan_glmer stan_lmer rstanarm brm brms pymc bambi bayesian_regression bayesian_model "
+     "posterior_interval prior_summary bayesian_mixed_model"),
+    ('table.check_model_of("marks", using=["hours"], bayesian=True) (show="prior check" for the prior)',
+     "pp_check ppc posterior_predictive_check prior_predictive_check ppc_dens_overlay rhat r_hat ess "
+     "effective_sample_size"),
 ]
 
 # chart.<name>

@@ -35,6 +35,7 @@ from .learn import DIVERSITY_LESSON, MAKEUP_LESSON  # S3c-1
 from .learn import COAST_LESSON  # S3c-3
 from .learn import PLANNING_LESSON  # S3d-1
 from .learn import CAUSE_LESSON  # S3d-2
+from .learn import BAYES_LESSON  # S3d-3
 
 TRACK_NAMES = ("python", "beginner")
 DAYS_IN_A_TRACK = 30
@@ -56,7 +57,9 @@ MANUAL_ONLY_LESSONS = (RISKS_LESSON, FORECASTS_LESSON, SYSTEMS_LESSON, OUTLIERS_
                        # S3d-1: planning an experiment and a survey, with R
                        PLANNING_LESSON,
                        # S3d-2: cause and effect from observational data, with R (a "more" lesson)
-                       CAUSE_LESSON)
+                       CAUSE_LESSON,
+                       # S3d-3: Bayesian answers, with R (rstanarm is a large optional package)
+                       BAYES_LESSON)
 
 TRACKS = {
     "python": dict(
@@ -763,7 +766,8 @@ UNITS = {
                    f"(resistomes); sdata.show_lesson({lesson_number(COAST_LESSON)}), directions, places and extremes "
                    f"at a coastal station; sdata.show_lesson({lesson_number(PLANNING_LESSON)}), planning an "
                    f"experiment and a survey; sdata.show_lesson({lesson_number(CAUSE_LESSON)}), cause and effect from "
-                   "observational data"),
+                   "observational data; "
+                   f"sdata.show_lesson({lesson_number(BAYES_LESSON)}), Bayesian answers"),
         recall=[
             ("Which word draws survival curves?", 'chart.draw_survival_curves(time="days", event="died", colour="treatment")'),
             ("Which word tests whether survival differs between groups?",

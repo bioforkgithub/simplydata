@@ -1643,6 +1643,7 @@ MAKEUP_LESSON = "Make-up of communities"  # S3c-1
 COAST_LESSON = "A coastal station: currents, neighbours and storms"  # S3c-3
 PLANNING_LESSON = "Planning an experiment and a survey"  # S3d-1
 CAUSE_LESSON = "Cause and effect from observational data"  # S3d-2
+BAYES_LESSON = "Bayesian answers: how likely, given the data and the prior"  # S3d-3
 GENES_LINE = ('genes = ["blaTEM", "blaCTXM", "blaOXA48", "blaNDM", "sul1", "sul2", "tetA", "tetM", "qnrS", "ermB", "aadA", "mphA", "vanA", "mcr1"]')
 COMBINE_CALL = ('table.combine_studies(names="trial", events=["tb_vaccinated", "tb_unvaccinated"], '
                 'out_of=["vaccinated", "unvaccinated"])')
@@ -3317,6 +3318,10 @@ LESSONS = [
             '"many_tests")); compare_each_pair_of(..., based_on="percents", value="yes") compares the percent of '
             "each pair of groups; after Friedman's test, compare_each_pair_of(..., matched_by=, test=\"nemenyi\") or "
             'test="conover".',
+            "More: bayesian=True on compare_averages_of (two groups), compare_before_and_after, compare_average_to, "
+            "find_correlation_between and compare_counts_of gives a Bayes factor (how many times as likely the data "
+            "are if there is a difference as if there is none) and a credible interval instead of a p-value (R "
+            "BayesFactor; the lesson \"Bayesian answers\" in sdata.show_lesson()).",
         ],
         task=[
             'Compare the average marks for_each_group_in="subject". Could the differences be chance?',
@@ -4169,6 +4174,10 @@ LESSONS = [
             "measure a few hidden things, table.find_hidden_factors_behind([...]) finds how many and which columns "
             "go with which, and table.check_hidden_factors(measured_by={...}) checks a model you wrote down "
             "beforehand; read its fit guides as guides, not pass marks. Try them on sdata.get_example(\"ability_tests\").",
+            # S3d-3: one "more" line (the Bayesian lesson teaches it)
+            "More, with R: explain(..., bayesian=True) fits the model the Bayesian way (R rstanarm): each effect with "
+            "its credible interval, the prior printed, and R-hat to check the chains; check_model_of(..., "
+            "bayesian=True) draws the posterior predictive check.",
         ],
         task=[
             'Partly done for you: after import simplydata as sdata, the next two lines are '
@@ -5699,6 +5708,93 @@ LESSONS = [
              "through=: the column the effect goes through (the mediator)."),
         ],
         words=["table.compare_balanced_groups_of", "table.compare_averages_of", "table.explain"],
+    ),
+    # S3d-3 (Bayesian methods): a Bayes factor first, then a credible interval, then a Bayesian model and its check
+    dict(
+        title=BAYES_LESSON,
+        needs_r=needs_r_text("The Bayes factors (R BayesFactor) and the Bayesian model (R rstanarm, a large package) "
+                             "in this lesson", packages=("BayesFactor", "rstanarm", "posterior")),
+        learn=[
+            "how to say how many times as likely the data are if two groups differ as if they do not (a Bayes factor)",
+            "what a credible interval says, and how it differs from a confidence interval",
+            "how to fit a model the Bayesian way, read its prior, and check that its chains agree",
+        ],
+        parts=[
+            ("Does the CRP blood test differ between the two wards? A Bayes factor compares two answers, a difference "
+             "and none, and can speak for either.", [
+                ("import simplydata as sdata", "Load simplydata."),
+                ('table = sdata.table(sdata.get_example("clinic"))', "200 made-up patients in two wards."),
+                ('table.compare_averages_of("crp", for_each_group_in="ward", bayesian=True)',
+                 "The Bayes factor: how many times as likely the data are if the wards differ as if they do not. "
+                 "Below 1 the data favour no difference. The prior (a Cauchy curve of width 0.707) is printed."),
+                ('table.compare_averages_of("crp", for_each_group_in="ward", bayesian=True, prior_width="wide")',
+                 "The same with a wider prior: the Bayes factor changes, so always say which prior you used."),
+            ]),
+            ("Did the pain go down after 4 weeks? The credible interval says where the average change probably "
+             "lies, given the data and the prior.", [
+                ("import simplydata as sdata", "Load simplydata."),
+                ('table = sdata.table(sdata.get_example("clinic"))', "The same patients, pain at the start and later."),
+                ('table.compare_before_and_after("pain_week_0", "pain_week_4", bayesian=True, with_seed=1)',
+                 "A 95 % credible interval: given the data and the prior, a 95 % chance that the average change lies "
+                 "in it. with_seed= makes the same random draws again."),
+            ]),
+            ("Marks explained by hours of study and breakfast, the Bayesian way: each effect with its credible "
+             "interval, the prior, and a check that the 4 chains agree.", [
+                ("import simplydata as sdata", "Load simplydata."),
+                ('table = sdata.table(sdata.get_example("school"))', "Made-up pupils in 12 schools."),
+                ('table.explain("marks", using=["hours", "breakfast"], bayesian=True)',
+                 "R rstanarm draws 4000 values of each effect. Read the prior first, then each effect and its "
+                 "interval, then the convergence line: R-hat at most 1.01 and at least 400 effective draws."),
+                ('check = table.check_model_of("marks", using=["hours", "breakfast"], bayesian=True)',
+                 "The posterior predictive check: the data (dark) against 50 sets made up by the model (light)."),
+                ('check.save("predictive_check.png")', "Save the picture."),
+            ]),
+        ],
+        notes=[
+            "A Bayes factor is not the chance that a hypothesis is true: it says how much the data shift the odds "
+            "between the two. A Bayes factor of 3 means the data are 3 times as likely if the groups differ; the "
+            "words \"moderate\" or \"strong\" that some tables add are not used here.",
+            "A confidence interval is about the method (95 % of such intervals hold the true value); a credible "
+            "interval is about this value, given the data and the prior. With weak priors they are often close.",
+            "If a warning says the chains do not agree (R-hat above 1.01) or there are too few effective draws, do "
+            "not report the numbers: simplify the model or put the columns on similar scales first.",
+            "More: find_correlation_between(\"crp\", \"procalcitonin\", bayesian=True) and compare_counts_of(..., "
+            "bayesian=True) give Bayes factors for a correlation and a table of counts; explain(..., grouped_by=, "
+            "bayesian=True) fits a Bayesian mixed model; check_model_of(..., bayesian=True, show=\"prior check\") "
+            "shows what the prior allows before seeing the data.",
+        ],
+        task=[
+            "Fill in the blank: table.compare_averages_of(\"procalcitonin\", for_each_group_in=\"ward\", ____=True).",
+            "Change only prior_width=: run part 1 with prior_width=\"ultrawide\". Does the Bayes factor go up or down?",
+            "Say in words what the credible interval of part 2 means, without the word \"confidence\".",
+            "Try to remember without looking back: which option of check_model_of shows what the prior allows?",
+        ],
+        solutions=[
+            (_sx("""\
+                import simplydata as sdata
+                table = sdata.table(sdata.get_example("clinic"))
+                table.compare_averages_of("procalcitonin", for_each_group_in="ward", bayesian=True)"""),
+             "bayesian=True: the Bayes factor and the credible interval instead of a p-value."),
+            (_sx("""\
+                import simplydata as sdata
+                table = sdata.table(sdata.get_example("clinic"))
+                table.compare_averages_of("crp", for_each_group_in="ward", bayesian=True, prior_width="ultrawide")"""),
+             "A wider prior expects bigger differences, so a small difference counts more for \"no difference\": "
+             "the Bayes factor for a difference goes down."),
+            (_sx("""\
+                import simplydata as sdata
+                table = sdata.table(sdata.get_example("clinic"))
+                table.compare_before_and_after("pain_week_0", "pain_week_4", bayesian=True)"""),
+             "Given these patients and the prior, there is a 95 % chance that the average change lies between the "
+             "two numbers printed."),
+            (_sx("""\
+                import simplydata as sdata
+                table = sdata.table(sdata.get_example("school"))
+                table.check_model_of("marks", using=["hours"], bayesian=True, show="prior check")"""),
+             "show=\"prior check\": 50 sets of values made up from the prior alone."),
+        ],
+        words=["table.compare_averages_of", "table.compare_before_and_after", "table.explain",
+               "table.check_model_of", "table.find_correlation_between", "table.compare_counts_of"],
     ),
 ]
 

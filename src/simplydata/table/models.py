@@ -682,8 +682,9 @@ class ModelWords:
         return out
 
     def _fit_model(self, step, column, outcome, grouped_by, terms, variables, raw, kinds, keep, time=None,
-                   out_of=None, link=None, grouping=None, weights=None, splines=None, kind=None):
-        """Fit the model on the rows in keep; a dict with everything the printing needs. weights= the precision
+                   out_of=None, link=None, grouping=None, weights=None, splines=None, kind=None, fit=True):
+        """Fit the model on the rows in keep; a dict with everything the printing needs (fit=False: checked and set
+        up only, for the Bayesian route, where R rstanarm fits it). weights= the precision
         weights of the rows kept, splines= {column: inner knots} for with_knots=, kind= another kind of model than
         the outcome's own (robust regression, risk ratios)."""
         n = int(keep.sum())
@@ -758,6 +759,8 @@ class ModelWords:
             self._check_group_sizes(grouped_by, groups, grouping.get("inner"), grouping.get("inner_groups"), n)
             if grouping.get("crossed_groups") is not None:
                 self._check_group_sizes(grouping["crossed"], grouping["crossed_groups"], None, None, n)
+        if not fit:
+            return model
         model["fit"] = self._fit_one(kind, X, y, groups, family="binomial" if outcome == "yes or no" else "poisson",
                                      exposure=exposure, trials=trials, link=link, grouping=grouping, weights=weights)
         return model
@@ -1587,7 +1590,7 @@ class ModelWords:
                 giving_outliers_less_weight=False, with_knots=None, interval_by="wald", resamples=None,
                 crossed_with=None, zero_part_using=None, for_percentile=None, changes_at=None,
                 spread_changes_with=None, neighbours_alike_in_order_of=None, through=None, allowing_for=None,
-                against=None):
+                against=None, bayesian=False):
         """Explain one column from several others with a model, and say how big each effect is.
 
         table.explain("marks", using=["hours", "breakfast"])   (with sdata.get_example("school"))
@@ -1687,11 +1690,40 @@ class ModelWords:
         using=. The printout says what the answer rests on.
         Under a survey design (table.use_survey_design) it fits a survey-weighted model, R
         survey::svyglm (outcome= "numbers", "yes or no" or "counts").
+        bayesian=True fits the model the Bayesian way: R rstanarm::stan_glm() (outcome="numbers", "yes or
+        no" or "counts"), or stan_glmer() with grouped_by="school", with 4 chains of 2000 iterations and
+        seed = with_seed. It prints the prior used (rstanarm's default weakly informative priors, scaled to
+        the data, from prior_summary()), each effect as the posterior median with its 95 % credible
+        interval (odds or rate ratios for yes/no and counts), and R-hat and effective draws from the
+        posterior package; it warns, with what to do, before any estimate when the chains do not agree
+        (R-hat above 1.01), when there are too few effective draws (below 400) or divergent transitions.
+        check_model_of(..., bayesian=True) draws the posterior predictive check. Needs R (rstanarm, a large
+        optional package).
         """
         if self._survey_on():
             self._survey_only("explain", locals(), ("column", "using", "outcome"))
             return self._survey_explain(column, using, outcome)
         step = "explain"
+        if self._check_bayesian(step, bayesian):
+            from . import bayes_words
+
+            bayes_words.check_bayes_options(step, [
+                ("empty_cells=", empty_cells, "leave out"), ("time=", time, None), ("out_of=", out_of, None),
+                ("in_order=", in_order, None), ("link=", link, None), ("test_type=", test_type, None),
+                ("own_slope_for=", own_slope_for, None), ("robust_errors=", robust_errors, False),
+                ("p_value_by=", p_value_by, "wald"), ("effects=", effects, "for the average group"),
+                ("within_groups=", within_groups, "alike"), ("curve_for=", curve_for, None),
+                ("weights=", weights, None), ("show=", show, None), ("method=", method, None),
+                ("matched_by=", matched_by, None), ("giving_outliers_less_weight=", giving_outliers_less_weight, False),
+                ("with_knots=", with_knots, None), ("interval_by=", interval_by, "wald"), ("resamples=", resamples, None),
+                ("crossed_with=", crossed_with, None), ("zero_part_using=", zero_part_using, None),
+                ("for_percentile=", for_percentile, None), ("changes_at=", changes_at, None),
+                ("spread_changes_with=", spread_changes_with, None),
+                ("neighbours_alike_in_order_of=", neighbours_alike_in_order_of, None), ("through=", through, None),
+                ("allowing_for=", allowing_for, None), ("against=", against, None)], light=False)
+            if isinstance(outcome, str):
+                outcome = OUTCOME_SPELLINGS.get(outcome.strip().lower(), outcome)
+            return bayes_words.explain(self, column, using, outcome, grouped_by, bayes_words.check_seed(with_seed))
         # S3d-2 (epidemiology and cause and effect): mediation (table/mediation.py)
         if through is not None or allowing_for is not None or against is not None:
             if through is None:

@@ -180,7 +180,13 @@ R_PACKAGES = ("survival", "vegan", "mice", "lme4", "betareg", "pscl", "car", "ef
               # after multiple imputation; epitools for the reliability study (standardised rates)
               "WeightIt", "MatchIt", "cobalt", "miceadds", "epitools",
               # S3d-1 (planning and surveys): randomisation lists (blockrand, CRAN only), design tables, surveys
-              "blockrand", "agricolae", "survey")
+              "blockrand", "agricolae", "survey",
+              # S3d-3 (Bayesian methods): Bayes factors. rstanarm, rstan and posterior (Bayesian models) are checked
+              # by their own tests (tests/test_s3d3_bayesian.py needs_rstanarm), so a missing rstanarm skips only them
+              "BayesFactor")
+# S3d-3: the large optional packages of the Bayesian models (rstanarm with Stan). CI installs them in a step of their
+# own; the needs_r fixture does not ask for them, so without rstanarm only its own tests skip (test_s3d3_bayesian.py)
+R_PACKAGES_HEAVY = ("rstanarm", "rstan", "posterior")
 
 
 @pytest.fixture
@@ -287,6 +293,9 @@ R_ENTRY_POINTS = {
     # S3d-1 (planning and surveys)
     ("designs.py", "make_random_assignments"), ("designs.py", "make_design_table"), ("designs.py", "_r_version"),
     ("table/survey_r.py", "_call"),
+    # S3d-3 (Bayesian methods)
+    ("table/bayes_r.py", "_light_call"), ("table/bayes_r.py", "need_heavy"), ("table/bayes_r.py", "stan_model"),
+    ("table/bayes_r.py", "predictive_check"),
 }
 
 

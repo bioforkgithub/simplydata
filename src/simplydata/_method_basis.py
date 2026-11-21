@@ -535,6 +535,16 @@ REFERENCES: dict[str, Reference] = {
     "jamieson2004": _ref("Jamieson 2004", "Jamieson S (2004). Likert scales: how to (ab)use them. Medical Education 38:1217-1218.", doi="10.1111/j.1365-2929.2004.02012.x"),
     "norman2010": _ref("Norman 2010", "Norman G (2010). Likert scales, levels of measurement and the 'laws' of statistics. Advances in Health Sciences Education 15:625-632.", doi="10.1007/s10459-010-9222-y"),
     "heiberger2014": _ref("Heiberger & Robbins 2014", "Heiberger RM, Robbins NB (2014). Design of Diverging Stacked Bar Charts for Likert Scales and Other Applications. Journal of Statistical Software 57(5).", doi="10.18637/jss.v057.i05"),
+    # S3d-3: Bayesian methods (each DOI looked up in Crossref on 2026-11-21)
+    "rouder2009": _ref("Rouder et al. 2009", "Rouder JN, Speckman PL, Sun D, Morey RD, Iverson G (2009). Bayesian t tests for accepting and rejecting the null hypothesis. Psychonomic Bulletin & Review 16:225-237.", doi="10.3758/PBR.16.2.225"),
+    "wagenmakers2018": _ref("Wagenmakers et al. 2018", "Wagenmakers EJ, Marsman M, Jamil T, Ly A, Verhagen J, Love J, Selker R, Gronau QF, Smira M, Epskamp S, Matzke D, Rouder JN, Morey RD (2018). Bayesian inference for psychology. Part I: Theoretical advantages and practical ramifications. Psychonomic Bulletin & Review 25:35-57.", doi="10.3758/s13423-017-1343-3"),
+    "ly2016": _ref("Ly, Verhagen & Wagenmakers 2016", "Ly A, Verhagen J, Wagenmakers EJ (2016). Harold Jeffreys's default Bayes factor hypothesis tests: Explanation, extension, and application in psychology. Journal of Mathematical Psychology 72:19-32.", doi="10.1016/j.jmp.2015.06.004"),
+    "gunel1974": _ref("Gunel & Dickey 1974", "Gunel E, Dickey J (1974). Bayes factors for independence in contingency tables. Biometrika 61:545-557.", doi="10.1093/biomet/61.3.545"),
+    "jamil2017": _ref("Jamil et al. 2017", "Jamil T, Ly A, Morey RD, Love J, Marsman M, Wagenmakers EJ (2017). Default 'Gunel and Dickey' Bayes factors for contingency tables. Behavior Research Methods 49:638-652.", doi="10.3758/s13428-016-0739-8"),
+    "vehtari2021": _ref("Vehtari et al. 2021", "Vehtari A, Gelman A, Simpson D, Carpenter B, Buerkner PC (2021). Rank-Normalization, Folding, and Localization: An Improved R-hat for Assessing Convergence of MCMC (with Discussion). Bayesian Analysis 16:667-718.", doi="10.1214/20-BA1221"),
+    "gabry2019": _ref("Gabry et al. 2019", "Gabry J, Simpson D, Vehtari A, Betancourt M, Gelman A (2019). Visualization in Bayesian Workflow. Journal of the Royal Statistical Society Series A 182:389-402.", doi="10.1111/rssa.12378"),
+    "gelman2008prior": _ref("Gelman et al. 2008", "Gelman A, Jakulin A, Pittau MG, Su YS (2008). A weakly informative default prior distribution for logistic and other regression models. The Annals of Applied Statistics 2:1360-1383.", doi="10.1214/08-AOAS191"),
+    "kruschke2021": _ref("Kruschke 2021", "Kruschke JK (2021). Bayesian Analysis Reporting Guidelines. Nature Human Behaviour 5:1282-1291.", doi="10.1038/s41562-021-01177-7"),
 }
 
 
@@ -3073,3 +3083,77 @@ BASIS["table.compare_counts_of after use_survey_design()"] = _b(
     "table.use_survey_design() off for the chi-square test of the rows.",
     "The plain chi-square test is too liberal on survey data; the Rao-Scott second-order correction keeps it close "
     "to its nominal size (Rao & Scott 1984).", ("rao1984",), "P1", "for_each_group_in= is required.")
+
+# ---- Bayesian methods (S3d-3)
+_BF_WHY = ("A Bayes factor says how much more likely the data are under one hypothesis than under the other, so it can "
+           "also speak for no difference, which a p-value cannot (Rouder et al. 2009; Wagenmakers et al. 2018). The "
+           "default prior widths are BayesFactor's (the field's reference software, also used by JASP for t tests); "
+           "the Bayesian reporting guidelines ask for the prior to be stated and for its influence to be checked "
+           "(Kruschke 2021), so the width is printed and prior_width= changes it. The interval comes from 10,000 "
+           "posterior draws with a fixed seed, so it is the same on every run.")
+_BF_CHECKS = ("The other options of the usual test are refused with bayesian=True; prior_width= without bayesian=True "
+              "is refused; no p-value and no verdict words are printed.")
+BASIS["table.compare_averages_of bayesian=True"] = _b(
+    "The JZS Bayes factor t-test for two groups from R BayesFactor::ttestBF(), with a Cauchy prior of medium width "
+    "(r = 0.707) on the effect size, and the 95 % credible interval of the difference from BayesFactor::posterior().",
+    "prior_width=\"wide\" (1), \"ultrawide\" (1.414) or a number; bayesian=False for Welch's t-test.",
+    _BF_WHY, ("rouder2009", "wagenmakers2018", "kruschke2021"), "P3", "Exactly two groups; " + _BF_CHECKS,
+    "convention")
+BASIS["table.compare_before_and_after bayesian=True"] = _b(
+    "The JZS Bayes factor paired t-test (R BayesFactor::ttestBF(after, before, paired = TRUE)), medium width, and the "
+    "95 % credible interval of the average change.",
+    "prior_width=\"wide\", \"ultrawide\" or a number; bayesian=False for the paired t-test.",
+    _BF_WHY, ("rouder2009", "wagenmakers2018", "kruschke2021"), "P3", "Both columns must hold numbers; " + _BF_CHECKS,
+    "convention")
+BASIS["table.compare_average_to bayesian=True"] = _b(
+    "The JZS Bayes factor one-sample t-test (R BayesFactor::ttestBF() on the values minus the number), medium width, "
+    "and the 95 % credible interval of the average minus the number.",
+    "prior_width=\"wide\", \"ultrawide\" or a number; bayesian=False for the one-sample t-test.",
+    _BF_WHY + " BayesFactor's posterior() leaves its mu = argument out, so the number is taken away first; the Bayes "
+    "factor is the same either way.", ("rouder2009", "wagenmakers2018", "kruschke2021"), "P3", _BF_CHECKS,
+    "convention")
+BASIS["table.find_correlation_between bayesian=True"] = _b(
+    "The Bayes factor for a correlation from R BayesFactor::correlationBF(), with a stretched beta prior of medium "
+    "width (1/3), and the 95 % credible interval of the correlation.",
+    "prior_width=\"wide\" (0.577), \"ultrawide\" (1) or a number; bayesian=False for Pearson's test.",
+    _BF_WHY + " JASP's default width for correlations is 1, so its Bayes factors differ; the printout says so "
+    "(Ly, Verhagen & Wagenmakers 2016).", ("ly2016", "wagenmakers2018", "kruschke2021"), "P3",
+    "Exactly two columns; " + _BF_CHECKS, "convention")
+BASIS["table.compare_counts_of bayesian=True"] = _b(
+    "The Gunel-Dickey Bayes factor for a table of counts from R BayesFactor::contingencyTableBF(), with independent "
+    "multinomial sampling and each group's total fixed (the groups are the rows), prior concentration 1, and each "
+    "group's shares with 95 % credible intervals.",
+    "bayesian=False for the chi-square test.",
+    "A Bayes factor for a table depends on how the data were collected; with groups chosen first (such as wards or "
+    "exposure groups) each group's total is fixed, which is independent multinomial sampling (Gunel & Dickey 1974; "
+    "Jamil et al. 2017). The printout names the sampling plan. Concentration 1 is BayesFactor's default.",
+    ("gunel1974", "jamil2017", "kruschke2021"), "P3", _BF_CHECKS, "convention")
+BASIS["table.explain bayesian=True"] = _b(
+    "A Bayesian regression from R rstanarm::stan_glm() (numbers, yes or no, counts) with rstanarm's default weakly "
+    "informative priors scaled to the data, 4 chains of 2000 iterations and seed = with_seed; each effect as the "
+    "posterior median with its central 95 % credible interval; rank-normalised R-hat and bulk and tail effective "
+    "draws from the posterior package.",
+    "grouped_by= for a mixed model (stan_glmer); bayesian=False for the usual model.",
+    "Weakly informative priors keep estimates stable without overruling the data (Gelman et al. 2008); the reporting "
+    "guidelines ask for the priors, the convergence measures and the interval type to be stated (Kruschke 2021). "
+    "The older R-hat misses some problems; the rank-normalised R-hat with the guide 1.01 and at least 400 effective "
+    "draws are the current recommendation (Vehtari et al. 2021). 4 chains of 2000 iterations are rstanarm's "
+    "defaults.", ("gelman2008prior", "vehtari2021", "kruschke2021"), "P1",
+    "Warnings come before any estimate when R-hat is above 1.01, there are fewer than 400 effective draws or any "
+    "divergent transition, each with what to do; options other than outcome=, grouped_by= and with_seed= are refused.")
+BASIS["table.explain bayesian=True, grouped_by="] = _b(
+    "A Bayesian mixed model from R rstanarm::stan_glmer() with its own starting level for each group, (1 | group), "
+    "and rstanarm's decov prior for the group spread; otherwise as explain(bayesian=True).",
+    "bayesian=False for lme4.",
+    "As explain(bayesian=True); every group's own level is checked for convergence too (Vehtari et al. 2021).",
+    ("vehtari2021", "kruschke2021"), "P1", "One grouped_by= column.")
+BASIS["table.check_model_of bayesian=True"] = _b(
+    "The posterior predictive check: the data against 50 sets made up by the fitted model (rstanarm "
+    "posterior_predict()), as densities for numbers (R stats::density(), as bayesplot::ppc_dens_overlay) and as "
+    "bars with the median and 90 % interval of the made-up counts for yes/no and counts (as bayesplot::ppc_bars).",
+    "show=\"prior check\" for the prior predictive check (prior_PD = TRUE).",
+    "Pictures of the data against data made up by the model show what a model misses better than one number, and the "
+    "prior predictive check shows whether a prior allows impossible values (Gabry et al. 2019). 50 sets is what "
+    "bayesplot's pp_check() draws by default.", ("gabry2019",), "P2",
+    "The same convergence warnings as explain(bayesian=True).")
+
