@@ -343,6 +343,19 @@ _TABLE = [
      "cfa lavaan confirmatory_factor_analysis structural_equation_model structural_equation_modelling sem_model "
      "path_model measurement_model latent_variables fit_measures fitmeasures cfi rmsea srmr modindices "
      "modification_indices"),
+    # S3c-3: directions, places and extremes
+    ('table.find_average_direction_of("current_direction", full_turn=360)',
+     "circmean mean_direction circular_mean mean_circular average_angle find_mean_direction_of circular_average"),
+    ('table.compare_shape_to("current_direction", shape="even around the circle", full_turn=360)',
+     "rayleigh rayleigh_test circular_uniformity"),
+    ('table.find_autocorrelation_of("zinc", x="east", y="north")',
+     "moran morans_i moran_i moran_test spatial_autocorrelation"),
+    ('table.find_variogram_of("zinc", x="east", y="north")', "variogram semivariogram fit_variogram"),
+    ('table.find_return_levels_of("sea_level", once_in=[10, 100])',
+     "fevd return_level return_levels return_period gev_fit extremes block_maxima"),
+    ('table.find_return_levels_of("rain", once_in=[10, 100], values_above=30, sorted_by="date")',
+     "pot peaks_over_threshold gpd_fit"),
+    ('table.find_variogram_of("zinc", x="east", y="north")   (kriging is not offered)', "kriging krige"),
 ]
 
 # chart.<name>
@@ -418,6 +431,11 @@ _CHART = [
      "rarecurve rarefaction rarefaction_curves draw_rarefaction_curves iNEXT accumulation species_accumulation "
      "draw_species_curves"),
     ('chart.draw_cluster_tree(columns=["blaTEM", "sul1"])', "dendrogram plot_dendrogram draw_dendrogram draw_tree"),
+    # S3c-3
+    ('chart.draw_variogram("zinc", x="east", y="north")', "plot_variogram variogram_plot"),
+    ('chart.draw_threshold_check(x="rain", between=[20, 40])',
+     "mrlplot mrl_plot mean_residual_life threshrange threshrange_plot mean_excess_plot"),
+    ('chart.draw_polar(angle="current_direction", distance="depth", full_turn=360)', "rose rose_diagram windrose"),
 ]
 
 # nums.<name> (numbers). Older ones (mean, sum, min ...) are in numbers/_base.py HINTS.

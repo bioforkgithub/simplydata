@@ -1,0 +1,3 @@
+The average direction of "current_direction" is 354° (resultant length 0.93: the directions are close together; 1 = all the same direction, 0 = no average direction). Circular standard deviation 22° (60 values).
+Method: SciPy stats.circmean, circstd and circvar with low=0, high=360, and directional_stats for the resultant length; the same numbers as R circular's mean.circular, rho.circular, sd.circular and var.circular with the units given.
+simplydata chooses: the average from 0 up to 360 (R circular gives the same direction from -180 to 180, such as -43° for 317°), and the circular standard deviation sqrt(-2 ln(resultant length)), as R sd.circular, in the units of the column.

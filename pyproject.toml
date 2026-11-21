@@ -61,6 +61,10 @@ r = ["rpy2>=3.5"]  # the bridge to R for the methods only R gives (R itself: htt
 # cluster and MASS that come with R; all are on CRAN and conda-forge.
 # S3c-2 (hidden factors) calls psych (listed already) with GPArotation for the rotations, and lavaan; both on CRAN
 # and conda-forge.
+# S3c-3 (directions, places and extremes) calls circular (Rayleigh test), spdep with sf (Moran's I), gstat (variogram)
+# and extRemes (return levels); ismev, sp and ape are used by the reliability study only. All are on CRAN and
+# conda-forge. Moran's I runs in R spdep rather than Python esda/libpysal, which would add geopandas, pyproj, pyogrio,
+# shapely, scikit-learn and requests (about 110 MB of wheels) as new Python dependencies.
 test = ["pytest>=7", "polars>=0.20", "pyarrow>=14", "statsmodels>=0.14"]
 
 [project.urls]

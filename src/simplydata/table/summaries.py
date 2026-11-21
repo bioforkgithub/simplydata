@@ -972,6 +972,9 @@ class SummaryWords:
         weights="people" gives the weighted average: each row counts as much as its number in the
         column of weights (statsmodels DescrStatsW, as R weighted.mean()).
         """
+        from .places import direction_note
+
+        direction_note(column)
         if weights is not None:
             return self._weighted("find_average_of", column, weights, for_each_group_in, every, across, interval)
         if interval is not None:

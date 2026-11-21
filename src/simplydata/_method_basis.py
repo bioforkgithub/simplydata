@@ -482,6 +482,17 @@ REFERENCES: dict[str, Reference] = {
     "suissa2008": _ref("Suissa 2008", "Suissa S (2008). Immortal Time Bias in Pharmacoepidemiology. American Journal of Epidemiology 167:492-499.", doi="10.1093/aje/kwm324"),
     "berk2013": _ref("Berk et al. 2013", "Berk R, Brown L, Buja A et al. (2013). Valid post-selection inference. The Annals of Statistics 41:802-837.", doi="10.1214/12-AOS1077"),
     "whittingham2006": _ref("Whittingham et al. 2006", "Whittingham MJ, Stephens PA, Bradbury RB et al. (2006). Why do we still use stepwise modelling in ecology and behaviour? Journal of Animal Ecology 75:1182-1189.", doi="10.1111/j.1365-2656.2006.01141.x"),
+    # S3c-3: directions, places and extremes (each DOI looked up in Crossref on 2026-11-21)
+    "fisher1993": _ref("Fisher 1993", "Fisher NI (1993). Statistical Analysis of Circular Data. Cambridge University Press.", doi="10.1017/CBO9780511564345"),
+    "mardia1999": _ref("Mardia & Jupp 1999", "Mardia KV, Jupp PE (1999). Directional Statistics. Wiley Series in Probability and Statistics. Wiley.", doi="10.1002/9780470316979"),
+    "moran1950": _ref("Moran 1950", "Moran PAP (1950). Notes on continuous stochastic phenomena. Biometrika 37:17-23.", doi="10.1093/biomet/37.1-2.17"),
+    "bivand2018": _ref("Bivand & Wong 2018", "Bivand RS, Wong DWS (2018). Comparing implementations of global and local indicators of spatial association. TEST 27:716-748.", doi="10.1007/s11749-018-0599-x"),
+    "cressie1985": _ref("Cressie 1985", "Cressie N (1985). Fitting variogram models by weighted least squares. Journal of the International Association for Mathematical Geology 17:563-586.", doi="10.1007/BF01032109"),
+    "pebesma2004": _ref("Pebesma 2004", "Pebesma EJ (2004). Multivariable geostatistics in S: the gstat package. Computers & Geosciences 30:683-691.", doi="10.1016/j.cageo.2004.03.012"),
+    "coles2001": _ref("Coles 2001", "Coles S (2001). An Introduction to Statistical Modeling of Extreme Values. Springer Series in Statistics. Springer.", doi="10.1007/978-1-4471-3675-0"),
+    "gilleland2016": _ref("Gilleland & Katz 2016", "Gilleland E, Katz RW (2016). extRemes 2.0: An Extreme Value Analysis Package in R. Journal of Statistical Software 72(8).", doi="10.18637/jss.v072.i08"),
+    "davison1990": _ref("Davison & Smith 1990", "Davison AC, Smith RL (1990). Models for Exceedances Over High Thresholds. Journal of the Royal Statistical Society Series B 52:393-425.", doi="10.1111/j.2517-6161.1990.tb01796.x"),
+    "ferro2003": _ref("Ferro & Segers 2003", "Ferro CAT, Segers J (2003). Inference for Clusters of Extreme Values. Journal of the Royal Statistical Society Series B 65:545-556.", doi="10.1111/1467-9868.00401"),
 }
 
 
@@ -2571,3 +2582,107 @@ BASIS["table.check_hidden_factors formula="] = _b(
     ("rosseel2012",), "P3",
     "A formula in fit_formula's style is refused; it needs at least one name =~ columns; every column must exist and "
     "hold numbers.", "convention")
+
+# ---- S3c-3: directions, places and extremes
+BASIS["table.find_average_direction_of"] = _b(
+    "The circular mean direction from 0 up to the full turn, the mean resultant length and the circular standard "
+    "deviation sqrt(-2 ln R) (SciPy circmean, directional_stats, circstd); full_turn= has no default.",
+    "full_turn=24 (hours), 12 (months), 365 (days of the year) or \"radians\"; for_each_group_in= for groups.",
+    "Directions must be averaged as unit vectors, not as numbers (Fisher 1993; Mardia & Jupp 1999): the plain average "
+    "of 350° and 10° is 180°. The circular standard deviation sqrt(-2 ln R) is the standard one in both books and in "
+    "R circular. full_turn= is required because R circular reads plain numbers as radians without a word, the trap "
+    "the design checked.",
+    ("fisher1993", "mardia1999"), "P1",
+    "full_turn= must be given; values outside 0 to the full turn are read round the circle, with a note; a resultant "
+    "length below 0.1 says there is no clear average direction.")
+BASIS['table.compare_shape_to shape="even around the circle"'] = _b(
+    "The Rayleigh test (R circular::rayleigh.test), with the units always given; the default test when full_turn= "
+    "is given.",
+    "test=\"rayleigh\" says the same; on a line, the bell-shape tests of compare_shape_to.",
+    "The Rayleigh test is the standard test of uniformity against one preferred direction, and the most powerful "
+    "against a von Mises alternative (Mardia & Jupp 1999, 6.3; Fisher 1993, 4.3). It cannot see directions gathered at "
+    "two opposite sides, so the printout says so when it finds no preferred direction.",
+    ("mardia1999", "fisher1993"), "P1",
+    "Fewer than 5 directions refused; full_turn= required; a fixed distribution with full_turn= refused.")
+BASIS["table.find_autocorrelation_of x="] = _b(
+    "Moran's I with every pair of places as neighbours, weights 1 / distance, each row's weights summing to 1, and a "
+    "permutation p-value from 999 shuffles after set.seed(1), one-sided (nearby places more alike) (R spdep).",
+    "nearest=8 for the 8 nearest places; on_globe=True for longitude and latitude; permutations=, with_seed=.",
+    "Moran's I (Moran 1950) depends on the weights, which must be reported (Bivand & Wong 2018). Inverse-distance "
+    "weights between all pairs need no distance band chosen by hand; row-standardising and the one-sided permutation "
+    "test are spdep's defaults (Bivand & Wong 2018). No study fixes the weights for every field, so this is a "
+    "starting value, printed every time.",
+    ("moran1950", "bivand2018"), "P5",
+    "Two rows at one place refused, with the line that averages them; fewer than 10 places noted; longitude and "
+    "latitude without on_globe=True noted; sorted_by= or rows_back= with x= refused.", "starting value")
+BASIS["table.find_autocorrelation_of nearest="] = _b(
+    "Each place's k nearest places as neighbours, alike, each row's weights summing to 1 (R spdep knearneigh).",
+    "Leave nearest= out for 1 / distance weights between all pairs.",
+    "k-nearest-neighbour weights give every place the same number of neighbours, useful when places are unevenly "
+    "spread (Bivand & Wong 2018). Moran's I changes with the weights (on meuse 0.12 with 1 / distance, 0.49 with the "
+    "8 nearest), so the printout names them.",
+    ("bivand2018",), "P5", "nearest= must be below the number of places.", "convention")
+BASIS["table.find_autocorrelation_of on_globe="] = _b(
+    "Longitude and latitude read as places on the earth (crs 4326): great-circle distances in km.",
+    "Leave on_globe= out for straight-line distances on x and y.",
+    "Straight-line distances on degrees are wrong away from the equator, because a degree east shortens with "
+    "latitude; spdep uses great-circle distances for geographic coordinates (Bivand & Wong 2018). simplydata does "
+    "not guess: it notes columns that look like longitude and latitude.",
+    ("bivand2018",), "P4", "Refused when x= is beyond -180 to 180 or y= beyond -90 to 90.")
+BASIS["table.find_variogram_of"] = _b(
+    "R gstat's sample variogram (cutoff a third of the diagonal, 15 bins) and a spherical curve fitted by gstat's "
+    "weighted least squares (fit.method = 7, weights pairs / distance^2) from gstat's own start values.",
+    "of_kind=\"exponential\", \"gaussian\" or \"matern\"; between=[0, cutoff].",
+    "Weighted least squares with weights from the number of pairs and the distance follows Cressie (1985); the "
+    "cutoff and bins are gstat's defaults (Pebesma 2004). The spherical curve is the usual first choice in gstat's "
+    "own examples, not a published rule, so other curves are one option away; the range is said in words, because "
+    "for the exponential, Gaussian and Matern curves gstat's range is not where the curve levels off.",
+    ("cressie1985", "pebesma2004"), "P3",
+    "Refused when gstat does not converge or the fit is singular; fewer than 30 places noted; shared places noted.",
+    "convention")
+BASIS["draw_variogram"] = _b(
+    "The binned semivariances as dots and gstat's fitted curve at 200 distances (gstat::variogramLine).",
+    "of_kind= and between= as on find_variogram_of.",
+    "The same fit as find_variogram_of (Cressie 1985; Pebesma 2004), so the picture and the numbers agree.",
+    ("cressie1985", "pebesma2004"), "P5", "A fit find_variogram_of would refuse is refused here too.", "convention")
+BASIS["table.find_return_levels_of"] = _b(
+    "A GEV curve fitted by maximum likelihood to block maxima (R extRemes::fevd), return levels with "
+    "profile-likelihood 95 % intervals; the shape in the xi sign; no declustering.",
+    "values_above= for every value above a threshold (generalised Pareto); once_in= for other return periods.",
+    "Coles (2001, 3.3.3) shows that normal-approximation intervals of long return levels are too narrow and too "
+    "symmetric, and recommends the profile likelihood; maximum likelihood is extRemes's default (Gilleland & Katz "
+    "2016). The interval search range starts at the normal interval, because extRemes needs one.",
+    ("coles2001", "gilleland2016"), "P1",
+    "Daily (or any sub-yearly) rows refused for block maxima; fewer than 15 blocks noted; once_in= at or below 1 "
+    "refused; a fit that does not converge noted.")
+BASIS["table.find_return_levels_of values_above="] = _b(
+    "Every value above the threshold, fitted with a generalised Pareto curve by maximum likelihood (R extRemes), the "
+    "readings per year from the dates, the extremal index with a note below 0.7, and no silent declustering.",
+    "Leave values_above= out for yearly maxima; choose the threshold with chart.draw_threshold_check().",
+    "The peaks-over-threshold model (Davison & Smith 1990; Coles 2001, ch. 4) uses more of the data than yearly "
+    "maxima. Values above a threshold often come in runs; the extremal index (Ferro & Segers 2003) says how much, and "
+    "declustering is left to the user, because the run length is a choice.",
+    ("davison1990", "coles2001", "ferro2003"), "P1",
+    "sorted_by= dates required, evenly spaced (daily, hourly, by the minute or monthly); empty readings refused; fewer "
+    "than 10 values above refused and fewer than 30 noted.")
+BASIS["draw_threshold_check"] = _b(
+    "Two panels: the mean excess with its 95 % interval (extRemes::mrlplot) and the generalised Pareto shape with its "
+    "95 % interval at 10 thresholds (extRemes::threshrange.plot).",
+    "between= for the thresholds to look at.",
+    "Coles (2001, 4.3.1) chooses the threshold where the mean excess becomes linear and the shape stays stable; the "
+    "two panels are extRemes's own (Gilleland & Katz 2016).",
+    ("coles2001", "gilleland2016"), "P1",
+    "Fewer than 10 values above the highest threshold refused; a note when mrlplot's thresholds stop early.")
+BASIS['table.fit_distribution_to distribution="gev"'] = _b(
+    "The GEV fitted by maximum likelihood with SciPy (genextreme, then a numerical polish), the shape stored as xi.",
+    "distribution=\"gumbel\" for xi = 0; \"generalised pareto\" for the amounts above a threshold.",
+    "Maximum likelihood is the standard fit of the GEV (Coles 2001, 3.3); the xi sign follows Coles and extRemes, "
+    "while SciPy's genextreme takes c = -xi, so simplydata turns it round and says so.",
+    ("coles2001",), "P3", "", "convention")
+BASIS['table.fit_distribution_to distribution="generalised pareto"'] = _b(
+    "The generalised Pareto curve fitted by maximum likelihood with SciPy (genpareto with the threshold at 0), the "
+    "shape as xi.",
+    "Subtract the threshold first; find_return_levels_of(values_above=) does the whole peaks-over-threshold analysis.",
+    "Maximum likelihood is the standard fit of the generalised Pareto curve to the amounts above a threshold "
+    "(Davison & Smith 1990; Coles 2001, 4.3); SciPy's genpareto and extRemes share the xi sign.",
+    ("davison1990", "coles2001"), "P3", "", "convention")
