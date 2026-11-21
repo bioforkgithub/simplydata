@@ -59,6 +59,8 @@ r = ["rpy2>=3.5"]  # the bridge to R for the methods only R gives (R itself: htt
 # and pwrss (logistic regression; CRAN only, like presize), besides presize, listed already.
 # S3c-1 (communities and resistomes) calls vegan, zCompositions, compositions and ca, and the recommended packages
 # cluster and MASS that come with R; all are on CRAN and conda-forge.
+# S3c-2 (hidden factors) calls psych (listed already) with GPArotation for the rotations, and lavaan; both on CRAN
+# and conda-forge.
 # S3c-3 (directions, places and extremes) calls circular (Rayleigh test), spdep with sf (Moran's I), gstat (variogram)
 # and extRemes (return levels); ismev, sp and ape are used by the reliability study only. All are on CRAN and
 # conda-forge. Moran's I runs in R spdep rather than Python esda/libpysal, which would add geopandas, pyproj, pyogrio,

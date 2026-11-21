@@ -334,7 +334,16 @@ _TABLE = [
     ('table.add_clusters(how_many="automatic")', "silhouette elbow optimal_clusters"),
     ('table.add_axes_that_separate_groups(columns=["temperature", "salinity"], for_each_group_in="site")',
      "lda discriminant linear_discriminant discriminant_analysis"),
-    ('table.add_correspondence_axes(columns=["blaTEM", "sul1"])', "ca mca mjca correspondence_analysis decorana"),    # S3c-3: directions, places and extremes
+    ('table.add_correspondence_axes(columns=["blaTEM", "sul1"])', "ca mca mjca correspondence_analysis decorana"),
+    # S3c-2: hidden factors ("sem" is left out: scipy.stats.sem is the standard error of the mean)
+    ('table.find_hidden_factors_behind(["q1", "q2", "q3", "q4", "q5", "q6"])',
+     "fa efa factanal factor_analysis factor_analyse factor_analyze exploratory_factor_analysis fa_parallel "
+     "parallel_analysis scree scree_plot oblimin varimax promax kmo latent_factors"),
+    ('table.check_hidden_factors(measured_by={"visual": ["x1", "x2", "x3"], "speed": ["x7", "x8", "x9"]})',
+     "cfa lavaan confirmatory_factor_analysis structural_equation_model structural_equation_modelling sem_model "
+     "path_model measurement_model latent_variables fit_measures fitmeasures cfi rmsea srmr modindices "
+     "modification_indices"),
+    # S3c-3: directions, places and extremes
     ('table.find_average_direction_of("current_direction", full_turn=360)',
      "circmean mean_direction circular_mean mean_circular average_angle find_mean_direction_of circular_average"),
     ('table.compare_shape_to("current_direction", shape="even around the circle", full_turn=360)',

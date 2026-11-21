@@ -168,6 +168,8 @@ R_PACKAGES = ("survival", "vegan", "mice", "lme4", "betareg", "pscl", "car", "ef
               "gsDesign", "powerSurvEpi", "pwrss",
               # S3c-1 (communities and resistomes): zero replacement and log ratios; MCA; silhouettes and LDA
               "zCompositions", "compositions", "ca", "cluster", "MASS",
+              # S3c-2 (hidden factors): GPArotation (the rotations of psych::fa) and lavaan; psych is listed above
+              "GPArotation", "lavaan",
               # S3c-3 (directions, places and extremes): Rayleigh, Moran's I (sf for the places), variogram, extremes;
               # ismev, sp and ape for the reliability study (Port Pirie, rain, meuse; ape::Moran.I as a check)
               "circular", "spdep", "sf", "gstat", "extRemes", "ismev", "sp", "ape")
@@ -264,6 +266,8 @@ R_ENTRY_POINTS = {
     ("table/community_r.py", "correspondence"),
     ("table/community_r.py", "multiple_correspondence"),
     ("words/community_charts.py", "draw_richness_curves"), ("words/community_charts.py", "_draw_richness"),
+    # S3c-2 (hidden factors)
+    ("table/factor_r.py", "explore"), ("table/factor_r.py", "confirm"),
     # S3c-3 (directions, places and extremes)
     ("table/places_r.py", "_need"), ("table/places_r.py", "_call"),
     ("words/place_charts.py", "draw_variogram"), ("words/place_charts.py", "draw_threshold_check"),

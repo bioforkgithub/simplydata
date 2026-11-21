@@ -109,7 +109,9 @@ GROUPS = [
                                  "table.add_diversity_columns", "table.add_log_ratio_columns",
                                  "table.add_principal_coordinates", "table.explain_profiles_of",
                                  "table.find_correlation_between_profiles", "table.add_axes_that_separate_groups",
-                                 "table.add_correspondence_axes"]),
+                                 "table.add_correspondence_axes",
+                                 # S3c-2 (hidden factors): "more"
+                                 "table.find_hidden_factors_behind", "table.check_hidden_factors"]),
     # S3c-3: directions, places and extremes (core, then "more")
     ("Directions, places and extremes", ["table.find_average_direction_of", "table.find_return_levels_of",
                                          "table.find_variogram_of"]),
@@ -785,6 +787,10 @@ HELP_EXAMPLES = {
                                 "resistome_richness"),
     "draw_cluster_tree": _ex("resistome", f'chart.draw_cluster_tree(columns={_SIX_GENES}, measure="bray-curtis", '
                                           'names="sample")', "resistome_tree"),
+    # S3c-2: hidden factors
+    "table.find_hidden_factors_behind": _tx("ability_tests", """        table.find_hidden_factors_behind(["x1", "x2", "x3", "x4", "x5", "x6", "x7", "x8", "x9"])"""),
+    "table.check_hidden_factors": _tx("ability_tests", 'table.check_hidden_factors(measured_by={"visual": ["x1", "x2", '
+                                                       '"x3"], "textual": ["x4", "x5", "x6"], "speed": ["x7", "x8", "x9"]})'),
     # S3c-3: directions, places and extremes
     "table.find_average_direction_of": _tx("stations", 'table.find_average_direction_of("current_direction", '
                                                        'full_turn=360)'),
@@ -4122,6 +4128,11 @@ LESSONS = [
             "Remove a row that pulls only for a reason, such as a typing mistake, and say so in your report.",
             "The confidence interval (interval=95) is about the average of many pupils like this one; the "
             "prediction interval (for_new_rows=True) is about one pupil. The second is always wider.",
+            # S3c-2: one "more" line (factor analysis stays in the manual, design 7.4)
+            "More, with R: when many columns (the answers to a questionnaire, the scores of several tests) may "
+            "measure a few hidden things, table.find_hidden_factors_behind([...]) finds how many and which columns "
+            "go with which, and table.check_hidden_factors(measured_by={...}) checks a model you wrote down "
+            "beforehand; read its fit guides as guides, not pass marks. Try them on sdata.get_example(\"ability_tests\").",
         ],
         task=[
             'Partly done for you: after import simplydata as sdata, the next two lines are '
