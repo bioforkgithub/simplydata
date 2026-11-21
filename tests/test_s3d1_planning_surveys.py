@@ -175,9 +175,9 @@ def test_assignments_are_blockrand_with_the_seed(needs_r):
 
 
 def test_every_block_holds_every_group_equally_often(needs_r):
-    df = sdata.make_random_assignments(how_many=50, groups=["A", "B"], for_each_of=["Bergen", "Tromsø"],
+    df = sdata.make_random_assignments(how_many=50, groups=["A", "B"], for_each_of=["Bergen", "Oslo"],
                                        with_seed=3).as_pandas()
-    assert set(df["list"]) == {"Bergen", "Tromsø"}
+    assert set(df["list"]) == {"Bergen", "Oslo"}
     for (_, _), block in df.groupby(["list", "block"]):
         counts = block["group"].value_counts()
         assert len(counts) == 2 and counts.nunique() == 1 and len(block) == block["block size"].iloc[0]

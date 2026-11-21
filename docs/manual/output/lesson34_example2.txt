@@ -1,0 +1,5 @@
+84 assignments to new and usual for each of Bergen and Oslo, in random blocks of 4 and 6 (R blockrand::blockrand()); each block holds every group equally often.
+Each list was 40 places long at least: the last block is completed, so a list can be a little longer (here 42). Use the places in order, from number 1.
+Keep the list away from the people who recruit, so nobody knows the next group in advance (allocation concealment).
+with_seed=1 makes the same list again with R 4.6.2 or newer (R's sample() changed in R 3.6.0).
+Rows for each "group": new 42, usual 42.

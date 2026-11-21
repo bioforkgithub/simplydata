@@ -273,7 +273,7 @@ can write it up in a report or a paper.
 
 \section*{How this manual is built}
 \begin{description}[style=nextline,leftmargin=1.2em]
-  \item[{\hyperref[part:lessons]{Part II: Lessons}}] Thirty-three short lessons that teach the whole
+  \item[{\hyperref[part:lessons]{Part II: Lessons}}] Thirty-four short lessons that teach the whole
     of simplydata in a day. Each lesson shows code you can run, says what every line does, shows
     the real chart and output it makes, and ends with tasks to try yourself.
   \item[{\hyperref[part:dictionary]{Part III: Dictionary of words}}] Every word, with what it does,
@@ -715,6 +715,37 @@ MADE-UP DATA: the results of testing 2000 made-up genes for a difference between
 gene & a made-up gene name, G0001 to G2000\\
 difference & the difference between the two groups (on a log scale; 0 = no difference)\\
 p-value & the p-value of the test of that gene\\
+\bottomrule\end{tabularx}\end{center}
+\section*{sampled\_schools}
+REAL DATA: 200 California schools sampled at random within school type (100 elementary, 50 middle, 50 high), with their weights, for survey-weighted answers (\code{table.\allowbreak{}use\_\allowbreak{}survey\_\allowbreak{}design}). The Academic Performance Index of 2000 (California Department of Education), as the R survey package ships it (apistrat; Lumley 2010, Complex Surveys). \code{sdata.\allowbreak{}get\_\allowbreak{}example(\textquotedbl{}sampled\_\allowbreak{}schools\textquotedbl{})}
+\begin{center}\small
+\begin{tabularx}{\textwidth}{@{}>{\ttfamily}l>{\raggedright\arraybackslash}X@{}}
+\toprule \textrm{\textbf{Column}} & \textbf{What it holds}\\ \midrule
+school & the school's name (shortened)\\
+district & the school district\\
+school\_type & elementary, middle or high: the strata of the sample\\
+score\_2000 & the school's Academic Performance Index in 2000 (200 to 1000)\\
+score\_1999 & the same index in 1999\\
+free\_meals & percent of pupils who get free or cheaper school meals\\
+english\_learners & percent of pupils still learning English\\
+pupils & pupils enrolled\\
+met\_target & yes or no: did the school meet its growth target?\\
+award & yes or no: did the school get an award?\\
+weight & the sampling weight: how many schools of California each sampled school stands for\\
+schools\_of\_type & how many schools of this type California has (the population size of the stratum)\\
+\bottomrule\end{tabularx}\end{center}
+\section*{course\_feedback}
+MADE-UP DATA: 120 made-up students rate a course on five statements, from strongly disagree to strongly agree (answers on a scale, Likert items). A few answers are empty. Invented for practice; not from any real study. \code{sdata.\allowbreak{}get\_\allowbreak{}example(\textquotedbl{}course\_\allowbreak{}feedback\textquotedbl{})}
+\begin{center}\small
+\begin{tabularx}{\textwidth}{@{}>{\ttfamily}l>{\raggedright\arraybackslash}X@{}}
+\toprule \textrm{\textbf{Column}} & \textbf{What it holds}\\ \midrule
+student & a made-up student code, S001 to S120\\
+programme & biology, chemistry or medicine\\
+teaching & \code{\textquotedbl{}The teaching was clear\textquotedbl{}}: strongly disagree, disagree, neutral, agree or strongly agree\\
+materials & \code{\textquotedbl{}The materials helped me\textquotedbl{}} (same five answers)\\
+pace & \code{\textquotedbl{}The pace was right\textquotedbl{}} (same five answers)\\
+workload & \code{\textquotedbl{}The workload was fair\textquotedbl{}} (same five answers)\\
+would\_recommend & \code{\textquotedbl{}I would recommend the course\textquotedbl{}} (same five answers)\\
 \bottomrule\end{tabularx}\end{center}
 
 \part{Lessons}\label{part:lessons}
@@ -4782,6 +4813,78 @@ Worked solutions: page~\pageref{solutions:33}, or type \code{sdata.\allowbreak{}
 \end{tryit}
 \par\noindent{\small\sffamily\textbf{Words in this lesson:} \hyperref[word:table.find-average-direction-of]{\code{table.\allowbreak{}find\_\allowbreak{}average\_\allowbreak{}direction\_\allowbreak{}of()}}, \hyperref[word:table.compare-shape-to]{\code{table.\allowbreak{}compare\_\allowbreak{}shape\_\allowbreak{}to()}}, \hyperref[word:table.find-autocorrelation-of]{\code{table.\allowbreak{}find\_\allowbreak{}autocorrelation\_\allowbreak{}of()}}, \hyperref[word:table.find-return-levels-of]{\code{table.\allowbreak{}find\_\allowbreak{}return\_\allowbreak{}levels\_\allowbreak{}of()}}, \hyperref[word:table.find-average-of]{\code{table.\allowbreak{}find\_\allowbreak{}average\_\allowbreak{}of()}}, \hyperref[word:draw-dots]{\code{chart.\allowbreak{}draw\_\allowbreak{}dots()}}.\par}
 
+\chapter{Planning an experiment and a survey}\label{lesson:34}
+\begin{learnbox}
+\begin{itemize}
+  \item how to lay out an experiment so that unknown differences spread evenly over the treatments
+  \item how to make a list that says which group each new participant joins, in random blocks
+  \item how to pick a fair sample from every group (a stratified random sample)
+\end{itemize}
+\end{learnbox}
+\begin{needsr}The design table (R agricolae) and the random assignments (R blockrand) in this lesson run R's own code, the same code R users run. Install it once: pip install \code{\textquotedbl{}simplydata[r]\textquotedbl{}}, then R from https://cran.r-project.org, then in R: \code{install.\allowbreak{}packages(c(\textquotedbl{}agricolae\textquotedbl{},\allowbreak{} \textquotedbl{}blockrand\textquotedbl{}))}. Without R these words print a message that says what to install.\end{needsr}
+\section*{Example 1}
+An experiment in a greenhouse: 2 temperatures and 2 salinities, every combination 3 times. The benches differ (light, draught), so each bench gets every combination once: randomised blocks.
+\begin{lstlisting}[style=py]
+import simplydata as sdata
+design = sdata.make_design_table({"temperature": [10, 20], "salinity": [30, 35]}, repeats=3, of_kind="randomised blocks", with_seed=2)
+design.show()
+\end{lstlisting}
+\whateachline
+\begin{lineexplain}
+  \item[1] Load simplydata.
+  \item[2] 12 plots: the 2 x 2 = 4 combinations, once in each of 3 blocks (benches), each block in its own random order. \code{\textquotedbl{}plot\textquotedbl{}} is the order to work in; \code{\textquotedbl{}standard order\textquotedbl{}} numbers the combinations.
+  \item[3] The table to print and take to the greenhouse.
+\end{lineexplain}
+\printedoutput{output/lesson34_example1.txt}
+\section*{Example 2}
+A trial: each new patient gets the new dressing or the usual one. A list made in advance, in random blocks, keeps the groups about the same size all the way through.
+\begin{lstlisting}[style=py]
+import simplydata as sdata
+assignments = sdata.make_random_assignments(how_many=40, groups=["new", "usual"], in_blocks_of=[4, 6], for_each_of=["Bergen", "Oslo"], with_seed=1)
+assignments.count_rows(for_each_group_in="group")
+\end{lstlisting}
+\whateachline
+\begin{lineexplain}
+  \item[1] Load simplydata.
+  \item[2] One list for each hospital. Each block of 4 or 6 holds both groups equally often; the block sizes change at random, so nobody can guess the end of a block. The last block is completed, so a list can be a little longer than 40.
+  \item[3] How many places each group has.
+\end{lineexplain}
+\printedoutput{output/lesson34_example2.txt}
+\section*{Example 3}
+A survey: 200 schools were sampled within each school type. To try a smaller sample by hand, pick the same number from every type: a stratified random sample.
+\begin{lstlisting}[style=py]
+import simplydata as sdata
+table = sdata.table(sdata.get_example("sampled_schools"))
+table.keep_random_rows(5, for_each_group_in="school_type", with_seed=1)
+table.count_rows(for_each_group_in="school_type")
+\end{lstlisting}
+\whateachline
+\begin{lineexplain}
+  \item[1] Load simplydata.
+  \item[2] 200 real California schools.
+  \item[3] 5 schools of each type, 15 in all, picked at random within each type.
+  \item[4] 5 elementary, 5 high and 5 middle schools.
+\end{lineexplain}
+\printedoutput{output/lesson34_example3.txt}
+\begin{goodtoknow}
+\begin{itemize}
+  \item \code{with\_\allowbreak{}seed=} makes the same table or list again. A randomisation list must be made once, kept, and kept away from the people who recruit (allocation concealment): if they can guess the next group, they can choose who joins when.
+  \item Block sizes are multiples of the number of groups: with 2 groups, 4 and 6; with 3 groups, 3 and 6.
+  \item \code{of\_\allowbreak{}kind=\textquotedbl{}latin square\textquotedbl{}} (one factor in rows and columns) and \code{of\_\allowbreak{}kind=\textquotedbl{}split plot\textquotedbl{}} with \code{whole\_\allowbreak{}plots=} (a factor that is hard to change plot by plot, such as irrigation) are the other layouts.
+  \item More: a survey sample is analysed with its weights: \code{table.\allowbreak{}use\_\allowbreak{}survey\_\allowbreak{}design(weights=\textquotedbl{}weight\textquotedbl{},\allowbreak{} strata=\textquotedbl{}school\_\allowbreak{}type\textquotedbl{},\allowbreak{} population\_\allowbreak{}sizes=\textquotedbl{}schools\_\allowbreak{}of\_\allowbreak{}type\textquotedbl{})}, then \code{find\_\allowbreak{}average\_\allowbreak{}of}, \code{find\_\allowbreak{}percent\_\allowbreak{}of\_\allowbreak{}rows\_\allowbreak{}where} and explain describe the population (R survey). Answers on a scale: \code{table.\allowbreak{}count\_\allowbreak{}each(columns=[.\allowbreak{}.\allowbreak{}.\allowbreak{}],\allowbreak{} in\_\allowbreak{}order=[.\allowbreak{}.\allowbreak{}.\allowbreak{}])} and \code{chart.\allowbreak{}draw\_\allowbreak{}answer\_\allowbreak{}bars(.\allowbreak{}.\allowbreak{}.\allowbreak{})} (try \code{sdata.\allowbreak{}get\_\allowbreak{}example(\textquotedbl{}course\_\allowbreak{}feedback\textquotedbl{})}). Empty cells: \code{table.\allowbreak{}count\_\allowbreak{}empty\_\allowbreak{}cells\_\allowbreak{}in(show=\textquotedbl{}patterns\textquotedbl{})}.
+\end{itemize}
+\end{goodtoknow}
+\begin{tryit}
+\begin{enumerate}
+  \item Fill in the blank: \code{sdata.\allowbreak{}make\_\allowbreak{}design\_\allowbreak{}table(\{\textquotedbl{}temperature\textquotedbl{}: [10,\allowbreak{} 20],\allowbreak{} \textquotedbl{}salinity\textquotedbl{}: [30,\allowbreak{} 35]\},\allowbreak{} repeats=3,\allowbreak{} of\_\allowbreak{}kind=\_\allowbreak{}\_\allowbreak{}\_\allowbreak{}\_\allowbreak{},\allowbreak{} with\_\allowbreak{}seed=1)} when every plot can go anywhere.
+  \item Change only \code{for\_\allowbreak{}each\_\allowbreak{}of=}: make the dressing list for three hospitals, Bergen, Oslo and Trondheim.
+  \item Say in words why the block sizes should change at random.
+  \item Try to remember without looking back: which option of \code{keep\_\allowbreak{}random\_\allowbreak{}rows} picks rows within each group?
+\end{enumerate}
+Worked solutions: page~\pageref{solutions:34}, or type \code{sdata.\allowbreak{}show\_\allowbreak{}lesson(34,\allowbreak{} solutions=True)}.
+\end{tryit}
+\par\noindent{\small\sffamily\textbf{Words in this lesson:} \hyperref[word:sdata.make-design-table]{\code{sdata.\allowbreak{}make\_\allowbreak{}design\_\allowbreak{}table()}}, \hyperref[word:sdata.make-random-assignments]{\code{sdata.\allowbreak{}make\_\allowbreak{}random\_\allowbreak{}assignments()}}, \hyperref[word:table.keep-random-rows]{\code{table.\allowbreak{}keep\_\allowbreak{}random\_\allowbreak{}rows()}}, \hyperref[word:table.count-rows]{\code{table.\allowbreak{}count\_\allowbreak{}rows()}}, \hyperref[word:table.show]{\code{table.\allowbreak{}show()}}.\par}
+
 \otherchapters
 
 \part{Dictionary of words}\label{part:dictionary}
@@ -4824,7 +4927,7 @@ chart.save("my_chart.png")
 A small table to practise with. \code{sdata.\allowbreak{}get\_\allowbreak{}example(\textquotedbl{}marks\textquotedbl{})}
 
 \codeline{sdata.get\_example() with no name lists every table and its columns.}\\
-The tables are: marks, weather, fruit, growth, sensor, visitors, river, shop, school, meadow, trial, clinic, island, toxicity, culture, admissions, resistome, stations, rain, \code{sea\_\allowbreak{}levels} (real published sea levels), and, for combining studies, bcg and \code{passive\_\allowbreak{}smoking} (real published studies), for hidden factors, \code{ability\_\allowbreak{}tests} (real published test scores), and, for q-values, \code{many\_\allowbreak{}tests} (made up). \code{\textquotedbl{}shop\textquotedbl{}} has empty cells and a column of dates to practise with; \code{\textquotedbl{}school\textquotedbl{}} has empty cells too.
+The tables are: marks, weather, fruit, growth, sensor, visitors, river, shop, school, meadow, trial, clinic, island, toxicity, culture, admissions, resistome, stations, rain, \code{sea\_\allowbreak{}levels} (real published sea levels), and, for combining studies, bcg and \code{passive\_\allowbreak{}smoking} (real published studies), for hidden factors, \code{ability\_\allowbreak{}tests} (real published test scores), for q-values, \code{many\_\allowbreak{}tests} (made up), and, for planning and surveys, \code{sampled\_\allowbreak{}schools} (a real survey sample) and \code{course\_\allowbreak{}feedback} (made-up answers on a scale). \code{\textquotedbl{}shop\textquotedbl{}} has empty cells and a column of dates to practise with; \code{\textquotedbl{}school\textquotedbl{}} has empty cells too.
 
 \wordfield{Options}{}\par\nopagebreak
 \begin{optiontable}
@@ -5894,6 +5997,53 @@ bottom = ax.inset_axes([0, 0, 1, 0.42], sharex=top)
 \undertext{\textit{In Python only:} Python has no threshold check in SciPy or statsmodels, so the numbers come from R extRemes; matplotlib draws them in two panels (the reliability study checks the numbers).}
 \undertext{simplydata also refuses a highest threshold with fewer than 10 values above it.}
 \undertext{\textit{Checked:} a test runs both and compares the number of panels (the chart's data, not its pixels).}
+\end{underneathbox}
+\wordentry{chart.draw\_answer\_bars()}{word:draw-answer-bars}
+Bars of answers on a scale (Likert items): one bar per question, centred on the middle answer.
+
+\codeline{chart.draw\_answer\_bars(columns=[\textquotedbl{}teaching\textquotedbl{}, \textquotedbl{}materials\textquotedbl{}, \textquotedbl{}pace\textquotedbl{}], in\_order=[\textquotedbl{}strongly disagree\textquotedbl{}, \textquotedbl{}disagree\textquotedbl{}, \textquotedbl{}neutral\textquotedbl{}, \textquotedbl{}agree\textquotedbl{}, \textquotedbl{}strongly agree\textquotedbl{}])   (with sdata.get\_example(\textquotedbl{}course\_feedback\textquotedbl{}))}\\
+\code{columns=} the questions; \code{in\_\allowbreak{}order=} the answers from the lowest to the highest. Each bar shows the percent of each answer (of the answers given; empty cells are left out): answers below the middle go left of 0, answers above it right, and the middle answer is split across 0 (diverging stacked bars, Heiberger \& Robbins 2014). \code{table.\allowbreak{}count\_\allowbreak{}each(columns=,\allowbreak{} in\_\allowbreak{}order=)} gives the same numbers as a table.
+
+\wordfield{Options}{}\par\nopagebreak
+\begin{optiontable}
+\code{columns=} & \\
+\code{in\_\allowbreak{}order=} & \\
+\end{optiontable}
+
+\wordfield{Why this method}{\hyperref[basis:draw-answer-bars]{How simplydata chooses methods}, page \pageref{basis:draw-answer-bars}: the default, the evidence and the checks.}
+\wordfield{Underneath}{matplotlib \code{dropna().\allowbreak{}value\_\allowbreak{}counts().\allowbreak{}reindex()}, \code{cumsum()}, \code{range()}, \code{barh()}}
+\wordfield{Example you can run}{}\par\nopagebreak
+\begin{lstlisting}[style=py]
+import simplydata as sdata
+course_feedback = sdata.get_example("course_feedback")
+chart = sdata.chart(course_feedback)
+chart.draw_answer_bars(columns=["teaching", "materials", "pace"], in_order=["strongly disagree", "disagree", "neutral", "agree", "strongly agree"])
+chart.save("answer_bars.png")
+\end{lstlisting}
+\begin{center}\begin{minipage}{\linewidth}\centering
+\includegraphics[width=0.52\textwidth,height=0.26\textheight,keepaspectratio]{figures/underneath_draw_answer_bars.pdf}
+\captionof*{figure}{The chart simplydata draws. The code below draws the same bars, without simplydata's paper look.}
+\end{minipage}\end{center}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{matplotlib}}
+\underlib{matplotlib}
+\begin{lstlisting}[style=under]
+import matplotlib.pyplot as plt
+import numpy as np
+df = sdata.get_example("course_feedback")
+levels = ["strongly disagree", "disagree", "neutral", "agree", "strongly agree"]
+fig, ax = plt.subplots()
+# draw_answer_bars(columns=["teaching", "pace"], in_order=levels)
+p = np.array([df[q].dropna().value_counts(normalize=True).reindex(levels, fill_value=0) * 100
+              for q in ["teaching", "pace"]])
+start = -(p[:, 0] + p[:, 1] + p[:, 2] / 2)                     # (1)
+left = start[:, None] + np.cumsum(p, axis=1) - p
+for j in range(5):
+    ax.barh([1, 0], p[:, j], left=left[:, j], height=0.7)
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) diverging bars (Heiberger \& Robbins 2014): the answers below the middle to the left of 0, the middle answer split half and half across 0, and the first question at the top.}
+\undertext{simplydata also colours the two halves in two hues with grey in the middle, labels the questions and the answers, and prints how the bars are centred.}
+\undertext{\textit{Checked:} a test runs both and compares the bars (the chart's data, not its pixels).}
 \end{underneathbox}
 \wordentry{chart.draw\_density()}{word:draw-density}
 A smooth curve that is high where many values are. \code{chart.\allowbreak{}draw\_\allowbreak{}density(x=\textquotedbl{}marks\textquotedbl{},\allowbreak{} colour=\textquotedbl{}class\textquotedbl{})} (with \code{sdata.\allowbreak{}get\_\allowbreak{}example(\textquotedbl{}marks\textquotedbl{})})
@@ -7590,14 +7740,20 @@ table.show_first_rows(3)
 \wordentry{table.keep\_random\_rows()}{word:table.keep-random-rows}
 Keep some rows picked at random; give a seed to get the same rows every time.
 
-\codeline{table.keep\_random\_rows(10, with\_seed=1)   (with sdata.get\_example(\textquotedbl{}marks\textquotedbl{}))}
+\codeline{table.keep\_random\_rows(10, with\_seed=1)   (with sdata.get\_example(\textquotedbl{}marks\textquotedbl{}))}\\
+\code{for\_\allowbreak{}each\_\allowbreak{}group\_\allowbreak{}in=} picks the rows within each group (a stratified random sample):\\
+\codeline{table.keep\_random\_rows(2, for\_each\_group\_in=\textquotedbl{}class\textquotedbl{}, with\_seed=1)}\enspace 2 rows from each class\\
+\code{percent=10} keeps 10 \% of the rows (of each group, with \code{for\_\allowbreak{}each\_\allowbreak{}group\_\allowbreak{}in=}), rounded as pandas rounds (half to even), and at least 1 row of every group: \code{table.\allowbreak{}keep\_\allowbreak{}random\_\allowbreak{}rows(percent=50,\allowbreak{} for\_\allowbreak{}each\_\allowbreak{}group\_\allowbreak{}in=\textquotedbl{}class\textquotedbl{},\allowbreak{} with\_\allowbreak{}seed=1)} Underneath: pandas \code{sample()} and \code{groupby()}.sample(), with \code{random\_\allowbreak{}state=with\_\allowbreak{}seed}.
 
 \wordfield{Options}{}\par\nopagebreak
 \begin{optiontable}
-\code{n=} & normally \code{5}\\
+\code{n=} & \\
+\code{for\_\allowbreak{}each\_\allowbreak{}group\_\allowbreak{}in=} & \\
+\code{percent=} & \\
 \code{with\_\allowbreak{}seed=} & \\
 \end{optiontable}
 
+\wordfield{Why this method}{\hyperref[basis:table.keep-random-rows-for-each-group-in-eq]{How simplydata chooses methods}, page \pageref{basis:table.keep-random-rows-for-each-group-in-eq}: the default, the evidence and the checks.}
 \wordfield{Underneath}{narwhals, which runs the step in pandas or Polars (whichever holds the table)}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
@@ -7606,6 +7762,32 @@ table = sdata.table(sdata.get_example("marks"))
 table.keep_random_rows(10, with_seed=1)
 print(table)
 \end{lstlisting}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{pandas}}
+\undertext{\textbf{With \code{for\_\allowbreak{}each\_\allowbreak{}group\_\allowbreak{}in=}}: the same job with this option.}
+\underlib{pandas}
+\begin{lstlisting}[style=under]
+df = sdata.get_example("marks")
+# keep_random_rows(2, for_each_group_in="class", with_seed=1)
+df.groupby("class").sample(n=2, random_state=1).sort_index()   # (1)
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) the rows keep their order in the table (\code{sort\_\allowbreak{}index()}); a group with n rows or fewer is kept whole, with a note (pandas stops with an error).}
+\undertext{The same pandas call on a Polars table (simplydata takes the rows it picks).}
+\undertext{\textit{Checked:} a test runs both and compares the table (on a pandas and on a Polars table).}
+\end{underneathbox}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{pandas}}
+\undertext{\textbf{With \code{percent=}}: the same job with this option.}
+\underlib{pandas}
+\begin{lstlisting}[style=under]
+df = sdata.get_example("marks")
+# keep_random_rows(percent=30, for_each_group_in="class", with_seed=1)
+df.groupby("class").sample(frac=0.3, random_state=1).sort_index()   # (1)
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) pandas rounds each group's share; a group whose share rounds to no row still gets one row (a stratified sample keeps every stratum).}
+\undertext{Without \code{for\_\allowbreak{}each\_\allowbreak{}group\_\allowbreak{}in=}, \code{percent=} keeps that share of the whole table (pandas \code{sample(frac=)}).}
+\undertext{\textit{Checked:} a test runs both and compares the table (on a pandas and on a Polars table).}
+\end{underneathbox}
 \wordentry{table.remove\_duplicate\_rows()}{word:table.remove-duplicate-rows}
 Remove rows that repeat an earlier row, or that repeat it in the columns you name.
 
@@ -7713,10 +7895,15 @@ table.show_steps()
 \wordentry{table.count\_empty\_cells\_in()}{word:table.count-empty-cells-in}
 Show how many empty cells each column has.
 
-\codeline{table.count\_empty\_cells\_in()   (with sdata.get\_example(\textquotedbl{}shop\textquotedbl{}))}
+\codeline{table.count\_empty\_cells\_in()   (with sdata.get\_example(\textquotedbl{}shop\textquotedbl{}))}\\
+\code{show=\textquotedbl{}patterns\textquotedbl{}} gives one row for each pattern of empty cells (which columns are empty together), with how many rows have it and how many cells it leaves empty, as R mice::\code{md.\allowbreak{}pattern()}: \code{table.\allowbreak{}count\_\allowbreak{}empty\_\allowbreak{}cells\_\allowbreak{}in(show=\textquotedbl{}patterns\textquotedbl{})}
 
-\wordfield{Options}{none: just write the empty brackets.}
+\wordfield{Options}{}\par\nopagebreak
+\begin{optiontable}
+\code{show=} & \\
+\end{optiontable}
 
+\wordfield{Why this method}{\hyperref[basis:table.count-empty-cells-in-show-eq-patterns]{How simplydata chooses methods}, page \pageref{basis:table.count-empty-cells-in-show-eq-patterns}: the default, the evidence and the checks.}
 \wordfield{Underneath}{narwhals, which runs the step in pandas or Polars (whichever holds the table)}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
@@ -7724,6 +7911,23 @@ import simplydata as sdata
 table = sdata.table(sdata.get_example("shop"))
 table.count_empty_cells_in()
 \end{lstlisting}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{pandas}}
+\undertext{\textbf{With \code{show=\textquotedbl{}patterns\textquotedbl{}}}: the same job with this option.}
+\underlib{pandas}
+\begin{lstlisting}[style=under]
+df = sdata.get_example("shop")
+# count_empty_cells_in(show="patterns")
+p = df.isna().value_counts().reset_index(name="rows with this pattern")   # (1)
+p["empty cells"] = p[list(df.columns)].sum(axis=1)
+p = p.sort_values(["empty cells", "rows with this pattern"], ascending=[True, False])
+p[list(df.columns)] = p[list(df.columns)].replace({True: "empty", False: "filled"})
+p[["rows with this pattern"] + list(df.columns) + ["empty cells"]]
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) an empty cell is a missing value, NaN or text of only spaces (as \code{count\_\allowbreak{}empty\_\allowbreak{}cells\_\allowbreak{}in}); the patterns are sorted by how many cells they leave empty, then by how many rows have them (R mice::\code{md.\allowbreak{}pattern()} sorts by its own rule and turns the columns round).}
+\undertext{simplydata also prints the empty cells of each column and how many rows have none.}
+\undertext{\textit{Checked:} a test runs both and compares the table (on a pandas and on a Polars table).}
+\end{underneathbox}
 \wordentry{table.remove\_rows\_with\_empty\_cells\_in()}{word:table.remove-rows-with-empty-cells-in}
 Remove rows with an empty cell (in any column, or only in the column you name).
 
@@ -8325,7 +8529,7 @@ How many rows the table has, or how many in each group.
 \codeline{table.count\_rows(for\_each\_group\_in=\textquotedbl{}class\textquotedbl{})   (with sdata.get\_example(\textquotedbl{}marks\textquotedbl{}))}\\
 \code{across=} gives a cross table (pandas crosstab), one column per value:\\
 \codeline{table.count\_rows(for\_each\_group\_in=\textquotedbl{}shop\textquotedbl{}, across=\textquotedbl{}fruit\textquotedbl{})   (with sdata.get\_example(\textquotedbl{}fruit\textquotedbl{}))}\\
-\code{in\_\allowbreak{}percent=True} gives percents (0 to 100) instead: of all rows, or with \code{across=} of each row of the cross table, so every row adds up to 100 \%. \code{every=\textquotedbl{}month\textquotedbl{}} with a date column in \code{for\_\allowbreak{}each\_\allowbreak{}group\_\allowbreak{}in=} counts the rows of each month.
+\code{in\_\allowbreak{}percent=True} gives percents (0 to 100) instead: of all rows, or with \code{across=} of each row of the cross table, so every row adds up to 100 \%. \code{every=\textquotedbl{}month\textquotedbl{}} with a date column in \code{for\_\allowbreak{}each\_\allowbreak{}group\_\allowbreak{}in=} counts the rows of each month. Under a survey design (\code{use\_\allowbreak{}survey\_\allowbreak{}design}) it gives the estimated number in the population (R survey), and with \code{in\_\allowbreak{}percent=True} each group's estimated share.
 
 \wordfield{Options}{}\par\nopagebreak
 \begin{optiontable}
@@ -8335,6 +8539,7 @@ How many rows the table has, or how many in each group.
 \code{in\_\allowbreak{}percent=} & normally \code{False}\\
 \end{optiontable}
 
+\wordfield{Why this method}{\hyperref[basis:table.count-rows-after-use-survey-design]{How simplydata chooses methods}, page \pageref{basis:table.count-rows-after-use-survey-design}: the default, the evidence and the checks.}
 \wordfield{Underneath}{narwhals, which runs the step in pandas or Polars (whichever holds the table)}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
@@ -8343,17 +8548,42 @@ table = sdata.table(sdata.get_example("marks"))
 table.count_rows()
 table.count_rows(for_each_group_in="class")
 \end{lstlisting}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{R}\libbadge{Python}}
+\undertext{\textbf{With \code{after use\_\allowbreak{}survey\_\allowbreak{}design()}}: the same job with this option.}
+\underlib{R (simplydata runs this in R for you, through rpy2)}
+\begin{lstlisting}[style=underr]
+# count_rows(for_each_group_in="award") under use_survey_design(...)
+d <- survey::svydesign(ids = ~1, strata = ~s, weights = ~w, fpc = ~f,
+       data = data.frame(s, w, f, y))
+m <- survey::svyby(~y, ~a, d, survey::svytotal)                 # (1)
+ci <- confint(m, df = survey::degf(d))
+list(est = coef(m)[1], se = survey::SE(m)[1], low = ci[1, 1], high = ci[1, 2])
+\end{lstlisting}
+\underlib{Python (with what R gives back)}
+\begin{lstlisting}[style=under]
+{"population count": est, "standard error": se, "population count 95 % CI low": low, "population count 95 % CI high": high}
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) the estimated number in the population is survey's total of a column of ones (the sum of the weights); \code{in\_\allowbreak{}percent=True} gives each group's share, \code{svymean(\textasciitilde{}factor(group))}.}
+\undertext{\textit{In Python only:} statsmodels has weights but no strata, clusters or population sizes, so the design-based numbers come from R survey (Lumley).}
+\undertext{As \code{find\_\allowbreak{}average\_\allowbreak{}of}.}
+\undertext{\textit{Checked:} a test runs both and compares the numbers of the result table (on a pandas and on a Polars table).}
+\end{underneathbox}
 \wordentry{table.count\_each()}{word:table.count-each}
 Each different value in a column, how many times it appears, and its percent.
 
 Biggest count first. Empty cells count as a value of their own, so the percents are out of all rows. Percents are rounded to 1 decimal place.\\
 \codeline{table.count\_each(\textquotedbl{}fruit\textquotedbl{})   (with sdata.get\_example(\textquotedbl{}fruit\textquotedbl{}))}\\
-\code{interval=95} adds a 95 \% interval to each percent that holds for all of them at once (Sison and Glaz, statsmodels \code{multinomial\_\allowbreak{}proportions\_\allowbreak{}confint}, as R DescTools::\code{MultinomCI()}).
+\code{interval=95} adds a 95 \% interval to each percent that holds for all of them at once (Sison and Glaz, statsmodels \code{multinomial\_\allowbreak{}proportions\_\allowbreak{}confint}, as R DescTools::\code{MultinomCI()}). Answers on a scale (Likert items): \code{columns=} names the questions and \code{in\_\allowbreak{}order=} the answers from the lowest to the highest; one row per question with the count and percent of each answer, the percent in the top two answers and the median answer:\\
+\codeline{table.count\_each(columns=[\textquotedbl{}teaching\textquotedbl{}, \textquotedbl{}pace\textquotedbl{}], in\_order=[\textquotedbl{}strongly disagree\textquotedbl{}, \textquotedbl{}disagree\textquotedbl{},}\\
+\code{\textquotedbl{}neutral\textquotedbl{}}, \code{\textquotedbl{}agree\textquotedbl{}}, \code{\textquotedbl{}strongly agree\textquotedbl{}}])   (with \code{sdata.\allowbreak{}get\_\allowbreak{}example(\textquotedbl{}course\_\allowbreak{}feedback\textquotedbl{})})
 
 \wordfield{Options}{}\par\nopagebreak
 \begin{optiontable}
-\code{column} & needed\\
+\code{column=} & \\
 \code{interval=} & \\
+\code{columns=} & \\
+\code{in\_\allowbreak{}order=} & \\
 \end{optiontable}
 
 \wordfield{Why this method}{\hyperref[basis:table.count-each]{How simplydata chooses methods}, page \pageref{basis:table.count-each}: the default, the evidence and the checks.}
@@ -8364,6 +8594,27 @@ import simplydata as sdata
 table = sdata.table(sdata.get_example("fruit"))
 table.count_each("fruit")
 \end{lstlisting}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{pandas and NumPy}}
+\undertext{\textbf{With \code{columns=,\allowbreak{} in\_\allowbreak{}order=}}: the same job with this option.}
+\underlib{pandas and NumPy}
+\begin{lstlisting}[style=under]
+import numpy as np
+df = sdata.get_example("course_feedback")
+levels = ["strongly disagree", "disagree", "neutral", "agree", "strongly agree"]
+# count_each(columns=[...], in_order=levels), the first question
+x = df["teaching"].dropna()
+counts = x.value_counts().reindex(levels, fill_value=0)              # (1)
+places = x.map({v: i for i, v in enumerate(levels)}).to_numpy()
+{"agree": counts["agree"], "percent agree": counts["agree"] * 100 / len(x),
+ "percent in top two": x.isin(levels[-2:]).mean() * 100,
+ "median answer": levels[int(np.quantile(places, 0.5, method="inverted_cdf"))]}   # (2)
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) percents out of the answers given (empty cells left out), and no averages of the answers: the steps between them need not be equal.}
+\undertext{(2) the median answer is a real answer, the inverted CDF (R \code{quantile(type = 1)}), never a value between two.}
+\undertext{simplydata also refuses answers that are not in \code{in\_\allowbreak{}order=} (naming them) and fewer than 3 answers.}
+\undertext{\textit{Checked:} a test runs both and compares the numbers of the result table (on a pandas and on a Polars table).}
+\end{underneathbox}
 \wordentry{table.find\_average\_of()}{word:table.find-average-of}
 The average (mean) of a column; empty cells are skipped.
 
@@ -8373,7 +8624,7 @@ The average (mean) of a column; empty cells are skipped.
 \code{every=} groups a date column in \code{for\_\allowbreak{}each\_\allowbreak{}group\_\allowbreak{}in=} into \code{\textquotedbl{}hour\textquotedbl{}}, \code{\textquotedbl{}day\textquotedbl{}}, \code{\textquotedbl{}week\textquotedbl{}}, \code{\textquotedbl{}month\textquotedbl{}}, \code{\textquotedbl{}quarter\textquotedbl{}} or \code{\textquotedbl{}year\textquotedbl{}} periods:\\
 \codeline{table.turn\_into\_dates(\textquotedbl{}year\textquotedbl{})}\\
 \codeline{table.find\_average\_of(\textquotedbl{}population\textquotedbl{}, for\_each\_group\_in=\textquotedbl{}year\textquotedbl{}, every=\textquotedbl{}year\textquotedbl{})   (with sdata.get\_example(\textquotedbl{}growth\textquotedbl{}))}\\
-\code{interval=95} adds the 95 \% confidence interval of each average (the t interval, as R \code{t.\allowbreak{}test()}) and gives back a table with the average, the interval and the count. \code{weights=\textquotedbl{}people\textquotedbl{}} gives the weighted average: each row counts as much as its number in the column of weights (statsmodels DescrStatsW, as R \code{weighted.\allowbreak{}mean()}).
+\code{interval=95} adds the 95 \% confidence interval of each average (the t interval, as R \code{t.\allowbreak{}test()}) and gives back a table with the average, the interval and the count. \code{weights=\textquotedbl{}people\textquotedbl{}} gives the weighted average: each row counts as much as its number in the column of weights (statsmodels DescrStatsW, as R \code{weighted.\allowbreak{}mean()}). Under a survey design (\code{table.\allowbreak{}use\_\allowbreak{}survey\_\allowbreak{}design}) it gives the population average with its standard error and interval, from R survey::svymean.
 
 \wordfield{Options}{}\par\nopagebreak
 \begin{optiontable}
@@ -8414,11 +8665,32 @@ df.group_by("class", maintain_order=True).agg(pl.col("marks").mean())   # (1)
 \undertext{simplydata also names the column \code{\textquotedbl{}average of marks\textquotedbl{}} and writes the averages in a sentence.}
 \undertext{\textit{Checked:} a test runs both and compares the table (on a pandas and on a Polars table).}
 \end{underneathbox}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{R}\libbadge{Python}}
+\undertext{\textbf{With \code{after use\_\allowbreak{}survey\_\allowbreak{}design()}}: the same job with this option.}
+\underlib{R (simplydata runs this in R for you, through rpy2)}
+\begin{lstlisting}[style=underr]
+# find_average_of("score_2000") under use_survey_design(...)
+d <- survey::svydesign(ids = ~1, strata = ~s, weights = ~w, fpc = ~f,
+       data = data.frame(s, w, f, y))
+m <- survey::svymean(~y, d)
+ci <- confint(m, df = survey::degf(d))                         # (1)
+list(est = coef(m), se = survey::SE(m), low = ci[1], high = ci[2])
+\end{lstlisting}
+\underlib{Python (with what R gives back)}
+\begin{lstlisting}[style=under]
+{"average of score_2000": est, "standard error": se, "average of score_2000 95 % CI low": low, "average of score_2000 95 % CI high": high}
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) the 95 \% interval uses t on the design's degrees of freedom (\code{degf(design)}, here 197), not survey's own normal-curve \code{confint()}.}
+\undertext{\textit{In Python only:} statsmodels has weights but no strata, clusters or population sizes, so the design-based numbers come from R survey (Lumley).}
+\undertext{simplydata also prints that the numbers describe the population, and leaves out empty cells as survey does (na.rm = TRUE) while keeping the design.}
+\undertext{\textit{Checked:} a test runs both and compares the numbers of the result table (on a pandas and on a Polars table).}
+\end{underneathbox}
 \wordentry{table.find\_median\_of()}{word:table.find-median-of}
 The middle number of a column once it is sorted; empty cells are skipped.
 
 \codeline{table.find\_median\_of(\textquotedbl{}marks\textquotedbl{}, for\_each\_group\_in=\textquotedbl{}class\textquotedbl{})   (with sdata.get\_example(\textquotedbl{}marks\textquotedbl{}))}\\
-\code{across=} and \code{every=} work as in \code{find\_\allowbreak{}average\_\allowbreak{}of}. \code{interval=95} adds the 95 \% confidence interval of each median: the exact interval from the order of the values (SciPy \code{quantile\_\allowbreak{}test}, as R DescTools::\code{MedianCI(method = \textquotedbl{}exact\textquotedbl{})}); it gives back a table with the median, the interval and the count. \code{weights=\textquotedbl{}n\textquotedbl{}} gives the weighted median, with \code{weight\_\allowbreak{}kind=} as in \code{find\_\allowbreak{}percentile\_\allowbreak{}of}: \code{\textquotedbl{}frequency\textquotedbl{}} (the default; each row counts as often as its whole-number weight) or \code{\textquotedbl{}analytic\textquotedbl{}}.
+\code{across=} and \code{every=} work as in \code{find\_\allowbreak{}average\_\allowbreak{}of}. \code{interval=95} adds the 95 \% confidence interval of each median: the exact interval from the order of the values (SciPy \code{quantile\_\allowbreak{}test}, as R DescTools::\code{MedianCI(method = \textquotedbl{}exact\textquotedbl{})}); it gives back a table with the median, the interval and the count. \code{weights=\textquotedbl{}n\textquotedbl{}} gives the weighted median, with \code{weight\_\allowbreak{}kind=} as in \code{find\_\allowbreak{}percentile\_\allowbreak{}of}: \code{\textquotedbl{}frequency\textquotedbl{}} (the default; each row counts as often as its whole-number weight) or \code{\textquotedbl{}analytic\textquotedbl{}}. Under a survey design (\code{use\_\allowbreak{}survey\_\allowbreak{}design}) it gives the population median (R survey).
 
 \wordfield{Options}{}\par\nopagebreak
 \begin{optiontable}
@@ -8454,12 +8726,33 @@ np.median(rows)
 \undertext{As \code{find\_\allowbreak{}percentile\_\allowbreak{}of(weights=)}.}
 \undertext{\textit{Checked:} a test runs both and compares the number (on a pandas and on a Polars table).}
 \end{underneathbox}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{R}\libbadge{Python}}
+\undertext{\textbf{With \code{after use\_\allowbreak{}survey\_\allowbreak{}design()}}: the same job with this option.}
+\underlib{R (simplydata runs this in R for you, through rpy2)}
+\begin{lstlisting}[style=underr]
+# find_median_of("score_2000") under use_survey_design(...)
+d <- survey::svydesign(ids = ~1, strata = ~s, weights = ~w, fpc = ~f,
+       data = data.frame(s, w, f, y))
+q <- survey::svyquantile(~y, d, quantiles = 0.5, qrule = "math", ci = TRUE,
+                         df = survey::degf(d))$y                # (1)
+list(est = q[1, 1], se = q[1, 4], low = q[1, 2], high = q[1, 3])
+\end{lstlisting}
+\underlib{Python (with what R gives back)}
+\begin{lstlisting}[style=under]
+{"median of score_2000": est, "standard error": se, "median of score_2000 95 % CI low": low, "median of score_2000 95 % CI high": high}
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) the population median by the weighted inverted CDF (qrule = \code{\textquotedbl{}math\textquotedbl{}}, as \code{find\_\allowbreak{}percentile\_\allowbreak{}of(weight\_\allowbreak{}kind=\textquotedbl{}analytic\textquotedbl{})}), with Woodruff's interval on the design's degrees of freedom.}
+\undertext{\textit{In Python only:} statsmodels has weights but no strata, clusters or population sizes, so the design-based numbers come from R survey (Lumley).}
+\undertext{As \code{find\_\allowbreak{}average\_\allowbreak{}of}; \code{find\_\allowbreak{}percentile\_\allowbreak{}of} gives any other percent.}
+\undertext{\textit{Checked:} a test runs both and compares the numbers of the result table (on a pandas and on a Polars table).}
+\end{underneathbox}
 \wordentry{table.find\_total\_of()}{word:table.find-total-of}
 All the numbers in a column added up; empty cells are skipped.
 
 \codeline{table.find\_total\_of(\textquotedbl{}count\textquotedbl{}, for\_each\_group\_in=\textquotedbl{}shop\textquotedbl{})   (with sdata.get\_example(\textquotedbl{}fruit\textquotedbl{}))}\\
 \codeline{table.find\_total\_of(\textquotedbl{}count\textquotedbl{}, for\_each\_group\_in=\textquotedbl{}shop\textquotedbl{}, across=\textquotedbl{}fruit\textquotedbl{})}\enspace a cross table\\
-\code{every=\textquotedbl{}month\textquotedbl{}} with a date column in \code{for\_\allowbreak{}each\_\allowbreak{}group\_\allowbreak{}in=} gives the total of each month.
+\code{every=\textquotedbl{}month\textquotedbl{}} with a date column in \code{for\_\allowbreak{}each\_\allowbreak{}group\_\allowbreak{}in=} gives the total of each month. Under a survey design (\code{use\_\allowbreak{}survey\_\allowbreak{}design}) it gives the estimated population total (R survey).
 
 \wordfield{Options}{}\par\nopagebreak
 \begin{optiontable}
@@ -8469,6 +8762,7 @@ All the numbers in a column added up; empty cells are skipped.
 \code{across=} & \\
 \end{optiontable}
 
+\wordfield{Why this method}{\hyperref[basis:table.find-total-of-after-use-survey-design]{How simplydata chooses methods}, page \pageref{basis:table.find-total-of-after-use-survey-design}: the default, the evidence and the checks.}
 \wordfield{Underneath}{narwhals, which runs the step in pandas or Polars (whichever holds the table)}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
@@ -8476,6 +8770,27 @@ import simplydata as sdata
 table = sdata.table(sdata.get_example("fruit"))
 table.find_total_of("count", for_each_group_in="shop")
 \end{lstlisting}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{R}\libbadge{Python}}
+\undertext{\textbf{With \code{after use\_\allowbreak{}survey\_\allowbreak{}design()}}: the same job with this option.}
+\underlib{R (simplydata runs this in R for you, through rpy2)}
+\begin{lstlisting}[style=underr]
+# find_total_of("pupils") under use_survey_design(...)
+d <- survey::svydesign(ids = ~1, strata = ~s, weights = ~w, fpc = ~f,
+       data = data.frame(s, w, f, y))
+m <- survey::svytotal(~y, d)
+ci <- confint(m, df = survey::degf(d))                         # (1)
+list(est = coef(m), se = survey::SE(m), low = ci[1], high = ci[2])
+\end{lstlisting}
+\underlib{Python (with what R gives back)}
+\begin{lstlisting}[style=under]
+{"total of pupils": est, "standard error": se, "total of pupils 95 % CI low": low, "total of pupils 95 % CI high": high}
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) the 95 \% interval uses t on the design's degrees of freedom (\code{degf(design)}, here 197), not survey's own normal-curve \code{confint()}.}
+\undertext{\textit{In Python only:} statsmodels has weights but no strata, clusters or population sizes, so the design-based numbers come from R survey (Lumley).}
+\undertext{As \code{find\_\allowbreak{}average\_\allowbreak{}of}.}
+\undertext{\textit{Checked:} a test runs both and compares the numbers of the result table (on a pandas and on a Polars table).}
+\end{underneathbox}
 \wordentry{table.find\_smallest\_of()}{word:table.find-smallest-of}
 The smallest number in a column; empty cells are skipped.
 
@@ -8573,7 +8888,7 @@ What percent of the rows meet a condition, or each group's share.
 With a condition (the same words as \code{keep\_\allowbreak{}rows\_\allowbreak{}where}: \code{is\_\allowbreak{}above}, \code{is\_\allowbreak{}below}, \code{is\_\allowbreak{}at\_\allowbreak{}least}, \code{is\_\allowbreak{}at\_\allowbreak{}most}, \code{is\_\allowbreak{}equal\_\allowbreak{}to}, \code{is\_\allowbreak{}not\_\allowbreak{}equal\_\allowbreak{}to}, \code{is\_\allowbreak{}between}, \code{is\_\allowbreak{}one\_\allowbreak{}of}, contains, \code{starts\_\allowbreak{}with}, \code{ends\_\allowbreak{}with}, \code{is\_\allowbreak{}empty}): the percent of rows that meet it, out of the rows with a value in the column, with its 95 \% confidence interval (Clopper-Pearson exact interval, as R binom.test). Without a condition:\\
 \codeline{table.find\_percent\_of\_rows\_where(for\_each\_group\_in=\textquotedbl{}class\textquotedbl{})}\enspace each group's percent of all rows\\
 \codeline{table.find\_percent\_of\_rows\_where(\textquotedbl{}count\textquotedbl{}, for\_each\_group\_in=\textquotedbl{}shop\textquotedbl{})}\enspace each group's share of the total of a\\
-column   (with \code{sdata.\allowbreak{}get\_\allowbreak{}example(\textquotedbl{}fruit\textquotedbl{})}) Percents go from 0 to 100. Without \code{for\_\allowbreak{}each\_\allowbreak{}group\_\allowbreak{}in=} you get one number; with it a new table. \code{interval\_\allowbreak{}by=} chooses the 95 \% interval of a percent: \code{\textquotedbl{}exact\textquotedbl{}} (Clopper-Pearson, the default, as R \code{binom.\allowbreak{}test()}), \code{\textquotedbl{}wilson\textquotedbl{}} (Wilson score) or \code{\textquotedbl{}agresti-coull\textquotedbl{}}; the last two from statsmodels \code{proportion\_\allowbreak{}confint}, as R DescTools::\code{BinomCI()}.
+column   (with \code{sdata.\allowbreak{}get\_\allowbreak{}example(\textquotedbl{}fruit\textquotedbl{})}) Percents go from 0 to 100. Without \code{for\_\allowbreak{}each\_\allowbreak{}group\_\allowbreak{}in=} you get one number; with it a new table. \code{interval\_\allowbreak{}by=} chooses the 95 \% interval of a percent: \code{\textquotedbl{}exact\textquotedbl{}} (Clopper-Pearson, the default, as R \code{binom.\allowbreak{}test()}), \code{\textquotedbl{}wilson\textquotedbl{}} (Wilson score) or \code{\textquotedbl{}agresti-coull\textquotedbl{}}; the last two from statsmodels \code{proportion\_\allowbreak{}confint}, as R DescTools::\code{BinomCI()}. Under a survey design (\code{table.\allowbreak{}use\_\allowbreak{}survey\_\allowbreak{}design}) a condition gives the population percent with survey's logit interval (R survey::svyciprop).
 
 \wordfield{Options}{}\par\nopagebreak
 \begin{optiontable}
@@ -8603,6 +8918,27 @@ import simplydata as sdata
 table = sdata.table(sdata.get_example("marks"))
 table.find_percent_of_rows_where("marks", is_above=60, for_each_group_in="class")
 \end{lstlisting}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{R}\libbadge{Python}}
+\undertext{\textbf{With \code{after use\_\allowbreak{}survey\_\allowbreak{}design()}}: the same job with this option.}
+\underlib{R (simplydata runs this in R for you, through rpy2)}
+\begin{lstlisting}[style=underr]
+# find_percent_of_rows_where("met_target", is_equal_to="yes") under use_survey_design(...)
+d <- survey::svydesign(ids = ~1, strata = ~s, weights = ~w, fpc = ~f,
+       data = data.frame(s, w, f, y))
+p <- survey::svyciprop(~y, d, method = "logit")                 # (1)
+ci <- attr(p, "ci")
+list(est = coef(p) * 100, se = survey::SE(p) * 100, low = ci[1] * 100, high = ci[2] * 100)
+\end{lstlisting}
+\underlib{Python (with what R gives back)}
+\begin{lstlisting}[style=under]
+{"percent": est, "standard error": se, "percent 95 % CI low": low, "percent 95 % CI high": high}
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) survey's logit interval (\code{svyciprop(method = \textquotedbl{}logit\textquotedbl{})}), which stays between 0 and 100 \%, on the design's degrees of freedom; the share is shown in percent.}
+\undertext{\textit{In Python only:} statsmodels has weights but no strata, clusters or population sizes, so the design-based numbers come from R survey (Lumley).}
+\undertext{As \code{find\_\allowbreak{}average\_\allowbreak{}of}.}
+\undertext{\textit{Checked:} a test runs both and compares the numbers of the result table (on a pandas and on a Polars table).}
+\end{underneathbox}
 \wordentry{table.count\_different\_values\_in()}{word:table.count-different-values-in}
 How many different values a column has, or how many in each group.
 
@@ -8627,7 +8963,7 @@ table.count_different_values_in("name", for_each_group_in="class")
 The value below which a given percent of the numbers lie; empty cells are skipped.
 
 \codeline{table.find\_percentile\_of(\textquotedbl{}marks\textquotedbl{}, 90, for\_each\_group\_in=\textquotedbl{}class\textquotedbl{})   (with sdata.get\_example(\textquotedbl{}marks\textquotedbl{}))}\\
-\code{find\_\allowbreak{}percentile\_\allowbreak{}of(\textquotedbl{}marks\textquotedbl{},\allowbreak{} 50)} is the median, 25 and 75 the quartiles. Between two numbers it uses the usual linear rule (R \code{quantile(type = 7)}, NumPy and pandas default). \code{across=} and \code{every=} work as in \code{find\_\allowbreak{}average\_\allowbreak{}of}. \code{method=} picks one of R's nine rules, by R's number or NumPy's name: 1 \code{\textquotedbl{}inverted\_\allowbreak{}cdf\textquotedbl{}}, 2 \code{\textquotedbl{}averaged\_\allowbreak{}inverted\_\allowbreak{}cdf\textquotedbl{}}, 3 \code{\textquotedbl{}closest\_\allowbreak{}observation\textquotedbl{}}, 4 \code{\textquotedbl{}interpolated\_\allowbreak{}inverted\_\allowbreak{}cdf\textquotedbl{}}, 5 \code{\textquotedbl{}hazen\textquotedbl{}}, 6 \code{\textquotedbl{}weibull\textquotedbl{}} (as SPSS and Minitab), 7 \code{\textquotedbl{}linear\textquotedbl{}} (the default), 8 \code{\textquotedbl{}median\_\allowbreak{}unbiased\textquotedbl{}} (recommended by Hyndman and Fan), 9 \code{\textquotedbl{}normal\_\allowbreak{}unbiased\textquotedbl{}}; NumPy \code{percentile(method=)}, as R \code{quantile(type =)}. \code{interval=95} adds the 95 \% confidence interval of each percentile: the exact interval from the order of the values (SciPy \code{quantile\_\allowbreak{}test}; for the median and the quartiles the same as R DescTools::\code{QuantileCI(method = \textquotedbl{}exact\textquotedbl{})}, which picks other values for other percents); with few values an end can be empty. \code{weights=\textquotedbl{}n\textquotedbl{}} gives the weighted percentile. \code{weight\_\allowbreak{}kind=\textquotedbl{}frequency\textquotedbl{}} (the default) reads each weight as how many times the row counts, so it needs whole numbers: the rows are repeated and the usual \code{method=} is used (as R \code{quantile(rep(x,\allowbreak{} w))} and Hmisc::\code{wtd.\allowbreak{}quantile(x,\allowbreak{} w)}); weights of 1 change nothing. \code{weight\_\allowbreak{}kind=\textquotedbl{}analytic\textquotedbl{}} reads any weight of 0 or more, such as a sampling weight: NumPy \code{percentile(weights=,\allowbreak{} method=\textquotedbl{}inverted\_\allowbreak{}cdf\textquotedbl{})}, the only weighted rule NumPy has (as R survey::\code{svyquantile(qrule = \textquotedbl{}math\textquotedbl{})}); it is a step, not a line between values, so with all weights 1 it is not the unweighted default.
+\code{find\_\allowbreak{}percentile\_\allowbreak{}of(\textquotedbl{}marks\textquotedbl{},\allowbreak{} 50)} is the median, 25 and 75 the quartiles. Between two numbers it uses the usual linear rule (R \code{quantile(type = 7)}, NumPy and pandas default). \code{across=} and \code{every=} work as in \code{find\_\allowbreak{}average\_\allowbreak{}of}. \code{method=} picks one of R's nine rules, by R's number or NumPy's name: 1 \code{\textquotedbl{}inverted\_\allowbreak{}cdf\textquotedbl{}}, 2 \code{\textquotedbl{}averaged\_\allowbreak{}inverted\_\allowbreak{}cdf\textquotedbl{}}, 3 \code{\textquotedbl{}closest\_\allowbreak{}observation\textquotedbl{}}, 4 \code{\textquotedbl{}interpolated\_\allowbreak{}inverted\_\allowbreak{}cdf\textquotedbl{}}, 5 \code{\textquotedbl{}hazen\textquotedbl{}}, 6 \code{\textquotedbl{}weibull\textquotedbl{}} (as SPSS and Minitab), 7 \code{\textquotedbl{}linear\textquotedbl{}} (the default), 8 \code{\textquotedbl{}median\_\allowbreak{}unbiased\textquotedbl{}} (recommended by Hyndman and Fan), 9 \code{\textquotedbl{}normal\_\allowbreak{}unbiased\textquotedbl{}}; NumPy \code{percentile(method=)}, as R \code{quantile(type =)}. \code{interval=95} adds the 95 \% confidence interval of each percentile: the exact interval from the order of the values (SciPy \code{quantile\_\allowbreak{}test}; for the median and the quartiles the same as R DescTools::\code{QuantileCI(method = \textquotedbl{}exact\textquotedbl{})}, which picks other values for other percents); with few values an end can be empty. \code{weights=\textquotedbl{}n\textquotedbl{}} gives the weighted percentile. \code{weight\_\allowbreak{}kind=\textquotedbl{}frequency\textquotedbl{}} (the default) reads each weight as how many times the row counts, so it needs whole numbers: the rows are repeated and the usual \code{method=} is used (as R \code{quantile(rep(x,\allowbreak{} w))} and Hmisc::\code{wtd.\allowbreak{}quantile(x,\allowbreak{} w)}); weights of 1 change nothing. \code{weight\_\allowbreak{}kind=\textquotedbl{}analytic\textquotedbl{}} reads any weight of 0 or more, such as a sampling weight: NumPy \code{percentile(weights=,\allowbreak{} method=\textquotedbl{}inverted\_\allowbreak{}cdf\textquotedbl{})}, the only weighted rule NumPy has (as R survey::\code{svyquantile(qrule = \textquotedbl{}math\textquotedbl{})}); it is a step, not a line between values, so with all weights 1 it is not the unweighted default. Under a survey design (\code{table.\allowbreak{}use\_\allowbreak{}survey\_\allowbreak{}design}) it gives the population percentile with Woodruff's interval, from R survey::svyquantile.
 
 \wordfield{Options}{}\par\nopagebreak
 \begin{optiontable}
@@ -8680,6 +9016,27 @@ np.percentile(df["price"], 90, weights=df["count"],
 \undertext{(1) the weighted inverted CDF, the only NumPy rule with weights (as R survey::\code{svyquantile(qrule = \textquotedbl{}math\textquotedbl{})}): a step, not a line between values.}
 \undertext{simplydata also refuses \code{method=} with analytic weights (no other rule takes weights) and NumPy older than 2.0.}
 \undertext{\textit{Checked:} a test runs both and compares the number (on a pandas and on a Polars table).}
+\end{underneathbox}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{R}\libbadge{Python}}
+\undertext{\textbf{With \code{after use\_\allowbreak{}survey\_\allowbreak{}design()}}: the same job with this option.}
+\underlib{R (simplydata runs this in R for you, through rpy2)}
+\begin{lstlisting}[style=underr]
+# find_percentile_of("score_2000", 90) under use_survey_design(...)
+d <- survey::svydesign(ids = ~1, strata = ~s, weights = ~w, fpc = ~f,
+       data = data.frame(s, w, f, y))
+q <- survey::svyquantile(~y, d, quantiles = 0.9, qrule = "math", ci = TRUE,
+                         df = survey::degf(d))$y                # (1)
+list(est = q[1, 1], se = q[1, 4], low = q[1, 2], high = q[1, 3])
+\end{lstlisting}
+\underlib{Python (with what R gives back)}
+\begin{lstlisting}[style=under]
+{"percentile 90 of score_2000": est, "standard error": se, "percentile 90 of score_2000 95 % CI low": low, "percentile 90 of score_2000 95 % CI high": high}
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) as \code{find\_\allowbreak{}median\_\allowbreak{}of} under a survey design: qrule = \code{\textquotedbl{}math\textquotedbl{}} and Woodruff's interval on the design's degrees of freedom.}
+\undertext{\textit{In Python only:} statsmodels has weights but no strata, clusters or population sizes, so the design-based numbers come from R survey (Lumley).}
+\undertext{As \code{find\_\allowbreak{}average\_\allowbreak{}of}.}
+\undertext{\textit{Checked:} a test runs both and compares the numbers of the result table (on a pandas and on a Polars table).}
 \end{underneathbox}
 \wordentry{table.find\_most\_common\_of()}{word:table.find-most-common-of}
 The value that turns up most often (the mode), for numbers or text; empty cells are skipped.
@@ -8782,7 +9139,7 @@ Are the averages of the groups really different?
 \codeline{table.compare\_averages\_of(\textquotedbl{}marks\textquotedbl{}, for\_each\_group\_in=\textquotedbl{}class\textquotedbl{})   (with sdata.get\_example(\textquotedbl{}marks\textquotedbl{}))}\\
 Two groups: Welch's t-test (the R \code{t.\allowbreak{}test()} default). Three or more: Welch's one-way ANOVA (the R \code{oneway.\allowbreak{}test()} default). Neither needs the groups to have the same spread. \code{based\_\allowbreak{}on=\textquotedbl{}ranks\textquotedbl{}} uses ranks instead (Mann-Whitney U or Kruskal-Wallis): safer when groups are small and their values are not bell-shaped. \code{test=} chooses another test: \code{\textquotedbl{}welch\textquotedbl{}}, \code{\textquotedbl{}student\textquotedbl{}}, \code{\textquotedbl{}welch anova\textquotedbl{}}, \code{\textquotedbl{}anova\textquotedbl{}}, \code{\textquotedbl{}mann-whitney\textquotedbl{}} or \code{\textquotedbl{}kruskal-wallis\textquotedbl{}}; and \code{\textquotedbl{}yuen\textquotedbl{}} (Yuen's test of 20 \% trimmed averages, R WRS2::yuen, SciPy \code{ttest\_\allowbreak{}ind(trim=0.\allowbreak{}2)}), \code{\textquotedbl{}brunner-munzel\textquotedbl{}} (R brunnermunzel.test, SciPy brunnermunzel), \code{\textquotedbl{}alexander-govern\textquotedbl{}} (3 or more groups with different spreads, R onewaytests::ag.test, SciPy alexandergovern) or \code{\textquotedbl{}median\textquotedbl{}} (Mood's median test, SciPy \code{median\_\allowbreak{}test}, as R chisq.test on the counts above and not above the overall median). Prints the answer in words (with the test used and why) and gives back a one-row table of results. The effect size says how big the difference is: Hedges' g (the difference in standard deviations) for 2 groups, omega-squared (the share of the differences explained by the groups) for 3 or more. Each group is checked for a bell shape (Shapiro-Wilk) and a note says if it does not look like one; with 30 or more values that matters little (the central limit theorem). To see which groups differ, use \code{compare\_\allowbreak{}each\_\allowbreak{}pair\_\allowbreak{}of()}. \code{sides=1}, \code{higher=\textquotedbl{}B\textquotedbl{}} (or \code{lower=\textquotedbl{}A\textquotedbl{}}) tests in one direction only (2 groups): that B is higher, as decided before seeing the data (R \code{t.\allowbreak{}test(alternative = .\allowbreak{}.\allowbreak{}.\allowbreak{})}, wilcox.test(\\
 \codeline{alternative = ...)); the 95 \% interval is then one-sided too. R's and SciPy's}\\
-\code{alternative=} is accepted. \code{p\_\allowbreak{}value\_\allowbreak{}by=\textquotedbl{}shuffling\textquotedbl{}} (2 groups, averages): the p-value comes from shuffling the group labels \code{shuffles=9999} times (\code{with\_\allowbreak{}seed=1}) and counting how often the difference in averages is as big as the one in the data (SciPy \code{permutation\_\allowbreak{}test}, as R perm::\code{permTS()}). When there are no more arrangements than shuffles, every one is counted and the p-value is exact. \code{same\_\allowbreak{}within=5} (2 groups) asks whether the averages are the same within 5 (or within [-3, 5]): two one-sided tests (TOST, Welch; statsmodels \code{ttost\_\allowbreak{}ind}, as R TOSTER::\code{t\_\allowbreak{}TOST()}), with the 90 \% interval. The answer is one of three: the same within the margin, different, or the data cannot tell. \code{same\_\allowbreak{}within=5}, \code{not\_\allowbreak{}lower=\textquotedbl{}B\textquotedbl{}} is a non-inferiority test: is B lower than A by no more than 5? (one-sided; as R TOSTER::\code{t\_\allowbreak{}TOST(hypothesis = \textquotedbl{}MET\textquotedbl{})}). \code{not\_\allowbreak{}higher=\textquotedbl{}B\textquotedbl{}} asks whether B is higher by no more than 5, for outcomes where lower is better, such as pain. \code{matched\_\allowbreak{}by=\textquotedbl{}name\textquotedbl{}} is for repeated measures: the same person (or plot, animal ...) in every group of \code{for\_\allowbreak{}each\_\allowbreak{}group\_\allowbreak{}in=}, for example \code{compare\_\allowbreak{}averages\_\allowbreak{}of(\textquotedbl{}marks\textquotedbl{},\allowbreak{} for\_\allowbreak{}each\_\allowbreak{}group\_\allowbreak{}in=\textquotedbl{}subject\textquotedbl{},\allowbreak{} matched\_\allowbreak{}by=\textquotedbl{}name\textquotedbl{})}. It runs a repeated-measures ANOVA with the Greenhouse-Geisser correction, R afex::\code{aov\_\allowbreak{}ez()} (needs R). \code{for\_\allowbreak{}each\_\allowbreak{}group\_\allowbreak{}in=[\textquotedbl{}subject\textquotedbl{},\allowbreak{} \textquotedbl{}class\textquotedbl{}]} with one column that changes within a person and one that does not gives the mixed ANOVA. \code{grouped\_\allowbreak{}by=\textquotedbl{}tank\textquotedbl{}} is for several rows from each tank, each tank in one group (nested): a nested ANOVA that tests the groups against the differences between tanks, R \code{aov(length \textasciitilde{} diet + Error(tank))} (needs R). A list of columns, \code{compare\_\allowbreak{}averages\_\allowbreak{}of([\textquotedbl{}length\textquotedbl{},\allowbreak{} \textquotedbl{}width\textquotedbl{}],\allowbreak{} for\_\allowbreak{}each\_\allowbreak{}group\_\allowbreak{}in=\textquotedbl{}species\textquotedbl{})}, compares them all at once: a MANOVA with Pillai's trace (statsmodels MANOVA, as R \code{summary(manova())}).
+\code{alternative=} is accepted. \code{p\_\allowbreak{}value\_\allowbreak{}by=\textquotedbl{}shuffling\textquotedbl{}} (2 groups, averages): the p-value comes from shuffling the group labels \code{shuffles=9999} times (\code{with\_\allowbreak{}seed=1}) and counting how often the difference in averages is as big as the one in the data (SciPy \code{permutation\_\allowbreak{}test}, as R perm::\code{permTS()}). When there are no more arrangements than shuffles, every one is counted and the p-value is exact. \code{same\_\allowbreak{}within=5} (2 groups) asks whether the averages are the same within 5 (or within [-3, 5]): two one-sided tests (TOST, Welch; statsmodels \code{ttost\_\allowbreak{}ind}, as R TOSTER::\code{t\_\allowbreak{}TOST()}), with the 90 \% interval. The answer is one of three: the same within the margin, different, or the data cannot tell. \code{same\_\allowbreak{}within=5}, \code{not\_\allowbreak{}lower=\textquotedbl{}B\textquotedbl{}} is a non-inferiority test: is B lower than A by no more than 5? (one-sided; as R TOSTER::\code{t\_\allowbreak{}TOST(hypothesis = \textquotedbl{}MET\textquotedbl{})}). \code{not\_\allowbreak{}higher=\textquotedbl{}B\textquotedbl{}} asks whether B is higher by no more than 5, for outcomes where lower is better, such as pain. \code{matched\_\allowbreak{}by=\textquotedbl{}name\textquotedbl{}} is for repeated measures: the same person (or plot, animal ...) in every group of \code{for\_\allowbreak{}each\_\allowbreak{}group\_\allowbreak{}in=}, for example \code{compare\_\allowbreak{}averages\_\allowbreak{}of(\textquotedbl{}marks\textquotedbl{},\allowbreak{} for\_\allowbreak{}each\_\allowbreak{}group\_\allowbreak{}in=\textquotedbl{}subject\textquotedbl{},\allowbreak{} matched\_\allowbreak{}by=\textquotedbl{}name\textquotedbl{})}. It runs a repeated-measures ANOVA with the Greenhouse-Geisser correction, R afex::\code{aov\_\allowbreak{}ez()} (needs R). \code{for\_\allowbreak{}each\_\allowbreak{}group\_\allowbreak{}in=[\textquotedbl{}subject\textquotedbl{},\allowbreak{} \textquotedbl{}class\textquotedbl{}]} with one column that changes within a person and one that does not gives the mixed ANOVA. \code{grouped\_\allowbreak{}by=\textquotedbl{}tank\textquotedbl{}} is for several rows from each tank, each tank in one group (nested): a nested ANOVA that tests the groups against the differences between tanks, R \code{aov(length \textasciitilde{} diet + Error(tank))} (needs R). A list of columns, \code{compare\_\allowbreak{}averages\_\allowbreak{}of([\textquotedbl{}length\textquotedbl{},\allowbreak{} \textquotedbl{}width\textquotedbl{}],\allowbreak{} for\_\allowbreak{}each\_\allowbreak{}group\_\allowbreak{}in=\textquotedbl{}species\textquotedbl{})}, compares them all at once: a MANOVA with Pillai's trace (statsmodels MANOVA, as R \code{summary(manova())}). Under a survey design (\code{table.\allowbreak{}use\_\allowbreak{}survey\_\allowbreak{}design}) two groups are compared by the design-based t test, R survey::svyttest.
 
 \wordfield{Options}{}\par\nopagebreak
 \begin{optiontable}
@@ -8866,6 +9223,26 @@ row = test.results["C(Q('class'))"]["stat"].loc["Pillai's trace"]   # (1)
 \undertext{\textbf{simplydata chooses}}
 \undertext{(1) Pillai's trace first, the one R \code{summary(manova())} prints by default and the safest when groups differ in size or spread.}
 \undertext{simplydata also prints each group's averages and keeps Wilks, Hotelling-Lawley and Roy in the table. simplydata also writes the result as sentences, with the p-value in words, and names the method.}
+\undertext{\textit{Checked:} a test runs both and compares the numbers of the result table (on a pandas and on a Polars table).}
+\end{underneathbox}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{R}\libbadge{Python}}
+\undertext{\textbf{With \code{after use\_\allowbreak{}survey\_\allowbreak{}design()}}: the same job with this option.}
+\underlib{R (simplydata runs this in R for you, through rpy2)}
+\begin{lstlisting}[style=underr]
+# compare_averages_of("score_2000", for_each_group_in="award") under use_survey_design(...)
+d <- survey::svydesign(ids = ~1, strata = ~s, weights = ~w, fpc = ~f,
+                       data = data.frame(s, w, f, y, a))
+r <- survey::svyttest(y ~ a, d)                                  # (1)
+list(diff = r$estimate, t = r$statistic, df = r$parameter, p = r$p.value)
+\end{lstlisting}
+\underlib{Python (with what R gives back)}
+\begin{lstlisting}[style=under]
+{"difference": diff, "t": t, "degrees of freedom": df, "p-value": p}
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) the design-based t test of survey::\code{svyttest()} for two groups; more groups go to \code{explain()}.}
+\undertext{\textit{In Python only:} statsmodels has weights but no strata, clusters or population sizes, so the design-based numbers come from R survey (Lumley).}
+\undertext{simplydata also writes the p-value sentence with its null (the same average in the population).}
 \undertext{\textit{Checked:} a test runs both and compares the numbers of the result table (on a pandas and on a Polars table).}
 \end{underneathbox}
 \wordentry{table.compare\_each\_pair\_of()}{word:table.compare-each-pair-of}
@@ -9025,7 +9402,7 @@ Does how often each value turns up really differ between groups?
 
 \codeline{table.add\_group\_column(\textquotedbl{}result\textquotedbl{}, from\_column=\textquotedbl{}marks\textquotedbl{}, cut\_at=[60], names=[\textquotedbl{}below 60\textquotedbl{}, \textquotedbl{}60 or more\textquotedbl{}])}\\
 \codeline{table.compare\_counts\_of(\textquotedbl{}result\textquotedbl{}, for\_each\_group\_in=\textquotedbl{}class\textquotedbl{})   (with sdata.get\_example(\textquotedbl{}marks\textquotedbl{}))}\\
-(Do the classes differ in how many children score 60 or more?) Counts the rows for each pair of values and uses the chi-square test of independence (as R \code{chisq.\allowbreak{}test()}: Yates' continuity correction for 2 x 2 tables only). If an expected count is below 5 a note says so; for a 2 x 2 table \code{test=\textquotedbl{}fisher\textquotedbl{}} then gives Fisher's exact test. \code{test=\textquotedbl{}g\textquotedbl{}}: the G-test (likelihood ratio, SciPy \code{chi2\_\allowbreak{}contingency( lambda\_\allowbreak{}=\textquotedbl{}log-likelihood\textquotedbl{})}, as R DescTools::\code{GTest()}). For 2 x 2 tables also \code{test=\textquotedbl{}barnard\textquotedbl{}} and \code{test=\textquotedbl{}boschloo\textquotedbl{}}: unconditional exact tests, often stronger than Fisher's, run in R (Exact::\code{exact.\allowbreak{}test(method = \textquotedbl{}z-pooled\textquotedbl{} / \textquotedbl{}boschloo\textquotedbl{})}, simplydata[r]). \code{test=\textquotedbl{}fisher\textquotedbl{}} on a bigger table gives its p-value from 100,000 random tables with the same totals (SciPy, \code{with\_\allowbreak{}seed=1}); \code{p\_\allowbreak{}value\_\allowbreak{}by=\textquotedbl{}exact\textquotedbl{}} counts every table instead, in R (\code{fisher.\allowbreak{}test()}). \code{p\_\allowbreak{}value\_\allowbreak{}by=\textquotedbl{}shuffling\textquotedbl{}}: the chi-square p-value from \code{shuffles=9999} random tables (SciPy, \code{with\_\allowbreak{}seed=1}, as R \code{chisq.\allowbreak{}test(simulate.\allowbreak{}p.\allowbreak{}value = TRUE)}). \code{test=\textquotedbl{}trend\textquotedbl{}} with \code{in\_\allowbreak{}order=[\textquotedbl{}low\textquotedbl{},\allowbreak{} \textquotedbl{}middle\textquotedbl{},\allowbreak{} \textquotedbl{}high\textquotedbl{}]} (the \code{for\_\allowbreak{}each} groups in order) and a yes/no column: the Cochran-Armitage test for a trend in the percent across ordered groups (R \code{prop.\allowbreak{}trend.\allowbreak{}test()}). \code{show=\textquotedbl{}cells\textquotedbl{}} gives back one row per cell with its standardised residual (statsmodels, as R \code{chisq.\allowbreak{}test()}\$stdres): cells beyond 2 or -2 stand out. Empty cells are skipped. Effect size: Cramer's V, the strength of the link from 0 (none) to 1 (complete). Gives back a one-row table.
+(Do the classes differ in how many children score 60 or more?) Counts the rows for each pair of values and uses the chi-square test of independence (as R \code{chisq.\allowbreak{}test()}: Yates' continuity correction for 2 x 2 tables only). If an expected count is below 5 a note says so; for a 2 x 2 table \code{test=\textquotedbl{}fisher\textquotedbl{}} then gives Fisher's exact test. \code{test=\textquotedbl{}g\textquotedbl{}}: the G-test (likelihood ratio, SciPy \code{chi2\_\allowbreak{}contingency( lambda\_\allowbreak{}=\textquotedbl{}log-likelihood\textquotedbl{})}, as R DescTools::\code{GTest()}). For 2 x 2 tables also \code{test=\textquotedbl{}barnard\textquotedbl{}} and \code{test=\textquotedbl{}boschloo\textquotedbl{}}: unconditional exact tests, often stronger than Fisher's, run in R (Exact::\code{exact.\allowbreak{}test(method = \textquotedbl{}z-pooled\textquotedbl{} / \textquotedbl{}boschloo\textquotedbl{})}, simplydata[r]). \code{test=\textquotedbl{}fisher\textquotedbl{}} on a bigger table gives its p-value from 100,000 random tables with the same totals (SciPy, \code{with\_\allowbreak{}seed=1}); \code{p\_\allowbreak{}value\_\allowbreak{}by=\textquotedbl{}exact\textquotedbl{}} counts every table instead, in R (\code{fisher.\allowbreak{}test()}). \code{p\_\allowbreak{}value\_\allowbreak{}by=\textquotedbl{}shuffling\textquotedbl{}}: the chi-square p-value from \code{shuffles=9999} random tables (SciPy, \code{with\_\allowbreak{}seed=1}, as R \code{chisq.\allowbreak{}test(simulate.\allowbreak{}p.\allowbreak{}value = TRUE)}). \code{test=\textquotedbl{}trend\textquotedbl{}} with \code{in\_\allowbreak{}order=[\textquotedbl{}low\textquotedbl{},\allowbreak{} \textquotedbl{}middle\textquotedbl{},\allowbreak{} \textquotedbl{}high\textquotedbl{}]} (the \code{for\_\allowbreak{}each} groups in order) and a yes/no column: the Cochran-Armitage test for a trend in the percent across ordered groups (R \code{prop.\allowbreak{}trend.\allowbreak{}test()}). \code{show=\textquotedbl{}cells\textquotedbl{}} gives back one row per cell with its standardised residual (statsmodels, as R \code{chisq.\allowbreak{}test()}\$stdres): cells beyond 2 or -2 stand out. Empty cells are skipped. Effect size: Cramer's V, the strength of the link from 0 (none) to 1 (complete). Gives back a one-row table. Under a survey design (\code{table.\allowbreak{}use\_\allowbreak{}survey\_\allowbreak{}design}) it gives the Rao-Scott F test, R survey::svychisq.
 
 \wordfield{Options}{}\par\nopagebreak
 \begin{optiontable}
@@ -9048,6 +9425,26 @@ table = sdata.table(sdata.get_example("marks"))
 table.add_group_column("result", from_column="marks", cut_at=[60], names=["below 60", "60 or more"])
 table.compare_counts_of("result", for_each_group_in="class")
 \end{lstlisting}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{R}\libbadge{Python}}
+\undertext{\textbf{With \code{after use\_\allowbreak{}survey\_\allowbreak{}design()}}: the same job with this option.}
+\underlib{R (simplydata runs this in R for you, through rpy2)}
+\begin{lstlisting}[style=underr]
+# compare_counts_of("award", for_each_group_in="school_type") under use_survey_design(...)
+d <- survey::svydesign(ids = ~1, strata = ~s, weights = ~w, fpc = ~f,
+                       data = data.frame(s, w, f, y, s2 = s))
+r <- survey::svychisq(~y + s2, d)                                # (1)
+list(F = r$statistic, ndf = r$parameter[1], ddf = r$parameter[2], p = r$p.value)
+\end{lstlisting}
+\underlib{Python (with what R gives back)}
+\begin{lstlisting}[style=under]
+{"F": F, "degrees of freedom": ndf, "design degrees of freedom": ddf, "p-value": p}
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) the Rao-Scott corrected chi-square as an F test (survey::\code{svychisq()}'s default statistic = \code{\textquotedbl{}F\textquotedbl{}}).}
+\undertext{\textit{In Python only:} statsmodels has weights but no strata, clusters or population sizes, so the design-based numbers come from R survey (Lumley).}
+\undertext{As \code{compare\_\allowbreak{}averages\_\allowbreak{}of}.}
+\undertext{\textit{Checked:} a test runs both and compares the numbers of the result table (on a pandas and on a Polars table).}
+\end{underneathbox}
 \wordentry{table.compare\_shape\_to()}{word:table.compare-shape-to}
 Do the values look bell-shaped (normal), or are they too far from it?
 
@@ -10569,7 +10966,7 @@ print(dist.show_parameters())
 Explain one column from several others with a model, and say how big each effect is.
 
 \codeline{table.explain(\textquotedbl{}marks\textquotedbl{}, using=[\textquotedbl{}hours\textquotedbl{}, \textquotedbl{}breakfast\textquotedbl{}])   (with sdata.get\_example(\textquotedbl{}school\textquotedbl{}))}\\
-\code{outcome=\textquotedbl{}numbers\textquotedbl{}} (the default): linear model by least squares (R \code{lm()}). \code{outcome=\textquotedbl{}yes or no\textquotedbl{}}: logistic regression, odds ratios (R \code{glm(family = binomial)}). \code{outcome=\textquotedbl{}counts\textquotedbl{}}: Poisson regression, rate ratios (R \code{glm(family = poisson)}); \code{outcome=\textquotedbl{}counts (overdispersed)\textquotedbl{}}: quasi-Poisson (R \code{glm(family = quasipoisson)}); \code{outcome=\textquotedbl{}counts that vary a lot\textquotedbl{}}: negative binomial (R MASS::\code{glm.\allowbreak{}nb()}). \code{outcome=\textquotedbl{}positive numbers\textquotedbl{}}: Gamma regression with a log link, for positive, skewed numbers such as times or amounts (R \code{glm(family = Gamma(link = \textquotedbl{}log\textquotedbl{}))}); effects multiply the average. \code{time=\textquotedbl{}years\textquotedbl{}} with counts: rates, the count per unit of time (R offset = \code{log(years)}). \code{out\_\allowbreak{}of=\textquotedbl{}tries\textquotedbl{}} with \code{outcome=\textquotedbl{}yes or no\textquotedbl{}}: the column holds the number of yes out of that many tries (R \code{glm(cbind(yes,\allowbreak{} tries - yes) \textasciitilde{} .\allowbreak{}.\allowbreak{}.\allowbreak{},\allowbreak{} family = binomial)}). With \code{out\_\allowbreak{}of=}, \code{outcome=\textquotedbl{}yes or no (overdispersed)\textquotedbl{}} is quasi-binomial (R \code{glm(family = quasibinomial)}), for yes counts that vary more than the binomial allows. \code{outcome=\textquotedbl{}ordered groups\textquotedbl{}}: ordered logistic regression (R MASS::\code{polr()}); give the order of text groups, lowest first, with \code{in\_\allowbreak{}order=[\textquotedbl{}low\textquotedbl{},\allowbreak{} \textquotedbl{}middle\textquotedbl{},\allowbreak{} \textquotedbl{}high\textquotedbl{}]}. \code{outcome=\textquotedbl{}groups\textquotedbl{}}: multinomial logistic regression, each group against the first (R nnet::\code{multinom()}). \code{outcome=\textquotedbl{}shares\textquotedbl{}}: beta regression for shares between 0 and 1 (R betareg). \code{outcome=\textquotedbl{}counts with many zeros\textquotedbl{}}: zero-inflated Poisson regression (R pscl::\code{zeroinfl()}); \code{\textquotedbl{}counts with many zeros that vary a lot\textquotedbl{}}: zero-inflated negative binomial (pscl::\code{zeroinfl(dist = \textquotedbl{}negbin\textquotedbl{})}). \code{outcome=\textquotedbl{}counts in two steps\textquotedbl{}} (a hurdle model; \code{\textquotedbl{}hurdle\textquotedbl{}} works too): first zero or not, then how many among the counts above 0 (R pscl::\code{hurdle()}); \code{\textquotedbl{}counts in two steps that vary a lot\textquotedbl{}} with a negative binomial second step. \code{zero\_\allowbreak{}part\_\allowbreak{}using=[\textquotedbl{}distance\textquotedbl{}]} gives the zero part its own columns (R pscl's y \textasciitilde{} x \textbar{} z). \code{link=} (experts): \code{\textquotedbl{}probit\textquotedbl{}} or \code{\textquotedbl{}cloglog\textquotedbl{}} for yes or no, \code{\textquotedbl{}identity\textquotedbl{}} or \code{\textquotedbl{}sqrt\textquotedbl{}} for counts, \code{\textquotedbl{}inverse\textquotedbl{}} or \code{\textquotedbl{}identity\textquotedbl{}} for positive numbers; the effects are then on that scale, not ratios. \code{test\_\allowbreak{}type=\textquotedbl{}type 2\textquotedbl{}} adds a table with one test for each column (an ANOVA table): \code{\textquotedbl{}type 2\textquotedbl{}} (the usual choice, R car::\code{Anova(type = 2)}), \code{\textquotedbl{}type 3\textquotedbl{}} (sum-to-zero coding, R car::\code{Anova(type = 3)}) or \code{\textquotedbl{}in order\textquotedbl{}} (R \code{anova()}; the order of \code{using=} matters), with partial eta-squared for numbers (R effectsize). A text column in \code{using=} is a group column: each group is compared with the first group in sorted order (the baseline). \code{\textquotedbl{}hours * breakfast\textquotedbl{}} adds both columns and their interaction (does the effect of hours depend on breakfast?). \code{weights=\textquotedbl{}precision\textquotedbl{}}: each row counts as much as its weight says (precision weights, R \code{lm(weights =)} and \code{glm(weights =)}; statsmodels WLS and \code{GLM(var\_\allowbreak{}weights=)}); rows with weight 0 are left out, as R does. \code{show=\textquotedbl{}risk ratios\textquotedbl{}} with \code{outcome=\textquotedbl{}yes or no\textquotedbl{}}: risk ratios instead of odds ratios, by modified Poisson regression (Zou 2004; R \code{glm(family = poisson)} with sandwich::\code{vcovHC(type = \textquotedbl{}HC0\textquotedbl{})}); \code{method=\textquotedbl{}log-binomial\textquotedbl{}} fits a log-binomial model instead (R \code{glm(family = binomial(link = \textquotedbl{}log\textquotedbl{}))}, which may not converge). \code{show=\textquotedbl{}standardised effects\textquotedbl{}} (also \code{\textquotedbl{}standardized effects\textquotedbl{}}): each effect per standard deviation, from the model fitted again on z-scores (R effectsize::\code{standardize\_\allowbreak{}parameters(method = \textquotedbl{}refit\textquotedbl{})}). \code{matched\_\allowbreak{}by=\textquotedbl{}set\textquotedbl{}} with \code{outcome=\textquotedbl{}yes or no\textquotedbl{}}: conditional logistic regression for matched case-control sets (R survival::\code{clogit()}; statsmodels ConditionalLogit). \code{giving\_\allowbreak{}outliers\_\allowbreak{}less\_\allowbreak{}weight=True}: robust regression (Huber's M-estimation, R MASS::\code{rlm()}; statsmodels RLM), so a few outliers in the column explained pull the effects less. Not the same as \code{robust\_\allowbreak{}errors=True}, which keeps the effects and only changes their standard errors. \code{curve\_\allowbreak{}for=\textquotedbl{}hours\textquotedbl{}} with \code{with\_\allowbreak{}knots=3}: \code{\textquotedbl{}hours\textquotedbl{}} follows a natural cubic spline whose pieces join at 3 knots, the points where the pieces of the curve join (R splines::\code{ns(hours,\allowbreak{} df = 4)}; patsy \code{cr()}); the printout gives the test of the whole curve, which asks whether \code{\textquotedbl{}hours\textquotedbl{}} matters at all (is the curve flat?), not whether it bends. \code{interval\_\allowbreak{}by=\textquotedbl{}profile\textquotedbl{}} (or \code{\textquotedbl{}profile likelihood\textquotedbl{}}): profile-likelihood 95 \% intervals for yes or no and counts (R \code{confint()} of the glm; needs R); \code{interval\_\allowbreak{}by=\textquotedbl{}bootstrap\textquotedbl{}}: BCa intervals from \code{resamples=9999} resamples of the rows (\code{with\_\allowbreak{}seed=1}; SciPy bootstrap, as R boot::\code{boot.\allowbreak{}ci()}). A group with only a few rows can be missing from a resample; \code{explain()} then stops, and whether that happens depends on \code{with\_\allowbreak{}seed=}. Fewer resamples are not the fix: merge the rare group, or use \code{interval\_\allowbreak{}by=\textquotedbl{}profile\textquotedbl{}} (yes or no and counts). \code{p\_\allowbreak{}value\_\allowbreak{}by=\textquotedbl{}likelihood ratio\textquotedbl{}}: a likelihood-ratio test for each column (R \code{drop1(m,\allowbreak{} test = \textquotedbl{}LRT\textquotedbl{})}) instead of the Wald z-test. \code{grouped\_\allowbreak{}by=\textquotedbl{}school\textquotedbl{}}: a mixed model with its own starting level for each school (R lme4::\code{lmer()}), for rows that belong together; \code{grouped\_\allowbreak{}by=[\textquotedbl{}school\textquotedbl{},\allowbreak{} \textquotedbl{}class\textquotedbl{}]} for classes inside schools ((1 \textbar{} school/class)). \code{own\_\allowbreak{}slope\_\allowbreak{}for=\textquotedbl{}hours\textquotedbl{}} gives each school its own slope for hours too (R lme4::\code{lmer()} itself, (1 + hours \textbar{} school)). \code{crossed\_\allowbreak{}with=\textquotedbl{}item\textquotedbl{}} with \code{grouped\_\allowbreak{}by=\textquotedbl{}subject\textquotedbl{}}: a second grouping crossed with the first, (1 \textbar{} subject) + (1 \textbar{} item) (R lme4 itself), when each subject meets several items. \code{p\_\allowbreak{}value\_\allowbreak{}by=\textquotedbl{}satterthwaite\textquotedbl{}} (or \code{\textquotedbl{}few groups\textquotedbl{}}) gives t-tests with Satterthwaite degrees of freedom (R lmerTest) instead of Wald z-tests. \code{effects=\textquotedbl{}for the whole population\textquotedbl{}} fits GEE instead (statsmodels, as R geepack::\code{geeglm()}): effects averaged over all groups, with \code{within\_\allowbreak{}groups=\textquotedbl{}alike\textquotedbl{}} (the default), \code{\textquotedbl{}in time order\textquotedbl{}} (rows in table order, R geepack) or \code{\textquotedbl{}independent\textquotedbl{}}; GEE takes \code{time=}, \code{out\_\allowbreak{}of=} (R geepack) and \code{link=} for yes or no too. \code{curve\_\allowbreak{}for=\textquotedbl{}hours\textquotedbl{}} lets \code{\textquotedbl{}hours\textquotedbl{}} follow a curve instead of a straight line (a generalised additive model with a smooth term \code{s(hours)}, R mgcv::\code{gam(marks \textasciitilde{} s(hours) + .\allowbreak{}.\allowbreak{}.\allowbreak{},\allowbreak{} method = \textquotedbl{}REML\textquotedbl{})}). \code{robust\_\allowbreak{}errors=True} (experts) gives robust standard errors (sandwich, HC3, as R sandwich::\code{vcovHC()}), which stay right when the spread is not the same everywhere; it does not make the model resistant to outliers (\code{giving\_\allowbreak{}outliers\_\allowbreak{}less\_\allowbreak{}weight=True} does). \code{empty\_\allowbreak{}cells=\textquotedbl{}multiple imputation\textquotedbl{}} fills in empty cells 20 times (R \code{mice()}) instead of leaving those rows out; \code{with\_\allowbreak{}seed=} fixes the random filling. Prints each effect with its 95 \% confidence interval and p-value in words, and how well the model fits: R squared (numbers), McFadden's pseudo R squared (yes or no, counts, groups; for yes or no also Nagelkerke's and Tjur's) or Nakagawa's R squared (\code{grouped\_\allowbreak{}by=}, R performance, needs R), with AIC and BIC (R \code{AIC()}, \code{BIC()}). Gives back a table with one row per term. A link does not show that one thing causes the other. \code{for\_\allowbreak{}percentile=90} (\code{outcome=\textquotedbl{}numbers\textquotedbl{}}) fits the line under which 90 \% of the values fall instead of the average line (quantile regression, R quantreg::\code{rq(tau = 0.\allowbreak{}9)}, needs R); a list such as [10, 50, 90] gives one block per percentile. \code{changes\_\allowbreak{}at=}\{\code{\textquotedbl{}month\textquotedbl{}}: 37\} adds a jump in level and a change of slope at month 37 (an interrupted time series), with the lag-1 autocorrelation of the leftovers. \code{spread\_\allowbreak{}changes\_\allowbreak{}with=\textquotedbl{}site\textquotedbl{}} lets each site have its own spread (a number column: the spread grows as a power of it), and \code{neighbours\_\allowbreak{}alike\_\allowbreak{}in\_\allowbreak{}order\_\allowbreak{}of=\textquotedbl{}date\textquotedbl{}} lets rows next to each other in date order be alike (\code{AR(1)}): generalised least squares, R nlme::\code{gls()} (needs R).
+\code{outcome=\textquotedbl{}numbers\textquotedbl{}} (the default): linear model by least squares (R \code{lm()}). \code{outcome=\textquotedbl{}yes or no\textquotedbl{}}: logistic regression, odds ratios (R \code{glm(family = binomial)}). \code{outcome=\textquotedbl{}counts\textquotedbl{}}: Poisson regression, rate ratios (R \code{glm(family = poisson)}); \code{outcome=\textquotedbl{}counts (overdispersed)\textquotedbl{}}: quasi-Poisson (R \code{glm(family = quasipoisson)}); \code{outcome=\textquotedbl{}counts that vary a lot\textquotedbl{}}: negative binomial (R MASS::\code{glm.\allowbreak{}nb()}). \code{outcome=\textquotedbl{}positive numbers\textquotedbl{}}: Gamma regression with a log link, for positive, skewed numbers such as times or amounts (R \code{glm(family = Gamma(link = \textquotedbl{}log\textquotedbl{}))}); effects multiply the average. \code{time=\textquotedbl{}years\textquotedbl{}} with counts: rates, the count per unit of time (R offset = \code{log(years)}). \code{out\_\allowbreak{}of=\textquotedbl{}tries\textquotedbl{}} with \code{outcome=\textquotedbl{}yes or no\textquotedbl{}}: the column holds the number of yes out of that many tries (R \code{glm(cbind(yes,\allowbreak{} tries - yes) \textasciitilde{} .\allowbreak{}.\allowbreak{}.\allowbreak{},\allowbreak{} family = binomial)}). With \code{out\_\allowbreak{}of=}, \code{outcome=\textquotedbl{}yes or no (overdispersed)\textquotedbl{}} is quasi-binomial (R \code{glm(family = quasibinomial)}), for yes counts that vary more than the binomial allows. \code{outcome=\textquotedbl{}ordered groups\textquotedbl{}}: ordered logistic regression (R MASS::\code{polr()}); give the order of text groups, lowest first, with \code{in\_\allowbreak{}order=[\textquotedbl{}low\textquotedbl{},\allowbreak{} \textquotedbl{}middle\textquotedbl{},\allowbreak{} \textquotedbl{}high\textquotedbl{}]}. \code{outcome=\textquotedbl{}groups\textquotedbl{}}: multinomial logistic regression, each group against the first (R nnet::\code{multinom()}). \code{outcome=\textquotedbl{}shares\textquotedbl{}}: beta regression for shares between 0 and 1 (R betareg). \code{outcome=\textquotedbl{}counts with many zeros\textquotedbl{}}: zero-inflated Poisson regression (R pscl::\code{zeroinfl()}); \code{\textquotedbl{}counts with many zeros that vary a lot\textquotedbl{}}: zero-inflated negative binomial (pscl::\code{zeroinfl(dist = \textquotedbl{}negbin\textquotedbl{})}). \code{outcome=\textquotedbl{}counts in two steps\textquotedbl{}} (a hurdle model; \code{\textquotedbl{}hurdle\textquotedbl{}} works too): first zero or not, then how many among the counts above 0 (R pscl::\code{hurdle()}); \code{\textquotedbl{}counts in two steps that vary a lot\textquotedbl{}} with a negative binomial second step. \code{zero\_\allowbreak{}part\_\allowbreak{}using=[\textquotedbl{}distance\textquotedbl{}]} gives the zero part its own columns (R pscl's y \textasciitilde{} x \textbar{} z). \code{link=} (experts): \code{\textquotedbl{}probit\textquotedbl{}} or \code{\textquotedbl{}cloglog\textquotedbl{}} for yes or no, \code{\textquotedbl{}identity\textquotedbl{}} or \code{\textquotedbl{}sqrt\textquotedbl{}} for counts, \code{\textquotedbl{}inverse\textquotedbl{}} or \code{\textquotedbl{}identity\textquotedbl{}} for positive numbers; the effects are then on that scale, not ratios. \code{test\_\allowbreak{}type=\textquotedbl{}type 2\textquotedbl{}} adds a table with one test for each column (an ANOVA table): \code{\textquotedbl{}type 2\textquotedbl{}} (the usual choice, R car::\code{Anova(type = 2)}), \code{\textquotedbl{}type 3\textquotedbl{}} (sum-to-zero coding, R car::\code{Anova(type = 3)}) or \code{\textquotedbl{}in order\textquotedbl{}} (R \code{anova()}; the order of \code{using=} matters), with partial eta-squared for numbers (R effectsize). A text column in \code{using=} is a group column: each group is compared with the first group in sorted order (the baseline). \code{\textquotedbl{}hours * breakfast\textquotedbl{}} adds both columns and their interaction (does the effect of hours depend on breakfast?). \code{weights=\textquotedbl{}precision\textquotedbl{}}: each row counts as much as its weight says (precision weights, R \code{lm(weights =)} and \code{glm(weights =)}; statsmodels WLS and \code{GLM(var\_\allowbreak{}weights=)}); rows with weight 0 are left out, as R does. \code{show=\textquotedbl{}risk ratios\textquotedbl{}} with \code{outcome=\textquotedbl{}yes or no\textquotedbl{}}: risk ratios instead of odds ratios, by modified Poisson regression (Zou 2004; R \code{glm(family = poisson)} with sandwich::\code{vcovHC(type = \textquotedbl{}HC0\textquotedbl{})}); \code{method=\textquotedbl{}log-binomial\textquotedbl{}} fits a log-binomial model instead (R \code{glm(family = binomial(link = \textquotedbl{}log\textquotedbl{}))}, which may not converge). \code{show=\textquotedbl{}standardised effects\textquotedbl{}} (also \code{\textquotedbl{}standardized effects\textquotedbl{}}): each effect per standard deviation, from the model fitted again on z-scores (R effectsize::\code{standardize\_\allowbreak{}parameters(method = \textquotedbl{}refit\textquotedbl{})}). \code{matched\_\allowbreak{}by=\textquotedbl{}set\textquotedbl{}} with \code{outcome=\textquotedbl{}yes or no\textquotedbl{}}: conditional logistic regression for matched case-control sets (R survival::\code{clogit()}; statsmodels ConditionalLogit). \code{giving\_\allowbreak{}outliers\_\allowbreak{}less\_\allowbreak{}weight=True}: robust regression (Huber's M-estimation, R MASS::\code{rlm()}; statsmodels RLM), so a few outliers in the column explained pull the effects less. Not the same as \code{robust\_\allowbreak{}errors=True}, which keeps the effects and only changes their standard errors. \code{curve\_\allowbreak{}for=\textquotedbl{}hours\textquotedbl{}} with \code{with\_\allowbreak{}knots=3}: \code{\textquotedbl{}hours\textquotedbl{}} follows a natural cubic spline whose pieces join at 3 knots, the points where the pieces of the curve join (R splines::\code{ns(hours,\allowbreak{} df = 4)}; patsy \code{cr()}); the printout gives the test of the whole curve, which asks whether \code{\textquotedbl{}hours\textquotedbl{}} matters at all (is the curve flat?), not whether it bends. \code{interval\_\allowbreak{}by=\textquotedbl{}profile\textquotedbl{}} (or \code{\textquotedbl{}profile likelihood\textquotedbl{}}): profile-likelihood 95 \% intervals for yes or no and counts (R \code{confint()} of the glm; needs R); \code{interval\_\allowbreak{}by=\textquotedbl{}bootstrap\textquotedbl{}}: BCa intervals from \code{resamples=9999} resamples of the rows (\code{with\_\allowbreak{}seed=1}; SciPy bootstrap, as R boot::\code{boot.\allowbreak{}ci()}). A group with only a few rows can be missing from a resample; \code{explain()} then stops, and whether that happens depends on \code{with\_\allowbreak{}seed=}. Fewer resamples are not the fix: merge the rare group, or use \code{interval\_\allowbreak{}by=\textquotedbl{}profile\textquotedbl{}} (yes or no and counts). \code{p\_\allowbreak{}value\_\allowbreak{}by=\textquotedbl{}likelihood ratio\textquotedbl{}}: a likelihood-ratio test for each column (R \code{drop1(m,\allowbreak{} test = \textquotedbl{}LRT\textquotedbl{})}) instead of the Wald z-test. \code{grouped\_\allowbreak{}by=\textquotedbl{}school\textquotedbl{}}: a mixed model with its own starting level for each school (R lme4::\code{lmer()}), for rows that belong together; \code{grouped\_\allowbreak{}by=[\textquotedbl{}school\textquotedbl{},\allowbreak{} \textquotedbl{}class\textquotedbl{}]} for classes inside schools ((1 \textbar{} school/class)). \code{own\_\allowbreak{}slope\_\allowbreak{}for=\textquotedbl{}hours\textquotedbl{}} gives each school its own slope for hours too (R lme4::\code{lmer()} itself, (1 + hours \textbar{} school)). \code{crossed\_\allowbreak{}with=\textquotedbl{}item\textquotedbl{}} with \code{grouped\_\allowbreak{}by=\textquotedbl{}subject\textquotedbl{}}: a second grouping crossed with the first, (1 \textbar{} subject) + (1 \textbar{} item) (R lme4 itself), when each subject meets several items. \code{p\_\allowbreak{}value\_\allowbreak{}by=\textquotedbl{}satterthwaite\textquotedbl{}} (or \code{\textquotedbl{}few groups\textquotedbl{}}) gives t-tests with Satterthwaite degrees of freedom (R lmerTest) instead of Wald z-tests. \code{effects=\textquotedbl{}for the whole population\textquotedbl{}} fits GEE instead (statsmodels, as R geepack::\code{geeglm()}): effects averaged over all groups, with \code{within\_\allowbreak{}groups=\textquotedbl{}alike\textquotedbl{}} (the default), \code{\textquotedbl{}in time order\textquotedbl{}} (rows in table order, R geepack) or \code{\textquotedbl{}independent\textquotedbl{}}; GEE takes \code{time=}, \code{out\_\allowbreak{}of=} (R geepack) and \code{link=} for yes or no too. \code{curve\_\allowbreak{}for=\textquotedbl{}hours\textquotedbl{}} lets \code{\textquotedbl{}hours\textquotedbl{}} follow a curve instead of a straight line (a generalised additive model with a smooth term \code{s(hours)}, R mgcv::\code{gam(marks \textasciitilde{} s(hours) + .\allowbreak{}.\allowbreak{}.\allowbreak{},\allowbreak{} method = \textquotedbl{}REML\textquotedbl{})}). \code{robust\_\allowbreak{}errors=True} (experts) gives robust standard errors (sandwich, HC3, as R sandwich::\code{vcovHC()}), which stay right when the spread is not the same everywhere; it does not make the model resistant to outliers (\code{giving\_\allowbreak{}outliers\_\allowbreak{}less\_\allowbreak{}weight=True} does). \code{empty\_\allowbreak{}cells=\textquotedbl{}multiple imputation\textquotedbl{}} fills in empty cells 20 times (R \code{mice()}) instead of leaving those rows out; \code{with\_\allowbreak{}seed=} fixes the random filling. Prints each effect with its 95 \% confidence interval and p-value in words, and how well the model fits: R squared (numbers), McFadden's pseudo R squared (yes or no, counts, groups; for yes or no also Nagelkerke's and Tjur's) or Nakagawa's R squared (\code{grouped\_\allowbreak{}by=}, R performance, needs R), with AIC and BIC (R \code{AIC()}, \code{BIC()}). Gives back a table with one row per term. A link does not show that one thing causes the other. \code{for\_\allowbreak{}percentile=90} (\code{outcome=\textquotedbl{}numbers\textquotedbl{}}) fits the line under which 90 \% of the values fall instead of the average line (quantile regression, R quantreg::\code{rq(tau = 0.\allowbreak{}9)}, needs R); a list such as [10, 50, 90] gives one block per percentile. \code{changes\_\allowbreak{}at=}\{\code{\textquotedbl{}month\textquotedbl{}}: 37\} adds a jump in level and a change of slope at month 37 (an interrupted time series), with the lag-1 autocorrelation of the leftovers. \code{spread\_\allowbreak{}changes\_\allowbreak{}with=\textquotedbl{}site\textquotedbl{}} lets each site have its own spread (a number column: the spread grows as a power of it), and \code{neighbours\_\allowbreak{}alike\_\allowbreak{}in\_\allowbreak{}order\_\allowbreak{}of=\textquotedbl{}date\textquotedbl{}} lets rows next to each other in date order be alike (\code{AR(1)}): generalised least squares, R nlme::\code{gls()} (needs R). Under a survey design (\code{table.\allowbreak{}use\_\allowbreak{}survey\_\allowbreak{}design}) it fits a survey-weighted model, R survey::svyglm (\code{outcome=} \code{\textquotedbl{}numbers\textquotedbl{}}, \code{\textquotedbl{}yes or no\textquotedbl{}} or \code{\textquotedbl{}counts\textquotedbl{}}).
 
 \wordfield{Options}{}\par\nopagebreak
 \begin{optiontable}
@@ -10995,6 +11392,28 @@ list(effect = coef(m)[2], se = sqrt(vcov(m)[2, 2]))
 \undertext{(1) evenly spaced values give the \code{AR(1)} correlation (corAR1), each step one step apart; uneven gaps give corCAR1, which allows for the size of each gap.}
 \undertext{\textit{In Python only:} statsmodels GLSAR iterates instead of maximising the likelihood, so the model comes from R nlme.}
 \undertext{simplydata also prints the correlation of neighbours with its interval and the comparison with the model without it. simplydata also writes the result as sentences, with the p-value in words, and names the method.}
+\undertext{\textit{Checked:} a test runs both and compares the numbers of the result table (on a pandas and on a Polars table).}
+\end{underneathbox}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{R}\libbadge{Python}}
+\undertext{\textbf{With \code{after use\_\allowbreak{}survey\_\allowbreak{}design()}}: the same job with this option.}
+\underlib{R (simplydata runs this in R for you, through rpy2)}
+\begin{lstlisting}[style=underr]
+# explain("score_2000", using=["english_learners", "free_meals"]) under use_survey_design(...)
+d <- survey::svydesign(ids = ~1, strata = ~s, weights = ~w, fpc = ~f,
+                       data = data.frame(s, w, f, y, e, m))
+fit <- survey::svyglm(y ~ e + m, design = d)                    # (1)
+s <- summary(fit)$coefficients
+ci <- confint(fit)
+list(est = s[3, 1], se = s[3, 2], p = s[3, 4], low = ci[3, 1], high = ci[3, 2])
+\end{lstlisting}
+\underlib{Python (with what R gives back)}
+\begin{lstlisting}[style=under]
+{"estimate": est, "standard error": se, "p-value": p, "95 % CI low": low, "95 % CI high": high}
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) survey::svyglm with the family of \code{outcome=} (gaussian; quasibinomial for yes or no; quasipoisson for counts) and its own t tests and intervals on the model's residual degrees of freedom.}
+\undertext{\textit{In Python only:} statsmodels has weights but no strata, clusters or population sizes, so the design-based numbers come from R survey (Lumley).}
+\undertext{simplydata also says the links describe the population, not cause and effect.}
 \undertext{\textit{Checked:} a test runs both and compares the numbers of the result table (on a pandas and on a Polars table).}
 \end{underneathbox}
 \wordentry{table.add\_predicted\_column()}{word:table.add-predicted-column}
@@ -14750,6 +15169,222 @@ found = sum(v < 0.05 for v in p)                              # (2)
 \undertext{simplydata also silences the printing of simplydata words inside your function, refuses a function that gives the same p-value every time (it ignores its seed), and prints the Monte Carlo error.}
 \undertext{\textit{Checked:} a test runs both and compares the numbers of the result table.}
 \end{underneathbox}
+\unsection{Planning and surveys}{group:Planning-and-surveys}
+\wordentry{sdata.make\_design\_table()}{word:sdata.make-design-table}
+A table that says which treatment goes on which plot, in random order: the layout of an experiment.
+
+\codeline{sdata.make\_design\_table(\{\textquotedbl{}temperature\textquotedbl{}: [10, 20], \textquotedbl{}salinity\textquotedbl{}: [30, 35]\}, repeats=3, with\_seed=1)}\\
+The first thing in the brackets names each factor and its levels; every combination is used (a full factorial: here 2 x 2 = 4 combinations, each 3 times, 12 plots in random order).\\
+\codeline{repeats=3}\enspace how many times each combination is used (the number of blocks with \code{of\_\allowbreak{}kind=}\\
+\code{\textquotedbl{}randomised blocks\textquotedbl{}})\\
+\codeline{of\_kind=}\enspace \code{\textquotedbl{}completely random\textquotedbl{}} (the default: every plot in one random order),\\
+\code{\textquotedbl{}randomised blocks\textquotedbl{}} (each repeat is a block: every combination once in each block, in its own random order), \code{\textquotedbl{}latin square\textquotedbl{}} (one factor; each level once in every row and every column) or \code{\textquotedbl{}split plot\textquotedbl{}} (two factors; \code{whole\_\allowbreak{}plots=} names the one put on whole plots)\\
+\codeline{with\_seed=1}\enspace the same table again
+
+The table has a \code{\textquotedbl{}plot\textquotedbl{}} column (do the plots in this order) and, for the full factorial, the \code{\textquotedbl{}standard order\textquotedbl{}} (R \code{expand.\allowbreak{}grid()} order, the first factor changing fastest). Underneath: R agricolae (needs R, see \code{sdata.\allowbreak{}help(\textquotedbl{}make\_\allowbreak{}design\_\allowbreak{}table\textquotedbl{})}).
+
+\wordfield{Options}{}\par\nopagebreak
+\begin{optiontable}
+\code{factors=} & \\
+\code{repeats=} & \\
+\code{of\_\allowbreak{}kind=} & normally \code{\textquotedbl{}completely random\textquotedbl{}}\\
+\code{whole\_\allowbreak{}plots=} & \\
+\code{with\_\allowbreak{}seed=} & \\
+\end{optiontable}
+
+\wordfield{Why this method}{\hyperref[basis:sdata.make-design-table]{How simplydata chooses methods}, page \pageref{basis:sdata.make-design-table}: the default, the evidence and the checks.}
+\wordfield{Underneath}{R \code{agricolae::design.\allowbreak{}ab()} \textperiodcentered{} Python \code{DataFrame()}, \code{astype()}}
+\wordfield{Example you can run}{}\par\nopagebreak
+\begin{lstlisting}[style=py]
+import simplydata as sdata
+sdata.make_design_table({"temperature": [10, 20], "salinity": [30, 35]}, repeats=3, with_seed=1)
+sdata.make_design_table({"temperature": [10, 20], "salinity": [30, 35]}, repeats=3, of_kind="randomised blocks", with_seed=2)
+sdata.make_design_table({"variety": ["A", "B", "C", "D"]}, of_kind="latin square", with_seed=1)
+\end{lstlisting}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{R}\libbadge{Python}}
+\underlib{R (simplydata runs this in R for you, through rpy2)}
+\begin{lstlisting}[style=underr]
+# make_design_table({"temperature": [10, 20], "salinity": [30, 35]}, repeats=3, with_seed=1)
+d <- agricolae::design.ab(levels_per_factor, r = 3, design = "crd", serie = 0, seed = 1,
+                          kinds = "Mersenne-Twister")             # (1)
+b <- d$book
+g <- expand.grid(1:2, 1:2)
+list(plot = b$plots, rep = as.numeric(as.character(b$r)), A = as.numeric(as.character(b$A)),
+     B = as.numeric(as.character(b$B)),
+     standard = match(paste(b$A, b$B), paste(g[[1]], g[[2]])))     # (2)
+\end{lstlisting}
+\underlib{Python (with what R gives back)}
+\begin{lstlisting}[style=under]
+import pandas as pd
+pd.DataFrame({"plot": plot.astype(int), "repeat": rep.astype(int),
+              "temperature": [[10, 20][int(i) - 1] for i in A],
+              "salinity": [[30, 35][int(i) - 1] for i in B],
+              "standard order": standard.astype(int)})
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) R's own generator (kinds = \code{\textquotedbl{}Mersenne-Twister\textquotedbl{}}), not agricolae's default \code{\textquotedbl{}Super-Duper\textquotedbl{}}, so \code{with\_\allowbreak{}seed=} gives the layout an R user gets after \code{set.\allowbreak{}seed()}.}
+\undertext{(2) the standard order is R \code{expand.\allowbreak{}grid()} order: the first factor changes fastest (Yates' order).}
+\undertext{\textit{In Python only:} Python has no package for randomised experimental layouts, so the table comes from R agricolae (de Mendiburu).}
+\undertext{simplydata also names the factors and levels you gave (agricolae numbers them), keeps numbers as numbers, and refuses a factor named like a column the table makes.}
+\undertext{\textit{Checked:} a test runs both and compares the table.}
+\end{underneathbox}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{R}\libbadge{Python}}
+\undertext{\textbf{With \code{of\_\allowbreak{}kind=\textquotedbl{}randomised blocks\textquotedbl{}}}: the same job with this option.}
+\underlib{R (simplydata runs this in R for you, through rpy2)}
+\begin{lstlisting}[style=underr]
+# make_design_table(..., repeats=3, of_kind="randomised blocks", with_seed=1)
+d <- agricolae::design.ab(levels_per_factor, r = 3, design = "rcbd", serie = 0, seed = 1,
+                          kinds = "Mersenne-Twister")             # (1)
+b <- d$book
+g <- expand.grid(1:2, 1:2)
+list(plot = seq_len(nrow(b)), block = as.numeric(as.character(b$block)), A = as.numeric(as.character(b$A)),
+     B = as.numeric(as.character(b$B)), standard = match(paste(b$A, b$B), paste(g[[1]], g[[2]])))
+\end{lstlisting}
+\underlib{Python (with what R gives back)}
+\begin{lstlisting}[style=under]
+import pandas as pd
+pd.DataFrame({"plot": plot.astype(int), "block": block.astype(int),
+              "temperature": [[10, 20][int(i) - 1] for i in A],
+              "salinity": [[30, 35][int(i) - 1] for i in B],
+              "standard order": standard.astype(int)})
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) each repeat is a block holding every combination once, in its own random order (agricolae \code{design.\allowbreak{}ab(design = \textquotedbl{}rcbd\textquotedbl{})}).}
+\undertext{\textit{In Python only:} As \code{make\_\allowbreak{}design\_\allowbreak{}table}.}
+\undertext{With one factor simplydata calls agricolae::\code{design.\allowbreak{}rcbd()} instead.}
+\undertext{\textit{Checked:} a test runs both and compares the table.}
+\end{underneathbox}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{R}\libbadge{Python}}
+\undertext{\textbf{With \code{of\_\allowbreak{}kind=\textquotedbl{}latin square\textquotedbl{}}}: the same job with this option.}
+\underlib{R (simplydata runs this in R for you, through rpy2)}
+\begin{lstlisting}[style=underr]
+# make_design_table({"variety": ["A", "B", "C", "D"]}, of_kind="latin square", with_seed=1)
+d <- agricolae::design.lsd(variety, serie = 0, seed = 1,
+                           kinds = "Mersenne-Twister")            # (1)
+b <- d$book
+list(plot = seq_len(nrow(b)), row = as.numeric(as.character(b$row)), col = as.numeric(as.character(b$col)),
+     v = match(b[[4]], variety))
+\end{lstlisting}
+\underlib{Python (with what R gives back)}
+\begin{lstlisting}[style=under]
+import pandas as pd
+pd.DataFrame({"plot": plot.astype(int), "row": row.astype(int), "column": col.astype(int),
+              "variety": [["A", "B", "C", "D"][int(i) - 1] for i in v]})
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) agricolae design.lsd: each level once in every row and every column, rows and columns in random order.}
+\undertext{\textit{In Python only:} As \code{make\_\allowbreak{}design\_\allowbreak{}table}.}
+\undertext{simplydata also refuses more than one factor, fewer than 3 levels and \code{repeats=} (one square).}
+\undertext{\textit{Checked:} a test runs both and compares the table.}
+\end{underneathbox}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{R}\libbadge{Python}}
+\undertext{\textbf{With \code{of\_\allowbreak{}kind=\textquotedbl{}split plot\textquotedbl{}}}: the same job with this option.}
+\underlib{R (simplydata runs this in R for you, through rpy2)}
+\begin{lstlisting}[style=underr]
+# make_design_table(..., repeats=2, of_kind="split plot", whole_plots="irrigation", with_seed=1)
+d <- agricolae::design.split(irrigation, variety, r = 2, design = "rcbd",
+                             serie = 0, seed = 1, kinds = "Mersenne-Twister")   # (1)
+b <- d$book
+list(whole = b$plots, part = as.numeric(as.character(b$splots)),
+     block = as.numeric(as.character(b$block)), i = match(b[[4]], irrigation),
+     v = match(b[[5]], variety))
+\end{lstlisting}
+\underlib{Python (with what R gives back)}
+\begin{lstlisting}[style=under]
+import pandas as pd
+pd.DataFrame({"whole plot": whole.astype(int), "part of plot": part.astype(int),
+              "block": block.astype(int),
+              "irrigation": [["dry", "wet"][int(k) - 1] for k in i],
+              "variety": [["A", "B", "C"][int(k) - 1] for k in v]})
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) whole plots in randomised blocks (agricolae \code{design.\allowbreak{}split(design = \textquotedbl{}rcbd\textquotedbl{})}), the factor named in \code{whole\_\allowbreak{}plots=} on the whole plots.}
+\undertext{\textit{In Python only:} As \code{make\_\allowbreak{}design\_\allowbreak{}table}.}
+\undertext{simplydata also refuses a split plot without exactly two factors or without \code{whole\_\allowbreak{}plots=}.}
+\undertext{\textit{Checked:} a test runs both and compares the table.}
+\end{underneathbox}
+\wordentry{sdata.make\_random\_assignments()}{word:sdata.make-random-assignments}
+A list that says which group each new participant goes to, in random blocks (a randomisation list).
+
+\codeline{sdata.make\_random\_assignments(how\_many=60, groups=[\textquotedbl{}A\textquotedbl{}, \textquotedbl{}B\textquotedbl{}], in\_blocks\_of=[4, 6], with\_seed=1)}\\
+\codeline{how\_many=60}\enspace how many places the list needs (for each list; the last block is completed)\\
+\codeline{groups=[\textquotedbl{}A\textquotedbl{}, \textquotedbl{}B\textquotedbl{}]}\enspace the names of the groups, or how many: \code{groups=3} gives A, B and C\\
+\code{in\_\allowbreak{}blocks\_\allowbreak{}of=[4,\allowbreak{} 6]}  block sizes, each a multiple of the number of groups; with two or more sizes each block's size is chosen at random, so nobody can guess the end of a block. The default is 2 and 3 times the number of groups (4 and 6 for two groups). \code{for\_\allowbreak{}each\_\allowbreak{}of=[\textquotedbl{}Bergen\textquotedbl{},\allowbreak{} \textquotedbl{}Oslo\textquotedbl{}]}  a separate list for each centre (stratified randomisation)\\
+\codeline{with\_seed=1}\enspace the same list again (with the same version of R)
+
+Each block holds every group equally often, so the groups stay about the same size all the way through. Keep the list away from the people who recruit (allocation concealment). Underneath: R blockrand::\code{blockrand()} (needs R, see \code{sdata.\allowbreak{}help(\textquotedbl{}make\_\allowbreak{}random\_\allowbreak{}assignments\textquotedbl{})}).
+
+\wordfield{Options}{}\par\nopagebreak
+\begin{optiontable}
+\code{how\_\allowbreak{}many=} & \\
+\code{groups=} & normally \code{2}\\
+\code{in\_\allowbreak{}blocks\_\allowbreak{}of=} & \\
+\code{for\_\allowbreak{}each\_\allowbreak{}of=} & \\
+\code{with\_\allowbreak{}seed=} & \\
+\end{optiontable}
+
+\wordfield{Why this method}{\hyperref[basis:sdata.make-random-assignments]{How simplydata chooses methods}, page \pageref{basis:sdata.make-random-assignments}: the default, the evidence and the checks.}
+\wordfield{Underneath}{R \code{blockrand::blockrand()} \textperiodcentered{} Python \code{DataFrame()}, \code{astype()}}
+\wordfield{Example you can run}{}\par\nopagebreak
+\begin{lstlisting}[style=py]
+import simplydata as sdata
+sdata.make_random_assignments(how_many=60, groups=["A", "B"], in_blocks_of=[4, 6], with_seed=1)
+sdata.make_random_assignments(how_many=40, groups=2, for_each_of=["Bergen", "Oslo"], with_seed=1)
+\end{lstlisting}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{R}\libbadge{Python}}
+\underlib{R (simplydata runs this in R for you, through rpy2)}
+\begin{lstlisting}[style=underr]
+# make_random_assignments(how_many=20, groups=["A", "B"], in_blocks_of=[4, 6], with_seed=1)
+set.seed(1, kind = "Mersenne-Twister", normal.kind = "Inversion",
+         sample.kind = "Rejection")                                # (1)
+b <- blockrand::blockrand(n = 20, num.levels = 2, levels = groups,
+                          block.sizes = c(4, 6) / 2)                # (2)
+list(number = b$id, block = as.numeric(as.character(b$block.id)),
+     size = b$block.size, group = as.numeric(b$treatment))
+\end{lstlisting}
+\underlib{Python (with what R gives back)}
+\begin{lstlisting}[style=under]
+import pandas as pd
+pd.DataFrame({"number": number.astype(int), "block": block.astype(int),
+              "block size": size.astype(int),
+              "group": [["A", "B"][int(i) - 1] for i in group]})
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) R's generator named in full (Mersenne-Twister, Inversion, Rejection): \code{sample()} changed in R 3.6.0, so the same seed gives another list in older R.}
+\undertext{(2) real block sizes, divided by the number of groups for blockrand (which counts in multiples of it); without \code{in\_\allowbreak{}blocks\_\allowbreak{}of=} simplydata chooses 2 and 3 times the number of groups, of random sizes.}
+\undertext{\textit{In Python only:} Python has no package for permuted-block randomisation lists, so the list comes from R blockrand (Snow).}
+\undertext{simplydata also refuses block sizes that are not a multiple of the number of groups, makes one list for each name in \code{for\_\allowbreak{}each\_\allowbreak{}of=}, says the last block is completed, and reminds you to keep the list from the people who recruit.}
+\undertext{\textit{Checked:} a test runs both and compares the table.}
+\end{underneathbox}
+\wordentry{table.use\_survey\_design()}{word:table.use-survey-design}
+Treat the table as a survey sample, so that the survey words give answers for the population.
+
+\codeline{table.use\_survey\_design(weights=\textquotedbl{}weight\textquotedbl{}, strata=\textquotedbl{}school\_type\textquotedbl{}, population\_sizes=\textquotedbl{}schools\_of\_type\textquotedbl{})   (with sdata.get\_example(\textquotedbl{}sampled\_schools\textquotedbl{}))}\\
+\codeline{weights=}\enspace how many people (schools, households ...) of the population each row stands for\\
+\codeline{strata=}\enspace the column of the groups the sample was drawn within (strata)\\
+\codeline{clusters=}\enspace the column of the clusters drawn first (schools, villages), when the rows were\\
+drawn within them \code{population\_\allowbreak{}sizes=}  how many the population has in each stratum (or the share sampled, 0 to 1) From then on \code{find\_\allowbreak{}average\_\allowbreak{}of}, \code{find\_\allowbreak{}total\_\allowbreak{}of}, \code{find\_\allowbreak{}median\_\allowbreak{}of}, \code{find\_\allowbreak{}percentile\_\allowbreak{}of}, \code{find\_\allowbreak{}percent\_\allowbreak{}of\_\allowbreak{}rows\_\allowbreak{}where}, \code{count\_\allowbreak{}rows}, explain, \code{compare\_\allowbreak{}averages\_\allowbreak{}of} (two groups) and \code{compare\_\allowbreak{}counts\_\allowbreak{}of} give design-based answers (R survey), with intervals on the design's degrees of freedom. Other statistics words refuse while the design is on.\\
+\codeline{table.use\_survey\_design() with no options turns it off. Needs R (survey).}
+
+\wordfield{Options}{}\par\nopagebreak
+\begin{optiontable}
+\code{weights=} & \\
+\code{strata=} & \\
+\code{clusters=} & \\
+\code{population\_\allowbreak{}sizes=} & \\
+\end{optiontable}
+
+\wordfield{Why this method}{\hyperref[basis:table.use-survey-design]{How simplydata chooses methods}, page \pageref{basis:table.use-survey-design}: the default, the evidence and the checks.}
+\wordfield{Underneath}{A setting, not a calculation: it remembers the design columns, checks them (R survey::\code{svydesign()} and \code{degf()}), and from then on the survey words build the design in R and the other statistics words refuse.}
+\wordfield{Example you can run}{}\par\nopagebreak
+\begin{lstlisting}[style=py]
+import simplydata as sdata
+table = sdata.table(sdata.get_example("sampled_schools"))
+table.use_survey_design(weights="weight", strata="school_type", population_sizes="schools_of_type")
+table.find_average_of("score_2000")
+table.find_percent_of_rows_where("met_target", is_equal_to="yes")
+\end{lstlisting}
+\undertext{\textit{Nothing underneath:} A setting, not a calculation: it remembers the design columns, checks them (R survey::\code{svydesign()} and \code{degf()}), and from then on the survey words build the design in R and the other statistics words refuse.}
 \unsection{Join and reshape}{group:Join-and-reshape}
 \wordentry{table.join\_with()}{word:table.join-with}
 Bring in the columns of another table, matching rows on a column such as a name.
@@ -17946,11 +18581,44 @@ table.find_autocorrelation_of("zinc", x="east", y="north")
 \printedoutput{output/solution33_task4.txt}
 \solutionanswer{\code{table.\allowbreak{}find\_\allowbreak{}autocorrelation\_\allowbreak{}of} with \code{x=} and \code{y=}: Moran's I.}
 \par\noindent{\small\sffamily\hyperref[lesson:33]{Back to lesson 33}}
+\unsection{Lesson 34: Planning an experiment and a survey}{solutions:34}
+\solutiontask{1}{Fill in the blank: \code{sdata.\allowbreak{}make\_\allowbreak{}design\_\allowbreak{}table(\{\textquotedbl{}temperature\textquotedbl{}: [10,\allowbreak{} 20],\allowbreak{} \textquotedbl{}salinity\textquotedbl{}: [30,\allowbreak{} 35]\},\allowbreak{} repeats=3,\allowbreak{} of\_\allowbreak{}kind=\_\allowbreak{}\_\allowbreak{}\_\allowbreak{}\_\allowbreak{},\allowbreak{} with\_\allowbreak{}seed=1)} when every plot can go anywhere.}
+\begin{lstlisting}[style=py]
+import simplydata as sdata
+sdata.make_design_table({"temperature": [10, 20], "salinity": [30, 35]}, repeats=3,
+                        of_kind="completely random", with_seed=1)
+\end{lstlisting}
+\printedoutput{output/solution34_task1.txt}
+\solutionanswer{\code{of\_\allowbreak{}kind=\textquotedbl{}completely random\textquotedbl{}} (the default): every plot in one random order, with no blocks.}
+\solutiontask{2}{Change only \code{for\_\allowbreak{}each\_\allowbreak{}of=}: make the dressing list for three hospitals, Bergen, Oslo and Trondheim.}
+\begin{lstlisting}[style=py]
+import simplydata as sdata
+sdata.make_random_assignments(how_many=40, groups=["new", "usual"], in_blocks_of=[4, 6],
+                              for_each_of=["Bergen", "Oslo", "Trondheim"], with_seed=1)
+\end{lstlisting}
+\printedoutput{output/solution34_task2.txt}
+\solutionanswer{Three lists, one for each hospital, each in random blocks of 4 and 6.}
+\solutiontask{3}{Say in words why the block sizes should change at random.}
+\begin{lstlisting}[style=py]
+import simplydata as sdata
+sdata.make_random_assignments(how_many=20, groups=["new", "usual"], in_blocks_of=[4], with_seed=1)
+\end{lstlisting}
+\printedoutput{output/solution34_task3.txt}
+\solutionanswer{With one block size, a recruiter who knows it can work out the last group of every block (here the 4th place). Random sizes hide where a block ends (Schulz \& Grimes 2002).}
+\solutiontask{4}{Try to remember without looking back: which option of \code{keep\_\allowbreak{}random\_\allowbreak{}rows} picks rows within each group?}
+\begin{lstlisting}[style=py]
+import simplydata as sdata
+table = sdata.table(sdata.get_example("marks"))
+table.keep_random_rows(2, for_each_group_in="class", with_seed=1)
+\end{lstlisting}
+\printedoutput{output/solution34_task4.txt}
+\solutionanswer{\code{for\_\allowbreak{}each\_\allowbreak{}group\_\allowbreak{}in=}: the same word as in the summaries, here meaning \code{\textquotedbl{}within each group\textquotedbl{}}.}
+\par\noindent{\small\sffamily\hyperref[lesson:34]{Back to lesson 34}}
 
 \part{How simplydata chooses methods}\label{part:basis}
 
 \unchapter{How simplydata chooses methods}{basis}
-simplydata often chooses a method, an option value or a setting for you. This appendix gives, for each of the 281 choices, what simplydata chooses, what else you can ask for, why (the principle and the published evidence), and what simplydata checks in your data before it uses the method. 114 defaults rest on published guidelines or method comparisons, 134 follow the convention of the package named so that results match it, and 33 are simplydata's own starting values, each changed with the option named. Every DOI was looked up in Crossref; references without a DOI were checked at their URL. The defaults of the later batches were read by an independent reviewer when they were designed, and in November 2026 every entry, with its references, was checked again by independent reviewers acting as hostile statistical referees; their findings were applied. The same text is in \code{docs/how\_\allowbreak{}simplydata\_\allowbreak{}chooses.\allowbreak{}md}.
+simplydata often chooses a method, an option value or a setting for you. This appendix gives, for each of the 301 choices, what simplydata chooses, what else you can ask for, why (the principle and the published evidence), and what simplydata checks in your data before it uses the method. 132 defaults rest on published guidelines or method comparisons, 134 follow the convention of the package named so that results match it, and 35 are simplydata's own starting values, each changed with the option named. Every DOI was looked up in Crossref; references without a DOI were checked at their URL. The defaults of the later batches were read by an independent reviewer when they were designed, and in November 2026 every entry, with its references, was checked again by independent reviewers acting as hostile statistical referees; their findings were applied. The same text is in \code{docs/how\_\allowbreak{}simplydata\_\allowbreak{}chooses.\allowbreak{}md}.
 \unsection{The five principles}{basis:principles}
 \begin{enumerate}
 \item \textbf{P1.} Follow published guidelines and consensus statements where they exist (for example the Cochrane Handbook, the ASA statement on p-values, the SAMPL guidelines, ICH E9 for clinical trials, the GUM for measurement). (Wasserstein \& Lazar 2016; Lang \& Altman 2015; ICH E9 1998; Deeks et al. (Cochrane Handbook, ch. 10); JCGM 100:2008 (GUM); Bland \& Altman 1994)
@@ -18097,6 +18765,13 @@ simplydata often chooses a method, an option value or a setting for you. This ap
 \wordfield{Checks}{Fewer than 10 values above the highest threshold refused; a note when mrlplot's thresholds stop early.}
 \wordfield{References}{Coles 2001; Gilleland \& Katz 2016}
 \wordfield{In the dictionary}{\hyperref[word:draw-threshold-check]{page \pageref{word:draw-threshold-check}}}
+\par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:draw-answer-bars}\noindent{\sffamily\bfseries\color{brand}\code{chart.\allowbreak{}draw\_\allowbreak{}answer\_\allowbreak{}bars()}}\par\nopagebreak
+\wordfield{Default}{Diverging stacked bars: the answers below the middle to the left of 0, those above it to the right, and the middle answer split across 0; two hues with grey in the middle.}
+\wordfield{Alternatives}{\code{table.\allowbreak{}count\_\allowbreak{}each(columns=,\allowbreak{} in\_\allowbreak{}order=)} for the numbers.}
+\wordfield{Why (P2)}{Diverging bars centred on the middle answer make agreement and disagreement comparable across questions (Heiberger \& Robbins 2014).}
+\wordfield{Checks}{As \code{table.\allowbreak{}count\_\allowbreak{}each(columns=,\allowbreak{} in\_\allowbreak{}order=)}; with an even number of answers the bars meet at 0 between the middle two.}
+\wordfield{References}{Heiberger \& Robbins 2014}
+\wordfield{In the dictionary}{\hyperref[word:draw-answer-bars]{page \pageref{word:draw-answer-bars}}}
 \par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:draw-density}\noindent{\sffamily\bfseries\color{brand}\code{chart.\allowbreak{}draw\_\allowbreak{}density()}}\par\nopagebreak
 \wordfield{Default}{A Gaussian kernel density with Scott's bandwidth (seaborn's default); each group's curve has area 1.}
 \wordfield{Alternatives}{\code{draw\_\allowbreak{}histogram(show=\textquotedbl{}density\textquotedbl{})}; there is no option for the bandwidth.}
@@ -18151,6 +18826,20 @@ simplydata often chooses a method, an option value or a setting for you. This ap
 \wordfield{Alternatives}{\code{is\_\allowbreak{}at\_\allowbreak{}least=} for \textgreater{}=; the other conditions (\code{is\_\allowbreak{}below=}, \code{is\_\allowbreak{}between=} ...).}
 \wordfield{Why (P3)}{The words say exactly which comparison is made; leaving out empty cells is what pandas, Polars and R's \code{subset()} do. \textit{Basis: convention.}}
 \wordfield{In the dictionary}{\hyperref[word:table.keep-rows-where]{page \pageref{word:table.keep-rows-where}}}
+\par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:table.keep-random-rows-for-each-group-in-eq}\noindent{\sffamily\bfseries\color{brand}\code{table.\allowbreak{}keep\_\allowbreak{}random\_\allowbreak{}rows()} \code{for\_\allowbreak{}each\_\allowbreak{}group\_\allowbreak{}in=}}\par\nopagebreak
+\wordfield{Default}{The same number of random rows from each group (pandas \code{groupby()}.sample(\code{random\_\allowbreak{}state=})), rows kept in table order; a group with that many rows or fewer is kept whole, with a note.}
+\wordfield{Alternatives}{\code{percent=} for the same share of each group; without \code{for\_\allowbreak{}each\_\allowbreak{}group\_\allowbreak{}in=} the rows come from the whole table.}
+\wordfield{Why (P5)}{A stratified random sample guarantees every group in the sample and is the usual design behind survey weights (Lumley 2010). Keeping a small group whole instead of stopping is simplydata's own choice, said in a note. \textit{Basis: starting value.}}
+\wordfield{Checks}{\code{with\_\allowbreak{}seed=} must be a whole number; empty group cells form a group of their own.}
+\wordfield{References}{Lumley 2010}
+\wordfield{In the dictionary}{\hyperref[word:table.keep-random-rows]{page \pageref{word:table.keep-random-rows}}}
+\par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:table.keep-random-rows-percent-eq}\noindent{\sffamily\bfseries\color{brand}\code{table.\allowbreak{}keep\_\allowbreak{}random\_\allowbreak{}rows()} \code{percent=}}\par\nopagebreak
+\wordfield{Default}{That share of each group, rounded by pandas (\code{groupby()}.sample(\code{frac=})), and at least 1 row of every group.}
+\wordfield{Alternatives}{A number of rows for each group.}
+\wordfield{Why (P5)}{Proportional allocation keeps each group's share of the sample equal to its share of the table (Lumley 2010); at least one row per group keeps every stratum, simplydata's own choice. \textit{Basis: starting value.}}
+\wordfield{Checks}{\code{percent=} must be above 0 and up to 100; it cannot go with a number of rows.}
+\wordfield{References}{Lumley 2010}
+\wordfield{In the dictionary}{\hyperref[word:table.keep-random-rows]{page \pageref{word:table.keep-random-rows}}}
 \par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:table.show-rows-with-outliers}\noindent{\sffamily\bfseries\color{brand}\code{table.\allowbreak{}show\_\allowbreak{}rows\_\allowbreak{}with\_\allowbreak{}outliers()}}\par\nopagebreak
 \wordfield{Default}{Tukey's rule: values more than 1.5 x IQR below the first or above the third quartile (quartiles as R \code{quantile(type = 7)}), within each group when asked.}
 \wordfield{Alternatives}{\code{rule=\textquotedbl{}3 IQR\textquotedbl{}} (any k IQR), \code{\textquotedbl{}3 standard deviations\textquotedbl{}} (any k), or a test: \code{\textquotedbl{}grubbs\textquotedbl{}}, \code{\textquotedbl{}dixon\textquotedbl{}}, \code{\textquotedbl{}rosner\textquotedbl{}} (run in R).}
@@ -18165,6 +18854,14 @@ simplydata often chooses a method, an option value or a setting for you. This ap
 \wordfield{Checks}{As \code{show\_\allowbreak{}rows\_\allowbreak{}with\_\allowbreak{}outliers}; the removed rows are printed.}
 \wordfield{References}{Hoaglin et al. 1986; Hoaglin \& Iglewicz 1987; ICH E9 1998}
 \wordfield{In the dictionary}{\hyperref[word:table.remove-rows-with-outliers]{page \pageref{word:table.remove-rows-with-outliers}}}
+\unsection{Empty cells}{basis-group:Empty-cells}
+\par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:table.count-empty-cells-in-show-eq-patterns}\noindent{\sffamily\bfseries\color{brand}\code{table.\allowbreak{}count\_\allowbreak{}empty\_\allowbreak{}cells\_\allowbreak{}in()} \code{show=\textquotedbl{}patterns\textquotedbl{}}}\par\nopagebreak
+\wordfield{Default}{One row for each pattern of empty cells, with how many rows have it and how many cells it leaves empty (as R mice::\code{md.\allowbreak{}pattern()}), sorted by the number of empty cells, and the empty cells of each column printed below.}
+\wordfield{Alternatives}{Without \code{show=}, the empty cells of each column; \code{chart.\allowbreak{}draw\_\allowbreak{}map\_\allowbreak{}of\_\allowbreak{}empty\_\allowbreak{}cells()} draws every row.}
+\wordfield{Why (P5)}{Which cells are empty together is the first step before choosing how to handle them: monotone patterns and rows with many empty cells call for different methods (van Buuren \& Groothuis-Oudshoorn 2011).}
+\wordfield{Checks}{An empty cell is a missing value, NaN or text of only spaces, as everywhere in simplydata.}
+\wordfield{References}{van Buuren \& Groothuis-Oudshoorn 2011}
+\wordfield{In the dictionary}{\hyperref[word:table.count-empty-cells-in]{page \pageref{word:table.count-empty-cells-in}}}
 \unsection{Sort and new columns}{basis-group:Sort-and-new-columns}
 \par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:table.add-rank-column}\noindent{\sffamily\bfseries\color{brand}\code{table.\allowbreak{}add\_\allowbreak{}rank\_\allowbreak{}column()}}\par\nopagebreak
 \wordfield{Default}{Rank 1 for the biggest value; ties share the lowest rank (1, 2, 2, 4), as in sports.}
@@ -18179,6 +18876,13 @@ simplydata often chooses a method, an option value or a setting for you. This ap
 \wordfield{References}{JCGM 100:2008 (GUM)}
 \wordfield{In the dictionary}{\hyperref[word:table.add-z-score-column]{page \pageref{word:table.add-z-score-column}}}
 \unsection{Summaries}{basis-group:Summaries}
+\par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:table.count-rows-after-use-survey-design}\noindent{\sffamily\bfseries\color{brand}\code{table.\allowbreak{}count\_\allowbreak{}rows()} \code{after use\_\allowbreak{}survey\_\allowbreak{}design()}}\par\nopagebreak
+\wordfield{Default}{The estimated number in the population: R survey::\code{svytotal()} of a column of ones (the sum of the weights); with \code{in\_\allowbreak{}percent=True} each group's share, \code{svymean(\textasciitilde{}factor(group))}.}
+\wordfield{Alternatives}{\code{table.\allowbreak{}use\_\allowbreak{}survey\_\allowbreak{}design()} off for the number of rows.}
+\wordfield{Why (P1)}{Population counts and shares come from the weights and their design-based standard errors (Lumley 2010).}
+\wordfield{Checks}{\code{in\_\allowbreak{}percent=True} needs \code{for\_\allowbreak{}each\_\allowbreak{}group\_\allowbreak{}in=}.}
+\wordfield{References}{Lumley 2010}
+\wordfield{In the dictionary}{\hyperref[word:table.count-rows]{page \pageref{word:table.count-rows}}}
 \par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:table.count-each}\noindent{\sffamily\bfseries\color{brand}\code{table.\allowbreak{}count\_\allowbreak{}each()}}\par\nopagebreak
 \wordfield{Default}{With \code{interval=}: Sison and Glaz's simultaneous intervals for all the shares at once (as R DescTools::MultinomCI).}
 \wordfield{Alternatives}{\code{interval=} sets the level.}
@@ -18186,12 +18890,26 @@ simplydata often chooses a method, an option value or a setting for you. This ap
 \wordfield{Checks}{Fewer than 2 values are refused.}
 \wordfield{References}{Sison \& Glaz 1995; May \& Johnson 2000}
 \wordfield{In the dictionary}{\hyperref[word:table.count-each]{page \pageref{word:table.count-each}}}
+\par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:table.count-each-columns-eq-in-order-eq}\noindent{\sffamily\bfseries\color{brand}\code{table.\allowbreak{}count\_\allowbreak{}each()} \code{columns=,\allowbreak{} in\_\allowbreak{}order=}}\par\nopagebreak
+\wordfield{Default}{For answers on a scale, the count and percent of each answer (of the answers given), the percent in the top two answers and the median answer (the inverted CDF, R \code{quantile(type = 1)}); no averages.}
+\wordfield{Alternatives}{\code{chart.\allowbreak{}draw\_\allowbreak{}answer\_\allowbreak{}bars()} for the same counts as diverging bars.}
+\wordfield{Why (P2)}{The steps between answers on a Likert scale need not be equal, so the median and the shares are the safe summaries (Jamieson 2004); averages of many items can work (Norman 2010), but simplydata leaves that choice to you and does not average single items.}
+\wordfield{Checks}{\code{in\_\allowbreak{}order=} is required (at least 3 answers); answers not in it are refused and named; empty cells are left out with a note.}
+\wordfield{References}{Jamieson 2004; Norman 2010}
+\wordfield{In the dictionary}{\hyperref[word:table.count-each]{page \pageref{word:table.count-each}}}
 \par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:table.find-average-of}\noindent{\sffamily\bfseries\color{brand}\code{table.\allowbreak{}find\_\allowbreak{}average\_\allowbreak{}of()}}\par\nopagebreak
 \wordfield{Default}{Groups stay in the order they first appear; empty cells are skipped, as pandas and Polars do. \code{interval=} gives the t interval, as R \code{t.\allowbreak{}test()}.}
 \wordfield{Alternatives}{\code{sorted\_\allowbreak{}by=} to sort; \code{interval=} for the interval; \code{weights=} for a weighted average.}
 \wordfield{Why (P3)}{Skipping empty cells and saying how many were skipped is what pandas, Polars and R's \code{mean(na.\allowbreak{}rm = TRUE)} do; NumPy would give nan. The t interval of the average is Student's (Student 1908), the interval of R \code{t.\allowbreak{}test()}. \textit{Basis: convention.}}
 \wordfield{Checks}{A note gives how many empty cells were skipped; one value gives no interval.}
 \wordfield{References}{Student 1908}
+\wordfield{In the dictionary}{\hyperref[word:table.find-average-of]{page \pageref{word:table.find-average-of}}}
+\par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:table.find-average-of-after-use-survey-design}\noindent{\sffamily\bfseries\color{brand}\code{table.\allowbreak{}find\_\allowbreak{}average\_\allowbreak{}of()} \code{after use\_\allowbreak{}survey\_\allowbreak{}design()}}\par\nopagebreak
+\wordfield{Default}{The population average from R survey::\code{svymean()} (\code{svyby()} for groups), its standard error from the design, and a t interval on the design's degrees of freedom (degf).}
+\wordfield{Alternatives}{\code{table.\allowbreak{}use\_\allowbreak{}survey\_\allowbreak{}design()} off for the average of the rows.}
+\wordfield{Why (P1)}{A t interval on the design's degrees of freedom, not survey's own normal-curve \code{confint()}: with few clusters or strata the normal curve gives intervals that are too narrow (Korn \& Graubard 1999). survey is Lumley's reference implementation (Lumley 2004).}
+\wordfield{Checks}{Only \code{column=} and \code{for\_\allowbreak{}each\_\allowbreak{}group\_\allowbreak{}in=} (one column) are taken; empty cells are left out as survey does.}
+\wordfield{References}{Lumley 2004; Korn \& Graubard 1999}
 \wordfield{In the dictionary}{\hyperref[word:table.find-average-of]{page \pageref{word:table.find-average-of}}}
 \par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:table.find-median-of}\noindent{\sffamily\bfseries\color{brand}\code{table.\allowbreak{}find\_\allowbreak{}median\_\allowbreak{}of()}}\par\nopagebreak
 \wordfield{Default}{The middle value; \code{interval=} gives the exact interval from the order statistics (as R DescTools::\code{MedianCI(method = \textquotedbl{}exact\textquotedbl{})}).}
@@ -18207,6 +18925,20 @@ simplydata often chooses a method, an option value or a setting for you. This ap
 \wordfield{Checks}{As \code{table.\allowbreak{}find\_\allowbreak{}percentile\_\allowbreak{}of} \code{weights=}.}
 \wordfield{References}{Hyndman \& Fan 1996}
 \wordfield{In the dictionary}{\hyperref[word:table.find-median-of]{page \pageref{word:table.find-median-of}}}
+\par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:table.find-median-of-after-use-survey-design}\noindent{\sffamily\bfseries\color{brand}\code{table.\allowbreak{}find\_\allowbreak{}median\_\allowbreak{}of()} \code{after use\_\allowbreak{}survey\_\allowbreak{}design()}}\par\nopagebreak
+\wordfield{Default}{The population median from R survey::\code{svyquantile(qrule = \textquotedbl{}math\textquotedbl{})} with Woodruff's interval on the design's degrees of freedom.}
+\wordfield{Alternatives}{\code{find\_\allowbreak{}percentile\_\allowbreak{}of} for other percents.}
+\wordfield{Why (P1)}{Woodruff's method turns the interval of the distribution function into an interval for the quantile, which keeps the design (Woodruff 1952; Lumley 2010).}
+\wordfield{Checks}{As \code{find\_\allowbreak{}average\_\allowbreak{}of} under a survey design.}
+\wordfield{References}{Woodruff 1952; Lumley 2010}
+\wordfield{In the dictionary}{\hyperref[word:table.find-median-of]{page \pageref{word:table.find-median-of}}}
+\par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:table.find-total-of-after-use-survey-design}\noindent{\sffamily\bfseries\color{brand}\code{table.\allowbreak{}find\_\allowbreak{}total\_\allowbreak{}of()} \code{after use\_\allowbreak{}survey\_\allowbreak{}design()}}\par\nopagebreak
+\wordfield{Default}{The estimated population total from R survey::\code{svytotal()}, with a t interval on the design's degrees of freedom.}
+\wordfield{Alternatives}{\code{table.\allowbreak{}use\_\allowbreak{}survey\_\allowbreak{}design()} off for the total of the rows.}
+\wordfield{Why (P1)}{A t interval on the design's degrees of freedom, not survey's own normal-curve \code{confint()}: with few clusters or strata the normal curve gives intervals that are too narrow (Korn \& Graubard 1999).}
+\wordfield{Checks}{As \code{find\_\allowbreak{}average\_\allowbreak{}of} under a survey design.}
+\wordfield{References}{Lumley 2004; Korn \& Graubard 1999}
+\wordfield{In the dictionary}{\hyperref[word:table.find-total-of]{page \pageref{word:table.find-total-of}}}
 \par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:table.find-standard-deviation-of}\noindent{\sffamily\bfseries\color{brand}\code{table.\allowbreak{}find\_\allowbreak{}standard\_\allowbreak{}deviation\_\allowbreak{}of()}}\par\nopagebreak
 \wordfield{Default}{The sample standard deviation, dividing by n - 1, as pandas and R \code{sd()}; \code{interval=} gives the chi-square interval (R DescTools::VarCI).}
 \wordfield{Alternatives}{\code{weights=} with \code{weight\_\allowbreak{}kind=\textquotedbl{}frequency\textquotedbl{}} (default) or \code{\textquotedbl{}analytic\textquotedbl{}}.}
@@ -18228,6 +18960,13 @@ simplydata often chooses a method, an option value or a setting for you. This ap
 \wordfield{Checks}{Empty cells are counted and left out, with a note.}
 \wordfield{References}{Clopper \& Pearson 1934; Wilson 1927; Agresti \& Coull 1998; Brown et al. 2001}
 \wordfield{In the dictionary}{\hyperref[word:table.find-percent-of-rows-where]{page \pageref{word:table.find-percent-of-rows-where}}}
+\par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:table.find-percent-of-rows-where-after-use-survey-design}\noindent{\sffamily\bfseries\color{brand}\code{table.\allowbreak{}find\_\allowbreak{}percent\_\allowbreak{}of\_\allowbreak{}rows\_\allowbreak{}where()} \code{after use\_\allowbreak{}survey\_\allowbreak{}design()}}\par\nopagebreak
+\wordfield{Default}{The population percent from R survey::\code{svyciprop(method = \textquotedbl{}logit\textquotedbl{})}, its interval worked out on the log-odds scale and on the design's degrees of freedom.}
+\wordfield{Alternatives}{\code{table.\allowbreak{}use\_\allowbreak{}survey\_\allowbreak{}design()} off for the exact interval of the rows.}
+\wordfield{Why (P2)}{The logit interval stays between 0 and 100 \% and keeps its coverage better than the plain Wald interval for survey proportions near 0 or 100 \% (Korn \& Graubard 1999; Lumley 2010).}
+\wordfield{Checks}{One condition and \code{for\_\allowbreak{}each\_\allowbreak{}group\_\allowbreak{}in=} are taken; shares of a total go to \code{find\_\allowbreak{}total\_\allowbreak{}of}.}
+\wordfield{References}{Korn \& Graubard 1999; Lumley 2010}
+\wordfield{In the dictionary}{\hyperref[word:table.find-percent-of-rows-where]{page \pageref{word:table.find-percent-of-rows-where}}}
 \par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:table.find-percentile-of}\noindent{\sffamily\bfseries\color{brand}\code{table.\allowbreak{}find\_\allowbreak{}percentile\_\allowbreak{}of()}}\par\nopagebreak
 \wordfield{Default}{Linear interpolation between the values (\code{method=\textquotedbl{}linear\textquotedbl{}}, R \code{quantile(type = 7)}), the default of R, NumPy and pandas; \code{interval=} gives the exact order-statistic interval.}
 \wordfield{Alternatives}{\code{method=} 1 to 9 (Hyndman \& Fan's types) or a NumPy method name; \code{weights=} with \code{weight\_\allowbreak{}kind=}.}
@@ -18248,6 +18987,13 @@ simplydata often chooses a method, an option value or a setting for you. This ap
 \wordfield{Why (P3)}{For sampling weights the population quantile is read from the weighted distribution function (Lumley 2004, the survey package; Hyndman \& Fan 1996, definition 1); it is the only rule NumPy offers with weights. \textit{Basis: convention.}}
 \wordfield{Checks}{\code{method=} other than the inverted CDF is refused with analytic weights; NumPy older than 2.0 is refused.}
 \wordfield{References}{Lumley 2004; Hyndman \& Fan 1996}
+\wordfield{In the dictionary}{\hyperref[word:table.find-percentile-of]{page \pageref{word:table.find-percentile-of}}}
+\par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:table.find-percentile-of-after-use-survey-design}\noindent{\sffamily\bfseries\color{brand}\code{table.\allowbreak{}find\_\allowbreak{}percentile\_\allowbreak{}of()} \code{after use\_\allowbreak{}survey\_\allowbreak{}design()}}\par\nopagebreak
+\wordfield{Default}{As \code{find\_\allowbreak{}median\_\allowbreak{}of} under a survey design, at the percent given.}
+\wordfield{Alternatives}{\code{method=} and \code{interval=} are refused here.}
+\wordfield{Why (P1)}{As \code{table.\allowbreak{}find\_\allowbreak{}median\_\allowbreak{}of} after \code{use\_\allowbreak{}survey\_\allowbreak{}design()}.}
+\wordfield{Checks}{As \code{find\_\allowbreak{}average\_\allowbreak{}of} under a survey design.}
+\wordfield{References}{Woodruff 1952; Lumley 2010}
 \wordfield{In the dictionary}{\hyperref[word:table.find-percentile-of]{page \pageref{word:table.find-percentile-of}}}
 \par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:table.find-interval-of}\noindent{\sffamily\bfseries\color{brand}\code{table.\allowbreak{}find\_\allowbreak{}interval\_\allowbreak{}of()}}\par\nopagebreak
 \wordfield{Default}{A BCa bootstrap interval (bias-corrected and accelerated) from 9999 resamples, seed 1, as R boot::\code{boot.\allowbreak{}ci(type = \textquotedbl{}bca\textquotedbl{})}.}
@@ -18319,6 +19065,13 @@ simplydata often chooses a method, an option value or a setting for you. This ap
 \wordfield{Checks}{Groups with no more rows than columns, and rank deficiency, are refused.}
 \wordfield{References}{Olson 1974; Olson 1976}
 \wordfield{In the dictionary}{\hyperref[word:table.compare-averages-of]{page \pageref{word:table.compare-averages-of}}}
+\par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:table.compare-averages-of-after-use-survey-design}\noindent{\sffamily\bfseries\color{brand}\code{table.\allowbreak{}compare\_\allowbreak{}averages\_\allowbreak{}of()} \code{after use\_\allowbreak{}survey\_\allowbreak{}design()}}\par\nopagebreak
+\wordfield{Default}{The design-based t test of R survey::\code{svyttest()} for two groups.}
+\wordfield{Alternatives}{\code{table.\allowbreak{}explain(column,\allowbreak{} using=[group])} for more than two groups.}
+\wordfield{Why (P1)}{The difference and its standard error come from the design, so the test keeps its size under clustering and weighting (Lumley 2010).}
+\wordfield{Checks}{Exactly two groups are needed.}
+\wordfield{References}{Lumley 2010}
+\wordfield{In the dictionary}{\hyperref[word:table.compare-averages-of]{page \pageref{word:table.compare-averages-of}}}
 \par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:table.compare-each-pair-of}\noindent{\sffamily\bfseries\color{brand}\code{table.\allowbreak{}compare\_\allowbreak{}each\_\allowbreak{}pair\_\allowbreak{}of()}}\par\nopagebreak
 \wordfield{Default}{Each pair by Welch's t-test, the p-values adjusted with Holm's method (as R \code{pairwise.\allowbreak{}t.\allowbreak{}test(pool.\allowbreak{}sd = FALSE,\allowbreak{} p.\allowbreak{}adjust.\allowbreak{}method = \textquotedbl{}holm\textquotedbl{})}).}
 \wordfield{Alternatives}{\code{test=\textquotedbl{}tukey\textquotedbl{}} (Tukey-Kramer), \code{\textquotedbl{}games-howell\textquotedbl{}}, \code{\textquotedbl{}scheffe\textquotedbl{}}, \code{\textquotedbl{}lsd\textquotedbl{}}, \code{\textquotedbl{}dunn\textquotedbl{}}, \code{\textquotedbl{}conover\textquotedbl{}}; \code{based\_\allowbreak{}on=\textquotedbl{}ranks\textquotedbl{}} or \code{\textquotedbl{}percents\textquotedbl{}}; \code{against=} (Dunnett); \code{show=\textquotedbl{}letters\textquotedbl{}}.}
@@ -18381,6 +19134,13 @@ simplydata often chooses a method, an option value or a setting for you. This ap
 \wordfield{Why (P3)}{simplydata matches R \code{chisq.\allowbreak{}test()} so that results agree with R. The evidence on small tables favours other choices: Campbell 2007 recommends the 'N - 1' chi-square without Yates' correction (and Fisher's test when an expected count is below 1), and Yates' correction is conservative (Haviland 1990). Cochran 1954's rule is no expected count below 1 and at most 20 \% below 5; simplydata's note is stricter. \textit{Basis: convention.}}
 \wordfield{Checks}{A row or column of zeros is refused; when an expected count is below 5, a note suggests \code{test=\textquotedbl{}fisher\textquotedbl{}} or \code{p\_\allowbreak{}value\_\allowbreak{}by=\textquotedbl{}shuffling\textquotedbl{}} (never a silent switch).}
 \wordfield{References}{Cochran 1954; Campbell 2007; Haviland 1990}
+\wordfield{In the dictionary}{\hyperref[word:table.compare-counts-of]{page \pageref{word:table.compare-counts-of}}}
+\par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:table.compare-counts-of-after-use-survey-design}\noindent{\sffamily\bfseries\color{brand}\code{table.\allowbreak{}compare\_\allowbreak{}counts\_\allowbreak{}of()} \code{after use\_\allowbreak{}survey\_\allowbreak{}design()}}\par\nopagebreak
+\wordfield{Default}{Pearson's chi-square with the Rao-Scott correction, as an F test (R survey::\code{svychisq()}, statistic = \code{\textquotedbl{}F\textquotedbl{}}).}
+\wordfield{Alternatives}{\code{table.\allowbreak{}use\_\allowbreak{}survey\_\allowbreak{}design()} off for the chi-square test of the rows.}
+\wordfield{Why (P1)}{The plain chi-square test is too liberal on survey data; the Rao-Scott second-order correction keeps it close to its nominal size (Rao \& Scott 1984).}
+\wordfield{Checks}{\code{for\_\allowbreak{}each\_\allowbreak{}group\_\allowbreak{}in=} is required.}
+\wordfield{References}{Rao \& Scott 1984}
 \wordfield{In the dictionary}{\hyperref[word:table.compare-counts-of]{page \pageref{word:table.compare-counts-of}}}
 \par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:table.compare-shape-to}\noindent{\sffamily\bfseries\color{brand}\code{table.\allowbreak{}compare\_\allowbreak{}shape\_\allowbreak{}to()}}\par\nopagebreak
 \wordfield{Default}{Against the normal distribution: the Shapiro-Wilk test (as R \code{shapiro.\allowbreak{}test()}). Against another named shape: the Anderson-Darling test with a parametric-bootstrap p-value (9999 samples, seed 1).}
@@ -18975,6 +19735,13 @@ simplydata often chooses a method, an option value or a setting for you. This ap
 \wordfield{Why (P3)}{corCAR1 allows for the size of each gap (Pinheiro \& Bates 2000); which one was used is printed. \textit{Basis: convention.}}
 \wordfield{Checks}{Repeated order values are refused; a correlation above 0.99 gets a note.}
 \wordfield{References}{Pinheiro \& Bates 2000}
+\wordfield{In the dictionary}{\hyperref[word:table.explain]{page \pageref{word:table.explain}}}
+\par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:table.explain-after-use-survey-design}\noindent{\sffamily\bfseries\color{brand}\code{table.\allowbreak{}explain()} \code{after use\_\allowbreak{}survey\_\allowbreak{}design()}}\par\nopagebreak
+\wordfield{Default}{A survey-weighted model from R survey::\code{svyglm()}: gaussian for numbers, quasibinomial for yes or no, quasipoisson for counts, with survey's t tests and intervals on the model's residual degrees of freedom.}
+\wordfield{Alternatives}{\code{outcome=} \code{\textquotedbl{}numbers\textquotedbl{}}, \code{\textquotedbl{}yes or no\textquotedbl{}} or \code{\textquotedbl{}counts\textquotedbl{}}.}
+\wordfield{Why (P1)}{Design-based regression weights each row by its sampling weight and takes the standard errors from the design (Lumley 2010); the quasi families avoid the warnings that non-whole weights give in binomial and Poisson fits.}
+\wordfield{Checks}{Only \code{column=}, \code{using=} and \code{outcome=} are taken; yes or no outcomes need yes/no, 1/0 or True/False.}
+\wordfield{References}{Lumley 2010}
 \wordfield{In the dictionary}{\hyperref[word:table.explain]{page \pageref{word:table.explain}}}
 \par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:table.add-predicted-column}\noindent{\sffamily\bfseries\color{brand}\code{table.\allowbreak{}add\_\allowbreak{}predicted\_\allowbreak{}column()}}\par\nopagebreak
 \wordfield{Default}{No interval unless asked; \code{for\_\allowbreak{}new\_\allowbreak{}rows=True} gives a 95 \% prediction interval; intervals of GLMs are worked out on the link scale.}
@@ -19880,6 +20647,49 @@ simplydata often chooses a method, an option value or a setting for you. This ap
 \wordfield{Checks}{A function that gives a different p for the same seed, or p outside 0 to 1, is refused.}
 \wordfield{References}{Arnold et al. 2011}
 \wordfield{In the dictionary}{\hyperref[word:sdata.find-chance-of-finding]{page \pageref{word:sdata.find-chance-of-finding}}}
+\unsection{Planning and surveys}{basis-group:Planning-and-surveys}
+\par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:sdata.make-design-table}\noindent{\sffamily\bfseries\color{brand}\code{sdata.\allowbreak{}make\_\allowbreak{}design\_\allowbreak{}table()}}\par\nopagebreak
+\wordfield{Default}{Every combination of the factors (a full factorial) in one random order (completely random), from R agricolae with R's own generator (kinds = \code{\textquotedbl{}Mersenne-Twister\textquotedbl{}}, not agricolae's \code{\textquotedbl{}Super-Duper\textquotedbl{}}), and the standard order of R \code{expand.\allowbreak{}grid()}.}
+\wordfield{Alternatives}{\code{of\_\allowbreak{}kind=\textquotedbl{}randomised blocks\textquotedbl{}}, \code{\textquotedbl{}latin square\textquotedbl{}} or \code{\textquotedbl{}split plot\textquotedbl{}} (with \code{whole\_\allowbreak{}plots=}).}
+\wordfield{Why (P2)}{Randomising the order of the plots spreads unknown differences evenly over the treatments, and true repeats of each combination are needed to measure the noise (Hurlbert 1984; Casler 2015). Completely random is the simplest layout; blocks are better when the plots differ in a known way, which the word cannot know, so it is offered, not chosen.}
+\wordfield{Checks}{Factors need at least 2 levels and a name that is not one of the table's own columns; \code{repeats=} is required (at least 2 for blocks).}
+\wordfield{References}{Hurlbert 1984; Casler 2015}
+\wordfield{In the dictionary}{\hyperref[word:sdata.make-design-table]{page \pageref{word:sdata.make-design-table}}}
+\par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:sdata.make-design-table-of-kind-eq-randomised-blocks}\noindent{\sffamily\bfseries\color{brand}\code{sdata.\allowbreak{}make\_\allowbreak{}design\_\allowbreak{}table()} \code{of\_\allowbreak{}kind=\textquotedbl{}randomised blocks\textquotedbl{}}}\par\nopagebreak
+\wordfield{Default}{Each repeat is a block that holds every combination once, in its own random order (agricolae design.rcbd, or \code{design.\allowbreak{}ab(design = \textquotedbl{}rcbd\textquotedbl{})} for several factors).}
+\wordfield{Alternatives}{\code{of\_\allowbreak{}kind=\textquotedbl{}completely random\textquotedbl{}} (the default), \code{\textquotedbl{}latin square\textquotedbl{}}, \code{\textquotedbl{}split plot\textquotedbl{}}.}
+\wordfield{Why (P2)}{Blocks take known differences between groups of plots (benches, fields, days) out of the comparison (Casler 2015).}
+\wordfield{Checks}{\code{repeats=} is the number of blocks and must be at least 2.}
+\wordfield{References}{Casler 2015}
+\wordfield{In the dictionary}{\hyperref[word:sdata.make-design-table]{page \pageref{word:sdata.make-design-table}}}
+\par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:sdata.make-design-table-of-kind-eq-latin-square}\noindent{\sffamily\bfseries\color{brand}\code{sdata.\allowbreak{}make\_\allowbreak{}design\_\allowbreak{}table()} \code{of\_\allowbreak{}kind=\textquotedbl{}latin square\textquotedbl{}}}\par\nopagebreak
+\wordfield{Default}{One factor laid out in rows and columns so that each level is once in every row and every column (agricolae design.lsd).}
+\wordfield{Alternatives}{\code{of\_\allowbreak{}kind=\textquotedbl{}randomised blocks\textquotedbl{}} when only one direction differs.}
+\wordfield{Why (P2)}{A latin square removes differences in two directions at once (rows and columns of a field or a greenhouse) (Casler 2015).}
+\wordfield{Checks}{Exactly one factor with at least 3 levels; \code{repeats=} and \code{whole\_\allowbreak{}plots=} are refused.}
+\wordfield{References}{Casler 2015}
+\wordfield{In the dictionary}{\hyperref[word:sdata.make-design-table]{page \pageref{word:sdata.make-design-table}}}
+\par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:sdata.make-design-table-of-kind-eq-split-plot}\noindent{\sffamily\bfseries\color{brand}\code{sdata.\allowbreak{}make\_\allowbreak{}design\_\allowbreak{}table()} \code{of\_\allowbreak{}kind=\textquotedbl{}split plot\textquotedbl{}}}\par\nopagebreak
+\wordfield{Default}{Whole plots in randomised blocks get the factor named in \code{whole\_\allowbreak{}plots=}, and each whole plot is split into parts for the other factor (agricolae \code{design.\allowbreak{}split(design = \textquotedbl{}rcbd\textquotedbl{})}).}
+\wordfield{Alternatives}{\code{of\_\allowbreak{}kind=\textquotedbl{}randomised blocks\textquotedbl{}} when both factors can change plot by plot.}
+\wordfield{Why (P2)}{A split plot is the layout for a factor that is hard to change on small plots, such as irrigation; it has two sizes of error, so it must be analysed as a split plot (Casler 2015).}
+\wordfield{Checks}{Exactly two factors, and \code{whole\_\allowbreak{}plots=} naming one of them.}
+\wordfield{References}{Casler 2015}
+\wordfield{In the dictionary}{\hyperref[word:sdata.make-design-table]{page \pageref{word:sdata.make-design-table}}}
+\par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:sdata.make-random-assignments}\noindent{\sffamily\bfseries\color{brand}\code{sdata.\allowbreak{}make\_\allowbreak{}random\_\allowbreak{}assignments()}}\par\nopagebreak
+\wordfield{Default}{Permuted blocks from R blockrand::\code{blockrand()}: each block holds every group equally often, and without \code{in\_\allowbreak{}blocks\_\allowbreak{}of=} the block sizes are 2 and 3 times the number of groups, chosen at random block by block; R's generator is named in full (Mersenne-Twister, Inversion, Rejection) so that \code{with\_\allowbreak{}seed=} repeats the list.}
+\wordfield{Alternatives}{\code{in\_\allowbreak{}blocks\_\allowbreak{}of=} (any multiples of the number of groups, one size or several); \code{for\_\allowbreak{}each\_\allowbreak{}of=} (one list per centre); \code{groups=} (names or a number).}
+\wordfield{Why (P1)}{Blocks keep the groups about the same size all the way through, and random block sizes stop recruiters from guessing the last places of a block (Schulz \& Grimes 2002a, 2002b; Efird 2011). The sizes 2 and 3 times the number of groups are simplydata's own starting value: no study fixes them.}
+\wordfield{Checks}{Block sizes that are not a multiple of the number of groups are refused; the printout says the last block is completed and that the list must be kept from the people who recruit.}
+\wordfield{References}{Schulz \& Grimes 2002a; Schulz \& Grimes 2002b; Efird 2011}
+\wordfield{In the dictionary}{\hyperref[word:sdata.make-random-assignments]{page \pageref{word:sdata.make-random-assignments}}}
+\par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:table.use-survey-design}\noindent{\sffamily\bfseries\color{brand}\code{table.\allowbreak{}use\_\allowbreak{}survey\_\allowbreak{}design()}}\par\nopagebreak
+\wordfield{Default}{R survey::\code{svydesign()} with the columns given; \code{options(survey.\allowbreak{}lonely.\allowbreak{}psu = \textquotedbl{}adjust\textquotedbl{})} and nest = TRUE; from then on the survey words give design-based answers and the other statistics words refuse.}
+\wordfield{Alternatives}{\code{table.\allowbreak{}use\_\allowbreak{}survey\_\allowbreak{}design()} with no options turns it off.}
+\wordfield{Why (P1)}{Analysing a complex sample as if it were a simple random sample gives standard errors that are too small (Lumley 2010; Korn \& Graubard 1999). survey stops by default when a stratum has one cluster; \code{\textquotedbl{}adjust\textquotedbl{}} is the conservative option Lumley describes (Lumley 2010).}
+\wordfield{Checks}{Empty design cells and weights of 0 or less are refused; the printout says how the population sizes were read; a survey word refuses after rows were removed.}
+\wordfield{References}{Lumley 2010; Korn \& Graubard 1999; Lumley 2004}
+\wordfield{In the dictionary}{\hyperref[word:table.use-survey-design]{page \pageref{word:table.use-survey-design}}}
 \unsection{Numbers: summaries}{basis-group:Numbers-summaries}
 \par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:nums.find-median}\noindent{\sffamily\bfseries\color{brand}\code{nums.\allowbreak{}find\_\allowbreak{}median()}}\par\nopagebreak
 \wordfield{Default}{The middle value, empty values skipped (np.nanmedian); NumPy's np.median would give nan.}
@@ -19952,6 +20762,7 @@ simplydata often chooses a method, an option value or a setting for you. This ap
 \par\noindent\hangindent=1.5em Campbell MJ, Gardner MJ (1988). Statistics in Medicine: Calculating confidence intervals for some non-parametric analyses. BMJ 296:1454-1456. \href{https://doi.org/10.1136/bmj.296.6634.1454}{doi:10.1136/bmj.296.6634.1454}
 \par\noindent\hangindent=1.5em Campbell MK, Piaggio G, Elbourne DR et al. (2012). Consort 2010 statement: extension to cluster randomised trials. BMJ 345:e5661-e5661. \href{https://doi.org/10.1136/bmj.e5661}{doi:10.1136/bmj.e5661}
 \par\noindent\hangindent=1.5em Carkeet A (2015). Exact Parametric Confidence Intervals for Bland-Altman Limits of Agreement. Optometry and Vision Science 92. \href{https://doi.org/10.1097/OPX.0000000000000513}{doi:10.1097/OPX.0000000000000513}
+\par\noindent\hangindent=1.5em Casler MD (2015). Fundamentals of Experimental Design: Guidelines for Designing Successful Experiments. Agronomy Journal 107:692-705. \href{https://doi.org/10.2134/agronj2013.0114}{doi:10.2134/agronj2013.0114}
 \par\noindent\hangindent=1.5em Chao A (1987). Estimating the Population Size for Capture-Recapture Data with Unequal Catchability. Biometrics 43:783. \href{https://doi.org/10.2307/2531532}{doi:10.2307/2531532}
 \par\noindent\hangindent=1.5em Chao A (2005). Species Estimation and Applications. Encyclopedia of Statistical Sciences. \href{https://doi.org/10.1002/0471667196.ess5051}{doi:10.1002/0471667196.ess5051}
 \par\noindent\hangindent=1.5em Chao A, Gotelli NJ, Hsieh TC et al. (2014). Rarefaction and extrapolation with Hill numbers: a framework for sampling and estimation in species diversity studies. Ecological Monographs 84:45-67. \href{https://doi.org/10.1890/13-0133.1}{doi:10.1890/13-0133.1}
@@ -20000,6 +20811,7 @@ simplydata often chooses a method, an option value or a setting for you. This ap
 \par\noindent\hangindent=1.5em Dunn OJ (1964). Multiple Comparisons Using Rank Sums. Technometrics 6:241-252. \href{https://doi.org/10.1080/00401706.1964.10490181}{doi:10.1080/00401706.1964.10490181}
 \par\noindent\hangindent=1.5em Dunnett CW (1955). A Multiple Comparison Procedure for Comparing Several Treatments with a Control. Journal of the American Statistical Association 50:1096-1121. \href{https://doi.org/10.1080/01621459.1955.10501294}{doi:10.1080/01621459.1955.10501294}
 \par\noindent\hangindent=1.5em Duval S, Tweedie R (2000). Trim and Fill: A Simple Funnel-Plot-{}-Based Method of Testing and Adjusting for Publication Bias in Meta-Analysis. Biometrics 56:455-463. \href{https://doi.org/10.1111/j.0006-341X.2000.00455.x}{doi:10.1111/j.0006-341X.2000.00455.x}
+\par\noindent\hangindent=1.5em Efird J (2011). Blocked Randomization with Randomly Selected Block Sizes. International Journal of Environmental Research and Public Health 8:15-20. \href{https://doi.org/10.3390/ijerph8010015}{doi:10.3390/ijerph8010015}
 \par\noindent\hangindent=1.5em Efron B (1977). The Efficiency of Cox's Likelihood Function for Censored Data. Journal of the American Statistical Association 72:557-565. \href{https://doi.org/10.1080/01621459.1977.10480613}{doi:10.1080/01621459.1977.10480613}
 \par\noindent\hangindent=1.5em Efron B (1987). Better Bootstrap Confidence Intervals. Journal of the American Statistical Association 82:171-185. \href{https://doi.org/10.1080/01621459.1987.10478410}{doi:10.1080/01621459.1987.10478410}
 \par\noindent\hangindent=1.5em Efron B, Tibshirani R, Storey JD, Tusher V (2001). Empirical Bayes Analysis of a Microarray Experiment. Journal of the American Statistical Association 96:1151-1160. \href{https://doi.org/10.1198/016214501753382129}{doi:10.1198/016214501753382129}
@@ -20065,6 +20877,7 @@ simplydata often chooses a method, an option value or a setting for you. This ap
 \par\noindent\hangindent=1.5em Haynes A, Lenz A, Stalder O et al. (2021). presize: An R-package for precision-based sample size calculation in clinical research. Journal of Open Source Software 6:3118. \href{https://doi.org/10.21105/joss.03118}{doi:10.21105/joss.03118}
 \par\noindent\hangindent=1.5em Hedges LV (1981). Distribution Theory for Glass's Estimator of Effect size and Related Estimators. Journal of Educational Statistics 6:107-128. \href{https://doi.org/10.3102/10769986006002107}{doi:10.3102/10769986006002107}
 \par\noindent\hangindent=1.5em Hedges LV, Gurevitch J, Curtis PS (1999). The meta-analysis of response ratios in experimental ecology. Ecology 80:1150-1156. \href{https://doi.org/10.1890/0012-9658(1999)080\%5B1150:TMAORR\%5D2.0.CO\%3B2}{doi:10.1890/0012-9658(1999)080[1150:TMAORR]2.0.CO;2}
+\par\noindent\hangindent=1.5em Heiberger RM, Robbins NB (2014). Design of Diverging Stacked Bar Charts for Likert Scales and Other Applications. Journal of Statistical Software 57(5). \href{https://doi.org/10.18637/jss.v057.i05}{doi:10.18637/jss.v057.i05}
 \par\noindent\hangindent=1.5em Hendricks W, Koenker R (1992). Hierarchical Spline Models for Conditional Quantiles and the Demand for Electricity. Journal of the American Statistical Association 87:58-68. \href{https://doi.org/10.1080/01621459.1992.10475175}{doi:10.1080/01621459.1992.10475175}
 \par\noindent\hangindent=1.5em Hertz-Picciotto I, Rockhill B (1997). Validity and Efficiency of Approximation Methods for Tied Survival Times in Cox Regression. Biometrics 53:1151. \href{https://doi.org/10.2307/2533573}{doi:10.2307/2533573}
 \par\noindent\hangindent=1.5em Hesterberg TC (2015). What Teachers Should Know About the Bootstrap: Resampling in the Undergraduate Statistics Curriculum. The American Statistician 69:371-386. \href{https://doi.org/10.1080/00031305.2015.1089789}{doi:10.1080/00031305.2015.1089789}
@@ -20101,6 +20914,7 @@ simplydata often chooses a method, an option value or a setting for you. This ap
 \par\noindent\hangindent=1.5em International Council for Harmonisation (1998). E9: Statistical principles for clinical trials. \href{https://database.ich.org/sites/default/files/E9_Guideline.pdf}{https://database.ich.org/sites/default/files/E9\_Guideline.pdf}
 \par\noindent\hangindent=1.5em IntHout J, Ioannidis JP, Borm GF (2014). The Hartung-Knapp-Sidik-Jonkman method for random effects meta-analysis is straightforward and considerably outperforms the standard DerSimonian-Laird method. BMC Medical Research Methodology 14. \href{https://doi.org/10.1186/1471-2288-14-25}{doi:10.1186/1471-2288-14-25}
 \par\noindent\hangindent=1.5em IntHout J, Ioannidis JPA, Rovers MM et al. (2016). Plea for routinely presenting prediction intervals in meta-analysis. BMJ Open 6:e010247. \href{https://doi.org/10.1136/bmjopen-2015-010247}{doi:10.1136/bmjopen-2015-010247}
+\par\noindent\hangindent=1.5em Jamieson S (2004). Likert scales: how to (ab)use them. Medical Education 38:1217-1218. \href{https://doi.org/10.1111/j.1365-2929.2004.02012.x}{doi:10.1111/j.1365-2929.2004.02012.x}
 \par\noindent\hangindent=1.5em Joanes DN, Gill CA (1998). Comparing measures of sample skewness and kurtosis. Journal of the Royal Statistical Society: Series D (The Statistician) 47:183-189. \href{https://doi.org/10.1111/1467-9884.00122}{doi:10.1111/1467-9884.00122}
 \par\noindent\hangindent=1.5em Joint Committee for Guides in Metrology (2008). JCGM 100:2008. Evaluation of measurement data: guide to the expression of uncertainty in measurement. \href{https://www.bipm.org/documents/20126/2071204/JCGM_100_2008_E.pdf}{https://www.bipm.org/documents/20126/2071204/JCGM\_100\_2008\_E.pdf}
 \par\noindent\hangindent=1.5em Jolliffe IT, Cadima J (2016). Principal component analysis: a review and recent developments. Philosophical Transactions of the Royal Society A: Mathematical, Physical and Engineering Sciences 374:20150202. \href{https://doi.org/10.1098/rsta.2015.0202}{doi:10.1098/rsta.2015.0202}
@@ -20120,6 +20934,7 @@ simplydata often chooses a method, an option value or a setting for you. This ap
 \par\noindent\hangindent=1.5em Koenker R (2005). Quantile Regression. Cambridge University Press. \href{https://doi.org/10.1017/CBO9780511754098}{doi:10.1017/CBO9780511754098}
 \par\noindent\hangindent=1.5em Koenker R, Bassett G (1978). Regression Quantiles. Econometrica 46:33. \href{https://doi.org/10.2307/1913643}{doi:10.2307/1913643}
 \par\noindent\hangindent=1.5em Koo TK, Li MY (2016). A Guideline of Selecting and Reporting Intraclass Correlation Coefficients for Reliability Research. Journal of Chiropractic Medicine 15:155-163. \href{https://doi.org/10.1016/j.jcm.2016.02.012}{doi:10.1016/j.jcm.2016.02.012}
+\par\noindent\hangindent=1.5em Korn EL, Graubard BI (1999). Analysis of Health Surveys. Wiley Series in Probability and Statistics. Wiley. \href{https://doi.org/10.1002/9781118032619}{doi:10.1002/9781118032619}
 \par\noindent\hangindent=1.5em Kramer CY (1956). Extension of Multiple Range Tests to Group Means with Unequal Numbers of Replications. Biometrics 12:307. \href{https://doi.org/10.2307/3001469}{doi:10.2307/3001469}
 \par\noindent\hangindent=1.5em Kruskal JB (1964). Multidimensional Scaling by Optimizing Goodness of Fit to a Nonmetric Hypothesis. Psychometrika 29:1-27. \href{https://doi.org/10.1007/BF02289565}{doi:10.1007/BF02289565}
 \par\noindent\hangindent=1.5em Kruskal WH, Wallis WA (1952). Use of Ranks in One-Criterion Variance Analysis. Journal of the American Statistical Association 47:583-621. \href{https://doi.org/10.1080/01621459.1952.10483441}{doi:10.1080/01621459.1952.10483441}
@@ -20150,6 +20965,7 @@ simplydata often chooses a method, an option value or a setting for you. This ap
 \par\noindent\hangindent=1.5em Lubbe S, Filzmoser P, Templ M (2021). Comparison of zero replacement strategies for compositional data with large numbers of zeros. Chemometrics and Intelligent Laboratory Systems 210:104248. \href{https://doi.org/10.1016/j.chemolab.2021.104248}{doi:10.1016/j.chemolab.2021.104248}
 \par\noindent\hangindent=1.5em Luke SG (2017). Evaluating significance in linear mixed-effects models in R. Behavior Research Methods 49:1494-1502. \href{https://doi.org/10.3758/s13428-016-0809-y}{doi:10.3758/s13428-016-0809-y}
 \par\noindent\hangindent=1.5em Lumley T (2004). Analysis of Complex Survey Samples. Journal of Statistical Software 9(8). \href{https://doi.org/10.18637/jss.v009.i08}{doi:10.18637/jss.v009.i08}
+\par\noindent\hangindent=1.5em Lumley T (2010). Complex Surveys: A Guide to Analysis Using R. Wiley Series in Survey Methodology. Wiley. \href{https://doi.org/10.1002/9780470580066}{doi:10.1002/9780470580066}
 \par\noindent\hangindent=1.5em MacCallum RC, Widaman KF, Zhang S et al. (1999). Sample size in factor analysis.. Psychological Methods 4:84-99. \href{https://doi.org/10.1037/1082-989X.4.1.84}{doi:10.1037/1082-989X.4.1.84}
 \par\noindent\hangindent=1.5em MacKinnon JG (1996). Numerical distribution functions for unit root and cointegration tests. Journal of Applied Econometrics 11:601-618. \href{https://doi.org/10.1002/(SICI)1099-1255(199611)11:6\%3C601::AID-JAE417\%3E3.0.CO\%3B2-T}{doi:10.1002/(SICI)1099-1255(199611)11:6\textless{}601::AID-JAE417\textgreater{}3.0.CO;2-T}
 \par\noindent\hangindent=1.5em MacKinnon JG, White H (1985). Some heteroskedasticity-consistent covariance matrix estimators with improved finite sample properties. Journal of Econometrics 29:305-325. \href{https://doi.org/10.1016/0304-4076(85)90158-7}{doi:10.1016/0304-4076(85)90158-7}
@@ -20185,6 +21001,7 @@ simplydata often chooses a method, an option value or a setting for you. This ap
 \par\noindent\hangindent=1.5em Newman GE, Scholl BJ (2012). Bar graphs depicting averages are perceptually misinterpreted: The within-the-bar bias. Psychonomic Bulletin \& Review 19:601-607. \href{https://doi.org/10.3758/s13423-012-0247-5}{doi:10.3758/s13423-012-0247-5}
 \par\noindent\hangindent=1.5em Nieto FJ, Coresh J (1996). Adjusting Survival Curves for Confounders: A Review and a New Method. American Journal of Epidemiology 143:1059-1068. \href{https://doi.org/10.1093/oxfordjournals.aje.a008670}{doi:10.1093/oxfordjournals.aje.a008670}
 \par\noindent\hangindent=1.5em Noether GE (1987). Sample Size Determination for Some Common Nonparametric Tests. Journal of the American Statistical Association 82:645-647. \href{https://doi.org/10.1080/01621459.1987.10478478}{doi:10.1080/01621459.1987.10478478}
+\par\noindent\hangindent=1.5em Norman G (2010). Likert scales, levels of measurement and the 'laws' of statistics. Advances in Health Sciences Education 15:625-632. \href{https://doi.org/10.1007/s10459-010-9222-y}{doi:10.1007/s10459-010-9222-y}
 \par\noindent\hangindent=1.5em Nu\~nez JR, Anderton CR, Renslow RS (2018). Optimizing colormaps with consideration for color vision deficiency to enable accurate interpretation of scientific data. PLoS ONE 13:e0199239. \href{https://doi.org/10.1371/journal.pone.0199239}{doi:10.1371/journal.pone.0199239}
 \par\noindent\hangindent=1.5em O'Brien RM (2007). A Caution Regarding Rules of Thumb for Variance Inflation Factors. Quality \& Quantity 41:673-690. \href{https://doi.org/10.1007/s11135-006-9018-6}{doi:10.1007/s11135-006-9018-6}
 \par\noindent\hangindent=1.5em O'Hara RB, Kotze DJ (2010). Do not log-transform count data. Methods in Ecology and Evolution 1:118-122. \href{https://doi.org/10.1111/j.2041-210X.2010.00021.x}{doi:10.1111/j.2041-210X.2010.00021.x}
@@ -20209,6 +21026,7 @@ simplydata often chooses a method, an option value or a setting for you. This ap
 \par\noindent\hangindent=1.5em Pinheiro JC, Bates DM (2000). Mixed-Effects Models in S and S-PLUS. Springer. \href{https://doi.org/10.1007/b98882}{doi:10.1007/b98882}
 \par\noindent\hangindent=1.5em Pocock SJ, Clayton TC, Altman DG (2002). Survival plots of time-to-event outcomes in clinical trials: good practice and pitfalls. The Lancet 359:1686-1689. \href{https://doi.org/10.1016/S0140-6736(02)08594-X}{doi:10.1016/S0140-6736(02)08594-X}
 \par\noindent\hangindent=1.5em Przyborowski J, Wilenski H (1940). Homogeneity of results in testing samples from poisson series. Biometrika 31:313-323. \href{https://doi.org/10.1093/biomet/31.3-4.313}{doi:10.1093/biomet/31.3-4.313}
+\par\noindent\hangindent=1.5em Rao JNK, Scott AJ (1984). On Chi-Squared Tests for Multiway Contingency Tables with Cell Proportions Estimated from Survey Data. The Annals of Statistics 12:46-60. \href{https://doi.org/10.1214/aos/1176346391}{doi:10.1214/aos/1176346391}
 \par\noindent\hangindent=1.5em Riley RD, Higgins JPT, Deeks JJ (2011). Interpretation of random effects meta-analyses. BMJ 342:d549-d549. \href{https://doi.org/10.1136/bmj.d549}{doi:10.1136/bmj.d549}
 \par\noindent\hangindent=1.5em Ritz C, Baty F, Streibig JC et al. (2015). Dose-Response Analysis Using R. PLoS ONE 10:e0146021. \href{https://doi.org/10.1371/journal.pone.0146021}{doi:10.1371/journal.pone.0146021}
 \par\noindent\hangindent=1.5em Rochon J, Gondan M, Kieser M (2012). To test or not to test: Preliminary assessment of normality when comparing two independent samples. BMC Medical Research Methodology 12. \href{https://doi.org/10.1186/1471-2288-12-81}{doi:10.1186/1471-2288-12-81}
@@ -20227,6 +21045,8 @@ simplydata often chooses a method, an option value or a setting for you. This ap
 \par\noindent\hangindent=1.5em Schoenfeld DA (1983). Sample-Size Formula for the Proportional-Hazards Regression Model. Biometrics 39:499. \href{https://doi.org/10.2307/2531021}{doi:10.2307/2531021}
 \par\noindent\hangindent=1.5em Scholz FW, Stephens MA (1987). K-Sample Anderson-{}-Darling Tests. Journal of the American Statistical Association 82:918-924. \href{https://doi.org/10.1080/01621459.1987.10478517}{doi:10.1080/01621459.1987.10478517}
 \par\noindent\hangindent=1.5em Schuirmann DJ (1987). A comparison of the Two One-Sided Tests Procedure and the Power Approach for assessing the equivalence of average bioavailability. Journal of Pharmacokinetics and Biopharmaceutics 15:657-680. \href{https://doi.org/10.1007/BF01068419}{doi:10.1007/BF01068419}
+\par\noindent\hangindent=1.5em Schulz KF, Grimes DA (2002). Allocation concealment in randomised trials: defending against deciphering. The Lancet 359:614-618. \href{https://doi.org/10.1016/S0140-6736(02)07750-4}{doi:10.1016/S0140-6736(02)07750-4}
+\par\noindent\hangindent=1.5em Schulz KF, Grimes DA (2002). Generation of allocation sequences in randomised trials: chance, not choice. The Lancet 359:515-519. \href{https://doi.org/10.1016/S0140-6736(02)07683-3}{doi:10.1016/S0140-6736(02)07683-3}
 \par\noindent\hangindent=1.5em Scott DW (1979). On optimal and data-based histograms. Biometrika 66:605-610. \href{https://doi.org/10.1093/biomet/66.3.605}{doi:10.1093/biomet/66.3.605}
 \par\noindent\hangindent=1.5em Scott DW (1992). Multivariate Density Estimation. Wiley Series in Probability and Statistics. \href{https://doi.org/10.1002/9780470316849}{doi:10.1002/9780470316849}
 \par\noindent\hangindent=1.5em Searle SR, Speed FM, Milliken GA (1980). Population Marginal Means in the Linear Model: An Alternative to Least Squares Means. The American Statistician 34:216-221. \href{https://doi.org/10.1080/00031305.1980.10483031}{doi:10.1080/00031305.1980.10483031}
@@ -20289,6 +21109,7 @@ simplydata often chooses a method, an option value or a setting for you. This ap
 \par\noindent\hangindent=1.5em Winters PR (1960). Forecasting Sales by Exponentially Weighted Moving Averages. Management Science 6:324-342. \href{https://doi.org/10.1287/mnsc.6.3.324}{doi:10.1287/mnsc.6.3.324}
 \par\noindent\hangindent=1.5em Wong B (2011). Points of view: Color blindness. Nature Methods 8:441-441. \href{https://doi.org/10.1038/nmeth.1618}{doi:10.1038/nmeth.1618}
 \par\noindent\hangindent=1.5em Wood SN (2011). Fast Stable Restricted Maximum Likelihood and Marginal Likelihood Estimation of Semiparametric Generalized Linear Models. Journal of the Royal Statistical Society Series B: Statistical Methodology 73:3-36. \href{https://doi.org/10.1111/j.1467-9868.2010.00749.x}{doi:10.1111/j.1467-9868.2010.00749.x}
+\par\noindent\hangindent=1.5em Woodruff RS (1952). Confidence Intervals for Medians and Other Position Measures. Journal of the American Statistical Association 47:635-646. \href{https://doi.org/10.1080/01621459.1952.10483443}{doi:10.1080/01621459.1952.10483443}
 \par\noindent\hangindent=1.5em Woolf B (1955). On estimating the relation between blood group and disease. Annals of Human Genetics 19:251-253. \href{https://doi.org/10.1111/j.1469-1809.1955.tb01348.x}{doi:10.1111/j.1469-1809.1955.tb01348.x}
 \par\noindent\hangindent=1.5em Yap BW, Sim CH (2011). Comparisons of various types of normality tests. Journal of Statistical Computation and Simulation 81:2141-2155. \href{https://doi.org/10.1080/00949655.2010.520163}{doi:10.1080/00949655.2010.520163}
 \par\noindent\hangindent=1.5em Yates F (1934). Contingency Tables Involving Small Numbers and the $\chi$2 Test. Supplement to the Journal of the Royal Statistical Society 1:217-235. \href{https://doi.org/10.2307/2983604}{doi:10.2307/2983604}
@@ -20400,6 +21221,7 @@ Every word and option, A to Z, with the page of its dictionary entry. Other spel
 \indexline{word:nums.divide-by}{nums.divide\_by()}
 \indexline{word:draw-all-dots}{chart.draw\_all\_dots()}
 \indexline{word:sdata.draw-all-pairs}{sdata.draw\_all\_pairs()}
+\indexline{word:draw-answer-bars}{chart.draw\_answer\_bars()}
 \indexline{word:draw-area}{chart.draw\_area()}
 \indexline{word:draw-band}{chart.draw\_band()}
 \indexline{word:draw-bars}{chart.draw\_bars()}
@@ -20561,8 +21383,10 @@ Every word and option, A to Z, with the page of its dictionary entry. Other spel
 \indexline{word:label-y}{chart.label\_y()}
 \indexline{word:lag-dots}{chart.lag\_dots()}
 \indexline{word:table.limits-of-agreement}{table.limits\_of\_agreement()}
+\indexline{word:sdata.make-design-table}{sdata.make\_design\_table()}
 \indexline{word:table.make-map-of}{table.make\_map\_of()}
 \indexline{word:nums.make-number-grid}{nums.make\_number\_grid()}
+\indexline{word:sdata.make-random-assignments}{sdata.make\_random\_assignments()}
 \indexline{word:dist.make-random-numbers}{dist.make\_random\_numbers()}
 \indexline{word:sdata.make-random-numbers}{sdata.make\_random\_numbers()}
 \indexline{word:sdata.make-run-of-dates}{sdata.make\_run\_of\_dates()}
@@ -20703,6 +21527,7 @@ Every word and option, A to Z, with the page of its dictionary entry. Other spel
 \indexline{word:use-log-scale-x}{chart.use\_log\_scale\_x()}
 \indexline{word:use-log-scale-y}{chart.use\_log\_scale\_y()}
 \indexline{word:use-style}{chart.use\_style()}
+\indexline{word:table.use-survey-design}{table.use\_survey\_design()}
 \indexline{word:table.values-at}{table.values\_at()}
 \indexline{word:system.with-feedback}{system.with\_feedback()}
 \indexline{word:write-caption-at-bottom}{chart.write\_caption\_at\_bottom()}

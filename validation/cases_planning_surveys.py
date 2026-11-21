@@ -97,7 +97,7 @@ def _cases(Case):
              "designs (no data)", "published",
              ours="""
                  t = sdata.make_random_assignments(how_many=60, groups=["A", "B"], in_blocks_of=[4, 6],
-                                                   for_each_of=["Bergen", "Tromsø"], with_seed=1).as_pandas()
+                                                   for_each_of=["Bergen", "Oslo"], with_seed=1).as_pandas()
                  counts = t.groupby(["list", "block", "group"]).size().unstack()
                  {"largest imbalance within a block": float((counts["A"] - counts["B"]).abs().max()),
                   "first group (A = 1)": float(t["group"].iloc[0] == "A"),

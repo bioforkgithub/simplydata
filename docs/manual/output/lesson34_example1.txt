@@ -1,0 +1,17 @@
+A design table of 12 plots: the 2 x 2 = 4 combinations of temperature and salinity; 3 randomised blocks: every combination once in each block, in its own random order (R agricolae::design.ab(design = "rcbd")).
+Work through the plots in the order of "plot"; the randomisation spreads unknown differences (soil, position, time of day) evenly over the treatments.
+"standard order" numbers the combinations as R expand.grid() lists them (the first factor changes fastest), the order of design textbooks.
+with_seed=2 makes the same table again (R's Mersenne-Twister generator, as after set.seed() in R 4.6.2; agricolae's own default generator, Super-Duper, gives another layout).
+    plot  block  temperature  salinity  standard order
+1      1      1           10        30               1
+2      2      1           20        30               2
+3      3      1           10        35               3
+4      4      1           20        35               4
+5      5      2           20        35               4
+6      6      2           10        30               1
+7      7      2           20        30               2
+8      8      2           10        35               3
+9      9      3           20        35               4
+10    10      3           10        30               1
+11    11      3           20        30               2
+12    12      3           10        35               3

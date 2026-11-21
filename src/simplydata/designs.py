@@ -60,7 +60,7 @@ def _whole(step, option, value, example, smallest=1):
 def _names(step, option, values, example, at_least=2):
     if isinstance(values, (str, bytes)) or not isinstance(values, (list, tuple)):
         raise SimplydataError(f"{option} needs a list of names in square brackets, like {option}"
-                              f"[\"Bergen\", \"Tromsø\"] (you gave {values!r}).\nFor example:  {example}")
+                              f"[\"Bergen\", \"Oslo\"] (you gave {values!r}).\nFor example:  {example}")
     names = [str(v) for v in values]
     if len(names) < at_least:
         raise SimplydataError(f"{option} needs at least {at_least} names (you gave {len(names)}).\n"
@@ -106,7 +106,7 @@ def make_random_assignments(how_many=None, groups=2, in_blocks_of=None, for_each
     in_blocks_of=[4, 6]  block sizes, each a multiple of the number of groups; with two or more sizes each
                          block's size is chosen at random, so nobody can guess the end of a block. The default
                          is 2 and 3 times the number of groups (4 and 6 for two groups).
-    for_each_of=["Bergen", "Tromsø"]  a separate list for each centre (stratified randomisation)
+    for_each_of=["Bergen", "Oslo"]  a separate list for each centre (stratified randomisation)
     with_seed=1          the same list again (with the same version of R)
 
     Each block holds every group equally often, so the groups stay about the same size all the way through.
@@ -142,7 +142,7 @@ def make_random_assignments(how_many=None, groups=2, in_blocks_of=None, for_each
         sizes, chose = list(dict.fromkeys(sizes)), False
     lists = [""] if for_each_of is None else _names(step, "for_each_of=", for_each_of,
                                                     'sdata.make_random_assignments(how_many=60, groups=["A", "B"], '
-                                                    'for_each_of=["Bergen", "Tromsø"], with_seed=1)', at_least=1)
+                                                    'for_each_of=["Bergen", "Oslo"], with_seed=1)', at_least=1)
     seed = _seed(step, with_seed, example)
     from ._r import need_r, r_call
 

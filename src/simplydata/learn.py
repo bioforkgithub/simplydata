@@ -930,7 +930,7 @@ HELP_EXAMPLES = {
     "sdata.make_random_assignments": textwrap.dedent("""\
         import simplydata as sdata
         sdata.make_random_assignments(how_many=60, groups=["A", "B"], in_blocks_of=[4, 6], with_seed=1)
-        sdata.make_random_assignments(how_many=40, groups=2, for_each_of=["Bergen", "Tromsø"], with_seed=1)"""),
+        sdata.make_random_assignments(how_many=40, groups=2, for_each_of=["Bergen", "Oslo"], with_seed=1)"""),
     "table.use_survey_design": _tx("sampled_schools", """\
         table.use_survey_design(weights="weight", strata="school_type", population_sizes="schools_of_type")
         table.find_average_of("score_2000")
@@ -5529,7 +5529,7 @@ LESSONS = [
              "blocks, keeps the groups about the same size all the way through.", [
                 ("import simplydata as sdata", "Load simplydata."),
                 ('assignments = sdata.make_random_assignments(how_many=40, groups=["new", "usual"], '
-                 'in_blocks_of=[4, 6], for_each_of=["Bergen", "Tromsø"], with_seed=1)',
+                 'in_blocks_of=[4, 6], for_each_of=["Bergen", "Oslo"], with_seed=1)',
                  "One list for each hospital. Each block of 4 or 6 holds both groups equally often; the block sizes "
                  "change at random, so nobody can guess the end of a block. The last block is completed, so a list "
                  "can be a little longer than 40."),
@@ -5560,7 +5560,7 @@ LESSONS = [
         task=[
             "Fill in the blank: sdata.make_design_table({\"temperature\": [10, 20], \"salinity\": [30, 35]}, "
             "repeats=3, of_kind=____, with_seed=1) when every plot can go anywhere.",
-            "Change only for_each_of=: make the dressing list for three hospitals, Bergen, Tromsø and Oslo.",
+            "Change only for_each_of=: make the dressing list for three hospitals, Bergen, Oslo and Trondheim.",
             "Say in words why the block sizes should change at random.",
             "Try to remember without looking back: which option of keep_random_rows picks rows within each group?",
         ],
@@ -5573,7 +5573,7 @@ LESSONS = [
             (_sx("""\
                 import simplydata as sdata
                 sdata.make_random_assignments(how_many=40, groups=["new", "usual"], in_blocks_of=[4, 6],
-                                              for_each_of=["Bergen", "Tromsø", "Oslo"], with_seed=1)"""),
+                                              for_each_of=["Bergen", "Oslo", "Trondheim"], with_seed=1)"""),
              "Three lists, one for each hospital, each in random blocks of 4 and 6."),
             (_sx("""\
                 import simplydata as sdata

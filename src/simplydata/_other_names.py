@@ -246,7 +246,7 @@ _TABLE = [
     ('table.find_survival_over_time(time="days", event="died", average_time_up_to=365)', "rmst rmst2 rmean restricted_mean"),
     ('table.explain_survival(time="days", event="died", using=["age"], allowing_for="treatment") for a stratified '
      'Cox model; table.use_survey_design(weights="weight", strata="school_type") for a survey; '
-     'sdata.make_random_assignments(how_many=40, for_each_of=["Bergen", "Tromsø"]) for a list for each centre',
+     'sdata.make_random_assignments(how_many=40, for_each_of=["Bergen", "Oslo"]) for a list for each centre',
      "strata stratified_cox"),
     ('table.explain_survival(time="months", event="outcome", value="relapse", competing_with="death", using=["age"], '
      'method="fine-gray")', "fine_gray finegray crr subdistribution"),

@@ -14,7 +14,7 @@ working for one release and prints a one-line note with its new name.
   plots). R agricolae, with R's own random number generator (`kinds = "Mersenne-Twister"`) instead of agricolae's
   "Super-Duper", so that `with_seed=` gives the layout an R user gets.
 - `sdata.make_random_assignments(how_many=60, groups=["A", "B"], in_blocks_of=[4, 6], for_each_of=["Bergen",
-  "Tromsø"], with_seed=1)`: a randomisation list in permuted blocks of random sizes, one list for each centre
+  "Oslo"], with_seed=1)`: a randomisation list in permuted blocks of random sizes, one list for each centre
   (R blockrand, CRAN only). Real block sizes (blockrand counts in multiples of the number of groups); sizes that are
   not a multiple of the number of groups are refused; `groups=3` gives A, B and C. The printout says the last block
   is completed and that the list must be kept from the people who recruit (allocation concealment).

@@ -1,0 +1,3 @@
+20 assignments to new and usual, in random blocks of 4 (R blockrand::blockrand()); each block holds every group equally often.
+Keep the list away from the people who recruit, so nobody knows the next group in advance (allocation concealment).
+with_seed=1 makes the same list again with R 4.6.2 or newer (R's sample() changed in R 3.6.0).
