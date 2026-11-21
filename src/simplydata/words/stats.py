@@ -495,8 +495,8 @@ def _draw_smooth_line(ctx, colour, thickness=None, method="lowess", smoothness="
         xv, yv = xv[order], yv[order]
         steps = np.diff(xv)
         if len(xv) < 3 or steps[0] <= 0 or not np.allclose(steps, steps[0], rtol=1e-6, atol=0):
-            raise SimplydataError(f'chart.draw_smooth_line(method="{method}") needs evenly spaced x values, one dot per '
-                                  'step (a window counts readings). For uneven x use method="lowess" or "spline".')
+            raise SimplydataError(f'chart.draw_smooth_line(test_method="{method}") needs evenly spaced x values, one dot per '
+                                  'step (a window counts readings). For uneven x use test_method="lowess" or "spline".')
         got = _smoothing.smooth(yv, method, window, ends, step_name="smooth_line", **(options or {}))
         ctx.ax.plot(xv, got.values, color=col, zorder=3, linewidth=thickness)
 
@@ -522,7 +522,7 @@ def _draw_loess(ctx, colour, thickness=None, span=0.75, band=False):
                                 color=col, alpha=0.2, linewidth=0, zorder=2.5)
         drawn += 1
     if not drawn:
-        raise SimplydataError('.draw_smooth_line(method="loess") needs dots at 5 or more different x values'
+        raise SimplydataError('.draw_smooth_line(test_method="loess") needs dots at 5 or more different x values'
                               + (" in at least one colour group." if group else "."))
 
 
@@ -761,14 +761,14 @@ class StatsWords:
         return self._add("fit_dose_response", "extra", _draw_dose_response, kind=kind, colour=colour,
                          thickness=thickness)
 
-    @friendly(renamed={"degree": "of_degree"})
-    def draw_smooth_line(self, colour=None, thickness=None, method="lowess", smoothness="auto", window=5, ends=None,
+    @friendly(renamed={"method": "test_method", "degree": "of_degree"})
+    def draw_smooth_line(self, colour=None, thickness=None, test_method="lowess", smoothness="auto", window=5, ends=None,
                          weights=None, of_degree=None, newest_weight=None, width=None, with_confidence_band=False):
         """A smooth line that follows the dots (LOWESS). chart.draw_smooth_line()
 
         Good for seeing a trend that is not straight. Each colour group gets its own line.
         thickness=3 draws a thicker line (normal is 2).
-        method="spline" draws a smoothing spline instead (as table.values_at(...,
+        test_method="spline" draws a smoothing spline instead (as table.values_at(...,
         smoothness=) and R smooth.spline()): smoothness="auto" lets R choose how smooth by
         generalised cross-validation, which needs R (pip install "simplydata[r]"); a number
         is R's lambda= (bigger is smoother) and needs no R.
@@ -776,7 +776,7 @@ class StatsWords:
         "moving average" (window=, weights=, ends=), "median" (needs R), "savitzky-golay"
         (of_degree=), "exponential" (newest_weight=), "gaussian" (width=), "whittaker" (smoothness=)
         and "wiener". The line goes through the x values of the dots, as table.add_smoothed_column.
-        method="loess" draws R stats::loess() itself (needs R): local curves of degree 2 through the
+        test_method="loess" draws R stats::loess() itself (needs R): local curves of degree 2 through the
         nearest smoothness=0.75 of the dots, without robustness steps (lowess fits local straight
         lines with 3 robustness steps, so the two lines differ); with_confidence_band=True shades
         its 95 % confidence band (R predict(se = TRUE)).
@@ -788,56 +788,56 @@ class StatsWords:
         thickness = check_thickness("draw_smooth_line", thickness)
         if not isinstance(with_confidence_band, bool):
             raise SimplydataError("with_confidence_band= is True or False.")
-        key = method.strip().lower() if isinstance(method, str) else method
+        key = test_method.strip().lower() if isinstance(test_method, str) else test_method
         if key in SMOOTH_METHODS:
-            method = SMOOTH_METHODS[key]
+            test_method = SMOOTH_METHODS[key]
         else:
             try:
-                method = _smoothing.read_method(method, "smooth_line")
+                test_method = _smoothing.read_method(test_method, "smooth_line")
             except SimplydataError:
-                raise choice_error("draw_smooth_line", "method", method, list(_smoothing.METHODS)) from None
+                raise choice_error("draw_smooth_line", "test_method", test_method, list(_smoothing.METHODS)) from None
         options = {k: v for k, v in (("weights", weights), ("degree", of_degree), ("newest_weight", newest_weight),
                                      ("width", width)) if v is not None}
-        if with_confidence_band and method != "loess":
-            raise SimplydataError(f'with_confidence_band=True goes with method="loess" (R loess gives the band), not '
-                                  f'"{method}".\nFor example chart.draw_smooth_line(method="loess", '
+        if with_confidence_band and test_method != "loess":
+            raise SimplydataError(f'with_confidence_band=True goes with test_method="loess" (R loess gives the band), not '
+                                  f'"{test_method}".\nFor example chart.draw_smooth_line(test_method="loess", '
                                   "with_confidence_band=True)")
-        if method == "loess":
+        if test_method == "loess":
             if options or ends is not None or window != 5:
                 raise SimplydataError('window=, ends=, weights=, of_degree=, newest_weight= and width= go with the '
-                                      'window methods, not with method="loess".')
+                                      'window methods, not with test_method="loess".')
             span = _smoothing.loess_span(smoothness, "draw_smooth_line")
             self._check_layer_now("draw_smooth_line", {"dots"})
             return self._add("smooth_line", "extra", _draw_loess, colour=colour, thickness=thickness, span=span,
                              band=with_confidence_band)
-        if method not in ("lowess", "spline"):
-            if method == "whittaker" and smoothness != "auto":
+        if test_method not in ("lowess", "spline"):
+            if test_method == "whittaker" and smoothness != "auto":
                 options["smoothness"] = smoothness
-            allowed = _smoothing.OPTIONS.get(method, set())
+            allowed = _smoothing.OPTIONS.get(test_method, set())
             extra = sorted(k for k in options if k not in allowed)
             if extra:
-                raise SimplydataError(f'draw_smooth_line(method="{method}") does not take {extra[0]}=.')
-            if method in _smoothing.WINDOW_METHODS and weights is None:
-                _smoothing._odd_window(window, "smooth_line", method)
+                raise SimplydataError(f'draw_smooth_line(test_method="{test_method}") does not take {extra[0]}=.')
+            if test_method in _smoothing.WINDOW_METHODS and weights is None:
+                _smoothing._odd_window(window, "smooth_line", test_method)
             self._check_layer_now("draw_smooth_line", {"dots", "lines"})
             return self._add("smooth_line", "extra", _draw_smooth_line, colour=colour, thickness=thickness,
-                             method=method, window=window, ends=ends, options=options)
+                             method=test_method, window=window, ends=ends, options=options)
         if options or ends is not None or window != 5:
             raise SimplydataError(f'window=, ends=, weights=, of_degree=, newest_weight= and width= go with the window '
-                                  f'methods (such as method="moving average"), not with method="{method}".')
+                                  f'methods (such as test_method="moving average"), not with test_method="{test_method}".')
         from ..table.between import smoothness_choice
 
         smoothness = smoothness_choice("smooth_line", smoothness)
-        if method == "lowess" and smoothness != "auto":
-            raise SimplydataError('smoothness= a number goes with method="spline" (a smoothing spline); LOWESS '
+        if test_method == "lowess" and smoothness != "auto":
+            raise SimplydataError('smoothness= a number goes with test_method="spline" (a smoothing spline); LOWESS '
                                   'always uses the nearest 2/3 of the dots, as R lowess().\n'
-                                  'For example chart.draw_smooth_line(method="spline", smoothness=0.001)')
+                                  'For example chart.draw_smooth_line(test_method="spline", smoothness=0.001)')
         if smoothness == 0:
             raise SimplydataError('smoothness=0 would pass through every dot; use "auto" or a number above 0, '
                                   'or chart.draw_lines(..., joined_by="smooth curve") to join the dots.')
         self._check_layer_now("draw_smooth_line", {"dots"})
         return self._add("smooth_line", "extra", _draw_smooth_line, colour=colour, thickness=thickness,
-                         method=method, smoothness=smoothness)
+                         method=test_method, smoothness=smoothness)
 
     @friendly
     def draw_side_histograms(self):

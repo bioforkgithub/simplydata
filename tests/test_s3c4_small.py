@@ -68,7 +68,7 @@ def test_weights_of_one_change_nothing():
 def test_frequency_weights_keep_method():
     t = sdata.table(WEIGHTED)
     rows = np.repeat(WEIGHTED["length"], WEIGHTED["n"])
-    assert t.find_percentile_of("length", 30, weights="n", method=6) == pytest.approx(
+    assert t.find_percentile_of("length", 30, weights="n", test_method=6) == pytest.approx(
         np.percentile(rows, 30, method="weibull"))
 
 
@@ -105,7 +105,7 @@ def test_weighted_percentile_skips_empty_cells(capsys):
 
 @pytest.mark.parametrize("options, words", [
     (dict(weights="w"), "whole numbers"),
-    (dict(weights="n", weight_kind="analytic", method=8), "method= cannot be changed"),
+    (dict(weights="n", weight_kind="analytic", test_method=8), "test_method= cannot be changed"),
     (dict(weight_kind="analytic"), "goes with weights="),
     (dict(weights="n", interval=95), "do not go together"),
     (dict(weights="length"), "column other than"),
@@ -141,7 +141,7 @@ def test_covariance_uses_the_rows_each_pair_has():
     assert result["mpg"][0] == pytest.approx(frame["mpg"].var(), rel=1e-12)  # the whole column for its variance
 
 
-@pytest.mark.parametrize("options", [dict(method="spearman"), dict(sides=1, higher="positive"),
+@pytest.mark.parametrize("options", [dict(test_method="spearman"), dict(sides=1, higher="positive"),
                                      dict(p_value_by="shuffling"), dict(allowing_for="height")])
 def test_covariance_refuses_test_options(options):
     with pytest.raises(SimplydataError, match="covariance"):
@@ -158,17 +158,17 @@ def _passengers():
 
 def test_automatic_order_refuses_a_seasonal_order_before_r():
     with pytest.raises(SimplydataError, match="leave out seasonal_order="):
-        _passengers().forecast("passengers", sorted_by="month", method="arima", order="automatic",
+        _passengers().forecast("passengers", sorted_by="month", test_method="arima", order="automatic",
                                seasonal_order=(0, 1, 1), repeats_every=12)
 
 
 def test_order_text_other_than_automatic_is_refused():
     with pytest.raises(SimplydataError, match='order="automatic"'):
-        _passengers().forecast("passengers", sorted_by="month", method="arima", order="best", repeats_every=12)
+        _passengers().forecast("passengers", sorted_by="month", test_method="arima", order="best", repeats_every=12)
 
 
 def test_automatic_order_is_auto_arima_with_the_full_search(needs_r, capsys):
-    result = _passengers().forecast("passengers", sorted_by="month", method="arima", order="auto",
+    result = _passengers().forecast("passengers", sorted_by="month", test_method="arima", order="auto",
                                     repeats_every=12).as_pandas()
     found = _r('x <- stats::ts(as.numeric(datasets::AirPassengers), frequency = 12); '
                "fit <- forecast::auto.arima(x, stepwise = FALSE, approximation = FALSE); "
@@ -187,7 +187,7 @@ def test_automatic_order_is_auto_arima_with_the_full_search(needs_r, capsys):
 def test_automatic_order_on_the_log_gives_the_airline_model(needs_r):
     frame = pd.read_csv(DATA / "air_passengers.csv")
     table = sdata.table(frame.assign(log_passengers=np.log(frame["passengers"])))
-    model = table.forecast("log_passengers", method="arima", order="automatic", repeats_every=12,
+    model = table.forecast("log_passengers", test_method="arima", order="automatic", repeats_every=12,
                            show="model").as_pandas()
     from simplydata._r import r_call
 
@@ -200,7 +200,7 @@ def test_automatic_order_on_the_log_gives_the_airline_model(needs_r):
 
 
 def test_compare_forecasts_with_an_automatic_order(needs_r, capsys):
-    result = _passengers().compare_forecasts_for("passengers", sorted_by="month", methods=["arima", "average"],
+    result = _passengers().compare_forecasts_for("passengers", sorted_by="month", test_method=["arima", "average"],
                                                  order="automatic", repeats_every=12).as_pandas()
     assert any("chosen by auto.arima" in m for m in result["method"])
     assert "on the readings before the last 12" in capsys.readouterr().out
@@ -218,7 +218,7 @@ def test_the_install_line_names_bioconductor_for_qvalue():
 
 def test_storey_q_values_are_qvalues(needs_r, capsys):
     frame = sdata.get_example("many_tests")
-    result = sdata.table(frame).add_adjusted_p_value_column(method="q-values").as_pandas()
+    result = sdata.table(frame).add_adjusted_p_value_column(test_method="q-values").as_pandas()
     from simplydata._r import r_call
 
     found = r_call("q <- qvalue::qvalue(p); list(q = q$qvalues, pi0 = q$pi0)", packages=("qvalue",),
@@ -231,7 +231,7 @@ def test_storey_q_values_are_qvalues(needs_r, capsys):
 
 def test_local_fdr_has_its_own_column_name(needs_r, capsys):
     frame = sdata.get_example("many_tests")
-    result = sdata.table(frame).add_adjusted_p_value_column(method="lfdr").as_pandas()
+    result = sdata.table(frame).add_adjusted_p_value_column(test_method="lfdr").as_pandas()
     from simplydata._r import r_call
 
     found = r_call("qvalue::qvalue(p)$lfdr", packages=("qvalue",), p=frame["p-value"].to_numpy(dtype=float))
@@ -242,25 +242,25 @@ def test_local_fdr_has_its_own_column_name(needs_r, capsys):
 def test_few_p_values_get_a_note(needs_r, capsys):
     rng = np.random.default_rng(1)
     p = np.r_[rng.uniform(0, 0.01, 10), rng.uniform(0, 1, 40)]
-    sdata.table(pd.DataFrame({"p": p})).add_adjusted_p_value_column(from_column="p", method="storey")
+    sdata.table(pd.DataFrame({"p": p})).add_adjusted_p_value_column(from_column="p", test_method="storey")
     assert "fewer than 100 p-values" in capsys.readouterr().out
 
 
 def test_qvalue_failure_is_a_friendly_refusal(needs_r):
-    with pytest.raises(SimplydataError, match='could not estimate.*method="benjamini-hochberg"'):
+    with pytest.raises(SimplydataError, match='could not estimate.*test_method="benjamini-hochberg"'):
         sdata.table(pd.DataFrame({"p": [0.001, 0.01, 0.02, 0.03]})).add_adjusted_p_value_column(from_column="p",
-                                                                                                method="storey")
+                                                                                                test_method="storey")
 
 
 def test_unknown_adjust_method_lists_storey():
     with pytest.raises(SimplydataError, match="storey"):
-        sdata.table(pd.DataFrame({"p": [0.01, 0.2]})).add_adjusted_p_value_column(from_column="p", method="qq")
+        sdata.table(pd.DataFrame({"p": [0.01, 0.2]})).add_adjusted_p_value_column(from_column="p", test_method="qq")
 
 
 # ---------------------------------------------------------------- G09: Nemenyi and Conover after Friedman
 def test_nemenyi_matches_pmcmrplus(needs_r, capsys):
     result = sdata.table(_rounding()).compare_each_pair_of("time", for_each_group_in="method", matched_by="player",
-                                                           test="nemenyi").as_pandas()
+                                                           test_method="nemenyi").as_pandas()
     assert result["p-value (adjusted)"].tolist() == pytest.approx([0.63742717, 0.06137076, 0.00440982], abs=1e-8)
     assert set(result["statistic name"]) == {"q"} and "degrees of freedom" not in result.columns
     out = capsys.readouterr().out
@@ -271,7 +271,7 @@ def test_nemenyi_matches_pmcmrplus(needs_r, capsys):
 
 def test_conover_after_friedman_is_holm_adjusted(needs_r, capsys):
     result = sdata.table(_rounding()).compare_each_pair_of("time", for_each_group_in="method", matched_by="player",
-                                                           based_on="ranks", test="conover").as_pandas()
+                                                           based_on="ranks", test_method="conover").as_pandas()
     assert result["p-value (adjusted)"].tolist() == pytest.approx([0.30120902, 0.02456571, 0.00207436], abs=1e-8)
     out = capsys.readouterr().out
     assert "Holm" in out and "single-step" in out
@@ -283,13 +283,13 @@ def test_friedman_pair_tests_need_three_groups():
     frame = frame[frame["method"] != "wide_angle"]
     with pytest.raises(SimplydataError, match="3 or more groups"):
         sdata.table(frame).compare_each_pair_of("time", for_each_group_in="method", matched_by="player",
-                                                test="nemenyi")
+                                                test_method="nemenyi")
 
 
 def test_other_tests_are_refused_with_matched_by():
-    with pytest.raises(SimplydataError, match='test="nemenyi" or test="conover"'):
+    with pytest.raises(SimplydataError, match='test_method="nemenyi" or test_method="conover"'):
         sdata.table(_rounding()).compare_each_pair_of("time", for_each_group_in="method", matched_by="player",
-                                                      test="tukey")
+                                                      test_method="tukey")
 
 
 # ---------------------------------------------------------------- D13: pairwise comparisons of percents
@@ -319,7 +319,7 @@ def test_pairs_of_percents_give_the_difference_with_newcombes_interval():
 
 def test_pairs_of_percents_with_fisher():
     result = _smokers().compare_each_pair_of("smoker", for_each_group_in="group", based_on="percents",
-                                              test="fisher").as_pandas()
+                                              test_method="fisher").as_pandas()
     raw = [stats.fisher_exact(np.array([[a, n - a], [b, m - b]])).pvalue
            for (a, n), (b, m) in [((83, 86), (90, 93)), ((83, 86), (129, 136)), ((83, 86), (70, 82)),
                                   ((90, 93), (129, 136)), ((90, 93), (70, 82)), ((129, 136), (70, 82))]]
@@ -340,7 +340,7 @@ def test_a_pair_with_one_value_has_no_p_value(capsys):
 @pytest.mark.parametrize("options, words", [
     (dict(value="yes"), "goes with based_on"),
     (dict(based_on="percents", show="letters"), "leave out"),
-    (dict(based_on="percents", test="tukey"), "test"),
+    (dict(based_on="percents", test_method="tukey"), "test"),
 ])
 def test_percent_pair_refusals(options, words):
     with pytest.raises(SimplydataError, match=words):
@@ -357,19 +357,19 @@ def test_infinite_weights_are_refused():
 
 @NUMPY_2
 def test_method_linear_is_refused_with_analytic_weights_too():
-    with pytest.raises(SimplydataError, match="method= cannot be changed"):
-        sdata.table(WEIGHTED).find_percentile_of("length", 90, weights="w", weight_kind="analytic", method="linear")
+    with pytest.raises(SimplydataError, match="test_method= cannot be changed"):
+        sdata.table(WEIGHTED).find_percentile_of("length", 90, weights="w", weight_kind="analytic", test_method="linear")
 
 
 def test_seasonal_order_automatic_points_to_order():
     with pytest.raises(SimplydataError, match="chooses the seasonal order too"):
-        _passengers().forecast("passengers", sorted_by="month", method="arima", order=(0, 1, 1),
+        _passengers().forecast("passengers", sorted_by="month", test_method="arima", order=(0, 1, 1),
                                seasonal_order="automatic", repeats_every=12)
 
 
 def test_chart_forecast_takes_the_automatic_order(needs_r):
     chart = sdata.chart(pd.read_csv(DATA / "air_passengers.csv", parse_dates=["month"]))
-    chart.forecast(x="month", y="passengers", method="arima", order="automatic", repeats_every=12)
+    chart.forecast(x="month", y="passengers", test_method="arima", order="automatic", repeats_every=12)
     import matplotlib.pyplot as plt
 
     plt.close("all")
@@ -380,5 +380,5 @@ def test_the_log_note_needs_positive_values(needs_r, capsys):
     frame["change"] = frame["passengers"].diff().fillna(0)
     table = sdata.table(frame)
     table.turn_into_dates("month")
-    table.forecast("change", sorted_by="month", method="arima", order="automatic", repeats_every=12)
+    table.forecast("change", sorted_by="month", test_method="arima", order="automatic", repeats_every=12)
     assert "log of the column" not in capsys.readouterr().out

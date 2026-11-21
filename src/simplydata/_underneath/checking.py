@@ -53,7 +53,7 @@ ENTRIES = [
         tolerance=1e-9,
         choices=("the random split into 10 parts is made in R itself (with_seed=1 is set.seed(1)), so R's own random "
                  "numbers give the same parts.",
-                 "the lasso (alpha = 1) with 10 parts; method=\"elastic net\" is alpha = 0.5.",
+                 "the lasso (alpha = 1) with 10 parts; test_method=\"elastic net\" is alpha = 0.5.",
                  "the penalty is lambda.1se, the largest within one standard error of the best (fewer columns, "
                  "steadier); simplydata names it, so a change of glmnet's default cannot change the answer."),
         python_note="Python has no cross-validated lasso for these models outside scikit-learn, which simplydata "

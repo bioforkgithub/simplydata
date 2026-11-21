@@ -96,7 +96,7 @@ def test_a_wandering_series(engine, capsys, needs_r):
 def test_one_test_and_groups(engine, capsys, needs_r):
     frame = pd.DataFrame({"time": np.concatenate([np.arange(150)] * 2), "level": np.concatenate([NOISE, WALK]),
                           "site": ["A"] * 150 + ["B"] * 150})
-    got = make(frame, engine).check_steady_over_time("level", sorted_by="time", method="kpss", for_each_group_in="site")
+    got = make(frame, engine).check_steady_over_time("level", sorted_by="time", test_method="kpss", for_each_group_in="site")
     data = got._frame.to_pandas() if hasattr(got._frame, "to_pandas") else got._frame
     assert data["site"].tolist() == ["A", "B"] and set(data["test"]) == {"KPSS"}
     assert data["statistic"].tolist() == pytest.approx([0.087157636332688, 0.40588796556497], rel=1e-10)
@@ -109,7 +109,7 @@ def test_steady_errors(engine):
     with pytest.raises(SimplydataError, match="around"):
         t.check_steady_over_time("level", around="flat")
     with pytest.raises(SimplydataError, match="method"):
-        t.check_steady_over_time("level", method="phillips-perron")
+        t.check_steady_over_time("level", test_method="phillips-perron")
     with pytest.raises(SimplydataError, match="same"):
         t.check_steady_over_time("level", sorted_by="time")
     short = make(pd.DataFrame({"level": [1.0, 2, 3]}), engine)
@@ -198,8 +198,8 @@ def test_time_words_with_r_on_sixty_readings(needs_r, capsys):
     frame = pd.DataFrame({"t": np.arange(60.0), "x": np.sin(np.arange(60.0)) + np.arange(60) * 0.01})
     t = sdata.table(frame)
     t.check_steady_over_time("x", sorted_by="t")
-    t.add_smoothed_column("m", from_column="x", method="median", sorted_by="t")
+    t.add_smoothed_column("m", from_column="x", test_method="median", sorted_by="t")
     t.forecast("x", sorted_by="t", steps_ahead=3)
     t.find_change_points_in("x", sorted_by="t")
-    sdata.numbers(list(frame.x)).find_spectrum(method="lomb", time_points=list(frame.t))
+    sdata.numbers(list(frame.x)).find_spectrum(test_method="lomb", time_points=list(frame.t))
     assert "Method" in capsys.readouterr().out

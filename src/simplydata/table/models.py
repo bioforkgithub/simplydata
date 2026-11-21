@@ -62,7 +62,7 @@ columns (variance inflation factor above 5), too few rows (or too few yes/no eve
 effect, complete separation (logistic), overdispersion (Poisson, and yes/no out of tries), an odds
 ratio when yes is common (more than 10 % of the rows).
 
-The options added in S3a (weights=, matched_by=, show=, method=, giving_outliers_less_weight=,
+The options added in S3a (weights=, matched_by=, show=, test_method=, giving_outliers_less_weight=,
 with_knots=, interval_by=, p_value_by="likelihood ratio", crossed_with=, zero_part_using= and the
 outcomes "yes or no (overdispersed)", "counts with many zeros that vary a lot" and "counts in two
 steps") are described in table/models_extra.py and table/models_more.py.
@@ -1582,15 +1582,17 @@ class ModelWords:
         return notes
 
     # ------------------------------------------------------------------ explain
-    @friendly(renamed={"smooth_for": "curve_for", "robust": "robust_errors", "seed": "with_seed"})
+    @friendly(renamed={"method": "test_method", "test_type": "table_of_tests",
+                       "bayesian": ("test_method", {True: "bayesian", False: None}), "smooth_for": "curve_for",
+                       "robust": "robust_errors", "seed": "with_seed"})
     def explain(self, column=None, using=None, outcome="numbers", grouped_by=None, empty_cells="leave out", with_seed=1,
-                time=None, out_of=None, in_order=None, link=None, test_type=None, own_slope_for=None,
+                time=None, out_of=None, in_order=None, link=None, table_of_tests=None, own_slope_for=None,
                 robust_errors=False, p_value_by="wald", effects="for the average group", within_groups="alike",
-                curve_for=None, weights=None, show=None, method=None, matched_by=None,
+                curve_for=None, weights=None, show=None, test_method=None, matched_by=None,
                 giving_outliers_less_weight=False, with_knots=None, interval_by="wald", resamples=None,
                 crossed_with=None, zero_part_using=None, for_percentile=None, changes_at=None,
                 spread_changes_with=None, neighbours_alike_in_order_of=None, through=None, allowing_for=None,
-                against=None, bayesian=False):
+                against=None):
         """Explain one column from several others with a model, and say how big each effect is.
 
         table.explain("marks", using=["hours", "breakfast"])   (with sdata.get_example("school"))
@@ -1618,7 +1620,7 @@ class ModelWords:
         columns (R pscl's y ~ x | z). link= (experts):
         "probit" or "cloglog" for yes or no, "identity" or "sqrt" for counts, "inverse" or
         "identity" for positive numbers; the effects are then on that scale, not ratios.
-        test_type="type 2" adds a table with one test for each column (an ANOVA table): "type 2"
+        table_of_tests="type 2" adds a table with one test for each column (an ANOVA table): "type 2"
         (the usual choice, R car::Anova(type = 2)), "type 3" (sum-to-zero coding, R
         car::Anova(type = 3)) or "in order" (R anova(); the order of using= matters), with partial
         eta-squared for numbers (R effectsize).
@@ -1630,7 +1632,7 @@ class ModelWords:
         are left out, as R does.
         show="risk ratios" with outcome="yes or no": risk ratios instead of odds ratios, by modified
         Poisson regression (Zou 2004; R glm(family = poisson) with sandwich::vcovHC(type = "HC0"));
-        method="log-binomial" fits a log-binomial model instead (R glm(family = binomial(link =
+        test_method="log-binomial" fits a log-binomial model instead (R glm(family = binomial(link =
         "log")), which may not converge). show="standardised effects" (also "standardized effects"):
         each effect per standard deviation, from the model fitted again on z-scores (R
         effectsize::standardize_parameters(method = "refit")).
@@ -1690,30 +1692,30 @@ class ModelWords:
         using=. The printout says what the answer rests on.
         Under a survey design (table.use_survey_design) it fits a survey-weighted model, R
         survey::svyglm (outcome= "numbers", "yes or no" or "counts").
-        bayesian=True fits the model the Bayesian way: R rstanarm::stan_glm() (outcome="numbers", "yes or
+        test_method="bayesian" fits the model the Bayesian way: R rstanarm::stan_glm() (outcome="numbers", "yes or
         no" or "counts"), or stan_glmer() with grouped_by="school", with 4 chains of 2000 iterations and
         seed = with_seed. It prints the prior used (rstanarm's default weakly informative priors, scaled to
         the data, from prior_summary()), each effect as the posterior median with its 95 % credible
         interval (odds or rate ratios for yes/no and counts), and R-hat and effective draws from the
         posterior package; it warns, with what to do, before any estimate when the chains do not agree
         (R-hat above 1.01), when there are too few effective draws (below 400) or divergent transitions.
-        check_model_of(..., bayesian=True) draws the posterior predictive check. Needs R (rstanarm, a large
+        check_model_of(..., test_method="bayesian") draws the posterior predictive check. Needs R (rstanarm, a large
         optional package).
         """
         if self._survey_on():
             self._survey_only("explain", locals(), ("column", "using", "outcome"))
             return self._survey_explain(column, using, outcome)
         step = "explain"
-        if self._check_bayesian(step, bayesian):
+        if self._check_bayesian(step, test_method):
             from . import bayes_words
 
             bayes_words.check_bayes_options(step, [
                 ("empty_cells=", empty_cells, "leave out"), ("time=", time, None), ("out_of=", out_of, None),
-                ("in_order=", in_order, None), ("link=", link, None), ("test_type=", test_type, None),
+                ("in_order=", in_order, None), ("link=", link, None), ("table_of_tests=", table_of_tests, None),
                 ("own_slope_for=", own_slope_for, None), ("robust_errors=", robust_errors, False),
                 ("p_value_by=", p_value_by, "wald"), ("effects=", effects, "for the average group"),
                 ("within_groups=", within_groups, "alike"), ("curve_for=", curve_for, None),
-                ("weights=", weights, None), ("show=", show, None), ("method=", method, None),
+                ("weights=", weights, None), ("show=", show, None),
                 ("matched_by=", matched_by, None), ("giving_outliers_less_weight=", giving_outliers_less_weight, False),
                 ("with_knots=", with_knots, None), ("interval_by=", interval_by, "wald"), ("resamples=", resamples, None),
                 ("crossed_with=", crossed_with, None), ("zero_part_using=", zero_part_using, None),
@@ -1740,11 +1742,11 @@ class ModelWords:
             rows = explain_through(self, column, using, through, allowing_for, outcome, with_seed, against, [
                 ("grouped_by=", grouped_by, None), ("empty_cells=", empty_cells, "leave out"), ("time=", time, None),
                 ("out_of=", out_of, None), ("in_order=", in_order, None), ("link=", link, None),
-                ("test_type=", test_type, None), ("own_slope_for=", own_slope_for, None),
+                ("table_of_tests=", table_of_tests, None), ("own_slope_for=", own_slope_for, None),
                 ("robust_errors=", robust_errors, False), ("p_value_by=", p_value_by, "wald"),
                 ("effects=", effects, "for the average group"), ("within_groups=", within_groups, "alike"),
                 ("curve_for=", curve_for, None), ("weights=", weights, None), ("show=", show, None),
-                ("method=", method, None), ("matched_by=", matched_by, None),
+                ("test_method=", test_method, None), ("matched_by=", matched_by, None),
                 ("giving_outliers_less_weight=", giving_outliers_less_weight, False), ("with_knots=", with_knots, None),
                 ("interval_by=", interval_by, "wald"), ("resamples=", resamples, None),
                 ("crossed_with=", crossed_with, None), ("zero_part_using=", zero_part_using, None),
@@ -1762,11 +1764,11 @@ class ModelWords:
             return explain_gls(self, column, using, spread_changes_with, neighbours_alike_in_order_of, [
                 ("outcome=", outcome, "numbers"), ("grouped_by=", grouped_by, None),
                 ("empty_cells=", empty_cells, "leave out"), ("time=", time, None), ("out_of=", out_of, None),
-                ("in_order=", in_order, None), ("link=", link, None), ("test_type=", test_type, None),
+                ("in_order=", in_order, None), ("link=", link, None), ("table_of_tests=", table_of_tests, None),
                 ("own_slope_for=", own_slope_for, None), ("robust_errors=", robust_errors, False),
                 ("p_value_by=", p_value_by, "wald"), ("effects=", effects, "for the average group"),
                 ("within_groups=", within_groups, "alike"), ("curve_for=", curve_for, None),
-                ("weights=", weights, None), ("show=", show, None), ("method=", method, None),
+                ("weights=", weights, None), ("show=", show, None), ("test_method=", test_method, None),
                 ("matched_by=", matched_by, None), ("giving_outliers_less_weight=", giving_outliers_less_weight, False),
                 ("with_knots=", with_knots, None), ("interval_by=", interval_by, "wald"), ("resamples=", resamples, None),
                 ("crossed_with=", crossed_with, None), ("zero_part_using=", zero_part_using, None),
@@ -1779,9 +1781,9 @@ class ModelWords:
                 raise SimplydataError("changes_at= and for_percentile= cannot be used together yet.")
             return explain_changes(self, column, using, changes_at, dict(
                 outcome=outcome, grouped_by=grouped_by, empty_cells=empty_cells, with_seed=with_seed, time=time,
-                out_of=out_of, in_order=in_order, link=link, test_type=test_type, own_slope_for=own_slope_for,
+                out_of=out_of, in_order=in_order, link=link, table_of_tests=table_of_tests, own_slope_for=own_slope_for,
                 robust_errors=robust_errors, p_value_by=p_value_by, effects=effects, within_groups=within_groups,
-                curve_for=curve_for, weights=weights, show=show, method=method, matched_by=matched_by,
+                curve_for=curve_for, weights=weights, show=show, test_method=test_method, matched_by=matched_by,
                 giving_outliers_less_weight=giving_outliers_less_weight, with_knots=with_knots,
                 interval_by=interval_by, resamples=resamples, crossed_with=crossed_with,
                 zero_part_using=zero_part_using))
@@ -1790,10 +1792,10 @@ class ModelWords:
 
             return explain_percentile(self, column, using, outcome, read_percentiles(for_percentile), [
                 ("grouped_by=", grouped_by, None), ("empty_cells=", empty_cells, "leave out"), ("time=", time, None),
-                ("out_of=", out_of, None), ("link=", link, None), ("test_type=", test_type, None),
+                ("out_of=", out_of, None), ("link=", link, None), ("table_of_tests=", table_of_tests, None),
                 ("own_slope_for=", own_slope_for, None), ("robust_errors=", robust_errors, False),
                 ("p_value_by=", p_value_by, "wald"), ("curve_for=", curve_for, None), ("weights=", weights, None),
-                ("show=", show, None), ("method=", method, None), ("matched_by=", matched_by, None),
+                ("show=", show, None), ("test_method=", test_method, None), ("matched_by=", matched_by, None),
                 ("giving_outliers_less_weight=", giving_outliers_less_weight, False), ("with_knots=", with_knots, None),
                 ("interval_by=", interval_by, "wald"), ("resamples=", resamples, None),
                 ("crossed_with=", crossed_with, None), ("zero_part_using=", zero_part_using, None)])
@@ -1803,13 +1805,13 @@ class ModelWords:
                                   "example with_seed=1.")
         if isinstance(outcome, str):
             outcome = OUTCOME_SPELLINGS.get(outcome.strip().lower(), outcome)
-        options = self._read_options(step, outcome, grouped_by, empty_cells, time, out_of, link, test_type,
-                                     own_slope_for, robust, p_value_by, effects, curve_for, weights, show, method,
+        options = self._read_options(step, outcome, grouped_by, empty_cells, time, out_of, link, table_of_tests,
+                                     own_slope_for, robust, p_value_by, effects, curve_for, weights, show, test_method,
                                      matched_by, giving_outliers_less_weight, with_knots, interval_by, resamples,
                                      crossed_with, zero_part_using, with_seed)
         if options["likelihood_ratio"]:
             p_value_by = "wald"
-        grouped_by, inner = self._read_nested(step, grouped_by, own_slope_for, p_value_by, effects, robust, test_type)
+        grouped_by, inner = self._read_nested(step, grouped_by, own_slope_for, p_value_by, effects, robust, table_of_tests)
         terms, pieces, variables, raw, missing, kinds = self._model_parts(
             step, column, using, outcome, grouped_by, empty_cells, time=time, out_of=out_of,
             extra=options["columns"])
@@ -1822,19 +1824,19 @@ class ModelWords:
         self._check_link(step, outcome, link, grouped_by, empty_cells)
         grouping = self._check_grouping(step, outcome, grouped_by, own_slope_for, p_value_by, effects, within_groups,
                                         variables, kinds)
-        self._check_robust(robust, outcome, grouped_by, empty_cells, test_type)
-        if test_type is not None and smooth_for is None:  # all of test_type='s checks before anything is printed
+        self._check_robust(robust, outcome, grouped_by, empty_cells, table_of_tests)
+        if table_of_tests is not None and smooth_for is None:  # all of test_type='s checks before anything is printed
             from .anova_tables import read_test_type
 
-            test_type = read_test_type(test_type)
+            table_of_tests = read_test_type(table_of_tests)
             if grouped_by is not None:
-                raise SimplydataError("test_type= is not available with grouped_by= yet; the whole-column Wald tests "
+                raise SimplydataError("table_of_tests= is not available with grouped_by= yet; the whole-column Wald tests "
                                       "are printed instead.")
             if outcome in MORE_OUTCOMES + EXPLAIN_ONLY or empty_cells != "leave out":
-                raise SimplydataError(f'test_type= cannot be used with outcome="{outcome}" or multiple imputation '
+                raise SimplydataError(f'table_of_tests= cannot be used with outcome="{outcome}" or multiple imputation '
                                       "yet.")
             if time is not None or out_of is not None or link not in (None, LINKS.get(outcome, (None,))[0]):
-                raise SimplydataError("test_type= cannot be used with time=, out_of= or link= yet.")
+                raise SimplydataError("table_of_tests= cannot be used with time=, out_of= or link= yet.")
         if matched_by is not None:
             keep = ~np.any([missing[nm] for nm in names], axis=0)
             _skipped_note(int((~keep).sum()), names)
@@ -1842,7 +1844,7 @@ class ModelWords:
         if smooth_for is not None and options["knots"] is None:
             keep = ~np.any([missing[nm] for nm in names], axis=0)
             smooth = self._check_smooth(smooth_for, outcome, terms, kinds, raw, grouped_by, empty_cells, robust,
-                                        test_type, time, out_of, link, in_order, keep)
+                                        table_of_tests, time, out_of, link, in_order, keep)
             _skipped_note(int((~keep).sum()), names)
             model = self._fit_model(step, column, outcome, None, terms, variables, raw, kinds, keep)
             return self._explain_gam(model, pieces, smooth)
@@ -1889,7 +1891,7 @@ class ModelWords:
                                 out_of=out_of, link=None if link in (None, LINKS.get(outcome, (None,))[0]) else link,
                                 grouping=dict(grouping or {}, knot_values=knot_values) if knot_values else grouping,
                                 weights=w, splines=splines, kind=options["kind"])
-        model["options"] = dict(options, weights_name=weights, zero_weights=zero, seed=with_seed, test_type=test_type)
+        model["options"] = dict(options, weights_name=weights, zero_weights=zero, seed=with_seed, test_type=table_of_tests)
         if options["show"] == "standardised effects":
             model["standardised"] = spread
         if options["show"] == "risk ratios":
@@ -1897,16 +1899,16 @@ class ModelWords:
         if robust:
             self._make_robust(model)
         self._after_fit(model, options, with_seed)
-        if test_type is not None:
+        if table_of_tests is not None:
             from .anova_tables import need_r_for
 
             need_r_for(model)  # R car::Anova() for yes/no and counts: missing R is said before the printout
         coef, tests = self._report(model, pieces, grouped_by)
         more = []
-        if test_type is not None:
+        if table_of_tests is not None:
             from .anova_tables import report
 
-            more = report(model, test_type)
+            more = report(model, table_of_tests)
         return self._term_table(model, coef, tests, more_rows=more)
 
     # ------------------------------------------------------------------ the S3a options
@@ -1921,9 +1923,9 @@ class ModelWords:
         show = read_choice("show", show, SHOW, SHOW_SPELLINGS,
                            'table.explain("passed", using=["hours", "breakfast"], outcome="yes or no", '
                            'show="risk ratios")')
-        method = read_choice("method", method, METHODS, METHOD_SPELLINGS,
+        method = read_choice("test_method", method, METHODS, METHOD_SPELLINGS,
                              'table.explain("passed", using=["hours"], outcome="yes or no", show="risk ratios", '
-                             'method="log-binomial")')
+                             'test_method="log-binomial")')
         interval = read_choice("interval_by", interval_by, INTERVAL_BY, INTERVAL_SPELLINGS,
                                'table.explain("passed", using=["hours"], outcome="yes or no", interval_by="profile")')
         likelihood_ratio = isinstance(p_value_by, str) and p_value_by.strip().lower() in LR_SPELLINGS
@@ -1952,9 +1954,9 @@ class ModelWords:
         if show == "odds ratios" and not outcome.startswith("yes or no"):
             refuse('show="odds ratios" is the usual result for outcome="yes or no".')
         if method is not None and show != "risk ratios":
-            refuse('method= says how risk ratios are found: method="log-binomial" goes with show="risk ratios", for '
+            refuse('test_method= says how risk ratios are found: test_method="log-binomial" goes with show="risk ratios", for '
                    'example table.explain("passed", using=["hours"], outcome="yes or no", show="risk ratios", '
-                   'method="log-binomial").')
+                   'test_method="log-binomial").')
         if show == "risk ratios":
             if outcome != "yes or no":
                 refuse('show="risk ratios" is for outcome="yes or no": the risk ratio compares chances of yes.')
@@ -1962,7 +1964,7 @@ class ModelWords:
                     or test_type is not None or robust or weights is not None or interval != "wald" or \
                     likelihood_ratio or less_weight:
                 refuse('show="risk ratios" works on its own for now: leave out grouped_by=, out_of=, link=, '
-                       "multiple imputation, curve_for=, test_type=, robust_errors= (modified Poisson regression "
+                       "multiple imputation, curve_for=, table_of_tests=, robust_errors= (modified Poisson regression "
                        "already uses robust standard errors), weights=, interval_by= and p_value_by=.")
             kind = "riskratio" if method in (None, "modified poisson") else "logbinomial"
         if show == "standardised effects":
@@ -1972,7 +1974,7 @@ class ModelWords:
             if grouped_by is not None or weights is not None or multiple or curve_for is not None or \
                     link is not None or test_type is not None:
                 refuse('show="standardised effects" cannot be used with grouped_by=, weights=, multiple imputation, '
-                       "curve_for=, link= or test_type= yet.")
+                       "curve_for=, link= or table_of_tests= yet.")
         # ---- the new outcome values
         if outcome == "yes or no (overdispersed)":
             if out_of is None:
@@ -1983,7 +1985,7 @@ class ModelWords:
             if grouped_by is not None or link is not None or multiple or curve_for is not None or interval != "wald" \
                     or likelihood_ratio or robust or test_type is not None:
                 refuse('outcome="yes or no (overdispersed)" cannot be used with grouped_by=, link=, multiple '
-                       "imputation, curve_for=, interval_by=, p_value_by=, robust_errors= or test_type= yet "
+                       "imputation, curve_for=, interval_by=, p_value_by=, robust_errors= or table_of_tests= yet "
                        "(quasi-binomial has no likelihood).")
         if zero_part_using is not None and outcome not in ZERO_OUTCOMES:
             refuse('zero_part_using= names the columns of the zero part, for outcome="counts with many zeros", '
@@ -2003,7 +2005,7 @@ class ModelWords:
             if multiple or (curve_for is not None and knots is None) or test_type is not None or robust or \
                     less_weight or matched_by is not None or interval == "profile":
                 refuse("weights= cannot be used with multiple imputation, curve_for= (without with_knots=), "
-                       "test_type=, robust_errors=, giving_outliers_less_weight=, matched_by= or "
+                       "table_of_tests=, robust_errors=, giving_outliers_less_weight=, matched_by= or "
                        'interval_by="profile" yet.')
         # ---- giving_outliers_less_weight=
         if less_weight:
@@ -2013,7 +2015,7 @@ class ModelWords:
             if grouped_by is not None or multiple or curve_for is not None or robust or test_type is not None or \
                     show is not None or interval == "profile" or likelihood_ratio or matched_by is not None:
                 refuse("giving_outliers_less_weight=True cannot be used with grouped_by=, multiple imputation, "
-                       "curve_for=, robust_errors=, test_type=, show=, interval_by=\"profile\" or p_value_by= yet.")
+                       "curve_for=, robust_errors=, table_of_tests=, show=, interval_by=\"profile\" or p_value_by= yet.")
             kind = "rlm"
         # ---- with_knots=
         if knots is not None:
@@ -2021,7 +2023,7 @@ class ModelWords:
                 refuse(f'with_knots= works with outcome="numbers", "yes or no", the count outcomes and "positive '
                        f'numbers", not "{outcome}".')
             if multiple or test_type is not None or show is not None or less_weight or matched_by is not None:
-                refuse("with_knots= cannot be used with multiple imputation, test_type=, show=, "
+                refuse("with_knots= cannot be used with multiple imputation, table_of_tests=, show=, "
                        "giving_outliers_less_weight= or matched_by= yet.")
         # ---- interval_by= and resamples=
         if resamples is not None and interval != "bootstrap":
@@ -2034,7 +2036,7 @@ class ModelWords:
                        "there is no likelihood.")
             if grouped_by is not None or multiple or curve_for is not None or robust or test_type is not None:
                 refuse('interval_by="profile" cannot be used with grouped_by=, multiple imputation, curve_for=, '
-                       "robust_errors= or test_type= yet.")
+                       "robust_errors= or table_of_tests= yet.")
         if interval == "bootstrap":
             if outcome not in basic or outcome == "counts that vary a lot":
                 refuse(f'interval_by="bootstrap" works with outcome="numbers", "yes or no", "counts", "counts '
@@ -2044,7 +2046,7 @@ class ModelWords:
                        "drawn together, which simplydata does not do yet.")
             if multiple or (curve_for is not None and knots is None) or robust or test_type is not None:
                 refuse('interval_by="bootstrap" cannot be used with multiple imputation, curve_for= (without '
-                       "with_knots=), robust_errors= or test_type= yet.")
+                       "with_knots=), robust_errors= or table_of_tests= yet.")
         # ---- p_value_by="likelihood ratio"
         if likelihood_ratio:
             if outcome not in ("yes or no", "counts", "counts that vary a lot"):
@@ -2055,7 +2057,7 @@ class ModelWords:
                        'p_value_by="satterthwaite" gives safer tests.')
             if multiple or curve_for is not None or robust or test_type is not None:
                 refuse('p_value_by="likelihood ratio" cannot be used with multiple imputation, curve_for=, '
-                       "robust_errors= or test_type= yet.")
+                       "robust_errors= or table_of_tests= yet.")
         # ---- matched_by=
         if matched_by is not None:
             if outcome != "yes or no":
@@ -2065,7 +2067,7 @@ class ModelWords:
                     link is not None or show is not None or robust or test_type is not None or curve_for is not None \
                     or interval != "wald" or likelihood_ratio or multiple:
                 refuse("matched_by= works on its own for now: leave out grouped_by=, weights=, out_of=, time=, link=, "
-                       "show=, robust_errors=, test_type=, curve_for=, interval_by=, p_value_by= and multiple "
+                       "show=, robust_errors=, table_of_tests=, curve_for=, interval_by=, p_value_by= and multiple "
                        "imputation.")
         # ---- crossed_with=
         if crossed_with is not None:
@@ -2081,7 +2083,7 @@ class ModelWords:
                 refuse('crossed_with= is for mixed models; effects="for the whole population" (GEE) takes one '
                        "grouping.")
             if multiple or test_type is not None or robust or (own_slope_for is not None and outcome != "numbers"):
-                refuse("crossed_with= cannot be used with multiple imputation, test_type= or robust_errors= yet (and "
+                refuse("crossed_with= cannot be used with multiple imputation, table_of_tests= or robust_errors= yet (and "
                        'own_slope_for= only with outcome="numbers").')
             first = grouped_by[0] if isinstance(grouped_by, (list, tuple)) else grouped_by
             if crossed_with == first:
@@ -2304,7 +2306,7 @@ class ModelWords:
                 str(effects).lower() not in ("for the average group", "average group", "mixed") or robust or \
                 test_type is not None:
             raise SimplydataError("Groups inside groups (a list in grouped_by=) work with the plain mixed model for "
-                                  "now: leave out own_slope_for=, p_value_by=, effects=, robust_errors= and test_type=.")
+                                  "now: leave out own_slope_for=, p_value_by=, effects=, robust_errors= and table_of_tests=.")
         return grouped_by[0], grouped_by[1]
 
     def _inner_column(self, inner):
@@ -2382,8 +2384,8 @@ class ModelWords:
         if grouped_by is not None or empty_cells != "leave out" or robust or test_type is not None or \
                 time is not None or out_of is not None or link is not None or in_order is not None:
             raise SimplydataError("curve_for= cannot be used with grouped_by=, multiple imputation, robust_errors=, "
-                                  "test_type=, time=, out_of= or link= yet; with with_knots=3 (a natural spline) it "
-                                  "can, except for multiple imputation and test_type=.")
+                                  "table_of_tests=, time=, out_of= or link= yet; with with_knots=3 (a natural spline) it "
+                                  "can, except for multiple imputation and table_of_tests=.")
         alone = {term[0] for term in terms if len(term) == 1}
         for name in smooth:
             if name not in alone or any(name in term for term in terms if len(term) > 1):
@@ -2473,7 +2475,7 @@ class ModelWords:
             raise SimplydataError(f'robust_errors=True works with outcome="numbers", "yes or no", the count outcomes and '
                                   f'"positive numbers", not "{outcome}".')
         if empty_cells != "leave out" or test_type is not None:
-            raise SimplydataError("robust_errors=True cannot be used with multiple imputation or test_type= yet.")
+            raise SimplydataError("robust_errors=True cannot be used with multiple imputation or table_of_tests= yet.")
 
     def _make_robust(self, model):
         """Robust (sandwich, HC3) standard errors in place of the usual ones: statsmodels OLS(cov_type="HC3")

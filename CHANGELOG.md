@@ -5,6 +5,28 @@ working for one release and prints a one-line note with its new name.
 
 ## Unreleased
 
+### Changed: one name for choosing the method
+
+- One name for choosing the method: `test_method=` replaces `test=`, `method=`, `rule=` and `methods=` on 57 words,
+  and `bayesian=True` becomes `test_method="bayesian"` on 7 words (`prior_width=` stays, with
+  `test_method="bayesian"`). `test_method=` chooses the method (the test, estimator or rule) the word uses; each word
+  keeps its own choices and its own default, and every printout names the method it used. `sdata.help("test_method=")`
+  lists the words. The old names still work and print a one-line note; giving an old name and `test_method=`
+  together is refused (`bayesian=False` is simply left out, with the note).
+- The values follow one rule: lower case, words separated by spaces, two person names joined by a hyphen.
+  `combine_studies` values are now lower case (`"reml"`, `"dersimonian-laird"`, `"paule-mandel"`,
+  `"mantel-haenszel"`, `"peto"`; the old spellings are accepted); `find_percentile_of` names its rules with spaces
+  (`"median unbiased"`; NumPy's `"median_unbiased"` and R's numbers 1 to 9 are accepted);
+  `find_hidden_factors_behind` calls `"ml"` `"maximum likelihood"` (`"ml"` is accepted).
+- `compare_each_pair_of(test_method="fisher")` no longer means Fisher's LSD: `"fisher"` is Fisher's exact test, with
+  `based_on="percents"`. For Fisher's LSD write `"lsd"` (or `"fisher's lsd"`); the old use gets a message that says so.
+- Two options renamed so that they do not look like `test_method=`: the planning words' `test=` (the word whose study
+  is planned) is now `for_test=` on `find_how_many_needed` and `find_chance_of_finding`, and `explain`'s
+  `test_type=` (the ANOVA table) is now `table_of_tests=`. The old names still work, with a note.
+- The second method choices that go together with the main one keep their names: `p_value_by=`, `interval_by=`,
+  `linkage=`, `window_shape=`, `search=`, `link=`, `penalty=`, `rotation=`, `zeros_replaced_by=`, `weight_kind=`,
+  `empty_cells=` and `band=`.
+
 ### New: Bayesian answers (S3d-3)
 
 - `bayesian=True` on `compare_averages_of` (two groups), `compare_before_and_after`, `compare_average_to`,

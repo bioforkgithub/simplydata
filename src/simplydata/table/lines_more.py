@@ -3,9 +3,9 @@ of a column, percentile lines and lines that change at a known point.
 
 Every number comes from a package; nothing is calculated here but the arithmetic of printing:
 
-* fit_line(method="theil-sen" / "siegel"): SciPy stats.theilslopes(alpha=0.95, method="separate") and
+* fit_line(test_method="theil-sen" / "siegel"): SciPy stats.theilslopes(alpha=0.95, method="separate") and
   stats.siegelslopes(method="hierarchical").
-* fit_line(method="standardised major axis" / "major axis"): R smatr::sma(); "deming" / "passing-bablok":
+* fit_line(test_method="standardised major axis" / "major axis"): R smatr::sma(); "deming" / "passing-bablok":
   R mcr::mcreg(method.ci = "analytical"). y_error_over_x_error= is the error variance of y over that of x;
   mcr's error.ratio is the other way round (x over y), so it gets 1 / y_error_over_x_error.
 * fit_line(with_bends=1): R segmented::segmented(), confint(), slope(), davies.test().
@@ -86,7 +86,7 @@ def read_line_method(method) -> str:
     key = method.strip().lower() if isinstance(method, str) else method
     key = LINE_SPELLINGS.get(key, key)
     if key not in LINE_METHODS:
-        raise choice_error("fit_line", "method", method, list(LINE_METHODS))
+        raise choice_error("fit_line", "test_method", method, list(LINE_METHODS))
     return key
 
 
@@ -127,9 +127,9 @@ class LinesMoreWords:
             return self._theil_sen(x, y, xs, ys, method)
         if method == "passing-bablok":
             if n < 10:
-                raise SimplydataError(f'method="passing-bablok" needs at least 10 pairs; there are {n}.')
+                raise SimplydataError(f'test_method="passing-bablok" needs at least 10 pairs; there are {n}.')
             if np.any(xs < 0) or np.any(ys < 0):
-                raise SimplydataError(f'method="passing-bablok" works on values of 0 or more (R mcr), and "{x}" or '
+                raise SimplydataError(f'test_method="passing-bablok" works on values of 0 or more (R mcr), and "{x}" or '
                                       f'"{y}" has negative values.')
         elif n < 3:
             raise SimplydataError(f'{step}() needs at least 3 rows with a number in both "{x}" and "{y}".')
@@ -502,8 +502,8 @@ class LinesMoreWords:
         return dose_response_word(self, x, y, doses_for_effect, of_kind, outcome, out_of, for_each_group_in)
 
     # ------------------------------------------------------------------ find_best_power_of
-    @friendly
-    def find_best_power_of(self, column=None, using=None, method="box-cox"):
+    @friendly(renamed={"method": "test_method"})
+    def find_best_power_of(self, column=None, using=None, test_method="box-cox"):
         """Find the power to raise a column to that brings it closest to a normal shape (Box-Cox).
 
         table.find_best_power_of("days")   (with sdata.get_example("trial"))
@@ -513,11 +513,11 @@ class LinesMoreWords:
         log (0) and no change (1) are inside it. using=["treatment"] finds the power that brings
         the leftovers of the model explain(column, using=) closest to a normal shape (R
         car::powerTransform(), needs R), with likelihood-ratio tests of power 0 and 1.
-        method="yeo-johnson" (SciPy stats.yeojohnson) works with zeros and negative values too.
+        test_method="yeo-johnson" (SciPy stats.yeojohnson) works with zeros and negative values too.
         Box-Cox needs values above 0. For counts or shares, a model made for them
         (explain(..., outcome=)) is usually better than a power. Gives back one row.
         """
-        return best_power_word(self, column, using, method)
+        return best_power_word(self, column, using, test_method)
 
 
 # ---------------------------------------------------------------------------- fit_curve(of_kind=)
@@ -818,7 +818,7 @@ def best_power_word(table, column, using, method):
     key = method.strip().lower() if isinstance(method, str) else method
     key = POWER_SPELLINGS.get(key, key)
     if key not in POWER_METHODS:
-        raise choice_error(step, "method", method, list(POWER_METHODS))
+        raise choice_error(step, "test_method", method, list(POWER_METHODS))
     if using is None:
         values = table._number_values(step, [column])[0]
         X = None
@@ -828,8 +828,8 @@ def best_power_word(table, column, using, method):
     if n < 10:
         raise SimplydataError(f"{step}() needs at least 10 values to find a power; there are {n}.")
     if key == "box-cox" and np.any(values <= 0):
-        call = (f'table.{step}("{column}", method="yeo-johnson")' if using is None else
-                f'table.{step}("{column}", using={using!r}, method="yeo-johnson")')
+        call = (f'table.{step}("{column}", test_method="yeo-johnson")' if using is None else
+                f'table.{step}("{column}", using={using!r}, test_method="yeo-johnson")')
         raise SimplydataError(f'Box-Cox needs values above 0, and "{column}" has {int(np.sum(values <= 0))} at 0 or '
                               f"below. Yeo-Johnson works with them:\n{call}")
     p0 = p1 = math.nan

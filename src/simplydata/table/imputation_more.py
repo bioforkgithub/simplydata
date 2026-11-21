@@ -80,7 +80,7 @@ def correlation_imputed(table, step, names, method, seed):
     import narwhals as nw
 
     if method not in ("pearson", "spearman"):
-        raise SimplydataError('empty_cells="multiple imputation" works with method="pearson" or "spearman" '
+        raise SimplydataError('empty_cells="multiple imputation" works with test_method="pearson" or "spearman" '
                               "(R miceadds::micombine.cor()).")
     frame = table._number_frame(step, names)
     values = {nm: np.array([math.nan if v is None else float(v) for v in frame[nm].to_list()]) for nm in names}

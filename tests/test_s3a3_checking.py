@@ -138,7 +138,7 @@ def test_lasso_effects_are_a_penalised_least_squares_minimum_as_statsmodels(need
 
 def test_lasso_refuses_ridge_few_rows_and_one_column(school):
     with pytest.raises(SimplydataError, match="keeps every column"):
-        school.find_columns_that_predict("marks", using=["hours", "sleep"], method="ridge")
+        school.find_columns_that_predict("marks", using=["hours", "sleep"], test_method="ridge")
     with pytest.raises(SimplydataError, match="at least two"):
         school.find_columns_that_predict("marks", using=["hours"])
     small = sdata.table(sdata.get_example("school").head(15))
@@ -385,7 +385,7 @@ def test_manova_refusals(school):
     with pytest.raises(SimplydataError, match="more than one group column"):
         school.compare_averages_of(["marks", "hours"], for_each_group_in=["class", "breakfast"])
     with pytest.raises(SimplydataError, match="cannot be used with a list of columns"):
-        school.compare_averages_of(["marks", "hours"], for_each_group_in="class", test="welch")
+        school.compare_averages_of(["marks", "hours"], for_each_group_in="class", test_method="welch")
 
 
 # ---------------------------------------------------------------- N13 interaction lines

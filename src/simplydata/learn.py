@@ -13,7 +13,7 @@ import inspect
 import re
 import textwrap
 
-from ._errors import ISSUES_URL, SimplydataError, suggest
+from ._errors import ISSUES_URL, SimplydataError, _quoted, suggest
 
 WIDTH = 78
 
@@ -661,7 +661,7 @@ HELP_EXAMPLES = {
     "table.compare_counts_to": _tx("school", 'table.compare_counts_to("breakfast", expected={"yes": 0.6, "no": 0.4})'),
     "table.compare_percent_to": _tx("school", 'table.compare_percent_to("passed", value="yes", percent=50)'),
     "table.compare_shape_to": _tx("marks", 'table.compare_shape_to("marks", "normal", for_each_group_in="class")\n'
-                                           'table.compare_shape_to("marks", "normal", test="jarque-bera")'),
+                                           'table.compare_shape_to("marks", "normal", test_method="jarque-bera")'),
     "table.compare_matched_columns": _tx("marks", 'table.keep_columns("name", "subject", "marks")\n'
                                           'table.turn_rows_into_columns(names_from="subject", values_from="marks")\n'
                                           'table.compare_matched_columns("Maths", "Science", "English")'),
@@ -701,7 +701,7 @@ HELP_EXAMPLES = {
         sdata.compare_to_truth(sensitivity=90, specificity=95, prevalence=1)"""),
     "table.add_adjusted_p_value_column": _tx("marks", 'table = table.find_correlation_between("hours", "marks", "height", '
                                                       'show="each pair")\n'
-                                                      'table.add_adjusted_p_value_column("q", method="benjamini-hochberg")\n'
+                                                      'table.add_adjusted_p_value_column("q", test_method="benjamini-hochberg")\n'
                                                       "table.show()"),
     # combine and reshape
     "table.join_with": _tx("marks", 'ages = {"name": ["Asha", "Ben"], "age": [12, 13]}\n'
@@ -822,8 +822,8 @@ HELP_EXAMPLES = {
         table.add_missing_dates("date", every="day", for_each_group_in="station")
         table.fill_empty_cells_in("nitrate", with_the="line between neighbours", sorted_by="date", for_each_group_in="station")"""),
     "table.add_smoothed_column": _tx("sensor", 'table.add_smoothed_column("signal_smoothed", from_column="signal", '
-                                               'method="savitzky-golay", window=11, sorted_by="time")'),
-    "nums.smooth": _nx('nums.smooth(method="median", window=5)', values='sdata.get_example("sensor")["signal"]'),
+                                               'test_method="savitzky-golay", window=11, sorted_by="time")'),
+    "nums.smooth": _nx('nums.smooth(test_method="median", window=5)', values='sdata.get_example("sensor")["signal"]'),
     "nums.remove_trend": _nx("nums.remove_trend()", values='sdata.get_example("sensor")["signal"]'),
     "nums.keep_each_frequency_that": _nx("nums.keep_each_frequency_that(is_below=10, time_step=0.005)",
                                  values='sdata.get_example("sensor")["signal"]'),
@@ -911,7 +911,7 @@ HELP_EXAMPLES = {
     "forest_plot": textwrap.dedent("""\
         import simplydata as sdata
         table = sdata.table(sdata.get_example("marks"))
-        pairs = table.compare_each_pair_of("marks", for_each_group_in="class", test="tukey")
+        pairs = table.compare_each_pair_of("marks", for_each_group_in="class", test_method="tukey")
         chart = pairs.start_chart()
         chart.forest_plot(x="difference", y="group 1")
         chart.save("forest_plot.png")"""),
@@ -947,10 +947,10 @@ HELP_EXAMPLES = {
     "sdata.find_how_many_needed": textwrap.dedent("""\
         import simplydata as sdata
         sdata.find_how_many_needed(effect_size=0.5, power=0.8)
-        sdata.find_how_many_needed(test="compare_averages", difference=5, spread=10)
-        sdata.find_how_many_needed(test="compare_averages", effect_size=0.25, groups=3)
+        sdata.find_how_many_needed(for_test="compare_averages", difference=5, spread=10)
+        sdata.find_how_many_needed(for_test="compare_averages", effect_size=0.25, groups=3)
         sdata.find_how_many_needed(effect_size=0.5, in_clusters_of=20, alike_within_clusters=0.05)
-        sdata.find_how_many_needed(test="explain", effect_size=0.15, using=["temperature", "salinity", "depth"])"""),
+        sdata.find_how_many_needed(for_test="explain", effect_size=0.15, using=["temperature", "salinity", "depth"])"""),
     "sdata.find_chance_of_finding": textwrap.dedent("""\
         import simplydata as sdata
         sdata.find_chance_of_finding(effect_size=0.5, values_per_group=20)
@@ -1062,7 +1062,7 @@ HELP_EXAMPLES = {
                                                'table.fit_dose_response(x="concentration", y="dead", outcome="yes or no", '
                                                'out_of="seedlings", doses_for_effect=[10, 50])'),
     "table.find_best_power_of": _tx("trial", 'table.find_best_power_of("days")\n'
-                                             'table.find_best_power_of("days", method="yeo-johnson")'),
+                                             'table.find_best_power_of("days", test_method="yeo-johnson")'),
     "fit_dose_response": _ex("toxicity", 'chart.draw_dots(x="concentration", y="root_length", colour="chemical")\n'
                                          'chart.fit_dose_response()', "fit_dose_response"),
     # S3a-3: checking and comparing (the two table words need R)
@@ -1402,12 +1402,26 @@ def _old_names(word) -> list[tuple[str, str, str]]:
     if new and f"sdata.{new}" in _all_keys() and kinds is None:
         found.append((w, new, f"sdata.{new}"))
     if kinds is None:
-        option = w[:-1] if w.endswith("=") else w
+        option = w.split("=", 1)[0].strip()
         for key, func in _words_with_options():
-            new = getattr(func, "_renamed_options", {}).get(option)
-            if new:
-                found.append((f"{option}=", f"{new}=", key))
+            for old, new in _renamed_options_of(func):
+                if old.split("=", 1)[0] == option:
+                    found.append((old, new, key))
     return list(dict.fromkeys(found))
+
+
+def _renamed_options_of(func) -> list[tuple[str, str]]:
+    """The old options of a word and what they are called now, each as written: ("method=", "test_method="); an
+    old switch that is now one value of a new option gives ("bayesian=True", 'test_method="bayesian"')."""
+    pairs = []
+    for old, new in (getattr(func, "_renamed_options", None) or {}).items():
+        if isinstance(new, tuple):  # @friendly(renamed={"bayesian": ("test_method", {True: "bayesian", ...})})
+            name, values = new
+            pairs.extend((f"{old}={value!r}", f'{name}="{now}"' if isinstance(now, str) else f"{name}={now!r}")
+                         for value, now in values.items() if now is not None)
+        else:
+            pairs.append((f"{old}=", f"{new}="))
+    return pairs
 
 
 def _words_with_options():
@@ -1433,7 +1447,7 @@ def _old_name_lines(old, typed: str | None = None) -> tuple[list[str], list[str]
     """
     lines, keys, options = [], [], {}
     for name, new, key in old:
-        if name.endswith("="):
+        if "=" in name:
             options.setdefault((name, new), []).append(key)
             continue
         where = typed or (key.rsplit(".", 1)[0] if "." in key else "chart")
@@ -1444,7 +1458,7 @@ def _old_name_lines(old, typed: str | None = None) -> tuple[list[str], list[str]
     for (name, new), in_keys in options.items():
         calls = list(dict.fromkeys(_call_form(k) for k in in_keys))
         shown = ", ".join(calls[:4]) + (f" and {len(calls) - 4} more" if len(calls) > 4 else "")
-        lines.append(f'"{name}" is now called "{new}" in {shown}.')
+        lines.append(f"{_quoted(name)} is now called {_quoted(new)} in {shown}.")
         if new in _all_keys():
             keys.append(new)
         elif len(calls) <= 3:
@@ -1457,6 +1471,27 @@ def _lookup(word) -> str | None:
     """Turn what the user typed into a key of GROUPS (the first, if it has two), or None."""
     found = _lookup_all(word)
     return found[0] if found else None
+
+
+# Options that many words share, each with one help line said the same way everywhere
+SHARED_OPTIONS = {
+    "test_method": "test_method= chooses the method (the test, estimator or rule) the word uses",
+}
+
+
+def _print_shared_option(word) -> bool:
+    """sdata.help("test_method="): the shared help line and the words that have the option. True when printed."""
+    name = _normalise(str(word)).split("=", 1)[0].strip()
+    if name not in SHARED_OPTIONS:
+        return False
+    keys = [key for key, func in _words_with_options()
+            if func is not None and name in inspect.signature(func).parameters]
+    calls = list(dict.fromkeys(_call_form(k) for k in keys))
+    print(f"{SHARED_OPTIONS[name]}. Each word has its own choices and its own default, and its printout names "
+          "the method it used.")
+    print(f"It is in {len(calls)} words: " + ", ".join(calls) + ".")
+    print(f'To see the choices of one word, type sdata.help("{_call_form(keys[0])[:-2]}").')
+    return True
 
 
 def _options_text(key: str) -> list[str]:
@@ -1481,6 +1516,8 @@ def _options_text(key: str) -> list[str]:
         else:
             normal = f'"{p.default}"' if isinstance(p.default, str) else repr(p.default)
             lines.append(f"  {p.name + '=':<{width}}normally {normal}")
+        if p.name in SHARED_OPTIONS:
+            lines[-1] = f"{lines[-1]:<{width + 2 + 24}}({SHARED_OPTIONS[p.name].split('= ', 1)[1]})"
     return lines
 
 
@@ -1587,6 +1624,8 @@ def help(word=None) -> None:  # noqa: A001 - meant to be sdata.help
             return None
         print()
     if not keys and _print_other_names(word):
+        return None
+    if not keys and _print_shared_option(word):
         return None
     if not keys:
         known = sorted({_normalise(k) for k in _all_keys()} | {a for v in _aliases().values() for a in v})
@@ -3265,7 +3304,7 @@ LESSONS = [
                  "plots use): here one mark of 33 in class B. The table does not change."),
                 ('pairs = table.find_correlation_between("hours", "marks", "height", show="each pair")',
                  "Test three pairs of columns at once: a table with one row per pair and its p-value."),
-                ('pairs.add_adjusted_p_value_column(method="holm")',
+                ('pairs.add_adjusted_p_value_column(test_method="holm")',
                  "With many tests, one of them looks real by chance more often. Holm's adjustment keeps "
                  "the chance of even one false alarm at 5 %."),
                 ("pairs.show()", "The p-values and the adjusted ones, side by side."),
@@ -3277,7 +3316,7 @@ LESSONS = [
                  "Are the marks of one class more spread out? The data cannot tell: differences in "
                  "spread this big would turn up in about 91 of 100 studies even if the spreads were the "
                  "same (p = 0.91)."),
-                ('table.compare_each_pair_of("marks", for_each_group_in="class", test="tukey")',
+                ('table.compare_each_pair_of("marks", for_each_group_in="class", test_method="tukey")',
                  "Tukey's test compares every pair at once: only A and C differ (p = 0.020)."),
                 ('school = sdata.table(sdata.get_example("school"))', "A table of pupils."),
                 ('school.compare_counts_to("breakfast", expected={"yes": 0.6, "no": 0.4})',
@@ -3312,13 +3351,13 @@ LESSONS = [
             "and compare_average_to for one average against a number you choose.",
             "remove_rows_with_outliers removes such rows. Say in your report which rule removed how many "
             "rows, and never remove a value only because it spoils the result.",
-            'method="benjamini-hochberg" adjusts for many tests more gently: it controls the share of '
+            'test_method="benjamini-hochberg" adjusts for many tests more gently: it controls the share of '
             "false alarms among your findings (the false discovery rate).",
-            'More: with hundreds of tests, such as genes, method="storey" gives q-values (sdata.get_example('
+            'More: with hundreds of tests, such as genes, test_method="storey" gives q-values (sdata.get_example('
             '"many_tests")); compare_each_pair_of(..., based_on="percents", value="yes") compares the percent of '
-            "each pair of groups; after Friedman's test, compare_each_pair_of(..., matched_by=, test=\"nemenyi\") or "
-            'test="conover".',
-            "More: bayesian=True on compare_averages_of (two groups), compare_before_and_after, compare_average_to, "
+            "each pair of groups; after Friedman's test, compare_each_pair_of(..., matched_by=, test_method=\"nemenyi\") or "
+            'test_method="conover".',
+            "More: test_method=\"bayesian\" on compare_averages_of (two groups), compare_before_and_after, compare_average_to, "
             "find_correlation_between and compare_counts_of gives a Bayes factor (how many times as likely the data "
             "are if there is a difference as if there is none) and a credible interval instead of a p-value (R "
             "BayesFactor; the lesson \"Bayesian answers\" in sdata.show_lesson()).",
@@ -3697,14 +3736,14 @@ LESSONS = [
             "chart.draw_cluster_tree() draws the tree of hierarchical clusters. Lessons 31 and 32 use them on a "
             "resistome.",
             "Clusters always appear, even in data without groups: check them against what you know.",
-            'method="hierarchical" clusters step by step (Ward linkage) instead of k-means.',
+            'test_method="hierarchical" clusters step by step (Ward linkage) instead of k-means.',
         ],
         task=[
             'Add principal components of "hours", "sleep", "marks" and "days_absent" in '
             'sdata.get_example("school"). Which columns weigh most in PC1?',
             "Make an NMDS map of the meadow in 3 dimensions. Is the stress lower than in 2?",
             'Do the three fields differ in make-up? Use compare_profiles_of with for_each_group_in="field".',
-            'Cluster the meadow plots with method="hierarchical". Do the clusters match the grazing?',
+            'Cluster the meadow plots with test_method="hierarchical". Do the clusters match the grazing?',
         ],
         solutions=[
             (_sx("""\
@@ -3729,7 +3768,7 @@ LESSONS = [
             (_sx("""\
                 import simplydata as sdata
                 table = sdata.table(sdata.get_example("meadow"))
-                table.add_clusters(how_many=2, method="hierarchical")
+                table.add_clusters(how_many=2, test_method="hierarchical")
                 table.count_rows(for_each_group_in="cluster", across="grazed")"""),
              "Exactly: cluster 1 is the 15 grazed plots and cluster 2 the 15 ungrazed ones."),
         ],
@@ -3779,7 +3818,7 @@ LESSONS = [
                 ("sdata.find_chance_of_finding(effect_size=0.5, values_per_group=20)",
                  "With only 20 values in each group, the chance to find it is just 34 %."),
                 # S3b-2: one line, events first
-                ('sdata.find_how_many_needed(test="compare_survival", effect_size=0.7, percents=[30, 40])',
+                ('sdata.find_how_many_needed(for_test="compare_survival", effect_size=0.7, percents=[30, 40])',
                  "Survival is planned in events first: to find a hazard ratio of 0.7 you need 247 events; if 30 % "
                  "and 40 % have the event during the study, that is 706 people (needs R)."),
             ]),
@@ -3812,11 +3851,11 @@ LESSONS = [
              "Each year of age multiplies the risk by 1.05 (95 % CI 1.03 to 1.08), p < 0.0001."),
             (_sx("""\
                 import simplydata as sdata
-                sdata.find_how_many_needed(test="compare_before_and_after", effect_size=0.3)"""),
+                sdata.find_how_many_needed(for_test="compare_before_and_after", effect_size=0.3)"""),
              "90 pairs, each with a before and an after value."),
             (_sx("""\
                 import simplydata as sdata
-                sdata.find_chance_of_finding(test="compare_averages", effect_size=0.25, groups=3, values_per_group=30)"""),
+                sdata.find_chance_of_finding(for_test="compare_averages", effect_size=0.25, groups=3, values_per_group=30)"""),
              "Only 54 %: too small. find_how_many_needed with groups=3 tells you how many to aim for."),
         ],
         words=["table.find_survival_over_time", "draw_survival_curves", "table.compare_survival",
@@ -3919,7 +3958,7 @@ LESSONS = [
             'so, and search="whole range" looks everywhere. solve with between= finds every crossing.',
             "Names from other tools point to these words: minimize, optimise and argmin to find_where_smallest, "
             "fsolve, brentq and uniroot to solve, curve_fit and nls to fit_formula, polyfit to fit_curve.",
-            'More: fit_line(method=) draws other lines ("theil-sen", "standardised major axis", "deming"), '
+            'More: fit_line(test_method=) draws other lines ("theil-sen", "standardised major axis", "deming"), '
             "fit_line(with_bends=1) lets the line bend, and find_best_power_of finds the Box-Cox power of a "
             "column. The manual and the dictionary have the rest.",
         ],
@@ -4175,9 +4214,9 @@ LESSONS = [
             "go with which, and table.check_hidden_factors(measured_by={...}) checks a model you wrote down "
             "beforehand; read its fit guides as guides, not pass marks. Try them on sdata.get_example(\"ability_tests\").",
             # S3d-3: one "more" line (the Bayesian lesson teaches it)
-            "More, with R: explain(..., bayesian=True) fits the model the Bayesian way (R rstanarm): each effect with "
+            "More, with R: explain(..., test_method=\"bayesian\") fits the model the Bayesian way (R rstanarm): each effect with "
             "its credible interval, the prior printed, and R-hat to check the chains; check_model_of(..., "
-            "bayesian=True) draws the posterior predictive check.",
+            "test_method=\"bayesian\") draws the posterior predictive check.",
         ],
         task=[
             'Partly done for you: after import simplydata as sdata, the next two lines are '
@@ -4422,7 +4461,7 @@ LESSONS = [
                 ('table.add_rolling_column("week_average", from_column="nitrate", window="7 days", '
                  'sorted_by="date", for_each_group_in="station")',
                  "Each week_average is the average nitrate of the 7 days up to that day, for each station."),
-                ('table.add_smoothed_column("nitrate_smoothed", from_column="nitrate", method="moving average", '
+                ('table.add_smoothed_column("nitrate_smoothed", from_column="nitrate", test_method="moving average", '
                  'window=31, sorted_by="date", for_each_group_in="station")',
                  "A moving average over 31 days centred on each day; the first and last 15 days have no full "
                  "window, so they are empty (as R stats::filter(x, rep(1 / 31, 31), sides = 2))."),
@@ -4515,7 +4554,7 @@ LESSONS = [
              "beat it.", [
                 ("import simplydata as sdata", "Load simplydata."),
                 ('table = sdata.table(sdata.get_example("visitors"))', "The visitors table."),
-                ('table.forecast("visitors", sorted_by="month", steps_ahead=12, method="last value", '
+                ('table.forecast("visitors", sorted_by="month", steps_ahead=12, test_method="last value", '
                  'for_each_group_in="museum")',
                  "Harbour Museum: 2072 every month (95 % prediction interval 1746 to 2398 next month, 944 to 3200 in a "
                  "year). The printout warns that the errors still hold a pattern: the season is missed."),
@@ -4553,12 +4592,12 @@ LESSONS = [
             "you look.",
             "check_on_last=12 holds back the last 12 readings: a forecast is only as good as its check on data "
             "it has not seen.",
-            'More: method="arima", order="automatic" lets R auto.arima choose the ARIMA order; the printout '
+            'More: test_method="arima", order="automatic" lets R auto.arima choose the ARIMA order; the printout '
             "names the order, and the intervals are a little too narrow because the order was chosen from the "
             "same data.",
         ],
         task=[
-            "Forecast the Harbour Museum with method=\"same season last time\". How does it compare with "
+            "Forecast the Harbour Museum with test_method=\"same season last time\". How does it compare with "
             "exponential smoothing?",
             "Check the \"straight on\" method (the line from the first reading to the last) on the last 12 months "
             "of the Hill Gallery.",
@@ -4568,14 +4607,14 @@ LESSONS = [
                 import simplydata as sdata
                 table = sdata.table(sdata.get_example("visitors"))
                 table.keep_rows_where("museum", is_equal_to="Harbour Museum")
-                table.forecast("visitors", sorted_by="month", steps_ahead=12, repeats_every="year", method="same season last time")"""),
+                table.forecast("visitors", sorted_by="month", steps_ahead=12, repeats_every="year", test_method="same season last time")"""),
              "It repeats last year's months, so it misses the rise; compare_forecasts_for showed it is about twice "
              "as far off as exponential smoothing (MASE 0.930 against 0.469)."),
             (_sx("""\
                 import simplydata as sdata
                 table = sdata.table(sdata.get_example("visitors"))
                 table.keep_rows_where("museum", is_equal_to="Hill Gallery")
-                table.forecast("visitors", sorted_by="month", steps_ahead=12, method="straight on", check_on_last=12)"""),
+                table.forecast("visitors", sorted_by="month", steps_ahead=12, test_method="straight on", check_on_last=12)"""),
              "It follows the rise but not the season: far worse than exponential smoothing (MASE 2.08 in "
              "compare_forecasts_for)."),
         ],
@@ -4639,7 +4678,7 @@ LESSONS = [
              "recording. The spectrum is smoother but coarser.", [
                 ("import simplydata as sdata", "Load simplydata."),
                 ('table = sdata.table(sdata.get_example("sensor"))', "The sensor table."),
-                ('table.find_spectrum_of("signal", sorted_by="time", method="welch", window=200)',
+                ('table.find_spectrum_of("signal", sorted_by="time", test_method="welch", window=200)',
                  "Pieces of 200 readings with half overlap: the same three cycles stand out (5, 20 and 50 per "
                  "second)."),
             ]),
@@ -5070,7 +5109,7 @@ LESSONS = [
             "find_risk_over_time gives the chance of having had the event by a time; explain_survival's hazard ratio "
             "is about the risk at any moment.",
             'More: followed_from= (rows that join late), average_time_up_to= (the average time without the event, '
-            'easier to read than a hazard ratio), distribution= (time ratios), method="fine-gray", and allowing_for= '
+            'easier to read than a hazard ratio), distribution= (time ratios), test_method="fine-gray", and allowing_for= '
             "on the curve words (curves adjusted for other columns). The dictionary has them all.",
         ],
         task=[
@@ -5174,7 +5213,7 @@ LESSONS = [
         ],
         notes=[
             "Random or common effect is chosen before looking at the data, never by the Q test. simplydata uses random "
-            "effects (REML) with Hartung-Knapp intervals; method= and interval_by= change them.",
+            "effects (REML) with Hartung-Knapp intervals; test_method= and interval_by= change them.",
             "The prediction interval is printed from 3 studies: it shows what a new setting could find, which the "
             "confidence interval of the average does not.",
             "Compare subgroups with the test of their difference, not by which subgroup's interval leaves out 1.",
@@ -5382,7 +5421,7 @@ LESSONS = [
             "sum of all of them, so their numbers are a little higher. The printout says both.",
             "explain_profiles_of uses Bray-Curtis by default (distance-based RDA, as compare_profiles_of). With "
             "Bray-Curtis the read depth itself explains part of the make-up: try using=[\"salinity\", \"reads\"].",
-            "More: compare_profiles_of(..., method=\"anosim\") gives ANOSIM; show=\"contributions\" (SIMPER) shows "
+            "More: compare_profiles_of(..., test_method=\"anosim\") gives ANOSIM; show=\"contributions\" (SIMPER) shows "
             "which genes add most to the difference between two sites, with Warton's caveat; "
             "find_correlation_between_profiles compares two sets of columns (Mantel, Procrustes); "
             "chart.draw_cluster_tree draws the tree of clusters.",
@@ -5423,7 +5462,7 @@ LESSONS = [
                 genes = ["blaTEM", "blaCTXM", "blaOXA48", "blaNDM", "sul1", "sul2", "tetA", "tetM", "qnrS", "ermB",
                          "aadA", "mphA", "vanA", "mcr1"]
                 table.add_log_ratio_columns(columns=genes)"""),
-             "table.add_log_ratio_columns: method=\"clr\" is the default."),
+             "table.add_log_ratio_columns: test_method=\"clr\" is the default."),
         ],
         words=["table.add_log_ratio_columns", "table.add_principal_coordinates", "table.explain_profiles_of",
                "table.find_correlation_between", "draw_dots"],
@@ -5640,7 +5679,7 @@ LESSONS = [
                 ("import simplydata as sdata", "Load simplydata."),
                 ('table = sdata.table(sdata.get_example("job_training"))', "The same men."),
                 ('table.compare_balanced_groups_of("re78", for_each_group_in="treat", allowing_for=["age", "educ", '
-                 '"race", "married", "nodegree", "re74", "re75"], method="matching", effect_for=1, '
+                 '"race", "married", "nodegree", "re74", "re75"], test_method="matching", effect_for=1, '
                  "match_within=0.2)",
                  "Pairs further apart than 0.2 standard deviations of the logit of the score are left out (68 "
                  "trained men had no match). Race is now balanced; the effect among the matched trained men: 1771 "
@@ -5673,7 +5712,7 @@ LESSONS = [
         ],
         task=[
             "Fill in the blank: table.compare_balanced_groups_of(\"re78\", for_each_group_in=\"treat\", "
-            "allowing_for=[...], method=\"matching\", effect_for=____) for the effect among the trained men.",
+            "allowing_for=[...], test_method=\"matching\", effect_for=____) for the effect among the trained men.",
             "Change only one option of part 1: give the effect among the trained men with weighting "
             "(effect_for=1). How does it compare with matching?",
             "Say in words why the plain comparison of part 1 gave the wrong sign.",
@@ -5685,7 +5724,7 @@ LESSONS = [
                 import simplydata as sdata
                 table = sdata.table(sdata.get_example("job_training"))
                 table.compare_balanced_groups_of("re78", for_each_group_in="treat", allowing_for=["age", "educ", "race",
-                                                 "married", "nodegree", "re74", "re75"], method="matching", effect_for=1)"""),
+                                                 "married", "nodegree", "re74", "re75"], test_method="matching", effect_for=1)"""),
              "effect_for=1: the group of the trained men (treat = 1). Without match_within= every trained man is "
              "matched; race stays unbalanced (1.03), and a note says so."),
             (_sx("""\
@@ -5724,17 +5763,17 @@ LESSONS = [
              "and none, and can speak for either.", [
                 ("import simplydata as sdata", "Load simplydata."),
                 ('table = sdata.table(sdata.get_example("clinic"))', "200 made-up patients in two wards."),
-                ('table.compare_averages_of("crp", for_each_group_in="ward", bayesian=True)',
+                ('table.compare_averages_of("crp", for_each_group_in="ward", test_method="bayesian")',
                  "The Bayes factor: how many times as likely the data are if the wards differ as if they do not. "
                  "Below 1 the data favour no difference. The prior (a Cauchy curve of width 0.707) is printed."),
-                ('table.compare_averages_of("crp", for_each_group_in="ward", bayesian=True, prior_width="wide")',
+                ('table.compare_averages_of("crp", for_each_group_in="ward", test_method="bayesian", prior_width="wide")',
                  "The same with a wider prior: the Bayes factor changes, so always say which prior you used."),
             ]),
             ("Did the pain go down after 4 weeks? The credible interval says where the average change probably "
              "lies, given the data and the prior.", [
                 ("import simplydata as sdata", "Load simplydata."),
                 ('table = sdata.table(sdata.get_example("clinic"))', "The same patients, pain at the start and later."),
-                ('table.compare_before_and_after("pain_week_0", "pain_week_4", bayesian=True, with_seed=1)',
+                ('table.compare_before_and_after("pain_week_0", "pain_week_4", test_method="bayesian", with_seed=1)',
                  "A 95 % credible interval: given the data and the prior, a 95 % chance that the average change lies "
                  "in it. with_seed= makes the same random draws again."),
             ]),
@@ -5742,10 +5781,10 @@ LESSONS = [
              "interval, the prior, and a check that the 4 chains agree.", [
                 ("import simplydata as sdata", "Load simplydata."),
                 ('table = sdata.table(sdata.get_example("school"))', "Made-up pupils in 12 schools."),
-                ('table.explain("marks", using=["hours", "breakfast"], bayesian=True)',
+                ('table.explain("marks", using=["hours", "breakfast"], test_method="bayesian")',
                  "R rstanarm draws 4000 values of each effect. Read the prior first, then each effect and its "
                  "interval, then the convergence line: R-hat at most 1.01 and at least 400 effective draws."),
-                ('check = table.check_model_of("marks", using=["hours", "breakfast"], bayesian=True)',
+                ('check = table.check_model_of("marks", using=["hours", "breakfast"], test_method="bayesian")',
                  "The posterior predictive check: the data (dark) against 50 sets made up by the model (light)."),
                 ('check.save("predictive_check.png")', "Save the picture."),
             ]),
@@ -5758,9 +5797,9 @@ LESSONS = [
             "interval is about this value, given the data and the prior. With weak priors they are often close.",
             "If a warning says the chains do not agree (R-hat above 1.01) or there are too few effective draws, do "
             "not report the numbers: simplify the model or put the columns on similar scales first.",
-            "More: find_correlation_between(\"crp\", \"procalcitonin\", bayesian=True) and compare_counts_of(..., "
-            "bayesian=True) give Bayes factors for a correlation and a table of counts; explain(..., grouped_by=, "
-            "bayesian=True) fits a Bayesian mixed model; check_model_of(..., bayesian=True, show=\"prior check\") "
+            "More: find_correlation_between(\"crp\", \"procalcitonin\", test_method=\"bayesian\") and compare_counts_of(..., "
+            "test_method=\"bayesian\") give Bayes factors for a correlation and a table of counts; explain(..., grouped_by=, "
+            "test_method=\"bayesian\") fits a Bayesian mixed model; check_model_of(..., test_method=\"bayesian\", show=\"prior check\") "
             "shows what the prior allows before seeing the data.",
         ],
         task=[
@@ -5773,24 +5812,24 @@ LESSONS = [
             (_sx("""\
                 import simplydata as sdata
                 table = sdata.table(sdata.get_example("clinic"))
-                table.compare_averages_of("procalcitonin", for_each_group_in="ward", bayesian=True)"""),
-             "bayesian=True: the Bayes factor and the credible interval instead of a p-value."),
+                table.compare_averages_of("procalcitonin", for_each_group_in="ward", test_method="bayesian")"""),
+             "test_method=\"bayesian\": the Bayes factor and the credible interval instead of a p-value."),
             (_sx("""\
                 import simplydata as sdata
                 table = sdata.table(sdata.get_example("clinic"))
-                table.compare_averages_of("crp", for_each_group_in="ward", bayesian=True, prior_width="ultrawide")"""),
+                table.compare_averages_of("crp", for_each_group_in="ward", test_method="bayesian", prior_width="ultrawide")"""),
              "A wider prior expects bigger differences, so a small difference counts more for \"no difference\": "
              "the Bayes factor for a difference goes down."),
             (_sx("""\
                 import simplydata as sdata
                 table = sdata.table(sdata.get_example("clinic"))
-                table.compare_before_and_after("pain_week_0", "pain_week_4", bayesian=True)"""),
+                table.compare_before_and_after("pain_week_0", "pain_week_4", test_method="bayesian")"""),
              "Given these patients and the prior, there is a 95 % chance that the average change lies between the "
              "two numbers printed."),
             (_sx("""\
                 import simplydata as sdata
                 table = sdata.table(sdata.get_example("school"))
-                table.check_model_of("marks", using=["hours"], bayesian=True, show="prior check")"""),
+                table.check_model_of("marks", using=["hours"], test_method="bayesian", show="prior check")"""),
              "show=\"prior check\": 50 sets of values made up from the prior alone."),
         ],
         words=["table.compare_averages_of", "table.compare_before_and_after", "table.explain",

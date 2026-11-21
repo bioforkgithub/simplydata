@@ -11,9 +11,9 @@ statsmodels and SciPy; k-means, NMDS and PERMANOVA from R itself (simplydata[r])
   exactly as R prcomp(x, scale. = TRUE). The sign of a component is arbitrary (flipping it
   changes nothing) and differs between maths libraries, so each component is turned so that
   its biggest weight is positive: the same answer on every computer, equal to R up to sign.
-* add_clusters, method="k-means": R stats::kmeans(x, k, nstart = 25) itself (Hartigan-Wong),
+* add_clusters, test_method="k-means": R stats::kmeans(x, k, nstart = 25) itself (Hartigan-Wong),
   run through rpy2 after set.seed(seed), so the clusters are R's. Needs simplydata[r] and R.
-  method="hierarchical": SciPy's agglomerative clustering on Euclidean distances, cut into
+  test_method="hierarchical": SciPy's agglomerative clustering on Euclidean distances, cut into
   how_many clusters; linkage="ward" is R hclust(method = "ward.D2"), and "average",
   "complete" and "single" are the R methods of the same name. Clusters are numbered 1, 2, 3
   in the order they first appear in the table, so the numbers do not jump between runs.
@@ -30,7 +30,7 @@ statsmodels and SciPy; k-means, NMDS and PERMANOVA from R itself (simplydata[r])
 * compare_profiles_of: PERMANOVA, R vegan::adonis2(distances ~ group) itself, then the spread
   check vegan::betadisper() with vegan::permutest(), run through rpy2 after set.seed(seed),
   so pseudo-F, R squared and both permutation p-values are R's for the same seed. A note is
-  printed when the spreads differ. Needs simplydata[r], R and vegan. method="anosim" runs
+  printed when the spreads differ. Needs simplydata[r], R and vegan. test_method="anosim" runs
   vegan::anosim() with the same spread check; show="contributions" runs vegan::simper()
   (permutations = 0: Warton et al. 2012 show its p-values mislead) and gives no test.
 
@@ -173,7 +173,7 @@ def _r_kmeans(z, k, seed):
                  "list(cluster = fit$cluster, between = fit$betweenss, total = fit$totss)",
                  what="k-means (R stats::kmeans())", source="stats::kmeans",
                  python_note="scikit-learn KMeans is similar but finds other clusters; or use "
-                             'method="hierarchical", which needs no R', z=z)
+                             'test_method="hierarchical", which needs no R', z=z)
     total = float(out["total"][0])
     return out["cluster"].astype(int), (float(out["between"][0]) / total if total > 0 else 0.0)
 
@@ -431,9 +431,9 @@ class PatternWords:
             self._check_choice(step, "measure", measure, list(MEASURES))
             if method == "k-means":
                 raise SimplydataError(
-                    f'{step}() with method="k-means" works with straight-line distances to each cluster\'s '
+                    f'{step}() with test_method="k-means" works with straight-line distances to each cluster\'s '
                     f'average, so it takes no measure=. For {MEASURES[measure]} distances use '
-                    f'method="hierarchical":\n  table.add_clusters(how_many=3, method="hierarchical", '
+                    f'test_method="hierarchical":\n  table.add_clusters(how_many=3, test_method="hierarchical", '
                     f'measure="{measure}")')
         if method != "hierarchical":
             return None, False
@@ -444,7 +444,7 @@ class PatternWords:
             raise SimplydataError(
                 f'linkage="ward" assumes straight-line (Euclidean) distances, and {MEASURES[measure]} distances are '
                 'not. Use linkage="average" (simplydata\'s choice for them), "complete" or "single":\n'
-                f'  table.add_clusters(how_many=3, method="hierarchical", measure="{measure}", linkage="average")')
+                f'  table.add_clusters(how_many=3, test_method="hierarchical", measure="{measure}", linkage="average")')
         return chosen, linkage is None
 
     @staticmethod
@@ -457,15 +457,15 @@ class PatternWords:
             return "weak structure that could be made by the method"
         return "no real structure"
 
-    @friendly(renamed={"seed": "with_seed"})
-    def add_clusters(self, columns=None, how_many=3, method="k-means", same_scale=True, with_seed=1, name="cluster",
+    @friendly(renamed={"method": "test_method", "seed": "with_seed"})
+    def add_clusters(self, columns=None, how_many=3, test_method="k-means", same_scale=True, with_seed=1, name="cluster",
                      linkage=None, measure=None, show=None):
         """Sort the rows into groups of similar rows (clusters), in a new column.
 
         table.add_clusters(how_many=3)   (with sdata.get_example("meadow"))
-        method="k-means" (the default) finds how_many clusters whose rows are as close as
+        test_method="k-means" (the default) finds how_many clusters whose rows are as close as
         possible to their cluster's average, from 25 random starts (as R kmeans(nstart = 25));
-        with_seed= makes the result the same every time. method="hierarchical" joins the closest
+        with_seed= makes the result the same every time. test_method="hierarchical" joins the closest
         rows step by step and cuts the tree into how_many clusters; linkage="ward" (R
         hclust(method = "ward.D2")), "average", "complete" or "single". measure= (hierarchical
         only) takes the measures of find_distances_between_rows, such as "bray-curtis" for counts;
@@ -484,10 +484,10 @@ class PatternWords:
         """
         step = "add_clusters"
         example = 'with sdata.get_example("meadow"): table.add_clusters(how_many=3)'
-        self._check_choice(step, "method", method, CLUSTER_METHODS)
+        self._check_choice(step, "test_method", test_method, CLUSTER_METHODS)
         if show is not None:
             self._check_choice(step, "show", show, CLUSTER_SHOW)
-        linkage, chose_linkage = self._cluster_choices(step, method, measure, linkage, example)
+        linkage, chose_linkage = self._cluster_choices(step, test_method, measure, linkage, example)
         if not isinstance(name, str) or not name.strip():
             raise SimplydataError(f"{step}() needs name= as the new column's name in quotes.\nFor example, {example}")
         columns = self._pattern_columns(step, columns, example, leave_out=(name,))
@@ -509,17 +509,17 @@ class PatternWords:
             self._check_measure(measure, x, columns, step)
             _depth_note(measure, x)
             z = x
-        if method == "k-means":
+        if test_method == "k-means":
             self._check_whole(step, "with_seed=", with_seed, 0, R_SEED_MAX, example)
         tree = None
-        if method == "hierarchical":
+        if test_method == "hierarchical":
             from scipy.cluster.hierarchy import linkage as make_tree
 
             tree = (make_tree(z, method=linkage, metric="euclidean") if plain
                     else make_tree(_distances(x, measure), method=linkage))
 
         def cut(k):
-            if method == "k-means":
+            if test_method == "k-means":
                 if len(np.unique(z, axis=0)) < k:
                     raise SimplydataError(f"There are only {len(np.unique(z, axis=0))} different rows, so they cannot "
                                           f"make {k} clusters.")
@@ -548,7 +548,7 @@ class PatternWords:
         else:
             labels, between = cut(how_many)
             sil = None
-        if method == "k-means":
+        if test_method == "k-means":
             how = (f"k-means (Hartigan-Wong) with {KMEANS_STARTS} random starts, run in R: set.seed({with_seed}); "
                    f"kmeans(x, {how_many}, nstart = {KMEANS_STARTS})")
         elif plain:
@@ -565,7 +565,7 @@ class PatternWords:
                 f"{_list_words(str(s) for s in sizes)} (clusters {_list_words(str(i) for i in range(1, found + 1))}, "
                 "numbered in the order they first appear).")
         if plain:
-            if method != "k-means":
+            if test_method != "k-means":
                 within, total = _sum_squares(z, labels)
                 between = 1 - within / total if total > 0 else 0.0
             line += (f" {_pct(between)} of the spread lies between the clusters (between-cluster / total sum of "
@@ -602,7 +602,7 @@ class PatternWords:
             print("Gave back each row's silhouette width (near 1: well inside its cluster; near 0: between two; below "
                   "0: probably in the wrong one) and the cluster it is next closest to.")
             return self._new_table(nw.from_dict(data, backend=self._frame.implementation))
-        return self._with_new_columns(f'add clusters "{name}" ({method}, {found}) of {", ".join(map(str, columns))}',
+        return self._with_new_columns(f'add clusters "{name}" ({test_method}, {found}) of {", ".join(map(str, columns))}',
                                       [(name, labels)], keep, dtype=nw.Int64)
 
     # ------------------------------------------------------------------ distances
@@ -712,9 +712,9 @@ class PatternWords:
                                       [(n, points[:, i]) for i, n in enumerate(names)], keep)
 
     # ------------------------------------------------------------------ PERMANOVA, ANOSIM, SIMPER
-    @friendly(renamed={"for_each": "for_each_group_in", "seed": "with_seed"})
+    @friendly(renamed={"method": "test_method", "for_each": "for_each_group_in", "seed": "with_seed"})
     def compare_profiles_of(self, columns=None, for_each_group_in=None, measure="bray-curtis", permutations=999,
-                            with_seed=1, method="permanova", show=None):
+                            with_seed=1, test_method="permanova", show=None):
         """Do the groups really differ in their make-up across many columns (PERMANOVA)?
 
         table.compare_profiles_of(for_each_group_in="grazed")   (with sdata.get_example("meadow"))
@@ -726,7 +726,7 @@ class PatternWords:
         comes from shuffling the rows permutations= times (with_seed= makes it the same every
         time). It also checks whether the groups differ in spread (vegan::betadisper and
         permutest), because PERMANOVA can then mistake a difference in spread for a difference
-        in make-up. Gives back a one-row table. method="anosim" gives Clarke's ANOSIM R instead
+        in make-up. Gives back a one-row table. test_method="anosim" gives Clarke's ANOSIM R instead
         (vegan::anosim: 0 = groups as different as rows within them, 1 = completely apart), with
         the same spread check. show="contributions" gives SIMPER (vegan::simper): how much each
         column adds to the Bray-Curtis difference between each pair of groups, one row per pair
@@ -736,13 +736,13 @@ class PatternWords:
         step = "compare_profiles_of"
         example = 'with sdata.get_example("meadow"): table.compare_profiles_of(for_each_group_in="grazed")'
         self._check_choice(step, "measure", measure, list(MEASURES))
-        self._check_choice(step, "method", method, PROFILE_METHODS)
+        self._check_choice(step, "test_method", test_method, PROFILE_METHODS)
         if show is not None:
             self._check_choice(step, "show", show, PROFILE_SHOW)
-            if method != "permanova":
+            if test_method != "permanova":
                 raise SimplydataError(f'show="contributions" (SIMPER) is a description, not a test, so it does not go '
-                                      f'with method="{method}". Run them one at a time:\n'
-                                      f'  table.compare_profiles_of(for_each_group_in=..., method="{method}")\n'
+                                      f'with test_method="{test_method}". Run them one at a time:\n'
+                                      f'  table.compare_profiles_of(for_each_group_in=..., test_method="{test_method}")\n'
                                       '  table.compare_profiles_of(for_each_group_in=..., show="contributions")')
             if measure != "bray-curtis":
                 raise SimplydataError('show="contributions" (SIMPER, R vegan::simper) splits the Bray-Curtis difference '
@@ -780,7 +780,7 @@ class PatternWords:
         groups_text = ", ".join(group_names)
         what = (f'the make-up of {len(columns)} columns ({", ".join(map(str, columns))}) in each "{for_each_group_in}" '
                 f"({groups_text})")
-        if method == "anosim":
+        if test_method == "anosim":
             from .community_r import anosim
 
             result = anosim(x, measure, labels, permutations, with_seed)
@@ -814,11 +814,11 @@ class PatternWords:
               f"{_list_words(f'{_num(s)} in {g}' for g, s in zip(group_names, spreads))} (as vegan::betadisper and "
               f"permutest: F = {_num(spread_f)}, {_p_shown(spread_p)}).")
         if spread_p < 0.05:
-            print(f"Note: the groups differ in spread, and {'ANOSIM' if method == 'anosim' else 'PERMANOVA'} can then "
+            print(f"Note: the groups differ in spread, and {'ANOSIM' if test_method == 'anosim' else 'PERMANOVA'} can then "
                   "mistake a difference in spread for a difference in make-up. Look at a picture (table.add_nmds()) "
                   "before reading the result.")
         _depth_note(measure, x)
-        if method == "anosim":
+        if test_method == "anosim":
             row = {"test": "ANOSIM", "what it compares": what, "distance": MEASURES[measure],
                    "statistic name": "ANOSIM R", "statistic": float(r), "p-value": float(p)}
         else:

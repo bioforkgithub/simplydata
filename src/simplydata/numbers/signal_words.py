@@ -10,14 +10,14 @@ from .._time_axis import read_time_step
 
 
 class SignalNumberWords:
-    @friendly(renamed={"times": "time_points"})
-    def find_spectrum(self, time_step=None, method="periodogram", window=None, window_shape="hann", show="power",
+    @friendly(renamed={"method": "test_method", "times": "time_points"})
+    def find_spectrum(self, time_step=None, test_method="periodogram", window=None, window_shape="hann", show="power",
                       between=None, time_points=None, sampling_rate=None, fs=None):
         """Which repeating cycles (frequencies) the numbers hold, and how strong each is.
 
         nums.find_spectrum(time_step=0.01)   (readings 0.01 seconds apart: frequencies per second)
         time_step= is the time between readings (sampling_rate= or fs=, readings per unit of time, are
-        accepted instead); without it the frequencies are in cycles per reading. method="periodogram"
+        accepted instead); without it the frequencies are in cycles per reading. test_method="periodogram"
         (the default; SciPy periodogram, one-sided, scaled so that the powers times the frequency step
         add up to the variance: 2 x R spec.pgram(x, taper = 0, detrend = FALSE, fast = FALSE)$spec,
         except at the top frequency, which R does not double), "welch" (the average periodogram of
@@ -29,11 +29,11 @@ class SignalNumberWords:
         of the variance (%) at each frequency. Prints the 3 strongest cycles.
         """
         step_name = "find_spectrum"
-        name = _signals.read_method(method, step_name)
+        name = _signals.read_method(test_method, step_name)
         values = np.asarray(self._values, dtype=float).ravel()
         if name == "lomb-scargle":
             if time_points is None:
-                raise SimplydataError('method="lomb-scargle" needs time_points= (the time of each reading), as '
+                raise SimplydataError('test_method="lomb-scargle" needs time_points= (the time of each reading), as '
                                       "many as the numbers.")
             t = np.asarray(time_points, dtype=float).ravel()
             if len(t) != len(values):
@@ -44,7 +44,7 @@ class SignalNumberWords:
             values, t, step, words, unit = values[keep], t[keep], 1.0, "times as given", "time units"
         else:
             if time_points is not None:
-                raise SimplydataError('time_points= is for method="lomb-scargle"; other methods need evenly '
+                raise SimplydataError('time_points= is for test_method="lomb-scargle"; other methods need evenly '
                                       "spaced readings and take time_step=.")
             if np.isnan(values).any():
                 raise SimplydataError(f"find_spectrum() needs a value at every step, but {int(np.isnan(values).sum())} "
@@ -91,14 +91,14 @@ class TimeSeriesNumberWords:
                                    "Ljung-Box p-value": got["ljung_box"][1]}))
 
 
-    @friendly
-    def forecast(self, steps_ahead=12, method="exponential smoothing", repeats_every=None, trend=True,
+    @friendly(renamed={"method": "test_method"})
+    def forecast(self, steps_ahead=12, test_method="exponential smoothing", repeats_every=None, trend=True,
                  season="added", order=None, seasonal_order=None, interval=95, check_on_last=None, show="forecast"):
         """Forecast the next numbers, with an interval for each (R forecast and stats, run in R).
 
         nums.forecast(steps_ahead=12, repeats_every=12)
         As table.forecast: the numbers are taken in order, one step apart, and called "numbers" in the
-        sentences. method= "exponential smoothing" (R HoltWinters), "last value", "same season last
+        sentences. test_method= "exponential smoothing" (R HoltWinters), "last value", "same season last
         time", "average", "straight on" or "arima" (with order=); repeats_every= is a whole number of
         readings here. Needs simplydata[r] and R with the forecast package. Gives back a table.
         """
@@ -108,7 +108,7 @@ class TimeSeriesNumberWords:
 
         values = np.asarray(self._values, dtype=float).ravel()
         return Table(pd.DataFrame({"numbers": values})).forecast(
-            "numbers", steps_ahead=steps_ahead, method=method, repeats_every=repeats_every, trend=trend,
+            "numbers", steps_ahead=steps_ahead, test_method=test_method, repeats_every=repeats_every, trend=trend,
             season=season, order=order, seasonal_order=seasonal_order, interval=interval,
             check_on_last=check_on_last, show=show)
 

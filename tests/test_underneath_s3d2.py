@@ -10,7 +10,7 @@ import pytest
 from simplydata._underneath import UNDERNEATH, Entry, causal
 from simplydata._underneath.check import check_entry
 
-KEYS = ["table.compare_balanced_groups_of", 'table.compare_balanced_groups_of method="matching"',
+KEYS = ["table.compare_balanced_groups_of", 'table.compare_balanced_groups_of test_method="matching"',
         'table.compare_risks show="attributable fractions"', "table.rate_of standard_population=",
         "table.compare_rates standard_rates=", "table.explain through=", "table.compare_averages_of period=",
         'table.find_correlation_between empty_cells="multiple imputation"']
@@ -30,7 +30,7 @@ def test_each_option_entry_uses_its_option(entry):
 
 @pytest.mark.parametrize("key, setting, replacement", [
     ("table.compare_balanced_groups_of", 'estimand = "ATE"', 'estimand = "ATT"'),
-    ('table.compare_balanced_groups_of method="matching"', "cluster = ~subclass", "cluster = NULL"),
+    ('table.compare_balanced_groups_of test_method="matching"', "cluster = ~subclass", "cluster = NULL"),
     ("table.compare_rates standard_rates=", "s / 1000", "s / 100"),
     ("table.compare_averages_of period=", "alpha=0.10", "alpha=0.05"),
 ])

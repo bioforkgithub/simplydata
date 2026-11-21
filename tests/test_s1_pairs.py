@@ -1,4 +1,4 @@
-"""S1 Part B: compare_each_pair follow-up tests and add_adjusted_p_value_column(method=) choices.
+"""S1 Part B: compare_each_pair follow-up tests and add_adjusted_p_value_column(test_method=) choices.
 
 Reference values: R 4.6.2 on sdata.get_example("marks") (m <- read.csv(".../marks.csv"); m$class <- factor(m$class)).
 Pairs in R's order: A vs B, A vs C, B vs C (difference = first group minus second).
@@ -34,7 +34,7 @@ def marks(engine):
 
 
 def test_games_howell(marks, capsys, needs_r):
-    got = frame(marks.compare_each_pair_of("marks", for_each_group_in="class", test="games-howell"))
+    got = frame(marks.compare_each_pair_of("marks", for_each_group_in="class", test_method="games-howell"))
     # R: rstatix::games_howell_test(m, marks ~ class) (estimate is group2 - group1; here group 1 - group 2)
     assert got["difference"].tolist() == pytest.approx([7.55555555556, 13.2222222222, 5.66666666667], rel=1e-9)
     assert got["difference 95 % CI low"].tolist() == pytest.approx([-4.13938313571, 1.81661028685, -6.19930464960],
@@ -45,12 +45,12 @@ def test_games_howell(marks, capsys, needs_r):
 
 
 def test_scheffe_and_lsd(marks, capsys, needs_r):
-    got = frame(marks.compare_each_pair_of("marks", for_each_group_in="class", test="scheffe"))
+    got = frame(marks.compare_each_pair_of("marks", for_each_group_in="class", test_method="scheffe"))
     # R: DescTools::ScheffeTest(aov(marks ~ class, m)) (B-A, C-A, C-B: signs turned round)
     assert got["difference 95 % CI low"].tolist() == pytest.approx([-4.43752306719, 1.22914359947, -6.32641195608],
                                                                    rel=1e-9)
     assert got["p-value (adjusted)"][1] == pytest.approx(0.0274, abs=5e-5)
-    got = frame(marks.compare_each_pair_of("marks", for_each_group_in="class", test="lsd"))
+    got = frame(marks.compare_each_pair_of("marks", for_each_group_in="class", test_method="lsd"))
     # R: DescTools::PostHocTest(aov(marks ~ class, m), method = "lsd")
     assert got["difference 95 % CI high"].tolist() == pytest.approx([17.1045536186, 22.7712202853, 15.2156647297],
                                                                     rel=1e-9)
@@ -59,7 +59,7 @@ def test_scheffe_and_lsd(marks, capsys, needs_r):
 
 
 def test_dunn(marks, needs_r):
-    got = frame(marks.compare_each_pair_of("marks", for_each_group_in="class", based_on="ranks", test="dunn"))
+    got = frame(marks.compare_each_pair_of("marks", for_each_group_in="class", based_on="ranks", test_method="dunn"))
     # R: FSA::dunnTest(marks ~ class, data = m, method = "holm")$res
     assert got["statistic"].tolist() == pytest.approx([1.57426373194, 2.73508446358, 1.16082073163], rel=1e-9)
     assert got["p-value (adjusted)"].tolist() == pytest.approx([0.2308529815114, 0.0187092813904, 0.2457148101991],
@@ -67,7 +67,7 @@ def test_dunn(marks, needs_r):
 
 
 def test_conover(marks, needs_r):
-    got = frame(marks.compare_each_pair_of("marks", for_each_group_in="class", test="conover"))
+    got = frame(marks.compare_each_pair_of("marks", for_each_group_in="class", test_method="conover"))
     # R: PMCMRplus::kwAllPairsConoverTest(marks ~ class, data = m, p.adjust.method = "holm")$p.value
     assert got["p-value (adjusted)"].tolist() == pytest.approx([0.2031345282618, 0.0166203565546, 0.224530961538],
                                                                rel=1e-9)
@@ -90,11 +90,11 @@ def test_dunnett(marks, capsys):
 
 def test_pair_errors(marks):
     with pytest.raises(SimplydataError, match="for ranks use"):
-        marks.compare_each_pair_of("marks", for_each_group_in="class", based_on="ranks", test="games-howell")
+        marks.compare_each_pair_of("marks", for_each_group_in="class", based_on="ranks", test_method="games-howell")
     with pytest.raises(SimplydataError, match='does not know against="a"'):
         marks.compare_each_pair_of("marks", for_each_group_in="class", against="a")
-    with pytest.raises(SimplydataError, match="leave out test="):
-        marks.compare_each_pair_of("marks", for_each_group_in="class", test="tukey", against="A")
+    with pytest.raises(SimplydataError, match="leave out test_method="):
+        marks.compare_each_pair_of("marks", for_each_group_in="class", test_method="tukey", against="A")
 
 
 @pytest.mark.parametrize("method, want", [
@@ -104,7 +104,7 @@ def test_pair_errors(marks):
 ])
 def test_hochberg_hommel(engine, method, want):
     t = make(pd.DataFrame({"p": [0.01, 0.04, 0.03, 0.2]}), engine)
-    t.add_adjusted_p_value_column("q", from_column="p", method=method)
+    t.add_adjusted_p_value_column("q", from_column="p", test_method=method)
     assert t._frame.to_pandas()["q"].tolist() == pytest.approx(want, rel=1e-12)
 
 
@@ -117,7 +117,7 @@ def test_letters_marks(marks, capsys, needs_r):
     assert got["average of marks"].tolist() == pytest.approx([71.8333333333, 64.2777777778, 58.6111111111], rel=1e-9)
     assert "Letters: A a, B ab and C b" in capsys.readouterr().out
     # R: TukeyHSD(aov(marks ~ class, m)) p adj 0.2598, 0.0204, 0.4637 -> a ab b
-    assert frame(marks.compare_each_pair_of("marks", for_each_group_in="class", test="tukey", show="letters"))[
+    assert frame(marks.compare_each_pair_of("marks", for_each_group_in="class", test_method="tukey", show="letters"))[
         "letters"].tolist() == ["a", "ab", "b"]
 
 

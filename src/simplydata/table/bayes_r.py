@@ -36,10 +36,10 @@ CHAINS, ITERATIONS, WARMUP, KEPT = 4, 2000, 1000, 1000  # rstanarm's defaults (d
 PREDICTED_DRAWS = 50  # posterior predictive draws in the picture (bayesplot's pp_check shows 50 by default)
 LIGHT_PACKAGES = ("BayesFactor",)
 HEAVY_PACKAGES = ("rstanarm", "rstan", "posterior")
-LIGHT_NOTE = "without R, leave out bayesian=True for the usual test with its p-value"
+LIGHT_NOTE = "without R, leave out test_method=\"bayesian\" for the usual test with its p-value"
 HEAVY_NOTE = ("rstanarm is a large optional R package (about 400 MB with Stan); in R: install.packages(\"rstanarm\", "
               "type = \"binary\") where a ready-made build exists (Windows, macOS; Linux from Posit's public package "
-              "manager). Without it, leave out bayesian=True for the usual model")
+              "manager). Without it, leave out test_method=\"bayesian\" for the usual model")
 
 SEED_R = 'set.seed(seed, kind = "Mersenne-Twister", normal.kind = "Inversion", sample.kind = "Rejection"); '
 _QUANTILES = 'c("2.5%", "50%", "97.5%")'
@@ -157,7 +157,7 @@ def _rstan_notes(note):
 
 
 def stan_model(model, seed):
-    """The Bayesian model of explain(..., bayesian=True), from R rstanarm: estimates and intervals of each model column
+    """The Bayesian model of explain(..., test_method="bayesian"), from R rstanarm: estimates and intervals of each model column
     (ratios for yes/no and counts), sigma, the group spreads, R-hat and effective sizes of every parameter,
     divergences, the prior in rstanarm's own words."""
     from .._r import r_call

@@ -150,17 +150,17 @@ OPTION_ENTRIES = [
     ),
     Entry(
         word="table.find_survival_over_time",
-        option='method="life table"',
+        option='test_method="life table"',
         data="trial",
         ours="""
             table = sdata.table(sdata.get_example("trial"))
             result = table.find_survival_over_time(time="days", event="died", for_each_group_in="treatment",
-                                                   method="life table", at_time_points=[0, 365, 730])
+                                                   test_method="life table", at_time_points=[0, 365, 730])
             result.as_pandas().query("treatment == 'new medicine' and `interval start` == 365")
         """,
         code={
             "R": """
-                # find_survival_over_time(..., method="life table", at_time_points=[0, 365, 730])
+                # find_survival_over_time(..., test_method="life table", at_time_points=[0, 365, 730])
                 # days, ev: the new-medicine rows of sdata.get_example("trial")
                 tis <- c(0, 365, 730, NA)                                             # (1)
                 k <- findInterval(days, tis[1:3])
@@ -453,22 +453,22 @@ OPTION_ENTRIES = [
         tolerance=1e-7,
         choices=("cause-specific: a Cox model of the event asked about, with the competing event counted as the "
                  "end of follow-up (the risk at any moment among those still free of both events).",),
-        also="simplydata also prints how every other value was counted and points to method=\"fine-gray\" for the "
+        also="simplydata also prints how every other value was counted and points to test_method=\"fine-gray\" for the "
              "chance of the event by each time. " + SENTENCE,
     ),
     Entry(
         word="table.explain_survival",
-        option='method="fine-gray"',
+        option='test_method="fine-gray"',
         data="admissions",
         ours=ADMISSIONS_TABLE + """
             result = table.explain_survival(time="time", event="event", value="first_esbl",
-                                            competing_with="discharged", using=["age"], method="fine-gray")
+                                            competing_with="discharged", using=["age"], test_method="fine-gray")
             result.as_pandas()
         """,
         code={
             "R": """
                 # explain_survival(..., value="first_esbl", competing_with="discharged", using=["age"],
-                #                  method="fine-gray")
+                #                  test_method="fine-gray")
                 s <- match(state, c("first_esbl", "discharged"))
                 m <- cmprsk::crr(time, s, cbind(age), failcode = 1, cencode = 0)   # (1)
                 list(coef = m$coef[1], se = sqrt(m$var[1, 1]))

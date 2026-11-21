@@ -14,7 +14,7 @@ the result. Each choice is checked against R in tests/test_s3a_explain.py.
   ConditionalLogit (the exact conditional likelihood), as R survival::clogit(method = "exact").
 * show="risk ratios": modified Poisson regression (Zou 2004), statsmodels GLM(Poisson) with
   cov_type="HC0", as R glm(family = poisson) with sandwich::vcovHC(type = "HC0");
-  method="log-binomial": statsmodels GLM(Binomial(link=Log())), as R glm(family = binomial(link =
+  test_method="log-binomial": statsmodels GLM(Binomial(link=Log())), as R glm(family = binomial(link =
   "log")).
 * giving_outliers_less_weight=True: Huber M-estimation, statsmodels RLM(HuberT(), scale_est="mad",
   cov="H1"), as R MASS::rlm() (k = 1.345, MAD scale).
@@ -242,7 +242,7 @@ def fit_risk_ratios(X, y, method):
                                      or np.any(fitted >= 1 - 1e-9)):
         raise SimplydataError(
             'The log-binomial model did not converge: with a log link some predicted chances reach 1 or more, which '
-            "often happens with this model (R glm(family = binomial(link = \"log\")) stops too). Leave out method= to "
+            "often happens with this model (R glm(family = binomial(link = \"log\")) stops too). Leave out test_method= to "
             'get risk ratios by modified Poisson regression, which always converges: show="risk ratios".')
     out = {"beta": np.asarray(result.params, dtype=float), "cov": np.asarray(result.cov_params(), dtype=float),
            "fitted": fitted, "df": len(y) - X.shape[1], "converged": bool(result.converged),

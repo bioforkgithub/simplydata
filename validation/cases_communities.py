@@ -178,10 +178,10 @@ def _cases(Case):
                  m <- unclass(compositions::clr(r))
                  list(`clr row 1 first` = m[1, 1], `clr row 2 last` = m[2, ncol(m)], `clr row 70 first` = m[70, 1])
              """, r_packages=("zCompositions", "compositions"), r_tolerance=1e-9),
-        Case("table.add_log_ratio_columns", 'method="alr": mite, every species over the first one',
+        Case("table.add_log_ratio_columns", 'test_method="alr": mite, every species over the first one',
              "mite (vegan)", "real data",
              ours=mite + """
-                 r = sdata.table(data).add_log_ratio_columns(columns=species, method="alr",
+                 r = sdata.table(data).add_log_ratio_columns(columns=species, test_method="alr",
                                                              against=species[0]).as_pandas()
                  {"alr row 1 second": r["alr_" + species[1]][0], "alr row 5 last": r["alr_" + species[-1]][4]}
              """,
@@ -189,9 +189,9 @@ def _cases(Case):
                  m <- unclass(compositions::alr(r, ivar = 1))
                  list(`alr row 1 second` = m[1, 1], `alr row 5 last` = m[5, ncol(m)])
              """, r_packages=("zCompositions", "compositions"), r_tolerance=1e-9),
-        Case("table.add_log_ratio_columns", 'method="ilr": mite, isometric log ratios', "mite (vegan)", "real data",
+        Case("table.add_log_ratio_columns", 'test_method="ilr": mite, isometric log ratios', "mite (vegan)", "real data",
              ours=mite + """
-                 r = sdata.table(data).add_log_ratio_columns(columns=species, method="ilr").as_pandas()
+                 r = sdata.table(data).add_log_ratio_columns(columns=species, test_method="ilr").as_pandas()
                  {"ilr1 row 1": r["ilr1"][0], "ilr34 row 3": r["ilr34"][2]}
              """,
              r=LOAD["mite"] + GBM + """
@@ -268,11 +268,11 @@ def _cases(Case):
                  list(`adjusted R squared` = vegan::RsquareAdj(m)$adj.r.squared, `F all` = a$F[1], `p all` = a[1, 4])
              """, r_packages=("vegan",), r_tolerance=1e-9,
              note="The design check found adjusted R squared 0.0825."),
-        Case("table.explain_profiles_of", 'method="canonical correspondence": varespec, CCA with Al, P and K',
+        Case("table.explain_profiles_of", 'test_method="canonical correspondence": varespec, CCA with Al, P and K',
              "varespec and varechem (vegan)", "real data",
              ours=vare + """
                  r = sdata.table(data).explain_profiles_of(species, using=["Al", "P", "K"],
-                                                           method="canonical correspondence").as_pandas()
+                                                           test_method="canonical correspondence").as_pandas()
                  r = r.set_index("term")
                  {"R squared": r.loc["all together", "R squared"], "F all": r.loc["all together", "pseudo-F"],
                   "p Al": r.loc["Al", "p-value"]}
@@ -308,11 +308,11 @@ def _cases(Case):
                  list(`Mantel r` = t$statistic, p = t$signif)
              """, r_packages=("vegan",), r_tolerance=1e-9,
              note="The design check found r 0.305 (p 0.001)."),
-        Case("table.find_correlation_between_profiles", 'method="procrustes": varespec and varechem',
+        Case("table.find_correlation_between_profiles", 'test_method="procrustes": varespec and varechem',
              "varespec and varechem (vegan)", "real data",
              ours=vare + """
                  r = sdata.table(data).find_correlation_between_profiles(first=species, second=list({chem}),
-                                                                         method="procrustes").as_pandas()
+                                                                         test_method="procrustes").as_pandas()
                  {{"Procrustes correlation": r["statistic"][0], "p": r["p-value"][0]}}
              """.format(chem=VARECHEM),
              r=LOAD["vare"] + """
@@ -322,10 +322,10 @@ def _cases(Case):
                  list(`Procrustes correlation` = t$t0, p = t$signif)
              """, r_packages=("vegan",), r_tolerance=1e-9),
         # ---------------------------------------------------------------- compare_profiles_of, distances
-        Case("table.compare_profiles_of", 'method="anosim": dune by management', "dune (vegan)", "real data",
+        Case("table.compare_profiles_of", 'test_method="anosim": dune by management', "dune (vegan)", "real data",
              ours=dune + """
                  r = sdata.table(data).compare_profiles_of(species, for_each_group_in="Management",
-                                                           method="anosim").as_pandas()
+                                                           test_method="anosim").as_pandas()
                  {"ANOSIM R": r["statistic"][0], "p": r["p-value"][0]}
              """,
              r=LOAD["dune"] + """
@@ -371,7 +371,7 @@ def _cases(Case):
         Case("table.add_clusters", 'how_many="automatic": dune, Bray-Curtis, average linkage', "dune (vegan)",
              "real data",
              ours=dune + """
-                 r = sdata.table(data).add_clusters(columns=species, how_many="automatic", method="hierarchical",
+                 r = sdata.table(data).add_clusters(columns=species, how_many="automatic", test_method="hierarchical",
                                                     measure="bray-curtis").as_pandas()
                  {"clusters": r["cluster"].max(), "size of cluster 1": (r["cluster"] == 1).sum()}
              """,
@@ -384,7 +384,7 @@ def _cases(Case):
         Case("table.add_clusters", "measure=: dune, Bray-Curtis, average linkage, 3 clusters", "dune (vegan)",
              "real data",
              ours=dune + """
-                 r = sdata.table(data).add_clusters(columns=species, how_many=3, method="hierarchical",
+                 r = sdata.table(data).add_clusters(columns=species, how_many=3, test_method="hierarchical",
                                                     measure="bray-curtis", show="silhouette").as_pandas()
                  {"average silhouette width": r["silhouette width"].mean(), "width of row 1": r["silhouette width"][0]}
              """,

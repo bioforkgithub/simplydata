@@ -7,7 +7,7 @@ asks for it), why (the principle and the published evidence), the references, an
 in your data before it uses the method.
 
 BASIS is keyed like simplydata._underneath.UNDERNEATH: the word's key in simplydata.learn
-("table.compare_averages_of"), or the word and an option ("table.combine_studies method="). Every
+("table.compare_averages_of"), or the word and an option ("table.combine_studies test_method="). Every
 underneath entry with "simplydata chooses" lines has an entry here, and a test (tests/test_method_basis.py)
 fails when one is missing, when a key is not a current word or option, when a reference has neither a
 DOI nor a URL, or when docs/how_simplydata_chooses.md (made by docs/make_method_basis.py) is out of date.
@@ -635,9 +635,9 @@ BASIS["draw_error_bars"] = _b(
 BASIS["fit_line"] = _b(
     "A least-squares straight line over the range of the data; no band unless with_confidence_band=True (then "
     "the 95 % band of the average y, as R predict(lm, interval = \"confidence\")).",
-    "with_confidence_band=True, show_equation=True; table.fit_line(method=...) for other lines.",
+    "with_confidence_band=True, show_equation=True; table.fit_line(test_method=...) for other lines.",
     "Least squares answers 'predict y from x', the usual question, and the band is the one R draws. Lines that "
-    "treat x and y alike (Warton et al. 2006) are in table.fit_line(method=).",
+    "treat x and y alike (Warton et al. 2006) are in table.fit_line(test_method=).",
     ("warton2006",), "P3", "Only after dots; x and y must be numbers with at least 2 different x.", "convention")
 BASIS["fit_curve"] = _b(
     "A polynomial of degree 2 by least squares (as R lm(y ~ poly(x, 2, raw = TRUE))).",
@@ -648,7 +648,7 @@ BASIS["fit_curve"] = _b(
 BASIS["fit_formula"] = _b(
     "Nonlinear least squares by Levenberg-Marquardt (as minpack.lm::nlsLM(); R nls()'s Gauss-Newton gives the same "
     "estimates when both converge), with Wald t intervals for each value, as summary(nls).",
-    "As table.fit_formula: method=, search=\"whole range\", between=.",
+    "As table.fit_formula: test_method=, search=\"whole range\", between=.",
     "Least squares is what R nls() fits. The Wald intervals rest on a straight-line approximation; for strongly "
     "curved models Bates & Watts 1988 prefer profile-likelihood intervals, which R confint() gives and simplydata "
     "does not yet offer.",
@@ -663,12 +663,12 @@ BASIS["fit_distribution"] = _b(
     "convention")
 BASIS["draw_smooth_line"] = _b(
     "LOWESS as R lowess(): the nearest 2/3 of the dots, 3 robustness steps.",
-    "method=\"loess\" (R loess, with a confidence band), \"spline\" (R smooth.spline), or a moving average and the "
+    "test_method=\"loess\" (R loess, with a confidence band), \"spline\" (R smooth.spline), or a moving average and the "
     "other window methods.",
     "LOWESS is Cleveland's robust local regression (Cleveland 1979) and R's lowess() default; its robustness "
     "steps keep a single outlier from pulling the line.",
     ("cleveland1979",), "P3",
-    "A number for smoothness= with LOWESS is refused; with_confidence_band= needs method=\"loess\"; window methods "
+    "A number for smoothness= with LOWESS is refused; with_confidence_band= needs test_method=\"loess\"; window methods "
     "need evenly spaced x.", "convention")
 BASIS["draw_qq_dots"] = _b(
     "Against the normal distribution (SciPy probplot): dots at Filliben's positions, and the line by least "
@@ -736,7 +736,7 @@ BASIS["table.keep_rows_where"] = _b(
 BASIS["table.show_rows_with_outliers"] = _b(
     "Tukey's rule: values more than 1.5 x IQR below the first or above the third quartile (quartiles as R "
     "quantile(type = 7)), within each group when asked.",
-    "rule=\"3 IQR\" (any k IQR), \"3 standard deviations\" (any k), or a test: \"grubbs\", \"dixon\", "
+    "test_method=\"3 IQR\" (any k IQR), \"3 standard deviations\" (any k), or a test: \"grubbs\", \"dixon\", "
     "\"rosner\" (run in R).",
     "Tukey's fences are the box-plot rule and are not pulled by the outliers themselves, unlike a rule of k "
     "standard deviations. They flag about 0.7 % of clean bell-shaped values, so in a sample of 100 one value is "
@@ -747,7 +747,7 @@ BASIS["table.show_rows_with_outliers"] = _b(
     "warn that they assume bell-shaped data and skip groups with fewer than 3 values.", "convention")
 BASIS["table.remove_rows_with_outliers"] = _b(
     "The same rule as show_rows_with_outliers: Tukey's 1.5 x IQR fences.",
-    "rule= as show_rows_with_outliers.",
+    "test_method= as show_rows_with_outliers.",
     "As show_rows_with_outliers. ICH E9 asks that outlier handling be decided in advance and that results be "
     "reported with and without the values; simplydata names every row it removes, so that both analyses can be "
     "run. With 1.5 x IQR, clean values are removed too in larger samples (Hoaglin & Iglewicz 1987).",
@@ -790,12 +790,12 @@ BASIS["table.find_standard_deviation_of"] = _b(
     ("gum2008", "bonett2006"), "P1",
     "Negative weights are refused; a group with total weight of 1 or less gets an empty value.")
 BASIS["table.find_percentile_of"] = _b(
-    "Linear interpolation between the values (method=\"linear\", R quantile(type = 7)), the default of R, NumPy "
+    "Linear interpolation between the values (test_method=\"linear\", R quantile(type = 7)), the default of R, NumPy "
     "and pandas; interval= gives the exact order-statistic interval.",
-    "method= 1 to 9 (Hyndman & Fan's types) or a NumPy method name; weights= with weight_kind=.",
+    "test_method= 1 to 9 (Hyndman & Fan's types) or a NumPy method name; weights= with weight_kind=.",
     "Type 7 is the shared default of R, NumPy and pandas, so results match theirs. Hyndman & Fan 1996, who "
     "compared the nine definitions, recommend type 8; SPSS and Minitab use type 6. The help names both.",
-    ("hyndman1996",), "P3", "percent= outside 0 to 100 is refused; interval= works with method=\"linear\" only.",
+    ("hyndman1996",), "P3", "percent= outside 0 to 100 is refused; interval= works with test_method=\"linear\" only.",
     "convention")
 BASIS["table.find_summary_of"] = _b(
     "Count, average, standard deviation (n - 1), smallest, median, biggest. When asked: skewness G1 and excess "
@@ -828,7 +828,7 @@ BASIS["table.count_each"] = _b(
 BASIS["table.find_interval_of"] = _b(
     "A BCa bootstrap interval (bias-corrected and accelerated) from 9999 resamples, seed 1, as R "
     "boot::boot.ci(type = \"bca\").",
-    "method=\"percentile bootstrap\" or \"reverse percentile bootstrap\"; resamples=, with_seed=.",
+    "test_method=\"percentile bootstrap\" or \"reverse percentile bootstrap\"; resamples=, with_seed=.",
     "BCa intervals are second-order accurate and correct for bias and skew, where the simple percentile interval "
     "is not (Efron 1987; DiCiccio & Efron 1996). The seed makes the answer repeat.",
     ("efron1987", "diciccio1996", "hesterberg2015"), "P2",
@@ -838,7 +838,7 @@ BASIS["table.find_interval_of"] = _b(
 BASIS["table.find_correlation_between"] = _b(
     "Pearson's r with its 95 % interval (Fisher's z, SciPy) and a two-sided p-value; the strength in words "
     "(below 0.2 very weak ... 0.8 and above very strong).",
-    "method=\"spearman\" (Fisher-z interval, DescTools::SpearmanRho), \"kendall\" (tau-b, asymptotic "
+    "test_method=\"spearman\" (Fisher-z interval, DescTools::SpearmanRho), \"kendall\" (tau-b, asymptotic "
     "interval), \"somers\", \"gamma\"; allowing_for= (partial correlation); p_value_by=\"shuffling\"; "
     "interval_by=\"bootstrap\".",
     "Pearson's r is the usual measure of a straight-line link and its Fisher-z interval the usual interval (Fisher "
@@ -854,7 +854,7 @@ BASIS["table.compare_averages_of"] = _b(
     "Two groups: Welch's t-test, which does not assume both groups have the same spread. Three or more: Welch's "
     "one-way ANOVA (as R oneway.test()). Effect sizes: Hedges' g with the pooled standard deviation (as R "
     "effectsize::hedges_g()), or omega squared from the classic ANOVA.",
-    "test=\"student\", \"anova\", \"yuen\", \"brunner-munzel\", \"alexander-govern\", \"median\", "
+    "test_method=\"student\", \"anova\", \"yuen\", \"brunner-munzel\", \"alexander-govern\", \"median\", "
     "\"jonckheere\"; based_on=\"ranks\" (Mann-Whitney, Kruskal-Wallis).",
     "Welch's test keeps its error rate when the spreads differ and loses almost nothing when they are equal, so it "
     "is recommended as the default, without a preliminary test of the spreads (Welch 1947; Zimmerman 2004; "
@@ -875,7 +875,7 @@ BASIS["table.compare_averages_of based_on="] = _b(
     "Rank tests need no bell shape, but they compare more than the medians, and are not robust to unequal "
     "spreads (Fagerland & Sandvik 2009; Fay & Proschan 2010): that is why they are an option, not the default.",
     ("mann1947", "kruskal1952", "hodges1963", "fagerland2009", "fay2010"), "P3",
-    "test= must then be a rank test.", "convention")
+    "test_method= must then be a rank test.", "convention")
 BASIS["table.compare_averages_of p_value_by="] = _b(
     "The p-value from 9999 random shuffles of the group labels (seed 1), exact when there are fewer arrangements "
     "than that; two-sided p twice the smaller side, as R perm::permTS().",
@@ -901,7 +901,7 @@ BASIS["table.compare_averages_of matched_by="] = _b(
     "met; Haverkamp & Beauducel 2017 found the Huynh-Feldt correction (Huynh & Feldt 1976) better, which "
     "simplydata does not yet offer.",
     ("greenhouse1959", "huynh1976", "haverkamp2017"), "P3",
-    "Refused with based_on=, test=, sides=, p_value_by=, same_within=.", "convention")
+    "Refused with based_on=, test_method=, sides=, p_value_by=, same_within=.", "convention")
 BASIS["table.compare_averages_of grouped_by="] = _b(
     "Nested ANOVA: the treatment is tested against the variation between the units (Error(rat)), not between "
     "readings.",
@@ -919,12 +919,12 @@ BASIS["table.compare_averages_of for_each_group_in= with a list of columns"] = _
 BASIS["table.compare_each_pair_of"] = _b(
     "Each pair by Welch's t-test, the p-values adjusted with Holm's method (as R pairwise.t.test(pool.sd = FALSE, "
     "p.adjust.method = \"holm\")).",
-    "test=\"tukey\" (Tukey-Kramer), \"games-howell\", \"scheffe\", \"lsd\", \"dunn\", \"conover\"; "
+    "test_method=\"tukey\" (Tukey-Kramer), \"games-howell\", \"scheffe\", \"lsd\", \"dunn\", \"conover\"; "
     "based_on=\"ranks\" or \"percents\"; against= (Dunnett); show=\"letters\".",
     "Holm's method keeps the chance of any false alarm at 5 % and is uniformly more powerful than Bonferroni (Holm "
     "1979; Aickin & Gensler 1996); multiplicity should be adjusted for and the method named (Bender & Lange 2001; "
     "ICH E9). Welch's test per pair keeps the error rate when spreads differ; it gives no simultaneous intervals, "
-    "which Games & Howell's procedure does (test=\"games-howell\"; Games & Howell 1976). Tukey-Kramer (Kramer "
+    "which Games & Howell's procedure does (test_method=\"games-howell\"; Games & Howell 1976). Tukey-Kramer (Kramer "
     "1956) and Dunn's test (Dunn 1964) are options.",
     ("holm1979", "aickin1996", "bender2001", "ich_e9", "games1976", "kramer1956", "dunn1964"), "P1",
     "A pair where both groups have no spread is refused; Tukey prints a note when the largest spread is more than "
@@ -934,11 +934,11 @@ BASIS["table.compare_each_pair_of against="] = _b(
     "Leave out against= for all pairs.",
     "Dunnett's procedure compares several treatments with one control and keeps the family error rate (Dunnett "
     "1955).",
-    ("dunnett1955",), "P2", "Refused with test=, based_on= or show=\"letters\".")
+    ("dunnett1955",), "P2", "Refused with test_method=, based_on= or show=\"letters\".")
 BASIS["table.compare_before_and_after"] = _b(
     "Numbers: the paired t-test with Cohen's d_z. Yes/no: McNemar's test with continuity correction (as R "
     "mcnemar.test()). Three or more kinds: Bowker's test of symmetry. Chosen from the kind of column.",
-    "based_on=\"ranks\" (Wilcoxon signed-rank), test=\"sign\", p_value_by=\"exact\" (exact McNemar), "
+    "based_on=\"ranks\" (Wilcoxon signed-rank), test_method=\"sign\", p_value_by=\"exact\" (exact McNemar), "
     "p_value_by=\"shuffling\", same_within=.",
     "The paired t-test uses the changes within each subject. McNemar's test with continuity correction is R's "
     "default; Fagerland, Lydersen & Laake 2013 found the uncorrected asymptotic and mid-p tests better, and the "
@@ -948,20 +948,20 @@ BASIS["table.compare_before_and_after"] = _b(
     "changes; one-sided McNemar and Bowker are refused.", "convention")
 BASIS["table.compare_average_to"] = _b(
     "The one-sample t-test with Cohen's d.",
-    "based_on=\"ranks\" (Wilcoxon signed-rank); test=\"z\" with standard_deviation=; same_within=.",
+    "based_on=\"ranks\" (Wilcoxon signed-rank); test_method=\"z\" with standard_deviation=; same_within=.",
     "The one-sample t-test is the standard test of an average against a value (Student 1908).",
     ("student1908",), "P3", "A value that is not a finite number and fewer than 2 values are refused.", "convention")
 BASIS["table.compare_counts_of"] = _b(
     "The chi-square test of independence, with Yates' continuity correction for 2 x 2 tables only (as R "
     "chisq.test()); Cramér's V.",
-    "test=\"fisher\", \"g\", \"barnard\", \"boschloo\", \"trend\"; p_value_by=\"shuffling\" or "
+    "test_method=\"fisher\", \"g\", \"barnard\", \"boschloo\", \"trend\"; p_value_by=\"shuffling\" or "
     "\"exact\"; show=\"cells\".",
     "simplydata matches R chisq.test() so that results agree with R. The evidence on small tables favours other "
     "choices: Campbell 2007 recommends the 'N - 1' chi-square without Yates' correction (and Fisher's test when an "
     "expected count is below 1), and Yates' correction is conservative (Haviland 1990). Cochran 1954's rule is no "
     "expected count below 1 and at most 20 % below 5; simplydata's note is stricter.",
     ("cochran1954", "campbell2007", "haviland1990"), "P3",
-    "A row or column of zeros is refused; when an expected count is below 5, a note suggests test=\"fisher\" or "
+    "A row or column of zeros is refused; when an expected count is below 5, a note suggests test_method=\"fisher\" or "
     "p_value_by=\"shuffling\" (never a silent switch).", "convention")
 BASIS["sdata.compare_counts"] = _b(
     "The same test as table.compare_counts_of, from a table of counts.",
@@ -986,7 +986,7 @@ BASIS["table.compare_percent_to"] = _b(
     "percent= must lie between 0 and 100; below 1 a note asks whether you meant a share.", "convention")
 BASIS["table.add_adjusted_p_value_column"] = _b(
     "Holm's method (as R p.adjust(method = \"holm\")).",
-    "method=\"bonferroni\", \"benjamini-hochberg\", \"benjamini-yekutieli\", \"hochberg\", \"hommel\"; "
+    "test_method=\"bonferroni\", \"benjamini-hochberg\", \"benjamini-yekutieli\", \"hochberg\", \"hommel\"; "
     "\"storey\" (q-values) and \"local fdr\" (R qvalue).",
     "Holm's method controls the chance of any false alarm, like Bonferroni, but is uniformly more powerful (Holm "
     "1979; Aickin & Gensler 1996); it is R's default. Benjamini-Hochberg controls the share of false alarms "
@@ -995,7 +995,7 @@ BASIS["table.add_adjusted_p_value_column"] = _b(
     "p-values outside 0 to 1 are refused; empty p-values stay empty and are not counted.")
 BASIS["table.compare_spreads_of"] = _b(
     "Levene's test centred on the median (the Brown-Forsythe form), as R car::leveneTest().",
-    "test=\"bartlett\", \"fligner\"; for two groups \"ansari\", \"mood\", \"f\".",
+    "test_method=\"bartlett\", \"fligner\"; for two groups \"ansari\", \"mood\", \"f\".",
     "In Conover, Johnson & Johnson's comparison of 56 tests, the median-centred Levene test was among the few that "
     "kept their error rate without a bell shape (Brown & Forsythe 1974; Conover et al. 1981); Bartlett's test "
     "does not.",
@@ -1004,7 +1004,7 @@ BASIS["table.compare_spreads_of"] = _b(
 BASIS["table.compare_shape_to"] = _b(
     "Against the normal distribution: the Shapiro-Wilk test (as R shapiro.test()). Against another named shape: "
     "the Anderson-Darling test with a parametric-bootstrap p-value (9999 samples, seed 1).",
-    "test=\"lilliefors\", \"dagostino\", \"jarque-bera\"; a distribution object (Kolmogorov-Smirnov or "
+    "test_method=\"lilliefors\", \"dagostino\", \"jarque-bera\"; a distribution object (Kolmogorov-Smirnov or "
     "Cramér-von Mises).",
     "Shapiro-Wilk is among the most powerful normality tests against most alternatives (Shapiro & Wilk 1965; Yap & "
     "Sim 2011). With estimated parameters the Anderson-Darling table p-values do not hold (Stephens 1974), so the "
@@ -1030,7 +1030,7 @@ BASIS["table.check_if_random_order"] = _b(
     "convention")
 BASIS["table.compare_matched_columns"] = _b(
     "Friedman's test with Kendall's W; for yes/no columns Cochran's Q; two columns go to compare_before_and_after.",
-    "test=\"quade\" or \"page\"; compare_averages_of(matched_by=) for repeated-measures ANOVA on averages.",
+    "test_method=\"quade\" or \"page\"; compare_averages_of(matched_by=) for repeated-measures ANOVA on averages.",
     "Friedman's rank test compares several measurements on the same subjects without a bell shape (Friedman "
     "1937); Cochran's Q is its form for yes/no answers (Cochran 1950). For a comparison of averages in long "
     "format, compare_averages_of(matched_by=) gives repeated-measures ANOVA.",
@@ -1046,7 +1046,7 @@ BASIS["table.compare_correlations"] = _b(
     "Exactly 2 groups, at least 4 rows per group, and pairs that share exactly one column; otherwise refused.")
 BASIS["sdata.compare_averages"] = _b(
     "Welch's t-test (two groups) or Welch's ANOVA (three or more), from averages, standard deviations and counts.",
-    "test=\"student\" or \"anova\".",
+    "test_method=\"student\" or \"anova\".",
     "As table.compare_averages_of: Welch's tests stay valid when the spreads differ (Delacre et al. 2017, 2019).",
     ("welch1947", "delacre2017", "delacre2019"), "P2",
     "Counts must be whole numbers of at least 2 and standard deviations above 0.")
@@ -1154,7 +1154,7 @@ BASIS["table.agreement_between"] = _b(
     "Number columns: the ICC for single raters, absolute agreement, two-way random (ICC(A,1), Shrout and "
     "Fleiss' ICC(2,1)), from R irr. Categories: Cohen's kappa for two raters, Fleiss' kappa (a generalisation of "
     "Scott's pi) for more.",
-    "raters=, checking_for=, of= for the other ICC forms; method=\"kappa\", \"krippendorff\", \"lin\"; "
+    "raters=, checking_for=, of= for the other ICC forms; test_method=\"kappa\", \"krippendorff\", \"lin\"; "
     "near_misses=\"linear\" or \"quadratic\" (weighted kappa).",
     "The ICC form must be chosen and reported; ICC(A,1) is the form Koo & Li's flowchart leads to when the raters "
     "are a sample of possible raters and single ratings will be used (Shrout & Fleiss 1979; McGraw & Wong 1996). "
@@ -1192,26 +1192,26 @@ BASIS["table.reliability_of"] = _b(
 BASIS["table.fit_line"] = _b(
     "Least squares (SciPy linregress); the 95 % interval of the slope from the t distribution with n - 2 "
     "degrees of freedom, as R confint(lm(...)).",
-    "method=\"theil-sen\", \"siegel\", \"standardised major axis\", \"major axis\", \"deming\", "
+    "test_method=\"theil-sen\", \"siegel\", \"standardised major axis\", \"major axis\", \"deming\", "
     "\"passing-bablok\"; with_bends=; changes_at=.",
     "Least squares predicts y from x. When both columns carry error and the question is how they change together, "
-    "another line answers it (Warton et al. 2006), which method= offers.",
+    "another line answers it (Warton et al. 2006), which test_method= offers.",
     ("warton2006",), "P3", "Fewer than 3 rows and a constant x are refused; notes on the shape of the residuals.",
     "convention")
-BASIS["table.fit_line method=\"theil-sen\""] = _b(
+BASIS["table.fit_line test_method=\"theil-sen\""] = _b(
     "Sen's slope (the median of all pairwise slopes) with its 95 % interval; the intercept is median(y) - slope x "
     "median(x) (Conover; SciPy's default).",
-    "method=\"siegel\" (repeated medians).",
+    "test_method=\"siegel\" (repeated medians).",
     "The Theil-Sen slope resists outliers (Sen 1968); R mblm takes the median of y - slope x x instead, which the "
     "help says.",
     ("sen1968", "siegel1982"), "P3", "", "convention")
-BASIS["table.fit_line method=\"standardised major axis\""] = _b(
+BASIS["table.fit_line test_method=\"standardised major axis\""] = _b(
     "The standardised major axis with smatr's own 95 % intervals (R smatr::sma()).",
-    "method=\"major axis\".",
+    "test_method=\"major axis\".",
     "When neither column is the 'cause', as in allometry, the standardised major axis describes how two measures "
     "change together (Warton et al. 2006, 2012).",
     ("warton2006", "warton2012smatr"), "P2", "A note when the slope's sign is not pinned down (p of 0.05 or more).")
-BASIS["table.fit_line method=\"deming\", y_error_over_x_error="] = _b(
+BASIS["table.fit_line test_method=\"deming\", y_error_over_x_error="] = _b(
     "Deming regression with the ratio of error variances you give (1 when not given), with mcr's analytical "
     "intervals.",
     "y_error_over_x_error=.",
@@ -1219,9 +1219,9 @@ BASIS["table.fit_line method=\"deming\", y_error_over_x_error="] = _b(
     "come from replicate measurements; 1 when it is not given is simplydata's starting value. The analytical "
     "intervals repeat exactly, where mcr's default bootstrap changes from run to run.",
     ("linnet1993",), "P2", "", "starting value")
-BASIS["table.fit_line method=\"passing-bablok\""] = _b(
+BASIS["table.fit_line test_method=\"passing-bablok\""] = _b(
     "Passing and Bablok's rank-based line with its own intervals (mcr's \"analytical\").",
-    "method=\"deming\".",
+    "test_method=\"deming\".",
     "Passing & Bablok 1983 designed the method for comparing two laboratory methods; it resists outliers and "
     "assumes no distribution.",
     ("passing1983",), "P2", "Fewer than 10 pairs and negative values are refused; below 30 pairs a note.")
@@ -1258,7 +1258,7 @@ BASIS["table.fit_formula"] = _b(
     "Nonlinear least squares by Levenberg-Marquardt (as minpack.lm::nlsLM(); R nls() uses Gauss-Newton and gives "
     "the same estimates when both converge), start values 1 (or the middle of between=), Wald t intervals as "
     "summary(nls); AIC as R logLik.nls.",
-    "method=\"trust region\" or \"dogbox\"; search=\"whole range\" (differential evolution first); start=, "
+    "test_method=\"trust region\" or \"dogbox\"; search=\"whole range\" (differential evolution first); start=, "
     "between=.",
     "Least squares is what R nls() fits. The Wald intervals rest on a straight-line approximation; Bates & Watts "
     "1988 show they can be poor for strongly curved models and prefer profile-likelihood intervals (R confint()), "
@@ -1289,7 +1289,7 @@ BASIS["fit_dose_response"] = _b(
 BASIS["table.find_best_power_of"] = _b(
     "The Box-Cox power with its 95 % profile-likelihood interval, and the simple power (1, 0.5, 0, -1 ...) inside "
     "the interval nearest to it.",
-    "method=\"yeo-johnson\" (also for values at or below 0); using= (R car::powerTransform).",
+    "test_method=\"yeo-johnson\" (also for values at or below 0); using= (R car::powerTransform).",
     "Box & Cox 1964 chose the power by likelihood; the interval shows which simple powers fit as well. For counts "
     "and shares a matching model is better than a transformation (O'Hara & Kotze 2010), which a note says.",
     ("box1964", "ohara2010"), "P2", "Fewer than 10 values are refused; Box-Cox refuses values at or below 0.")
@@ -1298,7 +1298,7 @@ BASIS["table.find_best_power_of"] = _b(
 BASIS["sdata.find_where_smallest"] = _b(
     "One unknown with between=: Brent's method (as R optimize()) after a scan of 200 points. Several unknowns: "
     "Nelder-Mead (R optim()'s default), or L-BFGS-B within limits; linear problems: the HiGHS solver.",
-    "method=; search=\"whole range\" (differential evolution); rules=; whole_numbers=True.",
+    "test_method=; search=\"whole range\" (differential evolution); rules=; whole_numbers=True.",
     "Nelder-Mead and Brent's method are R's defaults (Nelder & Mead 1965). The 200-point scan, L-BFGS-B for limits "
     "and HiGHS for linear problems are simplydata's choices. Nelder-Mead can stop at a point that is not a "
     "minimum (McKinnon 1998), which is why the scan and search=\"whole range\" exist.",
@@ -1314,7 +1314,7 @@ BASIS["sdata.solve"] = _b(
     "rootSolve::uniroot.all(), whose own default is 100 steps); a polynomial: all its roots (as polyroot()); "
     "equations together: exact linear algebra (as solve()), or Powell's hybrid method (MINPACK hybrd, SciPy root()'s "
     "default; R nleqslv's default is Broyden with a double-dogleg step).",
-    "method=\"bisection\", \"ridder\", \"toms748\", \"levenberg-marquardt\", \"broyden\"; start=.",
+    "test_method=\"bisection\", \"ridder\", \"toms748\", \"levenberg-marquardt\", \"broyden\"; start=.",
     "Brent's method and Powell's hybrid method are the standard solvers of SciPy and MINPACK. The 1000-step scan is "
     "simplydata's own starting value; the printout says that roots that only touch zero can be missed by a sign "
     "scan.",
@@ -1370,7 +1370,7 @@ BASIS["table.explain"] = _b(
     "columns are compared with their first level in sorted order. The outcome family is never switched by "
     "itself.",
     "outcome= (yes or no, counts, positive numbers, ordered groups, shares ...), grouped_by=, effects=, "
-    "robust_errors=, test_type=, interval_by=, p_value_by= and the other options below.",
+    "robust_errors=, table_of_tests=, interval_by=, p_value_by= and the other options below.",
     "simplydata follows R's lm() so that every number matches what reviewers can check. It never chooses a model "
     "family from the data, because that choice belongs to the question asked; instead the printout checks the "
     "model and points to a better family.",
@@ -1489,11 +1489,11 @@ BASIS["table.explain matched_by="] = _b(
     "refused.", "convention")
 BASIS["table.explain show=\"risk ratios\""] = _b(
     "Modified Poisson regression (Zou 2004): a Poisson model for the 0/1 column with robust (HC0) standard errors.",
-    "method=\"log-binomial\".",
+    "test_method=\"log-binomial\".",
     "Odds ratios overstate risk ratios when the outcome is common (Zhang & Yu 1998). Modified Poisson gives the "
     "risk ratio and always converges (Zou 2004); the log-binomial model often fails to (McNutt et al. 2003).",
     ("zou2004", "mcnutt2003", "zhang1998"), "P2", "Only for yes/no outcomes.")
-BASIS["table.explain method=\"log-binomial\""] = _b(
+BASIS["table.explain test_method=\"log-binomial\""] = _b(
     "A binomial model with a log link, as R glm(family = binomial(link = \"log\")).",
     "show=\"risk ratios\" alone (modified Poisson).",
     "The log-binomial model gives risk ratios directly but often does not converge (McNutt et al. 2003).",
@@ -1549,10 +1549,10 @@ BASIS["table.explain robust_errors="] = _b(
     "HC3 keeps its error rate in small samples better than White's original HC0 (MacKinnon & White 1985; Long & "
     "Ervin 2000, who recommend it below 250 rows).",
     ("white1980", "mackinnon1985", "long2000"), "P2", "Refused with grouped_by= (GEE is suggested).")
-BASIS["table.explain test_type="] = _b(
-    "No table unless asked; with test_type=\"type 2\" (the usual choice), each column tested after the others but "
+BASIS["table.explain table_of_tests="] = _b(
+    "No table unless asked; with table_of_tests=\"type 2\" (the usual choice), each column tested after the others but "
     "before its interactions (as R car::Anova(type = 2)).",
-    "test_type=\"type 3\" (sum-to-zero coding done for you) or \"in order\" (type 1, as R anova()).",
+    "table_of_tests=\"type 3\" (sum-to-zero coding done for you) or \"in order\" (type 1, as R anova()).",
     "Type II tests respect the principle of marginality and are more powerful than type III for unbalanced data "
     "(Langsrud 2003); type III needs sum-to-zero coding to mean anything, which simplydata sets.",
     ("langsrud2003",), "P2", "Not with grouped_by= and the newer outcome families.")
@@ -1710,7 +1710,7 @@ BASIS["table.compare_models check_on_left_out_rows=True"] = _b(
 BASIS["table.find_columns_that_predict"] = _b(
     "The lasso (R glmnet, alpha = 1), its penalty by 10-fold cross-validation (seed 1), the largest penalty within "
     "one standard error of the best (lambda.1se); columns standardised; no p-values.",
-    "method=\"elastic net\" (alpha = 0.5); outcome=\"yes or no\" or \"counts\".",
+    "test_method=\"elastic net\" (alpha = 0.5); outcome=\"yes or no\" or \"counts\".",
     "The one-standard-error rule, which its authors call a rule of thumb, picks a simpler model that predicts about "
     "as well (Hastie, Tibshirani & Friedman 2009; Friedman, Hastie & Tibshirani 2010). Ordinary p-values are not "
     "valid after selection, so none are printed (Whittingham et al. 2006; Berk et al. 2013).",
@@ -1725,16 +1725,16 @@ BASIS["table.find_group_levels_of"] = _b(
     ("houslay2017", "bates2015"), "P4", "Needs grouped_by=; nested groups and other outcomes are refused.")
 
 # ---- Lines and curves (options with their own entries)
-BASIS["table.add_smoothed_column method=\"loess\", interval="] = _b(
+BASIS["table.add_smoothed_column test_method=\"loess\", interval="] = _b(
     "R loess's own defaults: span 0.75, local curves of degree 2, no robustness steps; the band uses loess's own "
     "degrees of freedom.",
     "smoothness= another span; interval= the level.",
     "These are the defaults of Cleveland's loess as implemented in R (Cleveland & Devlin 1988).",
     ("cleveland1988",), "P3", "At least 5 readings.", "convention")
-BASIS["draw_smooth_line method=\"loess\", with_confidence_band="] = _b(
+BASIS["draw_smooth_line test_method=\"loess\", with_confidence_band="] = _b(
     "R loess's own defaults: span 0.75, local curves of degree 2, no robustness steps (not lowess).",
     "smoothness= another span.",
-    "As table.add_smoothed_column(method=\"loess\") (Cleveland & Devlin 1988).",
+    "As table.add_smoothed_column(test_method=\"loess\") (Cleveland & Devlin 1988).",
     ("cleveland1988",), "P3", "At least 5 different x.", "convention")
 
 # ---- Patterns across columns
@@ -1753,7 +1753,7 @@ BASIS["table.find_principal_components_of"] = _b(
 BASIS["table.add_clusters"] = _b(
     "k-means (R stats::kmeans, Hartigan-Wong, 25 random starts, seed 1) with 3 clusters, on columns put on the same "
     "scale.",
-    "how_many=; method=\"hierarchical\" (Ward's linkage, or average, complete, single); same_scale=False.",
+    "how_many=; test_method=\"hierarchical\" (Ward's linkage, or average, complete, single); same_scale=False.",
     "Hartigan-Wong is R's default algorithm (Hartigan & Wong 1979); many starts avoid a poor local answer. The "
     "number of clusters is the user's question: 3 is a starting value, and silhouettes (Rousseeuw 1987) help "
     "choose it.",
@@ -1793,7 +1793,7 @@ BASIS["table.compare_profiles_of"] = _b(
 BASIS["table.find_survival_over_time"] = _b(
     "Kaplan-Meier curves with 95 % intervals on the log scale (Greenwood's standard error), as R survfit(); the "
     "median time with its interval.",
-    "at_time_points=, method=\"life table\", allowing_for=, followed_from=, average_time_up_to=.",
+    "at_time_points=, test_method=\"life table\", allowing_for=, followed_from=, average_time_up_to=.",
     "Kaplan & Meier's estimator is the standard (Kaplan & Meier 1958); the log-scale interval is R survival's "
     "default (Therneau & Grambsch 2000). Log-log and arcsine-root intervals cover better in small samples (Klein & "
     "Moeschberger 2003), and SAS and Stata use log-log by default; simplydata does not yet offer them.",
@@ -1808,10 +1808,10 @@ BASIS["table.find_survival_over_time at_time_points="] = _b(
     "are left empty, not carried on, which is said.",
     ("kaplan1958",), "P3", "Negative and repeated times are refused; unsorted times are sorted, with a note.",
     "convention")
-BASIS["table.find_survival_over_time method=\"life table\""] = _b(
+BASIS["table.find_survival_over_time test_method=\"life table\""] = _b(
     "The actuarial life table (R KMsurv::lifetab()): intervals start at the times given, the last is open, rows "
     "lost in an interval count as followed for half of it.",
-    "Leave method= out for Kaplan-Meier.",
+    "Leave test_method= out for Kaplan-Meier.",
     "The actuarial method of Cutler & Ederer 1958, for follow-up known only in intervals.",
     ("cutler1958", "klein2003"), "P3", "Needs at_time_points= starting at 0.", "convention")
 BASIS["table.find_survival_over_time allowing_for="] = _b(
@@ -1876,7 +1876,7 @@ BASIS["table.compare_survival competing_with="] = _b(
 BASIS["table.explain_survival"] = _b(
     "The Cox proportional hazards model with Efron's method for tied times (as R coxph()), Wald intervals; the "
     "proportional-hazards check by R cox.zph() and Harrell's C.",
-    "allowing_for= (strata), followed_from=, competing_with=, method=\"fine-gray\", distribution= (accelerated "
+    "allowing_for= (strata), followed_from=, competing_with=, test_method=\"fine-gray\", distribution= (accelerated "
     "failure time).",
     "Efron's approximation is more accurate than Breslow's when times are tied (Hertz-Picciotto & Rockhill "
     "1997) and is R's default; the Schoenfeld-residual test checks proportional hazards (Grambsch & Therneau 1994); "
@@ -1900,13 +1900,13 @@ BASIS["table.explain_survival followed_from="] = _b(
     ("suissa2008", "therneau2000", "klein2003"), "P4", "Empty start times and starts not before the end are refused.")
 BASIS["table.explain_survival competing_with="] = _b(
     "Cause-specific Cox model: the event asked about, with the competing event counted as the end of follow-up.",
-    "method=\"fine-gray\" for the risk itself.",
+    "test_method=\"fine-gray\" for the risk itself.",
     "Austin, Lee & Fine 2016 recommend cause-specific hazards for questions about causes and Fine-Gray for "
     "predicting risk; the printout names the other model.",
     ("austin2016", "latouche2013"), "P2", "")
-BASIS["table.explain_survival method=\"fine-gray\""] = _b(
+BASIS["table.explain_survival test_method=\"fine-gray\""] = _b(
     "Fine and Gray's subdistribution hazard model (cmprsk::crr) with robust (sandwich) standard errors.",
-    "Leave method= out for the cause-specific model.",
+    "Leave test_method= out for the cause-specific model.",
     "Fine & Gray 1999 model the risk of an event when another can come first; their hazard ratios are not ordinary "
     "hazard ratios, which the printout says (Austin, Lee & Fine 2016; Latouche et al. 2013).",
     ("fine1999", "austin2016", "latouche2013"), "P2", "Needs value= and competing_with=; refused with allowing_for= "
@@ -1965,7 +1965,7 @@ BASIS["table.combine_studies"] = _b(
     "effects with REML; Hartung-Knapp intervals with the ad hoc rule (never narrower than the normal interval); "
     "the prediction interval from 3 studies; from 10 studies, a small-study test (Peters' test for counts, else "
     "Egger's) and trim-and-fill as a what-if.",
-    "show=, method= (DerSimonian-Laird, Paule-Mandel, common effect, Mantel-Haenszel, Peto), interval_by=, "
+    "show=, test_method= (DerSimonian-Laird, Paule-Mandel, common effect, Mantel-Haenszel, Peto), interval_by=, "
     "for_each_group_in=, using=.",
     "The method is chosen before the data, never by the heterogeneity test (Borenstein et al. 2010). REML and "
     "Paule-Mandel estimate the between-study spread better than DerSimonian-Laird; Veroniki et al. 2016 favour "
@@ -1976,7 +1976,7 @@ BASIS["table.combine_studies"] = _b(
     "2011); Peters' test was developed for odds ratios (Peters et al. 2006), and trim-and-fill performs poorly "
     "under heterogeneity (Peters et al. 2007), so it is printed as a what-if only. With rare events, inverse-variance "
     "methods with a 0.5 correction are biased and Mantel-Haenszel or Peto do better (Bradburn et al. 2007), which "
-    "method= gives.",
+    "test_method= gives.",
     ("cochrane10", "borenstein2010", "veroniki2016", "langan2019", "inthout2014", "rover2015", "riley2011",
      "inthout2016", "higgins2009", "sterne2011", "peters2006", "peters2007", "egger1997", "duval2000", "deeks2002",
      "hedges1981", "viechtbauer2010", "hartung2001", "hedges1999", "sweeting2004", "bradburn2007"), "P1",
@@ -1993,25 +1993,25 @@ BASIS["table.combine_studies estimates="] = _b(
     "Handbook, chapter 10).",
     ("cochrane10", "viechtbauer2010"), "P1", "Interval columns that cannot be found are refused, with the names "
     "expected.")
-BASIS["table.combine_studies method="] = _b(
-    "With method=\"DerSimonian-Laird\": the moment estimator of the between-study spread (metafor \"DL\"); "
-    "\"Paule-Mandel\" is \"PM\"; \"common effect\" is \"EE\".",
-    "Leave method= out for REML.",
+BASIS["table.combine_studies test_method="] = _b(
+    "With test_method=\"dersimonian-laird\": the moment estimator of the between-study spread (metafor \"DL\"); "
+    "\"paule-mandel\" is \"PM\"; \"common effect\" is \"EE\".",
+    "Leave test_method= out for REML.",
     "DerSimonian-Laird is the classic estimator of older meta-analyses (DerSimonian & Laird 1986) but "
     "underestimates the spread (Veroniki et al. 2016). Paule-Mandel (Paule & Mandel 1982) is recommended for "
     "binary and continuous data by Veroniki et al. 2016; Langan et al. 2019 prefer REML and found Paule-Mandel "
     "biased upward when study sizes differ widely.",
     ("dersimonian1986", "paule1982", "veroniki2016", "langan2019"), "P2",
     "When REML does not converge, the refusal names Paule-Mandel and DerSimonian-Laird.")
-BASIS["table.combine_studies method=\"Mantel-Haenszel\""] = _b(
+BASIS["table.combine_studies test_method=\"mantel-haenszel\""] = _b(
     "Mantel-Haenszel weights, a common-effect method: no between-study spread and no prediction interval.",
-    "Leave method= out for random effects.",
+    "Leave test_method= out for random effects.",
     "Mantel & Haenszel 1959; a common-effect method assumes every study measures the same effect, which the "
     "printout says.",
     ("mantel1959", "cochrane10"), "P3", "Counts or rates only; no meta-regression; no trim-and-fill.", "convention")
-BASIS["table.combine_studies method=\"Peto\""] = _b(
+BASIS["table.combine_studies test_method=\"peto\""] = _b(
     "Peto's one-step odds ratio, a common-effect method; it gives odds ratios only.",
-    "Leave method= out for random effects.",
+    "Leave test_method= out for random effects.",
     "Peto's method is the least biased for rare events with balanced groups (Bradburn et al. 2007; the Cochrane "
     "Handbook), but biased when effects are large (Yusuf et al. 1985 for the method).",
     ("yusuf1985", "bradburn2007", "cochrane10"), "P2", "Counts only; other show= values are refused.")
@@ -2060,8 +2060,8 @@ BASIS["sdata.find_how_many_needed"] = _b(
     "80 % power, significance 0.05, two-sided, two groups of equal size; the two-sample t-test formula (as R "
     "power.t.test(), counting only the right direction for a two-sided test); the answer rounded up. Three or "
     "more groups: one-way ANOVA (Cohen's f); counts: chi-square (Cohen's w), or two percents (R power.prop.test).",
-    "power=, significance=, sides=, groups=, test=, percents=, same_within=, interval_width=, based_on=, "
-    "using=, outcome=, method=, in_clusters_of=, drawing_from=.",
+    "power=, significance=, sides=, groups=, for_test=, percents=, same_within=, interval_width=, based_on=, "
+    "using=, outcome=, test_method=, in_clusters_of=, drawing_from=.",
     "80 % power at a two-sided 5 % level is the convention of Cohen 1988 and G*Power (Faul et al. 2009); two-sided "
     "tests are the regulatory norm (ICH E9). The effect to plan for is the smallest that matters (Lenth 2001), "
     "never the one a finished study found (Hoenig & Heisey 2001).",
@@ -2080,24 +2080,24 @@ BASIS["sdata.find_how_many_needed interval_width="] = _b(
     "Wilson's interval keeps its coverage better than the Wald interval (Brown, Cai & DasGupta 2001); presize's "
     "own method= is a list of four and warns when none is chosen (Haynes et al. 2021).",
     ("brown2001", "haynes2021"), "P2", "spread= is required for an average.")
-BASIS["sdata.find_how_many_needed test="] = _b(
-    "For test=\"compare_survival\": the events needed by Schoenfeld's formula for the log-rank test (R "
+BASIS["sdata.find_how_many_needed for_test="] = _b(
+    "For for_test=\"compare_survival\": the events needed by Schoenfeld's formula for the log-rank test (R "
     "gsDesign::nEvents()), then the people from the share expected to have the event.",
-    "method=\"freedman\".",
+    "test_method=\"freedman\".",
     "Survival power depends on the number of events, not of people (Schoenfeld 1983; Hsieh & Lavori 2000), so the "
     "events are printed first.",
     ("schoenfeld1983", "hsieh2000"), "P2",
     "A hazard ratio of 1 or below 0 is refused; the printout says it assumes proportional hazards and plans no "
     "recruitment time or drop-out.")
-BASIS["sdata.find_how_many_needed method="] = _b(
-    "With method=\"freedman\": Freedman's (1982) formula, two groups of the same size.",
-    "Leave method= out for Schoenfeld's formula.",
+BASIS["sdata.find_how_many_needed test_method="] = _b(
+    "With test_method=\"freedman\": Freedman's (1982) formula, two groups of the same size.",
+    "Leave test_method= out for Schoenfeld's formula.",
     "Freedman 1982 is the other classic log-rank formula; it gives slightly larger numbers than Schoenfeld's.",
     ("freedman1982",), "P3", "Needs percents=.", "convention")
 BASIS["sdata.find_how_many_needed using="] = _b(
     "Regression power on Cohen's f squared, statsmodels FTestPowerF2 (as R pwr::pwr.f2.test()); the rows are "
     "the denominator degrees of freedom plus the columns plus 1.",
-    "test=\"compare_models\" with against=.",
+    "for_test=\"compare_models\" with against=.",
     "Cohen 1988, chapter 9; the newer statsmodels class names the degrees of freedom the right way round.",
     ("cohen1988", "faul2009"), "P3", "One-sided tests are refused; each name counts as 1 degree of freedom, with "
     "a note.", "convention")
@@ -2147,7 +2147,7 @@ BASIS["sdata.find_chance_of_finding by_running="] = _b(
 # ---- Smoothing and trend
 BASIS["table.add_smoothed_column"] = _b(
     "A centred moving average of 5 readings, the ends left empty (as R stats::filter(x, rep(1/5, 5), sides = 2)).",
-    "method=\"median\", \"savitzky-golay\", \"exponential\", \"gaussian\", \"lowess\", \"loess\", \"spline\", "
+    "test_method=\"median\", \"savitzky-golay\", \"exponential\", \"gaussian\", \"lowess\", \"loess\", \"spline\", "
     "\"whittaker\", \"wiener\"; window=, ends=.",
     "The moving average is the simplest smoother and repeats R exactly; the window of 5 is a starting value, not a "
     "published rule. The other methods keep their packages' defaults (Savitzky & Golay 1964; Cleveland 1979).",
@@ -2159,7 +2159,7 @@ BASIS["nums.smooth"] = _b(
     "As table.add_smoothed_column.", (), "P5", "As table.add_smoothed_column.", "starting value")
 BASIS["nums.remove_trend"] = _b(
     "Removes a least-squares straight line (SciPy detrend, as residuals(lm(x ~ seq_along(x)))).",
-    "method=\"average\"; breaks= (separate lines per piece, as SciPy).",
+    "test_method=\"average\"; breaks= (separate lines per piece, as SciPy).",
     "A straight line is the simplest trend; the help says that MATLAB and R pracma join the pieces, SciPy does not.",
     (), "P3", "Empty values and fewer than 3 numbers are refused.", "convention")
 BASIS["table.find_trend_of"] = _b(
@@ -2178,7 +2178,7 @@ BASIS["table.find_trend_of"] = _b(
     "repeats_every= the method line says independence is assumed, not checked.")
 BASIS["table.add_trend_and_season"] = _b(
     "STL (season and trend by loess) with a season window of 7, as R stl(s.window = 7), not robust.",
-    "season_window=\"fixed\" or another odd number; robust=True; method=\"moving averages\" (R decompose) or "
+    "season_window=\"fixed\" or another odd number; robust=True; test_method=\"moving averages\" (R decompose) or "
     "\"straight line\".",
     "STL handles any season length and resists outliers when robust (Cleveland et al. 1990). R stl() has no "
     "default season window; 7 is simplydata's starting value.",
@@ -2195,7 +2195,7 @@ BASIS["table.check_steady_over_time"] = _b(
     "Steady around one level: the ADF test with a constant only (R urca::ur.df(type = \"drift\"), MacKinnon's "
     "p-value from urca::punitroot()) and the KPSS test of a steady level (tseries::kpss.test(null = \"Level\")), "
     "read together.",
-    "method=\"adf\" or \"kpss\"; around=\"straight line\": tseries::adf.test() (constant and trend) and "
+    "test_method=\"adf\" or \"kpss\"; around=\"straight line\": tseries::adf.test() (constant and trend) and "
     "kpss.test(null = \"Trend\").",
     "The two tests have opposite null hypotheses, so reading them together separates 'steady', 'wanders' and "
     "'cannot tell' (Dickey & Fuller 1979; Kwiatkowski et al. 1992); that only works when both ask the same "
@@ -2219,7 +2219,7 @@ BASIS["table.find_change_points_in"] = _b(
 BASIS["table.forecast"] = _b(
     "Holt-Winters exponential smoothing (R HoltWinters()) with an undamped trend, and a season added when "
     "repeats_every= is given; 12 steps ahead with 95 % intervals; a Ljung-Box check of the residuals.",
-    "method=\"last value\", \"same season last time\", \"average\", \"straight on\", \"arima\" (order= "
+    "test_method=\"last value\", \"same season last time\", \"average\", \"straight on\", \"arima\" (order= "
     "required); steps_ahead=, interval=, trend=False, season=\"multiplied\".",
     "Holt-Winters is the classic exponential smoothing (Winters 1960). The evidence favours other defaults: modern "
     "practice chooses among exponential smoothing models by AICc (Hyndman et al. 2002; Hyndman & Athanasopoulos "
@@ -2234,7 +2234,7 @@ BASIS["nums.forecast"] = _b(
 BASIS["table.compare_forecasts_for"] = _b(
     "The last 12 readings held back; last value, same season last time (or the average), straight on and "
     "exponential smoothing compared by MASE.",
-    "methods=, check_on_last=.",
+    "test_method=, check_on_last=.",
     "MASE compares forecasts across series and is defined even with zeros (Hyndman & Koehler 2006).",
     ("hyndman2006", "fpp3"), "P2", "At least 2 methods; ARIMA needs order= (three numbers, or \"automatic\").")
 
@@ -2242,9 +2242,9 @@ BASIS["table.compare_forecasts_for"] = _b(
 BASIS["table.find_spectrum_of"] = _b(
     "The raw periodogram (no taper, mean removed), scaled so the powers add up to the variance (simplydata's "
     "choice of scaling); the 3 strongest peaks named.",
-    "method=\"welch\" (averaged pieces of 256 readings, Hann window), \"lomb-scargle\" (uneven times); show=.",
+    "test_method=\"welch\" (averaged pieces of 256 readings, Hann window), \"lomb-scargle\" (uneven times); show=.",
     "The periodogram shows every frequency the data allow; its values scatter widely and do not settle with more "
-    "data, which Welch's averaged periodogram reduces (Welch 1967), so method=\"welch\" is offered.",
+    "data, which Welch's averaged periodogram reduces (Welch 1967), so test_method=\"welch\" is offered.",
     ("welch1967",), "P3", "Fewer than 4 readings, empty cells and uneven spacing are refused (Lomb-Scargle takes "
     "uneven times).", "convention")
 BASIS["nums.find_spectrum"] = _b(
@@ -2253,7 +2253,7 @@ BASIS["nums.find_spectrum"] = _b(
 BASIS["table.add_filtered_column"] = _b(
     "A Butterworth filter of order 4, run forwards and backwards (zero phase, SciPy sosfiltfilt), the ends padded "
     "by odd reflection (SciPy's default).",
-    "method=\"chebyshev\", \"chebyshev 2\", \"elliptic\", \"bessel\"; steepness=; both_ways=False; "
+    "test_method=\"chebyshev\", \"chebyshev 2\", \"elliptic\", \"bessel\"; steepness=; both_ways=False; "
     "remove_at=.",
     "The Butterworth filter has no ripple in the band kept; running it both ways removes the shift in time. The "
     "ends are handled by SciPy's padding (Gustafsson 1996 gives another way to start the filter). Order 4 is a "
@@ -2280,7 +2280,7 @@ BASIS["nums.find_standard_deviation"] = _b(
     ("gum2008",), "P1", "Fewer than 2 values give an empty answer, with a note.")
 BASIS["nums.find_percentile"] = _b(
     "Linear interpolation (R quantile(type = 7)), empty values skipped.",
-    "table.find_percentile_of(method=) for the other types.",
+    "table.find_percentile_of(test_method=) for the other types.",
     "As table.find_percentile_of (Hyndman & Fan 1996).", ("hyndman1996",), "P3", "", "convention")
 BASIS["table.add_rank_column"] = _b(
     "Rank 1 for the biggest value; ties share the lowest rank (1, 2, 2, 4), as in sports.",
@@ -2310,14 +2310,14 @@ BASIS["cross_correlation_bars"] = _b(
     "that one thing causes the other.",
     (), "P5", "Exactly two columns, filled and evenly spaced.", "starting value")
 BASIS["trend_and_season"] = _b(
-    "STL as table.add_trend_and_season.", "method=, repeats_every=.", "As table.add_trend_and_season (Cleveland "
+    "STL as table.add_trend_and_season.", "test_method=, repeats_every=.", "As table.add_trend_and_season (Cleveland "
     "et al. 1990).", ("cleveland1990",), "P5", "As table.add_trend_and_season.", "starting value")
 BASIS["forecast"] = _b(
     "Holt-Winters exponential smoothing as table.forecast, 12 steps ahead, the 95 % interval as a band.",
     "As table.forecast.", "As table.forecast.", ("winters1960", "fpp3"), "P3", "As table.forecast.", "convention")
 BASIS["spectrum"] = _b(
     "The periodogram as table.find_spectrum_of, on a log scale, the 3 strongest peaks labelled.",
-    "method=\"welch\", show=, log_scale=False.", "As table.find_spectrum_of (Welch 1967 for the averaged form).",
+    "test_method=\"welch\", show=, log_scale=False.", "As table.find_spectrum_of (Welch 1967 for the averaged form).",
     ("welch1967",), "P3", "As table.find_spectrum_of.", "convention")
 BASIS["spectrum_over_time"] = _b(
     "Pieces of 256 readings with a Hann window and half overlap (SciPy spectrogram), in decibels.",
@@ -2340,7 +2340,7 @@ BASIS["peak_dots"] = _b(
 BASIS["table.compare_each_pair_of matched_by="] = _b(
     "Paired t-tests (or Wilcoxon signed-rank with based_on=\"ranks\") for each pair, Holm's adjustment (as R "
     "pairwise.t.test(paired = TRUE)).",
-    "based_on=\"ranks\"; after Friedman's test test=\"nemenyi\" or \"conover\".",
+    "based_on=\"ranks\"; after Friedman's test test_method=\"nemenyi\" or \"conover\".",
     "As table.compare_each_pair_of: Holm's method (Holm 1979).", ("holm1979",), "P2",
     "Subjects not measured in every group are dropped (note); duplicate subject-group rows are refused.")
 
@@ -2392,7 +2392,7 @@ BASIS["draw_richness_curves"] = _b(
 BASIS["table.add_log_ratio_columns"] = _b(
     "The centred log ratio (clr, R compositions::clr()); zeros, when there are any, replaced first by "
     "zCompositions' Bayesian-multiplicative method (GBM), with no column deleted.",
-    "method=\"alr\" (against= the reference) or \"ilr\"; zeros_replaced_by=\"adding 1\".",
+    "test_method=\"alr\" (against= the reference) or \"ilr\"; zeros_replaced_by=\"adding 1\".",
     "Counts that are shares of a total are compositional, and log ratios are the analysis that respects that "
     "(Aitchison 1982; Gloor et al. 2017). The Bayesian-multiplicative replacement estimates each zero from the data "
     "and keeps the ratios of the other parts (Martín-Fernández et al. 2015; Palarea-Albaladejo & Martín-Fernández "
@@ -2403,14 +2403,14 @@ BASIS["table.add_log_ratio_columns"] = _b(
     "Negative values, a single column and rows of zeros are refused; with the multiplicative replacement, non-whole "
     "numbers are refused; a column with fewer than 2 values above 0 is refused, with the line that merges it with "
     "others.")
-BASIS['table.add_log_ratio_columns method="alr"'] = _b(
+BASIS['table.add_log_ratio_columns test_method="alr"'] = _b(
     "Each part over the part named in against= (R compositions::alr(ivar =)).",
-    "method=\"clr\" (the default) or \"ilr\".",
+    "test_method=\"clr\" (the default) or \"ilr\".",
     "The additive log ratio needs a reference part, which you name (Aitchison 1982).",
     ("aitchison1982",), "P3", "against= is required.", "convention")
-BASIS['table.add_log_ratio_columns method="ilr"'] = _b(
+BASIS['table.add_log_ratio_columns test_method="ilr"'] = _b(
     "Isometric log ratios with the default basis of R compositions::ilr().",
-    "method=\"clr\" (the default).",
+    "test_method=\"clr\" (the default).",
     "ilr coordinates depend on the basis chosen (Egozcue et al. 2003): another basis (scikit-bio's) gives other "
     "numbers but the same distances between rows, which the printout says.",
     ("egozcue2003",), "P3", "", "convention")
@@ -2447,7 +2447,7 @@ BASIS["table.explain_profiles_of"] = _b(
     "Distance-based RDA on Bray-Curtis distances (vegan dbrda()), the same distance as compare_profiles_of; the "
     "adjusted R squared first; each column tested after all the others (by = \"margin\"); 999 permutations after "
     "set.seed(1).",
-    "measure=, method=\"canonical correspondence\", allowing_for=, permutations=, with_seed=.",
+    "measure=, test_method=\"canonical correspondence\", allowing_for=, permutations=, with_seed=.",
     "db-RDA tests how columns explain differences in make-up on any distance (Legendre & Anderson 1999; vegan's "
     "dbrda follows McArdle & Anderson 2001, which keeps non-Euclidean distances without correction). The unadjusted "
     "R squared grows with every column, so the adjusted one is printed first (Peres-Neto et al. 2006). Each column "
@@ -2463,10 +2463,10 @@ BASIS["table.explain_profiles_of measure=\"hellinger\""] = _b(
     "Raw abundances give Euclidean-based RDA the problems of Euclidean distance; the Hellinger transformation reduces "
     "them, removing the double-zero problem and the dominance of abundant kinds (Legendre & Gallagher 2001).",
     ("legendre2001",), "P2", "")
-BASIS['table.explain_profiles_of method="canonical correspondence"'] = _b(
+BASIS['table.explain_profiles_of test_method="canonical correspondence"'] = _b(
     "CCA on the counts themselves (chi-square distances), so no measure=; its adjusted R squared from permutations "
     "(vegan), after set.seed.",
-    "Leave method= out for db-RDA.",
+    "Leave test_method= out for db-RDA.",
     "Canonical correspondence analysis (ter Braak 1986) suits long gradients with unimodal responses.",
     ("terbraak1986",), "P3", "Rows that add up to 0 are refused.", "convention")
 BASIS["table.explain_profiles_of allowing_for="] = _b(
@@ -2479,23 +2479,23 @@ BASIS["table.find_correlation_between_profiles"] = _b(
     "The Pearson Mantel correlation between the two sets of distances, 999 permutations after set.seed(1); second= "
     "with 3 or more columns of whole numbers from 0 is read as counts and gets measure=, other measurements get "
     "straight-line distances after each column is put on the same scale.",
-    "method=\"procrustes\"; measure=, permutations=, with_seed=.",
+    "test_method=\"procrustes\"; measure=, permutations=, with_seed=.",
     "The Mantel test is the classic comparison of two distance matrices. It answers a question about distances, not "
     "about the columns themselves, which the printout says, and it has low power (Legendre, Fortin & Borcard 2015); "
-    "Peres-Neto & Jackson 2001 found Procrustes more powerful, which method= gives.",
+    "Peres-Neto & Jackson 2001 found Procrustes more powerful, which test_method= gives.",
     ("legendre2015", "peresneto2001"), "P3", "Different rows in the two sets and fewer than 5 rows are refused.",
     "convention")
-BASIS["table.find_correlation_between_profiles method=\"procrustes\""] = _b(
+BASIS["table.find_correlation_between_profiles test_method=\"procrustes\""] = _b(
     "PROTEST on the first two principal coordinates of each set: the Procrustes correlation and its permutation "
     "p-value.",
-    "Leave method= out for the Mantel test.",
+    "Leave test_method= out for the Mantel test.",
     "Peres-Neto & Jackson 2001 found Procrustes analysis more powerful than the Mantel test for matching two data "
     "sets. Two axes per set is simplydata's starting value.",
     ("peresneto2001",), "P2", "As the Mantel test.")
-BASIS["table.compare_profiles_of method=\"anosim\""] = _b(
+BASIS["table.compare_profiles_of test_method=\"anosim\""] = _b(
     "Clarke's ANOSIM R from ranked distances, 999 permutations after set.seed(1), with the spread check "
     "(betadisper).",
-    "Leave method= out for PERMANOVA.",
+    "Leave test_method= out for PERMANOVA.",
     "ANOSIM is Clarke's rank-based test (Clarke 1993). Like PERMANOVA it mixes a difference in spread with a "
     "difference in place, and ANOSIM more so (Anderson & Walsh 2013), so the spread check is printed (Anderson 2006).",
     ("clarke1993", "anderson2013", "anderson2006"), "P3", "As compare_profiles_of.", "convention")
@@ -2565,7 +2565,7 @@ BASIS["table.find_hidden_factors_behind"] = _b(
     "Exploratory factor analysis by R psych::fa(): the number of factors by parallel analysis (psych fa.parallel(fa "
     "= \"fa\")), minimum residuals (minres) fitting and an oblimin rotation (through GPArotation), with R's random "
     "numbers seeded (with_seed=1); rows with any empty cell left out.",
-    "how_many= a number; method=\"ml\" or \"principal axis\"; rotation=\"varimax\", \"promax\", \"none\".",
+    "how_many= a number; test_method=\"maximum likelihood\" or \"principal axis\"; rotation=\"varimax\", \"promax\", \"none\".",
     "Parallel analysis keeps the factors whose eigenvalues stand out more than in random data of the same size "
     "(Horn 1965; here psych's common-factor variant, Humphreys & Ilgen 1969); the 'eigenvalue above 1' rule keeps "
     "too many (Zwick & Velicer 1986). Simulations disagree on whether the component or the factor variant is more "
@@ -2595,9 +2595,9 @@ BASIS["table.find_hidden_factors_behind how_many="] = _b(
     ("fabrigar1999",), "P3",
     "how_many= must be a whole number from 1 to the largest number of factors the columns can identify.",
     "convention")
-BASIS["table.find_hidden_factors_behind method="] = _b(
-    "With method=\"ml\": maximum likelihood, as base R factanal() fits; \"principal axis\" is psych's fm = \"pa\".",
-    "Leave method= out for minres.",
+BASIS["table.find_hidden_factors_behind test_method="] = _b(
+    "With test_method=\"maximum likelihood\": as base R factanal() fits; \"principal axis\" is psych's fm = \"pa\".",
+    "Leave test_method= out for minres.",
     "Maximum likelihood assumes roughly bell-shaped data and is preferred then (Fabrigar et al. 1999); it is more "
     "prone to improper solutions with small samples or weak factors, where least-squares methods (minres, principal "
     "axis) recover factors as well or better (Briggs & MacCallum 2003; de Winter & Dodou 2012).",
@@ -2651,7 +2651,7 @@ BASIS["table.find_average_direction_of"] = _b(
 BASIS['table.compare_shape_to shape="even around the circle"'] = _b(
     "The Rayleigh test (R circular::rayleigh.test), with the units always given; the default test when full_turn= "
     "is given.",
-    "test=\"rayleigh\" says the same; on a line, the bell-shape tests of compare_shape_to.",
+    "test_method=\"rayleigh\" says the same; on a line, the bell-shape tests of compare_shape_to.",
     "The Rayleigh test is the standard test of uniformity against one preferred direction, and the most powerful "
     "against a von Mises alternative (Mardia & Jupp 1999, 6.3; Fisher 1993, 4.3). It cannot see directions gathered at "
     "two opposite sides, so the printout says so when it finds no preferred direction.",
@@ -2744,7 +2744,7 @@ BASIS['table.fit_distribution_to distribution="generalised pareto"'] = _b(
 BASIS["table.find_percentile_of weights="] = _b(
     "Frequency weights (weight_kind=\"frequency\"): each row counts as often as its whole-number weight, the rows "
     "repeated and the usual linear rule used, as R quantile(rep(x, w)) and Hmisc::wtd.quantile(normwt = FALSE).",
-    "weight_kind=\"analytic\" for sampling weights or precisions; method= as without weights.",
+    "weight_kind=\"analytic\" for sampling weights or precisions; test_method= as without weights.",
     "Repeating the rows keeps the one rule of the unweighted word (Hyndman & Fan 1996, type 7), so weights of 1 change "
     "nothing; NumPy's own weights= offers only the inverted CDF, a step, which gives another answer even with all "
     "weights 1. No study fixes how frequency weights enter a sample quantile; this follows the packages named.",
@@ -2754,11 +2754,11 @@ BASIS["table.find_percentile_of weights="] = _b(
 BASIS['table.find_percentile_of weight_kind="analytic"'] = _b(
     "The weighted inverted CDF (NumPy percentile(weights=, method=\"inverted_cdf\")), the rule of R "
     "survey::svyquantile(qrule = \"math\").",
-    "weight_kind=\"frequency\" (whole-number weights, any method=).",
+    "weight_kind=\"frequency\" (whole-number weights, any test_method=).",
     "For sampling weights the population quantile is read from the weighted distribution function (Lumley 2004, the "
     "survey package; Hyndman & Fan 1996, definition 1); it is the only rule NumPy offers with weights.",
     ("lumley2004", "hyndman1996"), "P3",
-    "method= other than the inverted CDF is refused with analytic weights; NumPy older than 2.0 is refused.",
+    "test_method= other than the inverted CDF is refused with analytic weights; NumPy older than 2.0 is refused.",
     "convention")
 BASIS["table.find_median_of weights="] = _b(
     "As find_percentile_of(weights=) at 50 %: frequency weights repeat the rows.",
@@ -2772,7 +2772,7 @@ BASIS['table.find_correlation_between show="covariance"'] = _b(
     "n - 1 gives the unbiased covariance, the default of pandas and R; pairwise rows follow the correlation table of "
     "the same word. R's own default (use = \"everything\") gives NA with any empty cell. No study is needed for "
     "this convention.", (), "P3",
-    "Fewer than 2 rows for a pair is refused; method=, sides= and the test options are refused (a covariance has no "
+    "Fewer than 2 rows for a pair is refused; test_method=, sides= and the test options are refused (a covariance has no "
     "test).", "convention")
 BASIS['table.forecast order="automatic"'] = _b(
     "R forecast::auto.arima chooses the order and the seasonal order by AICc, trying every order (stepwise = FALSE, "
@@ -2784,50 +2784,50 @@ BASIS['table.forecast order="automatic"'] = _b(
     ("hyndman2008auto", "fpp3"), "P2",
     "seasonal_order= with order=\"automatic\" is refused; the chosen orders are printed; above 1,000 readings the "
     "quicker search is used and said.")
-BASIS['table.add_adjusted_p_value_column method="storey"'] = _b(
+BASIS['table.add_adjusted_p_value_column test_method="storey"'] = _b(
     "Storey's q-values from R qvalue::qvalue() with its defaults: the share of true nulls (pi0) estimated from the "
     "p-values by the smoother over lambda = 0.05 to 0.95.",
-    "method=\"benjamini-hochberg\" (pi0 = 1); \"local fdr\".",
+    "test_method=\"benjamini-hochberg\" (pi0 = 1); \"local fdr\".",
     "Estimating pi0 makes the false discovery rate less conservative than Benjamini-Hochberg when many tests are "
     "real (Storey 2002; Storey & Tibshirani 2003); qvalue is the authors' own package. The gain needs many p-values: "
     "with few, pi0 is unstable.",
     ("storey2002", "storey2003", "benjamini1995"), "P2",
     "Fewer than 100 p-values get a note; when qvalue cannot estimate pi0 the word refuses and names "
     "Benjamini-Hochberg; p-values outside 0 to 1 are refused and empty ones skipped.")
-BASIS['table.add_adjusted_p_value_column method="local fdr"'] = _b(
+BASIS['table.add_adjusted_p_value_column test_method="local fdr"'] = _b(
     "Each test's local false discovery rate from R qvalue::qvalue()$lfdr (pi0 from the smoother), in a column "
     "called \"local false discovery rate\".",
-    "method=\"storey\" (q-values: about all the results at least this small).",
+    "test_method=\"storey\" (q-values: about all the results at least this small).",
     "The local false discovery rate is the chance that one test is a false discovery (Efron et al. 2001); qvalue "
     "gives it with the same pi0 as the q-values (Storey & Tibshirani 2003).",
-    ("efron2001", "storey2003"), "P2", "As method=\"storey\".")
-BASIS['table.compare_each_pair_of matched_by=, test="nemenyi"'] = _b(
+    ("efron2001", "storey2003"), "P2", "As test_method=\"storey\".")
+BASIS['table.compare_each_pair_of matched_by=, test_method="nemenyi"'] = _b(
     "Nemenyi's test after Friedman's (R PMCMRplus::frdAllPairsNemenyiTest()), on the ranks within each matched row; "
     "its studentized range allows for all the pairs, so there is no further adjustment.",
-    "The default (Wilcoxon signed-rank tests with Holm); test=\"conover\".",
+    "The default (Wilcoxon signed-rank tests with Holm); test_method=\"conover\".",
     "Nemenyi's test is the usual follow-up to Friedman's in method comparisons (Demšar 2006), but mean-rank tests "
     "make each pair depend on the other groups in the study (Benavoli et al. 2016), so it is offered on request, "
     "with that note, and Wilcoxon-Holm stays the default.",
     ("demsar2006", "benavoli2016"), "P2",
     "Fewer than 3 groups is refused; rows not measured in every group are left out with a note.")
-BASIS['table.compare_each_pair_of matched_by=, test="conover"'] = _b(
+BASIS['table.compare_each_pair_of matched_by=, test_method="conover"'] = _b(
     "Conover's test after Friedman's (R PMCMRplus::frdAllPairsConoverTest()), with Holm's adjustment.",
-    "test=\"nemenyi\"; the default Wilcoxon-Holm.",
+    "test_method=\"nemenyi\"; the default Wilcoxon-Holm.",
     "Conover's test on the ranks within blocks is more powerful than Nemenyi's (Conover & Iman 1979); Holm keeps the "
     "chance of any false alarm at 5 % (Holm 1979), as for Conover after Kruskal-Wallis. PMCMRplus's default is "
     "single-step and scikit-posthocs adjusts nothing, so the printout says why their numbers differ. The same "
     "mean-rank caveat applies (Benavoli et al. 2016).",
-    ("conover1979", "holm1979", "benavoli2016"), "P2", "As test=\"nemenyi\".")
+    ("conover1979", "holm1979", "benavoli2016"), "P2", "As test_method=\"nemenyi\".")
 BASIS['table.compare_each_pair_of based_on="percents"'] = _b(
     "Each pair by the 2 x 2 chi-square test with Yates' correction that compare_counts_of uses, Holm's adjustment, "
     "and the difference with Newcombe's interval: as R pairwise.prop.test() (whose default is the same).",
-    "test=\"fisher\" (Fisher's exact test for each pair).",
+    "test_method=\"fisher\" (Fisher's exact test for each pair).",
     "Yates' correction (Yates 1934) makes the chi-square p-value closer to the exact one for small counts, at the cost "
     "of being conservative (Haviland 1990); simplydata keeps it so that each pair agrees with compare_counts_of, "
     "compare_risks and R. Holm controls the chance of any false alarm (Holm 1979); Newcombe's interval for the "
     "difference keeps its coverage (Newcombe 1998).",
     ("yates1934", "haviland1990", "holm1979", "newcombe1998"), "P3",
-    "Expected counts below 5 get a note pointing to test=\"fisher\"; a pair whose rows all have one value gets no "
+    "Expected counts below 5 get a note pointing to test_method=\"fisher\"; a pair whose rows all have one value gets no "
     "p-value (as R) and is left out of Holm's adjustment.", "convention")
 
 # ---- Epidemiology and cause and effect (S3d-2)
@@ -2835,7 +2835,7 @@ BASIS["table.compare_balanced_groups_of"] = _b(
     "Weighting by the inverse of the propensity score (R WeightIt, method = \"glm\"), for everyone (ATE); the effect "
     "from WeightIt::lm_weightit() with M-estimation standard errors that allow for the estimated weights; a balance "
     "table of standardised differences before and after (R cobalt, every column, the guide 0.1).",
-    "method=\"matching\"; effect_for=\"<a group>\" for the effect among that group (ATT); show=\"balance\" or "
+    "test_method=\"matching\"; effect_for=\"<a group>\" for the effect among that group (ATT); show=\"balance\" or "
     "\"propensity scores\".",
     "The propensity score balances the measured columns between the groups (Rosenbaum & Rubin 1983). Weighting keeps "
     "every row and gives the average effect for everyone; standard errors that ignore the estimated weights are "
@@ -2845,11 +2845,11 @@ BASIS["table.compare_balanced_groups_of"] = _b(
     "Two groups only; the overlap of the scores is printed with the rows outside it; columns still more than 0.1 "
     "apart after balancing get a note; weights above 20 get a note; the assumptions (no unmeasured column affecting "
     "both, overlap, a right propensity model) are printed every time.")
-BASIS['table.compare_balanced_groups_of method="matching"'] = _b(
+BASIS['table.compare_balanced_groups_of test_method="matching"'] = _b(
     "1:1 nearest-neighbour matching on the propensity score without replacement (R MatchIt's default), the effect "
     "among the rows of the effect_for= group (ATT) from lm() on the matched rows with standard errors clustered on "
     "the pairs (sandwich::vcovCL), as the MatchIt vignette does.",
-    "match_within=0.2 (a caliper of 0.2 standard deviations of the logit of the score); method=\"weighting\" for the "
+    "match_within=0.2 (a caliper of 0.2 standard deviations of the logit of the score); test_method=\"weighting\" for the "
     "effect for everyone.",
     "Nearest-neighbour matching is the most used and best studied matching method (Stuart 2010; Ho et al. 2011). A "
     "caliper of 0.2 standard deviations of the logit of the score removes most of the bias in simulations (Austin "
@@ -2920,7 +2920,7 @@ BASIS['table.find_correlation_between empty_cells="multiple imputation"'] = _b(
     "Correlations are not normal near -1 and 1, so they are pooled on Fisher's z scale (van Buuren 2018, section "
     "5.2.3), with Rubin's rules (Rubin 1987).",
     ("vanbuuren2018", "rubin1987"), "P2",
-    "method=\"pearson\" or \"spearman\" only; show=, sides=, p_value_by=, interval_by= and allowing_for= are refused "
+    "test_method=\"pearson\" or \"spearman\" only; show=, sides=, p_value_by=, interval_by= and allowing_for= are refused "
     "with it; rows where every column is empty are left out with a note.")
 BASIS['table.explain_survival empty_cells="multiple imputation"'] = _b(
     "The empty cells of the number columns of using= filled in 20 times (statsmodels MICEData) from the event, the "
@@ -2930,7 +2930,7 @@ BASIS['table.explain_survival empty_cells="multiple imputation"'] = _b(
     "To fill in a covariate of a Cox model, the event and the cumulative hazard should be in the imputation model, "
     "not the time (White & Royston 2009); small-sample degrees of freedom follow Barnard & Rubin (1999).",
     ("white2009", "barnard1999", "rubin1987"), "P2",
-    "A plain Cox model only (allowing_for=, followed_from=, competing_with=, distribution= and method=\"fine-gray\" "
+    "A plain Cox model only (allowing_for=, followed_from=, competing_with=, distribution= and test_method=\"fine-gray\" "
     "are refused); empty cells in text columns, the time or the event leave those rows out.")
 
 # ---- Planning and surveys (S3d-1)
@@ -3049,7 +3049,7 @@ BASIS["table.find_median_of after use_survey_design()"] = _b(
     "keeps the design (Woodruff 1952; Lumley 2010).", ("woodruff1952", "lumley2010"), "P1",
     "As find_average_of under a survey design.")
 BASIS["table.find_percentile_of after use_survey_design()"] = _b(
-    "As find_median_of under a survey design, at the percent given.", "method= and interval= are refused here.",
+    "As find_median_of under a survey design, at the percent given.", "test_method= and interval= are refused here.",
     "As table.find_median_of after use_survey_design().", ("woodruff1952", "lumley2010"), "P1",
     "As find_average_of under a survey design.")
 BASIS["table.find_percent_of_rows_where after use_survey_design()"] = _b(
@@ -3091,49 +3091,49 @@ _BF_WHY = ("A Bayes factor says how much more likely the data are under one hypo
            "the Bayesian reporting guidelines ask for the prior to be stated and for its influence to be checked "
            "(Kruschke 2021), so the width is printed and prior_width= changes it. The interval comes from 10,000 "
            "posterior draws with a fixed seed, so it is the same on every run.")
-_BF_CHECKS = ("The other options of the usual test are refused with bayesian=True; prior_width= without bayesian=True "
+_BF_CHECKS = ("The other options of the usual test are refused with test_method=\"bayesian\"; prior_width= without test_method=\"bayesian\" "
               "is refused; no p-value and no verdict words are printed.")
-BASIS["table.compare_averages_of bayesian=True"] = _b(
+BASIS["table.compare_averages_of test_method=\"bayesian\""] = _b(
     "The JZS Bayes factor t-test for two groups from R BayesFactor::ttestBF(), with a Cauchy prior of medium width "
     "(r = 0.707) on the effect size, and the 95 % credible interval of the difference from BayesFactor::posterior().",
-    "prior_width=\"wide\" (1), \"ultrawide\" (1.414) or a number; bayesian=False for Welch's t-test.",
+    "prior_width=\"wide\" (1), \"ultrawide\" (1.414) or a number; leave out test_method= for Welch's t-test.",
     _BF_WHY, ("rouder2009", "wagenmakers2018", "kruschke2021"), "P3", "Exactly two groups; " + _BF_CHECKS,
     "convention")
-BASIS["table.compare_before_and_after bayesian=True"] = _b(
+BASIS["table.compare_before_and_after test_method=\"bayesian\""] = _b(
     "The JZS Bayes factor paired t-test (R BayesFactor::ttestBF(after, before, paired = TRUE)), medium width, and the "
     "95 % credible interval of the average change.",
-    "prior_width=\"wide\", \"ultrawide\" or a number; bayesian=False for the paired t-test.",
+    "prior_width=\"wide\", \"ultrawide\" or a number; leave out test_method= for the paired t-test.",
     _BF_WHY, ("rouder2009", "wagenmakers2018", "kruschke2021"), "P3", "Both columns must hold numbers; " + _BF_CHECKS,
     "convention")
-BASIS["table.compare_average_to bayesian=True"] = _b(
+BASIS["table.compare_average_to test_method=\"bayesian\""] = _b(
     "The JZS Bayes factor one-sample t-test (R BayesFactor::ttestBF() on the values minus the number), medium width, "
     "and the 95 % credible interval of the average minus the number.",
-    "prior_width=\"wide\", \"ultrawide\" or a number; bayesian=False for the one-sample t-test.",
+    "prior_width=\"wide\", \"ultrawide\" or a number; leave out test_method= for the one-sample t-test.",
     _BF_WHY + " BayesFactor's posterior() leaves its mu = argument out, so the number is taken away first; the Bayes "
     "factor is the same either way.", ("rouder2009", "wagenmakers2018", "kruschke2021"), "P3", _BF_CHECKS,
     "convention")
-BASIS["table.find_correlation_between bayesian=True"] = _b(
+BASIS["table.find_correlation_between test_method=\"bayesian\""] = _b(
     "The Bayes factor for a correlation from R BayesFactor::correlationBF(), with a stretched beta prior of medium "
     "width (1/3), and the 95 % credible interval of the correlation.",
-    "prior_width=\"wide\" (0.577), \"ultrawide\" (1) or a number; bayesian=False for Pearson's test.",
+    "prior_width=\"wide\" (0.577), \"ultrawide\" (1) or a number; leave out test_method= for Pearson's test.",
     _BF_WHY + " JASP's default width for correlations is 1, so its Bayes factors differ; the printout says so "
     "(Ly, Verhagen & Wagenmakers 2016).", ("ly2016", "wagenmakers2018", "kruschke2021"), "P3",
     "Exactly two columns; " + _BF_CHECKS, "convention")
-BASIS["table.compare_counts_of bayesian=True"] = _b(
+BASIS["table.compare_counts_of test_method=\"bayesian\""] = _b(
     "The Gunel-Dickey Bayes factor for a table of counts from R BayesFactor::contingencyTableBF(), with independent "
     "multinomial sampling and each group's total fixed (the groups are the rows), prior concentration 1, and each "
     "group's shares with 95 % credible intervals.",
-    "bayesian=False for the chi-square test.",
+    "leave out test_method= for the chi-square test.",
     "A Bayes factor for a table depends on how the data were collected; with groups chosen first (such as wards or "
     "exposure groups) each group's total is fixed, which is independent multinomial sampling (Gunel & Dickey 1974; "
     "Jamil et al. 2017). The printout names the sampling plan. Concentration 1 is BayesFactor's default.",
     ("gunel1974", "jamil2017", "kruschke2021"), "P3", _BF_CHECKS, "convention")
-BASIS["table.explain bayesian=True"] = _b(
+BASIS["table.explain test_method=\"bayesian\""] = _b(
     "A Bayesian regression from R rstanarm::stan_glm() (numbers, yes or no, counts) with rstanarm's default weakly "
     "informative priors scaled to the data, 4 chains of 2000 iterations and seed = with_seed; each effect as the "
     "posterior median with its central 95 % credible interval; rank-normalised R-hat and bulk and tail effective "
     "draws from the posterior package.",
-    "grouped_by= for a mixed model (stan_glmer); bayesian=False for the usual model.",
+    "grouped_by= for a mixed model (stan_glmer); leave out test_method= for the usual model.",
     "Weakly informative priors keep estimates stable without overruling the data (Gelman et al. 2008); the reporting "
     "guidelines ask for the priors, the convergence measures and the interval type to be stated (Kruschke 2021). "
     "The older R-hat misses some problems; the rank-normalised R-hat with the guide 1.01 and at least 400 effective "
@@ -3141,13 +3141,13 @@ BASIS["table.explain bayesian=True"] = _b(
     "defaults.", ("gelman2008prior", "vehtari2021", "kruschke2021"), "P1",
     "Warnings come before any estimate when R-hat is above 1.01, there are fewer than 400 effective draws or any "
     "divergent transition, each with what to do; options other than outcome=, grouped_by= and with_seed= are refused.")
-BASIS["table.explain bayesian=True, grouped_by="] = _b(
+BASIS["table.explain test_method=\"bayesian\", grouped_by="] = _b(
     "A Bayesian mixed model from R rstanarm::stan_glmer() with its own starting level for each group, (1 | group), "
-    "and rstanarm's decov prior for the group spread; otherwise as explain(bayesian=True).",
-    "bayesian=False for lme4.",
-    "As explain(bayesian=True); every group's own level is checked for convergence too (Vehtari et al. 2021).",
+    "and rstanarm's decov prior for the group spread; otherwise as explain(test_method=\"bayesian\").",
+    "leave out test_method= for lme4.",
+    "As explain(test_method=\"bayesian\"); every group's own level is checked for convergence too (Vehtari et al. 2021).",
     ("vehtari2021", "kruschke2021"), "P1", "One grouped_by= column.")
-BASIS["table.check_model_of bayesian=True"] = _b(
+BASIS["table.check_model_of test_method=\"bayesian\""] = _b(
     "The posterior predictive check: the data against 50 sets made up by the fitted model (rstanarm "
     "posterior_predict()), as densities for numbers (R stats::density(), as bayesplot::ppc_dens_overlay) and as "
     "bars with the median and 90 % interval of the made-up counts for yes/no and counts (as bayesplot::ppc_bars).",
@@ -3155,5 +3155,5 @@ BASIS["table.check_model_of bayesian=True"] = _b(
     "Pictures of the data against data made up by the model show what a model misses better than one number, and the "
     "prior predictive check shows whether a prior allows impossible values (Gabry et al. 2019). 50 sets is what "
     "bayesplot's pp_check() draws by default.", ("gabry2019",), "P2",
-    "The same convergence warnings as explain(bayesian=True).")
+    "The same convergence warnings as explain(test_method=\"bayesian\").")
 

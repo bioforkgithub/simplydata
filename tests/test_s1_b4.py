@@ -42,18 +42,18 @@ def test_count_each_interval(engine, capsys):
 @pytest.mark.parametrize("rule, flagged", [("grubbs", [10]), ("dixon", [10]), ("rosner", [10, 11])])
 def test_outlier_tests(engine, needs_r, capsys, rule, flagged):
     t = make(engine, pd.DataFrame({"v": X}))
-    t.show_rows_with_outliers("v", rule=rule)
+    t.show_rows_with_outliers("v", test_method=rule)
     out = capsys.readouterr().out
     assert f"Found {len(flagged)} row" in out
     assert f"remove_rows_by_position({', '.join(map(str, flagged))})" in out or \
         f"remove_rows_by_position([{', '.join(map(str, flagged))}])" in out
-    t.remove_rows_with_outliers("v", rule=rule)
+    t.remove_rows_with_outliers("v", test_method=rule)
     assert len(t._frame) == len(X) - len(flagged)
 
 
 def test_grubbs_by_group(engine, needs_r, capsys):
     t = make(engine, pd.DataFrame({"v": X + X[:9], "g": ["a"] * 12 + ["b"] * 9}))
-    t.show_rows_with_outliers("v", for_each_group_in="g", rule="grubbs")
+    t.show_rows_with_outliers("v", for_each_group_in="g", test_method="grubbs")
     out = capsys.readouterr().out
     # R: grubbs.test(x)$p.value = 0.02053415795634 in group a; group b (no outlier) is not flagged
     assert "a: the value farthest from the average, 25.6, is an outlier (p = 0.0205" in out

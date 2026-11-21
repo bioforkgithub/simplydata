@@ -23,7 +23,7 @@ percentiles, covariance, the automatic ARIMA order, q-values, pair tests after F
 planning_surveys.py (S3d-1: the design words, stratified random rows, patterns of empty cells, answers on a scale and
 the survey words),
 causal.py (S3d-2: balancing groups, attributable fractions, standardised rates, mediation, the 2 x 2 crossover and
-multiple imputation for other words) and bayesian.py (S3d-3: bayesian=True on the tests, explain and check_model_of).
+multiple imputation for other words) and bayesian.py (S3d-3: test_method="bayesian" on the tests, explain and check_model_of).
 """
 
 from __future__ import annotations

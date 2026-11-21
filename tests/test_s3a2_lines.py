@@ -1,6 +1,6 @@
-"""S3a-2, lines and curves: fit_dose_response (and its chart twin), fit_line(method=, y_error_over_x_error=,
+"""S3a-2, lines and curves: fit_dose_response (and its chart twin), fit_line(test_method=, y_error_over_x_error=,
 with_bends=, changes_at=), fit_curve(of_kind=), find_best_power_of, explain(for_percentile=, changes_at=) and
-method="loess" (add_smoothed_column(interval=), draw_smooth_line(with_confidence_band=)).
+test_method="loess" (add_smoothed_column(interval=), draw_smooth_line(with_confidence_band=)).
 
 Each word is checked against the package underneath (SciPy, statsmodels) and, where it calls R or R is the
 reference, against R itself on the same data. Made-up data only for edge cases.
@@ -144,11 +144,11 @@ def test_theil_sen_and_siegel_are_scipy():
     from scipy import stats
 
     df = sdata.get_example("marks")
-    t = sdata.table(df).fit_line(x="hours", y="marks", method="theil-sen").as_pandas().iloc[0]
+    t = sdata.table(df).fit_line(x="hours", y="marks", test_method="theil-sen").as_pandas().iloc[0]
     ref = stats.theilslopes(df["marks"], df["hours"], alpha=0.95, method="separate")
     assert (t["slope"], t["intercept"], t["slope 95 % CI low"], t["slope 95 % CI high"]) == pytest.approx(
         (ref.slope, ref.intercept, ref.low_slope, ref.high_slope), rel=1e-12)
-    s = sdata.table(df).fit_line(x="hours", y="marks", method="siegel").as_pandas().iloc[0]
+    s = sdata.table(df).fit_line(x="hours", y="marks", test_method="siegel").as_pandas().iloc[0]
     ref = stats.siegelslopes(df["marks"], df["hours"], method="hierarchical")
     assert (s["slope"], s["intercept"]) == pytest.approx((ref.slope, ref.intercept), rel=1e-12)
 
@@ -157,7 +157,7 @@ def test_theil_sen_and_siegel_are_scipy():
                                               ("reduced major axis", "SMA")])
 def test_major_axis_lines_are_smatr(needs_r, method, r_method):
     d = r("list(lma = log10(smatr::leaflife$lma), longev = log10(smatr::leaflife$longev))", ("smatr",))
-    out = sdata.table(pd.DataFrame(d)).fit_line(x="lma", y="longev", method=method).as_pandas().iloc[0]
+    out = sdata.table(pd.DataFrame(d)).fit_line(x="lma", y="longev", test_method=method).as_pandas().iloc[0]
     ref = r(f"f <- smatr::sma(longev ~ lma, data = data.frame(lma = lma, longev = longev), method = '{r_method}'); "
             "k <- f$coef[[1]]; list(i = k[1, 1], s = k[2, 1], lo = k[2, 2], hi = k[2, 3])", ("smatr",),
             lma=np.asarray(d["lma"]), longev=np.asarray(d["longev"]))
@@ -170,7 +170,7 @@ def test_deming_error_ratio_is_y_over_x(needs_r, capsys):
     xstd = 1) says the same thing independently; mcr gets error.ratio = 1 / 4 (its ratio is x over y)."""
     d = r("d <- na.omit(mcr::creatinine); list(x = d$serum.crea, y = d$plasma.crea)", ("mcr",))
     x, y = np.asarray(d["x"], dtype=float), np.asarray(d["y"], dtype=float)
-    out = sdata.table(pd.DataFrame({"x": x, "y": y})).fit_line(x="x", y="y", method="deming",
+    out = sdata.table(pd.DataFrame({"x": x, "y": y})).fit_line(x="x", y="y", test_method="deming",
                                                               y_error_over_x_error=4).as_pandas().iloc[0]
     other = r("f <- deming::deming(y ~ x, xstd = rep(1, length(x)), ystd = rep(2, length(x))); "
               "list(s = unname(coef(f)[2]), i = unname(coef(f)[1]))", ("deming",), x=x, y=y)
@@ -187,7 +187,7 @@ def test_deming_error_ratio_is_y_over_x(needs_r, capsys):
 
 def test_passing_bablok_is_mcr(needs_r):
     d = r("d <- na.omit(mcr::creatinine); list(x = d$serum.crea, y = d$plasma.crea)", ("mcr",))
-    out = sdata.table(pd.DataFrame(d)).fit_line(x="x", y="y", method="passing-bablok").as_pandas().iloc[0]
+    out = sdata.table(pd.DataFrame(d)).fit_line(x="x", y="y", test_method="passing-bablok").as_pandas().iloc[0]
     ref = r("m <- mcr::mcreg(x, y, method.reg = 'PaBa', method.ci = 'analytical'); "
             "list(s = m@para[2, 'EST'], i = m@para[1, 'EST'], lo = m@para[2, 'LCI'])", ("mcr",),
             x=np.asarray(d["x"]), y=np.asarray(d["y"]))
@@ -198,16 +198,16 @@ def test_passing_bablok_is_mcr(needs_r):
 def test_line_method_refusals():
     table = sdata.table(sdata.get_example("marks"))
     with pytest.raises(SimplydataError, match="method"):
-        table.fit_line(x="hours", y="marks", method="wiggly")
-    with pytest.raises(SimplydataError, match='method="deming"'):
+        table.fit_line(x="hours", y="marks", test_method="wiggly")
+    with pytest.raises(SimplydataError, match='test_method="deming"'):
         table.fit_line(x="hours", y="marks", y_error_over_x_error=2)
     with pytest.raises(SimplydataError, match="above 0"):
-        table.fit_line(x="hours", y="marks", method="deming", y_error_over_x_error=0)
+        table.fit_line(x="hours", y="marks", test_method="deming", y_error_over_x_error=0)
     with pytest.raises(SimplydataError, match="the data find|lets the data find"):
         table.fit_line(x="hours", y="marks", with_bends=1, changes_at=3)
     with pytest.raises(SimplydataError, match="at least 10 pairs"):
         sdata.table(pd.DataFrame({"a": [1.0, 2, 3, 4], "b": [1.0, 2, 4, 3]})).fit_line(x="a", y="b",
-                                                                                     method="passing-bablok")
+                                                                                     test_method="passing-bablok")
 
 
 # ---------------------------------------------------------------------------- fit_line(with_bends=)
@@ -339,7 +339,7 @@ def test_best_power_of_one_column_is_scipy_boxcox(capsys):
     out = sdata.table(df).find_best_power_of("days").as_pandas().iloc[0]
     _, lmb, (lo, hi) = stats.boxcox(df["days"].dropna().to_numpy(dtype=float), alpha=0.05)
     assert (out["power"], out["95 % CI low"], out["95 % CI high"]) == pytest.approx((lmb, lo, hi), rel=1e-9)
-    yj = sdata.table(df).find_best_power_of("days", method="yeo-johnson").as_pandas().iloc[0]
+    yj = sdata.table(df).find_best_power_of("days", test_method="yeo-johnson").as_pandas().iloc[0]
     assert yj["power"] == pytest.approx(stats.yeojohnson(df["days"].dropna().to_numpy(dtype=float))[1], rel=1e-9)
     assert "closest to a normal shape" in capsys.readouterr().out
 
@@ -365,7 +365,7 @@ def test_best_power_with_using_is_car_and_box_cox_poisons(needs_r, capsys):
 
 def test_box_cox_refuses_zeros_and_shows_yeo_johnson():
     table = sdata.table(pd.DataFrame({"v": [0.0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]}))
-    with pytest.raises(SimplydataError, match=r'find_best_power_of\("v", method="yeo-johnson"\)'):
+    with pytest.raises(SimplydataError, match=r'find_best_power_of\("v", test_method="yeo-johnson"\)'):
         table.find_best_power_of("v")
     with pytest.raises(SimplydataError, match="at least 10"):
         sdata.table(pd.DataFrame({"v": [1.0, 2, 3]})).find_best_power_of("v")
@@ -402,7 +402,7 @@ def test_percentile_refusals():
 def test_loess_column_and_band_are_r(needs_r, capsys):
     df = sdata.get_example("culture")
     a = df[df["flask"] == "A"].reset_index(drop=True)
-    out = sdata.table(a).add_smoothed_column("smooth", from_column="density", sorted_by="hour", method="loess",
+    out = sdata.table(a).add_smoothed_column("smooth", from_column="density", sorted_by="hour", test_method="loess",
                                              interval=95).as_pandas()
     ref = r("m <- loess(y ~ x, span = 0.75, degree = 2); p <- predict(m, se = TRUE); "
             "q <- qt(0.975, m$one.delta^2 / m$two.delta); list(f = p$fit, lo = p$fit - q * p$se.fit)",
@@ -417,16 +417,16 @@ def test_loess_is_no_longer_another_spelling_of_lowess(needs_r):
 
     df = sdata.get_example("culture")
     a = df[df["flask"] == "A"]
-    lo = chart_facts(sdata.chart(a).draw_dots(x="hour", y="density").draw_smooth_line(method="loess",
+    lo = chart_facts(sdata.chart(a).draw_dots(x="hour", y="density").draw_smooth_line(test_method="loess",
                                                                                       with_confidence_band=True)
                      ._render().axes[0])
     xs, ys = lo["lines"][0]
     ref = r("list(f = predict(loess(y ~ x, span = 0.75, degree = 2), newdata = data.frame(x = at)))",
             x=a["hour"].to_numpy(dtype=float), y=a["density"].to_numpy(dtype=float), at=xs)
     assert ys == pytest.approx(np.asarray(ref["f"], dtype=float), rel=1e-9)
-    with pytest.raises(SimplydataError, match='method="loess"'):
+    with pytest.raises(SimplydataError, match='test_method="loess"'):
         sdata.chart(a).draw_dots(x="hour", y="density").draw_smooth_line(with_confidence_band=True)
-    with pytest.raises(SimplydataError, match='method="loess"'):
+    with pytest.raises(SimplydataError, match='test_method="loess"'):
         sdata.table(a).add_smoothed_column("s", from_column="density", sorted_by="hour", interval=95)
 
 

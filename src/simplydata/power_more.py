@@ -5,10 +5,10 @@
   Welch's t-test, Mann-Whitney, the paired t-test, Wilcoxon signed-rank, Levene's test), seeded, with the Monte
   Carlo error printed as the 95 % interval of the simulated chance (statsmodels proportion_confint, Wilson).
 * by_running=: the learner's own function, one simulated study per seed; simplydata counts its p-values.
-* test="explain" / "compare_models": regression power with Cohen's f² (statsmodels FTestPowerF2, as R pwr.f2.test);
+* for_test="explain" / "compare_models": regression power with Cohen's f² (statsmodels FTestPowerF2, as R pwr.f2.test);
   outcome="yes or no": logistic regression with one bell-shaped column (R pwrss, Demidenko with variance correction).
-* test="compare_survival": events first by Schoenfeld's formula (R gsDesign), people with percents= (R
-  powerSurvEpi); method="freedman" (R powerSurvEpi).
+* for_test="compare_survival": events first by Schoenfeld's formula (R gsDesign), people with percents= (R
+  powerSurvEpi); test_method="freedman" (R powerSurvEpi).
 * in_clusters_of=, alike_within_clusters=: the design effect 1 + (m - 1) x ICC (Donner & Klar 2000), the one piece
   of arithmetic simplydata does itself here ([D] in clustered(); listed in tests/test_no_own_methods.py).
 """
@@ -157,8 +157,8 @@ def _sim_plan(step, test, effect_size, difference, spread, drawing_from, based_o
     from scipy import stats
 
     if test not in SIM_TESTS:
-        raise SimplydataError(f'{step}() simulates the power of test="compare_averages", "compare_before_and_after" or '
-                              f'"compare_spreads_of"; for test="{test}" leave out based_on="ranks" and drawing_from=.')
+        raise SimplydataError(f'{step}() simulates the power of for_test="compare_averages", "compare_before_and_after" or '
+                              f'"compare_spreads_of"; for for_test="{test}" leave out based_on="ranks" and drawing_from=.')
     if based_on not in ("averages", "ranks"):
         raise choice_error(step, "based_on", based_on, ("averages", "ranks"))
     if test == "compare_spreads" and based_on == "ranks":
@@ -181,7 +181,7 @@ def _sim_plan(step, test, effect_size, difference, spread, drawing_from, based_o
             example = ('drawing_from=[sdata.distribution("normal", average=0, standard_deviation=1)] (the changes)'
                        if wanted == 1 else 'drawing_from=[sdata.distribution("lognormal", ...), '
                                            'sdata.distribution("lognormal", ...)]')
-            raise SimplydataError(f"{step}() with test=\"{test}\" needs drawing_from= as {wanted} "
+            raise SimplydataError(f"{step}() with for_test=\"{test}\" needs drawing_from= as {wanted} "
                                   f"distribution{'s' if wanted == 2 else ''} made with sdata.distribution(), for "
                                   f"example {example}.")
         continuous = not any(d.is_discrete for d in dists)
@@ -191,7 +191,7 @@ def _sim_plan(step, test, effect_size, difference, spread, drawing_from, based_o
         effect, kind = None, None
     else:
         if test == "compare_spreads":
-            raise SimplydataError('test="compare_spreads_of" in power needs drawing_from= with two distributions of '
+            raise SimplydataError('for_test="compare_spreads_of" in power needs drawing_from= with two distributions of '
                                   'different spread, for example drawing_from=[sdata.distribution("normal", '
                                   'average=0, standard_deviation=1), sdata.distribution("normal", average=0, '
                                   'standard_deviation=2)].')
@@ -452,12 +452,12 @@ def regression_plan(step, test, effect_size, using, against, significance, sides
                               "does not apply; leave sides= out.")
     significance = _significance(step, significance)
     if using is None:
-        raise SimplydataError(f'{step}() with test="{test}" needs using= (the columns of the model), for example '
+        raise SimplydataError(f'{step}() with for_test="{test}" needs using= (the columns of the model), for example '
                               'using=["temperature", "salinity", "depth"], or using=3.')
     count, names = _columns(step, using, "using")
     if test == "compare_models":
         if against is None:
-            raise SimplydataError(f'{step}() with test="compare_models" needs using= and against=, the columns of the '
+            raise SimplydataError(f'{step}() with for_test="compare_models" needs using= and against=, the columns of the '
                                   'two models (as on compare_models), for example using=["temperature"], '
                                   'against=["temperature", "salinity", "depth"].')
         other, other_names = _columns(step, against, "against")
@@ -474,7 +474,7 @@ def regression_plan(step, test, effect_size, using, against, significance, sides
         kept = total - tested
     else:
         if against is not None:
-            raise SimplydataError('against= goes with test="compare_models"; for one model, give using= only.')
+            raise SimplydataError('against= goes with for_test="compare_models"; for one model, give using= only.')
         tested, total, tested_names, kept = count, count, names, 0
     if effect_size is None:
         raise SimplydataError(f"{step}() needs effect_size= as Cohen's f² here, for example effect_size=0.15 (a medium "
@@ -514,9 +514,9 @@ def regression_plan(step, test, effect_size, using, against, significance, sides
 
 def logistic_plan(step, test, effect_size, using, against, percents, significance, sides):
     if test != "explain":
-        raise SimplydataError('outcome="yes or no" in power goes with test="explain".')
+        raise SimplydataError('outcome="yes or no" in power goes with for_test="explain".')
     if against is not None:
-        raise SimplydataError('against= goes with test="compare_models".')
+        raise SimplydataError('against= goes with for_test="compare_models".')
     count, names = _columns(step, using if using is not None else 1, "using")
     if count != 1:
         raise SimplydataError(f'{step}() with outcome="yes or no" plans for one number column, for example '
@@ -525,7 +525,7 @@ def logistic_plan(step, test, effect_size, using, against, percents, significanc
             or not isinstance(percents[0], (int, float)) or not 0 < percents[0] < 100):
         raise SimplydataError(f'{step}() with outcome="yes or no" needs percents= as one percent: the percent with the '
                               'outcome at the average of the column, for example percents=[20]. For a yes/no column '
-                              'instead of a number column, use test="compare_counts", percents=[30, 15].')
+                              'instead of a number column, use for_test="compare_counts", percents=[30, 15].')
     _two_sided(step, sides)
     significance = _significance(step, significance)
     ratio = ratio_effect(step, effect_size, "odds ratio", "effect_size=1.5 (an odds ratio per standard deviation)")
@@ -553,13 +553,13 @@ LOGISTIC_METHOD = ("logistic-regression power by Demidenko's (2007) formula with
 # ---------------------------------------------------------------- survival (U13)
 def survival_plan(step, effect_size, percents, method, groups, sides, significance, difference, spread):
     if difference is not None or spread is not None:
-        raise SimplydataError('test="compare_survival" takes the hazard ratio as effect_size=, not difference= and '
+        raise SimplydataError('for_test="compare_survival" takes the hazard ratio as effect_size=, not difference= and '
                               'spread=.')
     if groups != 2:
-        raise SimplydataError('test="compare_survival" in power compares two groups; leave groups= out.')
+        raise SimplydataError('for_test="compare_survival" in power compares two groups; leave groups= out.')
     method = "schoenfeld" if method is None else method
     if not isinstance(method, str) or method.lower() not in SURVIVAL_METHODS:
-        raise choice_error(step, "method", method, SURVIVAL_METHODS)
+        raise choice_error(step, "test_method", method, SURVIVAL_METHODS)
     method = method.lower()
     _two_sided(step, sides)
     significance = _significance(step, significance)
@@ -569,12 +569,12 @@ def survival_plan(step, effect_size, percents, method, groups, sides, significan
         if (not isinstance(percents, (list, tuple)) or len(percents) != 2
                 or not all(isinstance(v, (int, float)) and not isinstance(v, bool) and 0 < v <= 100
                            for v in percents)):
-            raise SimplydataError(f'{step}() with test="compare_survival" takes percents= as two percents, the percent '
+            raise SimplydataError(f'{step}() with for_test="compare_survival" takes percents= as two percents, the percent '
                                   'of each group expected to have the event during the study (the first group, then '
                                   'the second), for example percents=[30, 40].')
         first, second = percents[0] / 100, percents[1] / 100
     if method == "freedman" and percents is None:
-        raise SimplydataError('method="freedman" gives people, so it needs percents= (the percent of each group '
+        raise SimplydataError('test_method="freedman" gives people, so it needs percents= (the percent of each group '
                               'expected to have the event), for example percents=[30, 40].')
     if percents is not None and sides == 1:
         raise SimplydataError('With percents=, survival power is two-sided only (R powerSurvEpi); leave sides= out, '
@@ -643,7 +643,7 @@ def survival_chance(step, plan, people):
 
     ratio, sig = plan["ratio"], plan["significance"]
     if plan["first"] is None:
-        raise SimplydataError(f'{step}() with test="compare_survival" needs percents= (the percent of each group '
+        raise SimplydataError(f'{step}() with for_test="compare_survival" needs percents= (the percent of each group '
                               'expected to have the event), to turn people into events, for example '
                               'values_per_group=353, percents=[30, 40].')
     if people < 2:

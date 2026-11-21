@@ -14,8 +14,8 @@ EXAMPLE = 'table.find_spectrum_of("signal", sorted_by="time")'
 
 
 class SignalTableWords:
-    @friendly(renamed={"for_each": "for_each_group_in"})
-    def find_spectrum_of(self, column=None, sorted_by=None, method="periodogram", window=None, window_shape="hann",
+    @friendly(renamed={"method": "test_method", "for_each": "for_each_group_in"})
+    def find_spectrum_of(self, column=None, sorted_by=None, test_method="periodogram", window=None, window_shape="hann",
                          show="power", between=None, for_each_group_in=None):
         """Which repeating cycles (frequencies) a column holds over time, and how strong each is.
 
@@ -23,8 +23,8 @@ class SignalTableWords:
         sorted_by= is the time column (numbers or dates); it gives the order and the time between
         readings (dates: per day, or per month, quarter or year for calendar steps). Without it the
         rows are taken in table order and frequencies are in cycles per reading. The readings must be
-        evenly spaced and filled in, except with method="lomb-scargle", which is made for uneven times
-        (empty cells are then left out). method= and show= as nums.find_spectrum: "periodogram" (SciPy;
+        evenly spaced and filled in, except with test_method="lomb-scargle", which is made for uneven times
+        (empty cells are then left out). test_method= and show= as nums.find_spectrum: "periodogram" (SciPy;
         2 x R spec.pgram(x, taper = 0, detrend = FALSE, fast = FALSE)$spec except at the top
         frequency), "welch" (window= readings per piece) or "lomb-scargle" (R lomb::lsp() itself, needs
         simplydata[r] and R). for_each_group_in= gives one spectrum per group. Gives back a table: frequency,
@@ -32,7 +32,7 @@ class SignalTableWords:
         """
         step_name = "find_spectrum_of"
         self._need_name(step_name, "the column", column, EXAMPLE)
-        name = _signals.read_method(method, step_name)
+        name = _signals.read_method(test_method, step_name)
         between = _signals.check_frequency_range(between, step_name)
         series = series_of(self, column, sorted_by, for_each_group_in, step_name, EXAMPLE)
         groups = self._group_columns(step_name, for_each_group_in, [column]) if for_each_group_in is not None else []

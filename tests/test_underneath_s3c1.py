@@ -14,11 +14,11 @@ WORDS = ("table.add_diversity_columns", "draw_richness_curves", "table.add_log_r
          "table.add_principal_coordinates", "table.explain_profiles_of", "table.find_correlation_between_profiles",
          "draw_cluster_tree", "table.add_axes_that_separate_groups", "table.add_correspondence_axes")
 OPTIONS = ["table.add_diversity_columns at_total_count=", 'table.add_diversity_columns show="chao1"',
-           'table.add_diversity_columns show="hill numbers"', 'table.add_log_ratio_columns method="alr"',
-           'table.add_log_ratio_columns method="ilr"', 'table.add_log_ratio_columns zeros_replaced_by="adding 1"',
+           'table.add_diversity_columns show="hill numbers"', 'table.add_log_ratio_columns test_method="alr"',
+           'table.add_log_ratio_columns test_method="ilr"', 'table.add_log_ratio_columns zeros_replaced_by="adding 1"',
            'table.add_principal_coordinates measure="aitchison"', 'table.explain_profiles_of measure="hellinger"',
-           'table.explain_profiles_of method="canonical correspondence"', "table.explain_profiles_of allowing_for=",
-           'table.find_correlation_between_profiles method="procrustes"', 'table.compare_profiles_of method="anosim"',
+           'table.explain_profiles_of test_method="canonical correspondence"', "table.explain_profiles_of allowing_for=",
+           'table.find_correlation_between_profiles test_method="procrustes"', 'table.compare_profiles_of test_method="anosim"',
            'table.compare_profiles_of show="contributions"', 'table.compare_profiles_of measure="aitchison"',
            'table.find_distances_between_rows measure="aitchison"', 'table.add_clusters how_many="automatic"',
            "table.add_clusters measure="]

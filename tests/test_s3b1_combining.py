@@ -60,13 +60,13 @@ def test_normal_interval_matches_the_published_one(bcg, needs_r):
 
 
 def test_methods(bcg, needs_r, capsys):
-    dl = _row(bcg.combine_studies(**CALL, method="DL"), "combined")
+    dl = _row(bcg.combine_studies(**CALL, test_method="DL"), "combined")
     assert dl["tau squared"] == pytest.approx(0.3088, abs=1e-4)
-    mh = _row(bcg.combine_studies(**CALL, method="Mantel-Haenszel"), "combined")
+    mh = _row(bcg.combine_studies(**CALL, test_method="mantel-haenszel"), "combined")
     assert mh["estimate"] == pytest.approx(0.6353, abs=1e-4)
     out = capsys.readouterr().out
     assert "common effect, Mantel-Haenszel" in out and "no prediction interval" in out
-    peto = _row(bcg.combine_studies(**CALL, method="peto"), "combined")
+    peto = _row(bcg.combine_studies(**CALL, test_method="peto"), "combined")
     assert peto["estimate"] == pytest.approx(0.6222, abs=1e-4)
     assert "odds ratio" in capsys.readouterr().out
 
@@ -93,7 +93,7 @@ def test_meta_regression(bcg, needs_r, capsys):
 
 def test_estimates_with_their_intervals(needs_r, capsys):
     table = sdata.table(sdata.get_example("passive_smoking"))
-    row = _row(table.combine_studies(names="study", estimates="odds ratio", method="DL", interval_by="normal"),
+    row = _row(table.combine_studies(names="study", estimates="odds ratio", test_method="DL", interval_by="normal"),
                "combined")
     # Hackshaw, Law & Wald (1997): excess risk 24 % (95 % CI 13 % to 36 %)
     assert round(row["estimate"], 2) == 1.24
@@ -138,7 +138,7 @@ def test_mantel_haenszel_with_a_double_zero_study(needs_r, capsys):
     frame = pd.DataFrame({"trial": list("abcde"), "e1": [0, 3, 0, 5, 2], "n1": [20, 30, 25, 40, 30],
                           "e2": [2, 6, 0, 9, 4], "n2": [20, 30, 25, 40, 30]})
     r = sdata.table(frame).combine_studies(names="trial", events=["e1", "e2"], out_of=["n1", "n2"],
-                                           method="Mantel-Haenszel")
+                                           test_method="mantel-haenszel")
     out = capsys.readouterr().out
     row = _row(r, "combined")
     assert row["studies"] == 4 and row["Q degrees of freedom"] == 3
@@ -208,12 +208,12 @@ def test_double_zero_study_is_left_out_and_said(needs_r, capsys):
     (dict(events=["tb_vaccinated", "tb_unvaccinated"]), "needs out_of="),
     (dict(events="tb_vaccinated", out_of=["vaccinated", "unvaccinated"]), "list of two column names"),
     (dict(**CALL, show="ratios of averages"), "worked out from averages="),
-    (dict(**CALL, show="risk ratios", method="Peto"), "odds ratios only"),
-    (dict(**CALL, method="common effect", interval_by="Hartung-Knapp"), "is for random effects"),
-    (dict(**CALL, method="banana"), "does not know method="),
+    (dict(**CALL, show="risk ratios", test_method="peto"), "odds ratios only"),
+    (dict(**CALL, test_method="common effect", interval_by="Hartung-Knapp"), "is for random effects"),
+    (dict(**CALL, test_method="banana"), "does not know test_method="),
     (dict(**CALL, for_each_group_in="allocation", using=["latitude"]), "not both"),
     (dict(**CALL, using=["allocation"]), "For a text column, use for_each_group_in="),
-    (dict(**CALL, method="Peto", using=["latitude"]), "needs the default"),
+    (dict(**CALL, test_method="peto", using=["latitude"]), "needs the default"),
     (dict(names="trial", estimates="latitude"), "Two ways in"),
     (dict(**CALL, estimates_are_ratios=True), "goes with estimates="),
 ])
@@ -243,10 +243,10 @@ def test_spellings_of_methods_and_shows():
     from simplydata.table.meta_words import (INTERVAL_SPELLINGS, INTERVALS, METHOD_SPELLINGS, METHODS, SHOW,
                                              SHOW_SPELLINGS, _text_choice)
 
-    assert _text_choice("random effects", METHOD_SPELLINGS, tuple(METHODS), "method") == "REML"
+    assert _text_choice("random effects", METHOD_SPELLINGS, tuple(METHODS), "method") == "reml"
     assert _text_choice("fixed effect", METHOD_SPELLINGS, tuple(METHODS), "method") == "common effect"
-    assert _text_choice("reml", METHOD_SPELLINGS, tuple(METHODS), "method") == "REML"
-    assert _text_choice("MH", METHOD_SPELLINGS, tuple(METHODS), "method") == "Mantel-Haenszel"
+    assert _text_choice("reml", METHOD_SPELLINGS, tuple(METHODS), "method") == "reml"
+    assert _text_choice("MH", METHOD_SPELLINGS, tuple(METHODS), "method") == "mantel-haenszel"
     assert _text_choice("hksj", INTERVAL_SPELLINGS, tuple(INTERVALS), "interval_by") == "Hartung-Knapp"
     assert _text_choice("hedges g", SHOW_SPELLINGS, tuple(SHOW), "show") == "standardised differences"
     assert _text_choice("response ratios", SHOW_SPELLINGS, tuple(SHOW), "show") == "ratios of averages"
@@ -269,7 +269,7 @@ def test_forest_plot_draws_squares_diamonds_and_the_prediction_interval(bcg, nee
 
 def test_forest_plot_without_row_kind_is_unchanged(tmp_path):
     table = sdata.table(sdata.get_example("marks"))
-    pairs = table.compare_each_pair_of("marks", for_each_group_in="class", test="tukey")
+    pairs = table.compare_each_pair_of("marks", for_each_group_in="class", test_method="tukey")
     ax = pairs.start_chart().forest_plot(x="difference", y="group 1")._render().axes[0]
     assert not ax.patches
     plt.close("all")
@@ -313,8 +313,8 @@ def test_the_new_words_and_options_have_entries():
     from simplydata._underneath import UNDERNEATH
 
     for key in ("table.combine_studies", "draw_funnel_plot", "table.combine_studies estimates=",
-                "table.combine_studies method=", 'table.combine_studies method="Mantel-Haenszel"',
-                'table.combine_studies method="Peto"', "table.combine_studies interval_by=",
+                "table.combine_studies test_method=", 'table.combine_studies test_method="mantel-haenszel"',
+                'table.combine_studies test_method="peto"', "table.combine_studies interval_by=",
                 "table.combine_studies for_each_group_in=", "table.combine_studies using="):
         assert key in UNDERNEATH, key
 
@@ -322,7 +322,7 @@ def test_the_new_words_and_options_have_entries():
 @pytest.mark.parametrize("key, setting, replacement", [
     ("table.combine_studies", 'test = "adhoc"', 'test = "z"'),
     ("table.combine_studies", 'method = "REML"', 'method = "DL"'),
-    ("table.combine_studies method=", 'method = "DL"', 'method = "REML"'),
+    ("table.combine_studies test_method=", 'method = "DL"', 'method = "REML"'),
 ])
 def test_leaving_out_a_choice_makes_the_comparison_fail(key, setting, replacement, needs_r):
     from simplydata._underneath import UNDERNEATH, Entry

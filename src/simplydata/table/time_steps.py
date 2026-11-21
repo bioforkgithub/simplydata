@@ -140,20 +140,20 @@ class TimeStepWords:
             frame = nw.from_native(native_new, eager_only=True)
         return self._change(f'add {total} missing dates to "{column}"', frame)
 
-    @friendly(renamed={"for_each": "for_each_group_in", "degree": "of_degree"})
-    def add_smoothed_column(self, name=None, from_column=None, method="moving average", window=5, sorted_by=None,
+    @friendly(renamed={"method": "test_method", "for_each": "for_each_group_in", "degree": "of_degree"})
+    def add_smoothed_column(self, name=None, from_column=None, test_method="moving average", window=5, sorted_by=None,
                             for_each_group_in=None, ends=None, weights=None, of_degree=None, newest_weight=None, width=None,
                             smoothness=None, alpha=None, span=None, half_life=None, com=None, interval=None):
         """Add a smoothed copy of a column: each value becomes a summary of its neighbours in time.
 
-        table.add_smoothed_column("signal_smoothed", from_column="signal", method="savitzky-golay", window=11, sorted_by="time")
+        table.add_smoothed_column("signal_smoothed", from_column="signal", test_method="savitzky-golay", window=11, sorted_by="time")
         (with sdata.get_example("sensor")). The methods and their options are those of
         nums.smooth: "moving average" (weights=, ends=), "median" (R runmed, needs simplydata[r]),
         "savitzky-golay" (of_degree=), "exponential" (newest_weight=), "gaussian" (width=), "lowess" and
         "spline" (smoothness=; these two use the sorted_by values as x and allow uneven steps and empty
         cells), "whittaker" (smoothness=) or "wiener". The other methods need evenly spaced readings
         (sorted_by=) and no empty cells. for_each_group_in= smooths each group on its own. Undo with table.undo().
-        method="loess" is R stats::loess() itself (needs R): a local curve of degree 2 through the
+        test_method="loess" is R stats::loess() itself (needs R): a local curve of degree 2 through the
         nearest smoothness=0.75 of the readings (not lowess, which fits local straight lines with
         robustness steps); interval=95 adds two more columns, the ends of its 95 % confidence band.
         """
@@ -163,7 +163,7 @@ class TimeStepWords:
         step_name = "add_smoothed_column"
         example = 'table.add_smoothed_column("signal_smoothed", from_column="signal", window=11, sorted_by="time")'
         self._need_name(step_name, "the column to smooth (from_column=)", from_column, example)
-        chosen = _smoothing.read_method(method, step_name)
+        chosen = _smoothing.read_method(test_method, step_name)
         if name is None:
             name = f"{from_column}_smoothed"
         if not isinstance(name, str) or not name.strip():
@@ -172,9 +172,9 @@ class TimeStepWords:
             raise SimplydataError(f'"{name}" is already a column; give another name.')
         if interval is not None:
             if chosen != "loess":
-                raise SimplydataError(f'interval= (a confidence band) goes with method="loess", not "{chosen}".\n'
+                raise SimplydataError(f'interval= (a confidence band) goes with test_method="loess", not "{chosen}".\n'
                                       'For example table.add_smoothed_column("trend", from_column="signal", '
-                                      'sorted_by="time", method="loess", interval=95)')
+                                      'sorted_by="time", test_method="loess", interval=95)')
             if isinstance(interval, bool) or not isinstance(interval, (int, float)) or not 50 <= interval < 100:
                 raise SimplydataError("interval= is the confidence level in percent, for example interval=95.")
             band = [f"{name} {interval:g} % CI low", f"{name} {interval:g} % CI high"]

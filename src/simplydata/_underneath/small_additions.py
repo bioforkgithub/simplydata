@@ -17,7 +17,7 @@ PAIN_OURS = """
     table = sdata.table(sdata.get_example("clinic"))
     table.turn_columns_into_rows(["pain_week_0", "pain_week_4", "pain_week_8"], names_to="week", values_to="pain")
 """
-PAIN_PAIRS = '    table.compare_each_pair_of("pain", for_each_group_in="week", matched_by="patient", test="{test}")\n'
+PAIN_PAIRS = '    table.compare_each_pair_of("pain", for_each_group_in="week", matched_by="patient", test_method="{test}")\n'
 MANY = """
     df = sdata.get_example("many_tests")
     p = df["p-value"].to_numpy(dtype=float)
@@ -46,7 +46,7 @@ ENTRIES = [
         compare="value", tolerance=1e-12,
         choices=("frequency weights: each row repeated as often as its weight, so weights of 1 change nothing (as R "
                  "quantile(rep(x, w)) and Hmisc::wtd.quantile).",
-                 "the linear rule (R type 7), the same method= as without weights."),
+                 "the linear rule (R type 7), the same test_method= as without weights."),
         also="simplydata also refuses weights that are not whole numbers (and points to weight_kind=\"analytic\"), "
              "negative weights and more than 10 million repeated rows, and skips rows with an empty cell, with a note.",
     ),
@@ -67,7 +67,7 @@ ENTRIES = [
         compare="value", tolerance=1e-12,
         choices=("the weighted inverted CDF, the only NumPy rule with weights (as R survey::svyquantile(qrule = "
                  "\"math\")): a step, not a line between values.",),
-        also="simplydata also refuses method= with analytic weights (no other rule takes weights) and NumPy older "
+        also="simplydata also refuses test_method= with analytic weights (no other rule takes weights) and NumPy older "
              "than 2.0.",
     ),
     Entry(
@@ -116,12 +116,12 @@ ENTRIES = [
         data="visitors",
         ours="""
             table = sdata.table(sdata.get_example("visitors"))
-            table.forecast("visitors", sorted_by="month", method="arima", order="automatic", repeats_every=12,
+            table.forecast("visitors", sorted_by="month", test_method="arima", order="automatic", repeats_every=12,
                            for_each_group_in="museum")
         """,
         code={
             "R": """
-                # forecast("visitors", method="arima", order="automatic", repeats_every=12), first museum
+                # forecast("visitors", test_method="arima", order="automatic", repeats_every=12), first museum
                 fit <- forecast::auto.arima(stats::ts(x, frequency = 12),
                                             stepwise = FALSE, approximation = FALSE)   # (1)
                 f <- forecast::forecast(fit, h = 12, level = 95)
@@ -148,15 +148,15 @@ ENTRIES = [
     ),
     # ------------------------------------------------------------------ G03: q-values and local FDR
     Entry(
-        word="table.add_adjusted_p_value_column", option='method="storey"',
+        word="table.add_adjusted_p_value_column", option='test_method="storey"',
         data="many_tests",
         ours="""
             table = sdata.table(sdata.get_example("many_tests"))
-            table.add_adjusted_p_value_column(method="storey")
+            table.add_adjusted_p_value_column(test_method="storey")
         """,
         code={
             "R": """
-                # add_adjusted_p_value_column(method="storey")
+                # add_adjusted_p_value_column(test_method="storey")
                 q <- qvalue::qvalue(p)   # (1)
                 list(q = q$qvalues)
             """,
@@ -174,15 +174,15 @@ ENTRIES = [
              "fewer than 100 p-values, and refuses with a sentence when qvalue cannot estimate pi0.",
     ),
     Entry(
-        word="table.add_adjusted_p_value_column", option='method="local fdr"',
+        word="table.add_adjusted_p_value_column", option='test_method="local fdr"',
         data="many_tests",
         ours="""
             table = sdata.table(sdata.get_example("many_tests"))
-            table.add_adjusted_p_value_column(method="local fdr")
+            table.add_adjusted_p_value_column(test_method="local fdr")
         """,
         code={
             "R": """
-                # add_adjusted_p_value_column(method="local fdr")
+                # add_adjusted_p_value_column(test_method="local fdr")
                 q <- qvalue::qvalue(p)   # (1)
                 list(lfdr = q$lfdr)
             """,
@@ -196,16 +196,16 @@ ENTRIES = [
         choices=("qvalue's local false discovery rate with its defaults (pi0 from the smoother), in a column named "
                  "\"local false discovery rate\", not \"adjusted p\": it belongs to one test.",),
         python_note=QVALUE_NOTE,
-        also="As method=\"storey\".",
+        also="As test_method=\"storey\".",
     ),
     # ------------------------------------------------------------------ G09: Nemenyi and Conover after Friedman
     Entry(
-        word="table.compare_each_pair_of", option='matched_by=, test="nemenyi"',
+        word="table.compare_each_pair_of", option='matched_by=, test_method="nemenyi"',
         data="clinic",
         ours=PAIN_OURS + PAIN_PAIRS.format(test="nemenyi"),
         code={
             "R": """
-                # compare_each_pair_of("pain", for_each_group_in="week", matched_by="patient", test="nemenyi")
+                # compare_each_pair_of("pain", for_each_group_in="week", matched_by="patient", test_method="nemenyi")
                 r <- PMCMRplus::frdAllPairsNemenyiTest(y, factor(g), factor(b))   # (1)
                 list(p = r$p.value[1, 1], q = r$statistic[1, 1])
             """,
@@ -222,12 +222,12 @@ ENTRIES = [
              "groups, and notes that mean-rank tests depend on the other groups in the study (Benavoli et al. 2016).",
     ),
     Entry(
-        word="table.compare_each_pair_of", option='matched_by=, test="conover"',
+        word="table.compare_each_pair_of", option='matched_by=, test_method="conover"',
         data="clinic",
         ours=PAIN_OURS + PAIN_PAIRS.format(test="conover"),
         code={
             "R": """
-                # compare_each_pair_of("pain", for_each_group_in="week", matched_by="patient", test="conover")
+                # compare_each_pair_of("pain", for_each_group_in="week", matched_by="patient", test_method="conover")
                 r <- PMCMRplus::frdAllPairsConoverTest(y, factor(g), factor(b),
                                                       p.adjust.method = "holm")    # (1)
                 list(p = r$p.value[1, 1], q = r$statistic[1, 1])
@@ -241,7 +241,7 @@ ENTRIES = [
         choices=("Holm's adjustment, as for Conover's test after Kruskal-Wallis; PMCMRplus's own default is "
                  "\"single-step\" and scikit-posthocs adjusts nothing, so their numbers differ.",),
         python_note=PMCMR_NOTE,
-        also="As test=\"nemenyi\".",
+        also="As test_method=\"nemenyi\".",
     ),
     # ------------------------------------------------------------------ D13: pairwise comparisons of percents
     Entry(
@@ -265,7 +265,7 @@ ENTRIES = [
         """},
         compare="result", fields=("p-value", "p-value (Holm)"), tolerance=1e-9,
         choices=("each pair gets the 2 x 2 chi-square test with Yates' correction that compare_counts_of uses (the "
-                 "default of R prop.test and pairwise.prop.test); test=\"fisher\" gives Fisher's exact test.",
+                 "default of R prop.test and pairwise.prop.test); test_method=\"fisher\" gives Fisher's exact test.",
                  "Holm's adjustment for the number of pairs, as R pairwise.prop.test()."),
         also="simplydata also gives each pair's difference in percentage points with Newcombe's interval "
              "(statsmodels, as compare_risks), notes expected counts below 5, and leaves a pair with no p-value out "

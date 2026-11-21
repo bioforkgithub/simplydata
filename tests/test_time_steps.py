@@ -140,7 +140,7 @@ def test_rolling_all_and_centre_match_r(engine, capsys):
     assert values[[3, 99]] == pytest.approx([3.23714285714286, 3.22285714285714], rel=1e-12)
 
 
-# method="whittaker" is SciPy signal.whittaker_henderson, new in SciPy 1.17 (Python 3.12 or newer)
+# test_method="whittaker" is SciPy signal.whittaker_henderson, new in SciPy 1.17 (Python 3.12 or newer)
 NEEDS_SCIPY_117 = pytest.mark.skipif(not hasattr(__import__("scipy.signal").signal, "whittaker_henderson"),
                                      reason="SciPy 1.17 or newer (Python 3.12 or newer)")
 
@@ -150,7 +150,7 @@ def test_whittaker_without_scipy_117_says_what_to_do(monkeypatch):
 
     monkeypatch.delattr(signal, "whittaker_henderson", raising=False)
     with pytest.raises(SimplydataError, match="needs SciPy 1.17 or newer"):
-        sdata.numbers([1.0, 2, 3, 2, 1]).smooth(method="whittaker")
+        sdata.numbers([1.0, 2, 3, 2, 1]).smooth(test_method="whittaker")
 
 
 @pytest.mark.parametrize("show, kwargs, expected", [
@@ -195,29 +195,29 @@ def test_rolling_errors(engine):
 # ---------------------------------------------------------------- smoothing
 @pytest.mark.parametrize("kwargs, positions, expected", [
     # R: stats::filter(x, rep(1/5, 5), sides = 2)[3:4]
-    ({"method": "moving average"}, [2, 3], [0.52376, 0.73574]),
+    ({"test_method": "moving average"}, [2, 3], [0.52376, 0.73574]),
     # R: zoo::rollapply(x, 5, mean, partial = TRUE)[1:3]
-    ({"method": "moving average", "ends": "shorter windows"}, [0, 1, 2], [0.1826, 0.4006, 0.52376]),
+    ({"test_method": "moving average", "ends": "shorter windows"}, [0, 1, 2], [0.1826, 0.4006, 0.52376]),
     # R: w <- c(1, 2, 1); stats::filter(x, w / sum(w), sides = 2)[2:3]
-    ({"method": "moving average", "weights": [1, 2, 1]}, [1, 2], [0.303, 0.49045]),
+    ({"test_method": "moving average", "weights": [1, 2, 1]}, [1, 2], [0.303, 0.49045]),
     # R: xr <- c(rev(x[1:2]), x, rev(x[59:60])); stats::filter(xr, rep(1/5, 5), sides = 2)[3:5]
-    ({"method": "moving average", "ends": "mirror"}, [0, 1, 2], [0.19482, 0.2729, 0.52376]),
+    ({"test_method": "moving average", "ends": "mirror"}, [0, 1, 2], [0.19482, 0.2729, 0.52376]),
     # R: signal::sgolayfilt(x, 2, 11)[c(1, 2, 30)]
-    ({"method": "savitzky-golay", "window": 11}, [0, 1, 29], [0.167486713286713, 0.309181958041956,
+    ({"test_method": "savitzky-golay", "window": 11}, [0, 1, 29], [0.167486713286713, 0.309181958041956,
                                                                -1.12041235431235]),
     # R: stats::filter(0.3 * x, 0.7, method = "recursive", init = x[1])[c(1, 2, 60)]
-    ({"method": "exponential"}, [0, 1, 59], [-0.2379, 0.03273, 0.286029719752333]),
+    ({"test_method": "exponential"}, [0, 1, 59], [-0.2379, 0.03273, 0.286029719752333]),
     # R: a <- 2 / (9 + 1); stats::filter(a * x, 1 - a, method = "recursive", init = x[1])[60]
-    ({"method": "exponential", "span": 9}, [59], [0.483183478700769]),
+    ({"test_method": "exponential", "span": 9}, [59], [0.483183478700769]),
     # R: dnorm(-8:8, sd = 2) weights (scaled to add up to 1) on the mirrored readings (ref_partA.R)
-    ({"method": "gaussian"}, [0, 1, 2], [0.274174367562221, 0.362412269909438, 0.498816058381256]),
+    ({"test_method": "gaussian"}, [0, 1, 2], [0.274174367562221, 0.362412269909438, 0.498816058381256]),
     # R: lowess(seq_along(x), x, f = 2/3)$y[1:3]
-    ({"method": "lowess"}, [0, 1, 2], [0.986347115509803, 0.947468957834992, 0.907301858393227]),
+    ({"test_method": "lowess"}, [0, 1, 2], [0.986347115509803, 0.947468957834992, 0.907301858393227]),
     # R: solve(diag(60) + 100 * crossprod(diff(diag(60), differences = 2)), x)[1:3]
-    pytest.param({"method": "whittaker"}, [0, 1, 2], [0.261451335511031, 0.370107044628152, 0.473769240390163],
+    pytest.param({"test_method": "whittaker"}, [0, 1, 2], [0.261451335511031, 0.370107044628152, 0.473769240390163],
                  marks=NEEDS_SCIPY_117),
     # R: SciPy's Wiener formula written out (local mean and variance with zero padding; ref_partA.R)
-    ({"method": "wiener"}, [0, 1, 2], [0.10956, 0.419959808355179, 0.368448620722244]),
+    ({"test_method": "wiener"}, [0, 1, 2], [0.10956, 0.419959808355179, 0.368448620722244]),
 ])
 def test_smoothing_matches_r(kwargs, positions, expected):
     nums = signal60()
@@ -232,7 +232,7 @@ def test_smoothing_matches_r(kwargs, positions, expected):
 ])
 def test_running_median_runs_r_runmed(ends, expected, needs_r):
     nums = signal60()
-    nums.smooth(method="median", ends=ends)
+    nums.smooth(test_method="median", ends=ends)
     assert np.asarray(nums._values, dtype=float)[:3] == pytest.approx(expected, rel=1e-12)
 
 
@@ -248,13 +248,13 @@ def test_moving_average_empty_ends_and_undo(capsys):
 
 def test_add_smoothed_column(engine, capsys):
     t = make(sdata.get_example("sensor"), engine)
-    t.add_smoothed_column("smooth", from_column="signal", method="savitzky-golay", window=11, sorted_by="time")
+    t.add_smoothed_column("smooth", from_column="signal", test_method="savitzky-golay", window=11, sorted_by="time")
     # R: signal::sgolayfilt(x, 2, 11)[c(1, 2, 30)] (the first 60 readings give the same first values)
     assert col(t, "smooth")[[0, 1]] == pytest.approx([0.167486713286713, 0.309181958041956], rel=1e-9)
     assert 'Added "smooth"' in capsys.readouterr().out
     t.undo()
     assert "smooth" not in t._frame.columns
-    t.add_smoothed_column(from_column="signal", method="savitzky-golay", window=11, sorted_by="time")
+    t.add_smoothed_column(from_column="signal", test_method="savitzky-golay", window=11, sorted_by="time")
     assert 'Added "signal_smoothed"' in capsys.readouterr().out  # the past participle, as "_filtered"
 
 
@@ -263,13 +263,13 @@ def test_smoothing_errors():
     with pytest.raises(SimplydataError, match="odd whole number"):
         nums.smooth(window=4)
     with pytest.raises(SimplydataError, match="ends"):
-        nums.smooth(method="savitzky-golay", window=7, ends="empty")
+        nums.smooth(test_method="savitzky-golay", window=7, ends="empty")
     with pytest.raises(SimplydataError, match="does not take"):
-        nums.smooth(method="median", of_degree=2)
+        nums.smooth(test_method="median", of_degree=2)
     with pytest.raises(SimplydataError, match="method"):
-        nums.smooth(method="kalman")
+        nums.smooth(test_method="kalman")
     with pytest.raises(SimplydataError, match="newest_weight="):
-        nums.smooth(method="exponential", newest_weight=1.5)
+        nums.smooth(test_method="exponential", newest_weight=1.5)
 
 
 # ---------------------------------------------------------------- remove_trend

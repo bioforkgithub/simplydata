@@ -106,7 +106,7 @@ list(scale = s, starts = starts, ends = ends,
 def read_method(method, step_name):
     chosen = METHOD_ALIASES.get(method.strip().lower(), method.strip().lower()) if isinstance(method, str) else method
     if chosen not in METHODS:
-        raise choice_error(step_name, "method", method, list(METHODS))
+        raise choice_error(step_name, "test_method", method, list(METHODS))
     return chosen
 
 
@@ -132,7 +132,7 @@ def read_order(order, name, step_name):
     if name == "seasonal_order" and isinstance(order, str) and order.strip().lower() in AUTOMATIC:
         raise SimplydataError(f'{step_name}() chooses the seasonal order too with order="automatic"; leave out '
                               "seasonal_order=.\nFor example:  table.forecast(\"visitors\", sorted_by=\"month\", "
-                              'method="arima", order="automatic", repeats_every=12)')
+                              'test_method="arima", order="automatic", repeats_every=12)')
     if isinstance(order, str):
         extra = ' or order="automatic" (R forecast::auto.arima chooses it)' if name == "order" else ""
         raise SimplydataError(f"{step_name}() needs {name}= as three whole numbers (past values, differences, past "
@@ -147,23 +147,23 @@ def read_order(order, name, step_name):
 def check_options(method, period, n, season, order, seasonal_order, step_name):
     """Friendly errors before R is asked."""
     if method in SEASONAL and period is None:
-        raise SimplydataError(f'method="{method}" needs repeats_every= (how many readings make one cycle, such as 12).')
+        raise SimplydataError(f'test_method="{method}" needs repeats_every= (how many readings make one cycle, such as 12).')
     if season == "multiplied" and method != "exponential smoothing":
-        raise SimplydataError('season="multiplied" is for method="exponential smoothing".')
+        raise SimplydataError('season="multiplied" is for test_method="exponential smoothing".')
     if method == "arima":
         if order is None:
-            raise SimplydataError('method="arima" needs order= : how many past values, differences and past errors, '
+            raise SimplydataError('test_method="arima" needs order= : how many past values, differences and past errors, '
                                   'such as order=(0, 1, 1), or order="automatic" to let R forecast::auto.arima '
                                   "choose it from the data (the printout names the order it chose).")
         if order == "automatic" and seasonal_order is not None:
             raise SimplydataError('order="automatic" lets auto.arima choose the seasonal order too, so leave out '
                                   "seasonal_order= (or give both orders yourself).\n"
-                                  'For example:  table.forecast("visitors", sorted_by="month", method="arima", '
+                                  'For example:  table.forecast("visitors", sorted_by="month", test_method="arima", '
                                   'order="automatic", repeats_every=12)')
         if seasonal_order is not None and period is None:
             raise SimplydataError("seasonal_order= needs repeats_every= (how many readings make one cycle).")
     elif order is not None or seasonal_order is not None:
-        raise SimplydataError('order= and seasonal_order= are for method="arima".')
+        raise SimplydataError('order= and seasonal_order= are for test_method="arima".')
     if method == "exponential smoothing" and period is not None and n < 2 * period:
         raise SimplydataError(f"Exponential smoothing with a season needs at least two full cycles ({2 * period} "
                               f"readings); there are {n}.")

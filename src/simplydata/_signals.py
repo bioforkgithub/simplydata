@@ -37,10 +37,10 @@ def _num(x) -> str:
 
 def read_method(method, step_name):
     if not isinstance(method, str):
-        raise choice_error(step_name, "method", method, list(METHODS))
+        raise choice_error(step_name, "test_method", method, list(METHODS))
     name = METHOD_ALIASES.get(method.strip().lower(), method.strip().lower())
     if name not in METHODS:
-        raise choice_error(step_name, "method", method, list(METHODS))
+        raise choice_error(step_name, "test_method", method, list(METHODS))
     return name
 
 
@@ -72,7 +72,7 @@ def spectrum(values, time_step=1.0, method="periodogram", window=None, window_sh
         warnings.simplefilter("ignore")
         if method == "periodogram":
             if window is not None:
-                raise SimplydataError('window= is for method="welch"; the periodogram uses every reading at once.')
+                raise SimplydataError('window= is for test_method="welch"; the periodogram uses every reading at once.')
             freq, density = signal.periodogram(x, fs=fs, detrend="constant", window="boxcar", scaling="density")
             spec = signal.periodogram(x, fs=fs, detrend="constant", window="boxcar", scaling="spectrum")[1]
             r_call = "2 x R spec.pgram(x, taper = 0, detrend = FALSE, fast = FALSE)$spec"
@@ -90,7 +90,7 @@ def spectrum(values, time_step=1.0, method="periodogram", window=None, window_sh
                    f"a {window_shape} window)")
         else:
             if show != "power":
-                raise SimplydataError('method="lomb-scargle" gives a normalised power (0 to 1), so show= can only be '
+                raise SimplydataError('test_method="lomb-scargle" gives a normalised power (0 to 1), so show= can only be '
                                       '"power".')
             freq, density = _lomb_scargle(x, times)
             spec = None
@@ -120,7 +120,7 @@ def _lomb_scargle(y, times):
     from ._r import r_call
 
     if times is None:
-        raise SimplydataError('method="lomb-scargle" needs the times of the readings (sorted_by= or time_points=).')
+        raise SimplydataError('test_method="lomb-scargle" needs the times of the readings (sorted_by= or time_points=).')
     out = r_call("l <- lomb::lsp(y, times = t, type = 'frequency', normalize = 'standard', ofac = 1, plot = FALSE); "
                  "list(f = l$scanned, p = l$power)", packages=("lomb",), what="A Lomb-Scargle spectrum",
                  python_note="SciPy lombscargle is similar but scaled differently, so its numbers differ",

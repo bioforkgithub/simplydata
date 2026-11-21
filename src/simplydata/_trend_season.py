@@ -5,14 +5,14 @@ Every number comes from a package, with the options that give R's numbers:
   (simplydata's shift s pairs the first column at row t with the second at row t + s, which is R's
   lag -s; R's lag k pairs a[t + k] with b[t]). The noise band is +/- qnorm(0.975) / sqrt(n), the dashed
   lines of R plot.ccf (display arithmetic).
-* trend and season, method="loess": statsmodels STL with R stl()'s settings (season degree 0, R's
+* trend and season, test_method="loess": statsmodels STL with R stl()'s settings (season degree 0, R's
   trend and low-pass spans and its jumps; inner 2 / outer 0 passes, or 1 / 15 with robust=True), which
   give R stl(x, s.window =) to about 1e-12. season_window="fixed" runs R stl(s.window = "periodic")
   itself through rpy2 (statsmodels has no periodic option; its STL with a long window differs by about
   1e-4).
-* method="moving averages": statsmodels seasonal_decompose(two_sided=True) = R decompose() (added or
+* test_method="moving averages": statsmodels seasonal_decompose(two_sided=True) = R decompose() (added or
   multiplied seasons).
-* method="straight line": one statsmodels OLS fit on the row number and, with repeats_every=, one effect per
+* test_method="straight line": one statsmodels OLS fit on the row number and, with repeats_every=, one effect per
   place in the cycle that add up to 0 = R lm(x ~ time + place, contrasts = list(place = "contr.sum")); the
   trend is the line from the fit, the season the rest of the fitted values.
 * find_trend_of: Sen's slope and its 95 % interval from SciPy theilslopes (= R trend::sens.slope); the
@@ -131,7 +131,7 @@ def trend_and_season(values, period, method="loess", season="added", season_wind
                         " and an effect for each place in the cycle (the effects add up to 0)" if period else ""),
                     call=call)
     if period is None:
-        raise SimplydataError(f'method="{method}" needs repeats_every= (how many readings make one cycle).')
+        raise SimplydataError(f'test_method="{method}" needs repeats_every= (how many readings make one cycle).')
     if n < 2 * period:
         raise SimplydataError(f"{step_name}() needs at least two full cycles ({2 * period} readings) to find a "
                               f"season; there are {n}.")
@@ -150,7 +150,7 @@ def trend_and_season(values, period, method="loess", season="added", season_wind
                     call=f"decompose(ts(x, frequency = {period}){kind})")
     # loess (STL)
     if season == "multiplied":
-        raise SimplydataError('season="multiplied" works with method="moving averages". For method="loess", take the '
+        raise SimplydataError('season="multiplied" works with test_method="moving averages". For test_method="loess", take the '
                               'log first, for example table.add_column("log_visitors", "log(visitors)").')
     robust_words = ", robust = TRUE" if robust else ""
     if season_window == "fixed":

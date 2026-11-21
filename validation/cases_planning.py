@@ -83,7 +83,7 @@ def _cases(Case):
                  list(power = power.t.test(n = 30, delta = 0.5, sd = 1)$power)
              """, r_tolerance=1e-9),
         Case(needed, "using=: rows for a model of 3 columns, f squared 0.15", PWR, "real data",
-             ours=first.format(call='sdata.find_how_many_needed(test="explain", effect_size=0.15, using=["temperature", '
+             ours=first.format(call='sdata.find_how_many_needed(for_test="explain", effect_size=0.15, using=["temperature", '
                                     '"salinity", "depth"])') + """
                  {"rows (exact)": r["rows (exact)"], "rows": r["rows"]}
              """,
@@ -119,8 +119,8 @@ def _cases(Case):
                  list(`values (exact)` = n, values = ceiling(n))
              """, r_packages=("presize",), r_tolerance=1e-9, ours_r=("presize",)),
         # ---- U13: survival
-        Case(needed, "test=: events for a hazard ratio of 0.5 (log-rank, Schoenfeld)", STATA, "published",
-             ours=first.format(call='sdata.find_how_many_needed(test="compare_survival", effect_size=0.5)') + """
+        Case(needed, "for_test=: events for a hazard ratio of 0.5 (log-rank, Schoenfeld)", STATA, "published",
+             ours=first.format(call='sdata.find_how_many_needed(for_test="compare_survival", effect_size=0.5)') + """
                  {"events (exact)": r["events (exact)"], "events": r["events"]}
              """,
              published={"events": (66, 0, "Stata [PSS-2] power logrank, example 2")},
@@ -128,9 +128,9 @@ def _cases(Case):
                  d <- gsDesign::nEvents(hr = 0.5, alpha = 0.05, beta = 0.2, ratio = 1, sided = 2)
                  list(`events (exact)` = d, events = ceiling(d))
              """, r_packages=("gsDesign",), r_tolerance=1e-9, ours_r=("gsDesign",)),
-        Case(needed, "test=: events for survival 50 % against 60 % (hazard ratio log 0.5 / log 0.6 = 1.36), one-sided", STATA,
+        Case(needed, "for_test=: events for survival 50 % against 60 % (hazard ratio log 0.5 / log 0.6 = 1.36), one-sided", STATA,
              "published",
-             ours=first.format(call='sdata.find_how_many_needed(test="compare_survival", '
+             ours=first.format(call='sdata.find_how_many_needed(for_test="compare_survival", '
                                     'effect_size=float(np.log(0.5) / np.log(0.6)), sides=1)') + """
                  {"events (exact)": r["events (exact)"], "events": r["events"]}
              """,
@@ -139,9 +139,9 @@ def _cases(Case):
                  d <- gsDesign::nEvents(hr = log(0.5) / log(0.6), alpha = 0.05, beta = 0.2, ratio = 1, sided = 1)
                  list(`events (exact)` = d, events = ceiling(d))
              """, r_packages=("gsDesign",), r_tolerance=1e-9, ours_r=("gsDesign",)),
-        Case(needed, "test=: events and people for a hazard ratio of 0.7, 30 % and 40 % with the event", STATA,
+        Case(needed, "for_test=: events and people for a hazard ratio of 0.7, 30 % and 40 % with the event", STATA,
              "real data",
-             ours=first.format(call='sdata.find_how_many_needed(test="compare_survival", effect_size=0.7, '
+             ours=first.format(call='sdata.find_how_many_needed(for_test="compare_survival", effect_size=0.7, '
                                     'percents=[30, 40])') + """
                  {"events (exact)": r["events (exact)"], "people in all": r["people in all"],
                   "power with that many": r["power with that many"]}
@@ -154,10 +154,10 @@ def _cases(Case):
              """, r_packages=("gsDesign", "powerSurvEpi"), r_tolerance=1e-9, ours_r=("gsDesign", "powerSurvEpi"),
              note="No published example with people was found for a hazard ratio of 0.7; R gsDesign and powerSurvEpi "
                   "are called directly."),
-        Case(needed, "method=: Freedman's formula, hazard ratio 0.5, everyone followed to the event", STATA,
+        Case(needed, "test_method=: Freedman's formula, hazard ratio 0.5, everyone followed to the event", STATA,
              "published",
-             ours=first.format(call='sdata.find_how_many_needed(test="compare_survival", effect_size=0.5, '
-                                    'percents=[100, 100], method="freedman")') + """
+             ours=first.format(call='sdata.find_how_many_needed(for_test="compare_survival", effect_size=0.5, '
+                                    'percents=[100, 100], test_method="freedman")') + """
                  {"people per group": r["people per group"]}
              """,
              published={"people per group": (36, 0, "Stata [PSS-2] power logrank, example 1")},
@@ -167,7 +167,7 @@ def _cases(Case):
              """, r_packages=("powerSurvEpi",), r_tolerance=1e-9, ours_r=("powerSurvEpi",)),
         # ---- U09: regression
         Case(chance, "using=: power of the F test for 5 columns, R squared 0.10, 95 rows", GPOWER, "published",
-             ours=first.format(call='sdata.find_chance_of_finding(test="explain", effect_size=0.1 / 0.9, using=5, '
+             ours=first.format(call='sdata.find_chance_of_finding(for_test="explain", effect_size=0.1 / 0.9, using=5, '
                                     'values_per_group=95)') + """
                  {"power": r["power"]}
              """,
@@ -180,7 +180,7 @@ def _cases(Case):
                  list(power = pwr::pwr.f2.test(u = 5, v = 89, f2 = 0.1 / 0.9, sig.level = 0.05)$power)
              """, r_packages=("pwr",), r_tolerance=1e-9),
         Case(needed, "against=: rows for 2 columns added to 1, R squared 0.3, significance 0.001", PWR, "published",
-             ours=first.format(call='sdata.find_how_many_needed(test="compare_models", effect_size=0.3 / 0.7, '
+             ours=first.format(call='sdata.find_how_many_needed(for_test="compare_models", effect_size=0.3 / 0.7, '
                                     'using=["x1"], against=["x1", "x2", "x3"], significance=0.001)') + """
                  {"rows (exact)": r["rows (exact)"]}
              """,
@@ -194,7 +194,7 @@ def _cases(Case):
         # ---- U11: logistic regression
         Case(needed, "outcome=: logistic regression, odds ratio 1.5 per standard deviation, 50 % at the average, "
                      "power 0.95", GPOWER, "published",
-             ours=first.format(call='sdata.find_how_many_needed(test="explain", outcome="yes or no", using=["x"], '
+             ours=first.format(call='sdata.find_how_many_needed(for_test="explain", outcome="yes or no", using=["x"], '
                                     'percents=[50], effect_size=1.5, power=0.95)') + """
                  {"values (exact)": r["values (exact)"], "values": r["values"]}
              """,

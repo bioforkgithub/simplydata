@@ -34,10 +34,10 @@ CONFIRM_EXAMPLE = ('table.check_hidden_factors(measured_by={"visual": ["x1", "x2
 
 # method= : (psych fm, in words)
 METHODS = {"minres": ("minres", "minimum residual (minres)"),
-           "ml": ("ml", "maximum likelihood"),
+           "maximum likelihood": ("ml", "maximum likelihood"),
            "principal axis": ("pa", "principal axis")}
 METHOD_SPELLINGS = {"minimum residual": "minres", "min res": "minres", "uls": "minres",
-                    "maximum likelihood": "ml", "max likelihood": "ml", "mle": "ml",
+                    "ml": "maximum likelihood", "max likelihood": "maximum likelihood", "mle": "maximum likelihood",
                     "pa": "principal axis", "paf": "principal axis", "principal axes": "principal axis",
                     "principal axis factoring": "principal axis", "principal-axis": "principal axis"}
 # rotation= : (psych rotate, in words, may the factors correlate?)
@@ -89,9 +89,9 @@ def _texts(x):
 
 class HiddenFactorWords:
     # ------------------------------------------------------------------ exploratory factor analysis
-    @friendly(others={"nfactors": "how_many", "n_factors": "how_many", "factors": "how_many",
-                      "rotate": "rotation", "fm": "method", "seed": "with_seed", "items": "columns"})
-    def find_hidden_factors_behind(self, columns=None, how_many="automatic", rotation="oblimin", method="minres",
+    @friendly(renamed={"method": "test_method"}, others={"nfactors": "how_many", "n_factors": "how_many", "factors": "how_many",
+                      "rotate": "rotation", "fm": "test_method", "seed": "with_seed", "items": "columns"})
+    def find_hidden_factors_behind(self, columns=None, how_many="automatic", rotation="oblimin", test_method="minres",
                                    with_seed=1):
         """Find the hidden factors behind many columns: how many there are, and which columns go with which.
 
@@ -108,8 +108,8 @@ class HiddenFactorWords:
         shared part and its own part (the uniqueness). Unlike principal components
         (add_principal_components), which only sum the columns up, factor analysis looks for
         what the columns share. More: rotation="oblimin" (default; the factors may correlate),
-        "varimax" (kept uncorrelated), "promax" or "none"; method="minres" (default), "ml"
-        (maximum likelihood, as R factanal) or "principal axis"; with_seed=1 makes the
+        "varimax" (kept uncorrelated), "promax" or "none"; test_method="minres" (default), "maximum likelihood"
+        ("ml" works too; as R factanal) or "principal axis"; with_seed=1 makes the
         parallel analysis and the oblimin rotation repeat. To check a model you wrote down beforehand, use
         check_hidden_factors. Needs R psych and GPArotation (pip install "simplydata[r]").
         Other names: factor analysis, efa, fa, factanal, scree, parallel analysis.
@@ -141,7 +141,7 @@ class HiddenFactorWords:
                                   f"number from 1 to {most} ({p} columns can pin down at most {most} "
                                   f"{'factor' if most == 1 else 'factors'}), not {how_many!r}.")
         rotation_name = _choice(rotation, ROTATION_SPELLINGS, tuple(ROTATIONS), "rotation", step)
-        method_name = _choice(method, METHOD_SPELLINGS, tuple(METHODS), "method", step)
+        method_name = _choice(test_method, METHOD_SPELLINGS, tuple(METHODS), "test_method", step)
         if isinstance(with_seed, bool) or not isinstance(with_seed, (int, np.integer)) or not 0 <= with_seed < 2 ** 31:
             raise SimplydataError(f"{step}() needs with_seed= as a whole number from 0 (for example with_seed=1), "
                                   f"not {with_seed!r}.")
@@ -201,7 +201,7 @@ class HiddenFactorWords:
         chosen, yours = [], []
         (chosen if method_name == "minres" else yours).append(
             "minres (psych's default; it gives an answer where maximum likelihood can fail)" if method_name == "minres"
-            else f"method={method_name!r}")
+            else f"test_method={method_name!r}")
         if k > 1:
             (chosen if rotation_name == "oblimin" else yours).append(
                 "oblimin (factors in real data usually correlate)" if rotation_name == "oblimin"

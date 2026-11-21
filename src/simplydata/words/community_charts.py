@@ -6,7 +6,7 @@
   (table.add_diversity_columns(at_total_count=)).
 * draw_cluster_tree(columns=[...]): the tree of hierarchical clustering (a dendrogram), SciPy
   cluster.hierarchy.linkage and dendrogram(no_plot=True) for the links, drawn with matplotlib. The measure and the
-  linkage follow table.add_clusters(method="hierarchical"): "ward" for straight-line distances, "average" for the
+  linkage follow table.add_clusters(test_method="hierarchical"): "ward" for straight-line distances, "average" for the
   others, so the tree matches the clusters. The cophenetic correlation (SciPy cophenet, as R
   cor(cophenetic(h), d)) says how well the tree keeps the distances.
 """

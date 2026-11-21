@@ -63,7 +63,7 @@ ENTRIES = [
           "random numbers too, so R's random numbers are seeded and the answer repeats.",
           "how_many=\"automatic\": parallel analysis (Horn 1965) keeps the factors that stand out more than in random "
           "data of the same size; the 'eigenvalue above 1' rule finds too many (Zwick & Velicer 1986).",
-          "method=\"minres\", psych's default: it gives an answer where maximum likelihood can fail (base R factanal "
+          "test_method=\"minres\", psych's default: it gives an answer where maximum likelihood can fail (base R factanal "
           "uses maximum likelihood).",
           "rotation=\"oblimin\" (through GPArotation): the factors may correlate, as they usually do in real data "
           "(base R factanal uses varimax, which keeps them uncorrelated).")),
@@ -76,8 +76,8 @@ ENTRIES = [
         L <- unclass(f$loadings)
         list(f1 = L[1, 1], f2 = L[1, 2], f3 = L[1, 3], h2 = f$communality[1])
     """, ("a number of factors chosen by you: no parallel analysis (the seed is still set, for the oblimin rotation).",)),
-    _explore_entry("method=", ', how_many=3, method="ml"', """
-        # find_hidden_factors_behind([...], how_many=3, method="ml")
+    _explore_entry("test_method=", ', how_many=3, test_method="maximum likelihood"', """
+        # find_hidden_factors_behind([...], how_many=3, test_method="maximum likelihood")
         x <- as.data.frame(x)
         set.seed(1)
         f <- psych::fa(x, nfactors = 3, fm = "ml",                    # (1)

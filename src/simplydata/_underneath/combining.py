@@ -148,25 +148,25 @@ OPTION_ENTRIES = [
             result = table.combine_studies(names="study", estimates="odds ratio")
             result.as_pandas().query("`row kind` == 'combined'")
         """),
-    _option("method=", ', method="DerSimonian-Laird"', """
-        # combine_studies(..., method="DerSimonian-Laird")
+    _option("test_method=", ', test_method="dersimonian-laird"', """
+        # combine_studies(..., test_method="dersimonian-laird")
         e <- metafor::escalc(measure = "RR", ai = e1, n1i = n1, ci = e2, n2i = n2)
         f <- metafor::rma(yi, vi, data = e, method = "DL",                # (1)
                           test = "adhoc")
         p <- predict(f, transf = exp)
         list(b = p$pred, low = p$ci.lb, high = p$ci.ub, p = f$pval)
-    """, choices=("DerSimonian-Laird's between-study spread (metafor \"DL\"); \"Paule-Mandel\" is \"PM\" and "
+    """, choices=("DerSimonian-Laird's between-study spread (metafor \"DL\"); \"paule-mandel\" is \"PM\" and "
                   "\"common effect\" is \"EE\" (metafor 4 renamed \"FE\").",)),
-    _option('method="Mantel-Haenszel"', ', method="Mantel-Haenszel"', """
-        # combine_studies(..., method="Mantel-Haenszel")
+    _option('test_method="mantel-haenszel"', ', test_method="mantel-haenszel"', """
+        # combine_studies(..., test_method="mantel-haenszel")
         f <- metafor::rma.mh(ai = e1, n1i = n1, ci = e2, n2i = n2,
                              measure = "RR")                              # (1)
         p <- predict(f, transf = exp)
         list(b = p$pred, low = p$ci.lb, high = p$ci.ub, p = f$pval)
     """, choices=("Mantel-Haenszel weights, a common-effect method: there is no between-study spread and no "
                   "prediction interval (compare_risks(allowing_for=) gives the same from raw rows).",)),
-    _option('method="Peto"', ', method="Peto"', """
-        # combine_studies(..., method="Peto")
+    _option('test_method="peto"', ', test_method="peto"', """
+        # combine_studies(..., test_method="peto")
         f <- metafor::rma.peto(ai = e1, n1i = n1, ci = e2, n2i = n2)       # (1)
         p <- predict(f, transf = exp)
         list(b = p$pred, low = p$ci.lb, high = p$ci.ub, p = f$pval)

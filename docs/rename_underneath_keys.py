@@ -41,6 +41,19 @@ def rename_table() -> tuple[dict[str, str], dict[str, dict[str, str]]]:
     return words, options
 
 
+def _rename_option(text: str, old: str, new, quote: str = '"') -> str:
+    """text with the old option written the new way: method= as test_method=; an old switch that is now one value
+    of a new option, new = ("test_method", {True: "bayesian", False: None}), turns bayesian=True into
+    test_method="bayesian" (quote: how a quote is written inside text)."""
+    if not isinstance(new, tuple):
+        return re.sub(rf"(?<![\w.]){re.escape(old)}=(?!=)", f"{new}=", text)
+    name, values = new
+    for value, now in values.items():
+        if now is not None:
+            text = re.sub(rf"(?<![\w.]){re.escape(old)}={value!r}(?!\w)", f"{name}={quote}{now}{quote}", text)
+    return text
+
+
 def _word(key: str) -> str:
     return key.rsplit(".", 1)[-1]
 
@@ -62,7 +75,7 @@ def rewrite(source: str, words: dict[str, str], options: dict[str, dict[str, str
             continue
         old_key = word.value
         new_key = words.get(old_key, old_key)
-        for name in ("word", "ours"):
+        for name in ("word", "option", "ours"):
             value = kw.get(name)
             if not isinstance(value, ast.Constant):
                 continue
@@ -73,10 +86,11 @@ def rewrite(source: str, words: dict[str, str], options: dict[str, dict[str, str
                 new = text.replace(old_key, new_key)
             else:
                 new = text
-                if new_key != old_key:
+                if new_key != old_key and name == "ours":
                     new = re.sub(rf"\.{re.escape(_word(old_key))}\(", f".{_word(new_key)}(", new)
                 for old_opt, new_opt in options.get(new_key, {}).items():
-                    new = re.sub(rf"(?<![\w.]){re.escape(old_opt)}=(?!=)", f"{new_opt}=", new)
+                    new = _rename_option(new, old_opt, new_opt, quote='\\"' if name == "option" and
+                                         text.startswith('"') else '"')
             if new != text:
                 edits.append((start, end, new))
     for start, end, new in sorted(edits, reverse=True):

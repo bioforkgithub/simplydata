@@ -114,7 +114,7 @@ def test_fixed_season_runs_r_stl_periodic(needs_r):
 
 def test_moving_averages_match_r_decompose(engine):
     t = visitors(engine, "Harbour Museum")
-    t.add_trend_and_season("visitors", sorted_by="month", repeats_every="year", method="moving averages")
+    t.add_trend_and_season("visitors", sorted_by="month", repeats_every="year", test_method="moving averages")
     # R: d <- decompose(ts(h, frequency = 12))
     trend = col(t, "visitors_trend")
     assert np.isnan(trend[:6]).all() and np.isnan(trend[-6:]).all()  # the first and last half cycle
@@ -125,7 +125,7 @@ def test_moving_averages_match_r_decompose(engine):
 
 def test_multiplied_season_matches_r(engine, capsys):
     t = visitors(engine, "Harbour Museum")
-    t.add_trend_and_season("visitors", sorted_by="month", repeats_every=12, method="classical", season="multiplied")
+    t.add_trend_and_season("visitors", sorted_by="month", repeats_every=12, test_method="classical", season="multiplied")
     # R: decompose(ts(h, frequency = 12), type = "multiplicative")
     assert col(t, "visitors_season")[:2] == pytest.approx([0.870849298029537, 0.884153172499437], rel=1e-12)
     assert col(t, "visitors_rest")[6] == pytest.approx(1.07328577149643, rel=1e-12)
@@ -134,7 +134,7 @@ def test_multiplied_season_matches_r(engine, capsys):
 
 def test_straight_line_matches_r_lm_with_season_effects(engine):
     t = visitors(engine, "Harbour Museum")
-    t.add_trend_and_season("visitors", sorted_by="month", repeats_every=12, method="straight line")
+    t.add_trend_and_season("visitors", sorted_by="month", repeats_every=12, test_method="straight line")
     # R: tt <- seq_along(h); p <- factor((tt - 1) %% 12)
     #    fit <- lm(h ~ tt + p, contrasts = list(p = "contr.sum")); trend <- coef(fit)[1] + coef(fit)[2] * tt
     #    season <- fitted(fit) - trend; residuals(fit)
@@ -156,7 +156,7 @@ def test_trend_and_season_errors(engine):
     with pytest.raises(SimplydataError, match="season_window="):
         t.add_trend_and_season("visitors", sorted_by="month", repeats_every=12, season_window=8, for_each_group_in="museum")
     with pytest.raises(SimplydataError, match="method"):
-        t.add_trend_and_season("visitors", sorted_by="month", repeats_every=12, method="wavelet", for_each_group_in="museum")
+        t.add_trend_and_season("visitors", sorted_by="month", repeats_every=12, test_method="wavelet", for_each_group_in="museum")
     with pytest.raises(SimplydataError, match="already a column"):
         t.add_trend_and_season("visitors", sorted_by="month", repeats_every=12, for_each_group_in="museum",
                                names=["visitors", "b", "c"])

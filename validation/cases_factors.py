@@ -66,7 +66,7 @@ def _cases(Case):
              `shared part of x9` = f$communality[[9]], factors = ncol(L))
     """
     own = """
-        r = sdata.table(data).find_hidden_factors_behind(""" + COLUMNS + """, how_many=3, method="ml",
+        r = sdata.table(data).find_hidden_factors_behind(""" + COLUMNS + """, how_many=3, test_method="maximum likelihood",
                                                          rotation="varimax").as_pandas()
         out = {f"own part of x{i}": v for i, v in enumerate(r["own part"], 1)}
         out.update({"x1 on factor 2": r["factor 2"][0], "x4 on factor 1": r["factor 1"][3],
@@ -109,11 +109,11 @@ def _cases(Case):
                   "(unseeded, the loadings change in the sixth digit from run to run)."),
         Case("table.find_hidden_factors_behind", "rotation=: promax, with principal axis factoring", HS,
              "real data",
-             ours=loadings.format(more=', how_many=3, method="principal axis", rotation="promax"'),
+             ours=loadings.format(more=', how_many=3, test_method="principal axis", rotation="promax"'),
              r=FRAME + """
                  f <- psych::fa(d, nfactors = 3, fm = "pa", rotate = "promax")
              """ + psych_loadings, r_packages=("psych", "GPArotation"), r_tolerance=1e-8),
-        Case("table.find_hidden_factors_behind", "method=: maximum likelihood with varimax, as R factanal", HS,
+        Case("table.find_hidden_factors_behind", "test_method=: maximum likelihood with varimax, as R factanal", HS,
              "real data", ours=own,
              parent="""
                  from statsmodels.multivariate.factor import Factor

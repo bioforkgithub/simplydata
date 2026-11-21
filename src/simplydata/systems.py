@@ -644,12 +644,12 @@ class System:
         return gain
 
     # ------------------------------------------------------------------ new systems
-    @friendly
-    def in_steps(self, time_step=None, method="zero order hold"):
+    @friendly(renamed={"method": "test_method"})
+    def in_steps(self, time_step=None, test_method="zero order hold"):
         """The same system in steps of time_step (discrete time), for a computer that reads and acts in steps.
 
         system.in_steps(time_step=0.1)
-        method="zero order hold" (the input stays constant between steps; R control::c2d(sys, 0.1)),
+        test_method="zero order hold" (the input stays constant between steps; R control::c2d(sys, 0.1)),
         "bilinear" ("tustin"; as R signal::bilinear), "forward difference" ("euler") or "backward
         difference". SciPy signal.cont2discrete.
         """
@@ -660,9 +660,9 @@ class System:
         if isinstance(time_step, bool) or not isinstance(time_step, (int, float)) or time_step <= 0:
             raise SimplydataError("in_steps() needs time_step= as the time between steps, such as "
                                   "system.in_steps(time_step=0.1).")
-        chosen = METHOD_SPELLINGS.get(str(method).strip().lower(), str(method).strip().lower())
+        chosen = METHOD_SPELLINGS.get(str(test_method).strip().lower(), str(test_method).strip().lower())
         if chosen not in DISCRETE_METHODS:
-            raise choice_error("in_steps", "method", method, list(DISCRETE_METHODS))
+            raise choice_error("in_steps", "test_method", test_method, list(DISCRETE_METHODS))
         num, den, _ = signal.cont2discrete((self._num, self._den), float(time_step), method=DISCRETE_METHODS[chosen])
         made = System(np.asarray(num, dtype=float).ravel(), den, time_step=float(time_step))
         print(f"In steps of {_g(time_step)} ({chosen}): output / input = {made._formula()}.")
@@ -986,15 +986,15 @@ def system(formula=None, numerator=None, denominator=None, poles=None, zeros=Non
     return made
 
 
-@friendly
+@friendly(renamed={"method": "test_method"})
 def frequency_filter(keep_below=None, keep_above=None, keep_between=None, remove_between=None, remove_at=None,
-                     time_step=None, method="butterworth", steepness=4, ripple=0.5, removed_by=40, width=1,
+                     time_step=None, test_method="butterworth", steepness=4, ripple=0.5, removed_by=40, width=1,
                      and_multiples=False, sampling_rate=None, fs=None):
     """The filter of add_filtered_column as a system in steps, to look at before using it.
 
     sdata.frequency_filter(keep_below=10, time_step=0.005)
     One condition (keep_below=, keep_above=, keep_between=, remove_between=, remove_at=) and the options of
-    nums.keep_each_frequency_that (method=, steepness=, ...). Gives back a System:
+    nums.keep_each_frequency_that (test_method=, steepness=, ...). Gives back a System:
     .frequency_response() (in cycles per unit of time), .chart() (the Bode chart), .poles(), .table(),
     .response_to(nums) (forwards only, from rest, as both_ways=False).
     """
@@ -1016,7 +1016,7 @@ def frequency_filter(keep_below=None, keep_above=None, keep_between=None, remove
                                                 and value[0] < value[1]):
             raise SimplydataError(f"{option}= needs two frequencies, the lower first, such as {option}=[1, 5].")
         kind = {"keep_below": "low", "keep_above": "high", "keep_between": "pass", "remove_between": "stop"}[option]
-        chosen = _filters.read_method(method, "frequency_filter")
+        chosen = _filters.read_method(test_method, "frequency_filter")
         made = _filters.design(kind, value, step, chosen, steepness, ripple, removed_by, step_name="frequency_filter")
     b, a = _filters.coefficients(made)
     what = (f"between {value[0]:g} and {value[1]:g}" if option.endswith("between") else

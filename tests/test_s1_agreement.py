@@ -106,15 +106,15 @@ def test_icc_names_the_form(engine, needs_r, capsys):
 def test_krippendorff_and_lin(engine, needs_r):
     t = make(engine)
     # R: irr::kripp.alpha(t(codes), method = "ordinal" / "nominal" / "interval")$value
-    got = row(t.agreement_between("nurse_rating", "doctor_rating", method="krippendorff", in_order=ORDER))
+    got = row(t.agreement_between("nurse_rating", "doctor_rating", test_method="krippendorff", in_order=ORDER))
     assert got["estimate"] == pytest.approx(0.6581141431302, rel=1e-9)
-    got = row(t.agreement_between("nurse_rating", "doctor_rating", method="krippendorff"))
+    got = row(t.agreement_between("nurse_rating", "doctor_rating", test_method="krippendorff"))
     assert got["estimate"] == pytest.approx(0.5154551147037, rel=1e-9)
-    got = row(t.agreement_between("device_a", "device_b", method="krippendorff"))
+    got = row(t.agreement_between("device_a", "device_b", test_method="krippendorff"))
     assert got["estimate"] == pytest.approx(0.9383804965401, rel=1e-9)
     assert got["kind of data"] == "numbers (interval data)"
     # R: DescTools::CCC(device_a, device_b)$rho.c
-    got = row(t.agreement_between("device_a", "device_b", method="lin"))
+    got = row(t.agreement_between("device_a", "device_b", test_method="lin"))
     assert (got["estimate"], got["estimate 95 % CI low"], got["estimate 95 % CI high"]) == pytest.approx(
         (0.9385462825355, 0.9199064864308, 0.952954422034), rel=1e-9)
 
@@ -164,8 +164,8 @@ def test_errors(engine):
         t.agreement_between("device_a", "device_b", near_misses="linear")
     with pytest.raises(SimplydataError, match="in_order= leaves out"):
         t.agreement_between("nurse_rating", "doctor_rating", near_misses="linear", in_order=["mild", "severe"])
-    with pytest.raises(SimplydataError, match='method="icc" needs columns of numbers'):
-        t.agreement_between("nurse_rating", "doctor_rating", method="icc")
+    with pytest.raises(SimplydataError, match='test_method="icc" needs columns of numbers'):
+        t.agreement_between("nurse_rating", "doctor_rating", test_method="icc")
     with pytest.raises(SimplydataError, match="two columns of numbers"):
         t.limits_of_agreement("device_a", "ward")
     with pytest.raises(SimplydataError, match="same column twice"):

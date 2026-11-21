@@ -74,7 +74,7 @@ def test_band_stop_and_notch():
 def test_fir_is_not_offered_yet():
     # SciPy firwin and R signal::fir1(100, 0.1) give different weights (R's add up to 1.0015): owner to decide
     with pytest.raises(SimplydataError, match="not ready"):
-        sensor().keep_each_frequency_that(is_below=10, time_step=0.005, method="fir")
+        sensor().keep_each_frequency_that(is_below=10, time_step=0.005, test_method="fir")
 
 
 def test_filter_errors():
@@ -84,7 +84,7 @@ def test_filter_errors():
     with pytest.raises(SimplydataError, match="the highest frequency"):
         nums.keep_each_frequency_that(is_below=150, time_step=0.005)
     with pytest.raises(SimplydataError, match="method"):
-        nums.keep_each_frequency_that(is_below=5, time_step=0.005, method="kalman")
+        nums.keep_each_frequency_that(is_below=5, time_step=0.005, test_method="kalman")
     with pytest.raises(SimplydataError, match="lower first"):
         nums.keep_each_frequency_that(is_between=[5, 1], time_step=0.005)
 
@@ -138,7 +138,7 @@ def test_convolution_matches_r():
 
 def test_change_time_step():
     nums = sensor()
-    nums.change_time_step(to=0.01, time_step=0.005, method="filter then keep")
+    nums.change_time_step(to=0.01, time_step=0.005, test_method="filter then keep")
     assert len(values(nums)) == 500 and nums._time_step == 0.01
     nums = sensor()
     nums.change_time_step(to=0.01, time_step=0.005)
@@ -290,10 +290,10 @@ def test_show_filter_shows_the_chart_and_the_line_that_saves_it(monkeypatch, tmp
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
         t.add_filtered_column("hum", from_column="signal", remove_at=50, sorted_by="time", show_filter=True)
-        sensor().remove_each_frequency_that(is_below=2, time_step=0.005, method="chebyshev", show_filter=True)
+        sensor().remove_each_frequency_that(is_below=2, time_step=0.005, test_method="chebyshev", show_filter=True)
     out = capsys.readouterr().out
     assert "sdata.frequency_filter(remove_at=50, time_step=0.005).chart()" in out
-    assert 'sdata.frequency_filter(keep_above=2, time_step=0.005, method="chebyshev").chart()' in out
+    assert 'sdata.frequency_filter(keep_above=2, time_step=0.005, test_method="chebyshev").chart()' in out
     with pytest.raises(SimplydataError, match=r"show_filter= is True .* or False\. To save the chart: "
                                               r"sdata\.frequency_filter\(keep_below=10"):
         sensor().keep_each_frequency_that(is_below=10, time_step=0.005, show_filter="filter.png")
@@ -377,7 +377,7 @@ def test_bessel_matches_r_gsignal_with_the_prewarped_cutoff(capsys):
     from scipy import signal
 
     nums = sensor()
-    nums.keep_each_frequency_that(is_below=10, time_step=0.005, method="bessel")
+    nums.keep_each_frequency_that(is_below=10, time_step=0.005, test_method="bessel")
     # R: z <- gsignal::as.Arma(gsignal::bilinear(gsignal::besself(4, 2 * 200 * tan(pi * 10 / 200)), T = 1 / 200))
     #    signal::filtfilt(z, x)[c(300, 500)]
     assert values(nums)[[299, 499]] == pytest.approx([0.365463543645377, 0.330800987305200], rel=1e-10)
@@ -390,7 +390,7 @@ def test_bessel_matches_r_gsignal_with_the_prewarped_cutoff(capsys):
     assert a == pytest.approx([1, -1.4502103303751783, 0.9699838065630142, -0.3045315433134006, 0.0383944842064527],
                               rel=1e-10)
     nums = sensor()
-    nums.keep_each_frequency_that(is_between=[10, 30], time_step=0.005, method="bessel", steepness=2)
+    nums.keep_each_frequency_that(is_between=[10, 30], time_step=0.005, test_method="bessel", steepness=2)
     # R: signal::filtfilt(gsignal::as.Arma(gsignal::bilinear(gsignal::besself(2, 2 * 200 * tan(pi * c(10, 30) / 200),
     #    type = "pass"), T = 1 / 200)), x)[c(300, 500)]
     assert values(nums)[[299, 499]] == pytest.approx([-0.263351352212425, 0.114621142699148], rel=1e-10)

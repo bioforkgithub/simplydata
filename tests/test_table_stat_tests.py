@@ -90,7 +90,7 @@ def test_welch_t_test_matches_r_and_scipy(marks, engine, capsys):
 
 def test_student_t_test_with_test_option_matches_r(marks, engine, capsys):
     ab = marks[marks["class"].isin(["A", "B"])].reset_index(drop=True)
-    got = row(make(ab, engine).compare_averages_of("marks", for_each_group_in="class", test="student"))
+    got = row(make(ab, engine).compare_averages_of("marks", for_each_group_in="class", test_method="student"))
     # R: t.test(marks ~ class, data = ab, var.equal = TRUE)
     assert got["statistic"] == pytest.approx(1.583550500481361, rel=REL)
     assert got["degrees of freedom"] == 34
@@ -135,7 +135,7 @@ def test_welch_anova_formula_on_unequal_groups_matches_r_and_scipy():
 
 def test_welch_anova_on_two_groups_equals_welch_t_squared(marks):
     ab = marks[marks["class"].isin(["A", "B"])]
-    got = row(make_table(ab).compare_averages_of("marks", for_each_group_in="class", test="welch anova"))
+    got = row(make_table(ab).compare_averages_of("marks", for_each_group_in="class", test_method="welch anova"))
     # R: oneway.test(marks ~ class, data = ab)
     assert got["statistic"] == pytest.approx(2.507632187574768, rel=REL)
     assert got["statistic"] == pytest.approx(1.583550500481361 ** 2, rel=REL)
@@ -143,7 +143,7 @@ def test_welch_anova_on_two_groups_equals_welch_t_squared(marks):
 
 
 def test_classic_anova_with_test_option_matches_r(marks, engine):
-    got = row(make(marks, engine).compare_averages_of("marks", for_each_group_in="class", test="anova"))
+    got = row(make(marks, engine).compare_averages_of("marks", for_each_group_in="class", test_method="anova"))
     # R: oneway.test(marks ~ class, data = m, var.equal = TRUE)
     assert got["statistic"] == pytest.approx(3.8900486306902953, rel=REL)
     assert got["degrees of freedom 2"] == 51
@@ -186,7 +186,7 @@ def test_kruskal_wallis_small_groups_match_r():
     data = pd.DataFrame({"g": list("xxxxxyyyyzzzzzz"),
                          "v": [10.1, 11.4, 9.8, 12.0, 10.7, 13.2, 12.9, 14.8, 11.9,
                                9.0, 8.7, 10.2, 9.9, 8.1, 9.4]})
-    got = row(make_table(data).compare_averages_of("v", for_each_group_in="g", test="kruskal-wallis"))
+    got = row(make_table(data).compare_averages_of("v", for_each_group_in="g", test_method="kruskal-wallis"))
     # R: kruskal.test(list(x, y, z))
     assert got["statistic"] == pytest.approx(10.4025, rel=REL)
     assert got["p-value"] == pytest.approx(0.00550967302325559, rel=1e-8)
@@ -335,7 +335,7 @@ def test_chi_square_two_by_two_uses_yates_like_r(marks, engine, capsys):
     # Cramer's V uses the chi-square without the correction
     observed = np.array([[19, 14], [17, 4]])
     assert got["effect size"] == pytest.approx(association(observed, method="cramer", correction=False))
-    fisher = row(make(data, engine).compare_counts_of("result", for_each_group_in="class A", test="fisher"))
+    fisher = row(make(data, engine).compare_counts_of("result", for_each_group_in="class A", test_method="fisher"))
     # R: fisher.test(table(m$result, m$class == "A"))
     assert fisher["p-value"] == pytest.approx(0.137562740161948, rel=1e-8)
     assert fisher["test"] == "Fisher's exact test"
@@ -349,8 +349,8 @@ def test_small_counts_note_suggests_fisher_and_never_switches(engine, capsys):
     assert got["statistic"] == pytest.approx(0.950625, rel=REL)
     assert got["p-value"] == pytest.approx(0.329560259960621, rel=1e-8)
     out = capsys.readouterr().out
-    assert "expected counts are below 5" in out and 'test="fisher"' in out
-    fisher = row(make(data, engine).compare_counts_of("a", for_each_group_in="b", test="fisher"))
+    assert "expected counts are below 5" in out and 'test_method="fisher"' in out
+    fisher = row(make(data, engine).compare_counts_of("a", for_each_group_in="b", test_method="fisher"))
     # R: fisher.test(matrix(c(3, 1, 1, 4), 2))
     assert fisher["p-value"] == pytest.approx(0.206349206349207, rel=1e-8)
     assert "below 5" not in capsys.readouterr().out
@@ -359,7 +359,7 @@ def test_small_counts_note_suggests_fisher_and_never_switches(engine, capsys):
 def test_fisher_on_a_bigger_table_uses_seeded_random_tables(marks, capsys):
     # S1: Fisher on tables bigger than 2 x 2 gives its p-value from 100,000 seeded random tables (SciPy);
     # its agreement with R fisher.test() is checked in test_s1_part_a2.py
-    make_table(with_result(marks)).compare_counts_of("result", for_each_group_in="class", test="fisher")
+    make_table(with_result(marks)).compare_counts_of("result", for_each_group_in="class", test_method="fisher")
     assert "100,000 random tables" in capsys.readouterr().out
 
 
@@ -558,9 +558,9 @@ def test_numbers_are_written_plainly():
 # ---------------------------------------------------------------- friendly errors
 @pytest.mark.parametrize("call, message", [
     (lambda t: t.compare_averages_of("marks", for_each_group_in="class", based_on="median"), 'based_on="median"'),
-    (lambda t: t.compare_averages_of("marks", for_each_group_in="class", test="welsh"), 'Did you mean test="welch"'),
-    (lambda t: t.compare_averages_of("marks", for_each_group_in="class", test="welch"), "compares exactly 2 groups"),
-    (lambda t: t.compare_averages_of("marks", for_each_group_in="class", based_on="ranks", test="welch"), "Use one of them"),
+    (lambda t: t.compare_averages_of("marks", for_each_group_in="class", test_method="welsh"), 'Did you mean test_method="welch"'),
+    (lambda t: t.compare_averages_of("marks", for_each_group_in="class", test_method="welch"), "compares exactly 2 groups"),
+    (lambda t: t.compare_averages_of("marks", for_each_group_in="class", based_on="ranks", test_method="welch"), "Use one of them"),
     (lambda t: t.compare_averages_of("name", for_each_group_in="class"), "needs a column of numbers"),
     (lambda t: t.compare_averages_of("marks", for_each_group_in="marks"), "cannot be both"),
     (lambda t: t.compare_averages_of("marks", for_each_group_in="klass"), 'Did you mean "class"'),
@@ -568,7 +568,7 @@ def test_numbers_are_written_plainly():
     (lambda t: t.compare_averages_of("marks", by="class"), "has no option called by="),
     (lambda t: t.compare_average_to("marks", "60"), "needs a number"),
     (lambda t: t.compare_before_and_after("marks", "marks"), "two different columns"),
-    (lambda t: t.compare_counts_of("subject", for_each_group_in="class", test="g-test"), 'test="g-test"'),
+    (lambda t: t.compare_counts_of("subject", for_each_group_in="class", test_method="g-test"), 'test_method="g-test"'),
     (lambda t: t.fit_straight_line(x="hours", y="hours"), "two different columns"),
 ])
 def test_friendly_errors(marks, call, message):

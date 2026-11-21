@@ -142,11 +142,11 @@ def _plain_method(step, method, choices, spellings):
     if method is None:
         return None
     if not isinstance(method, str):
-        raise SimplydataError(f'{step}() needs method= as a name in quotes, such as method="nelder-mead".')
+        raise SimplydataError(f'{step}() needs test_method= as a name in quotes, such as test_method="nelder-mead".')
     key = method.strip().lower().replace("_", " ")
     key = spellings.get(key, key)
     if key not in choices:
-        raise choice_error(step, "method", method, list(choices))
+        raise choice_error(step, "test_method", method, list(choices))
     return key
 
 
@@ -708,9 +708,9 @@ def _whole_range(step, names, limits, objective, rule_list, whole, start, chosen
     bounds = [limits[n] for n in names]
     words, r_name = GLOBAL_METHODS[chosen]
     if whole and chosen != "differential evolution":
-        raise SimplydataError('whole_numbers= with search="whole range" works with method="differential evolution".')
+        raise SimplydataError('whole_numbers= with search="whole range" works with test_method="differential evolution".')
     if rule_list and chosen not in ("differential evolution", "shgo"):
-        raise SimplydataError(f'rules= with search="whole range" works with method="differential evolution" or '
+        raise SimplydataError(f'rules= with search="whole range" works with test_method="differential evolution" or '
                               f'"shgo", not "{chosen}".')
     constraints = []
     if rule_list:
@@ -768,9 +768,9 @@ def _whole_range(step, names, limits, objective, rule_list, whole, start, chosen
                    method_name=words)
 
 
-@friendly
+@friendly(renamed={"method": "test_method"})
 def find_where_smallest(formula=None, between=None, start=None, rules=None, whole_numbers=False, search="from start",
-                        method=None, known=None, fast=False):
+                        test_method=None, known=None, fast=False):
     """Find where a formula is smallest, and its value there.
 
     sdata.find_where_smallest("x**2 - 4*x + 1", between=[0, 5])   (the smallest value is -3, at x = 2)
@@ -781,7 +781,7 @@ def find_where_smallest(formula=None, between=None, start=None, rules=None, whol
     (with a straight-line formula and rules). search="whole range" looks everywhere in
     between= instead of near the start. known={"a": 2.1} (or a one-row result table from
     table.fit_formula) fixes some names. The method is decided by what you give and printed
-    (R optimize(), optim(), lpSolve::lp(); see the module notes); method= lets experts choose
+    (R optimize(), optim(), lpSolve::lp(); see the module notes); test_method= lets experts choose
     ("nelder-mead", "bfgs", "l-bfgs-b", "conjugate gradient", "powell", "trust region",
     "slsqp", "cobyla"; with search="whole range": "differential evolution", "dual annealing",
     "shgo", "basin hopping", "direct"). Gives back a one-row table: the value of each name,
@@ -789,24 +789,24 @@ def find_where_smallest(formula=None, between=None, start=None, rules=None, whol
     value of one more on the right of each rule (shadow price, R lp(compute.sens = TRUE)$duals).
     fast=True gives the table on the fast engine (Polars).
     """
-    return _find("find_where_smallest", "smallest", formula, between, start, rules, whole_numbers, search, method,
+    return _find("find_where_smallest", "smallest", formula, between, start, rules, whole_numbers, search, test_method,
                  known, fast)
 
 
-@friendly
+@friendly(renamed={"method": "test_method"})
 def find_where_biggest(formula=None, between=None, start=None, rules=None, whole_numbers=False, search="from start",
-                       method=None, known=None, fast=False):
+                       test_method=None, known=None, fast=False):
     """Find where a formula is biggest, and its value there.
 
     sdata.find_where_biggest("3*x + 2*y", rules=["x + y <= 4", "x + 3*y <= 6", "x >= 0", "y >= 0"])   (12, at x = 4, y = 0)
     The same options as find_smallest(): between=, start=, rules=, whole_numbers=,
-    search="whole range", method=, known= (a dict, or a one-row result table from
+    search="whole range", test_method=, known= (a dict, or a one-row result table from
     table.fit_formula, so a fitted curve can be handed straight over). It works by finding
     the smallest value of minus the formula, and prints the biggest. Gives back a one-row
     table: each name, the biggest value, the method, whether it settled, and for linear
     programs the value of one more on the right of each rule (shadow price).
     """
-    return _find("find_where_biggest", "biggest", formula, between, start, rules, whole_numbers, search, method,
+    return _find("find_where_biggest", "biggest", formula, between, start, rules, whole_numbers, search, test_method,
                  known, fast)
 
 
@@ -859,8 +859,8 @@ def _solve_one_range(text, name, gap, low, high, chosen):
     return roots, jumps
 
 
-@friendly
-def solve(equations=None, between=None, start=None, method=None, known=None, fast=False):
+@friendly(renamed={"method": "test_method"})
+def solve(equations=None, between=None, start=None, test_method=None, known=None, fast=False):
     """Find the values that make an equation true.
 
     sdata.solve("x**3 - 2*x = 5", between=[0, 3])   (x = 2.09455)
@@ -907,8 +907,8 @@ def solve(equations=None, between=None, start=None, method=None, known=None, fas
     limits, has_limits = _limits("solve", names, between, "between=[0, 3]" if len(names) == 1 else
                                  'between={"x": [0, 3], "y": [0, 3]}')
     if len(names) == 1:
-        return _solve_one(texts[0], names[0], formulas[0], limits, has_limits, start, method, fast)
-    return _solve_system(texts, names, formulas, limits, start, method, fast)
+        return _solve_one(texts[0], names[0], formulas[0], limits, has_limits, start, test_method, fast)
+    return _solve_system(texts, names, formulas, limits, start, test_method, fast)
 
 
 def _solve_one(text, name, formula, limits, has_limits, start, method, fast):
@@ -923,7 +923,7 @@ def _solve_one(text, name, formula, limits, has_limits, start, method, fast):
     rows = []
     if has_limits and math.isfinite(low) and math.isfinite(high):
         if chosen == "secant":
-            raise SimplydataError('method="secant" searches from start=; with between= use method="brent".')
+            raise SimplydataError('test_method="secant" searches from start=; with between= use test_method="brent".')
         if start is not None:
             print("Note: start= is not used when between= gives a range with two ends: every solution in the "
                   "range is searched for.")
@@ -953,7 +953,7 @@ def _solve_one(text, name, formula, limits, has_limits, start, method, fast):
         return _result(rows, fast)
     if start is not None:
         if chosen not in (None, "secant"):
-            raise SimplydataError(f'method="{chosen}" needs between=[low, high] (a range where the sides cross).')
+            raise SimplydataError(f'test_method="{chosen}" needs between=[low, high] (a range where the sides cross).')
         first = _starts("solve", [name], start, limits, True, "start=1")[0]
         step = 1e-4 * max(1.0, abs(first))
         with warnings.catch_warnings():

@@ -518,8 +518,8 @@ class ModelToolWords:
         return made.draw_line_with_slope(qq["slope"], intercept=qq["intercept"]).write_title_on_top(title)
 
     # ------------------------------------------------------------------ check_model_of
-    @friendly(renamed={"seed": "with_seed"})
-    def check_model_of(self, column=None, using=None, outcome="numbers", grouped_by=None, bayesian=False, show=None,
+    @friendly(renamed={"bayesian": ("test_method", {True: "bayesian", False: None}), "seed": "with_seed"})
+    def check_model_of(self, column=None, using=None, outcome="numbers", grouped_by=None, test_method=None, show=None,
                        with_seed=1):
         """Four pictures to check a model from explain(), as R plot(lm(...)).
 
@@ -538,7 +538,7 @@ class ModelToolWords:
         grouped_by= it also prints each column's variance inflation factor (how strongly it is
         linked with the others, as R car::vif()).
         Gives back the page of charts: .show() or .save("checks.png").
-        bayesian=True checks the Bayesian model of explain(..., bayesian=True) (R rstanarm, seed =
+        test_method="bayesian" checks the Bayesian model of explain(..., test_method="bayesian") (R rstanarm, seed =
         with_seed): it prints R-hat and effective draws, warns about convergence problems, and draws the
         posterior predictive check: the data against 50 sets of values made up by the fitted model (R
         rstanarm::posterior_predict(), as bayesplot::pp_check). show="prior check" draws the prior
@@ -546,13 +546,15 @@ class ModelToolWords:
         the prior allows only possible values. Gives back the chart.
         """
         step = "check_model_of"
-        wants = self._check_bayesian(step, bayesian)
+        wants = self._check_bayesian(step, test_method)
+        if test_method is not None and not wants:
+            self._check_choice(step, "test_method", test_method, ("bayesian",))
         if wants or show is not None or with_seed != 1:
             from . import bayes_words
 
             if not wants:
-                raise SimplydataError('show= and with_seed= go with bayesian=True, such as table.check_model_of("marks", '
-                                      'using=["hours"], bayesian=True, show="prior check").')
+                raise SimplydataError('show= and with_seed= go with test_method="bayesian", such as table.check_model_of("marks", '
+                                      'using=["hours"], test_method="bayesian", show="prior check").')
             if show is not None:
                 self._check_choice(step, "show", show, ("prior check",))
             if isinstance(outcome, str):

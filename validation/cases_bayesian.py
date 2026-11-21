@@ -1,4 +1,4 @@
-"""The reliability study for phase S3d-3, Bayesian methods: bayesian=True on compare_averages_of,
+"""The reliability study for phase S3d-3, Bayesian methods: test_method="bayesian" on compare_averages_of,
 compare_before_and_after, compare_average_to, find_correlation_between and compare_counts_of (R BayesFactor), and on
 explain (R rstanarm stan_glm and stan_glmer).
 
@@ -43,11 +43,11 @@ def _join(*parts) -> str:
 def _cases(Case):
     return [
         # ---------------------------------------------------------------- Z01-Z02: Bayes factors
-        Case("table.compare_averages_of", "bayesian=True: Student's sleep data, the two drugs as two groups",
+        Case("table.compare_averages_of", "test_method=\"bayesian\": Student's sleep data, the two drugs as two groups",
              "Student's sleep data", "real data",
              ours="""
                  r = sdata.table(data).compare_averages_of("extra", for_each_group_in="group",
-                                                           bayesian=True).as_pandas()
+                                                           test_method="bayesian").as_pandas()
                  {"Bayes factor": r["Bayes factor"][0], "difference": r["difference"][0],
                   "95 % low": r["difference 95 % credible interval low"][0],
                   "95 % high": r["difference 95 % credible interval high"][0]}
@@ -69,12 +69,12 @@ def _cases(Case):
              """, r_packages=LIGHT, r_tolerance=1e-9,
              note="BayesFactor's documentation gives 1.27 for this Bayes factor; the interval is checked with the "
                   "same seed (same draws), its Monte Carlo error in the tests."),
-        Case("table.compare_before_and_after", "bayesian=True: Student's sleep data, each patient on both drugs",
+        Case("table.compare_before_and_after", "test_method=\"bayesian\": Student's sleep data, each patient on both drugs",
              "Student's sleep data", "real data",
              ours="""
                  wide = pd.DataFrame({"drug_1": data.loc[data["group"] == "drug 1", "extra"].to_numpy(),
                                       "drug_2": data.loc[data["group"] == "drug 2", "extra"].to_numpy()})
-                 r = sdata.table(wide).compare_before_and_after("drug_1", "drug_2", bayesian=True).as_pandas()
+                 r = sdata.table(wide).compare_before_and_after("drug_1", "drug_2", test_method="bayesian").as_pandas()
                  {"Bayes factor": r["Bayes factor"][0], "average change": r["average change"][0],
                   "95 % low": r["average change 95 % credible interval low"][0],
                   "95 % high": r["average change 95 % credible interval high"][0]}
@@ -93,11 +93,11 @@ def _cases(Case):
                       `95 % low` = q["mu", "2.5%"], `95 % high` = q["mu", "97.5%"])
              """, r_packages=LIGHT, r_tolerance=1e-9,
              note="BayesFactor's documentation gives 17.26 for this paired Bayes factor (the example of ttestBF's help)."),
-        Case("table.compare_average_to", "bayesian=True: Student's sleep data, drug 1 against 1 extra hour",
+        Case("table.compare_average_to", "test_method=\"bayesian\": Student's sleep data, drug 1 against 1 extra hour",
              "Student's sleep data", "real data",
              ours="""
                  one = pd.DataFrame({"extra": data.loc[data["group"] == "drug 1", "extra"].to_numpy()})
-                 r = sdata.table(one).compare_average_to("extra", 1, bayesian=True, prior_width="wide").as_pandas()
+                 r = sdata.table(one).compare_average_to("extra", 1, test_method="bayesian", prior_width="wide").as_pandas()
                  {"Bayes factor": r["Bayes factor"][0], "difference": r["difference"][0],
                   "95 % low": r["difference 95 % credible interval low"][0],
                   "95 % high": r["difference 95 % credible interval high"][0]}
@@ -119,10 +119,10 @@ def _cases(Case):
              """, r_packages=LIGHT, r_tolerance=1e-9,
              note="The Bayes factor is R's own ttestBF(x, mu = 1); the interval is that of the average minus 1, from "
                   "ttestBF(x - 1), because BayesFactor's posterior() leaves mu = out."),
-        Case("table.find_correlation_between", "bayesian=True: mtcars, fuel use and weight",
+        Case("table.find_correlation_between", "test_method=\"bayesian\": mtcars, fuel use and weight",
              "mtcars", "real data",
              ours="""
-                 r = sdata.table(data).find_correlation_between("mpg", "wt", bayesian=True).as_pandas()
+                 r = sdata.table(data).find_correlation_between("mpg", "wt", test_method="bayesian").as_pandas()
                  {"Bayes factor": r["Bayes factor"][0], "r": r["r"][0], "95 % low": r["r 95 % credible interval low"][0],
                   "95 % high": r["r 95 % credible interval high"][0]}
              """,
@@ -135,12 +135,12 @@ def _cases(Case):
              """, r_packages=LIGHT, r_tolerance=1e-9,
              note="The design check of 2026-11-20 gave a Bayes factor of 1.3 x 10^7 for this pair (BayesFactor "
                   "0.9.12-4.8)."),
-        Case("table.compare_counts_of", "bayesian=True: mtcars, gearbox (automatic or manual) by engine shape",
+        Case("table.compare_counts_of", "test_method=\"bayesian\": mtcars, gearbox (automatic or manual) by engine shape",
              "mtcars", "real data",
              ours="""
                  t = sdata.table(data.assign(gearbox=data["am"].map({0: "automatic", 1: "manual"}),
                                              engine=data["vs"].map({0: "V-shaped", 1: "straight"})))
-                 r = t.compare_counts_of("gearbox", for_each_group_in="engine", bayesian=True).as_pandas()
+                 r = t.compare_counts_of("gearbox", for_each_group_in="engine", test_method="bayesian").as_pandas()
                  {"Bayes factor": r["Bayes factor"][0], "share manual, straight": r["share manual in straight"][0],
                   "95 % low": r["share manual in straight 95 % credible interval low"][0]}
              """,
@@ -167,10 +167,10 @@ def _cases(Case):
              note="simplydata orders the groups as text (\"V-shaped\" before \"straight\"), so the R table lists them "
                   "in that order too."),
         # ---------------------------------------------------------------- Z03-Z06: Bayesian models
-        Case("table.explain", "bayesian=True: mtcars, fuel use from weight and horsepower (rstanarm stan_glm)",
+        Case("table.explain", "test_method=\"bayesian\": mtcars, fuel use from weight and horsepower (rstanarm stan_glm)",
              "mtcars", "real data",
              ours="""
-                 r = sdata.table(data).explain("mpg", using=["wt", "hp"], bayesian=True).as_pandas().set_index("term")
+                 r = sdata.table(data).explain("mpg", using=["wt", "hp"], test_method="bayesian").as_pandas().set_index("term")
                  {"wt": r.loc["wt", "effect"], "wt 95 % low": r.loc["wt", "95 % credible interval low"],
                   "wt 95 % high": r.loc["wt", "95 % credible interval high"], "hp": r.loc["hp", "effect"],
                   "sigma": r.loc["spread around the model (sigma)", "effect"], "wt R-hat": r.loc["wt", "R-hat"]}
@@ -185,11 +185,11 @@ def _cases(Case):
              """, r_packages=HEAVY, r_tolerance=1e-9,
              note="lm() gives -3.88 for wt and -0.0318 for hp; the posterior medians are close to them because "
                   "rstanarm's priors are weak here."),
-        Case("table.explain", "bayesian=True, grouped_by=: sleepstudy, reaction time over days (rstanarm stan_glmer)",
+        Case("table.explain", "test_method=\"bayesian\", grouped_by=: sleepstudy, reaction time over days (rstanarm stan_glmer)",
              "sleepstudy (lme4)", "real data",
              ours="""
                  r = sdata.table(data).explain("Reaction", using=["Days"], grouped_by="Subject",
-                                               bayesian=True).as_pandas().set_index("term")
+                                               test_method="bayesian").as_pandas().set_index("term")
                  {"Days": r.loc["Days", "effect"], "Days 95 % low": r.loc["Days", "95 % credible interval low"],
                   "Days 95 % high": r.loc["Days", "95 % credible interval high"],
                   "intercept": r.loc["(intercept)", "effect"]}
@@ -202,10 +202,10 @@ def _cases(Case):
                       intercept = unname(rstanarm::fixef(m)[1]))
              """, r_packages=HEAVY, r_tolerance=1e-9,
              note="lme4's REML estimates are 251.4 and 10.47 (Bates et al. 2015); the posterior medians are close."),
-        Case("table.check_model_of", "bayesian=True: mtcars, the posterior predictive check of fuel use from weight",
+        Case("table.check_model_of", "test_method=\"bayesian\": mtcars, the posterior predictive check of fuel use from weight",
              "mtcars", "real data",
              ours="""
-                 c = sdata.table(data).check_model_of("mpg", using=["wt"], bayesian=True)._check_numbers
+                 c = sdata.table(data).check_model_of("mpg", using=["wt"], test_method="bayesian")._check_numbers
                  {"data density at point 100": c["observed"][99], "set 3 at point 100": c["made"][2][99],
                   "set 50 at point 200": c["made"][49][199], "grid end": c["grid"][-1]}
              """,

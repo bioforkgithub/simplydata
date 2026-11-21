@@ -9,8 +9,8 @@ the result.
 * bends: segmented::segmented() with confint(), slope() and segmented::davies.test(), for
   fit_line(with_bends=).
 * two_error_line: smatr::sma() (standardised major axis, major axis) and mcr::mcreg() (Deming,
-  Passing-Bablok), for fit_line(method=).
-* loess: stats::loess() and predict(se = TRUE), for method="loess" of add_smoothed_column and
+  Passing-Bablok), for fit_line(test_method=).
+* loess: stats::loess() and predict(se = TRUE), for test_method="loess" of add_smoothed_column and
   draw_smooth_line.
 * percentile_lines: quantreg::rq() with summary(se = "nid"), for explain(for_percentile=).
 * self_start: stats::getInitial() of R's self-starting models (SSlogis ...), for the start values
@@ -181,7 +181,7 @@ def loess(x, y, span, at, level=0.95):
             "high = unname(p$fit + q * p$se.fit), df = m$one.delta^2 / m$two.delta, "
             "enp = m$enp, sigma = m$s)")
     return _call(code, (), what="A loess curve (R stats::loess())", source="stats::loess",
-                  python_note='statsmodels lowess has no standard errors; method="lowess" works without R',
+                  python_note='statsmodels lowess has no standard errors; test_method="lowess" works without R',
                   x=np.asarray(x, dtype=float), y=np.asarray(y, dtype=float), at=np.asarray(at, dtype=float),
                   span=np.asarray([float(span)]), level=np.asarray([float(level)]))
 

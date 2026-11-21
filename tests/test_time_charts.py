@@ -150,21 +150,21 @@ def test_peak_dots_equal_find_peaks():
                                              ("wiener", {"window": 7})])
 def test_smooth_line_methods_equal_nums_smooth(method, options):
     data = sdata.get_example("sensor")
-    ax = sdata.chart(data).draw_dots(x="time", y="signal").draw_smooth_line(method=method, **options)._render().axes[0]
+    ax = sdata.chart(data).draw_dots(x="time", y="signal").draw_smooth_line(test_method=method, **options)._render().axes[0]
     drawn = ax.get_lines()[-1].get_ydata()
     nums = sdata.numbers(data["signal"])
-    nums.smooth(method=method, **options)
+    nums.smooth(test_method=method, **options)
     assert np.asarray(drawn, dtype=float) == pytest.approx(np.asarray(nums._values, dtype=float), rel=1e-12,
                                                            nan_ok=True)
 
 
 def test_smooth_line_window_methods_need_even_steps():
     data = pd.DataFrame({"x": [1, 2, 4, 5, 6, 8, 9], "y": [1, 3, 2, 5, 4, 6, 5]})
-    chart = sdata.chart(data).draw_dots(x="x", y="y").draw_smooth_line(method="moving average", window=3)
+    chart = sdata.chart(data).draw_dots(x="x", y="y").draw_smooth_line(test_method="moving average", window=3)
     with pytest.raises(SimplydataError, match="evenly spaced"):
         chart._render()
     with pytest.raises(SimplydataError, match="window="):
-        sdata.chart(data).draw_dots(x="x", y="y").draw_smooth_line(method="moving average", window=4)
+        sdata.chart(data).draw_dots(x="x", y="y").draw_smooth_line(test_method="moving average", window=4)
     with pytest.raises(SimplydataError, match="go with the window"):
         sdata.chart(data).draw_dots(x="x", y="y").draw_smooth_line(window=3)
     sdata.chart(data).draw_dots(x="x", y="y").draw_smooth_line()._render()  # lowess still takes uneven x

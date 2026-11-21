@@ -49,8 +49,9 @@ def _read_choice(step, option, value, choices, spellings=None):
 
 class CausalWords:
     # ------------------------------------------------------------------ compare_balanced_groups_of
-    @friendly(renamed={"for_each": "for_each_group_in", "caliper": "match_within", "estimand": "effect_for"})
-    def compare_balanced_groups_of(self, column=None, for_each_group_in=None, allowing_for=None, method="weighting",
+    @friendly(renamed={"method": "test_method", "for_each": "for_each_group_in", "caliper": "match_within",
+                       "estimand": "effect_for"})
+    def compare_balanced_groups_of(self, column=None, for_each_group_in=None, allowing_for=None, test_method="weighting",
                                    effect_for=None, against=None, match_within=None, show=None, interval=95):
         """Make two groups alike in other columns, then compare them (propensity scores, weighting, matching).
 
@@ -59,8 +60,8 @@ class CausalWords:
         In observational data the groups often differ before anything happens (older, sicker ...). This word
         first models each row's chance of being in a group from the columns of allowing_for= (the propensity
         score, R glm), then makes the groups alike in those columns and compares the column:
-        method="weighting" (the default) weights each row by its score (R WeightIt::weightit() and
-        lm_weightit(), whose standard errors allow for the estimated weights); method="matching" pairs each row
+        test_method="weighting" (the default) weights each row by its score (R WeightIt::weightit() and
+        lm_weightit(), whose standard errors allow for the estimated weights); test_method="matching" pairs each row
         of one group with the row of the other group with the nearest score (R MatchIt::matchit(), 1:1
         nearest neighbour), with match_within=0.2 leaving out pairs further apart than 0.2 standard deviations
         of the logit of the score (Austin 2011). effect_for="everyone" (the default for weighting): the effect
@@ -77,7 +78,7 @@ class CausalWords:
         from .risk_words import _event_value, _level, _rows_table
 
         level = _level(step, interval, EXAMPLE)
-        method = _read_choice(step, "method", method, METHODS, {"weights": "weighting", "ipw": "weighting",
+        test_method = _read_choice(step, "test_method", test_method, METHODS, {"weights": "weighting", "ipw": "weighting",
                                                                  "iptw": "weighting", "match": "matching"})
         shown = None if show is None else _read_choice(step, "show", show, SHOW, {"propensity score": "propensity scores",
                                                                                    "balance table": "balance"})
@@ -92,8 +93,8 @@ class CausalWords:
             raise SimplydataError(f"{step}() needs different columns for the outcome, for_each_group_in= and "
                                   f"allowing_for=.\nFor example, {EXAMPLE}")
         if match_within is not None:
-            if method != "matching":
-                raise SimplydataError('match_within= is the caliper of matching; add method="matching".')
+            if test_method != "matching":
+                raise SimplydataError('match_within= is the caliper of matching; add test_method="matching".')
             if isinstance(match_within, bool) or not isinstance(match_within, (int, float)) or match_within <= 0:
                 raise SimplydataError("match_within= is a number of standard deviations of the logit of the "
                                       "propensity score, such as match_within=0.2 (Austin 2011).")
@@ -114,18 +115,18 @@ class CausalWords:
                                   f"({_list_words(chr(34) + lab + chr(34) for lab in labels)}).")
 
         if effect_for is None:
-            if method == "matching":
+            if test_method == "matching":
                 raise SimplydataError(
                     "Matching pairs each row of one group with a row of the other, so it gives the effect among the "
                     f"rows of that group: say which with effect_for=, such as effect_for=\"{labels[1]}\". For the "
-                    'effect for everyone, use method="weighting".\nFor example, '
+                    'effect for everyone, use test_method="weighting".\nFor example, '
                     f'table.{step}("{column}", for_each_group_in="{for_each_group_in}", allowing_for={allowing!r}, '
-                    f'method="matching", effect_for="{labels[1]}")')
+                    f'test_method="matching", effect_for="{labels[1]}")')
             effect = "everyone"
         elif isinstance(effect_for, str) and effect_for.strip().lower() in ("everyone", "all", "ate"):
-            if method == "matching":
+            if test_method == "matching":
                 raise SimplydataError('Nearest-neighbour matching gives the effect among one group\'s rows, not for '
-                                      f'everyone: use method="weighting", or effect_for="{labels[1]}".')
+                                      f'everyone: use test_method="weighting", or effect_for="{labels[1]}".')
             effect = "everyone"
         else:
             effect = find(effect_for, "effect_for")
@@ -166,12 +167,12 @@ class CausalWords:
                                   f"{_label(ref)}, for {len(allowing)} columns to make alike.")
         from .causal_r import balance
 
-        found = balance(method, effect, y, t, columns, level, match_within)
+        found = balance(test_method, effect, y, t, columns, level, match_within)
         ps = found["ps"]
         if shown == "propensity scores":
             return self._with_scores(kept, names, ps)
         # ---- 1. the propensity model, 2. overlap
-        print(f'Groups made alike in {_list_words(allowing)} ({method}), then compared: "{column}" in '
+        print(f'Groups made alike in {_list_words(allowing)} ({test_method}), then compared: "{column}" in '
               f'"{_label(focal)}" against "{_label(ref)}" ({len(t)} rows: {n_focal} and {n_ref}).')
         print(f"Propensity score: each row's chance of being in \"{_label(focal)}\" given {_list_words(allowing)}, "
               f"from logistic regression (R glm(family = binomial)).")
@@ -198,13 +199,13 @@ class CausalWords:
                                 for n, b, a in zip(rows_b, found["before"], found["after"])])
         if left:
             hint = (" try match_within=0.2, or add those columns' squares or groups"
-                    if method == "matching" and match_within is None
-                    else " try a smaller match_within=, or add those columns' squares or groups" if method == "matching"
+                    if test_method == "matching" and match_within is None
+                    else " try a smaller match_within=, or add those columns' squares or groups" if test_method == "matching"
                     else " add those columns' squares or groups to allowing_for=, or check the overlap")
             print(f"Note: {_list_words(left)} {'is' if len(left) == 1 else 'are'} still more than 0.1 apart after "
-                  f"{method}: the groups are not fully alike, so the effect below may still mix in that difference;"
+                  f"{test_method}: the groups are not fully alike, so the effect below may still mix in that difference;"
                   f"{hint}.")
-        if method == "weighting":
+        if test_method == "weighting":
             big = int((found["weights"] > BIG_WEIGHT).sum())
             if big:
                 print(f"Note: {big} row{'' if big == 1 else 's'} {'has' if big == 1 else 'have'} a weight above "
@@ -235,7 +236,7 @@ class CausalWords:
                           this="a difference this big or bigger"))
         # ---- 5. the assumptions and the method
         print(ASSUMPTIONS.format(g=f'"{for_each_group_in}"', y=f'"{column}"'))
-        if method == "weighting":
+        if test_method == "weighting":
             print(f"Method: inverse probability weighting (R WeightIt::weightit(method = \"glm\", estimand = "
                   f"\"{'ATE' if effect == 'everyone' else 'ATT'}\")), the effect from WeightIt::glm_weightit(family = gaussian), as lm_weightit(), with "
                   "standard errors that allow for the estimated weights (M-estimation, z test); balance from R "
@@ -250,7 +251,7 @@ class CausalWords:
         row = {"term": f"{_label(focal)} against {_label(ref)}", "estimate": est,
                "standard error": float(found["se"][0]), f"estimate {ci} low": low, f"estimate {ci} high": high,
                "p-value": p, "effect for": "everyone (ATE)" if effect == "everyone" else f"{_label(focal)} (ATT)",
-               "rows": len(t), "method": f"{method} on the propensity score (R {'WeightIt' if method == 'weighting' else 'MatchIt'})"}
+               "rows": len(t), "method": f"{test_method} on the propensity score (R {'WeightIt' if test_method == 'weighting' else 'MatchIt'})"}
         return _rows_table(lambda d: self._new_table(nw.from_dict(d, backend=self._frame.implementation)), [row])
 
     @staticmethod

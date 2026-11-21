@@ -1,8 +1,8 @@
 """The reliability study for phase S3c-4, small additions to known words: weighted percentiles and medians
 (find_percentile_of / find_median_of with weights=), the covariance table (find_correlation_between(show="covariance")),
 the automatic ARIMA order (forecast(order="automatic")), Storey's q-values and the local false discovery rate
-(add_adjusted_p_value_column(method="storey" | "local fdr")), Nemenyi's and Conover's tests after Friedman's
-(compare_each_pair_of(matched_by=, test=)) and pairwise comparisons of percents (compare_each_pair_of(based_on=
+(add_adjusted_p_value_column(test_method="storey" | "local fdr")), Nemenyi's and Conover's tests after Friedman's
+(compare_each_pair_of(matched_by=, test_method=)) and pairwise comparisons of percents (compare_each_pair_of(based_on=
 "percents")).
 
 cases.py loads this file at its end and calls add_to(), which adds the datasets and cases below to its own DATASETS
@@ -156,7 +156,7 @@ def _cases(Case):
              ours="""
                  t = sdata.table(data)
                  t.turn_into_dates("month")
-                 r = t.forecast("passengers", sorted_by="month", method="arima", order="automatic", repeats_every=12)
+                 r = t.forecast("passengers", sorted_by="month", test_method="arima", order="automatic", repeats_every=12)
                  r = r.as_pandas()
                  {"forecast for 1961-01": r["forecast"][0], "95 % low": r["forecast 95 % prediction low"][0],
                   "95 % high": r["forecast 95 % prediction high"][0], "forecast for 1961-12": r["forecast"][11]}
@@ -176,9 +176,9 @@ def _cases(Case):
                  data = data.assign(log_passengers=np.log(data["passengers"]))
                  t = sdata.table(data)
                  t.turn_into_dates("month")
-                 r = t.forecast("log_passengers", sorted_by="month", method="arima", order="automatic",
+                 r = t.forecast("log_passengers", sorted_by="month", test_method="arima", order="automatic",
                                 repeats_every=12, show="model").as_pandas()
-                 f = t.forecast("log_passengers", sorted_by="month", method="arima", order="automatic",
+                 f = t.forecast("log_passengers", sorted_by="month", test_method="arima", order="automatic",
                                 repeats_every=12).as_pandas()
                  p, d, q, sp, sd, sq = (int(v) for v in re.findall(r"\\d+", f["method"][0])[:6])
                  {"p": p, "d": d, "q": q, "seasonal p": sp, "seasonal d": sd, "seasonal q": sq,
@@ -197,10 +197,10 @@ def _cases(Case):
              note="The order is Box and Jenkins's airline model; the two estimates are checked against R (exact "
                   "maximum likelihood: ma1 -0.402, sma1 -0.557), as Box and Jenkins estimated them another way."),
         # ---------------------------------------------------------------- G03: q-values and local FDR
-        Case("table.add_adjusted_p_value_column", 'method="storey": Hedenfalk\'s 3170 genes, Storey\'s q-values',
+        Case("table.add_adjusted_p_value_column", 'test_method="storey": Hedenfalk\'s 3170 genes, Storey\'s q-values',
              "hedenfalk (qvalue)", "published",
              ours="""
-                 r = sdata.table(data).add_adjusted_p_value_column(from_column="p", method="storey").as_pandas()
+                 r = sdata.table(data).add_adjusted_p_value_column(from_column="p", test_method="storey").as_pandas()
                  q = r["p (Storey q-value)"].to_numpy()
                  last = int(np.argmax(r["p"].to_numpy()))
                  {"pi0": q[last] / r["p"][last], "q-values below 0.05": int((q < 0.05).sum()), "first q-value": q[0]}
@@ -213,10 +213,10 @@ def _cases(Case):
              note="pi0 is read back from the table as the q-value of the largest p-value divided by that p-value "
                   "(qvalue's last q-value is pi0 times it). The paper finds 160 genes at q < 0.05 on its own p-values; "
                   "qvalue's copy of the p-values gives 162."),
-        Case("table.add_adjusted_p_value_column", 'method="local fdr": Hedenfalk\'s 3170 genes, the local false '
+        Case("table.add_adjusted_p_value_column", 'test_method="local fdr": Hedenfalk\'s 3170 genes, the local false '
                                                   "discovery rate", "hedenfalk (qvalue)", "real data",
              ours="""
-                 r = sdata.table(data).add_adjusted_p_value_column(from_column="p", method="local fdr").as_pandas()
+                 r = sdata.table(data).add_adjusted_p_value_column(from_column="p", test_method="local fdr").as_pandas()
                  l = r["local false discovery rate"].to_numpy()
                  {"below 0.05": int((l < 0.05).sum()), "first": l[0], "smallest": l.min()}
              """,
@@ -225,11 +225,11 @@ def _cases(Case):
                  list(`below 0.05` = sum(l < 0.05), first = l[1], smallest = min(l))
              """, r_packages=("qvalue",), r_tolerance=1e-9),
         # ---------------------------------------------------------------- G09: Nemenyi and Conover after Friedman
-        Case("table.compare_each_pair_of", 'matched_by=, test="nemenyi": rounding first base, three routes',
+        Case("table.compare_each_pair_of", 'matched_by=, test_method="nemenyi": rounding first base, three routes',
              "rounding first base", "real data",
              ours=_join(ROUNDING, """
                  r = sdata.table(long).compare_each_pair_of("time", for_each_group_in="method", matched_by="player",
-                                                            test="nemenyi").as_pandas()
+                                                            test_method="nemenyi").as_pandas()
                  {"narrow angle vs round out": r["p-value (adjusted)"][0],
                   "narrow angle vs wide angle": r["p-value (adjusted)"][1],
                   "round out vs wide angle": r["p-value (adjusted)"][2]}
@@ -242,11 +242,11 @@ def _cases(Case):
                       `round out vs wide angle` = p[2, 2])
              """, r_packages=("PMCMRplus",), r_tolerance=1e-9,
              note="The same p-values (0.637, 0.061, 0.0044) come from scikit-posthocs posthoc_nemenyi_friedman."),
-        Case("table.compare_each_pair_of", 'matched_by=, test="conover": rounding first base, Holm-adjusted',
+        Case("table.compare_each_pair_of", 'matched_by=, test_method="conover": rounding first base, Holm-adjusted',
              "rounding first base", "real data",
              ours=_join(ROUNDING, """
                  r = sdata.table(long).compare_each_pair_of("time", for_each_group_in="method", matched_by="player",
-                                                            test="conover").as_pandas()
+                                                            test_method="conover").as_pandas()
                  {"narrow angle vs round out": r["p-value (adjusted)"][0],
                   "narrow angle vs wide angle": r["p-value (adjusted)"][1],
                   "round out vs wide angle": r["p-value (adjusted)"][2]}
@@ -279,7 +279,7 @@ def _cases(Case):
              "smokers (Fleiss)", "real data",
              ours=_join(SMOKERS, """
                  r = sdata.table(pd.DataFrame(rows)).compare_each_pair_of("smoker", for_each_group_in="group",
-                                                                         based_on="percents", test="fisher").as_pandas()
+                                                                         based_on="percents", test_method="fisher").as_pandas()
                  {"1 vs 4": r["p-value (Holm)"][2], "3 vs 4": r["p-value (Holm)"][5]}
              """),
              r="""
@@ -302,7 +302,7 @@ def add_to(namespace) -> None:
         head = c.title.split(":")[0]
         option = head if "=" in head else ""
         ours_r = OURS_R.get(c.word)
-        if 'test="nemenyi"' in c.title or 'test="conover"' in c.title:
+        if 'test_method="nemenyi"' in c.title or 'test_method="conover"' in c.title:
             ours_r = ("PMCMRplus",)
         cases.append(dataclasses.replace(c, ours_r=ours_r, option=option))
     namespace["CASES"].extend(cases)

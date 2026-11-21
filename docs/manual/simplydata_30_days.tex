@@ -4,7 +4,7 @@
 % change simplydata/learn_days.py, then run
 %     python docs/make_manual.py --no-run
 % ---------------------------------------------------------------------------------------------
-% Page numbers from simplydata_manual.tex f4ca40246b880697
+% Page numbers from simplydata_manual.tex 482133c632c2ff67
 
 \documentclass[10pt,a4paper]{article}
 % no dates or random IDs in the PDF, so it only changes when the guide changes
@@ -2471,7 +2471,7 @@ table.find_trend_of("level", sorted_by="date", for_each_group_in="station")
   \item How do you make simplydata numbers from a list? \fromday{9}\\ $\rightarrow$ nums = \code{sdata.\allowbreak{}numbers([12,\allowbreak{} 15,\allowbreak{} 9,\allowbreak{} 20,\allowbreak{} 14])}
   \item Which option gives the rank-based test, for small groups that are not bell-shaped? \fromday{10}\\ $\rightarrow$ \code{based\_\allowbreak{}on=\textquotedbl{}ranks\textquotedbl{}}
   \item A few values are much bigger than the rest. Which word helps? \fromday{4}\\ $\rightarrow$ \code{chart.\allowbreak{}use\_\allowbreak{}log\_\allowbreak{}scale\_\allowbreak{}y()}
-  \item You did many tests at once. Which word corrects the p-values? \fromday{11}\\ $\rightarrow$ \code{add\_\allowbreak{}adjusted\_\allowbreak{}p\_\allowbreak{}value\_\allowbreak{}column(method=\textquotedbl{}holm\textquotedbl{})}, on the table of results
+  \item You did many tests at once. Which word corrects the p-values? \fromday{11}\\ $\rightarrow$ \code{add\_\allowbreak{}adjusted\_\allowbreak{}p\_\allowbreak{}value\_\allowbreak{}column(test\_\allowbreak{}method=\textquotedbl{}holm\textquotedbl{})}, on the table of results
   \item Which word adds the values a model predicts as a new column? \fromday{15}\\ $\rightarrow$ \code{table.\allowbreak{}add\_\allowbreak{}predicted\_\allowbreak{}column(\textquotedbl{}marks\textquotedbl{},\allowbreak{} using=[\textquotedbl{}hours\textquotedbl{},\allowbreak{} \textquotedbl{}breakfast\textquotedbl{}])}
   \item Which options of \code{add\_\allowbreak{}predicted\_\allowbreak{}column} add a 95 \% interval, and make it the interval for one new row? \fromday{16}\\ $\rightarrow$ \code{interval=95}, and \code{for\_\allowbreak{}new\_\allowbreak{}rows=True}: \code{table.\allowbreak{}add\_\allowbreak{}predicted\_\allowbreak{}column(\textquotedbl{}marks\textquotedbl{},\allowbreak{} using=[\textquotedbl{}hours\textquotedbl{}],\allowbreak{} interval=95,\allowbreak{} for\_\allowbreak{}new\_\allowbreak{}rows=True)}
 \end{enumerate}
@@ -3222,7 +3222,7 @@ sdata.find_how_many_needed(effect_size=0.2, power=0.8)
 \begin{enumerate}
   \item Which word draws survival curves? \fromday{25}\\ $\rightarrow$ \code{chart.\allowbreak{}draw\_\allowbreak{}survival\_\allowbreak{}curves(time=\textquotedbl{}days\textquotedbl{},\allowbreak{} event=\textquotedbl{}died\textquotedbl{},\allowbreak{} colour=\textquotedbl{}treatment\textquotedbl{})}
   \item Which word asks whether adding a column helps a model? \fromday{23}\\ $\rightarrow$ \code{table.\allowbreak{}compare\_\allowbreak{}models(\textquotedbl{}marks\textquotedbl{},\allowbreak{} using=[\textquotedbl{}hours\textquotedbl{}],\allowbreak{} against=[\textquotedbl{}hours\textquotedbl{},\allowbreak{} \textquotedbl{}breakfast\textquotedbl{}])}
-  \item You did many tests at once. Which word corrects the p-values? \fromday{19}\\ $\rightarrow$ \code{add\_\allowbreak{}adjusted\_\allowbreak{}p\_\allowbreak{}value\_\allowbreak{}column(method=\textquotedbl{}holm\textquotedbl{})}, on the table of results
+  \item You did many tests at once. Which word corrects the p-values? \fromday{19}\\ $\rightarrow$ \code{add\_\allowbreak{}adjusted\_\allowbreak{}p\_\allowbreak{}value\_\allowbreak{}column(test\_\allowbreak{}method=\textquotedbl{}holm\textquotedbl{})}, on the table of results
   \item How do you look at the first 5 rows of a table? \fromday{12}\\ $\rightarrow$ \code{table.\allowbreak{}show\_\allowbreak{}first\_\allowbreak{}rows(5)}
   \item Each patient was measured at week 0, 4 and 8. Which word compares the three measurements? \fromday{19}\\ $\rightarrow$ \code{table.\allowbreak{}compare\_\allowbreak{}matched\_\allowbreak{}columns(\textquotedbl{}pain\_\allowbreak{}week\_\allowbreak{}0\textquotedbl{},\allowbreak{} \textquotedbl{}pain\_\allowbreak{}week\_\allowbreak{}4\textquotedbl{},\allowbreak{} \textquotedbl{}pain\_\allowbreak{}week\_\allowbreak{}8\textquotedbl{})}
 \end{enumerate}

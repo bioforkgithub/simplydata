@@ -317,16 +317,16 @@ def test_legend_numbers_are_compared_to_the_printed_digits():
 # ---------------------------------------------------------------- S3a-2: the options of the lines-and-curves words
 def test_every_s3a2_option_has_an_entry():
     shown = {(e.word, e.option.split("=")[0]) for e in ENTRIES if e.option}
-    for word, option in [("table.fit_line", "method"), ("table.fit_line", "with_bends"),
+    for word, option in [("table.fit_line", "test_method"), ("table.fit_line", "with_bends"),
                          ("table.fit_line", "changes_at"), ("table.fit_curve", "of_kind"),
                          ("table.explain", "for_percentile"), ("table.explain", "changes_at"),
-                         ("table.add_smoothed_column", "method"), ("draw_smooth_line", "method")]:
+                         ("table.add_smoothed_column", "test_method"), ("draw_smooth_line", "test_method")]:
         assert (word, option) in shown, (word, option)
 
 
 @pytest.mark.parametrize("key, setting, replacement", [
-    ('table.fit_line method="deming", y_error_over_x_error=', "error.ratio = 1 / 4", "error.ratio = 4"),
-    ('table.fit_line method="theil-sen"', 'method="separate"', 'method="joint"'),
+    ('table.fit_line test_method="deming", y_error_over_x_error=', "error.ratio = 1 / 4", "error.ratio = 4"),
+    ('table.fit_line test_method="theil-sen"', 'method="separate"', 'method="joint"'),
 ])
 def test_leaving_out_a_choice_makes_an_option_comparison_fail(key, setting, replacement):
     entry = UNDERNEATH[key]

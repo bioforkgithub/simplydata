@@ -148,7 +148,7 @@ def need_regular(series: TimeSeries, step_name: str, sorted_by: str | None = Non
     raise SimplydataError(
         f'{step_name}() needs evenly spaced readings, but "{sorted_by}" has {len(series.gaps)} uneven step'
         f'{"" if len(series.gaps) == 1 else "s"}{where} (the first between {first[0]} and {first[1]}). '
-        "Add the missing times and fill them first, or (for spectra) use method=\"lomb-scargle\", which is made "
+        "Add the missing times and fill them first, or (for spectra) use test_method=\"lomb-scargle\", which is made "
         "for uneven times.")
 
 

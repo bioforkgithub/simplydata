@@ -412,25 +412,25 @@ def test_outliers_three_iqr_and_sd(engine, capsys):
     df = pd.DataFrame({"x": values})
     t = _engine_table(df, engine)
     low, high = _tukey(values, k=3)
-    t.remove_rows_with_outliers("x", rule="3 IQR")
+    t.remove_rows_with_outliers("x", test_method="3 IQR")
     same(t, df[(df["x"] >= low) & (df["x"] <= high)])
     t.undo()
     mean, sd = values.mean(), values.std(ddof=1)
-    t.remove_rows_with_outliers("x", rule="3 standard deviations")
+    t.remove_rows_with_outliers("x", test_method="3 standard deviations")
     same(t, df[(df["x"] >= mean - 3 * sd) & (df["x"] <= mean + 3 * sd)])
     out = capsys.readouterr().out
     assert "3 standard deviations" in out and f"average = {round(mean, 2)}" in out
     assert "Note: with" not in out  # 203 numbers are plenty
     t.undo()
-    t.remove_rows_with_outliers("x", rule="2.5 x sd")
+    t.remove_rows_with_outliers("x", test_method="2.5 x sd")
     same(t, df[(df["x"] >= mean - 2.5 * sd) & (df["x"] <= mean + 2.5 * sd)])
 
 
 def test_outliers_sd_rule_warns_for_small_groups(marks, capsys):
-    marks.show_rows_with_outliers("marks", for_each_group_in="subject", rule="3 standard deviations")
+    marks.show_rows_with_outliers("marks", for_each_group_in="subject", test_method="3 standard deviations")
     # 18 marks per subject: (18 - 1) / sqrt(18) = 4.0 > 3, so no note
     assert "Note: with" not in capsys.readouterr().out
-    marks.show_rows_with_outliers("marks", for_each_group_in=["class", "subject"], rule="3 standard deviations")
+    marks.show_rows_with_outliers("marks", for_each_group_in=["class", "subject"], test_method="3 standard deviations")
     # 6 marks per group: (6 - 1) / sqrt(6) = 2.04, so 3 standard deviations can never be reached
     assert "Note: with 6 numbers in a group no value can be more than 3" in capsys.readouterr().out
 
@@ -438,10 +438,10 @@ def test_outliers_sd_rule_warns_for_small_groups(marks, capsys):
 def test_outlier_errors(marks):
     with pytest.raises(SimplydataError, match="among numbers"):
         marks.show_rows_with_outliers("name")
-    with pytest.raises(SimplydataError, match='rule="1.5 IQR"'):
-        marks.remove_rows_with_outliers("marks", rule="far away")
+    with pytest.raises(SimplydataError, match='test_method="1.5 IQR"'):
+        marks.remove_rows_with_outliers("marks", test_method="far away")
     with pytest.raises(SimplydataError, match="does not know"):
-        marks.remove_rows_with_outliers("marks", rule="0 IQR")
+        marks.remove_rows_with_outliers("marks", test_method="0 IQR")
     with pytest.raises(SimplydataError, match="both the column"):
         marks.remove_rows_with_outliers("marks", for_each_group_in="marks")
     with pytest.raises(SimplydataError, match='Did you mean "marks"'):

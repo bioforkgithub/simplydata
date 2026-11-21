@@ -125,16 +125,16 @@ ENTRIES = [
 OPTION_ENTRIES = [
     Entry(
         word="table.fit_line",
-        option='method="theil-sen"',
+        option='test_method="theil-sen"',
         data="marks",
         ours="""
             table = sdata.table(sdata.get_example("marks"))
-            table.fit_line(x="hours", y="marks", method="theil-sen")
+            table.fit_line(x="hours", y="marks", test_method="theil-sen")
         """,
         code={"SciPy": """
             from scipy import stats
             df = sdata.get_example("marks")
-            # fit_line(x="hours", y="marks", method="theil-sen")
+            # fit_line(x="hours", y="marks", test_method="theil-sen")
             fit = stats.theilslopes(df["marks"], df["hours"], alpha=0.95,      # (1)
                                     method="separate")                        # (2)
             {"slope": fit.slope, "intercept": fit.intercept,
@@ -145,19 +145,19 @@ OPTION_ENTRIES = [
         choices=("SciPy's alpha= is the confidence level (0.95), not the error rate.",
                  "the intercept is median(y) - slope * median(x) (Conover; SciPy's default); R mblm takes the "
                  "median of y - slope * x instead."),
-        also="method=\"siegel\" is SciPy stats.siegelslopes(method=\"hierarchical\") in the same way. " + SENTENCE,
+        also="test_method=\"siegel\" is SciPy stats.siegelslopes(method=\"hierarchical\") in the same way. " + SENTENCE,
     ),
     Entry(
         word="table.fit_line",
-        option='method="standardised major axis"',
+        option='test_method="standardised major axis"',
         data="marks",
         ours="""
             table = sdata.table(sdata.get_example("marks"))
-            table.fit_line(x="hours", y="marks", method="standardised major axis")
+            table.fit_line(x="hours", y="marks", test_method="standardised major axis")
         """,
         code={
             "R": """
-                # fit_line(x="hours", y="marks", method="standardised major axis")
+                # fit_line(x="hours", y="marks", test_method="standardised major axis")
                 f <- smatr::sma(marks ~ hours, method = "SMA")       # (1)
                 k <- f$coef[[1]]
                 list(slope = k[2, 1], low = k[2, 2], high = k[2, 3], intercept = k[1, 1])
@@ -170,21 +170,21 @@ OPTION_ENTRIES = [
         r_packages=("smatr",),
         compare="result",
         fields=("slope", "slope 95 % CI low", "slope 95 % CI high", "intercept"),
-        choices=("smatr's own 95 % intervals (Warton et al. 2006); method=\"major axis\" is method = \"MA\".",),
+        choices=("smatr's own 95 % intervals (Warton et al. 2006); test_method=\"major axis\" is method = \"MA\".",),
         python_note="Python has no standardised major axis line with smatr's intervals, so the numbers come from R.",
         also="simplydata also says which question the line answers and tests the correlation. " + SENTENCE,
     ),
     Entry(
         word="table.fit_line",
-        option='method="deming", y_error_over_x_error=',
+        option='test_method="deming", y_error_over_x_error=',
         data="marks",
         ours="""
             table = sdata.table(sdata.get_example("marks"))
-            table.fit_line(x="hours", y="marks", method="deming", y_error_over_x_error=4)
+            table.fit_line(x="hours", y="marks", test_method="deming", y_error_over_x_error=4)
         """,
         code={
             "R": """
-                # fit_line(x="hours", y="marks", method="deming", y_error_over_x_error=4)
+                # fit_line(x="hours", y="marks", test_method="deming", y_error_over_x_error=4)
                 m <- mcr::mcreg(hours, marks, error.ratio = 1 / 4,          # (1)
                                 method.reg = "Deming", method.ci = "analytical")   # (2)
                 list(slope = m@para[2, "EST"], se = m@para[2, "SE"], intercept = m@para[1, "EST"])
@@ -205,15 +205,15 @@ OPTION_ENTRIES = [
     ),
     Entry(
         word="table.fit_line",
-        option='method="passing-bablok"',
+        option='test_method="passing-bablok"',
         data="marks",
         ours="""
             table = sdata.table(sdata.get_example("marks"))
-            table.fit_line(x="hours", y="marks", method="passing-bablok")
+            table.fit_line(x="hours", y="marks", test_method="passing-bablok")
         """,
         code={
             "R": """
-                # fit_line(x="hours", y="marks", method="passing-bablok")
+                # fit_line(x="hours", y="marks", test_method="passing-bablok")
                 m <- mcr::mcreg(hours, marks, method.reg = "PaBa",
                                 method.ci = "analytical")          # (1)
                 list(slope = m@para[2, "EST"], low = m@para[2, "LCI"], intercept = m@para[1, "EST"])
@@ -378,17 +378,17 @@ OPTION_ENTRIES = [
     ),
     Entry(
         word="table.add_smoothed_column",
-        option='method="loess", interval=',
+        option='test_method="loess", interval=',
         data="culture",
         ours="""
             table = sdata.table(sdata.get_example("culture"))
             table.keep_rows_where("flask", is_equal_to="A")
-            table.add_smoothed_column("smooth", from_column="density", sorted_by="hour", method="loess",
+            table.add_smoothed_column("smooth", from_column="density", sorted_by="hour", test_method="loess",
                                       interval=95)
         """,
         code={
             "R": """
-                # add_smoothed_column("smooth", from_column="density", method="loess", interval=95)
+                # add_smoothed_column("smooth", from_column="density", test_method="loess", interval=95)
                 m <- stats::loess(density ~ hour, span = 0.75, degree = 2)     # (1)
                 p <- stats::predict(m, se = TRUE)
                 q <- stats::qt(0.975, m$one.delta^2 / m$two.delta)            # (2)
@@ -410,16 +410,16 @@ OPTION_ENTRIES = [
     ),
     Entry(
         word="draw_smooth_line",
-        option='method="loess", with_confidence_band=',
+        option='test_method="loess", with_confidence_band=',
         data="culture",
         ours="""
             culture = sdata.get_example("culture")
             chart = sdata.chart(culture[culture["flask"] == "A"]).draw_dots(x="hour", y="density")
-            chart.draw_smooth_line(method="loess", with_confidence_band=True)
+            chart.draw_smooth_line(test_method="loess", with_confidence_band=True)
         """,
         code={
             "R": """
-                # draw_smooth_line(method="loess", with_confidence_band=True)
+                # draw_smooth_line(test_method="loess", with_confidence_band=True)
                 m <- stats::loess(density ~ hour, span = 0.75, degree = 2)          # (1)
                 at <- seq(min(hour), max(hour), length.out = 200)
                 list(at = at, fitted = unname(stats::predict(m, newdata = data.frame(hour = at))))

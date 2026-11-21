@@ -223,15 +223,15 @@ ENTRIES = [
              "one summary of the zeros, and keeps the counts.",
     ),
     Entry(
-        word="table.add_log_ratio_columns", option='method="alr"',
+        word="table.add_log_ratio_columns", option='test_method="alr"',
         data="resistome",
         ours=_ours("""
-            table.add_log_ratio_columns(columns=genes, method="alr", against="sul1")
+            table.add_log_ratio_columns(columns=genes, test_method="alr", against="sul1")
             table.as_pandas()[["alr_" + g for g in genes if g != "sul1"]]
         """),
         code={
             "R": """
-                # add_log_ratio_columns(columns=genes, method="alr", against="sul1")
+                # add_log_ratio_columns(columns=genes, test_method="alr", against="sul1")
                 r <- zCompositions::cmultRepl(x, method = "GBM", output = "p-counts",
                                               z.delete = FALSE, suppress.print = TRUE)
                 m <- compositions::alr(r, ivar = 5)                                   # (1)
@@ -249,15 +249,15 @@ ENTRIES = [
         also="simplydata also names the reference in every sentence.",
     ),
     Entry(
-        word="table.add_log_ratio_columns", option='method="ilr"',
+        word="table.add_log_ratio_columns", option='test_method="ilr"',
         data="resistome",
         ours=_ours("""
-            table.add_log_ratio_columns(columns=genes, method="ilr")
+            table.add_log_ratio_columns(columns=genes, test_method="ilr")
             table.as_pandas()[[f"ilr{i}" for i in range(1, 14)]]
         """),
         code={
             "R": """
-                # add_log_ratio_columns(columns=genes, method="ilr")
+                # add_log_ratio_columns(columns=genes, test_method="ilr")
                 r <- zCompositions::cmultRepl(x, method = "GBM", output = "p-counts",
                                               z.delete = FALSE, suppress.print = TRUE)
                 m <- compositions::ilr(r)                                             # (1)
@@ -410,16 +410,16 @@ ENTRIES = [
         also=TESTS_ALSO,
     ),
     Entry(
-        word="table.explain_profiles_of", option='method="canonical correspondence"',
+        word="table.explain_profiles_of", option='test_method="canonical correspondence"',
         data="resistome",
         ours=_ours("""
             result = table.explain_profiles_of(genes, using=["temperature", "salinity"],
-                                               method="canonical correspondence")
+                                               test_method="canonical correspondence")
             result.as_pandas()
         """),
         code={
             "R": """
-                # explain_profiles_of(genes, using=[...], method="canonical correspondence")
+                # explain_profiles_of(genes, using=[...], test_method="canonical correspondence")
                 m <- vegan::cca(x ~ temperature + salinity, data = data.frame(temperature, salinity))  # (1)
                 set.seed(1); r2 <- vegan::RsquareAdj(m, permutations = 999)                           # (2)
                 set.seed(1); a <- anova(m, permutations = 999)
@@ -495,16 +495,16 @@ ENTRIES = [
              "distances, not the columns.",
     ),
     Entry(
-        word="table.find_correlation_between_profiles", option='method="procrustes"',
+        word="table.find_correlation_between_profiles", option='test_method="procrustes"',
         data="resistome",
         ours=_ours("""
             result = table.find_correlation_between_profiles(first=genes, second=["temperature", "salinity"],
-                                                             method="procrustes")
+                                                             test_method="procrustes")
             result.as_pandas()
         """),
         code={
             "R": """
-                # find_correlation_between_profiles(..., method="procrustes")
+                # find_correlation_between_profiles(..., test_method="procrustes")
                 set.seed(1)
                 d1 <- vegan::vegdist(x, method = "bray")
                 d2 <- stats::dist(scale(cbind(temperature, salinity)))
@@ -524,14 +524,14 @@ ENTRIES = [
     ),
     # ------------------------------------------------------------------ PERMANOVA family
     Entry(
-        word="table.compare_profiles_of", option='method="anosim"',
+        word="table.compare_profiles_of", option='test_method="anosim"',
         data="resistome",
         ours=_ours("""
-            table.compare_profiles_of(genes, for_each_group_in="site", method="anosim").as_pandas()
+            table.compare_profiles_of(genes, for_each_group_in="site", test_method="anosim").as_pandas()
         """),
         code={
             "R": """
-                # compare_profiles_of(genes, for_each_group_in="site", method="anosim")
+                # compare_profiles_of(genes, for_each_group_in="site", test_method="anosim")
                 set.seed(1)
                 d <- vegan::vegdist(x, method = "bray")
                 a <- vegan::anosim(d, factor(site), permutations = 999)       # (1)
@@ -629,12 +629,12 @@ ENTRIES = [
         word="table.add_clusters", option='how_many="automatic"',
         data="resistome",
         ours=_ours("""
-            table.add_clusters(columns=genes, how_many="automatic", method="hierarchical", measure="bray-curtis")
+            table.add_clusters(columns=genes, how_many="automatic", test_method="hierarchical", measure="bray-curtis")
             table.as_pandas()[["cluster"]]
         """),
         code={
             "R": """
-                # add_clusters(columns=genes, how_many="automatic", method="hierarchical", measure="bray-curtis")
+                # add_clusters(columns=genes, how_many="automatic", test_method="hierarchical", measure="bray-curtis")
                 d <- vegan::vegdist(x, method = "bray")
                 h <- stats::hclust(d, method = "average")                         # (1)
                 w <- sapply(2:10, function(k)                                     # (2)
@@ -659,12 +659,12 @@ ENTRIES = [
         word="table.add_clusters", option="measure=",
         data="resistome",
         ours=_ours("""
-            table.add_clusters(columns=genes, how_many=3, method="hierarchical", measure="bray-curtis")
+            table.add_clusters(columns=genes, how_many=3, test_method="hierarchical", measure="bray-curtis")
             table.as_pandas()[["cluster"]]
         """),
         code={
             "R": """
-                # add_clusters(columns=genes, how_many=3, method="hierarchical", measure="bray-curtis")
+                # add_clusters(columns=genes, how_many=3, test_method="hierarchical", measure="bray-curtis")
                 d <- vegan::vegdist(x, method = "bray")                         # (1)
                 h <- stats::hclust(d, method = "average")                       # (2)
                 list(cluster = stats::cutree(h, 3))

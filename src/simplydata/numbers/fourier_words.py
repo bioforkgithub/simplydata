@@ -124,12 +124,12 @@ class FourierNumberWords:
               f"{np.max(np.abs(remainder)):.3g}. (As R pracma::deconv.)")
         return self._change("deconvolve", quotient)
 
-    @friendly
-    def change_time_step(self, to=None, time_step=None, method="fourier", sampling_rate=None, fs=None):
+    @friendly(renamed={"method": "test_method"})
+    def change_time_step(self, to=None, time_step=None, test_method="fourier", sampling_rate=None, fs=None):
         """Change the time between readings (resample): fewer readings (with a filter first) or more.
 
         nums.change_time_step(to=0.01, time_step=0.001)
-        to= is the new time between readings; time_step= the present one (or remembered). method="fourier"
+        to= is the new time between readings; time_step= the present one (or remembered). test_method="fourier"
         (SciPy signal.resample: treats the recording as repeating), "polyphase" (SciPy resample_poly with
         the ratio as a fraction, Kaiser window 5) or "filter then keep" (SciPy decimate: a Chebyshev filter
         run both ways, then every n-th reading; to= must be a whole number of steps). Keeping every n-th
@@ -140,8 +140,8 @@ class FourierNumberWords:
 
         from scipy import signal
 
-        if method not in RESAMPLE_METHODS:
-            raise choice_error("change_time_step", "method", method, list(RESAMPLE_METHODS))
+        if test_method not in RESAMPLE_METHODS:
+            raise choice_error("change_time_step", "test_method", test_method, list(RESAMPLE_METHODS))
         step, _ = read_time_step(time_step, sampling_rate, fs, getattr(self, "_time_step", None), "change_time_step")
         if isinstance(to, bool) or not isinstance(to, (int, float)) or to <= 0:
             raise SimplydataError("change_time_step() needs to= as the new time between readings, such as to=0.01.")
@@ -149,27 +149,27 @@ class FourierNumberWords:
         if np.isnan(x).any():
             raise SimplydataError("change_time_step() needs a value at every step; fill the empty ones first.")
         ratio = Fraction(step / to).limit_denominator(1000)  # new readings per old reading
-        if method == "fourier":
+        if test_method == "fourier":
             n_new = int(round(len(x) * step / to))
             if n_new < 1:
                 raise SimplydataError(f"change_time_step() would leave no readings: to= is more than {len(x)} time steps.")
             out = signal.resample(x, n_new)
             actual = step * len(x) / n_new  # the same total time over a whole number of readings
-        elif method == "polyphase":
+        elif test_method == "polyphase":
             out = signal.resample_poly(x, ratio.numerator, ratio.denominator)
             actual = step * ratio.denominator / ratio.numerator  # the ratio as a fraction (denominator at most 1000)
         else:
             factor = to / step
             if abs(factor - round(factor)) > 1e-9 or round(factor) < 2:
-                raise SimplydataError('method="filter then keep" needs to= a whole number (2 or more) of time steps.')
+                raise SimplydataError('test_method="filter then keep" needs to= a whole number (2 or more) of time steps.')
             out = signal.decimate(x, int(round(factor)), ftype="iir", zero_phase=True)
             actual = step * int(round(factor))
         exact = math.isclose(actual, to, rel_tol=1e-9)
         note = "" if exact else (f" The time step is {actual:.6g}, not exactly {to:g}: {len(out)} readings must fill "
                                  f"the same time as {len(x)}" + (" (the ratio is a fraction with a denominator of at "
-                                                                  "most 1000)" if method == "polyphase" else "") + ".")
+                                                                  "most 1000)" if test_method == "polyphase" else "") + ".")
         print(f"Changed the time step from {step:g} to {actual:.6g}: {len(x)} readings became {len(out)} (method "
-              f"\"{method}\", SciPy).{note}")
+              f"\"{test_method}\", SciPy).{note}")
         changed = self._change("change time step", out)
         self._time_step = float(to) if exact else float(actual)
         return changed

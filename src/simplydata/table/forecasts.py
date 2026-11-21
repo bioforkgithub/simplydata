@@ -102,15 +102,15 @@ class ForecastWords:
                 need_regular(one, step_name, sorted_by)
         return series
 
-    @friendly(renamed={"for_each": "for_each_group_in"})
-    def forecast(self, column=None, sorted_by=None, steps_ahead=12, method="exponential smoothing",
+    @friendly(renamed={"method": "test_method", "for_each": "for_each_group_in"})
+    def forecast(self, column=None, sorted_by=None, steps_ahead=12, test_method="exponential smoothing",
                  repeats_every=None, trend=True, season="added", order=None, seasonal_order=None, interval=95,
                  check_on_last=None, show="forecast", for_each_group_in=None):
         """Forecast the next values of a column, with an interval for each.
 
         table.forecast("visitors", sorted_by="month", steps_ahead=12, repeats_every="year", for_each_group_in="museum")
         (with sdata.get_example("visitors")). Gives back one row per future step: the sorted_by column carried
-        on (months stay months), the forecast and its interval= (95 %) low and high. method=
+        on (months stay months), the forecast and its interval= (95 %) low and high. test_method=
         "exponential smoothing" (the default: Holt-Winters, a level, a trend unless trend=False, and a
         season with repeats_every=, season "added" or "multiplied"; R HoltWinters), "last value" (R
         forecast::naive), "same season last time" (R snaive), "average" (R meanf), "straight on" (the
@@ -127,11 +127,11 @@ class ForecastWords:
         step_name = "forecast"
         example = 'table.forecast("visitors", sorted_by="month", repeats_every="year")'
         self._need_name(step_name, "the column", column, example)
-        chosen = fc.read_method(method, step_name)
+        chosen = fc.read_method(test_method, step_name)
         if show not in SHOWS:
             raise choice_error(step_name, "show", show, list(SHOWS))
         if show == "model" and chosen not in ("exponential smoothing", "arima"):
-            raise SimplydataError('show="model" is for method="exponential smoothing" or "arima" (the other methods '
+            raise SimplydataError('show="model" is for test_method="exponential smoothing" or "arima" (the other methods '
                                   "have nothing fitted to show).")
         kind = {"additive": "added", "multiplicative": "multiplied"}.get(season, season)
         if kind not in ("added", "multiplied"):
@@ -216,18 +216,18 @@ class ForecastWords:
         data = {key: [r[key] for r in rows] for key in rows[0]}
         return self._new_table(nw.from_dict(data, backend=self._frame.implementation))
 
-    @friendly(renamed={"for_each": "for_each_group_in"})
-    def compare_forecasts_for(self, column=None, sorted_by=None, methods=None, check_on_last=12, repeats_every=None,
+    @friendly(renamed={"methods": "test_method", "for_each": "for_each_group_in"})
+    def compare_forecasts_for(self, column=None, sorted_by=None, test_method=None, check_on_last=12, repeats_every=None,
                               order=None, seasonal_order=None, for_each_group_in=None):
         """Which forecast method would have done best on the last rows? (R forecast::accuracy)
 
         table.compare_forecasts_for("visitors", sorted_by="month", repeats_every="year", for_each_group_in="museum")
-        (with sdata.get_example("visitors")). Each method in methods= is fitted on all but the last
+        (with sdata.get_example("visitors")). Each method in test_method= is fitted on all but the last
         check_on_last= rows (12) and forecasts them; the methods are ranked by MASE, the average error
         divided by the average error of the simplest forecast inside the fitted rows (the same season
         last time with repeats_every=, otherwise the last value): below 1 is better than that. Also MAE
         (the average size of the errors), RMSE and MAPE (the average error in % of the actual values).
-        methods= defaults to "last value", "same season last time" (with repeats_every=; else "average"),
+        test_method= defaults to "last value", "same season last time" (with repeats_every=; else "average"),
         "straight on" and "exponential smoothing"; "arima" needs order= (three numbers, or "automatic":
         R forecast::auto.arima chooses the order on the fitted rows only). Runs in R itself (simplydata[r]).
         Gives back one row per method.
@@ -235,15 +235,15 @@ class ForecastWords:
         step_name = "compare_forecasts_for"
         example = 'table.compare_forecasts_for("visitors", sorted_by="month", repeats_every="year")'
         self._need_name(step_name, "the column", column, example)
-        if methods is None:
+        if test_method is None:
             chosen = None
         else:
-            if isinstance(methods, str):
-                methods = [methods]
-            chosen = list(dict.fromkeys(fc.read_method(m, step_name) for m in methods))
+            if isinstance(test_method, str):
+                test_method = [test_method]
+            chosen = list(dict.fromkeys(fc.read_method(m, step_name) for m in test_method))
             if len(chosen) < 2:
                 raise SimplydataError(f"{step_name}() needs at least two methods to compare, such as "
-                                      'methods=["last value", "exponential smoothing"].')
+                                      'test_method=["last value", "exponential smoothing"].')
         held = fc.read_whole(check_on_last, "check_on_last", step_name)
         order = fc.read_order(order, "order", step_name)
         seasonal_order = fc.read_order(seasonal_order, "seasonal_order", step_name)
