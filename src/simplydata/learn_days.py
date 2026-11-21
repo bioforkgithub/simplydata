@@ -33,6 +33,7 @@ from .learn import COMBINING_LESSON, INTERACTIONS_LESSON
 from .learn import MORE_SURVIVAL_LESSON  # S3b-3
 from .learn import DIVERSITY_LESSON, MAKEUP_LESSON  # S3c-1
 from .learn import COAST_LESSON  # S3c-3
+from .learn import CAUSE_LESSON  # S3d-2
 
 TRACK_NAMES = ("python", "beginner")
 DAYS_IN_A_TRACK = 30
@@ -50,7 +51,9 @@ MANUAL_ONLY_LESSONS = (RISKS_LESSON, FORECASTS_LESSON, SYSTEMS_LESSON, OUTLIERS_
                        # S3c-1: communities and resistomes, with R
                        DIVERSITY_LESSON, MAKEUP_LESSON,
                        # S3c-3: directions, places and extremes, with R
-                       COAST_LESSON)
+                       COAST_LESSON,
+                       # S3d-2: cause and effect from observational data, with R (a "more" lesson)
+                       CAUSE_LESSON)
 
 TRACKS = {
     "python": dict(

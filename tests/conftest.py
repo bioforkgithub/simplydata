@@ -278,6 +278,10 @@ R_ENTRY_POINTS = {
     ("table/places_r.py", "_need"), ("table/places_r.py", "_call"),
     ("words/place_charts.py", "draw_variogram"), ("words/place_charts.py", "draw_threshold_check"),
     ("words/place_charts.py", "_draw_variogram"), ("words/place_charts.py", "_draw_threshold_check"),
+    # S3d-2 (epidemiology and cause and effect)
+    ("table/causal_r.py", "balance"), ("table/epi_r.py", "attributable"), ("table/epi_r.py", "direct"),
+    ("table/epi_r.py", "indirect"), ("table/imputation_more.py", "fill_in"),
+    ("table/imputation_more.py", "correlation_imputed"), ("table/imputation_more.py", "survival_imputed"),
 }
 
 

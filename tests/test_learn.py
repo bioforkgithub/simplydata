@@ -380,9 +380,9 @@ def test_lessons_use_tables_and_charts(number):
         assert gone not in code, f"lesson {number} uses {gone}"
 
 
-@pytest.mark.parametrize("bad", [0, 34, "1", 1.0, True])
+@pytest.mark.parametrize("bad", [0, 35, "1", 1.0, True])
 def test_wrong_lesson_number_is_explained(bad):
-    with pytest.raises(sdata.SimplydataError, match="lessons 1 to 33"):
+    with pytest.raises(sdata.SimplydataError, match="lessons 1 to 34"):
         sdata.show_lesson(bad)
 
 

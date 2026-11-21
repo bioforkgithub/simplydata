@@ -241,7 +241,8 @@ ENTRIES = [
             # explain("depress2", using="treat", through="job_seek", allowing_for=["econ_hard", "sex", "age"])
             mediator = smf.ols("job_seek ~ treat + econ_hard + sex + age", data=df)            # (1)
             outcome = smf.ols("depress2 ~ treat + job_seek + econ_hard + sex + age", data=df)
-            s = Mediation(outcome, mediator, "treat", "job_seek").fit(n_rep=1000, rng=1).summary()   # (2)
+            summary = Mediation(outcome, mediator, "treat", "job_seek").fit(n_rep=1000, rng=1).summary   # (2)
+            s = summary()
             {"estimate": s.loc["ACME (average)", "Estimate"], "95 % CI low": s.loc["ACME (average)", "Lower CI bound"],
              "95 % CI high": s.loc["ACME (average)", "Upper CI bound"], "p-value": s.loc["ACME (average)", "P-value"]}
         """},
