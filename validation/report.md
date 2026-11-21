@@ -1,10 +1,10 @@
 # simplydata reliability report
 
-Made by `python validation/make_report.py` on 2026-11-20. Generated: do not edit by hand.
+Made by `python validation/make_report.py` on 2026-11-21. Generated: do not edit by hand.
 
 Each simplydata word is run on real, published data and compared with the published answer, with the package simplydata uses underneath called directly, and with R. Each "same underneath" box of the manual is run next to its word and compared too. How it works, and the datasets with their licences: [validation/README.md](README.md).
 
-**822 checks passed, 0 failed, 0 skipped** (skipped: R or an R package is not installed on this computer).
+**903 checks passed, 0 failed, 0 skipped** (skipped: R or an R package is not installed on this computer).
 
 ## Setup
 
@@ -1831,6 +1831,132 @@ Note: The tutorial gives the eigenvalues (0.5249 and 0.3568 of 2.083); the print
 | axis 1 % | R | 44.9 | 44.9 | relative 1e-09 | pass |
 | axis 2 % | R | 34.2 | 34.2 | relative 1e-09 | pass |
 
+### `table.find_hidden_factors_behind`
+
+**nine ability tests: parallel analysis, minres, oblimin (the defaults)** (real data; data: Holzinger & Swineford 1939 (lavaan))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| x1 on factor 2 | R | 0.591615557668105 | 0.591615557668105 | relative 1e-08 | pass |
+| x4 on factor 1 | R | 0.8461030106398 | 0.8461030106398 | relative 1e-08 | pass |
+| x7 on factor 3 | R | 0.73654365372812 | 0.73654365372812 | relative 1e-08 | pass |
+| x9 on factor 2 | R | 0.382277778281328 | 0.382277778281328 | relative 1e-08 | pass |
+| x9 on factor 3 | R | 0.456359959460632 | 0.456359959460632 | relative 1e-08 | pass |
+| shared part of x1 | R | 0.476754007780132 | 0.476754007780132 | relative 1e-08 | pass |
+| shared part of x9 | R | 0.46046138351728 | 0.46046138351728 | relative 1e-08 | pass |
+| factors | R | 3 | 3 | relative 1e-08 | pass |
+
+Note: Parallel analysis finds the three factors of Holzinger and Swineford's design (visual, verbal and speed); x9 goes with two of them, as the modification indices of the confirmatory model also show.
+
+### `table.find_hidden_factors_behind how_many=`
+
+**how_many=: three factors asked for, no parallel analysis** (real data; data: Holzinger & Swineford 1939 (lavaan))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| x1 on factor 2 | R | 0.591615227616589 | 0.591615227616589 | relative 1e-08 | pass |
+| x4 on factor 1 | R | 0.846102782504001 | 0.846102782504001 | relative 1e-08 | pass |
+| x7 on factor 3 | R | 0.736544152684085 | 0.736544152684085 | relative 1e-08 | pass |
+| x9 on factor 2 | R | 0.382275730401818 | 0.382275730401818 | relative 1e-08 | pass |
+| x9 on factor 3 | R | 0.456359717134763 | 0.456359717134763 | relative 1e-08 | pass |
+| shared part of x1 | R | 0.476754007780132 | 0.476754007780132 | relative 1e-08 | pass |
+| shared part of x9 | R | 0.46046138351728 | 0.46046138351728 | relative 1e-08 | pass |
+| factors | R | 3 | 3 | relative 1e-08 | pass |
+
+Note: The oblimin rotation of GPArotation starts from random numbers, so both sides set R's seed first (unseeded, the loadings change in the sixth digit from run to run).
+
+### `table.find_hidden_factors_behind rotation=`
+
+**rotation=: promax, with principal axis factoring** (real data; data: Holzinger & Swineford 1939 (lavaan))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| x1 on factor 2 | R | 0.0390228442789629 | 0.0390228442789629 | relative 1e-08 | pass |
+| x4 on factor 1 | R | 0.849737553166453 | 0.849737553166453 | relative 1e-08 | pass |
+| x7 on factor 3 | R | -0.226409506419214 | -0.226409506419214 | relative 1e-08 | pass |
+| x9 on factor 2 | R | 0.476602216003329 | 0.476602216003329 | relative 1e-08 | pass |
+| x9 on factor 3 | R | 0.344044301672691 | 0.344044301672691 | relative 1e-08 | pass |
+| shared part of x1 | R | 0.476914814044882 | 0.476914814044882 | relative 1e-08 | pass |
+| shared part of x9 | R | 0.460820618036742 | 0.460820618036742 | relative 1e-08 | pass |
+| factors | R | 3 | 3 | relative 1e-08 | pass |
+
+### `table.find_hidden_factors_behind method=`
+
+**method=: maximum likelihood with varimax, as R factanal** (real data; data: Holzinger & Swineford 1939 (lavaan))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| own part of x1 | statsmodels Factor (method="ml") | 0.512529527173443 | 0.512528080612116 | relative 0.0001 | pass |
+| own part of x2 | statsmodels Factor (method="ml") | 0.7487351603869 | 0.748735884831696 | relative 0.0001 | pass |
+| own part of x3 | statsmodels Factor (method="ml") | 0.542773290729761 | 0.542774191791768 | relative 0.0001 | pass |
+| own part of x4 | statsmodels Factor (method="ml") | 0.279193093920192 | 0.279193086492056 | relative 0.0001 | pass |
+| own part of x5 | statsmodels Factor (method="ml") | 0.242877320676015 | 0.242877142129642 | relative 0.0001 | pass |
+| own part of x6 | statsmodels Factor (method="ml") | 0.30521585555841 | 0.305216055411998 | relative 0.0001 | pass |
+| own part of x7 | statsmodels Factor (method="ml") | 0.502207221916071 | 0.502208401882765 | relative 0.0001 | pass |
+| own part of x8 | statsmodels Factor (method="ml") | 0.468550489794599 | 0.46854973892137 | relative 0.0001 | pass |
+| own part of x9 | statsmodels Factor (method="ml") | 0.543247686483436 | 0.543246540530905 | relative 0.0001 | pass |
+| own part of x1 | R | 0.512529527173443 | 0.512528169335274 | relative 0.001 | pass |
+| own part of x2 | R | 0.7487351603869 | 0.74873504605719 | relative 0.001 | pass |
+| own part of x3 | R | 0.542773290729761 | 0.542776785473323 | relative 0.001 | pass |
+| own part of x4 | R | 0.279193093920192 | 0.279192584116344 | relative 0.001 | pass |
+| own part of x5 | R | 0.242877320676015 | 0.24287665089173 | relative 0.001 | pass |
+| own part of x6 | R | 0.30521585555841 | 0.305217102458505 | relative 0.001 | pass |
+| own part of x7 | R | 0.502207221916071 | 0.502200184972686 | relative 0.001 | pass |
+| own part of x8 | R | 0.468550489794599 | 0.468557846883046 | relative 0.001 | pass |
+| own part of x9 | R | 0.543247686483436 | 0.543243558335436 | relative 0.001 | pass |
+| x1 on factor 2 | R | 0.622657847373776 | 0.622659390988638 | relative 0.001 | pass |
+| x4 on factor 1 | R | 0.826999673867174 | 0.826999827739574 | relative 0.001 | pass |
+| x7 on factor 3 | R | 0.695873917746766 | 0.695878216611046 | relative 0.001 | pass |
+| x9 on factor 3 | R | 0.5236179828285 | 0.523619103747666 | relative 0.001 | pass |
+
+Note: The part of each column the factors do not share (the uniqueness) does not depend on the rotation and is checked against base R factanal and statsmodels; the varimax loadings are checked against factanal (the same factor order and signs here). The three optimisers stop at slightly different points (about 1 in 100,000 for the uniquenesses), so the check allows 1 in 1000.
+
+### `table.check_hidden_factors`
+
+**the three-factor model of the lavaan paper** (published; data: Holzinger & Swineford 1939 (lavaan))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| chi-square | Rosseel (2012), JSS 48(2) | 85.3055217699727 | 85.306 | within 0.0005 (printed rounding) | pass |
+| degrees of freedom | exact | 24 | 24 | within 0 | pass |
+| CFI | Rosseel (2012), JSS 48(2) | 0.930559651799336 | 0.931 | within 0.0005 (printed rounding) | pass |
+| TLI | Rosseel (2012), JSS 48(2) | 0.895839477699004 | 0.896 | within 0.0005 (printed rounding) | pass |
+| RMSEA | Rosseel (2012), JSS 48(2) | 0.0921214845101686 | 0.092 | within 0.0005 (printed rounding) | pass |
+| RMSEA 90 % CI low | Rosseel (2012), JSS 48(2) | 0.0714184904399382 | 0.071 | within 0.0005 (printed rounding) | pass |
+| RMSEA 90 % CI high | Rosseel (2012), JSS 48(2) | 0.113678016811963 | 0.114 | within 0.0005 (printed rounding) | pass |
+| SRMR | Rosseel (2012), JSS 48(2) | 0.0652050571843865 | 0.065 | within 0.0005 (printed rounding) | pass |
+| chi-square | R | 85.3055217699727 | 85.3055217699727 | relative 1e-08 | pass |
+| degrees of freedom | R | 24 | 24 | relative 1e-08 | pass |
+| CFI | R | 0.930559651799336 | 0.930559651799336 | relative 1e-08 | pass |
+| TLI | R | 0.895839477699004 | 0.895839477699004 | relative 1e-08 | pass |
+| RMSEA | R | 0.0921214845101686 | 0.0921214845101686 | relative 1e-08 | pass |
+| RMSEA 90 % CI low | R | 0.0714184904399382 | 0.0714184904399382 | relative 1e-08 | pass |
+| RMSEA 90 % CI high | R | 0.113678016811963 | 0.113678016811963 | relative 1e-08 | pass |
+| SRMR | R | 0.0652050571843865 | 0.0652050571843865 | relative 1e-08 | pass |
+
+Note: Rosseel (2012) prints the fit of this model to three decimals; the p-value of the chi-square test is below 0.001 there too.
+
+**empty cells: 30 visual-perception scores taken out, full information** (real data; data: Holzinger & Swineford 1939 (lavaan))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| chi-square | R | 87.401846969425 | 87.401846969425 | relative 1e-08 | pass |
+| x1 loading | R | 0.791634162191103 | 0.791634162191103 | relative 1e-08 | pass |
+| CFI | R | 0.927941793738212 | 0.927941793738212 | relative 1e-08 | pass |
+
+Note: Real data with 30 cells emptied on purpose (the first 30 rows of x1): every row stays in, as with lavaan's missing = "ml"; lavaan's own default would leave the 30 rows out.
+
+### `table.check_hidden_factors formula=`
+
+**formula=: the speed factor explained by the visual one (lavaan sem)** (real data; data: Holzinger & Swineford 1939 (lavaan))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| path | R | 0.460317218924394 | 0.460317218924394 | relative 1e-08 | pass |
+| its standard error | R | 0.0741697801385859 | 0.0741697801385859 | relative 1e-08 | pass |
+| chi-square | R | 47.4133581632698 | 47.4133581632698 | relative 1e-08 | pass |
+| CFI | R | 0.879367051234156 | 0.879367051234156 | relative 1e-08 | pass |
+
 ## 2. The same underneath (the manual's boxes)
 
 Each box's library code is run next to the simplydata word and compared. Table words run on a pandas and on a Polars table.
@@ -2048,6 +2174,18 @@ Each box's library code is run next to the simplydata word and compared. Table w
 | `table.add_axes_that_separate_groups` | R + Python | polars | table | relative 1e-09 | pass |
 | `table.add_correspondence_axes` | R + Python | pandas | table | relative 1e-09 | pass |
 | `table.add_correspondence_axes` | R + Python | polars | table | relative 1e-09 | pass |
+| `table.find_hidden_factors_behind` | R + Python | pandas | result | relative 1e-06 | pass |
+| `table.find_hidden_factors_behind` | R + Python | polars | result | relative 1e-06 | pass |
+| `table.find_hidden_factors_behind how_many=` | R + Python | pandas | result | relative 1e-06 | pass |
+| `table.find_hidden_factors_behind how_many=` | R + Python | polars | result | relative 1e-06 | pass |
+| `table.find_hidden_factors_behind method=` | R + Python | pandas | result | relative 1e-06 | pass |
+| `table.find_hidden_factors_behind method=` | R + Python | polars | result | relative 1e-06 | pass |
+| `table.find_hidden_factors_behind rotation=` | R + Python | pandas | result | relative 1e-06 | pass |
+| `table.find_hidden_factors_behind rotation=` | R + Python | polars | result | relative 1e-06 | pass |
+| `table.check_hidden_factors` | R + Python | pandas | result | relative 1e-06 | pass |
+| `table.check_hidden_factors` | R + Python | polars | result | relative 1e-06 | pass |
+| `table.check_hidden_factors formula=` | R + Python | pandas | result | relative 1e-06 | pass |
+| `table.check_hidden_factors formula=` | R + Python | polars | result | relative 1e-06 | pass |
 
 How each kind is compared:
 
@@ -2242,6 +2380,16 @@ Where simplydata's default differs from the package underneath, it is listed her
 - `table.add_correspondence_axes` (1): correspondence analysis as ter Braak's CA in vegan (cca with no explaining columns).
 - `table.add_correspondence_axes` (2): row scores with scaling = "sites" (vegan's default is "species").
 - `table.add_correspondence_axes` (3): each axis turned so its biggest value is positive.
+- `table.find_hidden_factors_behind` (1): with_seed=1: parallel analysis compares the data with random data, and the oblimin rotation starts from random numbers too, so R's random numbers are seeded and the answer repeats.
+- `table.find_hidden_factors_behind` (2): how_many="automatic": parallel analysis (Horn 1965) keeps the factors that stand out more than in random data of the same size; the 'eigenvalue above 1' rule finds too many (Zwick & Velicer 1986).
+- `table.find_hidden_factors_behind` (3): method="minres", psych's default: it gives an answer where maximum likelihood can fail (base R factanal uses maximum likelihood).
+- `table.find_hidden_factors_behind` (4): rotation="oblimin" (through GPArotation): the factors may correlate, as they usually do in real data (base R factanal uses varimax, which keeps them uncorrelated).
+- `table.find_hidden_factors_behind how_many=` (1): a number of factors chosen by you: no parallel analysis (the seed is still set, for the oblimin rotation).
+- `table.find_hidden_factors_behind method=` (1): maximum likelihood, as base R factanal fits; "principal axis" is psych's fm = "pa".
+- `table.find_hidden_factors_behind rotation=` (1): varimax (stats::varimax, as R factanal uses) keeps the factors uncorrelated; "promax" lets them correlate, "none" leaves them unrotated.
+- `table.check_hidden_factors` (1): maximum likelihood; with empty cells simplydata adds missing = "ml", which uses every value given, where lavaan's own default ("listwise") would leave those rows out without a word.
+- `table.check_hidden_factors formula=` (1): formula= takes the model in lavaan's own syntax and runs lavaan::sem(), so hidden factors can explain each other (a structural equation model).
+- `table.check_hidden_factors formula=` (2): the paths are shown standardised (both sides on a scale of standard deviations), as the loadings are.
 
 ## Datasets
 
@@ -2310,3 +2458,4 @@ Where simplydata's default differs from the package underneath, it is listed her
 | [varespec and varechem (vegan)](https://doi.org/10.2307/3236351) | 24 lichen pastures in Finnish Lapland: the cover of 44 plant and lichen species and 14 soil measurements (N, P, K ...) | Väre, H., Ohtonen, R. & Oksanen, J. (1995). Effects of reindeer grazing on understorey vegetation in dry Pinus sylvestris forests. Journal of Vegetation Science 6, 523-530. Shipped with the R package vegan (varespec, varechem); analysed in Oksanen, J. (2015). Multivariate analysis of ecological communities in R: vegan tutorial. | Shipped with the R package vegan (GPL-2); read from the installed package, so it needs R. |
 | [crabs (MASS)](https://doi.org/10.1071/ZO9740417) | 200 Leptograpsus crabs from Western Australia: five shell measurements, two colour forms and both sexes (four groups of 50) | Campbell, N. A. & Mahon, R. J. (1974). A multivariate study of variation in two species of rock crab of genus Leptograpsus. Australian Journal of Zoology 22, 417-425; Venables, W. N. & Ripley, B. D. (2002). Modern Applied Statistics with S, 4th ed., section 12.1. Shipped with the R package MASS. | GPL-2 \| GPL-3 (MASS, which comes with R); read from the installed package, so it needs R. |
 | [wg93 (ca)](https://doi.org/10.18637/jss.v020.i03) | 871 answers of the 1993 International Social Survey Programme (West Germany) to four questions on science and the environment (A to D, answers 1 to 5) | Greenacre, M. (2007). Correspondence Analysis in Practice, 2nd ed. Chapman & Hall/CRC; Nenadić, O. & Greenacre, M. (2007). Correspondence analysis in R, with two- and three-dimensional graphics: the ca package. Journal of Statistical Software 20(3) (CC BY). Shipped with the R package ca (wg93). | GPL (>= 2) (ca); read from the installed package, so it needs R. |
+| [Holzinger & Swineford 1939 (lavaan)](https://doi.org/10.18637/jss.v048.i02) | 301 seventh- and eighth-grade pupils of two schools near Chicago (Pasteur and Grant-White) in 1937: the scores of nine mental ability tests (visual perception, cubes, lozenges, paragraph comprehension, sentence completion, word meaning, speeded addition, speeded counting of dots, speeded discrimination of straight and curved capitals) | Holzinger, K. J. & Swineford, F. (1939). A study in factor analysis: the stability of a bi-factor solution. Supplementary Educational Monographs 48. University of Chicago. The nine-test version and the three-factor model with its fit are in Rosseel, Y. (2012). lavaan: an R package for structural equation modeling. Journal of Statistical Software 48(2), 1-36 (CC BY 3.0). Shipped with the R package lavaan (HolzingerSwineford1939); a copy is the practice table ability_tests. | Published test scores (1939, facts). Read here from R lavaan (its copy is GPL (>= 2)), so the cases need R; simplydata ships the same scores, with this citation, as the practice table ability_tests. |

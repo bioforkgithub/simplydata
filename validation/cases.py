@@ -932,3 +932,16 @@ def _add_communities_and_resistomes():
 
 
 _add_communities_and_resistomes()
+
+
+# ---------------------------------------------------------------- S3c-2: hidden factors (validation/cases_factors.py)
+def _add_hidden_factors():
+    import importlib.util
+
+    spec = importlib.util.spec_from_file_location("simplydata_validation_factors", HERE / "cases_factors.py")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    module.add_to(globals())
+
+
+_add_hidden_factors()

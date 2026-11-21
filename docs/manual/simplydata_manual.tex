@@ -656,6 +656,27 @@ odds ratio & the odds of lung cancer with a smoking husband against a non-smokin
 odds ratio 95 \% CI low & the lower end of its 95 \% confidence interval\\
 odds ratio 95 \% CI high & the upper end of its 95 \% confidence interval\\
 \bottomrule\end{tabularx}\end{center}
+\section*{ability\_tests}
+REAL DATA: nine mental ability tests taken by 301 pupils of two schools near Chicago in 1937 (Holzinger \& Swineford 1939, Supplementary Educational Monographs 48: the scores as R lavaan ships them, HolzingerSwineford1939). The classic table for hidden factors: x1 to x3 are visual, x4 to x6 verbal, x7 to x9 speeded tests. \code{sdata.\allowbreak{}get\_\allowbreak{}example(\textquotedbl{}ability\_\allowbreak{}tests\textquotedbl{})}
+\begin{center}\small
+\begin{tabularx}{\textwidth}{@{}>{\ttfamily}l>{\raggedright\arraybackslash}X@{}}
+\toprule \textrm{\textbf{Column}} & \textbf{What it holds}\\ \midrule
+id & the pupil's number\\
+sex & 1 or 2 (the source does not say which is which)\\
+ageyr & age, the years\\
+agemo & age, the months on top of the years\\
+school & Pasteur or Grant-White\\
+grade & 7 or 8 (one empty cell)\\
+x1 & visual perception\\
+x2 & cubes\\
+x3 & lozenges\\
+x4 & paragraph comprehension\\
+x5 & sentence completion\\
+x6 & word meaning\\
+x7 & speeded addition\\
+x8 & speeded counting of dots\\
+x9 & speeded discrimination of straight and curved capitals\\
+\bottomrule\end{tabularx}\end{center}
 
 \part{Lessons}\label{part:lessons}
 
@@ -3427,6 +3448,7 @@ table.find_model_averages_of("marks", over_range_of="hours", using=["hours", "br
   \item \code{check\_\allowbreak{}model\_\allowbreak{}of} also prints two tests of equal spread under picture 3 (notes only: judge by the picture), and for a yes/no model it adds a fifth picture, calibration, with the Hosmer-Lemeshow test and the Brier score.
   \item Remove a row that pulls only for a reason, such as a typing mistake, and say so in your report.
   \item The confidence interval (\code{interval=95}) is about the average of many pupils like this one; the prediction interval (\code{for\_\allowbreak{}new\_\allowbreak{}rows=True}) is about one pupil. The second is always wider.
+  \item More, with R: when many columns (the answers to a questionnaire, the scores of several tests) may measure a few hidden things, \code{table.\allowbreak{}find\_\allowbreak{}hidden\_\allowbreak{}factors\_\allowbreak{}behind([.\allowbreak{}.\allowbreak{}.\allowbreak{}])} finds how many and which columns go with which, and \code{table.\allowbreak{}check\_\allowbreak{}hidden\_\allowbreak{}factors(measured\_\allowbreak{}by=\{.\allowbreak{}.\allowbreak{}.\allowbreak{}\})} checks a model you wrote down beforehand; read its fit guides as guides, not pass marks. Try them on \code{sdata.\allowbreak{}get\_\allowbreak{}example(\textquotedbl{}ability\_\allowbreak{}tests\textquotedbl{})}.
 \end{itemize}
 \end{goodtoknow}
 \begin{tryit}
@@ -4674,7 +4696,7 @@ chart.save("my_chart.png")
 A small table to practise with. \code{sdata.\allowbreak{}get\_\allowbreak{}example(\textquotedbl{}marks\textquotedbl{})}
 
 \codeline{sdata.get\_example() with no name lists every table and its columns.}\\
-The tables are: marks, weather, fruit, growth, sensor, visitors, river, shop, school, meadow, trial, clinic, island, toxicity, culture, admissions, resistome, and, for combining studies, bcg and \code{passive\_\allowbreak{}smoking} (real published studies). \code{\textquotedbl{}shop\textquotedbl{}} has empty cells and a column of dates to practise with; \code{\textquotedbl{}school\textquotedbl{}} has empty cells too.
+The tables are: marks, weather, fruit, growth, sensor, visitors, river, shop, school, meadow, trial, clinic, island, toxicity, culture, admissions, resistome, and, for combining studies, bcg and \code{passive\_\allowbreak{}smoking} (real published studies), and, for hidden factors, \code{ability\_\allowbreak{}tests} (real published test scores). \code{\textquotedbl{}shop\textquotedbl{}} has empty cells and a column of dates to practise with; \code{\textquotedbl{}school\textquotedbl{}} has empty cells too.
 
 \wordfield{Options}{}\par\nopagebreak
 \begin{optiontable}
@@ -11580,6 +11602,188 @@ pd.DataFrame(points * s, columns=["CA1", "CA2"])
 \undertext{simplydata also prints each axis's share of the inertia, and runs MCA (R ca::mjca) on text columns.}
 \undertext{\textit{Checked:} a test runs both and compares the table (on a pandas and on a Polars table).}
 \end{underneathbox}
+\wordentry{table.find\_hidden\_factors\_behind()}{word:table.find-hidden-factors-behind}
+Find the hidden factors behind many columns: how many there are, and which columns go with which.
+
+\codeline{table.find\_hidden\_factors\_behind([\textquotedbl{}x1\textquotedbl{}, \textquotedbl{}x2\textquotedbl{}, \textquotedbl{}x3\textquotedbl{}, \textquotedbl{}x4\textquotedbl{}, \textquotedbl{}x5\textquotedbl{}, \textquotedbl{}x6\textquotedbl{}, \textquotedbl{}x7\textquotedbl{}, \textquotedbl{}x8\textquotedbl{}, \textquotedbl{}x9\textquotedbl{}])}\\
+(with \code{sdata.\allowbreak{}get\_\allowbreak{}example(\textquotedbl{}ability\_\allowbreak{}tests\textquotedbl{})}) Exploratory factor analysis: when many columns (questions, test scores) go together, a few hidden factors may lie behind them. Give the columns, as a list. \code{how\_\allowbreak{}many=} \code{\textquotedbl{}automatic\textquotedbl{}} (the default) chooses how many factors by parallel analysis: the factors that stand out more than they would in random data of the same size; \code{how\_\allowbreak{}many=3} asks for 3. Prints how many factors and why, the loadings (how strongly each column goes with each factor, -1 to 1; below 0.3 left blank), each column's shared part (the communality), the share of the spread the factors hold and, when they may correlate, their correlations. Gives back one row per column: its loading on each factor, its shared part and its own part (the uniqueness). Unlike principal components (\code{add\_\allowbreak{}principal\_\allowbreak{}components}), which only sum the columns up, factor analysis looks for what the columns share. More: \code{rotation=\textquotedbl{}oblimin\textquotedbl{}} (default; the factors may correlate), \code{\textquotedbl{}varimax\textquotedbl{}} (kept uncorrelated), \code{\textquotedbl{}promax\textquotedbl{}} or \code{\textquotedbl{}none\textquotedbl{}}; \code{method=\textquotedbl{}minres\textquotedbl{}} (default), \code{\textquotedbl{}ml\textquotedbl{}} (maximum likelihood, as R factanal) or \code{\textquotedbl{}principal axis\textquotedbl{}}; \code{with\_\allowbreak{}seed=1} makes the parallel analysis and the oblimin rotation repeat. To check a model you wrote down beforehand, use \code{check\_\allowbreak{}hidden\_\allowbreak{}factors}. Needs R psych and GPArotation (pip install \code{\textquotedbl{}simplydata[r]\textquotedbl{}}). Other names: factor analysis, efa, fa, factanal, scree, parallel analysis.
+
+\wordfield{Options}{}\par\nopagebreak
+\begin{optiontable}
+\code{columns=} & \\
+\code{how\_\allowbreak{}many=} & normally \code{\textquotedbl{}automatic\textquotedbl{}}\\
+\code{rotation=} & normally \code{\textquotedbl{}oblimin\textquotedbl{}}\\
+\code{method=} & normally \code{\textquotedbl{}minres\textquotedbl{}}\\
+\code{with\_\allowbreak{}seed=} & normally \code{1}\\
+\end{optiontable}
+
+\wordfield{Underneath}{R \code{psych::fa.\allowbreak{}parallel()}, \code{psych::fa()}}
+\wordfield{Example you can run}{}\par\nopagebreak
+\begin{lstlisting}[style=py]
+import simplydata as sdata
+table = sdata.table(sdata.get_example("ability_tests"))
+table.find_hidden_factors_behind(["x1", "x2", "x3", "x4", "x5", "x6", "x7", "x8", "x9"])
+\end{lstlisting}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{R}\libbadge{Python}}
+\underlib{R (simplydata runs this in R for you, through rpy2)}
+\begin{lstlisting}[style=underr]
+# find_hidden_factors_behind(["x1", ..., "x9"])
+x <- as.data.frame(x)
+set.seed(1)                                                   # (1)
+pa <- psych::fa.parallel(x, fm = "minres", fa = "fa",
+                         plot = FALSE)                        # (2)
+f <- psych::fa(x, nfactors = pa$nfact, fm = "minres",         # (3)
+               rotate = "oblimin")                            # (4)
+L <- unclass(f$loadings)
+list(f1 = L[1, 1], f2 = L[1, 2], f3 = L[1, 3], h2 = f$communality[1])
+\end{lstlisting}
+\underlib{Python (with what R gives back)}
+\begin{lstlisting}[style=under]
+{"factor 1": f1, "factor 2": f2, "factor 3": f3, "shared part": h2}
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) \code{with\_\allowbreak{}seed=1}: parallel analysis compares the data with random data, and the oblimin rotation starts from random numbers too, so R's random numbers are seeded and the answer repeats.}
+\undertext{(2) \code{how\_\allowbreak{}many=\textquotedbl{}automatic\textquotedbl{}}: parallel analysis (Horn 1965) keeps the factors that stand out more than in random data of the same size; the 'eigenvalue above 1' rule finds too many (Zwick \& Velicer 1986).}
+\undertext{(3) \code{method=\textquotedbl{}minres\textquotedbl{}}, psych's default: it gives an answer where maximum likelihood can fail (base R factanal uses maximum likelihood).}
+\undertext{(4) \code{rotation=\textquotedbl{}oblimin\textquotedbl{}} (through GPArotation): the factors may correlate, as they usually do in real data (base R factanal uses varimax, which keeps them uncorrelated).}
+\undertext{\textit{In Python only:} statsmodels Factor has principal-axis and maximum-likelihood factor analysis with varimax or promax, but no minres, no oblimin and no parallel analysis, so the numbers come from R psych.}
+\undertext{simplydata also says why it chose that many factors, leaves loadings below 0.3 blank in the printout, gives each column's shared and own part, and adds notes on the KMO, the rows per column and the columns that go with no factor or with two.}
+\undertext{\textit{Checked:} a test runs both and compares the numbers of the result table (on a pandas and on a Polars table).}
+\end{underneathbox}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{R}\libbadge{Python}}
+\undertext{\textbf{With \code{how\_\allowbreak{}many=}}: the same job with this option.}
+\underlib{R (simplydata runs this in R for you, through rpy2)}
+\begin{lstlisting}[style=underr]
+# find_hidden_factors_behind([...], how_many=3)
+x <- as.data.frame(x)
+set.seed(1)
+f <- psych::fa(x, nfactors = 3, fm = "minres",                # (1)
+               rotate = "oblimin")
+L <- unclass(f$loadings)
+list(f1 = L[1, 1], f2 = L[1, 2], f3 = L[1, 3], h2 = f$communality[1])
+\end{lstlisting}
+\underlib{Python (with what R gives back)}
+\begin{lstlisting}[style=under]
+{"factor 1": f1, "factor 2": f2, "factor 3": f3, "shared part": h2}
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) a number of factors chosen by you: no parallel analysis (the seed is still set, for the oblimin rotation).}
+\undertext{\textit{In Python only:} statsmodels Factor has principal-axis and maximum-likelihood factor analysis with varimax or promax, but no minres, no oblimin and no parallel analysis, so the numbers come from R psych.}
+\undertext{simplydata also says why it chose that many factors, leaves loadings below 0.3 blank in the printout, gives each column's shared and own part, and adds notes on the KMO, the rows per column and the columns that go with no factor or with two.}
+\undertext{\textit{Checked:} a test runs both and compares the numbers of the result table (on a pandas and on a Polars table).}
+\end{underneathbox}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{R}\libbadge{Python}}
+\undertext{\textbf{With \code{method=}}: the same job with this option.}
+\underlib{R (simplydata runs this in R for you, through rpy2)}
+\begin{lstlisting}[style=underr]
+# find_hidden_factors_behind([...], how_many=3, method="ml")
+x <- as.data.frame(x)
+set.seed(1)
+f <- psych::fa(x, nfactors = 3, fm = "ml",                    # (1)
+               rotate = "oblimin")
+L <- unclass(f$loadings)
+list(f1 = L[1, 1], f2 = L[1, 2], f3 = L[1, 3], h2 = f$communality[1])
+\end{lstlisting}
+\underlib{Python (with what R gives back)}
+\begin{lstlisting}[style=under]
+{"factor 1": f1, "factor 2": f2, "factor 3": f3, "shared part": h2}
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) maximum likelihood, as base R factanal fits; \code{\textquotedbl{}principal axis\textquotedbl{}} is psych's fm = \code{\textquotedbl{}pa\textquotedbl{}}.}
+\undertext{\textit{In Python only:} statsmodels Factor has principal-axis and maximum-likelihood factor analysis with varimax or promax, but no minres, no oblimin and no parallel analysis, so the numbers come from R psych.}
+\undertext{simplydata also says why it chose that many factors, leaves loadings below 0.3 blank in the printout, gives each column's shared and own part, and adds notes on the KMO, the rows per column and the columns that go with no factor or with two.}
+\undertext{\textit{Checked:} a test runs both and compares the numbers of the result table (on a pandas and on a Polars table).}
+\end{underneathbox}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{R}\libbadge{Python}}
+\undertext{\textbf{With \code{rotation=}}: the same job with this option.}
+\underlib{R (simplydata runs this in R for you, through rpy2)}
+\begin{lstlisting}[style=underr]
+# find_hidden_factors_behind([...], how_many=3, rotation="varimax")
+x <- as.data.frame(x)
+set.seed(1)
+f <- psych::fa(x, nfactors = 3, fm = "minres",
+               rotate = "varimax")                            # (1)
+L <- unclass(f$loadings)
+list(f1 = L[1, 1], f2 = L[1, 2], f3 = L[1, 3], h2 = f$communality[1])
+\end{lstlisting}
+\underlib{Python (with what R gives back)}
+\begin{lstlisting}[style=under]
+{"factor 1": f1, "factor 2": f2, "factor 3": f3, "shared part": h2}
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) varimax (stats::varimax, as R factanal uses) keeps the factors uncorrelated; \code{\textquotedbl{}promax\textquotedbl{}} lets them correlate, \code{\textquotedbl{}none\textquotedbl{}} leaves them unrotated.}
+\undertext{\textit{In Python only:} statsmodels Factor has principal-axis and maximum-likelihood factor analysis with varimax or promax, but no minres, no oblimin and no parallel analysis, so the numbers come from R psych.}
+\undertext{simplydata also says why it chose that many factors, leaves loadings below 0.3 blank in the printout, gives each column's shared and own part, and adds notes on the KMO, the rows per column and the columns that go with no factor or with two.}
+\undertext{\textit{Checked:} a test runs both and compares the numbers of the result table (on a pandas and on a Polars table).}
+\end{underneathbox}
+\wordentry{table.check\_hidden\_factors()}{word:table.check-hidden-factors}
+Check a model of hidden factors you wrote down beforehand: does it match the data?
+
+\codeline{table.check\_hidden\_factors(measured\_by=\{\textquotedbl{}visual\textquotedbl{}: [\textquotedbl{}x1\textquotedbl{}, \textquotedbl{}x2\textquotedbl{}, \textquotedbl{}x3\textquotedbl{}], \textquotedbl{}textual\textquotedbl{}: [\textquotedbl{}x4\textquotedbl{},}\\
+\code{\textquotedbl{}x5\textquotedbl{}}, \code{\textquotedbl{}x6\textquotedbl{}}], \code{\textquotedbl{}speed\textquotedbl{}}: [\code{\textquotedbl{}x7\textquotedbl{}}, \code{\textquotedbl{}x8\textquotedbl{}}, \code{\textquotedbl{}x9\textquotedbl{}}]\})   (with \code{sdata.\allowbreak{}get\_\allowbreak{}example(\textquotedbl{}ability\_\allowbreak{}tests\textquotedbl{})}) Confirmatory factor analysis: \code{measured\_\allowbreak{}by=} names each hidden factor and the columns that measure it (lavaan's =\textasciitilde{}, \code{\textquotedbl{}is measured by\textquotedbl{}}). Prints the chi-square test of the model (a small p-value is expected with many rows even for a useful model), then CFI, TLI, RMSEA (with its 90 \% interval) and SRMR, each with what it means and the commonly used guides (Hu \& Bentler 1999), which are guides, not pass marks. Then the standardised loadings (-1 to 1), the correlations between the factors, and the largest modification indices (where the model and the data disagree most). Rows with empty cells are kept: lavaan uses every value given (missing = \code{\textquotedbl{}ml\textquotedbl{}}). Gives back one row per part of the model (term, estimate, standard error, 95 \% CI, p-value) and the fit (chi-square, CFI, TLI, RMSEA, SRMR). More: \code{formula=} takes a whole model in lavaan's own syntax, with paths between the factors (a structural equation model), for example \code{formula=\textquotedbl{}visual =\textasciitilde{} x1 + x2 + x3; speed =\textasciitilde{} x7 + x8 + x9; speed \textasciitilde{} visual\textquotedbl{}}; it is not the formula of \code{fit\_\allowbreak{}formula}. To find the factors first, use \code{find\_\allowbreak{}hidden\_\allowbreak{}factors\_\allowbreak{}behind}. Needs R lavaan (pip install \code{\textquotedbl{}simplydata[r]\textquotedbl{}}). Other names: cfa, lavaan, confirmatory factor analysis, structural equation model.
+
+\wordfield{Options}{}\par\nopagebreak
+\begin{optiontable}
+\code{measured\_\allowbreak{}by=} & \\
+\code{formula=} & \\
+\end{optiontable}
+
+\wordfield{Underneath}{R \code{lavaan::cfa()}, \code{lavaan::fitMeasures()}}
+\wordfield{Example you can run}{}\par\nopagebreak
+\begin{lstlisting}[style=py]
+import simplydata as sdata
+table = sdata.table(sdata.get_example("ability_tests"))
+table.check_hidden_factors(measured_by={"visual": ["x1", "x2", "x3"], "textual": ["x4", "x5", "x6"], "speed": ["x7", "x8", "x9"]})
+\end{lstlisting}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{R}\libbadge{Python}}
+\underlib{R (simplydata runs this in R for you, through rpy2)}
+\begin{lstlisting}[style=underr]
+# check_hidden_factors(measured_by={"visual": [...], ...})
+d <- as.data.frame(x)
+colnames(d) <- paste0("x", 1:9)
+model <- "visual =~ x1 + x2 + x3
+          textual =~ x4 + x5 + x6
+          speed =~ x7 + x8 + x9"
+f <- lavaan::cfa(model, data = d, estimator = "ML")      # (1)
+m <- lavaan::fitMeasures(f)
+list(chisq = m[["chisq"]], df = m[["df"]], p = m[["pvalue"]])
+\end{lstlisting}
+\underlib{Python (with what R gives back)}
+\begin{lstlisting}[style=under]
+{"estimate": chisq, "degrees of freedom": df, "p-value": p}
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) maximum likelihood; with empty cells simplydata adds missing = \code{\textquotedbl{}ml\textquotedbl{}}, which uses every value given, where lavaan's own default (\code{\textquotedbl{}listwise\textquotedbl{}}) would leave those rows out without a word.}
+\undertext{\textit{In Python only:} statsmodels has no confirmatory factor analysis and Python's semopy is not on conda-forge, so the numbers come from R lavaan.}
+\undertext{simplydata also gives the chi-square test as a count of studies, says what CFI, TLI, RMSEA and SRMR mean with the commonly used guides (as guides, not pass marks), and names the largest modification indices with a warning against changing the model only to fit these data.}
+\undertext{\textit{Checked:} a test runs both and compares the numbers of the result table (on a pandas and on a Polars table).}
+\end{underneathbox}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{R}\libbadge{Python}}
+\undertext{\textbf{With \code{formula=}}: the same job with this option.}
+\underlib{R (simplydata runs this in R for you, through rpy2)}
+\begin{lstlisting}[style=underr]
+# check_hidden_factors(formula="visual =~ ...; speed ~ visual")
+d <- as.data.frame(x)
+colnames(d) <- paste0("x", 1:9)
+model <- "visual =~ x1 + x2 + x3
+          speed =~ x7 + x8 + x9
+          speed ~ visual"
+f <- lavaan::sem(model, data = d, estimator = "ML")      # (1)
+s <- lavaan::standardizedSolution(f)
+r <- s[s$op == "~", ]                                       # (2)
+list(b = r$est.std, se = r$se, p = r$pvalue)
+\end{lstlisting}
+\underlib{Python (with what R gives back)}
+\begin{lstlisting}[style=under]
+{"estimate": b, "standard error": se, "p-value": p}
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) \code{formula=} takes the model in lavaan's own syntax and runs lavaan::\code{sem()}, so hidden factors can explain each other (a structural equation model).}
+\undertext{(2) the paths are shown standardised (both sides on a scale of standard deviations), as the loadings are.}
+\undertext{\textit{In Python only:} statsmodels has no confirmatory factor analysis and Python's semopy is not on conda-forge, so the numbers come from R lavaan.}
+\undertext{simplydata also gives the chi-square test as a count of studies, says what CFI, TLI, RMSEA and SRMR mean with the commonly used guides (as guides, not pass marks), and names the largest modification indices with a warning against changing the model only to fit these data.}
+\undertext{\textit{Checked:} a test runs both and compares the numbers of the result table (on a pandas and on a Polars table).}
+\end{underneathbox}
 \unsection{Survival}{group:Survival}
 \wordentry{table.find\_survival\_over\_time()}{word:table.find-survival-over-time}
 The share still without the event over time (Kaplan-Meier), with the median time.
@@ -16897,6 +17101,7 @@ Every word and option, A to Z, with the page of its dictionary entry. Other spel
 \indexline{word:nums.change-time-step}{nums.change\_time\_step()}
 \indexline{word:sdata.chart}{sdata.chart()}
 \indexline{word:system.chart}{system.chart()}
+\indexline{word:table.check-hidden-factors}{table.check\_hidden\_factors()}
 \indexline{word:table.check-if-random-order}{table.check\_if\_random\_order()}
 \indexline{word:table.check-model-of}{table.check\_model\_of()}
 \indexline{word:table.check-steady-over-time}{table.check\_steady\_over\_time()}
@@ -17008,6 +17213,7 @@ Every word and option, A to Z, with the page of its dictionary entry. Other spel
 \indexline{word:table.find-each-peak-that}{table.find\_each\_peak\_that()}
 \indexline{word:nums.find-envelope}{nums.find\_envelope()}
 \indexline{word:table.find-group-levels-of}{table.find\_group\_levels\_of()}
+\indexline{word:table.find-hidden-factors-behind}{table.find\_hidden\_factors\_behind()}
 \indexline{word:sdata.find-how-many-needed}{sdata.find\_how\_many\_needed()}
 \indexline{word:table.find-interval-of}{table.find\_interval\_of()}
 \indexline{word:sdata.find-inverse-fourier-transform}{sdata.find\_inverse\_fourier\_transform()}
