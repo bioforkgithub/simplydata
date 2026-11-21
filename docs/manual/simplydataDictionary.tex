@@ -3,7 +3,7 @@
 % code and the page numbers of the compiled manual. Do not edit it by hand: run
 %     python docs/make_manual.py --no-run
 % ---------------------------------------------------------------------------------------------
-% Page numbers from simplydata_manual.tex e9817d55e0893b21
+% Page numbers from simplydata_manual.tex c5401c9ed7585ed0
 
 \documentclass[10pt,a4paper]{article}
 % no dates or random IDs in the PDF, so it only changes when the dictionary changes
@@ -4020,7 +4020,7 @@ out\_\allowbreak{}of=[\textquotedbl{}vaccinated\textquotedbl{},\allowbreak{} \te
 \eg{\code{table.\allowbreak{}use\_\allowbreak{}survey\_\allowbreak{}design(weights=\textquotedbl{}weight\textquotedbl{},\allowbreak{} strata=\textquotedbl{}school\_\allowbreak{}type\textquotedbl{},\allowbreak{} population\_\allowbreak{}sizes=\textquotedbl{}schools\_\allowbreak{}of\_\allowbreak{}type\textquotedbl{})}}
 \field{Options}{\code{weights=}, \code{strata=}, \code{clusters=}, \code{population\_\allowbreak{}sizes=}}
 \field{Other tools}{\code{complex\_\allowbreak{}survey}, \code{design\_\allowbreak{}effect}, \code{strata}, \code{stratified\_\allowbreak{}cox}, \code{survey\_\allowbreak{}design}, \code{survey\_\allowbreak{}weights}, \code{svyby}, \code{svychisq}, \code{svyciprop}, \code{svydesign}, \code{svyglm}, \code{svymean}, \code{svytotal}, \code{svyttest}}
-\field{Underneath}{A setting, not a calculation: it remembers the design columns, checks them (R survey::\code{svydesign()} and \code{degf()}), and from then on the survey words build the design in R and the other statistics words refuse.}
+\field{Underneath}{R survey (svydesign, degf; then svymean, svytotal, svyquantile, svyciprop, svyby, svyglm, svyttest, svychisq; needs R)}
 \field{See also}{\hyperref[dict:make-random-assignments]{\code{make\_\allowbreak{}random\_\allowbreak{}assignments}}, \hyperref[dict:make-design-table]{\code{make\_\allowbreak{}design\_\allowbreak{}table}}}
 \where{Manual \manualpage{word:table.use-survey-design}{460}{section*.347}}
 \letterhead{V}

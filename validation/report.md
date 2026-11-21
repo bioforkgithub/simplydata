@@ -4,7 +4,7 @@ Made by `python validation/make_report.py` on 2026-11-21. Generated: do not edit
 
 Each simplydata word is run on real, published data and compared with the published answer, with the package simplydata uses underneath called directly, and with R. Each "same underneath" box of the manual is run next to its word and compared too. How it works, and the datasets with their licences: [validation/README.md](README.md).
 
-**1194 checks passed, 0 failed, 0 skipped** (skipped: R or an R package is not installed on this computer).
+**1193 checks passed, 0 failed, 0 skipped** (skipped: R or an R package is not installed on this computer).
 
 ## Setup
 
@@ -1931,15 +1931,15 @@ Note: The oblimin rotation of GPArotation starts from random numbers, so both si
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
-| own part of x1 | statsmodels Factor (method="ml") | 0.512529527173443 | 0.51252821037092 | relative 0.0001 | pass |
-| own part of x2 | statsmodels Factor (method="ml") | 0.7487351603869 | 0.748735975150163 | relative 0.0001 | pass |
-| own part of x3 | statsmodels Factor (method="ml") | 0.542773290729761 | 0.542774253779877 | relative 0.0001 | pass |
-| own part of x4 | statsmodels Factor (method="ml") | 0.279193093920192 | 0.279193160912618 | relative 0.0001 | pass |
-| own part of x5 | statsmodels Factor (method="ml") | 0.242877320676015 | 0.242877447254873 | relative 0.0001 | pass |
-| own part of x6 | statsmodels Factor (method="ml") | 0.30521585555841 | 0.305215593784399 | relative 0.0001 | pass |
-| own part of x7 | statsmodels Factor (method="ml") | 0.502207221916071 | 0.502208619992528 | relative 0.0001 | pass |
-| own part of x8 | statsmodels Factor (method="ml") | 0.468550489794599 | 0.468549569600324 | relative 0.0001 | pass |
-| own part of x9 | statsmodels Factor (method="ml") | 0.543247686483436 | 0.543246665445972 | relative 0.0001 | pass |
+| own part of x1 | statsmodels Factor (method="ml") | 0.512529527173443 | 0.512528083004762 | relative 0.0001 | pass |
+| own part of x2 | statsmodels Factor (method="ml") | 0.7487351603869 | 0.748735002060787 | relative 0.0001 | pass |
+| own part of x3 | statsmodels Factor (method="ml") | 0.542773290729761 | 0.542774310007228 | relative 0.0001 | pass |
+| own part of x4 | statsmodels Factor (method="ml") | 0.279193093920192 | 0.27919283622274 | relative 0.0001 | pass |
+| own part of x5 | statsmodels Factor (method="ml") | 0.242877320676015 | 0.242877240130544 | relative 0.0001 | pass |
+| own part of x6 | statsmodels Factor (method="ml") | 0.30521585555841 | 0.305215778765838 | relative 0.0001 | pass |
+| own part of x7 | statsmodels Factor (method="ml") | 0.502207221916071 | 0.502208820617208 | relative 0.0001 | pass |
+| own part of x8 | statsmodels Factor (method="ml") | 0.468550489794599 | 0.468549247090109 | relative 0.0001 | pass |
+| own part of x9 | statsmodels Factor (method="ml") | 0.543247686483436 | 0.543246700275683 | relative 0.0001 | pass |
 | own part of x1 | R | 0.512529527173443 | 0.512528169335274 | relative 0.001 | pass |
 | own part of x2 | R | 0.7487351603869 | 0.74873504605719 | relative 0.001 | pass |
 | own part of x3 | R | 0.542773290729761 | 0.542776785473323 | relative 0.001 | pass |
@@ -2846,7 +2846,6 @@ Each box's library code is run next to the simplydata word and compared. Table w
 | `table.count_each columns=, in_order=` | pandas and NumPy | pandas | result | relative 1e-12 | pass |
 | `table.count_each columns=, in_order=` | pandas and NumPy | polars | result | relative 1e-12 | pass |
 | `draw_answer_bars` | matplotlib | pandas | chart | relative 1e-09 | pass |
-| `table.use_survey_design` | - | - | none | relative 0 | pass |
 | `table.find_average_of after use_survey_design()` | R + Python | pandas | result | relative 1e-09 | pass |
 | `table.find_average_of after use_survey_design()` | R + Python | polars | result | relative 1e-09 | pass |
 | `table.find_total_of after use_survey_design()` | R + Python | pandas | result | relative 1e-09 | pass |
@@ -3113,7 +3112,6 @@ Where simplydata's default differs from the package underneath, it is listed her
 - `table.count_each columns=, in_order=` (1): percents out of the answers given (empty cells left out), and no averages of the answers: the steps between them need not be equal.
 - `table.count_each columns=, in_order=` (2): the median answer is a real answer, the inverted CDF (R quantile(type = 1)), never a value between two.
 - `draw_answer_bars` (1): diverging bars (Heiberger & Robbins 2014): the answers below the middle to the left of 0, the middle answer split half and half across 0, and the first question at the top.
-- `table.use_survey_design` (1): options(survey.lonely.psu = "adjust") (survey's own default stops when a stratum has only one cluster); clusters with the same name in two strata are kept apart (nest = TRUE).
 - `table.find_average_of after use_survey_design()` (1): the 95 % interval uses t on the design's degrees of freedom (degf(design), here 197), not survey's own normal-curve confint().
 - `table.find_total_of after use_survey_design()` (1): the 95 % interval uses t on the design's degrees of freedom (degf(design), here 197), not survey's own normal-curve confint().
 - `table.find_median_of after use_survey_design()` (1): the population median by the weighted inverted CDF (qrule = "math", as find_percentile_of(weight_kind="analytic")), with Woodruff's interval on the design's degrees of freedom.

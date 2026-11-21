@@ -15375,7 +15375,7 @@ drawn within them \code{population\_\allowbreak{}sizes=}  how many the populatio
 \end{optiontable}
 
 \wordfield{Why this method}{\hyperref[basis:table.use-survey-design]{How simplydata chooses methods}, page \pageref{basis:table.use-survey-design}: the default, the evidence and the checks.}
-\wordfield{Underneath}{A setting, not a calculation: it remembers the design columns, checks them (R survey::\code{svydesign()} and \code{degf()}), and from then on the survey words build the design in R and the other statistics words refuse.}
+\wordfield{Underneath}{R survey (svydesign, degf; then svymean, svytotal, svyquantile, svyciprop, svyby, svyglm, svyttest, svychisq; needs R)}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -15384,7 +15384,6 @@ table.use_survey_design(weights="weight", strata="school_type", population_sizes
 table.find_average_of("score_2000")
 table.find_percent_of_rows_where("met_target", is_equal_to="yes")
 \end{lstlisting}
-\undertext{\textit{Nothing underneath:} A setting, not a calculation: it remembers the design columns, checks them (R survey::\code{svydesign()} and \code{degf()}), and from then on the survey words build the design in R and the other statistics words refuse.}
 \unsection{Join and reshape}{group:Join-and-reshape}
 \wordentry{table.join\_with()}{word:table.join-with}
 Bring in the columns of another table, matching rows on a column such as a name.

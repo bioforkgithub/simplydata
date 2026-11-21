@@ -14,7 +14,7 @@ KEYS = ["sdata.make_random_assignments", "sdata.make_design_table",
         'sdata.make_design_table of_kind="randomised blocks"', 'sdata.make_design_table of_kind="latin square"',
         'sdata.make_design_table of_kind="split plot"', "table.keep_random_rows for_each_group_in=",
         "table.keep_random_rows percent=", 'table.count_empty_cells_in show="patterns"',
-        "table.count_each columns=, in_order=", "draw_answer_bars", "table.use_survey_design"] + [
+        "table.count_each columns=, in_order=", "draw_answer_bars"] + [
     f"table.{w} after use_survey_design()" for w in (
         "find_average_of", "find_total_of", "find_median_of", "find_percentile_of", "find_percent_of_rows_where",
         "count_rows", "explain", "compare_averages_of", "compare_counts_of")]

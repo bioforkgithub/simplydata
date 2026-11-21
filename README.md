@@ -14,7 +14,7 @@ them first.
 ## What simplydata handles
 
 **397 words (commands) in 48 groups, with 366 different options, on top of 14 Python packages and
-77 R packages that it runs (plus R's own `stats`, and 8 more used only to check its answers), checked by 1194 reliability checks.** Every word hands the work to
+77 R packages that it runs (plus R's own `stats`, and 8 more used only to check its answers), checked by 1193 reliability checks.** Every word hands the work to
 an established package; simplydata chooses the settings, prints the answer in words and names the
 method it used. Words that need an extra say so: `pip install "simplydata[fast]"`, `[files]`,
 `[systems]` or `[r]` (the R words also need R itself; see [Using the words that need R](#using-the-words-that-need-r)).
@@ -514,7 +514,7 @@ shows the same job written in the package underneath, in a grey box that a test 
 - The defaults of each batch were checked by an independent review when they were designed, and every entry of
   the table below, with its references, was checked again by independent hostile reviewers in November 2026.
 
-[How simplydata chooses methods](docs/how_simplydata_chooses.md) gives all 281 defaults: for each, the default,
+[How simplydata chooses methods](docs/how_simplydata_chooses.md) gives all 301 defaults: for each, the default,
 the alternatives, why it was chosen, what simplydata checks in the data, and its references (each DOI checked in
 Crossref). The manual has the same table as its last part.
 

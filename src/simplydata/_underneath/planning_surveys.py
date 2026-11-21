@@ -326,18 +326,6 @@ ENTRIES = [
              "the answers, and prints how the bars are centred.",
     ),
     # ------------------------------------------------------------------ W01 / W02: survey designs
-    Entry(
-        word="table.use_survey_design", data="sampled_schools",
-        ours=SURVEY_OURS,
-        compare="none",
-        note="A setting, not a calculation: it remembers the design columns, checks them (R survey::svydesign() and "
-             "degf()), and from then on the survey words build the design in R and the other statistics words "
-             "refuse.",
-        choices=('options(survey.lonely.psu = "adjust") (survey\'s own default stops when a stratum has only one '
-                 "cluster); clusters with the same name in two strata are kept apart (nest = TRUE).",),
-        also="simplydata also refuses empty design cells and weights of 0 or less, and says whether the population "
-             "sizes were read as numbers or as shares sampled.",
-    ),
     _survey("table.find_average_of", "after use_survey_design()", 'table.find_average_of("score_2000")',
             f"""
                 # find_average_of("score_2000") under use_survey_design(...)
