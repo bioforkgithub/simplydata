@@ -89,7 +89,7 @@ def explain_through(table, column, using, through, allowing_for, outcome, with_s
 
     def read(name, kind_word):
         values = kept[name].to_list()
-        if table._frame.schema[name].is_numeric() and len(set(values)) > 2:
+        if table._frame.schema[name].is_numeric() and not set(values) <= {0, 1}:
             return np.asarray(values, dtype=float), "numbers", None
         distinct = _two_values(name, values)
         if len(distinct) != 2:
@@ -103,7 +103,11 @@ def explain_through(table, column, using, through, allowing_for, outcome, with_s
 
     m, m_kind, m_words = read(through, "the mediator, through=")
     y, y_kind, y_words = read(column, "the outcome")
-    if outcome == "numbers" and y_kind == "yes or no" and table._frame.schema[column].is_numeric():
+    if outcome == "numbers" and y_kind == "yes or no":
+        if not table._frame.schema[column].is_numeric():
+            raise SimplydataError(f'"{column}" holds two values (yes or no), so it needs outcome="yes or no" (logistic '
+                                  f'regression).\nFor example, table.explain("{column}", using="{using}", '
+                                  f'through="{through}", outcome="yes or no")')
         y_kind = "numbers"  # a 0/1 number column explained as numbers: as the user said
     if outcome == "yes or no" and y_kind != "yes or no":
         raise SimplydataError(f'outcome="yes or no" needs "{column}" to hold two values.')
@@ -127,8 +131,12 @@ def explain_through(table, column, using, through, allowing_for, outcome, with_s
 
     mediator_model = model("m ~ x" + extra, m_kind)
     outcome_model = model("y ~ x + m" + extra, y_kind)
-    result = Mediation(outcome_model, mediator_model, "x", "m").fit(method="parametric", n_rep=SIMULATIONS,
-                                                                     rng=with_seed)
+    mediation = Mediation(outcome_model, mediator_model, "x", "m")
+    try:
+        result = mediation.fit(method="parametric", n_rep=SIMULATIONS, rng=with_seed)
+    except TypeError:  # statsmodels before 0.15 has no rng=: it draws from NumPy's global generator, seeded here
+        np.random.seed(with_seed)
+        result = mediation.fit(method="parametric", n_rep=SIMULATIONS)
     summary = result.summary(alpha=0.05)
 
     def row(label):
@@ -139,6 +147,8 @@ def explain_through(table, column, using, through, allowing_for, outcome, with_s
                ("direct effect", row("ADE (average)")), ("total effect", row("Total effect")),
                (f"share through {through}", row("Prop. mediated (average)"))]
     scale = ("the chance of yes" if y_kind == "yes or no" else f'"{column}"')
+    if m_kind == "yes or no":
+        print(f'Note: "{through}" holds two values, so the mediator model is logistic regression (its chance of yes).')
     print(f'How much of the effect of "{using}" ({_label(one)} against {_label(zero)}) on {scale} goes through '
           f'"{through}"' + (f", allowing for {_list_words(allowing)}" if allowing else "") + f" ({len(kept)} rows):")
     for label, (est, low, high, p) in effects[:3]:
@@ -150,8 +160,10 @@ def explain_through(table, column, using, through, allowing_for, outcome, with_s
               "the total effect is not clear here, so this share says little.")
     else:
         print(f"  share through {through}: {_num(share[0])} (95 % interval {_num(share[1])} to {_num(share[2])}).")
-    print(_p_sentence(effects[0][1][3], if_none=f'nothing went through "{through}"',
-                      this="an indirect effect this far from 0", not_shown=f'that nothing goes through "{through}"'))
+    p_indirect = effects[0][1][3]
+    print(_p_sentence(p_indirect, if_none=f'nothing went through "{through}"',
+                      this="an indirect effect this far from 0", not_shown=f'that nothing goes through "{through}"',
+                      shown=f"p < {1 / SIMULATIONS:g}, from {SIMULATIONS} simulations" if p_indirect == 0 else None))
     for words, name in ((m_words, through), (y_words, column)):
         if words:
             print(f'"{name}" is yes or no: {words} counts as yes (1).')

@@ -73,7 +73,7 @@ def crossover(table, column, for_each_group_in, matched_by, period, same_within,
     periods = [_label(v) for v in kept[period].to_list()]
     subjects = [_label(v) for v in kept[matched_by].to_list()]
     kinds = sorted(set(treatments))
-    period_kinds = sorted(set(periods), key=lambda v: (len(v), v))
+    period_kinds = [_label(v) for v in sorted(set(kept[period].to_list()), key=lambda v: (str(type(v)), v))]
     if len(kinds) != 2 or len(period_kinds) != 2:
         found = len(kinds) if len(kinds) != 2 else len(period_kinds)
         what = f'"{for_each_group_in}" (formulations)' if len(kinds) != 2 else f'"{period}" (periods)'

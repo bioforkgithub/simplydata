@@ -56,6 +56,11 @@ def attributable_rows(counts, ref, level, what, group_column):
 
     exposed = next(g for g in counts if g != ref)
     ci = f"{level:g} % CI"
+    empty = [g for g, (e, _) in counts.items() if e == 0]
+    if empty:
+        raise SimplydataError(f"There are no events in {_list_words(empty)}, so the risk ratio, and with it the "
+                              "attributable fraction, cannot be worked out. The risk difference needs no ratio: "
+                              f'table.compare_risks(..., against="{ref}") without show=.')
     listed = _list_words(f"{e} of {t} in {g}" for g, (e, t) in counts.items())
     print(f"{what}: {listed}. Exposed: {exposed}; not exposed: {ref} (against=).")
     found = attributable(counts[exposed], counts[ref], level)

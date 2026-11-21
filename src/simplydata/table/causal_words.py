@@ -144,7 +144,7 @@ class CausalWords:
         t = np.array([1.0 if (g == focal or str(g) == str(focal)) else 0.0 for g in groups_raw])
         values = kept[column].to_list()
         yes_words = None
-        if self._frame.schema[column].is_numeric() and len(set(values)) > 2:
+        if self._frame.schema[column].is_numeric() and not set(values) <= {0, 1}:
             y = np.asarray(values, dtype=float)
         else:
             if len(set(values)) != 2:
@@ -186,7 +186,8 @@ class CausalWords:
         # ---- 3. the balance table
         rows_b = [self._balance_name(r, shown_names) for r in found["rows"]]
         width = max(len(r) for r in rows_b)
-        print("Balance (standardised differences; within 0.1 is the usual guide, Austin 2009):")
+        print(f'Balance (standardised differences, positive: higher in "{_label(focal)}"; within 0.1 is the usual '
+              "guide, Austin 2009):")
         print(f"  {'column':<{width}}  before  after")
         for name, before, after in zip(rows_b, found["before"], found["after"]):
             print(f"  {name:<{width}}  {before:6.3f}  {after:6.3f}")
@@ -212,9 +213,12 @@ class CausalWords:
         else:
             unmatched = found.get("unmatched")
             if unmatched is not None and unmatched.size == 2 and unmatched[1] > 0:
-                print(f"Note: {int(unmatched[1])} row{'' if unmatched[1] == 1 else 's'} of \"{_label(focal)}\" had no "
-                      f"match within {_num(match_within)} standard deviations and {'was' if unmatched[1] == 1 else 'were'} "
-                      "left out, so the effect is for the matched rows of that group only.")
+                n_left = int(unmatched[1])
+                why = (f"no match within {_num(match_within)} standard deviations" if match_within is not None
+                       else f'no partner left (\"{_label(ref)}\" has fewer rows)')
+                print(f"Note: {n_left} row{'' if n_left == 1 else 's'} of \"{_label(focal)}\" had {why} and "
+                      f"{'was' if n_left == 1 else 'were'} left out, so the effect is for the matched rows of that group "
+                      "only.")
         # ---- 4. the effect
         who = ("everyone (the average effect, ATE)" if effect == "everyone"
                else f'those in "{_label(focal)}" (the effect among them, ATT)')
@@ -224,7 +228,7 @@ class CausalWords:
         print(f"Effect for {who}: {thing} is {_num(est)} higher in \"{_label(focal)}\" than in \"{_label(ref)}\" "
               f"({ci} {_num(low)} to {_num(high)}), once the groups are made alike." if est >= 0 else
               f"Effect for {who}: {thing} is {_num(-est)} lower in \"{_label(focal)}\" than in \"{_label(ref)}\" "
-              f"({ci} {_num(low)} to {_num(high)}), once the groups are made alike.")
+              f"({ci} of how much lower: {_num(-high)} to {_num(-low)}), once the groups are made alike.")
         if yes_words:
             print(f'"{column}" is yes or no: {yes_words} counts as yes.')
         print(_p_sentence(p, if_none="the groups, once made alike, truly did not differ",

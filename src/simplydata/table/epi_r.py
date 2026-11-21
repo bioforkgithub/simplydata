@@ -35,16 +35,19 @@ _R_DIRECT = ("obs <- matrix(o, nrow = ng, dimnames = list(g, b)); tar <- matrix(
              "std <- matrix(s, nrow = 1, dimnames = list(\"\", b)); "
              "r <- epiR::epi.directadj(obs = obs, tar = tar, std = std, units = per, conf.level = level); "
              "list(crude = r$crude.strata$est, crude_low = r$crude.strata$lower, crude_high = r$crude.strata$upper, "
-             "adj = r$adj.strata$est, adj_low = r$adj.strata$lower, adj_high = r$adj.strata$upper)")
+             "adj = r$adj.strata$est, adj_low = r$adj.strata$lower, adj_high = r$adj.strata$upper, "
+             "names = as.character(r$adj.strata$strata), crude_names = as.character(r$crude.strata$strata))")
 
 # the standard rates are given per `per` units of time; epiR wants them per one unit: rate / per (listed for the
 # owner's approval as a unit conversion, like the "times per=" of rate_of)
 _R_INDIRECT = ("obs <- matrix(o, ncol = 1, dimnames = list(g, \"\")); pop <- matrix(t, nrow = ng, dimnames = list(g, b)); "
                "std <- matrix(c(s / per, NA), nrow = 1, dimnames = list(\"\", c(b, \"Total\"))); "
                "r <- epiR::epi.indirectadj(obs = obs, pop = pop, std = std, units = per, conf.level = level); "
-               "sm <- r$smr.strata; "
+               # epiR sorts the strata by name (as text, by the locale): read them back by name, never by position
+               "sm <- r$smr.strata[match(g, rownames(r$smr.strata)), , drop = FALSE]; "
                "list(obs = sm$obs, exp = sm$exp, smr = sm$est, low = sm$lower, high = sm$upper, "
-               "p = sapply(seq_len(nrow(sm)), function(i) stats::poisson.test(round(sm$obs[i]), sm$exp[i])$p.value))")
+               "p = sapply(seq_len(nrow(sm)), function(i) stats::poisson.test(round(sm$obs[i]), sm$exp[i])$p.value), "
+               "names = rownames(sm))")
 
 NOTE = "without R, compare_risks() without show= gives the risk ratio from statsmodels"
 
@@ -72,6 +75,17 @@ def attributable(exposed, unexposed, level):
     return {"af": three("af"), "paf": three("paf"), "rr": three("rr")}
 
 
+def _in_order(found, groups, keys, what):
+    """The R answer as arrays in the order of groups; stops when R's strata names are not the groups in that order."""
+    wanted = [str(x) for x in groups]
+    for key in keys:
+        got = [str(x) for x in np.atleast_1d(found.get(key))]
+        if got != wanted:
+            raise SimplydataError(f"{what} gave its groups in another order ({got[:5]}) than simplydata sent "
+                                  f"({wanted[:5]}); this is a bug in simplydata, please report it.")
+    return {k: np.asarray(v, dtype=float).ravel() for k, v in found.items() if k not in keys}
+
+
 def direct(groups, bands, events, times, standard, per, level):
     """epiR::epi.directadj: {crude, crude_low, crude_high, adj, adj_low, adj_high}, one value per group (per `per`
     units of time). events, times: arrays groups x bands; standard: one population size per band."""
@@ -82,7 +96,7 @@ def direct(groups, bands, events, times, standard, per, level):
                    source="epiR::epi.directadj", o=np.asarray(events, dtype=float), t=np.asarray(times, dtype=float),
                    s=np.asarray(standard, dtype=float), ng=float(len(groups)), g=[str(x) for x in groups],
                    b=[str(x) for x in bands], per=float(per), level=level / 100)
-    return {k: np.asarray(v, dtype=float).ravel() for k, v in found.items()}
+    return _in_order(found, groups, ("names", "crude_names"), "R epiR::epi.directadj()")
 
 
 def indirect(groups, bands, events, times, rates, per, level):
@@ -97,4 +111,4 @@ def indirect(groups, bands, events, times, rates, per, level):
                    source="epiR::epi.indirectadj", o=np.asarray(events, dtype=float),
                    t=np.asarray(times, dtype=float), s=np.asarray(rates, dtype=float), ng=float(len(groups)),
                    g=[str(x) for x in groups], b=[str(x) for x in bands], per=float(per), level=level / 100)
-    return {k: np.asarray(v, dtype=float).ravel() for k, v in found.items()}
+    return _in_order(found, groups, ("names",), "R epiR::epi.indirectadj()")

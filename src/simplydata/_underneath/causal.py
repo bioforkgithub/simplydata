@@ -204,9 +204,9 @@ ENTRIES = [
                 pop <- matrix(t, nrow = length(g), dimnames = list(g, b))
                 std <- matrix(c(s / 1000, NA), nrow = 1, dimnames = list("", c(b, "Total")))   # (1)
                 r <- epiR::epi.indirectadj(obs, pop, std, units = 1000)                        # (2)
-                sm <- r$smr.strata
-                list(smr = sm$est[1], low = sm$lower[1], high = sm$upper[1], e = sm$exp[1],
-                     p = stats::poisson.test(sm$obs[1], sm$exp[1])$p.value)
+                sm <- r$smr.strata["Eastmere", ]                                               # by name
+                list(smr = sm$est, low = sm$lower, high = sm$upper, e = sm$exp,
+                     p = stats::poisson.test(sm$obs, sm$exp)$p.value)
             """,
             "Python": """
                 {"observed / expected": smr, "observed / expected 95 % CI low": low,

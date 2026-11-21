@@ -1115,6 +1115,9 @@ class SurvivalWords:
         if not using or not all(isinstance(u, str) for u in using):
             raise SimplydataError(f"{step}() needs using= with one or more column names.\nFor example, {example}")
         using = list(using)
+        twice = [u for i, u in enumerate(using) if u in using[:i]]
+        if twice:
+            raise SimplydataError(f'"{twice[0]}" is in using= twice. Give each column once.')
         from .imputation_more import MULTIPLE, read_empty_cells
 
         if read_empty_cells(step, empty_cells, example) == MULTIPLE:

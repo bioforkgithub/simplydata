@@ -733,9 +733,15 @@ class RiskWords:
         show = read_show(step, show, example)
         if show is not None and (allowing_for is not None or p_value_by != "formula" or same_within is not None
                                  or sides != 2 or higher is not None or lower is not None
-                                 or alternative not in (None, "two-sided")):
+                                 or alternative not in (None, "two-sided") or not_lower is not None
+                                 or not_higher is not None):
             raise SimplydataError('show="attributable fractions" gives the crude fractions of two groups; leave out '
-                                  "allowing_for=, p_value_by=, same_within=, sides=, higher= and lower=.\nFor example, "
+                                  "allowing_for=, p_value_by=, same_within=, not_lower=, not_higher=, sides=, higher= "
+                                  "and lower=.\nFor example, "
+                                  f'{example.rstrip(")")}, show="attributable fractions")')
+        if show is not None and against is None:
+            raise SimplydataError('show="attributable fractions" needs against=, the group without the exposure: the '
+                                  "fractions are about the other group, so simplydata does not guess it.\nFor example, "
                                   f'{example.rstrip(")")}, show="attributable fractions")')
         names = [outcome, for_each_group_in] + ([allowing_for] if allowing_for else [])
         if len(set(names)) != len(names):

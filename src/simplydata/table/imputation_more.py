@@ -151,9 +151,10 @@ def survival_imputed(table, step, time, event, using, value, seed, example):
     numbers = [u for u in using if table._frame.schema[u].is_numeric()]
     texts = [u for u in using if u not in numbers]
     times, events, kept, yes, _ = table._survival_data(step, time, event, texts, example, value)
-    used_rows = [i for i in range(len(table._frame))
-                 if not any(is_empty(table._frame[c].to_list()[i]) for c in [time, event] + texts)]
-    raw = {c: [table._frame[c].to_list()[i] for i in used_rows] for c in numbers}
+    columns_used = [time, event] + texts
+    lists = {c: table._frame[c].to_list() for c in columns_used + numbers}
+    used_rows = [i for i in range(len(table._frame)) if not any(is_empty(lists[c][i]) for c in columns_used)]
+    raw = {c: [lists[c][i] for i in used_rows] for c in numbers}
     values = {c: np.array([math.nan if is_empty(v) else float(v) for v in raw[c]]) for c in numbers}
     gaps = np.any([np.isnan(v) for v in values.values()], axis=0) if numbers else np.zeros(len(times), dtype=bool)
     if not gaps.any():

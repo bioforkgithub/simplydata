@@ -423,3 +423,62 @@ def test_drug_levels_is_reference_dataset_a():
 def test_other_names_point_to_the_new_options(typed, capsys):
     sdata.help(typed)
     assert "In simplydata" in capsys.readouterr().out
+
+
+# ---------------------------------------------------------------- review fixes
+def test_standardised_ratios_are_read_back_by_group_name(needs_r):
+    """epiR sorts its strata as text (by the locale): every group must keep its own numbers."""
+    df = sdata.get_example("deaths_by_age")
+    names = {"Northvale": "2", "Eastmere": "10", "Southby": "bergen", "Westford": "Oslo"}
+    df["county"] = df["county"].map(names)
+    r = sdata.table(df).compare_rates("deaths", time="person_years", for_each_group_in="county",
+                                      allowing_for="age_band", standard_rates=NATIONAL).as_pandas().set_index("group")
+    for name in names.values():
+        rows = df[df["county"] == name]
+        expected = (rows["person_years"] * rows["age_band"].map(NATIONAL) / 1000).sum()
+        assert r.loc[name, "observed"] == rows["deaths"].sum()
+        assert r.loc[name, "expected"] == pytest.approx(expected, rel=1e-12)
+    d = sdata.table(df).rate_of("deaths", time="person_years", for_each_group_in="county", allowing_for="age_band",
+                                standard_population="whole table").as_pandas().set_index("group")
+    for name in names.values():
+        rows = df[df["county"] == name]
+        assert d.loc[name, "crude rate"] == pytest.approx(rows["deaths"].sum() / rows["person_years"].sum() * 1000,
+                                                          rel=1e-9)
+
+
+def test_matching_with_fewer_rows_in_the_other_group_says_so(needs_r, capsys):
+    t = sdata.table(sdata.get_example("job_training"))
+    t.compare_balanced_groups_of("re78", for_each_group_in="treat", allowing_for=COLUMNS, method="matching",
+                                 effect_for=0)
+    assert 'no partner left ("1" has fewer rows)' in capsys.readouterr().out
+
+
+def test_attributable_fractions_with_no_events_in_a_group_are_refused():
+    rows = [{"g": "a", "e": "yes"}] * 10 + [{"g": "a", "e": "no"}] * 90 + [{"g": "b", "e": "no"}] * 100
+    with pytest.raises(SimplydataError, match="no events in b"):
+        sdata.table(pd.DataFrame(rows)).compare_risks("e", for_each_group_in="g", against="b",
+                                                      show="attributable fractions")
+
+
+def test_attributable_fractions_need_against():
+    with pytest.raises(SimplydataError, match="needs against="):
+        _flutd().compare_risks("flutd", for_each_group_in="food", show="attributable fractions")
+
+
+def test_a_lower_effect_gives_the_interval_of_how_much_lower(needs_r, capsys):
+    t = sdata.table(sdata.get_example("job_training"))
+    t.compare_balanced_groups_of("re78", for_each_group_in="treat", allowing_for=COLUMNS, against=1)
+    assert "lower" in capsys.readouterr().out.split("Effect for")[1].splitlines()[0]
+
+
+def test_mediation_refuses_a_text_outcome_as_numbers():
+    with pytest.raises(SimplydataError, match='outcome="yes or no"'):
+        sdata.table(sdata.get_example("job_search")).explain("work1", using="treat", through="job_seek")
+
+
+def test_crossover_period_order_follows_the_values():
+    df = pd.read_csv(DATA / "bioequivalence_reference.csv").query("dataset == 'A'").drop(columns="dataset")
+    named = df.assign(period=df["period"].map({1: "early", 2: "late"}))
+    r = sdata.table(named).compare_averages_of("auc", for_each_group_in="formulation", matched_by="subject",
+                                               period="period").as_pandas().iloc[0]
+    assert round(r["estimate"] * 100, 2) == 95.09
