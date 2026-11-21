@@ -20,7 +20,7 @@ from __future__ import annotations
 import textwrap
 
 SEED = 'set.seed(1, kind = "Mersenne-Twister", normal.kind = "Inversion", sample.kind = "Rejection")'
-OURS_R = {"table.explain": ("rstanarm", "rstan", "posterior")}
+OURS_R = {"table.explain": ("rstanarm", "rstan", "posterior"), "table.check_model_of": ("rstanarm", "rstan", "posterior")}
 LIGHT = ("BayesFactor",)
 HEAVY = ("rstanarm", "rstan", "posterior")
 JZS = """
@@ -202,6 +202,24 @@ def _cases(Case):
                       intercept = unname(rstanarm::fixef(m)[1]))
              """, r_packages=HEAVY, r_tolerance=1e-9,
              note="lme4's REML estimates are 251.4 and 10.47 (Bates et al. 2015); the posterior medians are close."),
+        Case("table.check_model_of", "bayesian=True: mtcars, the posterior predictive check of fuel use from weight",
+             "mtcars", "real data",
+             ours="""
+                 c = sdata.table(data).check_model_of("mpg", using=["wt"], bayesian=True)._check_numbers
+                 {"data density at point 100": c["observed"][99], "set 3 at point 100": c["made"][2][99],
+                  "set 50 at point 200": c["made"][49][199], "grid end": c["grid"][-1]}
+             """,
+             r="""
+                 m <- rstanarm::stan_glm(mpg ~ wt, data = data.frame(mpg, wt), chains = 4, iter = 2000, seed = 1,
+                                         refresh = 0, cores = 1)
+                 yrep <- rstanarm::posterior_predict(m, draws = 50, seed = 1)
+                 r <- range(c(mpg, yrep))
+                 d <- function(v) stats::density(v, from = r[1], to = r[2], n = 256)$y
+                 list(`data density at point 100` = d(mpg)[100], `set 3 at point 100` = d(yrep[3, ])[100],
+                      `set 50 at point 200` = d(yrep[50, ])[200], `grid end` = r[2])
+             """, r_packages=HEAVY, r_tolerance=1e-9,
+             note="The picture's lines are R stats::density() of the data and of each set made up by "
+                  "posterior_predict(), on one grid from the smallest to the largest value."),
     ]
 
 

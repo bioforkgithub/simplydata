@@ -74,8 +74,9 @@ def test_every_r_package_is_listed_and_installed_in_ci():
     import pathlib
     import re
 
-    from conftest import R_PACKAGES
+    from conftest import R_PACKAGES, R_PACKAGES_HEAVY
 
+    R_PACKAGES = R_PACKAGES + R_PACKAGES_HEAVY  # noqa: N806 - the heavy ones are installed in their own CI step
     root = pathlib.Path(__file__).resolve().parents[1]
     used = set()
     for path in (root / "src" / "simplydata").rglob("*.py"):
