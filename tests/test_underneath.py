@@ -59,7 +59,10 @@ def test_ours_prints_no_old_name_note(entry):
 
 def test_the_word_itself_is_called_in_ours():
     for entry in ENTRIES:
-        assert f".{learn._word(entry.word)}(" in entry.ours_code(), entry.word
+        word = learn._word(entry.word)
+        # an option of several words (show=, error=) is written inside the word it changes: draw_bars(..., show=...)
+        needle = word if word.endswith("=") else f".{word}("
+        assert needle in entry.ours_code(), entry.word
 
 
 def test_library_code_names_no_simplydata_word_but_the_practice_table():
@@ -133,6 +136,8 @@ def test_r_label_says_simplydata_runs_it():
     ("draw_histogram", "bins=10, "),
     ("nums.find_median", "nan"),
     ("table.compare_averages_of", ", equal_var=False"),
+    ("use_colour", "saturation=1, "),
+    ("rotate_labels_x", 'label.set_horizontalalignment("right")'),
 ])
 def test_leaving_out_a_simplydata_choice_makes_the_comparison_fail(word, setting):
     entry = UNDERNEATH[word]
@@ -170,6 +175,42 @@ def test_chart_facts_reads_bars_dots_lines_labels_and_legend():
     assert compare_charts(facts, chart_facts(ax), ("labels",), 1e-9)
     with pytest.raises(ValueError):
         compare_charts(facts, other, ("pixels",), 1e-9)
+    plt.close("all")
+
+
+def test_chart_facts_read_words_sizes_legends_colours_angles_shapes_cells_and_panels():
+    """The facts for the words that only change how a chart looks (U-batch 2)."""
+    import numpy as np
+
+    with plt.rc_context({"axes.titlesize": 21}):
+        fig, ax = plt.subplots(figsize=(5, 4), layout="constrained")
+    ax.bar([0, 1], [3, 5], color="purple", tick_label=["a", "b"])
+    ax.plot([0, 1], [1, 2], color="red", label="line")
+    ax.fill_between([0, 1], [0, 0], [1, 2])
+    ax.annotate("note", xy=(0, 1))
+    fig.suptitle("over all")
+    for label in ax.get_xticklabels():
+        label.set_rotation(45)
+        label.set_horizontalalignment("right")
+    fig.legend(loc="outside lower center", ncols=1, title="key")
+    twin = ax.twinx()
+    twin.scatter([0, 1], [7, 8])
+    facts = chart_facts(ax)
+    assert facts["texts"] == (["over all"], ["note"])
+    assert facts["font_sizes"][0] == 21
+    assert facts["size"] == (5.0, 4.0)
+    assert facts["legend_place"] == [("figure", 8, "lower", 1, ["key", "line"])]
+    assert facts["colours"][0] == ["#800080ff", "#800080ff"] and facts["colours"][2] == ["#ff0000ff"]
+    assert facts["tick_angles"][0] == [(45.0, "right"), (45.0, "right")]
+    assert len(facts["shapes"]) == 1 and facts["shapes"][0][0] == len(facts["shapes"][0][1])
+    assert len(facts["every_panel"]) == 2 and facts["every_panel"][1][4][0] == 2  # the twin's two dots
+    assert compare_charts(facts, chart_facts(ax), CHART_FACTS, 1e-9) == []
+    fig.set_size_inches(6, 4)
+    assert compare_charts(facts, chart_facts(ax), ("size",), 1e-9)
+    fig2, ax2 = plt.subplots()
+    ax2.pcolormesh(np.array([[1.0, 2.0], [3.0, np.nan]]))
+    cells = chart_facts(ax2)["cells"]
+    assert cells[0][0] == 4 and np.isnan(cells[0][1][3]) and cells[0][1][2] == 3.0
     plt.close("all")
 
 

@@ -1028,7 +1028,11 @@ _HOW = {"value": "the number", "table": "the table", "result": "the numbers of t
 _FACT_WORDS = {"bars": "the bars", "bar_colour_groups": "which bars share a colour", "dots": "the dots",
                "dot_size_shares": "the dot sizes", "dot_colour_groups": "which dots share a colour",
                "lines": "the lines", "labels": "the axis labels", "ticks": "the tick labels", "legend": "the legend",
-               "limits": "the axis ranges", "scales": "the axis scales", "panels": "the number of panels"}
+               "limits": "the axis ranges", "scales": "the axis scales", "panels": "the number of panels",
+               "texts": "the words written on the chart", "font_sizes": "the font sizes",
+               "size": "the size of the chart", "legend_place": "the place of the legend", "colours": "the colours",
+               "tick_angles": "the angle of the tick labels", "shapes": "the filled shapes",
+               "cells": "the coloured cells", "every_panel": "the labels, dots, bars, lines and shapes of every panel"}
 
 
 def _checked(entry) -> str:
