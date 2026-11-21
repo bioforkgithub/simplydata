@@ -282,21 +282,23 @@ ENTRIES += [
             ax.annotate("Made-up data from sdata.get_example", xy=(0.5, 0),
                         xycoords=ax.xaxis.label, xytext=(0, -4),
                         textcoords="offset points", ha="center", va="top",  # (1)
-                        fontsize=0.8 * plt.rcParams["font.size"], alpha=0.8)  # (2)
+                        annotation_clip=False, alpha=0.8,
+                        fontsize=0.8 * plt.rcParams["font.size"])           # (2)
         """},
         compare="chart",
-        check=("texts", "bars", "labels"),
-        choices=("the caption hangs just under the x-axis label, so it moves down when the labels are turned or "
+        check=("texts", "text_places", "bars", "labels"),
+        choices=("the caption hangs 4 points under the x-axis label, so it moves down when the labels are turned or "
                  "grow; on a figure with several panels it is the figure's bottom line instead (fig.supxlabel).",
-                 "in smaller (0.8 of the font size), slightly faded letters, so it reads as a note, not a label.",),
-        also=LOOK,
+                 "in smaller letters (0.8 of the text size: 9.6 points in simplydata's paper look, where text is 12), "
+                 "slightly faded, so it reads as a note, not a label.",),
+        also="The size and fading of the letters are not compared. " + LOOK,
     ),
     Entry(
         word="use_font_size",
         data="marks",
         ours="""
             chart = sdata.chart(sdata.get_example("marks"))
-            chart.draw_bars(x="class", y="marks")
+            chart.draw_bars(x="class", y="marks", colour="subject")
             chart.write_title_on_top("Big text")
             chart.use_font_size(18)
         """,
@@ -310,14 +312,15 @@ ENTRIES += [
                      "legend.fontsize": 16.5}                            # (1)
             with plt.rc_context(sizes):
                 fig, ax = plt.subplots()
-                sns.barplot(df, x="class", y="marks", errorbar=None, ax=ax)
+                sns.barplot(df, x="class", y="marks", hue="subject", errorbar=None, ax=ax)
                 ax.set_title("Big text")
         """},
         compare="chart",
-        check=("font_sizes", "labels", "bars"),
-        choices=("all the words grow together: simplydata's normal sizes are 12 for text, 14 for the title, 13 for "
-                 "the axis labels and 11 for tick labels and the legend, and use_font_size(18) multiplies each by "
-                 "18 / 12, so the title stays the biggest.",),
+        check=("font_sizes", "labels", "bars", "legend"),
+        choices=("all the words grow together: in the normal paper look the sizes are 12 for text, 14 for the "
+                 "title, 13 for the axis labels and 11 for tick labels and the legend, and use_font_size(18) "
+                 "multiplies each by 18 / 12, so the title stays the biggest. In another style each grows by 18 over "
+                 "that style's text size (18 / 15 in \"school\").",),
         also="matplotlib's own normal size is 10. " + LOOK_BUT_FONTS,
     ),
     Entry(
@@ -425,16 +428,16 @@ ENTRIES += [
     ),
     Entry(
         word="use_style",
-        data="marks",
+        data="weather",
         ours="""
-            chart = sdata.chart(sdata.get_example("marks"))
-            chart.draw_bars(x="subject", y="marks", colour="class")
+            chart = sdata.chart(sdata.get_example("weather"))
+            chart.draw_lines(x="month", y="temperature", colour="city")
             chart.use_style("school")
         """,
         code={"matplotlib": """
             import matplotlib.pyplot as plt
             import seaborn as sns
-            df = sdata.get_example("marks")
+            df = sdata.get_example("weather")
             # use_style("school")
             school = {"font.size": 15, "axes.titlesize": 18, "axes.labelsize": 16,
                       "xtick.labelsize": 14, "ytick.labelsize": 14, "legend.fontsize": 14,
@@ -442,15 +445,16 @@ ENTRIES += [
                       "axes.linewidth": 1.5}                             # (1)
             with plt.rc_context(school):
                 fig, ax = plt.subplots()
-                sns.barplot(df, x="subject", y="marks", hue="class", errorbar=None, ax=ax)
+                sns.lineplot(df, x="month", y="temperature", hue="city", errorbar=None, ax=ax)
         """},
         compare="chart",
-        check=("font_sizes", "bars", "legend"),
+        check=("font_sizes", "line_styles", "lines", "legend"),
         choices=("\"school\" is bigger words and thicker lines, for a classroom screen; \"presentation\" is bigger "
                  "still, \"dark\" puts light words and brighter colours on a dark background, and \"paper\" is the "
                  "normal look.",),
         also="The style is a set of matplotlib settings used while the chart is drawn and saved, so it never "
-             "changes your other charts. " + LOOK_BUT_FONTS,
+             "changes your other charts. The marker size and the width of the axis lines are not compared. "
+             + LOOK_BUT_FONTS,
     ),
     Entry(
         word="hide_legend",
@@ -506,25 +510,25 @@ ENTRIES += [
 ENTRIES += [
     Entry(
         word="draw_lines",
-        data="weather",
+        data="marks",
         ours="""
-            chart = sdata.chart(sdata.get_example("weather"))
-            chart.draw_lines(x="month", y="temperature", colour="city", with_dots=True)
+            chart = sdata.chart(sdata.get_example("marks"))
+            chart.draw_lines(x="class", y="marks", colour="subject", with_dots=True)
         """,
         code={"seaborn": """
             import matplotlib.pyplot as plt
             import seaborn as sns
-            df = sdata.get_example("weather")
+            df = sdata.get_example("marks")
             fig, ax = plt.subplots()
-            # draw_lines(x="month", y="temperature", colour="city", with_dots=True)
-            sns.lineplot(df, x="month", y="temperature", hue="city",
+            # draw_lines(x="class", y="marks", colour="subject", with_dots=True)
+            sns.lineplot(df, x="class", y="marks", hue="subject",
                          estimator="mean", errorbar=None,                # (1)
                          marker="o", ax=ax)
         """},
         compare="chart",
-        check=("lines", "labels", "ticks", "legend", "limits"),
-        choices=("each point is the average of its rows, with no band around the line unless you ask (error=); "
-                 "seaborn's own default shades a bootstrap 95 % interval.",),
+        check=("lines", "shapes", "labels", "ticks", "legend", "limits"),
+        choices=("each point is the average of its rows (here 6 pupils), with no band around the line unless you "
+                 "ask (error=); seaborn's own default shades a bootstrap 95 % interval.",),
         also="Month and weekday names come in calendar order. joined_by= draws smooth curves or steps instead of "
              "straight lines. " + LOOK,
     ),
@@ -541,13 +545,16 @@ ENTRIES += [
             df = sdata.get_example("marks")
             fig, ax = plt.subplots()
             # draw_boxes(x="class", y="marks")
-            sns.boxplot(df, x="class", y="marks", saturation=1, ax=ax)  # (1)
+            sns.boxplot(df, x="class", y="marks", color="#0072B2",      # (1)
+                        saturation=1, ax=ax)                             # (2)
         """},
         compare="chart",
-        check=("shapes", "lines", "ticks", "labels", "limits"),
-        choices=("the exact colours (saturation=1), not seaborn's slightly duller ones.",),
+        check=("shapes", "shape_colours", "lines", "ticks", "labels", "limits"),
+        choices=("without groups the boxes get simplydata's first colour (Okabe-Ito blue, safe for colour-blind "
+                 "readers); colour= or use_colour() choose others.",
+                 "the exact colour (saturation=1), not seaborn's slightly duller one.",),
         also="The whiskers reach the furthest value within 1.5 box lengths, as in seaborn and R's boxplot(); with "
-             "colour= the boxes of one group stand a little apart. " + LOOK,
+             "colour= the boxes of one group stand a little apart. " + LOOK_BUT_COLOURS,
     ),
     Entry(
         word="draw_all_dots",
@@ -578,7 +585,8 @@ ENTRIES += [
                  "(seaborn stripplot, with the random numbers fixed so the chart is the same every time).",
                  "over boxes or violins the dots are dark grey, so they stand out; colour= still chooses your own.",),
         also="The test compares where each dot belongs (its group and value) and the colours, before the picture "
-             "is drawn. The boxes get simplydata's first colour, so their lines have the same shade. " + LOOK,
+             "is drawn: the sideways spread of the swarm is not compared. The boxes get simplydata's first "
+             "colour, so their lines have the same shade. " + LOOK,
     ),
     Entry(
         word="draw_violins",
@@ -594,15 +602,15 @@ ENTRIES += [
             fig, ax = plt.subplots()
             # draw_violins(x="subject", y="marks")
             sns.violinplot(df, x="subject", y="marks", cut=0,           # (1)
-                           saturation=1, ax=ax)                          # (2)
+                           color="#0072B2", saturation=1, ax=ax)         # (2)
         """},
         compare="chart",
-        check=("shapes", "lines", "ticks", "labels"),
+        check=("shapes", "shape_colours", "lines", "ticks", "labels"),
         choices=("each violin stops at the smallest and the largest value (cut=0), so it never shows values that "
                  "cannot happen, such as marks below 0; seaborn's own default runs the curve on past them.",
-                 "the exact colours (saturation=1), not seaborn's slightly duller ones.",),
+                 "simplydata's first colour, exactly (saturation=1), not seaborn's slightly duller one.",),
         also="The width follows seaborn's kernel density estimate (Scott's rule); the small box inside shows the "
-             "middle half of the values. " + LOOK,
+             "middle half of the values. " + LOOK_BUT_COLOURS,
     ),
     Entry(
         word="show=",
@@ -623,8 +631,8 @@ ENTRIES += [
         compare="chart",
         check=("bars", "ticks", "limits"),
         choices=("the word becomes seaborn's estimator: \"average\" is \"mean\", \"median\" is \"median\", "
-                 "\"total\" is \"sum\", \"smallest\" and \"biggest\" are \"min\" and \"max\"; \"count\" counts the "
-                 "rows (seaborn countplot).",),
+                 "\"total\" is \"sum\", \"smallest\" and \"biggest\" are \"min\" and \"max\", \"standard "
+                 "deviation\" is \"std\"; \"count\" counts the rows (seaborn countplot).",),
         also="The same words work in draw_lines(). " + LOOK,
     ),
     Entry(
@@ -644,7 +652,7 @@ ENTRIES += [
                         capsize=0.1, err_kws={"linewidth": 1.3}, ax=ax)  # (2)
         """},
         compare="chart",
-        check=("bars", "lines", "limits"),
+        check=("bars", "lines", "line_styles", "limits"),
         choices=("\"standard deviation\" is seaborn's \"sd\" and \"standard error\" its \"se\", both with n - 1; "
                  "\"confidence interval\" is the t interval of the mean (as R t.test()), not seaborn's bootstrap.",
                  "short caps at the ends of each error bar.",),
@@ -673,7 +681,7 @@ ENTRIES += [
             ax.autoscale_view()
         """},
         compare="chart",
-        check=("texts", "bars", "limits"),
+        check=("texts", "text_places", "bars", "limits"),
         choices=("each value just above its bar, with a comma for thousands and no decimals unless with_decimals= "
                  "asks; stacked bars get the number in the middle of each piece, and with error bars it sits past "
                  "the end of the error bar.",
@@ -775,15 +783,17 @@ ENTRIES += [
             fig, ax = plt.subplots()
             sns.barplot(df, x="name", y="marks", errorbar=None, ax=ax)
             # draw_line_at_y(50, labelled="pass mark")
-            ax.axhline(50, color="grey", linestyle="--", linewidth=1.5)  # (1)
+            ax.axhline(50, color="grey", linestyle="--", linewidth=1.5, zorder=2.5)  # (1)
             ax.text(1.01, 50, "pass mark", transform=ax.get_yaxis_transform(),
-                    ha="left", va="center", color="grey", clip_on=False)  # (2)
+                    ha="left", va="center", color="grey", clip_on=False,           # (2)
+                    fontsize=plt.rcParams["legend.fontsize"])
         """},
         compare="chart",
-        check=("lines", "texts", "bars"),
-        choices=("a grey dashed line, 1.5 points wide, drawn above the bars and below the dots.",
-                 "the label sits just outside the right edge, so it never covers a bar or a dot.",),
-        also=LOOK,
+        check=("lines", "line_styles", "texts", "text_places", "bars"),
+        choices=("a grey dashed line, 1.5 points wide, drawn above the bars and below the dots (zorder 2.5).",
+                 "the label sits just outside the right edge, so it never covers a bar or a dot, in the legend's "
+                 "size of letters.",),
+        also="The colour and the size of the letters are not compared. " + LOOK,
     ),
     Entry(
         word="shade_between_y",
@@ -798,16 +808,17 @@ ENTRIES += [
             import seaborn as sns
             df = sdata.get_example("marks")
             fig, ax = plt.subplots()
-            sns.scatterplot(df, x="hours", y="marks", ax=ax)
+            sns.scatterplot(df, x="hours", y="marks", color="#0072B2", ax=ax)
             # shade_between_y(40, 60)
             ax.axhspan(40, 60, color="grey", alpha=0.2, linewidth=0,
                        zorder=0)                                         # (1)
         """},
         compare="chart",
-        check=("bars", "dots", "limits"),
-        choices=("a light band (alpha 0.2), behind everything else on the chart (zorder 0), so the data stay in "
-                 "front of it.",),
-        also="The band is a rectangle across the whole width: the test reads it among the bars. " + LOOK,
+        check=("bars", "colours", "dots", "limits"),
+        choices=("a light grey band (alpha 0.2), behind everything else on the chart (zorder 0), so the data stay "
+                 "in front of it.",),
+        also="The band is a rectangle across the whole width: the test reads it, and its see-through grey, among "
+             "the bars. The dots get simplydata's first colour, as draw_dots() gives them. " + LOOK_BUT_COLOURS,
     ),
     Entry(
         word="use_log_scale_y",
@@ -838,7 +849,7 @@ ENTRIES += [
         data="growth",
         ours="""
             chart = sdata.chart(sdata.get_example("growth"))
-            chart.draw_lines(x="year", y="population", colour="country")
+            chart.draw_dots(x="year", y="population")
             chart.draw_line_at_x(2010, labelled="2010")
         """,
         code={"matplotlib": """
@@ -846,17 +857,20 @@ ENTRIES += [
             import seaborn as sns
             df = sdata.get_example("growth")
             fig, ax = plt.subplots()
-            sns.lineplot(df, x="year", y="population", hue="country", errorbar=None, ax=ax)
+            sns.scatterplot(df, x="year", y="population", ax=ax)
             # draw_line_at_x(2010, labelled="2010")
-            ax.axvline(2010, color="grey", linestyle="--", linewidth=1.5)  # (1)
-            ax.text(2010, 0.98, " 2010 ", transform=ax.get_xaxis_transform(),
-                    rotation=90, ha="right", va="top", color="grey")    # (2)
+            ax.axvline(2010, color="grey", linestyle="--", linewidth=1.5, zorder=2.5)  # (1)
+            ax.text(2010, 0.98, " 2010 ", transform=ax.get_xaxis_transform(), rotation=90,
+                    ha="right", va="top", color="grey",                          # (2)
+                    fontsize=plt.rcParams["legend.fontsize"],
+                    bbox=dict(boxstyle="round,pad=0.15", fc="white", ec="none", alpha=0.85))
         """},
         compare="chart",
-        check=("lines", "texts", "limits"),
-        choices=("a grey dashed line, 1.5 points wide.",
-                 "the label stands up along the line, near the top, on its left side.",),
-        also=LOOK,
+        check=("lines", "line_styles", "texts", "text_places", "dots", "limits"),
+        choices=("a grey dashed line, 1.5 points wide, in front of bars and behind dots (zorder 2.5).",
+                 "the label stands up along the line, near the top, on its left side, on a soft box in the chart's "
+                 "background colour so the line does not cross the words.",),
+        also="The colour and the size of the letters are not compared. " + LOOK,
     ),
     Entry(
         word="write_ticks_y_as",
@@ -925,7 +939,7 @@ ENTRIES += [
                                   ec="none", alpha=0.85))                # (1)
         """},
         compare="chart",
-        check=("texts", "lines", "limits"),
+        check=("texts", "text_places", "lines", "limits"),
         choices=("the note sits just above the place, on a soft background in the chart's own colour, so it stays "
                  "readable over lines and bars.",),
         also="with_arrow=True moves the note 40 points towards the middle of the chart and points an arrow at the "
@@ -936,29 +950,36 @@ ENTRIES += [
         data="weather",
         ours="""
             chart = sdata.chart(sdata.get_example("weather"))
-            chart.draw_heatmap(x="month", y="city", value="rain", with_numbers=True)
+            chart.draw_heatmap(x="month", y="city", value="temperature", with_numbers=True)
         """,
         code={"seaborn": """
+            import math
             import matplotlib.pyplot as plt
             import seaborn as sns
             df = sdata.get_example("weather")
-            # draw_heatmap(x="month", y="city", value="rain", with_numbers=True)
-            wide = df.pivot_table(index="city", columns="month", values="rain",
+            # draw_heatmap(x="month", y="city", value="temperature", with_numbers=True)
+            wide = df.pivot_table(index="city", columns="month", values="temperature",
                                   aggfunc="mean", sort=False)            # (1)
+            def plain(v):                                                # (2)
+                t = str(int(v)) if v == int(v) else f"{v:.{max(0, min(3, 2 - math.floor(math.log10(abs(v)))))}f}"
+                return t.rstrip("0").rstrip(".") if "." in t else t
             fig, ax = plt.subplots()
-            sns.heatmap(wide, cmap="viridis", cbar=False, annot=True,
-                        fmt="g", ax=ax)                                  # (2)
+            sns.heatmap(wide, cmap="RdBu_r", center=0, cbar=False, annot=wide.map(plain).to_numpy(),
+                        fmt="", ax=ax)                                   # (3)
             ax.tick_params(axis="y", rotation=0)
-            fig.colorbar(ax.collections[0], ax=ax, label="rain")
         """},
         compare="chart",
-        check=("cells", "texts", "ticks", "tick_angles"),
+        check=("cells", "texts", "text_places", "ticks", "tick_angles"),
         choices=("each cell is the average of its rows; the rows and columns keep the order they appear in (month "
                  "names in calendar order).",
-                 "the viridis colours (safe for colour-blind readers), or blue to red around 0 when the numbers lie "
-                 "on both sides of it; the numbers are written plainly, whole numbers without decimals.",),
-        also="With no columns named every number column of the table is drawn; cluster=True puts similar rows and "
-             "columns together (SciPy linkage, as seaborn clustermap). " + LOOK,
+                 "the numbers are written plainly: whole numbers without decimals, others to about 3 significant "
+                 "digits, never as 1.2e+02.",
+                 "numbers on both sides of 0 get blue below and red above, with white at 0 (the scale goes equally "
+                 "far both ways); otherwise the viridis colours, safe for colour-blind readers. use_colour_scale() "
+                 "chooses others.",),
+        also="A colour bar is added beside the cells (fig.colorbar). With no columns named every number column of the "
+             "table is drawn; cluster=True puts similar rows and columns together (SciPy linkage, as seaborn "
+             "clustermap). " + LOOK,
     ),
 ]
 
@@ -1011,7 +1032,7 @@ ENTRIES += [
             ax1, ax2 = (cell.add_subplot() for cell in fig.subfigures(1, 2))  # (2)
             sns.barplot(df, x="class", y="marks", errorbar=None, ax=ax1)
             ax1.set_title("Average")
-            sns.boxplot(df, x="class", y="marks", saturation=1, ax=ax2)
+            sns.boxplot(df, x="class", y="marks", color="#0072B2", saturation=1, ax=ax2)
             ax2.set_title("Spread")
             ends = ax1.get_ylim() + ax2.get_ylim()
             for ax in (ax1, ax2):
@@ -1023,7 +1044,8 @@ ENTRIES += [
                  "each chart is drawn in a part of the figure of its own (a SubFigure), so its title, labels and "
                  "legend stay with it and never land on its neighbour.",
                  "same_y=True gives every chart the y range that holds all their data.",),
-        also="with_letters=True writes A, B, C ... at the top left of each chart, as in papers. " + LOOK,
+        also="with_letters=True writes A, B, C ... at the top left of each chart, as in papers. The boxes get "
+             "simplydata's first colour, as draw_boxes() gives them; colours are not compared here. " + LOOK,
     ),
     Entry(
         word="sdata.put_one_above_other",
@@ -1074,7 +1096,7 @@ ENTRIES += [
             sns.histplot(df, x="marks", bins=10, ax=b)
             b.set_ylabel("count")                                        # (2)
             sns.scatterplot(df, x="hours", y="marks", ax=c)
-            sns.boxplot(df, x="subject", y="marks", saturation=1, ax=d)
+            sns.boxplot(df, x="subject", y="marks", color="#0072B2", saturation=1, ax=d)
             fig.suptitle("Four ways to look at the marks", fontweight="bold")  # (3)
         """},
         compare="chart",
@@ -1083,7 +1105,8 @@ ENTRIES += [
                  "each chart is drawn as it would be on its own: a histogram has 10 bins and its y label in small "
                  "letters (count).",
                  "the page's title goes over every chart, in bold and a little bigger than their own titles.",),
-        also="Each chart sits in a SubFigure of its own, as in put_side_by_side(). " + LOOK,
+        also="Each chart sits in a SubFigure of its own, as in put_side_by_side(). Colours and the bold letters "
+             "of the page's title are not compared. " + LOOK,
     ),
     Entry(
         word="sdata.draw_all_pairs",
@@ -1103,20 +1126,21 @@ ENTRIES += [
                     sns.kdeplot(df, x=x, hue="class", fill=True, common_norm=False, legend=False, ax=twin)
                     twin.set_ylabel("")
                 else:
-                    sns.scatterplot(df, x=x, y=y, hue="class", s=28, linewidth=0, alpha=0.8,
-                                    legend=False, ax=axes[i, j])        # (3)
+                    sns.scatterplot(df, x=x, y=y, hue="class", s=28, linewidth=0, alpha=0.8,  # (3)
+                                    palette=["#0072B2", "#E69F00", "#009E73"], legend=False, ax=axes[i, j])
                 axes[i, j].set(xlabel=x if i == 2 else "", ylabel=y if j == 0 else "")
         """},
         compare="chart",
-        check=("every_panel", "panels", "size"),
+        check=("every_panel", "panel_styles", "panels", "size"),
         choices=("every number column (here 3) against every other, about 2.4 inches a column, plus room for the "
                  "legend.",
                  "the diagonal shows each column on its own: a density curve for each group when colour= makes "
                  "groups (common_norm=False: every curve has area 1), a histogram without groups; it sits on a "
                  "second y-axis so the row keeps its own scale.",
                  "smaller, slightly see-through dots without rims, so crowded panels stay readable.",),
-        also="One legend for the whole figure goes on the right (fig.legend). seaborn's pairplot() draws a similar "
-             "figure with its own grid. " + LOOK,
+        also="The groups get simplydata's colours (Okabe-Ito), so the dots' colours can be compared. One legend "
+             "for the whole figure goes on the right (fig.legend); it is not compared. seaborn's pairplot() draws a "
+             "similar figure with its own grid. " + LOOK_BUT_COLOURS,
     ),
     Entry(
         word="add_second_y",
@@ -1141,7 +1165,7 @@ ENTRIES += [
             ax.patch.set_visible(False)
         """},
         compare="chart",
-        check=("every_panel", "panels", "lines"),
+        check=("every_panel", "panel_styles", "panels", "lines"),
         choices=("one value for each name on the x-axis, the average of its rows (as the line under it), placed "
                  "above that name.",
                  "the new layer gets the first colour of the set that the chart does not use yet, and its axis, "
@@ -1156,7 +1180,6 @@ ENTRIES += [
         ours="""
             chart = sdata.chart(sdata.get_example("growth"))
             chart.draw_bars(x="country", y="population")
-            chart.set_range_y(0, 50)
             chart.animate(over="year")
         """,
         code={"matplotlib": """
@@ -1167,21 +1190,21 @@ ENTRIES += [
             df = sdata.get_example("growth")
             fig, ax = plt.subplots()
             # animate(over="year"), then save("growth.gif"): one picture for each year
-            writer = PillowWriter(fps=1 / 0.8)                           # (1)
-            with writer.saving(fig, tempfile.gettempdir() + "/growth.gif", dpi=100):
-                for year in sorted(df["year"].unique()):                 # (2)
+            ends = sns.barplot(df, x="country", y="population", errorbar=None, ax=ax).axis()  # (1)
+            with (writer := PillowWriter(fps=1 / 0.8)).saving(fig, tempfile.gettempdir() + "/growth.gif", dpi=100):  # (2)
+                for year in sorted(df["year"].unique()):                 # (3)
                     ax.clear()
                     sns.barplot(df[df["year"] == year], x="country", y="population", errorbar=None, ax=ax)
-                    ax.set(ylim=(0, 50), title=f"year: {year}")          # (3)
+                    ax.set(xlim=ends[:2], ylim=ends[2:], title=f"year: {year}")
                     writer.grab_frame()
         """},
         compare="chart",
         check=("bars", "labels", "limits", "ticks"),
-        choices=("0.8 seconds for each picture (seconds_per_frame=), saved as a .gif at 100 dots per inch.",
+        choices=("every picture keeps the axis ranges of the chart with all the data, so the bars do not jump "
+                 "about, and is named by its value.",
+                 "0.8 seconds for each picture (seconds_per_frame=), saved as a .gif at 100 dots per inch.",
                  "one picture for each value, smallest first (month names in calendar order); keep=True keeps the "
-                 "values before it in each picture.",
-                 "every picture keeps the axis ranges of the chart with all the data, so the bars do not jump "
-                 "about, and is named by its value.",),
+                 "values before it in each picture.",),
         also="Shown as a still picture (in Jupyter or saved as .png) the chart is its last frame, which the test "
              "compares. " + LOOK,
     ),

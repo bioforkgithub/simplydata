@@ -3157,3 +3157,168 @@ BASIS["table.check_model_of test_method=\"bayesian\""] = _b(
     "bayesplot's pp_check() draws by default.", ("gabry2019",), "P2",
     "The same convergence warnings as explain(test_method=\"bayesian\").")
 
+
+
+
+# ---- Phase U batch 2: the chart words that got an underneath entry (how a chart looks, not a statistical method)
+BASIS["save"] = _b(
+    "300 dots per inch with the empty edges trimmed; a chart is 8 x 6 inches unless set_size() says otherwise; "
+    ".tif files are packed without loss (LZW).",
+    "quality=\"high\" (600 dots per inch), resolution= any value, set_size() for an exact size.",
+    "Showing results, not a method: 300 dots per inch is the usual lowest sharpness journals ask for line art "
+    "and photos, and lossless packing keeps every pixel.", (), "P5", "resolution= below 10 and pictures of 65,536 "
+    "pixels or more on a side are refused.", "convention")
+BASIS["write_title_on_top"] = _b(
+    "One chart: the title of its axes. Several panels: one bold title over the whole figure.",
+    "label_x(), label_y() and write_caption_at_bottom() for the other words.",
+    "Showing results: a title over several panels belongs to the figure, so it is not repeated on each panel.",
+    (), "P5", "", "convention")
+BASIS["label_x"] = _b(
+    "One chart: the label of its x-axis. Several panels: their own x labels are cleared and one bold label goes "
+    "under them all.",
+    "label_y() for the other axis.",
+    "Showing results: one shared label is easier to read than the same words under every panel.", (), "P5", "",
+    "convention")
+BASIS["label_y"] = _b(
+    "One chart: the label of its y-axis. Several panels: their own y labels are cleared and one bold label goes "
+    "beside them all.",
+    "label_x() for the other axis.",
+    "Showing results: one shared label is easier to read than the same words beside every panel.", (), "P5", "",
+    "convention")
+BASIS["rotate_labels_x"] = _b(
+    "45 degrees, each name lined up by the end nearest its tick and turned about that end.",
+    "Any angle from -360 to 360, such as 90 to stand the names up.",
+    "Showing results: lined up by its end, a turned name stays under its own bar; matplotlib's centred names "
+    "drift sideways.", (), "P5", "", "starting value")
+BASIS["write_caption_at_bottom"] = _b(
+    "Under the x-axis label, in letters 0.8 of the text size and slightly faded.",
+    "write_note() for words inside the chart.",
+    "Showing results: smaller, softer letters mark the caption as a note, not a label, and hanging it from the "
+    "label keeps it clear of turned tick names.", (), "P5", "", "starting value")
+BASIS["use_font_size"] = _b(
+    "Every size grows by the same share (the size asked for over the style's text size), so the title stays the "
+    "biggest.",
+    "use_style(\"presentation\") or \"school\" for bigger words and thicker lines together.",
+    "Showing results: keeping the steps between title, labels and tick names keeps the order of importance.",
+    (), "P5", "Sizes outside 4 to 60 are refused.", "convention")
+BASIS["use_colour"] = _b(
+    "The exact colour asked for, for every chart type without groups.",
+    "use_colours() for groups; colour= on one chart type.",
+    "Showing results: seaborn dulls bar colours a little by default; simplydata draws the colour named.", (),
+    "P5", "A misspelt colour name gets the closest known name as a suggestion.", "convention")
+BASIS["put_legend_at_bottom"] = _b(
+    "Outside the chart, below the x-axis label, in one row (up to 6 entries in a row).",
+    "put_legend_at_top(), put_legend_on_left(), put_legend_on_right(), hide_legend().",
+    "Showing results: outside the chart a legend covers no data; entries of every panel are gathered into one.",
+    (), "P5", "", "convention")
+BASIS["put_legend_on_left"] = _b(
+    "Outside the chart, beside the y-axis label.",
+    "put_legend_at_bottom(), put_legend_at_top(), put_legend_on_right(), hide_legend().",
+    "Showing results: outside the chart a legend covers no data.", (), "P5", "", "convention")
+BASIS["hide_legend"] = _b(
+    "The legends of every panel and of a second y-axis are removed.",
+    "show_legend() brings it back; write_names_on_dots() labels groups on the chart.",
+    "Showing results: the user asks for it; colour is then no longer explained, so it suits charts whose groups "
+    "are named in another way.", (), "P5", "", "convention")
+BASIS["order_x"] = _b(
+    "The rows are put in the order named with a stable sort, so every chart type and later step follows it; "
+    "groups not named come after.",
+    "biggest_first=True or False; month and weekday names come in calendar order without asking.",
+    "Showing results: ordering the rows, not one chart call, keeps bars, colours, lines and dots in the same "
+    "order, and a stable sort changes nothing else.", (), "P5", "Names that are not in the column are refused.",
+    "convention")
+BASIS["use_style"] = _b(
+    "\"paper\": 12-point text, no top and right lines, light grid lines across, Okabe-Ito colours.",
+    "\"school\", \"presentation\" (bigger words, thicker lines) and \"dark\".",
+    "Showing results: the style is a set of matplotlib settings used only while the chart is drawn and saved, so "
+    "other charts are never changed.", (), "P5", "", "convention")
+BASIS["draw_lines"] = _b(
+    "Each point is the average of its rows, with no band unless error= asks for one; straight lines between the "
+    "points.",
+    "show= for another summary, error= for a band, joined_by= for curves or steps, with_dots=True.",
+    "As for bars: no interval is drawn that was not asked for (seaborn's own default is a bootstrap interval that "
+    "changes from run to run), and a printed line names the band that is drawn.", (), "P5",
+    "error= works only with show=\"average\".", "starting value")
+BASIS["write_numbers_on_bars"] = _b(
+    "Each value just past the end of its bar (past its error bar), no decimals and a comma for thousands; stacked "
+    "bars get the number in the middle of each piece.",
+    "with_decimals= from 0 to 6.",
+    "Showing results: whole numbers keep the chart readable, and a little room is added so the numbers stay "
+    "inside it.", (), "P5", "", "starting value")
+BASIS["set_range_y"] = _b(
+    "The y-axis runs from low to high; None keeps that end where matplotlib put it, and a flipped axis stays "
+    "flipped.",
+    "set_range_x(); flip_y().",
+    "Showing results: the user chooses the range; a range below 0 on a log scale is refused.", (), "P5",
+    "An empty range, or low above high, is refused with the right order written out.", "convention")
+BASIS["draw_line_at_y"] = _b(
+    "A grey dashed line 1.5 points wide, above bars and below dots; its label just outside the right edge.",
+    "dashed=False, colour=, thickness=, labelled=.",
+    "Showing results: a quiet line marks a reference value without hiding the data, and a label outside the "
+    "chart covers nothing.", (), "P5", "", "starting value")
+BASIS["draw_line_at_x"] = _b(
+    "A grey dashed line 1.5 points wide; its label standing up along the line, near the top.",
+    "dashed=False, colour=, thickness=, labelled=.",
+    "Showing results: a quiet line marks a reference value without hiding the data.", (), "P5", "",
+    "starting value")
+BASIS["shade_between_y"] = _b(
+    "A light grey band (20 % solid) behind everything else on the chart.",
+    "colour=; shade_between_x() for a band across.",
+    "Showing results: a pale band behind the data marks a range without hiding any dot or line.", (), "P5", "",
+    "starting value")
+BASIS["use_log_scale_y"] = _b(
+    "The log scale is set before drawing, so ranges and ticks are worked out on it.",
+    "use_log_scale_x().",
+    "Showing results: setting it first stops matplotlib from undoing later ranges and ticks; zero and negative "
+    "values, which a log scale cannot show, are refused with the count of them.", (), "P5", "", "convention")
+BASIS["write_ticks_y_as"] = _b(
+    "\"percent\" treats the numbers as out of 100; decimals chosen by matplotlib unless with_decimals= says.",
+    "out_of=1 for shares, \"thousands\", \"scientific\", \"plain\", or how a date should look.",
+    "Showing results: the user names the format; only the tick words change, never the data.", (), "P5",
+    "A number format on a date axis, or on group names, is refused.", "convention")
+BASIS["set_size"] = _b(
+    "Inches, as matplotlib measures; centimetres and millimetres are turned into inches; a saved file is exactly "
+    "that size.",
+    "unit=\"cm\", \"mm\" or \"pixels\".",
+    "Showing results: journals give sizes in centimetres or millimetres, so they are taken as written.", (), "P5",
+    "", "convention")
+BASIS["write_note"] = _b(
+    "Just above the place, on a soft background in the chart's own colour; with_arrow=True moves it 40 points "
+    "towards the middle with an arrow.",
+    "with_arrow=True; on bar charts x can be the name under a bar.",
+    "Showing results: the soft background keeps the words readable over lines and bars.", (), "P5", "",
+    "starting value")
+BASIS["draw_one_chart_for_each_group_in"] = _b(
+    "Up to 3 small charts in a row, about 4 x 3.3 inches each, sharing their axis ranges, named by their group.",
+    "per_row=, down= and across=, same_x=False, same_y=False.",
+    "Showing results: small charts on the same scale can be compared at a glance; their own ranges would hide "
+    "differences in size.", (), "P5", "", "starting value")
+BASIS["sdata.put_side_by_side"] = _b(
+    "Each chart in a part of the figure of its own, at 3/4 of its size, with its own ranges.",
+    "same_x=True, same_y=True, with_letters=True.",
+    "Showing results: a part of its own keeps each chart's title, labels and legend with it.", (), "P5", "",
+    "starting value")
+BASIS["sdata.put_one_above_other"] = _b(
+    "Each chart in a part of the figure of its own, at 3/4 of its size, with its own ranges.",
+    "same_x=True (suits time series), same_y=True, with_letters=True.",
+    "Showing results: a part of its own keeps each chart's title, labels and legend with it.", (), "P5", "",
+    "starting value")
+BASIS["sdata.put_in_rows_and_columns"] = _b(
+    "2 charts in a row, each in a part of the figure of its own at 3/4 of its size; a page title adds half an "
+    "inch.",
+    "per_row=, same_x=True, same_y=True, with_letters=True.",
+    "Showing results: a part of its own keeps each chart's title, labels and legend with it.", (), "P5", "",
+    "starting value")
+BASIS["add_second_y"] = _b(
+    "A second y-axis on the right in the first colour the chart does not use yet; one value per x (the average "
+    "of its rows); the first chart kept in front.",
+    "drawn_as=\"lines\", \"bars\" or \"dots\"; colour=; labelled=.",
+    "Showing results: two y-axes are easy to misread, so the second axis, its label and its tick numbers are all "
+    "written in the colour of its data, and one legend holds both.", (), "P5",
+    "Sideways bars are refused: they have no y numbers to share.", "convention")
+BASIS["animate"] = _b(
+    "One picture for each value, smallest first, 0.8 seconds each, every picture with the axis ranges of the "
+    "whole data; saved as .gif at 100 dots per inch.",
+    "seconds_per_frame=, keep=True.",
+    "Showing results: fixed ranges keep the bars and dots from jumping about, so the change between pictures is "
+    "the change in the data.", (), "P5", "A column with fewer than 2 values is refused.", "starting value")
