@@ -892,13 +892,18 @@ def _band_legend(ctx):
 
 
 # ---------------------------------------------------------------- polar
-def _draw_polar(ctx, angle, distance, colour, degrees, transparency=None):
+def _draw_polar(ctx, angle, distance, colour, degrees, transparency=None, full_turn=None, compass=False):
     group, fixed = colour_role(ctx.data, colour)
     table, n = _frame(ctx, on_x=None, on_y=None, angle=angle, distance=distance, colour=group)
     ax = ctx.ax
+    if compass:  # a compass or a clock: 0 at the top, going round clockwise
+        ax.set_theta_zero_location("N")
+        ax.set_theta_direction(-1)
     for (name, rows), c in zip(_groups(table, n["colour"]), _group_colours(table, n["colour"], ctx, fixed)):
         theta = rows[n["angle"]].to_numpy(dtype=float)
-        if degrees:
+        if full_turn is not None:
+            theta = theta / full_turn * 2 * np.pi  # where on the circle, for matplotlib (radians)
+        elif degrees:
             theta = np.deg2rad(theta)
         ax.scatter(theta, rows[n["distance"]].to_numpy(dtype=float), color=c,
                    label=None if name is None else str(name), zorder=3, alpha=opacity(transparency))
@@ -1431,16 +1436,30 @@ class ChartWords:
         return self._add("pie", "draw", _draw_pie, labels=labels, values=values, transparency=transparency)
 
     @friendly
-    def draw_polar(self, angle=None, distance=None, colour=None, degrees=True, transparency=None):
+    def draw_polar(self, angle=None, distance=None, colour=None, degrees=True, transparency=None, full_turn=None):
         """Dots on a round chart: how far round, and how far out.
         chart.draw_polar(angle="wind_direction", distance="wind_speed", colour="city") (with sdata.get_example("weather"))
 
-        Angles are in degrees (a full turn is 360), going round from the right, the way
-        maths measures angles. Use degrees=False if your angles are in radians.
-        transparency=0.5 makes them half see-through (0 is solid).
+        full_turn= says how big a full turn of the angles is: 360 (degrees), 24 (hours of the
+        day), 12 (months) or "radians". With full_turn=, or when the angle column is named like a
+        direction (wind_direction, bearing, heading), the chart is a compass: 0 at the top (north,
+        or midnight), going round clockwise. Otherwise angles go round from the right, the way
+        maths measures angles, in degrees (degrees=False for radians; full_turn="radians" says
+        the same and is the new way). transparency=0.5 makes them half see-through (0 is solid).
         """
         transparency = check_transparency("draw_polar", transparency)
         self._yes_no("draw_polar", degrees=degrees)
+        turn = None
+        if full_turn is not None:
+            from ..table.places import full_turn_of
+
+            turn = full_turn_of("draw_polar", full_turn,
+                                'chart.draw_polar(angle="current_direction", distance="depth", full_turn=360)')
+        from ..table.places import looks_like_direction
+
+        compass = turn is not None or looks_like_direction(angle)
+        if degrees is False and turn is None:
+            print('Note: degrees=False still works for this release; the new way is full_turn="radians".')
         if angle is None or distance is None:
             raise SimplydataError(
                 '.draw_polar() needs angle= and distance=, for example chart.draw_polar(angle="wind_direction", distance="wind_speed").'
@@ -1450,7 +1469,7 @@ class ChartWords:
         _check_numbers(self._data, "draw_polar", angle=angle, distance=distance)
         self._need_axes("draw_polar", "polar")
         return self._add("polar", "draw", _draw_polar, angle=angle, distance=distance,
-                         colour=colour, degrees=degrees, transparency=transparency)
+                         colour=colour, degrees=degrees, transparency=transparency, full_turn=turn, compass=compass)
 
     def _xyz(self, word, x, y, z, **more):
         if x is None or y is None or z is None:

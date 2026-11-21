@@ -1,8 +1,8 @@
 """Small tables to practise with: sdata.get_example("marks").
 
 Every number in these tables is invented (they are not real people, places or countries), except in "bcg" and
-"passive_smoking": the published results of real studies, for combining studies (meta-analysis), each with its
-source in its description.
+"passive_smoking" (the published results of real studies, for combining studies) and "sealevel" (the yearly highest
+sea levels at Port Pirie, published by Coles 2001), each with its source in its description.
 """
 
 from __future__ import annotations
@@ -251,6 +251,39 @@ EXAMPLES = {
             "allocation": "how people were put into the groups: random, alternate or systematic",
         },
     ),
+    # S3c-3 (directions, places and extremes): stations and rain made up, sealevel real (published)
+    "stations": (
+        "MADE-UP DATA: 60 made-up sampling stations in a fjord on a coast: where each one is, how deep, the direction "
+        "its current mostly flows to and the zinc in its sediment. Invented for practice; not from any real survey.",
+        {
+            "station": "a short name for the station, S01 to S60",
+            "east": "metres east of the south-west corner of the area (0 to 6000)",
+            "north": "metres north of the south-west corner of the area (0 to 4000)",
+            "lon": "longitude in degrees (made-up place near 5.2° E)",
+            "lat": "latitude in degrees (made-up place near 60.4° N)",
+            "depth": "water depth in m",
+            "current_direction": "the direction the current mostly flows to, in degrees (0 = north, 90 = east); "
+                                 "most point a little west or east of north, so they lie on both sides of 0 and 360",
+            "zinc": "zinc in the sediment in mg/kg; higher near the old harbour and alike at nearby stations",
+        },
+    ),
+    "rain": (
+        "MADE-UP DATA: 10 years of daily rain at one made-up coastal station (2015 to 2024), with a few very wet "
+        "days. Invented for practice; not from any real weather station.",
+        {
+            "date": "every day from 2015-01-01 to 2024-12-31 (real dates)",
+            "rain": "rain that day in mm (0 on dry days)",
+        },
+    ),
+    "sealevel": (
+        "REAL DATA: the highest sea level of each year at Port Pirie, South Australia, 1923 to 1987 (Coles, S. 2001, "
+        "An Introduction to Statistical Modeling of Extreme Values, Springer, section 3.4.1: the published yearly "
+        "maxima, facts; the same numbers as R ismev's portpirie).",
+        {
+            "year": "the year, 1923 to 1987",
+            "sea_level": "the highest sea level reached that year, in metres",
+        },
+    ),
     "passive_smoking": (
         "REAL DATA: 37 studies of lung cancer in non-smoking women whose husbands smoked, one row per study "
         "(Hackshaw, Law & Wald 1997, BMJ 315:980-988: the odds ratios and intervals published in the paper, facts; "
@@ -270,8 +303,8 @@ EXAMPLES = {
 
 
 def _list_examples() -> None:
-    print("Example tables you can use (made up for practice, except bcg and passive_smoking: real published "
-          "studies):\n")
+    print("Example tables you can use (made up for practice, except bcg and passive_smoking, real published "
+          "studies, and sealevel, real published sea levels):\n")
     for name, (about, columns) in EXAMPLES.items():
         print(f'  sdata.get_example("{name}")')
         print(f"      {about}")
@@ -285,8 +318,8 @@ def get_example(name: str | None = None):
 
     sdata.get_example() with no name lists every table and its columns.
     The tables are: marks, weather, fruit, growth, sensor, visitors, river, shop, school, meadow, trial, clinic,
-    island, toxicity, culture, admissions, resistome, and, for combining studies, bcg and passive_smoking (real
-    published studies).
+    island, toxicity, culture, admissions, resistome, stations, rain, sealevel (real published sea levels), and,
+    for combining studies, bcg and passive_smoking (real published studies).
     "shop" has empty cells and a column of dates to practise with; "school" has empty cells too.
     """
     if name is None:

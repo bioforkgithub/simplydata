@@ -255,6 +255,16 @@ def _pareto(p):
     return _st().pareto(b=p["shape"], scale=p["scale"])
 
 
+def _gev(p):
+    # simplydata keeps the shape xi in the sign of extRemes and Coles (2001); SciPy's genextreme takes c = -xi
+    return _st().genextreme(c=-p["shape"], loc=p["location"], scale=p["scale"])
+
+
+def _gpd(p):
+    # SciPy's genpareto has the same sign as xi
+    return _st().genpareto(c=p["shape"], scale=p["scale"])
+
+
 def _triang(p):
     low, high = p["lowest"], p["highest"]
     return _st().triang(c=(p["peak"] - low) / (high - low), loc=low, scale=high - low)
@@ -420,6 +430,8 @@ _GOODNESS = {
     "gumbel": lambda p: ("gumbel_r", {}, {"loc": p["location"], "scale": p["scale"]}),
     "uniform": lambda p: ("uniform", {}, {"loc": p["lowest"], "scale": p["highest"] - p["lowest"]}),
     "von mises": lambda p: ("vonmises", {"scale": 1.0}, {"kappa": p["concentration"], "loc": p["average"]}),
+    "gev": lambda p: ("genextreme", {}, {"c": -p["shape"], "loc": p["location"], "scale": p["scale"]}),
+    "generalised pareto": _gof_loc0("genpareto", lambda p: ({"c": p["shape"]}, p["scale"])),
 }
 
 _LOC_SCALE = [Param("location", 0, (), "location", "real"), Param("scale", 1, (), "scale", "positive")]
@@ -489,6 +501,22 @@ FAMILIES = [
             Param("scale", 1, ("b", "minimum"), "b", "positive")],
            _pareto, "pareto", "extraDistr::", data="positive", fit="closed",
            r_fit="the closed form (scale = smallest value, shape = n / sum(log(x / scale)))"),
+    # S3c-3: extremes. The shape is xi, as in extRemes and Coles (2001); SciPy's genextreme uses c = -xi
+    Family("gev", "GEV", ("generalised extreme value", "generalized extreme value", "genextreme",
+                          "generalised extreme-value", "generalized extreme-value", "extreme value gev"), False,
+           [Param("location", 0, ("mu", "loc"), "loc", "real"), Param("scale", 1, ("sigma",), "scale", "positive"),
+            Param("shape", 0, ("xi",), "shape", "real")],
+           _gev, "evd", "extRemes::", r_fixed=(("type", '"GEV"'),), fit="numeric",
+           describe=lambda p: (f"{_with(p, FAMILY['gev'])} (generalised extreme value; shape xi as in extRemes and "
+                               "Coles 2001, SciPy's genextreme uses c = -xi)"),
+           r_fit='extRemes::fevd(x, type = "GEV", method = "MLE")'),
+    Family("generalised pareto", "generalised Pareto", ("generalized pareto", "gpd", "genpareto", "gp",
+                                                         "generalised pareto distribution"), False,
+           [Param("scale", 1, ("sigma",), "scale", "positive"), Param("shape", 0, ("xi",), "shape", "real")],
+           _gpd, "evd", "extRemes::", r_fixed=(("type", '"GP"'),), data="non-negative", fit="numeric",
+           describe=lambda p: (f"{_with(p, FAMILY['generalised pareto'])} (for the amounts above a threshold; the "
+                               "classical \"pareto\" is another family)"),
+           r_fit='extRemes::fevd(x, threshold = 0, type = "GP", method = "MLE") on the amounts above the threshold'),
     Family("triangular", "triangular", ("triangle", "triang"), False,
            [Param("lowest", REQUIRED, ("a", "min", "low"), "a", "real"),
             Param("highest", REQUIRED, ("b", "max", "high"), "b", "real"),
@@ -1712,6 +1740,12 @@ def _numeric_start(family, x):
     if name == "F":
         d2 = 2 * m / (m - 1) if m > 1.05 else 20.0
         return {"degrees_of_freedom_1": 5.0, "degrees_of_freedom_2": min(max(d2, 4.5), 200)}
+    if name == "gev":  # SciPy's own fit as the start, turned into xi
+        c, location, scale = _scipy_fit("genextreme", x)
+        return {"location": float(location), "scale": float(scale), "shape": -float(c)}
+    if name == "generalised pareto":  # SciPy's own fit (threshold 0) as the start
+        c, _, scale = _scipy_fit("genpareto", x, floc=0)
+        return {"scale": float(scale), "shape": float(c)}
     return None
 
 

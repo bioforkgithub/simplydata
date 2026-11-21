@@ -33,6 +33,8 @@ GROUPS = [
                     "draw_interaction_lines",
                     # S3c-1 (communities and resistomes)
                     "draw_richness_curves", "draw_cluster_tree",
+                    # S3c-3 (directions, places and extremes): "more"
+                    "draw_variogram", "draw_threshold_check",
                     "draw_density", "draw_count_bars", "draw_all_dots", "draw_side_histograms", "draw_qq_dots",
                     "draw_cumulative_share", "sdata.draw_all_pairs"]),
     ("Lines and shading", ["draw_line_at_x", "draw_line_at_y", "draw_line_with_slope", "shade_between_x", "shade_between_y"]),
@@ -108,6 +110,9 @@ GROUPS = [
                                  "table.add_principal_coordinates", "table.explain_profiles_of",
                                  "table.find_correlation_between_profiles", "table.add_axes_that_separate_groups",
                                  "table.add_correspondence_axes"]),
+    # S3c-3: directions, places and extremes (core, then "more")
+    ("Directions, places and extremes", ["table.find_average_direction_of", "table.find_return_levels_of",
+                                         "table.find_variogram_of"]),
     ("Survival", ["table.find_survival_over_time", "table.compare_survival", "table.explain_survival",
                   "draw_survival_curves",
                   # S3b-3 (survival and person-time): core, then the chart twin
@@ -780,6 +785,14 @@ HELP_EXAMPLES = {
                                 "resistome_richness"),
     "draw_cluster_tree": _ex("resistome", f'chart.draw_cluster_tree(columns={_SIX_GENES}, measure="bray-curtis", '
                                           'names="sample")', "resistome_tree"),
+    # S3c-3: directions, places and extremes
+    "table.find_average_direction_of": _tx("stations", 'table.find_average_direction_of("current_direction", '
+                                                       'full_turn=360)'),
+    "table.find_return_levels_of": _tx("sealevel", 'table.find_return_levels_of("sea_level", once_in=[10, 100], '
+                                                   'sorted_by="year")'),
+    "table.find_variogram_of": _tx("stations", 'table.find_variogram_of("zinc", x="east", y="north")'),
+    "draw_variogram": _ex("stations", 'chart.draw_variogram("zinc", x="east", y="north")', "stations_variogram"),
+    "draw_threshold_check": _ex("rain", 'chart.draw_threshold_check(x="rain", between=[10, 30])', "rain_threshold"),
     # signals and time series
     "table.find_spectrum_of": _tx("sensor", 'table.find_spectrum_of("signal", sorted_by="time")'),
     "nums.find_spectrum": _nx("nums.find_spectrum(time_step=0.005)", values='sdata.get_example("sensor")["signal"]'),
@@ -1595,6 +1608,7 @@ MORE_SURVIVAL_LESSON = "More survival: start times, competing events, adjusted c
 COMBINING_LESSON = "Combining studies (meta-analysis)"
 DIVERSITY_LESSON = "Diversity of a community"  # S3c-1
 MAKEUP_LESSON = "Make-up of communities"  # S3c-1
+COAST_LESSON = "A coastal station: currents, neighbours and storms"  # S3c-3
 GENES_LINE = ('genes = ["blaTEM", "blaCTXM", "blaOXA48", "blaNDM", "sul1", "sul2", "tetA", "tetM", "qnrS", "ermB", "aadA", "mphA", "vanA", "mcr1"]')
 COMBINE_CALL = ('table.combine_studies(names="trial", events=["tb_vaccinated", "tb_unvaccinated"], '
                 'out_of=["vaccinated", "unvaccinated"])')
@@ -5349,6 +5363,103 @@ LESSONS = [
         words=["table.add_log_ratio_columns", "table.add_principal_coordinates", "table.explain_profiles_of",
                "table.find_correlation_between", "draw_dots"],
     ),
+    # S3c-3 (directions, places and extremes): one coastal-station story (independent review 7.3), found by title
+    dict(
+        title=COAST_LESSON,
+        needs_r=needs_r_text("The Rayleigh test (R circular), Moran's I (R spdep) and the return levels (R extRemes) "
+                             "in this lesson", packages=("circular", "spdep", "extRemes")),
+        learn=[
+            "why directions cannot be averaged as plain numbers, and how to average them",
+            "how to ask whether nearby places have alike values (Moran's I), and why the weights matter",
+            "what a 100-year sea level is, and how sure we can be of it",
+        ],
+        parts=[
+            ("Currents. 60 made-up stations in a fjord each have the direction their current mostly flows to, in "
+             "degrees (0 = north). First the mistake: the plain average.", [
+                ("import simplydata as sdata", "Load simplydata."),
+                ('table = sdata.table(sdata.get_example("stations"))', "One row per station: where it is, its depth, "
+                                                                       "its current and the zinc in its sediment."),
+                ('table.find_average_of("current_direction")',
+                 "222: south-west, yet almost every current flows to the north. The plain average of 350° and 10° is "
+                 "180°, the opposite way; a note says so."),
+                ('table.find_average_direction_of("current_direction", full_turn=360)',
+                 "354°, a little west of north. The resultant length 0.93 says the directions are close together "
+                 "(1 = all the same, 0 = no average direction). full_turn=360 says the values are degrees."),
+                ('table.compare_shape_to("current_direction", shape="even around the circle", full_turn=360)',
+                 "The Rayleigh test: if the currents flowed every way evenly, directions this close together would "
+                 "turn up in fewer than 1 in 1000 studies like this one."),
+            ]),
+            ("Neighbours. Is the zinc in the sediment alike at nearby stations? Moran's I is near 0 when the values "
+             "are scattered at random and above 0 when nearby places are alike.", [
+                ("import simplydata as sdata", "Load simplydata."),
+                ('table = sdata.table(sdata.get_example("stations"))', "The same stations."),
+                ('table.find_autocorrelation_of("zinc", x="east", y="north")',
+                 "Moran's I = 0.174 (no pattern gives about 0): nearby stations have more alike zinc. Every pair "
+                 "counts, nearer pairs more (weights 1 / distance); 999 shuffles give p = 0.001, the smallest they "
+                 "can."),
+                ('table.find_autocorrelation_of("zinc", x="east", y="north", nearest=6)',
+                 "With only each station's 6 nearest neighbours Moran's I is 0.445: the weights change the answer, "
+                 "so say which you used."),
+            ]),
+            ("Storms. The highest sea level of each year at Port Pirie, South Australia, 1923 to 1987 (real data, "
+             "Coles 2001). How high is the sea once in 100 years?", [
+                ("import simplydata as sdata", "Load simplydata."),
+                ('table = sdata.table(sdata.get_example("sealevel"))', "One row per year: its highest sea level in m."),
+                ("chart = table.start_chart()", "Picture first."),
+                ('chart.draw_dots(x="year", y="sea_level")', "Each year's highest level: no year stands far apart."),
+                ('chart.save("lesson33_sealevel.png")', "Save the picture."),
+                ('table.find_return_levels_of("sea_level", once_in=[10, 100], sorted_by="year")',
+                 "A level of 4.69 m is reached on average once in 100 years (a 1-in-100 chance in any one year); its "
+                 "95 % interval runs from 4.49 to 5.26, longer above than below. sorted_by=\"year\" lets the word "
+                 "check that each row is one year."),
+            ]),
+        ],
+        notes=[
+            "full_turn= has no default: a column in radians read as degrees gives a wrong answer without a word. "
+            "Use full_turn=24 for hours of the day, 12 for months, \"radians\" for radians.",
+            "On longitude and latitude, add on_globe=True to find_autocorrelation_of: straight-line distances on "
+            "degrees are wrong away from the equator. A station sampled many times needs its values averaged first.",
+            "Return levels come with profile-likelihood intervals: for long return periods the usual symmetric "
+            "interval is too narrow. Each row must be the largest value of one year; daily readings are refused.",
+            "More: table.find_variogram_of(\"zinc\", x=\"east\", y=\"north\") and chart.draw_variogram(...) show "
+            "how different two stations are at each distance apart; on daily readings, values_above=20 with "
+            "sorted_by=\"date\" uses every reading above 20 (try sdata.get_example(\"rain\")), and "
+            "chart.draw_threshold_check(x=\"rain\", between=[10, 30]) helps choose the 20; "
+            "chart.draw_polar(..., full_turn=360) draws directions as a compass.",
+        ],
+        task=[
+            "Fill in the blank: table.find_average_direction_of(\"current_direction\", full_turn=____) for degrees.",
+            "Change only once_in=: find the 50-year sea level at Port Pirie.",
+            "Say in words what a 100-year level means. Is it certain to happen in the next 100 years?",
+            "Try to remember without looking back: which word tells whether nearby places have alike values?",
+        ],
+        solutions=[
+            (_sx("""\
+                import simplydata as sdata
+                table = sdata.table(sdata.get_example("stations"))
+                table.find_average_direction_of("current_direction", full_turn=360)"""),
+             "full_turn=360: a full turn is 360 degrees."),
+            (_sx("""\
+                import simplydata as sdata
+                table = sdata.table(sdata.get_example("sealevel"))
+                table.find_return_levels_of("sea_level", once_in=[50], sorted_by="year")"""),
+             "About 4.58 m once in 50 years (95 % CI 4.42 to 4.98)."),
+            (_sx("""\
+                import simplydata as sdata
+                table = sdata.table(sdata.get_example("sealevel"))
+                table.find_return_levels_of("sea_level", once_in=[100], sorted_by="year")"""),
+             "A level with a 1-in-100 chance of being reached in any one year. It is not certain in the next 100 "
+             "years: it can come twice in a decade, or not at all in 200 years (the chance of at least once in 100 "
+             "years is about 63 %)."),
+            (_sx("""\
+                import simplydata as sdata
+                table = sdata.table(sdata.get_example("stations"))
+                table.find_autocorrelation_of("zinc", x="east", y="north")"""),
+             "table.find_autocorrelation_of with x= and y=: Moran's I."),
+        ],
+        words=["table.find_average_direction_of", "table.compare_shape_to", "table.find_autocorrelation_of",
+               "table.find_return_levels_of", "table.find_average_of", "draw_dots"],
+    ),
 ]
 
 
@@ -5383,7 +5494,8 @@ def _list_lessons() -> None:
     print("survival and planning a study, fitting curves and finding answers, distributions, working")
     print("with a model, risks, diagnostic tests and agreement, time series, forecasts, cycles,")
     print("(optional) systems, percentiles and outliers, effects that depend on each other, more survival,")
-    print("combining studies (meta-analysis), and the diversity and make-up of communities.\n")
+    print("combining studies (meta-analysis), the diversity and make-up of communities, and directions,")
+    print("places and extremes at a coastal station.\n")
     for i, les in enumerate(LESSONS, start=1):
         print(f"  sdata.show_lesson({i}){' ' * (5 - len(str(i)))}{les['title']}")
     print("\nStart with sdata.show_lesson(1). Each lesson ends with a small task to try yourself.")

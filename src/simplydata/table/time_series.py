@@ -42,6 +42,11 @@ list(adf_stat = unname(a$statistic), adf_lag = unname(a$parameter), adf_p = a$p.
 """
 
 
+def _list(names) -> str:
+    shown = [f"{n}=" for n in names]
+    return shown[0] if len(shown) == 1 else ", ".join(shown[:-1]) + " and " + shown[-1]
+
+
 def _p_bounded(p, flag) -> str:
     """The p-value of a table-based test: "p below 0.01" when it lies past the end of the table."""
     if flag == "below":
@@ -54,8 +59,9 @@ def _p_bounded(p, flag) -> str:
 class TimeSeriesWords:
     @friendly(renamed={"for_each": "for_each_group_in"})
     def find_autocorrelation_of(self, column=None, sorted_by=None, rows_back=None, show="correlation",
-                                band="white noise", for_each_group_in=None):
-        """How much a column is like itself some rows back (autocorrelation), with a noise band.
+                                band="white noise", for_each_group_in=None, x=None, y=None, on_globe=False,
+                                nearest=None, permutations=999, with_seed=1):
+        """How much a column is like itself some rows back, or at nearby places (autocorrelation).
 
         table.find_autocorrelation_of("signal", sorted_by="time", rows_back=40)   (with sdata.get_example("sensor"))
         The correlation of the column with itself 1, 2, ... rows_back= rows back (default as R:
@@ -66,8 +72,33 @@ class TimeSeriesWords:
         Ljung-Box test asks whether all these correlations together could be chance. The readings
         must be evenly spaced (sorted_by=) and filled in. Numbers come from statsmodels with R's
         options. Gives back one row per rows back.
+
+        Nearby places (spatial autocorrelation, Moran's I):
+        table.find_autocorrelation_of("zinc", x="east", y="north")   (with sdata.get_example("stations"))
+        Are the values of nearby places more alike than those of distant ones? x= and y= say
+        where each row is. Moran's I is near 0 when the values are scattered at random, above 0
+        when nearby places are alike. Every pair of places counts, nearer pairs more (weights
+        1 / distance, each row's weights summing to 1); nearest=8 uses each place's 8 nearest
+        places instead. The weights change the answer, so they are printed. on_globe=True for
+        longitude (x=) and latitude (y=): distances along the earth. The p-value comes from
+        permutations=999 shuffles of the values over the places (with_seed=1). Numbers from R
+        spdep (moran.mc). Needs R (spdep). Gives back one row.
         """
         step_name = "find_autocorrelation_of"
+        if x is not None or y is not None or on_globe is not False or nearest is not None:
+            given = [n for n, v, d in (("sorted_by", sorted_by, None), ("rows_back", rows_back, None),
+                                       ("show", show, "correlation"), ("band", band, "white noise"),
+                                       ("for_each_group_in", for_each_group_in, None)) if v != d]
+            if given:
+                raise SimplydataError(
+                    f"{step_name}() looks either some rows back (sorted_by=, rows_back=) or at nearby places (x=, y=), "
+                    f"not both; {_list(given)} belong{'s' if len(given) == 1 else ''} to the first. The two calls:\n"
+                    '  table.find_autocorrelation_of("signal", sorted_by="time", rows_back=40)\n'
+                    '  table.find_autocorrelation_of("zinc", x="east", y="north")')
+            return self._spatial_autocorrelation(column, x, y, on_globe, nearest, permutations, with_seed)
+        if permutations != 999 or with_seed != 1:
+            raise SimplydataError(f"{step_name}() takes permutations= and with_seed= for nearby places (x=, y=); some "
+                                  "rows back, the noise band needs no shuffles.")
         example = 'table.find_autocorrelation_of("signal", sorted_by="time")'
         self._need_name(step_name, "the column", column, example)
         series = series_of(self, column, sorted_by, for_each_group_in, step_name, example)

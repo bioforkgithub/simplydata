@@ -21,6 +21,7 @@ from .model_tools import ModelToolWords
 from .models import ModelWords
 from .more_tests import MoreTestWords
 from .patterns import PatternWords
+from .places import PlaceWords
 from .positions import PositionWords
 from .risk_words import RiskWords
 from .rows import RowWords
@@ -37,7 +38,7 @@ from .time_steps import TimeStepWords
 class Table(PositionWords, RowWords, ColumnWords, SummaryWords, StatTestWords, MoreTestWords, RiskWords, AccuracyWords,
             AgreementWords, CorrelationWords, FittingWords, LinesMoreWords, ModelWords, ModelToolWords, PatternWords, SurvivalWords, SurvivalMoreWords,
             TimeSeriesWords, TimeStepWords, ForecastWords, SignalTableWords, SignalMoreTableWords, BetweenWords,
-            DistributionTableWords, CheckingMoreWords, MetaWords, CommunityWords, BaseTable):
+            DistributionTableWords, CheckingMoreWords, MetaWords, CommunityWords, PlaceWords, BaseTable):
     """A table. Make one with sdata.table(...), then add steps: table.keep_rows_where(...), table.sort_by(...)."""
 
 

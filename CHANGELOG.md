@@ -5,6 +5,42 @@ working for one release and prints a one-line note with its new name.
 
 ## Unreleased
 
+### New: directions, places and extremes (S3c-3)
+
+- `table.find_average_direction_of("current_direction", full_turn=360)`: the average direction of directions,
+  angles or times of day, the resultant length ("close together" or not) and the circular standard deviation
+  (SciPy circmean, circstd, circvar, directional_stats). `full_turn=` is required (360, 24, 12, 365 or "radians"),
+  because radians read as degrees give a wrong answer without a word.
+- `compare_shape_to(..., shape="even around the circle", full_turn=360)` (or `test="rayleigh"`): the Rayleigh test,
+  R `circular::rayleigh.test` with the units always given. With `full_turn=`, `shape="uniform"` means the circle too;
+  without it, a column named like a direction gets a note.
+- `find_autocorrelation_of("zinc", x="east", y="north")`: Moran's I for nearby places, R spdep (1 / distance weights
+  between all pairs, row-standardised; `nearest=8` for the 8 nearest; `on_globe=True` for longitude and latitude;
+  999 permutations after `with_seed=`). The weights are printed; two rows at one place are refused with the line that
+  averages them; longitude and latitude without `on_globe=True` get a note. Mixing it with `sorted_by=` or
+  `rows_back=` is refused, with both calls shown.
+- `table.find_variogram_of("zinc", x="east", y="north")` and `chart.draw_variogram(...)`: the variogram with a
+  spherical, exponential, Gaussian or Matern curve (`of_kind=`), R gstat with its own bins and start values; the
+  range said in words for each curve.
+- `table.find_return_levels_of("sea_level", once_in=[10, 50, 100], sorted_by="year")`: return levels from yearly
+  maxima (GEV), or from every value above a threshold with `values_above=30` and dates in `sorted_by=` (generalised
+  Pareto), R extRemes with profile-likelihood intervals; the shape in the extRemes and Coles sign (xi); daily readings
+  are refused for block maxima; the extremal index, with a note below 0.7 (no silent declustering).
+- `chart.draw_threshold_check(x="rain", between=[20, 40])`: the mean excess and the shape against the threshold
+  (R extRemes mrlplot and threshrange.plot), to choose `values_above=`.
+- `fit_distribution_to(..., distribution="gev")` and `"generalised pareto"` (`"generalized pareto"`, `"gpd"`): two
+  new families, fitted with SciPy and kept in the xi sign (SciPy's genextreme uses c = -xi); d/p/q calls name
+  `extRemes::devd` and friends.
+- `chart.draw_polar(..., full_turn=360)`: the angles' full turn, and a compass layout (0 at the top, clockwise) with
+  `full_turn=` or when the angle column is named like a direction; `degrees=` still works for this release.
+- `find_average_of` notes when a column looks like directions, and points to `find_average_direction_of`.
+- Practice tables `stations` and `rain` (made up) and `sealevel` (real: Port Pirie, Coles 2001); lesson 33, "A coastal
+  station: currents, neighbours and storms"; same-underneath entries and reliability cases on the turtles and
+  intensive-care arrivals (circular), meuse (sp), and Coles's Port Pirie and daily rain (ismev).
+- New R packages at run time: circular, spdep with sf, gstat and extRemes; ismev, sp and ape for the checks only.
+  Moran's I uses R spdep rather than Python esda/libpysal, which would add about 110 MB of new Python dependencies
+  (geopandas, pyproj, shapely, scikit-learn, requests).
+
 ### Privacy: your data never leaves your computer, checked by tests
 
 - An audit of the whole source found no telemetry, analytics, update checks, crash reports or logging. The only
