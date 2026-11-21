@@ -144,7 +144,7 @@ class ForecastWords:
         groups = self._group_columns(step_name, for_each_group_in, [column]) if for_each_group_in is not None else []
         from .. import _trend_season as ts
 
-        rows, how, chosen_orders = [], None, []
+        rows, how, chosen_orders, all_positive, period = [], None, [], True, None
         for one in self._forecast_series(step_name, column, sorted_by, for_each_group_in, chosen, example):
             period = ts.read_repeats_every(repeats_every, one, step_name, needed=False)
             n = len(one.values)
@@ -160,6 +160,7 @@ class ForecastWords:
                                 test=None if held is None else one.values[n - held:])
             what = f'"{column}"' + (f" for {one.label}" if one.label else "")
             if order == "automatic":
+                all_positive = all_positive and bool(np.nanmin(fit_values) > 0)
                 name, words, call, choice = fc.chosen_words(got, period, got.get("terms", ()))
                 print(f"For {what}, {choice[0].lower() + choice[1:]}")
                 chosen_orders.append(name)
@@ -207,7 +208,7 @@ class ForecastWords:
         if order == "automatic":
             name = "ARIMA, each order chosen by auto.arima" if len(set(chosen_orders)) > 1 else name
             print(f"Method: {name}, as R {call}{interval_words}{extra} (run in R).")
-            if "log" not in column.lower():
+            if "log" not in column.lower() and all_positive and period:
                 print("Note: when the swings grow with the level, the log of the column often forecasts better: add "
                       f'it with table.add_column("log {column}", "log({column})") and forecast that column.')
         else:

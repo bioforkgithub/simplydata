@@ -1063,7 +1063,7 @@ class SummaryWords:
         return self._summary("find_standard_deviation_of", column, for_each_group_in, every, across)
 
     @friendly(renamed={"for_each": "for_each_group_in"})
-    def find_percentile_of(self, column=None, percent=None, for_each_group_in=None, every=None, across=None, method="linear",
+    def find_percentile_of(self, column=None, percent=None, for_each_group_in=None, every=None, across=None, method=None,
                            interval=None, weights=None, weight_kind="frequency"):
         """The value below which a given percent of the numbers lie; empty cells are skipped.
 
@@ -1094,10 +1094,10 @@ class SummaryWords:
                                   f'For example:  table.{step}("marks", 90, for_each_group_in="class")   (with sdata.get_example("marks"))')
         number = _check_percent(step, percent)
         share = number / 100
-        rule = _percentile_rule(step, method)
+        rule = _percentile_rule(step, "linear" if method is None else method)
         if weights is not None:
             return self._weighted_percentile(step, column, number, weights, weight_kind, for_each_group_in, every,
-                                             across, interval, rule, method_given=method != "linear")
+                                             across, interval, rule, method_given=method is not None)
         if weight_kind != "frequency":
             raise SimplydataError("weight_kind= says how to read weights=, so it goes with weights=.\n"
                                   f'For example:  table.{step}("length", 90, weights="n", weight_kind="analytic")')
@@ -1147,6 +1147,10 @@ class SummaryWords:
         if np.any(all_weights < 0):
             raise SimplydataError(f'weights= cannot be below 0, but "{weights}" has {int(np.sum(all_weights < 0))} '
                                   "negative values.")
+        if not np.all(np.isfinite(all_weights)):
+            raise SimplydataError(f'weights= needs ordinary numbers, but "{weights}" has '
+                                  f"{int(np.sum(~np.isfinite(all_weights)))} infinite values. Fix or remove those rows "
+                                  "first.")
         if kind == "frequency":
             odd = all_weights[all_weights != np.round(all_weights)]
             if len(odd):
@@ -1895,7 +1899,9 @@ class SummaryWords:
                     or alternative not in (None, "two-sided") or p_value_by != "formula" or interval_by is not None
                     or allowing_for is not None):
                 raise SimplydataError('show="covariance" gives the covariance table (no test, no ranks); leave out '
-                                      "method=, sides=, higher=, p_value_by=, interval_by= and allowing_for=.")
+                                      "method=, sides=, higher=, p_value_by=, interval_by= and allowing_for=.\n"
+                                      'For example:  table.find_correlation_between("hours", "marks", "height", '
+                                      'show="covariance")')
             return self._covariance_table(step, self._number_frame(step, names), names)
         if len(set(names)) < len(names):
             if len(names) == 2:

@@ -72,6 +72,10 @@ def test_frequency_weights_keep_method():
         np.percentile(rows, 30, method="weibull"))
 
 
+NUMPY_2 = pytest.mark.skipif(np.lib.NumpyVersion(np.__version__) < "2.0.0", reason="percentile(weights=) needs NumPy 2")
+
+
+@NUMPY_2
 def test_analytic_weights_are_numpys_weighted_inverted_cdf(capsys):
     t = sdata.table(WEIGHTED)
     for percent in (10, 50, 90):
@@ -172,9 +176,11 @@ def test_automatic_order_is_auto_arima_with_the_full_search(needs_r, capsys):
                "list(mean = as.numeric(f$mean), low = as.numeric(f$lower), arma = fit$arma)", ("forecast",))
     assert np.allclose(result["forecast"], found["mean"], rtol=1e-9)
     assert np.allclose(result["forecast 95 % prediction low"], found["low"], rtol=1e-9)
-    assert result["method"][0] == "ARIMA(2,1,1)(0,1,0)[12]"
+    p, q, sp, sq, m, d, sd = (int(v) for v in np.asarray(found["arma"], dtype=float))
+    label = f"ARIMA({p},{d},{q})({sp},{sd},{sq})[{m}]"  # the order R itself chose (it can change with versions)
+    assert result["method"][0].startswith(label)
     out = capsys.readouterr().out
-    assert "auto.arima chose ARIMA(2,1,1)(0,1,0)[12]" in out and "a little too narrow" in out
+    assert f"auto.arima chose {label}" in out and "a little too narrow" in out
     assert "stepwise = FALSE, approximation = FALSE" in out and 'table.add_column("log passengers"' in out
 
 
@@ -183,8 +189,14 @@ def test_automatic_order_on_the_log_gives_the_airline_model(needs_r):
     table = sdata.table(frame.assign(log_passengers=np.log(frame["passengers"])))
     model = table.forecast("log_passengers", method="arima", order="automatic", repeats_every=12,
                            show="model").as_pandas()
-    assert list(model["term"][:2]) == ["ma1", "sma1"]
-    assert model["estimate"][:2].tolist() == pytest.approx([-0.4018, -0.5569], abs=1e-4)
+    from simplydata._r import r_call
+
+    found = r_call("fit <- forecast::auto.arima(stats::ts(log(x), frequency = 12), stepwise = FALSE, "
+                   "approximation = FALSE); list(terms = names(fit$coef), coef = unname(fit$coef))",
+                   packages=("forecast",), x=frame["passengers"].to_numpy(dtype=float))
+    terms = [str(t) for t in np.atleast_1d(found["terms"])]
+    assert list(model["term"][:len(terms)]) == terms
+    assert model["estimate"][:len(terms)].tolist() == pytest.approx(np.atleast_1d(found["coef"]).tolist(), rel=1e-9)
 
 
 def test_compare_forecasts_with_an_automatic_order(needs_r, capsys):
@@ -250,8 +262,10 @@ def test_nemenyi_matches_pmcmrplus(needs_r, capsys):
     result = sdata.table(_rounding()).compare_each_pair_of("time", for_each_group_in="method", matched_by="player",
                                                            test="nemenyi").as_pandas()
     assert result["p-value (adjusted)"].tolist() == pytest.approx([0.63742717, 0.06137076, 0.00440982], abs=1e-8)
+    assert set(result["statistic name"]) == {"q"} and "degrees of freedom" not in result.columns
     out = capsys.readouterr().out
     assert "no further adjustment" in out and "Benavoli" in out
+    assert "narrow_angle ranks lower than round_out" in out or "narrow_angle ranks higher than round_out" in out
     assert 'the two groups had the same typical "time" (in ranks)' in out
 
 
@@ -261,6 +275,7 @@ def test_conover_after_friedman_is_holm_adjusted(needs_r, capsys):
     assert result["p-value (adjusted)"].tolist() == pytest.approx([0.30120902, 0.02456571, 0.00207436], abs=1e-8)
     out = capsys.readouterr().out
     assert "Holm" in out and "single-step" in out
+    assert set(result["statistic name"]) == {"t"} and (result["degrees of freedom"] == 42).all()  # 22 * 3 - 3 - 22 + 1
 
 
 def test_friedman_pair_tests_need_three_groups():
@@ -330,3 +345,40 @@ def test_a_pair_with_one_value_has_no_p_value(capsys):
 def test_percent_pair_refusals(options, words):
     with pytest.raises(SimplydataError, match=words):
         _smokers().compare_each_pair_of("smoker", for_each_group_in="group", **options)
+
+
+@NUMPY_2
+def test_infinite_weights_are_refused():
+    frame = WEIGHTED.assign(n=[1, np.inf, 1, 1, 1, 1, 1])
+    for kind in ("frequency", "analytic"):
+        with pytest.raises(SimplydataError, match="infinite"):
+            sdata.table(frame).find_percentile_of("length", 50, weights="n", weight_kind=kind)
+
+
+@NUMPY_2
+def test_method_linear_is_refused_with_analytic_weights_too():
+    with pytest.raises(SimplydataError, match="method= cannot be changed"):
+        sdata.table(WEIGHTED).find_percentile_of("length", 90, weights="w", weight_kind="analytic", method="linear")
+
+
+def test_seasonal_order_automatic_points_to_order():
+    with pytest.raises(SimplydataError, match="chooses the seasonal order too"):
+        _passengers().forecast("passengers", sorted_by="month", method="arima", order=(0, 1, 1),
+                               seasonal_order="automatic", repeats_every=12)
+
+
+def test_chart_forecast_takes_the_automatic_order(needs_r):
+    chart = sdata.chart(pd.read_csv(DATA / "air_passengers.csv", parse_dates=["month"]))
+    chart.forecast(x="month", y="passengers", method="arima", order="automatic", repeats_every=12)
+    import matplotlib.pyplot as plt
+
+    plt.close("all")
+
+
+def test_the_log_note_needs_positive_values(needs_r, capsys):
+    frame = pd.read_csv(DATA / "air_passengers.csv")
+    frame["change"] = frame["passengers"].diff().fillna(0)
+    table = sdata.table(frame)
+    table.turn_into_dates("month")
+    table.forecast("change", sorted_by="month", method="arima", order="automatic", repeats_every=12)
+    assert "log of the column" not in capsys.readouterr().out

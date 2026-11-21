@@ -129,6 +129,10 @@ def read_order(order, name, step_name):
         return None
     if name == "order" and isinstance(order, str) and order.strip().lower() in AUTOMATIC:
         return "automatic"
+    if name == "seasonal_order" and isinstance(order, str) and order.strip().lower() in AUTOMATIC:
+        raise SimplydataError(f'{step_name}() chooses the seasonal order too with order="automatic"; leave out '
+                              "seasonal_order=.\nFor example:  table.forecast(\"visitors\", sorted_by=\"month\", "
+                              'method="arima", order="automatic", repeats_every=12)')
     if isinstance(order, str):
         extra = ' or order="automatic" (R forecast::auto.arima chooses it)' if name == "order" else ""
         raise SimplydataError(f"{step_name}() needs {name}= as three whole numbers (past values, differences, past "

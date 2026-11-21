@@ -119,7 +119,8 @@ def _cases(Case):
                  list(`25th percentile` = chest[o][which(f >= 0.25)[1]], `90th percentile` = chest[o][which(f >= 0.9)[1]])
              """, r_tolerance=1e-12,
              note="R has no weighted quantile in base R; the R side writes out the inverted CDF (Hyndman & Fan 1996, "
-                  "definition 1, with weights), the rule of survey::svyquantile(qrule = \"math\")."),
+                  "definition 1, with weights), the rule survey::svyquantile(qrule = \"math\") documents (survey "
+                  "itself is not run here)."),
         Case("table.find_median_of", "weights=: Quetelet's chest sizes, the median girth from counts",
              "Quetelet's chest sizes", "real data",
              ours="""
@@ -240,7 +241,7 @@ def _cases(Case):
                  list(`narrow angle vs round out` = p[1, 1], `narrow angle vs wide angle` = p[2, 1],
                       `round out vs wide angle` = p[2, 2])
              """, r_packages=("PMCMRplus",), r_tolerance=1e-9,
-             note="The same p-values (0.637, 0.0044, 0.061) come from scikit-posthocs posthoc_nemenyi_friedman."),
+             note="The same p-values (0.637, 0.061, 0.0044) come from scikit-posthocs posthoc_nemenyi_friedman."),
         Case("table.compare_each_pair_of", 'matched_by=, test="conover": rounding first base, Holm-adjusted',
              "rounding first base", "real data",
              ours=_join(ROUNDING, """

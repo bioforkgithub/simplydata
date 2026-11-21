@@ -28,13 +28,15 @@ FRIEDMAN_PAIR_TESTS = {
                 "numbers differ"),
 }
 
+_FRIEDMAN_OUT = ("list(p = r$p.value[lower.tri(r$p.value, diag = TRUE)], "
+                 "stat = r$statistic[lower.tri(r$statistic, diag = TRUE)], dist = r$dist, "
+                 "df = if (is.null(r$parameter)) NA_real_ else unname(r$parameter), "
+                 # each group's mean rank within the matched rows, R base rank(), for the direction in the printout
+                 "ranks = colMeans(t(apply(matrix(y, ncol = length(lv)), 1, rank))))")
 _R_FRIEDMAN = {
-    "nemenyi": "r <- PMCMRplus::frdAllPairsNemenyiTest(y, factor(g, levels = lv), factor(b)); "
-               "list(p = r$p.value[lower.tri(r$p.value, diag = TRUE)], "
-               "stat = r$statistic[lower.tri(r$statistic, diag = TRUE)])",
+    "nemenyi": "r <- PMCMRplus::frdAllPairsNemenyiTest(y, factor(g, levels = lv), factor(b)); " + _FRIEDMAN_OUT,
     "conover": 'r <- PMCMRplus::frdAllPairsConoverTest(y, factor(g, levels = lv), factor(b), p.adjust.method = "holm"); '
-               "list(p = r$p.value[lower.tri(r$p.value, diag = TRUE)], "
-               "stat = r$statistic[lower.tri(r$statistic, diag = TRUE)])",
+               + _FRIEDMAN_OUT,
 }
 
 _R_QVALUE = "q <- qvalue::qvalue(p); list(q = q$qvalues, lfdr = q$lfdr, pi0 = q$pi0)"
@@ -54,7 +56,7 @@ def storey(p, method):
         raise
     except SimplydataError as error:
         raise SimplydataError(
-            f"R qvalue could not estimate the share of true nulls (pi0) from these {len(p)} p-values "
+            f"R qvalue could not estimate the share of true nulls (pi0) from these {len(p)} p-value{"" if len(p) == 1 else "s"} "
             f"({' '.join(str(error).removeprefix('R stopped with: ').split())[:200]}). This happens with few p-values, "
             'or when none lies near 1. Use method="benjamini-hochberg", the same idea with pi0 = 1.') from None
     return {"q": np.asarray(found["q"], dtype=float), "lfdr": np.asarray(found["lfdr"], dtype=float),
@@ -79,5 +81,9 @@ def friedman_pairs(test, names, blocks, data):
     order = [(j, i) for i in range(len(names) - 1) for j in range(i + 1, len(names))]
     p = dict(zip(order, np.asarray(found["p"], dtype=float).ravel()))
     stat = dict(zip(order, np.asarray(found["stat"], dtype=float).ravel()))
-    return [{"i": i, "j": j, "statistic": stat[(j, i)], "p": p[(j, i)]}
+    dist = str(np.atleast_1d(found["dist"])[0])
+    df = float(np.asarray(found["df"], dtype=float).ravel()[0])
+    ranks = np.asarray(found["ranks"], dtype=float).ravel()
+    return [{"i": i, "j": j, "statistic": stat[(j, i)], "p": p[(j, i)], "dist": dist, "df": df,
+             "rank 1": float(ranks[i]), "rank 2": float(ranks[j])}
             for i in range(len(names)) for j in range(i + 1, len(names))]

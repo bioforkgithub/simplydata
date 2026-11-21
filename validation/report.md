@@ -4,7 +4,7 @@ Made by `python validation/make_report.py` on 2026-11-21. Generated: do not edit
 
 Each simplydata word is run on real, published data and compared with the published answer, with the package simplydata uses underneath called directly, and with R. Each "same underneath" box of the manual is run next to its word and compared too. How it works, and the datasets with their licences: [validation/README.md](README.md).
 
-**1009 checks passed, 0 failed, 0 skipped** (skipped: R or an R package is not installed on this computer).
+**1084 checks passed, 0 failed, 0 skipped** (skipped: R or an R package is not installed on this computer).
 
 ## Setup
 
@@ -1931,15 +1931,15 @@ Note: The oblimin rotation of GPArotation starts from random numbers, so both si
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
-| own part of x1 | statsmodels Factor (method="ml") | 0.512529527173443 | 0.512528257101858 | relative 0.0001 | pass |
-| own part of x2 | statsmodels Factor (method="ml") | 0.7487351603869 | 0.748735696928979 | relative 0.0001 | pass |
-| own part of x3 | statsmodels Factor (method="ml") | 0.542773290729761 | 0.542774521972402 | relative 0.0001 | pass |
-| own part of x4 | statsmodels Factor (method="ml") | 0.279193093920192 | 0.279192867545824 | relative 0.0001 | pass |
-| own part of x5 | statsmodels Factor (method="ml") | 0.242877320676015 | 0.24287749810865 | relative 0.0001 | pass |
-| own part of x6 | statsmodels Factor (method="ml") | 0.30521585555841 | 0.305215977798756 | relative 0.0001 | pass |
-| own part of x7 | statsmodels Factor (method="ml") | 0.502207221916071 | 0.502208672485368 | relative 0.0001 | pass |
-| own part of x8 | statsmodels Factor (method="ml") | 0.468550489794599 | 0.468549453832408 | relative 0.0001 | pass |
-| own part of x9 | statsmodels Factor (method="ml") | 0.543247686483436 | 0.543246382193588 | relative 0.0001 | pass |
+| own part of x1 | statsmodels Factor (method="ml") | 0.512529527173443 | 0.512528254948961 | relative 0.0001 | pass |
+| own part of x2 | statsmodels Factor (method="ml") | 0.7487351603869 | 0.748735764465912 | relative 0.0001 | pass |
+| own part of x3 | statsmodels Factor (method="ml") | 0.542773290729761 | 0.542774058685269 | relative 0.0001 | pass |
+| own part of x4 | statsmodels Factor (method="ml") | 0.279193093920192 | 0.279193180394145 | relative 0.0001 | pass |
+| own part of x5 | statsmodels Factor (method="ml") | 0.242877320676015 | 0.242877309047942 | relative 0.0001 | pass |
+| own part of x6 | statsmodels Factor (method="ml") | 0.30521585555841 | 0.305215644455801 | relative 0.0001 | pass |
+| own part of x7 | statsmodels Factor (method="ml") | 0.502207221916071 | 0.502208446441646 | relative 0.0001 | pass |
+| own part of x8 | statsmodels Factor (method="ml") | 0.468550489794599 | 0.468549853494355 | relative 0.0001 | pass |
+| own part of x9 | statsmodels Factor (method="ml") | 0.543247686483436 | 0.543246532934036 | relative 0.0001 | pass |
 | own part of x1 | R | 0.512529527173443 | 0.512528169335274 | relative 0.001 | pass |
 | own part of x2 | R | 0.7487351603869 | 0.74873504605719 | relative 0.001 | pass |
 | own part of x3 | R | 0.542773290729761 | 0.542776785473323 | relative 0.001 | pass |
@@ -2179,6 +2179,157 @@ Note: Coles fits sigma 7.44 and xi 0.184 above 30 mm; simplydata gives them in i
 | shape at 40 | R | 0.0133913561116982 | 0.0133913561116982 | relative 1e-09 | pass |
 
 Note: Coles (2001, 4.4.1, Figures 4.1 and 4.2) reads both panels as settling from about 30 mm.
+
+### `table.find_percentile_of weights=`
+
+**weights=: Quetelet's chest sizes, the 10th and 90th percentiles from counts** (real data; data: Quetelet's chest sizes)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| 10th percentile | NumPy percentile of the repeated rows | 37 | 37 | relative 1e-09 | pass |
+| 90th percentile | NumPy percentile of the repeated rows | 42 | 42 | relative 1e-09 | pass |
+| 10th percentile | R | 37 | 37 | relative 1e-12 | pass |
+| 90th percentile | R | 42 | 42 | relative 1e-12 | pass |
+
+Note: R quantile(rep(x, w)) is R's definition of frequency weights (as Hmisc::wtd.quantile(normwt = FALSE)).
+
+### `table.find_percentile_of weight_kind="analytic"`
+
+**weight_kind="analytic": Quetelet's chest sizes, the weighted inverted CDF** (real data; data: Quetelet's chest sizes)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| 25th percentile | NumPy percentile(weights=, method="inverted_cdf") | 38 | 38 | relative 1e-09 | pass |
+| 90th percentile | NumPy percentile(weights=, method="inverted_cdf") | 42 | 42 | relative 1e-09 | pass |
+| 25th percentile | R | 38 | 38 | relative 1e-12 | pass |
+| 90th percentile | R | 42 | 42 | relative 1e-12 | pass |
+
+Note: R has no weighted quantile in base R; the R side writes out the inverted CDF (Hyndman & Fan 1996, definition 1, with weights), the rule of survey::svyquantile(qrule = "math").
+
+### `table.find_median_of weights=`
+
+**weights=: Quetelet's chest sizes, the median girth from counts** (real data; data: Quetelet's chest sizes)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| median | NumPy median of the repeated rows | 40 | 40 | relative 1e-09 | pass |
+| median | R | 40 | 40 | relative 1e-12 | pass |
+
+### `table.find_correlation_between show="covariance"`
+
+**show="covariance": mtcars, fuel use, weight and horsepower** (real data; data: mtcars)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| variance of mpg | pandas DataFrame.cov | 36.3241028225806 | 36.3241028225806 | relative 1e-09 | pass |
+| mpg with wt | pandas DataFrame.cov | -5.11668467741936 | -5.11668467741936 | relative 1e-09 | pass |
+| mpg with hp | pandas DataFrame.cov | -320.732056451613 | -320.732056451613 | relative 1e-09 | pass |
+| wt with hp | pandas DataFrame.cov | 44.1926612903226 | 44.1926612903226 | relative 1e-09 | pass |
+| variance of mpg | R | 36.3241028225806 | 36.3241028225806 | relative 1e-12 | pass |
+| mpg with wt | R | -5.11668467741936 | -5.11668467741935 | relative 1e-12 | pass |
+| mpg with hp | R | -320.732056451613 | -320.732056451613 | relative 1e-12 | pass |
+| wt with hp | R | 44.1926612903226 | 44.1926612903226 | relative 1e-12 | pass |
+
+### `table.forecast order="automatic"`
+
+**order="automatic": the air passengers, the order auto.arima chooses and the forecast** (real data; data: AirPassengers)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| forecast for 1961-01 | R | 445.634898647403 | 445.634898647403 | relative 1e-09 | pass |
+| 95 % low | R | 423.085050384673 | 423.085050384673 | relative 1e-09 | pass |
+| 95 % high | R | 468.184746910132 | 468.184746910132 | relative 1e-09 | pass |
+| forecast for 1961-12 | R | 465.507571636887 | 465.507571636887 | relative 1e-09 | pass |
+
+Note: auto.arima chooses ARIMA(2,1,1)(0,1,0)[12] for the raw passengers (forecast 9.0.2).
+
+**order="automatic": the log air passengers, the airline model of Box and Jenkins** (published; data: AirPassengers)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| p | Box, G. E. P. & Jenkins, G. M. (1976), Time Series Analysis: Forecasting and Control, revised ed., Holden-Day: the airline model ARIMA(0,1,1)(0,1,1)12 of the log passengers (series G) | 0 | 0 | within 0 (printed rounding) | pass |
+| d | Box, G. E. P. & Jenkins, G. M. (1976), Time Series Analysis: Forecasting and Control, revised ed., Holden-Day: the airline model ARIMA(0,1,1)(0,1,1)12 of the log passengers (series G) | 1 | 1 | within 0 (printed rounding) | pass |
+| q | Box, G. E. P. & Jenkins, G. M. (1976), Time Series Analysis: Forecasting and Control, revised ed., Holden-Day: the airline model ARIMA(0,1,1)(0,1,1)12 of the log passengers (series G) | 1 | 1 | within 0 (printed rounding) | pass |
+| seasonal p | Box, G. E. P. & Jenkins, G. M. (1976), Time Series Analysis: Forecasting and Control, revised ed., Holden-Day: the airline model ARIMA(0,1,1)(0,1,1)12 of the log passengers (series G) | 0 | 0 | within 0 (printed rounding) | pass |
+| seasonal d | Box, G. E. P. & Jenkins, G. M. (1976), Time Series Analysis: Forecasting and Control, revised ed., Holden-Day: the airline model ARIMA(0,1,1)(0,1,1)12 of the log passengers (series G) | 1 | 1 | within 0 (printed rounding) | pass |
+| seasonal q | Box, G. E. P. & Jenkins, G. M. (1976), Time Series Analysis: Forecasting and Control, revised ed., Holden-Day: the airline model ARIMA(0,1,1)(0,1,1)12 of the log passengers (series G) | 1 | 1 | within 0 (printed rounding) | pass |
+| p | R | 0 | 0 | relative 1e-09 | pass |
+| d | R | 1 | 1 | relative 1e-09 | pass |
+| q | R | 1 | 1 | relative 1e-09 | pass |
+| seasonal p | R | 0 | 0 | relative 1e-09 | pass |
+| seasonal d | R | 1 | 1 | relative 1e-09 | pass |
+| seasonal q | R | 1 | 1 | relative 1e-09 | pass |
+| ma1 | R | -0.401828016755777 | -0.401828016755777 | relative 1e-09 | pass |
+| sma1 | R | -0.556944838448378 | -0.556944838448378 | relative 1e-09 | pass |
+
+Note: The order is Box and Jenkins's airline model; the two estimates are checked against R (exact maximum likelihood: ma1 -0.402, sma1 -0.557), as Box and Jenkins estimated them another way.
+
+### `table.add_adjusted_p_value_column method="storey"`
+
+**method="storey": Hedenfalk's 3170 genes, Storey's q-values** (published; data: hedenfalk (qvalue))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| pi0 | Storey & Tibshirani (2003), PNAS 100:9440-9445 | 0.669926026474838 | 0.67 | within 0.005 (printed rounding) | pass |
+| pi0 | R | 0.669926026474838 | 0.669926026474838 | relative 1e-09 | pass |
+| q-values below 0.05 | R | 162 | 162 | relative 1e-09 | pass |
+| first q-value | R | 0.0881916317044274 | 0.0881916317044274 | relative 1e-09 | pass |
+
+Note: pi0 is read back from the table as the q-value of the largest p-value divided by that p-value (qvalue's last q-value is pi0 times it). The paper finds 160 genes at q < 0.05 on its own p-values; qvalue's copy of the p-values gives 162.
+
+### `table.add_adjusted_p_value_column method="local fdr"`
+
+**method="local fdr": Hedenfalk's 3170 genes, the local false discovery rate** (real data; data: hedenfalk (qvalue))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| below 0.05 | R | 85 | 85 | relative 1e-09 | pass |
+| first | R | 0.168270194881541 | 0.168270194881541 | relative 1e-09 | pass |
+| smallest | R | 0.00656991586563179 | 0.00656991586563179 | relative 1e-09 | pass |
+
+### `table.compare_each_pair_of matched_by=, test="nemenyi"`
+
+**matched_by=, test="nemenyi": rounding first base, three routes** (real data; data: rounding first base)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| narrow angle vs round out | R | 0.637427167018665 | 0.637427167018665 | relative 1e-09 | pass |
+| narrow angle vs wide angle | R | 0.0613707592551845 | 0.0613707592551845 | relative 1e-09 | pass |
+| round out vs wide angle | R | 0.00440982044545224 | 0.00440982044545224 | relative 1e-09 | pass |
+
+Note: The same p-values (0.637, 0.0044, 0.061) come from scikit-posthocs posthoc_nemenyi_friedman.
+
+### `table.compare_each_pair_of matched_by=, test="conover"`
+
+**matched_by=, test="conover": rounding first base, Holm-adjusted** (real data; data: rounding first base)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| narrow angle vs round out | R | 0.30120902143937 | 0.30120902143937 | relative 1e-09 | pass |
+| narrow angle vs wide angle | R | 0.0245657146957979 | 0.0245657146957979 | relative 1e-09 | pass |
+| round out vs wide angle | R | 0.00207436042825609 | 0.00207436042825609 | relative 1e-09 | pass |
+
+Note: PMCMRplus's own default adjustment is single-step (0.547, 0.0007, 0.024) and scikit-posthocs adjusts nothing (0.301, 0.0007, 0.012); simplydata names Holm.
+
+### `table.compare_each_pair_of based_on="percents"`
+
+**based_on="percents": Fleiss's smokers in four groups of patients** (real data; data: smokers (Fleiss))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| 1 vs 4 | R | 0.118564819859551 | 0.118564819859551 | relative 1e-09 | pass |
+| 2 vs 4 | R | 0.0932172826883022 | 0.0932172826883023 | relative 1e-09 | pass |
+| 3 vs 4 | R | 0.123768049716158 | 0.123768049716157 | relative 1e-09 | pass |
+| 1 vs 2 | R | 1 | 1 | relative 1e-09 | pass |
+
+Note: R pairwise.prop.test() uses Yates' correction and Holm by default, as simplydata does (without the correction 1 vs 4 would be 0.057 instead of 0.119).
+
+**based_on="percents": Fleiss's smokers, Fisher's exact test for each pair** (real data; data: smokers (Fleiss))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| 1 vs 4 | R | 0.0749681614262827 | 0.0749681614262828 | relative 1e-09 | pass |
+| 3 vs 4 | R | 0.0961238627259427 | 0.0961238627259427 | relative 1e-09 | pass |
 
 ## 2. The same underneath (the manual's boxes)
 
@@ -2431,6 +2582,26 @@ Each box's library code is run next to the simplydata word and compared. Table w
 | `table.fit_distribution_to distribution="gev"` | R + Python | polars | result | relative 0.0001 | pass |
 | `table.fit_distribution_to distribution="generalised pareto"` | R + Python | pandas | result | relative 0.0001 | pass |
 | `table.fit_distribution_to distribution="generalised pareto"` | R + Python | polars | result | relative 0.0001 | pass |
+| `table.find_percentile_of weights=` | NumPy | pandas | value | relative 1e-12 | pass |
+| `table.find_percentile_of weights=` | NumPy | polars | value | relative 1e-12 | pass |
+| `table.find_percentile_of weight_kind="analytic"` | NumPy | pandas | value | relative 1e-12 | pass |
+| `table.find_percentile_of weight_kind="analytic"` | NumPy | polars | value | relative 1e-12 | pass |
+| `table.find_median_of weights=` | NumPy | pandas | value | relative 1e-12 | pass |
+| `table.find_median_of weights=` | NumPy | polars | value | relative 1e-12 | pass |
+| `table.find_correlation_between show="covariance"` | pandas | pandas | table | relative 1e-12 | pass |
+| `table.find_correlation_between show="covariance"` | pandas | polars | table | relative 1e-12 | pass |
+| `table.forecast order="automatic"` | R + Python | pandas | result | relative 1e-09 | pass |
+| `table.forecast order="automatic"` | R + Python | polars | result | relative 1e-09 | pass |
+| `table.add_adjusted_p_value_column method="storey"` | R + Python | pandas | table | relative 1e-09 | pass |
+| `table.add_adjusted_p_value_column method="storey"` | R + Python | polars | table | relative 1e-09 | pass |
+| `table.add_adjusted_p_value_column method="local fdr"` | R + Python | pandas | table | relative 1e-09 | pass |
+| `table.add_adjusted_p_value_column method="local fdr"` | R + Python | polars | table | relative 1e-09 | pass |
+| `table.compare_each_pair_of matched_by=, test="nemenyi"` | R + Python | pandas | result | relative 1e-09 | pass |
+| `table.compare_each_pair_of matched_by=, test="nemenyi"` | R + Python | polars | result | relative 1e-09 | pass |
+| `table.compare_each_pair_of matched_by=, test="conover"` | R + Python | pandas | result | relative 1e-09 | pass |
+| `table.compare_each_pair_of matched_by=, test="conover"` | R + Python | polars | result | relative 1e-09 | pass |
+| `table.compare_each_pair_of based_on="percents"` | SciPy and statsmodels | pandas | result | relative 1e-09 | pass |
+| `table.compare_each_pair_of based_on="percents"` | SciPy and statsmodels | polars | result | relative 1e-09 | pass |
 
 How each kind is compared:
 
@@ -2654,6 +2825,18 @@ Where simplydata's default differs from the package underneath, it is listed her
 - `draw_threshold_check` (2): the shape at 10 thresholds from the lowest to the highest, as extRemes::threshrange.plot.
 - `table.fit_distribution_to distribution="gev"` (1): the shape kept in the sign of extRemes and Coles (xi); SciPy's genextreme, which simplydata uses for the numbers, takes c = -xi.
 - `table.fit_distribution_to distribution="generalised pareto"` (1): the shape in the sign of extRemes, Coles and SciPy's genpareto (xi), with the threshold at 0: the values are the amounts above a threshold.
+- `table.find_percentile_of weights=` (1): frequency weights: each row repeated as often as its weight, so weights of 1 change nothing (as R quantile(rep(x, w)) and Hmisc::wtd.quantile).
+- `table.find_percentile_of weights=` (2): the linear rule (R type 7), the same method= as without weights.
+- `table.find_percentile_of weight_kind="analytic"` (1): the weighted inverted CDF, the only NumPy rule with weights (as R survey::svyquantile(qrule = "math")): a step, not a line between values.
+- `table.find_median_of weights=` (1): frequency weights: each row repeated as often as its weight (weight_kind="analytic" gives the weighted inverted CDF instead).
+- `table.find_correlation_between show="covariance"` (1): divide by n - 1, each pair on the rows where both columns have a number (as R cov(use = "pairwise.complete.obs"); R's default gives NA with an empty cell, and NumPy cov reads rows as the variables).
+- `table.forecast order="automatic"` (1): every order is tried (stepwise = FALSE, approximation = FALSE) for series of up to 1,000 readings; auto.arima's own quicker defaults can choose another order on long or seasonal series.
+- `table.add_adjusted_p_value_column method="storey"` (1): qvalue's own defaults: the share of true nulls (pi0) estimated by the smoother over lambda = 0.05 to 0.95 (Storey & Tibshirani 2003), not set to 1 as in Benjamini-Hochberg.
+- `table.add_adjusted_p_value_column method="local fdr"` (1): qvalue's local false discovery rate with its defaults (pi0 from the smoother), in a column named "local false discovery rate", not "adjusted p": it belongs to one test.
+- `table.compare_each_pair_of matched_by=, test="nemenyi"` (1): Nemenyi's test allows for all the pairs itself (the studentized range): no Holm on top, and the printout says not to adjust again.
+- `table.compare_each_pair_of matched_by=, test="conover"` (1): Holm's adjustment, as for Conover's test after Kruskal-Wallis; PMCMRplus's own default is "single-step" and scikit-posthocs adjusts nothing, so their numbers differ.
+- `table.compare_each_pair_of based_on="percents"` (1): each pair gets the 2 x 2 chi-square test with Yates' correction that compare_counts_of uses (the default of R prop.test and pairwise.prop.test); test="fisher" gives Fisher's exact test.
+- `table.compare_each_pair_of based_on="percents"` (2): Holm's adjustment for the number of pairs, as R pairwise.prop.test().
 
 ## Datasets
 
@@ -2731,3 +2914,8 @@ Where simplydata's default differs from the package underneath, it is listed her
 | [meuse in longitude and latitude (sp, sf)](https://doi.org/10.32614/RJ-2018-009) | the same 155 meuse samples, their places turned from the Dutch grid (RD New, EPSG 28992) into longitude and latitude (EPSG 4326) by R sf::st_transform | As meuse (sp) above; the transformation by PROJ through R sf (Pebesma, E. (2018). Simple Features for R. The R Journal 10(1), 439-446). | GPL-2 \| GPL-3 (sp); read from the installed package and transformed there, so it needs R. |
 | [Port Pirie (ismev)](https://doi.org/10.1007/978-1-4471-3675-0) | the highest sea level of each year at Port Pirie, South Australia, 1923-1987 (metres) | Coles (2001), An Introduction to Statistical Modeling of Extreme Values, Springer, section 3.4.1. Shipped with the R package ismev (portpirie); the same numbers are simplydata's practice table sea_levels. | GPL (>= 2) (ismev); read from the installed package, so it needs R. |
 | [Coles rain (ismev)](https://doi.org/10.1007/978-1-4471-3675-0) | 17,531 daily rainfall totals at one site in south-west England, 1914-1962 (mm) | Coles (2001), An Introduction to Statistical Modeling of Extreme Values, Springer, section 4.4.1. Shipped with the R package ismev (rain). | GPL (>= 2) (ismev); read from the installed package, so it needs R. |
+| [Quetelet's chest sizes](https://cran.r-project.org/package=HistData) | the chest girth (inches) of 5738 Scottish soldiers, as a table of counts: 16 girths and how many soldiers had each | Quetelet, A. (1846). Lettres a S.A.R. le Duc Regnant de Saxe-Cobourg et Gotha, sur la theorie des probabilites. Hayez, Brussels; Stigler, S. M. (1986). The History of Statistics. Harvard University Press. The same counts as R HistData's ChestSizes. | Published 1817 and 1846 (facts); numbers stored unchanged. |
+| [AirPassengers](https://stat.ethz.ch/R-manual/R-devel/library/datasets/html/AirPassengers.html) | the monthly totals of international airline passengers (thousands), 1949-1960 | Box, G. E. P. & Jenkins, G. M. (1976), Time Series Analysis: Forecasting and Control, revised ed., Holden-Day: the airline model ARIMA(0,1,1)(0,1,1)12 of the log passengers (series G). Copy from R's datasets package (AirPassengers). | Published 1976 (facts); R's datasets copy is GPL-2 \| GPL-3. |
+| [hedenfalk (qvalue)](https://doi.org/10.1073/pnas.1530509100) | 3170 p-values of genes compared between BRCA1 and BRCA2 breast tumours | Hedenfalk, I. et al. (2001). Gene-expression profiles in hereditary breast cancer. New England Journal of Medicine 344, 539-548; the p-values of Storey & Tibshirani (2003), PNAS 100, 9440-9445, as R qvalue ships them (hedenfalk). | LGPL (qvalue); read from the installed package, so it needs R. |
+| [rounding first base](https://stat.ethz.ch/R-manual/R-devel/library/stats/html/friedman.test.html) | the times (seconds) of 22 baseball players running to second base by three routes (round out, narrow angle, wide angle): each player ran all three | Hollander, M. & Wolfe, D. A. (1973). Nonparametric Statistical Methods. Wiley, p. 140; the example of R's friedman.test help (RoundingTimes; Friedman chi-squared 11.143, which these numbers give). | Published 1973 (facts); numbers stored unchanged. |
+| [smokers (Fleiss)](https://stat.ethz.ch/R-manual/R-devel/library/stats/html/pairwise.prop.test.html) | smokers among patients with lung cancer in four groups: counts out of totals | Fleiss, J. L. (1981). Statistical Methods for Rates and Proportions, 2nd ed. Wiley, p. 139; the example of R's prop.test and pairwise.prop.test help. | Published 1981 (facts); numbers stored unchanged. |

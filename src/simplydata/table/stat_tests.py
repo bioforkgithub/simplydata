@@ -1226,20 +1226,26 @@ class StatTestWords:
         rows = []
         for one in found:
             g1, g2 = groups[one["i"]], groups[one["j"]]
-            rows.append({"group 1": _label(g1), "group 2": _label(g2), "test": title,
-                         "difference in medians": float(np.median(data[g1]) - np.median(data[g2])),
-                         "statistic name": "q", "statistic": one["statistic"], "p-value (adjusted)": one["p"],
-                         "rows": len(complete)})
+            row = {"group 1": _label(g1), "group 2": _label(g2), "test": title,
+                   "mean rank in group 1": one["rank 1"], "mean rank in group 2": one["rank 2"],
+                   "statistic name": one["dist"], "statistic": one["statistic"]}
+            if one["dist"] == "t":
+                row["degrees of freedom"] = one["df"]
+            row.update({"p-value (adjusted)": one["p"], "rows": len(complete)})
+            rows.append(row)
         pairs = "pair" if len(rows) == 1 else "pairs"
         print(f'Each pair of "{for_each}" groups compared on "{column}" within the same {len(complete)} '
               f'"{matched_by}" values with {title} (ranks within each "{matched_by}"), run in R as {r_name}: '
               f"{len(rows)} {pairs}; {meaning}.")
         null = f'the two groups had the same typical "{column}" (in ranks)'
         for row in rows:
-            diff = row["difference in medians"]
+            r1, r2 = row["mean rank in group 1"], row["mean rank in group 2"]
+            where = "higher than" if r1 > r2 else "lower than" if r1 < r2 else "the same as"
             word = "Holm-adjusted " if test == "conover" else "Nemenyi "
-            print(f"  {row['group 1']} vs {row['group 2']}: the median of {row['group 1']} is {_num(abs(diff))} "
-                  f"{'higher' if diff > 0 else 'lower'}; {_p_clause(row['p-value (adjusted)'], null, shown=word + _p_shown(row['p-value (adjusted)']))}.")
+            shown = word + _p_shown(row["p-value (adjusted)"])
+            print(f"  {row['group 1']} vs {row['group 2']}: {row['group 1']} ranks {where} {row['group 2']} within "
+                  f'each "{matched_by}" (mean rank {_num(r1)} against {_num(r2)}); '
+                  f"{_p_clause(row['p-value (adjusted)'], null, shown=shown)}.")
         print("Note: tests of mean ranks such as these compare two groups through the ranks of all the groups, so "
               "the answer for one pair can change when another group is added or left out (Benavoli, Corani & "
               "Mangili 2016); the default, Wilcoxon signed-rank tests with Holm's correction, compares each pair "
@@ -2965,7 +2971,7 @@ class StatTestWords:
                       "p-values). A q-value of 0.05 means about 5 % of the results at least this small are false "
                       f"discoveries. Below 0.05: {after} of {m} q-values ({before} p-values).")
                 print("Storey's q-values estimate pi0 from the data; Benjamini-Hochberg (method=\"benjamini-hochberg\")"
-                      " is the same idea with pi0 = 1, so its numbers are a little larger.")
+                      " is the same idea with pi0 = 1, so its numbers are never smaller (about 1 / pi0 times as large).")
             else:
                 print(f'Added "{name}": for each of {m} {tests} from "{from_column}", the chance that this one test '
                       f"is a false discovery (R qvalue::qvalue()$lfdr, with pi0 = {_num(pi0)}, about {share} of the "
