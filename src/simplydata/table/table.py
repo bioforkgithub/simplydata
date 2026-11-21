@@ -32,6 +32,7 @@ from .stat_tests import StatTestWords
 from .summaries import SummaryWords
 from .survival import SurvivalWords
 from .survival_more import SurvivalMoreWords
+from .survey_words import SurveyWords
 from .time_series import TimeSeriesWords
 from .time_steps import TimeStepWords
 
@@ -40,7 +41,7 @@ class Table(PositionWords, RowWords, ColumnWords, SummaryWords, StatTestWords, M
             AgreementWords, CorrelationWords, FittingWords, LinesMoreWords, ModelWords, ModelToolWords, PatternWords, SurvivalWords, SurvivalMoreWords,
             TimeSeriesWords, TimeStepWords, ForecastWords, SignalTableWords, SignalMoreTableWords, BetweenWords,
             DistributionTableWords, CheckingMoreWords, MetaWords, CommunityWords, HiddenFactorWords, PlaceWords,
-            BaseTable):
+            SurveyWords, BaseTable):
     """A table. Make one with sdata.table(...), then add steps: table.keep_rows_where(...), table.sort_by(...)."""
 
 

@@ -244,7 +244,10 @@ _TABLE = [
     ('table.add_time_and_event_columns(from_date="admitted", to_date="discharged", event_date="first_esbl")',
      "stset lexis Lexis person_years follow_up survSplit"),
     ('table.find_survival_over_time(time="days", event="died", average_time_up_to=365)', "rmst rmst2 rmean restricted_mean"),
-    ('table.explain_survival(time="days", event="died", using=["age"], allowing_for="treatment")', "strata stratified_cox"),
+    ('table.explain_survival(time="days", event="died", using=["age"], allowing_for="treatment") for a stratified '
+     'Cox model; table.use_survey_design(weights="weight", strata="school_type") for a survey; '
+     'sdata.make_random_assignments(how_many=40, for_each_of=["Bergen", "Tromsø"]) for a list for each centre',
+     "strata stratified_cox"),
     ('table.explain_survival(time="months", event="outcome", value="relapse", competing_with="death", using=["age"], '
      'method="fine-gray")', "fine_gray finegray crr subdistribution"),
     ('table.explain_survival(time="days", event="died", using=["age"]) (with R it prints Harrell\'s C)',
@@ -370,10 +373,29 @@ _TABLE = [
                        "frdAllPairsConoverTest"),
     ('table.compare_each_pair_of("infected", for_each_group_in="age_group", based_on="percents", value="yes")',
      "pairwise_prop_test pairwise_fisher_test"),
+    # S3d-1: planning an experiment and survey answers
+    ('sdata.make_random_assignments(how_many=60, groups=["A", "B"], in_blocks_of=[4, 6], with_seed=1)',
+     "blockrand randomization randomisation randomization_list randomisation_list allocation allocation_list "
+     "block_randomization block_randomisation permuted_blocks"),
+    ('sdata.make_design_table({"temperature": [10, 20], "salinity": [30, 35]}, repeats=3, with_seed=1)',
+     "expand.grid expand_grid factorial full_factorial design.ab design.crd design.rcbd design.lsd design.split "
+     "gen.factorial latin_square split_plot experimental_design design_of_experiments doe"),
+    ('table.use_survey_design(weights="weight", strata="school_type", population_sizes="schools_of_type"), then '
+     'table.find_average_of("score_2000")',
+     "svydesign survey_design survey_weights svymean svytotal svyglm svyciprop svyby svyttest "
+     "svychisq complex_survey design_effect"),
+    ('table.keep_random_rows(5, for_each_group_in="school_type", with_seed=1)',
+     "stratified_sample stratified_sampling sample_frac strata_sample"),
+    ('table.count_empty_cells_in(show="patterns")', "md.pattern md_pattern missing_pattern missingness_pattern "
+                                                     "missing_data_pattern"),
+    ('table.count_each(columns=["teaching", "pace"], in_order=["strongly disagree", "disagree", "neutral", "agree", '
+     '"strongly agree"])', "likert likert_scale likert_summary top_two_box"),
 ]
 
 # chart.<name>
 _CHART = [
+    ('chart.draw_answer_bars(columns=["teaching", "pace"], in_order=["strongly disagree", "disagree", "neutral", '
+     '"agree", "strongly agree"])', "draw_likert_bars plot_likert likert_plot diverging_bars diverging_stacked_bars"),
     ('chart.draw_lines(x="year", y="population")', "plot geom_line line"),
     ('chart.trade_off_curve(score="crp", truth="infected")', "roc_curve roc plot_roc ggroc roc_plot"),
     ('chart.difference_dots(first="device_a", second="device_b")', "bland_altman mean_diff_plot bland_altman_plot"),

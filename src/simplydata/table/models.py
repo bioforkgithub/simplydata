@@ -1679,7 +1679,12 @@ class ModelWords:
         spread_changes_with="site" lets each site have its own spread (a number column: the spread
         grows as a power of it), and neighbours_alike_in_order_of="date" lets rows next to each
         other in date order be alike (AR(1)): generalised least squares, R nlme::gls() (needs R).
+        Under a survey design (table.use_survey_design) it fits a survey-weighted model, R
+        survey::svyglm (outcome= "numbers", "yes or no" or "counts").
         """
+        if self._survey_on():
+            self._survey_only("explain", locals(), ("column", "using", "outcome"))
+            return self._survey_explain(column, using, outcome)
         step = "explain"
         # S3a-3 (checking and comparing): generalised least squares (table/checking_more.py)
         if spread_changes_with is not None or neighbours_alike_in_order_of is not None:

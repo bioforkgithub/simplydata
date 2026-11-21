@@ -5,6 +5,7 @@ from __future__ import annotations
 from ._core import BaseChart
 from ._errors import SimplydataError, friendly
 from .words.agreement_charts import AgreementChartWords
+from .words.answer_charts import AnswerChartWords
 from .words.axes import AxesWords
 from .words.charts import ChartWords
 from .words.community_charts import CommunityChartWords
@@ -20,7 +21,7 @@ from .words.time_charts import TimeChartWords
 
 
 class Chart(ChartWords, StatsWords, CurveWords, InteractionChartWords, SurvivalChartWords, AgreementChartWords,
-            CommunityChartWords, PlaceChartWords, TimeChartWords, TextWords,
+            CommunityChartWords, PlaceChartWords, AnswerChartWords, TimeChartWords, TextWords,
             AxesWords, LookWords, LayoutWords, BaseChart):
     """A chart. Make one with sdata.chart(...), then add steps: chart.draw_bars(...), chart.write_title_on_top(...)."""
 

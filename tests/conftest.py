@@ -175,7 +175,9 @@ R_PACKAGES = ("survival", "vegan", "mice", "lme4", "betareg", "pscl", "car", "ef
               "circular", "spdep", "sf", "gstat", "extRemes", "ismev", "sp", "ape",
               # S3c-4 (small additions): Storey's q-values and the local false discovery rate (Bioconductor, installed
               # with BiocManager; see .github/workflows/tests.yml)
-              "qvalue")
+              "qvalue",
+              # S3d-1 (planning and surveys): randomisation lists (blockrand, CRAN only), design tables, surveys
+              "blockrand", "agricolae", "survey")
 
 
 @pytest.fixture
@@ -275,6 +277,9 @@ R_ENTRY_POINTS = {
     ("table/places_r.py", "_need"), ("table/places_r.py", "_call"),
     ("words/place_charts.py", "draw_variogram"), ("words/place_charts.py", "draw_threshold_check"),
     ("words/place_charts.py", "_draw_variogram"), ("words/place_charts.py", "_draw_threshold_check"),
+    # S3d-1 (planning and surveys)
+    ("designs.py", "make_random_assignments"), ("designs.py", "make_design_table"), ("designs.py", "_r_version"),
+    ("table/survey_r.py", "_call"),
 }
 
 

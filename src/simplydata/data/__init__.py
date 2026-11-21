@@ -2,8 +2,9 @@
 
 Every number in these tables is invented (they are not real people, places or countries), except in "bcg" and
 "passive_smoking" (the published results of real studies, for combining studies), "ability_tests" (the
-published test scores of Holzinger & Swineford 1939, for hidden factors) and "sea_levels" (the yearly highest
-sea levels at Port Pirie, published by Coles 2001), each with its source in its description.
+published test scores of Holzinger & Swineford 1939, for hidden factors), "sea_levels" (the yearly highest
+sea levels at Port Pirie, published by Coles 2001) and "sampled_schools" (a published survey sample of California
+schools, from the R survey package), each with its source in its description.
 """
 
 from __future__ import annotations
@@ -335,12 +336,48 @@ EXAMPLES = {
             "p-value": "the p-value of the test of that gene",
         },
     ),
+    # S3d-1 (planning and surveys): a real stratified survey sample, and made-up answers on a scale
+    "sampled_schools": (
+        "REAL DATA: 200 California schools sampled at random within school type (100 elementary, 50 middle, "
+        "50 high), with their weights, for survey-weighted answers (table.use_survey_design). The Academic "
+        "Performance Index of 2000 (California Department of Education), as the R survey package ships it "
+        "(apistrat; Lumley 2010, Complex Surveys).",
+        {
+            "school": "the school's name (shortened)",
+            "district": "the school district",
+            "school_type": "elementary, middle or high: the strata of the sample",
+            "score_2000": "the school's Academic Performance Index in 2000 (200 to 1000)",
+            "score_1999": "the same index in 1999",
+            "free_meals": "percent of pupils who get free or cheaper school meals",
+            "english_learners": "percent of pupils still learning English",
+            "pupils": "pupils enrolled",
+            "met_target": "yes or no: did the school meet its growth target?",
+            "award": "yes or no: did the school get an award?",
+            "weight": "the sampling weight: how many schools of California each sampled school stands for",
+            "schools_of_type": "how many schools of this type California has (the population size of the stratum)",
+        },
+    ),
+    "course_feedback": (
+        "MADE-UP DATA: 120 made-up students rate a course on five statements, from strongly disagree to strongly "
+        "agree (answers on a scale, Likert items). A few answers are empty. Invented for practice; not from any "
+        "real study.",
+        {
+            "student": "a made-up student code, S001 to S120",
+            "programme": "biology, chemistry or medicine",
+            "teaching": "\"The teaching was clear\": strongly disagree, disagree, neutral, agree or strongly agree",
+            "materials": "\"The materials helped me\" (same five answers)",
+            "pace": "\"The pace was right\" (same five answers)",
+            "workload": "\"The workload was fair\" (same five answers)",
+            "would_recommend": "\"I would recommend the course\" (same five answers)",
+        },
+    ),
 }
 
 
 def _list_examples() -> None:
     print("Example tables you can use (made up for practice, except bcg and passive_smoking, real published "
-          "studies, ability_tests, real published test scores, and sea_levels, real published sea levels):\n")
+          "studies, ability_tests, real published test scores, sea_levels, real published sea levels, and "
+          "sampled_schools, a real survey sample):\n")
     for name, (about, columns) in EXAMPLES.items():
         print(f'  sdata.get_example("{name}")')
         print(f"      {about}")
@@ -356,7 +393,8 @@ def get_example(name: str | None = None):
     The tables are: marks, weather, fruit, growth, sensor, visitors, river, shop, school, meadow, trial, clinic,
     island, toxicity, culture, admissions, resistome, stations, rain, sea_levels (real published sea levels), and,
     for combining studies, bcg and passive_smoking (real published studies), for hidden factors,
-    ability_tests (real published test scores), and, for q-values, many_tests (made up).
+    ability_tests (real published test scores), for q-values, many_tests (made up), and, for planning and
+    surveys, sampled_schools (a real survey sample) and course_feedback (made-up answers on a scale).
     "shop" has empty cells and a column of dates to practise with; "school" has empty cells too.
     """
     if name is None:

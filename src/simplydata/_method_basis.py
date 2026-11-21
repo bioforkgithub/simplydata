@@ -503,6 +503,19 @@ REFERENCES: dict[str, Reference] = {
     "demsar2006": _ref("Demšar 2006", "Demšar J (2006). Statistical Comparisons of Classifiers over Multiple Data Sets. Journal of Machine Learning Research 7:1-30.", url="https://jmlr.org/papers/v7/demsar06a.html"),
     "benavoli2016": _ref("Benavoli et al. 2016", "Benavoli A, Corani G, Mangili F (2016). Should We Really Use Post-Hoc Tests Based on Mean-Ranks? Journal of Machine Learning Research 17(5):1-10.", url="https://jmlr.org/papers/v17/benavoli16a.html"),
     "conover1979": _ref("Conover & Iman 1979", "Conover WJ, Iman RL (1979). On multiple-comparisons procedures. Technical Report LA-7677-MS, Los Alamos Scientific Laboratory.", url="https://www.osti.gov/biblio/6057803"),
+    # S3d-1: planning and surveys (each DOI looked up in Crossref on 2026-11-21)
+    "schulz2002gen": _ref("Schulz & Grimes 2002a", "Schulz KF, Grimes DA (2002). Generation of allocation sequences in randomised trials: chance, not choice. The Lancet 359:515-519.", doi="10.1016/S0140-6736(02)07683-3"),
+    "schulz2002conceal": _ref("Schulz & Grimes 2002b", "Schulz KF, Grimes DA (2002). Allocation concealment in randomised trials: defending against deciphering. The Lancet 359:614-618.", doi="10.1016/S0140-6736(02)07750-4"),
+    "efird2011": _ref("Efird 2011", "Efird J (2011). Blocked Randomization with Randomly Selected Block Sizes. International Journal of Environmental Research and Public Health 8:15-20.", doi="10.3390/ijerph8010015"),
+    "casler2015": _ref("Casler 2015", "Casler MD (2015). Fundamentals of Experimental Design: Guidelines for Designing Successful Experiments. Agronomy Journal 107:692-705.", doi="10.2134/agronj2013.0114"),
+    "hurlbert1984": _ref("Hurlbert 1984", "Hurlbert SH (1984). Pseudoreplication and the Design of Ecological Field Experiments. Ecological Monographs 54:187-211.", doi="10.2307/1942661"),
+    "lumley2010": _ref("Lumley 2010", "Lumley T (2010). Complex Surveys: A Guide to Analysis Using R. Wiley Series in Survey Methodology. Wiley.", doi="10.1002/9780470580066"),
+    "korn1999": _ref("Korn & Graubard 1999", "Korn EL, Graubard BI (1999). Analysis of Health Surveys. Wiley Series in Probability and Statistics. Wiley.", doi="10.1002/9781118032619"),
+    "woodruff1952": _ref("Woodruff 1952", "Woodruff RS (1952). Confidence Intervals for Medians and Other Position Measures. Journal of the American Statistical Association 47:635-646.", doi="10.1080/01621459.1952.10483443"),
+    "rao1984": _ref("Rao & Scott 1984", "Rao JNK, Scott AJ (1984). On Chi-Squared Tests for Multiway Contingency Tables with Cell Proportions Estimated from Survey Data. The Annals of Statistics 12:46-60.", doi="10.1214/aos/1176346391"),
+    "jamieson2004": _ref("Jamieson 2004", "Jamieson S (2004). Likert scales: how to (ab)use them. Medical Education 38:1217-1218.", doi="10.1111/j.1365-2929.2004.02012.x"),
+    "norman2010": _ref("Norman 2010", "Norman G (2010). Likert scales, levels of measurement and the 'laws' of statistics. Advances in Health Sciences Education 15:625-632.", doi="10.1007/s10459-010-9222-y"),
+    "heiberger2014": _ref("Heiberger & Robbins 2014", "Heiberger RM, Robbins NB (2014). Design of Diverging Stacked Bar Charts for Likert Scales and Other Applications. Journal of Statistical Software 57(5).", doi="10.18637/jss.v057.i05"),
 }
 
 
@@ -2787,3 +2800,155 @@ BASIS['table.compare_each_pair_of based_on="percents"'] = _b(
     ("yates1934", "haviland1990", "holm1979", "newcombe1998"), "P3",
     "Expected counts below 5 get a note pointing to test=\"fisher\"; a pair whose rows all have one value gets no "
     "p-value (as R) and is left out of Holm's adjustment.", "convention")
+
+
+# ---- Planning and surveys (S3d-1)
+BASIS["sdata.make_random_assignments"] = _b(
+    "Permuted blocks from R blockrand::blockrand(): each block holds every group equally often, and without "
+    "in_blocks_of= the block sizes are 2 and 3 times the number of groups, chosen at random block by block; R's "
+    "generator is named in full (Mersenne-Twister, Inversion, Rejection) so that with_seed= repeats the list.",
+    "in_blocks_of= (any multiples of the number of groups, one size or several); for_each_of= (one list per centre); "
+    "groups= (names or a number).",
+    "Blocks keep the groups about the same size all the way through, and random block sizes stop recruiters from "
+    "guessing the last places of a block (Schulz & Grimes 2002a, 2002b; Efird 2011). The sizes 2 and 3 times the "
+    "number of groups are simplydata's own starting value: no study fixes them.",
+    ("schulz2002gen", "schulz2002conceal", "efird2011"), "P1",
+    "Block sizes that are not a multiple of the number of groups are refused; the printout says the last block is "
+    "completed and that the list must be kept from the people who recruit.")
+BASIS["sdata.make_design_table"] = _b(
+    "Every combination of the factors (a full factorial) in one random order (completely random), from R agricolae "
+    "with R's own generator (kinds = \"Mersenne-Twister\", not agricolae's \"Super-Duper\"), and the standard order "
+    "of R expand.grid().",
+    "of_kind=\"randomised blocks\", \"latin square\" or \"split plot\" (with whole_plots=).",
+    "Randomising the order of the plots spreads unknown differences evenly over the treatments, and true repeats of "
+    "each combination are needed to measure the noise (Hurlbert 1984; Casler 2015). Completely random is the "
+    "simplest layout; blocks are better when the plots differ in a known way, which the word cannot know, so it is "
+    "offered, not chosen.",
+    ("hurlbert1984", "casler2015"), "P2",
+    "Factors need at least 2 levels and a name that is not one of the table's own columns; repeats= is required "
+    "(at least 2 for blocks).")
+BASIS['sdata.make_design_table of_kind="randomised blocks"'] = _b(
+    "Each repeat is a block that holds every combination once, in its own random order (agricolae design.rcbd, or "
+    "design.ab(design = \"rcbd\") for several factors).",
+    "of_kind=\"completely random\" (the default), \"latin square\", \"split plot\".",
+    "Blocks take known differences between groups of plots (benches, fields, days) out of the comparison (Casler "
+    "2015).", ("casler2015",), "P2", "repeats= is the number of blocks and must be at least 2.")
+BASIS['sdata.make_design_table of_kind="latin square"'] = _b(
+    "One factor laid out in rows and columns so that each level is once in every row and every column (agricolae "
+    "design.lsd).",
+    "of_kind=\"randomised blocks\" when only one direction differs.",
+    "A latin square removes differences in two directions at once (rows and columns of a field or a greenhouse) "
+    "(Casler 2015).", ("casler2015",), "P2",
+    "Exactly one factor with at least 3 levels; repeats= and whole_plots= are refused.")
+BASIS['sdata.make_design_table of_kind="split plot"'] = _b(
+    "Whole plots in randomised blocks get the factor named in whole_plots=, and each whole plot is split into parts "
+    "for the other factor (agricolae design.split(design = \"rcbd\")).",
+    "of_kind=\"randomised blocks\" when both factors can change plot by plot.",
+    "A split plot is the layout for a factor that is hard to change on small plots, such as irrigation; it has two "
+    "sizes of error, so it must be analysed as a split plot (Casler 2015).", ("casler2015",), "P2",
+    "Exactly two factors, and whole_plots= naming one of them.")
+BASIS["table.keep_random_rows for_each_group_in="] = _b(
+    "The same number of random rows from each group (pandas groupby().sample(random_state=)), rows kept in table "
+    "order; a group with that many rows or fewer is kept whole, with a note.",
+    "percent= for the same share of each group; without for_each_group_in= the rows come from the whole table.",
+    "A stratified random sample guarantees every group in the sample and is the usual design behind survey weights "
+    "(Lumley 2010). Keeping a small group whole instead of stopping is simplydata's own choice, said in a note.",
+    ("lumley2010",), "P5", "with_seed= must be a whole number; empty group cells form a group of their own.",
+    "starting value")
+BASIS["table.keep_random_rows percent="] = _b(
+    "That share of each group, rounded by pandas (groupby().sample(frac=)), and at least 1 row of every group.",
+    "A number of rows for each group.",
+    "Proportional allocation keeps each group's share of the sample equal to its share of the table (Lumley 2010); "
+    "at least one row per group keeps every stratum, simplydata's own choice.",
+    ("lumley2010",), "P5", "percent= must be above 0 and up to 100; it cannot go with a number of rows.",
+    "starting value")
+BASIS['table.count_empty_cells_in show="patterns"'] = _b(
+    "One row for each pattern of empty cells, with how many rows have it and how many cells it leaves empty (as R "
+    "mice::md.pattern()), sorted by the number of empty cells, and the empty cells of each column printed below.",
+    "Without show=, the empty cells of each column; chart.draw_map_of_empty_cells() draws every row.",
+    "Which cells are empty together is the first step before choosing how to handle them: monotone patterns and "
+    "rows with many empty cells call for different methods (van Buuren & Groothuis-Oudshoorn 2011).",
+    ("vanbuuren2011",), "P5", "An empty cell is a missing value, NaN or text of only spaces, as everywhere in "
+    "simplydata.")
+BASIS["table.count_each columns=, in_order="] = _b(
+    "For answers on a scale, the count and percent of each answer (of the answers given), the percent in the top "
+    "two answers and the median answer (the inverted CDF, R quantile(type = 1)); no averages.",
+    "chart.draw_answer_bars() for the same counts as diverging bars.",
+    "The steps between answers on a Likert scale need not be equal, so the median and the shares are the safe "
+    "summaries (Jamieson 2004); averages of many items can work (Norman 2010), but simplydata leaves that choice to "
+    "you and does not average single items.",
+    ("jamieson2004", "norman2010"), "P2",
+    "in_order= is required (at least 3 answers); answers not in it are refused and named; empty cells are left out "
+    "with a note.")
+BASIS["draw_answer_bars"] = _b(
+    "Diverging stacked bars: the answers below the middle to the left of 0, those above it to the right, and the "
+    "middle answer split across 0; two hues with grey in the middle.",
+    "table.count_each(columns=, in_order=) for the numbers.",
+    "Diverging bars centred on the middle answer make agreement and disagreement comparable across questions "
+    "(Heiberger & Robbins 2014).", ("heiberger2014",), "P2",
+    "As table.count_each(columns=, in_order=); with an even number of answers the bars meet at 0 between the middle "
+    "two.")
+BASIS["table.use_survey_design"] = _b(
+    "R survey::svydesign() with the columns given; options(survey.lonely.psu = \"adjust\") and nest = TRUE; from "
+    "then on the survey words give design-based answers and the other statistics words refuse.",
+    "table.use_survey_design() with no options turns it off.",
+    "Analysing a complex sample as if it were a simple random sample gives standard errors that are too small "
+    "(Lumley 2010; Korn & Graubard 1999). survey stops by default when a stratum has one cluster; \"adjust\" is the "
+    "conservative option Lumley describes (Lumley 2010).",
+    ("lumley2010", "korn1999", "lumley2004"), "P1",
+    "Empty design cells and weights of 0 or less are refused; the printout says how the population sizes were read; "
+    "a survey word refuses after rows were removed.")
+_SURVEY_DF = ("A t interval on the design's degrees of freedom, not survey's own normal-curve confint(): with few "
+              "clusters or strata the normal curve gives intervals that are too narrow (Korn & Graubard 1999).")
+BASIS["table.find_average_of after use_survey_design()"] = _b(
+    "The population average from R survey::svymean() (svyby() for groups), its standard error from the design, and "
+    "a t interval on the design's degrees of freedom (degf).",
+    "table.use_survey_design() off for the average of the rows.", _SURVEY_DF + " survey is Lumley's reference "
+    "implementation (Lumley 2004).", ("lumley2004", "korn1999"), "P1",
+    "Only column= and for_each_group_in= (one column) are taken; empty cells are left out as survey does.")
+BASIS["table.find_total_of after use_survey_design()"] = _b(
+    "The estimated population total from R survey::svytotal(), with a t interval on the design's degrees of freedom.",
+    "table.use_survey_design() off for the total of the rows.", _SURVEY_DF, ("lumley2004", "korn1999"), "P1",
+    "As find_average_of under a survey design.")
+BASIS["table.find_median_of after use_survey_design()"] = _b(
+    "The population median from R survey::svyquantile(qrule = \"math\") with Woodruff's interval on the design's "
+    "degrees of freedom.",
+    "find_percentile_of for other percents.",
+    "Woodruff's method turns the interval of the distribution function into an interval for the quantile, which "
+    "keeps the design (Woodruff 1952; Lumley 2010).", ("woodruff1952", "lumley2010"), "P1",
+    "As find_average_of under a survey design.")
+BASIS["table.find_percentile_of after use_survey_design()"] = _b(
+    "As find_median_of under a survey design, at the percent given.", "method= and interval= are refused here.",
+    "As table.find_median_of after use_survey_design().", ("woodruff1952", "lumley2010"), "P1",
+    "As find_average_of under a survey design.")
+BASIS["table.find_percent_of_rows_where after use_survey_design()"] = _b(
+    "The population percent from R survey::svyciprop(method = \"logit\"), its interval worked out on the log-odds "
+    "scale and on the design's degrees of freedom.",
+    "table.use_survey_design() off for the exact interval of the rows.",
+    "The logit interval stays between 0 and 100 % and keeps its coverage better than the plain Wald interval for "
+    "survey proportions near 0 or 100 % (Korn & Graubard 1999; Lumley 2010).", ("korn1999", "lumley2010"), "P2",
+    "One condition and for_each_group_in= are taken; shares of a total go to find_total_of.")
+BASIS["table.count_rows after use_survey_design()"] = _b(
+    "The estimated number in the population: R survey::svytotal() of a column of ones (the sum of the weights); with "
+    "in_percent=True each group's share, svymean(~factor(group)).",
+    "table.use_survey_design() off for the number of rows.",
+    "Population counts and shares come from the weights and their design-based standard errors (Lumley 2010).",
+    ("lumley2010",), "P1", "in_percent=True needs for_each_group_in=.")
+BASIS["table.explain after use_survey_design()"] = _b(
+    "A survey-weighted model from R survey::svyglm(): gaussian for numbers, quasibinomial for yes or no, "
+    "quasipoisson for counts, with survey's t tests and intervals on the model's residual degrees of freedom.",
+    "outcome= \"numbers\", \"yes or no\" or \"counts\".",
+    "Design-based regression weights each row by its sampling weight and takes the standard errors from the design "
+    "(Lumley 2010); the quasi families avoid the warnings that non-whole weights give in binomial and Poisson fits.",
+    ("lumley2010",), "P1", "Only column=, using= and outcome= are taken; yes or no outcomes need yes/no, 1/0 or "
+    "True/False.")
+BASIS["table.compare_averages_of after use_survey_design()"] = _b(
+    "The design-based t test of R survey::svyttest() for two groups.",
+    "table.explain(column, using=[group]) for more than two groups.",
+    "The difference and its standard error come from the design, so the test keeps its size under clustering and "
+    "weighting (Lumley 2010).", ("lumley2010",), "P1", "Exactly two groups are needed.")
+BASIS["table.compare_counts_of after use_survey_design()"] = _b(
+    "Pearson's chi-square with the Rao-Scott correction, as an F test (R survey::svychisq(), statistic = \"F\").",
+    "table.use_survey_design() off for the chi-square test of the rows.",
+    "The plain chi-square test is too liberal on survey data; the Rao-Scott second-order correction keeps it close "
+    "to its nominal size (Rao & Scott 1984).", ("rao1984",), "P1", "for_each_group_in= is required.")

@@ -5,6 +5,45 @@ working for one release and prints a one-line note with its new name.
 
 ## Unreleased
 
+### New: planning an experiment and survey answers (S3d-1)
+
+- `sdata.make_design_table({"temperature": [10, 20], "salinity": [30, 35]}, repeats=3, with_seed=1)`: the layout of
+  an experiment, every combination of the factors in random order, with the plot to work in and the standard order
+  (R `expand.grid()` order). `of_kind="randomised blocks"` (every combination once in each block), `"latin square"`
+  (one factor, each level once in every row and column) and `"split plot"` with `whole_plots=` (the factor on whole
+  plots). R agricolae, with R's own random number generator (`kinds = "Mersenne-Twister"`) instead of agricolae's
+  "Super-Duper", so that `with_seed=` gives the layout an R user gets.
+- `sdata.make_random_assignments(how_many=60, groups=["A", "B"], in_blocks_of=[4, 6], for_each_of=["Bergen",
+  "Tromsø"], with_seed=1)`: a randomisation list in permuted blocks of random sizes, one list for each centre
+  (R blockrand, CRAN only). Real block sizes (blockrand counts in multiples of the number of groups); sizes that are
+  not a multiple of the number of groups are refused; `groups=3` gives A, B and C. The printout says the last block
+  is completed and that the list must be kept from the people who recruit (allocation concealment).
+- `keep_random_rows(5, for_each_group_in="site", with_seed=1)`: a stratified random sample (pandas
+  `groupby().sample()`), rows kept in table order; a group with too few rows is kept whole, with a note.
+  `percent=10` keeps that share of each group (or of the table), at least one row per group.
+- `count_empty_cells_in(show="patterns")`: one row for each pattern of empty cells, how many rows have it and how
+  many cells it leaves empty (as R `mice::md.pattern()`).
+- `count_each(columns=["teaching", "pace"], in_order=["strongly disagree", ..., "strongly agree"])`: answers on a
+  scale (Likert items), one row per question with the count and percent of each answer, the percent in the top two
+  and the median answer; no averages. `chart.draw_answer_bars(columns=, in_order=)` draws them as diverging bars
+  centred on the middle answer (Heiberger and Robbins 2014).
+- `table.use_survey_design(weights="weight", strata="school_type", population_sizes="schools_of_type")`: a setting
+  that makes `find_average_of`, `find_total_of`, `find_median_of`, `find_percentile_of`, `find_percent_of_rows_where`,
+  `count_rows`, `explain`, `compare_averages_of` (two groups) and `compare_counts_of` give answers for the population,
+  from R survey (`svymean`, `svytotal`, `svyquantile`, `svyciprop`, `svyby`, `svyglm`, `svyttest`, `svychisq`), with
+  intervals on the design's degrees of freedom and `clusters=` for cluster samples. Every printout starts "As a
+  survey (...)"; other statistics words refuse while the design is on, and so does a survey word after rows were
+  removed (analyse a part with `for_each_group_in=`). `use_survey_design()` turns it off; the table's printout shows
+  the setting.
+- New practice tables: `sampled_schools` (real: the stratified api sample of the R survey package, Lumley 2010) and
+  `course_feedback` (made up: 120 students rate a course on five statements).
+- Lesson 34 "Planning an experiment and a survey"; other names (`blockrand`, `expand.grid`, `svydesign`, `svymean`,
+  `md.pattern`, `likert` ...) point to the new words; `sdata.help("strata")` now names all three places.
+- Same-underneath entries, "how simplydata chooses" entries and reliability cases for each: the api samples (the
+  stratified mean 662.29 and the cluster mean 644.17 of Lumley 2010), nhanes (van Buuren and Groothuis-Oudshoorn
+  2011), the professional challenges survey (Heiberger and Robbins 2014), and the published properties of permuted
+  blocks and Yates' standard order. New R packages: agricolae, blockrand and survey.
+
 ### New: small additions to known words (S3c-4)
 
 - `find_percentile_of("price", 90, weights="count")` and `find_median_of("price", weights="count")`: weighted

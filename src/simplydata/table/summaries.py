@@ -972,9 +972,14 @@ class SummaryWords:
         t.test()) and gives back a table with the average, the interval and the count.
         weights="people" gives the weighted average: each row counts as much as its number in the
         column of weights (statsmodels DescrStatsW, as R weighted.mean()).
+        Under a survey design (table.use_survey_design) it gives the population average with its
+        standard error and interval, from R survey::svymean.
         """
         from .places import direction_note
 
+        if self._survey_on():
+            self._survey_only("find_average_of", locals(), ("column", "for_each_group_in"))
+            return self._survey_summary("find_average_of", "mean", column, for_each_group_in, label="average")
         direction_note(column)
         if weights is not None:
             return self._weighted("find_average_of", column, weights, for_each_group_in, every, across, interval)
@@ -995,7 +1000,12 @@ class SummaryWords:
         weights="n" gives the weighted median, with weight_kind= as in find_percentile_of:
         "frequency" (the default; each row counts as often as its whole-number weight) or
         "analytic".
+        Under a survey design (use_survey_design) it gives the population median (R survey).
         """
+        if self._survey_on():
+            self._survey_only("find_median_of", locals(), ("column", "for_each_group_in"))
+            return self._survey_summary("find_median_of", "quantile", column, for_each_group_in, percent=50,
+                                        label="median")
         if weights is not None:
             return self._weighted_percentile("find_median_of", column, 50.0, weights, weight_kind, for_each_group_in,
                                              every, across, interval, "linear", said="median")
@@ -1013,7 +1023,11 @@ class SummaryWords:
         table.find_total_of("count", for_each_group_in="shop")   (with sdata.get_example("fruit"))
         table.find_total_of("count", for_each_group_in="shop", across="fruit")   a cross table
         every="month" with a date column in for_each_group_in= gives the total of each month.
+        Under a survey design (use_survey_design) it gives the estimated population total (R survey).
         """
+        if self._survey_on():
+            self._survey_only("find_total_of", locals(), ("column", "for_each_group_in"))
+            return self._survey_summary("find_total_of", "total", column, for_each_group_in, label="total")
         return self._summary("find_total_of", column, for_each_group_in, every, across)
 
     @friendly(renamed={"for_each": "for_each_group_in"})
@@ -1087,12 +1101,18 @@ class SummaryWords:
         such as a sampling weight: NumPy percentile(weights=, method="inverted_cdf"), the only
         weighted rule NumPy has (as R survey::svyquantile(qrule = "math")); it is a step, not a
         line between values, so with all weights 1 it is not the unweighted default.
+        Under a survey design (table.use_survey_design) it gives the population percentile with
+        Woodruff's interval, from R survey::svyquantile.
         """
         step = "find_percentile_of"
         if column is None:
             raise SimplydataError(f"{step}() needs the column first, then the percent.\n"
                                   f'For example:  table.{step}("marks", 90, for_each_group_in="class")   (with sdata.get_example("marks"))')
         number = _check_percent(step, percent)
+        if self._survey_on():
+            self._survey_only(step, locals(), ("column", "percent", "for_each_group_in", "number", "step"))
+            return self._survey_summary(step, "quantile", column, for_each_group_in, percent=number,
+                                        label=f"percentile {number:g}")
         share = number / 100
         rule = _percentile_rule(step, "linear" if method is None else method)
         if weights is not None:
@@ -1307,7 +1327,12 @@ class SummaryWords:
         in_percent=True gives percents (0 to 100) instead: of all rows, or with across= of
         each row of the cross table, so every row adds up to 100 %.
         every="month" with a date column in for_each_group_in= counts the rows of each month.
+        Under a survey design (use_survey_design) it gives the estimated number in the population
+        (R survey), and with in_percent=True each group's estimated share.
         """
+        if self._survey_on():
+            self._survey_only("count_rows", locals(), ("for_each_group_in", "in_percent"))
+            return self._survey_count("count_rows", for_each_group_in, in_percent)
         step = "count_rows"
         if not isinstance(in_percent, bool):
             raise SimplydataError("in_percent= should be True or False.")
@@ -1357,7 +1382,7 @@ class SummaryWords:
         return result
 
     @friendly
-    def count_each(self, column, interval=None):
+    def count_each(self, column=None, interval=None, columns=None, in_order=None):
         """Each different value in a column, how many times it appears, and its percent.
 
         Biggest count first. Empty cells count as a value of their own, so the percents
@@ -1366,7 +1391,22 @@ class SummaryWords:
         interval=95 adds a 95 % interval to each percent that holds for all of them at once
         (Sison and Glaz, statsmodels multinomial_proportions_confint, as R
         DescTools::MultinomCI()).
+        Answers on a scale (Likert items): columns= names the questions and in_order= the
+        answers from the lowest to the highest; one row per question with the count and percent
+        of each answer, the percent in the top two answers and the median answer:
+        table.count_each(columns=["teaching", "pace"], in_order=["strongly disagree", "disagree",
+        "neutral", "agree", "strongly agree"])   (with sdata.get_example("course_feedback"))
         """
+        if columns is not None or in_order is not None:
+            if interval is not None:
+                raise SimplydataError("interval= goes with one column without in_order=; for answers on a scale "
+                                      "leave it out.")
+            return self._count_answers(columns if columns is not None else column, in_order)
+        if column is None:
+            raise SimplydataError(
+                "count_each() needs one column name in quotes.\n"
+                'For example, with sdata.get_example("fruit"): table.count_each("fruit")'
+            )
         if not isinstance(column, str):
             raise SimplydataError(
                 "count_each() needs one column name in quotes.\n"
@@ -1405,6 +1445,33 @@ class SummaryWords:
             print(f"The {level:g} % intervals hold for all {kinds} percents at once (Sison and Glaz; statsmodels "
                   "multinomial_proportions_confint, as R DescTools::MultinomCI()).")
         return self._new_table(nw.maybe_reset_index(result))
+
+    def _count_answers(self, columns, in_order):
+        """count_each(columns=, in_order=): answers on a scale, one row per question (table/answers.py)."""
+        from .answers import answer_table, check_answers
+
+        data = self._frame.to_pandas()
+        columns, levels = check_answers("count_each()", data, columns, in_order)
+        found = answer_table(data, columns, levels)
+        empty = int(found.pop("empty").sum())
+        k = len(levels)
+        print(f"Answers to {len(columns)} question{'s' * (len(columns) != 1)} on a scale of {k} ({levels[0]} to "
+              f"{levels[-1]}), counted by pandas; each percent is out of the answers given:")
+        for _, row in found.head(GROUPS_IN_SENTENCE).iterrows():
+            share = row["percent in top two"]
+            print(f"  {row['question']}: {_say_number(share)} % in the top two ({levels[-2]} or {levels[-1]}), median "
+                  f"answer \"{row['median answer']}\" ({row['answers']} answers)")
+        if len(found) > GROUPS_IN_SENTENCE:
+            print(f"  ... and {len(found) - GROUPS_IN_SENTENCE} more in the table.")
+        print("The median answer is a real answer (R quantile(type = 1)). simplydata gives no averages of answers: the "
+              "steps between them need not be equal (Jamieson 2004). chart.draw_answer_bars() draws the same counts.")
+        if empty:
+            print(f"Note: {empty} empty cell{'s were' if empty != 1 else ' was'} not counted.")
+        if self._frame.implementation.is_polars():
+            import polars as pl
+
+            found = pl.from_pandas(found)
+        return self._new_table(nw.from_native(found, eager_only=True))
 
     @friendly(renamed={"for_each": "for_each_group_in"})
     def count_different_values_in(self, column=None, for_each_group_in=None, every=None):
@@ -1470,6 +1537,8 @@ class SummaryWords:
         interval_by= chooses the 95 % interval of a percent: "exact" (Clopper-Pearson, the default, as R
         binom.test()), "wilson" (Wilson score) or "agresti-coull"; the last two from statsmodels
         proportion_confint, as R DescTools::BinomCI().
+        Under a survey design (table.use_survey_design) a condition gives the population percent with
+        survey's logit interval (R survey::svyciprop).
         """
         step = "find_percent_of_rows_where"
         method = _percent_method(step, interval_by)
@@ -1492,12 +1561,19 @@ class SummaryWords:
                     f"For example:  {example}\n"
                     'or:           table.find_percent_of_rows_where(for_each_group_in="class")'
                 )
+            if self._survey_on():
+                raise SimplydataError("Under a survey design, each group's share of the population comes from "
+                                      f'table.count_rows(for_each_group_in="{for_each_group_in}", in_percent=True).')
             return self._percent_of_rows(step, for_each_group_in, every, method)
         if not isinstance(column, str):
             raise SimplydataError(f"{step}() needs one column name in quotes.\nFor example:  {example}")
         self._need_columns(column)
         groups = self._group_columns(step, for_each_group_in, [column]) if for_each_group_in is not None else None
         if not given:
+            if self._survey_on():
+                raise SimplydataError("Under a survey design, find_percent_of_rows_where needs a condition, like "
+                                      f'is_equal_to="yes"; for shares of a total use table.find_total_of("{column}", '
+                                      "for_each_group_in=...).")
             return self._percent_of_total(step, column, groups, every)
         if len(given) > 1:
             names = " and ".join(f"{c}=" for c in given)
@@ -1508,6 +1584,14 @@ class SummaryWords:
             )
         cond, words = self._condition(step, column, options, ())
         counted = nw.lit(True) if "is_empty" in given else ~self._empty(column)
+        if self._survey_on():
+            if every is not None or interval_by != "exact":
+                raise SimplydataError("Under a survey design, find_percent_of_rows_where takes the column, one "
+                                      "condition and for_each_group_in= (the interval is survey's logit interval).")
+            flags = self._frame.select(cond.fill_null(False).cast(nw.Int64).alias("h"),
+                                       counted.cast(nw.Int64).alias("c"))
+            return self._survey_percent(step, column, flags["h"].to_numpy(), flags["c"].to_numpy().astype(bool),
+                                        words, for_each_group_in)
         frame = self._frame.with_columns(cond.cast(nw.Int64).alias("__hit"), counted.cast(nw.Int64).alias("__counted"))
         frame, periods = self._periods(step, frame, groups, every)
         sums = [nw.col("__hit").sum().alias("matching rows"), nw.col("__counted").sum().alias("rows")]

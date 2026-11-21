@@ -29,6 +29,7 @@ from .numbers import NumberGrid, Numbers, make_random_numbers, number_grid, numb
 from .words.layout import put_in_rows_and_columns, put_one_above_other, put_side_by_side
 from .words.stats import draw_all_pairs
 from .power import find_chance_of_finding, find_how_many_needed
+from .designs import make_design_table, make_random_assignments
 from .finding import find_where_biggest, find_where_smallest, solve
 from .distributions import distribution
 from ._sdata_tests import compare_averages, compare_counts
@@ -86,7 +87,8 @@ __all__ = [
     "Chart", "NumberGrid", "Numbers", "SimplydataError", "System", "Table", "chart", "compare_averages",
     "compare_counts", "compare_rates", "compare_risks", "compare_to_truth", "distribution", "draw_all_pairs",
     "find_chance_of_finding", "find_how_many_needed", "find_inverse_fourier_transform", "find_where_biggest",
-    "find_where_smallest", "frequency_filter", "get_example", "go_to_next_day", "help", "make_random_numbers",
+    "find_where_smallest", "frequency_filter", "get_example", "go_to_next_day", "help", "make_design_table",
+    "make_random_assignments", "make_random_numbers",
     "make_run_of_dates", "make_wave", "make_window_shape", "number_grid", "numbers", "put_in_rows_and_columns",
     "put_one_above_other", "put_side_by_side", "show_all_words", "show_answers", "show_day", "show_lesson",
     "show_packages_used", "show_today", "solve", "start_30_days", "system", "table", "__version__",
