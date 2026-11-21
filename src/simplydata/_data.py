@@ -560,10 +560,30 @@ def _is_web_address(text: str) -> bool:
     return text.lower().startswith(("http://", "https://"))
 
 
+def _redirect_allowed(old_url: str, new_url: str) -> bool:
+    """A web address may send you on to another http(s) address, never from https down to http (which would show
+    the address, and any key in it, to everyone on the way) and never to ftp or a file."""
+    old, new = urllib.parse.urlparse(old_url).scheme.lower(), urllib.parse.urlparse(new_url).scheme.lower()
+    return new == "https" or (new == "http" and old == "http")
+
+
+class _SafeRedirect(urllib.request.HTTPRedirectHandler):
+    def redirect_request(self, req, fp, code, msg, headers, newurl):
+        if not _redirect_allowed(req.full_url, newurl):
+            raise SimplydataError(
+                f"The web address sent simplydata on to another address that is not safe to follow:\n  {newurl}\n"
+                "simplydata follows https addresses only (and http only from an http address). "
+                "Download the file yourself and read it from your computer.")
+        return super().redirect_request(req, fp, code, msg, headers, newurl)
+
+
 def _download(url: str) -> bytes:
+    """The file at a web address the user gave: one GET request with the address and the User-Agent
+    "simplydata", nothing else of yours (privacy: README, SECURITY.md, tests/test_privacy.py)."""
     request = urllib.request.Request(url, headers={"User-Agent": "simplydata"})
+    opener = urllib.request.build_opener(_SafeRedirect)
     try:
-        with urllib.request.urlopen(request, timeout=WEB_TIMEOUT_SECONDS) as answer:
+        with opener.open(request, timeout=WEB_TIMEOUT_SECONDS) as answer:
             return answer.read()
     except urllib.error.HTTPError as problem:
         meaning = {401: "a login is needed", 403: "not allowed", 404: "not found",

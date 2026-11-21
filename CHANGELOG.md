@@ -5,6 +5,23 @@ working for one release and prints a one-line note with its new name.
 
 ## Unreleased
 
+### Privacy: your data never leaves your computer, checked by tests
+
+- An audit of the whole source found no telemetry, analytics, update checks, crash reports or logging. The only
+  network use is `sdata.table("https://...")` with a web address you give; everything else, R included, works
+  offline, and files are written only where you ask.
+- `r_call()`, simplydata's bridge to R, now refuses R code that names a network, install or file-writing function
+  (R does its own networking, out of Python's sight), and R draws into nothing instead of an `Rplots.pdf` file.
+- `sdata.table("https://...")` follows a web address on only to another https address (or http from http), never
+  from https down to http, to ftp or to a file.
+- New `tests/test_privacy.py` scans the source for network code and every R code string for downloads, installs
+  and file writing; checks that the list of packages used never holds a value or a column name of your tables;
+  and that importing simplydata adds no log file and a script writes only the files it asks for. The whole test
+  suite now runs with Python's outgoing network connections and name lookups blocked (`tests/conftest.py`); only
+  the tests of reading a web address may reach a local server on 127.0.0.1.
+- New README section "Privacy: your data stays on your computer", and `SECURITY.md` with how to report a security
+  or privacy problem privately.
+
 ### New: `sdata.show_packages_used()`, the packages that did the work and how to cite them
 
 - simplydata now remembers, during a session, every package that did work behind a word that finished without
