@@ -1145,7 +1145,8 @@ class StatTestWords:
         return self._result_table(row)
 
     # ------------------------------------------------------------------ compare_each_pair_of
-    @friendly(renamed={"test": "test_method", "between": "for_each_group_in", "for_each": "for_each_group_in", "seed": "with_seed"})
+    @friendly(renamed={"test": "test_method", "between": "for_each_group_in", "for_each": "for_each_group_in",
+                       "seed": "with_seed"})
     def compare_each_pair_of(self, column=None, for_each_group_in=None, based_on="averages", test_method=None, against=None, with_seed=1,
                              show="pairs", matched_by=None, value=None):
         """Which pairs of groups differ? Every pair is compared, with Holm's correction.
@@ -1980,7 +1981,9 @@ class StatTestWords:
               "sign_test().")
         return self._result_table(row)
 
-    @friendly(renamed={"test": "test_method", "bayesian": ("test_method", {True: "bayesian", False: None}), "seed": "with_seed"}, others={"rscale": "prior_width", "prior_scale": "prior_width"})
+    @friendly(renamed={"test": "test_method", "bayesian": ("test_method", {True: "bayesian", False: None}),
+                       "seed": "with_seed"},
+              others={"rscale": "prior_width", "prior_scale": "prior_width"})
     def compare_before_and_after(self, before=None, after=None, based_on="averages", sides=2, higher=None, lower=None,
                                  alternative=None, test_method=None, p_value_by="formula", shuffles=9999, with_seed=1,
                                  same_within=None, not_lower=None, not_higher=None, 
@@ -2136,7 +2139,9 @@ class StatTestWords:
             print(note)
         return self._result_table(row)
 
-    @friendly(renamed={"test": "test_method", "bayesian": ("test_method", {True: "bayesian", False: None}), "seed": "with_seed"}, others={"rscale": "prior_width", "prior_scale": "prior_width"})
+    @friendly(renamed={"test": "test_method", "bayesian": ("test_method", {True: "bayesian", False: None}),
+                       "seed": "with_seed"},
+              others={"rscale": "prior_width", "prior_scale": "prior_width"})
     def compare_average_to(self, column=None, value=None, based_on="averages", sides=2, higher=None, lower=None,
                            alternative=None, same_within=None, not_lower=None, not_higher=None, test_method=None,
                            standard_deviation=None, prior_width="medium", with_seed=1):
@@ -2296,7 +2301,8 @@ class StatTestWords:
                                    "average 95 % CI low": low, "average 95 % CI high": high, "rows": len(values)})
 
     # ------------------------------------------------------------------ compare_counts_of
-    @friendly(renamed={"test": "test_method", "bayesian": ("test_method", {True: "bayesian", False: None}), "between": "for_each_group_in", "for_each": "for_each_group_in", "seed": "with_seed"})
+    @friendly(renamed={"test": "test_method", "bayesian": ("test_method", {True: "bayesian", False: None}),
+                       "between": "for_each_group_in", "for_each": "for_each_group_in", "seed": "with_seed"})
     def compare_counts_of(self, column=None, for_each_group_in=None, test_method=None, in_order=None, p_value_by="formula",
                           shuffles=9999, with_seed=1, show=None):
         """Does how often each value turns up really differ between groups?

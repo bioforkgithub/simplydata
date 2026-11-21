@@ -80,7 +80,8 @@ class AgreementWords:
         return names, kept
 
     # ------------------------------------------------------------------ agreement_between
-    @friendly(renamed={"method": "test_method", "weights": "near_misses", "kind": "checking_for"}, others={"weight": "near_misses", "wt": "near_misses"})
+    @friendly(renamed={"method": "test_method", "weights": "near_misses", "kind": "checking_for"},
+              others={"weight": "near_misses", "wt": "near_misses"})
     def agreement_between(self, *columns, test_method=None, near_misses=None, in_order=None, interval=95,
                           raters="a sample", checking_for="agreement", of="one rater"):
         """How well do two or more raters (or devices) agree on the same rows?

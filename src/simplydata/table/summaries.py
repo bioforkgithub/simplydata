@@ -1916,7 +1916,9 @@ class SummaryWords:
         return [None if _missing(v) else _plain(v) for v in series.to_list()]
 
     # ------------------------------------------------------------------ correlation
-    @friendly(renamed={"method": "test_method", "bayesian": ("test_method", {True: "bayesian", False: None}), "seed": "with_seed"}, others={"rscale": "prior_width", "prior_scale": "prior_width"})
+    @friendly(renamed={"method": "test_method", "bayesian": ("test_method", {True: "bayesian", False: None}),
+                       "seed": "with_seed"},
+              others={"rscale": "prior_width", "prior_scale": "prior_width"})
     def find_correlation_between(self, *columns, test_method="pearson", show="r", sides=2, higher=None, lower=None,
                                  alternative=None, p_value_by="formula", interval_by=None, shuffles=9999, resamples=9999,
                                  with_seed=1, allowing_for=None, rows_back=None, sorted_by=None,

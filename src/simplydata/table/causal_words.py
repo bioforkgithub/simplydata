@@ -49,7 +49,8 @@ def _read_choice(step, option, value, choices, spellings=None):
 
 class CausalWords:
     # ------------------------------------------------------------------ compare_balanced_groups_of
-    @friendly(renamed={"method": "test_method", "for_each": "for_each_group_in", "caliper": "match_within", "estimand": "effect_for"})
+    @friendly(renamed={"method": "test_method", "for_each": "for_each_group_in", "caliper": "match_within",
+                       "estimand": "effect_for"})
     def compare_balanced_groups_of(self, column=None, for_each_group_in=None, allowing_for=None, test_method="weighting",
                                    effect_for=None, against=None, match_within=None, show=None, interval=95):
         """Make two groups alike in other columns, then compare them (propensity scores, weighting, matching).

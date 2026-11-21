@@ -1582,7 +1582,9 @@ class ModelWords:
         return notes
 
     # ------------------------------------------------------------------ explain
-    @friendly(renamed={"method": "test_method", "test_type": "table_of_tests", "bayesian": ("test_method", {True: "bayesian", False: None}), "smooth_for": "curve_for", "robust": "robust_errors", "seed": "with_seed"})
+    @friendly(renamed={"method": "test_method", "test_type": "table_of_tests",
+                       "bayesian": ("test_method", {True: "bayesian", False: None}), "smooth_for": "curve_for",
+                       "robust": "robust_errors", "seed": "with_seed"})
     def explain(self, column=None, using=None, outcome="numbers", grouped_by=None, empty_cells="leave out", with_seed=1,
                 time=None, out_of=None, in_order=None, link=None, table_of_tests=None, own_slope_for=None,
                 robust_errors=False, p_value_by="wald", effects="for the average group", within_groups="alike",

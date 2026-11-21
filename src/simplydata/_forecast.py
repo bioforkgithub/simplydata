@@ -178,7 +178,7 @@ def box_lag(n, period):
 
 def r_forecast(values, period, method, steps, interval, trend=True, season="added", order=None,
                seasonal_order=None, test=None):
-    """R's forecast (and its accuracy on test_method=): dict(mean, low, high, box, terms, estimates, errors, accuracy)."""
+    """R's forecast (and its accuracy on test=): dict(mean, low, high, box, terms, estimates, errors, accuracy)."""
     from ._r import r_call
 
     x = np.asarray(values, dtype=float)

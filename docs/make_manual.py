@@ -124,7 +124,7 @@ UNDERNEATH = {
     "fit_line": "SciPy (stats.linregress); the confidence band from statsmodels OLS, drawn with matplotlib",
     "fit_curve": "statsmodels (least squares on the powers of x), drawn with matplotlib",
     "draw_smooth_line": "statsmodels (lowess, which follows R's lowess()) or SciPy (make_smoothing_spline, for "
-                   "method=\"spline\"; smoothness=\"auto\" lets R smooth.spline choose it and needs R); the other "
+                   "test_method=\"spline\"; smoothness=\"auto\" lets R smooth.spline choose it and needs R); the other "
                    "methods as nums.smooth (SciPy, pandas; \"median\" R runmed); drawn with matplotlib",
     "draw_density": "seaborn (kdeplot)",
     "trade_off_curve": "R pROC (roc, coords, ci.auc; simplydata[r]), drawn with matplotlib",
@@ -172,12 +172,12 @@ UNDERNEATH = {
     "table.compare_counts_to": "SciPy (stats.chisquare)",
     "table.compare_percent_to": "SciPy (stats.binomtest, the Clopper-Pearson exact interval)",
     "table.find_percentile_of": "narwhals (quantile with linear interpolation, as R quantile type 7); NumPy (percentile "
-                           "with method=, R's nine types; repeat or percentile(weights=) for weights=); SciPy "
+                           "with test_method=, R's nine types; repeat or percentile(weights=) for weights=); SciPy "
                            "(stats.quantile_test for interval=)",
     "table.find_most_common_of": "narwhals (value counts per group)",
     "table.add_adjusted_p_value_column": "statsmodels (stats.multitest.multipletests: Holm, Bonferroni, "
                                          "Benjamini-Hochberg, Benjamini-Yekutieli, Hochberg and Hommel, as R p.adjust()); "
-                                         "R qvalue::qvalue for method=\"storey\" and \"local fdr\" (Bioconductor, "
+                                         "R qvalue::qvalue for test_method=\"storey\" and \"local fdr\" (Bioconductor, "
                                          "simplydata[r])",
     "table.add_rows_from": "pandas (concat) or Polars (concat), whichever holds the table",
     "table.find_correlation_between": "SciPy (stats.pearsonr, spearmanr or kendalltau; permutation_test and bootstrap "
@@ -201,7 +201,7 @@ UNDERNEATH = {
                                "PMCMRplus::kwAllPairsConoverTest and multcompView::multcompLetters for "
                                "show=\"letters\" (simplydata[r]); SciPy ttest_rel and wilcoxon for matched_by=, "
                                "R PMCMRplus::frdAllPairsNemenyiTest and frdAllPairsConoverTest after Friedman "
-                               "(test=); SciPy chi2_contingency or fisher_exact, statsmodels confint_proportions_2indep "
+                               "(test_method=); SciPy chi2_contingency or fisher_exact, statsmodels confint_proportions_2indep "
                                "for based_on=\"percents\"",
     "table.compare_before_and_after": "SciPy (stats.ttest_rel or stats.wilcoxon); statsmodels (contingency_tables.mcnemar "
                                   "for yes/no columns, SquareTable.symmetry for categories, sign_test); R "
@@ -241,8 +241,8 @@ UNDERNEATH = {
     "table.limits_of_agreement": "R BlandAltmanLeh::bland.altman.stats and DescTools::CCC (simplydata[r])",
     "table.reliability_of": "R psych::alpha and psych::alpha.ci (simplydata[r])",
     "table.compare_average_to": "SciPy (stats.ttest_1samp or stats.wilcoxon); statsmodels "
-                                "(DescrStatsW.ttost_mean for same_within=); R BSDA::z.test for test=\"z\" (simplydata[r])",
-    "table.compare_counts_of": "SciPy (stats.chi2_contingency, or fisher_exact with test=\"fisher\", with a seeded "
+                                "(DescrStatsW.ttost_mean for same_within=); R BSDA::z.test for test_method=\"z\" (simplydata[r])",
+    "table.compare_counts_of": "SciPy (stats.chi2_contingency, or fisher_exact with test_method=\"fisher\", with a seeded "
                             "MonteCarloMethod for bigger tables; contingency.association for Cramer's V); statsmodels "
                             "Table.standardized_resids for show=\"cells\"; R fisher.test and prop.trend.test "
                             "(simplydata[r])",
@@ -255,7 +255,7 @@ UNDERNEATH = {
                         "interval=)",
     "table.compare_shape_to": "SciPy (stats.shapiro for normal, normaltest, jarque_bera, ks_1samp, cramervonmises; "
                               "for other shapes stats.goodness_of_fit, Anderson-Darling with a Monte Carlo p-value); "
-                              "R nortest::lillie.test for test=\"lilliefors\"; R circular::rayleigh.test on a "
+                              "R nortest::lillie.test for test_method=\"lilliefors\"; R circular::rayleigh.test on a "
                               "circle (full_turn=; simplydata[r])",
     # fitting
     "table.fit_line": "SciPy (stats.linregress)",
@@ -340,7 +340,7 @@ UNDERNEATH = {
                      "performance::r2_mcfadden); R mgcv::gam for curve_for= (needs R); "
                      "R itself (needs R) for lme4::glmer, lme4::lmer with own_slope_for=, lmerTest for "
                      "p_value_by=\"satterthwaite\", geepack for within_groups=\"in time order\" and GEE with out_of=, car::Anova and "
-                     "effectsize for test_type=, sandwich::vcovHC for robust_errors=True with yes/no and counts, and mice::pool for "
+                     "effectsize for table_of_tests=, sandwich::vcovHC for robust_errors=True with yes/no and counts, and mice::pool for "
                      "multiple imputation; R performance::r2_nakagawa for the R squared of every grouped_by= model; "
                      "statsmodels WLS and GLM(var_weights=) for weights=, RLM for giving_outliers_less_weight=, "
                      "ConditionalLogit for matched_by=, GLM(cov_type=\"HC0\") for risk ratios; patsy cr for "
@@ -355,7 +355,7 @@ UNDERNEATH = {
                          "plot(lm), plot(glm) and plot(lmer) with qqnorm(ranef), drawn with matplotlib; R lme4::glmer "
                          "for yes/no and counts with grouped_by=; statsmodels variance_inflation_factor (least "
                          "squares) or R car::vif (GLMs, group columns) for the variance inflation factors; with "
-                         "bayesian=True R rstanarm (posterior_predict, prior_PD) and stats::density",
+                         "test_method=\"bayesian\" R rstanarm (posterior_predict, prior_PD) and stats::density",
     "table.show_rows_that_pull_model": "statsmodels (OLSInfluence, GLMInfluence), as R cooks.distance, hatvalues and "
                                  "rstudent; R lme4 influence() and cooks.distance() for whole groups with grouped_by=",
     "table.compare_models": "statsmodels (OLS compare_f_test; GLM deviances and log-likelihoods with SciPy's chi-square "
@@ -365,7 +365,7 @@ UNDERNEATH = {
     "table.add_principal_components": "statsmodels (multivariate.pca.PCA, by singular value decomposition)",
     "table.find_principal_components_of": "statsmodels (multivariate.pca.PCA, by singular value decomposition)",
     "table.add_clusters": "R stats::kmeans (k-means; needs R) or SciPy (cluster.hierarchy, for "
-                          "method=\"hierarchical\"); the silhouette width from R cluster::silhouette",
+                          "test_method=\"hierarchical\"); the silhouette width from R cluster::silhouette",
     "table.find_distances_between_rows": "SciPy (spatial.distance.pdist); R vegan::vegdist for the Aitchison, "
                                          "robust Aitchison and Hellinger distances",
     "table.add_nmds": "R vegan::metaMDS on vegan::vegdist distances (needs R)",
@@ -1016,7 +1016,7 @@ def underneath_name(key: str) -> str:
 
 def underneath_figure(key: str) -> str:
     """The file (relative to docs/manual) of the one picture a chart word's box shows. An option entry's key
-    ('draw_smooth_line method="loess", ...') has spaces, quotes and commas: each run of them becomes one _."""
+    ('draw_smooth_line test_method="loess", ...') has spaces, quotes and commas: each run of them becomes one _."""
     import re
 
     return "figures/underneath_" + re.sub(r"[^A-Za-z0-9]+", "_", key).strip("_") + ".pdf"

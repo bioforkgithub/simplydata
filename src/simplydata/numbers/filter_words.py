@@ -110,7 +110,8 @@ class FilterNumberWords:
                                                                    removed_by, width, and_multiples))
         return self._change(f"{'keep' if keep else 'remove'} frequencies {condition}", out)
 
-    @friendly(renamed={"method": "test_method", "below": "is_below", "above": "is_above", "between": "is_between", "equal_to": "is_equal_to"})
+    @friendly(renamed={"method": "test_method", "below": "is_below", "above": "is_above", "between": "is_between",
+                       "equal_to": "is_equal_to"})
     def keep_each_frequency_that(self, is_below=None, is_above=None, is_between=None, is_equal_to=None, time_step=None,
                                  test_method="butterworth", steepness=4, both_ways=True, ripple=0.5, removed_by=40, width=1,
                                  show_filter=False, sampling_rate=None, fs=None):
@@ -132,7 +133,8 @@ class FilterNumberWords:
                                  ripple, removed_by, 101, "hamming", width, False, sampling_rate, fs,
                                  "keep_each_frequency_that", show_filter)
 
-    @friendly(renamed={"method": "test_method", "below": "is_below", "above": "is_above", "between": "is_between", "equal_to": "is_equal_to"})
+    @friendly(renamed={"method": "test_method", "below": "is_below", "above": "is_above", "between": "is_between",
+                       "equal_to": "is_equal_to"})
     def remove_each_frequency_that(self, is_below=None, is_above=None, is_between=None, is_equal_to=None, time_step=None,
                                    test_method="butterworth", steepness=4, both_ways=True, ripple=0.5, removed_by=40, width=1,
                                    and_multiples=False, show_filter=False, sampling_rate=None, fs=None):

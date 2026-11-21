@@ -36,7 +36,7 @@ chose it, the published evidence, and what simplydata checks in your data before
 
 ## How to read the tables
 
-- **Word or option**: the simplydata word, or a word with one of its options (`table.combine_studies method=`).
+- **Word or option**: the simplydata word, or a word with one of its options (`table.combine_studies test_method=`).
 - **Default**: what simplydata does when you do not say otherwise.
 - **Alternatives**: what else you can ask for, and how.
 - **Why**: the principle followed (P1 to P5), the reasoning and the evidence, then **Checks**: what simplydata
