@@ -12,6 +12,8 @@ STATIONS = """
     y = df["north"].to_numpy(dtype=float)
     z = df["zinc"].to_numpy(dtype=float)
     direction = df["current_direction"].to_numpy(dtype=float)
+    lon = df["lon"].to_numpy(dtype=float)
+    lat = df["lat"].to_numpy(dtype=float)
 """
 SEALEVEL = """
     df = sdata.get_example("sealevel")
@@ -150,6 +152,34 @@ ENTRIES = [
         choices=("each place's k nearest places count alike, the others not at all, each row's weights summing to 1.",),
         python_note=SPDEP_NOTE,
         also="simplydata also says that the weights change Moran's I, so the report must name them.",
+    ),
+    Entry(
+        word="table.find_autocorrelation_of", option="on_globe=",
+        data="stations",
+        ours="""
+            table = sdata.table(sdata.get_example("stations"))
+            table.find_autocorrelation_of("zinc", x="lon", y="lat", on_globe=True)
+        """,
+        code={
+            "R": """
+                # find_autocorrelation_of("zinc", x="lon", y="lat", on_globe=True)
+                pts <- sf::st_as_sf(data.frame(x = lon, y = lat), coords = c("x", "y"),
+                                    crs = 4326)                                            # (1)
+                nb <- spdep::dnearneigh(pts, 0, Inf)
+                lw <- spdep::nb2listwdist(nb, pts, type = "idw", alpha = 1, style = "W")
+                set.seed(1)
+                m <- spdep::moran.mc(z, lw, nsim = 999)
+                list(i = m$statistic, p = m$p.value)
+            """,
+            "Python": """
+                {"Moran's I": i, "p-value": p}
+            """,
+        },
+        r_inputs=STATIONS, r_packages=("spdep", "sf"), compare="result", fields=("Moran's I", "p-value"),
+        tolerance=1e-9,
+        choices=("longitude and latitude as places on the earth (crs 4326): great-circle distances in km.",),
+        python_note=SPDEP_NOTE,
+        also="simplydata also refuses on_globe=True on columns beyond -180 to 180 and -90 to 90.",
     ),
     # ------------------------------------------------------------------ AC09: variogram
     Entry(
@@ -330,5 +360,32 @@ ENTRIES = [
                     "R extRemes is the check.",
         also="simplydata also accepts \"generalised pareto\" (\"generalized pareto\", \"gpd\") for the amounts above a "
              "threshold, with the same sign as SciPy's genpareto.",
+    ),
+    Entry(
+        word="table.fit_distribution_to", option='distribution="generalised pareto"',
+        data="rain",
+        ours="""
+            table = sdata.table(sdata.get_example("rain"))
+            table.keep_rows_where("rain > 20")
+            table.add_column("excess", "rain - 20")
+            table.fit_distribution_to("excess", distribution="generalised pareto").turn_into_table()
+        """,
+        code={
+            "R": """
+                # fit_distribution_to("excess", distribution="generalised pareto") on the rain above 20
+                f <- extRemes::fevd(x, threshold = 20, type = "GP", method = "MLE")   # (1)
+                p <- f$results$par
+                list(scale = p[["scale"]], shape = p[["shape"]])
+            """,
+            "Python": """
+                {"scale": scale, "shape": shape}
+            """,
+        },
+        r_inputs=RAIN, r_packages=("extRemes",), compare="result", fields=("scale", "shape"), tolerance=1e-4,
+        choices=("the shape in the sign of extRemes, Coles and SciPy's genpareto (xi), with the threshold at 0: the "
+                 "values are the amounts above a threshold.",),
+        python_note="simplydata fits it with SciPy (genpareto.fit with loc = 0, then a numerical polish of the "
+                    "likelihood); R extRemes is the check.",
+        also="simplydata also names the classical \"pareto\" as another family in both printouts.",
     ),
 ]

@@ -83,7 +83,8 @@ def moran_code(on_globe, nearest, permutations, seed) -> str:
     return (f'pts <- sf::st_as_sf(data.frame(x = x, y = y), coords = c("x", "y"){crs}); {weights}'
             f"set.seed({int(seed)}); m <- spdep::moran.mc(z, lw, nsim = {int(permutations)}); "
             "t <- spdep::moran.test(z, lw); "
-            'list(i = m$statistic, p = m$p.value, expected = t$estimate[["Expectation"]])')
+            'l <- spdep::moran.test(z, lw, alternative = "less"); '
+            'list(i = m$statistic, p = m$p.value, expected = t$estimate[["Expectation"]], p_less = l$p.value)')
 
 
 def moran(x, y, z, on_globe=False, nearest=None, permutations=999, seed=1):
@@ -91,7 +92,8 @@ def moran(x, y, z, on_globe=False, nearest=None, permutations=999, seed=1):
     found = _call(moran_code(on_globe, nearest, permutations, seed), "Moran's I (R spdep::moran.mc())",
                   ("spdep", "sf"), "spdep::moran.mc", x=np.asarray(x, dtype=float), y=np.asarray(y, dtype=float),
                   z=np.asarray(z, dtype=float))
-    return {"i": _number(found["i"]), "p": _number(found["p"]), "expected": _number(found["expected"])}
+    return {"i": _number(found["i"]), "p": _number(found["p"]), "expected": _number(found["expected"]),
+            "p_less": _number(found["p_less"])}
 
 
 # ---------------------------------------------------------------- variogram
@@ -205,7 +207,9 @@ def threshold_check(x, low, high):
     SHAPE_POINTS thresholds from low to high). Both draw into nothing; their values are drawn by matplotlib."""
     code = (
         "r <- range(x, finite = TRUE); "
-        f"mu <- seq(r[1], r[2] - 1, length.out = {MEAN_EXCESS_POINTS}); "  # mrlplot's own thresholds
+        # the thresholds of extRemes::mrlplot, written as in its source (seq(r[1], r[2] - 1, , nint)); it returns
+        # the values only, so they are rebuilt here; tests/test_s3c3_places.py and the reliability case check them
+        f"mu <- seq(r[1], r[2] - 1, length.out = {MEAN_EXCESS_POINTS}); "
         f"m <- extRemes::mrlplot(x, nint = {MEAN_EXCESS_POINTS}); "
         f"su <- seq({float(low)!r}, {float(high)!r}, length.out = {SHAPE_POINTS}); "  # threshrange.plot's own
         f'tr <- extRemes::threshrange.plot(x, r = c({float(low)!r}, {float(high)!r}), nint = {SHAPE_POINTS}, '
@@ -217,6 +221,4 @@ def threshold_check(x, low, high):
     return {k: _numbers(v) for k, v in found.items()}
 
 
-def need_extremes(what):
-    _need(("extRemes",), what)
 

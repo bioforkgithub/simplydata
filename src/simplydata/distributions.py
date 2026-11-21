@@ -500,6 +500,8 @@ FAMILIES = [
            [Param("shape", REQUIRED, ("a", "alpha"), "a", "positive"),
             Param("scale", 1, ("b", "minimum"), "b", "positive")],
            _pareto, "pareto", "extraDistr::", data="positive", fit="closed",
+           describe=lambda p: (f"{_with(p, FAMILY['pareto'])} (the classical Pareto; for the amounts above a "
+                               "threshold use \"generalised pareto\")"),
            r_fit="the closed form (scale = smallest value, shape = n / sum(log(x / scale)))"),
     # S3c-3: extremes. The shape is xi, as in extRemes and Coles (2001); SciPy's genextreme uses c = -xi
     Family("gev", "GEV", ("generalised extreme value", "generalized extreme value", "genextreme",

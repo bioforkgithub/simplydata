@@ -1458,6 +1458,8 @@ class ChartWords:
         from ..table.places import looks_like_direction
 
         compass = turn is not None or looks_like_direction(angle)
+        if degrees is False and turn is not None:
+            print("Note: full_turn= says how big a turn is, so degrees=False is not used.")
         if degrees is False and turn is None:
             print('Note: degrees=False still works for this release; the new way is full_turn="radians".')
         if angle is None or distance is None:

@@ -90,13 +90,13 @@ def full_turn_of(step, full_turn, example=DIRECTION_EXAMPLE) -> float:
     return float(full_turn)
 
 
-def turn_words(full_turn) -> str:
-    """How a direction on this full turn is written: 317° for 360, '17.3 (of 24)' otherwise."""
+def _spread(value, full_turn) -> str:
+    """A circular standard deviation: a size in the units of the column, not a direction."""
     if full_turn == 360:
-        return "degrees"
+        return f"{value:.0f}°" if value >= 10 else f"{value:.1f}°"
     if math.isclose(full_turn, 2 * math.pi):
-        return "radians"
-    return f"a full turn of {full_turn:g}"
+        return f"{value:.3g} radians"
+    return f"{value:.3g} (in the units of the column)"
 
 
 def _direction(value, full_turn) -> str:
@@ -241,7 +241,7 @@ class PlaceWords:
             if not len(v):
                 lines.append(f"  {label}: no values (skipped)")
                 continue
-            average = float(stats.circmean(v, high=turn, low=0))
+            average = float(stats.circmean(v, high=turn, low=0)) % turn  # SciPy can give the full turn itself
             angles = v / turn * 2 * math.pi  # onto the unit circle, for SciPy directional_stats
             length = float(stats.directional_stats(np.column_stack([np.cos(angles), np.sin(angles)])).mean_resultant_length)
             spread = float(stats.circstd(v, high=turn, low=0))
@@ -255,11 +255,13 @@ class PlaceWords:
                      "there is no clear average direction")
             if groups:
                 lines.append(f"  {label}: {_direction(average, turn)} (resultant length {length:.2f}: {clear}; "
-                             f"circular standard deviation {_direction(spread, turn)}; {len(v)} values)")
+                             f"circular standard deviation {_spread(spread, turn)}"
+                             f"{' (not meaningful here)' if length < NO_DIRECTION else ''}; {len(v)} values)")
             else:
                 lines.append(f'The average direction of "{column}" is {_direction(average, turn)} (resultant length '
                              f"{length:.2f}: {clear}; 1 = all the same direction, 0 = no average direction). "
-                             f"Circular standard deviation {_direction(spread, turn)} ({len(v)} values).")
+                             f"Circular standard deviation {_spread(spread, turn)}"
+                             f"{' (not meaningful here)' if length < NO_DIRECTION else ''} ({len(v)} values).")
                 if length < NO_DIRECTION:
                     lines.append("The average direction is still given, but with a resultant length this small it "
                                  "means little: the directions point every way (or to two opposite sides).")
@@ -272,7 +274,8 @@ class PlaceWords:
               "directional_stats for the resultant length; the same numbers as R circular's mean.circular, rho.circular, "
               "sd.circular and var.circular with the units given.")
         print(f"simplydata chooses: the average from 0 up to {turn:g} (R circular gives the same direction from "
-              f"-{turn / 2:g} to {turn / 2:g}, such as -43° for 317°), and the circular standard deviation "
+              f"-{turn / 2:g} to {turn / 2:g}{', such as -43° for 317°' if turn == 360 else ''}), and the circular "
+              "standard deviation "
               "sqrt(-2 ln(resultant length)), as R sd.circular, in the units of the column.")
         return _new_rows_table(self, rows)
 
@@ -291,9 +294,11 @@ class PlaceWords:
         example = (f'table.compare_shape_to("{column}", shape="even around the circle", full_turn=360)   '
                    '(with sdata.get_example("stations"))')
         name = shape.strip().lower() if isinstance(shape, str) else shape
+        if test is not None and not isinstance(test, str):
+            raise SimplydataError(f'test= is a name in quotes; on a circle it is test="rayleigh".\nFor example, {example}')
         if name not in CIRCLE_SHAPES and name not in ("uniform", "even", "evenly spread", "normal"):
-            raise SimplydataError(f'test="rayleigh" checks the shape "even around the circle"; leave out shape= or '
-                                  f"write it.\nFor example, {example}")
+            raise SimplydataError(f'On a circle (full_turn=) the shape to compare with is "even around the circle" (the '
+                                  f"Rayleigh test); {shape!r} is not offered there.\nFor example, {example}")
         if test is not None and test.strip().lower() != "rayleigh":
             raise SimplydataError(f'On a circle the test is "rayleigh" (test="{test}" is a test of a bell shape).\n'
                                   f"For example, {example}")
@@ -395,7 +400,7 @@ class PlaceWords:
         if i > expected and p < 0.05:
             print(f'Nearby places have more alike values of "{column}" than distant ones: Moran\'s I = {i:.3f} '
                   f"({no_pattern}), where {weights}.")
-        elif i < expected:
+        elif i < expected and found["p_less"] < 0.05:
             print(f'Nearby places have less alike values of "{column}" than distant ones: Moran\'s I = {i:.3f} '
                   f"({no_pattern}), where {weights}. The test below looks for nearby places being more alike.")
         else:
@@ -404,7 +409,8 @@ class PlaceWords:
         print(_permutation_p_sentence(p, permutations, "the values were scattered over the places at random",
                                       "nearby values at least this alike", "that the values are scattered at random"))
         call = places_r.moran_code(on_globe, nearest, permutations, int(with_seed)).split("t <- spdep::moran.test")[0]
-        print(f"Method: R {call.strip()} ({n} places; spdep::moran.test for the value with no pattern).")
+        print(f"Method: R {call.strip()} ({n} places; spdep::moran.test for the value with no pattern, and with "
+              'alternative = "less" before a sentence about nearby places being less alike).')
         chosen = [("the 1 / distance weights between all pairs, row-standardised" if not nearest else None),
                   f"{permutations:,} permutations after set.seed({int(with_seed)})",
                   "a one-sided test (nearby places more alike), spdep's default"]
@@ -476,28 +482,22 @@ class PlaceWords:
         step = "find_variogram_of"
         kind, cutoff, xs, ys, z = self._variogram_input(step, column, x, y, of_kind, between, VARIOGRAM_EXAMPLE)
         found = places_r.variogram(xs, ys, z, kind, cutoff)
-        problem_text = " ".join(found["warnings"])
-        if found["singular"] or "convergence" in problem_text.lower() or not math.isfinite(found["range"]) or \
-                found["range"] <= 0:
-            others = [k for k in VARIOGRAM_KINDS if k != kind]
-            raise SimplydataError(
-                f"gstat could not fit a {kind} curve to these points"
-                f"{' (' + problem_text.strip() + ')' if problem_text.strip() else ''}. Try another curve, such as "
-                f'of_kind="{others[0]}", or look at the points first: chart.draw_variogram("{column}", x="{x}", '
-                f'y="{y}").')
+        problem = variogram_problem(found, kind, column, x, y)
+        if problem:
+            raise SimplydataError(problem)
         nugget, psill, rng = found["nugget"], found["psill"], found["range"]
         units = f'in the units of "{x}" and "{y}"'
         if kind == "spherical":
             print(f'Values of "{column}" become unrelated beyond about {_say(rng)} (the range, {units}).')
         else:
             times = {"exponential": "three times", "gaussian": "about 1.7 times",
-                     "matern": "about three times (with kappa 0.5, as here)" if math.isclose(found["kappa"], 0.5)
+                     "matern": "three times (with kappa 0.5, as here)" if math.isclose(found["kappa"], 0.5)
                      else "a few times"}[kind]
             print(f'Values of "{column}" become nearly unrelated at about {times} the range parameter {_say(rng)} '
                   f"({units}): for the {kind} curve, gstat's range is not the distance where the curve levels off.")
         print(f"Nugget {_say(nugget)} (differences even between very close places: measurement error or variation at "
-              f"shorter distances than were sampled), partial sill {_say(psill)} (the rise from the nugget to the "
-              f"plateau of {_say(nugget + psill)}).")
+              f"shorter distances than were sampled), partial sill {_say(psill)} (the further rise from the nugget up "
+              "to the plateau).")
         cut = f", cutoff = {cutoff:g}" if cutoff is not None else ""
         model = places_r.VARIOGRAM_MODELS[kind]
         print(f"Method: R gstat::variogram(z ~ 1, locations = ~ x + y, data{cut}) ({len(found['dist'])} distance bins"
@@ -560,6 +560,7 @@ class PlaceWords:
         rows = self._say_return_levels(found, periods, unit)
         low, high = float(found["par_low"][2]), float(found["par_high"][2])
         self._say_shape(shape, low, high, f"Location {_say(location)}, scale {_say(scale)}.", "GEV")
+        self._convergence_note(found)
         print('Method: R extRemes::fevd(x, type = "GEV", method = "MLE"); extRemes::return.level(); '
               'extRemes::ci.fevd(type = "return.level", method = "proflik") for each interval.')
         self._extremes_choices()
@@ -579,13 +580,19 @@ class PlaceWords:
                   "the years to be sure.")
         else:
             self._need_columns(sorted_by)
-            if self._frame.schema[sorted_by].is_numeric():
+            dtype = self._frame.schema[sorted_by]
+            if dtype.is_numeric():
                 years = self._frame[sorted_by].to_numpy()
                 if len(set(years.tolist())) < len(years):
                     raise SimplydataError(_several_per_year(step, column, sorted_by, "the same value in several rows"))
+            elif dtype.is_temporal():
+                # yearly maxima are often stored with the date each happened: one row per calendar year is the test
+                years = self._frame.select(nw.col(sorted_by).dt.year())[sorted_by].to_list()
+                if len(set(years)) < len(years):
+                    raise SimplydataError(_several_per_year(step, column, sorted_by, "more than one row in a year"))
             series = series_of(self, column, sorted_by, None, step, RETURN_EXAMPLE)[0]
             values = series.values
-            unit = _block_unit(series, sorted_by, column, step)
+            unit = "years" if dtype.is_temporal() else _block_unit(series, sorted_by, column, step)
         empty = int(np.isnan(values).sum())
         if empty:
             print(f"Note: {empty} empty cell{'' if empty == 1 else 's'} in \"{column}\" {'is' if empty == 1 else 'are'} "
@@ -624,10 +631,11 @@ class PlaceWords:
         found = places_r.over_threshold(values, threshold, units, periods)
         scale, shape = (float(v) for v in found["par"])
         print(f'Generalised Pareto curve fitted to the {above} values of "{column}" above {threshold:g} '
-              f"(of {len(values):,} readings, one a {units[:-1]}).")
+              f"(of {len(values):,} readings, one {'an hour' if units == 'hours' else 'a ' + units[:-1]}).")
         rows = self._say_return_levels(found, periods, "years")
         low, high = float(found["par_low"][1]), float(found["par_high"][1])
         self._say_shape(shape, low, high, f"Scale {_say(scale)} (of the amounts above {threshold:g}).", "GP")
+        self._convergence_note(found)
         print(f'Method: R extRemes::fevd(x, threshold = {threshold:g}, type = "GP", time.units = "{units}"); '
               'extRemes::return.level(); extRemes::ci.fevd(type = "return.level", method = "proflik") for each '
               f"interval; extRemes::extremalindex(x, {threshold:g}) for the runs.")
@@ -657,7 +665,7 @@ class PlaceWords:
                 low, high = n_low, n_high
             how = "profile likelihood" if profile else "normal approximation"
             each = (f"a 1-in-{t:g} chance in any one {word}" if unit == "years" else
-                    f"once in {t:g} blocks: years, if each row is one year")
+                    "years, if each row is one year")
             print(f"A level of {_say(level)} is reached on average once in {t:g} {unit} ({each}); 95 % CI "
                   f"{_say(low)} to {_say(high)} ({how}).")
             if not profile:
@@ -678,14 +686,31 @@ class PlaceWords:
         else:
             reading = f"above 0: a heavy upper tail, where very high values are more likely than {light} says"
         sign = "SciPy's genextreme uses c = -xi" if kind == "GEV" else "SciPy's genpareto uses the same sign"
-        print(f"Shape xi = {shape:.3f} (95 % CI {low:.3f} to {high:.3f}): {reading}. {rest} (xi in the sign of extRemes "
+        print(f"Shape xi = {shape:.3f} (95 % CI {low:.3f} to {high:.3f}, normal approximation): {reading}. {rest} (xi in the sign of extRemes "
               f"and Coles 2001; {sign}.)")
+
+    @staticmethod
+    def _convergence_note(found):
+        if found.get("convergence", 0) != 0:
+            print("Note: extRemes's search for the best curve did not settle (optim convergence code "
+                  f"{found['convergence']:g}); the numbers above may be off. Check the data, or try more blocks.")
 
     @staticmethod
     def _extremes_choices():
         print("simplydata chooses: maximum likelihood; profile-likelihood intervals (Coles 2001, section 3.3.3: the "
               "normal approximation is too narrow and too symmetric for long return periods); no declustering. "
               "The levels are in the units of the column.")
+
+
+def variogram_problem(found, kind, column, x, y):
+    """Why gstat's fit cannot be used (singular, no convergence, no range), or None; for the word and the chart."""
+    text = " ".join(found["warnings"]).strip()
+    if found["singular"] or "convergence" in text.lower() or not math.isfinite(found["range"]) or found["range"] <= 0:
+        others = [k for k in VARIOGRAM_KINDS if k != kind]
+        return (f"gstat could not fit a {kind} curve to these points{' (' + text + ')' if text else ''}. Try another "
+                f'curve, such as of_kind="{others[0]}", or look at the points first: table.find_variogram_of("{column}", '
+                f'x="{x}", y="{y}").')
+    return None
 
 
 def _periods(step, once_in):
@@ -707,10 +732,6 @@ def _block_unit(series, sorted_by, column, step) -> str:
     not block maxima (independent review 5.3)."""
     times = series.times
     gaps = np.diff(times) if times is not None and len(times) > 1 else np.array([])
-    if series.unit == "years" or (series.unit == "days" and len(gaps) and gaps.min() >= 360):
-        return "years"
-    if series.unit in ("days", "seconds", "weeks", "months", "quarters"):
-        raise SimplydataError(_several_per_year(step, column, sorted_by, series.unit))
     if times is not None and len(gaps) and np.all(times == np.round(times)) and gaps.min() >= 1 and             np.all((times >= 1000) & (times <= 3000)):
         return "years"
     return "blocks"

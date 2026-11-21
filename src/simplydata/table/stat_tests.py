@@ -2547,13 +2547,13 @@ class StatTestWords:
         step = "compare_shape_to"
         example = 'with sdata.get_example("marks"): table.compare_shape_to("marks", "normal", for_each_group_in="class")'
         self._need_name(step, "the column", column, example)
-        if self._circle_shape_wanted(shape, test, full_turn) or (full_turn is not None and not isinstance(
-                shape, Distribution)):
-            if full_turn is not None and isinstance(shape, str) and shape.strip().lower() == "normal" and test is None:
-                raise SimplydataError(
-                    'With full_turn= the values are directions, and the shape to compare with is "even around the '
-                    f'circle" (the Rayleigh test):\n  table.compare_shape_to("{column}", shape="even around the '
-                    f'circle", full_turn={full_turn!r})')
+        if full_turn is not None and isinstance(shape, Distribution):
+            raise SimplydataError("full_turn= says the values are directions on a circle; a distribution of fixed numbers "
+                                  "(sdata.distribution) is a shape on a line. Leave out one of them.")
+        if self._circle_shape_wanted(shape, test, full_turn) or full_turn is not None:
+            if isinstance(shape, str) and shape.strip().lower() == "normal" and test is None:
+                print('On a circle (full_turn=) the shape to compare with is "even around the circle": the Rayleigh '
+                      "test (review 3.1: the default with full_turn=).")
             return self._compare_circle(step, column, shape, full_turn, for_each_group_in, test)
         if isinstance(shape, str) and shape.strip().lower() in ("uniform", "even") and _looks_like_direction(column):
             print(f'Note: "{column}" looks like directions. On a circle, "uniform" means even around the circle: '

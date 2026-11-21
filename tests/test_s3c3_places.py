@@ -89,6 +89,12 @@ def test_values_outside_the_turn_get_a_note_and_groups_work(capsys):
     assert result["average direction"].tolist() == pytest.approx([15.0, 180.0], abs=1e-9)
 
 
+def test_the_average_is_below_the_full_turn():
+    table = sdata.table(pd.DataFrame({"h": [23.0, 1.0, 2.0, 22.0]}))
+    result = table.find_average_direction_of("h", full_turn=24).as_pandas()
+    assert 0 <= result["average direction"][0] < 24
+
+
 def test_a_flat_spread_says_there_is_no_clear_direction(capsys):
     table = sdata.table(pd.DataFrame({"d": [0.0, 90, 180, 270]}))
     table.find_average_direction_of("d", full_turn=360)
@@ -115,6 +121,8 @@ def test_rayleigh_is_r_circular(needs_r, capsys):
     assert "If the directions were spread evenly around the circle" in out and 'units = "degrees"' in out
     again = table.compare_shape_to("current_direction", test="rayleigh", full_turn=360).as_pandas()
     assert again["p-value"][0] == result["p-value"][0]
+    default = table.compare_shape_to("current_direction", full_turn=360).as_pandas()  # Rayleigh with full_turn=
+    assert default["p-value"][0] == result["p-value"][0]
 
 
 def test_rayleigh_on_hours_matches_degrees(needs_r):
@@ -129,8 +137,10 @@ def test_rayleigh_refusals():
     table = _table("stations")
     with pytest.raises(SimplydataError, match="needs full_turn="):
         table.compare_shape_to("current_direction", shape="even around the circle")
-    with pytest.raises(SimplydataError, match="even around the"):
-        table.compare_shape_to("current_direction", full_turn=360)
+    with pytest.raises(SimplydataError, match="a shape on a line"):
+        table.compare_shape_to("current_direction", sdata.distribution("normal"), full_turn=360)
+    with pytest.raises(SimplydataError, match="not offered there"):
+        table.compare_shape_to("current_direction", shape="von mises", full_turn=360)
     few = sdata.table(pd.DataFrame({"d": [1.0, 2, 3, 4]}))
     with pytest.raises(SimplydataError, match="at least 5"):
         few.compare_shape_to("d", shape="even around the circle", full_turn=360)
@@ -238,6 +248,29 @@ def test_return_level_refusals_need_no_r():
         repeated.find_return_levels_of("v", sorted_by="year")
 
 
+def test_yearly_maxima_with_their_dates_are_block_maxima(needs_r):
+    frame = sdata.get_example("sealevel")
+    rng = np.random.default_rng(5)
+    days = pd.to_datetime([f"{y}-01-01" for y in frame["year"]]) + pd.to_timedelta(rng.integers(0, 365, len(frame)),
+                                                                                    unit="D")
+    dated = sdata.table(pd.DataFrame({"date": days, "sea_level": frame["sea_level"]}))
+    result = dated.find_return_levels_of("sea_level", once_in=[10], sorted_by="date").as_pandas()
+    assert result["level"][0] == pytest.approx(4.296212, abs=5e-6)
+    assert result["time unit"][0] == "years"
+
+
+def test_moran_says_less_alike_only_when_the_test_says_so(needs_r, capsys):
+    rng = np.random.default_rng(2)
+    grid = pd.DataFrame({"e": np.repeat(np.arange(8.0), 8), "n": np.tile(np.arange(8.0), 8)})
+    flat = grid.assign(v=grid["e"] * 0 + rng.normal(size=len(grid)))
+    sdata.table(flat).find_autocorrelation_of("v", x="e", y="n")
+    out = capsys.readouterr().out
+    assert ("less alike" not in out) or ('alternative = "less"' in out)
+    checker = grid.assign(v=np.where((grid["e"] + grid["n"]) % 2 == 0, 1.0, -1.0) + rng.normal(0, 0.1, len(grid)))
+    sdata.table(checker).find_autocorrelation_of("v", x="e", y="n", nearest=4)
+    assert "less alike" in capsys.readouterr().out
+
+
 def test_values_above_a_threshold(needs_r, capsys):
     rain = _table("rain")
     rain.turn_into_dates("date")
@@ -264,6 +297,10 @@ def test_gev_fit_keeps_xi_and_matches_scipy_with_c_turned_round():
         stats.genextreme(c=-shape, loc=fit.turn_into_table().as_pandas()["location"][0],
                          scale=fit.turn_into_table().as_pandas()["scale"][0]).ppf(0.99), rel=1e-9)
     assert "extRemes::devd" in repr(fit) and 'type = "GEV"' in repr(fit)
+
+
+def test_pareto_points_to_the_generalised_pareto():
+    assert "generalised pareto" in repr(sdata.distribution("pareto", shape=3, scale=2))
 
 
 def test_generalised_pareto_has_scipys_sign():

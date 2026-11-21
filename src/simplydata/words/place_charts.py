@@ -41,6 +41,11 @@ def _draw_variogram(ctx, column, x, y, kind, cutoff):
     frame = ctx.data[[column, x, y]].apply(pd.to_numeric, errors="coerce").dropna()
     found = places_r.variogram(frame[x].to_numpy(dtype=float), frame[y].to_numpy(dtype=float),
                                frame[column].to_numpy(dtype=float), kind, cutoff, line_points=CURVE_POINTS)
+    from ..table.places import variogram_problem
+
+    problem = variogram_problem(found, kind, column, x, y)
+    if problem:
+        raise SimplydataError(problem)
     ax = ctx.ax
     colour = default_colour(ctx.settings)
     ax.scatter(found["dist"], found["gamma"], color=colour, zorder=3)
@@ -110,7 +115,9 @@ class PlaceChartWords:
                                   f"{', '.join(chr(34) + k + chr(34) for k in VARIOGRAM_KINDS)}.")
         cutoff = None
         if between is not None:
-            if not isinstance(between, (list, tuple)) or len(between) != 2 or between[0] != 0 or not between[1] > 0:
+            if not isinstance(between, (list, tuple)) or len(between) != 2 or not all(
+                    isinstance(b, (int, float, np.integer, np.floating)) and not isinstance(b, bool) for b in between) \
+                    or between[0] != 0 or not between[1] > 0:
                 raise SimplydataError(f".{word}() reads between= from 0 to the largest distance, such as "
                                       "between=[0, 1500].")
             cutoff = float(between[1])
@@ -160,6 +167,10 @@ class PlaceChartWords:
         from .._r import need_r
 
         need_r(("extRemes",), "The threshold check (R extRemes)")
+        if values.max() - 1 < float(between[1]):  # extRemes::mrlplot stops its thresholds 1 below the largest value
+            print(f"Note: the mean excess (top) stops at {values.max() - 1:g}: R extRemes::mrlplot draws thresholds only "
+                  "up to 1 below the largest value, so on values with a small range (such as metres) the top panel is "
+                  "short or empty. The shape panel (bottom) covers every threshold asked for.")
         print(f'Threshold check of "{x}" from {between[0]:g} to {between[1]:g}: the mean excess (top, R '
               "extRemes::mrlplot) and the shape of the generalised Pareto curve (bottom, R "
               "extRemes::threshrange.plot), each with its 95 % interval. Choose the lowest threshold above which the "

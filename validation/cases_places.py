@@ -23,6 +23,10 @@ R_DATA_PLACES = {
                                                "envir = e); list(hour = as.numeric(e$fisherB1c))"),
     "meuse (sp)": (("sp",), 'e <- new.env(); utils::data("meuse", package = "sp", envir = e); '
                             "list(x = e$meuse$x, y = e$meuse$y, zinc = e$meuse$zinc, log_zinc = log(e$meuse$zinc))"),
+    "meuse in longitude and latitude (sp, sf)": (
+        ("sp", "sf"), 'e <- new.env(); utils::data("meuse", package = "sp", envir = e); '
+                      'p <- sf::st_transform(sf::st_as_sf(e$meuse, coords = c("x", "y"), crs = 28992), 4326); '
+                      "xy <- sf::st_coordinates(p); list(lon = xy[, 1], lat = xy[, 2], log_zinc = log(e$meuse$zinc))"),
     "Port Pirie (ismev)": (("ismev",), 'e <- new.env(); utils::data("portpirie", package = "ismev", envir = e); '
                                        "list(year = e$portpirie$Year, sea_level = e$portpirie$SeaLevel)"),
     "Coles rain (ismev)": (("ismev",), 'e <- new.env(); utils::data("rain", package = "ismev", envir = e); '
@@ -59,6 +63,12 @@ def _datasets(Dataset):
                 "(meuse); its variogram is the gstat vignette's example (Pebesma 2004, Computers & Geosciences 30, "
                 "683-691).", "GPL-2 | GPL-3 (sp); read from the installed package, so it needs R.",
                 "https://cran.r-project.org/package=sp"),
+        Dataset("meuse in longitude and latitude (sp, sf)", "", "the same 155 meuse samples, their places turned "
+                "from the Dutch grid (RD New, EPSG 28992) into longitude and latitude (EPSG 4326) by R sf::st_transform",
+                "As meuse (sp) above; the transformation by PROJ through R sf (Pebesma, E. (2018). Simple Features "
+                "for R. The R Journal 10(1), 439-446).",
+                "GPL-2 | GPL-3 (sp); read from the installed package and transformed there, so it needs R.",
+                "https://doi.org/10.32614/RJ-2018-009"),
         Dataset("Port Pirie (ismev)", "", "the highest sea level of each year at Port Pirie, South Australia, "
                 "1923-1987 (metres)",
                 f"{COLES}, Springer, section 3.4.1. Shipped with the R package ismev (portpirie); the same numbers are "
@@ -164,6 +174,18 @@ def _cases(Case):
                                                  spdep::Szero(spdep::nb2listw(nb, style = "W")))$I)
              """, r_packages=("spdep",), r_tolerance=1e-9,
              note="With only the 8 nearest neighbours Moran's I is 0.49 instead of 0.12: the weights change the answer."),
+        Case("table.find_autocorrelation_of", "on_globe=: meuse in longitude and latitude, great-circle 1 / distance",
+             "meuse in longitude and latitude (sp, sf)", "real data",
+             ours="""
+                 r = sdata.table(data).find_autocorrelation_of("log_zinc", x="lon", y="lat", on_globe=True).as_pandas()
+                 {"Moran's I": r["Moran's I"][0]}
+             """,
+             r="""
+                 pts <- sf::st_as_sf(data.frame(x = lon, y = lat), coords = c("x", "y"), crs = 4326)
+                 lw <- spdep::nb2listwdist(spdep::dnearneigh(pts, 0, Inf), pts, type = "idw", alpha = 1, style = "W")
+                 list(`Moran's I` = spdep::moran(log_zinc, lw, length(log_zinc), spdep::Szero(lw))$I)
+             """, r_packages=("spdep", "sf"), r_tolerance=1e-9,
+             note="Over 3 km great-circle and grid distances hardly differ, so Moran's I is close to the grid's 0.1191."),
         # ---------------------------------------------------------------- AC09: variogram
         Case("table.find_variogram_of", "meuse: the spherical variogram of log zinc", "meuse (sp)", "published",
              ours="""
@@ -268,6 +290,19 @@ def _cases(Case):
                       `100-year normal 95 % CI high` = rl[3])
              """, r_packages=("extRemes",), r_tolerance=1e-9,
              note="Coles fits sigma 7.44 and xi 0.184 above 30 mm; simplydata gives them in its printout (7.44, 0.184)."),
+        Case("table.fit_distribution_to", 'distribution="generalised pareto": Coles rain, the amounts above 30 mm',
+             "Coles rain (ismev)", "published",
+             ours="""
+                 above = pd.DataFrame({"excess": data["rain"][data["rain"] > 30] - 30})
+                 r = sdata.table(above).fit_distribution_to("excess", distribution="generalised pareto")
+                 r = r.turn_into_table().as_pandas()
+                 {"scale": r["scale"][0], "shape": r["shape"][0]}
+             """,
+             published={"scale": (7.44, 0.005, f"{COLES}, 4.4.1"), "shape": (0.184, 0.0005, f"{COLES}, 4.4.1")},
+             r="""
+                 p <- extRemes::fevd(rain, threshold = 30, type = "GP", method = "MLE")$results$par
+                 list(scale = p[["scale"]], shape = p[["shape"]])
+             """, r_packages=("extRemes",), r_tolerance=1e-4),
         Case("draw_threshold_check", "Coles's daily rain: the mean excess and the shape from 20 to 40 mm",
              "Coles rain (ismev)", "real data",
              ours="""

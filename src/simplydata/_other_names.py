@@ -355,6 +355,7 @@ _TABLE = [
      "fevd return_level return_levels return_period gev_fit extremes block_maxima"),
     ('table.find_return_levels_of("rain", once_in=[10, 100], values_above=30, sorted_by="date")',
      "pot peaks_over_threshold gpd_fit"),
+    ('table.find_variogram_of("zinc", x="east", y="north")   (kriging is not offered)', "kriging krige"),
 ]
 
 # chart.<name>
@@ -429,7 +430,8 @@ _CHART = [
     ('chart.draw_richness_curves(columns=["blaTEM", "sul1"])',
      "rarecurve rarefaction rarefaction_curves draw_rarefaction_curves iNEXT accumulation species_accumulation "
      "draw_species_curves"),
-    ('chart.draw_cluster_tree(columns=["blaTEM", "sul1"])', "dendrogram plot_dendrogram draw_dendrogram draw_tree"),    # S3c-3
+    ('chart.draw_cluster_tree(columns=["blaTEM", "sul1"])', "dendrogram plot_dendrogram draw_dendrogram draw_tree"),
+    # S3c-3
     ('chart.draw_variogram("zinc", x="east", y="north")', "plot_variogram variogram_plot"),
     ('chart.draw_threshold_check(x="rain", between=[20, 40])',
      "mrlplot mrl_plot mean_residual_life threshrange threshrange_plot mean_excess_plot"),

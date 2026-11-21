@@ -14,7 +14,8 @@ WORDS = ("table.find_average_direction_of", "table.find_variogram_of", "table.fi
          "draw_variogram", "draw_threshold_check")
 OPTIONS = ['table.compare_shape_to shape="even around the circle"', "table.find_autocorrelation_of x=",
            "table.find_autocorrelation_of nearest=", "table.find_return_levels_of values_above=",
-           'table.fit_distribution_to distribution="gev"']
+           'table.fit_distribution_to distribution="gev"', "table.find_autocorrelation_of on_globe=",
+           'table.fit_distribution_to distribution="generalised pareto"']
 
 
 def test_the_new_words_have_entries():
