@@ -199,7 +199,7 @@ def test_table_words_run_on_polars_too():
 def test_underneath_line_is_read_from_the_code():
     assert underneath_line(UNDERNEATH["draw_bars"]) == "seaborn barplot()"
     assert underneath_line(UNDERNEATH["table.find_average_of"]) == (
-        "pandas groupby().mean().reset_index() · Polars group_by().agg(), col().mean()")
+        "pandas groupby().mean().reset_index() · Polars group_by().agg().sort(), col().mean()")
     assert underneath_line(UNDERNEATH["table.keep_rows_where"]) == "pandas boolean indexing · Polars filter(), col()"
     assert underneath_line(UNDERNEATH["trade_off_curve"]).startswith("R pROC::roc(), pROC::ci.auc(), pROC::coords()")
 

@@ -761,9 +761,9 @@ BASIS["table.add_z_score_column"] = _b(
 
 # ---- Summaries
 BASIS["table.find_average_of"] = _b(
-    "Groups stay in the order they first appear; empty cells are skipped, as pandas and Polars do. interval= "
-    "gives the t interval, as R t.test().",
-    "sorted_by= to sort; interval= for the interval; weights= for a weighted average.",
+    "One row for each group, the groups sorted (an empty group cell is a group of its own, last); empty cells are "
+    "skipped, as pandas and Polars do. interval= gives the t interval, as R t.test().",
+    "interval= for the interval; weights= for a weighted average; every= for dates by week, month or year.",
     "Skipping empty cells and saying how many were skipped is what pandas, Polars and R's mean(na.rm = TRUE) do; "
     "NumPy would give nan. The t interval of the average is Student's (Student 1908), the interval of R t.test().",
     ("student1908",), "P3", "A note gives how many empty cells were skipped; one value gives no interval.",

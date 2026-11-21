@@ -38,25 +38,26 @@ ENTRIES = [
         data="marks",
         ours="""
             table = sdata.table(sdata.get_example("marks"))
-            table.find_average_of("marks", for_each_group_in="class")
+            table.find_average_of("marks", for_each_group_in="subject")
         """,
         code={
             "pandas": """
                 df = sdata.get_example("marks")
-                # find_average_of("marks", for_each_group_in="class")
-                df.groupby("class", sort=False)["marks"].mean().reset_index()   # (1)
+                # find_average_of("marks", for_each_group_in="subject")
+                df.groupby("subject", dropna=False)["marks"].mean().reset_index()   # (1)
             """,
             "Polars": """
                 import polars as pl
                 df = pl.from_pandas(sdata.get_example("marks"))
-                # find_average_of("marks", for_each_group_in="class")
-                df.group_by("class", maintain_order=True).agg(pl.col("marks").mean())   # (1)
+                # find_average_of("marks", for_each_group_in="subject")
+                df.group_by("subject").agg(pl.col("marks").mean()).sort("subject", nulls_last=True)   # (1)
             """,
         },
         compare="table",
         names={"average of marks": "marks"},
-        choices=("groups stay in the order they first appear (sort=False, maintain_order=True); empty cells are "
-                 "skipped, as pandas and Polars do (NumPy's mean would give nan).",),
+        choices=("one row for each group, the groups sorted (English, Maths, Science), with rows whose group cell is "
+                 "empty as a group of their own, last; empty cells in \"marks\" are skipped, as pandas and Polars do "
+                 "(NumPy's mean would give nan).",),
         also="simplydata also names the column \"average of marks\" and writes the averages in a sentence.",
     ),
 ]
