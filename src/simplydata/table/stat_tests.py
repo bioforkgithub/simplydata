@@ -104,7 +104,7 @@ FISHER_TABLES = 100_000  # Fisher on a bigger table: the p-value from this many 
 EXACT_METHODS = {"barnard": "z-pooled", "boschloo": "boschloo"}  # R Exact::exact.test(method =)
 PAIR_TESTS = ("welch", "mann-whitney", "tukey", "games-howell", "scheffe", "lsd", "dunn", "conover")
 PAIR_ALIASES = {"games howell": "games-howell", "gameshowell": "games-howell", "scheffé": "scheffe",
-                "fisher": "lsd", "fisher's lsd": "lsd", "dunn's": "dunn", "conover-iman": "conover"}
+                "fisher's lsd": "lsd", "dunn's": "dunn", "conover-iman": "conover"}
 FRIEDMAN_PAIR_ALIASES = {"nemenyi-wilcoxon-wilcox": "nemenyi", "nemenyi's": "nemenyi", "conover's": "conover",
                          "conover-iman": "conover"}
 PERCENT_PAIR_TESTS = ("chi-square", "fisher")  # compare_each_pair_of(based_on="percents", test=)
@@ -631,16 +631,14 @@ class StatTestWords:
         self._check_choice(step, "based_on", based_on, BASED_ON)
 
     @staticmethod
-    def _check_bayesian(step, bayesian, prior_width="medium"):
-        """bayesian= is True or False (NumPy's too); prior_width= goes with test_method="bayesian" (S3d-3). Gives back
-        True for the Bayesian route."""
-        if not isinstance(bayesian, (bool, np.bool_)):
-            raise SimplydataError(f"{step}() takes test_method=\"bayesian\" (the Bayesian answer) or bayesian=False (the usual "
-                                  f"one); it got bayesian={bayesian!r}.")
+    def _check_bayesian(step, test_method, prior_width="medium"):
+        """True for the Bayesian route, test_method="bayesian" (S3d-3; it was bayesian=True); prior_width= goes
+        with it."""
+        bayesian = isinstance(test_method, str) and test_method.strip().lower() == "bayesian"
         if not bayesian and not (isinstance(prior_width, str) and prior_width == "medium"):
-            raise SimplydataError(f"prior_width= sets the prior of the Bayes factor; it goes with test_method=\"bayesian\", such "
-                                  f'as {step}(..., test_method="bayesian", prior_width="wide").')
-        return bool(bayesian)
+            raise SimplydataError(f"prior_width= sets the prior of the Bayes factor; it goes with test_method=\"bayesian\", "
+                                  f'such as {step}(..., test_method="bayesian", prior_width="wide").')
+        return bayesian
 
     def _number_values(self, step: str, columns: list[str]):
         """The columns as float arrays, rows with an empty cell in any of them skipped (with a note)."""
@@ -685,7 +683,7 @@ class StatTestWords:
     def compare_averages_of(self, column=None, for_each_group_in=None, based_on="averages", test_method=None, sides=2, higher=None,
                             lower=None, alternative=None, p_value_by="formula", shuffles=9999, with_seed=1,
                             same_within=None, not_lower=None, not_higher=None, in_order=None, matched_by=None,
-                            grouped_by=None, period=None, against=None, bayesian=False, prior_width="medium"):
+                            grouped_by=None, period=None, against=None, prior_width="medium"):
         """Are the averages of the groups really different?
 
         table.compare_averages_of("marks", for_each_group_in="class")   (with sdata.get_example("marks"))
@@ -748,11 +746,11 @@ class StatTestWords:
             self._survey_only("compare_averages_of", locals(), ("column", "for_each_group_in"))
             return self._survey_compare_averages(column, for_each_group_in)
         step = "compare_averages_of"
-        if self._check_bayesian(step, bayesian, prior_width):
+        if self._check_bayesian(step, test_method, prior_width):
             from . import bayes_r, bayes_words
 
             bayes_words.check_bayes_options(step, [
-                ("based_on=", based_on, "averages"), ("test_method=", test_method, None), ("sides=", sides, 2),
+                ("based_on=", based_on, "averages"), ("sides=", sides, 2),
                 ("higher=", higher, None), ("lower=", lower, None), ("alternative=", alternative, None),
                 ("p_value_by=", p_value_by, "formula"), ("shuffles=", shuffles, 9999),
                 ("same_within=", same_within, None), ("not_lower=", not_lower, None),
@@ -776,7 +774,7 @@ class StatTestWords:
             from .crossover import crossover
 
             given = [name for name, value, default in (
-                ("based_on=", based_on, "averages"), ("test_method=", test_method, None), ("sides=", sides, 2),
+                ("based_on=", based_on, "averages"), ("sides=", sides, 2),
                 ("higher=", higher, None), ("lower=", lower, None), ("alternative=", alternative, None),
                 ("p_value_by=", p_value_by, "formula"), ("not_lower=", not_lower, None),
                 ("not_higher=", not_higher, None), ("in_order=", in_order, None), ("grouped_by=", grouped_by, None))
@@ -801,7 +799,7 @@ class StatTestWords:
             from .checking_more import manova, nested_averages
 
             given = [name for name, value, default in (
-                ("based_on=", based_on, "averages"), ("test_method=", test_method, None), ("sides=", sides, 2),
+                ("based_on=", based_on, "averages"), ("sides=", sides, 2),
                 ("higher=", higher, None), ("lower=", lower, None), ("alternative=", alternative, None),
                 ("p_value_by=", p_value_by, "formula"), ("same_within=", same_within, None),
                 ("not_lower=", not_lower, None), ("not_higher=", not_higher, None), ("in_order=", in_order, None),
@@ -1452,6 +1450,10 @@ class StatTestWords:
         self._check_based_on(step, based_on)
         if isinstance(test, str):
             test = PAIR_ALIASES.get(test.strip().lower(), test.strip().lower())
+        if test == "fisher":  # once an alias of "lsd"; now only Fisher's exact test, which compares percents
+            raise SimplydataError("test_method=\"fisher\" is Fisher's exact test, which compares percents: add "
+                                  "based_on=\"percents\". For Fisher's LSD on averages write test_method=\"lsd\" (or "
+                                  "\"fisher's lsd\").")
         if against is not None:
             if test is not None or based_on != "averages":
                 raise SimplydataError("against= gives Dunnett's test on averages; leave out test_method= and based_on=.")
@@ -1981,7 +1983,7 @@ class StatTestWords:
     @friendly(renamed={"test": "test_method", "bayesian": ("test_method", {True: "bayesian", False: None}), "seed": "with_seed"}, others={"rscale": "prior_width", "prior_scale": "prior_width"})
     def compare_before_and_after(self, before=None, after=None, based_on="averages", sides=2, higher=None, lower=None,
                                  alternative=None, test_method=None, p_value_by="formula", shuffles=9999, with_seed=1,
-                                 same_within=None, not_lower=None, not_higher=None, bayesian=False,
+                                 same_within=None, not_lower=None, not_higher=None, 
                                  prior_width="medium"):
         """Did the values really change from one column to the other, row by row?
 
@@ -2023,7 +2025,7 @@ class StatTestWords:
         self._check_based_on(step, based_on)
         if before == after:
             raise SimplydataError(f"{step}() needs two different columns, for example {example}.")
-        if self._check_bayesian(step, bayesian, prior_width):
+        if self._check_bayesian(step, test_method, prior_width):
             from . import bayes_r, bayes_words
 
             bayes_words.check_bayes_options(step, [
@@ -2137,7 +2139,7 @@ class StatTestWords:
     @friendly(renamed={"test": "test_method", "bayesian": ("test_method", {True: "bayesian", False: None}), "seed": "with_seed"}, others={"rscale": "prior_width", "prior_scale": "prior_width"})
     def compare_average_to(self, column=None, value=None, based_on="averages", sides=2, higher=None, lower=None,
                            alternative=None, same_within=None, not_lower=None, not_higher=None, test_method=None,
-                           standard_deviation=None, bayesian=False, prior_width="medium", with_seed=1):
+                           standard_deviation=None, prior_width="medium", with_seed=1):
         """Is the average of a column really different from a number you choose?
 
         table.compare_average_to("marks", 60)   (with sdata.get_example("marks"))
@@ -2164,7 +2166,7 @@ class StatTestWords:
         if not _is_number(value) or not math.isfinite(value):
             raise SimplydataError(f"{step}() needs a number to compare with, for example {example}.")
         self._check_based_on(step, based_on)
-        if self._check_bayesian(step, bayesian, prior_width):
+        if self._check_bayesian(step, test_method, prior_width):
             from . import bayes_r, bayes_words
 
             bayes_words.check_bayes_options(step, [
@@ -2296,7 +2298,7 @@ class StatTestWords:
     # ------------------------------------------------------------------ compare_counts_of
     @friendly(renamed={"test": "test_method", "bayesian": ("test_method", {True: "bayesian", False: None}), "between": "for_each_group_in", "for_each": "for_each_group_in", "seed": "with_seed"})
     def compare_counts_of(self, column=None, for_each_group_in=None, test_method=None, in_order=None, p_value_by="formula",
-                          shuffles=9999, with_seed=1, show=None, bayesian=False):
+                          shuffles=9999, with_seed=1, show=None):
         """Does how often each value turns up really differ between groups?
 
         table.add_group_column("result", from_column="marks", cut_at=[60], names=["below 60", "60 or more"])
@@ -2334,7 +2336,8 @@ class StatTestWords:
         self._need_name(step, "the column", column, example)
         self._need_name(step, "for_each_group_in=", for_each_group_in, example)
         self._need_columns(column, for_each_group_in)
-        if test_method is not None:
+        bayesian = self._check_bayesian(step, test_method)
+        if test_method is not None and not bayesian:
             self._check_choice(step, "test_method", test_method, COUNT_TESTS + ("trend",))
         self._check_choice(step, "p_value_by", p_value_by, ("formula", "exact", "shuffling"))
         if show is not None:
@@ -2345,7 +2348,6 @@ class StatTestWords:
             raise SimplydataError("shuffles= needs a whole number of 99 or more, such as shuffles=9999.")
         if column == for_each_group_in:
             raise SimplydataError(f"{step}() needs two different columns, for example {example}.")
-        bayesian = self._check_bayesian(step, bayesian)
         frame = self._frame
         floats = [c for c in (column, for_each_group_in) if frame.schema[c].is_float()]
         if floats:
@@ -2380,7 +2382,7 @@ class StatTestWords:
             from . import bayes_words
 
             bayes_words.check_bayes_options(step, [
-                ("test_method=", test_method, None), ("in_order=", in_order, None), ("p_value_by=", p_value_by, "formula"),
+                ("in_order=", in_order, None), ("p_value_by=", p_value_by, "formula"),
                 ("shuffles=", shuffles, 9999), ("show=", show, None)])
             return bayes_words.counts(self, column, for_each_group_in, [_label(v) for v in rows_of],
                                       [_label(v) for v in cols_of], [_label(k) for k in row_keys],

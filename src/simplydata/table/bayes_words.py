@@ -39,7 +39,7 @@ def check_bayes_options(step, given, light=True):
     """Refuse the options that do not go with test_method="bayesian" (given: [(option, value, default)]), and check prior_width=."""
     used = [name for name, value, default in given if not _same(value, default)]
     if used:
-        what = ("a Bayes factor and a credible interval (no test_method=, sides=, p_value_by= ...)" if light else
+        what = ("a Bayes factor and a credible interval (no sides=, p_value_by= ...)" if light else
                 f"a Bayesian model (it takes {OK_OPTIONS})")
         raise SimplydataError(f"{_list_words(used)} cannot be used with test_method=\"bayesian\", which gives {what}. "
                               f"Leave {'it' if len(used) == 1 else 'them'} out, or leave out test_method=\"bayesian\".")

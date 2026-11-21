@@ -387,7 +387,8 @@ def _percentile_rule(step, method):
         return PERCENTILE_RULES[int(method) - 1]
     if isinstance(method, str) and method.strip().lower().replace(" ", "_") in PERCENTILE_RULES:
         return method.strip().lower().replace(" ", "_")
-    raise choice_error(step, "test_method", method, list(PERCENTILE_RULES) + [str(n) for n in range(1, 10)])
+    raise choice_error(step, "test_method", method, [r.replace("_", " ") for r in PERCENTILE_RULES]
+                       + [str(n) for n in range(1, 10)])
 
 
 def _check_percent(step: str, percent, option="percent", example=None) -> float:
@@ -1085,11 +1086,11 @@ class SummaryWords:
         find_percentile_of("marks", 50) is the median, 25 and 75 the quartiles. Between two
         numbers it uses the usual linear rule (R quantile(type = 7), NumPy and pandas
         default). across= and every= work as in find_average_of.
-        test_method= picks one of R's nine rules, by R's number or NumPy's name: 1 "inverted_cdf",
-        2 "averaged_inverted_cdf", 3 "closest_observation", 4 "interpolated_inverted_cdf",
+        test_method= picks one of R's nine rules, by R's number or by name: 1 "inverted cdf",
+        2 "averaged inverted cdf", 3 "closest observation", 4 "interpolated inverted cdf",
         5 "hazen", 6 "weibull" (as SPSS and Minitab), 7 "linear" (the default), 8
-        "median_unbiased" (recommended by Hyndman and Fan), 9 "normal_unbiased"; NumPy
-        percentile(method=), as R quantile(type =).
+        "median unbiased" (recommended by Hyndman and Fan), 9 "normal unbiased" (NumPy's names, such as
+        "median_unbiased", work too); NumPy percentile(method=), as R quantile(type =).
         interval=95 adds the 95 % confidence interval of each percentile: the exact interval
         from the order of the values (SciPy quantile_test; for the median and the quartiles the
         same as R DescTools::QuantileCI(method = "exact"), which picks other values for other
@@ -1919,7 +1920,7 @@ class SummaryWords:
     def find_correlation_between(self, *columns, test_method="pearson", show="r", sides=2, higher=None, lower=None,
                                  alternative=None, p_value_by="formula", interval_by=None, shuffles=9999, resamples=9999,
                                  with_seed=1, allowing_for=None, rows_back=None, sorted_by=None,
-                                 empty_cells="leave out", bayesian=False, prior_width="medium"):
+                                 empty_cells="leave out", prior_width="medium"):
         """How strongly columns of numbers go up or down together, from -1 to 1.
 
         table.find_correlation_between("hours", "marks")   (with sdata.get_example("marks"))
@@ -1970,9 +1971,9 @@ class SummaryWords:
                 f"{step}() needs two column names in quotes (or more, for a correlation table).\n"
                 f'For example, with sdata.get_example("marks"): table.{step}("hours", "marks")'
             )
-        if self._check_bayesian(step, bayesian, prior_width):
-            return self._bayesian_correlation(step, names, bayesian, prior_width, with_seed, [
-                ("test_method=", test_method, "pearson"), ("show=", show, "r"), ("sides=", sides, 2), ("higher=", higher, None),
+        if self._check_bayesian(step, test_method, prior_width):
+            return self._bayesian_correlation(step, names, prior_width, with_seed, [
+                ("show=", show, "r"), ("sides=", sides, 2), ("higher=", higher, None),
                 ("lower=", lower, None), ("alternative=", alternative, None), ("p_value_by=", p_value_by, "formula"),
                 ("interval_by=", interval_by, None), ("shuffles=", shuffles, 9999), ("resamples=", resamples, 9999),
                 ("allowing_for=", allowing_for, None), ("rows_back=", rows_back, None),
@@ -2072,7 +2073,7 @@ class SummaryWords:
                                          resamples=resamples, seed=with_seed)
         return self._correlation_table(step, frame, names, test_method, shown)
 
-    def _bayesian_correlation(self, step, names, bayesian, prior_width, with_seed, given):
+    def _bayesian_correlation(self, step, names, prior_width, with_seed, given):
         """find_correlation_between(a, b, test_method="bayesian"): the Bayes factor and the posterior of the correlation, R
         BayesFactor::correlationBF() (table/bayes_words.py)."""
         from . import bayes_r, bayes_words

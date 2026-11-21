@@ -1994,8 +1994,8 @@ BASIS["table.combine_studies estimates="] = _b(
     ("cochrane10", "viechtbauer2010"), "P1", "Interval columns that cannot be found are refused, with the names "
     "expected.")
 BASIS["table.combine_studies test_method="] = _b(
-    "With test_method=\"DerSimonian-Laird\": the moment estimator of the between-study spread (metafor \"DL\"); "
-    "\"Paule-Mandel\" is \"PM\"; \"common effect\" is \"EE\".",
+    "With test_method=\"dersimonian-laird\": the moment estimator of the between-study spread (metafor \"DL\"); "
+    "\"paule-mandel\" is \"PM\"; \"common effect\" is \"EE\".",
     "Leave test_method= out for REML.",
     "DerSimonian-Laird is the classic estimator of older meta-analyses (DerSimonian & Laird 1986) but "
     "underestimates the spread (Veroniki et al. 2016). Paule-Mandel (Paule & Mandel 1982) is recommended for "
@@ -2003,13 +2003,13 @@ BASIS["table.combine_studies test_method="] = _b(
     "biased upward when study sizes differ widely.",
     ("dersimonian1986", "paule1982", "veroniki2016", "langan2019"), "P2",
     "When REML does not converge, the refusal names Paule-Mandel and DerSimonian-Laird.")
-BASIS["table.combine_studies test_method=\"Mantel-Haenszel\""] = _b(
+BASIS["table.combine_studies test_method=\"mantel-haenszel\""] = _b(
     "Mantel-Haenszel weights, a common-effect method: no between-study spread and no prediction interval.",
     "Leave test_method= out for random effects.",
     "Mantel & Haenszel 1959; a common-effect method assumes every study measures the same effect, which the "
     "printout says.",
     ("mantel1959", "cochrane10"), "P3", "Counts or rates only; no meta-regression; no trim-and-fill.", "convention")
-BASIS["table.combine_studies test_method=\"Peto\""] = _b(
+BASIS["table.combine_studies test_method=\"peto\""] = _b(
     "Peto's one-step odds ratio, a common-effect method; it gives odds ratios only.",
     "Leave test_method= out for random effects.",
     "Peto's method is the least biased for rare events with balanced groups (Bradburn et al. 2007; the Cochrane "
@@ -2565,7 +2565,7 @@ BASIS["table.find_hidden_factors_behind"] = _b(
     "Exploratory factor analysis by R psych::fa(): the number of factors by parallel analysis (psych fa.parallel(fa "
     "= \"fa\")), minimum residuals (minres) fitting and an oblimin rotation (through GPArotation), with R's random "
     "numbers seeded (with_seed=1); rows with any empty cell left out.",
-    "how_many= a number; test_method=\"ml\" or \"principal axis\"; rotation=\"varimax\", \"promax\", \"none\".",
+    "how_many= a number; test_method=\"maximum likelihood\" or \"principal axis\"; rotation=\"varimax\", \"promax\", \"none\".",
     "Parallel analysis keeps the factors whose eigenvalues stand out more than in random data of the same size "
     "(Horn 1965; here psych's common-factor variant, Humphreys & Ilgen 1969); the 'eigenvalue above 1' rule keeps "
     "too many (Zwick & Velicer 1986). Simulations disagree on whether the component or the factor variant is more "
@@ -2596,7 +2596,7 @@ BASIS["table.find_hidden_factors_behind how_many="] = _b(
     "how_many= must be a whole number from 1 to the largest number of factors the columns can identify.",
     "convention")
 BASIS["table.find_hidden_factors_behind test_method="] = _b(
-    "With test_method=\"ml\": maximum likelihood, as base R factanal() fits; \"principal axis\" is psych's fm = \"pa\".",
+    "With test_method=\"maximum likelihood\": as base R factanal() fits; \"principal axis\" is psych's fm = \"pa\".",
     "Leave test_method= out for minres.",
     "Maximum likelihood assumes roughly bell-shaped data and is preferred then (Fabrigar et al. 1999); it is more "
     "prone to improper solutions with small samples or weak factors, where least-squares methods (minres, principal "
@@ -3096,26 +3096,26 @@ _BF_CHECKS = ("The other options of the usual test are refused with test_method=
 BASIS["table.compare_averages_of test_method=\"bayesian\""] = _b(
     "The JZS Bayes factor t-test for two groups from R BayesFactor::ttestBF(), with a Cauchy prior of medium width "
     "(r = 0.707) on the effect size, and the 95 % credible interval of the difference from BayesFactor::posterior().",
-    "prior_width=\"wide\" (1), \"ultrawide\" (1.414) or a number; bayesian=False for Welch's t-test.",
+    "prior_width=\"wide\" (1), \"ultrawide\" (1.414) or a number; leave out test_method= for Welch's t-test.",
     _BF_WHY, ("rouder2009", "wagenmakers2018", "kruschke2021"), "P3", "Exactly two groups; " + _BF_CHECKS,
     "convention")
 BASIS["table.compare_before_and_after test_method=\"bayesian\""] = _b(
     "The JZS Bayes factor paired t-test (R BayesFactor::ttestBF(after, before, paired = TRUE)), medium width, and the "
     "95 % credible interval of the average change.",
-    "prior_width=\"wide\", \"ultrawide\" or a number; bayesian=False for the paired t-test.",
+    "prior_width=\"wide\", \"ultrawide\" or a number; leave out test_method= for the paired t-test.",
     _BF_WHY, ("rouder2009", "wagenmakers2018", "kruschke2021"), "P3", "Both columns must hold numbers; " + _BF_CHECKS,
     "convention")
 BASIS["table.compare_average_to test_method=\"bayesian\""] = _b(
     "The JZS Bayes factor one-sample t-test (R BayesFactor::ttestBF() on the values minus the number), medium width, "
     "and the 95 % credible interval of the average minus the number.",
-    "prior_width=\"wide\", \"ultrawide\" or a number; bayesian=False for the one-sample t-test.",
+    "prior_width=\"wide\", \"ultrawide\" or a number; leave out test_method= for the one-sample t-test.",
     _BF_WHY + " BayesFactor's posterior() leaves its mu = argument out, so the number is taken away first; the Bayes "
     "factor is the same either way.", ("rouder2009", "wagenmakers2018", "kruschke2021"), "P3", _BF_CHECKS,
     "convention")
 BASIS["table.find_correlation_between test_method=\"bayesian\""] = _b(
     "The Bayes factor for a correlation from R BayesFactor::correlationBF(), with a stretched beta prior of medium "
     "width (1/3), and the 95 % credible interval of the correlation.",
-    "prior_width=\"wide\" (0.577), \"ultrawide\" (1) or a number; bayesian=False for Pearson's test.",
+    "prior_width=\"wide\" (0.577), \"ultrawide\" (1) or a number; leave out test_method= for Pearson's test.",
     _BF_WHY + " JASP's default width for correlations is 1, so its Bayes factors differ; the printout says so "
     "(Ly, Verhagen & Wagenmakers 2016).", ("ly2016", "wagenmakers2018", "kruschke2021"), "P3",
     "Exactly two columns; " + _BF_CHECKS, "convention")
@@ -3123,7 +3123,7 @@ BASIS["table.compare_counts_of test_method=\"bayesian\""] = _b(
     "The Gunel-Dickey Bayes factor for a table of counts from R BayesFactor::contingencyTableBF(), with independent "
     "multinomial sampling and each group's total fixed (the groups are the rows), prior concentration 1, and each "
     "group's shares with 95 % credible intervals.",
-    "bayesian=False for the chi-square test.",
+    "leave out test_method= for the chi-square test.",
     "A Bayes factor for a table depends on how the data were collected; with groups chosen first (such as wards or "
     "exposure groups) each group's total is fixed, which is independent multinomial sampling (Gunel & Dickey 1974; "
     "Jamil et al. 2017). The printout names the sampling plan. Concentration 1 is BayesFactor's default.",
@@ -3133,7 +3133,7 @@ BASIS["table.explain test_method=\"bayesian\""] = _b(
     "informative priors scaled to the data, 4 chains of 2000 iterations and seed = with_seed; each effect as the "
     "posterior median with its central 95 % credible interval; rank-normalised R-hat and bulk and tail effective "
     "draws from the posterior package.",
-    "grouped_by= for a mixed model (stan_glmer); bayesian=False for the usual model.",
+    "grouped_by= for a mixed model (stan_glmer); leave out test_method= for the usual model.",
     "Weakly informative priors keep estimates stable without overruling the data (Gelman et al. 2008); the reporting "
     "guidelines ask for the priors, the convergence measures and the interval type to be stated (Kruschke 2021). "
     "The older R-hat misses some problems; the rank-normalised R-hat with the guide 1.01 and at least 400 effective "
@@ -3144,7 +3144,7 @@ BASIS["table.explain test_method=\"bayesian\""] = _b(
 BASIS["table.explain test_method=\"bayesian\", grouped_by="] = _b(
     "A Bayesian mixed model from R rstanarm::stan_glmer() with its own starting level for each group, (1 | group), "
     "and rstanarm's decov prior for the group spread; otherwise as explain(test_method=\"bayesian\").",
-    "bayesian=False for lme4.",
+    "leave out test_method= for lme4.",
     "As explain(test_method=\"bayesian\"); every group's own level is checked for convergence too (Vehtari et al. 2021).",
     ("vehtari2021", "kruschke2021"), "P1", "One grouped_by= column.")
 BASIS["table.check_model_of test_method=\"bayesian\""] = _b(

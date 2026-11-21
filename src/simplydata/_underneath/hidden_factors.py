@@ -76,8 +76,8 @@ ENTRIES = [
         L <- unclass(f$loadings)
         list(f1 = L[1, 1], f2 = L[1, 2], f3 = L[1, 3], h2 = f$communality[1])
     """, ("a number of factors chosen by you: no parallel analysis (the seed is still set, for the oblimin rotation).",)),
-    _explore_entry("test_method=", ', how_many=3, test_method="ml"', """
-        # find_hidden_factors_behind([...], how_many=3, test_method="ml")
+    _explore_entry("test_method=", ', how_many=3, test_method="maximum likelihood"', """
+        # find_hidden_factors_behind([...], how_many=3, test_method="maximum likelihood")
         x <- as.data.frame(x)
         set.seed(1)
         f <- psych::fa(x, nfactors = 3, fm = "ml",                    # (1)

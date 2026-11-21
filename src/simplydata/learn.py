@@ -13,7 +13,7 @@ import inspect
 import re
 import textwrap
 
-from ._errors import ISSUES_URL, SimplydataError, suggest
+from ._errors import ISSUES_URL, SimplydataError, _quoted, suggest
 
 WIDTH = 78
 
@@ -1402,12 +1402,26 @@ def _old_names(word) -> list[tuple[str, str, str]]:
     if new and f"sdata.{new}" in _all_keys() and kinds is None:
         found.append((w, new, f"sdata.{new}"))
     if kinds is None:
-        option = w[:-1] if w.endswith("=") else w
+        option = w.split("=", 1)[0].strip()
         for key, func in _words_with_options():
-            new = getattr(func, "_renamed_options", {}).get(option)
-            if new:
-                found.append((f"{option}=", f"{new}=", key))
+            for old, new in _renamed_options_of(func):
+                if old.split("=", 1)[0] == option:
+                    found.append((old, new, key))
     return list(dict.fromkeys(found))
+
+
+def _renamed_options_of(func) -> list[tuple[str, str]]:
+    """The old options of a word and what they are called now, each as written: ("method=", "test_method="); an
+    old switch that is now one value of a new option gives ("bayesian=True", 'test_method="bayesian"')."""
+    pairs = []
+    for old, new in (getattr(func, "_renamed_options", None) or {}).items():
+        if isinstance(new, tuple):  # @friendly(renamed={"bayesian": ("test_method", {True: "bayesian", ...})})
+            name, values = new
+            pairs.extend((f"{old}={value!r}", f'{name}="{now}"' if isinstance(now, str) else f"{name}={now!r}")
+                         for value, now in values.items() if now is not None)
+        else:
+            pairs.append((f"{old}=", f"{new}="))
+    return pairs
 
 
 def _words_with_options():
@@ -1433,7 +1447,7 @@ def _old_name_lines(old, typed: str | None = None) -> tuple[list[str], list[str]
     """
     lines, keys, options = [], [], {}
     for name, new, key in old:
-        if name.endswith("="):
+        if "=" in name:
             options.setdefault((name, new), []).append(key)
             continue
         where = typed or (key.rsplit(".", 1)[0] if "." in key else "chart")
@@ -1444,7 +1458,7 @@ def _old_name_lines(old, typed: str | None = None) -> tuple[list[str], list[str]
     for (name, new), in_keys in options.items():
         calls = list(dict.fromkeys(_call_form(k) for k in in_keys))
         shown = ", ".join(calls[:4]) + (f" and {len(calls) - 4} more" if len(calls) > 4 else "")
-        lines.append(f'"{name}" is now called "{new}" in {shown}.')
+        lines.append(f"{_quoted(name)} is now called {_quoted(new)} in {shown}.")
         if new in _all_keys():
             keys.append(new)
         elif len(calls) <= 3:
@@ -1457,6 +1471,27 @@ def _lookup(word) -> str | None:
     """Turn what the user typed into a key of GROUPS (the first, if it has two), or None."""
     found = _lookup_all(word)
     return found[0] if found else None
+
+
+# Options that many words share, each with one help line said the same way everywhere
+SHARED_OPTIONS = {
+    "test_method": "test_method= chooses the method (the test, estimator or rule) the word uses",
+}
+
+
+def _print_shared_option(word) -> bool:
+    """sdata.help("test_method="): the shared help line and the words that have the option. True when printed."""
+    name = _normalise(str(word)).split("=", 1)[0].strip()
+    if name not in SHARED_OPTIONS:
+        return False
+    keys = [key for key, func in _words_with_options()
+            if func is not None and name in inspect.signature(func).parameters]
+    calls = list(dict.fromkeys(_call_form(k) for k in keys))
+    print(f"{SHARED_OPTIONS[name]}. Each word has its own choices and its own default, and its printout names "
+          "the method it used.")
+    print(f"It is in {len(calls)} words: " + ", ".join(calls) + ".")
+    print(f'To see the choices of one word, type sdata.help("{_call_form(keys[0])[:-2]}").')
+    return True
 
 
 def _options_text(key: str) -> list[str]:
@@ -1481,6 +1516,8 @@ def _options_text(key: str) -> list[str]:
         else:
             normal = f'"{p.default}"' if isinstance(p.default, str) else repr(p.default)
             lines.append(f"  {p.name + '=':<{width}}normally {normal}")
+        if p.name in SHARED_OPTIONS:
+            lines[-1] = f"{lines[-1]:<{width + 2 + 24}}({SHARED_OPTIONS[p.name].split('= ', 1)[1]})"
     return lines
 
 
@@ -1587,6 +1624,8 @@ def help(word=None) -> None:  # noqa: A001 - meant to be sdata.help
             return None
         print()
     if not keys and _print_other_names(word):
+        return None
+    if not keys and _print_shared_option(word):
         return None
     if not keys:
         known = sorted({_normalise(k) for k in _all_keys()} | {a for v in _aliases().values() for a in v})

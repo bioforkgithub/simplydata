@@ -519,7 +519,7 @@ class ModelToolWords:
 
     # ------------------------------------------------------------------ check_model_of
     @friendly(renamed={"bayesian": ("test_method", {True: "bayesian", False: None}), "seed": "with_seed"})
-    def check_model_of(self, column=None, using=None, outcome="numbers", grouped_by=None, bayesian=False, show=None,
+    def check_model_of(self, column=None, using=None, outcome="numbers", grouped_by=None, test_method=None, show=None,
                        with_seed=1):
         """Four pictures to check a model from explain(), as R plot(lm(...)).
 
@@ -546,7 +546,9 @@ class ModelToolWords:
         the prior allows only possible values. Gives back the chart.
         """
         step = "check_model_of"
-        wants = self._check_bayesian(step, bayesian)
+        wants = self._check_bayesian(step, test_method)
+        if test_method is not None and not wants:
+            self._check_choice(step, "test_method", test_method, ("bayesian",))
         if wants or show is not None or with_seed != 1:
             from . import bayes_words
 

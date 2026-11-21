@@ -34,10 +34,10 @@ CONFIRM_EXAMPLE = ('table.check_hidden_factors(measured_by={"visual": ["x1", "x2
 
 # method= : (psych fm, in words)
 METHODS = {"minres": ("minres", "minimum residual (minres)"),
-           "ml": ("ml", "maximum likelihood"),
+           "maximum likelihood": ("ml", "maximum likelihood"),
            "principal axis": ("pa", "principal axis")}
 METHOD_SPELLINGS = {"minimum residual": "minres", "min res": "minres", "uls": "minres",
-                    "maximum likelihood": "ml", "max likelihood": "ml", "mle": "ml",
+                    "ml": "maximum likelihood", "max likelihood": "maximum likelihood", "mle": "maximum likelihood",
                     "pa": "principal axis", "paf": "principal axis", "principal axes": "principal axis",
                     "principal axis factoring": "principal axis", "principal-axis": "principal axis"}
 # rotation= : (psych rotate, in words, may the factors correlate?)
@@ -108,8 +108,8 @@ class HiddenFactorWords:
         shared part and its own part (the uniqueness). Unlike principal components
         (add_principal_components), which only sum the columns up, factor analysis looks for
         what the columns share. More: rotation="oblimin" (default; the factors may correlate),
-        "varimax" (kept uncorrelated), "promax" or "none"; test_method="minres" (default), "ml"
-        (maximum likelihood, as R factanal) or "principal axis"; with_seed=1 makes the
+        "varimax" (kept uncorrelated), "promax" or "none"; test_method="minres" (default), "maximum likelihood"
+        ("ml" works too; as R factanal) or "principal axis"; with_seed=1 makes the
         parallel analysis and the oblimin rotation repeat. To check a model you wrote down beforehand, use
         check_hidden_factors. Needs R psych and GPArotation (pip install "simplydata[r]").
         Other names: factor analysis, efa, fa, factanal, scree, parallel analysis.
@@ -141,7 +141,7 @@ class HiddenFactorWords:
                                   f"number from 1 to {most} ({p} columns can pin down at most {most} "
                                   f"{'factor' if most == 1 else 'factors'}), not {how_many!r}.")
         rotation_name = _choice(rotation, ROTATION_SPELLINGS, tuple(ROTATIONS), "rotation", step)
-        method_name = _choice(test_method, METHOD_SPELLINGS, tuple(METHODS), "method", step)
+        method_name = _choice(test_method, METHOD_SPELLINGS, tuple(METHODS), "test_method", step)
         if isinstance(with_seed, bool) or not isinstance(with_seed, (int, np.integer)) or not 0 <= with_seed < 2 ** 31:
             raise SimplydataError(f"{step}() needs with_seed= as a whole number from 0 (for example with_seed=1), "
                                   f"not {with_seed!r}.")

@@ -1590,7 +1590,7 @@ class ModelWords:
                 giving_outliers_less_weight=False, with_knots=None, interval_by="wald", resamples=None,
                 crossed_with=None, zero_part_using=None, for_percentile=None, changes_at=None,
                 spread_changes_with=None, neighbours_alike_in_order_of=None, through=None, allowing_for=None,
-                against=None, bayesian=False):
+                against=None):
         """Explain one column from several others with a model, and say how big each effect is.
 
         table.explain("marks", using=["hours", "breakfast"])   (with sdata.get_example("school"))
@@ -1704,7 +1704,7 @@ class ModelWords:
             self._survey_only("explain", locals(), ("column", "using", "outcome"))
             return self._survey_explain(column, using, outcome)
         step = "explain"
-        if self._check_bayesian(step, bayesian):
+        if self._check_bayesian(step, test_method):
             from . import bayes_words
 
             bayes_words.check_bayes_options(step, [
@@ -1713,7 +1713,7 @@ class ModelWords:
                 ("own_slope_for=", own_slope_for, None), ("robust_errors=", robust_errors, False),
                 ("p_value_by=", p_value_by, "wald"), ("effects=", effects, "for the average group"),
                 ("within_groups=", within_groups, "alike"), ("curve_for=", curve_for, None),
-                ("weights=", weights, None), ("show=", show, None), ("test_method=", test_method, None),
+                ("weights=", weights, None), ("show=", show, None),
                 ("matched_by=", matched_by, None), ("giving_outliers_less_weight=", giving_outliers_less_weight, False),
                 ("with_knots=", with_knots, None), ("interval_by=", interval_by, "wald"), ("resamples=", resamples, None),
                 ("crossed_with=", crossed_with, None), ("zero_part_using=", zero_part_using, None),
@@ -1766,7 +1766,7 @@ class ModelWords:
                 ("own_slope_for=", own_slope_for, None), ("robust_errors=", robust_errors, False),
                 ("p_value_by=", p_value_by, "wald"), ("effects=", effects, "for the average group"),
                 ("within_groups=", within_groups, "alike"), ("curve_for=", curve_for, None),
-                ("weights=", weights, None), ("show=", show, None), ("test_method=", test_method, None),
+                ("weights=", weights, None), ("show=", show, None),
                 ("matched_by=", matched_by, None), ("giving_outliers_less_weight=", giving_outliers_less_weight, False),
                 ("with_knots=", with_knots, None), ("interval_by=", interval_by, "wald"), ("resamples=", resamples, None),
                 ("crossed_with=", crossed_with, None), ("zero_part_using=", zero_part_using, None),

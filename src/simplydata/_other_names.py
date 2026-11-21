@@ -314,7 +314,7 @@ _TABLE = [
      "publication_bias small_study small_study_effects egger regtest peters trimfill "
      "trim_and_fill"),
     ('table.combine_studies(..., interval_by="Hartung-Knapp")', "hksj knha hartung_knapp knapp_hartung"),
-    ('table.combine_studies(..., test_method="Mantel-Haenszel")', "rma_mh mantel_haenszel_meta peto rma_peto"),
+    ('table.combine_studies(..., test_method="mantel-haenszel")', "rma_mh mantel_haenszel_meta peto rma_peto"),
     # S3c-1: communities and resistomes
     ('table.add_diversity_columns(columns=["blaTEM", "sul1"])',
      "diversity shannon simpson invsimpson chao1 estimateR specnumber alpha_diversity hill hill_numbers renyi "
