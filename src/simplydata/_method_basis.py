@@ -242,6 +242,7 @@ REFERENCES: dict[str, Reference] = {
     "mann1945": _ref("Mann 1945", "Mann HB (1945). Nonparametric Tests Against Trend. Econometrica 13:245.", doi="10.2307/1907187"),
     "hamed1998": _ref("Hamed & Ramachandra Rao 1998", "Hamed KH, Ramachandra Rao A (1998). A modified Mann-Kendall trend test for autocorrelated data. Journal of Hydrology 204:182-196.", doi="10.1016/S0022-1694(97)00125-X"),
     "dickey1979": _ref("Dickey & Fuller 1979", "Dickey DA, Fuller WA (1979). Distribution of the Estimators for Autoregressive Time Series with a Unit Root. Journal of the American Statistical Association 74:427-431.", doi="10.1080/01621459.1979.10482531"),
+    "mackinnon1996": _ref("MacKinnon 1996", "MacKinnon JG (1996). Numerical distribution functions for unit root and cointegration tests. Journal of Applied Econometrics 11:601-618.", doi="10.1002/(SICI)1099-1255(199611)11:6<601::AID-JAE417>3.0.CO;2-T"),
     "kwiatkowski1992": _ref("Kwiatkowski et al. 1992", "Kwiatkowski D, Phillips PCB, Schmidt P et al. (1992). Testing the null hypothesis of stationarity against the alternative of a unit root. Journal of Econometrics 54:159-178.", doi="10.1016/0304-4076(92)90104-Y"),
     "killick2012": _ref("Killick et al. 2012", "Killick R, Fearnhead P, Eckley IA (2012). Optimal Detection of Changepoints With a Linear Computational Cost. Journal of the American Statistical Association 107:1590-1598.", doi="10.1080/01621459.2012.737745"),
     "welch1967": _ref("Welch 1967", "Welch P (1967). The use of fast Fourier transform for the estimation of power spectra: A method based on time averaging over short, modified periodograms. IEEE Transactions on Audio and Electroacoustics 15:70-73.", doi="10.1109/TAU.1967.1161901"),
@@ -641,7 +642,7 @@ BASIS["use_colours"] = _b(
     "use_colours(\"a\", \"b\", ...) for your own; use_colour() for one colour.",
     "Readers with colour blindness can tell the Okabe-Ito colours apart, and they stay distinct in print (Okabe & "
     "Ito 2008; Wong 2011).",
-    ("okabe2008", "wong2011"), "P1", "With more than 8 groups the colours repeat.")
+    ("okabe2008", "wong2011"), "P1", "With more groups than colours the colours repeat, and a note says so (once).")
 BASIS["use_colour_scale"] = _b(
     "viridis for numbers; with middle=, a blue-to-red scale (RdBu) with the same change of colour per unit on "
     "both sides.",
@@ -651,7 +652,7 @@ BASIS["use_colour_scale"] = _b(
     "with a meaningful middle (Harrower & Brewer 2003).",
     ("liu2018", "nunez2018", "crameri2020", "harrower2003"), "P2",
     "log=True with values at or below 0 is refused; middle= with log= or steps= is refused; an unknown name is "
-    "refused with a list of colour-blind-safe scales.")
+    "refused with a list of colour-blind-safe scales; a rainbow scale (jet, rainbow, hsv ...) gets a note (once).")
 BASIS["draw_interaction_lines"] = _b(
     "The average of each group joined by lines, with 95 % t intervals (as R t.test()), groups moved a little "
     "apart.",
@@ -1175,7 +1176,9 @@ BASIS["table.fit_line changes_at="] = _b(
     "it is large, allowed for (for example with HAC standard errors); simplydata prints it but does not adjust.",
     ("bernal2017",), "P2", "At least 3 rows on each side of the point.")
 BASIS["table.fit_curve"] = _b(
-    "A polynomial of degree 2 by least squares (raw powers, as R lm(y ~ poly(x, 2, raw = TRUE))).",
+    "A polynomial of degree 2 by least squares (raw powers, as R lm(y ~ poly(x, 2, raw = TRUE))), fitted on x "
+    "mapped onto [-1, 1] and turned back into the raw powers by statsmodels t_test(), so the standard errors keep "
+    "their digits when the powers are nearly in proportion (NIST Filip).",
     "of_degree= 1 to 10; of_kind= a named curve; fit_formula() for any formula.",
     "Degree 2 is a starting value, not a published rule; from degree 4 a note says the curve wiggles and points "
     "to smoothing or a formula.",
@@ -1197,8 +1200,12 @@ BASIS["table.fit_formula"] = _b(
     "1988 show they can be poor for strongly curved models and prefer profile-likelihood intervals (R confint()), "
     "which simplydata does not yet offer.",
     ("bates1988",), "P3",
-    "Levenberg-Marquardt with limits, impossible start values and no convergence are refused; values the data do "
-    "not pin down get infinite standard errors, with a note; a value at its limit gets a note.", "convention")
+    "Levenberg-Marquardt with limits, impossible start values and a search that does not settle are refused; values "
+    "the data do "
+    "not pin down get infinite standard errors, a note and converged \"no\" (R nls() stops there); with R squared "
+    "near 0 as well, the note says the search may have stopped in a flat region and suggests other start values or "
+    "search=\"whole range\"; R squared below 0.01 alone gets the same hint; a value at its limit gets a note.",
+    "convention")
 BASIS["table.fit_dose_response"] = _b(
     "The 4-parameter log-logistic curve (drc's LL.4), with the ED50 and its delta-method interval.",
     "of_kind=\"3 parameter log-logistic\", \"5 parameter log-logistic\", \"weibull\"; doses_for_effect=.",
@@ -1786,8 +1793,8 @@ BASIS["table.compare_survival followed_from="] = _b(
     "survdiff(entry=)).",
     "Leave it out when everyone was followed from time 0.",
     "R survdiff takes no start times. The log-rank test with delayed entry equals the score test of a Cox model "
-    "with exact ties (coxph(Surv(start, stop, event) ~ group, ties = \"exact\")); the printout and the "
-    "reliability study compare with the Breslow-ties score test, which agrees closely but not exactly.",
+    "with exact ties (coxph(Surv(start, stop, event) ~ group, ties = \"exact\")); the printout names that R "
+    "call and the reliability study checks against it (Channing House: equal to 1.6e-11).",
     ("klein2003", "therneau2000"), "P5", "Refused with allowing_for=.", "starting value")
 BASIS["table.compare_survival average_time_up_to="] = _b(
     "The difference and ratio of restricted mean survival times up to the horizon you name (R survRM2::rmst2()); "
@@ -2097,10 +2104,14 @@ BASIS["table.find_trend_of"] = _b(
     "repeats_every=.",
     "Sen's slope and the Mann-Kendall test need no bell shape and resist outliers (Sen 1968; Mann 1945); the "
     "seasonal form compares the same season across years (Hirsch, Slack & Smith 1982). The test assumes "
-    "independent readings; autocorrelation inflates its false alarms (Hamed & Rao 1998; Yue et al. 2002), and "
-    "simplydata does not yet check for it or offer the modified test.",
+    "independent readings; autocorrelation inflates its false alarms (Hamed & Rao 1998; Yue et al. 2002). "
+    "simplydata checks for it but does not offer the modified test.",
     ("sen1968", "mann1945", "hirsch1982", "hamed1998", "yue2002"), "P2",
-    "Fewer than 4 readings are refused; without R only the slope is given, with a note.")
+    "Fewer than 4 readings are refused; without R only the slope is given, with a note. Without repeats_every= the "
+    "readings left after Sen's line are tested for lag-1 autocorrelation (statsmodels acf and Ljung-Box at lag 1, "
+    "lag 1 being the reading before); when it is positive with p < 0.05 a note says the p-value is too small and "
+    "names the modified test (R modifiedmk). With "
+    "repeats_every= the method line says independence is assumed, not checked.")
 BASIS["table.add_trend_and_season"] = _b(
     "STL (season and trend by loess) with a season window of 7, as R stl(s.window = 7), not robust.",
     "season_window=\"fixed\" or another odd number; robust=True; method=\"moving averages\" (R decompose) or "
@@ -2117,14 +2128,18 @@ BASIS["table.find_autocorrelation_of"] = _b(
     ("bartlett1946", "ljung1978"), "P3", "Fewer than 4 readings, a constant series and uneven spacing are refused.",
     "convention")
 BASIS["table.check_steady_over_time"] = _b(
-    "Both the ADF test (R tseries::adf.test(), which always includes a constant and a trend) and the KPSS test of a "
-    "steady level (kpss.test(null = \"Level\")), read together.",
-    "method=\"adf\" or \"kpss\"; around=\"straight line\" (KPSS null = \"Trend\").",
+    "Steady around one level: the ADF test with a constant only (R urca::ur.df(type = \"drift\"), MacKinnon's "
+    "p-value from urca::punitroot()) and the KPSS test of a steady level (tseries::kpss.test(null = \"Level\")), "
+    "read together.",
+    "method=\"adf\" or \"kpss\"; around=\"straight line\": tseries::adf.test() (constant and trend) and "
+    "kpss.test(null = \"Trend\").",
     "The two tests have opposite null hypotheses, so reading them together separates 'steady', 'wanders' and "
-    "'cannot tell' (Dickey & Fuller 1979; Kwiatkowski et al. 1992). With around=\"level\" their deterministic "
-    "parts differ (adf.test allows a trend, the KPSS level test does not), so a series steady around a sloping line "
-    "can show as 'the tests disagree'; around=\"straight line\" matches them.",
-    ("dickey1979", "kwiatkowski1992"), "P3", "Fewer than 10 readings are refused; needs R.", "convention")
+    "'cannot tell' (Dickey & Fuller 1979; Kwiatkowski et al. 1992); that only works when both ask the same "
+    "question, so the ADF regression follows around= (tseries::adf.test always includes a trend, which would pass a "
+    "steadily rising series as steady around a level). tseries has no constant-only ADF test, so that one is "
+    "urca's, with MacKinnon's (1996) response-surface p-value.",
+    ("dickey1979", "kwiatkowski1992", "mackinnon1996"), "P3",
+    "Fewer than 10 readings are refused; needs R; the printout says which question both tests ask.", "convention")
 BASIS["table.find_change_points_in"] = _b(
     "Changes in the average by PELT with the MBIC penalty (R changepoint::cpt.mean(method = \"PELT\")), after "
     "dividing by the noise estimated as the median absolute deviation of neighbouring differences / sqrt(2).",
@@ -2466,8 +2481,10 @@ BASIS["table.add_axes_that_separate_groups"] = _b(
     "because equal priors would classify differently. Leave-one-out accuracy is nearly unbiased, unlike in-sample "
     "accuracy, as long as the columns were not chosen on the same data.",
     ("fisher1936", "venables2002"), "P3",
-    "Fewer than 2 groups, and a group with fewer than 2 rows, are refused; how_many= is at most the smaller of "
-    "groups - 1 and the number of columns.", "convention")
+    "Fewer than 2 groups, a group with fewer than 2 rows, and no more rows - groups than columns (the pooled spread "
+    "cannot be worked out) are refused; a group with no more rows than columns gets a note; a column constant "
+    "within groups is refused with MASS's reason; how_many= is at most the smaller of groups - 1 and the number of "
+    "columns.", "convention")
 BASIS["table.add_correspondence_axes"] = _b(
     "Correspondence analysis as vegan's cca() with no explaining columns, row scores with scaling = \"sites\" "
     "(vegan's default is \"species\"); each axis turned so its biggest value is positive.",

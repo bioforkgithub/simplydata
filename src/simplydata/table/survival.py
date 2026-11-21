@@ -873,8 +873,7 @@ class SurvivalWords:
         More: allowing_for="centre" compares the groups within each centre and adds the results up (the
         stratified log-rank test, R survdiff(... + strata(centre))); a column of text only.
         followed_from="entry_day" gives each row the time its follow-up started (R has no survdiff for this;
-        the nearest R check is the score test of coxph(Surv(entry_day, days, died) ~ group, ties = "breslow"),
-        which agrees closely but not always exactly).
+        the same test in R is the score test of coxph(Surv(entry_day, days, died) ~ group, ties = "exact")).
         average_time_up_to=365 adds the average time without the event in the first 365 time units in each
         group and, for two groups, their difference and ratio (R survRM2::rmst2): easier to read than a hazard
         ratio, and right when hazards are not proportional. value="relapse", competing_with="death" gives
@@ -926,9 +925,9 @@ class SurvivalWords:
         rhs = for_each_group_in + "".join(f" + strata({c})" for c in allowing)
         if followed_from:
             print(f"Test: log-rank test with each row followed from its \"{followed_from}\" (chi-square = {_num(chi)}, "
-                  f"df = {df}); R survdiff() takes no start times, so the R check is the score test of "
-                  f"coxph({_surv(time, event, yes, followed_from)} ~ {for_each_group_in}, ties = \"breslow\"), which "
-                  "agrees closely but not always exactly.")
+                  f"df = {df}); R survdiff() takes no start times; the same test in R is the score test of "
+                  f"coxph({_surv(time, event, yes, followed_from)} ~ {for_each_group_in}, ties = \"exact\"), "
+                  "coxph()$score.")
         else:
             label = "stratified log-rank test" if allowing else "log-rank test"
             print(f"Test: {label} (chi-square = {_num(chi)}, df = {df}), as R survdiff({_surv(time, event, yes)} ~ "

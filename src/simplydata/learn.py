@@ -4522,7 +4522,7 @@ LESSONS = [
             "how to find the peaks and the dips of a signal",
             "more, if you want it: a smoother spectrum (Welch), and whether a series stays steady",
         ],
-        needs_r=needs_r_text("Only the last part, check_steady_over_time() and its two tests,", packages=("tseries",)),
+        needs_r=needs_r_text("Only the last part, check_steady_over_time() and its two tests,", packages=("tseries", "urca")),
         parts=[
             ("A sensor gives 200 readings a second for 5 seconds. Which cycles does its signal hold? The "
              "spectrum splits a recording into its frequencies, like a prism splits light into colours.", [
@@ -4582,8 +4582,9 @@ LESSONS = [
                 ("import simplydata as sdata", "Load simplydata."),
                 ('table = sdata.table(sdata.get_example("sensor"))', "The sensor table."),
                 ('table.check_steady_over_time("signal", sorted_by="time")',
-                 "The signal looks steady: it stays around a steady level (both tests agree: ADF p below 0.01, "
-                 "KPSS p = 0.095), as R tseries::adf.test() and kpss.test()."),
+                 "The signal looks steady: it stays around a steady level (both tests agree: ADF p < 0.0001, "
+                 "KPSS p = 0.095); both ask whether it stays around one level, as R urca::ur.df(type = \"drift\") "
+                 "and tseries::kpss.test()."),
             ]),
         ],
         notes=[

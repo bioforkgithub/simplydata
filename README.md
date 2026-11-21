@@ -14,7 +14,7 @@ them first.
 ## What simplydata handles
 
 **388 words (commands) in 46 groups, with 353 different options, on top of 14 Python packages and
-67 R packages that it runs (plus R's own `stats`, and 5 more used only to check its answers), checked by 903 reliability checks.** Every word hands the work to
+68 R packages that it runs (plus R's own `stats`, and 5 more used only to check its answers), checked by 903 reliability checks.** Every word hands the work to
 an established package; simplydata chooses the settings, prints the answer in words and names the
 method it used. Words that need an extra say so: `pip install "simplydata[fast]"`, `[files]`,
 `[systems]` or `[r]` (the R words also need R itself; see [Using the words that need R](#using-the-words-that-need-r)).
@@ -74,7 +74,7 @@ R packages that simplydata runs, where Python has no method of its own or none t
 | vegan | NMDS (`add_nmds`); PERMANOVA and its spread check, ANOSIM and SIMPER (`compare_profiles_of(method="anosim")`, `show="contributions"`); diversity: richness, Shannon, Simpson, Chao1, Hill numbers and rarefaction (`add_diversity_columns`, `chart.draw_richness_curves`); Aitchison and Hellinger distances; PCoA (`add_principal_coordinates`); RDA, db-RDA and CCA (`explain_profiles_of`); Mantel and Procrustes (`find_correlation_between_profiles`); correspondence analysis (`add_correspondence_axes`) | [r] |
 | zCompositions, compositions | zeros replaced by estimated small values, then log ratios: clr, alr, ilr (`add_log_ratio_columns`) | [r] |
 | cluster, ca | silhouette widths of clusters (`add_clusters(show="silhouette")`); multiple correspondence analysis of text columns (`add_correspondence_axes`) | [r] |
-| trend, tseries, forecast, changepoint, lomb | the Mann-Kendall test and Sen's slope (`find_trend_of`); ADF and KPSS tests (`check_steady_over_time`); forecasts and their check on held-back readings (`forecast`, `compare_forecasts_for`); change points (`find_change_points_in`); the Lomb-Scargle spectrum of uneven readings (`find_spectrum_of(method="lomb-scargle")`) | [r] |
+| trend, tseries, urca, forecast, changepoint, lomb | the Mann-Kendall test and Sen's slope (`find_trend_of`); ADF and KPSS tests (`check_steady_over_time`); forecasts and their check on held-back readings (`forecast`, `compare_forecasts_for`); change points (`find_change_points_in`); the Lomb-Scargle spectrum of uneven readings (`find_spectrum_of(method="lomb-scargle")`) | [r] |
 
 R packages used only to check simplydata's answers, in the tests and the
 [reliability study](https://github.com/bioforkgithub/simplydata/blob/main/validation/report.md); no word runs them,

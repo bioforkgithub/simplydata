@@ -178,6 +178,25 @@ def sen_slope(values):
     return float(result.slope), float(result.low_slope), float(result.high_slope)
 
 
+def lag1_after_sen_line(values, times=None) -> dict:
+    """The lag-1 autocorrelation of the readings left after Sen's line (statsmodels acf) and the Ljung-Box test
+    at lag 1 (statsmodels acorr_ljungbox): the check of find_trend_of that its readings are independent. Taking
+    out the trend first matters: a trend alone makes neighbouring readings alike (Yue et al. 2002)."""
+    from scipy import stats
+    from statsmodels.stats.diagnostic import acorr_ljungbox
+    from statsmodels.tsa.stattools import acf
+
+    values = np.asarray(values, dtype=float)
+    x = np.arange(len(values), dtype=float) if times is None else np.asarray(times, dtype=float)
+    fit = stats.theilslopes(values, x)
+    rest = values - (fit.intercept + fit.slope * x)  # [D] the readings left after SciPy's Sen line
+    if np.ptp(rest) <= 1e-10 * max(1.0, float(np.max(np.abs(values)))):  # on the line but for rounding
+        return {"r": math.nan, "p": 1.0}
+    r = float(acf(rest, nlags=1, fft=False)[1])
+    p = float(np.asarray(acorr_ljungbox(rest, lags=[1])["lb_pvalue"])[0])
+    return {"r": r, "p": p}
+
+
 def _r_mann_kendall(values, period=None):
     """R trend::mk.test (or smk.test and sea.sens.slope with a season): z, p, S, tau, seasonal slope."""
     from ._r import r_call

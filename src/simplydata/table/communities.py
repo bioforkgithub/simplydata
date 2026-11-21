@@ -641,6 +641,14 @@ class CommunityWords:
         if small:
             raise SimplydataError(f'{step}() needs at least 2 rows in each group; {_quoted_list(small)} in '
                                   f'"{for_each_group_in}" has fewer.')
+        # the groups' spreads are pooled into one covariance of the columns, which needs more rows (less one
+        # per group) than columns; MASS::lda cannot work it out otherwise
+        if len(groups) - len(kinds) <= len(columns):
+            raise SimplydataError(
+                f"{step}() pools the spread within the groups, and that needs more rows than columns once one row "
+                f"per group is set aside: {len(groups)} rows - {len(kinds)} groups = {len(groups) - len(kinds)}, "
+                f"with {len(columns)} columns. Use fewer columns (columns=[...]) or more rows.")
+        thin = [f'"{k}" ({s} rows)' for k, s in zip(kinds, sizes) if s <= len(columns)]
         most = min(len(kinds) - 1, len(columns))
         self._check_whole(step, "how_many=", how_many, 1, most, example)
         from .community_r import discriminant
@@ -662,6 +670,10 @@ class CommunityWords:
         actual = pd.Series(groups, name="group")
         guessed = pd.Series(found["loo"], name="classified as")
         correct = float(np.mean(found["loo"] == groups))
+        if thin:
+            print(f"Note: {_list_words(thin)} in \"{for_each_group_in}\" {'has' if len(thin) == 1 else 'have'} no "
+                  f"more rows than there are columns ({len(columns)}): the axes can follow the chance spread of so few "
+                  "rows, so trust the leave-one-out share more than the picture. Fewer columns or more rows help.")
         chance = float(actual.value_counts(normalize=True).max())
         print(f"Each row was classified by a rule made without it (leave-one-out): {_pct(correct)} classified "
               f"correctly; by always guessing the largest group: {_pct(chance)}.")

@@ -268,7 +268,7 @@ UNDERNEATH = {
                                    "Cramer-von Mises statistics)",
     "nums.find_spectrum": "SciPy (signal.periodogram, signal.welch); R lomb::lsp for uneven times (simplydata[r])",
     "table.find_spectrum_of": "SciPy (signal.periodogram, signal.welch); R lomb::lsp for uneven times (simplydata[r])",
-    "table.check_steady_over_time": "R (tseries::adf.test and kpss.test, through rpy2: simplydata[r])",
+    "table.check_steady_over_time": "R (urca::ur.df or tseries::adf.test, and tseries::kpss.test, through rpy2: simplydata[r])",
     "table.find_autocorrelation_of": "statsmodels (tsa.stattools acf, pacf method ywm, acovf, acorr_ljungbox), as R acf, pacf, Box.test",
     "table.add_trend_and_season": "statsmodels (STL with R's settings, seasonal_decompose, OLS with season effects); "
                                   "R stats::stl(s.window = \"periodic\") for a fixed season (simplydata[r])",
