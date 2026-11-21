@@ -56,7 +56,7 @@ def storey(p, method):
         raise
     except SimplydataError as error:
         raise SimplydataError(
-            f"R qvalue could not estimate the share of true nulls (pi0) from these {len(p)} p-value{"" if len(p) == 1 else "s"} "
+            f"R qvalue could not estimate the share of true nulls (pi0) from these {len(p)} p-value{'' if len(p) == 1 else 's'} "
             f"({' '.join(str(error).removeprefix('R stopped with: ').split())[:200]}). This happens with few p-values, "
             'or when none lies near 1. Use method="benjamini-hochberg", the same idea with pi0 = 1.') from None
     return {"q": np.asarray(found["q"], dtype=float), "lfdr": np.asarray(found["lfdr"], dtype=float),
