@@ -1,2 +1,3 @@
-"signal" looks steady: it stays around a steady level (both tests agree: ADF p below 0.01, KPSS p = 0.095).
-Method: augmented Dickey-Fuller test with a constant and a straight-line trend, as R tseries::adf.test(x); KPSS test, as R tseries::kpss.test(x, null = "Level"); p-values from the published tables, as tseries (run in R).
+"signal" looks steady: it stays around a steady level (both tests agree: ADF p < 0.0001, KPSS p = 0.095).
+Question: does it stay steady around one level? Both tests ask it.
+Method: augmented Dickey-Fuller test with a constant only (steady around one level), as R urca::ur.df(x, type = "drift", lags = trunc((n - 1)^(1/3))), with MacKinnon's p-value (urca::punitroot(), N = the rows of the test regression); KPSS test, as R tseries::kpss.test(x, null = "Level"); the KPSS p-value from the published tables, as tseries (run in R).

@@ -311,8 +311,8 @@ OPTION_ENTRIES = [
         compare="result",
         fields=("statistic", "p-value"),
         choices=("entry=: each row counts as at risk only after its start. R survdiff takes no start times; the "
-                 "nearest R check, the score test of coxph(Surv(start, stop, event) ~ group, ties = \"breslow\"), "
-                 "agrees closely but not always exactly (validation/report.md).",),
+                 "same test in R is the score test of coxph(Surv(start, stop, event) ~ group, ties = \"exact\") "
+                 "(coxph()$score), which agrees to about 1e-11 (validation/report.md).",),
         also=SENTENCE,
     ),
     Entry(

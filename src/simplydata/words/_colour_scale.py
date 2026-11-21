@@ -62,6 +62,24 @@ def _registry():
     return {name.lower(): name for name in matplotlib.colormaps}
 
 
+# rainbow colour maps: their lightness goes up and down, so they show edges that are not in the data and
+# readers with colour blindness cannot read them (Liu & Heer 2018; Crameri et al. 2020)
+RAINBOW_MAPS = ("jet", "turbo", "rainbow", "gist_rainbow", "hsv", "nipy_spectral", "gist_ncar", "gist_stern",
+                "prism", "flag", "brg", "cmrmap", "terrain", "gist_earth", "ocean")
+
+
+def rainbow_note(name):
+    """Once per session: a rainbow colour map was chosen (CH-L4)."""
+    from .._errors import _NOTED
+
+    if "rainbow scale" in _NOTED:
+        return
+    _NOTED.add("rainbow scale")
+    print(f'Note: "{name}" is a rainbow scale: its colours change unevenly, so it shows edges that are not in the '
+          'data, and readers with colour blindness cannot read it. "viridis" or "cividis" show the same numbers '
+          "evenly.")
+
+
 def resolve_map(names, word="colour_scale"):
     """names (a tuple of strings) -> (Colormap or None, a short name to show)."""
     if not names:
@@ -78,6 +96,8 @@ def resolve_map(names, word="colour_scale"):
         if key in PLAIN_NAMES:
             return matplotlib.colormaps[PLAIN_NAMES[key]], name
         if name.lower() in maps:
+            if maps[name.lower()].lower().removesuffix("_r") in RAINBOW_MAPS:
+                rainbow_note(name)
             return matplotlib.colormaps[maps[name.lower()]], name
         if mcolors.is_color_like(name):
             raise SimplydataError(
@@ -89,7 +109,7 @@ def resolve_map(names, word="colour_scale"):
             shown = guess[0] if guess[0] in PLAIN_NAMES else maps[guess[0]]
             lines.append(f'Did you mean "{shown}"?')
         lines.append("Colour-blind-safe choices: " + ", ".join(f'"{n}"' for n in SAFE_EXAMPLES) + ".")
-        lines.append("Any matplotlib colour map name works too (such as \"Blues\" or \"turbo\"), "
+        lines.append("Any matplotlib colour map name works too (such as \"Blues\" or \"plasma\"), "
                      f'or give two or more colours: chart.{word}("white", "navy").')
         raise SimplydataError("\n".join(lines))
     bad = [n for n in names if not mcolors.is_color_like(n)]

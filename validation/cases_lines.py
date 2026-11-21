@@ -71,6 +71,17 @@ def _datasets(Dataset):
                 "Box, G. P., Hunter, W. G. & Hunter, J. S. (1978). Statistics for Experimenters. New York: Wiley, "
                 "pp. 483-487. In: NIST StRD, Nonlinear Regression, dataset BoxBOD.", nist,
                 "https://www.itl.nist.gov/div898/strd/nls/data/boxbod.shtml"),
+        Dataset("NIST Filip", "nist/Filip.dat",
+                "82 observations; certified polynomial of degree 10 (NIST StRD linear regression, higher "
+                "difficulty: the powers of x are nearly in proportion)",
+                "Filippelli, A., NIST. In: NIST StRD, Linear Regression, dataset Filip.", nist,
+                "https://www.itl.nist.gov/div898/strd/lls/data/Filip.shtml"),
+        Dataset("NIST Roszman1", "nist/Roszman1.dat",
+                "quantum defects in iodine atoms (25 points); certified fit of y = b1 - b2 x - arctan(b3 / (x - b4)) "
+                "/ pi (NIST StRD, average difficulty)",
+                "Roszman, L., NIST (year not given). Quantum Defects for Sulfur I Atom. In: NIST StRD, Nonlinear Regression, "
+                "dataset Roszman1.", nist,
+                "https://www.itl.nist.gov/div898/strd/nls/data/roszman1.shtml"),
         Dataset("Puromycin (treated)", "puromycin.csv",
                 "reaction velocity against substrate concentration for the enzyme treated with Puromycin (12 rows)",
                 "Treloar, M. A. (1974). Effects of Puromycin on galactosyltransferase in Golgi membranes. M.Sc. "
@@ -128,6 +139,18 @@ def read_certified_nonlinear(file: str, data_dir) -> dict[str, float]:
     found = {name: float(value) for name, value in
              re.findall(r"^\s*(b\d+)\s*=\s*\S+\s+\S+\s+(-?\d\.\d+E[-+]\d+)", text, flags=re.M)}
     found["residual sum of squares"] = float(re.search(r"Residual Sum of Squares:\s+(\S+)", text).group(1))
+    return found
+
+
+def read_certified_polynomial(file: str, data_dir) -> dict[str, float]:
+    """The certified estimates B0, B1 ... and their standard deviations of a NIST StRD linear file."""
+    import re
+
+    text = (data_dir / file).read_text(encoding="ascii")
+    found = {}
+    for name, value, sd in re.findall(r"^\s*B(\d+)\s+(\S+)\s+(\S+)\s*$", text, flags=re.M):
+        found[f"b{name}"] = float(value)
+        found[f"b{name} standard error"] = float(sd)
     return found
 
 
@@ -238,6 +261,29 @@ def _cases(Case, data_dir):
                published={n: cert(file, n) for n in ("b1", "b2", "residual sum of squares")},
                note="NIST writes the curve as b1 (1 - exp(-b2 x)): b1 is Asym and b2 is exp(lrc) of R's SSasympOrig.")
           for name, file in (("Misra1a", misra), ("BoxBOD", boxbod))],
+        Case("table.fit_curve", "Filip: a polynomial of degree 10 whose powers are nearly in proportion (NIST certified)",
+             "NIST Filip", "published",
+             ours="""
+                 r = sdata.table(data).fit_curve(x="x", y="y", of_degree=10).as_pandas()
+                 {**{f"b{j}": v for j, v in enumerate(r["estimate"])},
+                  **{f"b{j} standard error": v for j, v in enumerate(r["standard error"])}}
+             """,
+             published={n: (v, "lre", "NIST certified")
+                        for n, v in read_certified_polynomial("nist/Filip.dat", data_dir).items()},
+             note="The hardest NIST linear problem (condition number of the powers 1.8e15). simplydata fits on x mapped "
+                  "onto [-1, 1] and turns the answer back into the raw powers with statsmodels t_test(); a QR fit on "
+                  "the raw powers (simplydata 0.2.0) gave no standard errors for b5 to b10, and R lm() drops two "
+                  "terms."),
+        Case("table.fit_formula", "Roszman1: a formula with arctan, from NIST's start 1 (NIST certified)",
+             "NIST Roszman1", "published",
+             ours="""
+                 r = sdata.table(data).fit_formula("y = b1 - b2 * x - arctan(b3 / (x - b4)) / pi",
+                                                   start={"b1": 0.1, "b2": -0.00001, "b3": 1000, "b4": -100}).as_pandas().iloc[0]
+                 {"b1": r["b1"], "b2": r["b2"], "b3": r["b3"], "b4": r["b4"],
+                  "residual sum of squares": r["residual standard error"] ** 2 * r["degrees of freedom"]}
+             """,
+             published={n: cert("nist/Roszman1.dat", n) for n in ("b1", "b2", "b3", "b4", "residual sum of squares")},
+             note="arctan is NumPy's arctan in the formula reader."),
         Case("table.fit_curve", "Puromycin (treated): a Michaelis-Menten curve", "Puromycin (treated)", "published", option='of_kind="michaelis-menten"',
              ours="""
                  r = sdata.table(data).fit_curve(x="conc", y="rate", of_kind="michaelis-menten").as_pandas()

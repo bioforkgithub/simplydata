@@ -33,7 +33,23 @@ def palette_for(table: pd.DataFrame, group: str | None, settings: dict | None = 
         return None
     base = list((settings or {}).get("colours") or palette(settings))
     n = table[group].nunique(dropna=True)
+    distinct = len(dict.fromkeys(base))
+    if n > distinct:
+        repeat_note(n, distinct)
     return (base * (n // len(base) + 1))[:n]
+
+
+def repeat_note(groups: int, distinct: int):
+    """Once per session: more groups than distinct colours, so some groups share a colour (CH-L4: colour is
+    never the only cue)."""
+    from .._errors import _NOTED
+
+    if "colours repeat" in _NOTED:
+        return
+    _NOTED.add("colours repeat")
+    print(f"Note: there are {groups} groups but {distinct} different colours, so some groups share a colour. Show "
+          "fewer groups, or label them on the chart; more than about 8 colours are hard to tell apart even when they "
+          "differ. For a column of numbers, a colour scale shows it better.")
 
 
 def default_colour(settings: dict | None = None, fixed=None):

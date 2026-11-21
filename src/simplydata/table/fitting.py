@@ -6,8 +6,10 @@ Choices (the same defaults as R, so results can be checked there):
 * fit_line(x=, y=): ordinary least squares (R lm(y ~ x)), t-based 95 % intervals. Its old
   name fit_straight_line still works for one release, with a note.
 * fit_curve(x=, y=, of_degree=2): least squares on the powers of x, as R
-  lm(y ~ poly(x, 2, raw = TRUE)), with statsmodels WLS through a QR decomposition of the powers
-  (as lm, and steadier than the normal equations np.polyfit uses). t-based 95 % intervals,
+  lm(y ~ poly(x, 2, raw = TRUE)), with statsmodels WLS on the powers of x mapped onto [-1, 1]
+  (NumPy's polynomial domain mapping), and statsmodels t_test() for the estimates and standard
+  errors of the raw powers: the raw powers are often nearly in proportion, and a fit on them
+  loses digits in the standard errors (NIST Filip: none left). t-based 95 % intervals,
   R squared and adjusted R squared as R summary.lm(). weights= as R lm(weights =).
 * fit_formula("y = a * exp(b * x)"): nonlinear least squares, as R nls().
   - Without between=: Levenberg-Marquardt (SciPy curve_fit method "lm"; R nls() uses
@@ -62,6 +64,7 @@ METHOD_SPELLINGS = {"lm": "levenberg-marquardt", "levenberg marquardt": "levenbe
 METHOD_WORDS = {"lm": "Levenberg-Marquardt", "trf": "trust region reflective", "dogbox": "dogbox"}
 SEED = 1  # the whole-range search is random; this seed makes it the same every time
 LIMIT_SHARE = 1e-8  # a value this close to a limit of between= is "at the limit"
+FLAT_R2 = 0.01  # a fit with R squared below this follows the data no better than a flat line (a note says so)
 
 
 def _st():
@@ -432,9 +435,26 @@ def fit_formula_core(formula, data, columns, start=None, between=None, weights=N
     log_lik = -n / 2 * (math.log(2 * math.pi) + 1 - math.log(n) - float(np.sum(np.log(weight))) / n
                         + math.log(rss)) if rss > 0 else math.inf
     aic = -2 * log_lik + 2 * (p + 1)
-    if uncertain or not np.all(np.isfinite(errors)):
-        notes.append("Note: the standard errors could not be worked out well: the data do not pin down every "
-                     "value. Try a simpler formula or more data.")
+    no_errors = uncertain or not np.all(np.isfinite(errors))
+    flat = math.isfinite(r2) and r2 < FLAT_R2
+    other_start = (f"other start values ({start_hint})" if search != "whole range" else "narrower limits in between=")
+    whole_range = "" if search == "whole range" else ', or limits with between= and search="whole range"'
+    if no_errors and flat:
+        # NIST BoxBOD from start 1: SciPy stops where the formula is flat (R squared 0, no standard errors)
+        converged = False
+        notes.append(f"Note: the search may have stopped in a flat region, where changing the values hardly changes "
+                     f"the fit: R squared is {st._num(r2)} and there are no standard errors, so this is probably not the "
+                     f"best fit. Try {other_start}{whole_range}.")
+    elif no_errors:
+        converged = False  # R nls() stops here ("singular gradient")
+        notes.append("Note: the standard errors could not be worked out well: the data (or the place where the "
+                     f"search stopped) do not pin down every value. Try a simpler formula, more data, or "
+                     f"{other_start}.")
+    elif flat:
+        than = "worse than" if r2 < 0 else "no better than"
+        notes.append(f"Note: R squared is {st._num(r2)}: the curve follows the data {than} a flat line at the average. "
+                     "The formula may not suit the data; if it should, the search may have stopped in a flat region: "
+                     f"try {other_start}{whole_range}.")
     at_limit = [f"{k} ended at its limit ({(lo if abs(v - lo) <= LIMIT_SHARE * max(1, abs(lo)) else hi):g})"
                 for k, v, lo, hi in zip(names, found, low, high)
                 if (math.isfinite(lo) and abs(v - lo) <= LIMIT_SHARE * max(1, abs(lo)))
@@ -479,21 +499,37 @@ def _not_pinned_down(curve, found, weight) -> bool:
 
 # ---------------------------------------------------------------------------- polynomial
 def fit_curve_core(x, y, degree, weights=None) -> dict:
-    """Least squares on 1, x, x**2, ... x**degree with statsmodels WLS (QR), as R
-    lm(y ~ poly(x, degree, raw = TRUE), weights = w)."""
+    """Least squares on 1, x, x**2, ... x**degree, as R lm(y ~ poly(x, degree, raw = TRUE), weights = w).
+
+    The raw powers of x are often nearly in proportion (NIST Filip: condition number 1.8e15), and
+    statsmodels' covariance inv(R'R) after a QR fit on them loses every digit (some variances come
+    out below 0). So the fit runs on the powers of x mapped onto [-1, 1] (NumPy's own polynomial
+    domain mapping, polyutils.getdomain and mapdomain; condition number 2.9e3 on Filip) with
+    statsmodels WLS, and statsmodels' t_test() turns the estimates, standard errors and intervals
+    into those of the raw powers (the conversion matrix comes from NumPy Polynomial.convert()).
+    On Filip this agrees with NIST to 13 digits; the QR fit on the raw powers gave no standard errors.
+    """
+    from numpy.polynomial import Polynomial, polyutils
     from statsmodels.regression.linear_model import WLS
 
     x = np.asarray(x, dtype=float)
     y = np.asarray(y, dtype=float)
     w = np.ones(len(y)) if weights is None else np.asarray(weights, dtype=float)
-    X = np.vander(x, degree + 1, increasing=True)
+    domain, window = polyutils.getdomain(x), np.array([-1.0, 1.0])
+    X = np.vander(polyutils.mapdomain(x, domain, window), degree + 1, increasing=True)
+    # column j: the raw-power coefficients of the j-th power on the mapped scale (convert() drops trailing 0s)
+    to_raw = np.zeros((degree + 1, degree + 1))
+    for j in range(degree + 1):
+        coef = Polynomial(np.eye(degree + 1)[j], domain=domain, window=window).convert().coef
+        to_raw[:len(coef), j] = coef
     with np.errstate(divide="ignore", invalid="ignore"):
-        result = WLS(y, X, weights=w).fit(method="qr")
-        low, high = np.asarray(result.conf_int(0.05)).T
-        return {"beta": np.asarray(result.params), "se": np.asarray(result.bse), "t": np.asarray(result.tvalues),
-                "p": np.asarray(result.pvalues), "low": low, "high": high, "df": int(result.df_resid),
-                "r2": float(result.rsquared), "adjusted": float(result.rsquared_adj), "n": len(y),
-                "sigma": math.sqrt(result.scale), "fitted": np.asarray(result.fittedvalues)}
+        result = WLS(y, X, weights=w).fit()
+        raw = result.t_test(to_raw)
+        low, high = np.asarray(raw.conf_int(alpha=0.05)).T
+        return {"beta": np.asarray(raw.effect).ravel(), "se": np.asarray(raw.sd).ravel(),
+                "t": np.asarray(raw.tvalue).ravel(), "p": np.asarray(raw.pvalue).ravel(), "low": low, "high": high,
+                "df": int(result.df_resid), "r2": float(result.rsquared), "adjusted": float(result.rsquared_adj),
+                "n": len(y), "sigma": math.sqrt(result.scale), "fitted": np.asarray(result.fittedvalues)}
 
 
 def _curve_text(y, x, beta) -> str:

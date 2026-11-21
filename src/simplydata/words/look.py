@@ -226,7 +226,7 @@ class LookWords:
 
         A name: "viridis" (normal), "cividis", "magma", "blues", "greens" ..., "blue to red"
         or "purple to orange" for numbers on both sides of a middle; these are all safe
-        for colour-blind readers. Any matplotlib colour map name works too ("Blues", "turbo",
+        for colour-blind readers. Any matplotlib colour map name works too ("Blues", "plasma",
         "rocket"), and two or more colours make your own: chart.use_colour_scale("white", "navy").
         middle=0 puts the middle colour of a two-sided scale at 0 (or middle=1 for ratios);
         the scale goes equally far on both sides, so a step of 1 is the same change of colour.

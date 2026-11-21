@@ -54,7 +54,7 @@ VARIOGRAM_SPELLINGS = {"sph": "spherical", "exp": "exponential", "gau": "gaussia
                        "mat": "matern", "matérn": "matern"}
 FEW_FOR_VARIOGRAM = 30  # fewer rows: a note (design AC09)
 
-RETURN_EXAMPLE = 'table.find_return_levels_of("sea_level", once_in=[10, 50, 100])   (with sdata.get_example("sealevel"))'
+RETURN_EXAMPLE = 'table.find_return_levels_of("sea_level", once_in=[10, 50, 100])   (with sdata.get_example("sea_levels"))'
 FEW_BLOCKS = 15  # fewer blocks: a note ("the 100-year level from 20 years is uncertain")
 LEAST_BLOCKS = 5
 FEW_ABOVE = 30  # fewer values above the threshold: a note
@@ -519,7 +519,7 @@ class PlaceWords:
     def find_return_levels_of(self, column=None, once_in=(10, 50, 100), values_above=None, sorted_by=None):
         """Return levels: the level reached on average once in 10, 50 or 100 years (extreme values).
 
-        table.find_return_levels_of("sea_level", once_in=[10, 50, 100])   (with sdata.get_example("sealevel"))
+        table.find_return_levels_of("sea_level", once_in=[10, 50, 100])   (with sdata.get_example("sea_levels"))
         A return level is the level reached on average once in a given number of years: the
         100-year level has a 1-in-100 chance of being reached in any one year (it can happen twice
         in a decade, or not in 200 years). Two ways:

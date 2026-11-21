@@ -118,6 +118,10 @@ ALLOWED_ARITHMETIC = {
                                 "independent number (statsmodels or R) times it, rounded up, whole clusters of m, "
                                 "m / design effect (what one cluster counts as) and a given number / design effect "
                                 "(the independent values it counts as)",
+    # review fixes (2026-11-21)
+    "_trend_season.py::lag1_after_sen_line": "the readings minus SciPy theilslopes' line (the residuals), the input "
+                                             "of statsmodels acf and acorr_ljungbox for find_trend_of's check of "
+                                             "independent readings",
 }
 
 

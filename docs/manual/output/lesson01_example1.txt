@@ -1,4 +1,4 @@
-Example tables you can use (made up for practice, except bcg and passive_smoking, real published studies, ability_tests, real published test scores, and sealevel, real published sea levels):
+Example tables you can use (made up for practice, except bcg and passive_smoking, real published studies, ability_tests, real published test scores, and sea_levels, real published sea levels):
 
   sdata.get_example("marks")
       Test marks of 18 made-up children in three classes.

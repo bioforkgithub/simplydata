@@ -40,11 +40,11 @@ def test_stations_and_rain_are_made_up_and_say_so():
     assert len(sdata.get_example("rain")) == 3653
 
 
-def test_sealevel_is_the_published_port_pirie_series():
+def test_sea_levels_are_the_published_port_pirie_series():
     from simplydata.data import EXAMPLES
 
-    assert EXAMPLES["sealevel"][0].startswith("REAL DATA") and "Coles" in EXAMPLES["sealevel"][0]
-    frame = sdata.get_example("sealevel")
+    assert EXAMPLES["sea_levels"][0].startswith("REAL DATA") and "Coles" in EXAMPLES["sea_levels"][0]
+    frame = sdata.get_example("sea_levels")
     assert len(frame) == 65 and frame["year"].tolist() == list(range(1923, 1988))
     assert frame["sea_level"].iloc[:4].tolist() == [4.03, 3.83, 3.65, 3.88]
 
@@ -220,7 +220,7 @@ def test_variogram_refusals():
 
 # ---------------------------------------------------------------- AB07 / AB08: return levels
 def test_port_pirie_return_levels_are_extremes(needs_r, capsys):
-    result = _table("sealevel").find_return_levels_of("sea_level", once_in=[10, 100], sorted_by="year").as_pandas()
+    result = _table("sea_levels").find_return_levels_of("sea_level", once_in=[10, 100], sorted_by="year").as_pandas()
     # Coles (2001) 3.4.1 and extRemes: 10-year 4.30, 100-year 4.69; profile interval of the 100-year level 4.49 to 5.26
     assert result["level"].tolist() == pytest.approx([4.296212, 4.688404], abs=5e-6)
     assert result["95 % CI low"][1] == pytest.approx(4.495, abs=0.003)
@@ -240,16 +240,16 @@ def test_return_level_refusals_need_no_r():
     with pytest.raises(SimplydataError, match="needs sorted_by="):
         rain.find_return_levels_of("rain", values_above=20)
     with pytest.raises(SimplydataError, match="above 1"):
-        _table("sealevel").find_return_levels_of("sea_level", once_in=[1, 10])
+        _table("sea_levels").find_return_levels_of("sea_level", once_in=[1, 10])
     with pytest.raises(SimplydataError, match="dates"):
-        _table("sealevel").find_return_levels_of("sea_level", values_above=4, sorted_by="year")
+        _table("sea_levels").find_return_levels_of("sea_level", values_above=4, sorted_by="year")
     repeated = sdata.table(pd.DataFrame({"year": [2000, 2000, 2001, 2002, 2003, 2004], "v": [1.0, 2, 3, 4, 5, 6]}))
     with pytest.raises(SimplydataError, match="several rows per year"):
         repeated.find_return_levels_of("v", sorted_by="year")
 
 
 def test_yearly_maxima_with_their_dates_are_block_maxima(needs_r):
-    frame = sdata.get_example("sealevel")
+    frame = sdata.get_example("sea_levels")
     rng = np.random.default_rng(5)
     days = pd.to_datetime([f"{y}-01-01" for y in frame["year"]]) + pd.to_timedelta(rng.integers(0, 365, len(frame)),
                                                                                     unit="D")
@@ -287,10 +287,10 @@ def test_values_above_a_threshold(needs_r, capsys):
 
 # ---------------------------------------------------------------- the new distribution families
 def test_gev_fit_keeps_xi_and_matches_scipy_with_c_turned_round():
-    fit = _table("sealevel").fit_distribution_to("sea_level", "gev")
+    fit = _table("sea_levels").fit_distribution_to("sea_level", "gev")
     shape = fit.turn_into_table().as_pandas()["shape"][0]
     assert shape == pytest.approx(-0.0501095, abs=2e-5)  # extRemes / Coles: xi = -0.050
-    x = sdata.get_example("sealevel")["sea_level"].to_numpy(dtype=float)
+    x = sdata.get_example("sea_levels")["sea_level"].to_numpy(dtype=float)
     c, loc, scale = stats.genextreme.fit(x)
     assert -c == pytest.approx(shape, abs=2e-3)
     assert fit.find_percentile(99) == pytest.approx(

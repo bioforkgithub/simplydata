@@ -164,19 +164,19 @@ def test_delayed_entry_matches_r(trial, engine, capsys, needs_r):
     # coxph(Surv(entry, days, ev) ~ age + treatment)
     cox = frame(t.explain_survival(time="days", event="died", using=["age", "treatment"], followed_from="entry"))
     assert cox["coefficient"].tolist() == pytest.approx([0.0497666177412231, 0.28508129380669], rel=1e-6)
-    # the log-rank test with start times = the score test of coxph(..., ties = "breslow") when no two events share
-    # a time (with tied times the score test's variance differs a little from the log-rank's), so the ties are split
+    # the log-rank test with start times = the score test of coxph(..., ties = "exact"), tied times and all (with
+    # ties = "breslow" it differs a little); summary() of an exact-ties fit has no score test, so coxph()$score
     from simplydata._r import r_call
 
-    untied = d.assign(days=d["days"] + np.arange(len(d)) * 1e-4)
-    lr = frame(make(untied, engine).compare_survival(time="days", event="died", for_each_group_in="treatment",
-                                                     followed_from="entry"))
-    want = r_call("summary(survival::coxph(survival::Surv(s, t, e) ~ g, ties = 'breslow'))$sctest",
-                  s=untied["entry"].to_numpy(float), t=untied["days"].to_numpy(float),
-                  e=(untied["died"] == "yes").to_numpy(float), g=untied["treatment"].to_numpy(object))
+    lr = frame(t.compare_survival(time="days", event="died", for_each_group_in="treatment", followed_from="entry"))
+    want = r_call("m <- survival::coxph(survival::Surv(s, t, e) ~ g, ties = 'exact'); "
+                  "c(unname(m$score), stats::pchisq(unname(m$score), 1, lower.tail = FALSE))",
+                  s=d["entry"].to_numpy(float), t=d["days"].to_numpy(float),
+                  e=(d["died"] == "yes").to_numpy(float), g=d["treatment"].to_numpy(object))
     assert lr["statistic"][0] == pytest.approx(float(want[0]), rel=1e-9)
-    assert lr["p-value"][0] == pytest.approx(float(want[2]), rel=1e-9)
-    assert 'ties = "breslow"' in capsys.readouterr().out
+    assert lr["p-value"][0] == pytest.approx(float(want[1]), rel=1e-9)
+    out = capsys.readouterr().out
+    assert 'ties = "exact"' in out and "breslow" not in out
 
 
 def test_kaplan_meier_with_entry_counts_rows_at_risk_after_their_start():

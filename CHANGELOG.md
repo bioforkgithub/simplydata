@@ -69,7 +69,7 @@ working for one release and prints a one-line note with its new name.
 - `chart.draw_polar(..., full_turn=360)`: the angles' full turn, and a compass layout (0 at the top, clockwise) with
   `full_turn=` or when the angle column is named like a direction; `degrees=` still works for this release.
 - `find_average_of` notes when a column looks like directions, and points to `find_average_direction_of`.
-- Practice tables `stations` and `rain` (made up) and `sealevel` (real: Port Pirie, Coles 2001); lesson 33, "A coastal
+- Practice tables `stations` and `rain` (made up) and `sea_levels` (real: Port Pirie, Coles 2001); lesson 33, "A coastal
   station: currents, neighbours and storms"; same-underneath entries and reliability cases on the turtles and
   intensive-care arrivals (circular), meuse (sp), and Coles's Port Pirie and daily rain (ismev).
 - New R packages at run time: circular, spdep with sf, gstat and extRemes; ismev, sp and ape for the checks only.

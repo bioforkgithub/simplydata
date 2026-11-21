@@ -454,7 +454,11 @@ def _shape_notes(named_values, what="the values") -> list[str]:
 
 # ---------------------------------------------------------------------------- fit_formula reader
 FIT_FUNCTIONS = {"exp": (1, 1), "log": (1, 2), "sqrt": (1, 1), "abs": (1, 1),
-                 **{name: FUNCTIONS[name] for name in ("sin", "cos", *SPECIAL_FUNCTIONS)}}
+                 **{name: FUNCTIONS[name] for name in ("sin", "cos", *SPECIAL_FUNCTIONS)},
+                 "arctan": (1, 1), "arcsin": (1, 1), "arccos": (1, 1), "arctan2": (2, 2)}
+# the inverse trigonometric functions are NumPy's own (NIST Roszman1 needs arctan); R's names work too
+FIT_NUMPY = {"arctan": np.arctan, "arcsin": np.arcsin, "arccos": np.arccos}
+FIT_SPELLINGS = {"atan": "arctan", "asin": "arcsin", "acos": "arccos", "atan2": "arctan2"}
 # gamma and beta are also usual names for values to find: written without brackets they are values
 FIT_NAMES_FREE = ("gamma", "beta")
 FIT_HELP = (
@@ -467,6 +471,8 @@ FIT_HELP = (
     "  exp(x)  log(x)  log(x, 10) e to the power x, natural log, log to base 10\n"
     "  sqrt(x)  abs(x)            square root, size without the minus sign\n"
     "  sin(x)  cos(x)  tan(x)     sine, cosine, tangent (x in radians); pi is 3.14159...\n"
+    "  arctan(x)  arcsin(x)       the angle (in radians) whose tangent or sine is x; arccos(x) too\n"
+    "  arctan2(y, x)              the angle of the point (x, y), from -pi to pi (as R atan2(y, x))\n"
     "  erf(x)  erfc(x)            error function, and 1 - erf(x)\n"
     "  gamma(x)  lgamma(x)        gamma function, and the log of its size (as R)\n"
     "  digamma(x)  beta(a, b)     digamma function, beta function (as R)\n"
@@ -564,6 +570,8 @@ class _FitReader(_FormulaReader):
     def _fit_call(self, node):
         if isinstance(node.func, ast.Name) and node.func.id in FUNCTION_SPELLINGS:
             node.func.id = FUNCTION_SPELLINGS[node.func.id]
+        if isinstance(node.func, ast.Name) and node.func.id in FIT_SPELLINGS:
+            node.func.id = FIT_SPELLINGS[node.func.id]
         if not isinstance(node.func, ast.Name) or node.func.id not in FIT_FUNCTIONS:
             name = node.func.id if isinstance(node.func, ast.Name) else self._snippet(node.func)
             guess = difflib.get_close_matches(name, list(FIT_FUNCTIONS), n=1)
@@ -579,7 +587,13 @@ class _FitReader(_FormulaReader):
         if name in SPECIAL_FUNCTIONS:
             inside = [self._node(a) for a in node.args]
             return lambda p, d: special_function(name, *(f(p, d) for f in inside))
+        if name == "arctan2":
+            first, second = (self._node(a) for a in node.args)
+            return lambda p, d: np.arctan2(first(p, d), second(p, d))
         inner = self._node(node.args[0])
+        if name in FIT_NUMPY:
+            numpy_function = FIT_NUMPY[name]
+            return lambda p, d: numpy_function(inner(p, d))
         if name == "exp":
             return lambda p, d: np.exp(inner(p, d))
         if name == "sqrt":
