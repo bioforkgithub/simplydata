@@ -794,7 +794,7 @@ HELP_EXAMPLES = {
     # S3c-3: directions, places and extremes
     "table.find_average_direction_of": _tx("stations", 'table.find_average_direction_of("current_direction", '
                                                        'full_turn=360)'),
-    "table.find_return_levels_of": _tx("sealevel", 'table.find_return_levels_of("sea_level", once_in=[10, 100], '
+    "table.find_return_levels_of": _tx("sea_levels", 'table.find_return_levels_of("sea_level", once_in=[10, 100], '
                                                    'sorted_by="year")'),
     "table.find_variogram_of": _tx("stations", 'table.find_variogram_of("zinc", x="east", y="north")'),
     "draw_variogram": _ex("stations", 'chart.draw_variogram("zinc", x="east", y="north")', "stations_variogram"),
@@ -5416,10 +5416,10 @@ LESSONS = [
             ("Storms. The highest sea level of each year at Port Pirie, South Australia, 1923 to 1987 (real data, "
              "Coles 2001). How high is the sea once in 100 years?", [
                 ("import simplydata as sdata", "Load simplydata."),
-                ('table = sdata.table(sdata.get_example("sealevel"))', "One row per year: its highest sea level in m."),
+                ('table = sdata.table(sdata.get_example("sea_levels"))', "One row per year: its highest sea level in m."),
                 ("chart = table.start_chart()", "Picture first."),
                 ('chart.draw_dots(x="year", y="sea_level")', "Each year's highest level: no year stands far apart."),
-                ('chart.save("lesson33_sealevel.png")', "Save the picture."),
+                ('chart.save("lesson33_sea_levels.png")', "Save the picture."),
                 ('table.find_return_levels_of("sea_level", once_in=[10, 100], sorted_by="year")',
                  "A level of 4.69 m is reached on average once in 100 years (a 1-in-100 chance in any one year); its "
                  "95 % interval runs from 4.49 to 5.26, longer above than below. sorted_by=\"year\" lets the word "
@@ -5453,12 +5453,12 @@ LESSONS = [
              "full_turn=360: a full turn is 360 degrees."),
             (_sx("""\
                 import simplydata as sdata
-                table = sdata.table(sdata.get_example("sealevel"))
+                table = sdata.table(sdata.get_example("sea_levels"))
                 table.find_return_levels_of("sea_level", once_in=[50], sorted_by="year")"""),
              "About 4.58 m once in 50 years (95 % CI 4.42 to 4.98)."),
             (_sx("""\
                 import simplydata as sdata
-                table = sdata.table(sdata.get_example("sealevel"))
+                table = sdata.table(sdata.get_example("sea_levels"))
                 table.find_return_levels_of("sea_level", once_in=[100], sorted_by="year")"""),
              "A level with a 1-in-100 chance of being reached in any one year. It is not certain in the next 100 "
              "years: it can come twice in a decade, or not at all in 200 years (the chance of at least once in 100 "

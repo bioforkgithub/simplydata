@@ -1,7 +1,7 @@
 """Directions, places and extremes (phase S3c-3): the new words find_average_direction_of, find_variogram_of,
 find_return_levels_of, draw_variogram and draw_threshold_check, and one entry for each new option or value that
 changes what a word calls (keyed by word and option), on the practice tables "stations" (made up), "rain" (made up)
-and "sealevel" (real: Port Pirie, Coles 2001).
+and "sea_levels" (real: Port Pirie, Coles 2001).
 """
 
 from . import Entry
@@ -16,7 +16,7 @@ STATIONS = """
     lat = df["lat"].to_numpy(dtype=float)
 """
 SEALEVEL = """
-    df = sdata.get_example("sealevel")
+    df = sdata.get_example("sea_levels")
     x = df["sea_level"].to_numpy(dtype=float)
 """
 RAIN = """
@@ -243,9 +243,9 @@ ENTRIES = [
     # ------------------------------------------------------------------ AB07: block maxima
     Entry(
         word="table.find_return_levels_of",
-        data="sealevel",
+        data="sea_levels",
         ours="""
-            table = sdata.table(sdata.get_example("sealevel"))
+            table = sdata.table(sdata.get_example("sea_levels"))
             table.find_return_levels_of("sea_level", once_in=[100], sorted_by="year")
         """,
         code={
@@ -336,9 +336,9 @@ ENTRIES = [
     # ------------------------------------------------------------------ the new distribution families
     Entry(
         word="table.fit_distribution_to", option='distribution="gev"',
-        data="sealevel",
+        data="sea_levels",
         ours="""
-            table = sdata.table(sdata.get_example("sealevel"))
+            table = sdata.table(sdata.get_example("sea_levels"))
             table.fit_distribution_to("sea_level", distribution="gev").turn_into_table()
         """,
         code={
