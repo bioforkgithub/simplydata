@@ -12,8 +12,11 @@ and give back its list as a simplydata table:
   instead of agricolae's own default "Super-Duper", so that with_seed= gives the layout an R user gets after
   set.seed(). The standard order is R's expand.grid() order (the first factor changes fastest, Yates' order).
 
-Every call sets R's generator explicitly (set.seed(kind = "Mersenne-Twister", normal.kind = "Inversion",
+make_random_assignments sets R's generator in full (set.seed(kind = "Mersenne-Twister", normal.kind = "Inversion",
 sample.kind = "Rejection")): sample() changed in R 3.6.0, so a list made with an older R differs for the same seed.
+agricolae sets its own seed with kinds = "Mersenne-Twister" and reads seed 0 as "choose at random", so
+make_design_table takes seeds from 1. "plot" numbers the plots 1, 2, 3 ... in the order of agricolae's book
+(agricolae's own codes, such as 101 or 11, repeat when a block has 10 or more plots).
 """
 
 from __future__ import annotations
@@ -36,13 +39,14 @@ R36_NOTE = ("R's sample() changed in R 3.6.0, so a list made with an older R dif
             "names the R version that made this one.")
 
 
-def _seed(step, with_seed, example):
+def _seed(step, with_seed, example, smallest=0):
     if with_seed is None:
         return None
-    if not isinstance(with_seed, numbers.Integral) or isinstance(with_seed, bool) or with_seed < 0:
-        raise SimplydataError(f"with_seed= needs a whole number of 0 or more, like with_seed=1. The same seed gives the "
-                              f"same {'list' if step == 'make_random_assignments' else 'table'} again.\n"
-                              f"For example:  {example}")
+    if not isinstance(with_seed, numbers.Integral) or isinstance(with_seed, bool) or with_seed < smallest:
+        why = " (agricolae reads 0 as 'choose at random')" if smallest else ""
+        thing = "list" if step == "make_random_assignments" else "table"
+        raise SimplydataError(f"with_seed= needs a whole number of {smallest} or more, like with_seed=1{why}. The same "
+                              f"seed gives the same {thing} again.\nFor example:  {example}")
     return int(with_seed)
 
 
@@ -140,9 +144,12 @@ def make_random_assignments(how_many=None, groups=2, in_blocks_of=None, for_each
                                                     'sdata.make_random_assignments(how_many=60, groups=["A", "B"], '
                                                     'for_each_of=["Bergen", "Tromsø"], with_seed=1)', at_least=1)
     seed = _seed(step, with_seed, example)
-    from ._r import r_call
+    from ._r import need_r, r_call
 
-    found = r_call(_R_BLOCKRAND, packages=("blockrand",),
+    # checked, not attached (every call names its package), so that nothing hides another package's functions
+    need_r(("blockrand",), "A randomisation list in random blocks (R blockrand::blockrand())",
+           "Python has no package for permuted-block randomisation lists")
+    found = r_call(_R_BLOCKRAND, packages=(),
                    what="A randomisation list in random blocks (R blockrand::blockrand())",
                    python_note="Python has no package for permuted-block randomisation lists",
                    source="blockrand::blockrand",
@@ -192,7 +199,7 @@ k <- length(nlev)
 if (kind == "latin square") {
   d <- agricolae::design.lsd(lev[[1]], serie = 0, seed = seed, kinds = "Mersenne-Twister")
   b <- d$book
-  out <- list(plot = as.numeric(b$plots), row = as.numeric(as.character(b$row)),
+  out <- list(plot = as.numeric(seq_len(nrow(b))), row = as.numeric(as.character(b$row)),
               column = as.numeric(as.character(b$col)), f1 = as.character(b[[4]]))
 } else if (kind == "split plot") {
   d <- agricolae::design.split(lev[[1]], lev[[2]], r = r, design = "rcbd", serie = 0, seed = seed,
@@ -214,7 +221,7 @@ if (kind == "latin square") {
   }
   g <- expand.grid(lev, stringsAsFactors = FALSE)
   key <- function(x) do.call(paste, c(lapply(x, as.character), sep = "\\r"))
-  out <- c(list(plot = as.numeric(b$plots), second = as.numeric(as.character(b[[2]]))),
+  out <- c(list(plot = as.numeric(seq_len(nrow(b))), second = as.numeric(as.character(b[[2]]))),
            stats::setNames(f, paste0("f", seq_len(k))),
            list(standard = as.numeric(match(key(f), key(g)))))
 }
@@ -276,14 +283,16 @@ def make_design_table(factors=None, repeats=None, of_kind="completely random", w
                 "A latin square lays out one factor in rows and columns (each level once in every row and every "
                 f"column), so give exactly one factor (you gave {len(factors)}).\nFor example:  "
                 'sdata.make_design_table({"variety": ["A", "B", "C", "D"]}, of_kind="latin square", with_seed=1)')
+        square = 'sdata.make_design_table({"variety": ["A", "B", "C", "D"]}, of_kind="latin square", with_seed=1)'
         if nlev[0] < 3:
             raise SimplydataError("A latin square needs at least 3 levels (with 2 there is only one layout up to "
-                                  "swapping rows).")
+                                  f"swapping rows).\nFor example:  {square}")
         if repeats is not None:
             raise SimplydataError("A latin square is one square: the number of levels sets the rows and columns, so "
-                                  "repeats= does not apply. Make two tables (two seeds) for two squares.")
+                                  f"repeats= does not apply. Make two tables (two seeds) for two squares.\nFor example:  "
+                                  f"{square}")
         if whole_plots is not None:
-            raise SimplydataError('whole_plots= goes with of_kind="split plot".')
+            raise SimplydataError(f'whole_plots= goes with of_kind="split plot".\nFor example:  {square}')
         r = None
     else:
         if repeats is None:
@@ -305,11 +314,16 @@ def make_design_table(factors=None, repeats=None, of_kind="completely random", w
                 nlev.reverse()
                 labels = [str(v) for f in factors for v in levels_of[f]]
         elif whole_plots is not None:
-            raise SimplydataError('whole_plots= goes with of_kind="split plot".')
-    seed = _seed(step, with_seed, example)
-    from ._r import r_call
+            raise SimplydataError('whole_plots= goes with of_kind="split plot".\nFor example:  '
+                                  'sdata.make_design_table({"irrigation": ["dry", "wet"], "variety": ["A", "B", "C"]}, '
+                                  'repeats=3, of_kind="split plot", whole_plots="irrigation", with_seed=1)')
+    seed = _seed(step, with_seed, example, smallest=1)
+    from ._r import need_r, r_call
 
-    found = r_call(_R_DESIGN, packages=("agricolae",), what=f"A design table (R {_R_FUNCTIONS[kind]})",
+    # checked, not attached: an attached agricolae hides objects that R metafor's formulas look up
+    need_r(("agricolae",), f"A design table (R {_R_FUNCTIONS[kind]})",
+           "Python has no package for randomised experimental layouts")
+    found = r_call(_R_DESIGN, packages=(), what=f"A design table (R {_R_FUNCTIONS[kind]})",
                    python_note="Python has no package for randomised experimental layouts", source="agricolae",
                    nlev=np.array(nlev, dtype=float), labels=np.array(labels, dtype=object), kind=kind,
                    r=None if r is None else float(r), seed=None if seed is None else float(seed))

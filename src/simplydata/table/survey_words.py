@@ -23,6 +23,9 @@ SURVEY_WORDS = ("find_average_of", "find_total_of", "find_median_of", "find_perc
 _DATA_CLASSES = ("BaseTable", "RowWords", "ColumnWords", "PositionWords", "TimeStepWords", "SurveyWords")
 _DATA_EXTRA = ("get_column", "count_different_values_in", "find_smallest_of", "find_biggest_of", "start_chart")
 _NOT_DATA = ("show_rows_with_outliers", "remove_rows_with_outliers")
+# data words that work out numbers from the rows: they still work, with a note that the rows are not weighted
+_UNWEIGHTED = ("describe_columns", "add_z_score_column", "add_rank_column", "add_rolling_column",
+               "add_smoothed_column", "count_different_values_in", "find_smallest_of", "find_biggest_of")
 EXAMPLE = ('table.use_survey_design(weights="weight", strata="school_type", population_sizes="schools_of_type")'
            '   (with sdata.get_example("sampled_schools"))')
 INSTEAD = {
@@ -88,37 +91,19 @@ class SurveyWords:
         names = [v for v in given.values() if v is not None]
         self._need_columns(*names)
         if len(set(names)) < len(names):
-            raise SimplydataError("Each design option needs its own column; one column is named twice.")
-        design, said = {}, []
-        for option, name in given.items():
-            if name is None:
-                continue
-            empty = self._count(self._empty(name))
-            if empty:
-                raise SimplydataError(
-                    f'"{name}" has {empty} empty cell{"s" * (empty != 1)}. Every row of a survey needs its design '
-                    f"values ({option}=), or the standard errors are wrong. Fill them in from the survey's records; do "
-                    "not remove the rows.")
-            values = self._frame[name].to_numpy()
-            if option in ("weights", "population_sizes"):
-                if not self._frame.schema[name].is_numeric():
-                    raise SimplydataError(f'{option}= needs a column of numbers; "{name}" holds text.')
-                values = values.astype(float)
-                if not np.all(np.isfinite(values)) or (values <= 0).any():
-                    raise SimplydataError(f'{option}= needs numbers above 0; "{name}" has 0, a negative number or an '
-                                          "endless value.")
-            else:
-                values = np.array([str(v) for v in values], dtype=object)
-            design[option] = values
-            said.append(f'{"population sizes" if option == "population_sizes" else option} "{name}"')
+            raise SimplydataError("Each design option needs its own column; one column is named twice.\nFor example:  "
+                                  + EXAMPLE)
+        columns = {k: v for k, v in given.items() if v is not None}
+        design = self._design_values(columns)
+        said = [f'{"population sizes" if option == "population_sizes" else option} "{name}"'
+                for option, name in columns.items()]
         if "weights" not in design:
             print("Note: no weights= given, so every row counts the same (survey says: equal chances of being sampled).")
         from . import survey_r
 
         n = len(self._frame)
         found = survey_r.facts(design, n)
-        state = {"design": design, "columns": {k: v for k, v in given.items() if v is not None}, "rows": n,
-                 "said": ", ".join(said), "df": found["df"]}
+        state = {"columns": columns, "rows": n, "said": ", ".join(said), "df": found["df"]}
         object.__setattr__(self, "_survey", state)
         parts = [f"{int(found['strata'])} strat{'a' if found['strata'] != 1 else 'um'}" if strata else "",
                  f"{int(found['clusters'])} clusters" if clusters else ""]
@@ -130,9 +115,11 @@ class SurveyWords:
               "survey design; other statistics words refuse. Turn it off with table.use_survey_design().")
         if population_sizes is not None:
             fractions = bool(np.all(design["population_sizes"] <= 1))
-            print(f'"{population_sizes}" is read as {"the share of each stratum that was sampled (0 to 1)" if fractions else "the number in the population of each stratum"}, '
-                  "as survey::svydesign(fpc =) reads it; this makes the standard errors smaller when much of a stratum "
-                  "was sampled.")
+            unit = "clusters" if clusters else "rows"
+            read = (f"the share of each stratum's {unit} that was sampled (0 to 1)" if fractions else
+                    f"the number of {unit} in the population of each stratum")
+            print(f'"{population_sizes}" is read as {read}, as survey::svydesign(fpc =) reads it; this makes the '
+                  "standard errors smaller when much of a stratum was sampled.")
         if found["lonely"]:
             print(f"Note: {int(found['lonely'])} strat{'a have' if found['lonely'] != 1 else 'um has'} only one cluster; "
                   'simplydata sets options(survey.lonely.psu = "adjust") (survey\'s own default stops with an error), '
@@ -155,6 +142,8 @@ class SurveyWords:
         if word in known:
             if word == "start_chart":
                 print("Note: this table is a survey; the chart shows its rows as they are, not weighted.")
+            elif word in _UNWEIGHTED:
+                print(f"Note: this table is a survey; {word} works on its rows as they are, not weighted.")
             return
         hint = INSTEAD.get(word, "").format(column="...")
         raise SimplydataError(
@@ -164,7 +153,36 @@ class SurveyWords:
             + "The survey words are " + ", ".join(SURVEY_WORDS) + ". To use " + word + " on the rows as they are, turn "
             "the design off first:  table.use_survey_design()")
 
-    def _survey_rows_ok(self, word):
+    def _design_values(self, columns):
+        """The design columns as R gets them, read from the table as it is now (so sorting or changing rows keeps
+        each row's weight with its row), and checked."""
+        design = {}
+        for option, name in columns.items():
+            if name not in self._frame.columns:
+                raise SimplydataError(f'The survey design uses "{name}" ({option}=), which is no longer in the table. '
+                                      "Take the step back with table.undo(), or set the design again: " + EXAMPLE)
+            empty = self._count(self._empty(name))
+            if empty:
+                raise SimplydataError(
+                    f'"{name}" has {empty} empty cell{"s" * (empty != 1)}. Every row of a survey needs its design '
+                    f"values ({option}=), or the standard errors are wrong. Fill them in from the survey's records; do "
+                    "not remove the rows.")
+            values = self._frame[name].to_numpy()
+            if option in ("weights", "population_sizes"):
+                if not self._frame.schema[name].is_numeric():
+                    raise SimplydataError(f'{option}= needs a column of numbers; "{name}" holds text.\nFor example:  '
+                                          + EXAMPLE)
+                values = values.astype(float)
+                if not np.all(np.isfinite(values)) or (values <= 0).any():
+                    raise SimplydataError(f'{option}= needs numbers above 0; "{name}" has 0, a negative number or an '
+                                          "endless value. Check those rows, then set the design again:  " + EXAMPLE)
+            else:
+                values = np.array([str(v) for v in values], dtype=object)
+            design[option] = values
+        return design
+
+    def _survey_design(self, word):
+        """The design of this call: the same number of rows as when it was set, its columns read again now."""
         state = self._survey
         if len(self._frame) != state["rows"]:
             raise SimplydataError(
@@ -172,6 +190,7 @@ class SurveyWords:
                 "A part of a survey is analysed with for_each_group_in= (or a column made with add_column), not by "
                 "removing rows: removing them gives wrong standard errors. Take the step back with table.undo(), or "
                 "set the design again on purpose with table.use_survey_design(...).")
+        return self._design_values(state["columns"])
 
     def _survey_only(self, word, given: dict, allowed=()):
         """Refuse options the survey route does not take (anything not at its default)."""
@@ -200,7 +219,9 @@ class SurveyWords:
     def _survey_values(self, column):
         values = self._frame[column]
         if not self._frame.schema[column].is_numeric():
-            raise SimplydataError(f'"{column}" holds text; this word needs numbers under a survey design too.')
+            raise SimplydataError(f'"{column}" holds text; this word needs numbers under a survey design too. For '
+                                  f'yes or no answers use find_percent_of_rows_where.\nFor example:  '
+                                  'table.find_percent_of_rows_where("met_target", is_equal_to="yes")')
         empty = self._count(self._empty(column))
         if empty:
             print(f'Note: {empty} empty cell{"s" * (empty != 1)} in "{column}" '
@@ -211,7 +232,9 @@ class SurveyWords:
         if for_each_group_in is None:
             return None, None
         if not isinstance(for_each_group_in, str):
-            raise SimplydataError(f"Under a survey design, {word}(for_each_group_in=) takes one column name.")
+            raise SimplydataError(f"Under a survey design, {word}(for_each_group_in=) takes one column name; for two, "
+                                  f"make one column of both first (add_column).\nFor example:  "
+                                  f'table.{word}("score_2000", for_each_group_in="school_type")')
         self._need_columns(for_each_group_in)
         if for_each_group_in == column:
             raise SimplydataError(f'"{column}" cannot be both the column and the for_each_group_in= column.')
@@ -237,13 +260,13 @@ class SurveyWords:
         """find_average_of / find_total_of / find_median_of / find_percentile_of under a survey design."""
         from . import survey_r
 
-        self._survey_rows_ok(word)
+        design = self._survey_design(word)
         if not isinstance(column, str):
-            raise SimplydataError(f"{word}() needs one column name in quotes.")
+            raise SimplydataError(f"{word}() needs one column name in quotes.\nFor example:  table.{word}(\"score_2000\")")
         self._need_columns(column)
         group, g = self._survey_group(word, for_each_group_in, column)
         y = self._survey_values(column)
-        found = survey_r.estimate(self._survey["design"], len(self._frame), what, y=y, g=g,
+        found = survey_r.estimate(design, len(self._frame), what, y=y, g=g,
                                   q=None if percent is None else percent / 100)
         name = f"{label} of {column}"
         data = {} if group is None else {group: found["grp"]}
@@ -266,10 +289,10 @@ class SurveyWords:
         from . import survey_r
         from .summaries import _say_percent
 
-        self._survey_rows_ok(word)
+        design = self._survey_design(word)
         group, g = self._survey_group(word, for_each_group_in, column)
         y = np.where(counted, hits.astype(float), np.nan)
-        found = survey_r.estimate(self._survey["design"], len(self._frame), "prop", y=y, g=g)
+        found = survey_r.estimate(design, len(self._frame), "prop", y=y, g=g)
         # [D] shares (0 to 1) from svyciprop shown as percents
         est, low, high, se = (found[k] * 100 for k in ("est", "low", "high", "se"))
         print(self._survey_header())
@@ -292,14 +315,15 @@ class SurveyWords:
         from . import survey_r
         from .summaries import _say_percent
 
-        self._survey_rows_ok(word)
+        design = self._survey_design(word)
         group, g = self._survey_group(word, for_each_group_in)
         n = len(self._frame)
         print(self._survey_header())
         if in_percent:
             if group is None:
-                raise SimplydataError("count_rows(in_percent=True) needs for_each_group_in=: the percent of what?")
-            found = survey_r.estimate(self._survey["design"], n, "share", g=g)
+                raise SimplydataError("count_rows(in_percent=True) needs for_each_group_in=: the percent of what?"
+                                      f'\nFor example:  table.count_rows(for_each_group_in="award", in_percent=True)')
+            found = survey_r.estimate(design, n, "share", g=g)
             est, low, high, se = (found[k] * 100 for k in ("est", "low", "high", "se"))  # [D] shares as percents
             lines = [f"{found['grp'][i]} {_say_percent(est[i])} (95 % CI {_say_percent(low[i])} to "
                      f"{_say_percent(high[i])})" for i in range(len(est))]
@@ -309,7 +333,7 @@ class SurveyWords:
             return self._survey_table({group: found["grp"], "percent": est, "standard error": se,
                                        "percent 95 % CI low": low, "percent 95 % CI high": high,
                                        "degrees of freedom": [found["df"]] * len(est)})
-        found = survey_r.estimate(self._survey["design"], n, "count", g=g)
+        found = survey_r.estimate(design, n, "count", g=g)
         lines = [f"{'' if group is None else found['grp'][i] + ': '}{_say(found['est'][i])} (95 % CI "
                  f"{_say(found['low'][i])} to {_say(found['high'][i])})" for i in range(len(found["est"]))]
         print(f"The estimated number in the population{'' if group is None else ' in each group of ' + chr(34) + group + chr(34)}"
@@ -328,18 +352,20 @@ class SurveyWords:
         from .summaries import _p_clause, _say_number
 
         word = "explain"
-        self._survey_rows_ok(word)
+        design = self._survey_design(word)
         if not isinstance(column, str):
             raise SimplydataError('explain() needs the column to explain, like table.explain("score_2000", '
                                   'using=["free_meals"]).')
         using = [using] if isinstance(using, str) else list(using or [])
         if not using or not all(isinstance(u, str) for u in using):
-            raise SimplydataError('explain() needs using=, the columns that explain it, like using=["free_meals"].')
+            raise SimplydataError('explain() needs using=, the columns that explain it.'
+                                  f'\nFor example:  table.explain("score_2000", using=["free_meals"])')
         self._need_columns(column, *using)
         families = {"numbers": ("gaussian", "linear model"), "yes or no": ("quasibinomial", "logistic model"),
                     "counts": ("quasipoisson", "Poisson model")}
         if outcome not in families:
-            raise SimplydataError('Under a survey design, explain() takes outcome="numbers", "yes or no" or "counts".')
+            raise SimplydataError('Under a survey design, explain() takes outcome="numbers", "yes or no" or "counts".'
+                                  f'\nFor example:  table.explain("met_target", using=["free_meals"], outcome="yes or no")')
         family, model = families[outcome]
         raw = self._frame[column].to_numpy()
         if outcome == "yes or no":
@@ -352,7 +378,9 @@ class SurveyWords:
                 y = np.array([np.nan if v is None or (isinstance(v, float) and np.isnan(v))
                               else float(str(v).strip().lower() in ("1", "1.0", "true")) for v in raw])
             else:
-                raise SimplydataError(f'outcome="yes or no" needs "{column}" to hold yes/no, 1/0 or True/False.')
+                raise SimplydataError(f'outcome="yes or no" needs "{column}" to hold yes/no, 1/0 or True/False; make such '
+                                      f'a column first with add_column.\nFor example:  '
+                                      'table.explain("met_target", using=["free_meals"], outcome="yes or no")')
         else:
             y = self._survey_values(column)
         values = []
@@ -362,7 +390,7 @@ class SurveyWords:
             else:
                 values.append(np.array([None if v is None else str(v) for v in self._frame[u].to_numpy()],
                                        dtype=object))
-        found = survey_r.glm(self._survey["design"], len(self._frame), y, using, values, family)
+        found = survey_r.glm(design, len(self._frame), y, using, values, family)
         print(self._survey_header())
         print(f'A survey-weighted {model} of "{column}" from {", ".join(using)} ({found["n"]} rows; R '
               f"survey::svyglm(family = {family}()), t tests on {found['df']:g} degrees of freedom).")
@@ -394,9 +422,10 @@ class SurveyWords:
         from .summaries import _p_sentence, _say_number
 
         word = "compare_averages_of"
-        self._survey_rows_ok(word)
+        design = self._survey_design(word)
         if not isinstance(column, str):
-            raise SimplydataError("compare_averages_of() needs the column first.")
+            raise SimplydataError("compare_averages_of() needs the column first."
+                                  f'\nFor example:  table.compare_averages_of("score_2000", for_each_group_in="award")')
         self._need_columns(column)
         group, g = self._survey_group(word, for_each_group_in, column)
         if group is None:
@@ -407,7 +436,7 @@ class SurveyWords:
             raise SimplydataError(f'Under a survey design, compare_averages_of() compares two groups; "{group}" has '
                                   f"{len(kinds)}. For more groups use table.explain(\"{column}\", using=[\"{group}\"]).")
         y = self._survey_values(column)
-        found = survey_r.ttest(self._survey["design"], len(self._frame), y, g)
+        found = survey_r.ttest(design, len(self._frame), y, g)
         first, second = found["levels"]
         print(self._survey_header())
         print(f'The population average of "{column}" is {_say_number(found["diff"])} higher for {second} than for '
@@ -425,16 +454,18 @@ class SurveyWords:
         from .summaries import _p_sentence, _say_number
 
         word = "compare_counts_of"
-        self._survey_rows_ok(word)
+        design = self._survey_design(word)
         if not isinstance(column, str):
-            raise SimplydataError("compare_counts_of() needs the column first.")
+            raise SimplydataError("compare_counts_of() needs the column first."
+                                  f'\nFor example:  table.compare_counts_of("award", for_each_group_in="school_type")')
         self._need_columns(column)
         group, g = self._survey_group(word, for_each_group_in, column)
         if group is None:
-            raise SimplydataError("Under a survey design, compare_counts_of() needs for_each_group_in=.")
+            raise SimplydataError("Under a survey design, compare_counts_of() needs for_each_group_in=."
+                                  f'\nFor example:  table.compare_counts_of("award", for_each_group_in="school_type")')
         y = np.array([None if v is None or (isinstance(v, float) and np.isnan(v)) else str(v)
                       for v in self._frame[column].to_numpy()], dtype=object)
-        found = survey_r.chisq(self._survey["design"], len(self._frame), y, g)
+        found = survey_r.chisq(design, len(self._frame), y, g)
         print(self._survey_header())
         print(f'Do the shares of "{column}" differ between the groups of "{group}" in the population? '
               f"F = {_say_number(found['f'])} on {_say_number(found['ndf'])} and {_say_number(found['ddf'])} degrees "

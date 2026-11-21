@@ -125,7 +125,7 @@ ENTRIES = [
                                           kinds = "Mersenne-Twister")             # (1)
                 b <- d$book
                 g <- expand.grid(1:2, 1:2)
-                list(plot = b$plots, block = as.numeric(as.character(b$block)), A = as.numeric(as.character(b$A)),
+                list(plot = seq_len(nrow(b)), block = as.numeric(as.character(b$block)), A = as.numeric(as.character(b$A)),
                      B = as.numeric(as.character(b$B)), standard = match(paste(b$A, b$B), paste(g[[1]], g[[2]])))
             """,
             "Python": """
@@ -157,7 +157,7 @@ ENTRIES = [
                 d <- agricolae::design.lsd(variety, serie = 0, seed = 1,
                                            kinds = "Mersenne-Twister")            # (1)
                 b <- d$book
-                list(plot = b$plots, row = as.numeric(as.character(b$row)), col = as.numeric(as.character(b$col)),
+                list(plot = seq_len(nrow(b)), row = as.numeric(as.character(b$row)), col = as.numeric(as.character(b$col)),
                      v = match(b[[4]], variety))
             """,
             "Python": """

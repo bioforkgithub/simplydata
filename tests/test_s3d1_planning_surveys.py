@@ -370,3 +370,76 @@ def test_a_lonely_cluster_is_adjusted_with_a_note(needs_r, capsys):
            ("survey",), s=df["s"].to_numpy(dtype=object), c=df["c"].to_numpy(dtype=object),
            w=df["w"].to_numpy(dtype=float), y=df["y"].to_numpy(dtype=float))
     assert found["standard error"] == pytest.approx(float(np.ravel(r["se"])[0]), rel=1e-10)
+
+
+def test_agricolae_leaves_r_formulas_working_for_other_words(needs_r):
+    """agricolae imports AlgDesign, whose own model.matrix.formula broke R metafor's formulas for the rest of the
+    session (combine_studies with subgroups); simplydata takes that method out again."""
+    sdata.make_design_table({"a": [1, 2]}, repeats=2, with_seed=1)
+    found = _r("fit <- metafor::rma(est, sei = sei, mods = ~ lev, method = 'EE'); list(b = as.numeric(fit$b))",
+               ("metafor",), est=np.array([0.1, 0.3, 0.2, 0.5]), sei=np.array([0.1, 0.1, 0.2, 0.2]),
+               lev=np.array(["a", "a", "b", "b"], dtype=object))
+    assert len(np.ravel(found["b"])) == 2
+
+
+# ---------------------------------------------------------------- independent review (fixed)
+def test_sorting_or_reversing_a_survey_table_keeps_each_weight_with_its_row(needs_r):
+    t = _schools()
+    t.sort_by("score_2000")
+    t.reverse_rows()
+    assert t.find_average_of("score_2000").as_pandas().iloc[0]["average of score_2000"] == pytest.approx(
+        662.287363, abs=5e-6)
+
+
+def test_survey_model_with_a_column_named_like_an_internal_name(needs_r):
+    df = sdata.get_example("sampled_schools").rename(columns={"free_meals": "y", "english_learners": "g"})
+    t = sdata.table(df)
+    t.use_survey_design(**DESIGN)
+    fit = t.explain("score_2000", using=["g", "y"]).as_pandas().set_index("term")
+    assert fit.loc["y", "estimate"] == pytest.approx(-3.1106, abs=5e-5)
+    assert list(fit.index) == ["(Intercept)", "g", "y"]
+
+
+def test_a_survey_table_can_still_start_a_chart_with_sdata_chart(needs_r):
+    t = _schools()
+    sdata.chart(t).draw_dots(x="free_meals", y="score_2000")
+
+
+def test_grouped_survey_percents_use_the_design_degrees_of_freedom(needs_r):
+    t = _schools()
+    found = t.find_percent_of_rows_where("met_target", is_equal_to="yes", for_each_group_in="award").as_pandas()
+    r = _r(API_R + 'm <- survey::svyby(~sch, ~awards, d, survey::svyciprop, vartype = "ci", method = "logit", '
+                   "df = survey::degf(d)); list(low = m$ci_l, high = m$ci_u)", ("survey",), **_api())
+    assert found["percent 95 % CI low"].tolist() == pytest.approx([v * 100 for v in np.ravel(r["low"])], rel=1e-9)
+    assert found["percent 95 % CI high"].tolist() == pytest.approx([v * 100 for v in np.ravel(r["high"])], rel=1e-9)
+
+
+def test_design_table_seed_zero_is_refused_and_plot_numbers_never_repeat(needs_r):
+    with pytest.raises(SimplydataError, match="1 or more"):
+        sdata.make_design_table({"a": [1, 2]}, repeats=2, with_seed=0)
+    df = sdata.make_design_table({"v": list("ABCDEFGHIJKL")}, repeats=2, of_kind="randomised blocks",
+                                 with_seed=1).as_pandas()
+    assert df["plot"].tolist() == list(range(1, 25))
+    sq = sdata.make_design_table({"v": list("ABCDEFGHIJ")}, of_kind="latin square", with_seed=1).as_pandas()
+    assert sq["plot"].is_unique
+
+
+def test_percent_of_groups_with_an_empty_group_value_on_two_columns():
+    df = pd.DataFrame({"a": ["x", "x", None, None, "y", "y"] * 2, "b": ["p", "q"] * 6, "v": range(12)})
+    t = sdata.table(df)
+    t.keep_random_rows(percent=50, for_each_group_in=["a", "b"], with_seed=1)
+    assert len(t) >= 4
+
+
+def test_numeric_answers_with_an_empty_cell_still_match_in_order():
+    df = pd.DataFrame({"q": [1, 2, 3, 4, 5, None, 4, 5]})
+    found = sdata.table(df).count_each(columns=["q"], in_order=[1, 2, 3, 4, 5]).as_pandas().iloc[0]
+    assert found["answers"] == 7 and found["5"] == 2
+
+
+def test_long_scales_never_repeat_a_colour_next_to_another():
+    from simplydata.words.answer_charts import answer_colours
+
+    for k in range(3, 12):
+        colours = answer_colours(k)
+        assert all(a != b for a, b in zip(colours, colours[1:])), k

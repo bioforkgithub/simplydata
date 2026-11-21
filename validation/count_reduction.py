@@ -33,6 +33,8 @@ def library_code(entry) -> str:
 def count() -> dict:
     ours_lines, lib_lines, ours_calls, lib_calls = [], [], [], []
     for entry in UNDERNEATH.values():
+        if not entry.code:  # a setting with nothing underneath to compare (compare="none")
+            continue
         ours, lib = lines_of(entry.ours), lines_of(library_code(entry))
         ours_lines.append(len(ours))
         lib_lines.append(len(lib))

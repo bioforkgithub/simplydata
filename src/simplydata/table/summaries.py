@@ -1467,6 +1467,9 @@ class SummaryWords:
               "steps between them need not be equal (Jamieson 2004). chart.draw_answer_bars() draws the same counts.")
         if empty:
             print(f"Note: {empty} empty cell{'s were' if empty != 1 else ' was'} not counted.")
+        if k == 3:
+            print(f"Note: with 3 answers the top two include the middle one (\"{levels[1]}\"); read the percent of "
+                  f"\"{levels[2]}\" alone as well.")
         if self._frame.implementation.is_polars():
             import polars as pl
 

@@ -829,8 +829,8 @@ class RowWords:
         table.keep_random_rows(10, with_seed=1)   (with sdata.get_example("marks"))
         for_each_group_in= picks the rows within each group (a stratified random sample):
         table.keep_random_rows(2, for_each_group_in="class", with_seed=1)   2 rows from each class
-        percent=10 keeps 10 % of the rows (of each group, with for_each_group_in=), rounded, and at
-        least 1 row of every group: table.keep_random_rows(percent=50, for_each_group_in="class", with_seed=1)
+        percent=10 keeps 10 % of the rows (of each group, with for_each_group_in=), rounded as pandas
+        rounds (half to even), and at least 1 row of every group: table.keep_random_rows(percent=50, for_each_group_in="class", with_seed=1)
         Underneath: pandas sample() and groupby().sample(), with random_state=with_seed.
         """
         step = "keep_random_rows"
@@ -854,8 +854,12 @@ class RowWords:
         said_seed = f" (seed {with_seed})" if with_seed is not None else ""
         if for_each_group_in is None:
             if percent is not None:
-                new = self._frame.sample(fraction=percent / 100, seed=seed)
-                print(f"Kept {len(new)} of {_rows(before)} ({percent:g} %, rounded).")
+                # pandas sample(frac=) picks the rows, the same rule as with for_each_group_in= (rounded half to even)
+                picked = self._frame.with_row_index("__i").select("__i").to_pandas().reset_index(drop=True)
+                rows = sorted(int(i) for i in picked.sample(frac=percent / 100, random_state=seed).index)
+                new = (self._frame.with_row_index("__simplydata_row").filter(nw.col("__simplydata_row").is_in(rows))
+                       .drop("__simplydata_row"))
+                print(f"Kept {len(new)} of {_rows(before)} ({percent:g} %, rounded by pandas sample(frac=)).")
                 return self._change(f"keep {percent:g} % of the rows at random{said_seed}", new)
             if n > before:
                 print(f"The table has only {_rows(before)}, so all of them are kept.")
@@ -903,10 +907,13 @@ class RowWords:
                   "pandas groupby().sample()).")
             if whole:
                 shown = ", ".join(_say_key(w) for w in whole[:6]) + (" ..." if len(whole) > 6 else "")
-                print(f"Note: {len(whole)} group{'s have' if len(whole) != 1 else ' has'} {n} rows or fewer, so all "
+                print(f"Note: {len(whole)} group{'s have' if len(whole) != 1 else ' has'} {n} row{'s' * (n != 1)} or "
+                      "fewer, so all "
                       f"{'their' if len(whole) != 1 else 'its'} rows are kept: {shown}.")
         else:
-            parts = ", ".join(f"{_say_key(k)} {int(v)} of {int(sizes[k])}" for k, v in list(kept.items())[:8])
+            got = kept.reindex(sizes.index, fill_value=0)  # by position: a group named by an empty cell has no label
+            parts = ", ".join(f"{_say_key(k)} {int(v)} of {int(n_rows)}"
+                              for k, v, n_rows in list(zip(sizes.index, got.to_numpy(), sizes.to_numpy()))[:8])
             print(f"Kept {percent:g} % of each group of {label}, rounded, at least 1 row each ({len(new)} of "
                   f"{_rows(before)}; pandas groupby().sample(frac=)): {parts}{' ...' if len(kept) > 8 else ''}.")
             if none:

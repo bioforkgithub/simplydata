@@ -275,7 +275,7 @@ def friendly(func=None, *, renamed: dict | None = None, others: dict | None = No
                 raise option_error(func.__name__, key, params)
             fixed[key] = value
         outer = not getattr(_CALLS, "depth", 0)
-        if outer and args:  # a table under a survey design: words that ignore the design refuse (S3d-1)
+        if outer and args and "." in func.__qualname__:  # a table's word under a survey design (S3d-1)
             guard = getattr(type(args[0]), "_survey_guard", None)
             if guard is not None:
                 guard(args[0], func.__name__)

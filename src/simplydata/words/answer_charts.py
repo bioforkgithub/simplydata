@@ -25,7 +25,15 @@ def answer_colours(k):
     """k colours: reds for the low half (darkest at the low end), blues for the high half (darkest at the high end),
     grey for a middle answer; the two halves mirror each other."""
     half = k // 2
-    pick = {1: [1], 2: [0, 1], 3: [0, 1, 2]}.get(half, [0] * (half - 3) + [0, 1, 2])
+    if half > 3:  # long scales: steps of matplotlib's red-blue ramp, so neighbouring answers never share a colour
+        import matplotlib
+        from matplotlib.colors import to_hex
+
+        ramp = matplotlib.colormaps["RdBu"]
+        low = [to_hex(ramp(0.05 + 0.35 * i / (half - 1))) for i in range(half)]
+        high = [to_hex(ramp(0.6 + 0.35 * i / (half - 1))) for i in range(half)]
+        return low + ([MIDDLE_COLOUR] if k % 2 else []) + high
+    pick = {1: [1], 2: [0, 1], 3: [0, 1, 2]}[half]
     low = [LOW_COLOURS[i] for i in pick]
     high = [HIGH_COLOURS[2 - i] for i in reversed(pick)]
     return low + ([MIDDLE_COLOUR] if k % 2 else []) + high

@@ -19,6 +19,13 @@ EXAMPLE = ('table.count_each(columns=["teaching", "materials", "pace"], in_order
            '"neutral", "agree", "strongly agree"])   (with sdata.get_example("course_feedback"))')
 
 
+def answer_key(value):
+    """An answer as text for matching: 4.0 (a whole number read as a decimal because of an empty cell) is "4"."""
+    if isinstance(value, (float, np.floating)) and float(value).is_integer():
+        return str(int(value))
+    return str(value)
+
+
 def check_answers(word, data, columns, in_order, example=EXAMPLE):
     """The question columns and the answers in order, checked: every answer given must be in in_order=."""
     if isinstance(columns, str):
@@ -38,13 +45,16 @@ def check_answers(word, data, columns, in_order, example=EXAMPLE):
     if len(levels) < 3:
         raise SimplydataError(f"in_order= needs at least 3 answers (you gave {len(levels)}); for yes or no answers use "
                               'table.find_percent_of_rows_where("question", is_equal_to="yes").')
-    said = [str(v) for v in levels]
+    said = [answer_key(v) for v in levels]
     if len(set(said)) < len(said):
         raise SimplydataError("in_order= names an answer twice; give each answer once.")
     for c in columns:
         given = data[c].dropna()
         given = given[given.astype(str).str.strip() != ""]
-        unknown = sorted({str(v) for v in given} - set(said))
+        if not len(given):
+            raise SimplydataError(f'"{c}" has no answers (every cell is empty); leave it out of columns=.\n'
+                                  f"For example:  {example}")
+        unknown = sorted({answer_key(v) for v in given} - set(said))
         if unknown:
             raise SimplydataError(
                 f'"{c}" has answers that are not in in_order=: {", ".join(repr(u) for u in unknown[:5])}'
@@ -60,7 +70,7 @@ def answer_table(data, columns, levels) -> pd.DataFrame:
     top = set(levels[-2:])
     for c in columns:
         text = data[c].map(lambda v: None if v is None or (isinstance(v, float) and np.isnan(v)) or
-                           str(v).strip() == "" else str(v))
+                           str(v).strip() == "" else answer_key(v))
         given = text.dropna()
         counts = given.value_counts().reindex(levels, fill_value=0)
         n = int(counts.sum())

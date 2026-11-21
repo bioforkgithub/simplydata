@@ -70,7 +70,8 @@ if (sd_what %in% c("mean", "total", "count")) {
   }
 } else if (sd_what == "prop") {
   if (grouped) {
-    m <- survey::svyby(~y, ~g, d, survey::svyciprop, vartype = c("se", "ci"), method = "logit", na.rm = TRUE)
+    m <- survey::svyby(~y, ~g, d, survey::svyciprop, vartype = c("se", "ci"), method = "logit", df = df,
+                       na.rm = TRUE)
     out <- list(est = as.numeric(stats::coef(m)), se = as.numeric(survey::SE(m)), low = as.numeric(m$ci_l),
                 high = as.numeric(m$ci_u), grp = as.character(m$g))
   } else {
@@ -91,11 +92,11 @@ out
 """
 
 _GLM = _DESIGN + """
-for (i in seq_along(xn)) dat[[xn[i]]] <- get(paste0("sd_x", i))
+for (i in seq_along(xn)) dat[[paste0("sd_x", i)]] <- get(paste0("sd_x", i))
 d <- survey::svydesign(ids = if (is.null(sd_c)) ~1 else ~sd_c, strata = if (is.null(sd_s)) NULL else ~sd_s,
                        weights = if (is.null(sd_w)) NULL else ~sd_w, fpc = if (is.null(sd_f)) NULL else ~sd_f,
                        data = dat, nest = TRUE)
-f <- stats::as.formula(paste("y ~", paste0("`", xn, "`", collapse = " + ")))
+f <- stats::as.formula(paste("y ~", paste0("sd_x", seq_along(xn), collapse = " + ")))
 fam <- switch(family, gaussian = stats::gaussian(), quasibinomial = stats::quasibinomial(),
               quasipoisson = stats::quasipoisson())
 fit <- survey::svyglm(f, design = d, family = fam, na.action = stats::na.omit)
@@ -125,9 +126,10 @@ out
 
 
 def _call(code, design, n, source, **values):
-    from .._r import r_call
+    from .._r import need_r, r_call
 
-    return r_call(code, packages=PACKAGES, what=WHAT, python_note=PYTHON_NOTE, source=source,
+    need_r(PACKAGES, WHAT, PYTHON_NOTE)  # checked, not attached: every call names survey::
+    return r_call(code, packages=(), what=WHAT, python_note=PYTHON_NOTE, source=source,
                   sd_n=float(n), sd_w=design.get("weights"), sd_s=design.get("strata"), sd_c=design.get("clusters"),
                   sd_f=design.get("population_sizes"), **{"y": None, "g": None, **values})
 
@@ -152,7 +154,13 @@ def glm(design, n, y, columns, values, family):
     extra = {f"sd_x{i}": v for i, v in enumerate(values, 1)}
     found = _call(_GLM, design, n, "survey::svyglm", y=y, xn=np.array(columns, dtype=object), family=family, **extra)
     out = {k: np.atleast_1d(np.asarray(found[k], dtype=float)) for k in ("est", "se", "stat", "p", "low", "high")}
-    out["term"] = [str(v) for v in np.atleast_1d(found["term"])]
+    # R names the terms sd_x1, sd_x2b ... (the column's place, then a level): back to the table's own names
+    names = {f"sd_x{i}": c for i, c in enumerate(columns, 1)}
+    terms = []
+    for term in (str(v) for v in np.atleast_1d(found["term"])):
+        key = max((k for k in names if term.startswith(k) and not term[len(k):].isdigit()), key=len, default=None)
+        terms.append(names[key] + term[len(key):] if key else term)
+    out["term"] = terms
     out["df"] = float(np.asarray(found["df"], dtype=float).ravel()[0])
     out["n"] = int(np.asarray(found["n"], dtype=float).ravel()[0])
     return out
