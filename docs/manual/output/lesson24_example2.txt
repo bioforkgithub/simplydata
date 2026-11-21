@@ -1,1 +1,2 @@
 Kept 144 of 288 rows.
+Note: there are 12 groups but 8 different colours, so some groups share a colour. Show fewer groups, or label them on the chart; more than about 8 colours are hard to tell apart even when they differ. For a column of numbers, a colour scale shows it better.
