@@ -273,7 +273,7 @@ can write it up in a report or a paper.
 
 \section*{How this manual is built}
 \begin{description}[style=nextline,leftmargin=1.2em]
-  \item[{\hyperref[part:lessons]{Part II: Lessons}}] Thirty-four short lessons that teach the whole
+  \item[{\hyperref[part:lessons]{Part II: Lessons}}] Thirty-five short lessons that teach the whole
     of simplydata in a day. Each lesson shows code you can run, says what every line does, shows
     the real chart and output it makes, and ends with tasks to try yourself.
   \item[{\hyperref[part:dictionary]{Part III: Dictionary of words}}] Every word, with what it does,
@@ -746,6 +746,58 @@ materials & \code{\textquotedbl{}The materials helped me\textquotedbl{}} (same f
 pace & \code{\textquotedbl{}The pace was right\textquotedbl{}} (same five answers)\\
 workload & \code{\textquotedbl{}The workload was fair\textquotedbl{}} (same five answers)\\
 would\_recommend & \code{\textquotedbl{}I would recommend the course\textquotedbl{}} (same five answers)\\
+\bottomrule\end{tabularx}\end{center}
+\section*{job\_training}
+REAL DATA: 614 men in the National Supported Work job-training study (185 trained) and in a comparison group drawn from a population survey (429 not trained): LaLonde (1986), as Dehejia \& Wahba (1999) and the R package MatchIt ship it (lalonde). The trained men differ from the others before the training, so a plain comparison mixes the training with who took it. The randomised experiment found an effect of about \$1,794 on 1978 earnings. \code{sdata.\allowbreak{}get\_\allowbreak{}example(\textquotedbl{}job\_\allowbreak{}training\textquotedbl{})}
+\begin{center}\small
+\begin{tabularx}{\textwidth}{@{}>{\ttfamily}l>{\raggedright\arraybackslash}X@{}}
+\toprule \textrm{\textbf{Column}} & \textbf{What it holds}\\ \midrule
+treat & 1 = took part in the job training, 0 = from the comparison survey\\
+age & age in years\\
+educ & years of schooling\\
+race & black, hispan or white\\
+married & 1 = married, 0 = not\\
+nodegree & 1 = no high-school degree, 0 = has one\\
+re74 & earnings in 1974 (US dollars)\\
+re75 & earnings in 1975 (US dollars)\\
+re78 & earnings in 1978, after the training (US dollars)\\
+\bottomrule\end{tabularx}\end{center}
+\section*{job\_search}
+REAL DATA: 899 unemployed workers in the JOBS II study, a randomised job-search workshop (Vinokur, Price \& Schul 1995), as Tingley et al. (2014) and the R package mediation ship it (jobs). For mediation: did the workshop lower depression through the workers' confidence in searching for a job? \code{sdata.\allowbreak{}get\_\allowbreak{}example(\textquotedbl{}job\_\allowbreak{}search\textquotedbl{})}
+\begin{center}\small
+\begin{tabularx}{\textwidth}{@{}>{\ttfamily}l>{\raggedright\arraybackslash}X@{}}
+\toprule \textrm{\textbf{Column}} & \textbf{What it holds}\\ \midrule
+treat & 1 = was offered the workshop, 0 = a booklet only (randomised)\\
+econ\_hard & economic hardship before the study (1 to 5)\\
+depress1 & depression before the study (1 to 5)\\
+sex & 1 = female, 0 = male\\
+age & age in years\\
+nonwhite & white0 or non.white1\\
+educ & schooling: lt-hs, highsc, somcol, bach or gradwk\\
+income & household income: lt15k, 15t24k, 25t39k, 40t49k or 50k+\\
+job\_seek & confidence in searching for a job, after the workshop (1 to 5)\\
+depress2 & depression six months after the workshop (1 to 5)\\
+work1 & psyemp (employed) or psyump (unemployed) six months after\\
+\bottomrule\end{tabularx}\end{center}
+\section*{drug\_levels}
+REAL DATA: a 2 x 2 crossover bioequivalence study with 18 subjects: each had a test and a reference formulation of a drug, one in each of two periods, and the area under the blood-level curve was measured (Sauter et al. 1992; reference dataset A of Sch\"utz, Labes \& Fuglsang 2014, whose published ratio is 95.09 \% with 90 \% CI 90.76 to 99.62 \%). \code{sdata.\allowbreak{}get\_\allowbreak{}example(\textquotedbl{}drug\_\allowbreak{}levels\textquotedbl{})}
+\begin{center}\small
+\begin{tabularx}{\textwidth}{@{}>{\ttfamily}l>{\raggedright\arraybackslash}X@{}}
+\toprule \textrm{\textbf{Column}} & \textbf{What it holds}\\ \midrule
+subject & the subject, 1 to 18\\
+period & 1 or 2\\
+formulation & test or reference\\
+auc & area under the blood-level curve (the amount of drug that reached the blood)\\
+\bottomrule\end{tabularx}\end{center}
+\section*{deaths\_by\_age}
+MADE-UP DATA: deaths and person-years in six age bands of four made-up counties, for standardised rates. Eastmere has many old people, Northvale few, so their crude death rates mislead. Invented for practice; not from any real place. \code{sdata.\allowbreak{}get\_\allowbreak{}example(\textquotedbl{}deaths\_\allowbreak{}by\_\allowbreak{}age\textquotedbl{})}
+\begin{center}\small
+\begin{tabularx}{\textwidth}{@{}>{\ttfamily}l>{\raggedright\arraybackslash}X@{}}
+\toprule \textrm{\textbf{Column}} & \textbf{What it holds}\\ \midrule
+county & Northvale, Eastmere, Southby or Westford\\
+age\_band & 0-19, 20-39, 40-59, 60-69, 70-79 or 80+\\
+deaths & deaths in that county and age band\\
+person\_years & person-years lived in that county and age band\\
 \bottomrule\end{tabularx}\end{center}
 
 \part{Lessons}\label{part:lessons}
@@ -3703,6 +3755,7 @@ table.rate_of("infections", time="patient_days", for_each_group_in="ward")
   \item Odds are not risks. When the outcome is common (over 10 \%), the odds ratio lies further from 1 than the risk ratio, so say which one you report.
   \item Sensitivity and specificity belong to the test; the share of positives that are real also depends on how common the condition is. Counts of 1000 people make this easy to see.
   \item Agreement is not correlation: two raters (or devices) can rise and fall together and still differ every time.
+  \item More: \code{compare\_\allowbreak{}risks(.\allowbreak{}.\allowbreak{}.\allowbreak{},\allowbreak{} show=\textquotedbl{}attributable fractions\textquotedbl{})} gives the share of the events that goes with the exposure; \code{rate\_\allowbreak{}of(.\allowbreak{}.\allowbreak{}.\allowbreak{},\allowbreak{} allowing\_\allowbreak{}for=\textquotedbl{}age\_\allowbreak{}band\textquotedbl{},\allowbreak{} standard\_\allowbreak{}population=\textquotedbl{}whole table\textquotedbl{})} gives age-standardised rates and \code{compare\_\allowbreak{}rates(.\allowbreak{}.\allowbreak{}.\allowbreak{},\allowbreak{} allowing\_\allowbreak{}for=\textquotedbl{}age\_\allowbreak{}band\textquotedbl{},\allowbreak{} standard\_\allowbreak{}rates=.\allowbreak{}.\allowbreak{}.\allowbreak{})} observed / expected (SMR), with \code{sdata.\allowbreak{}get\_\allowbreak{}example(\textquotedbl{}deaths\_\allowbreak{}by\_\allowbreak{}age\textquotedbl{})}; \code{compare\_\allowbreak{}averages\_\allowbreak{}of(.\allowbreak{}.\allowbreak{}.\allowbreak{},\allowbreak{} matched\_\allowbreak{}by=\textquotedbl{}subject\textquotedbl{},\allowbreak{} period=\textquotedbl{}period\textquotedbl{},\allowbreak{} same\_\allowbreak{}within=[0.\allowbreak{}8,\allowbreak{} 1.\allowbreak{}25])} is the bioequivalence crossover (\code{sdata.\allowbreak{}get\_\allowbreak{}example(\textquotedbl{}drug\_\allowbreak{}levels\textquotedbl{})}).
 \end{itemize}
 \end{goodtoknow}
 \begin{tryit}
@@ -4885,6 +4938,78 @@ Worked solutions: page~\pageref{solutions:34}, or type \code{sdata.\allowbreak{}
 \end{tryit}
 \par\noindent{\small\sffamily\textbf{Words in this lesson:} \hyperref[word:sdata.make-design-table]{\code{sdata.\allowbreak{}make\_\allowbreak{}design\_\allowbreak{}table()}}, \hyperref[word:sdata.make-random-assignments]{\code{sdata.\allowbreak{}make\_\allowbreak{}random\_\allowbreak{}assignments()}}, \hyperref[word:table.keep-random-rows]{\code{table.\allowbreak{}keep\_\allowbreak{}random\_\allowbreak{}rows()}}, \hyperref[word:table.count-rows]{\code{table.\allowbreak{}count\_\allowbreak{}rows()}}, \hyperref[word:table.show]{\code{table.\allowbreak{}show()}}.\par}
 
+\chapter{Cause and effect from observational data}\label{lesson:35}
+\begin{learnbox}
+\begin{itemize}
+  \item why a plain comparison of groups that chose themselves can mislead
+  \item how to make two groups alike in other columns (weighting and matching) and check that they are alike
+  \item how to split an effect into the part that goes through another column and the rest (mediation)
+\end{itemize}
+\end{learnbox}
+\begin{needsr}Parts 1 and 2 run R WeightIt, MatchIt and cobalt (\code{compare\_\allowbreak{}balanced\_\allowbreak{}groups\_\allowbreak{}of}); part 3 needs no R run R's own code, the same code R users run. Install it once: pip install \code{\textquotedbl{}simplydata[r]\textquotedbl{}}, then R from https://cran.r-project.org, then in R: \code{install.\allowbreak{}packages(c(\textquotedbl{}WeightIt\textquotedbl{},\allowbreak{} \textquotedbl{}MatchIt\textquotedbl{},\allowbreak{} \textquotedbl{}cobalt\textquotedbl{},\allowbreak{} \textquotedbl{}sandwich\textquotedbl{},\allowbreak{} \textquotedbl{}lmtest\textquotedbl{}))}. Without R these words print a message that says what to install.\end{needsr}
+\section*{Example 1}
+A job-training study. The 185 trained men earned less in 1978 than 429 men from a survey. Did the training lower earnings? First the plain comparison.
+\begin{lstlisting}[style=py]
+import simplydata as sdata
+table = sdata.table(sdata.get_example("job_training"))
+table.compare_averages_of("re78", for_each_group_in="treat")
+table.compare_balanced_groups_of("re78", for_each_group_in="treat", allowing_for=["age", "educ", "race", "married", "nodegree", "re74", "re75"])
+\end{lstlisting}
+\whateachline
+\begin{lineexplain}
+  \item[1] Load simplydata.
+  \item[2] Real data (LaLonde 1986): treat = 1 for the trained men, their age, schooling, race, marriage, degree and earnings in 1974, 1975 and 1978.
+  \item[3] The trained men earned 635 dollars less. But they differ before the training too: younger, more often black and unmarried, and with much lower earnings in 1974.
+  \item[4] Read the balance table first: before weighting, race (black) differs by 1.67 standard deviations; after, by 0.13. Some columns are still above 0.1, and a note says so. The effect for everyone: 225 dollars more (95 \% CI -1493 to 1942).
+\end{lineexplain}
+\printedoutput{output/lesson35_example1.txt}
+\section*{Example 2}
+The same question, with matching: each trained man gets the man from the survey with the nearest propensity score. Matching gives the effect among the trained men, so \code{effect\_\allowbreak{}for=} names them.
+\begin{lstlisting}[style=py]
+import simplydata as sdata
+table = sdata.table(sdata.get_example("job_training"))
+table.compare_balanced_groups_of("re78", for_each_group_in="treat", allowing_for=["age", "educ", "race", "married", "nodegree", "re74", "re75"], method="matching", effect_for=1, match_within=0.2)
+\end{lstlisting}
+\whateachline
+\begin{lineexplain}
+  \item[1] Load simplydata.
+  \item[2] The same men.
+  \item[3] Pairs further apart than 0.2 standard deviations of the logit of the score are left out (68 trained men had no match). Race is now balanced; the effect among the matched trained men: 1771 dollars more (95 \% CI -50.4 to 3592). The randomised experiment found 1794.
+\end{lineexplain}
+\printedoutput{output/lesson35_example2.txt}
+\section*{Example 3}
+Mediation. In the JOBS II study a job-search workshop was randomised. Did it lower depression by raising the workers' confidence in searching for a job?
+\begin{lstlisting}[style=py]
+import simplydata as sdata
+table = sdata.table(sdata.get_example("job_search"))
+table.explain("depress2", using="treat", through="job_seek", allowing_for=["econ_hard", "sex", "age"])
+\end{lstlisting}
+\whateachline
+\begin{lineexplain}
+  \item[1] Load simplydata.
+  \item[2] Real data (Vinokur et al. 1995): treat = 1 for the workshop, \code{job\_\allowbreak{}seek} = confidence in searching, depress2 = depression six months later.
+  \item[3] The indirect effect (through \code{job\_\allowbreak{}seek}) is -0.016 and the total effect -0.055, both with intervals that include 0. The printout says what these rest on: nothing unmeasured that affects both \code{job\_\allowbreak{}seek} and depression.
+\end{lineexplain}
+\printedoutput{output/lesson35_example3.txt}
+\begin{goodtoknow}
+\begin{itemize}
+  \item Balancing can only make groups alike in the columns you give it. A column that was not measured, such as motivation, can still differ, which is why the printout always names the assumptions.
+  \item Judge balance by the standardised differences (within about 0.1), never by p-values: with many rows a tiny difference has a small p-value, with few rows a big one does not.
+  \item \code{effect\_\allowbreak{}for=\textquotedbl{}everyone\textquotedbl{}} (weighting) asks what would happen if everyone were trained rather than no one; \code{effect\_\allowbreak{}for=1} asks what the training did for those who took it. They are different questions and can have different answers.
+  \item More: \code{compare\_\allowbreak{}balanced\_\allowbreak{}groups\_\allowbreak{}of(.\allowbreak{}.\allowbreak{}.\allowbreak{},\allowbreak{} show=\textquotedbl{}balance\textquotedbl{})} gives the balance table and \code{show=\textquotedbl{}propensity scores\textquotedbl{}} each row's score; \code{explain(.\allowbreak{}.\allowbreak{}.\allowbreak{},\allowbreak{} through=)} also works with a yes or no outcome (\code{outcome=\textquotedbl{}yes or no\textquotedbl{}}).
+\end{itemize}
+\end{goodtoknow}
+\begin{tryit}
+\begin{enumerate}
+  \item Fill in the blank: \code{table.\allowbreak{}compare\_\allowbreak{}balanced\_\allowbreak{}groups\_\allowbreak{}of(\textquotedbl{}re78\textquotedbl{},\allowbreak{} for\_\allowbreak{}each\_\allowbreak{}group\_\allowbreak{}in=\textquotedbl{}treat\textquotedbl{},\allowbreak{} allowing\_\allowbreak{}for=[.\allowbreak{}.\allowbreak{}.\allowbreak{}],\allowbreak{} method=\textquotedbl{}matching\textquotedbl{},\allowbreak{} effect\_\allowbreak{}for=\_\allowbreak{}\_\allowbreak{}\_\allowbreak{}\_\allowbreak{})} for the effect among the trained men.
+  \item Change only one option of part 1: give the effect among the trained men with weighting (\code{effect\_\allowbreak{}for=1}). How does it compare with matching?
+  \item Say in words why the plain comparison of part 1 gave the wrong sign.
+  \item Try to remember without looking back: which option of \code{explain()} names the column the effect goes through?
+\end{enumerate}
+Worked solutions: page~\pageref{solutions:35}, or type \code{sdata.\allowbreak{}show\_\allowbreak{}lesson(35,\allowbreak{} solutions=True)}.
+\end{tryit}
+\par\noindent{\small\sffamily\textbf{Words in this lesson:} \hyperref[word:table.compare-balanced-groups-of]{\code{table.\allowbreak{}compare\_\allowbreak{}balanced\_\allowbreak{}groups\_\allowbreak{}of()}}, \hyperref[word:table.compare-averages-of]{\code{table.\allowbreak{}compare\_\allowbreak{}averages\_\allowbreak{}of()}}, \hyperref[word:table.explain]{\code{table.\allowbreak{}explain()}}.\par}
+
 \otherchapters
 
 \part{Dictionary of words}\label{part:dictionary}
@@ -4927,7 +5052,7 @@ chart.save("my_chart.png")
 A small table to practise with. \code{sdata.\allowbreak{}get\_\allowbreak{}example(\textquotedbl{}marks\textquotedbl{})}
 
 \codeline{sdata.get\_example() with no name lists every table and its columns.}\\
-The tables are: marks, weather, fruit, growth, sensor, visitors, river, shop, school, meadow, trial, clinic, island, toxicity, culture, admissions, resistome, stations, rain, \code{sea\_\allowbreak{}levels} (real published sea levels), and, for combining studies, bcg and \code{passive\_\allowbreak{}smoking} (real published studies), for hidden factors, \code{ability\_\allowbreak{}tests} (real published test scores), for q-values, \code{many\_\allowbreak{}tests} (made up), and, for planning and surveys, \code{sampled\_\allowbreak{}schools} (a real survey sample) and \code{course\_\allowbreak{}feedback} (made-up answers on a scale). \code{\textquotedbl{}shop\textquotedbl{}} has empty cells and a column of dates to practise with; \code{\textquotedbl{}school\textquotedbl{}} has empty cells too.
+The tables are: marks, weather, fruit, growth, sensor, visitors, river, shop, school, meadow, trial, clinic, island, toxicity, culture, admissions, resistome, stations, rain, \code{sea\_\allowbreak{}levels} (real published sea levels), and, for combining studies, bcg and \code{passive\_\allowbreak{}smoking} (real published studies), for hidden factors, \code{ability\_\allowbreak{}tests} (real published test scores), for q-values, \code{many\_\allowbreak{}tests} (made up), for planning and surveys, \code{sampled\_\allowbreak{}schools} (a real survey sample) and \code{course\_\allowbreak{}feedback} (made-up answers on a scale), and, for cause and effect, \code{job\_\allowbreak{}training} and \code{job\_\allowbreak{}search} (real studies), \code{drug\_\allowbreak{}levels} (a real crossover) and \code{deaths\_\allowbreak{}by\_\allowbreak{}age} (made up). \code{\textquotedbl{}shop\textquotedbl{}} has empty cells and a column of dates to practise with; \code{\textquotedbl{}school\textquotedbl{}} has empty cells too.
 
 \wordfield{Options}{}\par\nopagebreak
 \begin{optiontable}
@@ -9089,7 +9214,7 @@ How strongly columns of numbers go up or down together, from -1 to 1.
 \codeline{table.find\_correlation\_between(\textquotedbl{}hours\textquotedbl{}, \textquotedbl{}marks\textquotedbl{})   (with sdata.get\_example(\textquotedbl{}marks\textquotedbl{}))}\\
 \code{method=\textquotedbl{}pearson\textquotedbl{}} (a straight-line link, the usual one), \code{\textquotedbl{}spearman\textquotedbl{}} (uses ranks, for any link that keeps going one way) or \code{\textquotedbl{}kendall\textquotedbl{}} (Kendall's tau-b, also ranks: the share of pairs of rows that agree in order minus the share that disagree; as R \code{cor.\allowbreak{}test(method = \textquotedbl{}kendall\textquotedbl{})}, SciPy kendalltau). Prints the strength in words and the p-value from SciPy. With two columns it gives back the number r; rows with an empty cell in either column are skipped. With three or more columns it gives back a correlation table (as pandas .corr()), and prints the strongest pairs:\\
 \codeline{table.find\_correlation\_between(\textquotedbl{}hours\textquotedbl{}, \textquotedbl{}marks\textquotedbl{}, \textquotedbl{}height\textquotedbl{})}\\
-Each pair uses the rows where both columns have a number. \code{show=\textquotedbl{}p-value\textquotedbl{}} gives the table of p-values instead, and \code{show=\textquotedbl{}each pair\textquotedbl{}} one row per pair (r, p-value, rows), ready for \code{add\_\allowbreak{}adjusted\_\allowbreak{}p\_\allowbreak{}value\_\allowbreak{}column()}: testing many pairs makes a chance finding more likely. \code{show=\textquotedbl{}covariance\textquotedbl{}} gives the covariance table instead (pandas \code{DataFrame.\allowbreak{}cov()}, dividing by n - 1, each pair on the rows where both columns have a number, as R \code{cov(use = \textquotedbl{}pairwise.\allowbreak{}complete.\allowbreak{}obs\textquotedbl{})}), also for two columns: covariances are in the units of the two columns multiplied; the correlation is the same link without units. Strength words for the size of r: below 0.2 very weak, from 0.2 weak, from 0.4 medium, from 0.6 strong, from 0.8 very strong (after Evans 1996). The p-value is said as how often a link this strong or stronger would turn up in studies like this one if there were truly no link (\code{\textquotedbl{}about 3 of 100 studies\textquotedbl{}}, p = 0.031). \code{sides=1}, \code{higher=\textquotedbl{}positive\textquotedbl{}} (or \code{\textquotedbl{}negative\textquotedbl{}}) tests in one direction only, as decided before seeing the data (R \code{cor.\allowbreak{}test(alternative = \textquotedbl{}greater\textquotedbl{})}); two columns only. Two columns only: \code{p\_\allowbreak{}value\_\allowbreak{}by=\textquotedbl{}shuffling\textquotedbl{}} gives the p-value from shuffling one column against the other \code{shuffles=9999} times (\code{with\_\allowbreak{}seed=1}; SciPy \code{permutation\_\allowbreak{}test}), and \code{interval\_\allowbreak{}by=\textquotedbl{}bootstrap\textquotedbl{}} adds a 95 \% interval of r from drawing the rows again with replacement \code{resamples=9999} times (\code{with\_\allowbreak{}seed=1}; SciPy bootstrap, BCa, as R boot::\code{boot.\allowbreak{}ci()}). With \code{rows\_\allowbreak{}back=12} and two columns (\code{sorted\_\allowbreak{}by=} the time column): the correlation for shifts -12 to 12 (cross-correlation, as R ccf with the sign of the lag reversed): shift 2 pairs the first column with the second 2 rows later. It says which column follows the other. A correlation does not show that one thing causes the other.
+Each pair uses the rows where both columns have a number. \code{show=\textquotedbl{}p-value\textquotedbl{}} gives the table of p-values instead, and \code{show=\textquotedbl{}each pair\textquotedbl{}} one row per pair (r, p-value, rows), ready for \code{add\_\allowbreak{}adjusted\_\allowbreak{}p\_\allowbreak{}value\_\allowbreak{}column()}: testing many pairs makes a chance finding more likely. \code{show=\textquotedbl{}covariance\textquotedbl{}} gives the covariance table instead (pandas \code{DataFrame.\allowbreak{}cov()}, dividing by n - 1, each pair on the rows where both columns have a number, as R \code{cov(use = \textquotedbl{}pairwise.\allowbreak{}complete.\allowbreak{}obs\textquotedbl{})}), also for two columns: covariances are in the units of the two columns multiplied; the correlation is the same link without units. Strength words for the size of r: below 0.2 very weak, from 0.2 weak, from 0.4 medium, from 0.6 strong, from 0.8 very strong (after Evans 1996). The p-value is said as how often a link this strong or stronger would turn up in studies like this one if there were truly no link (\code{\textquotedbl{}about 3 of 100 studies\textquotedbl{}}, p = 0.031). \code{sides=1}, \code{higher=\textquotedbl{}positive\textquotedbl{}} (or \code{\textquotedbl{}negative\textquotedbl{}}) tests in one direction only, as decided before seeing the data (R \code{cor.\allowbreak{}test(alternative = \textquotedbl{}greater\textquotedbl{})}); two columns only. Two columns only: \code{p\_\allowbreak{}value\_\allowbreak{}by=\textquotedbl{}shuffling\textquotedbl{}} gives the p-value from shuffling one column against the other \code{shuffles=9999} times (\code{with\_\allowbreak{}seed=1}; SciPy \code{permutation\_\allowbreak{}test}), and \code{interval\_\allowbreak{}by=\textquotedbl{}bootstrap\textquotedbl{}} adds a 95 \% interval of r from drawing the rows again with replacement \code{resamples=9999} times (\code{with\_\allowbreak{}seed=1}; SciPy bootstrap, BCa, as R boot::\code{boot.\allowbreak{}ci()}). With \code{rows\_\allowbreak{}back=12} and two columns (\code{sorted\_\allowbreak{}by=} the time column): the correlation for shifts -12 to 12 (cross-correlation, as R ccf with the sign of the lag reversed): shift 2 pairs the first column with the second 2 rows later. It says which column follows the other. \code{empty\_\allowbreak{}cells=\textquotedbl{}multiple imputation\textquotedbl{}} fills in the empty cells 20 times from the other columns named (statsmodels MICEData, as \code{explain()}) and pools the correlations with Rubin's rules on Fisher's z (R miceadds::\code{micombine.\allowbreak{}cor()}); \code{with\_\allowbreak{}seed=} fixes the random filling. A correlation does not show that one thing causes the other.
 
 \wordfield{Options}{}\par\nopagebreak
 \begin{optiontable}
@@ -9108,10 +9233,11 @@ Each pair uses the rows where both columns have a number. \code{show=\textquoted
 \code{allowing\_\allowbreak{}for=} & \\
 \code{rows\_\allowbreak{}back=} & \\
 \code{sorted\_\allowbreak{}by=} & \\
+\code{empty\_\allowbreak{}cells=} & normally \code{\textquotedbl{}leave out\textquotedbl{}}\\
 \end{optiontable}
 
 \wordfield{Why this method}{\hyperref[basis:table.find-correlation-between]{How simplydata chooses methods}, page \pageref{basis:table.find-correlation-between}: the default, the evidence and the checks.}
-\wordfield{Underneath}{SciPy (stats.pearsonr, spearmanr or kendalltau; \code{permutation\_\allowbreak{}test} and bootstrap for \code{p\_\allowbreak{}value\_\allowbreak{}by=\textquotedbl{}shuffling\textquotedbl{}} and \code{interval\_\allowbreak{}by=\textquotedbl{}bootstrap\textquotedbl{}}); R DescTools (SpearmanRho, KendallTauB, SomersDelta, GoodmanKruskalGamma) for intervals and ppcor::pcor.test for \code{allowing\_\allowbreak{}for=} (simplydata[r]); pandas DataFrame.cov for \code{show=\textquotedbl{}covariance\textquotedbl{}}}
+\wordfield{Underneath}{SciPy (stats.pearsonr, spearmanr or kendalltau; \code{permutation\_\allowbreak{}test} and bootstrap for \code{p\_\allowbreak{}value\_\allowbreak{}by=\textquotedbl{}shuffling\textquotedbl{}} and \code{interval\_\allowbreak{}by=\textquotedbl{}bootstrap\textquotedbl{}}); R DescTools (SpearmanRho, KendallTauB, SomersDelta, GoodmanKruskalGamma) for intervals and ppcor::pcor.test for \code{allowing\_\allowbreak{}for=} (simplydata[r]); pandas DataFrame.cov for \code{show=\textquotedbl{}covariance\textquotedbl{}}; statsmodels MICEData and R miceadds::micombine.cor for \code{empty\_\allowbreak{}cells=\textquotedbl{}multiple imputation\textquotedbl{}}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -9132,6 +9258,26 @@ cov.rename_axis("column").reset_index()
 \undertext{simplydata also says that a covariance is in the units of the two columns multiplied and that the correlation is the same link without units.}
 \undertext{\textit{Checked:} a test runs both and compares the table (on a pandas and on a Polars table).}
 \end{underneathbox}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{R}\libbadge{Python}}
+\undertext{\textbf{With \code{empty\_\allowbreak{}cells=\textquotedbl{}multiple imputation\textquotedbl{}}}: the same job with this option.}
+\underlib{R (simplydata runs this in R for you, through rpy2)}
+\begin{lstlisting}[style=underr]
+# find_correlation_between("sleep", "marks", empty_cells="multiple imputation")
+colnames(X) <- c("v0", "v1")
+tables <- lapply(1:20, function(i) as.data.frame(X[((i - 1) * 180 + 1):(i * 180), ]))
+r <- miceadds::micombine.cor(tables)   # (1)
+list(r = r$r[1])
+\end{lstlisting}
+\underlib{Python (with what R gives back)}
+\begin{lstlisting}[style=under]
+r
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) Fisher's z of each filled-in table pooled with Rubin's rules and taken back to r (van Buuren 2018, section 5.2).}
+\undertext{\textit{In Python only:} statsmodels fills in the empty cells; no Python package pools correlations with Rubin's rules, so the pooling comes from R miceadds.}
+\undertext{simplydata also leaves out rows where every column is empty, gives the interval and the p-value, and a table for three or more columns.}
+\undertext{\textit{Checked:} a test runs both and compares the number (on a pandas and on a Polars table).}
+\end{underneathbox}
 \unsection{Statistical tests}{group:Statistical-tests}
 \wordentry{table.compare\_averages\_of()}{word:table.compare-averages-of}
 Are the averages of the groups really different?
@@ -9139,7 +9285,7 @@ Are the averages of the groups really different?
 \codeline{table.compare\_averages\_of(\textquotedbl{}marks\textquotedbl{}, for\_each\_group\_in=\textquotedbl{}class\textquotedbl{})   (with sdata.get\_example(\textquotedbl{}marks\textquotedbl{}))}\\
 Two groups: Welch's t-test (the R \code{t.\allowbreak{}test()} default). Three or more: Welch's one-way ANOVA (the R \code{oneway.\allowbreak{}test()} default). Neither needs the groups to have the same spread. \code{based\_\allowbreak{}on=\textquotedbl{}ranks\textquotedbl{}} uses ranks instead (Mann-Whitney U or Kruskal-Wallis): safer when groups are small and their values are not bell-shaped. \code{test=} chooses another test: \code{\textquotedbl{}welch\textquotedbl{}}, \code{\textquotedbl{}student\textquotedbl{}}, \code{\textquotedbl{}welch anova\textquotedbl{}}, \code{\textquotedbl{}anova\textquotedbl{}}, \code{\textquotedbl{}mann-whitney\textquotedbl{}} or \code{\textquotedbl{}kruskal-wallis\textquotedbl{}}; and \code{\textquotedbl{}yuen\textquotedbl{}} (Yuen's test of 20 \% trimmed averages, R WRS2::yuen, SciPy \code{ttest\_\allowbreak{}ind(trim=0.\allowbreak{}2)}), \code{\textquotedbl{}brunner-munzel\textquotedbl{}} (R brunnermunzel.test, SciPy brunnermunzel), \code{\textquotedbl{}alexander-govern\textquotedbl{}} (3 or more groups with different spreads, R onewaytests::ag.test, SciPy alexandergovern) or \code{\textquotedbl{}median\textquotedbl{}} (Mood's median test, SciPy \code{median\_\allowbreak{}test}, as R chisq.test on the counts above and not above the overall median). Prints the answer in words (with the test used and why) and gives back a one-row table of results. The effect size says how big the difference is: Hedges' g (the difference in standard deviations) for 2 groups, omega-squared (the share of the differences explained by the groups) for 3 or more. Each group is checked for a bell shape (Shapiro-Wilk) and a note says if it does not look like one; with 30 or more values that matters little (the central limit theorem). To see which groups differ, use \code{compare\_\allowbreak{}each\_\allowbreak{}pair\_\allowbreak{}of()}. \code{sides=1}, \code{higher=\textquotedbl{}B\textquotedbl{}} (or \code{lower=\textquotedbl{}A\textquotedbl{}}) tests in one direction only (2 groups): that B is higher, as decided before seeing the data (R \code{t.\allowbreak{}test(alternative = .\allowbreak{}.\allowbreak{}.\allowbreak{})}, wilcox.test(\\
 \codeline{alternative = ...)); the 95 \% interval is then one-sided too. R's and SciPy's}\\
-\code{alternative=} is accepted. \code{p\_\allowbreak{}value\_\allowbreak{}by=\textquotedbl{}shuffling\textquotedbl{}} (2 groups, averages): the p-value comes from shuffling the group labels \code{shuffles=9999} times (\code{with\_\allowbreak{}seed=1}) and counting how often the difference in averages is as big as the one in the data (SciPy \code{permutation\_\allowbreak{}test}, as R perm::\code{permTS()}). When there are no more arrangements than shuffles, every one is counted and the p-value is exact. \code{same\_\allowbreak{}within=5} (2 groups) asks whether the averages are the same within 5 (or within [-3, 5]): two one-sided tests (TOST, Welch; statsmodels \code{ttost\_\allowbreak{}ind}, as R TOSTER::\code{t\_\allowbreak{}TOST()}), with the 90 \% interval. The answer is one of three: the same within the margin, different, or the data cannot tell. \code{same\_\allowbreak{}within=5}, \code{not\_\allowbreak{}lower=\textquotedbl{}B\textquotedbl{}} is a non-inferiority test: is B lower than A by no more than 5? (one-sided; as R TOSTER::\code{t\_\allowbreak{}TOST(hypothesis = \textquotedbl{}MET\textquotedbl{})}). \code{not\_\allowbreak{}higher=\textquotedbl{}B\textquotedbl{}} asks whether B is higher by no more than 5, for outcomes where lower is better, such as pain. \code{matched\_\allowbreak{}by=\textquotedbl{}name\textquotedbl{}} is for repeated measures: the same person (or plot, animal ...) in every group of \code{for\_\allowbreak{}each\_\allowbreak{}group\_\allowbreak{}in=}, for example \code{compare\_\allowbreak{}averages\_\allowbreak{}of(\textquotedbl{}marks\textquotedbl{},\allowbreak{} for\_\allowbreak{}each\_\allowbreak{}group\_\allowbreak{}in=\textquotedbl{}subject\textquotedbl{},\allowbreak{} matched\_\allowbreak{}by=\textquotedbl{}name\textquotedbl{})}. It runs a repeated-measures ANOVA with the Greenhouse-Geisser correction, R afex::\code{aov\_\allowbreak{}ez()} (needs R). \code{for\_\allowbreak{}each\_\allowbreak{}group\_\allowbreak{}in=[\textquotedbl{}subject\textquotedbl{},\allowbreak{} \textquotedbl{}class\textquotedbl{}]} with one column that changes within a person and one that does not gives the mixed ANOVA. \code{grouped\_\allowbreak{}by=\textquotedbl{}tank\textquotedbl{}} is for several rows from each tank, each tank in one group (nested): a nested ANOVA that tests the groups against the differences between tanks, R \code{aov(length \textasciitilde{} diet + Error(tank))} (needs R). A list of columns, \code{compare\_\allowbreak{}averages\_\allowbreak{}of([\textquotedbl{}length\textquotedbl{},\allowbreak{} \textquotedbl{}width\textquotedbl{}],\allowbreak{} for\_\allowbreak{}each\_\allowbreak{}group\_\allowbreak{}in=\textquotedbl{}species\textquotedbl{})}, compares them all at once: a MANOVA with Pillai's trace (statsmodels MANOVA, as R \code{summary(manova())}). Under a survey design (\code{table.\allowbreak{}use\_\allowbreak{}survey\_\allowbreak{}design}) two groups are compared by the design-based t test, R survey::svyttest.
+\code{alternative=} is accepted. \code{p\_\allowbreak{}value\_\allowbreak{}by=\textquotedbl{}shuffling\textquotedbl{}} (2 groups, averages): the p-value comes from shuffling the group labels \code{shuffles=9999} times (\code{with\_\allowbreak{}seed=1}) and counting how often the difference in averages is as big as the one in the data (SciPy \code{permutation\_\allowbreak{}test}, as R perm::\code{permTS()}). When there are no more arrangements than shuffles, every one is counted and the p-value is exact. \code{same\_\allowbreak{}within=5} (2 groups) asks whether the averages are the same within 5 (or within [-3, 5]): two one-sided tests (TOST, Welch; statsmodels \code{ttost\_\allowbreak{}ind}, as R TOSTER::\code{t\_\allowbreak{}TOST()}), with the 90 \% interval. The answer is one of three: the same within the margin, different, or the data cannot tell. \code{same\_\allowbreak{}within=5}, \code{not\_\allowbreak{}lower=\textquotedbl{}B\textquotedbl{}} is a non-inferiority test: is B lower than A by no more than 5? (one-sided; as R TOSTER::\code{t\_\allowbreak{}TOST(hypothesis = \textquotedbl{}MET\textquotedbl{})}). \code{not\_\allowbreak{}higher=\textquotedbl{}B\textquotedbl{}} asks whether B is higher by no more than 5, for outcomes where lower is better, such as pain. \code{matched\_\allowbreak{}by=\textquotedbl{}name\textquotedbl{}} is for repeated measures: the same person (or plot, animal ...) in every group of \code{for\_\allowbreak{}each\_\allowbreak{}group\_\allowbreak{}in=}, for example \code{compare\_\allowbreak{}averages\_\allowbreak{}of(\textquotedbl{}marks\textquotedbl{},\allowbreak{} for\_\allowbreak{}each\_\allowbreak{}group\_\allowbreak{}in=\textquotedbl{}subject\textquotedbl{},\allowbreak{} matched\_\allowbreak{}by=\textquotedbl{}name\textquotedbl{})}. It runs a repeated-measures ANOVA with the Greenhouse-Geisser correction, R afex::\code{aov\_\allowbreak{}ez()} (needs R). \code{for\_\allowbreak{}each\_\allowbreak{}group\_\allowbreak{}in=[\textquotedbl{}subject\textquotedbl{},\allowbreak{} \textquotedbl{}class\textquotedbl{}]} with one column that changes within a person and one that does not gives the mixed ANOVA. \code{grouped\_\allowbreak{}by=\textquotedbl{}tank\textquotedbl{}} is for several rows from each tank, each tank in one group (nested): a nested ANOVA that tests the groups against the differences between tanks, R \code{aov(length \textasciitilde{} diet + Error(tank))} (needs R). A list of columns, \code{compare\_\allowbreak{}averages\_\allowbreak{}of([\textquotedbl{}length\textquotedbl{},\allowbreak{} \textquotedbl{}width\textquotedbl{}],\allowbreak{} for\_\allowbreak{}each\_\allowbreak{}group\_\allowbreak{}in=\textquotedbl{}species\textquotedbl{})}, compares them all at once: a MANOVA with Pillai's trace (statsmodels MANOVA, as R \code{summary(manova())}). \code{period=\textquotedbl{}visit\textquotedbl{}} with \code{matched\_\allowbreak{}by=\textquotedbl{}subject\textquotedbl{}} is the 2 x 2 crossover (bioequivalence): each subject had both formulations of \code{for\_\allowbreak{}each\_\allowbreak{}group\_\allowbreak{}in=}, one in each of two periods. The EMA model on the log scale (statsmodels OLS of \code{log(column)} on sequence, subject, period and formulation, as R \code{lm()}) gives the ratio of the geometric means with its 90 \% interval and the within-subject CV; \code{same\_\allowbreak{}within=[0.\allowbreak{}8,\allowbreak{} 1.\allowbreak{}25]} says whether the interval lies inside the limits. \code{against=} names the reference formulation (default: the first in sorted order). Under a survey design (\code{table.\allowbreak{}use\_\allowbreak{}survey\_\allowbreak{}design}) two groups are compared by the design-based t test, R survey::svyttest.
 
 \wordfield{Options}{}\par\nopagebreak
 \begin{optiontable}
@@ -9160,6 +9306,8 @@ Two groups: Welch's t-test (the R \code{t.\allowbreak{}test()} default). Three o
 \code{in\_\allowbreak{}order=} & \\
 \code{matched\_\allowbreak{}by=} & \\
 \code{grouped\_\allowbreak{}by=} & \\
+\code{period=} & \\
+\code{against=} & \\
 \end{optiontable}
 
 \wordfield{Why this method}{\hyperref[basis:table.compare-averages-of]{How simplydata chooses methods}, page \pageref{basis:table.compare-averages-of}: the default, the evidence and the checks.}
@@ -9243,6 +9391,29 @@ list(diff = r$estimate, t = r$statistic, df = r$parameter, p = r$p.value)
 \undertext{(1) the design-based t test of survey::\code{svyttest()} for two groups; more groups go to \code{explain()}.}
 \undertext{\textit{In Python only:} statsmodels has weights but no strata, clusters or population sizes, so the design-based numbers come from R survey (Lumley).}
 \undertext{simplydata also writes the p-value sentence with its null (the same average in the population).}
+\undertext{\textit{Checked:} a test runs both and compares the numbers of the result table (on a pandas and on a Polars table).}
+\end{underneathbox}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{statsmodels}}
+\undertext{\textbf{With \code{period=}}: the same job with this option.}
+\underlib{statsmodels}
+\begin{lstlisting}[style=under]
+import numpy as np
+import statsmodels.formula.api as smf
+df = sdata.get_example("drug_levels")
+first = df[df["period"] == 1].set_index("subject")["formulation"]
+df["sequence"] = df["subject"].map(first)                                          # (1)
+# compare_averages_of("auc", ..., matched_by="subject", period="period", same_within=[0.8, 1.25])
+m = smf.ols("np.log(auc) ~ C(sequence) + C(subject) + C(period) + C(formulation)", data=df).fit()   # (2)
+term = "C(formulation)[T.test]"
+low, high = m.conf_int(alpha=0.10).loc[term]                                       # (3)
+{"estimate": np.exp(m.params[term]), "90 % CI low": np.exp(low), "90 % CI high": np.exp(high),
+ "within-subject CV": np.sqrt(np.exp(m.mse_resid) - 1)}
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) the sequence is each subject's formulation in the first period.}
+\undertext{(2) the EMA (2010) model with all effects fixed, on the log scale.}
+\undertext{(3) the 90 \% interval, the same as two one-sided tests at 5 \% each; the ratio and its interval taken back from logs.}
+\undertext{simplydata also leaves out (and names) subjects without both periods, refuses designs that are not 2 x 2, says whether the interval lies inside \code{same\_\allowbreak{}within=}, and gives the within-subject CV.}
 \undertext{\textit{Checked:} a test runs both and compares the numbers of the result table (on a pandas and on a Polars table).}
 \end{underneathbox}
 \wordentry{table.compare\_each\_pair\_of()}{word:table.compare-each-pair-of}
@@ -9765,7 +9936,7 @@ sdata.compare_counts([[20, 40], [30, 30]])
 How much more (or less) often does something happen in one group than in another?
 
 \codeline{table.compare\_risks(\textquotedbl{}died\textquotedbl{}, for\_each\_group\_in=\textquotedbl{}treatment\textquotedbl{}, against=\textquotedbl{}usual care\textquotedbl{})   (with sdata.get\_example(\textquotedbl{}trial\textquotedbl{}))}\\
-column: a column with two values (an event or not, such as \code{\textquotedbl{}yes\textquotedbl{}}/\code{\textquotedbl{}no\textquotedbl{}}); \code{value=} says which value is the event when it is not clear (\code{positive=} is accepted too). \code{against=} is the group the others are compared with (default: the first in sorted order, as R). Prints the risk in each group, then the risk difference with its interval and what it means out of 100 people, the number needed for one event fewer (or more), the risk ratio and the odds ratio, then the p-value (chi-square test with Yates' correction, as R \code{prop.\allowbreak{}test()}). \code{p\_\allowbreak{}value\_\allowbreak{}by=\textquotedbl{}exact\textquotedbl{}}: Fisher's exact test and the conditional odds ratio (as R \code{fisher.\allowbreak{}test()}). \code{allowing\_\allowbreak{}for=\textquotedbl{}age\_\allowbreak{}group\textquotedbl{}}: the Mantel-Haenszel odds ratio and risk ratio, which allow for a third column, with the Breslow-Day check that the odds ratio is the same in each group. \code{same\_\allowbreak{}within=10}: are the risks the same within 10 percentage points (two one-sided tests)? \code{same\_\allowbreak{}within=10}, \code{not\_\allowbreak{}lower=\textquotedbl{}new medicine\textquotedbl{}}: non-inferiority (the risk in \code{\textquotedbl{}new medicine\textquotedbl{}} is not lower by more than 10 points; \code{not\_\allowbreak{}higher=} for an event that is bad, such as \code{\textquotedbl{}died\textquotedbl{}}). \code{interval=95} sets the level of every interval. Gives back one row per measure (estimate, interval, p-value, method). Routes: statsmodels \code{proportion\_\allowbreak{}confint}, \code{confint\_\allowbreak{}proportions\_\allowbreak{}2indep} (Newcombe), Table2x2, StratifiedTable, \code{tost\_\allowbreak{}proportions\_\allowbreak{}2indep}; SciPy \code{chi2\_\allowbreak{}contingency}, \code{fisher\_\allowbreak{}exact}; R epiR for the interval of the Mantel-Haenszel risk ratio.
+column: a column with two values (an event or not, such as \code{\textquotedbl{}yes\textquotedbl{}}/\code{\textquotedbl{}no\textquotedbl{}}); \code{value=} says which value is the event when it is not clear (\code{positive=} is accepted too). \code{against=} is the group the others are compared with (default: the first in sorted order, as R). Prints the risk in each group, then the risk difference with its interval and what it means out of 100 people, the number needed for one event fewer (or more), the risk ratio and the odds ratio, then the p-value (chi-square test with Yates' correction, as R \code{prop.\allowbreak{}test()}). \code{p\_\allowbreak{}value\_\allowbreak{}by=\textquotedbl{}exact\textquotedbl{}}: Fisher's exact test and the conditional odds ratio (as R \code{fisher.\allowbreak{}test()}). \code{allowing\_\allowbreak{}for=\textquotedbl{}age\_\allowbreak{}group\textquotedbl{}}: the Mantel-Haenszel odds ratio and risk ratio, which allow for a third column, with the Breslow-Day check that the odds ratio is the same in each group. \code{same\_\allowbreak{}within=10}: are the risks the same within 10 percentage points (two one-sided tests)? \code{same\_\allowbreak{}within=10}, \code{not\_\allowbreak{}lower=\textquotedbl{}new medicine\textquotedbl{}}: non-inferiority (the risk in \code{\textquotedbl{}new medicine\textquotedbl{}} is not lower by more than 10 points; \code{not\_\allowbreak{}higher=} for an event that is bad, such as \code{\textquotedbl{}died\textquotedbl{}}). \code{interval=95} sets the level of every interval. Gives back one row per measure (estimate, interval, p-value, method). \code{show=\textquotedbl{}attributable fractions\textquotedbl{}} (two groups; \code{against=} is the group without the exposure): the share of the events among the exposed, and in the whole population, that goes with the exposure, with their intervals (R epiR::epi.2by2(); crude, not adjusted for other columns); for an exposure that goes with fewer events, the preventable fraction among the exposed. Routes: statsmodels \code{proportion\_\allowbreak{}confint}, \code{confint\_\allowbreak{}proportions\_\allowbreak{}2indep} (Newcombe), Table2x2, StratifiedTable, \code{tost\_\allowbreak{}proportions\_\allowbreak{}2indep}; SciPy \code{chi2\_\allowbreak{}contingency}, \code{fisher\_\allowbreak{}exact}; R epiR for the interval of the Mantel-Haenszel risk ratio.
 
 \wordfield{Options}{}\par\nopagebreak
 \begin{optiontable}
@@ -9783,21 +9954,42 @@ column: a column with two values (an event or not, such as \code{\textquotedbl{}
 \code{higher=} & \\
 \code{lower=} & \\
 \code{alternative=} & \\
+\code{show=} & \\
 \end{optiontable}
 
 \wordfield{Why this method}{\hyperref[basis:table.compare-risks]{How simplydata chooses methods}, page \pageref{basis:table.compare-risks}: the default, the evidence and the checks.}
-\wordfield{Underneath}{statsmodels (\code{proportion\_\allowbreak{}confint}, \code{confint\_\allowbreak{}proportions\_\allowbreak{}2indep} with Newcombe's interval, Table2x2, StratifiedTable for \code{allowing\_\allowbreak{}for=}, \code{tost\_\allowbreak{}proportions\_\allowbreak{}2indep} for \code{same\_\allowbreak{}within=}); SciPy (\code{chi2\_\allowbreak{}contingency}, \code{fisher\_\allowbreak{}exact}, contingency.odds\_ratio); R epiR::epi.2by2 for the interval of the Mantel-Haenszel risk ratio and prop.test for one-sided p-values (simplydata[r])}
+\wordfield{Underneath}{statsmodels (\code{proportion\_\allowbreak{}confint}, \code{confint\_\allowbreak{}proportions\_\allowbreak{}2indep} with Newcombe's interval, Table2x2, StratifiedTable for \code{allowing\_\allowbreak{}for=}, \code{tost\_\allowbreak{}proportions\_\allowbreak{}2indep} for \code{same\_\allowbreak{}within=}); SciPy (\code{chi2\_\allowbreak{}contingency}, \code{fisher\_\allowbreak{}exact}, contingency.odds\_ratio); R epiR::epi.2by2 for the interval of the Mantel-Haenszel risk ratio and prop.test for one-sided p-values, and epiR::epi.2by2 for \code{show=\textquotedbl{}attributable fractions\textquotedbl{}} (simplydata[r])}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
 table = sdata.table(sdata.get_example("trial"))
 table.compare_risks("died", for_each_group_in="treatment", against="usual care")
 \end{lstlisting}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{R}\libbadge{Python}}
+\undertext{\textbf{With \code{show=\textquotedbl{}attributable fractions\textquotedbl{}}}: the same job with this option.}
+\underlib{R (simplydata runs this in R for you, through rpy2)}
+\begin{lstlisting}[style=underr]
+# compare_risks("infected", for_each_group_in="ward", against="ward A", show="attributable fractions")
+r <- epiR::epi.2by2(as.table(matrix(n, nrow = 2, byrow = TRUE)),   # (1)
+                    method = "cohort.count")
+af <- r$massoc.detail$AFRisk.strata.wald
+list(af = af$est, low = af$lower, high = af$upper)
+\end{lstlisting}
+\underlib{Python (with what R gives back)}
+\begin{lstlisting}[style=under]
+{"estimate": af, "estimate 95 % CI low": low, "estimate 95 % CI high": high}
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) the risk-based fractions of a cohort (method = \code{\textquotedbl{}cohort.\allowbreak{}count\textquotedbl{}}), with Wald intervals from the risk ratio; crude, not adjusted for other columns.}
+\undertext{\textit{In Python only:} No Python package gives attributable fractions, Fay-Feuer intervals or indirect standardisation as R epiR does, so the numbers come from R.}
+\undertext{simplydata also gives the population attributable fraction, the preventable fraction among the exposed when the exposure goes with fewer events, and says that the fractions are causal only if the exposure causes the events.}
+\undertext{\textit{Checked:} a test runs both and compares the numbers of the result table (on a pandas and on a Polars table).}
+\end{underneathbox}
 \wordentry{table.compare\_rates()}{word:table.compare-rates}
 Do events happen more often per unit of time in one group than in another?
 
 \codeline{table.compare\_rates(\textquotedbl{}infections\textquotedbl{}, time=\textquotedbl{}patient\_days\textquotedbl{}, for\_each\_group\_in=\textquotedbl{}ward\textquotedbl{}, against=\textquotedbl{}ward A\textquotedbl{})}\\
-(with \code{sdata.\allowbreak{}get\_\allowbreak{}example(\textquotedbl{}clinic\textquotedbl{})}). events: a column of counts; \code{time=}: the time each row was followed (days, years). Adds them up per group and prints each rate per 1000 units of time (\code{per=}) with its exact interval, then the rate ratio with the exact conditional test (statsmodels \code{test\_\allowbreak{}poisson\_\allowbreak{}2indep}, as R \code{poisson.\allowbreak{}test()}) and R's exact interval of the ratio (simplydata[r]; without R the interval is left out with a note). \code{same\_\allowbreak{}within=[0.\allowbreak{}8,\allowbreak{} 1.\allowbreak{}25]}: are the rates the same within a rate ratio of 0.8 to 1.25 (two one-sided exact tests)? \code{same\_\allowbreak{}within=1.\allowbreak{}25} means the same. With \code{not\_\allowbreak{}lower=\textquotedbl{}ward B\textquotedbl{}} (or \code{not\_\allowbreak{}higher=}): non-inferiority, the rate ratio not below (or above) the margin. Gives back one row per measure: each rate (columns \code{\textquotedbl{}rate\textquotedbl{}}, its interval, and \code{\textquotedbl{}per\textquotedbl{}}), then the rate ratio.
+(with \code{sdata.\allowbreak{}get\_\allowbreak{}example(\textquotedbl{}clinic\textquotedbl{})}). events: a column of counts; \code{time=}: the time each row was followed (days, years). Adds them up per group and prints each rate per 1000 units of time (\code{per=}) with its exact interval, then the rate ratio with the exact conditional test (statsmodels \code{test\_\allowbreak{}poisson\_\allowbreak{}2indep}, as R \code{poisson.\allowbreak{}test()}) and R's exact interval of the ratio (simplydata[r]; without R the interval is left out with a note). \code{same\_\allowbreak{}within=[0.\allowbreak{}8,\allowbreak{} 1.\allowbreak{}25]}: are the rates the same within a rate ratio of 0.8 to 1.25 (two one-sided exact tests)? \code{same\_\allowbreak{}within=1.\allowbreak{}25} means the same. With \code{not\_\allowbreak{}lower=\textquotedbl{}ward B\textquotedbl{}} (or \code{not\_\allowbreak{}higher=}): non-inferiority, the rate ratio not below (or above) the margin. Gives back one row per measure: each rate (columns \code{\textquotedbl{}rate\textquotedbl{}}, its interval, and \code{\textquotedbl{}per\textquotedbl{}}), then the rate ratio. \code{allowing\_\allowbreak{}for=\textquotedbl{}age\_\allowbreak{}band\textquotedbl{}}, \code{standard\_\allowbreak{}rates=national} (a table with \code{\textquotedbl{}age\_\allowbreak{}band\textquotedbl{}} and one column of rates per 1000 units of time, as \code{per=}): observed / expected, the standardised ratio (SMR) of each group (\code{for\_\allowbreak{}each\_\allowbreak{}group\_\allowbreak{}in=} is optional here) with its exact Poisson interval (R epiR::\code{epi.\allowbreak{}indirectadj()}; p-value from R \code{poisson.\allowbreak{}test()}).
 
 \wordfield{Options}{}\par\nopagebreak
 \begin{optiontable}
@@ -9814,21 +10006,48 @@ Do events happen more often per unit of time in one group than in another?
 \code{higher=} & \\
 \code{lower=} & \\
 \code{alternative=} & \\
+\code{allowing\_\allowbreak{}for=} & \\
+\code{standard\_\allowbreak{}rates=} & \\
 \end{optiontable}
 
 \wordfield{Why this method}{\hyperref[basis:table.compare-rates]{How simplydata chooses methods}, page \pageref{basis:table.compare-rates}: the default, the evidence and the checks.}
-\wordfield{Underneath}{statsmodels (stats.rates: \code{confint\_\allowbreak{}poisson}, \code{test\_\allowbreak{}poisson\_\allowbreak{}2indep}, \code{tost\_\allowbreak{}poisson\_\allowbreak{}2indep}); R poisson.test for the exact interval of the rate ratio (simplydata[r])}
+\wordfield{Underneath}{statsmodels (stats.rates: \code{confint\_\allowbreak{}poisson}, \code{test\_\allowbreak{}poisson\_\allowbreak{}2indep}, \code{tost\_\allowbreak{}poisson\_\allowbreak{}2indep}); R poisson.test for the exact interval of the rate ratio, and epiR::epi.indirectadj for \code{standard\_\allowbreak{}rates=} (observed / expected; simplydata[r])}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
 table = sdata.table(sdata.get_example("clinic"))
 table.compare_rates("infections", time="patient_days", for_each_group_in="ward", against="ward A")
 \end{lstlisting}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{R}\libbadge{Python}}
+\undertext{\textbf{With \code{standard\_\allowbreak{}rates=}}: the same job with this option.}
+\underlib{R (simplydata runs this in R for you, through rpy2)}
+\begin{lstlisting}[style=underr]
+# compare_rates(..., allowing_for="age_band", standard_rates={...})   (per 1000 person-years)
+obs <- matrix(rowSums(matrix(o, nrow = length(g))), ncol = 1, dimnames = list(g, ""))
+pop <- matrix(t, nrow = length(g), dimnames = list(g, b))
+std <- matrix(c(s / 1000, NA), nrow = 1, dimnames = list("", c(b, "Total")))   # (1)
+r <- epiR::epi.indirectadj(obs, pop, std, units = 1000)                        # (2)
+sm <- r$smr.strata["Eastmere", ]                                               # by name
+list(smr = sm$est, low = sm$lower, high = sm$upper, e = sm$exp,
+     p = stats::poisson.test(sm$obs, sm$exp)$p.value)
+\end{lstlisting}
+\underlib{Python (with what R gives back)}
+\begin{lstlisting}[style=under]
+{"observed / expected": smr, "observed / expected 95 % CI low": low,
+ "observed / expected 95 % CI high": high, "expected": e, "p-value": p}
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) the standard rates are read per \code{per=} units of time (1000 here) and divided by it for epiR, which wants rates per one unit.}
+\undertext{(2) observed / expected with the exact Poisson interval; the p-value from R \code{poisson.\allowbreak{}test(observed,\allowbreak{} expected)}.}
+\undertext{\textit{In Python only:} No Python package gives attributable fractions, Fay-Feuer intervals or indirect standardisation as R epiR does, so the numbers come from R.}
+\undertext{simplydata also refuses bands without a standard rate and groups without person-time, and says that two groups' ratios are each against the standard, not against each other.}
+\undertext{\textit{Checked:} a test runs both and compares the numbers of the result table (on a pandas and on a Polars table).}
+\end{underneathbox}
 \wordentry{table.rate\_of()}{word:table.rate-of}
 How often do events happen per unit of time, such as infections per 1000 patient-days?
 
 \codeline{table.rate\_of(\textquotedbl{}infections\textquotedbl{}, time=\textquotedbl{}patient\_days\textquotedbl{}, for\_each\_group\_in=\textquotedbl{}ward\textquotedbl{})   (with sdata.get\_example(\textquotedbl{}clinic\textquotedbl{}))}\\
-Adds up the events and the time (in each group), and gives the rate per 1000 units of time (\code{per=} changes it) with its exact 95 \% interval (statsmodels \code{confint\_\allowbreak{}poisson} \code{\textquotedbl{}exact-c\textquotedbl{}}, as R \code{poisson.\allowbreak{}test()}). Gives back one row per group, with the columns \code{\textquotedbl{}rate\textquotedbl{}}, \code{\textquotedbl{}rate 95 \% CI low/high\textquotedbl{}} and \code{\textquotedbl{}per\textquotedbl{}} (such as \code{\textquotedbl{}1000 patient\_\allowbreak{}days\textquotedbl{}}).
+Adds up the events and the time (in each group), and gives the rate per 1000 units of time (\code{per=} changes it) with its exact 95 \% interval (statsmodels \code{confint\_\allowbreak{}poisson} \code{\textquotedbl{}exact-c\textquotedbl{}}, as R \code{poisson.\allowbreak{}test()}). Gives back one row per group, with the columns \code{\textquotedbl{}rate\textquotedbl{}}, \code{\textquotedbl{}rate 95 \% CI low/high\textquotedbl{}} and \code{\textquotedbl{}per\textquotedbl{}} (such as \code{\textquotedbl{}1000 patient\_\allowbreak{}days\textquotedbl{}}). \code{allowing\_\allowbreak{}for=\textquotedbl{}age\_\allowbreak{}band\textquotedbl{}}, \code{standard\_\allowbreak{}population=\textquotedbl{}whole table\textquotedbl{}} (or a table with \code{\textquotedbl{}age\_\allowbreak{}band\textquotedbl{}} and one column of population sizes): directly standardised rates, the rate each group would have with the standard population's make-up in \code{age\_\allowbreak{}band}, with Fay \& Feuer's interval, beside the crude rate (R epiR::\code{epi.\allowbreak{}directadj()}, as epitools::\code{ageadjust.\allowbreak{}direct()}).
 
 \wordfield{Options}{}\par\nopagebreak
 \begin{optiontable}
@@ -9837,16 +10056,41 @@ Adds up the events and the time (in each group), and gives the rate per 1000 uni
 \code{for\_\allowbreak{}each\_\allowbreak{}group\_\allowbreak{}in=} & \\
 \code{per=} & normally \code{1000}\\
 \code{interval=} & normally \code{95}\\
+\code{allowing\_\allowbreak{}for=} & \\
+\code{standard\_\allowbreak{}population=} & \\
 \end{optiontable}
 
 \wordfield{Why this method}{\hyperref[basis:table.rate-of]{How simplydata chooses methods}, page \pageref{basis:table.rate-of}: the default, the evidence and the checks.}
-\wordfield{Underneath}{narwhals (sums per group); statsmodels (stats.rates.confint\_poisson, exact)}
+\wordfield{Underneath}{narwhals (sums per group); statsmodels (stats.rates.confint\_poisson, exact); R epiR::epi.directadj for \code{standard\_\allowbreak{}population=} (simplydata[r])}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
 table = sdata.table(sdata.get_example("clinic"))
 table.rate_of("infections", time="patient_days", for_each_group_in="ward")
 \end{lstlisting}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{R}\libbadge{Python}}
+\undertext{\textbf{With \code{standard\_\allowbreak{}population=}}: the same job with this option.}
+\underlib{R (simplydata runs this in R for you, through rpy2)}
+\begin{lstlisting}[style=underr]
+# rate_of(..., allowing_for="age_band", standard_population="whole table")
+obs <- matrix(o, nrow = length(g), dimnames = list(g, b))
+tar <- matrix(t, nrow = length(g), dimnames = list(g, b))
+std <- matrix(colSums(tar), nrow = 1, dimnames = list("", b))   # (1)
+r <- epiR::epi.directadj(obs, tar, std, units = 1000)          # (2)
+a <- r$adj.strata
+list(adj = a$est[1], low = a$lower[1], high = a$upper[1])
+\end{lstlisting}
+\underlib{Python (with what R gives back)}
+\begin{lstlisting}[style=under]
+{"adjusted rate": adj, "adjusted rate 95 % CI low": low, "adjusted rate 95 % CI high": high}
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) \code{\textquotedbl{}whole table\textquotedbl{}}: the standard population is the person-time of all rows in each band.}
+\undertext{(2) direct standardisation with Fay \& Feuer's gamma interval (epiR, the same as epitools::\code{ageadjust.\allowbreak{}direct()}).}
+\undertext{\textit{In Python only:} No Python package gives attributable fractions, Fay-Feuer intervals or indirect standardisation as R epiR does, so the numbers come from R.}
+\undertext{simplydata also takes a standard population table, refuses bands missing on either side and groups with no person-time in a band, and prints the crude rate beside the adjusted one.}
+\undertext{\textit{Checked:} a test runs both and compares the numbers of the result table (on a pandas and on a Polars table).}
+\end{underneathbox}
 \wordentry{sdata.compare\_risks()}{word:sdata.compare-risks}
 How much more (or less) often does something happen in one group than another? From counts.
 
@@ -9907,6 +10151,87 @@ events: the number of events in each group; time: the time followed (such as pat
 import simplydata as sdata
 sdata.compare_rates(events=[15, 30], time=[1200, 1100], names=["ward A", "ward B"])
 \end{lstlisting}
+\wordentry{table.compare\_balanced\_groups\_of()}{word:table.compare-balanced-groups-of}
+Make two groups alike in other columns, then compare them (propensity scores, weighting, matching).
+
+\codeline{table.compare\_balanced\_groups\_of(\textquotedbl{}re78\textquotedbl{}, for\_each\_group\_in=\textquotedbl{}treat\textquotedbl{}, allowing\_for=[\textquotedbl{}age\textquotedbl{}, \textquotedbl{}educ\textquotedbl{}, \textquotedbl{}race\textquotedbl{},}\\
+\code{\textquotedbl{}married\textquotedbl{}}, \code{\textquotedbl{}nodegree\textquotedbl{}}, \code{\textquotedbl{}re74\textquotedbl{}}, \code{\textquotedbl{}re75\textquotedbl{}}])   (with \code{sdata.\allowbreak{}get\_\allowbreak{}example(\textquotedbl{}job\_\allowbreak{}training\textquotedbl{})}) In observational data the groups often differ before anything happens (older, sicker ...). This word first models each row's chance of being in a group from the columns of \code{allowing\_\allowbreak{}for=} (the propensity score, R glm), then makes the groups alike in those columns and compares the column: \code{method=\textquotedbl{}weighting\textquotedbl{}} (the default) weights each row by its score (R WeightIt::\code{weightit()} and \code{lm\_\allowbreak{}weightit()}, whose standard errors allow for the estimated weights); \code{method=\textquotedbl{}matching\textquotedbl{}} pairs each row of one group with the row of the other group with the nearest score (R MatchIt::\code{matchit()}, 1:1 nearest neighbour), with \code{match\_\allowbreak{}within=0.\allowbreak{}2} leaving out pairs further apart than 0.2 standard deviations of the logit of the score (Austin 2011). \code{effect\_\allowbreak{}for=\textquotedbl{}everyone\textquotedbl{}} (the default for weighting): the effect if everyone were in one group rather than the other (ATE); \code{effect\_\allowbreak{}for=\textquotedbl{}\textless{}a group\textgreater{}\textquotedbl{}} (needed for matching): the effect among the rows of that group (ATT). \code{against=} is the group compared with (default: the first in sorted order; with \code{effect\_\allowbreak{}for=} a group, the other group). Prints the overlap of the scores, the balance table (standardised differences of each column before and after, R cobalt::\code{bal.\allowbreak{}tab()}; the guide is 0.1), the effect with its interval and p-value, and the assumptions it rests on. Gives back the effect row; \code{show=\textquotedbl{}balance\textquotedbl{}} gives the balance table and \code{show=\textquotedbl{}propensity scores\textquotedbl{}} the table with a column \code{\textquotedbl{}propensity score\textquotedbl{}}. A yes or no column gives the difference in the chance of yes (a risk difference).
+
+\wordfield{Options}{}\par\nopagebreak
+\begin{optiontable}
+\code{column=} & \\
+\code{for\_\allowbreak{}each\_\allowbreak{}group\_\allowbreak{}in=} & \\
+\code{allowing\_\allowbreak{}for=} & \\
+\code{method=} & normally \code{\textquotedbl{}weighting\textquotedbl{}}\\
+\code{effect\_\allowbreak{}for=} & \\
+\code{against=} & \\
+\code{match\_\allowbreak{}within=} & \\
+\code{show=} & \\
+\code{interval=} & normally \code{95}\\
+\end{optiontable}
+
+\wordfield{Why this method}{\hyperref[basis:table.compare-balanced-groups-of]{How simplydata chooses methods}, page \pageref{basis:table.compare-balanced-groups-of}: the default, the evidence and the checks.}
+\wordfield{Underneath}{R \code{WeightIt::weightit()}, \code{WeightIt::glm\_\allowbreak{}weightit()}, \code{stats::gaussian()}, \code{stats::confint()}, \code{cobalt::bal.\allowbreak{}tab()}}
+\wordfield{Example you can run}{}\par\nopagebreak
+\begin{lstlisting}[style=py]
+import simplydata as sdata
+table = sdata.table(sdata.get_example("job_training"))
+table.compare_balanced_groups_of("re78", for_each_group_in="treat", allowing_for=["age", "educ", "race", "married", "nodegree", "re74", "re75"])
+\end{lstlisting}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{R}\libbadge{Python}}
+\underlib{R (simplydata runs this in R for you, through rpy2)}
+\begin{lstlisting}[style=underr]
+# compare_balanced_groups_of("re78", for_each_group_in="treat", allowing_for=[...])
+d <- data.frame(t = t, y = y, age = age, educ = educ, race = race, married = married, nodegree = nodegree,
+                re74 = re74, re75 = re75)
+f <- t ~ age + educ + race + married + nodegree + re74 + re75
+W <- WeightIt::weightit(f, data = d, method = "glm", estimand = "ATE")   # (1)
+m <- WeightIt::glm_weightit(y ~ t, data = d, weightit = W,              # (2)
+                          family = stats::gaussian())
+co <- summary(m)$coefficients; ci <- stats::confint(m)
+b <- cobalt::bal.tab(W, un = TRUE, binary = "std", continuous = "std")   # (3)
+list(estimate = co["t", 1], se = co["t", 2], p = co["t", 4], low = ci["t", 1], high = ci["t", 2])
+\end{lstlisting}
+\underlib{Python (with what R gives back)}
+\begin{lstlisting}[style=under]
+{"estimate": estimate, "standard error": se, "p-value": p, "estimate 95 % CI low": low,
+ "estimate 95 % CI high": high}
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) weighting by the inverse of the propensity score from logistic regression, for everyone (ATE), unless \code{effect\_\allowbreak{}for=} names a group (ATT).}
+\undertext{(2) the effect from WeightIt's \code{lm\_\allowbreak{}weightit()}, whose M-estimation standard errors allow for the estimated weights (statsmodels TreatmentEffect.ipw gives the same estimate with a larger error).}
+\undertext{(3) standardised differences for every column, text columns too (binary = \code{\textquotedbl{}std\textquotedbl{}}), with the guide 0.1; never p-values for balance (Austin 2009).}
+\undertext{\textit{In Python only:} statsmodels TreatmentEffect.ipw gives the same estimate, but its standard error ignores how the weights were estimated in WeightIt's way, so the numbers come from R WeightIt.}
+\undertext{simplydata also prints the overlap of the scores (rows outside the other group's range), the balance table, notes on columns still apart after weighting and on weights above 20, and the assumptions the effect rests on.}
+\undertext{\textit{Checked:} a test runs both and compares the numbers of the result table (on a pandas and on a Polars table).}
+\end{underneathbox}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{R}\libbadge{Python}}
+\undertext{\textbf{With \code{method=\textquotedbl{}matching\textquotedbl{}}}: the same job with this option.}
+\underlib{R (simplydata runs this in R for you, through rpy2)}
+\begin{lstlisting}[style=underr]
+# compare_balanced_groups_of(..., method="matching", effect_for=1)
+d <- data.frame(t = t, y = y, age = age, educ = educ, race = race, married = married, nodegree = nodegree,
+                re74 = re74, re75 = re75)
+f <- t ~ age + educ + race + married + nodegree + re74 + re75
+mm <- MatchIt::matchit(f, data = d, method = "nearest", distance = "glm")   # (1)
+md <- MatchIt::match.data(mm)
+m <- stats::lm(y ~ t, data = md, weights = weights)
+V <- sandwich::vcovCL(m, cluster = ~subclass)                               # (2)
+co <- lmtest::coeftest(m, vcov. = V); ci <- lmtest::coefci(m, vcov. = V)
+list(estimate = co["t", 1], se = co["t", 2], p = co["t", 4], low = ci["t", 1], high = ci["t", 2])
+\end{lstlisting}
+\underlib{Python (with what R gives back)}
+\begin{lstlisting}[style=under]
+{"estimate": estimate, "standard error": se, "p-value": p, "estimate 95 % CI low": low,
+ "estimate 95 % CI high": high}
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) 1:1 nearest-neighbour matching on the propensity score without replacement, MatchIt's default; \code{match\_\allowbreak{}within=} adds a caliper in standard deviations of the logit of the score (Austin 2011).}
+\undertext{(2) standard errors clustered on the matched pairs, as the MatchIt vignette does.}
+\undertext{\textit{In Python only:} No Python package in simplydata's dependencies matches on the propensity score as MatchIt does, so the numbers come from R.}
+\undertext{simplydata also asks which group the effect is for (\code{effect\_\allowbreak{}for=}; matching gives the effect among one group), counts the rows left without a match, prints the balance table and the assumptions.}
+\undertext{\textit{Checked:} a test runs both and compares the numbers of the result table (on a pandas and on a Polars table).}
+\end{underneathbox}
 \unsection{Diagnostic tests}{group:Diagnostic-tests}
 \wordentry{table.compare\_to\_truth()}{word:table.compare-to-truth}
 How well does a test find what is really there (sensitivity, specificity, predictive values)?
@@ -10966,7 +11291,7 @@ print(dist.show_parameters())
 Explain one column from several others with a model, and say how big each effect is.
 
 \codeline{table.explain(\textquotedbl{}marks\textquotedbl{}, using=[\textquotedbl{}hours\textquotedbl{}, \textquotedbl{}breakfast\textquotedbl{}])   (with sdata.get\_example(\textquotedbl{}school\textquotedbl{}))}\\
-\code{outcome=\textquotedbl{}numbers\textquotedbl{}} (the default): linear model by least squares (R \code{lm()}). \code{outcome=\textquotedbl{}yes or no\textquotedbl{}}: logistic regression, odds ratios (R \code{glm(family = binomial)}). \code{outcome=\textquotedbl{}counts\textquotedbl{}}: Poisson regression, rate ratios (R \code{glm(family = poisson)}); \code{outcome=\textquotedbl{}counts (overdispersed)\textquotedbl{}}: quasi-Poisson (R \code{glm(family = quasipoisson)}); \code{outcome=\textquotedbl{}counts that vary a lot\textquotedbl{}}: negative binomial (R MASS::\code{glm.\allowbreak{}nb()}). \code{outcome=\textquotedbl{}positive numbers\textquotedbl{}}: Gamma regression with a log link, for positive, skewed numbers such as times or amounts (R \code{glm(family = Gamma(link = \textquotedbl{}log\textquotedbl{}))}); effects multiply the average. \code{time=\textquotedbl{}years\textquotedbl{}} with counts: rates, the count per unit of time (R offset = \code{log(years)}). \code{out\_\allowbreak{}of=\textquotedbl{}tries\textquotedbl{}} with \code{outcome=\textquotedbl{}yes or no\textquotedbl{}}: the column holds the number of yes out of that many tries (R \code{glm(cbind(yes,\allowbreak{} tries - yes) \textasciitilde{} .\allowbreak{}.\allowbreak{}.\allowbreak{},\allowbreak{} family = binomial)}). With \code{out\_\allowbreak{}of=}, \code{outcome=\textquotedbl{}yes or no (overdispersed)\textquotedbl{}} is quasi-binomial (R \code{glm(family = quasibinomial)}), for yes counts that vary more than the binomial allows. \code{outcome=\textquotedbl{}ordered groups\textquotedbl{}}: ordered logistic regression (R MASS::\code{polr()}); give the order of text groups, lowest first, with \code{in\_\allowbreak{}order=[\textquotedbl{}low\textquotedbl{},\allowbreak{} \textquotedbl{}middle\textquotedbl{},\allowbreak{} \textquotedbl{}high\textquotedbl{}]}. \code{outcome=\textquotedbl{}groups\textquotedbl{}}: multinomial logistic regression, each group against the first (R nnet::\code{multinom()}). \code{outcome=\textquotedbl{}shares\textquotedbl{}}: beta regression for shares between 0 and 1 (R betareg). \code{outcome=\textquotedbl{}counts with many zeros\textquotedbl{}}: zero-inflated Poisson regression (R pscl::\code{zeroinfl()}); \code{\textquotedbl{}counts with many zeros that vary a lot\textquotedbl{}}: zero-inflated negative binomial (pscl::\code{zeroinfl(dist = \textquotedbl{}negbin\textquotedbl{})}). \code{outcome=\textquotedbl{}counts in two steps\textquotedbl{}} (a hurdle model; \code{\textquotedbl{}hurdle\textquotedbl{}} works too): first zero or not, then how many among the counts above 0 (R pscl::\code{hurdle()}); \code{\textquotedbl{}counts in two steps that vary a lot\textquotedbl{}} with a negative binomial second step. \code{zero\_\allowbreak{}part\_\allowbreak{}using=[\textquotedbl{}distance\textquotedbl{}]} gives the zero part its own columns (R pscl's y \textasciitilde{} x \textbar{} z). \code{link=} (experts): \code{\textquotedbl{}probit\textquotedbl{}} or \code{\textquotedbl{}cloglog\textquotedbl{}} for yes or no, \code{\textquotedbl{}identity\textquotedbl{}} or \code{\textquotedbl{}sqrt\textquotedbl{}} for counts, \code{\textquotedbl{}inverse\textquotedbl{}} or \code{\textquotedbl{}identity\textquotedbl{}} for positive numbers; the effects are then on that scale, not ratios. \code{test\_\allowbreak{}type=\textquotedbl{}type 2\textquotedbl{}} adds a table with one test for each column (an ANOVA table): \code{\textquotedbl{}type 2\textquotedbl{}} (the usual choice, R car::\code{Anova(type = 2)}), \code{\textquotedbl{}type 3\textquotedbl{}} (sum-to-zero coding, R car::\code{Anova(type = 3)}) or \code{\textquotedbl{}in order\textquotedbl{}} (R \code{anova()}; the order of \code{using=} matters), with partial eta-squared for numbers (R effectsize). A text column in \code{using=} is a group column: each group is compared with the first group in sorted order (the baseline). \code{\textquotedbl{}hours * breakfast\textquotedbl{}} adds both columns and their interaction (does the effect of hours depend on breakfast?). \code{weights=\textquotedbl{}precision\textquotedbl{}}: each row counts as much as its weight says (precision weights, R \code{lm(weights =)} and \code{glm(weights =)}; statsmodels WLS and \code{GLM(var\_\allowbreak{}weights=)}); rows with weight 0 are left out, as R does. \code{show=\textquotedbl{}risk ratios\textquotedbl{}} with \code{outcome=\textquotedbl{}yes or no\textquotedbl{}}: risk ratios instead of odds ratios, by modified Poisson regression (Zou 2004; R \code{glm(family = poisson)} with sandwich::\code{vcovHC(type = \textquotedbl{}HC0\textquotedbl{})}); \code{method=\textquotedbl{}log-binomial\textquotedbl{}} fits a log-binomial model instead (R \code{glm(family = binomial(link = \textquotedbl{}log\textquotedbl{}))}, which may not converge). \code{show=\textquotedbl{}standardised effects\textquotedbl{}} (also \code{\textquotedbl{}standardized effects\textquotedbl{}}): each effect per standard deviation, from the model fitted again on z-scores (R effectsize::\code{standardize\_\allowbreak{}parameters(method = \textquotedbl{}refit\textquotedbl{})}). \code{matched\_\allowbreak{}by=\textquotedbl{}set\textquotedbl{}} with \code{outcome=\textquotedbl{}yes or no\textquotedbl{}}: conditional logistic regression for matched case-control sets (R survival::\code{clogit()}; statsmodels ConditionalLogit). \code{giving\_\allowbreak{}outliers\_\allowbreak{}less\_\allowbreak{}weight=True}: robust regression (Huber's M-estimation, R MASS::\code{rlm()}; statsmodels RLM), so a few outliers in the column explained pull the effects less. Not the same as \code{robust\_\allowbreak{}errors=True}, which keeps the effects and only changes their standard errors. \code{curve\_\allowbreak{}for=\textquotedbl{}hours\textquotedbl{}} with \code{with\_\allowbreak{}knots=3}: \code{\textquotedbl{}hours\textquotedbl{}} follows a natural cubic spline whose pieces join at 3 knots, the points where the pieces of the curve join (R splines::\code{ns(hours,\allowbreak{} df = 4)}; patsy \code{cr()}); the printout gives the test of the whole curve, which asks whether \code{\textquotedbl{}hours\textquotedbl{}} matters at all (is the curve flat?), not whether it bends. \code{interval\_\allowbreak{}by=\textquotedbl{}profile\textquotedbl{}} (or \code{\textquotedbl{}profile likelihood\textquotedbl{}}): profile-likelihood 95 \% intervals for yes or no and counts (R \code{confint()} of the glm; needs R); \code{interval\_\allowbreak{}by=\textquotedbl{}bootstrap\textquotedbl{}}: BCa intervals from \code{resamples=9999} resamples of the rows (\code{with\_\allowbreak{}seed=1}; SciPy bootstrap, as R boot::\code{boot.\allowbreak{}ci()}). A group with only a few rows can be missing from a resample; \code{explain()} then stops, and whether that happens depends on \code{with\_\allowbreak{}seed=}. Fewer resamples are not the fix: merge the rare group, or use \code{interval\_\allowbreak{}by=\textquotedbl{}profile\textquotedbl{}} (yes or no and counts). \code{p\_\allowbreak{}value\_\allowbreak{}by=\textquotedbl{}likelihood ratio\textquotedbl{}}: a likelihood-ratio test for each column (R \code{drop1(m,\allowbreak{} test = \textquotedbl{}LRT\textquotedbl{})}) instead of the Wald z-test. \code{grouped\_\allowbreak{}by=\textquotedbl{}school\textquotedbl{}}: a mixed model with its own starting level for each school (R lme4::\code{lmer()}), for rows that belong together; \code{grouped\_\allowbreak{}by=[\textquotedbl{}school\textquotedbl{},\allowbreak{} \textquotedbl{}class\textquotedbl{}]} for classes inside schools ((1 \textbar{} school/class)). \code{own\_\allowbreak{}slope\_\allowbreak{}for=\textquotedbl{}hours\textquotedbl{}} gives each school its own slope for hours too (R lme4::\code{lmer()} itself, (1 + hours \textbar{} school)). \code{crossed\_\allowbreak{}with=\textquotedbl{}item\textquotedbl{}} with \code{grouped\_\allowbreak{}by=\textquotedbl{}subject\textquotedbl{}}: a second grouping crossed with the first, (1 \textbar{} subject) + (1 \textbar{} item) (R lme4 itself), when each subject meets several items. \code{p\_\allowbreak{}value\_\allowbreak{}by=\textquotedbl{}satterthwaite\textquotedbl{}} (or \code{\textquotedbl{}few groups\textquotedbl{}}) gives t-tests with Satterthwaite degrees of freedom (R lmerTest) instead of Wald z-tests. \code{effects=\textquotedbl{}for the whole population\textquotedbl{}} fits GEE instead (statsmodels, as R geepack::\code{geeglm()}): effects averaged over all groups, with \code{within\_\allowbreak{}groups=\textquotedbl{}alike\textquotedbl{}} (the default), \code{\textquotedbl{}in time order\textquotedbl{}} (rows in table order, R geepack) or \code{\textquotedbl{}independent\textquotedbl{}}; GEE takes \code{time=}, \code{out\_\allowbreak{}of=} (R geepack) and \code{link=} for yes or no too. \code{curve\_\allowbreak{}for=\textquotedbl{}hours\textquotedbl{}} lets \code{\textquotedbl{}hours\textquotedbl{}} follow a curve instead of a straight line (a generalised additive model with a smooth term \code{s(hours)}, R mgcv::\code{gam(marks \textasciitilde{} s(hours) + .\allowbreak{}.\allowbreak{}.\allowbreak{},\allowbreak{} method = \textquotedbl{}REML\textquotedbl{})}). \code{robust\_\allowbreak{}errors=True} (experts) gives robust standard errors (sandwich, HC3, as R sandwich::\code{vcovHC()}), which stay right when the spread is not the same everywhere; it does not make the model resistant to outliers (\code{giving\_\allowbreak{}outliers\_\allowbreak{}less\_\allowbreak{}weight=True} does). \code{empty\_\allowbreak{}cells=\textquotedbl{}multiple imputation\textquotedbl{}} fills in empty cells 20 times (R \code{mice()}) instead of leaving those rows out; \code{with\_\allowbreak{}seed=} fixes the random filling. Prints each effect with its 95 \% confidence interval and p-value in words, and how well the model fits: R squared (numbers), McFadden's pseudo R squared (yes or no, counts, groups; for yes or no also Nagelkerke's and Tjur's) or Nakagawa's R squared (\code{grouped\_\allowbreak{}by=}, R performance, needs R), with AIC and BIC (R \code{AIC()}, \code{BIC()}). Gives back a table with one row per term. A link does not show that one thing causes the other. \code{for\_\allowbreak{}percentile=90} (\code{outcome=\textquotedbl{}numbers\textquotedbl{}}) fits the line under which 90 \% of the values fall instead of the average line (quantile regression, R quantreg::\code{rq(tau = 0.\allowbreak{}9)}, needs R); a list such as [10, 50, 90] gives one block per percentile. \code{changes\_\allowbreak{}at=}\{\code{\textquotedbl{}month\textquotedbl{}}: 37\} adds a jump in level and a change of slope at month 37 (an interrupted time series), with the lag-1 autocorrelation of the leftovers. \code{spread\_\allowbreak{}changes\_\allowbreak{}with=\textquotedbl{}site\textquotedbl{}} lets each site have its own spread (a number column: the spread grows as a power of it), and \code{neighbours\_\allowbreak{}alike\_\allowbreak{}in\_\allowbreak{}order\_\allowbreak{}of=\textquotedbl{}date\textquotedbl{}} lets rows next to each other in date order be alike (\code{AR(1)}): generalised least squares, R nlme::\code{gls()} (needs R). Under a survey design (\code{table.\allowbreak{}use\_\allowbreak{}survey\_\allowbreak{}design}) it fits a survey-weighted model, R survey::svyglm (\code{outcome=} \code{\textquotedbl{}numbers\textquotedbl{}}, \code{\textquotedbl{}yes or no\textquotedbl{}} or \code{\textquotedbl{}counts\textquotedbl{}}).
+\code{outcome=\textquotedbl{}numbers\textquotedbl{}} (the default): linear model by least squares (R \code{lm()}). \code{outcome=\textquotedbl{}yes or no\textquotedbl{}}: logistic regression, odds ratios (R \code{glm(family = binomial)}). \code{outcome=\textquotedbl{}counts\textquotedbl{}}: Poisson regression, rate ratios (R \code{glm(family = poisson)}); \code{outcome=\textquotedbl{}counts (overdispersed)\textquotedbl{}}: quasi-Poisson (R \code{glm(family = quasipoisson)}); \code{outcome=\textquotedbl{}counts that vary a lot\textquotedbl{}}: negative binomial (R MASS::\code{glm.\allowbreak{}nb()}). \code{outcome=\textquotedbl{}positive numbers\textquotedbl{}}: Gamma regression with a log link, for positive, skewed numbers such as times or amounts (R \code{glm(family = Gamma(link = \textquotedbl{}log\textquotedbl{}))}); effects multiply the average. \code{time=\textquotedbl{}years\textquotedbl{}} with counts: rates, the count per unit of time (R offset = \code{log(years)}). \code{out\_\allowbreak{}of=\textquotedbl{}tries\textquotedbl{}} with \code{outcome=\textquotedbl{}yes or no\textquotedbl{}}: the column holds the number of yes out of that many tries (R \code{glm(cbind(yes,\allowbreak{} tries - yes) \textasciitilde{} .\allowbreak{}.\allowbreak{}.\allowbreak{},\allowbreak{} family = binomial)}). With \code{out\_\allowbreak{}of=}, \code{outcome=\textquotedbl{}yes or no (overdispersed)\textquotedbl{}} is quasi-binomial (R \code{glm(family = quasibinomial)}), for yes counts that vary more than the binomial allows. \code{outcome=\textquotedbl{}ordered groups\textquotedbl{}}: ordered logistic regression (R MASS::\code{polr()}); give the order of text groups, lowest first, with \code{in\_\allowbreak{}order=[\textquotedbl{}low\textquotedbl{},\allowbreak{} \textquotedbl{}middle\textquotedbl{},\allowbreak{} \textquotedbl{}high\textquotedbl{}]}. \code{outcome=\textquotedbl{}groups\textquotedbl{}}: multinomial logistic regression, each group against the first (R nnet::\code{multinom()}). \code{outcome=\textquotedbl{}shares\textquotedbl{}}: beta regression for shares between 0 and 1 (R betareg). \code{outcome=\textquotedbl{}counts with many zeros\textquotedbl{}}: zero-inflated Poisson regression (R pscl::\code{zeroinfl()}); \code{\textquotedbl{}counts with many zeros that vary a lot\textquotedbl{}}: zero-inflated negative binomial (pscl::\code{zeroinfl(dist = \textquotedbl{}negbin\textquotedbl{})}). \code{outcome=\textquotedbl{}counts in two steps\textquotedbl{}} (a hurdle model; \code{\textquotedbl{}hurdle\textquotedbl{}} works too): first zero or not, then how many among the counts above 0 (R pscl::\code{hurdle()}); \code{\textquotedbl{}counts in two steps that vary a lot\textquotedbl{}} with a negative binomial second step. \code{zero\_\allowbreak{}part\_\allowbreak{}using=[\textquotedbl{}distance\textquotedbl{}]} gives the zero part its own columns (R pscl's y \textasciitilde{} x \textbar{} z). \code{link=} (experts): \code{\textquotedbl{}probit\textquotedbl{}} or \code{\textquotedbl{}cloglog\textquotedbl{}} for yes or no, \code{\textquotedbl{}identity\textquotedbl{}} or \code{\textquotedbl{}sqrt\textquotedbl{}} for counts, \code{\textquotedbl{}inverse\textquotedbl{}} or \code{\textquotedbl{}identity\textquotedbl{}} for positive numbers; the effects are then on that scale, not ratios. \code{test\_\allowbreak{}type=\textquotedbl{}type 2\textquotedbl{}} adds a table with one test for each column (an ANOVA table): \code{\textquotedbl{}type 2\textquotedbl{}} (the usual choice, R car::\code{Anova(type = 2)}), \code{\textquotedbl{}type 3\textquotedbl{}} (sum-to-zero coding, R car::\code{Anova(type = 3)}) or \code{\textquotedbl{}in order\textquotedbl{}} (R \code{anova()}; the order of \code{using=} matters), with partial eta-squared for numbers (R effectsize). A text column in \code{using=} is a group column: each group is compared with the first group in sorted order (the baseline). \code{\textquotedbl{}hours * breakfast\textquotedbl{}} adds both columns and their interaction (does the effect of hours depend on breakfast?). \code{weights=\textquotedbl{}precision\textquotedbl{}}: each row counts as much as its weight says (precision weights, R \code{lm(weights =)} and \code{glm(weights =)}; statsmodels WLS and \code{GLM(var\_\allowbreak{}weights=)}); rows with weight 0 are left out, as R does. \code{show=\textquotedbl{}risk ratios\textquotedbl{}} with \code{outcome=\textquotedbl{}yes or no\textquotedbl{}}: risk ratios instead of odds ratios, by modified Poisson regression (Zou 2004; R \code{glm(family = poisson)} with sandwich::\code{vcovHC(type = \textquotedbl{}HC0\textquotedbl{})}); \code{method=\textquotedbl{}log-binomial\textquotedbl{}} fits a log-binomial model instead (R \code{glm(family = binomial(link = \textquotedbl{}log\textquotedbl{}))}, which may not converge). \code{show=\textquotedbl{}standardised effects\textquotedbl{}} (also \code{\textquotedbl{}standardized effects\textquotedbl{}}): each effect per standard deviation, from the model fitted again on z-scores (R effectsize::\code{standardize\_\allowbreak{}parameters(method = \textquotedbl{}refit\textquotedbl{})}). \code{matched\_\allowbreak{}by=\textquotedbl{}set\textquotedbl{}} with \code{outcome=\textquotedbl{}yes or no\textquotedbl{}}: conditional logistic regression for matched case-control sets (R survival::\code{clogit()}; statsmodels ConditionalLogit). \code{giving\_\allowbreak{}outliers\_\allowbreak{}less\_\allowbreak{}weight=True}: robust regression (Huber's M-estimation, R MASS::\code{rlm()}; statsmodels RLM), so a few outliers in the column explained pull the effects less. Not the same as \code{robust\_\allowbreak{}errors=True}, which keeps the effects and only changes their standard errors. \code{curve\_\allowbreak{}for=\textquotedbl{}hours\textquotedbl{}} with \code{with\_\allowbreak{}knots=3}: \code{\textquotedbl{}hours\textquotedbl{}} follows a natural cubic spline whose pieces join at 3 knots, the points where the pieces of the curve join (R splines::\code{ns(hours,\allowbreak{} df = 4)}; patsy \code{cr()}); the printout gives the test of the whole curve, which asks whether \code{\textquotedbl{}hours\textquotedbl{}} matters at all (is the curve flat?), not whether it bends. \code{interval\_\allowbreak{}by=\textquotedbl{}profile\textquotedbl{}} (or \code{\textquotedbl{}profile likelihood\textquotedbl{}}): profile-likelihood 95 \% intervals for yes or no and counts (R \code{confint()} of the glm; needs R); \code{interval\_\allowbreak{}by=\textquotedbl{}bootstrap\textquotedbl{}}: BCa intervals from \code{resamples=9999} resamples of the rows (\code{with\_\allowbreak{}seed=1}; SciPy bootstrap, as R boot::\code{boot.\allowbreak{}ci()}). A group with only a few rows can be missing from a resample; \code{explain()} then stops, and whether that happens depends on \code{with\_\allowbreak{}seed=}. Fewer resamples are not the fix: merge the rare group, or use \code{interval\_\allowbreak{}by=\textquotedbl{}profile\textquotedbl{}} (yes or no and counts). \code{p\_\allowbreak{}value\_\allowbreak{}by=\textquotedbl{}likelihood ratio\textquotedbl{}}: a likelihood-ratio test for each column (R \code{drop1(m,\allowbreak{} test = \textquotedbl{}LRT\textquotedbl{})}) instead of the Wald z-test. \code{grouped\_\allowbreak{}by=\textquotedbl{}school\textquotedbl{}}: a mixed model with its own starting level for each school (R lme4::\code{lmer()}), for rows that belong together; \code{grouped\_\allowbreak{}by=[\textquotedbl{}school\textquotedbl{},\allowbreak{} \textquotedbl{}class\textquotedbl{}]} for classes inside schools ((1 \textbar{} school/class)). \code{own\_\allowbreak{}slope\_\allowbreak{}for=\textquotedbl{}hours\textquotedbl{}} gives each school its own slope for hours too (R lme4::\code{lmer()} itself, (1 + hours \textbar{} school)). \code{crossed\_\allowbreak{}with=\textquotedbl{}item\textquotedbl{}} with \code{grouped\_\allowbreak{}by=\textquotedbl{}subject\textquotedbl{}}: a second grouping crossed with the first, (1 \textbar{} subject) + (1 \textbar{} item) (R lme4 itself), when each subject meets several items. \code{p\_\allowbreak{}value\_\allowbreak{}by=\textquotedbl{}satterthwaite\textquotedbl{}} (or \code{\textquotedbl{}few groups\textquotedbl{}}) gives t-tests with Satterthwaite degrees of freedom (R lmerTest) instead of Wald z-tests. \code{effects=\textquotedbl{}for the whole population\textquotedbl{}} fits GEE instead (statsmodels, as R geepack::\code{geeglm()}): effects averaged over all groups, with \code{within\_\allowbreak{}groups=\textquotedbl{}alike\textquotedbl{}} (the default), \code{\textquotedbl{}in time order\textquotedbl{}} (rows in table order, R geepack) or \code{\textquotedbl{}independent\textquotedbl{}}; GEE takes \code{time=}, \code{out\_\allowbreak{}of=} (R geepack) and \code{link=} for yes or no too. \code{curve\_\allowbreak{}for=\textquotedbl{}hours\textquotedbl{}} lets \code{\textquotedbl{}hours\textquotedbl{}} follow a curve instead of a straight line (a generalised additive model with a smooth term \code{s(hours)}, R mgcv::\code{gam(marks \textasciitilde{} s(hours) + .\allowbreak{}.\allowbreak{}.\allowbreak{},\allowbreak{} method = \textquotedbl{}REML\textquotedbl{})}). \code{robust\_\allowbreak{}errors=True} (experts) gives robust standard errors (sandwich, HC3, as R sandwich::\code{vcovHC()}), which stay right when the spread is not the same everywhere; it does not make the model resistant to outliers (\code{giving\_\allowbreak{}outliers\_\allowbreak{}less\_\allowbreak{}weight=True} does). \code{empty\_\allowbreak{}cells=\textquotedbl{}multiple imputation\textquotedbl{}} fills in empty cells 20 times (R \code{mice()}) instead of leaving those rows out; \code{with\_\allowbreak{}seed=} fixes the random filling. Prints each effect with its 95 \% confidence interval and p-value in words, and how well the model fits: R squared (numbers), McFadden's pseudo R squared (yes or no, counts, groups; for yes or no also Nagelkerke's and Tjur's) or Nakagawa's R squared (\code{grouped\_\allowbreak{}by=}, R performance, needs R), with AIC and BIC (R \code{AIC()}, \code{BIC()}). Gives back a table with one row per term. A link does not show that one thing causes the other. \code{for\_\allowbreak{}percentile=90} (\code{outcome=\textquotedbl{}numbers\textquotedbl{}}) fits the line under which 90 \% of the values fall instead of the average line (quantile regression, R quantreg::\code{rq(tau = 0.\allowbreak{}9)}, needs R); a list such as [10, 50, 90] gives one block per percentile. \code{changes\_\allowbreak{}at=}\{\code{\textquotedbl{}month\textquotedbl{}}: 37\} adds a jump in level and a change of slope at month 37 (an interrupted time series), with the lag-1 autocorrelation of the leftovers. \code{spread\_\allowbreak{}changes\_\allowbreak{}with=\textquotedbl{}site\textquotedbl{}} lets each site have its own spread (a number column: the spread grows as a power of it), and \code{neighbours\_\allowbreak{}alike\_\allowbreak{}in\_\allowbreak{}order\_\allowbreak{}of=\textquotedbl{}date\textquotedbl{}} lets rows next to each other in date order be alike (\code{AR(1)}): generalised least squares, R nlme::\code{gls()} (needs R). \code{through=\textquotedbl{}job\_\allowbreak{}seeking\textquotedbl{}} with \code{using=\textquotedbl{}treatment\textquotedbl{}} (one column with two values) splits the effect of treatment into the part that goes through \code{job\_\allowbreak{}seeking} (the indirect effect) and the rest (the direct effect): causal mediation analysis (statsmodels Mediation, as R mediation::\code{mediate()}), with \code{allowing\_\allowbreak{}for=} the columns to take into account in both models and \code{against=} the starting value of \code{using=}. The printout says what the answer rests on. Under a survey design (\code{table.\allowbreak{}use\_\allowbreak{}survey\_\allowbreak{}design}) it fits a survey-weighted model, R survey::svyglm (\code{outcome=} \code{\textquotedbl{}numbers\textquotedbl{}}, \code{\textquotedbl{}yes or no\textquotedbl{}} or \code{\textquotedbl{}counts\textquotedbl{}}).
 
 \wordfield{Options}{}\par\nopagebreak
 \begin{optiontable}
@@ -11001,10 +11326,13 @@ Explain one column from several others with a model, and say how big each effect
 \code{changes\_\allowbreak{}at=} & \\
 \code{spread\_\allowbreak{}changes\_\allowbreak{}with=} & \\
 \code{neighbours\_\allowbreak{}alike\_\allowbreak{}in\_\allowbreak{}order\_\allowbreak{}of=} & \\
+\code{through=} & \\
+\code{allowing\_\allowbreak{}for=} & \\
+\code{against=} & \\
 \end{optiontable}
 
 \wordfield{Why this method}{\hyperref[basis:table.explain]{How simplydata chooses methods}, page \pageref{basis:table.explain}: the default, the evidence and the checks.}
-\wordfield{Underneath}{statsmodels (OLS; GLM for yes/no and counts, as R glm; MixedLM for \code{grouped\_\allowbreak{}by=}; GEE for \code{effects=\textquotedbl{}for the whole population\textquotedbl{}}, as R geepack::geeglm; MICEData to fill in empty cells; \code{eval\_\allowbreak{}measures} aic and bic and McFadden's pseudo R squared, as R AIC, BIC and performance::\code{r2\_\allowbreak{}mcfadden}); R mgcv::gam for \code{curve\_\allowbreak{}for=} (needs R); R itself (needs R) for lme4::glmer, lme4::lmer with \code{own\_\allowbreak{}slope\_\allowbreak{}for=}, lmerTest for \code{p\_\allowbreak{}value\_\allowbreak{}by=\textquotedbl{}satterthwaite\textquotedbl{}}, geepack for \code{within\_\allowbreak{}groups=\textquotedbl{}in time order\textquotedbl{}} and GEE with \code{out\_\allowbreak{}of=}, car::Anova and effectsize for \code{test\_\allowbreak{}type=}, sandwich::vcovHC for \code{robust\_\allowbreak{}errors=True} with yes/no and counts, and mice::pool for multiple imputation; R performance::\code{r2\_\allowbreak{}nakagawa} for the R squared of every \code{grouped\_\allowbreak{}by=} model; statsmodels WLS and \code{GLM(var\_\allowbreak{}weights=)} for \code{weights=}, RLM for \code{giving\_\allowbreak{}outliers\_\allowbreak{}less\_\allowbreak{}weight=}, ConditionalLogit for \code{matched\_\allowbreak{}by=}, \code{GLM(cov\_\allowbreak{}type=\textquotedbl{}HC0\textquotedbl{})} for risk ratios; patsy cr for \code{with\_\allowbreak{}knots=}; SciPy bootstrap for \code{interval\_\allowbreak{}by=\textquotedbl{}bootstrap\textquotedbl{}}; R stats::confint for \code{interval\_\allowbreak{}by=\textquotedbl{}profile\textquotedbl{}}, lme4 for \code{crossed\_\allowbreak{}with=}, pscl::zeroinfl and pscl::hurdle for the zero outcomes}
+\wordfield{Underneath}{statsmodels (OLS; GLM for yes/no and counts, as R glm; MixedLM for \code{grouped\_\allowbreak{}by=}; GEE for \code{effects=\textquotedbl{}for the whole population\textquotedbl{}}, as R geepack::geeglm; MICEData to fill in empty cells; \code{eval\_\allowbreak{}measures} aic and bic and McFadden's pseudo R squared, as R AIC, BIC and performance::\code{r2\_\allowbreak{}mcfadden}); R mgcv::gam for \code{curve\_\allowbreak{}for=} (needs R); R itself (needs R) for lme4::glmer, lme4::lmer with \code{own\_\allowbreak{}slope\_\allowbreak{}for=}, lmerTest for \code{p\_\allowbreak{}value\_\allowbreak{}by=\textquotedbl{}satterthwaite\textquotedbl{}}, geepack for \code{within\_\allowbreak{}groups=\textquotedbl{}in time order\textquotedbl{}} and GEE with \code{out\_\allowbreak{}of=}, car::Anova and effectsize for \code{test\_\allowbreak{}type=}, sandwich::vcovHC for \code{robust\_\allowbreak{}errors=True} with yes/no and counts, and mice::pool for multiple imputation; R performance::\code{r2\_\allowbreak{}nakagawa} for the R squared of every \code{grouped\_\allowbreak{}by=} model; statsmodels WLS and \code{GLM(var\_\allowbreak{}weights=)} for \code{weights=}, RLM for \code{giving\_\allowbreak{}outliers\_\allowbreak{}less\_\allowbreak{}weight=}, ConditionalLogit for \code{matched\_\allowbreak{}by=}, \code{GLM(cov\_\allowbreak{}type=\textquotedbl{}HC0\textquotedbl{})} for risk ratios; patsy cr for \code{with\_\allowbreak{}knots=}; SciPy bootstrap for \code{interval\_\allowbreak{}by=\textquotedbl{}bootstrap\textquotedbl{}}; R stats::confint for \code{interval\_\allowbreak{}by=\textquotedbl{}profile\textquotedbl{}}, lme4 for \code{crossed\_\allowbreak{}with=}, pscl::zeroinfl and pscl::hurdle for the zero outcomes; statsmodels stats.mediation.Mediation for \code{through=} (as R mediation::mediate)}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -11414,6 +11742,27 @@ list(est = s[3, 1], se = s[3, 2], p = s[3, 4], low = ci[3, 1], high = ci[3, 2])
 \undertext{(1) survey::svyglm with the family of \code{outcome=} (gaussian; quasibinomial for yes or no; quasipoisson for counts) and its own t tests and intervals on the model's residual degrees of freedom.}
 \undertext{\textit{In Python only:} statsmodels has weights but no strata, clusters or population sizes, so the design-based numbers come from R survey (Lumley).}
 \undertext{simplydata also says the links describe the population, not cause and effect.}
+\undertext{\textit{Checked:} a test runs both and compares the numbers of the result table (on a pandas and on a Polars table).}
+\end{underneathbox}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{statsmodels}}
+\undertext{\textbf{With \code{through=}}: the same job with this option.}
+\underlib{statsmodels}
+\begin{lstlisting}[style=under]
+import statsmodels.formula.api as smf
+from statsmodels.stats.mediation import Mediation
+df = sdata.get_example("job_search")
+# explain("depress2", using="treat", through="job_seek", allowing_for=["econ_hard", "sex", "age"])
+mediator = smf.ols("job_seek ~ treat + econ_hard + sex + age", data=df)            # (1)
+outcome = smf.ols("depress2 ~ treat + job_seek + econ_hard + sex + age", data=df)
+summary = Mediation(outcome, mediator, "treat", "job_seek").fit(n_rep=1000, rng=1).summary   # (2)
+s = summary()
+{"estimate": s.loc["ACME (average)", "Estimate"], "95 % CI low": s.loc["ACME (average)", "Lower CI bound"],
+ "95 % CI high": s.loc["ACME (average)", "Upper CI bound"], "p-value": s.loc["ACME (average)", "P-value"]}
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) least squares for a column of numbers, logistic regression for yes or no; the exposure coded 0 and 1 (\code{against=} is 0).}
+\undertext{(2) 1000 quasi-Bayesian simulations, as R mediation::\code{mediate(sims = 1000)}, \code{with\_\allowbreak{}seed=1}; effects averaged over the two exposure levels.}
+\undertext{simplydata also prints the direct and total effects and the share that goes through, and always the assumptions (nothing unmeasured affects both the mediator and the outcome).}
 \undertext{\textit{Checked:} a test runs both and compares the numbers of the result table (on a pandas and on a Polars table).}
 \end{underneathbox}
 \wordentry{table.add\_predicted\_column()}{word:table.add-predicted-column}
@@ -13152,7 +13501,7 @@ Which columns go with a higher or lower risk of the event? (Cox model, hazard ra
 \codeline{table.explain\_survival(time=\textquotedbl{}days\textquotedbl{}, event=\textquotedbl{}died\textquotedbl{}, using=[\textquotedbl{}treatment\textquotedbl{}, \textquotedbl{}age\textquotedbl{}])   (with sdata.get\_example(\textquotedbl{}trial\textquotedbl{}))}\\
 The Cox proportional hazards model, as R \code{coxph(Surv(days,\allowbreak{} died == \textquotedbl{}yes\textquotedbl{}) \textasciitilde{} treatment + age)}, with Efron's method for tied times. A hazard ratio above 1 means a higher risk of the event at any moment (2 = twice the risk), below 1 a lower risk. Numbers count per 1 more; text columns are groups compared with the first group (A to Z). Prints each hazard ratio with its 95 \% CI and p-value, and the likelihood-ratio test of the whole model; a note says if a hazard ratio seems to change over time (the proportional-hazards check of R \code{cox.\allowbreak{}zph()}), and, with R, Harrell's C: how often the model ranks two rows the right way (measured on the rows it was fitted to, so likely too high for new rows). Gives back a table with one row per term.
 
-More: \code{allowing\_\allowbreak{}for=\textquotedbl{}centre\textquotedbl{}} gives each centre its own baseline risk (a stratified Cox model, R + \code{strata(centre)}): no hazard ratio for centre; \code{using=} would estimate one. A text column only. \code{followed\_\allowbreak{}from=\textquotedbl{}entry\_\allowbreak{}day\textquotedbl{}} gives each row the time its follow-up started (R \code{Surv(entry\_\allowbreak{}day,\allowbreak{} days,\allowbreak{} died)}). This is also how to avoid immortal time: a treatment that starts on day 40 becomes two rows, 0 to 40 untreated and 40 to the end treated, each with \code{followed\_\allowbreak{}from=} its start. \code{value=\textquotedbl{}relapse\textquotedbl{}}, \code{competing\_\allowbreak{}with=\textquotedbl{}death\textquotedbl{}} (the event column has kinds): the cause-specific hazard ratios of relapse, with death counted as the end of follow-up (\code{method=\textquotedbl{}cox\textquotedbl{}}, the default; \code{\textquotedbl{}cause-specific\textquotedbl{}} works too); \code{method=\textquotedbl{}fine-gray\textquotedbl{}} gives the Fine-Gray model of the chance of relapse by each time (subdistribution hazard ratios, R cmprsk::crr). \code{distribution=\textquotedbl{}weibull\textquotedbl{}} (\code{\textquotedbl{}exponential\textquotedbl{}}, \code{\textquotedbl{}lognormal\textquotedbl{}}, \code{\textquotedbl{}log-logistic\textquotedbl{}}) fits a parametric model instead (R survival::survreg) and gives time ratios: how many times as long the time until the event is.
+More: \code{allowing\_\allowbreak{}for=\textquotedbl{}centre\textquotedbl{}} gives each centre its own baseline risk (a stratified Cox model, R + \code{strata(centre)}): no hazard ratio for centre; \code{using=} would estimate one. A text column only. \code{followed\_\allowbreak{}from=\textquotedbl{}entry\_\allowbreak{}day\textquotedbl{}} gives each row the time its follow-up started (R \code{Surv(entry\_\allowbreak{}day,\allowbreak{} days,\allowbreak{} died)}). This is also how to avoid immortal time: a treatment that starts on day 40 becomes two rows, 0 to 40 untreated and 40 to the end treated, each with \code{followed\_\allowbreak{}from=} its start. \code{value=\textquotedbl{}relapse\textquotedbl{}}, \code{competing\_\allowbreak{}with=\textquotedbl{}death\textquotedbl{}} (the event column has kinds): the cause-specific hazard ratios of relapse, with death counted as the end of follow-up (\code{method=\textquotedbl{}cox\textquotedbl{}}, the default; \code{\textquotedbl{}cause-specific\textquotedbl{}} works too); \code{method=\textquotedbl{}fine-gray\textquotedbl{}} gives the Fine-Gray model of the chance of relapse by each time (subdistribution hazard ratios, R cmprsk::crr). \code{distribution=\textquotedbl{}weibull\textquotedbl{}} (\code{\textquotedbl{}exponential\textquotedbl{}}, \code{\textquotedbl{}lognormal\textquotedbl{}}, \code{\textquotedbl{}log-logistic\textquotedbl{}}) fits a parametric model instead (R survival::survreg) and gives time ratios: how many times as long the time until the event is. \code{empty\_\allowbreak{}cells=\textquotedbl{}multiple imputation\textquotedbl{}} fills in the empty cells of the number columns of \code{using=} 20 times (from the event, the Nelson-Aalen cumulative hazard and the other columns; statsmodels MICEData, as \code{explain()}), fits R survival::\code{coxph()} to each filled-in table and pools them with Rubin's rules (R mice::\code{pool()}); \code{with\_\allowbreak{}seed=} fixes the random filling.
 
 \wordfield{Options}{}\par\nopagebreak
 \begin{optiontable}
@@ -13165,10 +13514,12 @@ More: \code{allowing\_\allowbreak{}for=\textquotedbl{}centre\textquotedbl{}} giv
 \code{competing\_\allowbreak{}with=} & \\
 \code{method=} & normally \code{\textquotedbl{}cox\textquotedbl{}}\\
 \code{distribution=} & \\
+\code{empty\_\allowbreak{}cells=} & normally \code{\textquotedbl{}leave out\textquotedbl{}}\\
+\code{with\_\allowbreak{}seed=} & normally \code{1}\\
 \end{optiontable}
 
 \wordfield{Why this method}{\hyperref[basis:table.explain-survival]{How simplydata chooses methods}, page \pageref{basis:table.explain-survival}: the default, the evidence and the checks.}
-\wordfield{Underneath}{statsmodels (duration.PHReg, the Cox model with Efron ties) and R survival::cox.zph for the proportional-hazards check (needs R)}
+\wordfield{Underneath}{statsmodels (duration.PHReg, the Cox model with Efron ties) and R survival::cox.zph for the proportional-hazards check (needs R); statsmodels MICEData, R survival::coxph and mice::pool for \code{empty\_\allowbreak{}cells=\textquotedbl{}multiple imputation\textquotedbl{}}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -18613,11 +18964,47 @@ table.keep_random_rows(2, for_each_group_in="class", with_seed=1)
 \printedoutput{output/solution34_task4.txt}
 \solutionanswer{\code{for\_\allowbreak{}each\_\allowbreak{}group\_\allowbreak{}in=}: the same word as in the summaries, here meaning \code{\textquotedbl{}within each group\textquotedbl{}}.}
 \par\noindent{\small\sffamily\hyperref[lesson:34]{Back to lesson 34}}
+\unsection{Lesson 35: Cause and effect from observational data}{solutions:35}
+\solutiontask{1}{Fill in the blank: \code{table.\allowbreak{}compare\_\allowbreak{}balanced\_\allowbreak{}groups\_\allowbreak{}of(\textquotedbl{}re78\textquotedbl{},\allowbreak{} for\_\allowbreak{}each\_\allowbreak{}group\_\allowbreak{}in=\textquotedbl{}treat\textquotedbl{},\allowbreak{} allowing\_\allowbreak{}for=[.\allowbreak{}.\allowbreak{}.\allowbreak{}],\allowbreak{} method=\textquotedbl{}matching\textquotedbl{},\allowbreak{} effect\_\allowbreak{}for=\_\allowbreak{}\_\allowbreak{}\_\allowbreak{}\_\allowbreak{})} for the effect among the trained men.}
+\begin{lstlisting}[style=py]
+import simplydata as sdata
+table = sdata.table(sdata.get_example("job_training"))
+table.compare_balanced_groups_of("re78", for_each_group_in="treat", allowing_for=["age", "educ", "race",
+                                 "married", "nodegree", "re74", "re75"], method="matching", effect_for=1)
+\end{lstlisting}
+\printedoutput{output/solution35_task1.txt}
+\solutionanswer{\code{effect\_\allowbreak{}for=1}: the group of the trained men (treat = 1). Without \code{match\_\allowbreak{}within=} every trained man is matched; race stays unbalanced (1.03), and a note says so.}
+\solutiontask{2}{Change only one option of part 1: give the effect among the trained men with weighting (\code{effect\_\allowbreak{}for=1}). How does it compare with matching?}
+\begin{lstlisting}[style=py]
+import simplydata as sdata
+table = sdata.table(sdata.get_example("job_training"))
+table.compare_balanced_groups_of("re78", for_each_group_in="treat", allowing_for=["age", "educ", "race",
+                                 "married", "nodegree", "re74", "re75"], effect_for=1)
+\end{lstlisting}
+\printedoutput{output/solution35_task2.txt}
+\solutionanswer{1214 dollars more among the trained men (95 \% CI -350 to 2778): the same question as matching, a little smaller, and now race is balanced.}
+\solutiontask{3}{Say in words why the plain comparison of part 1 gave the wrong sign.}
+\begin{lstlisting}[style=py]
+import simplydata as sdata
+table = sdata.table(sdata.get_example("job_training"))
+table.compare_averages_of("re74", for_each_group_in="treat")
+\end{lstlisting}
+\printedoutput{output/solution35_task3.txt}
+\solutionanswer{The trained men earned much less already in 1974, before any training: the plain comparison mixes the training with who took it.}
+\solutiontask{4}{Try to remember without looking back: which option of \code{explain()} names the column the effect goes through?}
+\begin{lstlisting}[style=py]
+import simplydata as sdata
+table = sdata.table(sdata.get_example("job_search"))
+table.explain("depress2", using="treat", through="job_seek")
+\end{lstlisting}
+\printedoutput{output/solution35_task4.txt}
+\solutionanswer{\code{through=}: the column the effect goes through (the mediator).}
+\par\noindent{\small\sffamily\hyperref[lesson:35]{Back to lesson 35}}
 
 \part{How simplydata chooses methods}\label{part:basis}
 
 \unchapter{How simplydata chooses methods}{basis}
-simplydata often chooses a method, an option value or a setting for you. This appendix gives, for each of the 301 choices, what simplydata chooses, what else you can ask for, why (the principle and the published evidence), and what simplydata checks in your data before it uses the method. 132 defaults rest on published guidelines or method comparisons, 134 follow the convention of the package named so that results match it, and 35 are simplydata's own starting values, each changed with the option named. Every DOI was looked up in Crossref; references without a DOI were checked at their URL. The defaults of the later batches were read by an independent reviewer when they were designed, and in November 2026 every entry, with its references, was checked again by independent reviewers acting as hostile statistical referees; their findings were applied. The same text is in \code{docs/how\_\allowbreak{}simplydata\_\allowbreak{}chooses.\allowbreak{}md}.
+simplydata often chooses a method, an option value or a setting for you. This appendix gives, for each of the 310 choices, what simplydata chooses, what else you can ask for, why (the principle and the published evidence), and what simplydata checks in your data before it uses the method. 139 defaults rest on published guidelines or method comparisons, 136 follow the convention of the package named so that results match it, and 35 are simplydata's own starting values, each changed with the option named. Every DOI was looked up in Crossref; references without a DOI were checked at their URL. The defaults of the later batches were read by an independent reviewer when they were designed, and in November 2026 every entry, with its references, was checked again by independent reviewers acting as hostile statistical referees; their findings were applied. The same text is in \code{docs/how\_\allowbreak{}simplydata\_\allowbreak{}chooses.\allowbreak{}md}.
 \unsection{The five principles}{basis:principles}
 \begin{enumerate}
 \item \textbf{P1.} Follow published guidelines and consensus statements where they exist (for example the Cochrane Handbook, the ASA statement on p-values, the SAMPL guidelines, ICH E9 for clinical trials, the GUM for measurement). (Wasserstein \& Lazar 2016; Lang \& Altman 2015; ICH E9 1998; Deeks et al. (Cochrane Handbook, ch. 10); JCGM 100:2008 (GUM); Bland \& Altman 1994)
@@ -19014,6 +19401,13 @@ simplydata often chooses a method, an option value or a setting for you. This ap
 \wordfield{Why (P3)}{n - 1 gives the unbiased covariance, the default of pandas and R; pairwise rows follow the correlation table of the same word. R's own default (use = \code{\textquotedbl{}everything\textquotedbl{}}) gives NA with any empty cell. No study is needed for this convention. \textit{Basis: convention.}}
 \wordfield{Checks}{Fewer than 2 rows for a pair is refused; \code{method=}, \code{sides=} and the test options are refused (a covariance has no test).}
 \wordfield{In the dictionary}{\hyperref[word:table.find-correlation-between]{page \pageref{word:table.find-correlation-between}}}
+\par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:table.find-correlation-between-empty-cells-eq-multiple-imputation}\noindent{\sffamily\bfseries\color{brand}\code{table.\allowbreak{}find\_\allowbreak{}correlation\_\allowbreak{}between()} \code{empty\_\allowbreak{}cells=\textquotedbl{}multiple imputation\textquotedbl{}}}\par\nopagebreak
+\wordfield{Default}{The empty cells filled in 20 times by chained equations (statsmodels MICEData, predictive mean matching, as \code{explain()}), then Fisher's z of each table pooled with Rubin's rules and taken back to r by R miceadds::\code{micombine.\allowbreak{}cor()}.}
+\wordfield{Alternatives}{\code{empty\_\allowbreak{}cells=\textquotedbl{}leave out\textquotedbl{}} (the default: each pair on the rows where both columns have a number).}
+\wordfield{Why (P2)}{Correlations are not normal near -1 and 1, so they are pooled on Fisher's z scale (van Buuren 2018, section 5.2.3), with Rubin's rules (Rubin 1987).}
+\wordfield{Checks}{\code{method=\textquotedbl{}pearson\textquotedbl{}} or \code{\textquotedbl{}spearman\textquotedbl{}} only; \code{show=}, \code{sides=}, \code{p\_\allowbreak{}value\_\allowbreak{}by=}, \code{interval\_\allowbreak{}by=} and \code{allowing\_\allowbreak{}for=} are refused with it; rows where every column is empty are left out with a note.}
+\wordfield{References}{van Buuren 2018; Rubin 1987}
+\wordfield{In the dictionary}{\hyperref[word:table.find-correlation-between]{page \pageref{word:table.find-correlation-between}}}
 \unsection{Statistical tests}{basis-group:Statistical-tests}
 \par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:table.compare-averages-of}\noindent{\sffamily\bfseries\color{brand}\code{table.\allowbreak{}compare\_\allowbreak{}averages\_\allowbreak{}of()}}\par\nopagebreak
 \wordfield{Default}{Two groups: Welch's t-test, which does not assume both groups have the same spread. Three or more: Welch's one-way ANOVA (as R \code{oneway.\allowbreak{}test()}). Effect sizes: Hedges' g with the pooled standard deviation (as R effectsize::\code{hedges\_\allowbreak{}g()}), or omega squared from the classic ANOVA.}
@@ -19063,6 +19457,13 @@ simplydata often chooses a method, an option value or a setting for you. This ap
 \wordfield{Why (P2)}{Pillai's trace is the most robust of the four MANOVA statistics when groups differ in size or spread (Olson 1974, 1976).}
 \wordfield{Checks}{Groups with no more rows than columns, and rank deficiency, are refused.}
 \wordfield{References}{Olson 1974; Olson 1976}
+\wordfield{In the dictionary}{\hyperref[word:table.compare-averages-of]{page \pageref{word:table.compare-averages-of}}}
+\par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:table.compare-averages-of-period-eq}\noindent{\sffamily\bfseries\color{brand}\code{table.\allowbreak{}compare\_\allowbreak{}averages\_\allowbreak{}of()} \code{period=}}\par\nopagebreak
+\wordfield{Default}{The EMA guideline's 2 x 2 crossover analysis with all effects fixed: statsmodels OLS of \code{log(column)} on sequence, subject, period and formulation; the ratio of the geometric means with its 90 \% interval and the within-subject CV.}
+\wordfield{Alternatives}{\code{same\_\allowbreak{}within=[0.\allowbreak{}8,\allowbreak{} 1.\allowbreak{}25]} (or 1.25) for the bioequivalence decision; \code{against=} the reference formulation.}
+\wordfield{Why (P1)}{The 90 \% interval on the log scale inside 80-125 \% is the regulatory rule (EMA 2010), the same as two one-sided tests at 5 \% (Schuirmann 1987). No test for carry-over comes first: the two-stage procedure biases the result (Freeman 1989). The model gives the published answers of the reference datasets (Sch\"utz et al. 2014).}
+\wordfield{Checks}{Two formulations in two periods only; subjects without both periods are left out and named; values of 0 or less are refused (the log scale); all subjects in one order is refused.}
+\wordfield{References}{EMA 2010; Schuirmann 1987; Freeman 1989; Sch\"utz et al. 2014}
 \wordfield{In the dictionary}{\hyperref[word:table.compare-averages-of]{page \pageref{word:table.compare-averages-of}}}
 \par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:table.compare-averages-of-after-use-survey-design}\noindent{\sffamily\bfseries\color{brand}\code{table.\allowbreak{}compare\_\allowbreak{}averages\_\allowbreak{}of()} \code{after use\_\allowbreak{}survey\_\allowbreak{}design()}}\par\nopagebreak
 \wordfield{Default}{The design-based t test of R survey::\code{svyttest()} for two groups.}
@@ -19261,6 +19662,13 @@ simplydata often chooses a method, an option value or a setting for you. This ap
 \wordfield{Checks}{Two groups only; a margin between 0 and 1 gets a note asking whether percentage points were meant.}
 \wordfield{References}{Schuirmann 1987; Lakens 2017; Newcombe 1998}
 \wordfield{In the dictionary}{\hyperref[word:table.compare-risks]{page \pageref{word:table.compare-risks}}}
+\par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:table.compare-risks-show-eq-attributable-fractions}\noindent{\sffamily\bfseries\color{brand}\code{table.\allowbreak{}compare\_\allowbreak{}risks()} \code{show=\textquotedbl{}attributable fractions\textquotedbl{}}}\par\nopagebreak
+\wordfield{Default}{The attributable fraction among the exposed and in the whole population from R epiR::epi.2by2(method = \code{\textquotedbl{}cohort.\allowbreak{}count\textquotedbl{}}), with Wald intervals from the risk ratio; for an exposure that goes with fewer events, the preventable fraction among the exposed (epiR's fraction with the roles of the groups swapped).}
+\wordfield{Alternatives}{\code{compare\_\allowbreak{}risks()} without \code{show=} (the risk difference, the risk and odds ratios, the number needed to treat).}
+\wordfield{Why (P5)}{These are the standard definitions (Rockhill et al. 1998). The fractions here are crude: adjusting the population fraction for confounders needs a model, and a fraction from a crude risk ratio is biased when confounding is present (Rockhill et al. 1998), so the printout says \code{\textquotedbl{}crude\textquotedbl{}}. \textit{Basis: convention.}}
+\wordfield{Checks}{Two groups only; the printout says that the risks must come from a cohort or cross-sectional study and that the fractions are causal only if the exposure causes the events.}
+\wordfield{References}{Rockhill et al. 1998}
+\wordfield{In the dictionary}{\hyperref[word:table.compare-risks]{page \pageref{word:table.compare-risks}}}
 \par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:table.compare-rates}\noindent{\sffamily\bfseries\color{brand}\code{table.\allowbreak{}compare\_\allowbreak{}rates()}}\par\nopagebreak
 \wordfield{Default}{The rate ratio against the first group in sorted order, with the exact conditional test and the exact interval of R \code{poisson.\allowbreak{}test()}; rates per 1000 (a starting value).}
 \wordfield{Alternatives}{\code{against=}, \code{per=}; \code{same\_\allowbreak{}within=}, \code{not\_\allowbreak{}lower=}, \code{not\_\allowbreak{}higher=}.}
@@ -19268,12 +19676,26 @@ simplydata often chooses a method, an option value or a setting for you. This ap
 \wordfield{Checks}{Without R the interval is left out, with a note; no events in either group gives an empty result, with a note.}
 \wordfield{References}{Przyborowski \& Wilenski 1940; Garwood 1936; Fay 2010}
 \wordfield{In the dictionary}{\hyperref[word:table.compare-rates]{page \pageref{word:table.compare-rates}}}
+\par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:table.compare-rates-standard-rates-eq}\noindent{\sffamily\bfseries\color{brand}\code{table.\allowbreak{}compare\_\allowbreak{}rates()} \code{standard\_\allowbreak{}rates=}}\par\nopagebreak
+\wordfield{Default}{Indirect standardisation with R epiR::\code{epi.\allowbreak{}indirectadj()}: the expected events from the standard rates (per \code{per=} units of time), observed / expected (SMR) with its exact Poisson interval, and the p-value of R \code{poisson.\allowbreak{}test(observed,\allowbreak{} expected)}.}
+\wordfield{Alternatives}{\code{rate\_\allowbreak{}of(.\allowbreak{}.\allowbreak{}.\allowbreak{},\allowbreak{} standard\_\allowbreak{}population=)} for directly standardised rates.}
+\wordfield{Why (P2)}{The exact Poisson interval of the observed count, divided by the expected, is the standard interval of an SMR (Ulm 1990). Indirect standardisation needs only the group's total events, so it works where some bands of a group are small.}
+\wordfield{Checks}{Bands without a standard rate are refused and named; groups without person-time are refused; the printout says that two groups' ratios are each against the standard, not against each other.}
+\wordfield{References}{Ulm 1990}
+\wordfield{In the dictionary}{\hyperref[word:table.compare-rates]{page \pageref{word:table.compare-rates}}}
 \par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:table.rate-of}\noindent{\sffamily\bfseries\color{brand}\code{table.\allowbreak{}rate\_\allowbreak{}of()}}\par\nopagebreak
 \wordfield{Default}{Events per 1000 units of time, with the exact Poisson interval (as R \code{poisson.\allowbreak{}test()}).}
 \wordfield{Alternatives}{\code{per=} another unit; \code{interval=} another level.}
 \wordfield{Why (P3)}{The exact (Garwood) interval is valid even with few events (Garwood 1936). Per 1000 is simplydata's starting value for the unit. \textit{Basis: convention.}}
 \wordfield{Checks}{Events must be whole numbers of at least 0 and time at least 0.}
 \wordfield{References}{Garwood 1936}
+\wordfield{In the dictionary}{\hyperref[word:table.rate-of]{page \pageref{word:table.rate-of}}}
+\par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:table.rate-of-standard-population-eq}\noindent{\sffamily\bfseries\color{brand}\code{table.\allowbreak{}rate\_\allowbreak{}of()} \code{standard\_\allowbreak{}population=}}\par\nopagebreak
+\wordfield{Default}{Direct standardisation with R epiR::\code{epi.\allowbreak{}directadj()}: the rate each group would have with the standard population's make-up, with Fay \& Feuer's gamma interval (the same numbers as epitools::\code{ageadjust.\allowbreak{}direct()}).}
+\wordfield{Alternatives}{\code{standard\_\allowbreak{}population=\textquotedbl{}whole table\textquotedbl{}} (the pooled person-time) or a table of population sizes; \code{compare\_\allowbreak{}rates(.\allowbreak{}.\allowbreak{}.\allowbreak{},\allowbreak{} standard\_\allowbreak{}rates=)} for indirect standardisation.}
+\wordfield{Why (P2)}{Fay \& Feuer's interval keeps its coverage when a few bands hold most of the weight, where the normal interval fails (Fay \& Feuer 1997).}
+\wordfield{Checks}{Bands missing from the standard or the table are refused and named; a group with no person-time in a band is refused (pointing to indirect standardisation).}
+\wordfield{References}{Fay \& Feuer 1997}
 \wordfield{In the dictionary}{\hyperref[word:table.rate-of]{page \pageref{word:table.rate-of}}}
 \par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:sdata.compare-risks}\noindent{\sffamily\bfseries\color{brand}\code{sdata.\allowbreak{}compare\_\allowbreak{}risks()}}\par\nopagebreak
 \wordfield{Default}{The same measures as \code{table.\allowbreak{}compare\_\allowbreak{}risks}, from counts.}
@@ -19289,6 +19711,20 @@ simplydata often chooses a method, an option value or a setting for you. This ap
 \wordfield{Checks}{As \code{table.\allowbreak{}compare\_\allowbreak{}rates}.}
 \wordfield{References}{Przyborowski \& Wilenski 1940}
 \wordfield{In the dictionary}{\hyperref[word:sdata.compare-rates]{page \pageref{word:sdata.compare-rates}}}
+\par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:table.compare-balanced-groups-of}\noindent{\sffamily\bfseries\color{brand}\code{table.\allowbreak{}compare\_\allowbreak{}balanced\_\allowbreak{}groups\_\allowbreak{}of()}}\par\nopagebreak
+\wordfield{Default}{Weighting by the inverse of the propensity score (R WeightIt, method = \code{\textquotedbl{}glm\textquotedbl{}}), for everyone (ATE); the effect from WeightIt::\code{lm\_\allowbreak{}weightit()} with M-estimation standard errors that allow for the estimated weights; a balance table of standardised differences before and after (R cobalt, every column, the guide 0.1).}
+\wordfield{Alternatives}{\code{method=\textquotedbl{}matching\textquotedbl{}}; \code{effect\_\allowbreak{}for=\textquotedbl{}\textless{}a group\textgreater{}\textquotedbl{}} for the effect among that group (ATT); \code{show=\textquotedbl{}balance\textquotedbl{}} or \code{\textquotedbl{}propensity scores\textquotedbl{}}.}
+\wordfield{Why (P2)}{The propensity score balances the measured columns between the groups (Rosenbaum \& Rubin 1983). Weighting keeps every row and gives the average effect for everyone; standard errors that ignore the estimated weights are wrong, which M-estimation corrects (Lunceford \& Davidian 2004). Balance is judged by standardised differences, not by p-values, which depend on the number of rows (Austin 2009; Austin \& Stuart 2015).}
+\wordfield{Checks}{Two groups only; the overlap of the scores is printed with the rows outside it; columns still more than 0.1 apart after balancing get a note; weights above 20 get a note; the assumptions (no unmeasured column affecting both, overlap, a right propensity model) are printed every time.}
+\wordfield{References}{Rosenbaum \& Rubin 1983; Lunceford \& Davidian 2004; Austin 2009; Austin \& Stuart 2015}
+\wordfield{In the dictionary}{\hyperref[word:table.compare-balanced-groups-of]{page \pageref{word:table.compare-balanced-groups-of}}}
+\par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:table.compare-balanced-groups-of-method-eq-matching}\noindent{\sffamily\bfseries\color{brand}\code{table.\allowbreak{}compare\_\allowbreak{}balanced\_\allowbreak{}groups\_\allowbreak{}of()} \code{method=\textquotedbl{}matching\textquotedbl{}}}\par\nopagebreak
+\wordfield{Default}{1:1 nearest-neighbour matching on the propensity score without replacement (R MatchIt's default), the effect among the rows of the \code{effect\_\allowbreak{}for=} group (ATT) from \code{lm()} on the matched rows with standard errors clustered on the pairs (sandwich::vcovCL), as the MatchIt vignette does.}
+\wordfield{Alternatives}{\code{match\_\allowbreak{}within=0.\allowbreak{}2} (a caliper of 0.2 standard deviations of the logit of the score); \code{method=\textquotedbl{}weighting\textquotedbl{}} for the effect for everyone.}
+\wordfield{Why (P3)}{Nearest-neighbour matching is the most used and best studied matching method (Stuart 2010; Ho et al. 2011). A caliper of 0.2 standard deviations of the logit of the score removes most of the bias in simulations (Austin 2011); it is offered, not the default, because it changes the group the effect is about (unmatched rows leave). \textit{Basis: convention.}}
+\wordfield{Checks}{\code{effect\_\allowbreak{}for=} must name a group (matching gives the effect among one group; asked otherwise, it says to use weighting); rows left without a match are counted and named in a note.}
+\wordfield{References}{Stuart 2010; Ho et al. 2011; Austin 2011}
+\wordfield{In the dictionary}{\hyperref[word:table.compare-balanced-groups-of]{page \pageref{word:table.compare-balanced-groups-of}}}
 \unsection{Diagnostic tests}{basis-group:Diagnostic-tests}
 \par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:table.compare-to-truth}\noindent{\sffamily\bfseries\color{brand}\code{table.\allowbreak{}compare\_\allowbreak{}to\_\allowbreak{}truth()}}\par\nopagebreak
 \wordfield{Default}{A 2 x 2 table: sensitivity, specificity and the predictive values with exact (Clopper-Pearson) intervals, likelihood ratios (R epiR), and the same results in natural frequencies ('of 1000 people'). A score column goes to an ROC curve (AUC with DeLong's interval, the best cut-off by Youden's index).}
@@ -19734,6 +20170,13 @@ simplydata often chooses a method, an option value or a setting for you. This ap
 \wordfield{Why (P3)}{corCAR1 allows for the size of each gap (Pinheiro \& Bates 2000); which one was used is printed. \textit{Basis: convention.}}
 \wordfield{Checks}{Repeated order values are refused; a correlation above 0.99 gets a note.}
 \wordfield{References}{Pinheiro \& Bates 2000}
+\wordfield{In the dictionary}{\hyperref[word:table.explain]{page \pageref{word:table.explain}}}
+\par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:table.explain-through-eq}\noindent{\sffamily\bfseries\color{brand}\code{table.\allowbreak{}explain()} \code{through=}}\par\nopagebreak
+\wordfield{Default}{Causal mediation analysis with statsmodels Mediation (Imai, Keele \& Tingley's quasi-Bayesian algorithm, 1000 simulations, \code{with\_\allowbreak{}seed=1}, as R mediation::\code{mediate()}): the indirect effect, the direct effect, the total effect and the share that goes through, averaged over the two exposure levels.}
+\wordfield{Alternatives}{\code{outcome=\textquotedbl{}yes or no\textquotedbl{}} (logistic models); \code{against=} the starting value of the exposure; \code{allowing\_\allowbreak{}for=} the columns taken into account in both models.}
+\wordfield{Why (P2)}{The counterfactual definition of the indirect effect holds for any model and states its assumption (sequential ignorability), unlike the Baron-Kenny steps (Imai, Keele \& Tingley 2010); the quasi-Bayesian simulation is the default of the authors' own package (Tingley et al. 2014).}
+\wordfield{Checks}{\code{using=} must be one column with two values; \code{through=} cannot be the exposure or a column of \code{allowing\_\allowbreak{}for=}; the assumptions are printed every time; a share is said to mean little when the total effect is not clear.}
+\wordfield{References}{Imai et al. 2010; Tingley et al. 2014}
 \wordfield{In the dictionary}{\hyperref[word:table.explain]{page \pageref{word:table.explain}}}
 \par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:table.explain-after-use-survey-design}\noindent{\sffamily\bfseries\color{brand}\code{table.\allowbreak{}explain()} \code{after use\_\allowbreak{}survey\_\allowbreak{}design()}}\par\nopagebreak
 \wordfield{Default}{A survey-weighted model from R survey::\code{svyglm()}: gaussian for numbers, quasibinomial for yes or no, quasipoisson for counts, with survey's t tests and intervals on the model's residual degrees of freedom.}
@@ -20216,6 +20659,13 @@ simplydata often chooses a method, an option value or a setting for you. This ap
 \wordfield{Why (P3)}{An accelerated failure time model estimates how much longer or shorter the time is (Kalbfleisch \& Prentice 2002); AIC is printed so that distributions can be compared. \textit{Basis: convention.}}
 \wordfield{Checks}{Times of 0 are refused (a Cox model is suggested).}
 \wordfield{References}{Kalbfleisch \& Prentice 2002}
+\wordfield{In the dictionary}{\hyperref[word:table.explain-survival]{page \pageref{word:table.explain-survival}}}
+\par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:table.explain-survival-empty-cells-eq-multiple-imputation}\noindent{\sffamily\bfseries\color{brand}\code{table.\allowbreak{}explain\_\allowbreak{}survival()} \code{empty\_\allowbreak{}cells=\textquotedbl{}multiple imputation\textquotedbl{}}}\par\nopagebreak
+\wordfield{Default}{The empty cells of the number columns of \code{using=} filled in 20 times (statsmodels MICEData) from the event, the Nelson-Aalen cumulative hazard (R mice::\code{nelsonaalen()}) and the other columns; R survival::\code{coxph()} on each filled-in table, pooled by R mice::\code{pool()} (Barnard-Rubin degrees of freedom).}
+\wordfield{Alternatives}{\code{empty\_\allowbreak{}cells=\textquotedbl{}leave out\textquotedbl{}} (the default: rows with an empty cell are skipped).}
+\wordfield{Why (P2)}{To fill in a covariate of a Cox model, the event and the cumulative hazard should be in the imputation model, not the time (White \& Royston 2009); small-sample degrees of freedom follow Barnard \& Rubin (1999).}
+\wordfield{Checks}{A plain Cox model only (\code{allowing\_\allowbreak{}for=}, \code{followed\_\allowbreak{}from=}, \code{competing\_\allowbreak{}with=}, \code{distribution=} and \code{method=\textquotedbl{}fine-gray\textquotedbl{}} are refused); empty cells in text columns, the time or the event leave those rows out.}
+\wordfield{References}{White \& Royston 2009; Barnard \& Rubin 1999; Rubin 1987}
 \wordfield{In the dictionary}{\hyperref[word:table.explain-survival]{page \pageref{word:table.explain-survival}}}
 \par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:draw-survival-curves}\noindent{\sffamily\bfseries\color{brand}\code{chart.\allowbreak{}draw\_\allowbreak{}survival\_\allowbreak{}curves()}}\par\nopagebreak
 \wordfield{Default}{Kaplan-Meier curves with censoring marks; no confidence band and no numbers at risk unless asked.}
@@ -20721,8 +21171,11 @@ simplydata often chooses a method, an option value or a setting for you. This ap
 \par\noindent\hangindent=1.5em Anderson MJ (2006). Distance-Based Tests for Homogeneity of Multivariate Dispersions. Biometrics 62:245-253. \href{https://doi.org/10.1111/j.1541-0420.2005.00440.x}{doi:10.1111/j.1541-0420.2005.00440.x}
 \par\noindent\hangindent=1.5em Anderson MJ, Walsh DCI (2013). PERMANOVA, ANOSIM, and the Mantel test in the face of heterogeneous dispersions: What null hypothesis are you testing?. Ecological Monographs 83:557-574. \href{https://doi.org/10.1890/12-2010.1}{doi:10.1890/12-2010.1}
 \par\noindent\hangindent=1.5em Arnold BF, Hogan DR, Colford JM et al. (2011). Simulation methods to estimate design power: an overview for applied research. BMC Medical Research Methodology 11. \href{https://doi.org/10.1186/1471-2288-11-94}{doi:10.1186/1471-2288-11-94}
+\par\noindent\hangindent=1.5em Austin PC (2009). Balance diagnostics for comparing the distribution of baseline covariates between treatment groups in propensity-score matched samples. Statistics in Medicine 28:3083-3107. \href{https://doi.org/10.1002/sim.3697}{doi:10.1002/sim.3697}
+\par\noindent\hangindent=1.5em Austin PC (2011). Optimal caliper widths for propensity-score matching when estimating differences in means and differences in proportions in observational studies. Pharmaceutical Statistics 10:150-161. \href{https://doi.org/10.1002/pst.433}{doi:10.1002/pst.433}
 \par\noindent\hangindent=1.5em Austin PC, Lee DS, Fine JP (2016). Introduction to the Analysis of Survival Data in the Presence of Competing Risks. Circulation 133:601-609. \href{https://doi.org/10.1161/CIRCULATIONAHA.115.017719}{doi:10.1161/CIRCULATIONAHA.115.017719}
 \par\noindent\hangindent=1.5em Austin PC, Steyerberg EW (2015). The number of subjects per variable required in linear regression analyses. Journal of Clinical Epidemiology 68:627-636. \href{https://doi.org/10.1016/j.jclinepi.2014.12.014}{doi:10.1016/j.jclinepi.2014.12.014}
+\par\noindent\hangindent=1.5em Austin PC, Stuart EA (2015). Moving towards best practice when using inverse probability of treatment weighting (IPTW) using the propensity score to estimate causal treatment effects in observational studies. Statistics in Medicine 34:3661-3679. \href{https://doi.org/10.1002/sim.6607}{doi:10.1002/sim.6607}
 \par\noindent\hangindent=1.5em Baayen RH, Davidson DJ, Bates DM (2008). Mixed-effects modeling with crossed random effects for subjects and items. Journal of Memory and Language 59:390-412. \href{https://doi.org/10.1016/j.jml.2007.12.005}{doi:10.1016/j.jml.2007.12.005}
 \par\noindent\hangindent=1.5em Barnard J, Rubin DB (1999). Small-sample degrees of freedom with multiple imputation. Biometrika 86:948-955. \href{https://doi.org/10.1093/biomet/86.4.948}{doi:10.1093/biomet/86.4.948}
 \par\noindent\hangindent=1.5em Bartlett MS (1946). On the Theoretical Specification and Sampling Properties of Autocorrelated Time-Series. Journal of the Royal Statistical Society Series B: Statistical Methodology 8:27-41. \href{https://doi.org/10.2307/2983611}{doi:10.2307/2983611}
@@ -20819,6 +21272,7 @@ simplydata often chooses a method, an option value or a setting for you. This ap
 \par\noindent\hangindent=1.5em Eldridge SM, Ashby D, Kerry S (2006). Sample size for cluster randomized trials: effect of coefficient of variation of cluster size and analysis method. International Journal of Epidemiology 35:1292-1300. \href{https://doi.org/10.1093/ije/dyl129}{doi:10.1093/ije/dyl129}
 \par\noindent\hangindent=1.5em Enders C, Bandalos D (2001). The Relative Performance of Full Information Maximum Likelihood Estimation for Missing Data in Structural Equation Models. Structural Equation Modeling: A Multidisciplinary Journal 8:430-457. \href{https://doi.org/10.1207/S15328007SEM0803_5}{doi:10.1207/S15328007SEM0803\_5}
 \par\noindent\hangindent=1.5em Ernst MD (2004). Permutation Methods: A Basis for Exact Inference. Statistical Science 19:676-685. \href{https://doi.org/10.1214/088342304000000396}{doi:10.1214/088342304000000396}
+\par\noindent\hangindent=1.5em European Medicines Agency, Committee for Medicinal Products for Human Use (2010). Guideline on the Investigation of Bioequivalence. CPMP/EWP/QWP/1401/98 Rev. 1/Corr**. \href{https://www.ema.europa.eu/en/documents/scientific-guideline/guideline-investigation-bioequivalence-rev1_en.pdf}{https://www.ema.europa.eu/en/documents/scientific-guideline/guideline-investigation-bioequivalence-rev1\_en.pdf}
 \par\noindent\hangindent=1.5em Ewald B (2006). Post hoc choice of cut points introduced bias to diagnostic research. Journal of Clinical Epidemiology 59:798-801. \href{https://doi.org/10.1016/j.jclinepi.2005.11.025}{doi:10.1016/j.jclinepi.2005.11.025}
 \par\noindent\hangindent=1.5em Fabrigar LR, Wegener DT, MacCallum RC et al. (1999). Evaluating the use of exploratory factor analysis in psychological research.. Psychological Methods 4:272-299. \href{https://doi.org/10.1037/1082-989X.4.3.272}{doi:10.1037/1082-989X.4.3.272}
 \par\noindent\hangindent=1.5em Fagerland MW, Lydersen S, Laake P (2013). The McNemar test for binary matched-pairs data: mid-p and asymptotic are better than exact conditional. BMC Medical Research Methodology 13. \href{https://doi.org/10.1186/1471-2288-13-91}{doi:10.1186/1471-2288-13-91}
@@ -20826,6 +21280,7 @@ simplydata often chooses a method, an option value or a setting for you. This ap
 \par\noindent\hangindent=1.5em Faith DP, Minchin PR, Belbin L (1987). Compositional dissimilarity as a robust measure of ecological distance. Vegetatio 69:57-68. \href{https://doi.org/10.1007/BF00038687}{doi:10.1007/BF00038687}
 \par\noindent\hangindent=1.5em Faul F, Erdfelder E, Buchner A et al. (2009). Statistical power analyses using G*Power 3.1: Tests for correlation and regression analyses. Behavior Research Methods 41:1149-1160. \href{https://doi.org/10.3758/BRM.41.4.1149}{doi:10.3758/BRM.41.4.1149}
 \par\noindent\hangindent=1.5em Fay M (2010). Two-sided Exact Tests and Matching Confidence Intervals for Discrete Data. The R Journal 2:53. \href{https://doi.org/10.32614/RJ-2010-008}{doi:10.32614/RJ-2010-008}
+\par\noindent\hangindent=1.5em Fay MP, Feuer EJ (1997). Confidence intervals for directly standardized rates: a method based on the gamma distribution. Statistics in Medicine 16:791-801. \href{https://doi.org/10.1002/(SICI)1097-0258(19970415)16:7\%3C791::AID-SIM500\%3E3.0.CO\%3B2-\%23}{doi:10.1002/(SICI)1097-0258(19970415)16:7\textless{}791::AID-SIM500\textgreater{}3.0.CO;2-\#}
 \par\noindent\hangindent=1.5em Fay MP, Proschan MA (2010). Wilcoxon-Mann-Whitney or t-test? On assumptions for hypothesis tests and multiple interpretations of decision rules. Statistics Surveys 4:1-39. \href{https://doi.org/10.1214/09-SS051}{doi:10.1214/09-SS051}
 \par\noindent\hangindent=1.5em Feinstein AR, Cicchetti DV (1990). High agreement but low Kappa: I. the problems of two paradoxes. Journal of Clinical Epidemiology 43:543-549. \href{https://doi.org/10.1016/0895-4356(90)90158-L}{doi:10.1016/0895-4356(90)90158-L}
 \par\noindent\hangindent=1.5em Feldt LS (1965). The Approximate Sampling Distribution of Kuder-Richardson Reliability Coefficient Twenty. Psychometrika 30:357-370. \href{https://doi.org/10.1007/BF02289499}{doi:10.1007/BF02289499}
@@ -20839,6 +21294,7 @@ simplydata often chooses a method, an option value or a setting for you. This ap
 \par\noindent\hangindent=1.5em Fleiss JL (1971). Measuring nominal scale agreement among many raters. Psychological Bulletin 76:378-382. \href{https://doi.org/10.1037/h0031619}{doi:10.1037/h0031619}
 \par\noindent\hangindent=1.5em Freedman D, Diaconis P (1981). On the histogram as a density estimator: L2 theory. Zeitschrift f\"ur Wahrscheinlichkeitstheorie und Verwandte Gebiete 57:453-476. \href{https://doi.org/10.1007/BF01025868}{doi:10.1007/BF01025868}
 \par\noindent\hangindent=1.5em Freedman LS (1982). Tables of the number of patients required in clinical trials using the logrank test. Statistics in Medicine 1:121-129. \href{https://doi.org/10.1002/sim.4780010204}{doi:10.1002/sim.4780010204}
+\par\noindent\hangindent=1.5em Freeman PR (1989). The performance of the two-stage analysis of two-treatment, two-period crossover trials. Statistics in Medicine 8:1421-1432. \href{https://doi.org/10.1002/sim.4780081202}{doi:10.1002/sim.4780081202}
 \par\noindent\hangindent=1.5em Friedman J, Hastie T, Tibshirani R (2010). Regularization Paths for Generalized Linear Models via Coordinate Descent. Journal of Statistical Software 33. \href{https://doi.org/10.18637/jss.v033.i01}{doi:10.18637/jss.v033.i01}
 \par\noindent\hangindent=1.5em Friedman M (1937). The Use of Ranks to Avoid the Assumption of Normality Implicit in the Analysis of Variance. Journal of the American Statistical Association 32:675-701. \href{https://doi.org/10.1080/01621459.1937.10503522}{doi:10.1080/01621459.1937.10503522}
 \par\noindent\hangindent=1.5em Frigge M, Hoaglin DC, Iglewicz B (1989). Some Implementations of the Boxplot. The American Statistician 43:50-54. \href{https://doi.org/10.1080/00031305.1989.10475612}{doi:10.1080/00031305.1989.10475612}
@@ -20885,6 +21341,7 @@ simplydata often chooses a method, an option value or a setting for you. This ap
 \par\noindent\hangindent=1.5em Hill MO (1973). Reciprocal Averaging: An Eigenvector Method of Ordination. The Journal of Ecology 61:237. \href{https://doi.org/10.2307/2258931}{doi:10.2307/2258931}
 \par\noindent\hangindent=1.5em Hintze JL, Nelson RD (1998). Violin Plots: A Box Plot-Density Trace Synergism. The American Statistician 52:181-184. \href{https://doi.org/10.1080/00031305.1998.10480559}{doi:10.1080/00031305.1998.10480559}
 \par\noindent\hangindent=1.5em Hirsch RM, Slack JR, Smith RA (1982). Techniques of trend analysis for monthly water quality data. Water Resources Research 18:107-121. \href{https://doi.org/10.1029/WR018i001p00107}{doi:10.1029/WR018i001p00107}
+\par\noindent\hangindent=1.5em Ho DE, Imai K, King G, Stuart EA (2011). MatchIt: Nonparametric Preprocessing for Parametric Causal Inference. Journal of Statistical Software 42(8). \href{https://doi.org/10.18637/jss.v042.i08}{doi:10.18637/jss.v042.i08}
 \par\noindent\hangindent=1.5em Hoaglin DC, Iglewicz B (1987). Fine-Tuning Some Resistant Rules for Outlier Labeling. Journal of the American Statistical Association 82:1147-1149. \href{https://doi.org/10.1080/01621459.1987.10478551}{doi:10.1080/01621459.1987.10478551}
 \par\noindent\hangindent=1.5em Hoaglin DC, Iglewicz B, Tukey JW (1986). Performance of Some Resistant Rules for Outlier Labeling. Journal of the American Statistical Association 81:991-999. \href{https://doi.org/10.1080/01621459.1986.10478363}{doi:10.1080/01621459.1986.10478363}
 \par\noindent\hangindent=1.5em Hodges JL, Lehmann EL (1963). Estimates of Location Based on Rank Tests. The Annals of Mathematical Statistics 34:598-611. \href{https://doi.org/10.1214/aoms/1177704172}{doi:10.1214/aoms/1177704172}
@@ -20910,6 +21367,7 @@ simplydata often chooses a method, an option value or a setting for you. This ap
 \par\noindent\hangindent=1.5em Hyndman RJ, Khandakar Y (2008). Automatic Time Series Forecasting: The forecast Package for R. Journal of Statistical Software 27(3). \href{https://doi.org/10.18637/jss.v027.i03}{doi:10.18637/jss.v027.i03}
 \par\noindent\hangindent=1.5em Hyndman RJ, Koehler AB (2006). Another look at measures of forecast accuracy. International Journal of Forecasting 22:679-688. \href{https://doi.org/10.1016/j.ijforecast.2006.03.001}{doi:10.1016/j.ijforecast.2006.03.001}
 \par\noindent\hangindent=1.5em Hyndman RJ, Koehler AB, Snyder RD et al. (2002). A state space framework for automatic forecasting using exponential smoothing methods. International Journal of Forecasting 18:439-454. \href{https://doi.org/10.1016/S0169-2070(01)00110-8}{doi:10.1016/S0169-2070(01)00110-8}
+\par\noindent\hangindent=1.5em Imai K, Keele L, Tingley D (2010). A general approach to causal mediation analysis. Psychological Methods 15:309-334. \href{https://doi.org/10.1037/a0020761}{doi:10.1037/a0020761}
 \par\noindent\hangindent=1.5em International Council for Harmonisation (1998). E9: Statistical principles for clinical trials. \href{https://database.ich.org/sites/default/files/E9_Guideline.pdf}{https://database.ich.org/sites/default/files/E9\_Guideline.pdf}
 \par\noindent\hangindent=1.5em IntHout J, Ioannidis JP, Borm GF (2014). The Hartung-Knapp-Sidik-Jonkman method for random effects meta-analysis is straightforward and considerably outperforms the standard DerSimonian-Laird method. BMC Medical Research Methodology 14. \href{https://doi.org/10.1186/1471-2288-14-25}{doi:10.1186/1471-2288-14-25}
 \par\noindent\hangindent=1.5em IntHout J, Ioannidis JPA, Rovers MM et al. (2016). Plea for routinely presenting prediction intervals in meta-analysis. BMJ Open 6:e010247. \href{https://doi.org/10.1136/bmjopen-2015-010247}{doi:10.1136/bmjopen-2015-010247}
@@ -20965,6 +21423,7 @@ simplydata often chooses a method, an option value or a setting for you. This ap
 \par\noindent\hangindent=1.5em Luke SG (2017). Evaluating significance in linear mixed-effects models in R. Behavior Research Methods 49:1494-1502. \href{https://doi.org/10.3758/s13428-016-0809-y}{doi:10.3758/s13428-016-0809-y}
 \par\noindent\hangindent=1.5em Lumley T (2004). Analysis of Complex Survey Samples. Journal of Statistical Software 9(8). \href{https://doi.org/10.18637/jss.v009.i08}{doi:10.18637/jss.v009.i08}
 \par\noindent\hangindent=1.5em Lumley T (2010). Complex Surveys: A Guide to Analysis Using R. Wiley Series in Survey Methodology. Wiley. \href{https://doi.org/10.1002/9780470580066}{doi:10.1002/9780470580066}
+\par\noindent\hangindent=1.5em Lunceford JK, Davidian M (2004). Stratification and weighting via the propensity score in estimation of causal treatment effects: a comparative study. Statistics in Medicine 23:2937-2960. \href{https://doi.org/10.1002/sim.1903}{doi:10.1002/sim.1903}
 \par\noindent\hangindent=1.5em MacCallum RC, Widaman KF, Zhang S et al. (1999). Sample size in factor analysis.. Psychological Methods 4:84-99. \href{https://doi.org/10.1037/1082-989X.4.1.84}{doi:10.1037/1082-989X.4.1.84}
 \par\noindent\hangindent=1.5em MacKinnon JG (1996). Numerical distribution functions for unit root and cointegration tests. Journal of Applied Econometrics 11:601-618. \href{https://doi.org/10.1002/(SICI)1099-1255(199611)11:6\%3C601::AID-JAE417\%3E3.0.CO\%3B2-T}{doi:10.1002/(SICI)1099-1255(199611)11:6\textless{}601::AID-JAE417\textgreater{}3.0.CO;2-T}
 \par\noindent\hangindent=1.5em MacKinnon JG, White H (1985). Some heteroskedasticity-consistent covariance matrix estimators with improved finite sample properties. Journal of Econometrics 29:305-325. \href{https://doi.org/10.1016/0304-4076(85)90158-7}{doi:10.1016/0304-4076(85)90158-7}
@@ -21029,6 +21488,8 @@ simplydata often chooses a method, an option value or a setting for you. This ap
 \par\noindent\hangindent=1.5em Riley RD, Higgins JPT, Deeks JJ (2011). Interpretation of random effects meta-analyses. BMJ 342:d549-d549. \href{https://doi.org/10.1136/bmj.d549}{doi:10.1136/bmj.d549}
 \par\noindent\hangindent=1.5em Ritz C, Baty F, Streibig JC et al. (2015). Dose-Response Analysis Using R. PLoS ONE 10:e0146021. \href{https://doi.org/10.1371/journal.pone.0146021}{doi:10.1371/journal.pone.0146021}
 \par\noindent\hangindent=1.5em Rochon J, Gondan M, Kieser M (2012). To test or not to test: Preliminary assessment of normality when comparing two independent samples. BMC Medical Research Methodology 12. \href{https://doi.org/10.1186/1471-2288-12-81}{doi:10.1186/1471-2288-12-81}
+\par\noindent\hangindent=1.5em Rockhill B, Newman B, Weinberg C (1998). Use and misuse of population attributable fractions. American Journal of Public Health 88:15-19. \href{https://doi.org/10.2105/AJPH.88.1.15}{doi:10.2105/AJPH.88.1.15}
+\par\noindent\hangindent=1.5em Rosenbaum PR, Rubin DB (1983). The central role of the propensity score in observational studies for causal effects. Biometrika 70:41-55. \href{https://doi.org/10.1093/biomet/70.1.41}{doi:10.1093/biomet/70.1.41}
 \par\noindent\hangindent=1.5em Rosseel Y (2012). lavaan: An R Package for Structural Equation Modeling. Journal of Statistical Software 48. \href{https://doi.org/10.18637/jss.v048.i02}{doi:10.18637/jss.v048.i02}
 \par\noindent\hangindent=1.5em Rousseeuw PJ (1987). Silhouettes: A graphical aid to the interpretation and validation of cluster analysis. Journal of Computational and Applied Mathematics 20:53-65. \href{https://doi.org/10.1016/0377-0427(87)90125-7}{doi:10.1016/0377-0427(87)90125-7}
 \par\noindent\hangindent=1.5em Rousseeuw PJ, Croux C (1993). Alternatives to the Median Absolute Deviation. Journal of the American Statistical Association 88:1273-1283. \href{https://doi.org/10.1080/01621459.1993.10476408}{doi:10.1080/01621459.1993.10476408}
@@ -21046,6 +21507,7 @@ simplydata often chooses a method, an option value or a setting for you. This ap
 \par\noindent\hangindent=1.5em Schuirmann DJ (1987). A comparison of the Two One-Sided Tests Procedure and the Power Approach for assessing the equivalence of average bioavailability. Journal of Pharmacokinetics and Biopharmaceutics 15:657-680. \href{https://doi.org/10.1007/BF01068419}{doi:10.1007/BF01068419}
 \par\noindent\hangindent=1.5em Schulz KF, Grimes DA (2002). Allocation concealment in randomised trials: defending against deciphering. The Lancet 359:614-618. \href{https://doi.org/10.1016/S0140-6736(02)07750-4}{doi:10.1016/S0140-6736(02)07750-4}
 \par\noindent\hangindent=1.5em Schulz KF, Grimes DA (2002). Generation of allocation sequences in randomised trials: chance, not choice. The Lancet 359:515-519. \href{https://doi.org/10.1016/S0140-6736(02)07683-3}{doi:10.1016/S0140-6736(02)07683-3}
+\par\noindent\hangindent=1.5em Sch\"utz H, Labes D, Fuglsang A (2014). Reference Datasets for 2-Treatment, 2-Sequence, 2-Period Bioequivalence Studies. The AAPS Journal 16:1292-1297. \href{https://doi.org/10.1208/s12248-014-9661-0}{doi:10.1208/s12248-014-9661-0}
 \par\noindent\hangindent=1.5em Scott DW (1979). On optimal and data-based histograms. Biometrika 66:605-610. \href{https://doi.org/10.1093/biomet/66.3.605}{doi:10.1093/biomet/66.3.605}
 \par\noindent\hangindent=1.5em Scott DW (1992). Multivariate Density Estimation. Wiley Series in Probability and Statistics. \href{https://doi.org/10.1002/9780470316849}{doi:10.1002/9780470316849}
 \par\noindent\hangindent=1.5em Searle SR, Speed FM, Milliken GA (1980). Population Marginal Means in the Linear Model: An Alternative to Least Squares Means. The American Statistician 34:216-221. \href{https://doi.org/10.1080/00031305.1980.10483031}{doi:10.1080/00031305.1980.10483031}
@@ -21064,6 +21526,7 @@ simplydata often chooses a method, an option value or a setting for you. This ap
 \par\noindent\hangindent=1.5em Sterne JAC, Sutton AJ, Ioannidis JPA et al. (2011). Recommendations for examining and interpreting funnel plot asymmetry in meta-analyses of randomised controlled trials. BMJ 343:d4002-d4002. \href{https://doi.org/10.1136/bmj.d4002}{doi:10.1136/bmj.d4002}
 \par\noindent\hangindent=1.5em Storey JD (2002). A Direct Approach to False Discovery Rates. Journal of the Royal Statistical Society Series B: Statistical Methodology 64:479-498. \href{https://doi.org/10.1111/1467-9868.00346}{doi:10.1111/1467-9868.00346}
 \par\noindent\hangindent=1.5em Storey JD, Tibshirani R (2003). Statistical significance for genomewide studies. Proceedings of the National Academy of Sciences 100:9440-9445. \href{https://doi.org/10.1073/pnas.1530509100}{doi:10.1073/pnas.1530509100}
+\par\noindent\hangindent=1.5em Stuart EA (2010). Matching Methods for Causal Inference: A Review and a Look Forward. Statistical Science 25:1-21. \href{https://doi.org/10.1214/09-STS313}{doi:10.1214/09-STS313}
 \par\noindent\hangindent=1.5em Student (1908). The Probable Error of a Mean. Biometrika 6:1. \href{https://doi.org/10.1093/biomet/6.1.1}{doi:10.1093/biomet/6.1.1}
 \par\noindent\hangindent=1.5em Sturges HA (1926). The Choice of a Class Interval. Journal of the American Statistical Association 21:65-66. \href{https://doi.org/10.1080/01621459.1926.10502161}{doi:10.1080/01621459.1926.10502161}
 \par\noindent\hangindent=1.5em Stute W, Gonz\'alez Manteiga W, Presedo Quindimil M (1993). Bootstrap based goodness-of-fit-tests. Metrika 40:243-256. \href{https://doi.org/10.1007/BF02613687}{doi:10.1007/BF02613687}
@@ -21077,8 +21540,11 @@ simplydata often chooses a method, an option value or a setting for you. This ap
 \par\noindent\hangindent=1.5em Therneau TM, Grambsch PM (2000). Modeling Survival Data: Extending the Cox Model. Statistics for Biology and Health. \href{https://doi.org/10.1007/978-1-4757-3294-8}{doi:10.1007/978-1-4757-3294-8}
 \par\noindent\hangindent=1.5em Thompson SG, Higgins JPT (2002). How should meta-regression analyses be undertaken and interpreted? Statistics in Medicine 21:1559-1573. \href{https://doi.org/10.1002/sim.1187}{doi:10.1002/sim.1187}
 \par\noindent\hangindent=1.5em Tibshirani R (1996). Regression Shrinkage and Selection Via the Lasso. Journal of the Royal Statistical Society Series B: Statistical Methodology 58:267-288. \href{https://doi.org/10.1111/j.2517-6161.1996.tb02080.x}{doi:10.1111/j.2517-6161.1996.tb02080.x}
+\par\noindent\hangindent=1.5em Tingley D, Yamamoto T, Hirose K, Keele L, Imai K (2014). mediation: R Package for Causal Mediation Analysis. Journal of Statistical Software 59(5). \href{https://doi.org/10.18637/jss.v059.i05}{doi:10.18637/jss.v059.i05}
 \par\noindent\hangindent=1.5em Tjur T (2009). Coefficients of Determination in Logistic Regression Models-{}--A New Proposal: The Coefficient of Discrimination. The American Statistician 63:366-372. \href{https://doi.org/10.1198/tast.2009.08210}{doi:10.1198/tast.2009.08210}
+\par\noindent\hangindent=1.5em Ulm K (1990). Simple method to calculate the confidence interval of a standardized mortality ratio (SMR). American Journal of Epidemiology 131:373-375. \href{https://doi.org/10.1093/oxfordjournals.aje.a115507}{doi:10.1093/oxfordjournals.aje.a115507}
 \par\noindent\hangindent=1.5em Uno H, Claggett B, Tian L et al. (2014). Moving Beyond the Hazard Ratio in Quantifying the Between-Group Difference in Survival Analysis. Journal of Clinical Oncology 32:2380-2385. \href{https://doi.org/10.1200/JCO.2014.55.2208}{doi:10.1200/JCO.2014.55.2208}
+\par\noindent\hangindent=1.5em van Buuren S (2018). Flexible Imputation of Missing Data, 2nd ed. Chapman \& Hall/CRC (section 5.2.3, pooling correlations on Fisher's z). \href{https://stefvanbuuren.name/fimd/}{https://stefvanbuuren.name/fimd/}
 \par\noindent\hangindent=1.5em van Buuren S, Groothuis-Oudshoorn K (2011). mice: Multivariate Imputation by Chained Equations in R. Journal of Statistical Software 45. \href{https://doi.org/10.18637/jss.v045.i03}{doi:10.18637/jss.v045.i03}
 \par\noindent\hangindent=1.5em Van Calster B, McLernon DJ, van Smeden M et al. (2019). Calibration: the Achilles heel of predictive analytics. BMC Medicine 17:230. \href{https://doi.org/10.1186/s12916-019-1466-7}{doi:10.1186/s12916-019-1466-7}
 \par\noindent\hangindent=1.5em Venables WN, Ripley BD (2002). Modern Applied Statistics with S. Statistics and Computing. \href{https://doi.org/10.1007/978-0-387-21706-2}{doi:10.1007/978-0-387-21706-2}
@@ -21099,6 +21565,7 @@ simplydata often chooses a method, an option value or a setting for you. This ap
 \par\noindent\hangindent=1.5em Welch BL (1951). On the comparison of several mean values: an alternative approach. Biometrika 38:330-336. \href{https://doi.org/10.1093/biomet/38.3-4.330}{doi:10.1093/biomet/38.3-4.330}
 \par\noindent\hangindent=1.5em Welch P (1967). The use of fast Fourier transform for the estimation of power spectra: A method based on time averaging over short, modified periodograms. IEEE Transactions on Audio and Electroacoustics 15:70-73. \href{https://doi.org/10.1109/TAU.1967.1161901}{doi:10.1109/TAU.1967.1161901}
 \par\noindent\hangindent=1.5em White H (1980). A Heteroskedasticity-Consistent Covariance Matrix Estimator and a Direct Test for Heteroskedasticity. Econometrica 48:817. \href{https://doi.org/10.2307/1912934}{doi:10.2307/1912934}
+\par\noindent\hangindent=1.5em White IR, Royston P (2009). Imputing missing covariate values for the Cox model. Statistics in Medicine 28:1982-1998. \href{https://doi.org/10.1002/sim.3618}{doi:10.1002/sim.3618}
 \par\noindent\hangindent=1.5em White IR, Royston P, Wood AM (2011). Multiple imputation using chained equations: Issues and guidance for practice. Statistics in Medicine 30:377-399. \href{https://doi.org/10.1002/sim.4067}{doi:10.1002/sim.4067}
 \par\noindent\hangindent=1.5em Whittingham MJ, Stephens PA, Bradbury RB et al. (2006). Why do we still use stepwise modelling in ecology and behaviour? Journal of Animal Ecology 75:1182-1189. \href{https://doi.org/10.1111/j.1365-2656.2006.01141.x}{doi:10.1111/j.1365-2656.2006.01141.x}
 \par\noindent\hangindent=1.5em Wilcox RR, Keselman HJ (2003). Modern Robust Data Analysis Methods: Measures of Central Tendency.. Psychological Methods 8:254-274. \href{https://doi.org/10.1037/1082-989X.8.3.254}{doi:10.1037/1082-989X.8.3.254}
@@ -21180,6 +21647,7 @@ Every word and option, A to Z, with the page of its dictionary entry. Other spel
 \indexline{word:table.compare-average-to}{table.compare\_average\_to()}
 \indexline{word:sdata.compare-averages}{sdata.compare\_averages()}
 \indexline{word:table.compare-averages-of}{table.compare\_averages\_of()}
+\indexline{word:table.compare-balanced-groups-of}{table.compare\_balanced\_groups\_of()}
 \indexline{word:table.compare-before-and-after}{table.compare\_before\_and\_after()}
 \indexline{word:table.compare-correlations}{table.compare\_correlations()}
 \indexline{word:sdata.compare-counts}{sdata.compare\_counts()}

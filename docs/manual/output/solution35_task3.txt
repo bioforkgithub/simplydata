@@ -1,0 +1,5 @@
+The average "re74" is 5619 in 0 and 2096 in 1: 0 is 3524 higher (95 % CI of the difference 2568 to 4479; Hedges' g = 0.561 (95 % CI 0.385 to 0.735), a difference of 0.561 standard deviations).
+If there were truly no difference, a difference this big or bigger would turn up in fewer than 1 in 1000 studies like this one (p < 0.0001).
+Test: Welch's t-test (t = 7.25, df = 475.992), the usual test for two averages; it does not assume both groups have the same spread.
+Note: the values in group "0" don't look bell-shaped (Shapiro-Wilk p < 0.0001), but with 429 values the average is close to bell-shaped anyway (the central limit theorem), so this test is usually still fine.
+Note: the values in group "1" don't look bell-shaped (Shapiro-Wilk p < 0.0001), but with 185 values the average is close to bell-shaped anyway (the central limit theorem), so this test is usually still fine.
