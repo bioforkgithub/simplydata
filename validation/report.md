@@ -4,7 +4,7 @@ Made by `python validation/make_report.py` on 2026-11-21. Generated: do not edit
 
 Each simplydata word is run on real, published data and compared with the published answer, with the package simplydata uses underneath called directly, and with R. Each "same underneath" box of the manual is run next to its word and compared too. How it works, and the datasets with their licences: [validation/README.md](README.md).
 
-**1263 checks passed, 0 failed, 0 skipped** (skipped: R or an R package is not installed on this computer).
+**1316 checks passed, 0 failed, 0 skipped** (skipped: R or an R package is not installed on this computer).
 
 ## Setup
 
@@ -1931,15 +1931,15 @@ Note: The oblimin rotation of GPArotation starts from random numbers, so both si
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
-| own part of x1 | statsmodels Factor (method="ml") | 0.512529527173443 | 0.512528082411245 | relative 0.0001 | pass |
-| own part of x2 | statsmodels Factor (method="ml") | 0.7487351603869 | 0.748735705804821 | relative 0.0001 | pass |
-| own part of x3 | statsmodels Factor (method="ml") | 0.542773290729761 | 0.542774019631796 | relative 0.0001 | pass |
-| own part of x4 | statsmodels Factor (method="ml") | 0.279193093920192 | 0.279192854635172 | relative 0.0001 | pass |
-| own part of x5 | statsmodels Factor (method="ml") | 0.242877320676015 | 0.242877555271918 | relative 0.0001 | pass |
-| own part of x6 | statsmodels Factor (method="ml") | 0.30521585555841 | 0.305215793395826 | relative 0.0001 | pass |
-| own part of x7 | statsmodels Factor (method="ml") | 0.502207221916071 | 0.50220849395195 | relative 0.0001 | pass |
-| own part of x8 | statsmodels Factor (method="ml") | 0.468550489794599 | 0.468549618554421 | relative 0.0001 | pass |
-| own part of x9 | statsmodels Factor (method="ml") | 0.543247686483436 | 0.543246728543192 | relative 0.0001 | pass |
+| own part of x1 | statsmodels Factor (method="ml") | 0.512529527173443 | 0.512528315759705 | relative 0.0001 | pass |
+| own part of x2 | statsmodels Factor (method="ml") | 0.7487351603869 | 0.748735926767607 | relative 0.0001 | pass |
+| own part of x3 | statsmodels Factor (method="ml") | 0.542773290729761 | 0.542773834287079 | relative 0.0001 | pass |
+| own part of x4 | statsmodels Factor (method="ml") | 0.279193093920192 | 0.279192945665489 | relative 0.0001 | pass |
+| own part of x5 | statsmodels Factor (method="ml") | 0.242877320676015 | 0.242877231428987 | relative 0.0001 | pass |
+| own part of x6 | statsmodels Factor (method="ml") | 0.30521585555841 | 0.305215971553668 | relative 0.0001 | pass |
+| own part of x7 | statsmodels Factor (method="ml") | 0.502207221916071 | 0.502207843917038 | relative 0.0001 | pass |
+| own part of x8 | statsmodels Factor (method="ml") | 0.468550489794599 | 0.4685501793467 | relative 0.0001 | pass |
+| own part of x9 | statsmodels Factor (method="ml") | 0.543247686483436 | 0.543247024693676 | relative 0.0001 | pass |
 | own part of x1 | R | 0.512529527173443 | 0.512528169335274 | relative 0.001 | pass |
 | own part of x2 | R | 0.7487351603869 | 0.74873504605719 | relative 0.001 | pass |
 | own part of x3 | R | 0.542773290729761 | 0.542776785473323 | relative 0.001 | pass |
@@ -2727,6 +2727,115 @@ Note: R mice fills in with its own random draws, so the two pooled correlations 
 
 Note: R mice with the event and the Nelson-Aalen hazard as predictors (White & Royston 2009) and its own random draws: the pooled hazard ratios agree to the simulation error.
 
+### `table.compare_averages_of bayesian=True`
+
+**bayesian=True: Student's sleep data, the two drugs as two groups** (real data; data: Student's sleep data)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| Bayes factor | SciPy quad of the JZS integral (Rouder et al. 2009, eq. 1) | 1.26592514957762 | 1.26592514964692 | relative 0.0001 | pass |
+| Bayes factor | R | 1.26592514957762 | 1.26592514957762 | relative 1e-09 | pass |
+| difference | R | -1.14640684760213 | -1.14640684760213 | relative 1e-09 | pass |
+| 95 % low | R | -2.8850915447883 | -2.8850915447883 | relative 1e-09 | pass |
+| 95 % high | R | 0.349075298827598 | 0.349075298827598 | relative 1e-09 | pass |
+
+Note: BayesFactor's documentation gives 1.27 for this Bayes factor; the interval is checked with the same seed (same draws), its Monte Carlo error in the tests.
+
+### `table.compare_before_and_after bayesian=True`
+
+**bayesian=True: Student's sleep data, each patient on both drugs** (real data; data: Student's sleep data)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| Bayes factor | SciPy quad of the JZS integral (Rouder et al. 2009, eq. 1) | 17.2588802677725 | 17.2588802678108 | relative 0.0001 | pass |
+| Bayes factor | R | 17.2588802677725 | 17.2588802677725 | relative 1e-09 | pass |
+| average change | R | 1.41993408368893 | 1.41993408368893 | relative 1e-09 | pass |
+| 95 % low | R | 0.479925518899774 | 0.479925518899774 | relative 1e-09 | pass |
+| 95 % high | R | 2.29588000036818 | 2.29588000036818 | relative 1e-09 | pass |
+
+Note: BayesFactor's documentation gives 17.26 for this paired Bayes factor (the example of ttestBF's help).
+
+### `table.compare_average_to bayesian=True`
+
+**bayesian=True: Student's sleep data, drug 1 against 1 extra hour** (real data; data: Student's sleep data)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| Bayes factor | SciPy quad of the JZS integral (Rouder et al. 2009, eq. 1), r = 1 | 0.254785902547741 | 0.254785902553349 | relative 0.0001 | pass |
+| Bayes factor | R | 0.254785902547741 | 0.254785902547741 | relative 1e-09 | pass |
+| difference | R | -0.21846272718357 | -0.21846272718357 | relative 1e-09 | pass |
+| 95 % low | R | -1.36155600574835 | -1.36155600574835 | relative 1e-09 | pass |
+| 95 % high | R | 0.907255893891201 | 0.907255893891201 | relative 1e-09 | pass |
+
+Note: The Bayes factor is R's own ttestBF(x, mu = 1); the interval is that of the average minus 1, from ttestBF(x - 1), because BayesFactor's posterior() leaves mu = out.
+
+### `table.find_correlation_between bayesian=True`
+
+**bayesian=True: mtcars, fuel use and weight** (real data; data: mtcars)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| Bayes factor | R | 13286626.3086362 | 13286626.3086362 | relative 1e-09 | pass |
+| r | R | -0.816883822203406 | -0.816883822203406 | relative 1e-09 | pass |
+| 95 % low | R | -0.903442066641586 | -0.903442066641586 | relative 1e-09 | pass |
+| 95 % high | R | -0.664500941992188 | -0.664500941992188 | relative 1e-09 | pass |
+
+Note: The design check of 2026-11-20 gave a Bayes factor of 1.3 x 10^7 for this pair (BayesFactor 0.9.12-4.8).
+
+### `table.compare_counts_of bayesian=True`
+
+**bayesian=True: mtcars, gearbox (automatic or manual) by engine shape** (real data; data: mtcars)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| Bayes factor | the Gunel-Dickey closed form, independent multinomial, a = 1 (SciPy gammaln) | 0.631316369587394 | 0.631316369587392 | relative 0.0001 | pass |
+| Bayes factor | R | 0.631316369587394 | 0.631316369587394 | relative 1e-09 | pass |
+| share manual, straight | R | 0.501015289003796 | 0.501015289003796 | relative 1e-09 | pass |
+| 95 % low | R | 0.272572770475845 | 0.272572770475845 | relative 1e-09 | pass |
+
+Note: simplydata orders the groups as text ("V-shaped" before "straight"), so the R table lists them in that order too.
+
+### `table.explain bayesian=True`
+
+**bayesian=True: mtcars, fuel use from weight and horsepower (rstanarm stan_glm)** (real data; data: mtcars)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| wt | R | -3.85951737319436 | -3.85951737319436 | relative 1e-09 | pass |
+| wt 95 % low | R | -5.17810665610188 | -5.17810665610188 | relative 1e-09 | pass |
+| wt 95 % high | R | -2.54937525696019 | -2.54937525696019 | relative 1e-09 | pass |
+| hp | R | -0.0317827715959909 | -0.0317827715959909 | relative 1e-09 | pass |
+| sigma | R | 2.66823086364635 | 2.66823086364635 | relative 1e-09 | pass |
+| wt R-hat | R | 1.00142396006417 | 1.00142396006417 | relative 1e-09 | pass |
+
+Note: lm() gives -3.88 for wt and -0.0318 for hp; the posterior medians are close to them because rstanarm's priors are weak here.
+
+### `table.explain bayesian=True, grouped_by=`
+
+**bayesian=True, grouped_by=: sleepstudy, reaction time over days (rstanarm stan_glmer)** (real data; data: sleepstudy (lme4))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| Days | R | 10.4335236539881 | 10.4335236539881 | relative 1e-09 | pass |
+| Days 95 % low | R | 8.86591025068702 | 8.86591025068702 | relative 1e-09 | pass |
+| Days 95 % high | R | 12.026372436322 | 12.026372436322 | relative 1e-09 | pass |
+| intercept | R | 250.900430665805 | 250.900430665805 | relative 1e-09 | pass |
+
+Note: lme4's REML estimates are 251.4 and 10.47 (Bates et al. 2015); the posterior medians are close.
+
+### `table.check_model_of bayesian=True`
+
+**bayesian=True: mtcars, the posterior predictive check of fuel use from weight** (real data; data: mtcars)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| data density at point 100 | R | 0.060520300921311 | 0.060520300921311 | relative 1e-09 | pass |
+| set 3 at point 100 | R | 0.0250130477338937 | 0.0250130477338937 | relative 1e-09 | pass |
+| set 50 at point 200 | R | 0.0327979199969546 | 0.0327979199969546 | relative 1e-09 | pass |
+| grid end | R | 37.0622730135304 | 37.0622730135304 | relative 1e-09 | pass |
+
+Note: The picture's lines are R stats::density() of the data and of each set made up by posterior_predict(), on one grid from the smallest to the largest value.
+
 ## 2. The same underneath (the manual's boxes)
 
 Each box's library code is run next to the simplydata word and compared. Table words run on a pandas and on a Polars table.
@@ -3046,6 +3155,22 @@ Each box's library code is run next to the simplydata word and compared. Table w
 | `table.compare_averages_of period=` | statsmodels | polars | result | relative 1e-09 | pass |
 | `table.find_correlation_between empty_cells="multiple imputation"` | R + Python | pandas | value | relative 1e-09 | pass |
 | `table.find_correlation_between empty_cells="multiple imputation"` | R + Python | polars | value | relative 1e-09 | pass |
+| `table.compare_averages_of bayesian=True` | R + Python | pandas | result | relative 1e-09 | pass |
+| `table.compare_averages_of bayesian=True` | R + Python | polars | result | relative 1e-09 | pass |
+| `table.compare_before_and_after bayesian=True` | R + Python | pandas | result | relative 1e-09 | pass |
+| `table.compare_before_and_after bayesian=True` | R + Python | polars | result | relative 1e-09 | pass |
+| `table.compare_average_to bayesian=True` | R + Python | pandas | result | relative 1e-09 | pass |
+| `table.compare_average_to bayesian=True` | R + Python | polars | result | relative 1e-09 | pass |
+| `table.find_correlation_between bayesian=True` | R + Python | pandas | result | relative 1e-09 | pass |
+| `table.find_correlation_between bayesian=True` | R + Python | polars | result | relative 1e-09 | pass |
+| `table.compare_counts_of bayesian=True` | R + Python | pandas | result | relative 1e-09 | pass |
+| `table.compare_counts_of bayesian=True` | R + Python | polars | result | relative 1e-09 | pass |
+| `table.explain bayesian=True` | R + Python | pandas | result | relative 1e-09 | pass |
+| `table.explain bayesian=True` | R + Python | polars | result | relative 1e-09 | pass |
+| `table.explain bayesian=True, grouped_by=` | R + Python | pandas | result | relative 1e-09 | pass |
+| `table.explain bayesian=True, grouped_by=` | R + Python | polars | result | relative 1e-09 | pass |
+| `table.check_model_of bayesian=True` | R + Python | pandas | value | relative 1e-09 | pass |
+| `table.check_model_of bayesian=True` | R + Python | polars | value | relative 1e-09 | pass |
 
 How each kind is compared:
 
@@ -3319,6 +3444,21 @@ Where simplydata's default differs from the package underneath, it is listed her
 - `table.compare_averages_of period=` (2): the EMA (2010) model with all effects fixed, on the log scale.
 - `table.compare_averages_of period=` (3): the 90 % interval, the same as two one-sided tests at 5 % each; the ratio and its interval taken back from logs.
 - `table.find_correlation_between empty_cells="multiple imputation"` (1): Fisher's z of each filled-in table pooled with Rubin's rules and taken back to r (van Buuren 2018, section 5.2).
+- `table.compare_averages_of bayesian=True` (1): the JZS prior of medium width (a Cauchy prior on the effect size, r = 0.707; Rouder et al. 2009), BayesFactor's default; prior_width= changes it.
+- `table.compare_averages_of bayesian=True` (2): with_seed=1: R's set.seed() before BayesFactor::posterior() (10,000 draws), so the interval is the same on every run; the Bayes factor itself is worked out without random draws.
+- `table.compare_before_and_after bayesian=True` (1): the change is after minus before (x = after, y = before), with the JZS prior of medium width.
+- `table.compare_before_and_after bayesian=True` (2): with_seed=1: R's set.seed() before BayesFactor::posterior() (10,000 draws), so the interval is the same on every run; the Bayes factor itself is worked out without random draws.
+- `table.compare_average_to bayesian=True` (1): x - 5 rather than mu = 5: BayesFactor's posterior() leaves mu = out (its draws are those of mu = 0), while its Bayes factor takes mu away inside; so the Bayes factor is the same and the posterior is that of the average minus 5.
+- `table.compare_average_to bayesian=True` (2): with_seed=1: R's set.seed() before BayesFactor::posterior() (10,000 draws), so the interval is the same on every run; the Bayes factor itself is worked out without random draws.
+- `table.find_correlation_between bayesian=True` (1): the stretched beta prior of medium width 1/3 (BayesFactor's default; JASP's default of 1 gives other Bayes factors).
+- `table.find_correlation_between bayesian=True` (2): with_seed=1: R's set.seed() before BayesFactor::posterior() (10,000 draws), so the interval is the same on every run; the Bayes factor itself is worked out without random draws.
+- `table.compare_counts_of bayesian=True` (1): independent multinomial sampling with each group's total fixed: the groups are the rows (fixedMargin = "rows"), with the Gunel-Dickey prior of concentration 1 (BayesFactor's default).
+- `table.compare_counts_of bayesian=True` (2): with_seed=1: R's set.seed() before BayesFactor::posterior() (10,000 draws), so the interval is the same on every run; the Bayes factor itself is worked out without random draws.
+- `table.explain bayesian=True` (1): rstanarm's defaults written out: 4 chains of 2000 iterations (1000 warm-up), its weakly informative priors scaled to the data (printed from prior_summary()), seed = with_seed and cores = 1 (no worker processes).
+- `table.explain bayesian=True` (2): the posterior median and the central 95 % interval (posterior_interval()); R-hat, bulk and tail effective sample sizes from the posterior package (rank-normalised, Vehtari et al. 2021), not the older Rhat and n_eff of rstanarm's summary().
+- `table.explain bayesian=True, grouped_by=` (1): a mixed model with its own starting level for each school, (1 \| school), rstanarm's decov prior for the group spread; otherwise as explain(bayesian=True).
+- `table.check_model_of bayesian=True` (1): 50 sets of made-up values from the fitted model (posterior_predict(draws = 50)), as bayesplot's pp_check() shows by default.
+- `table.check_model_of bayesian=True` (2): each set and the data as a density on one grid from the smallest to the largest value, R stats::density() with its bw.nrd0 bandwidth, the rule bayesplot::ppc_dens_overlay uses through ggplot2; the lines are drawn with matplotlib.
 
 ## Datasets
 

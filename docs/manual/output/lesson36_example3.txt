@@ -1,0 +1,40 @@
+Explaining "marks" from "hours" and "breakfast" the Bayesian way (180 rows). Each effect below holds the other columns fixed:
+  intercept: 32.3 (28.9 to 35.7), the expected "marks" when every number column is 0 and every group column is at its baseline.
+  hours: each 1 more "hours" goes with 2.82 more "marks" (2.31 to 3.35).
+  breakfast (yes) against the baseline group: "marks" is 3.21 higher (0.507 to 5.88).
+  spread around the model (sigma): 8.67 (7.81 to 9.64) in "marks".
+Each number: the posterior median with its 95 % credible interval: given the data and the prior, a 95 % chance that the value lies in it. There are no p-values in a Bayesian model.
+Prior used (rstanarm's default weakly informative priors, scaled to the spread of the data; R rstanarm::prior_summary()):
+    Intercept (after predictors centered)
+      Specified prior:
+        ~ normal(location = 48, scale = 2.5)
+      Adjusted prior:
+        ~ normal(location = 48, scale = 28)
+    Coefficients
+      Specified prior:
+        ~ normal(location = [0,0], scale = [2.5,2.5])
+      Adjusted prior:
+        ~ normal(location = [0,0], scale = [11.39,57.80])
+    Auxiliary (sigma)
+      Specified prior:
+        ~ exponential(rate = 1)
+      Adjusted prior:
+        ~ exponential(rate = 0.09)
+Convergence: R-hat at most 1.00 (rank-normalised; the guide is 1.01 or below), at least 4868 effective draws in the middle and 2199 in the tails (the guide: 400 or more), 0 divergent transitions; over all 4 parameters and 4,000 draws, the posterior package's rhat(), ess_bulk() and ess_tail() (Vehtari et al. 2021).
+Method: R rstanarm::stan_glm(marks ~ hours + breakfast, family = gaussian(), chains = 4, iter = 2000, seed = with_seed): 4 chains of 1000 draws after 1000 warm-up, the posterior median and the central 95 % interval (posterior_interval()); with_seed=1 gives the same draws again on the same computer. The prior scales follow the spread of the data, so they change when the data change.
+A link does not show that one thing causes the other.
+Posterior predictive check of the model of "marks" (180 rows): 50 sets of values made up by the fitted model (R rstanarm::posterior_predict()), against the data. If the model fits, the data look like one more made-up set; a gap that every set shows (a second hump, a longer tail, more zeros) is what the model misses (Gabry et al. 2019).
+Each line is a density: R stats::density() with bw.nrd0, as bayesplot::ppc_dens_overlay.
+Prior used (R rstanarm::prior_summary()):
+    Intercept (after predictors centered)
+      Specified prior:
+        ~ normal(location = 48, scale = 2.5)
+      Adjusted prior:
+        ~ normal(location = 48, scale = 28)
+    Coefficients
+      Specified prior:
+        ~ normal(location = [0,0], scale = [2.5,2.5])
+      Adjusted prior:
+        ~ normal(location = [0,0], scale = [11.39,57.80])
+
+... (7 more lines)

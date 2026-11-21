@@ -1,0 +1,5 @@
+Comparing the average "crp" in ward A and ward B the Bayesian way (100 and 100 rows).
+The data are 2.94 times as likely if the averages of ward A and ward B differ as if they do not differ (Bayes factor for a difference: 2.94, with the JZS prior: a Cauchy prior on the effect size (the difference in standard deviations) with width 1.41 ("ultrawide"; Rouder et al. 2009)).
+Given the data and the prior, the difference (ward A minus ward B) is probably between -1.45 and -0.231 (95 % credible interval: given the data and the prior, a 95 % chance that the value lies in it); its middle value (the posterior median) is -0.834. The effect size (the difference in standard deviations) is probably between -0.660 and -0.103.
+Method: R BayesFactor::ttestBF(x, y) (rscale = "ultrawide"); the interval from 10,000 draws of the posterior (BayesFactor::posterior()), with_seed=1: the same seed gives the same draws again.
+A Bayes factor is not the chance that a hypothesis is true: it says how much the data shift the odds between the two (Wagenmakers et al. 2018). It depends on the prior width; prior_width="wide" shows how much. There is no p-value in a Bayesian answer.

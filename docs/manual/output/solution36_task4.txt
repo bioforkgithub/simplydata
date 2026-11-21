@@ -1,0 +1,19 @@
+Prior predictive check of the model of "marks" (180 rows): 50 sets of values the model would make up from the prior alone, before seeing the data (R rstanarm, prior_PD = TRUE), against the data. They should cover every value "marks" could take, without going far beyond anything possible; the prior is meant to rule out the impossible, not to say where the answer lies (Gabry et al. 2019).
+Each line is a density: R stats::density() with bw.nrd0, as bayesplot::ppc_dens_overlay.
+Prior used (R rstanarm::prior_summary()):
+    Intercept (after predictors centered)
+      Specified prior:
+        ~ normal(location = 48, scale = 2.5)
+      Adjusted prior:
+        ~ normal(location = 48, scale = 28)
+    Coefficients
+      Specified prior:
+        ~ normal(location = 0, scale = 2.5)
+      Adjusted prior:
+        ~ normal(location = 0, scale = 11)
+    Auxiliary (sigma)
+      Specified prior:
+        ~ exponential(rate = 1)
+      Adjusted prior:
+        ~ exponential(rate = 0.09)
+Method: R rstanarm::stan_glm(marks ~ hours, family = gaussian(), chains = 4, iter = 2000, seed = with_seed), prior_PD = TRUE, then posterior_predict(draws = 50, seed = with_seed); with_seed=1.
