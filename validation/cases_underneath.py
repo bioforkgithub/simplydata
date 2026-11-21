@@ -159,12 +159,12 @@ def _cases(Case):
                                                        show=["average", "standard deviation", "count"])
                  rows = {s.get_cell_at(row=i, column="Species"): i for i in (1, 2, 3)}
                  {f"{k} {sp}": s.get_cell_at(row=rows[sp], column=m) for sp in ("setosa", "virginica")
-                  for k, m in (("average", "average"), ("sd", "standard deviation"), ("count", "count"))}
+                  for k, m in {"average": "average", "sd": "standard deviation", "count": "count"}.items()}
              """,
              parent="""
                  g = data.groupby("Species")["Sepal.Length"].agg(["mean", "std", "count"])
                  {f"{k} {sp}": g.loc[sp, m] for sp in ("setosa", "virginica")
-                  for k, m in (("average", "mean"), ("sd", "std"), ("count", "count"))}
+                  for k, m in {"average": "mean", "sd": "std", "count": "count"}.items()}
              """, parent_label="pandas groupby().agg()", parent_tolerance=1e-12,
              r="""
                  m <- tapply(Sepal.Length, Species, mean); s <- tapply(Sepal.Length, Species, sd)

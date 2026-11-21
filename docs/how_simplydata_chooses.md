@@ -5,7 +5,7 @@ averages, Holm's method when you adjust many p-values, REML and Hartung-Knapp in
 studies. This document answers the question a reviewer asks first: *how does simplydata know which method is
 right, and what logic does it use?*
 
-The answer is five principles, applied in order, and one entry for each of the 318 choices simplydata
+The answer is five principles, applied in order, and one entry for each of the 339 choices simplydata
 makes. Each entry gives the default, the alternatives (and the option that asks for them), why simplydata
 chose it, the published evidence, and what simplydata checks in your data before it uses the method.
 
@@ -26,9 +26,9 @@ chose it, the published evidence, and what simplydata checks in your data before
   checks in your data, and when it refuses or warns and says what to use instead.
 - **References**: short citations; the full list with links is at the end.
 
-The basis of each default is one of three kinds. *published*: published guideline or method comparison; *convention*: the package named does this, so that results agree with it; studies may prefer another method, and when they do the entry says so (and names the option, if there is one); *starting value*: simplydata's own starting value: no published rule fixes it; change it with the option named. Of the 318 defaults, 142 rest on
-published guidelines or method comparisons, 141 follow the convention of the package named so that
-results match it, and 35 are simplydata's own starting values, marked as such, each changed with the
+The basis of each default is one of three kinds. *published*: published guideline or method comparison; *convention*: the package named does this, so that results agree with it; studies may prefer another method, and when they do the entry says so (and names the option, if there is one); *starting value*: simplydata's own starting value: no published rule fixes it; change it with the option named. Of the 339 defaults, 142 rest on
+published guidelines or method comparisons, 158 follow the convention of the package named so that
+results match it, and 39 are simplydata's own starting values, marked as such, each changed with the
 option named.
 
 Every reference was checked before it was cited: each DOI was looked up in Crossref
@@ -49,6 +49,12 @@ another default than the one simplydata uses, the entry now says so; changing a 
 
 This document is made from `src/simplydata/_method_basis.py` by `docs/make_method_basis.py`; a test fails when
 a word that chooses a method has no entry, or when this file is out of date.
+
+## Start, show and save
+
+| Word or option | Default | Alternatives | Why | References |
+|---|---|---|---|---|
+| `sdata.get_example()` | Date columns are read as dates. | sdata.get_example() lists the tables. | **P5.** Practice data: dates read as dates let the date words work at once. *Basis: convention.* |  |
 
 ## Chart types
 
@@ -93,11 +99,20 @@ a word that chooses a method has no entry, or when this file is out of date.
 | `chart.use_colours()` | The Okabe-Ito colours for groups (blue, orange, green, vermilion, reddish purple, sky blue, yellow, black). | use_colours("a", "b", ...) for your own; use_colour() for one colour. | **P1.** Readers with colour blindness can tell the Okabe-Ito colours apart, and they stay distinct in print (Okabe & Ito 2008; Wong 2011). **Checks:** With more groups than colours the colours repeat, and a note says so (once). | [Okabe & Ito 2008](https://jfly.uni-koeln.de/color/); [Wong 2011](https://doi.org/10.1038/nmeth.1618) |
 | `chart.use_colour_scale()` | viridis for numbers; with middle=, a blue-to-red scale (RdBu) with the same change of colour per unit on both sides. | Any named scale (cividis, magma, blues ...), your own colours, log=True, steps=, between=. | **P2.** Rainbow scales distort the data and fail with colour blindness; perceptually uniform scales such as viridis and cividis do not (Liu & Heer 2018; Nuñez et al. 2018; Crameri et al. 2020). Diverging scales belong to data with a meaningful middle (Harrower & Brewer 2003). **Checks:** log=True with values at or below 0 is refused; middle= with log= or steps= is refused; an unknown name is refused with a list of colour-blind-safe scales; a rainbow scale (jet, rainbow, hsv ...) gets a note (once). | [Liu & Heer 2018](https://doi.org/10.1145/3173574.3174172); [Nuñez et al. 2018](https://doi.org/10.1371/journal.pone.0199239); [Crameri et al. 2020](https://doi.org/10.1038/s41467-020-19160-7); [Harrower & Brewer 2003](https://doi.org/10.1179/000870403235002042) |
 
+## Tables: start and look
+
+| Word or option | Default | Alternatives | Why | References |
+|---|---|---|---|---|
+| `sdata.table()` | The separator of a text file is guessed from the file. | separator=, decimal_mark=, thousands_mark=, empty_values=, skip_rows=, encoding=. | **P5.** Reading data: files from other countries use ; or tabs; every guess can be set by hand. *Basis: starting value.* |  |
+| `table.show_first_rows()` | Rows numbered from 1, the way people count; only the display changes. | as_pandas() gives the table with pandas' own row labels (from 0). | **P5.** Showing data, not a statistical method: numbering from 1 matches the row numbers the other position words use (keep_rows_by_position, remove_rows_by_position). *Basis: convention.* |  |
+| `table.describe_columns()` | Number columns get smallest, biggest and average; text columns the number of different values; empty cells (also blank text) are counted and left out; numbers are shown rounded to 2 decimals. | find_summary_of() for more measures and full precision. | **P5.** A first look at the data, not a statistical method; the rounding is only for reading. *Basis: starting value.* |  |
+
 ## Choose rows
 
 | Word or option | Default | Alternatives | Why | References |
 |---|---|---|---|---|
 | `table.keep_rows_where()` | is_above= means strictly above (>); rows with an empty cell in the column are left out, as pandas and Polars do. | is_at_least= for >=; the other conditions (is_below=, is_between= ...). | **P3.** The words say exactly which comparison is made; leaving out empty cells is what pandas, Polars and R's subset() do. *Basis: convention.* |  |
+| `table.keep_rows_by_position()` | Positions counted from 1, both ends kept. | step= for every n-th row, a list for chosen rows, to="last". | **P5.** Data preparation: counting from 1 with both ends kept is how people (and R) say "rows 10 to 20". *Basis: convention.* |  |
 | `table.keep_random_rows()` `for_each_group_in=` | The same number of random rows from each group (pandas groupby().sample(random_state=)), rows kept in table order; a group with that many rows or fewer is kept whole, with a note. | percent= for the same share of each group; without for_each_group_in= the rows come from the whole table. | **P5.** A stratified random sample guarantees every group in the sample and is the usual design behind survey weights (Lumley 2010). Keeping a small group whole instead of stopping is simplydata's own choice, said in a note. *Basis: starting value.* **Checks:** with_seed= must be a whole number; empty group cells form a group of their own. | [Lumley 2010](https://doi.org/10.1002/9780470580066) |
 | `table.keep_random_rows()` `percent=` | That share of each group, rounded by pandas (groupby().sample(frac=)), and at least 1 row of every group. | A number of rows for each group. | **P5.** Proportional allocation keeps each group's share of the sample equal to its share of the table (Lumley 2010); at least one row per group keeps every stratum, simplydata's own choice. *Basis: starting value.* **Checks:** percent= must be above 0 and up to 100; it cannot go with a number of rows. | [Lumley 2010](https://doi.org/10.1002/9780470580066) |
 | `table.show_rows_with_outliers()` | Tukey's rule: values more than 1.5 x IQR below the first or above the third quartile (quartiles as R quantile(type = 7)), within each group when asked. | test_method="3 IQR" (any k IQR), "3 standard deviations" (any k), or a test: "grubbs", "dixon", "rosner" (run in R). | **P3.** Tukey's fences are the box-plot rule and are not pulled by the outliers themselves, unlike a rule of k standard deviations. They flag about 0.7 % of clean bell-shaped values, so in a sample of 100 one value is often flagged (Hoaglin, Iglewicz & Tukey 1986); Hoaglin & Iglewicz 1987 suggest k = 2.2 for labelling, and Leys et al. 2013 the median plus or minus 2.5 MAD. The rule shows rows to look at, not rows to remove. *Basis: convention.* **Checks:** Refused for non-number columns. A k-SD rule that no value could reach with n values is flagged; the tests warn that they assume bell-shaped data and skip groups with fewer than 3 values. | [Hoaglin et al. 1986](https://doi.org/10.1080/01621459.1986.10478363); [Hoaglin & Iglewicz 1987](https://doi.org/10.1080/01621459.1987.10478551); [Leys et al. 2013](https://doi.org/10.1016/j.jesp.2013.03.013) |
@@ -108,13 +123,28 @@ a word that chooses a method has no entry, or when this file is out of date.
 | Word or option | Default | Alternatives | Why | References |
 |---|---|---|---|---|
 | `table.count_empty_cells_in()` `show="patterns"` | One row for each pattern of empty cells, with how many rows have it and how many cells it leaves empty (as R mice::md.pattern()), sorted by the number of empty cells, and the empty cells of each column printed below. | Without show=, the empty cells of each column; chart.draw_map_of_empty_cells() draws every row. | **P5.** Which cells are empty together is the first step before choosing how to handle them: monotone patterns and rows with many empty cells call for different methods (van Buuren & Groothuis-Oudshoorn 2011). **Checks:** An empty cell is a missing value, NaN or text of only spaces, as everywhere in simplydata. | [van Buuren & Groothuis-Oudshoorn 2011](https://doi.org/10.18637/jss.v045.i03) |
+| `table.fill_empty_cells_in()` | Fill with the value asked for: the average or median of the filled cells, the value above or below, or a line or curve between neighbours. | with_value=, with_the=, sorted_by=, for_each_group_in=. | **P5.** simplydata never fills on its own: the user chooses how, and the sentence says how many cells were filled. Filling with one value makes the spread look smaller; multiple imputation (empty_cells="multiple imputation" on the analysis words) keeps that uncertainty. *Basis: convention.* |  |
+
+## Fix columns
+
+| Word or option | Default | Alternatives | Why | References |
+|---|---|---|---|---|
+| `table.turn_into_numbers()` | A comma between groups of three digits is a thousands mark, any other single comma a decimal comma; cells that are not numbers become empty and are reported. | sdata.table(..., decimal_mark=",", thousands_mark=".") when reading a file. | **P4.** Data preparation: the rule reads both English and European writing of numbers, and every cell that could not be read is reported, so nothing is lost silently. *Basis: starting value.* **Checks:** Cells that do not read as numbers are counted and up to 3 are shown. |  |
 
 ## Sort and new columns
 
 | Word or option | Default | Alternatives | Why | References |
 |---|---|---|---|---|
+| `table.sort_by()` | A stable sort (rows that tie keep their order), empty cells last in both directions. | biggest_first=True; several columns for ties. | **P3.** Data preparation, not a statistical method: a stable sort makes the result the same every time, and empty cells last keeps them out of the way, as R order() does by default. *Basis: convention.* |  |
+| `table.add_group_column()` | A value exactly on a cut goes into the higher group (a mark of 60 with cut_at=[40, 60, 80] is in the third group). | rules= for groups by conditions. | **P5.** Data preparation: "60 and above" is how grade bands are usually written; pandas cut() and R cut() put the value in the lower group unless told right=FALSE. *Basis: starting value.* |  |
 | `table.add_rank_column()` | Rank 1 for the biggest value; ties share the lowest rank (1, 2, 2, 4), as in sports. | biggest_first=False. | **P3.** A ranking for reading, not a statistical method; rank tests rank the data themselves (average ranks for ties). *Basis: convention.* |  |
 | `table.add_z_score_column()` | (value - average) / standard deviation with n - 1, as R scale(); within each group when asked. | There is no other kind of standard deviation here. | **P3.** The n - 1 standard deviation is the sample standard deviation that R, pandas and the GUM use. *Basis: convention.* **Checks:** A group with fewer than 2 values gets empty z-scores. | [JCGM 100:2008 (GUM)](https://www.bipm.org/documents/20126/2071204/JCGM_100_2008_E.pdf) |
+
+## Row after row
+
+| Word or option | Default | Alternatives | Why | References |
+|---|---|---|---|---|
+| `table.add_rolling_column()` | A window of this row and the rows just before it, in the order of sorted_by=, within each group; a window that is not full, or has an empty cell, gives an empty cell. | window=, show=, centre=True, window="7 days". | **P3.** As pandas rolling() and R zoo::rollapply(align = "right"): a trailing window uses only what is known at each row. *Basis: convention.* |  |
 
 ## Summaries
 
@@ -256,12 +286,14 @@ a word that chooses a method has no entry, or when this file is out of date.
 
 | Word or option | Default | Alternatives | Why | References |
 |---|---|---|---|---|
+| `sdata.distribution()` | Parameters with plain names (average=, standard_deviation=, tries=, chance=), turned into SciPy's. | R's names (mean=, sd=, size=, prob=) work too; any SciPy distribution by its SciPy name. | **P3.** The parameters are R's, so the answers match R's d/p/q/r functions, which each sentence names. *Basis: convention.* |  |
 | `table.fit_distribution_to()` | The normal distribution, fitted by maximum likelihood (as R MASS::fitdistr() or fitdistrplus). | distribution= any name; fixed= to hold values; "kernel density". | **P3.** Maximum likelihood is the standard estimator (Venables & Ripley 2002; Delignette-Muller & Dutang 2015). The normal's standard deviation by maximum likelihood divides by n, which a note says. *Basis: convention.* **Checks:** Data outside the distribution's range, no spread, and a negative binomial with variance not above the mean are refused; a note when the search did not settle. | [Venables & Ripley 2002](https://doi.org/10.1007/978-0-387-21706-2); [Delignette-Muller & Dutang 2015](https://doi.org/10.18637/jss.v064.i04) |
 | `table.fit_distribution_to()` `distribution="gev"` | The GEV fitted by maximum likelihood with SciPy (genextreme, then a numerical polish), the shape stored as xi. | distribution="gumbel" for xi = 0; "generalised pareto" for the amounts above a threshold. | **P3.** Maximum likelihood is the standard fit of the GEV (Coles 2001, 3.3); the xi sign follows Coles and extRemes, while SciPy's genextreme takes c = -xi, so simplydata turns it round and says so. *Basis: convention.* | [Coles 2001](https://doi.org/10.1007/978-1-4471-3675-0) |
 | `table.fit_distribution_to()` `distribution="generalised pareto"` | The generalised Pareto curve fitted by maximum likelihood with SciPy (genpareto with the threshold at 0), the shape as xi. | Subtract the threshold first; find_return_levels_of(values_above=) does the whole peaks-over-threshold analysis. | **P3.** Maximum likelihood is the standard fit of the generalised Pareto curve to the amounts above a threshold (Davison & Smith 1990; Coles 2001, 4.3); SciPy's genpareto and extRemes share the xi sign. *Basis: convention.* | [Davison & Smith 1990](https://doi.org/10.1111/j.2517-6161.1990.tb01796.x); [Coles 2001](https://doi.org/10.1007/978-1-4471-3675-0) |
 | `table.compare_distributions_for()` | Normal, lognormal, gamma and Weibull, ranked by AIC, with the goodness-of-fit statistics of fitdistrplus::gofstat (no p-values). | distributions= your own list. | **P2.** AIC compares models fitted to the same data (Akaike 1974; Burnham & Anderson 2002); a note says a difference below 2 is too small to choose. **Checks:** Count and continuous families are not mixed; a family that fails is left out, with a note. | [Akaike 1974](https://doi.org/10.1109/TAC.1974.1100705); [Burnham & Anderson 2002](https://doi.org/10.1007/b97636); [Delignette-Muller & Dutang 2015](https://doi.org/10.18637/jss.v064.i04) |
 | `nums.fit_distribution()` | The same fit as table.fit_distribution_to. | As table.fit_distribution_to. | **P3.** As table.fit_distribution_to. *Basis: convention.* **Checks:** As table.fit_distribution_to. | [Venables & Ripley 2002](https://doi.org/10.1007/978-0-387-21706-2); [Delignette-Muller & Dutang 2015](https://doi.org/10.18637/jss.v064.i04) |
 | `dist.find_chance_that_value()` | The chance above a value is the survival function sf(), not 1 - cdf(). | is_below=, is_between=. | **P3.** 1 - cdf() loses all its digits far out in the tail; sf() keeps them. This is numerical care, not a statistical choice. *Basis: convention.* |  |
+| `dist.find_percentile()` | The value with that percent below it; for counts, the smallest count with at least that share at or below it. | find_cut_off() and find_middle_range() for the other questions. | **P3.** As R's q functions (qnorm, qbinom ...): the answer is written with the same call in R. *Basis: convention.* |  |
 
 ## Models
 
@@ -418,7 +450,9 @@ a word that chooses a method has no entry, or when this file is out of date.
 
 | Word or option | Default | Alternatives | Why | References |
 |---|---|---|---|---|
+| `sdata.make_run_of_dates()` | Month, quarter and year steps are counted from the first date, staying on its day or on the month's last day when the month is shorter. | every=, to= or how_many=. | **P5.** As pandas DateOffset and Polars "1mo" counted from the start; R's seq(by = "month") runs over into the next month instead. *Basis: convention.* |  |
 | `table.add_missing_dates()` `every=` | Without every=, the most common step between the dates (snapped to months, quarters or years when close), printed. | every= the step. | **P5.** Data preparation, not a statistical method: the step found is always printed so it can be checked. *Basis: convention.* **Checks:** Dates with no nameable step are refused. |  |
+| `table.add_missing_dates()` | Each group gets its own run of dates from its first to its last date; the table comes back sorted by the groups and the dates; rows with an empty group cell are a group of their own. | between= to add dates before and after; every= the step. | **P5.** Data preparation: the new rows have empty cells, never made-up values, and the sentence says how many were added. *Basis: convention.* **Checks:** Repeated dates and dates off the step are refused. |  |
 
 ## Smoothing and trend
 
@@ -495,13 +529,45 @@ a word that chooses a method has no entry, or when this file is out of date.
 | `sdata.make_random_assignments()` | Permuted blocks from R blockrand::blockrand(): each block holds every group equally often, and without in_blocks_of= the block sizes are 2 and 3 times the number of groups, chosen at random block by block; R's generator is named in full (Mersenne-Twister, Inversion, Rejection) so that with_seed= repeats the list. | in_blocks_of= (any multiples of the number of groups, one size or several); for_each_of= (one list per centre); groups= (names or a number). | **P1.** Blocks keep the groups about the same size all the way through, and random block sizes stop recruiters from guessing the last places of a block (Schulz & Grimes 2002a, 2002b; Efird 2011). The sizes 2 and 3 times the number of groups are simplydata's own starting value: no study fixes them. **Checks:** Block sizes that are not a multiple of the number of groups are refused; the printout says the last block is completed and that the list must be kept from the people who recruit. | [Schulz & Grimes 2002a](https://doi.org/10.1016/S0140-6736(02)07683-3); [Schulz & Grimes 2002b](https://doi.org/10.1016/S0140-6736(02)07750-4); [Efird 2011](https://doi.org/10.3390/ijerph8010015) |
 | `table.use_survey_design()` | R survey::svydesign() with the columns given; options(survey.lonely.psu = "adjust") and nest = TRUE; from then on the survey words give design-based answers and the other statistics words refuse. | table.use_survey_design() with no options turns it off. | **P1.** Analysing a complex sample as if it were a simple random sample gives standard errors that are too small (Lumley 2010; Korn & Graubard 1999). survey stops by default when a stratum has one cluster; "adjust" is the conservative option Lumley describes (Lumley 2010). **Checks:** Empty design cells and weights of 0 or less are refused; the printout says how the population sizes were read; a survey word refuses after rows were removed. | [Lumley 2010](https://doi.org/10.1002/9780470580066); [Korn & Graubard 1999](https://doi.org/10.1002/9781118032619); [Lumley 2004](https://doi.org/10.18637/jss.v009.i08) |
 
+## Join and reshape
+
+| Word or option | Default | Alternatives | Why | References |
+|---|---|---|---|---|
+| `table.join_with()` | keep="matching rows" (an inner join); a column in both tables gets "_other" in the other table's copy. | keep="all rows from this table" or "all rows from both". | **P4.** Data preparation: the sentence says how many rows found a match and warns when a key is repeated in the other table, so rows are not doubled unnoticed. *Basis: convention.* **Checks:** Keys of different kinds (text and numbers) are refused; repeated keys in the other table get a note. |  |
+
+## Undo and finish
+
+| Word or option | Default | Alternatives | Why | References |
+|---|---|---|---|---|
+| `table.save()` | The file holds only the columns, without row labels. | The end of the file name chooses the type (.xlsx, .csv, .tsv, .parquet, .json). | **P5.** Data handling: row labels are pandas' own and not part of the data. *Basis: convention.* |  |
+
+## Numbers: make and look
+
+| Word or option | Default | Alternatives | Why | References |
+|---|---|---|---|---|
+| `sdata.numbers()` | With to=, the end is included; the count of steps allows a little room for rounding. | step=, how_many= (evenly spaced, as np.linspace). | **P5.** Making numbers: "1 to 10" includes 10 in everyday speech and in R's seq(); NumPy's arange leaves the end out and can overshoot with a decimal step. *Basis: convention.* |  |
+| `sdata.make_random_numbers()` | NumPy's random generator (default_rng) with the seed given; whole numbers include both ends. | with_seed= for the same numbers every time. | **P3.** NumPy recommends its Generator over the old global seed; "between 1 and 6" includes 6, like a dice. *Basis: convention.* |  |
+
+## Numbers: choose, sort and fill
+
+| Word or option | Default | Alternatives | Why | References |
+|---|---|---|---|---|
+| `nums.keep_each_number_that()` | is_above= is strictly above; empty values match only is_empty=True. | is_at_least=, is_between= (both ends included) and the other conditions. | **P5.** The same conditions as table.keep_rows_where, so one rule holds everywhere. *Basis: convention.* |  |
+
 ## Numbers: summaries
 
 | Word or option | Default | Alternatives | Why | References |
 |---|---|---|---|---|
+| `nums.find_average()` | The mean, empty values skipped. | remove_empty_numbers() first, to see how many there were. | **P3.** As R mean(na.rm = TRUE) and pandas: the sentence says how many numbers were used. *Basis: convention.* |  |
 | `nums.find_median()` | The middle value, empty values skipped (np.nanmedian); NumPy's np.median would give nan. | remove_empty_numbers() first if you want them gone for later steps too. | **P3.** Skipping empty values and saying so is what pandas and R's median(na.rm = TRUE) do. *Basis: convention.* |  |
 | `nums.find_standard_deviation()` | The sample standard deviation, dividing by n - 1, empty values skipped. | There is no other kind here. | **P1.** As table.find_standard_deviation_of: the n - 1 form of the GUM, R and pandas (NumPy's own default divides by n). **Checks:** Fewer than 2 values give an empty answer, with a note. | [JCGM 100:2008 (GUM)](https://www.bipm.org/documents/20126/2071204/JCGM_100_2008_E.pdf) |
 | `nums.find_percentile()` | Linear interpolation (R quantile(type = 7)), empty values skipped. | table.find_percentile_of(test_method=) for the other types. | **P3.** As table.find_percentile_of (Hyndman & Fan 1996). *Basis: convention.* | [Hyndman & Fan 1996](https://doi.org/10.1080/00031305.1996.10473566) |
+
+## Grids of numbers
+
+| Word or option | Default | Alternatives | Why | References |
+|---|---|---|---|---|
+| `sdata.number_grid()` | A list is cut into rows, row after row. | rows= or columns=; a list of rows for a grid as it is. | **P3.** As NumPy's reshape (order "C"), which reads a list the way text is read; R's matrix() fills by column unless byrow = TRUE. *Basis: convention.* |  |
 
 ## References
 
