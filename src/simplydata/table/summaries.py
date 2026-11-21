@@ -59,7 +59,7 @@ CORRELATION_METHODS = ("pearson", "spearman", "kendall", "somers", "gamma")
 ORDINAL_METHODS = ("somers", "gamma")  # two columns, the measure with its interval from R DescTools
 METHOD_NAMES = {"pearson": "Pearson", "spearman": "Spearman", "kendall": "Kendall's tau-b", "somers": "Somers' d",
                 "gamma": "Goodman and Kruskal's gamma"}
-CORRELATION_SHOW = ("r", "p-value", "each pair")
+CORRELATION_SHOW = ("r", "p-value", "each pair", "covariance")
 STRONGEST_PAIRS = 3  # a correlation table prints this many of its strongest pairs
 
 # every= : the time step -> narwhals truncate code (weeks are done by hand: Monday start)
@@ -376,6 +376,7 @@ def _one_number(step, name):
                           'Try "average", "median" or "standard deviation".')
 
 
+MAX_REPEATED_ROWS = 10_000_000  # frequency weights: the most rows a weighted percentile repeats
 PERCENTILE_RULES = ("inverted_cdf", "averaged_inverted_cdf", "closest_observation", "interpolated_inverted_cdf",
                     "hazen", "weibull", "linear", "median_unbiased", "normal_unbiased")  # R quantile types 1-9
 
@@ -982,7 +983,8 @@ class SummaryWords:
         return self._summary("find_average_of", column, for_each_group_in, every, across)
 
     @friendly(renamed={"for_each": "for_each_group_in"})
-    def find_median_of(self, column, for_each_group_in=None, every=None, across=None, interval=None):
+    def find_median_of(self, column, for_each_group_in=None, every=None, across=None, interval=None, weights=None,
+                       weight_kind="frequency"):
         """The middle number of a column once it is sorted; empty cells are skipped.
 
         table.find_median_of("marks", for_each_group_in="class")   (with sdata.get_example("marks"))
@@ -990,7 +992,16 @@ class SummaryWords:
         interval=95 adds the 95 % confidence interval of each median: the exact interval from
         the order of the values (SciPy quantile_test, as R DescTools::MedianCI(method =
         "exact")); it gives back a table with the median, the interval and the count.
+        weights="n" gives the weighted median, with weight_kind= as in find_percentile_of:
+        "frequency" (the default; each row counts as often as its whole-number weight) or
+        "analytic".
         """
+        if weights is not None:
+            return self._weighted_percentile("find_median_of", column, 50.0, weights, weight_kind, for_each_group_in,
+                                             every, across, interval, "linear", said="median")
+        if weight_kind != "frequency":
+            raise SimplydataError("weight_kind= says how to read weights=, so it goes with weights=.\n"
+                                  'For example:  table.find_median_of("length", weights="n", weight_kind="analytic")')
         if interval is not None:
             return self._summary_interval("find_median_of", column, for_each_group_in, every, across, interval)
         return self._summary("find_median_of", column, for_each_group_in, every, across)
@@ -1052,8 +1063,8 @@ class SummaryWords:
         return self._summary("find_standard_deviation_of", column, for_each_group_in, every, across)
 
     @friendly(renamed={"for_each": "for_each_group_in"})
-    def find_percentile_of(self, column=None, percent=None, for_each_group_in=None, every=None, across=None, method="linear",
-                           interval=None):
+    def find_percentile_of(self, column=None, percent=None, for_each_group_in=None, every=None, across=None, method=None,
+                           interval=None, weights=None, weight_kind="frequency"):
         """The value below which a given percent of the numbers lie; empty cells are skipped.
 
         table.find_percentile_of("marks", 90, for_each_group_in="class")   (with sdata.get_example("marks"))
@@ -1069,6 +1080,13 @@ class SummaryWords:
         from the order of the values (SciPy quantile_test; for the median and the quartiles the
         same as R DescTools::QuantileCI(method = "exact"), which picks other values for other
         percents); with few values an end can be empty.
+        weights="n" gives the weighted percentile. weight_kind="frequency" (the default) reads
+        each weight as how many times the row counts, so it needs whole numbers: the rows are
+        repeated and the usual method= is used (as R quantile(rep(x, w)) and Hmisc::wtd.quantile(x,
+        w)); weights of 1 change nothing. weight_kind="analytic" reads any weight of 0 or more,
+        such as a sampling weight: NumPy percentile(weights=, method="inverted_cdf"), the only
+        weighted rule NumPy has (as R survey::svyquantile(qrule = "math")); it is a step, not a
+        line between values, so with all weights 1 it is not the unweighted default.
         """
         step = "find_percentile_of"
         if column is None:
@@ -1076,7 +1094,13 @@ class SummaryWords:
                                   f'For example:  table.{step}("marks", 90, for_each_group_in="class")   (with sdata.get_example("marks"))')
         number = _check_percent(step, percent)
         share = number / 100
-        rule = _percentile_rule(step, method)
+        rule = _percentile_rule(step, "linear" if method is None else method)
+        if weights is not None:
+            return self._weighted_percentile(step, column, number, weights, weight_kind, for_each_group_in, every,
+                                             across, interval, rule, method_given=method is not None)
+        if weight_kind != "frequency":
+            raise SimplydataError("weight_kind= says how to read weights=, so it goes with weights=.\n"
+                                  f'For example:  table.{step}("length", 90, weights="n", weight_kind="analytic")')
         if interval is not None:
             if rule != "linear":
                 raise SimplydataError("interval= gives the interval of the percentile itself, the same for every "
@@ -1087,6 +1111,91 @@ class SummaryWords:
                        f"{_ordinal(number)} percentile")
             return self._summary(step, column, for_each_group_in, every, across, measure=measure)
         return self._percentile_by_rule(step, column, number, for_each_group_in, every, across, rule)
+
+    def _weighted_percentile(self, step, column, number, weights, kind, for_each, every, across, interval, rule,
+                             method_given=False, said=None):
+        """find_percentile_of / find_median_of with weights=. Frequency weights: the rows repeated (NumPy repeat), then
+        NumPy percentile(method=) as without weights, as R quantile(rep(x, w)). Analytic weights: NumPy
+        percentile(weights=, method="inverted_cdf"), as R survey::svyquantile(qrule = "math")."""
+        example = ('table.find_median_of("length", weights="n")' if step == "find_median_of"
+                   else f'table.{step}("length", {number:g}, weights="n")')
+        self._check_choice(step, "weight_kind", kind, ("frequency", "analytic"))
+        if interval is not None:
+            raise SimplydataError("weights= and interval= do not go together here yet; leave out one of them.")
+        if every is not None or across is not None or not isinstance(column, str):
+            raise SimplydataError(f"weights= works with one column and for_each_group_in=; leave out every= and across=.\n"
+                                  f"For example:  {example}")
+        if not isinstance(weights, str):
+            raise SimplydataError(f"weights= is the name of a column of weights, in quotes.\nFor example:  {example}")
+        if weights == column:
+            raise SimplydataError(f'weights= needs a column other than "{column}".')
+        if kind == "analytic" and method_given and rule != "inverted_cdf":
+            raise SimplydataError(
+                'With weight_kind="analytic" the rule is the weighted inverted CDF (NumPy percentile(weights=, '
+                'method="inverted_cdf")), the only rule NumPy has with weights, so method= cannot be changed. Leave '
+                'out method=, or use weight_kind="frequency" (whole-number weights) to keep method=.')
+        groups = self._group_columns(step, for_each, [column, weights]) if for_each is not None else []
+        frame = self._number_frame(step, [column, weights])
+        both = frame.filter(~nw.col(column).is_null() & ~nw.col(weights).is_null())
+        left_out = len(frame) - len(both)
+        if left_out:
+            print(f'Note: {left_out} row{"" if left_out == 1 else "s"} with an empty cell in "{column}" or '
+                  f'"{weights}" {"was" if left_out == 1 else "were"} skipped.')
+        values = self._group_arrays(both, groups, column)
+        weight_values = self._group_arrays(both, groups, weights)
+        all_weights = np.concatenate([np.asarray(v, dtype=float) for v in weight_values.values()] or [np.array([])])
+        if np.any(all_weights < 0):
+            raise SimplydataError(f'weights= cannot be below 0, but "{weights}" has {int(np.sum(all_weights < 0))} '
+                                  "negative values.")
+        if not np.all(np.isfinite(all_weights)):
+            raise SimplydataError(f'weights= needs ordinary numbers, but "{weights}" has '
+                                  f"{int(np.sum(~np.isfinite(all_weights)))} infinite values. Fix or remove those rows "
+                                  "first.")
+        if kind == "frequency":
+            odd = all_weights[all_weights != np.round(all_weights)]
+            if len(odd):
+                raise SimplydataError(
+                    "Frequency weights say how many times each row counts, so they must be whole numbers, but "
+                    f'"{weights}" has {_say_number(float(odd[0]))}. For weights such as sampling weights or '
+                    f'precisions use weight_kind="analytic".\nFor example:  {example[:-1]}, weight_kind="analytic")')
+            if all_weights.sum() > MAX_REPEATED_ROWS:
+                raise SimplydataError(
+                    f'The frequency weights in "{weights}" add up to {int(all_weights.sum()):,} rows, more than '
+                    f"simplydata repeats ({MAX_REPEATED_ROWS:,}). Use weight_kind=\"analytic\" (the weighted "
+                    "inverted CDF), which repeats nothing.")
+        elif np.lib.NumpyVersion(np.__version__) < "2.0.0":
+            raise SimplydataError('weight_kind="analytic" needs NumPy 2.0 or newer (percentile(weights=)): '
+                                  "pip install -U numpy")
+        found = {}
+        for key, x in values.items():
+            w = np.asarray(weight_values[key], dtype=float)
+            if len(x) == 0 or not np.any(w > 0):
+                found[key] = math.nan
+            elif kind == "frequency":
+                found[key] = float(np.percentile(np.repeat(x, w.astype(np.int64)), number, method=rule))
+            else:
+                found[key] = float(np.percentile(x, number, weights=w, method="inverted_cdf"))
+        said = said or f"{_ordinal(number)} percentile"
+        start = "median" if said == "median" else f"percentile {number:g}"
+        if kind == "frequency":
+            r_type = PERCENTILE_RULES.index(rule) + 1
+            how = (f'frequency weights: each row counts as often as its weight; NumPy percentile(method="{rule}") of '
+                   f"the rows repeated, as R quantile(rep(x, w), type = {r_type})"
+                   + (" and Hmisc::wtd.quantile(x, w)" if rule == "linear" else ""))
+        else:
+            how = ('analytic weights: NumPy percentile(weights=, method="inverted_cdf"), the weighted inverted CDF, as '
+                   'R survey::svyquantile(qrule = "math")')
+        name = f"weighted {start} of {column}"
+        if not groups:
+            value = found.get((), math.nan)
+            print(f'The {said} of "{column}", weighted by "{weights}", is {_say_number(value)} ({how}).')
+            return value
+        data = {g: [key[i] for key in found] for i, g in enumerate(groups)}
+        data[name] = list(found.values())
+        table = self._new_table(nw.from_dict(data, backend=self._frame.implementation))
+        shown = _say_groups(table._frame, groups, name)
+        print(f'The {said} of "{column}", weighted by "{weights}", for each {_each(groups)}: {shown} ({how}).')
+        return table
 
     def _percentile_by_rule(self, step, column, number, for_each, every, across, rule):
         """find_percentile_of(method=) other than the linear rule: NumPy percentile(method=), as R quantile(type =)."""
@@ -1738,7 +1847,10 @@ class SummaryWords:
         Each pair uses the rows where both columns have a number. show="p-value" gives the
         table of p-values instead, and show="each pair" one row per pair (r, p-value,
         rows), ready for add_adjusted_p_value_column(): testing many pairs makes a chance
-        finding more likely.
+        finding more likely. show="covariance" gives the covariance table instead (pandas
+        DataFrame.cov(), dividing by n - 1, each pair on the rows where both columns have a number,
+        as R cov(use = "pairwise.complete.obs")), also for two columns: covariances are in the units
+        of the two columns multiplied; the correlation is the same link without units.
         Strength words for the size of r: below 0.2 very weak, from 0.2 weak, from 0.4
         medium, from 0.6 strong, from 0.8 very strong (after Evans 1996).
         The p-value is said as how often a link this strong or stronger would turn up in studies
@@ -1779,6 +1891,18 @@ class SummaryWords:
         shown = _plain_name(show)
         if shown not in CORRELATION_SHOW:
             raise choice_error(step, "show", show, list(CORRELATION_SHOW))
+        if shown == "covariance":
+            if len(set(names)) < len(names):
+                twice = next(n for n in names if names.count(n) > 1)
+                raise SimplydataError(f'"{twice}" is listed twice. Give each column once.')
+            if (_plain_name(method) != "pearson" or sides != 2 or higher is not None or lower is not None
+                    or alternative not in (None, "two-sided") or p_value_by != "formula" or interval_by is not None
+                    or allowing_for is not None):
+                raise SimplydataError('show="covariance" gives the covariance table (no test, no ranks); leave out '
+                                      "method=, sides=, higher=, p_value_by=, interval_by= and allowing_for=.\n"
+                                      'For example:  table.find_correlation_between("hours", "marks", "height", '
+                                      'show="covariance")')
+            return self._covariance_table(step, self._number_frame(step, names), names)
         if len(set(names)) < len(names):
             if len(names) == 2:
                 raise SimplydataError(
@@ -2006,6 +2130,34 @@ class SummaryWords:
               f'taking out what both columns share with "{allowing_for}". A correlation does not show that one thing '
               "causes the other.")
         return r
+
+    def _covariance_table(self, step, frame, names):
+        """find_correlation_between(show="covariance"): pandas DataFrame.cov() (n - 1, pairwise complete rows), as R
+        cov(use = "pairwise.complete.obs")."""
+        data = frame.select(*names).to_pandas().astype(float)
+        cov = data.cov(ddof=1, min_periods=2)  # empty where a pair has fewer than 2 rows with both numbers
+        few = [(a, b) for i, a in enumerate(names) for b in names[i:] if cov.isna().loc[a, b]]
+        if few:
+            a, b = few[0]
+            pair = f'"{a}"' if a == b else f'"{a}" and "{b}"'
+            raise SimplydataError(f"{step}() needs at least 2 rows where {pair} {'has' if a == b else 'both have'} a "
+                                  "number for a covariance.")
+        table = {"column": list(names)}
+        for b in names:
+            table[b] = [float(cov.loc[a, b]) for a in names]
+        listed = "; ".join(f'"{a}" and "{b}": {_say_number(float(cov.loc[a, b]))}'
+                           for i, a in enumerate(names) for b in names[i + 1:])
+        print(f"Covariances between {len(names)} columns (each pair uses the rows where both columns have a number; "
+              f"the diagonal is each column's variance): {listed}.")
+        print("A covariance is in the units of the two columns multiplied, so its size depends on the units; the "
+              "correlation (show=\"r\") is the same link without units, from -1 to 1.")
+        print('Method: pandas DataFrame.cov() (divide by n - 1), as R cov(use = "pairwise.complete.obs"); R\'s '
+              'default use = "everything" gives NA where a column has an empty cell.')
+        gaps = len(frame) - len(frame.select(*names).drop_nulls())
+        if gaps:
+            print(f"Note: {gaps} row{'' if gaps == 1 else 's'} {'has' if gaps == 1 else 'have'} an empty cell in at "
+                  "least one of these columns; each pair skipped only the rows it could not use.")
+        return self._new_table(nw.from_dict(table, backend=self._frame.implementation))
 
     def _correlation_table(self, step, frame, names, method, shown):
         found = {}

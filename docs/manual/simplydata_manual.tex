@@ -707,6 +707,15 @@ x7 & speeded addition\\
 x8 & speeded counting of dots\\
 x9 & speeded discrimination of straight and curved capitals\\
 \bottomrule\end{tabularx}\end{center}
+\section*{many\_tests}
+MADE-UP DATA: the results of testing 2000 made-up genes for a difference between two groups of samples, one row per gene; about 1 in 5 genes has a real difference. Invented for practice (for q-values and the local false discovery rate); not from any real study. \code{sdata.\allowbreak{}get\_\allowbreak{}example(\textquotedbl{}many\_\allowbreak{}tests\textquotedbl{})}
+\begin{center}\small
+\begin{tabularx}{\textwidth}{@{}>{\ttfamily}l>{\raggedright\arraybackslash}X@{}}
+\toprule \textrm{\textbf{Column}} & \textbf{What it holds}\\ \midrule
+gene & a made-up gene name, G0001 to G2000\\
+difference & the difference between the two groups (on a log scale; 0 = no difference)\\
+p-value & the p-value of the test of that gene\\
+\bottomrule\end{tabularx}\end{center}
 
 \part{Lessons}\label{part:lessons}
 
@@ -2347,6 +2356,7 @@ table.show_first_rows(3)
   \item \code{table.\allowbreak{}add\_\allowbreak{}rows\_\allowbreak{}from(other)} puts the rows of another table under this one. \code{turn\_\allowbreak{}rows\_\allowbreak{}into\_\allowbreak{}columns} does the opposite of \code{turn\_\allowbreak{}columns\_\allowbreak{}into\_\allowbreak{}rows}.
   \item Lesson 13 teaches numbers, and lesson 14 the statistical tests: is a difference real, and how big is it?
   \item Every summary skips empty cells and says how many it skipped. \code{find\_\allowbreak{}summary\_\allowbreak{}of} can also show \code{\textquotedbl{}variance\textquotedbl{}}, \code{\textquotedbl{}standard error\textquotedbl{}}, \code{\textquotedbl{}confidence interval\textquotedbl{}}, \code{\textquotedbl{}range\textquotedbl{}} and \code{\textquotedbl{}interquartile range\textquotedbl{}}.
+  \item More: \code{find\_\allowbreak{}percentile\_\allowbreak{}of(\textquotedbl{}price\textquotedbl{},\allowbreak{} 90,\allowbreak{} weights=\textquotedbl{}count\textquotedbl{})} and \code{find\_\allowbreak{}median\_\allowbreak{}of(.\allowbreak{}.\allowbreak{}.\allowbreak{},\allowbreak{} weights=\textquotedbl{}count\textquotedbl{})} count each row as often as its weight (\code{weight\_\allowbreak{}kind=\textquotedbl{}analytic\textquotedbl{}} for sampling weights); \code{find\_\allowbreak{}correlation\_\allowbreak{}between(\textquotedbl{}hours\textquotedbl{},\allowbreak{} \textquotedbl{}marks\textquotedbl{},\allowbreak{} \textquotedbl{}height\textquotedbl{},\allowbreak{} show=\textquotedbl{}covariance\textquotedbl{})} gives the covariances, the correlations with units.
 \end{itemize}
 \end{goodtoknow}
 \begin{tryit}
@@ -2644,6 +2654,7 @@ clinic.compare_matched_columns("pain_week_0", "pain_week_4", "pain_week_8")
   \item Also: \code{compare\_\allowbreak{}before\_\allowbreak{}and\_\allowbreak{}after} for two measurements of the same thing (a paired t-test), and \code{compare\_\allowbreak{}average\_\allowbreak{}to} for one average against a number you choose.
   \item \code{remove\_\allowbreak{}rows\_\allowbreak{}with\_\allowbreak{}outliers} removes such rows. Say in your report which rule removed how many rows, and never remove a value only because it spoils the result.
   \item \code{method=\textquotedbl{}benjamini-hochberg\textquotedbl{}} adjusts for many tests more gently: it controls the share of false alarms among your findings (the false discovery rate).
+  \item More: with hundreds of tests, such as genes, \code{method=\textquotedbl{}storey\textquotedbl{}} gives q-values (\code{sdata.\allowbreak{}get\_\allowbreak{}example(\textquotedbl{}many\_\allowbreak{}tests\textquotedbl{})}); \code{compare\_\allowbreak{}each\_\allowbreak{}pair\_\allowbreak{}of(.\allowbreak{}.\allowbreak{}.\allowbreak{},\allowbreak{} based\_\allowbreak{}on=\textquotedbl{}percents\textquotedbl{},\allowbreak{} value=\textquotedbl{}yes\textquotedbl{})} compares the percent of each pair of groups; after Friedman's test, \code{compare\_\allowbreak{}each\_\allowbreak{}pair\_\allowbreak{}of(.\allowbreak{}.\allowbreak{}.\allowbreak{},\allowbreak{} matched\_\allowbreak{}by=,\allowbreak{} test=\textquotedbl{}nemenyi\textquotedbl{})} or \code{test=\textquotedbl{}conover\textquotedbl{}}.
 \end{itemize}
 \end{goodtoknow}
 \begin{tryit}
@@ -3895,6 +3906,7 @@ chart.save("visitor_forecast.png")
   \item \code{repeats\_\allowbreak{}every=\textquotedbl{}year\textquotedbl{}} turns into 12 rows for monthly data (7 for \code{\textquotedbl{}week\textquotedbl{}} with daily data).
   \item A prediction interval says where the next values will probably fall. It widens the further ahead you look.
   \item \code{check\_\allowbreak{}on\_\allowbreak{}last=12} holds back the last 12 readings: a forecast is only as good as its check on data it has not seen.
+  \item More: \code{method=\textquotedbl{}arima\textquotedbl{}}, \code{order=\textquotedbl{}automatic\textquotedbl{}} lets R auto.arima choose the ARIMA order; the printout names the order, and the intervals are a little too narrow because the order was chosen from the same data.
 \end{itemize}
 \end{goodtoknow}
 \begin{tryit}
@@ -4812,7 +4824,7 @@ chart.save("my_chart.png")
 A small table to practise with. \code{sdata.\allowbreak{}get\_\allowbreak{}example(\textquotedbl{}marks\textquotedbl{})}
 
 \codeline{sdata.get\_example() with no name lists every table and its columns.}\\
-The tables are: marks, weather, fruit, growth, sensor, visitors, river, shop, school, meadow, trial, clinic, island, toxicity, culture, admissions, resistome, stations, rain, \code{sea\_\allowbreak{}levels} (real published sea levels), and, for combining studies, bcg and \code{passive\_\allowbreak{}smoking} (real published studies), and, for hidden factors, \code{ability\_\allowbreak{}tests} (real published test scores). \code{\textquotedbl{}shop\textquotedbl{}} has empty cells and a column of dates to practise with; \code{\textquotedbl{}school\textquotedbl{}} has empty cells too.
+The tables are: marks, weather, fruit, growth, sensor, visitors, river, shop, school, meadow, trial, clinic, island, toxicity, culture, admissions, resistome, stations, rain, \code{sea\_\allowbreak{}levels} (real published sea levels), and, for combining studies, bcg and \code{passive\_\allowbreak{}smoking} (real published studies), for hidden factors, \code{ability\_\allowbreak{}tests} (real published test scores), and, for q-values, \code{many\_\allowbreak{}tests} (made up). \code{\textquotedbl{}shop\textquotedbl{}} has empty cells and a column of dates to practise with; \code{\textquotedbl{}school\textquotedbl{}} has empty cells too.
 
 \wordfield{Options}{}\par\nopagebreak
 \begin{optiontable}
@@ -8406,7 +8418,7 @@ df.group_by("class", maintain_order=True).agg(pl.col("marks").mean())   # (1)
 The middle number of a column once it is sorted; empty cells are skipped.
 
 \codeline{table.find\_median\_of(\textquotedbl{}marks\textquotedbl{}, for\_each\_group\_in=\textquotedbl{}class\textquotedbl{})   (with sdata.get\_example(\textquotedbl{}marks\textquotedbl{}))}\\
-\code{across=} and \code{every=} work as in \code{find\_\allowbreak{}average\_\allowbreak{}of}. \code{interval=95} adds the 95 \% confidence interval of each median: the exact interval from the order of the values (SciPy \code{quantile\_\allowbreak{}test}, as R DescTools::\code{MedianCI(method = \textquotedbl{}exact\textquotedbl{})}); it gives back a table with the median, the interval and the count.
+\code{across=} and \code{every=} work as in \code{find\_\allowbreak{}average\_\allowbreak{}of}. \code{interval=95} adds the 95 \% confidence interval of each median: the exact interval from the order of the values (SciPy \code{quantile\_\allowbreak{}test}, as R DescTools::\code{MedianCI(method = \textquotedbl{}exact\textquotedbl{})}); it gives back a table with the median, the interval and the count. \code{weights=\textquotedbl{}n\textquotedbl{}} gives the weighted median, with \code{weight\_\allowbreak{}kind=} as in \code{find\_\allowbreak{}percentile\_\allowbreak{}of}: \code{\textquotedbl{}frequency\textquotedbl{}} (the default; each row counts as often as its whole-number weight) or \code{\textquotedbl{}analytic\textquotedbl{}}.
 
 \wordfield{Options}{}\par\nopagebreak
 \begin{optiontable}
@@ -8415,16 +8427,33 @@ The middle number of a column once it is sorted; empty cells are skipped.
 \code{every=} & \\
 \code{across=} & \\
 \code{interval=} & \\
+\code{weights=} & \\
+\code{weight\_\allowbreak{}kind=} & normally \code{\textquotedbl{}frequency\textquotedbl{}}\\
 \end{optiontable}
 
 \wordfield{Why this method}{\hyperref[basis:table.find-median-of]{How simplydata chooses methods}, page \pageref{basis:table.find-median-of}: the default, the evidence and the checks.}
-\wordfield{Underneath}{narwhals (group medians); SciPy (stats.quantile\_test \code{confidence\_\allowbreak{}interval} for \code{interval=})}
+\wordfield{Underneath}{narwhals (group medians); SciPy (stats.quantile\_test \code{confidence\_\allowbreak{}interval} for \code{interval=}); NumPy (repeat and median, or \code{percentile(weights=)}) for \code{weights=}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
 table = sdata.table(sdata.get_example("marks"))
 table.find_median_of("marks", for_each_group_in="class")
 \end{lstlisting}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{NumPy}}
+\undertext{\textbf{With \code{weights=}}: the same job with this option.}
+\underlib{NumPy}
+\begin{lstlisting}[style=under]
+import numpy as np
+df = sdata.get_example("fruit")
+# find_median_of("price", weights="count")
+rows = np.repeat(df["price"].to_numpy(), df["count"].to_numpy())   # (1)
+np.median(rows)
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) frequency weights: each row repeated as often as its weight (\code{weight\_\allowbreak{}kind=\textquotedbl{}analytic\textquotedbl{}} gives the weighted inverted CDF instead).}
+\undertext{As \code{find\_\allowbreak{}percentile\_\allowbreak{}of(weights=)}.}
+\undertext{\textit{Checked:} a test runs both and compares the number (on a pandas and on a Polars table).}
+\end{underneathbox}
 \wordentry{table.find\_total\_of()}{word:table.find-total-of}
 All the numbers in a column added up; empty cells are skipped.
 
@@ -8598,7 +8627,7 @@ table.count_different_values_in("name", for_each_group_in="class")
 The value below which a given percent of the numbers lie; empty cells are skipped.
 
 \codeline{table.find\_percentile\_of(\textquotedbl{}marks\textquotedbl{}, 90, for\_each\_group\_in=\textquotedbl{}class\textquotedbl{})   (with sdata.get\_example(\textquotedbl{}marks\textquotedbl{}))}\\
-\code{find\_\allowbreak{}percentile\_\allowbreak{}of(\textquotedbl{}marks\textquotedbl{},\allowbreak{} 50)} is the median, 25 and 75 the quartiles. Between two numbers it uses the usual linear rule (R \code{quantile(type = 7)}, NumPy and pandas default). \code{across=} and \code{every=} work as in \code{find\_\allowbreak{}average\_\allowbreak{}of}. \code{method=} picks one of R's nine rules, by R's number or NumPy's name: 1 \code{\textquotedbl{}inverted\_\allowbreak{}cdf\textquotedbl{}}, 2 \code{\textquotedbl{}averaged\_\allowbreak{}inverted\_\allowbreak{}cdf\textquotedbl{}}, 3 \code{\textquotedbl{}closest\_\allowbreak{}observation\textquotedbl{}}, 4 \code{\textquotedbl{}interpolated\_\allowbreak{}inverted\_\allowbreak{}cdf\textquotedbl{}}, 5 \code{\textquotedbl{}hazen\textquotedbl{}}, 6 \code{\textquotedbl{}weibull\textquotedbl{}} (as SPSS and Minitab), 7 \code{\textquotedbl{}linear\textquotedbl{}} (the default), 8 \code{\textquotedbl{}median\_\allowbreak{}unbiased\textquotedbl{}} (recommended by Hyndman and Fan), 9 \code{\textquotedbl{}normal\_\allowbreak{}unbiased\textquotedbl{}}; NumPy \code{percentile(method=)}, as R \code{quantile(type =)}. \code{interval=95} adds the 95 \% confidence interval of each percentile: the exact interval from the order of the values (SciPy \code{quantile\_\allowbreak{}test}; for the median and the quartiles the same as R DescTools::\code{QuantileCI(method = \textquotedbl{}exact\textquotedbl{})}, which picks other values for other percents); with few values an end can be empty.
+\code{find\_\allowbreak{}percentile\_\allowbreak{}of(\textquotedbl{}marks\textquotedbl{},\allowbreak{} 50)} is the median, 25 and 75 the quartiles. Between two numbers it uses the usual linear rule (R \code{quantile(type = 7)}, NumPy and pandas default). \code{across=} and \code{every=} work as in \code{find\_\allowbreak{}average\_\allowbreak{}of}. \code{method=} picks one of R's nine rules, by R's number or NumPy's name: 1 \code{\textquotedbl{}inverted\_\allowbreak{}cdf\textquotedbl{}}, 2 \code{\textquotedbl{}averaged\_\allowbreak{}inverted\_\allowbreak{}cdf\textquotedbl{}}, 3 \code{\textquotedbl{}closest\_\allowbreak{}observation\textquotedbl{}}, 4 \code{\textquotedbl{}interpolated\_\allowbreak{}inverted\_\allowbreak{}cdf\textquotedbl{}}, 5 \code{\textquotedbl{}hazen\textquotedbl{}}, 6 \code{\textquotedbl{}weibull\textquotedbl{}} (as SPSS and Minitab), 7 \code{\textquotedbl{}linear\textquotedbl{}} (the default), 8 \code{\textquotedbl{}median\_\allowbreak{}unbiased\textquotedbl{}} (recommended by Hyndman and Fan), 9 \code{\textquotedbl{}normal\_\allowbreak{}unbiased\textquotedbl{}}; NumPy \code{percentile(method=)}, as R \code{quantile(type =)}. \code{interval=95} adds the 95 \% confidence interval of each percentile: the exact interval from the order of the values (SciPy \code{quantile\_\allowbreak{}test}; for the median and the quartiles the same as R DescTools::\code{QuantileCI(method = \textquotedbl{}exact\textquotedbl{})}, which picks other values for other percents); with few values an end can be empty. \code{weights=\textquotedbl{}n\textquotedbl{}} gives the weighted percentile. \code{weight\_\allowbreak{}kind=\textquotedbl{}frequency\textquotedbl{}} (the default) reads each weight as how many times the row counts, so it needs whole numbers: the rows are repeated and the usual \code{method=} is used (as R \code{quantile(rep(x,\allowbreak{} w))} and Hmisc::\code{wtd.\allowbreak{}quantile(x,\allowbreak{} w)}); weights of 1 change nothing. \code{weight\_\allowbreak{}kind=\textquotedbl{}analytic\textquotedbl{}} reads any weight of 0 or more, such as a sampling weight: NumPy \code{percentile(weights=,\allowbreak{} method=\textquotedbl{}inverted\_\allowbreak{}cdf\textquotedbl{})}, the only weighted rule NumPy has (as R survey::\code{svyquantile(qrule = \textquotedbl{}math\textquotedbl{})}); it is a step, not a line between values, so with all weights 1 it is not the unweighted default.
 
 \wordfield{Options}{}\par\nopagebreak
 \begin{optiontable}
@@ -8607,18 +8636,51 @@ The value below which a given percent of the numbers lie; empty cells are skippe
 \code{for\_\allowbreak{}each\_\allowbreak{}group\_\allowbreak{}in=} & \\
 \code{every=} & \\
 \code{across=} & \\
-\code{method=} & normally \code{\textquotedbl{}linear\textquotedbl{}}\\
+\code{method=} & \\
 \code{interval=} & \\
+\code{weights=} & \\
+\code{weight\_\allowbreak{}kind=} & normally \code{\textquotedbl{}frequency\textquotedbl{}}\\
 \end{optiontable}
 
 \wordfield{Why this method}{\hyperref[basis:table.find-percentile-of]{How simplydata chooses methods}, page \pageref{basis:table.find-percentile-of}: the default, the evidence and the checks.}
-\wordfield{Underneath}{narwhals (quantile with linear interpolation, as R quantile type 7); NumPy (percentile with \code{method=}, R's nine types); SciPy (stats.quantile\_test for \code{interval=})}
+\wordfield{Underneath}{narwhals (quantile with linear interpolation, as R quantile type 7); NumPy (percentile with \code{method=}, R's nine types; repeat or \code{percentile(weights=)} for \code{weights=}); SciPy (stats.quantile\_test for \code{interval=})}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
 table = sdata.table(sdata.get_example("marks"))
 table.find_percentile_of("marks", 90, for_each_group_in="class")
 \end{lstlisting}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{NumPy}}
+\undertext{\textbf{With \code{weights=}}: the same job with this option.}
+\underlib{NumPy}
+\begin{lstlisting}[style=under]
+import numpy as np
+df = sdata.get_example("fruit")
+# find_percentile_of("price", 90, weights="count")
+rows = np.repeat(df["price"].to_numpy(), df["count"].to_numpy())   # (1)
+np.percentile(rows, 90)                                           # (2)
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) frequency weights: each row repeated as often as its weight, so weights of 1 change nothing (as R \code{quantile(rep(x,\allowbreak{} w))} and Hmisc::wtd.quantile).}
+\undertext{(2) the linear rule (R type 7), the same \code{method=} as without weights.}
+\undertext{simplydata also refuses weights that are not whole numbers (and points to \code{weight\_\allowbreak{}kind=\textquotedbl{}analytic\textquotedbl{}}), negative weights and more than 10 million repeated rows, and skips rows with an empty cell, with a note.}
+\undertext{\textit{Checked:} a test runs both and compares the number (on a pandas and on a Polars table).}
+\end{underneathbox}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{NumPy}}
+\undertext{\textbf{With \code{weight\_\allowbreak{}kind=\textquotedbl{}analytic\textquotedbl{}}}: the same job with this option.}
+\underlib{NumPy}
+\begin{lstlisting}[style=under]
+import numpy as np
+df = sdata.get_example("fruit")
+# find_percentile_of("price", 90, weights="count", weight_kind="analytic")
+np.percentile(df["price"], 90, weights=df["count"],
+              method="inverted_cdf")                              # (1)
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) the weighted inverted CDF, the only NumPy rule with weights (as R survey::\code{svyquantile(qrule = \textquotedbl{}math\textquotedbl{})}): a step, not a line between values.}
+\undertext{simplydata also refuses \code{method=} with analytic weights (no other rule takes weights) and NumPy older than 2.0.}
+\undertext{\textit{Checked:} a test runs both and compares the number (on a pandas and on a Polars table).}
+\end{underneathbox}
 \wordentry{table.find\_most\_common\_of()}{word:table.find-most-common-of}
 The value that turns up most often (the mode), for numbers or text; empty cells are skipped.
 
@@ -8670,7 +8732,7 @@ How strongly columns of numbers go up or down together, from -1 to 1.
 \codeline{table.find\_correlation\_between(\textquotedbl{}hours\textquotedbl{}, \textquotedbl{}marks\textquotedbl{})   (with sdata.get\_example(\textquotedbl{}marks\textquotedbl{}))}\\
 \code{method=\textquotedbl{}pearson\textquotedbl{}} (a straight-line link, the usual one), \code{\textquotedbl{}spearman\textquotedbl{}} (uses ranks, for any link that keeps going one way) or \code{\textquotedbl{}kendall\textquotedbl{}} (Kendall's tau-b, also ranks: the share of pairs of rows that agree in order minus the share that disagree; as R \code{cor.\allowbreak{}test(method = \textquotedbl{}kendall\textquotedbl{})}, SciPy kendalltau). Prints the strength in words and the p-value from SciPy. With two columns it gives back the number r; rows with an empty cell in either column are skipped. With three or more columns it gives back a correlation table (as pandas .corr()), and prints the strongest pairs:\\
 \codeline{table.find\_correlation\_between(\textquotedbl{}hours\textquotedbl{}, \textquotedbl{}marks\textquotedbl{}, \textquotedbl{}height\textquotedbl{})}\\
-Each pair uses the rows where both columns have a number. \code{show=\textquotedbl{}p-value\textquotedbl{}} gives the table of p-values instead, and \code{show=\textquotedbl{}each pair\textquotedbl{}} one row per pair (r, p-value, rows), ready for \code{add\_\allowbreak{}adjusted\_\allowbreak{}p\_\allowbreak{}value\_\allowbreak{}column()}: testing many pairs makes a chance finding more likely. Strength words for the size of r: below 0.2 very weak, from 0.2 weak, from 0.4 medium, from 0.6 strong, from 0.8 very strong (after Evans 1996). The p-value is said as how often a link this strong or stronger would turn up in studies like this one if there were truly no link (\code{\textquotedbl{}about 3 of 100 studies\textquotedbl{}}, p = 0.031). \code{sides=1}, \code{higher=\textquotedbl{}positive\textquotedbl{}} (or \code{\textquotedbl{}negative\textquotedbl{}}) tests in one direction only, as decided before seeing the data (R \code{cor.\allowbreak{}test(alternative = \textquotedbl{}greater\textquotedbl{})}); two columns only. Two columns only: \code{p\_\allowbreak{}value\_\allowbreak{}by=\textquotedbl{}shuffling\textquotedbl{}} gives the p-value from shuffling one column against the other \code{shuffles=9999} times (\code{with\_\allowbreak{}seed=1}; SciPy \code{permutation\_\allowbreak{}test}), and \code{interval\_\allowbreak{}by=\textquotedbl{}bootstrap\textquotedbl{}} adds a 95 \% interval of r from drawing the rows again with replacement \code{resamples=9999} times (\code{with\_\allowbreak{}seed=1}; SciPy bootstrap, BCa, as R boot::\code{boot.\allowbreak{}ci()}). With \code{rows\_\allowbreak{}back=12} and two columns (\code{sorted\_\allowbreak{}by=} the time column): the correlation for shifts -12 to 12 (cross-correlation, as R ccf with the sign of the lag reversed): shift 2 pairs the first column with the second 2 rows later. It says which column follows the other. A correlation does not show that one thing causes the other.
+Each pair uses the rows where both columns have a number. \code{show=\textquotedbl{}p-value\textquotedbl{}} gives the table of p-values instead, and \code{show=\textquotedbl{}each pair\textquotedbl{}} one row per pair (r, p-value, rows), ready for \code{add\_\allowbreak{}adjusted\_\allowbreak{}p\_\allowbreak{}value\_\allowbreak{}column()}: testing many pairs makes a chance finding more likely. \code{show=\textquotedbl{}covariance\textquotedbl{}} gives the covariance table instead (pandas \code{DataFrame.\allowbreak{}cov()}, dividing by n - 1, each pair on the rows where both columns have a number, as R \code{cov(use = \textquotedbl{}pairwise.\allowbreak{}complete.\allowbreak{}obs\textquotedbl{})}), also for two columns: covariances are in the units of the two columns multiplied; the correlation is the same link without units. Strength words for the size of r: below 0.2 very weak, from 0.2 weak, from 0.4 medium, from 0.6 strong, from 0.8 very strong (after Evans 1996). The p-value is said as how often a link this strong or stronger would turn up in studies like this one if there were truly no link (\code{\textquotedbl{}about 3 of 100 studies\textquotedbl{}}, p = 0.031). \code{sides=1}, \code{higher=\textquotedbl{}positive\textquotedbl{}} (or \code{\textquotedbl{}negative\textquotedbl{}}) tests in one direction only, as decided before seeing the data (R \code{cor.\allowbreak{}test(alternative = \textquotedbl{}greater\textquotedbl{})}); two columns only. Two columns only: \code{p\_\allowbreak{}value\_\allowbreak{}by=\textquotedbl{}shuffling\textquotedbl{}} gives the p-value from shuffling one column against the other \code{shuffles=9999} times (\code{with\_\allowbreak{}seed=1}; SciPy \code{permutation\_\allowbreak{}test}), and \code{interval\_\allowbreak{}by=\textquotedbl{}bootstrap\textquotedbl{}} adds a 95 \% interval of r from drawing the rows again with replacement \code{resamples=9999} times (\code{with\_\allowbreak{}seed=1}; SciPy bootstrap, BCa, as R boot::\code{boot.\allowbreak{}ci()}). With \code{rows\_\allowbreak{}back=12} and two columns (\code{sorted\_\allowbreak{}by=} the time column): the correlation for shifts -12 to 12 (cross-correlation, as R ccf with the sign of the lag reversed): shift 2 pairs the first column with the second 2 rows later. It says which column follows the other. A correlation does not show that one thing causes the other.
 
 \wordfield{Options}{}\par\nopagebreak
 \begin{optiontable}
@@ -8692,13 +8754,27 @@ Each pair uses the rows where both columns have a number. \code{show=\textquoted
 \end{optiontable}
 
 \wordfield{Why this method}{\hyperref[basis:table.find-correlation-between]{How simplydata chooses methods}, page \pageref{basis:table.find-correlation-between}: the default, the evidence and the checks.}
-\wordfield{Underneath}{SciPy (stats.pearsonr, spearmanr or kendalltau; \code{permutation\_\allowbreak{}test} and bootstrap for \code{p\_\allowbreak{}value\_\allowbreak{}by=\textquotedbl{}shuffling\textquotedbl{}} and \code{interval\_\allowbreak{}by=\textquotedbl{}bootstrap\textquotedbl{}}); R DescTools (SpearmanRho, KendallTauB, SomersDelta, GoodmanKruskalGamma) for intervals and ppcor::pcor.test for \code{allowing\_\allowbreak{}for=} (simplydata[r])}
+\wordfield{Underneath}{SciPy (stats.pearsonr, spearmanr or kendalltau; \code{permutation\_\allowbreak{}test} and bootstrap for \code{p\_\allowbreak{}value\_\allowbreak{}by=\textquotedbl{}shuffling\textquotedbl{}} and \code{interval\_\allowbreak{}by=\textquotedbl{}bootstrap\textquotedbl{}}); R DescTools (SpearmanRho, KendallTauB, SomersDelta, GoodmanKruskalGamma) for intervals and ppcor::pcor.test for \code{allowing\_\allowbreak{}for=} (simplydata[r]); pandas DataFrame.cov for \code{show=\textquotedbl{}covariance\textquotedbl{}}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
 table = sdata.table(sdata.get_example("marks"))
 table.find_correlation_between("hours", "marks")
 \end{lstlisting}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{pandas}}
+\undertext{\textbf{With \code{show=\textquotedbl{}covariance\textquotedbl{}}}: the same job with this option.}
+\underlib{pandas}
+\begin{lstlisting}[style=under]
+df = sdata.get_example("marks")
+# find_correlation_between("hours", "marks", "height", show="covariance")
+cov = df[["hours", "marks", "height"]].cov(ddof=1)   # (1)
+cov.rename_axis("column").reset_index()
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) divide by n - 1, each pair on the rows where both columns have a number (as R \code{cov(use = \textquotedbl{}pairwise.\allowbreak{}complete.\allowbreak{}obs\textquotedbl{})}; R's default gives NA with an empty cell, and NumPy cov reads rows as the variables).}
+\undertext{simplydata also says that a covariance is in the units of the two columns multiplied and that the correlation is the same link without units.}
+\undertext{\textit{Checked:} a test runs both and compares the table (on a pandas and on a Polars table).}
+\end{underneathbox}
 \unsection{Statistical tests}{group:Statistical-tests}
 \wordentry{table.compare\_averages\_of()}{word:table.compare-averages-of}
 Are the averages of the groups really different?
@@ -8796,7 +8872,8 @@ row = test.results["C(Q('class'))"]["stat"].loc["Pillai's trace"]   # (1)
 Which pairs of groups differ? Every pair is compared, with Holm's correction.
 
 \codeline{table.compare\_each\_pair\_of(\textquotedbl{}marks\textquotedbl{}, for\_each\_group\_in=\textquotedbl{}class\textquotedbl{})   (with sdata.get\_example(\textquotedbl{}marks\textquotedbl{}))}\\
-Each pair gets Welch's t-test (or Mann-Whitney U with \code{based\_\allowbreak{}on=\textquotedbl{}ranks\textquotedbl{}}). Testing many pairs makes a false alarm more likely, so the p-values are adjusted with Holm's method: the chance of at least one false alarm stays at 5 \%. This is the same as R \code{pairwise.\allowbreak{}t.\allowbreak{}test(pool.\allowbreak{}sd = FALSE,\allowbreak{} p.\allowbreak{}adjust.\allowbreak{}method = \textquotedbl{}holm\textquotedbl{})}. Gives back a table with one row per pair. \code{test=\textquotedbl{}tukey\textquotedbl{}} gives Tukey's honest significant difference instead (R \code{TukeyHSD(aov(marks \textasciitilde{} class))}, the Tukey-Kramer form when the groups differ in size): the textbook follow-up to a one-way ANOVA, with 95 \% confidence intervals that hold for all pairs at once. It assumes the groups have the same spread; the default does not. \code{test=\textquotedbl{}welch\textquotedbl{}} and \code{test=\textquotedbl{}mann-whitney\textquotedbl{}} name the other two choices. More follow-up tests, each run in R (simplydata[r]): \code{test=\textquotedbl{}games-howell\textquotedbl{}} (like Tukey, but for groups with different spreads; R rstatix::\code{games\_\allowbreak{}howell\_\allowbreak{}test()}), \code{\textquotedbl{}scheffe\textquotedbl{}} (R DescTools::\code{ScheffeTest()}), \code{\textquotedbl{}lsd\textquotedbl{}} (Fisher's least significant difference, NOT adjusted for the number of pairs; R DescTools::\code{PostHocTest(method = \textquotedbl{}lsd\textquotedbl{})}), and for ranks \code{\textquotedbl{}dunn\textquotedbl{}} (R FSA::\code{dunnTest(method = \textquotedbl{}holm\textquotedbl{})}) and \code{\textquotedbl{}conover\textquotedbl{}} (R PMCMRplus::\code{kwAllPairsConoverTest( p.\allowbreak{}adjust.\allowbreak{}method = \textquotedbl{}holm\textquotedbl{})}). \code{against=\textquotedbl{}A\textquotedbl{}} compares every group with one control group only: Dunnett's test (SciPy stats.dunnett, as R multcomp::\code{glht(mcp(group = \textquotedbl{}Dunnett\textquotedbl{}))}), with intervals that hold for all the comparisons at once. SciPy works it out with random numbers, so \code{with\_\allowbreak{}seed=1} is used (printed); the last digit can differ from R's. \code{show=\textquotedbl{}letters\textquotedbl{}} gives each group letters instead (a compact letter display, R multcompView::\code{multcompLetters()}): groups that share a letter have an adjusted p-value of 0.05 or more between them. It works with every \code{test=} above, and gives back one row per group. \code{matched\_\allowbreak{}by=\textquotedbl{}patient\textquotedbl{}}: the same rows (patients) were measured in every group, such as pain at week 0, 4 and 8 in long form. Each pair is then compared within the patients: paired t-tests, or with \code{based\_\allowbreak{}on=\textquotedbl{}ranks\textquotedbl{}} (after \code{compare\_\allowbreak{}matched\_\allowbreak{}columns}'s Friedman test) the Wilcoxon signed-rank test, with Holm's correction (SciPy, as R \code{pairwise.\allowbreak{}t.\allowbreak{}test(paired = TRUE)} and \code{pairwise.\allowbreak{}wilcox.\allowbreak{}test(paired = TRUE)}).
+Each pair gets Welch's t-test (or Mann-Whitney U with \code{based\_\allowbreak{}on=\textquotedbl{}ranks\textquotedbl{}}). Testing many pairs makes a false alarm more likely, so the p-values are adjusted with Holm's method: the chance of at least one false alarm stays at 5 \%. This is the same as R \code{pairwise.\allowbreak{}t.\allowbreak{}test(pool.\allowbreak{}sd = FALSE,\allowbreak{} p.\allowbreak{}adjust.\allowbreak{}method = \textquotedbl{}holm\textquotedbl{})}. Gives back a table with one row per pair. \code{test=\textquotedbl{}tukey\textquotedbl{}} gives Tukey's honest significant difference instead (R \code{TukeyHSD(aov(marks \textasciitilde{} class))}, the Tukey-Kramer form when the groups differ in size): the textbook follow-up to a one-way ANOVA, with 95 \% confidence intervals that hold for all pairs at once. It assumes the groups have the same spread; the default does not. \code{test=\textquotedbl{}welch\textquotedbl{}} and \code{test=\textquotedbl{}mann-whitney\textquotedbl{}} name the other two choices. More follow-up tests, each run in R (simplydata[r]): \code{test=\textquotedbl{}games-howell\textquotedbl{}} (like Tukey, but for groups with different spreads; R rstatix::\code{games\_\allowbreak{}howell\_\allowbreak{}test()}), \code{\textquotedbl{}scheffe\textquotedbl{}} (R DescTools::\code{ScheffeTest()}), \code{\textquotedbl{}lsd\textquotedbl{}} (Fisher's least significant difference, NOT adjusted for the number of pairs; R DescTools::\code{PostHocTest(method = \textquotedbl{}lsd\textquotedbl{})}), and for ranks \code{\textquotedbl{}dunn\textquotedbl{}} (R FSA::\code{dunnTest(method = \textquotedbl{}holm\textquotedbl{})}) and \code{\textquotedbl{}conover\textquotedbl{}} (R PMCMRplus::\code{kwAllPairsConoverTest( p.\allowbreak{}adjust.\allowbreak{}method = \textquotedbl{}holm\textquotedbl{})}). \code{against=\textquotedbl{}A\textquotedbl{}} compares every group with one control group only: Dunnett's test (SciPy stats.dunnett, as R multcomp::\code{glht(mcp(group = \textquotedbl{}Dunnett\textquotedbl{}))}), with intervals that hold for all the comparisons at once. SciPy works it out with random numbers, so \code{with\_\allowbreak{}seed=1} is used (printed); the last digit can differ from R's. \code{show=\textquotedbl{}letters\textquotedbl{}} gives each group letters instead (a compact letter display, R multcompView::\code{multcompLetters()}): groups that share a letter have an adjusted p-value of 0.05 or more between them. It works with every \code{test=} above, and gives back one row per group. \code{matched\_\allowbreak{}by=\textquotedbl{}patient\textquotedbl{}}: the same rows (patients) were measured in every group, such as pain at week 0, 4 and 8 in long form. Each pair is then compared within the patients: paired t-tests, or with \code{based\_\allowbreak{}on=\textquotedbl{}ranks\textquotedbl{}} (after \code{compare\_\allowbreak{}matched\_\allowbreak{}columns}'s Friedman test) the Wilcoxon signed-rank test, with Holm's correction (SciPy, as R \code{pairwise.\allowbreak{}t.\allowbreak{}test(paired = TRUE)} and \code{pairwise.\allowbreak{}wilcox.\allowbreak{}test(paired = TRUE)}). After Friedman's test, \code{test=\textquotedbl{}nemenyi\textquotedbl{}} gives Nemenyi's test (R PMCMRplus::\code{frdAllPairsNemenyiTest()}, which allows for all the pairs itself: no further adjustment) and \code{test=\textquotedbl{}conover\textquotedbl{}} Conover's test (R PMCMRplus::\code{frdAllPairsConoverTest( p.\allowbreak{}adjust.\allowbreak{}method = \textquotedbl{}holm\textquotedbl{})}); both work on the ranks within each matched row. \code{based\_\allowbreak{}on=\textquotedbl{}percents\textquotedbl{}} with a column of two values (\code{value=\textquotedbl{}yes\textquotedbl{}} names the one counted) compares the percent of each pair of groups: the 2 x 2 chi-square test with Yates' correction that \code{compare\_\allowbreak{}counts\_\allowbreak{}of} uses (SciPy), or \code{test=\textquotedbl{}fisher\textquotedbl{}} (Fisher's exact test), then Holm's correction; each pair also gets its difference in percentage points with Newcombe's 95 \% interval, as \code{compare\_\allowbreak{}risks} (statsmodels). The same as R \code{pairwise.\allowbreak{}prop.\allowbreak{}test()}.\\
+\codeline{table.compare\_each\_pair\_of(\textquotedbl{}resistant\textquotedbl{}, for\_each\_group\_in=\textquotedbl{}farm\textquotedbl{}, based\_on=\textquotedbl{}percents\textquotedbl{}, value=\textquotedbl{}yes\textquotedbl{})}
 
 \wordfield{Options}{}\par\nopagebreak
 \begin{optiontable}
@@ -8808,16 +8885,75 @@ Each pair gets Welch's t-test (or Mann-Whitney U with \code{based\_\allowbreak{}
 \code{with\_\allowbreak{}seed=} & normally \code{1}\\
 \code{show=} & normally \code{\textquotedbl{}pairs\textquotedbl{}}\\
 \code{matched\_\allowbreak{}by=} & \\
+\code{value=} & \\
 \end{optiontable}
 
 \wordfield{Why this method}{\hyperref[basis:table.compare-each-pair-of]{How simplydata chooses methods}, page \pageref{basis:table.compare-each-pair-of}: the default, the evidence and the checks.}
-\wordfield{Underneath}{SciPy (stats.ttest\_ind or mannwhitneyu, \code{tukey\_\allowbreak{}hsd}, dunnett), with Holm's correction from statsmodels (multipletests); R rstatix::\code{games\_\allowbreak{}howell\_\allowbreak{}test}, DescTools::ScheffeTest and PostHocTest, FSA::dunnTest, PMCMRplus::kwAllPairsConoverTest and multcompView::multcompLetters for \code{show=\textquotedbl{}letters\textquotedbl{}} (simplydata[r]); SciPy \code{ttest\_\allowbreak{}rel} and wilcoxon for \code{matched\_\allowbreak{}by=}}
+\wordfield{Underneath}{SciPy (stats.ttest\_ind or mannwhitneyu, \code{tukey\_\allowbreak{}hsd}, dunnett), with Holm's correction from statsmodels (multipletests); R rstatix::\code{games\_\allowbreak{}howell\_\allowbreak{}test}, DescTools::ScheffeTest and PostHocTest, FSA::dunnTest, PMCMRplus::kwAllPairsConoverTest and multcompView::multcompLetters for \code{show=\textquotedbl{}letters\textquotedbl{}} (simplydata[r]); SciPy \code{ttest\_\allowbreak{}rel} and wilcoxon for \code{matched\_\allowbreak{}by=}, R PMCMRplus::frdAllPairsNemenyiTest and frdAllPairsConoverTest after Friedman (\code{test=}); SciPy \code{chi2\_\allowbreak{}contingency} or \code{fisher\_\allowbreak{}exact}, statsmodels \code{confint\_\allowbreak{}proportions\_\allowbreak{}2indep} for \code{based\_\allowbreak{}on=\textquotedbl{}percents\textquotedbl{}}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
 table = sdata.table(sdata.get_example("marks"))
 table.compare_each_pair_of("marks", for_each_group_in="class")
 \end{lstlisting}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{R}\libbadge{Python}}
+\undertext{\textbf{With \code{matched\_\allowbreak{}by=,\allowbreak{} test=\textquotedbl{}nemenyi\textquotedbl{}}}: the same job with this option.}
+\underlib{R (simplydata runs this in R for you, through rpy2)}
+\begin{lstlisting}[style=underr]
+# compare_each_pair_of("pain", for_each_group_in="week", matched_by="patient", test="nemenyi")
+r <- PMCMRplus::frdAllPairsNemenyiTest(y, factor(g), factor(b))   # (1)
+list(p = r$p.value[1, 1], q = r$statistic[1, 1])
+\end{lstlisting}
+\underlib{Python (with what R gives back)}
+\begin{lstlisting}[style=under]
+{"statistic": q, "p-value (adjusted)": p}
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) Nemenyi's test allows for all the pairs itself (the studentized range): no Holm on top, and the printout says not to adjust again.}
+\undertext{\textit{In Python only:} scikit-posthocs gives Nemenyi's and Conover's tests in Python, but it is not a simplydata dependency, so the numbers come from R PMCMRplus.}
+\undertext{simplydata also keeps only the patients measured in every week (with a note), refuses fewer than 3 groups, and notes that mean-rank tests depend on the other groups in the study (Benavoli et al. 2016).}
+\undertext{\textit{Checked:} a test runs both and compares the numbers of the result table (on a pandas and on a Polars table).}
+\end{underneathbox}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{R}\libbadge{Python}}
+\undertext{\textbf{With \code{matched\_\allowbreak{}by=,\allowbreak{} test=\textquotedbl{}conover\textquotedbl{}}}: the same job with this option.}
+\underlib{R (simplydata runs this in R for you, through rpy2)}
+\begin{lstlisting}[style=underr]
+# compare_each_pair_of("pain", for_each_group_in="week", matched_by="patient", test="conover")
+r <- PMCMRplus::frdAllPairsConoverTest(y, factor(g), factor(b),
+                                      p.adjust.method = "holm")    # (1)
+list(p = r$p.value[1, 1], q = r$statistic[1, 1])
+\end{lstlisting}
+\underlib{Python (with what R gives back)}
+\begin{lstlisting}[style=under]
+{"statistic": q, "p-value (adjusted)": p}
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) Holm's adjustment, as for Conover's test after Kruskal-Wallis; PMCMRplus's own default is \code{\textquotedbl{}single-step\textquotedbl{}} and scikit-posthocs adjusts nothing, so their numbers differ.}
+\undertext{\textit{In Python only:} scikit-posthocs gives Nemenyi's and Conover's tests in Python, but it is not a simplydata dependency, so the numbers come from R PMCMRplus.}
+\undertext{As \code{test=\textquotedbl{}nemenyi\textquotedbl{}}.}
+\undertext{\textit{Checked:} a test runs both and compares the numbers of the result table (on a pandas and on a Polars table).}
+\end{underneathbox}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{SciPy and statsmodels}}
+\undertext{\textbf{With \code{based\_\allowbreak{}on=\textquotedbl{}percents\textquotedbl{}}}: the same job with this option.}
+\underlib{SciPy and statsmodels}
+\begin{lstlisting}[style=under]
+import pandas as pd
+from scipy import stats
+from statsmodels.stats.multitest import multipletests
+df = sdata.get_example("clinic")
+# compare_each_pair_of("infected", for_each_group_in="age_group", based_on="percents", value="yes")
+t = pd.crosstab(df["age_group"], df["infected"] == "yes").to_numpy()
+pairs = [(i, j) for i in range(len(t)) for j in range(i + 1, len(t))]
+p = [stats.chi2_contingency(t[[i, j]], correction=True).pvalue      # (1)
+     for i, j in pairs]
+{"p-value": p[0], "p-value (Holm)": multipletests(p, method="holm")[1][0]}   # (2)
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) each pair gets the 2 x 2 chi-square test with Yates' correction that \code{compare\_\allowbreak{}counts\_\allowbreak{}of} uses (the default of R prop.test and pairwise.prop.test); \code{test=\textquotedbl{}fisher\textquotedbl{}} gives Fisher's exact test.}
+\undertext{(2) Holm's adjustment for the number of pairs, as R \code{pairwise.\allowbreak{}prop.\allowbreak{}test()}.}
+\undertext{simplydata also gives each pair's difference in percentage points with Newcombe's interval (statsmodels, as \code{compare\_\allowbreak{}risks}), notes expected counts below 5, and leaves a pair with no p-value out of Holm's adjustment.}
+\undertext{\textit{Checked:} a test runs both and compares the numbers of the result table (on a pandas and on a Polars table).}
+\end{underneathbox}
 \wordentry{table.compare\_before\_and\_after()}{word:table.compare-before-and-after}
 Did the values really change from one column to the other, row by row?
 
@@ -8969,8 +9105,8 @@ list(statistic = r$statistic, p = r$p.value)
 Adjust p-values for testing many things at once, in a new column.
 
 \codeline{table = sdata.table(sdata.get\_example(\textquotedbl{}marks\textquotedbl{})).find\_correlation\_between(\textquotedbl{}hours\textquotedbl{}, \textquotedbl{}marks\textquotedbl{}, \textquotedbl{}height\textquotedbl{}, show=\textquotedbl{}each pair\textquotedbl{})}\\
-\codeline{table.add\_adjusted\_p\_value\_column(\textquotedbl{}q\textquotedbl{}, method=\textquotedbl{}benjamini-hochberg\textquotedbl{})}\\
-(table is now one row per pair of columns, with its p-value) The more tests you run, the more likely one of them looks real by chance; adjusted p-values allow for that. \code{method=\textquotedbl{}holm\textquotedbl{}} (the default, as R \code{p.\allowbreak{}adjust()}): the chance of even one false alarm among all the tests stays at 5 \%. \code{\textquotedbl{}bonferroni\textquotedbl{}}: the same promise, simpler and stricter. \code{\textquotedbl{}benjamini-hochberg\textquotedbl{}} (also \code{\textquotedbl{}bh\textquotedbl{}} or \code{\textquotedbl{}fdr\textquotedbl{}}): about 5 \% of the findings below 0.05 are expected to be false alarms (the false discovery rate); it finds more with many tests. \code{\textquotedbl{}benjamini-yekutieli\textquotedbl{}} (\code{\textquotedbl{}by\textquotedbl{}}): a false discovery rate that is safe however the tests depend on each other. \code{\textquotedbl{}hochberg\textquotedbl{}} and \code{\textquotedbl{}hommel\textquotedbl{}}: the same promise as Holm, a little stronger, when the tests do not depend on each other in an unusual way (statsmodels multipletests, as R \code{p.\allowbreak{}adjust()}). \code{from\_\allowbreak{}column=} is the column of p-values (\code{\textquotedbl{}p-value\textquotedbl{}} in simplydata result tables). Without a name the new column is called, for example, \code{\textquotedbl{}p-value (Holm)\textquotedbl{}}. Empty cells stay empty and are not counted, as R \code{p.\allowbreak{}adjust()}.
+\codeline{table.add\_adjusted\_p\_value\_column(\textquotedbl{}p\_adjusted\textquotedbl{}, method=\textquotedbl{}benjamini-hochberg\textquotedbl{})}\\
+(table is now one row per pair of columns, with its p-value) The more tests you run, the more likely one of them looks real by chance; adjusted p-values allow for that. \code{method=\textquotedbl{}holm\textquotedbl{}} (the default, as R \code{p.\allowbreak{}adjust()}): the chance of even one false alarm among all the tests stays at 5 \%. \code{\textquotedbl{}bonferroni\textquotedbl{}}: the same promise, simpler and stricter. \code{\textquotedbl{}benjamini-hochberg\textquotedbl{}} (also \code{\textquotedbl{}bh\textquotedbl{}} or \code{\textquotedbl{}fdr\textquotedbl{}}): about 5 \% of the findings below 0.05 are expected to be false alarms (the false discovery rate); it finds more with many tests. \code{\textquotedbl{}benjamini-yekutieli\textquotedbl{}} (\code{\textquotedbl{}by\textquotedbl{}}): a false discovery rate that is safe however the tests depend on each other. \code{\textquotedbl{}hochberg\textquotedbl{}} and \code{\textquotedbl{}hommel\textquotedbl{}}: the same promise as Holm, a little stronger, when the tests do not depend on each other in an unusual way (statsmodels multipletests, as R \code{p.\allowbreak{}adjust()}). \code{method=\textquotedbl{}storey\textquotedbl{}} (\code{\textquotedbl{}q-values\textquotedbl{}} accepted): Storey's q-values, the false discovery rate with the share of true nulls (pi0) estimated from the p-values instead of set to 1 as in Benjamini-Hochberg (R qvalue::\code{qvalue()}, from Bioconductor; Storey \& Tibshirani 2003); for hundreds or thousands of tests, such as genes. \code{method=\textquotedbl{}local fdr\textquotedbl{}}: each test's own chance of being a false discovery (qvalue's \$lfdr), in a column called \code{\textquotedbl{}local false discovery rate\textquotedbl{}}; it is not an adjusted p-value. With fewer than 100 p-values pi0 is unstable, and a note says so. \code{from\_\allowbreak{}column=} is the column of p-values (\code{\textquotedbl{}p-value\textquotedbl{}} in simplydata result tables). Without a name the new column is called, for example, \code{\textquotedbl{}p-value (Holm)\textquotedbl{}}. Empty cells stay empty and are not counted, as R \code{p.\allowbreak{}adjust()}.
 
 \wordfield{Options}{}\par\nopagebreak
 \begin{optiontable}
@@ -8980,7 +9116,7 @@ Adjust p-values for testing many things at once, in a new column.
 \end{optiontable}
 
 \wordfield{Why this method}{\hyperref[basis:table.add-adjusted-p-value-column]{How simplydata chooses methods}, page \pageref{basis:table.add-adjusted-p-value-column}: the default, the evidence and the checks.}
-\wordfield{Underneath}{statsmodels (stats.multitest.multipletests: Holm, Bonferroni, Benjamini-Hochberg, Benjamini-Yekutieli, Hochberg and Hommel, as R \code{p.\allowbreak{}adjust()})}
+\wordfield{Underneath}{statsmodels (stats.multitest.multipletests: Holm, Bonferroni, Benjamini-Hochberg, Benjamini-Yekutieli, Hochberg and Hommel, as R \code{p.\allowbreak{}adjust()}); R qvalue::qvalue for \code{method=\textquotedbl{}storey\textquotedbl{}} and \code{\textquotedbl{}local fdr\textquotedbl{}} (Bioconductor, simplydata[r])}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -8989,6 +9125,46 @@ table = table.find_correlation_between("hours", "marks", "height", show="each pa
 table.add_adjusted_p_value_column("q", method="benjamini-hochberg")
 table.show()
 \end{lstlisting}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{R}\libbadge{Python}}
+\undertext{\textbf{With \code{method=\textquotedbl{}storey\textquotedbl{}}}: the same job with this option.}
+\underlib{R (simplydata runs this in R for you, through rpy2)}
+\begin{lstlisting}[style=underr]
+# add_adjusted_p_value_column(method="storey")
+q <- qvalue::qvalue(p)   # (1)
+list(q = q$qvalues)
+\end{lstlisting}
+\underlib{Python (with what R gives back)}
+\begin{lstlisting}[style=under]
+df = sdata.get_example("many_tests")
+df["p-value (Storey q-value)"] = q
+df
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) qvalue's own defaults: the share of true nulls (pi0) estimated by the smoother over lambda = 0.05 to 0.95 (Storey \& Tibshirani 2003), not set to 1 as in Benjamini-Hochberg.}
+\undertext{\textit{In Python only:} No Python package gives Storey's pi0 with qvalue's smoother (statsmodels \code{fdrcorrection\_\allowbreak{}twostage} is another estimator), so the numbers come from R qvalue (Bioconductor).}
+\undertext{simplydata also prints pi0 in words, names Benjamini-Hochberg as the same idea with pi0 = 1, notes fewer than 100 p-values, and refuses with a sentence when qvalue cannot estimate pi0.}
+\undertext{\textit{Checked:} a test runs both and compares the table (on a pandas and on a Polars table).}
+\end{underneathbox}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{R}\libbadge{Python}}
+\undertext{\textbf{With \code{method=\textquotedbl{}local fdr\textquotedbl{}}}: the same job with this option.}
+\underlib{R (simplydata runs this in R for you, through rpy2)}
+\begin{lstlisting}[style=underr]
+# add_adjusted_p_value_column(method="local fdr")
+q <- qvalue::qvalue(p)   # (1)
+list(lfdr = q$lfdr)
+\end{lstlisting}
+\underlib{Python (with what R gives back)}
+\begin{lstlisting}[style=under]
+df = sdata.get_example("many_tests")
+df["local false discovery rate"] = lfdr
+df
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) qvalue's local false discovery rate with its defaults (pi0 from the smoother), in a column named \code{\textquotedbl{}local false discovery rate\textquotedbl{}}, not \code{\textquotedbl{}adjusted p\textquotedbl{}}: it belongs to one test.}
+\undertext{\textit{In Python only:} No Python package gives Storey's pi0 with qvalue's smoother (statsmodels \code{fdrcorrection\_\allowbreak{}twostage} is another estimator), so the numbers come from R qvalue (Bioconductor).}
+\undertext{As \code{method=\textquotedbl{}storey\textquotedbl{}}.}
+\undertext{\textit{Checked:} a test runs both and compares the table (on a pandas and on a Polars table).}
+\end{underneathbox}
 \wordentry{table.compare\_spreads\_of()}{word:table.compare-spreads-of}
 Do the groups really differ in how spread out their values are?
 
@@ -13697,7 +13873,7 @@ chart.save("lag_dots.png")
 Forecast the next values of a column, with an interval for each.
 
 \codeline{table.forecast(\textquotedbl{}visitors\textquotedbl{}, sorted\_by=\textquotedbl{}month\textquotedbl{}, steps\_ahead=12, repeats\_every=\textquotedbl{}year\textquotedbl{}, for\_each\_group\_in=\textquotedbl{}museum\textquotedbl{})}\\
-(with \code{sdata.\allowbreak{}get\_\allowbreak{}example(\textquotedbl{}visitors\textquotedbl{})}). Gives back one row per future step: the \code{sorted\_\allowbreak{}by} column carried on (months stay months), the forecast and its \code{interval=} (95 \%) low and high. \code{method=} \code{\textquotedbl{}exponential smoothing\textquotedbl{}} (the default: Holt-Winters, a level, a trend unless \code{trend=False}, and a season with \code{repeats\_\allowbreak{}every=}, season \code{\textquotedbl{}added\textquotedbl{}} or \code{\textquotedbl{}multiplied\textquotedbl{}}; R HoltWinters), \code{\textquotedbl{}last value\textquotedbl{}} (R forecast::naive), \code{\textquotedbl{}same season last time\textquotedbl{}} (R snaive), \code{\textquotedbl{}average\textquotedbl{}} (R meanf), \code{\textquotedbl{}straight on\textquotedbl{}} (the line from the first to the last reading carried on: R \code{rwf(drift = TRUE)}) or \code{\textquotedbl{}arima\textquotedbl{}} (R arima with \code{order=}(p, d, q): past values, differences, past errors; \code{seasonal\_\allowbreak{}order=} the same for the season; empty cells allowed). \code{check\_\allowbreak{}on\_\allowbreak{}last=12} fits on all but the last 12 rows, forecasts them and says how far off it was (R forecast::accuracy: MAE, RMSE, MAPE, MASE); the table gains the actual values and the errors. \code{show=\textquotedbl{}model\textquotedbl{}} gives the fitted weights or estimates instead. All in R itself: needs simplydata[r] and R with the forecast package.
+(with \code{sdata.\allowbreak{}get\_\allowbreak{}example(\textquotedbl{}visitors\textquotedbl{})}). Gives back one row per future step: the \code{sorted\_\allowbreak{}by} column carried on (months stay months), the forecast and its \code{interval=} (95 \%) low and high. \code{method=} \code{\textquotedbl{}exponential smoothing\textquotedbl{}} (the default: Holt-Winters, a level, a trend unless \code{trend=False}, and a season with \code{repeats\_\allowbreak{}every=}, season \code{\textquotedbl{}added\textquotedbl{}} or \code{\textquotedbl{}multiplied\textquotedbl{}}; R HoltWinters), \code{\textquotedbl{}last value\textquotedbl{}} (R forecast::naive), \code{\textquotedbl{}same season last time\textquotedbl{}} (R snaive), \code{\textquotedbl{}average\textquotedbl{}} (R meanf), \code{\textquotedbl{}straight on\textquotedbl{}} (the line from the first to the last reading carried on: R \code{rwf(drift = TRUE)}) or \code{\textquotedbl{}arima\textquotedbl{}} (R arima with \code{order=}(p, d, q): past values, differences, past errors; \code{seasonal\_\allowbreak{}order=} the same for the season; empty cells allowed). \code{order=\textquotedbl{}automatic\textquotedbl{}} lets R forecast::auto.arima choose both orders by AICc, trying every order for series of up to 1,000 readings (Hyndman \& Khandakar 2008); the printout names the order it chose, and says the intervals are a little too narrow because the order was chosen from the same data. \code{check\_\allowbreak{}on\_\allowbreak{}last=12} fits on all but the last 12 rows, forecasts them and says how far off it was (R forecast::accuracy: MAE, RMSE, MAPE, MASE); the table gains the actual values and the errors. \code{show=\textquotedbl{}model\textquotedbl{}} gives the fitted weights or estimates instead. All in R itself: needs simplydata[r] and R with the forecast package.
 
 \wordfield{Options}{}\par\nopagebreak
 \begin{optiontable}
@@ -13717,13 +13893,33 @@ Forecast the next values of a column, with an interval for each.
 \end{optiontable}
 
 \wordfield{Why this method}{\hyperref[basis:table.forecast]{How simplydata chooses methods}, page \pageref{basis:table.forecast}: the default, the evidence and the checks.}
-\wordfield{Underneath}{R (forecast::naive, snaive, meanf, rwf; stats::HoltWinters, stats::arima; forecast::forecast and accuracy, through rpy2: simplydata[r])}
+\wordfield{Underneath}{R (forecast::naive, snaive, meanf, rwf; stats::HoltWinters, stats::arima, forecast::auto.arima for \code{order=\textquotedbl{}automatic\textquotedbl{}}; forecast::forecast and accuracy, through rpy2: simplydata[r])}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
 table = sdata.table(sdata.get_example("visitors"))
 table.forecast("visitors", sorted_by="month", steps_ahead=12, repeats_every="year", for_each_group_in="museum")
 \end{lstlisting}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{R}\libbadge{Python}}
+\undertext{\textbf{With \code{order=\textquotedbl{}automatic\textquotedbl{}}}: the same job with this option.}
+\underlib{R (simplydata runs this in R for you, through rpy2)}
+\begin{lstlisting}[style=underr]
+# forecast("visitors", method="arima", order="automatic", repeats_every=12), first museum
+fit <- forecast::auto.arima(stats::ts(x, frequency = 12),
+                            stepwise = FALSE, approximation = FALSE)   # (1)
+f <- forecast::forecast(fit, h = 12, level = 95)
+list(mean = f$mean[1], low = f$lower[1], high = f$upper[1])
+\end{lstlisting}
+\underlib{Python (with what R gives back)}
+\begin{lstlisting}[style=under]
+{"forecast": mean, "forecast 95 % prediction low": low, "forecast 95 % prediction high": high}
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) every order is tried (stepwise = FALSE, approximation = FALSE) for series of up to 1,000 readings; auto.arima's own quicker defaults can choose another order on long or seasonal series.}
+\undertext{\textit{In Python only:} statsmodels has no automatic order search (pmdarima, which has one, is not a simplydata dependency), so the order and the numbers come from R forecast::auto.arima (Hyndman \& Khandakar 2008).}
+\undertext{simplydata also prints the order chosen (and both orders with a season), says the intervals are a little too narrow because the order was chosen from the data, refuses \code{seasonal\_\allowbreak{}order=} with \code{order=\textquotedbl{}automatic\textquotedbl{}}, and checks the leftover errors (Ljung-Box).}
+\undertext{\textit{Checked:} a test runs both and compares the numbers of the result table (on a pandas and on a Polars table).}
+\end{underneathbox}
 \wordentry{nums.forecast()}{word:nums.forecast}
 Forecast the next numbers, with an interval for each (R forecast and stats, run in R).
 
@@ -13787,7 +13983,7 @@ chart.save("forecast.png")
 Which forecast method would have done best on the last rows? (R forecast::accuracy)
 
 \codeline{table.compare\_forecasts\_for(\textquotedbl{}visitors\textquotedbl{}, sorted\_by=\textquotedbl{}month\textquotedbl{}, repeats\_every=\textquotedbl{}year\textquotedbl{}, for\_each\_group\_in=\textquotedbl{}museum\textquotedbl{})}\\
-(with \code{sdata.\allowbreak{}get\_\allowbreak{}example(\textquotedbl{}visitors\textquotedbl{})}). Each method in \code{methods=} is fitted on all but the last \code{check\_\allowbreak{}on\_\allowbreak{}last=} rows (12) and forecasts them; the methods are ranked by MASE, the average error divided by the average error of the simplest forecast inside the fitted rows (the same season last time with \code{repeats\_\allowbreak{}every=}, otherwise the last value): below 1 is better than that. Also MAE (the average size of the errors), RMSE and MAPE (the average error in \% of the actual values). \code{methods=} defaults to \code{\textquotedbl{}last value\textquotedbl{}}, \code{\textquotedbl{}same season last time\textquotedbl{}} (with \code{repeats\_\allowbreak{}every=}; else \code{\textquotedbl{}average\textquotedbl{}}), \code{\textquotedbl{}straight on\textquotedbl{}} and \code{\textquotedbl{}exponential smoothing\textquotedbl{}}; \code{\textquotedbl{}arima\textquotedbl{}} needs \code{order=}. Runs in R itself (simplydata[r]). Gives back one row per method.
+(with \code{sdata.\allowbreak{}get\_\allowbreak{}example(\textquotedbl{}visitors\textquotedbl{})}). Each method in \code{methods=} is fitted on all but the last \code{check\_\allowbreak{}on\_\allowbreak{}last=} rows (12) and forecasts them; the methods are ranked by MASE, the average error divided by the average error of the simplest forecast inside the fitted rows (the same season last time with \code{repeats\_\allowbreak{}every=}, otherwise the last value): below 1 is better than that. Also MAE (the average size of the errors), RMSE and MAPE (the average error in \% of the actual values). \code{methods=} defaults to \code{\textquotedbl{}last value\textquotedbl{}}, \code{\textquotedbl{}same season last time\textquotedbl{}} (with \code{repeats\_\allowbreak{}every=}; else \code{\textquotedbl{}average\textquotedbl{}}), \code{\textquotedbl{}straight on\textquotedbl{}} and \code{\textquotedbl{}exponential smoothing\textquotedbl{}}; \code{\textquotedbl{}arima\textquotedbl{}} needs \code{order=} (three numbers, or \code{\textquotedbl{}automatic\textquotedbl{}}: R forecast::auto.arima chooses the order on the fitted rows only). Runs in R itself (simplydata[r]). Gives back one row per method.
 
 \wordfield{Options}{}\par\nopagebreak
 \begin{optiontable}
@@ -17754,7 +17950,7 @@ table.find_autocorrelation_of("zinc", x="east", y="north")
 \part{How simplydata chooses methods}\label{part:basis}
 
 \unchapter{How simplydata chooses methods}{basis}
-simplydata often chooses a method, an option value or a setting for you. This appendix gives, for each of the 271 choices, what simplydata chooses, what else you can ask for, why (the principle and the published evidence), and what simplydata checks in your data before it uses the method. 109 defaults rest on published guidelines or method comparisons, 129 follow the convention of the package named so that results match it, and 33 are simplydata's own starting values, each changed with the option named. Every DOI was looked up in Crossref; references without a DOI were checked at their URL. The defaults of the later batches were read by an independent reviewer when they were designed, and in November 2026 every entry, with its references, was checked again by independent reviewers acting as hostile statistical referees; their findings were applied. The same text is in \code{docs/how\_\allowbreak{}simplydata\_\allowbreak{}chooses.\allowbreak{}md}.
+simplydata often chooses a method, an option value or a setting for you. This appendix gives, for each of the 281 choices, what simplydata chooses, what else you can ask for, why (the principle and the published evidence), and what simplydata checks in your data before it uses the method. 114 defaults rest on published guidelines or method comparisons, 134 follow the convention of the package named so that results match it, and 33 are simplydata's own starting values, each changed with the option named. Every DOI was looked up in Crossref; references without a DOI were checked at their URL. The defaults of the later batches were read by an independent reviewer when they were designed, and in November 2026 every entry, with its references, was checked again by independent reviewers acting as hostile statistical referees; their findings were applied. The same text is in \code{docs/how\_\allowbreak{}simplydata\_\allowbreak{}chooses.\allowbreak{}md}.
 \unsection{The five principles}{basis:principles}
 \begin{enumerate}
 \item \textbf{P1.} Follow published guidelines and consensus statements where they exist (for example the Cochrane Handbook, the ASA statement on p-values, the SAMPL guidelines, ICH E9 for clinical trials, the GUM for measurement). (Wasserstein \& Lazar 2016; Lang \& Altman 2015; ICH E9 1998; Deeks et al. (Cochrane Handbook, ch. 10); JCGM 100:2008 (GUM); Bland \& Altman 1994)
@@ -18004,6 +18200,13 @@ simplydata often chooses a method, an option value or a setting for you. This ap
 \wordfield{Checks}{With few values one end of the interval can be empty, which is said.}
 \wordfield{References}{Campbell \& Gardner 1988}
 \wordfield{In the dictionary}{\hyperref[word:table.find-median-of]{page \pageref{word:table.find-median-of}}}
+\par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:table.find-median-of-weights-eq}\noindent{\sffamily\bfseries\color{brand}\code{table.\allowbreak{}find\_\allowbreak{}median\_\allowbreak{}of()} \code{weights=}}\par\nopagebreak
+\wordfield{Default}{As \code{find\_\allowbreak{}percentile\_\allowbreak{}of(weights=)} at 50 \%: frequency weights repeat the rows.}
+\wordfield{Alternatives}{\code{weight\_\allowbreak{}kind=\textquotedbl{}analytic\textquotedbl{}}.}
+\wordfield{Why (P3)}{As \code{table.\allowbreak{}find\_\allowbreak{}percentile\_\allowbreak{}of} \code{weights=}. \textit{Basis: convention.}}
+\wordfield{Checks}{As \code{table.\allowbreak{}find\_\allowbreak{}percentile\_\allowbreak{}of} \code{weights=}.}
+\wordfield{References}{Hyndman \& Fan 1996}
+\wordfield{In the dictionary}{\hyperref[word:table.find-median-of]{page \pageref{word:table.find-median-of}}}
 \par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:table.find-standard-deviation-of}\noindent{\sffamily\bfseries\color{brand}\code{table.\allowbreak{}find\_\allowbreak{}standard\_\allowbreak{}deviation\_\allowbreak{}of()}}\par\nopagebreak
 \wordfield{Default}{The sample standard deviation, dividing by n - 1, as pandas and R \code{sd()}; \code{interval=} gives the chi-square interval (R DescTools::VarCI).}
 \wordfield{Alternatives}{\code{weights=} with \code{weight\_\allowbreak{}kind=\textquotedbl{}frequency\textquotedbl{}} (default) or \code{\textquotedbl{}analytic\textquotedbl{}}.}
@@ -18027,10 +18230,24 @@ simplydata often chooses a method, an option value or a setting for you. This ap
 \wordfield{In the dictionary}{\hyperref[word:table.find-percent-of-rows-where]{page \pageref{word:table.find-percent-of-rows-where}}}
 \par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:table.find-percentile-of}\noindent{\sffamily\bfseries\color{brand}\code{table.\allowbreak{}find\_\allowbreak{}percentile\_\allowbreak{}of()}}\par\nopagebreak
 \wordfield{Default}{Linear interpolation between the values (\code{method=\textquotedbl{}linear\textquotedbl{}}, R \code{quantile(type = 7)}), the default of R, NumPy and pandas; \code{interval=} gives the exact order-statistic interval.}
-\wordfield{Alternatives}{\code{method=} 1 to 9 (Hyndman \& Fan's types) or a NumPy method name.}
+\wordfield{Alternatives}{\code{method=} 1 to 9 (Hyndman \& Fan's types) or a NumPy method name; \code{weights=} with \code{weight\_\allowbreak{}kind=}.}
 \wordfield{Why (P3)}{Type 7 is the shared default of R, NumPy and pandas, so results match theirs. Hyndman \& Fan 1996, who compared the nine definitions, recommend type 8; SPSS and Minitab use type 6. The help names both. \textit{Basis: convention.}}
 \wordfield{Checks}{\code{percent=} outside 0 to 100 is refused; \code{interval=} works with \code{method=\textquotedbl{}linear\textquotedbl{}} only.}
 \wordfield{References}{Hyndman \& Fan 1996}
+\wordfield{In the dictionary}{\hyperref[word:table.find-percentile-of]{page \pageref{word:table.find-percentile-of}}}
+\par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:table.find-percentile-of-weights-eq}\noindent{\sffamily\bfseries\color{brand}\code{table.\allowbreak{}find\_\allowbreak{}percentile\_\allowbreak{}of()} \code{weights=}}\par\nopagebreak
+\wordfield{Default}{Frequency weights (\code{weight\_\allowbreak{}kind=\textquotedbl{}frequency\textquotedbl{}}): each row counts as often as its whole-number weight, the rows repeated and the usual linear rule used, as R \code{quantile(rep(x,\allowbreak{} w))} and Hmisc::\code{wtd.\allowbreak{}quantile(normwt = FALSE)}.}
+\wordfield{Alternatives}{\code{weight\_\allowbreak{}kind=\textquotedbl{}analytic\textquotedbl{}} for sampling weights or precisions; \code{method=} as without weights.}
+\wordfield{Why (P3)}{Repeating the rows keeps the one rule of the unweighted word (Hyndman \& Fan 1996, type 7), so weights of 1 change nothing; NumPy's own \code{weights=} offers only the inverted CDF, a step, which gives another answer even with all weights 1. No study fixes how frequency weights enter a sample quantile; this follows the packages named. \textit{Basis: convention.}}
+\wordfield{Checks}{Weights that are not whole numbers are refused (pointing to \code{weight\_\allowbreak{}kind=\textquotedbl{}analytic\textquotedbl{}}), as are negative weights and more than 10 million repeated rows; rows with an empty cell are skipped with a note.}
+\wordfield{References}{Hyndman \& Fan 1996}
+\wordfield{In the dictionary}{\hyperref[word:table.find-percentile-of]{page \pageref{word:table.find-percentile-of}}}
+\par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:table.find-percentile-of-weight-kind-eq-analytic}\noindent{\sffamily\bfseries\color{brand}\code{table.\allowbreak{}find\_\allowbreak{}percentile\_\allowbreak{}of()} \code{weight\_\allowbreak{}kind=\textquotedbl{}analytic\textquotedbl{}}}\par\nopagebreak
+\wordfield{Default}{The weighted inverted CDF (NumPy \code{percentile(weights=,\allowbreak{} method=\textquotedbl{}inverted\_\allowbreak{}cdf\textquotedbl{})}), the rule of R survey::\code{svyquantile(qrule = \textquotedbl{}math\textquotedbl{})}.}
+\wordfield{Alternatives}{\code{weight\_\allowbreak{}kind=\textquotedbl{}frequency\textquotedbl{}} (whole-number weights, any \code{method=}).}
+\wordfield{Why (P3)}{For sampling weights the population quantile is read from the weighted distribution function (Lumley 2004, the survey package; Hyndman \& Fan 1996, definition 1); it is the only rule NumPy offers with weights. \textit{Basis: convention.}}
+\wordfield{Checks}{\code{method=} other than the inverted CDF is refused with analytic weights; NumPy older than 2.0 is refused.}
+\wordfield{References}{Lumley 2004; Hyndman \& Fan 1996}
 \wordfield{In the dictionary}{\hyperref[word:table.find-percentile-of]{page \pageref{word:table.find-percentile-of}}}
 \par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:table.find-interval-of}\noindent{\sffamily\bfseries\color{brand}\code{table.\allowbreak{}find\_\allowbreak{}interval\_\allowbreak{}of()}}\par\nopagebreak
 \wordfield{Default}{A BCa bootstrap interval (bias-corrected and accelerated) from 9999 resamples, seed 1, as R boot::\code{boot.\allowbreak{}ci(type = \textquotedbl{}bca\textquotedbl{})}.}
@@ -18045,6 +18262,12 @@ simplydata often chooses a method, an option value or a setting for you. This ap
 \wordfield{Why (P3)}{Pearson's r is the usual measure of a straight-line link and its Fisher-z interval the usual interval (Fisher 1915 for the distribution of r). Bonett \& Wright 2000 propose a better standard error for Spearman's rho than the plain Fisher-z one used here. The strength words are a textbook scale chosen by simplydata; scales differ between fields (Schober et al. 2018), so the number is always printed with the words. \textit{Basis: convention.}}
 \wordfield{Checks}{Fewer than 3 complete rows and constant columns are refused; with 3 or more columns the p-values are not adjusted, and a note points to \code{add\_\allowbreak{}adjusted\_\allowbreak{}p\_\allowbreak{}value\_\allowbreak{}column}.}
 \wordfield{References}{Fisher 1915; Bonett \& Wright 2000; Schober et al. 2018}
+\wordfield{In the dictionary}{\hyperref[word:table.find-correlation-between]{page \pageref{word:table.find-correlation-between}}}
+\par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:table.find-correlation-between-show-eq-covariance}\noindent{\sffamily\bfseries\color{brand}\code{table.\allowbreak{}find\_\allowbreak{}correlation\_\allowbreak{}between()} \code{show=\textquotedbl{}covariance\textquotedbl{}}}\par\nopagebreak
+\wordfield{Default}{The covariance table from pandas \code{DataFrame.\allowbreak{}cov()}: divide by n - 1, each pair on the rows where both columns have a number, as R \code{cov(use = \textquotedbl{}pairwise.\allowbreak{}complete.\allowbreak{}obs\textquotedbl{})}.}
+\wordfield{Alternatives}{\code{show=\textquotedbl{}r\textquotedbl{}} (the correlation, without units).}
+\wordfield{Why (P3)}{n - 1 gives the unbiased covariance, the default of pandas and R; pairwise rows follow the correlation table of the same word. R's own default (use = \code{\textquotedbl{}everything\textquotedbl{}}) gives NA with any empty cell. No study is needed for this convention. \textit{Basis: convention.}}
+\wordfield{Checks}{Fewer than 2 rows for a pair is refused; \code{method=}, \code{sides=} and the test options are refused (a covariance has no test).}
 \wordfield{In the dictionary}{\hyperref[word:table.find-correlation-between]{page \pageref{word:table.find-correlation-between}}}
 \unsection{Statistical tests}{basis-group:Statistical-tests}
 \par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:table.compare-averages-of}\noindent{\sffamily\bfseries\color{brand}\code{table.\allowbreak{}compare\_\allowbreak{}averages\_\allowbreak{}of()}}\par\nopagebreak
@@ -18098,7 +18321,7 @@ simplydata often chooses a method, an option value or a setting for you. This ap
 \wordfield{In the dictionary}{\hyperref[word:table.compare-averages-of]{page \pageref{word:table.compare-averages-of}}}
 \par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:table.compare-each-pair-of}\noindent{\sffamily\bfseries\color{brand}\code{table.\allowbreak{}compare\_\allowbreak{}each\_\allowbreak{}pair\_\allowbreak{}of()}}\par\nopagebreak
 \wordfield{Default}{Each pair by Welch's t-test, the p-values adjusted with Holm's method (as R \code{pairwise.\allowbreak{}t.\allowbreak{}test(pool.\allowbreak{}sd = FALSE,\allowbreak{} p.\allowbreak{}adjust.\allowbreak{}method = \textquotedbl{}holm\textquotedbl{})}).}
-\wordfield{Alternatives}{\code{test=\textquotedbl{}tukey\textquotedbl{}} (Tukey-Kramer), \code{\textquotedbl{}games-howell\textquotedbl{}}, \code{\textquotedbl{}scheffe\textquotedbl{}}, \code{\textquotedbl{}lsd\textquotedbl{}}, \code{\textquotedbl{}dunn\textquotedbl{}}, \code{\textquotedbl{}conover\textquotedbl{}}; \code{based\_\allowbreak{}on=\textquotedbl{}ranks\textquotedbl{}}; \code{against=} (Dunnett); \code{show=\textquotedbl{}letters\textquotedbl{}}.}
+\wordfield{Alternatives}{\code{test=\textquotedbl{}tukey\textquotedbl{}} (Tukey-Kramer), \code{\textquotedbl{}games-howell\textquotedbl{}}, \code{\textquotedbl{}scheffe\textquotedbl{}}, \code{\textquotedbl{}lsd\textquotedbl{}}, \code{\textquotedbl{}dunn\textquotedbl{}}, \code{\textquotedbl{}conover\textquotedbl{}}; \code{based\_\allowbreak{}on=\textquotedbl{}ranks\textquotedbl{}} or \code{\textquotedbl{}percents\textquotedbl{}}; \code{against=} (Dunnett); \code{show=\textquotedbl{}letters\textquotedbl{}}.}
 \wordfield{Why (P1)}{Holm's method keeps the chance of any false alarm at 5 \% and is uniformly more powerful than Bonferroni (Holm 1979; Aickin \& Gensler 1996); multiplicity should be adjusted for and the method named (Bender \& Lange 2001; ICH E9). Welch's test per pair keeps the error rate when spreads differ; it gives no simultaneous intervals, which Games \& Howell's procedure does (\code{test=\textquotedbl{}games-howell\textquotedbl{}}; Games \& Howell 1976). Tukey-Kramer (Kramer 1956) and Dunn's test (Dunn 1964) are options.}
 \wordfield{Checks}{A pair where both groups have no spread is refused; Tukey prints a note when the largest spread is more than twice the smallest.}
 \wordfield{References}{Holm 1979; Aickin \& Gensler 1996; Bender \& Lange 2001; ICH E9 1998; Games \& Howell 1976; Kramer 1956; Dunn 1964}
@@ -18112,10 +18335,31 @@ simplydata often chooses a method, an option value or a setting for you. This ap
 \wordfield{In the dictionary}{\hyperref[word:table.compare-each-pair-of]{page \pageref{word:table.compare-each-pair-of}}}
 \par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:table.compare-each-pair-of-matched-by-eq}\noindent{\sffamily\bfseries\color{brand}\code{table.\allowbreak{}compare\_\allowbreak{}each\_\allowbreak{}pair\_\allowbreak{}of()} \code{matched\_\allowbreak{}by=}}\par\nopagebreak
 \wordfield{Default}{Paired t-tests (or Wilcoxon signed-rank with \code{based\_\allowbreak{}on=\textquotedbl{}ranks\textquotedbl{}}) for each pair, Holm's adjustment (as R \code{pairwise.\allowbreak{}t.\allowbreak{}test(paired = TRUE)}).}
-\wordfield{Alternatives}{\code{based\_\allowbreak{}on=\textquotedbl{}ranks\textquotedbl{}}.}
+\wordfield{Alternatives}{\code{based\_\allowbreak{}on=\textquotedbl{}ranks\textquotedbl{}}; after Friedman's test \code{test=\textquotedbl{}nemenyi\textquotedbl{}} or \code{\textquotedbl{}conover\textquotedbl{}}.}
 \wordfield{Why (P2)}{As \code{table.\allowbreak{}compare\_\allowbreak{}each\_\allowbreak{}pair\_\allowbreak{}of}: Holm's method (Holm 1979).}
 \wordfield{Checks}{Subjects not measured in every group are dropped (note); duplicate subject-group rows are refused.}
 \wordfield{References}{Holm 1979}
+\wordfield{In the dictionary}{\hyperref[word:table.compare-each-pair-of]{page \pageref{word:table.compare-each-pair-of}}}
+\par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:table.compare-each-pair-of-matched-by-eq-test-eq-nemenyi}\noindent{\sffamily\bfseries\color{brand}\code{table.\allowbreak{}compare\_\allowbreak{}each\_\allowbreak{}pair\_\allowbreak{}of()} \code{matched\_\allowbreak{}by=,\allowbreak{} test=\textquotedbl{}nemenyi\textquotedbl{}}}\par\nopagebreak
+\wordfield{Default}{Nemenyi's test after Friedman's (R PMCMRplus::\code{frdAllPairsNemenyiTest()}), on the ranks within each matched row; its studentized range allows for all the pairs, so there is no further adjustment.}
+\wordfield{Alternatives}{The default (Wilcoxon signed-rank tests with Holm); \code{test=\textquotedbl{}conover\textquotedbl{}}.}
+\wordfield{Why (P2)}{Nemenyi's test is the usual follow-up to Friedman's in method comparisons (Dem\v{s}ar 2006), but mean-rank tests make each pair depend on the other groups in the study (Benavoli et al. 2016), so it is offered on request, with that note, and Wilcoxon-Holm stays the default.}
+\wordfield{Checks}{Fewer than 3 groups is refused; rows not measured in every group are left out with a note.}
+\wordfield{References}{Dem\v{s}ar 2006; Benavoli et al. 2016}
+\wordfield{In the dictionary}{\hyperref[word:table.compare-each-pair-of]{page \pageref{word:table.compare-each-pair-of}}}
+\par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:table.compare-each-pair-of-matched-by-eq-test-eq-conover}\noindent{\sffamily\bfseries\color{brand}\code{table.\allowbreak{}compare\_\allowbreak{}each\_\allowbreak{}pair\_\allowbreak{}of()} \code{matched\_\allowbreak{}by=,\allowbreak{} test=\textquotedbl{}conover\textquotedbl{}}}\par\nopagebreak
+\wordfield{Default}{Conover's test after Friedman's (R PMCMRplus::\code{frdAllPairsConoverTest()}), with Holm's adjustment.}
+\wordfield{Alternatives}{\code{test=\textquotedbl{}nemenyi\textquotedbl{}}; the default Wilcoxon-Holm.}
+\wordfield{Why (P2)}{Conover's test on the ranks within blocks is more powerful than Nemenyi's (Conover \& Iman 1979); Holm keeps the chance of any false alarm at 5 \% (Holm 1979), as for Conover after Kruskal-Wallis. PMCMRplus's default is single-step and scikit-posthocs adjusts nothing, so the printout says why their numbers differ. The same mean-rank caveat applies (Benavoli et al. 2016).}
+\wordfield{Checks}{As \code{test=\textquotedbl{}nemenyi\textquotedbl{}}.}
+\wordfield{References}{Conover \& Iman 1979; Holm 1979; Benavoli et al. 2016}
+\wordfield{In the dictionary}{\hyperref[word:table.compare-each-pair-of]{page \pageref{word:table.compare-each-pair-of}}}
+\par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:table.compare-each-pair-of-based-on-eq-percents}\noindent{\sffamily\bfseries\color{brand}\code{table.\allowbreak{}compare\_\allowbreak{}each\_\allowbreak{}pair\_\allowbreak{}of()} \code{based\_\allowbreak{}on=\textquotedbl{}percents\textquotedbl{}}}\par\nopagebreak
+\wordfield{Default}{Each pair by the 2 x 2 chi-square test with Yates' correction that \code{compare\_\allowbreak{}counts\_\allowbreak{}of} uses, Holm's adjustment, and the difference with Newcombe's interval: as R \code{pairwise.\allowbreak{}prop.\allowbreak{}test()} (whose default is the same).}
+\wordfield{Alternatives}{\code{test=\textquotedbl{}fisher\textquotedbl{}} (Fisher's exact test for each pair).}
+\wordfield{Why (P3)}{Yates' correction (Yates 1934) makes the chi-square p-value closer to the exact one for small counts, at the cost of being conservative (Haviland 1990); simplydata keeps it so that each pair agrees with \code{compare\_\allowbreak{}counts\_\allowbreak{}of}, \code{compare\_\allowbreak{}risks} and R. Holm controls the chance of any false alarm (Holm 1979); Newcombe's interval for the difference keeps its coverage (Newcombe 1998). \textit{Basis: convention.}}
+\wordfield{Checks}{Expected counts below 5 get a note pointing to \code{test=\textquotedbl{}fisher\textquotedbl{}}; a pair whose rows all have one value gets no p-value (as R) and is left out of Holm's adjustment.}
+\wordfield{References}{Yates 1934; Haviland 1990; Holm 1979; Newcombe 1998}
 \wordfield{In the dictionary}{\hyperref[word:table.compare-each-pair-of]{page \pageref{word:table.compare-each-pair-of}}}
 \par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:table.compare-before-and-after}\noindent{\sffamily\bfseries\color{brand}\code{table.\allowbreak{}compare\_\allowbreak{}before\_\allowbreak{}and\_\allowbreak{}after()}}\par\nopagebreak
 \wordfield{Default}{Numbers: the paired t-test with Cohen's \code{d\_\allowbreak{}z}. Yes/no: McNemar's test with continuity correction (as R \code{mcnemar.\allowbreak{}test()}). Three or more kinds: Bowker's test of symmetry. Chosen from the kind of column.}
@@ -18154,10 +18398,24 @@ simplydata often chooses a method, an option value or a setting for you. This ap
 \wordfield{In the dictionary}{\hyperref[word:table.compare-shape-to]{page \pageref{word:table.compare-shape-to}}}
 \par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:table.add-adjusted-p-value-column}\noindent{\sffamily\bfseries\color{brand}\code{table.\allowbreak{}add\_\allowbreak{}adjusted\_\allowbreak{}p\_\allowbreak{}value\_\allowbreak{}column()}}\par\nopagebreak
 \wordfield{Default}{Holm's method (as R \code{p.\allowbreak{}adjust(method = \textquotedbl{}holm\textquotedbl{})}).}
-\wordfield{Alternatives}{\code{method=\textquotedbl{}bonferroni\textquotedbl{}}, \code{\textquotedbl{}benjamini-hochberg\textquotedbl{}}, \code{\textquotedbl{}benjamini-yekutieli\textquotedbl{}}, \code{\textquotedbl{}hochberg\textquotedbl{}}, \code{\textquotedbl{}hommel\textquotedbl{}}.}
+\wordfield{Alternatives}{\code{method=\textquotedbl{}bonferroni\textquotedbl{}}, \code{\textquotedbl{}benjamini-hochberg\textquotedbl{}}, \code{\textquotedbl{}benjamini-yekutieli\textquotedbl{}}, \code{\textquotedbl{}hochberg\textquotedbl{}}, \code{\textquotedbl{}hommel\textquotedbl{}}; \code{\textquotedbl{}storey\textquotedbl{}} (q-values) and \code{\textquotedbl{}local fdr\textquotedbl{}} (R qvalue).}
 \wordfield{Why (P2)}{Holm's method controls the chance of any false alarm, like Bonferroni, but is uniformly more powerful (Holm 1979; Aickin \& Gensler 1996); it is R's default. Benjamini-Hochberg controls the share of false alarms instead, for screening many tests (Benjamini \& Hochberg 1995).}
 \wordfield{Checks}{p-values outside 0 to 1 are refused; empty p-values stay empty and are not counted.}
 \wordfield{References}{Holm 1979; Aickin \& Gensler 1996; Benjamini \& Hochberg 1995; Bender \& Lange 2001}
+\wordfield{In the dictionary}{\hyperref[word:table.add-adjusted-p-value-column]{page \pageref{word:table.add-adjusted-p-value-column}}}
+\par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:table.add-adjusted-p-value-column-method-eq-storey}\noindent{\sffamily\bfseries\color{brand}\code{table.\allowbreak{}add\_\allowbreak{}adjusted\_\allowbreak{}p\_\allowbreak{}value\_\allowbreak{}column()} \code{method=\textquotedbl{}storey\textquotedbl{}}}\par\nopagebreak
+\wordfield{Default}{Storey's q-values from R qvalue::\code{qvalue()} with its defaults: the share of true nulls (pi0) estimated from the p-values by the smoother over lambda = 0.05 to 0.95.}
+\wordfield{Alternatives}{\code{method=\textquotedbl{}benjamini-hochberg\textquotedbl{}} (pi0 = 1); \code{\textquotedbl{}local fdr\textquotedbl{}}.}
+\wordfield{Why (P2)}{Estimating pi0 makes the false discovery rate less conservative than Benjamini-Hochberg when many tests are real (Storey 2002; Storey \& Tibshirani 2003); qvalue is the authors' own package. The gain needs many p-values: with few, pi0 is unstable.}
+\wordfield{Checks}{Fewer than 100 p-values get a note; when qvalue cannot estimate pi0 the word refuses and names Benjamini-Hochberg; p-values outside 0 to 1 are refused and empty ones skipped.}
+\wordfield{References}{Storey 2002; Storey \& Tibshirani 2003; Benjamini \& Hochberg 1995}
+\wordfield{In the dictionary}{\hyperref[word:table.add-adjusted-p-value-column]{page \pageref{word:table.add-adjusted-p-value-column}}}
+\par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:table.add-adjusted-p-value-column-method-eq-local-fdr}\noindent{\sffamily\bfseries\color{brand}\code{table.\allowbreak{}add\_\allowbreak{}adjusted\_\allowbreak{}p\_\allowbreak{}value\_\allowbreak{}column()} \code{method=\textquotedbl{}local fdr\textquotedbl{}}}\par\nopagebreak
+\wordfield{Default}{Each test's local false discovery rate from R qvalue::\code{qvalue()}\$lfdr (pi0 from the smoother), in a column called \code{\textquotedbl{}local false discovery rate\textquotedbl{}}.}
+\wordfield{Alternatives}{\code{method=\textquotedbl{}storey\textquotedbl{}} (q-values: about all the results at least this small).}
+\wordfield{Why (P2)}{The local false discovery rate is the chance that one test is a false discovery (Efron et al. 2001); qvalue gives it with the same pi0 as the q-values (Storey \& Tibshirani 2003).}
+\wordfield{Checks}{As \code{method=\textquotedbl{}storey\textquotedbl{}}.}
+\wordfield{References}{Efron et al. 2001; Storey \& Tibshirani 2003}
 \wordfield{In the dictionary}{\hyperref[word:table.add-adjusted-p-value-column]{page \pageref{word:table.add-adjusted-p-value-column}}}
 \par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:table.compare-spreads-of}\noindent{\sffamily\bfseries\color{brand}\code{table.\allowbreak{}compare\_\allowbreak{}spreads\_\allowbreak{}of()}}\par\nopagebreak
 \wordfield{Default}{Levene's test centred on the median (the Brown-Forsythe form), as R car::\code{leveneTest()}.}
@@ -19434,8 +19692,15 @@ simplydata often chooses a method, an option value or a setting for you. This ap
 \wordfield{Default}{Holt-Winters exponential smoothing (R \code{HoltWinters()}) with an undamped trend, and a season added when \code{repeats\_\allowbreak{}every=} is given; 12 steps ahead with 95 \% intervals; a Ljung-Box check of the residuals.}
 \wordfield{Alternatives}{\code{method=\textquotedbl{}last value\textquotedbl{}}, \code{\textquotedbl{}same season last time\textquotedbl{}}, \code{\textquotedbl{}average\textquotedbl{}}, \code{\textquotedbl{}straight on\textquotedbl{}}, \code{\textquotedbl{}arima\textquotedbl{}} (\code{order=} required); \code{steps\_\allowbreak{}ahead=}, \code{interval=}, \code{trend=False}, \code{season=\textquotedbl{}multiplied\textquotedbl{}}.}
 \wordfield{Why (P3)}{Holt-Winters is the classic exponential smoothing (Winters 1960). The evidence favours other defaults: modern practice chooses among exponential smoothing models by AICc (Hyndman et al. 2002; Hyndman \& Athanasopoulos 2021), and damped trends usually forecast better than straight ones (Gardner \& McKenzie 1985); simplydata offers neither yet. The residual check uses the lag rule of Hyndman \& Athanasopoulos. \textit{Basis: convention.}}
-\wordfield{Checks}{A season needs 2 full cycles; ARIMA orders are never chosen for you; residuals that still hold a pattern get a note.}
+\wordfield{Checks}{A season needs 2 full cycles; ARIMA orders are chosen only when asked (\code{order=\textquotedbl{}automatic\textquotedbl{}}), and the order chosen is printed; residuals that still hold a pattern get a note.}
 \wordfield{References}{Winters 1960; Hyndman et al. 2002; Hyndman et al. 2008; Hyndman \& Athanasopoulos 2021; Gardner \& McKenzie 1985; Ljung \& Box 1978}
+\wordfield{In the dictionary}{\hyperref[word:table.forecast]{page \pageref{word:table.forecast}}}
+\par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:table.forecast-order-eq-automatic}\noindent{\sffamily\bfseries\color{brand}\code{table.\allowbreak{}forecast()} \code{order=\textquotedbl{}automatic\textquotedbl{}}}\par\nopagebreak
+\wordfield{Default}{R forecast::auto.arima chooses the order and the seasonal order by AICc, trying every order (stepwise = FALSE, approximation = FALSE) for series of up to 1,000 readings.}
+\wordfield{Alternatives}{\code{order=}(p, d, q) and \code{seasonal\_\allowbreak{}order=} given by you; methods other than \code{\textquotedbl{}arima\textquotedbl{}}.}
+\wordfield{Why (P2)}{auto.arima is the published automatic procedure (Hyndman \& Khandakar 2008); its quicker stepwise search and the approximation can pick another order, so simplydata searches fully where that is fast. An order chosen from the data makes the intervals a little too narrow (Hyndman \& Athanasopoulos 2021), which the printout says.}
+\wordfield{Checks}{\code{seasonal\_\allowbreak{}order=} with \code{order=\textquotedbl{}automatic\textquotedbl{}} is refused; the chosen orders are printed; above 1,000 readings the quicker search is used and said.}
+\wordfield{References}{Hyndman \& Khandakar 2008; Hyndman \& Athanasopoulos 2021}
 \wordfield{In the dictionary}{\hyperref[word:table.forecast]{page \pageref{word:table.forecast}}}
 \par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:nums.forecast}\noindent{\sffamily\bfseries\color{brand}\code{nums.\allowbreak{}forecast()}}\par\nopagebreak
 \wordfield{Default}{As \code{table.\allowbreak{}forecast}.}
@@ -19455,7 +19720,7 @@ simplydata often chooses a method, an option value or a setting for you. This ap
 \wordfield{Default}{The last 12 readings held back; last value, same season last time (or the average), straight on and exponential smoothing compared by MASE.}
 \wordfield{Alternatives}{\code{methods=}, \code{check\_\allowbreak{}on\_\allowbreak{}last=}.}
 \wordfield{Why (P2)}{MASE compares forecasts across series and is defined even with zeros (Hyndman \& Koehler 2006).}
-\wordfield{Checks}{At least 2 methods; ARIMA needs \code{order=}.}
+\wordfield{Checks}{At least 2 methods; ARIMA needs \code{order=} (three numbers, or \code{\textquotedbl{}automatic\textquotedbl{}}).}
 \wordfield{References}{Hyndman \& Koehler 2006; Hyndman \& Athanasopoulos 2021}
 \wordfield{In the dictionary}{\hyperref[word:table.compare-forecasts-for]{page \pageref{word:table.compare-forecasts-for}}}
 \unsection{Cycles and filters}{basis-group:Cycles-and-filters}
@@ -19655,6 +19920,7 @@ simplydata often chooses a method, an option value or a setting for you. This ap
 \par\noindent\hangindent=1.5em Bates D, M\"achler M, Bolker B et al. (2015). Fitting Linear Mixed-Effects Models Using lme4. Journal of Statistical Software 67. \href{https://doi.org/10.18637/jss.v067.i01}{doi:10.18637/jss.v067.i01}
 \par\noindent\hangindent=1.5em Bates DM, Watts DG (1988). Nonlinear Regression Analysis and Its Applications. Wiley Series in Probability and Statistics. \href{https://doi.org/10.1002/9780470316757}{doi:10.1002/9780470316757}
 \par\noindent\hangindent=1.5em Belia S, Fidler F, Williams J et al. (2005). Researchers Misunderstand Confidence Intervals and Standard Error Bars. Psychological Methods 10:389-396. \href{https://doi.org/10.1037/1082-989X.10.4.389}{doi:10.1037/1082-989X.10.4.389}
+\par\noindent\hangindent=1.5em Benavoli A, Corani G, Mangili F (2016). Should We Really Use Post-Hoc Tests Based on Mean-Ranks? Journal of Machine Learning Research 17(5):1-10. \href{https://jmlr.org/papers/v17/benavoli16a.html}{https://jmlr.org/papers/v17/benavoli16a.html}
 \par\noindent\hangindent=1.5em Bender R, Lange S (2001). Adjusting for multiple testing-{}--when and how? Journal of Clinical Epidemiology 54:343-349. \href{https://doi.org/10.1016/S0895-4356(00)00314-0}{doi:10.1016/S0895-4356(00)00314-0}
 \par\noindent\hangindent=1.5em Benjamini Y, Hochberg Y (1995). Controlling the False Discovery Rate: A Practical and Powerful Approach to Multiple Testing. Journal of the Royal Statistical Society Series B: Statistical Methodology 57:289-300. \href{https://doi.org/10.1111/j.2517-6161.1995.tb02031.x}{doi:10.1111/j.2517-6161.1995.tb02031.x}
 \par\noindent\hangindent=1.5em Berk R, Brown L, Buja A et al. (2013). Valid post-selection inference. The Annals of Statistics 41:802-837. \href{https://doi.org/10.1214/12-AOS1077}{doi:10.1214/12-AOS1077}
@@ -19702,6 +19968,7 @@ simplydata often chooses a method, an option value or a setting for you. This ap
 \par\noindent\hangindent=1.5em Cohen J (1988; reprinted 2013). Statistical Power Analysis for the Behavioral Sciences (2nd ed.). Routledge. \href{https://doi.org/10.4324/9780203771587}{doi:10.4324/9780203771587}
 \par\noindent\hangindent=1.5em Cole SR, Hern\'an MA (2004). Adjusted survival curves with inverse probability weights. Computer Methods and Programs in Biomedicine 75:45-49. \href{https://doi.org/10.1016/j.cmpb.2003.10.004}{doi:10.1016/j.cmpb.2003.10.004}
 \par\noindent\hangindent=1.5em Coles S (2001). An Introduction to Statistical Modeling of Extreme Values. Springer Series in Statistics. Springer. \href{https://doi.org/10.1007/978-1-4471-3675-0}{doi:10.1007/978-1-4471-3675-0}
+\par\noindent\hangindent=1.5em Conover WJ, Iman RL (1979). On multiple-comparisons procedures. Technical Report LA-7677-MS, Los Alamos Scientific Laboratory. \href{https://www.osti.gov/biblio/6057803}{https://www.osti.gov/biblio/6057803}
 \par\noindent\hangindent=1.5em Conover WJ, Johnson ME, Johnson MM (1981). A Comparative Study of Tests for Homogeneity of Variances, with Applications to the Outer Continental Shelf Bidding Data. Technometrics 23:351-361. \href{https://doi.org/10.1080/00401706.1981.10487680}{doi:10.1080/00401706.1981.10487680}
 \par\noindent\hangindent=1.5em Cook RD (1977). Detection of Influential Observation in Linear Regression. Technometrics 19:15-18. \href{https://doi.org/10.2307/1268249}{doi:10.2307/1268249}
 \par\noindent\hangindent=1.5em Cox DR (1972). Regression Models and Life-Tables. Journal of the Royal Statistical Society Series B: Statistical Methodology 34:187-202. \href{https://doi.org/10.1111/j.2517-6161.1972.tb00899.x}{doi:10.1111/j.2517-6161.1972.tb00899.x}
@@ -19723,6 +19990,7 @@ simplydata often chooses a method, an option value or a setting for you. This ap
 \par\noindent\hangindent=1.5em Delignette-Muller ML, Dutang C (2015). fitdistrplus : An R Package for Fitting Distributions. Journal of Statistical Software 64. \href{https://doi.org/10.18637/jss.v064.i04}{doi:10.18637/jss.v064.i04}
 \par\noindent\hangindent=1.5em DeLong ER, DeLong DM, Clarke-Pearson DL (1988). Comparing the Areas under Two or More Correlated Receiver Operating Characteristic Curves: A Nonparametric Approach. Biometrics 44:837. \href{https://doi.org/10.2307/2531595}{doi:10.2307/2531595}
 \par\noindent\hangindent=1.5em Demidenko E (2007). Sample size determination for logistic regression revisited. Statistics in Medicine 26:3385-3397. \href{https://doi.org/10.1002/sim.2771}{doi:10.1002/sim.2771}
+\par\noindent\hangindent=1.5em Dem\v{s}ar J (2006). Statistical Comparisons of Classifiers over Multiple Data Sets. Journal of Machine Learning Research 7:1-30. \href{https://jmlr.org/papers/v7/demsar06a.html}{https://jmlr.org/papers/v7/demsar06a.html}
 \par\noindent\hangindent=1.5em Denz R, Klaa\ss{}en-Mielke R, Timmesfeld N (2023). A comparison of different methods to adjust survival curves for confounders. Statistics in Medicine 42:1461-1479. \href{https://doi.org/10.1002/sim.9681}{doi:10.1002/sim.9681}
 \par\noindent\hangindent=1.5em DerSimonian R, Laird N (1986). Meta-analysis in clinical trials. Controlled Clinical Trials 7:177-188. \href{https://doi.org/10.1016/0197-2456(86)90046-2}{doi:10.1016/0197-2456(86)90046-2}
 \par\noindent\hangindent=1.5em DiCiccio TJ, Efron B (1996). Bootstrap confidence intervals. Statistical Science 11:189-228. \href{https://doi.org/10.1214/ss/1032280214}{doi:10.1214/ss/1032280214}
@@ -19734,6 +20002,7 @@ simplydata often chooses a method, an option value or a setting for you. This ap
 \par\noindent\hangindent=1.5em Duval S, Tweedie R (2000). Trim and Fill: A Simple Funnel-Plot-{}-Based Method of Testing and Adjusting for Publication Bias in Meta-Analysis. Biometrics 56:455-463. \href{https://doi.org/10.1111/j.0006-341X.2000.00455.x}{doi:10.1111/j.0006-341X.2000.00455.x}
 \par\noindent\hangindent=1.5em Efron B (1977). The Efficiency of Cox's Likelihood Function for Censored Data. Journal of the American Statistical Association 72:557-565. \href{https://doi.org/10.1080/01621459.1977.10480613}{doi:10.1080/01621459.1977.10480613}
 \par\noindent\hangindent=1.5em Efron B (1987). Better Bootstrap Confidence Intervals. Journal of the American Statistical Association 82:171-185. \href{https://doi.org/10.1080/01621459.1987.10478410}{doi:10.1080/01621459.1987.10478410}
+\par\noindent\hangindent=1.5em Efron B, Tibshirani R, Storey JD, Tusher V (2001). Empirical Bayes Analysis of a Microarray Experiment. Journal of the American Statistical Association 96:1151-1160. \href{https://doi.org/10.1198/016214501753382129}{doi:10.1198/016214501753382129}
 \par\noindent\hangindent=1.5em Egger M, Smith GD, Schneider M et al. (1997). Bias in meta-analysis detected by a simple, graphical test. BMJ 315:629-634. \href{https://doi.org/10.1136/bmj.315.7109.629}{doi:10.1136/bmj.315.7109.629}
 \par\noindent\hangindent=1.5em Egozcue JJ, Pawlowsky-Glahn V, Mateu-Figueras G et al. (2003). Isometric Logratio Transformations for Compositional Data Analysis. Mathematical Geology 35:279-300. \href{https://doi.org/10.1023/A:1023818214614}{doi:10.1023/A:1023818214614}
 \par\noindent\hangindent=1.5em Eldridge SM, Ashby D, Kerry S (2006). Sample size for cluster randomized trials: effect of coefficient of variation of cluster size and analysis method. International Journal of Epidemiology 35:1292-1300. \href{https://doi.org/10.1093/ije/dyl129}{doi:10.1093/ije/dyl129}
@@ -19826,6 +20095,7 @@ simplydata often chooses a method, an option value or a setting for you. This ap
 \par\noindent\hangindent=1.5em Hyndman R, Koehler A, Ord K et al. (2008). Forecasting with Exponential Smoothing. Springer Series in Statistics. \href{https://doi.org/10.1007/978-3-540-71918-2}{doi:10.1007/978-3-540-71918-2}
 \par\noindent\hangindent=1.5em Hyndman RJ, Athanasopoulos G (2021). Forecasting: Principles and Practice (3rd ed.). OTexts. \href{https://otexts.com/fpp3/}{https://otexts.com/fpp3/}
 \par\noindent\hangindent=1.5em Hyndman RJ, Fan Y (1996). Sample Quantiles in Statistical Packages. The American Statistician 50:361-365. \href{https://doi.org/10.1080/00031305.1996.10473566}{doi:10.1080/00031305.1996.10473566}
+\par\noindent\hangindent=1.5em Hyndman RJ, Khandakar Y (2008). Automatic Time Series Forecasting: The forecast Package for R. Journal of Statistical Software 27(3). \href{https://doi.org/10.18637/jss.v027.i03}{doi:10.18637/jss.v027.i03}
 \par\noindent\hangindent=1.5em Hyndman RJ, Koehler AB (2006). Another look at measures of forecast accuracy. International Journal of Forecasting 22:679-688. \href{https://doi.org/10.1016/j.ijforecast.2006.03.001}{doi:10.1016/j.ijforecast.2006.03.001}
 \par\noindent\hangindent=1.5em Hyndman RJ, Koehler AB, Snyder RD et al. (2002). A state space framework for automatic forecasting using exponential smoothing methods. International Journal of Forecasting 18:439-454. \href{https://doi.org/10.1016/S0169-2070(01)00110-8}{doi:10.1016/S0169-2070(01)00110-8}
 \par\noindent\hangindent=1.5em International Council for Harmonisation (1998). E9: Statistical principles for clinical trials. \href{https://database.ich.org/sites/default/files/E9_Guideline.pdf}{https://database.ich.org/sites/default/files/E9\_Guideline.pdf}
@@ -19879,6 +20149,7 @@ simplydata often chooses a method, an option value or a setting for you. This ap
 \par\noindent\hangindent=1.5em Lopez Bernal J, Cummins S, Gasparrini A (2017). Interrupted time series regression for the evaluation of public health interventions: a tutorial. International Journal of Epidemiology 46:348-355. \href{https://doi.org/10.1093/ije/dyw098}{doi:10.1093/ije/dyw098}
 \par\noindent\hangindent=1.5em Lubbe S, Filzmoser P, Templ M (2021). Comparison of zero replacement strategies for compositional data with large numbers of zeros. Chemometrics and Intelligent Laboratory Systems 210:104248. \href{https://doi.org/10.1016/j.chemolab.2021.104248}{doi:10.1016/j.chemolab.2021.104248}
 \par\noindent\hangindent=1.5em Luke SG (2017). Evaluating significance in linear mixed-effects models in R. Behavior Research Methods 49:1494-1502. \href{https://doi.org/10.3758/s13428-016-0809-y}{doi:10.3758/s13428-016-0809-y}
+\par\noindent\hangindent=1.5em Lumley T (2004). Analysis of Complex Survey Samples. Journal of Statistical Software 9(8). \href{https://doi.org/10.18637/jss.v009.i08}{doi:10.18637/jss.v009.i08}
 \par\noindent\hangindent=1.5em MacCallum RC, Widaman KF, Zhang S et al. (1999). Sample size in factor analysis.. Psychological Methods 4:84-99. \href{https://doi.org/10.1037/1082-989X.4.1.84}{doi:10.1037/1082-989X.4.1.84}
 \par\noindent\hangindent=1.5em MacKinnon JG (1996). Numerical distribution functions for unit root and cointegration tests. Journal of Applied Econometrics 11:601-618. \href{https://doi.org/10.1002/(SICI)1099-1255(199611)11:6\%3C601::AID-JAE417\%3E3.0.CO\%3B2-T}{doi:10.1002/(SICI)1099-1255(199611)11:6\textless{}601::AID-JAE417\textgreater{}3.0.CO;2-T}
 \par\noindent\hangindent=1.5em MacKinnon JG, White H (1985). Some heteroskedasticity-consistent covariance matrix estimators with improved finite sample properties. Journal of Econometrics 29:305-325. \href{https://doi.org/10.1016/0304-4076(85)90158-7}{doi:10.1016/0304-4076(85)90158-7}
@@ -19972,6 +20243,8 @@ simplydata often chooses a method, an option value or a setting for you. This ap
 \par\noindent\hangindent=1.5em Stephens MA (1974). EDF Statistics for Goodness of Fit and Some Comparisons. Journal of the American Statistical Association 69:730-737. \href{https://doi.org/10.1080/01621459.1974.10480196}{doi:10.1080/01621459.1974.10480196}
 \par\noindent\hangindent=1.5em Sterne JAC, Egger M (2001). Funnel plots for detecting bias in meta-analysis. Journal of Clinical Epidemiology 54:1046-1055. \href{https://doi.org/10.1016/S0895-4356(01)00377-8}{doi:10.1016/S0895-4356(01)00377-8}
 \par\noindent\hangindent=1.5em Sterne JAC, Sutton AJ, Ioannidis JPA et al. (2011). Recommendations for examining and interpreting funnel plot asymmetry in meta-analyses of randomised controlled trials. BMJ 343:d4002-d4002. \href{https://doi.org/10.1136/bmj.d4002}{doi:10.1136/bmj.d4002}
+\par\noindent\hangindent=1.5em Storey JD (2002). A Direct Approach to False Discovery Rates. Journal of the Royal Statistical Society Series B: Statistical Methodology 64:479-498. \href{https://doi.org/10.1111/1467-9868.00346}{doi:10.1111/1467-9868.00346}
+\par\noindent\hangindent=1.5em Storey JD, Tibshirani R (2003). Statistical significance for genomewide studies. Proceedings of the National Academy of Sciences 100:9440-9445. \href{https://doi.org/10.1073/pnas.1530509100}{doi:10.1073/pnas.1530509100}
 \par\noindent\hangindent=1.5em Student (1908). The Probable Error of a Mean. Biometrika 6:1. \href{https://doi.org/10.1093/biomet/6.1.1}{doi:10.1093/biomet/6.1.1}
 \par\noindent\hangindent=1.5em Sturges HA (1926). The Choice of a Class Interval. Journal of the American Statistical Association 21:65-66. \href{https://doi.org/10.1080/01621459.1926.10502161}{doi:10.1080/01621459.1926.10502161}
 \par\noindent\hangindent=1.5em Stute W, Gonz\'alez Manteiga W, Presedo Quindimil M (1993). Bootstrap based goodness-of-fit-tests. Metrika 40:243-256. \href{https://doi.org/10.1007/BF02613687}{doi:10.1007/BF02613687}
@@ -20018,6 +20291,7 @@ simplydata often chooses a method, an option value or a setting for you. This ap
 \par\noindent\hangindent=1.5em Wood SN (2011). Fast Stable Restricted Maximum Likelihood and Marginal Likelihood Estimation of Semiparametric Generalized Linear Models. Journal of the Royal Statistical Society Series B: Statistical Methodology 73:3-36. \href{https://doi.org/10.1111/j.1467-9868.2010.00749.x}{doi:10.1111/j.1467-9868.2010.00749.x}
 \par\noindent\hangindent=1.5em Woolf B (1955). On estimating the relation between blood group and disease. Annals of Human Genetics 19:251-253. \href{https://doi.org/10.1111/j.1469-1809.1955.tb01348.x}{doi:10.1111/j.1469-1809.1955.tb01348.x}
 \par\noindent\hangindent=1.5em Yap BW, Sim CH (2011). Comparisons of various types of normality tests. Journal of Statistical Computation and Simulation 81:2141-2155. \href{https://doi.org/10.1080/00949655.2010.520163}{doi:10.1080/00949655.2010.520163}
+\par\noindent\hangindent=1.5em Yates F (1934). Contingency Tables Involving Small Numbers and the $\chi$2 Test. Supplement to the Journal of the Royal Statistical Society 1:217-235. \href{https://doi.org/10.2307/2983604}{doi:10.2307/2983604}
 \par\noindent\hangindent=1.5em Youden WJ (1950). Index for rating diagnostic tests. Cancer 3:32-35. \href{https://doi.org/10.1002/1097-0142(1950)3:1\%3C32::AID-CNCR2820030106\%3E3.0.CO\%3B2-3}{doi:10.1002/1097-0142(1950)3:1\textless{}32::AID-CNCR2820030106\textgreater{}3.0.CO;2-3}
 \par\noindent\hangindent=1.5em Yue S, Pilon P, Phinney B et al. (2002). The influence of autocorrelation on the ability to detect trend in hydrological series. Hydrological Processes 16:1807-1829. \href{https://doi.org/10.1002/hyp.1095}{doi:10.1002/hyp.1095}
 \par\noindent\hangindent=1.5em Yusuf S, Peto R, Lewis J et al. (1985). Beta blockade during and after myocardial infarction: An overview of the randomized trials. Progress in Cardiovascular Diseases 27:335-371. \href{https://doi.org/10.1016/S0033-0620(85)80003-7}{doi:10.1016/S0033-0620(85)80003-7}

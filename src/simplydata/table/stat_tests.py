@@ -53,7 +53,8 @@ note says how to add it.
   algorithm), for 3 to 5000 values per group, as R.
 * add_adjusted_p_value_column: Holm (default), Bonferroni, Benjamini-Hochberg or
   Benjamini-Yekutieli, exactly as R p.adjust(); empty p-values stay empty and are not
-  counted.
+  counted. method="storey" (Storey's q-values) and "local fdr" come from R qvalue
+  (table/small_r.py).
 * The groups column is for_each_group_in= in every test (between= was its old name and still works
   for one release, with a note).
 * fit_line, fit_curve and fit_formula: see fitting.py (R lm() and nls()).
@@ -87,6 +88,7 @@ from .columns import (CONSTANTS, FORMULA_HELP, FUNCTION_SPELLINGS, FUNCTIONS, SP
 from .summaries import GROUPS_IN_SENTENCE as GROUPS_SHOWN
 from .effect_sizes import effect_size, interval_only, interval_text
 from .post_hoc import R_PAIR_TESTS, dunnett_pairs, pair_letters, r_pairs
+from .small_r import FRIEDMAN_PAIR_TESTS
 from .summaries import _key, _order, _p_clause, _p_sentence, _p_shown, _plain, _say_label
 
 BASED_ON = ("averages", "ranks")
@@ -103,6 +105,9 @@ EXACT_METHODS = {"barnard": "z-pooled", "boschloo": "boschloo"}  # R Exact::exac
 PAIR_TESTS = ("welch", "mann-whitney", "tukey", "games-howell", "scheffe", "lsd", "dunn", "conover")
 PAIR_ALIASES = {"games howell": "games-howell", "gameshowell": "games-howell", "scheffé": "scheffe",
                 "fisher": "lsd", "fisher's lsd": "lsd", "dunn's": "dunn", "conover-iman": "conover"}
+FRIEDMAN_PAIR_ALIASES = {"nemenyi-wilcoxon-wilcox": "nemenyi", "nemenyi's": "nemenyi", "conover's": "conover",
+                         "conover-iman": "conover"}
+PERCENT_PAIR_TESTS = ("chi-square", "fisher")  # compare_each_pair_of(based_on="percents", test=)
 SPREAD_TESTS = ("levene", "bartlett", "fligner", "ansari", "mood", "f")
 TWO_GROUP_SPREAD_TESTS = ("ansari", "mood", "f")
 SPREAD_ALIASES = {"brown-forsythe": "levene", "brown forsythe": "levene", "fligner-killeen": "fligner",
@@ -138,7 +143,13 @@ ADJUST_METHODS = {
     "hommel": ("Hommel", "hommel"),
 }
 ADJUST_ALIASES = {"bh": "benjamini-hochberg", "fdr": "benjamini-hochberg", "by": "benjamini-yekutieli",
-                  "benjamini hochberg": "benjamini-hochberg", "benjamini yekutieli": "benjamini-yekutieli"}
+                  "benjamini hochberg": "benjamini-hochberg", "benjamini yekutieli": "benjamini-yekutieli",
+                  "q-values": "storey", "q-value": "storey", "q values": "storey", "q value": "storey",
+                  "qvalue": "storey", "qvalues": "storey", "storey-tibshirani": "storey", "storey tibshirani": "storey",
+                  "local false discovery rate": "local fdr", "lfdr": "local fdr", "localfdr": "local fdr",
+                  "local-fdr": "local fdr"}
+# methods that come from R qvalue (Storey & Tibshirani 2003), not from p.adjust()
+STOREY_METHODS = {"storey": "Storey q-value", "local fdr": "local false discovery rate"}
 ADJUST_MEANING = {
     "holm": "the chance of even one false alarm among all the tests stays at 5 %",
     "bonferroni": "the chance of even one false alarm among all the tests stays at 5 %",
@@ -1062,7 +1073,7 @@ class StatTestWords:
     # ------------------------------------------------------------------ compare_each_pair_of
     @friendly(renamed={"between": "for_each_group_in", "for_each": "for_each_group_in", "seed": "with_seed"})
     def compare_each_pair_of(self, column=None, for_each_group_in=None, based_on="averages", test=None, against=None, with_seed=1,
-                             show="pairs", matched_by=None):
+                             show="pairs", matched_by=None, value=None):
         """Which pairs of groups differ? Every pair is compared, with Holm's correction.
 
         table.compare_each_pair_of("marks", for_each_group_in="class")   (with sdata.get_example("marks"))
@@ -1094,15 +1105,36 @@ class StatTestWords:
         at week 0, 4 and 8 in long form. Each pair is then compared within the patients: paired
         t-tests, or with based_on="ranks" (after compare_matched_columns's Friedman test) the Wilcoxon
         signed-rank test, with Holm's correction (SciPy, as R pairwise.t.test(paired = TRUE) and
-        pairwise.wilcox.test(paired = TRUE)).
+        pairwise.wilcox.test(paired = TRUE)). After Friedman's test, test="nemenyi" gives Nemenyi's
+        test (R PMCMRplus::frdAllPairsNemenyiTest(), which allows for all the pairs itself: no further
+        adjustment) and test="conover" Conover's test (R PMCMRplus::frdAllPairsConoverTest(
+        p.adjust.method = "holm")); both work on the ranks within each matched row.
+        based_on="percents" with a column of two values (value="yes" names the one counted)
+        compares the percent of each pair of groups: the 2 x 2 chi-square test with Yates'
+        correction that compare_counts_of uses (SciPy), or test="fisher" (Fisher's exact test), then
+        Holm's correction; each pair also gets its difference in percentage points with Newcombe's
+        95 % interval, as compare_risks (statsmodels). The same as R pairwise.prop.test().
+        table.compare_each_pair_of("resistant", for_each_group_in="farm", based_on="percents", value="yes")
         """
         step = "compare_each_pair_of"
         self._check_choice(step, "show", show, ("pairs", "letters"))
+        if based_on == "percents":
+            if matched_by is not None or against is not None or show != "pairs":
+                raise SimplydataError('based_on="percents" compares the percent of every pair of groups; leave out '
+                                      "matched_by=, against= and show=.")
+            return self._percent_pairs(step, column, for_each_group_in, value, test)
+        if value is not None:
+            raise SimplydataError('value= names the value that is counted, so it goes with based_on="percents".\n'
+                                  'For example:  table.compare_each_pair_of("resistant", for_each_group_in="farm", '
+                                  'based_on="percents", value="yes")')
         if matched_by is not None:
-            if test is not None or against is not None or show != "pairs":
-                raise SimplydataError("matched_by= gives paired tests of each pair (Holm); leave out test=, against= "
-                                      "and show=.")
-            return self._matched_pairs(step, column, for_each_group_in, matched_by, based_on)
+            if isinstance(test, str):
+                test = FRIEDMAN_PAIR_ALIASES.get(test.strip().lower(), test.strip().lower())
+            if (test is not None and test not in FRIEDMAN_PAIR_TESTS) or against is not None or show != "pairs":
+                raise SimplydataError("matched_by= gives paired tests of each pair (Holm); after Friedman's test "
+                                      'test="nemenyi" or test="conover" are the other choices. Otherwise leave out '
+                                      "test=, and leave out against= and show=.")
+            return self._matched_pairs(step, column, for_each_group_in, matched_by, based_on, test)
         if show == "letters" and against is not None:
             raise SimplydataError("show=\"letters\" compares every pair; against= compares each group with one "
                                   "control only. Leave out one of them.")
@@ -1111,12 +1143,15 @@ class StatTestWords:
             return pairs
         return self._pair_letters(column, for_each_group_in, pairs)
 
-    def _matched_pairs(self, step, column, for_each, matched_by, based_on):
-        """Paired tests of each pair of groups within the matched rows, Holm-adjusted."""
+    def _matched_pairs(self, step, column, for_each, matched_by, based_on, test=None):
+        """Paired tests of each pair of groups within the matched rows, Holm-adjusted; or Nemenyi's or Conover's test
+        after Friedman's (test=)."""
         from scipy import stats
 
         example = 'table.compare_each_pair_of("pain", for_each_group_in="week", matched_by="patient", based_on="ranks")'
         self._check_based_on(step, based_on)
+        if test is not None:
+            based_on = "ranks"  # Nemenyi and Conover work on the ranks within each matched row
         for option, value in (("the column", column), ("for_each_group_in=", for_each), ("matched_by=", matched_by)):
             self._need_name(step, option, value, example)
         if len({column, for_each, matched_by}) != 3:
@@ -1143,6 +1178,8 @@ class StatTestWords:
         if len(groups) < 2 or len(complete) < 2:
             raise SimplydataError(f'{step}() needs at least 2 groups and 2 "{matched_by}" values measured in each.')
         data = {g: np.array([cells[(w, g)] for w in complete]) for g in groups}
+        if test is not None:
+            return self._friedman_pairs(column, for_each, matched_by, groups, complete, data, test)
         rows = []
         for i in range(len(groups)):
             for j in range(i + 1, len(groups)):
@@ -1175,6 +1212,142 @@ class StatTestWords:
               f"values with {test}; the p-values are adjusted for {len(rows)} pair{'' if len(rows) == 1 else 's'} with "
               f"Holm's method, so the chance of any false alarm stays at 5 %. As R {r_name}.")
         self._pair_lines(rows, "p-value (Holm)", "Holm-adjusted ")
+        frame = nw.from_dict({key: [r[key] for r in rows] for key in rows[0]}, backend=self._frame.implementation)
+        return self._new_table(frame)
+
+    def _friedman_pairs(self, column, for_each, matched_by, groups, complete, data, test):
+        """compare_each_pair_of(matched_by=, test="nemenyi" | "conover"): R PMCMRplus after Friedman's test."""
+        from .small_r import FRIEDMAN_PAIR_TESTS as TESTS, friedman_pairs
+
+        if len(groups) < 3:
+            raise SimplydataError(f'test="{test}" follows Friedman\'s test of 3 or more groups; "{for_each}" has '
+                                  f"{len(groups)}. For two groups leave out test= (the Wilcoxon signed-rank test).")
+        title, r_name, meaning = TESTS[test]
+        found = friedman_pairs(test, groups, complete, data)
+        rows = []
+        for one in found:
+            g1, g2 = groups[one["i"]], groups[one["j"]]
+            row = {"group 1": _label(g1), "group 2": _label(g2), "test": title,
+                   "mean rank in group 1": one["rank 1"], "mean rank in group 2": one["rank 2"],
+                   "statistic name": one["dist"], "statistic": one["statistic"]}
+            if one["dist"] == "t":
+                row["degrees of freedom"] = one["df"]
+            row.update({"p-value (adjusted)": one["p"], "rows": len(complete)})
+            rows.append(row)
+        pairs = "pair" if len(rows) == 1 else "pairs"
+        print(f'Each pair of "{for_each}" groups compared on "{column}" within the same {len(complete)} '
+              f'"{matched_by}" values with {title} (ranks within each "{matched_by}"), run in R as {r_name}: '
+              f"{len(rows)} {pairs}; {meaning}.")
+        null = f'the two groups had the same typical "{column}" (in ranks)'
+        for row in rows:
+            r1, r2 = row["mean rank in group 1"], row["mean rank in group 2"]
+            where = "higher than" if r1 > r2 else "lower than" if r1 < r2 else "the same as"
+            word = "Holm-adjusted " if test == "conover" else "Nemenyi "
+            shown = word + _p_shown(row["p-value (adjusted)"])
+            print(f"  {row['group 1']} vs {row['group 2']}: {row['group 1']} ranks {where} {row['group 2']} within "
+                  f'each "{matched_by}" (mean rank {_num(r1)} against {_num(r2)}); '
+                  f"{_p_clause(row['p-value (adjusted)'], null, shown=shown)}.")
+        print("Note: tests of mean ranks such as these compare two groups through the ranks of all the groups, so "
+              "the answer for one pair can change when another group is added or left out (Benavoli, Corani & "
+              "Mangili 2016); the default, Wilcoxon signed-rank tests with Holm's correction, compares each pair "
+              "on its own.")
+        frame = nw.from_dict({key: [r[key] for r in rows] for key in rows[0]}, backend=self._frame.implementation)
+        return self._new_table(frame)
+
+    def _percent_pairs(self, step, column, for_each, value, test):
+        """compare_each_pair_of(based_on="percents"): each pair's 2 x 2 test (SciPy chi-square with Yates' correction,
+        as compare_counts_of, or Fisher's exact test), Holm's adjustment (statsmodels), and the difference with
+        Newcombe's interval (statsmodels), as R pairwise.prop.test()."""
+        import warnings
+
+        from scipy import stats
+        from statsmodels.stats.proportion import confint_proportions_2indep, test_proportions_2indep
+
+        from .risk_words import _event_value, _say_pct
+
+        example = 'table.compare_each_pair_of("resistant", for_each_group_in="farm", based_on="percents", value="yes")'
+        for option, given in (("the column", column), ("for_each_group_in=", for_each)):
+            self._need_name(step, option, given, example)
+        if column == for_each:
+            raise SimplydataError(f"{step}() needs two different columns.\nFor example, {example}")
+        if isinstance(test, str):
+            test = test.strip().lower()
+        if test is not None:
+            self._check_choice(step, "test", test, PERCENT_PAIR_TESTS)
+        kept = self._two_columns_frame(step, [column, for_each], example)
+        outcomes = kept[column].to_list()
+        event, event_words = _event_value(step, column, outcomes, value, option="value")
+        keys = kept[for_each].to_list()
+        groups = sorted(set(keys), key=lambda k: (str(type(k)), k))
+        if len(groups) < 2:
+            raise SimplydataError(f'{step}() needs at least 2 groups in "{for_each}".')
+        is_event = np.array([v == event for v in outcomes])
+        keys_arr = np.asarray(keys, dtype=object)
+        counts = [(g, int(is_event[keys_arr == g].sum()), int((keys_arr == g).sum())) for g in groups]
+        fisher = test == "fisher"
+        rows, low_expected = [], False
+        for i in range(len(counts)):
+            for j in range(i + 1, len(counts)):
+                (g1, e1, n1), (g2, e2, n2) = counts[i], counts[j]
+                tab = np.array([[e1, n1 - e1], [e2, n2 - e2]])
+                share1, share2 = stats.binomtest(e1, n1).statistic, stats.binomtest(e2, n2).statistic
+                with warnings.catch_warnings():  # statsmodels also works out an odds ratio, 1 / 0 when a share is 1
+                    warnings.simplefilter("ignore", RuntimeWarning)
+                    diff = float(test_proportions_2indep(e1, n1, e2, n2, compare="diff").diff)
+                low, high = (float(v) for v in confint_proportions_2indep(e1, n1, e2, n2, method="newcomb",
+                                                                          compare="diff"))
+                empty_column = bool((tab.sum(axis=0) == 0).any())
+                if fisher:
+                    p, statistic, name = float(stats.fisher_exact(tab).pvalue), math.nan, "odds ratio"
+                    statistic = float(stats.contingency.odds_ratio(tab, kind="conditional").statistic)
+                elif empty_column:
+                    p, statistic, name = math.nan, math.nan, "chi-square"  # as R prop.test(): NaN
+                else:
+                    chi = stats.chi2_contingency(tab, correction=True)
+                    p, statistic, name = float(chi.pvalue), float(chi.statistic), "chi-square"
+                    low_expected = low_expected or bool((chi.expected_freq < 5).any())
+                rows.append({"group 1": _label(g1), "group 2": _label(g2),
+                             "test": "Fisher's exact test" if fisher else "chi-square test with Yates' correction",
+                             f"share {_label(event)} in group 1": float(share1),
+                             f"share {_label(event)} in group 2": float(share2),
+                             "difference": diff, "difference 95 % CI low": low, "difference 95 % CI high": high,
+                             "statistic name": name, "statistic": statistic, "p-value": p,
+                             f"{_label(event)} in group 1": e1, "count in group 1": n1,
+                             f"{_label(event)} in group 2": e2, "count in group 2": n2})
+        given = [r["p-value"] for r in rows if not math.isnan(r["p-value"])]
+        adjusted = iter(_holm(given))
+        for row in rows:
+            row["p-value (Holm)"] = math.nan if math.isnan(row["p-value"]) else next(adjusted)
+        shown = _list_words(f"{e} of {n} ({_say_pct(stats.binomtest(e, n).statistic)}) in {_label(g)}"
+                            for g, e, n in counts[:GROUPS_SHOWN])
+        print(f'"{column}" = {event_words}: {shown}{" ..." if len(counts) > GROUPS_SHOWN else ""}.')
+        how = ("Fisher's exact test (SciPy fisher_exact), as R rstatix::pairwise_fisher_test(p.adjust.method = "
+               '"holm")' if fisher else
+               "the chi-square test with Yates' continuity correction, the 2 x 2 test of compare_counts_of (SciPy "
+               "chi2_contingency), as R pairwise.prop.test(), whose default is the same")
+        print(f'Each pair of "{for_each}" groups compared on the percent "{column}" = {_label(event)} with {how}; the '
+              f"p-values are adjusted for {len(given)} pair{'' if len(given) == 1 else 's'} with Holm's method "
+              "(statsmodels multipletests), so the chance of any false alarm stays at 5 %. Each difference has "
+              "Newcombe's 95 % interval (statsmodels confint_proportions_2indep), as compare_risks.")
+        null = f'the two groups had the same percent "{_label(event)}"'
+        for row in rows:
+            diff = row["difference"]
+            points = _say_pct(abs(diff)).replace(" %", " percentage points")
+            ends = (_say_pct(row["difference 95 % CI low"]).replace(" %", "") + " to "
+                    + _say_pct(row["difference 95 % CI high"]).replace(" %", ""))
+            where = "higher" if diff > 0 else "lower" if diff < 0 else "the same"
+            amount = f"{points} {where}" if diff != 0 else "the same"
+            clause = (_p_clause(row["p-value (Holm)"], null, shown="Holm-adjusted " + _p_shown(row["p-value (Holm)"]))
+                      if not math.isnan(row["p-value (Holm)"]) else "no p-value: every row in the two groups is the same")
+            print(f"  {row['group 1']} vs {row['group 2']}: the percent in {row['group 1']} is {amount} (95 % CI "
+                  f"{ends}); {clause}.")
+        print("A large p-value for a pair does not show that the two groups have the same percent.")
+        if low_expected:
+            print('Note: an expected count is below 5 in at least one pair, so the chi-square p-value is rough there; '
+                  'test="fisher" gives Fisher\'s exact test for every pair.')
+        if any(math.isnan(r["p-value"]) for r in rows):
+            print("Note: a pair where every row has the same value has no p-value (as R prop.test(), which gives NaN) "
+                  "and is not counted in Holm's adjustment.")
         frame = nw.from_dict({key: [r[key] for r in rows] for key in rows[0]}, backend=self._frame.implementation)
         return self._new_table(frame)
 
@@ -2732,7 +2905,7 @@ class StatTestWords:
         """Adjust p-values for testing many things at once, in a new column.
 
         table = sdata.table(sdata.get_example("marks")).find_correlation_between("hours", "marks", "height", show="each pair")
-        table.add_adjusted_p_value_column("q", method="benjamini-hochberg")
+        table.add_adjusted_p_value_column("p_adjusted", method="benjamini-hochberg")
         (table is now one row per pair of columns, with its p-value)
         The more tests you run, the more likely one of them looks real by chance; adjusted
         p-values allow for that. method="holm" (the default, as R p.adjust()): the chance
@@ -2743,24 +2916,30 @@ class StatTestWords:
         discovery rate that is safe however the tests depend on each other. "hochberg" and
         "hommel": the same promise as Holm, a little stronger, when the tests do not depend on
         each other in an unusual way (statsmodels multipletests, as R p.adjust()).
+        method="storey" ("q-values" accepted): Storey's q-values, the false discovery rate with the
+        share of true nulls (pi0) estimated from the p-values instead of set to 1 as in
+        Benjamini-Hochberg (R qvalue::qvalue(), from Bioconductor; Storey & Tibshirani 2003); for
+        hundreds or thousands of tests, such as genes. method="local fdr": each test's own chance of
+        being a false discovery (qvalue's $lfdr), in a column called "local false discovery rate"; it
+        is not an adjusted p-value. With fewer than 100 p-values pi0 is unstable, and a note says so.
         from_column= is the column of p-values ("p-value" in simplydata result tables).
         Without a name the new column is called, for example, "p-value (Holm)". Empty
         cells stay empty and are not counted, as R p.adjust().
         """
         step = "add_adjusted_p_value_column"
-        example = ('results.add_adjusted_p_value_column("q", from_column="p-value", method="benjamini-hochberg")\n'
+        example = ('results.add_adjusted_p_value_column("p_adjusted", from_column="p-value", method="benjamini-hochberg")\n'
                    '              (results from table.find_correlation_between("hours", "marks", "height", '
                    'show="each pair") with sdata.get_example("marks"))')
         chosen = _plain_name(method)
         chosen = ADJUST_ALIASES.get(chosen, chosen)
-        if chosen not in ADJUST_METHODS:
-            raise choice_error(step, "method", method, list(ADJUST_METHODS))
-        label, r_name = ADJUST_METHODS[chosen]
+        if chosen not in ADJUST_METHODS and chosen not in STOREY_METHODS:
+            raise choice_error(step, "method", method, list(ADJUST_METHODS) + list(STOREY_METHODS))
+        label, r_name = ADJUST_METHODS.get(chosen, (STOREY_METHODS.get(chosen), None))
         if not isinstance(from_column, str):
             raise SimplydataError(f"{step}() needs from_column= as one column name in quotes.\nFor example:  {example}")
         self._need_columns(from_column)
         if name is None:
-            name = f"{from_column} ({label})"
+            name = "local false discovery rate" if chosen == "local fdr" else f"{from_column} ({label})"
         if not isinstance(name, str) or not name.strip():
             raise SimplydataError(f"{step}() needs the new column's name in quotes.\nFor example:  {example}")
         frame = self._number_frame(step, [from_column])
@@ -2776,15 +2955,42 @@ class StatTestWords:
         if m == 0:
             raise SimplydataError(f'"{from_column}" has no p-values to adjust: every cell is empty.')
         adjusted = np.full(len(p), np.nan)
-        adjusted[given] = _adjust_p(p[given], chosen)
+        before = int((p[given] < 0.05).sum())
+        tests = "p-value" if m == 1 else "p-values"
+        if chosen in STOREY_METHODS:
+            from .risk_words import _say_pct
+            from .small_r import storey
+
+            found = storey(p[given], chosen)
+            adjusted[given] = found["q"] if chosen == "storey" else found["lfdr"]
+            after = int((adjusted[given] < 0.05).sum())
+            pi0 = found["pi0"]
+            share = _say_pct(pi0)
+            if chosen == "storey":
+                print(f'Added "{name}": Storey\'s q-values for {m} {tests} from "{from_column}" (R qvalue::qvalue()). '
+                      f"About {share} of the tests look like true nulls (pi0 = {_num(pi0)}, estimated from the "
+                      "p-values). A q-value of 0.05 means about 5 % of the results at least this small are false "
+                      f"discoveries. Below 0.05: {after} of {m} q-values ({before} p-values).")
+                print("Storey's q-values estimate pi0 from the data; Benjamini-Hochberg (method=\"benjamini-hochberg\")"
+                      " is the same idea with pi0 = 1, so its numbers are never smaller (about 1 / pi0 times as large).")
+            else:
+                print(f'Added "{name}": for each of {m} {tests} from "{from_column}", the chance that this one test '
+                      f"is a false discovery (R qvalue::qvalue()$lfdr, with pi0 = {_num(pi0)}, about {share} of the "
+                      f"tests looking like true nulls). Below 0.05: {after} of {m}.")
+                print("The local false discovery rate belongs to the one test; it is not an adjusted p-value (a q-value "
+                      'is about all the results at least this small: method="storey").')
+            if m < 100:
+                print(f"Note: with fewer than 100 p-values ({m} here), the estimate of pi0 is unstable, so these "
+                      'numbers can move a lot; method="benjamini-hochberg" does not estimate it.')
+        else:
+            adjusted[given] = _adjust_p(p[given], chosen)
+            after = int((adjusted[given] < 0.05).sum())
+            print(f'Added "{name}": {m} {tests} from "{from_column}" adjusted with {label}\'s method '
+                  f'(as R p.adjust(method = "{r_name}")): {ADJUST_MEANING[chosen]}. '
+                  f"Below 0.05: {after} of {m} after adjusting ({before} before).")
         values = [None if math.isnan(v) else float(v) for v in adjusted]
         base = nw.maybe_reset_index(self._frame)
         new = nw.new_series(name, values, nw.Float64, backend=base.implementation)
-        before, after = int((p[given] < 0.05).sum()), int((adjusted[given] < 0.05).sum())
-        tests = "p-value" if m == 1 else "p-values"
-        print(f'Added "{name}": {m} {tests} from "{from_column}" adjusted with {label}\'s method '
-              f'(as R p.adjust(method = "{r_name}")): {ADJUST_MEANING[chosen]}. '
-              f"Below 0.05: {after} of {m} after adjusting ({before} before).")
         if m < len(p):
             print(f"Note: {len(p) - m} empty cell{'' if len(p) - m == 1 else 's'} in \"{from_column}\" "
                   f"{'stays' if len(p) - m == 1 else 'stay'} empty and {'was' if len(p) - m == 1 else 'were'} "

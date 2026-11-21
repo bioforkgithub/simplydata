@@ -51,6 +51,14 @@ jobs:
           "GPArotation", "lavaan",
           "circular", "spdep", "sf", "gstat", "extRemes", "ismev", "sp", "ape");
           install.packages(pkgs); for (p in pkgs) library(p, character.only = TRUE)'
+      # qvalue (Storey's q-values, add_adjusted_p_value_column(method="storey")) is on Bioconductor, not CRAN; it
+      # has no compiled code. update = FALSE leaves the CRAN packages above as they are. Between a new R release and
+      # the Bioconductor release for it (each spring), BiocManager refuses the release; then the devel branch is used.
+      - name: Install Bioconductor packages
+        run: >-
+          Rscript -e 'install.packages("BiocManager"); tryCatch(BiocManager::install("qvalue", update = FALSE,
+          ask = FALSE), error = function(e) BiocManager::install("qvalue", version = "devel", update = FALSE,
+          ask = FALSE)); library(qvalue)'
       - name: Tell rpy2 where R is
         shell: bash
         run: echo "R_HOME=$(Rscript -e 'cat(normalizePath(R.home(), winslash = "/"))')" >> "$GITHUB_ENV"

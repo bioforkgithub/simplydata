@@ -163,7 +163,8 @@ UNDERNEATH = {
     "table.add_z_score_column": "SciPy (stats.zscore with ddof=1, as R scale())",
     "table.find_average_of": "narwhals (group means); SciPy (stats.ttest_1samp confidence_interval for interval=); "
                         "statsmodels (DescrStatsW for weights=)",
-    "table.find_median_of": "narwhals (group medians); SciPy (stats.quantile_test confidence_interval for interval=)",
+    "table.find_median_of": "narwhals (group medians); SciPy (stats.quantile_test confidence_interval for interval=); "
+                            "NumPy (repeat and median, or percentile(weights=)) for weights=",
     "table.find_standard_deviation_of": "narwhals (group standard deviations); R DescTools::VarCI for interval= "
                                    "(simplydata[r]); statsmodels DescrStatsW and NumPy cov(aweights=) for weights=",
     "table.find_percent_of_rows_where": "narwhals; SciPy (stats.binomtest, the Clopper-Pearson exact interval)",
@@ -171,15 +172,18 @@ UNDERNEATH = {
     "table.compare_counts_to": "SciPy (stats.chisquare)",
     "table.compare_percent_to": "SciPy (stats.binomtest, the Clopper-Pearson exact interval)",
     "table.find_percentile_of": "narwhals (quantile with linear interpolation, as R quantile type 7); NumPy (percentile "
-                           "with method=, R's nine types); SciPy (stats.quantile_test for interval=)",
+                           "with method=, R's nine types; repeat or percentile(weights=) for weights=); SciPy "
+                           "(stats.quantile_test for interval=)",
     "table.find_most_common_of": "narwhals (value counts per group)",
     "table.add_adjusted_p_value_column": "statsmodels (stats.multitest.multipletests: Holm, Bonferroni, "
-                                         "Benjamini-Hochberg, Benjamini-Yekutieli, Hochberg and Hommel, as R p.adjust())",
+                                         "Benjamini-Hochberg, Benjamini-Yekutieli, Hochberg and Hommel, as R p.adjust()); "
+                                         "R qvalue::qvalue for method=\"storey\" and \"local fdr\" (Bioconductor, "
+                                         "simplydata[r])",
     "table.add_rows_from": "pandas (concat) or Polars (concat), whichever holds the table",
     "table.find_correlation_between": "SciPy (stats.pearsonr, spearmanr or kendalltau; permutation_test and bootstrap "
                                  "for p_value_by=\"shuffling\" and interval_by=\"bootstrap\"); R DescTools (SpearmanRho, "
                                  "KendallTauB, SomersDelta, GoodmanKruskalGamma) for intervals and ppcor::pcor.test for "
-                                 "allowing_for= (simplydata[r])",
+                                 "allowing_for= (simplydata[r]); pandas DataFrame.cov for show=\"covariance\"",
     "table.compare_correlations": "SciPy (stats.pearsonr); R cocor (cocor.indep.groups, cocor.dep.groups.overlap; "
                                   "simplydata[r])",
     "table.compare_averages_of": "SciPy (stats.ttest_ind with equal_var=False; mannwhitneyu, kruskal) and "
@@ -192,7 +196,10 @@ UNDERNEATH = {
                                "from statsmodels (multipletests); R rstatix::games_howell_test, "
                                "DescTools::ScheffeTest and PostHocTest, FSA::dunnTest, "
                                "PMCMRplus::kwAllPairsConoverTest and multcompView::multcompLetters for "
-                               "show=\"letters\" (simplydata[r]); SciPy ttest_rel and wilcoxon for matched_by=",
+                               "show=\"letters\" (simplydata[r]); SciPy ttest_rel and wilcoxon for matched_by=, "
+                               "R PMCMRplus::frdAllPairsNemenyiTest and frdAllPairsConoverTest after Friedman "
+                               "(test=); SciPy chi2_contingency or fisher_exact, statsmodels confint_proportions_2indep "
+                               "for based_on=\"percents\"",
     "table.compare_before_and_after": "SciPy (stats.ttest_rel or stats.wilcoxon); statsmodels (contingency_tables.mcnemar "
                                   "for yes/no columns, SquareTable.symmetry for categories, sign_test); R "
                                   "exact2x2::mcnemarExactDP for the change in percent (simplydata[r]); "
@@ -312,8 +319,8 @@ UNDERNEATH = {
     "spectrum": "SciPy (as table.find_spectrum_of; lomb-scargle from R lomb), drawn with matplotlib",
     "spectrum_over_time": "SciPy (signal.spectrogram), drawn with matplotlib (pcolormesh)",
     "peak_dots": "SciPy (as table.find_each_peak_that), drawn with matplotlib",
-    "table.forecast": "R (forecast::naive, snaive, meanf, rwf; stats::HoltWinters, stats::arima; forecast::forecast "
-                      "and accuracy, through rpy2: simplydata[r])",
+    "table.forecast": "R (forecast::naive, snaive, meanf, rwf; stats::HoltWinters, stats::arima, forecast::auto.arima "
+                      "for order=\"automatic\"; forecast::forecast and accuracy, through rpy2: simplydata[r])",
     "nums.forecast": "R (as table.forecast, through rpy2: simplydata[r])",
     "table.compare_forecasts_for": "R (forecast::accuracy on each method's forecast, through rpy2: simplydata[r])",
     "table.find_change_points_in": "R (changepoint::cpt.mean and cpt.meanvar, PELT; stats::mad; through rpy2: simplydata[r])",
@@ -609,6 +616,7 @@ _UNICODE = {
     "×": r"\texttimes{}", "−": r"\textminus{}", "±": r"\textpm{}", "–": "--", "—": "---", "…": r"\dots{}",
     "≈": r"$\approx$", "µ": r"\textmu{}", "é": r"\'e", "’": "'", "‘": "`", "“": "``", "”": "''",
     "á": r"\'a", "í": r"\'{\i}", "ä": r"\"a", "ö": r"\"o", "ü": r"\"u", "ñ": r"\~n", "ß": r"\ss{}", "Ø": r"\O{}", "χ": r"$\chi$",
+    "š": r"\v{s}",
 }
 _SPECIAL = {
     "\\": r"\textbackslash{}", "{": r"\{", "}": r"\}", "$": r"\$", "&": r"\&", "#": r"\#",

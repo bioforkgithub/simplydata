@@ -18,7 +18,8 @@ explain()), lines.py (the lines-and-curves words and their options), checking.py
 words and their options), survival.py (S3b-3: the survival and person-time words and options),
 combining.py (S3b-1: combining studies), planning.py (S3b-2: the power words and their options) and
 communities.py (S3c-1: communities and resistomes), hidden_factors.py (S3c-2: the hidden-factor words and
-their options) and places.py (S3c-3: directions, places and extremes).
+their options), places.py (S3c-3: directions, places and extremes) and small_additions.py (S3c-4: weighted
+percentiles, covariance, the automatic ARIMA order, q-values, pair tests after Friedman and pairs of percents).
 """
 
 from __future__ import annotations
@@ -123,11 +124,11 @@ class Entry:
 
 def _join() -> dict[str, Entry]:
     from . import (charts, checking, combining, communities, hidden_factors, lines, models, numbers, places,
-                   planning, statistics, survival, tables)
+                   planning, small_additions, statistics, survival, tables)
 
     found: dict[str, Entry] = {}
     for module in (charts, tables, numbers, statistics, models, lines, checking, survival, combining, planning,
-                   communities, hidden_factors, places):
+                   communities, hidden_factors, places, small_additions):
         for entry in module.ENTRIES:
             if entry.key in found:
                 raise ValueError(f"{entry.key} has two underneath entries")

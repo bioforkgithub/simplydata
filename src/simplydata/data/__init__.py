@@ -324,6 +324,17 @@ EXAMPLES = {
             "x9": "speeded discrimination of straight and curved capitals",
         },
     ),
+    # S3c-4 (small additions): many p-values at once, for q-values and the local false discovery rate
+    "many_tests": (
+        "MADE-UP DATA: the results of testing 2000 made-up genes for a difference between two groups of samples, "
+        "one row per gene; about 1 in 5 genes has a real difference. Invented for practice (for q-values and the "
+        "local false discovery rate); not from any real study.",
+        {
+            "gene": "a made-up gene name, G0001 to G2000",
+            "difference": "the difference between the two groups (on a log scale; 0 = no difference)",
+            "p-value": "the p-value of the test of that gene",
+        },
+    ),
 }
 
 
@@ -344,8 +355,8 @@ def get_example(name: str | None = None):
     sdata.get_example() with no name lists every table and its columns.
     The tables are: marks, weather, fruit, growth, sensor, visitors, river, shop, school, meadow, trial, clinic,
     island, toxicity, culture, admissions, resistome, stations, rain, sea_levels (real published sea levels), and,
-    for combining studies, bcg and passive_smoking (real published studies), and, for hidden factors,
-    ability_tests (real published test scores).
+    for combining studies, bcg and passive_smoking (real published studies), for hidden factors,
+    ability_tests (real published test scores), and, for q-values, many_tests (made up).
     "shop" has empty cells and a column of dates to practise with; "school" has empty cells too.
     """
     if name is None:
