@@ -640,3 +640,1158 @@ ENTRIES += [
              "Rosner).",
     ),
 ]
+
+
+# ---------------------------------------------------------------- U3 batch 3: more table words
+ENTRIES += [
+    Entry(
+        word="table.show_last_rows",
+        data="marks",
+        ours="""
+            table = sdata.table(sdata.get_example("marks"))
+            table.show_last_rows(3)
+        """,
+        code={"pandas": """
+            df = sdata.get_example("marks")
+            # show_last_rows(rows=3)
+            last = df.tail(3)
+            last.index = range(len(df) - 2, len(df) + 1)     # (1)
+            print(last)
+        """},
+        compare="printed",
+        choices=("each row is numbered with its place in the whole table, counted from 1: the last 3 of 54 rows are "
+                 "52, 53 and 54, the numbers keep_rows_by_position() takes.",),
+        also="A Polars table has no row labels, so simplydata shows it through pandas with the same numbers. Only "
+             "what is shown changes; the table keeps pandas' own row labels.",
+    ),
+    Entry(
+        word="table.show",
+        data="shop",
+        ours="""
+            table = sdata.table(sdata.get_example("shop"))
+            table.show()
+        """,
+        code={"pandas": """
+            import pandas as pd
+            df = sdata.get_example("shop")
+            # show()
+            shown = df.copy()
+            shown.index = range(1, len(df) + 1)                   # (1)
+            with pd.option_context("display.max_rows", None, "display.max_columns", None,
+                                   "display.width", None):        # (2)
+                print(shown)
+        """},
+        compare="printed",
+        choices=("the rows are numbered from 1, the way people count; pandas numbers them from 0.",
+                 "every row and every column is shown (up to 1,000 rows); pandas on its own shows the first and last "
+                 "5 of these 180 rows with \"...\" between.",),
+        also="rows= shows only the first rows. A table of more than 1,000 rows shows its first 1,000 and says how "
+             "to see them all. In Jupyter or VS Code the table is shown as a table instead of text.",
+    ),
+    Entry(
+        word="table.get_column_names",
+        data="marks",
+        ours="""
+            table = sdata.table(sdata.get_example("marks"))
+            table.get_column_names()
+        """,
+        code={
+            "pandas": """
+                df = sdata.get_example("marks")
+                # get_column_names()
+                list(df.columns)
+            """,
+            "Polars": """
+                import polars as pl
+                df = pl.from_pandas(sdata.get_example("marks"))
+                # get_column_names()
+                df.columns
+            """,
+        },
+        compare="value",
+        tolerance=0.0,
+        also="The names come back as a plain Python list, left to right; the table does not change.",
+    ),
+    Entry(
+        word="table.get_column",
+        data="shop",
+        ours="""
+            table = sdata.table(sdata.get_example("shop"))
+            table.get_column("sales")
+        """,
+        code={
+            "pandas": """
+                df = sdata.get_example("shop")
+                # get_column("sales")
+                df["sales"].to_numpy(dtype=float)
+            """,
+            "Polars": """
+                import polars as pl
+                df = pl.from_pandas(sdata.get_example("shop"))
+                # get_column("sales")
+                df["sales"].to_numpy()
+            """,
+        },
+        compare="value",
+        tolerance=0.0,
+        also="A column of numbers comes back as sdata.numbers, so number words such as find_average() work on it; "
+             "its empty cells become empty numbers (nan). A column of text or dates comes back as a plain list "
+             "(to_list()), with a note. The table does not change.",
+    ),
+    Entry(
+        word="table.get_row",
+        data="shop",
+        ours="""
+            table = sdata.table(sdata.get_example("shop"))
+            table.get_row(45)
+        """,
+        code={
+            "pandas": """
+                import pandas as pd
+                df = sdata.get_example("shop")
+                # get_row(position=45)
+                row = df.iloc[44].to_dict()                                  # (1)
+                {k: None if pd.isna(v) else v for k, v in row.items()}       # (2)
+            """,
+            "Polars": """
+                import polars as pl
+                df = pl.from_pandas(sdata.get_example("shop"))
+                # get_row(position=45)
+                df.row(44, named=True)                                       # (1) (2)
+            """,
+        },
+        compare="value",
+        tolerance=0.0,
+        choices=("rows are counted from 1, so row 45 is Python's position 44.",
+                 "an empty cell becomes None, on both engines (pandas gives nan, Polars None); row 45 has no sales.",),
+        also="get_row(\"last\") is the last row. Numbers and dates come back as plain Python values. The table does "
+             "not change.",
+    ),
+    Entry(
+        word="table.get_cell_at",
+        data="marks",
+        ours="""
+            table = sdata.table(sdata.get_example("marks"))
+            table.get_cell_at(row=3, column="marks")
+        """,
+        code={
+            "pandas": """
+                df = sdata.get_example("marks")
+                # get_cell_at(row=3, column="marks")
+                df["marks"].iloc[2]              # (1)
+            """,
+            "Polars": """
+                import polars as pl
+                df = pl.from_pandas(sdata.get_example("marks"))
+                # get_cell_at(row=3, column="marks")
+                df.item(2, "marks")              # (1)
+            """,
+        },
+        compare="value",
+        tolerance=0.0,
+        choices=("rows are counted from 1, so row 3 is Python's position 2.",),
+        also="row=\"last\" is the last row. An empty cell gives None and a note says so. The table does not change.",
+    ),
+    Entry(
+        word="table.remove_columns",
+        data="marks",
+        ours="""
+            table = sdata.table(sdata.get_example("marks"))
+            table.remove_columns("height")
+        """,
+        code={
+            "pandas": """
+                df = sdata.get_example("marks")
+                # remove_columns("height")
+                df.drop(columns=["height"])
+            """,
+            "Polars": """
+                import polars as pl
+                df = pl.from_pandas(sdata.get_example("marks"))
+                # remove_columns("height")
+                df.drop("height")
+            """,
+        },
+        compare="table",
+        also="to=, of_kind=, starts_with= and the others remove columns by a run, a kind or their names, as in "
+             "keep_columns(). simplydata stops with a message rather than remove every column. " + SAID,
+    ),
+    Entry(
+        word="table.keep_columns_by_position",
+        data="marks",
+        ours="""
+            table = sdata.table(sdata.get_example("marks"))
+            table.keep_columns_by_position(1, to=3)
+        """,
+        code={
+            "pandas": """
+                df = sdata.get_example("marks")
+                # keep_columns_by_position(1, to=3)
+                df.iloc[:, 0:3]                     # (1)
+            """,
+            "Polars": """
+                import polars as pl
+                df = pl.from_pandas(sdata.get_example("marks"))
+                # keep_columns_by_position(1, to=3)
+                df.select(df.columns[0:3])          # (1)
+            """,
+        },
+        compare="table",
+        choices=("columns are counted from 1 at the left and both ends are kept, so columns 1 to 3 are Python's "
+                 "0:3.",),
+        also="\"last\" is the last column, step= keeps every n-th column and a list keeps those columns in that "
+             "order. simplydata also names the columns it kept. " + SAID,
+    ),
+    Entry(
+        word="table.remove_columns_by_position",
+        data="marks",
+        ours="""
+            table = sdata.table(sdata.get_example("marks"))
+            table.remove_columns_by_position(2, to=3)
+        """,
+        code={
+            "pandas": """
+                df = sdata.get_example("marks")
+                # remove_columns_by_position(2, to=3)
+                df.drop(columns=df.columns[1:3])    # (1)
+            """,
+            "Polars": """
+                import polars as pl
+                df = pl.from_pandas(sdata.get_example("marks"))
+                # remove_columns_by_position(2, to=3)
+                df.drop(df.columns[1:3])            # (1)
+            """,
+        },
+        compare="table",
+        choices=("columns are counted from 1 at the left and both ends are removed, so columns 2 to 3 are Python's "
+                 "1:3.",),
+        also="Handy for the \"Unnamed: 0\" column a CSV file often brings (remove_columns_by_position(1)). "
+             "simplydata names the columns it removed and stops rather than remove every column. " + SAID,
+    ),
+    Entry(
+        word="table.remove_rows_where",
+        data="shop",
+        ours="""
+            table = sdata.table(sdata.get_example("shop"))
+            table.remove_rows_where("sales", is_below=300)
+        """,
+        code={
+            "pandas": """
+                df = sdata.get_example("shop")
+                # remove_rows_where("sales", is_below=300)
+                df[~(df["sales"] < 300)]                                 # (1)
+            """,
+            "Polars": """
+                import polars as pl
+                df = pl.from_pandas(sdata.get_example("shop"))
+                # remove_rows_where("sales", is_below=300)
+                df.filter(~(pl.col("sales") < 300).fill_null(False))     # (1)
+            """,
+        },
+        compare="table",
+        choices=("a row whose cell is empty is never removed by a comparison: the 10 rows without sales stay. In "
+                 "pandas an empty cell is never below 300; in Polars the comparison gives null, which is made False "
+                 "first (without it Polars' filter would drop those rows too).",),
+        also="The same conditions as keep_rows_where(); is_empty=True removes the empty rows. simplydata also says "
+             "how many rows it removed, and keeps the table before the step (undo).",
+    ),
+    Entry(
+        word="table.keep_first_rows",
+        data="marks",
+        ours="""
+            table = sdata.table(sdata.get_example("marks"))
+            table.keep_first_rows(10)
+        """,
+        code={
+            "pandas": """
+                df = sdata.get_example("marks")
+                # keep_first_rows(n=10)
+                df.head(10)
+            """,
+            "Polars": """
+                import polars as pl
+                df = pl.from_pandas(sdata.get_example("marks"))
+                # keep_first_rows(n=10)
+                df.head(10)
+            """,
+        },
+        compare="table",
+        also="simplydata also says how many rows it kept, and keeps the table before the step (undo).",
+    ),
+    Entry(
+        word="table.keep_last_rows",
+        data="marks",
+        ours="""
+            table = sdata.table(sdata.get_example("marks"))
+            table.keep_last_rows(10)
+        """,
+        code={
+            "pandas": """
+                df = sdata.get_example("marks")
+                # keep_last_rows(n=10)
+                df.tail(10)
+            """,
+            "Polars": """
+                import polars as pl
+                df = pl.from_pandas(sdata.get_example("marks"))
+                # keep_last_rows(n=10)
+                df.tail(10)
+            """,
+        },
+        compare="table",
+        also="simplydata also says how many rows it kept, and keeps the table before the step (undo).",
+    ),
+    Entry(
+        word="table.remove_rows_by_position",
+        data="marks",
+        ours="""
+            table = sdata.table(sdata.get_example("marks"))
+            table.remove_rows_by_position([12, 40])
+        """,
+        code={
+            "pandas": """
+                df = sdata.get_example("marks")
+                # remove_rows_by_position([12, 40])
+                df.drop(index=df.index[[11, 39]])                         # (1)
+            """,
+            "Polars": """
+                import polars as pl
+                df = pl.from_pandas(sdata.get_example("marks"))
+                # remove_rows_by_position([12, 40])
+                df.filter(~pl.int_range(pl.len()).is_in([11, 39]))        # (1)
+            """,
+        },
+        compare="table",
+        choices=("rows are counted from 1, so rows 12 and 40 are Python's positions 11 and 39.",),
+        also="A run (remove_rows_by_position(10, to=20)) keeps both ends, as keep_rows_by_position() does, and "
+             "step= removes every n-th row. simplydata stops rather than remove every row. " + SAID,
+    ),
+    Entry(
+        word="table.reverse_rows",
+        data="marks",
+        ours="""
+            table = sdata.table(sdata.get_example("marks"))
+            table.reverse_rows()
+        """,
+        code={
+            "pandas": """
+                df = sdata.get_example("marks")
+                # reverse_rows()
+                df.iloc[::-1]
+            """,
+            "Polars": """
+                import polars as pl
+                df = pl.from_pandas(sdata.get_example("marks"))
+                # reverse_rows()
+                df.reverse()
+            """,
+        },
+        compare="table",
+        also="For an order by the values in a column use sort_by(). " + SAID,
+    ),
+    Entry(
+        word="table.remove_duplicate_rows",
+        data="marks",
+        ours="""
+            table = sdata.table(sdata.get_example("marks"))
+            table.remove_duplicate_rows(columns=["name"])
+        """,
+        code={
+            "pandas": """
+                df = sdata.get_example("marks")
+                # remove_duplicate_rows(columns=["name"])
+                df.drop_duplicates(subset=["name"], keep="first")                   # (1)
+            """,
+            "Polars": """
+                import polars as pl
+                df = pl.from_pandas(sdata.get_example("marks"))
+                # remove_duplicate_rows(columns=["name"])
+                df.unique(subset=["name"], keep="first", maintain_order=True)       # (1)
+            """,
+        },
+        compare="table",
+        choices=("the first row of each name is kept and the rows stay in their order; Polars' own default keeps any "
+                 "one of them, in any order.",),
+        also="Without columns= a row is removed only when every cell repeats an earlier row. simplydata also says "
+             "how many rows it removed, and keeps the table before the step (undo).",
+    ),
+    Entry(
+        word="table.keep_biggest_rows",
+        data="marks",
+        ours="""
+            table = sdata.table(sdata.get_example("marks"))
+            table.keep_biggest_rows(4, by="marks", for_each_group_in="subject")
+        """,
+        code={
+            "pandas": """
+                df = sdata.get_example("marks")
+                # keep_biggest_rows(4, by="marks", for_each_group_in="subject")
+                ordered = df.sort_values("marks", ascending=False, kind="stable")   # (1)
+                top = ordered.groupby("subject").head(4)
+                top.sort_values("subject", kind="stable")                         # (2)
+            """,
+            "Polars": """
+                import polars as pl
+                df = pl.from_pandas(sdata.get_example("marks"))
+                # keep_biggest_rows(4, by="marks", for_each_group_in="subject")
+                ordered = df.sort("marks", descending=True, maintain_order=True)   # (1)
+                top = ordered.filter(pl.int_range(pl.len()).over("subject") < 4)
+                top.sort("subject", maintain_order=True)                          # (2)
+            """,
+        },
+        compare="table",
+        choices=("exactly 4 rows: when rows tie at the cut, the ones higher up in the table are kept (a stable "
+                 "sort). Here English and Maths each have two 4th-best marks; a note says so.",
+                 "the groups come in order (English, Maths, Science), biggest first within each.",),
+        also="Rows with an empty cell in by= are never kept, and a note says how many. Without for_each_group_in= "
+             "it keeps the 4 biggest of the whole table.",
+    ),
+    Entry(
+        word="table.keep_smallest_rows",
+        data="marks",
+        ours="""
+            table = sdata.table(sdata.get_example("marks"))
+            table.keep_smallest_rows(4, by="marks", for_each_group_in="subject")
+        """,
+        code={
+            "pandas": """
+                df = sdata.get_example("marks")
+                # keep_smallest_rows(4, by="marks", for_each_group_in="subject")
+                ordered = df.sort_values("marks", kind="stable")                  # (1)
+                low = ordered.groupby("subject").head(4)
+                low.sort_values("subject", kind="stable")                         # (2)
+            """,
+            "Polars": """
+                import polars as pl
+                df = pl.from_pandas(sdata.get_example("marks"))
+                # keep_smallest_rows(4, by="marks", for_each_group_in="subject")
+                ordered = df.sort("marks", maintain_order=True)                   # (1)
+                low = ordered.filter(pl.int_range(pl.len()).over("subject") < 4)
+                low.sort("subject", maintain_order=True)                          # (2)
+            """,
+        },
+        compare="table",
+        choices=("exactly 4 rows: when rows tie at the cut, the ones higher up in the table are kept (a stable "
+                 "sort); a note says so.",
+                 "the groups come in order (English, Maths, Science), smallest first within each.",),
+        also="Rows with an empty cell in by= are never kept, and a note says how many. Without for_each_group_in= "
+             "it keeps the 4 smallest of the whole table.",
+    ),
+    Entry(
+        word="table.remove_rows_with_outliers",
+        data="school",
+        ours="""
+            table = sdata.table(sdata.get_example("school"))
+            table.remove_rows_with_outliers("sleep", for_each_group_in="school")
+        """,
+        code={
+            "pandas": """
+                df = sdata.get_example("school")
+                # remove_rows_with_outliers("sleep", for_each_group_in="school")
+                sleep = df.groupby("school")["sleep"]
+                q1, q3 = sleep.transform("quantile", 0.25), sleep.transform("quantile", 0.75)   # (1)
+                far = 1.5 * (q3 - q1)
+                out = (df["sleep"] < q1 - far) | (df["sleep"] > q3 + far)                         # (2)
+                df[~out]                                                                          # (3)
+            """,
+            "Polars": """
+                import polars as pl
+                df = pl.from_pandas(sdata.get_example("school"))
+                # remove_rows_with_outliers("sleep", for_each_group_in="school")
+                s = pl.col("sleep")
+                q1, q3 = s.quantile(0.25, "linear").over("school"), s.quantile(0.75, "linear").over("school")  # (1)
+                far = 1.5 * (q3 - q1)
+                df.filter(~((s < q1 - far) | (s > q3 + far)).fill_null(False))                    # (2) (3)
+            """,
+        },
+        compare="table",
+        choices=("the quartiles of each school by the linear method (pandas' default, R's type 7); Polars' own "
+                 "default is \"nearest\", which would remove 5 rows here instead of 4.",
+                 "Tukey's rule, the one box plots use: below Q1 - 1.5 x IQR or above Q3 + 1.5 x IQR.",
+                 "rows with an empty cell stay: the 19 pupils without a sleep value are not outliers.",),
+        also="simplydata also prints the limits of each group and how many rows it removed (here 4). "
+             "test_method= takes \"3 IQR\", \"3 standard deviations\" or a test run in R (Grubbs, Dixon, Rosner). "
+             "Look first with show_rows_with_outliers().",
+    ),
+    Entry(
+        word="table.remove_rows_with_empty_cells_in",
+        ours="""
+            table = sdata.table({"name": ["Asha", " ", None, "Ben"], "marks": [61, 70, 55, 80]})
+            table.remove_rows_with_empty_cells_in("name")
+        """,
+        code={
+            "pandas": """
+                import pandas as pd
+                df = pd.DataFrame({"name": ["Asha", " ", None, "Ben"], "marks": [61, 70, 55, 80]})
+                # remove_rows_with_empty_cells_in("name")
+                name = df["name"]
+                df[~(name.isna() | (name.str.strip() == ""))]                     # (1)
+            """,
+            "Polars": """
+                import polars as pl
+                df = pl.DataFrame({"name": ["Asha", " ", None, "Ben"], "marks": [61, 70, 55, 80]})
+                # remove_rows_with_empty_cells_in("name")
+                name = pl.col("name")
+                df.filter(~(name.is_null() | (name.str.strip_chars() == "")))      # (1)
+            """,
+        },
+        compare="table",
+        choices=("a cell of only spaces counts as empty, as a missing one does; pandas' dropna() would keep it.",),
+        also="Without a column name, a row with an empty cell in any column is removed. simplydata also says how "
+             "many rows it removed, and keeps the table before the step (undo).",
+    ),
+    Entry(
+        word="table.add_is_empty_column",
+        ours="""
+            table = sdata.table({"note": ["ok", "", None, "  ", "late"]})
+            table.add_is_empty_column("note_was_empty", from_column="note")
+        """,
+        code={
+            "pandas": """
+                import pandas as pd
+                df = pd.DataFrame({"note": ["ok", "", None, "  ", "late"]})
+                # add_is_empty_column("note_was_empty", from_column="note")
+                note = df["note"]
+                df.assign(note_was_empty=note.isna() | (note.str.strip() == ""))              # (1)
+            """,
+            "Polars": """
+                import polars as pl
+                df = pl.DataFrame({"note": ["ok", "", None, "  ", "late"]})
+                # add_is_empty_column("note_was_empty", from_column="note")
+                note = pl.col("note")
+                df.with_columns((note.is_null() | (note.str.strip_chars() == "")).alias("note_was_empty"))  # (1)
+            """,
+        },
+        compare="table",
+        choices=("empty means missing, NaN or blank text (\"\" or only spaces); pandas' isna() finds only the "
+                 "missing one.",),
+        also="Add it before fill_empty_cells_in(), to keep track of which values were filled in. simplydata also "
+             "says how many rows are True. " + SAID,
+    ),
+    Entry(
+        word="table.turn_into_text",
+        data="shop",
+        ours="""
+            table = sdata.table(sdata.get_example("shop"))
+            table.turn_into_text("date")
+        """,
+        code={
+            "pandas": """
+                df = sdata.get_example("shop")
+                # turn_into_text("date")
+                df.assign(date=df["date"].dt.strftime("%Y-%m-%d"))          # (1)
+            """,
+            "Polars": """
+                import polars as pl
+                df = pl.from_pandas(sdata.get_example("shop"))
+                # turn_into_text("date")
+                df.with_columns(pl.col("date").dt.strftime("%Y-%m-%d"))     # (1)
+            """,
+        },
+        compare="table",
+        choices=("dates are written year-month-day (2026-01-01), with the time of day only when some date has one; "
+                 "Polars' own cast to text would add 00:00:00.000000 to every cell.",),
+        also="Numbers become their text (astype(str), cast(pl.String)); True/False become \"True\" and \"False\"; "
+             "empty cells stay empty (pandas' astype(str) would write \"nan\"). " + SAID,
+    ),
+    Entry(
+        word="table.turn_into_dates",
+        ours="""
+            table = sdata.table({"when": ["15/03/2026", "03/04/2026", "12/25/2026", "2026-05-01", "soon"]})
+            table.turn_into_dates("when")
+        """,
+        code={
+            "pandas": """
+                import pandas as pd
+                df = pd.DataFrame({"when": ["15/03/2026", "03/04/2026", "12/25/2026", "2026-05-01", "soon"]})
+                # turn_into_dates("when")
+                when = pd.Series(pd.NaT, index=df.index, dtype="datetime64[us]")
+                for f in ["%Y-%m-%d", "%d/%m/%Y", "%m/%d/%Y"]:                                   # (1)
+                    when = when.fillna(pd.to_datetime(df["when"], format=f, errors="coerce"))     # (2)
+                df.assign(when=when)
+            """,
+            "Polars": """
+                import polars as pl
+                df = pl.DataFrame({"when": ["15/03/2026", "03/04/2026", "12/25/2026", "2026-05-01", "soon"]})
+                # turn_into_dates("when")
+                formats = ["%Y-%m-%d", "%d/%m/%Y", "%m/%d/%Y"]                                   # (1)
+                found = [pl.col("when").str.strptime(pl.Datetime("us"), f, strict=False) for f in formats]  # (2)
+                df.with_columns(pl.coalesce(found).alias("when"))
+            """,
+        },
+        compare="table",
+        choices=("each cell gets the first way of writing that fits, day first before month first: 03/04/2026 is "
+                 "3 April, and 12/25/2026 can only be 25 December. simplydata's list holds 26 ways (dots, dashes, "
+                 "month names, times of day); these 3 are the ones these cells need.",
+                 "a cell that fits none of them becomes empty (errors=\"coerce\", strict=False); simplydata says how "
+                 "many and shows one (\"soon\").",),
+        also="order=\"month day year\" (or another order) uses only the ways in that order, so nothing is guessed. "
+             "Whole years such as 2026 become 1 January of that year. " + SAID,
+    ),
+    Entry(
+        word="table.turn_into_lowercase",
+        data="marks",
+        ours="""
+            table = sdata.table(sdata.get_example("marks"))
+            table.turn_into_lowercase("name")
+        """,
+        code={
+            "pandas": """
+                df = sdata.get_example("marks")
+                # turn_into_lowercase("name")
+                df.assign(name=df["name"].str.lower())
+            """,
+            "Polars": """
+                import polars as pl
+                df = pl.from_pandas(sdata.get_example("marks"))
+                # turn_into_lowercase("name")
+                df.with_columns(pl.col("name").str.to_lowercase())
+            """,
+        },
+        compare="table",
+        also="Empty cells stay empty; a column that is not text gets a message. " + SAID,
+    ),
+    Entry(
+        word="table.turn_into_uppercase",
+        data="marks",
+        ours="""
+            table = sdata.table(sdata.get_example("marks"))
+            table.turn_into_uppercase("name")
+        """,
+        code={
+            "pandas": """
+                df = sdata.get_example("marks")
+                # turn_into_uppercase("name")
+                df.assign(name=df["name"].str.upper())
+            """,
+            "Polars": """
+                import polars as pl
+                df = pl.from_pandas(sdata.get_example("marks"))
+                # turn_into_uppercase("name")
+                df.with_columns(pl.col("name").str.to_uppercase())
+            """,
+        },
+        compare="table",
+        also="Empty cells stay empty; a column that is not text gets a message. " + SAID,
+    ),
+    Entry(
+        word="table.round_numbers_in",
+        ours="""
+            table = sdata.table({"price": [0.5, 1.5, 2.5, 3.25]})
+            table.round_numbers_in("price", 0)
+        """,
+        code={
+            "pandas": """
+                import pandas as pd
+                df = pd.DataFrame({"price": [0.5, 1.5, 2.5, 3.25]})
+                # round_numbers_in("price", with_decimals=0)
+                df.assign(price=df["price"].round(0))
+            """,
+            "Polars": """
+                import polars as pl
+                df = pl.DataFrame({"price": [0.5, 1.5, 2.5, 3.25]})
+                # round_numbers_in("price", with_decimals=0)
+                df.with_columns(pl.col("price").round(0))
+            """,
+        },
+        compare="table",
+        also="A number exactly halfway goes to the even neighbour (0.5 to 0, 1.5 and 2.5 to 2), as pandas, Polars, "
+             "NumPy and R round(); this keeps a run of halves from pushing totals up. A negative number of places "
+             "rounds to tens or hundreds, and round_numbers_in(1) rounds every number column. " + SAID,
+    ),
+    Entry(
+        word="table.change_column",
+        data="marks",
+        ours="""
+            table = sdata.table(sdata.get_example("marks"))
+            table.change_column("marks", "marks / 10")
+        """,
+        code={
+            "pandas": """
+                df = sdata.get_example("marks")
+                # change_column("marks", "marks / 10")
+                df.assign(marks=df["marks"] / 10)
+            """,
+            "Polars": """
+                import polars as pl
+                df = pl.from_pandas(sdata.get_example("marks"))
+                # change_column("marks", "marks / 10")
+                df.with_columns(pl.col("marks") / 10)
+            """,
+        },
+        compare="table",
+        also="The column keeps its name and its place. The formula is read by simplydata itself, never run as "
+             "Python code, and dividing by zero gives an empty cell. The same ways as add_column() work "
+             "(from_column= with plus=, for_each_group_in= ...). " + SAID,
+    ),
+    Entry(
+        word="table.add_rank_column",
+        data="marks",
+        ours="""
+            table = sdata.table(sdata.get_example("marks"))
+            table.add_rank_column("place", from_column="marks")
+        """,
+        code={
+            "pandas": """
+                df = sdata.get_example("marks")
+                # add_rank_column("place", from_column="marks")
+                df.assign(place=df["marks"].rank(method="min", ascending=False))     # (1) (2)
+            """,
+            "Polars": """
+                import polars as pl
+                df = pl.from_pandas(sdata.get_example("marks"))
+                # add_rank_column("place", from_column="marks")
+                df.with_columns(pl.col("marks").rank("min", descending=True).alias("place"))   # (1) (2)
+            """,
+        },
+        compare="table",
+        choices=("rows that tie share the best place and the next place is skipped, as in sports tables (1, 2, 2, "
+                 "4); pandas' own default gives both 2.5.",
+                 "the biggest value gets place 1 (biggest_first=False gives it to the smallest).",),
+        also="Empty cells get no place. A column without empty cells gets whole numbers. " + SAID,
+    ),
+    Entry(
+        word="table.add_column_with_part_of_date",
+        data="shop",
+        ours="""
+            table = sdata.table(sdata.get_example("shop"))
+            table.add_column_with_part_of_date("weekday", from_column="date", part="weekday")
+        """,
+        code={
+            "pandas": """
+                df = sdata.get_example("shop")
+                # add_column_with_part_of_date("weekday", from_column="date", part="weekday")
+                df.assign(weekday=df["date"].dt.dayofweek + 1)                # (1)
+            """,
+            "Polars": """
+                import polars as pl
+                df = pl.from_pandas(sdata.get_example("shop"))
+                # add_column_with_part_of_date("weekday", from_column="date", part="weekday")
+                df.with_columns(pl.col("date").dt.weekday().alias("weekday"))   # (1)
+            """,
+        },
+        compare="table",
+        choices=("1 is Monday and 7 is Sunday, as the ISO 8601 standard and Polars count; pandas counts Monday as "
+                 "0.",),
+        also="part= also takes \"year\", \"quarter\", \"month\", \"month name\", \"week\" (the ISO week), \"day\", "
+             "\"weekday name\", \"day of year\", \"hour\" and \"minute\". Empty dates give empty cells. " + SAID,
+    ),
+    Entry(
+        word="table.add_column_with_part_of_text",
+        ours="""
+            table = sdata.table({"place": ["Corner shop", "Big Market stall", "Kiosk", None]})
+            table.add_column_with_part_of_text("first_word", from_column="place", before=" ")
+        """,
+        code={
+            "pandas": """
+                import pandas as pd
+                df = pd.DataFrame({"place": ["Corner shop", "Big Market stall", "Kiosk", None]})
+                # add_column_with_part_of_text("first_word", from_column="place", before=" ")
+                part = df["place"].str.extract(r"(?s)^(.*?) ", expand=False)     # (1)
+                df.assign(first_word=part.str.strip())                           # (2)
+            """,
+            "Polars": """
+                import polars as pl
+                df = pl.DataFrame({"place": ["Corner shop", "Big Market stall", "Kiosk", None]})
+                # add_column_with_part_of_text("first_word", from_column="place", before=" ")
+                part = pl.col("place").str.extract(r"(?s)^(.*?) ", 1)            # (1)
+                df.with_columns(part.str.strip_chars().alias("first_word"))      # (2)
+            """,
+        },
+        compare="table",
+        choices=("the text before the first space (\"Big\", not \"Big Market\"); a cell without a space gives an "
+                 "empty cell, and simplydata says how many.",
+                 "spaces at the ends of the part are removed, and a part that is blank becomes empty.",),
+        also="first_characters=, last_characters=, characters=[2, 4], after= and matches_pattern= take other "
+             "parts. " + SAID,
+    ),
+    Entry(
+        word="table.split_column",
+        ours="""
+            table = sdata.table({"name": ["Asha Rao", "Ben Lee Park", "Cara"], "age": [12, 13, 12]})
+            table.split_column("name", separator=" ", into=["first", "rest"])
+        """,
+        code={
+            "pandas": """
+                import pandas as pd
+                df = pd.DataFrame({"name": ["Asha Rao", "Ben Lee Park", "Cara"], "age": [12, 13, 12]})
+                # split_column("name", separator=" ", into=["first", "rest"])
+                parts = df["name"].str.split(" ", n=1, expand=True, regex=False)                # (1)
+                new = pd.DataFrame({"first": parts[0].str.strip(), "rest": parts[1].str.strip()})
+                pd.concat([new, df.drop(columns="name")], axis=1)                               # (2)
+            """,
+            "Polars": """
+                import polars as pl
+                df = pl.DataFrame({"name": ["Asha Rao", "Ben Lee Park", "Cara"], "age": [12, 13, 12]})
+                # split_column("name", separator=" ", into=["first", "rest"])
+                parts = pl.col("name").str.splitn(" ", 2)                                       # (1)
+                df.select(parts.struct.field("field_0").str.strip_chars().alias("first"),       # (2)
+                          parts.struct.field("field_1").str.strip_chars().alias("rest"), "age")
+            """,
+        },
+        compare="table",
+        choices=("at most as many pieces as names in into=: the last keeps the rest of the text (\"Lee Park\"), and "
+                 "a cell with fewer pieces gives an empty cell (\"Cara\" has no rest). simplydata says how many of "
+                 "each.",
+                 "the new columns take the place of the old one; spaces at the ends of each piece are removed.",),
+        also="The separator is plain text, not a pattern. " + SAID,
+    ),
+    Entry(
+        word="table.replace_text_in",
+        ours="""
+            table = sdata.table({"code": ["A.1", "B.2.5", "C-3"]})
+            table.replace_text_in("code", ".", with_value="-")
+        """,
+        code={
+            "pandas": """
+                import pandas as pd
+                df = pd.DataFrame({"code": ["A.1", "B.2.5", "C-3"]})
+                # replace_text_in("code", ".", with_value="-")
+                df.assign(code=df["code"].str.replace(".", "-", regex=False))          # (1)
+            """,
+            "Polars": """
+                import polars as pl
+                df = pl.DataFrame({"code": ["A.1", "B.2.5", "C-3"]})
+                # replace_text_in("code", ".", with_value="-")
+                df.with_columns(pl.col("code").str.replace_all(".", "-", literal=True))   # (1)
+            """,
+        },
+        compare="table",
+        choices=("the old text is plain text, not a pattern: \".\" is a full stop, not \"any character\"; and it is "
+                 "replaced everywhere it appears (Polars' replace() changes only the first).",),
+        also="Capitals matter, and with_value=\"\" removes the text. matches_pattern= takes a regular expression "
+             "instead. simplydata also says in how many cells it replaced the text. " + SAID,
+    ),
+    Entry(
+        word="table.add_previous_value_column",
+        data="weather",
+        ours="""
+            table = sdata.table(sdata.get_example("weather"))
+            table.sort_by("temperature")
+            table.add_previous_value_column("last_month", from_column="temperature", for_each_group_in="city",
+                                            sorted_by="month_number")
+        """,
+        code={
+            "pandas": """
+                df = sdata.get_example("weather").sort_values("temperature", kind="stable")
+                # add_previous_value_column("last_month", from_column="temperature", ...)
+                ordered = df.sort_values("month_number", kind="stable")                     # (1)
+                before = ordered.groupby("city")["temperature"].shift(1)                    # (2)
+                df.assign(last_month=before)
+            """,
+            "Polars": """
+                import polars as pl
+                df = pl.from_pandas(sdata.get_example("weather")).sort("temperature", maintain_order=True)
+                # add_previous_value_column("last_month", from_column="temperature", ...)
+                before = pl.col("temperature").shift(1).over("city", order_by="month_number")   # (1) (2)
+                df.with_columns(before.alias("last_month"))
+            """,
+        },
+        compare="table",
+        choices=("\"the row before\" follows sorted_by=, but the rows keep their place in the table (here sorted by "
+                 "temperature; assign lines the values up by row).",
+                 "within each city; the first month of each city has no row before it and stays empty.",),
+        also="rows_back=2 takes the value from 2 rows before. Without sorted_by= the rows are taken in the order "
+             "they are in now. " + SAID,
+    ),
+    Entry(
+        word="table.add_change_column",
+        ours="""
+            table = sdata.table({"year": [2021, 2020, 2022, 2020, 2021], "country": ["A", "A", "A", "B", "B"],
+                                 "population": [5.0, 0.0, 6.0, 4.0, 5.0]})
+            table.add_change_column("growth", from_column="population", in_percent=True, for_each_group_in="country",
+                                    sorted_by="year")
+        """,
+        code={
+            "pandas": """
+                import pandas as pd
+                df = pd.DataFrame({"year": [2021, 2020, 2022, 2020, 2021], "country": ["A", "A", "A", "B", "B"],
+                                   "population": [5.0, 0.0, 6.0, 4.0, 5.0]})
+                # add_change_column("growth", from_column="population", in_percent=True, ...)
+                ordered = df.sort_values("year", kind="stable")
+                before = ordered.groupby("country")["population"].shift(1)                  # (1)
+                df.assign(growth=(df["population"] - before) / before.where(before != 0) * 100)   # (2)
+            """,
+            "Polars": """
+                import polars as pl
+                df = pl.DataFrame({"year": [2021, 2020, 2022, 2020, 2021], "country": ["A", "A", "A", "B", "B"],
+                                   "population": [5.0, 0.0, 6.0, 4.0, 5.0]})
+                # add_change_column("growth", from_column="population", in_percent=True, ...)
+                p = pl.col("population")
+                before = p.shift(1).over("country", order_by="year")                        # (1)
+                df.with_columns(((p - before) / pl.when(before != 0).then(before) * 100).alias("growth"))  # (2)
+            """,
+        },
+        compare="table",
+        choices=("the previous value is the one before in order of sorted_by= (year), within each country; the rows "
+                 "keep their place, and the first year of each country stays empty.",
+                 "in_percent=True is (this - previous) / previous x 100, and a previous value of 0 gives an empty "
+                 "cell (pandas and Polars would give inf).",),
+        also="Without in_percent= it is this value minus the previous one. rows_back= compares with a row further "
+             "back. " + SAID,
+    ),
+    Entry(
+        word="table.find_smallest_of",
+        data="weather",
+        ours="""
+            table = sdata.table(sdata.get_example("weather"))
+            table.find_smallest_of("temperature", for_each_group_in="city")
+        """,
+        code={
+            "pandas": """
+                df = sdata.get_example("weather")
+                # find_smallest_of("temperature", for_each_group_in="city")
+                df.groupby("city")["temperature"].min().reset_index()                   # (1)
+            """,
+            "Polars": """
+                import polars as pl
+                df = pl.from_pandas(sdata.get_example("weather"))
+                # find_smallest_of("temperature", for_each_group_in="city")
+                df.group_by("city").agg(pl.col("temperature").min()).sort("city")       # (1)
+            """,
+        },
+        compare="table",
+        names={"smallest of temperature": "temperature"},
+        choices=("one row for each city, the cities sorted A to Z (Polars' group_by gives them in any order).",),
+        also="Empty cells are skipped, as pandas and Polars do. simplydata also names the column \"smallest of "
+             "temperature\" and writes the values in a sentence; without for_each_group_in= it gives one number.",
+    ),
+    Entry(
+        word="table.find_biggest_of",
+        data="weather",
+        ours="""
+            table = sdata.table(sdata.get_example("weather"))
+            table.find_biggest_of("temperature")
+        """,
+        code={
+            "pandas": """
+                df = sdata.get_example("weather")
+                # find_biggest_of("temperature")
+                df["temperature"].max()
+            """,
+            "Polars": """
+                import polars as pl
+                df = pl.from_pandas(sdata.get_example("weather"))
+                # find_biggest_of("temperature")
+                df["temperature"].max()
+            """,
+        },
+        compare="value",
+        tolerance=0.0,
+        also="Empty cells are skipped, as pandas and Polars do (NumPy's max would give nan). for_each_group_in= "
+             "gives a table with one row for each group. simplydata also says how many values it looked at.",
+    ),
+    Entry(
+        word="table.find_standard_deviation_of",
+        data="marks",
+        ours="""
+            table = sdata.table(sdata.get_example("marks"))
+            table.find_standard_deviation_of("marks", for_each_group_in="class")
+        """,
+        code={
+            "pandas": """
+                df = sdata.get_example("marks")
+                # find_standard_deviation_of("marks", for_each_group_in="class")
+                df.groupby("class")["marks"].std(ddof=1).reset_index()                   # (1) (2)
+            """,
+            "Polars": """
+                import polars as pl
+                df = pl.from_pandas(sdata.get_example("marks"))
+                # find_standard_deviation_of("marks", for_each_group_in="class")
+                df.group_by("class").agg(pl.col("marks").std(ddof=1)).sort("class")      # (1) (2)
+            """,
+        },
+        compare="table",
+        tolerance=1e-12,
+        names={"standard deviation of marks": "marks"},
+        choices=("the standard deviation of a sample (divide by n - 1), as pandas, Polars and R sd(); NumPy's own "
+                 "default divides by n.",
+                 "one row for each class, the classes sorted A to Z.",),
+        also="Empty cells are skipped. interval=95 adds a confidence interval (from R), and weights= gives a "
+             "weighted standard deviation. simplydata also writes the values in a sentence.",
+    ),
+    Entry(
+        word="table.count_different_values_in",
+        data="school",
+        ours="""
+            table = sdata.table(sdata.get_example("school"))
+            table.count_different_values_in("sleep", for_each_group_in="school")
+        """,
+        code={
+            "pandas": """
+                df = sdata.get_example("school")
+                # count_different_values_in("sleep", for_each_group_in="school")
+                df.groupby("school")["sleep"].nunique().reset_index()                        # (1) (2)
+            """,
+            "Polars": """
+                import polars as pl
+                df = pl.from_pandas(sdata.get_example("school"))
+                # count_different_values_in("sleep", for_each_group_in="school")
+                df.group_by("school").agg(pl.col("sleep").drop_nulls().n_unique()).sort("school")   # (1) (2)
+            """,
+        },
+        compare="table",
+        names={"different values": "sleep"},
+        choices=("empty cells are not counted as a value (pandas' nunique() leaves them out; Polars' n_unique() "
+                 "would count the empty value once); a note says how many there were (19).",
+                 "one row for each school, the schools sorted A to Z.",),
+        also="Capital letters matter: \"Apple\" and \"apple\" are two values. Without for_each_group_in= it gives "
+             "one number.",
+    ),
+    Entry(
+        word="table.find_most_common_of",
+        ours="""
+            table = sdata.table({"x": [3, 1, 3, 1, 2, None]})
+            table.find_most_common_of("x")
+        """,
+        code={
+            "pandas": """
+                import pandas as pd
+                df = pd.DataFrame({"x": [3, 1, 3, 1, 2, None]})
+                # find_most_common_of("x")
+                df["x"].mode().iloc[0]                          # (1)
+            """,
+            "Polars": """
+                import polars as pl
+                df = pl.DataFrame({"x": [3, 1, 3, 1, 2, None]})
+                # find_most_common_of("x")
+                df["x"].drop_nulls().mode().sort()[0]           # (1)
+            """,
+        },
+        compare="value",
+        tolerance=0.0,
+        choices=("when values tie (1 and 3 each turn up twice), the smallest is given and a note names the others; "
+                 "empty cells are skipped. pandas' mode() is sorted; Polars' mode() comes in any order.",),
+        also="It works for text too (the first in A to Z order on a tie). for_each_group_in= gives a table with, for "
+             "each group, the most common value, its count, its percent and how many values share the top count.",
+    ),
+    Entry(
+        word="table.find_interval_of",
+        data="marks",
+        ours="""
+            table = sdata.table(sdata.get_example("marks"))
+            table.find_interval_of("marks", "average")
+        """,
+        code={"SciPy": """
+            import numpy as np
+            import pandas as pd
+            from scipy import stats
+            df = sdata.get_example("marks")
+            # find_interval_of("marks", "average")
+            x = df["marks"].dropna().to_numpy(dtype=float)
+            ci = stats.bootstrap((x,), np.mean, n_resamples=9999, method="BCa",            # (1) (2)
+                                 vectorized=False, rng=np.random.default_rng(1)).confidence_interval   # (3)
+            pd.DataFrame({"average of marks": [x.mean()], "average of marks 95 % CI low": [ci.low],
+                          "average of marks 95 % CI high": [ci.high], "count": [len(x)]})
+        """},
+        compare="table",
+        tolerance=1e-12,
+        choices=("the bias-corrected and accelerated (BCa) bootstrap interval, the usual choice; \"percentile "
+                 "bootstrap\" and \"reverse percentile bootstrap\" are the others.",
+                 "9999 resamples (resamples= changes it).",
+                 "NumPy's random generator with seed 1 (with_seed=), printed, so the same call gives the same "
+                 "interval.",),
+        also="summary= takes any one-number measure (\"median\", \"standard deviation\", \"percentile 90\" ...) or a "
+             "function of your own, and for_each_group_in= gives one row for each group. With fewer than 20 "
+             "values a note says the interval is often too narrow. R boot::boot.ci() gives the same kinds.",
+    ),
+    Entry(
+        word="table.add_rows_from",
+        data="marks",
+        ours="""
+            table = sdata.table(sdata.get_example("marks"))
+            table.add_rows_from({"marks": [88], "name": ["Zoe"], "class": ["A"], "subject": ["Maths"],
+                                 "hours": [5.0], "height": [150]})
+        """,
+        code={
+            "pandas": """
+                import pandas as pd
+                df = sdata.get_example("marks")
+                other = pd.DataFrame({"marks": [88], "name": ["Zoe"], "class": ["A"], "subject": ["Maths"],
+                                      "hours": [5.0], "height": [150]})
+                # add_rows_from(other)
+                pd.concat([df, other[df.columns]], ignore_index=True)                   # (1)
+            """,
+            "Polars": """
+                import polars as pl
+                df = pl.from_pandas(sdata.get_example("marks"))
+                other = pl.DataFrame({"marks": [88], "name": ["Zoe"], "class": ["A"], "subject": ["Maths"],
+                                      "hours": [5.0], "height": [150]})
+                # add_rows_from(other)
+                pl.concat([df, other.select(df.columns)], how="vertical_relaxed")       # (1)
+            """,
+        },
+        compare="table",
+        choices=("columns are matched by their names, so the other table's columns may come in any order (Polars' "
+                 "own concat needs them in the same order); the new rows go under, numbered on from the last.",),
+        also="simplydata stops with a message that names the columns found in only one of the two tables, or the "
+             "columns that hold different kinds of values. " + SAID,
+    ),
+    Entry(
+        word="table.turn_columns_into_rows",
+        data="weather",
+        ours="""
+            table = sdata.table(sdata.get_example("weather"))
+            table.turn_columns_into_rows(["temperature", "rain"])
+        """,
+        code={
+            "pandas": """
+                df = sdata.get_example("weather")
+                # turn_columns_into_rows(["temperature", "rain"])
+                others = [c for c in df.columns if c not in ("temperature", "rain")]
+                df.melt(id_vars=others, value_vars=["temperature", "rain"],
+                        var_name="column", value_name="value")                          # (1)
+            """,
+            "Polars": """
+                import polars as pl
+                df = pl.from_pandas(sdata.get_example("weather"))
+                # turn_columns_into_rows(["temperature", "rain"])
+                others = [c for c in df.columns if c not in ("temperature", "rain")]
+                df.unpivot(on=["temperature", "rain"], index=others,
+                           variable_name="column", value_name="value")                  # (1)
+            """,
+        },
+        compare="table",
+        choices=("every other column stays beside each value, and the new columns are called \"column\" and "
+                 "\"value\" (names_to=, values_to= change them; pandas' own names are \"variable\" and \"value\").",),
+        also="All temperatures come first, then all rain, as in pandas and Polars. simplydata stops with a message "
+             "when text and number columns are mixed. " + SAID,
+    ),
+    Entry(
+        word="table.turn_rows_into_columns",
+        data="weather",
+        ours="""
+            table = sdata.table(sdata.get_example("weather"))
+            table.keep_columns("month", "city", "temperature")
+            table.turn_rows_into_columns(names_from="city", values_from="temperature")
+        """,
+        code={
+            "pandas": """
+                df = sdata.get_example("weather")[["month", "city", "temperature"]]
+                # turn_rows_into_columns(names_from="city", values_from="temperature")
+                wide = df.pivot(index="month", columns="city", values="temperature")
+                wide = wide.loc[df["month"].unique(), df["city"].unique()]              # (1)
+                wide.reset_index().rename_axis(columns=None)
+            """,
+            "Polars": """
+                import polars as pl
+                df = pl.from_pandas(sdata.get_example("weather")).select("month", "city", "temperature")
+                # turn_rows_into_columns(names_from="city", values_from="temperature")
+                df.pivot(on="city", index="month", values="temperature")                # (1)
+            """,
+        },
+        compare="table",
+        choices=("rows and new columns stay in the order they first appear (Jan, Feb ...; Sunnyvale first), on both "
+                 "engines; pandas' pivot sorts them (Apr, Aug ...; Frostby first).",),
+        also="All the other columns say which row is which. When two rows would fill the same cell simplydata "
+             "stops and suggests find_average_of() first, instead of choosing one. " + SAID,
+    ),
+    Entry(word="table.start_again", ours="""
+              table = sdata.table(sdata.get_example("marks"))
+              table.keep_rows_where("marks", is_above=50)
+              table.start_again()
+          """, compare="none",
+          note="simplydata's own: it keeps the table it started with and puts it back, as one more step that undo() "
+               "can take back. In pandas or Polars you keep the first table yourself (start = df.copy()) and go "
+               "back to it."),
+]
