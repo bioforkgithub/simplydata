@@ -33,6 +33,7 @@ from .learn import COMBINING_LESSON, INTERACTIONS_LESSON
 from .learn import MORE_SURVIVAL_LESSON  # S3b-3
 from .learn import DIVERSITY_LESSON, MAKEUP_LESSON  # S3c-1
 from .learn import COAST_LESSON  # S3c-3
+from .learn import PLANNING_LESSON  # S3d-1
 
 TRACK_NAMES = ("python", "beginner")
 DAYS_IN_A_TRACK = 30
@@ -50,7 +51,9 @@ MANUAL_ONLY_LESSONS = (RISKS_LESSON, FORECASTS_LESSON, SYSTEMS_LESSON, OUTLIERS_
                        # S3c-1: communities and resistomes, with R
                        DIVERSITY_LESSON, MAKEUP_LESSON,
                        # S3c-3: directions, places and extremes, with R
-                       COAST_LESSON)
+                       COAST_LESSON,
+                       # S3d-1: planning an experiment and a survey, with R
+                       PLANNING_LESSON)
 
 TRACKS = {
     "python": dict(
@@ -755,7 +758,8 @@ UNITS = {
                    f"studies; sdata.show_lesson({lesson_number(DIVERSITY_LESSON)}) and "
                    f"sdata.show_lesson({lesson_number(MAKEUP_LESSON)}), the diversity and make-up of communities "
                    f"(resistomes); sdata.show_lesson({lesson_number(COAST_LESSON)}), directions, places and extremes "
-                   "at a coastal station"),
+                   f"at a coastal station; sdata.show_lesson({lesson_number(PLANNING_LESSON)}), planning an "
+                   "experiment and a survey"),
         recall=[
             ("Which word draws survival curves?", 'chart.draw_survival_curves(time="days", event="died", colour="treatment")'),
             ("Which word tests whether survival differs between groups?",
