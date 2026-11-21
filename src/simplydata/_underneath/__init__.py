@@ -49,7 +49,8 @@ COMPARE_KINDS = {
 # The facts chart_facts() reads from a chart; an entry names the ones its test compares
 CHART_FACTS = ("bars", "bar_colour_groups", "dots", "dot_size_shares", "dot_colour_groups", "lines", "labels",
                "ticks", "legend", "limits", "scales", "panels", "texts", "font_sizes", "size", "legend_place",
-               "colours", "tick_angles", "shapes", "cells", "every_panel")
+               "colours", "tick_angles", "shapes", "cells", "every_panel", "line_styles", "text_places",
+               "shape_colours", "panel_styles")
 
 R_LABEL = "R (simplydata runs this in R for you, through rpy2)"
 

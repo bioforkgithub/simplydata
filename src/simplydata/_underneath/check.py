@@ -157,11 +157,19 @@ def chart_facts(ax) -> dict:
     legend_place      each legend: on the chart or on the figure, matplotlib's place code, the side outside the
                       chart (empty inside it), its number of columns, its title and entries
     colours           the colours themselves (as #rrggbbaa): of the bars (sorted as in bars), the dots and the lines
-    tick_angles       the angle and the alignment of each tick label, under the x axis and beside the y axis
+    tick_angles       the angle, the alignment and the rotation mode of each tick label, under the x axis and
+                      beside the y axis
     shapes            the corners of every filled shape that is not a bar (violins, boxes, bands)
-    cells             the numbers behind each grid of coloured cells (a heatmap)
-    every_panel       for each set of axes in the figure (second y-axes too): its labels, title, dots, bars,
-                      lines and filled shapes
+    cells             the numbers behind each grid of coloured cells (a heatmap), its colour map and the two
+                      numbers at the ends of the colour scale
+    line_styles       the dash pattern, the width and the zorder (drawing order) of every line
+    text_places       each word on the chart (sorted): where it points (annotations), where it sits, its angle and
+                      alignment, and the box behind it (or none)
+    shape_colours     the fill colour of every filled shape that is not a bar (as #rrggbbaa)
+    panel_styles      for each set of axes in the figure: the sizes, rim widths and colours of its dots, the
+                      colours of its bars, its drawing order and whether its background is drawn
+    every_panel       for each set of axes shown in the figure (second y-axes too): its labels, title, dots,
+                      bars, lines, filled shapes and axis ranges
     """
     from matplotlib.patches import Rectangle
 
@@ -206,12 +214,16 @@ def chart_facts(ax) -> dict:
         "legend_place": _legend_places(ax),
         "colours": ([_hex(b[4]) for b in bars], [_hex(c) for c in dot_colours],
                     [_hex(line.get_color()) for line in ax.get_lines()]),
-        "tick_angles": ([(float(t.get_rotation()), t.get_ha()) for t in ax.get_xticklabels()],
-                        [(float(t.get_rotation()), t.get_ha()) for t in ax.get_yticklabels()]),
+        "tick_angles": ([(float(t.get_rotation()), t.get_ha(), t.get_rotation_mode()) for t in ax.get_xticklabels()],
+                        [(float(t.get_rotation()), t.get_ha(), t.get_rotation_mode()) for t in ax.get_yticklabels()]),
         "shapes": _shapes(ax),
         "cells": _cells(ax),
-        "every_panel": ([_panel(a) for a in _root(ax).axes if a.get_label() != "<colorbar>"]
-                        if _root(ax) is not None else []),
+        "every_panel": [_panel(a) for a in _panels(ax)],
+        "line_styles": [(str(line.get_linestyle()), float(line.get_linewidth()), float(line.get_zorder()))
+                        for line in ax.get_lines()],
+        "text_places": sorted((_text_place(t) for t in ax.texts if _shown(t)), key=repr),
+        "shape_colours": _shape_colours(ax),
+        "panel_styles": [_panel_style(a) for a in _panels(ax)],
     }
 
 
@@ -263,6 +275,8 @@ def _font_sizes(ax) -> tuple:
 
 
 def _legend_places(ax) -> list:
+    # matplotlib keeps a legend's place, its outside side and its columns only in private attributes (_loc,
+    # _outside_loc, _ncols); tests/test_underneath.py pins them, so a matplotlib change shows up there
     root = _root(ax)
     found = [("chart", ax.get_legend())] + [("figure", leg) for leg in (root.legends if root is not None else [])]
     return [(owner, int(leg._loc), getattr(leg, "_outside_loc", None) or "", int(leg._ncols),
@@ -290,7 +304,49 @@ def _shapes(ax) -> list:
 
 def _cells(ax) -> list:
     grids = [c for c in ax.collections if c.__class__.__name__ == "QuadMesh"] + list(ax.images)
-    return [_sized(np.ma.filled(np.ma.asarray(g.get_array(), dtype=float), np.nan).ravel()) for g in grids]
+    return [_sized(np.ma.filled(np.ma.asarray(g.get_array(), dtype=float), np.nan).ravel())
+            + (g.get_cmap().name, float(g.norm.vmin), float(g.norm.vmax)) for g in grids]
+
+
+def _panels(ax) -> list:
+    """Every set of axes in the whole figure that is shown (second y-axes too, colour bars left out)."""
+    root = _root(ax)
+    return [] if root is None else [a for a in root.axes if a.get_label() != "<colorbar>" and a.get_visible()]
+
+
+def _text_place(t) -> tuple:
+    """(words, the place an annotation points at or None, where the words sit, angle, alignment, its box or None)."""
+    box = t.get_bbox_patch()
+    return (_shown(t), tuple(map(float, t.xy)) if hasattr(t, "xy") else None, tuple(map(float, t.get_position())),
+            float(t.get_rotation()), t.get_ha(), t.get_va(), None if box is None else _hex(box.get_facecolor()))
+
+
+def _filled(ax) -> list:
+    from matplotlib.patches import Rectangle
+
+    found = [c for c in ax.collections
+             if c.__class__.__name__ not in ("PathCollection", "QuadMesh", "LineCollection") and hasattr(c, "get_paths")]
+    return found + [p for p in ax.patches if not isinstance(p, Rectangle)]
+
+
+def _shape_colours(ax) -> list:
+    out = []
+    for artist in _filled(ax):
+        faces = np.atleast_2d(artist.get_facecolor())
+        out += [_hex(c) for c in faces] if len(faces) else ["none"]
+    return out
+
+
+def _panel_style(ax) -> tuple:
+    from matplotlib.patches import Rectangle
+
+    dots = [c for c in ax.collections if c.__class__.__name__ == "PathCollection"]
+    return ([list(np.asarray(c.get_sizes(), dtype=float)) for c in dots],
+            [list(np.asarray(c.get_linewidths(), dtype=float)) for c in dots],
+            [[_hex(f) for f in c.get_facecolors()] for c in dots],
+            [_hex(r.get_facecolor()) for r in sorted((r for r in ax.patches if isinstance(r, Rectangle)),
+                                                    key=lambda r: (r.get_x(), r.get_y()))],
+            float(ax.get_zorder()), bool(ax.patch.get_visible()))
 
 
 def _panel(ax) -> tuple:
@@ -304,7 +360,8 @@ def _panel(ax) -> tuple:
     # lines with no points (seaborn adds them for legend entries) show nothing, so they are left out
     lines = [(_sized(line.get_xdata()), _sized(line.get_ydata())) for line in ax.get_lines() if len(line.get_xdata())]
     return (ax.get_xlabel(), ax.get_ylabel(), ax.get_title(), ax.get_title(loc="left"),
-            _sized(dots) if dots else (0,), _sized(bars) if bars else (0,), lines, _shapes(ax))
+            _sized(dots) if dots else (0,), _sized(bars) if bars else (0,), lines, _shapes(ax),
+            tuple(map(float, ax.get_xlim())), tuple(map(float, ax.get_ylim())))
 
 
 def _same(a, b, tol: float) -> bool:

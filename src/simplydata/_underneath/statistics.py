@@ -274,7 +274,7 @@ ENTRIES += [
             df = sdata.get_example("sensor").sort_values("time")
             # find_each_peak_that("signal", sorted_by="time", is_at_least=1, apart=0.05)
             y, step = df["signal"].to_numpy(), 0.005                 # readings 0.005 apart
-            peaks, _ = signal.find_peaks(y, height=1, distance=0.05 / step)   # (1)
+            peaks, _ = signal.find_peaks(y, height=1, distance=round(0.05 / step, 9))  # (1)
             prom, left, right = signal.peak_prominences(y, peaks)
             width = signal.peak_widths(y, peaks, rel_height=0.5,
                                        prominence_data=(prom, left, right))[0]  # (2)
@@ -285,7 +285,9 @@ ENTRIES += [
         compare="table",
         tolerance=1e-9,
         choices=("apart= is in units of sorted_by, so it becomes a number of readings (0.05 / 0.005 = 10) for "
-                 "SciPy's distance=.",
+                 "SciPy's distance=. simplydata rounds that number to 9 decimals first: 0.05 / 0.005 is "
+                 "10.000000000000002 in floating point, and SciPy rounds distance= up, to 11 readings, which can "
+                 "lose a peak.",
                  "each peak's width is measured halfway down its prominence (as R pracma::findpeaks), and written in "
                  "units of sorted_by.",
                  "positions and bases count from 1, as the rows do.",),

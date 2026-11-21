@@ -749,8 +749,8 @@ def _cases_batch_2(Case):
                     "legends on the chart": sum(p[0] == "chart" for p in f["legend_place"]),
                     "place": f["legend_place"][0][1], "entries": len(f["legend_place"][0][4]) - 1}
                """), parent_label="matplotlib fig.legend", parent_tolerance=0.0)
-          for word, where, loc, columns in (("put_legend_at_bottom", "below", "outside lower center", ", ncols=2"),
-                                            ("put_legend_on_left", "on the left", "outside center left", ""))],
+          for word, (where, loc, columns) in {"put_legend_at_bottom": ["below", "outside lower center", ", ncols=2"],
+                                              "put_legend_on_left": ["on the left", "outside center left", ""]}.items()],
         Case("order_x", "warpbreaks: the tensions in the order high, medium, low", "warpbreaks", "real data",
              ours=_ours_chart("""
                  chart = sdata.chart(data).draw_bars(x="tension", y="breaks").order_x("H", "M", "L")
@@ -859,7 +859,7 @@ def _cases_batch_2(Case):
              ours=_ours_chart("""
                  chart = sdata.chart(data).draw_violins(x="Species", y="Sepal.Length")
              """, """
-                 {f"top of the {name} violin": max(v[1][:, 1]) for name, v in zip(("setosa", "versicolor", "virginica"),
+                 {f"top of the {name} violin": max(v[1][:, 1]) for name, v in zip(["setosa", "versicolor", "virginica"],
                                                                                  f["shapes"])}
              """),
              published={"top of the setosa violin": (5.8, 1e-12, "exact"),
@@ -869,7 +869,7 @@ def _cases_batch_2(Case):
                  fig, ax = plt.subplots()
                  sns.violinplot(data, x="Species", y="Sepal.Length", cut=0, saturation=1, ax=ax)
              """, """
-                 {f"top of the {name} violin": max(v[1][:, 1]) for name, v in zip(("setosa", "versicolor", "virginica"),
+                 {f"top of the {name} violin": max(v[1][:, 1]) for name, v in zip(["setosa", "versicolor", "virginica"],
                                                                                  f["shapes"])}
              """), parent_label="seaborn violinplot(cut=0)", parent_tolerance=1e-12,
              r="""

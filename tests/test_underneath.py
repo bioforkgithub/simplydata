@@ -199,9 +199,14 @@ def test_chart_facts_read_words_sizes_legends_colours_angles_shapes_cells_and_pa
     assert facts["texts"] == (["over all"], ["note"])
     assert facts["font_sizes"][0] == 21
     assert facts["size"] == (5.0, 4.0)
+    # legend_place reads matplotlib's private _loc, _outside_loc and _ncols: this pins them
     assert facts["legend_place"] == [("figure", 8, "lower", 1, ["key", "line"])]
     assert facts["colours"][0] == ["#800080ff", "#800080ff"] and facts["colours"][2] == ["#ff0000ff"]
-    assert facts["tick_angles"][0] == [(45.0, "right"), (45.0, "right")]
+    assert facts["tick_angles"][0] == [(45.0, "right", "default"), (45.0, "right", "default")]
+    assert facts["line_styles"] == [("-", 1.5, 2.0)]
+    assert facts["text_places"] == [("note", (0.0, 1.0), (0.0, 1.0), 0.0, "left", "baseline", None)]
+    assert len(facts["shape_colours"]) == 1 and facts["panel_styles"][0][3] == ["#800080ff", "#800080ff"]
+    assert facts["every_panel"][0][8] == tuple(map(float, ax.get_xlim()))  # each panel's axis ranges
     assert len(facts["shapes"]) == 1 and facts["shapes"][0][0] == len(facts["shapes"][0][1])
     assert len(facts["every_panel"]) == 2 and facts["every_panel"][1][4][0] == 2  # the twin's two dots
     assert compare_charts(facts, chart_facts(ax), CHART_FACTS, 1e-9) == []
@@ -211,6 +216,9 @@ def test_chart_facts_read_words_sizes_legends_colours_angles_shapes_cells_and_pa
     ax2.pcolormesh(np.array([[1.0, 2.0], [3.0, np.nan]]))
     cells = chart_facts(ax2)["cells"]
     assert cells[0][0] == 4 and np.isnan(cells[0][1][3]) and cells[0][1][2] == 3.0
+    assert cells[0][2:] == ("viridis", 1.0, 3.0)
+    ax2.set_visible(False)
+    assert chart_facts(ax2)["every_panel"] == []  # hidden axes are not panels
     plt.close("all")
 
 
