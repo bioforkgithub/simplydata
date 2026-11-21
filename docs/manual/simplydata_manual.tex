@@ -664,8 +664,8 @@ MADE-UP DATA: 10 years of daily rain at one made-up coastal station (2015 to 202
 date & every day from 2015-01-01 to 2024-12-31 (real dates)\\
 rain & rain that day in mm (0 on dry days)\\
 \bottomrule\end{tabularx}\end{center}
-\section*{sealevel}
-REAL DATA: the highest sea level of each year at Port Pirie, South Australia, 1923 to 1987 (Coles, S. 2001, An Introduction to Statistical Modeling of Extreme Values, Springer, section 3.4.1: the published yearly maxima, facts; the same numbers as R ismev's portpirie). \code{sdata.\allowbreak{}get\_\allowbreak{}example(\textquotedbl{}sealevel\textquotedbl{})}
+\section*{sea\_levels}
+REAL DATA: the highest sea level of each year at Port Pirie, South Australia, 1923 to 1987 (Coles, S. 2001, An Introduction to Statistical Modeling of Extreme Values, Springer, section 3.4.1: the published yearly maxima, facts; the same numbers as R ismev's portpirie). \code{sdata.\allowbreak{}get\_\allowbreak{}example(\textquotedbl{}sea\_\allowbreak{}levels\textquotedbl{})}
 \begin{center}\small
 \begin{tabularx}{\textwidth}{@{}>{\ttfamily}l>{\raggedright\arraybackslash}X@{}}
 \toprule \textrm{\textbf{Column}} & \textbf{What it holds}\\ \midrule
@@ -4731,10 +4731,10 @@ table.find_autocorrelation_of("zinc", x="east", y="north", nearest=6)
 Storms. The highest sea level of each year at Port Pirie, South Australia, 1923 to 1987 (real data, Coles 2001). How high is the sea once in 100 years?
 \begin{lstlisting}[style=py]
 import simplydata as sdata
-table = sdata.table(sdata.get_example("sealevel"))
+table = sdata.table(sdata.get_example("sea_levels"))
 chart = table.start_chart()
 chart.draw_dots(x="year", y="sea_level")
-chart.save("lesson33_sealevel.png")
+chart.save("lesson33_sea_levels.png")
 table.find_return_levels_of("sea_level", once_in=[10, 100], sorted_by="year")
 \end{lstlisting}
 \whateachline
@@ -4748,8 +4748,8 @@ table.find_return_levels_of("sea_level", once_in=[10, 100], sorted_by="year")
 \end{lineexplain}
 \printedoutput{output/lesson33_example3.txt}
 \begin{center}\begin{minipage}{\linewidth}\centering
-\includegraphics[width=0.72\textwidth,height=0.36\textheight,keepaspectratio]{figures/lesson33_example3_lesson33_sealevel.pdf}
-\captionof{figure}{Lesson 33, example 3: \code{lesson33\_\allowbreak{}sealevel.\allowbreak{}png}.}
+\includegraphics[width=0.72\textwidth,height=0.36\textheight,keepaspectratio]{figures/lesson33_example3_lesson33_sea_levels.pdf}
+\captionof{figure}{Lesson 33, example 3: \code{lesson33\_\allowbreak{}sea\_\allowbreak{}levels.\allowbreak{}png}.}
 \end{minipage}\end{center}
 \begin{goodtoknow}
 \begin{itemize}
@@ -4812,7 +4812,7 @@ chart.save("my_chart.png")
 A small table to practise with. \code{sdata.\allowbreak{}get\_\allowbreak{}example(\textquotedbl{}marks\textquotedbl{})}
 
 \codeline{sdata.get\_example() with no name lists every table and its columns.}\\
-The tables are: marks, weather, fruit, growth, sensor, visitors, river, shop, school, meadow, trial, clinic, island, toxicity, culture, admissions, resistome, stations, rain, sealevel (real published sea levels), and, for combining studies, bcg and \code{passive\_\allowbreak{}smoking} (real published studies), and, for hidden factors, \code{ability\_\allowbreak{}tests} (real published test scores). \code{\textquotedbl{}shop\textquotedbl{}} has empty cells and a column of dates to practise with; \code{\textquotedbl{}school\textquotedbl{}} has empty cells too.
+The tables are: marks, weather, fruit, growth, sensor, visitors, river, shop, school, meadow, trial, clinic, island, toxicity, culture, admissions, resistome, stations, rain, \code{sea\_\allowbreak{}levels} (real published sea levels), and, for combining studies, bcg and \code{passive\_\allowbreak{}smoking} (real published studies), and, for hidden factors, \code{ability\_\allowbreak{}tests} (real published test scores). \code{\textquotedbl{}shop\textquotedbl{}} has empty cells and a column of dates to practise with; \code{\textquotedbl{}school\textquotedbl{}} has empty cells too.
 
 \wordfield{Options}{}\par\nopagebreak
 \begin{optiontable}
@@ -12213,7 +12213,7 @@ t = np.deg2rad(d)
 \wordentry{table.find\_return\_levels\_of()}{word:table.find-return-levels-of}
 Return levels: the level reached on average once in 10, 50 or 100 years (extreme values).
 
-\codeline{table.find\_return\_levels\_of(\textquotedbl{}sea\_level\textquotedbl{}, once\_in=[10, 50, 100])   (with sdata.get\_example(\textquotedbl{}sealevel\textquotedbl{}))}\\
+\codeline{table.find\_return\_levels\_of(\textquotedbl{}sea\_level\textquotedbl{}, once\_in=[10, 50, 100])   (with sdata.get\_example(\textquotedbl{}sea\_levels\textquotedbl{}))}\\
 A return level is the level reached on average once in a given number of years: the 100-year level has a 1-in-100 chance of being reached in any one year (it can happen twice in a decade, or not in 200 years). Two ways: - each row is the largest value of one block, such as a year (block maxima): a GEV curve (generalised extreme value) is fitted to the rows. Give \code{sorted\_\allowbreak{}by=\textquotedbl{}year\textquotedbl{}} so the word can check there is one row per year; daily readings are refused (take the yearly largest first: \code{table.\allowbreak{}find\_\allowbreak{}biggest\_\allowbreak{}of(\textquotedbl{}sea\_\allowbreak{}level\textquotedbl{},\allowbreak{} for\_\allowbreak{}each\_\allowbreak{}group\_\allowbreak{}in=\textquotedbl{}date\textquotedbl{},\allowbreak{} every=\textquotedbl{}year\textquotedbl{})}). - \code{values\_\allowbreak{}above=30} uses every reading above 30 (peaks over a threshold): a generalised Pareto curve is fitted to the amounts above it. \code{sorted\_\allowbreak{}by=} (dates) is then needed, to know how many readings make a year. Choose the threshold with \code{chart.\allowbreak{}draw\_\allowbreak{}threshold\_\allowbreak{}check()}. Prints each return level with its 95 \% profile-likelihood interval (asymmetric, as return levels are), and the shape of the curve. Gives back one row per return period. For lows (low oxygen, low water), turn the column round first (\code{table.\allowbreak{}add\_\allowbreak{}column(\textquotedbl{}minus\_\allowbreak{}oxygen\textquotedbl{},\allowbreak{} \textquotedbl{}-oxygen\textquotedbl{})}). Numbers from R extRemes (fevd, return.level, ci). Needs R (extRemes). Other names: GEV, GPD, peaks over threshold, return period, fevd.
 
 \wordfield{Options}{}\par\nopagebreak
@@ -12229,7 +12229,7 @@ A return level is the level reached on average once in a given number of years: 
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
-table = sdata.table(sdata.get_example("sealevel"))
+table = sdata.table(sdata.get_example("sea_levels"))
 table.find_return_levels_of("sea_level", once_in=[10, 100], sorted_by="year")
 \end{lstlisting}
 \needspace{10\baselineskip}\begin{underneathbox}{\libbadge{R}\libbadge{Python}}
@@ -17728,7 +17728,7 @@ table.find_average_direction_of("current_direction", full_turn=360)
 \solutiontask{2}{Change only \code{once\_\allowbreak{}in=}: find the 50-year sea level at Port Pirie.}
 \begin{lstlisting}[style=py]
 import simplydata as sdata
-table = sdata.table(sdata.get_example("sealevel"))
+table = sdata.table(sdata.get_example("sea_levels"))
 table.find_return_levels_of("sea_level", once_in=[50], sorted_by="year")
 \end{lstlisting}
 \printedoutput{output/solution33_task2.txt}
@@ -17736,7 +17736,7 @@ table.find_return_levels_of("sea_level", once_in=[50], sorted_by="year")
 \solutiontask{3}{Say in words what a 100-year level means. Is it certain to happen in the next 100 years?}
 \begin{lstlisting}[style=py]
 import simplydata as sdata
-table = sdata.table(sdata.get_example("sealevel"))
+table = sdata.table(sdata.get_example("sea_levels"))
 table.find_return_levels_of("sea_level", once_in=[100], sorted_by="year")
 \end{lstlisting}
 \printedoutput{output/solution33_task3.txt}
