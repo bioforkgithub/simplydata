@@ -3325,8 +3325,8 @@ BASIS["animate"] = _b(
 
 # ---- Phase U3, batch 7: time series, cycles, waves and systems
 BASIS["nums.find_each_dip_that"] = _b(
-    "Every local minimum: SciPy signal.find_peaks on minus the numbers (as R pracma::findpeaks(-x)); positions from 1, "
-    "widths halfway down each dip.",
+    "Every local minimum: SciPy signal.find_peaks on minus the numbers (as R pracma::findpeaks(-x) for dips without "
+    "flat bottoms); positions from 1, widths halfway down each dip.",
     "is_at_most=, apart=, stands_out_by=, wide_at_least=, time_step=.",
     "A dip is a peak turned upside down, so the same neutral start as find_each_peak_that: no threshold unless you "
     "give one. These are SciPy's definitions.", (), "P3", "", "convention")
@@ -3376,8 +3376,7 @@ BASIS["sdata.make_window_shape"] = _b(
     "A window you look at or use as a filter is normally symmetric; the periodic one is for spectra, where SciPy "
     "uses it on its own.", (), "P3", "An unknown window name is refused with a list of common ones.", "convention")
 BASIS["sdata.system"] = _b(
-    "The transfer function with the bottom's first coefficient scaled to 1, as SciPy's TransferFunction and R "
-    "control::tf keep it.",
+    "The transfer function with the bottom's first coefficient scaled to 1, as SciPy's TransferFunction keeps it.",
     "numerator=/denominator=, poles=/zeros=/gain=, a=/b=/c=/d=; time_step= for a system in steps.",
     "Scaling the first coefficient to 1 gives every system one way to be written, so the same system always prints "
     "the same.", (), "P3", "An improper formula (top of higher power than the bottom) is refused.", "convention")

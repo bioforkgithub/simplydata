@@ -313,8 +313,8 @@ ENTRIES += [
         """},
         compare="table",
         tolerance=1e-12,
-        choices=("each peak's width is measured halfway down its prominence (as R pracma::findpeaks), in readings "
-                 "(in units of time with time_step=).",
+        choices=("each peak's width is measured halfway down its prominence: SciPy peak_widths(rel_height=0.5), as "
+                 "MATLAB findpeaks(\"WidthReference\", \"halfprom\"); in readings (in units of time with time_step=).",
                  "positions and bases count from 1.",),
         also="A flat top (3, 3) counts once, at its middle, as SciPy does. apart=, stands_out_by= and wide_at_least= "
              "are SciPy's distance=, prominence= and width=. simplydata also says how many peaks it found and which "
@@ -340,7 +340,7 @@ ENTRIES += [
         compare="table",
         tolerance=1e-12,
         choices=("the dips are the peaks of minus the numbers, so is_at_most=2 becomes SciPy's height=-2 (as R "
-                 "pracma::findpeaks(-x)); widths are measured halfway down.",
+                 "pracma::findpeaks(-x) for dips without flat bottoms); widths are measured halfway down.",
                  "positions and bases count from 1; the value is the number itself, not minus it.",),
         also="simplydata also says how many dips it found and which is lowest.",
     ),
@@ -427,7 +427,7 @@ ENTRIES += [
         tolerance=1e-9,
         choices=("without time_step= the readings are one step apart, so the frequencies are cycles per reading.",
                  "the one-sided periodogram, scaled so that power x frequency step adds up to the variance (2 x R "
-                 "spec.pgram(x, taper = 0, detrend = FALSE, fast = FALSE)$spec but at the top frequency).",),
+                 "spec.pgram(x, taper = 0, detrend = FALSE, fast = FALSE)$spec, except at the top frequency).",),
         also="time_step= (or sampling_rate=) gives frequencies per unit of time; show=\"decibels\" or \"amplitude\" "
              "changes the column. simplydata also names the 3 strongest cycles.",
     ),
@@ -474,28 +474,33 @@ ENTRIES += [
         choices=("one frequency is removed by a notch filter whose width is 1 (width=1), so its quality factor is "
                  "50 / 1.",
                  "run forwards and backwards (both_ways=True), so nothing moves in time.",),
-        also="and_multiples=True also removes 100, 150 ... (SciPy iircomb); is_between= removes a band. simplydata "
-             "also says what it removed.",
+        also="and_multiples=True also removes 100, 150 ... (SciPy iircomb with pass_zero=False), and that comb also "
+             "removes frequency 0, the average of the numbers. is_between= removes a band. simplydata also says what "
+             "it removed.",
     ),
     Entry(
         word="table.add_filtered_column",
         data="sensor",
         ours="""
             table = sdata.table(sdata.get_example("sensor"))
+            table.sort_by("signal")              # the rows out of time order
             table.add_filtered_column("slow", from_column="signal", keep_below=10, sorted_by="time")
         """,
         code={"SciPy": """
+            import pandas as pd
             from scipy import signal
-            df = sdata.get_example("sensor")
+            df = sdata.get_example("sensor").sort_values("signal", kind="stable")
             # add_filtered_column("slow", from_column="signal", keep_below=10, sorted_by="time")
-            step = 0.005                                                        # (1)
-            sos = signal.butter(4, 10, btype="lowpass", output="sos", fs=1 / step)   # (2)
-            df.assign(slow=signal.sosfiltfilt(sos, df["signal"].to_numpy(dtype=float)))   # (3)
+            in_time = df.sort_values("time")                                    # (1)
+            sos = signal.butter(4, 10, btype="lowpass", output="sos", fs=1 / 0.005)   # (2)
+            slow = signal.sosfiltfilt(sos, in_time["signal"].to_numpy(dtype=float))   # (3)
+            df.assign(slow=pd.Series(slow, index=in_time.index))   # back to each row
         """},
         compare="table",
         tolerance=1e-9,
-        choices=("the time between readings comes from sorted_by=\"time\" (0.005 seconds), so keep_below=10 is 10 "
-                 "cycles per second.",
+        choices=("the readings are filtered in order of sorted_by=\"time\", whatever the order of the rows, and the time "
+                 "between them (0.005 seconds) makes keep_below=10 mean 10 cycles per second; each row keeps its "
+                 "own filtered value.",
                  "a Butterworth filter of steepness 4, as second-order sections (R signal::butter(4, 10 / 100)).",
                  "run forwards and backwards (both_ways=True), so nothing moves in time.",),
         also="keep_above=, keep_between=, remove_between= and remove_at= are the other conditions; for_each_group_in= "
@@ -540,27 +545,29 @@ ENTRIES += [
         compare="value",
         tolerance=1e-9,
         also="show=\"phase\" (degrees, unwrapped) and \"frequency\" are the other columns of the analytic signal. "
-             "simplydata also says what it worked out, as R gsignal::hilbert.",
+             "SciPy signal.hilbert gives R gsignal::hilbert's numbers; simplydata also says what it worked out.",
     ),
     Entry(
         word="table.add_envelope_column",
         data="sensor",
         ours="""
             table = sdata.table(sdata.get_example("sensor"))
+            table.sort_by("signal")              # the rows out of time order
             table.add_envelope_column("signal_envelope", from_column="signal", sorted_by="time")
         """,
         code={"SciPy": """
-            import numpy as np
+            import numpy as np, pandas as pd
             from scipy import signal
-            df = sdata.get_example("sensor")
+            df = sdata.get_example("sensor").sort_values("signal", kind="stable")
             # add_envelope_column("signal_envelope", from_column="signal", sorted_by="time")
-            z = signal.hilbert(df["signal"].to_numpy(dtype=float))    # (1)
-            df.assign(signal_envelope=np.abs(z))
+            in_time = df.sort_values("time")
+            z = signal.hilbert(in_time["signal"].to_numpy(dtype=float))    # (1)
+            df.assign(signal_envelope=pd.Series(np.abs(z), index=in_time.index))
         """},
         compare="table",
         tolerance=1e-9,
         choices=("the envelope is the size of the analytic signal from the Hilbert transform, worked out on the "
-                 "readings in order of sorted_by=.",),
+                 "readings in order of sorted_by=, whatever the order of the rows; each row keeps its own value.",),
         also="show=\"phase\" and \"frequency\" are the other choices; for_each_group_in= works on each group. "
              "simplydata also checks the readings are evenly spaced and filled in.",
     ),
@@ -1130,7 +1137,8 @@ ENTRIES += [
         choices=("the periodogram of table.find_spectrum_of: one-sided, no taper, scaled so the powers add up to the "
                  "variance; the time step (0.005) gives frequencies per second.",
                  "frequency 0 (the average) is left out, and the power is on a log scale (log_scale=True).",
-                 "the 3 strongest cycles are labelled with how often they repeat.",),
+                 "the 3 frequencies with the biggest powers (frequency 0 left out) are labelled with how often they repeat; "
+                 "they can be neighbours on one peak.",),
         also="test_method=\"welch\" or \"lomb-scargle\" and show=\"decibels\" or \"amplitude\" work here too. "
              "simplydata also gives the chart its paper look; that is left out here.",
     ),
@@ -1155,7 +1163,7 @@ ENTRIES += [
             ax.set_xlabel("time"); ax.set_ylabel("frequency")
         """},
         compare="chart",
-        check=("cells", "labels"),
+        check=("cells", "labels", "limits"),
         tolerance=1e-9,
         choices=("pieces of window=100 readings with a Hann window (window_shape=), each with its own periodogram.",
                  "the pieces overlap by half and each piece's average is taken away first.",

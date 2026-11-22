@@ -38,6 +38,8 @@ with Python 3.11 to 3.13 for every change.
    level at which statistical software is judged on them (McCullough 1999).
    Made-up data are used only for edge cases that no real dataset tests (empty cells, no rows left, an
    exact line), and the report labels them *made-up*.
+   Words that take no data at all (a system, a wave, a window shape) are checked against the answer
+   worked out by hand from their formula; the report labels them *closed form*.
 
 2. **The same underneath** (`src/simplydata/_underneath/`). The manual shows, for each word, the same
    job written in the package underneath. Each of those boxes is run next to the word and compared:

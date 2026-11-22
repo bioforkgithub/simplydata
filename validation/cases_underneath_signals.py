@@ -10,11 +10,23 @@ the formula) and against R control, signal and gsignal.
 
 from __future__ import annotations
 
+import math
+
 AIR = """
     t = sdata.table(data)
     t.turn_into_dates("month")
 """
-CLOSED_FORM = "closed form (worked out by hand from the formula)"
+CLOSED_FORM = "exact: worked out by hand from the formula"
+STEP_FORM = "exact: 0.2 (1 - exp(-t) (cos 2t + sin 2t / 2))"
+IMPULSE_FORM = "exact: exp(-t) sin(2t) / 2"
+
+
+def STEP(t: float) -> float:  # noqa: N802 - the closed form, named as the formula
+    return 0.2 * (1 - math.exp(-t) * (math.cos(2 * t) + 0.5 * math.sin(2 * t)))
+
+
+def IMPULSE(t: float) -> float:  # noqa: N802
+    return 0.5 * math.exp(-t) * math.sin(2 * t)
 
 
 def _join(*parts) -> str:
@@ -306,12 +318,19 @@ def cases(Case):
              """, parent_label="SciPy butter and sosfiltfilt", parent_tolerance=1e-9,
              note="The years are one apart, so keep_below=0.1 keeps the cycles longer than 10 years."),
         Case("sdata.frequency_filter", "the filter of keep_below=10 at 200 readings a second is R signal's",
-             "made-up", "published",
+             "closed form (no data)", "closed form",
              ours="""
-                 t = sdata.frequency_filter(keep_below=10, time_step=0.005).table()
+                 f = sdata.frequency_filter(keep_below=10, time_step=0.005)
+                 t, g = f.table(), f.frequency_response(between=[10, 20], how_many=2)
                  {"b0": t.get_cell_at(row=1, column="numerator"), "a1": t.get_cell_at(row=2, column="denominator"),
-                  "a4": t.get_cell_at(row=5, column="denominator")}
+                  "a4": t.get_cell_at(row=5, column="denominator"), "gain at 10": g.get_cell_at(row=1, column="gain"),
+                  "numerator total / denominator total": t.get_column("numerator").find_total()
+                  / t.get_column("denominator").find_total()}
              """,
+             published={"gain at 10": (0.5 ** 0.5, 1e-12, "exact: a Butterworth filter passes 1 / sqrt(2) at its "
+                                                          "cutoff"),
+                        "numerator total / denominator total": (1.0, 1e-12, "exact: a low-pass filter passes "
+                                                                             "frequency 0 whole (gain 1 at z = 1)")},
              parent="""
                  from scipy import signal
                  b, a = signal.butter(4, 10, fs=200)
@@ -321,7 +340,8 @@ def cases(Case):
                  f <- signal::butter(4, 10 / 100)
                  list(b0 = f$b[1], a1 = f$a[2], a4 = f$a[5])
              """, r_packages=("signal",), r_tolerance=1e-9,
-             note="A filter has no data: the Butterworth design of order 4 at a tenth of the top frequency."),
+             note="A filter has no data: the Butterworth design of order 4 at a tenth of the top frequency. The "
+                  "coefficients are compared with SciPy and R signal; the two gains with their exact values."),
         Case("nums.find_envelope", "the Lake Huron level about its average: the envelope", "Lake Huron", "real data",
              ours="""
                  e = sdata.numbers(data["level"]).remove_trend(test_method="average").find_envelope()
@@ -426,8 +446,8 @@ def cases(Case):
                  r = signal.resample(data["passengers"].to_numpy(dtype=float), 72)
                  {"count": len(r), "first": r[0], "number 30": r[29]}
              """, parent_label="SciPy signal.resample", parent_tolerance=1e-9),
-        Case("sdata.make_wave", "a square wave of 5 cycles a second, 100 readings 0.01 seconds apart", "made-up",
-             "published",
+        Case("sdata.make_wave", "a square wave of 5 cycles a second, 100 readings 0.01 seconds apart", "closed form (no data)",
+             "closed form",
              ours="""
                  w = sdata.make_wave("square", frequency=5, time_step=0.01, how_many=100)
                  {"first": w.get_number_at(1), "number 11": w.get_number_at(11), "total": w.find_total()}
@@ -441,7 +461,7 @@ def cases(Case):
                  {"first": w[0], "number 11": w[10], "total": w.sum()}
              """, parent_label="SciPy signal.square", parent_tolerance=0.0,
              note="Each cycle is 20 readings: 10 high, then 10 low."),
-        Case("sdata.make_window_shape", "the symmetric Hann window of 64 weights", "made-up", "published",
+        Case("sdata.make_window_shape", "the symmetric Hann window of 64 weights", "closed form (no data)", "closed form",
              ours="""
                  w = sdata.make_window_shape("hann", how_many=64)
                  {"first": w.get_number_at(1), "number 32": w.get_number_at(32), "total": w.find_total()}
@@ -457,7 +477,7 @@ def cases(Case):
                  list(`number 32` = w[32], total = sum(w))
              """, r_packages=("gsignal",), r_tolerance=1e-12),
         # ---- systems: no data, closed forms and R control
-        Case("sdata.system", "2 / (2 s^2 + 4 s + 10) is written as 1 / (s^2 + 2 s + 5)", "made-up", "published",
+        Case("sdata.system", "2 / (2 s^2 + 4 s + 10) is written as 1 / (s^2 + 2 s + 5)", "closed form (no data)", "closed form",
              ours="""
                  t = sdata.system("2 / (2*s**2 + 4*s + 10)").table()
                  {"top": t.get_cell_at(row=3, column="numerator"), "s": t.get_cell_at(row=2, column="denominator"),
@@ -465,33 +485,37 @@ def cases(Case):
              """,
              published={"top": (1.0, 1e-15, CLOSED_FORM), "s": (2.0, 1e-15, CLOSED_FORM),
                         "constant": (5.0, 1e-15, CLOSED_FORM)}),
-        Case("system.step_response", "1 / (s^2 + 2 s + 5): the step response against its closed form", "made-up",
-             "published",
+        Case("system.step_response", "1 / (s^2 + 2 s + 5): the step response against its closed form",
+             "closed form (no data)", "closed form",
              ours="""
                  r = sdata.system("1 / (s**2 + 2*s + 5)").step_response(until=10)
                  {"at time 10 / 199 x 31": r.get_cell_at(row=32, column="output"),
                   "at time 10": r.get_cell_at(row=200, column="output")}
              """,
+             published={"at time 10 / 199 x 31": (STEP(10 / 199 * 31), 1e-7, STEP_FORM),
+                        "at time 10": (STEP(10.0), 1e-7, STEP_FORM)},
              parent="""
                  import numpy as np
-                 t = 10 / 199 * np.array([31, 199])
-                 y = 0.2 * (1 - np.exp(-t) * (np.cos(2 * t) + 0.5 * np.sin(2 * t)))
-                 {"at time 10 / 199 x 31": y[0], "at time 10": y[1]}
-             """, parent_label=CLOSED_FORM + ": 0.2 (1 - exp(-t) (cos 2t + sin 2t / 2))", parent_tolerance=1e-6,
+                 from scipy import signal
+                 t, y = signal.step(signal.lti([1], [1, 2, 5]), T=np.linspace(0, 10, 200))
+                 {"at time 10 / 199 x 31": y[31], "at time 10": y[199]}
+             """, parent_label="SciPy signal.step", parent_tolerance=1e-12,
              note="SciPy's step response solves the system numerically, so it agrees with the formula to about 1e-8."),
         Case("system.impulse_response", "1 / (s^2 + 2 s + 5): the impulse response against its closed form",
-             "made-up", "published",
+             "closed form (no data)", "closed form",
              ours="""
                  r = sdata.system("1 / (s**2 + 2*s + 5)").impulse_response(until=10)
                  {"at time 10 / 199 x 31": r.get_cell_at(row=32, column="output"),
                   "at time 10": r.get_cell_at(row=200, column="output")}
              """,
+             published={"at time 10 / 199 x 31": (IMPULSE(10 / 199 * 31), 1e-7, IMPULSE_FORM),
+                        "at time 10": (IMPULSE(10.0), 1e-7, IMPULSE_FORM)},
              parent="""
                  import numpy as np
-                 t = 10 / 199 * np.array([31, 199])
-                 y = 0.5 * np.exp(-t) * np.sin(2 * t)
-                 {"at time 10 / 199 x 31": y[0], "at time 10": y[1]}
-             """, parent_label=CLOSED_FORM + ": exp(-t) sin(2t) / 2", parent_tolerance=1e-6),
+                 from scipy import signal
+                 t, y = signal.impulse(signal.lti([1], [1, 2, 5]), T=np.linspace(0, 10, 200))
+                 {"at time 10 / 199 x 31": y[31], "at time 10": y[199]}
+             """, parent_label="SciPy signal.impulse", parent_tolerance=1e-12),
         Case("system.response_to", "a first-order lag 1 / (5 s + 1) fed the level of Lake Huron, year by year",
              "Lake Huron", "real data",
              ours="""
@@ -513,7 +537,7 @@ def cases(Case):
              """, r_tolerance=1e-9,
              note="With each input held for a year, the lag is exactly y[t] = a y[t - 1] + (1 - a) x[t - 1], "
                   "a = exp(-1 / 5)."),
-        Case("system.frequency_response", "1 / (s^2 + 2 s + 5) at 1 radian per second", "made-up", "published",
+        Case("system.frequency_response", "1 / (s^2 + 2 s + 5) at 1 radian per second", "closed form (no data)", "closed form",
              ours="""
                  r = sdata.system("1 / (s**2 + 2*s + 5)").frequency_response(between=[1, 10], how_many=2)
                  {"gain at 1": r.get_cell_at(row=1, column="gain"),
@@ -525,7 +549,7 @@ def cases(Case):
                  h <- 1 / complex(real = 5 - 1, imaginary = 2)
                  list(`gain at 1` = Mod(h), `phase at 1` = Arg(h) * 180 / pi)
              """, r_tolerance=1e-12),
-        Case("system.poles", "1 / (s^2 + 2 s + 5): poles -1 +/- 2i", "made-up", "published",
+        Case("system.poles", "1 / (s^2 + 2 s + 5): poles -1 +/- 2i", "closed form (no data)", "closed form",
              ours="""
                  r = sdata.system("1 / (s**2 + 2*s + 5)").poles()
                  {"real part": r.get_cell_at(row=1, column="real part"),
@@ -538,21 +562,21 @@ def cases(Case):
                  p <- polyroot(c(5, 2, 1))[1]
                  list(`real part` = Re(p), `damping ratio` = -Re(p) / Mod(p), `natural frequency` = Mod(p))
              """, r_tolerance=1e-12),
-        Case("system.zeros", "(s + 1) / (s^2 + 2 s + 5): one zero at -1", "made-up", "published",
+        Case("system.zeros", "(s + 1) / (s^2 + 2 s + 5): one zero at -1", "closed form (no data)", "closed form",
              ours="""
                  r = sdata.system("(s + 1) / (s**2 + 2*s + 5)").zeros()
                  {"zeros": r.count_rows(), "real part": r.get_cell_at(row=1, column="real part")}
              """,
              published={"zeros": (1, 0, CLOSED_FORM), "real part": (-1.0, 1e-12, CLOSED_FORM)}),
-        Case("system.is_stable", "1 / (s^2 + 4) rings for ever: poles on the axis are not stable", "made-up",
-             "published",
+        Case("system.is_stable", "1 / (s^2 + 4) rings for ever: poles on the axis are not stable", "closed form (no data)",
+             "closed form",
              ours="""
                  {"stable (1 = yes)": int(sdata.system("1 / (s**2 + 4)").is_stable()),
                   "1 / (s + 1) stable": int(sdata.system("1 / (s + 1)").is_stable())}
              """,
              published={"stable (1 = yes)": (0, 0, CLOSED_FORM + ": poles +/- 2i"),
                         "1 / (s + 1) stable": (1, 0, CLOSED_FORM + ": pole -1")}),
-        Case("system.steady_gain", "1 / (s^2 + 2 s + 5) settles at 0.2", "made-up", "published",
+        Case("system.steady_gain", "1 / (s^2 + 2 s + 5) settles at 0.2", "closed form (no data)", "closed form",
              ours="""
                  {"steady gain": sdata.system("1 / (s**2 + 2*s + 5)").steady_gain()}
              """,
@@ -560,7 +584,7 @@ def cases(Case):
              r="""
                  list(`steady gain` = control::dcgain(control::tf(1, c(1, 2, 5))))
              """, r_packages=("control",), r_tolerance=1e-12),
-        Case("system.in_steps", "1 / (s + 1) in steps of 0.1 (zero order hold)", "made-up", "published",
+        Case("system.in_steps", "1 / (s + 1) in steps of 0.1 (zero order hold)", "closed form (no data)", "closed form",
              ours="""
                  t = sdata.system("1 / (s + 1)").in_steps(time_step=0.1).table()
                  {"top": t.get_cell_at(row=2, column="numerator"), "pole": -t.get_cell_at(row=2, column="denominator")}
@@ -571,27 +595,27 @@ def cases(Case):
                  d <- control::c2d(control::tf(1, c(1, 1)), 0.1)
                  list(top = d$num[length(d$num)], pole = -d$den[2])
              """, r_packages=("control",), r_tolerance=1e-9),
-        Case("system.then", "1 / (s + 1), then 1 / (s + 2): 1 / (s^2 + 3 s + 2)", "made-up", "published",
+        Case("system.then", "1 / (s + 1), then 1 / (s + 2): 1 / (s^2 + 3 s + 2)", "closed form (no data)", "closed form",
              ours="""
                  t = sdata.system("1 / (s + 1)").then(sdata.system("1 / (s + 2)")).table()
                  {"s": t.get_cell_at(row=2, column="denominator"), "constant": t.get_cell_at(row=3, column="denominator")}
              """,
              published={"s": (3.0, 1e-15, CLOSED_FORM), "constant": (2.0, 1e-15, CLOSED_FORM)}),
-        Case("system.add", "1 / (s + 1) and 1 / (s + 2) side by side: (2 s + 3) / (s^2 + 3 s + 2)", "made-up",
-             "published",
+        Case("system.add", "1 / (s + 1) and 1 / (s + 2) side by side: (2 s + 3) / (s^2 + 3 s + 2)", "closed form (no data)",
+             "closed form",
              ours="""
                  t = sdata.system("1 / (s + 1)").add(sdata.system("1 / (s + 2)")).table()
                  {"top s": t.get_cell_at(row=2, column="numerator"),
                   "top constant": t.get_cell_at(row=3, column="numerator")}
              """,
              published={"top s": (2.0, 1e-15, CLOSED_FORM), "top constant": (3.0, 1e-15, CLOSED_FORM)}),
-        Case("system.with_feedback", "1 / (s^2 + 2 s + 5) in a loop: 1 / (s^2 + 2 s + 6)", "made-up", "published",
+        Case("system.with_feedback", "1 / (s^2 + 2 s + 5) in a loop: 1 / (s^2 + 2 s + 6)", "closed form (no data)", "closed form",
              ours="""
                  t = sdata.system("1 / (s**2 + 2*s + 5)").with_feedback().table()
                  {"constant": t.get_cell_at(row=3, column="denominator")}
              """,
              published={"constant": (6.0, 1e-15, CLOSED_FORM)}),
-        Case("system.table", "(s + 1) / (s^2 + 2 s + 5) as numbers, and in state space", "made-up", "published",
+        Case("system.table", "(s + 1) / (s^2 + 2 s + 5) as numbers, and in state space", "closed form (no data)", "closed form",
              ours="""
                  system = sdata.system("(s + 1) / (s**2 + 2*s + 5)")
                  t = system.table()
@@ -599,14 +623,19 @@ def cases(Case):
                  {"top s^2": t.get_cell_at(row=1, column="numerator"), "rows of A, B, C, D": ss.count_rows()}
              """,
              published={"top s^2": (0.0, 0, CLOSED_FORM), "rows of A, B, C, D": (9, 0, "4 + 2 + 2 + 1 numbers")}),
-        Case("system.chart", "the Bode chart of 1 / (s^2 + 2 s + 5): its first gain is SciPy's", "made-up",
-             "published",
+        Case("system.chart", "the Bode chart of 1 / (s^2 + 2 s + 5): its first gain is SciPy's", "closed form (no data)",
+             "closed form",
              ours="""
+                 import math
                  from simplydata._underneath.check import chart_facts
                  facts = chart_facts(sdata.system("1 / (s**2 + 2*s + 5)").chart()._render().axes[0])
                  x, y = facts["lines"][0]
-                 {"frequencies": len(x), "first gain (decibels)": y[0]}
+                 w = x[0]
+                 exact = -10 * math.log10((5 - w ** 2) ** 2 + (2 * w) ** 2)   # 20 log10 |1 / (5 - w^2 + 2 i w)|
+                 {"frequencies": len(x), "first gain (decibels)": y[0], "first gain minus its closed form": y[0] - exact}
              """,
+             published={"first gain minus its closed form": (0.0, 1e-9, "exact: 20 log10 |1 / (5 - w^2 + 2iw)| at "
+                                                                        "the first frequency drawn")},
              parent="""
                  import numpy as np
                  from scipy import signal
