@@ -135,6 +135,8 @@ def _number(v) -> float:
 
 def lre(value: float, reference: float) -> float:
     """Log relative error: how many significant digits agree (15 when they are the same double)."""
+    if not math.isfinite(value):  # an empty or infinite answer agrees to no digits (min() would give 15 for NaN)
+        return 0.0
     if value == reference:
         return 15.0
     if reference == 0:
@@ -185,24 +187,45 @@ def check_case(case) -> list[dict]:
                              abs(got - value) <= tolerance))
     if case.parent:
         theirs = run(case.parent, data)
-        for name, value in theirs.items():
-            if name not in ours:
-                rows.append(_missing(case, name, case.parent_label))
-                continue
-            rows.append(_row(case, name, case.parent_label, ours[name], value,
-                             _relative(case.parent_tolerance), _close(ours[name], value, case.parent_tolerance)))
+        rows.extend(_compared(case, ours, theirs, case.parent_label, case.parent_tolerance))
     if case.r:
         if not r_ready(case.r_packages):
             rows.append(_skipped(case, "R" + (" with " + ", ".join(case.r_packages) if case.r_packages else "")))
         else:
             theirs = run_r(case.r, data, case.r_packages)
-            for name, value in theirs.items():
-                if name not in ours:
-                    rows.append(_missing(case, name, "R"))
-                    continue
-                rows.append(_row(case, name, "R", ours[name], value, _relative(case.r_tolerance),
-                                 _close(ours[name], value, case.r_tolerance)))
+            rows.extend(_compared(case, ours, theirs, "R", case.r_tolerance))
     return rows
+
+
+MCSE = study.MONTE_CARLO  # "4 mcse", a Monte Carlo tolerance: within 4 Monte Carlo standard errors of the difference
+MCSE_SUFFIX = " MCSE"
+
+
+def _compared(case, ours: dict, theirs: dict, label: str, tolerance) -> list[dict]:
+    """simplydata against one reference. A number tolerance is relative. The tolerance "4 mcse" is for a Monte Carlo
+    answer checked against another generator or an exact limit: the difference must lie within 4 Monte Carlo
+    standard errors, read from "<name> MCSE" in the reference's numbers (or in simplydata's, when the Monte Carlo
+    error is simplydata's alone); those entries are not compared themselves."""
+    out = []
+    for name, value in theirs.items():
+        if name.endswith(MCSE_SUFFIX):
+            continue
+        if name not in ours:
+            out.append(_missing(case, name, label))
+            continue
+        if tolerance == MCSE:
+            se = theirs.get(name + MCSE_SUFFIX, ours.get(name + MCSE_SUFFIX))
+            if se is None or not se > 0:
+                row = _row(case, name, label, ours[name], value, "4 Monte Carlo SE", False)
+                row["note"] = f"no positive '{name}{MCSE_SUFFIX}' given"
+                out.append(row)
+                continue
+            out.append(_row(case, name, label, ours[name], value, f"within 4 Monte Carlo SE ({4 * se:.3g})",
+                            abs(ours[name] - value) <= 4 * se))
+        else:
+            out.append(_row(case, name, label, ours[name], value, _relative(tolerance),
+                            _close(ours[name], value, tolerance)))
+    return out
 
 
 def _relative(tol: float) -> str:

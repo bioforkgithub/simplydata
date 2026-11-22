@@ -13,8 +13,8 @@ them first.
 
 ## What simplydata handles
 
-**398 words (commands) in 48 groups, with 370 different options, on top of 14 Python packages and
-86 R packages that it runs (plus R's own `stats`, and 8 more used only to check its answers), checked by 1316 reliability checks.** Every word hands the work to
+**398 words (commands) in 48 groups, with 370 different options, on top of 14 Python packages (8 installed always, 6 with an extra; patsy comes with statsmodels) and
+86 R packages that it runs (plus R's own `stats`, and 12 more used only to check its answers), checked by 1389 reliability checks.** Every word hands the work to
 an established package; simplydata chooses the settings, prints the answer in words and names the
 method it used. Words that need an extra say so: `pip install "simplydata[fast]"`, `[files]`,
 `[systems]` or `[r]` (the R words also need R itself; see [Using the words that need R](#using-the-words-that-need-r)).
@@ -26,8 +26,8 @@ Approximate, counted on 2026-11-21.
 | | With the packages underneath | With simplydata |
 |---|---|---|
 | Names to learn | about 10,650 functions: about 5,460 in the Python packages (SciPy about 1,750, pandas 850, Polars 815, matplotlib 745, NumPy 660, statsmodels 545, seaborn 100; each package's public API) and about 5,190 exported by the R packages simplydata ran that day, with R's `stats` (R `getNamespaceExports`; before the community packages were added) | 768 names: 398 commands and 370 options, about 93 % fewer |
-| Packages and languages | 100 packages run by simplydata (14 Python, 86 R), plus 8 R ones that only check its answers, in Python and R | 1 package, in basic Python |
-| Code per task | 1163 lines and 1221 function calls in the 180 tasks of the manual's "same underneath" boxes (median 6 lines a task); this library code is the bare minimum, without the plain-sentence result or the checks | 520 lines and 634 calls (median 3 lines a task), about 55 % fewer lines; recount with `python validation/count_reduction.py` |
+| Packages and languages | 100 packages run by simplydata (14 Python, 86 R), plus 12 R ones that only check its answers, in Python and R | 1 package, in basic Python |
+| Code per task | 1178 lines and 1235 function calls in the 180 tasks of the manual's "same underneath" boxes (median 6 lines a task); this library code is the bare minimum, without the plain-sentence result or the checks | 520 lines and 634 calls (median 3 lines a task), about 56 % fewer lines; recount with `python validation/count_reduction.py` |
 | Choosing the method | you choose, from the package's documentation | the recommended default, with its published basis: see [How simplydata chooses methods](#how-simplydata-chooses-methods) |
 
 ### Packages underneath
@@ -44,7 +44,7 @@ Python packages:
 | SciPy | tests (t-tests, ANOVA, rank tests, chi-square, Fisher, Kolmogorov-Smirnov, Shapiro-Wilk), 28 named distributions (with the GEV and generalised Pareto curves of extremes) and any other `scipy.stats` one (`sdata.distribution`), fitting and solving (`fit_formula`, `solve`, `find_where_smallest`), values between points (`values_at`, `make_map_of`), bootstrap intervals (`find_interval_of`), the average direction of directions or times of day (`find_average_direction_of`), distances and clusters, spectra, filters, peaks, the Hilbert envelope and the Fourier transform (`find_spectrum_of`, `add_filtered_column`, `find_each_peak_that`, `find_envelope`), linear systems (`sdata.system`) | built in |
 | statsmodels (with its formula helper patsy) | models in `explain`: linear, logistic, Poisson, negative binomial, Gamma, ordered, multinomial, mixed models, GEE, robust regression, conditional logistic; Welch's ANOVA, corrections for many tests, kappa, exact intervals of percents and rates (`rate_of`, `compare_to_truth`), PCA, lowess and STL (`add_trend_and_season`), power of regression and of two percents, multiple-imputation fits | built in |
 | matplotlib | every chart's canvas (`sdata.chart`), pie, polar, contour, surface and 3D charts, titles, axes, legends, several charts on one page, `animate` | built in |
-| seaborn | bars, lines, dots, histograms, boxes, violins, heatmaps, density curves, count bars and cumulative shares (`draw_bars`, `draw_lines`, `draw_boxes`, `draw_violins`, `draw_heatmap`, `draw_density`), with averages and error bars (`show="average", error="standard error"`) |
+| seaborn | bars, lines, dots, histograms, boxes, violins, heatmaps, density curves, count bars and cumulative shares (`draw_bars`, `draw_lines`, `draw_boxes`, `draw_violins`, `draw_heatmap`, `draw_density`), with averages and error bars (`show="average", error="standard error"`) | built in |
 | openpyxl | reading and saving Excel files (`sdata.table("file.xlsx", sheet="all")`, `table.save("clean.xlsx")`) | built in |
 | python-docx, pyreadstat | reading tables from Word files (`table_number=`) and from SPSS and Stata files | [files] |
 | python-control | rise time, settling time and overshoot of `system.step_response()`; gain and phase margins of `system.frequency_response()` | [systems] |
@@ -99,6 +99,7 @@ so you never need them:
 | meta, metadat | a second meta-analysis package, and the published study data (BCG vaccine, passive smoking), that `combine_studies` is checked against |
 | ismev, sp | the published data of Coles (2001: Port Pirie sea levels, daily rain) and the meuse soil samples that `find_return_levels_of`, `find_autocorrelation_of(x=, y=)` and `find_variogram_of` are checked against |
 | ape | a second Moran's I (`ape::Moran.I`) that `find_autocorrelation_of(x=, y=)` is checked against |
+| AER, alr4, HH, mediation | published data the reliability study reads from the installed package instead of storing a copy (NMES 1988, Galton's sweet peas, Heiberger & Robbins's survey counts, the JOBS II records; see [DATA_LICENSES.md](DATA_LICENSES.md)) |
 
 Many printouts also name the R function that gives the same answer ("as R zoo::na.spline"); those are pointers for
 R users, not packages simplydata needs.
@@ -352,7 +353,7 @@ to try yourself.
 - `sdata.show_all_words()` lists every word, with an example (also on the first pages of the [dictionary](https://github.com/bioforkgithub/simplydata/blob/main/docs/manual/simplydataDictionary.pdf))
 - `sdata.help("draw_bars")` explains one word: what it does, its options and an example
   (table and number words too: `sdata.help("keep_rows_where")`, `sdata.help("find_average")`)
-- `sdata.get_example()` lists the made-up tables to practise with (marks, weather, fruit, growth, sensor, visitors, river, shop, school, meadow, trial, clinic, island; shop has dates and empty cells)
+- `sdata.get_example()` lists the tables to practise with. Most are made up (marks, weather, fruit, growth, sensor, visitors, river, shop, school, meadow, trial, clinic, island and more; shop has dates and empty cells); seven hold real published data (bcg, passive_smoking, ability_tests, sea_levels, sampled_schools, job_training, drug_levels), and each table's description says which it is ([DATA_LICENSES.md](DATA_LICENSES.md))
 - `sdata.show_lesson(3, solutions=True)` adds a worked solution to each "Try it yourself" task
 - `sdata.show_packages_used()` lists the packages that did the work behind your words (pandas, SciPy, R packages ...), with versions and the references their authors ask for; a short list is also printed at the end of a script
 
@@ -505,7 +506,12 @@ The [reliability report](https://github.com/bioforkgithub/simplydata/blob/main/v
 certified values, Student's sleep data, Anscombe's quartet ...) and compares each answer with the
 published one, with the package underneath called directly, and with R. It lists the tolerance of
 every check, the package versions it ran with, and every setting where simplydata's default differs
-from the package's own. Anyone can rerun it with one command: `python validation/make_report.py`
+from the package's own. A check passes when the word agrees with the reference to the stated, justified
+tolerance: about 1e-9 for calculations without iteration, the certified digits or the same method run to
+convergence for iterative fits, and the same seed or 4 Monte Carlo standard errors for simulations. The
+report's total also counts the "same underneath" checks, which show that a word makes the call it says it
+makes; most of those run on the made-up practice tables, while the study's cases use real or published data
+(3 of them are made-up edge cases, and a few simulation checks need no data). Anyone can rerun it with one command: `python validation/make_report.py`
 ([how it works and the datasets](https://github.com/bioforkgithub/simplydata/blob/main/validation/README.md)). For the words that have it, the manual also
 shows the same job written in the package underneath, in a grey box that a test runs and checks.
 
@@ -568,4 +574,5 @@ This DOI always points to the latest version; each release also has its own DOI 
 
 ## Licence
 
-MIT.
+MIT, for the code and the made-up practice tables. The real data that come with simplydata keep their sources'
+terms; each table, its source, how to cite it and its licence are listed in [DATA_LICENSES.md](DATA_LICENSES.md).

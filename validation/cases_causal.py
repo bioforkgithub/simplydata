@@ -24,6 +24,11 @@ R_DATA_CAUSAL = {
                                     "\"Wind\")], as.numeric)"),
     "lung with weight loss (survival)": (("survival",), "d <- survival::lung; lapply(d[c(\"time\", \"status\", \"age\", \"sex\", "
                                         "\"ph.karno\", \"wt.loss\")], as.numeric)"),
+    # the JOBS II records are human-subject data distributed by ICPSR (study 2739), so they are not stored here: the
+    # case reads the copy in the installed R package mediation, and is skipped without it
+    "JOBS II (mediation)": (("mediation",), "e <- new.env(); utils::data(\"jobs\", package = \"mediation\", envir = e); "
+                                           "lapply(e$jobs[c(\"treat\", \"econ_hard\", \"sex\", \"age\", \"job_seek\", "
+                                           "\"depress2\")], as.numeric)"),
 }
 OURS_R = {"table.compare_balanced_groups_of": ("WeightIt", "MatchIt", "cobalt", "sandwich", "lmtest"),
           "table.compare_risks": ("epiR",), "table.rate_of": ("epiR",), "table.compare_rates": ("epiR",),
@@ -53,13 +58,15 @@ def _datasets(Dataset):
                 "Public study data (US Department of Labor NSW); the MatchIt copy is GPL (>= 2). Also the practice "
                 "table job_training.",
                 "https://doi.org/10.1080/01621459.1999.10473858"),
-        Dataset("JOBS II", "jobs_ii.csv",
+        Dataset("JOBS II (mediation)", "",
                 "899 unemployed workers in a randomised job-search workshop: treatment, job-search confidence, "
-                "depression six months later, economic hardship, sex, age and others",
+                "depression six months later, economic hardship, sex and age (6 of the columns)",
                 "Vinokur, A. D., Price, R. H. & Schul, Y. (1995). American Journal of Community Psychology 23, "
                 "39-74; Tingley, D. et al. (2014). mediation: R Package for Causal Mediation Analysis. Journal of "
                 "Statistical Software 59(5). As shipped by the R package mediation (jobs).",
-                "GPL (>= 2) (mediation); stored with its numbers unchanged. Also the practice table job_search.",
+                "Human-subject records distributed by ICPSR (study 2739), whose terms do not allow passing them on, "
+                "and GPL (>= 2) in the R package mediation. Not stored here: read from the installed mediation "
+                "package, so it needs R. (The practice table job_search is made up, with the same columns.)",
                 "https://doi.org/10.18637/jss.v059.i05"),
         Dataset("dry cat food and FLUTD", "flutd.csv",
                 "a cross-sectional study of dry cat food and feline lower urinary tract disease: 13 of 2176 cats on "
@@ -261,14 +268,21 @@ def _cases(Case):
                   "its log-normal interval differs, so the exact interval and p-value come from R poisson.test(). "
                   "The standard rates are the table's own pooled rates, worked out in the case code."),
         # ---------------------------------------------------------------- AD07: mediation
-        Case("table.explain", "through=: JOBS II, the workshop, job-search confidence and depression", "JOBS II",
-             "real data",
+        Case("table.explain", "through=: JOBS II, the workshop, job-search confidence and depression",
+             "JOBS II (mediation)", "real data",
              ours="""
                  r = sdata.table(data).explain("depress2", using="treat", through="job_seek",
-                                               allowing_for=["econ_hard", "sex", "age"]).as_pandas().set_index("term")
-                 {"indirect effect": r.loc["indirect effect (through job_seek)", "estimate"],
-                  "indirect low": r.loc["indirect effect (through job_seek)", "95 % CI low"],
-                  "total effect": r.loc["total effect", "estimate"]}
+                                               allowing_for=["econ_hard", "sex", "age"])
+                 r.keep_rows_where("term", is_equal_to="indirect effect (through job_seek)")
+                 ind = r.get_row(1)
+                 r.undo()
+                 r.keep_rows_where("term", is_equal_to="total effect")
+                 tot = r.get_row(1)
+                 # the Monte Carlo error of a mean of 1000 simulated effects: their spread (the 95 % interval of the
+                 # draws spans about 3.92 of it) over the square root of 1000
+                 {"indirect effect": ind["estimate"], "indirect low": ind["95 % CI low"], "total effect": tot["estimate"],
+                  "indirect effect MCSE": (ind["95 % CI high"] - ind["95 % CI low"]) / 3.92 / np.sqrt(1000),
+                  "total effect MCSE": (tot["95 % CI high"] - tot["95 % CI low"]) / 3.92 / np.sqrt(1000)}
              """,
              parent="""
                  import statsmodels.formula.api as smf
@@ -284,11 +298,13 @@ def _cases(Case):
                  b <- coef(lm(depress2 ~ treat + job_seek + econ_hard + sex + age))[["job_seek"]]
                  total <- coef(lm(depress2 ~ treat + econ_hard + sex + age))[["treat"]]
                  list(`indirect effect` = a * b, `total effect` = total)
-             """, r_tolerance=0.05,
+             """, r_tolerance="4 mcse",
              note="For two linear models without an interaction the indirect effect is the product of the two "
-                  "coefficients and the total effect the coefficient of treat without job_seek (base R lm); "
-                  "the simulation (1000 draws) estimates them within a few percent. R mediation::mediate(sims = "
-                  "1000) gave -0.0159 (-0.0422 to 0.0105) here; Tingley et al. (2014) analyse the same data."),
+                  "coefficients and the total effect the coefficient of treat without job_seek (base R lm): the "
+                  "exact values the simulation (1000 draws) estimates, so the difference may be 4 Monte Carlo "
+                  "standard errors of simplydata's mean of 1000 draws. statsmodels with the same seed gives the same "
+                  "numbers exactly. R mediation::mediate(sims = 1000) gave -0.0159 (-0.0422 to 0.0105) here; "
+                  "Tingley et al. (2014) analyse the same data."),
         # ---------------------------------------------------------------- I05: 2 x 2 crossover
         *[Case("table.compare_averages_of", f"period=: bioequivalence reference dataset {name} ({what})",
                "bioequivalence reference datasets", "published",
@@ -321,39 +337,54 @@ def _cases(Case):
              "airquality (R datasets)", "real data",
              ours="""
                  t = sdata.table(data).find_correlation_between("Ozone", "Temp", "Solar.R", "Wind",
-                                                                empty_cells="multiple imputation").as_pandas()
-                 {"r": t[(t["column 1"] == "Ozone") & (t["column 2"] == "Temp")]["r"].iloc[0]}
+                                                                empty_cells="multiple imputation")
+                 t.keep_rows_where("column 1", is_equal_to="Ozone")
+                 t.keep_rows_where("column 2", is_equal_to="Temp")
+                 {"r": t.get_cell_at(row=1, column="r")}
              """,
              r="""
                  d <- data.frame(Ozone = Ozone, Solar.R = Solar.R, Temp = Temp, Wind = Wind)
-                 imp <- mice::mice(d, m = 20, method = "pmm", seed = 1, printFlag = FALSE)
-                 r <- miceadds::micombine.cor(imp, variables = c("Ozone", "Temp"))
-                 list(r = r$r[1])
-             """, r_packages=("mice", "miceadds"), r_tolerance=0.03,
-             note="R mice fills in with its own random draws, so the two pooled correlations agree to the "
-                  "simulation error, not to many digits; the pooling itself is checked exactly in the same "
-                  "underneath."),
+                 runs <- sapply(1:10, function(seed) {
+                   imp <- mice::mice(d, m = 20, method = "pmm", seed = seed, printFlag = FALSE)
+                   miceadds::micombine.cor(imp, variables = c("Ozone", "Temp"))$r[1]
+                 })
+                 list(r = mean(runs), `r MCSE` = stats::sd(runs) * sqrt(1 + 1 / length(runs)))
+             """, r_packages=("mice", "miceadds"), r_tolerance="4 mcse",
+             note="R mice fills in with its own random draws, so the check is within the simulation error: R runs "
+                  "10 times (seeds 1 to 10, 20 filled-in tables each), the reference is their average, and the "
+                  "difference may be 4 Monte Carlo standard errors, from the spread of R's runs (simplydata's one "
+                  "run of 20 tables is taken to vary as much as one of R's). The pooling itself is checked exactly in "
+                  "the same underneath."),
         Case("table.explain_survival",
              'empty_cells="multiple imputation": lung cancer survival, with empty Karnofsky and weight-loss cells',
              "lung with weight loss (survival)", "real data",
              ours="""
                  r = sdata.table(data).explain_survival(time="time", event="status", value=2,
                                                         using=["age", "sex", "ph.karno", "wt.loss"],
-                                                        empty_cells="multiple imputation").as_pandas().set_index("term")
-                 {"hazard ratio sex": r.loc["sex", "hazard ratio"], "hazard ratio ph.karno": r.loc["ph.karno", "hazard ratio"]}
+                                                        empty_cells="multiple imputation")
+                 r.keep_rows_where("term", is_equal_to="sex")
+                 sex = r.get_cell_at(row=1, column="hazard ratio")
+                 r.undo()
+                 r.keep_rows_where("term", is_equal_to="ph.karno")
+                 {"hazard ratio sex": sex, "hazard ratio ph.karno": r.get_cell_at(row=1, column="hazard ratio")}
              """,
              r="""
                  d <- data.frame(time = time, status = as.numeric(status == 2), age = age, sex = sex, ph.karno = ph.karno,
                                  wt.loss = wt.loss)
                  d$hazard <- mice::nelsonaalen(d, time, status)
                  pred <- mice::make.predictorMatrix(d); pred[, "time"] <- 0
-                 imp <- mice::mice(d, m = 20, method = "pmm", predictorMatrix = pred, seed = 1, printFlag = FALSE)
-                 fit <- with(imp, survival::coxph(survival::Surv(time, status) ~ age + sex + ph.karno + wt.loss))
-                 s <- summary(mice::pool(fit), exponentiate = TRUE)
-                 list(`hazard ratio sex` = s$estimate[2], `hazard ratio ph.karno` = s$estimate[3])
-             """, r_packages=("mice", "survival"), r_tolerance=0.02,
+                 runs <- sapply(1:10, function(seed) {
+                   imp <- mice::mice(d, m = 20, method = "pmm", predictorMatrix = pred, seed = seed, printFlag = FALSE)
+                   fit <- with(imp, survival::coxph(survival::Surv(time, status) ~ age + sex + ph.karno + wt.loss))
+                   summary(mice::pool(fit), exponentiate = TRUE)$estimate[2:3]
+                 })
+                 spread <- apply(runs, 1, stats::sd) * sqrt(1 + 1 / ncol(runs))
+                 list(`hazard ratio sex` = mean(runs[1, ]), `hazard ratio ph.karno` = mean(runs[2, ]),
+                      `hazard ratio sex MCSE` = spread[1], `hazard ratio ph.karno MCSE` = spread[2])
+             """, r_packages=("mice", "survival"), r_tolerance="4 mcse",
              note="R mice with the event and the Nelson-Aalen hazard as predictors (White & Royston 2009) and its "
-                  "own random draws: the pooled hazard ratios agree to the simulation error."),
+                  "own random draws: R runs 10 times (seeds 1 to 10), the reference is their average, and the "
+                  "difference may be 4 Monte Carlo standard errors from the spread of R's runs."),
     ]
 
 

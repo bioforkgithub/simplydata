@@ -118,20 +118,23 @@ def _cases(Case):
              parent="""
                  from statsmodels.multivariate.factor import Factor
                  f = Factor(data[[f"x{i}" for i in range(1, 10)]].to_numpy(dtype=float), n_factor=3,
-                            method="ml").fit()
+                            method="ml").fit(maxiter=100000, tol=1e-14)
                  {f"own part of x{i}": v for i, v in enumerate(f.uniqueness, 1)}
-             """, parent_label="statsmodels Factor (method=\"ml\")", parent_tolerance=1e-4,
+             """, parent_label="statsmodels Factor (method=\"ml\"), run to 1e-14", parent_tolerance=1e-5,
              r=FRAME + """
-                 f <- stats::factanal(d, factors = 3, rotation = "varimax")
+                 f <- stats::factanal(d, factors = 3, rotation = "varimax",
+                                      control = list(opt = list(maxit = 100000, factr = 1)))
                  u <- as.numeric(f$uniquenesses); L <- unclass(f$loadings)
                  c(stats::setNames(as.list(u), paste("own part of", names(f$uniquenesses))),
                    list(`x1 on factor 2` = L[1, 2], `x4 on factor 1` = L[4, 1], `x7 on factor 3` = L[7, 3],
                         `x9 on factor 3` = L[9, 3]))
-             """, r_tolerance=1e-3,
+             """, r_tolerance=1e-5,
              note="The part of each column the factors do not share (the uniqueness) does not depend on the "
                   "rotation and is checked against base R factanal and statsmodels; the varimax loadings are checked "
-                  "against factanal (the same factor order and signs here). The three optimisers stop at slightly "
-                  "different points (about 1 in 100,000 for the uniquenesses), so the check allows 1 in 1000."),
+                  "against factanal (the same factor order and signs here). Both references are run to convergence "
+                  "(factanal's optim with factr = 1, statsmodels to 1e-14); they then agree with simplydata (R "
+                  "psych::fa(fm = \"ml\") with its own stopping rule) to 3e-6, so the check allows 1e-5. With their "
+                  "default stopping rules the three differed by up to 1.6e-5, and the check allowed 1e-3."),
         Case("table.check_hidden_factors", "the three-factor model of the lavaan paper", HS, "published",
              ours=fit.format(call="measured_by=" + MEASURED_BY, more=""),
              published={"chi-square": (85.306, 5e-4, ROSSEEL), "degrees of freedom": (24, 0, "exact"),
