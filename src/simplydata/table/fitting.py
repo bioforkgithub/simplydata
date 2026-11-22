@@ -473,6 +473,13 @@ def fit_formula_core(formula, data, columns, start=None, between=None, weights=N
 
 
 
+def _note_text(fit) -> str:
+    """The note column of fit_formula: whether it converged, then each note it printed, in one line."""
+    parts = ["converged" if fit.converged else "did not converge"]
+    parts += [n[len("Note: "):] if n.startswith("Note: ") else n for n in fit.notes]
+    return "; ".join(parts)
+
+
 def _not_pinned_down(curve, found, weight) -> bool:
     """True when the data cannot pin down every value: the gradient has lower rank (R nls(): "singular gradient").
 
@@ -823,7 +830,8 @@ class FittingWords:
         Prints each value with its 95 % confidence interval, the residual standard error and
         R squared (only a rough guide for a curve). Gives back one row (one per group) with
         each value, its standard error, t, p-value and 95 % CI, the residual standard error,
-        degrees of freedom, R squared, AIC, rows and whether the fit converged. Residuals:
+        degrees of freedom, R squared, AIC, rows, whether the fit converged, and a note: "converged" or
+        "did not converge", followed by the warnings the fit printed (SciPy's and simplydata's). Residuals:
         add_predicted_column with the same formula, then add_column("y - predicted y").
         Rows with an empty cell are skipped.
         """
@@ -844,7 +852,7 @@ class FittingWords:
                                 f"95 % CI high of {name}": math.nan})
                 row.update({"residual standard error": math.nan, "degrees of freedom": math.nan,
                             "R squared": math.nan, "AIC": math.nan, "rows": 0, "converged": "no",
-                            "method": ""})
+                            "method": "", "note": "not fitted: " + fit.strip().splitlines()[0]})
                 rows.append(row)
                 continue
             low, high = fit.intervals
@@ -854,7 +862,8 @@ class FittingWords:
                             f"95 % CI low of {name}": float(low[j]), f"95 % CI high of {name}": float(high[j])})
             row.update({"residual standard error": fit.sigma, "degrees of freedom": float(fit.df),
                         "R squared": fit.r2, "AIC": fit.aic, "rows": fit.n,
-                        "converged": "yes" if fit.converged else "no", "method": fit.method_name})
+                        "converged": "yes" if fit.converged else "no", "method": fit.method_name,
+                        "note": _note_text(fit)})
             rows.append(row)
 
         def values_text(fit):

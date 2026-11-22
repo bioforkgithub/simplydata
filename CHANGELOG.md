@@ -33,7 +33,7 @@ working for one release and prints a one-line note with its new name.
 - Savitzky-Golay smoothing (`add_smoothed_column`, `nums.smooth`) refused `of_degree=`, the option its help names, so
   the degree could not be set. `of_degree=` works now; `degree=` is an old name with a note.
 
-### New: six words and options
+### New: six words and options, and four more options
 
 - `chart.get_numbers_drawn()`: a table of the numbers a chart drew (each line, group of dots, set of bars, band,
   stems, error bars, heat map cells, pie slices), read back from matplotlib, for every chart word, page and
@@ -46,6 +46,14 @@ working for one release and prints a one-line note with its new name.
   table (needs simplydata[r]; nothing is downloaded or installed).
 - `table.find_correlation_between("a", "b", show="result table")`: r, its interval, the p-value and the rows as a
   one-row table.
+- `table.find_survival_over_time(..., show="median")`: the median time of each group with its 95 % CI, as a table
+  (the numbers it prints, as R `print(survfit(...))`).
+- `table.fit_formula(...)` gives back a `note` column: "converged" or "did not converge", followed by the warnings
+  the fit printed.
+- `table.add_nmds(..., show="numbers")`: each row's NMDS coordinates and the stress (vegan::metaMDS) as a table,
+  without adding columns.
+- `table.add_correspondence_axes(..., show="numbers")`: each row's coordinates and the share of the inertia of each
+  axis (vegan::cca, ca::mjca) as a table, without adding columns.
 
 ### Fixed: ten differences the reference tests found (A8 to A17)
 

@@ -411,3 +411,83 @@ def test_correlation_result_table_for_three_columns_is_each_pair(capsys):
     result = table.find_correlation_between("hours", "marks", "height", show="result table")
     assert len(result) == 3 and "column 1" in result.get_column_names()
     capsys.readouterr()
+
+
+# ---------------------------------------------------------------- four more options (approved 2026-11-22)
+def test_survival_show_median_gives_the_printed_medians(capsys):
+    from statsmodels.duration.survfunc import SurvfuncRight
+
+    trial = sdata.get_example("trial")
+    medians = sdata.table(trial).find_survival_over_time(time="days", event="died", for_each_group_in="treatment",
+                                                         show="median")
+    assert medians.get_column_names() == ["treatment", "rows", "events", "median", "95 % CI low", "95 % CI high"]
+    for i, group in enumerate(medians.get_column("treatment"), start=1):
+        rows = trial[trial["treatment"] == group]
+        fit = SurvfuncRight(rows["days"], (rows["died"] == "yes").astype(float))
+        assert medians.get_cell_at(row=i, column="median") == pytest.approx(fit.quantile(0.5), rel=1e-12)
+        assert medians.get_cell_at(row=i, column="rows") == len(rows)
+    assert 'show="median"' in capsys.readouterr().out
+    with pytest.raises(SimplydataError, match="leave out"):
+        sdata.table(trial).find_survival_over_time(time="days", event="died", at_time_points=[365], show="median")
+
+
+def test_survival_show_median_matches_r(needs_r, capsys):
+    from simplydata._r import r_call
+
+    trial = sdata.get_example("trial")
+    medians = sdata.table(trial).find_survival_over_time(time="days", event="died", for_each_group_in="treatment",
+                                                         show="median")
+    groups = medians.get_column("treatment")
+    r = r_call("t <- summary(survival::survfit(survival::Surv(days, died == 'yes') ~ treatment))$table; "
+               "list(median = t[, 'median'], low = t[, '0.95LCL'], high = t[, '0.95UCL'], "
+               "names = sub('treatment=', '', rownames(t)))", packages=("survival",),
+               days=trial["days"].to_numpy(dtype=float), died=trial["died"].to_numpy(dtype=str),
+               treatment=trial["treatment"].to_numpy(dtype=str))
+    for name, median, low, high in zip(r["names"], r["median"], r["low"], r["high"]):
+        row = groups.index(str(name)) + 1
+        for column, expected in (("median", median), ("95 % CI low", low), ("95 % CI high", high)):
+            got = medians.get_cell_at(row=row, column=column)
+            assert (got is None and np.isnan(expected)) or got == pytest.approx(float(expected), rel=1e-9)
+    capsys.readouterr()
+
+
+def test_fit_formula_note_says_converged_and_the_warnings(capsys):
+    data = _nist_data("Misra1a")
+    good = data.fit_formula("y = b1*(1-exp(-b2*x))", start={"b1": 250, "b2": 0.0005})
+    assert good.get_cell_at(row=1, column="note") == "converged"
+    # NIST BoxBOD from its far start 1: the search stops in a flat region (FINDINGS A2), and the note says so
+    bad = _nist_data("BoxBOD").fit_formula("y = b1*(1-exp(-b2*x))", start={"b1": 1, "b2": 1})
+    note = bad.get_cell_at(row=1, column="note")
+    assert note.startswith("did not converge; ") and "flat region" in note
+    capsys.readouterr()
+
+
+def test_nmds_show_numbers_matches_vegan(needs_r, capsys):
+    from simplydata._r import r_call
+
+    meadow = sdata.get_example("meadow")
+    species = ["clover", "daisy", "buttercup", "dandelion", "nettle", "thistle", "moss", "fern", "orchid", "yarrow"]
+    numbers = sdata.table(meadow).add_nmds(columns=species, show="numbers")
+    assert numbers.get_column_names() == ["row", "NMDS1", "NMDS2", "stress"]
+    assert list(numbers.get_column("row")) == list(range(1, len(meadow) + 1))
+    stress = r_call("set.seed(1); f <- vegan::metaMDS(vegan::vegdist(x, method = 'bray'), k = 2, try = 20, "
+                    "trymax = 100, autotransform = FALSE, trace = 0); f$stress", packages=("vegan",),
+                    x=meadow[species].to_numpy(dtype=float))
+    assert numbers.get_cell_at(row=1, column="stress") == pytest.approx(float(np.atleast_1d(stress)[0]), rel=1e-9)
+    added = sdata.table(meadow).add_nmds(columns=species)
+    assert list(added.get_column("NMDS1")) == pytest.approx(list(numbers.get_column("NMDS1")), rel=1e-12)
+    capsys.readouterr()
+
+
+def test_correspondence_show_numbers_matches_vegan(needs_r, capsys):
+    from simplydata._r import r_call
+
+    genes = ["blaTEM", "blaCTXM", "sul1", "sul2", "tetA", "tetM"]
+    resistome = sdata.get_example("resistome")
+    numbers = sdata.table(resistome).add_correspondence_axes(columns=genes, show="numbers")
+    assert numbers.get_column_names() == ["row", "CA1", "CA2", "CA1 share of the inertia", "CA2 share of the inertia"]
+    share = r_call("summary(vegan::eigenvals(vegan::cca(x)))[2, 1:2]", packages=("vegan",),
+                   x=resistome[genes].to_numpy(dtype=float))
+    assert numbers.get_cell_at(row=1, column="CA1 share of the inertia") == pytest.approx(float(share[0]), rel=1e-9)
+    assert numbers.get_cell_at(row=1, column="CA2 share of the inertia") == pytest.approx(float(share[1]), rel=1e-9)
+    capsys.readouterr()
