@@ -121,7 +121,8 @@ def cases(Case):
                  {"columns": t.shape[1], "total disp": t["disp"].sum()}
              """, parent_label="pandas iloc[:, 1:4]", parent_tolerance=1e-12,
              r="""
-                 list(columns = 3, `total disp` = sum(disp))
+                 kept <- data.frame(model, mpg, cyl, disp, hp)[, 2:4]
+                 list(columns = ncol(kept), `total disp` = sum(kept$disp))
              """, r_tolerance=1e-12),
         Case("table.remove_columns_by_position", "mtcars without its first column (the car names)", "mtcars",
              "real data",
@@ -206,21 +207,26 @@ def cases(Case):
              r="""
                  list(rows = sum(!duplicated(cyl)), `total mpg` = sum(mpg[!duplicated(cyl)]))
              """, r_tolerance=1e-12),
-        Case("table.keep_biggest_rows", "mtcars: the 3 most powerful cars for each number of cylinders", "mtcars",
-             "real data",
+        Case("table.keep_biggest_rows", "mtcars: the 3 most powerful cars for each number of cylinders (in 8 "
+             "cylinders two cars tie at 245 hp for third place)", "mtcars", "real data",
              ours="""
                  t = sdata.table(data).keep_biggest_rows(3, by="hp", for_each_group_in="cyl")
+                 third = t.get_cell_at(row=9, column="model")
                  {"rows": t.count_rows(), "total hp": t.get_column("hp").find_total(),
-                  "first hp": t.get_cell_at(row=1, column="hp")}
+                  "first hp": t.get_cell_at(row=1, column="hp"), "third 8-cylinder hp": t.get_cell_at(row=9, column="hp"),
+                  "row of the third 8-cylinder car": sdata.table(data).get_column("model").index(third) + 1}
              """,
              parent="""
                  top = data.sort_values("hp", ascending=False, kind="stable").groupby("cyl").head(3)
                  top = top.sort_values("cyl", kind="stable")
-                 {"rows": len(top), "total hp": top["hp"].sum(), "first hp": top["hp"].iloc[0]}
+                 {"rows": len(top), "total hp": top["hp"].sum(), "first hp": top["hp"].iloc[0],
+                  "third 8-cylinder hp": top["hp"].iloc[8], "row of the third 8-cylinder car": int(top.index[8]) + 1}
              """, parent_label="pandas sort_values (stable) and groupby().head()", parent_tolerance=0.0,
              r="""
                  top <- tapply(hp, cyl, function(v) head(sort(v, decreasing = TRUE), 3))
-                 list(`total hp` = sum(unlist(top)), `first hp` = top[["4"]][1])
+                 eight <- which(cyl == 8); third <- eight[order(-hp[eight])][3]
+                 list(`total hp` = sum(unlist(top)), `first hp` = top[["4"]][1], `third 8-cylinder hp` = hp[third],
+                      `row of the third 8-cylinder car` = third)
              """, r_tolerance=0.0),
         Case("table.keep_smallest_rows", "mtcars: the 3 thirstiest cars for each number of cylinders", "mtcars",
              "real data",
@@ -437,7 +443,8 @@ def cases(Case):
                  {"empty": int(b.isna().sum()), "total": b.sum(), "row 2": b.iloc[1]}
              """, parent_label="pandas shift(1)", parent_tolerance=0.0,
              r="""
-                 list(empty = 1, total = sum(head(passengers, -1)), `row 2` = passengers[1])
+                 b <- c(NA, head(passengers, -1))
+                 list(empty = sum(is.na(b)), total = sum(b, na.rm = TRUE), `row 2` = b[2])
              """, r_tolerance=0.0),
         Case("table.add_change_column", "AirPassengers: the change from the month before, in percent",
              "AirPassengers", "real data",
@@ -452,8 +459,8 @@ def cases(Case):
                  {"last": g.iloc[-1], "total": g.sum(), "empty": int(g.isna().sum())}
              """, parent_label="pandas shift(1)", parent_tolerance=1e-12,
              r="""
-                 g <- diff(passengers) / head(passengers, -1) * 100
-                 list(last = g[length(g)], total = sum(g), empty = 1)
+                 g <- c(NA, diff(passengers) / head(passengers, -1) * 100)
+                 list(last = g[length(g)], total = sum(g, na.rm = TRUE), empty = sum(is.na(g)))
              """, r_tolerance=1e-12),
         # ---- summaries
         Case("table.find_smallest_of", "the shortest sepal of each iris species", "iris", "real data",

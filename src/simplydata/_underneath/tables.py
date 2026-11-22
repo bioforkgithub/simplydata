@@ -1051,31 +1051,31 @@ ENTRIES += [
         data="marks",
         ours="""
             table = sdata.table(sdata.get_example("marks"))
-            table.keep_smallest_rows(4, by="marks", for_each_group_in="subject")
+            table.keep_smallest_rows(3, by="marks", for_each_group_in="subject")
         """,
         code={
             "pandas": """
                 df = sdata.get_example("marks")
-                # keep_smallest_rows(4, by="marks", for_each_group_in="subject")
+                # keep_smallest_rows(3, by="marks", for_each_group_in="subject")
                 ordered = df.sort_values("marks", kind="stable")                  # (1)
-                low = ordered.groupby("subject").head(4)
+                low = ordered.groupby("subject").head(3)
                 low.sort_values("subject", kind="stable")                         # (2)
             """,
             "Polars": """
                 import polars as pl
                 df = pl.from_pandas(sdata.get_example("marks"))
-                # keep_smallest_rows(4, by="marks", for_each_group_in="subject")
+                # keep_smallest_rows(3, by="marks", for_each_group_in="subject")
                 ordered = df.sort("marks", maintain_order=True)                   # (1)
-                low = ordered.filter(pl.int_range(pl.len()).over("subject") < 4)
+                low = ordered.filter(pl.int_range(pl.len()).over("subject") < 3)
                 low.sort("subject", maintain_order=True)                          # (2)
             """,
         },
         compare="table",
-        choices=("exactly 4 rows: when rows tie at the cut, the ones higher up in the table are kept (a stable "
-                 "sort); a note says so.",
+        choices=("exactly 3 rows: when rows tie at the cut, the one higher up in the table is kept (a stable sort). "
+                 "Here Maths has two marks of 47 at the cut; a note says so.",
                  "the groups come in order (English, Maths, Science), smallest first within each.",),
         also="Rows with an empty cell in by= are never kept, and a note says how many. Without for_each_group_in= "
-             "it keeps the 4 smallest of the whole table.",
+             "it keeps the 3 smallest of the whole table.",
     ),
     Entry(
         word="table.remove_rows_with_outliers",
@@ -1226,7 +1226,8 @@ ENTRIES += [
                  "a cell that fits none of them becomes empty (errors=\"coerce\", strict=False); simplydata says how "
                  "many and shows one (\"soon\").",),
         also="order=\"month day year\" (or another order) uses only the ways in that order, so nothing is guessed. "
-             "Whole years such as 2026 become 1 January of that year. " + SAID,
+             "Whole years such as 2026 become 1 January of that year, \"2026-03\" becomes 1 March, and spaces at "
+             "the ends of a cell are left out. " + SAID,
     ),
     Entry(
         word="table.turn_into_lowercase",
@@ -1295,8 +1296,10 @@ ENTRIES += [
             """,
         },
         compare="table",
-        also="A number exactly halfway goes to the even neighbour (0.5 to 0, 1.5 and 2.5 to 2), as pandas, Polars, "
-             "NumPy and R round(); this keeps a run of halves from pushing totals up. A negative number of places "
+        also="A number exactly halfway goes to the even neighbour (0.5 to 0, 1.5 and 2.5 to 2), as pandas, NumPy "
+             "and R round() do, and Polars whose round() rounds halves to even by default (mode=\"half_to_even\"; "
+             "older Polars releases rounded halves away from zero); this keeps a run of halves from pushing totals "
+             "up. A negative number of places "
              "rounds to tens or hundreds, and round_numbers_in(1) rounds every number column. " + SAID,
     ),
     Entry(
@@ -1379,42 +1382,43 @@ ENTRIES += [
     Entry(
         word="table.add_column_with_part_of_text",
         ours="""
-            table = sdata.table({"place": ["Corner shop", "Big Market stall", "Kiosk", None]})
-            table.add_column_with_part_of_text("first_word", from_column="place", before=" ")
+            table = sdata.table({"place": ["Corner shop, north", "Big Market , east, 2", "Kiosk", None]})
+            table.add_column_with_part_of_text("first_word", from_column="place", before=",")
         """,
         code={
             "pandas": """
                 import pandas as pd
-                df = pd.DataFrame({"place": ["Corner shop", "Big Market stall", "Kiosk", None]})
-                # add_column_with_part_of_text("first_word", from_column="place", before=" ")
-                part = df["place"].str.extract(r"(?s)^(.*?) ", expand=False)     # (1)
+                df = pd.DataFrame({"place": ["Corner shop, north", "Big Market , east, 2", "Kiosk", None]})
+                # add_column_with_part_of_text("first_word", from_column="place", before=",")
+                part = df["place"].str.extract(r"(?s)^(.*?),", expand=False)     # (1)
                 df.assign(first_word=part.str.strip())                           # (2)
             """,
             "Polars": """
                 import polars as pl
-                df = pl.DataFrame({"place": ["Corner shop", "Big Market stall", "Kiosk", None]})
-                # add_column_with_part_of_text("first_word", from_column="place", before=" ")
-                part = pl.col("place").str.extract(r"(?s)^(.*?) ", 1)            # (1)
+                df = pl.DataFrame({"place": ["Corner shop, north", "Big Market , east, 2", "Kiosk", None]})
+                # add_column_with_part_of_text("first_word", from_column="place", before=",")
+                part = pl.col("place").str.extract(r"(?s)^(.*?),", 1)            # (1)
                 df.with_columns(part.str.strip_chars().alias("first_word"))      # (2)
             """,
         },
         compare="table",
-        choices=("the text before the first space (\"Big\", not \"Big Market\"); a cell without a space gives an "
-                 "empty cell, and simplydata says how many.",
-                 "spaces at the ends of the part are removed, and a part that is blank becomes empty.",),
+        choices=("the text before the first comma (\"Big Market\", not \"Big Market , east\"); a cell without a "
+                 "comma gives an empty cell, and simplydata says how many.",
+                 "spaces at the ends of the part are removed (\"Big Market \" becomes \"Big Market\"), and a part "
+                 "that is blank becomes empty.",),
         also="first_characters=, last_characters=, characters=[2, 4], after= and matches_pattern= take other "
              "parts. " + SAID,
     ),
     Entry(
         word="table.split_column",
         ours="""
-            table = sdata.table({"name": ["Asha Rao", "Ben Lee Park", "Cara"], "age": [12, 13, 12]})
+            table = sdata.table({"name": ["Asha Rao", "Ben Lee Park", "Dev   Shah", "Cara"], "age": [12, 13, 14, 12]})
             table.split_column("name", separator=" ", into=["first", "rest"])
         """,
         code={
             "pandas": """
                 import pandas as pd
-                df = pd.DataFrame({"name": ["Asha Rao", "Ben Lee Park", "Cara"], "age": [12, 13, 12]})
+                df = pd.DataFrame({"name": ["Asha Rao", "Ben Lee Park", "Dev   Shah", "Cara"], "age": [12, 13, 14, 12]})
                 # split_column("name", separator=" ", into=["first", "rest"])
                 parts = df["name"].str.split(" ", n=1, expand=True, regex=False)                # (1)
                 new = pd.DataFrame({"first": parts[0].str.strip(), "rest": parts[1].str.strip()})
@@ -1422,7 +1426,7 @@ ENTRIES += [
             """,
             "Polars": """
                 import polars as pl
-                df = pl.DataFrame({"name": ["Asha Rao", "Ben Lee Park", "Cara"], "age": [12, 13, 12]})
+                df = pl.DataFrame({"name": ["Asha Rao", "Ben Lee Park", "Dev   Shah", "Cara"], "age": [12, 13, 14, 12]})
                 # split_column("name", separator=" ", into=["first", "rest"])
                 parts = pl.col("name").str.splitn(" ", 2)                                       # (1)
                 df.select(parts.struct.field("field_0").str.strip_chars().alias("first"),       # (2)
@@ -1433,7 +1437,8 @@ ENTRIES += [
         choices=("at most as many pieces as names in into=: the last keeps the rest of the text (\"Lee Park\"), and "
                  "a cell with fewer pieces gives an empty cell (\"Cara\" has no rest). simplydata says how many of "
                  "each.",
-                 "the new columns take the place of the old one; spaces at the ends of each piece are removed.",),
+                 "the new columns take the place of the old one; spaces at the ends of each piece are removed (\"Dev   "
+                 "Shah\" gives \"Shah\", not \"  Shah\").",),
         also="The separator is plain text, not a pattern. " + SAID,
     ),
     Entry(
@@ -1662,7 +1667,9 @@ ENTRIES += [
         tolerance=0.0,
         choices=("when values tie (1 and 3 each turn up twice), the smallest is given and a note names the others; "
                  "empty cells are skipped. pandas' mode() is sorted; Polars' mode() comes in any order.",),
-        also="It works for text too (the first in A to Z order on a tie). for_each_group_in= gives a table with, for "
+        also="simplydata counts the values itself and breaks a tie with its own sort; the answer is the one pandas' "
+             "mode() gives. It works for text too (the first in A to Z order on a tie). for_each_group_in= gives a "
+             "table with, for "
              "each group, the most common value, its count, its percent and how many values share the top count.",
     ),
     Entry(
@@ -1710,7 +1717,7 @@ ENTRIES += [
                 other = pd.DataFrame({"marks": [88], "name": ["Zoe"], "class": ["A"], "subject": ["Maths"],
                                       "hours": [5.0], "height": [150]})
                 # add_rows_from(other)
-                pd.concat([df, other[df.columns]], ignore_index=True)                   # (1)
+                pd.concat([df, other], ignore_index=True)
             """,
             "Polars": """
                 import polars as pl
@@ -1722,10 +1729,12 @@ ENTRIES += [
             """,
         },
         compare="table",
-        choices=("columns are matched by their names, so the other table's columns may come in any order (Polars' "
-                 "own concat needs them in the same order); the new rows go under, numbered on from the last.",),
+        choices=("columns are matched by their names, so the other table's columns may come in any order; pandas' "
+                 "concat matches them by name itself, Polars' needs them put in the same order first "
+                 "(select(df.columns)).",),
         also="simplydata stops with a message that names the columns found in only one of the two tables, or the "
-             "columns that hold different kinds of values. " + SAID,
+             "columns that hold different kinds of values. The new rows go under, numbered on from the last. "
+             + SAID,
     ),
     Entry(
         word="table.turn_columns_into_rows",

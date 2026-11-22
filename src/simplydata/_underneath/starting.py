@@ -221,10 +221,12 @@ ENTRIES += [
               before = os.environ.get("SIMPLYDATA_PROGRESS_FILE")   # the test keeps the progress in a
               with tempfile.TemporaryDirectory() as folder:          # folder deleted afterwards
                   os.environ["SIMPLYDATA_PROGRESS_FILE"] = os.path.join(folder, "progress.json")
-                  sdata.start_30_days()
-              os.environ.pop("SIMPLYDATA_PROGRESS_FILE")
-              if before is not None:
-                  os.environ["SIMPLYDATA_PROGRESS_FILE"] = before
+                  try:
+                      sdata.start_30_days()
+                  finally:
+                      os.environ.pop("SIMPLYDATA_PROGRESS_FILE")
+                      if before is not None:
+                          os.environ["SIMPLYDATA_PROGRESS_FILE"] = before
           """, compare="none",
           note=DAYS_NOTE),
     Entry(word="sdata.show_today", ours="""
@@ -233,11 +235,13 @@ ENTRIES += [
               before = os.environ.get("SIMPLYDATA_PROGRESS_FILE")   # the test keeps the progress in a
               with tempfile.TemporaryDirectory() as folder:          # folder deleted afterwards
                   os.environ["SIMPLYDATA_PROGRESS_FILE"] = os.path.join(folder, "progress.json")
-                  sdata.start_30_days()
-                  sdata.show_today()
-              os.environ.pop("SIMPLYDATA_PROGRESS_FILE")
-              if before is not None:
-                  os.environ["SIMPLYDATA_PROGRESS_FILE"] = before
+                  try:
+                      sdata.start_30_days()
+                      sdata.show_today()
+                  finally:
+                      os.environ.pop("SIMPLYDATA_PROGRESS_FILE")
+                      if before is not None:
+                          os.environ["SIMPLYDATA_PROGRESS_FILE"] = before
           """,
           compare="none", note=DAYS_NOTE),
     Entry(word="sdata.show_answers", ours="sdata.show_answers(5)", compare="none",
@@ -249,11 +253,13 @@ ENTRIES += [
               before = os.environ.get("SIMPLYDATA_PROGRESS_FILE")   # the test keeps the progress in a
               with tempfile.TemporaryDirectory() as folder:          # folder deleted afterwards
                   os.environ["SIMPLYDATA_PROGRESS_FILE"] = os.path.join(folder, "progress.json")
-                  sdata.start_30_days()
-                  sdata.go_to_next_day()
-              os.environ.pop("SIMPLYDATA_PROGRESS_FILE")
-              if before is not None:
-                  os.environ["SIMPLYDATA_PROGRESS_FILE"] = before
+                  try:
+                      sdata.start_30_days()
+                      sdata.go_to_next_day()
+                  finally:
+                      os.environ.pop("SIMPLYDATA_PROGRESS_FILE")
+                      if before is not None:
+                          os.environ["SIMPLYDATA_PROGRESS_FILE"] = before
           """,
           compare="none", note=DAYS_NOTE),
 ]
