@@ -796,7 +796,7 @@ class StatsWords:
                 test_method = _smoothing.read_method(test_method, "smooth_line")
             except SimplydataError:
                 raise choice_error("draw_smooth_line", "test_method", test_method, list(_smoothing.METHODS)) from None
-        options = {k: v for k, v in (("weights", weights), ("degree", of_degree), ("newest_weight", newest_weight),
+        options = {k: v for k, v in (("weights", weights), ("of_degree", of_degree), ("newest_weight", newest_weight),
                                      ("width", width)) if v is not None}
         if with_confidence_band and test_method != "loess":
             raise SimplydataError(f'with_confidence_band=True goes with test_method="loess" (R loess gives the band), not '

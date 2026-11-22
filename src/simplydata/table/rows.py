@@ -89,6 +89,13 @@ def _example(code: str, name: str = "marks") -> str:
 
 
 
+COUNTS_EXAMPLE = '{"answer": ["yes", "no"], "count": [12, 5]}'  # the table of repeat_each_row_by's examples
+
+
+def _rows_word(n) -> str:
+    return f"{n} row" if n == 1 else f"{n} rows"
+
+
 def _nice(value) -> str:
     """A number or date written for people: 61, 61.5, 2026-03-15."""
     if value is None:
@@ -946,6 +953,55 @@ class RowWords:
         new = self._frame.unique(subset=subset, keep="first", maintain_order=True)
         print(f"Removed {before - len(new)} of {_rows(before)}. {_rows(len(new))} left.")
         return self._change(what, new)
+
+    @friendly
+    def repeat_each_row_by(self, column=None):
+        """Repeat each row as many times as the count in a column: one row per thing counted.
+
+        table.repeat_each_row_by("count")   (with sdata.table({"answer": ["yes", "no"], "count": [12, 5]}))
+        A table of counts (one row per group, with how many there are) becomes one row per person
+        or thing, as many words need. The count column is left out afterwards, since each row now
+        stands for one; a row with a count of 0 is left out. The counts must be whole numbers of
+        0 or more, with no empty cells. As pandas df.loc[df.index.repeat(df["count"])] and Polars
+        df.select(pl.exclude("count").gather(pl.int_range(pl.len()).repeat_by("count").explode().drop_nulls())).
+        Undo with table.undo().
+        """
+        example = 'table.repeat_each_row_by("count")'
+        if not isinstance(column, str):
+            raise SimplydataError("repeat_each_row_by() needs the name of the column that holds the counts, in quotes."
+                                  + f"\nFor example:  {example}   (with sdata.table({COUNTS_EXAMPLE}))")
+        self._need_columns(column)
+        series = self._frame[column]
+        if series.dtype == nw.Boolean:
+            raise SimplydataError(f'"{column}" holds True and False, not counts. repeat_each_row_by() needs a column '
+                                  "of whole numbers (0 or more), one count per row.")
+        if not series.dtype.is_numeric():
+            raise SimplydataError(f'"{column}" holds text, not counts. repeat_each_row_by() needs a column of whole '
+                                  "numbers (0 or more), one count per row.")
+        if series.null_count():
+            empty = series.null_count()
+            raise SimplydataError(f'"{column}" has {_rows_word(empty).replace("row", "empty cell")}, so simplydata '
+                                  "cannot tell how often to repeat those rows. Fill them first (fill_empty_cells_in) or remove them "
+                                  f'(remove_rows_with_empty_cells_in("{column}")).')
+        counts = series.to_numpy().astype(float)
+        if not np.isfinite(counts).all() or (counts != np.round(counts)).any():
+            bad = next(v for v in counts if not np.isfinite(v) or v != round(v))
+            raise SimplydataError(f'"{column}" holds {_nice(bad)}, not a whole number. A row can only be repeated a '
+                                  "whole number of times; check the counts (were they rounded, or are they shares?).")
+        if (counts < 0).any():
+            raise SimplydataError(f'"{column}" holds {_nice(float(counts.min()))}, below 0. A row cannot be repeated '
+                                  "fewer than 0 times; check the counts.")
+        before, total = len(self._frame), int(counts.sum())
+        # NumPy repeat of the row positions, then the rows taken by position (narwhals, pandas or Polars)
+        positions = np.repeat(np.arange(before), counts.astype(np.int64))
+        new = self._frame[positions.tolist()].drop(column)
+        zero = int(np.sum(counts == 0))
+        print(f'Repeated {before:,} row{"s" if before != 1 else ""} into {total:,} row{"s" if total != 1 else ""} by '
+              f'"{column}".')
+        print(f'The column "{column}" is left out: each row now stands for one.'
+              + (f" {zero} row{'s' if zero != 1 else ''} with a count of 0 {'are' if zero != 1 else 'is'} left out."
+                 if zero else ""))
+        return self._change(f'repeat each row by "{column}"', new)
 
     # ================================================================== empty cells
     @friendly

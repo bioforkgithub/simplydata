@@ -397,7 +397,11 @@ def fit_formula_core(formula, data, columns, start=None, between=None, weights=N
     if key == "lm":
         options.update(maxfev=20000, xtol=1e-12, ftol=1e-12)
     else:
-        options.update(max_nfev=20000, xtol=1e-12, ftol=1e-12, gtol=1e-12, bounds=(low, high))
+        # trust region and dogbox (SciPy least_squares): central differences with a step relative to each value
+        # (diff_step = eps^(1/3) times the value), so a value such as 1e-7 is not stepped by 1.5e-8 (SciPy's
+        # default step is relative to max(1, |value|)); the standard errors come from this Jacobian at the end
+        options.update(max_nfev=20000, xtol=1e-12, ftol=1e-12, gtol=1e-12, bounds=(low, high), jac="3-point",
+                       diff_step=np.finfo(float).eps ** (1 / 3))
     uncertain = False
     with warnings.catch_warnings(record=True) as caught:
         warnings.simplefilter("always")

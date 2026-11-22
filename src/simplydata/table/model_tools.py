@@ -544,19 +544,25 @@ class ModelToolWords:
         rstanarm::posterior_predict(), as bayesplot::pp_check). show="prior check" draws the prior
         predictive check instead: 50 sets made up from the prior alone (prior_PD = TRUE), to see whether
         the prior allows only possible values. Gives back the chart.
+        show="numbers" gives back the numbers it prints as a table instead of the pictures: the variance
+        inflation factors, the Breusch-Pagan and White tests, the Brier score and Hosmer-Lemeshow test (yes
+        or no) and the rows with a Cook's distance above 0.5; with test_method="bayesian", R-hat and the
+        effective draws of each parameter, the divergent transitions and the posterior predictive check
+        (the data against the median and 90 % range of the made-up sets, from R).
         """
         step = "check_model_of"
         wants = self._check_bayesian(step, test_method)
         if test_method is not None and not wants:
             self._check_choice(step, "test_method", test_method, ("bayesian",))
-        if wants or show is not None or with_seed != 1:
+        if show is not None:
+            self._check_choice(step, "show", show, ("numbers", "prior check"))
+        if wants or show == "prior check" or with_seed != 1:
             from . import bayes_words
 
             if not wants:
-                raise SimplydataError('show= and with_seed= go with test_method="bayesian", such as table.check_model_of("marks", '
-                                      'using=["hours"], test_method="bayesian", show="prior check").')
-            if show is not None:
-                self._check_choice(step, "show", show, ("prior check",))
+                raise SimplydataError('show="prior check" and with_seed= go with test_method="bayesian", such as '
+                                      'table.check_model_of("marks", using=["hours"], test_method="bayesian", '
+                                      'show="prior check").')
             if isinstance(outcome, str):
                 from .models import OUTCOME_SPELLINGS
 
@@ -564,11 +570,45 @@ class ModelToolWords:
             return bayes_words.check(self, column, using, outcome, grouped_by, bayes_words.check_seed(with_seed), show)
         self._check_kind(step, outcome)
         grouped_by, inner = self._groups_inside(step, grouped_by)
+        if show == "numbers" and grouped_by is not None:
+            raise SimplydataError('show="numbers" gives the tests check_model_of prints for a model without grouped_by= '
+                                  "(variance inflation factors, tests of equal spread, Hosmer-Lemeshow); the check of a "
+                                  "mixed model is pictures only. Leave out show= to get the pictures.")
         model, pieces = self._one_model(step, column, using, outcome, grouped_by, inner=inner)
         if grouped_by is not None:
             return self._check_mixed_pictures(model, pieces, grouped_by)
         numbers = self._influence(model, self._statsmodels_fit(model))
-        return self._check_pictures(model, pieces, numbers)
+        page = self._check_pictures(model, pieces, numbers)
+        if show != "numbers":
+            return page
+        return self._check_numbers_table(page._check_numbers)
+
+    def _check_numbers_table(self, found):
+        """check_model_of(..., show="numbers"): the numbers the check printed, as a table (the pictures are left
+        out). One row per number: the variance inflation factors, the tests of equal spread (least squares), the
+        Brier score and the Hosmer-Lemeshow test (yes or no), and the count of rows with a Cook's distance above
+        0.5. Every number is the one printed, from the same statsmodels or R call."""
+        rows = []
+
+        def add(check, term, value, df=math.nan, p=math.nan):
+            rows.append({"check": check, "term": term, "value": float(value), "df": float(df), "p-value": float(p)})
+
+        for name, (vif, df, adj) in (found.get("vif") or {}).items():
+            add("variance inflation factor", name, vif, df)
+            if adj is not None:
+                add("variance inflation factor on the scale of one column", name, adj, df)
+        for key, words in (("breusch_pagan", "Breusch-Pagan test (chi-square)"), ("white", "White's test (chi-square)"),
+                           ("hosmer", "Hosmer-Lemeshow test (chi-square)")):
+            if key in found:
+                statistic, df, p = found[key]
+                add(words, "", statistic, df, p)
+        if "brier" in found:
+            add("Brier score", "", found["brier"])
+        add("rows with a Cook's distance above 0.5", "", int(np.sum(np.asarray(found["cooks"]) > 0.5)))
+        print(f'Gives back the {len(rows)} numbers of the check as a table (show="numbers"); leave out show= for the '
+              "pictures.")
+        frame = nw.from_dict({k: [r[k] for r in rows] for k in rows[0]}, backend=self._frame.implementation)
+        return self._new_table(frame)
 
     def _check_pictures(self, model, pieces, numbers):
         import pandas as pd
@@ -758,6 +798,9 @@ class ModelToolWords:
         With grouped_by= (a mixed model) whole groups are checked instead: each group is left
         out in turn and the model refitted, R lme4 influence(m, groups =) and cooks.distance()
         (needs R).
+        Gives back a table of the rows found (row, Cook's distance, leverage, residual), or with
+        grouped_by= of the groups found (group, rows, Cook's distance), the biggest first, so
+        found = table.show_rows_that_pull_model(...) can be kept, saved or sorted.
         """
         step = "show_rows_that_pull_model"
         self._check_kind(step, outcome)
@@ -796,7 +839,12 @@ class ModelToolWords:
             'cooks.distance(), hatvalues() and rstandard(type = "pearson")'
         print(f"Method: statsmodels {how}, as R {what}. The row numbers count from 1 in the whole table; remove a "
               "row only for a reason (a mistake in the data), and say so.")
-        return None
+        print(f"Gives back a table of the {len(order)} row{'s' if len(order) != 1 else ''} found, the biggest first.")
+        data = {"row": [int(positions[i]) + 1 for i in order],
+                "Cook's distance": [float(cooks[i]) for i in order],
+                "leverage": [float(numbers["hat"][i]) for i in order],
+                residual_name: [float(residuals[i]) for i in order]}
+        return self._pull_table(data, {"row": nw.Int64})
 
     def _groups_that_pull(self, model, pieces, grouped_by):
         """show_rows_that_pull_model(grouped_by=): Cook's distance of each whole group, R lme4 influence()."""
@@ -825,7 +873,16 @@ class ModelToolWords:
         print(f"Method: each group left out in turn and the model refitted, R lme4 influence(m, groups = "
               f'"{grouped_by}") and cooks.distance(), for m <- {model_call(model, pieces, grouped_by)}. With '
               "grouped_by= whole groups are checked, since the rows of a group belong together.")
-        return None
+        print(f"Gives back a table of the {len(order)} group{'s' if len(order) != 1 else ''} found, the biggest first.")
+        data = {grouped_by: [groups[i] for i in order], "rows": [sizes[groups[i]] for i in order],
+                "Cook's distance": [float(cooks[i]) for i in order]}
+        return self._pull_table(data, {grouped_by: nw.String, "rows": nw.Int64})
+
+    def _pull_table(self, data, whole):
+        """The table show_rows_that_pull_model() gives back (also when no row is found: the columns stay)."""
+        schema = {name: whole.get(name, nw.Float64) for name in data}
+        frame = nw.from_dict(data, schema=schema, backend=self._frame.implementation)
+        return self._new_table(frame)
 
     def _pull_numbers(self, model):
         return self._influence(model, self._statsmodels_fit(model))

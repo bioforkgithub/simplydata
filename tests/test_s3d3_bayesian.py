@@ -341,3 +341,17 @@ def test_the_prior_is_printed_after_envstats_is_attached(needs_rstanarm, capsys)
     sdata.table(sdata.get_example("school")).explain("marks", using=["hours"], test_method="bayesian")
     out = capsys.readouterr().out
     assert "Adjusted prior" in out and "$prior" not in out
+
+
+def test_check_model_gives_its_numbers_as_a_table(needs_rstanarm, capsys):
+    # words-and-fixes: show="numbers" gives back R-hat, effective draws, divergences and the predictive check
+    t = sdata.table(sdata.get_example("school"))
+    numbers = t.check_model_of("marks", using=["hours", "breakfast"], test_method="bayesian", show="numbers")
+    assert numbers.get_column_names() == ["check", "term", "at", "value", "low", "high"]
+    rhat = sdata.table(numbers).keep_rows_where("check", is_equal_to="R-hat")
+    assert all(0.99 < v < 1.05 for v in rhat.get_column("value"))
+    band = sdata.table(numbers).keep_rows_where("term", is_equal_to="density of the made-up sets (median, 90 % range)")
+    assert len(band) == 256
+    assert all(low <= value <= high for low, value, high in zip(band.get_column("low"), band.get_column("value"),
+                                                                band.get_column("high")))
+    assert 'show="numbers"' in capsys.readouterr().out
