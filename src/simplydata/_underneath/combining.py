@@ -23,7 +23,7 @@ CALL = 'names="trial", events=["tb_vaccinated", "tb_unvaccinated"], out_of=["vac
 OURS = """
     table = sdata.table(sdata.get_example("bcg"))
     result = table.combine_studies({call}{more})
-    result.as_pandas().query("`row kind` == '{kind}'")
+    result.keep_rows_where("row kind", is_equal_to="{kind}")
 """
 COMBINED = ("estimate", "estimate 95 % CI low", "estimate 95 % CI high", "p-value")
 PYTHON = """
@@ -151,7 +151,7 @@ OPTION_ENTRIES = [
         ours="""
             table = sdata.table(sdata.get_example("passive_smoking"))
             result = table.combine_studies(names="study", estimates="odds ratio")
-            result.as_pandas().query("`row kind` == 'combined'")
+            result.keep_rows_where("row kind", is_equal_to="combined")
         """),
     _option("test_method=", ', test_method="dersimonian-laird"', """
         # combine_studies(..., test_method="dersimonian-laird")
@@ -210,7 +210,8 @@ OPTION_ENTRIES = [
                           method = "REML", test = "adhoc",
                           control = list(tol = 1e-10, threshold = 1e-10, maxiter = 1000))
         list(b = f$b[2], low = f$ci.lb[2], high = f$ci.ub[2], p = f$pval[2])
-    """, kind="meta-regression' and study != 'intercept",
+    """, ours=_ours(', using=["latitude"]', "meta-regression")
+        + '    result.remove_rows_where("study", is_equal_to="intercept")\n',
         choices=("a meta-regression: the slope of the log risk ratio per unit of each column, with Hartung-Knapp "
                  "intervals; R-squared says how much of the between-study spread the columns account for.",)),
 ]

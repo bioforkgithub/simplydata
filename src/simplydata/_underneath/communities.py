@@ -55,7 +55,7 @@ ENTRIES = [
         data="resistome",
         ours=_ours("""
             table.add_diversity_columns(columns=genes)
-            table.as_pandas()[["richness", "shannon", "simpson"]]
+            table.keep_columns(*["richness", "shannon", "simpson"])
         """),
         code={
             "R": """
@@ -83,7 +83,7 @@ ENTRIES = [
         data="resistome",
         ours=_ours("""
             table.add_diversity_columns(columns=genes, show="richness", at_total_count=2000)
-            table.as_pandas()[["richness", "expected richness at 2000"]]
+            table.keep_columns(*["richness", "expected richness at 2000"])
         """),
         code={
             "R": """
@@ -110,7 +110,7 @@ ENTRIES = [
         data="resistome",
         ours=_ours("""
             table.add_diversity_columns(columns=genes, show="chao1")
-            table.as_pandas()[["chao1", "chao1 standard error"]]
+            table.keep_columns(*["chao1", "chao1 standard error"])
         """),
         code={
             "R": """
@@ -134,7 +134,7 @@ ENTRIES = [
         data="resistome",
         ours=_ours("""
             table.add_diversity_columns(columns=genes, show="hill numbers")
-            table.as_pandas()[["hill number 0", "hill number 1", "hill number 2"]]
+            table.keep_columns(*["hill number 0", "hill number 1", "hill number 2"])
         """),
         code={
             "R": """
@@ -194,7 +194,7 @@ ENTRIES = [
         data="resistome",
         ours=_ours("""
             table.add_log_ratio_columns(columns=genes)
-            table.as_pandas()[["clr_" + g for g in genes]]
+            table.keep_columns(*["clr_" + g for g in genes])
         """),
         code={
             "R": """
@@ -227,7 +227,7 @@ ENTRIES = [
         data="resistome",
         ours=_ours("""
             table.add_log_ratio_columns(columns=genes, test_method="alr", against="sul1")
-            table.as_pandas()[["alr_" + g for g in genes if g != "sul1"]]
+            table.keep_columns(*["alr_" + g for g in genes if g != "sul1"])
         """),
         code={
             "R": """
@@ -253,7 +253,7 @@ ENTRIES = [
         data="resistome",
         ours=_ours("""
             table.add_log_ratio_columns(columns=genes, test_method="ilr")
-            table.as_pandas()[[f"ilr{i}" for i in range(1, 14)]]
+            table.keep_columns(*[f"ilr{i}" for i in range(1, 14)])
         """),
         code={
             "R": """
@@ -279,7 +279,7 @@ ENTRIES = [
         data="resistome",
         ours=_ours("""
             table.add_log_ratio_columns(columns=genes, zeros_replaced_by="adding 1")
-            table.as_pandas()[["clr_" + g for g in genes]]
+            table.keep_columns(*["clr_" + g for g in genes])
         """),
         code={
             "R": """
@@ -305,7 +305,7 @@ ENTRIES = [
         data="resistome",
         ours=_ours("""
             table.add_principal_coordinates(columns=genes)
-            table.as_pandas()[["PCo1", "PCo2"]]
+            table.keep_columns(*["PCo1", "PCo2"])
         """),
         code={
             "R": """
@@ -330,7 +330,7 @@ ENTRIES = [
         data="resistome",
         ours=_ours("""
             table.add_principal_coordinates(columns=genes, measure="aitchison")
-            table.as_pandas()[["PCo1", "PCo2"]]
+            table.keep_columns(*["PCo1", "PCo2"])
         """),
         code={
             "R": """
@@ -356,7 +356,7 @@ ENTRIES = [
         word="table.explain_profiles_of",
         data="resistome",
         ours=_ours("""
-            table.explain_profiles_of(genes, using=["temperature", "salinity"]).as_pandas()
+            table.explain_profiles_of(genes, using=["temperature", "salinity"])
         """),
         code={
             "R": """
@@ -385,7 +385,7 @@ ENTRIES = [
         data="resistome",
         ours=_ours("""
             result = table.explain_profiles_of(genes, using=["temperature", "salinity"], measure="hellinger")
-            result.as_pandas()
+            result
         """),
         code={
             "R": """
@@ -415,7 +415,7 @@ ENTRIES = [
         ours=_ours("""
             result = table.explain_profiles_of(genes, using=["temperature", "salinity"],
                                                test_method="canonical correspondence")
-            result.as_pandas()
+            result
         """),
         code={
             "R": """
@@ -441,7 +441,7 @@ ENTRIES = [
         data="resistome",
         ours=_ours("""
             result = table.explain_profiles_of(genes, using=["temperature"], allowing_for="site")
-            result.as_pandas()
+            result
         """),
         code={
             "R": """
@@ -470,7 +470,7 @@ ENTRIES = [
         data="resistome",
         ours=_ours("""
             result = table.find_correlation_between_profiles(first=genes, second=["temperature", "salinity"])
-            result.as_pandas()
+            result
         """),
         code={
             "R": """
@@ -500,7 +500,7 @@ ENTRIES = [
         ours=_ours("""
             result = table.find_correlation_between_profiles(first=genes, second=["temperature", "salinity"],
                                                              test_method="procrustes")
-            result.as_pandas()
+            result
         """),
         code={
             "R": """
@@ -527,7 +527,7 @@ ENTRIES = [
         word="table.compare_profiles_of", option='test_method="anosim"',
         data="resistome",
         ours=_ours("""
-            table.compare_profiles_of(genes, for_each_group_in="site", test_method="anosim").as_pandas()
+            table.compare_profiles_of(genes, for_each_group_in="site", test_method="anosim")
         """),
         code={
             "R": """
@@ -550,7 +550,7 @@ ENTRIES = [
         word="table.compare_profiles_of", option='show="contributions"',
         data="resistome",
         ours=_ours("""
-            table.compare_profiles_of(genes, for_each_group_in="site", show="contributions").as_pandas()
+            table.compare_profiles_of(genes, for_each_group_in="site", show="contributions")
         """),
         code={
             "R": """
@@ -574,7 +574,7 @@ ENTRIES = [
         word="table.compare_profiles_of", option='measure="aitchison"',
         data="resistome",
         ours=_ours("""
-            table.compare_profiles_of(genes, for_each_group_in="site", measure="aitchison").as_pandas()
+            table.compare_profiles_of(genes, for_each_group_in="site", measure="aitchison")
         """),
         code={
             "R": """
@@ -600,7 +600,7 @@ ENTRIES = [
         word="table.find_distances_between_rows", option='measure="aitchison"',
         data="resistome",
         ours=_ours("""
-            table.find_distances_between_rows(columns=genes, measure="aitchison").as_pandas()
+            table.find_distances_between_rows(columns=genes, measure="aitchison")
         """),
         code={
             "R": """
@@ -630,7 +630,7 @@ ENTRIES = [
         data="resistome",
         ours=_ours("""
             table.add_clusters(columns=genes, how_many="automatic", test_method="hierarchical", measure="bray-curtis")
-            table.as_pandas()[["cluster"]]
+            table.keep_columns(*["cluster"])
         """),
         code={
             "R": """
@@ -660,7 +660,7 @@ ENTRIES = [
         data="resistome",
         ours=_ours("""
             table.add_clusters(columns=genes, how_many=3, test_method="hierarchical", measure="bray-curtis")
-            table.as_pandas()[["cluster"]]
+            table.keep_columns(*["cluster"])
         """),
         code={
             "R": """
@@ -715,7 +715,7 @@ ENTRIES = [
         data="resistome",
         ours=_ours("""
             table.add_axes_that_separate_groups(columns=["temperature", "salinity", "reads"], for_each_group_in="site")
-            table.as_pandas()[["LD1", "LD2"]]
+            table.keep_columns(*["LD1", "LD2"])
         """),
         code={
             "R": """
@@ -738,7 +738,7 @@ ENTRIES = [
         data="resistome",
         ours=_ours("""
             table.add_correspondence_axes(columns=genes)
-            table.as_pandas()[["CA1", "CA2"]]
+            table.keep_columns(*["CA1", "CA2"])
         """),
         code={
             "R": """

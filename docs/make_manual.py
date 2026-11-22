@@ -1028,7 +1028,8 @@ def underneath_figure(key: str) -> str:
     return "figures/underneath_" + re.sub(r"[^A-Za-z0-9]+", "_", key).strip("_") + ".pdf"
 
 
-_HOW = {"value": "the number", "table": "the table", "result": "the numbers of the result table"}
+_HOW = {"value": "the number", "table": "the table", "result": "the numbers of the result table",
+        "printed": "what both print (each line the code prints appears in what simplydata prints)"}
 # what each chart fact is, in words, for the "Checked:" line
 _FACT_WORDS = {"bars": "the bars", "bar_colour_groups": "which bars share a colour", "dots": "the dots",
                "dot_size_shares": "the dot sizes", "dot_colour_groups": "which dots share a colour",

@@ -29,6 +29,9 @@ causal.py (S3d-2: balancing groups, attributable fractions, standardised rates, 
 multiple imputation for other words), bayesian.py (S3d-3: test_method="bayesian" on the tests, explain and check_model_of)
 and more_words.py (2026-11-21: get_numbers_drawn, repeat_each_row_by, the table of show_rows_that_pull_model,
 check_model_of show="numbers", get_example from_r_package= and find_correlation_between show="result table").
+From phase U1 on, the words that were still without an entry join the file of their area (tables.py, numbers.py,
+statistics.py, charts.py ...); starting.py holds the starting words (a table, a chart, numbers, a grid, a distribution,
+random numbers, a run of dates) and the help and 30-day words, which run no library (compare="none", with a note).
 """
 
 from __future__ import annotations
@@ -43,6 +46,8 @@ COMPARE_KINDS = {
     "result": "the numbers in simplydata's result table (statistic, degrees of freedom, p-value ...) against the "
               "library's result",
     "chart": "the chart's data (bars, dots, lines, labels, limits ...), not its pixels",
+    "printed": "for words that show something and give nothing back: every line the library code prints appears, "
+               "in the same order, in what the word prints (spaces at the ends of lines left out)",
     "none": "nothing to compare: simplydata's own work, explained in one line",
 }
 
@@ -133,13 +138,13 @@ class Entry:
 
 def _join() -> dict[str, Entry]:
     from . import (bayesian, causal, charts, checking, combining, communities, hidden_factors, lines, models,
-                   more_words, numbers, places, planning, planning_surveys, small_additions, statistics, survival,
-                   tables)
+                   more_words, numbers, places, planning, planning_surveys, small_additions, starting, statistics,
+                   survival, tables)
 
     found: dict[str, Entry] = {}
     for module in (charts, tables, numbers, statistics, models, lines, checking, survival, combining, planning,
                    communities, hidden_factors, places, small_additions, planning_surveys, causal, bayesian,
-                   more_words):
+                   more_words, starting):
         for entry in module.ENTRIES:
             if entry.key in found:
                 raise ValueError(f"{entry.key} has two underneath entries")
@@ -196,12 +201,23 @@ def _python_calls(source: str) -> list[str]:
             chains.append((node.lineno, node.col_offset, text))
         if isinstance(node, ast.Subscript) and isinstance(node.slice, (ast.Compare, ast.BoolOp)):
             chains.append((node.lineno, node.col_offset, "boolean indexing"))
-    found = []
+        elif isinstance(node, ast.Subscript) and isinstance(node.value, ast.Attribute) and node.value.attr in (
+                "iloc", "loc"):
+            chains.append((node.lineno, node.col_offset, node.value.attr + "[]"))  # df.iloc[9:20]
+    found, stage = [], []
     for _, _, text in sorted(chains):
         first = text.split("(")[0].split(".")[0]
         if text and first not in _STAGE and text not in found:
             found.append(text)
-    return found
+        elif text and first in _STAGE and first not in _NEVER_THE_WORK and text not in stage:
+            stage.append(text)
+    # a block whose only call would otherwise set the stage (as_polars is pl.from_pandas(df), number_grid is
+    # np.array(...).reshape(...)): that call is the work
+    return found or stage
+
+
+# stage calls that are never the work itself, even in a block with nothing else
+_NEVER_THE_WORK = {"get_example", "subplots", "print", "dict", "list", "len"}
 
 
 def _r_calls(source: str) -> list[str]:

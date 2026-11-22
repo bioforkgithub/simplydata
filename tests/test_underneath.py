@@ -44,7 +44,10 @@ def test_the_word_and_the_library_give_the_same_result(entry):
 def test_keys_are_current_words_not_old_names(entry):
     assert entry.word in learn._all_keys(), f"{entry.word} is not a word of simplydata.learn"
     assert learn._lookup(entry.word) == entry.word
-    assert not learn._old_names(entry.word), f"{entry.word} is an old name"
+    # "sdata.table" is a current word although "table" alone was once a numbers word (now turn_into_table): for an
+    # sdata. word only the old names of sdata. words count
+    old = [o for o in learn._old_names(entry.word) if not entry.word.startswith("sdata.") or o[2].startswith("sdata.")]
+    assert not old, f"{entry.word} is an old name"
 
 
 @pytest.mark.parametrize("entry", [e for e in ENTRIES if not e.uses_r], ids=[e.word for e in ENTRIES if not e.uses_r])
@@ -196,7 +199,7 @@ def test_table_words_run_on_polars_too():
 def test_underneath_line_is_read_from_the_code():
     assert underneath_line(UNDERNEATH["draw_bars"]) == "seaborn barplot()"
     assert underneath_line(UNDERNEATH["table.find_average_of"]) == (
-        "pandas groupby().mean().reset_index() · Polars group_by().agg(), col().mean()")
+        "pandas groupby().mean().reset_index() · Polars group_by().agg().sort(), col().mean()")
     assert underneath_line(UNDERNEATH["table.keep_rows_where"]) == "pandas boolean indexing · Polars filter(), col()"
     assert underneath_line(UNDERNEATH["trade_off_curve"]).startswith("R pROC::roc(), pROC::ci.auc(), pROC::coords()")
 
@@ -262,6 +265,10 @@ def test_manual_shows_each_entry_in_a_grey_box_after_its_example():
         if not mine:
             assert "underneathbox" not in part, key
             continue
+        if all(e.compare == "none" for e in mine):  # nothing underneath: one line after the example, no box
+            assert part.index("Example you can run") < part.index("Nothing underneath:"), key
+            assert "underneathbox" not in part, key
+            continue
         assert part.index("Example you can run") < part.index(r"\begin{underneathbox}"), key
         for entry in mine:
             for library, language, source in entry.blocks():
@@ -278,7 +285,7 @@ def test_manual_shows_each_entry_in_a_grey_box_after_its_example():
 
 def test_table_boxes_show_pandas_then_polars():
     for entry in ENTRIES:
-        if entry.word.startswith("table.") and "Polars" in entry.code:
+        if entry.word.startswith("table.") and "Polars" in entry.code and "pandas" in entry.code:
             assert list(entry.code)[:2] == ["pandas", "Polars"], entry.word
 
 
