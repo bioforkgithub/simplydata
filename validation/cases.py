@@ -1018,6 +1018,11 @@ def _add_underneath():
     import importlib.util
 
     spec = importlib.util.spec_from_file_location("simplydata_validation_underneath", HERE / "cases_underneath.py")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    module.add_to(globals())
+
+
 # ---------------------------------------------------------------- 2026-11-21: words and fixes (validation/cases_more_words.py)
 def _add_more_words():
     import importlib.util
