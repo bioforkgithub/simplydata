@@ -17,6 +17,7 @@ import pytest
 
 import simplydata as sdata
 from simplydata import SimplydataError
+from conftest import example_frame
 
 DATA = Path(__file__).resolve().parents[1] / "validation" / "data"
 LEVELS = ["strongly disagree", "disagree", "neutral", "agree", "strongly agree"]
@@ -38,7 +39,7 @@ def _schools():
 
 # ---------------------------------------------------------------- V02: stratified random rows (no R)
 def test_rows_from_each_group_are_pandas_groupby_sample():
-    df = sdata.get_example("marks")
+    df = example_frame("marks")
     t = sdata.table(df)
     t.keep_random_rows(2, for_each_group_in="class", with_seed=1)
     expected = df.groupby("class").sample(n=2, random_state=1).sort_index().reset_index(drop=True)
@@ -107,7 +108,7 @@ def test_patterns_count_blank_text_as_empty_and_refuse_other_values():
 
 # ---------------------------------------------------------------- W06: answers on a scale (no R)
 def test_answer_counts_percents_top_two_and_median():
-    df = sdata.get_example("course_feedback")
+    df = example_frame("course_feedback")
     found = sdata.table(df).count_each(columns=QUESTIONS, in_order=LEVELS).as_pandas()
     assert found["question"].tolist() == QUESTIONS
     for _, row in found.iterrows():
@@ -142,7 +143,7 @@ def test_the_median_answer_matches_r_quantile_type_1_and_the_old_count_each_stil
 
 
 def test_answer_bars_are_centred_on_the_middle_answer():
-    df = sdata.get_example("course_feedback")
+    df = example_frame("course_feedback")
     chart = sdata.chart(df).draw_answer_bars(columns=["teaching", "pace"], in_order=LEVELS)
     from simplydata._underneath.check import _axes_of, chart_facts
 
@@ -345,7 +346,7 @@ def test_other_statistics_words_refuse_under_a_survey_design(needs_r, capsys):
 
 
 def test_survey_design_refuses_empty_design_cells_and_bad_weights(needs_r):
-    df = sdata.get_example("sampled_schools")
+    df = example_frame("sampled_schools")
     bad = df.copy()
     bad.loc[3, "weight"] = np.nan
     with pytest.raises(SimplydataError, match="empty cell"):
@@ -392,7 +393,7 @@ def test_sorting_or_reversing_a_survey_table_keeps_each_weight_with_its_row(need
 
 
 def test_survey_model_with_a_column_named_like_an_internal_name(needs_r):
-    df = sdata.get_example("sampled_schools").rename(columns={"free_meals": "y", "english_learners": "g"})
+    df = example_frame("sampled_schools").rename(columns={"free_meals": "y", "english_learners": "g"})
     t = sdata.table(df)
     t.use_survey_design(**DESIGN)
     fit = t.explain("score_2000", using=["g", "y"]).as_pandas().set_index("term")

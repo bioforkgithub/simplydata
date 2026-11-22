@@ -15,6 +15,7 @@ from scipy import stats
 
 import simplydata as sdata
 from simplydata import SimplydataError
+from conftest import example_frame
 
 
 def _table(name):
@@ -33,18 +34,18 @@ def test_stations_and_rain_are_made_up_and_say_so():
 
     for name in ("stations", "rain"):
         assert EXAMPLES[name][0].startswith("MADE-UP DATA")
-    frame = sdata.get_example("stations")
+    frame = example_frame("stations")
     assert len(frame) == 60 and frame["station"].is_unique
     assert {"east", "north", "lon", "lat", "depth", "current_direction", "zinc"} <= set(frame.columns)
     assert frame["current_direction"].between(0, 359).all()
-    assert len(sdata.get_example("rain")) == 3653
+    assert len(example_frame("rain")) == 3653
 
 
 def test_sea_levels_are_the_published_port_pirie_series():
     from simplydata.data import EXAMPLES
 
     assert EXAMPLES["sea_levels"][0].startswith("REAL DATA") and "Coles" in EXAMPLES["sea_levels"][0]
-    frame = sdata.get_example("sea_levels")
+    frame = example_frame("sea_levels")
     assert len(frame) == 65 and frame["year"].tolist() == list(range(1923, 1988))
     assert frame["sea_level"].iloc[:4].tolist() == [4.03, 3.83, 3.65, 3.88]
 
@@ -52,7 +53,7 @@ def test_sea_levels_are_the_published_port_pirie_series():
 # ---------------------------------------------------------------- AC01: circular summaries
 def test_average_direction_is_scipys_circular_mean(capsys):
     result = _table("stations").find_average_direction_of("current_direction", full_turn=360).as_pandas()
-    d = sdata.get_example("stations")["current_direction"].to_numpy(dtype=float)
+    d = example_frame("stations")["current_direction"].to_numpy(dtype=float)
     assert result["average direction"][0] == pytest.approx(stats.circmean(d, high=360, low=0), rel=1e-12)
     assert result["circular standard deviation"][0] == pytest.approx(stats.circstd(d, high=360, low=0), rel=1e-12)
     assert result["resultant length"][0] == pytest.approx(1 - stats.circvar(d, high=360, low=0), rel=1e-9)
@@ -114,7 +115,7 @@ def test_rayleigh_is_r_circular(needs_r, capsys):
 
     found = r_call('r <- circular::rayleigh.test(circular::circular(x, units = "degrees", template = "none")); '
                    "c(r$statistic, r$p.value)", packages=(),
-                   x=sdata.get_example("stations")["current_direction"].to_numpy(dtype=float))
+                   x=example_frame("stations")["current_direction"].to_numpy(dtype=float))
     assert result["statistic"][0] == pytest.approx(found[0], rel=1e-12)
     assert result["p-value"][0] == pytest.approx(found[1], rel=1e-9)
     out = capsys.readouterr().out
@@ -249,7 +250,7 @@ def test_return_level_refusals_need_no_r():
 
 
 def test_yearly_maxima_with_their_dates_are_block_maxima(needs_r):
-    frame = sdata.get_example("sea_levels")
+    frame = example_frame("sea_levels")
     rng = np.random.default_rng(5)
     days = pd.to_datetime([f"{y}-01-01" for y in frame["year"]]) + pd.to_timedelta(rng.integers(0, 365, len(frame)),
                                                                                     unit="D")
@@ -275,7 +276,7 @@ def test_values_above_a_threshold(needs_r, capsys):
     rain = _table("rain")
     rain.turn_into_dates("date")
     result = rain.find_return_levels_of("rain", once_in=[10], values_above=20, sorted_by="date").as_pandas()
-    x = sdata.get_example("rain")["rain"].to_numpy(dtype=float)
+    x = example_frame("rain")["rain"].to_numpy(dtype=float)
     from simplydata._r import r_call
 
     found = r_call("f <- extRemes::fevd(x, threshold = 20, type = 'GP', time.units = 'days'); "
@@ -290,7 +291,7 @@ def test_gev_fit_keeps_xi_and_matches_scipy_with_c_turned_round():
     fit = _table("sea_levels").fit_distribution_to("sea_level", "gev")
     shape = fit.turn_into_table().as_pandas()["shape"][0]
     assert shape == pytest.approx(-0.0501095, abs=2e-5)  # extRemes / Coles: xi = -0.050
-    x = sdata.get_example("sea_levels")["sea_level"].to_numpy(dtype=float)
+    x = example_frame("sea_levels")["sea_level"].to_numpy(dtype=float)
     c, loc, scale = stats.genextreme.fit(x)
     assert -c == pytest.approx(shape, abs=2e-3)
     assert fit.find_percentile(99) == pytest.approx(

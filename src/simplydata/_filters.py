@@ -1,7 +1,8 @@
 """Frequency filters: keep or remove frequencies. Every number comes from SciPy:
 
 * designs: scipy.signal.butter, cheby1, cheby2, ellip, bessel (norm="phase") as second-order sections
-  (output="sos": stable at high steepness), iirnotch / iircomb / iirpeak for one frequency; coefficients
+  (output="sos": stable at high steepness), iirnotch / iirpeak for one frequency (and_multiples=True: one
+  iirnotch at each multiple, as second-order sections; not iircomb, which also removes frequency 0); coefficients
   for printing come from sos2tf. butter, cheby1 and cheby2 match R signal to 1e-9; ellip to about 2e-6
   (R signal solves the elliptic degree equation less precisely); bessel matches R gsignal::besself (an
   analog design) turned digital by gsignal::bilinear, with the cutoff pre-warped as SciPy does:
@@ -89,7 +90,7 @@ def design(kind, cutoffs, step, method="butterworth", steepness=4, ripple=0.5, r
 
 
 def design_single(keep, frequency, step, width=1.0, and_multiples=False, step_name="remove_each_frequency_that"):
-    """One frequency: iirnotch (remove), iircomb (remove with its multiples) or iirpeak (keep)."""
+    """One frequency: iirnotch (remove), iirnotch at each multiple (remove with its multiples) or iirpeak (keep)."""
     from scipy import signal
 
     nyquist = 0.5 / step
@@ -102,12 +103,7 @@ def design_single(keep, frequency, step, width=1.0, and_multiples=False, step_na
     if and_multiples:
         if keep:
             raise SimplydataError("and_multiples= goes with remove_each_frequency_that(is_equal_to=...).")
-        fs = 1 / step
-        if abs(fs / f - round(fs / f)) > 1e-9:
-            raise SimplydataError("and_multiples=True needs a frequency that divides the readings per unit of time "
-                                  "a whole number of times.")
-        b, a = signal.iircomb(f, quality, ftype="notch", fs=fs)
-        words, call = f"comb filter at {_g(f)} and its multiples (width {_g(width)})", "SciPy signal.iircomb"
+        return _notches_at_multiples(f, step, float(width))
     elif keep:
         b, a = signal.iirpeak(f, quality, fs=1 / step)
         words, call = f"peak filter at {_g(f)} (width {_g(width)})", "SciPy signal.iirpeak"
@@ -115,6 +111,38 @@ def design_single(keep, frequency, step, width=1.0, and_multiples=False, step_na
         b, a = signal.iirnotch(f, quality, fs=1 / step)
         words, call = f"notch filter at {_g(f)} (width {_g(width)})", "SciPy signal.iirnotch"
     return dict(ba=(b, a), words=words, r_call=call)
+
+
+def _notches_at_multiples(f, step, width):
+    """and_multiples=True: one SciPy iirnotch at f and at each multiple of f below half the readings per unit of
+    time, each as one second-order section, run one after the other (sosfiltfilt / sosfilt).
+
+    Not SciPy iircomb: its notching comb puts a notch at frequency 0 too (pass_zero=False, the default), so it
+    also removes the average; pass_zero=True moves the notches to the odd multiples of f / 2 instead (SciPy
+    iircomb documentation). Each notch has the same width, as the notches of a comb (quality = frequency / width).
+    """
+    from scipy import signal
+
+    fs = 1 / step
+    nyquist = 0.5 * fs
+    count = int(np.floor(nyquist / f))
+    multiples = [k * f for k in range(1, count + 1)]
+    at_top = bool(np.isclose(multiples[-1], nyquist, rtol=1e-12, atol=0))
+    if at_top:  # iirnotch needs a frequency below half the readings per unit of time
+        multiples = multiples[:-1]
+    sections = []
+    for m in multiples:
+        b, a = signal.iirnotch(m, m / width, fs=fs)
+        sections.append(np.concatenate([b, a]))
+    shown = (f"{_g(multiples[0])}" if len(multiples) == 1 else
+             f"{_g(multiples[0])}, {_g(multiples[1])}" + (" ... " if len(multiples) > 3 else ", ") + _g(multiples[-1]))
+    several = len(multiples) != 1
+    words = (f"{len(multiples)} notch filter{'s' if several else ''} at {shown} (width {_g(width)}"
+             f"{' each' if several else ''}); the average (frequency 0) stays")
+    if at_top:
+        words += (f"; the multiple at {_g(nyquist)}, half the readings per unit of time, cannot have a notch (SciPy "
+                  "iirnotch needs a frequency below it), so it stays too")
+    return dict(sos=np.vstack(sections), words=words, r_call="SciPy signal.iirnotch at each multiple")
 
 
 def apply(values, made, both_ways=True):

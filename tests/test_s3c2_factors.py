@@ -11,6 +11,7 @@ import pytest
 
 import simplydata as sdata
 from simplydata._errors import MissingWordError, SimplydataError
+from conftest import example_frame
 
 COLUMNS = [f"x{i}" for i in range(1, 10)]
 MEASURED_BY = {"visual": ["x1", "x2", "x3"], "textual": ["x4", "x5", "x6"], "speed": ["x7", "x8", "x9"]}
@@ -27,7 +28,7 @@ def _by(result, key):
 
 # ---------------------------------------------------------------- the practice table
 def test_ability_tests_is_the_published_table():
-    data = sdata.get_example("ability_tests")
+    data = example_frame("ability_tests")
     assert data.shape == (301, 15)
     assert data["school"].value_counts().to_dict() == {"Pasteur": 156, "Grant-White": 145}
     assert int(data.isna().sum().sum()) == 1  # one grade is empty in the source
@@ -38,7 +39,7 @@ def test_ability_tests_equals_lavaans_copy(needs_r):
     from simplydata._r import r_call
 
     found = r_call("d <- lavaan::HolzingerSwineford1939; list(x = as.matrix(d[, paste0('x', 1:9)]), id = d$id)")
-    ours = sdata.get_example("ability_tests")
+    ours = example_frame("ability_tests")
     assert np.allclose(ours[COLUMNS].to_numpy(), np.asarray(found["x"], dtype=float).reshape(301, 9, order="F"),
                        rtol=1e-12, atol=0)
     assert list(ours["id"]) == [int(v) for v in np.asarray(found["id"])]
@@ -105,7 +106,7 @@ def test_one_factor_and_other_spellings(tests_table, needs_r, capsys):
 
 
 def test_notes_for_few_rows(needs_r, capsys):
-    table = sdata.table(sdata.get_example("ability_tests").head(40))
+    table = sdata.table(example_frame("ability_tests").head(40))
     table.find_hidden_factors_behind(COLUMNS, how_many=2)
     out = capsys.readouterr().out
     assert "40 rows for 9 columns (fewer than 5 rows for each column)" in out
@@ -142,7 +143,7 @@ def test_parallel_analysis_that_finds_nothing_is_explained(tests_table, monkeypa
 
 
 def test_rows_with_empty_cells_are_skipped_with_a_note(needs_r, capsys):
-    data = sdata.get_example("ability_tests")
+    data = example_frame("ability_tests")
     data.loc[:4, "x2"] = np.nan
     sdata.table(data).find_hidden_factors_behind(COLUMNS, how_many=3)
     out = capsys.readouterr().out
@@ -151,7 +152,7 @@ def test_rows_with_empty_cells_are_skipped_with_a_note(needs_r, capsys):
 
 def test_works_on_a_polars_table(needs_r):
     pl = pytest.importorskip("polars")
-    table = sdata.table(pl.from_pandas(sdata.get_example("ability_tests")))
+    table = sdata.table(sdata.get_example("ability_tests"), fast=True)
     result = table.find_hidden_factors_behind(COLUMNS, how_many=3)
     assert result.as_pandas().set_index("column").loc["x5", "factor 1"] == pytest.approx(0.886, abs=5e-4)
 
@@ -188,7 +189,7 @@ def test_the_published_three_factor_model(tests_table, needs_r, capsys):
 
 
 def test_empty_cells_keep_every_row(tests_table, needs_r, capsys):
-    data = sdata.get_example("ability_tests")
+    data = example_frame("ability_tests")
     data.loc[:29, "x1"] = np.nan
     result = sdata.table(data).check_hidden_factors(measured_by=MEASURED_BY)
     out = capsys.readouterr().out
@@ -200,7 +201,7 @@ def test_empty_cells_keep_every_row(tests_table, needs_r, capsys):
 
 
 def test_a_row_with_nothing_is_left_out_with_a_note(needs_r, capsys):
-    data = sdata.get_example("ability_tests")
+    data = example_frame("ability_tests")
     data.loc[0, COLUMNS] = np.nan
     data.loc[1:5, "x1"] = np.nan
     sdata.table(data).check_hidden_factors(measured_by=MEASURED_BY)
@@ -211,7 +212,7 @@ def test_a_row_with_nothing_is_left_out_with_a_note(needs_r, capsys):
 
 def test_check_hidden_factors_on_a_polars_table(needs_r):
     pl = pytest.importorskip("polars")
-    result = sdata.table(pl.from_pandas(sdata.get_example("ability_tests"))).check_hidden_factors(
+    result = sdata.table(sdata.get_example("ability_tests"), fast=True).check_hidden_factors(
         measured_by=MEASURED_BY)
     assert result.as_pandas().set_index("term").loc["chi-square", "estimate"] == pytest.approx(85.306, abs=5e-4)
 
@@ -234,7 +235,7 @@ def test_formula_in_lavaan_syntax_gives_paths(tests_table, needs_r, capsys):
 
 
 def test_column_names_need_not_suit_lavaan(needs_r):
-    data = sdata.get_example("ability_tests").rename(columns={"x1": "visual perception", "x2": "cubes (score)"})
+    data = example_frame("ability_tests").rename(columns={"x1": "visual perception", "x2": "cubes (score)"})
     result = sdata.table(data).check_hidden_factors(
         measured_by={"seeing things": ["visual perception", "cubes (score)", "x3"], "speed": ["x7", "x8", "x9"]})
     assert "seeing things measured by cubes (score)" in set(result.as_pandas()["term"])
@@ -271,7 +272,7 @@ def test_find_hidden_factors_behind_explains_wrong_input(tests_table, call, mess
 
 
 def test_a_column_with_one_value_is_refused(tests_table):
-    data = sdata.get_example("ability_tests").assign(same=1.0)
+    data = example_frame("ability_tests").assign(same=1.0)
     with pytest.raises(SimplydataError, match='"same" has the same value in every row'):
         sdata.table(data).find_hidden_factors_behind(["x1", "x2", "same"])
 

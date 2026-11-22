@@ -17,13 +17,14 @@ ENTRIES = [
         """,
         code={
             "pandas": """
-                df = sdata.get_example("marks")
+                import pandas as pd
+                df = pd.read_csv("marks.csv")
                 # keep_rows_where("marks", is_above=50)
                 df[df["marks"] > 50]                 # (1)
             """,
             "Polars": """
                 import polars as pl
-                df = pl.from_pandas(sdata.get_example("marks"))
+                df = pl.read_csv("marks.csv")
                 # keep_rows_where("marks", is_above=50)
                 df.filter(pl.col("marks") > 50)      # (1)
             """,
@@ -42,13 +43,14 @@ ENTRIES = [
         """,
         code={
             "pandas": """
-                df = sdata.get_example("marks")
+                import pandas as pd
+                df = pd.read_csv("marks.csv")
                 # find_average_of("marks", for_each_group_in="class")
                 df.groupby("class", sort=False)["marks"].mean().reset_index()   # (1)
             """,
             "Polars": """
                 import polars as pl
-                df = pl.from_pandas(sdata.get_example("marks"))
+                df = pl.read_csv("marks.csv")
                 # find_average_of("marks", for_each_group_in="class")
                 df.group_by("class", maintain_order=True).agg(pl.col("marks").mean())   # (1)
             """,

@@ -7,19 +7,22 @@ from . import Entry
 
 SENTENCE = "simplydata also writes the result as sentences, with the p-value in words, and names the method."
 CHEMICAL_A = """
-    tox = sdata.get_example("toxicity")
+    import pandas as pd
+    tox = pd.read_csv("toxicity.csv")
     a = tox[tox["chemical"] == "A"]
     concentration = a["concentration"].to_numpy(dtype=float)
     root_length = a["root_length"].to_numpy(dtype=float)
 """
 FLASK_A = """
-    culture = sdata.get_example("culture")
+    import pandas as pd
+    culture = pd.read_csv("culture.csv")
     a = culture[culture["flask"] == "A"]
     hour = a["hour"].to_numpy(dtype=float)
     density = a["density"].to_numpy(dtype=float)
 """
 MARKS = """
-    marks_table = sdata.get_example("marks")
+    import pandas as pd
+    marks_table = pd.read_csv("marks.csv")
     hours = marks_table["hours"].to_numpy(dtype=float)
     marks = marks_table["marks"].to_numpy(dtype=float)
 """
@@ -63,7 +66,8 @@ ENTRIES = [
         word="fit_dose_response",
         data="toxicity",
         ours="""
-            tox = sdata.get_example("toxicity")
+            import pandas as pd
+            tox = pd.read_csv("toxicity.csv")
             chart = sdata.chart(tox[tox["chemical"] == "A"])
             chart.draw_dots(x="concentration", y="root_length").fit_dose_response()
         """,
@@ -105,7 +109,8 @@ ENTRIES = [
         """,
         code={"SciPy": """
             from scipy import stats
-            df = sdata.get_example("trial")
+            import pandas as pd
+            df = pd.read_csv("trial.csv")
             # find_best_power_of("days")
             _, power, (low, high) = stats.boxcox(df["days"].dropna(), alpha=0.05)   # (1)
             {"power": power, "95 % CI low": low, "95 % CI high": high}
@@ -133,7 +138,8 @@ OPTION_ENTRIES = [
         """,
         code={"SciPy": """
             from scipy import stats
-            df = sdata.get_example("marks")
+            import pandas as pd
+            df = pd.read_csv("marks.csv")
             # fit_line(x="hours", y="marks", test_method="theil-sen")
             fit = stats.theilslopes(df["marks"], df["hours"], alpha=0.95,      # (1)
                                     method="separate")                        # (2)
@@ -278,7 +284,8 @@ OPTION_ENTRIES = [
         """,
         code={"statsmodels": """
             import statsmodels.formula.api as smf
-            df = sdata.get_example("culture").query("flask == 'A'")
+            import pandas as pd
+            df = pd.read_csv("culture.csv").query("flask == 'A'")
             # fit_line(x="hour", y="density", changes_at=10)
             df = df.assign(after=(df["hour"] >= 10) * 1.0)               # (1)
             df = df.assign(since=df["after"] * (df["hour"] - 10))
@@ -304,7 +311,8 @@ OPTION_ENTRIES = [
         code={"SciPy": """
             import numpy as np
             from scipy import optimize
-            df = sdata.get_example("culture").query("flask == 'A'")
+            import pandas as pd
+            df = pd.read_csv("culture.csv").query("flask == 'A'")
             # fit_curve(x="hour", y="density", of_kind="logistic growth")
             def logistic(x, Asym, xmid, scal):                  # R's SSlogis
                 return Asym / (1 + np.exp((xmid - x) / scal))
@@ -363,7 +371,8 @@ OPTION_ENTRIES = [
         """,
         code={"statsmodels": """
             import statsmodels.formula.api as smf
-            df = sdata.get_example("culture").query("flask == 'A'")
+            import pandas as pd
+            df = pd.read_csv("culture.csv").query("flask == 'A'")
             # explain("density", using=["hour"], changes_at={"hour": 10})
             df = df.assign(after=(df["hour"] >= 10) * 1.0)               # (1)
             df = df.assign(since=df["after"] * (df["hour"] - 10))
@@ -413,7 +422,8 @@ OPTION_ENTRIES = [
         option='test_method="loess", with_confidence_band=',
         data="culture",
         ours="""
-            culture = sdata.get_example("culture")
+            import pandas as pd
+            culture = pd.read_csv("culture.csv")
             chart = sdata.chart(culture[culture["flask"] == "A"]).draw_dots(x="hour", y="density")
             chart.draw_smooth_line(test_method="loess", with_confidence_band=True)
         """,

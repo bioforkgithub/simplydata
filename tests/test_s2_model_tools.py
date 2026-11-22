@@ -1,6 +1,6 @@
 """S2: model_averages_of, check_model, show_rows_that_pull and compare_models, checked against R.
 
-R 4.6.2, emmeans 2.0.4, lme4 2.1.0, pbkrtest 0.5.5; s <- read.csv("school.csv") (sdata.get_example("school")).
+R 4.6.2, emmeans 2.0.4, lme4 2.1.0, pbkrtest 0.5.5; s <- read.csv("school.csv") (example_frame("school")).
 The R call is next to each value.
 """
 
@@ -9,6 +9,7 @@ import pytest
 import simplydata as sdata
 from simplydata import SimplydataError
 from simplydata.table import table as make_table
+from conftest import example_frame
 
 
 @pytest.fixture
@@ -228,7 +229,7 @@ def test_matched_by_checks():
 def test_model_averages_pairs_keep_group_names_with_signs(school, capsys, needs_r):
     import numpy as np
 
-    frame = sdata.get_example("school")
+    frame = example_frame("school")
     frame["school"] = frame["school"].str.replace("School ", "low-")
     got = by_term(make_table(frame).find_model_averages_of("marks", for_each_group_in="school", using=["hours"]))
     # R: s$school <- sub("School ", "low-", s$school); e <- emmeans(lm(marks ~ hours + school, s), ~ school)
@@ -238,7 +239,7 @@ def test_model_averages_pairs_keep_group_names_with_signs(school, capsys, needs_
     assert got["low-A - low-B"]["p-value (Tukey)"] == pytest.approx(0.240433711161091, rel=1e-4)
     assert got["low-A - low-D"]["difference"] == pytest.approx(-15.3309069521327, rel=1e-6)
     assert "(low-A)" not in capsys.readouterr().out
-    frame = sdata.get_example("school")
+    frame = example_frame("school")
     frame["breakfast"] = np.where(frame["breakfast"] == "yes", "yes - some", "no - none")
     make_table(frame).find_model_averages_of("marks", for_each_group_in="breakfast", using=["hours"])
     # R: emmeans(lm(marks ~ hours + breakfast, s7), ~ breakfast); pairs(): estimate -3.20972276354947,

@@ -61,22 +61,37 @@ def run_python(source: str, namespace: dict | None = None):
 
 
 @contextlib.contextmanager
+def practice_files():
+    """While the library code runs, the folder of the practice tables is the working folder, so the code reads a
+    practice table from its file as anyone would: pd.read_csv("marks.csv"). (sdata.get_example("marks") gives a
+    simplydata table, which the library code does not use: it reads the same file with the library itself.)"""
+    import os
+    from importlib.resources import as_file, files
+
+    with as_file(files("simplydata.data")) as folder:
+        before = os.getcwd()
+        os.chdir(folder)
+        try:
+            yield
+        finally:
+            os.chdir(before)
+
+
+@contextlib.contextmanager
 def _practice_tables_as(engine: str):
-    """While ours runs, sdata.get_example gives Polars tables (engine="polars") instead of pandas."""
+    """While ours runs, sdata.get_example gives tables held by Polars (engine="polars") instead of pandas."""
     import simplydata
 
     if engine == "pandas":
         yield
         return
-    import polars as pl
-
     original = simplydata.get_example
 
     def as_polars(name=None, **options):
         found = original(name, **options)
-        if options:  # from_r_package= gives a simplydata table already
+        if options:  # from_r_package= gives a pandas-held simplydata table, as a user gets it
             return found
-        return None if found is None else pl.from_pandas(found)
+        return None if found is None else simplydata.table(found, fast=True)
 
     simplydata.get_example = as_polars
     try:
@@ -299,7 +314,8 @@ def compare(entry: Entry, ours, theirs) -> list[str]:
 # ---------------------------------------------------------------- one entry
 def _r_values(entry: Entry) -> dict:
     """The values the R block uses, made by r_inputs from the practice table."""
-    _, _, ns = run_python(entry.r_inputs)
+    with practice_files():
+        _, _, ns = run_python(entry.r_inputs)
     return {k: v for k, v in ns.items() if not k.startswith("__") and k != "sdata" and isinstance(v, np.ndarray)}
 
 
@@ -322,7 +338,8 @@ def _run_with_r(entry: Entry):
                 namespace[k] = arr if arr.size != 1 else float(arr.reshape(-1)[0])
             seen_r = True
         elif seen_r:
-            value, _, namespace = run_python(source, namespace)
+            with practice_files():
+                value, _, namespace = run_python(source, namespace)
     return value, namespace
 
 
@@ -377,7 +394,8 @@ def check_entry(entry: Entry) -> list[Outcome]:
                 continue
             for library, _, source in entry.blocks():
                 ours, printed = run_ours(entry, engine)
-                theirs, _, _ = run_python(source)
+                with practice_files():
+                    theirs, _, _ = run_python(source)
                 differences = compare(entry, ours, theirs)
                 if OLD_NAME_NOTE in printed:
                     differences.append("the simplydata code uses an old name: " + printed.strip())

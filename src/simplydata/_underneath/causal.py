@@ -9,7 +9,8 @@ Practice tables: "job_training", "job_search", "drug_levels" (real), "deaths_by_
 from . import Entry
 
 LALONDE = """
-    df = sdata.get_example("job_training")
+    import pandas as pd
+    df = pd.read_csv("job_training.csv")
     t = df["treat"].to_numpy(dtype=float)
     y = df["re78"].to_numpy(dtype=float)
     age, educ, married, nodegree = (df[c].to_numpy(dtype=float) for c in ("age", "educ", "married", "nodegree"))
@@ -22,7 +23,8 @@ FRAME_R = ("d <- data.frame(t = t, y = y, age = age, educ = educ, race = race, m
            "f <- t ~ age + educ + race + married + nodegree + re74 + re75")
 DEATHS = """
     import numpy as np
-    df = sdata.get_example("deaths_by_age")
+    import pandas as pd
+    df = pd.read_csv("deaths_by_age.csv")
     obs = df.pivot(index="county", columns="age_band", values="deaths")
     tar = df.pivot(index="county", columns="age_band", values="person_years")
     o, t = obs.to_numpy(dtype=float), tar.to_numpy(dtype=float)
@@ -35,7 +37,7 @@ FILL_IN = """
     from statsmodels.imputation.mice import MICEData
     import simplydata._r as r
     r.need_r(("mice",), "mice")                                     # R first, as simplydata does
-    df = sdata.get_example("school")
+    df = pd.read_csv("school.csv")
     imputer = MICEData(pd.DataFrame({"v0": df["sleep"], "v1": df["marks"].astype(float)}), k_pmm=5, rng=1)
     imputer.update_all(10)                                          # 10 cycles before the first table
     tables = []
@@ -144,7 +146,8 @@ ENTRIES = [
         },
         r_inputs="""
             import numpy as np
-            df = sdata.get_example("clinic")
+            import pandas as pd
+            df = pd.read_csv("clinic.csv")
             b, a = df[df["ward"] == "ward B"], df[df["ward"] == "ward A"]
             e1, e0 = (b["infected"] == "yes").sum(), (a["infected"] == "yes").sum()
             n = np.array([e1, len(b) - e1, e0, len(a) - e0], dtype=float)   # exposed first, events first
@@ -237,7 +240,8 @@ ENTRIES = [
         code={"statsmodels": """
             import statsmodels.formula.api as smf
             from statsmodels.stats.mediation import Mediation
-            df = sdata.get_example("job_search")
+            import pandas as pd
+            df = pd.read_csv("job_search.csv")
             # explain("depress2", using="treat", through="job_seek", allowing_for=["econ_hard", "sex", "age"])
             mediator = smf.ols("job_seek ~ treat + econ_hard + sex + age", data=df)            # (1)
             outcome = smf.ols("depress2 ~ treat + job_seek + econ_hard + sex + age", data=df)
@@ -267,7 +271,8 @@ ENTRIES = [
         code={"statsmodels": """
             import numpy as np
             import statsmodels.formula.api as smf
-            df = sdata.get_example("drug_levels")
+            import pandas as pd
+            df = pd.read_csv("drug_levels.csv")
             first = df[df["period"] == 1].set_index("subject")["formulation"]
             df["sequence"] = df["subject"].map(first)                                          # (1)
             # compare_averages_of("auc", ..., matched_by="subject", period="period", same_within=[0.8, 1.25])

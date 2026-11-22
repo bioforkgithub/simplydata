@@ -18,7 +18,8 @@ ENTRIES = [
         """,
         code={"SciPy": """
             from scipy import stats
-            df = sdata.get_example("trial")
+            import pandas as pd
+            df = pd.read_csv("trial.csv")
             # the core of compare_averages_of("days", for_each_group_in="treatment")
             a, b = [rows["days"] for _, rows in df.groupby("treatment", sort=False)]
             res = stats.ttest_ind(a, b, equal_var=False)       # (1)
@@ -43,7 +44,8 @@ ENTRIES = [
         """,
         code={"SciPy": """
             from scipy import stats
-            df = sdata.get_example("marks")
+            import pandas as pd
+            df = pd.read_csv("marks.csv")
             # fit_line(x="hours", y="marks")
             fit = stats.linregress(df["hours"], df["marks"])
             t = stats.t.ppf(0.975, len(df) - 2)                 # (1)

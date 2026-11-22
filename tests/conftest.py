@@ -135,6 +135,21 @@ def fresh_old_name_notes():
     yield
 
 
+def example_frame(name):
+    """The practice table read straight from its file by pandas, for the reference side of a comparison.
+
+    sdata.get_example(name) gives a simplydata table (since 0.3.0); a test that checks a word against pandas,
+    NumPy, SciPy or statsmodels reads the same file here with pandas itself, so the reference does not go
+    through simplydata at all. The date columns are read as dates, as sdata.get_example reads them.
+    """
+    from importlib.resources import files
+
+    from simplydata.data import DATE_COLUMNS
+
+    with (files("simplydata.data") / f"{name}.csv").open("r", encoding="utf-8") as fh:
+        return pd.read_csv(fh, parse_dates=DATE_COLUMNS.get(name, False))
+
+
 @pytest.fixture
 def marks():
     """A small class-marks table used by many tests."""

@@ -60,7 +60,8 @@ class FourierNumberWords:
         print("Method: SciPy fft" + (".rfft" if show == "half" else ".fft") + ", as R Mod(fft(x)) and Arg(fft(x)).")
         table = Table(pd.DataFrame({"frequency": freq, "size": np.abs(z), "phase": np.degrees(np.angle(z)),
                                     "real part": z.real, "imaginary part": z.imag}))
-        table._fourier = {"n": n, "show": show, "time_step": step}
+        # the frequencies are kept too: find_inverse_fourier_transform checks the rows are still these
+        table._fourier = {"n": n, "show": show, "time_step": step, "frequency": freq.copy()}
         return table
 
     @friendly

@@ -2,7 +2,7 @@
 
 Every number runs in R itself (simplydata[r]); these tests check that simplydata asks R the right
 question and reads the answer back correctly. Reference values: R 4.6.2 with forecast 9.0.2 and
-changepoint 2.3, on sdata.get_example("visitors") and sdata.get_example("river") (scripts ref_phase3b.R and
+changepoint 2.3, on example_frame("visitors") and example_frame("river") (scripts ref_phase3b.R and
 ref_phase3b_more.R in the v0.6 scratch folder):
 library(forecast); library(changepoint); v <- read.csv("visitors.csv")
 h <- v$visitors[v$museum == "Harbour Museum"]; x <- ts(h, frequency = 12)
@@ -16,6 +16,7 @@ import pytest
 import simplydata as sdata
 from simplydata import SimplydataError
 from simplydata.table import table as make_table
+from conftest import example_frame
 
 ENGINES = ["pandas", "polars"]
 
@@ -28,12 +29,12 @@ def engine(request):
 def make(data, engine):
     if engine == "polars":
         pl = pytest.importorskip("polars")
-        return make_table(pl.from_pandas(data))
+        return make_table(data, fast=True)
     return make_table(data)
 
 
 def harbour(engine):
-    data = sdata.get_example("visitors")
+    data = example_frame("visitors")
     return make(data[data.museum == "Harbour Museum"].reset_index(drop=True), engine)
 
 
@@ -194,14 +195,14 @@ def test_compare_forecasts_without_a_season_matches_r(needs_r, capsys):
 
 
 def test_forecast_for_each_group(engine, needs_r):
-    result = make(sdata.get_example("visitors"), engine).forecast("visitors", sorted_by="month", steps_ahead=2,
+    result = make(example_frame("visitors"), engine).forecast("visitors", sorted_by="month", steps_ahead=2,
                                                               test_method="last value", for_each_group_in="museum")
     assert result._frame["museum"].to_list() == ["Harbour Museum"] * 2 + ["Hill Gallery"] * 2
     assert col(result, "forecast")[:2] == pytest.approx([2072, 2072])
 
 
 def test_nums_forecast_matches_r(needs_r, capsys):
-    nums = sdata.numbers(sdata.get_example("visitors")["visitors"][:144])
+    nums = sdata.get_example("visitors").get_column("visitors").keep_first_numbers(144)
     result = nums.forecast(steps_ahead=3, test_method="same season last time", repeats_every=12)
     assert col(result, "forecast") == pytest.approx([1871, 1925, 1930])  # R snaive(x, h = 3)$mean
     assert "for the next 3 steps" in capsys.readouterr().out
@@ -231,7 +232,7 @@ def test_forecast_errors(engine):
         h.forecast("visitors", sorted_by="month", check_on_last=142)
     with pytest.raises(SimplydataError, match="at least two methods"):
         h.compare_forecasts_for("visitors", sorted_by="month", test_method=["naive"])
-    river = make(sdata.get_example("river"), engine)
+    river = make(example_frame("river"), engine)
     with pytest.raises(SimplydataError, match="evenly spaced"):
         river.forecast("nitrate", sorted_by="date", for_each_group_in="station")
 
@@ -257,7 +258,7 @@ def test_change_points_match_r(needs_r, capsys):
 
 
 def test_change_points_on_river_match_r(engine, needs_r, capsys):
-    result = make(sdata.get_example("river"), engine).find_change_points_in("nitrate", sorted_by="date", for_each_group_in="station")
+    result = make(example_frame("river"), engine).find_change_points_in("nitrate", sorted_by="date", for_each_group_in="station")
     frame = result._frame
     assert frame["station"].to_list() == ["Station A", "Station B", "Station B"]
     # R: xb <- r$nitrate[r$station == "Station B"]; cpts(cpt.mean(xb / (mad(diff(xb)) / sqrt(2)), ...)) = 453
@@ -272,7 +273,7 @@ def test_change_points_on_river_match_r(engine, needs_r, capsys):
 
 
 def test_change_point_errors(engine):
-    river = make(sdata.get_example("river"), engine)
+    river = make(example_frame("river"), engine)
     with pytest.raises(SimplydataError, match="change"):
         river.find_change_points_in("nitrate", change="slope")
     with pytest.raises(SimplydataError, match="penalty"):

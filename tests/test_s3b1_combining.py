@@ -11,6 +11,7 @@ import pytest
 
 import simplydata as sdata
 from simplydata._errors import SimplydataError
+from conftest import example_frame
 
 CALL = dict(names="trial", events=["tb_vaccinated", "tb_unvaccinated"], out_of=["vaccinated", "unvaccinated"])
 
@@ -181,13 +182,13 @@ def test_meta_regression_with_two_columns(bcg, needs_r):
 def test_polars_tables_work_too(needs_r):
     import polars as pl
 
-    frame = pl.from_pandas(sdata.get_example("bcg"))
+    frame = sdata.table(sdata.get_example("bcg"), fast=True)
     row = _row(sdata.table(frame).combine_studies(**CALL), "combined")
     assert row["estimate"] == pytest.approx(np.exp(-0.7145323), rel=1e-6)
 
 
 def test_two_studies_have_no_prediction_interval(needs_r, capsys):
-    frame = sdata.get_example("bcg").head(2)
+    frame = example_frame("bcg").head(2)
     sdata.table(frame).combine_studies(**CALL)
     out = capsys.readouterr().out
     assert "no prediction interval (it needs 3)" in out and "honest, not an error" in out
@@ -236,7 +237,7 @@ def test_more_events_than_people_is_refused():
 
 def test_one_study_is_refused():
     with pytest.raises(SimplydataError, match="at least 2 studies"):
-        sdata.table(sdata.get_example("bcg").head(1)).combine_studies(**CALL)
+        sdata.table(example_frame("bcg").head(1)).combine_studies(**CALL)
 
 
 def test_spellings_of_methods_and_shows():

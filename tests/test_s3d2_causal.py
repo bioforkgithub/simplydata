@@ -16,6 +16,7 @@ import pytest
 
 import simplydata as sdata
 from simplydata import SimplydataError
+from conftest import example_frame
 
 DATA = Path(__file__).resolve().parents[1] / "validation" / "data"
 COLUMNS = ["age", "educ", "race", "married", "nodegree", "re74", "re75"]
@@ -132,7 +133,7 @@ def test_mediation_is_statsmodels_mediation(capsys):
     import statsmodels.formula.api as smf
     from statsmodels.stats.mediation import Mediation
 
-    df = sdata.get_example("job_search")
+    df = example_frame("job_search")
     med = smf.ols("job_seek ~ treat + econ_hard + sex + age", data=df)
     out = smf.ols("depress2 ~ treat + job_seek + econ_hard + sex + age", data=df)
     s = Mediation(out, med, "treat", "job_seek").fit(n_rep=1000, rng=1).summary()
@@ -151,7 +152,7 @@ def test_mediation_is_statsmodels_mediation(capsys):
 def test_mediation_simulation_estimates_the_product_of_coefficients():
     import statsmodels.formula.api as smf
 
-    df = sdata.get_example("job_search")
+    df = example_frame("job_search")
     a = smf.ols("job_seek ~ treat + econ_hard + sex + age", data=df).fit().params["treat"]
     b = smf.ols("depress2 ~ treat + job_seek + econ_hard + sex + age", data=df).fit().params["job_seek"]
     r = sdata.table(df).explain("depress2", using="treat", through="job_seek",
@@ -160,7 +161,7 @@ def test_mediation_simulation_estimates_the_product_of_coefficients():
 
 
 def test_mediation_with_a_yes_or_no_outcome_and_a_text_exposure(capsys):
-    df = sdata.get_example("job_search").assign(group=lambda d: np.where(d["treat"] == 1, "workshop", "booklet"))
+    df = example_frame("job_search").assign(group=lambda d: np.where(d["treat"] == 1, "workshop", "booklet"))
     r = sdata.table(df).explain("work1", using="group", through="job_seek", outcome="yes or no", against="booklet")
     assert len(r) == 4
     text = capsys.readouterr().out
@@ -235,7 +236,7 @@ def test_effect_for_a_group_with_weighting_is_the_att(needs_r):
 
 
 def test_a_yes_or_no_outcome_gives_a_risk_difference(needs_r, capsys):
-    df = sdata.get_example("job_training").assign(earned=lambda d: np.where(d["re78"] > 0, "yes", "no"))
+    df = example_frame("job_training").assign(earned=lambda d: np.where(d["re78"] > 0, "yes", "no"))
     r = sdata.table(df).compare_balanced_groups_of("earned", for_each_group_in="treat", allowing_for=COLUMNS)
     assert -1 < r.as_pandas()["estimate"][0] < 1
     assert "risk difference" in capsys.readouterr().out
@@ -309,7 +310,7 @@ def test_direct_standardisation_with_a_standard_table(needs_r):
     std = pd.DataFrame({"age_band": list(NATIONAL), "population": [100, 100, 100, 100, 100, 100]})
     r = t.rate_of("deaths", time="person_years", for_each_group_in="county", allowing_for="age_band",
                   standard_population=std).as_pandas().set_index("group")
-    rates = sdata.get_example("deaths_by_age").query("county == 'Eastmere'")
+    rates = example_frame("deaths_by_age").query("county == 'Eastmere'")
     assert r.loc["Eastmere", "adjusted rate"] == pytest.approx((rates["deaths"] / rates["person_years"]).mean() * 1000,
                                                                rel=1e-9)  # equal weights: the plain average rate
 
@@ -318,7 +319,7 @@ def test_indirect_standardisation_is_observed_over_expected(needs_r, capsys):
     t = sdata.table(sdata.get_example("deaths_by_age"))
     r = t.compare_rates("deaths", time="person_years", for_each_group_in="county", allowing_for="age_band",
                         standard_rates=NATIONAL).as_pandas().set_index("group")
-    df = sdata.get_example("deaths_by_age").query("county == 'Northvale'")
+    df = example_frame("deaths_by_age").query("county == 'Northvale'")
     expected = (df["person_years"] * df["age_band"].map(NATIONAL) / 1000).sum()
     assert r.loc["Northvale", "expected"] == pytest.approx(expected, rel=1e-12)
     assert r.loc["Northvale", "observed / expected"] == pytest.approx(df["deaths"].sum() / expected, rel=1e-12)
@@ -342,7 +343,7 @@ def test_direct_standardisation_refusals(call, message):
 
 
 def test_direct_standardisation_refuses_an_empty_band():
-    df = sdata.get_example("deaths_by_age")
+    df = example_frame("deaths_by_age")
     df.loc[(df["county"] == "Eastmere") & (df["age_band"] == "80+"), ["deaths", "person_years"]] = 0
     with pytest.raises(SimplydataError, match="no \"person_years\" for 80\\+ in Eastmere"):
         sdata.table(df).rate_of("deaths", time="person_years", for_each_group_in="county", allowing_for="age_band",
@@ -387,7 +388,7 @@ def test_correlation_imputation_without_empty_cells_is_the_ordinary_one(needs_r,
 
 
 def test_cox_model_with_multiple_imputation_pools_with_mice(needs_r, capsys):
-    df = sdata.get_example("trial")
+    df = example_frame("trial")
     df.loc[df.index[::6], "age"] = None
     r = sdata.table(df).explain_survival(time="days", event="died", using=["treatment", "age"],
                                          empty_cells="multiple imputation").as_pandas()
@@ -415,7 +416,7 @@ def test_new_practice_tables(name, rows):
 
 def test_drug_levels_is_reference_dataset_a():
     ref = pd.read_csv(DATA / "bioequivalence_reference.csv").query("dataset == 'A'").drop(columns="dataset")
-    pd.testing.assert_frame_equal(sdata.get_example("drug_levels"), ref.reset_index(drop=True))
+    pd.testing.assert_frame_equal(example_frame("drug_levels"), ref.reset_index(drop=True))
 
 
 @pytest.mark.parametrize("typed", ["propensity", "matchit", "mediation", "smr", "ageadjust", "bioequivalence",
@@ -428,7 +429,7 @@ def test_other_names_point_to_the_new_options(typed, capsys):
 # ---------------------------------------------------------------- review fixes
 def test_standardised_ratios_are_read_back_by_group_name(needs_r):
     """epiR sorts its strata as text (by the locale): every group must keep its own numbers."""
-    df = sdata.get_example("deaths_by_age")
+    df = example_frame("deaths_by_age")
     names = {"Northvale": "2", "Eastmere": "10", "Southby": "bergen", "Westford": "Oslo"}
     df["county"] = df["county"].map(names)
     r = sdata.table(df).compare_rates("deaths", time="person_years", for_each_group_in="county",

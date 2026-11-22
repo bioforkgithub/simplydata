@@ -1,6 +1,6 @@
 """S1 Part A: more test_method= choices on compare_averages, compare_spreads and compare_counts.
 
-Reference values: R 4.6.2 on sdata.get_example("marks") (m <- read.csv(".../marks.csv"); a, b, cc = the marks of
+Reference values: R 4.6.2 on example_frame("marks") (m <- read.csv(".../marks.csv"); a, b, cc = the marks of
 classes A, B and C; ab = the rows of classes A and B; res = ifelse(m$marks >= 60, "60 or more", "below 60")).
 """
 
@@ -10,6 +10,7 @@ import pytest
 import simplydata as sdata
 from simplydata import SimplydataError
 from simplydata.table import table as make_table
+from conftest import example_frame
 
 REL = 1e-9
 
@@ -22,7 +23,7 @@ def engine(request):
 def make(data, engine):
     if engine == "polars":
         pl = pytest.importorskip("polars")
-        return make_table(pl.from_pandas(data))
+        return make_table(data, fast=True)
     return make_table(data)
 
 
@@ -32,7 +33,7 @@ def row(result):
 
 @pytest.fixture
 def marks():
-    return sdata.get_example("marks")
+    return example_frame("marks")
 
 
 @pytest.fixture

@@ -96,6 +96,23 @@ def _rows_word(n) -> str:
     return f"{n} row" if n == 1 else f"{n} rows"
 
 
+POLARS_HALVES_TO_EVEN = (1, 29)  # Polars rounds a float exactly halfway to the even neighbour from 1.29 (RoundMode)
+
+
+def _need_polars_rounding_halves_to_even():
+    """round_numbers_in on a Polars table: Polars before 1.29 rounded halves away from zero (2.5 to 3), so the
+    same step would give other numbers than on a pandas table (2.5 to 2). pyproject asks for polars>=1.29; this
+    stops an older Polars that is already installed from giving those other numbers without a word."""
+    import polars as pl
+
+    found = tuple(int(part) for part in pl.__version__.split(".")[:2] if part.isdigit())
+    if found < POLARS_HALVES_TO_EVEN:
+        raise SimplydataError(
+            f"round_numbers_in() on a Polars table needs Polars 1.29 or newer, which rounds a number exactly halfway to "
+            f"the even neighbour (2.5 to 2), as pandas, NumPy and R do. This computer has Polars {pl.__version__}, "
+            "which rounds it away from zero (2.5 to 3).\nUpdate it with:  pip install -U \"polars>=1.29\"")
+
+
 def _nice(value) -> str:
     """A number or date written for people: 61, 61.5, 2026-03-15."""
     if value is None:
@@ -103,9 +120,10 @@ def _nice(value) -> str:
     if isinstance(value, float):
         if value != value:  # NaN
             return ""
-        if value.is_integer() and abs(value) < 1e15:
-            return str(int(value))
-        return str(round(value, 2))
+        shown = round(value, 2)  # rounded first, so 62.001 is written 62, not 62.0
+        if shown.is_integer() and abs(shown) < 1e15:
+            return str(int(shown))
+        return str(shown)
     if isinstance(value, (_dt.date, _dt.datetime)) or hasattr(value, "to_pydatetime"):
         return _say(value)
     return str(value)
@@ -1452,6 +1470,8 @@ class RowWords:
                         f'.round_numbers_in() rounds numbers, but "{name}" is a {self._kind_of(name)} column.\n'
                         f"Columns with numbers: {', '.join(number_columns) or 'none'}" + _example(example)
                     )
+        if self._frame.implementation.is_polars():
+            _need_polars_rounding_halves_to_even()
         changes = []
         for name in names:
             dtype = self._frame.schema[name]

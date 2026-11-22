@@ -100,7 +100,7 @@ def compare_risks(events=None, out_of=None, names=None, against=None, interval=9
 
         raise choice_error(step, "p_value_by", p_value_by, ["formula", "exact"])
     names = _group_names(step, names, len(ev), example)
-    ref = pick_against(step, names, against, example)
+    ref = pick_against(step, names, against, example, order="given")
     alt, up, claim = _sides(step, names, ref, sides, higher, lower, alternative, example, same_within, not_lower,
                             not_higher)
     if same_within is not None and len(names) != 2:
@@ -135,7 +135,7 @@ def compare_rates(events=None, time=None, names=None, against=None, per=1000, in
     if isinstance(per, bool) or not isinstance(per, (int, float)) or per <= 0:
         raise SimplydataError(f"per= is the amount of time the rate is given for, such as per=1000.\nFor example, {example}")
     names = _group_names(step, names, len(ev), example)
-    ref = pick_against(step, names, against, example)
+    ref = pick_against(step, names, against, example, order="given")
     alt, up, claim = _sides(step, names, ref, sides, higher, lower, alternative, example, same_within, not_lower,
                             not_higher)
     if same_within is not None and len(names) != 2:

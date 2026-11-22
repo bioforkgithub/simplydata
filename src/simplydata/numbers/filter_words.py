@@ -142,7 +142,8 @@ class FilterNumberWords:
 
         nums.remove_each_frequency_that(is_equal_to=50, time_step=0.005)
         is_between=[49, 51] removes a band; is_equal_to=50 one frequency (a notch, width= how wide; and_multiples
-        =True also removes 100, 150 ...: a comb); is_below= and is_above= remove the slow or the fast cycles.
+        =True also removes 100, 150 ... below half the readings per unit of time, one SciPy iirnotch each; the
+        average stays); is_below= and is_above= remove the slow or the fast cycles.
         The options are those of keep_each_frequency_that (show_filter= too). Undo with nums.undo().
         """
         return self._filter_word(False, is_below, is_above, is_between, is_equal_to, time_step, test_method, steepness, both_ways,

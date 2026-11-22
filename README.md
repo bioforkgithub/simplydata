@@ -352,7 +352,7 @@ to try yourself.
 - `sdata.show_all_words()` lists every word, with an example (also on the first pages of the [dictionary](https://github.com/bioforkgithub/simplydata/blob/main/docs/manual/simplydataDictionary.pdf))
 - `sdata.help("draw_bars")` explains one word: what it does, its options and an example
   (table and number words too: `sdata.help("keep_rows_where")`, `sdata.help("find_average")`)
-- `sdata.get_example()` lists the made-up tables to practise with (marks, weather, fruit, growth, sensor, visitors, river, shop, school, meadow, trial, clinic, island; shop has dates and empty cells)
+- `sdata.get_example()` lists the made-up tables to practise with (marks, weather, fruit, growth, sensor, visitors, river, shop, school, meadow, trial, clinic, island; shop has dates and empty cells); `sdata.get_example("marks")` gives one back as a simplydata table, ready for every table word
 - `sdata.show_lesson(3, solutions=True)` adds a worked solution to each "Try it yourself" task
 - `sdata.show_packages_used()` lists the packages that did the work behind your words (pandas, SciPy, R packages ...), with versions and the references their authors ask for; a short list is also printed at the end of a script
 

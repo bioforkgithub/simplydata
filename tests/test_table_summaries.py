@@ -11,6 +11,7 @@ import simplydata as sdata
 from simplydata import SimplydataError
 from simplydata.table import table as make_table
 from simplydata.table.summaries import GROUPS_IN_SENTENCE, _p_clause, _p_sentence, _say_number, _strength
+from conftest import example_frame
 
 ENGINES = ["pandas", "polars"]
 
@@ -40,7 +41,7 @@ def gappy():
 def make(data, engine):
     if engine == "polars":
         pl = pytest.importorskip("polars")
-        return make_table(pl.from_pandas(data))
+        return make_table(data, fast=True)
     return make_table(data)
 
 
@@ -265,7 +266,7 @@ def test_correlation_skips_empty_rows(engine, gappy, capsys):
 def test_correlation_words_on_example():
     t = make_table(sdata.get_example("marks"))
     r = t.find_correlation_between("hours", "marks")
-    ex = sdata.get_example("marks")
+    ex = example_frame("marks")
     assert r == pytest.approx(stats.pearsonr(ex["hours"], ex["marks"])[0])
 
 

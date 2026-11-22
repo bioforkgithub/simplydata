@@ -268,8 +268,9 @@ def _tx(name: str, body: str) -> str:
 
 
 def _nx(body: str, values: str = "[12, 15, 9, 20, 14]") -> str:
-    """A runnable numbers example: make some numbers, then the steps."""
-    lines = ["import simplydata as sdata", f"nums = sdata.numbers({values})"]
+    """A runnable numbers example: make some numbers (or take a column of a practice table), then the steps."""
+    made = values if values.startswith("sdata.get_example(") else f"sdata.numbers({values})"
+    lines = ["import simplydata as sdata", f"nums = {made}"]
     lines += textwrap.dedent(body).strip().splitlines()
     return "\n".join(lines)
 
@@ -815,7 +816,7 @@ HELP_EXAMPLES = {
     "draw_threshold_check": _ex("rain", 'chart.draw_threshold_check(x="rain", between=[10, 30])', "rain_threshold"),
     # signals and time series
     "table.find_spectrum_of": _tx("sensor", 'table.find_spectrum_of("signal", sorted_by="time")'),
-    "nums.find_spectrum": _nx("nums.find_spectrum(time_step=0.005)", values='sdata.get_example("sensor")["signal"]'),
+    "nums.find_spectrum": _nx("nums.find_spectrum(time_step=0.005)", values='sdata.get_example("sensor").get_column("signal")'),
     "table.check_steady_over_time": _tx("sensor", 'table.check_steady_over_time("signal", sorted_by="time")'),
     "table.find_autocorrelation_of": _tx("sensor", 'table.find_autocorrelation_of("signal", sorted_by="time", rows_back=10)'),
     "table.add_trend_and_season": _tx("visitors", """\
@@ -828,26 +829,26 @@ HELP_EXAMPLES = {
         table.fill_empty_cells_in("nitrate", with_the="line between neighbours", sorted_by="date", for_each_group_in="station")"""),
     "table.add_smoothed_column": _tx("sensor", 'table.add_smoothed_column("signal_smoothed", from_column="signal", '
                                                'test_method="savitzky-golay", window=11, sorted_by="time")'),
-    "nums.smooth": _nx('nums.smooth(test_method="median", window=5)', values='sdata.get_example("sensor")["signal"]'),
-    "nums.remove_trend": _nx("nums.remove_trend()", values='sdata.get_example("sensor")["signal"]'),
+    "nums.smooth": _nx('nums.smooth(test_method="median", window=5)', values='sdata.get_example("sensor").get_column("signal")'),
+    "nums.remove_trend": _nx("nums.remove_trend()", values='sdata.get_example("sensor").get_column("signal")'),
     "nums.keep_each_frequency_that": _nx("nums.keep_each_frequency_that(is_below=10, time_step=0.005)",
-                                 values='sdata.get_example("sensor")["signal"]'),
+                                 values='sdata.get_example("sensor").get_column("signal")'),
     "nums.remove_each_frequency_that": _nx("nums.remove_each_frequency_that(is_equal_to=50, time_step=0.005)",
-                                   values='sdata.get_example("sensor")["signal"]'),
+                                   values='sdata.get_example("sensor").get_column("signal")'),
     "table.add_filtered_column": _tx("sensor", 'table.add_filtered_column("slow", from_column="signal", keep_below=10, '
                                                'sorted_by="time")'),
-    "nums.find_each_peak_that": _nx("nums.find_each_peak_that(is_at_least=1, apart=10)", values='sdata.get_example("sensor")["signal"]'),
-    "nums.find_each_dip_that": _nx("nums.find_each_dip_that(is_at_most=-1, apart=10)", values='sdata.get_example("sensor")["signal"]'),
+    "nums.find_each_peak_that": _nx("nums.find_each_peak_that(is_at_least=1, apart=10)", values='sdata.get_example("sensor").get_column("signal")'),
+    "nums.find_each_dip_that": _nx("nums.find_each_dip_that(is_at_most=-1, apart=10)", values='sdata.get_example("sensor").get_column("signal")'),
     "table.find_each_peak_that": _tx("sensor", 'table.find_each_peak_that("signal", sorted_by="time", is_at_least=1, apart=0.05)'),
     "table.find_each_dip_that": _tx("sensor", 'table.find_each_dip_that("signal", sorted_by="time", is_at_most=-1, apart=0.05)'),
-    "nums.take_fourier_transform": _nx("nums.take_fourier_transform(time_step=0.005)", values='sdata.get_example("sensor")["signal"]'),
+    "nums.take_fourier_transform": _nx("nums.take_fourier_transform(time_step=0.005)", values='sdata.get_example("sensor").get_column("signal")'),
     "sdata.find_inverse_fourier_transform": _nx("""        table = nums.take_fourier_transform()
         back = sdata.find_inverse_fourier_transform(table)""", values="[1, 2, 3, 4]"),
-    "nums.find_envelope": _nx("nums.find_envelope()", values='sdata.get_example("sensor")["signal"]'),
+    "nums.find_envelope": _nx("nums.find_envelope()", values='sdata.get_example("sensor").get_column("signal")'),
     "nums.convolve_with": _nx("nums.convolve_with([1, 2, 1])", values="[1, 2, 3]"),
     "nums.deconvolve_by": _nx("nums.deconvolve_by([1, 2, 3])", values="[0, 1, 2.5, 4, 1.5]"),
     "nums.change_time_step": _nx("nums.change_time_step(to=0.01, time_step=0.005)",
-                                 values='sdata.get_example("sensor")["signal"]'),
+                                 values='sdata.get_example("sensor").get_column("signal")'),
     "sdata.make_wave": "\n".join(["import simplydata as sdata",
                               'nums = sdata.make_wave("sine", frequency=5, time_step=0.01, how_many=100)']),
     "sdata.make_window_shape": "\n".join(["import simplydata as sdata", 'nums = sdata.make_window_shape("hann", how_many=64)']),
@@ -880,13 +881,13 @@ HELP_EXAMPLES = {
     "table.forecast": _tx("visitors", 'table.forecast("visitors", sorted_by="month", steps_ahead=12, '
                                       'repeats_every="year", for_each_group_in="museum")'),
     "nums.forecast": _nx("nums.forecast(steps_ahead=12, repeats_every=12)",
-                         values='sdata.get_example("visitors")["visitors"][:144]'),
+                         values='sdata.get_example("visitors").get_column("visitors").keep_first_numbers(144)'),
     "table.compare_forecasts_for": _tx("visitors", 'table.compare_forecasts_for("visitors", sorted_by="month", '
                                                'repeats_every="year", for_each_group_in="museum")'),
     "table.find_change_points_in": _tx("river", 'table.find_change_points_in("nitrate", sorted_by="date", '
                                              'for_each_group_in="station")'),
     "nums.find_autocorrelation": _nx("nums.find_autocorrelation(rows_back=10)",
-                                   values='sdata.get_example("sensor")["signal"]'),
+                                   values='sdata.get_example("sensor").get_column("signal")'),
     # survival
     "table.find_survival_over_time": _tx("trial", 'table.find_survival_over_time(time="days", event="died", for_each_group_in="treatment")'),
     "table.compare_survival": _tx("trial", 'table.compare_survival(time="days", event="died", for_each_group_in="treatment")'),

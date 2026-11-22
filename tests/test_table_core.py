@@ -9,14 +9,14 @@ from simplydata import SimplydataError
 def table(request, marks):
     if request.param == "polars":
         pl = pytest.importorskip("polars")
-        return sdata.table(pl.from_pandas(marks))
+        return sdata.table(marks, fast=True)
     return sdata.table(marks)
 
 
 def test_engine_follows_input(marks):
     assert sdata.table(marks)._engine == "pandas"
     pl = pytest.importorskip("polars")
-    assert sdata.table(pl.from_pandas(marks))._engine == "Polars"
+    assert sdata.table(marks, fast=True)._engine == "Polars"
     assert sdata.table(marks, fast=True)._engine == "Polars"
 
 

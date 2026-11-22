@@ -128,17 +128,27 @@ def _lomb_scargle(y, times):
     return (np.asarray(out["f"], dtype=float), np.asarray(out["p"], dtype=float))
 
 
-def _top_sentence(freq, power, shares, what, per, periods):
+def strongest_cycles(freq, values, top=TOP):
+    """The positions (in freq) of the strongest cycles: the local peaks above frequency 0 (SciPy find_peaks, the
+    ends counting as peaks), strongest first, at most top of them. The sentence of find_spectrum_of names them
+    and chart.spectrum labels them, so both always show the same cycles."""
     from scipy.signal import find_peaks
 
-    keep = freq > 0
-    f, p = freq[keep], power[keep]
-    s = shares[keep] if shares is not None else None
+    freq, values = np.asarray(freq, dtype=float), np.asarray(values, dtype=float)
+    where = np.flatnonzero(freq > 0)
+    p = values[where]
     tops, _ = find_peaks(np.concatenate([[-np.inf], p, [-np.inf]]))
     tops = tops - 1
     if not len(tops):
         tops = np.array([int(np.argmax(p))])
-    tops = tops[np.argsort(-p[tops], kind="stable")][:TOP]
+    return where[tops[np.argsort(-p[tops], kind="stable")][:top]]
+
+
+def _top_sentence(freq, power, shares, what, per, periods):
+    keep = freq > 0
+    f, p = freq[keep], power[keep]
+    s = shares[keep] if shares is not None else None
+    tops = strongest_cycles(f, p)
 
     def one(i, first):
         held = f" and holds {round(s[i])} % of the variance" if s is not None and first else (

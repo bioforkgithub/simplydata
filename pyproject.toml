@@ -40,7 +40,7 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-fast = ["polars>=0.20", "pyarrow>=14"]
+fast = ["polars>=1.29", "pyarrow>=14"]
 files = ["python-docx>=1.1", "pyreadstat>=1.2"]
 stats = []  # kept so that pip install "simplydata[stats]" still works; statsmodels is now required
 systems = ["control>=0.10.1"]  # python-control: rise time, settling time, overshoot and margins of systems
@@ -82,7 +82,7 @@ r = ["rpy2>=3.5"]  # the bridge to R for the methods only R gives (R itself: htt
 # MB with Stan); in R install it as a ready-made build: install.packages("rstanarm", type = "binary") on Windows and
 # macOS, or from Posit's public package manager on Linux. Without it only the bayesian=True model words stop, with
 # the install line.
-test = ["pytest>=7", "polars>=0.20", "pyarrow>=14", "statsmodels>=0.14"]
+test = ["pytest>=7", "polars>=1.29", "pyarrow>=14", "statsmodels>=0.14"]
 
 [project.urls]
 Homepage = "https://github.com/bioforkgithub/simplydata"
