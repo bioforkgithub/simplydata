@@ -31,7 +31,7 @@ ENTRIES = [
         ours="""
             table = sdata.table(sdata.get_example("school"))
             result = table.find_columns_that_predict("marks", using=["hours", "sleep"])
-            result.as_pandas().query("term == 'hours'")
+            result.keep_rows_where("term", is_equal_to="hours")
         """,
         code={
             "R": """
@@ -67,7 +67,7 @@ ENTRIES = [
         ours="""
             table = sdata.table(sdata.get_example("school"))
             result = table.find_group_levels_of("marks", using=["hours"], grouped_by="school")
-            result.as_pandas().query("term == 'School A'")
+            result.keep_rows_where("term", is_equal_to="School A")
         """,
         code={
             "R": """
@@ -135,7 +135,7 @@ OPTION_ENTRIES = [
         ours="""
             table = sdata.table(sdata.get_example("school"))
             result = table.explain("marks", using=["hours"], spread_changes_with="school")
-            result.as_pandas().query("term == 'hours'")
+            result.keep_rows_where("term", is_equal_to="hours")
         """,
         code={
             "R": """
@@ -171,7 +171,7 @@ OPTION_ENTRIES = [
             level = [10 + 0.1 * t + (1.5 if t % 7 < 3 else -1.0) + (0.5 if t % 3 else -0.4) for t in years]
             table = sdata.table({"year": years, "level": level})
             result = table.explain("level", using=["year"], neighbours_alike_in_order_of="year")
-            result.as_pandas().query("term == 'year'")
+            result.keep_rows_where("term", is_equal_to="year")
         """,
         code={
             "R": """
@@ -207,7 +207,7 @@ OPTION_ENTRIES = [
         ours="""
             table = sdata.table(sdata.get_example("school"))
             result = table.compare_models("marks", using=[["hours"], ["hours", "breakfast"]])
-            result.as_pandas().query("term == 'marks ~ hours'")
+            result.keep_rows_where("term", is_equal_to="marks ~ hours")
         """,
         code={"statsmodels": """
             import numpy as np
@@ -239,7 +239,7 @@ OPTION_ENTRIES = [
         ours="""
             table = sdata.table(sdata.get_example("school"))
             result = table.compare_models("marks", using=["hours"], check_on_left_out_rows=True)
-            result.as_pandas()
+            result
         """,
         code={
             "R": """
@@ -273,7 +273,7 @@ OPTION_ENTRIES = [
             table = sdata.table(sdata.get_example("school"))
             result = table.find_model_averages_of("marks", for_each_group_in="class", using=["hours", "class"],
                                                   comparing="each with the first")
-            result.as_pandas().query("term == 'green minus blue'")
+            result.keep_rows_where("term", is_equal_to="green minus blue")
         """,
         code={
             "R": """
@@ -307,7 +307,7 @@ OPTION_ENTRIES = [
             table = sdata.table(sdata.get_example("school"))
             result = table.find_model_averages_of("marks", for_each_group_in="class", using=["class * breakfast"],
                                                   within_each_group_in="breakfast")
-            result.as_pandas().query("term == 'interaction class : breakfast'")
+            result.keep_rows_where("term", is_equal_to="interaction class : breakfast")
         """,
         code={
             "R": """
@@ -340,7 +340,7 @@ OPTION_ENTRIES = [
         ours="""
             table = sdata.table(sdata.get_example("school"))
             result = table.find_model_averages_of("marks", over_range_of="hours", using=["hours", "breakfast"])
-            result.as_pandas()
+            result
         """,
         code={
             "R": """
@@ -409,7 +409,7 @@ OPTION_ENTRIES = [
         ours="""
             table = sdata.table(sdata.get_example("school"))
             result = table.compare_averages_of(["marks", "hours"], for_each_group_in="class")
-            result.as_pandas()
+            result
         """,
         code={"statsmodels": """
             from statsmodels.multivariate.manova import MANOVA

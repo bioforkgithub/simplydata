@@ -31,7 +31,7 @@ ENTRIES = [
         ours="""
             table = sdata.table(sdata.get_example("toxicity"))
             table.keep_rows_where("chemical", is_equal_to="A")
-            table.fit_dose_response(x="concentration", y="root_length").as_pandas().query("term == 'ED50'")
+            table.fit_dose_response(x="concentration", y="root_length").keep_rows_where("term", is_equal_to="ED50")
         """,
         code={
             "R": """
@@ -358,8 +358,8 @@ OPTION_ENTRIES = [
         ours="""
             table = sdata.table(sdata.get_example("culture"))
             table.keep_rows_where("flask", is_equal_to="A")
-            table.explain("density", using=["hour"], changes_at={"hour": 10}).as_pandas().query(
-                "term == 'after hour 10'")
+            table.explain("density", using=["hour"], changes_at={"hour": 10}).keep_rows_where(
+                "term", is_equal_to="after hour 10")
         """,
         code={"statsmodels": """
             import statsmodels.formula.api as smf
