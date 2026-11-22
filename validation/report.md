@@ -1,10 +1,10 @@
 # simplydata reliability report
 
-Made by `python validation/make_report.py` on 2026-11-21. Generated: do not edit by hand.
+Made by `python validation/make_report.py` on 2026-11-22. Generated: do not edit by hand.
 
 Each simplydata word is run on real, published data and compared with the published answer, with the package simplydata uses underneath called directly, and with R. Each "same underneath" box of the manual is run next to its word and compared too. How it works, and the datasets with their licences: [validation/README.md](README.md).
 
-**1316 checks passed, 0 failed, 0 skipped** (skipped: R or an R package is not installed on this computer).
+**1328 checks passed, 0 failed, 0 skipped** (skipped: R or an R package is not installed on this computer).
 
 ## Setup
 
@@ -1931,15 +1931,15 @@ Note: The oblimin rotation of GPArotation starts from random numbers, so both si
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
-| own part of x1 | statsmodels Factor (method="ml") | 0.512529527173443 | 0.51252821161647 | relative 0.0001 | pass |
-| own part of x2 | statsmodels Factor (method="ml") | 0.7487351603869 | 0.748735819456267 | relative 0.0001 | pass |
-| own part of x3 | statsmodels Factor (method="ml") | 0.542773290729761 | 0.542774339234631 | relative 0.0001 | pass |
-| own part of x4 | statsmodels Factor (method="ml") | 0.279193093920192 | 0.279192979327485 | relative 0.0001 | pass |
-| own part of x5 | statsmodels Factor (method="ml") | 0.242877320676015 | 0.242877146936248 | relative 0.0001 | pass |
-| own part of x6 | statsmodels Factor (method="ml") | 0.30521585555841 | 0.305215802959664 | relative 0.0001 | pass |
-| own part of x7 | statsmodels Factor (method="ml") | 0.502207221916071 | 0.502208401698841 | relative 0.0001 | pass |
-| own part of x8 | statsmodels Factor (method="ml") | 0.468550489794599 | 0.468549769350948 | relative 0.0001 | pass |
-| own part of x9 | statsmodels Factor (method="ml") | 0.543247686483436 | 0.543246752777382 | relative 0.0001 | pass |
+| own part of x1 | statsmodels Factor (method="ml") | 0.512529527173443 | 0.512528188097747 | relative 0.0001 | pass |
+| own part of x2 | statsmodels Factor (method="ml") | 0.7487351603869 | 0.748735875993993 | relative 0.0001 | pass |
+| own part of x3 | statsmodels Factor (method="ml") | 0.542773290729761 | 0.542773879780259 | relative 0.0001 | pass |
+| own part of x4 | statsmodels Factor (method="ml") | 0.279193093920192 | 0.279193001916951 | relative 0.0001 | pass |
+| own part of x5 | statsmodels Factor (method="ml") | 0.242877320676015 | 0.242877565665168 | relative 0.0001 | pass |
+| own part of x6 | statsmodels Factor (method="ml") | 0.30521585555841 | 0.305215989105322 | relative 0.0001 | pass |
+| own part of x7 | statsmodels Factor (method="ml") | 0.502207221916071 | 0.502208272325915 | relative 0.0001 | pass |
+| own part of x8 | statsmodels Factor (method="ml") | 0.468550489794599 | 0.468549722198728 | relative 0.0001 | pass |
+| own part of x9 | statsmodels Factor (method="ml") | 0.543247686483436 | 0.543246662009668 | relative 0.0001 | pass |
 | own part of x1 | R | 0.512529527173443 | 0.512528169335274 | relative 0.001 | pass |
 | own part of x2 | R | 0.7487351603869 | 0.74873504605719 | relative 0.001 | pass |
 | own part of x3 | R | 0.542773290729761 | 0.542776785473323 | relative 0.001 | pass |
@@ -3171,6 +3171,18 @@ Each box's library code is run next to the simplydata word and compared. Table w
 | `table.explain test_method="bayesian", grouped_by=` | R + Python | polars | result | relative 1e-09 | pass |
 | `table.check_model_of test_method="bayesian"` | R + Python | pandas | value | relative 1e-09 | pass |
 | `table.check_model_of test_method="bayesian"` | R + Python | polars | value | relative 1e-09 | pass |
+| `get_numbers_drawn` | matplotlib | pandas | table | relative 1e-09 | pass |
+| `table.repeat_each_row_by` | pandas | pandas | table | relative 1e-09 | pass |
+| `table.repeat_each_row_by` | Polars | pandas | table | relative 1e-09 | pass |
+| `table.repeat_each_row_by` | pandas | polars | table | relative 1e-09 | pass |
+| `table.repeat_each_row_by` | Polars | polars | table | relative 1e-09 | pass |
+| `table.show_rows_that_pull_model` | statsmodels | pandas | table | relative 1e-09 | pass |
+| `table.show_rows_that_pull_model` | statsmodels | polars | table | relative 1e-09 | pass |
+| `sdata.get_example from_r_package=` | R + Python | pandas | result | relative 1e-09 | pass |
+| `table.check_model_of show="numbers"` | statsmodels | pandas | result | relative 1e-09 | pass |
+| `table.check_model_of show="numbers"` | statsmodels | polars | result | relative 1e-09 | pass |
+| `table.find_correlation_between show="result table"` | SciPy | pandas | result | relative 1e-09 | pass |
+| `table.find_correlation_between show="result table"` | SciPy | polars | result | relative 1e-09 | pass |
 
 How each kind is compared:
 
@@ -3459,6 +3471,10 @@ Where simplydata's default differs from the package underneath, it is listed her
 - `table.explain test_method="bayesian", grouped_by=` (1): a mixed model with its own starting level for each school, (1 \| school), rstanarm's decov prior for the group spread; otherwise as explain(test_method="bayesian").
 - `table.check_model_of test_method="bayesian"` (1): 50 sets of made-up values from the fitted model (posterior_predict(draws = 50)), as bayesplot's pp_check() shows by default.
 - `table.check_model_of test_method="bayesian"` (2): each set and the data as a density on one grid from the smallest to the largest value, R stats::density() with its bw.nrd0 bandwidth, the rule bayesplot::ppc_dens_overlay uses through ggplot2; the lines are drawn with matplotlib.
+- `table.show_rows_that_pull_model` (1): rows with a Cook's distance above 4 / (number of rows), a rule of thumb (Bollen & Jackman 1985), biggest first, numbered from 1 in the whole table (empty cells included).
+- `sdata.get_example from_r_package=` (1): R itself loads the dataset (utils::data, from the data file that holds it: lung is kept in "cancer"); groups (factors) become text and R's NA empty cells; row names that carry information become a first column "row name".
+- `table.check_model_of show="numbers"` (1): Koenker's studentised Breusch-Pagan test (robust=True, as R lmtest::bptest's default), which does not assume bell-shaped errors.
+- `table.find_correlation_between show="result table"` (1): the 95 % interval of Pearson's r from Fisher's z, as SciPy pearsonr and R cor.test.
 
 ## Datasets
 

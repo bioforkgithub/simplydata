@@ -73,7 +73,7 @@ ENTRIES = [
             # show_rows_that_pull_model("marks", using=["hours", "sleep"])
             fit = sm.OLS(df["marks"], sm.add_constant(df[["hours", "sleep"]])).fit()
             influence = OLSInfluence(fit)
-            cooks, hat = influence.cooks_distance[0], influence.hat_matrix_diag
+            cooks, hat = np.asarray(influence.cooks_distance[0]), np.asarray(influence.hat_matrix_diag)
             above = [i for i in np.argsort(-cooks, kind="stable") if cooks[i] > 4 / len(df)]   # (1)
             pd.DataFrame({"row": df.index.to_numpy()[above] + 1, "Cook's distance": cooks[above],
                           "leverage": hat[above]})
