@@ -38,7 +38,7 @@ ALIASES = {"moving_average": "moving average", "mean": "moving average", "averag
 ENDS = {"moving average": ("empty", "shorter windows", "mirror"), "median": ("tukey", "keep", "constant"),
         "savitzky-golay": ("fitted curve",), "gaussian": ("mirror",)}
 WINDOW_METHODS = ("moving average", "median", "savitzky-golay", "wiener")
-OPTIONS = {"moving average": {"weights"}, "savitzky-golay": {"degree"},
+OPTIONS = {"moving average": {"weights"}, "savitzky-golay": {"of_degree"},
            "exponential": {"newest_weight", "alpha", "span", "half_life", "com"}, "gaussian": {"width"},
            "lowess": {"smoothness"}, "loess": {"smoothness", "interval"}, "spline": {"smoothness"}, "whittaker": {"smoothness"}}
 R_ENDRULE = {"tukey": "median", "keep": "keep", "constant": "constant"}
@@ -171,7 +171,7 @@ def smooth(values, method="moving average", window=5, ends=None, times=None, ste
         from scipy import signal
 
         k = _odd_window(window, step_name, method)
-        degree = _opt(options, "degree", 2)
+        degree = _opt(options, "of_degree", 2)
         if isinstance(degree, bool) or not isinstance(degree, (int, np.integer)) or not 0 <= degree < k:
             raise SimplydataError(f"of_degree= needs a whole number from 0 to {k - 1} (below the window).")
         if n < k:

@@ -24,7 +24,7 @@ WIDTH = 78
 # numbers. Other spellings of a word (bar, scatter, color ...) are found by themselves and
 # shown next to it. Old names (kept for one release) are never listed here.
 GROUPS = [
-    ("Start, show and save", ["sdata.chart", "sdata.get_example", "show", "save"]),
+    ("Start, show and save", ["sdata.chart", "sdata.get_example", "show", "save", "get_numbers_drawn"]),
     ("Chart types", ["draw_bars", "draw_lines", "draw_dots", "draw_area", "draw_histogram", "draw_boxes", "draw_violins",
                      "draw_heatmap", "draw_pie", "draw_polar", "draw_contour", "draw_surface", "draw_dots_3d", "draw_band", "draw_map_of_empty_cells", "sticks"]),
     ("Statistics", ["show=", "error=", "draw_error_bars", "fit_line", "fit_curve", "fit_formula", "fit_distribution",
@@ -60,7 +60,7 @@ GROUPS = [
     ("Choose rows", ["table.keep_rows_where", "table.remove_rows_where", "table.keep_first_rows",
                      "table.keep_last_rows", "table.keep_rows_by_position", "table.remove_rows_by_position",
                      "table.reverse_rows", "table.keep_random_rows", "table.remove_duplicate_rows",
-                     "table.keep_biggest_rows", "table.keep_smallest_rows", "table.show_rows_with_outliers",
+                     "table.repeat_each_row_by", "table.keep_biggest_rows", "table.keep_smallest_rows", "table.show_rows_with_outliers",
                      "table.remove_rows_with_outliers"]),
     ("Empty cells", ["table.count_empty_cells_in", "table.remove_rows_with_empty_cells_in",
                      "table.fill_empty_cells_in", "table.add_is_empty_column"]),
@@ -314,6 +314,8 @@ HELP_EXAMPLES = {
         marks = sdata.get_example("marks")
         print(marks)"""),
     "show": _ex("marks", 'chart.draw_bars(x="name", y="marks")\nchart.show()', "marks"),
+    "get_numbers_drawn": _ex("marks", 'chart.draw_dots(x="hours", y="marks")\nchart.fit_line()\n'
+                                      'drawn = chart.get_numbers_drawn()\nprint(drawn)', "numbers_drawn"),
     "save": textwrap.dedent("""\
         import simplydata as sdata
         marks = sdata.get_example("marks")
@@ -511,6 +513,9 @@ HELP_EXAMPLES = {
     "table.reverse_rows": _tx("marks", "table.reverse_rows()\ntable.show_first_rows(3)"),
     "table.keep_random_rows": _tx("marks", "table.keep_random_rows(10, with_seed=1)\nprint(table)"),
     "table.remove_duplicate_rows": _tx("marks", 'table.remove_duplicate_rows(columns=["name"])\nprint(table)'),
+    "table.repeat_each_row_by": "\n".join(['import simplydata as sdata',
+                                           'table = sdata.table({"answer": ["yes", "no"], "count": [12, 5]})',
+                                           'table.repeat_each_row_by("count")', 'print(table)']),
     "table.keep_biggest_rows": _tx("marks", 'table.keep_biggest_rows(3, by="marks", for_each_group_in="subject")\ntable.show()'),
     "table.keep_smallest_rows": _tx("marks", 'table.keep_smallest_rows(3, by="marks", for_each_group_in="subject")\ntable.show()'),
     "table.show_rows_with_outliers": _tx("marks", 'table.show_rows_with_outliers("marks", for_each_group_in="class")'),
@@ -1723,6 +1728,8 @@ LESSONS = [
             "In Jupyter, VS Code or Spyder, write chart on the last line of a cell and the chart "
             "appears by itself. In a script, chart.show() opens it in a window.",
             "Are the names under the bars bumping into each other? Lesson 2 shows how to turn them.",
+            "chart.get_numbers_drawn() gives back a table of the numbers the chart drew (the height of each "
+            "bar, the points of each line), to check a chart or to quote its numbers.",
             "Learning on your own? sdata.start_30_days() turns the everyday lessons into 30 days of about an hour: "
             "each day starts with a few questions on earlier days and ends with a task. Then type "
             'sdata.show_today() each day (or sdata.start_30_days(track="beginner") if you have never programmed).',
@@ -2552,6 +2559,9 @@ LESSONS = [
             'works like a file name: sdata.table("https://example.org/data.csv").',
             'Files written in another way: separator=";", decimal_mark="," (3,5 is three and a half), '
             'thousands_mark=".", empty_values=["NA", "-"], skip_rows=2 and encoding="latin-1".',
+            'Give separator= when you know it, especially for a file with one column: '
+            'sdata.table("species.csv", separator=","). Without it simplydata guesses (only a comma, semicolon, '
+            "tab or bar) and prints its guess, so you can check it.",
         ],
         task=[
             'Make a table of sdata.get_example("weather"). How many rows does it have?',
@@ -3059,6 +3069,10 @@ LESSONS = [
             "Correlation is not cause. Children who study more might also sleep more, or like the "
             "subject more; r only says that two columns go up and down together, not which one "
             "makes the other change.",
+            'find_correlation_between("hours", "marks", show="result table") gives back r, its 95 % interval, '
+            "the p-value and the rows as a one-row table, ready to save for a report.",
+            'A table of counts (one row per group, with a column "count")? table.repeat_each_row_by("count") '
+            "makes it one row per thing counted, as most words need.",
             "More summaries: find_median_of, find_total_of, find_smallest_of, find_biggest_of, find_standard_deviation_of "
             "and count_rows. Each one can take for_each_group_in=.",
             "A chart never changes its table, and a table step never changes a chart you already "
@@ -4197,6 +4211,8 @@ LESSONS = [
         ],
         notes=[
             "Check before you trust: look at check_model_of's pictures before you read the p-values of explain().",
+            'check_model_of(..., show="numbers") gives back the numbers it prints (variance inflation factors, the '
+            "tests of equal spread) as a table; show_rows_that_pull_model gives back a table of the rows it found.",
             "For a yes/no or count model the first picture always shows bands of dots, one for each value; look "
             "at the smooth line, which should stay near 0.",
             "AIC and BIC compare models of the same rows only. sleep has 19 empty cells, so a model with sleep "
@@ -4609,14 +4625,14 @@ LESSONS = [
                 table.keep_rows_where("museum", is_equal_to="Harbour Museum")
                 table.forecast("visitors", sorted_by="month", steps_ahead=12, repeats_every="year", test_method="same season last time")"""),
              "It repeats last year's months, so it misses the rise; compare_forecasts_for showed it is about twice "
-             "as far off as exponential smoothing (MASE 0.930 against 0.469)."),
+             "as far off as exponential smoothing (MASE 1.38 against 0.693)."),
             (_sx("""\
                 import simplydata as sdata
                 table = sdata.table(sdata.get_example("visitors"))
                 table.keep_rows_where("museum", is_equal_to="Hill Gallery")
                 table.forecast("visitors", sorted_by="month", steps_ahead=12, test_method="straight on", check_on_last=12)"""),
-             "It follows the rise but not the season: far worse than exponential smoothing (MASE 2.08 in "
-             "compare_forecasts_for)."),
+             "It follows the rise but not the season: far worse than exponential smoothing (MASE 3.08 against "
+             "0.515 in compare_forecasts_for, which scales by the error of the same season last time)."),
         ],
         words=["draw_lines", "table.add_column_with_part_of_date", "table.forecast", "table.compare_forecasts_for", "forecast"],
     ),

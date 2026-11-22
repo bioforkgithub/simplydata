@@ -100,6 +100,8 @@ UNDERNEATH = {
     "sdata.get_example": "pandas (read_csv of a small file inside simplydata)",
     "show": "matplotlib (pyplot.show)",
     "save": "matplotlib (Figure.savefig); Pillow writes .gif animations",
+    "get_numbers_drawn": "matplotlib (the drawn artists: Line2D.get_xydata, PathCollection.get_offsets, BarContainer, "
+                         "LineCollection.get_segments, fill_between paths, QuadMesh arrays, Wedge)",
     # chart types
     "draw_bars": "seaborn (barplot; countplot for show=\"count\")",
     "draw_lines": "seaborn (lineplot); SciPy (interpolate) for joined_by= curves",

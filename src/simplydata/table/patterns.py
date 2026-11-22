@@ -282,6 +282,21 @@ class PatternWords:
             )
         return centred / spread
 
+    def _numbers_table(self, named_values, keep, constants):
+        """show="numbers" of the add_ words that draw rows on a map: one row per row used (its number in the whole
+        table, counting from 1), the coordinates, and each number that belongs to the whole map (stress, the share
+        of each axis) repeated on every row. The table itself does not change."""
+        rows = np.flatnonzero(keep)
+        data = {"row": [int(i) + 1 for i in rows]}
+        for name, values in named_values:
+            data[name] = [float(v) for v in values]
+        for name, value in constants:
+            data[name] = [float(value)] * len(rows)
+        print('Gives back the numbers as a table (show="numbers"); the table itself does not change. Leave out show= '
+              "to add the columns.")
+        schema = {k: (nw.Int64 if k == "row" else nw.Float64) for k in data}
+        return self._new_table(nw.from_dict(data, schema=schema, backend=self._frame.implementation))
+
     def _with_new_columns(self, what, named_values, keep, dtype=nw.Float64):
         """Add columns (values for the kept rows, empty cells for the others) as one undoable step."""
         base = nw.maybe_reset_index(self._frame)
@@ -660,7 +675,7 @@ class PatternWords:
 
     # ------------------------------------------------------------------ NMDS
     @friendly(renamed={"seed": "with_seed"})
-    def add_nmds(self, columns=None, measure="bray-curtis", dimensions=2, tries=20, with_seed=1):
+    def add_nmds(self, columns=None, measure="bray-curtis", dimensions=2, tries=20, with_seed=1, show=None):
         """Draw the rows as points on a map where close points are similar rows (NMDS), in new columns.
 
         table.add_nmds()   (with sdata.get_example("meadow"))
@@ -673,8 +688,12 @@ class PatternWords:
         excellent, below 0.1 good, below 0.2 usable, above 0.2 hard to trust. The axes have no units; their rotation and signs are
         arbitrary. Rows with an empty cell get empty NMDS cells. measure= takes the measures of
         find_distances_between_rows, "aitchison" for counts that are parts of a whole among them.
+        show="numbers" gives back the map as a table instead of adding columns: each row's number in the
+        table, its NMDS coordinates and the stress, as vegan::metaMDS gives them.
         """
         step = "add_nmds"
+        if show is not None:
+            self._check_choice(step, "show", show, ("numbers",))
         example = 'with sdata.get_example("meadow"): table.add_nmds()'
         self._check_choice(step, "measure", measure, list(MEASURES))
         self._check_whole(step, "dimensions=", dimensions, 1, 10, example)
@@ -708,6 +727,8 @@ class PatternWords:
         if not repeated:
             print('Note: the best map was found only once (R: "Best solution was not repeated"), so a better map '
                   f"may exist even after {most} starts.")
+        if show == "numbers":
+            return self._numbers_table([(n, points[:, i]) for i, n in enumerate(names)], keep, [("stress", stress)])
         return self._with_new_columns(f"add NMDS {', '.join(names)} of {', '.join(map(str, columns))} ({measure})",
                                       [(n, points[:, i]) for i, n in enumerate(names)], keep)
 
