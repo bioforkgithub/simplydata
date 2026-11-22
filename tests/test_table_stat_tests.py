@@ -151,16 +151,36 @@ def test_classic_anova_with_test_option_matches_r(marks, engine):
 
 
 # ---------------------------------------------------------------- compare_averages: ranks
-def test_mann_whitney_matches_r(marks, engine, capsys):
+def test_mann_whitney_matches_r(marks, engine, capsys, needs_r_4_6):
     ab = marks[marks["class"].isin(["A", "B"])].reset_index(drop=True)
     got = row(make(ab, engine).compare_averages_of("marks", for_each_group_in="class", based_on="ranks"))
-    # The marks have ties, so the normal approximation with continuity correction is used.
-    # R: wilcox.test(marks ~ class, data = ab, exact = FALSE)
+    # The marks have ties: R 4.6 wilcox.test() gives the exact conditional p-value, from R itself.
+    # R 4.6.2: wilcox.test(marks ~ class, data = ab)$p.value
     assert got["statistic"] == 213.5
-    assert got["p-value"] == pytest.approx(0.106305448775518, rel=1e-8)
+    assert got["p-value"] == pytest.approx(0.10516768824372247, rel=1e-8)
     assert got["median in A"] == np.median(group(ab, "A"))
     out = capsys.readouterr().out
-    assert "Mann-Whitney U test (U = 213.5, normal approximation with continuity correction)" in out
+    assert "Mann-Whitney U test (U = 213.5, exact p-value given the tied values, from R wilcox.test())" in out
+
+
+def _no_r(monkeypatch):
+    from simplydata import _r
+
+    def no_r(*args, **kwargs):
+        raise _r.RMissing("no R here")
+
+    monkeypatch.setattr(_r, "r_call", no_r)
+
+
+def test_mann_whitney_with_ties_without_r(marks, monkeypatch, capsys):
+    _no_r(monkeypatch)
+    ab = marks[marks["class"].isin(["A", "B"])].reset_index(drop=True)
+    got = make_table(ab).compare_averages_of("marks", for_each_group_in="class", based_on="ranks").get_row(1)
+    # without R: the normal approximation, R: wilcox.test(marks ~ class, data = ab, exact = FALSE)
+    assert got["statistic"] == 213.5
+    assert got["p-value"] == pytest.approx(0.106305448775518, rel=1e-8)
+    out = capsys.readouterr().out
+    assert "Mann-Whitney U test (U = 213.5, normal approximation with continuity correction, because of tied" in out
 
 
 def test_mann_whitney_exact_without_ties_matches_r():
@@ -212,10 +232,22 @@ def test_each_pair_welch_holm_matches_r(marks, engine, capsys):
     assert "Holm's method" in out and "A vs C" in out and "Holm-adjusted p = 0.023" in out
 
 
-def test_each_pair_on_ranks_matches_r(marks):
-    frame = make_table(marks).compare_each_pair_of("marks", for_each_group_in="class", based_on="ranks")._frame.to_pandas()
-    # R: pairwise.wilcox.test(m$marks, m$class, p.adjust.method = "holm", exact = FALSE)
-    assert frame["p-value (Holm)"].tolist() == pytest.approx([0.2126108975510370, 0.0246143303939027,
+def _holm_column(result):
+    return [result.get_row(i)["p-value (Holm)"] for i in range(1, len(result) + 1)]
+
+
+def test_each_pair_on_ranks_matches_r(marks, needs_r_4_6):
+    result = make_table(marks).compare_each_pair_of("marks", for_each_group_in="class", based_on="ranks")
+    # R 4.6.2: pairwise.wilcox.test(m$marks, m$class, p.adjust.method = "holm") (exact with ties since R 4.6.0)
+    assert _holm_column(result) == pytest.approx([0.21033537648744477, 0.020661728316050558,
+                                                              0.22898216889394477], rel=1e-8)
+
+
+def test_each_pair_on_ranks_without_r(marks, monkeypatch):
+    _no_r(monkeypatch)
+    result = make_table(marks).compare_each_pair_of("marks", for_each_group_in="class", based_on="ranks")
+    # without R: R pairwise.wilcox.test(m$marks, m$class, p.adjust.method = "holm", exact = FALSE)
+    assert _holm_column(result) == pytest.approx([0.2126108975510370, 0.0246143303939027,
                                                               0.22893038037713], rel=1e-8)
 
 
