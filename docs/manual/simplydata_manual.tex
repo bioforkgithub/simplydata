@@ -5257,7 +5257,7 @@ df = sdata.get_example("marks")
 fig, ax = plt.subplots()
 ax.scatter(df["hours"], df["marks"])
 # get_numbers_drawn(): what matplotlib keeps of the drawn dots
-xy = ax.collections[0].get_offsets()          # (1)
+xy = ax.collections[0].get_offsets()
 pd.DataFrame({"x": xy[:, 0], "y": xy[:, 1]})
 \end{lstlisting}
 \undertext{simplydata reads every layer the same way (Line2D.get\_xydata for lines, the bars of each BarContainer, the segments of stems and error bars, the edges of \code{fill\_\allowbreak{}between} bands, heat map cells, pie slices), gives dates and group names back on date and group axes, numbers the layers and panels, and names each layer after its legend entry.}
@@ -8112,7 +8112,7 @@ print(table)
 import pandas as pd
 df = pd.DataFrame({"answer": ["yes", "no", "maybe"], "count": [3, 2, 0]})
 # repeat_each_row_by("count")
-df.loc[df.index.repeat(df["count"])].drop(columns="count").reset_index(drop=True)   # (1)
+df.loc[df.index.repeat(df["count"])].drop(columns="count").reset_index(drop=True)
 \end{lstlisting}
 \underlib{Polars}
 \begin{lstlisting}[style=under]
@@ -8120,7 +8120,7 @@ import polars as pl
 df = pl.DataFrame({"answer": ["yes", "no", "maybe"], "count": [3, 2, 0]})
 # repeat_each_row_by("count")
 rows = pl.int_range(pl.len()).repeat_by("count").explode().drop_nulls()
-df.select(pl.exclude("count").gather(rows))                                          # (1)
+df.select(pl.exclude("count").gather(rows))
 \end{lstlisting}
 \undertext{simplydata also refuses counts that are not whole numbers, are below 0 or are empty, says how many rows it made, and keeps the table before the step (undo).}
 \undertext{\textit{Checked:} a test runs both and compares the table (on a pandas and on a Polars table).}

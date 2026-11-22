@@ -4,7 +4,7 @@ Made by `python validation/make_report.py` on 2026-11-22. Generated: do not edit
 
 Each simplydata word is run on real, published data and compared with the published answer, with the package simplydata uses underneath called directly, and with R. Each "same underneath" box of the manual is run next to its word and compared too. How it works, and the datasets with their licences: [validation/README.md](README.md).
 
-**1328 checks passed, 0 failed, 0 skipped** (skipped: R or an R package is not installed on this computer).
+**1347 checks passed, 0 failed, 0 skipped** (skipped: R or an R package is not installed on this computer).
 
 ## Setup
 
@@ -1931,15 +1931,15 @@ Note: The oblimin rotation of GPArotation starts from random numbers, so both si
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
-| own part of x1 | statsmodels Factor (method="ml") | 0.512529527173443 | 0.512528188097747 | relative 0.0001 | pass |
-| own part of x2 | statsmodels Factor (method="ml") | 0.7487351603869 | 0.748735875993993 | relative 0.0001 | pass |
-| own part of x3 | statsmodels Factor (method="ml") | 0.542773290729761 | 0.542773879780259 | relative 0.0001 | pass |
-| own part of x4 | statsmodels Factor (method="ml") | 0.279193093920192 | 0.279193001916951 | relative 0.0001 | pass |
-| own part of x5 | statsmodels Factor (method="ml") | 0.242877320676015 | 0.242877565665168 | relative 0.0001 | pass |
-| own part of x6 | statsmodels Factor (method="ml") | 0.30521585555841 | 0.305215989105322 | relative 0.0001 | pass |
-| own part of x7 | statsmodels Factor (method="ml") | 0.502207221916071 | 0.502208272325915 | relative 0.0001 | pass |
-| own part of x8 | statsmodels Factor (method="ml") | 0.468550489794599 | 0.468549722198728 | relative 0.0001 | pass |
-| own part of x9 | statsmodels Factor (method="ml") | 0.543247686483436 | 0.543246662009668 | relative 0.0001 | pass |
+| own part of x1 | statsmodels Factor (method="ml") | 0.512529527173443 | 0.512527703550691 | relative 0.0001 | pass |
+| own part of x2 | statsmodels Factor (method="ml") | 0.7487351603869 | 0.748736053534474 | relative 0.0001 | pass |
+| own part of x3 | statsmodels Factor (method="ml") | 0.542773290729761 | 0.542774843732079 | relative 0.0001 | pass |
+| own part of x4 | statsmodels Factor (method="ml") | 0.279193093920192 | 0.279192923046187 | relative 0.0001 | pass |
+| own part of x5 | statsmodels Factor (method="ml") | 0.242877320676015 | 0.242877161015765 | relative 0.0001 | pass |
+| own part of x6 | statsmodels Factor (method="ml") | 0.30521585555841 | 0.30521606161689 | relative 0.0001 | pass |
+| own part of x7 | statsmodels Factor (method="ml") | 0.502207221916071 | 0.502208838094555 | relative 0.0001 | pass |
+| own part of x8 | statsmodels Factor (method="ml") | 0.468550489794599 | 0.468549956642188 | relative 0.0001 | pass |
+| own part of x9 | statsmodels Factor (method="ml") | 0.543247686483436 | 0.543246381074625 | relative 0.0001 | pass |
 | own part of x1 | R | 0.512529527173443 | 0.512528169335274 | relative 0.001 | pass |
 | own part of x2 | R | 0.7487351603869 | 0.74873504605719 | relative 0.001 | pass |
 | own part of x3 | R | 0.542773290729761 | 0.542776785473323 | relative 0.001 | pass |
@@ -2835,6 +2835,69 @@ Note: lme4's REML estimates are 251.4 and 10.47 (Bates et al. 2015); the posteri
 | grid end | R | 37.0622730135304 | 37.0622730135304 | relative 1e-09 | pass |
 
 Note: The picture's lines are R stats::density() of the data and of each set made up by posterior_predict(), on one grid from the smallest to the largest value.
+
+### `get_numbers_drawn`
+
+**Anscombe's first set: the drawn fitted line is the least-squares line** (published; data: Anscombe's quartet)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| slope of the drawn line | Anscombe (1973) | 0.500090909090909 | 0.5001 | within 0.0001 (printed rounding) | pass |
+| dots drawn | Anscombe (1973) | 11 | 11 | within 0 (printed rounding) | pass |
+| slope of the drawn line | statsmodels OLS | 0.500090909090909 | 0.500090909090909 | relative 1e-09 | pass |
+| dots drawn | statsmodels OLS | 11 | 11 | relative 1e-09 | pass |
+
+Note: The numbers come back from what matplotlib drew; Anscombe prints the slope 0.500 (0.5001).
+
+### `table.repeat_each_row_by`
+
+**Down syndrome cases in Michigan: one row per case** (real data; data: Down syndrome by birth order)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| rows | pandas index.repeat | 2754 | 2754 | exact | pass |
+| first birth order rows | pandas index.repeat | 412 | 412 | exact | pass |
+
+### `table.show_rows_that_pull_model`
+
+**stackloss: the rows with a Cook's distance above 4/n** (published; data: stackloss)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| first row | Daniel & Wood (1980): observation 21 is the most influential | 21 | 21 | within 0 (printed rounding) | pass |
+| first row | R | 21 | 21 | relative 1e-09 | pass |
+| its Cook's distance | R | 0.69199991633951 | 0.691999916339509 | relative 1e-09 | pass |
+| rows found | R | 1 | 1 | relative 1e-09 | pass |
+
+### `sdata.get_example from_r_package=`
+
+**lung from R survival: the dataset as R ships it** (real data; data: lung with weight loss (survival))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| rows | R | 228 | 228 | exact | pass |
+| time of the first row | R | 306 | 306 | exact | pass |
+| age of the first row | R | 74 | 74 | exact | pass |
+
+### `table.check_model_of show="numbers"`
+
+**show="numbers": mtcars mpg ~ wt + hp, the Breusch-Pagan test** (real data; data: mtcars)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| BP | R | 0.880722470178817 | 0.880722470178814 | relative 1e-09 | pass |
+| p | R | 0.64380381454434 | 0.643803814544341 | relative 1e-09 | pass |
+
+### `table.find_correlation_between show="result table"`
+
+**show="result table": mtcars mpg and wt** (real data; data: mtcars)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| r | R | -0.867659376517228 | -0.867659376517228 | relative 1e-09 | pass |
+| low | R | -0.933826413284994 | -0.933826413284994 | relative 1e-09 | pass |
+| high | R | -0.744087196460113 | -0.744087196460113 | relative 1e-09 | pass |
+| p | R | 1.29395870135051e-10 | 1.29395870135052e-10 | relative 1e-09 | pass |
 
 ## 2. The same underneath (the manual's boxes)
 

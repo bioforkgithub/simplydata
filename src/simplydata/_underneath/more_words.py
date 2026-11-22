@@ -22,7 +22,7 @@ ENTRIES = [
             fig, ax = plt.subplots()
             ax.scatter(df["hours"], df["marks"])
             # get_numbers_drawn(): what matplotlib keeps of the drawn dots
-            xy = ax.collections[0].get_offsets()          # (1)
+            xy = ax.collections[0].get_offsets()
             pd.DataFrame({"x": xy[:, 0], "y": xy[:, 1]})
         """},
         compare="table",
@@ -42,14 +42,14 @@ ENTRIES = [
                 import pandas as pd
                 df = pd.DataFrame({"answer": ["yes", "no", "maybe"], "count": [3, 2, 0]})
                 # repeat_each_row_by("count")
-                df.loc[df.index.repeat(df["count"])].drop(columns="count").reset_index(drop=True)   # (1)
+                df.loc[df.index.repeat(df["count"])].drop(columns="count").reset_index(drop=True)
             """,
             "Polars": """
                 import polars as pl
                 df = pl.DataFrame({"answer": ["yes", "no", "maybe"], "count": [3, 2, 0]})
                 # repeat_each_row_by("count")
                 rows = pl.int_range(pl.len()).repeat_by("count").explode().drop_nulls()
-                df.select(pl.exclude("count").gather(rows))                                          # (1)
+                df.select(pl.exclude("count").gather(rows))
             """,
         },
         compare="table",
@@ -106,6 +106,7 @@ ENTRIES = [
         },
         compare="result",
         fields=("time", "status", "age", "wt.loss"),
+        r_inputs="pass  # nothing from Python: R loads the dataset itself",
         r_packages=("survival",),
         ours_r=("survival",),
         choices=("R itself loads the dataset (utils::data, from the data file that holds it: lung is kept in "
