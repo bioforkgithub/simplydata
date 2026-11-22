@@ -3364,11 +3364,11 @@ BASIS["dist.find_cut_off"] = _b(
     "choice.", (), "P3", "Chances outside 0 to 1 are refused, with find_percentile() offered for percents.",
     "convention")
 BASIS["dist.find_middle_range"] = _b(
-    "The middle percent with equal tails: ppf() of half the rest for the lower end and isf() of it for the upper "
-    "end.",
+    "The middle percent with equal tails: half of the rest is cut off at each end (ppf() of it for the lower end, "
+    "the same share from the top for the upper end).",
     "Any percent above 0 and below 100.",
-    "Equal tails are the usual way to give a middle range; isf() keeps the upper end accurate when the percent is "
-    "close to 100. Numerical care, not a statistical choice.", (), "P3",
+    "Equal tails are the usual way to give a middle range (R qnorm(c(0.025, 0.975)) gives the same); the shortest "
+    "range would differ for skewed distributions.", (), "P3",
     "A percent of 0, 100 or outside them is refused.", "convention")
 BASIS["dist.find_average"] = _b(
     "The mean of the SciPy distribution, with R's parameter names turned into SciPy's.",

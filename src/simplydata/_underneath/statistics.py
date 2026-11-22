@@ -732,19 +732,19 @@ ENTRIES += [
     Entry(
         word="sdata.compare_rates",
         ours="""
-            result = sdata.compare_rates(events=[15, 30], time=[1200, 1100], names=["ward A", "ward B"])
+            result = sdata.compare_rates(events=[30, 15], time=[1100, 1200], names=["ward B", "ward A"])
             result.keep_rows_where("measure", is_equal_to="rate ratio")
             result
         """,
         code={
             "R": """
-                # compare_rates(events=[15, 30], time=[1200, 1100], names=["ward A", "ward B"])
-                t <- poisson.test(c(30, 15), c(1100, 1200))                    # (1)
+                # compare_rates(events=[30, 15], time=[1100, 1200], names=["ward B", "ward A"])
+                t <- poisson.test(c(15, 30), c(1200, 1100))                    # (1)
                 list(low = t$conf.int[1], high = t$conf.int[2])
             """,
             "statsmodels": """
                 from statsmodels.stats.rates import test_poisson_2indep
-                test = test_poisson_2indep(30, 1100, 15, 1200, method="exact-cond")    # (2)
+                test = test_poisson_2indep(15, 1200, 30, 1100, method="exact-cond")    # (2)
                 {"estimate": test.ratio, "estimate 95 % CI low": low, "estimate 95 % CI high": high,
                  "p-value": test.pvalue}
             """,
@@ -754,8 +754,8 @@ ENTRIES += [
         compare="result",
         fields=("estimate", "estimate 95 % CI low", "estimate 95 % CI high", "p-value"),
         tolerance=1e-9,
-        choices=("without against=, the first group in sorted order (ward A) is the one compared against, as R does; "
-                 "the ratio is ward B's rate over ward A's, with R poisson.test()'s exact interval.",
+        choices=("without against=, the first group given in names= (here ward B) is the one compared against; the "
+                 "ratio is ward A's rate over ward B's, with R poisson.test()'s exact interval.",
                  "the exact conditional test of the rate ratio, as R poisson.test(); statsmodels' own default is a "
                  "score test."),
         python_note="statsmodels gives the exact test but its intervals of a rate ratio are score and other "
@@ -790,7 +790,8 @@ ENTRIES += [
         fields=("estimate", "estimate 95 % CI low", "estimate 95 % CI high", "count", "out of"),
         tolerance=1e-10,
         choices=("\"yes\" in the truth column and \"positive\" in the test column count as having it and as a "
-                 "positive result (positive= says which when the words are not clear).",
+                 "positive result; without such words the second value in sorted order counts, as R takes the second "
+                 "level; positive= chooses.",
                  "each share gets the exact Clopper-Pearson interval, as R epiR::epi.tests(method = \"exact\"); "
                  "statsmodels' own default is the normal-curve interval."),
         also="The other rows hold the specificity and the predictive values (the same exact intervals) and the "
@@ -903,20 +904,22 @@ ENTRIES += [
     ),
     Entry(
         word="table.agreement_between",
-        data="clinic",
+        data="made-up",
         ours="""
-            table = sdata.table(sdata.get_example("clinic"))
-            table.agreement_between("nurse_rating", "doctor_rating")
+            ratings = {"nurse": ["mild", "mild", "moderate", "moderate", "severe", "severe", "mild", "moderate"],
+                       "doctor": ["mild", "moderate", "moderate", "moderate", "moderate", "moderate", "mild", "mild"]}
+            table = sdata.table(ratings)
+            table.agreement_between("nurse", "doctor")
         """,
         code={"statsmodels": """
             import numpy as np
             import pandas as pd
             from statsmodels.stats.inter_rater import cohens_kappa
-            df = sdata.get_example("clinic")
-            # agreement_between("nurse_rating", "doctor_rating")
-            seen = sorted(set(df["nurse_rating"]) | set(df["doctor_rating"]))
-            counts = pd.crosstab(df["nurse_rating"], df["doctor_rating"]).reindex(
-                index=seen, columns=seen, fill_value=0).to_numpy()                # (1)
+            nurse = pd.Series(["mild", "mild", "moderate", "moderate", "severe", "severe", "mild", "moderate"])
+            doctor = pd.Series(["mild", "moderate", "moderate", "moderate", "moderate", "moderate", "mild", "mild"])
+            # agreement_between("nurse", "doctor"): the doctor never says "severe"
+            seen = sorted(set(nurse) | set(doctor))
+            counts = pd.crosstab(nurse, doctor).reindex(index=seen, columns=seen, fill_value=0).to_numpy()  # (1)
             res = cohens_kappa(counts, wt=None)                                   # (2)
             {"estimate": res["kappa"], "estimate 95 % CI low": res["kappa_low"],
              "estimate 95 % CI high": res["kappa_upp"], "statistic": res["z_value"],
@@ -926,7 +929,7 @@ ENTRIES += [
         fields=("estimate", "estimate 95 % CI low", "estimate 95 % CI high", "statistic", "raw agreement"),
         tolerance=1e-10,
         choices=("a square table of counts with every category either rater used, in sorted order, so a category "
-                 "only one rater used still counts.",
+                 "only one rater used (\"severe\" here) still counts.",
                  "Cohen's kappa without weights, as R irr::kappa2(); near_misses=\"linear\" or \"quadratic\" counts "
                  "near misses as partly right (wt=\"linear\", \"quadratic\")."),
         also="Three or more columns get Fleiss' kappa (statsmodels fleiss_kappa, its p-value from R irr), columns of "
@@ -1122,10 +1125,11 @@ ENTRIES += [
         fields=("x", "y", "biggest value", "value of one more: x + y <= 4", "value of one more: y >= -1"),
         tolerance=1e-12,
         choices=("a straight-line formula with straight-line rules is a linear program, solved exactly (HiGHS, as R "
-                 "lpSolve::lp()); the biggest value is the smallest value of minus the formula, and a rule with >= "
-                 "is turned into <= by changing its signs.",
-                 "the names are not taken to be 0 or more unless a rule or between= says so (SciPy linprog's and R "
-                 "lp()'s own default); here y may go down to -1, which gives 13 instead of 12."),
+                 "lpSolve::lp(), except that lp() takes every name to be 0 or more, see (2)); the biggest value is the "
+                 "smallest value of minus the formula, and a rule with >= is turned into <= by changing its signs.",
+                 "the names may be any number unless a rule or between= limits them: simplydata passes bounds=(None, "
+                 "None), while SciPy linprog's own default (0, None) and R lp() take every name to be 0 or more; here "
+                 "y may go down to -1, which gives 13 instead of 12."),
         also="The \"value of one more\" of each rule is its shadow price: how much the biggest value grows when the "
              "right side of the rule grows by 1 (R lp(compute.sens = TRUE)$duals). whole_numbers=True gives mixed-"
              "integer linear programming (SciPy milp). simplydata also says which rules are reached exactly.",
@@ -1153,7 +1157,8 @@ ENTRIES += [
         tolerance=1e-12,
         choices=("the range is cut into 1000 steps and every step where the two sides cross is searched, so every "
                  "solution that crosses is found (as R rootSolve::uniroot.all()), not only one.",
-                 "Brent's method in each step with a tolerance of 1e-12, as R uniroot(tol = 1e-12)."),
+                 "Brent's method in each step with a tolerance of 1e-12, as R uniroot(tol = 1e-12); SciPy's own "
+                 "default (2e-12) gives the same roots here."),
         also="start= finds one solution with the secant method; a polynomial without between= or start= gives all its "
              "solutions, complex ones too (NumPy polyroots, as R polyroot()); several equations use SciPy root "
              "(Powell's hybrid method, as R nleqslv). The result also holds \"left minus right\" at each solution, the "
@@ -1161,17 +1166,20 @@ ENTRIES += [
     ),
     Entry(
         word="table.values_at",
-        data="growth",
+        data="made-up",
         ours="""
-            table = sdata.table(sdata.get_example("growth"))
-            table.values_at("population", at={"year": [1999, 2001, 2011]}, for_each_group_in="country")
+            growth = {"year": [2000, 2002, 2002, 2004, 2000, 2002, 2004],
+                      "country": ["A", "A", "A", "A", "B", "B", "B"], "population": [10, 11, 13, 14, 20, 22, 23]}
+            table = sdata.table(growth)
+            table.values_at("population", at={"year": [1999, 2001, 2003]}, for_each_group_in="country")
         """,
         code={"pandas": """
             import numpy as np
             import pandas as pd
-            df = sdata.get_example("growth").dropna(subset=["year", "population"])
-            # values_at("population", at={"year": [1999, 2001, 2011]}, for_each_group_in="country")
-            at, parts = np.array([1999, 2001, 2011]), []
+            df = pd.DataFrame({"year": [2000, 2002, 2002, 2004, 2000, 2002, 2004],
+                               "country": ["A", "A", "A", "A", "B", "B", "B"], "population": [10, 11, 13, 14, 20, 22, 23]})
+            # values_at("population", at={"year": [1999, 2001, 2003]}, for_each_group_in="country")
+            at, parts = np.array([1999, 2001, 2003]), []
             for country, rows in df.groupby("country"):
                 known = rows.groupby("year")["population"].mean()                     # (1)
                 found = np.interp(at, known.index, known.to_numpy(),
@@ -1181,7 +1189,7 @@ ENTRIES += [
         """},
         compare="table",
         tolerance=1e-12,
-        choices=("several values at the same place are averaged first, as R approx(ties = mean).",
+        choices=("several values at the same place (country A in 2002) are averaged first, as R approx(ties = mean).",
                  "straight lines between neighbours (NumPy interp, as R approx()), and places outside the known points "
                  "stay empty, as R approx(rule = 1); NumPy's own default carries the end value on, which "
                  "outside=\"nearest end\" gives."),
@@ -1216,7 +1224,8 @@ ENTRIES += [
         tolerance=1e-12,
         choices=("the known points form a full grid (every east with every north), so they are read as a grid; "
                  "scattered points are joined by flat triangles instead (SciPy griddata, as R interp::interp()).",
-                 "straight lines along each direction (bilinear), with places outside the grid left empty.",
+                 "straight lines along each direction (bilinear interpolation, RegularGridInterpolator's "
+                 "method=\"linear\").",
                  "steps= evenly spaced places from the smallest to the biggest known value of each column, every "
                  "combination, the first column changing slowest."),
         also="joined_by=\"smooth surface\" gives a thin-plate spline (SciPy RBFInterpolator). simplydata also says how "
@@ -1236,15 +1245,14 @@ ENTRIES += [
             # compare_distributions_for("sales")
             fits = {"normal": stats.norm, "lognormal": stats.lognorm, "gamma": stats.gamma,
                     "weibull": stats.weibull_min}
-            aic = {}
+            aic, params = {}, {}
             for name, family in fits.items():
                 held = {} if name == "normal" else {"floc": 0}                        # (1)
-                p = family.fit(x, **held)
+                params[name] = p = family.fit(x, **held)
                 aic[name] = 2 * (len(p) - len(held)) - 2 * family.logpdf(x, *p).sum()   # (2)
             best = min(aic, key=aic.get)
-            p = fits[best].fit(x, floc=0)
             {"distribution": best, "AIC": aic[best], "AIC difference": 0.0,
-             "Kolmogorov-Smirnov statistic": stats.kstest(x, fits[best].cdf, args=p).statistic}
+             "Kolmogorov-Smirnov statistic": stats.kstest(x, fits[best].cdf, args=params[best]).statistic}
         """},
         compare="result",
         fields=("distribution", "AIC", "AIC difference", "Kolmogorov-Smirnov statistic"),
@@ -1253,7 +1261,9 @@ ENTRIES += [
                  "(floc=0), as R MASS::fitdistr() and fitdistrplus fit them, not with SciPy's own extra location.",
                  "AIC counts only the parameters that were fitted, and the rows are sorted by it, smallest (best) "
                  "first."),
-        also="The numbers agree to 7 digits: the Weibull shape is a numerical search. Each row also holds the "
+        also="simplydata fits the normal and lognormal in closed form, the gamma with SciPy gamma.fit(floc=0) and the "
+             "Weibull by solving its score equation for the shape itself (brentq), the same answer as "
+             "weibull_min.fit(floc=0); the numbers agree to 7 digits because the Weibull shape is a search. Each row also holds the "
              "log-likelihood, BIC and the Anderson-Darling and Cramer-von Mises statistics, as R "
              "fitdistrplus::gofstat(). simplydata says that an AIC difference below 2 is too small to choose by.",
     ),
@@ -1332,15 +1342,17 @@ ENTRIES += [
             from scipy import stats
             dist = stats.norm(loc=50, scale=10)
             # find_middle_range(percent=95)
-            tail = (1 - 0.95) / 2
-            np.array([dist.ppf(tail), dist.isf(tail)])     # (1)
+            tail = (1 - 0.95) / 2                                  # (1)
+            high = 1 - tail
+            np.array([dist.ppf(tail), dist.isf(1 - high)])       # a share above 0.5 goes through isf()
         """},
         compare="value",
         tolerance=1e-12,
-        choices=("2.5 % is cut off at each end; the upper end comes from isf(0.025) rather than ppf(0.975), which "
-                 "stays accurate when the percent is close to 100.",),
-        also="simplydata gives back Numbers [low, high] and the same call in R (qnorm(c(0.025, 0.975), mean = 50, "
-             "sd = 10)); for counts each end holds at least that share.",
+        choices=("equal tails: half of what is left (2.5 % here) is cut off at each end, not the shortest range.",),
+        also="The upper end is the share 1 - tail, read through isf() of what lies above it, as simplydata's "
+             "percentiles do for shares above 0.5; because the share is formed first, this gains nothing over ppf() "
+             "when the percent is very close to 100. simplydata gives back Numbers [low, high] and the same call in "
+             "R (qnorm(c(0.025, 0.975), mean = 50, sd = 10)); for counts each end holds at least that share.",
     ),
     Entry(
         word="dist.find_average",
@@ -1505,7 +1517,7 @@ ENTRIES += [
         """,
         compare="none",
         note="simplydata's own: it gives back the parameters as a Python dictionary of plain names, "
-             "{\"average\": 50, \"standard_deviation\": 10}; SciPy keeps them as args and kwds (loc, scale).",
+             "{\"average\": 50.0, \"standard_deviation\": 10.0}; SciPy keeps them as args and kwds (loc, scale).",
     ),
     Entry(
         word="table.find_principal_components_of",
