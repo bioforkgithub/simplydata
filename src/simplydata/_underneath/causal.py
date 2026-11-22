@@ -151,8 +151,10 @@ ENTRIES = [
         """,
         r_packages=("epiR",), compare="result", fields=("estimate", "estimate 95 % CI low", "estimate 95 % CI high"),
         tolerance=1e-9,
-        choices=("the risk-based fractions of a cohort (method = \"cohort.count\"), with Wald intervals from the risk "
-                 "ratio; crude, not adjusted for other columns.",),
+        choices=("the risk-based fractions of a cohort (method = \"cohort.count\"), with the intervals epiR gives for "
+                 "one table (among the exposed, from the score interval of the risk ratio; in the population, from the "
+                 "exact intervals of the two risks; epiR's names end in .wald all the same); crude, not adjusted for "
+                 "other columns.",),
         python_note=EPIR_NOTE,
         also="simplydata also gives the population attributable fraction, the preventable fraction among the exposed "
              "when the exposure goes with fewer events, and says that the fractions are causal only if the exposure "

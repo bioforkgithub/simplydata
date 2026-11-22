@@ -369,7 +369,7 @@ ENTRIES = [
         },
         r_inputs=MEADOW,
         r_packages=("pscl",),
-        compare="result", row="grazed (yes)", fields=("log ratio", "standard error"), tolerance=1e-5,
+        compare="result", row="grazed (yes)", fields=("log ratio", "standard error"), tolerance=1e-9,
         choices=("zero-inflated negative binomial regression with a logistic zero part and the same columns in "
                  "both parts, pscl::zeroinfl(dist = \"negbin\")'s defaults.",),
         python_note="statsmodels ZeroInflatedNegativeBinomialP gives the same estimates but other standard errors.",
@@ -397,7 +397,7 @@ ENTRIES = [
         },
         r_inputs=MEADOW,
         r_packages=("pscl",),
-        compare="result", row="grazed (yes)", fields=("log ratio", "standard error"), tolerance=1e-5,
+        compare="result", row="grazed (yes)", fields=("log ratio", "standard error"), tolerance=1e-9,
         choices=("a hurdle model: a logistic part for zero or not (pscl's binomial zero part, the textbook form) "
                  "and a Poisson part cut off at 1 for the counts above 0.",),
         python_note="statsmodels HurdleCountModel has no logistic zero part (its default zero part is Poisson).",
@@ -426,7 +426,7 @@ ENTRIES = [
         },
         r_inputs=MEADOW,
         r_packages=("pscl",),
-        compare="result", row="grazed (yes)", fields=("log ratio", "standard error"), tolerance=1e-5,
+        compare="result", row="grazed (yes)", fields=("log ratio", "standard error"), tolerance=1e-9,
         choices=("the zero part gets its own columns, pscl's y ~ x | z; without zero_part_using= both parts use "
                  "the columns of using=.",),
         python_note="statsmodels ZeroInflatedPoisson takes exog_infl= for the zero part too, with other standard "

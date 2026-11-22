@@ -5685,17 +5685,18 @@ LESSONS = [
                  "trained men had no match). Race is now balanced; the effect among the matched trained men: 1771 "
                  "dollars more (95 % CI -50.4 to 3592). The randomised experiment found 1794."),
             ]),
-            ("Mediation. In the JOBS II study a job-search workshop was randomised. Did it lower depression by "
-             "raising the workers' confidence in searching for a job?", [
+            ("Mediation. In a made-up version of the JOBS II study a job-search workshop was randomised. Did it "
+             "lower depression by raising the workers' confidence in searching for a job?", [
                 ("import simplydata as sdata", "Load simplydata."),
                 ('table = sdata.table(sdata.get_example("job_search"))',
-                 "Real data (Vinokur et al. 1995): treat = 1 for the workshop, job_seek = confidence in searching, "
-                 "depress2 = depression six months later."),
+                 "Made-up data with the columns of the JOBS II study (Vinokur et al. 1995): treat = 1 for the "
+                 "workshop, job_seek = confidence in searching, depress2 = depression six months later."),
                 ('table.explain("depress2", using="treat", through="job_seek", allowing_for=["econ_hard", "sex", '
                  '"age"])',
-                 "The indirect effect (through job_seek) is -0.016 and the total effect -0.055, both with intervals "
-                 "that include 0. The printout says what these rest on: nothing unmeasured that affects both "
-                 "job_seek and depression."),
+                 "The indirect effect (through job_seek) is -0.094 (95 % interval -0.131 to -0.060) and the total "
+                 "effect -0.116: the table was made with an indirect effect of about -0.09, and the analysis finds "
+                 "it. The printout says what these rest on: nothing unmeasured that affects both job_seek and "
+                 "depression."),
             ]),
         ],
         notes=[

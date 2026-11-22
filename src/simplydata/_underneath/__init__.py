@@ -1,6 +1,9 @@
-"""The same work in the packages underneath: one tested entry per simplydata word.
+"""The same work in the packages underneath: tested entries for 78 of simplydata's 398 words.
 
-Each entry keeps, once, the code that does a word's job in the package simplydata uses: pandas and
+Not every word has an entry. There are 180 entries: one for each of 78 words, plus one for each option of those
+words that changes what the word calls underneath; the other 320 words have none, and are checked by their own tests
+(tests/) and, for many statistics words, by the cases of the reliability study (validation/). The counts are kept
+true by tests/test_data_and_fixes.py. Each entry keeps, once, the code that does a word's job in the package simplydata uses: pandas and
 Polars for tables, NumPy for numbers, matplotlib or seaborn for charts, SciPy or statsmodels for
 statistics, and R where simplydata calls R. tests/test_underneath.py runs every entry next to the
 simplydata word and checks that both give the same numbers, the same table, or a chart with the same

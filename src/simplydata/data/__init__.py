@@ -4,8 +4,10 @@ Every number in these tables is invented (they are not real people, places or co
 "passive_smoking" (the published results of real studies, for combining studies), "ability_tests" (the
 published test scores of Holzinger & Swineford 1939, for hidden factors), "sea_levels" (the yearly highest
 sea levels at Port Pirie, published by Coles 2001), "sampled_schools" (a published survey sample of California
-schools, from the R survey package), and "job_training", "job_search" and "drug_levels" (real studies, for cause
-and effect and bioequivalence), each with its source in its description.
+schools, from the R survey package), and "job_training" and "drug_levels" (real studies, for cause and effect and
+bioequivalence), each with its source in its description. "job_search" is made up: it has the columns of the JOBS II
+study, but its values were drawn with a fixed seed by docs/make_job_search.py. Which licence covers which table is in
+DATA_LICENSES.md at the top of the repository.
 """
 
 from __future__ import annotations
@@ -378,7 +380,10 @@ EXAMPLES = {
         "group drawn from a population survey (429 not trained): LaLonde (1986), as Dehejia & Wahba (1999) and the "
         "R package MatchIt ship it (lalonde). The trained men differ from the others before the training, so a "
         "plain comparison mixes the training with who took it. The randomised experiment found an effect of "
-        "about $1,794 on 1978 earnings.",
+        "about $1,794 on 1978 earnings. Cite: LaLonde, R. J. (1986), Evaluating the econometric evaluations of "
+        "training programs with experimental data, American Economic Review 76, 604-620; Dehejia, R. H. & Wahba, S. "
+        "(1999), Causal effects in nonexperimental studies, Journal of the American Statistical Association 94, "
+        "1053-1062. The source states no licence (see DATA_LICENSES.md).",
         {
             "treat": "1 = took part in the job training, 0 = from the comparison survey",
             "age": "age in years",
@@ -392,9 +397,12 @@ EXAMPLES = {
         },
     ),
     "job_search": (
-        "REAL DATA: 899 unemployed workers in the JOBS II study, a randomised job-search workshop (Vinokur, Price & "
-        "Schul 1995), as Tingley et al. (2014) and the R package mediation ship it (jobs). For mediation: did the "
-        "workshop lower depression through the workers' confidence in searching for a job?",
+        "MADE-UP DATA: 899 made-up unemployed workers in a randomised job-search workshop, with the columns of the "
+        "JOBS II study (Vinokur, Price & Schul 1995) as the R package mediation ships it (jobs), but every value "
+        "drawn with a fixed seed (docs/make_job_search.py). For mediation: did the workshop lower depression through "
+        "the workers' confidence in searching for a job? Built in: the workshop raises confidence by 0.30 points, "
+        "each point of confidence lowers depression by 0.30, and the workshop lowers it by 0.04 directly, so the "
+        "indirect effect is about -0.09. The real JOBS II records are in the R package mediation (data(jobs)).",
         {
             "treat": "1 = was offered the workshop, 0 = a booklet only (randomised)",
             "econ_hard": "economic hardship before the study (1 to 5)",
@@ -413,7 +421,8 @@ EXAMPLES = {
         "REAL DATA: a 2 x 2 crossover bioequivalence study with 18 subjects: each had a test and a reference "
         "formulation of a drug, one in each of two periods, and the area under the blood-level curve was measured "
         "(Sauter et al. 1992; reference dataset A of Schütz, Labes & Fuglsang 2014, whose published ratio is 95.09 % "
-        "with 90 % CI 90.76 to 99.62 %).",
+        "with 90 % CI 90.76 to 99.62 %). The supplement is free to read but states no open licence; the 36 numbers are "
+        "measured values (see DATA_LICENSES.md).",
         {
             "subject": "the subject, 1 to 18",
             "period": "1 or 2",
@@ -456,8 +465,8 @@ def get_example(name: str | None = None):
     for combining studies, bcg and passive_smoking (real published studies), for hidden factors,
     ability_tests (real published test scores), for q-values, many_tests (made up), for planning and
     surveys, sampled_schools (a real survey sample) and course_feedback (made-up answers on a scale), and, for
-    cause and effect, job_training and job_search (real studies), drug_levels (a real crossover) and
-    deaths_by_age (made up).
+    cause and effect, job_training (a real study), job_search (made up, with the columns of a real study),
+    drug_levels (a real crossover) and deaths_by_age (made up).
     "shop" has empty cells and a column of dates to practise with; "school" has empty cells too.
     """
     if name is None:

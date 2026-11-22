@@ -145,7 +145,30 @@ def test_mediation_is_statsmodels_mediation(capsys):
         assert r.loc[ours, "p-value"] == pytest.approx(s.loc[theirs, "P-value"], rel=1e-12)
     text = capsys.readouterr().out
     assert "only if nothing that was not measured" in text and "Baron-Kenny" in text
-    assert "the total effect is not clear here" in text  # its interval includes 0
+    assert "the total effect is not clear here" not in text  # made-up data with a built-in effect: it is clear
+
+
+def test_job_search_is_made_up_with_the_effects_it_says():
+    """docs/make_job_search.py draws the table with a fixed seed: a = +0.30, b = -0.30, direct -0.04."""
+    import importlib.util
+
+    import statsmodels.formula.api as smf
+
+    from simplydata.data import EXAMPLES
+
+    script = Path(__file__).resolve().parents[1] / "docs" / "make_job_search.py"
+    spec = importlib.util.spec_from_file_location("make_job_search", script)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    shipped = sdata.get_example("job_search")
+    pd.testing.assert_frame_equal(module.make().astype(str), shipped.astype(str), check_dtype=False)
+    a = smf.ols("job_seek ~ treat + econ_hard + sex + age", data=shipped).fit()
+    b = smf.ols("depress2 ~ treat + job_seek + econ_hard + sex + age", data=shipped).fit()
+    # within about 2 standard errors of the values built in (the clipping to 1-5 and rounding shrink them a little)
+    assert abs(a.params["treat"] - 0.30) < 2 * a.bse["treat"]
+    assert abs(b.params["job_seek"] + 0.30) < 2 * b.bse["job_seek"]
+    assert abs(b.params["treat"] + 0.04) < 2 * b.bse["treat"]
+    assert EXAMPLES["job_search"][0].startswith("MADE-UP DATA")
 
 
 def test_mediation_simulation_estimates_the_product_of_coefficients():

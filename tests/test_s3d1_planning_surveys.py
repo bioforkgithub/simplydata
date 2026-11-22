@@ -16,6 +16,7 @@ import pandas as pd
 import pytest
 
 import simplydata as sdata
+from conftest import r_table
 from simplydata import SimplydataError
 
 DATA = Path(__file__).resolve().parents[1] / "validation" / "data"
@@ -86,7 +87,7 @@ def test_percent_without_groups_and_the_refusals():
 
 # ---------------------------------------------------------------- X06: patterns of empty cells (no R)
 def test_patterns_match_isna_value_counts():
-    df = pd.read_csv(DATA / "nhanes.csv")
+    df = r_table("nhanes.csv")
     found = sdata.table(df).count_empty_cells_in(show="patterns").as_pandas()
     assert found["rows with this pattern"].tolist() == [13, 3, 1, 1, 7]
     assert found["empty cells"].tolist() == [0, 1, 1, 2, 3]
@@ -254,7 +255,7 @@ API_R = ('d <- survey::svydesign(ids = ~1, strata = ~stype, weights = ~pw, fpc =
 
 
 def _api():
-    df = pd.read_csv(DATA / "apistrat.csv")
+    df = r_table("apistrat.csv")
     return dict(stype=df["stype"].to_numpy(dtype=object), pw=df["pw"].to_numpy(dtype=float),
                 fpc=df["fpc"].to_numpy(dtype=float), api00=df["api00"].to_numpy(dtype=float),
                 enroll=df["enroll"].to_numpy(dtype=float), sch=(df["sch.wide"] == "Yes").to_numpy(dtype=float),
@@ -314,7 +315,7 @@ def test_survey_counts_models_and_tests_match_r(needs_r):
 
 
 def test_a_cluster_design_matches_lumleys_numbers(needs_r):
-    df = pd.read_csv(DATA / "apiclus1.csv")
+    df = r_table("apiclus1.csv")
     t = sdata.table(df)
     t.use_survey_design(weights="pw", clusters="dnum", population_sizes="fpc")
     mean = t.find_average_of("api00").as_pandas().iloc[0]

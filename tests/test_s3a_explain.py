@@ -1,9 +1,9 @@
 """S3a-1: explain() grows. Each new option against the package underneath (statsmodels, SciPy, patsy) and,
 where R is installed, against R itself (the R numbers are worked out by R in the test, from the same rows).
 
-Real data from validation/data (galton_peas, crowder_seeds, infert, birthwt, stackloss, mtcars, penicillin,
-nmes1988; sources and licences in validation/README.md); the practice tables for the printouts; made-up rows
-only for edge cases, labelled as such.
+Real data: crowder_seeds from validation/data, and galton_peas, infert, birthwt, stackloss, mtcars, penicillin and
+nmes1988 read from the R packages that ship them (validation/r_data.py; sources and licences in validation/README.md
+and DATA_LICENSES.md); the practice tables for the printouts; made-up rows only for edge cases, labelled as such.
 """
 
 from pathlib import Path
@@ -13,13 +13,17 @@ import pandas as pd
 import pytest
 
 import simplydata as sdata
+from conftest import r_table
 from simplydata import SimplydataError
 
 DATA = Path(__file__).resolve().parents[1] / "validation" / "data"
 
 
 def read(name):
-    return pd.read_csv(DATA / f"{name}.csv")
+    """A stored table, or one read from its R package (the copies of GPL and LGPL R data are no longer stored)."""
+    if (DATA / f"{name}.csv").exists():
+        return pd.read_csv(DATA / f"{name}.csv")
+    return r_table(name)
 
 
 def rows(result, key="term"):

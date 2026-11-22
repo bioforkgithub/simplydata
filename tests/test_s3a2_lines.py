@@ -38,13 +38,14 @@ BLISS = pd.DataFrame({"dose": 10 ** np.array([1.6907, 1.7242, 1.7552, 1.7842, 1.
 def test_dose_response_matches_r_drc(ryegrass, capsys):
     out = sdata.table(ryegrass).fit_dose_response(x="conc", y="rootl", doses_for_effect=[10, 50, 90]).as_pandas()
     printed = capsys.readouterr().out
-    ref = r("m <- drc::drm(rootl ~ conc, data = drc::ryegrass, fct = drc::LL.4()); "
+    ref = r("m <- drc::drm(rootl ~ conc, data = drc::ryegrass, fct = drc::LL.4(), "
+            "control = drc::drmc(relTol = 1e-15)); "
             "e <- drc::ED(m, c(10, 50, 90), interval = 'delta', display = FALSE); "
             "list(coef = unname(coef(m)), se = unname(sqrt(diag(vcov(m)))), ed = unname(e[, 1]), low = unname(e[, 3]),"
             " high = unname(e[, 4]))", ("drc",))
     params = out[out["term"].str.match(r"^[bcde] \(")]
     assert params["estimate"].to_numpy() == pytest.approx(ref["coef"], rel=1e-6)
-    ci = r("m <- drc::drm(rootl ~ conc, data = drc::ryegrass, fct = drc::LL.4()); "
+    ci = r("m <- drc::drm(rootl ~ conc, data = drc::ryegrass, fct = drc::LL.4(), control = drc::drmc(relTol = 1e-15)); "
            "k <- confint(m); list(low = unname(k[, 1]), high = unname(k[, 2]))", ("drc",))
     assert params["95 % CI low"].to_numpy() == pytest.approx(np.asarray(ci["low"], dtype=float), rel=1e-9)
     assert params["95 % CI high"].to_numpy() == pytest.approx(np.asarray(ci["high"], dtype=float), rel=1e-9)
@@ -80,7 +81,8 @@ def test_dose_response_groups_give_drc_edcomp(needs_r, capsys):
     d = pd.DataFrame(r("list(dose = drc::S.alba$Dose, dm = drc::S.alba$DryMatter, "
                        "herbicide = as.character(drc::S.alba$Herbicide))", ("drc",)))
     out = sdata.table(d).fit_dose_response(x="dose", y="dm", for_each_group_in="herbicide").as_pandas()
-    ref = r("m <- drc::drm(DryMatter ~ Dose, Herbicide, data = drc::S.alba, fct = drc::LL.4()); "
+    ref = r("m <- drc::drm(DryMatter ~ Dose, Herbicide, data = drc::S.alba, fct = drc::LL.4(), "
+            "control = drc::drmc(relTol = 1e-15)); "
             "e <- drc::EDcomp(m, c(50, 50), interval = 'delta', display = FALSE); "
             "t <- drc::EDcomp(m, c(50, 50), display = FALSE); "
             "list(ratio = e[1, 1], low = e[1, 2], high = e[1, 3], se = t[1, 2], p = t[1, 4])", ("drc",))
@@ -100,7 +102,8 @@ def test_dose_response_that_rises_with_dose_says_so(needs_r, capsys):
     out = sdata.table(df).fit_dose_response(x="dose", y="growth", doses_for_effect=[10, 50]).as_pandas()
     printed = capsys.readouterr().out
     assert "the response rises with dose" in printed and "falls with dose" not in printed
-    ref = r("m <- drc::drm(growth ~ dose, fct = drc::LL.4()); e <- drc::ED(m, c(10, 50), interval = 'delta', "
+    ref = r("m <- drc::drm(growth ~ dose, fct = drc::LL.4(), "
+            "control = drc::drmc(relTol = 1e-15)); e <- drc::ED(m, c(10, 50), interval = 'delta', "
             "display = FALSE); list(b = coef(m)[1], ed = unname(e[, 1]))", ("drc",), dose=dose,
             growth=df["growth"].to_numpy())
     assert one(ref["b"]) < 0
@@ -133,7 +136,8 @@ def test_chart_dose_response_draws_the_r_curve(ryegrass):
     chart = sdata.chart(ryegrass).draw_dots(x="conc", y="rootl").fit_dose_response()
     facts = chart_facts(chart._render().axes[0])
     xs, ys = facts["lines"][0]
-    ref = r("m <- drc::drm(rootl ~ conc, data = drc::ryegrass, fct = drc::LL.4()); "
+    ref = r("m <- drc::drm(rootl ~ conc, data = drc::ryegrass, fct = drc::LL.4(), "
+            "control = drc::drmc(relTol = 1e-15)); "
             "list(y = unname(predict(m, newdata = data.frame(conc = at))))", ("drc",), at=xs)
     assert ys == pytest.approx(np.asarray(ref["y"], dtype=float), rel=1e-6)
     assert facts["legend"][-1].startswith("ED50 3.06 (95 % CI 2.67 to 3.45)")

@@ -278,7 +278,8 @@ def test_values_above_a_threshold(needs_r, capsys):
     x = sdata.get_example("rain")["rain"].to_numpy(dtype=float)
     from simplydata._r import r_call
 
-    found = r_call("f <- extRemes::fevd(x, threshold = 20, type = 'GP', time.units = 'days'); "
+    found = r_call("f <- extRemes::fevd(x, threshold = 20, type = 'GP', time.units = 'days', "
+                   "optim.args = list(method = 'BFGS', control = list(reltol = 1e-12))); "
                    "as.numeric(extRemes::return.level(f, return.period = 10))", packages=(), x=x)
     assert result["level"][0] == pytest.approx(float(np.atleast_1d(found)[0]), rel=1e-9)
     out = capsys.readouterr().out

@@ -2859,7 +2859,9 @@ BASIS['table.compare_balanced_groups_of test_method="matching"'] = _b(
     "weighting); rows left without a match are counted and named in a note.", "convention")
 BASIS['table.compare_risks show="attributable fractions"'] = _b(
     "The attributable fraction among the exposed and in the whole population from R epiR::epi.2by2(method = "
-    "\"cohort.count\"), with Wald intervals from the risk ratio; for an exposure that goes with fewer events, the "
+    "\"cohort.count\"), with the intervals epiR gives for one table (among the exposed, from the score interval of "
+    "the risk ratio; in the population, from the exact intervals of the two risks); for an exposure that goes with "
+    "fewer events, the "
     "preventable fraction among the exposed (epiR's fraction with the roles of the groups swapped).",
     "compare_risks() without show= (the risk difference, the risk and odds ratios, the number needed to treat).",
     "These are the standard definitions (Rockhill et al. 1998). The fractions here are crude: adjusting the "

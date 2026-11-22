@@ -508,6 +508,16 @@ def fit_curve_core(x, y, degree, weights=None) -> dict:
     statsmodels WLS, and statsmodels' t_test() turns the estimates, standard errors and intervals
     into those of the raw powers (the conversion matrix comes from NumPy Polynomial.convert()).
     On Filip this agrees with NIST to 13 digits; the QR fit on the raw powers gave no standard errors.
+
+    Turning the answer back into raw powers adds rounding of its own, which shows on (nearly) exact fits
+    (NIST Wampler1 and Wampler3: 8.7 to 9.0 digits). Where the raw powers are not badly conditioned
+    (condition number below 1e10), one step of iterative refinement follows (_refine_raw_powers): the
+    residuals of the raw-power estimates, fitted again on the same mapped powers, give the correction.
+    Wampler1 to Wampler4 then agree with NIST to 9.5 digits or more (it varies a little with the
+    linear-algebra library). Wampler5, whose noise is far larger
+    than its curve, stays near 8 digits (7.7 with the step, 8.0 without): there the rounding of the residuals
+    themselves sets the limit. Filip (1.8e15) is left as it is, because there the raw powers cannot even give
+    the residuals accurately.
     """
     from numpy.polynomial import Polynomial, polyutils
     from statsmodels.regression.linear_model import WLS
@@ -526,10 +536,34 @@ def fit_curve_core(x, y, degree, weights=None) -> dict:
         result = WLS(y, X, weights=w).fit()
         raw = result.t_test(to_raw)
         low, high = np.asarray(raw.conf_int(alpha=0.05)).T
-        return {"beta": np.asarray(raw.effect).ravel(), "se": np.asarray(raw.sd).ravel(),
-                "t": np.asarray(raw.tvalue).ravel(), "p": np.asarray(raw.pvalue).ravel(), "low": low, "high": high,
-                "df": int(result.df_resid), "r2": float(result.rsquared), "adjusted": float(result.rsquared_adj),
-                "n": len(y), "sigma": math.sqrt(result.scale), "fitted": np.asarray(result.fittedvalues)}
+        out = {"beta": np.asarray(raw.effect).ravel(), "se": np.asarray(raw.sd).ravel(),
+               "t": np.asarray(raw.tvalue).ravel(), "p": np.asarray(raw.pvalue).ravel(), "low": low, "high": high,
+               "df": int(result.df_resid), "r2": float(result.rsquared), "adjusted": float(result.rsquared_adj),
+               "n": len(y), "sigma": math.sqrt(result.scale), "fitted": np.asarray(result.fittedvalues)}
+        raw_powers = np.sqrt(w)[:, None] * np.vander(x, degree + 1, increasing=True)
+        if np.all(np.isfinite(out["se"])) and np.linalg.cond(raw_powers) < 1e10:
+            out.update(_refine_raw_powers(x, y, w, X, to_raw, out["beta"]))
+        return out
+
+
+def _refine_raw_powers(x, y, w, X, to_raw, beta) -> dict:
+    """[D] One step of iterative refinement of the raw-power estimates (fit_curve_core): the residuals
+    y - (b0 + b1 x + ... ), worked out on the raw powers with NumPy polyval, are fitted with statsmodels WLS
+    on the same mapped powers, and t_test() turns that fit into the correction of each raw power, its
+    standard error, t and p-value (tested against minus the first estimates, so they belong to the refined
+    estimates). Our arithmetic is only the residuals and adding the correction to the estimates and to the
+    ends of its interval; the standard errors come from the residuals that remain."""
+    from numpy.polynomial import polynomial
+    from statsmodels.regression.linear_model import WLS
+
+    residual = y - polynomial.polyval(x, beta)
+    correction = WLS(residual, X, weights=w).fit()
+    step = correction.t_test((to_raw, -beta))
+    low, high = np.asarray(step.conf_int(alpha=0.05)).T
+    refined = beta + np.asarray(step.effect).ravel()
+    return {"beta": refined, "se": np.asarray(step.sd).ravel(), "t": np.asarray(step.tvalue).ravel(),
+            "p": np.asarray(step.pvalue).ravel(), "low": beta + low, "high": beta + high,
+            "sigma": math.sqrt(correction.scale), "fitted": polynomial.polyval(x, refined)}
 
 
 def _curve_text(y, x, beta) -> str:
