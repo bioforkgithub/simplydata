@@ -3322,3 +3322,93 @@ BASIS["animate"] = _b(
     "seconds_per_frame=, keep=True.",
     "Showing results: fixed ranges keep the bars and dots from jumping about, so the change between pictures is "
     "the change in the data.", (), "P5", "A column with fewer than 2 values is refused.", "starting value")
+
+# ---- Phase U3, batch 6: statistics and distribution words
+BASIS["table.compare_shapes_of two groups"] = _b(
+    "Two groups: the two-sample Kolmogorov-Smirnov test, exact while the groups make fewer than 10000 pairs of "
+    "values; with tied values the exact p-value comes from R ks.test(), which allows for the ties.",
+    "Three or more groups get the k-sample Anderson-Darling test; the groups can be cut down to two with "
+    "keep_rows_where().",
+    "Kolmogorov-Smirnov is the standard test of two whole distributions (Massey 1951). SciPy's exact p-value "
+    "assumes no ties, so with ties the p-value of R, which counts them, is used: the field's standard software "
+    "decides.",
+    ("massey1951",), "P3", "The printout says when the p-value came from R because of tied values.", "convention")
+BASIS["table.compare_to_truth a column of numbers"] = _b(
+    "Higher scores count as positive, said before the ROC curve is made (pROC direction = \"<\"); the AUC with "
+    "DeLong's interval; the best cut-off by Youden's index.",
+    "positive_when=\"lower\"; cut_off= for a chosen cut-off.",
+    "DeLong's interval needs no assumption about the shape of the scores (DeLong et al. 1988). Fixing the "
+    "direction first keeps a score that works the wrong way round from looking good, as pROC's own guess would "
+    "make it; Youden's index is the usual summary of a cut-off (Youden 1950).",
+    ("delong1988", "youden1950"), "P5", "An AUC below 0.5 gets a note that suggests positive_when=.")
+BASIS["table.agreement_between columns of numbers"] = _b(
+    "The intraclass correlation from R irr::icc(): two-way, absolute agreement, one rater (ICC(A,1), Shrout and "
+    "Fleiss' ICC(2,1)).",
+    "raters=\"these only\" or \"different per row\"; checking_for=\"consistency\"; of=\"average of raters\"; "
+    "test_method=\"lin\".",
+    "The ICC form must be chosen and named; ICC(A,1) is the form for raters who are a sample of possible raters "
+    "when single ratings will be used (Shrout & Fleiss 1979; McGraw & Wong 1996; Koo & Li 2016). irr's own "
+    "default, the one-way model, would ignore that the same raters scored every row.",
+    ("shrout1979", "mcgraw1996", "koo2016"), "P1", "The form is always printed beside the value.")
+BASIS["dist.find_density_at"] = _b(
+    "The height of the SciPy density (pdf) at the value, with the parameters under R's names (shape, rate) turned "
+    "into SciPy's (a, scale = 1 / rate).",
+    "A list of values; dist.find_chance_that_value() for a chance.",
+    "R's names are the ones most textbooks and papers use; turning them into SciPy's is bookkeeping, not a "
+    "statistical choice.", (), "P3", "Count distributions are refused: they have no density.", "convention")
+BASIS["dist.find_cut_off"] = _b(
+    "The value with a chance above it is SciPy's inverse survival function isf(), not ppf(1 - chance); the value "
+    "with a chance below it is ppf().",
+    "with_chance_below=; a list of chances.",
+    "1 - chance loses digits when the chance is tiny; isf() keeps them. This is numerical care, not a statistical "
+    "choice.", (), "P3", "Chances outside 0 to 1 are refused, with find_percentile() offered for percents.",
+    "convention")
+BASIS["dist.find_middle_range"] = _b(
+    "The middle percent with equal tails: ppf() of half the rest for the lower end and isf() of it for the upper "
+    "end.",
+    "Any percent above 0 and below 100.",
+    "Equal tails are the usual way to give a middle range; isf() keeps the upper end accurate when the percent is "
+    "close to 100. Numerical care, not a statistical choice.", (), "P3",
+    "A percent of 0, 100 or outside them is refused.", "convention")
+BASIS["dist.find_average"] = _b(
+    "The mean of the SciPy distribution, with R's parameter names turned into SciPy's.",
+    "dist.show_summary() for every summary at once.",
+    "The average of a distribution is a fact of the distribution; only the names need care.", (), "P3",
+    "A distribution with no finite average (heavy tails) gets a sentence that says so.", "convention")
+BASIS["dist.find_median"] = _b(
+    "The median of the SciPy distribution (its 50 % point), with R's parameter names turned into SciPy's.",
+    "dist.find_percentile(50) gives the same.",
+    "A fact of the distribution; only the names need care.", (), "P3", "", "convention")
+BASIS["dist.find_standard_deviation"] = _b(
+    "The standard deviation of the SciPy distribution itself (no sample, so no n - 1), with R's parameter names "
+    "turned into SciPy's.",
+    "dist.find_variance() for its square.",
+    "A fact of the distribution; only the names need care.", (), "P3",
+    "A distribution with no finite spread gets a sentence that says so.", "convention")
+BASIS["dist.find_variance"] = _b(
+    "The variance of the SciPy distribution, with R's parameter names turned into SciPy's.",
+    "dist.find_standard_deviation() for its square root.",
+    "A fact of the distribution; only the names need care.", (), "P3",
+    "A distribution with no finite variance gets a sentence that says so.", "convention")
+BASIS["dist.show_summary"] = _b(
+    "One row: average, median, standard deviation, variance, skewness, excess kurtosis (0 for the normal "
+    "distribution), entropy in nats and the lowest and highest possible values, all from SciPy.",
+    "The single dist words for one number each.",
+    "Excess kurtosis is the form SciPy and most software give, so 0 means as heavy-tailed as the normal "
+    "distribution.", (), "P3", "An entropy SciPy cannot work out is left empty.", "convention")
+BASIS["dist.make_random_numbers"] = _b(
+    "NumPy's generator (PCG64) seeded with with_seed=1, so the same seed gives the same numbers.",
+    "with_seed= any whole number, or None for different numbers each time; rows= and columns= for a grid.",
+    "A fixed seed makes every example and analysis repeatable; the printout says R's generator differs, so R's "
+    "numbers will not match.", (), "P5", "", "starting value")
+BASIS["dist.draw_chart"] = _b(
+    "The density curve from the 0.1 % to the 99.9 % point at 200 evenly spaced places; bars of each chance for "
+    "count distributions.",
+    "show=\"cumulative\"; between= for another range.",
+    "Showing results: the middle 99.8 % holds the whole visible curve without long flat tails.", (), "P5", "",
+    "starting value")
+BASIS["dist.turn_into_table"] = _b(
+    "One row: the distribution's name and its parameters under their plain names; parameters not given are "
+    "left out; a fitted distribution adds its standard errors, log-likelihood, AIC and BIC.",
+    "dist.show_parameters() for a dictionary.",
+    "Bookkeeping, not a method: the plain names are the ones the user typed.", (), "P5", "", "convention")
