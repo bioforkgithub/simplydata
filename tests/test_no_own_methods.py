@@ -129,7 +129,7 @@ ALLOWED_ARITHMETIC = {
                                             "1e10): the residuals y - polyval(x, b) and b + the correction "
                                             "statsmodels fits to them (its t_test gives the standard errors, t "
                                             "and p); NIST Wampler1 and Wampler3 went from 8.7-9.0 digits to "
-                                            "9.5 and above",
+                                            "9.1 to 10.3",
     # review fixes (2026-11-21)
     "_trend_season.py::lag1_after_sen_line": "the readings minus SciPy theilslopes' line (the residuals), the input "
                                              "of statsmodels acf and acorr_ljungbox for find_trend_of's check of "

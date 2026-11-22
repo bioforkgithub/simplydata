@@ -11,7 +11,7 @@ working for one release and prints a one-line note with its new name.
   (inv(R) inv(R)'), not statsmodels' inv(R'R): on NIST Longley they now agree with the certified values to 12.6 to
   14.2 digits (before: 7.97 to 9.42).
 - `fit_curve` (polynomials) adds one step of iterative refinement where the powers of x are not badly conditioned:
-  NIST Wampler1 to Wampler4 agree to 9.5 digits or more (Wampler1, Wampler3 and Wampler4 were just under 9); Filip stays at
+  NIST Wampler1 to Wampler4 agree to 9.1 to 10.3 digits, depending on the computer (Wampler1, Wampler3 and Wampler4 were just under 9); Filip stays at
   13.6 digits and more.
 - `compare_risks(show="attributable fractions")` no longer calls its intervals "Wald": they are the ones epiR gives
   for one table (the score interval of the risk ratio; the exact intervals of the two risks), and the printout says so.

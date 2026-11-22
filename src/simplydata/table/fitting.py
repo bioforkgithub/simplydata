@@ -513,8 +513,8 @@ def fit_curve_core(x, y, degree, weights=None) -> dict:
     (NIST Wampler1 and Wampler3: 8.7 to 9.0 digits). Where the raw powers are not badly conditioned
     (condition number below 1e10), one step of iterative refinement follows (_refine_raw_powers): the
     residuals of the raw-power estimates, fitted again on the same mapped powers, give the correction.
-    Wampler1 to Wampler4 then agree with NIST to 9.5 digits or more (it varies a little with the
-    linear-algebra library). Wampler5, whose noise is far larger
+    Wampler1 to Wampler4 then agree with NIST to 9.1 to 10.3 digits (it varies with the
+    linear-algebra library of the computer). Wampler5, whose noise is far larger
     than its curve, stays near 8 digits (7.7 with the step, 8.0 without): there the rounding of the residuals
     themselves sets the limit. Filip (1.8e15) is left as it is, because there the raw powers cannot even give
     the residuals accurately.
