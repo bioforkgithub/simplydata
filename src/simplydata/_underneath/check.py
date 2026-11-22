@@ -376,6 +376,8 @@ def _same(a, b, tol: float) -> bool:
             return False
         if isinstance(a, np.ndarray) or isinstance(b, np.ndarray):
             a, b = np.asarray(a, dtype=float), np.asarray(b, dtype=float)
+            if a.shape != b.shape:  # a grid and a list, or (n, 1) and (n,), are not the same result
+                return False
             return bool(np.allclose(a, b, rtol=tol, atol=1e-12, equal_nan=True))
         return all(_same(x, y, tol) for x, y in zip(a, b))
     if a is None or b is None:

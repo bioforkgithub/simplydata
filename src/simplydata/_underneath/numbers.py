@@ -6,12 +6,12 @@ ENTRIES = [
     Entry(
         word="nums.find_median",
         ours="""
-            nums = sdata.numbers([12, 15, 9, 20, 14])
+            nums = sdata.numbers([12, None, 9, 20, 14])
             nums.find_median()
         """,
         code={"NumPy": """
             import numpy as np
-            values = np.array([12, 15, 9, 20, 14])
+            values = np.array([12, np.nan, 9, 20, 14])
             # find_median()
             np.nanmedian(values)                 # (1)
         """},
@@ -94,8 +94,8 @@ ENTRIES = [
                  "shortens a list of more than 1000 numbers to its ends with \"...\" in the middle.",
                  "the numbers are written with commas between them, like a Python list; NumPy's print leaves out "
                  "the commas.",),
-        also="An empty value is shown as nan. Typing nums on its own line shows at most 60 numbers, with how many "
-             "there are.",
+        also="An empty value is shown as nan. Typing nums on its own line shows how many numbers there are and "
+             "every number up to 60; above that only the first 3 and the last 3 (a grid: above 200 numbers).",
     ),
     Entry(
         word="nums.show_first_numbers",
@@ -111,7 +111,8 @@ ENTRIES = [
             print(np.array2string(values[:3], threshold=sys.maxsize, separator=", "))   # (1)
         """},
         compare="printed",
-        choices=("the numbers are written with commas, like a Python list, and none is hidden behind \"...\".",),
+        choices=("the numbers are written with commas between them, like a Python list; NumPy's print leaves out "
+                 "the commas. threshold=sys.maxsize keeps a long list whole, as in show().",),
         also="Without a number it shows the first 5. Asking for more than there are shows them all.",
     ),
     Entry(
@@ -128,7 +129,8 @@ ENTRIES = [
             print(np.array2string(values[-2:], threshold=sys.maxsize, separator=", "))   # (1)
         """},
         compare="printed",
-        choices=("the numbers are written with commas, like a Python list, and none is hidden behind \"...\".",),
+        choices=("the numbers are written with commas between them, like a Python list; NumPy's print leaves out "
+                 "the commas. threshold=sys.maxsize keeps a long list whole, as in show().",),
         also="Without a number it shows the last 5. show_last_numbers(0) shows none, where NumPy's values[-0:] "
              "would give them all.",
     ),
@@ -446,13 +448,13 @@ ENTRIES = [
         word="nums.keep_random_numbers",
         ours="""
             nums = sdata.numbers([10, 20, 30, 40, 50, 60])
-            nums.keep_random_numbers(3, with_seed=1)
+            nums.keep_random_numbers(3, with_seed=2)
         """,
         code={"NumPy": """
             import numpy as np
             values = np.array([10, 20, 30, 40, 50, 60])
-            # keep_random_numbers(3, with_seed=1)
-            rng = np.random.default_rng(1)                           # (1)
+            # keep_random_numbers(3, with_seed=2)
+            rng = np.random.default_rng(2)                           # (1)
             picked = rng.choice(len(values), size=3, replace=False)
             values[np.sort(picked)]                                  # (2)
         """},
@@ -809,8 +811,8 @@ ENTRIES = [
             print(np.array2string(g[:2], threshold=sys.maxsize, separator=", "))   # (1)
         """},
         compare="printed",
-        choices=("the numbers are written with commas, like Python lists of rows, and none is hidden behind "
-                 "\"...\".",),
+        choices=("the numbers are written with commas, like Python lists of rows; NumPy's print leaves out the "
+                 "commas. threshold=sys.maxsize keeps a long grid whole, as in show().",),
         also="Without a number it shows the first 5 rows.",
     ),
     Entry(
@@ -827,8 +829,8 @@ ENTRIES = [
             print(np.array2string(g[-2:], threshold=sys.maxsize, separator=", "))   # (1)
         """},
         compare="printed",
-        choices=("the numbers are written with commas, like Python lists of rows, and none is hidden behind "
-                 "\"...\".",),
+        choices=("the numbers are written with commas, like Python lists of rows; NumPy's print leaves out the "
+                 "commas. threshold=sys.maxsize keeps a long grid whole, as in show().",),
         also="Without a number it shows the last 5 rows.",
     ),
     Entry(
@@ -1106,9 +1108,9 @@ ENTRIES = [
         choices=("the numbers are written as one column called \"value\", without row numbers (index=False), so "
                  "the file reads back as it was.",),
         also="The end of the name decides the type: .xlsx, .tsv, .parquet and .json work as for tables, and .wav "
-             "writes a sound file (SciPy io.wavfile, with time_step=). An empty value is written as an empty cell. "
-             "separator=\",\" reads the file back here: without it, sdata.table() guesses the separator of a file "
-             "with one column wrongly.",
+             "writes a sound file (SciPy io.wavfile, with time_step=). A current limitation of simplydata's own "
+             "reader: sdata.table() guesses the separator of a file with only one column wrongly, so such a file "
+             "is read back here with separator=\",\" (pandas read_csv reads it as it is).",
     ),
     Entry(
         word="nums.as_numpy",
@@ -1126,6 +1128,6 @@ ENTRIES = [
         tolerance=0.0,
         choices=("a copy of the numbers as they are now, so changing the array leaves the simplydata numbers as "
                  "they were.",),
-        also="Empty values are nan in the array. Whole numbers come back as int64, decimals as float64.",
+        also="Empty values are nan in the array.",
     ),
 ]

@@ -738,8 +738,8 @@ def cases(Case):
              """, parent_label="pandas to_csv and read_csv", parent_tolerance=1e-12),
         Case("nums.as_numpy", "Michelson's measurements handed on as a NumPy array", "NIST Michelso", "real data",
              ours="""
-                 array = sdata.numbers(data["y"].tolist()).as_numpy()
-                 {"numbers": array.size, "total": array.sum()}
+                 back = sdata.numbers(sdata.numbers(data["y"].tolist()).as_numpy())
+                 {"numbers": back.count(), "total": back.find_total()}
              """,
              parent="""
                  array = data["y"].to_numpy().copy()

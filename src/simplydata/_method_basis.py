@@ -3414,23 +3414,23 @@ BASIS["nums.sort"] = _b(
 BASIS["nums.find_total"] = _b(
     "Empty values skipped (np.nansum), with a note saying how many.",
     "remove_empty_numbers() first if you want them gone for later steps too.",
-    "Skipping empty values and saying so is what pandas and R's sum(na.rm = TRUE) do.", (), "P3", "",
+    "pandas and R's sum(na.rm = TRUE) skip empty values too; simplydata also says how many.", (), "P3", "",
     "convention")
 BASIS["nums.find_smallest"] = _b(
     "Empty values skipped (np.nanmin), with a note saying how many.",
     "remove_empty_numbers() first if you want them gone for later steps too.",
-    "Skipping empty values and saying so is what pandas and R's min(na.rm = TRUE) do.", (), "P3", "",
+    "pandas and R's min(na.rm = TRUE) skip empty values too; simplydata also says how many.", (), "P3", "",
     "convention")
 BASIS["nums.find_biggest"] = _b(
     "Empty values skipped (np.nanmax), with a note saying how many.",
     "remove_empty_numbers() first if you want them gone for later steps too.",
-    "Skipping empty values and saying so is what pandas and R's max(na.rm = TRUE) do.", (), "P3", "",
+    "pandas and R's max(na.rm = TRUE) skip empty values too; simplydata also says how many.", (), "P3", "",
     "convention")
 BASIS["nums.count_each"] = _b(
     "Empty values counted as a value of their own; percents out of all numbers, rounded to 1 decimal; biggest "
     "count first, equal counts smallest number first, empty last.",
     "remove_empty_numbers() first to leave the empty values out.",
-    "Showing results: every number is accounted for, so the percents add up to 100, and the order is the same "
+    "Showing results: every number is accounted for, so the percents add up to 100 before rounding, and the order is the same "
     "every time.", (), "P5", "", "starting value")
 BASIS["nums.make_number_grid"] = _b(
     "Filled row after row (NumPy's order \"C\").", "rows= or columns= (or both).",
@@ -3490,7 +3490,8 @@ BASIS["nums.start_chart"] = _b(
 BASIS["nums.save"] = _b(
     "One column called \"value\", without row numbers.", "turn_into_table(name=), then the table's own save word, for another name; "
     ".wav with time_step= and bits=.",
-    "A file without pandas' row labels reads back as it was, in any program.", (), "P5",
+    "A file without pandas' row labels reads back as it was with pandas read_csv or R read.csv; "
+    "simplydata's own reader needs separator=\",\" for a file of one column (a current limitation).", (), "P5",
     "time_step= and bits= only go with a .wav file.", "convention")
 BASIS["nums.as_numpy"] = _b(
     "A copy of the numbers as they are now.", "None.",
