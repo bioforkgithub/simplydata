@@ -73,8 +73,9 @@ def test_fleiss_kappa(engine, needs_r):
 
 
 @pytest.mark.parametrize("options, name, expected", [
-    # R: irr::icc(cbind(device_a, device_b), model =, type =, unit =): value, lbound, ubound
-    ({}, "twoway_agreement_single", (0.938834756965, 0.8937258725702, 0.9616016437585)),
+    # R: irr::icc(cbind(device_a, device_b), model =, type =, unit =): value, lbound, ubound; psych::ICC, which
+    # simplydata now calls, gives the same numbers for these forms
+    ({},"twoway_agreement_single", (0.938834756965, 0.8937258725702, 0.9616016437585)),
     ({"raters": "these only", "checking_for": "consistency"}, "twoway_consistency_single",
      (0.9483786034937, 0.9323498556937, 0.9606868305061)),
     ({"raters": "different per row"}, "oneway_consistency_single", (0.9385254375713, 0.9195943831064,
@@ -83,7 +84,10 @@ def test_fleiss_kappa(engine, needs_r):
     ({"raters": "fixed", "checking_for": "consistency"}, "twoway_consistency_single",
      (0.9483786034937, 0.9323498556937, 0.9606868305061)),
     ({"raters": "different"}, "oneway_consistency_single", (0.9385254375713, 0.9195943831064, 0.9531126639668)),
-    ({"of": "average of raters"}, "twoway_agreement_average", (0.9684525755404, 0.9434971279195, 0.9805034834157)),
+    # psych::ICC(cbind(device_a, device_b), lmer = FALSE), row ICC2k: McGraw and Wong's interval (irr::icc gave
+    # 0.9434971279195 to 0.9805034834157)
+    ({"of": "average of raters"}, "twoway_agreement_average", (0.9684525755403928, 0.9438809338937905,
+                                                               0.9804249979277266)),
 ])
 def test_icc(engine, needs_r, options, name, expected):
     got = row(make(engine).agreement_between("device_a", "device_b", **options))
