@@ -3287,3 +3287,30 @@ BASIS["sdata.make_run_of_dates"] = _b(
     "every=, to= or how_many=.",
     "As pandas DateOffset and Polars \"1mo\" counted from the start; R's seq(by = \"month\") runs over into the "
     "next month instead.", (), "P5", "", "convention")
+# ---- 2026-11-21 (PR words-and-fixes): options that give back the numbers as a table, and R's datasets
+BASIS["table.check_model_of show=\"numbers\""] = _b(
+    "The numbers check_model_of prints, as a table: variance inflation factors, Koenker's Breusch-Pagan test and "
+    "White's test (least squares), the Brier score and the Hosmer-Lemeshow test (yes or no), the number of rows with "
+    "a Cook's distance above 0.5; with test_method=\"bayesian\" R-hat, effective draws and the posterior predictive check.",
+    "leave out show= for the pictures; show=\"prior check\" with test_method=\"bayesian\".",
+    "The same calls as the printout (statsmodels het_breuschpagan(robust=True), het_white, variance_inflation_factor; "
+    "R car::vif, performance::performance_hosmer, posterior::summarise_draws), so the table and the printed numbers "
+    "agree. Koenker's form does not assume bell-shaped errors (Koenker 1981); the pictures stay the way to judge a "
+    "model (Hosmer et al. 1997).", ("koenker1981", "white1980", "hosmer1997", "vehtari2021"), "P5",
+    "A mixed model (grouped_by=) is refused: its check is pictures only.")
+BASIS["table.find_correlation_between show=\"result table\""] = _b(
+    "With two columns, one row: r, its 95 % interval (Fisher's z for Pearson, SciPy pearsonr; R DescTools for "
+    "Spearman and Kendall), the p-value, which directions were tested, the rows used and the strength in words.",
+    "p_value_by=\"shuffling\" and interval_by=\"bootstrap\" fill the row with those (and say so); with three or more "
+    "columns it is show=\"each pair\".",
+    "The same calls as the printed sentence, so the table and the sentence agree; Fisher's z interval is the one R "
+    "cor.test and SciPy give (Fisher 1915).", ("fisher1915",), "P3",
+    "Somers' d, gamma and allowing_for= are refused with show=\"result table\".", "convention")
+BASIS["sdata.get_example from_r_package="] = _b(
+    "R itself loads the dataset of an installed R package (utils::data, from the data file that holds it); groups "
+    "(factors) become text, R's NA empty cells, and row names that carry information a first column \"row name\".",
+    "Leave out from_r_package= for simplydata's own practice tables.",
+    "A dataset is used as the R package ships it, so results can be compared with the package's help page; nothing "
+    "is downloaded or installed, so data never leave the computer (simplydata's privacy promise).", (), "P5",
+    "A missing package or dataset is refused with the nearest name and the install line (never run by simplydata).",
+    "starting value")

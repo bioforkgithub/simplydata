@@ -72,8 +72,10 @@ def _practice_tables_as(engine: str):
 
     original = simplydata.get_example
 
-    def as_polars(name=None):
-        found = original(name)
+    def as_polars(name=None, **options):
+        found = original(name, **options)
+        if options:  # from_r_package= gives a simplydata table already
+            return found
         return None if found is None else pl.from_pandas(found)
 
     simplydata.get_example = as_polars
@@ -151,16 +153,12 @@ def chart_facts(ax) -> dict:
     scales            ("linear" or "log", for x and y)
     panels            the number of charts in the figure
     """
-    from matplotlib.patches import Rectangle
+    from .._numbers_drawn import dots_of, lines_of, rectangles_of  # the readers of chart.get_numbers_drawn()
 
-    rects = [p for p in ax.patches if isinstance(p, Rectangle)]
     bars = sorted(((float(r.get_x()), float(r.get_y()), float(r.get_width()), float(r.get_height()), r.get_facecolor())
-                   for r in rects), key=lambda b: b[:4])
+                   for r in rectangles_of(ax)), key=lambda b: b[:4])
     dots, sizes, dot_colours = [], [], []
-    for coll in ax.collections:
-        offsets = np.asarray(coll.get_offsets(), dtype=float)
-        if offsets.ndim != 2 or len(offsets) == 0 or coll.__class__.__name__ != "PathCollection":
-            continue
+    for coll, offsets in dots_of(ax):
         dots.extend(map(tuple, offsets))
         s = np.asarray(coll.get_sizes(), dtype=float)
         if len(s) == len(offsets):
@@ -179,8 +177,7 @@ def chart_facts(ax) -> dict:
         "dots": dots,
         "dot_size_shares": list(sizes / biggest) if sizes.size else [],
         "dot_colour_groups": _colour_groups(dot_colours),
-        "lines": [(np.asarray(line.get_xdata(), dtype=float), np.asarray(line.get_ydata(), dtype=float))
-                  for line in ax.get_lines()],
+        "lines": [(x, y) for _, x, y in lines_of(ax)],
         "labels": (ax.get_xlabel(), ax.get_ylabel(), ax.get_title()),
         "ticks": ([t.get_text() for t in ax.get_xticklabels()], [t.get_text() for t in ax.get_yticklabels()]),
         "legend": (([legend.get_title().get_text()] + [t.get_text() for t in legend.get_texts()])

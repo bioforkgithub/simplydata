@@ -413,6 +413,30 @@ class BaseChart:
         plt.show()
         return self
 
+    def get_numbers_drawn(self):
+        """A table of the numbers the chart drew. chart.get_numbers_drawn()
+
+        One row per drawn point, in layers: each line, group of dots, set of bars, band, set of
+        stems or error bars is one layer. The columns:
+          panel   the chart number (1 unless the chart is split into several)
+          layer   the layer number on that chart
+          kind    "line", "dot", "bar", "band", "stem", "error bar", "segment", "rectangle",
+                  "cell" (a heat map square), "slice" (a pie slice) or "shape"
+          series  the name of the layer in the legend (empty when it has none)
+          x, y    where the point is (dates on a date axis, group names on an axis of groups); for a
+                  bar, x is its middle and y its height (sideways bars: x is the length, y the middle)
+          low, high  the two ends of a bar, a band, a stem or an error bar
+          value   the number in a heat map square, or a pie slice's share of the whole
+        The numbers are read back from what matplotlib drew (nothing is worked out again), so they
+        are exactly what you see: the points of a fitted curve, a forecast band, the survival steps.
+        """
+        from ._numbers_drawn import numbers_drawn, summary
+        from .table.table import table
+
+        frame = numbers_drawn(self._render())
+        print(summary(frame))
+        return table(frame)
+
     def _repr_png_(self):
         """Lets Jupyter, VS Code and Spyder show the chart automatically."""
         fig = self._render()

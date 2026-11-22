@@ -5,6 +5,56 @@ working for one release and prints a one-line note with its new name.
 
 ## Unreleased
 
+### Fixed: one-column CSV files were split at a letter (check your one-column files)
+
+- `sdata.table("file.csv")` on a CSV or text file with **one column** could split it at a letter: simplydata let
+  pandas guess the separator, and it could pick a letter of the column name, so a column `species` came back as
+  columns such as `sp` and `cies`, and `difference` as `diff`, `r`, `nc` (simplydata 0.2.x). If you read one-column
+  files with simplydata 0.2.x without `separator=`, read them again. Now simplydata guesses only a comma, semicolon,
+  tab or bar (never a letter, digit or other sign); a file with none of them is read as one column. When it guesses,
+  it prints one line: `Read "file.csv" with "," between the columns (guessed). To be sure, give separator=",".`
+  `separator=` stays the safe way in (`","`, `";"`, `"tab"`, `"|"`, `"space"`): give it when you know it, especially
+  for a file with one column. Values lined up with spaces are no longer guessed: give `separator="space"`.
+
+### Fixed: four numbers that differed from their reference
+
+- `explain(..., table_of_tests="in order")`: the p-values are now taken on the full model's residual degrees of
+  freedom, as R `anova()` does (statsmodels `anova_lm(typ=1)` on one fit). On `carData::Moore`,
+  `conformity ~ fcategory * partner.status`: partner.status p 0.0027934 before (41 df), 0.0028742 now (39 df, =
+  R). The F values and sums of squares were already right; types 2 and 3 are unchanged.
+- `fit_formula(..., test_method="trust region")` and `"dogbox"`: central differences with a step relative to each
+  value (SciPy `jac="3-point"`, `diff_step`), so a small value such as 1e-7 is no longer stepped by 1.5e-8. NIST
+  Misra1a standard errors agree to 9.9 digits (4.6 before), Kirby2 to 7.8 (3.1), Hahn1 to 8.5 (0.4). The default
+  (Levenberg-Marquardt) is unchanged.
+- `compare_forecasts_for` and `forecast(check_on_last=)`: MASE is now scaled by the in-sample error of the same
+  season last time, as the printout says: the held-back readings go to R `forecast::accuracy()` as a seasonal `ts`.
+  co2, exponential smoothing, last 12: 0.278 before, 0.234 now (= R). With `repeats_every=` the MASE numbers
+  change; MAE, RMSE and MAPE do not.
+- Savitzky-Golay smoothing (`add_smoothed_column`, `nums.smooth`) refused `of_degree=`, the option its help names, so
+  the degree could not be set. `of_degree=` works now; `degree=` is an old name with a note.
+
+### New: six words and options, and four more options
+
+- `chart.get_numbers_drawn()`: a table of the numbers a chart drew (each line, group of dots, set of bars, band,
+  stems, error bars, heat map cells, pie slices), read back from matplotlib, for every chart word, page and
+  `sdata.draw_all_pairs`.
+- `table.show_rows_that_pull_model(...)` now also gives back a table of the rows (or groups) it found.
+- `table.check_model_of(..., show="numbers")`: the numbers it prints, as a table (with `test_method="bayesian"`,
+  R-hat, effective draws and the predictive check).
+- `table.repeat_each_row_by("count")`: one row per thing counted.
+- `sdata.get_example("lung", from_r_package="survival")`: a dataset that comes with an installed R package, as a
+  table (needs simplydata[r]; nothing is downloaded or installed).
+- `table.find_correlation_between("a", "b", show="result table")`: r, its interval, the p-value and the rows as a
+  one-row table.
+- `table.find_survival_over_time(..., show="median")`: the median time of each group with its 95 % CI, as a table
+  (the numbers it prints, as R `print(survfit(...))`).
+- `table.fit_formula(...)` gives back a `note` column: "converged" or "did not converge", followed by the warnings
+  the fit printed.
+- `table.add_nmds(..., show="numbers")`: each row's NMDS coordinates and the stress (vegan::metaMDS) as a table,
+  without adding columns.
+- `table.add_correspondence_axes(..., show="numbers")`: each row's coordinates and the share of the inertia of each
+  axis (vegan::cca, ca::mjca) as a table, without adding columns.
+
 ### Fixed: ten differences the reference tests found (A8 to A17)
 
 The reference tests (simplydata_tests, notebooks 18 to 24) ran the words on the examples of their parent packages'

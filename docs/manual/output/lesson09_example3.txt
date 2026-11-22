@@ -1,5 +1,6 @@
 Kept 12 of 36 rows.
 Kept 12 of 36 rows.
+Read the files with "," between the columns (guessed). To be sure, give separator=",".
 Read 2 files and stacked them: 24 rows. The column "file" says which file each row came from.
 How many rows have each "file" (2 different values): lesson9_part1.csv 12, lesson9_part2.csv 12.
                 file month  month_number       city  temperature  rain  wind_direction  wind_speed

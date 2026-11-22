@@ -8,10 +8,8 @@ AirPassengers series, NIST's Michelson and Norris data, Student's sleep data and
 metadat, as the combining-studies cases do). Words that show something and give nothing back (show_first_rows,
 describe_columns, show_rows_with_outliers) are checked on what they print: the printed numbers are read back.
 
-Waiting for words (planned in the words-and-fixes PR): the chart cases read what a chart drew with chart._render() and
-chart_facts() until chart.get_numbers_drawn() exists, and show_rows_that_pull_model's case reads its printed rows until
-the word gives them as a table; both switch then. A survey design's degrees of freedom have no word yet (its name
-waits for approval).
+The chart cases read what a chart drew with chart.get_numbers_drawn(), and show_rows_that_pull_model's case reads the
+table the word gives back. A survey design's degrees of freedom have no word yet (its name waits for approval).
 """
 
 from __future__ import annotations
@@ -337,10 +335,8 @@ def _cases(Case):
              """, parent_label="R metadat dat.bcg (the published counts)", parent_tolerance=0.0),
         Case("sdata.chart", "the 36 Norris calibration points on a new chart", "NIST Norris", "real data",
              ours="""
-                 from simplydata._underneath.check import chart_facts
-                 ax = sdata.chart(data).draw_dots(x="x", y="y")._render().axes[0]
-                 dots = chart_facts(ax)["dots"]
-                 {"dots": len(dots), "sum of y": sum(d[1] for d in dots)}
+                 drawn = sdata.chart(data).draw_dots(x="x", y="y").get_numbers_drawn()
+                 {"dots": drawn.get_column("y").count(), "sum of y": drawn.get_column("y").find_total()}
              """,
              parent="""
                  import matplotlib.pyplot as plt
@@ -354,10 +350,9 @@ def _cases(Case):
         Case("table.start_chart", "Student's sleep data: a chart of drug 2 only, started from the table",
              "Student's sleep data", "published",
              ours="""
-                 from simplydata._underneath.check import chart_facts
                  t = sdata.table(data).keep_rows_where("group", is_equal_to="drug 2")
-                 ax = t.start_chart().draw_bars(x="group", y="extra")._render().axes[0]
-                 {"bar": chart_facts(ax)["bars"][0][3], "bars": len(chart_facts(ax)["bars"])}
+                 drawn = t.start_chart().draw_bars(x="group", y="extra").get_numbers_drawn()
+                 {"bar": drawn.get_cell_at(row=1, column="y"), "bars": drawn.get_column("y").count()}
              """,
              published={"bar": (2.33, 0.005, "Student (1908)")},
              parent="""

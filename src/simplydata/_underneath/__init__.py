@@ -23,7 +23,9 @@ percentiles, covariance, the automatic ARIMA order, q-values, pair tests after F
 planning_surveys.py (S3d-1: the design words, stratified random rows, patterns of empty cells, answers on a scale and
 the survey words),
 causal.py (S3d-2: balancing groups, attributable fractions, standardised rates, mediation, the 2 x 2 crossover and
-multiple imputation for other words) and bayesian.py (S3d-3: test_method="bayesian" on the tests, explain and check_model_of).
+multiple imputation for other words), bayesian.py (S3d-3: test_method="bayesian" on the tests, explain and check_model_of)
+and more_words.py (2026-11-21: get_numbers_drawn, repeat_each_row_by, the table of show_rows_that_pull_model,
+check_model_of show="numbers", get_example from_r_package= and find_correlation_between show="result table").
 From phase U1 on, the words that were still without an entry join the file of their area (tables.py, numbers.py,
 statistics.py, charts.py ...); starting.py holds the starting words (a table, a chart, numbers, a grid, a distribution,
 random numbers, a run of dates) and the help and 30-day words, which run no library (compare="none", with a note).
@@ -132,13 +134,14 @@ class Entry:
 
 
 def _join() -> dict[str, Entry]:
-    from . import (bayesian, causal, charts, checking, combining, communities, hidden_factors, lines, models, numbers,
-                   places,
-                   planning, planning_surveys, small_additions, starting, statistics, survival, tables)
+    from . import (bayesian, causal, charts, checking, combining, communities, hidden_factors, lines, models,
+                   more_words, numbers, places, planning, planning_surveys, small_additions, starting, statistics,
+                   survival, tables)
 
     found: dict[str, Entry] = {}
     for module in (charts, tables, numbers, statistics, models, lines, checking, survival, combining, planning,
-                   communities, hidden_factors, places, small_additions, planning_surveys, causal, bayesian, starting):
+                   communities, hidden_factors, places, small_additions, planning_surveys, causal, bayesian,
+                   more_words, starting):
         for entry in module.ENTRIES:
             if entry.key in found:
                 raise ValueError(f"{entry.key} has two underneath entries")

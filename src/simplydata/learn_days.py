@@ -1002,13 +1002,15 @@ UNITS = {
             "Write your question in one sentence, for example: do pupils who sleep more get better marks?",
             "Keep the raw file as it is: never change it. All the cleaning will be steps on a table, which "
             "you can repeat and undo.",
-            "Open the file with sdata.table and look at it."],
+            "Open the file with sdata.table and look at it. Give separator= when you know it (\",\", \";\", "
+            "\"tab\" or \"|\"), especially for a file with one column; without it simplydata guesses and prints "
+            "its guess."],
         task=["Write your question in one sentence. Open your raw file and write down how many rows and "
               "columns it has, and which columns have empty cells."],
         solutions=[(_code('''
             import simplydata as sdata
             sdata.table(sdata.get_example("school")).save("school_raw.csv")
-            table = sdata.table("school_raw.csv")
+            table = sdata.table("school_raw.csv", separator=",")
             table.count_rows()
             table.describe_columns()'''),
             "The first line only makes a raw file to practise on; with your own data, start at the second "

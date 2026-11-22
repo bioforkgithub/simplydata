@@ -404,7 +404,7 @@ def _draw_bar_check(ctx, numbers, column, title):
 def check(table, column, using, outcome, grouped_by, seed, show):
     """check_model_of(..., test_method="bayesian"): the posterior predictive picture; show="prior check" the prior one."""
     step = "check_model_of"
-    prior_only = show is not None
+    prior_only = show == "prior check"
     model, pieces = _model_for(table, step, column, using, outcome, grouped_by)
     found = bayes_r.predictive_check(model, seed, prior_only=prior_only)
     warnings, summary = convergence(found)
@@ -434,6 +434,8 @@ def check(table, column, using, outcome, grouped_by, seed, show):
         print(summary)
     print(f"Method: R {_formula(model, pieces, grouped_by)}{', prior_PD = TRUE' if prior_only else ''}, then "
           f"posterior_predict(draws = {sets}, seed = with_seed); with_seed={seed}.")
+    if show == "numbers":
+        return _check_numbers(table, found, model["outcome"])
     import pandas as pd
 
     from ..chart import chart as make_chart
@@ -444,3 +446,41 @@ def check(table, column, using, outcome, grouped_by, seed, show):
     made._add("predictive check", "draw", drawer, numbers=found, column=column, title=title)
     made._check_numbers = found
     return made
+
+
+def _check_numbers(table, found, outcome):
+    """check_model_of(..., test_method="bayesian", show="numbers"): the numbers behind the check as a table: R-hat and
+    the effective draws of each parameter (posterior::summarise_draws), the divergent transitions (rstan), and the
+    posterior predictive check: the data's density (or count of each value) against the median and 90 % range of
+    the made-up sets, all from R."""
+    import math
+
+    import narwhals as nw
+
+    rows = []
+
+    def add(check, term, value, at=math.nan, low=math.nan, high=math.nan):
+        rows.append({"check": check, "term": term, "at": float(at), "value": float(value), "low": float(low),
+                     "high": float(high)})
+
+    for par, rhat, bulk, tail in zip(found["par"], found["rhat"], found["ess_bulk"], found["ess_tail"]):
+        add("R-hat", str(par), rhat)
+        add("effective draws in the middle (bulk)", str(par), bulk)
+        add("effective draws in the tails", str(par), tail)
+    add("divergent transitions", "", np.atleast_1d(found["divergent"])[0])
+    if outcome == "numbers":
+        band = found["made_band"]
+        for x, observed, (low, middle, high) in zip(found["grid"], found["observed"], band):
+            add("posterior predictive check", "density of the data", observed, at=x)
+            add("posterior predictive check", "density of the made-up sets (median, 90 % range)", middle, at=x,
+                low=low, high=high)
+    else:
+        for x, observed, (low, middle, high) in zip(found["grid"], found["observed"], found["made"]):
+            add("posterior predictive check", "count in the data", observed, at=x)
+            add("posterior predictive check", "count in the made-up sets (median, 90 % interval)", middle, at=x,
+                low=low, high=high)
+    print(f'Gives back {len(rows)} numbers of the check as a table (show="numbers"): R-hat and effective draws of each '
+          "parameter, the divergent transitions, and the predictive check at each value (at=); leave out show= for "
+          "the picture.")
+    frame = nw.from_dict({k: [r[k] for r in rows] for k in rows[0]}, backend=table._frame.implementation)
+    return table._new_table(frame)

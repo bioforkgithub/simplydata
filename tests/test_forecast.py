@@ -149,13 +149,14 @@ def test_arima_with_an_average_matches_r(needs_r, capsys):
 
 
 ACCURACY = {
-    # R: train <- ts(h[1:132], frequency = 12); test <- h[133:144]
+    # R: train <- ts(h[1:132], frequency = 12); test <- ts(h[133:144], frequency = 12, start = c(12, 1))
     #    accuracy(naive(train, 12), test)["Test set", c("MAE", "RMSE", "MAPE", "MASE")] (and snaive, rwf drift,
-    #    forecast(HoltWinters(train), 12))
-    "last value": [348.25, 440.520620024383, 14.682027966278, 2.52243447970806],
-    "same season last time": [128.416666666667, 150.282234478996, 5.81359734665399, 0.930143941907184],
-    "straight on": [305.181297709924, 404.577946108775, 12.7170580114721, 2.21048048214088],
-    "exponential smoothing": [64.6941203640645, 73.9732672243653, 2.93143419760529, 0.468590609736396],
+    #    forecast(HoltWinters(train), 12)). The test as a seasonal ts, so MASE is scaled by the in-sample error of
+    #    the same season last time (FINDINGS A22; with the test as plain numbers MASE was 2.52, 0.930, 2.21, 0.469)
+    "last value": [348.25, 440.520620024383, 14.682027966278, 3.73158317706938],
+    "same season last time": [128.416666666667, 150.282234478996, 5.81359734665399, 1.37601571568890],
+    "straight on": [305.181297709924, 404.577946108775, 12.7170580114721, 3.27009159078407],
+    "exponential smoothing": [64.6941203640645, 73.9732672243653, 2.93143419760529, 0.693213183649231],
 }
 
 
@@ -165,7 +166,7 @@ def test_check_on_last_matches_r_accuracy(engine, needs_r, capsys):
     assert col(result, "actual")[0] == 1871  # R: h[133]
     assert col(result, "error") == pytest.approx(col(result, "actual") - col(result, "forecast"))
     out = capsys.readouterr().out
-    assert "off by 64.7 on average (MAE; RMSE 74.0, MAPE 2.93 %, MASE 0.469" in out
+    assert "off by 64.7 on average (MAE; RMSE 74.0, MAPE 2.93 %, MASE 0.693" in out
 
 
 def test_compare_forecasts_matches_r_accuracy(engine, needs_r, capsys):
@@ -178,7 +179,7 @@ def test_compare_forecasts_matches_r_accuracy(engine, needs_r, capsys):
         got = [col(result, c)[i] for c in ("MAE", "RMSE", "MAPE", "MASE")]
         assert got == pytest.approx(ACCURACY[method], rel=1e-7), method
     out = capsys.readouterr().out
-    assert "Best on the last 12 readings of \"visitors\": exponential smoothing (MASE 0.469)" in out
+    assert "Best on the last 12 readings of \"visitors\": exponential smoothing (MASE 0.693)" in out
     assert "Below 1 means better than the same season last time." in out
 
 
