@@ -254,6 +254,8 @@ def _cases(Case):
              """, r_tolerance=1e-12,
              note="Heiberger & Robbins (2014): diverging bars centred on the middle answer."),
         # ---------------------------------------------------------------- W01 / W02: survey designs
+        # waiting for a word: no simplydata word gives a survey design's degrees of freedom yet (its name waits for
+        # approval), so this case reads t._survey["df"] for now
         Case("table.use_survey_design", "the stratified api sample: 197 degrees of freedom (200 schools, 3 strata)",
              "api stratified sample (survey)", "published",
              ours=_join(OURS_STRAT, """
