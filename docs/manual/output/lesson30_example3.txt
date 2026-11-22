@@ -1,35 +1,36 @@
 Combining 13 studies (random effects, REML, Hartung-Knapp): risk ratio of "tb_vaccinated" out of "vaccinated" against "tb_unvaccinated" out of "unvaccinated".
 Test of subgroup difference (each "allocation" group with its own between-study spread):
-  If the "allocation" groups truly had the same average effect, differences between the groups this big or bigger would turn up in about 39 of 100 sets of studies like these (Q = 1.86, 2 degrees of freedom, p = 0.394). This does not show that the groups have the same effect.
+  If the "allocation" groups truly had the same average effect, differences between the groups this big or bigger would turn up in about 52 of 100 sets of studies like these (Q = 1.30, 2 degrees of freedom, p = 0.521). This does not show that the groups have the same effect.
   Compare the groups with this test, not by which group's own interval leaves out 1 (Sun et al. 2010).
-  "random": combined risk ratio 0.379 (95 % CI 0.193 to 0.744, Hartung-Knapp; 7 studies).
-  In a new setting like these studies, the true risk ratio would lie between 0.0709 and 2.02 (95 % prediction interval, t with 6 degrees of freedom, as metafor uses with Hartung-Knapp; Higgins et al. 2009 use 5).
-  The true risk ratios typically differ from the average by a factor of about 1.87 up or down (tau = 0.627 on the log scale; tau-squared = 0.393, 95 % CI 0.107 to 1.81).
-  I-squared = 90 % (95 % CI 71 to 98 %): the share of the spread in the study results that is beyond chance; it says how much of the spread is real, not how big it is.
-  If every study truly measured the same effect, differences between the studies this big or bigger would turn up in fewer than 1 in 1000 sets of studies like these (Q = 110, 6 degrees of freedom, p < 0.0001).
-  "alternate": combined risk ratio 0.582 (95 % CI 0.0163 to 20.8, Hartung-Knapp; 2 studies).
+  "random": combined risk ratio 0.456 (95 % CI 0.319 to 0.652, Hartung-Knapp; 9 studies).
+  In a new setting like these studies, the true risk ratio would lie between 0.164 and 1.27 (95 % prediction interval, t with 8 degrees of freedom, as metafor uses with Hartung-Knapp; Higgins et al. 2009 use 7).
+  The true risk ratios typically differ from the average by a factor of about 1.52 up or down (tau = 0.417 on the log scale; tau-squared = 0.174, 95 % CI 0.0589 to 0.718).
+  I-squared = 89 % (95 % CI 72 to 97 %): the share of the spread in the study results that is beyond chance; it says how much of the spread is real, not how big it is.
+  If every study truly measured the same effect, differences between the studies this big or bigger would turn up in fewer than 1 in 1000 sets of studies like these (Q = 73.4, 8 degrees of freedom, p < 0.0001).
+  "systematic": combined risk ratio 0.621 (95 % CI 0.0250 to 15.4, Hartung-Knapp; 2 studies).
   With 2 studies there is no prediction interval (it needs 3).
   With 2 studies the Hartung-Knapp interval is very wide; that is honest, not an error.
-  The true risk ratios typically differ from the average by a factor of about 1.44 up or down (tau = 0.364 on the log scale; tau-squared = 0.133, 95 % CI 0.00312 to 100).
-  I-squared = 82 % (95 % CI 10 to 100 %): the share of the spread in the study results that is beyond chance; it says how much of the spread is real, not how big it is.
-  If every study truly measured the same effect, differences between the studies this big or bigger would turn up in about 2 of 100 sets of studies like these (Q = 5.56, 1 degree of freedom, p = 0.018).
+  The true risk ratios typically differ from the average by a factor of about 1.37 up or down (tau = 0.316 on the log scale; tau-squared = 0.0998, 95 % CI 0 to 100).
+  I-squared = 74 % (95 % CI 0 to 100 %): the share of the spread in the study results that is beyond chance; it says how much of the spread is real, not how big it is.
+  If every study truly measured the same effect, differences between the studies this big or bigger would turn up in about 5 of 100 sets of studies like these (Q = 3.86, 1 degree of freedom, p = 0.049).
+  Note: "systematic" has 2 studies, so its between-study spread is guessed from almost nothing.
+  "alternate": combined risk ratio 0.390 (95 % CI 0.000769 to 198, Hartung-Knapp; 2 studies).
+  With 2 studies there is no prediction interval (it needs 3).
+  With 2 studies the Hartung-Knapp interval is very wide; that is honest, not an error.
+  The true risk ratios typically differ from the average by a factor of about 1.90 up or down (tau = 0.644 on the log scale; tau-squared = 0.414, 95 % CI 0.0293 to 100).
+  I-squared = 86 % (95 % CI 31 to 100 %): the share of the spread in the study results that is beyond chance; it says how much of the spread is real, not how big it is.
+  If every study truly measured the same effect, differences between the studies this big or bigger would turn up in about 1 of 100 sets of studies like these (Q = 7.24, 1 degree of freedom, p = 0.007).
   Note: "alternate" has 2 studies, so its between-study spread is guessed from almost nothing.
-  "systematic": combined risk ratio 0.654 (95 % CI 0.205 to 2.09, Hartung-Knapp; 4 studies).
-  In a new setting like these studies, the true risk ratio would lie between 0.0641 and 6.68 (95 % prediction interval, t with 3 degrees of freedom, as metafor uses with Hartung-Knapp; Higgins et al. 2009 use 2).
-  The true risk ratios typically differ from the average by a factor of about 1.88 up or down (tau = 0.633 on the log scale; tau-squared = 0.400, 95 % CI 0.0595 to 8.05).
-  I-squared = 86 % (95 % CI 49 to 99 %): the share of the spread in the study results that is beyond chance; it says how much of the spread is real, not how big it is.
-  If every study truly measured the same effect, differences between the studies this big or bigger would turn up in fewer than 1 in 1000 sets of studies like these (Q = 16.6, 3 degrees of freedom, p = 0.0009).
-  Note: "systematic" has 4 studies, so its between-study spread is guessed from almost nothing.
 All the studies together:
-Combined risk ratio 0.489 (95 % CI 0.330 to 0.726, Hartung-Knapp; 13 studies).
-If there were truly no effect on average (a risk ratio of 1), a combined effect this far from 1 or further would turn up in about 2 of 1000 sets of studies like these (p = 0.002).
-In a new setting like these studies, the true risk ratio would lie between 0.136 and 1.76 (95 % prediction interval, t with 12 degrees of freedom, as metafor uses with Hartung-Knapp; Higgins et al. 2009 use 11).
-The true risk ratios typically differ from the average by a factor of about 1.75 up or down (tau = 0.560 on the log scale; tau-squared = 0.313, 95 % CI 0.120 to 1.11).
-I-squared = 92 % (95 % CI 82 to 98 %): the share of the spread in the study results that is beyond chance; it says how much of the spread is real, not how big it is.
-If every study truly measured the same effect, differences between the studies this big or bigger would turn up in fewer than 1 in 1000 sets of studies like these (Q = 152, 12 degrees of freedom, p < 0.0001).
-Small-study effects (Peters' test, for risk and odds ratios from counts): If small and large studies truly showed the same effect, a link between study size and effect this strong or stronger would turn up in about 23 of 100 sets of studies like these (t = -1.27, 11 degrees of freedom, p = 0.230). This does not show that there are no small-study effects. Small-study effects are not proof of publication bias: they can also come from real differences between small and large studies, or from chance, and this test does not say which.
-Trim and fill (a what-if, not a correction): 1 study might be missing on the right; with it the combined risk ratio would be 0.518 (95 % CI 0.365 to 0.736, normal interval, as metafor trimfill() refits). With this much difference between studies (I-squared above 50 %), trim and fill is a rough guess.
+Combined risk ratio 0.472 (95 % CI 0.358 to 0.623, Hartung-Knapp; 13 studies).
+If there were truly no effect on average (a risk ratio of 1), a combined effect this far from 1 or further would turn up in fewer than 1 in 1000 sets of studies like these (p < 0.0001).
+In a new setting like these studies, the true risk ratio would lie between 0.188 and 1.19 (95 % prediction interval, t with 12 degrees of freedom, as metafor uses with Hartung-Knapp; Higgins et al. 2009 use 11).
+The true risk ratios typically differ from the average by a factor of about 1.50 up or down (tau = 0.403 on the log scale; tau-squared = 0.162, 95 % CI 0.0644 to 0.540).
+I-squared = 89 % (95 % CI 76 to 96 %): the share of the spread in the study results that is beyond chance; it says how much of the spread is real, not how big it is.
+If every study truly measured the same effect, differences between the studies this big or bigger would turn up in fewer than 1 in 1000 sets of studies like these (Q = 94.0, 12 degrees of freedom, p < 0.0001).
+Small-study effects (Peters' test, for risk and odds ratios from counts): If small and large studies truly showed the same effect, a link between study size and effect this strong or stronger would turn up in about 42 of 100 sets of studies like these (t = -0.847, 11 degrees of freedom, p = 0.415). This does not show that there are no small-study effects. Small-study effects are not proof of publication bias: they can also come from real differences between small and large studies, or from chance, and this test does not say which.
+Trim and fill (a what-if, not a correction): 3 studies might be missing on the right; with them the combined risk ratio would be 0.548 (95 % CI 0.418 to 0.718, normal interval, as metafor trimfill() refits). With this much difference between studies (I-squared above 50 %), trim and fill is a rough guess.
 Method: R metafor::escalc(measure = "RR", ai, n1i, ci, n2i, drop00 = TRUE), then metafor::rma(yi, vi, method = "REML", test = "adhoc", control = list(tol = 1e-10, threshold = 1e-10, maxiter = 1000)); predict() for the combined effect and the prediction interval, confint() for the intervals of tau-squared and I-squared; each subgroup its own rma(), and the test of their difference rma(estimates, sei, mods = ~ group, method = "EE"); Hartung-Knapp (for the interval and the p-value) with the ad hoc rule, so it is never narrower than the normal interval; small-study effects by metafor::regtest(model = "lm", predictor = "ninv") with Peters' weights and metafor::trimfill().
 simplydata chooses: random effects with REML, Hartung-Knapp intervals for random effects (never narrower than the normal interval), the prediction interval from 3 studies, and the notes on small-study effects from 10 studies (Peters' test for risk and odds ratios from counts, Egger's test for the rest); test_method= and interval_by= change them.
 Funnel plot: each dot is a study, small studies at the bottom; the line is the combined effect and the dashed funnel where 95 % of the studies would lie if they all measured it. Dots missing from one lower corner suggest small-study effects, which are not proof of publication bias.
-Note: 6 rows with empty "estimate" or "standard error" were left out of this chart.
+Note: 5 rows with empty "estimate" or "standard error" were left out of this chart.

@@ -629,11 +629,11 @@ vanA & reads that matched vancomycin resistance gene vanA\\
 mcr1 & reads that matched colistin resistance gene mcr-1\\
 \bottomrule\end{tabularx}\end{center}
 \section*{bcg}
-REAL DATA: 13 trials of the BCG vaccine against tuberculosis, one row per trial (Colditz et al. 1994, JAMA 271:698-702: the counts published in the paper, facts; the same numbers as R metadat's dat.bcg). \code{sdata.\allowbreak{}get\_\allowbreak{}example(\textquotedbl{}bcg\textquotedbl{})}
+MADE-UP DATA: 13 made-up trials of a vaccine against tuberculosis, one row per trial, with the columns of the BCG trials of Colditz et al. (1994). Built in: the vaccine lowers the risk more far from the equator (log risk ratio 0.6 - 0.035 x latitude, plus a between-trial spread). simplydata was tested on the real BCG trials (R metadat's dat.bcg); see \code{DATA\_\allowbreak{}LICENSES}.md. \code{sdata.\allowbreak{}get\_\allowbreak{}example(\textquotedbl{}bcg\textquotedbl{})}
 \begin{center}\small
 \begin{tabularx}{\textwidth}{@{}>{\ttfamily}l>{\raggedright\arraybackslash}X@{}}
 \toprule \textrm{\textbf{Column}} & \textbf{What it holds}\\ \midrule
-trial & the first author and the year of the trial\\
+trial & the trial's name and year\\
 year & the year the trial was published\\
 tb\_vaccinated & vaccinated people who got tuberculosis\\
 vaccinated & people vaccinated\\
@@ -665,7 +665,7 @@ date & every day from 2015-01-01 to 2024-12-31 (real dates)\\
 rain & rain that day in mm (0 on dry days)\\
 \bottomrule\end{tabularx}\end{center}
 \section*{sea\_levels}
-REAL DATA: the highest sea level of each year at Port Pirie, South Australia, 1923 to 1987 (Coles, S. 2001, An Introduction to Statistical Modeling of Extreme Values, Springer, section 3.4.1: the published yearly maxima, facts; the same numbers as R ismev's portpirie). \code{sdata.\allowbreak{}get\_\allowbreak{}example(\textquotedbl{}sea\_\allowbreak{}levels\textquotedbl{})}
+MADE-UP DATA: the highest sea level of each year at a made-up coastal town, 1923 to 1987, like the Port Pirie series of Coles (2001). Built in: a GEV curve with location 3.87 m, scale 0.20 m and shape -0.05. simplydata was tested on the real Port Pirie data (R ismev's portpirie); see \code{DATA\_\allowbreak{}LICENSES}.md. \code{sdata.\allowbreak{}get\_\allowbreak{}example(\textquotedbl{}sea\_\allowbreak{}levels\textquotedbl{})}
 \begin{center}\small
 \begin{tabularx}{\textwidth}{@{}>{\ttfamily}l>{\raggedright\arraybackslash}X@{}}
 \toprule \textrm{\textbf{Column}} & \textbf{What it holds}\\ \midrule
@@ -673,11 +673,11 @@ year & the year, 1923 to 1987\\
 sea\_level & the highest sea level reached that year, in metres\\
 \bottomrule\end{tabularx}\end{center}
 \section*{passive\_smoking}
-REAL DATA: 37 studies of lung cancer in non-smoking women whose husbands smoked, one row per study (Hackshaw, Law \& Wald 1997, BMJ 315:980-988: the odds ratios and intervals published in the paper, facts; the same numbers as R metadat's dat.hackshaw1998). \code{sdata.\allowbreak{}get\_\allowbreak{}example(\textquotedbl{}passive\_\allowbreak{}smoking\textquotedbl{})}
+MADE-UP DATA: 37 made-up studies of lung cancer in non-smoking women whose husbands smoked, one row per study, with the columns of Hackshaw, Law \& Wald (1997). Built in: an odds ratio of about 1.25. simplydata was tested on the real studies (R metadat's dat.hackshaw1998); see \code{DATA\_\allowbreak{}LICENSES}.md. \code{sdata.\allowbreak{}get\_\allowbreak{}example(\textquotedbl{}passive\_\allowbreak{}smoking\textquotedbl{})}
 \begin{center}\small
 \begin{tabularx}{\textwidth}{@{}>{\ttfamily}l>{\raggedright\arraybackslash}X@{}}
 \toprule \textrm{\textbf{Column}} & \textbf{What it holds}\\ \midrule
-study & the first author and the year of the study\\
+study & the study's number and year\\
 year & the year the study was published\\
 country & where the study was done\\
 design & cohort or case-control\\
@@ -687,15 +687,15 @@ odds ratio 95 \% CI low & the lower end of its 95 \% confidence interval\\
 odds ratio 95 \% CI high & the upper end of its 95 \% confidence interval\\
 \bottomrule\end{tabularx}\end{center}
 \section*{ability\_tests}
-REAL DATA: nine mental ability tests taken by 301 pupils of two schools near Chicago in 1937 (Holzinger \& Swineford 1939, Supplementary Educational Monographs 48: the scores as R lavaan ships them, HolzingerSwineford1939). The classic table for hidden factors: x1 to x3 are visual, x4 to x6 verbal, x7 to x9 speeded tests. \code{sdata.\allowbreak{}get\_\allowbreak{}example(\textquotedbl{}ability\_\allowbreak{}tests\textquotedbl{})}
+MADE-UP DATA: nine ability test scores of 301 made-up pupils of two schools, with the columns of Holzinger \& Swineford (1939). Built in: three hidden factors, x1 to x3 visual, x4 to x6 verbal and x7 to x9 speed, which are correlated, and x9 also leans on the visual factor. simplydata was tested on the real scores (R lavaan's HolzingerSwineford1939); see \code{DATA\_\allowbreak{}LICENSES}.md. \code{sdata.\allowbreak{}get\_\allowbreak{}example(\textquotedbl{}ability\_\allowbreak{}tests\textquotedbl{})}
 \begin{center}\small
 \begin{tabularx}{\textwidth}{@{}>{\ttfamily}l>{\raggedright\arraybackslash}X@{}}
 \toprule \textrm{\textbf{Column}} & \textbf{What it holds}\\ \midrule
 id & the pupil's number\\
-sex & 1 or 2 (the source does not say which is which)\\
+sex & 1 or 2\\
 ageyr & age, the years\\
 agemo & age, the months on top of the years\\
-school & Pasteur or Grant-White\\
+school & Hillside or Riverside\\
 grade & 7 or 8 (one empty cell)\\
 x1 & visual perception\\
 x2 & cubes\\
@@ -717,11 +717,11 @@ difference & the difference between the two groups (on a log scale; 0 = no diffe
 p-value & the p-value of the test of that gene\\
 \bottomrule\end{tabularx}\end{center}
 \section*{sampled\_schools}
-REAL DATA: 200 California schools sampled at random within school type (100 elementary, 50 middle, 50 high), with their weights, for survey-weighted answers (\code{table.\allowbreak{}use\_\allowbreak{}survey\_\allowbreak{}design}). The Academic Performance Index of 2000 (California Department of Education), as the R survey package ships it (apistrat; Lumley 2010, Complex Surveys). \code{sdata.\allowbreak{}get\_\allowbreak{}example(\textquotedbl{}sampled\_\allowbreak{}schools\textquotedbl{})}
+MADE-UP DATA: 200 made-up schools sampled at random within school type (100 elementary of 4400, 50 middle of 1000, 50 high of 750), with their weights, for survey-weighted answers (\code{table.\allowbreak{}use\_\allowbreak{}survey\_\allowbreak{}design}), with the columns of the California sample of R survey (apistrat). Built in: the 2000 score falls by 3 points for each percent of pupils with free meals. simplydata was tested on the real sample; see \code{DATA\_\allowbreak{}LICENSES}.md. \code{sdata.\allowbreak{}get\_\allowbreak{}example(\textquotedbl{}sampled\_\allowbreak{}schools\textquotedbl{})}
 \begin{center}\small
 \begin{tabularx}{\textwidth}{@{}>{\ttfamily}l>{\raggedright\arraybackslash}X@{}}
 \toprule \textrm{\textbf{Column}} & \textbf{What it holds}\\ \midrule
-school & the school's name (shortened)\\
+school & the school's name\\
 district & the school district\\
 school\_type & elementary, middle or high: the strata of the sample\\
 score\_2000 & the school's Academic Performance Index in 2000 (200 to 1000)\\
@@ -731,8 +731,8 @@ english\_learners & percent of pupils still learning English\\
 pupils & pupils enrolled\\
 met\_target & yes or no: did the school meet its growth target?\\
 award & yes or no: did the school get an award?\\
-weight & the sampling weight: how many schools of California each sampled school stands for\\
-schools\_of\_type & how many schools of this type California has (the population size of the stratum)\\
+weight & the sampling weight: how many schools of its type each sampled school stands for\\
+schools\_of\_type & how many schools of this type there are (the population size of the stratum)\\
 \bottomrule\end{tabularx}\end{center}
 \section*{course\_feedback}
 MADE-UP DATA: 120 made-up students rate a course on five statements, from strongly disagree to strongly agree (answers on a scale, Likert items). A few answers are empty. Invented for practice; not from any real study. \code{sdata.\allowbreak{}get\_\allowbreak{}example(\textquotedbl{}course\_\allowbreak{}feedback\textquotedbl{})}
@@ -748,7 +748,7 @@ workload & \code{\textquotedbl{}The workload was fair\textquotedbl{}} (same five
 would\_recommend & \code{\textquotedbl{}I would recommend the course\textquotedbl{}} (same five answers)\\
 \bottomrule\end{tabularx}\end{center}
 \section*{job\_training}
-REAL DATA: 614 men in the National Supported Work job-training study (185 trained) and in a comparison group drawn from a population survey (429 not trained): LaLonde (1986), as Dehejia \& Wahba (1999) and the R package MatchIt ship it (lalonde). The trained men differ from the others before the training, so a plain comparison mixes the training with who took it. The randomised experiment found an effect of about \$1,794 on 1978 earnings. \code{sdata.\allowbreak{}get\_\allowbreak{}example(\textquotedbl{}job\_\allowbreak{}training\textquotedbl{})}
+MADE-UP DATA: 614 made-up men, 185 who took a job training and 429 from a comparison survey, with the columns of the study of LaLonde (1986). The trained men differ from the others before the training (younger, less schooling, more often black and unmarried, lower earnings), so a plain comparison mixes the training with who took it. Built in: the training adds 1800 dollars to the 1978 earnings. simplydata was tested on the real data (R MatchIt's lalonde); see \code{DATA\_\allowbreak{}LICENSES}.md. \code{sdata.\allowbreak{}get\_\allowbreak{}example(\textquotedbl{}job\_\allowbreak{}training\textquotedbl{})}
 \begin{center}\small
 \begin{tabularx}{\textwidth}{@{}>{\ttfamily}l>{\raggedright\arraybackslash}X@{}}
 \toprule \textrm{\textbf{Column}} & \textbf{What it holds}\\ \midrule
@@ -763,7 +763,7 @@ re75 & earnings in 1975 (US dollars)\\
 re78 & earnings in 1978, after the training (US dollars)\\
 \bottomrule\end{tabularx}\end{center}
 \section*{job\_search}
-REAL DATA: 899 unemployed workers in the JOBS II study, a randomised job-search workshop (Vinokur, Price \& Schul 1995), as Tingley et al. (2014) and the R package mediation ship it (jobs). For mediation: did the workshop lower depression through the workers' confidence in searching for a job? \code{sdata.\allowbreak{}get\_\allowbreak{}example(\textquotedbl{}job\_\allowbreak{}search\textquotedbl{})}
+MADE-UP DATA: 899 made-up unemployed workers in a randomised job-search workshop, with the columns of the JOBS II study (Vinokur, Price \& Schul 1995) as the R package mediation ships it (jobs), but every value drawn with a fixed seed (docs/\code{make\_\allowbreak{}job\_\allowbreak{}search}.py). For mediation: did the workshop lower depression through the workers' confidence in searching for a job? Built in: the workshop raises confidence by 0.30 points, each point of confidence lowers depression by 0.30, and the workshop lowers it by 0.04 directly, so the indirect effect is about -0.09. The real JOBS II records are in the R package mediation (\code{data(jobs)}). \code{sdata.\allowbreak{}get\_\allowbreak{}example(\textquotedbl{}job\_\allowbreak{}search\textquotedbl{})}
 \begin{center}\small
 \begin{tabularx}{\textwidth}{@{}>{\ttfamily}l>{\raggedright\arraybackslash}X@{}}
 \toprule \textrm{\textbf{Column}} & \textbf{What it holds}\\ \midrule
@@ -780,7 +780,7 @@ depress2 & depression six months after the workshop (1 to 5)\\
 work1 & psyemp (employed) or psyump (unemployed) six months after\\
 \bottomrule\end{tabularx}\end{center}
 \section*{drug\_levels}
-REAL DATA: a 2 x 2 crossover bioequivalence study with 18 subjects: each had a test and a reference formulation of a drug, one in each of two periods, and the area under the blood-level curve was measured (Sauter et al. 1992; reference dataset A of Sch\"utz, Labes \& Fuglsang 2014, whose published ratio is 95.09 \% with 90 \% CI 90.76 to 99.62 \%). \code{sdata.\allowbreak{}get\_\allowbreak{}example(\textquotedbl{}drug\_\allowbreak{}levels\textquotedbl{})}
+MADE-UP DATA: a made-up 2 x 2 crossover bioequivalence study of 18 subjects: each had a test and a reference formulation, one in each of two periods, and the area under the blood-level curve was measured. Built in: the test gives 96 \% of the reference's AUC, with a within-subject CV of 12 \%. simplydata was tested on the reference datasets of Sch\"utz, Labes \& Fuglsang (2014), which it does not ship; see \code{DATA\_\allowbreak{}LICENSES}.md. \code{sdata.\allowbreak{}get\_\allowbreak{}example(\textquotedbl{}drug\_\allowbreak{}levels\textquotedbl{})}
 \begin{center}\small
 \begin{tabularx}{\textwidth}{@{}>{\ttfamily}l>{\raggedright\arraybackslash}X@{}}
 \toprule \textrm{\textbf{Column}} & \textbf{What it holds}\\ \midrule
@@ -4529,7 +4529,7 @@ Worked solutions: page~\pageref{solutions:29}, or type \code{sdata.\allowbreak{}
 \end{learnbox}
 \begin{needsr}Every example of this lesson combines studies with R metafor: \code{combine\_\allowbreak{}studies()} run R's own code, the same code R users run. Install it once: pip install \code{\textquotedbl{}simplydata[r]\textquotedbl{}}, then R from https://cran.r-project.org, then in R: \code{install.\allowbreak{}packages(c(\textquotedbl{}metafor\textquotedbl{}))}. Without R these words print a message that says what to install.\end{needsr}
 \section*{Example 1}
-Picture first. 13 trials tested the BCG vaccine against tuberculosis (real data, Colditz et al. 1994). \code{combine\_\allowbreak{}studies} puts their results together, and \code{forest\_\allowbreak{}plot} draws each trial and the combined effect.
+Picture first. 13 made-up trials test a vaccine against tuberculosis (modelled on the BCG trials of Colditz et al. 1994). \code{combine\_\allowbreak{}studies} puts their results together, and \code{forest\_\allowbreak{}plot} draws each trial and the combined effect.
 \begin{lstlisting}[style=py]
 import simplydata as sdata
 table = sdata.table(sdata.get_example("bcg"))
@@ -4542,7 +4542,7 @@ chart.save("lesson30_forest.png")
 \begin{lineexplain}
   \item[1] Load simplydata.
   \item[2] One row per trial: the vaccinated and unvaccinated people, and how many of each got tuberculosis.
-  \item[3] \code{events=} and \code{out\_\allowbreak{}of=} each name two columns: the first group (vaccinated), then the group it is compared with. Read the first lines: the combined risk ratio is 0.49 (95 \% CI 0.33 to 0.73): on average the vaccine about halves the risk.
+  \item[3] \code{events=} and \code{out\_\allowbreak{}of=} each name two columns: the first group (vaccinated), then the group it is compared with. Read the first lines: the combined risk ratio is 0.47 (95 \% CI 0.36 to 0.62): on average the vaccine about halves the risk.
   \item[4] A chart of the result table.
   \item[5] One square per trial, as big as its weight, with its 95 \% interval; the diamond is the combined effect. The line at 1 is no effect.
   \item[6] Save the picture.
@@ -4563,7 +4563,7 @@ table.combine_studies(names="trial", events=["tb_vaccinated", "tb_unvaccinated"]
 \begin{lineexplain}
   \item[1] Load simplydata.
   \item[2] The same trials.
-  \item[3] The prediction interval, 0.14 to 1.76, is where the true risk ratio of a new setting like these would lie: from a big benefit to none at all. Tau says the true risk ratios differ from the average by a factor of about 1.75 up or down. I-squared, 92 \%, is the share of the spread that is beyond chance, not how big it is. Say in words why the prediction interval is wider than the confidence interval.
+  \item[3] The prediction interval, 0.19 to 1.19, is where the true risk ratio of a new setting like these would lie: from a big benefit to none at all. Tau says the true risk ratios differ from the average by a factor of about 1.50 up or down. I-squared, 89 \%, is the share of the spread that is beyond chance, not how big it is. Say in words why the prediction interval is wider than the confidence interval.
 \end{lineexplain}
 \printedoutput{output/lesson30_example2.txt}
 \section*{Example 3}
@@ -4580,7 +4580,7 @@ chart.save("lesson30_funnel.png")
 \begin{lineexplain}
   \item[1] Load simplydata.
   \item[2] The same trials.
-  \item[3] One change: \code{for\_\allowbreak{}each\_\allowbreak{}group\_\allowbreak{}in=\textquotedbl{}allocation\textquotedbl{}} (how people were put into the groups). The test of the difference comes first (p = 0.39): the data cannot tell the three kinds of trial apart.
+  \item[3] One change: \code{for\_\allowbreak{}each\_\allowbreak{}group\_\allowbreak{}in=\textquotedbl{}allocation\textquotedbl{}} (how people were put into the groups). The test of the difference comes first (p = 0.52): the data cannot tell the three kinds of trial apart.
   \item[4] A chart of the result.
   \item[5] Each dot is a trial, small trials at the bottom. Dots missing from one lower corner would suggest small-study effects, which are not proof of publication bias.
   \item[6] Save the picture.
@@ -4601,7 +4601,7 @@ chart.save("lesson30_funnel.png")
 \end{goodtoknow}
 \begin{tryit}
 \begin{enumerate}
-  \item 37 studies of passive smoking and lung cancer give an odds ratio with its 95 \% interval (real data, Hackshaw et al. 1997). Fill in the blank: table = \code{sdata.\allowbreak{}table(sdata.\allowbreak{}get\_\allowbreak{}example(\textquotedbl{}passive\_\allowbreak{}smoking\textquotedbl{}))}, then \code{table.\allowbreak{}combine\_\allowbreak{}studies(names=\textquotedbl{}study\textquotedbl{},\allowbreak{} estimates=\_\allowbreak{}\_\allowbreak{}\_\allowbreak{}\_\allowbreak{})}. What is the combined odds ratio?
+  \item 37 studies of passive smoking and lung cancer give an odds ratio with its 95 \% interval (made up, modelled on Hackshaw et al. 1997). Fill in the blank: table = \code{sdata.\allowbreak{}table(sdata.\allowbreak{}get\_\allowbreak{}example(\textquotedbl{}passive\_\allowbreak{}smoking\textquotedbl{}))}, then \code{table.\allowbreak{}combine\_\allowbreak{}studies(names=\textquotedbl{}study\textquotedbl{},\allowbreak{} estimates=\_\allowbreak{}\_\allowbreak{}\_\allowbreak{}\_\allowbreak{})}. What is the combined odds ratio?
   \item In the BCG trials, change only \code{show=}: combine odds ratios (\code{show=\textquotedbl{}odds ratios\textquotedbl{}}) instead of risk ratios. Is the answer close?
   \item Say in words why the prediction interval of the BCG trials is wider than the confidence interval.
   \item Try to remember without looking back: which number tells you where the true effect of a new setting could lie? Find it in the printout of the passive smoking studies.
@@ -4831,7 +4831,7 @@ table.find_autocorrelation_of("zinc", x="east", y="north", nearest=6)
 \end{lineexplain}
 \printedoutput{output/lesson33_example2.txt}
 \section*{Example 3}
-Storms. The highest sea level of each year at Port Pirie, South Australia, 1923 to 1987 (real data, Coles 2001). How high is the sea once in 100 years?
+Storms. The highest sea level of each year at a coastal town, 1923 to 1987 (made up, modelled on Port Pirie in Coles 2001). How high is the sea once in 100 years?
 \begin{lstlisting}[style=py]
 import simplydata as sdata
 table = sdata.table(sdata.get_example("sea_levels"))
@@ -4847,7 +4847,7 @@ table.find_return_levels_of("sea_level", once_in=[10, 100], sorted_by="year")
   \item[3] Picture first.
   \item[4] Each year's highest level: no year stands far apart.
   \item[5] Save the picture.
-  \item[6] A level of 4.69 m is reached on average once in 100 years (a 1-in-100 chance in any one year); its 95 \% interval runs from 4.49 to 5.26, longer above than below. \code{sorted\_\allowbreak{}by=\textquotedbl{}year\textquotedbl{}} lets the word check that each row is one year.
+  \item[6] A level of 4.53 m is reached on average once in 100 years (a 1-in-100 chance in any one year); its 95 \% interval runs from 4.41 to 4.84, longer above than below. \code{sorted\_\allowbreak{}by=\textquotedbl{}year\textquotedbl{}} lets the word check that each row is one year.
 \end{lineexplain}
 \printedoutput{output/lesson33_example3.txt}
 \begin{center}\begin{minipage}{\linewidth}\centering
@@ -4865,7 +4865,7 @@ table.find_return_levels_of("sea_level", once_in=[10, 100], sorted_by="year")
 \begin{tryit}
 \begin{enumerate}
   \item Fill in the blank: \code{table.\allowbreak{}find\_\allowbreak{}average\_\allowbreak{}direction\_\allowbreak{}of(\textquotedbl{}current\_\allowbreak{}direction\textquotedbl{},\allowbreak{} full\_\allowbreak{}turn=\_\allowbreak{}\_\allowbreak{}\_\allowbreak{}\_\allowbreak{})} for degrees.
-  \item Change only \code{once\_\allowbreak{}in=}: find the 50-year sea level at Port Pirie.
+  \item Change only \code{once\_\allowbreak{}in=}: find the 50-year sea level.
   \item Say in words what a 100-year level means. Is it certain to happen in the next 100 years?
   \item Try to remember without looking back: which word tells whether nearby places have alike values?
 \end{enumerate}
@@ -4921,7 +4921,7 @@ table.count_rows(for_each_group_in="school_type")
 \whateachline
 \begin{lineexplain}
   \item[1] Load simplydata.
-  \item[2] 200 real California schools.
+  \item[2] 200 made-up schools (modelled on a California survey sample).
   \item[3] 5 schools of each type, 15 in all, picked at random within each type.
   \item[4] 5 elementary, 5 high and 5 middle schools.
 \end{lineexplain}
@@ -4965,9 +4965,9 @@ table.compare_balanced_groups_of("re78", for_each_group_in="treat", allowing_for
 \whateachline
 \begin{lineexplain}
   \item[1] Load simplydata.
-  \item[2] Real data (LaLonde 1986): treat = 1 for the trained men, their age, schooling, race, marriage, degree and earnings in 1974, 1975 and 1978.
-  \item[3] The trained men earned 635 dollars less. But they differ before the training too: younger, more often black and unmarried, and with much lower earnings in 1974.
-  \item[4] Read the balance table first: before weighting, race (black) differs by 1.67 standard deviations; after, by 0.13. Some columns are still above 0.1, and a note says so. The effect for everyone: 225 dollars more (95 \% CI -1493 to 1942).
+  \item[2] Made-up data, modelled on LaLonde (1986): treat = 1 for the trained men, their age, schooling, race, marriage, degree and earnings in 1974, 1975 and 1978.
+  \item[3] The trained men earned 2733 dollars less. But they differ before the training too: younger, more often black and unmarried, and with much lower earnings in 1974.
+  \item[4] Read the balance table first: before weighting, race (black) differs by 0.74 standard deviations; after, by 0.11. Some columns are still above 0.1, and a note says so. The effect for everyone: 1347 dollars more (95 \% CI -937 to 3631).
 \end{lineexplain}
 \printedoutput{output/lesson35_example1.txt}
 \section*{Example 2}
@@ -4981,11 +4981,11 @@ table.compare_balanced_groups_of("re78", for_each_group_in="treat", allowing_for
 \begin{lineexplain}
   \item[1] Load simplydata.
   \item[2] The same men.
-  \item[3] Pairs further apart than 0.2 standard deviations of the logit of the score are left out (68 trained men had no match). Race is now balanced; the effect among the matched trained men: 1771 dollars more (95 \% CI -50.4 to 3592). The randomised experiment found 1794.
+  \item[3] Pairs further apart than 0.2 standard deviations of the logit of the score are left out (51 trained men had no match). Race is now balanced; the effect among the matched trained men: 1010 dollars more (95 \% CI 10.7 to 2008). The table was made with an effect of 1800 dollars.
 \end{lineexplain}
 \printedoutput{output/lesson35_example2.txt}
 \section*{Example 3}
-Mediation. In the JOBS II study a job-search workshop was randomised. Did it lower depression by raising the workers' confidence in searching for a job?
+Mediation. In a made-up version of the JOBS II study a job-search workshop was randomised. Did it lower depression by raising the workers' confidence in searching for a job?
 \begin{lstlisting}[style=py]
 import simplydata as sdata
 table = sdata.table(sdata.get_example("job_search"))
@@ -4994,8 +4994,8 @@ table.explain("depress2", using="treat", through="job_seek", allowing_for=["econ
 \whateachline
 \begin{lineexplain}
   \item[1] Load simplydata.
-  \item[2] Real data (Vinokur et al. 1995): treat = 1 for the workshop, \code{job\_\allowbreak{}seek} = confidence in searching, depress2 = depression six months later.
-  \item[3] The indirect effect (through \code{job\_\allowbreak{}seek}) is -0.016 and the total effect -0.055, both with intervals that include 0. The printout says what these rest on: nothing unmeasured that affects both \code{job\_\allowbreak{}seek} and depression.
+  \item[2] Made-up data with the columns of the JOBS II study (Vinokur et al. 1995): treat = 1 for the workshop, \code{job\_\allowbreak{}seek} = confidence in searching, depress2 = depression six months later.
+  \item[3] The indirect effect (through \code{job\_\allowbreak{}seek}) is -0.094 (95 \% interval -0.131 to -0.060) and the total effect -0.116: the table was made with an indirect effect of about -0.09, and the analysis finds it. The printout says what these rest on: nothing unmeasured that affects both \code{job\_\allowbreak{}seek} and depression.
 \end{lineexplain}
 \printedoutput{output/lesson35_example3.txt}
 \begin{goodtoknow}
@@ -5139,7 +5139,7 @@ chart.save("my_chart.png")
 A small table to practise with. \code{sdata.\allowbreak{}get\_\allowbreak{}example(\textquotedbl{}marks\textquotedbl{})}
 
 \codeline{sdata.get\_example() with no name lists every table and its columns.}\\
-The tables are: marks, weather, fruit, growth, sensor, visitors, river, shop, school, meadow, trial, clinic, island, toxicity, culture, admissions, resistome, stations, rain, \code{sea\_\allowbreak{}levels} (real published sea levels), and, for combining studies, bcg and \code{passive\_\allowbreak{}smoking} (real published studies), for hidden factors, \code{ability\_\allowbreak{}tests} (real published test scores), for q-values, \code{many\_\allowbreak{}tests} (made up), for planning and surveys, \code{sampled\_\allowbreak{}schools} (a real survey sample) and \code{course\_\allowbreak{}feedback} (made-up answers on a scale), and, for cause and effect, \code{job\_\allowbreak{}training} and \code{job\_\allowbreak{}search} (real studies), \code{drug\_\allowbreak{}levels} (a real crossover) and \code{deaths\_\allowbreak{}by\_\allowbreak{}age} (made up). \code{\textquotedbl{}shop\textquotedbl{}} has empty cells and a column of dates to practise with; \code{\textquotedbl{}school\textquotedbl{}} has empty cells too. \code{from\_\allowbreak{}r\_\allowbreak{}package=\textquotedbl{}survival\textquotedbl{}} loads a dataset that comes with an installed R package instead, as a simplydata table: \code{sdata.\allowbreak{}get\_\allowbreak{}example(\textquotedbl{}lung\textquotedbl{},\allowbreak{} from\_\allowbreak{}r\_\allowbreak{}package=\textquotedbl{}survival\textquotedbl{})}. R itself loads it (utils::data); groups (factors) become text, R's NA empty cells, and row names that carry information become a first column, \code{\textquotedbl{}row name\textquotedbl{}}. Needs simplydata[r] and the R package already installed: nothing is downloaded or installed.
+The tables, all made up, are: marks, weather, fruit, growth, sensor, visitors, river, shop, school, meadow, trial, clinic, island, toxicity, culture, admissions, resistome, stations, rain, \code{sea\_\allowbreak{}levels} (yearly highest sea levels), and, for combining studies, bcg and \code{passive\_\allowbreak{}smoking}, for hidden factors, \code{ability\_\allowbreak{}tests}, for q-values, \code{many\_\allowbreak{}tests}, for planning and surveys, \code{sampled\_\allowbreak{}schools} and \code{course\_\allowbreak{}feedback} (answers on a scale), and, for cause and effect, \code{job\_\allowbreak{}training}, \code{job\_\allowbreak{}search}, \code{drug\_\allowbreak{}levels} and \code{deaths\_\allowbreak{}by\_\allowbreak{}age}. Seven of them copy the columns of a real study; simplydata was tested on the real data (\code{DATA\_\allowbreak{}LICENSES}.md). \code{\textquotedbl{}shop\textquotedbl{}} has empty cells and a column of dates to practise with; \code{\textquotedbl{}school\textquotedbl{}} has empty cells too. \code{from\_\allowbreak{}r\_\allowbreak{}package=\textquotedbl{}survival\textquotedbl{}} loads a dataset that comes with an installed R package instead, as a simplydata table: \code{sdata.\allowbreak{}get\_\allowbreak{}example(\textquotedbl{}lung\textquotedbl{},\allowbreak{} from\_\allowbreak{}r\_\allowbreak{}package=\textquotedbl{}survival\textquotedbl{})}. R itself loads it (utils::data); groups (factors) become text, R's NA empty cells, and row names that carry information become a first column, \code{\textquotedbl{}row name\textquotedbl{}}. Needs simplydata[r] and the R package already installed: nothing is downloaded or installed.
 
 \wordfield{Options}{}\par\nopagebreak
 \begin{optiontable}
@@ -5897,7 +5897,7 @@ The same curve as \code{table.\allowbreak{}fit\_\allowbreak{}dose\_\allowbreak{}
 \end{optiontable}
 
 \wordfield{Why this method}{\hyperref[basis:fit-dose-response]{How simplydata chooses methods}, page \pageref{basis:fit-dose-response}: the default, the evidence and the checks.}
-\wordfield{Underneath}{R \code{drc::drm()}, \code{drc::LL.\allowbreak{}4()}, \code{drc::ED()} \textperiodcentered{} matplotlib \code{plot()}}
+\wordfield{Underneath}{R \code{drc::drm()}, \code{drc::LL.\allowbreak{}4()}, \code{drc::drmc()}, \code{drc::ED()} \textperiodcentered{} matplotlib \code{plot()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -5915,7 +5915,9 @@ chart.save("fit_dose_response.png")
 \underlib{R (simplydata runs this in R for you, through rpy2)}
 \begin{lstlisting}[style=underr]
 # fit_dose_response()
-m <- drc::drm(root_length ~ concentration, fct = drc::LL.4())    # (1)
+m <- drc::drm(root_length ~ concentration, fct = drc::LL.4(),
+              control = drc::drmc(relTol = 1e-15,
+                                  maxIt = 10000))      # (1)
 low_dose <- min(concentration[concentration > 0])
 at <- c(0, exp(seq(log(low_dose), log(max(concentration)), length.out = 300)))  # (2)
 e <- drc::ED(m, 50, interval = "delta", display = FALSE)
@@ -5929,7 +5931,7 @@ fig, ax = plt.subplots()
 ax.plot(at, fitted)          # the fitted curve
 \end{lstlisting}
 \undertext{\textbf{simplydata chooses}}
-\undertext{(1) the 4 parameter log-logistic curve (drc's LL.4), as \code{table.\allowbreak{}fit\_\allowbreak{}dose\_\allowbreak{}response}.}
+\undertext{(1) the 4 parameter log-logistic curve (drc's LL.4), with the same tighter stopping rule, as \code{table.\allowbreak{}fit\_\allowbreak{}dose\_\allowbreak{}response}.}
 \undertext{(2) the curve is drawn over 300 doses spaced evenly on a log scale (and dose 0), so it stays smooth on a log dose axis too; the ED50 and its delta-method interval go in the legend.}
 \undertext{\textit{In Python only:} Python has no dose-response package with drc's ED intervals, so the curve comes from R.}
 \undertext{simplydata also fits one curve per colour group and labels each with its ED50.}
@@ -10308,7 +10310,7 @@ list(af = af$est, low = af$lower, high = af$upper)
 {"estimate": af, "estimate 95 % CI low": low, "estimate 95 % CI high": high}
 \end{lstlisting}
 \undertext{\textbf{simplydata chooses}}
-\undertext{(1) the risk-based fractions of a cohort (method = \code{\textquotedbl{}cohort.\allowbreak{}count\textquotedbl{}}), with Wald intervals from the risk ratio; crude, not adjusted for other columns.}
+\undertext{(1) the risk-based fractions of a cohort (method = \code{\textquotedbl{}cohort.\allowbreak{}count\textquotedbl{}}), with the intervals epiR gives for one table (among the exposed, from the score interval of the risk ratio; in the population, from the exact intervals of the two risks; epiR's names end in .wald all the same); crude, not adjusted for other columns.}
 \undertext{\textit{In Python only:} No Python package gives attributable fractions, Fay-Feuer intervals or indirect standardisation as R epiR does, so the numbers come from R.}
 \undertext{simplydata also gives the population attributable fraction, the preventable fraction among the exposed when the exposure goes with fewer events, and says that the fractions are causal only if the exposure causes the events.}
 \undertext{\textit{Checked:} a test runs both and compares the numbers of the result table (on a pandas and on a Polars table).}
@@ -10991,7 +10993,8 @@ df = sdata.get_example("culture").query("flask == 'A'")
 def logistic(x, Asym, xmid, scal):                  # R's SSlogis
     return Asym / (1 + np.exp((xmid - x) / scal))
 found, cov = optimize.curve_fit(logistic, df["hour"], df["density"],
-                                p0=[1, 10, 2], method="lm")    # (1)
+                                p0=[1, 10, 2], method="lm",    # (1)
+                                xtol=1e-12, ftol=1e-12, maxfev=20000)
 {"estimate": found[0], "standard error": np.sqrt(cov[0, 0])}
 \end{lstlisting}
 \undertext{\textbf{simplydata chooses}}
@@ -11044,7 +11047,7 @@ Fits a 4 parameter log-logistic curve (R drc::\code{drm(fct = LL.\allowbreak{}4(
 \end{optiontable}
 
 \wordfield{Why this method}{\hyperref[basis:table.fit-dose-response]{How simplydata chooses methods}, page \pageref{basis:table.fit-dose-response}: the default, the evidence and the checks.}
-\wordfield{Underneath}{R \code{drc::drm()}, \code{drc::LL.\allowbreak{}4()}, \code{drc::ED()}}
+\wordfield{Underneath}{R \code{drc::drm()}, \code{drc::LL.\allowbreak{}4()}, \code{drc::drmc()}, \code{drc::ED()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -11057,7 +11060,9 @@ table.fit_dose_response(x="concentration", y="dead", outcome="yes or no", out_of
 \begin{lstlisting}[style=underr]
 # fit_dose_response(x="concentration", y="root_length")
 # concentration and root_length: chemical A of sdata.get_example("toxicity")
-m <- drc::drm(root_length ~ concentration, fct = drc::LL.4())   # (1)
+m <- drc::drm(root_length ~ concentration, fct = drc::LL.4(),  # (1)
+              control = drc::drmc(relTol = 1e-15,
+                                  maxIt = 10000))             # (3)
 e <- drc::ED(m, 50, interval = "delta", display = FALSE)       # (2)
 list(estimate = e[1, 1], se = e[1, 2], low = e[1, 3], high = e[1, 4])
 \end{lstlisting}
@@ -11068,6 +11073,7 @@ list(estimate = e[1, 1], se = e[1, 2], low = e[1, 3], high = e[1, 4])
 \undertext{\textbf{simplydata chooses}}
 \undertext{(1) the 4 parameter log-logistic curve, the usual one in ecotoxicology (drc's LL.4); \code{of\_\allowbreak{}kind=} chooses another.}
 \undertext{(2) the ED50 with its delta-method interval: drc's \code{ED()} gives no interval unless asked (interval = \code{\textquotedbl{}none\textquotedbl{}} is its default).}
+\undertext{(3) a tighter stopping rule than drc's default (relTol 1e-7), so that the fit has converged; the method is the same.}
 \undertext{\textit{In Python only:} Python has no dose-response package with drc's ED intervals: SciPy \code{curve\_\allowbreak{}fit} fits the curve but gives no ED50 interval, so the numbers come from R.}
 \undertext{simplydata also prints the upper and lower limits, a test of no dose effect (drc::noEffect) and a note when an ED lies outside the doses tested. simplydata also writes the result as sentences, with the p-value in words, and names the method.}
 \undertext{\textit{Checked:} a test runs both and compares the numbers of the result table (on a pandas and on a Polars table).}
@@ -11297,7 +11303,8 @@ fit.turn_into_table()
 \underlib{R (simplydata runs this in R for you, through rpy2)}
 \begin{lstlisting}[style=underr]
 # fit_distribution_to("sea_level", distribution="gev")
-f <- extRemes::fevd(x, type = "GEV", method = "MLE")   # (1)
+f <- extRemes::fevd(x, type = "GEV", method = "MLE",   # (1)
+                    optim.args = list(method = "BFGS", control = list(reltol = 1e-14, maxit = 1e5)))
 p <- f$results$par
 list(location = p[["location"]], scale = p[["scale"]], shape = p[["shape"]])
 \end{lstlisting}
@@ -11316,7 +11323,8 @@ list(location = p[["location"]], scale = p[["scale"]], shape = p[["shape"]])
 \underlib{R (simplydata runs this in R for you, through rpy2)}
 \begin{lstlisting}[style=underr]
 # fit_distribution_to("excess", distribution="generalised pareto") on the rain above 20
-f <- extRemes::fevd(x, threshold = 20, type = "GP", method = "MLE")   # (1)
+f <- extRemes::fevd(x, threshold = 20, type = "GP", method = "MLE",   # (1)
+                    optim.args = list(method = "BFGS", control = list(reltol = 1e-14, maxit = 1e5)))
 p <- f$results$par
 list(scale = p[["scale"]], shape = p[["shape"]])
 \end{lstlisting}
@@ -11662,7 +11670,7 @@ the data, from \code{prior\_\allowbreak{}summary()}), each effect as the posteri
 \end{optiontable}
 
 \wordfield{Why this method}{\hyperref[basis:table.explain]{How simplydata chooses methods}, page \pageref{basis:table.explain}: the default, the evidence and the checks.}
-\wordfield{Underneath}{statsmodels (OLS; GLM for yes/no and counts, as R glm; MixedLM for \code{grouped\_\allowbreak{}by=}; GEE for \code{effects=\textquotedbl{}for the whole population\textquotedbl{}}, as R geepack::geeglm; MICEData to fill in empty cells; \code{eval\_\allowbreak{}measures} aic and bic and McFadden's pseudo R squared, as R AIC, BIC and performance::\code{r2\_\allowbreak{}mcfadden}); R mgcv::gam for \code{curve\_\allowbreak{}for=} (needs R); R itself (needs R) for lme4::glmer, lme4::lmer with \code{own\_\allowbreak{}slope\_\allowbreak{}for=}, lmerTest for \code{p\_\allowbreak{}value\_\allowbreak{}by=\textquotedbl{}satterthwaite\textquotedbl{}}, geepack for \code{within\_\allowbreak{}groups=\textquotedbl{}in time order\textquotedbl{}} and GEE with \code{out\_\allowbreak{}of=}, car::Anova and effectsize for \code{table\_\allowbreak{}of\_\allowbreak{}tests=}, sandwich::vcovHC for \code{robust\_\allowbreak{}errors=True} with yes/no and counts, and mice::pool for multiple imputation; R performance::\code{r2\_\allowbreak{}nakagawa} for the R squared of every \code{grouped\_\allowbreak{}by=} model; statsmodels WLS and \code{GLM(var\_\allowbreak{}weights=)} for \code{weights=}, RLM for \code{giving\_\allowbreak{}outliers\_\allowbreak{}less\_\allowbreak{}weight=}, ConditionalLogit for \code{matched\_\allowbreak{}by=}, \code{GLM(cov\_\allowbreak{}type=\textquotedbl{}HC0\textquotedbl{})} for risk ratios; patsy cr for \code{with\_\allowbreak{}knots=}; SciPy bootstrap for \code{interval\_\allowbreak{}by=\textquotedbl{}bootstrap\textquotedbl{}}; R stats::confint for \code{interval\_\allowbreak{}by=\textquotedbl{}profile\textquotedbl{}}, lme4 for \code{crossed\_\allowbreak{}with=}, pscl::zeroinfl and pscl::hurdle for the zero outcomes; statsmodels stats.mediation.Mediation for \code{through=} (as R mediation::mediate)}
+\wordfield{Underneath}{statsmodels (OLS by QR, with the standard errors as R \code{summary.\allowbreak{}lm()} takes them: chol2inv of the QR factor, R's method done with NumPy and LAPACK dpotri; GLM for yes/no and counts, as R glm; MixedLM for \code{grouped\_\allowbreak{}by=}; GEE for \code{effects=\textquotedbl{}for the whole population\textquotedbl{}}, as R geepack::geeglm; MICEData to fill in empty cells; \code{eval\_\allowbreak{}measures} aic and bic and McFadden's pseudo R squared, as R AIC, BIC and performance::\code{r2\_\allowbreak{}mcfadden}); R mgcv::gam for \code{curve\_\allowbreak{}for=} (needs R); R itself (needs R) for lme4::glmer, lme4::lmer with \code{own\_\allowbreak{}slope\_\allowbreak{}for=}, lmerTest for \code{p\_\allowbreak{}value\_\allowbreak{}by=\textquotedbl{}satterthwaite\textquotedbl{}}, geepack for \code{within\_\allowbreak{}groups=\textquotedbl{}in time order\textquotedbl{}} and GEE with \code{out\_\allowbreak{}of=}, car::Anova and effectsize for \code{table\_\allowbreak{}of\_\allowbreak{}tests=}, sandwich::vcovHC for \code{robust\_\allowbreak{}errors=True} with yes/no and counts, and mice::pool for multiple imputation; R performance::\code{r2\_\allowbreak{}nakagawa} for the R squared of every \code{grouped\_\allowbreak{}by=} model; statsmodels WLS and \code{GLM(var\_\allowbreak{}weights=)} for \code{weights=}, RLM for \code{giving\_\allowbreak{}outliers\_\allowbreak{}less\_\allowbreak{}weight=}, ConditionalLogit for \code{matched\_\allowbreak{}by=}, \code{GLM(cov\_\allowbreak{}type=\textquotedbl{}HC0\textquotedbl{})} for risk ratios; patsy cr for \code{with\_\allowbreak{}knots=}; SciPy bootstrap for \code{interval\_\allowbreak{}by=\textquotedbl{}bootstrap\textquotedbl{}}; R stats::confint for \code{interval\_\allowbreak{}by=\textquotedbl{}profile\textquotedbl{}}, lme4 for \code{crossed\_\allowbreak{}with=}, pscl::zeroinfl and pscl::hurdle for the zero outcomes; statsmodels stats.mediation.Mediation for \code{through=} (as R mediation::mediate)}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -11693,6 +11701,7 @@ fit = sm.WLS(df["price"], X, weights=df["count"]).fit()     # (1)
 \end{lstlisting}
 \undertext{\textbf{simplydata chooses}}
 \undertext{(1) precision weights, as R \code{lm(weights =)}: statsmodels WLS; for the other outcomes \code{GLM(var\_\allowbreak{}weights=)}. Not \code{freq\_\allowbreak{}weights}, which would change the degrees of freedom.}
+\undertext{\textit{In Python only:} simplydata's standard errors of a least-squares fit are R's method, \code{summary.\allowbreak{}lm()}'s \code{chol2inv()} of the QR factor, done with NumPy's QR and LAPACK's dpotri (approved by Manish 2026-11-22); statsmodels' WLS above gives the same numbers here, to 1e-9.}
 \undertext{Rows with weight 0 are left out first, as R does (statsmodels would count them in the degrees of freedom); negative weights are refused. simplydata also writes each effect as a sentence with its interval and p-value, and names the method.}
 \undertext{\textit{Checked:} a test runs both and compares the numbers of the result table (on a pandas and on a Polars table).}
 \end{underneathbox}
@@ -13649,8 +13658,10 @@ list(level = rl[2], low = p[1], high = p[3])
 \underlib{R (simplydata runs this in R for you, through rpy2)}
 \begin{lstlisting}[style=underr]
 # find_return_levels_of("rain", once_in=[10], values_above=20, sorted_by="date")
-f <- extRemes::fevd(x, threshold = 20, type = "GP",
-                    time.units = "days")                                   # (1)
+f <- extRemes::fevd(x, threshold = 20, type = "GP", time.units = "days",  # (1)
+                    optim.args = list(method = "BFGS",
+                                      control = list(reltol = 1e-12,
+                                                     maxit = 10000)))   # (3)
 rl <- extRemes::return.level(f, return.period = 10, do.ci = TRUE)
 w <- rl[3] - rl[1]
 p <- extRemes::ci.fevd(f, type = "return.level", return.period = 10,
@@ -13665,6 +13676,7 @@ list(level = rl[2], low = p[1], high = p[3])
 \undertext{\textbf{simplydata chooses}}
 \undertext{(1) the readings per year from the dates: daily readings are time.units = \code{\textquotedbl{}days\textquotedbl{}} (365.25 a year).}
 \undertext{(2) profile-likelihood intervals (Coles 2001, section 3.3.3): the normal approximation of \code{return.\allowbreak{}level()} is too narrow and too symmetric for long return periods; the search range starts at the normal interval (R extRemes needs one).}
+\undertext{(3) a tighter stopping rule for optim (reltol 1e-12) than its default, so that the fit has converged; the method is the same.}
 \undertext{\textit{In Python only:} SciPy fits the GEV (genextreme, with c = -xi) and the generalised Pareto curve, but gives no return levels and no profile-likelihood intervals, so the numbers come from R extRemes.}
 \undertext{simplydata also gives the extremal index (extRemes::extremalindex) and, below 0.7, says the values above come in runs; it does not decluster without asking.}
 \undertext{\textit{Checked:} a test runs both and compares the numbers of the result table (on a pandas and on a Polars table).}
@@ -14357,7 +14369,8 @@ table.combine_studies(names="trial", events=["tb_vaccinated", "tb_unvaccinated"]
 e <- metafor::escalc(measure = "RR", ai = e1, n1i = n1, ci = e2,
                      n2i = n2, drop00 = TRUE)                    # (1)
 f <- metafor::rma(yi, vi, data = e, method = "REML",          # (2)
-                  test = "adhoc")                              # (3)
+                  test = "adhoc",                              # (3)
+                  control = list(tol = 1e-10, threshold = 1e-10, maxiter = 1000))   # (5)
 p <- predict(f, transf = exp)                                  # (4)
 list(b = p$pred, low = p$ci.lb, high = p$ci.ub, p = f$pval,
      tau2 = f$tau2, I2 = f$I2, pi_low = p$pi.lb, pi_high = p$pi.ub)
@@ -14371,6 +14384,7 @@ list(b = p$pred, low = p$ci.lb, high = p$ci.ub, p = f$pval,
 \undertext{(2) random effects with REML, metafor's default and the best of the usual estimators of the between-study spread (Veroniki et al. 2016).}
 \undertext{(3) Hartung-Knapp intervals and p-values with the ad hoc rule: never narrower than the normal (z) interval; \code{interval\_\allowbreak{}by=\textquotedbl{}normal\textquotedbl{}} gives the classic interval.}
 \undertext{(4) the result shown back as a ratio, with the prediction interval (t with k - 1 degrees of freedom under Hartung-Knapp).}
+\undertext{(5) a tighter stopping rule than metafor's default (1e-5) for the iterative between-study spread (REML, Paule-Mandel), so that it has converged; the method is the same.}
 \undertext{\textit{In Python only:} statsmodels has fixed and random effects (DerSimonian-Laird, Paule-Mandel) but no REML, no prediction interval, no Egger or trim-and-fill, no meta-regression and no Peto, so the numbers come from R metafor.}
 \undertext{simplydata also says the combined effect, the prediction interval, tau (as a factor for ratios) and I-squared in words, gives each p-value as a count of sets of studies, and adds the notes on small-study effects from 10 studies.}
 \undertext{\textit{Checked:} a test runs both and compares the numbers of the result table (on a pandas and on a Polars table).}
@@ -14382,7 +14396,8 @@ list(b = p$pred, low = p$ci.lb, high = p$ci.ub, p = f$pval,
 # combine_studies(names="study", estimates="odds ratio")
 e <- metafor::conv.wald(out = est, ci.lb = lo, ci.ub = hi,
                         level = 95, transf = log)                 # (1)
-f <- metafor::rma(yi, vi, data = e, method = "REML", test = "adhoc")
+f <- metafor::rma(yi, vi, data = e, method = "REML", test = "adhoc",
+                  control = list(tol = 1e-10, threshold = 1e-10, maxiter = 1000))
 p <- predict(f, transf = exp)                                      # (2)
 list(b = p$pred, low = p$ci.lb, high = p$ci.ub, p = f$pval)
 \end{lstlisting}
@@ -14463,7 +14478,8 @@ list(b = p$pred, low = p$ci.lb, high = p$ci.ub, p = f$pval)
 \begin{lstlisting}[style=underr]
 # combine_studies(..., interval_by="normal")
 e <- metafor::escalc(measure = "RR", ai = e1, n1i = n1, ci = e2, n2i = n2)
-f <- metafor::rma(yi, vi, data = e, method = "REML", test = "z")    # (1)
+f <- metafor::rma(yi, vi, data = e, method = "REML", test = "z",    # (1)
+                  control = list(tol = 1e-10, threshold = 1e-10, maxiter = 1000))
 p <- predict(f, transf = exp)
 list(b = p$pred, low = p$ci.lb, high = p$ci.ub, p = f$pval)
 \end{lstlisting}
@@ -14485,7 +14501,8 @@ list(b = p$pred, low = p$ci.lb, high = p$ci.ub, p = f$pval)
 e <- metafor::escalc(measure = "RR", ai = e1, n1i = n1, ci = e2, n2i = n2)
 g <- c("alternate", "random", "systematic")
 f <- lapply(g, function(x) metafor::rma(yi, vi, data = e,
-            subset = allocation == x, test = "z"))                # (1)
+            subset = allocation == x, test = "z",                 # (1)
+            control = list(tol = 1e-10, threshold = 1e-10, maxiter = 1000)))
 b <- sapply(f, function(m) m$b[1]); s <- sapply(f, function(m) m$se)
 q <- metafor::rma(b, sei = s, mods = ~ factor(g), method = "EE")  # (2)
 list(Q = q$QM, p = q$QMp)
@@ -14508,7 +14525,8 @@ list(Q = q$QM, p = q$QMp)
 # combine_studies(..., using=["latitude"])
 e <- metafor::escalc(measure = "RR", ai = e1, n1i = n1, ci = e2, n2i = n2)
 f <- metafor::rma(yi, vi, mods = ~ latitude, data = e,            # (1)
-                  method = "REML", test = "adhoc")
+                  method = "REML", test = "adhoc",
+                  control = list(tol = 1e-10, threshold = 1e-10, maxiter = 1000))
 list(b = f$b[2], low = f$ci.lb[2], high = f$ci.ub[2], p = f$pval[2])
 \end{lstlisting}
 \underlib{Python (with what R gives back)}
@@ -14585,7 +14603,8 @@ chart.save("draw_funnel_plot.png")
 # draw_funnel_plot(x="estimate", y="standard error"), after combine_studies
 e <- metafor::escalc(measure = "RR", ai = e1, n1i = n1, ci = e2,
                      n2i = n2, drop00 = TRUE)
-f <- metafor::rma(yi, vi, data = e, test = "adhoc")
+f <- metafor::rma(yi, vi, data = e, test = "adhoc",
+                  control = list(tol = 1e-10, threshold = 1e-10, maxiter = 1000))
 list(rr = exp(e$yi), se = sqrt(e$vi), centre = exp(f$b[1]))
 \end{lstlisting}
 \underlib{matplotlib (with what R gives back)}
@@ -19226,14 +19245,14 @@ table.compare_survival(time="time", event="event", value="first_esbl", competing
 \solutionanswer{\code{competing\_\allowbreak{}with=}. Gray's test: chi-square 8.10, p = 0.004; differences this big would turn up in about 4 of 1000 studies if the wards truly had the same chance of ESBL.}
 \par\noindent{\small\sffamily\hyperref[lesson:29]{Back to lesson 29}}
 \unsection{Lesson 30: Combining studies (meta-analysis)}{solutions:30}
-\solutiontask{1}{37 studies of passive smoking and lung cancer give an odds ratio with its 95 \% interval (real data, Hackshaw et al. 1997). Fill in the blank: table = \code{sdata.\allowbreak{}table(sdata.\allowbreak{}get\_\allowbreak{}example(\textquotedbl{}passive\_\allowbreak{}smoking\textquotedbl{}))}, then \code{table.\allowbreak{}combine\_\allowbreak{}studies(names=\textquotedbl{}study\textquotedbl{},\allowbreak{} estimates=\_\allowbreak{}\_\allowbreak{}\_\allowbreak{}\_\allowbreak{})}. What is the combined odds ratio?}
+\solutiontask{1}{37 studies of passive smoking and lung cancer give an odds ratio with its 95 \% interval (made up, modelled on Hackshaw et al. 1997). Fill in the blank: table = \code{sdata.\allowbreak{}table(sdata.\allowbreak{}get\_\allowbreak{}example(\textquotedbl{}passive\_\allowbreak{}smoking\textquotedbl{}))}, then \code{table.\allowbreak{}combine\_\allowbreak{}studies(names=\textquotedbl{}study\textquotedbl{},\allowbreak{} estimates=\_\allowbreak{}\_\allowbreak{}\_\allowbreak{}\_\allowbreak{})}. What is the combined odds ratio?}
 \begin{lstlisting}[style=py]
 import simplydata as sdata
 table = sdata.table(sdata.get_example("passive_smoking"))
 table.combine_studies(names="study", estimates="odds ratio")
 \end{lstlisting}
 \printedoutput{output/solution30_task1.txt}
-\solutionanswer{\code{estimates=\textquotedbl{}odds ratio\textquotedbl{}}: simplydata finds the columns \code{\textquotedbl{}odds ratio 95 \% CI low\textquotedbl{}} and \code{\textquotedbl{}.\allowbreak{}.\allowbreak{}.\allowbreak{} high\textquotedbl{}} next to it and combines the odds ratios on the log scale: about 1.24 (95 \% CI 1.13 to 1.38).}
+\solutionanswer{\code{estimates=\textquotedbl{}odds ratio\textquotedbl{}}: simplydata finds the columns \code{\textquotedbl{}odds ratio 95 \% CI low\textquotedbl{}} and \code{\textquotedbl{}.\allowbreak{}.\allowbreak{}.\allowbreak{} high\textquotedbl{}} next to it and combines the odds ratios on the log scale: about 1.33 (95 \% CI 1.23 to 1.43).}
 \solutiontask{2}{In the BCG trials, change only \code{show=}: combine odds ratios (\code{show=\textquotedbl{}odds ratios\textquotedbl{}}) instead of risk ratios. Is the answer close?}
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -19259,7 +19278,7 @@ table = sdata.table(sdata.get_example("passive_smoking"))
 table.combine_studies(names="study", estimates="odds ratio")
 \end{lstlisting}
 \printedoutput{output/solution30_task4.txt}
-\solutionanswer{The prediction interval: in a new setting like these studies, the true odds ratio would lie between about 0.90 and 1.71.}
+\solutionanswer{The prediction interval: in a new setting like these studies, the true odds ratio would lie between about 1.22 and 1.45.}
 \par\noindent{\small\sffamily\hyperref[lesson:30]{Back to lesson 30}}
 \unsection{Lesson 31: Diversity of a community}{solutions:31}
 \solutiontask{1}{Fill in the blank: \code{table.\allowbreak{}add\_\allowbreak{}diversity\_\allowbreak{}columns(columns=genes,\allowbreak{} show=\_\allowbreak{}\_\allowbreak{}\_\allowbreak{}\_\allowbreak{})} to add Chao1. How close is it to the richness seen?}
@@ -19352,14 +19371,14 @@ table.find_average_direction_of("current_direction", full_turn=360)
 \end{lstlisting}
 \printedoutput{output/solution33_task1.txt}
 \solutionanswer{\code{full\_\allowbreak{}turn=360}: a full turn is 360 degrees.}
-\solutiontask{2}{Change only \code{once\_\allowbreak{}in=}: find the 50-year sea level at Port Pirie.}
+\solutiontask{2}{Change only \code{once\_\allowbreak{}in=}: find the 50-year sea level.}
 \begin{lstlisting}[style=py]
 import simplydata as sdata
 table = sdata.table(sdata.get_example("sea_levels"))
 table.find_return_levels_of("sea_level", once_in=[50], sorted_by="year")
 \end{lstlisting}
 \printedoutput{output/solution33_task2.txt}
-\solutionanswer{About 4.58 m once in 50 years (95 \% CI 4.42 to 4.98).}
+\solutionanswer{About 4.45 m once in 50 years (95 \% CI 4.34 to 4.69).}
 \solutiontask{3}{Say in words what a 100-year level means. Is it certain to happen in the next 100 years?}
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -19419,7 +19438,7 @@ table.compare_balanced_groups_of("re78", for_each_group_in="treat", allowing_for
                                  "married", "nodegree", "re74", "re75"], test_method="matching", effect_for=1)
 \end{lstlisting}
 \printedoutput{output/solution35_task1.txt}
-\solutionanswer{\code{effect\_\allowbreak{}for=1}: the group of the trained men (treat = 1). Without \code{match\_\allowbreak{}within=} every trained man is matched; race stays unbalanced (1.03), and a note says so.}
+\solutionanswer{\code{effect\_\allowbreak{}for=1}: the group of the trained men (treat = 1). Without \code{match\_\allowbreak{}within=} every trained man is matched; race stays unbalanced (0.52), and a note says so.}
 \solutiontask{2}{Change only one option of part 1: give the effect among the trained men with weighting (\code{effect\_\allowbreak{}for=1}). How does it compare with matching?}
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -19428,7 +19447,7 @@ table.compare_balanced_groups_of("re78", for_each_group_in="treat", allowing_for
                                  "married", "nodegree", "re74", "re75"], effect_for=1)
 \end{lstlisting}
 \printedoutput{output/solution35_task2.txt}
-\solutionanswer{1214 dollars more among the trained men (95 \% CI -350 to 2778): the same question as matching, a little smaller, and now race is balanced.}
+\solutionanswer{1321 dollars more among the trained men (95 \% CI 555 to 2088): the same question as matching, a little larger, and now race is balanced.}
 \solutiontask{3}{Say in words why the plain comparison of part 1 gave the wrong sign.}
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -20192,7 +20211,7 @@ simplydata often chooses a method, an option value or a setting for you. This ap
 \wordfield{References}{Schuirmann 1987; Lakens 2017; Newcombe 1998}
 \wordfield{In the dictionary}{\hyperref[word:table.compare-risks]{page \pageref{word:table.compare-risks}}}
 \par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:table.compare-risks-show-eq-attributable-fractions}\noindent{\sffamily\bfseries\color{brand}\code{table.\allowbreak{}compare\_\allowbreak{}risks()} \code{show=\textquotedbl{}attributable fractions\textquotedbl{}}}\par\nopagebreak
-\wordfield{Default}{The attributable fraction among the exposed and in the whole population from R epiR::epi.2by2(method = \code{\textquotedbl{}cohort.\allowbreak{}count\textquotedbl{}}), with Wald intervals from the risk ratio; for an exposure that goes with fewer events, the preventable fraction among the exposed (epiR's fraction with the roles of the groups swapped).}
+\wordfield{Default}{The attributable fraction among the exposed and in the whole population from R epiR::epi.2by2(method = \code{\textquotedbl{}cohort.\allowbreak{}count\textquotedbl{}}), with the intervals epiR gives for one table (among the exposed, from the score interval of the risk ratio; in the population, from the exact intervals of the two risks); for an exposure that goes with fewer events, the preventable fraction among the exposed (epiR's fraction with the roles of the groups swapped).}
 \wordfield{Alternatives}{\code{compare\_\allowbreak{}risks()} without \code{show=} (the risk difference, the risk and odds ratios, the number needed to treat).}
 \wordfield{Why (P5)}{These are the standard definitions (Rockhill et al. 1998). The fractions here are crude: adjusting the population fraction for confounders needs a model, and a fraction from a crude risk ratio is biased when confounding is present (Rockhill et al. 1998), so the printout says \code{\textquotedbl{}crude\textquotedbl{}}. \textit{Basis: convention.}}
 \wordfield{Checks}{Two groups only; the printout says that the risks must come from a cohort or cross-sectional study and that the fractions are causal only if the exposure causes the events.}
@@ -20469,7 +20488,7 @@ simplydata often chooses a method, an option value or a setting for you. This ap
 \wordfield{In the dictionary}{\hyperref[word:dist.find-chance-that-value]{page \pageref{word:dist.find-chance-that-value}}}
 \unsection{Models}{basis-group:Models}
 \par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:table.explain}\noindent{\sffamily\bfseries\color{brand}\code{table.\allowbreak{}explain()}}\par\nopagebreak
-\wordfield{Default}{A linear model by least squares (as R \code{lm()}), with t-based 95 \% intervals, R squared and the F test. Group columns are compared with their first level in sorted order. The outcome family is never switched by itself.}
+\wordfield{Default}{A linear model by least squares (as R \code{lm()}), with t-based 95 \% intervals, R squared and the F test. Group columns are compared with their first level in sorted order. The outcome family is never switched by itself. The estimates come from statsmodels' QR fit; their standard errors come from the QR factor as R's \code{summary.\allowbreak{}lm()} takes them, with \code{chol2inv()} (R's own method, done here with NumPy's QR and LAPACK's dpotri, the routine chol2inv calls; approved by Manish 2026-11-22), because statsmodels' inv(R'R) loses digits on nearly collinear columns (NIST Longley).}
 \wordfield{Alternatives}{\code{outcome=} (yes or no, counts, positive numbers, ordered groups, shares ...), \code{grouped\_\allowbreak{}by=}, \code{effects=}, \code{robust\_\allowbreak{}errors=}, \code{table\_\allowbreak{}of\_\allowbreak{}tests=}, \code{interval\_\allowbreak{}by=}, \code{p\_\allowbreak{}value\_\allowbreak{}by=} and the other options below.}
 \wordfield{Why (P4)}{simplydata follows R's \code{lm()} so that every number matches what reviewers can check. It never chooses a model family from the data, because that choice belongs to the question asked; instead the printout checks the model and points to a better family. \textit{Basis: convention.}}
 \wordfield{Checks}{Notes: residuals not bell-shaped; fewer than 10 rows per effect (a starting value: Austin \& Steyerberg 2015 found about 2 per column enough for linear models); a variance inflation factor above 5 (a rule of thumb whose limits O'Brien 2007 discusses); a 0/1 outcome suggests \code{outcome=\textquotedbl{}yes or no\textquotedbl{}}. Refused: no more rows than values to estimate, columns that say the same thing, a group column with one level.}
