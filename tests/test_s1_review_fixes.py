@@ -214,9 +214,10 @@ def test_perfect_kappa_has_no_nan(capsys):
 
 def test_icc_one_way_names_the_call(needs_r, capsys):
     got = kappa_table().agreement_between("pain_week_0", "pain_week_4", raters="different per row")
-    method = got._frame.to_pandas()["method"][0]
-    assert method == 'R irr::icc(model = "oneway", type = "consistency", unit = "single")'
-    assert 'type = "consistency"' in capsys.readouterr().out
+    method = got.get_row(1)["method"]
+    # the one-way ICC is psych::ICC's row ICC1 whatever checking_for= says (irr::icc ignored type= there too)
+    assert method == "R psych::ICC(lmer = FALSE), row ICC1"
+    assert "its row ICC1" in capsys.readouterr().out
 
 
 # ------------------------------------------------------------------ items 4 and 9: correlation

@@ -17,11 +17,13 @@ phase, after every chart type. Methods, written so they can be stated in a paper
 * fit_curve: least-squares polynomial, the same statsmodels fit as table.fit_curve; R² = 1 - SSE / SST.
 * draw_smooth_line: LOWESS (Cleveland 1979), statsmodels lowess(), which follows R's lowess():
   local straight-line fits with tricube weights over the nearest 2/3 of the points, then 3
-  robustness iterations with bisquare weights (6 × median absolute residual). Up to 1000
-  points every point is fitted (delta = 0) and the curve is R's to about 1e-9; above 1000
-  points, points within 1 % of the x range are interpolated (delta = 0.01 · range, R's
-  default), to keep it fast, and statsmodels and R interpolate a little differently, so the
-  curve agrees with R to about 1e-5.
+  robustness iterations with bisquare weights (6 × median absolute residual), and R's
+  default delta = 1 % of the x range: points closer than delta to the last fitted point are
+  interpolated, not fitted. Where the points are spread out (mtcars) the curve is R
+  lowess()'s to about 1e-10; with many close points statsmodels picks the points it fits
+  a little differently from R, and the curve agrees with R's to about 1e-4 of the y values.
+  (With delta = 0, statsmodels and R lowess(delta = 0) agree to about 1e-9, but R's default
+  curve differs from that by up to 1e-3.)
 * draw_side_histograms: numpy.histogram_bin_edges(with_bins="auto"), the same bins for all groups.
 * sdata.draw_all_pairs: seaborn.histplot on the diagonal, or seaborn.kdeplot (Gaussian kernel,
   Scott's bandwidth) when colour= makes groups; seaborn.scatterplot elsewhere.
@@ -456,8 +458,7 @@ def _draw_fit(ctx, word, how, colour, show_equation, band=False, degree=1, thick
 
             ax.plot(xs, smoothing_spline(xv, yv, smoothness)(xs), color=col, zorder=3, linewidth=thickness)
         else:
-            delta = 0.01 * np.ptp(xv) if len(xv) > 1000 else 0.0
-            xs, ys = lowess(xv, yv, delta=delta)
+            xs, ys = lowess(xv, yv, delta=0.01 * np.ptp(xv))  # R lowess()'s default delta
             ax.plot(xs, ys, color=col, zorder=3, linewidth=thickness)
         drawn += 1
         if show_equation and how not in ("smooth", "spline"):
@@ -767,6 +768,8 @@ class StatsWords:
         """A smooth line that follows the dots (LOWESS). chart.draw_smooth_line()
 
         Good for seeing a trend that is not straight. Each colour group gets its own line.
+        LOWESS as R lowess() with its defaults (the nearest 2/3 of the dots, 3 robustness steps,
+        delta = 1 % of the x range), from statsmodels lowess().
         thickness=3 draws a thicker line (normal is 2).
         test_method="spline" draws a smoothing spline instead (as table.values_at(...,
         smoothness=) and R smooth.spline()): smoothness="auto" lets R choose how smooth by
