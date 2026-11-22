@@ -207,7 +207,7 @@ def test_chart_facts_read_words_sizes_legends_colours_angles_shapes_cells_and_pa
     assert facts["legend_place"] == [("figure", 8, "lower", 1, ["key", "line"])]
     assert facts["colours"][0] == ["#800080ff", "#800080ff"] and facts["colours"][2] == ["#ff0000ff"]
     assert facts["tick_angles"][0] == [(45.0, "right", "default"), (45.0, "right", "default")]
-    assert facts["line_styles"] == [("-", 1.5, 2.0)]
+    assert facts["line_styles"] == [("-", 1.5, 2.0, "None")]
     assert facts["text_places"] == [("note", (0.0, 1.0), (0.0, 1.0), 0.0, "left", "baseline", None)]
     assert len(facts["shape_colours"]) == 1 and facts["panel_styles"][0][3] == ["#800080ff", "#800080ff"]
     assert facts["every_panel"][0][8] == tuple(map(float, ax.get_xlim()))  # each panel's axis ranges

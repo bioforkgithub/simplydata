@@ -1269,8 +1269,8 @@ ENTRIES += [
         """},
         compare="chart",
         check=("bars", "ticks", "labels"),
-        also="simplydata draws the chart afresh and hands its own Figure to a pyplot window for the showing, so "
-             "plt.show() shows this chart and no other. In Jupyter, VS Code and Spyder a chart appears without "
+        also="simplydata draws the chart afresh on a Figure of its own and hands it to a pyplot window only for the "
+             "showing, so other simplydata charts do not pop up with it (plt.show() shows every open pyplot figure). In Jupyter, VS Code and Spyder a chart appears without "
              "show(). The test compares the chart that is shown, not the window. " + LOOK,
     ),
     Entry(
@@ -1386,9 +1386,10 @@ ENTRIES += [
                  "griddata, method=\"linear\").",
                  "about 10 bands, in the viridis colours (safe for colour-blind readers); use_colour_scale() "
                  "chooses others.",
-                 "thin white lines between the bands, solid even below 0 (matplotlib dashes one-colour lines there).",),
-        also="Several heights at one place are averaged. filled=False draws only the lines, with their heights "
-             "written on them (clabel). The dashing of the lines is not compared. " + LOOK,
+                 "a line along the edge of every band, so neighbouring bands stay apart.",),
+        also="The lines are thin (0.5 points), white and solid even below 0 (matplotlib dashes one-colour lines "
+             "there); their colour, width and dashing are not compared. Several heights at one place are averaged. "
+             "filled=False draws only the lines, with their heights written on them (clabel). " + LOOK,
     ),
     Entry(
         word="draw_surface",
@@ -1417,9 +1418,9 @@ ENTRIES += [
         check=("in_3d", "labels", "colour_bars"),
         choices=("a full grid (every east with every north) is drawn as it is; scattered points are first joined "
                  "onto a 100 x 100 grid (SciPy griddata, straight lines in between).",),
-        also="Several heights at one place are averaged. The colours run through viridis from the lowest to the highest point; use_colour_scale() chooses "
-             "others. The test compares the height behind each piece's colour, the z axis and the colour bar. "
-             + LOOK,
+        also="Several heights at one place are averaged. The colours run through viridis from the lowest to the "
+             "highest point (use_colour_scale() chooses others); the colour map itself is not compared, only the "
+             "height behind each piece's colour, the z axis and the colour bar. " + LOOK,
     ),
     Entry(
         word="draw_dots_3d",
@@ -1558,7 +1559,7 @@ ENTRIES += [
                         capthick=1.5, zorder=3)
         """},
         compare="chart",
-        check=("segments", "lines", "dots"),
+        check=("segments", "lines", "line_styles", "dots"),
         choices=("the standard deviation with n - 1 (pandas std), empty cells skipped; \"standard error\" divides it "
                  "by the square root of n, \"confidence interval\" is the t interval of the mean.",
                  "on dots a short wide dash marks each average, and the bars end in caps.",),
@@ -1591,8 +1592,9 @@ ENTRIES += [
         check=("lines", "dots"),
         tolerance=1e-8,
         choices=("a curve with one bend (degree 2) unless of_degree= says otherwise, fitted by least squares on the "
-                 "powers of x mapped onto -1 to 1 (as NumPy Polynomial.fit and table.fit_curve), which keeps big x "
-                 "values accurate.",
+                 "powers of x mapped onto -1 to 1, which keeps big x values accurate: simplydata runs statsmodels "
+                 "WLS on them (the engine of table.fit_curve); NumPy's Polynomial.fit, shown here, gives the same "
+                 "curve.",
                  "the curve is drawn only over the range of x in the data, never past it.",),
         also="Each colour group gets its own curve; show_equation=True writes the equation and R squared. " + LOOK,
     ),
@@ -1625,7 +1627,8 @@ ENTRIES += [
         compare="chart",
         check=("lines", "bars"),
         choices=("the values are found by maximum likelihood, as R MASS::fitdistr(): for the normal distribution "
-                 "the standard deviation divides by n, not n - 1. They are printed once.",
+                 "simplydata works them out directly (the average, and the standard deviation dividing by n, not "
+                 "n - 1), which equals stats.norm.fit. They are printed once.",
                  "the curve runs over the x range of the histogram, at 200 points.",
                  "over a histogram of counts the curve is scaled to the bars: density x number of values x bar width "
                  "(x 100 x bar width for percents; a density histogram needs no scaling).",),
@@ -2015,7 +2018,8 @@ ENTRIES += [
         compare="chart",
         check=("ticks", "dots"),
         choices=("a comma between the thousands and no decimals unless with_decimals= asks (1,000, not 1000.0).",),
-        also="\"percent\" uses PercentFormatter, \"scientific\" and \"plain\" ScalarFormatter; on a date axis you "
+        also="\"percent\" uses PercentFormatter, \"scientific\" ScalarFormatter, \"plain\" ScalarFormatter "
+             "without with_decimals= (StrMethodFormatter with it); on a date axis you "
              "write how a date should look, such as \"Jan 2026\" (DateFormatter). " + LOOK,
     ),
     Entry(
@@ -2128,6 +2132,7 @@ ENTRIES += [
             df = sdata.get_example("marks")
             fig, ax = plt.subplots()
             sns.scatterplot(df, x="hours", y="marks", ax=ax)
+            ax.grid(True, axis="y")                                          # simplydata's paper look
             # hide_grid()
             ax.grid(False)
         """},
@@ -2368,7 +2373,7 @@ ENTRIES += [
             ax.set_xlabel("odds ratio, with its 95 % confidence interval (the line: 1, no effect)")  # (3)
         """},
         compare="chart",
-        check=("lines", "segments", "ticks", "tick_places", "scales", "labels"),
+        check=("lines", "line_styles", "segments", "ticks", "tick_places", "scales", "labels"),
         choices=("the first row at the top, as in a table.",
                  "a ratio (the column, or every row's name, says \"ratio\") gets a log scale and a dashed line at 1, "
                  "no effect; other results a plain scale with the line at 0. log_scale= and line_at= choose.",

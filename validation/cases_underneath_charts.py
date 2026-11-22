@@ -455,6 +455,7 @@ def cases(Case):
         """, f"""
             fig, ax = plt.subplots()
             sns.scatterplot(data, x="Sepal.Length", y="Sepal.Width", ax=ax)
+            ax.grid(True, axis="y")  # simplydata's paper look
             ax.grid({call})
         """, """
             {"lines along x": float(f["grid"][0]), "lines along y": float(f["grid"][1]), "dots": len(f["dots"])}
