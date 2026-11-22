@@ -1,11 +1,11 @@
 Kept 24 of 48 rows.
 Fitted a 4 parameter log-logistic (R LL.4) dose-response curve of "root_length" against the dose "concentration" (24 rows).
 The dose for 50 % of the effect (ED50) is 3.92 (95 % CI 3.11 to 4.73).
-The curve: upper limit 41.9 (95 % CI 39.5 to 44.2), lower limit 4.05 (95 % CI 0.552 to 7.55), steepness b = 1.60.
+The curve: upper limit 41.9 (95 % CI 39.5 to 44.2), lower limit 4.05 (95 % CI 0.547 to 7.55), steepness b = 1.60.
 "Effect" is the share of the way the response falls with dose: from the upper limit (no dose) to the lower limit (very high doses); b is drc's steepness (how fast the response changes around the ED50 on a log dose scale; above 0 it falls, below 0 it rises).
 Dose effect: If the dose truly had no effect, a change with dose this big would turn up in fewer than 1 in 1000 studies like this one (p < 0.0001). (drc::noEffect, a likelihood-ratio test)
-Method: R drc::drm(root_length ~ concentration, fct = LL.4()) (Ritz et al. 2015); drc::ED(m, c(50), interval = "delta"). simplydata chooses the 4 parameter log-logistic curve and delta-method intervals (drc's ED() gives none unless asked).
+Method: R drc::drm(root_length ~ concentration, fct = LL.4(), control = drc::drmc(relTol = 1e-15, maxIt = 10000)) (Ritz et al. 2015); drc::ED(m, c(50), interval = "delta"). simplydata chooses the 4 parameter log-logistic curve and delta-method intervals (drc's ED() gives none unless asked).
 Fitted a 2 parameter log-logistic, from 0 to 100 % (R LL.2) dose-response curve of "dead" out of "seedlings" against the dose "concentration" (24 rows).
 The dose at which 50 % answer yes (ED50; LD50 when yes is death) is 4.94 (95 % CI 4.21 to 5.67).
 Dose effect: If the dose truly had no effect, a change with dose this big would turn up in fewer than 1 in 1000 studies like this one (p < 0.0001). (drc::noEffect, a likelihood-ratio test)
-Method: R drc::drm(dead / seedlings ~ concentration, weights = seedlings, type = "binomial", fct = LL.2()) (Ritz et al. 2015); drc::ED(m, c(50), interval = "delta"). simplydata chooses the 2 parameter log-logistic curve (from 0 to 100 %) and delta-method intervals (drc's ED() gives none unless asked).
+Method: R drc::drm(dead / seedlings ~ concentration, weights = seedlings, type = "binomial", fct = LL.2(), control = drc::drmc(relTol = 1e-15, maxIt = 10000)) (Ritz et al. 2015); drc::ED(m, c(50), interval = "delta"). simplydata chooses the 2 parameter log-logistic curve (from 0 to 100 %) and delta-method intervals (drc's ED() gives none unless asked).
