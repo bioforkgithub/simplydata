@@ -154,7 +154,7 @@ ENTRIES += [
             df = sdata.get_example("marks")
             fig, ax = plt.subplots(figsize=(8, 6))                       # (1)
             sns.barplot(df, x="name", y="marks", errorbar=None, ax=ax)
-            # save("marks.png")
+            # save as marks.png
             fig.savefig(os.path.join(tempfile.gettempdir(), "marks_mpl.png"),
                         dpi=300, bbox_inches="tight")                    # (2)
         """},
@@ -1189,7 +1189,7 @@ ENTRIES += [
             from matplotlib.animation import PillowWriter
             df = sdata.get_example("growth")
             fig, ax = plt.subplots()
-            # animate(over="year"), then save("growth.gif"): one picture for each year
+            # animate(over="year"), then save as growth.gif: one picture for each year
             ends = sns.barplot(df, x="country", y="population", errorbar=None, ax=ax).axis()  # (1)
             with (writer := PillowWriter(fps=1 / 0.8)).saving(fig, tempfile.gettempdir() + "/growth.gif", dpi=100):  # (2)
                 for year in sorted(df["year"].unique()):                 # (3)

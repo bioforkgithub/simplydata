@@ -951,7 +951,7 @@ def _cases_batch_2(Case):
                  list(`line at the lightest car` = p[[1]], `line at the heaviest car` = p[[2]])
              """, r_tolerance=1e-10),
         Case("draw_qq_dots", "Michelson's 100 measurements of the speed of light against the normal curve",
-             "NIST Michelso", "published",
+             "NIST Michelso", "real data",
              ours=_ours_chart("""
                  chart = sdata.chart(data).draw_qq_dots("y")
              """, """
@@ -1276,7 +1276,7 @@ def _cases_batch_2(Case):
              """, r_tolerance=1e-12,
              note="Shown as a still picture, an animated chart is its last frame."),
         Case("fit_formula", "Puromycin (treated): the Michaelis-Menten curve through the dots", "Puromycin (treated)",
-             "published",
+             "real data",
              ours=_ours_chart("""
                  chart = sdata.chart(data).draw_dots(x="conc", y="rate")
                  chart.fit_formula("rate = Vm * conc / (K + conc)", start={"Vm": 200, "K": 0.1})
