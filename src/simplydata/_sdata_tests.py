@@ -152,7 +152,8 @@ def compare_counts(counts=None, test_method=None):
     A table of counts: one list per row (or a pandas DataFrame of counts, whose row and column
     names are used). The chi-square test of independence (as R chisq.test(), with Yates'
     continuity correction for 2 x 2 tables), with Cramer's V; test_method="fisher", "g", "barnard" or
-    "boschloo" as in table.compare_counts_of(). With a table of rows use table.compare_counts_of(column,
+    "boschloo" as in table.compare_counts_of() (Barnard's and Boschloo's tests take the two rows as the two
+    samples). With a table of rows use table.compare_counts_of(column,
     for_each_group_in=). Gives back a one-row table.
     """
     step = "compare_counts"

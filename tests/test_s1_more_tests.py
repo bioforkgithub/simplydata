@@ -129,12 +129,13 @@ def test_g_test(counts, capsys):
 def test_barnard_and_boschloo_from_r(marks, engine, needs_r):
     data = marks[marks["class"] != "C"].reset_index(drop=True)
     t = make(data.assign(result=np.where(data["marks"] >= 60, "60 or more", "below 60")), engine)
-    # R: tab <- matrix(c(14, 4, 11, 7), 2); Exact::exact.test(tab, method = "z-pooled")$p.value
+    # R: tab <- matrix(c(14, 4, 11, 7), 2) (rows: result, columns: class). The classes are the two samples and
+    # exact.test fixes the row totals, so: Exact::exact.test(t(tab), method = "z-pooled")$p.value
     assert row(t.compare_counts_of("result", for_each_group_in="class", test_method="barnard"))["p-value"] == \
-        pytest.approx(0.309714163032, rel=1e-8)
-    # Exact::exact.test(tab, method = "boschloo")$p.value
+        pytest.approx(0.316097877618, rel=1e-8)
+    # Exact::exact.test(t(tab), method = "boschloo")$p.value
     assert row(t.compare_counts_of("result", for_each_group_in="class", test_method="boschloo"))["p-value"] == \
-        pytest.approx(0.403519988736, rel=1e-8)
+        pytest.approx(0.315498311133, rel=1e-8)
 
 
 def test_barnard_needs_two_by_two(counts):

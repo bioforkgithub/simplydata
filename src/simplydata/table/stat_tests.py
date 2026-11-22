@@ -34,11 +34,15 @@ note says how to add it.
   rank-biserial correlation or rank epsilon-squared as effect size.
 * compare_before_and_after: paired t-test (Cohen's d_z) or Wilcoxon signed-rank.
 * compare_average_to: one-sample t-test (Cohen's d) or Wilcoxon signed-rank.
-  Wilcoxon and Mann-Whitney give an exact p-value when there are fewer than 50 values and
-  no ties (and no zero changes), otherwise the normal approximation with continuity and tie
-  correction; zero changes are left out. This is R wilcox.test() as it was for many years,
-  and R wilcox.test(exact = FALSE) when there are ties. (R 4.6 by default now gives an
-  exact p-value even with ties below 50 values, which can differ a little.)
+  Mann-Whitney gives an exact p-value when each group has fewer than 50 values, as R
+  wilcox.test() does by default since R 4.6.0: without ties from SciPy, with ties the exact
+  conditional p-value from R wilcox.test() itself (Streitberg-Rohmel shift algorithm; SciPy
+  has none), or without R the normal approximation with continuity and tie correction, which
+  the printout then says. Above 50 values: the normal approximation.
+  Wilcoxon signed-rank gives an exact p-value when there are fewer than 50 values and no ties
+  and no zero changes, otherwise the normal approximation with continuity and tie correction;
+  zero changes are left out. This is R wilcox.test() as it was before R 4.6.0 (R 4.6 also
+  gives an exact p-value with ties, which can differ a little).
 * compare_counts_of: chi-square test of independence, with Yates' continuity correction for
   2 x 2 tables only (R chisq.test() and SciPy default). If an expected count is below 5 a
   note says so and suggests test_method="fisher" (2 x 2 tables); simplydata never switches by
@@ -113,7 +117,7 @@ TWO_GROUP_SPREAD_TESTS = ("ansari", "mood", "f")
 SPREAD_ALIASES = {"brown-forsythe": "levene", "brown forsythe": "levene", "fligner-killeen": "fligner",
                   "fligner killeen": "fligner"}
 SPREAD_RATIO = 2  # Tukey note: the biggest standard deviation more than twice the smallest
-EXACT_LIMIT = 50  # exact p-values below 50 values without ties, as R wilcox.test()
+EXACT_LIMIT = 50  # exact p-values below 50 values, as R wilcox.test()
 CLT_SIZE = 30  # from this many values, a "not bell-shaped" note does not suggest switching
 SHAPIRO_LIMIT = 5000  # SciPy's Shapiro-Wilk is reliable up to 5000 values
 SHAPES = ("normal",)  # compare_shape_to: the shapes it can check
@@ -365,20 +369,44 @@ def _has_ties(values) -> bool:
 
 
 def _mann_whitney(a, b, alternative="two-sided"):
-    """Mann-Whitney U like R wilcox.test(): exact below 50 values per group without ties."""
+    """Mann-Whitney U as R wilcox.test() gives it by default (R 4.6.0 and later): an exact p-value below 50 values
+    per group, also with ties. Without ties SciPy's exact p-value is R's. With ties R 4.6 gives the exact
+    conditional p-value (the Streitberg-Rohmel shift algorithm), which SciPy does not have (its method="exact"
+    ignores ties), so that p-value comes from R wilcox.test() itself; without R it is the normal approximation
+    with continuity and tie correction (R's rule before 4.6.0), and the how-words say so."""
     from scipy import stats
 
-    exact = len(a) < EXACT_LIMIT and len(b) < EXACT_LIMIT and not _has_ties(np.concatenate([a, b]))
-    method = "exact" if exact else "asymptotic"
+    small = len(a) < EXACT_LIMIT and len(b) < EXACT_LIMIT
+    ties = _has_ties(np.concatenate([a, b]))
+    method = "exact" if small and not ties else "asymptotic"
     result = stats.mannwhitneyu(a, b, alternative=alternative, method=method, use_continuity=True)
     u = float(result.statistic)  # U of the first group, the same as R's W
-    how = "exact p-value" if exact else "normal approximation with continuity correction"
-    return u, float(result.pvalue), how
+    if small and not ties:
+        return u, float(result.pvalue), "exact p-value"
+    approximate = "normal approximation with continuity correction"
+    if not small:
+        return u, float(result.pvalue), approximate
+    from .._r import RMissing, r_call
+
+    side = {"two-sided": "two.sided", "greater": "greater", "less": "less"}[alternative]
+    try:
+        # suppressWarnings: R before 4.6.0 warns that it cannot give the exact p-value with ties; the how-words say so
+        found = r_call("w <- suppressWarnings(stats::wilcox.test(a, b, alternative = side, correct = TRUE)); "
+                       "list(p = w$p.value, exact = grepl('exact', w$method))", packages=(),
+                       what="the exact Mann-Whitney p-value with tied values (R wilcox.test())",
+                       a=np.asarray(a, dtype=float), b=np.asarray(b, dtype=float), side=side)
+    except RMissing:
+        return u, float(result.pvalue), (f"{approximate}, because of tied values; R 4.6 or later gives the exact "
+                                         "p-value with ties (pip install \"simplydata[r]\" and install R)")
+    if not bool(np.asarray(found["exact"])[0]):  # R before 4.6.0: the same normal approximation
+        return u, float(result.pvalue), f"{approximate}, because of tied values (R before 4.6 has no exact p-value then)"
+    return u, float(np.asarray(found["p"])[0]), "exact p-value given the tied values, from R wilcox.test()"
 
 
 def _hodges_lehmann(a, b, exact, alternative="two-sided"):
     """The Hodges-Lehmann shift (first minus second) and its interval, from R wilcox.test(conf.int = TRUE) with the
-    same exact/approximate choice as the test (Python has no function for this interval)."""
+    same exact/approximate choice as the test (Python has no function for this interval). With tied values and an
+    exact p-value this is R 4.6's exact interval (Bauer 1972) given the ties, as R's default gives it."""
     from .._r import RMissing, r_call
 
     side = {"two-sided": "two.sided", "greater": "greater", "less": "less"}[alternative]
@@ -1155,8 +1183,10 @@ class StatTestWords:
         Each pair gets Welch's t-test (or Mann-Whitney U with based_on="ranks"). Testing many
         pairs makes a false alarm more likely, so the p-values are adjusted with Holm's
         method: the chance of at least one false alarm stays at 5 %. This is the same as R
-        pairwise.t.test(pool.sd = FALSE, p.adjust.method = "holm"). Gives back a table with
-        one row per pair.
+        pairwise.t.test(pool.sd = FALSE, p.adjust.method = "holm"), or with ranks R
+        pairwise.wilcox.test(p.adjust.method = "holm") as R 4.6 gives it: exact p-values below 50
+        values per group, also with tied values (those from R wilcox.test(); without R the normal
+        approximation, and the printout says which). Gives back a table with one row per pair.
         test_method="tukey" gives Tukey's honest significant difference instead (R
         TukeyHSD(aov(marks ~ class)), the Tukey-Kramer form when the groups differ in size):
         the textbook follow-up to a one-way ANOVA, with 95 % confidence intervals that hold
@@ -1483,7 +1513,7 @@ class StatTestWords:
             return self._tukey_pairs(column, for_each, groups)
         from scipy import stats
 
-        rows, pair_notes = [], set()
+        rows, pair_notes, hows = [], set(), []
         for i in range(len(groups)):
             for j in range(i + 1, len(groups)):
                 (n1, a), (n2, b) = groups[i], groups[j]
@@ -1501,7 +1531,8 @@ class StatTestWords:
                                 "statistic name": "t", "statistic": float(result.statistic),
                                 "degrees of freedom": float(result.df), "p-value": float(result.pvalue)})
                 else:
-                    u, p, _ = _mann_whitney(a, b)
+                    u, p, how = _mann_whitney(a, b)
+                    hows.append(how)
                     es = effect_size("rank_biserial", a=a, b=b)
                     pair_notes.add(es["note"])
                     row.update({"test": "Mann-Whitney U test",
@@ -1528,6 +1559,10 @@ class StatTestWords:
             words = "Holm-adjusted " + _p_shown(row["p-value (Holm)"])
             print(f"  {row['group 1']} vs {row['group 2']}: the {word} of {row['group 1']} is {_num(abs(diff))} "
                   f"{direction}; {words}.")
+        if hows:
+            counted = _list_words(f"{hows.count(h)} {'pair' if hows.count(h) == 1 else 'pairs'}: {h}"
+                                  for h in dict.fromkeys(hows))
+            print(f"Method: Mann-Whitney U for each pair, the rule of R 4.6 pairwise.wilcox.test(): {counted}.")
         for note in sorted(pair_notes - {""}):
             print(note.replace("rank-biserial correlation and its", "the rank-biserial correlation of each pair and its"))
         frame = nw.from_dict({key: [r[key] for r in rows] for key in rows[0]}, backend=self._frame.implementation)
@@ -2316,7 +2351,8 @@ class StatTestWords:
         gives Fisher's exact test. test_method="g": the G-test (likelihood ratio, SciPy chi2_contingency(
         lambda_="log-likelihood"), as R DescTools::GTest()). For 2 x 2 tables also
         test_method="barnard" and test_method="boschloo": unconditional exact tests, often stronger than
-        Fisher's, run in R (Exact::exact.test(method = "z-pooled" / "boschloo"), simplydata[r]).
+        Fisher's, run in R (Exact::exact.test(method = "z-pooled" / "boschloo"), simplydata[r]), with the
+        two for_each_group_in= groups as the two samples (these tests are not symmetric).
         test_method="fisher" on a bigger table gives its p-value from 100,000 random tables with the
         same totals (SciPy, with_seed=1); p_value_by="exact" counts every table instead, in R
         (fisher.test()). p_value_by="shuffling": the chi-square p-value from shuffles=9999 random
@@ -2396,17 +2432,18 @@ class StatTestWords:
         if test_method == "trend":
             return self._trend_test(step, observed, column, for_each_group_in, row_keys, col_keys)
         result = self._counts_engine(observed, column, for_each_group_in, test_method, p_value_by=p_value_by, shuffles=int(shuffles),
-                                     seed=int(with_seed))
+                                     seed=int(with_seed), samples_in_columns=True)
         if show == "cells":
             return self._count_cells(observed, column, for_each_group_in, row_keys, col_keys)
         return result
 
     def _count_cells(self, observed, column, for_each, row_keys, col_keys):
         """One row per cell: observed and expected counts and the standardised residual (statsmodels Table, as R
-        chisq.test()$stdres)."""
+        chisq.test()$stdres). shift_zeros=False: statsmodels would otherwise add 0.5 to every cell of a table with an
+        empty cell, which R does not."""
         from statsmodels.stats.contingency_tables import Table
 
-        table = Table(observed.astype(float))
+        table = Table(observed.astype(float), shift_zeros=False)
         resid, expected = np.asarray(table.standardized_resids), np.asarray(table.fittedvalues)
         rows = []
         for i, rk in enumerate(row_keys):
@@ -2420,7 +2457,8 @@ class StatTestWords:
             print(f"Cells that stand out (standardised residual beyond 2 or -2): {listed}.")
         else:
             print("No cell stands out: every standardised residual lies between -2 and 2.")
-        print("Method: standardised residuals (statsmodels Table.standardized_resids), as R chisq.test()$stdres.")
+        print("Method: standardised residuals (statsmodels Table(shift_zeros=False).standardized_resids), as R "
+              "chisq.test()$stdres; an empty cell stays 0 (nothing is added to the counts).")
         frame = nw.from_dict({k: [r[k] for r in rows] for k in rows[0]}, backend=self._frame.implementation)
         return self._new_table(frame)
 
@@ -2454,8 +2492,13 @@ class StatTestWords:
         return self._result_table(row)
 
     def _counts_engine(self, observed, column, for_each, test, what=None, unit="rows", unrelated=None,
-                       p_value_by="formula", shuffles=9999, seed=1):
-        """compare_counts on a table of counts (also sdata.compare_counts([[20, 40], [30, 30]]))."""
+                       p_value_by="formula", shuffles=9999, seed=1, samples_in_columns=False):
+        """compare_counts on a table of counts (also sdata.compare_counts([[20, 40], [30, 30]])).
+
+        samples_in_columns: the groups compared are the columns of observed (compare_counts_of, where the
+        for_each_group_in= groups are the columns); otherwise the rows (sdata.compare_counts). Barnard's and
+        Boschloo's tests are not symmetric: R Exact::exact.test() fixes the row totals (cond.row = TRUE), so it is
+        given the table with the groups as its rows."""
         from scipy import stats
 
         empty = [f"row {i + 1}" for i in np.flatnonzero(observed.sum(axis=1) == 0)] + \
@@ -2514,14 +2557,16 @@ class StatTestWords:
             from .._r import r_call
 
             name = "Barnard's exact test" if test == "barnard" else "Boschloo's exact test"
+            groups = observed.T if samples_in_columns else observed  # the groups compared go in as the rows
             found = r_call(f'Exact::exact.test(x, method = "{EXACT_METHODS[test]}", to.plot = FALSE)$p.value',
                            packages=("Exact",), what=f"{name} (R Exact::exact.test())",
                            python_note=f"SciPy {test}_exact uses another two-sided rule, so its p-value differs from "
-                                       "R's", x=observed.astype(float))
+                                       "R's", x=groups.astype(float))
             p = float(found[0])
             row.update({"test": name, "p-value": p})
+            samples = f'the "{for_each}" groups' if samples_in_columns else "the rows"
             second = (f"Test: {name} (chosen with test_method=), an unconditional exact test, run in R: Exact::exact.test("
-                      f'method = "{EXACT_METHODS[test]}").')
+                      f'method = "{EXACT_METHODS[test]}"), with {samples} as the two samples (their totals fixed).')
         else:
             stat, p, df = float(chi.statistic), float(chi.pvalue), int(chi.dof)
             name = "chi-square test of independence"

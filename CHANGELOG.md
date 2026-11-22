@@ -5,6 +5,47 @@ working for one release and prints a one-line note with its new name.
 
 ## Unreleased
 
+### Fixed: ten differences the reference tests found (A8 to A17)
+
+The reference tests (simplydata_tests, notebooks 18 to 24) ran the words on the examples of their parent packages'
+manuals and on real data. These differences are now fixed, or explained where simplydata's answer was right:
+
+- `compare_each_pair_of(test_method="dunn")` with more than three groups put p-values on the wrong pairs (A12). FSA
+  lists its pairs in another order than simplydata assumed; each result is now matched to its pair by name. On
+  InsectSprays (six sprays) C - B now gets its own p = 5.1e-06, not D - C's 0.586. If you used Dunn's test with four
+  or more groups, run it again.
+- `compare_counts_of(test_method="barnard")` and `"boschloo"` took the outcome, not the `for_each_group_in=` groups,
+  as the two samples (A10). These tests are not symmetric; R Exact fixes the row totals, so it now gets the groups as
+  rows. Fisher's twins: Barnard p = 0.000348 (was 0.000280), as R. `sdata.compare_counts()` was right (the rows are the
+  samples) and now says so.
+- `compare_counts_of(show="cells")` added 0.5 to every cell of a table with an empty cell before working out the
+  residuals and expected counts (statsmodels' default). It no longer does, so the residuals are R
+  `chisq.test()$stdres` (Agresti's job satisfaction: 0.2096, was 0.0802) (A11).
+- Mann-Whitney U with tied values (`compare_averages_of(based_on="ranks")`, `compare_each_pair_of(based_on="ranks")`)
+  used the normal approximation; R 4.6.0 made `wilcox.test()` exact with ties below 50 values. That exact p-value now
+  comes from R `wilcox.test()` itself (SciPy has none); without R the normal approximation stays and the printout says
+  so (A13). InsectSprays C - A after Holm: 1.6e-05 (was 5.1e-04). The Wilcoxon signed-rank test keeps the rule of R
+  before 4.6.
+- Krippendorff's alpha (`agreement_between(test_method="krippendorff")`) came from R irr, which weights the pairs within
+  a row wrongly when three or more raters have no empty cells. It now comes from R icr, which gives Krippendorff's
+  published examples (0.743 nominal, 0.849 interval). irr's `anxiety`: 0.1701 (was 0.1631) (A14).
+- The ICC of the average of raters with absolute agreement, ICC(A,k), had irr's interval, which does not follow McGraw
+  and Wong (1996). Every ICC now comes from R psych `ICC()`: (-0.1266, 0.7451) for irr's `anxiety` (was (-0.1373,
+  0.7463)); every other form's numbers are unchanged (A15).
+- Spearman's p-value (`find_correlation_between(test_method="spearman")`) was SciPy's t approximation. For fewer than
+  1290 rows without ties it is now R `cor.test()`'s default, algorithm AS 89, run in R (without R the t approximation,
+  with a note). R's own example: p = 0.0968 (was 0.088) (A9).
+- `chart.draw_smooth_line()` fitted every point (LOWESS with delta = 0). It now uses R `lowess()`'s default delta of
+  1 % of the x range, and the curve on mtcars is R's to 1e-10 (it differed by up to 5e-4) (A16).
+- `find_percentile_of(interval=)`: the help said the quartiles' intervals are R DescTools' exact intervals. They are
+  SciPy's Thompson (1936) interval, which splits the chance of missing evenly between the two ends; DescTools picks
+  another pair of order statistics away from the median. Both are exact; the help and the printout now say which is
+  used (A8). The median's interval is DescTools' `MedianCI()`, as before.
+- The smoothing spline with a number for `smoothness=` differs from R `smooth.spline(lambda = )` by about 1e-5. This is
+  not about repeated x values: it happens without them too, and SciPy's curve makes the penalised sum a little smaller
+  than R's, so the difference is R's rounding. The help now says so (A17).
+- New R package: icr (CRAN), for Krippendorff's alpha.
+
 ### Changed: one name for choosing the method
 
 - One name for choosing the method: `test_method=` replaces `test=`, `method=`, `rule=` and `methods=` on 57 words,
