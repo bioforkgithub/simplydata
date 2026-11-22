@@ -7,6 +7,11 @@ are the study's own (validation/data, README.md): Fisher's iris, mtcars, warpbre
 AirPassengers series, NIST's Michelson and Norris data, Student's sleep data and the BCG trials (read from R
 metadat, as the combining-studies cases do). Words that show something and give nothing back (show_first_rows,
 describe_columns, show_rows_with_outliers) are checked on what they print: the printed numbers are read back.
+
+Waiting for words (planned in the words-and-fixes PR): the chart cases read what a chart drew with chart._render() and
+chart_facts() until chart.get_numbers_drawn() exists, and show_rows_that_pull_model's case reads its printed rows until
+the word gives them as a table; both switch then. A survey design's degrees of freedom have no word yet (its name
+waits for approval).
 """
 
 from __future__ import annotations
