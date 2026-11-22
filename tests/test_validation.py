@@ -54,7 +54,9 @@ def test_every_underneath_entry_has_a_case_on_real_data():
     from simplydata._underneath import UNDERNEATH
 
     real = {f"{c.word} {c.option}" if c.option else c.word for c in study.CASES if c.kind != "made-up"}
-    assert set(UNDERNEATH) <= real, set(UNDERNEATH) - real
+    # a word with nothing underneath (help, undo ...) computes nothing, so there is nothing to check on real data
+    computed = {key for key, entry in UNDERNEATH.items() if entry.compare != "none"}
+    assert computed <= real, computed - real
 
 
 def test_nist_files_are_read_with_their_certified_values():
