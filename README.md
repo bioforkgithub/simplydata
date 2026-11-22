@@ -14,7 +14,7 @@ them first.
 ## What simplydata handles
 
 **398 words (commands) in 48 groups, with 370 different options, on top of 14 Python packages and
-87 R packages that it runs (plus R's own `stats`, and 8 more used only to check its answers), checked by 1316 reliability checks.** Every word hands the work to
+87 R packages that it runs (plus R's own `stats`, and 8 more used only to check its answers), checked by 1553 reliability checks.** Every word hands the work to
 an established package; simplydata chooses the settings, prints the answer in words and names the
 method it used. Words that need an extra say so: `pip install "simplydata[fast]"`, `[files]`,
 `[systems]` or `[r]` (the R words also need R itself; see [Using the words that need R](#using-the-words-that-need-r)).

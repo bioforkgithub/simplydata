@@ -9194,7 +9194,7 @@ The average (mean) of a column; empty cells are skipped.
 \end{optiontable}
 
 \wordfield{Why this method}{\hyperref[basis:table.find-average-of]{How simplydata chooses methods}, page \pageref{basis:table.find-average-of}: the default, the evidence and the checks.}
-\wordfield{Underneath}{pandas \code{groupby().\allowbreak{}mean().\allowbreak{}reset\_\allowbreak{}index()} \textperiodcentered{} Polars \code{group\_\allowbreak{}by().\allowbreak{}agg()}, \code{col().\allowbreak{}mean()}}
+\wordfield{Underneath}{pandas \code{groupby().\allowbreak{}mean().\allowbreak{}reset\_\allowbreak{}index()} \textperiodcentered{} Polars \code{group\_\allowbreak{}by().\allowbreak{}agg().\allowbreak{}sort()}, \code{col().\allowbreak{}mean()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -9207,18 +9207,18 @@ print(by_class)
 \underlib{pandas}
 \begin{lstlisting}[style=under]
 df = sdata.get_example("marks")
-# find_average_of("marks", for_each_group_in="class")
-df.groupby("class", sort=False)["marks"].mean().reset_index()   # (1)
+# find_average_of("marks", for_each_group_in="subject")
+df.groupby("subject", dropna=False)["marks"].mean().reset_index()   # (1)
 \end{lstlisting}
 \underlib{Polars}
 \begin{lstlisting}[style=under]
 import polars as pl
 df = pl.from_pandas(sdata.get_example("marks"))
-# find_average_of("marks", for_each_group_in="class")
-df.group_by("class", maintain_order=True).agg(pl.col("marks").mean())   # (1)
+# find_average_of("marks", for_each_group_in="subject")
+df.group_by("subject").agg(pl.col("marks").mean()).sort("subject", nulls_last=True)   # (1)
 \end{lstlisting}
 \undertext{\textbf{simplydata chooses}}
-\undertext{(1) groups stay in the order they first appear (\code{sort=False}, \code{maintain\_\allowbreak{}order=True}); empty cells are skipped, as pandas and Polars do (NumPy's mean would give nan).}
+\undertext{(1) one row for each group, the groups sorted (English, Maths, Science), with rows whose group cell is empty as a group of their own, last; empty cells in \code{\textquotedbl{}marks\textquotedbl{}} are skipped, as pandas and Polars do (NumPy's mean would give nan).}
 \undertext{simplydata also names the column \code{\textquotedbl{}average of marks\textquotedbl{}} and writes the averages in a sentence.}
 \undertext{\textit{Checked:} a test runs both and compares the table (on a pandas and on a Polars table).}
 \end{underneathbox}
@@ -20350,8 +20350,8 @@ simplydata often chooses a method, an option value or a setting for you. This ap
 \wordfield{References}{Jamieson 2004; Norman 2010}
 \wordfield{In the dictionary}{\hyperref[word:table.count-each]{page \pageref{word:table.count-each}}}
 \par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:table.find-average-of}\noindent{\sffamily\bfseries\color{brand}\code{table.\allowbreak{}find\_\allowbreak{}average\_\allowbreak{}of()}}\par\nopagebreak
-\wordfield{Default}{Groups stay in the order they first appear; empty cells are skipped, as pandas and Polars do. \code{interval=} gives the t interval, as R \code{t.\allowbreak{}test()}.}
-\wordfield{Alternatives}{\code{sorted\_\allowbreak{}by=} to sort; \code{interval=} for the interval; \code{weights=} for a weighted average.}
+\wordfield{Default}{One row for each group, the groups sorted (an empty group cell is a group of its own, last); empty cells are skipped, as pandas and Polars do. \code{interval=} gives the t interval, as R \code{t.\allowbreak{}test()}.}
+\wordfield{Alternatives}{\code{interval=} for the interval; \code{weights=} for a weighted average; \code{every=} for dates by week, month or year.}
 \wordfield{Why (P3)}{Skipping empty cells and saying how many were skipped is what pandas, Polars and R's \code{mean(na.\allowbreak{}rm = TRUE)} do; NumPy would give nan. The t interval of the average is Student's (Student 1908), the interval of R \code{t.\allowbreak{}test()}. \textit{Basis: convention.}}
 \wordfield{Checks}{A note gives how many empty cells were skipped; one value gives no interval.}
 \wordfield{References}{Student 1908}
