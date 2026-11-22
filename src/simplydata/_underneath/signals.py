@@ -1176,6 +1176,43 @@ ENTRIES += [
 
 ENTRIES += [
     Entry(
+        word="trend_and_season",
+        data="visitors",
+        ours="""
+            table = sdata.table(sdata.get_example("visitors"))
+            table.keep_rows_where("museum", is_equal_to="Harbour Museum")
+            chart = table.start_chart()
+            chart.trend_and_season(x="month", y="visitors", repeats_every="year")
+        """,
+        code={"matplotlib": """
+            import matplotlib.pyplot as plt
+            from statsmodels.tsa.seasonal import STL
+            df = sdata.get_example("visitors")
+            df = df[df["museum"] == "Harbour Museum"].sort_values("month")
+            # trend_and_season(x="month", y="visitors", repeats_every="year")
+            fit = STL(df["visitors"].to_numpy(dtype=float), period=12, seasonal=7, trend=23, low_pass=13,
+                      seasonal_deg=0, seasonal_jump=1, trend_jump=3, low_pass_jump=2).fit(inner_iter=2, outer_iter=0)  # (1)
+            fig, ax = plt.subplots(); ax.set_axis_off()
+            panels, parts = [], [fit.observed, fit.trend, fit.seasonal, fit.resid]
+            for i, name in enumerate(["visitors", "trend", "season", "rest"]):
+                panels.append(ax.inset_axes([0, 0.77 - 0.25 * i, 1, 0.21], sharex=panels[0] if panels else None))
+                panels[-1].set_ylabel(name)                                                        # (2)
+                if i == 3: panels[-1].vlines(df["month"], 0, parts[i]); panels[-1].axhline(0); panels[-1].set_xlabel("month")
+                else: panels[-1].plot(df["month"], parts[i])
+        """},
+        compare="chart",
+        check=("every_panel",),
+        tolerance=1e-9,
+        choices=("the parts are those of table.add_trend_and_season: STL with R stl()'s settings (season window 7, "
+                 "season of degree 0, R's spans and jumps), on a cycle of 12 months.",
+                 "four panels sharing x, top to bottom: the column itself, its trend, its season and the rest, the "
+                 "rest drawn as sticks from 0, as R plot(stl(...)) (which names the first panel \"data\").",),
+        also="The four panels are inset axes (matplotlib inset_axes) inside one chart, so the chart can be placed on a "
+             "page like any other; the test reads each panel. test_method=\"moving averages\" or \"straight line\" "
+             "works here too. simplydata also gives the chart its paper look (fonts, colours, tick labels only under "
+             "the last panel); that is left out here.",
+    ),
+    Entry(
         word="forecast",
         data="visitors",
         ours="""

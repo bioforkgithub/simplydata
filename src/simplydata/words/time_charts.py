@@ -322,6 +322,8 @@ class TimeChartWords:
         check(self._data, x=x, y=y)
         table = _table_of(self, [c for c in (x, y) if c is not None])
         table.add_trend_and_season(y, sorted_by=x, repeats_every=repeats_every, test_method=test_method)
+        print("Drawn by matplotlib: four panels sharing x (the column, its trend, its season and the rest), as inset "
+              "axes in one chart.")
         got = _frame(table)
         if x is not None:
             got = got.sort_values(x, kind="stable")

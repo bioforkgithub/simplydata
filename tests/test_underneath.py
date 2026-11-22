@@ -393,3 +393,16 @@ def test_leaving_out_a_choice_makes_an_option_comparison_fail(key, setting, repl
     changed[library] = entry.code[library].replace(setting, replacement)
     outcomes = check_entry(Entry(**{**entry.__dict__, "code": changed}))
     assert outcomes and not any(o.passed for o in outcomes), f"{key}: should fail without {setting}"
+
+
+def test_every_panel_reads_inset_axes_too():
+    """Panels drawn inside a chart with inset_axes (trend_and_season's four) are read after their parent axes."""
+    fig, ax = plt.subplots()
+    inner = ax.inset_axes([0, 0, 1, 0.4])
+    inner.plot([1, 2, 3], [4, 5, 6])
+    inner.set_ylabel("inside")
+    panels = chart_facts(ax)["every_panel"]
+    assert len(panels) == 2 and panels[1][1] == "inside"
+    inner.set_visible(False)
+    assert len(chart_facts(ax)["every_panel"]) == 1
+    plt.close("all")

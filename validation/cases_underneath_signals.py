@@ -708,4 +708,26 @@ def cases(Case):
                  f <- forecast::forecast(stats::HoltWinters(stats::ts(passengers, frequency = 12)), h = 12, level = 95)
                  list(`months drawn` = 12, `January 1961` = f$mean[1], `December 1961` = f$mean[12])
              """, r_packages=("forecast",), r_tolerance=1e-9),
-    ]
+            Case("trend_and_season", "the air passengers in four panels: the drawn trend is R stl()'s trend",
+             "AirPassengers", "real data",
+             ours=_join(AIR, """
+                 from simplydata._underneath.check import chart_facts
+                 ax = t.start_chart().trend_and_season(x="month", y="passengers", repeats_every="year")._render().axes[0]
+                 panels = chart_facts(ax)["every_panel"]
+                 trend = panels[2][6][0][1][1]  # the trend panel's line: (x, y), each as (count, values)
+                 {"panels": len(panels) - 1, "trend, January 1949": trend[0], "trend, December 1960": trend[-1]}
+             """),
+             parent="""
+                 from statsmodels.tsa.seasonal import STL
+                 f = STL(data["passengers"].to_numpy(dtype=float), period=12, seasonal=7, trend=23, low_pass=13,
+                         seasonal_deg=0, seasonal_jump=1, trend_jump=3, low_pass_jump=2).fit(inner_iter=2,
+                                                                                            outer_iter=0)
+                 {"panels": 4, "trend, January 1949": f.trend[0], "trend, December 1960": f.trend[-1]}
+             """, parent_label="statsmodels STL with R stl()'s settings", parent_tolerance=1e-9,
+             r="""
+                 s <- stats::stl(stats::ts(passengers, frequency = 12), s.window = 7)$time.series
+                 list(`trend, January 1949` = s[1, "trend"], `trend, December 1960` = s[144, "trend"])
+             """, r_tolerance=1e-9,
+             note="Waiting for a word: the drawn numbers are read with chart_facts() until chart.get_numbers_drawn() "
+                  "exists."),
+]
