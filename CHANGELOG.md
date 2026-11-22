@@ -51,6 +51,14 @@ working for one release and prints a one-line note with its new name.
   so some standard errors lost digits: NIST Thurber (start 2) 5.8 digits, MGH09 b2 and b4 5.8 to 6.0, ENSO b6 5.9
   (A26). SciPy's stopping rules are now 1e-15: Thurber 6.7, MGH09 7.2, ENSO 6.5, and nothing else of the 27 NIST
   problems got worse (Misra1a, Kirby2 and Hahn1 keep their gains).
+- `round_numbers_in` with a negative number of places (tens, hundreds) did the rounding itself (divide, round,
+  multiply). It is now pandas `round(-1)`; Polars rounds to decimal places only, so on a Polars table the tens come
+  from NumPy's round, the one pandas uses: the same numbers on both.
+- `find_spectrum_of` and `nums.find_spectrum` no longer give the "share of variance (%)" column or the "holds 68 % of
+  the variance" in the sentence: that share was simplydata's own arithmetic. The powers (SciPy) are unchanged; with
+  the periodogram they times the frequency step still add up to the variance.
+- `dist.find_middle_range(99.99999999)` printed "The middle 100 %"; it now prints the percent as given.
+- The method line of a notch or peak filter read "as R SciPy signal.iirnotch"; it now says what SciPy runs.
 
 ### Fixed: one-column CSV files were split at a letter (check your one-column files)
 

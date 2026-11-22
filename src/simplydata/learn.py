@@ -4653,8 +4653,8 @@ LESSONS = [
                 ('table = sdata.table(sdata.get_example("sensor"))', "Five seconds of a made-up sensor: time in "
                                                                  "seconds, signal and vibration."),
                 ('table.find_spectrum_of("signal", sorted_by="time")',
-                 "The strongest cycle has frequency 5 per second (it repeats every 0.2 seconds) and holds 68 % "
-                 "of the variance; next come 20 per second (11 %) and a 50-per-second hum (4 %)."),
+                 "The strongest cycle has frequency 5 per second (it repeats every 0.2 seconds); next come 20 "
+                 "per second and a 50-per-second hum."),
                 ("chart = table.start_chart()", "Start a chart."),
                 ('chart.spectrum("signal", sorted_by="time")',
                  "The same numbers as a chart: power against frequency on a log scale, the three strongest "
@@ -4668,7 +4668,7 @@ LESSONS = [
                 ('table.add_filtered_column("no_hum", from_column="signal", remove_at=50, sorted_by="time")',
                  "A notch filter at 50 per second, run forwards and backwards so nothing moves in time."),
                 ('table.find_spectrum_of("no_hum", sorted_by="time")',
-                 "The hum is gone: now 5 per second holds 71 % and 20 per second 12 % of the variance."),
+                 "The hum is gone: now only 5 per second and 20 per second are named."),
                 ('table.add_filtered_column("slow", from_column="signal", keep_below=10, sorted_by="time")',
                  "A Butterworth low-pass filter (steepness 4), as R signal::filtfilt(signal::butter(4, 0.1), x)."),
                 ("chart = table.start_chart()", "Start a chart."),
@@ -4713,7 +4713,7 @@ LESSONS = [
         notes=[
             "Frequencies are counted per unit of the sorted_by column: per second here. For a list of numbers "
             "give time_step= (nums.find_spectrum(time_step=0.005)).",
-            "The powers add up to the variance, so each peak's share of the variance is easy to read. R's "
+            "The powers times the frequency step add up to the variance (SciPy's density scaling). R's "
             "spec.pgram() gives half these powers (it spreads them over negative frequencies too).",
             "A recording can only show frequencies up to half its readings per second: 100 per second here.",
             "Filters run both ways by default, so nothing moves in time. both_ways=False runs forwards only, "
@@ -4732,14 +4732,14 @@ LESSONS = [
                 import simplydata as sdata
                 table = sdata.table(sdata.get_example("sensor"))
                 table.find_spectrum_of("vibration", sorted_by="time")"""),
-             "The same: 5 per second (65 % of the variance), then 20 per second and the 50-per-second hum. "
+             "The same: 5 per second, then 20 per second and the 50-per-second hum. "
              "The vibration follows the signal, a little later."),
             (_sx("""\
                 import simplydata as sdata
                 table = sdata.table(sdata.get_example("sensor"))
                 table.add_filtered_column("middle", from_column="signal", keep_between=[15, 25], sorted_by="time")
                 table.find_spectrum_of("middle", sorted_by="time")"""),
-             "Only the 20-per-second cycle is left: it holds 89 % of the variance of the new column."),
+             "Only the 20-per-second cycle is left: it is the strongest cycle of the new column."),
             (_sx("""\
                 import simplydata as sdata
                 table = sdata.table(sdata.get_example("sensor"))

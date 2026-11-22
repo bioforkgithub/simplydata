@@ -110,7 +110,7 @@ def design_single(keep, frequency, step, width=1.0, and_multiples=False, step_na
     else:
         b, a = signal.iirnotch(f, quality, fs=1 / step)
         words, call = f"notch filter at {_g(f)} (width {_g(width)})", "SciPy signal.iirnotch"
-    return dict(ba=(b, a), words=words, r_call=call)
+    return dict(ba=(b, a), words=words, r_call=call, scipy_only=True)
 
 
 def _notches_at_multiples(f, step, width):
@@ -142,7 +142,8 @@ def _notches_at_multiples(f, step, width):
     if at_top:
         words += (f"; the multiple at {_g(nyquist)}, half the readings per unit of time, cannot have a notch (SciPy "
                   "iirnotch needs a frequency below it), so it stays too")
-    return dict(sos=np.vstack(sections), words=words, r_call="SciPy signal.iirnotch at each multiple")
+    return dict(sos=np.vstack(sections), words=words, r_call="SciPy signal.iirnotch at each multiple",
+                scipy_only=True)
 
 
 def apply(values, made, both_ways=True):

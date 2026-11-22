@@ -419,3 +419,56 @@ def test_a26_trust_region_and_dogbox_reach_6_digits_on_thurber_mgh09_and_enso(na
         assert _digits(result.get_cell_at(row=1, column=b), estimate) >= 6, b
         assert _digits(result.get_cell_at(row=1, column=f"standard error of {b}"), error) >= 6, b
     capsys.readouterr()
+
+
+# ---------------------------------------------------------------- item 10, fixed on request
+@pytest.mark.parametrize("places", [-1, -2])
+def test_round_numbers_in_to_tens_is_pandas_round_on_both_engines(places, capsys):
+    # before: simplydata divided, rounded and multiplied itself; now pandas round(-k) (Polars has no negative
+    # places: round() refuses them, so a Polars table gets NumPy's round, the one pandas uses)
+    pytest.importorskip("polars")
+    values = [15.0, 25.0, -35.0, 1234.5, 149.9, 250.0]
+    counts = [15, 25, -35, 149, 250, 1250]
+    reference = pd.DataFrame({"v": values, "n": counts}).round(places)
+    for fast in (False, True):
+        table = sdata.table({"v": values, "n": counts}, fast=fast)
+        table.round_numbers_in(["v", "n"], places)
+        assert table.get_column("v").as_numpy().tolist() == reference["v"].tolist(), fast
+        assert table.get_column("n").as_numpy().tolist() == reference["n"].tolist(), fast
+    capsys.readouterr()
+
+
+def test_find_middle_range_prints_the_percent_as_given(capsys):
+    # before: "The middle 100 % of the distribution ..." for 99.99999999
+    sdata.distribution("normal", average=0, standard_deviation=1).find_middle_range(99.99999999)
+    assert "The middle 99.99999999 % of the distribution" in capsys.readouterr().out
+    sdata.distribution("normal", average=0, standard_deviation=1).find_middle_range(95)
+    assert "The middle 95 % of the distribution" in capsys.readouterr().out
+
+
+def test_spectrum_gives_no_share_of_variance_and_its_power_is_scipy(capsys):
+    # the share (power x step / variance) was simplydata's own arithmetic: dropped; the power is SciPy's
+    from scipy import signal
+
+    table = _leaky_table()
+    result = table.find_spectrum_of("signal", sorted_by="time")
+    out = capsys.readouterr().out
+    assert "% of the variance" not in out
+    assert "share of variance (%)" not in result.get_column_names()
+    freq, power = signal.periodogram(table.get_column("signal").as_numpy(), fs=100, detrend="constant",
+                                     window="boxcar", scaling="density")
+    assert np.allclose(result.get_column("power").as_numpy(), power, rtol=1e-12, atol=1e-20)  # frequency 0: rounding
+
+
+def test_notch_method_line_names_what_scipy_runs(capsys):
+    # before: "Method: SciPy, as R signal::filtfilt(SciPy signal.iirnotch, x) ..."
+    nums = sdata.numbers(_hum(2000)[1])
+    nums.remove_each_frequency_that(is_equal_to=50, time_step=0.001)
+    out = capsys.readouterr().out
+    assert "Method: SciPy signal.iirnotch, run with SciPy signal.filtfilt (forwards and backwards" in out
+    assert "as R SciPy" not in out
+    nums.remove_each_frequency_that(is_equal_to=50, time_step=0.001, and_multiples=True, both_ways=False)
+    out = capsys.readouterr().out
+    assert "Method: SciPy signal.iirnotch at each multiple, run with SciPy signal.sosfilt (forwards only" in out
+    sdata.frequency_filter(remove_at=50, time_step=0.001)
+    assert "Method: SciPy signal.iirnotch." in capsys.readouterr().out

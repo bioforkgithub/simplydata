@@ -42,7 +42,7 @@ ENTRIES = [
         ours="""
             table = sdata.table(sdata.get_example("admissions"))
             table.add_time_and_event_columns(from_date="admitted", to_date="discharged", event_date="first_esbl")
-            table.as_pandas()[["time", "event"]]
+            table.keep_columns("time", "event")
         """,
         code={"pandas": """
             import pandas as pd

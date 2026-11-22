@@ -43,6 +43,12 @@ def filter_numbers(values, keep, condition, value, step, method, steepness, both
         f" (steepness {2 * steepness} in effect)" if "sos" in made and condition != "equal_to" else "")
             if both_ways else "run forwards only, from rest (as a live instrument would)")
     sentence = f"{verb} the frequencies {what} in {len(out)} readings ({step:g} apart): {made['words']}, {ways}."
+    if made.get("scipy_only"):  # a SciPy design with no R call to name: say what SciPy runs
+        runs = ("sosfiltfilt" if "sos" in made else "filtfilt") if both_ways else ("sosfilt" if "sos" in made else
+                                                                                  "lfilter")
+        ends = (" (forwards and backwards; the ends as MATLAB filtfilt: odd reflection and a steady start)"
+                if both_ways else " (forwards only, from rest)")
+        return out, sentence, f"Method: {made['r_call']}, run with SciPy signal.{runs}{ends}.", made
     call = (f"signal::filtfilt({made['r_call']}, x) in the middle (SciPy's ends: odd reflection and a steady start, as "
             "MATLAB)" if both_ways else f"signal::filter({made['r_call']}, x)")
     return out, sentence, f"Method: SciPy, as R {call}.", made

@@ -1323,7 +1323,8 @@ class Distribution:
         low_code, high_code = self._r("q", _r(tail)), self._r("q", _r(tail), upper=True)
         code = f"c({low_code}, {high_code})" if low_code and high_code else None
         extra = ", holding at least that share" if self.is_discrete else ""
-        print(f"The middle {_say(percent)} % of the distribution lies between {_answer(low)} and {_answer(high)}"
+        given = str(int(percent)) if float(percent).is_integer() else repr(float(percent))  # as given: 99.99999999
+        print(f"The middle {given} % of the distribution lies between {_answer(low)} and {_answer(high)}"
               f"{extra} ({self._with_r(code)}).")
         from .numbers.numbers import Numbers
 

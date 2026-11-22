@@ -2,7 +2,8 @@
 
 Every number comes from a package: SciPy's periodogram and Welch estimates, and for uneven times
 R lomb::lsp() itself (SciPy's lombscargle gives other numbers). Own code only words the result:
-"repeats every" is 1 / frequency, the share of the variance is power x frequency step / variance.
+"repeats every" is 1 / frequency. (The share of the variance at each frequency, power x frequency step /
+variance, was simplydata's own arithmetic and is no longer given.)
 
 Conventions (said in the word's docstring and tested):
 * periodogram: SciPy periodogram(detrend="constant", window="boxcar", scaling="density"): one-sided,
@@ -57,7 +58,7 @@ def _unit_words(unit: str):
 
 def spectrum(values, time_step=1.0, method="periodogram", window=None, window_shape="hann", show="power",
              times=None, unit="rows", what="the numbers", step_name="spectrum"):
-    """dict(frequency, repeats every, value column, share (or None), sentence, method sentence)."""
+    """dict(frequency, repeats every, value column, share (always None), sentence, method sentence)."""
     from scipy import signal
 
     x = np.asarray(values, dtype=float)
@@ -96,10 +97,6 @@ def spectrum(values, time_step=1.0, method="periodogram", window=None, window_sh
             spec = None
             r_call = 'R lomb::lsp(y, times = t, type = "frequency", normalize = "standard")'
             how = "Lomb-Scargle periodogram (for uneven times; standard normalisation, 0 to 1)"
-    if method != "lomb-scargle":
-        variance = float(np.var(x))
-        step = float(freq[1] - freq[0]) if len(freq) > 1 else 1.0
-        shares = 100 * density * step / variance if variance > 0 else np.zeros_like(density)
     if show == "power":
         column, shown = "power", density
     elif show == "decibels":
@@ -111,7 +108,7 @@ def spectrum(values, time_step=1.0, method="periodogram", window=None, window_sh
     per, periods = _unit_words(unit)
     with np.errstate(divide="ignore"):
         repeats = np.where(freq > 0, 1.0 / np.where(freq > 0, freq, 1.0), np.inf)
-    sentence = _top_sentence(freq, density, shares, what, per, periods)
+    sentence = _top_sentence(freq, density, what, per, periods)
     return {"frequency": freq, "repeats every": repeats, column: shown, "share": shares, "column": column,
             "sentence": sentence, "method": f"Method: {how}, as {r_call}."}
 
@@ -144,18 +141,15 @@ def strongest_cycles(freq, values, top=TOP):
     return where[tops[np.argsort(-p[tops], kind="stable")][:top]]
 
 
-def _top_sentence(freq, power, shares, what, per, periods):
+def _top_sentence(freq, power, what, per, periods):
     keep = freq > 0
     f, p = freq[keep], power[keep]
-    s = shares[keep] if shares is not None else None
     tops = strongest_cycles(f, p)
 
     def one(i, first):
-        held = f" and holds {round(s[i])} % of the variance" if s is not None and first else (
-            f" ({round(s[i])} %)" if s is not None else "")
         if first:
-            return (f"has frequency {_num(f[i])} {per} (it repeats every {_num(1 / f[i])} {periods}){held}")
-        return f"{_num(f[i])} {per}{held}"
+            return f"has frequency {_num(f[i])} {per} (it repeats every {_num(1 / f[i])} {periods})"
+        return f"{_num(f[i])} {per}"
 
     text = f"The strongest cycle in {what} " + one(tops[0], True)
     if len(tops) > 1:
