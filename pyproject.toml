@@ -96,7 +96,7 @@ Manual = "https://github.com/bioforkgithub/simplydata/blob/main/docs/manual/simp
 path = "src/simplydata/__init__.py"
 
 [tool.hatch.build.targets.sdist]
-include = ["src/simplydata", "tests", "validation", "docs/make_job_search.py", "README.md", "LICENSE", "DATA_LICENSES.md", "CHANGELOG.md",
+include = ["src/simplydata", "tests", "validation", "docs/make_job_search.py", "docs/make_practice_tables.py", "README.md", "LICENSE", "DATA_LICENSES.md", "CHANGELOG.md",
            "CITATION.cff", "pyproject.toml"]
 
 [tool.hatch.build.targets.wheel]

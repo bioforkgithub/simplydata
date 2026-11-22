@@ -15,6 +15,7 @@ import pandas as pd
 import pytest
 
 import simplydata as sdata
+from conftest import r_table
 from simplydata import SimplydataError
 
 DATA = Path(__file__).resolve().parents[1] / "validation" / "data"
@@ -28,9 +29,26 @@ def _r(code, packages=(), **values):
     return r_call(code, packages=packages, **values)
 
 
+# The reference datasets of Schütz, Labes & Fuglsang (2014) are (c) AAPS with no open licence, so they are not shipped
+# (DATA_LICENSES.md): the tests of their published answers read them from a file the user names, and skip otherwise.
+SCHUTZ_FILE = "SIMPLYDATA_SCHUTZ2014_FILE"
+
+
+def _schutz(name):
+    """Reference dataset A, B or C of Schütz et al. (2014), from the CSV file named by SIMPLYDATA_SCHUTZ2014_FILE
+    (columns dataset, subject, period, formulation, auc). Skipped when no file is given; nothing is downloaded."""
+    import os
+
+    path = os.environ.get(SCHUTZ_FILE)
+    if not path:
+        pytest.skip(f"the Schütz et al. (2014) reference datasets are not shipped; name a local copy with {SCHUTZ_FILE}")
+    data = pd.read_csv(path)
+    return data[data["dataset"] == name].drop(columns="dataset").reset_index(drop=True)
+
+
 def _crossover(name="A"):
-    data = pd.read_csv(DATA / "bioequivalence_reference.csv")
-    return sdata.table(data[data["dataset"] == name].drop(columns="dataset"))
+    """A 2 x 2 crossover: the made-up practice table drug_levels, or (B, C) a Schütz reference dataset."""
+    return sdata.table(sdata.get_example("drug_levels") if name == "A" else _schutz(name))
 
 
 def _flutd(swap=False):
@@ -43,9 +61,9 @@ def _flutd(swap=False):
 @pytest.mark.parametrize("name, ratio, low, high", [("A", 95.09, 90.76, 99.62), ("B", 71.10, 51.45, 98.26),
                                                      ("C", 58.56, 39.41, 87.03)])
 def test_crossover_gives_the_published_reference_results(name, ratio, low, high):
-    """Schütz, Labes & Fuglsang (2014), Table II (R, SAS and WinNonlin agree)."""
-    r = _crossover(name).compare_averages_of("auc", for_each_group_in="formulation", matched_by="subject",
-                                             period="period", same_within=[0.8, 1.25]).as_pandas().iloc[0]
+    """Schütz, Labes & Fuglsang (2014), Table II (R, SAS and WinNonlin agree); needs a local copy of the data."""
+    r = sdata.table(_schutz(name)).compare_averages_of("auc", for_each_group_in="formulation", matched_by="subject",
+                                                       period="period", same_within=[0.8, 1.25]).get_row(1)
     assert round(r["estimate"] * 100, 2) == ratio
     assert round(r["90 % CI low"] * 100, 2) == low and round(r["90 % CI high"] * 100, 2) == high
 
@@ -53,12 +71,12 @@ def test_crossover_gives_the_published_reference_results(name, ratio, low, high)
 def test_crossover_is_the_ema_model_of_statsmodels(capsys):
     import statsmodels.formula.api as smf
 
-    df = pd.read_csv(DATA / "bioequivalence_reference.csv").query("dataset == 'B'")
+    df = sdata.get_example("drug_levels")
     first = df[df["period"] == 1].set_index("subject")["formulation"]
     df = df.assign(sequence=df["subject"].map(first))
     m = smf.ols("np.log(auc) ~ C(sequence) + C(subject) + C(period) + C(formulation)", data=df).fit()
-    r = _crossover("B").compare_averages_of("auc", for_each_group_in="formulation", matched_by="subject",
-                                            period="period").as_pandas().iloc[0]
+    r = _crossover("A").compare_averages_of("auc", for_each_group_in="formulation", matched_by="subject",
+                                            period="period").get_row(1)
     assert r["estimate"] == pytest.approx(math.exp(m.params["C(formulation)[T.test]"]), rel=1e-12)
     assert r["within-subject CV"] == pytest.approx(math.sqrt(math.exp(m.mse_resid) - 1), rel=1e-12)
     assert r["degrees of freedom"] == 16
@@ -70,11 +88,11 @@ def test_crossover_is_the_ema_model_of_statsmodels(capsys):
 def test_crossover_verdicts_and_margin_spellings(capsys):
     t = _crossover("A")
     a = t.compare_averages_of("auc", for_each_group_in="formulation", matched_by="subject", period="period",
-                              same_within=1.25).as_pandas().iloc[0]
+                              same_within=1.25).get_row(1)
     assert a["answer"] == "same within the margin" and a["margin low"] == pytest.approx(0.8)
     assert "bioequivalent" in capsys.readouterr().out
     b = _crossover("B").compare_averages_of("auc", for_each_group_in="formulation", matched_by="subject",
-                                            period="period", same_within=[0.8, 1.25]).as_pandas().iloc[0]
+                                            period="period", same_within=[0.8, 1.25]).get_row(1)
     assert b["answer"] == "the data cannot tell"
     assert "this does not show that they differ" in capsys.readouterr().out
 
@@ -84,14 +102,15 @@ def test_crossover_against_turns_the_ratio_round():
     usual = t.compare_averages_of("auc", for_each_group_in="formulation", matched_by="subject", period="period")
     turned = t.compare_averages_of("auc", for_each_group_in="formulation", matched_by="subject", period="period",
                                    against="test")
-    assert turned.as_pandas()["estimate"][0] == pytest.approx(1 / usual.as_pandas()["estimate"][0], rel=1e-12)
+    assert turned.get_cell_at(row=1, column="estimate") == pytest.approx(
+        1 / usual.get_cell_at(row=1, column="estimate"), rel=1e-12)
 
 
 def test_crossover_leaves_out_and_names_subjects_without_both_periods(capsys):
-    df = pd.read_csv(DATA / "bioequivalence_reference.csv").query("dataset == 'A'").drop(columns="dataset")
+    df = sdata.get_example("drug_levels")
     df = df[~((df["subject"] == 3) & (df["period"] == 2))]
     r = sdata.table(df).compare_averages_of("auc", for_each_group_in="formulation", matched_by="subject",
-                                            period="period").as_pandas().iloc[0]
+                                            period="period").get_row(1)
     assert r["subjects"] == 17
     assert "1 subject without both formulations" in capsys.readouterr().out
 
@@ -110,7 +129,7 @@ def test_crossover_refusals(change, message):
 
 
 def test_crossover_refuses_zero_values_and_one_order():
-    df = pd.read_csv(DATA / "bioequivalence_reference.csv").query("dataset == 'A'").drop(columns="dataset")
+    df = sdata.get_example("drug_levels")
     zero = df.copy()
     zero.loc[zero.index[0], "auc"] = 0
     with pytest.raises(SimplydataError, match="log scale"):
@@ -211,7 +230,7 @@ def test_allowing_for_on_explain_needs_through():
 
 # ---------------------------------------------------------------- AD01-AD03: balancing groups (R)
 def test_weighting_is_weightit_with_its_balance_table(needs_r, capsys):
-    t = sdata.table(sdata.get_example("job_training"))
+    t = sdata.table(r_table("job_training"))
     r = t.compare_balanced_groups_of("re78", for_each_group_in="treat", allowing_for=COLUMNS).as_pandas().iloc[0]
     assert r["estimate"] == pytest.approx(224.6763, abs=1e-3)  # WeightIt lm_weightit (design: 224.7, SE 876)
     assert r["standard error"] == pytest.approx(876.1932, abs=1e-3)
@@ -223,7 +242,7 @@ def test_weighting_is_weightit_with_its_balance_table(needs_r, capsys):
 
 
 def test_matching_is_matchit_with_pair_clustered_errors(needs_r, capsys):
-    t = sdata.table(sdata.get_example("job_training"))
+    t = sdata.table(r_table("job_training"))
     r = t.compare_balanced_groups_of("re78", for_each_group_in="treat", allowing_for=COLUMNS, test_method="matching",
                                      effect_for=1).as_pandas().iloc[0]
     assert r["estimate"] == pytest.approx(894.3675, abs=1e-3)  # the MatchIt vignette's 894, SE 705
@@ -236,7 +255,7 @@ def test_matching_is_matchit_with_pair_clustered_errors(needs_r, capsys):
 
 
 def test_balance_table_and_propensity_scores(needs_r):
-    t = sdata.table(sdata.get_example("job_training"))
+    t = sdata.table(r_table("job_training"))
     b = t.compare_balanced_groups_of("re78", for_each_group_in="treat", allowing_for=COLUMNS,
                                      show="balance").as_pandas()
     assert list(b.columns) == ["column", "difference before", "difference after"]
@@ -252,13 +271,13 @@ def test_balance_table_and_propensity_scores(needs_r):
 
 
 def test_effect_for_a_group_with_weighting_is_the_att(needs_r):
-    t = sdata.table(sdata.get_example("job_training"))
+    t = sdata.table(r_table("job_training"))
     r = t.compare_balanced_groups_of("re78", for_each_group_in="treat", allowing_for=COLUMNS, effect_for=1)
     assert r.as_pandas()["estimate"][0] == pytest.approx(1214.0712, abs=1e-3)
 
 
 def test_a_yes_or_no_outcome_gives_a_risk_difference(needs_r, capsys):
-    df = sdata.get_example("job_training").assign(earned=lambda d: np.where(d["re78"] > 0, "yes", "no"))
+    df = r_table("job_training").assign(earned=lambda d: np.where(d["re78"] > 0, "yes", "no"))
     r = sdata.table(df).compare_balanced_groups_of("earned", for_each_group_in="treat", allowing_for=COLUMNS)
     assert -1 < r.as_pandas()["estimate"][0] < 1
     assert "risk difference" in capsys.readouterr().out
@@ -276,7 +295,7 @@ def test_balancing_refusals(change, message):
     call = dict(for_each_group_in="treat", allowing_for=COLUMNS)
     call.update(change)
     with pytest.raises(SimplydataError, match=message):
-        sdata.table(sdata.get_example("job_training")).compare_balanced_groups_of("re78", **call)
+        sdata.table(r_table("job_training")).compare_balanced_groups_of("re78", **call)
 
 
 def test_balancing_refuses_three_groups():
@@ -436,9 +455,24 @@ def test_new_practice_tables(name, rows):
     assert len(sdata.get_example(name)) == rows
 
 
-def test_drug_levels_is_reference_dataset_a():
-    ref = pd.read_csv(DATA / "bioequivalence_reference.csv").query("dataset == 'A'").drop(columns="dataset")
-    pd.testing.assert_frame_equal(sdata.get_example("drug_levels"), ref.reset_index(drop=True))
+@pytest.mark.parametrize("name", ["bcg", "passive_smoking", "ability_tests", "sea_levels", "sampled_schools",
+                                  "job_training", "drug_levels"])
+def test_practice_tables_after_real_studies_are_made_up_by_their_script(name):
+    """docs/make_practice_tables.py draws them with a fixed seed (DATA_LICENSES.md: the real data are not shipped)."""
+    import importlib.util
+
+    from simplydata.data import EXAMPLES
+
+    script = Path(__file__).resolve().parents[1] / "docs" / "make_practice_tables.py"
+    spec = importlib.util.spec_from_file_location("make_practice_tables", script)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    shipped = sdata.get_example(name)
+    made = module.TABLES[name]()
+    assert list(made.columns) == list(shipped.columns) and len(made) == len(shipped)
+    pd.testing.assert_frame_equal(made.astype(str).replace("nan", ""), shipped.astype(str).replace("nan", ""),
+                                  check_dtype=False)
+    assert EXAMPLES[name][0].startswith("MADE-UP DATA") and "DATA_LICENSES.md" in EXAMPLES[name][0]
 
 
 @pytest.mark.parametrize("typed", ["propensity", "matchit", "mediation", "smr", "ageadjust", "bioequivalence",
@@ -470,7 +504,7 @@ def test_standardised_ratios_are_read_back_by_group_name(needs_r):
 
 
 def test_matching_with_fewer_rows_in_the_other_group_says_so(needs_r, capsys):
-    t = sdata.table(sdata.get_example("job_training"))
+    t = sdata.table(r_table("job_training"))
     t.compare_balanced_groups_of("re78", for_each_group_in="treat", allowing_for=COLUMNS, test_method="matching",
                                  effect_for=0)
     assert 'no partner left ("1" has fewer rows)' in capsys.readouterr().out
@@ -489,7 +523,7 @@ def test_attributable_fractions_need_against():
 
 
 def test_a_lower_effect_gives_the_interval_of_how_much_lower(needs_r, capsys):
-    t = sdata.table(sdata.get_example("job_training"))
+    t = sdata.table(r_table("job_training"))
     t.compare_balanced_groups_of("re78", for_each_group_in="treat", allowing_for=COLUMNS, against=1)
     assert "lower" in capsys.readouterr().out.split("Effect for")[1].splitlines()[0]
 
@@ -500,16 +534,18 @@ def test_mediation_refuses_a_text_outcome_as_numbers():
 
 
 def test_crossover_period_order_follows_the_values():
-    df = pd.read_csv(DATA / "bioequivalence_reference.csv").query("dataset == 'A'").drop(columns="dataset")
+    df = sdata.get_example("drug_levels")
     named = df.assign(period=df["period"].map({1: "early", 2: "late"}))
     r = sdata.table(named).compare_averages_of("auc", for_each_group_in="formulation", matched_by="subject",
-                                               period="period").as_pandas().iloc[0]
-    assert round(r["estimate"] * 100, 2) == 95.09
+                                               period="period").get_row(1)
+    plain = _crossover("A").compare_averages_of("auc", for_each_group_in="formulation", matched_by="subject",
+                                                period="period").get_row(1)
+    assert r["estimate"] == pytest.approx(plain["estimate"], rel=1e-12)
 
 
 def test_weighting_still_works_after_r_drc_is_attached(needs_r):
     """fit_dose_response attaches R drc, whose gaussian() masks stats::gaussian(); lm_weightit asks for it by name."""
     _r("invisible(1)", packages=("drc",))
-    t = sdata.table(sdata.get_example("job_training"))
+    t = sdata.table(r_table("job_training"))
     r = t.compare_balanced_groups_of("re78", for_each_group_in="treat", allowing_for=COLUMNS)
     assert r.as_pandas()["estimate"][0] == pytest.approx(224.6763, abs=1e-3)

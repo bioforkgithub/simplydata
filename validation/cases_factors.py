@@ -2,8 +2,8 @@
 table.check_hidden_factors (R lavaan).
 
 The data are the nine mental ability tests of Holzinger & Swineford (1939), published test scores (facts). The
-cases read them from R lavaan, where the nine-test version is published; the same numbers ship with simplydata,
-with their citation, as the practice table ability_tests (not copied again into validation/data). The
+cases read them from R lavaan, where the nine-test version is published (the practice table ability_tests is made up,
+with the same columns, and nothing is copied into validation/data). The
 confirmatory model is the three-factor model of the lavaan paper (Rosseel 2012, Journal of Statistical Software
 48(2)), whose fit is printed there; the exploratory cases are checked against R psych itself and, for maximum
 likelihood, against base R factanal and statsmodels Factor (the parts each column does not share do not depend on
@@ -42,10 +42,9 @@ def _datasets(Dataset):
                 "solution. Supplementary Educational Monographs 48. University of Chicago. The nine-test version and "
                 "the three-factor model with its fit are in Rosseel, Y. (2012). lavaan: an R package for structural "
                 "equation modeling. Journal of Statistical Software 48(2), 1-36 (CC BY 3.0). Shipped with the R "
-                "package lavaan (HolzingerSwineford1939); a copy is the practice table ability_tests.",
+                "package lavaan (HolzingerSwineford1939).",
                 "Published test scores (1939, facts). Read here from R lavaan (its copy is GPL (>= 2)), so the "
-                "cases need R; simplydata ships the same scores, with this citation, as the practice table "
-                "ability_tests.",
+                "cases need R. The practice table ability_tests is made up, with the same columns.",
                 "https://doi.org/10.18637/jss.v048.i02"),
     ]
 

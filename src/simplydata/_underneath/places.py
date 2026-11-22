@@ -1,7 +1,7 @@
 """Directions, places and extremes (phase S3c-3): the new words find_average_direction_of, find_variogram_of,
 find_return_levels_of, draw_variogram and draw_threshold_check, and one entry for each new option or value that
 changes what a word calls (keyed by word and option), on the practice tables "stations" (made up), "rain" (made up)
-and "sea_levels" (real: Port Pirie, Coles 2001).
+and "sea_levels" (made up after Port Pirie, Coles 2001).
 """
 
 from . import Entry

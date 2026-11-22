@@ -32,7 +32,7 @@ def _r(code, packages=(), **values):
 
 
 def _schools():
-    t = sdata.table(sdata.get_example("sampled_schools"))
+    t = sdata.table(r_table("sampled_schools"))
     t.use_survey_design(**DESIGN)
     return t
 
@@ -346,7 +346,7 @@ def test_other_statistics_words_refuse_under_a_survey_design(needs_r, capsys):
 
 
 def test_survey_design_refuses_empty_design_cells_and_bad_weights(needs_r):
-    df = sdata.get_example("sampled_schools")
+    df = r_table("sampled_schools")
     bad = df.copy()
     bad.loc[3, "weight"] = np.nan
     with pytest.raises(SimplydataError, match="empty cell"):
@@ -393,7 +393,7 @@ def test_sorting_or_reversing_a_survey_table_keeps_each_weight_with_its_row(need
 
 
 def test_survey_model_with_a_column_named_like_an_internal_name(needs_r):
-    df = sdata.get_example("sampled_schools").rename(columns={"free_meals": "y", "english_learners": "g"})
+    df = r_table("sampled_schools").rename(columns={"free_meals": "y", "english_learners": "g"})
     t = sdata.table(df)
     t.use_survey_design(**DESIGN)
     fit = t.explain("score_2000", using=["g", "y"]).as_pandas().set_index("term")

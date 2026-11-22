@@ -94,7 +94,9 @@ def _datasets(Dataset):
                              "Wampler2": "exactly on y = 1 + 0.1 x + 0.01 x^2 + ... + 0.00001 x^5",
                              "Wampler3": "on y = 1 + x + ... + x^5 plus noise (residual standard deviation 2360)",
                              "Wampler4": "on y = 1 + x + ... + x^5 plus larger noise (residual standard deviation "
-                                         "236,000)"}.items()],
+                                         "236,000)",
+                             "Wampler5": "on y = 1 + x + ... + x^5 plus noise far larger than the curve (residual "
+                                         "standard deviation 23,600,000)"}.items()],
         Dataset("NIST Roszman1", "nist/Roszman1.dat",
                 "quantum defects in iodine atoms (25 points); certified fit of y = b1 - b2 x - arctan(b3 / (x - b4)) "
                 "/ pi (NIST StRD, average difficulty)",
@@ -171,6 +173,21 @@ def read_certified_polynomial(file: str, data_dir) -> dict[str, float]:
         found[f"b{name}"] = float(value)
         found[f"b{name} standard error"] = float(sd)
     return found
+
+
+# NIST Wampler1, 3, 4 and 5: simplydata agrees with the certified values to about 8 to 9 digits on these numbers (NIST
+# asks 9). Tested 2026-11-22: no existing least-squares routine gets them all past 9 digits without losing digits on
+# Filip or Wampler5 (on the raw powers: LAPACK gelsd, gelsy and gelss through SciPy lstsq, NumPy's QR as R lm() fits
+# them; on the mapped powers: NumPy Polynomial.fit). So they are reported as explained differences, not hidden.
+WAMPLER_LIMIT = ("the fit runs on x mapped onto [-1, 1] and is turned back into the raw powers 1, x, ... x^5, which "
+                 "adds rounding of about 1e-9 relative (a limit of double precision); where the points lie exactly on "
+                 "the curve NIST certifies 0, so the LRE measures that rounding itself")
+EXPLAINED_WAMPLER = {
+    "Wampler1": ("b0", "b1", "b2", "b0 standard error", "b1 standard error", "b2 standard error"),
+    "Wampler3": ("b0", "b1", "b2"),
+    "Wampler4": ("b0", "b1", "b2"),
+    "Wampler5": ("b0", "b1", "b2", "b3", "b4"),
+}
 
 
 def _cases(Case, data_dir):
@@ -315,13 +332,15 @@ def _cases(Case, data_dir):
                """,
                published={n: (v, "lre", "NIST certified")
                           for n, v in read_certified_polynomial(f"nist/{name}.dat", data_dir).items()},
-               note="The raw powers here are not badly conditioned (condition number 6.4e6), so the fit on x mapped "
-                    "onto [-1, 1] is followed by one step of iterative refinement on the raw powers; without it, "
-                    "Wampler1 and Wampler3 agreed to only 8.7 to 9.0 digits. Where NIST certifies 0 (Wampler1 and "
-                    "Wampler2 lie exactly on the curve), the LRE counts the digits of 0 that agree.")
+               explained={n: WAMPLER_LIMIT for n in EXPLAINED_WAMPLER.get(name, ())},
+               note="simplydata fits the powers of x mapped onto [-1, 1] (what makes Filip exact) and turns the answer "
+                    "back into the raw powers with statsmodels t_test(). Where NIST certifies 0 (Wampler1 and Wampler2 "
+                    "lie exactly on the curve), the LRE counts the digits of 0 that agree. A number listed as an "
+                    "explained difference may fall a little short of 9 digits; the reason is given with it.")
           for name, what in {"Wampler1": "points exactly on the curve",
                              "Wampler2": "points exactly on a curve with small coefficients",
-                             "Wampler3": "with noise", "Wampler4": "with large noise"}.items()],
+                             "Wampler3": "with noise", "Wampler4": "with large noise",
+                             "Wampler5": "with noise far larger than the curve"}.items()],
         Case("table.explain", "Longley: six predictors that move almost together (NIST certified)",
              "NIST Longley", "published",
              ours="""

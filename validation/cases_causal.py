@@ -34,6 +34,8 @@ OURS_R = {"table.compare_balanced_groups_of": ("WeightIt", "MatchIt", "cobalt", 
           "table.compare_risks": ("epiR",), "table.rate_of": ("epiR",), "table.compare_rates": ("epiR",),
           "table.find_correlation_between": ("mice", "miceadds"), "table.explain_survival": ("mice", "survival")}
 COLUMNS = '["age", "educ", "race", "married", "nodegree", "re74", "re75"]'
+# the Schütz et al. (2014) reference datasets are not shipped (DATA_LICENSES.md): read from a file the user names
+SCHUTZ_FILE = "SIMPLYDATA_SCHUTZ2014_FILE"
 LALONDE_R = ("d <- data.frame(t = treat, y = re78, age = age, educ = educ, race = race, married = married, "
              "nodegree = nodegree, re74 = re74, re75 = re75)\n"
              "f <- t ~ age + educ + race + married + nodegree + re74 + re75")
@@ -55,8 +57,8 @@ def _datasets(Dataset):
                 "LaLonde, R. J. (1986). Evaluating the econometric evaluations of training programs with experimental "
                 "data. American Economic Review 76, 604-620; Dehejia, R. H. & Wahba, S. (1999). Journal of the "
                 "American Statistical Association 94, 1053-1062. As shipped by the R package MatchIt (lalonde).",
-                "Public study data (US Department of Labor NSW); the MatchIt copy is GPL (>= 2). Also the practice "
-                "table job_training.",
+                "Public study data (US Department of Labor NSW); the MatchIt copy is GPL (>= 2). The practice "
+                "table job_training is made up, with the same columns.",
                 "https://doi.org/10.1080/01621459.1999.10473858"),
         Dataset("JOBS II (mediation)", "",
                 "899 unemployed workers in a randomised job-search workshop: treatment, job-search confidence, "
@@ -82,14 +84,18 @@ def _datasets(Dataset):
                 "example of R epitools::ageadjust.direct (Fay & Feuer 1997, Statistics in Medicine 16, 791-801).",
                 "Published counts (facts); stored unchanged.",
                 "https://cran.r-project.org/package=epitools"),
-        Dataset("bioequivalence reference datasets", "bioequivalence_reference.csv",
+        Dataset("bioequivalence reference datasets", "",
                 "three 2 x 2 crossover bioequivalence studies (AUC of a test and a reference formulation): A, 18 "
                 "subjects (Sauter et al. 1992); B, 18 subjects (Clayton & Leslie 1981); C, 13 subjects (B with "
                 "subjects removed, unbalanced)",
                 "Schütz, H., Labes, D. & Fuglsang, A. (2014). Reference Datasets for 2-Treatment, 2-Sequence, 2-Period "
-                "Bioequivalence Studies. The AAPS Journal 16, 1292-1297 (supplementary data sets A, B and C; "
-                "dataset A is also the practice table drug_levels).",
-                "Measured values from published studies (facts), stored unchanged; the article is (c) AAPS 2014.",
+                "Bioequivalence Studies. The AAPS Journal 16, 1292-1297, supplementary data sets A, B and C "
+                "(PMC4389751).",
+                "(c) AAPS 2014, with no open licence for the article or its supplementary files, so not shipped "
+                "(DATA_LICENSES.md). simplydata was tested on them on 2026-11-21 (all three ratios and 90 % "
+                "intervals equal to Table II at its 2 printed decimals of percent, and to R lm() to 1e-9). To rerun the "
+                f"cases, save the data as a CSV file (columns dataset, subject, period, formulation, auc) and name it "
+                f"in the environment variable {SCHUTZ_FILE}; without it they are skipped.",
                 "https://doi.org/10.1208/s12248-014-9661-0"),
         Dataset("airquality (R datasets)", "",
                 "daily air quality in New York, May to September 1973: ozone (37 empty cells), solar radiation (7 "
@@ -307,7 +313,7 @@ def _cases(Case):
                   "Tingley et al. (2014) analyse the same data."),
         # ---------------------------------------------------------------- I05: 2 x 2 crossover
         *[Case("table.compare_averages_of", f"period=: bioequivalence reference dataset {name} ({what})",
-               "bioequivalence reference datasets", "published",
+               "bioequivalence reference datasets", "published", local_data=SCHUTZ_FILE,
                ours=f"""
                    r = sdata.table(data[data["dataset"] == "{name}"]).compare_averages_of(
                        "auc", for_each_group_in="formulation", matched_by="subject", period="period",
@@ -408,6 +414,10 @@ def add_to(namespace) -> None:
     plain_load = namespace["load"]
 
     def load(name: str) -> pd.DataFrame:
+        if name == "bioequivalence reference datasets":  # a local file the user names; nothing is downloaded
+            import os
+
+            return pd.read_csv(os.environ[SCHUTZ_FILE])
         if name in R_DATA_CAUSAL:
             from simplydata._r import need_r, r_call
 

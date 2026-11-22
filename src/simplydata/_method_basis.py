@@ -1368,7 +1368,10 @@ BASIS["dist.find_chance_that_value"] = _b(
 BASIS["table.explain"] = _b(
     "A linear model by least squares (as R lm()), with t-based 95 % intervals, R squared and the F test. Group "
     "columns are compared with their first level in sorted order. The outcome family is never switched by "
-    "itself.",
+    "itself. The estimates come from statsmodels' QR fit; their standard errors come from the QR factor as R's "
+    "summary.lm() takes them, with chol2inv() (R's own method, done here with NumPy's QR and LAPACK's dpotri, the "
+    "routine chol2inv calls; approved by Manish 2026-11-22), because statsmodels' inv(R'R) loses digits on "
+    "nearly collinear columns (NIST Longley).",
     "outcome= (yes or no, counts, positive numbers, ordered groups, shares ...), grouped_by=, effects=, "
     "robust_errors=, table_of_tests=, interval_by=, p_value_by= and the other options below.",
     "simplydata follows R's lm() so that every number matches what reviewers can check. It never chooses a model "

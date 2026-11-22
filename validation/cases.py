@@ -247,6 +247,8 @@ class Case:
     note: str = ""
     option: str = ""              # the option the case checks ("weights="); empty for the word itself
     ours_r: tuple | None = None   # R packages simplydata's own side runs (None: it needs no R); skipped without them
+    explained: dict = field(default_factory=dict)  # published name -> why it may fall short (a precision limit)
+    local_data: str = ""          # the environment variable naming a data file that is not shipped; skipped without
 
     def __post_init__(self):
         for tolerance in (self.parent_tolerance, self.r_tolerance):  # a number (relative) or MONTE_CARLO only

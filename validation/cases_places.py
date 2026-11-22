@@ -71,8 +71,8 @@ def _datasets(Dataset):
                 "https://doi.org/10.32614/RJ-2018-009"),
         Dataset("Port Pirie (ismev)", "", "the highest sea level of each year at Port Pirie, South Australia, "
                 "1923-1987 (metres)",
-                f"{COLES}, Springer, section 3.4.1. Shipped with the R package ismev (portpirie); the same numbers are "
-                "simplydata's practice table sea_levels.",
+                f"{COLES}, Springer, section 3.4.1. Shipped with the R package ismev (portpirie); simplydata's "
+                "practice table sea_levels is made up after it.",
                 "GPL (>= 2) (ismev); read from the installed package, so it needs R.",
                 "https://doi.org/10.1007/978-1-4471-3675-0"),
         Dataset("Coles rain (ismev)", "", "17,531 daily rainfall totals at one site in south-west England, 1914-1962 (mm)",

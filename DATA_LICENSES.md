@@ -1,46 +1,38 @@
 # Data licences
 
 simplydata's code is under the MIT licence ([LICENSE](LICENSE)). This file says what covers the data that come with
-it: the practice tables in `src/simplydata/data/` (installed with the package, `sdata.get_example()`) and the
-reference data of the reliability study in `validation/data/` (in the repository and the source distribution only).
+it, and which real data simplydata was tested on without shipping them.
 
 In short:
 
-- **The MIT licence covers the code and the made-up tables.** The made-up practice tables were invented for
-  simplydata; their descriptions start with "MADE-UP DATA" or say "made-up".
-- **Each real table keeps its source's terms.** They are listed below, each with its source, how to cite it and the
-  licence its source states. Most are numbers published in a paper or a book; numbers as such are facts, but cite the
-  source when you use them.
-- **The reliability study's copies of tables from GPL or LGPL R packages are not passed on.** It reads them from the R
-  package installed on your own computer (`validation/r_data.py`); nothing is stored or downloaded. Five of the real
-  practice tables below hold the same numbers as data in GPL R packages (`sampled_schools`, `job_training`,
-  `ability_tests`, `sea_levels`, and the published counts of `bcg` and `passive_smoking`); they are kept as published
-  facts with their citations, which is a decision for the owner (see the end of this file).
+- **Every practice table is made up**, and the MIT licence covers it as it covers the code
+  (`src/simplydata/data/`, installed with the package, `sdata.get_example()`).
+- **The reliability study stores only public-domain and published-fact data** (`validation/data/`, in the repository
+  and the source distribution only): the NIST files and a few small tables typed from papers or help-page examples.
+- **Real data that may not be passed on are not shipped.** simplydata was tested on them: the reliability study and
+  the tests read them from the R package installed on your own computer (`validation/r_data.py`), or, for one
+  supplement with no open licence, from a file you name. Nothing is downloaded at any time.
 
-## Practice tables (`src/simplydata/data/`, installed with simplydata)
-
-### Made up (MIT, as the code)
+## Practice tables (`src/simplydata/data/`): all made up (MIT)
 
 marks, weather, fruit, growth, sensor, visitors, river, shop, school, meadow, trial, clinic, island, toxicity,
-culture, admissions, resistome, stations, rain, many_tests, course_feedback, deaths_by_age and job_search.
+culture, admissions, resistome, stations, rain, many_tests, course_feedback, deaths_by_age, and the eight below.
 
-`job_search` has the columns of the JOBS II study (as the R package mediation ships it), but every value was drawn
-with a fixed seed by [`docs/make_job_search.py`](docs/make_job_search.py), with effects built in that the lessons
-recover (the workshop raises job-search confidence by 0.30 points, each point of confidence lowers depression by
-0.30, and the workshop lowers it by 0.04 directly). It replaces the real JOBS II records that earlier versions
-shipped: those are human-subject records distributed by ICPSR (study 2739), whose terms do not allow passing them on.
+Eight tables copy the columns of a real study, so that the lessons can ask the real question, but every value was
+drawn with a fixed seed by [`docs/make_practice_tables.py`](docs/make_practice_tables.py) (and
+[`docs/make_job_search.py`](docs/make_job_search.py)), with effects built in that the lessons recover. Until
+2026-11-22 seven of them held the real data; the owner decided to ship none of it.
 
-### Real data
-
-| table | what | source and citation | licence stated by the source |
+| table | made up after | built in | simplydata tested on the real data |
 |---|---|---|---|
-| `bcg` | 13 trials of the BCG vaccine (counts) | Colditz, G. A. et al. (1994). Efficacy of BCG vaccine in the prevention of tuberculosis. JAMA 271, 698-702. The same numbers as `dat.bcg` of the R package metadat | The article is (c) American Medical Association; the counts are published facts, copied as numbers only. metadat is GPL (>= 2); nothing of it is copied but the numbers, which are the paper's |
-| `passive_smoking` | 37 published odds ratios with their intervals | Hackshaw, A. K., Law, M. R. & Wald, N. J. (1997). The accumulated evidence on lung cancer and environmental tobacco smoke. BMJ 315, 980-988. The same numbers as `dat.hackshaw1998` of metadat | The article is (c) BMJ; the numbers are published facts |
-| `ability_tests` | 9 test scores of 301 pupils (1937) | Holzinger, K. J. & Swineford, F. (1939). A study in factor analysis: the stability of a bi-factor solution. Supplementary Educational Monographs 48, University of Chicago. As shipped by the R package lavaan (`HolzingerSwineford1939`; Rosseel 2012, JSS 48(2)) | The monograph states no licence (published 1939); the scores are facts. lavaan is GPL (>= 2) |
-| `sea_levels` | 65 yearly maximum sea levels at Port Pirie | Coles, S. (2001). An Introduction to Statistical Modeling of Extreme Values. Springer, section 3.4.1. The same numbers as `portpirie` of the R package ismev | The book is (c) Springer; 65 published numbers (facts). ismev is GPL (>= 2) |
-| `sampled_schools` | 200 California schools (stratified sample) | California Department of Education, Academic Performance Index 2000; the stratified sample `apistrat` of the R package survey (Lumley, T. (2010). Complex Surveys. Wiley) | Public accountability data of a state agency; no licence stated. survey is GPL-2 \| GPL-3 |
-| `job_training` | 614 men of the National Supported Work study and a survey comparison group | LaLonde, R. J. (1986). Evaluating the econometric evaluations of training programs with experimental data. American Economic Review 76, 604-620; Dehejia, R. H. & Wahba, S. (1999). Causal effects in nonexperimental studies: reevaluating the evaluation of training programs. Journal of the American Statistical Association 94, 1053-1062. As shipped by the R package MatchIt (`lalonde`) | **No licence was stated by the source** (Dehejia posted the data on his web page; the study was run by MDRC for the US Department of Labor). Widely redistributed (MatchIt, and Python packages); kept with these citations. MatchIt is GPL (>= 2) |
-| `drug_levels` | AUC of 18 subjects in a 2 x 2 crossover | Sauter et al. (1992), as cited by the next source; reference dataset A of Schütz, H., Labes, D. & Fuglsang, A. (2014). Reference datasets for 2-treatment, 2-sequence, 2-period bioequivalence studies. The AAPS Journal 16, 1292-1297 (supplementary material) | See "The Schütz 2014 supplement" below: free to read, but no open licence is stated |
+| `bcg` | Colditz, G. A. et al. (1994). Efficacy of BCG vaccine in the prevention of tuberculosis. JAMA 271, 698-702 | log risk ratio 0.6 - 0.035 x latitude, between-trial spread 0.15 | from R metadat (`dat.bcg`, GPL >= 2): `combine_studies` against metafor, meta and the values of Viechtbauer (2010), in the reliability study and the tests |
+| `passive_smoking` | Hackshaw, A. K., Law, M. R. & Wald, N. J. (1997). BMJ 315, 980-988 | odds ratio 1.25 | from R metadat (`dat.hackshaw1998`): `combine_studies(estimates=)` against metafor |
+| `ability_tests` | Holzinger, K. J. & Swineford, F. (1939). Supplementary Educational Monographs 48, University of Chicago | three correlated factors (visual, verbal, speed) | from R lavaan (`HolzingerSwineford1939`, GPL >= 2): the published fit of Rosseel (2012, JSS 48(2)), and psych, factanal and statsmodels |
+| `sea_levels` | Coles, S. (2001). An Introduction to Statistical Modeling of Extreme Values. Springer, section 3.4.1 (Port Pirie) | GEV with location 3.87, scale 0.20, shape -0.05 | from R ismev (`portpirie`, GPL >= 2): Coles's printed values, extRemes and SciPy |
+| `sampled_schools` | California Department of Education, API 2000; the stratified sample `apistrat` of R survey (Lumley 2010) | score falls 3 points per percent of free meals | from R survey (`apistrat`, GPL-2 \| GPL-3): survey-weighted answers against R survey |
+| `job_training` | LaLonde, R. J. (1986). American Economic Review 76, 604-620; Dehejia, R. H. & Wahba, S. (1999). JASA 94, 1053-1062 | the training adds 1800 dollars | from R MatchIt (`lalonde`, GPL >= 2; the source states no licence): WeightIt, MatchIt and the MatchIt vignette's 894 |
+| `job_search` | Vinokur, A. D., Price, R. H. & Schul, Y. (1995). American Journal of Community Psychology 23, 39-74 (JOBS II) | indirect effect about -0.09 | from R mediation (`jobs`; ICPSR study 2739, whose terms do not allow passing the records on): mediation against the product of coefficients |
+| `drug_levels` | Schütz, H., Labes, D. & Fuglsang, A. (2014). The AAPS Journal 16, 1292-1297, reference dataset A | ratio 96 %, within-subject CV 12 % | from a local file (see "The Schütz 2014 data" below) |
 
 ## Reliability study (`validation/data/`, repository and source distribution only)
 
@@ -55,32 +47,27 @@ shipped: those are human-subject records distributed by ICPSR (study 2739), whos
 | `flutd.csv` | Willeberg, P. (1977). Acta Veterinaria Scandinavica 18 (Suppl. 64) (the first example of R `epiR::epi.2by2`) | Published counts (facts) |
 | `down_syndrome.csv` | Selvin, S. (2004). Statistical Analysis of Epidemiologic Data, 3rd ed. (the example of R `epitools::ageadjust.direct`) | Published counts (facts) |
 | `crowder_seeds.csv` | Crowder, M. J. (1978). Applied Statistics 27, 34-37; the copy in the R package agridat (`crowder.seeds`) | Published counts (facts); agridat is MIT licensed |
-| `bioequivalence_reference.csv` | Schütz, Labes & Fuglsang (2014), supplementary data sets A (Sauter et al. 1992), B (Clayton & Leslie 1981) and C | See "The Schütz 2014 supplement" below |
 
 Read from the installed R packages instead of stored (`validation/r_data.py`), because the copies came from GPL or
 LGPL packages: from R's datasets package (GPL-2 | GPL-3) sleep, anscombe, infert, stackloss, mtcars, swiss, iris,
 warpbreaks, LakeHuron, AirPassengers, Seatbelts and Puromycin; from MASS birthwt; from lme4 VerbAgg; from AER
 NMES1988; from alr4 galtonpeas; from mice nhanes; from HH ProfChal; from survival (LGPL) lung, veteran, heart and
-mgus2; from survey apistrat and apiclus1; from MatchIt lalonde; and from mediation the JOBS II records (jobs). The
-other R data the study uses (metadat, vegan, ismev, KMsurv and more) were never stored. Each is cited in
-[validation/README.md](validation/README.md).
+mgus2; from survey apistrat and apiclus1; from MatchIt lalonde; from mediation the JOBS II records (jobs); and, for
+the tests of published answers on the practice-table studies, from metadat, lavaan and ismev. The other R data the
+study uses (vegan, KMsurv and more) were never stored. Each is cited in [validation/README.md](validation/README.md).
 
-## Open decision: practice tables with the same numbers as GPL R data
+## The Schütz 2014 data
 
-`sampled_schools` (survey's apistrat), `job_training` (MatchIt's lalonde), `ability_tests` (lavaan's
-HolzingerSwineford1939), `sea_levels` (ismev's portpirie), `bcg` and `passive_smoking` (metadat) hold the same numbers
-as data in GPL R packages. They are measured or published values (facts) from the original studies, cited above, and
-not creative work of the packages' authors, so they are kept; but the reliability study's copies were removed for
-the more cautious reading. If the owner prefers the cautious reading here too, these tables would be replaced by
-made-up look-alikes, as `job_search` was.
+The article (The AAPS Journal 16, 1292-1297, doi:10.1208/s12248-014-9661-0) is free to read in PubMed Central
+(PMC4389751) and on the journal's site, and its supplementary files hold the three reference datasets. But it carries
+"(c) American Association of Pharmaceutical Scientists 2014" and names no Creative Commons or other open licence for
+the article or its supplementary files (checked 2026-11-21). So simplydata does not ship them: the practice table
+`drug_levels` is made up, and `validation/data/bioequivalence_reference.csv` was removed.
 
-## The Schütz 2014 supplement
-
-Checked on 2026-11-21. The article (The AAPS Journal 16, 1292-1297, doi:10.1208/s12248-014-9661-0) is free to read
-in PubMed Central (PMC4389751) and on the journal's site, and its nine supplementary files (the data sets) can be
-downloaded there. But the article carries "© American Association of Pharmaceutical Scientists 2014" and names no
-Creative Commons or other open licence, for the article or for the supplementary files. So it is **free to read, not
-clearly open** for passing on. The tables hold measured values from published studies (36 numbers in `drug_levels`,
-98 rows in `bioequivalence_reference.csv`), which are facts rather than creative work, and no installed R package
-ships them to read from instead. They are kept, with their citations, until the owner decides; replacing
-`drug_levels` with a made-up crossover, as was done for `job_search`, is the alternative.
+simplydata was tested on them. On 2026-11-21 `compare_averages_of(period=)` (the 2 x 2 crossover, the EMA model) gave
+for datasets A, B and C the ratios 95.09 %, 71.10 % and 58.56 % with 90 % intervals 90.76 to 99.62 %, 51.45 to
+98.26 % and 39.41 to 87.03 %: equal to Table II of the article (where R, SAS and WinNonlin agree) at its 2 printed
+decimals of percent, and to R `lm()` on the same model to 1e-9 (relative), with the within-subject CVs equal to R's
+too. To rerun these checks, save the three datasets as one CSV file with the columns `dataset` (A, B or C), `subject`,
+`period`, `formulation` (test or reference) and `auc`, and name it in the environment variable
+`SIMPLYDATA_SCHUTZ2014_FILE`; the reliability study and the tests then read it, and skip those checks otherwise.

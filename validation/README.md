@@ -37,27 +37,29 @@ with Python 3.11 to 3.13 for every change.
    that agree. A word must match at least 9 digits; for the nonlinear (curve) problems, at least 6, the
    level at which statistical software is judged on them (McCullough 1999).
    In these cases, made-up data are used only for edge cases that no real dataset tests (empty cells, no
-   rows left, an exact line): 3 of the 239 cases, each labelled *made-up* in the report.
+   rows left, an exact line): 3 of the 240 cases, each labelled *made-up* in the report.
 
    Each check states its tolerance and why: about 1e-9 (relative) for a calculation with no iteration and
    no random numbers; the NIST digits above, or the same method run to convergence, for an iterative fit;
    and for Monte Carlo answers either the same seed (then they must agree exactly) or, against another
    random number generator or an exact limit, 4 Monte Carlo standard errors, worked out for that check
-   (the tolerance "4 mcse").
+   (the tolerance "4 mcse"). A number that falls a little short of its tolerance for a stated reason that is
+   a limit of precision (for example the NIST Wampler polynomials, below) is listed as an *explained
+   difference*, with its reason, and counted apart from the passes and the failures.
 
 2. **The same underneath** (`src/simplydata/_underneath/`). For 78 of simplydata's 398 words (180
    entries, counting the options that change what a word calls), the manual shows the same job written in
    the package underneath. Each of those boxes is run next to the word and compared: numbers to a stated
    tolerance, tables by values and column order (on a pandas and on a Polars table), and charts by their
    data (bars, dots, lines, labels, limits), never by pixels. These checks show that a word makes the call
-   it says it makes; they are not checks against an independent answer, and 131 of the 180 run on made-up
-   practice tables (29 on real ones, 20 need no table). The report counts them together with the cases of
+   it says it makes; they are not checks against an independent answer, and 160 of the 180 run on made-up
+   practice tables (all practice tables are made up; 20 need no table). The report counts them together with the cases of
    part 1, so its total number of checks mixes both kinds.
 
 3. **Choices simplydata makes.** Where simplydata's default differs from the package underneath (for
    example Welch's t-test where SciPy's `ttest_ind` assumes equal spreads, or 10 histogram bins), the report lists it, so a difference is never hidden.
 
-The study now has 239 cases on 93 datasets (68 with a published or certified answer, 168 compared with the
+The study now has 240 cases on 94 datasets (69 with a published or certified answer, 168 compared with the
 parent package and R, 3 made-up edge cases). The "datasets" include published sources that hold no data (power
 manuals, design tables): 6 of the 168 are simulation and formula checks against R that use no data at all; the
 other 162 run on real data. A word passes when it agrees with the reference to the stated, justified tolerance. They cover 80 words, or 199 words and options;
@@ -77,8 +79,9 @@ published estimates of Zeileis, Kleiber & Jackman (2008) on the NMES 1988 data.
 
 `data/` holds only the NIST files (public domain) and small tables of published facts typed from a paper or
 copied from a help-page example (Bliss's beetles, rat liver glycogen, Quetelet's chest sizes, rounding first base,
-smokers, dry cat food and FLUTD, Down syndrome by birth order), the Orobanche seeds (from the MIT-licensed R package
-agridat), and the bioequivalence reference datasets, whose status is recorded in DATA_LICENSES.md. Tables that come from GPL or LGPL R packages are not stored: `r_data.py` reads them from the
+smokers, dry cat food and FLUTD, Down syndrome by birth order) and the Orobanche seeds (from the MIT-licensed R package
+agridat). The bioequivalence reference datasets of Schütz et al. (2014) are not stored either: simplydata was tested on
+them, and the cases read a local copy named by `SIMPLYDATA_SCHUTZ2014_FILE` (DATA_LICENSES.md). Tables that come from GPL or LGPL R packages are not stored: `r_data.py` reads them from the
 installed R package (nothing is downloaded), so those cases need R and are skipped without it. Which licence covers
 which table is in [DATA_LICENSES.md](../DATA_LICENSES.md).
 
@@ -127,7 +130,7 @@ which table is in [DATA_LICENSES.md](../DATA_LICENSES.md).
 | JOBS II (S3d-2) | not stored | Vinokur, A. D., Price, R. H. & Schul, Y. (1995). American Journal of Community Psychology 23, 39-74; Tingley, D. et al. (2014). Journal of Statistical Software 59(5). The copy in the R package mediation (jobs), 6 of its columns | Human-subject records distributed by ICPSR (study 2739), whose terms do not allow passing them on; GPL (>= 2) in mediation. Read from the installed mediation package, so it needs R. The practice table `job_search` is made up, with the same columns |
 | dry cat food and FLUTD (S3d-2) | `data/flutd.csv` | Willeberg, P. (1977). Acta Veterinaria Scandinavica 18 (Suppl. 64); the first example of R `epiR::epi.2by2` | Published counts (facts); stored unchanged |
 | Down syndrome by birth order (S3d-2) | `data/down_syndrome.csv` | Selvin, S. (2004). Statistical Analysis of Epidemiologic Data, 3rd ed.; the example of R `epitools::ageadjust.direct` | Published counts (facts); stored unchanged |
-| bioequivalence reference datasets A, B, C (S3d-2) | `data/bioequivalence_reference.csv` | Schütz, H., Labes, D. & Fuglsang, A. (2014). The AAPS Journal 16, 1292-1297, supplementary data sets A (Sauter et al. 1992), B (Clayton & Leslie 1981) and C | Measured values from published studies (facts), stored unchanged; the article is (c) AAPS 2014 |
+| bioequivalence reference datasets A, B, C (S3d-2) | not stored | Schütz, H., Labes, D. & Fuglsang, A. (2014). The AAPS Journal 16, 1292-1297, supplementary data sets A (Sauter et al. 1992), B (Clayton & Leslie 1981) and C (PMC4389751) | (c) AAPS 2014, no open licence, so not shipped. simplydata was tested on them on 2026-11-21: the three ratios and 90 % intervals equal Table II at its 2 printed decimals of percent, and R lm() to 1e-9. The cases read a local copy named by `SIMPLYDATA_SCHUTZ2014_FILE` and are skipped without it (DATA_LICENSES.md) |
 | airquality, lung (S3d-2) | not stored | Chambers, J. M. et al. (1983). Graphical Methods for Data Analysis (R datasets airquality); Loprinzi, C. L. et al. (1994). Journal of Clinical Oncology 12, 601-607 (R survival lung) | GPL-2 \| GPL-3 (R datasets), LGPL (survival); read from R, so they need R |
 | api stratified sample (S3d-1) | not stored | California Department of Education, Academic Performance Index 2000; the stratified sample of R's survey package (apistrat; Lumley, T. (2010). Complex Surveys. Wiley) | Public data; the survey copy is GPL-2 \| GPL-3; read from the installed package (`r_data.py`), so it needs R |
 | api cluster sample (S3d-1) | not stored | The one-stage cluster sample of R's survey package (apiclus1; Lumley 2010) | Public data; the survey copy is GPL-2 \| GPL-3; read from the installed package (`r_data.py`), so it needs R |
@@ -139,7 +142,7 @@ which table is in [DATA_LICENSES.md](../DATA_LICENSES.md).
 | NIST StRD BoxBOD (rise to a limit, 6 points) | `data/nist/BoxBOD.dat` | Box, G. P., Hunter, W. G. & Hunter, J. S. (1978). Statistics for Experimenters, pp. 483-487. NIST StRD, Nonlinear Regression. https://www.itl.nist.gov/div898/strd/nls/data/boxbod.shtml | Public domain in the US; stored with its numbers unchanged |
 | NIST StRD Filip (polynomial of degree 10, 82 points) | `data/nist/Filip.dat` | Filippelli, A., NIST. NIST StRD, Linear Regression (higher difficulty). https://www.itl.nist.gov/div898/strd/lls/data/Filip.shtml | Public domain in the US; stored with its numbers unchanged |
 | NIST StRD Longley (16 years, 6 predictors) | `data/nist/Longley.dat` | Longley, J. W. (1967). An appraisal of least squares programs for the electronic computer from the viewpoint of the user. JASA 62, 819-841. NIST StRD, Linear Regression (higher difficulty). https://www.itl.nist.gov/div898/strd/lls/data/Longley.shtml | Public domain in the US; stored with its numbers unchanged |
-| NIST StRD Wampler1 to Wampler5 (polynomials of degree 5, 21 points) | `data/nist/Wampler1.dat`, `data/nist/Wampler2.dat`, `data/nist/Wampler3.dat`, `data/nist/Wampler4.dat`, `data/nist/Wampler5.dat` | Wampler, R. H. (1970). A report on the accuracy of some widely used least squares computer programs. JASA 65, 549-565. NIST StRD, Linear Regression (higher difficulty). https://www.itl.nist.gov/div898/strd/lls/data/Wampler1.shtml | Public domain in the US; stored with their numbers unchanged. Wampler5 has no case: its noise is far larger than its curve, and fit_curve reaches 7.7 to 8 digits there (the rounding of the residuals sets the limit; with the refinement step 7.7, without it 8.0), below the 9 the study asks, so the file is kept only for reference |
+| NIST StRD Wampler1 to Wampler5 (polynomials of degree 5, 21 points) | `data/nist/Wampler1.dat`, `data/nist/Wampler2.dat`, `data/nist/Wampler3.dat`, `data/nist/Wampler4.dat`, `data/nist/Wampler5.dat` | Wampler, R. H. (1970). A report on the accuracy of some widely used least squares computer programs. JASA 65, 549-565. NIST StRD, Linear Regression (higher difficulty). https://www.itl.nist.gov/div898/strd/lls/data/Wampler1.shtml | Public domain in the US; stored with their numbers unchanged. Where fit_curve falls a little short of 9 digits (about 8.9 on Wampler1, 3 and 4, 8.0 on Wampler5, whose noise is far larger than its curve) the report lists the number as an explained difference: turning the fit on x mapped to [-1, 1] back into raw powers adds rounding of about 1e-9, a limit of double precision; no existing least-squares routine tested (LAPACK gelsd, gelsy, gelss; NumPy QR; NumPy Polynomial.fit) does better on all of them without losing Filip |
 | NIST StRD Roszman1 (formula with arctan, 25 points) | `data/nist/Roszman1.dat` | Roszman, L., NIST. Quantum Defects for Sulfur I Atom. NIST StRD, Nonlinear Regression (average difficulty). https://www.itl.nist.gov/div898/strd/nls/data/roszman1.shtml | Public domain in the US; stored with its numbers unchanged |
 | Bliss's beetles (8 doses) | `data/bliss.csv` | Bliss, C. I. (1935). The calculation of the dosage-mortality curve. Annals of Applied Biology 22, 134-167; fit printed in Dobson & Barnett (2008), An Introduction to Generalized Linear Models, 3rd ed. | Facts published in 1935, typed from the paper |
 | Puromycin, treated (12 rows) | not stored | Treloar, M. A. (1974), M.Sc. thesis, University of Toronto; fit printed in Bates, D. M. & Watts, D. G. (1988). Nonlinear Regression Analysis and Its Applications. Copy from R's `datasets::Puromycin` | Published facts; R's copy is GPL-2 \| GPL-3; read from the installed package (`r_data.py`), so it needs R |

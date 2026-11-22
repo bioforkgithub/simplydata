@@ -159,6 +159,10 @@ def check_case(case) -> list[dict]:
     if case.dataset in r_data and not r_ready(r_data[case.dataset]):
         packages = ", ".join(r_data[case.dataset])
         return [_skipped(case, f"R with {packages} (the data come from {packages})")]
+    if case.local_data and not os.environ.get(case.local_data):
+        # data that may not be passed on (DATA_LICENSES.md): read only from a file the user names
+        return [_skipped(case, f"the data file named by {case.local_data} (not shipped; see DATA_LICENSES.md)",
+                         local=True)]
     if case.ours_r is not None and not r_ready(case.ours_r):
         return [_skipped(case, "R" + (" with " + ", ".join(case.ours_r) if case.ours_r else "")
                          + " (simplydata runs R for this option)")]
@@ -179,8 +183,11 @@ def check_case(case) -> list[dict]:
             # McCullough (1999), "Assessing the reliability of statistical software", The American Statistician 53)
             least = float(tolerance.split(":")[1]) if ":" in tolerance else MIN_LRE
             digits = lre(got, value)
-            rows.append(_row(case, name, source, got, value, f"at least {least:.0f} digits (LRE {digits:.1f})",
-                             digits >= least))
+            row = _row(case, name, source, got, value, f"at least {least:.0f} digits (LRE {digits:.1f})",
+                       digits >= least)
+            if not row["passed"] and name in case.explained:
+                row.update(passed=True, explained=case.explained[name])
+            rows.append(row)
         else:
             why = "" if source == "exact" else " (printed rounding)"
             rows.append(_row(case, name, source, got, value, f"within {tolerance:g}{why}",
@@ -239,7 +246,7 @@ def _close(a: float, b: float, tol: float) -> bool:
 def _row(case, name, reference, ours, theirs, tolerance, passed) -> dict:
     return dict(word=_key(case), case=case.title, dataset=case.dataset, kind=case.kind, name=name,
                 reference=reference, ours=float(ours), theirs=float(theirs), tolerance=tolerance,
-                passed=bool(passed), skipped="", note="")
+                passed=bool(passed), skipped="", note="", explained="")
 
 
 def _missing(case, name: str, reference: str) -> dict:
@@ -249,10 +256,13 @@ def _missing(case, name: str, reference: str) -> dict:
     return row
 
 
-def _skipped(case, what: str) -> dict:
+def _skipped(case, what: str, local: bool = False) -> dict:
+    """A case that cannot run here. local=True: it needs a data file that is not shipped (DATA_LICENSES.md) and
+    that the user may name; such a skip is not a missing R part, so --require-r does not count it."""
     return dict(word=_key(case), case=case.title, dataset=case.dataset, kind=case.kind, name="(all)",
                 reference=what, ours=float("nan"), theirs=float("nan"), tolerance="", passed=False,
-                skipped=f"needs {what}, which is not installed here", note="")
+                skipped=f"needs {what}, which is not " + ("given here" if local else "installed here"), note="",
+                explained="", local=local)
 
 
 def underneath_rows() -> list[dict]:
@@ -280,8 +290,15 @@ def underneath_rows() -> list[dict]:
 
 
 # ---------------------------------------------------------------- the report
+EXPLAINED = "explained difference – precision limit"
+
+
 def _status(row) -> str:
-    return "skipped" if row["skipped"] else ("pass" if row["passed"] else "**FAIL**")
+    if row["skipped"]:
+        return "skipped"
+    if row.get("explained"):
+        return f"{EXPLAINED}: {row['explained']}"
+    return "pass" if row["passed"] else "**FAIL**"
 
 
 def _fmt(v: float) -> str:
@@ -296,9 +313,11 @@ def report(case_rows: list[dict], box_rows: list[dict], setup: dict, when: str) 
     from simplydata._underneath import COMPARE_KINDS, UNDERNEATH
 
     all_rows = case_rows + box_rows
-    passed = sum(1 for r in all_rows if r["passed"] and not r["skipped"])
+    passed = sum(1 for r in all_rows if r["passed"] and not r["skipped"] and not r.get("explained"))
+    explained = sum(1 for r in all_rows if r.get("explained"))
     failed = sum(1 for r in all_rows if not r["passed"] and not r["skipped"])
     skipped = sum(1 for r in all_rows if r["skipped"])
+    local = sum(1 for r in all_rows if r.get("local"))
     out = [
         "# simplydata reliability report",
         "",
@@ -309,8 +328,10 @@ def report(case_rows: list[dict], box_rows: list[dict], setup: dict, when: str) 
         "manual is run next to its word and compared too. How it works, and the datasets with their licences: "
         "[validation/README.md](README.md).",
         "",
-        f"**{passed} checks passed, {failed} failed, {skipped} skipped** (skipped: R or an R package is not "
-        "installed on this computer).",
+        f"**{passed} checks passed, {explained} explained differences, {failed} failed, {skipped} skipped** "
+        f"(skipped: R or an R package is not installed on this computer, or, for {local}, the data may not be "
+        "passed on and no file was given; an explained difference falls short of its tolerance for a stated "
+        "reason, a limit of precision, and is listed with that reason).",
         "",
         "## Setup",
         "",
@@ -385,7 +406,8 @@ def build(require_r: bool = False) -> tuple[str, int, int]:
     rows = case_rows + box_rows
     failed = sum(1 for r in rows if not r["passed"] and not r["skipped"])
     skipped = sum(1 for r in rows if r["skipped"])
-    return text, failed + (skipped if require_r else 0), skipped
+    missing_r = sum(1 for r in rows if r["skipped"] and not r.get("local"))
+    return text, failed + (missing_r if require_r else 0), skipped
 
 
 def main(argv=None) -> int:

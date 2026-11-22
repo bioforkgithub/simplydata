@@ -51,6 +51,9 @@ ENTRIES = [
         tolerance=1e-9,
         choices=("precision weights, as R lm(weights =): statsmodels WLS; for the other outcomes GLM(var_weights=). "
                  "Not freq_weights, which would change the degrees of freedom.",),
+        python_note="simplydata's standard errors of a least-squares fit are R's method, summary.lm()'s chol2inv() of "
+                    "the QR factor, done with NumPy's QR and LAPACK's dpotri (approved by Manish 2026-11-22); "
+                    "statsmodels' WLS above gives the same numbers here, to 1e-9.",
         also="Rows with weight 0 are left out first, as R does (statsmodels would count them in the degrees of "
              "freedom); negative weights are refused. " + SENTENCE,
     ),

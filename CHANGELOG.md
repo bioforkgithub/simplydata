@@ -8,11 +8,12 @@ working for one release and prints a one-line note with its new name.
 ### Fixed: closer agreement with certified values, and data licences
 
 - `explain` takes the standard errors of a least-squares model as R `summary.lm()` does, from the QR factor
-  (inv(R) inv(R)'), not statsmodels' inv(R'R): on NIST Longley they now agree with the certified values to 12.6 to
+  (inv(R) inv(R)', R's chol2inv, done with NumPy and LAPACK), not statsmodels' inv(R'R): on NIST Longley they now agree with the certified values to 12.6 to
   14.2 digits (before: 7.97 to 9.42).
-- `fit_curve` (polynomials) adds one step of iterative refinement where the powers of x are not badly conditioned:
-  NIST Wampler1 to Wampler4 agree to 9.1 to 10.3 digits, depending on the computer (Wampler1, Wampler3 and Wampler4 were just under 9); Filip stays at
-  13.6 digits and more.
+- `fit_curve` (polynomials) is unchanged. On NIST Wampler1, 3, 4 and 5 it agrees with the certified values to about
+  8 to 9 digits (NIST asks 9); no existing least-squares routine tried (LAPACK gelsd, gelsy and gelss through SciPy,
+  NumPy's QR, NumPy's Polynomial.fit) does better on all of them without losing digits on Filip. The reliability study
+  now lists these numbers as explained differences (a precision limit), with the reason, and adds Wampler1 to 5.
 - `compare_risks(show="attributable fractions")` no longer calls its intervals "Wald": they are the ones epiR gives
   for one table (the score interval of the risk ratio; the exact intervals of the two risks), and the printout says so.
 - The power for two percents (`find_chance_of_finding(percents=)` and the "power with that many" of
@@ -21,15 +22,20 @@ working for one release and prints a one-line note with its new name.
 - `combine_studies` (REML, Paule-Mandel), `fit_dose_response` and `find_return_levels_of(values_above=)` ask metafor,
   drc and extRemes for a tighter stopping rule, so their fits converge (Paule-Mandel tau-squared of the BCG trials:
   0.3180685, where metafor's default stopped at 0.3180937); the methods are the same.
-- The practice table `job_search` is now made up, with the columns of the JOBS II study and effects built in
-  (`docs/make_job_search.py`); the real JOBS II records are human-subject data that may not be passed on. The
-  reliability study reads them from the installed R package mediation.
+- Every practice table is now made up. `job_search`, `bcg`, `passive_smoking`, `ability_tests`, `sea_levels`,
+  `sampled_schools`, `job_training` and `drug_levels` keep the columns and size of the real studies they copied, but
+  their values are drawn with a fixed seed by `docs/make_job_search.py` and `docs/make_practice_tables.py`, with
+  effects built in that the lessons recover; the lessons' answers are updated. simplydata was tested on the real data,
+  which it no longer ships: the tests and the reliability study read them from the installed R packages (metadat,
+  lavaan, ismev, survey, MatchIt, mediation), and the Schütz et al. (2014) reference datasets from a local file named
+  by `SIMPLYDATA_SCHUTZ2014_FILE` (DATA_LICENSES.md).
 - The reliability study no longer stores copies of data from GPL or LGPL R packages; it reads them from the installed
   R packages (`validation/r_data.py`). New `DATA_LICENSES.md` lists every table with its source, citation and licence.
 - Reliability study: Monte Carlo checks against another generator now allow 4 Monte Carlo standard errors worked out
   for each check (before, 2 to 6 % of the value), with a same-seed exact check next to them; references read from
   rounded printouts are taken at full precision; the GEV, generalised Pareto, drc and metafor references are run to
-  convergence. New NIST cases: Longley and Wampler1 to Wampler4.
+  convergence. New NIST cases: Longley and Wampler1 to Wampler5. The report counts "explained differences" (a stated
+  precision limit) apart from passes and failures.
 
 ### Changed: one name for choosing the method
 

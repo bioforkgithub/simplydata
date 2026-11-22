@@ -47,7 +47,7 @@ ALLOWED = {
     "table/models.py::_qr_unscaled_covariance": "R summary.lm()'s chol2inv(qr.R): NumPy's QR factor of the "
                                                 "(whitened) columns and LAPACK dpotri (the routine chol2inv calls) "
                                                 "for inv(R) inv(R)'; statsmodels' own inv(R'R) lost 4 to 5 digits on "
-                                                "NIST Longley (data-and-fixes, A1; pending the owner's approval)",
+                                                "NIST Longley (data-and-fixes, A1). Approved by Manish 2026-11-22",
     "table/models.py::ModelWords._fit_model": "matrix_rank: checks the columns before fitting",
     "table/models.py::ModelWords._more_model": "matrix_rank: the same column check before fitting",
     "table/models.py::ModelWords._explain_matched": "matrix_rank: the same column check before conditional logistic "
@@ -123,13 +123,10 @@ ALLOWED_ARITHMETIC = {
                                 "independent number (statsmodels or R) times it, rounded up, whole clusters of m, "
                                 "m / design effect (what one cluster counts as) and a given number / design effect "
                                 "(the independent values it counts as)",
-    # data-and-fixes (2026-11-21, A4; pending the owner's approval)
-    "table/fitting.py::_refine_raw_powers": "one step of iterative refinement of fit_curve's raw-power estimates "
-                                            "where the raw powers are not badly conditioned (NumPy cond below "
-                                            "1e10): the residuals y - polyval(x, b) and b + the correction "
-                                            "statsmodels fits to them (its t_test gives the standard errors, t "
-                                            "and p); NIST Wampler1 and Wampler3 went from 8.7-9.0 digits to "
-                                            "9.1 to 10.3",
+    # data-and-fixes, A1. Approved by Manish 2026-11-22
+    "table/models.py::_qr_unscaled_covariance": "the unscaled covariance of a least-squares fit as R summary.lm() "
+                                                "computes it, chol2inv(qr.R(qr(X))): R's own method, done with "
+                                                "NumPy's QR and LAPACK dpotri (the routine chol2inv calls)",
     # review fixes (2026-11-21)
     "_trend_season.py::lag1_after_sen_line": "the readings minus SciPy theilslopes' line (the residuals), the input "
                                              "of statsmodels acf and acorr_ljungbox for find_trend_of's check of "

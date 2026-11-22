@@ -257,11 +257,11 @@ def _least_squares(X, y, weights=None):
 
 
 def _qr_unscaled_covariance(wexog):
-    """inv(X'X) as R summary.lm() computes it, chol2inv(qr.R(qr(X))): NumPy's QR gives the factor R (the
+    """[D] inv(X'X) as R summary.lm() computes it, chol2inv(qr.R(qr(X))): NumPy's QR gives the factor R (the
     columns already whitened by the weights, as statsmodels does), and LAPACK dpotri, through SciPy, gives
-    inv(R) inv(R)' from it (dpotri is the routine R's chol2inv calls). This repeats R's own linear-algebra step
-    with NumPy and LAPACK instead of taking statsmodels' covariance, so it is listed in tests/test_no_own_methods.py
-    (pending the owner's approval)."""
+    inv(R) inv(R)' from it (dpotri is the routine R's chol2inv calls). This is R's own method, done with NumPy and
+    LAPACK instead of taking statsmodels' covariance; it is listed in tests/test_no_own_methods.py, approved by
+    Manish 2026-11-22. Source: R's summary.lm() and chol2inv() (R Core Team, the stats and base packages)."""
     from scipy.linalg import lapack
 
     upper = np.linalg.qr(np.asarray(wexog, dtype=float), mode="r")

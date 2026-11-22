@@ -61,7 +61,7 @@ def test_example_tables_load_with_the_columns_described(name):
     elif name == "course_feedback":  # S3d-1: a few answers left empty, for count_each(columns=, in_order=)
         assert table[["materials", "pace"]].isna().any().all()
         assert not table.drop(columns=["materials", "pace"]).isna().any().any()
-    elif name == "ability_tests":  # S3c-2: real data (Holzinger & Swineford 1939); one grade is empty in the source
+    elif name == "ability_tests":  # S3c-2: made up after Holzinger & Swineford (1939); one grade is empty, as there
         assert table["grade"].isna().sum() == 1 and not table.drop(columns="grade").isna().any().any()
     else:
         assert not table.isna().any().any()

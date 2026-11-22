@@ -74,7 +74,7 @@ def test_case_gives_the_published_and_the_parent_answer(case):
     assert rows
     failed = [r for r in rows if not r["passed"] and not r["skipped"]]
     assert not failed, [(r["name"], r["reference"], r["ours"], r["theirs"], r["tolerance"], r["note"]) for r in failed]
-    skipped = [r for r in rows if r["skipped"]]
+    skipped = [r for r in rows if r["skipped"] and not r.get("local")]  # a data file that is not shipped: not R
     if skipped and os.environ.get("SIMPLYDATA_REQUIRE_R") == "1":
         pytest.fail(f"SIMPLYDATA_REQUIRE_R=1 but {skipped[0]['skipped']}")
 
@@ -171,12 +171,13 @@ def test_tables_from_gpl_and_lgpl_r_packages_are_not_stored():
     r_data = study._r_data()
     for key in r_data.TABLES:
         assert not (VALIDATION / "data" / f"{key}.csv").exists(), key
+    assert not (VALIDATION / "data" / "bioequivalence_reference.csv").exists()
     assert not (VALIDATION / "data" / "jobs_ii.csv").exists()
     for name, key in study.R_TABLES.items():
         d = study.DATASETS[name]
         assert d.file == "" and "read from the installed R package" in d.licence, name
         assert name in study.R_DATA, name
-    assert set(study.R_TABLES.values()) == set(r_data.TABLES), "every table of r_data.py is read by a dataset"
+    assert set(study.R_TABLES.values()) == set(r_data.TABLES) - set(r_data.PRACTICE), "every table is read by a dataset"
     for d in study.DATASETS.values():
         assert d.file.removesuffix(".csv") not in r_data.TABLES, d.name
 
@@ -229,5 +230,6 @@ def test_readme_counts_of_the_study_are_true():
     real = sum(1 for t in tables if t in EXAMPLES) - sum(1 for t in tables if t in EXAMPLES and (
         "MADE-UP" in EXAMPLES[t][0] or "made-up" in EXAMPLES[t][0].lower()))
     none = sum(1 for t in tables if not t)
-    assert f"{made_up} of the {len(UNDERNEATH)} run on made-up practice tables ({real} on real ones, {none} need no " \
-           f"table)" in text
+    assert real == 0, "every practice table is made up (DATA_LICENSES.md)"
+    assert f"{made_up} of the {len(UNDERNEATH)} run on made-up practice tables (all practice tables are made up; " \
+           f"{none} need no table)" in text

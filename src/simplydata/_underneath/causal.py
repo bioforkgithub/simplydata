@@ -2,7 +2,7 @@
 entry for each new option that changes what a word calls (keyed by word and option): attributable fractions on
 compare_risks, direct standardisation on rate_of, observed / expected on compare_rates, mediation on explain, the 2 x 2
 crossover on compare_averages_of, and multiple imputation on find_correlation_between and explain_survival.
-Practice tables: "job_training", "job_search", "drug_levels" (real), "deaths_by_age", "clinic", "school", "trial"
+Practice tables: "job_training", "job_search", "drug_levels" (made up after real studies), "deaths_by_age", "clinic", "school", "trial"
 (made up).
 """
 

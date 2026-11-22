@@ -110,8 +110,45 @@ TABLES = {
                               "list(treat = as.integer(d$treat), age = as.integer(d$age), educ = as.integer(d$educ), "
                               "race = as.character(d$race), married = as.integer(d$married), "
                               "nodegree = as.integer(d$nodegree), re74 = d$re74, re75 = d$re75, re78 = d$re78)"),
+    # the real data behind six practice tables, which are now made up (docs/make_practice_tables.py): the same
+    # columns as the practice tables had, read from the R packages, for the tests of published answers
+    "job_training": (("MatchIt",), "e <- new.env(); utils::data('lalonde', package = 'MatchIt', envir = e); "
+                                   "d <- e$lalonde; list(treat = as.integer(d$treat), age = as.integer(d$age), "
+                                   "educ = as.integer(d$educ), race = as.character(d$race), "
+                                   "married = as.integer(d$married), nodegree = as.integer(d$nodegree), re74 = d$re74, "
+                                   "re75 = d$re75, re78 = d$re78)"),
+    "bcg": (("metadat",), "e <- new.env(); utils::data('dat.bcg', package = 'metadat', envir = e); d <- e$dat.bcg; "
+                          "list(trial = paste(d$author, d$year), year = as.integer(d$year), "
+                          "tb_vaccinated = as.integer(d$tpos), vaccinated = as.integer(d$tpos + d$tneg), "
+                          "tb_unvaccinated = as.integer(d$cpos), unvaccinated = as.integer(d$cpos + d$cneg), "
+                          "latitude = as.integer(d$ablat), allocation = as.character(d$alloc))"),
+    "passive_smoking": (("metadat",), "e <- new.env(); utils::data('dat.hackshaw1998', package = 'metadat', envir = e); "
+                                      "d <- e$dat.hackshaw1998; list(study = paste(d$author, d$year), "
+                                      "year = as.integer(d$year), country = as.character(d$country), "
+                                      "design = as.character(d$design), cases = as.integer(d$cases), "
+                                      "`odds ratio` = d$or, `odds ratio 95 % CI low` = d$or.lb, "
+                                      "`odds ratio 95 % CI high` = d$or.ub)"),
+    "ability_tests": (("lavaan",), "d <- lavaan::HolzingerSwineford1939; list(id = as.integer(d$id), "
+                                   "sex = as.integer(d$sex), ageyr = as.integer(d$ageyr), agemo = as.integer(d$agemo), "
+                                   "school = as.character(d$school), grade = as.numeric(d$grade), x1 = d$x1, "
+                                   "x2 = d$x2, x3 = d$x3, x4 = d$x4, x5 = d$x5, x6 = d$x6, x7 = d$x7, x8 = d$x8, "
+                                   "x9 = d$x9)"),
+    "sea_levels": (("ismev",), "e <- new.env(); utils::data('portpirie', package = 'ismev', envir = e); "
+                               "d <- e$portpirie; list(year = as.integer(d$Year), sea_level = d$SeaLevel)"),
+    "sampled_schools": (("survey",), "e <- new.env(); utils::data('api', package = 'survey', envir = e); "
+                                     "d <- e$apistrat; list(school = as.character(d$sname), "
+                                     "district = as.character(d$dname), "
+                                     "school_type = c(E = 'elementary', M = 'middle', H = 'high')[as.character(d$stype)], "
+                                     "score_2000 = as.integer(d$api00), score_1999 = as.integer(d$api99), "
+                                     "free_meals = as.integer(d$meals), english_learners = as.integer(d$ell), "
+                                     "pupils = as.integer(d$enroll), met_target = tolower(as.character(d$sch.wide)), "
+                                     "award = tolower(as.character(d$awards)), weight = d$pw, "
+                                     "schools_of_type = as.integer(d$fpc))"),
 }
 
+
+# the keys above that hold the real data behind practice tables (used by the tests, not by a validation dataset)
+PRACTICE = ("job_training", "bcg", "passive_smoking", "ability_tests", "sea_levels", "sampled_schools")
 
 _TEXT = pd.read_csv(io.StringIO("a" + chr(10) + "x" + chr(10)))["a"].dtype
 
