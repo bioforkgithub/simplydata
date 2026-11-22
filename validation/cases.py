@@ -1054,6 +1054,19 @@ def _add_bayesian():
 _add_bayesian()
 
 
+# ---------------------------------------------------------------- 2026-11-21: words and fixes (validation/cases_more_words.py)
+def _add_more_words():
+    import importlib.util
+
+    spec = importlib.util.spec_from_file_location("simplydata_validation_more_words", HERE / "cases_more_words.py")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    module.add_to(globals())
+
+
+_add_more_words()
+
+
 # ---------------------------------------------------------------- tables read from R packages (DATA_LICENSES.md)
 def _read_from_r():
     """Every dataset whose table comes from a GPL or LGPL R package is read from that package (validation/r_data.py)

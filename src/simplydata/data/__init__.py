@@ -455,7 +455,7 @@ def _list_examples() -> None:
     print('Use one like this:  table = sdata.get_example("marks")  then  chart = sdata.chart(table)')
 
 
-def get_example(name: str | None = None):
+def get_example(name: str | None = None, from_r_package: str | None = None):
     """A small table to practise with. sdata.get_example("marks")
 
     sdata.get_example() with no name lists every table and its columns.
@@ -466,7 +466,16 @@ def get_example(name: str | None = None):
     and effect, job_training, job_search, drug_levels and deaths_by_age. Seven of them copy the columns of a real
     study; simplydata was tested on the real data (DATA_LICENSES.md).
     "shop" has empty cells and a column of dates to practise with; "school" has empty cells too.
+    from_r_package="survival" loads a dataset that comes with an installed R package instead, as a
+    simplydata table: sdata.get_example("lung", from_r_package="survival"). R itself loads it
+    (utils::data); groups (factors) become text, R's NA empty cells, and row names that carry
+    information become a first column, "row name". Needs simplydata[r] and the R package already
+    installed: nothing is downloaded or installed.
     """
+    if from_r_package is not None:
+        from .from_r import from_r_package as _load_from_r
+
+        return _load_from_r(name, from_r_package)
     if name is None:
         _list_examples()
         return None

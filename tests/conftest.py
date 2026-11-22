@@ -156,6 +156,8 @@ R_PACKAGES = ("survival", "vegan", "mice", "lme4", "betareg", "pscl", "car", "ef
               "pwr", "Exact", "exact2x2", "nortest", "BSDA", "rstatix", "DescTools", "FSA", "PMCMRplus",
               "multcompView", "TOSTER", "presize", "epiR", "pROC", "irr", "psych", "BlandAltmanLeh", "ppcor", "cocor",
               "outliers", "EnvStats",
+              # Krippendorff's alpha (irr::kripp.alpha weights the pairs wrongly for 3 or more raters)
+              "icr",
               # S3a-2 (lines and curves)
               "drc", "segmented", "smatr", "mcr", "quantreg", "deming",
               # S3a-3 (checking and comparing)
@@ -234,6 +236,17 @@ def r_table(name, parse_dates=None):
     for column in parse_dates or ():
         table[column] = pd.to_datetime(table[column])
     return table
+
+
+@pytest.fixture
+def needs_r_4_6(needs_r):
+    """For R answers that R 4.6.0 changed (wilcox.test() exact with tied values): skipped on older R."""
+    import numpy as np
+
+    from simplydata._r import r_call
+
+    if not bool(np.asarray(r_call('getRversion() >= "4.6.0"'))[0]):
+        pytest.skip("needs R 4.6.0 or later (wilcox.test() exact with tied values)")
 
 
 @pytest.fixture
@@ -328,6 +341,8 @@ R_ENTRY_POINTS = {
     # S3d-3 (Bayesian methods)
     ("table/bayes_r.py", "_light_call"), ("table/bayes_r.py", "need_heavy"), ("table/bayes_r.py", "stan_model"),
     ("table/bayes_r.py", "predictive_check"),
+    # reference-test fixes A9 and A13: R's exact p-values (each falls back to the approximation without R)
+    ("table/stat_tests.py", "_mann_whitney"), ("table/summaries.py", "_spearman_p_from_r"),
 }
 
 

@@ -122,7 +122,8 @@ def test_check_model_for_yes_or_no_matches_plot_glm(school, tmp_path):
 def test_rows_that_pull_match_cooks_distance(school, capsys):
     # R: m <- lm(marks ~ hours + breakfast); sort(cooks.distance(m), decreasing = TRUE)[1:3]: rows 48, 15, 69
     #    rstudent(m)[1:3] = -0.98479607936417 -0.130631603159207 0.804060640550196
-    assert school.show_rows_that_pull_model("marks", using=["hours", "breakfast"]) is None
+    found = school.show_rows_that_pull_model("marks", using=["hours", "breakfast"])
+    assert found.get_column_names() == ["row", "Cook's distance", "leverage", "studentised residual"]
     out = capsys.readouterr().out
     first = [line for line in out.splitlines() if line.startswith("  row ")][:3]
     assert [line.split(":")[0].strip() for line in first] == ["row 48", "row 15", "row 69"]

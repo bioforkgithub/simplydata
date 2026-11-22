@@ -223,6 +223,8 @@ REFERENCES: dict[str, Reference] = {
     "cochran1954": _ref("Cochran 1954", "Cochran WG (1954). Some Methods for Strengthening the Common χ² Tests. Biometrics 10:417.", doi="10.2307/3001616"),
     "campbell2007": _ref("Campbell 2007", "Campbell I (2007). Chi-squared and Fisher–Irwin tests of two-by-two tables with small sample recommendations. Statistics in Medicine 26:3661-3675.", doi="10.1002/sim.2832"),
     "haviland1990": _ref("Haviland 1990", "Haviland MG (1990). Yates's correction for continuity and the analysis of 2 × 2 contingency tables. Statistics in Medicine 9:363-367.", doi="10.1002/sim.4780090403"),
+    "thompson1936": _ref("Thompson 1936", "Thompson WR (1936). On Confidence Ranges for the Median and Other Expectation Distributions for Populations of Unknown Distribution Form. The Annals of Mathematical Statistics 7:122-128.", doi="10.1214/aoms/1177732502"),
+    "best1975": _ref("Best & Roberts 1975", "Best DJ, Roberts DE (1975). Algorithm AS 89: The Upper Tail Probabilities of Spearman's Rho. Applied Statistics 24:377-379.", doi="10.2307/2347111"),
     "mann1947": _ref("Mann & Whitney 1947", "Mann HB, Whitney DR (1947). On a Test of Whether one of Two Random Variables is Stochastically Larger than the Other. The Annals of Mathematical Statistics 18:50-60.", doi="10.1214/aoms/1177730491"),
     "wilcoxon1945": _ref("Wilcoxon 1945", "Wilcoxon F (1945). Individual Comparisons by Ranking Methods. Biometrics Bulletin 1:80.", doi="10.2307/3001968"),
     "kruskal1952": _ref("Kruskal & Wallis 1952", "Kruskal WH, Wallis WA (1952). Use of Ranks in One-Criterion Variance Analysis. Journal of the American Statistical Association 47:583-621.", doi="10.1080/01621459.1952.10483441"),
@@ -662,7 +664,8 @@ BASIS["fit_distribution"] = _b(
     ("venables2002", "delignette2015"), "P3", "Only after a histogram or density; at least 2 values.",
     "convention")
 BASIS["draw_smooth_line"] = _b(
-    "LOWESS as R lowess(): the nearest 2/3 of the dots, 3 robustness steps.",
+    "LOWESS as R lowess() with its defaults: the nearest 2/3 of the dots, 3 robustness steps, delta = 1 % of the x "
+    "range.",
     "test_method=\"loess\" (R loess, with a confidence band), \"spline\" (R smooth.spline), or a moving average and the "
     "other window methods.",
     "LOWESS is Cleveland's robust local regression (Cleveland 1979) and R's lowess() default; its robustness "
@@ -791,11 +794,14 @@ BASIS["table.find_standard_deviation_of"] = _b(
     "Negative weights are refused; a group with total weight of 1 or less gets an empty value.")
 BASIS["table.find_percentile_of"] = _b(
     "Linear interpolation between the values (test_method=\"linear\", R quantile(type = 7)), the default of R, NumPy "
-    "and pandas; interval= gives the exact order-statistic interval.",
+    "and pandas; interval= gives the exact order-statistic interval (SciPy quantile_test, Thompson 1936).",
     "test_method= 1 to 9 (Hyndman & Fan's types) or a NumPy method name; weights= with weight_kind=.",
     "Type 7 is the shared default of R, NumPy and pandas, so results match theirs. Hyndman & Fan 1996, who "
-    "compared the nine definitions, recommend type 8; SPSS and Minitab use type 6. The help names both.",
-    ("hyndman1996",), "P3", "percent= outside 0 to 100 is refused; interval= works with test_method=\"linear\" only.",
+    "compared the nine definitions, recommend type 8; SPSS and Minitab use type 6. The help names both. The "
+    "interval is Thompson's, splitting the chance of missing evenly between the ends; R DescTools::QuantileCI("
+    "method = \"exact\") picks, for percents other than 50, the nearby pair of order statistics whose coverage is "
+    "closest above the level, so the ends can differ; both are exact.",
+    ("hyndman1996", "thompson1936"), "P3", "percent= outside 0 to 100 is refused; interval= works with test_method=\"linear\" only.",
     "convention")
 BASIS["table.find_summary_of"] = _b(
     "Count, average, standard deviation (n - 1), smallest, median, biggest. When asked: skewness G1 and excess "
@@ -843,9 +849,10 @@ BASIS["table.find_correlation_between"] = _b(
     "interval_by=\"bootstrap\".",
     "Pearson's r is the usual measure of a straight-line link and its Fisher-z interval the usual interval (Fisher "
     "1915 for the distribution of r). Bonett & Wright 2000 propose a better standard error for Spearman's rho "
-    "than the plain Fisher-z one used here. The strength words are a textbook scale chosen by simplydata; scales "
+    "than the plain Fisher-z one used here. Spearman's p-value for fewer than 1290 rows without ties is R "
+    "cor.test()'s default, algorithm AS 89 (Best & Roberts 1975), run in R. The strength words are a textbook scale chosen by simplydata; scales "
     "differ between fields (Schober et al. 2018), so the number is always printed with the words.",
-    ("fisher1915", "bonett2000", "schober2018"), "P3",
+    ("fisher1915", "bonett2000", "schober2018", "best1975"), "P3",
     "Fewer than 3 complete rows and constant columns are refused; with 3 or more columns the p-values are not "
     "adjusted, and a note points to add_adjusted_p_value_column.", "convention")
 
@@ -868,9 +875,10 @@ BASIS["table.compare_averages_of"] = _b(
     "switches the test, because choosing the test from a normality pre-test distorts the error rate (Rochon, "
     "Gondan & Kieser 2012).")
 BASIS["table.compare_averages_of based_on="] = _b(
-    "Mann-Whitney U for two groups (exact p-value below 50 values per group without ties, else the normal "
-    "approximation with continuity correction, as R wilcox.test()), with the Hodges-Lehmann shift; Kruskal-Wallis "
-    "for three or more.",
+    "Mann-Whitney U for two groups (below 50 values per group an exact p-value: without ties from SciPy, with tied "
+    "values the exact conditional one from R wilcox.test(), as R 4.6 gives it; from 50 values, or with ties and no R, "
+    "the normal approximation with continuity correction), with the Hodges-Lehmann shift; Kruskal-Wallis for three "
+    "or more.",
     "based_on=\"averages\" (the default, Welch).",
     "Rank tests need no bell shape, but they compare more than the medians, and are not robust to unequal "
     "spreads (Fagerland & Sandvik 2009; Fay & Proschan 2010): that is why they are an option, not the default.",
@@ -918,7 +926,8 @@ BASIS["table.compare_averages_of for_each_group_in= with a list of columns"] = _
     ("olson1974", "olson1976"), "P2", "Groups with no more rows than columns, and rank deficiency, are refused.")
 BASIS["table.compare_each_pair_of"] = _b(
     "Each pair by Welch's t-test, the p-values adjusted with Holm's method (as R pairwise.t.test(pool.sd = FALSE, "
-    "p.adjust.method = \"holm\")).",
+    "p.adjust.method = \"holm\")); with based_on=\"ranks\" Mann-Whitney U as R 4.6 pairwise.wilcox.test() (exact "
+    "below 50 values per group, also with tied values).",
     "test_method=\"tukey\" (Tukey-Kramer), \"games-howell\", \"scheffe\", \"lsd\", \"dunn\", \"conover\"; "
     "based_on=\"ranks\" or \"percents\"; against= (Dunnett); show=\"letters\".",
     "Holm's method keeps the chance of any false alarm at 5 % and is uniformly more powerful than Bonferroni (Holm "
@@ -956,6 +965,8 @@ BASIS["table.compare_counts_of"] = _b(
     "chisq.test()); Cramér's V.",
     "test_method=\"fisher\", \"g\", \"barnard\", \"boschloo\", \"trend\"; p_value_by=\"shuffling\" or "
     "\"exact\"; show=\"cells\".",
+    "Barnard's and Boschloo's tests take the for_each_group_in= groups as the two samples (R Exact::exact.test() "
+    "fixes the row totals). "
     "simplydata matches R chisq.test() so that results agree with R. The evidence on small tables favours other "
     "choices: Campbell 2007 recommends the 'N - 1' chi-square without Yates' correction (and Fisher's test when an "
     "expected count is below 1), and Yates' correction is conservative (Haviland 1990). Cochran 1954's rule is no "
@@ -1152,14 +1163,16 @@ BASIS["trade_off_curve"] = _b(
 # ---- Agreement and reliability
 BASIS["table.agreement_between"] = _b(
     "Number columns: the ICC for single raters, absolute agreement, two-way random (ICC(A,1), Shrout and "
-    "Fleiss' ICC(2,1)), from R irr. Categories: Cohen's kappa for two raters, Fleiss' kappa (a generalisation of "
-    "Scott's pi) for more.",
+    "Fleiss' ICC(2,1)), from R psych::ICC(). Categories: Cohen's kappa for two raters, Fleiss' kappa (a "
+    "generalisation of Scott's pi) for more.",
     "raters=, checking_for=, of= for the other ICC forms; test_method=\"kappa\", \"krippendorff\", \"lin\"; "
     "near_misses=\"linear\" or \"quadratic\" (weighted kappa).",
     "The ICC form must be chosen and reported; ICC(A,1) is the form Koo & Li's flowchart leads to when the raters "
     "are a sample of possible raters and single ratings will be used (Shrout & Fleiss 1979; McGraw & Wong 1996). "
     "Kappa is printed with the raw agreement, because it can be low when agreement is high (Feinstein & "
-    "Cicchetti 1990).",
+    "Cicchetti 1990). The ICC intervals follow McGraw & Wong (psych::ICC; irr::icc's interval for ICC(A,k) does not), "
+    "and Krippendorff's alpha comes from R icr, which gives Krippendorff's published examples (irr::kripp.alpha "
+    "weights the pairs wrongly for 3 or more raters without empty cells; Hayes & Krippendorff 2007).",
     ("koo2016", "shrout1979", "mcgraw1996", "cohen1960", "cohen1968", "fleiss1971", "hayes2007", "feinstein1990"),
     "P1",
     "The ICC words (poor to excellent) use both ends of the interval (Koo & Li 2016); fewer than 2 complete rows "
@@ -3162,3 +3175,31 @@ BASIS["table.check_model_of test_method=\"bayesian\""] = _b(
     "bayesplot's pp_check() draws by default.", ("gabry2019",), "P2",
     "The same convergence warnings as explain(test_method=\"bayesian\").")
 
+
+# ---- 2026-11-21 (PR words-and-fixes): options that give back the numbers as a table, and R's datasets
+BASIS["table.check_model_of show=\"numbers\""] = _b(
+    "The numbers check_model_of prints, as a table: variance inflation factors, Koenker's Breusch-Pagan test and "
+    "White's test (least squares), the Brier score and the Hosmer-Lemeshow test (yes or no), the number of rows with "
+    "a Cook's distance above 0.5; with test_method=\"bayesian\" R-hat, effective draws and the posterior predictive check.",
+    "leave out show= for the pictures; show=\"prior check\" with test_method=\"bayesian\".",
+    "The same calls as the printout (statsmodels het_breuschpagan(robust=True), het_white, variance_inflation_factor; "
+    "R car::vif, performance::performance_hosmer, posterior::summarise_draws), so the table and the printed numbers "
+    "agree. Koenker's form does not assume bell-shaped errors (Koenker 1981); the pictures stay the way to judge a "
+    "model (Hosmer et al. 1997).", ("koenker1981", "white1980", "hosmer1997", "vehtari2021"), "P5",
+    "A mixed model (grouped_by=) is refused: its check is pictures only.")
+BASIS["table.find_correlation_between show=\"result table\""] = _b(
+    "With two columns, one row: r, its 95 % interval (Fisher's z for Pearson, SciPy pearsonr; R DescTools for "
+    "Spearman and Kendall), the p-value, which directions were tested, the rows used and the strength in words.",
+    "p_value_by=\"shuffling\" and interval_by=\"bootstrap\" fill the row with those (and say so); with three or more "
+    "columns it is show=\"each pair\".",
+    "The same calls as the printed sentence, so the table and the sentence agree; Fisher's z interval is the one R "
+    "cor.test and SciPy give (Fisher 1915).", ("fisher1915",), "P3",
+    "Somers' d, gamma and allowing_for= are refused with show=\"result table\".", "convention")
+BASIS["sdata.get_example from_r_package="] = _b(
+    "R itself loads the dataset of an installed R package (utils::data, from the data file that holds it); groups "
+    "(factors) become text, R's NA empty cells, and row names that carry information a first column \"row name\".",
+    "Leave out from_r_package= for simplydata's own practice tables.",
+    "A dataset is used as the R package ships it, so results can be compared with the package's help page; nothing "
+    "is downloaded or installed, so data never leave the computer (simplydata's privacy promise).", (), "P5",
+    "A missing package or dataset is refused with the nearest name and the install line (never run by simplydata).",
+    "starting value")

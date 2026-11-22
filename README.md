@@ -13,8 +13,8 @@ them first.
 
 ## What simplydata handles
 
-**398 words (commands) in 48 groups, with 370 different options, on top of 14 Python packages (8 installed always, 6 with an extra; patsy comes with statsmodels) and
-86 R packages that it runs (plus R's own `stats`, and 12 more used only to check its answers), checked by 1389 reliability checks.** Every word hands the work to
+**400 words (commands) in 48 groups, with 371 different options, on top of 14 Python packages (8 installed always, 6 with an extra; patsy comes with statsmodels) and
+87 R packages that it runs (plus R's own `stats`, and 12 more used only to check its answers), checked by 1389 reliability checks.** Every word hands the work to
 an established package; simplydata chooses the settings, prints the answer in words and names the
 method it used. Words that need an extra say so: `pip install "simplydata[fast]"`, `[files]`,
 `[systems]` or `[r]` (the R words also need R itself; see [Using the words that need R](#using-the-words-that-need-r)).
@@ -25,9 +25,9 @@ Approximate, counted on 2026-11-21.
 
 | | With the packages underneath | With simplydata |
 |---|---|---|
-| Names to learn | about 10,650 functions: about 5,460 in the Python packages (SciPy about 1,750, pandas 850, Polars 815, matplotlib 745, NumPy 660, statsmodels 545, seaborn 100; each package's public API) and about 5,190 exported by the R packages simplydata ran that day, with R's `stats` (R `getNamespaceExports`; before the community packages were added) | 768 names: 398 commands and 370 options, about 93 % fewer |
-| Packages and languages | 100 packages run by simplydata (14 Python, 86 R), plus 12 R ones that only check its answers, in Python and R | 1 package, in basic Python |
-| Code per task | 1178 lines and 1235 function calls in the 180 tasks of the manual's "same underneath" boxes (median 6 lines a task); this library code is the bare minimum, without the plain-sentence result or the checks | 520 lines and 634 calls (median 3 lines a task), about 56 % fewer lines; recount with `python validation/count_reduction.py` |
+| Names to learn | about 10,650 functions: about 5,460 in the Python packages (SciPy about 1,750, pandas 850, Polars 815, matplotlib 745, NumPy 660, statsmodels 545, seaborn 100; each package's public API) and about 5,190 exported by the R packages simplydata ran that day, with R's `stats` (R `getNamespaceExports`; before the community packages were added) | 771 names: 400 commands and 371 options, about 93 % fewer |
+| Packages and languages | 101 packages run by simplydata (14 Python, 87 R), plus 12 R ones that only check its answers, in Python and R | 1 package, in basic Python |
+| Code per task | 1202 lines and 1255 function calls in the 186 tasks of the manual's "same underneath" boxes (median 6 lines a task); this library code is the bare minimum, without the plain-sentence result or the checks | 536 lines and 654 calls (median 3 lines a task), about 55 % fewer lines; recount with `python validation/count_reduction.py` |
 | Choosing the method | you choose, from the package's documentation | the recommended default, with its published basis: see [How simplydata chooses methods](#how-simplydata-chooses-methods) |
 
 ### Packages underneath
@@ -68,7 +68,7 @@ R packages that simplydata runs, where Python has no method of its own or none t
 | DescTools, rstatix, FSA, PMCMRplus, multcompView | intervals of medians, quantiles and percents; Scheffe, Games-Howell, Dunn's and Conover's pair tests (`compare_each_pair_of(test_method=)`), and Nemenyi's and Conover's after Friedman's test (`compare_each_pair_of(matched_by=, test_method="nemenyi")`); letters for groups that do not differ (`show="letters"`); Somers', Goodman-Kruskal and Lin's measures | [r] |
 | ppcor, cocor, outliers, EnvStats | partial correlation (`find_correlation_between(allowing_for=)`); comparing two correlations (`compare_correlations`); Grubbs', Dixon's and Rosner's outlier tests (`show_rows_with_outliers(test_method="grubbs")`) | [r] |
 | epiR, pROC | Mantel-Haenszel risk ratios (`compare_risks(allowing_for=)`), attributable fractions (`compare_risks(show="attributable fractions")`), directly and indirectly standardised rates (`rate_of(standard_population=)`, `compare_rates(standard_rates=)`) and likelihood ratios of a diagnostic test (`compare_to_truth`); ROC curves, AUC and DeLong's test (`compare_to_truth`, `compare_accuracy`, `chart.trade_off_curve`) | [r] |
-| irr, psych, BlandAltmanLeh | ICC, Krippendorff's alpha, Fleiss' kappa p-value (`agreement_between`); Cronbach's alpha (`reliability_of`); exploratory factor analysis with parallel analysis and the KMO (`find_hidden_factors_behind`); Bland-Altman limits (`limits_of_agreement`, `chart.difference_dots`) | [r] |
+| irr, icr, psych, BlandAltmanLeh | Fleiss' kappa p-value (irr), Krippendorff's alpha (icr, CRAN only) and the ICC (psych) of `agreement_between`; Cronbach's alpha (`reliability_of`); exploratory factor analysis with parallel analysis and the KMO (`find_hidden_factors_behind`); Bland-Altman limits (`limits_of_agreement`, `chart.difference_dots`) | [r] |
 | GPArotation, lavaan | the oblimin rotation of psych's factor analysis (`find_hidden_factors_behind`); confirmatory factor analysis and models with paths between hidden factors, with CFI, TLI, RMSEA and SRMR (`check_hidden_factors`) | [r] |
 | survival, cmprsk, adjustedCurves, riskRegression, KMsurv, survRM2 | the Cox proportional-hazards check and Harrell's C, parametric survival models (`explain_survival(distribution="weibull")`), conditional logistic regression, Aalen-Johansen risks (`find_risk_over_time`); Gray's test and Fine-Gray models (`competing_with=`); adjusted survival curves (`find_survival_over_time(allowing_for=)`); life tables (`test_method="life table"`); restricted mean survival time (`compare_survival(average_time_up_to=)`) | [r] |
 | metafor | meta-analysis (`combine_studies`): random and common effects, Hartung-Knapp, subgroups, meta-regression, Egger's and Peters' tests, trim and fill; `chart.forest_plot`, `chart.draw_funnel_plot` | [r] |
@@ -403,7 +403,7 @@ with the page numbers of the manual it has just compiled.
 Plain words for looking at data, cleaning it and summing it up, on pandas or Polars:
 
 ```python
-table = sdata.table(sdata.get_example("marks"))                # or sdata.table("marks.xlsx")
+table = sdata.table(sdata.get_example("marks"))                # or sdata.table("marks.csv", separator=",")
 table.keep_rows_where("marks", is_above=50)
 table.sort_by("marks", biggest_first=True)
 table.find_average_of("marks", for_each_group_in="class")      # says the answer in a sentence
@@ -528,7 +528,7 @@ shows the same job written in the package underneath, in a grey box that a test 
 - The defaults of each batch were checked by an independent review when they were designed, and every entry of
   the table below, with its references, was checked again by independent hostile reviewers in November 2026.
 
-[How simplydata chooses methods](docs/how_simplydata_chooses.md) gives all 318 defaults: for each, the default,
+[How simplydata chooses methods](docs/how_simplydata_chooses.md) gives all 321 defaults: for each, the default,
 the alternatives, why it was chosen, what simplydata checks in the data, and its references (each DOI checked in
 Crossref). The manual has the same table as its last part.
 
