@@ -170,6 +170,20 @@ def chart_facts(ax) -> dict:
                       colours of its bars, its drawing order and whether its background is drawn
     every_panel       for each set of axes shown in the figure (second y-axes too): its labels, title, dots,
                       bars, lines, filled shapes and axis ranges
+    grid              whether grid lines are shown across the x axis and across the y axis
+    fonts             the font each of the title, the x label and the y label is written in
+    polar_start       on a round (polar) chart: where 0 sits (the angle from the right, in radians) and the
+                      direction angles go (1 anticlockwise, -1 clockwise); empty on a flat chart
+    in_3d             on a 3D chart: the z label, the z range, every 3D dot's (x, y, z) and the height behind the
+                      colour of each piece of a surface; empty on a flat chart
+    segments          the short lines drawn as one set (vlines, hlines, error bars): their ends and their widths
+    insets            each small chart inside the chart (side histograms, zoom boxes): its place inside the chart
+                      and what it shows (as every_panel)
+    colour_bars       each colour bar beside the chart: its label and the range of its scale
+    ax_lines          each straight line drawn right across the chart (axline): a point on it, a second point or
+                      its slope
+    tick_places       where the ticks are, along the x axis and along the y axis (in the axis's own numbers: names
+                      under bars sit at 0, 1, 2 ...)
     """
     from matplotlib.patches import Rectangle
 
@@ -199,8 +213,7 @@ def chart_facts(ax) -> dict:
         "dots": dots,
         "dot_size_shares": list(sizes / biggest) if sizes.size else [],
         "dot_colour_groups": _colour_groups(dot_colours),
-        "lines": [(np.asarray(line.get_xdata(), dtype=float), np.asarray(line.get_ydata(), dtype=float))
-                  for line in ax.get_lines()],
+        "lines": [_line_xy(line) for line in ax.get_lines()],
         "labels": (ax.get_xlabel(), ax.get_ylabel(), ax.get_title()),
         "ticks": ([t.get_text() for t in ax.get_xticklabels()], [t.get_text() for t in ax.get_yticklabels()]),
         "legend": (([legend.get_title().get_text()] + [t.get_text() for t in legend.get_texts()])
@@ -224,7 +237,55 @@ def chart_facts(ax) -> dict:
         "text_places": sorted((_text_place(t) for t in ax.texts if _shown(t)), key=repr),
         "shape_colours": _shape_colours(ax),
         "panel_styles": [_panel_style(a) for a in _panels(ax)],
+        "grid": tuple(any(g.get_visible() for g in axis.get_gridlines()) for axis in (ax.xaxis, ax.yaxis)),
+        "fonts": tuple(t.get_fontname() for t in (ax.title, ax.xaxis.label, ax.yaxis.label)),
+        "polar_start": ((float(ax.get_theta_offset()), float(ax.get_theta_direction())) if ax.name == "polar"
+                        else ()),
+        "in_3d": _in_3d(ax),
+        "segments": [(_sized(np.concatenate(c.get_segments()) if c.get_segments() else []),
+                      list(np.asarray(c.get_linewidths(), dtype=float)))
+                     for c in ax.collections if c.__class__.__name__ == "LineCollection"],
+        "insets": [(_inset_place(ax, a), _panel(a)) for a in ax.child_axes if a.get_visible()],
+        "colour_bars": [(a.get_ylabel() or a.get_xlabel(), tuple(map(float, a.get_ylim())))
+                        for a in (fig.axes if fig is not None else []) if a.get_label() == "<colorbar>"],
+        "ax_lines": [(tuple(map(float, line.get_xy1())),
+                      None if line.get_xy2() is None else tuple(map(float, line.get_xy2())),
+                      None if line.get_slope() is None else float(line.get_slope()))
+                     for line in ax.get_lines() if line.__class__.__name__ == "AxLine"],
+        "tick_places": ([float(v) for v in ax.get_xticks()], [float(v) for v in ax.get_yticks()]),
     }
+
+
+def _line_xy(line) -> tuple:
+    """(x values, y values) of a line as numbers; names on a category axis (an error bar at "A") as the places
+    matplotlib puts them (0, 1, 2 ...)."""
+    try:
+        return np.asarray(line.get_xdata(), dtype=float), np.asarray(line.get_ydata(), dtype=float)
+    except (TypeError, ValueError):
+        return (np.asarray(line.get_xdata(orig=False), dtype=float),
+                np.asarray(line.get_ydata(orig=False), dtype=float))
+
+
+def _in_3d(ax) -> tuple:
+    """(z label, z range, each 3D dot set's (x, y, z), each surface's heights): empty on a flat chart."""
+    if ax.name != "3d":
+        return ()
+    # matplotlib keeps the z of 3D dots only in the private _offsets3d; tests/test_underneath.py pins it
+    dots = [_sized(np.column_stack([np.ma.filled(np.ma.asarray(v, dtype=float), np.nan) for v in c._offsets3d]))
+            for c in ax.collections if c.__class__.__name__ == "Path3DCollection"]
+    heights = [_sized(np.ma.filled(np.ma.asarray(c.get_array(), dtype=float), np.nan))
+               for c in ax.collections if c.__class__.__name__ == "Poly3DCollection" and c.get_array() is not None]
+    return (ax.get_zlabel(), tuple(map(float, ax.get_zlim())), dots, heights)
+
+
+def _inset_place(ax, inset) -> tuple:
+    """[left, bottom, width, height] of a small chart inside ax, as parts of ax (rounded to 6 decimals)."""
+    locator = inset.get_axes_locator()
+    if locator is None:
+        return ()
+    box = locator(inset, None).transformed(inset.get_figure(root=False).transSubfigure)
+    box = box.transformed(ax.transAxes.inverted())
+    return tuple(round(float(v), 6) for v in box.bounds)
 
 
 def _root(ax):
@@ -358,7 +419,7 @@ def _panel(ax) -> tuple:
     bars = sorted((float(r.get_x()), float(r.get_y()), float(r.get_width()), float(r.get_height()))
                   for r in ax.patches if isinstance(r, Rectangle))
     # lines with no points (seaborn adds them for legend entries) show nothing, so they are left out
-    lines = [(_sized(line.get_xdata()), _sized(line.get_ydata())) for line in ax.get_lines() if len(line.get_xdata())]
+    lines = [tuple(_sized(v) for v in _line_xy(line)) for line in ax.get_lines() if len(line.get_xdata())]
     return (ax.get_xlabel(), ax.get_ylabel(), ax.get_title(), ax.get_title(loc="left"),
             _sized(dots) if dots else (0,), _sized(bars) if bars else (0,), lines, _shapes(ax),
             tuple(map(float, ax.get_xlim())), tuple(map(float, ax.get_ylim())))

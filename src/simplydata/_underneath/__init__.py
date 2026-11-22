@@ -50,7 +50,8 @@ COMPARE_KINDS = {
 CHART_FACTS = ("bars", "bar_colour_groups", "dots", "dot_size_shares", "dot_colour_groups", "lines", "labels",
                "ticks", "legend", "limits", "scales", "panels", "texts", "font_sizes", "size", "legend_place",
                "colours", "tick_angles", "shapes", "cells", "every_panel", "line_styles", "text_places",
-               "shape_colours", "panel_styles")
+               "shape_colours", "panel_styles", "grid", "fonts", "polar_start", "in_3d", "segments", "insets",
+               "colour_bars", "ax_lines", "tick_places")
 
 R_LABEL = "R (simplydata runs this in R for you, through rpy2)"
 

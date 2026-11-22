@@ -1243,3 +1243,1138 @@ ENTRIES += [
              "tolerance, not at an exact answer. " + LOOK,
     ),
 ]
+
+# ---------------------------------------------------------------- U3 batch 5: more chart types
+# The facts added for this batch (grid, fonts, polar_start, in_3d, segments, insets, colour_bars, ax_lines) see what
+# the facts above could not: grid lines, fonts, where a round chart starts, 3D points, vlines and error bars, small
+# charts inside a chart, colour bars and straight lines drawn right across a chart.
+ENTRIES += [
+    Entry(
+        word="show",
+        data="marks",
+        ours="""
+            chart = sdata.chart(sdata.get_example("marks"))
+            chart.draw_bars(x="class", y="marks")
+            chart.show()
+        """,
+        code={"matplotlib": """
+            import matplotlib.pyplot as plt
+            import seaborn as sns
+            df = sdata.get_example("marks")
+            fig, ax = plt.subplots()
+            sns.barplot(df, x="class", y="marks", errorbar=None, ax=ax)
+            # show()
+            plt.show()
+            ax
+        """},
+        compare="chart",
+        check=("bars", "ticks", "labels"),
+        also="simplydata draws the chart afresh and hands its own Figure to a pyplot window for the showing, so "
+             "plt.show() shows this chart and no other. In Jupyter, VS Code and Spyder a chart appears without "
+             "show(). The test compares the chart that is shown, not the window. " + LOOK,
+    ),
+    Entry(
+        word="draw_area",
+        data="weather",
+        ours="""
+            chart = sdata.chart(sdata.get_example("weather"))
+            chart.draw_area(x="month_number", y="temperature")
+        """,
+        code={"matplotlib": """
+            import matplotlib.pyplot as plt
+            df = sdata.get_example("weather")
+            fig, ax = plt.subplots()
+            # draw_area(x="month_number", y="temperature")
+            mean = df.groupby("month_number")["temperature"].mean()     # (1)
+            ax.fill_between(mean.index, mean, color="#0072B2", alpha=0.35,
+                            linewidth=0)                                 # (2)
+            ax.plot(mean.index, mean, color="#0072B2")
+            ax.set(xlabel="month_number", ylabel="temperature")
+        """},
+        compare="chart",
+        check=("lines", "shapes", "shape_colours", "labels"),
+        choices=("several rows at the same x are averaged, as in draw_lines(): here the 3 cities of each month.",
+                 "the space under the line is filled down to 0 in the same colour, see-through (alpha 0.35), so "
+                 "areas of several groups show through each other.",),
+        also="With colour= each group gets its own area; stacked=True piles them up (matplotlib stackplot, alpha "
+             "0.85) so the top edge is the total. " + LOOK_BUT_COLOURS,
+    ),
+    Entry(
+        word="draw_pie",
+        data="fruit",
+        ours="""
+            chart = sdata.chart(sdata.get_example("fruit"))
+            chart.draw_pie(labels="fruit", values="count")
+        """,
+        code={"matplotlib": """
+            import matplotlib.pyplot as plt
+            df = sdata.get_example("fruit")
+            fig, ax = plt.subplots()
+            # draw_pie(labels="fruit", values="count")
+            sizes = df.groupby("fruit", sort=False)["count"].sum()       # (1)
+            ax.pie(sizes, labels=sizes.index, autopct="%1.0f%%",         # (2)
+                   colors=["#0072B2", "#E69F00", "#009E73", "#D55E00", "#CC79A7", "#56B4E9"],
+                   startangle=90, counterclock=False,                    # (3)
+                   wedgeprops=dict(edgecolor="white", linewidth=1.5))
+        """},
+        compare="chart",
+        check=("shapes", "shape_colours", "texts", "text_places"),
+        choices=("one slice per label, the total of its values, in the order the labels first appear (without "
+                 "values= each slice counts the rows).",
+                 "each slice is named and shows its share in whole percents.",
+                 "the first slice starts at 12 o'clock and the slices go round clockwise, like a clock; matplotlib's "
+                 "own default starts at 3 o'clock and goes anticlockwise.",),
+        also="Thin white edges keep the slices apart; the colours are simplydata's set (Okabe-Ito). " + LOOK,
+    ),
+    Entry(
+        word="draw_polar",
+        data="weather",
+        ours="""
+            chart = sdata.chart(sdata.get_example("weather"))
+            chart.draw_polar(angle="wind_direction", distance="wind_speed", colour="city")
+        """,
+        code={"matplotlib": """
+            import matplotlib.pyplot as plt
+            import numpy as np
+            df = sdata.get_example("weather")
+            fig, ax = plt.subplots(subplot_kw={"projection": "polar"})
+            # draw_polar(angle="wind_direction", distance="wind_speed", colour="city")
+            ax.set_theta_zero_location("N")
+            ax.set_theta_direction(-1)                                   # (1)
+            colours = ["#0072B2", "#E69F00", "#009E73"]
+            for (city, rows), c in zip(df.groupby("city", sort=False), colours):
+                ax.scatter(np.deg2rad(rows["wind_direction"]), rows["wind_speed"],  # (2)
+                           color=c, label=city, zorder=3)
+            ax.legend(title="city", loc="upper left", bbox_to_anchor=(1.05, 1))  # (3)
+        """},
+        compare="chart",
+        check=("polar_start", "dots", "dot_colour_groups", "legend", "legend_place"),
+        choices=("a compass: 0 at the top (north) and round clockwise, because the column is named like a direction "
+                 "(wind_direction, bearing, heading) or full_turn= is given; other angles start on the right and go "
+                 "anticlockwise, the way maths measures them.",
+                 "the angles are in degrees and are turned into radians for matplotlib (full_turn=24 reads hours, "
+                 "full_turn=12 months).",
+                 "the legend sits outside the circle, on its right.",),
+        also="Each group gets its own colour, in the order the groups appear. " + LOOK,
+    ),
+    Entry(
+        word="draw_contour",
+        data="island",
+        ours="""
+            chart = sdata.chart(sdata.get_example("island"))
+            chart.draw_contour(x="east", y="north", z="height")
+        """,
+        code={"matplotlib": """
+            import matplotlib.pyplot as plt
+            import numpy as np
+            df = sdata.get_example("island")
+            fig, ax = plt.subplots()
+            # draw_contour(x="east", y="north", z="height")
+            wide = df.groupby(["north", "east"])["height"].mean().unstack()   # (1)
+            gx, gy = np.meshgrid(wide.columns, wide.index)
+            bands = ax.contourf(gx, gy, wide.to_numpy(dtype=float), levels=10,
+                                cmap="viridis")                          # (2)
+            ax.contour(bands, colors="white", linewidths=0.5, alpha=0.6,
+                       linestyles="solid")                               # (3)
+            fig.colorbar(bands, ax=ax, label="height")
+            ax.set(xlabel="east", ylabel="north")
+        """},
+        compare="chart",
+        check=("shapes", "shape_colours", "labels", "colour_bars"),
+        choices=("every east goes with every north here (a full grid), so the heights are drawn as they are; "
+                 "scattered points are first joined onto a 100 x 100 grid with straight lines in between (SciPy "
+                 "griddata, method=\"linear\").",
+                 "about 10 bands, in the viridis colours (safe for colour-blind readers); use_colour_scale() "
+                 "chooses others.",
+                 "thin white lines between the bands, solid even below 0 (matplotlib dashes one-colour lines there).",),
+        also="Several heights at one place are averaged. filled=False draws only the lines, with their heights "
+             "written on them (clabel). The dashing of the lines is not compared. " + LOOK,
+    ),
+    Entry(
+        word="draw_surface",
+        data="island",
+        ours="""
+            chart = sdata.chart(sdata.get_example("island"))
+            chart.draw_surface(x="east", y="north", z="height")
+        """,
+        code={"matplotlib": """
+            import matplotlib.pyplot as plt
+            import numpy as np
+            df = sdata.get_example("island")
+            fig = plt.figure()
+            ax = fig.add_subplot(projection="3d")
+            # draw_surface(x="east", y="north", z="height")
+            wide = df.groupby(["north", "east"])["height"].mean().unstack()   # (1)
+            gx, gy = np.meshgrid(wide.columns, wide.index)
+            z = wide.to_numpy(dtype=float)
+            surface = ax.plot_surface(gx, gy, z, cmap="viridis", vmin=z.min(), vmax=z.max(),
+                                      linewidth=0, antialiased=True)
+            fig.colorbar(surface, ax=ax, label="height", shrink=0.6, pad=0.1)
+            ax.set(xlabel="east", ylabel="north", zlabel="height")
+            ax
+        """},
+        compare="chart",
+        check=("in_3d", "labels", "colour_bars"),
+        choices=("a full grid (every east with every north) is drawn as it is; scattered points are first joined "
+                 "onto a 100 x 100 grid (SciPy griddata, straight lines in between).",),
+        also="Several heights at one place are averaged. The colours run through viridis from the lowest to the highest point; use_colour_scale() chooses "
+             "others. The test compares the height behind each piece's colour, the z axis and the colour bar. "
+             + LOOK,
+    ),
+    Entry(
+        word="draw_dots_3d",
+        data="marks",
+        ours="""
+            chart = sdata.chart(sdata.get_example("marks"))
+            chart.draw_dots_3d(x="hours", y="height", z="marks", colour="class")
+        """,
+        code={"matplotlib": """
+            import matplotlib.pyplot as plt
+            df = sdata.get_example("marks")
+            fig = plt.figure()
+            ax = fig.add_subplot(projection="3d")
+            # draw_dots_3d(x="hours", y="height", z="marks", colour="class")
+            colours = ["#0072B2", "#E69F00", "#009E73"]
+            for (name, rows), c in zip(df.groupby("class", sort=False), colours):  # (1)
+                ax.scatter(rows["hours"], rows["height"], rows["marks"], color=c,
+                           depthshade=False, label=name)
+            ax.legend(title="class")
+            ax.set(xlabel="hours", ylabel="height", zlabel="marks")
+            ax
+        """},
+        compare="chart",
+        check=("in_3d", "dot_colour_groups", "legend", "labels"),
+        choices=("words (or a number column with 8 values or fewer) give each group its own colour, in the order the "
+                 "groups appear; a number column with more values gets a colour scale and a colour bar instead.",),
+        also="depthshade=False keeps every dot its own colour; matplotlib's own default fades the dots further "
+             "back. The fading is not compared. " + LOOK,
+    ),
+    Entry(
+        word="draw_band",
+        data="weather",
+        ours="""
+            table = sdata.table(sdata.get_example("weather"))
+            table.add_column("lowest", "temperature - 4")
+            table.add_column("highest", "temperature + 4")
+            chart = table.start_chart()
+            chart.draw_band(x="month", between=["lowest", "highest"], colour="city")
+        """,
+        code={"matplotlib": """
+            import matplotlib.pyplot as plt
+            df = sdata.get_example("weather")
+            df["lowest"], df["highest"] = df["temperature"] - 4, df["temperature"] + 4
+            fig, ax = plt.subplots()
+            # draw_band(x="month", between=["lowest", "highest"], colour="city")
+            colours = ["#0072B2", "#E69F00", "#009E73"]
+            for (city, rows), c in zip(df.groupby("city", sort=False), colours):  # (1)
+                ax.fill_between(rows["month"], rows["lowest"], rows["highest"], color=c,
+                                alpha=0.25, linewidth=0, label=city)     # (2)
+            ax.legend(title="city")
+            ax.set_xlabel("month")
+        """},
+        compare="chart",
+        check=("shapes", "shape_colours", "legend", "labels"),
+        choices=("one band per group, in its group's colour and in the order the groups appear, each named in the "
+                 "legend.",
+                 "light bands (alpha 0.25, transparency=0.75) with no edge line, so lines drawn on top stay clear.",),
+        also="An empty cell leaves a gap in the band rather than a made-up edge, and a low edge above the high one "
+             "stops with a message. labelled= names a single band in the legend. " + LOOK_BUT_COLOURS,
+    ),
+    Entry(
+        word="draw_map_of_empty_cells",
+        data="made-up",
+        ours="""
+            chart = sdata.chart({"sales": [3.0, None, 5.0, 2.0], "shop": ["North", "  ", None, "East"]})
+            chart.draw_map_of_empty_cells()
+        """,
+        code={"pandas": """
+            import matplotlib.pyplot as plt
+            import pandas as pd
+            from matplotlib.colors import ListedColormap
+            from matplotlib.patches import Patch
+            df = pd.DataFrame({"sales": [3.0, None, 5.0, 2.0], "shop": ["North", "  ", None, "East"]})
+            # draw_map_of_empty_cells()
+            empty = df.isna() | df.map(lambda v: isinstance(v, str) and not v.strip())  # (1)
+            fig, ax = plt.subplots()
+            ax.imshow(empty.to_numpy(dtype=float), aspect="auto", interpolation="nearest", vmin=0, vmax=1,
+                      cmap=ListedColormap(["#E3E3E3", "#D55E00"]), extent=(-0.5, 1.5, 4.5, 0.5))  # (2)
+            ax.set_xticks([0, 1], labels=[f"{c}\\n{n} empty" for c, n in empty.sum().items()])  # (3)
+            ax.set_ylabel("row (in table order)")
+            ax.legend(handles=[Patch(color="#D55E00", label=f"empty ({empty.sum().sum()} cells)"),
+                               Patch(color="#E3E3E3", label="filled")], loc="upper left", bbox_to_anchor=(1.01, 1))
+        """},
+        compare="chart",
+        check=("cells", "limits", "ticks", "legend", "labels"),
+        choices=("a cell is empty when it is missing or holds only spaces, as in the table words.",
+                 "one strip per column and one line per row, the first row at the top; empty cells in vermilion on "
+                 "light grey (Okabe-Ito, safe for colour-blind readers).",
+                 "under each column, how many of its cells are empty.",),
+        also="columns= shows only some columns; thin gaps in the background colour separate the strips. " + LOOK,
+    ),
+    Entry(
+        word="sticks",
+        data="weather",
+        ours="""
+            chart = sdata.chart(sdata.get_example("weather"))
+            chart.sticks(x="month_number", y="rain", colour="city")
+        """,
+        code={"matplotlib": """
+            import matplotlib.pyplot as plt
+            df = sdata.get_example("weather")
+            fig, ax = plt.subplots()
+            # sticks(x="month_number", y="rain", colour="city")
+            colours = ["#0072B2", "#E69F00", "#009E73"]
+            for (city, rows), c in zip(df.groupby("city", sort=False), colours):
+                ax.vlines(rows["month_number"], 0, rows["rain"], color=c, linewidth=1.5, zorder=2)  # (1)
+                ax.plot(rows["month_number"], rows["rain"], "o", color=c, markersize=5, zorder=3, label=city)
+            ax.axhline(0, color="black", linewidth=0.8, zorder=1)                # (2)
+            ax.legend(title="city")
+            ax.set(xlabel="month_number", ylabel="rain")
+        """},
+        compare="chart",
+        check=("segments", "lines", "legend", "labels"),
+        choices=("each value is a thin stick (1.5 points) from 0, with a small dot on top; thickness= sets the width.",
+                 "a thin line marks 0, behind the sticks, so values below 0 hang down from it.",),
+        also="matplotlib's stem() draws the same kind of chart. " + LOOK,
+    ),
+    Entry(
+        word="draw_error_bars",
+        data="marks",
+        ours="""
+            chart = sdata.chart(sdata.get_example("marks"))
+            chart.draw_dots(x="class", y="marks")
+            chart.draw_error_bars()
+        """,
+        code={"matplotlib": """
+            import matplotlib.pyplot as plt
+            import seaborn as sns
+            df = sdata.get_example("marks")
+            fig, ax = plt.subplots()
+            sns.scatterplot(df, x="class", y="marks", ax=ax)
+            # draw_error_bars(): the standard deviation
+            summary = df.groupby("class", sort=False)["marks"].agg(["mean", "std"])  # (1)
+            ax.errorbar(summary.index, summary["mean"], yerr=summary["std"], fmt="_",  # (2)
+                        markersize=16, markeredgewidth=2, capsize=4, elinewidth=1.5,
+                        capthick=1.5, zorder=3)
+        """},
+        compare="chart",
+        check=("segments", "lines", "dots"),
+        choices=("the standard deviation with n - 1 (pandas std), empty cells skipped; \"standard error\" divides it "
+                 "by the square root of n, \"confidence interval\" is the t interval of the mean.",
+                 "on dots a short wide dash marks each average, and the bars end in caps.",),
+        also="A line is printed saying which error was drawn. With colour groups the bars (with their lines and "
+             "dots) move a little apart so they do not hide each other; dodge=False keeps them on the true x. "
+             + LOOK,
+    ),
+    Entry(
+        word="fit_curve",
+        data="weather",
+        ours="""
+            chart = sdata.chart(sdata.get_example("weather"))
+            chart.draw_dots(x="month_number", y="temperature")
+            chart.fit_curve()
+        """,
+        code={"NumPy": """
+            import matplotlib.pyplot as plt
+            import numpy as np
+            import seaborn as sns
+            df = sdata.get_example("weather")
+            fig, ax = plt.subplots()
+            sns.scatterplot(df, x="month_number", y="temperature", ax=ax)
+            # fit_curve()
+            curve = np.polynomial.Polynomial.fit(df["month_number"], df["temperature"],
+                                                 deg=2)                  # (1)
+            xs = np.linspace(df["month_number"].min(), df["month_number"].max(), 200)  # (2)
+            ax.plot(xs, curve(xs))
+        """},
+        compare="chart",
+        check=("lines", "dots"),
+        tolerance=1e-8,
+        choices=("a curve with one bend (degree 2) unless of_degree= says otherwise, fitted by least squares on the "
+                 "powers of x mapped onto -1 to 1 (as NumPy Polynomial.fit and table.fit_curve), which keeps big x "
+                 "values accurate.",
+                 "the curve is drawn only over the range of x in the data, never past it.",),
+        also="Each colour group gets its own curve; show_equation=True writes the equation and R squared. " + LOOK,
+    ),
+]
+
+# ---------------------------------------------------------------- U3 batch 5: curves, counts and lines on a chart
+ENTRIES += [
+    Entry(
+        word="fit_distribution",
+        data="marks",
+        ours="""
+            chart = sdata.chart(sdata.get_example("marks"))
+            chart.draw_histogram(x="marks")
+            chart.fit_distribution("normal")
+        """,
+        code={"SciPy": """
+            import matplotlib.pyplot as plt
+            import numpy as np
+            import seaborn as sns
+            from scipy import stats
+            df = sdata.get_example("marks")
+            fig, ax = plt.subplots()
+            sns.histplot(df, x="marks", bins=10, ax=ax)
+            # fit_distribution("normal")
+            average, spread = stats.norm.fit(df["marks"].dropna())          # (1)
+            xs = np.linspace(*ax.dataLim.intervalx, 200)                     # (2)
+            width = ax.patches[0].get_width()
+            ax.plot(xs, stats.norm.pdf(xs, average, spread) * len(df) * width)  # (3)
+        """},
+        compare="chart",
+        check=("lines", "bars"),
+        choices=("the values are found by maximum likelihood, as R MASS::fitdistr(): for the normal distribution "
+                 "the standard deviation divides by n, not n - 1. They are printed once.",
+                 "the curve runs over the x range of the histogram, at 200 points.",
+                 "over a histogram of counts the curve is scaled to the bars: density x number of values x bar width "
+                 "(x 100 x bar width for percents; a density histogram needs no scaling).",),
+        also="Each colour group gets its own curve; distribution= takes any name of sdata.distribution, such as "
+             "\"gamma\" or \"lognormal\". " + LOOK,
+    ),
+    Entry(
+        word="draw_curve",
+        data="marks",
+        ours="""
+            chart = sdata.chart(sdata.get_example("marks"))
+            chart.draw_histogram(x="marks")
+            chart.draw_curve(sdata.distribution("normal", average=60, standard_deviation=15))
+        """,
+        code={"SciPy": """
+            import matplotlib.pyplot as plt
+            import numpy as np
+            import seaborn as sns
+            from scipy import stats
+            df = sdata.get_example("marks")
+            fig, ax = plt.subplots()
+            sns.histplot(df, x="marks", bins=10, ax=ax)
+            # draw_curve(the normal distribution with average 60 and standard deviation 15)
+            xs = np.linspace(*ax.dataLim.intervalx, 200)                     # (1)
+            width = ax.patches[0].get_width()
+            ax.plot(xs, stats.norm.pdf(xs, 60, 15) * df["marks"].count() * width,  # (2)
+                    color="black", linewidth=2, zorder=3)
+        """},
+        compare="chart",
+        check=("lines", "line_styles", "bars"),
+        choices=("the curve runs over the x range of what is drawn (between= sets it), at 200 points (steps=).",
+                 "over a histogram of counts the density is scaled to the bars (x number of values x bar width), and "
+                 "a note says so.",),
+        also="A formula works too: chart.draw_curve(\"y = 100 * exp(-0.3 * x)\", between=[0, 10]). Whole-number "
+             "distributions (binomial, poisson ...) are drawn as the chance of each value; show=\"cumulative\" draws "
+             "the chance at or below x. " + LOOK,
+    ),
+    Entry(
+        word="draw_density",
+        data="marks",
+        ours="""
+            chart = sdata.chart(sdata.get_example("marks"))
+            chart.draw_density(x="marks", colour="class")
+        """,
+        code={"seaborn": """
+            import matplotlib.pyplot as plt
+            import seaborn as sns
+            df = sdata.get_example("marks")
+            fig, ax = plt.subplots()
+            # draw_density(x="marks", colour="class")
+            sns.kdeplot(df, x="marks", hue="class", common_norm=False,       # (1)
+                        palette=["#0072B2", "#E69F00", "#009E73"], ax=ax)
+        """},
+        compare="chart",
+        check=("lines", "colours", "legend"),
+        choices=("each group's curve has an area of 1 on its own (common_norm=False), so a small group is not "
+                 "squashed flat; seaborn's own default shares one area between all the groups.",),
+        also="The curve is seaborn's kernel density estimate (Scott's rule for the width). " + LOOK_BUT_COLOURS,
+    ),
+    Entry(
+        word="draw_count_bars",
+        data="fruit",
+        ours="""
+            chart = sdata.chart(sdata.get_example("fruit"))
+            chart.draw_count_bars(x="fruit", colour="shop")
+        """,
+        code={"seaborn": """
+            import matplotlib.pyplot as plt
+            import seaborn as sns
+            df = sdata.get_example("fruit")
+            fig, ax = plt.subplots()
+            # draw_count_bars(x="fruit", colour="shop")
+            sns.countplot(df, x="fruit", hue="shop", palette=["#0072B2", "#E69F00"],
+                          saturation=1, ax=ax)                               # (1)
+        """},
+        compare="chart",
+        check=("bars", "colours", "legend", "ticks"),
+        choices=("the exact colours (saturation=1), not seaborn's slightly duller ones.",),
+        also="Each bar counts the rows of its group; sideways=True lays the bars down. " + LOOK_BUT_COLOURS,
+    ),
+    Entry(
+        word="draw_side_histograms",
+        data="marks",
+        ours="""
+            chart = sdata.chart(sdata.get_example("marks"))
+            chart.draw_dots(x="hours", y="marks")
+            chart.draw_side_histograms()
+        """,
+        code={"matplotlib": """
+            import matplotlib.pyplot as plt
+            import numpy as np
+            import seaborn as sns
+            df = sdata.get_example("marks")
+            fig, ax = plt.subplots()
+            sns.scatterplot(df, x="hours", y="marks", ax=ax)
+            # draw_side_histograms()
+            top = ax.inset_axes([0, 1.02, 1, 0.18], sharex=ax)               # (1)
+            right = ax.inset_axes([1.02, 0, 0.18, 1], sharey=ax)
+            for side, column, way in ((top, "hours", "vertical"), (right, "marks", "horizontal")):
+                side.hist(df[column], bins=np.histogram_bin_edges(df[column], bins="auto"),  # (2)
+                          orientation=way, histtype="stepfilled", alpha=0.8, linewidth=0)
+        """},
+        compare="chart",
+        check=("insets", "dots"),
+        choices=("two thin histograms just outside the chart, along the top (x) and the right (y), sharing the "
+                 "chart's axes so each bar lines up with its dots.",
+                 "the bins follow NumPy's \"auto\" rule (at most 50); with colour groups each group is an outline, so "
+                 "they stay readable where they overlap.",),
+        also="seaborn's jointplot draws a similar figure on a grid of its own. The colours are not compared. " + LOOK,
+    ),
+    Entry(
+        word="draw_cumulative_share",
+        data="marks",
+        ours="""
+            chart = sdata.chart(sdata.get_example("marks"))
+            chart.draw_cumulative_share(x="marks", colour="class")
+        """,
+        code={"seaborn": """
+            import matplotlib.pyplot as plt
+            import seaborn as sns
+            df = sdata.get_example("marks")
+            fig, ax = plt.subplots()
+            # draw_cumulative_share(x="marks", colour="class")
+            sns.ecdfplot(df, x="marks", hue="class",
+                         palette=["#0072B2", "#E69F00", "#009E73"], ax=ax)
+            ax.set_ylabel("share at or below")                               # (1)
+        """},
+        compare="chart",
+        check=("lines", "labels", "legend"),
+        choices=("the y-axis is named in words, \"share at or below\", not seaborn's \"Proportion\".",),
+        also="Each group's line climbs from 0 to 1 on its own, so groups of any size compare directly. "
+             + LOOK,
+    ),
+    Entry(
+        word="draw_line_with_slope",
+        data="marks",
+        ours="""
+            chart = sdata.chart(sdata.get_example("marks"))
+            chart.draw_dots(x="hours", y="marks")
+            chart.draw_line_with_slope(10, labelled="10 marks an hour")
+        """,
+        code={"matplotlib": """
+            import matplotlib.pyplot as plt
+            import seaborn as sns
+            df = sdata.get_example("marks")
+            fig, ax = plt.subplots()
+            sns.scatterplot(df, x="hours", y="marks", ax=ax)
+            # draw_line_with_slope(10, labelled="10 marks an hour")
+            line = ax.axline((0, 0), slope=10, color="grey", linestyle="--",     # (1)
+                             linewidth=1.5, zorder=2.5)
+            ax.legend([line], ["10 marks an hour"])                          # (2)
+        """},
+        compare="chart",
+        check=("ax_lines", "line_styles", "legend", "dots"),
+        choices=("through 0, 0 unless through= or intercept= says otherwise, right across the chart: a grey dashed "
+                 "line, 1.5 points wide, above bars and below dots (zorder 2.5).",
+                 "labelled= names the line in the legend, after any groups already there.",),
+        also="Ordinary axes only: on a log scale a straight line would bend, so simplydata stops with a message. "
+             + LOOK,
+    ),
+    Entry(
+        word="shade_between_x",
+        data="weather",
+        ours="""
+            chart = sdata.chart(sdata.get_example("weather"))
+            chart.draw_lines(x="month_number", y="temperature", colour="city")
+            chart.shade_between_x(6, 8)
+        """,
+        code={"matplotlib": """
+            import matplotlib.pyplot as plt
+            import seaborn as sns
+            df = sdata.get_example("weather")
+            fig, ax = plt.subplots()
+            sns.lineplot(df, x="month_number", y="temperature", hue="city", errorbar=None,
+                         palette=["#0072B2", "#E69F00", "#009E73"], ax=ax)
+            # shade_between_x(6, 8)
+            ax.axvspan(6, 8, color="grey", alpha=0.2, linewidth=0, zorder=0)    # (1)
+        """},
+        compare="chart",
+        check=("bars", "colours", "lines", "limits"),
+        choices=("a light grey band (alpha 0.2) from the bottom of the chart to the top, between the two x values.",),
+        also="The band is drawn behind everything else (zorder 0), so the data stay in front of it; the drawing "
+             "order is not compared. The two ends may come in either order. The band is a rectangle: the test reads it, and its see-through "
+             "grey, among the bars. " + LOOK_BUT_COLOURS,
+    ),
+    Entry(
+        word="write_names_on_dots",
+        data="marks",
+        ours="""
+            table = sdata.table(sdata.get_example("marks"))
+            table.keep_rows_where("subject", is_equal_to="Maths")
+            table.keep_rows_where("class", is_equal_to="A")
+            chart = table.start_chart()
+            chart.draw_dots(x="hours", y="marks")
+            chart.write_names_on_dots("name")
+        """,
+        code={"matplotlib": """
+            import matplotlib.pyplot as plt
+            import seaborn as sns
+            df = sdata.get_example("marks")
+            df = df[(df["subject"] == "Maths") & (df["class"] == "A")]
+            fig, ax = plt.subplots()
+            sns.scatterplot(df, x="hours", y="marks", ax=ax)
+            # write_names_on_dots("name"): the side of each name is what simplydata's search found
+            left = {"Chen", "Dina"}                                          # (1)
+            for name, x, y in zip(df["name"], df["hours"], df["marks"]):
+                side = -1 if name in left else 1
+                ax.annotate(name, xy=(x, y), xytext=(5.5 * side, 0), textcoords="offset points",
+                            ha="left" if side > 0 else "right", va="center", zorder=4,
+                            bbox=dict(boxstyle="round,pad=0.1", fc="white", ec="none", alpha=0.7))  # (2)
+        """},
+        compare="chart",
+        check=("text_places", "texts", "dots"),
+        choices=("each name goes just right of its dot (2 points past the dot's edge: 5.5 points from its middle in "
+                 "the paper look); where it would cover another name or dot, or leave the chart, it tries left, "
+                 "above, below and then the corners. Here Chen (at the right edge) and Dina (next to Ben's name) go "
+                 "left. A name with no free place is left out, and a line says how many.",
+                 "each name sits on a soft background in the chart's own colour, so it stays readable over lines.",),
+        also="The search for a free place is simplydata's own; matplotlib only writes each name where it is told. "
+             "The size of the letters is not compared. " + LOOK,
+    ),
+    Entry(
+        word="use_font",
+        data="marks",
+        ours="""
+            chart = sdata.chart(sdata.get_example("marks"))
+            chart.draw_bars(x="class", y="marks")
+            chart.use_font("DejaVu Serif")
+        """,
+        code={"matplotlib": """
+            import matplotlib.pyplot as plt
+            import seaborn as sns
+            df = sdata.get_example("marks")
+            # use_font("DejaVu Serif")
+            with plt.rc_context({"font.family": "DejaVu Serif"}):            # (1)
+                fig, ax = plt.subplots()
+                sns.barplot(df, x="class", y="marks", errorbar=None, ax=ax)
+        """},
+        compare="chart",
+        check=("fonts", "labels", "bars"),
+        choices=("the font is matplotlib's font.family for every word of the chart, used while it is drawn and saved, "
+                 "so your other charts keep theirs.",),
+        also="The name is checked against the fonts installed on your computer (any capitals), and a misspelt name "
+             "gets a list of close ones; \"serif\", \"sans-serif\" and \"monospace\" work everywhere. " + LOOK,
+    ),
+    Entry(
+        word="set_range_x",
+        data="marks",
+        ours="""
+            chart = sdata.chart(sdata.get_example("marks"))
+            chart.draw_dots(x="hours", y="marks")
+            chart.set_range_x(0, None)
+        """,
+        code={"matplotlib": """
+            import matplotlib.pyplot as plt
+            import seaborn as sns
+            df = sdata.get_example("marks")
+            fig, ax = plt.subplots()
+            sns.scatterplot(df, x="hours", y="marks", ax=ax)
+            # set_range_x(0, None)
+            ax.set_xlim(0, None)                                             # (1)
+        """},
+        compare="chart",
+        check=("limits", "dots"),
+        choices=("None keeps that end where matplotlib put it; a flipped axis stays flipped.",),
+        also="Dates work as ends too. " + LOOK,
+    ),
+    Entry(
+        word="use_log_scale_x",
+        data="growth",
+        ours="""
+            chart = sdata.chart(sdata.get_example("growth"))
+            chart.draw_dots(x="population", y="forest", colour="country")
+            chart.use_log_scale_x()
+        """,
+        code={"matplotlib": """
+            import matplotlib.pyplot as plt
+            import seaborn as sns
+            df = sdata.get_example("growth")
+            fig, ax = plt.subplots()
+            # use_log_scale_x()
+            ax.set_xscale("log")
+            sns.scatterplot(df, x="population", y="forest", hue="country", ax=ax)
+        """},
+        compare="chart",
+        check=("scales", "dots", "limits"),
+        also="The scale is set before drawing, as in use_log_scale_y(), so later ticks and ranges are not undone by "
+             "it. simplydata stops with a plain message when a value is 0 or below, which a log scale cannot show. "
+             + LOOK,
+    ),
+    Entry(
+        word="put_ticks_x",
+        data="marks",
+        ours="""
+            chart = sdata.chart(sdata.get_example("marks"))
+            chart.draw_bars(x="class", y="marks")
+            chart.put_ticks_x("A", "C")
+        """,
+        code={"matplotlib": """
+            import matplotlib.pyplot as plt
+            import seaborn as sns
+            df = sdata.get_example("marks")
+            fig, ax = plt.subplots()
+            sns.barplot(df, x="class", y="marks", errorbar=None, ax=ax)
+            # put_ticks_x("A", "C")
+            ax.set_xticks([0, 2], labels=["A", "C"])                         # (1)
+        """},
+        compare="chart",
+        check=("ticks", "tick_places", "bars", "limits"),
+        choices=("a name is looked up among the names under the bars, which seaborn puts at 0, 1, 2 ..., and keeps "
+                 "its name; numbers are used as they are.",),
+        also="labels= writes your own words; every=5 (or every=\"month\" on dates) and how_many=5 use matplotlib's "
+             "MultipleLocator, the date locators and MaxNLocator. " + LOOK,
+    ),
+    Entry(
+        word="put_ticks_y",
+        data="marks",
+        ours="""
+            chart = sdata.chart(sdata.get_example("marks"))
+            chart.draw_bars(x="class", y="marks")
+            chart.put_ticks_y(0, 25, 50, 75)
+        """,
+        code={"matplotlib": """
+            import matplotlib.pyplot as plt
+            import seaborn as sns
+            df = sdata.get_example("marks")
+            fig, ax = plt.subplots()
+            sns.barplot(df, x="class", y="marks", errorbar=None, ax=ax)
+            # put_ticks_y(0, 25, 50, 75)
+            ax.set_yticks([0, 25, 50, 75])
+        """},
+        compare="chart",
+        check=("ticks", "tick_places", "bars", "limits"),
+        also="labels= writes your own words at the ticks; every=10 and how_many=5 use matplotlib's MultipleLocator "
+             "and MaxNLocator (how_many=5 asks for at most 4 gaps), whole_numbers=True MaxNLocator(integer=True). "
+             + LOOK,
+    ),
+]
+
+# ---------------------------------------------------------------- U3 batch 5: axes, grids, legends, order, zoom, forest
+ENTRIES += [
+    Entry(
+        word="rotate_labels_y",
+        data="fruit",
+        ours="""
+            chart = sdata.chart(sdata.get_example("fruit"))
+            chart.draw_bars(x="fruit", y="count", sideways=True)
+            chart.rotate_labels_y(30)
+        """,
+        code={"matplotlib": """
+            import matplotlib.pyplot as plt
+            import seaborn as sns
+            df = sdata.get_example("fruit")
+            fig, ax = plt.subplots()
+            sns.barplot(df, x="count", y="fruit", orient="h", errorbar=None, ax=ax)
+            # rotate_labels_y: 30 degrees
+            for label in ax.get_yticklabels():
+                label.set_rotation(30)
+                label.set_horizontalalignment("right")
+                label.set_verticalalignment("center")
+                label.set_rotation_mode("anchor")                        # (1)
+        """},
+        compare="chart",
+        check=("tick_angles", "ticks", "bars"),
+        choices=("each name turns about its right end (rotation mode \"anchor\"), the end next to the axis, so it "
+                 "stays beside its own bar; matplotlib's own default turns it about its middle.",),
+        also="It runs after put_ticks_y(), so new tick labels are turned too. " + LOOK,
+    ),
+    Entry(
+        word="write_ticks_x_as",
+        data="shop",
+        ours="""
+            chart = sdata.chart(sdata.get_example("shop"))
+            chart.draw_dots(x="sales", y="customers")
+            chart.write_ticks_x_as("thousands")
+        """,
+        code={"matplotlib": """
+            import matplotlib.pyplot as plt
+            import seaborn as sns
+            from matplotlib import ticker
+            df = sdata.get_example("shop")
+            fig, ax = plt.subplots()
+            sns.scatterplot(df, x="sales", y="customers", ax=ax)
+            # write_ticks_x_as("thousands")
+            ax.xaxis.set_major_formatter(ticker.StrMethodFormatter("{x:,.0f}"))  # (1)
+        """},
+        compare="chart",
+        check=("ticks", "dots"),
+        choices=("a comma between the thousands and no decimals unless with_decimals= asks (1,000, not 1000.0).",),
+        also="\"percent\" uses PercentFormatter, \"scientific\" and \"plain\" ScalarFormatter; on a date axis you "
+             "write how a date should look, such as \"Jan 2026\" (DateFormatter). " + LOOK,
+    ),
+    Entry(
+        word="flip_x",
+        data="marks",
+        ours="""
+            chart = sdata.chart(sdata.get_example("marks"))
+            chart.draw_dots(x="hours", y="marks")
+            chart.flip_x()
+        """,
+        code={"matplotlib": """
+            import matplotlib.pyplot as plt
+            import seaborn as sns
+            df = sdata.get_example("marks")
+            fig, ax = plt.subplots()
+            sns.scatterplot(df, x="hours", y="marks", ax=ax)
+            # flip_x()
+            ax.invert_xaxis()
+        """},
+        compare="chart",
+        check=("limits", "dots"),
+        also="The axis is turned round only if it is not turned already, so saying it twice keeps it flipped; "
+             "set_range_x() afterwards keeps the flip. " + LOOK,
+    ),
+    Entry(
+        word="flip_y",
+        data="marks",
+        ours="""
+            chart = sdata.chart(sdata.get_example("marks"))
+            chart.draw_dots(x="hours", y="marks")
+            chart.flip_y()
+        """,
+        code={"matplotlib": """
+            import matplotlib.pyplot as plt
+            import seaborn as sns
+            df = sdata.get_example("marks")
+            fig, ax = plt.subplots()
+            sns.scatterplot(df, x="hours", y="marks", ax=ax)
+            # flip_y()
+            ax.invert_yaxis()
+        """},
+        compare="chart",
+        check=("limits", "dots"),
+        also="Handy for depth, which grows downwards. The axis is turned round only if it is not turned already; "
+             "set_range_y() afterwards keeps the flip. " + LOOK,
+    ),
+    Entry(
+        word="use_colour_scale",
+        data="weather",
+        ours="""
+            chart = sdata.chart(sdata.get_example("weather"))
+            chart.draw_heatmap(x="month", y="city", value="rain")
+            chart.use_colour_scale("magma")
+        """,
+        code={"seaborn": """
+            import matplotlib.pyplot as plt
+            import seaborn as sns
+            df = sdata.get_example("weather")
+            wide = df.pivot_table(index="city", columns="month", values="rain", aggfunc="mean", sort=False)
+            fig, ax = plt.subplots()
+            # use_colour_scale("magma")
+            sns.heatmap(wide, cmap="magma", vmin=wide.min().min(), vmax=wide.max().max(),  # (1)
+                        cbar=False, ax=ax)
+            ax.tick_params(axis="y", rotation=0)
+        """},
+        compare="chart",
+        check=("cells", "ticks"),
+        choices=("the colours run from the smallest value to the biggest; between=[low, high] fixes the ends (values "
+                 "beyond get the end colours), log=True spreads them on a log scale and steps= cuts the scale into "
+                 "bands (LogNorm, BoundaryNorm). A two-sided scale such as \"blue to red\" with middle=0 goes "
+                 "equally far on both sides.",),
+        also="Plain names (\"blue to red\", \"greens\") and any matplotlib or seaborn colour map name work, and two or "
+             "more colours make your own (LinearSegmentedColormap). A rainbow map gets a note that it misleads. "
+             + LOOK,
+    ),
+    Entry(
+        word="show_grid",
+        data="marks",
+        ours="""
+            chart = sdata.chart(sdata.get_example("marks"))
+            chart.draw_dots(x="hours", y="marks")
+            chart.show_grid()
+        """,
+        code={"matplotlib": """
+            import matplotlib.pyplot as plt
+            import seaborn as sns
+            df = sdata.get_example("marks")
+            fig, ax = plt.subplots()
+            sns.scatterplot(df, x="hours", y="marks", ax=ax)
+            # show_grid()
+            ax.grid(True, axis="both")                                       # (1)
+        """},
+        compare="chart",
+        check=("grid", "dots"),
+        choices=("lines in both directions; simplydata's normal paper look draws only the lines across the chart, "
+                 "from the y-axis.",),
+        also="The grid is a matplotlib setting (axes.grid) used while the chart is drawn and saved. " + LOOK,
+    ),
+    Entry(
+        word="hide_grid",
+        data="marks",
+        ours="""
+            chart = sdata.chart(sdata.get_example("marks"))
+            chart.draw_dots(x="hours", y="marks")
+            chart.hide_grid()
+        """,
+        code={"matplotlib": """
+            import matplotlib.pyplot as plt
+            import seaborn as sns
+            df = sdata.get_example("marks")
+            fig, ax = plt.subplots()
+            sns.scatterplot(df, x="hours", y="marks", ax=ax)
+            # hide_grid()
+            ax.grid(False)
+        """},
+        compare="chart",
+        check=("grid", "dots"),
+        also="simplydata's paper look normally draws light lines across the chart from the y-axis; hide_grid() "
+             "removes them (matplotlib's own default has none). " + LOOK,
+    ),
+    Entry(
+        word="put_legend_at_top",
+        data="weather",
+        ours="""
+            chart = sdata.chart(sdata.get_example("weather"))
+            chart.draw_lines(x="month", y="temperature", colour="city")
+            chart.write_title_on_top("Temperature")
+            chart.put_legend_at_top()
+        """,
+        code={"matplotlib": """
+            import matplotlib.pyplot as plt
+            import seaborn as sns
+            from matplotlib.patches import Rectangle
+            df = sdata.get_example("weather")
+            fig, ax = plt.subplots(layout="constrained")
+            sns.lineplot(df, x="month", y="temperature", hue="city", errorbar=None, ax=ax)
+            # put_legend_at_top(), on a chart with the title "Temperature"
+            handles, labels = ax.get_legend_handles_labels()
+            ax.get_legend().remove()
+            blank = Rectangle((0, 0), 1, 1, visible=False)
+            fig.legend([blank] + handles, ["city:"] + labels, title="Temperature",  # (1)
+                       loc="outside upper center", ncols=4)              # (2)
+        """},
+        compare="chart",
+        check=("legend_place", "labels", "lines"),
+        choices=("the chart's title becomes the legend's heading, so the two never sit on top of each other, and the "
+                 "group name moves to the front of the row.",
+                 "one row of entries (up to 6 in a row) above the chart, outside it, so it covers no data.",),
+        also="Entries from every panel and from a second y-axis are gathered into this one legend. " + LOOK,
+    ),
+    Entry(
+        word="put_legend_on_right",
+        data="weather",
+        ours="""
+            chart = sdata.chart(sdata.get_example("weather"))
+            chart.draw_lines(x="month", y="temperature", colour="city")
+            chart.put_legend_on_right()
+        """,
+        code={"matplotlib": """
+            import matplotlib.pyplot as plt
+            import seaborn as sns
+            df = sdata.get_example("weather")
+            fig, ax = plt.subplots(layout="constrained")
+            sns.lineplot(df, x="month", y="temperature", hue="city", errorbar=None, ax=ax)
+            # put_legend_on_right()
+            handles, labels = ax.get_legend_handles_labels()
+            ax.get_legend().remove()
+            fig.legend(handles, labels, title="city",
+                       loc="outside center right")                       # (1)
+        """},
+        compare="chart",
+        check=("legend_place", "lines"),
+        choices=("outside the chart on the right, so it covers no data; on a figure with several panels one legend "
+                 "holds the entries of them all.",),
+        also=LOOK,
+    ),
+    Entry(
+        word="show_legend",
+        data="weather",
+        ours="""
+            chart = sdata.chart(sdata.get_example("weather"))
+            chart.draw_lines(x="month", y="temperature", colour="city")
+            chart.hide_legend()
+            chart.show_legend()
+        """,
+        code={"seaborn": """
+            import matplotlib.pyplot as plt
+            import seaborn as sns
+            df = sdata.get_example("weather")
+            fig, ax = plt.subplots()
+            # hide_legend(), then show_legend(): the legend seaborn draws, in its usual place
+            sns.lineplot(df, x="month", y="temperature", hue="city", errorbar=None, ax=ax)
+        """},
+        compare="chart",
+        check=("legend_place", "legend", "lines"),
+        also="show_legend() takes back hide_legend() and any put_legend_... word, so the legend is the one drawn "
+             "with the chart. A legend appears only when colour= (or shape=) makes groups. " + LOOK,
+    ),
+    Entry(
+        word="label_legend",
+        data="marks",
+        ours="""
+            chart = sdata.chart(sdata.get_example("marks"))
+            chart.draw_dots(x="hours", y="marks", colour="class")
+            chart.label_legend("Class")
+        """,
+        code={"matplotlib": """
+            import matplotlib.pyplot as plt
+            import seaborn as sns
+            df = sdata.get_example("marks")
+            fig, ax = plt.subplots()
+            sns.scatterplot(df, x="hours", y="marks", hue="class", ax=ax)
+            # label_legend("Class")
+            ax.get_legend().set_title("Class")                               # (1)
+        """},
+        compare="chart",
+        check=("legend", "dots"),
+        choices=("the legend of every panel (and of a second y-axis) gets the name, and a legend moved outside by "
+                 "put_legend_... keeps it; label_legend(\"\") leaves the name out.",),
+        also="Without it the legend is named after the colour= column, as seaborn names it. " + LOOK,
+    ),
+    Entry(
+        word="label_colour_bar",
+        data="island",
+        ours="""
+            chart = sdata.chart(sdata.get_example("island"))
+            chart.draw_contour(x="east", y="north", z="height")
+            chart.label_colour_bar("Height (m)")
+        """,
+        code={"matplotlib": """
+            import matplotlib.pyplot as plt
+            import numpy as np
+            df = sdata.get_example("island")
+            wide = df.groupby(["north", "east"])["height"].mean().unstack()
+            gx, gy = np.meshgrid(wide.columns, wide.index)
+            fig, ax = plt.subplots()
+            bands = ax.contourf(gx, gy, wide.to_numpy(dtype=float), levels=10, cmap="viridis")
+            bar = fig.colorbar(bands, ax=ax, label="height")
+            # label_colour_bar("Height (m)")
+            bar.set_label("Height (m)")
+        """},
+        compare="chart",
+        check=("colour_bars",),
+        also="Without it the colour bar is named after the z= (or value=) column. It works on heatmaps, contour maps, "
+             "surfaces and dots coloured by a number column. " + LOOK,
+    ),
+    Entry(
+        word="order_y",
+        data="marks",
+        ours="""
+            chart = sdata.chart(sdata.get_example("marks"))
+            chart.draw_bars(x="class", y="marks", sideways=True)
+            chart.order_y("C", "B", "A")
+        """,
+        code={"pandas": """
+            import matplotlib.pyplot as plt
+            import seaborn as sns
+            df = sdata.get_example("marks")
+            # order_y("C", "B", "A")
+            place = {"C": 0, "B": 1, "A": 2}
+            df = df.sort_values("class", key=lambda s: s.map(place),
+                                kind="stable")                           # (1)
+            fig, ax = plt.subplots()
+            sns.barplot(df, x="marks", y="class", orient="h", errorbar=None, ax=ax)
+        """},
+        compare="chart",
+        check=("ticks", "tick_places", "bars"),
+        choices=("the rows are put in that order with a stable sort, and seaborn draws the groups in the order they "
+                 "appear, the first at the top; groups left out come after the ones named.",),
+        also="biggest_first=True orders the groups by what the chart shows; it works for sideways bars, sideways "
+             "boxes and heatmap rows. " + LOOK,
+    ),
+    Entry(
+        word="order_legend",
+        data="marks",
+        ours="""
+            chart = sdata.chart(sdata.get_example("marks"))
+            chart.draw_bars(x="class", y="marks", colour="subject")
+            chart.order_legend("Science", "Maths", "English")
+        """,
+        code={"pandas": """
+            import matplotlib.pyplot as plt
+            import seaborn as sns
+            df = sdata.get_example("marks")
+            # order_legend("Science", "Maths", "English")
+            place = {"Science": 0, "Maths": 1, "English": 2}
+            df = df.sort_values("subject", key=lambda s: s.map(place), kind="stable")  # (1)
+            fig, ax = plt.subplots()
+            sns.barplot(df, x="class", y="marks", hue="subject", errorbar=None, saturation=1,
+                        palette=["#0072B2", "#E69F00", "#009E73"], ax=ax)  # (2)
+        """},
+        compare="chart",
+        check=("legend", "colours", "bars"),
+        choices=("the rows are put in that order with a stable sort, so the legend, the colours and the bars side by "
+                 "side all follow it; groups left out come after the ones named.",
+                 "the first group named gets the first colour.",),
+        also="The slices of a pie follow it too. seaborn's hue_order= does the same for one call. " + LOOK_BUT_COLOURS,
+    ),
+    Entry(
+        word="add_zoom_box",
+        data="marks",
+        ours="""
+            chart = sdata.chart(sdata.get_example("marks"))
+            chart.draw_dots(x="hours", y="marks")
+            chart.add_zoom_box(x_between=[2, 4], y_between=[40, 60])
+        """,
+        code={"matplotlib": """
+            import matplotlib.pyplot as plt
+            import seaborn as sns
+            df = sdata.get_example("marks")
+            fig, ax = plt.subplots()
+            sns.scatterplot(df, x="hours", y="marks", ax=ax)
+            # add_zoom_box(x_between=[2, 4], y_between=[40, 60])
+            box = ax.inset_axes([0.58, 0.56, 0.39, 0.4])                     # (1)
+            sns.scatterplot(df, x="hours", y="marks", ax=box)                # (2)
+            box.set(xlim=(2, 4), ylim=(40, 60), xlabel="", ylabel="")
+            box.set_zorder(5)
+            ax.indicate_inset_zoom(box, edgecolor="black")
+        """},
+        compare="chart",
+        check=("insets", "dots"),
+        choices=("the box sits in the top right corner (where= chooses another), 0.39 of the chart wide and 0.4 high.",
+                 "the chart's own drawing steps run again inside the box, so it shows exactly what the chart shows, "
+                 "without its legend and axis labels.",),
+        also="Lines join the box to the part it shows (indicate_inset_zoom); the box sits above the chart's lines "
+             "and legend. Its smaller tick labels are not compared. " + LOOK,
+    ),
+    Entry(
+        word="forest_plot",
+        data="made-up",
+        ours="""
+            results = sdata.chart({"study": ["A", "B", "C"], "odds ratio": [0.8, 1.5, 1.1],
+                                   "odds ratio 95 % CI low": [0.5, 1.1, 0.7], "odds ratio 95 % CI high": [1.3, 2.0, 1.7]})
+            results.forest_plot(x="odds ratio", y="study")
+        """,
+        code={"matplotlib": """
+            import matplotlib.pyplot as plt
+            import numpy as np
+            df = {"study": ["A", "B", "C"], "odds ratio": np.array([0.8, 1.5, 1.1]),
+                  "low": np.array([0.5, 1.1, 0.7]), "high": np.array([1.3, 2.0, 1.7])}
+            fig, ax = plt.subplots()
+            # forest_plot(x="odds ratio", y="study")
+            where = np.arange(3)[::-1]                                       # (1)
+            est = df["odds ratio"]
+            ax.errorbar(est, where, xerr=[est - df["low"], df["high"] - est], fmt="o", capsize=3,
+                        elinewidth=1.5, markersize=6)
+            ax.axvline(1, color="grey", linestyle="--", linewidth=1)         # (2)
+            ax.set_yticks(where, labels=df["study"])
+            ax.set_xscale("log")
+            ax.set_xlabel("odds ratio, with its 95 % confidence interval (the line: 1, no effect)")  # (3)
+        """},
+        compare="chart",
+        check=("lines", "segments", "ticks", "tick_places", "scales", "labels"),
+        choices=("the first row at the top, as in a table.",
+                 "a ratio (the column, or every row's name, says \"ratio\") gets a log scale and a dashed line at 1, "
+                 "no effect; other results a plain scale with the line at 0. log_scale= and line_at= choose.",
+                 "the x label names the interval's level and the line.",),
+        also="It reads the columns \"<x> 95 % CI low\" and \"<x> 95 % CI high\" (any level) of a result table, such "
+             "as compare_each_pair_of's. On the result of combine_studies the studies are squares sized by weight= "
+             "and the combined effects diamonds. " + LOOK,
+    ),
+]
