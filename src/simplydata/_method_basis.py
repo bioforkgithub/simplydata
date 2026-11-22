@@ -3322,3 +3322,135 @@ BASIS["animate"] = _b(
     "seconds_per_frame=, keep=True.",
     "Showing results: fixed ranges keep the bars and dots from jumping about, so the change between pictures is "
     "the change in the data.", (), "P5", "A column with fewer than 2 values is refused.", "starting value")
+
+# ---- Phase U3, batch 7: time series, cycles, waves and systems
+BASIS["nums.find_each_dip_that"] = _b(
+    "Every local minimum: SciPy signal.find_peaks on minus the numbers (as R pracma::findpeaks(-x)); positions from 1, "
+    "widths halfway down each dip.",
+    "is_at_most=, apart=, stands_out_by=, wide_at_least=, time_step=.",
+    "A dip is a peak turned upside down, so the same neutral start as find_each_peak_that: no threshold unless you "
+    "give one. These are SciPy's definitions.", (), "P3", "", "convention")
+BASIS["table.find_each_dip_that"] = _b(
+    "Every local minimum, as nums.find_each_dip_that; apart= and wide_at_least= in units of sorted_by, turned into "
+    "readings rounded to 9 decimals.",
+    "is_at_most=, apart=, stands_out_by=, wide_at_least=, for_each_group_in=.",
+    "As table.find_each_peak_that. Rounding the number of readings keeps floating point from making SciPy's distance "
+    "one reading longer.", (), "P3", "Empty cells are never dips; apart= and wide_at_least= need even spacing.",
+    "convention")
+BASIS["table.add_envelope_column"] = _b(
+    "The envelope: the size of the analytic signal from the Hilbert transform (SciPy signal.hilbert, as R "
+    "gsignal::hilbert), in order of sorted_by=.",
+    "show=\"phase\" (degrees, unwrapped) or \"frequency\"; for_each_group_in=.",
+    "The analytic signal is the standard way to read the size of a wave at each moment; it is SciPy's and R "
+    "gsignal's definition.", (), "P3", "The readings must be evenly spaced and filled in.", "convention")
+BASIS["nums.take_fourier_transform"] = _b(
+    "The half spectrum (SciPy rfft, frequency 0 up to the highest the readings can show), sizes and phases in degrees.",
+    "show=\"all\" (SciPy fft, negative frequencies too); time_step=.",
+    "For real numbers the negative frequencies mirror the positive ones, so the half spectrum holds everything. "
+    "Degrees are easier to read than radians.", (), "P3", "Empty values are refused.", "convention")
+BASIS["sdata.find_inverse_fourier_transform"] = _b(
+    "SciPy irfft with the number of readings remembered from the transform (ifft for a full spectrum).",
+    "None: the table says which transform it came from.",
+    "An odd number of readings cannot be told from the half spectrum, so the count travels with the table and a "
+    "round trip gives the numbers back.", (), "P3", "A table that did not come from take_fourier_transform is refused.",
+    "convention")
+BASIS["nums.convolve_with"] = _b(
+    "Every overlap (keep=\"all\": n + m - 1 numbers), SciPy signal.convolve(mode=\"full\").",
+    "keep=\"same\" (the middle n) or \"overlap\" (only full overlaps).",
+    "The full convolution loses nothing; it is SciPy's and NumPy's default and R convolve(type = \"open\").", (), "P3",
+    "", "convention")
+BASIS["nums.change_time_step"] = _b(
+    "Fourier resampling (SciPy signal.resample) to the number of readings that fills the same time.",
+    "test_method=\"polyphase\" (resample_poly) or \"filter then keep\" (decimate).",
+    "Fourier resampling keeps every frequency the new time step can show; it treats the recording as repeating, so "
+    "the other methods are offered for recordings whose ends differ.", (), "P5",
+    "A new step that would leave no readings is refused; a step that cannot be exact is said.", "convention")
+BASIS["sdata.make_wave"] = _b(
+    "Times from 0 in steps of time_step=; a square wave high for half of each cycle; SciPy signal's wave shapes.",
+    "shape=\"sine\", \"sawtooth\", \"chirp\", \"pulse\", \"impulse\"; high_share=, rising_share=, sweep=.",
+    "Half high is the usual square wave (SciPy's duty=0.5 default); starting at time 0 is SciPy's and R gsignal's "
+    "convention.", (), "P3", "how_many= and frequency= must be above 0.", "convention")
+BASIS["sdata.make_window_shape"] = _b(
+    "The symmetric window (SciPy get_window(fftbins=False)), as R gsignal::hann and NumPy hanning.",
+    "periodic=True (the version used inside spectra, SciPy's own default).",
+    "A window you look at or use as a filter is normally symmetric; the periodic one is for spectra, where SciPy "
+    "uses it on its own.", (), "P3", "An unknown window name is refused with a list of common ones.", "convention")
+BASIS["sdata.system"] = _b(
+    "The transfer function with the bottom's first coefficient scaled to 1, as SciPy's TransferFunction and R "
+    "control::tf keep it.",
+    "numerator=/denominator=, poles=/zeros=/gain=, a=/b=/c=/d=; time_step= for a system in steps.",
+    "Scaling the first coefficient to 1 gives every system one way to be written, so the same system always prints "
+    "the same.", (), "P3", "An improper formula (top of higher power than the bottom) is refused.", "convention")
+BASIS["system.step_response"] = _b(
+    "200 evenly spaced times from 0 to until= (SciPy chooses the end from the poles when until= is left out).",
+    "until=, how_many=, time_points=.",
+    "200 points draw a smooth curve for most systems; SciPy's own choice of end time follows the slowest pole.", (),
+    "P5", "time_points= must start at 0 and be evenly spaced.", "starting value")
+BASIS["system.impulse_response"] = _b(
+    "200 evenly spaced times from 0 to until=, as step_response.", "until=, how_many=, time_points=.",
+    "As system.step_response.", (), "P5", "As system.step_response.", "starting value")
+BASIS["system.response_to"] = _b(
+    "The system starts at rest and each input holds until the next time (zero order hold, SciPy lsim(interp=False)); "
+    "the times from the step the inputs remember.",
+    "time_points=.",
+    "A zero order hold is what a computer that reads and acts in steps does, and R control::lsim does the same; "
+    "SciPy's own default joins the inputs by straight lines.", (), "P3",
+    "Inputs whose time step differs from a system in steps are refused, with the line that fixes it.", "convention")
+BASIS["system.frequency_response"] = _b(
+    "200 frequencies evenly spaced on a log scale, in radians per second (cycles per unit of time for a filter); the "
+    "phase unwrapped.",
+    "between=, how_many=, unit=\"cycles per second\".",
+    "Radians per second is the unit of R control, SciPy and MATLAB; an unwrapped phase shows the delay growing "
+    "instead of jumping by 360 degrees.", (), "P3", "Frequencies above what a system in steps can show are refused.",
+    "convention")
+BASIS["system.poles"] = _b(
+    "Each pole with its distance from 0, damping ratio and natural frequency, as R control::damp.",
+    "None.",
+    "The damping ratio and natural frequency say how a pole moves the output; R control::damp's definitions are the "
+    "textbook ones.", (), "P3", "", "convention")
+BASIS["system.is_stable"] = _b(
+    "Stable only when every pole lies strictly inside: a real part below 0 (inside the unit circle in steps).",
+    "None.",
+    "A pole on the edge gives an output that never settles, so it does not count as stable (bounded-input, "
+    "bounded-output stability).", (), "P3", "", "convention")
+BASIS["system.steady_gain"] = _b(
+    "The formula at s = 0 (z = 1 in steps), as R control::dcgain.", "None.",
+    "Where the output settles for a constant input of 1 is the formula at zero frequency; simplydata says when the "
+    "output never settles there.", (), "P3", "A pole at s = 0 gives a gain without limit, and a system that is not "
+    "stable is named.", "convention")
+BASIS["system.in_steps"] = _b(
+    "Zero order hold (the input stays constant between steps), as R control::c2d.",
+    "test_method=\"bilinear\", \"forward difference\", \"backward difference\".",
+    "The zero order hold matches what a computer that acts in steps does, and it is R control's and MATLAB's c2d "
+    "default.", (), "P3", "A system already in steps is refused.", "convention")
+BASIS["system.then"] = _b(
+    "In series the formulas multiply, as R control::series.", "add() for side by side, with_feedback() for a loop.",
+    "That is what joining two systems in series means; there is no other choice.", (), "P3",
+    "Systems of different kinds (continuous and in steps) are refused.", "convention")
+BASIS["system.add"] = _b(
+    "Side by side the formulas add over a common bottom, as R control::parallel.", "then() for in series.",
+    "That is what joining two systems in parallel means.", (), "P3",
+    "Systems of different kinds (continuous and in steps) are refused.", "convention")
+BASIS["system.with_feedback"] = _b(
+    "Negative feedback through 1 (the output itself): G / (1 + G H) with H = 1, as R control::feedback.",
+    "through= another system; sign=\"positive\".",
+    "Negative unity feedback is the usual control loop and R control's default.", (), "P3",
+    "Systems of different kinds are refused.", "convention")
+BASIS["system.table"] = _b(
+    "The transfer function: one row per power, highest first, the top padded with zeros.",
+    "form=\"state space\" (SciPy tf2ss, as R control::tf2ss) or \"poles and zeros\".",
+    "Highest power first is how SciPy, R control and MATLAB write the coefficients; padding puts the top and bottom "
+    "of each power on one row.", (), "P3", "", "convention")
+BASIS["lag_dots"] = _b(
+    "Each value against the value rows_back=1 earlier, in the order of sorted_by=, with a dashed 1:1 line from the "
+    "smallest to the biggest value.",
+    "rows_back= a number or a list (one colour each), transparency=.",
+    "As R lag.plot: dots near the 1:1 line show values like the ones before them. One row back is R's default.", (),
+    "P3", "rows_back= must be whole numbers of 1 or more.", "convention")
+BASIS["system.chart"] = _b(
+    "The Bode chart: gain in decibels and the unwrapped phase in degrees against frequency on a log scale, 200 "
+    "frequencies SciPy picks from the poles and zeros, in two panels.",
+    "show=\"step\", \"impulse\", \"poles and zeros\", \"nyquist\"; between=, until=, unit=.",
+    "The Bode chart is the usual first look at a system, as R control::bode and MATLAB bode draw it.", (),
+    "P3",
+    "Options that do not go with the chosen show= are refused.", "convention")
