@@ -56,7 +56,7 @@ working for one release and prints a one-line note with its new name.
   from NumPy's round, the one pandas uses: the same numbers on both.
 - `find_spectrum_of` and `nums.find_spectrum` no longer give the "share of variance (%)" column or the "holds 68 % of
   the variance" in the sentence: that share was simplydata's own arithmetic. The powers (SciPy) are unchanged; with
-  the periodogram they times the frequency step still add up to the variance.
+  the periodogram, the powers times the frequency step still add up to the variance.
 - `dist.find_middle_range(99.99999999)` printed "The middle 100 %"; it now prints the percent as given.
 - The method line of a notch or peak filter read "as R SciPy signal.iirnotch"; it now says what SciPy runs.
 
