@@ -36,6 +36,9 @@ def bcg(seed=20261122):
     log_rr = 0.6 - 0.035 * latitude + rng.normal(0, 0.15, k)
     tb_unvaccinated = rng.binomial(unvaccinated, base)
     tb_vaccinated = rng.binomial(vaccinated, np.clip(base * np.exp(log_rr), 0, 1))
+    # the years drawn above are stretched onto 1948 to 1980, the span of the published trials (the draws themselves
+    # are left as they are, so the counts do not change)
+    year = 1948 + np.round((year - year.min()) * (1980 - 1948) / (year.max() - year.min())).astype(int)
     names = [f"Trial {chr(65 + i)} {y}" for i, y in enumerate(year)]
     return pd.DataFrame({"trial": names, "year": year, "tb_vaccinated": tb_vaccinated, "vaccinated": vaccinated,
                          "tb_unvaccinated": tb_unvaccinated, "unvaccinated": unvaccinated, "latitude": latitude,

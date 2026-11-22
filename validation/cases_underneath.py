@@ -320,19 +320,22 @@ def _cases(Case):
                      t = pd.read_csv(os.path.join(folder, "iris.csv"), sep=None, engine="python")
                  {"rows": len(t), "total petal width": t["Petal.Width"].sum()}
              """, parent_label="pandas read_csv(sep=None)", parent_tolerance=1e-12),
-        Case("sdata.get_example", "the practice table bcg against the published trials in R metadat (dat.bcg)",
+        Case("sdata.get_example", "the practice table bcg has the shape of the published trials in R metadat (dat.bcg)",
              "BCG trials (metadat)", "real data",
              ours="""
                  bcg = sdata.table(sdata.get_example("bcg"))
-                 {"trials": bcg.get_column("vaccinated").count(), "cases vaccinated": bcg.get_column("tb_vaccinated").find_total(),
-                  "vaccinated": bcg.get_column("vaccinated").find_total(),
-                  "cases unvaccinated": bcg.get_column("tb_unvaccinated").find_total(),
-                  "latitudes": bcg.get_column("latitude").find_total()}
+                 {"trials": bcg.get_column("vaccinated").count(),
+                  "kinds of allocation": len(set(bcg.get_column("allocation"))),
+                  "earliest year": bcg.get_column("year").find_smallest(),
+                  "latest year": bcg.get_column("year").find_biggest()}
              """,
              parent="""
-                 {"trials": len(data), "cases vaccinated": data["tpos"].sum(), "vaccinated": data["vaccinated"].sum(),
-                  "cases unvaccinated": data["cpos"].sum(), "latitudes": data["ablat"].sum()}
-             """, parent_label="R metadat dat.bcg (the published counts)", parent_tolerance=0.0),
+                 {"trials": len(data), "kinds of allocation": data["alloc"].nunique(),
+                  "earliest year": data["year"].min(), "latest year": data["year"].max()}
+             """, parent_label="R metadat dat.bcg (the published trials)", parent_tolerance=0.0,
+             note="Since 2026-11-22 the practice table bcg is made up (DATA_LICENSES.md): it keeps the published "
+                  "trials' columns, number of trials, kinds of allocation and span of years, but not their counts. "
+                  "The counts themselves are checked against metadat in the combine_studies cases."),
         Case("sdata.chart", "the 36 Norris calibration points on a new chart", "NIST Norris", "real data",
              ours="""
                  drawn = sdata.chart(data).draw_dots(x="x", y="y").get_numbers_drawn()

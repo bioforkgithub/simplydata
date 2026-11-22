@@ -17,7 +17,7 @@ R_DATA_COMBINING = {
     "BCG trials (metadat)": (("metadat",), (
         "d <- metadat::dat.bcg; list(trial = paste(d$author, d$year), tpos = d$tpos, tneg = d$tneg, cpos = d$cpos, "
         "cneg = d$cneg, vaccinated = d$tpos + d$tneg, unvaccinated = d$cpos + d$cneg, ablat = d$ablat, "
-        "alloc = d$alloc)")),
+        "alloc = d$alloc, year = d$year)")),
     "passive smoking (metadat)": (("metadat",), (
         "d <- metadat::dat.hackshaw1998; list(study = paste(d$author, d$year), `odds ratio` = d$or, "
         "`odds ratio 95 % CI low` = d$or.lb, `odds ratio 95 % CI high` = d$or.ub)")),
