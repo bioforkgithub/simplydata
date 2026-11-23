@@ -9,10 +9,10 @@ every row. These words measure agreement itself. Every number comes from statsmo
   near_misses="linear" / "quadratic" for ordered categories (in_order= gives the order), as R
   kappa2(weight = "equal" / "squared"). The raw agreement is shown beside kappa, because kappa can be low
   when one category is rare. Three or more columns: Fleiss' kappa (statsmodels fleiss_kappa), its z and p
-  from R irr::kappam.fleiss(). Columns of numbers: the intraclass correlation, R irr::icc() (two-way,
+  from R irr::kappam.fleiss(). Columns of numbers: the intraclass correlation, R psych::ICC() (two-way,
   absolute agreement, one rater by default; raters=, checking_for=, of= choose the form, which is always named:
   raters="a sample" (McGraw and Wong's "random"), "these only" ("fixed") or "different per row" ("different")).
-  test_method="krippendorff": R irr::kripp.alpha(); test_method="lin": Lin's concordance correlation, R
+  test_method="krippendorff": R icr::krippalpha(); test_method="lin": Lin's concordance correlation, R
   DescTools::CCC().
 * limits_of_agreement("device_a", "device_b"): Bland-Altman: the average difference and the limits within
   which 95 % of differences lie, each with its interval (R BlandAltmanLeh::bland.altman.stats()), and
@@ -93,11 +93,11 @@ class AgreementWords:
         agreement beside it; near_misses="linear" or "quadratic" counts near misses as partly
         right (ordered categories: give in_order=["mild", "moderate", "severe"]);
         categories, 3 or more columns: Fleiss' kappa (statsmodels; its p-value from R irr);
-        numbers: the intraclass correlation (ICC) from R irr::icc(): by default two-way, absolute
+        numbers: the intraclass correlation (ICC) from R psych::ICC(): by default two-way, absolute
         agreement, one rater, the raters a sample of many possible raters (raters="these only" or
         "different per row", checking_for="consistency", of="average of raters" choose another form, and
         the form is always named).
-        test_method="krippendorff": Krippendorff's alpha (R irr::kripp.alpha()); test_method="lin": Lin's
+        test_method="krippendorff": Krippendorff's alpha (R icr::krippalpha()); test_method="lin": Lin's
         concordance correlation for two columns of numbers (R DescTools::CCC()).
         Rows with an empty cell are skipped. Gives back a one-row table.
         """
@@ -246,13 +246,17 @@ class AgreementWords:
 
         matrix = np.column_stack([kept[n].to_numpy().astype(float) for n in names])
         model, unit = RATERS[raters], OF[of]
-        r_type = kind if model == "twoway" else "consistency"  # irr::icc ignores type= for the one-way model
-        found = r_call("i <- irr::icc(x, model = model, type = type, unit = unit, conf.level = level); "
-                       "list(value = i$value, low = i$lbound, high = i$ubound, f = i$Fvalue, df1 = i$df1, "
-                       "df2 = i$df2, p = i$p.value)", packages=("irr",),
-                       what="the intraclass correlation (R irr::icc())",
-                       python_note="Python's stack (SciPy, statsmodels) has no ICC", x=matrix, model=model,
-                       type=r_type, unit=unit, level=level / 100)
+        # psych::ICC's rows: ICC1 one-way; ICC2 two-way, absolute agreement (McGraw and Wong's ICC(A,1), the same
+        # numbers for random and fixed raters); ICC3 two-way, consistency (ICC(C,1)); a k for the average of raters.
+        # psych rather than irr::icc, whose interval for ICC(A,k) does not follow McGraw and Wong (1996).
+        psych_row = ("ICC1" if model == "oneway" else "ICC2" if kind == "agreement" else "ICC3")
+        psych_row += "k" if unit == "average" else ""
+        found = r_call("r <- psych::ICC(x, alpha = 1 - level, lmer = FALSE)$results; i <- r[r$type == row, ]; "
+                       "list(value = i$ICC, low = i[['lower bound']], high = i[['upper bound']], f = i$F, "
+                       "df1 = i$df1, df2 = i$df2, p = i$p)", packages=("psych",),
+                       what="the intraclass correlation (R psych::ICC())",
+                       python_note="Python's stack (SciPy, statsmodels) has no ICC", x=matrix, row=psych_row,
+                       level=level / 100)
         value, low, high = (_r_numbers(found, k) for k in ("value", "low", "high"))
         f, p = _r_numbers(found, "f"), _r_numbers(found, "p")
         k = "1" if unit == "single" else "k"
@@ -277,29 +281,32 @@ class AgreementWords:
         print(f"{form} = {_num(value)} ({ci} {_num(low)} to {_num(high)}) for {len(names)} columns and {len(matrix)} "
               f"rows: {guide} (below 0.5 poor, 0.5 to 0.75 moderate, 0.75 to 0.9 good, above 0.9 excellent).")
         print(_p_sentence(p, "there were truly no agreement (ICC = 0)", "agreement this high", None))
-        print(f"Method: {form}: {words}; R irr::icc(model = \"{model}\", type = \"{r_type}\", "
-              f"unit = \"{unit}\") (F = {_num(f)}). {NOT_CORRELATION}")
+        print(f"Method: {form}: {words}; R psych::ICC(lmer = FALSE), its row {psych_row} (F = {_num(f)}). "
+              f"{NOT_CORRELATION}")
         return self._result_table({"test": "intraclass correlation", "form": form,
                                    "what it compares": _list_words(f'"{c}"' for c in names), "rows": len(matrix),
                                    "estimate": value, f"estimate {ci} low": low,
                                    f"estimate {ci} high": high, "statistic name": "F", "statistic": f, "p-value": p,
-                                   "method": f"R irr::icc(model = \"{model}\", type = \"{r_type}\", unit = \"{unit}\")"})
+                                   "method": f"R psych::ICC(lmer = FALSE), row {psych_row}"})
 
     def _krippendorff(self, names, codes, level_name):
         from .._r import r_call
 
-        found = r_call("irr::kripp.alpha(t(x), method = m)$value", packages=("irr",),
-                       what="Krippendorff's alpha (R irr::kripp.alpha())",
+        # icr rather than irr::kripp.alpha, which weights the pairs within a row by 1 instead of 1 / (m - 1) when no
+        # cell is empty, so it is wrong for 3 or more raters (icr gives Krippendorff's published examples)
+        found = r_call("icr::krippalpha(t(x), metric = m)$alpha", packages=("icr",),
+                       what="Krippendorff's alpha (R icr::krippalpha())",
                        python_note="Python's stack (SciPy, statsmodels) has no Krippendorff's alpha", x=codes,
                        m=level_name)
         value = float(np.asarray(found, dtype=float)[0])
         listed = _list_words(f'"{c}"' for c in names)
         print(f"Krippendorff's alpha = {_num(value)} for {listed} ({DATA_WORDS[level_name]}), {len(codes)} rows: 1 is "
               "perfect agreement, 0 the agreement chance would give.")
-        print(f'Method: R irr::kripp.alpha(method = "{level_name}"). {NOT_CORRELATION}')
+        print("Method: Krippendorff's alpha from its coincidence matrix (Hayes and Krippendorff 2007), R "
+              f'icr::krippalpha(metric = "{level_name}"). {NOT_CORRELATION}')
         return self._result_table({"test": "Krippendorff's alpha", "what it compares": listed, "rows": len(codes),
                                    "kind of data": DATA_WORDS[level_name], "estimate": value,
-                                   "method": f'R irr::kripp.alpha(method = "{level_name}")'})
+                                   "method": f'R icr::krippalpha(metric = "{level_name}")'})
 
     def _ccc(self, a, b, level):
         from .._r import r_call

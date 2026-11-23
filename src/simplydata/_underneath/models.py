@@ -19,7 +19,8 @@ pairs = pd.DataFrame({"pair": [1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8, 8],
 
 
 MEADOW = """
-    df = sdata.get_example("meadow")
+    import pandas as pd
+    df = pd.read_csv("meadow.csv")
     thistle = df["thistle"].to_numpy(dtype=float)
     grazed = df["grazed"].to_numpy(dtype=object)
     nettle = df["nettle"].to_numpy(dtype=float)
@@ -35,12 +36,13 @@ ENTRIES = [
         word="table.explain", option="weights=",
         data="fruit",
         ours="""
-            table = sdata.table(sdata.get_example("fruit"))
+            table = sdata.get_example("fruit")
             table.explain("price", using=["shop"], weights="count")
         """,
         code={"statsmodels": """
             import statsmodels.api as sm
-            df = sdata.get_example("fruit")
+            import pandas as pd
+            df = pd.read_csv("fruit.csv")
             # explain("price", using=["shop"], weights="count")
             X = sm.add_constant((df["shop"] == "Market stall").astype(float))
             fit = sm.WLS(df["price"], X, weights=df["count"]).fit()     # (1)
@@ -51,6 +53,9 @@ ENTRIES = [
         tolerance=1e-9,
         choices=("precision weights, as R lm(weights =): statsmodels WLS; for the other outcomes GLM(var_weights=). "
                  "Not freq_weights, which would change the degrees of freedom.",),
+        python_note="simplydata's standard errors of a least-squares fit are R's method, summary.lm()'s chol2inv() of "
+                    "the QR factor, done with NumPy's QR and LAPACK's dpotri (approved by Manish 2026-11-22); "
+                    "statsmodels' WLS above gives the same numbers here, to 1e-9.",
         also="Rows with weight 0 are left out first, as R does (statsmodels would count them in the degrees of "
              "freedom); negative weights are refused. " + SENTENCE,
     ),
@@ -109,13 +114,14 @@ ENTRIES = [
         word="table.explain", option='show="risk ratios"',
         data="clinic",
         ours="""
-            table = sdata.table(sdata.get_example("clinic"))
+            table = sdata.get_example("clinic")
             table.explain("caught_infection", using=["ward", "patient_days"], outcome="yes or no",
                           show="risk ratios")
         """,
         code={"statsmodels": """
             import statsmodels.api as sm
-            df = sdata.get_example("clinic")
+            import pandas as pd
+            df = pd.read_csv("clinic.csv")
             # explain("caught_infection", using=["ward", "patient_days"], outcome="yes or no", show="risk ratios")
             X = sm.add_constant(df[["patient_days"]].assign(b=(df["ward"] == "ward B") * 1.0))
             y = (df["caught_infection"] == "yes").astype(float)
@@ -133,13 +139,14 @@ ENTRIES = [
         word="table.explain", option='test_method="log-binomial"',
         data="school",
         ours="""
-            table = sdata.table(sdata.get_example("school"))
+            table = sdata.get_example("school")
             table.explain("passed", using=["breakfast"], outcome="yes or no", show="risk ratios",
                           test_method="log-binomial")
         """,
         code={"statsmodels": """
             import statsmodels.api as sm
-            df = sdata.get_example("school")
+            import pandas as pd
+            df = pd.read_csv("school.csv")
             # explain("passed", using=["breakfast"], outcome="yes or no", show="risk ratios", test_method="log-binomial")
             X = sm.add_constant((df["breakfast"] == "yes").astype(float))
             y = (df["passed"] == "yes").astype(float)
@@ -157,12 +164,13 @@ ENTRIES = [
         word="table.explain", option="giving_outliers_less_weight=",
         data="marks",
         ours="""
-            table = sdata.table(sdata.get_example("marks"))
+            table = sdata.get_example("marks")
             table.explain("marks", using=["hours"], giving_outliers_less_weight=True)
         """,
         code={"statsmodels": """
             import statsmodels.api as sm
-            df = sdata.get_example("marks")
+            import pandas as pd
+            df = pd.read_csv("marks.csv")
             # explain("marks", using=["hours"], giving_outliers_less_weight=True)
             X = sm.add_constant(df["hours"])
             huber = sm.robust.norms.HuberT()                          # (1)
@@ -183,14 +191,15 @@ ENTRIES = [
         word="table.explain", option="with_knots=",
         data="school",
         ours="""
-            table = sdata.table(sdata.get_example("school"))
+            table = sdata.get_example("school")
             table.explain("marks", using=["hours", "breakfast"], curve_for="hours", with_knots=3)
         """,
         code={"patsy and statsmodels": """
             import numpy as np
             import statsmodels.api as sm
             from patsy import dmatrix
-            df = sdata.get_example("school")
+            import pandas as pd
+            df = pd.read_csv("school.csv")
             # explain("marks", using=["hours", "breakfast"], curve_for="hours", with_knots=3)
             knots = np.quantile(df["hours"], [0.25, 0.5, 0.75])               # (1)
             curve = dmatrix("cr(hours, knots=knots, constraints='center') - 1", df)   # (2)
@@ -211,12 +220,13 @@ ENTRIES = [
         word="table.explain", option='show="standardised effects"',
         data="school",
         ours="""
-            table = sdata.table(sdata.get_example("school"))
+            table = sdata.get_example("school")
             table.explain("marks", using=["hours", "breakfast"], show="standardised effects")
         """,
         code={"statsmodels": """
             import statsmodels.api as sm
-            df = sdata.get_example("school")
+            import pandas as pd
+            df = pd.read_csv("school.csv")
             # explain("marks", using=["hours", "breakfast"], show="standardised effects")
             def z(v):
                 return (v - v.mean()) / v.std()                       # (1)
@@ -236,14 +246,15 @@ ENTRIES = [
         word="table.explain", option='interval_by="bootstrap"',
         data="marks",
         ours="""
-            table = sdata.table(sdata.get_example("marks"))
+            table = sdata.get_example("marks")
             table.explain("marks", using=["hours"], interval_by="bootstrap", resamples=999, with_seed=1)
         """,
         code={"SciPy and statsmodels": """
             import numpy as np
             import statsmodels.api as sm
             from scipy import stats
-            df = sdata.get_example("marks")
+            import pandas as pd
+            df = pd.read_csv("marks.csv")
             # explain("marks", using=["hours"], interval_by="bootstrap", resamples=999, with_seed=1)
             X, y = sm.add_constant(df["hours"]).to_numpy(), df["marks"].to_numpy()
             def refit(rows):                                          # (1)
@@ -264,7 +275,7 @@ ENTRIES = [
         word="table.explain", option='interval_by="profile"',
         data="school",
         ours="""
-            table = sdata.table(sdata.get_example("school"))
+            table = sdata.get_example("school")
             table.explain("passed", using=["hours"], outcome="yes or no", interval_by="profile")
         """,
         code={
@@ -281,7 +292,8 @@ ENTRIES = [
             """,
         },
         r_inputs="""
-            school = sdata.get_example("school")
+            import pandas as pd
+            school = pd.read_csv("school.csv")
             passed = (school["passed"] == "yes").to_numpy(dtype=float)
             hours = school["hours"].to_numpy(dtype=float)
         """,
@@ -296,14 +308,15 @@ ENTRIES = [
         word="table.explain", option='p_value_by="likelihood ratio"',
         data="school",
         ours="""
-            table = sdata.table(sdata.get_example("school"))
+            table = sdata.get_example("school")
             table.explain("passed", using=["hours", "breakfast"], outcome="yes or no",
                           p_value_by="likelihood ratio")
         """,
         code={"statsmodels and SciPy": """
             import statsmodels.api as sm
             from scipy import stats
-            df = sdata.get_example("school")
+            import pandas as pd
+            df = pd.read_csv("school.csv")
             # explain("passed", using=["hours", "breakfast"], outcome="yes or no", p_value_by="likelihood ratio")
             y = (df["passed"] == "yes").astype(float)
             X = sm.add_constant(df[["hours"]].assign(b=(df["breakfast"] == "yes") * 1.0))
@@ -320,7 +333,7 @@ ENTRIES = [
         word="table.explain", option="crossed_with=",
         data="school",
         ours="""
-            table = sdata.table(sdata.get_example("school"))
+            table = sdata.get_example("school")
             table.explain("marks", using=["hours"], grouped_by="school", crossed_with="class")
         """,
         code={
@@ -335,7 +348,8 @@ ENTRIES = [
             """,
         },
         r_inputs="""
-            df = sdata.get_example("school")
+            import pandas as pd
+            df = pd.read_csv("school.csv")
             marks = df["marks"].to_numpy(dtype=float)
             hours = df["hours"].to_numpy(dtype=float)
             school = df["school"].to_numpy(dtype=object)
@@ -353,7 +367,7 @@ ENTRIES = [
         word="table.explain", option='outcome="counts with many zeros that vary a lot"',
         data="meadow",
         ours="""
-            table = sdata.table(sdata.get_example("meadow"))
+            table = sdata.get_example("meadow")
             table.explain("thistle", using=["grazed", "nettle"], outcome="counts with many zeros that vary a lot")
         """,
         code={
@@ -369,7 +383,7 @@ ENTRIES = [
         },
         r_inputs=MEADOW,
         r_packages=("pscl",),
-        compare="result", row="grazed (yes)", fields=("log ratio", "standard error"), tolerance=1e-5,
+        compare="result", row="grazed (yes)", fields=("log ratio", "standard error"), tolerance=1e-9,
         choices=("zero-inflated negative binomial regression with a logistic zero part and the same columns in "
                  "both parts, pscl::zeroinfl(dist = \"negbin\")'s defaults.",),
         python_note="statsmodels ZeroInflatedNegativeBinomialP gives the same estimates but other standard errors.",
@@ -380,7 +394,7 @@ ENTRIES = [
         word="table.explain", option='outcome="counts in two steps"',
         data="meadow",
         ours="""
-            table = sdata.table(sdata.get_example("meadow"))
+            table = sdata.get_example("meadow")
             table.explain("thistle", using=["grazed", "nettle"], outcome="counts in two steps")
         """,
         code={
@@ -397,7 +411,7 @@ ENTRIES = [
         },
         r_inputs=MEADOW,
         r_packages=("pscl",),
-        compare="result", row="grazed (yes)", fields=("log ratio", "standard error"), tolerance=1e-5,
+        compare="result", row="grazed (yes)", fields=("log ratio", "standard error"), tolerance=1e-9,
         choices=("a hurdle model: a logistic part for zero or not (pscl's binomial zero part, the textbook form) "
                  "and a Poisson part cut off at 1 for the counts above 0.",),
         python_note="statsmodels HurdleCountModel has no logistic zero part (its default zero part is Poisson).",
@@ -408,7 +422,7 @@ ENTRIES = [
         word="table.explain", option="zero_part_using=",
         data="meadow",
         ours="""
-            table = sdata.table(sdata.get_example("meadow"))
+            table = sdata.get_example("meadow")
             table.explain("thistle", using=["grazed", "nettle"], outcome="counts with many zeros",
                           zero_part_using=["grazed"])
         """,
@@ -426,7 +440,7 @@ ENTRIES = [
         },
         r_inputs=MEADOW,
         r_packages=("pscl",),
-        compare="result", row="grazed (yes)", fields=("log ratio", "standard error"), tolerance=1e-5,
+        compare="result", row="grazed (yes)", fields=("log ratio", "standard error"), tolerance=1e-9,
         choices=("the zero part gets its own columns, pscl's y ~ x | z; without zero_part_using= both parts use "
                  "the columns of using=.",),
         python_note="statsmodels ZeroInflatedPoisson takes exog_infl= for the zero part too, with other standard "

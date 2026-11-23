@@ -19,6 +19,7 @@ import simplydata as sdata
 from simplydata import SimplydataError
 from simplydata.table import table as make_table
 from simplydata.table.fitting import FitResult, fit_curve_core, fit_formula_core
+from conftest import example_frame
 
 ENGINES = ["pandas", "polars"]
 EST, SE = 1e-6, 1e-5
@@ -33,7 +34,7 @@ def engine(request):
 def make(data, engine):
     if engine == "polars":
         pl = pytest.importorskip("polars")
-        return make_table(pl.from_pandas(data))
+        return make_table(data, fast=True)
     return make_table(data)
 
 
@@ -43,7 +44,7 @@ def rows(result):
 
 
 def applia():
-    g = sdata.get_example("growth")
+    g = example_frame("growth")
     return g[g["country"] == "Applia"].reset_index(drop=True)
 
 
@@ -89,7 +90,7 @@ def check_growth_row(got, want):
 
 # ---------------------------------------------------------------- fit_formula
 def test_fit_formula_for_each_country_matches_r_nls(engine, capsys):
-    result = make(sdata.get_example("growth"), engine).fit_formula(GROWTH, for_each_group_in="country")
+    result = make(example_frame("growth"), engine).fit_formula(GROWTH, for_each_group_in="country")
     got = rows(result)
     assert [r["country"] for r in got] == list(R_GROWTH)
     for row in got:
@@ -176,7 +177,7 @@ def test_weighted_and_bounded_fit_matches_r_port(engine):
 
 
 def test_whole_range_search_finds_the_r_answer_without_start_values(engine, capsys):
-    g = sdata.get_example("growth")
+    g = example_frame("growth")
     t = make(g[g["country"] == "Bananaland"].reset_index(drop=True), engine)
     got = rows(t.fit_formula(GROWTH, between={"a": [0, 100], "b": [-1, 1]}, search="whole range"))[0]
     want = R_GROWTH["Bananaland"]  # R nls() from the good start a = 30, b = 0.01
@@ -218,7 +219,7 @@ def test_scipy_option_names_are_explained():
 
 
 def test_a_group_that_cannot_be_fitted_gets_a_note_and_an_empty_row(capsys):
-    g = sdata.get_example("growth")
+    g = example_frame("growth")
     small = pd.DataFrame({"year": [2000, 2002], "country": ["Tiny", "Tiny"], "population": [1.0, 1.1],
                           "forest": [1.0, 1.0]})
     got = rows(make_table(pd.concat([g, small])).fit_formula(GROWTH, for_each_group_in="country"))
@@ -349,7 +350,7 @@ def test_add_predicted_column_with_a_formula_matches_r_fitted_and_predict(engine
 
 
 def test_add_predicted_column_for_each_group(engine):
-    t = make(sdata.get_example("growth"), engine)
+    t = make(example_frame("growth"), engine)
     t.add_predicted_column(GROWTH, for_each_group_in="country", name="trend")
     frame = t.as_pandas()
     for country, want in R_GROWTH.items():
@@ -359,7 +360,7 @@ def test_add_predicted_column_for_each_group(engine):
 
 
 def test_add_predicted_column_using_a_fit_result(engine, capsys):
-    t = make(sdata.get_example("growth"), engine)
+    t = make(example_frame("growth"), engine)
     fit = t.fit_formula(GROWTH, for_each_group_in="country")
     t.add_predicted_column(GROWTH, using=fit, for_each_group_in="country")
     frame = t.as_pandas()
@@ -389,7 +390,7 @@ def test_add_predicted_column_formula_errors(call, message):
 
 # ---------------------------------------------------------------- fit_curve
 def test_fit_curve_matches_r_lm_poly(engine, capsys):
-    got = rows(make(sdata.get_example("marks"), engine).fit_curve(x="hours", y="marks", of_degree=2))
+    got = rows(make(example_frame("marks"), engine).fit_curve(x="hours", y="marks", of_degree=2))
     # R: fit <- lm(marks ~ poly(hours, 2, raw = TRUE), data = m); summary(fit); confint(fit)
     assert [r["term"] for r in got] == ["(intercept)", "hours", "hours**2"]
     want = [(30.99604022005571, 5.069361940938749, 6.1143868954671312, 1.3570612382675401e-07, 20.81887146157029,
@@ -416,7 +417,7 @@ def test_fit_curve_matches_r_lm_poly(engine, capsys):
 
 
 def test_weighted_fit_curve_matches_r_lm_weights(engine, capsys):
-    data = sdata.get_example("marks").assign(w=lambda d: d["height"] / 100)
+    data = example_frame("marks").assign(w=lambda d: d["height"] / 100)
     got = rows(make(data, engine).fit_curve(x="hours", y="marks", weights="w"))
     # R: lm(marks ~ poly(hours, 2, raw = TRUE), data = m, weights = height / 100); summary; confint
     assert got[0]["estimate"] == pytest.approx(31.087086851390552, rel=1e-10)
@@ -429,7 +430,7 @@ def test_weighted_fit_curve_matches_r_lm_weights(engine, capsys):
 
 
 def test_fit_curve_for_each_class_matches_r(engine, capsys):
-    got = rows(make(sdata.get_example("marks"), engine).fit_curve(x="hours", y="marks", of_degree=3, for_each_group_in="class"))
+    got = rows(make(example_frame("marks"), engine).fit_curve(x="hours", y="marks", of_degree=3, for_each_group_in="class"))
     assert len(got) == 12 and [r["class"] for r in got[::4]] == ["A", "B", "C"]
     # R: for each class: lm(marks ~ poly(hours, 3, raw = TRUE), data = subset(m, class == cl))
     want = {"A": (-14.313681748012252, 0.22610380478963801, 0.81006977728818552, 0.76937044384993958),
@@ -485,7 +486,7 @@ def test_fit_curve_friendly_errors(call, message):
 
 # ---------------------------------------------------------------- fit_line and its old name
 def test_fit_line_is_the_main_name_and_fit_straight_line_still_works(engine, capsys):
-    t = make(sdata.get_example("marks"), engine)
+    t = make(example_frame("marks"), engine)
     line = rows(t.fit_line(x="hours", y="marks"))[0]
     # R: lm(marks ~ hours, data = m)
     assert line["slope"] == pytest.approx(5.20319382959493, rel=1e-12)

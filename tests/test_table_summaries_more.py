@@ -17,6 +17,7 @@ from simplydata import SimplydataError
 from simplydata.numbers import Numbers
 from simplydata.table import table as make_table
 from simplydata.table.stat_tests import _adjust_p
+from conftest import example_frame
 
 ENGINES = ["pandas", "polars"]
 
@@ -29,7 +30,7 @@ def engine(request):
 def make(data, engine):
     if engine == "polars":
         pl = pytest.importorskip("polars")
-        return make_table(pl.from_pandas(data))
+        return make_table(data, fast=True)
     return make_table(data)
 
 
@@ -357,7 +358,7 @@ def test_percent_of_empty_cells_and_text(engine, gappy, capsys):
 
 
 def test_percent_of_shares(engine, capsys):
-    fruit = sdata.get_example("fruit")
+    fruit = example_frame("fruit")
     t = make(fruit, engine)
     total = frame(t.find_percent_of_rows_where("count", for_each_group_in="shop"))
     want = fruit.groupby("shop")["count"].sum() / fruit["count"].sum() * 100
@@ -604,7 +605,7 @@ def test_example_tables_run(capsys):
     t.compare_shape_to("marks", "normal", for_each_group_in="class")
     results = t.find_correlation_between("hours", "marks", "height", show="each pair")
     results.add_adjusted_p_value_column("q", test_method="benjamini-hochberg")
-    assert t.get_column("marks").find_average() == pytest.approx(sdata.get_example("marks")["marks"].mean())
+    assert t.get_column("marks").find_average() == pytest.approx(example_frame("marks")["marks"].mean())
     g = sdata.table(sdata.get_example("growth"))
     g.turn_into_dates("year")
     g.find_average_of("population", for_each_group_in="year", every="year")

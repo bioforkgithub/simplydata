@@ -397,7 +397,14 @@ def fit_formula_core(formula, data, columns, start=None, between=None, weights=N
     if key == "lm":
         options.update(maxfev=20000, xtol=1e-12, ftol=1e-12)
     else:
-        options.update(max_nfev=20000, xtol=1e-12, ftol=1e-12, gtol=1e-12, bounds=(low, high))
+        # trust region and dogbox (SciPy least_squares): central differences with a step relative to each value
+        # (diff_step = eps^(1/3) times the value), so a value such as 1e-7 is not stepped by 1.5e-8 (SciPy's
+        # default step is relative to max(1, |value|)); the standard errors come from this Jacobian at the end.
+        # xtol, ftol and gtol 1e-15 (SciPy's own options; above machine epsilon): the search goes on to the
+        # minimum, where the Jacobian gives the standard errors. With 1e-12 it stopped a little short: NIST
+        # Thurber standard errors agreed to 5.8 digits (6.7 now), ENSO b6 to 5.9 (6.5) and MGH09 b2, b4 to 5.8 (7.2)
+        options.update(max_nfev=20000, xtol=1e-15, ftol=1e-15, gtol=1e-15, bounds=(low, high), jac="3-point",
+                       diff_step=np.finfo(float).eps ** (1 / 3))
     uncertain = False
     with warnings.catch_warnings(record=True) as caught:
         warnings.simplefilter("always")
@@ -467,6 +474,13 @@ def fit_formula_core(formula, data, columns, start=None, between=None, weights=N
     return FitResult(parsed, found, errors, cov, n, df, sigma, rss, r2, aic, converged, sentence, name, notes,
                      skipped)
 
+
+
+def _note_text(fit) -> str:
+    """The note column of fit_formula: whether it converged, then each note it printed, in one line."""
+    parts = ["converged" if fit.converged else "did not converge"]
+    parts += [n[len("Note: "):] if n.startswith("Note: ") else n for n in fit.notes]
+    return "; ".join(parts)
 
 
 def _not_pinned_down(curve, found, weight) -> bool:
@@ -819,7 +833,8 @@ class FittingWords:
         Prints each value with its 95 % confidence interval, the residual standard error and
         R squared (only a rough guide for a curve). Gives back one row (one per group) with
         each value, its standard error, t, p-value and 95 % CI, the residual standard error,
-        degrees of freedom, R squared, AIC, rows and whether the fit converged. Residuals:
+        degrees of freedom, R squared, AIC, rows, whether the fit converged, and a note: "converged" or
+        "did not converge", followed by the warnings the fit printed (SciPy's and simplydata's). Residuals:
         add_predicted_column with the same formula, then add_column("y - predicted y").
         Rows with an empty cell are skipped.
         """
@@ -840,7 +855,7 @@ class FittingWords:
                                 f"95 % CI high of {name}": math.nan})
                 row.update({"residual standard error": math.nan, "degrees of freedom": math.nan,
                             "R squared": math.nan, "AIC": math.nan, "rows": 0, "converged": "no",
-                            "method": ""})
+                            "method": "", "note": "not fitted: " + fit.strip().splitlines()[0]})
                 rows.append(row)
                 continue
             low, high = fit.intervals
@@ -850,7 +865,8 @@ class FittingWords:
                             f"95 % CI low of {name}": float(low[j]), f"95 % CI high of {name}": float(high[j])})
             row.update({"residual standard error": fit.sigma, "degrees of freedom": float(fit.df),
                         "R squared": fit.r2, "AIC": fit.aic, "rows": fit.n,
-                        "converged": "yes" if fit.converged else "no", "method": fit.method_name})
+                        "converged": "yes" if fit.converged else "no", "method": fit.method_name,
+                        "note": _note_text(fit)})
             rows.append(row)
 
         def values_text(fit):

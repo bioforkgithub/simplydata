@@ -1,7 +1,7 @@
 """S1 Part B4: intervals for summaries, interval_of (bootstrap), harmonic and winsorized averages,
 percentile rules, z-scores.
 
-Reference values: R 4.6.2 on sdata.get_example("marks"): m <- read.csv(".../marks.csv").
+Reference values: R 4.6.2 on example_frame("marks"): m <- read.csv(".../marks.csv").
 """
 
 import math
@@ -11,14 +11,15 @@ import pytest
 import simplydata as sdata
 from simplydata import SimplydataError
 from simplydata.table import table as make_table
+from conftest import example_frame
 
 
 @pytest.fixture(params=["pandas", "polars"])
 def marks(request):
-    data = sdata.get_example("marks")
+    data = example_frame("marks")
     if request.param == "polars":
         pl = pytest.importorskip("polars")
-        return make_table(pl.from_pandas(data))
+        return make_table(data, fast=True)
     return make_table(data)
 
 

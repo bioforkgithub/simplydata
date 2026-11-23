@@ -18,9 +18,11 @@ ENTRIES = [
             import pandas as pd
             path = str(files("simplydata.data") / "marks.csv")   # the practice file inside simplydata
             # table(path)
-            pd.read_csv(path)
+            pd.read_csv(path, sep=None, engine="python")         # (1)
         """},
         compare="table",
+        choices=("the separator is guessed from the file (sep=None), so a file with ; or tabs between the values "
+                 "is read too; separator= sets it yourself.",),
         also="simplydata reads the file with pandas (fast=True: with Polars), finds the type from the end of the "
              "name (.xlsx, .csv, .tsv, .parquet, .json, Word, SPSS, Stata) and keeps it ready for table words. A "
              "pandas or Polars table you already have is used as it is.",
@@ -51,7 +53,8 @@ ENTRIES = [
         code={"seaborn": """
             import matplotlib.pyplot as plt
             import seaborn as sns
-            df = sdata.get_example("marks")
+            import pandas as pd
+            df = pd.read_csv("marks.csv")
             # chart(df): the figure and its axes
             fig, ax = plt.subplots()
             sns.scatterplot(df, x="hours", y="marks", ax=ax)
@@ -66,7 +69,7 @@ ENTRIES = [
         word="table.start_chart",
         data="marks",
         ours="""
-            table = sdata.table(sdata.get_example("marks"))
+            table = sdata.get_example("marks")
             table.keep_rows_where("subject", is_equal_to="Maths")
             chart = table.start_chart()
             chart.draw_bars(x="name", y="marks")
@@ -74,7 +77,8 @@ ENTRIES = [
         code={"seaborn": """
             import matplotlib.pyplot as plt
             import seaborn as sns
-            df = sdata.get_example("marks")
+            import pandas as pd
+            df = pd.read_csv("marks.csv")
             maths = df[df["subject"] == "Maths"]
             # start_chart(): the figure and its axes, from the table as it is now
             fig, ax = plt.subplots()
@@ -93,12 +97,14 @@ ENTRIES = [
         code={"NumPy": """
             import numpy as np
             # numbers(0, to=100, step=25)
-            np.arange(0, 100 + 25, 25)          # (1)
+            n = int(np.floor((100 - 0) / 25 + 1e-9)) + 1     # (1)
+            0 + 25 * np.arange(n)
         """},
         compare="value",
         tolerance=0.0,
-        choices=("the end you give is included (0, 25, 50, 75, 100); np.arange leaves it out, so the stop is "
-                 "one step further.",),
+        choices=("the end you give is included (0, 25, 50, 75, 100): simplydata counts how many steps fit (with a "
+                 "little room for rounding) and multiplies. np.arange(0, 125, 25) gives the same here, but with a "
+                 "decimal step np.arange can overshoot the end: np.arange(1, 1.4, 0.1) has 1.4 in it.",),
         also="sdata.numbers([3, 5, 2, 8]) is np.array([3, 5, 2, 8]), and how_many= is np.linspace(0, 1, 5). "
              "None in a list becomes an empty value (nan).",
     ),
@@ -160,31 +166,22 @@ ENTRIES = [
     Entry(
         word="sdata.make_run_of_dates",
         ours="""
-            sdata.make_run_of_dates("2026-01-31", how_many=4, every="month")
+            sdata.make_run_of_dates("2026-01-30", how_many=4, every="month")
         """,
-        code={
-            "pandas": """
-                import pandas as pd
-                first = pd.Timestamp("2026-01-31")
-                # make_run_of_dates("2026-01-31", how_many=4, every="month")
-                dates = [first + pd.DateOffset(months=k) for k in range(4)]      # (1)
-                pd.DataFrame({"date": dates})
-            """,
-            "Polars": """
-                from datetime import datetime
-                import polars as pl
-                # make_run_of_dates("2026-01-31", how_many=4, every="month")
-                dates = pl.datetime_range(datetime(2026, 1, 31), datetime(2026, 4, 30), "1mo",
-                                          eager=True)                            # (1)
-                pl.DataFrame({"date": dates})
-            """,
-        },
+        code={"pandas": """
+            import pandas as pd
+            first = pd.Timestamp("2026-01-30")
+            # make_run_of_dates("2026-01-30", how_many=4, every="month")
+            dates = [first + pd.DateOffset(months=k) for k in range(4)]      # (1)
+            pd.DataFrame({"date": dates})
+        """},
         compare="table",
-        choices=("each month is counted from the first date, so from the 31st the dates stay on the 31st, or on "
-                 "the month's last day when it is shorter (31 January, 28 February, 31 March, 30 April). pandas' "
+        choices=("each month is counted from the first date, so the dates stay on the 30th, or on the month's last "
+                 "day when it is shorter (30 January, 28 February, 30 March, 30 April). pandas' "
                  "date_range(freq=DateOffset(months=1)) steps from the date before instead and stays on the 28th; "
                  "R's seq(by = \"month\") runs over into March.",),
-        also="simplydata also says how many dates it made. to= gives the last date instead of how_many=.",
+        also="simplydata also says how many dates it made. to= gives the last date instead of how_many=, and "
+             "fast=True gives a Polars table.",
     ),
     Entry(word="sdata.help", ours='sdata.help("draw_bars")', compare="none",
           note="simplydata's own: it reads its own word list and the words' docstrings, in plain Python. Python's "

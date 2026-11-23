@@ -15,7 +15,9 @@ import pytest
 from scipy import stats
 
 import simplydata as sdata
+from conftest import r_table
 from simplydata import SimplydataError
+from conftest import example_frame
 
 DATA = Path(__file__).resolve().parents[1] / "validation" / "data"
 WEIGHTED = pd.DataFrame({"length": [1.2, 2.1, 3.1, 5.0, 9.4, 2.2, 7.7], "n": [1, 3, 2, 1, 2, 1, 1],
@@ -124,7 +126,7 @@ def test_negative_weights_are_refused():
 
 # ---------------------------------------------------------------- A25: covariance matrix
 def test_covariance_table_is_pandas_cov(capsys):
-    frame = sdata.get_example("marks")
+    frame = example_frame("marks")
     result = sdata.table(frame).find_correlation_between("hours", "marks", "height", show="covariance").as_pandas()
     expected = frame[["hours", "marks", "height"]].cov()
     assert list(result.columns) == ["column", "hours", "marks", "height"]
@@ -134,7 +136,7 @@ def test_covariance_table_is_pandas_cov(capsys):
 
 
 def test_covariance_uses_the_rows_each_pair_has():
-    frame = pd.read_csv(DATA / "mtcars.csv")
+    frame = r_table("mtcars.csv")
     frame.loc[3, "wt"] = np.nan
     result = sdata.table(frame).find_correlation_between("mpg", "wt", show="covariance").as_pandas()
     assert result["wt"][0] == pytest.approx(frame[["mpg", "wt"]].dropna().cov().loc["mpg", "wt"], rel=1e-12)
@@ -151,7 +153,7 @@ def test_covariance_refuses_test_options(options):
 
 # ---------------------------------------------------------------- AA11: automatic ARIMA order
 def _passengers():
-    table = sdata.table(pd.read_csv(DATA / "air_passengers.csv"))
+    table = sdata.table(r_table("air_passengers.csv"))
     table.turn_into_dates("month")
     return table
 
@@ -185,7 +187,7 @@ def test_automatic_order_is_auto_arima_with_the_full_search(needs_r, capsys):
 
 
 def test_automatic_order_on_the_log_gives_the_airline_model(needs_r):
-    frame = pd.read_csv(DATA / "air_passengers.csv")
+    frame = r_table("air_passengers.csv")
     table = sdata.table(frame.assign(log_passengers=np.log(frame["passengers"])))
     model = table.forecast("log_passengers", test_method="arima", order="automatic", repeats_every=12,
                            show="model").as_pandas()
@@ -217,7 +219,7 @@ def test_the_install_line_names_bioconductor_for_qvalue():
 
 
 def test_storey_q_values_are_qvalues(needs_r, capsys):
-    frame = sdata.get_example("many_tests")
+    frame = example_frame("many_tests")
     result = sdata.table(frame).add_adjusted_p_value_column(test_method="q-values").as_pandas()
     from simplydata._r import r_call
 
@@ -230,7 +232,7 @@ def test_storey_q_values_are_qvalues(needs_r, capsys):
 
 
 def test_local_fdr_has_its_own_column_name(needs_r, capsys):
-    frame = sdata.get_example("many_tests")
+    frame = example_frame("many_tests")
     result = sdata.table(frame).add_adjusted_p_value_column(test_method="lfdr").as_pandas()
     from simplydata._r import r_call
 
@@ -368,7 +370,7 @@ def test_seasonal_order_automatic_points_to_order():
 
 
 def test_chart_forecast_takes_the_automatic_order(needs_r):
-    chart = sdata.chart(pd.read_csv(DATA / "air_passengers.csv", parse_dates=["month"]))
+    chart = sdata.chart(r_table("air_passengers.csv", parse_dates=["month"]))
     chart.forecast(x="month", y="passengers", test_method="arima", order="automatic", repeats_every=12)
     import matplotlib.pyplot as plt
 
@@ -376,7 +378,7 @@ def test_chart_forecast_takes_the_automatic_order(needs_r):
 
 
 def test_the_log_note_needs_positive_values(needs_r, capsys):
-    frame = pd.read_csv(DATA / "air_passengers.csv")
+    frame = r_table("air_passengers.csv")
     frame["change"] = frame["passengers"].diff().fillna(0)
     table = sdata.table(frame)
     table.turn_into_dates("month")

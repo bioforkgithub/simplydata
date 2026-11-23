@@ -223,6 +223,8 @@ REFERENCES: dict[str, Reference] = {
     "cochran1954": _ref("Cochran 1954", "Cochran WG (1954). Some Methods for Strengthening the Common χ² Tests. Biometrics 10:417.", doi="10.2307/3001616"),
     "campbell2007": _ref("Campbell 2007", "Campbell I (2007). Chi-squared and Fisher–Irwin tests of two-by-two tables with small sample recommendations. Statistics in Medicine 26:3661-3675.", doi="10.1002/sim.2832"),
     "haviland1990": _ref("Haviland 1990", "Haviland MG (1990). Yates's correction for continuity and the analysis of 2 × 2 contingency tables. Statistics in Medicine 9:363-367.", doi="10.1002/sim.4780090403"),
+    "thompson1936": _ref("Thompson 1936", "Thompson WR (1936). On Confidence Ranges for the Median and Other Expectation Distributions for Populations of Unknown Distribution Form. The Annals of Mathematical Statistics 7:122-128.", doi="10.1214/aoms/1177732502"),
+    "best1975": _ref("Best & Roberts 1975", "Best DJ, Roberts DE (1975). Algorithm AS 89: The Upper Tail Probabilities of Spearman's Rho. Applied Statistics 24:377-379.", doi="10.2307/2347111"),
     "mann1947": _ref("Mann & Whitney 1947", "Mann HB, Whitney DR (1947). On a Test of Whether one of Two Random Variables is Stochastically Larger than the Other. The Annals of Mathematical Statistics 18:50-60.", doi="10.1214/aoms/1177730491"),
     "wilcoxon1945": _ref("Wilcoxon 1945", "Wilcoxon F (1945). Individual Comparisons by Ranking Methods. Biometrics Bulletin 1:80.", doi="10.2307/3001968"),
     "kruskal1952": _ref("Kruskal & Wallis 1952", "Kruskal WH, Wallis WA (1952). Use of Ranks in One-Criterion Variance Analysis. Journal of the American Statistical Association 47:583-621.", doi="10.1080/01621459.1952.10483441"),
@@ -662,7 +664,8 @@ BASIS["fit_distribution"] = _b(
     ("venables2002", "delignette2015"), "P3", "Only after a histogram or density; at least 2 values.",
     "convention")
 BASIS["draw_smooth_line"] = _b(
-    "LOWESS as R lowess(): the nearest 2/3 of the dots, 3 robustness steps.",
+    "LOWESS as R lowess() with its defaults: the nearest 2/3 of the dots, 3 robustness steps, delta = 1 % of the x "
+    "range.",
     "test_method=\"loess\" (R loess, with a confidence band), \"spline\" (R smooth.spline), or a moving average and the "
     "other window methods.",
     "LOWESS is Cleveland's robust local regression (Cleveland 1979) and R's lowess() default; its robustness "
@@ -761,9 +764,9 @@ BASIS["table.add_z_score_column"] = _b(
 
 # ---- Summaries
 BASIS["table.find_average_of"] = _b(
-    "Groups stay in the order they first appear; empty cells are skipped, as pandas and Polars do. interval= "
-    "gives the t interval, as R t.test().",
-    "sorted_by= to sort; interval= for the interval; weights= for a weighted average.",
+    "One row for each group, the groups sorted (an empty group cell is a group of its own, last); empty cells are "
+    "skipped, as pandas and Polars do. interval= gives the t interval, as R t.test().",
+    "interval= for the interval; weights= for a weighted average; every= for dates by week, month or year.",
     "Skipping empty cells and saying how many were skipped is what pandas, Polars and R's mean(na.rm = TRUE) do; "
     "NumPy would give nan. The t interval of the average is Student's (Student 1908), the interval of R t.test().",
     ("student1908",), "P3", "A note gives how many empty cells were skipped; one value gives no interval.",
@@ -791,11 +794,14 @@ BASIS["table.find_standard_deviation_of"] = _b(
     "Negative weights are refused; a group with total weight of 1 or less gets an empty value.")
 BASIS["table.find_percentile_of"] = _b(
     "Linear interpolation between the values (test_method=\"linear\", R quantile(type = 7)), the default of R, NumPy "
-    "and pandas; interval= gives the exact order-statistic interval.",
+    "and pandas; interval= gives the exact order-statistic interval (SciPy quantile_test, Thompson 1936).",
     "test_method= 1 to 9 (Hyndman & Fan's types) or a NumPy method name; weights= with weight_kind=.",
     "Type 7 is the shared default of R, NumPy and pandas, so results match theirs. Hyndman & Fan 1996, who "
-    "compared the nine definitions, recommend type 8; SPSS and Minitab use type 6. The help names both.",
-    ("hyndman1996",), "P3", "percent= outside 0 to 100 is refused; interval= works with test_method=\"linear\" only.",
+    "compared the nine definitions, recommend type 8; SPSS and Minitab use type 6. The help names both. The "
+    "interval is Thompson's, splitting the chance of missing evenly between the ends; R DescTools::QuantileCI("
+    "method = \"exact\") picks, for percents other than 50, the nearby pair of order statistics whose coverage is "
+    "closest above the level, so the ends can differ; both are exact.",
+    ("hyndman1996", "thompson1936"), "P3", "percent= outside 0 to 100 is refused; interval= works with test_method=\"linear\" only.",
     "convention")
 BASIS["table.find_summary_of"] = _b(
     "Count, average, standard deviation (n - 1), smallest, median, biggest. When asked: skewness G1 and excess "
@@ -843,9 +849,10 @@ BASIS["table.find_correlation_between"] = _b(
     "interval_by=\"bootstrap\".",
     "Pearson's r is the usual measure of a straight-line link and its Fisher-z interval the usual interval (Fisher "
     "1915 for the distribution of r). Bonett & Wright 2000 propose a better standard error for Spearman's rho "
-    "than the plain Fisher-z one used here. The strength words are a textbook scale chosen by simplydata; scales "
+    "than the plain Fisher-z one used here. Spearman's p-value for fewer than 1290 rows without ties is R "
+    "cor.test()'s default, algorithm AS 89 (Best & Roberts 1975), run in R. The strength words are a textbook scale chosen by simplydata; scales "
     "differ between fields (Schober et al. 2018), so the number is always printed with the words.",
-    ("fisher1915", "bonett2000", "schober2018"), "P3",
+    ("fisher1915", "bonett2000", "schober2018", "best1975"), "P3",
     "Fewer than 3 complete rows and constant columns are refused; with 3 or more columns the p-values are not "
     "adjusted, and a note points to add_adjusted_p_value_column.", "convention")
 
@@ -868,9 +875,10 @@ BASIS["table.compare_averages_of"] = _b(
     "switches the test, because choosing the test from a normality pre-test distorts the error rate (Rochon, "
     "Gondan & Kieser 2012).")
 BASIS["table.compare_averages_of based_on="] = _b(
-    "Mann-Whitney U for two groups (exact p-value below 50 values per group without ties, else the normal "
-    "approximation with continuity correction, as R wilcox.test()), with the Hodges-Lehmann shift; Kruskal-Wallis "
-    "for three or more.",
+    "Mann-Whitney U for two groups (below 50 values per group an exact p-value: without ties from SciPy, with tied "
+    "values the exact conditional one from R wilcox.test(), as R 4.6 gives it; from 50 values, or with ties and no R, "
+    "the normal approximation with continuity correction), with the Hodges-Lehmann shift; Kruskal-Wallis for three "
+    "or more.",
     "based_on=\"averages\" (the default, Welch).",
     "Rank tests need no bell shape, but they compare more than the medians, and are not robust to unequal "
     "spreads (Fagerland & Sandvik 2009; Fay & Proschan 2010): that is why they are an option, not the default.",
@@ -918,7 +926,8 @@ BASIS["table.compare_averages_of for_each_group_in= with a list of columns"] = _
     ("olson1974", "olson1976"), "P2", "Groups with no more rows than columns, and rank deficiency, are refused.")
 BASIS["table.compare_each_pair_of"] = _b(
     "Each pair by Welch's t-test, the p-values adjusted with Holm's method (as R pairwise.t.test(pool.sd = FALSE, "
-    "p.adjust.method = \"holm\")).",
+    "p.adjust.method = \"holm\")); with based_on=\"ranks\" Mann-Whitney U as R 4.6 pairwise.wilcox.test() (exact "
+    "below 50 values per group, also with tied values).",
     "test_method=\"tukey\" (Tukey-Kramer), \"games-howell\", \"scheffe\", \"lsd\", \"dunn\", \"conover\"; "
     "based_on=\"ranks\" or \"percents\"; against= (Dunnett); show=\"letters\".",
     "Holm's method keeps the chance of any false alarm at 5 % and is uniformly more powerful than Bonferroni (Holm "
@@ -956,6 +965,8 @@ BASIS["table.compare_counts_of"] = _b(
     "chisq.test()); Cramér's V.",
     "test_method=\"fisher\", \"g\", \"barnard\", \"boschloo\", \"trend\"; p_value_by=\"shuffling\" or "
     "\"exact\"; show=\"cells\".",
+    "Barnard's and Boschloo's tests take the for_each_group_in= groups as the two samples (R Exact::exact.test() "
+    "fixes the row totals). "
     "simplydata matches R chisq.test() so that results agree with R. The evidence on small tables favours other "
     "choices: Campbell 2007 recommends the 'N - 1' chi-square without Yates' correction (and Fisher's test when an "
     "expected count is below 1), and Yates' correction is conservative (Haviland 1990). Cochran 1954's rule is no "
@@ -1090,7 +1101,8 @@ BASIS["table.compare_risks same_within="] = _b(
     "Two groups only; a margin between 0 and 1 gets a note asking whether percentage points were meant.",
     "convention")
 BASIS["sdata.compare_risks"] = _b(
-    "The same measures as table.compare_risks, from counts.",
+    "The same measures as table.compare_risks, from counts, against the first group given (the order of names=, "
+    "as R prop.test() takes the counts in the order they are given).",
     "As table.compare_risks.",
     "As table.compare_risks.",
     ("newcombe1998", "katz1978", "altman1998"), "P2", "As table.compare_risks.")
@@ -1110,7 +1122,8 @@ BASIS["table.compare_rates"] = _b(
     "Without R the interval is left out, with a note; no events in either group gives an empty result, with a "
     "note.", "convention")
 BASIS["sdata.compare_rates"] = _b(
-    "The same test as table.compare_rates, from counts and times.",
+    "The same test as table.compare_rates, from counts and times, against the first group given (the order of "
+    "names=, as R poisson.test() takes the counts in the order they are given).",
     "As table.compare_rates.", "As table.compare_rates (Przyborowski & Wilenski 1940).", ("przyborowski1940",),
     "P3", "As table.compare_rates.", "convention")
 
@@ -1152,14 +1165,16 @@ BASIS["trade_off_curve"] = _b(
 # ---- Agreement and reliability
 BASIS["table.agreement_between"] = _b(
     "Number columns: the ICC for single raters, absolute agreement, two-way random (ICC(A,1), Shrout and "
-    "Fleiss' ICC(2,1)), from R irr. Categories: Cohen's kappa for two raters, Fleiss' kappa (a generalisation of "
-    "Scott's pi) for more.",
+    "Fleiss' ICC(2,1)), from R psych::ICC(). Categories: Cohen's kappa for two raters, Fleiss' kappa (a "
+    "generalisation of Scott's pi) for more.",
     "raters=, checking_for=, of= for the other ICC forms; test_method=\"kappa\", \"krippendorff\", \"lin\"; "
     "near_misses=\"linear\" or \"quadratic\" (weighted kappa).",
     "The ICC form must be chosen and reported; ICC(A,1) is the form Koo & Li's flowchart leads to when the raters "
     "are a sample of possible raters and single ratings will be used (Shrout & Fleiss 1979; McGraw & Wong 1996). "
     "Kappa is printed with the raw agreement, because it can be low when agreement is high (Feinstein & "
-    "Cicchetti 1990).",
+    "Cicchetti 1990). The ICC intervals follow McGraw & Wong (psych::ICC; irr::icc's interval for ICC(A,k) does not), "
+    "and Krippendorff's alpha comes from R icr, which gives Krippendorff's published examples (irr::kripp.alpha "
+    "weights the pairs wrongly for 3 or more raters without empty cells; Hayes & Krippendorff 2007).",
     ("koo2016", "shrout1979", "mcgraw1996", "cohen1960", "cohen1968", "fleiss1971", "hayes2007", "feinstein1990"),
     "P1",
     "The ICC words (poor to excellent) use both ends of the interval (Koo & Li 2016); fewer than 2 complete rows "
@@ -1368,7 +1383,10 @@ BASIS["dist.find_chance_that_value"] = _b(
 BASIS["table.explain"] = _b(
     "A linear model by least squares (as R lm()), with t-based 95 % intervals, R squared and the F test. Group "
     "columns are compared with their first level in sorted order. The outcome family is never switched by "
-    "itself.",
+    "itself. The estimates come from statsmodels' QR fit; their standard errors come from the QR factor as R's "
+    "summary.lm() takes them, with chol2inv() (R's own method, done here with NumPy's QR and LAPACK's dpotri, the "
+    "routine chol2inv calls; approved by Manish 2026-11-22), because statsmodels' inv(R'R) loses digits on "
+    "nearly collinear columns (NIST Longley).",
     "outcome= (yes or no, counts, positive numbers, ordered groups, shares ...), grouped_by=, effects=, "
     "robust_errors=, table_of_tests=, interval_by=, p_value_by= and the other options below.",
     "simplydata follows R's lm() so that every number matches what reviewers can check. It never chooses a model "
@@ -2329,7 +2347,8 @@ BASIS["nums.keep_each_frequency_that"] = _b(
     "As table.add_filtered_column.", ("gustafsson1996",), "P5", "As table.add_filtered_column.", "starting value")
 BASIS["nums.remove_each_frequency_that"] = _b(
     "A Butterworth filter of order 4, run both ways; is_equal_to= removes one frequency with a notch filter.",
-    "As table.add_filtered_column; and_multiples=True for a comb filter.",
+    "As table.add_filtered_column; and_multiples=True for a notch at each multiple (SciPy iirnotch each; the "
+    "average stays).",
     "As table.add_filtered_column.", ("gustafsson1996",), "P5", "As table.add_filtered_column.", "starting value")
 BASIS["nums.find_each_peak_that"] = _b(
     "Every local maximum, as table.find_each_peak_that.", "As table.find_each_peak_that.",
@@ -2558,6 +2577,16 @@ BASIS["table.add_correspondence_axes"] = _b(
     "between rows, which is why it is chosen for axes added to the rows.",
     ("hill1973b", "terbraak1985", "legendre2001"), "P3",
     "Negative values, empty rows and columns of zeros are refused.", "convention")
+BASIS["table.add_correspondence_axes show=\"numbers\""] = _b(
+    "The axes as a table instead of new columns: each row's number and coordinates, each axis's eigenvalue and share "
+    "of the inertia (vegan summary(eigenvals())) and the total inertia (vegan tot.chi); for text columns (MCA) the "
+    "shares and the total of the adjusted inertia (ca::mjca inertia.e and inertia.t).",
+    "leave out show= to add the columns CA1, CA2 to the table.",
+    "Every number is the package's own, so it can be compared with a published table such as Oksanen's vegan "
+    "tutorial (eigenvalues 0.5249 and 0.3568 of 2.083 on varespec). The MCA eigenvalues are not shown: R ca "
+    "gives them only rounded (to 6 decimals), and simplydata does not work them out again (ter Braak 1985 for "
+    "the eigenvalues of correspondence analysis).", ("terbraak1985",), "P3",
+    "The same checks as add_correspondence_axes.", "convention")
 
 
 # ---- Hidden factors (S3c-2)
@@ -2859,7 +2888,9 @@ BASIS['table.compare_balanced_groups_of test_method="matching"'] = _b(
     "weighting); rows left without a match are counted and named in a note.", "convention")
 BASIS['table.compare_risks show="attributable fractions"'] = _b(
     "The attributable fraction among the exposed and in the whole population from R epiR::epi.2by2(method = "
-    "\"cohort.count\"), with Wald intervals from the risk ratio; for an exposure that goes with fewer events, the "
+    "\"cohort.count\"), with the intervals epiR gives for one table (among the exposed, from the score interval of "
+    "the risk ratio; in the population, from the exact intervals of the two risks); for an exposure that goes with "
+    "fewer events, the "
     "preventable fraction among the exposed (epiR's fraction with the roles of the groups swapped).",
     "compare_risks() without show= (the risk difference, the risk and odds ratios, the number needed to treat).",
     "These are the standard definitions (Rockhill et al. 1998). The fractions here are crude: adjusting the "
@@ -3159,6 +3190,121 @@ BASIS["table.check_model_of test_method=\"bayesian\""] = _b(
 
 
 
+# ---- Phase U1: the starting, table and number words that got an underneath entry (data handling, not methods)
+BASIS["table.show_first_rows"] = _b(
+    "Rows numbered from 1, the way people count; only the display changes.",
+    "as_pandas() gives the table with pandas' own row labels (from 0).",
+    "Showing data, not a statistical method: numbering from 1 matches the row numbers the other position words "
+    "use (keep_rows_by_position, remove_rows_by_position).", (), "P5", "", "convention")
+BASIS["table.describe_columns"] = _b(
+    "Number columns get smallest, biggest and average; text columns the number of different values; empty cells "
+    "(also blank text) are counted and left out; numbers are shown rounded to 2 decimals.",
+    "find_summary_of() for more measures and full precision.",
+    "A first look at the data, not a statistical method; the rounding is only for reading.", (), "P5", "",
+    "starting value")
+BASIS["table.sort_by"] = _b(
+    "A stable sort (rows that tie keep their order), empty cells last in both directions.",
+    "biggest_first=True; several columns for ties.",
+    "Data preparation, not a statistical method: a stable sort makes the result the same every time, and empty "
+    "cells last keeps them out of the way, as R order() does by default.", (), "P3", "", "convention")
+BASIS["table.keep_rows_by_position"] = _b(
+    "Positions counted from 1, both ends kept.",
+    "step= for every n-th row, a list for chosen rows, to=\"last\".",
+    "Data preparation: counting from 1 with both ends kept is how people (and R) say \"rows 10 to 20\".", (),
+    "P5", "", "convention")
+BASIS["table.fill_empty_cells_in"] = _b(
+    "Fill with the value asked for: the average or median of the filled cells, the value above or below, or a "
+    "line or curve between neighbours.",
+    "with_value=, with_the=, sorted_by=, for_each_group_in=.",
+    "simplydata never fills on its own: the user chooses how, and the sentence says how many cells were filled. "
+    "Filling with one value makes the spread look smaller; multiple imputation (empty_cells=\"multiple "
+    "imputation\" on the analysis words) keeps that uncertainty.", (), "P5", "", "convention")
+BASIS["table.turn_into_numbers"] = _b(
+    "A comma between groups of three digits is a thousands mark, any other single comma a decimal comma; cells "
+    "that are not numbers become empty and are reported.",
+    "sdata.table(..., decimal_mark=\",\", thousands_mark=\".\") when reading a file.",
+    "Data preparation: the rule reads both English and European writing of numbers, and every cell that could not "
+    "be read is reported, so nothing is lost silently.", (), "P4", "Cells that do not read as numbers are counted "
+    "and up to 3 are shown.", "starting value")
+BASIS["table.add_group_column"] = _b(
+    "A value exactly on a cut goes into the higher group (a mark of 60 with cut_at=[40, 60, 80] is in the third "
+    "group).",
+    "rules= for groups by conditions.",
+    "Data preparation: \"60 and above\" is how grade bands are usually written; pandas cut() and R cut() put the "
+    "value in the lower group unless told right=FALSE.", (), "P5", "", "starting value")
+BASIS["table.join_with"] = _b(
+    "keep=\"matching rows\" (an inner join); a column in both tables gets \"_other\" in the other table's copy.",
+    "keep=\"all rows from this table\" or \"all rows from both\".",
+    "Data preparation: the sentence says how many rows found a match and warns when a key is repeated in the "
+    "other table, so rows are not doubled unnoticed.", (), "P4",
+    "Keys of different kinds (text and numbers) are refused; repeated keys in the other table get a note.",
+    "convention")
+BASIS["table.save"] = _b(
+    "The file holds only the columns, without row labels.",
+    "The end of the file name chooses the type (.xlsx, .csv, .tsv, .parquet, .json).",
+    "Data handling: row labels are pandas' own and not part of the data.", (), "P5", "", "convention")
+BASIS["table.add_missing_dates"] = _b(
+    "Each group gets its own run of dates from its first to its last date; the table comes back sorted by the "
+    "groups and the dates; rows with an empty group cell are a group of their own.",
+    "between= to add dates before and after; every= the step.",
+    "Data preparation: the new rows have empty cells, never made-up values, and the sentence says how many were "
+    "added.", (), "P5", "Repeated dates and dates off the step are refused.", "convention")
+BASIS["table.add_rolling_column"] = _b(
+    "A window of this row and the rows just before it, in the order of sorted_by=, within each group; a window "
+    "that is not full, or has an empty cell, gives an empty cell.",
+    "window=, show=, centre=True, window=\"7 days\".",
+    "As pandas rolling() and R zoo::rollapply(align = \"right\"): a trailing window uses only what is known at "
+    "each row.", (), "P3", "", "convention")
+BASIS["nums.find_average"] = _b(
+    "The mean, empty values skipped.",
+    "remove_empty_numbers() first, to see how many there were.",
+    "As R mean(na.rm = TRUE) and pandas: the sentence says how many numbers were used.", (), "P3", "",
+    "convention")
+BASIS["nums.keep_each_number_that"] = _b(
+    "is_above= is strictly above; empty values match only is_empty=True.",
+    "is_at_least=, is_between= (both ends included) and the other conditions.",
+    "The same conditions as table.keep_rows_where, so one rule holds everywhere.", (), "P5", "", "convention")
+BASIS["dist.find_percentile"] = _b(
+    "The value with that percent below it; for counts, the smallest count with at least that share at or below "
+    "it.",
+    "find_cut_off() and find_middle_range() for the other questions.",
+    "As R's q functions (qnorm, qbinom ...): the answer is written with the same call in R.", (), "P3", "",
+    "convention")
+BASIS["sdata.table"] = _b(
+    "The separator of a text file is guessed from the file.",
+    "separator=, decimal_mark=, thousands_mark=, empty_values=, skip_rows=, encoding=.",
+    "Reading data: files from other countries use ; or tabs; every guess can be set by hand.", (), "P5", "",
+    "starting value")
+BASIS["sdata.get_example"] = _b(
+    "Date columns are read as dates.",
+    "sdata.get_example() lists the tables.",
+    "Practice data: dates read as dates let the date words work at once.", (), "P5", "", "convention")
+BASIS["sdata.numbers"] = _b(
+    "With to=, the end is included; the count of steps allows a little room for rounding.",
+    "step=, how_many= (evenly spaced, as np.linspace).",
+    "Making numbers: \"1 to 10\" includes 10 in everyday speech and in R's seq(); NumPy's arange leaves the end "
+    "out and can overshoot with a decimal step.", (), "P5", "", "convention")
+BASIS["sdata.number_grid"] = _b(
+    "A list is cut into rows, row after row.",
+    "rows= or columns=; a list of rows for a grid as it is.",
+    "As NumPy's reshape (order \"C\"), which reads a list the way text is read; R's matrix() fills by column "
+    "unless byrow = TRUE.", (), "P3", "", "convention")
+BASIS["sdata.distribution"] = _b(
+    "Parameters with plain names (average=, standard_deviation=, tries=, chance=), turned into SciPy's.",
+    "R's names (mean=, sd=, size=, prob=) work too; any SciPy distribution by its SciPy name.",
+    "The parameters are R's, so the answers match R's d/p/q/r functions, which each sentence names.", (), "P3", "",
+    "convention")
+BASIS["sdata.make_random_numbers"] = _b(
+    "NumPy's random generator (default_rng) with the seed given; whole numbers include both ends.",
+    "with_seed= for the same numbers every time.",
+    "NumPy recommends its Generator over the old global seed; \"between 1 and 6\" includes 6, like a dice.", (),
+    "P3", "", "convention")
+BASIS["sdata.make_run_of_dates"] = _b(
+    "Month, quarter and year steps are counted from the first date, staying on its day or on the month's last "
+    "day when the month is shorter.",
+    "every=, to= or how_many=.",
+    "As pandas DateOffset and Polars \"1mo\" counted from the start; R's seq(by = \"month\") runs over into the "
+    "next month instead.", (), "P5", "", "convention")
 
 # ---- Phase U batch 2: the chart words that got an underneath entry (how a chart looks, not a statistical method)
 BASIS["save"] = _b(
@@ -3475,3 +3621,47 @@ BASIS["table.turn_rows_into_columns"] = _b(
     "Data preparation: keeping the table's own order (pandas would sort) and refusing to choose between two "
     "values for one cell keep the result honest.", (), "P4",
     "When two rows would fill one cell simplydata stops and suggests an average first.", "convention")
+# ---- 2026-11-21 (PR words-and-fixes): options that give back the numbers as a table, and R's datasets
+BASIS["table.check_model_of show=\"numbers\""] = _b(
+    "The numbers check_model_of prints, as a table: variance inflation factors, Koenker's Breusch-Pagan test and "
+    "White's test (least squares), the Brier score and the Hosmer-Lemeshow test (yes or no), the number of rows with "
+    "a Cook's distance above 0.5; with test_method=\"bayesian\" R-hat, effective draws and the posterior predictive check.",
+    "leave out show= for the pictures; show=\"prior check\" with test_method=\"bayesian\".",
+    "The same calls as the printout (statsmodels het_breuschpagan(robust=True), het_white, variance_inflation_factor; "
+    "R car::vif, performance::performance_hosmer, posterior::summarise_draws), so the table and the printed numbers "
+    "agree. Koenker's form does not assume bell-shaped errors (Koenker 1981); the pictures stay the way to judge a "
+    "model (Hosmer et al. 1997).", ("koenker1981", "white1980", "hosmer1997", "vehtari2021"), "P5",
+    "A mixed model (grouped_by=) is refused: its check is pictures only.")
+BASIS["table.find_correlation_between show=\"result table\""] = _b(
+    "With two columns, one row: r, its 95 % interval (Fisher's z for Pearson, SciPy pearsonr; R DescTools for "
+    "Spearman and Kendall), the p-value, which directions were tested, the rows used and the strength in words.",
+    "p_value_by=\"shuffling\" and interval_by=\"bootstrap\" fill the row with those (and say so); with three or more "
+    "columns it is show=\"each pair\".",
+    "The same calls as the printed sentence, so the table and the sentence agree; Fisher's z interval is the one R "
+    "cor.test and SciPy give (Fisher 1915).", ("fisher1915",), "P3",
+    "Somers' d and gamma are refused with show=\"result table\".", "convention")
+BASIS["table.find_correlation_between allowing_for=, show=\"result table\""] = _b(
+    "With allowing_for= one row of R ppcor::pcor.test()'s numbers: the partial r, its statistic (t on n - 3 degrees "
+    "of freedom for Pearson and Spearman, z for Kendall), the two-sided p-value and the rows; no interval, as ppcor "
+    "gives none.",
+    "leave out show= for the number r alone; leave out allowing_for= for the plain correlation with its interval.",
+    "The same call as the printed sentence, so the table and the sentence agree; every number is ppcor's own, "
+    "nothing is worked out again. The partial correlation is the correlation of what is left of the two columns "
+    "after the third is taken out (Fisher 1915 for the distribution of r).", ("fisher1915",), "P3",
+    "Exactly two columns and one to allow for; sides=, p_value_by= and interval_by= are refused.", "convention")
+BASIS["trade_off_curve get_numbers_drawn()"] = _b(
+    "The row of the marked dot holds the best cut-off by Youden's index in its value column (R pROC::coords(roc, "
+    "\"best\", best.method = \"youden\") threshold), the sensitivity there as y and the false alarms (1 - "
+    "specificity) as x, as drawn.",
+    "table.compare_to_truth gives the same cut-off with its sensitivity and specificity as a result table.",
+    "The number written next to the dot is pROC's threshold, given back unchanged. Youden's index is the usual "
+    "summary of a cut-off (Youden 1950), though other criteria choose other points (Perkins & Schisterman 2006).",
+    ("youden1950", "perkins2006"), "P3", "Needs R pROC; one marked dot per curve.", "convention")
+BASIS["sdata.get_example from_r_package="] = _b(
+    "R itself loads the dataset of an installed R package (utils::data, from the data file that holds it); groups "
+    "(factors) become text, R's NA empty cells, and row names that carry information a first column \"row name\".",
+    "Leave out from_r_package= for simplydata's own practice tables.",
+    "A dataset is used as the R package ships it, so results can be compared with the package's help page; nothing "
+    "is downloaded or installed, so data never leave the computer (simplydata's privacy promise).", (), "P5",
+    "A missing package or dataset is refused with the nearest name and the install line (never run by simplydata).",
+    "starting value")

@@ -33,7 +33,9 @@ One direction (one column in at=):
   TRUE)); so smoothness=0.001 is R's lambda = 0.001. "auto" lets R smooth.spline itself
   choose it by generalised cross-validation (through rpy2: simplydata[r] and R), because
   SciPy's own choice lands elsewhere. Several values at one x are averaged and weighted by
-  how many there were, as R.
+  how many there were, as R. R's curve differs from SciPy's by about 1e-5 (relative) at
+  smoothness=0.001, more at very small smoothness (2e-4 at 1e-5), because R solves the same
+  sum in a B-spline basis with its own rounding: SciPy's curve makes the sum a little smaller.
 
 Two or more directions (at= with two or more columns):
 
@@ -178,10 +180,12 @@ class SmoothingSpline:
     as possible. Several values at one x are averaged with weight = how many, as R.
     smoothness="auto" asks R itself (smooth.spline, through rpy2) for lambda chosen by
     generalised cross-validation, with its equivalent degrees of freedom (df); SciPy's own
-    choice of lambda lands elsewhere. The curve is SciPy's at R's lambda and agrees with R
-    predict(smooth.spline) to about 1e-4 (R fits in a B-spline basis). A number for
-    smoothness= needs no R (df is then not
-    known). Beyond the ends the curve goes on in a straight line, as R predict.smooth.spline.
+    choice of lambda lands elsewhere. The curve is SciPy's at R's lambda. R solves the same
+    problem in a B-spline basis, and its curve differs from SciPy's by about 1e-5 (relative) at
+    lambda = 0.001 and up to about 2e-4 at lambda = 1e-5, with or without repeated x (checked
+    on mtcars weight and mpg, 2026-11-22). Where they differ, SciPy's curve gives the smaller
+    value of the sum above, so the difference is R's rounding, not another method. A number for
+    smoothness= needs no R (df is then not known). Beyond the ends the curve goes on in a straight line, as R predict.smooth.spline.
     """
 
     def __init__(self, x, y, smoothness="auto"):

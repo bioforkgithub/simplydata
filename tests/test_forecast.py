@@ -2,7 +2,7 @@
 
 Every number runs in R itself (simplydata[r]); these tests check that simplydata asks R the right
 question and reads the answer back correctly. Reference values: R 4.6.2 with forecast 9.0.2 and
-changepoint 2.3, on sdata.get_example("visitors") and sdata.get_example("river") (scripts ref_phase3b.R and
+changepoint 2.3, on example_frame("visitors") and example_frame("river") (scripts ref_phase3b.R and
 ref_phase3b_more.R in the v0.6 scratch folder):
 library(forecast); library(changepoint); v <- read.csv("visitors.csv")
 h <- v$visitors[v$museum == "Harbour Museum"]; x <- ts(h, frequency = 12)
@@ -16,6 +16,7 @@ import pytest
 import simplydata as sdata
 from simplydata import SimplydataError
 from simplydata.table import table as make_table
+from conftest import example_frame
 
 ENGINES = ["pandas", "polars"]
 
@@ -28,12 +29,12 @@ def engine(request):
 def make(data, engine):
     if engine == "polars":
         pl = pytest.importorskip("polars")
-        return make_table(pl.from_pandas(data))
+        return make_table(data, fast=True)
     return make_table(data)
 
 
 def harbour(engine):
-    data = sdata.get_example("visitors")
+    data = example_frame("visitors")
     return make(data[data.museum == "Harbour Museum"].reset_index(drop=True), engine)
 
 
@@ -149,13 +150,14 @@ def test_arima_with_an_average_matches_r(needs_r, capsys):
 
 
 ACCURACY = {
-    # R: train <- ts(h[1:132], frequency = 12); test <- h[133:144]
+    # R: train <- ts(h[1:132], frequency = 12); test <- ts(h[133:144], frequency = 12, start = c(12, 1))
     #    accuracy(naive(train, 12), test)["Test set", c("MAE", "RMSE", "MAPE", "MASE")] (and snaive, rwf drift,
-    #    forecast(HoltWinters(train), 12))
-    "last value": [348.25, 440.520620024383, 14.682027966278, 2.52243447970806],
-    "same season last time": [128.416666666667, 150.282234478996, 5.81359734665399, 0.930143941907184],
-    "straight on": [305.181297709924, 404.577946108775, 12.7170580114721, 2.21048048214088],
-    "exponential smoothing": [64.6941203640645, 73.9732672243653, 2.93143419760529, 0.468590609736396],
+    #    forecast(HoltWinters(train), 12)). The test as a seasonal ts, so MASE is scaled by the in-sample error of
+    #    the same season last time (FINDINGS A22; with the test as plain numbers MASE was 2.52, 0.930, 2.21, 0.469)
+    "last value": [348.25, 440.520620024383, 14.682027966278, 3.73158317706938],
+    "same season last time": [128.416666666667, 150.282234478996, 5.81359734665399, 1.37601571568890],
+    "straight on": [305.181297709924, 404.577946108775, 12.7170580114721, 3.27009159078407],
+    "exponential smoothing": [64.6941203640645, 73.9732672243653, 2.93143419760529, 0.693213183649231],
 }
 
 
@@ -165,7 +167,7 @@ def test_check_on_last_matches_r_accuracy(engine, needs_r, capsys):
     assert col(result, "actual")[0] == 1871  # R: h[133]
     assert col(result, "error") == pytest.approx(col(result, "actual") - col(result, "forecast"))
     out = capsys.readouterr().out
-    assert "off by 64.7 on average (MAE; RMSE 74.0, MAPE 2.93 %, MASE 0.469" in out
+    assert "off by 64.7 on average (MAE; RMSE 74.0, MAPE 2.93 %, MASE 0.693" in out
 
 
 def test_compare_forecasts_matches_r_accuracy(engine, needs_r, capsys):
@@ -178,7 +180,7 @@ def test_compare_forecasts_matches_r_accuracy(engine, needs_r, capsys):
         got = [col(result, c)[i] for c in ("MAE", "RMSE", "MAPE", "MASE")]
         assert got == pytest.approx(ACCURACY[method], rel=1e-7), method
     out = capsys.readouterr().out
-    assert "Best on the last 12 readings of \"visitors\": exponential smoothing (MASE 0.469)" in out
+    assert "Best on the last 12 readings of \"visitors\": exponential smoothing (MASE 0.693)" in out
     assert "Below 1 means better than the same season last time." in out
 
 
@@ -193,14 +195,14 @@ def test_compare_forecasts_without_a_season_matches_r(needs_r, capsys):
 
 
 def test_forecast_for_each_group(engine, needs_r):
-    result = make(sdata.get_example("visitors"), engine).forecast("visitors", sorted_by="month", steps_ahead=2,
+    result = make(example_frame("visitors"), engine).forecast("visitors", sorted_by="month", steps_ahead=2,
                                                               test_method="last value", for_each_group_in="museum")
     assert result._frame["museum"].to_list() == ["Harbour Museum"] * 2 + ["Hill Gallery"] * 2
     assert col(result, "forecast")[:2] == pytest.approx([2072, 2072])
 
 
 def test_nums_forecast_matches_r(needs_r, capsys):
-    nums = sdata.numbers(sdata.get_example("visitors")["visitors"][:144])
+    nums = sdata.get_example("visitors").get_column("visitors").keep_first_numbers(144)
     result = nums.forecast(steps_ahead=3, test_method="same season last time", repeats_every=12)
     assert col(result, "forecast") == pytest.approx([1871, 1925, 1930])  # R snaive(x, h = 3)$mean
     assert "for the next 3 steps" in capsys.readouterr().out
@@ -230,7 +232,7 @@ def test_forecast_errors(engine):
         h.forecast("visitors", sorted_by="month", check_on_last=142)
     with pytest.raises(SimplydataError, match="at least two methods"):
         h.compare_forecasts_for("visitors", sorted_by="month", test_method=["naive"])
-    river = make(sdata.get_example("river"), engine)
+    river = make(example_frame("river"), engine)
     with pytest.raises(SimplydataError, match="evenly spaced"):
         river.forecast("nitrate", sorted_by="date", for_each_group_in="station")
 
@@ -256,7 +258,7 @@ def test_change_points_match_r(needs_r, capsys):
 
 
 def test_change_points_on_river_match_r(engine, needs_r, capsys):
-    result = make(sdata.get_example("river"), engine).find_change_points_in("nitrate", sorted_by="date", for_each_group_in="station")
+    result = make(example_frame("river"), engine).find_change_points_in("nitrate", sorted_by="date", for_each_group_in="station")
     frame = result._frame
     assert frame["station"].to_list() == ["Station A", "Station B", "Station B"]
     # R: xb <- r$nitrate[r$station == "Station B"]; cpts(cpt.mean(xb / (mad(diff(xb)) / sqrt(2)), ...)) = 453
@@ -271,7 +273,7 @@ def test_change_points_on_river_match_r(engine, needs_r, capsys):
 
 
 def test_change_point_errors(engine):
-    river = make(sdata.get_example("river"), engine)
+    river = make(example_frame("river"), engine)
     with pytest.raises(SimplydataError, match="change"):
         river.find_change_points_in("nitrate", change="slope")
     with pytest.raises(SimplydataError, match="penalty"):

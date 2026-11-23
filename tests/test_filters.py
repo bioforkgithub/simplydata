@@ -11,10 +11,11 @@ import pytest
 
 import simplydata as sdata
 from simplydata import SimplydataError
+from conftest import example_frame
 
 
 def sensor():
-    return sdata.numbers(sdata.get_example("sensor")["signal"])
+    return sdata.get_example("sensor").get_column("signal")
 
 
 def values(nums):
@@ -107,7 +108,7 @@ def test_dips_match_r_pracma():
 
 
 def test_fourier_and_back():
-    nums = sdata.numbers(sdata.get_example("sensor")["signal"][:8])
+    nums = sdata.get_example("sensor").get_column("signal").keep_first_numbers(8)
     table = nums.take_fourier_transform(show="all")
     frame = table._frame.to_pandas()
     # R: f <- fft(x[1:8]); Mod(f)[1:5]; Arg(f)[2] * 180 / pi
@@ -161,8 +162,8 @@ def test_table_filter_and_peaks(capsys):
     from simplydata.table import table as make_table
 
     for engine in ("pandas", "polars"):
-        data = sdata.get_example("sensor")
-        t = make_table(data) if engine == "pandas" else make_table(pytest.importorskip("polars").from_pandas(data))
+        data = example_frame("sensor")
+        t = make_table(data) if engine == "pandas" else make_table(data, fast=True)
         t.add_filtered_column("slow", from_column="signal", keep_below=10, sorted_by="time")
         # R: signal::filtfilt(signal::butter(4, 10 / 100), x)[500] (time steps of 0.005 s)
         assert np.asarray(t._frame["slow"].to_numpy(), dtype=float)[499] == pytest.approx(0.360961693964092, rel=1e-8)
@@ -210,8 +211,8 @@ def test_wav_round_trip(tmp_path, capsys):
 def test_add_envelope_column_matches_r(engine, capsys):
     from simplydata.table import table as make_table
 
-    data = sdata.get_example("sensor")
-    t = make_table(data) if engine == "pandas" else make_table(pytest.importorskip("polars").from_pandas(data))
+    data = example_frame("sensor")
+    t = make_table(data) if engine == "pandas" else make_table(data, fast=True)
     t.add_envelope_column("size", from_column="signal", sorted_by="time")
     t.add_envelope_column("turn", from_column="signal", show="frequency", sorted_by="time")
     t.add_envelope_column("signal_phase", from_column="signal", show="phase")
@@ -238,7 +239,7 @@ def test_add_envelope_column_matches_r(engine, capsys):
 def test_add_envelope_column_for_each():
     import pandas as pd
 
-    data = sdata.get_example("sensor").assign(half=["first"] * 500 + ["second"] * 500)
+    data = example_frame("sensor").assign(half=["first"] * 500 + ["second"] * 500)
     t = sdata.table(data)
     t.add_envelope_column("size", from_column="signal", sorted_by="time", for_each_group_in="half")
     size = t._frame["size"].to_numpy()
@@ -254,7 +255,7 @@ def test_sinc_in_formulas_matches_r(engine):
     from simplydata.table import table as make_table
 
     data = pd.DataFrame({"x": [0, 0.5, 1.5, -0.25, 3]})
-    t = make_table(data) if engine == "pandas" else make_table(pytest.importorskip("polars").from_pandas(data))
+    t = make_table(data) if engine == "pandas" else make_table(data, fast=True)
     t.add_column("s", "sinc(x)")
     got = t._frame["s"].to_list()
     # R: ifelse(x == 0, 1, sin(pi * x) / (pi * x))
