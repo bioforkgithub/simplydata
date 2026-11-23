@@ -30,7 +30,7 @@ ADMISSIONS = """
     ward = df["ward"].to_numpy(dtype=object)
 """
 ADMISSIONS_TABLE = """
-            table = sdata.table(sdata.get_example("admissions"))
+            table = sdata.get_example("admissions")
             table.add_time_and_event_columns(from_date="admitted", event_date="first_esbl", competing_with="discharged")
 """
 NOTHING_IN_PYTHON = "no Python package gives it: statsmodels has none of these, so the numbers come from R."
@@ -40,7 +40,7 @@ ENTRIES = [
         word="table.add_time_and_event_columns",
         data="admissions",
         ours="""
-            table = sdata.table(sdata.get_example("admissions"))
+            table = sdata.get_example("admissions")
             table.add_time_and_event_columns(from_date="admitted", to_date="discharged", event_date="first_esbl")
             table.keep_columns("time", "event")
         """,
@@ -131,7 +131,7 @@ OPTION_ENTRIES = [
         option="at_time_points=",
         data="trial",
         ours="""
-            table = sdata.table(sdata.get_example("trial"))
+            table = sdata.get_example("trial")
             result = table.find_survival_over_time(time="days", event="died", for_each_group_in="treatment",
                                                    at_time_points=[365, 730])
             result.keep_rows_where("treatment", is_equal_to="new medicine").keep_rows_where("time", is_equal_to=365)
@@ -159,7 +159,7 @@ OPTION_ENTRIES = [
         option='test_method="life table"',
         data="trial",
         ours="""
-            table = sdata.table(sdata.get_example("trial"))
+            table = sdata.get_example("trial")
             result = table.find_survival_over_time(time="days", event="died", for_each_group_in="treatment",
                                                    test_method="life table", at_time_points=[0, 365, 730])
             result.keep_rows_where("treatment", is_equal_to="new medicine").keep_rows_where("interval start",
@@ -193,7 +193,7 @@ OPTION_ENTRIES = [
         option="allowing_for=",
         data="trial",
         ours="""
-            table = sdata.table(sdata.get_example("trial"))
+            table = sdata.get_example("trial")
             result = table.find_survival_over_time(time="days", event="died", for_each_group_in="treatment",
                                                    allowing_for=["age"], at_time_points=[365])
             result.keep_rows_where("treatment", is_equal_to="usual care")
@@ -227,7 +227,7 @@ OPTION_ENTRIES = [
         option="followed_from=",
         data="trial",
         ours="""
-            table = sdata.table(sdata.get_example("trial"))
+            table = sdata.get_example("trial")
             table.add_column("joined", "days / 4 + 0.1")
             result = table.find_survival_over_time(time="days", event="died", followed_from="joined")
             result.keep_rows_by_position([21])
@@ -251,7 +251,7 @@ OPTION_ENTRIES = [
         option="average_time_up_to=",
         data="trial",
         ours="""
-            table = sdata.table(sdata.get_example("trial"))
+            table = sdata.get_example("trial")
             result = table.find_survival_over_time(time="days", event="died", for_each_group_in="treatment",
                                                    average_time_up_to=700)
             result.keep_rows_where("treatment", is_equal_to="usual care")
@@ -280,7 +280,7 @@ OPTION_ENTRIES = [
         option="allowing_for=",
         data="trial",
         ours="""
-            table = sdata.table(sdata.get_example("trial"))
+            table = sdata.get_example("trial")
             table.add_group_column("older", from_column="age", cut_at=[71], names=["70 or under", "over 70"])
             table.compare_survival(time="days", event="died", for_each_group_in="treatment", allowing_for="older")
         """,
@@ -305,7 +305,7 @@ OPTION_ENTRIES = [
         option="followed_from=",
         data="trial",
         ours="""
-            table = sdata.table(sdata.get_example("trial"))
+            table = sdata.get_example("trial")
             table.add_column("joined", "days / 4 + 0.1")
             table.compare_survival(time="days", event="died", for_each_group_in="treatment", followed_from="joined")
         """,
@@ -330,7 +330,7 @@ OPTION_ENTRIES = [
         option="average_time_up_to=",
         data="trial",
         ours="""
-            table = sdata.table(sdata.get_example("trial"))
+            table = sdata.get_example("trial")
             table.compare_survival(time="days", event="died", for_each_group_in="treatment", average_time_up_to=700)
         """,
         code={
@@ -393,7 +393,7 @@ OPTION_ENTRIES = [
         option="allowing_for=",
         data="trial",
         ours="""
-            table = sdata.table(sdata.get_example("trial"))
+            table = sdata.get_example("trial")
             result = table.explain_survival(time="days", event="died", using=["age"], allowing_for="treatment")
             result
         """,
@@ -419,7 +419,7 @@ OPTION_ENTRIES = [
         option="followed_from=",
         data="trial",
         ours="""
-            table = sdata.table(sdata.get_example("trial"))
+            table = sdata.get_example("trial")
             table.add_column("joined", "days / 4 + 0.1")
             result = table.explain_survival(time="days", event="died", using=["age"], followed_from="joined")
             result
@@ -508,7 +508,7 @@ OPTION_ENTRIES = [
         option="distribution=",
         data="trial",
         ours="""
-            table = sdata.table(sdata.get_example("trial"))
+            table = sdata.get_example("trial")
             result = table.explain_survival(time="days", event="died", using=["age"], distribution="weibull")
             result
         """,
@@ -537,7 +537,7 @@ OPTION_ENTRIES = [
         option="followed_from=",
         data="trial",
         ours="""
-            table = sdata.table(sdata.get_example("trial"))
+            table = sdata.get_example("trial")
             table.add_column("joined", "days / 4 + 0.1")
             chart = table.start_chart()
             chart.draw_survival_curves(time="days", event="died", followed_from="joined", with_censor_marks=False)

@@ -13,7 +13,7 @@ ENTRIES = [
         word="table.compare_averages_of",
         data="trial",
         ours="""
-            table = sdata.table(sdata.get_example("trial"))
+            table = sdata.get_example("trial")
             table.compare_averages_of("days", for_each_group_in="treatment")
         """,
         code={"SciPy": """
@@ -39,7 +39,7 @@ ENTRIES = [
         word="table.fit_line",
         data="marks",
         ours="""
-            table = sdata.table(sdata.get_example("marks"))
+            table = sdata.get_example("marks")
             table.fit_line(x="hours", y="marks")
         """,
         code={"SciPy": """
@@ -106,7 +106,7 @@ ENTRIES = [
         word="table.compare_spreads_of",
         data="marks",
         ours="""
-            table = sdata.table(sdata.get_example("marks"))
+            table = sdata.get_example("marks")
             table.compare_spreads_of("marks", for_each_group_in="class")
         """,
         code={"SciPy": """
@@ -132,7 +132,7 @@ ENTRIES = [
         word="table.compare_percent_to",
         data="school",
         ours="""
-            table = sdata.table(sdata.get_example("school"))
+            table = sdata.get_example("school")
             table.compare_percent_to("passed", value="yes", percent=50)
         """,
         code={"SciPy": """
@@ -163,7 +163,7 @@ ENTRIES = [
         word="table.add_principal_components",
         data="meadow",
         ours="""
-            table = sdata.table(sdata.get_example("meadow"))
+            table = sdata.get_example("meadow")
             table.add_principal_components(how_many=2)
         """,
         code={"statsmodels": """
@@ -193,7 +193,7 @@ ENTRIES = [
         word="table.add_predicted_column",
         data="school",
         ours="""
-            table = sdata.table(sdata.get_example("school"))
+            table = sdata.get_example("school")
             table.add_predicted_column("marks", using=["hours", "sleep"])
         """,
         code={"statsmodels": """
@@ -230,7 +230,7 @@ ENTRIES += [
         word="table.find_trend_of",
         data="visitors",
         ours="""
-            table = sdata.table(sdata.get_example("visitors"))
+            table = sdata.get_example("visitors")
             table.keep_rows_where("museum", is_equal_to="Harbour Museum")
             table.find_trend_of("visitors", sorted_by="month")
         """,
@@ -272,7 +272,7 @@ ENTRIES += [
         word="table.find_each_peak_that",
         data="sensor",
         ours="""
-            table = sdata.table(sdata.get_example("sensor"))
+            table = sdata.get_example("sensor")
             table.find_each_peak_that("signal", sorted_by="time", is_at_least=1, apart=0.05)
         """,
         code={"SciPy": """
@@ -305,7 +305,7 @@ ENTRIES += [
         word="table.add_nmds",
         data="meadow",
         ours="""
-            table = sdata.table(sdata.get_example("meadow"))
+            table = sdata.get_example("meadow")
             table.add_nmds(measure="bray-curtis")
         """,
         code={
@@ -348,7 +348,7 @@ ENTRIES += [
         word="table.fit_formula",
         data="growth",
         ours="""
-            table = sdata.table(sdata.get_example("growth"))
+            table = sdata.get_example("growth")
             table.keep_rows_where("country", is_equal_to="Applia")
             table.fit_formula("population = a * exp(b * (year - 2000))")
         """,
@@ -386,7 +386,7 @@ ENTRIES += [
         word="table.compare_matched_columns",
         data="marks",
         ours="""
-            table = sdata.table(sdata.get_example("marks"))
+            table = sdata.get_example("marks")
             table.keep_columns("name", "subject", "marks")
             table.turn_rows_into_columns(names_from="subject", values_from="marks")
             table.compare_matched_columns("Maths", "Science", "English")

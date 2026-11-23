@@ -55,7 +55,7 @@ ENTRIES = [
         word="table.compare_balanced_groups_of",
         data="job_training",
         ours=f"""
-            table = sdata.table(sdata.get_example("job_training"))
+            table = sdata.get_example("job_training")
             table.compare_balanced_groups_of("re78", for_each_group_in="treat", allowing_for={COLUMNS})
         """,
         code={
@@ -93,7 +93,7 @@ ENTRIES = [
         word="table.compare_balanced_groups_of", option='test_method="matching"',
         data="job_training",
         ours=f"""
-            table = sdata.table(sdata.get_example("job_training"))
+            table = sdata.get_example("job_training")
             table.compare_balanced_groups_of("re78", for_each_group_in="treat", allowing_for={COLUMNS},
                                              test_method="matching", effect_for=1)
         """,
@@ -129,7 +129,7 @@ ENTRIES = [
         word="table.compare_risks", option='show="attributable fractions"',
         data="clinic",
         ours="""
-            table = sdata.table(sdata.get_example("clinic"))
+            table = sdata.get_example("clinic")
             table.compare_risks("infected", for_each_group_in="ward", against="ward A", show="attributable fractions")
         """,
         code={
@@ -168,7 +168,7 @@ ENTRIES = [
         word="table.rate_of", option="standard_population=",
         data="deaths_by_age",
         ours="""
-            table = sdata.table(sdata.get_example("deaths_by_age"))
+            table = sdata.get_example("deaths_by_age")
             table.rate_of("deaths", time="person_years", for_each_group_in="county", allowing_for="age_band",
                           standard_population="whole table")
         """,
@@ -199,7 +199,7 @@ ENTRIES = [
         word="table.compare_rates", option="standard_rates=",
         data="deaths_by_age",
         ours=f"""
-            table = sdata.table(sdata.get_example("deaths_by_age"))
+            table = sdata.get_example("deaths_by_age")
             table.compare_rates("deaths", time="person_years", for_each_group_in="county", allowing_for="age_band",
                                 standard_rates={NATIONAL})
         """,
@@ -236,7 +236,7 @@ ENTRIES = [
         word="table.explain", option="through=",
         data="job_search",
         ours="""
-            table = sdata.table(sdata.get_example("job_search"))
+            table = sdata.get_example("job_search")
             table.explain("depress2", using="treat", through="job_seek", allowing_for=["econ_hard", "sex", "age"])
         """,
         code={"statsmodels": """
@@ -266,7 +266,7 @@ ENTRIES = [
         word="table.compare_averages_of", option="period=",
         data="drug_levels",
         ours="""
-            table = sdata.table(sdata.get_example("drug_levels"))
+            table = sdata.get_example("drug_levels")
             table.compare_averages_of("auc", for_each_group_in="formulation", matched_by="subject", period="period",
                                       same_within=[0.8, 1.25])
         """,
@@ -297,7 +297,7 @@ ENTRIES = [
         word="table.find_correlation_between", option='empty_cells="multiple imputation"',
         data="school",
         ours="""
-            table = sdata.table(sdata.get_example("school"))
+            table = sdata.get_example("school")
             table.find_correlation_between("sleep", "marks", empty_cells="multiple imputation")
         """,
         code={

@@ -15,7 +15,7 @@ PAIN = """
     b = df["patient"].to_numpy(dtype=str)
 """
 PAIN_OURS = """
-    table = sdata.table(sdata.get_example("clinic"))
+    table = sdata.get_example("clinic")
     table.turn_columns_into_rows(["pain_week_0", "pain_week_4", "pain_week_8"], names_to="week", values_to="pain")
 """
 PAIN_PAIRS = '    table.compare_each_pair_of("pain", for_each_group_in="week", matched_by="patient", test_method="{test}")\n'
@@ -35,7 +35,7 @@ ENTRIES = [
         word="table.find_percentile_of", option="weights=",
         data="fruit",
         ours="""
-            table = sdata.table(sdata.get_example("fruit"))
+            table = sdata.get_example("fruit")
             table.find_percentile_of("price", 90, weights="count")
         """,
         code={"NumPy": """
@@ -57,7 +57,7 @@ ENTRIES = [
         word="table.find_percentile_of", option='weight_kind="analytic"',
         data="fruit",
         ours="""
-            table = sdata.table(sdata.get_example("fruit"))
+            table = sdata.get_example("fruit")
             table.find_percentile_of("price", 90, weights="count", weight_kind="analytic")
         """,
         code={"NumPy": """
@@ -78,7 +78,7 @@ ENTRIES = [
         word="table.find_median_of", option="weights=",
         data="fruit",
         ours="""
-            table = sdata.table(sdata.get_example("fruit"))
+            table = sdata.get_example("fruit")
             table.find_median_of("price", weights="count")
         """,
         code={"NumPy": """
@@ -99,7 +99,7 @@ ENTRIES = [
         word="table.find_correlation_between", option='show="covariance"',
         data="marks",
         ours="""
-            table = sdata.table(sdata.get_example("marks"))
+            table = sdata.get_example("marks")
             table.find_correlation_between("hours", "marks", "height", show="covariance")
         """,
         code={"pandas": """
@@ -121,7 +121,7 @@ ENTRIES = [
         word="table.forecast", option='order="automatic"',
         data="visitors",
         ours="""
-            table = sdata.table(sdata.get_example("visitors"))
+            table = sdata.get_example("visitors")
             table.forecast("visitors", sorted_by="month", test_method="arima", order="automatic", repeats_every=12,
                            for_each_group_in="museum")
         """,
@@ -158,7 +158,7 @@ ENTRIES = [
         word="table.add_adjusted_p_value_column", option='test_method="storey"',
         data="many_tests",
         ours="""
-            table = sdata.table(sdata.get_example("many_tests"))
+            table = sdata.get_example("many_tests")
             table.add_adjusted_p_value_column(test_method="storey")
         """,
         code={
@@ -185,7 +185,7 @@ ENTRIES = [
         word="table.add_adjusted_p_value_column", option='test_method="local fdr"',
         data="many_tests",
         ours="""
-            table = sdata.table(sdata.get_example("many_tests"))
+            table = sdata.get_example("many_tests")
             table.add_adjusted_p_value_column(test_method="local fdr")
         """,
         code={
@@ -257,7 +257,7 @@ ENTRIES = [
         word="table.compare_each_pair_of", option='based_on="percents"',
         data="clinic",
         ours="""
-            table = sdata.table(sdata.get_example("clinic"))
+            table = sdata.get_example("clinic")
             table.compare_each_pair_of("infected", for_each_group_in="age_group", based_on="percents", value="yes")
         """,
         code={"SciPy and statsmodels": """

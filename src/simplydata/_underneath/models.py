@@ -36,7 +36,7 @@ ENTRIES = [
         word="table.explain", option="weights=",
         data="fruit",
         ours="""
-            table = sdata.table(sdata.get_example("fruit"))
+            table = sdata.get_example("fruit")
             table.explain("price", using=["shop"], weights="count")
         """,
         code={"statsmodels": """
@@ -114,7 +114,7 @@ ENTRIES = [
         word="table.explain", option='show="risk ratios"',
         data="clinic",
         ours="""
-            table = sdata.table(sdata.get_example("clinic"))
+            table = sdata.get_example("clinic")
             table.explain("caught_infection", using=["ward", "patient_days"], outcome="yes or no",
                           show="risk ratios")
         """,
@@ -139,7 +139,7 @@ ENTRIES = [
         word="table.explain", option='test_method="log-binomial"',
         data="school",
         ours="""
-            table = sdata.table(sdata.get_example("school"))
+            table = sdata.get_example("school")
             table.explain("passed", using=["breakfast"], outcome="yes or no", show="risk ratios",
                           test_method="log-binomial")
         """,
@@ -164,7 +164,7 @@ ENTRIES = [
         word="table.explain", option="giving_outliers_less_weight=",
         data="marks",
         ours="""
-            table = sdata.table(sdata.get_example("marks"))
+            table = sdata.get_example("marks")
             table.explain("marks", using=["hours"], giving_outliers_less_weight=True)
         """,
         code={"statsmodels": """
@@ -191,7 +191,7 @@ ENTRIES = [
         word="table.explain", option="with_knots=",
         data="school",
         ours="""
-            table = sdata.table(sdata.get_example("school"))
+            table = sdata.get_example("school")
             table.explain("marks", using=["hours", "breakfast"], curve_for="hours", with_knots=3)
         """,
         code={"patsy and statsmodels": """
@@ -220,7 +220,7 @@ ENTRIES = [
         word="table.explain", option='show="standardised effects"',
         data="school",
         ours="""
-            table = sdata.table(sdata.get_example("school"))
+            table = sdata.get_example("school")
             table.explain("marks", using=["hours", "breakfast"], show="standardised effects")
         """,
         code={"statsmodels": """
@@ -246,7 +246,7 @@ ENTRIES = [
         word="table.explain", option='interval_by="bootstrap"',
         data="marks",
         ours="""
-            table = sdata.table(sdata.get_example("marks"))
+            table = sdata.get_example("marks")
             table.explain("marks", using=["hours"], interval_by="bootstrap", resamples=999, with_seed=1)
         """,
         code={"SciPy and statsmodels": """
@@ -275,7 +275,7 @@ ENTRIES = [
         word="table.explain", option='interval_by="profile"',
         data="school",
         ours="""
-            table = sdata.table(sdata.get_example("school"))
+            table = sdata.get_example("school")
             table.explain("passed", using=["hours"], outcome="yes or no", interval_by="profile")
         """,
         code={
@@ -308,7 +308,7 @@ ENTRIES = [
         word="table.explain", option='p_value_by="likelihood ratio"',
         data="school",
         ours="""
-            table = sdata.table(sdata.get_example("school"))
+            table = sdata.get_example("school")
             table.explain("passed", using=["hours", "breakfast"], outcome="yes or no",
                           p_value_by="likelihood ratio")
         """,
@@ -333,7 +333,7 @@ ENTRIES = [
         word="table.explain", option="crossed_with=",
         data="school",
         ours="""
-            table = sdata.table(sdata.get_example("school"))
+            table = sdata.get_example("school")
             table.explain("marks", using=["hours"], grouped_by="school", crossed_with="class")
         """,
         code={
@@ -367,7 +367,7 @@ ENTRIES = [
         word="table.explain", option='outcome="counts with many zeros that vary a lot"',
         data="meadow",
         ours="""
-            table = sdata.table(sdata.get_example("meadow"))
+            table = sdata.get_example("meadow")
             table.explain("thistle", using=["grazed", "nettle"], outcome="counts with many zeros that vary a lot")
         """,
         code={
@@ -394,7 +394,7 @@ ENTRIES = [
         word="table.explain", option='outcome="counts in two steps"',
         data="meadow",
         ours="""
-            table = sdata.table(sdata.get_example("meadow"))
+            table = sdata.get_example("meadow")
             table.explain("thistle", using=["grazed", "nettle"], outcome="counts in two steps")
         """,
         code={
@@ -422,7 +422,7 @@ ENTRIES = [
         word="table.explain", option="zero_part_using=",
         data="meadow",
         ours="""
-            table = sdata.table(sdata.get_example("meadow"))
+            table = sdata.get_example("meadow")
             table.explain("thistle", using=["grazed", "nettle"], outcome="counts with many zeros",
                           zero_part_using=["grazed"])
         """,

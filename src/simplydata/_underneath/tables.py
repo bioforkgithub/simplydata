@@ -12,7 +12,7 @@ ENTRIES = [
         word="table.keep_rows_where",
         data="marks",
         ours="""
-            table = sdata.table(sdata.get_example("marks"))
+            table = sdata.get_example("marks")
             table.keep_rows_where("marks", is_above=50)
         """,
         code={
@@ -38,7 +38,7 @@ ENTRIES = [
         word="table.find_average_of",
         data="marks",
         ours="""
-            table = sdata.table(sdata.get_example("marks"))
+            table = sdata.get_example("marks")
             table.find_average_of("marks", for_each_group_in="subject")
         """,
         code={
@@ -73,7 +73,7 @@ ENTRIES += [
         word="table.show_first_rows",
         data="marks",
         ours="""
-            table = sdata.table(sdata.get_example("marks"))
+            table = sdata.get_example("marks")
             table.show_first_rows(3)
         """,
         code={"pandas": """
@@ -94,7 +94,7 @@ ENTRIES += [
         word="table.describe_columns",
         data="marks",
         ours="""
-            table = sdata.table(sdata.get_example("marks"))
+            table = sdata.get_example("marks")
             table.describe_columns()
         """,
         code={"pandas": """
@@ -123,7 +123,7 @@ ENTRIES += [
         word="table.keep_columns",
         data="marks",
         ours="""
-            table = sdata.table(sdata.get_example("marks"))
+            table = sdata.get_example("marks")
             table.keep_columns("name", "marks")
         """,
         code={
@@ -148,7 +148,7 @@ ENTRIES += [
         word="table.rename_column",
         data="marks",
         ours="""
-            table = sdata.table(sdata.get_example("marks"))
+            table = sdata.get_example("marks")
             table.rename_column("marks", to="score")
         """,
         code={
@@ -173,7 +173,7 @@ ENTRIES += [
         word="table.sort_by",
         data="shop",
         ours="""
-            table = sdata.table(sdata.get_example("shop"))
+            table = sdata.get_example("shop")
             table.sort_by("sales", biggest_first=True)
         """,
         code={
@@ -202,7 +202,7 @@ ENTRIES += [
         word="table.keep_rows_by_position",
         data="marks",
         ours="""
-            table = sdata.table(sdata.get_example("marks"))
+            table = sdata.get_example("marks")
             table.keep_rows_by_position(10, to=20)
         """,
         code={
@@ -228,7 +228,7 @@ ENTRIES += [
         word="table.fill_empty_cells_in",
         data="shop",
         ours="""
-            table = sdata.table(sdata.get_example("shop"))
+            table = sdata.get_example("shop")
             table.fill_empty_cells_in("customers", with_the="median")
         """,
         code={
@@ -282,7 +282,7 @@ ENTRIES += [
         word="table.add_column",
         data="marks",
         ours="""
-            table = sdata.table(sdata.get_example("marks"))
+            table = sdata.get_example("marks")
             table.add_column("marks_per_hour", "marks / hours")
         """,
         code={
@@ -307,7 +307,7 @@ ENTRIES += [
         word="table.add_group_column",
         data="marks",
         ours="""
-            table = sdata.table(sdata.get_example("marks"))
+            table = sdata.get_example("marks")
             table.add_group_column("grade", from_column="marks", cut_at=[41, 61, 81], names=["D", "C", "B", "A"])
         """,
         code={
@@ -338,7 +338,7 @@ ENTRIES += [
         word="table.find_summary_of",
         data="marks",
         ours="""
-            table = sdata.table(sdata.get_example("marks"))
+            table = sdata.get_example("marks")
             table.find_summary_of("marks", for_each_group_in="class", show=["average", "standard deviation", "count"])
         """,
         code={
@@ -371,7 +371,7 @@ ENTRIES += [
         word="table.join_with",
         data="marks",
         ours="""
-            table = sdata.table(sdata.get_example("marks"))
+            table = sdata.get_example("marks")
             table.join_with({"name": ["Asha", "Ben"], "age": [12, 13]}, using="name", keep="all rows from this table")
         """,
         code={
@@ -402,7 +402,7 @@ ENTRIES += [
         word="table.add_z_score_column",
         data="marks",
         ours="""
-            table = sdata.table(sdata.get_example("marks"))
+            table = sdata.get_example("marks")
             table.add_z_score_column("marks_z", from_column="marks", for_each_group_in="subject")
         """,
         code={
@@ -429,13 +429,13 @@ ENTRIES += [
         also="Empty cells stay empty, and a group with fewer than 2 numbers gets empty cells. " + SAID,
     ),
     Entry(word="table.undo", ours="""
-              table = sdata.table(sdata.get_example("marks"))
+              table = sdata.get_example("marks")
               table.undo()
           """, compare="none",
           note="simplydata's own: it keeps the table as it was before each step and puts back the last one. In "
                "pandas or Polars you keep a copy yourself before a step (before = df.copy()) and go back to it."),
     Entry(word="table.show_steps", ours="""
-              table = sdata.table(sdata.get_example("marks"))
+              table = sdata.get_example("marks")
               table.show_steps()
           """, compare="none",
           note="simplydata's own: it writes down each step as you do it and lists them. pandas and Polars keep no "
@@ -446,7 +446,7 @@ ENTRIES += [
         ours="""
             import os
             import tempfile
-            table = sdata.table(sdata.get_example("marks"))
+            table = sdata.get_example("marks")
             with tempfile.TemporaryDirectory() as folder:
                 table.save(os.path.join(folder, "marks.csv"))
                 saved = sdata.table(os.path.join(folder, "marks.csv"))
@@ -486,7 +486,7 @@ ENTRIES += [
         word="table.as_pandas",
         data="marks",
         ours="""
-            table = sdata.table(sdata.get_example("marks"))
+            table = sdata.get_example("marks")
             table.as_pandas()
         """,
         code={"Polars": """
@@ -502,7 +502,7 @@ ENTRIES += [
         word="table.as_polars",
         data="marks",
         ours="""
-            table = sdata.table(sdata.get_example("marks"))
+            table = sdata.get_example("marks")
             table.as_polars()
         """,
         code={"pandas": """
@@ -542,7 +542,7 @@ ENTRIES += [
         word="table.replace_values_in",
         data="marks",
         ours="""
-            table = sdata.table(sdata.get_example("marks"))
+            table = sdata.get_example("marks")
             table.replace_values_in("subject", "Maths", with_value="Math")
         """,
         code={
@@ -569,7 +569,7 @@ ENTRIES += [
         word="table.add_missing_dates",
         data="river",
         ours="""
-            table = sdata.table(sdata.get_example("river"))
+            table = sdata.get_example("river")
             table.add_missing_dates("date", every="day", for_each_group_in="station")
         """,
         code={
@@ -604,7 +604,7 @@ ENTRIES += [
         word="table.add_rolling_column",
         data="weather",
         ours="""
-            table = sdata.table(sdata.get_example("weather"))
+            table = sdata.get_example("weather")
             table.add_rolling_column("rain_3_months", from_column="rain", window=3, show="total",
                                      for_each_group_in="city", sorted_by="month_number")
         """,
@@ -637,7 +637,7 @@ ENTRIES += [
         word="table.show_rows_with_outliers",
         data="marks",
         ours="""
-            table = sdata.table(sdata.get_example("marks"))
+            table = sdata.get_example("marks")
             table.show_rows_with_outliers("marks", for_each_group_in="class")
         """,
         code={"pandas": """
