@@ -1,6 +1,6 @@
 """S1 Part B: compare_each_pair follow-up tests and add_adjusted_p_value_column(test_method=) choices.
 
-Reference values: R 4.6.2 on sdata.get_example("marks") (m <- read.csv(".../marks.csv"); m$class <- factor(m$class)).
+Reference values: R 4.6.2 on example_frame("marks") (m <- read.csv(".../marks.csv"); m$class <- factor(m$class)).
 Pairs in R's order: A vs B, A vs C, B vs C (difference = first group minus second).
 """
 
@@ -10,6 +10,7 @@ import pytest
 import simplydata as sdata
 from simplydata import SimplydataError
 from simplydata.table import table as make_table
+from conftest import example_frame
 
 
 @pytest.fixture(params=["pandas", "polars"])
@@ -20,7 +21,7 @@ def engine(request):
 def make(data, engine):
     if engine == "polars":
         pl = pytest.importorskip("polars")
-        return make_table(pl.from_pandas(data))
+        return make_table(data, fast=True)
     return make_table(data)
 
 
@@ -30,7 +31,7 @@ def frame(result):
 
 @pytest.fixture
 def marks(engine):
-    return make(sdata.get_example("marks"), engine)
+    return make(example_frame("marks"), engine)
 
 
 def test_games_howell(marks, capsys, needs_r):
@@ -60,7 +61,8 @@ def test_scheffe_and_lsd(marks, capsys, needs_r):
 
 def test_dunn(marks, needs_r):
     got = frame(marks.compare_each_pair_of("marks", for_each_group_in="class", based_on="ranks", test_method="dunn"))
-    # R: FSA::dunnTest(marks ~ class, data = m, method = "holm")$res
+    # R: FSA::dunnTest(marks ~ class, data = m, method = "holm")$res (with three groups the same as
+    # p.adjust(P.unadj, "holm"): no step needs the running maximum)
     assert got["statistic"].tolist() == pytest.approx([1.57426373194, 2.73508446358, 1.16082073163], rel=1e-9)
     assert got["p-value (adjusted)"].tolist() == pytest.approx([0.2308529815114, 0.0187092813904, 0.2457148101991],
                                                                rel=1e-9)

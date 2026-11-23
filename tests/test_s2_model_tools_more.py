@@ -1,7 +1,7 @@
 """S2: the model tools for grouped rows and for every outcome, and glmer with time=, out_of= and link=.
 
 R 4.6.2, lme4 2.1.0, emmeans 2.0.4, MASS, nnet, betareg, pscl, lmtest. s <- read.csv("school.csv")
-(sdata.get_example("school")); m, tr, g: sdata.get_example("meadow"), ("trial"), ("growth"); z: ZEROS below.
+(example_frame("school")); m, tr, g: example_frame("meadow"), ("trial"), ("growth"); z: ZEROS below.
 The R call is next to each value.
 """
 
@@ -14,6 +14,7 @@ from simplydata import SimplydataError
 from simplydata.table import table as make_table
 
 from test_s2_more_outcomes import ZEROS, graded_school
+from conftest import example_frame
 
 
 @pytest.fixture
@@ -28,7 +29,7 @@ def by_term(result, key="term"):
 
 def school2():
     """The school table with a made-up time enrolled and a number right out of a number of tries."""
-    s = sdata.get_example("school")
+    s = example_frame("school")
     i = np.arange(len(s))
     s["enrolled"] = 150 + (i * 37) % 60
     s["tries"] = 5 + i % 4
@@ -157,7 +158,7 @@ def test_compare_models_for_other_outcomes(school, capsys, needs_r):
     assert got["degrees of freedom"][2] == 2
     assert got["p-value"][2] == pytest.approx(0.784803790722016, rel=1e-5)
     # R: lmtest::lrtest(betareg(share ~ year, g), betareg(share ~ year + country, g)): 214.58739324085; AIC, BIC
-    growth = sdata.get_example("growth").assign(share=lambda d: d.forest / 100)
+    growth = example_frame("growth").assign(share=lambda d: d.forest / 100)
     got = make_table(growth).compare_models("share", using=["year"], against=["year", "country"],
                                             outcome="shares").as_pandas()
     assert got["statistic"][2] == pytest.approx(214.58739324085, rel=1e-7)
@@ -195,7 +196,7 @@ def test_model_averages_for_counts_that_vary_a_lot_and_positive_numbers(needs_r)
 
 def test_model_averages_for_shares_and_many_zeros(needs_r):
     # R: emmeans(betareg::betareg(share ~ year + country, g), ~ country, type = "response"); pairs()
-    growth = sdata.get_example("growth").assign(share=lambda d: d.forest / 100)
+    growth = example_frame("growth").assign(share=lambda d: d.forest / 100)
     got = by_term(make_table(growth).find_model_averages_of("share", for_each_group_in="country", using=["year", "country"],
                                                        outcome="shares"))
     assert got["Applia"]["model average"] == pytest.approx(0.535206548322908, rel=1e-6)
@@ -340,7 +341,7 @@ def test_old_name_robust_still_works_with_a_note(school, capsys):
 # ---------------------------------------------------------------- grouped_by=[outer, inner] (groups inside groups)
 def school3():
     """The school table with a made-up class (red, blue, green) inside each school."""
-    s = sdata.get_example("school")
+    s = example_frame("school")
     i = np.arange(len(s))
     s["class"] = np.where((i * 7) % 3 == 0, "red", np.where((i * 7) % 3 == 1, "blue", "green"))
     return s

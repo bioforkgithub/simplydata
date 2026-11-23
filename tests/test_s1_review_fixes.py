@@ -14,6 +14,7 @@ import pytest
 import simplydata as sdata
 from simplydata import SimplydataError
 from simplydata.table import table as make_table
+from conftest import example_frame
 
 REL = 1e-9
 
@@ -182,7 +183,7 @@ ORDER = ["mild", "moderate", "severe"]
 
 
 def kappa_table():
-    data = sdata.get_example("clinic")
+    data = example_frame("clinic")
     return make_table(data)
 
 

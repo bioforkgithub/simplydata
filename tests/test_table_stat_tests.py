@@ -2,7 +2,7 @@
 
 Every number is checked against SciPy and against R 4.6.2 (reference values hard-coded below,
 with the R call that made them), on pandas and Polars tables. The R data is the practice
-table sdata.get_example("marks"), read in R with read.csv(".../data/marks.csv").
+table example_frame("marks"), read in R with read.csv(".../data/marks.csv").
 """
 
 import math
@@ -17,6 +17,7 @@ import simplydata as sdata
 from simplydata import SimplydataError
 from simplydata.table import table as make_table
 from simplydata.table.stat_tests import _holm, _num, _welch_anova
+from conftest import example_frame
 
 ENGINES = ["pandas", "polars"]
 REL = 1e-9  # SciPy and R agree to about this many digits for closed-form tests
@@ -30,13 +31,13 @@ def engine(request):
 def make(data, engine):
     if engine == "polars":
         pl = pytest.importorskip("polars")
-        return make_table(pl.from_pandas(data))
+        return make_table(data, fast=True)
     return make_table(data)
 
 
 @pytest.fixture
 def marks():
-    return sdata.get_example("marks")
+    return example_frame("marks")
 
 
 def group(df, name, column="marks", by="class"):
@@ -418,7 +419,7 @@ def test_straight_line_matches_r_lm(marks, engine, capsys):
 
 # ---------------------------------------------------------------- fit_formula
 def growth_applia(engine):
-    t = make(sdata.get_example("growth"), engine)
+    t = make(example_frame("growth"), engine)
     t.keep_rows_where("country", is_equal_to="Applia")
     return t
 

@@ -12,6 +12,7 @@ import pytest
 import simplydata as sdata
 from conftest import r_table
 from simplydata._errors import SimplydataError
+from conftest import example_frame
 
 CALL = dict(names="trial", events=["tb_vaccinated", "tb_unvaccinated"], out_of=["vaccinated", "unvaccinated"])
 

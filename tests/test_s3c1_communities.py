@@ -11,6 +11,7 @@ import pytest
 
 import simplydata as sdata
 from simplydata._errors import SimplydataError
+from conftest import example_frame
 
 GENES = ["blaTEM", "blaCTXM", "blaOXA48", "blaNDM", "sul1", "sul2", "tetA", "tetM", "qnrS", "ermB", "aadA", "mphA",
          "vanA", "mcr1"]
@@ -26,7 +27,7 @@ def test_resistome_is_made_up_and_says_so():
 
     about, columns = EXAMPLES["resistome"]
     assert "MADE-UP" in about and "not from any real study" in about
-    frame = sdata.get_example("resistome")
+    frame = example_frame("resistome")
     assert len(frame) == 24 and set(GENES) <= set(frame.columns)
     counts = frame[GENES].to_numpy()
     assert (counts >= 0).all() and (counts == np.round(counts)).all()
@@ -54,7 +55,7 @@ def test_chart_community_words_need_columns_too():
 
 
 def test_chao1_and_rarefaction_refuse_normalised_values_but_richness_does_not():
-    frame = sdata.get_example("resistome")
+    frame = example_frame("resistome")
     frame[GENES] = frame[GENES].div(frame[GENES].sum(axis=1), axis=0) * 1000
     table = sdata.table(frame)
     with pytest.raises(SimplydataError, match="raw counts"):
@@ -64,7 +65,7 @@ def test_chao1_and_rarefaction_refuse_normalised_values_but_richness_does_not():
 
 
 def test_estimated_small_values_refuse_normalised_values():
-    frame = sdata.get_example("resistome")
+    frame = example_frame("resistome")
     frame[GENES] = frame[GENES] / 7.3
     with pytest.raises(SimplydataError, match="needs raw counts"):
         sdata.table(frame).add_log_ratio_columns(columns=GENES)
@@ -73,7 +74,7 @@ def test_estimated_small_values_refuse_normalised_values():
 
 
 def test_a_rare_column_is_refused_with_the_merging_line():
-    frame = sdata.get_example("resistome")
+    frame = example_frame("resistome")
     frame["mcr1"] = 0
     frame.loc[0, "mcr1"] = 3
     with pytest.raises(SimplydataError) as error:
@@ -83,11 +84,11 @@ def test_a_rare_column_is_refused_with_the_merging_line():
 
 
 def test_negative_values_and_empty_rows_are_refused():
-    frame = sdata.get_example("resistome")
+    frame = example_frame("resistome")
     frame.loc[0, "sul1"] = -1
     with pytest.raises(SimplydataError, match="below 0"):
         sdata.table(frame).add_log_ratio_columns(columns=GENES)
-    frame = sdata.get_example("resistome")
+    frame = example_frame("resistome")
     frame.loc[2, GENES] = 0
     with pytest.raises(SimplydataError, match="nothing in it"):
         sdata.table(frame).add_log_ratio_columns(columns=GENES)
@@ -163,14 +164,14 @@ def test_cluster_tree_matches_scipy_and_prints_the_cophenetic_correlation(capsys
     chart = _table().start_chart()
     chart.draw_cluster_tree(columns=GENES, measure="bray-curtis", names="sample")
     out = capsys.readouterr().out
-    x = sdata.get_example("resistome")[GENES].to_numpy(dtype=float)
+    x = example_frame("resistome")[GENES].to_numpy(dtype=float)
     d = pdist(x, "braycurtis")
     r, _ = cophenet(linkage(d, "average"), d)
     assert f"Cophenetic correlation {r:.2f}" in out
     fig = chart._render()
     ax = fig.axes[0]
     assert len(ax.get_lines()) == len(x) - 1  # one link per join
-    assert sorted(t.get_text() for t in ax.get_xticklabels()) == sorted(sdata.get_example("resistome")["sample"])
+    assert sorted(t.get_text() for t in ax.get_xticklabels()) == sorted(example_frame("resistome")["sample"])
 
 
 # ---------------------------------------------------------------- with R
@@ -192,7 +193,7 @@ def test_rarefaction_leaves_rows_below_the_total_empty(needs_r, capsys):
 
 
 def test_richness_is_allowed_on_normalised_values_with_a_note(needs_r, capsys):
-    frame = sdata.get_example("resistome")
+    frame = example_frame("resistome")
     frame[GENES] = frame[GENES].div(frame[GENES].sum(axis=1), axis=0) * 1000
     sdata.table(frame).add_diversity_columns(columns=GENES)
     assert "not whole" in capsys.readouterr().out
@@ -295,7 +296,7 @@ def test_richness_curves_draw_one_line_per_row(needs_r, capsys):
 
 # ---------------------------------------------------------------- review fixes
 def test_adding_one_is_refused_on_normalised_values():
-    frame = sdata.get_example("resistome")
+    frame = example_frame("resistome")
     frame[GENES] = frame[GENES].div(frame[GENES].sum(axis=1), axis=0)
     with pytest.raises(SimplydataError, match="a 1 swamps the values"):
         sdata.table(frame).add_log_ratio_columns(columns=GENES, zeros_replaced_by="adding 1")
@@ -314,7 +315,7 @@ def test_pcoa_and_correspondence_axes_need_columns():
 
 
 def test_two_measurement_columns_are_never_read_as_counts(needs_r, capsys):
-    frame = sdata.get_example("resistome")
+    frame = example_frame("resistome")
     frame["depth"] = np.arange(len(frame)) % 7 + 1
     frame["year"] = 2020 + np.arange(len(frame)) % 3
     sdata.table(frame).find_correlation_between_profiles(first=GENES, second=["depth", "year"])
@@ -322,7 +323,7 @@ def test_two_measurement_columns_are_never_read_as_counts(needs_r, capsys):
 
 
 def test_two_groups_give_one_discriminant_axis(needs_r, capsys):
-    frame = sdata.get_example("resistome")
+    frame = example_frame("resistome")
     frame = frame[frame["site"].isin(["harbour", "fjord sediment"])]
     sdata.table(frame).add_axes_that_separate_groups(columns=["temperature", "salinity"],
                                                      for_each_group_in="site", how_many=1)

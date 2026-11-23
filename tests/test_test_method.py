@@ -17,6 +17,7 @@ import simplydata as sdata
 from simplydata import learn
 from simplydata._errors import SimplydataError
 from simplydata.table import bayes_words
+from conftest import example_frame
 
 NOTE_END = "The old name will stop working in a later version."
 OLD_METHOD_NAMES = ("method", "test", "rule", "methods", "bayesian", "test_type")
@@ -125,7 +126,7 @@ def test_old_method_on_numbers(capsys):
 
 
 def test_old_methods_on_compare_forecasts_for(capsys):
-    visitors = sdata.get_example("visitors")
+    visitors = example_frame("visitors")
     chosen = ["last value", "average"]
     options = dict(sorted_by="month", repeats_every="year", for_each_group_in="museum")
     new = sdata.table(visitors).compare_forecasts_for("visitors", test_method=chosen, **options).as_pandas()

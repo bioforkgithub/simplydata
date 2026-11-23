@@ -23,6 +23,7 @@ from simplydata import SimplydataError
 from simplydata.distributions import Distribution, distribution, fit, shape_test
 from simplydata.numbers.numbers import Numbers
 from simplydata.table import table as make_table
+from conftest import example_frame
 
 ENGINES = ["pandas", "polars"]
 EXACT = dict(rel=1e-10, abs=1e-14)  # d/p/q: R and SciPy use the same closed forms
@@ -35,8 +36,8 @@ def engine(request):
 
 def make(data, engine):
     if engine == "polars":
-        pl = pytest.importorskip("polars")
-        data = pl.from_pandas(data)
+        pytest.importorskip("polars")
+        return make_table(data, fast=True)
     return make_table(data)
 
 
@@ -52,7 +53,7 @@ def row(result):
 
 @pytest.fixture
 def days():
-    return sdata.get_example("trial")["days"].to_numpy(float)
+    return example_frame("trial")["days"].to_numpy(float)
 
 
 # Samples made in R 4.6.2 by ref_fit2.R after set.seed(42), rounded to 4 decimals (R: round(r...(n, ...), 4)).
@@ -394,7 +395,7 @@ GAMMA = dict(shape=2.12734096971, rate=0.00446623248479, se=(0.2560323444, 0.000
 
 
 def test_fit_gamma_matches_the_exact_r_maximum(days, engine, capsys):
-    t = make(sdata.get_example("trial"), engine)
+    t = make(example_frame("trial"), engine)
     fitted = t.fit_distribution_to("days", "gamma")
     assert isinstance(fitted, Distribution)
     got = row(fitted.turn_into_table())
@@ -416,7 +417,7 @@ def test_fit_gamma_matches_the_exact_r_maximum(days, engine, capsys):
 
 
 def test_fit_closed_forms_match_fitdistr(days, capsys):
-    t = make(sdata.get_example("trial"), "pandas")
+    t = make(example_frame("trial"), "pandas")
     normal = row(t.fit_distribution_to("days").turn_into_table())  # fitdistr(d, "normal")
     assert normal["average"] == pytest.approx(476.316666667, rel=1e-11)
     assert normal["standard deviation"] == pytest.approx(281.234243509, rel=1e-11)
@@ -442,7 +443,7 @@ def test_fit_closed_forms_match_fitdistr(days, capsys):
 
 
 def test_fit_with_a_fixed_parameter(capsys):
-    t = make(sdata.get_example("trial"), "pandas")
+    t = make(example_frame("trial"), "pandas")
     got = row(t.fit_distribution_to("days", "gamma", fixed={"shape": 2}).turn_into_table())
     # exact: rate = 2 / mean(d); fitdistrplus::fitdist(fix.arg = list(shape = 2)) from rate 0.004 stops at
     # 0.0042649 (log-likelihood -843.9733), short of the maximum -843.943940704.
@@ -509,11 +510,11 @@ def test_more_fits_match_the_exact_r_maximum(name, sample, values, errors, logli
 
 
 def test_fit_for_each_group_gives_a_table(engine, capsys):
-    t = make(sdata.get_example("trial"), engine)
+    t = make(example_frame("trial"), engine)
     result = t.fit_distribution_to("days", "normal", for_each_group_in="treatment")
     frame = result._frame.to_pandas()
     assert list(frame["treatment"]) == ["new medicine", "usual care"]
-    trial = sdata.get_example("trial")
+    trial = example_frame("trial")
     for _, r in frame.iterrows():
         values = trial.loc[trial["treatment"] == r["treatment"], "days"].to_numpy(float)
         assert r["average"] == pytest.approx(values.mean())
@@ -551,7 +552,7 @@ def test_fit_errors_say_how_to_fix():
 # ====================================================================== comparing and testing shapes
 def test_compare_distributions_matches_gofstat(engine, capsys):
     # fitdistrplus::gofstat(list(norm, lnorm, gamma, weibull)), gamma and weibull started at the exact maximum
-    result = make(sdata.get_example("trial"), engine).compare_distributions_for("days")
+    result = make(example_frame("trial"), engine).compare_distributions_for("days")
     frame = result._frame.to_pandas().set_index("distribution")
     assert list(frame.index) == ["weibull", "gamma", "normal", "lognormal"]
     r = {"normal": (1.446807653051138, 0.1029207153292602, 0.2369524419003307, 1697.95035089818, 1703.52533438374),
@@ -651,7 +652,7 @@ def test_samples_option_of_compare_shape_to(capsys, monkeypatch):
     # a quick run gets no note; the time estimate is fixed here so a busy computer cannot change that
     # (test_a_long_run_gets_a_note_before_it_starts checks the note itself)
     monkeypatch.setattr(d._ShapeRun, "pilot", lambda self: 1.0)
-    t = make(sdata.get_example("trial"), "pandas")
+    t = make(example_frame("trial"), "pandas")
     result = row(t.compare_shape_to("days", "weibull", samples=999))
     out = capsys.readouterr().out
     assert result["Monte Carlo samples"] == 999 and result["seed"] == 1
@@ -673,7 +674,7 @@ def test_samples_option_of_compare_shape_to(capsys, monkeypatch):
 def test_a_long_run_gets_a_note_before_it_starts(capsys, monkeypatch):
     from simplydata import distributions as d
 
-    t = make(sdata.get_example("trial"), "pandas")
+    t = make(example_frame("trial"), "pandas")
     monkeypatch.setattr(d._ShapeRun, "pilot", lambda self: 75.0)  # as if a minute and a bit were left
     t.compare_shape_to("days", "gamma", samples=99)
     out = capsys.readouterr().out
@@ -683,7 +684,7 @@ def test_a_long_run_gets_a_note_before_it_starts(capsys, monkeypatch):
     out = capsys.readouterr().out  # one note for all groups, before the first group
     assert out.count("This takes") == 1
     assert out.startswith("This takes about 3 minutes: 99 simulated samples are refitted for each group.")
-    shape_test(sdata.get_example("trial")["days"].to_numpy(float), "gamma", samples=99)
+    shape_test(example_frame("trial")["days"].to_numpy(float), "gamma", samples=99)
     assert capsys.readouterr().out.startswith("This takes about a minute")
 
 
@@ -699,7 +700,7 @@ def test_time_words():
 
 # ====================================================================== compare_shape_to with any shape
 def test_compare_shape_to_any_shape_uses_the_shape_test(engine, capsys):
-    trial = sdata.get_example("trial")
+    trial = example_frame("trial")
     t = make(trial, engine)
     result = row(t.compare_shape_to("days", "gamma"))
     out = capsys.readouterr().out
@@ -712,11 +713,11 @@ def test_compare_shape_to_any_shape_uses_the_shape_test(engine, capsys):
 
 
 def test_compare_shape_to_any_shape_for_each_group(capsys):
-    t = make(sdata.get_example("trial"), "pandas")
+    t = make(example_frame("trial"), "pandas")
     frame = t.compare_shape_to("days", "lognormal", for_each_group_in="treatment")._frame.to_pandas()
     out = capsys.readouterr().out
     assert list(frame["treatment"]) == ["new medicine", "usual care"]
-    for name, part in sdata.get_example("trial").groupby("treatment"):
+    for name, part in example_frame("trial").groupby("treatment"):
         alone = shape_test(part["days"].to_numpy(dtype=float), "lognormal", column="days")
         got = frame.loc[frame["treatment"] == name].iloc[0]
         assert got["statistic"] == pytest.approx(alone["statistic"], rel=1e-12)
@@ -726,7 +727,7 @@ def test_compare_shape_to_any_shape_for_each_group(capsys):
 
 
 def test_compare_shape_to_normal_keeps_shapiro_wilk_and_unknown_shapes_are_explained(capsys):
-    t = make(sdata.get_example("marks"), "pandas")
+    t = make(example_frame("marks"), "pandas")
     assert row(t.compare_shape_to("marks", "normal"))["test"] == "Shapiro-Wilk test"
     with pytest.raises(SimplydataError, match="does not know"):
         t.compare_shape_to("marks", "gamm")

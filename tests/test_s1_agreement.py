@@ -12,6 +12,7 @@ import pytest
 import simplydata as sdata
 from simplydata import SimplydataError
 from simplydata.table import table as make_table
+from conftest import example_frame
 
 REL = 1e-9
 ORDER = ["mild", "moderate", "severe"]
@@ -23,10 +24,10 @@ def engine(request):
 
 
 def make(engine, data=None):
-    data = sdata.get_example("clinic") if data is None else data
+    data = example_frame("clinic") if data is None else data
     if engine == "polars":
         pl = pytest.importorskip("polars")
-        return make_table(pl.from_pandas(data))
+        return make_table(data, fast=True)
     return make_table(data)
 
 
@@ -64,7 +65,7 @@ def test_weighted_kappa_and_level(engine):
 
 
 def test_fleiss_kappa(engine, needs_r):
-    data = sdata.get_example("clinic")
+    data = example_frame("clinic")
     data["crp_rating"] = np.where(data.crp > 3, "severe", np.where(data.crp > 1.5, "moderate", "mild"))
     got = row(make(engine, data).agreement_between("nurse_rating", "doctor_rating", "crp_rating"))
     # R: irr::kappam.fleiss(cbind(nurse, doctor, crp coded 1-3)): value, statistic
@@ -183,7 +184,7 @@ def test_fleiss_without_r_keeps_kappa(engine, monkeypatch, capsys):
         raise _r.RMissing("no R")
 
     monkeypatch.setattr(_r, "r_call", missing)
-    data = sdata.get_example("clinic")
+    data = example_frame("clinic")
     data["third"] = data["doctor_rating"]
     got = row(make(engine, data).agreement_between("nurse_rating", "doctor_rating", "third"))
     assert math.isnan(got["p-value"]) and got["estimate"] > 0

@@ -160,13 +160,15 @@ def test_a11_cell_residuals_with_an_empty_cell_are_r_chisq_test(capsys):
 
 
 # ------------------------------------------------------------------------------------------------ A12
-# R: FSA::dunnTest(count ~ spray, data = InsectSprays, method = "holm")$res: Comparison, Z, P.adj
+# R: r <- FSA::dunnTest(count ~ spray, data = InsectSprays, method = "none")$res: Comparison, Z and
+# p.adjust(r$P.unadj, "holm") (= PMCMRplus::kwAllPairsDunnTest(p.adjust.method = "holm")). FSA's own "holm" gave
+# B - F 0.926028 (no running maximum, A25); Holm's steps give 1
 DUNN = {("A", "B"): (-0.312733845267036, 1.0), ("A", "C"): (4.774077606654594, 2.34692588071616e-05),
         ("B", "C"): (5.086811451921631, 5.09786923649587e-06), ("A", "D"): (3.117565520005764, 1.27645986419524e-02),
         ("B", "D"): (3.430299365272800, 4.82332532083788e-03), ("C", "D"): (-1.656512086648831, 5.85708956559377e-01),
         ("A", "E"): (3.850535469850379, 1.17859858819944e-03), ("B", "E"): (4.163269315117415, 3.45095263365611e-04),
         ("C", "E"): (-0.923542136804215, 1.0), ("D", "E"): (0.732969949844615, 1.0),
-        ("A", "F"): (-0.405576705580687, 1.0), ("B", "F"): (-0.092842860313651, 9.26028400432713e-01),
+        ("A", "F"): (-0.405576705580687, 1.0), ("B", "F"): (-0.092842860313651, 1.0),
         ("C", "F"): (-5.179654312235281, 3.33446187777777e-06), ("D", "F"): (-3.523142225586451, 3.83816198213718e-03),
         ("E", "F"): (-4.256112175431067, 2.49614844898269e-04)}
 
@@ -200,8 +202,8 @@ def test_a12_dunn_with_four_and_five_groups_against_r(needs_r, order):
     y = np.concatenate([INSECT_SPRAYS[s] for s in order]).astype(float)
     g = np.repeat(np.array(list(order), dtype=object), 12)
     # R itself, with the groups in the order given: FSA matches nothing by position here, only by name
-    ref = r_call("r <- FSA::dunnTest(y ~ factor(g, levels = unique(g)), method = 'holm')$res; "
-                 "list(pair = as.character(r$Comparison), z = r$Z, p = r$P.adj)", y=y, g=g)
+    ref = r_call("r <- FSA::dunnTest(y ~ factor(g, levels = unique(g)), method = 'none')$res; "
+                 "list(pair = as.character(r$Comparison), z = r$Z, p = p.adjust(r$P.unadj, 'holm'))", y=y, g=g)
     expected = {}
     for name, z, p in zip(ref["pair"], np.asarray(ref["z"], float), np.asarray(ref["p"], float)):
         first, second = str(name).split(" - ")

@@ -12,6 +12,7 @@ import pytest
 import simplydata as sdata
 from conftest import r_table
 from simplydata._errors import MissingWordError, SimplydataError
+from conftest import example_frame
 
 COLUMNS = [f"x{i}" for i in range(1, 10)]
 MEASURED_BY = {"visual": ["x1", "x2", "x3"], "textual": ["x4", "x5", "x6"], "speed": ["x7", "x8", "x9"]}

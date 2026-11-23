@@ -7,7 +7,8 @@ and "sea_levels" (made up after Port Pirie, Coles 2001).
 from . import Entry
 
 STATIONS = """
-    df = sdata.get_example("stations")
+    import pandas as pd
+    df = pd.read_csv("stations.csv")
     x = df["east"].to_numpy(dtype=float)
     y = df["north"].to_numpy(dtype=float)
     z = df["zinc"].to_numpy(dtype=float)
@@ -16,11 +17,13 @@ STATIONS = """
     lat = df["lat"].to_numpy(dtype=float)
 """
 SEALEVEL = """
-    df = sdata.get_example("sea_levels")
+    import pandas as pd
+    df = pd.read_csv("sea_levels.csv")
     x = df["sea_level"].to_numpy(dtype=float)
 """
 RAIN = """
-    df = sdata.get_example("rain")
+    import pandas as pd
+    df = pd.read_csv("rain.csv")
     x = df["rain"].to_numpy(dtype=float)
 """
 SPDEP_NOTE = ("PySAL's esda gives Moran's I in Python, but it is not a simplydata dependency (it brings geopandas, "
@@ -47,7 +50,8 @@ ENTRIES = [
         code={"SciPy": """
             import numpy as np
             from scipy import stats
-            df = sdata.get_example("stations")
+            import pandas as pd
+            df = pd.read_csv("stations.csv")
             # find_average_direction_of("current_direction", full_turn=360)
             d = df["current_direction"].to_numpy(dtype=float)
             t = np.deg2rad(d)

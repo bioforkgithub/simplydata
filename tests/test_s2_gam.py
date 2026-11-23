@@ -10,6 +10,7 @@ import pytest
 import simplydata as sdata
 from simplydata import SimplydataError
 from simplydata.table import table as make_table
+from conftest import example_frame
 
 
 def by_term(result):
@@ -95,7 +96,7 @@ def test_curve_for_yes_or_no_has_no_degrees_of_freedom(school, needs_r):
 def test_curve_for_counts_different_values_on_the_rows_used():
     import numpy as np
 
-    frame = sdata.get_example("school")
+    frame = example_frame("school")
     frame["z"] = (np.arange(len(frame)) % 9).astype(float)
     frame.loc[:4, "z"] = 100.0 + np.arange(5)
     frame.loc[:4, "marks"] = np.nan

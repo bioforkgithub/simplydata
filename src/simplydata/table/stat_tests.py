@@ -1196,7 +1196,7 @@ class StatTestWords:
         for groups with different spreads; R rstatix::games_howell_test()), "scheffe" (R
         DescTools::ScheffeTest()), "lsd" (Fisher's least significant difference, NOT adjusted for
         the number of pairs; R DescTools::PostHocTest(method = "lsd")), and for ranks "dunn" (R
-        FSA::dunnTest(method = "holm")) and "conover" (R PMCMRplus::kwAllPairsConoverTest(
+        FSA::dunnTest(), adjusted with R p.adjust(method = "holm")) and "conover" (R PMCMRplus::kwAllPairsConoverTest(
         p.adjust.method = "holm")).
         against="A" compares every group with one control group only: Dunnett's test (SciPy
         stats.dunnett, as R multcomp::glht(mcp(group = "Dunnett"))), with intervals that hold for

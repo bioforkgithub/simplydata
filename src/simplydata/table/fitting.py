@@ -399,8 +399,11 @@ def fit_formula_core(formula, data, columns, start=None, between=None, weights=N
     else:
         # trust region and dogbox (SciPy least_squares): central differences with a step relative to each value
         # (diff_step = eps^(1/3) times the value), so a value such as 1e-7 is not stepped by 1.5e-8 (SciPy's
-        # default step is relative to max(1, |value|)); the standard errors come from this Jacobian at the end
-        options.update(max_nfev=20000, xtol=1e-12, ftol=1e-12, gtol=1e-12, bounds=(low, high), jac="3-point",
+        # default step is relative to max(1, |value|)); the standard errors come from this Jacobian at the end.
+        # xtol, ftol and gtol 1e-15 (SciPy's own options; above machine epsilon): the search goes on to the
+        # minimum, where the Jacobian gives the standard errors. With 1e-12 it stopped a little short: NIST
+        # Thurber standard errors agreed to 5.8 digits (6.7 now), ENSO b6 to 5.9 (6.5) and MGH09 b2, b4 to 5.8 (7.2)
+        options.update(max_nfev=20000, xtol=1e-15, ftol=1e-15, gtol=1e-15, bounds=(low, high), jac="3-point",
                        diff_step=np.finfo(float).eps ** (1 / 3))
     uncertain = False
     with warnings.catch_warnings(record=True) as caught:

@@ -20,6 +20,7 @@ from conftest import r_table
 from simplydata import SimplydataError
 from simplydata.table import table as make_table
 from simplydata.table.survival import kaplan_meier
+from conftest import example_frame
 
 ENGINES = ["pandas", "polars"]
 
@@ -32,7 +33,7 @@ def engine(request):
 def make(data, engine):
     if engine == "polars":
         pl = pytest.importorskip("polars")
-        return make_table(pl.from_pandas(data))
+        return make_table(data, fast=True)
     return make_table(data)
 
 
@@ -42,7 +43,7 @@ def frame(result):
 
 @pytest.fixture
 def trial():
-    return sdata.get_example("trial")
+    return example_frame("trial")
 
 
 def with_entry(trial):

@@ -17,6 +17,7 @@ import pytest
 import simplydata as sdata
 from conftest import r_table
 from simplydata import SimplydataError
+from conftest import example_frame
 
 DATA = Path(__file__).resolve().parents[1] / "validation" / "data"
 COLUMNS = ["age", "educ", "race", "married", "nodegree", "re74", "re75"]
@@ -71,7 +72,7 @@ def test_crossover_gives_the_published_reference_results(name, ratio, low, high)
 def test_crossover_is_the_ema_model_of_statsmodels(capsys):
     import statsmodels.formula.api as smf
 
-    df = sdata.get_example("drug_levels")
+    df = example_frame("drug_levels")
     first = df[df["period"] == 1].set_index("subject")["formulation"]
     df = df.assign(sequence=df["subject"].map(first))
     m = smf.ols("np.log(auc) ~ C(sequence) + C(subject) + C(period) + C(formulation)", data=df).fit()
@@ -107,7 +108,7 @@ def test_crossover_against_turns_the_ratio_round():
 
 
 def test_crossover_leaves_out_and_names_subjects_without_both_periods(capsys):
-    df = sdata.get_example("drug_levels")
+    df = example_frame("drug_levels")
     df = df[~((df["subject"] == 3) & (df["period"] == 2))]
     r = sdata.table(df).compare_averages_of("auc", for_each_group_in="formulation", matched_by="subject",
                                             period="period").get_row(1)
@@ -129,7 +130,7 @@ def test_crossover_refusals(change, message):
 
 
 def test_crossover_refuses_zero_values_and_one_order():
-    df = sdata.get_example("drug_levels")
+    df = example_frame("drug_levels")
     zero = df.copy()
     zero.loc[zero.index[0], "auc"] = 0
     with pytest.raises(SimplydataError, match="log scale"):
@@ -151,7 +152,7 @@ def test_mediation_is_statsmodels_mediation(capsys):
     import statsmodels.formula.api as smf
     from statsmodels.stats.mediation import Mediation
 
-    df = sdata.get_example("job_search")
+    df = example_frame("job_search")
     med = smf.ols("job_seek ~ treat + econ_hard + sex + age", data=df)
     out = smf.ols("depress2 ~ treat + job_seek + econ_hard + sex + age", data=df)
     s = Mediation(out, med, "treat", "job_seek").fit(n_rep=1000, rng=1).summary()
@@ -179,7 +180,7 @@ def test_job_search_is_made_up_with_the_effects_it_says():
     spec = importlib.util.spec_from_file_location("make_job_search", script)
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
-    shipped = sdata.get_example("job_search")
+    shipped = example_frame("job_search")
     pd.testing.assert_frame_equal(module.make().astype(str), shipped.astype(str), check_dtype=False)
     a = smf.ols("job_seek ~ treat + econ_hard + sex + age", data=shipped).fit()
     b = smf.ols("depress2 ~ treat + job_seek + econ_hard + sex + age", data=shipped).fit()
@@ -193,7 +194,7 @@ def test_job_search_is_made_up_with_the_effects_it_says():
 def test_mediation_simulation_estimates_the_product_of_coefficients():
     import statsmodels.formula.api as smf
 
-    df = sdata.get_example("job_search")
+    df = example_frame("job_search")
     a = smf.ols("job_seek ~ treat + econ_hard + sex + age", data=df).fit().params["treat"]
     b = smf.ols("depress2 ~ treat + job_seek + econ_hard + sex + age", data=df).fit().params["job_seek"]
     r = sdata.table(df).explain("depress2", using="treat", through="job_seek",
@@ -202,7 +203,7 @@ def test_mediation_simulation_estimates_the_product_of_coefficients():
 
 
 def test_mediation_with_a_yes_or_no_outcome_and_a_text_exposure(capsys):
-    df = sdata.get_example("job_search").assign(group=lambda d: np.where(d["treat"] == 1, "workshop", "booklet"))
+    df = example_frame("job_search").assign(group=lambda d: np.where(d["treat"] == 1, "workshop", "booklet"))
     r = sdata.table(df).explain("work1", using="group", through="job_seek", outcome="yes or no", against="booklet")
     assert len(r) == 4
     text = capsys.readouterr().out
@@ -351,7 +352,7 @@ def test_direct_standardisation_with_a_standard_table(needs_r):
     std = pd.DataFrame({"age_band": list(NATIONAL), "population": [100, 100, 100, 100, 100, 100]})
     r = t.rate_of("deaths", time="person_years", for_each_group_in="county", allowing_for="age_band",
                   standard_population=std).as_pandas().set_index("group")
-    rates = sdata.get_example("deaths_by_age").query("county == 'Eastmere'")
+    rates = example_frame("deaths_by_age").query("county == 'Eastmere'")
     assert r.loc["Eastmere", "adjusted rate"] == pytest.approx((rates["deaths"] / rates["person_years"]).mean() * 1000,
                                                                rel=1e-9)  # equal weights: the plain average rate
 
@@ -360,7 +361,7 @@ def test_indirect_standardisation_is_observed_over_expected(needs_r, capsys):
     t = sdata.table(sdata.get_example("deaths_by_age"))
     r = t.compare_rates("deaths", time="person_years", for_each_group_in="county", allowing_for="age_band",
                         standard_rates=NATIONAL).as_pandas().set_index("group")
-    df = sdata.get_example("deaths_by_age").query("county == 'Northvale'")
+    df = example_frame("deaths_by_age").query("county == 'Northvale'")
     expected = (df["person_years"] * df["age_band"].map(NATIONAL) / 1000).sum()
     assert r.loc["Northvale", "expected"] == pytest.approx(expected, rel=1e-12)
     assert r.loc["Northvale", "observed / expected"] == pytest.approx(df["deaths"].sum() / expected, rel=1e-12)
@@ -384,7 +385,7 @@ def test_direct_standardisation_refusals(call, message):
 
 
 def test_direct_standardisation_refuses_an_empty_band():
-    df = sdata.get_example("deaths_by_age")
+    df = example_frame("deaths_by_age")
     df.loc[(df["county"] == "Eastmere") & (df["age_band"] == "80+"), ["deaths", "person_years"]] = 0
     with pytest.raises(SimplydataError, match="no \"person_years\" for 80\\+ in Eastmere"):
         sdata.table(df).rate_of("deaths", time="person_years", for_each_group_in="county", allowing_for="age_band",
@@ -429,7 +430,7 @@ def test_correlation_imputation_without_empty_cells_is_the_ordinary_one(needs_r,
 
 
 def test_cox_model_with_multiple_imputation_pools_with_mice(needs_r, capsys):
-    df = sdata.get_example("trial")
+    df = example_frame("trial")
     df.loc[df.index[::6], "age"] = None
     r = sdata.table(df).explain_survival(time="days", event="died", using=["treatment", "age"],
                                          empty_cells="multiple imputation").as_pandas()
@@ -467,7 +468,7 @@ def test_practice_tables_after_real_studies_are_made_up_by_their_script(name):
     spec = importlib.util.spec_from_file_location("make_practice_tables", script)
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
-    shipped = sdata.get_example(name)
+    shipped = example_frame(name)  # the shipped file, read by pandas
     made = module.TABLES[name]()
     assert list(made.columns) == list(shipped.columns) and len(made) == len(shipped)
     pd.testing.assert_frame_equal(made.astype(str).replace("nan", ""), shipped.astype(str).replace("nan", ""),
@@ -485,7 +486,7 @@ def test_other_names_point_to_the_new_options(typed, capsys):
 # ---------------------------------------------------------------- review fixes
 def test_standardised_ratios_are_read_back_by_group_name(needs_r):
     """epiR sorts its strata as text (by the locale): every group must keep its own numbers."""
-    df = sdata.get_example("deaths_by_age")
+    df = example_frame("deaths_by_age")
     names = {"Northvale": "2", "Eastmere": "10", "Southby": "bergen", "Westford": "Oslo"}
     df["county"] = df["county"].map(names)
     r = sdata.table(df).compare_rates("deaths", time="person_years", for_each_group_in="county",
@@ -534,7 +535,7 @@ def test_mediation_refuses_a_text_outcome_as_numbers():
 
 
 def test_crossover_period_order_follows_the_values():
-    df = sdata.get_example("drug_levels")
+    df = example_frame("drug_levels")
     named = df.assign(period=df["period"].map({1: "early", 2: "late"}))
     r = sdata.table(named).compare_averages_of("auc", for_each_group_in="formulation", matched_by="subject",
                                                period="period").get_row(1)

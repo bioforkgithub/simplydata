@@ -17,6 +17,7 @@ from scipy import stats
 import simplydata as sdata
 from conftest import r_table
 from simplydata import SimplydataError
+from conftest import example_frame
 
 DATA = Path(__file__).resolve().parents[1] / "validation" / "data"
 WEIGHTED = pd.DataFrame({"length": [1.2, 2.1, 3.1, 5.0, 9.4, 2.2, 7.7], "n": [1, 3, 2, 1, 2, 1, 1],
@@ -125,7 +126,7 @@ def test_negative_weights_are_refused():
 
 # ---------------------------------------------------------------- A25: covariance matrix
 def test_covariance_table_is_pandas_cov(capsys):
-    frame = sdata.get_example("marks")
+    frame = example_frame("marks")
     result = sdata.table(frame).find_correlation_between("hours", "marks", "height", show="covariance").as_pandas()
     expected = frame[["hours", "marks", "height"]].cov()
     assert list(result.columns) == ["column", "hours", "marks", "height"]
@@ -218,7 +219,7 @@ def test_the_install_line_names_bioconductor_for_qvalue():
 
 
 def test_storey_q_values_are_qvalues(needs_r, capsys):
-    frame = sdata.get_example("many_tests")
+    frame = example_frame("many_tests")
     result = sdata.table(frame).add_adjusted_p_value_column(test_method="q-values").as_pandas()
     from simplydata._r import r_call
 
@@ -231,7 +232,7 @@ def test_storey_q_values_are_qvalues(needs_r, capsys):
 
 
 def test_local_fdr_has_its_own_column_name(needs_r, capsys):
-    frame = sdata.get_example("many_tests")
+    frame = example_frame("many_tests")
     result = sdata.table(frame).add_adjusted_p_value_column(test_method="lfdr").as_pandas()
     from simplydata._r import r_call
 

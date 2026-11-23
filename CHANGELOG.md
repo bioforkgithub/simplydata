@@ -5,6 +5,60 @@ working for one release and prints a one-line note with its new name.
 
 ## Unreleased
 
+### Changed: `sdata.get_example(name)` gives back a simplydata table (check your 0.2.x code)
+
+- `sdata.get_example("marks")` now gives back a simplydata table, as `get_example(name, from_r_package=)` already
+  did, so every table word works on it at once: `sdata.get_example("marks").count_rows()`. Up to simplydata 0.2.x it
+  gave back a pandas DataFrame. `sdata.table(sdata.get_example("marks"))` and `sdata.chart(sdata.get_example("marks"))`
+  still work as before. Code that used pandas on it, such as `sdata.get_example("marks")["marks"]` or
+  `.groupby(...)`, needs simplydata words now (`table.get_column("marks")`, `table.find_average_of(...)`), or, for
+  another package, `table.as_pandas()`.
+- The "same underneath" boxes of the manual read the practice table from its file with the package itself
+  (`pd.read_csv("marks.csv")`); `sdata.get_example("marks").save("marks.csv")` writes that file.
+
+### Fixed: eleven differences found while writing the Underneath entries and by the reference notebooks
+
+- `table.join_with` on a Polars table gave the rows in no fixed order (Polars joins without `maintain_order`). The
+  rows now come in the order pandas `merge()` gives on a pandas table: this table's rows in order, each followed by
+  its matches in the other table's order; with `keep="all rows from both"` sorted by `using=`. "matching rows" on
+  c, a, b, a, z came back b, a, a, a, a, c; now c, a, a, b, a, a, as on pandas.
+- `describe_columns` wrote 62.001 as "62.0" (it looked for a whole number before rounding to 2 places); now "62".
+- `sdata.compare_rates` and `sdata.compare_risks` said they compared against "the first in sorted order, as R", but
+  used the first group of `names=`. They keep that order, which is what R does with counts given as lists
+  (`poisson.test()`, `prop.test()` take them in the order given), and now say so: "the first given". The table
+  words still sort the groups, as R sorts factor levels.
+- `dist.find_middle_range` lost digits near 100 %: the top end was worked out as the value with 1 - tail below it.
+  It is now SciPy's `isf(tail)` (R `lower.tail = FALSE`). Normal, 99.99999999 %: 6.4669510747 before, 6.4669511822
+  now (= SciPy and R).
+- `nums.remove_each_frequency_that(is_equal_to=..., and_multiples=True)` also removed the average (SciPy `iircomb`
+  puts a notch at frequency 0 too). It is now one SciPy `iirnotch` at the frequency and at each multiple below half
+  the readings per unit of time; the average stays. A signal around 5 came back around 0.012 before, 5.0001 now.
+  `sdata.frequency_filter(remove_at=..., and_multiples=True)` changed the same way.
+- `chart.spectrum` labelled the 3 biggest values, which can sit on one broad peak, while the sentence of
+  `find_spectrum_of` named the strongest peaks. The chart now labels the same peaks as the sentence.
+- `chart.show()` left one pyplot figure open after each call. It is now closed once `show()` has finished with it
+  (in notebooks with a live window, such as `%matplotlib widget`, the window stays open).
+- `round_numbers_in` on a Polars table rounded halves away from zero on Polars before 1.29 (2.5 to 3, 0.125 to 0.13),
+  but to the even neighbour (2.5 to 2) on pandas and newer Polars. simplydata[fast] now needs `polars>=1.29`, and an
+  older Polars gets a message instead of other numbers.
+- `sdata.find_inverse_fourier_transform` trusted the number of readings it stored even after rows of the table were
+  removed or reordered, and SciPy quietly padded or cut them. It now refuses with a message; setting the real and
+  imaginary parts of some frequencies to 0 still works.
+- `compare_each_pair_of(test_method="dunn")`: R FSA's own Holm adjustment leaves out Holm's running maximum, so on
+  InsectSprays B - F got 0.926028 where R `p.adjust()` and PMCMRplus give 1 (A25). The adjustment now comes from R
+  `p.adjust(method = "holm")`.
+- `fit_formula(test_method="trust region")` and `"dogbox"` stopped a little short of the minimum after the A21 change,
+  so some standard errors lost digits: NIST Thurber (start 2) 5.8 digits, MGH09 b2 and b4 5.8 to 6.0, ENSO b6 5.9
+  (A26). SciPy's stopping rules are now 1e-15: Thurber 6.7, MGH09 7.2, ENSO 6.5, and nothing else of the 27 NIST
+  problems got worse (Misra1a, Kirby2 and Hahn1 keep their gains).
+- `round_numbers_in` with a negative number of places (tens, hundreds) did the rounding itself (divide, round,
+  multiply). It is now pandas `round(-1)`; Polars rounds to decimal places only, so on a Polars table the tens come
+  from NumPy's round, the one pandas uses: the same numbers on both.
+- `find_spectrum_of` and `nums.find_spectrum` no longer give the "share of variance (%)" column or the "holds 68 % of
+  the variance" in the sentence: that share was simplydata's own arithmetic. The powers (SciPy) are unchanged; with
+  the periodogram, the powers times the frequency step still add up to the variance.
+- `dist.find_middle_range(99.99999999)` printed "The middle 100 %"; it now prints the percent as given.
+- The method line of a notch or peak filter read "as R SciPy signal.iirnotch"; it now says what SciPy runs.
 ### Fixed: closer agreement with certified values, and data licences
 
 - `explain` takes the standard errors of a least-squares model as R `summary.lm()` does, from the QR factor

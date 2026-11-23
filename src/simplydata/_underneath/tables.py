@@ -17,13 +17,14 @@ ENTRIES = [
         """,
         code={
             "pandas": """
-                df = sdata.get_example("marks")
+                import pandas as pd
+                df = pd.read_csv("marks.csv")
                 # keep_rows_where("marks", is_above=50)
                 df[df["marks"] > 50]                 # (1)
             """,
             "Polars": """
                 import polars as pl
-                df = pl.from_pandas(sdata.get_example("marks"))
+                df = pl.read_csv("marks.csv")
                 # keep_rows_where("marks", is_above=50)
                 df.filter(pl.col("marks") > 50)      # (1)
             """,
@@ -42,13 +43,14 @@ ENTRIES = [
         """,
         code={
             "pandas": """
-                df = sdata.get_example("marks")
+                import pandas as pd
+                df = pd.read_csv("marks.csv")
                 # find_average_of("marks", for_each_group_in="subject")
                 df.groupby("subject", dropna=False)["marks"].mean().reset_index()   # (1)
             """,
             "Polars": """
                 import polars as pl
-                df = pl.from_pandas(sdata.get_example("marks"))
+                df = pl.read_csv("marks.csv")
                 # find_average_of("marks", for_each_group_in="subject")
                 df.group_by("subject").agg(pl.col("marks").mean()).sort("subject", nulls_last=True)   # (1)
             """,
@@ -75,7 +77,8 @@ ENTRIES += [
             table.show_first_rows(3)
         """,
         code={"pandas": """
-            df = sdata.get_example("marks")
+            import pandas as pd
+            df = pd.read_csv("marks.csv")
             # show_first_rows(rows=3)
             first = df.head(3)
             first.index = range(1, 4)        # (1)
@@ -96,7 +99,7 @@ ENTRIES += [
         """,
         code={"pandas": """
             import pandas as pd
-            df = sdata.get_example("marks")
+            df = pd.read_csv("marks.csv")
             # describe_columns()
             print(f"The table has {len(df)} rows and {df.shape[1]} columns.\\n")
             numbers = [c in df.select_dtypes("number") for c in df.columns]
@@ -125,13 +128,14 @@ ENTRIES += [
         """,
         code={
             "pandas": """
-                df = sdata.get_example("marks")
+                import pandas as pd
+                df = pd.read_csv("marks.csv")
                 # keep_columns("name", "marks")
                 df[["name", "marks"]]
             """,
             "Polars": """
                 import polars as pl
-                df = pl.from_pandas(sdata.get_example("marks"))
+                df = pl.read_csv("marks.csv")
                 # keep_columns("name", "marks")
                 df.select("name", "marks")
             """,
@@ -149,13 +153,14 @@ ENTRIES += [
         """,
         code={
             "pandas": """
-                df = sdata.get_example("marks")
+                import pandas as pd
+                df = pd.read_csv("marks.csv")
                 # rename_column("marks", to="score")
                 df.rename(columns={"marks": "score"})
             """,
             "Polars": """
                 import polars as pl
-                df = pl.from_pandas(sdata.get_example("marks"))
+                df = pl.read_csv("marks.csv")
                 # rename_column("marks", to="score")
                 df.rename({"marks": "score"})
             """,
@@ -173,14 +178,15 @@ ENTRIES += [
         """,
         code={
             "pandas": """
-                df = sdata.get_example("shop")
+                import pandas as pd
+                df = pd.read_csv("shop.csv", parse_dates=["date"])
                 # sort_by("sales", biggest_first=True)
                 df.sort_values("sales", ascending=False, kind="stable",    # (1)
                                na_position="last")                         # (2)
             """,
             "Polars": """
                 import polars as pl
-                df = pl.from_pandas(sdata.get_example("shop"))
+                df = pl.read_csv("shop.csv", try_parse_dates=True)
                 # sort_by("sales", biggest_first=True)
                 df.sort("sales", descending=True, maintain_order=True,     # (1)
                         nulls_last=True)                                   # (2)
@@ -201,13 +207,14 @@ ENTRIES += [
         """,
         code={
             "pandas": """
-                df = sdata.get_example("marks")
+                import pandas as pd
+                df = pd.read_csv("marks.csv")
                 # keep_rows_by_position(10, to=20)
                 df.iloc[9:20]                    # (1)
             """,
             "Polars": """
                 import polars as pl
-                df = pl.from_pandas(sdata.get_example("marks"))
+                df = pl.read_csv("marks.csv")
                 # keep_rows_by_position(10, to=20)
                 df.slice(9, 11)                  # (1)
             """,
@@ -226,14 +233,15 @@ ENTRIES += [
         """,
         code={
             "pandas": """
-                df = sdata.get_example("shop")
+                import pandas as pd
+                df = pd.read_csv("shop.csv", parse_dates=["date"])
                 # fill_empty_cells_in("customers", with_the="median")
                 customers = df["customers"]
                 df.assign(customers=customers.fillna(customers.median()))   # (1)
             """,
             "Polars": """
                 import polars as pl
-                df = pl.from_pandas(sdata.get_example("shop"))
+                df = pl.read_csv("shop.csv", try_parse_dates=True)
                 # fill_empty_cells_in("customers", with_the="median")
                 customers = pl.col("customers")
                 df.with_columns(customers.fill_null(customers.median()))   # (1)
@@ -279,13 +287,14 @@ ENTRIES += [
         """,
         code={
             "pandas": """
-                df = sdata.get_example("marks")
+                import pandas as pd
+                df = pd.read_csv("marks.csv")
                 # add_column("marks_per_hour", "marks / hours")
                 df.assign(marks_per_hour=df["marks"] / df["hours"])
             """,
             "Polars": """
                 import polars as pl
-                df = pl.from_pandas(sdata.get_example("marks"))
+                df = pl.read_csv("marks.csv")
                 # add_column("marks_per_hour", "marks / hours")
                 df.with_columns((pl.col("marks") / pl.col("hours")).alias("marks_per_hour"))
             """,
@@ -305,7 +314,7 @@ ENTRIES += [
             "pandas": """
                 import numpy as np
                 import pandas as pd
-                df = sdata.get_example("marks")
+                df = pd.read_csv("marks.csv")
                 # add_group_column("grade", from_column="marks", cut_at=[41, 61, 81], names=[...])
                 grade = pd.cut(df["marks"], [-np.inf, 41, 61, 81, np.inf],
                                labels=["D", "C", "B", "A"], right=False)       # (1)
@@ -313,7 +322,7 @@ ENTRIES += [
             """,
             "Polars": """
                 import polars as pl
-                df = pl.from_pandas(sdata.get_example("marks"))
+                df = pl.read_csv("marks.csv")
                 # add_group_column("grade", from_column="marks", cut_at=[41, 61, 81], names=[...])
                 df.with_columns(pl.col("marks").cut([41, 61, 81], labels=["D", "C", "B", "A"],
                                                     left_closed=True).alias("grade"))   # (1)
@@ -334,14 +343,15 @@ ENTRIES += [
         """,
         code={
             "pandas": """
-                df = sdata.get_example("marks")
+                import pandas as pd
+                df = pd.read_csv("marks.csv")
                 # find_summary_of("marks", for_each_group_in="class", show=[...])
                 out = df.groupby("class", dropna=False)["marks"].agg(["mean", "std", "count"])   # (1) (2)
                 out.reset_index().assign(column="marks")[["column", "class", "mean", "std", "count"]]
             """,
             "Polars": """
                 import polars as pl
-                df = pl.from_pandas(sdata.get_example("marks"))
+                df = pl.read_csv("marks.csv")
                 # find_summary_of("marks", for_each_group_in="class", show=[...])
                 m = pl.col("marks")
                 out = df.group_by("class").agg(m.mean().alias("mean"), m.std().alias("std"),   # (2)
@@ -367,14 +377,14 @@ ENTRIES += [
         code={
             "pandas": """
                 import pandas as pd
-                df = sdata.get_example("marks")
+                df = pd.read_csv("marks.csv")
                 ages = pd.DataFrame({"name": ["Asha", "Ben"], "age": [12, 13]})
                 # join_with(ages, using="name", keep="all rows from this table")
                 df.merge(ages, on="name", how="left", suffixes=("", "_other"))   # (1)
             """,
             "Polars": """
                 import polars as pl
-                df = pl.from_pandas(sdata.get_example("marks"))
+                df = pl.read_csv("marks.csv")
                 ages = pl.DataFrame({"name": ["Asha", "Ben"], "age": [12, 13]})
                 # join_with(ages, using="name", keep="all rows from this table")
                 df.join(ages, on="name", how="left", suffix="_other")   # (1)
@@ -398,14 +408,15 @@ ENTRIES += [
         code={
             "pandas": """
                 from scipy import stats
-                df = sdata.get_example("marks")
+                import pandas as pd
+                df = pd.read_csv("marks.csv")
                 # add_z_score_column("marks_z", from_column="marks", for_each_group_in="subject")
                 z = df.groupby("subject")["marks"].transform(stats.zscore, ddof=1, nan_policy="omit")   # (1)
                 df.assign(marks_z=z)
             """,
             "Polars": """
                 import polars as pl
-                df = pl.from_pandas(sdata.get_example("marks"))
+                df = pl.read_csv("marks.csv")
                 # add_z_score_column("marks_z", from_column="marks", for_each_group_in="subject")
                 m = pl.col("marks")
                 df.with_columns(((m - m.mean()) / m.std()).over("subject").alias("marks_z"))   # (1)
@@ -446,7 +457,7 @@ ENTRIES += [
                 import os
                 import tempfile
                 import pandas as pd
-                df = sdata.get_example("marks")
+                df = pd.read_csv("marks.csv")
                 with tempfile.TemporaryDirectory() as folder:
                     # save as marks.csv
                     df.to_csv(os.path.join(folder, "marks.csv"), index=False)   # (1)
@@ -458,7 +469,7 @@ ENTRIES += [
                 import tempfile
                 import pandas as pd
                 import polars as pl
-                df = pl.from_pandas(sdata.get_example("marks"))
+                df = pl.read_csv("marks.csv")
                 with tempfile.TemporaryDirectory() as folder:
                     # save as marks.csv
                     df.write_csv(os.path.join(folder, "marks.csv"))
@@ -480,7 +491,7 @@ ENTRIES += [
         """,
         code={"Polars": """
             import polars as pl
-            df = pl.from_pandas(sdata.get_example("marks"))
+            df = pl.read_csv("marks.csv")
             # as_pandas()
             df.to_pandas()
         """},
@@ -496,7 +507,8 @@ ENTRIES += [
         """,
         code={"pandas": """
             import polars as pl
-            df = sdata.get_example("marks")
+            import pandas as pd
+            df = pd.read_csv("marks.csv")
             # as_polars()
             pl.from_pandas(df)
         """},
@@ -535,13 +547,14 @@ ENTRIES += [
         """,
         code={
             "pandas": """
-                df = sdata.get_example("marks")
+                import pandas as pd
+                df = pd.read_csv("marks.csv")
                 # replace_values_in("subject", "Maths", with_value="Math")
                 df.assign(subject=df["subject"].mask(df["subject"] == "Maths", "Math"))
             """,
             "Polars": """
                 import polars as pl
-                df = pl.from_pandas(sdata.get_example("marks"))
+                df = pl.read_csv("marks.csv")
                 # replace_values_in("subject", "Maths", with_value="Math")
                 subject = pl.col("subject")
                 df.with_columns(pl.when(subject == "Maths").then(pl.lit("Math")).otherwise(subject).alias("subject"))
@@ -562,7 +575,7 @@ ENTRIES += [
         code={
             "pandas": """
                 import pandas as pd
-                df = sdata.get_example("river")
+                df = pd.read_csv("river.csv", parse_dates=["date"])
                 # add_missing_dates("date", every="day", for_each_group_in="station")
                 parts = []
                 for station, rows in df.groupby("station", sort=True, dropna=False):      # (1)
@@ -573,7 +586,7 @@ ENTRIES += [
             """,
             "Polars": """
                 import polars as pl
-                df = pl.from_pandas(sdata.get_example("river"))
+                df = pl.read_csv("river.csv", try_parse_dates=True)
                 # add_missing_dates("date", every="day", for_each_group_in="station")
                 df.sort("station", "date").upsample("date", every="1d", group_by="station",   # (1) (2)
                                                     maintain_order=True)
@@ -597,7 +610,8 @@ ENTRIES += [
         """,
         code={
             "pandas": """
-                df = sdata.get_example("weather")
+                import pandas as pd
+                df = pd.read_csv("weather.csv")
                 # add_rolling_column("rain_3_months", from_column="rain", window=3, show="total", ...)
                 ordered = df.sort_values("month_number", kind="stable")                    # (1)
                 total = ordered.groupby("city")["rain"].transform(lambda s: s.rolling(3).sum())  # (2)
@@ -605,7 +619,7 @@ ENTRIES += [
             """,
             "Polars": """
                 import polars as pl
-                df = pl.from_pandas(sdata.get_example("weather"))
+                df = pl.read_csv("weather.csv")
                 # add_rolling_column("rain_3_months", from_column="rain", window=3, show="total", ...)
                 total = pl.col("rain").rolling_sum(3).over("city", order_by="month_number")   # (1) (2)
                 df.with_columns(total.alias("rain_3_months"))
@@ -627,7 +641,8 @@ ENTRIES += [
             table.show_rows_with_outliers("marks", for_each_group_in="class")
         """,
         code={"pandas": """
-            df = sdata.get_example("marks")
+            import pandas as pd
+            df = pd.read_csv("marks.csv")
             # show_rows_with_outliers("marks", for_each_group_in="class")
             marks = df.groupby("class", dropna=False)["marks"]
             q1, q3 = marks.transform("quantile", 0.25), marks.transform("quantile", 0.75)   # (1)

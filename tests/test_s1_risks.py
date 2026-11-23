@@ -27,7 +27,7 @@ def make(name, engine):
     data = sdata.get_example(name)
     if engine == "polars":
         pl = pytest.importorskip("polars")
-        return make_table(pl.from_pandas(data))
+        return make_table(data, fast=True)
     return make_table(data)
 
 

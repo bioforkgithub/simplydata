@@ -7,7 +7,8 @@ and "school" (made up).
 from . import Entry
 
 CLINIC = """
-    df = sdata.get_example("clinic")
+    import pandas as pd
+    df = pd.read_csv("clinic.csv")
 """
 SEED = 'set.seed(1, kind = "Mersenne-Twister", normal.kind = "Inversion", sample.kind = "Rejection")'
 QUANTILES = 'c("2.5%", "50%", "97.5%")'
@@ -169,7 +170,8 @@ ENTRIES = [
             """,
         },
         r_inputs="""
-            df = sdata.get_example("school")
+            import pandas as pd
+            df = pd.read_csv("school.csv")
             marks = df["marks"].to_numpy(dtype=float)
             hours = df["hours"].to_numpy(dtype=float)
             breakfast = df["breakfast"].to_numpy(dtype=str)
@@ -203,7 +205,8 @@ ENTRIES = [
             """,
         },
         r_inputs="""
-            df = sdata.get_example("school")
+            import pandas as pd
+            df = pd.read_csv("school.csv")
             marks = df["marks"].to_numpy(dtype=float)
             hours = df["hours"].to_numpy(dtype=float)
             school = df["school"].to_numpy(dtype=str)
@@ -238,7 +241,8 @@ ENTRIES = [
             """,
         },
         r_inputs="""
-            df = sdata.get_example("school")
+            import pandas as pd
+            df = pd.read_csv("school.csv")
             marks = df["marks"].to_numpy(dtype=float)
             hours = df["hours"].to_numpy(dtype=float)
             breakfast = df["breakfast"].to_numpy(dtype=str)

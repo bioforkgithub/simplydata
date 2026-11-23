@@ -18,7 +18,7 @@ ENTRIES = [
         code={"matplotlib": """
             import matplotlib.pyplot as plt
             import pandas as pd
-            df = sdata.get_example("marks")
+            df = pd.read_csv("marks.csv")
             fig, ax = plt.subplots()
             ax.scatter(df["hours"], df["marks"])
             # get_numbers_drawn(): what matplotlib keeps of the drawn dots
@@ -69,7 +69,7 @@ ENTRIES = [
             import pandas as pd
             import statsmodels.api as sm
             from statsmodels.stats.outliers_influence import OLSInfluence
-            df = sdata.get_example("school").dropna(subset=["marks", "hours", "sleep"])
+            df = pd.read_csv("school.csv").dropna(subset=["marks", "hours", "sleep"])
             # show_rows_that_pull_model("marks", using=["hours", "sleep"])
             fit = sm.OLS(df["marks"], sm.add_constant(df[["hours", "sleep"]])).fit()
             influence = OLSInfluence(fit)
@@ -129,7 +129,8 @@ ENTRIES = [
         code={"statsmodels": """
             import statsmodels.api as sm
             from statsmodels.stats.diagnostic import het_breuschpagan
-            df = sdata.get_example("school").dropna(subset=["marks", "hours", "sleep"])
+            import pandas as pd
+            df = pd.read_csv("school.csv").dropna(subset=["marks", "hours", "sleep"])
             # check_model_of("marks", using=["hours", "sleep"], show="numbers"): the Breusch-Pagan row
             X = sm.add_constant(df[["hours", "sleep"]])
             fit = sm.OLS(df["marks"], X).fit()
@@ -156,7 +157,8 @@ ENTRIES = [
         """,
         code={"SciPy": """
             from scipy import stats
-            df = sdata.get_example("marks")
+            import pandas as pd
+            df = pd.read_csv("marks.csv")
             # find_correlation_between("hours", "marks", show="result table")
             res = stats.pearsonr(df["hours"], df["marks"])
             ci = res.confidence_interval(0.95)                 # (1)

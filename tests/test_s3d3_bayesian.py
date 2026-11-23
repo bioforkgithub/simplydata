@@ -20,6 +20,7 @@ import simplydata as sdata
 from conftest import r_table
 from simplydata import SimplydataError
 from simplydata.table import bayes_r, bayes_words
+from conftest import example_frame
 
 DATA = Path(__file__).resolve().parents[1] / "validation" / "data"
 VERDICT_WORDS = re.compile(r"significant|strong evidence|moderate evidence|anecdotal|proves|p-value =|\(p [=<]",
@@ -307,7 +308,7 @@ def test_check_model_draws_the_predictive_checks(needs_rstanarm, capsys, tmp_pat
     assert numbers["made"].shape == (50, 256) and len(numbers["observed"]) == 256
     from simplydata._r import r_call
 
-    d = sdata.get_example("school")
+    d = example_frame("school")
     same = r_call("m <- rstanarm::stan_glm(marks ~ hours + breakfast, data = data.frame(marks, hours, breakfast = "
                   "factor(breakfast)), seed = 1, refresh = 0, cores = 1); "
                   "yrep <- rstanarm::posterior_predict(m, draws = 50, seed = 1); r <- range(c(marks, yrep)); "

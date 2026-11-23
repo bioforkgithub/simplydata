@@ -17,6 +17,7 @@ import pytest
 import simplydata as sdata
 from conftest import r_table
 from simplydata._errors import SimplydataError
+from conftest import example_frame
 
 DATA = Path(__file__).resolve().parents[1] / "validation" / "data"
 
@@ -34,7 +35,7 @@ def school():
 
 @pytest.fixture
 def school_frame():
-    return sdata.get_example("school")
+    return example_frame("school")
 
 
 def row(result, term):
@@ -142,7 +143,7 @@ def test_lasso_refuses_ridge_few_rows_and_one_column(school):
         school.find_columns_that_predict("marks", using=["hours", "sleep"], test_method="ridge")
     with pytest.raises(SimplydataError, match="at least two"):
         school.find_columns_that_predict("marks", using=["hours"])
-    small = sdata.table(sdata.get_example("school").head(15))
+    small = sdata.table(example_frame("school").head(15))
     with pytest.raises(SimplydataError, match="at least 20 rows"):
         small.find_columns_that_predict("marks", using=["hours", "sleep"])
 
@@ -415,7 +416,7 @@ def test_interaction_lines_need_three_columns():
 
 # ---------------------------------------------------------------- review fixes
 def test_neighbours_alike_on_uneven_dates_matches_nlme_corcar1_on_days(needs_r):
-    river = sdata.get_example("river")
+    river = example_frame("river")
     part = river[river["station"] == "Station A"].head(60).drop(index=river.index[4]).dropna(subset=["level", "nitrate"])
     result = sdata.table(part).explain("level", using=["nitrate"], neighbours_alike_in_order_of="date")
     days = ((pd.to_datetime(part["date"]) - pd.to_datetime(part["date"]).min()) / pd.Timedelta(days=1)).to_numpy(float)

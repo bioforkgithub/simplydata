@@ -400,7 +400,7 @@ something new; \textbf{turn\_into\_} gives the same data as another kind
 \end{itemize}
 
 \unchapter{The practice tables}{start:tables}
-All the examples use small made-up tables that come with simplydata, so they run anywhere without a file. Every number in them is invented. Get one with \code{sdata.\allowbreak{}get\_\allowbreak{}example(\textquotedbl{}marks\textquotedbl{})}, and list them all with \code{sdata.\allowbreak{}get\_\allowbreak{}example()}.
+All the examples use small made-up tables that come with simplydata, so they run anywhere without a file. Every number in them is invented. Get one with \code{sdata.\allowbreak{}get\_\allowbreak{}example(\textquotedbl{}marks\textquotedbl{})}, and list them all with \code{sdata.\allowbreak{}get\_\allowbreak{}example()}. It gives back a simplydata table, so every table word works on it straight away: \code{sdata.\allowbreak{}get\_\allowbreak{}example(\textquotedbl{}marks\textquotedbl{}).\allowbreak{}count\_\allowbreak{}rows()}.
 \section*{marks}
 Test marks of 18 made-up children in three classes. \code{sdata.\allowbreak{}get\_\allowbreak{}example(\textquotedbl{}marks\textquotedbl{})}
 \begin{center}\small
@@ -4033,7 +4033,7 @@ chart.save("spectrum.png")
 \begin{lineexplain}
   \item[1] Load simplydata.
   \item[2] Five seconds of a made-up sensor: time in seconds, signal and vibration.
-  \item[3] The strongest cycle has frequency 5 per second (it repeats every 0.2 seconds) and holds 68 \% of the variance; next come 20 per second (11 \%) and a 50-per-second hum (4 \%).
+  \item[3] The strongest cycle has frequency 5 per second (it repeats every 0.2 seconds); next come 20 per second and a 50-per-second hum.
   \item[4] Start a chart.
   \item[5] The same numbers as a chart: power against frequency on a log scale, the three strongest cycles labelled with how often they repeat.
   \item[6] Save it.
@@ -4062,7 +4062,7 @@ chart.save("filter.png")
   \item[1] Load simplydata.
   \item[2] The sensor table.
   \item[3] A notch filter at 50 per second, run forwards and backwards so nothing moves in time.
-  \item[4] The hum is gone: now 5 per second holds 71 \% and 20 per second 12 \% of the variance.
+  \item[4] The hum is gone: now only 5 per second and 20 per second are named.
   \item[5] A Butterworth low-pass filter (steepness 4), as R signal::\code{filtfilt(signal::butter(4,\allowbreak{} 0.\allowbreak{}1),\allowbreak{} x)}.
   \item[6] Start a chart.
   \item[7] The raw signal.
@@ -4134,7 +4134,7 @@ table.check_steady_over_time("signal", sorted_by="time")
 \begin{goodtoknow}
 \begin{itemize}
   \item Frequencies are counted per unit of the \code{sorted\_\allowbreak{}by} column: per second here. For a list of numbers give \code{time\_\allowbreak{}step=} (\code{nums.\allowbreak{}find\_\allowbreak{}spectrum(time\_\allowbreak{}step=0.\allowbreak{}005)}).
-  \item The powers add up to the variance, so each peak's share of the variance is easy to read. R's \code{spec.\allowbreak{}pgram()} gives half these powers (it spreads them over negative frequencies too).
+  \item The powers times the frequency step add up to the variance (SciPy's density scaling). R's \code{spec.\allowbreak{}pgram()} gives half these powers (it spreads them over negative frequencies too).
   \item A recording can only show frequencies up to half its readings per second: 100 per second here.
   \item Filters run both ways by default, so nothing moves in time. \code{both\_\allowbreak{}ways=False} runs forwards only, as a live instrument would. \code{sdata.\allowbreak{}frequency\_\allowbreak{}filter(keep\_\allowbreak{}below=10,\allowbreak{} time\_\allowbreak{}step=0.\allowbreak{}005)} gives the filter itself, to look at with .chart().
   \item ADF starts from \code{\textquotedbl{}it wanders\textquotedbl{}} (a small p-value says steady); KPSS starts from \code{\textquotedbl{}steady\textquotedbl{}} (a small p-value says it wanders). The first line of the printout gives the answer in words.
@@ -5105,7 +5105,7 @@ Worked solutions: page~\pageref{solutions:36}, or type \code{sdata.\allowbreak{}
 
 Each entry gives the word as you type it, what it does (in the words of \code{sdata.\allowbreak{}help(\textquotedbl{}word\textquotedbl{})}), the options you can put in its brackets and what they normally are, the library that does the work underneath, and an example you can run as it is. The same entries are in Python: \code{sdata.\allowbreak{}help(\textquotedbl{}draw\_\allowbreak{}bars\textquotedbl{})}. The words come in the same groups as \code{sdata.\allowbreak{}show\_\allowbreak{}all\_\allowbreak{}words()}; the \hyperref[index]{index of words} at the end of the book lists them A to Z.
 
-Some entries end with a grey box, \textbf{The same underneath}. It shows the same job written in the package simplydata uses: pandas and then Polars for tables, NumPy for numbers, seaborn or matplotlib for charts, SciPy or statsmodels for statistics, and R where simplydata runs R for you. The box is for readers who know one of these packages or want to learn it; if you are learning simplydata, you can skip it. Each setting that simplydata chooses for you is marked in the code with a number, (1), (2) and so on, and explained under the code. A test runs the code in each box next to the simplydata word and checks that both give the same result, so the box cannot drift from simplydata. simplydata runs its table steps on pandas and Polars through narwhals; narwhals is only the link between the two and is not shown.
+Some entries end with a grey box, \textbf{The same underneath}. It shows the same job written in the package simplydata uses: pandas and then Polars for tables, NumPy for numbers, seaborn or matplotlib for charts, SciPy or statsmodels for statistics, and R where simplydata runs R for you. The box is for readers who know one of these packages or want to learn it; if you are learning simplydata, you can skip it. Each setting that simplydata chooses for you is marked in the code with a number, (1), (2) and so on, and explained under the code. A test runs the code in each box next to the simplydata word and checks that both give the same result, so the box cannot drift from simplydata. The code in the box reads the practice table from its file with the package itself, for example \code{pd.\allowbreak{}read\_\allowbreak{}csv(\textquotedbl{}marks.\allowbreak{}csv\textquotedbl{})}; \code{sdata.\allowbreak{}get\_\allowbreak{}example(\textquotedbl{}marks\textquotedbl{}).\allowbreak{}save(\textquotedbl{}marks.\allowbreak{}csv\textquotedbl{})} writes that file, to run the box yourself. simplydata runs its table steps on pandas and Polars through narwhals; narwhals is only the link between the two and is not shown.
 
 \unchapter{Chart words}{family:chart}
 Steps on a chart: \code{chart = sdata.chart(table)}, then \code{chart.draw\_bars(...)}. Words that start with \code{sdata.} are called on simplydata itself, and words that end in \code{=} are options inside a chart step.
@@ -5144,7 +5144,8 @@ chart.save("my_chart.png")
 \begin{lstlisting}[style=under]
 import matplotlib.pyplot as plt
 import seaborn as sns
-df = sdata.get_example("marks")
+import pandas as pd
+df = pd.read_csv("marks.csv")
 # chart(df): the figure and its axes
 fig, ax = plt.subplots()
 sns.scatterplot(df, x="hours", y="marks", ax=ax)
@@ -5156,7 +5157,7 @@ sns.scatterplot(df, x="hours", y="marks", ax=ax)
 A small table to practise with. \code{sdata.\allowbreak{}get\_\allowbreak{}example(\textquotedbl{}marks\textquotedbl{})}
 
 \codeline{sdata.get\_example() with no name lists every table and its columns.}\\
-The tables, all made up, are: marks, weather, fruit, growth, sensor, visitors, river, shop, school, meadow, trial, clinic, island, toxicity, culture, admissions, resistome, stations, rain, \code{sea\_\allowbreak{}levels} (yearly highest sea levels), and, for combining studies, bcg and \code{passive\_\allowbreak{}smoking}, for hidden factors, \code{ability\_\allowbreak{}tests}, for q-values, \code{many\_\allowbreak{}tests}, for planning and surveys, \code{sampled\_\allowbreak{}schools} and \code{course\_\allowbreak{}feedback} (answers on a scale), and, for cause and effect, \code{job\_\allowbreak{}training}, \code{job\_\allowbreak{}search}, \code{drug\_\allowbreak{}levels} and \code{deaths\_\allowbreak{}by\_\allowbreak{}age}. Seven of them copy the columns of a real study; simplydata was tested on the real data (\code{DATA\_\allowbreak{}LICENSES}.md). \code{\textquotedbl{}shop\textquotedbl{}} has empty cells and a column of dates to practise with; \code{\textquotedbl{}school\textquotedbl{}} has empty cells too. \code{from\_\allowbreak{}r\_\allowbreak{}package=\textquotedbl{}survival\textquotedbl{}} loads a dataset that comes with an installed R package instead, as a simplydata table: \code{sdata.\allowbreak{}get\_\allowbreak{}example(\textquotedbl{}lung\textquotedbl{},\allowbreak{} from\_\allowbreak{}r\_\allowbreak{}package=\textquotedbl{}survival\textquotedbl{})}. R itself loads it (utils::data); groups (factors) become text, R's NA empty cells, and row names that carry information become a first column, \code{\textquotedbl{}row name\textquotedbl{}}. Needs simplydata[r] and the R package already installed: nothing is downloaded or installed.
+The tables, all made up, are: marks, weather, fruit, growth, sensor, visitors, river, shop, school, meadow, trial, clinic, island, toxicity, culture, admissions, resistome, stations, rain, \code{sea\_\allowbreak{}levels} (yearly highest sea levels), and, for combining studies, bcg and \code{passive\_\allowbreak{}smoking}, for hidden factors, \code{ability\_\allowbreak{}tests}, for q-values, \code{many\_\allowbreak{}tests}, for planning and surveys, \code{sampled\_\allowbreak{}schools} and \code{course\_\allowbreak{}feedback} (answers on a scale), and, for cause and effect, \code{job\_\allowbreak{}training}, \code{job\_\allowbreak{}search}, \code{drug\_\allowbreak{}levels} and \code{deaths\_\allowbreak{}by\_\allowbreak{}age}. Seven of them copy the columns of a real study; simplydata was tested on the real data (\code{DATA\_\allowbreak{}LICENSES}.md). \code{\textquotedbl{}shop\textquotedbl{}} has empty cells and a column of dates to practise with; \code{\textquotedbl{}school\textquotedbl{}} has empty cells too. It gives back a simplydata table, ready for every table word: \code{sdata.\allowbreak{}get\_\allowbreak{}example(\textquotedbl{}marks\textquotedbl{})}.count\_rows(). (Up to simplydata 0.2.x it gave back a pandas table; \code{sdata.\allowbreak{}table(sdata.\allowbreak{}get\_\allowbreak{}example(\textquotedbl{}marks\textquotedbl{}))} still works.) \code{from\_\allowbreak{}r\_\allowbreak{}package=\textquotedbl{}survival\textquotedbl{}} loads a dataset that comes with an installed R package instead, also as a simplydata table: \code{sdata.\allowbreak{}get\_\allowbreak{}example(\textquotedbl{}lung\textquotedbl{},\allowbreak{} from\_\allowbreak{}r\_\allowbreak{}package=\textquotedbl{}survival\textquotedbl{})}. R itself loads it (utils::data); groups (factors) become text, R's NA empty cells, and row names that carry information become a first column, \code{\textquotedbl{}row name\textquotedbl{}}. Needs simplydata[r] and the R package already installed: nothing is downloaded or installed.
 
 \wordfield{Options}{}\par\nopagebreak
 \begin{optiontable}
@@ -5165,7 +5166,7 @@ The tables, all made up, are: marks, weather, fruit, growth, sensor, visitors, r
 \end{optiontable}
 
 \wordfield{Why this method}{\hyperref[basis:sdata.get-example]{How simplydata chooses methods}, page \pageref{basis:sdata.get-example}: the default, the evidence and the checks.}
-\wordfield{Underneath}{pandas \code{read\_\allowbreak{}csv()}, \code{files()}}
+\wordfield{Underneath}{pandas \code{files()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -5283,7 +5284,7 @@ chart.save("numbers_drawn.png")
 \begin{lstlisting}[style=under]
 import matplotlib.pyplot as plt
 import pandas as pd
-df = sdata.get_example("marks")
+df = pd.read_csv("marks.csv")
 fig, ax = plt.subplots()
 ax.scatter(df["hours"], df["marks"])
 # get_numbers_drawn(): what matplotlib keeps of the drawn dots
@@ -5331,7 +5332,8 @@ chart.save("draw_bars.png")
 \begin{lstlisting}[style=under]
 import matplotlib.pyplot as plt
 import seaborn as sns
-df = sdata.get_example("marks")
+import pandas as pd
+df = pd.read_csv("marks.csv")
 fig, ax = plt.subplots()
 # draw_bars(x="name", y="marks", colour="class")
 sns.barplot(df, x="name", y="marks", hue="class",
@@ -5403,7 +5405,8 @@ chart.save("draw_dots.png")
 \begin{lstlisting}[style=under]
 import matplotlib.pyplot as plt
 import seaborn as sns
-df = sdata.get_example("marks")
+import pandas as pd
+df = pd.read_csv("marks.csv")
 fig, ax = plt.subplots()
 # draw_dots(x="hours", y="marks", colour="class", size="height")
 sns.scatterplot(df, x="hours", y="marks", hue="class",
@@ -5475,7 +5478,8 @@ chart.save("draw_histogram.png")
 \begin{lstlisting}[style=under]
 import matplotlib.pyplot as plt
 import seaborn as sns
-df = sdata.get_example("marks")
+import pandas as pd
+df = pd.read_csv("marks.csv")
 fig, ax = plt.subplots()
 # draw_histogram(x="marks")
 sns.histplot(df, x="marks", bins=10, ax=ax)   # (1)
@@ -6088,7 +6092,8 @@ chart.save("draw_interaction_lines.png")
 \begin{lstlisting}[style=under]
 import seaborn as sns
 from scipy import stats
-df = sdata.get_example("school")
+import pandas as pd
+df = pd.read_csv("school.csv")
 # draw_interaction_lines(x="class", y="marks", colour="breakfast")
 def t95(v):                                                       # (1)
     return stats.t.interval(0.95, len(v) - 1, loc=v.mean(), scale=stats.sem(v))
@@ -6192,7 +6197,8 @@ chart.save("resistome_tree.png")
 import matplotlib.pyplot as plt
 from scipy.cluster import hierarchy
 from scipy.spatial.distance import pdist
-df = sdata.get_example("resistome")
+import pandas as pd
+df = pd.read_csv("resistome.csv")
 x = df.iloc[:, 5:].to_numpy(dtype=float)
 tree = hierarchy.linkage(pdist(x, "braycurtis"), method="average")  # (1)
 found = hierarchy.dendrogram(tree, labels=list(df["sample"]), no_plot=True)
@@ -6339,7 +6345,8 @@ chart.save("answer_bars.png")
 \begin{lstlisting}[style=under]
 import matplotlib.pyplot as plt
 import numpy as np
-df = sdata.get_example("course_feedback")
+import pandas as pd
+df = pd.read_csv("course_feedback.csv")
 levels = ["strongly disagree", "disagree", "neutral", "agree", "strongly agree"]
 fig, ax = plt.subplots()
 # draw_answer_bars(columns=["teaching", "pace"], in_order=levels)
@@ -7598,7 +7605,7 @@ Reading options, for files whose values are written differently:\\
 \end{optiontable}
 
 \wordfield{Why this method}{\hyperref[basis:sdata.table]{How simplydata chooses methods}, page \pageref{basis:sdata.table}: the default, the evidence and the checks.}
-\wordfield{Underneath}{pandas \code{str()}, \code{files()}, \code{read\_\allowbreak{}csv()}}
+\wordfield{Underneath}{pandas \code{str()}, \code{files()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -7638,7 +7645,8 @@ table.show_first_rows(10)
 \needspace{10\baselineskip}\begin{underneathbox}{\libbadge{pandas}}
 \underlib{pandas}
 \begin{lstlisting}[style=under]
-df = sdata.get_example("marks")
+import pandas as pd
+df = pd.read_csv("marks.csv")
 # show_first_rows(rows=3)
 first = df.head(3)
 first.index = range(1, 4)        # (1)
@@ -7717,7 +7725,7 @@ table.describe_columns()
 \underlib{pandas}
 \begin{lstlisting}[style=under]
 import pandas as pd
-df = sdata.get_example("marks")
+df = pd.read_csv("marks.csv")
 # describe_columns()
 print(f"The table has {len(df)} rows and {df.shape[1]} columns.\n")
 numbers = [c in df.select_dtypes("number") for c in df.columns]
@@ -7814,7 +7822,7 @@ Keep only these columns: by name (in the order you list them), a run of names, o
 \code{matches\_\allowbreak{}pattern=} & \\
 \end{optiontable}
 
-\wordfield{Underneath}{Polars \code{select()}}
+\wordfield{Underneath}{pandas \code{read\_\allowbreak{}csv()} \textperiodcentered{} Polars \code{select()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -7830,14 +7838,15 @@ table.show_first_rows()
 \needspace{10\baselineskip}\begin{underneathbox}{\libbadge{pandas}\libbadge{Polars}}
 \underlib{pandas}
 \begin{lstlisting}[style=under]
-df = sdata.get_example("marks")
+import pandas as pd
+df = pd.read_csv("marks.csv")
 # keep_columns("name", "marks")
 df[["name", "marks"]]
 \end{lstlisting}
 \underlib{Polars}
 \begin{lstlisting}[style=under]
 import polars as pl
-df = pl.from_pandas(sdata.get_example("marks"))
+df = pl.read_csv("marks.csv")
 # keep_columns("name", "marks")
 df.select("name", "marks")
 \end{lstlisting}
@@ -7935,14 +7944,15 @@ table.show_first_rows()
 \needspace{10\baselineskip}\begin{underneathbox}{\libbadge{pandas}\libbadge{Polars}}
 \underlib{pandas}
 \begin{lstlisting}[style=under]
-df = sdata.get_example("marks")
+import pandas as pd
+df = pd.read_csv("marks.csv")
 # rename_column("marks", to="score")
 df.rename(columns={"marks": "score"})
 \end{lstlisting}
 \underlib{Polars}
 \begin{lstlisting}[style=under]
 import polars as pl
-df = pl.from_pandas(sdata.get_example("marks"))
+df = pl.read_csv("marks.csv")
 # rename_column("marks", to="score")
 df.rename({"marks": "score"})
 \end{lstlisting}
@@ -7990,14 +8000,15 @@ table.show_first_rows()
 \needspace{10\baselineskip}\begin{underneathbox}{\libbadge{pandas}\libbadge{Polars}}
 \underlib{pandas}
 \begin{lstlisting}[style=under]
-df = sdata.get_example("marks")
+import pandas as pd
+df = pd.read_csv("marks.csv")
 # keep_rows_where("marks", is_above=50)
 df[df["marks"] > 50]                 # (1)
 \end{lstlisting}
 \underlib{Polars}
 \begin{lstlisting}[style=under]
 import polars as pl
-df = pl.from_pandas(sdata.get_example("marks"))
+df = pl.read_csv("marks.csv")
 # keep_rows_where("marks", is_above=50)
 df.filter(pl.col("marks") > 50)      # (1)
 \end{lstlisting}
@@ -8103,14 +8114,15 @@ table.show()
 \needspace{10\baselineskip}\begin{underneathbox}{\libbadge{pandas}\libbadge{Polars}}
 \underlib{pandas}
 \begin{lstlisting}[style=under]
-df = sdata.get_example("marks")
+import pandas as pd
+df = pd.read_csv("marks.csv")
 # keep_rows_by_position(10, to=20)
 df.iloc[9:20]                    # (1)
 \end{lstlisting}
 \underlib{Polars}
 \begin{lstlisting}[style=under]
 import polars as pl
-df = pl.from_pandas(sdata.get_example("marks"))
+df = pl.read_csv("marks.csv")
 # keep_rows_by_position(10, to=20)
 df.slice(9, 11)                  # (1)
 \end{lstlisting}
@@ -8186,7 +8198,8 @@ print(table)
 \undertext{\textbf{With \code{for\_\allowbreak{}each\_\allowbreak{}group\_\allowbreak{}in=}}: the same job with this option.}
 \underlib{pandas}
 \begin{lstlisting}[style=under]
-df = sdata.get_example("marks")
+import pandas as pd
+df = pd.read_csv("marks.csv")
 # keep_random_rows(2, for_each_group_in="class", with_seed=1)
 df.groupby("class").sample(n=2, random_state=1).sort_index()   # (1)
 \end{lstlisting}
@@ -8199,7 +8212,8 @@ df.groupby("class").sample(n=2, random_state=1).sort_index()   # (1)
 \undertext{\textbf{With \code{percent=}}: the same job with this option.}
 \underlib{pandas}
 \begin{lstlisting}[style=under]
-df = sdata.get_example("marks")
+import pandas as pd
+df = pd.read_csv("marks.csv")
 # keep_random_rows(percent=30, for_each_group_in="class", with_seed=1)
 df.groupby("class").sample(frac=0.3, random_state=1).sort_index()   # (1)
 \end{lstlisting}
@@ -8330,7 +8344,8 @@ table.show_rows_with_outliers("marks", for_each_group_in="class")
 \needspace{10\baselineskip}\begin{underneathbox}{\libbadge{pandas}}
 \underlib{pandas}
 \begin{lstlisting}[style=under]
-df = sdata.get_example("marks")
+import pandas as pd
+df = pd.read_csv("marks.csv")
 # show_rows_with_outliers("marks", for_each_group_in="class")
 marks = df.groupby("class", dropna=False)["marks"]
 q1, q3 = marks.transform("quantile", 0.25), marks.transform("quantile", 0.75)   # (1)
@@ -8392,7 +8407,8 @@ table.count_empty_cells_in()
 \undertext{\textbf{With \code{show=\textquotedbl{}patterns\textquotedbl{}}}: the same job with this option.}
 \underlib{pandas}
 \begin{lstlisting}[style=under]
-df = sdata.get_example("shop")
+import pandas as pd
+df = pd.read_csv("shop.csv", parse_dates=["date"])
 # count_empty_cells_in(show="patterns")
 p = df.isna().value_counts().reset_index(name="rows with this pattern")   # (1)
 p["empty cells"] = p[list(df.columns)].sum(axis=1)
@@ -8453,7 +8469,8 @@ table.count_empty_cells_in()
 \needspace{10\baselineskip}\begin{underneathbox}{\libbadge{pandas}\libbadge{Polars}}
 \underlib{pandas}
 \begin{lstlisting}[style=under]
-df = sdata.get_example("shop")
+import pandas as pd
+df = pd.read_csv("shop.csv", parse_dates=["date"])
 # fill_empty_cells_in("customers", with_the="median")
 customers = df["customers"]
 df.assign(customers=customers.fillna(customers.median()))   # (1)
@@ -8461,7 +8478,7 @@ df.assign(customers=customers.fillna(customers.median()))   # (1)
 \underlib{Polars}
 \begin{lstlisting}[style=under]
 import polars as pl
-df = pl.from_pandas(sdata.get_example("shop"))
+df = pl.read_csv("shop.csv", try_parse_dates=True)
 # fill_empty_cells_in("customers", with_the="median")
 customers = pl.col("customers")
 df.with_columns(customers.fill_null(customers.median()))   # (1)
@@ -8687,14 +8704,15 @@ table.find_biggest_of("marks")
 \needspace{10\baselineskip}\begin{underneathbox}{\libbadge{pandas}\libbadge{Polars}}
 \underlib{pandas}
 \begin{lstlisting}[style=under]
-df = sdata.get_example("marks")
+import pandas as pd
+df = pd.read_csv("marks.csv")
 # replace_values_in("subject", "Maths", with_value="Math")
 df.assign(subject=df["subject"].mask(df["subject"] == "Maths", "Math"))
 \end{lstlisting}
 \underlib{Polars}
 \begin{lstlisting}[style=under]
 import polars as pl
-df = pl.from_pandas(sdata.get_example("marks"))
+df = pl.read_csv("marks.csv")
 # replace_values_in("subject", "Maths", with_value="Math")
 subject = pl.col("subject")
 df.with_columns(pl.when(subject == "Maths").then(pl.lit("Math")).otherwise(subject).alias("subject"))
@@ -8706,7 +8724,7 @@ df.with_columns(pl.when(subject == "Maths").then(pl.lit("Math")).otherwise(subje
 Round numbers to this many decimal places: in one column, a list of columns, or every number column.
 
 \codeline{table.round\_numbers\_in(\textquotedbl{}hours\textquotedbl{}, 0)}\enspace \code{table.\allowbreak{}round\_\allowbreak{}numbers\_\allowbreak{}in([\textquotedbl{}hours\textquotedbl{},\allowbreak{} \textquotedbl{}marks\textquotedbl{}],\allowbreak{} 1)} \code{table.\allowbreak{}round\_\allowbreak{}numbers\_\allowbreak{}in(1)}\\
-(with \code{sdata.\allowbreak{}get\_\allowbreak{}example(\textquotedbl{}marks\textquotedbl{})}) A number exactly halfway goes to the even neighbour (2.5 becomes 2, 3.5 becomes 4), like R and NumPy; this stops a run of halves from always pushing totals up. \code{round\_\allowbreak{}numbers\_\allowbreak{}in(\textquotedbl{}price\textquotedbl{},\allowbreak{} with\_\allowbreak{}decimals=0)} gives whole numbers; a negative number of places rounds to tens (-1), hundreds (-2).
+(with \code{sdata.\allowbreak{}get\_\allowbreak{}example(\textquotedbl{}marks\textquotedbl{})}) A number exactly halfway goes to the even neighbour (2.5 becomes 2, 3.5 becomes 4), like R and NumPy; this stops a run of halves from always pushing totals up. \code{round\_\allowbreak{}numbers\_\allowbreak{}in(\textquotedbl{}price\textquotedbl{},\allowbreak{} with\_\allowbreak{}decimals=0)} gives whole numbers; a negative number of places rounds to tens (-1), hundreds (-2) (pandas \code{round(-1)}; Polars rounds to decimal places only, so on a Polars table tens come from NumPy's round).
 
 \wordfield{Options}{}\par\nopagebreak
 \begin{optiontable}
@@ -8783,7 +8801,8 @@ table.show_first_rows()
 \needspace{10\baselineskip}\begin{underneathbox}{\libbadge{pandas}\libbadge{Polars}}
 \underlib{pandas}
 \begin{lstlisting}[style=under]
-df = sdata.get_example("shop")
+import pandas as pd
+df = pd.read_csv("shop.csv", parse_dates=["date"])
 # sort_by("sales", biggest_first=True)
 df.sort_values("sales", ascending=False, kind="stable",    # (1)
                na_position="last")                         # (2)
@@ -8791,7 +8810,7 @@ df.sort_values("sales", ascending=False, kind="stable",    # (1)
 \underlib{Polars}
 \begin{lstlisting}[style=under]
 import polars as pl
-df = pl.from_pandas(sdata.get_example("shop"))
+df = pl.read_csv("shop.csv", try_parse_dates=True)
 # sort_by("sales", biggest_first=True)
 df.sort("sales", descending=True, maintain_order=True,     # (1)
         nulls_last=True)                                   # (2)
@@ -8854,14 +8873,15 @@ table.show_first_rows()
 \needspace{10\baselineskip}\begin{underneathbox}{\libbadge{pandas}\libbadge{Polars}}
 \underlib{pandas}
 \begin{lstlisting}[style=under]
-df = sdata.get_example("marks")
+import pandas as pd
+df = pd.read_csv("marks.csv")
 # add_column("marks_per_hour", "marks / hours")
 df.assign(marks_per_hour=df["marks"] / df["hours"])
 \end{lstlisting}
 \underlib{Polars}
 \begin{lstlisting}[style=under]
 import polars as pl
-df = pl.from_pandas(sdata.get_example("marks"))
+df = pl.read_csv("marks.csv")
 # add_column("marks_per_hour", "marks / hours")
 df.with_columns((pl.col("marks") / pl.col("hours")).alias("marks_per_hour"))
 \end{lstlisting}
@@ -8901,7 +8921,7 @@ table.count_each("grade")
 \begin{lstlisting}[style=under]
 import numpy as np
 import pandas as pd
-df = sdata.get_example("marks")
+df = pd.read_csv("marks.csv")
 # add_group_column("grade", from_column="marks", cut_at=[41, 61, 81], names=[...])
 grade = pd.cut(df["marks"], [-np.inf, 41, 61, 81, np.inf],
                labels=["D", "C", "B", "A"], right=False)       # (1)
@@ -8910,7 +8930,7 @@ df.assign(grade=grade)
 \underlib{Polars}
 \begin{lstlisting}[style=under]
 import polars as pl
-df = pl.from_pandas(sdata.get_example("marks"))
+df = pl.read_csv("marks.csv")
 # add_group_column("grade", from_column="marks", cut_at=[41, 61, 81], names=[...])
 df.with_columns(pl.col("marks").cut([41, 61, 81], labels=["D", "C", "B", "A"],
                                     left_closed=True).alias("grade"))   # (1)
@@ -8969,7 +8989,8 @@ table.show_first_rows()
 \underlib{pandas}
 \begin{lstlisting}[style=under]
 from scipy import stats
-df = sdata.get_example("marks")
+import pandas as pd
+df = pd.read_csv("marks.csv")
 # add_z_score_column("marks_z", from_column="marks", for_each_group_in="subject")
 z = df.groupby("subject")["marks"].transform(stats.zscore, ddof=1, nan_policy="omit")   # (1)
 df.assign(marks_z=z)
@@ -8977,7 +8998,7 @@ df.assign(marks_z=z)
 \underlib{Polars}
 \begin{lstlisting}[style=under]
 import polars as pl
-df = pl.from_pandas(sdata.get_example("marks"))
+df = pl.read_csv("marks.csv")
 # add_z_score_column("marks_z", from_column="marks", for_each_group_in="subject")
 m = pl.col("marks")
 df.with_columns(((m - m.mean()) / m.std()).over("subject").alias("marks_z"))   # (1)
@@ -9121,7 +9142,8 @@ table.show_first_rows()
 \needspace{10\baselineskip}\begin{underneathbox}{\libbadge{pandas}\libbadge{Polars}}
 \underlib{pandas}
 \begin{lstlisting}[style=under]
-df = sdata.get_example("weather")
+import pandas as pd
+df = pd.read_csv("weather.csv")
 # add_rolling_column("rain_3_months", from_column="rain", window=3, show="total", ...)
 ordered = df.sort_values("month_number", kind="stable")                    # (1)
 total = ordered.groupby("city")["rain"].transform(lambda s: s.rolling(3).sum())  # (2)
@@ -9130,7 +9152,7 @@ df.assign(rain_3_months=total)
 \underlib{Polars}
 \begin{lstlisting}[style=under]
 import polars as pl
-df = pl.from_pandas(sdata.get_example("weather"))
+df = pl.read_csv("weather.csv")
 # add_rolling_column("rain_3_months", from_column="rain", window=3, show="total", ...)
 total = pl.col("rain").rolling_sum(3).over("city", order_by="month_number")   # (1) (2)
 df.with_columns(total.alias("rain_3_months"))
@@ -9267,7 +9289,8 @@ table.count_each("fruit")
 \underlib{pandas and NumPy}
 \begin{lstlisting}[style=under]
 import numpy as np
-df = sdata.get_example("course_feedback")
+import pandas as pd
+df = pd.read_csv("course_feedback.csv")
 levels = ["strongly disagree", "disagree", "neutral", "agree", "strongly agree"]
 # count_each(columns=[...], in_order=levels), the first question
 x = df["teaching"].dropna()
@@ -9317,14 +9340,15 @@ print(by_class)
 \needspace{10\baselineskip}\begin{underneathbox}{\libbadge{pandas}\libbadge{Polars}}
 \underlib{pandas}
 \begin{lstlisting}[style=under]
-df = sdata.get_example("marks")
+import pandas as pd
+df = pd.read_csv("marks.csv")
 # find_average_of("marks", for_each_group_in="subject")
 df.groupby("subject", dropna=False)["marks"].mean().reset_index()   # (1)
 \end{lstlisting}
 \underlib{Polars}
 \begin{lstlisting}[style=under]
 import polars as pl
-df = pl.from_pandas(sdata.get_example("marks"))
+df = pl.read_csv("marks.csv")
 # find_average_of("marks", for_each_group_in="subject")
 df.group_by("subject").agg(pl.col("marks").mean()).sort("subject", nulls_last=True)   # (1)
 \end{lstlisting}
@@ -9384,7 +9408,8 @@ table.find_median_of("marks", for_each_group_in="class")
 \underlib{NumPy}
 \begin{lstlisting}[style=under]
 import numpy as np
-df = sdata.get_example("fruit")
+import pandas as pd
+df = pd.read_csv("fruit.csv")
 # find_median_of("price", weights="count")
 rows = np.repeat(df["price"].to_numpy(), df["count"].to_numpy())   # (1)
 np.median(rows)
@@ -9552,7 +9577,8 @@ table.find_summary_of("marks", for_each_group_in="class", show=["average", "stan
 \needspace{10\baselineskip}\begin{underneathbox}{\libbadge{pandas}\libbadge{Polars}}
 \underlib{pandas}
 \begin{lstlisting}[style=under]
-df = sdata.get_example("marks")
+import pandas as pd
+df = pd.read_csv("marks.csv")
 # find_summary_of("marks", for_each_group_in="class", show=[...])
 out = df.groupby("class", dropna=False)["marks"].agg(["mean", "std", "count"])   # (1) (2)
 out.reset_index().assign(column="marks")[["column", "class", "mean", "std", "count"]]
@@ -9560,7 +9586,7 @@ out.reset_index().assign(column="marks")[["column", "class", "mean", "std", "cou
 \underlib{Polars}
 \begin{lstlisting}[style=under]
 import polars as pl
-df = pl.from_pandas(sdata.get_example("marks"))
+df = pl.read_csv("marks.csv")
 # find_summary_of("marks", for_each_group_in="class", show=[...])
 m = pl.col("marks")
 out = df.group_by("class").agg(m.mean().alias("mean"), m.std().alias("std"),   # (2)
@@ -9683,7 +9709,8 @@ table.find_percentile_of("marks", 90, for_each_group_in="class")
 \underlib{NumPy}
 \begin{lstlisting}[style=under]
 import numpy as np
-df = sdata.get_example("fruit")
+import pandas as pd
+df = pd.read_csv("fruit.csv")
 # find_percentile_of("price", 90, weights="count")
 rows = np.repeat(df["price"].to_numpy(), df["count"].to_numpy())   # (1)
 np.percentile(rows, 90)                                           # (2)
@@ -9699,7 +9726,8 @@ np.percentile(rows, 90)                                           # (2)
 \underlib{NumPy}
 \begin{lstlisting}[style=under]
 import numpy as np
-df = sdata.get_example("fruit")
+import pandas as pd
+df = pd.read_csv("fruit.csv")
 # find_percentile_of("price", 90, weights="count", weight_kind="analytic")
 np.percentile(df["price"], 90, weights=df["count"],
               method="inverted_cdf")                              # (1)
@@ -9816,7 +9844,8 @@ table.find_correlation_between("hours", "marks")
 \undertext{\textbf{With \code{show=\textquotedbl{}covariance\textquotedbl{}}}: the same job with this option.}
 \underlib{pandas}
 \begin{lstlisting}[style=under]
-df = sdata.get_example("marks")
+import pandas as pd
+df = pd.read_csv("marks.csv")
 # find_correlation_between("hours", "marks", "height", show="covariance")
 cov = df[["hours", "marks", "height"]].cov(ddof=1)   # (1)
 cov.rename_axis("column").reset_index()
@@ -9873,7 +9902,8 @@ list(bf = BayesFactor::extractBF(b)$bf, low = q[[1]], mid = q[[2]], high = q[[3]
 \underlib{SciPy}
 \begin{lstlisting}[style=under]
 from scipy import stats
-df = sdata.get_example("marks")
+import pandas as pd
+df = pd.read_csv("marks.csv")
 # find_correlation_between("hours", "marks", show="result table")
 res = stats.pearsonr(df["hours"], df["marks"])
 ci = res.confidence_interval(0.95)                 # (1)
@@ -9933,7 +9963,8 @@ result.save("marks_test.csv")
 \underlib{SciPy}
 \begin{lstlisting}[style=under]
 from scipy import stats
-df = sdata.get_example("trial")
+import pandas as pd
+df = pd.read_csv("trial.csv")
 # the core of compare_averages_of("days", for_each_group_in="treatment")
 a, b = [rows["days"] for _, rows in df.groupby("treatment", sort=False)]
 res = stats.ttest_ind(a, b, equal_var=False)       # (1)
@@ -9970,7 +10001,8 @@ list(f = top[["F value"]][1], p = top[["Pr(>F)"]][1])
 \underlib{statsmodels}
 \begin{lstlisting}[style=under]
 from statsmodels.multivariate.manova import MANOVA
-df = sdata.get_example("school").dropna(subset=["marks", "hours"])
+import pandas as pd
+df = pd.read_csv("school.csv").dropna(subset=["marks", "hours"])
 # compare_averages_of(["marks", "hours"], for_each_group_in="class")
 test = MANOVA.from_formula("marks + hours ~ C(Q('class'))", data=df).mv_test()
 row = test.results["C(Q('class'))"]["stat"].loc["Pillai's trace"]   # (1)
@@ -10007,7 +10039,8 @@ list(diff = r$estimate, t = r$statistic, df = r$parameter, p = r$p.value)
 \begin{lstlisting}[style=under]
 import numpy as np
 import statsmodels.formula.api as smf
-df = sdata.get_example("drug_levels")
+import pandas as pd
+df = pd.read_csv("drug_levels.csv")
 first = df[df["period"] == 1].set_index("subject")["formulation"]
 df["sequence"] = df["subject"].map(first)                                          # (1)
 # compare_averages_of("auc", ..., matched_by="subject", period="period", same_within=[0.8, 1.25])
@@ -10050,7 +10083,7 @@ list(bf = BayesFactor::extractBF(b)$bf, low = q[[1]], mid = q[[2]], high = q[[3]
 Which pairs of groups differ? Every pair is compared, with Holm's correction.
 
 \codeline{table.compare\_each\_pair\_of(\textquotedbl{}marks\textquotedbl{}, for\_each\_group\_in=\textquotedbl{}class\textquotedbl{})   (with sdata.get\_example(\textquotedbl{}marks\textquotedbl{}))}\\
-Each pair gets Welch's t-test (or Mann-Whitney U with \code{based\_\allowbreak{}on=\textquotedbl{}ranks\textquotedbl{}}). Testing many pairs makes a false alarm more likely, so the p-values are adjusted with Holm's method: the chance of at least one false alarm stays at 5 \%. This is the same as R \code{pairwise.\allowbreak{}t.\allowbreak{}test(pool.\allowbreak{}sd = FALSE,\allowbreak{} p.\allowbreak{}adjust.\allowbreak{}method = \textquotedbl{}holm\textquotedbl{})}, or with ranks R \code{pairwise.\allowbreak{}wilcox.\allowbreak{}test(p.\allowbreak{}adjust.\allowbreak{}method = \textquotedbl{}holm\textquotedbl{})} as R 4.6 gives it: exact p-values below 50 values per group, also with tied values (those from R \code{wilcox.\allowbreak{}test()}; without R the normal approximation, and the printout says which). Gives back a table with one row per pair. \code{test\_\allowbreak{}method=\textquotedbl{}tukey\textquotedbl{}} gives Tukey's honest significant difference instead (R \code{TukeyHSD(aov(marks \textasciitilde{} class))}, the Tukey-Kramer form when the groups differ in size): the textbook follow-up to a one-way ANOVA, with 95 \% confidence intervals that hold for all pairs at once. It assumes the groups have the same spread; the default does not. \code{test\_\allowbreak{}method=\textquotedbl{}welch\textquotedbl{}} and \code{test\_\allowbreak{}method=\textquotedbl{}mann-whitney\textquotedbl{}} name the other two choices. More follow-up tests, each run in R (simplydata[r]): \code{test\_\allowbreak{}method=\textquotedbl{}games-howell\textquotedbl{}} (like Tukey, but for groups with different spreads; R rstatix::\code{games\_\allowbreak{}howell\_\allowbreak{}test()}), \code{\textquotedbl{}scheffe\textquotedbl{}} (R DescTools::\code{ScheffeTest()}), \code{\textquotedbl{}lsd\textquotedbl{}} (Fisher's least significant difference, NOT adjusted for the number of pairs; R DescTools::\code{PostHocTest(method = \textquotedbl{}lsd\textquotedbl{})}), and for ranks \code{\textquotedbl{}dunn\textquotedbl{}} (R FSA::\code{dunnTest(method = \textquotedbl{}holm\textquotedbl{})}) and \code{\textquotedbl{}conover\textquotedbl{}} (R PMCMRplus::\code{kwAllPairsConoverTest( p.\allowbreak{}adjust.\allowbreak{}method = \textquotedbl{}holm\textquotedbl{})}). \code{against=\textquotedbl{}A\textquotedbl{}} compares every group with one control group only: Dunnett's test (SciPy stats.dunnett, as R multcomp::\code{glht(mcp(group = \textquotedbl{}Dunnett\textquotedbl{}))}), with intervals that hold for all the comparisons at once. SciPy works it out with random numbers, so \code{with\_\allowbreak{}seed=1} is used (printed); the last digit can differ from R's. \code{show=\textquotedbl{}letters\textquotedbl{}} gives each group letters instead (a compact letter display, R multcompView::\code{multcompLetters()}): groups that share a letter have an adjusted p-value of 0.05 or more between them. It works with every \code{test\_\allowbreak{}method=} above, and gives back one row per group. \code{matched\_\allowbreak{}by=\textquotedbl{}patient\textquotedbl{}}: the same rows (patients) were measured in every group, such as pain at week 0, 4 and 8 in long form. Each pair is then compared within the patients: paired t-tests, or with \code{based\_\allowbreak{}on=\textquotedbl{}ranks\textquotedbl{}} (after \code{compare\_\allowbreak{}matched\_\allowbreak{}columns}'s Friedman test) the Wilcoxon signed-rank test, with Holm's correction (SciPy, as R \code{pairwise.\allowbreak{}t.\allowbreak{}test(paired = TRUE)} and \code{pairwise.\allowbreak{}wilcox.\allowbreak{}test(paired = TRUE)}). After Friedman's test, \code{test\_\allowbreak{}method=\textquotedbl{}nemenyi\textquotedbl{}} gives Nemenyi's test (R PMCMRplus::\code{frdAllPairsNemenyiTest()}, which allows for all the pairs itself: no further adjustment) and \code{test\_\allowbreak{}method=\textquotedbl{}conover\textquotedbl{}} Conover's test (R PMCMRplus::\code{frdAllPairsConoverTest( p.\allowbreak{}adjust.\allowbreak{}method = \textquotedbl{}holm\textquotedbl{})}); both work on the ranks within each matched row. \code{based\_\allowbreak{}on=\textquotedbl{}percents\textquotedbl{}} with a column of two values (\code{value=\textquotedbl{}yes\textquotedbl{}} names the one counted) compares the percent of each pair of groups: the 2 x 2 chi-square test with Yates' correction that \code{compare\_\allowbreak{}counts\_\allowbreak{}of} uses (SciPy), or \code{test\_\allowbreak{}method=\textquotedbl{}fisher\textquotedbl{}} (Fisher's exact test), then Holm's correction; each pair also gets its difference in percentage points with Newcombe's 95 \% interval, as \code{compare\_\allowbreak{}risks} (statsmodels). The same as R \code{pairwise.\allowbreak{}prop.\allowbreak{}test()}.\\
+Each pair gets Welch's t-test (or Mann-Whitney U with \code{based\_\allowbreak{}on=\textquotedbl{}ranks\textquotedbl{}}). Testing many pairs makes a false alarm more likely, so the p-values are adjusted with Holm's method: the chance of at least one false alarm stays at 5 \%. This is the same as R \code{pairwise.\allowbreak{}t.\allowbreak{}test(pool.\allowbreak{}sd = FALSE,\allowbreak{} p.\allowbreak{}adjust.\allowbreak{}method = \textquotedbl{}holm\textquotedbl{})}, or with ranks R \code{pairwise.\allowbreak{}wilcox.\allowbreak{}test(p.\allowbreak{}adjust.\allowbreak{}method = \textquotedbl{}holm\textquotedbl{})} as R 4.6 gives it: exact p-values below 50 values per group, also with tied values (those from R \code{wilcox.\allowbreak{}test()}; without R the normal approximation, and the printout says which). Gives back a table with one row per pair. \code{test\_\allowbreak{}method=\textquotedbl{}tukey\textquotedbl{}} gives Tukey's honest significant difference instead (R \code{TukeyHSD(aov(marks \textasciitilde{} class))}, the Tukey-Kramer form when the groups differ in size): the textbook follow-up to a one-way ANOVA, with 95 \% confidence intervals that hold for all pairs at once. It assumes the groups have the same spread; the default does not. \code{test\_\allowbreak{}method=\textquotedbl{}welch\textquotedbl{}} and \code{test\_\allowbreak{}method=\textquotedbl{}mann-whitney\textquotedbl{}} name the other two choices. More follow-up tests, each run in R (simplydata[r]): \code{test\_\allowbreak{}method=\textquotedbl{}games-howell\textquotedbl{}} (like Tukey, but for groups with different spreads; R rstatix::\code{games\_\allowbreak{}howell\_\allowbreak{}test()}), \code{\textquotedbl{}scheffe\textquotedbl{}} (R DescTools::\code{ScheffeTest()}), \code{\textquotedbl{}lsd\textquotedbl{}} (Fisher's least significant difference, NOT adjusted for the number of pairs; R DescTools::\code{PostHocTest(method = \textquotedbl{}lsd\textquotedbl{})}), and for ranks \code{\textquotedbl{}dunn\textquotedbl{}} (R FSA::\code{dunnTest()}, adjusted with R \code{p.\allowbreak{}adjust(method = \textquotedbl{}holm\textquotedbl{})}) and \code{\textquotedbl{}conover\textquotedbl{}} (R PMCMRplus::\code{kwAllPairsConoverTest( p.\allowbreak{}adjust.\allowbreak{}method = \textquotedbl{}holm\textquotedbl{})}). \code{against=\textquotedbl{}A\textquotedbl{}} compares every group with one control group only: Dunnett's test (SciPy stats.dunnett, as R multcomp::\code{glht(mcp(group = \textquotedbl{}Dunnett\textquotedbl{}))}), with intervals that hold for all the comparisons at once. SciPy works it out with random numbers, so \code{with\_\allowbreak{}seed=1} is used (printed); the last digit can differ from R's. \code{show=\textquotedbl{}letters\textquotedbl{}} gives each group letters instead (a compact letter display, R multcompView::\code{multcompLetters()}): groups that share a letter have an adjusted p-value of 0.05 or more between them. It works with every \code{test\_\allowbreak{}method=} above, and gives back one row per group. \code{matched\_\allowbreak{}by=\textquotedbl{}patient\textquotedbl{}}: the same rows (patients) were measured in every group, such as pain at week 0, 4 and 8 in long form. Each pair is then compared within the patients: paired t-tests, or with \code{based\_\allowbreak{}on=\textquotedbl{}ranks\textquotedbl{}} (after \code{compare\_\allowbreak{}matched\_\allowbreak{}columns}'s Friedman test) the Wilcoxon signed-rank test, with Holm's correction (SciPy, as R \code{pairwise.\allowbreak{}t.\allowbreak{}test(paired = TRUE)} and \code{pairwise.\allowbreak{}wilcox.\allowbreak{}test(paired = TRUE)}). After Friedman's test, \code{test\_\allowbreak{}method=\textquotedbl{}nemenyi\textquotedbl{}} gives Nemenyi's test (R PMCMRplus::\code{frdAllPairsNemenyiTest()}, which allows for all the pairs itself: no further adjustment) and \code{test\_\allowbreak{}method=\textquotedbl{}conover\textquotedbl{}} Conover's test (R PMCMRplus::\code{frdAllPairsConoverTest( p.\allowbreak{}adjust.\allowbreak{}method = \textquotedbl{}holm\textquotedbl{})}); both work on the ranks within each matched row. \code{based\_\allowbreak{}on=\textquotedbl{}percents\textquotedbl{}} with a column of two values (\code{value=\textquotedbl{}yes\textquotedbl{}} names the one counted) compares the percent of each pair of groups: the 2 x 2 chi-square test with Yates' correction that \code{compare\_\allowbreak{}counts\_\allowbreak{}of} uses (SciPy), or \code{test\_\allowbreak{}method=\textquotedbl{}fisher\textquotedbl{}} (Fisher's exact test), then Holm's correction; each pair also gets its difference in percentage points with Newcombe's 95 \% interval, as \code{compare\_\allowbreak{}risks} (statsmodels). The same as R \code{pairwise.\allowbreak{}prop.\allowbreak{}test()}.\\
 \codeline{table.compare\_each\_pair\_of(\textquotedbl{}resistant\textquotedbl{}, for\_each\_group\_in=\textquotedbl{}farm\textquotedbl{}, based\_on=\textquotedbl{}percents\textquotedbl{}, value=\textquotedbl{}yes\textquotedbl{})}
 
 \wordfield{Options}{}\par\nopagebreak
@@ -10118,7 +10151,7 @@ list(p = r$p.value[1, 1], q = r$statistic[1, 1])
 import pandas as pd
 from scipy import stats
 from statsmodels.stats.multitest import multipletests
-df = sdata.get_example("clinic")
+df = pd.read_csv("clinic.csv")
 # compare_each_pair_of("infected", for_each_group_in="age_group", based_on="percents", value="yes")
 t = pd.crosstab(df["age_group"], df["infected"] == "yes").to_numpy()
 pairs = [(i, j) for i in range(len(t)) for j in range(i + 1, len(t))]
@@ -10404,7 +10437,8 @@ list(q = q$qvalues)
 \end{lstlisting}
 \underlib{Python (with what R gives back)}
 \begin{lstlisting}[style=under]
-df = sdata.get_example("many_tests")
+import pandas as pd
+df = pd.read_csv("many_tests.csv")
 df["p-value (Storey q-value)"] = q
 df
 \end{lstlisting}
@@ -10424,7 +10458,8 @@ list(lfdr = q$lfdr)
 \end{lstlisting}
 \underlib{Python (with what R gives back)}
 \begin{lstlisting}[style=under]
-df = sdata.get_example("many_tests")
+import pandas as pd
+df = pd.read_csv("many_tests.csv")
 df["local false discovery rate"] = lfdr
 df
 \end{lstlisting}
@@ -10459,7 +10494,8 @@ table.compare_spreads_of("marks", for_each_group_in="class")
 \underlib{SciPy}
 \begin{lstlisting}[style=under]
 from scipy import stats
-df = sdata.get_example("marks")
+import pandas as pd
+df = pd.read_csv("marks.csv")
 # compare_spreads_of("marks", for_each_group_in="class")
 groups = [rows["marks"].dropna() for _, rows in df.groupby("class")]
 res = stats.levene(*groups, center="median")                  # (1)
@@ -10523,7 +10559,8 @@ table.compare_percent_to("passed", value="yes", percent=50)
 \begin{lstlisting}[style=under]
 from scipy import stats
 from statsmodels.stats.proportion import proportion_effectsize
-df = sdata.get_example("school")
+import pandas as pd
+df = pd.read_csv("school.csv")
 # compare_percent_to("passed", value="yes", percent=50)
 passed = df["passed"].dropna()
 hits, n = int((passed == "yes").sum()), len(passed)
@@ -11237,7 +11274,8 @@ table.fit_line(x="hours", y="marks")
 \underlib{SciPy}
 \begin{lstlisting}[style=under]
 from scipy import stats
-df = sdata.get_example("marks")
+import pandas as pd
+df = pd.read_csv("marks.csv")
 # fit_line(x="hours", y="marks")
 fit = stats.linregress(df["hours"], df["marks"])
 t = stats.t.ppf(0.975, len(df) - 2)                 # (1)
@@ -11256,7 +11294,8 @@ t = stats.t.ppf(0.975, len(df) - 2)                 # (1)
 \underlib{SciPy}
 \begin{lstlisting}[style=under]
 from scipy import stats
-df = sdata.get_example("marks")
+import pandas as pd
+df = pd.read_csv("marks.csv")
 # fit_line(x="hours", y="marks", test_method="theil-sen")
 fit = stats.theilslopes(df["marks"], df["hours"], alpha=0.95,      # (1)
                         method="separate")                        # (2)
@@ -11355,7 +11394,8 @@ list(bend = s$psi[1, "Est."], before = sl[1, 1], after = sl[2, 1],
 \underlib{statsmodels}
 \begin{lstlisting}[style=under]
 import statsmodels.formula.api as smf
-df = sdata.get_example("culture").query("flask == 'A'")
+import pandas as pd
+df = pd.read_csv("culture.csv").query("flask == 'A'")
 # fit_line(x="hour", y="density", changes_at=10)
 df = df.assign(after=(df["hour"] >= 10) * 1.0)               # (1)
 df = df.assign(since=df["after"] * (df["hour"] - 10))
@@ -11398,7 +11438,8 @@ table.fit_curve(x="hours", y="marks", of_degree=2)
 \begin{lstlisting}[style=under]
 import numpy as np
 from scipy import optimize
-df = sdata.get_example("culture").query("flask == 'A'")
+import pandas as pd
+df = pd.read_csv("culture.csv").query("flask == 'A'")
 # fit_curve(x="hour", y="density", of_kind="logistic growth")
 def logistic(x, Asym, xmid, scal):                  # R's SSlogis
     return Asym / (1 + np.exp((xmid - x) / scal))
@@ -11514,7 +11555,8 @@ table.find_best_power_of("days", test_method="yeo-johnson")
 \underlib{SciPy}
 \begin{lstlisting}[style=under]
 from scipy import stats
-df = sdata.get_example("trial")
+import pandas as pd
+df = pd.read_csv("trial.csv")
 # find_best_power_of("days")
 _, power, (low, high) = stats.boxcox(df["days"].dropna(), alpha=0.05)   # (1)
 {"power": power, "95 % CI low": low, "95 % CI high": high}
@@ -11919,7 +11961,8 @@ dist.find_cut_off(with_chance_below=0.05)
 \wordentry{dist.find\_middle\_range()}{word:dist.find-middle-range}
 The range that holds the middle percent of the distribution, as Numbers [low, high].
 
-\codeline{dist.find\_middle\_range(95)}\enspace (R \code{qnorm(c(0.\allowbreak{}025,\allowbreak{} 0.\allowbreak{}975),\allowbreak{} mean = 50,\allowbreak{} sd = 10)})
+\codeline{dist.find\_middle\_range(95)}\enspace (R c(\code{qnorm(0.\allowbreak{}025,\allowbreak{} mean = 50,\allowbreak{} sd = 10)}, qnorm(0.025, mean = 50, sd = 10,\\
+lower.tail = FALSE))) The top end is the value with (100 - percent) / 2 \% above it (SciPy isf), so it keeps its digits near 100 \%.
 
 \wordfield{Options}{}\par\nopagebreak
 \begin{optiontable}
@@ -12130,7 +12173,8 @@ table.explain("marks", using=["hours", "breakfast"], show="standardised effects"
 \underlib{statsmodels}
 \begin{lstlisting}[style=under]
 import statsmodels.api as sm
-df = sdata.get_example("fruit")
+import pandas as pd
+df = pd.read_csv("fruit.csv")
 # explain("price", using=["shop"], weights="count")
 X = sm.add_constant((df["shop"] == "Market stall").astype(float))
 fit = sm.WLS(df["price"], X, weights=df["count"]).fit()     # (1)
@@ -12190,7 +12234,8 @@ fit = model.fit(method="newton", disp=0)                  # (2)
 \underlib{statsmodels}
 \begin{lstlisting}[style=under]
 import statsmodels.api as sm
-df = sdata.get_example("clinic")
+import pandas as pd
+df = pd.read_csv("clinic.csv")
 # explain("caught_infection", using=["ward", "patient_days"], outcome="yes or no", show="risk ratios")
 X = sm.add_constant(df[["patient_days"]].assign(b=(df["ward"] == "ward B") * 1.0))
 y = (df["caught_infection"] == "yes").astype(float)
@@ -12207,7 +12252,8 @@ fit = sm.GLM(y, X, family=sm.families.Poisson()).fit(cov_type="HC0")   # (1)
 \underlib{statsmodels}
 \begin{lstlisting}[style=under]
 import statsmodels.api as sm
-df = sdata.get_example("school")
+import pandas as pd
+df = pd.read_csv("school.csv")
 # explain("passed", using=["breakfast"], outcome="yes or no", show="risk ratios", test_method="log-binomial")
 X = sm.add_constant((df["breakfast"] == "yes").astype(float))
 y = (df["passed"] == "yes").astype(float)
@@ -12225,7 +12271,8 @@ fit = sm.GLM(y, X, family=sm.families.Binomial(link=log)).fit()   # (1)
 \underlib{statsmodels}
 \begin{lstlisting}[style=under]
 import statsmodels.api as sm
-df = sdata.get_example("marks")
+import pandas as pd
+df = pd.read_csv("marks.csv")
 # explain("marks", using=["hours"], giving_outliers_less_weight=True)
 X = sm.add_constant(df["hours"])
 huber = sm.robust.norms.HuberT()                          # (1)
@@ -12247,7 +12294,8 @@ fit = sm.RLM(df["marks"], X, M=huber).fit(scale_est="mad", cov="H1",
 import numpy as np
 import statsmodels.api as sm
 from patsy import dmatrix
-df = sdata.get_example("school")
+import pandas as pd
+df = pd.read_csv("school.csv")
 # explain("marks", using=["hours", "breakfast"], curve_for="hours", with_knots=3)
 knots = np.quantile(df["hours"], [0.25, 0.5, 0.75])               # (1)
 curve = dmatrix("cr(hours, knots=knots, constraints='center') - 1", df)   # (2)
@@ -12266,7 +12314,8 @@ fit = sm.OLS(df["marks"], X.astype(float)).fit()
 \underlib{statsmodels}
 \begin{lstlisting}[style=under]
 import statsmodels.api as sm
-df = sdata.get_example("school")
+import pandas as pd
+df = pd.read_csv("school.csv")
 # explain("marks", using=["hours", "breakfast"], show="standardised effects")
 def z(v):
     return (v - v.mean()) / v.std()                       # (1)
@@ -12287,7 +12336,8 @@ fit = sm.OLS(z(df["marks"]), X).fit()                     # (2)
 import numpy as np
 import statsmodels.api as sm
 from scipy import stats
-df = sdata.get_example("marks")
+import pandas as pd
+df = pd.read_csv("marks.csv")
 # explain("marks", using=["hours"], interval_by="bootstrap", resamples=999, with_seed=1)
 X, y = sm.add_constant(df["hours"]).to_numpy(), df["marks"].to_numpy()
 def refit(rows):                                          # (1)
@@ -12329,7 +12379,8 @@ import math
 \begin{lstlisting}[style=under]
 import statsmodels.api as sm
 from scipy import stats
-df = sdata.get_example("school")
+import pandas as pd
+df = pd.read_csv("school.csv")
 # explain("passed", using=["hours", "breakfast"], outcome="yes or no", p_value_by="likelihood ratio")
 y = (df["passed"] == "yes").astype(float)
 X = sm.add_constant(df[["hours"]].assign(b=(df["breakfast"] == "yes") * 1.0))
@@ -12445,7 +12496,8 @@ list(estimate = s[1, 1], se = s[1, 2], p = s[1, 4])
 \underlib{statsmodels}
 \begin{lstlisting}[style=under]
 import statsmodels.formula.api as smf
-df = sdata.get_example("culture").query("flask == 'A'")
+import pandas as pd
+df = pd.read_csv("culture.csv").query("flask == 'A'")
 # explain("density", using=["hour"], changes_at={"hour": 10})
 df = df.assign(after=(df["hour"] >= 10) * 1.0)               # (1)
 df = df.assign(since=df["after"] * (df["hour"] - 10))
@@ -12527,7 +12579,8 @@ list(est = s[3, 1], se = s[3, 2], p = s[3, 4], low = ci[3, 1], high = ci[3, 2])
 \begin{lstlisting}[style=under]
 import statsmodels.formula.api as smf
 from statsmodels.stats.mediation import Mediation
-df = sdata.get_example("job_search")
+import pandas as pd
+df = pd.read_csv("job_search.csv")
 # explain("depress2", using="treat", through="job_seek", allowing_for=["econ_hard", "sex", "age"])
 mediator = smf.ols("job_seek ~ treat + econ_hard + sex + age", data=df)            # (1)
 outcome = smf.ols("depress2 ~ treat + job_seek + econ_hard + sex + age", data=df)
@@ -12627,7 +12680,8 @@ table.show_first_rows(5)
 \underlib{statsmodels}
 \begin{lstlisting}[style=under]
 import statsmodels.formula.api as smf
-df = sdata.get_example("school")
+import pandas as pd
+df = pd.read_csv("school.csv")
 # add_predicted_column("marks", using=["hours", "sleep"])
 fit = smf.ols("marks ~ hours + sleep", data=df).fit()            # (1)
 df.assign(**{"predicted marks": fit.fittedvalues})               # (2)
@@ -12786,7 +12840,8 @@ observed
 \begin{lstlisting}[style=under]
 import statsmodels.api as sm
 from statsmodels.stats.diagnostic import het_breuschpagan
-df = sdata.get_example("school").dropna(subset=["marks", "hours", "sleep"])
+import pandas as pd
+df = pd.read_csv("school.csv").dropna(subset=["marks", "hours", "sleep"])
 # check_model_of("marks", using=["hours", "sleep"], show="numbers"): the Breusch-Pagan row
 X = sm.add_constant(df[["hours", "sleep"]])
 fit = sm.OLS(df["marks"], X).fit()
@@ -12828,7 +12883,7 @@ import numpy as np
 import pandas as pd
 import statsmodels.api as sm
 from statsmodels.stats.outliers_influence import OLSInfluence
-df = sdata.get_example("school").dropna(subset=["marks", "hours", "sleep"])
+df = pd.read_csv("school.csv").dropna(subset=["marks", "hours", "sleep"])
 # show_rows_that_pull_model("marks", using=["hours", "sleep"])
 fit = sm.OLS(df["marks"], sm.add_constant(df[["hours", "sleep"]])).fit()
 influence = OLSInfluence(fit)
@@ -12877,7 +12932,8 @@ table.compare_models("marks", using=["hours"], against=["hours", "breakfast"], g
 import numpy as np
 import statsmodels.formula.api as smf
 from statsmodels.tools import eval_measures
-df = sdata.get_example("school").dropna(subset=["marks", "hours", "breakfast"])
+import pandas as pd
+df = pd.read_csv("school.csv").dropna(subset=["marks", "hours", "breakfast"])
 # compare_models("marks", using=[["hours"], ["hours", "breakfast"]])
 fits = [smf.ols(f, df).fit() for f in ("marks ~ hours", "marks ~ hours + breakfast")]
 k = [len(f.params) + 1 for f in fits]                                 # (1)
@@ -13040,7 +13096,7 @@ chart.save("meadow_pca.png")
 import numpy as np
 import pandas as pd
 from statsmodels.multivariate.pca import PCA
-df = sdata.get_example("meadow")
+df = pd.read_csv("meadow.csv")
 # add_principal_components(how_many=2)
 x = df.select_dtypes("number").dropna()                          # (1)
 z = (x - x.mean()) / x.std()                                     # (2)
@@ -13445,7 +13501,7 @@ list(clr = matrix(as.numeric(unclass(m)), nrow = nrow(x)))
 \underlib{Python (with what R gives back)}
 \begin{lstlisting}[style=under]
 import pandas as pd
-names = list(sdata.get_example("resistome").columns[5:])
+names = list(pd.read_csv("resistome.csv").columns[5:])
 pd.DataFrame(clr, columns=["clr_" + g for g in names])
 \end{lstlisting}
 \undertext{\textbf{simplydata chooses}}
@@ -13469,7 +13525,7 @@ list(alr = matrix(as.numeric(unclass(m)), nrow = nrow(x)))
 \underlib{Python (with what R gives back)}
 \begin{lstlisting}[style=under]
 import pandas as pd
-names = list(sdata.get_example("resistome").columns[5:])
+names = list(pd.read_csv("resistome.csv").columns[5:])
 pd.DataFrame(alr, columns=["alr_" + g for g in names if g != "sul1"])
 \end{lstlisting}
 \undertext{\textbf{simplydata chooses}}
@@ -13510,7 +13566,7 @@ list(clr = unname(as.matrix(m)))
 \underlib{Python (with what R gives back)}
 \begin{lstlisting}[style=under]
 import pandas as pd
-names = list(sdata.get_example("resistome").columns[5:])
+names = list(pd.read_csv("resistome.csv").columns[5:])
 pd.DataFrame(clr, columns=["clr_" + g for g in names])
 \end{lstlisting}
 \undertext{\textbf{simplydata chooses}}
@@ -14067,7 +14123,8 @@ table.find_average_direction_of("current_direction", full_turn=360)
 \begin{lstlisting}[style=under]
 import numpy as np
 from scipy import stats
-df = sdata.get_example("stations")
+import pandas as pd
+df = pd.read_csv("stations.csv")
 # find_average_direction_of("current_direction", full_turn=360)
 d = df["current_direction"].to_numpy(dtype=float)
 t = np.deg2rad(d)
@@ -14237,7 +14294,8 @@ table.find_survival_over_time(time="days", event="died", for_each_group_in="trea
 \begin{lstlisting}[style=under]
 import numpy as np
 from statsmodels.duration.survfunc import SurvfuncRight
-df = sdata.get_example("trial")
+import pandas as pd
+df = pd.read_csv("trial.csv")
 g = df[df["treatment"] == "new medicine"]
 # find_survival_over_time(..., at_time_points=[365, 730])
 f = SurvfuncRight(g["days"], g["died"] == "yes")
@@ -14297,7 +14355,8 @@ list(surv = a$adj$surv[2], low = a$adj$ci_lower[2])
 \underlib{statsmodels}
 \begin{lstlisting}[style=under]
 from statsmodels.duration.survfunc import SurvfuncRight
-df = sdata.get_example("trial")
+import pandas as pd
+df = pd.read_csv("trial.csv")
 # find_survival_over_time(time="days", event="died", followed_from="joined")
 f = SurvfuncRight(df["days"], df["died"] == "yes", entry=df["days"] / 4 + 0.1)  # (1)
 {"survival": f.surv_prob[20], "at risk": f.n_risk[20]}
@@ -14359,7 +14418,8 @@ table.compare_survival(time="days", event="died", for_each_group_in="treatment")
 \underlib{statsmodels}
 \begin{lstlisting}[style=under]
 from statsmodels.duration.survfunc import survdiff
-df = sdata.get_example("trial")
+import pandas as pd
+df = pd.read_csv("trial.csv")
 # compare_survival(..., allowing_for="older")
 chi, p = survdiff(df["days"], df["died"] == "yes", df["treatment"],
                   strata=df["age"] > 70)                              # (1)
@@ -14375,7 +14435,8 @@ chi, p = survdiff(df["days"], df["died"] == "yes", df["treatment"],
 \underlib{statsmodels}
 \begin{lstlisting}[style=under]
 from statsmodels.duration.survfunc import survdiff
-df = sdata.get_example("trial")
+import pandas as pd
+df = pd.read_csv("trial.csv")
 # compare_survival(..., followed_from="joined")
 chi, p = survdiff(df["days"], df["died"] == "yes", df["treatment"],
                   entry=df["days"] / 4 + 0.1)                               # (1)
@@ -14464,7 +14525,8 @@ table.explain_survival(time="days", event="died", using=["treatment", "age"])
 \underlib{statsmodels}
 \begin{lstlisting}[style=under]
 from statsmodels.duration.hazard_regression import PHReg
-df = sdata.get_example("trial")
+import pandas as pd
+df = pd.read_csv("trial.csv")
 # explain_survival(time="days", event="died", using=["age"], allowing_for="treatment")
 m = PHReg(df["days"], df[["age"]], status=df["died"] == "yes", ties="efron",
           strata=df["treatment"]).fit()                                   # (1)
@@ -14480,7 +14542,8 @@ m = PHReg(df["days"], df[["age"]], status=df["died"] == "yes", ties="efron",
 \underlib{statsmodels}
 \begin{lstlisting}[style=under]
 from statsmodels.duration.hazard_regression import PHReg
-df = sdata.get_example("trial")
+import pandas as pd
+df = pd.read_csv("trial.csv")
 # explain_survival(time="days", event="died", using=["age"], followed_from="joined")
 m = PHReg(df["days"], df[["age"]], status=df["died"] == "yes", ties="efron",
           entry=df["days"] / 4 + 0.1).fit()                                     # (1)
@@ -14496,7 +14559,8 @@ m = PHReg(df["days"], df[["age"]], status=df["died"] == "yes", ties="efron",
 \underlib{statsmodels}
 \begin{lstlisting}[style=under]
 from statsmodels.duration.hazard_regression import PHReg
-df = sdata.get_example("admissions")
+import pandas as pd
+df = pd.read_csv("admissions.csv", parse_dates=["admitted", "discharged", "first_esbl"])
 # explain_survival(..., value="first_esbl", competing_with="discharged", using=["age"])
 end = df[["first_esbl", "discharged"]].min(axis=1)
 had = df["first_esbl"] <= df["discharged"]                                # (1)
@@ -14591,7 +14655,8 @@ chart.save("draw_survival_curves.png")
 import matplotlib.pyplot as plt
 import numpy as np
 from statsmodels.duration.survfunc import SurvfuncRight
-df = sdata.get_example("trial")
+import pandas as pd
+df = pd.read_csv("trial.csv")
 # draw_survival_curves(time="days", event="died", followed_from="joined")
 f = SurvfuncRight(df["days"], df["died"] == "yes", entry=df["days"] / 4 + 0.1)   # (1)
 fig, ax = plt.subplots()
@@ -14662,7 +14727,8 @@ table.rate_of("event", time="time", for_each_group_in="ward")
 \needspace{10\baselineskip}\begin{underneathbox}{\libbadge{pandas}}
 \underlib{pandas}
 \begin{lstlisting}[style=under]
-df = sdata.get_example("admissions")
+import pandas as pd
+df = pd.read_csv("admissions.csv", parse_dates=["admitted", "discharged", "first_esbl"])
 # add_time_and_event_columns(from_date="admitted", to_date="discharged", event_date="first_esbl")
 end = df[["first_esbl", "discharged"]].min(axis=1)                    # (1)
 df["time"] = (end - df["admitted"]).dt.days
@@ -14762,7 +14828,8 @@ chart.save("draw_risk_curves.png")
 import matplotlib.pyplot as plt
 import numpy as np
 from statsmodels.duration.survfunc import SurvfuncRight
-df = sdata.get_example("trial")
+import pandas as pd
+df = pd.read_csv("trial.csv")
 # draw_risk_curves(time="days", event="died", colour="treatment")
 fig, ax = plt.subplots()
 for name, g in df.groupby("treatment"):
@@ -15171,7 +15238,7 @@ table.fill_empty_cells_in("nitrate", with_the="line between neighbours", sorted_
 \underlib{pandas}
 \begin{lstlisting}[style=under]
 import pandas as pd
-df = sdata.get_example("river")
+df = pd.read_csv("river.csv", parse_dates=["date"])
 # add_missing_dates("date", every="day", for_each_group_in="station")
 parts = []
 for station, rows in df.groupby("station", sort=True, dropna=False):      # (1)
@@ -15183,7 +15250,7 @@ pd.concat(parts, ignore_index=True)
 \underlib{Polars}
 \begin{lstlisting}[style=under]
 import polars as pl
-df = pl.from_pandas(sdata.get_example("river"))
+df = pl.read_csv("river.csv", try_parse_dates=True)
 # add_missing_dates("date", every="day", for_each_group_in="station")
 df.sort("station", "date").upsample("date", every="1d", group_by="station",   # (1) (2)
                                     maintain_order=True)
@@ -15278,7 +15345,7 @@ The numbers are taken in order, one step apart. \code{test\_\allowbreak{}method=
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
-nums = sdata.numbers(sdata.get_example("sensor")["signal"])
+nums = sdata.get_example("sensor").get_column("signal")
 nums.smooth(test_method="median", window=5)
 \end{lstlisting}
 \wordentry{table.find\_trend\_of()}{word:table.find-trend-of}
@@ -15320,7 +15387,7 @@ Take away the trend: the best straight line (or only the average) is taken from 
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
-nums = sdata.numbers(sdata.get_example("sensor")["signal"])
+nums = sdata.get_example("sensor").get_column("signal")
 nums.remove_trend()
 \end{lstlisting}
 \wordentry{table.add\_trend\_and\_season()}{word:table.add-trend-and-season}
@@ -15473,7 +15540,7 @@ As \code{table.\allowbreak{}find\_\allowbreak{}autocorrelation\_\allowbreak{}of}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
-nums = sdata.numbers(sdata.get_example("sensor")["signal"])
+nums = sdata.get_example("sensor").get_column("signal")
 nums.find_autocorrelation(rows_back=10)
 \end{lstlisting}
 \wordentry{table.check\_steady\_over\_time()}{word:table.check-steady-over-time}
@@ -15697,7 +15764,7 @@ As \code{table.\allowbreak{}forecast}: the numbers are taken in order, one step 
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
-nums = sdata.numbers(sdata.get_example("visitors")["visitors"][:144])
+nums = sdata.get_example("visitors").get_column("visitors").keep_first_numbers(144)
 nums.forecast(steps_ahead=12, repeats_every=12)
 \end{lstlisting}
 \wordentry{chart.forecast()}{word:forecast}
@@ -15802,7 +15869,7 @@ Find the peaks: numbers higher than both neighbours, with conditions. \code{nums
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
-nums = sdata.numbers(sdata.get_example("sensor")["signal"])
+nums = sdata.get_example("sensor").get_column("signal")
 nums.find_each_peak_that(is_at_least=1, apart=10)
 \end{lstlisting}
 \wordentry{chart.peak\_dots()}{word:peak-dots}
@@ -15874,14 +15941,14 @@ As \code{find\_\allowbreak{}each\_\allowbreak{}peak\_\allowbreak{}that}, turned 
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
-nums = sdata.numbers(sdata.get_example("sensor")["signal"])
+nums = sdata.get_example("sensor").get_column("signal")
 nums.find_each_dip_that(is_at_most=-1, apart=10)
 \end{lstlisting}
 \wordentry{table.find\_spectrum\_of()}{word:table.find-spectrum-of}
 Which repeating cycles (frequencies) a column holds over time, and how strong each is.
 
 \codeline{table.find\_spectrum\_of(\textquotedbl{}signal\textquotedbl{}, sorted\_by=\textquotedbl{}time\textquotedbl{})   (with sdata.get\_example(\textquotedbl{}sensor\textquotedbl{}))}\\
-\code{sorted\_\allowbreak{}by=} is the time column (numbers or dates); it gives the order and the time between readings (dates: per day, or per month, quarter or year for calendar steps). Without it the rows are taken in table order and frequencies are in cycles per reading. The readings must be evenly spaced and filled in, except with \code{test\_\allowbreak{}method=\textquotedbl{}lomb-scargle\textquotedbl{}}, which is made for uneven times (empty cells are then left out). \code{test\_\allowbreak{}method=} and \code{show=} as \code{nums.\allowbreak{}find\_\allowbreak{}spectrum}: \code{\textquotedbl{}periodogram\textquotedbl{}} (SciPy; 2 x R \code{spec.\allowbreak{}pgram(x,\allowbreak{} taper = 0,\allowbreak{} detrend = FALSE,\allowbreak{} fast = FALSE)}\$spec except at the top frequency), \code{\textquotedbl{}welch\textquotedbl{}} (\code{window=} readings per piece) or \code{\textquotedbl{}lomb-scargle\textquotedbl{}} (R lomb::\code{lsp()} itself, needs simplydata[r] and R). \code{for\_\allowbreak{}each\_\allowbreak{}group\_\allowbreak{}in=} gives one spectrum per group. Gives back a table: frequency, repeats every (1 / frequency), power, share of the variance (\%). Prints the 3 strongest cycles.
+\code{sorted\_\allowbreak{}by=} is the time column (numbers or dates); it gives the order and the time between readings (dates: per day, or per month, quarter or year for calendar steps). Without it the rows are taken in table order and frequencies are in cycles per reading. The readings must be evenly spaced and filled in, except with \code{test\_\allowbreak{}method=\textquotedbl{}lomb-scargle\textquotedbl{}}, which is made for uneven times (empty cells are then left out). \code{test\_\allowbreak{}method=} and \code{show=} as \code{nums.\allowbreak{}find\_\allowbreak{}spectrum}: \code{\textquotedbl{}periodogram\textquotedbl{}} (SciPy; 2 x R \code{spec.\allowbreak{}pgram(x,\allowbreak{} taper = 0,\allowbreak{} detrend = FALSE,\allowbreak{} fast = FALSE)}\$spec except at the top frequency), \code{\textquotedbl{}welch\textquotedbl{}} (\code{window=} readings per piece) or \code{\textquotedbl{}lomb-scargle\textquotedbl{}} (R lomb::\code{lsp()} itself, needs simplydata[r] and R). \code{for\_\allowbreak{}each\_\allowbreak{}group\_\allowbreak{}in=} gives one spectrum per group. Gives back a table: frequency, repeats every (1 / frequency), power. Prints the 3 strongest cycles.
 
 \wordfield{Options}{}\par\nopagebreak
 \begin{optiontable}
@@ -15907,7 +15974,7 @@ table.find_spectrum_of("signal", sorted_by="time")
 Which repeating cycles (frequencies) the numbers hold, and how strong each is.
 
 \codeline{nums.find\_spectrum(time\_step=0.01)}\enspace (readings 0.01 seconds apart: frequencies per second)\\
-\code{time\_\allowbreak{}step=} is the time between readings (\code{sampling\_\allowbreak{}rate=} or \code{fs=}, readings per unit of time, are accepted instead); without it the frequencies are in cycles per reading. \code{test\_\allowbreak{}method=\textquotedbl{}periodogram\textquotedbl{}} (the default; SciPy periodogram, one-sided, scaled so that the powers times the frequency step add up to the variance: 2 x R \code{spec.\allowbreak{}pgram(x,\allowbreak{} taper = 0,\allowbreak{} detrend = FALSE,\allowbreak{} fast = FALSE)}\$spec, except at the top frequency, which R does not double), \code{\textquotedbl{}welch\textquotedbl{}} (the average periodogram of pieces of \code{window=} readings with half overlap and a \code{window\_\allowbreak{}shape=\textquotedbl{}hann\textquotedbl{}} window; less noisy, coarser) or \code{\textquotedbl{}lomb-scargle\textquotedbl{}} (for readings at uneven \code{time\_\allowbreak{}points=}; R lomb::\code{lsp()} itself, needs simplydata[r] and R). \code{show=\textquotedbl{}power\textquotedbl{}}, \code{\textquotedbl{}decibels\textquotedbl{}} (10 x log10 of the power) or \code{\textquotedbl{}amplitude\textquotedbl{}} (the size of the cycle in the numbers' own units). \code{between=[low,\allowbreak{} high]} keeps that frequency range in the table. Gives back a table: frequency, repeats every (1 / frequency), the power and the share of the variance (\%) at each frequency. Prints the 3 strongest cycles.
+\code{time\_\allowbreak{}step=} is the time between readings (\code{sampling\_\allowbreak{}rate=} or \code{fs=}, readings per unit of time, are accepted instead); without it the frequencies are in cycles per reading. \code{test\_\allowbreak{}method=\textquotedbl{}periodogram\textquotedbl{}} (the default; SciPy periodogram, one-sided, scaled so that the powers times the frequency step add up to the variance: 2 x R \code{spec.\allowbreak{}pgram(x,\allowbreak{} taper = 0,\allowbreak{} detrend = FALSE,\allowbreak{} fast = FALSE)}\$spec, except at the top frequency, which R does not double), \code{\textquotedbl{}welch\textquotedbl{}} (the average periodogram of pieces of \code{window=} readings with half overlap and a \code{window\_\allowbreak{}shape=\textquotedbl{}hann\textquotedbl{}} window; less noisy, coarser) or \code{\textquotedbl{}lomb-scargle\textquotedbl{}} (for readings at uneven \code{time\_\allowbreak{}points=}; R lomb::\code{lsp()} itself, needs simplydata[r] and R). \code{show=\textquotedbl{}power\textquotedbl{}}, \code{\textquotedbl{}decibels\textquotedbl{}} (10 x log10 of the power) or \code{\textquotedbl{}amplitude\textquotedbl{}} (the size of the cycle in the numbers' own units). \code{between=[low,\allowbreak{} high]} keeps that frequency range in the table. Gives back a table: frequency, repeats every (1 / frequency) and the power at each frequency. Prints the 3 strongest cycles.
 
 \wordfield{Options}{}\par\nopagebreak
 \begin{optiontable}
@@ -15927,11 +15994,11 @@ Which repeating cycles (frequencies) the numbers hold, and how strong each is.
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
-nums = sdata.numbers(sdata.get_example("sensor")["signal"])
+nums = sdata.get_example("sensor").get_column("signal")
 nums.find_spectrum(time_step=0.005)
 \end{lstlisting}
 \wordentry{chart.spectrum()}{word:spectrum}
-Power against frequency: which cycles a column holds, the 3 strongest labelled with their period.
+Power against frequency: which cycles a column holds, the 3 strongest peaks labelled with their period.
 
 \codeline{chart.spectrum(\textquotedbl{}signal\textquotedbl{}, sorted\_by=\textquotedbl{}time\textquotedbl{})   (with sdata.get\_example(\textquotedbl{}sensor\textquotedbl{}))}\\
 The column first, \code{sorted\_\allowbreak{}by=} the time column, as \code{table.\allowbreak{}find\_\allowbreak{}spectrum\_\allowbreak{}of}: the numbers are its numbers (\code{test\_\allowbreak{}method=\textquotedbl{}periodogram\textquotedbl{}}, \code{\textquotedbl{}welch\textquotedbl{}} or \code{\textquotedbl{}lomb-scargle\textquotedbl{}}; \code{show=\textquotedbl{}power\textquotedbl{}}, \code{\textquotedbl{}decibels\textquotedbl{}} or \code{\textquotedbl{}amplitude\textquotedbl{}}). \code{log\_\allowbreak{}scale=True} puts the power on a log scale (not for decibels). \code{colour=} groups each get a line.
@@ -16009,14 +16076,14 @@ One condition: \code{is\_\allowbreak{}below=5} keeps the slow cycles (low-pass),
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
-nums = sdata.numbers(sdata.get_example("sensor")["signal"])
+nums = sdata.get_example("sensor").get_column("signal")
 nums.keep_each_frequency_that(is_below=10, time_step=0.005)
 \end{lstlisting}
 \wordentry{nums.remove\_each\_frequency\_that()}{word:nums.remove-each-frequency-that}
 Remove some frequencies from the numbers, such as a 50-per-second hum (band-stop or notch filter).
 
 \codeline{nums.remove\_each\_frequency\_that(is\_equal\_to=50, time\_step=0.005)}\\
-\code{is\_\allowbreak{}between=[49,\allowbreak{} 51]} removes a band; \code{is\_\allowbreak{}equal\_\allowbreak{}to=50} one frequency (a notch, \code{width=} how wide; \code{and\_\allowbreak{}multiples} =True also removes 100, 150 ...: a comb); \code{is\_\allowbreak{}below=} and \code{is\_\allowbreak{}above=} remove the slow or the fast cycles. The options are those of \code{keep\_\allowbreak{}each\_\allowbreak{}frequency\_\allowbreak{}that} (\code{show\_\allowbreak{}filter=} too). Undo with \code{nums.\allowbreak{}undo()}.
+\code{is\_\allowbreak{}between=[49,\allowbreak{} 51]} removes a band; \code{is\_\allowbreak{}equal\_\allowbreak{}to=50} one frequency (a notch, \code{width=} how wide; \code{and\_\allowbreak{}multiples} =True also removes 100, 150 ... below half the readings per unit of time, one SciPy iirnotch each; the average stays); \code{is\_\allowbreak{}below=} and \code{is\_\allowbreak{}above=} remove the slow or the fast cycles. The options are those of \code{keep\_\allowbreak{}each\_\allowbreak{}frequency\_\allowbreak{}that} (\code{show\_\allowbreak{}filter=} too). Undo with \code{nums.\allowbreak{}undo()}.
 
 \wordfield{Options}{}\par\nopagebreak
 \begin{optiontable}
@@ -16042,7 +16109,7 @@ Remove some frequencies from the numbers, such as a 50-per-second hum (band-stop
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
-nums = sdata.numbers(sdata.get_example("sensor")["signal"])
+nums = sdata.get_example("sensor").get_column("signal")
 nums.remove_each_frequency_that(is_equal_to=50, time_step=0.005)
 \end{lstlisting}
 \wordentry{table.add\_filtered\_column()}{word:table.add-filtered-column}
@@ -16129,7 +16196,7 @@ The envelope of the numbers: how big the wave is at each moment (from the Hilber
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
-nums = sdata.numbers(sdata.get_example("sensor")["signal"])
+nums = sdata.get_example("sensor").get_column("signal")
 nums.find_envelope()
 \end{lstlisting}
 \wordentry{table.add\_envelope\_column()}{word:table.add-envelope-column}
@@ -16173,13 +16240,13 @@ Gives back a table: frequency, size, phase (degrees), real part, imaginary part.
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
-nums = sdata.numbers(sdata.get_example("sensor")["signal"])
+nums = sdata.get_example("sensor").get_column("signal")
 nums.take_fourier_transform(time_step=0.005)
 \end{lstlisting}
 \wordentry{sdata.find\_inverse\_fourier\_transform()}{word:sdata.find-inverse-fourier-transform}
 Numbers back from a Fourier transform table (its real and imaginary parts). \code{sdata.\allowbreak{}find\_\allowbreak{}inverse\_\allowbreak{}fourier\_\allowbreak{}transform(table)}
 
-table is what \code{nums.\allowbreak{}take\_\allowbreak{}fourier\_\allowbreak{}transform()} gave back (\code{show=\textquotedbl{}half\textquotedbl{}} or \code{\textquotedbl{}all\textquotedbl{}}). SciPy irfft / ifft, as R \code{Re(fft(z,\allowbreak{} inverse = TRUE))} / n. A round trip gives the numbers back (to about 1e-12).
+table is what \code{nums.\allowbreak{}take\_\allowbreak{}fourier\_\allowbreak{}transform()} gave back (\code{show=\textquotedbl{}half\textquotedbl{}} or \code{\textquotedbl{}all\textquotedbl{}}). SciPy irfft / ifft, as R \code{Re(fft(z,\allowbreak{} inverse = TRUE))} / n. A round trip gives the numbers back (to about 1e-12). Its rows must stay as they were made: to take frequencies out, set their real and imaginary parts to 0 (removing or reordering rows is refused, since the number of readings then no longer fits).
 
 \wordfield{Options}{}\par\nopagebreak
 \begin{optiontable}
@@ -16725,7 +16792,7 @@ Bring in the columns of another table, matching rows on a column such as a name.
 \codeline{\textquotedbl{}matching rows\textquotedbl{}}\enspace only rows found in both tables (the normal choice)\\
 \code{\textquotedbl{}all rows from this table\textquotedbl{}}  every row of this table; no match gives empty cells\\
 \codeline{\textquotedbl{}all rows from both\textquotedbl{}}\enspace every row of both tables\\
-other can be a simplydata table, a pandas or Polars table, or a file name. A column found in both tables (other than \code{using=}) gets \code{\textquotedbl{}\_\allowbreak{}other\textquotedbl{}} added to the other table's copy.\\
+other can be a simplydata table, a pandas or Polars table, or a file name. A column found in both tables (other than \code{using=}) gets \code{\textquotedbl{}\_\allowbreak{}other\textquotedbl{}} added to the other table's copy. The rows keep the order of this table, each followed by its matches in the order of the other table; with \code{\textquotedbl{}all rows from both\textquotedbl{}} the rows are sorted by \code{using=} instead. That is the order of pandas \code{merge()}, and Polars tables are joined in the same order (\code{join(maintain\_\allowbreak{}order=\textquotedbl{}left\_\allowbreak{}right\textquotedbl{})}).\\
 \codeline{table.join\_with(\{\textquotedbl{}name\textquotedbl{}: [\textquotedbl{}Asha\textquotedbl{}, \textquotedbl{}Ben\textquotedbl{}], \textquotedbl{}age\textquotedbl{}: [12, 13]\}, using=\textquotedbl{}name\textquotedbl{})   (with sdata.get\_example(\textquotedbl{}marks\textquotedbl{}))}
 
 \wordfield{Options}{}\par\nopagebreak
@@ -16749,7 +16816,7 @@ table.show_first_rows()
 \underlib{pandas}
 \begin{lstlisting}[style=under]
 import pandas as pd
-df = sdata.get_example("marks")
+df = pd.read_csv("marks.csv")
 ages = pd.DataFrame({"name": ["Asha", "Ben"], "age": [12, 13]})
 # join_with(ages, using="name", keep="all rows from this table")
 df.merge(ages, on="name", how="left", suffixes=("", "_other"))   # (1)
@@ -16757,7 +16824,7 @@ df.merge(ages, on="name", how="left", suffixes=("", "_other"))   # (1)
 \underlib{Polars}
 \begin{lstlisting}[style=under]
 import polars as pl
-df = pl.from_pandas(sdata.get_example("marks"))
+df = pl.read_csv("marks.csv")
 ages = pl.DataFrame({"name": ["Asha", "Ben"], "age": [12, 13]})
 # join_with(ages, using="name", keep="all rows from this table")
 df.join(ages, on="name", how="left", suffix="_other")   # (1)
@@ -16884,7 +16951,7 @@ File types: \code{.\allowbreak{}xlsx} (Excel), \code{.\allowbreak{}csv}, \code{.
 \end{optiontable}
 
 \wordfield{Why this method}{\hyperref[basis:table.save]{How simplydata chooses methods}, page \pageref{basis:table.save}: the default, the evidence and the checks.}
-\wordfield{Underneath}{pandas \code{TemporaryDirectory()}, \code{to\_\allowbreak{}csv()}, \code{path.\allowbreak{}join()}, \code{read\_\allowbreak{}csv()} \textperiodcentered{} Polars \code{TemporaryDirectory()}, \code{write\_\allowbreak{}csv()}, \code{path.\allowbreak{}join()}, \code{read\_\allowbreak{}csv()}}
+\wordfield{Underneath}{pandas \code{TemporaryDirectory()}, \code{to\_\allowbreak{}csv()}, \code{path.\allowbreak{}join()} \textperiodcentered{} Polars \code{TemporaryDirectory()}, \code{write\_\allowbreak{}csv()}, \code{path.\allowbreak{}join()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -16899,7 +16966,7 @@ table.save("good_marks.csv")
 import os
 import tempfile
 import pandas as pd
-df = sdata.get_example("marks")
+df = pd.read_csv("marks.csv")
 with tempfile.TemporaryDirectory() as folder:
     # save as marks.csv
     df.to_csv(os.path.join(folder, "marks.csv"), index=False)   # (1)
@@ -16912,7 +16979,7 @@ import os
 import tempfile
 import pandas as pd
 import polars as pl
-df = pl.from_pandas(sdata.get_example("marks"))
+df = pl.read_csv("marks.csv")
 with tempfile.TemporaryDirectory() as folder:
     # save as marks.csv
     df.write_csv(os.path.join(folder, "marks.csv"))
@@ -16949,7 +17016,8 @@ chart.save("maths_marks.png")
 \begin{lstlisting}[style=under]
 import matplotlib.pyplot as plt
 import seaborn as sns
-df = sdata.get_example("marks")
+import pandas as pd
+df = pd.read_csv("marks.csv")
 maths = df[df["subject"] == "Maths"]
 # start_chart(): the figure and its axes, from the table as it is now
 fig, ax = plt.subplots()
@@ -16978,7 +17046,7 @@ print(type(df))
 \underlib{Polars}
 \begin{lstlisting}[style=under]
 import polars as pl
-df = pl.from_pandas(sdata.get_example("marks"))
+df = pl.read_csv("marks.csv")
 # as_pandas()
 df.to_pandas()
 \end{lstlisting}
@@ -16992,7 +17060,7 @@ Needs Polars (pip install simplydata[fast]). simplydata words never need it.
 
 \wordfield{Options}{none: just write the empty brackets.}
 
-\wordfield{Underneath}{pandas \code{from\_\allowbreak{}pandas()}}
+\wordfield{Underneath}{pandas \code{read\_\allowbreak{}csv()}, \code{from\_\allowbreak{}pandas()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -17005,7 +17073,8 @@ print(type(df))
 \underlib{pandas}
 \begin{lstlisting}[style=under]
 import polars as pl
-df = sdata.get_example("marks")
+import pandas as pd
+df = pd.read_csv("marks.csv")
 # as_polars()
 pl.from_pandas(df)
 \end{lstlisting}
@@ -18286,7 +18355,7 @@ Change the time between readings (resample): fewer readings (with a filter first
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
-nums = sdata.numbers(sdata.get_example("sensor")["signal"])
+nums = sdata.get_example("sensor").get_column("signal")
 nums.change_time_step(to=0.01, time_step=0.005)
 \end{lstlisting}
 \wordentry{sdata.make\_wave()}{word:sdata.make-wave}
@@ -19774,7 +19843,7 @@ table = sdata.table(sdata.get_example("sensor"))
 table.find_spectrum_of("vibration", sorted_by="time")
 \end{lstlisting}
 \printedoutput{output/solution25_task1.txt}
-\solutionanswer{The same: 5 per second (65 \% of the variance), then 20 per second and the 50-per-second hum. The vibration follows the signal, a little later.}
+\solutionanswer{The same: 5 per second, then 20 per second and the 50-per-second hum. The vibration follows the signal, a little later.}
 \solutiontask{2}{Keep only the frequencies between 15 and 25 in the signal. Which cycle is left?}
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -19783,7 +19852,7 @@ table.add_filtered_column("middle", from_column="signal", keep_between=[15, 25],
 table.find_spectrum_of("middle", sorted_by="time")
 \end{lstlisting}
 \printedoutput{output/solution25_task2.txt}
-\solutionanswer{Only the 20-per-second cycle is left: it holds 89 \% of the variance of the new column.}
+\solutionanswer{Only the 20-per-second cycle is left: it is the strongest cycle of the new column.}
 \solutiontask{3}{Find the dips of the signal that go down to -1.5 or lower. Is the lowest one still the same?}
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -21000,14 +21069,14 @@ simplydata often chooses a method, an option value or a setting for you. This ap
 \wordfield{References}{Fay \& Feuer 1997}
 \wordfield{In the dictionary}{\hyperref[word:table.rate-of]{page \pageref{word:table.rate-of}}}
 \par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:sdata.compare-risks}\noindent{\sffamily\bfseries\color{brand}\code{sdata.\allowbreak{}compare\_\allowbreak{}risks()}}\par\nopagebreak
-\wordfield{Default}{The same measures as \code{table.\allowbreak{}compare\_\allowbreak{}risks}, from counts.}
+\wordfield{Default}{The same measures as \code{table.\allowbreak{}compare\_\allowbreak{}risks}, from counts, against the first group given (the order of \code{names=}, as R \code{prop.\allowbreak{}test()} takes the counts in the order they are given).}
 \wordfield{Alternatives}{As \code{table.\allowbreak{}compare\_\allowbreak{}risks}.}
 \wordfield{Why (P2)}{As \code{table.\allowbreak{}compare\_\allowbreak{}risks}.}
 \wordfield{Checks}{As \code{table.\allowbreak{}compare\_\allowbreak{}risks}.}
 \wordfield{References}{Newcombe 1998; Katz et al. 1978; Altman 1998}
 \wordfield{In the dictionary}{\hyperref[word:sdata.compare-risks]{page \pageref{word:sdata.compare-risks}}}
 \par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:sdata.compare-rates}\noindent{\sffamily\bfseries\color{brand}\code{sdata.\allowbreak{}compare\_\allowbreak{}rates()}}\par\nopagebreak
-\wordfield{Default}{The same test as \code{table.\allowbreak{}compare\_\allowbreak{}rates}, from counts and times.}
+\wordfield{Default}{The same test as \code{table.\allowbreak{}compare\_\allowbreak{}rates}, from counts and times, against the first group given (the order of \code{names=}, as R \code{poisson.\allowbreak{}test()} takes the counts in the order they are given).}
 \wordfield{Alternatives}{As \code{table.\allowbreak{}compare\_\allowbreak{}rates}.}
 \wordfield{Why (P3)}{As \code{table.\allowbreak{}compare\_\allowbreak{}rates} (Przyborowski \& Wilenski 1940). \textit{Basis: convention.}}
 \wordfield{Checks}{As \code{table.\allowbreak{}compare\_\allowbreak{}rates}.}
@@ -22343,7 +22412,7 @@ simplydata often chooses a method, an option value or a setting for you. This ap
 \wordfield{In the dictionary}{\hyperref[word:nums.keep-each-frequency-that]{page \pageref{word:nums.keep-each-frequency-that}}}
 \par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:nums.remove-each-frequency-that}\noindent{\sffamily\bfseries\color{brand}\code{nums.\allowbreak{}remove\_\allowbreak{}each\_\allowbreak{}frequency\_\allowbreak{}that()}}\par\nopagebreak
 \wordfield{Default}{A Butterworth filter of order 4, run both ways; \code{is\_\allowbreak{}equal\_\allowbreak{}to=} removes one frequency with a notch filter.}
-\wordfield{Alternatives}{As \code{table.\allowbreak{}add\_\allowbreak{}filtered\_\allowbreak{}column}; \code{and\_\allowbreak{}multiples=True} for a comb filter.}
+\wordfield{Alternatives}{As \code{table.\allowbreak{}add\_\allowbreak{}filtered\_\allowbreak{}column}; \code{and\_\allowbreak{}multiples=True} for a notch at each multiple (SciPy iirnotch each; the average stays).}
 \wordfield{Why (P5)}{As \code{table.\allowbreak{}add\_\allowbreak{}filtered\_\allowbreak{}column}. \textit{Basis: starting value.}}
 \wordfield{Checks}{As \code{table.\allowbreak{}add\_\allowbreak{}filtered\_\allowbreak{}column}.}
 \wordfield{References}{Gustafsson 1996}

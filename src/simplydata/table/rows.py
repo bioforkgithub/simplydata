@@ -96,6 +96,23 @@ def _rows_word(n) -> str:
     return f"{n} row" if n == 1 else f"{n} rows"
 
 
+POLARS_HALVES_TO_EVEN = (1, 29)  # Polars rounds a float exactly halfway to the even neighbour from 1.29 (RoundMode)
+
+
+def _need_polars_rounding_halves_to_even():
+    """round_numbers_in on a Polars table: Polars before 1.29 rounded halves away from zero (2.5 to 3), so the
+    same step would give other numbers than on a pandas table (2.5 to 2). pyproject asks for polars>=1.29; this
+    stops an older Polars that is already installed from giving those other numbers without a word."""
+    import polars as pl
+
+    found = tuple(int(part) for part in pl.__version__.split(".")[:2] if part.isdigit())
+    if found < POLARS_HALVES_TO_EVEN:
+        raise SimplydataError(
+            f"round_numbers_in() on a Polars table needs Polars 1.29 or newer, which rounds a number exactly halfway to "
+            f"the even neighbour (2.5 to 2), as pandas, NumPy and R do. This computer has Polars {pl.__version__}, "
+            "which rounds it away from zero (2.5 to 3).\nUpdate it with:  pip install -U \"polars>=1.29\"")
+
+
 def _nice(value) -> str:
     """A number or date written for people: 61, 61.5, 2026-03-15."""
     if value is None:
@@ -103,9 +120,10 @@ def _nice(value) -> str:
     if isinstance(value, float):
         if value != value:  # NaN
             return ""
-        if value.is_integer() and abs(value) < 1e15:
-            return str(int(value))
-        return str(round(value, 2))
+        shown = round(value, 2)  # rounded first, so 62.001 is written 62, not 62.0
+        if shown.is_integer() and abs(shown) < 1e15:
+            return str(int(shown))
+        return str(shown)
     if isinstance(value, (_dt.date, _dt.datetime)) or hasattr(value, "to_pydatetime"):
         return _say(value)
     return str(value)
@@ -1424,7 +1442,8 @@ class RowWords:
         (with sdata.get_example("marks"))
         A number exactly halfway goes to the even neighbour (2.5 becomes 2, 3.5 becomes 4),
         like R and NumPy; this stops a run of halves from always pushing totals up.
-        round_numbers_in("price", with_decimals=0) gives whole numbers; a negative number of places rounds to tens (-1), hundreds (-2).
+        round_numbers_in("price", with_decimals=0) gives whole numbers; a negative number of places rounds to tens (-1), hundreds (-2)
+        (pandas round(-1); Polars rounds to decimal places only, so on a Polars table tens come from NumPy's round).
         """
         example = 'table.round_numbers_in("hours", 0)'
         if with_decimals is _NOT_GIVEN and isinstance(column, numbers.Integral) and not isinstance(column, bool):
@@ -1452,25 +1471,35 @@ class RowWords:
                         f'.round_numbers_in() rounds numbers, but "{name}" is a {self._kind_of(name)} column.\n'
                         f"Columns with numbers: {', '.join(number_columns) or 'none'}" + _example(example)
                     )
+        if self._frame.implementation.is_polars():
+            _need_polars_rounding_halves_to_even()
+        polars = self._frame.implementation.is_polars()
+        if with_decimals < 0 and polars:
+            # Polars rounds to decimal places only (round() refuses a negative number of places), so tens and
+            # hundreds come from NumPy's round, the one pandas uses for round(-1): the same numbers on both engines
+            import numpy as np
+            import polars as pl
+
+            native = self._frame.to_native().with_columns(
+                [pl.col(name).map_batches(lambda s: pl.Series(s.name, np.round(s.to_numpy(), with_decimals)))
+                 for name in names])
+            new = nw.from_native(native, eager_only=True)
         changes = []
         for name in names:
             dtype = self._frame.schema[name]
             col = nw.col(name)
             if dtype.is_integer() and with_decimals >= 0:
                 continue  # whole numbers stay as they are
-            if with_decimals >= 0:
-                changes.append(col.round(with_decimals).alias(name))
-            else:
-                size = 10 ** -with_decimals
-                rounded = (col.cast(nw.Float64) / size).round(0) * size
-                changes.append((rounded.cast(dtype) if dtype.is_integer() else rounded).alias(name))
+            if with_decimals >= 0 or not polars:
+                changes.append(col.round(with_decimals).alias(name))  # pandas round(-1) for tens, its own
         if with_decimals >= 0:
             to = f"{with_decimals} decimal place" + ("" if with_decimals == 1 else "s")
         else:
             to = f"the nearest {10 ** -with_decimals}"
         where = ", ".join(names)
         print(f"Rounded {where} to {to}.")
-        new = self._frame.with_columns(*changes) if changes else self._frame
+        if not (with_decimals < 0 and polars):
+            new = self._frame.with_columns(*changes) if changes else self._frame
         return self._change(f"round {where} to {to}", new)
 
     @friendly

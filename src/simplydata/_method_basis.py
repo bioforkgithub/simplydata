@@ -1101,7 +1101,8 @@ BASIS["table.compare_risks same_within="] = _b(
     "Two groups only; a margin between 0 and 1 gets a note asking whether percentage points were meant.",
     "convention")
 BASIS["sdata.compare_risks"] = _b(
-    "The same measures as table.compare_risks, from counts.",
+    "The same measures as table.compare_risks, from counts, against the first group given (the order of names=, "
+    "as R prop.test() takes the counts in the order they are given).",
     "As table.compare_risks.",
     "As table.compare_risks.",
     ("newcombe1998", "katz1978", "altman1998"), "P2", "As table.compare_risks.")
@@ -1121,7 +1122,8 @@ BASIS["table.compare_rates"] = _b(
     "Without R the interval is left out, with a note; no events in either group gives an empty result, with a "
     "note.", "convention")
 BASIS["sdata.compare_rates"] = _b(
-    "The same test as table.compare_rates, from counts and times.",
+    "The same test as table.compare_rates, from counts and times, against the first group given (the order of "
+    "names=, as R poisson.test() takes the counts in the order they are given).",
     "As table.compare_rates.", "As table.compare_rates (Przyborowski & Wilenski 1940).", ("przyborowski1940",),
     "P3", "As table.compare_rates.", "convention")
 
@@ -2345,7 +2347,8 @@ BASIS["nums.keep_each_frequency_that"] = _b(
     "As table.add_filtered_column.", ("gustafsson1996",), "P5", "As table.add_filtered_column.", "starting value")
 BASIS["nums.remove_each_frequency_that"] = _b(
     "A Butterworth filter of order 4, run both ways; is_equal_to= removes one frequency with a notch filter.",
-    "As table.add_filtered_column; and_multiples=True for a comb filter.",
+    "As table.add_filtered_column; and_multiples=True for a notch at each multiple (SciPy iirnotch each; the "
+    "average stays).",
     "As table.add_filtered_column.", ("gustafsson1996",), "P5", "As table.add_filtered_column.", "starting value")
 BASIS["nums.find_each_peak_that"] = _b(
     "Every local maximum, as table.find_each_peak_that.", "As table.find_each_peak_that.",

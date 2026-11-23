@@ -5,7 +5,8 @@ for each option of combine_studies that changes what it calls in R metafor (keye
 from . import Entry
 
 BCG = """
-    bcg = sdata.get_example("bcg")
+    import pandas as pd
+    bcg = pd.read_csv("bcg.csv")
     e1 = bcg["tb_vaccinated"].to_numpy(dtype=float)
     n1 = bcg["vaccinated"].to_numpy(dtype=float)
     e2 = bcg["tb_unvaccinated"].to_numpy(dtype=float)
@@ -14,7 +15,8 @@ BCG = """
     allocation = bcg["allocation"].to_numpy(dtype=object)
 """
 SMOKING = """
-    smoking = sdata.get_example("passive_smoking")
+    import pandas as pd
+    smoking = pd.read_csv("passive_smoking.csv")
     est = smoking["odds ratio"].to_numpy(dtype=float)
     lo = smoking["odds ratio 95 % CI low"].to_numpy(dtype=float)
     hi = smoking["odds ratio 95 % CI high"].to_numpy(dtype=float)

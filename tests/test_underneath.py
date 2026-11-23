@@ -21,6 +21,7 @@ from simplydata import learn
 from simplydata._underneath import CHART_FACTS, COMPARE_KINDS, R_LABEL, UNDERNEATH, Entry, underneath_line
 from simplydata._underneath.check import (chart_facts, check_entry, compare_charts, compare_legend_numbers, run_ours,
                                           run_python)
+from conftest import example_frame
 
 ROOT = Path(__file__).resolve().parents[1]
 ENTRIES = list(UNDERNEATH.values())
@@ -176,7 +177,7 @@ def test_chart_facts_reads_bars_dots_lines_labels_and_legend():
 def test_chart_facts_of_a_simplydata_chart():
     chart = sdata.chart(sdata.get_example("marks")).draw_bars(x="class", y="marks")
     facts = chart_facts(chart._render().axes[0])
-    df = sdata.get_example("marks")
+    df = example_frame("marks")
     heights = [b[3] for b in sorted(facts["bars"])]
     assert heights == pytest.approx(df.groupby("class", sort=False)["marks"].mean().tolist())
     plt.close("all")

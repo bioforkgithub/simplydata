@@ -53,7 +53,8 @@ ENTRIES = [
         code={"seaborn": """
             import matplotlib.pyplot as plt
             import seaborn as sns
-            df = sdata.get_example("marks")
+            import pandas as pd
+            df = pd.read_csv("marks.csv")
             # chart(df): the figure and its axes
             fig, ax = plt.subplots()
             sns.scatterplot(df, x="hours", y="marks", ax=ax)
@@ -76,7 +77,8 @@ ENTRIES = [
         code={"seaborn": """
             import matplotlib.pyplot as plt
             import seaborn as sns
-            df = sdata.get_example("marks")
+            import pandas as pd
+            df = pd.read_csv("marks.csv")
             maths = df[df["subject"] == "Maths"]
             # start_chart(): the figure and its axes, from the table as it is now
             fig, ax = plt.subplots()

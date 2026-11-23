@@ -20,7 +20,8 @@ ENTRIES = [
         code={"seaborn": """
             import matplotlib.pyplot as plt
             import seaborn as sns
-            df = sdata.get_example("marks")
+            import pandas as pd
+            df = pd.read_csv("marks.csv")
             fig, ax = plt.subplots()
             # draw_bars(x="name", y="marks", colour="class")
             sns.barplot(df, x="name", y="marks", hue="class",
@@ -42,7 +43,8 @@ ENTRIES = [
         code={"seaborn": """
             import matplotlib.pyplot as plt
             import seaborn as sns
-            df = sdata.get_example("marks")
+            import pandas as pd
+            df = pd.read_csv("marks.csv")
             fig, ax = plt.subplots()
             # draw_histogram(x="marks")
             sns.histplot(df, x="marks", bins=10, ax=ax)   # (1)
@@ -63,7 +65,8 @@ ENTRIES = [
         code={"seaborn": """
             import matplotlib.pyplot as plt
             import seaborn as sns
-            df = sdata.get_example("marks")
+            import pandas as pd
+            df = pd.read_csv("marks.csv")
             fig, ax = plt.subplots()
             # draw_dots(x="hours", y="marks", colour="class", size="height")
             sns.scatterplot(df, x="hours", y="marks", hue="class",
@@ -107,7 +110,8 @@ ENTRIES = [
             """,
         },
         r_inputs="""
-            clinic = sdata.get_example("clinic").dropna(subset=["crp", "infected"])
+            import pandas as pd
+            clinic = pd.read_csv("clinic.csv").dropna(subset=["crp", "infected"])
             infected = (clinic["infected"] == "yes").to_numpy(dtype=float)
             crp = clinic["crp"].to_numpy(dtype=float)
         """,

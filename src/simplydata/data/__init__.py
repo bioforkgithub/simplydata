@@ -452,7 +452,8 @@ def _list_examples() -> None:
         print(f"      {about}")
         print(f"      Columns: {', '.join(columns)}")
         print()
-    print('Use one like this:  table = sdata.get_example("marks")  then  chart = sdata.chart(table)')
+    print('Use one like this:  table = sdata.get_example("marks")  then  table.count_rows()  or  '
+          'chart = sdata.chart(table)')
 
 
 def get_example(name: str | None = None, from_r_package: str | None = None):
@@ -466,7 +467,9 @@ def get_example(name: str | None = None, from_r_package: str | None = None):
     and effect, job_training, job_search, drug_levels and deaths_by_age. Seven of them copy the columns of a real
     study; simplydata was tested on the real data (DATA_LICENSES.md).
     "shop" has empty cells and a column of dates to practise with; "school" has empty cells too.
-    from_r_package="survival" loads a dataset that comes with an installed R package instead, as a
+    It gives back a simplydata table, ready for every table word: sdata.get_example("marks").count_rows().
+    (Up to simplydata 0.2.x it gave back a pandas table; sdata.table(sdata.get_example("marks")) still works.)
+    from_r_package="survival" loads a dataset that comes with an installed R package instead, also as a
     simplydata table: sdata.get_example("lung", from_r_package="survival"). R itself loads it
     (utils::data); groups (factors) become text, R's NA empty cells, and row names that carry
     information become a first column, "row name". Needs simplydata[r] and the R package already
@@ -490,4 +493,7 @@ def get_example(name: str | None = None, from_r_package: str | None = None):
         lines.append("Tables you can use: " + ", ".join(EXAMPLES))
         raise SimplydataError("\n".join(lines))
     with (files(__name__) / f"{key}.csv").open("r", encoding="utf-8") as fh:
-        return pd.read_csv(fh, parse_dates=DATE_COLUMNS.get(key, False))
+        frame = pd.read_csv(fh, parse_dates=DATE_COLUMNS.get(key, False))
+    from ..table.table import table
+
+    return table(frame)
