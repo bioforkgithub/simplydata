@@ -1,7 +1,7 @@
-"""The same work in the packages underneath: tested entries for 124 of simplydata's 400 words.
+"""The same work in the packages underneath: tested entries for 169 of simplydata's 400 words.
 
-Not every word has an entry. There are 232 entries: one for each of 124 words, plus one for each option of those
-words that changes what the word calls underneath; the other 276 words have none, and are checked by their own tests
+Not every word has an entry. There are 277 entries: one for each of 169 words, plus one for each option of those
+words that changes what the word calls underneath; the other 231 words have none, and are checked by their own tests
 (tests/) and, for many statistics words, by the cases of the reliability study (validation/). The counts are kept
 true by tests/test_data_and_fixes.py. Each entry keeps, once, the code that does a word's job in the package simplydata uses: pandas and
 Polars for tables, NumPy for numbers, matplotlib or seaborn for charts, SciPy or statsmodels for
@@ -54,7 +54,9 @@ COMPARE_KINDS = {
 
 # The facts chart_facts() reads from a chart; an entry names the ones its test compares
 CHART_FACTS = ("bars", "bar_colour_groups", "dots", "dot_size_shares", "dot_colour_groups", "lines", "labels",
-               "ticks", "legend", "limits", "scales", "panels")
+               "ticks", "legend", "limits", "scales", "panels", "texts", "font_sizes", "size", "legend_place",
+               "colours", "tick_angles", "shapes", "cells", "every_panel", "line_styles", "text_places",
+               "shape_colours", "panel_styles")
 
 R_LABEL = "R (simplydata runs this in R for you, through rpy2)"
 

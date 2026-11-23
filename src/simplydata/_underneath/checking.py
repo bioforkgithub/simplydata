@@ -30,7 +30,7 @@ ENTRIES = [
         word="table.find_columns_that_predict",
         data="school",
         ours="""
-            table = sdata.table(sdata.get_example("school"))
+            table = sdata.get_example("school")
             result = table.find_columns_that_predict("marks", using=["hours", "sleep"])
             result.keep_rows_where("term", is_equal_to="hours")
         """,
@@ -66,7 +66,7 @@ ENTRIES = [
         word="table.find_group_levels_of",
         data="school",
         ours="""
-            table = sdata.table(sdata.get_example("school"))
+            table = sdata.get_example("school")
             result = table.find_group_levels_of("marks", using=["hours"], grouped_by="school")
             result.keep_rows_where("term", is_equal_to="School A")
         """,
@@ -135,7 +135,7 @@ OPTION_ENTRIES = [
         option="spread_changes_with=",
         data="school",
         ours="""
-            table = sdata.table(sdata.get_example("school"))
+            table = sdata.get_example("school")
             result = table.explain("marks", using=["hours"], spread_changes_with="school")
             result.keep_rows_where("term", is_equal_to="hours")
         """,
@@ -207,7 +207,7 @@ OPTION_ENTRIES = [
         option="using=[[...], [...]]",
         data="school",
         ours="""
-            table = sdata.table(sdata.get_example("school"))
+            table = sdata.get_example("school")
             result = table.compare_models("marks", using=[["hours"], ["hours", "breakfast"]])
             result.keep_rows_where("term", is_equal_to="marks ~ hours")
         """,
@@ -240,7 +240,7 @@ OPTION_ENTRIES = [
         option="check_on_left_out_rows=True",
         data="school",
         ours="""
-            table = sdata.table(sdata.get_example("school"))
+            table = sdata.get_example("school")
             result = table.compare_models("marks", using=["hours"], check_on_left_out_rows=True)
             result
         """,
@@ -273,7 +273,7 @@ OPTION_ENTRIES = [
         option='comparing="each with the first"',
         data="school",
         ours="""
-            table = sdata.table(sdata.get_example("school"))
+            table = sdata.get_example("school")
             result = table.find_model_averages_of("marks", for_each_group_in="class", using=["hours", "class"],
                                                   comparing="each with the first")
             result.keep_rows_where("term", is_equal_to="green minus blue")
@@ -307,7 +307,7 @@ OPTION_ENTRIES = [
         option="within_each_group_in=",
         data="school",
         ours="""
-            table = sdata.table(sdata.get_example("school"))
+            table = sdata.get_example("school")
             result = table.find_model_averages_of("marks", for_each_group_in="class", using=["class * breakfast"],
                                                   within_each_group_in="breakfast")
             result.keep_rows_where("term", is_equal_to="interaction class : breakfast")
@@ -341,7 +341,7 @@ OPTION_ENTRIES = [
         option="over_range_of=",
         data="school",
         ours="""
-            table = sdata.table(sdata.get_example("school"))
+            table = sdata.get_example("school")
             result = table.find_model_averages_of("marks", over_range_of="hours", using=["hours", "breakfast"])
             result
         """,
@@ -410,7 +410,7 @@ OPTION_ENTRIES = [
         option="for_each_group_in= with a list of columns",
         data="school",
         ours="""
-            table = sdata.table(sdata.get_example("school"))
+            table = sdata.get_example("school")
             result = table.compare_averages_of(["marks", "hours"], for_each_group_in="class")
             result
         """,

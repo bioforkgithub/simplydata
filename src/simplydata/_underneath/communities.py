@@ -19,7 +19,7 @@ RESISTOME = """
 """
 START = """
             genes = {genes}
-            table = sdata.table(sdata.get_example("resistome"))
+            table = sdata.get_example("resistome")
 """
 
 

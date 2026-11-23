@@ -7,7 +7,7 @@ package's apistrat).
 from . import Entry
 
 SURVEY_OURS = """
-    table = sdata.table(sdata.get_example("sampled_schools"))
+    table = sdata.get_example("sampled_schools")
     table.use_survey_design(weights="weight", strata="school_type", population_sizes="schools_of_type")
 """
 SCHOOLS = """
@@ -217,7 +217,7 @@ ENTRIES = [
         word="table.keep_random_rows", option="for_each_group_in=",
         data="marks",
         ours="""
-            table = sdata.table(sdata.get_example("marks"))
+            table = sdata.get_example("marks")
             table.keep_random_rows(2, for_each_group_in="class", with_seed=1)
         """,
         code={"pandas": """
@@ -235,7 +235,7 @@ ENTRIES = [
         word="table.keep_random_rows", option="percent=",
         data="marks",
         ours="""
-            table = sdata.table(sdata.get_example("marks"))
+            table = sdata.get_example("marks")
             table.keep_random_rows(percent=30, for_each_group_in="class", with_seed=1)
         """,
         code={"pandas": """
@@ -254,7 +254,7 @@ ENTRIES = [
         word="table.count_empty_cells_in", option='show="patterns"',
         data="shop",
         ours="""
-            table = sdata.table(sdata.get_example("shop"))
+            table = sdata.get_example("shop")
             table.count_empty_cells_in(show="patterns")
         """,
         code={"pandas": """
@@ -278,7 +278,7 @@ ENTRIES = [
         word="table.count_each", option="columns=, in_order=",
         data="course_feedback",
         ours=f"""
-            table = sdata.table(sdata.get_example("course_feedback"))
+            table = sdata.get_example("course_feedback")
             table.count_each(columns={QUESTIONS},
                              in_order={LEVELS})
         """,

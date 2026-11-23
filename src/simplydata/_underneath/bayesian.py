@@ -37,7 +37,7 @@ ENTRIES = [
     # ------------------------------------------------------------------ Z01-Z02: Bayes factors and posteriors
     _bf("table.compare_averages_of", "test_method=\"bayesian\"",
         """
-            table = sdata.table(sdata.get_example("clinic"))
+            table = sdata.get_example("clinic")
             table.compare_averages_of("crp", for_each_group_in="ward", test_method="bayesian")
         """,
         f"""
@@ -59,7 +59,7 @@ ENTRIES = [
         "interval means, gives the effect size's interval, refuses three or more groups, and prints no p-value."),
     _bf("table.compare_before_and_after", "test_method=\"bayesian\"",
         """
-            table = sdata.table(sdata.get_example("clinic"))
+            table = sdata.get_example("clinic")
             table.compare_before_and_after("pain_week_0", "pain_week_4", test_method="bayesian")
         """,
         f"""
@@ -81,7 +81,7 @@ ENTRIES = [
         "prints the prior and no p-value."),
     _bf("table.compare_average_to", "test_method=\"bayesian\"",
         """
-            table = sdata.table(sdata.get_example("clinic"))
+            table = sdata.get_example("clinic")
             table.compare_average_to("crp", 5, test_method="bayesian")
         """,
         f"""
@@ -102,7 +102,7 @@ ENTRIES = [
         "simplydata also prints the prior and what a credible interval means, and no p-value."),
     _bf("table.find_correlation_between", "test_method=\"bayesian\"",
         """
-            table = sdata.table(sdata.get_example("clinic"))
+            table = sdata.get_example("clinic")
             table.find_correlation_between("crp", "procalcitonin", test_method="bayesian")
         """,
         f"""
@@ -123,7 +123,7 @@ ENTRIES = [
         "p-value."),
     _bf("table.compare_counts_of", "test_method=\"bayesian\"",
         """
-            table = sdata.table(sdata.get_example("clinic"))
+            table = sdata.get_example("clinic")
             table.compare_counts_of("infected", for_each_group_in="ward", test_method="bayesian")
         """,
         f"""
@@ -149,7 +149,7 @@ ENTRIES = [
         word="table.explain", option="test_method=\"bayesian\"",
         data="school",
         ours="""
-            table = sdata.table(sdata.get_example("school"))
+            table = sdata.get_example("school")
             table.explain("marks", using=["hours", "breakfast"], test_method="bayesian")
         """,
         code={
@@ -188,7 +188,7 @@ ENTRIES = [
         word="table.explain", option="test_method=\"bayesian\", grouped_by=",
         data="school",
         ours="""
-            table = sdata.table(sdata.get_example("school"))
+            table = sdata.get_example("school")
             table.explain("marks", using=["hours"], grouped_by="school", test_method="bayesian")
         """,
         code={
@@ -223,7 +223,7 @@ ENTRIES = [
         word="table.check_model_of", option="test_method=\"bayesian\"",
         data="school",
         ours="""
-            table = sdata.table(sdata.get_example("school"))
+            table = sdata.get_example("school")
             table.check_model_of("marks", using=["hours", "breakfast"], test_method="bayesian")._check_numbers["observed"]
         """,
         code={

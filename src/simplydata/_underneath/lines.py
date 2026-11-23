@@ -32,7 +32,7 @@ ENTRIES = [
         word="table.fit_dose_response",
         data="toxicity",
         ours="""
-            table = sdata.table(sdata.get_example("toxicity"))
+            table = sdata.get_example("toxicity")
             table.keep_rows_where("chemical", is_equal_to="A")
             table.fit_dose_response(x="concentration", y="root_length").keep_rows_where("term", is_equal_to="ED50")
         """,
@@ -111,7 +111,7 @@ ENTRIES = [
         word="table.find_best_power_of",
         data="trial",
         ours="""
-            table = sdata.table(sdata.get_example("trial"))
+            table = sdata.get_example("trial")
             table.find_best_power_of("days")
         """,
         code={"SciPy": """
@@ -140,7 +140,7 @@ OPTION_ENTRIES = [
         option='test_method="theil-sen"',
         data="marks",
         ours="""
-            table = sdata.table(sdata.get_example("marks"))
+            table = sdata.get_example("marks")
             table.fit_line(x="hours", y="marks", test_method="theil-sen")
         """,
         code={"SciPy": """
@@ -165,7 +165,7 @@ OPTION_ENTRIES = [
         option='test_method="standardised major axis"',
         data="marks",
         ours="""
-            table = sdata.table(sdata.get_example("marks"))
+            table = sdata.get_example("marks")
             table.fit_line(x="hours", y="marks", test_method="standardised major axis")
         """,
         code={
@@ -192,7 +192,7 @@ OPTION_ENTRIES = [
         option='test_method="deming", y_error_over_x_error=',
         data="marks",
         ours="""
-            table = sdata.table(sdata.get_example("marks"))
+            table = sdata.get_example("marks")
             table.fit_line(x="hours", y="marks", test_method="deming", y_error_over_x_error=4)
         """,
         code={
@@ -221,7 +221,7 @@ OPTION_ENTRIES = [
         option='test_method="passing-bablok"',
         data="marks",
         ours="""
-            table = sdata.table(sdata.get_example("marks"))
+            table = sdata.get_example("marks")
             table.fit_line(x="hours", y="marks", test_method="passing-bablok")
         """,
         code={
@@ -249,7 +249,7 @@ OPTION_ENTRIES = [
         option="with_bends=",
         data="culture",
         ours="""
-            table = sdata.table(sdata.get_example("culture"))
+            table = sdata.get_example("culture")
             table.keep_rows_where("flask", is_equal_to="A")
             table.fit_line(x="hour", y="density", with_bends=1)
         """,
@@ -285,7 +285,7 @@ OPTION_ENTRIES = [
         option="changes_at=",
         data="culture",
         ours="""
-            table = sdata.table(sdata.get_example("culture"))
+            table = sdata.get_example("culture")
             table.keep_rows_where("flask", is_equal_to="A")
             table.fit_line(x="hour", y="density", changes_at=10)
         """,
@@ -311,7 +311,7 @@ OPTION_ENTRIES = [
         option='of_kind="logistic growth"',
         data="culture",
         ours="""
-            table = sdata.table(sdata.get_example("culture"))
+            table = sdata.get_example("culture")
             table.keep_rows_where("flask", is_equal_to="A")
             table.fit_curve(x="hour", y="density", of_kind="logistic growth")
         """,
@@ -342,7 +342,7 @@ OPTION_ENTRIES = [
         option="for_percentile=",
         data="marks",
         ours="""
-            table = sdata.table(sdata.get_example("marks"))
+            table = sdata.get_example("marks")
             table.explain("marks", using=["hours"], for_percentile=90)
         """,
         code={
@@ -373,7 +373,7 @@ OPTION_ENTRIES = [
         option="changes_at=",
         data="culture",
         ours="""
-            table = sdata.table(sdata.get_example("culture"))
+            table = sdata.get_example("culture")
             table.keep_rows_where("flask", is_equal_to="A")
             table.explain("density", using=["hour"], changes_at={"hour": 10}).keep_rows_where(
                 "term", is_equal_to="after hour 10")
@@ -399,7 +399,7 @@ OPTION_ENTRIES = [
         option='test_method="loess", interval=',
         data="culture",
         ours="""
-            table = sdata.table(sdata.get_example("culture"))
+            table = sdata.get_example("culture")
             table.keep_rows_where("flask", is_equal_to="A")
             table.add_smoothed_column("smooth", from_column="density", sorted_by="hour", test_method="loess",
                                       interval=95)

@@ -69,7 +69,7 @@ ENTRIES = [
         word="table.start_chart",
         data="marks",
         ours="""
-            table = sdata.table(sdata.get_example("marks"))
+            table = sdata.get_example("marks")
             table.keep_rows_where("subject", is_equal_to="Maths")
             chart = table.start_chart()
             chart.draw_bars(x="name", y="marks")

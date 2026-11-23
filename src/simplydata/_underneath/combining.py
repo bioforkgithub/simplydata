@@ -23,7 +23,7 @@ SMOKING = """
 """
 CALL = 'names="trial", events=["tb_vaccinated", "tb_unvaccinated"], out_of=["vaccinated", "unvaccinated"]'
 OURS = """
-    table = sdata.table(sdata.get_example("bcg"))
+    table = sdata.get_example("bcg")
     result = table.combine_studies({call}{more})
     result.keep_rows_where("row kind", is_equal_to="{kind}")
 """
@@ -83,7 +83,7 @@ ENTRIES = [
         word="draw_funnel_plot",
         data="bcg",
         ours=f"""
-            table = sdata.table(sdata.get_example("bcg"))
+            table = sdata.get_example("bcg")
             result = table.combine_studies({CALL})
             chart = result.start_chart()
             chart.draw_funnel_plot(x="estimate", y="standard error")
@@ -151,7 +151,7 @@ OPTION_ENTRIES = [
                   "the combined effect shown back as a ratio."),
         r_inputs=SMOKING, data="passive_smoking",
         ours="""
-            table = sdata.table(sdata.get_example("passive_smoking"))
+            table = sdata.get_example("passive_smoking")
             result = table.combine_studies(names="study", estimates="odds ratio")
             result.keep_rows_where("row kind", is_equal_to="combined")
         """),

@@ -62,7 +62,7 @@ ENTRIES = [
         word="table.show_rows_that_pull_model",
         data="school",
         ours="""
-            table = sdata.table(sdata.get_example("school"))
+            table = sdata.get_example("school")
             found = table.show_rows_that_pull_model("marks", using=["hours", "sleep"])
             found.keep_columns("row", "Cook's distance", "leverage")
         """,
@@ -124,7 +124,7 @@ ENTRIES = [
         option='show="numbers"',
         data="school",
         ours="""
-            table = sdata.table(sdata.get_example("school"))
+            table = sdata.get_example("school")
             numbers = table.check_model_of("marks", using=["hours", "sleep"], show="numbers")
             numbers.keep_rows_where("check", is_equal_to="Breusch-Pagan test (chi-square)")
         """,
@@ -154,7 +154,7 @@ ENTRIES = [
         option='show="result table"',
         data="marks",
         ours="""
-            table = sdata.table(sdata.get_example("marks"))
+            table = sdata.get_example("marks")
             table.find_correlation_between("hours", "marks", show="result table")
         """,
         code={"SciPy": """

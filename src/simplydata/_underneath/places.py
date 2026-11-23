@@ -44,7 +44,7 @@ ENTRIES = [
         word="table.find_average_direction_of",
         data="stations",
         ours="""
-            table = sdata.table(sdata.get_example("stations"))
+            table = sdata.get_example("stations")
             table.find_average_direction_of("current_direction", full_turn=360)
         """,
         code={"SciPy": """
@@ -76,7 +76,7 @@ ENTRIES = [
         word="table.compare_shape_to", option='shape="even around the circle"',
         data="stations",
         ours="""
-            table = sdata.table(sdata.get_example("stations"))
+            table = sdata.get_example("stations")
             table.compare_shape_to("current_direction", shape="even around the circle", full_turn=360)
         """,
         code={
@@ -102,7 +102,7 @@ ENTRIES = [
         word="table.find_autocorrelation_of", option="x=",
         data="stations",
         ours="""
-            table = sdata.table(sdata.get_example("stations"))
+            table = sdata.get_example("stations")
             table.find_autocorrelation_of("zinc", x="east", y="north")
         """,
         code={
@@ -134,7 +134,7 @@ ENTRIES = [
         word="table.find_autocorrelation_of", option="nearest=",
         data="stations",
         ours="""
-            table = sdata.table(sdata.get_example("stations"))
+            table = sdata.get_example("stations")
             table.find_autocorrelation_of("zinc", x="east", y="north", nearest=6)
         """,
         code={
@@ -161,7 +161,7 @@ ENTRIES = [
         word="table.find_autocorrelation_of", option="on_globe=",
         data="stations",
         ours="""
-            table = sdata.table(sdata.get_example("stations"))
+            table = sdata.get_example("stations")
             table.find_autocorrelation_of("zinc", x="lon", y="lat", on_globe=True)
         """,
         code={
@@ -190,7 +190,7 @@ ENTRIES = [
         word="table.find_variogram_of",
         data="stations",
         ours="""
-            table = sdata.table(sdata.get_example("stations"))
+            table = sdata.get_example("stations")
             table.find_variogram_of("zinc", x="east", y="north")
         """,
         code={
@@ -249,7 +249,7 @@ ENTRIES = [
         word="table.find_return_levels_of",
         data="sea_levels",
         ours="""
-            table = sdata.table(sdata.get_example("sea_levels"))
+            table = sdata.get_example("sea_levels")
             table.find_return_levels_of("sea_level", once_in=[100], sorted_by="year")
         """,
         code={
@@ -279,7 +279,7 @@ ENTRIES = [
         word="table.find_return_levels_of", option="values_above=",
         data="rain",
         ours="""
-            table = sdata.table(sdata.get_example("rain"))
+            table = sdata.get_example("rain")
             table.turn_into_dates("date")
             table.find_return_levels_of("rain", once_in=[10], values_above=20, sorted_by="date")
         """,
@@ -346,7 +346,7 @@ ENTRIES = [
         word="table.fit_distribution_to", option='distribution="gev"',
         data="sea_levels",
         ours="""
-            table = sdata.table(sdata.get_example("sea_levels"))
+            table = sdata.get_example("sea_levels")
             table.fit_distribution_to("sea_level", distribution="gev").turn_into_table()
         """,
         code={
@@ -375,7 +375,7 @@ ENTRIES = [
         word="table.fit_distribution_to", option='distribution="generalised pareto"',
         data="rain",
         ours="""
-            table = sdata.table(sdata.get_example("rain"))
+            table = sdata.get_example("rain")
             table.keep_rows_where("rain > 20")
             table.add_column("excess", "rain - 20")
             table.fit_distribution_to("excess", distribution="generalised pareto").turn_into_table()
