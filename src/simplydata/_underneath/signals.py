@@ -1198,8 +1198,7 @@ ENTRIES += [
             chart.trend_and_season(x="month", y="visitors", repeats_every="year")
         """,
         code={"matplotlib": """
-            import pandas as pd
-            import matplotlib.pyplot as plt
+            import matplotlib.pyplot as plt, pandas as pd
             from statsmodels.tsa.seasonal import STL
             df = pd.read_csv("visitors.csv", parse_dates=["month"])
             df = df[df["museum"] == "Harbour Museum"].sort_values("month")

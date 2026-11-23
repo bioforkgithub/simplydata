@@ -14,7 +14,7 @@ them first.
 ## What simplydata handles
 
 **400 words (commands) in 48 groups, with 371 different options, on top of 14 Python packages (8 installed always, 6 with an extra; patsy comes with statsmodels) and
-87 R packages that it runs (plus R's own `stats`, and 12 more used only to check its answers), checked by 2751 reliability checks.** Every word hands the work to
+87 R packages that it runs (plus R's own `stats`, and 15 more used only to check its answers), checked by 2751 reliability checks.** Every word hands the work to
 an established package; simplydata chooses the settings, prints the answer in words and names the
 method it used. Words that need an extra say so: `pip install "simplydata[fast]"`, `[files]`,
 `[systems]` or `[r]` (the R words also need R itself; see [Using the words that need R](#using-the-words-that-need-r)).
@@ -26,8 +26,8 @@ Approximate, counted on 2026-11-21.
 | | With the packages underneath | With simplydata |
 |---|---|---|
 | Names to learn | about 10,650 functions: about 5,460 in the Python packages (SciPy about 1,750, pandas 850, Polars 815, matplotlib 745, NumPy 660, statsmodels 545, seaborn 100; each package's public API) and about 5,190 in the R packages, with R's `stats` (R `getNamespaceExports`; before the community packages were added) | 771 names: 400 commands and 371 options, about 93 % fewer |
-| Packages and languages | 101 packages run by simplydata (14 Python, 87 R), plus 12 R ones that only check its answers, in Python and R | 1 package, in basic Python |
-| Code per task | 2673 lines and 2319 function calls in the 410 tasks of the manual's "same underneath" boxes (median 6 lines a task); this library code is the bare minimum, without the plain-sentence result or the checks | 1089 lines and 1110 calls (median 2 lines a task), about 59 % fewer lines; recount with `python validation/count_reduction.py` |
+| Packages and languages | 101 packages run by simplydata (14 Python, 87 R), plus 15 R ones that only check its answers, in Python and R | 1 package, in basic Python |
+| Code per task | 3012 lines and 2682 function calls in the 459 tasks of the manual's "same underneath" boxes (median 6 lines a task); this library code is the bare minimum, without the plain-sentence result or the checks | 1204 lines and 1240 calls (median 2 lines a task), about 60 % fewer lines; recount with `python validation/count_reduction.py` |
 | Choosing the method | you choose, from the package's documentation | the recommended default, with its published basis: see [How simplydata chooses methods](#how-simplydata-chooses-methods) (you can also choose the method you want) |
 
 ### Packages underneath
@@ -99,6 +99,7 @@ so you never need them:
 | meta, metadat | a second meta-analysis package, and the published study data (BCG vaccine, passive smoking), that `combine_studies` is checked against |
 | ismev, sp | the published data of Coles (2001: Port Pirie sea levels, daily rain) and the meuse soil samples that `find_return_levels_of`, `find_autocorrelation_of(x=, y=)` and `find_variogram_of` are checked against |
 | ape | a second Moran's I (`ape::Moran.I`) that `find_autocorrelation_of(x=, y=)` is checked against |
+| gsignal, pracma, control | the filter, envelope, peak and system answers that `frequency_filter`, `find_envelope`, `find_each_peak_that` and the `system` words are checked against (Octave-style `butter` and `hilbert`, `findpeaks`, and transfer functions) |
 | AER, alr4, HH, mediation | published data the reliability study reads from the installed package instead of storing a copy (NMES 1988, Galton's sweet peas, Heiberger & Robbins's survey counts, the JOBS II records; see [DATA_LICENSES.md](DATA_LICENSES.md)) |
 
 Many printouts also name the R function that gives the same answer ("as R zoo::na.spline"); those are pointers for
@@ -528,7 +529,7 @@ shows the same job written in the package underneath, in a grey box that a test 
 - The defaults of each batch were checked by an independent review when they were designed, and every entry of
   the table below, with its references, was checked again by independent hostile reviewers in November 2026.
 
-[How simplydata chooses methods](docs/how_simplydata_chooses.md) gives all 466 defaults: for each, the default,
+[How simplydata chooses methods](docs/how_simplydata_chooses.md) gives all 490 defaults: for each, the default,
 the alternatives, why it was chosen, what simplydata checks in the data, and its references (each DOI checked in
 Crossref). The manual has the same table as its last part.
 

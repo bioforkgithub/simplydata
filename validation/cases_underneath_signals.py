@@ -176,7 +176,7 @@ def cases(Case):
                  y <- stats::ts(passengers[1:132], frequency = 12); test <- passengers[133:144]
                  fs <- list(forecast::naive(y, h = 12), forecast::snaive(y, h = 12),
                             forecast::rwf(y, h = 12, drift = TRUE), forecast::forecast(stats::HoltWinters(y), h = 12))
-                 a <- sapply(fs, function(f) forecast::accuracy(f, test)["Test set", c("MAE", "MASE")])
+                 a <- sapply(fs, function(f) forecast::accuracy(f, stats::ts(test, frequency = 12, start = stats::tsp(f$mean)[1]))["Test set", c("MAE", "MASE")])
                  list(`best MASE` = min(a[2, ]), `worst MASE` = max(a[2, ]), `best MAE` = a[1, which.min(a[2, ])])
              """, r_packages=("forecast",), r_tolerance=1e-9),
         # ---- peaks and dips
@@ -348,9 +348,9 @@ def cases(Case):
                  {"b0": b[0], "a1": a[1], "a4": a[4]}
              """, parent_label="SciPy signal.butter (as numerator and denominator)", parent_tolerance=1e-9,
              r="""
-                 f <- signal::butter(4, 10 / 100)
+                 f <- gsignal::butter(4, 10 / 100)
                  list(b0 = f$b[1], a1 = f$a[2], a4 = f$a[5])
-             """, r_packages=("signal",), r_tolerance=1e-9,
+             """, r_packages=("gsignal",), r_tolerance=1e-9,
              note="A filter has no data: the Butterworth design of order 4 at a tenth of the top frequency. The "
                   "coefficients are compared with SciPy and R signal; the two gains with their exact values."),
         Case("nums.find_envelope", "the Lake Huron level about its average: the envelope", "Lake Huron", "real data",
