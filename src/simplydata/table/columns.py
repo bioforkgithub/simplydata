@@ -1696,6 +1696,9 @@ class ColumnWords:
           "all rows from both"        every row of both tables
         other can be a simplydata table, a pandas or Polars table, or a file name. A column
         found in both tables (other than using=) gets "_other" added to the other table's copy.
+        The rows keep the order of this table, each followed by its matches in the order of the other
+        table; with "all rows from both" the rows are sorted by using= instead. That is the order of pandas
+        merge(), and Polars tables are joined in the same order (join(maintain_order="left_right")).
         table.join_with({"name": ["Asha", "Ben"], "age": [12, 13]}, using="name")   (with sdata.get_example("marks"))
         """
         step = "join_with"
@@ -1727,15 +1730,26 @@ class ColumnWords:
                 )
         how = KEEP_CHOICES[keep]
         right_keys = right.select(keys).unique()
+        polars = self._frame.implementation.is_polars() and right.implementation.is_polars()
         try:
             matched = len(self._frame.join(right_keys, on=keys, how="semi"))
-            frame = self._frame.join(right, on=keys, how=how, suffix=JOIN_SUFFIX)
+            if polars:
+                # Polars keeps no row order in a join unless asked (maintain_order, Polars 1.17): asked for the
+                # order pandas merge gives, this table's rows in order, each with its matches in the other's order
+                native = self._frame.to_native().join(right.to_native(), on=keys, how=how, suffix=JOIN_SUFFIX,
+                                                      maintain_order="left_right")
+                frame = nw.from_native(native, eager_only=True)
+            else:
+                frame = self._frame.join(right, on=keys, how=how, suffix=JOIN_SUFFIX)
         except Exception as e:  # for example whole numbers in one table and decimals in the other
             raise SimplydataError(f"The tables could not be joined on {', '.join(keys)}: {e}") from None
         if how == "full":
             frame = frame.with_columns(
                 [nw.coalesce(nw.col(k), nw.col(k + JOIN_SUFFIX)).alias(k) for k in keys]
             ).drop([k + JOIN_SUFFIX for k in keys])
+            if polars:  # pandas merge(how="outer") sorts the rows by the keys; Polars sorts them the same way
+                frame = nw.from_native(frame.to_native().sort(keys, nulls_last=True, maintain_order=True),
+                                       eager_only=True)
         print(f"{matched} of {len(self._frame)} rows in this table found a match in the other table.")
         if len(right_keys) < len(right):
             print(f"Note: some {', '.join(keys)} values appear more than once in the other table, "

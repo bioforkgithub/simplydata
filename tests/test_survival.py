@@ -16,6 +16,7 @@ import simplydata as sdata
 from simplydata import SimplydataError
 from simplydata.table import table as make_table
 from simplydata.table.survival import kaplan_meier
+from conftest import example_frame
 
 ENGINES = ["pandas", "polars"]
 TOL = 1e-9
@@ -40,7 +41,7 @@ def engine(request):
 def make(data, engine):
     if engine == "polars":
         pl = pytest.importorskip("polars")
-        return make_table(pl.from_pandas(data))
+        return make_table(data, fast=True)
     return make_table(data)
 
 
@@ -56,7 +57,7 @@ def one_row(result):
 
 @pytest.fixture
 def trial():
-    return sdata.get_example("trial")
+    return example_frame("trial")
 
 
 # ---------------------------------------------------------------- survival_over_time

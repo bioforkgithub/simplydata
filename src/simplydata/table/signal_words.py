@@ -28,7 +28,7 @@ class SignalTableWords:
         2 x R spec.pgram(x, taper = 0, detrend = FALSE, fast = FALSE)$spec except at the top
         frequency), "welch" (window= readings per piece) or "lomb-scargle" (R lomb::lsp() itself, needs
         simplydata[r] and R). for_each_group_in= gives one spectrum per group. Gives back a table: frequency,
-        repeats every (1 / frequency), power, share of the variance (%). Prints the 3 strongest cycles.
+        repeats every (1 / frequency), power. Prints the 3 strongest cycles.
         """
         step_name = "find_spectrum_of"
         self._need_name(step_name, "the column", column, EXAMPLE)

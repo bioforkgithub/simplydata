@@ -7,7 +7,8 @@ from . import Entry
 
 SENTENCE = "simplydata also writes the result as sentences, with the p-value in words, and names the method."
 SCHOOL = """
-    df = sdata.get_example("school").dropna(subset=["marks", "hours", "breakfast", "sleep"])
+    import pandas as pd
+    df = pd.read_csv("school.csv").dropna(subset=["marks", "hours", "breakfast", "sleep"])
     marks = df["marks"].to_numpy(dtype=float)
     hours = df["hours"].to_numpy(dtype=float)
     sleep = df["sleep"].to_numpy(dtype=float)
@@ -109,7 +110,8 @@ ENTRIES = [
         code={"seaborn": """
             import seaborn as sns
             from scipy import stats
-            df = sdata.get_example("school")
+            import pandas as pd
+            df = pd.read_csv("school.csv")
             # draw_interaction_lines(x="class", y="marks", colour="breakfast")
             def t95(v):                                                       # (1)
                 return stats.t.interval(0.95, len(v) - 1, loc=v.mean(), scale=stats.sem(v))
@@ -153,7 +155,7 @@ OPTION_ENTRIES = [
         r_packages=("nlme",),
         compare="result",
         fields=("effect", "standard error", "p-value"),
-        tolerance=1e-5,
+        tolerance=1e-9,
         choices=("REML, nlme's default, for the effects.",
                  "a group column gives each group its own spread (varIdent); a number column would give a spread "
                  "that grows as a power of it (varPower)."),
@@ -193,7 +195,7 @@ OPTION_ENTRIES = [
         r_packages=("nlme",),
         compare="result",
         fields=("effect", "standard error"),
-        tolerance=1e-5,
+        tolerance=1e-9,
         choices=("evenly spaced values give the AR(1) correlation (corAR1), each step one step apart; uneven gaps "
                  "give corCAR1, which allows for the size of each gap.",),
         python_note="statsmodels GLSAR iterates instead of maximising the likelihood, so the model comes from R nlme.",
@@ -213,7 +215,8 @@ OPTION_ENTRIES = [
             import numpy as np
             import statsmodels.formula.api as smf
             from statsmodels.tools import eval_measures
-            df = sdata.get_example("school").dropna(subset=["marks", "hours", "breakfast"])
+            import pandas as pd
+            df = pd.read_csv("school.csv").dropna(subset=["marks", "hours", "breakfast"])
             # compare_models("marks", using=[["hours"], ["hours", "breakfast"]])
             fits = [smf.ols(f, df).fit() for f in ("marks ~ hours", "marks ~ hours + breakfast")]
             k = [len(f.params) + 1 for f in fits]                                 # (1)
@@ -413,7 +416,8 @@ OPTION_ENTRIES = [
         """,
         code={"statsmodels": """
             from statsmodels.multivariate.manova import MANOVA
-            df = sdata.get_example("school").dropna(subset=["marks", "hours"])
+            import pandas as pd
+            df = pd.read_csv("school.csv").dropna(subset=["marks", "hours"])
             # compare_averages_of(["marks", "hours"], for_each_group_in="class")
             test = MANOVA.from_formula("marks + hours ~ C(Q('class'))", data=df).mv_test()
             row = test.results["C(Q('class'))"]["stat"].loc["Pillai's trace"]   # (1)

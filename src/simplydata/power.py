@@ -317,12 +317,15 @@ def _percents_words(p1, p2, sides, significance):
 
 
 def _percents_power(p1, p2, n, sides, significance):
-    """statsmodels power_proportions_2indep (as R power.prop.test())."""
+    """statsmodels power_proportions_2indep, as R power.prop.test() with its default strict = FALSE: a two-sided
+    test counts only the side of the difference, so it is the one-sided power at half the significance level (as
+    for the t-tests above). statsmodels' alternative="two-sided" also adds the far tail, which is R's strict = TRUE
+    (R's help example, 50 per group at 50 % against 75 %: 0.7401659 with strict = FALSE, 0.7401672 with TRUE)."""
     from statsmodels.stats.proportion import power_proportions_2indep
 
-    alternative = "two-sided" if sides == 2 else ("larger" if p1 > p2 else "smaller")
-    return float(power_proportions_2indep(p1 - p2, p2, n, ratio=1, alpha=significance,
-                                          alternative=alternative).power)
+    alternative = "larger" if p1 > p2 else "smaller"
+    alpha = significance / 2 if sides == 2 else significance
+    return float(power_proportions_2indep(p1 - p2, p2, n, ratio=1, alpha=alpha, alternative=alternative).power)
 
 
 def _equivalence_plan(step, test, same_within, difference, spread, significance):
@@ -772,7 +775,8 @@ def find_chance_of_finding(for_test="compare_averages", effect_size=None, differ
         shown = _percent(chance)
         print(f"With {_whole_or_num(n)} values in each group{in_clusters}, a study has {_a(shown)} {shown} chance "
               f"(power = {_num(chance)}) to find {effect}, using {test_words}. Method: statsmodels "
-              "power_proportions_2indep(), as R power.prop.test().")
+              "power_proportions_2indep(), one side at half the significance level, as R power.prop.test() "
+              "(strict = FALSE).")
         if cluster_words:
             print(cluster_words)
         row = {"test": for_test, "method": "power for two percents", "R function": "power.prop.test()",

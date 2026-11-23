@@ -54,6 +54,8 @@ def _tidy_dates(fig):
 # of an animation, the zoom box ...). Notes made while drawing are collected and printed once,
 # when the whole picture is done, so the same note never shows up again and again.
 _NOTES = {"depth": 0, "lines": {}}
+# matplotlib backends that draw no window: after chart.show() on them, the figure pyplot opened is closed
+_NO_WINDOW_BACKENDS = {"agg", "pdf", "ps", "svg", "pgf", "cairo", "template"}
 
 # The options of a chart type that name the columns it draws (the rest are settings).
 COLUMN_OPTIONS = ("x", "y", "z", "colour", "size", "shape", "value", "labels", "values", "angle", "distance",
@@ -411,6 +413,14 @@ class BaseChart:
         manager.canvas.figure = fig
         fig.set_canvas(manager.canvas)
         plt.show()
+        # pyplot keeps every figure it opened until it is closed. A window that stays open after plt.show()
+        # returns (interactive mode: notebooks with %matplotlib widget, IPython with a window backend) belongs to
+        # the user, who closes it; otherwise plt.show() has finished with it (it blocked until the window was
+        # closed, or the backend draws no window, as in scripts and tests), so it is closed here, and the next
+        # show() or save() draws on a new figure
+        if not plt.isinteractive() or str(plt.get_backend()).lower() in _NO_WINDOW_BACKENDS:
+            plt.close(manager.num)  # by number: the window now shows the chart's figure, not the holder
+            self._cache = None
         return self
 
     def get_numbers_drawn(self):

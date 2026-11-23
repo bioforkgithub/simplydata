@@ -18,7 +18,8 @@ ENTRIES = [
         """,
         code={"SciPy": """
             from scipy import stats
-            df = sdata.get_example("trial")
+            import pandas as pd
+            df = pd.read_csv("trial.csv")
             # the core of compare_averages_of("days", for_each_group_in="treatment")
             a, b = [rows["days"] for _, rows in df.groupby("treatment", sort=False)]
             res = stats.ttest_ind(a, b, equal_var=False)       # (1)
@@ -43,7 +44,8 @@ ENTRIES = [
         """,
         code={"SciPy": """
             from scipy import stats
-            df = sdata.get_example("marks")
+            import pandas as pd
+            df = pd.read_csv("marks.csv")
             # fit_line(x="hours", y="marks")
             fit = stats.linregress(df["hours"], df["marks"])
             t = stats.t.ppf(0.975, len(df) - 2)                 # (1)
@@ -109,7 +111,8 @@ ENTRIES = [
         """,
         code={"SciPy": """
             from scipy import stats
-            df = sdata.get_example("marks")
+            import pandas as pd
+            df = pd.read_csv("marks.csv")
             # compare_spreads_of("marks", for_each_group_in="class")
             groups = [rows["marks"].dropna() for _, rows in df.groupby("class")]
             res = stats.levene(*groups, center="median")                  # (1)
@@ -135,7 +138,8 @@ ENTRIES = [
         code={"SciPy": """
             from scipy import stats
             from statsmodels.stats.proportion import proportion_effectsize
-            df = sdata.get_example("school")
+            import pandas as pd
+            df = pd.read_csv("school.csv")
             # compare_percent_to("passed", value="yes", percent=50)
             passed = df["passed"].dropna()
             hits, n = int((passed == "yes").sum()), len(passed)
@@ -166,7 +170,7 @@ ENTRIES = [
             import numpy as np
             import pandas as pd
             from statsmodels.multivariate.pca import PCA
-            df = sdata.get_example("meadow")
+            df = pd.read_csv("meadow.csv")
             # add_principal_components(how_many=2)
             x = df.select_dtypes("number").dropna()                          # (1)
             z = (x - x.mean()) / x.std()                                     # (2)
@@ -194,7 +198,8 @@ ENTRIES = [
         """,
         code={"statsmodels": """
             import statsmodels.formula.api as smf
-            df = sdata.get_example("school")
+            import pandas as pd
+            df = pd.read_csv("school.csv")
             # add_predicted_column("marks", using=["hours", "sleep"])
             fit = smf.ols("marks ~ hours + sleep", data=df).fit()            # (1)
             df.assign(**{"predicted marks": fit.fittedvalues})               # (2)

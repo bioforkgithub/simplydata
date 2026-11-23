@@ -97,7 +97,7 @@ UNDERNEATH = {
                                 "requested reference; for R, utils::citation() and packageVersion() through rpy2",
     # start, show and save
     "sdata.chart": "pandas reads the file (Polars for big files); the chart is drawn with matplotlib and seaborn",
-    "sdata.get_example": "pandas (read_csv of a small file inside simplydata)",
+    "sdata.get_example": "pandas (read_csv of a small file inside simplydata), as a simplydata table",
     "show": "matplotlib (pyplot.show)",
     "save": "matplotlib (Figure.savefig); Pillow writes .gif animations",
     "get_numbers_drawn": "matplotlib (the drawn artists: Line2D.get_xydata, PathCollection.get_offsets, BarContainer, "
@@ -339,7 +339,8 @@ UNDERNEATH = {
     "nums.find_autocorrelation": "statsmodels (tsa.stattools acf, pacf method ywm, acovf, acorr_ljungbox), as R acf, pacf, Box.test",
     "nums.fit_distribution": "SciPy (scipy.stats and optimize, as table.fit_distribution_to)",
     # models
-    "table.explain": "statsmodels (OLS; GLM for yes/no and counts, as R glm; MixedLM for grouped_by=; GEE for "
+    "table.explain": "statsmodels (OLS by QR, with the standard errors as R summary.lm() takes them: chol2inv of the "
+                     "QR factor, R's method done with NumPy and LAPACK dpotri; GLM for yes/no and counts, as R glm; MixedLM for grouped_by=; GEE for "
                      "effects=\"for the whole population\", as R geepack::geeglm; MICEData to fill in empty cells; "
                      "eval_measures aic and bic and McFadden's pseudo R squared, as R AIC, BIC and "
                      "performance::r2_mcfadden); R mgcv::gam for curve_for= (needs R); "
@@ -864,7 +865,9 @@ def _practice_tables() -> str:
     lines = [r"\unchapter{The practice tables}{start:tables}",
              "All the examples use small made-up tables that come with simplydata, so they run "
              "anywhere without a file. Every number in them is invented. Get one with "
-             + code('sdata.get_example("marks")') + ", and list them all with " + code("sdata.get_example()") + "."]
+             + code('sdata.get_example("marks")') + ", and list them all with " + code("sdata.get_example()") + ". "
+             "It gives back a simplydata table, so every table word works on it straight away: "
+             + code('sdata.get_example("marks").count_rows()') + "."]
     for name, (about, columns) in EXAMPLES.items():
         lines.append(f"\\section*{{{esc(name)}}}")
         lines.append(rich(about) + " " + code(f'sdata.get_example("{name}")'))
@@ -1334,7 +1337,10 @@ def make() -> str:
         "readers who know one of these packages or want to learn it; if you are learning simplydata, you can "
         "skip it. Each setting that simplydata chooses for you is marked in the code with a number, (1), (2) "
         "and so on, and explained under the code. A test runs the code in each box next to the simplydata word "
-        "and checks that both give the same result, so the box cannot drift from simplydata. simplydata runs "
+        "and checks that both give the same result, so the box cannot drift from simplydata. The code in the box "
+        "reads the practice table from its file with the package itself, for example "
+        + code('pd.read_csv("marks.csv")') + "; " + code('sdata.get_example("marks").save("marks.csv")')
+        + " writes that file, to run the box yourself. simplydata runs "
         "its table steps on pandas and Polars through narwhals; narwhals is only the link between the two and "
         "is not shown.",
         _dictionary(aliases),

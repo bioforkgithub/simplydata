@@ -31,7 +31,7 @@ ASAH_BEST = {"threshold": 0.20500000000000002, "specificity": 0.8055555555555555
 
 # ---------------------------------------------------------------- correspondence analysis: eigenvalues, total inertia
 def _varespec():
-    varespec = sdata.table(sdata.get_example("varespec", from_r_package="vegan"))
+    varespec = sdata.get_example("varespec", from_r_package="vegan")
     return varespec, [c for c in varespec.get_column_names() if c != "row name"]
 
 
@@ -90,7 +90,7 @@ def test_multiple_correspondence_numbers_give_the_total_adjusted_inertia(needs_r
 # ---------------------------------------------------------------- partial correlation as a result table
 @pytest.mark.parametrize("method", ["pearson", "spearman"])
 def test_partial_correlation_result_table_matches_ppcor(method, needs_r, capsys):
-    cars = sdata.table(sdata.get_example("mtcars", from_r_package="datasets"))
+    cars = sdata.get_example("mtcars", from_r_package="datasets")
     found = cars.find_correlation_between("mpg", "wt", allowing_for="hp", test_method=method,
                                           show="result table")
     assert found.get_column_names() == ["column 1", "column 2", "allowing for", "method", "r", "statistic name",
@@ -111,7 +111,7 @@ def test_partial_correlation_result_table_matches_ppcor(method, needs_r, capsys)
 def test_partial_correlation_result_table_matches_ppcor_run_now(needs_r, capsys):
     from simplydata._r import r_call
 
-    cars = sdata.table(sdata.get_example("mtcars", from_r_package="datasets"))
+    cars = sdata.get_example("mtcars", from_r_package="datasets")
     found = cars.find_correlation_between("mpg", "wt", allowing_for="hp", test_method="kendall",
                                           show="result table")
     x, y, z = (np.asarray(cars.get_column(c), dtype=float) for c in ("mpg", "wt", "hp"))
@@ -125,7 +125,7 @@ def test_partial_correlation_result_table_matches_ppcor_run_now(needs_r, capsys)
 
 
 def test_partial_correlation_result_table_still_refuses_other_options(capsys):
-    marks = sdata.table(sdata.get_example("marks"))
+    marks = sdata.get_example("marks")
     with pytest.raises(SimplydataError, match="two-sided partial correlation"):
         marks.find_correlation_between("hours", "marks", allowing_for="height", show="result table", sides=1,
                                        higher="positive")
@@ -135,7 +135,7 @@ def test_partial_correlation_result_table_still_refuses_other_options(capsys):
 
 # ---------------------------------------------------------------- trade_off_curve: the best cut-off as a number
 def test_trade_off_curve_gives_the_best_cut_off_as_a_number(needs_r, capsys):
-    asah = sdata.table(sdata.get_example("aSAH", from_r_package="pROC"))
+    asah = sdata.get_example("aSAH", from_r_package="pROC")
     chart = sdata.chart(asah)
     chart.trade_off_curve(score="s100b", truth="outcome", positive="Poor")
     best = chart.get_numbers_drawn().keep_rows_where("kind", is_equal_to="dot")
@@ -155,7 +155,7 @@ def test_trade_off_curve_gives_the_best_cut_off_as_a_number(needs_r, capsys):
 def test_trade_off_curve_cut_off_matches_proc_run_now(needs_r, capsys):
     from simplydata._r import r_call
 
-    asah = sdata.table(sdata.get_example("aSAH", from_r_package="pROC"))
+    asah = sdata.get_example("aSAH", from_r_package="pROC")
     chart = sdata.chart(asah)
     chart.trade_off_curve(score="s100b", truth="outcome", positive="Poor")
     best = chart.get_numbers_drawn().keep_rows_where("kind", is_equal_to="dot")

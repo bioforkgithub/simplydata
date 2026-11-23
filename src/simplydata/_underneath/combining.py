@@ -5,7 +5,8 @@ for each option of combine_studies that changes what it calls in R metafor (keye
 from . import Entry
 
 BCG = """
-    bcg = sdata.get_example("bcg")
+    import pandas as pd
+    bcg = pd.read_csv("bcg.csv")
     e1 = bcg["tb_vaccinated"].to_numpy(dtype=float)
     n1 = bcg["vaccinated"].to_numpy(dtype=float)
     e2 = bcg["tb_unvaccinated"].to_numpy(dtype=float)
@@ -14,7 +15,8 @@ BCG = """
     allocation = bcg["allocation"].to_numpy(dtype=object)
 """
 SMOKING = """
-    smoking = sdata.get_example("passive_smoking")
+    import pandas as pd
+    smoking = pd.read_csv("passive_smoking.csv")
     est = smoking["odds ratio"].to_numpy(dtype=float)
     lo = smoking["odds ratio 95 % CI low"].to_numpy(dtype=float)
     hi = smoking["odds ratio 95 % CI high"].to_numpy(dtype=float)
@@ -51,7 +53,8 @@ ENTRIES = [
                 e <- metafor::escalc(measure = "RR", ai = e1, n1i = n1, ci = e2,
                                      n2i = n2, drop00 = TRUE)                    # (1)
                 f <- metafor::rma(yi, vi, data = e, method = "REML",          # (2)
-                                  test = "adhoc")                              # (3)
+                                  test = "adhoc",                              # (3)
+                                  control = list(tol = 1e-10, threshold = 1e-10, maxiter = 1000))   # (5)
                 p <- predict(f, transf = exp)                                  # (4)
                 list(b = p$pred, low = p$ci.lb, high = p$ci.ub, p = f$pval,
                      tau2 = f$tau2, I2 = f$I2, pi_low = p$pi.lb, pi_high = p$pi.ub)
@@ -70,7 +73,9 @@ ENTRIES = [
                  "Hartung-Knapp intervals and p-values with the ad hoc rule: never narrower than the normal (z) "
                  "interval; interval_by=\"normal\" gives the classic interval.",
                  "the result shown back as a ratio, with the prediction interval (t with k - 1 degrees of freedom "
-                 "under Hartung-Knapp)."),
+                 "under Hartung-Knapp).",
+                 "a tighter stopping rule than metafor's default (1e-5) for the iterative between-study spread "
+                 "(REML, Paule-Mandel), so that it has converged; the method is the same."),
         python_note=NOTE,
         also=ALSO,
     ),
@@ -88,7 +93,8 @@ ENTRIES = [
                 # draw_funnel_plot(x="estimate", y="standard error"), after combine_studies
                 e <- metafor::escalc(measure = "RR", ai = e1, n1i = n1, ci = e2,
                                      n2i = n2, drop00 = TRUE)
-                f <- metafor::rma(yi, vi, data = e, test = "adhoc")
+                f <- metafor::rma(yi, vi, data = e, test = "adhoc",
+                                  control = list(tol = 1e-10, threshold = 1e-10, maxiter = 1000))
                 list(rr = exp(e$yi), se = sqrt(e$vi), centre = exp(f$b[1]))
             """,
             "matplotlib": """
@@ -135,7 +141,8 @@ OPTION_ENTRIES = [
         # combine_studies(names="study", estimates="odds ratio")
         e <- metafor::conv.wald(out = est, ci.lb = lo, ci.ub = hi,
                                 level = 95, transf = log)                 # (1)
-        f <- metafor::rma(yi, vi, data = e, method = "REML", test = "adhoc")
+        f <- metafor::rma(yi, vi, data = e, method = "REML", test = "adhoc",
+                          control = list(tol = 1e-10, threshold = 1e-10, maxiter = 1000))
         p <- predict(f, transf = exp)                                      # (2)
         list(b = p$pred, low = p$ci.lb, high = p$ci.ub, p = f$pval)
     """, choices=("a column with \"ratio\" in its name is combined on the log scale; metafor conv.wald() turns each "
@@ -174,7 +181,8 @@ OPTION_ENTRIES = [
     _option("interval_by=", ', interval_by="normal"', """
         # combine_studies(..., interval_by="normal")
         e <- metafor::escalc(measure = "RR", ai = e1, n1i = n1, ci = e2, n2i = n2)
-        f <- metafor::rma(yi, vi, data = e, method = "REML", test = "z")    # (1)
+        f <- metafor::rma(yi, vi, data = e, method = "REML", test = "z",    # (1)
+                          control = list(tol = 1e-10, threshold = 1e-10, maxiter = 1000))
         p <- predict(f, transf = exp)
         list(b = p$pred, low = p$ci.lb, high = p$ci.ub, p = f$pval)
     """, choices=("the normal (z) interval and p-value, as in older meta-analyses; the default is Hartung-Knapp "
@@ -184,7 +192,8 @@ OPTION_ENTRIES = [
         e <- metafor::escalc(measure = "RR", ai = e1, n1i = n1, ci = e2, n2i = n2)
         g <- c("alternate", "random", "systematic")
         f <- lapply(g, function(x) metafor::rma(yi, vi, data = e,
-                    subset = allocation == x, test = "z"))                # (1)
+                    subset = allocation == x, test = "z",                 # (1)
+                    control = list(tol = 1e-10, threshold = 1e-10, maxiter = 1000)))
         b <- sapply(f, function(m) m$b[1]); s <- sapply(f, function(m) m$se)
         q <- metafor::rma(b, sei = s, mods = ~ factor(g), method = "EE")  # (2)
         list(Q = q$QM, p = q$QMp)
@@ -200,7 +209,8 @@ OPTION_ENTRIES = [
         # combine_studies(..., using=["latitude"])
         e <- metafor::escalc(measure = "RR", ai = e1, n1i = n1, ci = e2, n2i = n2)
         f <- metafor::rma(yi, vi, mods = ~ latitude, data = e,            # (1)
-                          method = "REML", test = "adhoc")
+                          method = "REML", test = "adhoc",
+                          control = list(tol = 1e-10, threshold = 1e-10, maxiter = 1000))
         list(b = f$b[2], low = f$ci.lb[2], high = f$ci.ub[2], p = f$pval[2])
     """, ours=_ours(', using=["latitude"]', "meta-regression")
         + '    result.remove_rows_where("study", is_equal_to="intercept")\n',

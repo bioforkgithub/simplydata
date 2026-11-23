@@ -7,20 +7,23 @@ from . import Entry
 
 SENTENCE = "simplydata also writes the result as sentences, with the p-value in words, and names the method."
 TRIAL = """
-    df = sdata.get_example("trial")
+    import pandas as pd
+    df = pd.read_csv("trial.csv")
     days = df["days"].to_numpy(dtype=float)
     ev = (df["died"] == "yes").to_numpy()
     treatment = df["treatment"].to_numpy(dtype=object)
     age = df["age"].to_numpy(dtype=float)
 """
 NEW_MEDICINE = """
-    df = sdata.get_example("trial")
+    import pandas as pd
+    df = pd.read_csv("trial.csv")
     g = df[df["treatment"] == "new medicine"]
     days = g["days"].to_numpy(dtype=float)
     ev = (g["died"] == "yes").to_numpy()
 """
 ADMISSIONS = """
-    df = sdata.get_example("admissions")
+    import pandas as pd
+    df = pd.read_csv("admissions.csv", parse_dates=["admitted", "discharged", "first_esbl"])
     end = df[["first_esbl", "discharged"]].min(axis=1)
     time = (end - df["admitted"]).dt.days.to_numpy(dtype=float)
     state = (df["first_esbl"] <= df["discharged"]).map({True: "first_esbl", False: "discharged"}).to_numpy(dtype=object)
@@ -39,10 +42,11 @@ ENTRIES = [
         ours="""
             table = sdata.table(sdata.get_example("admissions"))
             table.add_time_and_event_columns(from_date="admitted", to_date="discharged", event_date="first_esbl")
-            table.keep_columns(*["time", "event"])
+            table.keep_columns("time", "event")
         """,
         code={"pandas": """
-            df = sdata.get_example("admissions")
+            import pandas as pd
+            df = pd.read_csv("admissions.csv", parse_dates=["admitted", "discharged", "first_esbl"])
             # add_time_and_event_columns(from_date="admitted", to_date="discharged", event_date="first_esbl")
             end = df[["first_esbl", "discharged"]].min(axis=1)                    # (1)
             df["time"] = (end - df["admitted"]).dt.days
@@ -102,7 +106,8 @@ ENTRIES = [
             import matplotlib.pyplot as plt
             import numpy as np
             from statsmodels.duration.survfunc import SurvfuncRight
-            df = sdata.get_example("trial")
+            import pandas as pd
+            df = pd.read_csv("trial.csv")
             # draw_risk_curves(time="days", event="died", colour="treatment")
             fig, ax = plt.subplots()
             for name, g in df.groupby("treatment"):
@@ -134,7 +139,8 @@ OPTION_ENTRIES = [
         code={"statsmodels": """
             import numpy as np
             from statsmodels.duration.survfunc import SurvfuncRight
-            df = sdata.get_example("trial")
+            import pandas as pd
+            df = pd.read_csv("trial.csv")
             g = df[df["treatment"] == "new medicine"]
             # find_survival_over_time(..., at_time_points=[365, 730])
             f = SurvfuncRight(g["days"], g["died"] == "yes")
@@ -228,7 +234,8 @@ OPTION_ENTRIES = [
         """,
         code={"statsmodels": """
             from statsmodels.duration.survfunc import SurvfuncRight
-            df = sdata.get_example("trial")
+            import pandas as pd
+            df = pd.read_csv("trial.csv")
             # find_survival_over_time(time="days", event="died", followed_from="joined")
             f = SurvfuncRight(df["days"], df["died"] == "yes", entry=df["days"] / 4 + 0.1)  # (1)
             {"survival": f.surv_prob[20], "at risk": f.n_risk[20]}
@@ -279,7 +286,8 @@ OPTION_ENTRIES = [
         """,
         code={"statsmodels": """
             from statsmodels.duration.survfunc import survdiff
-            df = sdata.get_example("trial")
+            import pandas as pd
+            df = pd.read_csv("trial.csv")
             # compare_survival(..., allowing_for="older")
             chi, p = survdiff(df["days"], df["died"] == "yes", df["treatment"],
                               strata=df["age"] > 70)                              # (1)
@@ -303,7 +311,8 @@ OPTION_ENTRIES = [
         """,
         code={"statsmodels": """
             from statsmodels.duration.survfunc import survdiff
-            df = sdata.get_example("trial")
+            import pandas as pd
+            df = pd.read_csv("trial.csv")
             # compare_survival(..., followed_from="joined")
             chi, p = survdiff(df["days"], df["died"] == "yes", df["treatment"],
                               entry=df["days"] / 4 + 0.1)                               # (1)
@@ -390,7 +399,8 @@ OPTION_ENTRIES = [
         """,
         code={"statsmodels": """
             from statsmodels.duration.hazard_regression import PHReg
-            df = sdata.get_example("trial")
+            import pandas as pd
+            df = pd.read_csv("trial.csv")
             # explain_survival(time="days", event="died", using=["age"], allowing_for="treatment")
             m = PHReg(df["days"], df[["age"]], status=df["died"] == "yes", ties="efron",
                       strata=df["treatment"]).fit()                                   # (1)
@@ -416,7 +426,8 @@ OPTION_ENTRIES = [
         """,
         code={"statsmodels": """
             from statsmodels.duration.hazard_regression import PHReg
-            df = sdata.get_example("trial")
+            import pandas as pd
+            df = pd.read_csv("trial.csv")
             # explain_survival(time="days", event="died", using=["age"], followed_from="joined")
             m = PHReg(df["days"], df[["age"]], status=df["died"] == "yes", ties="efron",
                       entry=df["days"] / 4 + 0.1).fit()                                     # (1)
@@ -442,7 +453,8 @@ OPTION_ENTRIES = [
         """,
         code={"statsmodels": """
             from statsmodels.duration.hazard_regression import PHReg
-            df = sdata.get_example("admissions")
+            import pandas as pd
+            df = pd.read_csv("admissions.csv", parse_dates=["admitted", "discharged", "first_esbl"])
             # explain_survival(..., value="first_esbl", competing_with="discharged", using=["age"])
             end = df[["first_esbl", "discharged"]].min(axis=1)
             had = df["first_esbl"] <= df["discharged"]                                # (1)
@@ -534,7 +546,8 @@ OPTION_ENTRIES = [
             import matplotlib.pyplot as plt
             import numpy as np
             from statsmodels.duration.survfunc import SurvfuncRight
-            df = sdata.get_example("trial")
+            import pandas as pd
+            df = pd.read_csv("trial.csv")
             # draw_survival_curves(time="days", event="died", followed_from="joined")
             f = SurvfuncRight(df["days"], df["died"] == "yes", entry=df["days"] / 4 + 0.1)   # (1)
             fig, ax = plt.subplots()

@@ -14,6 +14,7 @@ from test_s2_grouped import FARMS
 from test_s2_model_tools_more import school3
 from test_s2_models import TRIES
 from test_s2_more_outcomes import ZEROS, graded_school
+from conftest import example_frame
 
 
 class Line(str):
@@ -158,7 +159,7 @@ def test_ordered_and_groups_mcfadden(capsys):
 
 
 def test_shares_and_zeros_fit_lines(capsys, needs_r):
-    growth = sdata.get_example("growth").assign(share=lambda d: d.forest / 100)
+    growth = example_frame("growth").assign(share=lambda d: d.forest / 100)
     make_table(growth).explain("share", using=["year", "country"], outcome="shares")
     line = fit_line(capsys)
     # R: b <- betareg::betareg(share ~ year + country, data = g); b$pseudo.r.squared 0.982552259439924
@@ -189,7 +190,7 @@ def test_one_row_per_group_is_refused_before_fitting(capsys):
 
     from simplydata import SimplydataError
 
-    school = sdata.get_example("school")
+    school = example_frame("school")
     # R: s$pid <- s$pupil; lmer(marks ~ hours + (1 | pid), data = s): Error: number of levels of each grouping
     #    factor must be < number of observations (problems: pid)
     with pytest.raises(SimplydataError, match='grouped_by="pid" has 180 groups for 180 rows'):
@@ -212,7 +213,7 @@ def test_r_refusing_the_nakagawa_refit_gives_a_plain_note(capsys, monkeypatch, n
     from simplydata.table.models import ModelWords
 
     monkeypatch.setattr(ModelWords, "_check_group_sizes", staticmethod(lambda *args: None))
-    school = sdata.get_example("school")
+    school = example_frame("school")
     make_table(school.assign(pid=school.pupil)).explain("marks", using=["hours"], grouped_by="pid")
     assert "How well it fits: no R squared for this model." in fit_line(capsys)
 

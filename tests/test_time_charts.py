@@ -14,12 +14,13 @@ import pytest
 
 import simplydata as sdata
 from simplydata import SimplydataError
+from conftest import example_frame
 
 matplotlib.use("Agg")
 
 
 def harbour():
-    data = sdata.get_example("visitors")
+    data = example_frame("visitors")
     return data[data["museum"] == "Harbour Museum"].reset_index(drop=True)
 
 
@@ -53,7 +54,7 @@ def test_autocorrelation_bars_equal_autocorrelation_of(capsys):
 
 
 def test_cross_correlation_bars_equal_correlation_between():
-    data = sdata.get_example("sensor")
+    data = example_frame("sensor")
     ax = sdata.chart(data).cross_correlation_bars("signal", "vibration", sorted_by="time",
                                                   rows_back=10)._render().axes[0]
     heights = [s[1, 1] for s in ax.collections[0].get_segments()]
@@ -107,7 +108,7 @@ def test_chart_forecast_equals_table_forecast():
 
 
 def test_spectrum_chart_equals_spectrum_of():
-    data = sdata.get_example("sensor")
+    data = example_frame("sensor")
     ax = sdata.chart(data).spectrum("signal", sorted_by="time")._render().axes[0]
     table = native(sdata.table(data).find_spectrum_of("signal", sorted_by="time"))
     table = table[table["frequency"] > 0]
@@ -120,7 +121,7 @@ def test_spectrum_chart_equals_spectrum_of():
 def test_spectrum_over_time_matches_r():
     from simplydata.words.time_charts import spectrum_over_time
 
-    x = sdata.get_example("sensor")["signal"].to_numpy()
+    x = example_frame("sensor")["signal"].to_numpy()
     f, t, power = spectrum_over_time(x, 0.005, 100)
     # R by hand (ref_spectrogram.R): piece 1 at frequencies 0, 4 and 100; piece 5 at 4; middle times 0.25, 1.25
     assert power[[0, 2, 50], 0] == pytest.approx([0.00385981167326594, 0.151959085622423, 0.000378566612598927],
@@ -133,7 +134,7 @@ def test_spectrum_over_time_matches_r():
 
 
 def test_peak_dots_equal_find_peaks():
-    data = sdata.get_example("sensor")
+    data = example_frame("sensor")
     ax = sdata.chart(data).draw_lines(x="time", y="signal").peak_dots(is_at_least=1, apart=0.05)._render().axes[0]
     table = native(sdata.table(data).find_each_peak_that("signal", sorted_by="time", is_at_least=1, apart=0.05))
     dots = ax.collections[-1].get_offsets()
@@ -149,7 +150,7 @@ def test_peak_dots_equal_find_peaks():
                                                  reason="SciPy 1.17 or newer (Python 3.12 or newer)")),
                                              ("wiener", {"window": 7})])
 def test_smooth_line_methods_equal_nums_smooth(method, options):
-    data = sdata.get_example("sensor")
+    data = example_frame("sensor")
     ax = sdata.chart(data).draw_dots(x="time", y="signal").draw_smooth_line(test_method=method, **options)._render().axes[0]
     drawn = ax.get_lines()[-1].get_ydata()
     nums = sdata.numbers(data["signal"])

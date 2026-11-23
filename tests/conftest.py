@@ -135,6 +135,21 @@ def fresh_old_name_notes():
     yield
 
 
+def example_frame(name):
+    """The practice table read straight from its file by pandas, for the reference side of a comparison.
+
+    sdata.get_example(name) gives a simplydata table (since 0.3.0); a test that checks a word against pandas,
+    NumPy, SciPy or statsmodels reads the same file here with pandas itself, so the reference does not go
+    through simplydata at all. The date columns are read as dates, as sdata.get_example reads them.
+    """
+    from importlib.resources import files
+
+    from simplydata.data import DATE_COLUMNS
+
+    with (files("simplydata.data") / f"{name}.csv").open("r", encoding="utf-8") as fh:
+        return pd.read_csv(fh, parse_dates=DATE_COLUMNS.get(name, False))
+
+
 @pytest.fixture
 def marks():
     """A small class-marks table used by many tests."""
@@ -185,7 +200,11 @@ R_PACKAGES = ("survival", "vegan", "mice", "lme4", "betareg", "pscl", "car", "ef
               "blockrand", "agricolae", "survey",
               # S3d-3 (Bayesian methods): Bayes factors. rstanarm, rstan and posterior (Bayesian models) are checked
               # by their own tests (tests/test_s3d3_bayesian.py needs_rstanarm), so a missing rstanarm skips only them
-              "BayesFactor")
+              "BayesFactor",
+              # data-and-fixes: the reliability study reads the tables of GPL and LGPL R packages from the installed
+              # packages instead of stored copies (validation/r_data.py): AER (NMES1988), alr4 (galtonpeas), HH
+              # (ProfChal) and mediation (jobs, the JOBS II records)
+              "AER", "alr4", "HH", "mediation")
 # S3d-3: the large optional packages of the Bayesian models (rstanarm with Stan). CI installs them in a step of their
 # own; the needs_r fixture does not ask for them, so without rstanarm only its own tests skip (test_s3d3_bayesian.py)
 R_PACKAGES_HEAVY = ("rstanarm", "rstan", "posterior")
@@ -204,6 +223,34 @@ def needs_r():
         if os.environ.get("SIMPLYDATA_REQUIRE_R") == "1":
             pytest.fail(f"SIMPLYDATA_REQUIRE_R=1 but R, rpy2 or one of the R packages {listed} is missing")
         pytest.skip(f"needs R with {listed} (pip install 'simplydata[r]')")
+
+
+def r_table(name, parse_dates=None):
+    """A table of the reliability study that comes from a GPL or LGPL R package (validation/r_data.py: "mtcars.csv"
+    or "mtcars"), read from the installed package; nothing is stored or downloaded. Skipped where R or the package
+    is missing, except when SIMPLYDATA_REQUIRE_R=1 (CI), where that fails."""
+    import importlib.util
+    import os
+    import pathlib
+    import sys
+
+    key = "simplydata_validation_r_data"
+    if key not in sys.modules:
+        path = pathlib.Path(__file__).resolve().parents[1] / "validation" / "r_data.py"
+        spec = importlib.util.spec_from_file_location(key, path)
+        module = importlib.util.module_from_spec(spec)
+        sys.modules[key] = module
+        spec.loader.exec_module(module)
+    r_data = sys.modules[key]
+    if not r_data.ready(name):
+        packages = ", ".join(r_data.packages(name)) or "its datasets package"
+        if os.environ.get("SIMPLYDATA_REQUIRE_R") == "1":
+            pytest.fail(f"SIMPLYDATA_REQUIRE_R=1 but R or {packages} is missing (the {name} data come from R)")
+        pytest.skip(f"the {name} data are read from R ({packages}); not installed here")
+    table = r_data.read(name)
+    for column in parse_dates or ():
+        table[column] = pd.to_datetime(table[column])
+    return table
 
 
 @pytest.fixture

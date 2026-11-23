@@ -1,6 +1,6 @@
 """add_trend_and_season, trend_of and correlation_between(rows_back=), checked against R.
 
-Reference values: R 4.6.2 with trend 1.1.6, on sdata.get_example("visitors") (ref_phase3a.R):
+Reference values: R 4.6.2 with trend 1.1.6, on example_frame("visitors") (ref_phase3a.R):
 v <- read.csv("visitors.csv"); h <- v$visitors[v$museum == "Harbour Museum"];
 g <- v$visitors[v$museum == "Hill Gallery"].
 """
@@ -13,6 +13,7 @@ import pytest
 import simplydata as sdata
 from simplydata import SimplydataError
 from simplydata.table import table as make_table
+from conftest import example_frame
 
 ENGINES = ["pandas", "polars"]
 
@@ -25,12 +26,12 @@ def engine(request):
 def make(data, engine):
     if engine == "polars":
         pl = pytest.importorskip("polars")
-        return make_table(pl.from_pandas(data))
+        return make_table(data, fast=True)
     return make_table(data)
 
 
 def visitors(engine, museum=None):
-    data = sdata.get_example("visitors")
+    data = example_frame("visitors")
     if museum:
         data = data[data.museum == museum].reset_index(drop=True)
     return make(data, engine)
@@ -47,7 +48,7 @@ def col(t, name, museum="Harbour Museum"):
 
 # ---------------------------------------------------------------------------- correlation_between(rows_back=)
 def test_cross_correlation_matches_r_ccf_with_the_lag_reversed(capsys):
-    data = sdata.get_example("visitors")
+    data = example_frame("visitors")
     wide = data.pivot(index="month", columns="museum", values="visitors").reset_index()
     wide.columns = ["month", "harbour", "hill"]
     got = make_table(wide).find_correlation_between("harbour", "hill", rows_back=3, sorted_by="month")

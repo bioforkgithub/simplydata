@@ -9,7 +9,8 @@ from . import Entry
 GENES = ('["blaTEM", "blaCTXM", "blaOXA48", "blaNDM", "sul1", "sul2", "tetA", "tetM", "qnrS", "ermB", "aadA", '
          '"mphA", "vanA", "mcr1"]')
 RESISTOME = """
-    df = sdata.get_example("resistome")
+    import pandas as pd
+    df = pd.read_csv("resistome.csv")
     x = df.iloc[:, 5:].to_numpy(dtype=float)
     site = df["site"].to_numpy(dtype=object)
     temperature = df["temperature"].to_numpy(dtype=float)
@@ -39,7 +40,7 @@ FLIP = """
     s = np.sign(points[np.abs(points).argmax(axis=0), np.arange(points.shape[1])])  # ({n})
     pd.DataFrame(points * s, columns={names})
 """
-GENE_NAMES = 'names = list(sdata.get_example("resistome").columns[5:])'
+GENE_NAMES = 'names = list(pd.read_csv("resistome.csv").columns[5:])'
 TESTS_ALSO = ("simplydata also tests each column after all the others, says the result in words with the W2 sentence "
               "and the permutation floor, and notes overlapping columns (vif.cca) and the sequencing-depth trap.")
 
@@ -693,7 +694,8 @@ ENTRIES = [
                 import matplotlib.pyplot as plt
                 from scipy.cluster import hierarchy
                 from scipy.spatial.distance import pdist
-                df = sdata.get_example("resistome")
+                import pandas as pd
+                df = pd.read_csv("resistome.csv")
                 x = df.iloc[:, 5:].to_numpy(dtype=float)
                 tree = hierarchy.linkage(pdist(x, "braycurtis"), method="average")  # (1)
                 found = hierarchy.dendrogram(tree, labels=list(df["sample"]), no_plot=True)

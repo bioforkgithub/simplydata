@@ -1,6 +1,9 @@
-"""The same work in the packages underneath: one tested entry per simplydata word.
+"""The same work in the packages underneath: tested entries for 124 of simplydata's 400 words.
 
-Each entry keeps, once, the code that does a word's job in the package simplydata uses: pandas and
+Not every word has an entry. There are 229 entries: one for each of 124 words, plus one for each option of those
+words that changes what the word calls underneath; the other 276 words have none, and are checked by their own tests
+(tests/) and, for many statistics words, by the cases of the reliability study (validation/). The counts are kept
+true by tests/test_data_and_fixes.py. Each entry keeps, once, the code that does a word's job in the package simplydata uses: pandas and
 Polars for tables, NumPy for numbers, matplotlib or seaborn for charts, SciPy or statsmodels for
 statistics, and R where simplydata calls R. tests/test_underneath.py runs every entry next to the
 simplydata word and checks that both give the same numbers, the same table, or a chart with the same
@@ -10,7 +13,8 @@ dictionary's "Underneath:" line and the reliability report in validation/ are al
 UNDERNEATH is keyed by the word's key in simplydata.learn ("draw_bars", "table.find_average_of",
 "nums.find_median"). An option that changes what a word calls underneath gets an entry of its own,
 keyed by the word and the option ("table.explain weights="): its box follows the word's in the manual.
-The library code holds no simplydata names except sdata.get_example(), so a rename only touches the
+The library code holds no simplydata names: it reads the practice table from its file with the library itself
+(pd.read_csv("marks.csv"); check.py runs it in the folder of the practice files), so a rename only touches the
 key and the ours= line; docs/rename_underneath_keys.py rewrites both.
 
 The entries are split by area: charts.py, tables.py, numbers.py, statistics.py, models.py (the options of
@@ -69,7 +73,7 @@ class Entry:
               is skipped by the run, R gets the values its code names from r_inputs, and the Python
               block after R carries on with what R gives back (a named list becomes variables).
     compare:  how the test compares (COMPARE_KINDS)
-    data:     the practice table both versions use (sdata.get_example)
+    data:     the practice table both versions use (sdata.get_example("marks") in ours, "marks.csv" in the code)
     choices:  "simplydata chooses" lines, one per mark (1), (2) ... written in the code as a comment
     also:     one line on what simplydata also does that the code leaves out
     tolerance: relative tolerance for numbers
@@ -158,8 +162,9 @@ UNDERNEATH: dict[str, Entry] = _join()
 
 
 # ---------------------------------------------------------------- the one-line "Underneath" name
-# Calls that only set the stage (the practice table, a figure, imports, the dict of results) are not named
-_STAGE = {"get_example", "subplots", "from_pandas", "dict", "list", "len", "print", "float", "int", "array",
+# Calls that only set the stage (the practice table read from its file, a figure, imports, the dict of results) are
+# not named
+_STAGE = {"get_example", "read_csv", "subplots", "from_pandas", "dict", "list", "len", "print", "float", "int", "array",
           "asarray", "lexsort"}
 
 

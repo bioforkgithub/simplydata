@@ -13,8 +13,8 @@ them first.
 
 ## What simplydata handles
 
-**400 words (commands) in 48 groups, with 371 different options, on top of 14 Python packages and
-87 R packages that it runs (plus R's own `stats`, and 8 more used only to check its answers), checked by 1584 reliability checks.** Every word hands the work to
+**400 words (commands) in 48 groups, with 371 different options, on top of 14 Python packages (8 installed always, 6 with an extra; patsy comes with statsmodels) and
+87 R packages that it runs (plus R's own `stats`, and 12 more used only to check its answers), checked by 1640 reliability checks.** Every word hands the work to
 an established package; simplydata chooses the settings, prints the answer in words and names the
 method it used. Words that need an extra say so: `pip install "simplydata[fast]"`, `[files]`,
 `[systems]` or `[r]` (the R words also need R itself; see [Using the words that need R](#using-the-words-that-need-r)).
@@ -26,8 +26,8 @@ Approximate, counted on 2026-11-21.
 | | With the packages underneath | With simplydata |
 |---|---|---|
 | Names to learn | about 10,650 functions: about 5,460 in the Python packages (SciPy about 1,750, pandas 850, Polars 815, matplotlib 745, NumPy 660, statsmodels 545, seaborn 100; each package's public API) and about 5,190 exported by the R packages simplydata ran that day, with R's `stats` (R `getNamespaceExports`; before the community packages were added) | 771 names: 400 commands and 371 options, about 93 % fewer |
-| Packages and languages | 101 packages run by simplydata (14 Python, 87 R), plus 8 R ones that only check its answers, in Python and R | 1 package, in basic Python |
-| Code per task | 1371 lines and 1428 function calls in the 224 tasks of the manual's "same underneath" boxes (median 6 lines a task); this library code is the bare minimum, without the plain-sentence result or the checks | 618 lines and 721 calls (median 2 lines a task), about 55 % fewer lines; recount with `python validation/count_reduction.py` |
+| Packages and languages | 101 packages run by simplydata (14 Python, 87 R), plus 12 R ones that only check its answers, in Python and R | 1 package, in basic Python |
+| Code per task | 1454 lines and 1441 function calls in the 224 tasks of the manual's "same underneath" boxes (median 6 lines a task); this library code is the bare minimum, without the plain-sentence result or the checks | 620 lines and 723 calls (median 2 lines a task), about 57 % fewer lines; recount with `python validation/count_reduction.py` |
 | Choosing the method | you choose, from the package's documentation | the recommended default, with its published basis: see [How simplydata chooses methods](#how-simplydata-chooses-methods) |
 
 ### Packages underneath
@@ -44,7 +44,7 @@ Python packages:
 | SciPy | tests (t-tests, ANOVA, rank tests, chi-square, Fisher, Kolmogorov-Smirnov, Shapiro-Wilk), 28 named distributions (with the GEV and generalised Pareto curves of extremes) and any other `scipy.stats` one (`sdata.distribution`), fitting and solving (`fit_formula`, `solve`, `find_where_smallest`), values between points (`values_at`, `make_map_of`), bootstrap intervals (`find_interval_of`), the average direction of directions or times of day (`find_average_direction_of`), distances and clusters, spectra, filters, peaks, the Hilbert envelope and the Fourier transform (`find_spectrum_of`, `add_filtered_column`, `find_each_peak_that`, `find_envelope`), linear systems (`sdata.system`) | built in |
 | statsmodels (with its formula helper patsy) | models in `explain`: linear, logistic, Poisson, negative binomial, Gamma, ordered, multinomial, mixed models, GEE, robust regression, conditional logistic; Welch's ANOVA, corrections for many tests, kappa, exact intervals of percents and rates (`rate_of`, `compare_to_truth`), PCA, lowess and STL (`add_trend_and_season`), power of regression and of two percents, multiple-imputation fits | built in |
 | matplotlib | every chart's canvas (`sdata.chart`), pie, polar, contour, surface and 3D charts, titles, axes, legends, several charts on one page, `animate` | built in |
-| seaborn | bars, lines, dots, histograms, boxes, violins, heatmaps, density curves, count bars and cumulative shares (`draw_bars`, `draw_lines`, `draw_boxes`, `draw_violins`, `draw_heatmap`, `draw_density`), with averages and error bars (`show="average", error="standard error"`) |
+| seaborn | bars, lines, dots, histograms, boxes, violins, heatmaps, density curves, count bars and cumulative shares (`draw_bars`, `draw_lines`, `draw_boxes`, `draw_violins`, `draw_heatmap`, `draw_density`), with averages and error bars (`show="average", error="standard error"`) | built in |
 | openpyxl | reading and saving Excel files (`sdata.table("file.xlsx", sheet="all")`, `table.save("clean.xlsx")`) | built in |
 | python-docx, pyreadstat | reading tables from Word files (`table_number=`) and from SPSS and Stata files | [files] |
 | python-control | rise time, settling time and overshoot of `system.step_response()`; gain and phase margins of `system.frequency_response()` | [systems] |
@@ -99,6 +99,7 @@ so you never need them:
 | meta, metadat | a second meta-analysis package, and the published study data (BCG vaccine, passive smoking), that `combine_studies` is checked against |
 | ismev, sp | the published data of Coles (2001: Port Pirie sea levels, daily rain) and the meuse soil samples that `find_return_levels_of`, `find_autocorrelation_of(x=, y=)` and `find_variogram_of` are checked against |
 | ape | a second Moran's I (`ape::Moran.I`) that `find_autocorrelation_of(x=, y=)` is checked against |
+| AER, alr4, HH, mediation | published data the reliability study reads from the installed package instead of storing a copy (NMES 1988, Galton's sweet peas, Heiberger & Robbins's survey counts, the JOBS II records; see [DATA_LICENSES.md](DATA_LICENSES.md)) |
 
 Many printouts also name the R function that gives the same answer ("as R zoo::na.spline"); those are pointers for
 R users, not packages simplydata needs.
@@ -146,7 +147,7 @@ R users, not packages simplydata needs.
 | Medicine and epidemiology, including antimicrobial resistance | resistome gene counts: diversity, log ratios and PCoA (`add_diversity_columns`, `add_log_ratio_columns`, `add_principal_coordinates`, practice table "resistome"); risk and odds ratios, number needed to treat (`compare_risks`); infections per 1000 patient-days by ward (`rate_of`, `compare_rates`); time to first ESBL carriage with discharge as a competing event (`find_risk_over_time`, practice table "admissions"); Kaplan-Meier, Cox and Fine-Gray models; diagnostic accuracy and ROC curves (`compare_to_truth`, `compare_accuracy`); matched case-control sets (`explain(matched_by=)`); an interrupted time series around a change in practice (`explain(changes_at=)`); meta-analysis (`combine_studies`); sample size for a trial (`find_how_many_needed(for_test="compare_survival")`); treated and untreated patients made alike before they are compared (`compare_balanced_groups_of`, practice table "job_training"); attributable fractions and age-standardised death rates (`compare_risks(show="attributable fractions")`, `rate_of(standard_population=)`, practice table "deaths_by_age"); bioequivalence of two formulations (`compare_averages_of(period=)`, practice table "drug_levels") |
 | Physics and engineering | step and frequency responses, stability and margins of a system (`sdata.system`); filters, spectra, peaks and envelopes of a sensor signal (`add_filtered_column`, `find_spectrum_of`, `find_each_peak_that`); fitting any formula (`fit_formula`); solving equations (`sdata.solve`); calibration lines checked against NIST certified values |
 | Chemistry | calibration lines (`fit_line`); enzyme kinetics (`fit_curve(of_kind="michaelis-menten")`); EC50 and LD50 from dose-response curves (`fit_dose_response`); comparing two measurement methods (`fit_line(test_method="passing-bablok")`, `limits_of_agreement`) |
-| Earth and marine science | the average current or wind direction and the Rayleigh test (`find_average_direction_of`, `compare_shape_to(shape="even around the circle", full_turn=360)`, practice table "stations"); whether metals in sediment are alike at nearby stations (`find_autocorrelation_of(x=, y=, on_globe=True)`); variograms (`find_variogram_of`, `chart.draw_variogram`); the 100-year sea level from yearly maxima (`find_return_levels_of`, the real Port Pirie data, practice table "sea_levels"); how much temperature and salinity explain the make-up of samples (`explain_profiles_of`), and whether genes and water chemistry vary together (`find_correlation_between_profiles`); trends with the Mann-Kendall test and Sen's slope, seasonal too (`find_trend_of`); trend and season split (`add_trend_and_season`); jumps in nitrate at river stations (`find_change_points_in`); spectra of unevenly spaced readings (`find_spectrum_of(test_method="lomb-scargle")`); maps and contours from scattered points (`make_map_of`, `draw_contour`); forecasts (`forecast`); models with AR(1) neighbours (`explain(neighbours_alike_in_order_of=)`) |
+| Earth and marine science | the average current or wind direction and the Rayleigh test (`find_average_direction_of`, `compare_shape_to(shape="even around the circle", full_turn=360)`, practice table "stations"); whether metals in sediment are alike at nearby stations (`find_autocorrelation_of(x=, y=, on_globe=True)`); variograms (`find_variogram_of`, `chart.draw_variogram`); the 100-year sea level from yearly maxima (`find_return_levels_of`, practice table "sea_levels", made up after the Port Pirie data; the real data are tested in the reliability study); how much temperature and salinity explain the make-up of samples (`explain_profiles_of`), and whether genes and water chemistry vary together (`find_correlation_between_profiles`); trends with the Mann-Kendall test and Sen's slope, seasonal too (`find_trend_of`); trend and season split (`add_trend_and_season`); jumps in nitrate at river stations (`find_change_points_in`); spectra of unevenly spaced readings (`find_spectrum_of(test_method="lomb-scargle")`); maps and contours from scattered points (`make_map_of`, `draw_contour`); forecasts (`forecast`); models with AR(1) neighbours (`explain(neighbours_alike_in_order_of=)`) |
 | Climate and hydrology | return levels of rain, floods, storm surges and heat from yearly maxima or from every value above a threshold, with profile-likelihood intervals (`find_return_levels_of(values_above=30, sorted_by="date")`, practice table "rain"); choosing the threshold (`chart.draw_threshold_check`); the extremal index for values that come in runs; times of day and seasons on a circle (`find_average_direction_of(full_turn=24)`) |
 | Social science and psychology | questionnaire reliability (`reliability_of`); hidden factors behind questionnaire items, explored and checked (`find_hidden_factors_behind`, `check_hidden_factors`); agreement between raters (`agreement_between`); ordered answers (`explain(outcome="ordered groups")`); subjects crossed with items (`explain(crossed_with=)`); repeated measures (`compare_averages_of(matched_by=)`, `compare_matched_columns`); adjusted group averages (`find_model_averages_of`); power for a planned study (`find_chance_of_finding`) |
 | Education | pupils in classes in schools (`explain(grouped_by=["school", "class"])`); comparing classes (`compare_averages_of`, `compare_each_pair_of`); the course itself: lessons, the 30-day course and plain words for teaching charts, tables and statistics (`sdata.show_lesson`, `sdata.start_30_days`) |
@@ -337,9 +338,9 @@ first. Lesson 30 combines studies (a meta-analysis): the combined effect, how mu
 studies differ, and the forest and funnel plots. Lessons 31 and 32 read a community or resistome table:
 diversity at the same total count, then log ratios, PCoA and how much temperature and salinity explain. Lesson
 33 follows a coastal station: the average direction of its currents, whether nearby stations have alike zinc
-(Moran's I), and the 100-year sea level at Port Pirie (real data). Lesson 34 plans an experiment and a
+(Moran's I), and the 100-year sea level of a made-up coastal town. Lesson 34 plans an experiment and a
 survey: a design table in randomised blocks, a randomisation list in random blocks for each hospital, and
-a stratified random sample of real California schools. Lesson 35 asks about cause and effect in observational
+a stratified random sample of made-up schools. Lesson 35 asks about cause and effect in observational
 data: a job-training study made alike by weighting and by matching, with the balance table first, and how much of a
 workshop's effect on depression went through job-search confidence (mediation). Lesson 36 gives Bayesian answers: a Bayes factor for two
 wards, a credible interval for a change in pain, and a Bayesian model with its prior and its
@@ -352,7 +353,7 @@ to try yourself.
 - `sdata.show_all_words()` lists every word, with an example (also on the first pages of the [dictionary](https://github.com/bioforkgithub/simplydata/blob/main/docs/manual/simplydataDictionary.pdf))
 - `sdata.help("draw_bars")` explains one word: what it does, its options and an example
   (table and number words too: `sdata.help("keep_rows_where")`, `sdata.help("find_average")`)
-- `sdata.get_example()` lists the made-up tables to practise with (marks, weather, fruit, growth, sensor, visitors, river, shop, school, meadow, trial, clinic, island; shop has dates and empty cells)
+- `sdata.get_example()` lists the tables to practise with, all made up (marks, weather, fruit, growth, sensor, visitors, river, shop, school, meadow, trial, clinic, island and more; shop has dates and empty cells); seven copy the columns of real studies (bcg, passive_smoking, ability_tests, sea_levels, sampled_schools, job_training, drug_levels), and simplydata was tested on the real data of those studies ([DATA_LICENSES.md](DATA_LICENSES.md)); `sdata.get_example("marks")` gives one back as a simplydata table, ready for every table word
 - `sdata.show_lesson(3, solutions=True)` adds a worked solution to each "Try it yourself" task
 - `sdata.show_packages_used()` lists the packages that did the work behind your words (pandas, SciPy, R packages ...), with versions and the references their authors ask for; a short list is also printed at the end of a script
 
@@ -505,7 +506,12 @@ The [reliability report](https://github.com/bioforkgithub/simplydata/blob/main/v
 certified values, Student's sleep data, Anscombe's quartet ...) and compares each answer with the
 published one, with the package underneath called directly, and with R. It lists the tolerance of
 every check, the package versions it ran with, and every setting where simplydata's default differs
-from the package's own. Anyone can rerun it with one command: `python validation/make_report.py`
+from the package's own. A check passes when the word agrees with the reference to the stated, justified
+tolerance: about 1e-9 for calculations without iteration, the certified digits or the same method run to
+convergence for iterative fits, and the same seed or 4 Monte Carlo standard errors for simulations. The
+report's total also counts the "same underneath" checks, which show that a word makes the call it says it
+makes; most of those run on the made-up practice tables, while the study's cases use real or published data
+(3 of them are made-up edge cases, and a few simulation checks need no data). Anyone can rerun it with one command: `python validation/make_report.py`
 ([how it works and the datasets](https://github.com/bioforkgithub/simplydata/blob/main/validation/README.md)). For the words that have it, the manual also
 shows the same job written in the package underneath, in a grey box that a test runs and checks.
 
@@ -568,4 +574,6 @@ This DOI always points to the latest version; each release also has its own DOI 
 
 ## Licence
 
-MIT.
+MIT, for the code and the practice tables, which are all made up. The reliability study's NIST files are public
+domain and its few stored tables are published facts; every real dataset simplydata was tested on, with its source,
+citation and licence, is listed in [DATA_LICENSES.md](DATA_LICENSES.md).

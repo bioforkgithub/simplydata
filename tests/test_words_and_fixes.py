@@ -18,6 +18,7 @@ import pytest
 
 import simplydata as sdata
 from simplydata import SimplydataError
+from conftest import example_frame
 
 NIST = Path(__file__).resolve().parents[1] / "validation" / "data" / "nist"
 
@@ -102,7 +103,7 @@ def test_the_fast_engine_guesses_the_same_way(tmp_path, capsys):
 def test_savitzky_golay_takes_of_degree(capsys):
     from scipy.signal import savgol_filter
 
-    sensor = sdata.get_example("sensor")
+    sensor = example_frame("sensor")
     table = sdata.table(sensor)
     table.add_smoothed_column("smooth", from_column="signal", test_method="savitzky-golay", window=11, of_degree=3,
                               sorted_by="time")
@@ -114,7 +115,7 @@ def test_savitzky_golay_takes_of_degree(capsys):
 
 
 def test_savitzky_golay_degree_is_an_old_name_with_a_note(capsys):
-    sensor = sdata.get_example("sensor")
+    sensor = example_frame("sensor")
     sdata.table(sensor).add_smoothed_column("s", from_column="signal", test_method="savitzky-golay", window=11,
                                             degree=2, sorted_by="time")
     assert '"degree=" is now called "of_degree="' in capsys.readouterr().out
@@ -127,7 +128,7 @@ def test_in_order_p_values_use_the_full_models_residual_df(capsys):
     import statsmodels.formula.api as smf
     from statsmodels.stats.anova import anova_lm
 
-    school = sdata.get_example("school")
+    school = example_frame("school")
     result = sdata.table(school).explain("marks", using=["class * breakfast"], table_of_tests="in order")
     reference = anova_lm(smf.ols("marks ~ C(Q('class')) * C(breakfast)", data=school).fit(), typ=1)
     for term, row in (("class", 0), ("breakfast", 1), ("class : breakfast", 2)):
@@ -194,7 +195,7 @@ def test_compare_forecasts_scales_mase_by_the_same_season_last_time(needs_r, cap
 def test_numbers_drawn_gives_the_dots_and_the_fitted_line(capsys):
     import statsmodels.api as sm
 
-    marks = sdata.get_example("marks")
+    marks = example_frame("marks")
     chart = sdata.chart(marks).draw_dots(x="hours", y="marks").fit_line()
     drawn = chart.get_numbers_drawn()
     assert drawn.get_column_names() == ["panel", "layer", "kind", "series", "x", "y", "low", "high", "value"]
@@ -213,7 +214,7 @@ def test_numbers_drawn_gives_the_dots_and_the_fitted_line(capsys):
 
 
 def test_numbers_drawn_names_the_bars_and_the_series(capsys):
-    marks = sdata.get_example("marks")
+    marks = example_frame("marks")
     drawn = sdata.chart(marks).draw_bars(x="class", y="marks").get_numbers_drawn()
     assert drawn.get_column("x") == ["A", "B", "C"]
     averages = marks.groupby("class")["marks"].mean()
@@ -225,15 +226,15 @@ def test_numbers_drawn_names_the_bars_and_the_series(capsys):
 
 
 def test_numbers_drawn_reads_dates_cells_slices_and_error_bars(capsys):
-    visitors = sdata.get_example("visitors")
+    visitors = example_frame("visitors")
     drawn = sdata.chart(visitors).draw_lines(x="month", y="visitors", colour="museum").get_numbers_drawn()
     first = drawn.get_row(1)
     assert str(first["x"])[:10] == str(visitors["month"].min())[:10]
-    weather = sdata.get_example("weather")
+    weather = example_frame("weather")
     cells = sdata.chart(weather).draw_heatmap(x="month", y="city", value="rain").get_numbers_drawn()
     assert set(cells.get_column("kind")) == {"cell"}
     assert len(cells) == weather[["month", "city"]].drop_duplicates().shape[0]
-    fruit = sdata.get_example("fruit")
+    fruit = example_frame("fruit")
     pie = sdata.chart(fruit).draw_pie(labels="fruit", values="count").get_numbers_drawn()
     assert sum(pie.get_column("value")) == pytest.approx(1.0)
     errors = sdata.chart(sdata.get_example("marks")).draw_lines(x="subject", y="marks", colour="class")
@@ -246,7 +247,7 @@ def test_numbers_drawn_reads_dates_cells_slices_and_error_bars(capsys):
 
 
 def test_numbers_drawn_on_a_page_and_on_parts(capsys):
-    marks = sdata.get_example("marks")
+    marks = example_frame("marks")
     page = sdata.put_side_by_side(sdata.chart(marks).draw_bars(x="class", y="marks"),
                                   sdata.chart(marks).draw_dots(x="hours", y="marks"))
     drawn = page.get_numbers_drawn()
@@ -261,7 +262,7 @@ def test_numbers_drawn_on_a_page_and_on_parts(capsys):
 
 
 def test_numbers_drawn_of_a_forecast_has_its_band(needs_r, capsys):
-    visitors = sdata.get_example("visitors")
+    visitors = example_frame("visitors")
     chart = sdata.chart(visitors).draw_lines(x="month", y="visitors", colour="museum")
     drawn = chart.forecast(steps_ahead=12, repeats_every="year").get_numbers_drawn()
     assert "band" in set(drawn.get_column("kind"))
@@ -271,10 +272,9 @@ def test_numbers_drawn_of_a_forecast_has_its_band(needs_r, capsys):
 # ---------------------------------------------------------------- word 2: show_rows_that_pull_model() gives a table
 @pytest.mark.parametrize("engine", ["pandas", "polars"])
 def test_new_tables_work_on_both_engines(engine, capsys):
-    data = sdata.get_example("school")
     if engine == "polars":
-        pl = pytest.importorskip("polars")
-        data = pl.from_pandas(data)
+        pytest.importorskip("polars")
+    data = sdata.table(sdata.get_example("school"), fast=engine == "polars")
     found = sdata.table(data).show_rows_that_pull_model("marks", using=["hours", "breakfast"])
     assert found.get_cell_at(row=1, column="row") == 48
     numbers = sdata.table(data).check_model_of("marks", using=["hours", "sleep"], show="numbers")
@@ -288,7 +288,7 @@ def test_rows_that_pull_come_back_as_a_table(capsys):
     import statsmodels.api as sm
     from statsmodels.stats.outliers_influence import OLSInfluence
 
-    school = sdata.get_example("school")
+    school = example_frame("school")
     found = sdata.table(school).show_rows_that_pull_model("marks", using=["hours", "breakfast"])
     assert found.get_column_names() == ["row", "Cook's distance", "leverage", "studentised residual"]
     used = school.dropna(subset=["marks", "hours", "breakfast"])
@@ -314,7 +314,7 @@ def test_check_numbers_are_the_printed_tests(capsys):
     import statsmodels.api as sm
     from statsmodels.stats.diagnostic import het_breuschpagan
 
-    school = sdata.get_example("school")
+    school = example_frame("school")
     numbers = sdata.table(school).check_model_of("marks", using=["hours", "sleep"], show="numbers")
     assert numbers.get_column_names() == ["check", "term", "value", "df", "p-value"]
     used = school.dropna(subset=["marks", "hours", "sleep"])
@@ -388,7 +388,7 @@ def test_get_example_from_r_package_checks_the_name():
 def test_correlation_result_table_for_two_columns(capsys):
     from scipy import stats
 
-    marks = sdata.get_example("marks")
+    marks = example_frame("marks")
     result = sdata.table(marks).find_correlation_between("hours", "marks", show="result table")
     assert result.get_column_names() == ["column 1", "column 2", "method", "r", "95 % CI low", "95 % CI high",
                                          "interval from", "p-value", "p-value from", "tested", "rows", "strength"]
@@ -417,7 +417,7 @@ def test_correlation_result_table_for_three_columns_is_each_pair(capsys):
 def test_survival_show_median_gives_the_printed_medians(capsys):
     from statsmodels.duration.survfunc import SurvfuncRight
 
-    trial = sdata.get_example("trial")
+    trial = example_frame("trial")
     medians = sdata.table(trial).find_survival_over_time(time="days", event="died", for_each_group_in="treatment",
                                                          show="median")
     assert medians.get_column_names() == ["treatment", "rows", "events", "median", "95 % CI low", "95 % CI high"]
@@ -434,7 +434,7 @@ def test_survival_show_median_gives_the_printed_medians(capsys):
 def test_survival_show_median_matches_r(needs_r, capsys):
     from simplydata._r import r_call
 
-    trial = sdata.get_example("trial")
+    trial = example_frame("trial")
     medians = sdata.table(trial).find_survival_over_time(time="days", event="died", for_each_group_in="treatment",
                                                          show="median")
     groups = medians.get_column("treatment")
@@ -465,7 +465,7 @@ def test_fit_formula_note_says_converged_and_the_warnings(capsys):
 def test_nmds_show_numbers_matches_vegan(needs_r, capsys):
     from simplydata._r import r_call
 
-    meadow = sdata.get_example("meadow")
+    meadow = example_frame("meadow")
     species = ["clover", "daisy", "buttercup", "dandelion", "nettle", "thistle", "moss", "fern", "orchid", "yarrow"]
     numbers = sdata.table(meadow).add_nmds(columns=species, show="numbers")
     assert numbers.get_column_names() == ["row", "NMDS1", "NMDS2", "stress"]
@@ -483,7 +483,7 @@ def test_correspondence_show_numbers_matches_vegan(needs_r, capsys):
     from simplydata._r import r_call
 
     genes = ["blaTEM", "blaCTXM", "sul1", "sul2", "tetA", "tetM"]
-    resistome = sdata.get_example("resistome")
+    resistome = example_frame("resistome")
     numbers = sdata.table(resistome).add_correspondence_axes(columns=genes, show="numbers")
     assert numbers.get_column_names() == ["row", "CA1", "CA2", "CA1 eigenvalue", "CA2 eigenvalue",
                                           "CA1 share of the inertia", "CA2 share of the inertia", "total inertia"]

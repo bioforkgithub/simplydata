@@ -14,6 +14,7 @@ import pytest
 import simplydata as sdata
 from simplydata import SimplydataError
 from simplydata.table import table as make_table
+from conftest import example_frame
 
 ENGINES = ["pandas", "polars"]
 
@@ -26,7 +27,7 @@ def engine(request):
 def make(data, engine):
     if engine == "polars":
         pl = pytest.importorskip("polars")
-        return make_table(pl.from_pandas(data))
+        return make_table(data, fast=True)
     return make_table(data)
 
 
@@ -35,11 +36,11 @@ def col(t, name):
 
 
 def signal60():
-    return sdata.numbers(sdata.get_example("sensor")["signal"][:60])
+    return sdata.numbers(example_frame("sensor")["signal"][:60])
 
 
 def station_a(engine):
-    data = sdata.get_example("river")
+    data = example_frame("river")
     return make(data[data.station == "Station A"].reset_index(drop=True), engine)
 
 
@@ -79,7 +80,7 @@ def test_dates_errors():
 
 # ---------------------------------------------------------------- add_missing_dates
 def test_add_missing_dates_matches_r(engine, capsys):
-    t = make(sdata.get_example("river"), engine)
+    t = make(example_frame("river"), engine)
     t.add_missing_dates("date", every="day", for_each_group_in="station")
     # R: merge(data.frame(date = seq(min(d), max(d), by = "day")), x, all.x = TRUE): 6 days added for
     #    Station A (the first 2024-03-17), 9 for Station B (the first 2024-01-18)
@@ -94,7 +95,7 @@ def test_add_missing_dates_matches_r(engine, capsys):
 
 
 def test_add_missing_dates_finds_the_step(engine, capsys):
-    t = make(sdata.get_example("river"), engine)
+    t = make(example_frame("river"), engine)
     t.add_missing_dates("date", for_each_group_in="station")
     assert "(every day: the most common step)" in capsys.readouterr().out
 
@@ -106,7 +107,7 @@ def test_add_missing_dates_between(capsys):
 
 
 def test_add_missing_dates_errors(engine):
-    t = make(sdata.get_example("river"), engine)
+    t = make(example_frame("river"), engine)
     with pytest.raises(SimplydataError, match="does not hold dates"):
         t.add_missing_dates("level")
     with pytest.raises(SimplydataError, match="same date"):
@@ -247,7 +248,7 @@ def test_moving_average_empty_ends_and_undo(capsys):
 
 
 def test_add_smoothed_column(engine, capsys):
-    t = make(sdata.get_example("sensor"), engine)
+    t = make(example_frame("sensor"), engine)
     t.add_smoothed_column("smooth", from_column="signal", test_method="savitzky-golay", window=11, sorted_by="time")
     # R: signal::sgolayfilt(x, 2, 11)[c(1, 2, 30)] (the first 60 readings give the same first values)
     assert col(t, "smooth")[[0, 1]] == pytest.approx([0.167486713286713, 0.309181958041956], rel=1e-9)
@@ -274,12 +275,12 @@ def test_smoothing_errors():
 
 # ---------------------------------------------------------------- remove_trend
 def test_remove_trend_matches_r(capsys):
-    nums = sdata.numbers(sdata.get_example("sensor")["signal"])
+    nums = sdata.numbers(example_frame("sensor")["signal"])
     nums.remove_trend()
     # R: t <- seq_along(xx); residuals(lm(xx ~ t))[1:2]
     assert np.asarray(nums._values, dtype=float)[:2] == pytest.approx([-0.306456172827175, 0.595261418309621],
                                                                        rel=1e-9)
-    nums = sdata.numbers(sdata.get_example("sensor")["signal"])
+    nums = sdata.numbers(example_frame("sensor")["signal"])
     nums.remove_trend(breaks=[200])
     # R: residuals(lm(xx[1:200] ~ t[1:200]))[1]; residuals(lm(xx[201:1000] ~ t[201:1000]))[1]
     values = np.asarray(nums._values, dtype=float)

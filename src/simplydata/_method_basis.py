@@ -1101,7 +1101,8 @@ BASIS["table.compare_risks same_within="] = _b(
     "Two groups only; a margin between 0 and 1 gets a note asking whether percentage points were meant.",
     "convention")
 BASIS["sdata.compare_risks"] = _b(
-    "The same measures as table.compare_risks, from counts.",
+    "The same measures as table.compare_risks, from counts, against the first group given (the order of names=, "
+    "as R prop.test() takes the counts in the order they are given).",
     "As table.compare_risks.",
     "As table.compare_risks.",
     ("newcombe1998", "katz1978", "altman1998"), "P2", "As table.compare_risks.")
@@ -1121,7 +1122,8 @@ BASIS["table.compare_rates"] = _b(
     "Without R the interval is left out, with a note; no events in either group gives an empty result, with a "
     "note.", "convention")
 BASIS["sdata.compare_rates"] = _b(
-    "The same test as table.compare_rates, from counts and times.",
+    "The same test as table.compare_rates, from counts and times, against the first group given (the order of "
+    "names=, as R poisson.test() takes the counts in the order they are given).",
     "As table.compare_rates.", "As table.compare_rates (Przyborowski & Wilenski 1940).", ("przyborowski1940",),
     "P3", "As table.compare_rates.", "convention")
 
@@ -1381,7 +1383,10 @@ BASIS["dist.find_chance_that_value"] = _b(
 BASIS["table.explain"] = _b(
     "A linear model by least squares (as R lm()), with t-based 95 % intervals, R squared and the F test. Group "
     "columns are compared with their first level in sorted order. The outcome family is never switched by "
-    "itself.",
+    "itself. The estimates come from statsmodels' QR fit; their standard errors come from the QR factor as R's "
+    "summary.lm() takes them, with chol2inv() (R's own method, done here with NumPy's QR and LAPACK's dpotri, the "
+    "routine chol2inv calls; approved by Manish 2026-11-22), because statsmodels' inv(R'R) loses digits on "
+    "nearly collinear columns (NIST Longley).",
     "outcome= (yes or no, counts, positive numbers, ordered groups, shares ...), grouped_by=, effects=, "
     "robust_errors=, table_of_tests=, interval_by=, p_value_by= and the other options below.",
     "simplydata follows R's lm() so that every number matches what reviewers can check. It never chooses a model "
@@ -2342,7 +2347,8 @@ BASIS["nums.keep_each_frequency_that"] = _b(
     "As table.add_filtered_column.", ("gustafsson1996",), "P5", "As table.add_filtered_column.", "starting value")
 BASIS["nums.remove_each_frequency_that"] = _b(
     "A Butterworth filter of order 4, run both ways; is_equal_to= removes one frequency with a notch filter.",
-    "As table.add_filtered_column; and_multiples=True for a comb filter.",
+    "As table.add_filtered_column; and_multiples=True for a notch at each multiple (SciPy iirnotch each; the "
+    "average stays).",
     "As table.add_filtered_column.", ("gustafsson1996",), "P5", "As table.add_filtered_column.", "starting value")
 BASIS["nums.find_each_peak_that"] = _b(
     "Every local maximum, as table.find_each_peak_that.", "As table.find_each_peak_that.",
@@ -2882,7 +2888,9 @@ BASIS['table.compare_balanced_groups_of test_method="matching"'] = _b(
     "weighting); rows left without a match are counted and named in a note.", "convention")
 BASIS['table.compare_risks show="attributable fractions"'] = _b(
     "The attributable fraction among the exposed and in the whole population from R epiR::epi.2by2(method = "
-    "\"cohort.count\"), with Wald intervals from the risk ratio; for an exposure that goes with fewer events, the "
+    "\"cohort.count\"), with the intervals epiR gives for one table (among the exposed, from the score interval of "
+    "the risk ratio; in the population, from the exact intervals of the two risks); for an exposure that goes with "
+    "fewer events, the "
     "preventable fraction among the exposed (epiR's fraction with the roles of the groups swapped).",
     "compare_risks() without show= (the risk difference, the risk and odds ratios, the number needed to treat).",
     "These are the standard definitions (Rockhill et al. 1998). The fractions here are crude: adjusting the "

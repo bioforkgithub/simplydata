@@ -1,7 +1,7 @@
 """S1: one-sided tests (sides=1, higher=) and Kendall's tau-b.
 
 Every number is checked against R 4.6.2 (the R call is written next to each value). The data is
-sdata.get_example("school"), read in R with s <- read.csv(".../data/school.csv"); d is s without
+example_frame("school"), read in R with s <- read.csv(".../data/school.csv"); d is s without
 the rows that have an empty cell in the columns used. Every table test runs on pandas and Polars.
 """
 
@@ -13,6 +13,7 @@ import pytest
 import simplydata as sdata
 from simplydata import SimplydataError
 from simplydata.table import table as make_table
+from conftest import example_frame
 
 REL = 1e-9
 
@@ -28,7 +29,7 @@ def engine(request):
 def make(data, engine):
     if engine == "polars":
         pl = pytest.importorskip("polars")
-        return make_table(pl.from_pandas(data))
+        return make_table(data, fast=True)
     return make_table(data)
 
 
@@ -38,7 +39,7 @@ def one_row(result):
 
 @pytest.fixture
 def school(engine):
-    return make(sdata.get_example("school"), engine)
+    return make(example_frame("school"), engine)
 
 
 @pytest.fixture

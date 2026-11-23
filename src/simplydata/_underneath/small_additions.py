@@ -7,7 +7,8 @@ comparisons of percents. Practice tables: "fruit", "marks", "visitors", "many_te
 from . import Entry
 
 PAIN = """
-    df = sdata.get_example("clinic").melt(id_vars="patient", value_vars=["pain_week_0", "pain_week_4", "pain_week_8"],
+    import pandas as pd
+    df = pd.read_csv("clinic.csv").melt(id_vars="patient", value_vars=["pain_week_0", "pain_week_4", "pain_week_8"],
                                           var_name="week", value_name="pain")
     y = df["pain"].to_numpy(dtype=float)
     g = df["week"].to_numpy(dtype=str)
@@ -19,7 +20,8 @@ PAIN_OURS = """
 """
 PAIN_PAIRS = '    table.compare_each_pair_of("pain", for_each_group_in="week", matched_by="patient", test_method="{test}")\n'
 MANY = """
-    df = sdata.get_example("many_tests")
+    import pandas as pd
+    df = pd.read_csv("many_tests.csv")
     p = df["p-value"].to_numpy(dtype=float)
 """
 QVALUE_NOTE = ("No Python package gives Storey's pi0 with qvalue's smoother (statsmodels fdrcorrection_twostage is "
@@ -38,7 +40,8 @@ ENTRIES = [
         """,
         code={"NumPy": """
             import numpy as np
-            df = sdata.get_example("fruit")
+            import pandas as pd
+            df = pd.read_csv("fruit.csv")
             # find_percentile_of("price", 90, weights="count")
             rows = np.repeat(df["price"].to_numpy(), df["count"].to_numpy())   # (1)
             np.percentile(rows, 90)                                           # (2)
@@ -59,7 +62,8 @@ ENTRIES = [
         """,
         code={"NumPy": """
             import numpy as np
-            df = sdata.get_example("fruit")
+            import pandas as pd
+            df = pd.read_csv("fruit.csv")
             # find_percentile_of("price", 90, weights="count", weight_kind="analytic")
             np.percentile(df["price"], 90, weights=df["count"],
                           method="inverted_cdf")                              # (1)
@@ -79,7 +83,8 @@ ENTRIES = [
         """,
         code={"NumPy": """
             import numpy as np
-            df = sdata.get_example("fruit")
+            import pandas as pd
+            df = pd.read_csv("fruit.csv")
             # find_median_of("price", weights="count")
             rows = np.repeat(df["price"].to_numpy(), df["count"].to_numpy())   # (1)
             np.median(rows)
@@ -98,7 +103,8 @@ ENTRIES = [
             table.find_correlation_between("hours", "marks", "height", show="covariance")
         """,
         code={"pandas": """
-            df = sdata.get_example("marks")
+            import pandas as pd
+            df = pd.read_csv("marks.csv")
             # find_correlation_between("hours", "marks", "height", show="covariance")
             cov = df[["hours", "marks", "height"]].cov(ddof=1)   # (1)
             cov.rename_axis("column").reset_index()
@@ -132,7 +138,8 @@ ENTRIES = [
             """,
         },
         r_inputs="""
-            df = sdata.get_example("visitors").sort_values("month")
+            import pandas as pd
+            df = pd.read_csv("visitors.csv", parse_dates=["month"]).sort_values("month")
             x = df[df["museum"] == "Harbour Museum"]["visitors"].to_numpy(dtype=float)
         """,
         r_packages=("forecast",), compare="result",
@@ -161,7 +168,8 @@ ENTRIES = [
                 list(q = q$qvalues)
             """,
             "Python": """
-                df = sdata.get_example("many_tests")
+                import pandas as pd
+                df = pd.read_csv("many_tests.csv")
                 df["p-value (Storey q-value)"] = q
                 df
             """,
@@ -187,7 +195,8 @@ ENTRIES = [
                 list(lfdr = q$lfdr)
             """,
             "Python": """
-                df = sdata.get_example("many_tests")
+                import pandas as pd
+                df = pd.read_csv("many_tests.csv")
                 df["local false discovery rate"] = lfdr
                 df
             """,
@@ -255,7 +264,7 @@ ENTRIES = [
             import pandas as pd
             from scipy import stats
             from statsmodels.stats.multitest import multipletests
-            df = sdata.get_example("clinic")
+            df = pd.read_csv("clinic.csv")
             # compare_each_pair_of("infected", for_each_group_in="age_group", based_on="percents", value="yes")
             t = pd.crosstab(df["age_group"], df["infected"] == "yes").to_numpy()
             pairs = [(i, j) for i in range(len(t)) for j in range(i + 1, len(t))]
