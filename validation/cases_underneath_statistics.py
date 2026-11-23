@@ -193,7 +193,8 @@ def cases(Case):
                                     "trial", "Hart 1999 (metadat)", "real data", ours_r=(),
              ours="""
                  first = data.iloc[0]
-                 r = sdata.compare_rates(events=[first["x1i"], first["x2i"]], time=[first["t1i"], first["t2i"]],
+                 # the counts come from R as decimals (12.0); counts are whole numbers
+                 r = sdata.compare_rates(events=[int(first["x1i"]), int(first["x2i"])], time=[first["t1i"], first["t2i"]],
                                          names=["warfarin", "placebo"], against="placebo")
                  r.keep_rows_where("measure", is_equal_to="rate ratio")
                  {"rate ratio": r.get_cell_at(row=1, column="estimate"),
@@ -203,7 +204,8 @@ def cases(Case):
              parent="""
                  from statsmodels.stats.rates import test_poisson_2indep
                  first = data.iloc[0]
-                 res = test_poisson_2indep(first["x1i"], first["t1i"], first["x2i"], first["t2i"], method="exact-cond")
+                 res = test_poisson_2indep(int(first["x1i"]), first["t1i"], int(first["x2i"]), first["t2i"],
+                                           method="exact-cond")
                  {"rate ratio": res.ratio, "p-value": res.pvalue}
              """, parent_label="statsmodels test_poisson_2indep(method=\"exact-cond\")", parent_tolerance=1e-10,
              r="""
