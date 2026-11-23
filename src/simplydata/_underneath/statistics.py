@@ -437,14 +437,16 @@ ENTRIES += [
 
 # ---------------------------------------------------------------- U3 batch 6: statistics and distribution words
 CLINIC_TRUTH = """
+    import pandas as pd
     import numpy as np
-    df = sdata.get_example("clinic")
+    df = pd.read_csv("clinic.csv")
     truth = (df["infected"] == "yes").to_numpy(dtype=float)
     crp = df["crp"].to_numpy(dtype=float)
     pct = df["procalcitonin"].to_numpy(dtype=float)
 """
 DEVICES = """
-    df = sdata.get_example("clinic")
+    import pandas as pd
+    df = pd.read_csv("clinic.csv")
     a = df["device_a"].to_numpy(dtype=float)
     b = df["device_b"].to_numpy(dtype=float)
 """
@@ -458,14 +460,15 @@ ENTRIES += [
         word="table.compare_counts_to",
         data="school",
         ours="""
-            table = sdata.table(sdata.get_example("school"))
+            table = sdata.get_example("school")
             table.compare_counts_to("breakfast", expected={"yes": 0.6, "no": 0.4})
         """,
         code={"SciPy": """
+            import pandas as pd
             import numpy as np
             from scipy import stats
             from statsmodels.stats.gof import chisquare_effectsize
-            df = sdata.get_example("school")
+            df = pd.read_csv("school.csv")
             # compare_counts_to("breakfast", expected={"yes": 0.6, "no": 0.4})
             observed = df["breakfast"].dropna().value_counts()[["yes", "no"]].to_numpy(dtype=float)
             shares = np.array([0.6, 0.4])
@@ -490,13 +493,14 @@ ENTRIES += [
         word="table.compare_shapes_of",
         data="marks",
         ours="""
-            table = sdata.table(sdata.get_example("marks"))
+            table = sdata.get_example("marks")
             table.compare_shapes_of("marks", for_each_group_in="class")
         """,
         code={"SciPy": """
+            import pandas as pd
             import numpy as np
             from scipy import stats
-            df = sdata.get_example("marks")
+            df = pd.read_csv("marks.csv")
             # compare_shapes_of("marks", for_each_group_in="class"), three classes
             groups = [rows["marks"].dropna().to_numpy(dtype=float) for _, rows in df.groupby("class")]
             res = stats.anderson_ksamp(groups, midrank=True,                          # (1)
@@ -520,7 +524,7 @@ ENTRIES += [
         option="two groups",
         data="marks",
         ours="""
-            table = sdata.table(sdata.get_example("marks"))
+            table = sdata.get_example("marks")
             table.keep_rows_where("class", is_one_of=["A", "B"])
             table.compare_shapes_of("marks", for_each_group_in="class")
         """,
@@ -531,15 +535,17 @@ ENTRIES += [
                 list(p = ks.test(a, b)$p.value)                                 # (1)
             """,
             "SciPy": """
+                import pandas as pd
                 from scipy import stats
-                df = sdata.get_example("marks")
+                df = pd.read_csv("marks.csv")
                 a, b = (df.loc[df["class"] == c, "marks"] for c in ("A", "B"))
                 res = stats.ks_2samp(a, b, method="exact")                     # (2)
                 {"statistic": res.statistic, "biggest gap at": res.statistic_location, "p-value": p}
             """,
         },
         r_inputs="""
-            df = sdata.get_example("marks")
+            import pandas as pd
+            df = pd.read_csv("marks.csv")
             a = df.loc[df["class"] == "A", "marks"].to_numpy(dtype=float)
             b = df.loc[df["class"] == "B", "marks"].to_numpy(dtype=float)
         """,
@@ -560,14 +566,15 @@ ENTRIES += [
         word="table.check_if_random_order",
         data="growth",
         ours="""
-            table = sdata.table(sdata.get_example("growth"))
+            table = sdata.get_example("growth")
             table.keep_rows_where("country", is_equal_to="Applia")
             table.check_if_random_order("forest")
         """,
         code={"statsmodels": """
+            import pandas as pd
             import numpy as np
             from statsmodels.sandbox.stats.runs import Runs
-            df = sdata.get_example("growth")
+            df = pd.read_csv("growth.csv")
             # check_if_random_order("forest"), Applia's 13 rows in table order
             x = df.loc[df["country"] == "Applia", "forest"].dropna().to_numpy(dtype=float)
             middle = np.median(x)
@@ -591,7 +598,7 @@ ENTRIES += [
         word="table.compare_correlations",
         data="marks",
         ours="""
-            table = sdata.table(sdata.get_example("marks"))
+            table = sdata.get_example("marks")
             table.keep_rows_where("class", is_one_of=["A", "B"])
             table.compare_correlations("hours", "marks", for_each_group_in="class")
         """,
@@ -613,7 +620,8 @@ ENTRIES += [
             """,
         },
         r_inputs="""
-            df = sdata.get_example("marks")
+            import pandas as pd
+            df = pd.read_csv("marks.csv")
             df = df[df["class"].isin(["A", "B"])]
             hours = df["hours"].to_numpy(dtype=float)
             marks = df["marks"].to_numpy(dtype=float)
@@ -757,14 +765,15 @@ ENTRIES += [
         word="table.compare_to_truth",
         data="clinic",
         ours="""
-            table = sdata.table(sdata.get_example("clinic"))
+            table = sdata.get_example("clinic")
             result = table.compare_to_truth("rapid_test", truth="infected")
             result.keep_rows_where("measure", is_equal_to="sensitivity")
             result
         """,
         code={"statsmodels": """
+            import pandas as pd
             from statsmodels.stats.proportion import proportion_confint
-            df = sdata.get_example("clinic")
+            df = pd.read_csv("clinic.csv")
             # compare_to_truth("rapid_test", truth="infected"): the sensitivity
             has = df[df["infected"] == "yes"]                                   # (1)
             found = int((has["rapid_test"] == "positive").sum())
@@ -789,7 +798,7 @@ ENTRIES += [
         option="a column of numbers",
         data="clinic",
         ours="""
-            table = sdata.table(sdata.get_example("clinic"))
+            table = sdata.get_example("clinic")
             table.compare_to_truth("crp", truth="infected")
         """,
         code={
@@ -823,7 +832,7 @@ ENTRIES += [
         word="table.compare_accuracy",
         data="clinic",
         ours="""
-            table = sdata.table(sdata.get_example("clinic"))
+            table = sdata.get_example("clinic")
             result = table.compare_accuracy("crp", "procalcitonin", truth="infected")
             result.keep_rows_where("measure", is_equal_to="difference in AUC (crp minus procalcitonin)")
             result
@@ -927,7 +936,7 @@ ENTRIES += [
         option="columns of numbers",
         data="clinic",
         ours="""
-            table = sdata.table(sdata.get_example("clinic"))
+            table = sdata.get_example("clinic")
             table.agreement_between("device_a", "device_b")
         """,
         code={
@@ -959,7 +968,7 @@ ENTRIES += [
         word="table.limits_of_agreement",
         data="clinic",
         ours="""
-            table = sdata.table(sdata.get_example("clinic"))
+            table = sdata.get_example("clinic")
             table.limits_of_agreement("device_a", "device_b")
         """,
         code={
@@ -996,7 +1005,7 @@ ENTRIES += [
         word="table.reliability_of",
         data="clinic",
         ours="""
-            table = sdata.table(sdata.get_example("clinic"))
+            table = sdata.get_example("clinic")
             table.reliability_of(["item_1", "item_2", "item_3", "item_4", "item_5"])
         """,
         code={
@@ -1013,7 +1022,8 @@ ENTRIES += [
             """,
         },
         r_inputs="""
-            df = sdata.get_example("clinic")
+            import pandas as pd
+            df = pd.read_csv("clinic.csv")
             x = df[["item_1", "item_2", "item_3", "item_4", "item_5"]].to_numpy(dtype=float)
         """,
         r_packages=("psych",),
@@ -1043,9 +1053,10 @@ ENTRIES += [
                 list(lower = s$lower.limit, upper = s$upper.limit)
             """,
             "statsmodels": """
+                import pandas as pd
                 import matplotlib.pyplot as plt
                 from statsmodels.graphics.agreement import mean_diff_plot
-                df = sdata.get_example("clinic")
+                df = pd.read_csv("clinic.csv")
                 fig, ax = plt.subplots()
                 mean_diff_plot(df["device_a"], df["device_b"], ax=ax, sd_limit=0)   # (2)
                 for limit in (lower, upper):
@@ -1188,14 +1199,14 @@ ENTRIES += [
         word="table.make_map_of",
         data="island",
         ours="""
-            table = sdata.table(sdata.get_example("island"))
+            table = sdata.get_example("island")
             table.make_map_of("height", across=["east", "north"], steps=4)
         """,
         code={"SciPy": """
             import numpy as np
             import pandas as pd
             from scipy import interpolate
-            df = sdata.get_example("island")
+            df = pd.read_csv("island.csv")
             # make_map_of("height", across=["east", "north"], steps=4)
             grid = df.groupby(["east", "north"])["height"].mean().unstack()           # (1)
             east, north = grid.index.to_numpy(dtype=float), grid.columns.to_numpy(dtype=float)
@@ -1222,12 +1233,13 @@ ENTRIES += [
         word="table.compare_distributions_for",
         data="shop",
         ours="""
-            table = sdata.table(sdata.get_example("shop"))
+            table = sdata.get_example("shop")
             table.compare_distributions_for("sales")
         """,
         code={"SciPy": """
+            import pandas as pd
             from scipy import stats
-            x = sdata.get_example("shop")["sales"].dropna().to_numpy(dtype=float)
+            x = pd.read_csv("shop.csv", parse_dates=["date"])["sales"].dropna().to_numpy(dtype=float)
             # compare_distributions_for("sales")
             fits = {"normal": stats.norm, "lognormal": stats.lognorm, "gamma": stats.gamma,
                     "weibull": stats.weibull_min}
@@ -1509,14 +1521,14 @@ ENTRIES += [
         word="table.find_principal_components_of",
         data="meadow",
         ours="""
-            table = sdata.table(sdata.get_example("meadow"))
+            table = sdata.get_example("meadow")
             table.find_principal_components_of()
         """,
         code={"statsmodels": """
             import numpy as np
             import pandas as pd
             from statsmodels.multivariate.pca import PCA
-            x = sdata.get_example("meadow").select_dtypes("number")
+            x = pd.read_csv("meadow.csv").select_dtypes("number")
             # find_principal_components_of()
             z = (x - x.mean()) / x.std()                                           # (1)
             pca = PCA(z, standardize=False, demean=False, normalize=False, method="svd")
@@ -1542,7 +1554,7 @@ ENTRIES += [
         word="table.use_survey_design",
         data="sampled_schools",
         ours="""
-            table = sdata.table(sdata.get_example("sampled_schools"))
+            table = sdata.get_example("sampled_schools")
             table.use_survey_design(weights="weight", strata="school_type", clusters="district")
             table.find_average_of("score_2000")
         """,
@@ -1563,7 +1575,8 @@ ENTRIES += [
             """,
         },
         r_inputs="""
-            df = sdata.get_example("sampled_schools")
+            import pandas as pd
+            df = pd.read_csv("sampled_schools.csv")
             cl = df["district"].to_numpy(dtype=str)
             s = df["school_type"].to_numpy(dtype=str)
             w = df["weight"].to_numpy(dtype=float)

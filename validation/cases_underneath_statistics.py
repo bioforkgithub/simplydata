@@ -37,7 +37,6 @@ HP_GAMMA_R = "shape <- mean(hp)^2 / var(hp); rate <- mean(hp) / var(hp); "
 MPG_NORMAL = """
     m, s = data["mpg"].mean(), data["mpg"].std()
 """
-CHART_FACTS = "from simplydata._underneath.check import chart_facts\n"
 
 
 def _join(*parts: str) -> str:
@@ -341,11 +340,14 @@ def cases(Case):
              """, r_packages=("psych",), r_tolerance=1e-12),
         Case("difference_dots", "creatinine: serum minus plasma against their average, with the limits",
              "creatinine (mcr)", "real data", ours_r=("BlandAltmanLeh",),
-             ours=_join(CHART_FACTS, """
-                 f = chart_facts(sdata.chart(data).difference_dots(first="serum", second="plasma")._render().axes[0])
-                 {"dots": len(f["dots"]), "average difference": f["lines"][0][1][0], "lower limit": f["lines"][1][1][0],
-                  "first dot up": f["dots"][0][1]}
-             """),
+             ours="""
+                 drawn = sdata.chart(data).difference_dots(first="serum", second="plasma").get_numbers_drawn()
+                 # rows 1 and 2 are the bands of the limits' intervals, then one line each: average, lower, upper limit
+                 average, lower = drawn.get_cell_at(row=3, column="y"), drawn.get_cell_at(row=5, column="y")
+                 drawn.keep_rows_where("kind", is_equal_to="dot")
+                 {"dots": drawn.get_column("y").count(), "average difference": average, "lower limit": lower,
+                  "first dot up": drawn.get_cell_at(row=1, column="y")}
+             """,
              parent="""
                  d = (data["serum"] - data["plasma"]).to_numpy()
                  {"dots": len(d), "average difference": d.mean(), "lower limit": d.mean() - 1.96 * d.std(ddof=1),
@@ -600,10 +602,11 @@ def cases(Case):
              note="Random numbers have no published answer; the check is that the same seed gives SciPy's numbers."),
         Case("dist.draw_chart", "mtcars: the curve of a normal distribution shaped like fuel use", "mtcars",
              "real data",
-             ours=_join(MPG_NORMAL, CHART_FACTS, """
-                 f = chart_facts(sdata.distribution("normal", average=m, standard_deviation=s).draw_chart()._render().axes[0])
-                 xs, ys = f["lines"][0]
-                 {"first x": xs[0], "last x": xs[-1], "points": len(xs), "highest": max(ys)}
+             ours=_join(MPG_NORMAL, """
+                 drawn = sdata.distribution("normal", average=m, standard_deviation=s).draw_chart().get_numbers_drawn()
+                 points = drawn.get_column("x").count()
+                 {"first x": drawn.get_cell_at(row=1, column="x"), "last x": drawn.get_cell_at(row=points, column="x"),
+                  "points": points, "highest": drawn.get_column("y").find_biggest()}
              """),
              parent=_join(MPG_NORMAL, """
                  from scipy import stats
