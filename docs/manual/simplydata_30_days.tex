@@ -2714,9 +2714,11 @@ chart.save("simplydata_bars.png")
 \par\noindent{\sffamily\small\bfseries\color{tryframe}Task 2.} Write the same analysis with pandas, SciPy and matplotlib, then compare the two line by line.\par
 \begin{lstlisting}[style=py]
 import matplotlib.pyplot as plt
+import pandas as pd
 import simplydata as sdata
 from scipy import stats
-df = sdata.get_example("marks")
+sdata.get_example("marks").save("marks.csv")
+df = pd.read_csv("marks.csv")
 df = df[df["class"].isin(["A", "B"])]
 print(df.groupby("class")["marks"].mean())
 a = df.loc[df["class"] == "A", "marks"]
@@ -2727,7 +2729,7 @@ means = df.groupby("class")["marks"].mean()
 ax.bar(means.index, means.values)
 fig.savefig("pandas_bars.png")
 \end{lstlisting}
-\begin{answerbox}The same in pandas, SciPy and matplotlib: \code{equal\_\allowbreak{}var=False} makes it Welch's t-test, as in simplydata.\end{answerbox}
+\begin{answerbox}The same in pandas, SciPy and matplotlib: the word save writes the practice table to a file, which pandas reads with its own \code{read\_\allowbreak{}csv}; \code{equal\_\allowbreak{}var=False} makes it Welch's t-test, as in simplydata.\end{answerbox}
 {\small\hyperref[day:python:30]{Back to day 30}}
 
 \trackstart{Answers: Beginner track}{The warm-up answers and a worked answer to each task}{answers:beginner}

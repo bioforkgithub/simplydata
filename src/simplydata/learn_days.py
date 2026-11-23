@@ -1261,8 +1261,8 @@ UNITS = {
             means = df.groupby("class")["marks"].mean()
             ax.bar(means.index, means.values)
             fig.savefig("pandas_bars.png")'''),
-             "The same in pandas, SciPy and matplotlib: save() writes the practice table to a file, which pandas "
-             "reads with its own read_csv(); equal_var=False makes it Welch's t-test, as in "
+             "The same in pandas, SciPy and matplotlib: the word save writes the practice table to a file, which "
+             "pandas reads with its own read_csv; equal_var=False makes it Welch's t-test, as in "
              "simplydata.")],
     ),
     "look_back": dict(
