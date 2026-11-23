@@ -8,6 +8,8 @@
 
 **For researchers and students who want to be fast and correct.**
 
+***Easy to do, and you know why you're doing it.***
+
 ## Install
 
 ```

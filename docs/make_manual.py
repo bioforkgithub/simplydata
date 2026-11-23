@@ -862,7 +862,9 @@ def _title_page() -> str:
 {\large The manual: lessons, every word, the ideas behind them, and solutions\par}}
 \vspace{3.2cm}
 {\sffamily\Large\bfseries\color{brand} Learn basic Python, and simplydata takes you from your first table to sound statistics, in plain words, with its results checked against the field's standard tools.\par}
-\vspace{1.2cm}
+\vspace{0.5cm}
+{\sffamily\large\bfseries\itshape\color{brand} Easy to do, and you know why you're doing it.\par}
+\vspace{0.7cm}
 \begin{lstlisting}[style=title]
 import simplydata as sdata
 

@@ -11,6 +11,8 @@ working for one release and prints a one-line note with its new name.
   words, with its results checked against the field's standard tools." It replaces the old one in the README,
   pyproject, CITATION.cff, CONTRIBUTING.md, the package docstring and the title pages of the manual, dictionary
   and 30-day guide.
+- A tagline under it, in bold italics, in the README's first screen, on the manual's title page and on the
+  30-day guide's front page: ***Easy to do, and you know why you're doing it.***
 - The README now opens with who it is for, install, a quick start with its real output and where to go next,
   then questions new users ask (why not pandas or R, why not ChatGPT, jamovi or JASP, patient data, R). The long
   lists (packages, tasks, fields, lessons, examples by area) moved to

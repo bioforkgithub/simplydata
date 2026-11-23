@@ -47,6 +47,8 @@ FRONT = r"""
 \vspace{0.3em}
 {\sffamily\bfseries Learn basic Python, and simplydata takes you from your first table to sound statistics, in plain words, with its results checked against the field's standard tools.\par}
 \vspace{0.3em}
+{\sffamily\bfseries\itshape Easy to do, and you know why you're doing it.\par}
+\vspace{0.3em}
 {\sffamily\small\color{inkgrey} Version @VERSION@ \textbullet{} two tracks of 30 days \textbullet{} made from the code by
 \code{docs/make\_30\_days.py}\par}
 \end{titleblock}

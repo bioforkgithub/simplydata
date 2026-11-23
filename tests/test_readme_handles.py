@@ -148,6 +148,10 @@ def test_motto_is_the_same_everywhere():
     import simplydata
 
     assert f"**{MOTTO}**" in README.split("## ", 1)[0]
+    tagline = "Easy to do, and you know why you're doing it."
+    assert f"***{tagline}***" in README.split("## ", 1)[0]
+    for script in ("make_manual.py", "make_30_days.py"):
+        assert tagline in (ROOT / "docs" / script).read_text(encoding="utf-8"), script
     assert (simplydata.__doc__ or "").splitlines()[0] == MOTTO
     assert f'description = "{MOTTO}"' in (ROOT / "pyproject.toml").read_text(encoding="utf-8")
     assert MOTTO in (ROOT / "CITATION.cff").read_text(encoding="utf-8")
