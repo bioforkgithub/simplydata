@@ -56,10 +56,34 @@ _SUMMARIES = {
 }
 
 CORRELATION_METHODS = ("pearson", "spearman", "kendall", "somers", "gamma")
+SPEARMAN_EXACT_LIMIT = 1290  # R cor.test(method = "spearman"): AS 89 below 1290 rows without ties
+SPEARMAN_NO_R = ("Note: Spearman's p-value is the t approximation (SciPy spearmanr); R cor.test() gives the p-value of "
+                 "algorithm AS 89 for fewer than 1290 rows without ties, which needs R here: pip install "
+                 '"simplydata[r]" and install R.')
+SPEARMAN_AS89 = ("Spearman's p-value from algorithm AS 89 (Best and Roberts 1975), as R cor.test(method = "
+                 '"spearman") gives it for fewer than 1290 rows without tied values, run in R.')
+
+
+def _spearman_p_from_r(a, b, alternative, notes):
+    """Spearman's p-value from R cor.test() (AS 89), or None without R (then the note goes into notes)."""
+    from .._r import RMissing, r_call
+
+    side = {"two-sided": "two.sided", "greater": "greater", "less": "less"}[alternative]
+    try:
+        found = r_call("stats::cor.test(x, y, method = 'spearman', alternative = side)$p.value", packages=(),
+                       what="Spearman's p-value for fewer than 1290 rows (R cor.test(), algorithm AS 89)",
+                       x=np.asarray(a, dtype=float), y=np.asarray(b, dtype=float), side=side)
+    except RMissing:
+        if notes is not None:
+            notes.append(SPEARMAN_NO_R)
+        return None
+    if notes is not None:
+        notes.append(SPEARMAN_AS89)
+    return float(np.asarray(found)[0])
 ORDINAL_METHODS = ("somers", "gamma")  # two columns, the measure with its interval from R DescTools
 METHOD_NAMES = {"pearson": "Pearson", "spearman": "Spearman", "kendall": "Kendall's tau-b", "somers": "Somers' d",
                 "gamma": "Goodman and Kruskal's gamma"}
-CORRELATION_SHOW = ("r", "p-value", "each pair", "covariance")
+CORRELATION_SHOW = ("r", "p-value", "each pair", "covariance", "result table")
 STRONGEST_PAIRS = 3  # a correlation table prints this many of its strongest pairs
 
 # every= : the time step -> narwhals truncate code (weeks are done by hand: Monday start)
@@ -833,9 +857,14 @@ class SummaryWords:
         how = {"average": "t interval, as R t.test()",
                "standard deviation": "chi-square interval, from R DescTools::VarCI() (the interval of the variance, "
                                      "square-rooted)"}.get(kind, "exact interval from the order of the values (SciPy "
-                                                                 "quantile_test"
+                                                                 "quantile_test, Thompson's interval"
                                                                  + (', as R DescTools::MedianCI(method = "exact"))'
-                                                                    if kind == "median" else ")"))
+                                                                    if kind == "median" or share == 0.5 else
+                                                                    ", which splits the chance of missing evenly "
+                                                                    "between the two ends; R DescTools::QuantileCI("
+                                                                    "method = \"exact\") "
+                                                                    "picks another pair of values, so the ends can "
+                                                                    "differ)"))
         rows = []
         for key, x in arrays.items():
             n = len(x)
@@ -1094,9 +1123,12 @@ class SummaryWords:
         "median unbiased" (recommended by Hyndman and Fan), 9 "normal unbiased" (NumPy's names, such as
         "median_unbiased", work too); NumPy percentile(method=), as R quantile(type =).
         interval=95 adds the 95 % confidence interval of each percentile: the exact interval
-        from the order of the values (SciPy quantile_test; for the median and the quartiles the
-        same as R DescTools::QuantileCI(method = "exact"), which picks other values for other
-        percents); with few values an end can be empty.
+        from the order of the values (SciPy quantile_test, Thompson 1936: each end leaves at most
+        2.5 % chance beyond it). For the median it is R DescTools::MedianCI(method = "exact");
+        for other percents R DescTools::QuantileCI(method = "exact") chooses another pair of
+        values (the nearby pair whose coverage is closest above 95 %), so the ends can differ.
+        Both are exact: each covers the percentile at least 95 % of the time. With few values an
+        end can be empty.
         weights="n" gives the weighted percentile. weight_kind="frequency" (the default) reads
         each weight as how many times the row counts, so it needs whole numbers: the rows are
         repeated and the usual test_method= is used (as R quantile(rep(x, w)) and Hmisc::wtd.quantile(x,
@@ -1932,7 +1964,9 @@ class SummaryWords:
         for any link that keeps going one way) or "kendall" (Kendall's tau-b, also ranks: the
         share of pairs of rows that agree in order minus the share that disagree; as R
         cor.test(method = "kendall"), SciPy kendalltau). Prints the strength in words and the
-        p-value from SciPy. With two columns it gives back the number r; rows with an
+        p-value from SciPy; Spearman's p-value for fewer than 1290 rows without tied values comes
+        from R cor.test() (algorithm AS 89, R's default; SciPy has only the t approximation, used
+        without R, with a note). With two columns it gives back the number r; rows with an
         empty cell in either column are skipped.
         With three or more columns it gives back a correlation table (as pandas .corr()),
         and prints the strongest pairs:
@@ -1940,7 +1974,17 @@ class SummaryWords:
         Each pair uses the rows where both columns have a number. show="p-value" gives the
         table of p-values instead, and show="each pair" one row per pair (r, p-value,
         rows), ready for add_adjusted_p_value_column(): testing many pairs makes a chance
-        finding more likely. show="covariance" gives the covariance table instead (pandas
+        finding more likely. With two columns, show="result table" gives back a one-row table
+        instead of r: r, its 95 % interval, the p-value (from the formula or, with
+        p_value_by="shuffling", from shuffling; the interval from interval_by=), which directions
+        were tested, the rows used and the strength in words; with three or more it is the same as
+        show="each pair".
+        allowing_for="height" (two columns and one to allow for) gives the partial correlation: the link left
+        after taking out what both columns share with the third, from R ppcor::pcor.test() (Pearson,
+        Spearman or Kendall). With show="result table" it is a one-row table of pcor.test()'s numbers: r,
+        its statistic (t, or z for Kendall), the p-value and the rows (no interval: ppcor gives none):
+        table.find_correlation_between("hours", "marks", allowing_for="height", show="result table")
+        show="covariance" gives the covariance table instead (pandas
         DataFrame.cov(), dividing by n - 1, each pair on the rows where both columns have a number,
         as R cov(use = "pairwise.complete.obs")), also for two columns: covariances are in the units
         of the two columns multiplied; the correlation is the same link without units.
@@ -2034,11 +2078,17 @@ class SummaryWords:
                 )
             twice = next(n for n in names if names.count(n) > 1)
             raise SimplydataError(f'"{twice}" is listed twice. Give each column once.')
-        if len(names) == 2 and shown != "r":
+        if len(names) == 2 and shown not in ("r", "result table"):
             raise SimplydataError(
                 f'show="{show}" is for a correlation table of three or more columns. With two columns you get r, '
-                "and the sentence gives its p-value."
+                'and the sentence gives its p-value; show="result table" gives r, its interval, the p-value and the '
+                "rows as a one-row table."
             )
+        if shown == "result table" and test_method in ORDINAL_METHODS:
+            raise SimplydataError('show="result table" goes with test_method="pearson", "spearman" or "kendall"; leave '
+                                  "out show= here.")
+        if shown == "result table" and len(names) > 2:
+            shown = "each pair"  # for three or more columns the result table is one row per pair
         from .stat_tests import _direction
 
         example = f'table.find_correlation_between("{names[0]}", "{names[1]}", sides=1, higher="positive")'
@@ -2067,14 +2117,15 @@ class SummaryWords:
                 raise SimplydataError("allowing_for= gives the two-sided partial correlation; leave out sides=, "
                                       "p_value_by= and interval_by=.")
             return self._partial_correlation(step, self._number_frame(step, names + [allowing_for]), names[0],
-                                             names[1], allowing_for, test_method)
+                                             names[1], allowing_for, test_method,
+                                             result_table=shown == "result table")
         frame = self._number_frame(step, names)
         if test_method in ORDINAL_METHODS:
             return self._ordinal_association(step, frame, names[0], names[1], test_method)
         if len(names) == 2:
             return self._one_correlation(step, frame, names[0], names[1], test_method, alt, up,
                                          p_value_by=p_value_by, interval_by=interval_by, shuffles=shuffles,
-                                         resamples=resamples, seed=with_seed)
+                                         resamples=resamples, seed=with_seed, result_table=shown == "result table")
         return self._correlation_table(step, frame, names, test_method, shown)
 
     def _bayesian_correlation(self, step, names, prior_width, with_seed, given):
@@ -2104,8 +2155,12 @@ class SummaryWords:
         return bayes_words.correlation(self, names[0], names[1], a, b, width, seed)
 
     @staticmethod
-    def _correlate(step, frame, column_a, column_b, method, alternative="two-sided"):
-        """r, p and the number of rows used, for one pair (rows with an empty cell skipped)."""
+    def _correlate(step, frame, column_a, column_b, method, alternative="two-sided", notes=None, need_p=True):
+        """r, p and the number of rows used, for one pair (rows with an empty cell skipped).
+
+        Spearman's p-value is R cor.test()'s default: below 1290 rows without ties algorithm AS 89 (Best and
+        Roberts 1975), from R itself (SciPy has only the t approximation); otherwise, or without R, SciPy's t
+        approximation, and a note for notes= says why. need_p=False: only r is used, so R is not asked."""
         pairs = frame.select(column_a, column_b).drop_nulls()
         if len(pairs) < 3:
             raise SimplydataError(
@@ -2129,13 +2184,21 @@ class SummaryWords:
             result = stats.pearsonr(a, b, alternative=alternative)
         elif method == "spearman":
             result = stats.spearmanr(a, b, alternative=alternative)
+            no_ties = len(np.unique(a)) == len(a) and len(np.unique(b)) == len(b)
+            if need_p and len(a) < SPEARMAN_EXACT_LIMIT and no_ties:
+                p = _spearman_p_from_r(a, b, alternative, notes)
+                if p is not None:
+                    return float(result[0]), p, len(pairs)
         else:
             result = stats.kendalltau(a, b, variant="b", alternative=alternative)
         return float(result[0]), float(result[1]), len(pairs)
 
     def _one_correlation(self, step, frame, column_a, column_b, method, alternative="two-sided", up=None,
-                         p_value_by="formula", interval_by=None, shuffles=9999, resamples=9999, seed=1):
-        r, p, n = self._correlate(step, frame, column_a, column_b, method, alternative)
+                         p_value_by="formula", interval_by=None, shuffles=9999, resamples=9999, seed=1,
+                         result_table=False):
+        how_p = []
+        r, p, n = self._correlate(step, frame, column_a, column_b, method, alternative, notes=how_p,
+                                  need_p=p_value_by != "shuffling")
         skipped = len(frame) - n
         name = METHOD_NAMES[method]
         if skipped:
@@ -2143,10 +2206,13 @@ class SummaryWords:
             verb = "was" if skipped == 1 else "were"
             print(f'Note: {skipped} {rows} with an empty cell in "{column_a}" or "{column_b}" {verb} skipped.')
         extra, interval = [], ""
+        low = high = math.nan
         if interval_by is None:
-            interval, note = self._correlation_interval(frame, column_a, column_b, method, alternative)
+            interval, note, low, high = self._correlation_interval(frame, column_a, column_b, method, alternative)
             if note:
                 extra.append(note)
+        if p_value_by != "shuffling":
+            extra.extend(how_p)
         if p_value_by == "shuffling" or interval_by is not None:
             from .resampling import bootstrap_interval, correlation, resample_p
             from .stat_tests import _num
@@ -2184,7 +2250,17 @@ class SummaryWords:
                   + f' As R cor.test(method = "{method}", alternative = "{alternative}").')
         for line in extra:
             print(line)
-        return r
+        if not result_table:
+            return r
+        tested = {"two-sided": "both directions", "greater": "positive only", "less": "negative only"}
+        data = {"column 1": [column_a], "column 2": [column_b], "method": [name], "r": [float(r)],
+                "95 % CI low": [float(low)], "95 % CI high": [float(high)],
+                "interval from": ["bootstrap (BCa)" if interval_by == "bootstrap" else
+                                  ("formula" if not math.isnan(low) else "none")],
+                "p-value": [float(p)], "p-value from": ["shuffling" if p_value_by == "shuffling" else "formula"],
+                "tested": [tested.get(alternative, alternative)], "rows": [int(n)], "strength": [_strength(r)]}
+        print('Gives back the result as a one-row table (show="result table").')
+        return self._new_table(nw.from_dict(data, backend=self._frame.implementation))
 
     @staticmethod
     def _correlation_interval(frame, column_a, column_b, method, alternative):
@@ -2201,9 +2277,10 @@ class SummaryWords:
         if method == "pearson":
             ci = stats.pearsonr(x, y, alternative=alternative).confidence_interval(0.95)
             kind = "" if alternative == "two-sided" else "one-sided "
-            return f"; values from {_interval_words(ci.low, ci.high)} fit the data ({kind}95 % CI)", ""
+            return (f"; values from {_interval_words(ci.low, ci.high)} fit the data ({kind}95 % CI)", "",
+                    float(ci.low), float(ci.high))
         if alternative != "two-sided":
-            return "", ""
+            return "", "", math.nan, math.nan
         code = {"spearman": "DescTools::SpearmanRho(x, y, conf.level = 0.95)",
                 "kendall": "DescTools::KendallTauB(x, y, conf.level = 0.95)",
                 "somers": 'DescTools::SomersDelta(x, y, direction = "column", conf.level = 0.95)',
@@ -2217,9 +2294,10 @@ class SummaryWords:
                 raise
             return "", (f"Note: the 95 % interval of {METHOD_NAMES[method]} comes from the R package DescTools, which "
                         'is not ready here; interval_by="bootstrap" gives a bootstrap interval in Python, or: pip install '
-                        '"simplydata[r]", install R, then in R install.packages("DescTools").')
+                        '"simplydata[r]", install R, then in R install.packages("DescTools").'), math.nan, math.nan
         how = "Fisher's z" if method == "spearman" else "asymptotic standard error"
-        return f"; values from {_num(found[1])} to {_num(found[2])} fit the data (95 % CI, {how}, R DescTools)", ""
+        return (f"; values from {_num(found[1])} to {_num(found[2])} fit the data (95 % CI, {how}, R DescTools)", "",
+                float(found[1]), float(found[2]))
 
     def _ordinal_association(self, step, frame, column_a, column_b, method):
         """Somers' d (of the second column given the first) or Goodman and Kruskal's gamma, with the 95 % interval
@@ -2253,8 +2331,9 @@ class SummaryWords:
         print(f"It is {meaning}. Method: R DescTools::{r_name}.")
         return value
 
-    def _partial_correlation(self, step, frame, column_a, column_b, allowing_for, method):
-        """The partial correlation of two columns allowing for a third, from R ppcor::pcor.test() (Python has none)."""
+    def _partial_correlation(self, step, frame, column_a, column_b, allowing_for, method, result_table=False):
+        """The partial correlation of two columns allowing for a third, from R ppcor::pcor.test() (Python has none).
+        With result_table=True (show="result table") it gives back pcor.test()'s numbers as a one-row table."""
         from .._r import r_call
 
         names = [column_a, column_b, allowing_for]
@@ -2265,12 +2344,13 @@ class SummaryWords:
                   + " or ".join(f'"{n}"' for n in names) + f" {'was' if skipped == 1 else 'were'} skipped.")
         x, y, z = (rows[c].to_numpy().astype(float) for c in names)
         found = r_call("p <- ppcor::pcor.test(x, y, z, method = m); list(r = p$estimate, p = p$p.value, "
-                       "stat = p$statistic)", packages=("ppcor",),
+                       "stat = p$statistic, n = p$n)", packages=("ppcor",),
                        what="the partial correlation (R ppcor::pcor.test())",
                        python_note="SciPy and statsmodels have no partial correlation test", x=x, y=y, z=z, m=method)
         r, p = float(np.asarray(found["r"])[0]), float(np.asarray(found["p"])[0])
         # the correlation without allowing for it, on the same rows as the partial correlation
-        whole = float(self._correlate(step, rows.select(column_a, column_b), column_a, column_b, method)[0])
+        whole = float(self._correlate(step, rows.select(column_a, column_b), column_a, column_b, method,
+                                      need_p=False)[0])
         print(f'The correlation between "{column_a}" and "{column_b}", allowing for "{allowing_for}", is r = {r:.2f} '
               f"({METHOD_NAMES[method]}, {len(x)} rows): {_strength(r)}; without allowing for it, r = {whole:.2f}.")
         print(_p_sentence(p, f'there were truly no link once "{allowing_for}" is allowed for',
@@ -2278,7 +2358,17 @@ class SummaryWords:
         print(f'Method: partial correlation, as R ppcor::pcor.test(method = "{method}"): the link that is left after '
               f'taking out what both columns share with "{allowing_for}". A correlation does not show that one thing '
               "causes the other.")
-        return r
+        if not result_table:
+            return r
+        # ppcor's statistic: t on n - 2 - (columns allowed for) degrees of freedom for Pearson and Spearman, z for
+        # Kendall (ppcor's own normal approximation); every number is pcor.test()'s
+        data = {"column 1": [column_a], "column 2": [column_b], "allowing for": [allowing_for],
+                "method": [f"partial {METHOD_NAMES[method]}"], "r": [r],
+                "statistic name": ["z" if method == "kendall" else "t"],
+                "statistic": [float(np.asarray(found["stat"])[0])], "p-value": [p], "tested": ["both directions"],
+                "rows": [int(np.asarray(found["n"])[0])], "strength": [_strength(r)]}
+        print('Gives back the result as a one-row table (show="result table").')
+        return self._new_table(nw.from_dict(data, backend=self._frame.implementation))
 
     def _covariance_table(self, step, frame, names):
         """find_correlation_between(show="covariance"): pandas DataFrame.cov() (n - 1, pairwise complete rows), as R
@@ -2309,10 +2399,10 @@ class SummaryWords:
         return self._new_table(nw.from_dict(table, backend=self._frame.implementation))
 
     def _correlation_table(self, step, frame, names, method, shown):
-        found = {}
+        found, how_p = {}, []
         for i, a in enumerate(names):
             for b in names[i + 1:]:
-                found[(a, b)] = self._correlate(step, frame, a, b, method)
+                found[(a, b)] = self._correlate(step, frame, a, b, method, notes=how_p)
         method_name = METHOD_NAMES[method]
         if shown == "each pair":
             pairs = list(found.items())
@@ -2340,6 +2430,12 @@ class SummaryWords:
             print(f"Note: {gaps} row{'' if gaps == 1 else 's'} {'has' if gaps == 1 else 'have'} an empty cell in at "
                   "least one of these columns; each pair skipped only the rows it could not use.")
         listed = ", ".join(f'"{n}"' for n in names)
+        if SPEARMAN_NO_R in how_p:
+            print(SPEARMAN_NO_R)
+        elif SPEARMAN_AS89 in how_p:
+            some = "" if how_p.count(SPEARMAN_AS89) == n_pairs else ", and from the t approximation for the others"
+            print("Note: Spearman's p-values come from algorithm AS 89 (Best and Roberts 1975), run in R, for the pairs "
+                  f"with fewer than 1290 rows and no tied values{some}, as R cor.test(method = \"spearman\") does.")
         print(f"Note: these p-values are not adjusted for testing {n_pairs} pairs. To adjust them: "
               f'results = table.find_correlation_between({listed}, show="each pair"), then '
               'results.add_adjusted_p_value_column(from_column="p-value").')

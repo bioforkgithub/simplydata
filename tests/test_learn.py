@@ -1,6 +1,7 @@
 """The learning tools: example tables, sdata.show_all_words(), sdata.help(), sdata.show_lesson() and the dictionary."""
 
 import contextlib
+import datetime
 import importlib.util
 import inspect
 import io
@@ -39,32 +40,46 @@ def _saved_files(code):
 
 
 # ---------------------------------------------------------------- example tables
+def _empty(table, column):
+    """How many cells of a column are empty, read with simplydata words."""
+    values = table.get_column(column)
+    if hasattr(values, "count_empty_numbers"):
+        return values.count_empty_numbers()
+    return sum(v is None for v in values)
+
+
+def _is_dates(table, column):
+    return all(v is None or isinstance(v, (datetime.date, datetime.datetime)) for v in table.get_column(column))
+
+
 @pytest.mark.parametrize("name", list(EXAMPLES))
-def test_example_tables_load_with_the_columns_described(name):
+def test_example_tables_load_with_the_columns_described(name, capsys):
     table = sdata.get_example(name)
-    assert isinstance(table, pd.DataFrame)
+    assert type(table).__name__ == "Table"  # a pandas DataFrame up to simplydata 0.2.x
     if name == "bcg":  # real data: the 13 BCG trials (Colditz et al. 1994)
         assert len(table) == 13
     else:
         assert len(table) >= 20
-    assert list(table.columns) == list(EXAMPLES[name][1])
+    columns = table.get_column_names()
+    assert columns == list(EXAMPLES[name][1])
+    empty = {c: _empty(table, c) for c in columns}
+    with_empty = {c for c, n in empty.items() if n}
     if name == "shop":  # the one table made for practising empty cells and dates
-        assert table.isna().any().any() and pd.api.types.is_datetime64_any_dtype(table["date"])
+        assert with_empty and _is_dates(table, "date")
     elif name == "school":  # empty sleep cells, for multiple imputation
-        assert table["sleep"].isna().any() and not table.drop(columns="sleep").isna().any().any()
+        assert with_empty == {"sleep"}
     elif name == "river":  # missing days and a few empty level cells, for add_missing_dates and filling
-        assert table["level"].isna().any() and not table.drop(columns="level").isna().any().any()
-        assert pd.api.types.is_datetime64_any_dtype(table["date"]) and len(table) < 2 * 731
+        assert with_empty == {"level"} and _is_dates(table, "date") and len(table) < 2 * 731
     elif name == "admissions":  # S3b-3: dates for add_time_and_event_columns; most first_esbl cells are empty
-        assert table["first_esbl"].isna().any() and not table.drop(columns="first_esbl").isna().any().any()
-        assert all(pd.api.types.is_datetime64_any_dtype(table[c]) for c in ("admitted", "discharged", "first_esbl"))
+        assert with_empty == {"first_esbl"}
+        assert all(_is_dates(table, c) for c in ("admitted", "discharged", "first_esbl"))
     elif name == "course_feedback":  # S3d-1: a few answers left empty, for count_each(columns=, in_order=)
-        assert table[["materials", "pace"]].isna().any().all()
-        assert not table.drop(columns=["materials", "pace"]).isna().any().any()
-    elif name == "ability_tests":  # S3c-2: real data (Holzinger & Swineford 1939); one grade is empty in the source
-        assert table["grade"].isna().sum() == 1 and not table.drop(columns="grade").isna().any().any()
+        assert with_empty == {"materials", "pace"}
+    elif name == "ability_tests":  # S3c-2: made up after Holzinger & Swineford (1939); one grade is empty, as there
+        assert with_empty == {"grade"} and empty["grade"] == 1
     else:
-        assert not table.isna().any().any()
+        assert not with_empty
+    capsys.readouterr()
 
 
 def test_example_without_name_lists_tables(capsys):
@@ -80,7 +95,9 @@ def test_example_misspelt_says_did_you_mean():
 
 
 def test_example_accepts_capitals_and_csv_ending():
-    assert sdata.get_example("Marks.csv").equals(sdata.get_example("marks"))
+    found, marks = sdata.get_example("Marks.csv"), sdata.get_example("marks")
+    assert found.get_column_names() == marks.get_column_names() and len(found) == len(marks)
+    assert found.get_column("name") == marks.get_column("name")
 
 
 def test_example_files_are_inside_the_package():

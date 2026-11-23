@@ -14,6 +14,7 @@ import simplydata as sdata
 from simplydata import SimplydataError
 from simplydata.table import table as make_table
 from simplydata.table.patterns import _sum_squares
+from conftest import example_frame
 
 ENGINES = ["pandas", "polars"]
 SPECIES = ["clover", "daisy", "buttercup", "dandelion", "nettle", "thistle", "moss", "fern", "orchid", "yarrow"]
@@ -28,18 +29,18 @@ def engine(request):
 def make(data, engine):
     if engine == "polars":
         pl = pytest.importorskip("polars")
-        return make_table(pl.from_pandas(data))
+        return make_table(data, fast=True)
     return make_table(data)
 
 
 @pytest.fixture
 def meadow(engine):
-    return make(sdata.get_example("meadow"), engine)
+    return make(example_frame("meadow"), engine)
 
 
 @pytest.fixture
 def school(engine):
-    return make(sdata.get_example("school"), engine)
+    return make(example_frame("school"), engine)
 
 
 def row(result):
@@ -55,7 +56,7 @@ def aligned(found, expected):
 
 
 def complete_school():
-    data = sdata.get_example("school")
+    data = example_frame("school")
     return data, data[SCHOOL_NUMBERS].notna().all(axis=1).to_numpy()
 
 
@@ -125,7 +126,7 @@ def test_principal_components_errors(school, meadow):
         school.add_principal_components(columns=["hours", "school"])
     with pytest.raises(SimplydataError, match="not found"):
         school.add_principal_components(columns=["hours", "slep"])
-    flat = make(sdata.get_example("meadow").assign(orchid=3), "pandas")
+    flat = make(example_frame("meadow").assign(orchid=3), "pandas")
     with pytest.raises(SimplydataError, match="same value in every row"):
         flat.add_principal_components()
     assert school._history == []
@@ -138,7 +139,7 @@ def test_kmeans_matches_r_meadow(meadow, capsys, needs_r):
     text = capsys.readouterr().out
     labels = meadow._frame.to_pandas()["cluster"].tolist()
     assert labels == [1, 1, 1, 2, 1, 3, 3, 3, 3, 3, 2, 1, 1, 2, 1, 3, 2, 3, 3, 3, 1, 1, 1, 1, 1, 3, 3, 3, 3, 3]
-    x = sdata.get_example("meadow")[SPECIES].to_numpy(float)
+    x = example_frame("meadow")[SPECIES].to_numpy(float)
     z = (x - x.mean(0)) / x.std(0, ddof=1)
     within, total = _sum_squares(z, np.array(labels))
     assert within == pytest.approx(188.442099934031, rel=1e-9)  # k1$tot.withinss
@@ -155,7 +156,7 @@ def test_kmeans_matches_r_meadow(meadow, capsys, needs_r):
 ])
 def test_kmeans_within_sum_of_squares(meadow, k, same_scale, r_within, needs_r):
     meadow.add_clusters(how_many=k, same_scale=same_scale)
-    x = sdata.get_example("meadow")[SPECIES].to_numpy(float)
+    x = example_frame("meadow")[SPECIES].to_numpy(float)
     z = (x - x.mean(0)) / x.std(0, ddof=1) if same_scale else x - x.mean(0)
     labels = meadow._frame.to_pandas()["cluster"].to_numpy()
     assert _sum_squares(z, labels)[0] == pytest.approx(r_within, rel=1e-9)
@@ -254,7 +255,7 @@ def test_distances_jaccard_is_presence_absence(engine):
 
 
 def test_distances_without_names_and_with_empty_cells(engine, capsys):
-    data = sdata.get_example("meadow")
+    data = example_frame("meadow")
     data.loc[2, "moss"] = None
     result = make(data, engine).find_distances_between_rows()._frame.to_pandas()
     assert "1 row with an empty cell" in capsys.readouterr().out
@@ -312,14 +313,14 @@ def test_nmds_matches_metamds(meadow, capsys, needs_r):
 def test_nmds_stress_matches_metamds(measure, dimensions, r_stress, needs_r):
     from simplydata.table.patterns import _r_nmds
 
-    x = sdata.get_example("meadow")[SPECIES].to_numpy(float)
+    x = example_frame("meadow")[SPECIES].to_numpy(float)
     points, stress, repeated = _r_nmds(x, measure, dimensions, 20, 1)
     assert stress == pytest.approx(r_stress, abs=0.005)  # the R values were found with trymax = 100
     assert points.shape == (30, dimensions)
 
 
 def test_nmds_empty_cells_and_errors(engine, capsys, needs_r):
-    data = sdata.get_example("meadow")
+    data = example_frame("meadow")
     data.loc[0, "clover"] = None
     t = make(data, engine)
     t.add_nmds(tries=3)
@@ -374,7 +375,7 @@ def test_compare_profiles_other_cases(meadow, capsys, for_each, measure, f, r2, 
 
 
 def test_compare_profiles_skips_empty_cells(engine, capsys, needs_r):
-    data = sdata.get_example("meadow")
+    data = example_frame("meadow")
     data.loc[3, "moss"] = None
     data.loc[5, "grazed"] = None
     full = row(make(data, engine).compare_profiles_of(for_each_group_in="grazed", permutations=99))

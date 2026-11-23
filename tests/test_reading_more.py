@@ -412,7 +412,7 @@ def show(table, *args, **kwargs):
 def marks_table(request, marks):
     if request.param == "polars":
         pl = pytest.importorskip("polars")
-        return sdata.table(pl.from_pandas(marks))
+        return sdata.table(marks, fast=True)
     return sdata.table(marks)
 
 

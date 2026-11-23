@@ -508,5 +508,7 @@ def test_no_old_name_in_the_built_documents():
         for number, line in enumerate(plain.splitlines(), 1):
             if any(mark in line for mark in _ON_PURPOSE):
                 continue
+            if r"{Underneath}{" in line:  # the calls of the package underneath (SciPy find_peaks), never simplydata words
+                continue
             hits += [f"{name}:{number}: {hit}" for hit in _old_names_in(line)]
     assert not hits, hits[:15]

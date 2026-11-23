@@ -11,6 +11,7 @@ import simplydata as sdata
 from simplydata import SimplydataError
 from simplydata._style import COLOURS
 from simplydata.words.charts import calendar_order
+from conftest import example_frame
 
 pl = pytest.importorskip("polars")
 
@@ -41,12 +42,12 @@ def bar_heights(ax):
 
 @pytest.fixture
 def marks():
-    return sdata.get_example("marks")
+    return example_frame("marks")
 
 
 @pytest.fixture
 def weather():
-    return sdata.get_example("weather")
+    return example_frame("weather")
 
 
 @pytest.fixture
@@ -119,7 +120,7 @@ def test_order_x_biggest_first_uses_what_the_bars_show(marks, engine):
 
 
 def test_order_x_biggest_first_on_count_bars_and_boxes(marks):
-    fruit = sdata.get_example("fruit")
+    fruit = example_frame("fruit")
     ax = draw(sdata.chart(fruit).draw_count_bars(x="fruit").order_x(biggest_first=True)).ax
     counts = fruit["fruit"].value_counts()
     assert [int(h) for h in bar_heights(ax)] == sorted(counts, reverse=True)
@@ -210,7 +211,7 @@ def matplotlib_rgb(code):
 
 
 def test_order_legend_on_a_pie_and_errors():
-    fruit = sdata.get_example("fruit")
+    fruit = example_frame("fruit")
     ctx = draw(sdata.chart(fruit).draw_pie(labels="fruit", values="count").order_legend("pear", "apple"))
     assert list(ctx.store["pie_sizes"].index[:2]) == ["pear", "apple"]
     assert np.isclose(ctx.store["pie_sizes"]["pear"], fruit.loc[fruit["fruit"] == "pear", "count"].sum())
@@ -427,7 +428,7 @@ def test_panels_of_numbers_go_from_small_to_big():
 
 # ---------------------------------------------------------------- empty cells on charts
 def test_chart_says_once_which_rows_empty_cells_left_out(capsys):
-    shop = sdata.get_example("shop")
+    shop = example_frame("shop")
     n_sales = int(shop["sales"].isna().sum())
     sdata.chart(shop).draw_lines(x="date", y="sales", colour="shop").draw_one_chart_for_each_group_in("shop")._render()
     out = capsys.readouterr().out
@@ -443,7 +444,7 @@ def test_chart_says_once_which_rows_empty_cells_left_out(capsys):
 
 
 def test_empty_cells_chart_marks_every_empty_cell(capsys):
-    shop = sdata.get_example("shop")
+    shop = example_frame("shop")
     chart = sdata.chart(shop).draw_map_of_empty_cells()
     ax = chart._render().axes[0]
     grid = ax.images[0].get_array()

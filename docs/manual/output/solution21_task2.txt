@@ -20,6 +20,7 @@ Found 8 of 180 rows with a Cook's distance above 4 / 180 = 0.0222:
   row 108: marks 54.0, hours 1.80, school "School H": Cook's distance 0.0234, leverage 0.0743, studentised residual 1.96
 Leverage: how unusual a row's values in using= are (the average is 0.0722). Studentised residual: how far the row lies from the model, in standard errors (beyond 2 or 3 is unusual).
 Method: statsmodels OLSInfluence, as R cooks.distance(), hatvalues() and rstudent(). The row numbers count from 1 in the whole table; remove a row only for a reason (a mistake in the data), and say so.
+Gives back a table of the 8 rows found, the biggest first.
 Comparing two models of "marks" on the same 180 rows:
   using= marks ~ hours + school: AIC = 1224, BIC = 1269 (14 values estimated)
   against= marks ~ hours + school + breakfast: AIC = 1219, BIC = 1266 (15 values estimated)

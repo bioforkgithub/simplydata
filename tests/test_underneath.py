@@ -21,6 +21,7 @@ from simplydata import learn
 from simplydata._underneath import CHART_FACTS, COMPARE_KINDS, R_LABEL, UNDERNEATH, Entry, underneath_line
 from simplydata._underneath.check import (chart_facts, check_entry, compare_charts, compare_legend_numbers, run_ours,
                                           run_python)
+from conftest import example_frame
 
 ROOT = Path(__file__).resolve().parents[1]
 ENTRIES = list(UNDERNEATH.values())
@@ -223,7 +224,7 @@ def test_chart_facts_read_words_sizes_legends_colours_angles_shapes_cells_and_pa
 def test_chart_facts_of_a_simplydata_chart():
     chart = sdata.chart(sdata.get_example("marks")).draw_bars(x="class", y="marks")
     facts = chart_facts(chart._render().axes[0])
-    df = sdata.get_example("marks")
+    df = example_frame("marks")
     heights = [b[3] for b in sorted(facts["bars"])]
     assert heights == pytest.approx(df.groupby("class", sort=False)["marks"].mean().tolist())
     plt.close("all")
@@ -256,7 +257,7 @@ def test_table_words_run_on_polars_too():
 def test_underneath_line_is_read_from_the_code():
     assert underneath_line(UNDERNEATH["draw_bars"]) == "seaborn barplot()"
     assert underneath_line(UNDERNEATH["table.find_average_of"]) == (
-        "pandas groupby().mean().reset_index() · Polars group_by().agg(), col().mean()")
+        "pandas groupby().mean().reset_index() · Polars group_by().agg().sort(), col().mean()")
     assert underneath_line(UNDERNEATH["table.keep_rows_where"]) == "pandas boolean indexing · Polars filter(), col()"
     assert underneath_line(UNDERNEATH["trade_off_curve"]).startswith("R pROC::roc(), pROC::ci.auc(), pROC::coords()")
 
@@ -320,6 +321,10 @@ def test_manual_shows_each_entry_in_a_grey_box_after_its_example():
         part = tex[start:end if end > 0 else len(tex)]
         mine = [e for e in ENTRIES if e.word == key]
         if not mine:
+            assert "underneathbox" not in part, key
+            continue
+        if all(e.compare == "none" for e in mine):  # nothing underneath: one line after the example, no box
+            assert part.index("Example you can run") < part.index("Nothing underneath:"), key
             assert "underneathbox" not in part, key
             continue
         assert part.index("Example you can run") < part.index(r"\begin{underneathbox}"), key

@@ -80,7 +80,9 @@ if (method == "arima") {
   out$errors <- c(unname(se), NA, NA, NA)
 }
 if (!is.null(test)) {
-  a <- forecast::accuracy(f, test)
+  # the held-out readings as a ts of the same frequency, starting where the forecast starts, so accuracy()
+  # scales MASE by the in-sample error of the same season last time (frequency m), as it says
+  a <- forecast::accuracy(f, stats::ts(test, frequency = m, start = stats::tsp(f$mean)[1]))
   out$accuracy <- unname(a["Test set", c("MAE", "RMSE", "MAPE", "MASE")])
 }
 out

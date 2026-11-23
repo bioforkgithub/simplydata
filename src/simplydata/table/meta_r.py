@@ -17,6 +17,9 @@ names its package, metafor::rma), so it cannot hide a function of another packag
 * for_each_group_in=: rma() in each subgroup (each with its own tau-squared), then the test of the difference
   between the subgroup estimates, rma(estimates, sei = ..., mods = ~ factor(group), method = "EE").
 * using=: a meta-regression, rma(yi, vi, mods = X).
+* every rma() with an iterative tau-squared (REML, Paule-Mandel) gets control = list(tol = 1e-10, threshold = 1e-10, maxiter = 1000):
+  metafor's default stopping rule (1e-5) left the Paule-Mandel tau-squared of the BCG trials 7.9e-5 short of the
+  converged value (simplydata_tests FINDINGS A7); only the stopping rule changes, not the method.
 """
 
 from __future__ import annotations
@@ -62,6 +65,9 @@ shown <- function(p) list(est = as.numeric(p$pred), low = as.numeric(p$ci.lb), h
                           pi_dist = if (is.null(p$pi.dist)) "" else as.character(p$pi.dist),
                           pi_df = if (is.null(p$pi.ddf)) NA_real_ else as.numeric(p$pi.ddf))
 predicted <- function(f) if (is.null(tf)) stats::predict(f) else stats::predict(f, transf = tf)
+# a tighter stopping rule than metafor's default (tol and threshold 1e-5) for the iterative estimators of tau^2
+# (REML, Paule-Mandel): the same method, run until it has converged (data-and-fixes, finding A7)
+ctl <- list(tol = 1e-10, threshold = 1e-10, maxiter = 1000); iterative <- method %in% c("REML", "PM")
 fit_on <- function(i, how = test) {
   if (method == "MH") {
     if (route == "rates") return(metafor::rma.mh(x1i = x1[i], t1i = t1[i], x2i = x2[i], t2i = t2[i], measure = "IRR",
@@ -71,7 +77,7 @@ fit_on <- function(i, how = test) {
   if (method == "PETO") return(metafor::rma.peto(ai = a1[i], n1i = n1[i], ci = a2[i], n2i = n2[i], slab = ids[i]))
   j <- i[ok[i]]
   if (length(j) == 1) return(metafor::rma(yi[j], vi[j], method = "EE", test = "z", slab = ids[j]))
-  metafor::rma(yi[j], vi[j], method = method, test = how, slab = ids[j])
+  metafor::rma(yi[j], vi[j], method = method, test = how, slab = ids[j], control = if (iterative) ctl else list())
 }
 about <- function(f) {
   kk <- if (!is.null(f$k.yi)) f$k.yi else f$k  # rma.mh and rma.peto keep tables without an effect in k
@@ -97,7 +103,8 @@ weights_of <- function(f) {
   w <- stats::weights(f); all <- rep(NA_real_, k_all); all[as.integer(names(w))] <- as.numeric(w); all
 }
 if (has_mods) {
-  fit <- metafor::rma(yi, vi, mods = X, method = method, test = test, slab = ids)
+  fit <- metafor::rma(yi, vi, mods = X, method = method, test = test, slab = ids,
+                      control = if (iterative) ctl else list())
   out$weights <- weights_of(fit)
   b <- as.numeric(fit$b)
   out$mods <- list(beta = b, se = as.numeric(fit$se), low = as.numeric(fit$ci.lb), high = as.numeric(fit$ci.ub),

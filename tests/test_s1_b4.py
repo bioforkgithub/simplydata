@@ -14,6 +14,7 @@ import pytest
 
 import simplydata as sdata
 from simplydata.table import table as make_table
+from conftest import example_frame
 
 X = [12.1, 14.3, 11.8, 15.2, 13.9, 12.7, 14.8, 13.1, 12.4, 25.6, 3.0, 13.3]
 
@@ -26,12 +27,12 @@ def engine(request):
 def make(engine, data):
     if engine == "polars":
         pl = pytest.importorskip("polars")
-        return make_table(pl.from_pandas(data))
+        return make_table(data, fast=True)
     return make_table(data)
 
 
 def test_count_each_interval(engine, capsys):
-    got = make(engine, sdata.get_example("fruit")).count_each("fruit", interval=95)._frame.to_pandas().set_index("fruit")
+    got = make(engine, example_frame("fruit")).count_each("fruit", interval=95)._frame.to_pandas().set_index("fruit")
     # R: DescTools::MultinomCI(table): apple 0.1212121212121 to 0.447361627938; pear 0 to 0.265543446120
     assert got.loc["apple", "percent 95 % CI low"] == pytest.approx(12.12121212121, rel=1e-9)
     assert got.loc["apple", "percent 95 % CI high"] == pytest.approx(44.7361627938, rel=1e-9)
