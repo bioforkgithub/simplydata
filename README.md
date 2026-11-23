@@ -522,7 +522,7 @@ shows the same job written in the package underneath, in a grey box that a test 
 - The defaults of each batch were checked by an independent review when they were designed, and every entry of
   the table below, with its references, was checked again by independent hostile reviewers in November 2026.
 
-[How simplydata chooses methods](docs/how_simplydata_chooses.md) gives all 342 defaults: for each, the default,
+[How simplydata chooses methods](docs/how_simplydata_chooses.md) gives all 345 defaults: for each, the default,
 the alternatives, why it was chosen, what simplydata checks in the data, and its references (each DOI checked in
 Crossref). The manual has the same table as its last part.
 
